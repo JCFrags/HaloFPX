@@ -1,0 +1,18 @@
+section_id: "67"
+title: "Configuration, Hardware Profiles, Model Manifests, and Plan Manifests"
+category_id: "10"
+category_title: "Product, Server, and Operations"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 11
+required_machine_experiments:
+  - "Deterministic two-node hardware profile collection and diff"
+  - "Measured memory, storage, backend, and link limits for profile fields"
+  - "Single-node and two-node plan dry-run/load validation"
+  - "Independent canonicalization/hash test vectors and redaction scan"
+related_sections: ["03", "09", "18", "23", "29", "30", "38", "47", "49", "60", "66", "68", "70", "71", "72"]
+applicability:
+  repositories: ["ggml-org/llama.cpp@788e07d", "charlie12345/ROCmFPX@a5605a7", "fewtarius/CachyLLama@6be7459"]
+  standards: ["JSON Schema 2020-12", "RFC 8785"]
+  hardware: ["two matched AMD Strix Halo systems; exact profiles open"]

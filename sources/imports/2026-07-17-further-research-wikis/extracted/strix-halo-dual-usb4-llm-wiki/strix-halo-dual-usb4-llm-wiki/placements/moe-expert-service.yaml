@@ -1,0 +1,58 @@
+schema_version: "1.0"
+name: Remote MoE expert service with local attention and router
+mode: moe_expert_service
+viability: experimental
+objective: [expert-weight capacity, exploit routing locality when measured]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: validated_striping
+  bandwidth_symbol: B_bulk
+  latency_symbol: ell for dispatch and return at each active MoE layer
+coordinator_rank: 0
+ranks:
+  - rank_id: 0
+    node: A
+    role: [frontend, attention and router owner, local expert worker, sampler]
+    ownership:
+      tokenizer: full tokenizer and detokenizer
+      sampler: final norm/head and token selection
+      rng: final sampling RNG/counters
+      model: embeddings, attention, normalization, routers, non-expert parameters, final head
+      experts: configured local subset E_A for every MoE layer
+      kv: all attention KV; remote expert worker owns no KV
+      sessions: all authoritative sequence state and routing maps
+  - rank_id: 1
+    node: B
+    role: [stateless remote expert worker]
+    ownership:
+      tokenizer: none
+      sampler: none
+      rng: none
+      model: no attention or LM head; expert execution runtime only
+      experts: configured remote subset E_B for every MoE layer
+      kv: none
+      sessions: transient assignment buffers keyed by request/token/layer
+flows:
+  - phase: each MoE layer with remote assignments
+    from: 0
+    to: 1
+    payload: routed hidden vectors plus token index, expert ID, and gate weight metadata
+    volume_formula: R_l*(h*b_a+b_meta_dispatch), where R_l=N_l*k*rho_l
+    synchronization: dispatch barrier before remote expert compute
+    link_policy: bulk_striped_if_validated
+  - phase: each MoE layer with remote assignments
+    from: 1
+    to: 0
+    payload: remote expert outputs plus token index metadata
+    volume_formula: R_l*(h*b_a+b_meta_return)
+    synchronization: combine barrier before the next transformer operation
+    link_policy: bulk_striped_if_validated
+hard_gates:
+  - A workload routing trace supplies rho_l, expert frequency, co-selection, and load imbalance.
+  - Sum of dispatch, remote compute, return, and combine overhead is below measured critical-path expert work saved, or capacity is the explicit objective.
+  - Expert versions and router configuration are identical across nodes.
+  - Backpressure bounds transient routed-token buffers.
+notes:
+  - Random half-and-half expert placement is not assumed to be efficient.
+  - The illustrative rho=0.5 calculation in worked examples is sensitivity analysis only.

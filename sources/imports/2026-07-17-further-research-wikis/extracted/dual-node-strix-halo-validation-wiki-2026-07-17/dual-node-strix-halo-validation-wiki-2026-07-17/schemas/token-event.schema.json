@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Per-token streaming event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "request_id",
+    "sequence",
+    "client_event_monotonic_ns",
+    "content_bytes",
+    "is_content_token"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "client_event_monotonic_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "client_event_utc": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "server_event_monotonic_ns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "token_id": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "token_text_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "content_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "is_content_token": {
+      "type": "boolean"
+    },
+    "is_terminal_event": {
+      "type": "boolean"
+    },
+    "raw_event_bytes": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "event_token_count": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "event_count_is_token_count": {
+      "type": "boolean"
+    }
+  }
+}

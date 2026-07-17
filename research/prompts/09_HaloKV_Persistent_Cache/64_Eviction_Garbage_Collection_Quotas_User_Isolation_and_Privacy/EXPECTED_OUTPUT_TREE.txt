@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

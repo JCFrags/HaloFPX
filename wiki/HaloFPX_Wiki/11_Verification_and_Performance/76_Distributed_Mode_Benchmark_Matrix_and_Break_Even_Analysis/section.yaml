@@ -1,0 +1,31 @@
+section_id: "76"
+title: "Distributed Mode Benchmark Matrix and Break-Even Analysis"
+category: "11_Verification_and_Performance"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 7
+open_question_count: 13
+required_machine_experiments:
+  - "Run matched single-node baselines on each rank and two-replica controls."
+  - "Benchmark native MTP, local draft, and remote draft with token-level acceptance and timing traces."
+  - "Benchmark two-rank tensor parallel with collective attribution."
+  - "Benchmark contiguous pipeline plans with stage, activation, and bubble attribution."
+  - "Benchmark MoE hybrid plans with expert routing, residency, and imbalance traces."
+  - "Measure concurrency, latency tails, power, memory, and fabric contention for every viable mode."
+  - "Derive paired uncertainty-aware break-even regions and validate them on held-out traces."
+  - "Verify rank/link failure degradation and single-node fallback."
+related_sections: ["29", "34", "36", "38", "40", "41", "42", "43", "44", "45", "46", "47", "48", "73", "74", "75", "78", "80"]
+applicability:
+  repositories:
+    - repository: "ggml-org/llama.cpp"
+      commit: "788e07dc91d266ad3162a1ce9037665656269689"
+    - repository: "charlie12345/ROCmFPX"
+      commit: "a5605a72768c6562241b248e268e33dc92787394"
+  software_versions: []
+  hardware_revisions:
+    - "planned matched dual Strix Halo nodes; exact inventory pending"
+claim_scope:
+  source_research_complete: true
+  target_machine_validation_complete: false
+  benchmark_results_added: false
+  mode_selected: false

@@ -1,0 +1,24 @@
+{
+  "schema": "llm-wiki-hf-artifact-manifest-v1",
+  "as_of": "2026-07-17",
+  "candidate_id": "minimax-m3",
+  "model": "MiniMax-M3",
+  "selected_quant": "UD-IQ4_XS",
+  "publisher_display_size_gb_decimal": 208.0,
+  "conservative_weight_plan_gib": 195,
+  "huggingface": {
+    "upstream_repo": "MiniMaxAI/MiniMax-M3",
+    "quant_repo": "unsloth/MiniMax-M3-GGUF",
+    "revision": "41b3ee5f52f642949301cb1fc34cf8379ba22416",
+    "path": "UD-IQ4_XS",
+    "shard_count": 6,
+    "displayed_shard_gb": [],
+    "known_lfs": []
+  },
+  "source_urls": [
+    "https://huggingface.co/MiniMaxAI/MiniMax-M3",
+    "https://huggingface.co/unsloth/MiniMax-M3-GGUF"
+  ],
+  "integrity_status": "authoritative-revision/path-manifest; run refresh_hf_manifests.py for exact LFS OIDs",
+  "notes": "No model weight bytes are redistributed in this package. Display sizes are publisher UI values; exact downloaded files must be verified locally."
+}

@@ -1,0 +1,15 @@
+section_id: "02"
+title: "Evidence, Citation, and Source Policy"
+category_id: "01"
+category_title: "Wiki Governance"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 10
+open_question_count: 6
+required_machine_experiments:
+  - "Capture exact commit, dirty state, submodules, build environment, and licenses for every upstream checkout on both nodes"
+related_sections: ["01", "04", "05"]
+applicability:
+  repositories: ["Custom_Inference_Project", "ROCmFPX", "CachyLlama", "llama-ai", "llama.cpp"]
+  software_versions: ["CFF 1.2.0", "W3C PROV-O 2013"]
+  hardware_revisions: []

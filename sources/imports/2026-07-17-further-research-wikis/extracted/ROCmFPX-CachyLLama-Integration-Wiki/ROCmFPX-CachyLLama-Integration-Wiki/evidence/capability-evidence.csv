@@ -1,0 +1,15 @@
+capability_id,capability,source_ids,treatment,lane,provenance_state,import_status
+C01,cross-restart persistence,"S07,S08,S09,S12",IF+MP,L05,P1,blocked
+C02,hot/warm/cold retention,"S14,S15",IF+MP,L05,P1,blocked
+C03,readahead/prefetch,S15,MP; CP candidate after P3,L05,P1,blocked
+C04,system-prefix cache,"S12,S16",IF+MP,L07,P1,blocked
+C05,hybrid recurrent restore,"S10,S20,S21",IF+MP; CR fallback,L08,P1,blocked
+C08,tenant cache namespace,S19,IF+MP,L09,P1,blocked
+C09,per-user concurrency,S19,MP,L10,P1,blocked
+C10,slot affinity,S19,MP,L11,P1,blocked
+C11,expert telemetry,"S12,S22",IF+CR/MP,L12,P1,blocked
+C12,AMD Vulkan tuning,S26,NA already canonical,L14,P3-equivalent,no import
+C13,CPU ISA build preset,"S12,S23",CR,L13,parent GPL,clean-room
+C14,MLA/DeepSeek,S27,NA verify upstream,L14,canonical present,no import
+C15,donor format importer,"S14,S15,S16",CR offline only,L06,P1,deferred
+C16,page-level paging,"S17,S18",DEFER,research,P1,deferred

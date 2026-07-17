@@ -1,0 +1,9 @@
+flowchart LR
+  A[Node A / rank 0] --- A1[USB4 A1]
+  A --- A2[USB4 A2]
+  A1 <-->|B1, ell1 measured| B1[USB4 B1]
+  A2 <-->|B2, ell2 measured| B2[USB4 B2]
+  B1 --- B[Node B / rank 1]
+  B2 --- B
+  G{Concurrent striping gate} -.-> A2
+

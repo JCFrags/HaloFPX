@@ -1,0 +1,431 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Release evidence summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "summary_id",
+    "generated_at",
+    "evidence_origin",
+    "evidence_level",
+    "release_profile",
+    "stage",
+    "testbed_id",
+    "candidate_id",
+    "experiments",
+    "provenance",
+    "baselines",
+    "absolute_slos",
+    "hard_events",
+    "quality",
+    "soak",
+    "faults",
+    "upstream",
+    "metrics"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "summary_id": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidence_origin": {
+      "enum": [
+        "synthetic",
+        "machine"
+      ]
+    },
+    "evidence_level": {
+      "enum": [
+        "S0",
+        "M1",
+        "M2",
+        "R1"
+      ]
+    },
+    "release_profile": {
+      "enum": [
+        "scale_out",
+        "capacity_extension",
+        "availability_recovery"
+      ]
+    },
+    "stage": {
+      "enum": [
+        "G0",
+        "G1",
+        "G2",
+        "G3",
+        "G4"
+      ]
+    },
+    "testbed_id": {
+      "type": "string"
+    },
+    "candidate_id": {
+      "type": "string"
+    },
+    "experiments": {
+      "type": "object",
+      "required": [
+        "completed",
+        "invalid",
+        "missing"
+      ],
+      "properties": {
+        "completed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invalid": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "completeness",
+        "raw_hashes_verified"
+      ],
+      "properties": {
+        "completeness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "raw_hashes_verified": {
+          "type": "boolean"
+        },
+        "packet_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "baselines": {
+      "type": "object",
+      "required": [
+        "topologies_present",
+        "matched",
+        "independent_reproduction_blocks"
+      ],
+      "properties": {
+        "topologies_present": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "node-a",
+              "node-b",
+              "dual"
+            ]
+          }
+        },
+        "matched": {
+          "type": "boolean"
+        },
+        "independent_reproduction_blocks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "best_single_node": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "absolute_slos": {
+      "type": "object",
+      "required": [
+        "configured",
+        "approved",
+        "met"
+      ],
+      "properties": {
+        "configured": {
+          "type": "boolean"
+        },
+        "approved": {
+          "type": "boolean"
+        },
+        "met": {
+          "type": "boolean"
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "hard_events": {
+      "type": "object",
+      "required": [
+        "unexpected_crashes",
+        "unexpected_hangs",
+        "kernel_oops",
+        "gpu_resets",
+        "silent_corruption",
+        "thermal_throttle_events",
+        "usb4_renegotiations"
+      ],
+      "properties": {
+        "unexpected_crashes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unexpected_hangs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "kernel_oops": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gpu_resets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "silent_corruption": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "thermal_throttle_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "usb4_renegotiations": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": true
+    },
+    "quality": {
+      "type": "object",
+      "required": [
+        "request_success_rate",
+        "critical_correctness_rate"
+      ],
+      "properties": {
+        "request_success_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "critical_correctness_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "task_quality_drift": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "soak": {
+      "type": "object",
+      "required": [
+        "hours",
+        "max_evidence_gap_s"
+      ],
+      "properties": {
+        "hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_evidence_gap_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "completed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "faults": {
+      "type": "object",
+      "required": [
+        "mandatory_scenarios",
+        "repeats_min",
+        "pass_fraction",
+        "lost_acknowledged_requests",
+        "completed_scenario_ids",
+        "failed_scenario_ids"
+      ],
+      "properties": {
+        "mandatory_scenarios": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "repeats_min": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pass_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "lost_acknowledged_requests": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "completed_scenario_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^F-[A-Z]+-[0-9]{3}$"
+          }
+        },
+        "failed_scenario_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^F-[A-Z]+-[0-9]{3}$"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "upstream": {
+      "type": "object",
+      "required": [
+        "sources_fresh",
+        "untriaged_p0_p1_blockers"
+      ],
+      "properties": {
+        "sources_fresh": {
+          "type": "boolean"
+        },
+        "untriaged_p0_p1_blockers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ledger_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "security": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "number",
+          "integer",
+          "boolean",
+          "string",
+          "null"
+        ]
+      }
+    },
+    "regressions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "metric",
+          "status"
+        ],
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "WARN_RETEST",
+              "FAIL",
+              "NOT_APPLICABLE",
+              "INSUFFICIENT_EVIDENCE"
+            ]
+          },
+          "candidate": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "baseline": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ratio": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "confidence_interval": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

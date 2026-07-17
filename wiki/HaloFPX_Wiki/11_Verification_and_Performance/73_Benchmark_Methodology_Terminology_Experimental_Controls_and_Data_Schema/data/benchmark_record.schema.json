@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://halofpx.local/schemas/benchmark-record-1.0.0.json",
+  "title": "HaloFPX benchmark record",
+  "description": "Structural schema for append-only benchmark evidence records. It does not define performance thresholds, sample sufficiency, warmup convergence, confidence methods, or release decisions.",
+  "oneOf": [
+    { "$ref": "#/$defs/run_manifest" },
+    { "$ref": "#/$defs/request" },
+    { "$ref": "#/$defs/token_event" },
+    { "$ref": "#/$defs/collective_event" },
+    { "$ref": "#/$defs/cache_event" },
+    { "$ref": "#/$defs/telemetry_sample" },
+    { "$ref": "#/$defs/run_summary" }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "common": {
+      "type": "object",
+      "required": [
+        "record_model_version",
+        "record_type",
+        "run_id",
+        "recorded_at",
+        "monotonic_clock",
+        "monotonic_ns"
+      ],
+      "properties": {
+        "record_model_version": { "const": "1.0.0" },
+        "record_type": {
+          "enum": [
+            "run_manifest",
+            "request",
+            "token_event",
+            "collective_event",
+            "cache_event",
+            "telemetry_sample",
+            "run_summary"
+          ]
+        },
+        "run_id": { "type": "string", "format": "uuid" },
+        "recorded_at": { "type": "string", "format": "date-time" },
+        "monotonic_clock": {
+          "enum": ["CLOCK_MONOTONIC_RAW", "CLOCK_MONOTONIC"]
+        },
+        "monotonic_ns": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "run_manifest": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "required": [
+            "manifest_sha256",
+            "source_commit",
+            "model_sha256",
+            "tokenizer_sha256",
+            "prompt_set_sha256",
+            "controls",
+            "hypotheses",
+            "primary_metrics"
+          ],
+          "properties": {
+            "record_type": { "const": "run_manifest" },
+            "manifest_sha256": { "$ref": "#/$defs/sha256" },
+            "source_commit": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "model_sha256": { "$ref": "#/$defs/sha256" },
+            "tokenizer_sha256": { "$ref": "#/$defs/sha256" },
+            "prompt_set_sha256": { "$ref": "#/$defs/sha256" },
+            "plan_sha256": {
+              "oneOf": [
+                { "$ref": "#/$defs/sha256" },
+                { "type": "null" }
+              ]
+            },
+            "controls": { "type": "object", "minProperties": 1 },
+            "hypotheses": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "primary_metrics": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "request": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "status",
+            "input_tokens",
+            "output_tokens",
+            "request_start_ns",
+            "first_output_observed_ns",
+            "final_response_observed_ns",
+            "cache",
+            "speculation"
+          ],
+          "properties": {
+            "record_type": { "const": "request" },
+            "request_id": { "type": "string", "minLength": 1 },
+            "status": {
+              "enum": ["success", "failure", "cancelled", "timeout", "rejected"]
+            },
+            "input_tokens": { "type": "integer", "minimum": 0 },
+            "output_tokens": { "type": "integer", "minimum": 0 },
+            "request_start_ns": { "type": "integer", "minimum": 0 },
+            "first_output_observed_ns": {
+              "type": ["integer", "null"],
+              "minimum": 0
+            },
+            "final_response_observed_ns": { "type": "integer", "minimum": 0 },
+            "error_code": { "type": ["string", "null"] },
+            "cache": {
+              "type": "object",
+              "required": ["eligible_tokens", "restored_tokens", "class"],
+              "properties": {
+                "eligible_tokens": { "type": "integer", "minimum": 0 },
+                "restored_tokens": { "type": "integer", "minimum": 0 },
+                "class": {
+                  "enum": [
+                    "exact_hit",
+                    "partial_hit",
+                    "miss_absent",
+                    "miss_incompatible",
+                    "miss_corrupt",
+                    "error"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "speculation": {
+              "type": "object",
+              "required": ["proposed_tokens", "accepted_tokens", "target_only_tokens"],
+              "properties": {
+                "proposed_tokens": { "type": "integer", "minimum": 0 },
+                "accepted_tokens": { "type": "integer", "minimum": 0 },
+                "target_only_tokens": { "type": "integer", "minimum": 0 }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "token_event": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "required": ["request_id", "token_index", "token_id", "chunk_id", "observed_ns"],
+          "properties": {
+            "record_type": { "const": "token_event" },
+            "request_id": { "type": "string", "minLength": 1 },
+            "token_index": { "type": "integer", "minimum": 0 },
+            "token_id": { "type": "integer" },
+            "chunk_id": { "type": "string", "minLength": 1 },
+            "observed_ns": { "type": "integer", "minimum": 0 }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "collective_event": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "required": ["rank", "operation", "payload_bytes", "dtype", "issue_ns", "complete_ns", "link_ids", "transport"],
+          "properties": {
+            "record_type": { "const": "collective_event" },
+            "rank": { "type": "integer", "minimum": 0 },
+            "operation": { "type": "string", "minLength": 1 },
+            "payload_bytes": { "type": "integer", "minimum": 0 },
+            "dtype": { "type": "string", "minLength": 1 },
+            "issue_ns": { "type": "integer", "minimum": 0 },
+            "complete_ns": { "type": "integer", "minimum": 0 },
+            "link_ids": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "transport": { "type": "string", "minLength": 1 }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "cache_event": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "required": ["event_id", "operation", "outcome", "tier", "eligible_tokens", "restored_tokens", "bytes", "validation", "error_code"],
+          "properties": {
+            "record_type": { "const": "cache_event" },
+            "event_id": { "type": "string", "minLength": 1 },
+            "request_id": { "type": ["string", "null"] },
+            "operation": { "enum": ["lookup", "restore", "write", "evict"] },
+            "outcome": {
+              "enum": [
+                "exact_hit",
+                "partial_hit",
+                "miss_absent",
+                "miss_incompatible",
+                "miss_corrupt",
+                "success",
+                "error"
+              ]
+            },
+            "tier": { "enum": ["dram", "page_cache", "nvme", "none"] },
+            "eligible_tokens": { "type": "integer", "minimum": 0 },
+            "restored_tokens": { "type": "integer", "minimum": 0 },
+            "bytes": { "type": "integer", "minimum": 0 },
+            "validation": { "enum": ["valid", "incompatible", "corrupt", "not_checked"] },
+            "error_code": { "type": ["string", "null"] }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "telemetry_sample": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "required": ["resource_id", "sample_period_ns", "metrics"],
+          "properties": {
+            "record_type": { "const": "telemetry_sample" },
+            "resource_id": { "type": "string", "minLength": 1 },
+            "sample_period_ns": { "type": "integer", "minimum": 1 },
+            "metrics": {
+              "type": "object",
+              "minProperties": 1,
+              "properties": {
+                "power_w": { "type": ["number", "null"], "minimum": 0 },
+                "temperature_c": { "type": ["number", "null"] },
+                "utilization_ratio": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+                "clock_hz": { "type": ["number", "null"], "minimum": 0 },
+                "errors_total": { "type": ["integer", "null"], "minimum": 0 }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "run_summary": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "required": ["derivation_sha256", "input_sha256s", "quantile_method", "confidence_method", "counts", "metrics"],
+          "properties": {
+            "record_type": { "const": "run_summary" },
+            "derivation_sha256": { "$ref": "#/$defs/sha256" },
+            "input_sha256s": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/sha256" },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "quantile_method": { "type": "string", "minLength": 1 },
+            "confidence_method": { "type": "string", "minLength": 1 },
+            "counts": {
+              "type": "object",
+              "required": ["offered", "completed", "successful", "failed"],
+              "properties": {
+                "offered": { "type": "integer", "minimum": 0 },
+                "completed": { "type": "integer", "minimum": 0 },
+                "successful": { "type": "integer", "minimum": 0 },
+                "failed": { "type": "integer", "minimum": 0 }
+              },
+              "additionalProperties": false
+            },
+            "metrics": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": "object",
+                "required": ["unit", "estimate"],
+                "properties": {
+                  "unit": { "type": "string", "minLength": 1 },
+                  "estimate": { "type": "number" },
+                  "p50": { "type": "number" },
+                  "p95": { "type": "number" },
+                  "p99": { "type": "number" },
+                  "confidence_interval": {
+                    "type": "object",
+                    "required": ["lower", "upper", "level"],
+                    "properties": {
+                      "lower": { "type": "number" },
+                      "upper": { "type": "number" },
+                      "level": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}

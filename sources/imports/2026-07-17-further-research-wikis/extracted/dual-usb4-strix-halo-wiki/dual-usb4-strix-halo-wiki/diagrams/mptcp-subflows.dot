@@ -1,0 +1,29 @@
+digraph G {
+
+  graph [bgcolor="#101820", pad="0.35", nodesep="0.4", ranksep="0.55", fontname="DejaVu Sans"];
+  node [shape=box, style="rounded,filled", fillcolor="#263238", color="#4dd0e1", fontcolor="#f5f7fa", fontname="DejaVu Sans", penwidth=1.7, margin="0.16,0.10"];
+  edge [color="#90caf9", fontcolor="#cfd8dc", fontname="DejaVu Sans", penwidth=2.0, arrowsize=0.75];
+
+  rankdir=LR; label="One MPTCP connection, two intended subflows"; labelloc=t; fontsize=20; fontcolor="#ffffff";
+  appa [label="Node A application
+one socket", fillcolor="#37474f"];
+  metaA [label="MPTCP meta-socket"];
+  sf0a [label="subflow 0
+10.44.0.1"];
+  sf1a [label="subflow 1
+10.44.1.1"];
+  sf0b [label="10.44.0.2
+initial listener"];
+  sf1b [label="10.44.1.2
+signaled address"];
+  metaB [label="MPTCP accepted socket"];
+  appb [label="Node B application
+one socket", fillcolor="#37474f"];
+  appa -> metaA; metaA -> sf0a; metaA -> sf1a;
+  sf0a -> sf0b [dir=both,label="MP_CAPABLE / cable 0",color="#26c6da",penwidth=4];
+  sf1a -> sf1b [dir=both,label="MP_JOIN / cable 1",color="#7e57c2",penwidth=4];
+  sf0b -> metaB; sf1b -> metaB; metaB -> appb;
+  note [label="Server: 10.44.1.2 signal
+Client: 10.44.1.1 subflow laminar", fillcolor="#4e342e", color="#ffb74d"];
+  sf1a -> note [style=dotted,arrowhead=none];
+}

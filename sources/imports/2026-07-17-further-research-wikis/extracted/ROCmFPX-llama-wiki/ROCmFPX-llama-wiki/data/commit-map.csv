@@ -1,0 +1,36 @@
+series,sha,title,category,paths,decision,source
+PR #27,ff8e7b8cf9dab714951df49d71f5835a7322404a,Fix WebUI build: async/image plumbing,WebUI,tools/server/webui/src/lib/constants/uri-template.ts; tools/server/webui/src/lib/services/chat.service.ts; tools/server/webui/src/lib/stores/agentic.svelte.ts,RETIRE,S-C-FF8
+PR #27,0631515b0bca7859387e3467a6f6ac6379622a02,Validate WebUI and isolate backend CI builds,Build / CI,.github/workflows/build.yml; .github/workflows/hip-quality-check.yml; tools/server/webui/**,RETIRE,S-C-063
+PR #27,df3b8a0efa4dbdfcc2e29dac367c69eed310ed24,Preserve negative infinity under ROCm 7.2 fast-math,ROCm/HIP kernels,ggml/src/ggml-cuda/common.cuh; cross-entropy-loss.cu; dsv4.cu; softmax.cu; topk-moe.cu,REFRESH,S-C-DF3
+PR #27,62f7508b12c6b8510fd7a77dfc5d9519fa026d82,Restore ROCmFPX GPU coherency,ROCm/HIP + Vulkan,ggml/src/ggml-cuda/mmq.cuh; ggml/src/ggml-vulkan/ggml-vulkan.cpp; promotion evidence docs,RETAIN,S-C-62F
+PR #27,b1331a2dd4ca774833a26d7682b6ce1f9c022d4a,Make the promotion candidate portable,TurboQuant / build integration,TurboQuant helper declarations; exhaustive type switches; converter requirements/checks,REFRESH,S-C-B133
+PR #27,e6009eb76d55062d22357e6f117a829e861be01b,Restore coherent WebGPU and Hexagon sources,Imported backend snapshots,ggml/src/ggml-webgpu/**; ggml/src/ggml-hexagon/**,RETIRE,S-C-E600
+PR #27,80732f992f7c75e9154cfe184041f1384c59a0fb,Restore coherent backend and parser snapshots,Imported upstream snapshots,"ggml/src/ggml-{hexagon,opencl,webgpu}/**; common parser/chat units; related tests",RETIRE,S-C-807
+PR #27,8fcff76bca27ea2818761adad681cb792eb2fa26,Align chat whitespace fixtures with upstream,Parser tests,tests/test-chat*.cpp and associated parser fixtures,RETIRE,S-C-8FC
+PR #27,a8c41d31423e3e0b6f2dc7138af1d4fba8edb295,Harden cross-platform WebUI provisioning,Build / WebUI,.github/workflows/**; scripts/webui-download.cmake,RETIRE,S-C-A8C
+PR #27,0ff0b4d03e74d9bc8a092ce2dd177d24cfdea007,Accept valid backend tokens across parallel slots,Sampling / server,common/sampling.cpp,REFRESH,S-C-0FF
+PR #27,0e5159daa31132e16a1cc45f724c410b1d236185,Reject Metal GET_ROWS types without kernels,Metal,ggml/src/ggml-metal/ggml-metal-device.m,RETIRE,S-C-0E5
+PR #27,d45ceff8d2b67fdebf73ebcb999807b0d322c73b,Route ROCmFPX OUT_PROD through CPU dequantization,CPU / ggml,ggml/src/ggml-cpu/ops.cpp,RETAIN,S-C-D45
+PR #27,01d463bb23c3f290688c4529c13b3b467fa2f7dc,Restore upstream XCFramework script,Apple packaging,build-xcframework.sh,RETIRE,S-C-01D
+PR #27,ccac6e55ec7c0fa8acdcb6e80b1a242e4f7d654e,Clarify ROCmFPX benefits and MTP results,Documentation,README.md,REFRESH,S-C-CCAC
+PR #27,c2845bf86a5c1842d33bd9e990b2bcaf75779251,Merge PR #27,Merge,237-file PR series,MIXED,S-C-PR27-M
+PR #28,1b49f4a004b8a2e0183c6cda7a61e7d322ac8d60,Add funding link,Housekeeping,.github/FUNDING.yml,RETIRE,S-C-FUND
+PR #28,6bf20cd688ba0af882d1f68ba50b292edf646ab4,Merge PR #28,Merge,.github/FUNDING.yml,RETIRE,S-C-PR28-M
+PR #31,b56ad79d77bc1eb9fe6407640eec8b8edfc04900,Honor per-request speculative n_max/n_min/p_min,Server / speculative,tools/server/server-context.cpp; tools/server/server-task.cpp,RETAIN,S-C-B56
+PR #31,25c71fc6e12d73bb3804127e032d29fb8976ae40,Merge PR #31,Merge,tools/server/server-context.cpp; tools/server/server-task.cpp,RETAIN,S-C-PR31-M
+PR #32,c81c7c92233b6370b4eb7087398779a8dcb234a4,Add SSD prompt cache for stateful MTP,Server / cache,"common/{arg,common,speculative}.*; tools/server/{server-context,server-task}.*; server cache tests/docs",REFRESH,S-C-C81
+PR #32,bb7d9cb5965e3be1ce2073134ba14787bf378113,Use portable cache-file synchronization,Server / cache,tools/server/server-context.cpp,REFRESH,S-C-BB7
+PR #32,630fa5a0f8fc04689b86d1b0a3d75b2b7d546d07,Add HY3 MTP/NextN graph,Graph / model,src/models/hyv3.cpp; src/llama-model*.cpp; src/llama-context.cpp; private MTP graph hooks,RETIRE,S-C-630
+PR #32,f961404519a2ed286b750ba1419d40318a6b9a92,Support HY3 MTP tensors and split export,Conversion / GGUF,convert_hf_to_gguf.py,RETIRE,S-C-F961
+PR #32,eff9987923b58d1a6b7e54610c667803ac2d0ea7,Harden native MTP context and effective limits,MTP / speculative,common/speculative.cpp; associated context/private API integration,REFRESH,S-C-EFF
+PR #32,120227d3d34a0d52cfee168964d0a7e3212960a9,Restore FP6 endpoint semantics across backends,Quantization / backends,ROCmFPX reference and shared CPU/HIP/Vulkan expansion/dispatch files,RETAIN,S-C-120
+PR #32,7d7b06bc5e6fd4a128af8efa954caa7409376a79,Add strict greedy verification for HY3 MTP,Server / MTP,common/speculative.*; tools/server/server-context.cpp; server options/tests,RETAIN,S-C-7D7
+PR #32,2766f419526ea14ba1be8f31eca21263cfc52813,Auto-select one slot for strict HY3 MTP,Server policy,tools/server/server.cpp; server startup/configuration path,REFRESH,S-C-276
+PR #32,756121a5e8e7da464aebd2ab344a2aefef6cecac,Use UTF-8 paths for disk prompt cache,Server / Windows,tools/server/server-context.cpp; cache filesystem boundary,REFRESH,S-C-756
+PR #32,8488bfc69f716b5aa34bf75d1a72466ac75cc5da,Run ROCmFP2 reference probe in CI,Build / CI,.github/workflows/check-rocmfpx.yml,RETAIN,S-C-848
+PR #32,16ed874b3d950a67be0d14311708879a435ad3ca,Bound HY3 WebGPU matrix runtime,WebGPU tests,tests/test-backend-ops.cpp,RETIRE,S-C-16E
+PR #32,0d7ac512e5eb511843797c07a16bc7d97d3bc4f8,Make disk failure probes portable,Server tests,tools/server/tests/unit/test_prompt_cache_disk.py; tests/utils.py,RETAIN,S-C-0D7
+PR #32,a8b5fa906ccd13c6a8ca06d55aa287854c376868,Dispatch Q2 ROCmFPX CPU OUT_PROD,CPU / ggml,ggml/src/ggml-cpu/ops.cpp,RETAIN,S-C-A8B
+PR #32,d52c96a8339325417624351bebad194c3864cb26,Preserve indentation in read_file tool output,Server backport,tools/server/server-tools.cpp,RETIRE,S-C-D52
+PR #32,fe2b7dc5e19a5e24c276593368a1bb41d0e27b1d,Validate Jinja integer base before CRT call,Jinja backport,common/jinja/value.cpp,RETIRE,S-C-FE2
+PR #32,a5605a72768c6562241b248e268e33dc92787394,Merge PR #32; current fork head,Merge,73-file PR series,MIXED,S-C-PR32-M

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Source registry",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id",
+      "title",
+      "publisher",
+      "url",
+      "type",
+      "classification",
+      "scope",
+      "key_claims",
+      "accessed"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "publisher": {
+        "type": "string"
+      },
+      "url": {
+        "type": "string",
+        "format": "uri"
+      },
+      "type": {
+        "type": "string"
+      },
+      "classification": {
+        "type": "string"
+      },
+      "scope": {
+        "type": "string"
+      },
+      "key_claims": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "accessed": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "additionalProperties": false
+  }
+}

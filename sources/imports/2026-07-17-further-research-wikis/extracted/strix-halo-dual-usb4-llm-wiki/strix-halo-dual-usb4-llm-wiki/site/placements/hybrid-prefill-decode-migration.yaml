@@ -1,0 +1,50 @@
+schema_version: "1.0"
+name: Prefill/decode disaggregation with KV migration
+mode: hybrid_prefill_decode_migration
+viability: no_go_without_new_evidence
+objective: [experimental phase specialization]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: validated_striping
+  bandwidth_symbol: B_sum only after striping gate
+  latency_symbol: ell plus bulk KV transfer
+coordinator_rank: 0
+ranks:
+  - rank_id: 0
+    node: A
+    role: [prefill worker, session coordinator]
+    ownership:
+      tokenizer: full tokenizer and detokenizer
+      sampler: none during prefill
+      rng: session seed metadata
+      model: complete model or a prefill-capable placement
+      experts: as required by prefill placement
+      kv: complete prompt KV until migration succeeds
+      sessions: authoritative migration transaction state
+  - rank_id: 1
+    node: B
+    role: [decode worker, sampler]
+    ownership:
+      tokenizer: exact mirror
+      sampler: final decode sampler after migration
+      rng: final sampling RNG/counters
+      model: complete decode-capable model
+      experts: complete experts needed by decode
+      kv: complete prompt KV after validated import
+      sessions: decode state after ownership handoff
+flows:
+  - phase: KV migration
+    from: 0
+    to: 1
+    payload: all layer K/V tensors plus positions, layout, quantization, and session metadata
+    volume_formula: context_tokens*2*L*H_kv*d*b_kv plus runtime metadata/padding
+    synchronization: transactional barrier; decode cannot start before validated import
+    link_policy: bulk_striped_if_validated
+hard_gates:
+  - Both runtimes export and import a compatible KV layout without recomputation or precision drift.
+  - Measured future decode savings exceed KV transfer time and migration overhead.
+  - Duplicate model residency or phase-specific placement fits available memory.
+  - Failure recovery preserves one authoritative KV owner.
+notes:
+  - This is fail-closed because KV volume grows linearly with context and no Strix Halo phase-specialization benefit is assumed.

@@ -1,0 +1,18 @@
+{"id": "empty", "text": "", "add_special": false, "parse_special": false}
+{"id": "ascii-basic", "text": "Hello, world!", "add_special": false, "parse_special": false}
+{"id": "leading-space", "text": " Hello world", "add_special": false, "parse_special": false}
+{"id": "spaces-1", "text": " ", "add_special": false, "parse_special": false}
+{"id": "spaces-2", "text": "  ", "add_special": false, "parse_special": false}
+{"id": "tabs-newlines", "text": "\t\n\r\n", "add_special": false, "parse_special": false}
+{"id": "combining-nfd", "text": "é", "add_special": false, "parse_special": false}
+{"id": "precomposed-nfc", "text": "é", "add_special": false, "parse_special": false}
+{"id": "cjk", "text": "我想在本地运行模型。", "add_special": false, "parse_special": false}
+{"id": "cyrillic", "text": "нещо на Български", "add_special": false, "parse_special": false}
+{"id": "khmer", "text": "កាន់តែពិសេស", "add_special": false, "parse_special": false}
+{"id": "rtl", "text": "مرحبا بالعالم", "add_special": false, "parse_special": false}
+{"id": "emoji-zwj", "text": "😶‍🌫️ 👩🏽‍💻 🏳️‍🌈", "add_special": false, "parse_special": false}
+{"id": "variation-selector", "text": "✈︎ ✈️", "add_special": false, "parse_special": false}
+{"id": "special-looking", "text": "<s>hello</s>", "add_special": false, "parse_special": false}
+{"id": "special-looking-parse", "text": "<s>hello</s>", "add_special": false, "parse_special": true}
+{"id": "long-number", "text": "33333333333333333333", "add_special": false, "parse_special": false}
+{"id": "code-json", "text": "{\"tool\":\"search\",\"arguments\":{\"q\":\"llama.cpp\"}}", "add_special": false, "parse_special": false}

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:llm-wiki:llama-ai-runner",
+  "title": "llama-ai runner profile (normalized representation)",
+  "description": "A machine-readable normalization of the pinned llama-run.sh settings. The actual pinned interface is shell variables and CLI flags.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "model": {
+      "type": "string",
+      "description": "Local GGUF path or repository/model selector."
+    },
+    "host": {
+      "type": "string",
+      "default": "0.0.0.0"
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "default": 9090
+    },
+    "contextTokens": {
+      "type": "integer",
+      "minimum": 512,
+      "default": 65536
+    },
+    "predictTokens": {
+      "type": "integer",
+      "minimum": -1,
+      "default": 256
+    },
+    "gpuLayers": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 99
+    },
+    "kvCacheTypeK": {
+      "type": "string",
+      "default": "q8_0"
+    },
+    "kvCacheTypeV": {
+      "type": "string",
+      "default": "q8_0"
+    },
+    "parallelSlots": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "backend": {
+      "enum": [
+        "auto",
+        "vulkan",
+        "rocm",
+        "metal",
+        "cpu"
+      ],
+      "default": "auto"
+    },
+    "profile": {
+      "enum": [
+        "auto",
+        "dense",
+        "moe",
+        "recurrent",
+        "strix-halo",
+        "handheld"
+      ],
+      "default": "auto"
+    },
+    "metrics": {
+      "type": "boolean",
+      "default": true
+    },
+    "ssdCache": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "path": {
+          "type": "string"
+        },
+        "hotWindowTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 4096
+        },
+        "maxColdCheckpoints": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 32
+        },
+        "maxCheckpoints": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 64
+        },
+        "maxSystemPrompts": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 8
+        },
+        "maxUnusedDays": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 30
+        },
+        "noFsync": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "enabled"
+      ]
+    }
+  },
+  "required": [
+    "model"
+  ]
+}

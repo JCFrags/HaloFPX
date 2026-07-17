@@ -1,0 +1,17 @@
+:root {
+  --md-primary-fg-color: #263238;
+  --md-accent-fg-color: #26c6da;
+}
+.md-typeset h1, .md-typeset h2 { letter-spacing: -0.02em; }
+.md-typeset table:not([class]) { font-size: 0.78rem; }
+.md-typeset code { font-variant-ligatures: none; }
+.md-typeset .decision {
+  border-left: 0.25rem solid #26c6da;
+  padding: 0.6rem 0.9rem;
+  background: rgba(38, 198, 218, 0.08);
+}
+.md-typeset .warning-box {
+  border-left: 0.25rem solid #ffb300;
+  padding: 0.6rem 0.9rem;
+  background: rgba(255, 179, 0, 0.08);
+}

@@ -1,0 +1,347 @@
+syntax = "proto3";
+
+package halokv.v1;
+
+option go_package = "example.invalid/halokv/gen/halokvv1;halokvv1";
+
+// The .proto defines wire shape. Implementations MUST apply the limits and
+// semantic validation in tables/rpc-validation-matrix.csv.
+
+service HaloKVControl {
+  rpc OpenControl(stream NodeToCoordinator) returns (stream CoordinatorToNode);
+  rpc QueryCheckpoint(QueryCheckpointRequest) returns (CheckpointStatus);
+  rpc CancelCheckpoint(CancelCheckpointRequest) returns (CancelCheckpointResponse);
+}
+
+service HaloKVData {
+  rpc PutObjects(stream ObjectFrame) returns (PutObjectsResult);
+  rpc GetObjects(GetObjectsRequest) returns (stream ObjectFrame);
+}
+
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_COORDINATOR = 1;
+  ROLE_RANK = 2;
+  ROLE_STORAGE = 3;
+}
+
+enum DurabilityClass {
+  DURABILITY_UNSPECIFIED = 0;
+  PROCESS_DURABLE = 1;
+  HOST_FAILURE_DURABLE = 2;
+  ASYNC_OFFLOAD = 3;
+}
+
+enum OperationState {
+  OPERATION_STATE_UNSPECIFIED = 0;
+  ABSENT = 1;
+  OPEN = 2;
+  PREPARED_PARTIAL = 3;
+  COMMITTED = 4;
+  ABORTED = 5;
+}
+
+enum ReconnectOutcome {
+  RECONNECT_OUTCOME_UNSPECIFIED = 0;
+  RESUME_EXACT = 1;
+  FETCH_DELTA = 2;
+  REBUILD_RANK = 3;
+  RECONFIGURE = 4;
+  RESET_SESSION = 5;
+  REJECT_STALE = 6;
+}
+
+enum CancelOutcome {
+  CANCEL_OUTCOME_UNSPECIFIED = 0;
+  CANCELLED_BEFORE_PREPARE = 1;
+  ABORTED_PREPARED = 2;
+  ALREADY_ABORTED = 3;
+  ALREADY_COMMITTED = 4;
+  CANCEL_REJECTED_STALE = 5;
+}
+
+enum RejectCode {
+  REJECT_CODE_UNSPECIFIED = 0;
+  INVALID_MESSAGE = 1;
+  UNAUTHENTICATED_IDENTITY = 2;
+  UNAUTHORIZED_SCOPE = 3;
+  STALE_GENERATION = 4;
+  STALE_EPOCH = 5;
+  UNPROVEN_FUTURE_EPOCH = 6;
+  TOPOLOGY_MISMATCH = 7;
+  OP_ID_CONFLICT = 8;
+  OPERATION_TERMINAL = 9;
+  RESOURCE_LIMIT = 10;
+  INTEGRITY_FAILURE = 11;
+  DURABILITY_UNAVAILABLE = 12;
+  UNSUPPORTED_VERSION = 13;
+}
+
+message ProtocolContext {
+  uint32 protocol_major = 1;
+  uint32 protocol_minor = 2;
+  string tenant_namespace = 3;       // 1..128 canonical ASCII bytes.
+  bytes session_id = 4;              // Exactly 16 bytes.
+  uint64 session_generation = 5;
+  uint64 epoch = 6;
+  uint64 checkpoint_seq = 7;
+  bytes op_id = 8;                   // Exactly 16 bytes; stable across retries.
+  bytes request_digest = 9;          // Exactly 32 bytes, SHA-256 of canonical request.
+  bytes topology_fingerprint = 10;   // Exactly 32 bytes.
+  bytes sender_instance_id = 11;     // Exactly 16 bytes; new at every process boot.
+  Role sender_role = 12;
+  uint32 sender_rank = 13;           // Required only for ROLE_RANK; baseline 0 or 1.
+  uint64 sent_unix_ms = 14;          // Diagnostic only; never grants freshness/ownership.
+  uint64 deadline_budget_ms = 15;    // Remaining application budget; hard-capped.
+}
+
+message LogicalPosition {
+  uint64 processed_tokens = 1;
+  uint64 cache_base_position = 2;
+  uint32 sequence_count = 3;
+  bytes sequence_layout_digest = 4;  // Exactly 32 bytes.
+  uint64 externally_acked_output_offset = 5;
+}
+
+message Hello {
+  repeated uint32 supported_protocol_majors = 1; // Max 8 entries.
+  repeated string supported_cache_formats = 2;  // Max 16, each <= 64 bytes.
+  bytes transport_compatibility_fingerprint = 3; // Exactly 32 bytes.
+  bytes last_commit_certificate_id = 4;          // Empty or exactly 32 bytes.
+  uint64 last_authority_revision = 5;
+  uint64 highest_persisted_epoch = 6;
+  InventorySummary inventory = 7;
+  bytes boot_nonce = 8;                           // Exactly 16 bytes.
+}
+
+message HelloAck {
+  uint64 authoritative_epoch = 1;
+  uint64 authority_revision = 2;
+  bytes epoch_grant = 3;                  // Opaque, bounded, authenticated authority proof.
+  ReconnectPlan reconnect_plan = 4;
+  uint64 heartbeat_interval_ms = 5;
+  uint64 hard_max_frame_bytes = 6;
+  uint64 hard_max_uncompressed_page_bytes = 7;
+}
+
+message InventorySummary {
+  bytes inventory_merkle_root = 1;        // Empty or exactly 32 bytes.
+  uint64 object_count = 2;
+  uint64 logical_bytes = 3;
+  bytes bloom_filter = 4;                 // Optional, max negotiated size; hint only.
+  uint32 bloom_hash_count = 5;
+  bytes rank_manifest_id = 6;             // Empty or exactly 32 bytes.
+  bytes quarantine_digest = 7;            // Empty or exactly 32 bytes.
+}
+
+message BeginCheckpoint {
+  LogicalPosition target_position = 1;
+  DurabilityClass required_durability = 2;
+  bytes expected_base_certificate_id = 3; // Empty or exactly 32 bytes.
+  uint64 max_new_logical_bytes = 4;
+  uint64 prepare_deadline_unix_ms = 5;
+}
+
+message RankPrepared {
+  uint32 rank_id = 1;
+  bytes rank_manifest_id = 2;       // Exactly 32 bytes.
+  LogicalPosition position = 3;
+  DurabilityClass achieved_durability = 4;
+  uint64 page_count = 5;
+  uint64 logical_bytes = 6;
+  uint64 new_bytes = 7;
+  bytes opaque_durability_proof = 8; // Bounded token; never a raw path/URL.
+}
+
+message CommitCertificate {
+  bytes certificate_id = 1;         // Exactly 32 bytes.
+  bytes global_manifest_id = 2;     // Exactly 32 bytes.
+  DurabilityClass durability = 3;
+  uint64 authority_revision = 4;
+  uint64 committed_unix_ms = 5;
+  bytes authority_authenticator = 6; // Signature/MAC; algorithm from deployment policy.
+}
+
+message CommitNotice {
+  CommitCertificate certificate = 1;
+}
+
+message AbortCheckpoint {
+  uint32 reason_code = 1;
+  string safe_reason = 2;           // <= 256 bytes; no secrets.
+  uint64 terminal_authority_revision = 3;
+}
+
+message CancelCheckpointRequest {
+  ProtocolContext context = 1;
+  uint64 cancel_seq = 2;
+  uint32 reason_code = 3;
+}
+
+message CancelCheckpointResponse {
+  CancelOutcome outcome = 1;
+  OperationState authoritative_state = 2;
+  uint64 authority_revision = 3;
+  CommitCertificate certificate = 4; // Present for ALREADY_COMMITTED.
+}
+
+message QueryCheckpointRequest {
+  ProtocolContext context = 1;
+}
+
+message CheckpointStatus {
+  OperationState state = 1;
+  uint64 authority_revision = 2;
+  repeated RankPrepared preparations = 3; // Max expected ranks; baseline max 2.
+  CommitCertificate certificate = 4;
+  uint32 abort_reason_code = 5;
+}
+
+message CreditGrant {
+  bytes stream_id = 1;              // Exactly 16 bytes.
+  uint64 grant_seq = 2;
+  uint64 additional_uncompressed_bytes = 3;
+  uint32 additional_pages = 4;
+  uint64 expires_unix_ms = 5;
+  uint64 receiver_watermark_bytes = 6;
+}
+
+message CreditReturn {
+  bytes stream_id = 1;
+  uint64 grant_seq = 2;
+  uint64 cumulative_consumed_bytes = 3;
+  uint32 cumulative_consumed_pages = 4;
+}
+
+message ReconnectPlan {
+  ReconnectOutcome outcome = 1;
+  bytes target_commit_certificate_id = 2; // Empty or exactly 32 bytes.
+  bytes recovery_plan_token = 3;          // Opaque and bounded; no path/URL.
+  uint64 authority_revision = 4;
+  uint64 new_session_generation = 5;      // Nonzero only for reset/reconfigure.
+  bytes target_topology_fingerprint = 6;  // Empty or exactly 32 bytes.
+  bool single_node_continuation_permitted = 7;
+  string single_node_decision_reason = 8; // <= 256 safe bytes.
+}
+
+message Heartbeat {
+  uint64 last_applied_authority_revision = 1;
+  OperationState local_operation_state = 2;
+  uint64 in_flight_uncompressed_bytes = 3;
+  uint64 local_free_bytes = 4;
+}
+
+message AttachReady {
+  bytes certificate_id = 1;
+  LogicalPosition position = 2;
+  bytes materialized_rank_digest = 3; // Exactly 32 bytes.
+}
+
+message FaultReport {
+  uint32 fault_code = 1;
+  string safe_summary = 2;           // <= 256 bytes; no tenant content.
+  bytes affected_object_id = 3;      // Empty or exactly 32 bytes.
+}
+
+message Reject {
+  RejectCode code = 1;
+  string safe_detail = 2;            // <= 256 bytes.
+  uint64 authoritative_epoch = 3;
+  uint64 authority_revision = 4;
+}
+
+message NodeToCoordinator {
+  ProtocolContext context = 1;
+  oneof body {
+    Hello hello = 10;
+    Heartbeat heartbeat = 11;
+    RankPrepared rank_prepared = 12;
+    CreditReturn credit_return = 13;
+    AttachReady attach_ready = 14;
+    FaultReport fault_report = 15;
+  }
+}
+
+message CoordinatorToNode {
+  ProtocolContext context = 1;
+  oneof body {
+    HelloAck hello_ack = 10;
+    BeginCheckpoint begin_checkpoint = 11;
+    CommitNotice commit_notice = 12;
+    AbortCheckpoint abort_checkpoint = 13;
+    CreditGrant credit_grant = 14;
+    ReconnectPlan reconnect_plan = 15;
+    Reject reject = 16;
+  }
+}
+
+message ObjectFrame {
+  ProtocolContext context = 1;
+  bytes transfer_id = 2;             // Exactly 16 bytes.
+  bytes object_id = 3;               // Exactly 32-byte content digest.
+  uint64 offset = 4;
+  uint64 total_uncompressed_length = 5;
+  bytes data = 6;                    // Max negotiated frame size, hard capped.
+  uint32 crc32c = 7;                 // Covers canonical frame header + data.
+  bool final_frame = 8;
+  bytes storage_capability_token = 9; // Opaque, bounded, scope-limited.
+}
+
+message PutObjectsResult {
+  bytes transfer_id = 1;
+  repeated bytes verified_object_ids = 2; // Bounded count.
+  uint64 accepted_uncompressed_bytes = 3;
+  repeated ObjectRange missing_ranges = 4;
+}
+
+message ObjectRange {
+  bytes object_id = 1;
+  uint64 offset = 2;
+  uint64 length = 3;
+}
+
+message GetObjectsRequest {
+  ProtocolContext context = 1;
+  bytes recovery_plan_token = 2;     // Opaque, server-minted.
+  repeated bytes object_ids = 3;     // Bounded; each exactly 32 bytes.
+  uint64 max_uncompressed_bytes = 4;
+  bytes storage_capability_token = 5;
+}
+
+message PageRef {
+  bytes page_id = 1;                 // Exactly 32 bytes.
+  uint64 position_start = 2;
+  uint32 position_count = 3;
+  uint32 layer_start = 4;
+  uint32 layer_count = 5;
+  uint64 logical_length = 6;
+  bytes page_header_digest = 7;      // Exactly 32 bytes.
+}
+
+message RankManifest {
+  string schema = 1;                 // "halokv-rank-manifest-v1".
+  ProtocolContext context = 2;
+  uint32 rank_id = 3;
+  LogicalPosition position = 4;
+  string shard_descriptor = 5;       // Canonical, bounded descriptor.
+  repeated PageRef pages = 6;        // Sorted, unique, bounded.
+  uint64 logical_bytes = 7;
+  bytes previous_rank_manifest_id = 8;
+}
+
+message GlobalManifest {
+  string schema = 1;                 // "halokv-global-manifest-v1".
+  ProtocolContext context = 2;
+  LogicalPosition position = 3;
+  DurabilityClass durability = 4;
+  repeated RankManifestRef ranks = 5; // Baseline exactly ranks 0 and 1.
+  bytes recovery_capsule_id = 6;
+  bytes previous_commit_certificate_id = 7;
+}
+
+message RankManifestRef {
+  uint32 rank_id = 1;
+  bytes rank_manifest_id = 2;        // Exactly 32 bytes.
+  string shard_descriptor = 3;
+  uint64 logical_bytes = 4;
+}

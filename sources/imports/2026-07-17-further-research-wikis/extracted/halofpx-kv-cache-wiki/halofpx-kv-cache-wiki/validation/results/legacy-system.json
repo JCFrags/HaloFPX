@@ -1,0 +1,20 @@
+{
+  "details": {
+    "access_count": 3,
+    "compatibility_hash": "0x1122334455667788",
+    "created_at": 1700000000,
+    "data_size": 4096,
+    "format": "cachyllama.system/v1-lp64le",
+    "keyed_authentication_verified": false,
+    "last_used": 1700000100,
+    "n_tokens": 8,
+    "payload_integrity_verified": false,
+    "token_count": 8,
+    "token_hash": "596d5eff621ab3ad"
+  },
+  "eligible_for_engine_import": false,
+  "eligible_for_hit": false,
+  "path": "fixtures/cachyllama/valid/sys-596d5eff621ab3ad.bin",
+  "reason": "NO_PAYLOAD_INTEGRITY",
+  "status": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED"
+}

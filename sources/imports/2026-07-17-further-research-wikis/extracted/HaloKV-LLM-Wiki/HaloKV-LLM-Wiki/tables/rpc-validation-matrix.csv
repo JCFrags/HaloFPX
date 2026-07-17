@@ -1,0 +1,25 @@
+Field or object,Validation dimension,Rule,Enforcement point,Failure
+Entire control message,encoded bytes,<= 1 MiB illustrative hard cap,transport interceptor before parse where supported,INVALID_ARGUMENT/RESOURCE_EXHAUSTED
+Data frame payload,bytes,<= 1 MiB negotiated and hard capped,before copy/allocation,RESOURCE_EXHAUSTED
+Page uncompressed length,bytes,"deployment cap, e.g. <= 256 MiB",checked before reservation/decompression,RESOURCE_EXHAUSTED
+Manifest entry count,count,"deployment cap, e.g. <= 1,000,000 with streaming preferred",before repeated allocation,RESOURCE_EXHAUSTED
+Parser recursion,depth,small explicit limit,coded input stream/parser config,INVALID_ARGUMENT
+Tenant namespace,ASCII length/pattern,1..128 canonical characters,syntax then credential scope comparison,INVALID_ARGUMENT/PERMISSION_DENIED
+Session/op/instance IDs,length,exactly 16 bytes,before lookup,INVALID_ARGUMENT
+Digests/fingerprints,length,exactly 32 bytes,before crypto/object lookup,INVALID_ARGUMENT
+Rank ID,range and authorization,baseline 0 or 1 and credential-assigned,before state lookup,PERMISSION_DENIED/INVALID_ARGUMENT
+Generation,monotonic,equal current for mutation,authority/session state,FAILED_PRECONDITION
+Epoch,fencing,not lower; higher requires authority proof,persisted high-water + authority verification,FAILED_PRECONDITION
+Checkpoint sequence,order,nonnegative; commit name monotonic,authority operation record,FAILED_PRECONDITION
+op_id/request_digest,binding,same op_id must have same digest,dedupe table,ABORTED/FAILED_PRECONDITION
+Topology fingerprint,compatibility,exact match or named converter,before cache lookup/materialization,FAILED_PRECONDITION
+Chunk offset + length,checked arithmetic,no overflow; within total; non-overlap,range validator before write,INVALID_ARGUMENT
+Compression,ratio/uncompressed accounting,disabled or tightly capped,before/while streaming decompression,RESOURCE_EXHAUSTED
+Storage locator,capability only,opaque bounded token; no paths/URLs,token verifier/allowlisted resolver,PERMISSION_DENIED/INVALID_ARGUMENT
+Bloom filter,bytes/hash count,bounded; hints only,handshake validation,INVALID_ARGUMENT
+Deadline,remaining budget,positive and local hard maximum,RPC entry; propagated downstream,DEADLINE_EXCEEDED
+Safe detail/reason,UTF-8 length/content,<= 256 bytes; no secrets,validation/log allowlist,INVALID_ARGUMENT
+Credit consumption,cumulative counters,never exceeds grant; monotonic,per-stream accounting,RESOURCE_EXHAUSTED/FAILED_PRECONDITION
+Manifest rank set,completeness,exactly ranks 0 and 1 once each,global manifest validation,FAILED_PRECONDITION
+Logical position,cross-rank equality,all expected ranks identical,before global manifest/CAS,FAILED_PRECONDITION
+Page shape/coordinates,range/uniqueness,"bounded, sorted, no overlap, matches shard",before materialization,DATA_LOSS/INVALID_ARGUMENT

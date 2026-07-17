@@ -1,0 +1,46 @@
+---
+section_id: "30"
+title: "ROCmFPX quantization procedures"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+applies_to:
+  repositories: ["charlie12345/ROCmFPX"]
+  software_versions: ["a5605a7"]
+  hardware_revisions: ["gfx1151 pending"]
+related_sections: ["31", "37"]
+---
+
+# Safe qualification procedure
+
+Prerequisites: pinned ROCmFPX checkout, BF16/F16/F32 GGUF, enough RAM/disk, non-root shell.
+
+```bash
+git rev-parse HEAD
+scripts/check-rocmfpx-reference.sh
+cmake --build build-strix-rocmfp4 --target llama-quantize test-backend-ops -j 8
+build-strix-rocmfp4/bin/test-backend-ops test -o MUL_MAT,MUL_MAT_ID,GET_ROWS,CPY,SET_ROWS -b ROCm0
+build-strix-rocmfp4/bin/test-backend-ops test -o MUL_MAT,MUL_MAT_ID,GET_ROWS,CPY,SET_ROWS -b Vulkan0
+```
+
+Dry-run size before writing an artifact:
+
+```bash
+DRY_RUN=1 FORMAT=rocmfp4 PROFILE=strix-lean \
+  SRC=/models/model-BF16.gguf OUT=/models/model-ROCmFP4.gguf \
+  scripts/quantize-rocmfpx-agent.sh
+```
+
+Production candidate conversion:
+
+```bash
+FORMAT=rocmfp4 PROFILE=strix-lean KEEP_SPLIT=1 \
+  IMATRIX=/evidence/imatrix.gguf \
+  SRC=/models/model-BF16.gguf OUT=/models/model-ROCmFP4-STRIX_LEAN.gguf \
+  scripts/quantize-rocmfpx-agent.sh
+sha256sum /models/model-ROCmFP4-STRIX_LEAN*.gguf
+```
+
+Record quantizer stdout, source/output hashes, byte sizes, actual BPW, tensor-type histogram, imatrix hash, build flags, and recipe ID. Run CPU plus HIP/Vulkan backend-op tests and Section 31 quality gates. Root is not required.
+
+**[RECOMMENDATION]** Reject any artifact with invalid scale bytes, unexpected tensor fallback/type, unexplained tensor omission, non-finite output, backend-op failure, or a quality regression beyond its approved tier.
+

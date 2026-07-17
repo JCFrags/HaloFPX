@@ -1,0 +1,57 @@
+schema_version: "1.0"
+name: Request-parallel replicated decode
+mode: replicated_decode
+viability: go_candidate
+objective: [aggregate throughput, isolation, failover]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: session_hash
+  bandwidth_symbol: not on the model critical path
+  latency_symbol: request routing and output streaming only
+coordinator_rank: external_frontend
+ranks:
+  - rank_id: 0
+    node: A
+    role: [complete inference replica, optional frontend]
+    ownership:
+      tokenizer: complete local tokenizer and detokenizer
+      sampler: complete local sampler for sessions assigned to A
+      rng: per-session RNG/counters for A-owned sessions
+      model: complete target model
+      experts: complete expert set for MoE models
+      kv: complete KV for A-owned sessions only
+      sessions: authoritative state for sessions routed to A
+  - rank_id: 1
+    node: B
+    role: [complete inference replica]
+    ownership:
+      tokenizer: complete local tokenizer and detokenizer
+      sampler: complete local sampler for sessions assigned to B
+      rng: per-session RNG/counters for B-owned sessions
+      model: complete target model
+      experts: complete expert set for MoE models
+      kv: complete KV for B-owned sessions only
+      sessions: authoritative state for sessions routed to B
+flows:
+  - phase: request admission
+    from: external
+    to: 0
+    payload: request routed to the selected replica; symmetric flow may select rank 1
+    volume_formula: prompt text or N*b_t token IDs plus request metadata
+    synchronization: no cross-replica barrier
+    link_policy: session_selected
+  - phase: normal prefill and decode
+    from: 0
+    to: 1
+    payload: none on the model path
+    volume_formula: "0"
+    synchronization: none
+    link_policy: none
+hard_gates:
+  - Complete model weights, maximum planned KV, workspace, runtime allocations, and OS reserve fit on each node.
+  - Workload has independent concurrent sessions when throughput is the objective.
+  - Session affinity prevents accidental KV split across replicas.
+notes:
+  - This mode does not reduce latency for a single request.
+  - Session migration is a separate KV-transfer operation with its own break-even gate.

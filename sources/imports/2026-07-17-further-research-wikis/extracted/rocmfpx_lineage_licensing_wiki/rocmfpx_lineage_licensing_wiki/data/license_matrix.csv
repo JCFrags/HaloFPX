@@ -1,0 +1,14 @@
+license_or_material,examples,copy_into_mit_oriented_repo,modify,link_or_ship,clean_room_reimplement,document_facts,obligations,review_status
+MIT,ROCmFPX/CachyLLama/llama.cpp/ggml baseline,yes,yes,yes,yes,yes,Preserve copyright and permission notice,routine
+Apache-2.0,OpenVINO/templates/converter files,yes_with_original_license,yes,yes,yes,yes,License text; notices; mark modifications; patent terms,review
+Apache-2.0 WITH LLVM-exception,SYCL files,yes_with_exact_exception,yes,yes,yes,yes,Preserve Apache and LLVM exception,review
+BSD-2-Clause,xxHash,yes,yes,yes,yes,yes,Source and binary notice/disclaimer,routine
+MIT-0 OR public-domain,miniaudio,yes_choose_MIT-0,yes,yes,yes,yes,Record election and provenance,routine
+MIT OR public-domain,stb_image,yes_choose_MIT,yes,yes,yes,yes,Record election and preserve notice,routine
+public-domain/Unlicense-style,subprocess.h,conditional,conditional,conditional,yes,yes,Preserve dedication; jurisdiction review,legal_review
+GPL-3.0-or-later,llama-ai SPDX source,no_in_MIT_only_core,yes_under_GPL,fact_specific_GPL_risk,yes_clean_room,yes_original_words,GPL source/distribution obligations,legal_review
+GPLv3 text + project or-later declaration,unmarked llama-ai source,unknown_until_scope_confirmed,unknown,unknown,yes_clean_room,yes,Clarify exact grant and file scope,blocker
+CC-BY-NC-SA-4.0,llama-ai documentation,no_for_commercial_permissive_docs,noncommercial_sharealike_only,not_applicable,yes_rewrite_facts,yes_facts_only,"Attribution, NC, SA, modification notice",blocker
+mixed/unknown aggregate,TheRock/ROCm nightly tarball,unknown,component_specific,component_specific,not_applicable,yes,"Component manifest, notices, source obligations",blocker
+mixed transitive,npm/WebUI output,unknown_until_scan,component_specific,component_specific,not_applicable,yes,SBOM and asset notice audit,blocker_if_shipped
+separate model terms,weights/tokenizers/model assets,unknown,unknown,unknown,not_applicable,yes,Model-specific license and acceptable-use review,blocker_if_shipped

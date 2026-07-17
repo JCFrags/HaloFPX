@@ -1,0 +1,33 @@
+claim_id,class,claim,sources,confidence,basis
+CL-001,OBSERVED,CachyLLama checkpoint v3 is a native struct followed by target/draft/spec blobs,C-KV-H;C-KV-CPP,High,Static source
+CL-002,OBSERVED,CachyLLama checkpoint and index writers use final-name create/write/truncate,C-KV-CPP,High,Static source
+CL-003,OBSERVED,No outer checkpoint/index payload checksum or AEAD is present,C-KV-H;C-KV-CPP,High,Static source
+CL-004,INFERENCE,Same-length payload corruption is undetectable by the CachyLLama outer format,C-KV-H;C-KV-CPP,High,Demonstrated by fixture fault injection
+CL-005,OBSERVED,Compatibility fingerprint is FNV-1a over llama_model_desc and K/V types,C-PM,High,Static source
+CL-006,OBSERVED,Observed compatibility code does not append build commit,C-PM,High,Comment/code comparison
+CL-007,OBSERVED,Invalid/missing index resets next_id to 1 while checkpoint scan recovers entries,C-KV-CPP,High,Static source
+CL-008,INFERENCE,Index loss can cause sequential checkpoint ID reuse and truncation,C-KV-CPP,High,Final-name O_TRUNC plus next_id behavior
+CL-009,OBSERVED,Checkpoint scan accepts metadata without total-length or body authentication,C-KV-CPP,High,Static source
+CL-010,OBSERVED,Target restore failure is a miss; optional draft restore can catch up,C-SRV,High,Static source
+CL-011,OBSERVED,User namespace is u/FNV(user_id) and excluded from anonymous global scan,C-USER;C-PM,High,Static source/design
+CL-012,OBSERVED,System prompt cache has distinct native v1 format and FNV file key,C-SYS-H;C-SYS-CPP,High,Static source
+CL-013,OBSERVED,llama.cpp full/sequence files use strict magic/version identifiers,L-H;L-CTX,High,Static source
+CL-014,OBSERVED,llama.cpp saves through wb/fwrite without outer atomic/digest protocol,L-CTX;L-MMAP,High,Static source
+CL-015,OBSERVED,llama.cpp server slot persistence is manual filename-addressed sequence state,L-SRV;L-README,High,Static source/docs
+CL-016,OBSERVED,LMCache local disk starts with empty mutable metadata mapping and no startup scan in audited constructor,M-DISK,High,Static source
+CL-017,OBSERVED,LMCache local disk read does not check readinto return length,M-DISK,High,Static source
+CL-018,OBSERVED,SGLang HiCacheFile publishes via unique temp and os.replace,S-STOR,High,Static source
+CL-019,OBSERVED,SGLang file pages are raw bytes without self-describing checksum/header,S-STOR,High,Static source
+CL-020,OBSERVED,SGLang page IDs are parent-chained SHA-256 over normalized token bytes,S-UTIL;S-HASH,High,Static source
+CL-021,OBSERVED,SGLang file eviction scans existing files and uses byte/free-space reserve/commit/abort,S-LRU,High,Static source
+CL-022,OBSERVED,"vLLM key includes parent, exact block tokens and multimodal/LoRA/embed/salt extras",V-DESIGN;V-KV,High,Static source/docs
+CL-023,OBSERVED,vLLM APC is in-memory rather than an on-disk integrity protocol,V-DESIGN;V-KV,High,Static source/docs
+CL-024,RECOMMENDED,HaloFPX objects are immutable and content-addressed,REPORT,Normative,Design
+CL-025,RECOMMENDED,"Durable publication uses synced temp, verification, immutable publish, directory sync and manifest CAS",REPORT,Normative,Design
+CL-026,RECOMMENDED,Every invalid or unverifiable state returns MISS_RECOMPUTE with destination unchanged,REPORT,Normative,Design/test contract
+CL-027,RECOMMENDED,Compatibility fingerprint covers exact artifacts and execution semantics,REPORT,Normative,Design
+CL-028,RECOMMENDED,Every required segment is digest/AEAD verified before engine import,REPORT,Normative,Design
+CL-029,MODELED,Frequent full-state snapshots can consume hundreds of TB/year,ENDURANCE,Scenario-dependent,Calculator
+CL-030,RECOMMENDED,"Byte quotas, chunk deduplication and write admission control SSD wear",REPORT,Normative,Design
+CL-031,RECOMMENDED,HaloFPX manifest-to-object reachability must be keyed-authenticated by HMAC/signature or equivalent authenticated catalog,This report,Normative,Security model and executable HMAC fixture
+CL-032,RECOMMENDED,Offline validation may yield only an import candidate; public HIT_VERIFIED requires isolated engine import and atomic commit,This report,Normative,Validation/status model

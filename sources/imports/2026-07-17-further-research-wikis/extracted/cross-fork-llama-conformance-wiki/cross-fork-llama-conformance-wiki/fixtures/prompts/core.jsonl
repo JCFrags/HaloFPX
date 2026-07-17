@@ -1,0 +1,8 @@
+{"id": "basic-completion", "text": "I believe the meaning of life is", "purpose": ["deterministic", "server", "speculative"]}
+{"id": "capital", "text": "What is the capital of France?", "purpose": ["cache", "deterministic"]}
+{"id": "json", "text": "Return one JSON object with keys alpha and beta.", "purpose": ["structured-output"]}
+{"id": "tool", "text": "Use the lookup tool for item 7.", "purpose": ["tool-call"]}
+{"id": "unicode", "text": "Explain this exact string without changing it: 😶‍🌫️ é مرحبا", "purpose": ["tokenizer", "chat"]}
+{"id": "logit-probe-1", "text": "The quick brown fox", "purpose": ["logits"]}
+{"id": "logit-probe-2", "text": "def fibonacci(n):", "purpose": ["logits", "speculative"]}
+{"id": "cross-fork-1", "text": "List the first three prime numbers:", "purpose": ["deterministic-cross-fork"]}

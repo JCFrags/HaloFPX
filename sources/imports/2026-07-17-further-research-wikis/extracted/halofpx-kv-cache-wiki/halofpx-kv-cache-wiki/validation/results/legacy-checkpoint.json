@@ -1,0 +1,28 @@
+{
+  "details": {
+    "checkpoint_id": 1,
+    "compatibility_hash": "0x1122334455667788",
+    "format": "cachyllama.kv_ssd_record/v3-lp64le",
+    "header_size": 16480,
+    "keyed_authentication_verified": false,
+    "n_tokens": 16,
+    "payload_integrity_verified": false,
+    "pos_max": 15,
+    "pos_min": 0,
+    "segment_sizes": {
+      "draft": 1024,
+      "speculative": 256,
+      "target": 8192
+    },
+    "slot_id": 4,
+    "token_count": 16,
+    "token_hash": "0x6d5774d4f30ce437",
+    "turn_created": 9,
+    "warning": "Outer format cannot detect same-length payload corruption; do not treat as trusted hit."
+  },
+  "eligible_for_engine_import": false,
+  "eligible_for_hit": false,
+  "path": "fixtures/cachyllama/valid/ckpt-1.bin",
+  "reason": "NO_PAYLOAD_INTEGRITY",
+  "status": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED"
+}

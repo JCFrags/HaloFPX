@@ -1,0 +1,39 @@
+[
+  {
+    "kind": "begin",
+    "epoch": 0
+  },
+  {
+    "kind": "durable",
+    "rank": 0
+  },
+  {
+    "kind": "bump_epoch",
+    "epoch": 1
+  },
+  {
+    "kind": "accept_epoch",
+    "rank": 0,
+    "epoch": 1
+  },
+  {
+    "kind": "accept_epoch",
+    "rank": 1,
+    "epoch": 1
+  },
+  {
+    "kind": "begin",
+    "epoch": 1
+  },
+  {
+    "kind": "prepare",
+    "rank": 0,
+    "epoch": 0
+  },
+  {
+    "kind": "commit"
+  },
+  {
+    "kind": "read"
+  }
+]

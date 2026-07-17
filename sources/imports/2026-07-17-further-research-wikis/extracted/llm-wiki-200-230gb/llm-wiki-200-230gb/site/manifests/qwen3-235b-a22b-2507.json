@@ -1,0 +1,38 @@
+{
+  "schema": "llm-wiki-hf-artifact-manifest-v1",
+  "as_of": "2026-07-17",
+  "candidate_id": "qwen3-235b-a22b-2507",
+  "model": "Qwen3-235B-A22B-Instruct-2507",
+  "selected_quant": "UD-Q6_K_XL",
+  "publisher_display_size_gb_decimal": 201.91,
+  "conservative_weight_plan_gib": 190,
+  "huggingface": {
+    "upstream_repo": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+    "quant_repo": "unsloth/Qwen3-235B-A22B-Instruct-2507-GGUF",
+    "revision": "160ed54",
+    "path": "UD-Q6_K_XL",
+    "shard_count": 5,
+    "displayed_shard_gb": [
+      49.8,
+      50.0,
+      49.7,
+      49.7,
+      2.71
+    ],
+    "known_lfs": [
+      {
+        "file": "Qwen3-235B-A22B-Instruct-2507-UD-Q6_K_XL-00001-of-00005.gguf",
+        "sha256": "a28eea726d74f2f22c1fa18acd38a2e310185a4c605ee55ecccb551c68d83910",
+        "bytes": 49846266560
+      }
+    ]
+  },
+  "source_urls": [
+    "https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507",
+    "https://huggingface.co/unsloth/Qwen3-235B-A22B-Instruct-2507-GGUF/tree/160ed54/UD-Q6_K_XL",
+    "https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/qwen3moe.cpp",
+    "https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/README.md"
+  ],
+  "integrity_status": "known-LFS-pointers-partial",
+  "notes": "No model weight bytes are redistributed in this package. Display sizes are publisher UI values; exact downloaded files must be verified locally."
+}

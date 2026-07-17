@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

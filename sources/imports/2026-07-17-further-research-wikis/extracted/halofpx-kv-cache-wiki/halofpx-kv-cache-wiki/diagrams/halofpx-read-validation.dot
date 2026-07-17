@@ -1,0 +1,16 @@
+digraph G {
+graph [bgcolor="transparent", fontname="Helvetica", pad="0.25", nodesep="0.45", ranksep="0.55"]; node [shape=box, style="rounded,filled", fillcolor="#eef3fa", color="#506784", fontname="Helvetica", fontsize=10, margin="0.12,0.08"]; edge [color="#506784", fontname="Helvetica", fontsize=9];
+rankdir=LR;
+a[label="AUTHORIZE"];
+b[label="DERIVE KEY +\nCOMPATIBILITY"];
+c[label="MANIFEST PARSE +\nCATALOG HMAC"];
+bind[label="NAMESPACE / KEY /\nPROMPT BINDING"];
+d[label="OBJECT HEADER +\nEXACT LENGTH"];
+e[label="DIGEST / AEAD +\nSEGMENT POLICY"];
+f[label="ISOLATED ENGINE\nIMPORT"];
+g[label="ATOMIC CONTEXT\nCOMMIT", fillcolor="#e8f5e9", color="#216e39"];
+hit[label="HIT_VERIFIED", fillcolor="#dff5e3", color="#216e39"];
+miss[label="MISS_RECOMPUTE\nDESTINATION UNCHANGED", fillcolor="#fde8e8", color="#a40e26"];
+a->b->c->bind->d->e->f->g->hit;
+a->miss[style=dashed]; b->miss[style=dashed]; c->miss[style=dashed]; bind->miss[style=dashed]; d->miss[style=dashed]; e->miss[style=dashed]; f->miss[style=dashed];
+}

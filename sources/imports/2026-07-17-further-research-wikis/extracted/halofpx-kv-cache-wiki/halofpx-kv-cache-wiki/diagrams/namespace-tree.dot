@@ -1,0 +1,18 @@
+digraph G {
+graph [bgcolor="transparent", fontname="Helvetica", pad="0.25", nodesep="0.45", ranksep="0.55"]; node [shape=box, style="rounded,filled", fillcolor="#eef3fa", color="#506784", fontname="Helvetica", fontsize=10, margin="0.12,0.08"]; edge [color="#506784", fontname="Helvetica", fontsize=9];
+rankdir=TB;
+p[label="Authenticated principal
++ sharing policy"];
+n[label="HMAC namespace resolver", fillcolor="#e8f5e9", color="#216e39"];
+pr[label="PRIVATE"];
+te[label="TENANT TRUST GROUP"];
+pu[label="APPROVED PUBLIC SYSTEM"];
+m1[label="namespace manifests"];
+m2[label="namespace manifests"];
+m3[label="namespace manifests"];
+o[label="immutable object store"];
+u[label="unauthorized principal", fillcolor="#fde8e8", color="#a40e26"];
+x[label="deny before lookup
+no existence disclosure", fillcolor="#fde8e8", color="#a40e26"];
+p->n; n->pr; n->te; n->pu; pr->m1;te->m2;pu->m3;m1->o;m2->o;m3->o;u->x[style=dashed];
+}

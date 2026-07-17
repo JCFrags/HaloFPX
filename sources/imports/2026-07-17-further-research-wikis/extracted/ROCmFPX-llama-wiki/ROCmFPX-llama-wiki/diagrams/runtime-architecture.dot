@@ -1,0 +1,27 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="transparent", pad=0.25, nodesep=0.45, ranksep=0.65, fontname="Inter"];
+  node [shape=box, style="rounded,filled", fontname="Inter", fontsize=11, color="#6d5dfc", fillcolor="#17182a", fontcolor="#eef0ff", margin="0.12,0.08"];
+  edge [color="#71d7ff", fontcolor="#b9c7ff", fontname="Inter", fontsize=9, arrowsize=0.7];
+
+  gguf [label="GGUF model\nROCmFP4 / Q2 / Q3 / Q6 / Q8 / Turbo"];
+  registry [label="GGML type registry\ntraits • block ABI • quantizer"];
+  cpu [label="CPU reference\nquantize • dequantize • GET_ROWS • OUT_PROD"];
+  hip [label="HIP / ROCm backend\nMMVQ • MMQ • copy • dequant • FA"];
+  vk [label="Vulkan backend\nshader types • matvec/matmul • packed FP6"];
+  modelgraph [label="llama graph/model\ncurrent upstream + minimal extension hooks"];
+  server [label="llama-server\nrequest overrides • strict MTP • disk cache"];
+  strix [label="Strix Halo gfx1151\nRDNA 3.5 • unified memory"];
+  other [label="Other AMD / CPU targets\nportable reference and backend gates"];
+
+  gguf -> registry;
+  registry -> cpu;
+  registry -> hip;
+  registry -> vk;
+  cpu -> modelgraph;
+  hip -> modelgraph;
+  vk -> modelgraph;
+  modelgraph -> server;
+  hip -> strix;
+  vk -> strix;
+  cpu -> other;
+}

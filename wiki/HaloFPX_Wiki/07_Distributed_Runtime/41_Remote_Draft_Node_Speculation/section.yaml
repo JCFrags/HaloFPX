@@ -1,0 +1,18 @@
+section_id: "41"
+title: "Remote Draft-Node Speculation"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 8
+required_machine_experiments:
+  - "DR-41-E1 correctness oracle"
+  - "DR-41-E2 remote break-even"
+  - "DR-41-E3 fault fallback"
+related_sections: ["31", "38", "39", "46", "48", "52", "55"]
+applicability:
+  repositories:
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "vllm-project/vllm@9354f222042986addf20709e5274fc26e0d09745"
+  hardware: "dual Strix Halo premise"

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/llama-conformance/case.schema.json",
+  "title": "Cross-fork conformance case",
+  "type": "object",
+  "required": [
+    "id",
+    "area",
+    "title",
+    "intent",
+    "layer",
+    "oracle",
+    "comparison_mode",
+    "fixtures",
+    "ci_tier",
+    "backend_scope",
+    "applicability",
+    "expected_behavior",
+    "failure_injection"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z]+-[0-9]{3}$"
+    },
+    "area": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "layer": {
+      "type": "string"
+    },
+    "oracle": {
+      "type": "string"
+    },
+    "comparison_mode": {
+      "type": "string"
+    },
+    "fixtures": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "upstream_reuse": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ci_tier": {
+      "type": "string"
+    },
+    "backend_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "applicability": {
+      "type": "object",
+      "required": [
+        "upstream",
+        "rocmfpx",
+        "cachyllama",
+        "integration"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "upstream": {
+          "type": "string"
+        },
+        "rocmfpx": {
+          "type": "string"
+        },
+        "cachyllama": {
+          "type": "string"
+        },
+        "integration": {
+          "type": "string"
+        }
+      }
+    },
+    "expected_behavior": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "failure_injection": {
+      "type": "boolean"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

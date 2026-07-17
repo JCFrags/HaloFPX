@@ -1,0 +1,57 @@
+schema_version: "1.0"
+name: Two-stage pipeline over independent microbatches or sequences
+mode: pipeline_parallel_2
+viability: conditional
+objective: [aggregate throughput, model capacity]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: validated_striping
+  bandwidth_symbol: B_bulk
+  latency_symbol: ell per microbatch boundary message
+coordinator_rank: 0
+ranks:
+  - rank_id: 0
+    node: A
+    role: [scheduler, pipeline stage 0]
+    ownership:
+      tokenizer: full tokenizer; batching coordinator
+      sampler: none
+      rng: request seeds only
+      model: embeddings and layers [0,k)
+      experts: experts in layers [0,k)
+      kv: layers [0,k), partitioned by session
+      sessions: global admission, microbatch, and backpressure state
+  - rank_id: 1
+    node: B
+    role: [pipeline stage 1, sampler]
+    ownership:
+      tokenizer: optional detokenization mirror
+      sampler: final token selection for each microbatch/session
+      rng: final per-session RNG counters
+      model: layers [k,L), final norm, LM head
+      experts: experts in layers [k,L)
+      kv: layers [k,L), partitioned by session
+      sessions: stage-local queues and KV handles
+flows:
+  - phase: every pipeline microbatch
+    from: 0
+    to: 1
+    payload: layer-boundary activations with session/order tags
+    volume_formula: total N*h*b_a for prefill or Q*h*b_a per decode scheduling round; split into M messages
+    synchronization: bounded pipeline queue; service interval is measured max of stage and link resources
+    link_policy: bulk_striped_if_validated
+  - phase: sampled-token feedback
+    from: 1
+    to: 0
+    payload: token IDs and completion flags
+    volume_formula: Q*b_t total per round
+    synchronization: per-sequence autoregressive dependency; other sequences may occupy the pipeline
+    link_policy: control
+hard_gates:
+  - At least two independent microbatches or active sequences are available to fill the pipeline.
+  - Measured service interval is below serial stage compute sum.
+  - Stage imbalance and backpressure remain within the queue/memory budget.
+  - Single-sequence latency is not used as the justification for GO.
+notes:
+  - Successive tokens of one sequence cannot remove their autoregressive dependency; throughput comes from inter-sequence concurrency.

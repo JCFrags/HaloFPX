@@ -1,0 +1,16 @@
+section_id: "33"
+title: "Attention Variants, KV Layouts, FlashAttention, and TurboQuant"
+category: "06_Models_Quantization_and_Inference"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 8
+open_question_count: 9
+required_machine_experiments:
+  - "actual cache layout/bytes and FA/fallback trace per model/backend/type"
+  - "symmetric/asymmetric K/V quality and long-context matrix"
+  - "shift, restore, corruption, rank-loss, and fallback tests"
+related_sections: ["29", "30", "31", "35", "42", "57", "58", "61"]
+applicability:
+  repositories: ["ggml-org/llama.cpp", "charlie12345/ROCmFPX"]
+  software_versions: ["788e07dc91d266ad3162a1ce9037665656269689", "a5605a72768c6562241b248e268e33dc92787394"]
+  hardware_revisions: ["gfx1151 validation pending"]

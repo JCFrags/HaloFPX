@@ -1,0 +1,15 @@
+section_id: "01"
+title: "Wiki Architecture, Navigation, and Root Manifest"
+category_id: "01"
+category_title: "Wiki Governance"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 7
+open_question_count: 5
+required_machine_experiments:
+  - "Cross-platform manifest, case-sensitive path, and relative-link validation on Windows and both Strix Halo nodes"
+related_sections: ["02", "03", "04", "05"]
+applicability:
+  repositories: ["Custom_Inference_Project"]
+  software_versions: ["YAML 1.2.2", "JSON Schema 2020-12"]
+  hardware_revisions: []

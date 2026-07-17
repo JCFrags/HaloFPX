@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/halokv/v1/checkpoint-manifest.schema.json",
+  "title": "HaloKV global checkpoint manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "tenant_namespace",
+    "session_id",
+    "session_generation",
+    "epoch",
+    "checkpoint_seq",
+    "op_id",
+    "topology_fingerprint",
+    "logical_position",
+    "durability",
+    "ranks",
+    "recovery_capsule_id",
+    "previous_commit_certificate_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "halokv-global-manifest-v1"
+    },
+    "tenant_namespace": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]{1,128}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "session_generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "checkpoint_seq": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "op_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "topology_fingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "logical_position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "processed_tokens",
+        "cache_base_position",
+        "sequence_count",
+        "sequence_layout_digest",
+        "externally_acked_output_offset"
+      ],
+      "properties": {
+        "processed_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cache_base_position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sequence_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "sequence_layout_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "externally_acked_output_offset": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "durability": {
+      "enum": [
+        "PROCESS_DURABLE",
+        "HOST_FAILURE_DURABLE",
+        "ASYNC_OFFLOAD"
+      ]
+    },
+    "ranks": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rank_id",
+          "rank_manifest_id",
+          "shard_descriptor",
+          "logical_bytes"
+        ],
+        "properties": {
+          "rank_id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "rank_manifest_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "shard_descriptor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "logical_bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1099511627776
+          }
+        }
+      }
+    },
+    "recovery_capsule_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "previous_commit_certificate_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "properties": {
+        "ranks": {
+          "contains": {
+            "type": "object",
+            "required": [
+              "rank_id"
+            ],
+            "properties": {
+              "rank_id": {
+                "const": 0
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      }
+    },
+    {
+      "properties": {
+        "ranks": {
+          "contains": {
+            "type": "object",
+            "required": [
+              "rank_id"
+            ],
+            "properties": {
+              "rank_id": {
+                "const": 1
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      }
+    }
+  ]
+}

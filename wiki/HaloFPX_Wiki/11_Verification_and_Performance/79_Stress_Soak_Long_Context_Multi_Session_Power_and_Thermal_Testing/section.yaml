@@ -1,0 +1,26 @@
+section_id: "79"
+title: "Stress, Soak, Long-Context, Multi-Session, Power, and Thermal Testing"
+category_id: "11"
+category_title: "Verification and Performance"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 10
+required_machine_experiments:
+  - "STRESS-79-E1 thermal-equilibrium stress by workload and power profile"
+  - "STRESS-79-E2 representative 24-hour soak"
+  - "STRESS-79-E3 long-context correctness and allocation staircase"
+  - "STRESS-79-E4 mixed multi-session fairness and starvation"
+  - "STRESS-79-E5 cancellation-storm cleanup"
+  - "STRESS-79-E6 cache-churn and writeback stability"
+  - "STRESS-79-E7 repeated model switching and memory fragmentation"
+  - "STRESS-79-E8 bounded NVMe and link contention"
+related_sections: ["73", "74", "75", "76", "77", "78", "80", "81"]
+applicability:
+  repositories:
+    - repository: "ggml-org/llama.cpp"
+      commit: "788e07dc91d266ad3162a1ce9037665656269689"
+    - repository: "charlie12345/ROCmFPX"
+      commit: "a5605a72768c6562241b248e268e33dc92787394"
+  software_versions: ["AMD SMI CLI documentation 26.5.0", "Linux documentation accessed 2026-07-17"]
+  hardware_revisions: ["dual-Strix-Halo target; exact revisions open"]

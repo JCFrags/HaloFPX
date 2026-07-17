@@ -1,0 +1,17 @@
+section_id: "39"
+title: "Coordinator, Rank Worker, Session, and Persistent-Graph Architecture"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 6
+open_question_count: 7
+required_machine_experiments:
+  - "DR-39-E1 lifecycle conformance"
+  - "DR-39-E2 graph reuse matrix"
+related_sections: ["32", "38", "45", "46", "48", "55"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  hardware: "two matched Strix Halo nodes; unverified"

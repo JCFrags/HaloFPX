@@ -1,0 +1,232 @@
+- name: ROCM_PATH
+  layer: build/runtime
+  classification: official
+  default: /opt/rocm when installed conventionally
+  recommended: Set to the exact unpacked SDK root for a tarball install.
+  example: export ROCM_PATH=/opt/rocm-7.14.0
+  scope: ROCm SDK discovery
+  risk: A stale value can mix release lines.
+  sources:
+  - AMD-INSTALL-714
+  - LLAMA-HIP-CMAKE-86D86ED
+- name: PATH
+  layer: runtime
+  classification: official
+  default: System path
+  recommended: Prepend or append one ROCm SDK bin directory consistently.
+  example: export PATH="$ROCM_PATH/bin:$PATH"
+  scope: hipconfig, rocminfo, compiler tools
+  risk: Multiple hipconfig binaries can select the wrong SDK.
+  sources:
+  - AMD-INSTALL-714
+- name: LD_LIBRARY_PATH
+  layer: runtime
+  classification: official-for-tarball
+  default: Distribution linker configuration
+  recommended: Use only for nonstandard/tarball installs; prefer a container or ldconfig file for deployment.
+  example: export LD_LIBRARY_PATH="$ROCM_PATH/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+  scope: ROCm shared-library discovery
+  risk: Can silently load libraries from the wrong release line.
+  sources:
+  - AMD-INSTALL-714
+- name: HIPCXX
+  layer: build
+  classification: upstream-recipe
+  default: CMake/toolchain-dependent
+  recommended: Resolve from the active ROCm SDK.
+  example: export HIPCXX="$(hipconfig -l)/clang"
+  scope: HIP compiler selection
+  risk: Do not point it to a system Clang from another generation.
+  sources:
+  - LLAMA-ROCM-DOCKER-86D86ED
+  - LLAMA-HIP-CMAKE-86D86ED
+- name: HIP_PATH
+  layer: build
+  classification: upstream-recipe
+  default: ROCm install root
+  recommended: Resolve from active hipconfig.
+  example: export HIP_PATH="$(hipconfig -R)"
+  scope: HIP CMake package and runtime discovery
+  risk: Mismatch with HIPCXX creates a mixed toolchain.
+  sources:
+  - LLAMA-ROCM-DOCKER-86D86ED
+- name: CMAKE_HIP_ARCHITECTURES
+  layer: build
+  classification: official-upstream
+  default: Compiler-selected or project-selected
+  recommended: Set gfx1151 explicitly for a single-target Strix Halo build.
+  example: cmake ... -DCMAKE_HIP_ARCHITECTURES=gfx1151
+  scope: HIP code-object target
+  risk: Omitting it can produce a larger or wrong-target build; requires CMake >=3.21.
+  sources:
+  - CMAKE-HIP-ARCH
+  - LLAMA-HIP-CMAKE-86D86ED
+- name: GPU_TARGETS
+  layer: build
+  classification: compatibility-alias
+  default: Unset
+  recommended: Use only for projects/ROCm packages that consume it; direct CMAKE_HIP_ARCHITECTURES is clearer in current llama.cpp.
+  example: cmake ... -DGPU_TARGETS=gfx1151
+  scope: ROCm target forwarding
+  risk: Project-specific behavior.
+  sources:
+  - LLAMA-HIP-CMAKE-86D86ED
+  - ROCMFPX-BUILD-A5605
+- name: AMDGPU_TARGETS
+  layer: build
+  classification: legacy-compatibility-alias
+  default: Unset
+  recommended: Prefer CMAKE_HIP_ARCHITECTURES for current CMake projects.
+  example: cmake ... -DAMDGPU_TARGETS=gfx1151
+  scope: Older project target selection
+  risk: Can be ignored or translated depending on project version.
+  sources:
+  - LLAMA-HIP-CMAKE-86D86ED
+- name: CMAKE_HIP_COMPILER_ROCM_ROOT
+  layer: build
+  classification: advanced-upstream
+  default: Auto-detected
+  recommended: Set only when a nonstandard SDK layout cannot be auto-discovered.
+  example: cmake ... -DCMAKE_HIP_COMPILER_ROCM_ROOT="$ROCM_PATH"
+  scope: CMake HIP compiler resource discovery
+  risk: Can hide an inconsistent install if used reflexively.
+  sources:
+  - CMAKE-HIP-ARCH
+  - LLAMA-HIP-CMAKE-86D86ED
+- name: HIP_VISIBLE_DEVICES
+  layer: runtime
+  classification: official
+  default: All visible HIP devices
+  recommended: Use for deterministic single-GPU selection.
+  example: export HIP_VISIBLE_DEVICES=0
+  scope: HIP device visibility
+  risk: Device numbering can differ from other APIs.
+  sources:
+  - HIP-ENV-VARS
+- name: ROCR_VISIBLE_DEVICES
+  layer: runtime
+  classification: official
+  default: All HSA agents
+  recommended: Use when HSA-level filtering is required; avoid contradictory visibility variables.
+  example: export ROCR_VISIBLE_DEVICES=0
+  scope: ROCr/HSA agent visibility
+  risk: Contradictory HIP and ROCR filters can confuse diagnostics.
+  sources:
+  - HIP-ENV-VARS
+- name: HIP_LAUNCH_BLOCKING
+  layer: diagnostic-runtime
+  classification: diagnostic
+  default: 0/asynchronous
+  recommended: Set to 1 only to localize an asynchronous fault.
+  example: HIP_LAUNCH_BLOCKING=1 ./build/bin/llama-bench ...
+  scope: Synchronous kernel launch diagnostics
+  risk: Severely changes timing and performance.
+  sources:
+  - HIP-ENV-VARS
+- name: TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL
+  layer: application-runtime
+  classification: official-pytorch-recipe
+  default: Unset
+  recommended: Set to 1 only for the AMD ROCm 7.2.1 PyTorch recipe that documents it; it is not a llama.cpp, HIP, or system-wide
+    requirement.
+  example: export TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1
+  scope: PyTorch AOTriton attention kernels
+  risk: Experimental application behavior; irrelevant to llama.cpp and may change across PyTorch/ROCm release lines.
+  sources:
+  - AMD-PYTORCH-721-AOTRITON
+- name: HSA_OVERRIDE_GFX_VERSION
+  layer: runtime
+  classification: project-specific-or-unsupported-workaround
+  default: Unset
+  recommended: Leave unset on a native current gfx1151 stack. The ROCmFPX fork documents 11.5.1 for its own HIP path.
+  example: 'export HSA_OVERRIDE_GFX_VERSION=11.5.1  # ROCmFPX recipe only'
+  scope: HSA architecture override
+  risk: 11.0.0/11.0.3 spoofing did not fix old-stack failures and can select incompatible code paths.
+  sources:
+  - ROCMFPX-A5605
+  - ROCM-ISSUE-5824
+- name: GGML_HIP_ENABLE_UNIFIED_MEMORY
+  layer: runtime
+  classification: ROCmFPX-project-specific
+  default: Unset
+  recommended: Use only with the pinned ROCmFPX fork recipe that documents it.
+  example: export GGML_HIP_ENABLE_UNIFIED_MEMORY=1
+  scope: Fork unified-memory path
+  risk: Not an upstream llama.cpp compatibility requirement.
+  sources:
+  - ROCMFPX-A5605
+- name: VK_DRIVER_FILES
+  layer: runtime
+  classification: official-upstream
+  default: Loader discovers all manifests
+  recommended: Set only to force a verified ICD manifest during controlled A/B tests.
+  example: export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+  scope: Vulkan ICD selection
+  risk: A wrong path makes Vulkan devices disappear; ignored in elevated contexts.
+  sources:
+  - VULKAN-LOADER-ICD
+- name: VK_ICD_FILENAMES
+  layer: runtime
+  classification: deprecated-upstream
+  default: Unset
+  recommended: Use VK_DRIVER_FILES instead for new recipes.
+  example: unset VK_ICD_FILENAMES
+  scope: Legacy Vulkan ICD selection
+  risk: Stale shell configuration can force AMDVLK or a nonexistent driver unexpectedly.
+  sources:
+  - VULKAN-LOADER-ICD
+- name: VK_LOADER_DEBUG
+  layer: diagnostic-runtime
+  classification: official-upstream
+  default: Unset
+  recommended: Use all for a one-shot loader trace.
+  example: VK_LOADER_DEBUG=all vulkaninfo --summary 2>vulkan-loader.log
+  scope: Vulkan loader diagnostics
+  risk: Verbose; may expose filesystem paths in logs.
+  sources:
+  - VULKAN-LOADER-ICD
+- name: GGML_CUDA_DISABLE_GRAPHS
+  layer: diagnostic-runtime
+  classification: related-community-diagnostic
+  default: Unset
+  recommended: Not a gfx1151 default; use only when investigating graph-related faults and record the result.
+  example: GGML_CUDA_DISABLE_GRAPHS=1 ./llama-cli ...
+  scope: ggml shared CUDA/HIP graph path
+  risk: May reduce performance and is sourced from a related RDNA4 report.
+  sources:
+  - LLAMA-ISSUE-24961
+- name: HSA_ENABLE_SDMA
+  layer: diagnostic-runtime
+  classification: system-specific-community-workaround
+  default: 1/enabled
+  recommended: Leave enabled on a validated current stack. Set to 0 only for a bounded A/B test or the cited kernel 6.19.x
+    community setup; remove it after diagnosis unless independently reproduced.
+  example: 'HSA_ENABLE_SDMA=0 ./reproducer  # diagnostic or cited 6.19.x setup only'
+  scope: HSA SDMA copy-engine behavior
+  risk: Changes transfer paths and performance; can conceal rather than repair a kernel, firmware, or runtime mismatch.
+  sources:
+  - COMM-STRIX-GUIDE-2026
+- name: amdgpu.cwsr_enable
+  layer: kernel-command-line
+  classification: legacy-workaround
+  default: 1/enabled
+  recommended: Leave default on current supported stacks; use =0 only to contain the documented legacy ROCm 7.1/MES issue
+    while migrating.
+  example: amdgpu.cwsr_enable=0
+  scope: Compute Wave Save/Restore
+  risk: Disables a kernel feature and can mask an obsolete stack.
+  sources:
+  - ROCM-ISSUE-5590
+  - ROCM-ISSUE-5724
+- name: amd_iommu
+  layer: kernel-command-line
+  classification: community-performance-tuning
+  default: Distribution/platform default
+  recommended: Do not disable IOMMU by default when USB4, virtualization, device isolation, or RDMA security matters; benchmark
+    in your threat model.
+  example: 'amd_iommu=off  # community performance profile only'
+  scope: IOMMU and DMA isolation
+  risk: Disabling IOMMU weakens DMA isolation and may conflict with USB4/RDMA security requirements.
+  sources:
+  - KYUZ0-TOOLBOX-A7C71E9
+  - THUNDERBOLT-IBVERBS-76BA39B

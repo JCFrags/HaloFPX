@@ -1,0 +1,19 @@
+section_id: "50"
+title: "USB4STREAM and thunderbolt-net Implementation Options"
+category_id: "08"
+category_title: "Fabric and Transport"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 8
+required_machine_experiments:
+  - "FT-50-E1 non-destructive capability inventory"
+  - "FT-50-E2 controlled stream setup and integrity check"
+  - "FT-50-E3 matched carrier benchmark"
+  - "FT-50-E4 faults and security"
+related_sections: ["20", "23", "28", "49", "52", "53", "54", "55"]
+applicability:
+  repositories:
+    - "torvalds/linux@fce2dfa773ced15f27dd27cd0b482a7473cdcf2a"
+  software: "USB4STREAM in Linux 7.2-rc3-era master; distro availability unverified"
+  hardware: "dual Nimo MME3L Strix Halo USB4NET paths observed 2026-07-17; physical cables unverified"

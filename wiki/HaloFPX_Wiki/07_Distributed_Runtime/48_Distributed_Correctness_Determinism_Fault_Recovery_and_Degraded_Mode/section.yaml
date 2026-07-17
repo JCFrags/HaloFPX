@@ -1,0 +1,23 @@
+section_id: "48"
+title: "Distributed Correctness, Determinism, Fault Recovery, and Degraded Mode"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 6
+open_question_count: 9
+required_machine_experiments:
+  - "token/logit/state comparison across backend, batch, cache, and distributed modes"
+  - "collective-order, timeout, link, rank, mismatch, corruption, and cancellation fault matrix"
+  - "one-link and single-node recovery plus output replay conformance"
+related_sections: ["09", "39", "42", "43", "45", "46", "53", "57", "58", "61", "63", "66", "73", "78", "80", "81"]
+applicability:
+  repositories:
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "ROCm/rccl@57e58688f44c77076ad536ef1f6b68741fc6e694"
+    - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
+  software_versions:
+    - "RCCL documentation 2.27.7"
+    - "PyTorch deterministic API documentation 2.9"
+  hardware_revisions:
+    - "two matched AMD Strix Halo systems (exact BOM open)"

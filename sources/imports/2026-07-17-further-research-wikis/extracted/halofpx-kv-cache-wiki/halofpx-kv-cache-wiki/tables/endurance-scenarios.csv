@@ -1,0 +1,7 @@
+scenario,state_gib,checkpoints_per_day,rated_tbw,waf,replicas,draft_spec_overhead_ratio
+Light,4,10,600,1.5,1,0
+Moderate,4,50,1200,1.5,1,0
+Heavy,4,200,2400,1.7,1,0
+Long-context heavy,16,100,2400,2.0,1,0
+Target plus 20% optional state,4,100,1200,1.6,1,0.2
+Replicated cache,4,50,2400,1.5,2,0

@@ -1,0 +1,12 @@
+section_id: "64"
+title: "Eviction, Garbage Collection, Quotas, User Isolation, and Privacy"
+category_id: "09"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 5
+open_question_count: 9
+required_machine_experiments: ["M64-01 reachability/GC model", "M64-02 quota/disk-pressure matrix", "M64-03 isolation/privacy", "M64-04 retention/endurance soak"]
+related_sections: ["56", "59", "60", "63", "65", "71", "79", "80"]
+applicability:
+  repositories: ["fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"]
+  hardware: ["dual Strix Halo"]

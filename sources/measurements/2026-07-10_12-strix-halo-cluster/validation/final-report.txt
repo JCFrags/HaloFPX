@@ -1,0 +1,280 @@
+# USB4 llama.cpp RPC cluster report
+
+2026-07-10T10:00:02-07:00
+
+## Primary
+nimo-1
+Linux nimo-1 7.1.3-1-cachyos #1 SMP PREEMPT_DYNAMIC Sat, 04 Jul 2026 20:05:25 +0000 x86_64 GNU/Linux
+BOOT_IMAGE=/@/boot/vmlinuz-linux-cachyos root=UUID=f3f2fa4f-d367-4b67-90e6-736c0894486b rw rootflags=subvol=@ nowatchdog nvme_load=YES splash loglevel=3 amdgpu.gttsize=126000 ttm.pages_limit=33030000 ttm.page_pool_size=33030000 amd_iommu=off
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eno1             UP             192.168.1.55/24 fe80::7668:636a:2516:73f5/64 
+wlan0            DOWN           
+thunderbolt0     UP             10.44.0.1/30 
+thunderbolt1     UP             10.44.0.5/30 
+4: thunderbolt0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:f6:66:34:5b:41 brd ff:ff:ff:ff:ff:ff promiscuity 0 allmulti 0 minmtu 68 maxmtu 65522 addrgenmode none numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus thunderbolt parentdev 0-2.0 
+    altname enx02f666345b41
+5: thunderbolt1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:f5:42:f6:c4:cc brd ff:ff:ff:ff:ff:ff promiscuity 0 allmulti 0 minmtu 68 maxmtu 65522 addrgenmode none numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus thunderbolt parentdev 1-2.0 
+    altname enx02f542f6c4cc
+4: thunderbolt0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:f6:66:34:5b:41 brd ff:ff:ff:ff:ff:ff
+    RX:   bytes packets errors dropped  missed   mcast           
+      126358657 1550495      0       0       0       0 
+    TX:   bytes packets errors dropped carrier collsns           
+    91748517215 2809129      0       0       0       0 
+    altname enx02f666345b41
+5: thunderbolt1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:f5:42:f6:c4:cc brd ff:ff:ff:ff:ff:ff
+    RX:   bytes packets errors dropped  missed   mcast           
+      121371939 1335545      0       0       0       0 
+    TX:   bytes packets errors dropped carrier collsns           
+    89312216662 2584320      0       0       0       0 
+    altname enx02f542f6c4cc
+10.44.0.1 id 2 signal subflow dev thunderbolt0 
+10.44.0.5 id 3 signal subflow dev thunderbolt1 
+add_addr_accepted 2 subflows 2 
+               total        used        free      shared  buff/cache   available
+Mem:           124Gi       122Gi       2.9Gi       260Ki       483Mi       2.3Gi
+Swap:           31Gi        11Gi        20Gi
+NAME      TYPE SIZE  USED PRIO
+/swapfile file  32G 11.1G   -1
+Available devices:
+  ROCm0: AMD Radeon 8060S Graphics (129023 MiB, 2306 MiB free)
+
+## Worker
+nimo-2
+Linux nimo-2 7.1.3-1-cachyos #1 SMP PREEMPT_DYNAMIC Sat, 04 Jul 2026 20:05:25 +0000 x86_64 GNU/Linux
+BOOT_IMAGE=/@/boot/vmlinuz-linux-cachyos root=UUID=292d4132-608a-4b9a-9293-46aa8b110134 rw rootflags=subvol=@ nowatchdog nvme_load=YES splash loglevel=3 amdgpu.gttsize=126000 ttm.pages_limit=33030000 ttm.page_pool_size=33030000 amd_iommu=off zswap.enabled=0
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eno1             UP             192.168.1.163/24 fe80::dd2f:958:6546:6751/64 
+wlan0            DOWN           
+thunderbolt0     UP             10.44.0.2/30 
+thunderbolt1     UP             10.44.0.6/30 
+4: thunderbolt0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:0e:2b:e7:6b:70 brd ff:ff:ff:ff:ff:ff promiscuity 0 allmulti 0 minmtu 68 maxmtu 65522 addrgenmode none numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus thunderbolt parentdev 0-2.0 
+    altname enx020e2be76b70
+5: thunderbolt1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:9d:26:c2:5f:33 brd ff:ff:ff:ff:ff:ff promiscuity 0 allmulti 0 minmtu 68 maxmtu 65522 addrgenmode none numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus thunderbolt parentdev 1-2.0 
+    altname enx029d26c25f33
+4: thunderbolt0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:0e:2b:e7:6b:70 brd ff:ff:ff:ff:ff:ff
+    RX:   bytes  packets errors dropped  missed   mcast           
+    91748517215 24113709      0       0       0       0 
+    TX:   bytes  packets errors dropped carrier collsns           
+      126358657  1550283      0       0       0       0 
+    altname enx020e2be76b70
+5: thunderbolt1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:9d:26:c2:5f:33 brd ff:ff:ff:ff:ff:ff
+    RX:   bytes  packets errors dropped  missed   mcast           
+    89312143412 23319087     20       0      17       0 
+    TX:   bytes  packets errors dropped carrier collsns           
+      121371939  1331513      0       0       0       0 
+    altname enx029d26c25f33
+10.44.0.2 id 2 signal subflow dev thunderbolt0 
+10.44.0.6 id 3 signal subflow dev thunderbolt1 
+add_addr_accepted 2 subflows 2 
+               total        used        free      shared  buff/cache   available
+Mem:           124Gi       116Gi       6.2Gi       1.8Mi       3.3Gi       8.2Gi
+Swap:             0B          0B          0B
+Available devices:
+  ROCm0: AMD Radeon 8060S Graphics (129023 MiB, 8329 MiB free)
+
+## RPC and MPTCP
+Connection to 10.44.0.2 50052 port [tcp/*] succeeded!
+State Recv-Q Send-Q Local Address:Port  Peer Address:Port
+ESTAB 0      0          10.44.0.1:59608    10.44.0.2:50052
+	 subflows:1 add_addr_signal:1 add_addr_accepted:1 subflows_max:2 add_addr_signal_max:2 add_addr_accepted_max:2 remote_key token:519d78cb write_seq:10110857750995685830 snd_una:10110857750995685830 rcv_nxt:5318715773133288990 local_addr_used:1 local_addr_max:2 bytes_retrans:123000 bytes_sent:121651361286 bytes_received:17462095 bytes_acked:121651361286 subflows_total:2 last_data_sent:66517 last_data_recv:66482 last_ack_recv:66482
+State Recv-Q Send-Q Local Address:Port  Peer Address:Port
+ESTAB 0      0          10.44.0.2:50052    10.44.0.1:59608
+	 subflows:1 add_addr_signal:1 add_addr_accepted:1 subflows_max:2 add_addr_signal_max:2 add_addr_accepted_max:2 remote_key token:1d908c1e write_seq:5318715773133288990 snd_una:5318715773133288990 rcv_nxt:10110857750995685830 local_addr_used:1 local_addr_max:2 bytes_retrans:1 bytes_sent:17462095 bytes_received:121651361286 bytes_acked:17462095 subflows_total:2 last_data_sent:66597 last_data_recv:66632 last_ack_recv:66597
+
+## Model
+/opt/llm-usb4-cluster/models/unsloth_Kimi-K2-Thinking-GGUF/UD-TQ1_0/Kimi-K2-Thinking-UD-TQ1_0-00001-of-00006.gguf
+230G	/opt/llm-usb4-cluster/models
+1461584128 /opt/llm-usb4-cluster/models/unsloth_Kimi-K2-Thinking-GGUF/UD-TQ1_0/Kimi-K2-Thinking-UD-TQ1_0-00006-of-00006.gguf
+48621041088 /opt/llm-usb4-cluster/models/unsloth_Kimi-K2-Thinking-GGUF/UD-TQ1_0/Kimi-K2-Thinking-UD-TQ1_0-00005-of-00006.gguf
+49013503232 /opt/llm-usb4-cluster/models/unsloth_Kimi-K2-Thinking-GGUF/UD-TQ1_0/Kimi-K2-Thinking-UD-TQ1_0-00004-of-00006.gguf
+49079792608 /opt/llm-usb4-cluster/models/unsloth_Kimi-K2-Thinking-GGUF/UD-TQ1_0/Kimi-K2-Thinking-UD-TQ1_0-00003-of-00006.gguf
+49086858432 /opt/llm-usb4-cluster/models/unsloth_Kimi-K2-Thinking-GGUF/UD-TQ1_0/Kimi-K2-Thinking-UD-TQ1_0-00002-of-00006.gguf
+49585353984 /opt/llm-usb4-cluster/models/unsloth_Kimi-K2-Thinking-GGUF/UD-TQ1_0/Kimi-K2-Thinking-UD-TQ1_0-00001-of-00006.gguf
+
+## Services
+● llm-mptcp-limits.service - Set MPTCP limits for the dual-USB4 LLM cluster
+     Loaded: loaded (/etc/systemd/system/llm-mptcp-limits.service; enabled; preset: disabled)
+     Active: active (exited) since Fri 2026-07-10 01:28:32 PDT; 8h ago
+ Invocation: 7f689e3d406846d6928ee9952dead938
+   Main PID: 7828 (code=exited, status=0/SUCCESS)
+   Mem peak: 2M
+        CPU: 4ms
+
+Notice: journal has been rotated since unit was started, output may be incomplete.
+
+● llm-usb4-pmqos.service - USB4 LLM cluster latency tuning
+     Loaded: loaded (/etc/systemd/system/llm-usb4-pmqos.service; enabled; preset: disabled)
+     Active: active (exited) since Fri 2026-07-10 01:28:33 PDT; 8h ago
+ Invocation: 0b96264d9c8a46b5a61dd9bd70d8ab1f
+   Main PID: 7936 (code=exited, status=0/SUCCESS)
+   Mem peak: 2.2M
+        CPU: 7ms
+
+Notice: journal has been rotated since unit was started, output may be incomplete.
+
+● llm-primary-server.service - llama-server primary for dual-USB4 RPC cluster
+     Loaded: loaded (/etc/systemd/system/llm-primary-server.service; enabled; preset: disabled)
+     Active: active (running) since Fri 2026-07-10 09:50:55 PDT; 9min ago
+ Invocation: 23458640233e4f7a88bd417c40cc738b
+    Process: 34466 ExecStartPre=/usr/bin/sh -c printf Y > /sys/module/amdgpu/parameters/no_system_mem_limit (code=exited, status=0/SUCCESS)
+   Main PID: 34467 (llama-server)
+      Tasks: 52 (limit: 152848)
+     Memory: 16.7G (peak: 23G, swap: 11G, swap peak: 11.5G, zswap: 27.4M)
+        CPU: 7min 26.080s
+     CGroup: /system.slice/llm-primary-server.service
+             └─34467 /opt/llm-usb4-cluster/llama/llama-server -m /opt/llm-usb4-cluster/models/unsloth_Kimi-K2-Thinking-GGUF/UD-TQ1_0/Kimi-K2-Thinking-UD-TQ1_0-00001-of-00006.gguf --no-mmap --alias kimi-k2-thinking-usb4-230g --rpc 10.44.0.2:50052 --tensor-split 1,1 -ngl 58 -fa on -c 4096 -b 512 -ub 512 -ctk q4_0 -ctv q4_0 --temp 1.0 --min-p 0.01 --host 127.0.0.1 --port 8081 --jinja
+
+Jul 10 09:58:41 nimo-1 run-llama-server.sh[34467]: 7.45.969.658 I slot get_availabl: id  3 | task -1 | selected slot by LCP similarity, sim_best = 1.000 (> 0.100 thold), f_keep = 0.187
+Jul 10 09:58:41 nimo-1 run-llama-server.sh[34467]: 7.45.981.941 I slot launch_slot_: id  3 | task 292 | processing task, is_child = 0
+Jul 10 09:58:41 nimo-1 run-llama-server.sh[34467]: 7.45.981.962 W slot   operator(): id  3 | task 292 | need to evaluate at least 1 token for each active slot (n_past = 37, task.n_tokens() = 37)
+Jul 10 09:58:41 nimo-1 run-llama-server.sh[34467]: 7.45.981.963 W slot   operator(): id  3 | task 292 | n_past was set to 36
+Jul 10 09:58:55 nimo-1 run-llama-server.sh[34467]: 8.00.647.967 I slot print_timing: id  3 | task 292 | n_decoded =    100, tg =   6.87 t/s, tg_3s =   6.87 t/s
+Jul 10 09:58:56 nimo-1 run-llama-server.sh[34467]: 8.00.929.523 I slot print_timing: id  3 | task 292 | prompt eval time =      98.16 ms /     1 tokens (   98.16 ms per token,    10.19 tokens per second)
+Jul 10 09:58:56 nimo-1 run-llama-server.sh[34467]: 8.00.929.527 I slot print_timing: id  3 | task 292 |        eval time =   14849.39 ms /   103 tokens (  144.17 ms per token,     6.94 tokens per second)
+Jul 10 09:58:56 nimo-1 run-llama-server.sh[34467]: 8.00.929.528 I slot print_timing: id  3 | task 292 |       total time =   14947.55 ms /   104 tokens
+Jul 10 09:58:56 nimo-1 run-llama-server.sh[34467]: 8.00.929.529 I slot print_timing: id  3 | task 292 |    graphs reused =        390
+Jul 10 09:58:56 nimo-1 run-llama-server.sh[34467]: 8.00.930.976 I slot      release: id  3 | task 292 | stop processing: n_tokens = 139, truncated = 0
+NRestarts=0
+ExecStart={ path=/opt/llm-usb4-cluster/bin/run-llama-server.sh ; argv[]=/opt/llm-usb4-cluster/bin/run-llama-server.sh ; ignore_errors=no ; start_time=[Fri 2026-07-10 09:50:55 PDT] ; stop_time=[n/a] ; pid=34467 ; code=(null) ; status=0/0 }
+MemoryPeak=24739999744
+Environment=HSA_ENABLE_SDMA=0
+● llm-mptcp-limits.service - Set MPTCP limits for the dual-USB4 LLM cluster
+     Loaded: loaded (/etc/systemd/system/llm-mptcp-limits.service; enabled; preset: disabled)
+     Active: active (exited) since Fri 2026-07-10 01:28:33 PDT; 8h ago
+ Invocation: be867bcd83814b7ba9ba34fa1a147524
+   Main PID: 13225 (code=exited, status=0/SUCCESS)
+   Mem peak: 2.2M
+        CPU: 3ms
+
+Jul 10 01:28:33 nimo-2 systemd[1]: Starting Set MPTCP limits for the dual-USB4 LLM cluster...
+Jul 10 01:28:33 nimo-2 systemd[1]: Finished Set MPTCP limits for the dual-USB4 LLM cluster.
+
+● llm-usb4-pmqos.service - USB4 LLM cluster latency tuning
+     Loaded: loaded (/etc/systemd/system/llm-usb4-pmqos.service; enabled; preset: disabled)
+     Active: active (exited) since Fri 2026-07-10 01:28:33 PDT; 8h ago
+ Invocation: 19b935f9a30344868861aa595493c3a2
+   Main PID: 13345 (code=exited, status=0/SUCCESS)
+   Mem peak: 2M
+        CPU: 4ms
+
+Jul 10 01:28:33 nimo-2 systemd[1]: Starting USB4 LLM cluster latency tuning...
+Jul 10 01:28:33 nimo-2 systemd[1]: Finished USB4 LLM cluster latency tuning.
+
+● firewalld.service - firewalld - dynamic firewall daemon
+     Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled; preset: disabled)
+     Active: active (running) since Fri 2026-07-10 01:30:22 PDT; 8h ago
+ Invocation: 4cd04a26beb64119b9f3ab8d1bea83ef
+       Docs: man:firewalld(1)
+   Main PID: 13713 (firewalld)
+      Tasks: 4 (limit: 152848)
+     Memory: 42.3M (peak: 44.8M)
+        CPU: 689ms
+     CGroup: /system.slice/firewalld.service
+             └─13713 /usr/bin/python /usr/bin/firewalld --nofork --nopid
+
+Jul 10 01:30:22 nimo-2 systemd[1]: Started firewalld - dynamic firewall daemon.
+Jul 10 01:30:23 nimo-2 firewalld[13713]: WARNING: ALREADY_ENABLED: ssh
+Jul 10 01:30:24 nimo-2 firewalld[13713]: WARNING: NOT_ENABLED: 50052:tcp
+
+● llm-rpc-worker.service - llama.cpp RPC worker for dual-USB4 cluster
+     Loaded: loaded (/etc/systemd/system/llm-rpc-worker.service; enabled; preset: disabled)
+     Active: active (running) since Fri 2026-07-10 09:40:58 PDT; 19min ago
+ Invocation: 042145cdba504a78a0293061aaf04677
+   Main PID: 19654 (ggml-rpc-server)
+      Tasks: 3 (limit: 152848)
+     Memory: 217.8M (peak: 3.4G)
+        CPU: 49.697s
+     CGroup: /system.slice/llm-rpc-worker.service
+             └─19654 /opt/llm-usb4-cluster/llama/ggml-rpc-server --host 0.0.0.0 --port 50052
+
+Jul 10 09:51:42 nimo-2 run-rpc-worker.sh[19654]: Accepted client connection
+Jul 10 09:51:42 nimo-2 run-rpc-worker.sh[19654]: Client connection closed
+Jul 10 09:51:42 nimo-2 run-rpc-worker.sh[19654]: Accepted client connection
+Jul 10 09:51:42 nimo-2 run-rpc-worker.sh[19654]: Client connection closed
+Jul 10 09:51:42 nimo-2 run-rpc-worker.sh[19654]: Accepted client connection
+Jul 10 09:52:53 nimo-2 run-rpc-worker.sh[19654]: ggml_backend_cuda_get_available_uma_memory: final available_memory_kb: 9119620
+Jul 10 09:56:53 nimo-2 run-rpc-worker.sh[19654]: ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+Jul 10 09:57:25 nimo-2 run-rpc-worker.sh[19654]: ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+Jul 10 09:58:11 nimo-2 run-rpc-worker.sh[19654]: ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+Jul 10 09:58:41 nimo-2 run-rpc-worker.sh[19654]: ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+NRestarts=0
+ExecStart={ path=/opt/llm-usb4-cluster/bin/run-rpc-worker.sh ; argv[]=/opt/llm-usb4-cluster/bin/run-rpc-worker.sh ; ignore_errors=no ; start_time=[Fri 2026-07-10 09:40:58 PDT] ; stop_time=[n/a] ; pid=19654 ; code=(null) ; status=0/0 }
+MemoryPeak=3709878272
+Environment=HSA_ENABLE_SDMA=0
+
+## Worker firewall
+llm-usb4
+  interfaces: thunderbolt1 thunderbolt0
+public (default)
+  interfaces: eno1
+llm-usb4 (active)
+  target: default
+  ingress-priority: 0
+  egress-priority: 0
+  icmp-block-inversion: no
+  interfaces: thunderbolt0 thunderbolt1
+  sources: 
+  services: 
+  ports: 
+  protocols: 
+  forward: no
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+	rule family="ipv4" source address="10.44.0.0/29" port port="50052" protocol="tcp" accept
+public (default, active)
+  target: default
+  ingress-priority: 0
+  egress-priority: 0
+  icmp-block-inversion: no
+  interfaces: eno1
+  sources: 
+  services: dhcpv6-client ssh
+  ports: 
+  protocols: 
+  forward: yes
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+PASS: RPC blocked on management LAN at 192.168.1.163:50052
+
+## API
+{"status":"ok"}
+{"id":"chatcmpl-QTmZYERYppo1ccZH40ClgzvuLB25eVBS","model":"kimi-k2-thinking-usb4-230g","finish_reason":"stop","content":"READY","timings":{"cache_n":36,"prompt_n":1,"prompt_ms":98.164,"prompt_per_token_ms":98.164,"prompt_per_second":10.187033943197099,"predicted_n":103,"predicted_ms":14849.386,"predicted_per_token_ms":144.16879611650486,"predicted_per_second":6.9363137304128255}}
+
+## Evidence files
+total 188K
+-rw-r--r-- 1 connorb connorb 1.1K Jul 10 09:58 api-chat-response.json
+-rw-r--r-- 1 connorb connorb   15 Jul 10 09:58 api-health.json
+-rw-r--r-- 1 connorb connorb  13K Jul 10 01:27 base-packages.log
+-rw-r--r-- 1 connorb connorb  17K Jul 10 10:00 final-report.txt
+-rw-r--r-- 1 connorb connorb 1.1K Jul 10 01:30 firewall-rpc.log
+-rw-r--r-- 1 connorb connorb  847 Jul 10 01:29 gpu-memory-verify.log
+-rw-r--r-- 1 connorb connorb  13K Jul 10 01:22 inventory.log
+-rw-r--r-- 1 connorb connorb 5.9K Jul 10 01:30 iperf3-links-after.log
+-rw-r--r-- 1 connorb connorb 2.0K Jul 10 01:29 iperf3-links-before.log
+-rw-r--r-- 1 connorb connorb 2.6K Jul 10 01:29 iperf3-mptcp-socket.log
+-rw-r--r-- 1 connorb connorb 2.0K Jul 10 01:30 iperf3-primary.log
+-rw-r--r-- 1 connorb connorb 3.8K Jul 10 01:35 llama-build.log
+-rw-r--r-- 1 connorb connorb   41 Jul 10 01:35 llama-commit.txt
+-rw-r--r-- 1 connorb connorb   84 Jul 10 01:35 llama-devices-primary.log
+-rw-r--r-- 1 connorb connorb  897 Jul 10 01:51 model-download.log
+-rw-r--r-- 1 connorb connorb  755 Jul 10 01:51 model-files.txt
+-rw-r--r-- 1 connorb connorb   34 Jul 10 01:51 model-size.txt
+-rw-r--r-- 1 connorb connorb  453 Jul 10 01:29 mptcp-config.log
+-rw-r--r-- 1 connorb connorb  60K Jul 10 01:27 mptcpize-install.log
+-rw-r--r-- 1 connorb connorb 2.6K Jul 10 01:28 usb4-network.log
+-rw-r--r-- 1 connorb connorb  393 Jul 10 01:28 usb4-pmqos.log
+-rw-r--r-- 1 connorb connorb  584 Jul 10 09:40 worker-rpc-install.log

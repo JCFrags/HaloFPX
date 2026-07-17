@@ -1,0 +1,17 @@
+.venv/
+.venv-*/
+__pycache__/
+.pytest_cache/
+*.pyc
+site/
+models/
+reports/raw/*
+reports/locks/*
+reports/calibration/*
+!reports/raw/.gitkeep
+!reports/locks/.gitkeep
+!reports/calibration/.gitkeep
+*.gguf
+*.bin
+*.core
+core

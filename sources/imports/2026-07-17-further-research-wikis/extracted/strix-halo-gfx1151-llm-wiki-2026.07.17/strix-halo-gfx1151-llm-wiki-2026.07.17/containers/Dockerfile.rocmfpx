@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1.7
+ARG UBUNTU_VERSION=24.04
+ARG ROCM_VERSION=7.2.1
+ARG BASE_IMAGE=rocm/dev-ubuntu-${UBUNTU_VERSION}:${ROCM_VERSION}-complete
+FROM ${BASE_IMAGE} AS build
+ARG ROCM_VERSION
+ARG ROCMFPX_COMMIT=a5605a72768c6562241b248e268e33dc92787394
+ARG HIP_ARCH=gfx1151
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential ca-certificates cmake curl git glslc libcurl4-openssl-dev \
+      libssl-dev libvulkan-dev ninja-build pkg-config spirv-headers && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+RUN git clone --filter=blob:none https://github.com/charlie12345/ROCmFPX.git && \
+    cd ROCmFPX && git fetch --depth=1 origin ${ROCMFPX_COMMIT} && \
+    git checkout --detach ${ROCMFPX_COMMIT}
+WORKDIR /src/ROCmFPX
+RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
+    CMAKE_HIP_ARCHITECTURES=${HIP_ARCH} \
+    GGML_HIP_ROCWMMA_FATTN=OFF \
+    JOBS="$(nproc)" \
+    scripts/build-strix-rocmfp4-mtp.sh && \
+    printf 'rocmfpx_commit=%s\nrocm_version=%s\nhip_arch=%s\n' \
+      "${ROCMFPX_COMMIT}" "${ROCM_VERSION}" "${HIP_ARCH}" \
+      > build-strix-rocmfp4/bin/STRIX_BUILD_PROVENANCE.txt
+
+FROM ${BASE_IMAGE} AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl libcurl4 libegl1 libgl1 libgomp1 libvulkan1 \
+      mesa-vulkan-drivers && rm -rf /var/lib/apt/lists/*
+COPY --from=build /src/ROCmFPX/build-strix-rocmfp4/bin/ /opt/rocmfpx/bin/
+ENV PATH=/opt/rocmfpx/bin:${PATH}
+WORKDIR /work
+LABEL org.opencontainers.image.source="https://github.com/charlie12345/ROCmFPX" \
+      org.opencontainers.image.revision="a5605a72768c6562241b248e268e33dc92787394" \
+      org.opencontainers.image.description="Experimental ROCmFPX gfx1151 build; not production support"
+CMD ["llama-cli", "--help"]

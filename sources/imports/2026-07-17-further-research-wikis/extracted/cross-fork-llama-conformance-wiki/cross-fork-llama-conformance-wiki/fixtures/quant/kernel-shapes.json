@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "dimensions": [
+    {
+      "m": 1,
+      "n": 1,
+      "k_relation": "one quant block"
+    },
+    {
+      "m": 3,
+      "n": 5,
+      "k_relation": "one block minus one; expect unsupported or padded only if declared"
+    },
+    {
+      "m": 7,
+      "n": 17,
+      "k_relation": "one block"
+    },
+    {
+      "m": 31,
+      "n": 33,
+      "k_relation": "two blocks"
+    },
+    {
+      "m": 32,
+      "n": 64,
+      "k_relation": "wave/tile boundary"
+    },
+    {
+      "m": 33,
+      "n": 65,
+      "k_relation": "wave/tile boundary plus one"
+    },
+    {
+      "m": 127,
+      "n": 129,
+      "k_relation": "ragged medium"
+    },
+    {
+      "m": 256,
+      "n": 257,
+      "k_relation": "large boundary"
+    }
+  ],
+  "tensor_forms": [
+    "contiguous",
+    "view-with-offset",
+    "transposed-when-operation-supports-it"
+  ],
+  "types": {
+    "upstream": [
+      "F16",
+      "BF16",
+      "Q4_0",
+      "Q5_0",
+      "Q8_0",
+      "Q4_K",
+      "Q5_K",
+      "Q6_K"
+    ],
+    "rocmfpx": [
+      "Q3_0_ROCMFPX",
+      "Q4_0_ROCMFP4",
+      "Q4_0_ROCMFP4_FAST",
+      "Q6_0_ROCMFPX",
+      "Q8_0_ROCMFPX"
+    ]
+  },
+  "note": "Resolve exact block sizes from the compiled library; symbolic boundary relations avoid stale hardcoding."
+}

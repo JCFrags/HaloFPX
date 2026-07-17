@@ -1,0 +1,1064 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Exact Per-Node Memory Budgets · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Exact Per-Node Memory Budgets</h1>
+<p>These tables expose the exact member-level arithmetic behind the fit summary. They use Q8_0 KV, one sequence, <code>ubatch=512</code>, equal planned split in quarter-GiB units, and the fixed reserves in <code>data/profiles.json</code>. The context is 128K, or the model native maximum when lower.</p>
+<p><code>Total = weights + KV + OS/services + runtime/graph + split-skew safety</code>. Negative margin means the configuration does not fit under the declared envelope.</p>
+<h2>Qwen3-235B-A22B-Instruct-2507</h2>
+<p>Context: <strong>131,072 tokens</strong> · selected artifact: <strong>UD-Q6_K_XL</strong> · weight plan: <strong>190 GiB</strong></p>
+<table>
+<thead>
+<tr>
+  <th>Profile</th>
+  <th>Member</th>
+  <th>Capacity</th>
+  <th>Weights</th>
+  <th>KV Q8</th>
+  <th>OS</th>
+  <th>Runtime</th>
+  <th>Skew</th>
+  <th>Total</th>
+  <th>Margin</th>
+  <th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>uma-256-single</td>
+  <td>host</td>
+  <td>256.00</td>
+  <td>190.00</td>
+  <td>12.50</td>
+  <td>12.00</td>
+  <td>8.00</td>
+  <td>4.00</td>
+  <td>226.50</td>
+  <td>+29.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>coordinator</td>
+  <td>128.00</td>
+  <td>95.00</td>
+  <td>6.25</td>
+  <td>10.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>121.25</td>
+  <td>+6.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>worker</td>
+  <td>128.00</td>
+  <td>95.00</td>
+  <td>6.25</td>
+  <td>8.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>119.25</td>
+  <td>+8.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu0</td>
+  <td>96.00</td>
+  <td>63.50</td>
+  <td>4.25</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>75.75</td>
+  <td>+20.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu1</td>
+  <td>96.00</td>
+  <td>63.25</td>
+  <td>4.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>73.50</td>
+  <td>+22.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu2</td>
+  <td>96.00</td>
+  <td>63.25</td>
+  <td>4.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>73.25</td>
+  <td>+22.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu0</td>
+  <td>64.00</td>
+  <td>47.50</td>
+  <td>3.25</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>58.75</td>
+  <td>+5.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu1</td>
+  <td>64.00</td>
+  <td>47.50</td>
+  <td>3.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>56.75</td>
+  <td>+7.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu2</td>
+  <td>64.00</td>
+  <td>47.50</td>
+  <td>3.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>56.50</td>
+  <td>+7.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu3</td>
+  <td>64.00</td>
+  <td>47.50</td>
+  <td>3.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>56.50</td>
+  <td>+7.50</td>
+  <td>FIT</td>
+</tr>
+</tbody>
+</table>
+<h2>Step-3.7-Flash</h2>
+<p>Context: <strong>131,072 tokens</strong> · selected artifact: <strong>Q8_0</strong> · weight plan: <strong>196 GiB</strong></p>
+<table>
+<thead>
+<tr>
+  <th>Profile</th>
+  <th>Member</th>
+  <th>Capacity</th>
+  <th>Weights</th>
+  <th>KV Q8</th>
+  <th>OS</th>
+  <th>Runtime</th>
+  <th>Skew</th>
+  <th>Total</th>
+  <th>Margin</th>
+  <th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>uma-256-single</td>
+  <td>host</td>
+  <td>256.00</td>
+  <td>196.00</td>
+  <td>3.50</td>
+  <td>12.00</td>
+  <td>8.00</td>
+  <td>4.00</td>
+  <td>223.50</td>
+  <td>+32.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>coordinator</td>
+  <td>128.00</td>
+  <td>98.00</td>
+  <td>1.75</td>
+  <td>10.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>119.75</td>
+  <td>+8.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>worker</td>
+  <td>128.00</td>
+  <td>98.00</td>
+  <td>1.75</td>
+  <td>8.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>117.75</td>
+  <td>+10.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu0</td>
+  <td>96.00</td>
+  <td>65.50</td>
+  <td>1.25</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>74.75</td>
+  <td>+21.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu1</td>
+  <td>96.00</td>
+  <td>65.25</td>
+  <td>1.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>72.50</td>
+  <td>+23.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu2</td>
+  <td>96.00</td>
+  <td>65.25</td>
+  <td>1.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>72.25</td>
+  <td>+23.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu0</td>
+  <td>64.00</td>
+  <td>49.00</td>
+  <td>1.00</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>58.00</td>
+  <td>+6.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu1</td>
+  <td>64.00</td>
+  <td>49.00</td>
+  <td>1.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>56.00</td>
+  <td>+8.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu2</td>
+  <td>64.00</td>
+  <td>49.00</td>
+  <td>0.75</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>55.75</td>
+  <td>+8.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu3</td>
+  <td>64.00</td>
+  <td>49.00</td>
+  <td>0.75</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>55.75</td>
+  <td>+8.25</td>
+  <td>FIT</td>
+</tr>
+</tbody>
+</table>
+<h2>MiMo-V2-Flash</h2>
+<p>Context: <strong>131,072 tokens</strong> · selected artifact: <strong>Q5_K_M</strong> · weight plan: <strong>206 GiB</strong></p>
+<table>
+<thead>
+<tr>
+  <th>Profile</th>
+  <th>Member</th>
+  <th>Capacity</th>
+  <th>Weights</th>
+  <th>KV Q8</th>
+  <th>OS</th>
+  <th>Runtime</th>
+  <th>Skew</th>
+  <th>Total</th>
+  <th>Margin</th>
+  <th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>uma-256-single</td>
+  <td>host</td>
+  <td>256.00</td>
+  <td>206.00</td>
+  <td>1.75</td>
+  <td>12.00</td>
+  <td>8.00</td>
+  <td>4.00</td>
+  <td>231.75</td>
+  <td>+24.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>coordinator</td>
+  <td>128.00</td>
+  <td>103.00</td>
+  <td>1.00</td>
+  <td>10.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>124.00</td>
+  <td>+4.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>worker</td>
+  <td>128.00</td>
+  <td>103.00</td>
+  <td>0.75</td>
+  <td>8.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>121.75</td>
+  <td>+6.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu0</td>
+  <td>96.00</td>
+  <td>68.75</td>
+  <td>0.75</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>77.50</td>
+  <td>+18.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu1</td>
+  <td>96.00</td>
+  <td>68.75</td>
+  <td>0.50</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>75.25</td>
+  <td>+20.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu2</td>
+  <td>96.00</td>
+  <td>68.50</td>
+  <td>0.50</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>75.00</td>
+  <td>+21.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu0</td>
+  <td>64.00</td>
+  <td>51.50</td>
+  <td>0.50</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>60.00</td>
+  <td>+4.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu1</td>
+  <td>64.00</td>
+  <td>51.50</td>
+  <td>0.50</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>58.00</td>
+  <td>+6.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu2</td>
+  <td>64.00</td>
+  <td>51.50</td>
+  <td>0.50</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>58.00</td>
+  <td>+6.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu3</td>
+  <td>64.00</td>
+  <td>51.50</td>
+  <td>0.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>57.75</td>
+  <td>+6.25</td>
+  <td>FIT</td>
+</tr>
+</tbody>
+</table>
+<h2>GLM-4.7</h2>
+<p>Context: <strong>131,072 tokens</strong> · selected artifact: <strong>Q4_K_M</strong> · weight plan: <strong>205 GiB</strong></p>
+<table>
+<thead>
+<tr>
+  <th>Profile</th>
+  <th>Member</th>
+  <th>Capacity</th>
+  <th>Weights</th>
+  <th>KV Q8</th>
+  <th>OS</th>
+  <th>Runtime</th>
+  <th>Skew</th>
+  <th>Total</th>
+  <th>Margin</th>
+  <th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>uma-256-single</td>
+  <td>host</td>
+  <td>256.00</td>
+  <td>205.00</td>
+  <td>24.50</td>
+  <td>12.00</td>
+  <td>8.00</td>
+  <td>4.00</td>
+  <td>253.50</td>
+  <td>+2.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>coordinator</td>
+  <td>128.00</td>
+  <td>102.50</td>
+  <td>12.25</td>
+  <td>10.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>134.75</td>
+  <td>-6.75</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>worker</td>
+  <td>128.00</td>
+  <td>102.50</td>
+  <td>12.25</td>
+  <td>8.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>132.75</td>
+  <td>-4.75</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu0</td>
+  <td>96.00</td>
+  <td>68.50</td>
+  <td>8.25</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>84.75</td>
+  <td>+11.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu1</td>
+  <td>96.00</td>
+  <td>68.25</td>
+  <td>8.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>82.50</td>
+  <td>+13.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu2</td>
+  <td>96.00</td>
+  <td>68.25</td>
+  <td>8.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>82.25</td>
+  <td>+13.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu0</td>
+  <td>64.00</td>
+  <td>51.25</td>
+  <td>6.25</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>65.50</td>
+  <td>-1.50</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu1</td>
+  <td>64.00</td>
+  <td>51.25</td>
+  <td>6.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>63.50</td>
+  <td>+0.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu2</td>
+  <td>64.00</td>
+  <td>51.25</td>
+  <td>6.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>63.25</td>
+  <td>+0.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu3</td>
+  <td>64.00</td>
+  <td>51.25</td>
+  <td>6.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>63.25</td>
+  <td>+0.75</td>
+  <td>FIT</td>
+</tr>
+</tbody>
+</table>
+<h2>Llama-3.1-Nemotron-Ultra-253B-v1</h2>
+<p>Context: <strong>131,072 tokens</strong> · selected artifact: <strong>Q6_K</strong> · weight plan: <strong>195 GiB</strong></p>
+<table>
+<thead>
+<tr>
+  <th>Profile</th>
+  <th>Member</th>
+  <th>Capacity</th>
+  <th>Weights</th>
+  <th>KV Q8</th>
+  <th>OS</th>
+  <th>Runtime</th>
+  <th>Skew</th>
+  <th>Total</th>
+  <th>Margin</th>
+  <th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>uma-256-single</td>
+  <td>host</td>
+  <td>256.00</td>
+  <td>195.00</td>
+  <td>33.50</td>
+  <td>12.00</td>
+  <td>8.00</td>
+  <td>4.00</td>
+  <td>252.50</td>
+  <td>+3.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>coordinator</td>
+  <td>128.00</td>
+  <td>97.50</td>
+  <td>16.75</td>
+  <td>10.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>134.25</td>
+  <td>-6.25</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>worker</td>
+  <td>128.00</td>
+  <td>97.50</td>
+  <td>16.75</td>
+  <td>8.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>132.25</td>
+  <td>-4.25</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu0</td>
+  <td>96.00</td>
+  <td>65.00</td>
+  <td>11.25</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>84.25</td>
+  <td>+11.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu1</td>
+  <td>96.00</td>
+  <td>65.00</td>
+  <td>11.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>82.25</td>
+  <td>+13.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu2</td>
+  <td>96.00</td>
+  <td>65.00</td>
+  <td>11.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>82.00</td>
+  <td>+14.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu0</td>
+  <td>64.00</td>
+  <td>48.75</td>
+  <td>8.50</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>65.25</td>
+  <td>-1.25</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu1</td>
+  <td>64.00</td>
+  <td>48.75</td>
+  <td>8.50</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>63.25</td>
+  <td>+0.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu2</td>
+  <td>64.00</td>
+  <td>48.75</td>
+  <td>8.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>63.00</td>
+  <td>+1.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu3</td>
+  <td>64.00</td>
+  <td>48.75</td>
+  <td>8.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>63.00</td>
+  <td>+1.00</td>
+  <td>FIT</td>
+</tr>
+</tbody>
+</table>
+<h2>DeepSeek-R1-0528</h2>
+<p>Context: <strong>131,072 tokens</strong> · selected artifact: <strong>UD-IQ2_M</strong> · weight plan: <strong>215 GiB</strong></p>
+<table>
+<thead>
+<tr>
+  <th>Profile</th>
+  <th>Member</th>
+  <th>Capacity</th>
+  <th>Weights</th>
+  <th>KV Q8</th>
+  <th>OS</th>
+  <th>Runtime</th>
+  <th>Skew</th>
+  <th>Total</th>
+  <th>Margin</th>
+  <th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>uma-256-single</td>
+  <td>host</td>
+  <td>256.00</td>
+  <td>215.00</td>
+  <td>4.75</td>
+  <td>12.00</td>
+  <td>8.00</td>
+  <td>4.00</td>
+  <td>243.75</td>
+  <td>+12.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>coordinator</td>
+  <td>128.00</td>
+  <td>107.50</td>
+  <td>2.50</td>
+  <td>10.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>130.00</td>
+  <td>-2.00</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>worker</td>
+  <td>128.00</td>
+  <td>107.50</td>
+  <td>2.25</td>
+  <td>8.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>127.75</td>
+  <td>+0.25</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu0</td>
+  <td>96.00</td>
+  <td>71.75</td>
+  <td>1.75</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>81.50</td>
+  <td>+14.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu1</td>
+  <td>96.00</td>
+  <td>71.75</td>
+  <td>1.50</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>79.25</td>
+  <td>+16.75</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu2</td>
+  <td>96.00</td>
+  <td>71.50</td>
+  <td>1.50</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>79.00</td>
+  <td>+17.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu0</td>
+  <td>64.00</td>
+  <td>53.75</td>
+  <td>1.25</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>63.00</td>
+  <td>+1.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu1</td>
+  <td>64.00</td>
+  <td>53.75</td>
+  <td>1.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>61.00</td>
+  <td>+3.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu2</td>
+  <td>64.00</td>
+  <td>53.75</td>
+  <td>1.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>61.00</td>
+  <td>+3.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu3</td>
+  <td>64.00</td>
+  <td>53.75</td>
+  <td>1.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>60.75</td>
+  <td>+3.25</td>
+  <td>FIT</td>
+</tr>
+</tbody>
+</table>
+<h2>Llama-3.1-Tulu-3-405B</h2>
+<p>Context: <strong>131,072 tokens</strong> · selected artifact: <strong>IQ4_XS</strong> · weight plan: <strong>203 GiB</strong></p>
+<table>
+<thead>
+<tr>
+  <th>Profile</th>
+  <th>Member</th>
+  <th>Capacity</th>
+  <th>Weights</th>
+  <th>KV Q8</th>
+  <th>OS</th>
+  <th>Runtime</th>
+  <th>Skew</th>
+  <th>Total</th>
+  <th>Margin</th>
+  <th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>uma-256-single</td>
+  <td>host</td>
+  <td>256.00</td>
+  <td>203.00</td>
+  <td>33.50</td>
+  <td>12.00</td>
+  <td>8.00</td>
+  <td>4.00</td>
+  <td>260.50</td>
+  <td>-4.50</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>coordinator</td>
+  <td>128.00</td>
+  <td>101.50</td>
+  <td>16.75</td>
+  <td>10.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>138.25</td>
+  <td>-10.25</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma</td>
+  <td>worker</td>
+  <td>128.00</td>
+  <td>101.50</td>
+  <td>16.75</td>
+  <td>8.00</td>
+  <td>6.00</td>
+  <td>4.00</td>
+  <td>136.25</td>
+  <td>-8.25</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu0</td>
+  <td>96.00</td>
+  <td>67.75</td>
+  <td>11.25</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>87.00</td>
+  <td>+9.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu1</td>
+  <td>96.00</td>
+  <td>67.75</td>
+  <td>11.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>85.00</td>
+  <td>+11.00</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu</td>
+  <td>gpu2</td>
+  <td>96.00</td>
+  <td>67.50</td>
+  <td>11.00</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>84.50</td>
+  <td>+11.50</td>
+  <td>FIT</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu0</td>
+  <td>64.00</td>
+  <td>50.75</td>
+  <td>8.50</td>
+  <td>0.00</td>
+  <td>6.00</td>
+  <td>2.00</td>
+  <td>67.25</td>
+  <td>-3.25</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu1</td>
+  <td>64.00</td>
+  <td>50.75</td>
+  <td>8.50</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>65.25</td>
+  <td>-1.25</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu2</td>
+  <td>64.00</td>
+  <td>50.75</td>
+  <td>8.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>65.00</td>
+  <td>-1.00</td>
+  <td>NO</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu</td>
+  <td>gpu3</td>
+  <td>64.00</td>
+  <td>50.75</td>
+  <td>8.25</td>
+  <td>0.00</td>
+  <td>4.00</td>
+  <td>2.00</td>
+  <td>65.00</td>
+  <td>-1.00</td>
+  <td>NO</td>
+</tr>
+</tbody>
+</table>
+<h2>Lower-context and native-context detail</h2>
+<p>Every 32K, 64K, 128K, and native-context row is available in <a href="../data/capacity_budgets.csv"><code>data/capacity_budgets.csv</code></a>. The CSV is the authoritative human-auditable output of <code>scripts/calculate_capacity.py</code>.</p>
+<p>Actual llama.cpp placement can differ because layers and non-layer tensors are indivisible. Replace the fixed skew reserve with measured startup allocation before final procurement.</p>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

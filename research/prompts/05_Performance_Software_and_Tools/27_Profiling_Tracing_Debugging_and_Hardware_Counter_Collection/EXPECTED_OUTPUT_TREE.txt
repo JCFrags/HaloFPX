@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

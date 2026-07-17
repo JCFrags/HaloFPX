@@ -1,0 +1,26 @@
+section_id: "80"
+title: "Fault Injection: Cable Pulls, Restarts, OOM, Disk-Full, and Corruption"
+category_id: "11"
+category_title: "Verification and Performance"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 7
+open_question_count: 11
+required_machine_experiments:
+  - "FAULT-80-E1 malformed, truncated, reordered, stale, and checksum-bad protocol messages"
+  - "FAULT-80-E2 worker and coordinator supervised termination and kill"
+  - "FAULT-80-E3 scoped cgroup OOM and allocation failure"
+  - "FAULT-80-E4 torn, corrupt, stale, and incomplete cache generations"
+  - "FAULT-80-E5 bounded ENOSPC and read-only filesystem"
+  - "FAULT-80-E6 loopback or sacrificial block-I/O failure"
+  - "FAULT-80-E7 rail A, rail B, both-rail, jitter, and retrain failure"
+  - "FAULT-80-E8 isolated GPU reset and post-reset correctness"
+related_sections: ["54", "56", "62", "65", "68", "76", "77", "78", "79", "81"]
+applicability:
+  repositories:
+    - repository: "ggml-org/llama.cpp"
+      commit: "788e07dc91d266ad3162a1ce9037665656269689"
+    - repository: "charlie12345/ROCmFPX"
+      commit: "a5605a72768c6562241b248e268e33dc92787394"
+  software_versions: ["Linux fault-injection documentation accessed 2026-07-17"]
+  hardware_revisions: ["dual-Strix-Halo target; exact revisions open"]

@@ -1,0 +1,25 @@
+{
+  "schema": "llm-wiki-hf-artifact-manifest-v1",
+  "as_of": "2026-07-17",
+  "candidate_id": "kimi-k2-thinking",
+  "model": "Kimi-K2-Thinking",
+  "selected_quant": "i1-IQ1_M community artifact",
+  "publisher_display_size_gb_decimal": 228.0,
+  "conservative_weight_plan_gib": 214,
+  "huggingface": {
+    "upstream_repo": "moonshotai/Kimi-K2-Thinking",
+    "quant_repo": "mradermacher/Kimi-K2-Thinking-i1-GGUF",
+    "revision": "main",
+    "path": "",
+    "file_pattern": "*i1-IQ1_M*",
+    "shard_count": 5,
+    "displayed_shard_gb": [],
+    "known_lfs": []
+  },
+  "source_urls": [
+    "https://huggingface.co/moonshotai/Kimi-K2-Thinking",
+    "https://huggingface.co/mradermacher/Kimi-K2-Thinking-i1-GGUF"
+  ],
+  "integrity_status": "authoritative-revision/path-manifest; run refresh_hf_manifests.py for exact LFS OIDs",
+  "notes": "No model weight bytes are redistributed in this package. Display sizes are publisher UI values; exact downloaded files must be verified locally."
+}

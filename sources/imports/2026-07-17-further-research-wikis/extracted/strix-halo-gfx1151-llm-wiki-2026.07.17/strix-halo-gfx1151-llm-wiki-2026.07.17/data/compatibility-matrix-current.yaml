@@ -1,0 +1,529 @@
+- id: OFF-CORE-714-U2604
+  classification: official-supported
+  evidence_level: O1
+  confidence: high
+  status: supported-core-sdk
+  scope: AMD ROCm 7.14 Core SDK; application validation is separate
+  os: Ubuntu 26.04
+  kernel: 7.0 GA
+  amdgpu_firmware: Distribution/inbox pair for supported OS; do not mix old late-2025 firmware
+  rocm: 7.14.0
+  hip: '7.14'
+  llvm_clang: 23.0.0 (ROCm-bundled)
+  mesa_vulkan: Host-dependent; not part of HIP support claim
+  cmake: '>=3.21 for llama.cpp HIP; 3.28.x conservative baseline'
+  llama_cpp: Source build candidate; not AMD application-certified by this matrix
+  rocmfpx: Unvalidated against 7.14; fork baseline is 7.2.1
+  usb4_networking: thunderbolt_net available when CONFIG_USB4_NET is enabled
+  exact_flags: -DGGML_HIP=ON -DCMAKE_HIP_ARCHITECTURES=gfx1151 -DGGML_HIP_ROCWMMA_FATTN=OFF -DGGML_HIP_NO_VMM=ON
+  required_env: ROCM_PATH; PATH; LD_LIBRARY_PATH for tarball install
+  known_issues: Do not infer PyTorch/llama.cpp/ROCmFPX application support from Core SDK support alone.
+  sources:
+  - AMD-CORE-714
+  - AMD-INSTALL-714
+  - LLAMA-HIP-CMAKE-86D86ED
+  - LLAMA-GGML-CMAKE-86D86ED
+  last_verified: '2026-07-17'
+- id: OFF-CORE-714-U2404-HWE
+  classification: official-supported
+  evidence_level: O1
+  confidence: high
+  status: supported-core-sdk
+  scope: AMD ROCm 7.14 Core SDK; application validation is separate
+  os: Ubuntu 24.04.4
+  kernel: 6.17 HWE
+  amdgpu_firmware: Distribution/inbox pair for supported OS; fixed/current firmware required
+  rocm: 7.14.0
+  hip: '7.14'
+  llvm_clang: 23.0.0 (ROCm-bundled)
+  mesa_vulkan: Host-dependent; not part of HIP support claim
+  cmake: '>=3.21 for llama.cpp HIP; Ubuntu 24.04 CMake 3.28.x is conservative'
+  llama_cpp: Source build candidate or upstream ROCm 7.2 binary only; do not mix binary runtime lines
+  rocmfpx: Unvalidated against 7.14
+  usb4_networking: thunderbolt_net available when CONFIG_USB4_NET is enabled
+  exact_flags: -DGGML_HIP=ON -DCMAKE_HIP_ARCHITECTURES=gfx1151 -DGGML_HIP_ROCWMMA_FATTN=OFF -DGGML_HIP_NO_VMM=ON
+  required_env: ROCM_PATH; PATH; LD_LIBRARY_PATH for tarball install
+  known_issues: Do not run the b10064 ROCm 7.2 prebuilt against a 7.14-only userspace unless all dynamic dependencies resolve
+    to its intended line.
+  sources:
+  - AMD-CORE-714
+  - AMD-INSTALL-714
+  - LLAMA-RELEASE-B10064
+  last_verified: '2026-07-17'
+- id: OFF-RDNA35-ROCM721-723
+  classification: official-supported
+  evidence_level: O1
+  confidence: high
+  status: stable-on-qualified-kernel
+  scope: AMD prebuilt ROCm status specifically for RDNA 3.5 / gfx1151
+  os: Ubuntu 24.04 or another supported distribution
+  kernel: Ubuntu HWE >=6.17.0-19.19~24.04.2; Ubuntu OEM >=6.14.0-1018; others >=6.18.4
+  amdgpu_firmware: Fixed/current; avoid linux-firmware 20251125 era
+  rocm: 7.2.1, 7.2.2, or 7.2.3
+  hip: 7.2.x
+  llvm_clang: 22.0.0.26084 (ROCm-bundled)
+  mesa_vulkan: Independent path; RADV community validation below
+  cmake: '>=3.21; 3.28.x preferred reproducible baseline'
+  llama_cpp: Current source can be built; upstream b10064 ROCm 7.2 binary is compatible in release scope
+  rocmfpx: 7.2.1 is the fork container baseline
+  usb4_networking: Independent of ROCm userspace
+  exact_flags: -DGGML_HIP=ON -DCMAKE_HIP_ARCHITECTURES=gfx1151 -DGGML_HIP_ROCWMMA_FATTN=OFF
+  required_env: HIPCXX=$(hipconfig -l)/clang; HIP_PATH=$(hipconfig -R)
+  known_issues: rocWMMA FlashAttention can regress long-context prefill; firmware and kernel are independent gates.
+  sources:
+  - AMD-RDNA35
+  - AMD-CORE-724
+  - LLAMA-ISSUE-24437
+  last_verified: '2026-07-17'
+- id: OFF-RYZEN-72-U24043
+  classification: official-supported
+  evidence_level: O1
+  confidence: high
+  status: supported-or-preliminary-by-application
+  scope: AMD Radeon/Ryzen 7.2 application-support line
+  os: Ubuntu 24.04.3 via documented 24.04.2 installer path
+  kernel: Must also satisfy the RDNA 3.5 fixed-minimum kernel rule
+  amdgpu_firmware: Fixed/current distribution package
+  rocm: 7.2 application line
+  hip: '7.2'
+  llvm_clang: 22.0.0.26084
+  mesa_vulkan: Not part of AMD HIP app claim
+  cmake: Application-dependent
+  llama_cpp: Listed application/use-case; exact release pin remains upstream-controlled
+  rocmfpx: Not official
+  usb4_networking: Not part of application support claim
+  exact_flags: Use application recipe; for source build target gfx1151 explicitly
+  required_env: None beyond installed ROCm unless using nonstandard path
+  known_issues: “Preliminary” OS support and “production” framework support are distinct labels.
+  sources:
+  - AMD-RYZEN-72
+  - AMD-RYZEN-INDEX
+  - AMD-RDNA35
+  last_verified: '2026-07-17'
+- id: UPSTREAM-LLAMA-B10064-ROCM72
+  classification: official-upstream-current
+  evidence_level: O2
+  confidence: high
+  status: released-binary
+  scope: ggml-org binary release, not AMD gfx1151 certification
+  os: Ubuntu-compatible Linux userspace
+  kernel: Host must independently meet gfx1151 requirements
+  amdgpu_firmware: Host must independently be fixed/current
+  rocm: ROCm 7.2 runtime line
+  hip: ROCm 7.2 bundle
+  llvm_clang: Not needed to run; use ROCm 7.2 bundled compiler to rebuild
+  mesa_vulkan: Separate Vulkan assets/build path
+  cmake: Not needed for prebuilt binary
+  llama_cpp: b10064 / 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+  rocmfpx: Not included
+  usb4_networking: RPC/networking independent
+  exact_flags: Prebuilt; SHA256 42a00452f42b04598d32db66c5249b3e8855cd99bf9448e22fd2a738aaa89c82
+  required_env: Optional HIP_VISIBLE_DEVICES=0 or ROCR_VISIBLE_DEVICES=0
+  known_issues: Binary release scope does not guarantee host kernel, firmware, or every model path.
+  sources:
+  - LLAMA-RELEASE-B10064
+  - AMD-RDNA35
+  last_verified: '2026-07-17'
+- id: SYNTH-LLAMA-B10064-ROCM714
+  classification: reproducible-candidate
+  evidence_level: I1+O2
+  confidence: medium
+  status: build-candidate-not-hardware-validated-here
+  scope: Current llama.cpp source built with current official gfx1151 Core SDK
+  os: Ubuntu 24.04.4 HWE 6.17 or Ubuntu 26.04 kernel 7.0
+  kernel: Per ROCm 7.14 official matrix
+  amdgpu_firmware: Supported OS inbox/current firmware
+  rocm: 7.14.0 gfx1151 TheRock tarball
+  hip: '7.14'
+  llvm_clang: 23.0.0 bundled with ROCm 7.14
+  mesa_vulkan: Optional; disable for HIP-only build
+  cmake: 3.28.x baseline; >=3.21 required
+  llama_cpp: b10064 / 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+  rocmfpx: Not included
+  usb4_networking: Independent
+  exact_flags: -DGGML_HIP=ON -DGGML_VULKAN=OFF -DCMAKE_HIP_ARCHITECTURES=gfx1151 -DGGML_HIP_ROCWMMA_FATTN=OFF -DGGML_HIP_NO_VMM=ON
+  required_env: ROCM_PATH=/opt/rocm; HIPCXX=$ROCM_PATH/llvm/bin/clang++; HIP_PATH=$ROCM_PATH
+  known_issues: This is a reasoned pinned build combination, not a published AMD llama.cpp application-validation row.
+  sources:
+  - AMD-CORE-714
+  - AMD-INSTALL-714
+  - LLAMA-RELEASE-B10064
+  - LLAMA-HIP-CMAKE-86D86ED
+  last_verified: '2026-07-17'
+- id: COMM-F43-K6189-FW20260110-ROCM724
+  classification: community-validated
+  evidence_level: C2
+  confidence: medium-high
+  status: maintained-community-known-good
+  scope: Maintained Strix Halo toolbox baseline
+  os: Fedora 42/43
+  kernel: 6.18.9-200.fc43.x86_64 reported stable baseline
+  amdgpu_firmware: linux-firmware 20260110
+  rocm: 7.2.4 toolbox
+  hip: 7.2.53211
+  llvm_clang: 22.0.0.26084
+  mesa_vulkan: RADV preferred; AMDVLK available with allocation caveat
+  cmake: Container/build-image supplied; host version not authoritative
+  llama_cpp: Toolbox tracks upstream master; pin a commit for reproducibility
+  rocmfpx: Custom rocm-7.2.4-rocmfp4 toolbox exists
+  usb4_networking: Container can pass /dev/infiniband for RDMA-aware builds
+  exact_flags: Runtime commonly uses -ngl 999 -fa 1 --no-mmap
+  required_env: Container device access to /dev/kfd and /dev/dri
+  known_issues: ROCm 7.2.4 is a general official release and community-validated here, but is not named in AMD’s gfx1151-specific
+    7.2.1–7.2.3 row.
+  sources:
+  - KYUZ0-TOOLBOX-A7C71E9
+  - AMD-CORE-724
+  - AMD-RDNA35
+  - FEDORA-BUG-2420062
+  last_verified: '2026-07-17'
+- id: COMM-RADV-MESA2602-2603
+  classification: community-validated
+  evidence_level: C1+C2
+  confidence: medium-high
+  status: recommended-community-vulkan-path
+  scope: llama.cpp Vulkan on gfx1151
+  os: Modern Linux distribution
+  kernel: Qualifying gfx1151 kernel; reports include 6.19.4
+  amdgpu_firmware: Fixed/current
+  rocm: Not required for Vulkan
+  hip: Not required
+  llvm_clang: Host C/C++ compiler only
+  mesa_vulkan: Mesa RADV 26.0.2 or 26.0.3 community-tested
+  cmake: '>=3.14 for Vulkan-only upstream; 3.28.x baseline'
+  llama_cpp: Current source; pin b10064 for reproducibility
+  rocmfpx: Fork reports Vulkan acceleration
+  usb4_networking: Independent
+  exact_flags: -DGGML_VULKAN=ON -DGGML_HIP=OFF -DGGML_CUDA=OFF
+  required_env: Optional VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+  known_issues: Prompt-processing regressions have occurred between llama.cpp builds; --no-direct-io/--no-mmap can isolate
+    model-load failures.
+  sources:
+  - KYUZ0-TOOLBOX-A7C71E9
+  - LLAMA-ISSUE-24438
+  - LLAMA-ISSUE-22375
+  - LLAMA-ISSUE-18741
+  last_verified: '2026-07-17'
+- id: UPSTREAM-MESA-2615-CANDIDATE
+  classification: official-upstream-current
+  evidence_level: O2
+  confidence: medium
+  status: current-release-not-target-certified
+  scope: Latest Mesa source release; target validation must be repeated
+  os: Linux
+  kernel: Use a qualifying gfx1151 kernel
+  amdgpu_firmware: Fixed/current
+  rocm: Not required for Vulkan
+  hip: Not required
+  llvm_clang: Mesa build compiler per distribution
+  mesa_vulkan: Mesa 26.1.5 / RADV
+  cmake: Mesa uses Meson; CMake only for llama.cpp
+  llama_cpp: b10064 pinned build candidate
+  rocmfpx: Vulkan fork build candidate
+  usb4_networking: Independent
+  exact_flags: 'meson setup build -Dvulkan-drivers=amd -Dgallium-drivers=radeonsi; llama: -DGGML_VULKAN=ON'
+  required_env: VK_DRIVER_FILES only when selecting a non-default ICD
+  known_issues: “Latest” is not equivalent to “validated on gfx1151.” Run the included Vulkan smoke and llama-bench gate.
+  sources:
+  - MESA-2615
+  - VULKAN-LOADER-ICD
+  - LLAMA-RELEASE-B10064
+  last_verified: '2026-07-17'
+- id: RISK-AMDVLK-LARGE-ALLOC
+  classification: community-reported-risk
+  evidence_level: C1+C2
+  confidence: medium-high
+  status: conditionally-usable
+  scope: Vulkan driver selection for large GGUF models
+  os: Linux
+  kernel: Qualifying gfx1151 kernel
+  amdgpu_firmware: Fixed/current
+  rocm: Not required
+  hip: Not required
+  llvm_clang: Not material at runtime
+  mesa_vulkan: AMDVLK
+  cmake: Any supported llama.cpp build CMake
+  llama_cpp: Vulkan backend
+  rocmfpx: May work for models not hitting allocation limit
+  usb4_networking: Independent
+  exact_flags: -DGGML_VULKAN=ON
+  required_env: Use VK_DRIVER_FILES to force AMDVLK only for controlled comparison
+  known_issues: Approximately 2 GiB single-buffer allocation failures have been reported; prefer RADV for large models.
+  sources:
+  - LLAMA-ISSUE-15054
+  - KYUZ0-TOOLBOX-A7C71E9
+  last_verified: '2026-07-17'
+- id: EXP-ROCMFPX-A5605-ROCM721
+  classification: experimental-community
+  evidence_level: C2
+  confidence: medium
+  status: experimental-validated-by-maintainer
+  scope: ROCmFPX fork HIP and Vulkan build on Strix Halo
+  os: Ubuntu 24.04 container or compatible host
+  kernel: Qualifying gfx1151 host kernel
+  amdgpu_firmware: Fixed/current host firmware
+  rocm: 7.2.1 complete container baseline
+  hip: 7.2.1 line
+  llvm_clang: ROCm 7.2 bundled LLVM 22 line
+  mesa_vulkan: mesa-vulkan-drivers in runtime image; maintainer reports Vulkan and HIP tests
+  cmake: Image package; HIP language must be >=3.21
+  llama_cpp: Fork commit a5605a72768c6562241b248e268e33dc92787394
+  rocmfpx: ROCmFP3/4/6/8 experimental formats
+  usb4_networking: Not intrinsic
+  exact_flags: -DGGML_HIP=ON -DGGML_VULKAN=ON -DGGML_HIP_ROCWMMA_FATTN=OFF -DGGML_HIP_FORCE_MMQ=ON -DCMAKE_HIP_ARCHITECTURES=gfx1151
+    -DGPU_TARGETS=gfx1151
+  required_env: 'Optional project path: HSA_OVERRIDE_GFX_VERSION=11.5.1; GGML_HIP_ENABLE_UNIFIED_MEMORY=1'
+  known_issues: Fork-specific flags and environment variables must not be generalized to upstream llama.cpp. APIs and formats
+    may change.
+  sources:
+  - ROCMFPX-A5605
+  - ROCMFPX-BUILD-A5605
+  - ROCMFPX-DOCKER-A5605
+  last_verified: '2026-07-17'
+- id: OFF-USB4-IP-THUNDERBOLT-NET
+  classification: official-upstream-supported
+  evidence_level: O2
+  confidence: high
+  status: supported-kernel-component
+  scope: Standard IP networking over USB4/Thunderbolt
+  os: Linux with USB4, INET, and CONFIG_USB4_NET
+  kernel: Mainline kernel with thunderbolt_net; use gfx1151-qualified kernel for the overall host
+  amdgpu_firmware: Unrelated to USB4 networking, but still relevant to GPU workloads
+  rocm: Independent
+  hip: Independent
+  llvm_clang: Independent
+  mesa_vulkan: Independent
+  cmake: Independent
+  llama_cpp: Use TCP RPC over thunderbolt0 as normal IP networking
+  rocmfpx: Independent
+  usb4_networking: CONFIG_USB4_NET / thunderbolt_net / thunderbolt0
+  exact_flags: 'Kernel: CONFIG_USB4=y CONFIG_USB4_NET=m CONFIG_INET=y'
+  required_env: None
+  known_issues: Interface naming and authorization depend on firmware, topology, and distribution policy; benchmark each cable/topology.
+  sources:
+  - LINUX-THUNDERBOLT-DOC
+  - LINUX-USB4-NET-KCONFIG
+  - STRIXHALO-WIKI-CLUSTERING
+  last_verified: '2026-07-17'
+- id: EXP-USB4-RDMA-76BA39B
+  classification: experimental-community
+  evidence_level: C2
+  confidence: medium
+  status: research-only-not-production
+  scope: InfiniBand verbs over USB4/Thunderbolt DMA rings
+  os: Linux; packages for Debian/Ubuntu, Fedora, Arch, and Nix
+  kernel: '>=6.14 or project-patched linux-thunderbolt kernel'
+  amdgpu_firmware: Independent
+  rocm: Can be exposed into ROCm/vLLM/llama containers
+  hip: Independent
+  llvm_clang: Kernel module toolchain
+  mesa_vulkan: Independent
+  cmake: Not primary build system; Make/DKMS/Nix
+  llama_cpp: Potential RDMA-aware distributed transports; project integration required
+  rocmfpx: Independent
+  usb4_networking: thunderbolt_ibverbs + usb4-rdma-provider
+  exact_flags: modprobe thunderbolt_ibverbs profile=linux_perf bind_services=1 allocate_rings=1 start_rings=1 negotiate_native=1
+    enable_tunnels=1 register_verbs=1
+  required_env: 'Container: --device=/dev/infiniband --cap-add=IPC_LOCK --ulimit memlock=-1'
+  known_issues: Project explicitly states buggy, insecure, and not for production.
+  sources:
+  - THUNDERBOLT-IBVERBS-76BA39B
+  last_verified: '2026-07-17'
+- id: HIST-AMD-LLAMA-B7146-ROCM711
+  classification: official-historical
+  evidence_level: O1
+  confidence: high
+  status: historical-do-not-deploy-new
+  scope: Former AMD prebuilt llama.cpp package
+  os: Ubuntu 24.04
+  kernel: Historical installer prerequisites
+  amdgpu_firmware: Historical package stack
+  rocm: 7.1.1
+  hip: 7.1.1 line
+  llvm_clang: ROCm 7.1 bundled compiler
+  mesa_vulkan: Not material
+  cmake: Prebuilt
+  llama_cpp: b7146 AMD bundle
+  rocmfpx: Not included
+  usb4_networking: Independent
+  exact_flags: ./llama-server -m MODEL -c 2048 -ngl 99 -fa on --port 8080
+  required_env: None documented for bundle
+  known_issues: AMD’s current RDNA3.5 table marks ROCm 7.1.x unsupported on qualifying kernels; CWSR/MES hangs were reported.
+  sources:
+  - AMD-LLAMA-711
+  - AMD-RDNA35
+  - ROCM-ISSUE-5590
+  last_verified: '2026-07-17'
+- id: BAD-FIRMWARE-20251125-MES083
+  classification: unsupported-known-bad
+  evidence_level: C1+distribution
+  confidence: high
+  status: avoid
+  scope: Firmware regression
+  os: Affected Linux distributions
+  kernel: A new kernel does not neutralize the bad firmware by itself
+  amdgpu_firmware: linux-firmware 20251125 / MES 0x83 era
+  rocm: Failures reported across 7.1 and later test paths
+  hip: Any workload exercising affected queue/memory paths
+  llvm_clang: Not causal
+  mesa_vulkan: GPU stability risk can affect both compute and graphics paths
+  cmake: Not causal
+  llama_cpp: llama-bench segfaults/hangs reported in distribution tracking
+  rocmfpx: Unsafe foundation
+  usb4_networking: Independent
+  exact_flags: No build flag repairs this firmware regression
+  required_env: None
+  known_issues: GPU page faults, memory-access faults, hangs, and process D-state behavior.
+  sources:
+  - ROCM-ISSUE-5724
+  - FEDORA-BUG-2420062
+  - LINUX-FW-REVERT-C092
+  last_verified: '2026-07-17'
+- id: BAD-KERNEL-BELOW-RDNA35-FIX
+  classification: unsupported-known-bad
+  evidence_level: O1
+  confidence: high
+  status: avoid-for-current-rocm
+  scope: Missing RDNA3.5 kernel fixes
+  os: Linux
+  kernel: Below Ubuntu HWE 6.17.0-19, OEM 6.14.0-1018, or 6.18.4 elsewhere
+  amdgpu_firmware: Even fixed firmware does not add missing kernel fixes
+  rocm: Current prebuilt support is experimental or unsupported below thresholds
+  hip: Affected
+  llvm_clang: Not causal
+  mesa_vulkan: May show separate issues
+  cmake: Not causal
+  llama_cpp: Compute instability or memory limitations possible
+  rocmfpx: Not a safe base
+  usb4_networking: Unrelated
+  exact_flags: No userspace flag substitutes for the kernel fixes
+  required_env: None
+  known_issues: Queue, memory, and visibility failures; historical approximately 15.5 GiB cap on much older kernels.
+  sources:
+  - AMD-RDNA35
+  - ROCM-ISSUE-5444
+  last_verified: '2026-07-17'
+- id: BAD-ROCM71-CURRENT-KERNEL
+  classification: unsupported-known-bad
+  evidence_level: O1+C1
+  confidence: high
+  status: unsupported
+  scope: Obsolete ROCm userspace on gfx1151
+  os: Linux
+  kernel: Even a qualifying current kernel
+  amdgpu_firmware: Fixed firmware preferred, but userspace remains unsupported
+  rocm: 7.1.x
+  hip: 7.1.x
+  llvm_clang: ROCm 7.1 line
+  mesa_vulkan: Independent
+  cmake: Not causal
+  llama_cpp: Historical package/builds only
+  rocmfpx: Do not use as current baseline
+  usb4_networking: Independent
+  exact_flags: amdgpu.cwsr_enable=0 was a legacy mitigation, not a supported modern solution
+  required_env: None
+  known_issues: CWSR/MES hangs and historical application regressions.
+  sources:
+  - AMD-RDNA35
+  - ROCM-ISSUE-5590
+  - LLAMA-ISSUE-17014
+  last_verified: '2026-07-17'
+- id: BAD-HSA-OVERRIDE-GFX110X
+  classification: unsupported-workaround
+  evidence_level: C1
+  confidence: medium-high
+  status: do-not-use-as-fix
+  scope: Architecture-spoofing workaround
+  os: Linux
+  kernel: Any
+  amdgpu_firmware: Any
+  rocm: Old or mismatched stacks
+  hip: Affected discovery/code-object selection
+  llvm_clang: May compile for wrong ISA assumptions
+  mesa_vulkan: Not applicable
+  cmake: Not applicable
+  llama_cpp: Not a supported upstream requirement on native current gfx1151 stacks
+  rocmfpx: Only HSA_OVERRIDE_GFX_VERSION=11.5.1 is documented by that fork for its own path
+  usb4_networking: Independent
+  exact_flags: Do not export HSA_OVERRIDE_GFX_VERSION=11.0.0 or 11.0.3 as a generic fix
+  required_env: Unset HSA_OVERRIDE_GFX_VERSION for native current ROCm unless a pinned project explicitly requires it
+  known_issues: The reported 11.0.x overrides did not repair the underlying old-stack failures.
+  sources:
+  - ROCM-ISSUE-5824
+  - ROCMFPX-A5605
+  last_verified: '2026-07-17'
+- id: RISK-ROCWMMA-FA-GFX1151
+  classification: community-reported-regression
+  evidence_level: C1+O2
+  confidence: high
+  status: disable-by-default
+  scope: llama.cpp HIP FlashAttention implementation choice
+  os: Linux
+  kernel: Qualifying gfx1151 kernel
+  amdgpu_firmware: Fixed/current
+  rocm: Reported on 7.2.1
+  hip: 7.2.1 line
+  llvm_clang: ROCm bundled LLVM 22
+  mesa_vulkan: Not applicable
+  cmake: '>=3.21'
+  llama_cpp: Current default is GGML_HIP_ROCWMMA_FATTN=OFF
+  rocmfpx: Fork also defaults it OFF
+  usb4_networking: Independent
+  exact_flags: -DGGML_HIP_ROCWMMA_FATTN=OFF
+  required_env: None
+  known_issues: Reported long-context prefill loss up to roughly 41% when enabled; retest before enabling.
+  sources:
+  - LLAMA-ISSUE-24437
+  - LLAMA-GGML-CMAKE-86D86ED
+  - ROCMFPX-BUILD-A5605
+  last_verified: '2026-07-17'
+- id: RISK-MIXED-ROCM-LLVM-GENERATIONS
+  classification: unsupported-by-scope
+  evidence_level: I1+O1
+  confidence: high
+  status: avoid
+  scope: Compiler/runtime generation integrity
+  os: Linux
+  kernel: Any supported host
+  amdgpu_firmware: Any fixed/current package
+  rocm: Do not mix 7.14 libraries with 7.2 compiler packages or vice versa
+  hip: Match the ROCm release line
+  llvm_clang: ROCm 7.14 -> LLVM 23; ROCm 7.2.4 -> LLVM 22.0.0.26084
+  mesa_vulkan: Independent
+  cmake: Point CMAKE_PREFIX_PATH and compiler variables to one SDK root
+  llama_cpp: Clean CMake cache when switching SDK roots
+  rocmfpx: Use its pinned 7.2.1 container baseline unless revalidated
+  usb4_networking: Independent
+  exact_flags: HIPCXX=$(hipconfig -l)/clang HIP_PATH=$(hipconfig -R); remove old build directory on SDK change
+  required_env: ROCM_PATH, PATH, LD_LIBRARY_PATH must resolve consistently
+  known_issues: Mismatched CMake packages, bitcode libraries, runtime DSOs, and compiler resource directories can cause configure,
+    link, or runtime failures.
+  sources:
+  - AMD-CORE-714
+  - AMD-CORE-724
+  - LLAMA-HIP-CMAKE-86D86ED
+  last_verified: '2026-07-17'
+- id: HIST-VISIBLE-MEMORY-15GB
+  classification: historical-regression
+  evidence_level: C1
+  confidence: medium-high
+  status: closed-historical
+  scope: Old kernel/ROCm memory visibility limitation
+  os: Linux
+  kernel: <=6.15 era
+  amdgpu_firmware: Historical
+  rocm: 6.4.1 through early 7.0-era reports
+  hip: Historical
+  llvm_clang: Historical
+  mesa_vulkan: Not primary cause
+  cmake: Not causal
+  llama_cpp: Large models could not use full unified memory
+  rocmfpx: Not applicable
+  usb4_networking: Independent
+  exact_flags: Use current kernel and official amd-ttm/TTM sizing; do not preserve old workaround stacks
+  required_env: None
+  known_issues: Approximately 15.5 GiB visible-memory cap; issue closed.
+  sources:
+  - ROCM-ISSUE-5444
+  - AMD-RDNA35
+  last_verified: '2026-07-17'

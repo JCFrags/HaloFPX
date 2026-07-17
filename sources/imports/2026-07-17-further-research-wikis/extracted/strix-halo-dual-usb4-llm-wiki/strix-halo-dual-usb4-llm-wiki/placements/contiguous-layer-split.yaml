@@ -1,0 +1,57 @@
+schema_version: "1.0"
+name: Contiguous two-stage layer split
+mode: contiguous_layer_split
+viability: go_candidate
+objective: [model capacity, local KV ownership, minimal cross-node synchronization]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: control_plus_bulk
+  bandwidth_symbol: B_bulk; B_sum only after striping gate
+  latency_symbol: ell_bulk for activation and ell_control for token return
+coordinator_rank: 0
+ranks:
+  - rank_id: 0
+    node: A
+    role: [frontend, first model stage]
+    ownership:
+      tokenizer: full tokenizer and detokenizer
+      sampler: none
+      rng: request seed/counter metadata; final RNG remains with sampler rank
+      model: token embeddings plus contiguous layers [0,k)
+      experts: all experts belonging to layers [0,k)
+      kv: K/V for layers [0,k) for every resident session
+      sessions: authoritative prompt text, token history, scheduling state
+  - rank_id: 1
+    node: B
+    role: [second model stage, sampler]
+    ownership:
+      tokenizer: token-ID-to-text support optional; canonical tokenizer remains rank 0
+      sampler: final norm, LM head, logits processing, and token selection
+      rng: final sampling RNG/counter owner
+      model: contiguous layers [k,L), final norm, LM head
+      experts: all experts belonging to layers [k,L)
+      kv: K/V for layers [k,L) for every resident session
+      sessions: stage-local sequence state keyed by rank-0 session ID
+flows:
+  - phase: prefill or each decode step
+    from: 0
+    to: 1
+    payload: hidden-state activation at the single layer boundary
+    volume_formula: N*h*b_a prefill; Q*h*b_a decode
+    synchronization: one boundary dependency per message; chunking adds message latency without changing total bytes
+    link_policy: bulk_striped_if_validated
+  - phase: each decode step after sampling
+    from: 1
+    to: 0
+    payload: selected token IDs plus status metadata
+    volume_formula: Q*b_t plus metadata
+    synchronization: autoregressive feedback barrier for each sequence
+    link_policy: control
+hard_gates:
+  - Weights, local KV, workspace, runtime allocations, and OS reserve fit independently on each node.
+  - Layer cut k is chosen from measured per-layer memory and compute, not layer count alone.
+  - Runtime preserves KV and session ordering across the stage boundary.
+  - Boundary transport works at the relevant prefill and decode message sizes.
+notes:
+  - This is the preferred baseline when capacity, rather than single-request speed, motivates distribution.

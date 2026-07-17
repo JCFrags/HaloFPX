@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "id": "determinism-core-v1",
+  "required_controls": [
+    "model file SHA-256",
+    "fork commit",
+    "binary SHA-256",
+    "build flags",
+    "backend/device",
+    "driver/runtime",
+    "thread count",
+    "batch and microbatch",
+    "context and rope parameters",
+    "KV types",
+    "prompt token IDs",
+    "seed",
+    "sampler chain",
+    "speculative configuration"
+  ],
+  "default_semantics": {
+    "greedy": {
+      "temperature": 0,
+      "top_k": 1,
+      "comparison": "exact token sequence"
+    },
+    "seeded": {
+      "comparison": "exact only within a declared deterministic lane"
+    },
+    "nondeterministic": {
+      "comparison": "distributional; exact sequence forbidden as a gate"
+    }
+  }
+}

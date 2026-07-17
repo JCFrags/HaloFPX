@@ -1,0 +1,15 @@
+stateDiagram-v2
+  [*] --> NORMAL_STRICT
+  NORMAL_STRICT --> PERSISTENCE_LAGGED: checkpoint/store pressure
+  NORMAL_STRICT --> AUTHORITY_UNAVAILABLE: authority lost
+  NORMAL_STRICT --> ONE_RANK_DOWN: rank/collective failure
+  NORMAL_STRICT --> STORE_UNAVAILABLE: independent store lost
+  NORMAL_STRICT --> CORRUPTION_QUARANTINE: integrity failure
+  NORMAL_STRICT --> TOPOLOGY_MISMATCH: incompatible reconnect/upgrade
+  PERSISTENCE_LAGGED --> NORMAL_STRICT: lag below watermark
+  AUTHORITY_UNAVAILABLE --> NORMAL_STRICT: revision reconciled
+  STORE_UNAVAILABLE --> NORMAL_STRICT: store verified healthy
+  CORRUPTION_QUARANTINE --> NORMAL_STRICT: independent repair verified
+  ONE_RANK_DOWN --> NORMAL_STRICT: replacement + attach barrier
+  ONE_RANK_DOWN --> TOPOLOGY_MISMATCH: one-node/new topology selected
+  TOPOLOGY_MISMATCH --> NORMAL_STRICT: new generation rebuilt/converted

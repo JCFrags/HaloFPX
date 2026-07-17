@@ -1,0 +1,57 @@
+schema_version: "1.0"
+name: Remote exact stochastic speculation with explicit proposal-probability protocol
+mode: remote_speculation_exact_stochastic
+viability: experimental
+objective: [lossless stochastic decode latency after protocol and break-even validation]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: control_plus_bulk
+  bandwidth_symbol: B_bulk when q vectors are transmitted; otherwise protocol-specific
+  latency_symbol: one request and one response per synchronous round
+coordinator_rank: 0
+ranks:
+  - rank_id: 0
+    node: A
+    role: [frontend, draft proposer]
+    ownership:
+      tokenizer: canonical tokenizer and detokenizer
+      sampler: proposal sampler only; not final output authority
+      rng: proposal RNG stream with explicit counter ownership
+      model: complete draft model
+      experts: draft experts local
+      kv: complete draft KV with rollback/replay
+      sessions: prompt and proposal state
+  - rank_id: 1
+    node: B
+    role: [target verifier, exact final sampler]
+    ownership:
+      tokenizer: exact vocabulary/config mirror
+      sampler: acceptance/rejection and residual/target sampling authority
+      rng: final target RNG stream and acceptance RNG counters
+      model: complete target model; optional draft replica only if the protocol chooses reconstruction
+      experts: target experts local
+      kv: complete target KV with rollback
+      sessions: verifier state and authoritative emitted-token state
+flows:
+  - phase: proposal request
+    from: 0
+    to: 1
+    payload: gamma token IDs and enough q-distribution information for the selected exact algorithm
+    volume_formula: gamma*b_t + V_q + metadata; eager full vectors set V_q=gamma*Vocab*b_p
+    synchronization: one request per round
+    link_policy: bulk_striped_if_validated
+  - phase: exact verification response
+    from: 1
+    to: 0
+    payload: accepted count, replacement/next token, RNG/state counters
+    volume_formula: O(b_t + metadata)
+    synchronization: closes exact sampling round
+    link_policy: control
+hard_gates:
+  - The transmitted or reconstructed q information is sufficient for mathematically exact acceptance and residual sampling.
+  - Output-distribution regression tests match the non-speculative target within statistical tolerance and deterministic seeded traces where applicable.
+  - Measured probability-protocol volume satisfies the remote-speculation break-even inequality.
+  - RNG streams and rollback counters have one documented authority.
+notes:
+  - Sending only proposal token IDs is not presumed sufficient for standard exact stochastic speculative sampling.

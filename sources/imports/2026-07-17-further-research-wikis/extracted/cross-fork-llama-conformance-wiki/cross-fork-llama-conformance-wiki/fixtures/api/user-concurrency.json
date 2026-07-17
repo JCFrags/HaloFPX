@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "user_ids": [
+    "tenant-a-user-1",
+    "tenant-a-user-2"
+  ],
+  "invalid_user_ids": [
+    "../other",
+    "slash/name",
+    "space name",
+    ""
+  ],
+  "schedule": [
+    {
+      "user_id": "tenant-a-user-1",
+      "overlap": 3
+    },
+    {
+      "user_id": "tenant-a-user-2",
+      "overlap": 1
+    }
+  ],
+  "note": "Set cap from the tested configuration; do not assume a fork default."
+}

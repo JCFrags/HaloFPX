@@ -1,0 +1,19 @@
+section_id: "27"
+title: "Profiling, Tracing, Debugging, and Hardware-Counter Collection"
+category_id: "05"
+category_title: "Performance Software and Tools"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 12
+open_question_count: 9
+required_machine_experiments:
+  - "Inventory rocprof, CPU PMU, kernel tracepoints, timestamping and storage tools on both nodes"
+  - "Measure capture overhead, lost events, and counter-group repeatability"
+  - "Correlate application, GPU, scheduler, dual-link and NVMe timelines with stable IDs"
+  - "Calibrate cross-host clocks and report synchronization error"
+  - "Validate crash capture and sensitive-data retention controls"
+related_sections: ["24", "25", "26", "28"]
+applicability:
+  repositories: ["charlie12345/ROCmFPX", "ggml-org/llama.cpp"]
+  software_versions: ["ROCprofiler-SDK 1.3.2 documentation candidate", "selected Linux kernel pending inventory"]
+  hardware_revisions: ["gfx1151 Strix Halo", "dual USB4 host links pending topology inventory"]

@@ -1,0 +1,49 @@
+# Dual-USB4 Strix Halo Transport Wiki
+
+> Evidence-driven research and reproducible Linux procedures for using two host-to-host USB4 links concurrently, with llama.cpp RPC and custom-runtime transport analysis. Snapshot: 2026-07-17.
+
+## Recommended entry points
+
+- [Executive conclusions](docs/00-executive-conclusions.md): Primary recommendation and decision summary.
+- [One-page runbook](docs/18-runbook.md): Ordered deployment procedure.
+- [Measurement and proof](docs/14-measurement-and-proof.md): Criteria for proving genuinely independent paths.
+- [Transport comparison](docs/12-transport-comparison.md): TCP, MPTCP, bonds, USB4STREAM, RXE, and shared-memory verdicts.
+
+## Full wiki
+- [Executive conclusions](docs/00-executive-conclusions.md): Recommendation, evidence levels, and transport verdicts.
+- [Scope and terminology](docs/01-scope-and-terms.md): Scope, assumptions, definitions, and non-goals.
+- [Topology and interface enumeration](docs/02-topology-and-enumeration.md): Map netdevs to XDomains, USB4 domains, NHI PCI functions, and physical ports.
+- [Current kernel prerequisites](docs/03-kernel-prerequisites.md): Current kernel/version matrix, Kconfig, modules, userspace, firmware, and compatibility gates.
+- [USB4NET configuration](docs/04-usb4net-configuration.md): Two-subnet USB4NET configuration, MTU, managers, and link health.
+- [Routing and policy routing](docs/05-routing-and-policy-routing.md): Source policy routing, reverse-path filtering, source/device binding, and ECMP.
+- [Bonding, ECMP, and multipath behavior](docs/06-bonding-and-ecmp.md): Bond mode behavior, version boundary, reordering, LACP, and proof.
+- [Multipath TCP](docs/07-mptcp.md): Endpoint roles, laminar pairing, conversion methods, verification, failover, and limitations.
+- [MTU, queues, and offloads](docs/08-mtu-queues-offloads.md): Driver ring/NAPI topology, MTU matrix, offloads, RPS/XPS, qdisc, and NAPI.
+- [CPU overhead and NUMA locality](docs/09-cpu-and-numa.md): Controller/IRQ locality, CPU attribution, affinity experiments, and normalized overhead.
+- [Integrity and security](docs/10-integrity-and-security.md): USB4/IOMMU trust, checksums, RPC exposure, firewall, encryption, and custom framing.
+- [llama.cpp RPC integration](docs/11-llama-cpp-rpc.md): Exact upstream RPC socket/RDMA behavior, MPTCP deployment, patch, and measurement.
+- [Transport comparison](docs/12-transport-comparison.md): Deployment matrix across TCP, MPTCP, bonds, USB4STREAM, RXE, and non-existent shared memory.
+- [USB4STREAM and experimental USB4 transports](docs/13-usb4stream-and-experimental.md): Current raw stream ABI, ConfigFS, rings/copies, dual-link use, and experimental alternatives.
+- [Measurement and proof criteria](docs/14-measurement-and-proof.md): Phased proof protocol for topology, capacity, failure, IRQs, MPTCP, MTU, CPU, and integrity.
+- [Troubleshooting](docs/15-troubleshooting.md): Failure diagnosis for enumeration, routing, MPTCP, bonding, MTU, performance, and raw streams.
+- [References and source snapshot](docs/16-references.md): Primary-source URL bibliography and interpretation notes.
+- [Custom runtime design for two paths](docs/17-custom-runtime-design.md): Two-path framing, striping, credits, reassembly, recovery, integrity, and transport abstraction.
+- [One-page deployment runbook](docs/18-runbook.md): Condensed end-to-end deployment and validation sequence.
+- [Open questions and future work](docs/19-open-questions.md): Research gaps in controllers, scalability, ABI, runtime, security, and measurement.
+- [Glossary](docs/glossary.md): Terminology for USB4, networking, MPTCP, and runtime integration.
+- [Dual-USB4 topology and transport research](docs/index.md): Wiki landing page and navigation.
+
+## Evidence and executable assets
+
+- [Citation map](CITATIONS.md): Claim IDs, confidence, and supporting sources.
+- [Source snapshot](SOURCE-SNAPSHOT.md): Version and reviewed blob boundary.
+- [Machine-readable claims](data/claims.jsonl): Atomic claims for retrieval and auditing.
+- [Transport matrix](data/transports.csv): Structured comparison data.
+- [Proof criteria](data/proof-criteria.yaml): Machine-readable evidence ladder.
+- [Scripts](scripts/): Topology capture, link/routing/MPTCP/bond setup, performance collection, proof, and validation.
+- [Tools](tools/): Report verifier, iperf summarizer, MPTCP C smoke test, USB4STREAM file tool, two-socket striper, offline llama.cpp patch-context checker, and reproducible citation/corpus generators.
+- [Diagrams](diagrams/): Mermaid, Graphviz, SVG, and PNG sources/renders.
+
+## Retrieval guidance
+
+Treat source-code facts as pinned to `SOURCE-SNAPSHOT.md`. Apply the same-peer connection-manager gate before routing: both XDomains/netdevs must coexist, and separate `domainX`/NHI instances are preferred because firmware/ICM can replace a same-UUID route within one domain. Do not infer host-controller independence from two ports or interfaces; require the proof ladder in `docs/14-measurement-and-proof.md`. Generic host-to-host USB4 does not provide coherent shared memory.

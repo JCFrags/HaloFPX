@@ -1,0 +1,31 @@
+name: validate-conformance-suite
+
+on:
+  push:
+    paths:
+      - "**.md"
+      - "matrix/**"
+      - "fixtures/**"
+      - "harness/**"
+      - "scripts/**"
+      - ".github/workflows/validate-suite.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install validation dependencies
+        run: python -m pip install --disable-pip-version-check jsonschema pytest -e ./harness
+      - name: Verify suite integrity
+        run: python scripts/verify-suite.py
+      - name: Run harness unit tests
+        run: pytest harness/tests

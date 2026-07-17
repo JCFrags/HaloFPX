@@ -1,0 +1,66 @@
+site_name: Dual-USB4 Strix Halo Transport Wiki
+site_description: Evidence-driven Linux dual-USB4 topology, multipath, and LLM runtime transport research
+repo_name: dual-usb4-strix-halo-wiki
+strict: true
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - content.code.copy
+    - content.tabs.link
+    - search.highlight
+  palette:
+    - scheme: slate
+      primary: blue grey
+      accent: cyan
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+extra_css:
+  - stylesheets/extra.css
+nav:
+  - Home: index.md
+  - Decisions:
+      - Executive conclusions: 00-executive-conclusions.md
+      - Scope and terms: 01-scope-and-terms.md
+      - Transport comparison: 12-transport-comparison.md
+  - Linux topology:
+      - Enumeration: 02-topology-and-enumeration.md
+      - Kernel prerequisites: 03-kernel-prerequisites.md
+      - USB4NET: 04-usb4net-configuration.md
+      - Routing: 05-routing-and-policy-routing.md
+      - Bonding and ECMP: 06-bonding-and-ecmp.md
+      - MPTCP: 07-mptcp.md
+  - Performance:
+      - MTU, queues, and offloads: 08-mtu-queues-offloads.md
+      - CPU and NUMA: 09-cpu-and-numa.md
+      - Measurement and proof: 14-measurement-and-proof.md
+  - Runtime integration:
+      - llama.cpp RPC: 11-llama-cpp-rpc.md
+      - USB4STREAM and experimental: 13-usb4stream-and-experimental.md
+      - Custom runtime design: 17-custom-runtime-design.md
+  - Operations:
+      - Security and integrity: 10-integrity-and-security.md
+      - Troubleshooting: 15-troubleshooting.md
+      - One-page runbook: 18-runbook.md
+      - Open questions: 19-open-questions.md
+  - Reference:
+      - Sources: 16-references.md
+      - Glossary: glossary.md

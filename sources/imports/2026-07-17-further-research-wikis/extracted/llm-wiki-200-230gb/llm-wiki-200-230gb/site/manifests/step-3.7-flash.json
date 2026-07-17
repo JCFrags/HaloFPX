@@ -1,0 +1,33 @@
+{
+  "schema": "llm-wiki-hf-artifact-manifest-v1",
+  "as_of": "2026-07-17",
+  "candidate_id": "step-3.7-flash",
+  "model": "Step-3.7-Flash",
+  "selected_quant": "Q8_0",
+  "publisher_display_size_gb_decimal": 209.0,
+  "conservative_weight_plan_gib": 196,
+  "huggingface": {
+    "upstream_repo": "stepfun-ai/Step-3.7-Flash",
+    "quant_repo": "stepfun-ai/Step-3.7-Flash-GGUF",
+    "revision": "713961b",
+    "path": "Q8_0",
+    "shard_count": 5,
+    "displayed_shard_gb": [
+      45.9,
+      49.7,
+      45.9,
+      49.9,
+      17.6
+    ],
+    "known_lfs": []
+  },
+  "source_urls": [
+    "https://huggingface.co/stepfun-ai/Step-3.7-Flash",
+    "https://huggingface.co/stepfun-ai/Step-3.7-Flash-GGUF/tree/713961b/Q8_0",
+    "https://huggingface.co/AesSedai/Step-3.7-Flash-GGUF",
+    "https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/step35.cpp",
+    "https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/docs/recipes/step35-rocmfpx-q3-qualityplus.md"
+  ],
+  "integrity_status": "authoritative-revision/path-manifest; run refresh_hf_manifests.py for exact LFS OIDs",
+  "notes": "No model weight bytes are redistributed in this package. Display sizes are publisher UI values; exact downloaded files must be verified locally."
+}

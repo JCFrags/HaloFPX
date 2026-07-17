@@ -1,0 +1,175 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ranked Shortlist · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Ranked Shortlist</h1>
+<p>The rank is a <strong>deployment-fit ordering for this 200–230 GB requirement</strong>, not a universal intelligence ranking. It emphasizes runtime maturity, licensing/provenance, quantization fidelity, memory headroom, active-compute efficiency, and direct quant evidence.</p>
+<table>
+<thead>
+<tr>
+  <th>Rank</th>
+  <th>Candidate</th>
+  <th>Score /100</th>
+  <th>Representation</th>
+  <th>GB</th>
+  <th>Active B</th>
+  <th>License</th>
+  <th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td><a href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a></td>
+  <td>92</td>
+  <td>UD-Q6_K_XL</td>
+  <td>201.91</td>
+  <td>22</td>
+  <td>Apache-2.0</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><a href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a></td>
+  <td>90</td>
+  <td>Q8_0</td>
+  <td>209.00</td>
+  <td>11</td>
+  <td>Apache-2.0</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><a href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a></td>
+  <td>86</td>
+  <td>Q5_K_M</td>
+  <td>219.20</td>
+  <td>15</td>
+  <td>MIT (model weights; verify code components separately)</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><a href="../candidates/glm-4.7.html">GLM-4.7</a></td>
+  <td>83</td>
+  <td>Q4_K_M</td>
+  <td>218.52</td>
+  <td>32</td>
+  <td>MIT</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><a href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a></td>
+  <td>76</td>
+  <td>Q6_K</td>
+  <td>207.88</td>
+  <td>253</td>
+  <td>NVIDIA Open Model License + Llama 3.1 terms</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><a href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a></td>
+  <td>68</td>
+  <td>UD-IQ2_M</td>
+  <td>229.00</td>
+  <td>37</td>
+  <td>MIT</td>
+  <td>conditional</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><a href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a></td>
+  <td>66</td>
+  <td>IQ4_XS</td>
+  <td>216.57</td>
+  <td>405</td>
+  <td>Llama 3.1 Community License</td>
+  <td>conditional</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><a href="../candidates/minimax-m3.html">MiniMax-M3</a></td>
+  <td>55</td>
+  <td>UD-IQ4_XS</td>
+  <td>208.00</td>
+  <td>23</td>
+  <td>MiniMax Community License</td>
+  <td>experimental</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><a href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a></td>
+  <td>35</td>
+  <td>i1-IQ1_M community artifact</td>
+  <td>228.00</td>
+  <td>32</td>
+  <td>Modified MIT / model-specific terms — verify upstream</td>
+  <td>screened-out</td>
+</tr>
+</tbody>
+</table>
+<h2>Scoring rubric</h2>
+<table>
+<thead>
+<tr>
+  <th>Component</th>
+  <th style="text-align:right">Weight</th>
+  <th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Runtime maturity</td>
+  <td style="text-align:right">30</td>
+  <td>Architecture implemented in the pinned llama.cpp and/or ROCmFPX snapshot; exact model path qualified</td>
+</tr>
+<tr>
+  <td>License clarity</td>
+  <td style="text-align:right">15</td>
+  <td>Clear commercial/research terms and source attribution</td>
+</tr>
+<tr>
+  <td>Quantization fidelity</td>
+  <td style="text-align:right">20</td>
+  <td>Effective bit budget, quant family, and distance from extreme low-bit regimes</td>
+</tr>
+<tr>
+  <td>Memory headroom</td>
+  <td style="text-align:right">15</td>
+  <td>Weight plan plus Q8 KV under plausible configurations</td>
+</tr>
+<tr>
+  <td>Active-compute efficiency</td>
+  <td style="text-align:right">10</td>
+  <td>Sparse activation versus dense all-parameter execution</td>
+</tr>
+<tr>
+  <td>Provenance</td>
+  <td style="text-align:right">5</td>
+  <td>Publisher/revision/path specificity and integrity metadata</td>
+</tr>
+<tr>
+  <td>Direct quant evidence</td>
+  <td style="text-align:right">5</td>
+  <td>Candidate-specific PPL/KLD/benchmark evidence for the selected representation</td>
+</tr>
+</tbody>
+</table>
+<h2>Tiers</h2>
+<h3>Tier A — deploy first</h3>
+<ul>
+<li><strong>Qwen3 UD-Q6_K_XL:</strong> most balanced and least surprising.</li>
+<li><strong>Step Q8_0:</strong> best representation fidelity; accept newer-runtime risk.</li>
+<li><strong>MiMo Q5_K_M:</strong> best KV-cache behavior for long context.</li>
+<li><strong>GLM Q4_K_M:</strong> strong upstream agent/coding evidence, but more quant and KV pressure.</li>
+</ul>
+<h3>Tier B — workload-specific</h3>
+<ul>
+<li><strong>Nemotron Q6_K:</strong> dense, high-fidelity, high compute.</li>
+<li><strong>DeepSeek UD-IQ2_M:</strong> reasoning-focused, but 2-bit quality must be proven on the intended workload.</li>
+<li><strong>Tulu 405B IQ4_XS:</strong> mature dense control, but the worst active-compute cost in the qualified set.</li>
+</ul>
+<h3>Tier C — research gates</h3>
+<ul>
+<li><strong>MiniMax-M3 UD-IQ4_XS:</strong> capacity fits, but mainline MSA/runtime maturity is not yet a stable baseline.</li>
+<li><strong>Kimi-K2-Thinking IQ1_M:</strong> screened out; file size fits only because the representation is near 1.82 effective bits/parameter.</li>
+</ul>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

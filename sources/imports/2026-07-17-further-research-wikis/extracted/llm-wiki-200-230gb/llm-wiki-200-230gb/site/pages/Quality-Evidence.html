@@ -1,0 +1,79 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quality Evidence · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Quality Evidence</h1>
+<table>
+<thead>
+<tr>
+  <th>Candidate</th>
+  <th>Evidence available</th>
+  <th>Selected-quant caveat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Qwen3-235B-A22B-Instruct-2507</td>
+  <td>Official BF16/Instruct card reports MMLU-Pro 83.0 and GPQA 77.5; results are not directly comparable to other cards.</td>
+  <td>Moderate-low: high effective bit budget; candidate-specific independent quant benchmark not located.</td>
+</tr>
+<tr>
+  <td>Step-3.7-Flash</td>
+  <td>Official card supplies broad benchmark evidence; AesSedai reports Q8_0 PPL 1.894568 and KLD 0.005301 for its evaluation setup.</td>
+  <td>Low for Q8_0; direct quant-specific PPL/KLD evidence is available.</td>
+</tr>
+<tr>
+  <td>MiMo-V2-Flash</td>
+  <td>Official model card reports benchmark results for coding, reasoning, and agents; use only as upstream evidence.</td>
+  <td>Moderate: Q5_K_M is materially safer than 4-bit options, but no candidate-specific independent quant benchmark was located.</td>
+</tr>
+<tr>
+  <td>GLM-4.7</td>
+  <td>Official card reports SWE-bench Verified 73.8, multilingual 66.7, TerminalBench 2.0 41, and HLE 42.8.</td>
+  <td>Moderate-high versus Q5/Q6/Q8 candidates because the chosen artifact is Q4_K_M.</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Nemotron-Ultra-253B-v1</td>
+  <td>NVIDIA model card provides reasoning, chat, RAG, and tool-use evaluation; no selected-quant evaluation was located.</td>
+  <td>Moderate-low: Q6_K gives high weight fidelity.</td>
+</tr>
+<tr>
+  <td>DeepSeek-R1-0528</td>
+  <td>Official BF16 card reports MMLU-Pro 85.0, GPQA 81.0, AIME 2025 87.5, and SWE-bench Verified 57.6.</td>
+  <td>High: effective storage is only about 2.73 bits/parameter and no direct selected-quant evaluation was found.</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Tulu-3-405B</td>
+  <td>Upstream Tulu card supplies instruction-following and preference-training evidence; quant card provides qualitative guidance only.</td>
+  <td>Moderate-high: IQ4_XS is an aggressive dense-model quant; card claims similar quality to Q4_K_S but lacks candidate-specific independent evaluation.</td>
+</tr>
+<tr>
+  <td>MiniMax-M3</td>
+  <td>Official card reports coding, cowork, reasoning, and long-context results; deployment maturity remains the gating factor.</td>
+  <td>Moderate-high: IQ4_XS; no selected-quant independent evaluation located.</td>
+</tr>
+<tr>
+  <td>Kimi-K2-Thinking</td>
+  <td>No acceptable selected-quant quality evidence located.</td>
+  <td>Very high: about 1.82 effective bits/parameter; the community card labels the quant as suitable only for the mostly desperate.</td>
+</tr>
+</tbody>
+</table>
+<h2>Evidence hierarchy used</h2>
+<ol>
+<li><strong>Direct selected-quant evaluation on a disclosed dataset/harness.</strong> Step Q8_0 has a published PPL/KLD result.</li>
+<li><strong>Official upstream model benchmarks.</strong> Useful for capability orientation, but not proof of the GGUF quant.</li>
+<li><strong>Quantizer qualitative guidance or generic quant studies.</strong> Supporting evidence only.</li>
+<li><strong>Anecdotes.</strong> Excluded from ranking unless reproducible details are available.</li>
+</ol>
+<h2>Why official benchmark numbers are not normalized</h2>
+<p>The cards use different harness versions, prompts, sampling parameters, tool scaffolds, maximum generation lengths, and benchmark dates. This package records representative official evidence but does not compute a cross-model intelligence average.</p>
+<h2>Required local quality suite</h2>
+<p>Create a fixed, versioned set of prompts and expected validators. At minimum:</p>
+<ul>
+<li>100–500 representative production prompts;</li>
+<li>exact structured-output schemas;</li>
+<li>executable code tests;</li>
+<li>long-context retrieval needles at multiple positions;</li>
+<li>multilingual and safety-policy cases relevant to the deployment;</li>
+<li>comparison against a high-bit or upstream reference;</li>
+<li>repeatability runs with the production sampling configuration.</li>
+</ul>
+<p>Record task score, malformed-output rate, refusal/over-refusal rate, latency, tokens/s, peak memory, and any special-token leakage.</p>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

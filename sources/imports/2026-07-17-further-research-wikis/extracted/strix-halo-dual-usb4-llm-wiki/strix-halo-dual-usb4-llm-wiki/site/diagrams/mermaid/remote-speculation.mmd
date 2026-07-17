@@ -1,0 +1,7 @@
+sequenceDiagram
+  participant D as Rank 0 / draft
+  participant T as Rank 1 / target
+  D->>T: gamma candidates + protocol data
+  T->>T: parallel verification
+  T-->>D: accepted count + correction/next token
+

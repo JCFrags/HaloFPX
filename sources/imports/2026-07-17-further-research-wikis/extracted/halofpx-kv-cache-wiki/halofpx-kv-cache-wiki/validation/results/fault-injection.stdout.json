@@ -1,0 +1,186 @@
+{
+  "all_passed": true,
+  "case_count": 18,
+  "cases": [
+    {
+      "case": "legacy_bad_magic",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "BAD_MAGIC",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "legacy_bad_version",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "UNSUPPORTED_VERSION",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "legacy_truncated_payload",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "LENGTH_MISMATCH",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "legacy_token_count_overflow",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "TOKEN_COUNT_OVERFLOW",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "legacy_length_inflated",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "OBJECT_TOO_LARGE",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "legacy_compatibility_mismatch",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "FINGERPRINT_MISMATCH",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "legacy_same_length_payload_bitflip",
+      "expected": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED (not hit eligible)",
+      "actual_status": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED",
+      "actual_reason": "NO_PAYLOAD_INTEGRITY",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": "Expected demonstration: the observed outer format has no payload digest."
+    },
+    {
+      "case": "halo_bad_magic",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "BAD_MAGIC",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "halo_bad_version",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "UNSUPPORTED_VERSION",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "halo_truncated_payload",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "LENGTH_MISMATCH",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "halo_metadata_bitflip",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "METADATA_DIGEST_MISMATCH",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "halo_same_length_payload_bitflip",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "PAYLOAD_DIGEST_MISMATCH",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "halo_length_inflated",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "LENGTH_MISMATCH",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "manifest_auth_key_unavailable",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "MANIFEST_AUTH_KEY_UNAVAILABLE",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "manifest_hmac_failure",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "MANIFEST_AUTH_FAILURE",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "manifest_object_alias",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "REFERENCED_OBJECT_INVALID",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "manifest_missing_required_segment",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "MISSING_REQUIRED_SEGMENT",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "case": "manifest_cache_key_alias",
+      "expected": "MISS_RECOMPUTE",
+      "actual_status": "MISS_RECOMPUTE",
+      "actual_reason": "REFERENCED_OBJECT_INVALID",
+      "eligible_for_hit": false,
+      "eligible_for_engine_import": false,
+      "passed": true,
+      "note": ""
+    }
+  ]
+}

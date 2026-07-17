@@ -1,0 +1,33 @@
+section_id: "77"
+title: "HaloKV Restore, Writeback, Hit-Rate, and Endurance Benchmarks"
+category: "11_Verification_and_Performance"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 7
+open_question_count: 14
+required_machine_experiments:
+  - "Inventory exact NVMe devices, firmware, filesystems, mounts, and endurance specifications."
+  - "Benchmark valid, partial, incompatible, corrupt, and absent lookup/restore outcomes."
+  - "Sweep system prefixes, conversation continuations, state types, page sizes, contexts, and residency tiers."
+  - "Measure parallel rank-local restore and missing/slow/corrupt-rank handling."
+  - "Measure dirty-tail writeback and every durability mode with logical/device write accounting."
+  - "Measure garbage collection, quotas, fragmentation, and bounded disk pressure during decode."
+  - "Replay synthetic and sanitized held-out hit-rate traces."
+  - "Project endurance from isolated NVMe host-write deltas and exact drive ratings."
+  - "Run separately authorized crash and power-loss experiments with preserved failing images."
+related_sections: ["14", "21", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "73", "74", "76", "78", "80"]
+applicability:
+  repositories:
+    - repository: "fewtarius/CachyLLama"
+      commit: "6be745998f568e379ea197fcf827baec73ff9940"
+  software_versions:
+    - "fio 3.41 documentation reference"
+    - "NVMe Base 2.3 reference"
+    - "POSIX.1-2024 reference"
+  hardware_revisions:
+    - "planned per-node NVMe on dual Strix Halo; exact devices pending"
+claim_scope:
+  source_research_complete: true
+  target_machine_validation_complete: false
+  benchmark_results_added: false
+  endurance_projection_complete: false

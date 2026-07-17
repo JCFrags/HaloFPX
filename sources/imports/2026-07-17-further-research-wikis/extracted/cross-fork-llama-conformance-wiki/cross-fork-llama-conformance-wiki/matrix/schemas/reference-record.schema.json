@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/llama-conformance/reference-record.schema.json",
+  "title": "Promoted conformance reference",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "case_id",
+    "reference_id",
+    "observation_sha256",
+    "provenance",
+    "approval"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "status": {
+      "enum": [
+        "PROPOSED",
+        "APPROVED",
+        "RETIRED"
+      ]
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^[A-Z]+-[0-9]{3}$"
+    },
+    "reference_id": {
+      "type": "string"
+    },
+    "observation_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "source_commit",
+        "model_digests",
+        "hardware_lane",
+        "build_id"
+      ],
+      "properties": {
+        "source_commit": {
+          "type": "string"
+        },
+        "model_digests": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "hardware_lane": {
+          "type": "string"
+        },
+        "build_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "approval": {
+      "type": "object",
+      "required": [
+        "independent_runs",
+        "reviewers",
+        "approved_at"
+      ],
+      "properties": {
+        "independent_runs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reviewers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "approved_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

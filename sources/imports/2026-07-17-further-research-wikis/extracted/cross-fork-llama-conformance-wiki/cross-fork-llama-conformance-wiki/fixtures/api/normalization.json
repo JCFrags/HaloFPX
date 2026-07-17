@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "drop_or_canonicalize": [
+    "created timestamps",
+    "request IDs",
+    "system fingerprints unless explicitly under test",
+    "absolute model paths",
+    "wall-clock timings",
+    "throughput",
+    "hostnames and ports"
+  ],
+  "retain": [
+    "HTTP status",
+    "error type/code",
+    "finish or stop reason",
+    "token IDs",
+    "usage token counts",
+    "event order",
+    "schema-required fields"
+  ],
+  "streaming": {
+    "sse_comments": "ignore unless keepalive behavior is under test",
+    "data_events": "preserve order",
+    "terminal_event": "exactly one according to adapter contract"
+  }
+}

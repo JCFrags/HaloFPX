@@ -1,0 +1,273 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Known regressions and failure modes · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="regressions.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html">Community validation</a>
+          
+            <a href="regressions.html" class="active" aria-current="page">Known regressions</a>
+          
+            <a href="unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html">Exact build flags</a>
+          
+            <a href="environment-variables.html">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html">ROCmFPX</a>
+          
+            <a href="usb4-networking.html">USB4 networking</a>
+          
+            <a href="glossary.html">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Failure analysis</div>
+      <article class="article"><h1 id="known-regressions-and-failure-modes">Known regressions and failure modes<a aria-label="Link to section" class="heading-anchor" href="#known-regressions-and-failure-modes">#</a></h1>
+<p>Machine-readable records: <a href="../data/regressions-2026.07.17.json"><code>regressions-2026.07.17.json</code></a>, CSV, and YAML.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Severity</th>
+<th>Component</th>
+<th>Affected</th>
+<th>Symptoms</th>
+<th>Mitigation</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>REG-FW-MES083-20251125</td>
+<td>critical</td>
+<td>amdgpu firmware / linux-firmware</td>
+<td>linux-firmware 20251125 / MES 0x83 era on Strix Halo</td>
+<td>GPU hang, gfxhub page fault, memory access fault, llama-bench segfault, blocked management processes</td>
+<td>Upgrade to distribution-fixed firmware (Fedora 20260110 line or newer validated package); do not treat a kernel update alone as sufficient</td>
+<td><a href="sources.html#rocm-issue-5724">ROCM-ISSUE-5724</a>, <a href="sources.html#fedora-bug-2420062">FEDORA-BUG-2420062</a>, <a href="sources.html#linux-fw-revert-c092">LINUX-FW-REVERT-C092</a></td>
+</tr>
+<tr>
+<td>REG-CWSR-MES080-ROCM71</td>
+<td>high</td>
+<td>amdgpu CWSR / MES / ROCm 7.1</td>
+<td>ROCm 7.1.x with MES 0x80-era stack</td>
+<td>MES REMOVE_QUEUE hang and GPU hang</td>
+<td>Move to a currently supported ROCm line; amdgpu.cwsr_enable=0 is only a legacy containment measure</td>
+<td><a href="sources.html#rocm-issue-5590">ROCM-ISSUE-5590</a>, <a href="sources.html#amd-rdna35">AMD-RDNA35</a></td>
+</tr>
+<tr>
+<td>REG-KERNEL-RDNA35-FIXSET</td>
+<td>critical</td>
+<td>Linux amdgpu kernel driver</td>
+<td>Kernels below AMD’s distro-specific thresholds</td>
+<td>Compute instability, queue faults, incomplete memory behavior</td>
+<td>Use Ubuntu HWE &gt;=6.17.0-19.19~24.04.2, OEM &gt;=6.14.0-1018, or &gt;=6.18.4 elsewhere</td>
+<td><a href="sources.html#amd-rdna35">AMD-RDNA35</a>, <a href="sources.html#rocm-issue-5824">ROCM-ISSUE-5824</a></td>
+</tr>
+<tr>
+<td>REG-LLAMA-ROCWMMA-FA</td>
+<td>medium</td>
+<td>llama.cpp HIP rocWMMA FlashAttention</td>
+<td>gfx1151 long-context prefill on reported ROCm 7.2.1 stack</td>
+<td>Up to approximately 41% lower prefill performance</td>
+<td>Keep GGML_HIP_ROCWMMA_FATTN=OFF unless local benchmark proves benefit</td>
+<td><a href="sources.html#llama-issue-24437">LLAMA-ISSUE-24437</a>, <a href="sources.html#llama-ggml-cmake-86d86ed">LLAMA-GGML-CMAKE-86D86ED</a>, <a href="sources.html#llama-rocm-docker-86d86ed">LLAMA-ROCM-DOCKER-86D86ED</a></td>
+</tr>
+<tr>
+<td>REG-LLAMA-RADV-PP-B8460-B8933</td>
+<td>medium</td>
+<td>llama.cpp Vulkan/RADV prompt processing</td>
+<td>Reported transition b8460 to b8933 on Mesa 26.0.2 and Linux 6.19.4</td>
+<td>pp512 decreased by about 39%; token generation stayed approximately stable</td>
+<td>Pin known-good commits and gate upgrades with benchmark thresholds</td>
+<td><a href="sources.html#llama-issue-22375">LLAMA-ISSUE-22375</a></td>
+</tr>
+<tr>
+<td>REG-VULKAN-DIRECT-IO-LOAD</td>
+<td>medium</td>
+<td>llama.cpp Vulkan model loading</td>
+<td>Selected filesystems/models/drivers</td>
+<td>Model fails during load or mapping</td>
+<td>Use --no-direct-io and/or --no-mmap; collect loader and kernel logs</td>
+<td><a href="sources.html#llama-issue-18741">LLAMA-ISSUE-18741</a>, <a href="sources.html#kyuz0-toolbox-a7c71e9">KYUZ0-TOOLBOX-A7C71E9</a></td>
+</tr>
+<tr>
+<td>REG-AMDVLK-2G-ALLOCATION</td>
+<td>high-for-large-models</td>
+<td>AMDVLK Vulkan memory allocation</td>
+<td>Large GGUF buffers exceeding reported per-allocation behavior</td>
+<td>Model load fails although sufficient aggregate memory exists</td>
+<td>Use Mesa RADV for large models</td>
+<td><a href="sources.html#llama-issue-15054">LLAMA-ISSUE-15054</a>, <a href="sources.html#kyuz0-toolbox-a7c71e9">KYUZ0-TOOLBOX-A7C71E9</a></td>
+</tr>
+<tr>
+<td>REG-HIST-15G-VISIBLE-MEM</td>
+<td>historical-high</td>
+<td>Kernel/ROCm unified-memory visibility</td>
+<td>Kernel &lt;=6.15 and older ROCm-era combinations</td>
+<td>Only approximately 15.5 GiB available despite much larger system RAM</td>
+<td>Use current fixed kernel/ROCm and official TTM sizing</td>
+<td><a href="sources.html#rocm-issue-5444">ROCM-ISSUE-5444</a>, <a href="sources.html#amd-rdna35">AMD-RDNA35</a></td>
+</tr>
+<tr>
+<td>REG-HIP-POST-FAULT-DSTATE</td>
+<td>high</td>
+<td>HIP/amdgpu post-fault recovery</td>
+<td>Selected fault paths</td>
+<td>rocm-smi or workload process blocked in D state</td>
+<td>Capture diagnostics before reboot; update kernel/firmware/ROCm as one tested profile</td>
+<td><a href="sources.html#rocm-issue-5745">ROCM-ISSUE-5745</a></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="triage-order">Triage order<a aria-label="Link to section" class="heading-anchor" href="#triage-order">#</a></h2>
+<p>When a GPU workload fails, do not start by changing application flags. Establish the lower layers first:</p>
+<ol>
+<li><strong>Kernel threshold</strong> — compare <code>uname -r</code> with the AMD RDNA 3.5 rule.</li>
+<li><strong>Firmware package and files</strong> — reject the 20251125/MES 0x83 era and capture hashes.</li>
+<li><strong>ROCm release integrity</strong> — one SDK root, one HIP compiler, one runtime generation.</li>
+<li><strong>Minimal HIP smoke</strong> — compile and run <a href="../scripts/smoke-hip.cpp"><code>smoke-hip.cpp</code></a>.</li>
+<li><strong>Vulkan loader</strong> — list ICDs and run <code>vulkaninfo --summary</code> with loader debug when needed.</li>
+<li><strong>llama.cpp A/B</strong> — backend, mmap/direct-I/O, graphs, rocWMMA, and commit pin.</li>
+<li><strong>Model/workload</strong> — only after the platform passes minimal tests.</li>
+</ol>
+<h2 id="fault-signature-commands">Fault-signature commands<a aria-label="Link to section" class="heading-anchor" href="#fault-signature-commands">#</a></h2>
+<pre><code class="language-bash">sudo dmesg -T | grep -Eai 'amdgpu|MES|gfxhub|page fault|GPU reset|ring timeout|firmware'
+ps -eo pid,stat,wchan:32,comm,args | awk '$2 ~ /D/'
+cat /proc/cmdline
+find /lib/firmware/amdgpu -maxdepth 1 -type f -printf '%f
+' | sort
+rocminfo
+hipconfig --full
+</code></pre>
+<p>If <code>rocm-smi</code> or another management command blocks after a fault, capture kernel logs and task states before rebooting. The post-fault D-state record exists specifically because repeated tool invocations can obscure the first failure.</p>
+<h2 id="regression-gates-for-upgrades">Regression gates for upgrades<a aria-label="Link to section" class="heading-anchor" href="#regression-gates-for-upgrades">#</a></h2>
+<p>Record these values before changing kernel, firmware, ROCm, Mesa, or llama.cpp:</p>
+<pre><code class="language-text">pp512, pp2048, tg128
+model load wall time
+peak resident memory and reported GPU pool size
+new dmesg warnings/errors
+Vulkan device/driver ID
+HIP runtime and compiler version
+</code></pre>
+<p>Fail the upgrade if median performance regresses beyond the chosen tolerance or any new amdgpu fault appears. A default tolerance of 5% for stable local runs is reasonable; noisy thermal systems require tighter environmental control rather than a wider tolerance.</p>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#triage-order">Triage order</a><a class="level-2" href="#fault-signature-commands">Fault-signature commands</a><a class="level-2" href="#regression-gates-for-upgrades">Regression gates for upgrades</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

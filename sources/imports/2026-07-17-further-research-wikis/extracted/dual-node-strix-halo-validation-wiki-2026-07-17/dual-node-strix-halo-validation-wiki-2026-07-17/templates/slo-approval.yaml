@@ -1,0 +1,22 @@
+schema_version: 1
+candidate_lineage: REPLACE
+approved_at: REPLACE_ISO_UTC
+approver: REPLACE
+rationale: REPLACE_WITH_PRODUCT_OR_USER_EXPERIENCE_REQUIREMENT
+workloads:
+  - workload_cell: interactive-512x128
+    topology_scope: [node-a, node-b, dual]
+    cache_state: C2
+    concurrency: REPLACE
+    p95_ttft_ms: REPLACE
+    p99_ttft_ms: REPLACE
+    p95_itl_ms: REPLACE
+    p99_itl_ms: REPLACE
+    success_rate_min: 0.9999
+    correctness_suite: REPLACE
+recovery:
+  fault_detection_s_max: 10
+  affected_request_explicit_terminal_state_s_max: 30
+  reversible_service_recovery_s_max: 120
+  lost_acknowledged_requests_max: 0
+change_control: Any relaxation after M1 begins invalidates the affected comparison lineage unless independently approved as a new product profile.

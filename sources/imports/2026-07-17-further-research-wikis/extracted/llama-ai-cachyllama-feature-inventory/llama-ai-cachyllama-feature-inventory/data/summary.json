@@ -1,0 +1,43 @@
+{
+  "feature_count": 120,
+  "evidence_count": 118,
+  "decision_counts": {
+    "REDESIGN": 39,
+    "RETAIN": 68,
+    "REJECT": 13
+  },
+  "maturity_counts": {
+    "M2": 68,
+    "M1": 25,
+    "M3": 26,
+    "M0": 1
+  },
+  "category_counts": {
+    "Persistent SSD-backed KV cache": 15,
+    "System-prompt caching": 5,
+    "Prefix matching and session continuation": 6,
+    "Checkpoint restore and hybrid state": 9,
+    "Slot affinity and user isolation": 12,
+    "Cache administration": 9,
+    "Model lifecycle": 10,
+    "Server APIs": 22,
+    "Observability": 6,
+    "Deployment": 9,
+    "Strix Halo optimizations": 11,
+    "ROCmFPX target baseline": 6
+  },
+  "license_counts": {
+    "MIT": 101,
+    "MIT for component; GPL-3.0 for parent profile": 1,
+    "GPL-3.0": 9,
+    "GPL-3.0 parent repository": 1,
+    "Mixed: MIT component, GPL-3.0 parent": 1,
+    "Mixed": 1,
+    "Mixed: GPL parent detection, MIT backend": 1,
+    "GPL-3.0 parent": 1,
+    "MIT documentation in component repo": 1,
+    "Mixed MIT repositories": 1,
+    "Mixed MIT/GPL": 1,
+    "Mixed MIT/GPL profile": 1
+  }
+}

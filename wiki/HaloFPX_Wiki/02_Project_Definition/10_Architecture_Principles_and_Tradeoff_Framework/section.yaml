@@ -1,0 +1,18 @@
+section_id: "10"
+title: "Architecture Principles and Tradeoff Framework"
+category_id: "02"
+category_title: "Project Definition"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 5
+open_question_count: 9
+required_machine_experiments:
+  - "Node symmetry and matched single-node baseline"
+  - "Per-model/backend/workload mode comparison"
+  - "Token-path and transport breakdown profiling"
+  - "Rank/cache fault and rollback validation"
+  - "Tradeoff-weight sensitivity using observed metrics"
+related_sections: ["06", "07", "08", "09", "15", "38", "47", "48", "49", "60", "78", "80"]
+applicability:
+  repositories: ["charlie12345/ROCmFPX@a5605a7", "ggml-org/llama.cpp@788e07d", "fewtarius/CachyLLama@6be7459", "fewtarius/llama-ai@1017f3d"]
+  hardware: ["two matched AMD Strix Halo systems; exact BOM open"]

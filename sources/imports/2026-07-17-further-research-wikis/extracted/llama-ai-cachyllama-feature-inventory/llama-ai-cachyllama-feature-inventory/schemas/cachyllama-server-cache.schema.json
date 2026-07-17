@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:llm-wiki:cachyllama-server-cache",
+  "title": "CachyLlama pinned server cache configuration (normalized)",
+  "description": "Normalized schema for source-level common_params and CLI controls at the assessed CachyLlama commit. Actual interface is CLI/environment variables.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "cacheSsdPath": {
+      "type": "string",
+      "default": ""
+    },
+    "maxCheckpoints": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 64
+    },
+    "hotWindowTokens": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 16384
+    },
+    "warmWindowTokens": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 32768
+    },
+    "maxColdCheckpoints": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "pageSizeTokens": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1024
+    },
+    "maxConversations": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 16
+    },
+    "hotRamMiB": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "0 requests automatic sizing."
+    },
+    "warmRamMiB": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "0 requests automatic sizing."
+    },
+    "maxSystemPrompts": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 8
+    },
+    "maxUnusedDays": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 30
+    },
+    "noFsync": {
+      "type": "boolean",
+      "default": false
+    },
+    "maxConcurrentPerUser": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "checkpointMinStepTokens": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 8192,
+      "description": "Source-level default observed at the pin; server documentation at the pin reports a different value."
+    },
+    "slotPromptSimilarity": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "slotSavePath": {
+      "type": "string",
+      "default": ""
+    }
+  }
+}

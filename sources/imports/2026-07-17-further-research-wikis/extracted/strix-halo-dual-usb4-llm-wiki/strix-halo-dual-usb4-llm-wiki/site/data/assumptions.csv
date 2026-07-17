@@ -1,0 +1,14 @@
+id,variable,default,status,evidence_label,meaning,required_action
+A01,B_1,,unset,MEASURED INPUT REQUIRED,Effective one-direction payload bandwidth of USB4 path 1,Measure at application-relevant message sizes
+A02,B_2,,unset,MEASURED INPUT REQUIRED,Effective one-direction payload bandwidth of USB4 path 2,Measure independently and concurrently
+A03,B_sum,,gated,DECISION RULE,B_1+B_2 only after simultaneous application-level striping scales,Fail closed to one-link model until gate passes
+A04,ell_1,,unset,MEASURED INPUT REQUIRED,Fitted one-way fixed message cost for path 1,Measure ping-pong across sizes and fit intercept
+A05,ell_2,,unset,MEASURED INPUT REQUIRED,Fitted one-way fixed message cost for path 2,Measure ping-pong across sizes and fit intercept
+A06,m_AR,,unset,MEASURED INPUT REQUIRED,Transport phases used by the actual p=2 all-reduce,Trace runtime; common algorithms can differ
+A07,b_a,2,declared,SCENARIO ASSUMPTION,Bytes per transmitted activation element,BF16/FP16 example; change for compression or FP32
+A08,b_kv,2,declared,SCENARIO ASSUMPTION,Bytes per KV element,BF16/FP16 example; change for KV quantization
+A09,b_p,2,declared,SCENARIO ASSUMPTION,Bytes per transmitted probability/logit element,Protocol dependent
+A10,rho,0.5,illustrative only,SCENARIO ASSUMPTION,Fraction of routed expert assignments crossing the node cut,Replace with routing-trace measurement
+A11,eta_TP,,unset,MEASURED INPUT REQUIRED,Compute efficiency relative to ideal two-way tensor sharding,Measure compute-only or decompose runtime trace
+A12,a,,unset,MEASURED INPUT REQUIRED,Speculative candidate acceptance probability or empirical distribution,Measure by workload and drafter/target pair
+A13,M_usable,,unset,MEASURED INPUT REQUIRED,Memory available to model weights KV cache and workspace,Measure on target OEM/runtime configuration

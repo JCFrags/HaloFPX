@@ -1,0 +1,476 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dual-node benchmark run manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "experiment_id",
+    "evidence_level",
+    "evidence_origin",
+    "status",
+    "release_profile",
+    "topology",
+    "cache_state",
+    "started_at",
+    "testbed_id",
+    "model",
+    "software",
+    "hardware",
+    "workload",
+    "commands",
+    "collectors",
+    "raw_files"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{7,127}$"
+    },
+    "experiment_id": {
+      "type": "string",
+      "pattern": "^EXP-[0-9]{3}$"
+    },
+    "evidence_level": {
+      "enum": [
+        "S0",
+        "M1",
+        "M2",
+        "R1"
+      ]
+    },
+    "evidence_origin": {
+      "enum": [
+        "synthetic",
+        "machine"
+      ]
+    },
+    "status": {
+      "enum": [
+        "planned",
+        "running",
+        "complete",
+        "invalid",
+        "aborted"
+      ]
+    },
+    "release_profile": {
+      "enum": [
+        "scale_out",
+        "capacity_extension",
+        "availability_recovery"
+      ]
+    },
+    "topology": {
+      "enum": [
+        "node-a",
+        "node-b",
+        "dual"
+      ]
+    },
+    "cache_state": {
+      "enum": [
+        "C0",
+        "C1",
+        "C2",
+        "C3",
+        "NA"
+      ]
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "testbed_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_block_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reproduction_block": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "artifact_sha256",
+        "artifact_bytes",
+        "quantization",
+        "tokenizer_sha256"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "artifact_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "artifact_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quantization": {
+          "type": "string"
+        },
+        "tokenizer_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "declared_context_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        }
+      }
+    },
+    "software": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean",
+          "null"
+        ]
+      }
+    },
+    "hardware": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "node_id",
+          "hardware_fingerprint_sha256"
+        ],
+        "properties": {
+          "node_id": {
+            "type": "string"
+          },
+          "hardware_fingerprint_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "interconnect": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "workload": {
+      "type": "object",
+      "required": [
+        "workload_cell",
+        "prompt_tokens",
+        "max_output_tokens",
+        "seed",
+        "temperature"
+      ],
+      "properties": {
+        "workload_cell": {
+          "type": "string"
+        },
+        "prompt_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "request_rate_per_s": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "prompt_set_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "host",
+          "argv"
+        ],
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "argv": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "cwd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "env_redacted": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "collectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "sample_interval_ms"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "sample_interval_ms": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "overhead_check_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "time_sync": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "environment": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "cache_state_evidence": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "invalidations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "rule",
+          "reason"
+        ],
+        "properties": {
+          "rule": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "adjudicator": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "raw_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "bytes",
+          "record_type"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "record_type": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "evidence_origin": {
+            "const": "synthetic"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "evidence_level": {
+            "const": "S0"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_origin": {
+            "const": "machine"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "evidence_level": {
+            "enum": [
+              "M1",
+              "M2",
+              "R1"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "topology": {
+            "const": "dual"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "hardware": {
+            "minItems": 2
+          },
+          "interconnect": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "interconnect"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "topology": {
+            "const": "dual"
+          },
+          "evidence_origin": {
+            "const": "machine"
+          }
+        },
+        "required": [
+          "topology",
+          "evidence_origin"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_level": {
+            "enum": [
+              "M2",
+              "R1"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

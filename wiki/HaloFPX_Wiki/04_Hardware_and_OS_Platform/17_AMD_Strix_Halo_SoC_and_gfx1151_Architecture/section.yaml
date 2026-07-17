@@ -1,0 +1,31 @@
+section_id: "17"
+title: "AMD Strix Halo SoC and gfx1151 Architecture"
+category_id: "04"
+category_title: "Hardware and OS Platform"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 8
+open_question_count: 8
+required_machine_experiments:
+  - id: "S17-EXP-001"
+    title: "CPU cache and complex topology"
+  - id: "S17-EXP-002"
+    title: "HSA identity, pools, and firmware carveout"
+  - id: "S17-EXP-003"
+    title: "HIP target and datatype correctness gate"
+  - id: "S17-EXP-004"
+    title: "Vulkan/RADV capability and heap capture"
+  - id: "S17-EXP-005"
+    title: "Shared-memory and sustained package behavior"
+related_sections: ["18", "19", "20", "22", "23", "24", "25", "37", "38", "47", "73", "74"]
+applicability:
+  repositories:
+    - "llvm/llvm-project@c571b0bd7330a4b737ad7dec31e7f2b52edd3953"
+    - "torvalds/linux@fce2dfa773ced15f27dd27cd0b482a7473cdcf2a"
+    - "mesa/mesa@20f4f9f45057559475600b60364b60643011990f"
+  software_versions:
+    - "ROCm 7.14.0"
+    - "ROCm 7.1.1"
+  hardware_revisions:
+    - "AMD Ryzen AI Max+ 395 / Radeon 8060S"
+    - "Exact two project machine revisions OPEN"

@@ -1,0 +1,12 @@
+section_id: "62"
+title: "Async I/O, io_uring, Prefetch, DRAM Tiers, and GPU Mapping"
+category_id: "09"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 6
+open_question_count: 8
+required_machine_experiments: ["M62-01 I/O matrix", "M62-02 prefetch precision", "M62-03 GPU staging"]
+related_sections: ["19", "21", "28", "54", "55", "59", "63", "73", "77", "79"]
+applicability:
+  repositories: ["fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"]
+  hardware: ["dual Strix Halo"]

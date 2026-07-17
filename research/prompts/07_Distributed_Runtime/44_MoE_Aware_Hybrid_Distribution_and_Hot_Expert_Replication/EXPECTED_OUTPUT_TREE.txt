@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

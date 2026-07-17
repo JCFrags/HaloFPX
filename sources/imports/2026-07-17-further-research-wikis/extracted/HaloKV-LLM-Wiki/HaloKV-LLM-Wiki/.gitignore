@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.lint-proto/
+HaloKV_TTrace_*.tla
+*.zip
+.DS_Store

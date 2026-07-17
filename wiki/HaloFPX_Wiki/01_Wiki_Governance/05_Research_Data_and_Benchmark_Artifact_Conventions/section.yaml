@@ -1,0 +1,20 @@
+section_id: "05"
+title: "Research Data and Benchmark Artifact Conventions"
+category_id: "01"
+category_title: "Wiki Governance"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 9
+open_question_count: 10
+required_machine_experiments:
+  - "Validate repeatable environment capture on both nodes"
+  - "Run matched single-node baselines to characterize node variance"
+  - "Validate dual-link topology capture and cross-node clock metadata"
+  - "Test checksum rejection using a disposable corrupted copy"
+  - "Restore and hash-verify an externally stored large artifact"
+  - "Regenerate derived results from immutable raw inputs"
+related_sections: ["02", "03", "04", "70", "71", "72", "73", "74", "75", "76"]
+applicability:
+  repositories: ["Custom_Inference_Project", "ROCmFPX", "CachyLlama", "llama-ai", "llama.cpp"]
+  software_versions: ["DataCite Metadata Schema 4.7", "MLPerf Inference Rules 5.1"]
+  hardware_revisions: []

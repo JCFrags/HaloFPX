@@ -1,0 +1,57 @@
+schema_version: "1.0"
+name: Synchronous remote greedy speculation
+mode: remote_speculation_greedy
+viability: conditional
+objective: [single-request decode latency after measured break-even]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: control_plus_bulk
+  bandwidth_symbol: B_control; candidate IDs are normally small
+  latency_symbol: round-trip dominated by 2*ell
+coordinator_rank: 0
+ranks:
+  - rank_id: 0
+    node: A
+    role: [frontend, draft model]
+    ownership:
+      tokenizer: canonical tokenizer and detokenizer shared by draft and target vocabulary
+      sampler: deterministic draft argmax only; not authoritative final verification
+      rng: none for greedy mode
+      model: complete draft model
+      experts: draft-model experts, if any, remain local
+      kv: complete draft KV; rollback/replay after target correction
+      sessions: authoritative external request and emitted-token history
+  - rank_id: 1
+    node: B
+    role: [target verifier, authoritative sampler]
+    ownership:
+      tokenizer: vocabulary/config mirror sufficient to validate token IDs
+      sampler: authoritative target greedy verification and correction token
+      rng: none for greedy mode
+      model: complete target model
+      experts: target-model experts, if any, remain local
+      kv: complete target KV with speculative rollback support
+      sessions: target verification state keyed by rank-0 session ID
+flows:
+  - phase: speculation request
+    from: 0
+    to: 1
+    payload: gamma draft token IDs plus prefix/session counters
+    volume_formula: gamma*b_t + metadata
+    synchronization: one request per speculative round
+    link_policy: control
+  - phase: verification response
+    from: 1
+    to: 0
+    payload: accepted-prefix length, correction/next token ID, and state counters
+    volume_formula: O(b_t + metadata)
+    synchronization: response closes the round and authorizes external emission
+    link_policy: control
+hard_gates:
+  - Draft and target use exactly compatible token IDs and normalization rules.
+  - Measured T_draft(gamma)+T_verify(gamma)+network is below E[K]*measured target one-token time.
+  - Target and draft KV rollback/replay are tested for every rejection position.
+  - Output equality with baseline greedy target decode passes bit-for-token tests.
+notes:
+  - Dual-link bandwidth is usually irrelevant for token-ID-only messages; latency is the primary network term.

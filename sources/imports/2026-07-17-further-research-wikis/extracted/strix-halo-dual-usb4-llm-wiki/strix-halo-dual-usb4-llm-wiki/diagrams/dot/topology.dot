@@ -1,0 +1,14 @@
+digraph G {
+
+graph [bgcolor="transparent", pad="0.25", nodesep="0.55", ranksep="0.65", fontname="Inter,Arial"];
+node [shape=box, style="rounded,filled", fillcolor="#111827", color="#475569", fontcolor="#e5e7eb", fontname="Inter,Arial", fontsize=11, margin="0.14,0.10"];
+edge [color="#22d3ee", fontcolor="#cbd5e1", fontname="Inter,Arial", fontsize=9, penwidth=1.6, arrowsize=0.8];
+
+rankdir=LR;
+subgraph cluster_a { label="Node A · Strix Halo"; color="#334155"; fontcolor="#94a3b8"; a [label="Rank 0\n128 GB max platform memory\n2 × native USB4 40 Gb/s"]; a1 [label="USB4 port A1", fillcolor="#0f172a"]; a2 [label="USB4 port A2", fillcolor="#0f172a"]; a -> a1 [arrowhead=none,color="#64748b"]; a -> a2 [arrowhead=none,color="#64748b"]; }
+subgraph cluster_b { label="Node B · Strix Halo"; color="#334155"; fontcolor="#94a3b8"; b [label="Rank 1\n128 GB max platform memory\n2 × native USB4 40 Gb/s"]; b1 [label="USB4 port B1", fillcolor="#0f172a"]; b2 [label="USB4 port B2", fillcolor="#0f172a"]; b1 -> b [arrowhead=none,color="#64748b"]; b2 -> b [arrowhead=none,color="#64748b"]; }
+a1 -> b1 [label="path 1: measured B₁, ℓ₁", dir=both];
+a2 -> b2 [label="path 2: measured B₂, ℓ₂", dir=both];
+gate [shape=diamond, label="striping gate\npasses?", fillcolor="#312e81", color="#818cf8"];
+a2 -> gate [style=dashed,color="#818cf8"]; gate -> b2 [style=dashed,color="#818cf8"];
+}

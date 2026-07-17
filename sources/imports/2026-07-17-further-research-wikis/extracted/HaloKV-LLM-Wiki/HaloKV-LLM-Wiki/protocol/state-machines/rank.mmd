@@ -1,0 +1,21 @@
+stateDiagram-v2
+  [*] --> OFFLINE
+  OFFLINE --> HANDSHAKE: authenticated connection
+  HANDSHAKE --> FENCED: stale generation/epoch/instance
+  HANDSHAKE --> READY: authorized reconnect plan + exact topology
+  HANDSHAKE --> RECOVERING: FETCH_DELTA / REBUILD_RANK
+  RECOVERING --> READY: objects verified + attach barrier pending
+  RECOVERING --> QUARANTINED: integrity/shape/provenance failure
+  READY --> SNAPSHOTTING: BeginCheckpoint current epoch
+  SNAPSHOTTING --> PREPARED: pages + rank manifest durable
+  SNAPSHOTTING --> READY: cancel/abort before prepare
+  SNAPSHOTTING --> FENCED: epoch superseded
+  PREPARED --> COMMITTED_LOCAL: authoritative certificate observed
+  PREPARED --> READY: authoritative abort; orphan cleanup deferred
+  PREPARED --> FENCED: epoch superseded; no current mutation
+  COMMITTED_LOCAL --> READY: checkpoint complete
+  READY --> FENCED: authority fence / duplicate instance
+  READY --> QUARANTINED: corruption detected
+  FENCED --> OFFLINE: terminate old instance
+  QUARANTINED --> RECOVERING: independent repair plan
+  QUARANTINED --> OFFLINE: reset/terminate

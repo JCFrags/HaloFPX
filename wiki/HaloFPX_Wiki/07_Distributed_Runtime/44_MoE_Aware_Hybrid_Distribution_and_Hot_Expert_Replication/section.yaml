@@ -1,0 +1,31 @@
+section_id: "44"
+title: "MoE-Aware Hybrid Distribution and Hot-Expert Replication"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 10
+open_question_count: 9
+required_machine_experiments:
+  - "E44-01 exact model tensor and per-rank memory inventory"
+  - "E44-02 representative per-layer expert routing trace"
+  - "E44-03 dual-link fabric curves at observed MoE message shapes"
+  - "E44-04 local expert kernel and packing baseline"
+  - "E44-05 matched end-to-end topology comparison"
+  - "E44-06 reconfiguration and fault-safety validation"
+related_sections: ["34", "38", "42", "43", "45", "47", "52", "53", "73", "76", "78", "80"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "vllm-project/vllm@9354f222042986addf20709e5274fc26e0d09745 (reference design only)"
+    - "NVIDIA/Megatron-LM@740c16e6b80a753bea26232148d9bb2d7f0c827a (reference design only)"
+    - "deepseek-ai/DeepEP@dd758caf451848bd150e1046af3d0a73e5fff38d (CUDA/NCCL reference only)"
+  software_versions: []
+  hardware_revisions:
+    - "dual AMD Strix Halo; exact BOM unresolved"
+    - "two tuned USB4 host-to-host links; performance unresolved"
+research_split:
+  internet_source_code: "complete for the pinned sources listed in sources.md"
+  target_machine_measurements: "required; E44-01 through E44-06 have not run"
+  contingent_decisions: "base topology, replica budget, cadence, and degraded mode remain open"

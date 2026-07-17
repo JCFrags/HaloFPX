@@ -1,0 +1,32 @@
+{
+  "schema": "llm-wiki-hf-artifact-manifest-v1",
+  "as_of": "2026-07-17",
+  "candidate_id": "glm-4.7",
+  "model": "GLM-4.7",
+  "selected_quant": "Q4_K_M",
+  "publisher_display_size_gb_decimal": 218.52,
+  "conservative_weight_plan_gib": 205,
+  "huggingface": {
+    "upstream_repo": "zai-org/GLM-4.7",
+    "quant_repo": "bartowski/zai-org_GLM-4.7-GGUF",
+    "revision": "75abf8a",
+    "path": "zai-org_GLM-4.7-Q4_K_M",
+    "shard_count": 6,
+    "displayed_shard_gb": [
+      39.9,
+      39.6,
+      39.6,
+      39.7,
+      39.6,
+      20.1
+    ],
+    "known_lfs": []
+  },
+  "source_urls": [
+    "https://huggingface.co/zai-org/GLM-4.7",
+    "https://huggingface.co/bartowski/zai-org_GLM-4.7-GGUF/tree/75abf8a/zai-org_GLM-4.7-Q4_K_M",
+    "https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/glm4-moe.cpp"
+  ],
+  "integrity_status": "authoritative-revision/path-manifest; run refresh_hf_manifests.py for exact LFS OIDs",
+  "notes": "No model weight bytes are redistributed in this package. Display sizes are publisher UI values; exact downloaded files must be verified locally."
+}

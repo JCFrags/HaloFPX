@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "loopback": {
+    "bind_host": "127.0.0.1",
+    "port": "allocate dynamically",
+    "network_policy": "isolated namespace or host firewall",
+    "public_binding_forbidden": true
+  },
+  "failure_cases": [
+    "connection refused",
+    "server exits during transfer",
+    "server exits during operation",
+    "client/server capability mismatch",
+    "unsupported tensor type",
+    "unsupported operation",
+    "port already in use"
+  ],
+  "rdma": {
+    "enabled": false,
+    "enable_only_on": "dedicated self-hosted lane with verified hardware and isolation"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "page_size_tokens": "read from tested configuration",
+  "sequence": [
+    "write deterministic byte pattern to early pages",
+    "touch pages in declared order",
+    "force hot budget pressure",
+    "force warm budget pressure",
+    "reload cold page",
+    "verify exact bytes and internal accounting",
+    "restart and reload when persistence is supported"
+  ]
+}

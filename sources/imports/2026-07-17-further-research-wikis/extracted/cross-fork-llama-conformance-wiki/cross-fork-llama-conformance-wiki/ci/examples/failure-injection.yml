@@ -1,0 +1,44 @@
+name: failure-injection-example
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_repository:
+        required: true
+        type: string
+      source_ref:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  sanitizer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: suite
+      - uses: actions/checkout@v6
+        with:
+          repository: "${{ inputs.source_repository }}"
+          ref: "${{ inputs.source_ref }}"
+          path: source
+          submodules: recursive
+      - name: Build sanitizer lane
+        run: ./suite/ci/run-lane.sh linux-asan-ubsan build source build evidence
+      - name: Run bounded corruption cases
+        env:
+          CONFORMANCE_FAILURE_INJECTION: "1"
+          CONFORMANCE_TEMP_ROOT: "${{ runner.temp }}/llama-conformance"
+        run: ./suite/ci/run-lane.sh linux-asan-ubsan test source build evidence
+      - name: Package evidence
+        if: always()
+        run: tar -cf failure-evidence.tar evidence
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          path: failure-evidence.tar
+          archive: false

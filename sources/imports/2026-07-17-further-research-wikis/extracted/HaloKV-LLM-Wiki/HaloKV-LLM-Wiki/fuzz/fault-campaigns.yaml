@@ -1,0 +1,42 @@
+version: 1
+campaigns:
+  - id: parser-protobuf
+    target: every control/data protobuf entry point
+    engines: [libfuzzer, libprotobuf-mutator, aflplusplus]
+    mutations: [truncation, duplicate_fields, unknown_enums, huge_counts, invalid_lengths, integer_boundaries]
+    oracle: bounded_parse_and_validate_without_crash_hang_or_unbounded_allocation
+
+  - id: stateful-commit-cancel
+    target: coordinator operation state machine
+    schedule_bias: [second_prepare_vs_cancel, commit_cas_vs_timeout, duplicate_prepare, delayed_old_epoch]
+    oracle: [no_partial_commit, one_terminal_outcome, stale_rejected]
+
+  - id: crash-local-publication
+    target: page_and_manifest_store
+    crash_points: [create_temp, partial_write, file_fsync, verify, rename, directory_fsync, manifest_fsync, prepared_send]
+    oracle: prior_or_new_immutable_object_only_no_torn_visible_object
+
+  - id: crash-global-commit
+    target: coordinator_and_authority_client
+    crash_points: [global_manifest_put, cas_before_send, cas_server_commit, cas_response_lost, commit_notice]
+    oracle: authority_query_yields_single_terminal_state
+
+  - id: network-reconnect
+    target: control_and_data_streams
+    faults: [drop, duplicate, reorder, delay, reset, half_open, asymmetric_partition]
+    oracle: [epoch_fence, bounded_retry, authoritative_reconciliation, control_plane_progress]
+
+  - id: silent-corruption
+    target: frames_pages_manifests_certificates
+    faults: [bit_flip, burst_flip, truncation, stale_version, rank_swap, wrong_but_valid_page]
+    oracle: reject_before_materialization_and_quarantine
+
+  - id: resource-abuse
+    target: admission_and_backpressure
+    faults: [compression_bomb, manifest_bomb, reconnect_storm, retry_storm, slow_reader, disk_full]
+    oracle: bounded_resources_reserved_control_capacity_and_fair_quota
+
+  - id: single-node-decision
+    target: recovery_controller
+    generate_predicates: [full_weights, model_fits, supported_topology, full_cache, replay_capsule, determinism_contract]
+    oracle: permit_only_when_all_required_predicates_are_true

@@ -1,0 +1,11 @@
+STRIDE class,Threat,Attacker capability,Impact,Controls,Residual risk
+Spoofing,Spoofed rank/coordinator identity,Network or stolen credential,Mutate or read another rank/session,mTLS workload identity; server-derived role/rank; least privilege,Credential compromise until revoke/fence
+Tampering,Page/manifest/certificate substitution,Peer or storage control,Silent output corruption,Content digests; structural validation; authority authenticator; topology/rank binding,Wrong-but-self-consistent producer; authority compromise
+Repudiation,Coordinator denies commit/cancel,Authorized service,Unresolvable terminal state,Authority revision and append/audit records; op_id/request digest,Audit store compromise
+Information disclosure,Cross-tenant cache probing,Tenant access,Prompt/KV leakage,Tenant HMAC keys; namespace authz; no cross-tenant dedupe by default; coarse errors,Timing/capacity side channels
+Denial of service,Huge RPC/compression/manifest/retry storm,Network/authenticated peer,CPU/memory/disk exhaustion,Hard parser limits; quotas; credits; rate limiting; reserved control capacity,Distributed authorized load
+Elevation of privilege,Peer asserts future epoch or rank,Authenticated stale/compromised worker,Become active writer,Authority proof; persisted epoch; instance fencing; authz binding,Authority/key compromise
+Replay,Old commit/prepare/cancel replay,Network or stale worker,Rollback or state confusion,Generation/epoch/seq/op_id; anti-rollback revision; terminal records,Authority backup rollback
+Locator injection,Path traversal/SSRF via object URI,Authenticated peer,Read/write arbitrary resource,Opaque server-minted capability; no client paths/URLs; allowlist,Resolver implementation bugs
+Integrity bypass,Digest valid but wrong tensor,Buggy/malicious producer,Wrong model outputs,Semantic canary/replay/differential checks; provenance quarantine,Probabilistic detection
+Confidentiality,Disk/network observer steals KV,Infrastructure observer,Tenant/model data theft,TLS/mTLS; at-rest encryption; key separation; least privilege,Execution process must see plaintext

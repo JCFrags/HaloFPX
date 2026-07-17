@@ -1,0 +1,10 @@
+id,field,value,unit,evidence_label,source,qualification
+strix-codename,Former codename,Strix Halo,,SOURCED FACT,https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html,AMD Ryzen AI Max+ 395 product page
+strix-usb4,Native USB4 ports,2,ports,SOURCED FACT,https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html,Each listed at 40 Gb/s; OEM exposure and topology must be checked
+strix-memory,Maximum memory,128,GB,SOURCED FACT,https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html,System maximum; model-usable memory is lower and implementation dependent
+strix-memory-bus,Memory interface,256-bit LPDDR5x,,SOURCED FACT,https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html,Maximum listed speed LPDDR5x-8000
+usb4-net-linux,Host-to-host virtual interface,one per Thunderbolt port,,SOURCED FACT,https://docs.kernel.org/admin-guide/thunderbolt.html,Kernel documentation for thunderbolt-net/USB4NET path
+usb4-stream-linux,Direct host-to-host streaming,thunderbolt-stream,,SOURCED FACT,https://docs.kernel.org/admin-guide/thunderbolt.html,Linux USB4STREAM path; runtime integration must be implemented or verified
+usb4-net-windows,USB4 interdomain networking,USB4NET adapter,,SOURCED FACT,https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/usb4-interdomain-connections,Windows creates a network adapter between two PCs
+usb4-line-rate,Nominal rate per listed Strix Halo port,40,Gb/s,SOURCED FACT,https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html,Not effective payload bandwidth
+usb4-dual-ceiling,Arithmetic dual-port nominal ceiling,80,Gb/s,CALCULATED,Derived from two sourced 40 Gb/s ports,Not a bonding or throughput claim

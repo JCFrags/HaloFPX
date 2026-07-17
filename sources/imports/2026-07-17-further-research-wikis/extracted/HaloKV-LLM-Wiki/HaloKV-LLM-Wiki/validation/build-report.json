@@ -1,0 +1,141 @@
+{
+  "schema": "halokv-validation-report-v1",
+  "artifact": "HaloKV-LLM-Wiki",
+  "research_date": "2026-07-17",
+  "generated_at_utc": "2026-07-17T19:02:59Z",
+  "status": "PASS_WITH_SCOPE_LIMITS",
+  "scope_note": "The TLC result is exhaustive only for the configured finite abstraction: two logical ranks, epochs bounded by MaxEpoch=2, and abstracted storage, cryptography, byte ranges, quotas, GPU tensors, and transports. It is not a production correctness or security certification.",
+  "checks": [
+    {
+      "name": "wiki_lint",
+      "status": "PASS",
+      "command": "python3 scripts/lint-wiki.py",
+      "markdown_files": 45,
+      "json_files": 15,
+      "csv_files": 5,
+      "coverage": [
+        "required files",
+        "wiki frontmatter",
+        "wiki links",
+        "JSON syntax",
+        "selected Draft 2020-12 schema examples",
+        "CSV shape and required columns",
+        "explicit single-node verdict fields",
+        "Protocol Buffer delimiter sanity",
+        "TLA+ declaration sanity"
+      ]
+    },
+    {
+      "name": "json_schema_examples",
+      "status": "PASS",
+      "tool": "jsonschema 4.26.0",
+      "draft": "2020-12",
+      "validated_examples": 4
+    },
+    {
+      "name": "protobuf_compile",
+      "status": "PASS",
+      "tool": "libprotoc 35.0 via grpcio-tools 1.82.1",
+      "descriptor_bytes": 10358,
+      "command": "python3 -m grpc_tools.protoc --proto_path=protocol --descriptor_set_out=<temp>/halokv.pb --include_imports protocol/halokv.proto"
+    },
+    {
+      "name": "reference_model_tests",
+      "status": "PASS",
+      "tool": "Python 3.13.5 unittest",
+      "tests": 4
+    },
+    {
+      "name": "stateful_trace_corpus",
+      "status": "PASS",
+      "traces": 4,
+      "events_by_trace": {
+        "cancel-wins.json": 8,
+        "corruption-after-commit.json": 8,
+        "normal-commit.json": 7,
+        "stale-prepare-after-epoch-bump.json": 9
+      }
+    },
+    {
+      "name": "fault_campaign_yaml",
+      "status": "PASS",
+      "tool": "PyYAML 6.0.3 safe_load",
+      "campaigns": 8
+    },
+    {
+      "name": "sany",
+      "status": "PASS",
+      "tool": "SANY2 from TLC build 2026.03.02.213938 revision 54e73ad",
+      "module": "formal/tla/HaloKV.tla"
+    },
+    {
+      "name": "tlc",
+      "status": "PASS",
+      "tool": "TLC2 build 2026.03.02.213938 revision 54e73ad",
+      "workers": 8,
+      "search": "breadth-first explicit-state exhaustive search",
+      "generated_states": 2800241,
+      "distinct_states": 242384,
+      "queue_remaining": 0,
+      "complete_graph_depth": 34,
+      "invariants": [
+        "TypeOK",
+        "CommitHasAllRanks",
+        "CommitNotCancelled",
+        "PreparedRanksAreCurrent",
+        "EpochFence",
+        "AcceptedReadIsValid"
+      ],
+      "result": "No error has been found"
+    },
+    {
+      "name": "p_model_compile",
+      "status": "NOT_RUN",
+      "reason": "formal/p/HaloKV.p is explicitly an implementation-near research starter requiring adaptation and extension before compilation; no P verification claim is made."
+    }
+  ],
+  "model_configuration": {
+    "ranks": [
+      "r0",
+      "r1"
+    ],
+    "max_epoch": 2,
+    "init": "Init",
+    "next": "Next",
+    "config": "formal/tla/HaloKV.cfg"
+  },
+  "inputs": {
+    "formal/tla/HaloKV.tla": {
+      "sha256": "f74f1a35bb193425067410818fd37aee0ca2e8f523b188d708be8f7330d5e995"
+    },
+    "formal/tla/HaloKV.cfg": {
+      "sha256": "bf36a6e7eef2e1e56343d9095bbf351f15b8d3b6857c6baa86fe26779ee25747"
+    },
+    "protocol/halokv.proto": {
+      "sha256": "18dd4762d206c55ea67791749fcaba343f57c8a59ea0fee3039c5d8ac4a495b2"
+    },
+    "scripts/deep-validate.py": {
+      "sha256": "8baba03c65ce8a6fff06b7b8118a495c0eed79848caf134649ffd012a08d76b6"
+    },
+    "scripts/lint-wiki.py": {
+      "sha256": "30ebf336a0ec95d528461bfb7d6f5bb55535e66c1ca1ee2f13ed2981f8b10440"
+    }
+  },
+  "tooling": {
+    "python": "3.13.5",
+    "java": "OpenJDK 21.0.10",
+    "jsonschema": "4.26.0",
+    "pyyaml": "6.0.3",
+    "grpcio_tools": "1.82.1",
+    "protobuf_runtime": "6.33.6",
+    "protoc": "libprotoc 35.0",
+    "tla2tools_build": "2026.03.02.213938",
+    "tla2tools_revision": "54e73ad",
+    "tla2tools_jar_sha256": "94bf268ba716c0e7fa774020247abb07da9220849db38c2c6837436d75c4fa16"
+  },
+  "evidence_files": [
+    "validation/deep-validation-output.txt",
+    "validation/sany-output.txt",
+    "validation/tlc-output.txt"
+  ]
+}

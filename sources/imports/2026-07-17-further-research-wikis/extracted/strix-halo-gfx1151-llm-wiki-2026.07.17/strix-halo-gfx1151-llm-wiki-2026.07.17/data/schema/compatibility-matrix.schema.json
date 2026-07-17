@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Strix Halo compatibility matrix",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id",
+      "classification",
+      "evidence_level",
+      "status",
+      "scope",
+      "kernel",
+      "rocm",
+      "llama_cpp",
+      "sources",
+      "last_verified"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Z0-9-]+$"
+      },
+      "classification": {
+        "type": "string"
+      },
+      "evidence_level": {
+        "type": "string"
+      },
+      "confidence": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "scope": {
+        "type": "string"
+      },
+      "os": {
+        "type": "string"
+      },
+      "kernel": {
+        "type": "string"
+      },
+      "amdgpu_firmware": {
+        "type": "string"
+      },
+      "rocm": {
+        "type": "string"
+      },
+      "hip": {
+        "type": "string"
+      },
+      "llvm_clang": {
+        "type": "string"
+      },
+      "mesa_vulkan": {
+        "type": "string"
+      },
+      "cmake": {
+        "type": "string"
+      },
+      "llama_cpp": {
+        "type": "string"
+      },
+      "rocmfpx": {
+        "type": "string"
+      },
+      "usb4_networking": {
+        "type": "string"
+      },
+      "exact_flags": {
+        "type": "string"
+      },
+      "required_env": {
+        "type": "string"
+      },
+      "known_issues": {
+        "type": "string"
+      },
+      "sources": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
+      },
+      "last_verified": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "additionalProperties": false
+  }
+}

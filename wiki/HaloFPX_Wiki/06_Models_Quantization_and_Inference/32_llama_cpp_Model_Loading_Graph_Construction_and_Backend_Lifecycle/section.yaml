@@ -1,0 +1,16 @@
+section_id: "32"
+title: "llama.cpp Model Loading, Graph Construction, and Backend Lifecycle"
+category: "06_Models_Quantization_and_Inference"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 8
+required_machine_experiments:
+  - "tensor placement, scheduler split/copy, and graph-signature tracing"
+  - "state round-trip, mismatch, corruption, cancellation, and rank-loss tests"
+  - "persistent-graph latency comparison"
+related_sections: ["33", "39", "41", "57", "58", "61", "68"]
+applicability:
+  repositories: ["ggml-org/llama.cpp", "charlie12345/ROCmFPX"]
+  software_versions: ["788e07dc91d266ad3162a1ce9037665656269689", "a5605a72768c6562241b248e268e33dc92787394"]
+  hardware_revisions: ["exact Strix Halo revisions pending"]

@@ -1,0 +1,24 @@
+{
+  "protocol_major": 1,
+  "protocol_minor": 0,
+  "tenant_namespace": "tenant-demo",
+  "session_id": "00112233445566778899aabbccddeeff",
+  "session_generation": 7,
+  "epoch": 42,
+  "checkpoint_seq": 19,
+  "op_id": "11112222333344445555666677778888",
+  "request_digest": "7777777777777777777777777777777777777777777777777777777777777777",
+  "topology_fingerprint": "1111111111111111111111111111111111111111111111111111111111111111",
+  "sender_instance_id": "9999aaaabbbbccccddddeeeeffff0000",
+  "sender_role": "RANK",
+  "sender_rank": 1,
+  "message_kind": "HELLO",
+  "deadline_budget_ms": 10000,
+  "body": {
+    "highest_persisted_epoch": 42,
+    "last_commit_certificate_id": "8888888888888888888888888888888888888888888888888888888888888888",
+    "inventory_merkle_root": "9999999999999999999999999999999999999999999999999999999999999999",
+    "object_count": 12004,
+    "bloom_filter_bytes": 65536
+  }
+}

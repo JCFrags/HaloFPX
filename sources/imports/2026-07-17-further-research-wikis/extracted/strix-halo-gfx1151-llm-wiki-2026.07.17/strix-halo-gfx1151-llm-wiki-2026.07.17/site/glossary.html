@@ -1,0 +1,162 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Glossary · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="glossary.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html">Community validation</a>
+          
+            <a href="regressions.html">Known regressions</a>
+          
+            <a href="unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html">Exact build flags</a>
+          
+            <a href="environment-variables.html">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html">ROCmFPX</a>
+          
+            <a href="usb4-networking.html">USB4 networking</a>
+          
+            <a href="glossary.html" class="active" aria-current="page">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Reference</div>
+      <article class="article"><h1 id="glossary">Glossary<a aria-label="Link to section" class="heading-anchor" href="#glossary">#</a></h1>
+<p><strong>gfx1151</strong> — LLVM/ROCm target identifier used by Strix Halo’s RDNA 3.5 GPU.</p>
+<p><strong>amdgpu</strong> — Linux kernel DRM/compute driver for AMD GPUs.</p>
+<p><strong>MES</strong> — Micro Engine Scheduler firmware and queue-management path implicated in several historical hangs.</p>
+<p><strong>CWSR</strong> — Compute Wave Save/Restore; a legacy ROCm 7.1 issue used <code>amdgpu.cwsr_enable=0</code> as containment.</p>
+<p><strong>ROCm</strong> — AMD’s open GPU compute software platform.</p>
+<p><strong>HIP</strong> — ROCm’s C++ runtime and programming model; current llama.cpp requires HIP 6.1 or newer.</p>
+<p><strong>ROCr</strong> — ROCm runtime layer implementing HSA services.</p>
+<p><strong>RADV</strong> — Mesa’s open-source AMD Vulkan driver.</p>
+<p><strong>AMDVLK</strong> — AMD’s open-source Vulkan driver distinct from Mesa RADV.</p>
+<p><strong>ICD</strong> — Installable Client Driver manifest used by the Vulkan loader.</p>
+<p><strong>VMM</strong> — Virtual memory management API. Current upstream llama.cpp defaults <code>GGML_HIP_NO_VMM=ON</code>.</p>
+<p><strong>TTM/GTT</strong> — Linux GPU memory-management limits used to expose a controlled portion of unified system memory.</p>
+<p><strong>rocWMMA</strong> — ROCm wave matrix multiplication library; llama.cpp’s rocWMMA FlashAttention option is left OFF in the gfx1151 baseline.</p>
+<p><strong>ROCmFPX</strong> — Experimental community GGUF quantization and kernel family in the pinned fork.</p>
+<p><strong>ThunderboltIP</strong> — IP networking protocol over Thunderbolt/USB4, implemented by Linux <code>thunderbolt_net</code>.</p>
+<p><strong>RXE</strong> — Software RoCE implementation over a normal IP-capable network interface.</p>
+<p><strong>DKMS</strong> — Framework that rebuilds an out-of-tree kernel module for each installed kernel.</p>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

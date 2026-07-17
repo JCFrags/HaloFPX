@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "event_id": "evt-synthetic-0001",
+  "source_id": "WATCH-LLAMA-RELEASES",
+  "source_type": "synthetic",
+  "immutable_id": "synthetic-1",
+  "title": "Synthetic upstream event for parser checking",
+  "url": "https://example.invalid/synthetic",
+  "published_at": "2026-07-17T00:00:00Z",
+  "discovered_at": "2026-07-17T00:00:01Z",
+  "content_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "severity": "P3",
+  "affected_layers": [
+    "synthetic"
+  ],
+  "keywords": [
+    "synthetic"
+  ],
+  "status": "not_applicable",
+  "owner": null,
+  "decision": "Parser fixture only",
+  "canaries": [],
+  "evidence_paths": []
+}

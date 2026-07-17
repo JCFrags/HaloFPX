@@ -1,0 +1,12 @@
+section_id: "63"
+title: "Durability Modes, Atomic Commit, Crash Recovery, and Corruption Handling"
+category_id: "09"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 7
+open_question_count: 9
+required_machine_experiments: ["P63-00 TLA+/TLC model-checking gate (not yet executed)", "M63-01 crash-point matrix", "M63-02 corruption matrix", "M63-03 filesystem/device matrix"]
+related_sections: ["21", "56", "57", "58", "59", "61", "65", "77", "80"]
+applicability:
+  repositories: ["fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940", "charlie12345/rocmfp4-llama@4860505ee322091f0f61eba77d6ad49be88cf4ea"]
+  hardware: ["dual Strix Halo"]

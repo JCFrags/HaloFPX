@@ -1,0 +1,17 @@
+section_id: "68"
+title: "Model Lifecycle, Session Lifecycle, Admission Control, and Routing"
+category_id: "10"
+category_title: "Product, Server, and Operations"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 5
+open_question_count: 12
+required_machine_experiments:
+  - "Repeated model discover/load/warmup/drain/unload/replacement campaign"
+  - "Per-backend model, KV, workspace, transport, and headroom accounting"
+  - "Mixed-user queue, fairness, cap, cancellation, and expiry tests"
+  - "Continuation, cache-locality, rank/link/coordinator fault and fallback tests"
+related_sections: ["07", "09", "38", "39", "40", "45", "46", "47", "48", "60", "61", "66", "67", "69", "72"]
+applicability:
+  repositories: ["ggml-org/llama.cpp@788e07d", "fewtarius/CachyLLama@6be7459", "charlie12345/ROCmFPX@a5605a7", "fewtarius/llama-ai@1017f3d"]
+  hardware: ["two-node Strix Halo target"]

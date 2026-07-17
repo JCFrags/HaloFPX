@@ -1,0 +1,20 @@
+capture_id: "2026-07-17-strix-halo-live-inventory"
+captured_at: "2026-07-17T11:52:00-07:00"
+hosts: ["nimo-1", "nimo-2"]
+mode: "read-only inventory with bounded ICMP diagnostics"
+files:
+  - path: "README.md"
+    sha256: "157366653af9cc383617efcf92b55f34bd36656f2d38c39e3974fe14b9bc7a1a"
+  - path: "commands.md"
+    sha256: "8370161d49af829bb1984e0c7dd3f1e86099f93d95a22eeffc9ecebcc1088b6a"
+  - path: "comparison.md"
+    sha256: "06ba2e52995f9b895280dbfba74acc8c1cb13ad824a86d2c419e30e835464068"
+  - path: "nimo-1.md"
+    sha256: "611cfd8898588cde80398aeccac039cddc34b99f8ab07b5f6eeb6539e1ac36ab"
+  - path: "nimo-2.md"
+    sha256: "0a616fd72f5735474d581c25aeb931036c4a39083e48d77377ead963c3cbe2ee"
+  - path: "rpc-cache-audit.md"
+    sha256: "a505bec8f38525829841f205698f8f30bdce6ab4cdeb25886d3849173cf289f0"
+limitations:
+  - "Normalized and redacted project capture; full device serials intentionally omitted."
+  - "No workload benchmark, destructive test, service restart, or large-artifact hash was performed."

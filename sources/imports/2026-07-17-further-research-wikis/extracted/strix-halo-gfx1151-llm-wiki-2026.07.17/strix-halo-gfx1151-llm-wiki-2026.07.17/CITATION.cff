@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "Cite the dated snapshot and the primary sources for any material compatibility claim."
+title: "Strix Halo / gfx1151 Build and Software Compatibility Wiki"
+type: dataset
+version: "2026.07.17"
+date-released: 2026-07-17
+license: CC-BY-4.0
+authors:
+  - family-names: OpenAI
+    given-names: Research Assistant
+abstract: >-
+  A versioned evidence matrix and reproducible recipe collection for Linux,
+  amdgpu firmware, ROCm, HIP, LLVM, Mesa/Vulkan, CMake, llama.cpp, ROCmFPX,
+  and USB4 networking on AMD Strix Halo gfx1151.
+keywords:
+  - Strix Halo
+  - gfx1151
+  - ROCm
+  - llama.cpp
+  - Vulkan
+  - USB4

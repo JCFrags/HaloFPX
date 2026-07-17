@@ -1,0 +1,278 @@
+{
+  "metadata": {
+    "evidence": "CALCULATED",
+    "warning": "Nominal line-rate floors exclude all overhead and latency. rho=0.5 is an illustrative scenario assumption."
+  },
+  "models": {
+    "llama31-8b": {
+      "model": {
+        "key": "llama31-8b",
+        "name": "Llama 3.1 8B",
+        "parameter_count": 8000000000.0,
+        "active_parameter_count": 8000000000.0,
+        "layers": 32,
+        "hidden_size": 4096,
+        "attention_heads": 32,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "vocab_size": 128256,
+        "context_limit": 131072,
+        "moe_experts": 0,
+        "experts_per_token": 0,
+        "moe_layers": 0,
+        "source": "https://github.com/meta-llama/llama-models/blob/main/models/sku_list.py"
+      },
+      "workload": {
+        "prefill_tokens": 4096,
+        "decode_sequences": 1,
+        "activation_bytes": 2.0,
+        "kv_bytes": 2.0,
+        "token_id_bytes": 4,
+        "probability_bytes": 2.0
+      },
+      "calculated": {
+        "boundary_bytes_per_token": 8192.0,
+        "kv_bytes_per_token": 131072.0,
+        "prefill_tensor_parallel": {
+          "message_bytes_per_collective": 33554432.0,
+          "collectives": 64,
+          "per_rank_sent_bytes": 2147483648.0,
+          "per_rank_received_bytes": 2147483648.0,
+          "aggregate_bidirectional_cut_bytes": 4294967296.0,
+          "transport_phases": null,
+          "communication_time_s": null
+        },
+        "decode_tensor_parallel": {
+          "message_bytes_per_collective": 8192.0,
+          "collectives": 64,
+          "per_rank_sent_bytes": 524288.0,
+          "per_rank_received_bytes": 524288.0,
+          "aggregate_bidirectional_cut_bytes": 1048576.0,
+          "transport_phases": null,
+          "communication_time_s": null
+        },
+        "prefill_contiguous_split": {
+          "activation_bytes_A_to_B": 33554432.0,
+          "token_feedback_bytes_B_to_A": 0,
+          "activation_messages": 1,
+          "feedback_messages": 0,
+          "communication_time_s": null
+        },
+        "decode_contiguous_split": {
+          "activation_bytes_A_to_B": 8192.0,
+          "token_feedback_bytes_B_to_A": 4,
+          "activation_messages": 1,
+          "feedback_messages": 1,
+          "communication_time_s": null
+        },
+        "ideal_q4_weight_lower_bound_bytes": 4000000000.0
+      }
+    },
+    "llama31-405b": {
+      "model": {
+        "key": "llama31-405b",
+        "name": "Llama 3.1 405B",
+        "parameter_count": 405000000000.0,
+        "active_parameter_count": 405000000000.0,
+        "layers": 126,
+        "hidden_size": 16384,
+        "attention_heads": 128,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "vocab_size": 128256,
+        "context_limit": 131072,
+        "moe_experts": 0,
+        "experts_per_token": 0,
+        "moe_layers": 0,
+        "source": "https://github.com/meta-llama/llama-models/blob/main/models/sku_list.py"
+      },
+      "workload": {
+        "prefill_tokens": 4096,
+        "decode_sequences": 1,
+        "activation_bytes": 2.0,
+        "kv_bytes": 2.0,
+        "token_id_bytes": 4,
+        "probability_bytes": 2.0
+      },
+      "calculated": {
+        "boundary_bytes_per_token": 32768.0,
+        "kv_bytes_per_token": 516096.0,
+        "prefill_tensor_parallel": {
+          "message_bytes_per_collective": 134217728.0,
+          "collectives": 252,
+          "per_rank_sent_bytes": 33822867456.0,
+          "per_rank_received_bytes": 33822867456.0,
+          "aggregate_bidirectional_cut_bytes": 67645734912.0,
+          "transport_phases": null,
+          "communication_time_s": null
+        },
+        "decode_tensor_parallel": {
+          "message_bytes_per_collective": 32768.0,
+          "collectives": 252,
+          "per_rank_sent_bytes": 8257536.0,
+          "per_rank_received_bytes": 8257536.0,
+          "aggregate_bidirectional_cut_bytes": 16515072.0,
+          "transport_phases": null,
+          "communication_time_s": null
+        },
+        "prefill_contiguous_split": {
+          "activation_bytes_A_to_B": 134217728.0,
+          "token_feedback_bytes_B_to_A": 0,
+          "activation_messages": 1,
+          "feedback_messages": 0,
+          "communication_time_s": null
+        },
+        "decode_contiguous_split": {
+          "activation_bytes_A_to_B": 32768.0,
+          "token_feedback_bytes_B_to_A": 4,
+          "activation_messages": 1,
+          "feedback_messages": 1,
+          "communication_time_s": null
+        },
+        "ideal_q4_weight_lower_bound_bytes": 202500000000.0
+      }
+    },
+    "mixtral-8x7b": {
+      "model": {
+        "key": "mixtral-8x7b",
+        "name": "Mixtral 8x7B",
+        "parameter_count": 46700000000.0,
+        "active_parameter_count": 12900000000.0,
+        "layers": 32,
+        "hidden_size": 4096,
+        "attention_heads": 32,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "vocab_size": 32000,
+        "context_limit": 32768,
+        "moe_experts": 8,
+        "experts_per_token": 2,
+        "moe_layers": 32,
+        "source": "https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1/blob/main/config.json"
+      },
+      "workload": {
+        "prefill_tokens": 4096,
+        "decode_sequences": 1,
+        "activation_bytes": 2.0,
+        "kv_bytes": 2.0,
+        "token_id_bytes": 4,
+        "probability_bytes": 2.0
+      },
+      "calculated": {
+        "boundary_bytes_per_token": 8192.0,
+        "kv_bytes_per_token": 131072.0,
+        "prefill_tensor_parallel": {
+          "message_bytes_per_collective": 33554432.0,
+          "collectives": 64,
+          "per_rank_sent_bytes": 2147483648.0,
+          "per_rank_received_bytes": 2147483648.0,
+          "aggregate_bidirectional_cut_bytes": 4294967296.0,
+          "transport_phases": null,
+          "communication_time_s": null
+        },
+        "decode_tensor_parallel": {
+          "message_bytes_per_collective": 8192.0,
+          "collectives": 64,
+          "per_rank_sent_bytes": 524288.0,
+          "per_rank_received_bytes": 524288.0,
+          "aggregate_bidirectional_cut_bytes": 1048576.0,
+          "transport_phases": null,
+          "communication_time_s": null
+        },
+        "prefill_contiguous_split": {
+          "activation_bytes_A_to_B": 33554432.0,
+          "token_feedback_bytes_B_to_A": 0,
+          "activation_messages": 1,
+          "feedback_messages": 0,
+          "communication_time_s": null
+        },
+        "decode_contiguous_split": {
+          "activation_bytes_A_to_B": 8192.0,
+          "token_feedback_bytes_B_to_A": 4,
+          "activation_messages": 1,
+          "feedback_messages": 1,
+          "communication_time_s": null
+        },
+        "moe_expert_service_rho_0_5_scenario": {
+          "remote_assignments_per_layer": 4096.0,
+          "bytes_per_moe_layer": 67174400.0,
+          "total_cross_cut_bytes": 2149580800.0,
+          "communication_phases": 64,
+          "communication_time_s": null
+        },
+        "ideal_q4_weight_lower_bound_bytes": 23350000000.0
+      }
+    },
+    "qwen3-30b-a3b": {
+      "model": {
+        "key": "qwen3-30b-a3b",
+        "name": "Qwen3-30B-A3B-Instruct-2507",
+        "parameter_count": 30000000000.0,
+        "active_parameter_count": 3000000000.0,
+        "layers": 48,
+        "hidden_size": 2048,
+        "attention_heads": 32,
+        "kv_heads": 4,
+        "head_dim": 128,
+        "vocab_size": 151936,
+        "context_limit": 262144,
+        "moe_experts": 128,
+        "experts_per_token": 8,
+        "moe_layers": 48,
+        "source": "https://huggingface.co/Qwen/Qwen3-30B-A3B-Instruct-2507/blob/main/config.json"
+      },
+      "workload": {
+        "prefill_tokens": 4096,
+        "decode_sequences": 1,
+        "activation_bytes": 2.0,
+        "kv_bytes": 2.0,
+        "token_id_bytes": 4,
+        "probability_bytes": 2.0
+      },
+      "calculated": {
+        "boundary_bytes_per_token": 4096.0,
+        "kv_bytes_per_token": 98304.0,
+        "prefill_tensor_parallel": {
+          "message_bytes_per_collective": 16777216.0,
+          "collectives": 96,
+          "per_rank_sent_bytes": 1610612736.0,
+          "per_rank_received_bytes": 1610612736.0,
+          "aggregate_bidirectional_cut_bytes": 3221225472.0,
+          "transport_phases": null,
+          "communication_time_s": null
+        },
+        "decode_tensor_parallel": {
+          "message_bytes_per_collective": 4096.0,
+          "collectives": 96,
+          "per_rank_sent_bytes": 393216.0,
+          "per_rank_received_bytes": 393216.0,
+          "aggregate_bidirectional_cut_bytes": 786432.0,
+          "transport_phases": null,
+          "communication_time_s": null
+        },
+        "prefill_contiguous_split": {
+          "activation_bytes_A_to_B": 16777216.0,
+          "token_feedback_bytes_B_to_A": 0,
+          "activation_messages": 1,
+          "feedback_messages": 0,
+          "communication_time_s": null
+        },
+        "decode_contiguous_split": {
+          "activation_bytes_A_to_B": 4096.0,
+          "token_feedback_bytes_B_to_A": 4,
+          "activation_messages": 1,
+          "feedback_messages": 1,
+          "communication_time_s": null
+        },
+        "moe_expert_service_rho_0_5_scenario": {
+          "remote_assignments_per_layer": 16384.0,
+          "bytes_per_moe_layer": 134479872.0,
+          "total_cross_cut_bytes": 6455033856.0,
+          "communication_phases": 96,
+          "communication_time_s": null
+        },
+        "ideal_q4_weight_lower_bound_bytes": 15000000000.0
+      }
+    }
+  }
+}

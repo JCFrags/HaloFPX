@@ -1,0 +1,13 @@
+digraph G {
+
+graph [bgcolor="transparent", pad="0.25", nodesep="0.55", ranksep="0.65", fontname="Inter,Arial"];
+node [shape=box, style="rounded,filled", fillcolor="#111827", color="#475569", fontcolor="#e5e7eb", fontname="Inter,Arial", fontsize=11, margin="0.14,0.10"];
+edge [color="#22d3ee", fontcolor="#cbd5e1", fontname="Inter,Arial", fontsize=9, penwidth=1.6, arrowsize=0.8];
+
+rankdir=LR;
+a [label="Rank 0\n½ tensor shard of every layer\nKV-head shard 0\nvocab shard 0"];
+b [label="Rank 1\n½ tensor shard of every layer\nKV-head shard 1\nvocab shard 1"];
+a -> b [label="2L all-reduces / forward\nS=N·h·bₐ or Q·h·bₐ", dir=both, penwidth=2.2];
+s [shape=note,label="Sampler: distributed vocabulary protocol\nFinal RNG/token authority: rank 0",fillcolor="#1e293b"];
+a -> s [color="#a78bfa"]; b -> s [color="#a78bfa"];
+}

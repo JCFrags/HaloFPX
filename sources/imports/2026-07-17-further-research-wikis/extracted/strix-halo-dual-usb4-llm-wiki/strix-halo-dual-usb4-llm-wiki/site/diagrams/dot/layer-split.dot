@@ -1,0 +1,16 @@
+digraph G {
+
+graph [bgcolor="transparent", pad="0.25", nodesep="0.55", ranksep="0.65", fontname="Inter,Arial"];
+node [shape=box, style="rounded,filled", fillcolor="#111827", color="#475569", fontcolor="#e5e7eb", fontname="Inter,Arial", fontsize=11, margin="0.14,0.10"];
+edge [color="#22d3ee", fontcolor="#cbd5e1", fontname="Inter,Arial", fontsize=9, penwidth=1.6, arrowsize=0.8];
+
+rankdir=LR;
+in [shape=oval,label="prompt / token IDs",fillcolor="#0f172a"];
+a [label="Rank 0\nTokenizer + embeddings\nLayers [0,k)\nKV for [0,k)"];
+b [label="Rank 1\nLayers [k,L)\nFinal norm + LM head\nSampler + KV for [k,L)"];
+out [shape=oval,label="emitted token",fillcolor="#0f172a"];
+in -> a;
+a -> b [label="one hidden-state cut\nprefill N·h·bₐ\ndecode Q·h·bₐ",penwidth=2.2];
+b -> a [label="Q token IDs",color="#a78bfa",constraint=false];
+b -> out;
+}

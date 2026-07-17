@@ -1,0 +1,87 @@
+candidate_id,context_tokens,cache_type,scalars,bytes,gib,plan_gib,status
+qwen3-235b-a22b-2507,32768,f16,3154116608,6308233216,5.875,6.0,verified-from-config
+qwen3-235b-a22b-2507,32768,q8_0,3154116608,3351248896,3.12109375,3.25,verified-from-config
+qwen3-235b-a22b-2507,32768,q4_0,3154116608,1774190592,1.65234375,1.75,verified-from-config
+qwen3-235b-a22b-2507,65536,f16,6308233216,12616466432,11.75,11.75,verified-from-config
+qwen3-235b-a22b-2507,65536,q8_0,6308233216,6702497792,6.2421875,6.25,verified-from-config
+qwen3-235b-a22b-2507,65536,q4_0,6308233216,3548381184,3.3046875,3.5,verified-from-config
+qwen3-235b-a22b-2507,131072,f16,12616466432,25232932864,23.5,23.5,verified-from-config
+qwen3-235b-a22b-2507,131072,q8_0,12616466432,13404995584,12.484375,12.5,verified-from-config
+qwen3-235b-a22b-2507,131072,q4_0,12616466432,7096762368,6.609375,6.75,verified-from-config
+qwen3-235b-a22b-2507,262144,f16,25232932864,50465865728,47.0,47.0,verified-from-config
+qwen3-235b-a22b-2507,262144,q8_0,25232932864,26809991168,24.96875,25.0,verified-from-config
+qwen3-235b-a22b-2507,262144,q4_0,25232932864,14193524736,13.21875,13.25,verified-from-config
+step-3.7-flash,32768,f16,874512384,1749024768,1.62890625,1.75,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,32768,q8_0,874512384,929169408,0.8653564453125,1.0,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,32768,q4_0,874512384,491913216,0.4581298828125,0.5,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,65536,f16,1679818752,3359637504,3.12890625,3.25,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,65536,q8_0,1679818752,1784807424,1.6622314453125,1.75,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,65536,q4_0,1679818752,944898048,0.8800048828125,1.0,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,131072,f16,3290431488,6580862976,6.12890625,6.25,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,131072,q8_0,3290431488,3496083456,3.2559814453125,3.5,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,131072,q4_0,3290431488,1850867712,1.7237548828125,1.75,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,262144,f16,6511656960,13023313920,12.12890625,12.25,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,262144,q8_0,6511656960,6918635520,6.4434814453125,6.5,verified-from-config-and-current-iswa-cache-code
+step-3.7-flash,262144,q4_0,6511656960,3662807040,3.4112548828125,3.5,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,32768,f16,454164480,908328960,0.845947265625,1.0,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,32768,q8_0,454164480,482549760,0.44940948486328125,0.5,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,32768,q4_0,454164480,255467520,0.23792266845703125,0.25,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,65536,f16,831651840,1663303680,1.549072265625,1.75,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,65536,q8_0,831651840,883630080,0.8229446411132812,1.0,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,65536,q4_0,831651840,467804160,0.43567657470703125,0.5,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,131072,f16,1586626560,3173253120,2.955322265625,3.0,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,131072,q8_0,1586626560,1685790720,1.5700149536132812,1.75,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,131072,q4_0,1586626560,892477440,0.8311843872070312,1.0,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,262144,f16,3096576000,6193152000,5.767822265625,6.0,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,262144,q8_0,3096576000,3290112000,3.0641555786132812,3.25,verified-from-config-and-current-iswa-cache-code
+mimo-v2-flash,262144,q4_0,3096576000,1741824000,1.6222000122070312,1.75,verified-from-config-and-current-iswa-cache-code
+glm-4.7,32768,f16,6174015488,12348030976,11.5,11.5,verified-from-config/current-implementation
+glm-4.7,32768,q8_0,6174015488,6559891456,6.109375,6.25,verified-from-config/current-implementation
+glm-4.7,32768,q4_0,6174015488,3472883712,3.234375,3.25,verified-from-config/current-implementation
+glm-4.7,65536,f16,12348030976,24696061952,23.0,23.0,verified-from-config/current-implementation
+glm-4.7,65536,q8_0,12348030976,13119782912,12.21875,12.25,verified-from-config/current-implementation
+glm-4.7,65536,q4_0,12348030976,6945767424,6.46875,6.5,verified-from-config/current-implementation
+glm-4.7,131072,f16,24696061952,49392123904,46.0,46.0,verified-from-config/current-implementation
+glm-4.7,131072,q8_0,24696061952,26239565824,24.4375,24.5,verified-from-config/current-implementation
+glm-4.7,131072,q4_0,24696061952,13891534848,12.9375,13.0,verified-from-config/current-implementation
+glm-4.7,202752,f16,38201720832,76403441664,71.15625,71.25,verified-from-config/current-implementation
+glm-4.7,202752,q8_0,38201720832,40589328384,37.8017578125,38.0,verified-from-config/current-implementation
+glm-4.7,202752,q4_0,38201720832,21488467968,20.0126953125,20.25,verified-from-config/current-implementation
+nemotron-ultra-253b,32768,f16,8455716864,16911433728,15.75,15.75,conservative-upper-bound; actual lower because some NAS blocks skip attention
+nemotron-ultra-253b,32768,q8_0,8455716864,8984199168,8.3671875,8.5,conservative-upper-bound; actual lower because some NAS blocks skip attention
+nemotron-ultra-253b,32768,q4_0,8455716864,4756340736,4.4296875,4.5,conservative-upper-bound; actual lower because some NAS blocks skip attention
+nemotron-ultra-253b,65536,f16,16911433728,33822867456,31.5,31.5,conservative-upper-bound; actual lower because some NAS blocks skip attention
+nemotron-ultra-253b,65536,q8_0,16911433728,17968398336,16.734375,16.75,conservative-upper-bound; actual lower because some NAS blocks skip attention
+nemotron-ultra-253b,65536,q4_0,16911433728,9512681472,8.859375,9.0,conservative-upper-bound; actual lower because some NAS blocks skip attention
+nemotron-ultra-253b,131072,f16,33822867456,67645734912,63.0,63.0,conservative-upper-bound; actual lower because some NAS blocks skip attention
+nemotron-ultra-253b,131072,q8_0,33822867456,35936796672,33.46875,33.5,conservative-upper-bound; actual lower because some NAS blocks skip attention
+nemotron-ultra-253b,131072,q4_0,33822867456,19025362944,17.71875,17.75,conservative-upper-bound; actual lower because some NAS blocks skip attention
+deepseek-r1-0528,32768,f16,1151336448,2302672896,2.14453125,2.25,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,32768,q8_0,1151336448,1223294976,1.1392822265625,1.25,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,32768,q4_0,1151336448,647626752,0.6031494140625,0.75,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,65536,f16,2302672896,4605345792,4.2890625,4.5,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,65536,q8_0,2302672896,2446589952,2.278564453125,2.5,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,65536,q4_0,2302672896,1295253504,1.206298828125,1.25,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,131072,f16,4605345792,9210691584,8.578125,8.75,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,131072,q8_0,4605345792,4893179904,4.55712890625,4.75,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,131072,q4_0,4605345792,2590507008,2.41259765625,2.5,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,163840,f16,5756682240,11513364480,10.72265625,10.75,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,163840,q8_0,5756682240,6116474880,5.6964111328125,5.75,verified-from-current-MLA-absorption-implementation
+deepseek-r1-0528,163840,q4_0,5756682240,3238133760,3.0157470703125,3.25,verified-from-current-MLA-absorption-implementation
+tulu3-405b,32768,f16,8455716864,16911433728,15.75,15.75,verified-standard-GQA
+tulu3-405b,32768,q8_0,8455716864,8984199168,8.3671875,8.5,verified-standard-GQA
+tulu3-405b,32768,q4_0,8455716864,4756340736,4.4296875,4.5,verified-standard-GQA
+tulu3-405b,65536,f16,16911433728,33822867456,31.5,31.5,verified-standard-GQA
+tulu3-405b,65536,q8_0,16911433728,17968398336,16.734375,16.75,verified-standard-GQA
+tulu3-405b,65536,q4_0,16911433728,9512681472,8.859375,9.0,verified-standard-GQA
+tulu3-405b,131072,f16,33822867456,67645734912,63.0,63.0,verified-standard-GQA
+tulu3-405b,131072,q8_0,33822867456,35936796672,33.46875,33.5,verified-standard-GQA
+tulu3-405b,131072,q4_0,33822867456,19025362944,17.71875,17.75,verified-standard-GQA
+minimax-m3,32768,unverified,,,,,measurement-gate: MSA cache allocation not verified in pinned mainline
+minimax-m3,65536,unverified,,,,,measurement-gate: MSA cache allocation not verified in pinned mainline
+minimax-m3,131072,unverified,,,,,measurement-gate: MSA cache allocation not verified in pinned mainline
+minimax-m3,1048576,unverified,,,,,measurement-gate: MSA cache allocation not verified in pinned mainline
+kimi-k2-thinking,32768,unverified,,,,,not capacity-qualified in this package
+kimi-k2-thinking,65536,unverified,,,,,not capacity-qualified in this package
+kimi-k2-thinking,131072,unverified,,,,,not capacity-qualified in this package
+kimi-k2-thinking,262144,unverified,,,,,not capacity-qualified in this package

@@ -1,0 +1,32 @@
+# AGENTS.md — HaloFPX Project Template
+
+## Read before changing code
+
+1. Read `wiki/HaloFPX_Wiki/README.md`, the relevant section manifests, and linked ADRs.
+2. Treat claim labels literally:
+   - `[MEASURED]` applies only to its recorded environment.
+   - `[VERIFIED]` must have primary evidence.
+   - `[INFERENCE]`, `[ASSUMPTION]`, and `[RECOMMENDATION]` are not established facts.
+   - `[OPEN]` must not be silently resolved in code.
+3. Prefer exact repository commits, model hashes, hardware revisions, and software versions over names such as “latest.”
+4. Do not fabricate benchmark results, hardware capabilities, API behavior, or compatibility.
+5. Preserve licenses, notices, authorship, and the project’s append-only AI change log.
+
+## Required change discipline
+
+- Link substantial work to a requirement, issue, ADR, experiment, or wiki section.
+- Add or update tests before claiming correctness or performance.
+- For performance changes, retain raw data and environment metadata and compare matched configurations.
+- For format, protocol, cache, or manifest changes, document compatibility and migration.
+- For distributed changes, specify rank ownership, failure behavior, and single-node fallback.
+- For cache changes, corruption must cause a miss or recomputation, never accepted invalid state.
+- Update affected wiki pages, open questions, assumptions, and ADRs in the same workstream.
+- Keep token-critical code free of avoidable allocation, filesystem I/O, graph serialization, and logging.
+
+## Source precedence
+
+Exact source code/commit → official documentation/standard → research paper → official issue or PR → clearly labeled secondary evidence.
+
+## Local-machine evidence
+
+Store experiments under `experiments/<date>-<slug>/` with commands, environment snapshot, raw output, analysis, and conclusion. Link the experiment from the wiki rather than pasting large logs into Markdown.

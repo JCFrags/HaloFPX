@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "evaluation_type": "unsigned_gate_evaluation",
+  "evaluated_at": "2026-07-17T19:10:11.851827Z",
+  "candidate_id": "synthetic-candidate",
+  "profile": "scale_out",
+  "stage": "G4",
+  "decision": "INSUFFICIENT_EVIDENCE",
+  "authorized_outcome": null,
+  "machine_validation_claimed": false,
+  "insufficient_evidence": [
+    {
+      "gate_id": "EVIDENCE_ORIGIN",
+      "reason": "Machine evidence is required; synthetic/document evidence cannot satisfy this stage."
+    },
+    {
+      "gate_id": "EVIDENCE_LEVEL",
+      "reason": "G4 requires R1; summary provides S0."
+    }
+  ],
+  "failures": [],
+  "warnings": [],
+  "passes": [
+    {
+      "gate_id": "REQUIRED_EXPERIMENTS",
+      "reason": "All 20 required experiment IDs are complete."
+    }
+  ],
+  "note": "This unsigned evaluation does not replace required human sign-off or an immutable release decision."
+}

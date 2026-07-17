@@ -1,0 +1,18 @@
+section_id: "21"
+title: "NVMe and Storage Topology, Performance, and Endurance"
+category: "04_Hardware_and_OS_Platform"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 9
+required_machine_experiments:
+  - "Paired NVMe, PCIe, filesystem, queue, firmware, SMART, and capacity inventory"
+  - "Aligned sequential and random/metadata I/O with raw JSON"
+  - "Concurrent GPU/fabric/storage interference matrix"
+  - "Sustained writeback with thermal and SMART deltas"
+  - "Application-level process/reboot/power-loss recovery validation"
+related_sections: ["18", "19", "22", "28", "60", "65", "73", "77", "80"]
+applicability:
+  repositories: ["HaloFPX", "HaloKV"]
+  software_versions: ["Linux 7.2 documentation", "fio 3.41"]
+  hardware_revisions: ["two Nimo MME3L Strix Halo nodes with Crucial P310 VACR001 captured 2026-07-17"]

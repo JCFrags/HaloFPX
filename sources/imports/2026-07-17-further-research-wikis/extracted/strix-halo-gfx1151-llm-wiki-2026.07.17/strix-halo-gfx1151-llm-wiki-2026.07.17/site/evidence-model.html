@@ -1,0 +1,216 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Evidence model and support semantics · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="evidence-model.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html" class="active" aria-current="page">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html">Community validation</a>
+          
+            <a href="regressions.html">Known regressions</a>
+          
+            <a href="unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html">Exact build flags</a>
+          
+            <a href="environment-variables.html">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html">ROCmFPX</a>
+          
+            <a href="usb4-networking.html">USB4 networking</a>
+          
+            <a href="glossary.html">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Evidence</div>
+      <article class="article"><h1 id="evidence-model-and-support-semantics">Evidence model and support semantics<a aria-label="Link to section" class="heading-anchor" href="#evidence-model-and-support-semantics">#</a></h1>
+<h2 id="why-the-classification-is-strict">Why the classification is strict<a aria-label="Link to section" class="heading-anchor" href="#why-the-classification-is-strict">#</a></h2>
+<p>The Strix Halo stack spans independent authorities:</p>
+<ul>
+<li>AMD certifies selected ROCm hardware, operating systems, release lines, and applications.</li>
+<li>Linux, Mesa, CMake, Vulkan Loader, and llama.cpp publish upstream code and releases without jointly certifying a complete Strix Halo appliance.</li>
+<li>Community maintainers report combinations that run on real systems, but those reports vary in workload, firmware, BIOS, memory allocation, and regression coverage.</li>
+</ul>
+<p>A row is therefore classified by the <strong>narrowest defensible claim</strong>, not by the strongest label found anywhere in the stack.</p>
+<h2 id="evidence-grades">Evidence grades<a aria-label="Link to section" class="heading-anchor" href="#evidence-grades">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Grade</th>
+<th>Meaning</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>O1</code></td>
+<td>Vendor or upstream hardware/OS/application support matrix</td>
+<td>“ROCm 7.14 Core SDK supports gfx1151 on these OS/kernel pairs.”</td>
+</tr>
+<tr>
+<td><code>O2</code></td>
+<td>Official upstream release, source, or build configuration</td>
+<td>“llama.cpp b10064 exists and this option defaults OFF.”</td>
+</tr>
+<tr>
+<td><code>C1</code></td>
+<td>First-hand report with exact versions, reproducer, benchmark, or logs</td>
+<td>Regression and workload-specific claims</td>
+</tr>
+<tr>
+<td><code>C2</code></td>
+<td>Maintained community image or repeated operational recipe</td>
+<td>Known-good community baseline</td>
+</tr>
+<tr>
+<td><code>C3</code></td>
+<td>Single anecdotal report with limited reproduction detail</td>
+<td>Leads for testing, not defaults</td>
+</tr>
+<tr>
+<td><code>I1</code></td>
+<td>Explicit synthesis or inference from compatible component scopes</td>
+<td>Reproducible candidate, never relabeled official</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="classification-labels">Classification labels<a aria-label="Link to section" class="heading-anchor" href="#classification-labels">#</a></h2>
+<ul>
+<li><strong>official-supported</strong> — the target and release/OS scope are explicitly supported by the responsible vendor.</li>
+<li><strong>official-upstream-current</strong> — a current upstream release exists; target-specific validation may still be absent.</li>
+<li><strong>community-validated</strong> — a maintainer or reproducible report exercised the combination on Strix Halo.</li>
+<li><strong>experimental-community</strong> — working research or fork work with explicit stability limitations.</li>
+<li><strong>unsupported-known-bad</strong> — documented failure or an official unsupported classification.</li>
+<li><strong>reproducible-candidate</strong> — all components can be pinned coherently, but the combined profile is not published as a supported application row.</li>
+<li><strong>official-historical</strong> — formerly documented vendor path that is obsolete under the current matrix.</li>
+</ul>
+<h2 id="non-transitivity-rules">Non-transitivity rules<a aria-label="Link to section" class="heading-anchor" href="#non-transitivity-rules">#</a></h2>
+<ol>
+<li><strong>Core SDK support is not application support.</strong> ROCm 7.14’s gfx1151 row does not automatically validate PyTorch, llama.cpp, ROCmFPX, or a given container image.</li>
+<li><strong>A general ROCm release matrix is not a target-specific row.</strong> ROCm 7.2.4 is official generally; the captured RDNA 3.5 table names 7.2.1–7.2.3 specifically.</li>
+<li><strong>An upstream release is not a host certification.</strong> A llama.cpp ROCm 7.2 binary still depends on a correct host kernel, firmware, <code>/dev/kfd</code>, runtime libraries, and model path.</li>
+<li><strong>A fixed kernel does not fix bad firmware.</strong> Kernel and firmware are separate gates.</li>
+<li><strong>A community benchmark is workload-specific.</strong> Vulkan beating HIP in one MoE decode test does not establish a universal backend ranking.</li>
+<li><strong>A workaround is not support.</strong> Architecture overrides or disabled kernel features can help isolate faults but do not turn an unsupported release into a supported one.</li>
+</ol>
+<h2 id="updating-the-matrix">Updating the matrix<a aria-label="Link to section" class="heading-anchor" href="#updating-the-matrix">#</a></h2>
+<p>A status promotion requires a new source that states the relevant scope. For example, ROCm 7.2.4 moves from “general official + community-validated gfx1151” to “official gfx1151 stable” only when AMD’s target-specific RDNA 3.5 table or an equivalent application matrix names it.</p>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#why-the-classification-is-strict">Why the classification is strict</a><a class="level-2" href="#evidence-grades">Evidence grades</a><a class="level-2" href="#classification-labels">Classification labels</a><a class="level-2" href="#non-transitivity-rules">Non-transitivity rules</a><a class="level-2" href="#updating-the-matrix">Updating the matrix</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

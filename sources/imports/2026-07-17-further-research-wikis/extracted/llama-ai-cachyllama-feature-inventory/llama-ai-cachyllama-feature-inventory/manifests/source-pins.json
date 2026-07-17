@@ -1,0 +1,31 @@
+{
+  "generated": "2026-07-17",
+  "llama_ai": {
+    "repository": "fewtarius/llama-ai",
+    "commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+    "commit_url": "https://github.com/fewtarius/llama-ai/commit/1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+    "license": "GPL-3.0",
+    "role": "parent launch/build/deployment repository"
+  },
+  "cachyllama": {
+    "repository": "fewtarius/CachyLLama",
+    "commit": "6be745998f568e379ea197fcf827baec73ff9940",
+    "commit_url": "https://github.com/fewtarius/CachyLLama/commit/6be745998f568e379ea197fcf827baec73ff9940",
+    "selected_by_parent": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+    "license": "MIT",
+    "role": "pinned inference component"
+  },
+  "cachyllama_historical_fix": {
+    "repository": "fewtarius/CachyLLama",
+    "commit": "c8ead677a7fe42fb0a67e6e866fb254cc338e9fd",
+    "commit_url": "https://github.com/fewtarius/CachyLLama/commit/c8ead677a7fe42fb0a67e6e866fb254cc338e9fd",
+    "role": "evidence of the cold-continuation destination-sequence correction in feature history"
+  },
+  "rocmfpx_target": {
+    "repository": "charlie12345/ROCmFPX",
+    "commit": "a5605a72768c6562241b248e268e33dc92787394",
+    "commit_url": "https://github.com/charlie12345/ROCmFPX/commit/a5605a72768c6562241b248e268e33dc92787394",
+    "license": "MIT",
+    "role": "portability target baseline"
+  }
+}

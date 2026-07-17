@@ -1,0 +1,75 @@
+snapshot:
+  accessed_at_utc: "2026-07-17T18:48:25Z"
+  claim_labels:
+    - VERIFIED
+    - INFERENCE
+    - RECOMMENDATION
+    - UNRESOLVED
+    - LEGAL-REVIEW
+repositories:
+  - id: rocmfpx
+    full_name: charlie12345/ROCmFPX
+    url: https://github.com/charlie12345/ROCmFPX
+    default_branch: main
+    tip: a5605a72768c6562241b248e268e33dc92787394
+    tip_url: https://github.com/charlie12345/ROCmFPX/commit/a5605a72768c6562241b248e268e33dc92787394
+    tip_parents:
+      - 25c71fc6e12d73bb3804127e032d29fb8976ae40
+      - a8b5fa906ccd13c6a8ca06d55aa287854c376868
+    root_license: MIT
+    license_url: https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/LICENSE
+    gitmodules: empty
+    ggml_sync_commit: 628249b398293fc8d2fa81a449ae2920a02c6523
+    relationship: "llama.cpp-derived content with detached/reconstructed local history; source snapshots, exact blobs, cherry-picks, manual ports, and reverse ports"
+    key_merges:
+      - commit: c2845bf86a5c1842d33bd9e990b2bcaf75779251
+        first_parent: 5b3956605309dd3e6beed49c8f3a41423ba71d25
+        second_parent: ccac6e55ec7c0fa8acdcb6e80b1a242e4f7d654e
+        meaning: PR 27 promotion merge
+      - commit: 2335e6a482b1601d71dff9e860c8feab108c3af2
+        first_parent: 221402af8574faf652b101b6afe225a3f329561f
+        second_parent: 5b3956605309dd3e6beed49c8f3a41423ba71d25
+        meaning: local remote-tracking merge
+        qualification: "The commit message's remote name upstream does not encode a URL and is not proof of ggml-org/llama.cpp ancestry."
+    disconnected_snapshot_reference: 5fd2dc2c41c342a75c26f9756ca6b1814ed05fb4
+  - id: llama_ai
+    full_name: fewtarius/llama-ai
+    url: https://github.com/fewtarius/llama-ai
+    default_branch: main
+    tip: 1017f3dfdce3ca2b06aa9007b23295db3bb35722
+    tip_url: https://github.com/fewtarius/llama-ai/commit/1017f3dfdce3ca2b06aa9007b23295db3bb35722
+    tip_parents:
+      - d8a07baad6ab175f8badbc4d496c9190b0cc3b2d
+    root_license_file: GPL-3.0-text
+    project_source_declaration: GPL-3.0-or-later
+    documentation_declaration: CC-BY-NC-SA-4.0
+    submodules:
+      - path: CachyLLama
+        url: git@github.com:fewtarius/CachyLLama.git
+        branch: master
+        commit: 6be745998f568e379ea197fcf827baec73ff9940
+  - id: cachyllama
+    full_name: fewtarius/CachyLLama
+    url: https://github.com/fewtarius/CachyLLama
+    default_branch: master
+    tip: 6be745998f568e379ea197fcf827baec73ff9940
+    tip_url: https://github.com/fewtarius/CachyLLama/commit/6be745998f568e379ea197fcf827baec73ff9940
+    root_license: MIT
+    gitmodules: empty
+    ggml_sync_commit: eced84c86f8b012c752c016f7fe789adea168e1e
+    merge_parents:
+      first: c8ead677a7fe42fb0a67e6e866fb254cc338e9fd
+      second: 92366df30d4eaa4b85139b5fd694360237731b19
+    second_parent_repository: ggml-org/llama.cpp
+  - id: llama_cpp
+    full_name: ggml-org/llama.cpp
+    url: https://github.com/ggml-org/llama.cpp
+    default_branch: master
+    tip: 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+    tip_url: https://github.com/ggml-org/llama.cpp/commit/86d86ed4396b4130922f7b9af26e3d9fc11a591b
+    tip_parents:
+      - 7d56da7e546f54fb1fa54ef2bc9ad9a872860ab0
+    root_license: MIT
+    gitmodules: empty
+    ggml_sync_commit: 9be313313c8ecb9488911bd64550190e3ed80f38
+    reverse_port_from_rocmfpx: 2969d6d15d67a08e7b83f26164b15350c79c5248

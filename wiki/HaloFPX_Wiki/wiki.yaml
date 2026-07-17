@@ -1,0 +1,13 @@
+wiki_name: "HaloFPX LLM Wiki"
+schema_version: "1.0"
+created: "2026-07-17"
+status: "active"
+authority:
+  scope: "canonical section paths and structural artifact state"
+  manifest: "manifest.yaml"
+  schema: "manifest.schema.json"
+  source_registry: "../../research/prompts/section_index.yaml"
+  generator: "../../research/prompts/tools/generate_wiki_manifest.py"
+notes:
+  - "Section applicability records observed or proposed versions; this root file does not approve a software baseline."
+  - "Artifact state means required files are present, not that research claims are accepted or machine-validated."

@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "note": "Expected token IDs are intentionally absent; promote them per vocabulary/model digest.",
+  "cases": [
+    {
+      "text": "",
+      "add_special": false,
+      "parse_special": false
+    },
+    {
+      "text": "",
+      "add_special": false,
+      "parse_special": true
+    },
+    {
+      "text": "",
+      "add_special": true,
+      "parse_special": false
+    },
+    {
+      "text": "",
+      "add_special": true,
+      "parse_special": true
+    },
+    {
+      "text": "<s>Hello</s>",
+      "add_special": false,
+      "parse_special": false
+    },
+    {
+      "text": "<s>Hello</s>",
+      "add_special": false,
+      "parse_special": true
+    },
+    {
+      "text": "<s>Hello</s>",
+      "add_special": true,
+      "parse_special": false
+    },
+    {
+      "text": "<s>Hello</s>",
+      "add_special": true,
+      "parse_special": true
+    }
+  ]
+}

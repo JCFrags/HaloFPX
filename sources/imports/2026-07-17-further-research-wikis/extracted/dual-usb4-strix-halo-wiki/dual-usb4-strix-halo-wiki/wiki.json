@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "name": "Dual-USB4 Strix Halo Transport Wiki",
+  "slug": "dual-usb4-strix-halo-wiki",
+  "snapshot_date": "2026-07-17",
+  "audience": [
+    "Linux networking engineers",
+    "kernel/driver researchers",
+    "LLM runtime developers"
+  ],
+  "entrypoints": [
+    "README.md",
+    "Home.md",
+    "docs/index.md",
+    "llms.txt",
+    "llms-full.txt"
+  ],
+  "topics": [
+    "USB4NET",
+    "connection-manager coexistence gate",
+    "USB4STREAM",
+    "MPTCP",
+    "bonding",
+    "routing",
+    "llama.cpp RPC",
+    "NUMA",
+    "integrity",
+    "proof criteria"
+  ],
+  "pages": [
+    {
+      "path": "docs/00-executive-conclusions.md",
+      "title": "Executive conclusions"
+    },
+    {
+      "path": "docs/01-scope-and-terms.md",
+      "title": "Scope and terminology"
+    },
+    {
+      "path": "docs/02-topology-and-enumeration.md",
+      "title": "Topology and interface enumeration"
+    },
+    {
+      "path": "docs/03-kernel-prerequisites.md",
+      "title": "Current kernel prerequisites"
+    },
+    {
+      "path": "docs/04-usb4net-configuration.md",
+      "title": "USB4NET configuration"
+    },
+    {
+      "path": "docs/05-routing-and-policy-routing.md",
+      "title": "Routing and policy routing"
+    },
+    {
+      "path": "docs/06-bonding-and-ecmp.md",
+      "title": "Bonding, ECMP, and multipath behavior"
+    },
+    {
+      "path": "docs/07-mptcp.md",
+      "title": "Multipath TCP"
+    },
+    {
+      "path": "docs/08-mtu-queues-offloads.md",
+      "title": "MTU, queues, and offloads"
+    },
+    {
+      "path": "docs/09-cpu-and-numa.md",
+      "title": "CPU overhead and NUMA locality"
+    },
+    {
+      "path": "docs/10-integrity-and-security.md",
+      "title": "Integrity and security"
+    },
+    {
+      "path": "docs/11-llama-cpp-rpc.md",
+      "title": "llama.cpp RPC integration"
+    },
+    {
+      "path": "docs/12-transport-comparison.md",
+      "title": "Transport comparison"
+    },
+    {
+      "path": "docs/13-usb4stream-and-experimental.md",
+      "title": "USB4STREAM and experimental USB4 transports"
+    },
+    {
+      "path": "docs/14-measurement-and-proof.md",
+      "title": "Measurement and proof criteria"
+    },
+    {
+      "path": "docs/15-troubleshooting.md",
+      "title": "Troubleshooting"
+    },
+    {
+      "path": "docs/16-references.md",
+      "title": "References and source snapshot"
+    },
+    {
+      "path": "docs/17-custom-runtime-design.md",
+      "title": "Custom runtime design for two paths"
+    },
+    {
+      "path": "docs/18-runbook.md",
+      "title": "One-page deployment runbook"
+    },
+    {
+      "path": "docs/19-open-questions.md",
+      "title": "Open questions and future work"
+    },
+    {
+      "path": "docs/glossary.md",
+      "title": "Glossary"
+    },
+    {
+      "path": "docs/index.md",
+      "title": "Dual-USB4 topology and transport research"
+    }
+  ],
+  "machine_readable": [
+    "data/claims.jsonl",
+    "data/source-index.json",
+    "data/kernel-feature-matrix.csv",
+    "data/transports.csv",
+    "data/proof-criteria.yaml",
+    "data/validation-environment.json"
+  ],
+  "validation": {
+    "status": "passed-with-environmental-skips",
+    "report": "VALIDATION.md",
+    "machine_readable": "data/validation-environment.json",
+    "validated_at_utc": "2026-07-17T19:25:02Z"
+  }
+}

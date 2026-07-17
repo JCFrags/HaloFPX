@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "summary_id": "summary-synthetic-0001",
+  "generated_at": "2026-07-17T00:10:00Z",
+  "evidence_origin": "synthetic",
+  "evidence_level": "S0",
+  "release_profile": "scale_out",
+  "stage": "G4",
+  "testbed_id": "SYNTHETIC-NON-MACHINE",
+  "candidate_id": "synthetic-candidate",
+  "experiments": {
+    "completed": [
+      "EXP-001",
+      "EXP-002",
+      "EXP-003",
+      "EXP-004",
+      "EXP-005",
+      "EXP-006",
+      "EXP-007",
+      "EXP-008",
+      "EXP-009",
+      "EXP-010",
+      "EXP-011",
+      "EXP-012",
+      "EXP-013",
+      "EXP-014",
+      "EXP-015",
+      "EXP-016",
+      "EXP-017",
+      "EXP-018",
+      "EXP-019",
+      "EXP-020"
+    ],
+    "invalid": [],
+    "missing": []
+  },
+  "provenance": {
+    "completeness": 1.0,
+    "raw_hashes_verified": true,
+    "packet_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "baselines": {
+    "topologies_present": [
+      "node-a",
+      "node-b",
+      "dual"
+    ],
+    "matched": true,
+    "independent_reproduction_blocks": 2,
+    "best_single_node": "node-a"
+  },
+  "absolute_slos": {
+    "configured": true,
+    "approved": true,
+    "met": true,
+    "failures": []
+  },
+  "hard_events": {
+    "unexpected_crashes": 0,
+    "unexpected_hangs": 0,
+    "kernel_oops": 0,
+    "gpu_resets": 0,
+    "silent_corruption": 0,
+    "thermal_throttle_events": 0,
+    "usb4_renegotiations": 0
+  },
+  "quality": {
+    "request_success_rate": 1.0,
+    "critical_correctness_rate": 1.0,
+    "task_quality_drift": 0.0
+  },
+  "soak": {
+    "hours": 72.0,
+    "max_evidence_gap_s": 0.0,
+    "completed": true
+  },
+  "faults": {
+    "mandatory_scenarios": 11,
+    "repeats_min": 3,
+    "pass_fraction": 1.0,
+    "lost_acknowledged_requests": 0,
+    "completed_scenario_ids": [
+      "F-NET-001",
+      "F-NET-002",
+      "F-NET-003",
+      "F-NET-004",
+      "F-PROC-001",
+      "F-PROC-002",
+      "F-PROC-003",
+      "F-NODE-001",
+      "F-STOR-001",
+      "F-LOAD-001",
+      "F-CANCEL-001"
+    ],
+    "failed_scenario_ids": []
+  },
+  "upstream": {
+    "sources_fresh": true,
+    "untriaged_p0_p1_blockers": 0,
+    "ledger_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "security": {
+    "rpc_network_isolated": true
+  },
+  "metrics": {
+    "dual_goodput_over_best_single": 1.2,
+    "dual_p95_ttft_over_best_single": 1.01,
+    "dual_p95_itl_over_best_single": 1.02,
+    "dual_p99_ttft_over_best_single": 1.02,
+    "dual_p99_itl_over_best_single": 1.03
+  },
+  "regressions": []
+}

@@ -1,0 +1,143 @@
+schema_version: 1
+safety:
+  requires_change_window: true
+  requires_console_or_out_of_band_access_for_physical_faults: true
+  forbid_unbounded_write_or_thermal_faults: true
+  preserve_raw_logs_after_abort: true
+  default_repeats: 3
+  abort_on:
+  - temperature safety limit
+  - filesystem errors on unrelated volumes
+  - unrecoverable network management loss
+mandatory:
+- id: F-NET-001
+  type: latency
+  target: USB4 data interface
+  phases:
+  - prefill
+  - decode
+  parameters:
+    delay_ms: 50
+    jitter_ms: 5
+    duration_s: 30
+  expected: bounded latency/error; no corrupt output
+- id: F-NET-002
+  type: loss
+  target: USB4 data interface
+  phases:
+  - prefill
+  - decode
+  parameters:
+    loss_percent: 1.0
+    duration_s: 30
+  expected: explicit errors or recovery; no hang/corruption
+- id: F-NET-003
+  type: rate_limit
+  target: USB4 data interface
+  phases:
+  - prefill
+  - decode
+  parameters:
+    rate_mbit: 500
+    duration_s: 60
+  expected: observable backpressure; bounded queues
+- id: F-NET-004
+  type: interface_down
+  target: USB4 data interface
+  phases:
+  - idle
+  - prefill
+  - decode
+  parameters:
+    down_s: 10
+  expected: fault detection, explicit request disposition, bounded recovery
+- id: F-PROC-001
+  type: sigterm
+  target: worker runtime
+  phases:
+  - idle
+  - prefill
+  - decode
+  parameters:
+    signal: SIGTERM
+  expected: orderly detection/restart or fail-closed
+- id: F-PROC-002
+  type: sigkill
+  target: worker runtime
+  phases:
+  - prefill
+  - decode
+  parameters:
+    signal: SIGKILL
+  expected: no indefinite coordinator hang; bounded restart
+- id: F-PROC-003
+  type: coordinator_kill
+  target: coordinator runtime
+  phases:
+  - prefill
+  - decode
+  parameters:
+    signal: SIGKILL
+  expected: client receives explicit failure; restart clean
+- id: F-NODE-001
+  type: worker_reboot
+  target: node-b
+  phases:
+  - idle
+  - decode
+  parameters:
+    method: controlled reboot
+  expected: bounded loss and rejoin; no stale worker state
+- id: F-STOR-001
+  type: model_unavailable
+  target: model path before startup
+  phases:
+  - startup
+  parameters:
+    method: read-only bind path absent
+  expected: startup fails explicitly; no partial service
+- id: F-LOAD-001
+  type: overload
+  target: coordinator
+  phases:
+  - steady
+  parameters:
+    offered_load_ratio_to_knee: 1.5
+    duration_s: 300
+  expected: bounded queue/admission; no memory spiral
+- id: F-CANCEL-001
+  type: client_cancel
+  target: active requests
+  phases:
+  - prefill
+  - decode
+  parameters:
+    cancel_fraction: 0.25
+  expected: resources reclaimed; subsequent output unaffected
+extended:
+- id: F-PHYS-001
+  type: cable_disconnect
+  target: USB4 cable
+  phases:
+  - idle
+  - decode
+  parameters:
+    disconnect_s: 10
+  expected: same semantic behavior as interface-down plus clean re-enumeration
+- id: F-THERM-001
+  type: ambient_high_controlled
+  target: lab
+  phases:
+  - soak
+  parameters:
+    within_vendor_operating_limits: true
+  expected: thermal margin retained or explicit derating
+- id: F-DISK-001
+  type: low_free_space
+  target: logs/cache volume
+  phases:
+  - startup
+  - steady
+  parameters:
+    use_quota_or_loopback_only: true
+  expected: explicit logging/cache failure; model volume unaffected

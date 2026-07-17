@@ -1,0 +1,21 @@
+# llama-ai × CachyLlama Feature Inventory
+
+> Commit-pinned source Wiki for persistent inference state and ROCmFPX portability.
+
+Exact pins:
+- llama-ai: fewtarius/llama-ai@1017f3dfdce3ca2b06aa9007b23295db3bb35722
+- CachyLlama: fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940
+- ROCmFPX: charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394
+
+Preferred entry points:
+- README.md
+- Home.md
+- 01-Executive-Inventory.md
+- 15-Retain-Redesign-Reject.md
+- 22-ROCmFPX-Porting-Plan.md
+- 20-Evidence-Index.md
+- data/feature-inventory.json
+- data/feature-evidence.csv
+- schemas/rocmfpx-persistent-cache-port-plan.schema.json
+
+Method: static source inspection. Every feature row has exact evidence references. No runtime or benchmark reproduction.

@@ -1,0 +1,12 @@
+section_id: "36"
+title: "Native MTP, External Draft Models, and Speculative Decoding"
+category_id: "06"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 9
+required_machine_experiments: ["M36-01 matched mode matrix", "M36-02 failure and restore"]
+related_sections: ["29", "41", "45", "52", "73", "76", "80"]
+applicability:
+  repositories: ["ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689", "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"]
+  hardware: ["dual Strix Halo"]

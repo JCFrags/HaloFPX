@@ -1,0 +1,23 @@
+category,unique_paths,retain,refresh,retire
+OpenCL,34,0,0,34
+Hexagon,33,0,0,33
+Validation / tuning scripts,29,24,3,2
+WebGPU,24,0,0,24
+ROCm/HIP kernels,20,0,20,0
+Documentation / recipes,16,11,5,0
+Vulkan kernels,13,0,13,0
+Build / CI,12,3,5,4
+Common / parser / sampling,12,0,4,8
+Graph / context / KV,12,0,12,0
+Server / cache,11,0,11,0
+Model architecture,10,0,1,9
+Quantization formats,9,9,0,0
+Other,8,0,7,1
+Tests,8,0,5,3
+Model loader / quantization,7,0,7,0
+Conversion / GGUF,6,0,5,1
+CPU / ggml core,5,0,5,0
+WebUI,3,0,0,3
+MTP / speculative decoding,2,0,2,0
+Housekeeping,1,0,0,1
+Metal,1,0,0,1

@@ -1,0 +1,23 @@
+## HaloFPX KV-Cache Wiki
+
+- [Home](Home.md)
+- [Executive findings](docs/executive-findings.md)
+- [Scope and method](docs/scope-and-method.md)
+- **Observed implementations**
+  - [CachyLLama](docs/observed-cachyllama.md)
+  - [llama.cpp](docs/observed-llama-cpp.md)
+  - [Comparative designs](docs/comparative-designs.md)
+- **HaloFPX design**
+  - [Redesign](docs/halofpx-redesign.md)
+  - [Integrity invariants](docs/integrity-invariants.md)
+  - [Storage schemas](docs/storage-schemas.md)
+  - [State machines](docs/state-machines.md)
+  - [Failure and recovery](docs/failure-and-recovery.md)
+  - [Security](docs/security.md)
+  - [SSD endurance](docs/ssd-endurance.md)
+- **Verification**
+  - [Validation procedures](docs/validation.md)
+  - [Source matrix](docs/source-matrix.md)
+  - [Claim ledger](docs/claim-ledger.md)
+  - [Glossary](docs/glossary.md)
+  - [Changelog](docs/changelog.md)

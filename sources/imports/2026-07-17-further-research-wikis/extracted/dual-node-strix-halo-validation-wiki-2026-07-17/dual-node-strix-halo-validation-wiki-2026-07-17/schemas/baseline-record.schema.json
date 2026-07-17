@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Promoted baseline record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "baseline_id",
+    "lineage_id",
+    "promoted_at",
+    "source_decision_id",
+    "profile",
+    "testbed_id",
+    "model_sha256",
+    "software_fingerprint_sha256",
+    "summary_sha256",
+    "eligible_until"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "baseline_id": {
+      "type": "string"
+    },
+    "lineage_id": {
+      "type": "string"
+    },
+    "promoted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_decision_id": {
+      "type": "string"
+    },
+    "profile": {
+      "enum": [
+        "scale_out",
+        "capacity_extension",
+        "availability_recovery"
+      ]
+    },
+    "testbed_id": {
+      "type": "string"
+    },
+    "model_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "software_fingerprint_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "summary_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "eligible_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "immutable": {
+      "const": true
+    },
+    "supersedes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+id,mode,phase,quantity,formula,evidence_label,notes
+F01,all,T_msg,one-way message time,n*ell + V/B,DECISION MODEL,Use per-link max form for striped chunks
+F02,all,KV,whole-model KV bytes per token,2*L*H_kv*d*b_kv,CALCULATED IDENTITY,K and V for every layer
+F03,tensor parallel,prefill,per-collective tensor,N*h*b_a,CALCULATED IDENTITY,Two collectives per layer for Megatron-style TP forward
+F04,tensor parallel,decode,per-collective tensor,Q*h*b_a,CALCULATED IDENTITY,Q active sequences in the decode step
+F05,tensor parallel,forward,per-rank sent bytes,2*L*S,CALCULATED IDENTITY,p=2 all-reduce sends one tensor per rank per collective
+F06,tensor parallel,forward,communication time,2*L*(m_AR*ell + S/B),DECISION MODEL,m_AR is traced not assumed
+F07,contiguous split,prefill,A-to-B bytes,N*h*b_a,CALCULATED IDENTITY,One layer boundary; chunking changes message count not total volume
+F08,contiguous split,decode,A-to-B bytes per step,Q*h*b_a,CALCULATED IDENTITY,Plus Q token IDs returned after sampling
+F09,pipeline,prefill/throughput,makespan,c_A+x+c_B+(M-1)*max(c_A+x_or_overlap+c_B stages),DECISION MODEL,See pipeline page for overlap and no-overlap service intervals
+F10,MoE expert service,prefill/decode,cross-cut bytes,Sum_l R_l*(2*h*b_a+b_meta),CALCULATED IDENTITY,R_l=N_l*k*rho_l remote assignments
+F11,remote speculation,round,expected committed tokens,1+a+...+a^gamma,SCENARIO MODEL,Constant independent acceptance approximation only
+F12,remote speculation,round,break-even,T_draft+T_verify+2*ell+V/B < E[K]*T_target1,DECISION RULE,All timing terms measured
+F13,replicated decode,prefill/decode,model-path traffic,0,CALCULATED IDENTITY,Excludes request ingress and output stream
+F14,KV migration,transition,bytes,context_tokens*2*L*H_kv*d*b_kv,CALCULATED IDENTITY,Runtime layout and metadata can add overhead

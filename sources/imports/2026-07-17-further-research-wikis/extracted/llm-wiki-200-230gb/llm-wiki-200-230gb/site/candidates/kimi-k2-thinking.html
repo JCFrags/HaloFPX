@@ -1,0 +1,139 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kimi-K2-Thinking · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Kimi-K2-Thinking</h1>
+<p><strong>Rank:</strong> 9 · <strong>Score:</strong> 35/100 · <strong>Disposition:</strong> <code>screened-out</code></p>
+<h2>Selected representation</h2>
+<table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Architecture</td>
+  <td>deepseek2-derived</td>
+</tr>
+<tr>
+  <td>Class</td>
+  <td>MoE</td>
+</tr>
+<tr>
+  <td>Total parameters</td>
+  <td>1000B</td>
+</tr>
+<tr>
+  <td>Activated parameters/token</td>
+  <td>32B</td>
+</tr>
+<tr>
+  <td>Layers</td>
+  <td>61</td>
+</tr>
+<tr>
+  <td>Experts / active</td>
+  <td>384 / 8</td>
+</tr>
+<tr>
+  <td>Native context</td>
+  <td>262,144</td>
+</tr>
+<tr>
+  <td>License</td>
+  <td>Modified MIT / model-specific terms — verify upstream</td>
+</tr>
+<tr>
+  <td>Chosen quant</td>
+  <td>i1-IQ1_M community artifact</td>
+</tr>
+<tr>
+  <td>Publisher size</td>
+  <td>228.00 decimal GB</td>
+</tr>
+<tr>
+  <td>Conservative weight plan</td>
+  <td>214 GiB</td>
+</tr>
+<tr>
+  <td>Artifact effective bits/parameter</td>
+  <td>1.824</td>
+</tr>
+</tbody>
+</table>
+<h2>Selection rationale</h2>
+<p>Included as a boundary case only; it meets the file-size filter but fails the practical quality/provenance screen.</p>
+<h2>Runtime support</h2>
+<ul>
+<li><strong>llama.cpp:</strong> Architecture family is supported, but the exact community conversion is not qualified here.</li>
+<li><strong>ROCmFPX:</strong> Architecture-family support expected; exact artifact not qualified.</li>
+<li><strong>Runtime risk:</strong> High: extreme size, community conversion, and low-bit kernels.</li>
+</ul>
+<h2>Tokenizer and chat template</h2>
+<ul>
+<li><strong>Tokenizer:</strong> Community conversion; verify tokenizer and special tokens.</li>
+<li><strong>Template:</strong> Community conversion; template provenance must be checked against upstream.</li>
+</ul>
+<h2>KV cache</h2>
+<p><strong>Formula status:</strong> not capacity-qualified in this package</p>
+<table>
+<thead>
+<tr>
+  <th>Context tokens</th>
+  <th>Q8_0 exact GiB</th>
+  <th>Q8 planning GiB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>32,768</td>
+  <td>measurement gate</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>65,536</td>
+  <td>measurement gate</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>131,072</td>
+  <td>measurement gate</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>262,144</td>
+  <td>measurement gate</td>
+  <td>—</td>
+</tr>
+</tbody>
+</table>
+<h2>Expert activation and buffers</h2>
+<p>The router activates 8 of 384 routed experts per token plus 1 shared expert(s). All expert weights remain resident.</p>
+<p>Graph/work buffers are not predicted from parameter count. Use the package reserve profiles, then replace them with measured startup logs.</p>
+<h2>Quality evidence</h2>
+<p>No acceptable selected-quant quality evidence located.</p>
+<p><strong>Selected-quant assessment:</strong> Very high: about 1.82 effective bits/parameter; the community card labels the quant as suitable only for the mostly desperate.</p>
+<h2>Download provenance</h2>
+<ul>
+<li>Upstream: <code>moonshotai/Kimi-K2-Thinking</code></li>
+<li>Quant repo: <code>mradermacher/Kimi-K2-Thinking-i1-GGUF</code></li>
+<li>Revision: <code>main</code></li>
+<li>Path: ``</li>
+<li>Shard count: <code>5</code></li>
+</ul>
+<p>Known exact LFS pointers:</p>
+<ul>
+<li>No exact shard hash captured in this snapshot; use the revision/path manifest and refresh script.</li>
+</ul>
+<h2>Acceptance gates</h2>
+<ul>
+<li>Refresh and verify every shard hash.</li>
+<li>Load with the pinned runtime and exact embedded Jinja template.</li>
+<li>Run the production quality suite against a higher-bit reference.</li>
+<li>Capture per-device/node weights, KV, graph, and compute buffers.</li>
+<li>Benchmark the intended backend/topology; do not use parameter-count throughput extrapolation.</li>
+</ul>
+<h2>Sources</h2>
+<ul>
+<li><a href="https://huggingface.co/moonshotai/Kimi-K2-Thinking">kimi_upstream</a></li>
+<li><a href="https://huggingface.co/mradermacher/Kimi-K2-Thinking-i1-GGUF">kimi_quant</a></li>
+</ul>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

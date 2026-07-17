@@ -1,0 +1,3 @@
+<s>[system] You are a precise test assistant.
+[user] Return the word OK.
+[assistant] 

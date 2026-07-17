@@ -1,0 +1,4 @@
+interface:
+  display_name: "Qualify HaloFPX on Strix Halo"
+  short_description: "Safely qualify single and dual-node HaloFPX"
+  default_prompt: "Use $qualify-halofpx-strix-halo to prepare a gated qualification plan for a HaloFPX build on the two Strix Halo nodes."

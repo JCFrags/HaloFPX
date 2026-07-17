@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {
+      "id": "missing-parent",
+      "mechanism": "remove parent directory after startup where safe"
+    },
+    {
+      "id": "permission-denied",
+      "mechanism": "mount or chmod a test directory read-only"
+    },
+    {
+      "id": "disk-full",
+      "mechanism": "bounded loopback filesystem or fault-injection filesystem"
+    },
+    {
+      "id": "io-error",
+      "mechanism": "fault-injection filesystem; do not simulate by corrupting production disks"
+    },
+    {
+      "id": "rename-failure",
+      "mechanism": "interpose rename for the test process"
+    },
+    {
+      "id": "fsync-failure",
+      "mechanism": "interpose fsync for the test process"
+    }
+  ]
+}

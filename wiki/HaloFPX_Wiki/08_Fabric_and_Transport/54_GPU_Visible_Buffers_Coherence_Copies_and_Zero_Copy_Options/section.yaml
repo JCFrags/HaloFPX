@@ -1,0 +1,20 @@
+section_id: "54"
+title: "GPU-Visible Buffers, Coherence, Copies, and Zero-Copy Options"
+category_id: "08"
+category_title: "Fabric and Transport"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 9
+required_machine_experiments:
+  - "S54-E01 capability snapshot"
+  - "S54-E02 CPU staging reference"
+  - "S54-E03 HIP mapped/coherence matrix"
+  - "S54-E04 Vulkan host-visible matrix"
+  - "S54-E05 io_uring registered-buffer test"
+  - "S54-E06 end-to-end GPU-to-peer-GPU holdout"
+related_sections: ["19", "24", "25", "49", "50", "53", "55", "74", "75"]
+applicability:
+  repositories: ["torvalds/linux@8cdeaa50eae8dad34885515f62559ee83e7e8dda"]
+  software_versions: ["Linux 7.2-rc2 USB4STREAM", "HIP 7.2.53211 documentation", "Vulkan 1.4.356"]
+  hardware_revisions: ["Radeon 8060S/gfx1151; exact nodes require validation"]

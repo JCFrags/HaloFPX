@@ -1,0 +1,5893 @@
+{
+  "schema_version": "1.0",
+  "suite_version": "0.1.0",
+  "research_snapshot": {
+    "researched_on": "2026-07-17",
+    "upstream": {
+      "repository": "ggml-org/llama.cpp",
+      "ref": "86d86ed4396b4130922f7b9af26e3d9fc11a591b",
+      "branch": "master",
+      "role": "reference implementation"
+    },
+    "rocmfpx": {
+      "repository": "charlie12345/ROCmFPX",
+      "ref": "a5605a72768c6562241b248e268e33dc92787394",
+      "branch": "main",
+      "role": "experimental ROCmFPX quantization and MTP fork"
+    },
+    "cachyllama": {
+      "requested_repository": "llama-ai/CachyLlama",
+      "requested_status": "not resolved during research",
+      "candidate_repository": "fewtarius/CachyLLama",
+      "ref": "6be745998f568e379ea197fcf827baec73ff9940",
+      "branch": "master",
+      "role": "candidate persistent-cache fork; confirm before release gating"
+    },
+    "integration": {
+      "repository": null,
+      "ref": null,
+      "branch": null,
+      "role": "future integration fork; pin required before execution"
+    }
+  },
+  "numeric_policy": {
+    "invented_results_forbidden": true,
+    "unapproved_numeric_thresholds": "null",
+    "reference_promotion_required": true
+  },
+  "cases": [
+    {
+      "id": "GGUF-001",
+      "area": "GGUF parsing",
+      "title": "Known-good single-file load",
+      "intent": "Load the pinned tiny GGUF and enumerate metadata and tensors without mutation.",
+      "layer": "library",
+      "oracle": "exact-structure",
+      "comparison_mode": "exact-normalized",
+      "fixtures": [
+        "model.tiny-stories15m-q4_0",
+        "gguf.known-good"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp",
+        "tests/test-llama-archs.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "load succeeds",
+        "normalized metadata keys, tensor names, ranks, shapes, and types agree across applicable forks"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-002",
+      "area": "GGUF parsing",
+      "title": "Split-model discovery and load",
+      "intent": "Resolve shard naming and load every shard exactly once.",
+      "layer": "library",
+      "oracle": "exact-structure",
+      "comparison_mode": "exact-normalized",
+      "fixtures": [
+        "model.tiny-split.recipe"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_basic.py::test_load_split_model"
+      ],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "load succeeds when all shards are present",
+        "missing shard is reported as an input error, not a crash"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-003",
+      "area": "GGUF parsing",
+      "title": "Bad magic rejection",
+      "intent": "Reject a file whose first four bytes are not GGUF magic.",
+      "layer": "library",
+      "oracle": "error-contract",
+      "comparison_mode": "exact-error-class",
+      "fixtures": [
+        "gguf.bad-magic"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp::HEADER_BAD_MAGIC"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "nonzero result or null context",
+        "error class is invalid-format"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-004",
+      "area": "GGUF parsing",
+      "title": "Unsupported version rejection",
+      "intent": "Reject version 0, version 1, and a future version without reading tensor data.",
+      "layer": "library",
+      "oracle": "error-contract",
+      "comparison_mode": "set-membership",
+      "fixtures": [
+        "gguf.bad-version-0",
+        "gguf.bad-version-1",
+        "gguf.future-version"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp::HEADER_BAD_VERSION_*"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no model/context returned",
+        "diagnostic identifies unsupported GGUF version"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-005",
+      "area": "GGUF parsing",
+      "title": "Impossible counts rejection",
+      "intent": "Reject overflowing or impossible tensor and KV counts before allocation.",
+      "layer": "library",
+      "oracle": "safety-invariant",
+      "comparison_mode": "exact-error-class",
+      "fixtures": [
+        "gguf.bad-tensor-count",
+        "gguf.bad-kv-count"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp::HEADER_BAD_N_TENSORS",
+        "tests/test-gguf.cpp::HEADER_BAD_N_KV"
+      ],
+      "ci_tier": "pr-sanitizer",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "bounded failure",
+        "no unbounded allocation attempt"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-006",
+      "area": "GGUF parsing",
+      "title": "Invalid KV entries",
+      "intent": "Reject empty keys, invalid value types, duplicate keys, and invalid alignments.",
+      "layer": "library",
+      "oracle": "error-contract",
+      "comparison_mode": "case-by-case",
+      "fixtures": [
+        "gguf.invalid-kv-recipes"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp::KV_*"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "each mutation is rejected or handled exactly as declared in the fixture manifest"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-007",
+      "area": "GGUF parsing",
+      "title": "Invalid tensor descriptors",
+      "intent": "Reject duplicate names, bad ranks, impossible shapes, unsupported tensor types, offsets, and inconsistent alignment.",
+      "layer": "library",
+      "oracle": "safety-invariant",
+      "comparison_mode": "case-by-case",
+      "fixtures": [
+        "gguf.invalid-tensor-recipes"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp::TENSORS_*"
+      ],
+      "ci_tier": "pr-sanitizer",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no tensor is exposed from an invalid descriptor",
+        "failure is bounded and diagnostic"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-008",
+      "area": "GGUF parsing",
+      "title": "Truncated tensor data",
+      "intent": "Reject files ending before the declared tensor payload.",
+      "layer": "library",
+      "oracle": "error-contract",
+      "comparison_mode": "exact-error-class",
+      "fixtures": [
+        "gguf.truncated-data"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp::DATA_NOT_ENOUGH_DATA"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "load fails",
+        "no partial model is made runnable"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-009",
+      "area": "GGUF parsing",
+      "title": "Custom alignment round trip",
+      "intent": "Write and reload a valid file using a supported non-default alignment.",
+      "layer": "library",
+      "oracle": "metamorphic",
+      "comparison_mode": "round-trip",
+      "fixtures": [
+        "gguf.custom-alignment"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp::TENSORS_CUSTOM_ALIGN",
+        "tests/test-gguf.cpp::DATA_CUSTOM_ALIGN"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "metadata and tensor bytes survive round trip exactly"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-010",
+      "area": "GGUF parsing",
+      "title": "Special-token ID bounds",
+      "intent": "Reject or safely ignore special-token metadata whose ID is outside the vocabulary.",
+      "layer": "library",
+      "oracle": "safety-invariant",
+      "comparison_mode": "error-or-safe-fallback",
+      "fixtures": [
+        "gguf.oob-special-token"
+      ],
+      "upstream_reuse": [
+        "security advisory GHSA-5vm9-p64x-gqw9"
+      ],
+      "ci_tier": "pr-sanitizer",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no out-of-bounds access",
+        "result follows the pinned upstream security behavior"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-011",
+      "area": "GGUF parsing",
+      "title": "Unknown optional metadata preservation",
+      "intent": "Verify unknown namespaced metadata does not change tensor loading and is visible through metadata enumeration when supported.",
+      "layer": "library",
+      "oracle": "metamorphic",
+      "comparison_mode": "invariant",
+      "fixtures": [
+        "gguf.unknown-metadata"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp"
+      ],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "tensor content and model outputs are unchanged",
+        "unknown metadata does not crash loading"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-012",
+      "area": "GGUF parsing",
+      "title": "ROCmFPX type dispatch",
+      "intent": "Load every ROCmFPX weight type on the CPU reference path and enumerate declared tensor types.",
+      "layer": "library",
+      "oracle": "exact-structure",
+      "comparison_mode": "exact-normalized",
+      "fixtures": [
+        "model.rocmfpx-micro-matrix"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp",
+        "tests/test-quantize-fns.cpp"
+      ],
+      "ci_tier": "rocm-gpu",
+      "backend_scope": [
+        "cpu",
+        "rocm",
+        "vulkan"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "required",
+        "cachyllama": "not-applicable",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "supported types load on declared backends",
+        "unsupported forks fail with an explicit unsupported-type error"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-013",
+      "area": "GGUF parsing",
+      "title": "Model identity fingerprint",
+      "intent": "Derive the cache/model compatibility identity from immutable model inputs and build parameters.",
+      "layer": "integration",
+      "oracle": "exact-structure",
+      "comparison_mode": "exact-fields",
+      "fixtures": [
+        "model.identity-inputs"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "observe",
+        "rocmfpx": "observe",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "fingerprint is stable for identical bytes and settings",
+        "relevant byte or layout changes alter the fingerprint"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "GGUF-014",
+      "area": "GGUF parsing",
+      "title": "MTP/NextN metadata detection",
+      "intent": "Detect presence or absence of an embedded MTP/NextN head without attempting speculative decode.",
+      "layer": "library",
+      "oracle": "exact-structure",
+      "comparison_mode": "exact-boolean",
+      "fixtures": [
+        "model.mtp-capable",
+        "model.non-mtp"
+      ],
+      "upstream_reuse": [
+        "examples/speculative/README.md"
+      ],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "capability result agrees with fixture manifest",
+        "missing MTP metadata is not silently treated as MTP-capable"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-001",
+      "area": "Tokenizer",
+      "title": "Pinned vocabulary vectors",
+      "intent": "Tokenize the upstream corpus for every bundled vocabulary fixture.",
+      "layer": "library",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "tokenizer.upstream-corpus"
+      ],
+      "upstream_reuse": [
+        "tests/test-tokenizer-0.cpp",
+        "models/ggml-vocab-*.gguf"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "token IDs match the pinned fixture exactly"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-002",
+      "area": "Tokenizer",
+      "title": "Detokenization vectors",
+      "intent": "Convert token vectors back to bytes with and without special-token rendering.",
+      "layer": "library",
+      "oracle": "exact-bytes",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "tokenizer.detokenize-corpus"
+      ],
+      "upstream_reuse": [
+        "tests/test-tokenizer-0.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "output byte sequence matches exactly"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-003",
+      "area": "Tokenizer",
+      "title": "Unicode and normalization corpus",
+      "intent": "Exercise combining marks, NFC/NFD pairs, CJK, RTL, emoji ZWJ sequences, variation selectors, and invalid UTF-8 byte fallbacks.",
+      "layer": "library",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "tokenizer.unicode-corpus"
+      ],
+      "upstream_reuse": [
+        "tests/test-tokenizer-random.py",
+        "tests/test-tokenizer-1-bpe.cpp",
+        "tests/test-tokenizer-1-spm.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "each input maps to the recorded token vector",
+        "no locale-dependent result"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-004",
+      "area": "Tokenizer",
+      "title": "Whitespace and control bytes",
+      "intent": "Cover empty input, leading/trailing spaces, repeated spaces, tabs, CRLF/LF, NUL-adjacent bytes, and final newline behavior.",
+      "layer": "library",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "tokenizer.whitespace-corpus"
+      ],
+      "upstream_reuse": [
+        "tests/test-tokenizer-0.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "token IDs and detokenized bytes match exactly"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-005",
+      "area": "Tokenizer",
+      "title": "BOS/EOS and special-token switches",
+      "intent": "Cross product add_special, parse_special, and render_special behavior.",
+      "layer": "library",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "tokenizer.special-token-matrix"
+      ],
+      "upstream_reuse": [
+        "tests/test-tokenizer-0.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "special-token insertion and parsing follow the fixture declaration exactly"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-006",
+      "area": "Tokenizer",
+      "title": "Round-trip property",
+      "intent": "For representable byte strings, detokenize(tokenize(x)) equals the tokenizer-defined normalized byte form.",
+      "layer": "library",
+      "oracle": "metamorphic",
+      "comparison_mode": "round-trip",
+      "fixtures": [
+        "tokenizer.property-seeds"
+      ],
+      "upstream_reuse": [
+        "tests/test-tokenizer-random.py",
+        "tests/test-tokenizers-repo.sh"
+      ],
+      "ci_tier": "nightly-fuzz",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "all generated cases satisfy the declared normalization relation"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-007",
+      "area": "Tokenizer",
+      "title": "Thread-safety and repeatability",
+      "intent": "Tokenize the same corpus concurrently and compare every worker with a single-thread baseline.",
+      "layer": "library",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "tokenizer.upstream-corpus"
+      ],
+      "upstream_reuse": [
+        "tests/test-tokenizer-0.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "all workers return identical token vectors",
+        "no race or crash"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-008",
+      "area": "Tokenizer",
+      "title": "Server tokenize/detokenize parity",
+      "intent": "Compare /tokenize and /detokenize with the direct library API.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "tokenizer.api-corpus"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_tokenize.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "HTTP and library results agree after documented envelope normalization"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-009",
+      "area": "Tokenizer",
+      "title": "Prompt string versus token-array generation",
+      "intent": "Run the same deterministic completion using text input and its token-array form.",
+      "layer": "server",
+      "oracle": "exact-output",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "prompt.basic-completion"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_completion.py::test_completion_with_tokens_input"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "generated token sequence and stop reason are identical"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "TOK-010",
+      "area": "Tokenizer",
+      "title": "Malformed token input",
+      "intent": "Reject negative IDs, IDs at or above vocabulary size, non-integer values, and malformed mixed arrays.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "status-and-error-shape",
+      "fixtures": [
+        "tokenizer.invalid-api-inputs"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_tokenize.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "client error response",
+        "no server termination"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CHAT-001",
+      "area": "Chat templates",
+      "title": "Automated upstream template suite",
+      "intent": "Run upstream automated chat-template and Jinja tests unchanged.",
+      "layer": "library",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "chat.upstream-templates"
+      ],
+      "upstream_reuse": [
+        "tests/test-chat-template.cpp",
+        "tests/test-jinja.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native tests pass"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CHAT-002",
+      "area": "Chat templates",
+      "title": "Common versus direct Jinja engine",
+      "intent": "Render the same template through the common wrapper and direct engine.",
+      "layer": "library",
+      "oracle": "exact-text",
+      "comparison_mode": "normalized-newline-exact",
+      "fixtures": [
+        "chat.basic-messages",
+        "chat.template-corpus"
+      ],
+      "upstream_reuse": [
+        "tests/test-chat-template.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "rendered prompts agree after CRLF normalization"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CHAT-003",
+      "area": "Chat templates",
+      "title": "Tool-call rendering",
+      "intent": "Render tools, assistant tool calls, tool results, IDs, and structured arguments.",
+      "layer": "library",
+      "oracle": "exact-text",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "chat.tools"
+      ],
+      "upstream_reuse": [
+        "tests/test-chat-template.cpp --with-tools",
+        "tests/test-chat.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "rendered bytes match the promoted reference fixture"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CHAT-004",
+      "area": "Chat templates",
+      "title": "Generation-prompt switch",
+      "intent": "Render identical messages with add_generation_prompt true and false.",
+      "layer": "library",
+      "oracle": "exact-text",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "chat.generation-prompt-matrix"
+      ],
+      "upstream_reuse": [
+        "tests/test-chat-template.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "both outputs exactly match fixture expectations"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CHAT-005",
+      "area": "Chat templates",
+      "title": "Empty, null, and multimodal content forms",
+      "intent": "Exercise empty messages, null content where allowed, content arrays, and unsupported media placeholders.",
+      "layer": "server",
+      "oracle": "schema-contract",
+      "comparison_mode": "case-by-case",
+      "fixtures": [
+        "chat.content-forms"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_chat_completion.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "supported forms render consistently",
+        "unsupported forms return a documented client error"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CHAT-006",
+      "area": "Chat templates",
+      "title": "Template override precedence",
+      "intent": "Verify explicit request/server template override versus model metadata template selection.",
+      "layer": "server",
+      "oracle": "exact-text",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "chat.override-template",
+        "chat.basic-messages"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_chat_template.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "the declared precedence order is followed exactly"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CHAT-007",
+      "area": "Chat templates",
+      "title": "Malformed Jinja and missing variables",
+      "intent": "Reject syntax errors, forbidden operations, and required variables absent from input.",
+      "layer": "library",
+      "oracle": "error-contract",
+      "comparison_mode": "error-class-and-location",
+      "fixtures": [
+        "chat.invalid-templates"
+      ],
+      "upstream_reuse": [
+        "tests/test-jinja.cpp",
+        "tests/test-chat-template.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "bounded parse/render failure",
+        "diagnostic identifies template failure"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CHAT-008",
+      "area": "Chat templates",
+      "title": "Cross-endpoint prompt parity",
+      "intent": "Compare rendered prompt/token input for native /completion, OpenAI chat completions, Responses, and Anthropic Messages adapters.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact-after-adapter-normalization",
+      "fixtures": [
+        "chat.adapter-parity"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_chat_completion.py",
+        "tools/server/tests/unit/test_responses.py",
+        "tools/server/tests/unit/test_anthropic.py"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "equivalent adapter requests produce identical model input tokens"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CHAT-009",
+      "area": "Chat templates",
+      "title": "Template output size and recursion limits",
+      "intent": "Force oversized expansion or pathological constructs and verify bounded rejection.",
+      "layer": "library",
+      "oracle": "safety-invariant",
+      "comparison_mode": "bounded-failure",
+      "fixtures": [
+        "chat.resource-limit-templates"
+      ],
+      "upstream_reuse": [
+        "tests/test-jinja.cpp"
+      ],
+      "ci_tier": "pr-sanitizer",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no unbounded memory or recursion",
+        "explicit resource or parse error"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "LOGIT-001",
+      "area": "Logits",
+      "title": "CPU reference next-token logits",
+      "intent": "Record the full or declared top-N next-token logits for fixed prompt positions on the CPU reference build.",
+      "layer": "library",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel",
+      "fixtures": [
+        "model.reference-f16",
+        "prompt.logit-probes"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "reference-promotion",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "finite logits",
+        "comparison uses only an approved tolerance profile"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "LOGIT-002",
+      "area": "Logits",
+      "title": "Cross-fork CPU logits",
+      "intent": "Compare each fork CPU build against the promoted upstream CPU reference for the same model bytes.",
+      "layer": "library",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel-and-rank",
+      "fixtures": [
+        "model.reference-f16",
+        "prompt.logit-probes"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "top-token rank and numeric deltas satisfy the approved profile"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "LOGIT-003",
+      "area": "Logits",
+      "title": "Backend logits parity",
+      "intent": "Compare CPU, Vulkan, ROCm/HIP, Metal, CUDA, and other enabled backends within one pinned fork.",
+      "layer": "backend",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel-and-rank",
+      "fixtures": [
+        "model.reference-f16",
+        "prompt.logit-probes"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "cpu",
+        "vulkan",
+        "rocm",
+        "cuda",
+        "metal"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "each enabled backend satisfies its backend-specific approved profile"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "LOGIT-004",
+      "area": "Logits",
+      "title": "Batch and microbatch invariance",
+      "intent": "Compare logits for equivalent decode partitionings and batch sizes.",
+      "layer": "library",
+      "oracle": "metamorphic-numeric",
+      "comparison_mode": "calibrated-abs-rel-and-rank",
+      "fixtures": [
+        "model.reference-f16",
+        "prompt.logit-probes"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-sampler.cpp"
+      ],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "partitioning does not exceed the approved numerical envelope"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "LOGIT-005",
+      "area": "Logits",
+      "title": "Cache versus replay logits",
+      "intent": "Compare logits after direct prompt evaluation, in-memory cache reuse, and restored state.",
+      "layer": "library",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel-and-rank",
+      "fixtures": [
+        "model.reference-f16",
+        "prompt.logit-probes",
+        "cache.state-record"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp"
+      ],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "all paths satisfy one approved profile and preserve top-token ordering where required"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "LOGIT-006",
+      "area": "Logits",
+      "title": "Long-position logits checkpoints",
+      "intent": "Probe logits at declared positions before and after context shifting or rope scaling.",
+      "layer": "library",
+      "oracle": "numeric-reference",
+      "comparison_mode": "position-indexed-calibrated",
+      "fixtures": [
+        "model.long-context",
+        "prompt.long-context"
+      ],
+      "upstream_reuse": [
+        "examples/passkey/README.md"
+      ],
+      "ci_tier": "long-context-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "each checkpoint is compared to a same-configuration reference, never to another rope configuration"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "LOGIT-007",
+      "area": "Logits",
+      "title": "NaN and infinity rejection",
+      "intent": "Instrument logits and embeddings for non-finite values across prompts and quantized backends.",
+      "layer": "backend",
+      "oracle": "safety-invariant",
+      "comparison_mode": "finite-only",
+      "fixtures": [
+        "model.backend-matrix",
+        "prompt.logit-probes"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "cpu",
+        "vulkan",
+        "rocm",
+        "cuda",
+        "metal"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no non-finite output for a fixture declared numerically valid"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "LOGIT-008",
+      "area": "Logits",
+      "title": "Embedding API parity",
+      "intent": "Compare direct embeddings with /embedding and OpenAI /v1/embeddings after normalization.",
+      "layer": "server",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-vector-metrics",
+      "fixtures": [
+        "model.embedding",
+        "prompt.embedding-corpus"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_embedding.py"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "dimensions and normalization mode match exactly; vector metrics use an approved profile"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "SAMP-001",
+      "area": "Sampling",
+      "title": "Native sampler primitive tests",
+      "intent": "Run upstream temperature, top-k, top-p, min-p, typical, XTC, penalties, DRY, and sampler-chain tests.",
+      "layer": "library",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "sampling.synthetic-probabilities"
+      ],
+      "upstream_reuse": [
+        "tests/test-sampling.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native tests pass"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SAMP-002",
+      "area": "Sampling",
+      "title": "Greedy argmax",
+      "intent": "Feed controlled logits and verify greedy selection, including stable tie behavior defined by the pinned implementation.",
+      "layer": "library",
+      "oracle": "exact-token",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "sampling.tie-cases"
+      ],
+      "upstream_reuse": [
+        "tests/test-sampling.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "selected token matches the promoted exact fixture"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SAMP-003",
+      "area": "Sampling",
+      "title": "Seeded sampler replay",
+      "intent": "Reset a sampler chain and replay the same controlled logits and accepted-token history.",
+      "layer": "library",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "sampling.seeded-traces"
+      ],
+      "upstream_reuse": [
+        "tests/test-sampling.cpp",
+        "tests/test-backend-sampler.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "same seed and trace produce an identical token sequence within the same ABI/configuration"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SAMP-004",
+      "area": "Sampling",
+      "title": "Sampler order semantics",
+      "intent": "Exercise supported sampler order permutations and verify candidate-set transformations.",
+      "layer": "library",
+      "oracle": "exact-structure",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "sampling.order-matrix"
+      ],
+      "upstream_reuse": [
+        "tests/test-sampling.cpp::test_sampler_queue"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "candidate IDs, ordering flags, and selected token match the fixture"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SAMP-005",
+      "area": "Sampling",
+      "title": "Grammar-constrained sampling",
+      "intent": "Apply grammar/JSON constraints and verify every emitted prefix remains valid.",
+      "layer": "library",
+      "oracle": "language-membership",
+      "comparison_mode": "validator",
+      "fixtures": [
+        "sampling.grammar-corpus"
+      ],
+      "upstream_reuse": [
+        "tests/test-grammar-integration.cpp",
+        "tests/test-json-schema-to-grammar.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "all emitted sequences are accepted by the declared validator"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SAMP-006",
+      "area": "Sampling",
+      "title": "Nondeterministic distribution comparison",
+      "intent": "Run a predeclared seed schedule and compare token/category frequencies without requiring exact sequences.",
+      "layer": "integration",
+      "oracle": "distributional",
+      "comparison_mode": "approved-statistical-profile",
+      "fixtures": [
+        "sampling.distribution-probes"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "statistical-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "the preregistered test statistic satisfies an approved profile"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved distributional reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "SAMP-007",
+      "area": "Sampling",
+      "title": "Invalid sampler parameters",
+      "intent": "Reject NaN, infinities, negative counts, and out-of-range probabilities according to the API contract.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "status-and-error-shape",
+      "fixtures": [
+        "sampling.invalid-parameters"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_sampling.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "client error or documented clamping per field",
+        "no crash"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SAMP-008",
+      "area": "Sampling",
+      "title": "Sampler state across cache restore",
+      "intent": "Save and restore model state while separately preserving/resetting sampler state according to the API contract.",
+      "layer": "integration",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "case-by-case",
+      "fixtures": [
+        "sampling.cache-state-traces"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp"
+      ],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "restored sequence matches only when both model and sampler state prerequisites are met",
+        "reset path matches a fresh sampler"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-001",
+      "area": "Deterministic runs",
+      "title": "Greedy CLI repeatability",
+      "intent": "Run the same CLI command multiple times with temperature zero and top-k one.",
+      "layer": "cli",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "model.tiny-stories15m-q4_0",
+        "prompt.basic-completion"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "pr-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "generated token IDs, stop reason, and token count are identical across repeats"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-002",
+      "area": "Deterministic runs",
+      "title": "Fixed-seed server repeatability",
+      "intent": "Repeat fixed-seed requests on one slot and multiple slots.",
+      "layer": "server",
+      "oracle": "exact-output",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "prompt.basic-completion"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_completion.py::test_consistent_result_same_seed"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "normalized output content and token IDs are identical across repeats"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-003",
+      "area": "Deterministic runs",
+      "title": "Stream versus non-stream",
+      "intent": "Compare concatenated SSE content and final metadata with a non-streaming response.",
+      "layer": "server",
+      "oracle": "exact-output",
+      "comparison_mode": "exact-after-stream-assembly",
+      "fixtures": [
+        "api.completion-basic"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_completion.py::test_completion_stream_vs_non_stream"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "assembled content and generated token IDs agree",
+        "stream terminates with one final event"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-004",
+      "area": "Deterministic runs",
+      "title": "Batch-size invariance",
+      "intent": "Run a greedy prompt using declared batch and microbatch configurations.",
+      "layer": "integration",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact-or-approved-exception",
+      "fixtures": [
+        "determinism.batch-matrix"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_completion.py::test_consistent_result_different_batch_size"
+      ],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "token sequence is identical for configurations declared deterministic",
+        "any backend exception is explicit and version-pinned"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-005",
+      "area": "Deterministic runs",
+      "title": "Thread-count invariance",
+      "intent": "Compare deterministic output over the supported CPU thread-count matrix.",
+      "layer": "cli",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact-or-approved-exception",
+      "fixtures": [
+        "determinism.thread-matrix"
+      ],
+      "upstream_reuse": [
+        "tests/test-thread-safety.cpp"
+      ],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "token sequence is identical for configurations declared deterministic"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-006",
+      "area": "Deterministic runs",
+      "title": "Cross-fork upstream-compatible run",
+      "intent": "Compare all forks using identical upstream-supported features, model bytes, prompt tokens, and CPU settings.",
+      "layer": "integration",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "model.tiny-stories15m-q4_0",
+        "prompt.cross-fork-core"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cross-fork",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "generated token sequence and stop condition match the promoted upstream reference"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-007",
+      "area": "Deterministic runs",
+      "title": "Backend reproducibility within backend",
+      "intent": "Repeat the same greedy run on a single pinned accelerator backend.",
+      "layer": "backend",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact-within-lane",
+      "fixtures": [
+        "model.backend-matrix",
+        "prompt.cross-fork-core"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "vulkan",
+        "rocm",
+        "cuda",
+        "metal"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "repeats on identical hardware/software lane are exact"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-008",
+      "area": "Deterministic runs",
+      "title": "Cache cold/warm deterministic parity",
+      "intent": "Compare a cold prompt, in-memory prompt cache hit, and on-disk cache restore under greedy sampling.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "cache.conversation-basic"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp",
+        "tools/server/tests/unit/test_slot_save.py"
+      ],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "generated token IDs are identical after cache normalization"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-009",
+      "area": "Deterministic runs",
+      "title": "Speculative versus target-only parity",
+      "intent": "Compare target-only and speculative/MTP generation under greedy sampling.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "model.speculative-pair",
+        "prompt.speculative-corpus"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_speculative.py::test_with_and_without_draft"
+      ],
+      "ci_tier": "nightly-speculative",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "accepted target token sequence and final output are identical"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "DET-010",
+      "area": "Deterministic runs",
+      "title": "Restart repeatability",
+      "intent": "Restart the process and rerun a deterministic case using the same model and build.",
+      "layer": "integration",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "prompt.cross-fork-core"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "process restart does not change generated token IDs or normalized metadata"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "KERN-001",
+      "area": "Quantized kernels",
+      "title": "Native backend operation suite",
+      "intent": "Run upstream backend operation tests on every compiled backend.",
+      "layer": "backend",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "backend.synthetic-ops"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "gpu-pr",
+      "backend_scope": [
+        "cpu",
+        "vulkan",
+        "rocm",
+        "cuda",
+        "metal",
+        "opencl",
+        "sycl"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native tests pass on every advertised backend"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "KERN-002",
+      "area": "Quantized kernels",
+      "title": "Native quantize/dequantize functions",
+      "intent": "Run reference quantization function tests for every compiled quant type.",
+      "layer": "backend",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "quant.synthetic-blocks"
+      ],
+      "upstream_reuse": [
+        "tests/test-quantize-fns.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native tests pass"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "KERN-003",
+      "area": "Quantized kernels",
+      "title": "CPU dequant reference bytes",
+      "intent": "Dequantize canonical blocks and compare output vectors with the promoted CPU reference.",
+      "layer": "backend",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel",
+      "fixtures": [
+        "quant.canonical-blocks"
+      ],
+      "upstream_reuse": [
+        "tests/test-quantize-fns.cpp"
+      ],
+      "ci_tier": "reference-promotion",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "numeric comparison uses an approved type-specific profile"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "KERN-004",
+      "area": "Quantized kernels",
+      "title": "Accelerator versus CPU reference",
+      "intent": "Run matvec/GEMM shapes through CPU reference and each accelerated implementation.",
+      "layer": "backend",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel",
+      "fixtures": [
+        "quant.kernel-shape-matrix"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "vulkan",
+        "rocm",
+        "cuda",
+        "metal",
+        "opencl",
+        "sycl"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "enabled kernel/type/shape combinations satisfy approved profiles"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "KERN-005",
+      "area": "Quantized kernels",
+      "title": "Ragged and boundary shapes",
+      "intent": "Exercise dimensions around block, subgroup, wave, tile, and alignment boundaries.",
+      "layer": "backend",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel",
+      "fixtures": [
+        "quant.boundary-shapes"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "cpu",
+        "vulkan",
+        "rocm",
+        "cuda",
+        "metal",
+        "opencl",
+        "sycl"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no out-of-bounds access",
+        "numeric output satisfies approved profiles"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "KERN-006",
+      "area": "Quantized kernels",
+      "title": "Tail and non-contiguous tensors",
+      "intent": "Exercise non-multiple tails, views, transposes, and non-contiguous strides where supported.",
+      "layer": "backend",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel",
+      "fixtures": [
+        "quant.strided-shapes"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "cpu",
+        "vulkan",
+        "rocm",
+        "cuda",
+        "metal",
+        "opencl",
+        "sycl"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "operation either succeeds within approved profile or returns explicit unsupported-operation"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "KERN-007",
+      "area": "Quantized kernels",
+      "title": "ROCmFPX format matrix",
+      "intent": "Validate ROCmFP3/4/6/8 reference dequantization and accelerated paths.",
+      "layer": "backend",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-type-specific",
+      "fixtures": [
+        "model.rocmfpx-micro-matrix",
+        "quant.rocmfpx-blocks"
+      ],
+      "upstream_reuse": [
+        "tests/test-quantize-fns.cpp",
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "rocm-gpu",
+      "backend_scope": [
+        "cpu",
+        "rocm",
+        "vulkan"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "required",
+        "cachyllama": "not-applicable",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "CPU reference path is available",
+        "accelerated paths satisfy approved type/backend profiles"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "KERN-008",
+      "area": "Quantized kernels",
+      "title": "TurboQuant reference tests",
+      "intent": "Run ROCmFPX TurboQuant FWHT, MSE, and bitpack tests.",
+      "layer": "backend",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "quant.turboquant-vectors"
+      ],
+      "upstream_reuse": [
+        "tests/test-turboquant.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "required",
+        "cachyllama": "not-applicable",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "native tests pass"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "KERN-009",
+      "area": "Quantized kernels",
+      "title": "Kernel fallback semantics",
+      "intent": "Disable or make an accelerator kernel unavailable and verify explicit fallback or explicit unsupported failure.",
+      "layer": "backend",
+      "oracle": "control-flow-invariant",
+      "comparison_mode": "declared-path",
+      "fixtures": [
+        "quant.fallback-matrix"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "selected path is recorded",
+        "no silent use of a different quant type"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "KERN-010",
+      "area": "Quantized kernels",
+      "title": "Quantization quality characterization",
+      "intent": "Evaluate perplexity/KLD or declared task probes against the source model without using a fabricated universal threshold.",
+      "layer": "integration",
+      "oracle": "quality-reference",
+      "comparison_mode": "approved-quality-profile",
+      "fixtures": [
+        "model.quant-quality-pairs",
+        "prompt.quality-corpus"
+      ],
+      "upstream_reuse": [
+        "examples/quantize/README.md",
+        "tests/test-quantize-stats.cpp"
+      ],
+      "ci_tier": "quality-weekly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "metrics are recorded and compared only after independent profile approval"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved quality reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "KERN-011",
+      "area": "Quantized kernels",
+      "title": "Non-finite and sentinel checks",
+      "intent": "Initialize outputs and guard regions with sentinels, then detect unwritten output, overwrite, NaN, or infinity.",
+      "layer": "backend",
+      "oracle": "safety-invariant",
+      "comparison_mode": "sentinel-and-finite",
+      "fixtures": [
+        "quant.kernel-shape-matrix"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "all expected outputs are written",
+        "guard regions remain intact",
+        "outputs are finite"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "KERN-012",
+      "area": "Quantized kernels",
+      "title": "Concurrent kernel isolation",
+      "intent": "Run independent quantized requests concurrently and compare each with its serial reference.",
+      "layer": "backend",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel",
+      "fixtures": [
+        "quant.concurrent-jobs"
+      ],
+      "upstream_reuse": [
+        "tests/test-thread-safety.cpp",
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no cross-request contamination",
+        "each result satisfies its serial reference profile"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "CTX-001",
+      "area": "Long context",
+      "title": "Exact context boundary",
+      "intent": "Fill the context to the declared usable boundary and generate the permitted continuation.",
+      "layer": "integration",
+      "oracle": "behavioral-contract",
+      "comparison_mode": "status-and-token-count",
+      "fixtures": [
+        "model.long-context",
+        "prompt.boundary-exact"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "long-context-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "request completes or returns the documented capacity response",
+        "no off-by-one overwrite"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CTX-002",
+      "area": "Long context",
+      "title": "One token over boundary",
+      "intent": "Submit an input one token beyond the declared no-shift context capacity.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "status-and-error-shape",
+      "fixtures": [
+        "prompt.boundary-plus-one"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_completion.py::test_nocache_long_input_prompt"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "client error without server crash when context shifting is disabled"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CTX-003",
+      "area": "Long context",
+      "title": "Context shift continuation",
+      "intent": "Generate past the context boundary with context shift enabled.",
+      "layer": "server",
+      "oracle": "behavioral-contract",
+      "comparison_mode": "invariants",
+      "fixtures": [
+        "prompt.context-shift"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_context_shift.py",
+        "tools/server/tests/unit/test_speculative.py::test_with_ctx_shift"
+      ],
+      "ci_tier": "long-context-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "requested token budget is honored within endpoint rules",
+        "truncation/shift metadata is truthful"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CTX-004",
+      "area": "Long context",
+      "title": "No-shift rejection",
+      "intent": "Disable context shifting and verify oversized generation fails predictably.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "status-and-error-shape",
+      "fixtures": [
+        "prompt.context-shift"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_context_shift.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "explicit capacity error",
+        "no partial corrupt state is retained"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CTX-005",
+      "area": "Long context",
+      "title": "Rope-scaling configuration isolation",
+      "intent": "Run each declared rope configuration against a separately promoted reference.",
+      "layer": "integration",
+      "oracle": "numeric-reference",
+      "comparison_mode": "configuration-scoped",
+      "fixtures": [
+        "model.long-context",
+        "prompt.long-context"
+      ],
+      "upstream_reuse": [
+        "examples/passkey/README.md"
+      ],
+      "ci_tier": "long-context-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "results are never compared across differing rope configurations",
+        "metadata records every rope parameter"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "CTX-006",
+      "area": "Long context",
+      "title": "Passkey retrieval correctness",
+      "intent": "Place a generated nonce at declared positions and require exact extraction under greedy decoding.",
+      "layer": "integration",
+      "oracle": "exact-answer",
+      "comparison_mode": "exact-normalized",
+      "fixtures": [
+        "prompt.passkey-generator"
+      ],
+      "upstream_reuse": [
+        "examples/passkey/README.md"
+      ],
+      "ci_tier": "long-context-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "extracted nonce matches the generated fixture exactly"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CTX-007",
+      "area": "Long context",
+      "title": "Long-prefix cache equivalence",
+      "intent": "Compare full evaluation with cache restoration at several long-prefix checkpoints.",
+      "layer": "integration",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "cache.long-prefix"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp"
+      ],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "greedy continuation matches the cold baseline at every checkpoint"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CTX-008",
+      "area": "Long context",
+      "title": "Fragmented KV restore",
+      "intent": "Create holes and sequence changes, restore state, and compare continuation.",
+      "layer": "library",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "cache.fragmented-state"
+      ],
+      "upstream_reuse": [
+        "tests/test-state-restore-fragmented.cpp"
+      ],
+      "ci_tier": "pr-model",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native test passes"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CTX-009",
+      "area": "Long context",
+      "title": "Recurrent-state rollback",
+      "intent": "Rollback a hybrid/recurrent model sequence and verify state and continuation isolation.",
+      "layer": "library",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "model.synthetic-qwen35-dense"
+      ],
+      "upstream_reuse": [
+        "tests/test-recurrent-state-rollback.cpp"
+      ],
+      "ci_tier": "pr-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native test passes"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CTX-010",
+      "area": "Long context",
+      "title": "Cancellation during long prefill",
+      "intent": "Cancel during a long prompt evaluation and immediately submit a clean request.",
+      "layer": "server",
+      "oracle": "liveness-and-isolation",
+      "comparison_mode": "bounded-cancellation",
+      "fixtures": [
+        "prompt.long-cancellable",
+        "api.health-probe"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "cancelled request stops",
+        "slot/resources become reusable",
+        "subsequent request is correct"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-001",
+      "area": "Cache save/restore",
+      "title": "Library state file round trip",
+      "intent": "Save state, create a fresh context, load it, replay as required, and compare generated tokens.",
+      "layer": "library",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "cache.state-record"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp"
+      ],
+      "ci_tier": "pr-model",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native test passes"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-002",
+      "area": "Cache save/restore",
+      "title": "Sequence state host copy",
+      "intent": "Copy one sequence state through host memory into another sequence and compare continuation.",
+      "layer": "library",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "cache.state-record"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp::test_seq_cp_host"
+      ],
+      "ci_tier": "pr-model",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native test passes"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-003",
+      "area": "Cache save/restore",
+      "title": "Sequence state device copy",
+      "intent": "Copy one sequence state using the on-device state API and compare continuation.",
+      "layer": "library",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "cache.state-record"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp::test_seq_cp_device"
+      ],
+      "ci_tier": "gpu-nightly",
+      "backend_scope": [
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native test passes on supporting backends",
+        "unsupported backends report skip/unsupported"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-004",
+      "area": "Cache save/restore",
+      "title": "Sequence removal isolation",
+      "intent": "Remove one sequence and verify another sequence's serialized state is byte-identical.",
+      "layer": "library",
+      "oracle": "exact-bytes",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "cache.multi-sequence"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp::test_seq_rm_isolated"
+      ],
+      "ci_tier": "pr-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "unrelated sequence state bytes do not change"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-005",
+      "area": "Cache save/restore",
+      "title": "Server slot save and restore",
+      "intent": "Save one slot, restore into another, and verify prompt reuse and slot isolation.",
+      "layer": "server",
+      "oracle": "behavioral-contract",
+      "comparison_mode": "exact-and-structural",
+      "fixtures": [
+        "cache.slot-basic"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_slot_save.py::test_slot_save_restore"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "save/restore succeeds",
+        "restored continuation is exact",
+        "source slot remains intact"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-006",
+      "area": "Cache save/restore",
+      "title": "Server slot erase",
+      "intent": "Erase a slot and confirm the same prompt is fully reevaluated.",
+      "layer": "server",
+      "oracle": "behavioral-contract",
+      "comparison_mode": "counter-relation",
+      "fixtures": [
+        "cache.slot-basic"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_slot_save.py::test_slot_erase"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "erase succeeds",
+        "subsequent request does not claim a stale cache hit"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-007",
+      "area": "Cache save/restore",
+      "title": "Persistent SSD restart restore",
+      "intent": "Populate a CachyLLama cache, stop the process, restart, and continue the conversation.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "cache.persistent-conversation"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu",
+        "vulkan"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "not-applicable",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "restored greedy continuation matches the cold baseline",
+        "restart does not require stale in-memory state"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-008",
+      "area": "Cache save/restore",
+      "title": "Hot warm cold tier transitions",
+      "intent": "Force page demotion and reload while verifying bytes and accounting.",
+      "layer": "integration",
+      "oracle": "exact-bytes",
+      "comparison_mode": "exact-and-invariants",
+      "fixtures": [
+        "cache.page-manager-sequence"
+      ],
+      "upstream_reuse": [
+        "test_kv_page_manager.cpp"
+      ],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "not-applicable",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "page bytes survive transitions exactly",
+        "tier counters and hit/miss accounting remain internally consistent"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-009",
+      "area": "Cache save/restore",
+      "title": "System-prompt cache cross-conversation reuse",
+      "intent": "Reuse an identical static prefix across conversations while keeping divergent tails isolated.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact-and-counter-relation",
+      "fixtures": [
+        "cache.system-prompt-two-conversations"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu",
+        "vulkan"
+      ],
+      "applicability": {
+        "upstream": "observe",
+        "rocmfpx": "observe",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "continuations equal cold baselines",
+        "only declared prefix tokens are reused across conversations"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-010",
+      "area": "Cache save/restore",
+      "title": "Concurrent restore isolation",
+      "intent": "Restore distinct conversations concurrently into different slots/users.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "per-conversation-exact",
+      "fixtures": [
+        "cache.concurrent-conversations"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "optional",
+        "rocmfpx": "optional",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "each response matches its own serial reference",
+        "no state crosses conversation or user boundaries"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-011",
+      "area": "Cache save/restore",
+      "title": "Atomic checkpoint publication",
+      "intent": "Observe checkpoint directories during save and verify readers never accept a partially published checkpoint.",
+      "layer": "integration",
+      "oracle": "filesystem-invariant",
+      "comparison_mode": "atomicity",
+      "fixtures": [
+        "cache.atomic-publication"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "not-applicable",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "checkpoint becomes discoverable only after complete publication"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CACHE-012",
+      "area": "Cache save/restore",
+      "title": "Cache telemetry truthfulness",
+      "intent": "Compare reported restored/evaluated token counts with independently known prefix boundaries.",
+      "layer": "server",
+      "oracle": "counter-invariant",
+      "comparison_mode": "exact-relations",
+      "fixtures": [
+        "cache.telemetry-cases"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_slot_save.py"
+      ],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "reported counts obey fixture-defined relations and sum constraints"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-001",
+      "area": "Cache rejection",
+      "title": "Different model bytes",
+      "intent": "Attempt to restore a checkpoint made by a different model digest.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "rejection-reason-class",
+      "fixtures": [
+        "cache.reject-model-bytes"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required-if-state-format-checks",
+        "rocmfpx": "required-if-state-format-checks",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "checkpoint is rejected before use",
+        "request can proceed cold or fail explicitly according to policy"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-002",
+      "area": "Cache rejection",
+      "title": "Different quantization/layout",
+      "intent": "Attempt restore across F16, standard quant, and ROCmFPX model layouts sharing nominal architecture.",
+      "layer": "integration",
+      "oracle": "error-contract",
+      "comparison_mode": "rejection-reason-class",
+      "fixtures": [
+        "cache.reject-quant-layout"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "incompatible state is rejected",
+        "no partial restore"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-003",
+      "area": "Cache rejection",
+      "title": "Different context configuration",
+      "intent": "Change context size, rope parameters, KV types, or recurrent layout and attempt restore.",
+      "layer": "library",
+      "oracle": "error-contract",
+      "comparison_mode": "case-by-case",
+      "fixtures": [
+        "cache.reject-context-config"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp"
+      ],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "every state-affecting incompatibility is rejected or explicitly declared compatible"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-004",
+      "area": "Cache rejection",
+      "title": "Corrupt header or checksum",
+      "intent": "Flip bytes in checkpoint header and payload.",
+      "layer": "integration",
+      "oracle": "safety-invariant",
+      "comparison_mode": "bounded-rejection",
+      "fixtures": [
+        "cache.corrupt-byte-recipes"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "pr-sanitizer",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "corrupt checkpoint is rejected",
+        "no crash, hang, or out-of-bounds read"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-005",
+      "area": "Cache rejection",
+      "title": "Truncated checkpoint",
+      "intent": "Truncate at header, metadata, page boundary, and final byte.",
+      "layer": "integration",
+      "oracle": "safety-invariant",
+      "comparison_mode": "bounded-rejection",
+      "fixtures": [
+        "cache.truncation-recipes"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "pr-sanitizer",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "every truncation is rejected or safely ignored as incomplete",
+        "no partial state activation"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-006",
+      "area": "Cache rejection",
+      "title": "Oversized declared lengths",
+      "intent": "Inject impossible token/page/byte lengths to test overflow guards.",
+      "layer": "integration",
+      "oracle": "safety-invariant",
+      "comparison_mode": "bounded-rejection",
+      "fixtures": [
+        "cache.overflow-recipes"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "pr-sanitizer",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "bounded rejection before allocation or read",
+        "no integer overflow"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-007",
+      "area": "Cache rejection",
+      "title": "Wrong conversation recurrent state",
+      "intent": "Offer recurrent state from a divergent conversation with only a partial common prefix.",
+      "layer": "server",
+      "oracle": "semantic-safety",
+      "comparison_mode": "rejection-or-safe-prefix",
+      "fixtures": [
+        "cache.cross-conversation-recurrent"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu",
+        "vulkan"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "not-applicable",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "full divergent recurrent state is never accepted",
+        "only a provably common compatible prefix may be reused"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-008",
+      "area": "Cache rejection",
+      "title": "User namespace isolation",
+      "intent": "Attempt to enumerate or restore another user's checkpoint through request parameters or path manipulation.",
+      "layer": "server",
+      "oracle": "authorization-invariant",
+      "comparison_mode": "deny",
+      "fixtures": [
+        "cache.user-isolation-attacks"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "security-nightly",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "not-applicable",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "cross-user access is denied",
+        "no path traversal or identifier confusion"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-009",
+      "area": "Cache rejection",
+      "title": "Expired system-prompt cache",
+      "intent": "Advance the test clock past the configured expiry and request the same prefix.",
+      "layer": "server",
+      "oracle": "policy-invariant",
+      "comparison_mode": "counter-relation",
+      "fixtures": [
+        "cache.expiry-clock"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "not-applicable",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "expired entry is not reused",
+        "request evaluates cold and may replace the entry"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-010",
+      "area": "Cache rejection",
+      "title": "Unavailable and read-only cache path",
+      "intent": "Start or write with missing, permission-denied, full, or read-only storage.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "declared-degradation",
+      "fixtures": [
+        "cache.storage-failures"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-failure",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required-if-feature",
+        "rocmfpx": "required-if-feature",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "server either refuses startup or degrades without claiming persistence",
+        "diagnostic names the storage failure"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-011",
+      "area": "Cache rejection",
+      "title": "Interrupted write recovery",
+      "intent": "Kill the writer at declared fsync/rename boundaries and restart.",
+      "layer": "integration",
+      "oracle": "filesystem-invariant",
+      "comparison_mode": "recover-or-ignore",
+      "fixtures": [
+        "cache.interrupted-write"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "weekly-failure",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "not-applicable",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "last complete checkpoint remains usable",
+        "partial checkpoint is ignored or quarantined"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CREJ-012",
+      "area": "Cache rejection",
+      "title": "Unknown future cache version",
+      "intent": "Raise the checkpoint format version beyond the implementation's supported range.",
+      "layer": "integration",
+      "oracle": "error-contract",
+      "comparison_mode": "version-rejection",
+      "fixtures": [
+        "cache.future-version"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "future version is rejected explicitly",
+        "file is not interpreted using an older layout"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-001",
+      "area": "Server APIs",
+      "title": "Health readiness and liveness",
+      "intent": "Probe health before model readiness, after readiness, during load failure, and during graceful shutdown.",
+      "layer": "server",
+      "oracle": "http-contract",
+      "comparison_mode": "status-and-schema",
+      "fixtures": [
+        "api.health-probe"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_basic.py::test_server_start_simple"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "status and body match the declared lifecycle state",
+        "no false-ready response"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-002",
+      "area": "Server APIs",
+      "title": "Properties and model inventory",
+      "intent": "Validate /props and /models field types, aliases, tags, context and slot accounting.",
+      "layer": "server",
+      "oracle": "schema-contract",
+      "comparison_mode": "normalized-json",
+      "fixtures": [
+        "api.props-models"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_basic.py::test_server_props",
+        "tools/server/tests/unit/test_basic.py::test_server_models",
+        "tools/server/tests/unit/test_basic.py::test_server_model_aliases_and_tags"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "required fields and types are present",
+        "volatile paths/timings are normalized before comparison"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-003",
+      "area": "Server APIs",
+      "title": "Native completion",
+      "intent": "Exercise text, token-array, batch, stop, token return, and timing envelope behavior.",
+      "layer": "server",
+      "oracle": "schema-and-output",
+      "comparison_mode": "exact-for-deterministic",
+      "fixtures": [
+        "api.completion-corpus"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_completion.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "HTTP schema is valid",
+        "deterministic token output matches the reference fixture"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-004",
+      "area": "Server APIs",
+      "title": "Native completion streaming",
+      "intent": "Validate SSE framing, chunk ordering, terminal event, token accounting, and assembled parity.",
+      "layer": "server",
+      "oracle": "stream-contract",
+      "comparison_mode": "exact-after-stream-assembly",
+      "fixtures": [
+        "api.completion-stream"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_completion.py::test_completion_stream"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "valid SSE sequence",
+        "exact assembled deterministic output",
+        "one terminal event"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-005",
+      "area": "Server APIs",
+      "title": "OpenAI legacy completions",
+      "intent": "Exercise /v1/completions through raw HTTP and the OpenAI SDK.",
+      "layer": "server",
+      "oracle": "compatibility-contract",
+      "comparison_mode": "normalized-json",
+      "fixtures": [
+        "api.openai-completions"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_completion.py::test_completion_with_openai_library"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "response parses with the supported SDK",
+        "finish reason and content follow fixture expectations"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-006",
+      "area": "Server APIs",
+      "title": "OpenAI chat completions",
+      "intent": "Exercise non-streaming and streaming chat completions, tools, response formats, logprobs where supported, and usage.",
+      "layer": "server",
+      "oracle": "compatibility-contract",
+      "comparison_mode": "normalized-json-and-exact-output",
+      "fixtures": [
+        "api.openai-chat"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_chat_completion.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "schema matches the declared compatibility surface",
+        "deterministic content/tokens match references"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-007",
+      "area": "Server APIs",
+      "title": "OpenAI Responses API",
+      "intent": "Exercise text, streaming, tool-call, usage, and error paths on /v1/responses.",
+      "layer": "server",
+      "oracle": "compatibility-contract",
+      "comparison_mode": "normalized-json-and-event-sequence",
+      "fixtures": [
+        "api.openai-responses"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_responses.py"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "response/event schemas match the declared supported subset"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-008",
+      "area": "Server APIs",
+      "title": "Anthropic Messages adapter",
+      "intent": "Exercise message roles, streaming events, stop reasons, usage, and tools on the Anthropic-compatible endpoint.",
+      "layer": "server",
+      "oracle": "compatibility-contract",
+      "comparison_mode": "normalized-json-and-event-sequence",
+      "fixtures": [
+        "api.anthropic-messages"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_anthropic.py"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "adapter schema and event order match the declared supported subset"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-009",
+      "area": "Server APIs",
+      "title": "Embeddings endpoints",
+      "intent": "Exercise native and OpenAI embeddings, batching, dimensions, normalization, and invalid input.",
+      "layer": "server",
+      "oracle": "schema-and-numeric",
+      "comparison_mode": "exact-shape-calibrated-values",
+      "fixtures": [
+        "api.embeddings"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_embedding.py"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "shape and metadata are exact",
+        "values use approved vector tolerance"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "API-010",
+      "area": "Server APIs",
+      "title": "Rerank endpoint",
+      "intent": "Exercise single/batched documents, ordering, indices, and invalid requests.",
+      "layer": "server",
+      "oracle": "schema-and-order",
+      "comparison_mode": "exact-order-calibrated-scores",
+      "fixtures": [
+        "api.rerank"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_rerank.py"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "result indices and schema are correct",
+        "scores use approved numeric tolerance"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "API-011",
+      "area": "Server APIs",
+      "title": "Tokenize and detokenize endpoints",
+      "intent": "Validate request variants, special-token switches, byte preservation, and direct-library parity.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "tokenizer.api-corpus"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_tokenize.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "token IDs and detokenized bytes match exactly"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-012",
+      "area": "Server APIs",
+      "title": "Slots administration",
+      "intent": "Verify disabled behavior, listing, save, restore, erase, invalid slot IDs, and path constraints.",
+      "layer": "server",
+      "oracle": "http-contract",
+      "comparison_mode": "status-and-schema",
+      "fixtures": [
+        "api.slots"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_basic.py::test_server_slots",
+        "tools/server/tests/unit/test_slot_save.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "disabled endpoint is explicitly unsupported",
+        "enabled operations obey the slot contract"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-013",
+      "area": "Server APIs",
+      "title": "Structured output and JSON schema",
+      "intent": "Apply grammar/JSON schema constraints and validate the completed document.",
+      "layer": "server",
+      "oracle": "language-membership",
+      "comparison_mode": "schema-validator",
+      "fixtures": [
+        "api.structured-output"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_json_schema.py",
+        "tests/test-json-schema-to-grammar.cpp"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "successful output validates against the supplied schema",
+        "invalid schema is rejected"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-014",
+      "area": "Server APIs",
+      "title": "Tool-call contract",
+      "intent": "Validate tool definitions, argument serialization, IDs, parallel calls where supported, and streaming deltas.",
+      "layer": "server",
+      "oracle": "schema-contract",
+      "comparison_mode": "normalized-json",
+      "fixtures": [
+        "api.tool-calls"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_tool_calls.py"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "tool calls conform to the declared adapter schema",
+        "arguments parse as the declared JSON form"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-015",
+      "area": "Server APIs",
+      "title": "Metrics and usage accounting",
+      "intent": "Scrape metrics and compare request/token counters with completed fixture requests.",
+      "layer": "server",
+      "oracle": "counter-invariant",
+      "comparison_mode": "exact-relations",
+      "fixtures": [
+        "api.metrics-sequence"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_metrics.py"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "monotonic counters and per-request usage satisfy declared relations",
+        "timings are telemetry only unless separately calibrated"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-016",
+      "area": "Server APIs",
+      "title": "User concurrency cap",
+      "intent": "Submit overlapping requests under one and multiple user IDs and validate per-user enforcement.",
+      "layer": "server",
+      "oracle": "authorization-and-rate-contract",
+      "comparison_mode": "status-and-error-shape",
+      "fixtures": [
+        "api.user-concurrency"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cache",
+      "backend_scope": [
+        "cpu",
+        "vulkan"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "not-applicable",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "excess same-user request receives the documented 429-style error",
+        "other users remain independent"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-017",
+      "area": "Server APIs",
+      "title": "Expert tracking API",
+      "intent": "Enable, reset, read, and disable expert tracking without changing deterministic generation.",
+      "layer": "server",
+      "oracle": "schema-and-noninterference",
+      "comparison_mode": "exact-relations",
+      "fixtures": [
+        "api.expert-tracking"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-fork",
+      "backend_scope": [
+        "cpu",
+        "vulkan"
+      ],
+      "applicability": {
+        "upstream": "not-applicable",
+        "rocmfpx": "not-applicable",
+        "cachyllama": "required",
+        "integration": "required-if-feature"
+      },
+      "expected_behavior": [
+        "schema fields and counts are internally consistent",
+        "tracking on/off does not change greedy tokens"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-018",
+      "area": "Server APIs",
+      "title": "Unknown fields and compatibility policy",
+      "intent": "Send unknown top-level and nested fields to each adapter and verify the declared ignore/reject policy.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "case-by-case",
+      "fixtures": [
+        "api.unknown-fields"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_schema.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "behavior matches endpoint policy and is stable across forks"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-019",
+      "area": "Server APIs",
+      "title": "Malformed JSON and content type",
+      "intent": "Send truncated JSON, duplicate/conflicting fields, invalid UTF-8, oversized body, and wrong content type.",
+      "layer": "server",
+      "oracle": "safety-invariant",
+      "comparison_mode": "bounded-http-error",
+      "fixtures": [
+        "api.malformed-requests"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_security.py"
+      ],
+      "ci_tier": "pr-sanitizer",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "bounded 4xx response or connection close per policy",
+        "server remains healthy"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "API-020",
+      "area": "Server APIs",
+      "title": "CORS and authentication surface",
+      "intent": "Verify configured CORS/auth behavior and ensure secrets are not reflected in errors or logs.",
+      "layer": "server",
+      "oracle": "security-contract",
+      "comparison_mode": "header-and-redaction",
+      "fixtures": [
+        "api.security-config"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_security.py"
+      ],
+      "ci_tier": "security-nightly",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "headers and authentication decisions match explicit configuration",
+        "secret values are redacted"
+      ],
+      "failure_injection": false,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-001",
+      "area": "MTP/speculative decoding",
+      "title": "Draft-model greedy parity",
+      "intent": "Compare target-only and draft-model speculative output.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "model.speculative-pair",
+        "prompt.speculative-corpus"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_speculative.py::test_with_and_without_draft"
+      ],
+      "ci_tier": "nightly-speculative",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "target-verified output is token-identical to target-only output"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-002",
+      "area": "MTP/speculative decoding",
+      "title": "Draft window parameter matrix",
+      "intent": "Sweep declared minimum/maximum draft lengths under greedy sampling.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "model.speculative-pair",
+        "prompt.speculative-corpus"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_speculative.py::test_different_draft_min_draft_max"
+      ],
+      "ci_tier": "nightly-speculative",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "all valid windows produce the same target token sequence"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-003",
+      "area": "MTP/speculative decoding",
+      "title": "Embedded MTP greedy parity",
+      "intent": "Compare target-only and draft-mtp using a model with an embedded MTP/NextN head.",
+      "layer": "server",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "model.mtp-capable",
+        "prompt.speculative-corpus"
+      ],
+      "upstream_reuse": [
+        "examples/speculative/README.md"
+      ],
+      "ci_tier": "mtp-gpu",
+      "backend_scope": [
+        "cpu",
+        "vulkan",
+        "rocm"
+      ],
+      "applicability": {
+        "upstream": "required-if-supported",
+        "rocmfpx": "required",
+        "cachyllama": "required-if-supported",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "target-verified output is token-identical to target-only output"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-004",
+      "area": "MTP/speculative decoding",
+      "title": "MTP capability rejection",
+      "intent": "Request draft-mtp on a model without a compatible MTP head.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "status-and-error-class",
+      "fixtures": [
+        "model.non-mtp"
+      ],
+      "upstream_reuse": [
+        "examples/speculative/README.md"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "startup or request fails explicitly",
+        "no silent fallback claimed as MTP"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-005",
+      "area": "MTP/speculative decoding",
+      "title": "Draft tokenizer/model mismatch",
+      "intent": "Use an incompatible draft model or vocabulary.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "reject-before-generation",
+      "fixtures": [
+        "model.speculative-mismatch"
+      ],
+      "upstream_reuse": [
+        "examples/speculative/README.md"
+      ],
+      "ci_tier": "nightly-speculative",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "incompatible pair is rejected or produces zero draft acceptance with an explicit diagnostic, according to pinned behavior"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-006",
+      "area": "MTP/speculative decoding",
+      "title": "Context boundary and shift",
+      "intent": "Run speculative decode at exact boundary, near boundary, and through context shift.",
+      "layer": "server",
+      "oracle": "behavioral-contract",
+      "comparison_mode": "exact-output-and-capacity",
+      "fixtures": [
+        "prompt.speculative-boundary"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_speculative.py::test_slot_ctx_not_exceeded",
+        "tools/server/tests/unit/test_speculative.py::test_with_ctx_shift"
+      ],
+      "ci_tier": "long-context-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "target output remains exact",
+        "capacity metadata is truthful"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-007",
+      "area": "MTP/speculative decoding",
+      "title": "Parallel slot isolation",
+      "intent": "Run speculative requests concurrently over one and multiple slots.",
+      "layer": "server",
+      "oracle": "exact-output",
+      "comparison_mode": "per-request-exact",
+      "fixtures": [
+        "prompt.speculative-parallel"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_speculative.py::test_multi_requests_parallel"
+      ],
+      "ci_tier": "nightly-speculative",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "each response matches its serial target-only reference"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-008",
+      "area": "MTP/speculative decoding",
+      "title": "Acceptance accounting",
+      "intent": "Validate drafted, accepted, rejected, and target token counters using invariant relations.",
+      "layer": "server",
+      "oracle": "counter-invariant",
+      "comparison_mode": "exact-relations",
+      "fixtures": [
+        "prompt.speculative-accounting"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-speculative",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "counters are nonnegative and satisfy fixture-declared conservation relations",
+        "reported speed is telemetry only"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-009",
+      "area": "MTP/speculative decoding",
+      "title": "Speculative cache save/restore",
+      "intent": "Save/restore target state and rerun speculative continuation.",
+      "layer": "integration",
+      "oracle": "exact-token-sequence",
+      "comparison_mode": "exact",
+      "fixtures": [
+        "cache.speculative-state"
+      ],
+      "upstream_reuse": [
+        "tests/test-save-load-state.cpp"
+      ],
+      "ci_tier": "nightly-speculative",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "continuation equals target-only cold reference",
+        "draft state is rebuilt or restored according to explicit contract"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-010",
+      "area": "MTP/speculative decoding",
+      "title": "Cancellation during drafting",
+      "intent": "Cancel while draft tokens are pending and reuse the slot.",
+      "layer": "server",
+      "oracle": "liveness-and-isolation",
+      "comparison_mode": "bounded-cancellation",
+      "fixtures": [
+        "prompt.speculative-cancellable"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no unverified draft token is emitted after cancellation",
+        "slot is reusable"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "SPEC-011",
+      "area": "MTP/speculative decoding",
+      "title": "Nondeterministic target distribution",
+      "intent": "Under non-greedy sampling, compare target-only and speculative outputs over a preregistered seed schedule.",
+      "layer": "integration",
+      "oracle": "distributional",
+      "comparison_mode": "approved-paired-statistical-profile",
+      "fixtures": [
+        "sampling.speculative-distribution"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "statistical-weekly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "paired statistic satisfies an approved profile; exact sequence equality is not required"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved distributional reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "SPEC-012",
+      "area": "MTP/speculative decoding",
+      "title": "Performance telemetry without correctness waiver",
+      "intent": "Record draft acceptance and throughput while keeping correctness gates independent.",
+      "layer": "integration",
+      "oracle": "telemetry",
+      "comparison_mode": "record-only-until-approved",
+      "fixtures": [
+        "prompt.speculative-performance"
+      ],
+      "upstream_reuse": [
+        "examples/speculative/README.md"
+      ],
+      "ci_tier": "performance-weekly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "correctness tests must pass regardless of speed",
+        "performance gate remains disabled until a lane-specific baseline is approved"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "RPC-001",
+      "area": "RPC",
+      "title": "Loopback server discovery",
+      "intent": "Start rpc-server on loopback and enumerate the remote device through a client build.",
+      "layer": "rpc",
+      "oracle": "capability-contract",
+      "comparison_mode": "exact-normalized",
+      "fixtures": [
+        "rpc.loopback-config"
+      ],
+      "upstream_reuse": [
+        "examples/rpc/README.md"
+      ],
+      "ci_tier": "rpc-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "remote device is discoverable with normalized name/type/memory fields",
+        "server binds only to the fixture address"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "RPC-002",
+      "area": "RPC",
+      "title": "Remote operation parity",
+      "intent": "Run the canonical backend operation matrix locally and through one RPC hop.",
+      "layer": "rpc",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel",
+      "fixtures": [
+        "rpc.op-matrix",
+        "quant.kernel-shape-matrix"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp",
+        "examples/rpc/README.md"
+      ],
+      "ci_tier": "rpc-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "RPC result satisfies the same approved profile as the underlying backend"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "RPC-003",
+      "area": "RPC",
+      "title": "Remote model inference parity",
+      "intent": "Run fixed prompts with local and RPC-backed tensor placement.",
+      "layer": "rpc",
+      "oracle": "numeric-and-exact",
+      "comparison_mode": "calibrated-logits-exact-greedy",
+      "fixtures": [
+        "model.reference-f16",
+        "prompt.cross-fork-core"
+      ],
+      "upstream_reuse": [
+        "examples/rpc/README.md"
+      ],
+      "ci_tier": "rpc-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "logits satisfy the approved profile",
+        "greedy target tokens match the corresponding local run"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "RPC-004",
+      "area": "RPC",
+      "title": "Multiple RPC endpoints",
+      "intent": "Distribute work across two isolated RPC servers and compare with a declared local placement.",
+      "layer": "rpc",
+      "oracle": "numeric-reference",
+      "comparison_mode": "calibrated-abs-rel",
+      "fixtures": [
+        "rpc.multi-endpoint"
+      ],
+      "upstream_reuse": [
+        "examples/rpc/README.md"
+      ],
+      "ci_tier": "rpc-weekly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "placement is recorded",
+        "output satisfies the approved profile"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "RPC-005",
+      "area": "RPC",
+      "title": "Tensor cache identity",
+      "intent": "Repeat a request with RPC tensor caching enabled and verify cache identity is content-addressed.",
+      "layer": "rpc",
+      "oracle": "cache-invariant",
+      "comparison_mode": "exact-identity-and-output",
+      "fixtures": [
+        "rpc.tensor-cache"
+      ],
+      "upstream_reuse": [
+        "examples/rpc/README.md"
+      ],
+      "ci_tier": "rpc-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "second load may reuse only matching tensor content",
+        "output remains identical to uncached RPC result"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "RPC-006",
+      "area": "RPC",
+      "title": "Disconnect during transfer",
+      "intent": "Terminate the RPC server during model/tensor transfer and during execution.",
+      "layer": "rpc",
+      "oracle": "liveness-and-safety",
+      "comparison_mode": "bounded-failure",
+      "fixtures": [
+        "rpc.disconnect-phases"
+      ],
+      "upstream_reuse": [
+        "examples/rpc/README.md"
+      ],
+      "ci_tier": "rpc-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "client reports transport failure",
+        "no hang or corrupted local state",
+        "subsequent clean session can start"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "RPC-007",
+      "area": "RPC",
+      "title": "Protocol or build mismatch",
+      "intent": "Connect clients and servers with deliberately incompatible protocol/build capabilities.",
+      "layer": "rpc",
+      "oracle": "error-contract",
+      "comparison_mode": "reject-or-capability-negotiate",
+      "fixtures": [
+        "rpc.version-mismatch"
+      ],
+      "upstream_reuse": [
+        "examples/rpc/README.md"
+      ],
+      "ci_tier": "rpc-nightly",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "incompatibility is rejected before unsafe execution or negotiated explicitly"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "RPC-008",
+      "area": "RPC",
+      "title": "Unsupported remote operation",
+      "intent": "Request an operation or tensor type the remote backend cannot execute.",
+      "layer": "rpc",
+      "oracle": "error-contract",
+      "comparison_mode": "explicit-unsupported-or-fallback",
+      "fixtures": [
+        "rpc.unsupported-op"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "rpc-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no silent wrong result",
+        "fallback, if allowed, is observable and policy-compliant"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "RPC-009",
+      "area": "RPC",
+      "title": "Invalid address and port",
+      "intent": "Exercise malformed addresses, refused connections, DNS failure where applicable, and port conflicts.",
+      "layer": "rpc",
+      "oracle": "error-contract",
+      "comparison_mode": "bounded-transport-error",
+      "fixtures": [
+        "rpc.invalid-endpoints"
+      ],
+      "upstream_reuse": [
+        "examples/rpc/README.md"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "bounded startup/connect error with actionable diagnostic"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "RPC-010",
+      "area": "RPC",
+      "title": "Untrusted-network guardrail",
+      "intent": "Verify CI fixtures bind to loopback and detect accidental wildcard/public binding.",
+      "layer": "rpc",
+      "oracle": "security-policy",
+      "comparison_mode": "loopback-only",
+      "fixtures": [
+        "rpc.loopback-config"
+      ],
+      "upstream_reuse": [
+        "examples/rpc/README.md",
+        "SECURITY.md"
+      ],
+      "ci_tier": "security-nightly",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "test fails if rpc-server is externally reachable or configured beyond the isolated test network"
+      ],
+      "failure_injection": false,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "RPC-011",
+      "area": "RPC",
+      "title": "RPC cancellation propagation",
+      "intent": "Cancel a client request and verify remote work is released or bounded by the protocol behavior.",
+      "layer": "rpc",
+      "oracle": "liveness-and-accounting",
+      "comparison_mode": "bounded-cancellation",
+      "fixtures": [
+        "rpc.cancellable-job"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "rpc-nightly",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "client returns promptly",
+        "remote resource use stops or reaches a documented bounded termination",
+        "next job succeeds"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "RPC-012",
+      "area": "RPC",
+      "title": "RDMA optional lane",
+      "intent": "When compiled and available, compare optional RDMA transport with standard RPC transport.",
+      "layer": "rpc",
+      "oracle": "numeric-reference",
+      "comparison_mode": "same-profile-as-rpc",
+      "fixtures": [
+        "rpc.rdma-config"
+      ],
+      "upstream_reuse": [
+        "examples/rpc/README.md"
+      ],
+      "ci_tier": "rpc-rdma-weekly",
+      "backend_scope": [
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required-if-supported",
+        "rocmfpx": "required-if-supported",
+        "cachyllama": "required-if-supported",
+        "integration": "required-if-supported"
+      },
+      "expected_behavior": [
+        "output satisfies the standard RPC approved profile",
+        "absence is a declared skip, not a pass"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [
+        "approved numeric reference"
+      ],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-001",
+      "area": "Cancellation",
+      "title": "Model-load progress callback",
+      "intent": "Abort model load after the progress callback crosses the fixture threshold.",
+      "layer": "library",
+      "oracle": "native-test",
+      "comparison_mode": "native-pass-fail",
+      "fixtures": [
+        "model.tiny-stories15m-q4_0"
+      ],
+      "upstream_reuse": [
+        "tests/test-model-load-cancel.cpp"
+      ],
+      "ci_tier": "pr-model",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "native test returns success only when model load is cancelled and no model is returned"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-002",
+      "area": "Cancellation",
+      "title": "Client disconnect during streaming decode",
+      "intent": "Close the HTTP connection after declared stream chunks and verify generation is cancelled.",
+      "layer": "server",
+      "oracle": "liveness-and-resource",
+      "comparison_mode": "bounded-cancellation",
+      "fixtures": [
+        "api.stream-cancel"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "server detects disconnect",
+        "slot becomes reusable",
+        "no unbounded background decode"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-003",
+      "area": "Cancellation",
+      "title": "Cancellation during prompt prefill",
+      "intent": "Cancel at early, middle, and late long-prompt prefill checkpoints.",
+      "layer": "server",
+      "oracle": "liveness-and-isolation",
+      "comparison_mode": "bounded-cancellation",
+      "fixtures": [
+        "prompt.long-cancellable"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "request terminates without corrupting reusable state",
+        "health remains ready"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-004",
+      "area": "Cancellation",
+      "title": "Cancellation during cache restore",
+      "intent": "Cancel while reading/deserializing a large checkpoint.",
+      "layer": "server",
+      "oracle": "liveness-and-filesystem",
+      "comparison_mode": "bounded-cancellation",
+      "fixtures": [
+        "cache.large-cancellable"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required-if-feature",
+        "rocmfpx": "required-if-feature",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "partially restored state is not activated",
+        "slot and file remain usable"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-005",
+      "area": "Cancellation",
+      "title": "Cancellation during cache save",
+      "intent": "Cancel or terminate a request while checkpoint persistence is pending.",
+      "layer": "server",
+      "oracle": "filesystem-invariant",
+      "comparison_mode": "atomicity",
+      "fixtures": [
+        "cache.atomic-publication"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required-if-feature",
+        "rocmfpx": "required-if-feature",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no partial checkpoint is promoted",
+        "prior complete checkpoint remains valid"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-006",
+      "area": "Cancellation",
+      "title": "One request cancelled among parallel slots",
+      "intent": "Cancel one of several deterministic requests and compare surviving requests with serial references.",
+      "layer": "server",
+      "oracle": "isolation",
+      "comparison_mode": "per-request-exact",
+      "fixtures": [
+        "api.parallel-cancel"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "only target request is cancelled",
+        "other responses remain exact"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-007",
+      "area": "Cancellation",
+      "title": "Repeated cancel/reuse stress",
+      "intent": "Repeat start, partial progress, cancellation, and slot reuse over a fixed iteration schedule.",
+      "layer": "server",
+      "oracle": "liveness-and-leak",
+      "comparison_mode": "bounded-resources",
+      "fixtures": [
+        "api.cancel-stress"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "weekly-stress",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no resource growth beyond approved measurement noise",
+        "every reuse probe remains correct"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-008",
+      "area": "Cancellation",
+      "title": "Graceful shutdown with active requests",
+      "intent": "Send termination while prefill, decode, cache I/O, and RPC work are active.",
+      "layer": "integration",
+      "oracle": "process-contract",
+      "comparison_mode": "bounded-shutdown",
+      "fixtures": [
+        "process.shutdown-phases"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "process exits within the CI watchdog",
+        "exit status and checkpoint policy match the declared signal contract"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-009",
+      "area": "Cancellation",
+      "title": "Cancellation error envelope",
+      "intent": "Validate native and compatibility endpoint behavior when the client/API exposes a cancellation result.",
+      "layer": "server",
+      "oracle": "error-contract",
+      "comparison_mode": "endpoint-specific",
+      "fixtures": [
+        "api.cancellation-envelope"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no success completion is reported after cancellation",
+        "adapter-specific status/event semantics are documented and stable"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "CANCEL-010",
+      "area": "Cancellation",
+      "title": "Accelerator fault containment",
+      "intent": "Inject a backend error or device loss where the test backend supports fault injection.",
+      "layer": "backend",
+      "oracle": "liveness-and-safety",
+      "comparison_mode": "bounded-failure",
+      "fixtures": [
+        "backend.fault-injection"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "hardware-lab",
+      "backend_scope": [
+        "vulkan",
+        "rocm",
+        "cuda",
+        "metal"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "request fails without emitting unchecked output",
+        "process recovery or required restart is explicit"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-001",
+      "area": "Expected error behavior",
+      "title": "Missing model argument or file",
+      "intent": "Start CLI/server with missing required model input or nonexistent path.",
+      "layer": "cli",
+      "oracle": "process-contract",
+      "comparison_mode": "exit-and-error-class",
+      "fixtures": [
+        "error.missing-model"
+      ],
+      "upstream_reuse": [
+        "tests/test-arg-parser.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "nonzero exit or declared server mode behavior",
+        "diagnostic identifies missing model"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-002",
+      "area": "Expected error behavior",
+      "title": "Unsupported device selection",
+      "intent": "Select a nonexistent or uncompiled backend/device.",
+      "layer": "cli",
+      "oracle": "process-contract",
+      "comparison_mode": "exit-and-error-class",
+      "fixtures": [
+        "error.invalid-device"
+      ],
+      "upstream_reuse": [
+        "tests/test-backend-sampler.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "bounded configuration error",
+        "no fallback unless explicitly documented"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-003",
+      "area": "Expected error behavior",
+      "title": "Unsupported quantized tensor type",
+      "intent": "Load a model containing a tensor type unavailable in the current fork/backend.",
+      "layer": "library",
+      "oracle": "error-contract",
+      "comparison_mode": "explicit-unsupported",
+      "fixtures": [
+        "error.unsupported-quant"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp",
+        "tests/test-backend-ops.cpp"
+      ],
+      "ci_tier": "nightly-model",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "model load or placement fails explicitly",
+        "no reinterpretation as another type"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-004",
+      "area": "Expected error behavior",
+      "title": "Invalid command-line values",
+      "intent": "Exercise malformed integers, out-of-range values, contradictory flags, missing values, and unknown options.",
+      "layer": "cli",
+      "oracle": "process-contract",
+      "comparison_mode": "exit-and-diagnostic",
+      "fixtures": [
+        "error.cli-arguments"
+      ],
+      "upstream_reuse": [
+        "tests/test-arg-parser.cpp"
+      ],
+      "ci_tier": "pr-cpu",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "nonzero exit",
+        "usage/diagnostic identifies the invalid option"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-005",
+      "area": "Expected error behavior",
+      "title": "Malformed endpoint path and HTTP method",
+      "intent": "Request unknown paths and unsupported methods on known endpoints.",
+      "layer": "server",
+      "oracle": "http-contract",
+      "comparison_mode": "status-and-error-shape",
+      "fixtures": [
+        "error.http-routing"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_basic.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "404/405-style behavior follows the pinned server contract",
+        "server remains healthy"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-006",
+      "area": "Expected error behavior",
+      "title": "Request validation matrix",
+      "intent": "Omit required fields, provide wrong types, conflicting fields, and invalid enum values.",
+      "layer": "server",
+      "oracle": "schema-contract",
+      "comparison_mode": "status-and-field-path",
+      "fixtures": [
+        "error.request-validation"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_schema.py"
+      ],
+      "ci_tier": "pr-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "client error identifies the invalid field or request class",
+        "no model execution begins"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-007",
+      "area": "Expected error behavior",
+      "title": "Capacity and queue saturation",
+      "intent": "Exceed slots, per-user concurrency, queue limits, and context capacity.",
+      "layer": "server",
+      "oracle": "resource-contract",
+      "comparison_mode": "status-and-retry-semantics",
+      "fixtures": [
+        "error.capacity"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "bounded overload response or queueing per configuration",
+        "health and unrelated users remain available"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-008",
+      "area": "Expected error behavior",
+      "title": "Host memory allocation failure",
+      "intent": "Run under a constrained allocator/cgroup or use a fault-injection allocator.",
+      "layer": "integration",
+      "oracle": "safety-invariant",
+      "comparison_mode": "bounded-failure",
+      "fixtures": [
+        "error.host-oom"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "weekly-failure",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "allocation failure is reported",
+        "process does not corrupt state or produce unchecked output"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-009",
+      "area": "Expected error behavior",
+      "title": "Accelerator memory exhaustion",
+      "intent": "Request a model/context/offload configuration exceeding device capacity.",
+      "layer": "backend",
+      "oracle": "resource-contract",
+      "comparison_mode": "bounded-failure-or-declared-fallback",
+      "fixtures": [
+        "error.device-oom"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "hardware-lab",
+      "backend_scope": [
+        "vulkan",
+        "rocm",
+        "cuda",
+        "metal"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "explicit device OOM or policy-compliant fallback",
+        "selected placement is observable"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-010",
+      "area": "Expected error behavior",
+      "title": "Disk full and I/O errors",
+      "intent": "Inject ENOSPC, EIO, permission denial, and rename/fsync failure in logs, cache, and slot-save paths.",
+      "layer": "integration",
+      "oracle": "filesystem-contract",
+      "comparison_mode": "declared-degradation",
+      "fixtures": [
+        "error.filesystem"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "weekly-failure",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "no false success",
+        "partial files are not treated as valid",
+        "diagnostic names the failed operation"
+      ],
+      "failure_injection": true,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-011",
+      "area": "Expected error behavior",
+      "title": "Signal and exit-code contract",
+      "intent": "Exercise SIGINT/termination and clean shutdown on supported platforms.",
+      "layer": "integration",
+      "oracle": "process-contract",
+      "comparison_mode": "exit-and-cleanup",
+      "fixtures": [
+        "error.signals"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cancellation",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "exit code and cleanup follow the platform-specific declared contract"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-012",
+      "area": "Expected error behavior",
+      "title": "Error envelope normalization",
+      "intent": "Map native, OpenAI, Responses, and Anthropic adapter failures to stable normalized fields.",
+      "layer": "server",
+      "oracle": "compatibility-contract",
+      "comparison_mode": "normalized-error-object",
+      "fixtures": [
+        "error.adapter-envelope"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_anthropic.py",
+        "tools/server/tests/unit/test_responses.py"
+      ],
+      "ci_tier": "nightly-server",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "adapter-required fields are present",
+        "internal paths/secrets are not leaked"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-013",
+      "area": "Expected error behavior",
+      "title": "Log redaction and bounded diagnostics",
+      "intent": "Trigger failures using tokens resembling credentials, long prompts, and hostile filenames.",
+      "layer": "integration",
+      "oracle": "security-contract",
+      "comparison_mode": "redaction-and-size-limit",
+      "fixtures": [
+        "error.redaction"
+      ],
+      "upstream_reuse": [
+        "tools/server/tests/unit/test_security.py"
+      ],
+      "ci_tier": "security-nightly",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "secrets and full hostile bodies are not echoed",
+        "diagnostics remain bounded"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-014",
+      "area": "Expected error behavior",
+      "title": "Sanitizer-clean failure corpus",
+      "intent": "Run malformed GGUF, malformed state, HTTP fuzz seeds, and cancellation cases under ASan/UBSan.",
+      "layer": "integration",
+      "oracle": "safety-invariant",
+      "comparison_mode": "sanitizer-clean",
+      "fixtures": [
+        "failure.all-fast"
+      ],
+      "upstream_reuse": [
+        "tests/test-gguf.cpp"
+      ],
+      "ci_tier": "pr-sanitizer",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "expected failures occur without sanitizer findings"
+      ],
+      "failure_injection": true,
+      "tags": [
+        "security"
+      ],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-015",
+      "area": "Expected error behavior",
+      "title": "Unsupported feature declaration",
+      "intent": "Request a fork-specific feature from a fork that does not implement it.",
+      "layer": "integration",
+      "oracle": "capability-contract",
+      "comparison_mode": "explicit-not-supported",
+      "fixtures": [
+        "error.capability-matrix"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "nightly-cross-fork",
+      "backend_scope": [
+        "cpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "not-applicable is distinguished from failed",
+        "unsupported feature returns an explicit capability result"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    },
+    {
+      "id": "ERR-016",
+      "area": "Expected error behavior",
+      "title": "Watchdog and hang detection",
+      "intent": "Apply a per-case watchdog to every failure injection and preserve logs/core metadata on timeout.",
+      "layer": "integration",
+      "oracle": "harness-invariant",
+      "comparison_mode": "bounded-runtime",
+      "fixtures": [
+        "harness.watchdog"
+      ],
+      "upstream_reuse": [],
+      "ci_tier": "all",
+      "backend_scope": [
+        "cpu",
+        "gpu"
+      ],
+      "applicability": {
+        "upstream": "required",
+        "rocmfpx": "required",
+        "cachyllama": "required",
+        "integration": "required"
+      },
+      "expected_behavior": [
+        "timeout is classified as a conformance failure, never a skip",
+        "process tree is terminated and evidence retained"
+      ],
+      "failure_injection": false,
+      "tags": [],
+      "prerequisites": [],
+      "notes": null
+    }
+  ]
+}

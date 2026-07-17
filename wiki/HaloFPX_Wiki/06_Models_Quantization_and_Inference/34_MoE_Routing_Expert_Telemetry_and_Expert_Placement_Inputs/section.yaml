@@ -1,0 +1,12 @@
+section_id: "34"
+title: "MoE Routing, Expert Telemetry, and Expert Placement Inputs"
+category_id: "06"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 7
+required_machine_experiments: ["M34-01 routing trace", "M34-02 placement A/B"]
+related_sections: ["29", "44", "47", "52", "73", "84"]
+applicability:
+  repositories: ["ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689", "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"]
+  hardware: ["dual Strix Halo; exact BOM unresolved"]

@@ -1,0 +1,40 @@
+schema_version: 1
+budgets:
+- class: security_critical
+  poll_interval: 4h
+  triage_sla: same business day
+  stale_after: 12h
+  release_blocking: true
+- class: runtime_releases
+  poll_interval: 12h
+  triage_sla: 1 business day
+  stale_after: 36h
+  release_blocking: true
+- class: relevant_commits_and_issues
+  poll_interval: 24h
+  triage_sla: 3 business days
+  stale_after: 72h
+  release_blocking: true
+- class: kernel_mesa_llvm
+  poll_interval: 24h
+  triage_sla: 3 business days
+  stale_after: 72h
+  release_blocking: true
+- class: compatibility_docs
+  poll_interval: 7d
+  triage_sla: 5 business days
+  stale_after: 10d
+  release_blocking: true
+- class: oem_bios_firmware
+  poll_interval: 7d
+  triage_sla: 5 business days
+  stale_after: 10d
+  release_blocking: true
+- class: community_signal
+  poll_interval: 24h
+  triage_sla: weekly review
+  stale_after: 7d
+  release_blocking: false
+release_rule: At decision time, every release-blocking source must have last_success_at within its stale_after budget
+  and no untriaged P0/P1 event.
+workflow_rule: Scheduled workflow configuration is not freshness evidence; the normalized ledger timestamp is.

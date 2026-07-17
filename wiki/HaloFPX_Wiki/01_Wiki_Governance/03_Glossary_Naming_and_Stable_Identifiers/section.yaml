@@ -1,0 +1,15 @@
+section_id: "03"
+title: "Glossary, Naming, and Stable Identifiers"
+category_id: "01"
+category_title: "Wiki Governance"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 9
+open_question_count: 7
+required_machine_experiments:
+  - "Inventory node, device, link, filesystem, build, and runtime-native identifiers on both Strix Halo hosts"
+related_sections: ["01", "02", "04", "05", "43", "49", "57"]
+applicability:
+  repositories: ["Custom_Inference_Project", "ROCmFPX", "CachyLlama", "llama-ai", "llama.cpp"]
+  software_versions: []
+  hardware_revisions: []

@@ -1,0 +1,106 @@
+- component: Linux kernel
+  official_current: Ubuntu 26.04 kernel 7.0 or Ubuntu 24.04.4 HWE 6.17 for ROCm 7.14
+  official_min_gfx1151: HWE >=6.17.0-19.19~24.04.2; OEM >=6.14.0-1018; other distros >=6.18.4
+  community_validated: Fedora 43 kernel 6.18.9
+  known_bad_or_risky: Below distro-specific fixed minimum
+  sources:
+  - AMD-CORE-714
+  - AMD-RDNA35
+  - KYUZ0-TOOLBOX-A7C71E9
+- component: amdgpu firmware
+  official_current: Use supported OS inbox/distribution pair
+  official_min_gfx1151: No single cross-distro package version stated; fixed firmware required
+  community_validated: Fedora linux-firmware 20260110
+  known_bad_or_risky: linux-firmware 20251125 / MES 0x83 era
+  sources:
+  - AMD-CORE-714
+  - FEDORA-BUG-2420062
+  - ROCM-ISSUE-5724
+- component: ROCm
+  official_current: 7.14 Core SDK
+  official_min_gfx1151: 7.2.1-7.2.3 stable in RDNA3.5 prebuilt table on qualifying kernels
+  community_validated: 7.2.4 toolbox on Fedora 42/43
+  known_bad_or_risky: 7.1.x and 6.4.x unsupported in current RDNA3.5 table
+  sources:
+  - AMD-CORE-714
+  - AMD-RDNA35
+  - KYUZ0-TOOLBOX-A7C71E9
+- component: HIP
+  official_current: '7.14'
+  official_min_gfx1151: llama.cpp source requires HIP >=6.1; use supported ROCm line
+  community_validated: 7.2.1 and 7.2.4 paths
+  known_bad_or_risky: Mixed HIP runtime/compiler generations
+  sources:
+  - AMD-CORE-714
+  - AMD-CORE-724
+  - LLAMA-HIP-CMAKE-86D86ED
+- component: LLVM/Clang
+  official_current: 23.0.0 with ROCm 7.14
+  official_min_gfx1151: Use compiler bundled with selected ROCm SDK
+  community_validated: 22.0.0.26084 with ROCm 7.2.4
+  known_bad_or_risky: System Clang or LLVM from another ROCm generation
+  sources:
+  - AMD-CORE-714
+  - AMD-CORE-724
+- component: Mesa/RADV
+  official_current: Mesa 26.1.5 upstream
+  official_min_gfx1151: No Mesa project hardware-support certification claim captured
+  community_validated: Mesa 26.0.2/26.0.3 on gfx1151 llama.cpp reports; RADV recommended by toolbox
+  known_bad_or_risky: Upgrade regressions must be benchmark-gated
+  sources:
+  - MESA-2615
+  - LLAMA-ISSUE-22375
+  - LLAMA-ISSUE-24438
+  - KYUZ0-TOOLBOX-A7C71E9
+- component: AMDVLK
+  official_current: Driver release independent of this matrix
+  official_min_gfx1151: Not asserted
+  community_validated: Works for selected models
+  known_bad_or_risky: Reported ~2 GiB single-buffer allocation limit for large models
+  sources:
+  - LLAMA-ISSUE-15054
+  - KYUZ0-TOOLBOX-A7C71E9
+- component: CMake
+  official_current: 4.3.4
+  official_min_gfx1151: 3.21 for native HIP language and CMAKE_HIP_ARCHITECTURES
+  community_validated: Ubuntu 24.04 3.28.x conservative baseline
+  known_bad_or_risky: Latest CMake not assumed validated with every old ROCm package
+  sources:
+  - CMAKE-RELEASE-434
+  - CMAKE-HIP-ARCH
+  - LLAMA-HIP-CMAKE-86D86ED
+- component: llama.cpp
+  official_current: b10064 / 86d86ed on 2026-07-17
+  official_min_gfx1151: Upstream binary is ROCm 7.2; host support external
+  community_validated: HIP and Vulkan on gfx1151; workload-dependent winner
+  known_bad_or_risky: rocWMMA FA long-context regression; commit-to-commit RADV pp regression
+  sources:
+  - LLAMA-RELEASE-B10064
+  - LLAMA-ISSUE-24437
+  - LLAMA-ISSUE-24438
+  - LLAMA-ISSUE-22375
+- component: ROCmFPX
+  official_current: Not AMD/upstream llama official
+  official_min_gfx1151: N/A
+  community_validated: a5605a7 with ROCm 7.2.1 container, HIP and Vulkan
+  known_bad_or_risky: Experimental APIs, formats, tuning and fork-only flags
+  sources:
+  - ROCMFPX-A5605
+  - ROCMFPX-BUILD-A5605
+  - ROCMFPX-DOCKER-A5605
+- component: USB4 IP networking
+  official_current: CONFIG_USB4_NET / thunderbolt_net
+  official_min_gfx1151: Kernel component independent of gfx ISA
+  community_validated: Linux-to-Linux clustering; ~9 Gbit/s/link reported on specific systems
+  known_bad_or_risky: Cable/topology/authorization/MTU variability
+  sources:
+  - LINUX-THUNDERBOLT-DOC
+  - LINUX-USB4-NET-KCONFIG
+  - STRIXHALO-WIKI-CLUSTERING
+- component: USB4 RDMA verbs
+  official_current: No upstream production support claim
+  official_min_gfx1151: N/A
+  community_validated: thunderbolt-ibverbs 76ba39b, Linux >=6.14
+  known_bad_or_risky: Explicitly buggy, insecure, research-only
+  sources:
+  - THUNDERBOLT-IBVERBS-76BA39B

@@ -1,0 +1,19 @@
+stateDiagram-v2
+  [*] --> Absent
+  Absent --> FinalPathOpened: O_CREAT|O_TRUNC
+  FinalPathOpened --> HeaderWritten
+  HeaderWritten --> PayloadWriting
+  PayloadWriting --> FileClosed
+  FileClosed --> HotRAM: map insert
+  HotRAM --> WarmRAM: turn/byte demotion
+  WarmRAM --> ColdSSD: turn/byte demotion
+  ColdSSD --> HotRAM: load + promote
+  ColdSSD --> Evicted: cold count pruning
+  HotRAM --> Evicted: directory/cache eviction
+  WarmRAM --> Evicted: directory/cache eviction
+  Evicted --> [*]
+  FinalPathOpened --> CrashVisiblePartial: crash
+  HeaderWritten --> CrashVisiblePartial: crash
+  PayloadWriting --> CrashVisiblePartial: crash
+  CrashVisiblePartial --> IndexedHeaderOnly: restart scan may see full header
+  IndexedHeaderOnly --> MissOnRead: short body

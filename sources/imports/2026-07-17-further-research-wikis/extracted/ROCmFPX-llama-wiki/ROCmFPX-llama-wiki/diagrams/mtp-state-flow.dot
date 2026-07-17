@@ -1,0 +1,25 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="transparent", pad=0.25, nodesep=0.45, ranksep=0.7, fontname="Inter"];
+  node [shape=box, style="rounded,filled", fontname="Inter", fontsize=10, color="#6d5dfc", fillcolor="#17182a", fontcolor="#eef0ff", margin="0.12,0.08"];
+  edge [color="#71d7ff", fontcolor="#b9c7ff", fontname="Inter", fontsize=9, arrowsize=0.7];
+
+  request [label="Server request\nprompt + per-request speculative limits"];
+  target [label="Target context\nprefill/decode + nextn hidden states"];
+  draft [label="Upstream draft-MTP context\nHY3 NextN layer(s)"];
+  proposal [label="Draft token proposal\nn_max / n_min / p_min"];
+  verify [label="Target verification\nstrict single-row path for greedy HY3"];
+  accept [label="Accept / reject\nrollback + effective limit"];
+  cache [label="Versioned disk cache\nTarget state + draft state + spec state"];
+  response [label="Token stream"];
+
+  request -> target;
+  target -> draft [label="hidden-state boundary"];
+  draft -> proposal;
+  proposal -> verify;
+  verify -> accept;
+  accept -> response;
+  accept -> target [label="continue"];
+  target -> cache [dir=both, label="save/restore"];
+  draft -> cache [dir=both];
+  accept -> cache [dir=both, label="spec state"];
+}

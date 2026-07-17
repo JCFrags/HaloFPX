@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "name": "dual-usb4-strix-halo-wiki",
+  "title": "Dual-USB4 Strix Halo Transport Wiki",
+  "version": "2026.07.17",
+  "snapshot_date": "2026-07-17",
+  "generated_at_utc": "2026-07-17T19:25:02Z",
+  "license": "MIT",
+  "formats": [
+    "GitHub Wiki",
+    "MkDocs Material",
+    "llms.txt",
+    "machine-readable evidence pack"
+  ],
+  "target": "Two Linux AMD Strix Halo / Ryzen AI Max nodes connected by two host-to-host USB4 cables",
+  "primary_recommendation": "Require two coexisting USB4NET paths, route them as separate point-to-point subnets, and use MPTCP for one llama.cpp RPC stream",
+  "custom_runtime_recommendation": "Use two source-bound TCP sockets with framed chunk striping; evaluate two USB4STREAM devices only as a Linux 7.2-era experiment",
+  "same_peer_gate": "If attaching the second cable removes or replaces the first XDomain/netdev, dual-link exposure has failed; prefer separate domainX/NHI instances on both nodes",
+  "kernel_snapshot": {
+    "stable": "7.1.3",
+    "mainline": "7.2-rc3",
+    "longterm_reference": "6.18.38",
+    "usb4net_bonding_floor": "7.0",
+    "usb4stream_floor": "7.2 development line"
+  },
+  "entrypoints": [
+    "README.md",
+    "Home.md",
+    "docs/index.md",
+    "docs/00-executive-conclusions.md",
+    "docs/18-runbook.md",
+    "llms.txt",
+    "llms-full.txt",
+    "CITATIONS.md",
+    "VALIDATION.md"
+  ],
+  "standard_wiki_files": [
+    "Home.md",
+    "_Sidebar.md",
+    "_Footer.md",
+    "SUMMARY.md",
+    "mkdocs.yml"
+  ],
+  "validation": {
+    "status": "passed-with-environmental-skips",
+    "report": "VALIDATION.md",
+    "machine_readable": "data/validation-environment.json",
+    "script": "scripts/validate-wiki.sh",
+    "target_hardware_measured": false
+  },
+  "inventory": {
+    "definition": "Counts exclude SHA256SUMS and external archive files",
+    "file_count": 111,
+    "tree_bytes": 1418075,
+    "llms_full_bytes": 146929
+  },
+  "limitations": [
+    "No physical Strix Halo dual-USB4 measurements were performed in the artifact build environment",
+    "MkDocs strict build was not run because documentation dependencies were absent",
+    "Native MPTCP runtime was not available on the build environment's Linux 4.4.0 kernel"
+  ]
+}

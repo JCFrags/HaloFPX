@@ -1,0 +1,13 @@
+fork_area,fork_paths,newer_upstream,status,carry_delta,sources
+HY3 base model,src/models/hyv3.cpp; models/templates/tencent-Hy3.jinja,PR #25395; src/models/hy-v3.cpp,REPLACE,None at base-model level; preserve external strict/cache/quant behavior.,S-HYV3-FORK;S-UP-PR25395;S-HYV3-UP
+HY3 MTP graph,src/models/hyv3.cpp; src/llama-context*; src/llama-ext.h,Merged HY3 MTP + current nextn private APIs,REPLACE,Strict verification and cache-state integration only.,S-C-630;S-UP-HY3-MERGE;S-EXT-UP;S-SPEC-UP
+HY3 split export,convert_hf_to_gguf.py,cb489bc… split MTP export,REPLACE,ROCmFPX quant-type/recipe mappings only.,S-C-F961;S-UP-SPLIT-MTP;S-CONVERTER-UP
+Generic draft-MTP engine,common/speculative.cpp,Current upstream speculative engine,REFRESH,"Strict mode, state serialization hooks, request-specific effective limits if absent.",S-SPEC-FORK;S-SPEC-UP;S-C-EFF;S-C-7D7
+RPC,ggml/src/ggml-rpc/**,"Current RPC + MTP context, iGPU/RPC, operation/version changes",REPLACE,Custom type compatibility tests; no protocol fork.,S-RPC-UP;S-RPC-MTP-FIX;S-RPC-IGPU-FIX;S-RPC-LIGHTNING
+Hexagon/OpenCL/WebGPU snapshots,"ggml/src/ggml-{hexagon,opencl,webgpu}/**",Current backend trees,REPLACE,"Only tested ROCmFPX backend hooks, if real support exists.",S-C-807;S-PR27-FILES;S-UP-HEAD
+WebUI repairs/provisioning,tools/server/webui/**; scripts/webui-download.cmake; workflows,Current server WebUI/build,REPLACE,None; expose ROCmFPX features through server APIs.,S-C-FF8;S-C-A8C;S-UP-HEAD
+Apple XCFramework restore,build-xcframework.sh,Current upstream packaging,REPLACE,None.,S-C-01D;S-UP-HEAD
+Parser/Jinja/chat backports,common/chat*; common/peg-parser*; common/jinja/value.cpp; tests,Current parser/Jinja implementation,REPLACE,None unless a current ROCmFPX-specific reproducer exists.,S-C-8FC;S-C-FE2;S-UP-HEAD
+ROCmFPX format ABI,ggml/rocmfp4/**; ggml/rocmfpx/**; enum/traits,No equivalent,PRESERVE,Entire ABI/oracle plus minimal registrations.,S-ROCMFP4-H;S-ROCMFPX-H;S-QT-ENUM-FORK;S-QT-ENUM-UP
+HIP/Vulkan kernels,ggml/src/ggml-cuda/**; ggml/src/ggml-vulkan/**,"Newer generic backend infrastructure, no ROCmFPX kernels",REBASE+PORT,"Format primitives, dispatch, packed FP6 coherency, validated gfx1151 tuning.",S-MMVQ;S-MMQ;S-VULKAN;S-C-62F;S-UP-HEAD
+SSD prompt cache + strict server behavior,common/speculative.*; common/arg.cpp; tools/server/**,No full equivalent identified,REBASE+PORT,"Versioned cache, strict verification, request overrides, tests.",S-C-C81;S-C-7D7;S-C-B56;S-SERVER-SCHEMA-UP

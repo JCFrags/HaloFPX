@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Commit- and file-level ROCmFPX deviation inventory against upstream llama.cpp">
+  <title>PR #31 — speculative override patch map · ROCmFPX Inventory</title>
+  <link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">RX</div>
+      <div><div class="brand-title">ROCmFPX Inventory</div><span class="brand-sub">llama.cpp deviation wiki</span></div>
+    </div>
+    <div class="search-wrap">
+      <input id="wiki-search" class="search" type="search" placeholder="Search paths, commits, formats…" autocomplete="off">
+      <div id="search-results" class="search-results"></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-heading">Wiki</div>
+      
+      <a href="../Home.html" class="">Home</a>
+      
+      <a href="../01-Scope-and-Baselines.html" class="">Scope & baselines</a>
+      
+      <a href="../AUDIT-REPORT.html" class="">Audit report</a>
+      
+      <a href="../02-Executive-Inventory.html" class="">Executive inventory</a>
+      
+      <a href="../03-Commit-Map.html" class="">Commit map</a>
+      
+      <a href="../04-File-Map.html" class="">File map</a>
+      
+      <a href="../05-Quantization-Formats.html" class="">Quantization formats</a>
+      
+      <a href="../06-Strix-Halo-and-ROCm-Kernels.html" class="">Strix Halo & ROCm kernels</a>
+      
+      <a href="../07-Graph-and-Model-Architecture.html" class="">Graph & model architecture</a>
+      
+      <a href="../08-MTP-and-Speculative-Decoding.html" class="">MTP & speculative decoding</a>
+      
+      <a href="../09-RPC-and-Distributed-Execution.html" class="">RPC & distributed execution</a>
+      
+      <a href="../10-Server-and-WebUI.html" class="">Server & WebUI</a>
+      
+      <a href="../11-Build-CI-and-Portability.html" class="">Build, CI & portability</a>
+      
+      <a href="../12-Upstream-Replacement-Analysis.html" class="">Upstream replacement</a>
+      
+      <a href="../13-Retain-Refresh-Retire.html" class="">Retain / refresh / retire</a>
+      
+      <a href="../14-Migration-Plan.html" class="">Migration plan</a>
+      
+      <a href="../15-Exact-Path-Ledger.html" class="">Exact path ledger</a>
+      
+      <a href="../16-Source-Ledger.html" class="">Source ledger</a>
+      
+      <div class="nav-heading">Exact patch maps</div>
+      
+      <a href="../patches/Post-baseline-series.html" class="">Post-baseline series</a>
+      
+      <a href="../patches/PR-27-promotion.html" class="">PR #27</a>
+      
+      <a href="../patches/PR-28-funding.html" class="">PR #28</a>
+      
+      <a href="../patches/PR-31-speculative-overrides.html" class="active">PR #31</a>
+      
+      <a href="../patches/PR-32-hy3-rocmfp2-cache.html" class="">PR #32</a>
+      
+      <div class="nav-heading">Data</div>
+      <a href="../data/file-map.csv">File map CSV</a>
+      <a href="../data/commit-map.csv">Commit map CSV</a>
+      <a href="../data/capability-matrix.csv">Capability matrix CSV</a>
+      <a href="../data/dependency-table.csv">Dependency table CSV</a>
+      <a href="../data/source-ledger.csv">Source ledger CSV</a>
+    </nav>
+    <div class="sidebar-meta">
+      Fork <code>a5605a72</code><br>
+      Upstream <code>86d86ed4</code><br>
+      Snapshot 2026-07-17
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div><button id="mobile-toggle" class="mobile-toggle" aria-label="Toggle navigation">☰</button> <span class="crumb">Patch maps / PR #31 — speculative override patch map</span></div>
+      <div class="snapshot">
+        <span class="pill">100 commits</span>
+        <span class="pill">276 paths</span>
+        <span class="pill">primary-source cited</span>
+      </div>
+    </header>
+    <div class="content">
+      <article><h1 id="pr-31-speculative-override-patch-map">PR #31 — speculative override patch map</h1>
+<ul>
+<li><strong>PR:</strong> <a href="https://github.com/charlie12345/ROCmFPX/pull/31">#31</a></li>
+<li><strong>Base:</strong> <code>6bf20cd688ba0af882d1f68ba50b292edf646ab4</code></li>
+<li><strong>Head before merge:</strong> <code>b56ad79d77bc1eb9fe6407640eec8b8edfc04900</code></li>
+<li><strong>Merge:</strong> <code>25c71fc6e12d73bb3804127e032d29fb8976ae40</code></li>
+<li><strong>Authored commits:</strong> 1</li>
+<li><strong>Changed paths:</strong> 2</li>
+<li><strong>Canonical commits:</strong> <a href="https://github.com/charlie12345/ROCmFPX/pull/31/commits">PR commits</a></li>
+<li><strong>Canonical diff:</strong> <a href="https://github.com/charlie12345/ROCmFPX/pull/31/files">PR files</a></li>
+</ul>
+<p>Primary source: <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/31">S-PR31</a></p>
+<table>
+<thead>
+<tr>
+  <th>Exact path</th>
+  <th>Subsystem</th>
+  <th>Decision</th>
+  <th>Inventory rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>tools/server/server-context.cpp</code></td>
+  <td>Server / cache</td>
+  <td><span class="badge refresh">REFRESH</span></td>
+  <td>Shared server implementation: use current upstream and re-port disk-cache, strict verification, and request-override deltas.</td>
+</tr>
+<tr>
+  <td><code>tools/server/server-task.cpp</code></td>
+  <td>Server / cache</td>
+  <td><span class="badge refresh">REFRESH</span></td>
+  <td>Shared server implementation: use current upstream and re-port disk-cache, strict verification, and request-override deltas.</td>
+</tr>
+</tbody>
+</table>
+</article>
+      <div class="page-footer">ROCmFPX technical inventory · pinned source audit · retain / refresh / retire assessment</div>
+    </div>
+  </main>
+</div>
+<script src="../assets/search-index.js"></script>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

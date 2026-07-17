@@ -1,0 +1,32 @@
+{
+  "schema": "llm-wiki-hf-artifact-manifest-v1",
+  "as_of": "2026-07-17",
+  "candidate_id": "nemotron-ultra-253b",
+  "model": "Llama-3.1-Nemotron-Ultra-253B-v1",
+  "selected_quant": "Q6_K",
+  "publisher_display_size_gb_decimal": 207.88,
+  "conservative_weight_plan_gib": 195,
+  "huggingface": {
+    "upstream_repo": "nvidia/Llama-3_1-Nemotron-Ultra-253B-v1",
+    "quant_repo": "bartowski/nvidia_Llama-3_1-Nemotron-Ultra-253B-v1-GGUF",
+    "revision": "9195f67",
+    "path": "nvidia_Llama-3_1-Nemotron-Ultra-253B-v1-Q6_K",
+    "shard_count": 5,
+    "displayed_shard_gb": [
+      39.2,
+      39.5,
+      39.4,
+      39.2,
+      10.6
+    ],
+    "known_lfs": []
+  },
+  "source_urls": [
+    "https://huggingface.co/nvidia/Llama-3_1-Nemotron-Ultra-253B-v1",
+    "https://huggingface.co/nvidia/Llama-3_1-Nemotron-Ultra-253B-v1/blob/main/config.json",
+    "https://huggingface.co/bartowski/nvidia_Llama-3_1-Nemotron-Ultra-253B-v1-GGUF/tree/9195f67/nvidia_Llama-3_1-Nemotron-Ultra-253B-v1-Q6_K",
+    "https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/deci.cpp"
+  ],
+  "integrity_status": "authoritative-revision/path-manifest; run refresh_hf_manifests.py for exact LFS OIDs",
+  "notes": "No model weight bytes are redistributed in this package. Display sizes are publisher UI values; exact downloaded files must be verified locally."
+}

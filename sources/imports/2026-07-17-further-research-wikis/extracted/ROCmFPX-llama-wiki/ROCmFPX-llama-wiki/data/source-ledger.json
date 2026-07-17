@@ -1,0 +1,674 @@
+[
+  {
+    "source_id": "S-AMD-LLAMA",
+    "description": "ROCm llama.cpp compatibility",
+    "evidence_type": "Official AMD documentation",
+    "url": "https://rocm.docs.amd.com/en/develop/compatibility/ml-compatibility/llama-cpp-compatibility.html"
+  },
+  {
+    "source_id": "S-AMD-ROCWMMA",
+    "description": "rocWMMA supported architectures",
+    "evidence_type": "Official AMD documentation",
+    "url": "https://rocm.docs.amd.com/projects/rocWMMA/en/develop/api-reference/api-reference-guide.html#supported-gpu-architectures"
+  },
+  {
+    "source_id": "S-AMD-STRIX",
+    "description": "AMD Strix Halo system optimization",
+    "evidence_type": "Official AMD documentation",
+    "url": "https://rocm.docs.amd.com/en/docs-7.2.0/how-to/system-optimization/strixhalo.html"
+  },
+  {
+    "source_id": "S-BACKEND-TEST",
+    "description": "ROCmFPX backend operation test coverage",
+    "evidence_type": "Primary test code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tests/test-backend-ops.cpp"
+  },
+  {
+    "source_id": "S-BASELINE",
+    "description": "ROCmFP4 upstream-integration baseline note",
+    "evidence_type": "Primary repository documentation",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ROCMFP4-UPSTREAM-INTEGRATION.md"
+  },
+  {
+    "source_id": "S-BUILD-STRIX",
+    "description": "Strix Halo build script",
+    "evidence_type": "Primary build code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/build-strix-rocmfp4-mtp.sh"
+  },
+  {
+    "source_id": "S-C-01D",
+    "description": "XCFramework script restoration",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/01d463bb23c3f290688c4529c13b3b467fa2f7dc"
+  },
+  {
+    "source_id": "S-C-063",
+    "description": "CI/WebUI isolation",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/0631515b0bca7859387e3467a6f6ac6379622a02"
+  },
+  {
+    "source_id": "S-C-0D7",
+    "description": "Portable disk-cache failure probes",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/0d7ac512e5eb511843797c07a16bc7d97d3bc4f8"
+  },
+  {
+    "source_id": "S-C-0E5",
+    "description": "Metal GET_ROWS capability correction",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/0e5159daa31132e16a1cc45f724c410b1d236185"
+  },
+  {
+    "source_id": "S-C-0FF",
+    "description": "Backend token sampling across slots",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/0ff0b4d03e74d9bc8a092ce2dd177d24cfdea007"
+  },
+  {
+    "source_id": "S-C-120",
+    "description": "FP6 endpoint semantics across backends",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/120227d3d34a0d52cfee168964d0a7e3212960a9"
+  },
+  {
+    "source_id": "S-C-16E",
+    "description": "Bounded HY3 WebGPU matrix",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/16ed874b3d950a67be0d14311708879a435ad3ca"
+  },
+  {
+    "source_id": "S-C-276",
+    "description": "One-slot automatic policy for strict HY3",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/2766f419526ea14ba1be8f31eca21263cfc52813"
+  },
+  {
+    "source_id": "S-C-62F",
+    "description": "ROCm/Vulkan ROCmFPX coherency repair",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/62f7508b12c6b8510fd7a77dfc5d9519fa026d82"
+  },
+  {
+    "source_id": "S-C-630",
+    "description": "HY3 MTP/NextN model graph",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/630fa5a0f8fc04689b86d1b0a3d75b2b7d546d07"
+  },
+  {
+    "source_id": "S-C-756",
+    "description": "UTF-8 disk-cache paths",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/756121a5e8e7da464aebd2ab344a2aefef6cecac"
+  },
+  {
+    "source_id": "S-C-7D7",
+    "description": "Strict greedy HY3 MTP verification",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/7d7b06bc5e6fd4a128af8efa954caa7409376a79"
+  },
+  {
+    "source_id": "S-C-807",
+    "description": "Backend/parser source-snapshot restoration",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/80732f992f7c75e9154cfe184041f1384c59a0fb"
+  },
+  {
+    "source_id": "S-C-848",
+    "description": "ROCmFP2 reference CI probe",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/8488bfc69f716b5aa34bf75d1a72466ac75cc5da"
+  },
+  {
+    "source_id": "S-C-8FC",
+    "description": "Chat whitespace upstream backport",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/8fcff76bca27ea2818761adad681cb792eb2fa26"
+  },
+  {
+    "source_id": "S-C-A8B",
+    "description": "Q2 ROCmFPX CPU OUT_PROD",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/a8b5fa906ccd13c6a8ca06d55aa287854c376868"
+  },
+  {
+    "source_id": "S-C-A8C",
+    "description": "WebUI provisioning upstream backports",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/a8c41d31423e3e0b6f2dc7138af1d4fba8edb295"
+  },
+  {
+    "source_id": "S-C-B133",
+    "description": "TurboQuant portability/type-handling repair",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/b1331a2dd4ca774833a26d7682b6ce1f9c022d4a"
+  },
+  {
+    "source_id": "S-C-B56",
+    "description": "Per-request speculative overrides",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/b56ad79d77bc1eb9fe6407640eec8b8edfc04900"
+  },
+  {
+    "source_id": "S-C-BB7",
+    "description": "Portable cache file synchronization",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/bb7d9cb5965e3be1ce2073134ba14787bf378113"
+  },
+  {
+    "source_id": "S-C-C81",
+    "description": "SSD prompt cache for stateful MTP",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/c81c7c92233b6370b4eb7087398779a8dcb234a4"
+  },
+  {
+    "source_id": "S-C-CCAC",
+    "description": "ROCmFPX README/MTP results update",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/ccac6e55ec7c0fa8acdcb6e80b1a242e4f7d654e"
+  },
+  {
+    "source_id": "S-C-D45",
+    "description": "CPU ROCmFPX OUT_PROD routing",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/d45ceff8d2b67fdebf73ebcb999807b0d322c73b"
+  },
+  {
+    "source_id": "S-C-D52",
+    "description": "Server read_file indentation upstream backport",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/d52c96a8339325417624351bebad194c3864cb26"
+  },
+  {
+    "source_id": "S-C-DF3",
+    "description": "ROCm 7.2 negative-infinity semantics",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/df3b8a0efa4dbdfcc2e29dac367c69eed310ed24"
+  },
+  {
+    "source_id": "S-C-E600",
+    "description": "WebGPU/Hexagon coherent snapshot restoration",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/e6009eb76d55062d22357e6f117a829e861be01b"
+  },
+  {
+    "source_id": "S-C-EFF",
+    "description": "Native MTP hardening and effective limits",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/eff9987923b58d1a6b7e54610c667803ac2d0ea7"
+  },
+  {
+    "source_id": "S-C-F961",
+    "description": "HY3 MTP conversion/split export",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/f961404519a2ed286b750ba1419d40318a6b9a92"
+  },
+  {
+    "source_id": "S-C-FE2",
+    "description": "Jinja CRT base guard upstream backport",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/fe2b7dc5e19a5e24c276593368a1bb41d0e27b1d"
+  },
+  {
+    "source_id": "S-C-FF8",
+    "description": "WebUI build repair",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/ff8e7b8cf9dab714951df49d71f5835a7322404a"
+  },
+  {
+    "source_id": "S-C-FUND",
+    "description": "Funding-link commit",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/1b49f4a004b8a2e0183c6cda7a61e7d322ac8d60"
+  },
+  {
+    "source_id": "S-C-PR27-M",
+    "description": "PR #27 merge",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/c2845bf86a5c1842d33bd9e990b2bcaf75779251"
+  },
+  {
+    "source_id": "S-C-PR28-M",
+    "description": "PR #28 merge",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/6bf20cd688ba0af882d1f68ba50b292edf646ab4"
+  },
+  {
+    "source_id": "S-C-PR31-M",
+    "description": "PR #31 merge",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/25c71fc6e12d73bb3804127e032d29fb8976ae40"
+  },
+  {
+    "source_id": "S-C-PR32-M",
+    "description": "PR #32 merge/current head",
+    "evidence_type": "Primary commit",
+    "url": "https://github.com/charlie12345/ROCmFPX/commit/a5605a72768c6562241b248e268e33dc92787394"
+  },
+  {
+    "source_id": "S-CMAKE-PRESETS",
+    "description": "Strix ROCmFPX CMake preset",
+    "evidence_type": "Primary build code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/CMakePresets.json"
+  },
+  {
+    "source_id": "S-COMPARE",
+    "description": "Exact 100-commit post-baseline compare",
+    "evidence_type": "Primary commit graph",
+    "url": "https://github.com/charlie12345/ROCmFPX/compare/5b3956605309dd3e6beed49c8f3a41423ba71d25...a5605a72768c6562241b248e268e33dc92787394"
+  },
+  {
+    "source_id": "S-CONTEXT-FORK",
+    "description": "Fork context/graph execution integration",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/llama-context.cpp"
+  },
+  {
+    "source_id": "S-CONVERTER-FORK",
+    "description": "Fork HF-to-GGUF converter",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/convert_hf_to_gguf.py"
+  },
+  {
+    "source_id": "S-CONVERTER-UP",
+    "description": "Current upstream HF-to-GGUF converter",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/convert_hf_to_gguf.py"
+  },
+  {
+    "source_id": "S-CPU-OPS",
+    "description": "CPU operation dispatch",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cpu/ops.cpp"
+  },
+  {
+    "source_id": "S-CPU-REG",
+    "description": "CPU type-trait registration",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cpu/ggml-cpu.c"
+  },
+  {
+    "source_id": "S-CUDA-DISPATCH",
+    "description": "Shared CUDA/HIP backend dispatch",
+    "evidence_type": "Primary backend code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/ggml-cuda.cu"
+  },
+  {
+    "source_id": "S-DEQUANT",
+    "description": "ROCmFPX device dequantization",
+    "evidence_type": "Primary kernel code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/dequantize.cuh"
+  },
+  {
+    "source_id": "S-EXT-FORK",
+    "description": "Fork private llama extension API",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/llama-ext.h"
+  },
+  {
+    "source_id": "S-EXT-UP",
+    "description": "Current upstream private llama extension API",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/src/llama-ext.h"
+  },
+  {
+    "source_id": "S-FORK-HEAD",
+    "description": "ROCmFPX pinned source tree",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394"
+  },
+  {
+    "source_id": "S-GGML-QUANTS",
+    "description": "Quant traits and conversion integration",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-quants.c"
+  },
+  {
+    "source_id": "S-GGUF-CONSTANTS",
+    "description": "GGUF Python type constants",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/gguf-py/gguf/constants.py"
+  },
+  {
+    "source_id": "S-GRAPH-FORK",
+    "description": "Fork graph plumbing",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/llama-graph.cpp"
+  },
+  {
+    "source_id": "S-HIP-CODEBOOK",
+    "description": "ROCmFPX HIP codebook helpers",
+    "evidence_type": "Primary kernel code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfpx_hip_codebook.cuh"
+  },
+  {
+    "source_id": "S-HIP-QUALITY",
+    "description": "HIP kernel quality workflow",
+    "evidence_type": "Primary CI code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/.github/workflows/hip-quality-check.yml"
+  },
+  {
+    "source_id": "S-HYV3-FORK",
+    "description": "Fork HY3 model and MTP graph",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/models/hyv3.cpp"
+  },
+  {
+    "source_id": "S-HYV3-UP",
+    "description": "Current upstream HY3 model",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/src/models/hy-v3.cpp"
+  },
+  {
+    "source_id": "S-MMQ",
+    "description": "ROCmFPX MMQ/GEMM integration",
+    "evidence_type": "Primary kernel code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmq.cu"
+  },
+  {
+    "source_id": "S-MMQ-H",
+    "description": "ROCmFPX MMQ tile loaders",
+    "evidence_type": "Primary kernel code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmq.cuh"
+  },
+  {
+    "source_id": "S-MMVQ",
+    "description": "ROCmFPX MMVQ/GEMV dispatch and Strix tuning",
+    "evidence_type": "Primary kernel code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmvq.cu"
+  },
+  {
+    "source_id": "S-PR27",
+    "description": "PR #27 \u2014 promote validated experimental branch",
+    "evidence_type": "Primary patch series",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/27"
+  },
+  {
+    "source_id": "S-PR27-COMMITS",
+    "description": "PR #27 commit list",
+    "evidence_type": "Primary commit list",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/27/commits"
+  },
+  {
+    "source_id": "S-PR27-FILES",
+    "description": "PR #27 file diff",
+    "evidence_type": "Primary patch map",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/27/files"
+  },
+  {
+    "source_id": "S-PR28",
+    "description": "PR #28 \u2014 funding link",
+    "evidence_type": "Primary patch series",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/28"
+  },
+  {
+    "source_id": "S-PR29",
+    "description": "Draft PR #29 \u2014 SSD prompt cache",
+    "evidence_type": "Primary patch series",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/29"
+  },
+  {
+    "source_id": "S-PR30",
+    "description": "Draft PR #30 \u2014 HY3 IFP2/adaptive MoE/cache",
+    "evidence_type": "Primary patch series",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/30"
+  },
+  {
+    "source_id": "S-PR31",
+    "description": "PR #31 \u2014 per-request speculative overrides",
+    "evidence_type": "Primary patch series",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/31"
+  },
+  {
+    "source_id": "S-PR31-FILES",
+    "description": "PR #31 file diff",
+    "evidence_type": "Primary patch map",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/31/files"
+  },
+  {
+    "source_id": "S-PR32",
+    "description": "PR #32 \u2014 HY3 MTP, ROCmFP2, server fixes",
+    "evidence_type": "Primary patch series",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/32"
+  },
+  {
+    "source_id": "S-PR32-COMMITS",
+    "description": "PR #32 commit list",
+    "evidence_type": "Primary commit list",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/32/commits"
+  },
+  {
+    "source_id": "S-PR32-FILES",
+    "description": "PR #32 file diff",
+    "evidence_type": "Primary patch map",
+    "url": "https://github.com/charlie12345/ROCmFPX/pull/32/files"
+  },
+  {
+    "source_id": "S-QT-ENUM-FORK",
+    "description": "ROCmFPX ggml type enumeration",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/include/ggml.h"
+  },
+  {
+    "source_id": "S-QT-ENUM-UP",
+    "description": "Current upstream ggml type enumeration",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/ggml/include/ggml.h"
+  },
+  {
+    "source_id": "S-QUANT-TOOL",
+    "description": "llama-quantize CLI integration",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tools/quantize/quantize.cpp"
+  },
+  {
+    "source_id": "S-QUANTIZER",
+    "description": "Model quantizer integration",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/llama-quant.cpp"
+  },
+  {
+    "source_id": "S-README-FORK",
+    "description": "ROCmFPX project README",
+    "evidence_type": "Primary repository documentation",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/README.md"
+  },
+  {
+    "source_id": "S-RECIPES",
+    "description": "ROCmFPX quantization recipes",
+    "evidence_type": "Primary repository documentation",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/docs/recipes/README.md"
+  },
+  {
+    "source_id": "S-ROCMFP2-C",
+    "description": "ROCmFP2 Phase-1 reference algorithms",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfp2_reference.c"
+  },
+  {
+    "source_id": "S-ROCMFP2-H",
+    "description": "ROCmFP2 Phase-1 frozen format/reference API",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfp2_reference.h"
+  },
+  {
+    "source_id": "S-ROCMFP2-TEST",
+    "description": "ROCmFP2 deterministic reference test",
+    "evidence_type": "Primary test code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/test_rocmfp2_reference.c"
+  },
+  {
+    "source_id": "S-ROCMFP4-C",
+    "description": "ROCmFP4 CPU reference implementation",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfp4/rocmfp4.c"
+  },
+  {
+    "source_id": "S-ROCMFP4-H",
+    "description": "ROCmFP4 on-disk block definitions",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfp4/rocmfp4.h"
+  },
+  {
+    "source_id": "S-ROCMFPX-C",
+    "description": "ROCmFPX CPU reference implementation",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfpx.c"
+  },
+  {
+    "source_id": "S-ROCMFPX-CI",
+    "description": "ROCmFPX validation workflow",
+    "evidence_type": "Primary CI code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/.github/workflows/check-rocmfpx.yml"
+  },
+  {
+    "source_id": "S-ROCMFPX-H",
+    "description": "ROCmFPX block definitions",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfpx.h"
+  },
+  {
+    "source_id": "S-ROCMFPX-README",
+    "description": "ROCmFPX format/backend notes",
+    "evidence_type": "Primary repository documentation",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/README.md"
+  },
+  {
+    "source_id": "S-RPC-FORK",
+    "description": "Fork RPC implementation",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-rpc/ggml-rpc.cpp"
+  },
+  {
+    "source_id": "S-RPC-IGPU-FIX",
+    "description": "Upstream RPC+iGPU/Strix Halo device-selection fix",
+    "evidence_type": "Primary upstream commit",
+    "url": "https://github.com/ggml-org/llama.cpp/commit/1738129bee5c81b06fa1850daf3f958813c76f5f"
+  },
+  {
+    "source_id": "S-RPC-LIGHTNING",
+    "description": "Upstream Lightning Indexer and RPC version bump",
+    "evidence_type": "Primary upstream commit",
+    "url": "https://github.com/ggml-org/llama.cpp/commit/00f5442cc4e805293280c8f85d21d8f9d4aad206"
+  },
+  {
+    "source_id": "S-RPC-MTP-FIX",
+    "description": "Upstream RPC multi-context graph UID fix",
+    "evidence_type": "Primary upstream commit",
+    "url": "https://github.com/ggml-org/llama.cpp/commit/c3e9ade6dd3ff2a1ceafd2d59062634715b472c4"
+  },
+  {
+    "source_id": "S-RPC-UP",
+    "description": "Current upstream RPC implementation",
+    "evidence_type": "Primary upstream code",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/ggml/src/ggml-rpc/ggml-rpc.cpp"
+  },
+  {
+    "source_id": "S-SERVER-ARGS",
+    "description": "Fork server arguments",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/common/arg.cpp"
+  },
+  {
+    "source_id": "S-SERVER-CTX",
+    "description": "Fork server context/cache/MTP integration",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tools/server/server-context.cpp"
+  },
+  {
+    "source_id": "S-SERVER-DOC",
+    "description": "Fork serving documentation",
+    "evidence_type": "Primary repository documentation",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/docs/ROCmFPX-SERVING.md"
+  },
+  {
+    "source_id": "S-SERVER-SCHEMA-UP",
+    "description": "Current upstream server schema",
+    "evidence_type": "Primary upstream code",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/tools/server/server-schema.cpp"
+  },
+  {
+    "source_id": "S-SERVER-TASK",
+    "description": "Fork request parsing/task behavior",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tools/server/server-task.cpp"
+  },
+  {
+    "source_id": "S-SERVER-TEST",
+    "description": "Fork disk-cache server tests",
+    "evidence_type": "Primary test code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tools/server/tests/unit/test_prompt_cache_disk.py"
+  },
+  {
+    "source_id": "S-SPEC-FORK",
+    "description": "Fork speculative decoding implementation",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/common/speculative.cpp"
+  },
+  {
+    "source_id": "S-SPEC-UP",
+    "description": "Current upstream speculative decoding implementation",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/common/speculative.cpp"
+  },
+  {
+    "source_id": "S-SWEEP-BACKEND",
+    "description": "ROCmFPX backend sweep",
+    "evidence_type": "Primary validation code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/sweep-rocmfpx-backend-ops.sh"
+  },
+  {
+    "source_id": "S-TUNE-FLAGS",
+    "description": "ROCmFPX decode tuning flags",
+    "evidence_type": "Primary build/tuning code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/rocmfp4-decode-tune-flags.sh"
+  },
+  {
+    "source_id": "S-UP-HEAD",
+    "description": "llama.cpp pinned upstream tree",
+    "evidence_type": "Primary code",
+    "url": "https://github.com/ggml-org/llama.cpp/tree/86d86ed4396b4130922f7b9af26e3d9fc11a591b"
+  },
+  {
+    "source_id": "S-UP-HY3-MERGE",
+    "description": "Upstream HY3 merge commit",
+    "evidence_type": "Primary upstream commit",
+    "url": "https://github.com/ggml-org/llama.cpp/commit/2969d6d15d67a08e7b83f26164b15350c79c5248"
+  },
+  {
+    "source_id": "S-UP-PR25395",
+    "description": "Upstream PR #25395 \u2014 HY3 with MTP",
+    "evidence_type": "Primary upstream patch series",
+    "url": "https://github.com/ggml-org/llama.cpp/pull/25395"
+  },
+  {
+    "source_id": "S-UP-SPLIT-MTP",
+    "description": "Upstream split MTP export",
+    "evidence_type": "Primary upstream commit",
+    "url": "https://github.com/ggml-org/llama.cpp/commit/cb489bc0fb789c2cb7a9cc9dc44fa71893fe0988"
+  },
+  {
+    "source_id": "S-VECDOT",
+    "description": "ROCmFPX quantized dot products",
+    "evidence_type": "Primary kernel code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/vecdotq.cuh"
+  },
+  {
+    "source_id": "S-VULKAN",
+    "description": "ROCmFPX Vulkan backend integration",
+    "evidence_type": "Primary backend code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/ggml-vulkan.cpp"
+  },
+  {
+    "source_id": "S-VULKAN-FP6",
+    "description": "ROCmFPX FP6 Vulkan dequant shader",
+    "evidence_type": "Primary shader code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/vulkan-shaders/dequant_rocmfpx_fp6.comp"
+  },
+  {
+    "source_id": "S-VULKAN-TYPES",
+    "description": "ROCmFPX Vulkan shader types",
+    "evidence_type": "Primary shader code",
+    "url": "https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/vulkan-shaders/types.glsl"
+  }
+]

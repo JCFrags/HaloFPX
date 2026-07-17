@@ -1,0 +1,18 @@
+digraph G {
+graph [bgcolor="transparent", fontname="Helvetica", pad="0.25", nodesep="0.45", ranksep="0.55"]; node [shape=box, style="rounded,filled", fillcolor="#eef3fa", color="#506784", fontname="Helvetica", fontsize=10, margin="0.12,0.08"]; edge [color="#506784", fontname="Helvetica", fontsize=9];
+rankdir=LR;
+a[label="ABSENT"];
+b[label="FINAL PATH OPEN
+O_TRUNC", fillcolor="#fde8e8", color="#a40e26"];
+c[label="HEADER / PAYLOAD
+WRITING", fillcolor="#fde8e8", color="#a40e26"];
+d[label="HOT RAM"];
+e[label="WARM RAM"];
+f[label="COLD SSD"];
+g[label="EVICTED"];
+p[label="CRASH-VISIBLE
+PARTIAL", fillcolor="#fff0d6", color="#8a5a00"];
+m[label="MISS ON READ", fillcolor="#e8f5e9", color="#216e39"];
+a->b[label="store"]; b->c; c->d[label="close + map"]; d->e[label="demote"]; e->f[label="demote"]; f->d[label="load/promote"]; f->g[label="cold prune"]; d->g; e->g;
+b->p[label="crash", style=dashed, color="#a40e26"]; c->p[label="crash", style=dashed, color="#a40e26"]; p->m[label="short read later"];
+}

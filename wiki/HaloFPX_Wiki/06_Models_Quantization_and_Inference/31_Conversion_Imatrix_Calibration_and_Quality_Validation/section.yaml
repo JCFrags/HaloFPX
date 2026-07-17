@@ -1,0 +1,17 @@
+section_id: "31"
+title: "Conversion, Imatrix, Calibration, and Quality Validation"
+category: "06_Models_Quantization_and_Inference"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 5
+open_question_count: 9
+required_machine_experiments:
+  - "source-to-BF16 conversion and tokenizer/logit audit"
+  - "resumable stratified imatrix generation"
+  - "matched PPL, KLD, tool, coding, and long-context tests"
+  - "state round-trip and corruption rejection on both backends/nodes"
+related_sections: ["29", "30", "57", "76", "78"]
+applicability:
+  repositories: ["charlie12345/ROCmFPX", "ggml-org/llama.cpp"]
+  software_versions: ["a5605a72768c6562241b248e268e33dc92787394", "788e07dc91d266ad3162a1ce9037665656269689"]
+  hardware_revisions: ["exact Strix Halo revisions pending"]

@@ -1,0 +1,252 @@
+# PR #27 — promotion patch map
+
+- **PR:** [#27](https://github.com/charlie12345/ROCmFPX/pull/27)
+- **Base:** `5b3956605309dd3e6beed49c8f3a41423ba71d25`
+- **Head before merge:** `ccac6e55ec7c0fa8acdcb6e80b1a242e4f7d654e`
+- **Merge:** `c2845bf86a5c1842d33bd9e990b2bcaf75779251`
+- **Authored commits:** 53
+- **Changed paths:** 237
+- **Canonical commits:** [PR commits](https://github.com/charlie12345/ROCmFPX/pull/27/commits)
+- **Canonical diff:** [PR files](https://github.com/charlie12345/ROCmFPX/pull/27/files)
+
+Primary source: [S-PR27](https://github.com/charlie12345/ROCmFPX/pull/27)
+
+| Exact path | Subsystem | Decision | Inventory rationale |
+| --- | --- | --- | --- |
+| `.github/workflows/build-and-test-snapdragon.yml` | Build / CI | **REFRESH** | Build/CI integration must track current upstream while retaining ROCmFPX-specific jobs and gfx1151 coverage. |
+| `.github/workflows/build.yml` | Build / CI | **REFRESH** | Build/CI integration must track current upstream while retaining ROCmFPX-specific jobs and gfx1151 coverage. |
+| `.github/workflows/check-rocmfpx.yml` | Build / CI | **RETAIN** | Fork-specific correctness gate; update implementation details but preserve the gate. |
+| `.github/workflows/hip-quality-check.yml` | Build / CI | **REFRESH** | Build/CI integration must track current upstream while retaining ROCmFPX-specific jobs and gfx1151 coverage. |
+| `.gitignore` | Other | **REFRESH** | Project documentation/housekeeping should be regenerated after the upstream refresh. |
+| `AI_CHANGES.md` | Documentation / recipes | **REFRESH** | Project documentation/housekeeping should be regenerated after the upstream refresh. |
+| `CMakePresets.json` | Build / CI | **REFRESH** | Build/CI integration must track current upstream while retaining ROCmFPX-specific jobs and gfx1151 coverage. |
+| `README.md` | Documentation / recipes | **REFRESH** | Project documentation/housekeeping should be regenerated after the upstream refresh. |
+| `build-xcframework.sh` | Build / CI | **RETIRE** | Generic upstream packaging script; use the current upstream copy. |
+| `common/arg.cpp` | Common / parser / sampling | **REFRESH** | Shared common/server infrastructure: use current upstream and preserve only fork-specific policy/state behavior. |
+| `common/chat-auto-parser-generator.cpp` | Common / parser / sampling | **RETIRE** | Generic parser/Jinja backport; use current upstream. |
+| `common/chat-diff-analyzer.cpp` | Common / parser / sampling | **RETIRE** | Generic parser/Jinja backport; use current upstream. |
+| `common/chat-peg-parser.cpp` | Common / parser / sampling | **RETIRE** | Generic parser/Jinja backport; use current upstream. |
+| `common/chat-peg-parser.h` | Common / parser / sampling | **RETIRE** | Generic parser/Jinja backport; use current upstream. |
+| `common/chat.cpp` | Common / parser / sampling | **RETIRE** | Generic parser/Jinja backport; use current upstream. |
+| `common/common.cpp` | Common / parser / sampling | **REFRESH** | Shared common/server infrastructure: use current upstream and preserve only fork-specific policy/state behavior. |
+| `common/common.h` | Common / parser / sampling | **REFRESH** | Shared common/server infrastructure: use current upstream and preserve only fork-specific policy/state behavior. |
+| `common/peg-parser.cpp` | Common / parser / sampling | **RETIRE** | Generic parser/Jinja backport; use current upstream. |
+| `common/sampling.cpp` | Common / parser / sampling | **REFRESH** | Shared common/server infrastructure: use current upstream and preserve only fork-specific policy/state behavior. |
+| `common/speculative.cpp` | MTP / speculative decoding | **REFRESH** | Shared common/server infrastructure: use current upstream and preserve only fork-specific policy/state behavior. |
+| `conversion/deepseek.py` | Conversion / GGUF | **RETIRE** | Generic model-conversion snapshot; replace with current upstream conversion architecture. |
+| `convert_hf_to_gguf.py` | Conversion / GGUF | **REFRESH** | Shared GGUF/converter surface: use current upstream and re-add ROCmFPX IDs, quant mapping, and tests. |
+| `docs/ROCmFP6-COMPETITIVE-EXPERIMENT.md` | Documentation / recipes | **REFRESH** | Shared or mixed file; inspect hunks and re-port only ROCmFPX-owned behavior. |
+| `docs/ROCmFP6-DECODE-FOLLOWUP.md` | Documentation / recipes | **REFRESH** | Shared or mixed file; inspect hunks and re-port only ROCmFPX-owned behavior. |
+| `docs/ROCmFPX-EXPERIMENT.md` | Documentation / recipes | **RETAIN** | ROCmFPX-owned operational or experimental documentation. |
+| `docs/ROCmFPX-SERVING.md` | Documentation / recipes | **RETAIN** | ROCmFPX-owned operational or experimental documentation. |
+| `docs/ROCmFPX-UPSTREAM-CREDITS.md` | Documentation / recipes | **RETAIN** | ROCmFPX-owned operational or experimental documentation. |
+| `docs/ROCmFPX-VLLM-FOLLOWUP.md` | Documentation / recipes | **RETAIN** | ROCmFPX-owned operational or experimental documentation. |
+| `docs/UPSTREAM-ATTRIBUTION.md` | Documentation / recipes | **REFRESH** | Shared or mixed file; inspect hunks and re-port only ROCmFPX-owned behavior. |
+| `docs/rocmfpx/qwable-27b-chadrock-rocmfpx-ultraquality-761bpw.md` | Documentation / recipes | **RETAIN** | ROCmFPX-owned quantization recipe or model-quality evidence. |
+| `emergencyundo/PROMOTE-EXPERIMENTAL-TO-MAIN.md` | Other | **RETIRE** | Historical promotion rollback note; archive outside the maintained patch layer. |
+| `ggml/rocmfp4/rocmfp4.c` | Quantization formats | **RETAIN** | ROCmFPX-owned format contract, CPU reference, codebook, and deterministic tests. |
+| `ggml/rocmfpx/README.md` | Quantization formats | **RETAIN** | ROCmFPX-owned format contract, CPU reference, codebook, and deterministic tests. |
+| `ggml/rocmfpx/rocmfpx.c` | Quantization formats | **RETAIN** | ROCmFPX-owned format contract, CPU reference, codebook, and deterministic tests. |
+| `ggml/rocmfpx/rocmfpx_hip_codebook.cuh` | Quantization formats | **RETAIN** | ROCmFPX-owned format contract, CPU reference, codebook, and deterministic tests. |
+| `ggml/rocmfpx/test_rocmfpx.c` | Quantization formats | **RETAIN** | ROCmFPX-owned format contract, CPU reference, codebook, and deterministic tests. |
+| `ggml/src/ggml-cpu/ggml-cpu.c` | CPU / ggml core | **REFRESH** | Shared ggml registry/dispatch: preserve ROCmFPX type behavior while rebasing onto current upstream. |
+| `ggml/src/ggml-cpu/ops.cpp` | CPU / ggml core | **REFRESH** | Shared ggml registry/dispatch: preserve ROCmFPX type behavior while rebasing onto current upstream. |
+| `ggml/src/ggml-cuda/common.cuh` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/cpy-utils.cuh` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/cpy.cu` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/cross-entropy-loss.cu` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/dequantize.cuh` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/dsv4.cu` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/fattn-common.cuh` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/fattn.cu` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/ggml-cuda.cu` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/mmq.cuh` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/mmvq.cu` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/set-rows.cu` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/softmax.cu` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/topk-moe.cu` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-cuda/vecdotq.cuh` | ROCm/HIP kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-hexagon/ggml-hexagon.cpp` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp-opnode.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/CMakeLists.txt` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/argsort-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/concat-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/cpy-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/flash-attn-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/get-rows-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hex-dma.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hex-profile.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hex-utils.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hmx-flash-attn-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hmx-matmul-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hmx-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hmx-ops.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hmx-profile.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hmx-queue.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hmx-queue.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/htp-ctx.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/htp-ops.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hvx-flash-attn.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hvx-log.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hvx-pow.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hvx-sin-cos.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/hvx-utils.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/main.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/matmul-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/pad-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/rope-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/set-rows-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/ssm-conv.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/htp/unary-ops.c` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-hexagon/op-desc.h` | Hexagon | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-metal/ggml-metal-device.m` | Metal | **RETIRE** | Generic capability-reporting repair; current upstream is the source of truth. |
+| `ggml/src/ggml-opencl/CMakeLists.txt` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/ggml-opencl.cpp` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/concat.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/cpy.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/cvt.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_moe_mxfp4_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_moe_q4_0_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_moe_q4_1_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_moe_q4_k_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_moe_q5_0_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_moe_q5_1_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_moe_q5_k_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_moe_q6_k_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_noshuffle_q5_0_f32.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemm_noshuffle_q5_1_f32.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_moe_mxfp4_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_moe_q4_0_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_moe_q4_1_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_moe_q4_k_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_moe_q5_0_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_moe_q5_1_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_moe_q5_k_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_moe_q6_k_f32_ns.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_noshuffle_q5_0_f32.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/gemv_noshuffle_q5_1_f32.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/get_rows.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/mul_mm_q5_0_f32_l4_lm.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/mul_mm_q5_1_f32_l4_lm.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/mul_mv_f16_f32_l4.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/mul_mv_q5_0_f32.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/mul_mv_q5_0_f32_flat.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/mul_mv_q5_1_f32.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/mul_mv_q5_1_f32_flat.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-opencl/kernels/mul_mv_q6_k_f32_flat.cl` | OpenCL | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-quants.h` | CPU / ggml core | **REFRESH** | Shared ggml registry/dispatch: preserve ROCmFPX type behavior while rebasing onto current upstream. |
+| `ggml/src/ggml-vulkan/ggml-vulkan.cpp` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/copy_to_quant.comp` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/dequant_funcs.glsl` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/dequant_funcs_cm2.glsl` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/dequant_rocmfpx_fp6.comp` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/flash_attn_dequant.glsl` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/flash_attn_mmq_funcs.glsl` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/flash_attn_mmq_v_funcs.glsl` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/mul_mat_vec.comp` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/mul_mat_vecq_funcs.glsl` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/mul_mm_funcs.glsl` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/types.glsl` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-vulkan/vulkan-shaders/vulkan-shaders-gen.cpp` | Vulkan kernels | **REFRESH** | Shared backend file: start from current upstream and re-port only ROCmFPX type/kernels and validated Strix tuning. |
+| `ggml/src/ggml-webgpu/CMakeLists.txt` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/ggml-webgpu-shader-lib.hpp` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/ggml-webgpu.cpp` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/pre_wgsl.hpp` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/binary.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/common_decls.tmpl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/concat.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/cpy.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/flash_attn.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/flash_attn_quant_staging.tmpl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/flash_attn_tile.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/flash_attn_vec_split.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/mul_mat.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/mul_mat_decls.tmpl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/mul_mat_id_gather.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/mul_mat_vec.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/mul_mat_vec_acc.tmpl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/mul_mat_vec_q_acc.tmpl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/quant_inner_loops.tmpl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/quantize_q8.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/scale.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/set_rows.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/set_rows_quant.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `ggml/src/ggml-webgpu/wgsl-shaders/unary.wgsl` | WebGPU | **RETIRE** | Imported backend snapshot; replace wholesale with current upstream and re-add only tested ROCmFPX hooks if required. |
+| `gguf-py/gguf/constants.py` | Conversion / GGUF | **REFRESH** | Shared GGUF/converter surface: use current upstream and re-add ROCmFPX IDs, quant mapping, and tests. |
+| `gguf-py/gguf/gguf_writer.py` | Conversion / GGUF | **REFRESH** | Shared GGUF/converter surface: use current upstream and re-add ROCmFPX IDs, quant mapping, and tests. |
+| `gguf-py/gguf/tensor_mapping.py` | Conversion / GGUF | **REFRESH** | Shared GGUF/converter surface: use current upstream and re-add ROCmFPX IDs, quant mapping, and tests. |
+| `gguf-py/tests/test_quants.py` | Conversion / GGUF | **REFRESH** | Shared GGUF/converter surface: use current upstream and re-add ROCmFPX IDs, quant mapping, and tests. |
+| `include/llama.h` | Other | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `models/templates/LFM2.5-8B-A1B.jinja` | Model architecture | **RETIRE** | Generic template snapshot; use current upstream template. |
+| `models/templates/Qwen-ChatML-no-think.jinja` | Model architecture | **RETIRE** | Generic template snapshot; use current upstream template. |
+| `requirements.txt` | Build / CI | **RETIRE** | Generic dependency/provisioning snapshot; use current upstream. |
+| `requirements/requirements-convert_modular.txt` | Build / CI | **RETIRE** | Generic dependency/provisioning snapshot; use current upstream. |
+| `scripts/build-rocmfp4-rocm714-local.sh` | Build / CI | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/build-strix-rocmfp4-mtp.sh` | Build / CI | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/check-rocmfp4-qwen-mtp-regression.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/check-rocmfpx-all.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/check-rocmfpx-dynamic-draft.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/check-rocmfpx-summary.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/convert_deepseek_v4_modular.py` | Validation / tuning scripts | **RETIRE** | Generic model-conversion snapshot; replace with current upstream conversion architecture. |
+| `scripts/hip/gcn-cdna-vgpr-check.py` | Validation / tuning scripts | **REFRESH** | Build/CI integration must track current upstream while retaining ROCmFPX-specific jobs and gfx1151 coverage. |
+| `scripts/profile-rocmfpx-rocm-bench.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/quantize-rocmfpx-agent.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/rocmfp4-decode-tune-flags.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/rocmfpx-draft-profile.py` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/rocmfpx-dynamic-draft.py` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/rocmfpx-model-capabilities.py` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/rocmfpx-production-preflight.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/run-deepseek-v4-rocmfp3-pipeline.sh` | Validation / tuning scripts | **RETIRE** | Generic model-conversion snapshot; replace with current upstream conversion architecture. |
+| `scripts/run-qwen36-27b-benchmark.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/run-qwen36-27b-dflash-rocmfp4-batch16.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/run-qwen36-q4km-vs-rocmfp4-benchmark.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/run-rocmfpx-fp3-mtp-server-speed-profile.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/run-rocmfpx-mtp-server.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/setup-rocm-7.2.1-rpath-local.sh` | Build / CI | **REFRESH** | Shared or mixed file; inspect hunks and re-port only ROCmFPX-owned behavior. |
+| `scripts/sweep-rocmfp4-prefill-mmq.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/sweep-rocmfp6-competitive.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/sweep-rocmfp6-kernel-tune.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/sweep-rocmfpx-agent-routing.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/sweep-rocmfpx-agent-size-table.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/sweep-rocmfpx-backend-ops.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/sweep-rocmfpx-perplexity.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/sweep-rocmfpx-rocm-ai-speed.sh` | Validation / tuning scripts | **RETAIN** | ROCmFPX-specific build, validation, tuning, or recipe automation. |
+| `scripts/webui-download.cmake` | Build / CI | **RETIRE** | Generic dependency/provisioning snapshot; use current upstream. |
+| `src/CMakeLists.txt` | Model loader / quantization | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-arch.cpp` | Model loader / quantization | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-arch.h` | Model loader / quantization | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-batch.cpp` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-context.cpp` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-ext.h` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-graph.cpp` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-graph.h` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-kv-cache-dsa.cpp` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-kv-cache-dsa.h` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-kv-cache-iswa.cpp` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-kv-cache.cpp` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-kv-cache.h` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-memory-hybrid.cpp` | Graph / context / KV | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-model-loader.cpp` | Model loader / quantization | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-model.cpp` | Model loader / quantization | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-model.h` | Model loader / quantization | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/llama-quant.cpp` | Model loader / quantization | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `src/models/deepseek32.cpp` | Model architecture | **RETIRE** | Generic model implementation imported from an older upstream snapshot. |
+| `src/models/deepseek4-graph.cpp` | Model architecture | **RETIRE** | Generic model implementation imported from an older upstream snapshot. |
+| `src/models/deepseek4.cpp` | Model architecture | **RETIRE** | Generic model implementation imported from an older upstream snapshot. |
+| `src/models/dflash.cpp` | Model architecture | **RETIRE** | Generic model implementation imported from an older upstream snapshot. |
+| `src/models/eagle3.cpp` | Model architecture | **RETIRE** | Generic model implementation imported from an older upstream snapshot. |
+| `src/models/models.h` | Model architecture | **REFRESH** | Shared llama core/private API: use current upstream and re-port only extension-specific hooks. |
+| `tests/test-chat-auto-parser.cpp` | Tests | **RETIRE** | Tests for generic parser/Jinja backports; use current upstream equivalents. |
+| `tests/test-chat.cpp` | Tests | **RETIRE** | Tests for generic parser/Jinja backports; use current upstream equivalents. |
+| `tests/test-llama-archs.cpp` | Tests | **REFRESH** | Shared or mixed file; inspect hunks and re-port only ROCmFPX-owned behavior. |
+| `tests/test-quant-type-selection.cpp` | Tests | **REFRESH** | Shared test/tool file: rebase then retain ROCmFPX-specific cases. |
+| `tools/mtmd/clip.cpp` | Other | **REFRESH** | Shared or mixed file; inspect hunks and re-port only ROCmFPX-owned behavior. |
+| `tools/quantize/quantize.cpp` | Other | **REFRESH** | Shared test/tool file: rebase then retain ROCmFPX-specific cases. |
+| `tools/server/CMakeLists.txt` | Server / cache | **REFRESH** | Shared server implementation: use current upstream and re-port disk-cache, strict verification, and request-override deltas. |
+| `tools/server/server-chat.cpp` | Server / cache | **REFRESH** | Shared server implementation: use current upstream and re-port disk-cache, strict verification, and request-override deltas. |
+| `tools/server/server-context.cpp` | Server / cache | **REFRESH** | Shared server implementation: use current upstream and re-port disk-cache, strict verification, and request-override deltas. |
+| `tools/server/server-task.cpp` | Server / cache | **REFRESH** | Shared server implementation: use current upstream and re-port disk-cache, strict verification, and request-override deltas. |
+| `tools/server/tests/unit/test_speculative.py` | Server / cache | **REFRESH** | Shared server implementation: use current upstream and re-port disk-cache, strict verification, and request-override deltas. |
+| `tools/server/webui/src/lib/constants/uri-template.ts` | WebUI | **RETIRE** | Generic WebUI repair/snapshot; use current upstream WebUI. |
+| `tools/server/webui/src/lib/services/chat.service.ts` | WebUI | **RETIRE** | Generic WebUI repair/snapshot; use current upstream WebUI. |
+| `tools/server/webui/src/lib/stores/agentic.svelte.ts` | WebUI | **RETIRE** | Generic WebUI repair/snapshot; use current upstream WebUI. |

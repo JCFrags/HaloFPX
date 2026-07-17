@@ -1,0 +1,56 @@
+schema_version: "1.0"
+name: Contiguous split with layer-local MoE experts
+mode: moe_layer_local_split
+viability: go_candidate
+objective: [MoE model capacity, avoid per-layer expert traffic]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: control_plus_bulk
+  bandwidth_symbol: B_bulk
+  latency_symbol: ell at one layer boundary
+coordinator_rank: 0
+ranks:
+  - rank_id: 0
+    node: A
+    role: [frontend, first contiguous MoE stage]
+    ownership:
+      tokenizer: full tokenizer and detokenizer
+      sampler: none
+      rng: request metadata only
+      model: embeddings plus layers [0,k), including routers and non-expert blocks
+      experts: every expert attached to layers [0,k)
+      kv: attention KV for layers [0,k)
+      sessions: authoritative request and ordering state
+  - rank_id: 1
+    node: B
+    role: [second contiguous MoE stage, sampler]
+    ownership:
+      tokenizer: optional mirror
+      sampler: final norm, head, logits policy, token selection
+      rng: final sampling RNG/counters
+      model: layers [k,L), including routers and non-expert blocks, plus final norm/head
+      experts: every expert attached to layers [k,L)
+      kv: attention KV for layers [k,L)
+      sessions: stage-local handles
+flows:
+  - phase: prefill or decode
+    from: 0
+    to: 1
+    payload: one hidden-state boundary tensor
+    volume_formula: N*h*b_a prefill; Q*h*b_a decode
+    synchronization: one boundary dependency per message
+    link_policy: bulk_striped_if_validated
+  - phase: sampled-token feedback
+    from: 1
+    to: 0
+    payload: selected token IDs
+    volume_formula: Q*b_t plus metadata
+    synchronization: one autoregressive feedback dependency per decode step
+    link_policy: control
+hard_gates:
+  - The chosen layer cut fits all experts belonging to each local layer partition.
+  - Cut selection uses expert-weight and runtime-memory accounting, not equal layer count.
+  - A single boundary is retained; experts are not independently scattered across the cut.
+notes:
+  - Preferred first attempt for Mixtral/Qwen-style MoE models over a slow inter-node fabric.

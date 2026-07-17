@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

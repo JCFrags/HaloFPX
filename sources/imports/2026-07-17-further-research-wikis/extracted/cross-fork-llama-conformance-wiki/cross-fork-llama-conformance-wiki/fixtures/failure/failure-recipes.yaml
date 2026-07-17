@@ -1,0 +1,38 @@
+schema_version: '1.0'
+global_safety:
+  watchdog_required: true
+  isolated_temp_directory: true
+  production_paths_forbidden: true
+  public_rpc_binding_forbidden: true
+  preserve_stdout_stderr: true
+  capture_process_tree: true
+classes:
+- id: input-corruption
+  examples:
+  - GGUF byte mutations
+  - cache truncation
+  - malformed JSON
+  expected: bounded rejection
+- id: resource-exhaustion
+  examples:
+  - host OOM
+  - device OOM
+  - disk full
+  - slot saturation
+  expected: explicit resource response or documented fallback
+- id: transport
+  examples:
+  - RPC disconnect
+  - HTTP client disconnect
+  expected: bounded cancellation/transport error
+- id: process
+  examples:
+  - SIGINT
+  - termination during checkpoint publication
+  expected: declared exit and atomic state policy
+- id: backend
+  examples:
+  - unsupported kernel
+  - injected operation error
+  - device loss
+  expected: no unchecked output

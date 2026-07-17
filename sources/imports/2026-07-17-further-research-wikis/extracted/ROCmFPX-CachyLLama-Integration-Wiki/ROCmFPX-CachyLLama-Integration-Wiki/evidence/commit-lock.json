@@ -1,0 +1,56 @@
+{
+  "evidence_date": "2026-07-17",
+  "implementation_patch_included": false,
+  "notable_commits": {
+    "amd_small_gpu_vulkan_already_canonical": "0bbc87b163ff7826656b1024dac5703e3f2bd6b6",
+    "canonical_ssd_prompt_cache": "c81c7c92233b6370b4eb7087398779a8dcb234a4",
+    "canonical_utf8_disk_paths": "756121a5e8e7da464aebd2ab344a2aefef6cecac",
+    "canonical_windows_test_shutdown": "bdac1b3061a3bfc3af0161e0de431af92efd6c0a"
+  },
+  "provenance_gaps": [
+    "Maintainer confirmation of resolved donor identity",
+    "Exact introduction SHAs for selected donor-original features",
+    "Upstream overlap/patch-id classification per candidate",
+    "Per-capability P3 approval"
+  ],
+  "repositories": {
+    "canonical": {
+      "branch": "main",
+      "head": "a5605a72768c6562241b248e268e33dc92787394",
+      "repo": "charlie12345/ROCmFPX"
+    },
+    "donor_engine": {
+      "branch": "master",
+      "head": "6be745998f568e379ea197fcf827baec73ff9940",
+      "repo": "fewtarius/CachyLLama"
+    },
+    "donor_parent": {
+      "branch": "main",
+      "head": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "repo": "fewtarius/llama-ai"
+    },
+    "upstream": {
+      "branch": "master",
+      "head": "86d86ed4396b4130922f7b9af26e3d9fc11a591b",
+      "repo": "ggml-org/llama.cpp"
+    }
+  },
+  "reviewed_blobs": {
+    "canonical_AI_CHANGES": "e5acbf932092eef329b73c5748d56a6cc93f84eb",
+    "canonical_LICENSE": "e7dca554bcb802f98408383a864404e3aa4eacca",
+    "canonical_THIRD_PARTY_NOTICES": "4b2f877fe5011ac7eca70b5409a1cb7b032109ea",
+    "canonical_disk_cache_tests": "110ba252e96066a37cc3540a921e2d00c60ee2a1",
+    "canonical_server_task_cpp": "6e0bb85d1080ac57746eeef0aacddfa293d90fd8",
+    "canonical_server_task_h": "a3ebc1ef5a4a9c88d4045a32a30e857ba6af7087",
+    "donor_LICENSE": "e7dca554bcb802f98408383a864404e3aa4eacca",
+    "donor_README": "2a19230f301821314d4b061a1ae9dfd00c0254e1",
+    "donor_kv_ssd_cache_cpp": "9fe3d2bfb646cb00c1f50c06fde4321d3da8632d",
+    "donor_kv_ssd_cache_h": "4c13dc525366d57b8da5c361fbc36f32480ee64a",
+    "donor_llama_h": "d55eca769ef64067b93402d6ee03bca7ba8f75ad",
+    "donor_page_manager_h": "1a782370ac3bd39e2b9841ada51060c79c29a55c",
+    "donor_server_page_manager_h": "fe2e6d61beeb16b397a4fb2606ed436c7ee56a01",
+    "donor_system_cache_h": "e4a360449c6c8f935d1d3c6d692023b56f5e730d",
+    "donor_user_isolation_design": "8c85fe7de439ed27feff9a6e35ceebd456dc6421",
+    "parent_LICENSE": "f288702d2fa16d3cdf0035b15a9fcbc552cd88e7"
+  }
+}

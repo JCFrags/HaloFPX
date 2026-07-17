@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "note": "Inputs only. Reuse upstream native sampler expectations or promote an independently reviewed reference.",
+  "vectors": [
+    {
+      "id": "monotonic-5",
+      "probabilities": [
+        0.04,
+        0.08,
+        0.16,
+        0.24,
+        0.48
+      ]
+    },
+    {
+      "id": "ties-4",
+      "probabilities": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ]
+    },
+    {
+      "id": "zero-tail",
+      "probabilities": [
+        0.7,
+        0.2,
+        0.1,
+        0.0
+      ]
+    }
+  ]
+}

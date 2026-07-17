@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.smoke-build/
+benchmark-results/
+downloads/
+llama.cpp/
+ROCmFPX/
+models/
+mkdocs-site/
+*.tar.gz
+*.zip

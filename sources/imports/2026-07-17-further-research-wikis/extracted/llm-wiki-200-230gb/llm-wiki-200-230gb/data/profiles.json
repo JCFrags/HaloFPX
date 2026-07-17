@@ -1,0 +1,106 @@
+{
+  "profiles": [
+    {
+      "id": "uma-256-single",
+      "name": "Single 256 GiB unified-memory host",
+      "kind": "host",
+      "notes": "General UMA/server profile, not a Strix Halo SKU.",
+      "members": [
+        {
+          "name": "host",
+          "capacity_gib": 256.0,
+          "reserve_os_gib": 12.0,
+          "reserve_runtime_gib": 8.0,
+          "reserve_skew_gib": 4.0
+        }
+      ]
+    },
+    {
+      "id": "rpc-2x128-uma",
+      "name": "Two 128 GiB UMA RPC nodes",
+      "kind": "rpc",
+      "notes": "Memory envelope only. llama.cpp RPC is proof-of-concept and insecure on untrusted networks; target-size Strix Halo throughput is unmeasured.",
+      "members": [
+        {
+          "name": "coordinator",
+          "capacity_gib": 128.0,
+          "reserve_os_gib": 10.0,
+          "reserve_runtime_gib": 6.0,
+          "reserve_skew_gib": 4.0
+        },
+        {
+          "name": "worker",
+          "capacity_gib": 128.0,
+          "reserve_os_gib": 8.0,
+          "reserve_runtime_gib": 6.0,
+          "reserve_skew_gib": 4.0
+        }
+      ]
+    },
+    {
+      "id": "local-3x96-gpu",
+      "name": "One host, 3 \u00d7 96 GiB accelerators",
+      "kind": "local-gpu",
+      "notes": "Aggregate accelerator capacity 288 GiB. Host RAM/file-cache requirement is separate.",
+      "members": [
+        {
+          "name": "gpu0",
+          "capacity_gib": 96.0,
+          "reserve_os_gib": 0.0,
+          "reserve_runtime_gib": 6.0,
+          "reserve_skew_gib": 2.0
+        },
+        {
+          "name": "gpu1",
+          "capacity_gib": 96.0,
+          "reserve_os_gib": 0.0,
+          "reserve_runtime_gib": 4.0,
+          "reserve_skew_gib": 2.0
+        },
+        {
+          "name": "gpu2",
+          "capacity_gib": 96.0,
+          "reserve_os_gib": 0.0,
+          "reserve_runtime_gib": 4.0,
+          "reserve_skew_gib": 2.0
+        }
+      ]
+    },
+    {
+      "id": "local-4x64-gpu",
+      "name": "One host, 4 \u00d7 64 GiB accelerators",
+      "kind": "local-gpu",
+      "notes": "Aggregate accelerator capacity 256 GiB; tightest profile and most sensitive to layer-size skew.",
+      "members": [
+        {
+          "name": "gpu0",
+          "capacity_gib": 64.0,
+          "reserve_os_gib": 0.0,
+          "reserve_runtime_gib": 6.0,
+          "reserve_skew_gib": 2.0
+        },
+        {
+          "name": "gpu1",
+          "capacity_gib": 64.0,
+          "reserve_os_gib": 0.0,
+          "reserve_runtime_gib": 4.0,
+          "reserve_skew_gib": 2.0
+        },
+        {
+          "name": "gpu2",
+          "capacity_gib": 64.0,
+          "reserve_os_gib": 0.0,
+          "reserve_runtime_gib": 4.0,
+          "reserve_skew_gib": 2.0
+        },
+        {
+          "name": "gpu3",
+          "capacity_gib": 64.0,
+          "reserve_os_gib": 0.0,
+          "reserve_runtime_gib": 4.0,
+          "reserve_skew_gib": 2.0
+        }
+      ]
+    }
+  ]
+}

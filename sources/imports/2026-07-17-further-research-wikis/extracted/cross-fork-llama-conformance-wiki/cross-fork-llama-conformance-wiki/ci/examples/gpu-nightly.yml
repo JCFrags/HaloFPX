@@ -1,0 +1,57 @@
+name: cross-fork-gpu-nightly-example
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_repository:
+        required: true
+        type: string
+      source_ref:
+        required: true
+        type: string
+      model_lock_artifact:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  gpu:
+    strategy:
+      fail-fast: false
+      matrix:
+        lane:
+          - linux-rocm-dedicated
+          - linux-vulkan-dedicated
+    # Replace these labels with immutable, monitored self-hosted lane labels.
+    runs-on: [self-hosted, "${{ matrix.lane }}"]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: suite
+      - uses: actions/checkout@v6
+        with:
+          repository: "${{ inputs.source_repository }}"
+          ref: "${{ inputs.source_ref }}"
+          path: source
+          submodules: recursive
+      - name: Record hardware and driver inventory
+        run: |
+          mkdir -p evidence
+          uname -a > evidence/uname.txt
+          env | sort > evidence/environment.txt
+          (rocminfo || true) > evidence/rocminfo.txt 2>&1
+          (vulkaninfo --summary || true) > evidence/vulkaninfo.txt 2>&1
+      - name: Build through the lane adapter
+        run: ./suite/ci/run-lane.sh "${{ matrix.lane }}" build source build evidence
+      - name: Run selected cases
+        run: ./suite/ci/run-lane.sh "${{ matrix.lane }}" test source build evidence
+      - name: Package evidence
+        if: always()
+        run: tar -cf "evidence-${{ matrix.lane }}.tar" evidence
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          path: "evidence-${{ matrix.lane }}.tar"
+          archive: false

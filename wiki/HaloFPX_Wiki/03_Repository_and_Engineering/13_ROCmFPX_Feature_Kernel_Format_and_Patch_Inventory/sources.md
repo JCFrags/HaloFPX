@@ -1,0 +1,104 @@
+---
+section_id: "13"
+title: "ROCmFPX Sources"
+status: "verified"
+last_verified: "2026-07-17"
+applies_to:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  software_versions: []
+  hardware_revisions: []
+related_sections: ["02", "11", "15", "16"]
+---
+
+# Sources
+
+All repository links are pinned. Internet access date: 2026-07-16. Source count: **11**.
+
+## S13-L01 — Live deployed comparison baseline
+
+- Canonical source: [`../../../../sources/measurements/2026-07-17-strix-halo-live-inventory/README.md`](../../../../sources/measurements/2026-07-17-strix-halo-live-inventory/README.md)
+- Revision/capture: both nodes, 2026-07-17; deployed `charlie12345/rocmfp4-llama@4860505ee322091f0f61eba77d6ad49be88cf4ea`.
+- Supports: current predecessor checkout, executable hashes, node roles, process configuration, active artifact size, and service readiness.
+- Limitations: different repository from ROCmFPX; no build reproduction, output correctness, or performance experiment was performed in this capture.
+
+## S13-01 — ROCmFPX repository head and history
+
+- Publisher: `charlie12345/ROCmFPX`
+- URL: <https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394>
+- Revision/date: `a5605a72768c6562241b248e268e33dc92787394`, commit 2026-07-16
+- Supports: exact inventory baseline, history root/snapshot, feature tree.
+- Limits/conflicts: repository is a disconnected snapshot lineage; commit presence does not prove runtime behavior.
+
+## S13-02 — ROCmFPX family reference implementation
+
+- Publisher: `charlie12345/ROCmFPX`
+- URL: <https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx>
+- Revision: `a5605a7`
+- Supports: Q2/Q3/Q6/Q8 layouts, scale validation, quant/dequant, frozen Q2 reference/tests.
+- Limits: reference code and unit fixtures do not establish model quality or GPU parity.
+
+## S13-03 — ROCmFP4 implementation
+
+- Publisher: `charlie12345/ROCmFPX`
+- URL: <https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfp4>
+- Revision: `a5605a7`
+- Supports: Q4 dual/FAST block layouts, reference quant/dequant, vector dots, HIP helpers.
+- Limits: “AMD-tuned” is repository scope, not a universal performance result.
+
+## S13-04 — Type IDs, presets, and quantizer routing
+
+- Publisher: `charlie12345/ROCmFPX`
+- URLs: <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/include/ggml.h>, <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/include/llama.h>, <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tools/quantize/quantize.cpp>, <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/llama-quant.cpp>
+- Revision: `a5605a7`
+- Supports: numeric IDs, preset names, mixed tensor routing, pure/even behavior, requant rules.
+- Limits: approximate BPW strings are descriptive, not per-model guarantees.
+
+## S13-05 — CPU, HIP, and Vulkan backend wiring
+
+- Publisher: `charlie12345/ROCmFPX`
+- URLs: <https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cpu>, <https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda>, <https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan>
+- Revision: `a5605a7`
+- Supports: type traits, copy/rows, MMVQ/MMQ, Vulkan shaders/dispatch; absence of Q2 Vulkan symbols.
+- Limits: shared `ggml-cuda` code is HIP-conditioned; static wiring is not runtime qualification.
+
+## S13-06 — TurboQuant integration
+
+- Publisher: ROCmFPX contributor integration
+- URL: <https://github.com/charlie12345/ROCmFPX/commit/d859c9e67b0ba6cae4856be1a096ee368f746782>
+- Revision/date: `d859c9e67b0ba6cae4856be1a096ee368f746782`, 2026-06-20; present in `a5605a7`
+- Supports: Turbo3/4 cache origin, CPU/HIP/Vulkan scope, contributor attribution.
+- Limits: does not validate Halo workloads or TurboQuant+ Python research claims.
+
+## S13-07 — MTP and capability detection
+
+- Publisher: `charlie12345/ROCmFPX`
+- URLs: <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/common/speculative.cpp>, <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/rocmfpx-model-capabilities.py>, <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/check-rocmfpx-model-capabilities.sh>
+- Revision: `a5605a7`
+- Supports: `draft-mtp`, marker detection, generated serving profiles, synthetic detector tests.
+- Limits: detector does not parse GGUF; synthetic markers do not establish real-model accuracy.
+
+## S13-08 — Serving wrappers, SSD prompt cache, and regression scripts
+
+- Publisher: `charlie12345/ROCmFPX`
+- URLs: <https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394/scripts>, <https://github.com/charlie12345/ROCmFPX/commit/c81c7c92233b6370b4eb7087398779a8dcb234a4>
+- Revisions: `a5605a7`; SSD cache introduction `c81c7c92` (2026-07-13)
+- Supports: build/quant/server/benchmark/test surface, asymmetric cache wrapper, disk cache patch.
+- Limits: scripts encode local paths/defaults and often need uncommitted large model artifacts.
+
+## S13-09 — Fork handoff, integration, and attribution documents
+
+- Publisher: `charlie12345/ROCmFPX`
+- URLs: <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/docs/ROCmFPX-HANDOFF.md>, <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/docs/ROCmFPX-EXPERIMENT.md>, <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/docs/UPSTREAM-ATTRIBUTION.md>, <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/docs/ROCmFPX-UPSTREAM-CREDITS.md>
+- Revision: `a5605a7`; documents revised through 2026-07-16
+- Supports: intended contract, repository-reported validation, historical `b9438/22cadc194` base, direct/manual port attribution.
+- Limits/conflicts: prose lags code (notably Q2 omission in older handoff sections); reported measurements are not independently reproduced.
+
+## S13-10 — Contemporaneous upstream llama.cpp head
+
+- Publisher: `ggml-org/llama.cpp`
+- URL: <https://github.com/ggml-org/llama.cpp/tree/788e07dc91d266ad3162a1ce9037665656269689>
+- Revision: `788e07dc91d266ad3162a1ce9037665656269689`, observed 2026-07-16 America/Los_Angeles
+- Supports: comparison head and evidence that upstream continues changing quant/backend surfaces.
+- Limits: not asserted as a suitable integration base; selection belongs to sections 11/15.

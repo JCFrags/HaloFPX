@@ -1,0 +1,16 @@
+domain,required_field,cachyllama,llama_cpp,lmcache,sglang,vllm,halofpx
+Model artifact bytes,Digest/length of every shard and sidecar,No explicit digest,No explicit digest,Model name,Model name suffix,Implicit engine config,Required
+Architecture/hparams,Exact semantic architecture parameters,model description string,architecture string + state decoder,model name,model name/current pools,engine instance,Required canonical fields
+Tokenizer/vocabulary,"Tokenizer files, normalizer, special IDs",No,No outer binding,No,No,Exact token IDs only,Required
+Chat/system template,Template digest and BOS/EOS policy,No,No,No,No,Not in block key,Required
+KV dtype/layout,"K/V dtype, quantization, packing, page layout",K and V types,"Internal state, not full outer digest",dtype + world/rank,host pool/rank suffix implicit,group/block runtime,Required
+Context/RoPE/SWA,"n_ctx, RoPE scale/base/type, window/recurrent mode",No explicit fields,Decoder/state dependent,No,No explicit fingerprint,engine instance,Required
+Adapters/LoRA,"Artifact digest, scale, order",No,No outer binding,Tags possible; token extra path ignored,No explicit file key,LoRA name,Artifact digest + scale required
+Multimodal inputs,Processor/projector/media digest and positions,No explicit key,No outer binding,Intended extras not active in audited hash,Token-page key only,MM identifier + offset,Required
+Prompt embeddings,Embedding tensor digest,No,No,No,No,Per-block SHA-256,Required
+Exact token prefix,Parent chain and exact current chunk tokens,FNV + first 4096 exact tokens,Saved token vector,Prefix-chained chunk hash,Parent-chained page hash,Parent + exact block tokens,Required
+Draft/spec model,Target/draft fingerprints and algorithm,Optional bytes but no separate fingerprint,Not bundled in current slot path,Backend dependent,Draft pool component possible,Connector/engine dependent,Required when present
+Serialization ABI,Engine family/version/state schema,Record version 3 only,Session/seq version + architecture,No raw object schema,No raw object schema,No disk schema,Required
+Build/implementation,Build commit or semantic implementation ID,Comment only; not hashed,No exact build digest,No,No,No,Required when it changes state semantics
+Tenant/trust scope,Authorized concealed namespace,u/FNV(user_id),directory policy,tags/path,none,optional cache salt,HMAC namespace + policy
+Encryption profile,Algorithm/key/AAD schema,None,None,None,None,N/A,Required policy field

@@ -1,0 +1,25 @@
+{
+  "schema": "llm-wiki-hf-artifact-manifest-v1",
+  "as_of": "2026-07-17",
+  "candidate_id": "tulu3-405b",
+  "model": "Llama-3.1-Tulu-3-405B",
+  "selected_quant": "IQ4_XS",
+  "publisher_display_size_gb_decimal": 216.57,
+  "conservative_weight_plan_gib": 203,
+  "huggingface": {
+    "upstream_repo": "allenai/Llama-3.1-Tulu-3-405B",
+    "quant_repo": "bartowski/Llama-3.1-Tulu-3-405B-GGUF",
+    "revision": "main",
+    "path": "Llama-3.1-Tulu-3-405B-IQ4_XS",
+    "shard_count": null,
+    "displayed_shard_gb": [],
+    "known_lfs": []
+  },
+  "source_urls": [
+    "https://huggingface.co/allenai/Llama-3.1-Tulu-3-405B",
+    "https://huggingface.co/bartowski/Llama-3.1-Tulu-3-405B-GGUF",
+    "https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/llama.cpp"
+  ],
+  "integrity_status": "authoritative-revision/path-manifest; run refresh_hf_manifests.py for exact LFS OIDs",
+  "notes": "No model weight bytes are redistributed in this package. Display sizes are publisher UI values; exact downloaded files must be verified locally."
+}

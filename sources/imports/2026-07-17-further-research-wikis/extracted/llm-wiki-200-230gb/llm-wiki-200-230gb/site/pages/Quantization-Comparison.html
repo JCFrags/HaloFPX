@@ -1,0 +1,105 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quantization Comparison · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Quantization Comparison</h1>
+<table>
+<thead>
+<tr>
+  <th>Candidate</th>
+  <th>Selected representation</th>
+  <th>Artifact GB</th>
+  <th>Effective bits/parameter</th>
+  <th>Risk assessment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Qwen3-235B-A22B-Instruct-2507</td>
+  <td>UD-Q6_K_XL</td>
+  <td>201.91</td>
+  <td>6.874</td>
+  <td>Moderate-low: high effective bit budget; candidate-specific independent quant benchmark not located.</td>
+</tr>
+<tr>
+  <td>Step-3.7-Flash</td>
+  <td>Q8_0</td>
+  <td>209.00</td>
+  <td>8.444</td>
+  <td>Low for Q8_0; direct quant-specific PPL/KLD evidence is available.</td>
+</tr>
+<tr>
+  <td>MiMo-V2-Flash</td>
+  <td>Q5_K_M</td>
+  <td>219.20</td>
+  <td>5.675</td>
+  <td>Moderate: Q5_K_M is materially safer than 4-bit options, but no candidate-specific independent quant benchmark was located.</td>
+</tr>
+<tr>
+  <td>GLM-4.7</td>
+  <td>Q4_K_M</td>
+  <td>218.52</td>
+  <td>4.883</td>
+  <td>Moderate-high versus Q5/Q6/Q8 candidates because the chosen artifact is Q4_K_M.</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Nemotron-Ultra-253B-v1</td>
+  <td>Q6_K</td>
+  <td>207.88</td>
+  <td>6.573</td>
+  <td>Moderate-low: Q6_K gives high weight fidelity.</td>
+</tr>
+<tr>
+  <td>DeepSeek-R1-0528</td>
+  <td>UD-IQ2_M</td>
+  <td>229.00</td>
+  <td>2.730</td>
+  <td>High: effective storage is only about 2.73 bits/parameter and no direct selected-quant evaluation was found.</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Tulu-3-405B</td>
+  <td>IQ4_XS</td>
+  <td>216.57</td>
+  <td>4.278</td>
+  <td>Moderate-high: IQ4_XS is an aggressive dense-model quant; card claims similar quality to Q4_K_S but lacks candidate-specific independent evaluation.</td>
+</tr>
+<tr>
+  <td>MiniMax-M3</td>
+  <td>UD-IQ4_XS</td>
+  <td>208.00</td>
+  <td>3.888</td>
+  <td>Moderate-high: IQ4_XS; no selected-quant independent evaluation located.</td>
+</tr>
+<tr>
+  <td>Kimi-K2-Thinking</td>
+  <td>i1-IQ1_M community artifact</td>
+  <td>228.00</td>
+  <td>1.824</td>
+  <td>Very high: about 1.82 effective bits/parameter; the community card labels the quant as suitable only for the mostly desperate.</td>
+</tr>
+</tbody>
+</table>
+<h2>How to read the ratios</h2>
+<p><code>artifact_effective_bits_per_parameter = artifact_GB × 8 / total_parameters_B</code></p>
+<p>This is not the nominal tensor encoding. It includes metadata, mixed tensor policies, unquantized scales, embeddings/output protection, and any architecture side data. It is useful for comparing how aggressively a whole artifact was compressed.</p>
+<h2>Selected-representation interpretation</h2>
+<ul>
+<li><strong>Step Q8_0 (8.44 effective bits/parameter):</strong> near the expected 8.5-bit Q8_0 storage ratio and the safest quant choice in the band.</li>
+<li><strong>Qwen UD-Q6_K_XL (6.87):</strong> high-bit mixed/dynamic quant, good default balance.</li>
+<li><strong>Nemotron Q6_K (6.57):</strong> high fidelity, but dense compute.</li>
+<li><strong>MiMo Q5_K_M (5.68):</strong> mid/high quant suitable for a production qualification pass.</li>
+<li><strong>GLM Q4_K_M (4.92):</strong> common balanced 4-bit family; verify tools/JSON and long reasoning.</li>
+<li><strong>Tulu IQ4_XS (4.28):</strong> lower dense-model storage cost, with architecture/backend tradeoffs.</li>
+<li><strong>DeepSeek UD-IQ2_M (2.73):</strong> severe compression. Upstream BF16 quality cannot be assumed to survive.</li>
+<li><strong>Kimi i1-IQ1_M (1.82):</strong> below the practical acceptance threshold for this shortlist.</li>
+</ul>
+<h2>ROCmFPX formats</h2>
+<p>At the pinned ROCmFPX snapshot, the documented weight formats are ROCmFP3 (3.5 bpw), ROCmFP4 FAST (4.25), balanced ROCmFP4 (4.50), ROCmFP6 (6.5), and ROCmFP8 (8.25). Small Qwen comparisons in the project report ROCmFP4 artifacts around 12% smaller than matched Q4_K_M files. Those measurements are <strong>not</strong> evidence that the same quality or speed delta holds for the target models.</p>
+<p>A released Step ROCmFPX Q3 QualityPlus recipe is 3.57 bpw over nine shards, with higher precision assigned to attention/shared/dense tensors. It is materially below the 200–230 GB band and is listed as an alternative, not the selected artifact.</p>
+<h2>Acceptance test</h2>
+<p>For any Q4-or-lower candidate, run the exact workload suite against a BF16/F16 or higher-bit reference. Include:</p>
+<ul>
+<li>long-form reasoning completion and answer correctness;</li>
+<li>structured JSON/tool calls with schema validation;</li>
+<li>code generation plus execution tests;</li>
+<li>multilingual prompts if relevant;</li>
+<li>long-context retrieval at several document positions;</li>
+<li>repetition, truncation, and malformed-special-token checks.</li>
+</ul>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

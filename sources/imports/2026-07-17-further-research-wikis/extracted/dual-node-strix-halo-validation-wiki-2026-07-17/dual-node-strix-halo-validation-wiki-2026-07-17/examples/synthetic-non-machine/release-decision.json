@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "decision_id": "decision-synthetic-0001",
+  "candidate_id": "synthetic-candidate",
+  "profile": "scale_out",
+  "stage": "G4",
+  "decision": "INSUFFICIENT_EVIDENCE",
+  "decided_at": "2026-07-17T00:15:00Z",
+  "summary_sha256": "7614b25583e3a8ae5f02dde6d74022d5da7ea9b4b6e75a674b03cfdf7b01e2fa",
+  "gate_results": [
+    {
+      "gate_id": "EVIDENCE_ORIGIN",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "reason": "Synthetic records cannot satisfy machine gates",
+      "evidence_paths": [
+        "summary.json"
+      ]
+    }
+  ],
+  "waivers": [],
+  "signoffs": [
+    {
+      "role": "benchmark",
+      "name": "synthetic fixture",
+      "signed_at": "2026-07-17T00:15:00Z",
+      "signature_or_attestation": null
+    },
+    {
+      "role": "runtime",
+      "name": "synthetic fixture",
+      "signed_at": "2026-07-17T00:15:00Z",
+      "signature_or_attestation": null
+    },
+    {
+      "role": "platform",
+      "name": "synthetic fixture",
+      "signed_at": "2026-07-17T00:15:00Z",
+      "signature_or_attestation": null
+    },
+    {
+      "role": "release",
+      "name": "synthetic fixture",
+      "signed_at": "2026-07-17T00:15:00Z",
+      "signature_or_attestation": null
+    },
+    {
+      "role": "security",
+      "name": "synthetic fixture",
+      "signed_at": "2026-07-17T00:15:00Z",
+      "signature_or_attestation": null
+    }
+  ],
+  "claim_text": null,
+  "limitations": [
+    "Invented parser fixture; no machine behavior measured."
+  ]
+}

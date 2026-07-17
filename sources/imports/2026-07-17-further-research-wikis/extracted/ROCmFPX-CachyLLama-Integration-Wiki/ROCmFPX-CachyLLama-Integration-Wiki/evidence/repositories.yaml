@@ -1,0 +1,35 @@
+evidence_date: 2026-07-17
+requested_donor_identity:
+  value: llama-ai/CachyLlama
+  resolution: no public repository resolved at that path
+  resolved_engine: fewtarius/CachyLLama
+  confirmation_required: true
+repositories:
+  canonical:
+    full_name: charlie12345/ROCmFPX
+    default_branch: main
+    observed_head: a5605a72768c6562241b248e268e33dc92787394
+    role: canonical merge and release target
+    license: MIT
+  upstream:
+    full_name: ggml-org/llama.cpp
+    default_branch: master
+    observed_head: 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+    role: upstream synchronization authority
+  donor_engine:
+    full_name: fewtarius/CachyLLama
+    default_branch: master
+    observed_head: 6be745998f568e379ea197fcf827baec73ff9940
+    role: read-only capability donor
+    license: MIT
+  donor_parent:
+    full_name: fewtarius/llama-ai
+    default_branch: main
+    observed_head: 1017f3dfdce3ca2b06aa9007b23295db3bb35722
+    role: metadata and behavior requirements only
+    license: GPL-3.0
+policy:
+  merge_donor_branch: forbidden
+  initial_approved_cherry_picks: []
+  parent_source_copy_into_engine: forbidden
+  implementation_patch_in_this_package: false

@@ -1,0 +1,213 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Exact build flags · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="build-flags.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html">Community validation</a>
+          
+            <a href="regressions.html">Known regressions</a>
+          
+            <a href="unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html" class="active" aria-current="page">Exact build flags</a>
+          
+            <a href="environment-variables.html">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html">ROCmFPX</a>
+          
+            <a href="usb4-networking.html">USB4 networking</a>
+          
+            <a href="glossary.html">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Build system</div>
+      <article class="article"><h1 id="exact-build-flags">Exact build flags<a aria-label="Link to section" class="heading-anchor" href="#exact-build-flags">#</a></h1>
+<h2 id="current-pinned-upstream-llama-cpp-hip-build">Current pinned upstream llama.cpp HIP build<a aria-label="Link to section" class="heading-anchor" href="#current-pinned-upstream-llama-cpp-hip-build">#</a></h2>
+<p>Pin: <code>b10064</code> / <code>86d86ed4396b4130922f7b9af26e3d9fc11a591b</code>.</p>
+<pre><code class="language-bash">git clone https://github.com/ggml-org/llama.cpp.git
+cd llama.cpp
+git checkout 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+
+export HIPCXX="$(hipconfig -l)/clang"
+export HIP_PATH="$(hipconfig -R)"
+
+cmake -S . -B build-hip -G Ninja   -DCMAKE_BUILD_TYPE=Release   -DGGML_HIP=ON   -DGGML_VULKAN=OFF   -DGGML_CUDA=OFF   -DCMAKE_HIP_ARCHITECTURES=gfx1151   -DGGML_HIP_ROCWMMA_FATTN=OFF   -DGGML_HIP_NO_VMM=ON   -DGGML_HIP_GRAPHS=ON   -DLLAMA_BUILD_TESTS=OFF   -DGGML_BUILD_TESTS=OFF
+
+cmake --build build-hip --config Release -j"$(nproc)"
+</code></pre>
+<p>Rationale:</p>
+<ul>
+<li><code>CMAKE_HIP_ARCHITECTURES=gfx1151</code> is the current direct CMake target control.</li>
+<li><code>GGML_HIP_ROCWMMA_FATTN=OFF</code> matches current source default and avoids the reported long-context prefill regression until a local A/B proves otherwise.</li>
+<li><code>GGML_HIP_NO_VMM=ON</code> and <code>GGML_HIP_GRAPHS=ON</code> preserve current upstream defaults explicitly so a future default change is visible in the recipe.</li>
+<li>The compiler and runtime are resolved from the same <code>hipconfig</code> root.</li>
+</ul>
+<p>Sources: <a href="sources.html#llama-hip-cmake-86d86ed">LLAMA-HIP-CMAKE-86D86ED</a>, <a href="sources.html#llama-ggml-cmake-86d86ed">LLAMA-GGML-CMAKE-86D86ED</a>, <a href="sources.html#llama-issue-24437">LLAMA-ISSUE-24437</a>.</p>
+<h2 id="vulkan-radv-build">Vulkan/RADV build<a aria-label="Link to section" class="heading-anchor" href="#vulkan-radv-build">#</a></h2>
+<pre><code class="language-bash">cmake -S . -B build-vulkan -G Ninja   -DCMAKE_BUILD_TYPE=Release   -DGGML_VULKAN=ON   -DGGML_HIP=OFF   -DGGML_CUDA=OFF   -DLLAMA_BUILD_TESTS=OFF   -DGGML_BUILD_TESTS=OFF
+cmake --build build-vulkan --config Release -j"$(nproc)"
+</code></pre>
+<p>Use <code>vulkaninfo --summary</code> before building. The compiler does not need ROCm for a Vulkan-only build.</p>
+<h2 id="deliberate-dual-backend-build">Deliberate dual-backend build<a aria-label="Link to section" class="heading-anchor" href="#deliberate-dual-backend-build">#</a></h2>
+<p>A single binary can include HIP and Vulkan for matched A/B tests:</p>
+<pre><code class="language-bash">cmake -S . -B build-amd-dual -G Ninja   -DCMAKE_BUILD_TYPE=Release   -DGGML_HIP=ON   -DGGML_VULKAN=ON   -DGGML_CUDA=OFF   -DCMAKE_HIP_ARCHITECTURES=gfx1151   -DGGML_HIP_ROCWMMA_FATTN=OFF   -DGGML_HIP_NO_VMM=ON   -DGGML_HIP_GRAPHS=ON   -DLLAMA_BUILD_TESTS=OFF   -DGGML_BUILD_TESTS=OFF
+cmake --build build-amd-dual -j"$(nproc)"
+</code></pre>
+<p>Use explicit runtime devices (<code>-dev ROCm0</code> and <code>-dev Vulkan0</code>) so automatic selection cannot invalidate a comparison.</p>
+<h2 id="target-variable-precedence">Target-variable precedence<a aria-label="Link to section" class="heading-anchor" href="#target-variable-precedence">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CMAKE_HIP_ARCHITECTURES=gfx1151</code></td>
+<td>Preferred current CMake control</td>
+</tr>
+<tr>
+<td><code>GPU_TARGETS=gfx1151</code></td>
+<td>Compatibility input for projects that forward it</td>
+</tr>
+<tr>
+<td><code>AMDGPU_TARGETS=gfx1151</code></td>
+<td>Older compatibility alias; current llama.cpp forwards it when needed</td>
+</tr>
+</tbody>
+</table></div>
+<p>Do not set all three to different values. When switching ROCm versions or target variables, delete the build directory; CMake caches the compiler and architecture.</p>
+<h2 id="rocmfpx-fork-flags">ROCmFPX fork flags<a aria-label="Link to section" class="heading-anchor" href="#rocmfpx-fork-flags">#</a></h2>
+<p>The pinned fork’s own script uses:</p>
+<pre><code class="language-bash">cmake -S . -B build-strix-rocmfp4   -DCMAKE_BUILD_TYPE=Release   -DGGML_HIP=ON   -DGGML_HIP_ROCWMMA_FATTN=OFF   -DGGML_HIP_FORCE_MMQ=ON   -DGGML_VULKAN=ON   -DGGML_CUDA=OFF   -DCMAKE_HIP_ARCHITECTURES=gfx1151   -DGPU_TARGETS=gfx1151   -DLLAMA_BUILD_SERVER=ON   -DLLAMA_BUILD_WEBUI=OFF   -DLLAMA_USE_PREBUILT_WEBUI=OFF   -DLLAMA_BUILD_TESTS=ON   -DGGML_BUILD_TESTS=OFF
+</code></pre>
+<p><code>GGML_HIP_FORCE_MMQ</code> is <strong>fork-specific</strong> in this context. Do not substitute it for upstream’s current option names. Source: <a href="sources.html#rocmfpx-build-a5605">ROCMFPX-BUILD-A5605</a>.</p>
+<h2 id="cmake-version-policy">CMake version policy<a aria-label="Link to section" class="heading-anchor" href="#cmake-version-policy">#</a></h2>
+<ul>
+<li>CMake 3.21 is the effective minimum for current llama.cpp’s native HIP-language path and <code>CMAKE_HIP_ARCHITECTURES</code>.</li>
+<li>Ubuntu 24.04’s 3.28.x line is the conservative reproducible baseline used in these container recipes.</li>
+<li>CMake 4.3.4 is current upstream, but should be introduced as a separate matrix change and tested rather than silently replacing the baseline.</li>
+</ul>
+<p>Sources: <a href="sources.html#cmake-hip-arch">CMAKE-HIP-ARCH</a>, <a href="sources.html#cmake-release-434">CMAKE-RELEASE-434</a>, <a href="sources.html#llama-hip-cmake-86d86ed">LLAMA-HIP-CMAKE-86D86ED</a>.</p>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#current-pinned-upstream-llama-cpp-hip-build">Current pinned upstream llama.cpp HIP build</a><a class="level-2" href="#vulkan-radv-build">Vulkan/RADV build</a><a class="level-2" href="#deliberate-dual-backend-build">Deliberate dual-backend build</a><a class="level-2" href="#target-variable-precedence">Target-variable precedence</a><a class="level-2" href="#rocmfpx-fork-flags">ROCmFPX fork flags</a><a class="level-2" href="#cmake-version-policy">CMake version policy</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

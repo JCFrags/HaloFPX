@@ -1,0 +1,36 @@
+schema_version: 1
+policy:
+  absolute_slos_must_be_approved_before_first_M1_run: true
+  post_result_relaxation_prohibited: true
+  absolute_slo_failure_overrides_relative_improvement: true
+  null_or_unapproved_slo_result: INSUFFICIENT_EVIDENCE
+universal_stable_floors:
+  request_success_rate_min: 0.9999
+  critical_correctness_rate_min: 1.0
+  unexpected_crashes_max: 0
+  unexpected_hangs_max: 0
+  kernel_oops_max: 0
+  gpu_resets_max: 0
+  silent_corruption_max: 0
+  thermal_throttle_events_max: 0
+  normal_run_usb4_renegotiations_max: 0
+default_recovery_targets:
+  fault_detection_s_max: 10
+  affected_request_explicit_terminal_state_s_max: 30
+  reversible_service_recovery_s_max: 120
+  lost_acknowledged_requests_max: 0
+required_per_workload_fields:
+- workload_cell
+- topology_scope
+- cache_state
+- offered_load_or_concurrency
+- p95_ttft_ms
+- p99_ttft_ms
+- p95_itl_ms
+- p99_itl_ms
+- success_rate_min
+- correctness_suite
+- approver
+- approved_at
+latency_value_rule: No universal TTFT/ITL number is valid across unspecified model, quantization, context, and product
+  UX. Populate values in config/sut.yaml before measurement.

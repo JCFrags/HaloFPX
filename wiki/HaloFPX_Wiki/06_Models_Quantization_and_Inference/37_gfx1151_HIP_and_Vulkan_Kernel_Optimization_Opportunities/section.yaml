@@ -1,0 +1,12 @@
+section_id: "37"
+title: "gfx1151 HIP and Vulkan Kernel Optimization Opportunities"
+category_id: "06"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 7
+open_question_count: 10
+required_machine_experiments: ["M37-01 baseline hotspot census", "M37-02 candidate loop"]
+related_sections: ["24", "25", "27", "28", "33", "34", "36", "42", "52", "73", "74", "78"]
+applicability:
+  repositories: ["charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394", "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"]
+  hardware: ["gfx1151 / Strix Halo; exact machine BOM unresolved"]

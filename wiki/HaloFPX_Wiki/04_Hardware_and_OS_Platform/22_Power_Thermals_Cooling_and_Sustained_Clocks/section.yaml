@@ -1,0 +1,18 @@
+section_id: "22"
+title: "Power, Thermals, Cooling, and Sustained Clocks"
+category: "04_Hardware_and_OS_Platform"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 9
+required_machine_experiments:
+  - "Paired physical cooling, firmware profile, sensor, and control inventory"
+  - "30-60 minute single-node profile matrix with ambient and wall energy"
+  - "Mixed inference, fabric, and NVMe writeback thermal test"
+  - "Matched two-node throughput, latency, and tokens-per-joule comparison"
+  - "Thermal degradation and single-node fallback validation"
+related_sections: ["17", "18", "21", "23", "49", "73", "74", "79"]
+applicability:
+  repositories: ["HaloFPX"]
+  software_versions: ["Linux 7.2 documentation"]
+  hardware_revisions: ["AMD Ryzen AI Max+ 395 premise; exact systems open"]

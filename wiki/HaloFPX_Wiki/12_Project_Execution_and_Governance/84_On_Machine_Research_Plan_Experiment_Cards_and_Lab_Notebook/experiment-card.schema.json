@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://halofpx.local/schemas/experiment-card-v1.schema.json",
+  "title": "HaloFPX experiment card",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "experiment_id", "card_version", "title", "family", "status", "owner", "reviewer", "hypothesis", "falsifier", "setup", "prerequisites", "dependency_gates", "safety", "commands", "environment_snapshot", "variables", "controls", "outputs", "analysis", "acceptance", "result", "follow_up", "links", "provenance", "notes"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "experiment_id": {"type": "string", "pattern": "^HLX-EXP-[0-9]{8}-[0-9]{3}$"},
+    "card_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "title": {"type": "string", "minLength": 1},
+    "family": {"type": "string", "pattern": "^E(0[1-9]|10)$"},
+    "status": {"enum": ["draft", "approved", "running", "completed", "superseded"]},
+    "owner": {"type": ["string", "null"]},
+    "reviewer": {"type": ["string", "null"]},
+    "hypothesis": {"type": "string", "minLength": 1},
+    "falsifier": {"type": "string", "minLength": 1},
+    "setup": {"$ref": "#/$defs/setup"},
+    "prerequisites": {"type": "array", "items": {"type": "string"}},
+    "dependency_gates": {"type": "array", "items": {"$ref": "#/$defs/dependency"}},
+    "safety": {"$ref": "#/$defs/safety"},
+    "commands": {"type": "array", "items": {"$ref": "#/$defs/command"}},
+    "environment_snapshot": {"$ref": "#/$defs/environment"},
+    "variables": {"$ref": "#/$defs/variables"},
+    "controls": {"$ref": "#/$defs/controls"},
+    "outputs": {"$ref": "#/$defs/outputs"},
+    "analysis": {"$ref": "#/$defs/analysis"},
+    "acceptance": {"$ref": "#/$defs/acceptance"},
+    "result": {"$ref": "#/$defs/result"},
+    "follow_up": {"type": ["string", "null"]},
+    "links": {"$ref": "#/$defs/links"},
+    "provenance": {"$ref": "#/$defs/provenance"},
+    "notes": {"type": ["string", "null"]}
+  },
+  "$defs": {
+    "nullableStringArray": {"type": "array", "items": {"type": ["string", "null"]}},
+    "setup": {
+      "type": "object", "additionalProperties": false,
+      "required": ["description", "sut_boundary", "nodes", "ranks", "links", "artifact_root"],
+      "properties": {
+        "description": {"type": "string"}, "sut_boundary": {"type": "string"},
+        "nodes": {"$ref": "#/$defs/nullableStringArray"}, "ranks": {"$ref": "#/$defs/nullableStringArray"},
+        "links": {"$ref": "#/$defs/nullableStringArray"}, "artifact_root": {"type": ["string", "null"]}
+      }
+    },
+    "dependency": {
+      "type": "object", "additionalProperties": false,
+      "required": ["experiment_id", "condition", "required_gate_result", "evidence"],
+      "properties": {
+        "experiment_id": {"type": "string", "pattern": "^HLX-EXP-[0-9]{8}-[0-9]{3}$"},
+        "condition": {"enum": ["always", "cache_integrated_only", "fault_subset_only"]},
+        "required_gate_result": {"enum": ["pass", "pass_or_inconclusive"]},
+        "evidence": {"type": ["string", "null"]}
+      }
+    },
+    "safety": {
+      "type": "object", "additionalProperties": false,
+      "required": ["class", "elevation_required", "elevation_reason", "authorization_required", "authorization_record", "hazards", "exact_targets", "stop_plan", "rollback_plan", "emergency_stop"],
+      "properties": {
+        "class": {"enum": ["read-only", "user-space-mutating", "privileged-reversible", "destructive-isolated"]},
+        "elevation_required": {"type": ["boolean", "null"]}, "elevation_reason": {"type": ["string", "null"]},
+        "authorization_required": {"type": "boolean"}, "authorization_record": {"type": ["string", "null"]},
+        "hazards": {"$ref": "#/$defs/nullableStringArray"}, "exact_targets": {"$ref": "#/$defs/nullableStringArray"},
+        "stop_plan": {"type": ["string", "null"]}, "rollback_plan": {"type": ["string", "null"]},
+        "emergency_stop": {"type": ["string", "null"]}
+      }
+    },
+    "command": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "description", "host", "cwd", "argv", "environment", "requires_elevation", "destructive", "authorization_gate", "expected_outputs"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1}, "description": {"type": "string"},
+        "host": {"type": ["string", "null"]}, "cwd": {"type": ["string", "null"]},
+        "argv": {"type": ["array", "null"], "items": {"type": "string"}},
+        "environment": {"type": ["object", "null"], "additionalProperties": {"type": "string"}},
+        "requires_elevation": {"type": ["boolean", "null"]}, "destructive": {"type": "boolean"},
+        "authorization_gate": {"type": ["string", "null"]}, "expected_outputs": {"$ref": "#/$defs/nullableStringArray"}
+      }
+    },
+    "environment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repositories", "software", "hardware", "model", "tokenizer", "workload", "configuration", "clocks", "collectors"],
+      "properties": {
+        "repositories": {"$ref": "#/$defs/nullableStringArray"}, "software": {"$ref": "#/$defs/nullableStringArray"},
+        "hardware": {"$ref": "#/$defs/nullableStringArray"}, "model": {"type": ["string", "null"]},
+        "tokenizer": {"type": ["string", "null"]}, "workload": {"type": ["string", "null"]},
+        "configuration": {"type": ["string", "null"]}, "clocks": {"$ref": "#/$defs/nullableStringArray"},
+        "collectors": {"$ref": "#/$defs/nullableStringArray"}
+      }
+    },
+    "variables": {
+      "type": "object", "additionalProperties": false,
+      "required": ["independent", "dependent", "controlled"],
+      "properties": {"independent": {"$ref": "#/$defs/nullableStringArray"}, "dependent": {"$ref": "#/$defs/nullableStringArray"}, "controlled": {"$ref": "#/$defs/nullableStringArray"}}
+    },
+    "controls": {
+      "type": "object", "additionalProperties": false,
+      "required": ["baseline", "randomized_order", "random_seed", "warmup", "repetitions"],
+      "properties": {
+        "baseline": {"type": ["string", "null"]}, "randomized_order": {"type": ["boolean", "null"]},
+        "random_seed": {"type": ["integer", "null"]}, "warmup": {"type": ["string", "null"]},
+        "repetitions": {"type": ["integer", "null"], "minimum": 1}
+      }
+    },
+    "outputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["root", "raw", "schemas", "integrity_manifest"],
+      "properties": {"root": {"type": ["string", "null"]}, "raw": {"$ref": "#/$defs/nullableStringArray"}, "schemas": {"$ref": "#/$defs/nullableStringArray"}, "integrity_manifest": {"type": ["string", "null"]}}
+    },
+    "analysis": {
+      "type": "object", "additionalProperties": false,
+      "required": ["plan", "statistics", "uncertainty", "exclusions", "analysis_commit", "command"],
+      "properties": {"plan": {"type": ["string", "null"]}, "statistics": {"type": ["string", "null"]}, "uncertainty": {"type": ["string", "null"]}, "exclusions": {"$ref": "#/$defs/nullableStringArray"}, "analysis_commit": {"type": ["string", "null"]}, "command": {"type": ["array", "null"], "items": {"type": "string"}}}
+    },
+    "acceptance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pass", "fail", "inconclusive", "stop_rules"],
+      "properties": {"pass": {"type": ["string", "null"]}, "fail": {"type": ["string", "null"]}, "inconclusive": {"type": ["string", "null"]}, "stop_rules": {"$ref": "#/$defs/nullableStringArray"}}
+    },
+    "result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["gate_result", "conclusion", "confidence", "uncertainty", "completed_at", "run_ids"],
+      "properties": {
+        "gate_result": {"enum": ["pass", "fail", "inconclusive", "blocked", null]},
+        "conclusion": {"type": ["string", "null"]}, "confidence": {"type": ["string", "null"]},
+        "uncertainty": {"type": ["string", "null"]}, "completed_at": {"type": ["string", "null"], "format": "date-time"},
+        "run_ids": {"type": "array", "items": {"type": "string", "pattern": "^HLX-RUN-[0-9]{8}T[0-9]{6}Z-[A-Za-z0-9]+$"}}
+      }
+    },
+    "links": {
+      "type": "object", "additionalProperties": false,
+      "required": ["originating_sections", "open_questions", "issues", "requirements", "adrs", "aliases"],
+      "properties": {"originating_sections": {"$ref": "#/$defs/nullableStringArray"}, "open_questions": {"$ref": "#/$defs/nullableStringArray"}, "issues": {"$ref": "#/$defs/nullableStringArray"}, "requirements": {"$ref": "#/$defs/nullableStringArray"}, "adrs": {"$ref": "#/$defs/nullableStringArray"}, "aliases": {"$ref": "#/$defs/nullableStringArray"}}
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["created_at", "updated_at", "authors", "source_refs", "card_sha256"],
+      "properties": {"created_at": {"type": "string", "format": "date-time"}, "updated_at": {"type": "string", "format": "date-time"}, "authors": {"$ref": "#/$defs/nullableStringArray"}, "source_refs": {"$ref": "#/$defs/nullableStringArray"}, "card_sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}}
+    }
+  }
+}

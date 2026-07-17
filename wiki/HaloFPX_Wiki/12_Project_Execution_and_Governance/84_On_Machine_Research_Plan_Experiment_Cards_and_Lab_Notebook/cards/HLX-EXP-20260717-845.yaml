@@ -1,0 +1,102 @@
+schema_version: "1.0.0"
+experiment_id: "HLX-EXP-20260717-845"
+card_version: "1.0.0"
+title: "Buffer visibility, coherence, copy, graph, and synchronization"
+family: "E05"
+status: "draft"
+owner: null
+reviewer: null
+hypothesis: "Candidate HIP/Vulkan mapped, registered, staged, and graph-reused paths preserve visibility and ordering and reduce end-to-end cost for observed payloads."
+falsifier: "A candidate produces stale, torn, reordered, or unguarded data, or its claimed copy reduction is not observed end to end."
+setup:
+  description: "Correctness-first buffer visibility litmus and copy attribution across admitted backends, carriers, and message sizes."
+  sut_boundary: "Producer, allocation, synchronization, transport, consumer, and profiler boundaries."
+  nodes: [null]
+  ranks: [null]
+  links: [null]
+  artifact_root: null
+prerequisites: ["E03 correctness-passing backend cells","E04 admitted payload/link envelope","Reviewed conformance probes"]
+dependency_gates:
+  - {experiment_id: "HLX-EXP-20260717-843", condition: "always", required_gate_result: "pass", evidence: null}
+  - {experiment_id: "HLX-EXP-20260717-844", condition: "always", required_gate_result: "pass", evidence: null}
+safety:
+  class: "user-space-mutating"
+  elevation_required: null
+  elevation_reason: null
+  authorization_required: true
+  authorization_record: null
+  hazards: ["Unsupported device memory access can hang or fault a process"]
+  exact_targets: [null]
+  stop_plan: null
+  rollback_plan: null
+  emergency_stop: null
+commands:
+  - id: "unresolved-command-01"
+    description: "Resolve and review exact argv, host, working directory, outputs, safety target, and authorization before approval; this draft command is intentionally non-executable."
+    host: null
+    cwd: null
+    argv: null
+    environment: null
+    requires_elevation: null
+    destructive: false
+    authorization_gate: "Card status must be approved and every unresolved command field must be replaced."
+    expected_outputs: [null]
+environment_snapshot:
+  repositories: [null]
+  software: [null]
+  hardware: [null]
+  model: null
+  tokenizer: null
+  workload: null
+  configuration: null
+  clocks: [null]
+  collectors: [null]
+variables:
+  independent: ["memory type","direction","producer","consumer","synchronization","copy count","alignment","size","reuse"]
+  dependent: ["pattern integrity","visibility","ordering","copy count","latency","tails","CPU","power"]
+  controlled: ["CPU-staged copy path","Matched payload and carrier"]
+controls:
+  baseline: "Explicit CPU-staged copy with reviewed synchronization"
+  randomized_order: null
+  random_seed: null
+  warmup: null
+  repetitions: null
+outputs:
+  root: null
+  raw: ["shared/visibility-litmus.jsonl","shared/copy-attribution.jsonl","shared/profiler-perturbation.json"]
+  schemas: [null]
+  integrity_manifest: null
+analysis:
+  plan: null
+  statistics: null
+  uncertainty: null
+  exclusions: [null]
+  analysis_commit: null
+  command: null
+acceptance:
+  pass: "Every promoted path passes pattern, guard, visibility, and synchronization checks and shows its end-to-end copy/cost boundary."
+  fail: "Any stale or torn read, guard corruption, missing synchronization, or unaccounted copy occurs."
+  inconclusive: "Required observations or uncertainty are insufficient for pass or fail; preserve the run and issue a revised card."
+  stop_rules: [null]
+result:
+  gate_result: null
+  conclusion: null
+  confidence: null
+  uncertainty: null
+  completed_at: null
+  run_ids: []
+follow_up: null
+links:
+  originating_sections: ["24","25","32","45","54"]
+  open_questions: ["HLX-OQ-8406"]
+  issues: [null]
+  requirements: [null]
+  adrs: [null]
+  aliases: ["M82-08"]
+provenance:
+  created_at: "2026-07-17T00:00:00Z"
+  updated_at: "2026-07-17T00:00:00Z"
+  authors: ["Codex section-84 research workflow"]
+  source_refs: ["S84-01", "S84-03", "S84-04"]
+  card_sha256: null
+notes: "Draft only. Null values and null list entries are unresolved contract fields, not measurements or permission to execute."

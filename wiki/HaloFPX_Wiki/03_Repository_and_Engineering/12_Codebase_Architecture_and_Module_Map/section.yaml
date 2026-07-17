@@ -1,0 +1,24 @@
+section_id: "12"
+title: "Codebase Architecture and Module Map"
+category_id: "03"
+category_title: "Repository and Engineering"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 13
+open_question_count: 10
+required_machine_experiments:
+  - "M12-01 backend and ROCmFPX type inventory on both Strix Halo nodes"
+  - "M12-02 model-load, graph-build, scheduler, buffer, copy, and backend call-path trace"
+  - "M12-03 state round-trip plus negative compatibility and corruption matrix"
+  - "M12-04 RPC dual-link placement, traffic, failure, and single-node fallback inspection"
+  - "M12-05 server cache concurrency, identity isolation, restart, and corruption checks"
+related_sections: ["11", "13", "14", "15", "16", "32", "36", "39", "51", "56", "57", "74"]
+applicability:
+  repositories:
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
+    - "fewtarius/llama-ai@1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+  software_versions: []
+  hardware_revisions:
+    - "dual AMD Strix Halo - exact BOM pending section 18"

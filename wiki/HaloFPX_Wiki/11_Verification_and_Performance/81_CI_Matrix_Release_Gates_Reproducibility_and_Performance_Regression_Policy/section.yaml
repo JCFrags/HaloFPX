@@ -1,0 +1,27 @@
+section_id: "81"
+title: "CI Matrix, Release Gates, Reproducibility, and Performance Regression Policy"
+category_id: "11"
+category_title: "Verification and Performance"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 9
+open_question_count: 12
+required_machine_experiments:
+  - "CI-81-E1 per-change contract, unit, sanitizer, and build matrix"
+  - "CI-81-E2 target hardware smoke and nightly matrix scheduling"
+  - "CI-81-E3 synthetic and measured performance-gate boundary validation"
+  - "CI-81-E4 two independent clean-build reproducibility trial"
+  - "CI-81-E5 release-candidate qualification, provenance, cutover, and rollback rehearsal"
+related_sections: ["73", "74", "75", "76", "77", "78", "79", "80"]
+applicability:
+  repositories:
+    - repository: "ggml-org/llama.cpp"
+      commit: "788e07dc91d266ad3162a1ce9037665656269689"
+    - repository: "charlie12345/ROCmFPX"
+      commit: "a5605a72768c6562241b248e268e33dc92787394"
+    - repository: "fewtarius/CachyLLama"
+      commit: "6be745998f568e379ea197fcf827baec73ff9940"
+    - repository: "fewtarius/llama-ai"
+      commit: "1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+  software_versions: ["SLSA 1.2", "Reproducible Builds definition accessed 2026-07-17"]
+  hardware_revisions: ["dual-Strix-Halo target; exact revisions open"]

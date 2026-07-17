@@ -1,0 +1,27 @@
+{
+  "validated_at_utc": "2026-07-17T19:25:02Z",
+  "status": "passed-with-environmental-skips",
+  "build_environment": {
+    "kernel": "4.4.0",
+    "mkdocs_installed": false,
+    "graphviz_dot_installed": true,
+    "gcc_installed": true,
+    "target_strix_halo_hardware_present": false
+  },
+  "passed": [
+    "Bash syntax for scripts and examples",
+    "Python compilation with bytecode cache outside the artifact tree",
+    "JSON, JSONL, and CSV parsing",
+    "Relative Markdown link validation",
+    "Graphviz SVG and PNG regeneration",
+    "MPTCP smoke program compilation with -Wall -Wextra -Werror",
+    "llama.cpp optional MPTCP patch parse and apply against pinned source contexts",
+    "Two-socket loopback striper with 2 MiB payload and final SHA-256 equality",
+    "USB4STREAM framing tool over a FIFO with 2 MiB payload and final SHA-256 equality"
+  ],
+  "environmental_skips": [
+    "MkDocs strict site build: mkdocs/material dependencies were not installed in the build container",
+    "Native MPTCP runtime transfer: build kernel 4.4.0 rejected socket(IPPROTO_MPTCP) as unsupported",
+    "Physical dual-USB4 proof and performance measurements: no target Strix Halo nodes or USB4 cables were attached"
+  ]
+}

@@ -1,0 +1,59 @@
+schema_version: 1
+run_id: REPLACE
+experiment_id: EXP-NNN
+evidence_level: M1_OR_M2_OR_R1
+evidence_origin: machine
+status: planned
+release_profile: REPLACE
+topology: REPLACE
+cache_state: NA
+started_at: REPLACE_ISO_UTC
+ended_at: null
+testbed_id: REPLACE
+run_block_id: REPLACE
+reproduction_block: 0
+model:
+  name: REPLACE
+  source_revision: null
+  artifact_sha256: REPLACE_64_HEX
+  artifact_bytes: 1
+  quantization: REPLACE
+  tokenizer_sha256: REPLACE_64_HEX
+  declared_context_tokens: null
+software:
+  runtime_commit: REPLACE
+  kernel: REPLACE
+hardware:
+- node_id: node-a
+  hardware_fingerprint_sha256: REPLACE_64_HEX
+interconnect: null
+workload:
+  workload_cell: REPLACE
+  prompt_tokens: 0
+  max_output_tokens: 1
+  seed: 1
+  temperature: 0
+  concurrency: 1
+  request_rate_per_s: null
+  prompt_set_sha256: REPLACE_64_HEX
+commands:
+- host: node-a
+  argv:
+  - REPLACE
+  cwd: null
+  env_redacted: {}
+collectors:
+- name: REPLACE
+  version: REPLACE
+  sample_interval_ms: 1000
+  overhead_check_id: null
+time_sync: null
+environment: null
+cache_state_evidence: null
+invalidations: []
+raw_files:
+- path: REPLACE
+  sha256: REPLACE_64_HEX
+  bytes: 0
+  record_type: REPLACE
+notes: null

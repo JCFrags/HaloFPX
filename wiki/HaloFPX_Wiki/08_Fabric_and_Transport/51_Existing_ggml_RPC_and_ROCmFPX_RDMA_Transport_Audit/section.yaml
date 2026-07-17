@@ -1,0 +1,21 @@
+section_id: "51"
+title: "Existing ggml RPC and ROCmFPX RDMA Transport Audit"
+category_id: "08"
+category_title: "Fabric and Transport"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 9
+required_machine_experiments:
+  - "FT-51-E0 mandatory RPC security admission"
+  - "FT-51-E1 reproducible source identity"
+  - "FT-51-E2 build and capability inventory"
+  - "FT-51-E3 baseline and fallback"
+  - "FT-51-E4 correctness and fault matrix"
+related_sections: ["11", "12", "15", "32", "39", "49", "50", "53", "54", "55"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  software: "libibverbs path when detected; exact build tuple unresolved"
+  hardware: "target RDMA/USB4 capability unverified"

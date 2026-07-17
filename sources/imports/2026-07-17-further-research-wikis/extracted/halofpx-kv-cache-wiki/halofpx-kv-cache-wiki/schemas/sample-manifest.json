@@ -1,0 +1,24 @@
+{
+  "schema": "halofpx.kv.manifest/v1",
+  "generation": 1,
+  "namespace_id": "d9e904298dc620a3a501d98c0b0d4bb57abab26cf46b329bce900029a9a496aa",
+  "engine_family": "llama.cpp",
+  "cache_key_sha256": "32b0cbb42c95bfa034207dd054f59e18eeb18f28d1004335335ec22005b7bfb0",
+  "compatibility_fingerprint_sha256": "99ac70e19c8633f552e856ca1ecfa4a787e5e5a083c6f20c8166c90d9cbdc7e1",
+  "prompt_root_sha256": "fe62e9c359ac1776c2a8ebecd21f16342ee7e7925fadcfa813b25b7f527302aa",
+  "object_sha256": "f1c050f7ac8f13b354c79c2f7e0cac1b178aef9bb040a532deba1a722a072dd9",
+  "object_size": 74941,
+  "created_unix_ns": 1700000000000000000,
+  "last_access_unix_ns": 1700000000000000000,
+  "verified_prefix_tokens": 4096,
+  "required_segments": [
+    "target"
+  ],
+  "encryption_policy": "none",
+  "state": "committed",
+  "catalog_auth": {
+    "mode": "hmac-sha256",
+    "key_id": "fixture/catalog-auth/1",
+    "tag_hex": "4fb5cb86a4efa10675f06f920ddccf94606181c25ef100fb7c4c9b389d9cc818"
+  }
+}

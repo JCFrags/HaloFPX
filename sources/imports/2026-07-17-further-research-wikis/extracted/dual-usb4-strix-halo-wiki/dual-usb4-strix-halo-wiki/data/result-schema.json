@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dual USB4 proof result",
+  "type": "object",
+  "required": [
+    "host_a",
+    "host_b",
+    "kernel",
+    "topology",
+    "performance",
+    "mptcp"
+  ],
+  "properties": {
+    "host_a": {
+      "type": "string"
+    },
+    "host_b": {
+      "type": "string"
+    },
+    "kernel": {
+      "type": "string"
+    },
+    "topology": {
+      "type": "object",
+      "properties": {
+        "distinct_xdomains": {
+          "type": "boolean"
+        },
+        "distinct_domains": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "distinct_nhi_bdfs": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "baseline0_bps": {
+          "type": "number"
+        },
+        "baseline1_bps": {
+          "type": "number"
+        },
+        "concurrent0_bps": {
+          "type": "number"
+        },
+        "concurrent1_bps": {
+          "type": "number"
+        }
+      }
+    },
+    "mptcp": {
+      "type": "object",
+      "properties": {
+        "meta_socket": {
+          "type": "boolean"
+        },
+        "established_subflows": {
+          "type": "integer"
+        },
+        "payload_on_both": {
+          "type": "boolean"
+        },
+        "single_link_survival": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

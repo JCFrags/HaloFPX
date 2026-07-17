@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

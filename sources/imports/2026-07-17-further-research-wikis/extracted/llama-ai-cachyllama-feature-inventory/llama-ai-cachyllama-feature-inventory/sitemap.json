@@ -1,0 +1,71 @@
+{
+  "title": "llama-ai \u00d7 CachyLlama LLM Wiki",
+  "entrypoints": [
+    "index.html",
+    "README.md",
+    "Home.md"
+  ],
+  "pages": [
+    "00-Scope-and-Pins.md",
+    "01-Executive-Inventory.md",
+    "02-Architecture.md",
+    "03-Persistent-SSD-KV-Cache.md",
+    "04-System-Prompt-Cache.md",
+    "05-Prefix-Matching-and-Session-Continuation.md",
+    "06-Checkpoint-Restore-and-Hybrid-State.md",
+    "07-Slot-Affinity-and-User-Isolation.md",
+    "08-Cache-Administration.md",
+    "09-Model-Lifecycle.md",
+    "10-Server-APIs.md",
+    "11-Observability.md",
+    "12-Deployment.md",
+    "13-Strix-Halo-Optimizations.md",
+    "14-ROCmFPX-Target-Baseline.md",
+    "15-Retain-Redesign-Reject.md",
+    "16-Dependencies-and-Licenses.md",
+    "17-Maturity-and-Risk-Register.md",
+    "18-API-Examples.md",
+    "19-Configuration-Schemas.md",
+    "20-Evidence-Index.md",
+    "21-Contradiction-Register.md",
+    "22-ROCmFPX-Porting-Plan.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "Home.md",
+    "README.md",
+    "SUMMARY.md",
+    "_Footer.md",
+    "_Header.md",
+    "_Sidebar.md"
+  ],
+  "data": [
+    "data/README.md",
+    "data/evidence.csv",
+    "data/evidence.json",
+    "data/feature-evidence.csv",
+    "data/feature-inventory.csv",
+    "data/feature-inventory.json",
+    "data/retain-redesign-reject.csv",
+    "data/source-files.csv",
+    "data/summary.json"
+  ],
+  "schemas": [
+    "schemas/README.md",
+    "schemas/cachyllama-server-cache.schema.json",
+    "schemas/llama-ai-runner.schema.json",
+    "schemas/rocmfpx-persistent-cache-port-plan.schema.json"
+  ],
+  "examples": [
+    "examples/01-openai-chat-user-cache.sh",
+    "examples/02-anthropic-user-cache.sh",
+    "examples/03-slot-save-restore.sh",
+    "examples/04-model-lifecycle.sh",
+    "examples/05-observability.sh",
+    "examples/06-stream-resume.sh",
+    "examples/07-openai-python.py",
+    "examples/08-cachyllama-cache-flags.sh",
+    "examples/09-rocmfpx-current-run-cache.sh",
+    "examples/10-rocmfpx-proposed-persistent-config.json",
+    "examples/README.md"
+  ]
+}

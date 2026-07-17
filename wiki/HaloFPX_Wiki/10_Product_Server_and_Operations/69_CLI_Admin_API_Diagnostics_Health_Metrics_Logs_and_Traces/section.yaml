@@ -1,0 +1,17 @@
+section_id: "69"
+title: "CLI, Admin API, Diagnostics, Health, Metrics, Logs, and Traces"
+category_id: "10"
+category_title: "Product Server and Operations"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 7
+open_question_count: 8
+required_machine_experiments:
+  - "OPS-69-E1 observability conformance"
+  - "OPS-69-E2 cardinality and privacy"
+  - "OPS-69-E3 diagnostic fault matrix"
+related_sections: ["66", "67", "68", "70", "71", "72"]
+applicability:
+  repositories: ["Custom_Inference_Project", "llama.cpp"]
+  software_versions: ["llama.cpp 788e07dc91d266ad3162a1ce9037665656269689", "OpenTelemetry Specification b59c1f71e6419483e243ce386325d411f1ca9a75"]
+  hardware_revisions: ["dual Strix Halo target; exact nodes open"]

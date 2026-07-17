@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> OPEN
+  OPEN --> PREPARED_PARTIAL: one/both RankPrepared recorded
+  OPEN --> ABORTED: Cancel CAS wins
+  PREPARED_PARTIAL --> ABORTED: Cancel CAS wins
+  OPEN --> COMMITTED: both prepared + Commit CAS wins
+  PREPARED_PARTIAL --> COMMITTED: Commit CAS wins
+  COMMITTED --> COMMITTED: later Cancel => ALREADY_COMMITTED
+  ABORTED --> ABORTED: late Prepare/Commit/Cancel => terminal abort
+  COMMITTED --> [*]
+  ABORTED --> [*]

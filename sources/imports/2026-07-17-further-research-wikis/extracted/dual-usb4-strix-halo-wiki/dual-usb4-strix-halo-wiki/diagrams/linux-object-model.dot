@@ -1,0 +1,26 @@
+digraph G {
+
+  graph [bgcolor="#101820", pad="0.35", nodesep="0.4", ranksep="0.55", fontname="DejaVu Sans"];
+  node [shape=box, style="rounded,filled", fillcolor="#263238", color="#4dd0e1", fontcolor="#f5f7fa", fontname="DejaVu Sans", penwidth=1.7, margin="0.16,0.10"];
+  edge [color="#90caf9", fontcolor="#cfd8dc", fontname="DejaVu Sans", penwidth=2.0, arrowsize=0.75];
+
+  rankdir=TB; label="Linux object model for one host-to-host USB4 path"; labelloc=t; fontsize=20; fontcolor="#ffffff";
+  pci [label="PCI NHI function
+0000:BB:DD.F", shape=component];
+  domain [label="/sys/bus/thunderbolt/devices/domainX
+connection manager + host router"];
+  xd [label="XDomain / remote host
+X-Y"];
+  service [label="service X-Y.0
+USB4NET or stream advertisement"];
+  net [label="/sys/class/net/thunderboltN
+Ethernet netdev", shape=folder];
+  stream [label="ConfigFS stream group
+/dev/tbstreamN (Linux 7.2+)", shape=folder];
+  pci -> domain -> xd -> service;
+  service -> net [label="thunderbolt-net"];
+  service -> stream [label="thunderbolt-stream", style=dashed];
+  proof [label="Map realpath to domain + BDF
+Do this for both links on both hosts", fillcolor="#4e342e", color="#ffb74d"];
+  net -> proof [style=dotted]; stream -> proof [style=dotted];
+}

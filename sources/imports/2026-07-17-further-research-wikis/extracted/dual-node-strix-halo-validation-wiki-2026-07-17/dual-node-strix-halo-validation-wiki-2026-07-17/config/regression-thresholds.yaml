@@ -1,0 +1,82 @@
+schema_version: 1
+comparison:
+  paired_by:
+  - prompt_id
+  - workload_cell
+  - cache_state
+  - seed
+  confidence: paired bootstrap 95% CI
+  minimum_pairs: 20
+thresholds:
+- metric: prefill_tokens_per_s
+  direction: higher_better
+  warn_relative: -0.03
+  fail_relative: -0.05
+- metric: decode_tokens_per_s
+  direction: higher_better
+  warn_relative: -0.03
+  fail_relative: -0.05
+- metric: goodput_output_tokens_per_s
+  direction: higher_better
+  warn_relative: -0.03
+  fail_relative: -0.05
+- metric: ttft_ms_p50
+  direction: lower_better
+  warn_relative: 0.05
+  fail_relative: 0.1
+- metric: ttft_ms_p95
+  direction: lower_better
+  warn_relative: 0.05
+  fail_relative: 0.1
+- metric: ttft_ms_p99
+  direction: lower_better
+  warn_relative: 0.08
+  fail_relative: 0.15
+- metric: itl_ms_p50
+  direction: lower_better
+  warn_relative: 0.05
+  fail_relative: 0.1
+- metric: itl_ms_p95
+  direction: lower_better
+  warn_relative: 0.05
+  fail_relative: 0.1
+- metric: itl_ms_p99
+  direction: lower_better
+  warn_relative: 0.08
+  fail_relative: 0.15
+- metric: model_load_ms_p95
+  direction: lower_better
+  warn_relative: 0.05
+  fail_relative: 0.1
+- metric: long_context_latency_slope
+  direction: lower_better
+  warn_relative: 0.08
+  fail_relative: 0.15
+- metric: prefix_token_hit_rate
+  direction: higher_better
+  warn_absolute_delta: -0.01
+  fail_absolute_delta: -0.02
+  absolute_floor: 0.95
+- metric: usb4_reference_goodput_bps
+  direction: higher_better
+  warn_relative: -0.03
+  fail_relative: -0.05
+- metric: cold_read_amplification
+  direction: lower_better
+  warn_relative: 0.1
+  absolute_ceiling: 1.25
+- metric: warm_read_amplification
+  direction: lower_better
+  warn_relative: 0.05
+  absolute_ceiling: 0.1
+- metric: energy_j_per_output_token
+  direction: lower_better
+  warn_relative: 0.04
+  fail_relative: 0.07
+- metric: repeatability_mad_over_median
+  direction: lower_better
+  warn_ceiling: 0.03
+  fail_ceiling: 0.05
+  cold_start_fail_ceiling: 0.1
+hard_event_rule: Crashes, hangs, corruption, resets, oopses, throttles, and link renegotiations require no statistical
+  confirmation.

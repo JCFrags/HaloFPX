@@ -1,0 +1,25 @@
+section_id: "26"
+title: "Compiler, CMake, Linker, and Reproducible Toolchain"
+category_id: "05"
+category_title: "Performance Software and Tools"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 11
+open_question_count: 10
+required_machine_experiments:
+  - "Capture complete toolchain, package, driver, firmware, source, and build manifests on both nodes"
+  - "Inspect emitted gfx1151 code objects and prove runtime loading"
+  - "Compare two clean builds from distinct absolute paths with diffoscope"
+  - "Qualify linker, sanitizer, LTO, and PGO lanes using matched correctness and performance workloads"
+  - "Enforce two-host build-manifest compatibility and single-node fallback"
+related_sections: ["24", "25", "27", "28"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX"
+    - "ggml-org/llama.cpp"
+    - "fewtarius/CachyLLama"
+  software_versions:
+    - "ROCm 7.2.3 immutable research comparison; deployment selection open"
+    - "CMake 4.4.0 documentation comparison; selected executable open"
+  hardware_revisions:
+    - "gfx1151 Strix Halo; exact product/firmware revisions pending inventory"

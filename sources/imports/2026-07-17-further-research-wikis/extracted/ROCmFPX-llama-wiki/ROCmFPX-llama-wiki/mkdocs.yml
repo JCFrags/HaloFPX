@@ -1,0 +1,24 @@
+site_name: ROCmFPX Technical Inventory
+docs_dir: .
+use_directory_urls: false
+theme:
+  name: readthedocs
+nav:
+  - Home: Home.md
+  - Scope & baselines: 01-Scope-and-Baselines.md
+  - Audit report: AUDIT-REPORT.md
+  - Executive inventory: 02-Executive-Inventory.md
+  - Commit map: 03-Commit-Map.md
+  - File map: 04-File-Map.md
+  - Quantization formats: 05-Quantization-Formats.md
+  - Strix Halo & ROCm kernels: 06-Strix-Halo-and-ROCm-Kernels.md
+  - Graph & model architecture: 07-Graph-and-Model-Architecture.md
+  - MTP & speculative decoding: 08-MTP-and-Speculative-Decoding.md
+  - RPC & distributed execution: 09-RPC-and-Distributed-Execution.md
+  - Server & WebUI: 10-Server-and-WebUI.md
+  - Build, CI & portability: 11-Build-CI-and-Portability.md
+  - Upstream replacement: 12-Upstream-Replacement-Analysis.md
+  - Retain / refresh / retire: 13-Retain-Refresh-Retire.md
+  - Migration plan: 14-Migration-Plan.md
+  - Exact path ledger: 15-Exact-Path-Ledger.md
+  - Source ledger: 16-Source-Ledger.md

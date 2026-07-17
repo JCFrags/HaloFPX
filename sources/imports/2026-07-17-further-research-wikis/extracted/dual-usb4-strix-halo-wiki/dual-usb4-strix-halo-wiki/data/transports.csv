@@ -1,0 +1,11 @@
+transport,maturity,single_ordered_stream,one_stream_uses_two_links,failover,llama_cpp_change,shared_memory,security_note
+TCP one USB4NET,stable,yes,no,reconnect,none,no,RPC has no TLS/auth
+Two TCP sockets,stable,no; app reassembles,yes,application,custom runtime,no,application responsibility
+ECMP TCP,stable,yes,no,route dependent,none,no,same as TCP
+Bond active-backup,stable 7.0+,yes,no,yes,none,no,same as TCP
+Bond hash/LACP,stable 7.0+,yes,no; multiple flows spread,yes,none,no,same as TCP
+Bond balance-rr,stable but risky,yes,packet stripes,yes,none,no,reordering risk
+MPTCP,stable,yes,yes,yes,mptcpize or patch,no,join/address HMACs; no payload encryption or app identity
+USB4STREAM,Linux 7.2 development,yes raw stream,custom two-device striping,application,new adapter,no,no encryption/auth
+Soft-RoCE over USB4NET,experimental,verbs semantics,custom multi-QP,application,may trigger RDMA path,no,no channel security
+Coherent shared memory over generic USB4,unavailable,n/a,n/a,n/a,new hardware/platform,no,n/a

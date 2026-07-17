@@ -1,0 +1,6 @@
+{
+  "code": "STALE_EPOCH",
+  "safe_detail": "Message epoch 41 is below authoritative epoch 42.",
+  "authoritative_epoch": 42,
+  "authority_revision": 5542
+}

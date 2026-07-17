@@ -1,0 +1,6 @@
+flowchart TB
+  PCI[PCI NHI function] --> D[domainX]
+  D --> X[XDomain remote host]
+  X --> S[service X-Y.0]
+  S -->|thunderbolt-net| N[thunderboltN netdev]
+  S -.->|thunderbolt-stream| T[/dev/tbstreamN]

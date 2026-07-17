@@ -1,0 +1,19 @@
+section_id: "49"
+title: "Fabric Requirements and Transport Abstraction"
+category_id: "08"
+category_title: "Fabric and Transport"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 6
+open_question_count: 8
+required_machine_experiments:
+  - "FT-49-E1 path inventory and independence"
+  - "FT-49-E2 service envelope"
+  - "FT-49-E3 API conformance fault matrix"
+related_sections: ["09", "20", "38", "39", "50", "51", "52", "53", "54", "55"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  software: "Linux 7.2-rc3-era USB4STREAM source snapshot fce2dfa773ced15f27dd27cd0b482a7473cdcf2a"
+  hardware: "two matched Strix Halo nodes; exact topology unverified"

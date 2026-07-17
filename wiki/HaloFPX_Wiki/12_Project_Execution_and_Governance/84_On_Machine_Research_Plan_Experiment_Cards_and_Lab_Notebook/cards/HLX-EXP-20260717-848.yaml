@@ -1,0 +1,101 @@
+schema_version: "1.0.0"
+experiment_id: "HLX-EXP-20260717-848"
+card_version: "1.0.0"
+title: "Service envelope, lifecycle, concurrency, and soak"
+family: "E08"
+status: "draft"
+owner: null
+reviewer: null
+hypothesis: "An admitted distributed candidate and its single-node fallback maintain declared API/lifecycle semantics, fairness, bounded resources, observability, and thermal stability under representative loads."
+falsifier: "Starvation, leak, thermal drift, secret exposure, lifecycle violation, unbounded resource growth, or fallback failure occurs."
+setup:
+  description: "API conformance, lifecycle, concurrency, observability, deployment parity, and bounded soak campaign."
+  sut_boundary: "Client, API server, routing, runtime, model/session lifecycle, observability, deployment, and fallback boundary."
+  nodes: [null]
+  ranks: [null]
+  links: [null]
+  artifact_root: null
+prerequisites: ["E07 cache-off candidate","Working single-node fallback","Ratified service and thermal stop limits"]
+dependency_gates:
+  - {experiment_id: "HLX-EXP-20260717-847", condition: "always", required_gate_result: "pass", evidence: null}
+safety:
+  class: "privileged-reversible"
+  elevation_required: null
+  elevation_reason: null
+  authorization_required: true
+  authorization_record: null
+  hazards: ["Long-duration heat and storage growth","Deployment changes can interrupt service","Logs may expose sensitive inputs"]
+  exact_targets: [null]
+  stop_plan: null
+  rollback_plan: null
+  emergency_stop: null
+commands:
+  - id: "unresolved-command-01"
+    description: "Resolve and review exact argv, host, working directory, outputs, safety target, and authorization before approval; this draft command is intentionally non-executable."
+    host: null
+    cwd: null
+    argv: null
+    environment: null
+    requires_elevation: null
+    destructive: false
+    authorization_gate: "Card status must be approved and every unresolved command field must be replaced."
+    expected_outputs: [null]
+environment_snapshot:
+  repositories: [null]
+  software: [null]
+  hardware: [null]
+  model: null
+  tokenizer: null
+  workload: null
+  configuration: null
+  clocks: [null]
+  collectors: [null]
+variables:
+  independent: ["lifecycle state","concurrency","arrival pattern","prompt length","cancellation","cache locality","deployment form","duration"]
+  dependent: ["conformance","fairness","TTFT","ITL","goodput","tails","resource slope","thermal drift","recovery"]
+  controlled: ["Clean pinned single-node service","Fixed privacy-safe workload"]
+controls:
+  baseline: "Clean pinned single-node service under the identical API workload"
+  randomized_order: null
+  random_seed: null
+  warmup: null
+  repetitions: null
+outputs:
+  root: null
+  raw: ["shared/api-conformance.jsonl","shared/service-load.jsonl","shared/lifecycle.jsonl","shared/soak.jsonl"]
+  schemas: [null]
+  integrity_manifest: null
+analysis:
+  plan: null
+  statistics: null
+  uncertainty: null
+  exclusions: [null]
+  analysis_commit: null
+  command: null
+acceptance:
+  pass: "The supported envelope has bounded resources and thermal behavior, fair service, conforming lifecycle semantics, usable observability, and working fallback."
+  fail: "Any declared falsifier occurs or required evidence is missing."
+  inconclusive: "Required observations or uncertainty are insufficient for pass or fail; preserve the run and issue a revised card."
+  stop_rules: [null]
+result:
+  gate_result: null
+  conclusion: null
+  confidence: null
+  uncertainty: null
+  completed_at: null
+  run_ids: []
+follow_up: null
+links:
+  originating_sections: ["46","66","67","68","69","70","71","72","79"]
+  open_questions: ["HLX-OQ-8409"]
+  issues: [null]
+  requirements: [null]
+  adrs: [null]
+  aliases: ["M82-05","M82-12","M83-04","M83-06","M83-07","EXP-86-04"]
+provenance:
+  created_at: "2026-07-17T00:00:00Z"
+  updated_at: "2026-07-17T00:00:00Z"
+  authors: ["Codex section-84 research workflow"]
+  source_refs: ["S84-01", "S84-03", "S84-04"]
+  card_sha256: null
+notes: "Draft only. Null values and null list entries are unresolved contract fields, not measurements or permission to execute."

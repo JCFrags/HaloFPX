@@ -1,0 +1,78 @@
+section_id: "82"
+title: "Implementation Roadmap, Epics, Dependencies, and Exit Criteria"
+category_id: "12"
+category_title: "Project Execution and Governance"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 10
+open_question_count: 16
+required_machine_experiments:
+  - "M82-01 same-window hardware, firmware, cabling, port, and software inventory"
+  - "M82-02 clean and offline HIP plus Vulkan builds on both nodes"
+  - "M82-03 model, quantization, backend correctness, and quality oracle"
+  - "M82-04 memory, context, and concurrency allocation staircase"
+  - "M82-05 single-node service conformance and restart"
+  - "M82-06 replicated routing, affinity, overload, and peer-loss"
+  - "M82-07 single-link and dual-link independence and service envelope"
+  - "M82-08 GPU-produce to peer-GPU-consume transport conformance"
+  - "M82-09 matched distributed-mode comparison and break-even analysis"
+  - "M82-10 cache restore, crash, mutation, incompatibility, and isolation matrix"
+  - "M82-11 cache I/O, hit-rate, write-amplification, and endurance under mixed load"
+  - "M82-12 integrated long-context, multi-session, fault, soak, upgrade, and rollback"
+identifier_aliases:
+  open_questions:
+    OQ82-01: "HLX-OQ-8201"
+    OQ82-02: "HLX-OQ-8202"
+    OQ82-03: "HLX-OQ-8203"
+    OQ82-04: "HLX-OQ-8204"
+    OQ82-05: "HLX-OQ-8205"
+    OQ82-06: "HLX-OQ-8206"
+    OQ82-07: "HLX-OQ-8207"
+    OQ82-08: "HLX-OQ-8208"
+    OQ82-09: "HLX-OQ-8209"
+    OQ82-10: "HLX-OQ-8210"
+    OQ82-11: "HLX-OQ-8211"
+    OQ82-12: "HLX-OQ-8212"
+    OQ82-13: "HLX-OQ-8213"
+    OQ82-14: "HLX-OQ-8214"
+    OQ82-15: "HLX-OQ-8215"
+    OQ82-16: "HLX-OQ-8216"
+  machine_experiments:
+    policy: "M82 IDs are local roadmap aggregates, not canonical experiment IDs; use Section 84 HLX-EXP owners externally"
+    unresolved_mappings: ["M82-05", "M82-06", "M82-09"]
+    crosswalk:
+      M82-01: ["HLX-EXP-20260717-841"]
+      M82-02: ["HLX-EXP-20260717-843"]
+      M82-03: ["HLX-EXP-20260717-843"]
+      M82-04: ["HLX-EXP-20260717-843"]
+      M82-05: ["HLX-EXP-20260717-848"]
+      M82-06: ["HLX-EXP-20260717-848"]
+      M82-07: ["HLX-EXP-20260717-844"]
+      M82-08: ["HLX-EXP-20260717-844", "HLX-EXP-20260717-845"]
+      M82-09: ["HLX-EXP-20260717-847"]
+      M82-10: ["HLX-EXP-20260717-846"]
+      M82-11: ["HLX-EXP-20260717-846"]
+      M82-12: ["HLX-EXP-20260717-848", "HLX-EXP-20260717-849", "HLX-EXP-20260717-850"]
+related_sections: ["06", "09", "10", "11", "15", "16", "18", "20", "23", "29", "38", "48", "49", "50", "51", "52", "53", "55", "56", "57", "58", "59", "60", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "83", "84", "85", "86"]
+applicability:
+  repositories:
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
+    - "fewtarius/llama-ai@1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+  software_versions: ["roadmap baseline 2026-07-17", "SLSA 1.2", "SPDX 3.0.1", "NIST SP 800-218 v1.1"]
+  hardware_revisions: ["two planned matched AMD Strix Halo systems; exact revisions unresolved"]
+research_split:
+  internet_source_code: "complete for pinned roadmap authorities as of 2026-07-17"
+  target_machine_measurements: "required; local aggregates M82-01 through M82-12 have not run and must execute under resolved Section 84 HLX-EXP owner cards"
+  contingent_decisions: "MUP model/backend, SLOs, transport, coupled mode, HaloKV defaults, security, support window, and release remain open"
+unresolved_evidence_gaps:
+  - "Sections 50-53 candidate transport contracts require carrier, protocol, multipath, security, fault, and performance validation"
+  - "Sections 57-60 candidate cache contracts require schema, ownership, layout, sharing, isolation, crash, and equivalence validation"
+  - "Sections 70-72 require supported deployment/security/compatibility decisions and install, upgrade, rollback, backup, and recovery rehearsals"
+  - "Sections 74, 76-77, and 79-81 report zero HaloFPX measurements and require calibrated baseline, value, stress, fault, reproducibility, and release evidence"
+claim_scope:
+  measurements_present: false
+  schedule_commitments_present: false
+  roadmap_state: "proposed, dependency-aware, and machine-gated"
+  distributed_qualification: "cache-off qualification is independent; cache-integrated qualification is required only when persistent cache is admitted"

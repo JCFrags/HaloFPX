@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "base_fixture": "model.tiny-stories15m-q4_0 or another known-good approved GGUF",
+  "byte_level": [
+    {
+      "id": "gguf.bad-magic",
+      "operation": "bad-magic"
+    },
+    {
+      "id": "gguf.bad-version-0",
+      "operation": "set-version",
+      "value": 0
+    },
+    {
+      "id": "gguf.bad-version-1",
+      "operation": "set-version",
+      "value": 1
+    },
+    {
+      "id": "gguf.future-version",
+      "operation": "future-version"
+    },
+    {
+      "id": "gguf.truncated-data",
+      "operation": "truncate",
+      "bytes_to_remove": 1
+    },
+    {
+      "id": "gguf.flip-middle-byte",
+      "operation": "flip",
+      "offset": "middle"
+    }
+  ],
+  "native_generator_cases": {
+    "gguf.bad-tensor-count": "tests/test-gguf.cpp::HEADER_BAD_N_TENSORS",
+    "gguf.bad-kv-count": "tests/test-gguf.cpp::HEADER_BAD_N_KV",
+    "gguf.invalid-kv-recipes": "tests/test-gguf.cpp::KV_*",
+    "gguf.invalid-tensor-recipes": "tests/test-gguf.cpp::TENSORS_*",
+    "gguf.custom-alignment": "tests/test-gguf.cpp::*_CUSTOM_ALIGN",
+    "gguf.oob-special-token": "security regression fixture based on the pinned patched implementation",
+    "gguf.unknown-metadata": "generate with a GGUF writer from the same pinned codebase"
+  },
+  "rule": "Prefer the upstream handcrafted generator for structure-aware corruption. The byte mutator is only for offsets defined by the GGUF fixed header or simple truncation/flip."
+}

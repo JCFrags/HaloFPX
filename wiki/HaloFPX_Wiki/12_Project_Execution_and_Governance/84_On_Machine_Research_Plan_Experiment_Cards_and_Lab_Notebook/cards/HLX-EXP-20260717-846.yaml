@@ -1,0 +1,102 @@
+schema_version: "1.0.0"
+experiment_id: "HLX-EXP-20260717-846"
+card_version: "1.0.0"
+title: "HaloKV correctness, durability, performance, and endurance"
+family: "E06"
+status: "draft"
+owner: null
+reviewer: null
+hypothesis: "Rank-local persisted state restores exact compatible continuations, rejects incompatibility and corruption, survives declared crash points, isolates tenants, and has bounded I/O cost."
+falsifier: "Any incompatible or corrupt state is accepted, a continuation differs from the oracle, committed state is lost outside the declared mode, or isolation fails."
+setup:
+  description: "Correctness, compatibility, mutation, durability, tiering, performance, and endurance qualification on disposable cache roots."
+  sut_boundary: "HaloKV state inventory, fingerprint, storage layout, I/O path, restore path, rank ownership, and disposable backing storage."
+  nodes: [null]
+  ranks: [null]
+  links: [null]
+  artifact_root: null
+prerequisites: ["E03 reference continuation oracle","E05 proven visibility and I/O path","Disposable resolved cache target"]
+dependency_gates:
+  - {experiment_id: "HLX-EXP-20260717-843", condition: "always", required_gate_result: "pass", evidence: null}
+  - {experiment_id: "HLX-EXP-20260717-845", condition: "always", required_gate_result: "pass", evidence: null}
+safety:
+  class: "destructive-isolated"
+  elevation_required: null
+  elevation_reason: null
+  authorization_required: true
+  authorization_record: null
+  hazards: ["Crash, corruption, and disk pressure must target disposable copies only","SSD endurance impact"]
+  exact_targets: [null]
+  stop_plan: null
+  rollback_plan: null
+  emergency_stop: null
+commands:
+  - id: "unresolved-command-01"
+    description: "Resolve and review exact argv, host, working directory, outputs, safety target, and authorization before approval; this draft command is intentionally non-executable."
+    host: null
+    cwd: null
+    argv: null
+    environment: null
+    requires_elevation: null
+    destructive: false
+    authorization_gate: "Card status must be approved and every unresolved command field must be replaced."
+    expected_outputs: [null]
+environment_snapshot:
+  repositories: [null]
+  software: [null]
+  hardware: [null]
+  model: null
+  tokenizer: null
+  workload: null
+  configuration: null
+  clocks: [null]
+  collectors: [null]
+variables:
+  independent: ["state kind","prefix","tier","backend","rank","topology","compatibility mutation","crash point","corruption","quota","prefetch"]
+  dependent: ["continuation equivalence","hit/miss reason","latency","I/O bytes","write amplification","recovery","isolation"]
+  controlled: ["Cold recomputation","Untouched hashed cache copy"]
+controls:
+  baseline: "Cold recomputation from the identical model, prompt, state, sampling, and workload inputs"
+  randomized_order: null
+  random_seed: null
+  warmup: null
+  repetitions: null
+outputs:
+  root: null
+  raw: ["shared/continuation-oracle.jsonl","shared/cache-events.jsonl","shared/crash-recovery.jsonl","shared/endurance.json"]
+  schemas: [null]
+  integrity_manifest: null
+analysis:
+  plan: null
+  statistics: null
+  uncertainty: null
+  exclusions: [null]
+  analysis_commit: null
+  command: null
+acceptance:
+  pass: "Compatible restores match the oracle, every incompatible/corrupt input misses or recomputes, recovery is bounded, and cost is reported against matched cold control."
+  fail: "Silent bad-state acceptance, continuation mismatch, collateral data loss, isolation failure, or unrecoverable disposable-root corruption."
+  inconclusive: "Required observations or uncertainty are insufficient for pass or fail; preserve the run and issue a revised card."
+  stop_rules: [null]
+result:
+  gate_result: null
+  conclusion: null
+  confidence: null
+  uncertainty: null
+  completed_at: null
+  run_ids: []
+follow_up: null
+links:
+  originating_sections: ["56","57","58","59","60","61","62","63","64","65","77"]
+  open_questions: ["HLX-OQ-8407"]
+  issues: [null]
+  requirements: [null]
+  adrs: [null]
+  aliases: ["M82-10","M82-11","M83-05","EX85-03","EX85-04","EX85-05"]
+provenance:
+  created_at: "2026-07-17T00:00:00Z"
+  updated_at: "2026-07-17T00:00:00Z"
+  authors: ["Codex section-84 research workflow"]
+  source_refs: ["S84-01", "S84-03", "S84-04"]
+  card_sha256: null
+notes: "Draft only. Null values and null list entries are unresolved contract fields, not measurements or permission to execute."

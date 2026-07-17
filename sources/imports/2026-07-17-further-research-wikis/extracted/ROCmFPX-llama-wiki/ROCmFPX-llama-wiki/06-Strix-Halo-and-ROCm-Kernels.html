@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Commit- and file-level ROCmFPX deviation inventory against upstream llama.cpp">
+  <title>Strix Halo and ROCm kernels · ROCmFPX Inventory</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">RX</div>
+      <div><div class="brand-title">ROCmFPX Inventory</div><span class="brand-sub">llama.cpp deviation wiki</span></div>
+    </div>
+    <div class="search-wrap">
+      <input id="wiki-search" class="search" type="search" placeholder="Search paths, commits, formats…" autocomplete="off">
+      <div id="search-results" class="search-results"></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-heading">Wiki</div>
+      
+      <a href="Home.html" class="">Home</a>
+      
+      <a href="01-Scope-and-Baselines.html" class="">Scope & baselines</a>
+      
+      <a href="AUDIT-REPORT.html" class="">Audit report</a>
+      
+      <a href="02-Executive-Inventory.html" class="">Executive inventory</a>
+      
+      <a href="03-Commit-Map.html" class="">Commit map</a>
+      
+      <a href="04-File-Map.html" class="">File map</a>
+      
+      <a href="05-Quantization-Formats.html" class="">Quantization formats</a>
+      
+      <a href="06-Strix-Halo-and-ROCm-Kernels.html" class="active">Strix Halo & ROCm kernels</a>
+      
+      <a href="07-Graph-and-Model-Architecture.html" class="">Graph & model architecture</a>
+      
+      <a href="08-MTP-and-Speculative-Decoding.html" class="">MTP & speculative decoding</a>
+      
+      <a href="09-RPC-and-Distributed-Execution.html" class="">RPC & distributed execution</a>
+      
+      <a href="10-Server-and-WebUI.html" class="">Server & WebUI</a>
+      
+      <a href="11-Build-CI-and-Portability.html" class="">Build, CI & portability</a>
+      
+      <a href="12-Upstream-Replacement-Analysis.html" class="">Upstream replacement</a>
+      
+      <a href="13-Retain-Refresh-Retire.html" class="">Retain / refresh / retire</a>
+      
+      <a href="14-Migration-Plan.html" class="">Migration plan</a>
+      
+      <a href="15-Exact-Path-Ledger.html" class="">Exact path ledger</a>
+      
+      <a href="16-Source-Ledger.html" class="">Source ledger</a>
+      
+      <div class="nav-heading">Exact patch maps</div>
+      
+      <a href="patches/Post-baseline-series.html" class="">Post-baseline series</a>
+      
+      <a href="patches/PR-27-promotion.html" class="">PR #27</a>
+      
+      <a href="patches/PR-28-funding.html" class="">PR #28</a>
+      
+      <a href="patches/PR-31-speculative-overrides.html" class="">PR #31</a>
+      
+      <a href="patches/PR-32-hy3-rocmfp2-cache.html" class="">PR #32</a>
+      
+      <div class="nav-heading">Data</div>
+      <a href="data/file-map.csv">File map CSV</a>
+      <a href="data/commit-map.csv">Commit map CSV</a>
+      <a href="data/capability-matrix.csv">Capability matrix CSV</a>
+      <a href="data/dependency-table.csv">Dependency table CSV</a>
+      <a href="data/source-ledger.csv">Source ledger CSV</a>
+    </nav>
+    <div class="sidebar-meta">
+      Fork <code>a5605a72</code><br>
+      Upstream <code>86d86ed4</code><br>
+      Snapshot 2026-07-17
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div><button id="mobile-toggle" class="mobile-toggle" aria-label="Toggle navigation">☰</button> <span class="crumb">Wiki / Strix Halo and ROCm kernels</span></div>
+      <div class="snapshot">
+        <span class="pill">100 commits</span>
+        <span class="pill">276 paths</span>
+        <span class="pill">primary-source cited</span>
+      </div>
+    </header>
+    <div class="content">
+      <article><h1 id="strix-halo-and-rocm-kernels">Strix Halo and ROCm kernels</h1>
+<blockquote>
+<p><strong>Audit snapshot:</strong> fork <code>a5605a72768c6562241b248e268e33dc92787394</code>; upstream <code>86d86ed4396b4130922f7b9af26e3d9fc11a591b</code>; inventory date <code>2026-07-17</code>.<br />
+<strong>Decision vocabulary:</strong> <span class="badge retain">RETAIN</span> = capability/ABI must survive; <span class="badge refresh">REFRESH</span> = preserve capability but re-port onto current upstream; <span class="badge retire">RETIRE</span> = remove the fork patch and use upstream or archive it. <a class="citation" href="https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394">S-FORK-HEAD</a> <a class="citation" href="https://github.com/ggml-org/llama.cpp/tree/86d86ed4396b4130922f7b9af26e3d9fc11a591b">S-UP-HEAD</a></p>
+</blockquote>
+<h2 id="hardware-target">Hardware target</h2>
+<p>AMD identifies Strix Halo as Ryzen AI MAX/MAX+ with integrated RDNA 3.5 graphics, target <code>gfx1151</code>, and unified memory mapped through GPUVM/GTT rather than a discrete VRAM pool. AMD’s system guide also documents kernel and memory-configuration requirements for reliable compute use. <a class="citation" href="https://rocm.docs.amd.com/en/docs-7.2.0/how-to/system-optimization/strixhalo.html">S-AMD-STRIX</a></p>
+<p>The fork’s Strix build path explicitly targets <code>gfx1151</code>, enables HIP and Vulkan, forces the quantized MMQ path, builds the server/tests, and disables CUDA. <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/build-strix-rocmfp4-mtp.sh">S-BUILD-STRIX</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/CMakePresets.json">S-CMAKE-PRESETS</a></p>
+<h2 id="build-and-tuning-surface">Build and tuning surface</h2>
+<table>
+<thead>
+<tr>
+  <th>Knob or path</th>
+  <th>Fork behavior</th>
+  <th>Assessment</th>
+  <th>Primary sources</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>AMDGPU_TARGETS</code> / <code>CMAKE_HIP_ARCHITECTURES</code></td>
+  <td><code>gfx1151</code></td>
+  <td><span class="badge retain">RETAIN</span> as an explicit profile.</td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/build-strix-rocmfp4-mtp.sh">S-BUILD-STRIX</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/CMakePresets.json">S-CMAKE-PRESETS</a> <a class="citation" href="https://rocm.docs.amd.com/en/docs-7.2.0/how-to/system-optimization/strixhalo.html">S-AMD-STRIX</a></td>
+</tr>
+<tr>
+  <td>HIP + Vulkan in one build</td>
+  <td>Enables both backends for comparative/runtime selection.</td>
+  <td><span class="badge retain">RETAIN</span>, but make dependencies discoverable.</td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/build-strix-rocmfp4-mtp.sh">S-BUILD-STRIX</a></td>
+</tr>
+<tr>
+  <td>RDNA3.5 warp count</td>
+  <td>ROCmFPX MMVQ code contains RDNA3.5-specific warp defaults.</td>
+  <td><span class="badge refresh">REFRESH</span> and rebenchmark per compiler/ROCm release.</td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/rocmfp4-decode-tune-flags.sh">S-TUNE-FLAGS</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmvq.cu">S-MMVQ</a></td>
+</tr>
+<tr>
+  <td>MMID maximum batch</td>
+  <td>Fork tuning controls batched indirect-MoE dispatch thresholds.</td>
+  <td><span class="badge refresh">REFRESH</span> with model-shape test matrix.</td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/rocmfp4-decode-tune-flags.sh">S-TUNE-FLAGS</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmvq.cu">S-MMVQ</a></td>
+</tr>
+<tr>
+  <td>Rows per block / wide dispatch</td>
+  <td>Fork exposes wide row and MoE-row controls.</td>
+  <td><span class="badge refresh">REFRESH</span> with occupancy/register gates.</td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/rocmfp4-decode-tune-flags.sh">S-TUNE-FLAGS</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmvq.cu">S-MMVQ</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/.github/workflows/hip-quality-check.yml">S-HIP-QUALITY</a></td>
+</tr>
+<tr>
+  <td>Local rocWMMA headers</td>
+  <td>Optional experimental path in the build script.</td>
+  <td><strong>RETIRE as default</strong>; keep opt-in only.</td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/build-strix-rocmfp4-mtp.sh">S-BUILD-STRIX</a> <a class="citation" href="https://rocm.docs.amd.com/projects/rocWMMA/en/develop/api-reference/api-reference-guide.html#supported-gpu-architectures">S-AMD-ROCWMMA</a></td>
+</tr>
+</tbody>
+</table>
+<p>Current official rocWMMA documentation lists RDNA targets <code>gfx1100</code>, <code>gfx1101</code>, <code>gfx1102</code>, <code>gfx1200</code>, and <code>gfx1201</code>, but not <code>gfx1151</code>. That does not prove rocWMMA cannot compile on Strix Halo; it does mean the fork should not treat gfx1151 rocWMMA as an officially listed default path. <a class="citation" href="https://rocm.docs.amd.com/projects/rocWMMA/en/develop/api-reference/api-reference-guide.html#supported-gpu-architectures">S-AMD-ROCWMMA</a></p>
+<h2 id="hiprocm-kernel-inventory">HIP/ROCm kernel inventory</h2>
+<table>
+<thead>
+<tr>
+  <th>Function</th>
+  <th>Primary fork paths</th>
+  <th>ROCmFPX-specific content</th>
+  <th>Decision</th>
+  <th>Primary sources</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Device dequantization/codebook</td>
+  <td><code>ggml/rocmfpx/rocmfpx_hip_codebook.cuh</code>, <code>ggml/src/ggml-cuda/dequantize.cuh</code></td>
+  <td>Packed-code decode and scale application for custom formats.</td>
+  <td><strong>RETAIN/REFRESH</strong></td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfpx_hip_codebook.cuh">S-HIP-CODEBOOK</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/dequantize.cuh">S-DEQUANT</a></td>
+</tr>
+<tr>
+  <td>Quantized vector dot</td>
+  <td><code>ggml/src/ggml-cuda/vecdotq.cuh</code></td>
+  <td>ROCmFPX dot-product specializations.</td>
+  <td><span class="badge refresh">REFRESH</span></td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/vecdotq.cuh">S-VECDOT</a></td>
+</tr>
+<tr>
+  <td>Decode GEMV/MMVQ</td>
+  <td><code>ggml/src/ggml-cuda/mmvq.cu</code></td>
+  <td>Custom format routing, Q2 path, RDNA3.5 warp/batch/MoE tuning.</td>
+  <td><span class="badge refresh">REFRESH</span></td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmvq.cu">S-MMVQ</a></td>
+</tr>
+<tr>
+  <td>Prefill/batched MMQ</td>
+  <td><code>ggml/src/ggml-cuda/mmq.cu</code>, <code>mmq.cuh</code></td>
+  <td>Quantized tile loads and custom format template instantiations.</td>
+  <td><span class="badge refresh">REFRESH</span></td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmq.cu">S-MMQ</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmq.cuh">S-MMQ-H</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/commit/62f7508b12c6b8510fd7a77dfc5d9519fa026d82">S-C-62F</a></td>
+</tr>
+<tr>
+  <td>Copy/convert/rows</td>
+  <td><code>convert.cu</code>, <code>cpy-utils.cuh</code>, <code>getrows.cu</code>, <code>set-rows.cu</code></td>
+  <td>Custom packed types and operation support.</td>
+  <td><span class="badge refresh">REFRESH</span></td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/32/files">S-PR32-FILES</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/ggml-cuda.cu">S-CUDA-DISPATCH</a></td>
+</tr>
+<tr>
+  <td>Backend capability/dispatch</td>
+  <td><code>ggml/src/ggml-cuda/ggml-cuda.cu</code></td>
+  <td>Type support and operation routing.</td>
+  <td><span class="badge refresh">REFRESH</span></td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/ggml-cuda.cu">S-CUDA-DISPATCH</a></td>
+</tr>
+<tr>
+  <td>Reduction/softmax/MoE correctness</td>
+  <td><code>common.cuh</code>, <code>softmax.cu</code>, <code>topk-moe.cu</code>, related files</td>
+  <td>ROCm 7.2 exact negative-infinity behavior.</td>
+  <td><span class="badge refresh">REFRESH</span></td>
+  <td><a class="citation" href="https://github.com/charlie12345/ROCmFPX/commit/df3b8a0efa4dbdfcc2e29dac367c69eed310ed24">S-C-DF3</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="coherency-repair-that-must-survive">Coherency repair that must survive</h2>
+<p>Commit <code>62f7508…</code> corrects ROCm MMQ block-stride calculations and Vulkan handling of packed FP6 blocks when asynchronous loader chunks split a 26-byte block. The latter is a format/storage invariant, not a transient performance tweak, and requires direct unaligned copy tests after any rebase. <a class="citation" href="https://github.com/charlie12345/ROCmFPX/commit/62f7508b12c6b8510fd7a77dfc5d9519fa026d82">S-C-62F</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfpx.h">S-ROCMFPX-H</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/ggml-vulkan.cpp">S-VULKAN</a></p>
+<h2 id="vulkan-on-strix">Vulkan on Strix</h2>
+<p>The fork implements custom Vulkan shader types, dequantization, matrix-vector/matrix-matrix paths, and packed FP6 host/device conversion. The project README reports Vulkan as the faster decode backend in some local Strix measurements; that evidence is repository-reported and should be rerun under the target driver, compiler, model, and prompt. <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/ggml-vulkan.cpp">S-VULKAN</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/vulkan-shaders/types.glsl">S-VULKAN-TYPES</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/vulkan-shaders/dequant_rocmfpx_fp6.comp">S-VULKAN-FP6</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/README.html">S-README-FORK</a></p>
+<h2 id="acceptance-criteria-for-refreshed-kernels">Acceptance criteria for refreshed kernels</h2>
+<p>A refreshed backend is acceptable only when it passes:</p>
+<ol>
+<li>byte-exact CPU-reference vectors;</li>
+<li>backend operation matrices for every advertised operation;</li>
+<li>unaligned host/device copy tests for transformed storage;</li>
+<li>real-model coherency probes on HIP and Vulkan;</li>
+<li>Strix performance gates with compiler, ROCm, driver, model, context, batch, and prompt recorded.</li>
+</ol>
+<p>The fork already contains the constituent reference tests, backend tests, workflows, and sweep scripts; the migration should make them a formal release contract. <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/test_rocmfp2_reference.c">S-ROCMFP2-TEST</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tests/test-backend-ops.cpp">S-BACKEND-TEST</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/.github/workflows/check-rocmfpx.yml">S-ROCMFPX-CI</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/.github/workflows/hip-quality-check.yml">S-HIP-QUALITY</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/sweep-rocmfpx-backend-ops.sh">S-SWEEP-BACKEND</a></p>
+</article>
+      <div class="page-footer">ROCmFPX technical inventory · pinned source audit · retain / refresh / retire assessment</div>
+    </div>
+  </main>
+</div>
+<script src="assets/search-index.js"></script>
+<script src="assets/wiki.js"></script>
+</body>
+</html>

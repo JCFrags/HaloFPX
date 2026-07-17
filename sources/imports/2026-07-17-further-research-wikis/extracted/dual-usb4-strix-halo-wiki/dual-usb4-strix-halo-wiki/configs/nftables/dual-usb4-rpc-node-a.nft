@@ -1,0 +1,16 @@
+#!/usr/sbin/nft -f
+flush table inet dual_usb4
+
+table inet dual_usb4 {
+  set usb4_ifaces { type ifname; elements = { "thunderbolt0", "thunderbolt1" } }
+  set node_b_ips { type ipv4_addr; elements = { 10.44.0.2, 10.44.1.2 } }
+
+  chain output {
+    type filter hook output priority 0; policy accept;
+    # Prevent accidental cross-cable MPTCP pairs in the reference /30 design.
+    ip saddr 10.44.0.1 ip daddr 10.44.1.2 reject
+    ip saddr 10.44.1.1 ip daddr 10.44.0.2 reject
+    oifname @usb4_ifaces ip daddr @node_b_ips tcp dport 50052 accept
+    oifname @usb4_ifaces tcp dport 50052 reject
+  }
+}

@@ -1,0 +1,14 @@
+{"id": "health", "method": "GET", "path": "/health", "body": null, "oracle": "status-and-schema"}
+{"id": "props", "method": "GET", "path": "/props", "body": null, "oracle": "normalized-json"}
+{"id": "models", "method": "GET", "path": "/models", "body": null, "oracle": "normalized-json"}
+{"id": "completion", "method": "POST", "path": "/completion", "body": {"prompt": "I believe the meaning of life is", "n_predict": 8, "temperature": 0, "top_k": 1, "return_tokens": true}, "oracle": "exact-deterministic"}
+{"id": "completion-stream", "method": "POST", "path": "/completion", "body": {"prompt": "I believe the meaning of life is", "n_predict": 8, "temperature": 0, "top_k": 1, "stream": true}, "oracle": "stream-assembly"}
+{"id": "openai-completion", "method": "POST", "path": "/v1/completions", "body": {"model": "test-model", "prompt": "I believe the meaning of life is", "max_tokens": 8, "temperature": 0}, "oracle": "adapter-schema"}
+{"id": "openai-chat", "method": "POST", "path": "/v1/chat/completions", "body": {"model": "test-model", "messages": [{"role": "user", "content": "Return the word OK."}], "max_tokens": 8, "temperature": 0}, "oracle": "adapter-schema"}
+{"id": "responses", "method": "POST", "path": "/v1/responses", "body": {"model": "test-model", "input": "Return the word OK.", "max_output_tokens": 8}, "oracle": "adapter-schema"}
+{"id": "anthropic", "method": "POST", "path": "/v1/messages", "headers": {"anthropic-version": "2023-06-01"}, "body": {"model": "test-model", "messages": [{"role": "user", "content": "Return the word OK."}], "max_tokens": 8}, "oracle": "adapter-schema"}
+{"id": "tokenize", "method": "POST", "path": "/tokenize", "body": {"content": "Hello, world!", "add_special": false}, "oracle": "exact-token-sequence"}
+{"id": "detokenize", "method": "POST", "path": "/detokenize", "body": {"tokens": ["TOKENS_FROM_PREVIOUS_STEP"]}, "oracle": "exact-bytes"}
+{"id": "embedding", "method": "POST", "path": "/v1/embeddings", "body": {"model": "test-model", "input": ["alpha", "beta"]}, "oracle": "exact-shape-calibrated-vector"}
+{"id": "malformed-json", "method": "POST", "path": "/completion", "raw_body": "{\"prompt\":", "headers": {"content-type": "application/json"}, "oracle": "bounded-4xx"}
+{"id": "wrong-content-type", "method": "POST", "path": "/completion", "raw_body": "prompt=hello", "headers": {"content-type": "text/plain"}, "oracle": "bounded-4xx"}

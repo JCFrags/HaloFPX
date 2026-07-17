@@ -1,0 +1,20 @@
+section_id: "42"
+title: "Two-Way Tensor Parallelism and Collective Placement"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 9
+required_machine_experiments:
+  - "DR-42-E1 model shard manifest"
+  - "DR-42-E2 collective microbench"
+  - "DR-42-E3 layer and end-to-end oracle"
+  - "DR-42-E4 break-even matrix"
+related_sections: ["30", "31", "32", "38", "39", "44", "45", "48", "51", "52"]
+applicability:
+  repositories:
+    - "NVIDIA/Megatron-LM@740c16e6b80a753bea26232148d9bb2d7f0c827a"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "ROCm/rccl@57e58688f44c77076ad536ef1f6b68741fc6e694"
+  hardware: "dual Strix Halo premise; collective fabric unverified"

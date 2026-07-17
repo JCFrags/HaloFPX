@@ -1,0 +1,599 @@
+{
+  "schema": "research-package-manifest-v2",
+  "title": "200–230 GB Large-Model Selection and Capacity Wiki",
+  "as_of": "2026-07-17",
+  "runtime_pins": {
+    "llama.cpp": "6bdd77f13cf11b264b4231d320afc404f48d576e",
+    "ROCmFPX": "61f2f2d7bc4955e9bca821095ef69125837133b5"
+  },
+  "file_count": 116,
+  "total_bytes": 888618,
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 76,
+      "sha256": "c4a6565373b71045954d34207b00cd4642f3b54c06fb3d311fe16cdd7dd3ca1b"
+    },
+    {
+      "path": "CITATION.cff",
+      "bytes": 233,
+      "sha256": "050e3b9561927140bfb521aefa76230ad70d5492335e35989478dfe89938efbd"
+    },
+    {
+      "path": "Home.md",
+      "bytes": 3556,
+      "sha256": "31d566c19e35f79a950f0b0f9c9475706f5971e88716ca39ab367307a4963cc5"
+    },
+    {
+      "path": "LICENSE-NOTES.md",
+      "bytes": 662,
+      "sha256": "1b4476bb92456b97f6b494fe4a498ec6d16138f52b240640369cd2fdaa35c66f"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1320,
+      "sha256": "ac4dec6aa461f0ef2adace96359ec230a20bf197cce9bf24a90a6523886afaa8"
+    },
+    {
+      "path": "SUMMARY.md",
+      "bytes": 1250,
+      "sha256": "72b001a0b4b0b08f87bf1a7a270ea06e8dda4909f14a37137a519d55d90aa519"
+    },
+    {
+      "path": "_Footer.md",
+      "bytes": 116,
+      "sha256": "58a980acce3b0216469c64974b8b35ca170586a25c471cab7abb855d920e8f34"
+    },
+    {
+      "path": "_Sidebar.md",
+      "bytes": 1237,
+      "sha256": "e950fb26ffca1981de91b1527ff91294d6be4816f22b9f1649bb81a0d94be4d4"
+    },
+    {
+      "path": "assets/wiki.css",
+      "bytes": 2727,
+      "sha256": "c809dab14b2de937edac7856f3ac54d2a21483033849e5a1844230ea60480be0"
+    },
+    {
+      "path": "assets/wiki.js",
+      "bytes": 257,
+      "sha256": "5fd7378a5e2c4a306d796e8e37b7332351da3a4eb7046ec24d503c8b4e448c2c"
+    },
+    {
+      "path": "candidates/deepseek-r1-0528.md",
+      "bytes": 2951,
+      "sha256": "4fc48c18b610f1dec83cb0421ae2e35484d0cf6df6d12cbba3d8003b312e8bf8"
+    },
+    {
+      "path": "candidates/glm-4.7.md",
+      "bytes": 2809,
+      "sha256": "1068bd1a0ba2f9e255173220e264c2017670de544b6e4e6234c0fc0608194b86"
+    },
+    {
+      "path": "candidates/kimi-k2-thinking.md",
+      "bytes": 2848,
+      "sha256": "693030a2b6d9e7c2c2faff9898c96015047758e63ea1321f409b13a264d8d25c"
+    },
+    {
+      "path": "candidates/mimo-v2-flash.md",
+      "bytes": 3066,
+      "sha256": "62689b1c9affec2750e31843c2541063f5703dcf7aed97974ba10be207492d21"
+    },
+    {
+      "path": "candidates/minimax-m3.md",
+      "bytes": 2935,
+      "sha256": "631343c23eb4862be68616408093f4231af6030fe55e1f573fe648d389a617d0"
+    },
+    {
+      "path": "candidates/nemotron-ultra-253b.md",
+      "bytes": 3176,
+      "sha256": "69f91b036fde98a914988fa1d5f0e8de1e73992de80496d6a23a47faf18a0a88"
+    },
+    {
+      "path": "candidates/qwen3-235b-a22b-2507.md",
+      "bytes": 3044,
+      "sha256": "7a47a6b6a523bbb3ad0f4f431fc5d3b63ac1cd683cb9d3c45a04c7312ecdecea"
+    },
+    {
+      "path": "candidates/step-3.7-flash.md",
+      "bytes": 3122,
+      "sha256": "d9433d3965919c32669f7e8c8387b6b5db3fa1b5879ba2bd9ae0be2d45976b1f"
+    },
+    {
+      "path": "candidates/tulu3-405b.md",
+      "bytes": 2874,
+      "sha256": "4dd0735013a75ef2506366f2a225e289de2a8a2e3612b83f6e9af4c07296174e"
+    },
+    {
+      "path": "data/candidates.csv",
+      "bytes": 3176,
+      "sha256": "73f66e5c1e6e711cbd53e6488cd43b20bce90710b04dfaec0229e6a8b5151224"
+    },
+    {
+      "path": "data/candidates.json",
+      "bytes": 19243,
+      "sha256": "8f013908777de72f86f8455fc04719cad209e11254764e28325e6db657c3bc48"
+    },
+    {
+      "path": "data/capacity_budgets.csv",
+      "bytes": 40044,
+      "sha256": "e898fd6cfa8a03599816b123717850763f288706fbff8b9ad260ae4ada2055d5"
+    },
+    {
+      "path": "data/capacity_budgets.json",
+      "bytes": 132290,
+      "sha256": "435e15305c75465fa240959dd3e44d4579b7d17cdce6acf2e3fe0633c48e1e93"
+    },
+    {
+      "path": "data/capacity_summary.csv",
+      "bytes": 7461,
+      "sha256": "ec123f54cc004fcd6acb0b17d92b80594f5b8e55cbbb5277fbc4e3762d694581"
+    },
+    {
+      "path": "data/capacity_summary.json",
+      "bytes": 29992,
+      "sha256": "595cd550b1697a87bc98ef751b0cf9b4da03b6c34c6d67ec6b68bdedfcb2589c"
+    },
+    {
+      "path": "data/kv_cache.csv",
+      "bytes": 9445,
+      "sha256": "6a1bef161f6c9d8c8887942afc042a1b1964d9c530d8ffada08a969e947b44fb"
+    },
+    {
+      "path": "data/kv_cache.json",
+      "bytes": 22402,
+      "sha256": "9bf1091d5e7e0ba9d8ff0467eff251fb1b9a40708243eee819ff1a07978b5d4d"
+    },
+    {
+      "path": "data/profiles.json",
+      "bytes": 2899,
+      "sha256": "8a621680ab9e0d62beb549e5abb889b79fd217aa537ef253895310d2d976aa12"
+    },
+    {
+      "path": "data/quantization_comparison.csv",
+      "bytes": 1673,
+      "sha256": "d049a4ea73914a503672843328c30222089aafd6f86f7decfe57fb171a86321a"
+    },
+    {
+      "path": "data/shortlist.csv",
+      "bytes": 1150,
+      "sha256": "0f579d1a351319263f47e94eca8a352a6643b03f3a3c16c2bbd45fc0f3a95573"
+    },
+    {
+      "path": "data/sources.json",
+      "bytes": 3543,
+      "sha256": "2cef1519da773989258dad331f65fcf3ba9bbb897a8aee8922b1e0831a8b969c"
+    },
+    {
+      "path": "index.html",
+      "bytes": 137,
+      "sha256": "1bee2df99f65be7787d5d7132e04815d8c5f4005dd06883efbb6ce1593edaa6f"
+    },
+    {
+      "path": "manifests/README.md",
+      "bytes": 417,
+      "sha256": "7386d12b89887101679b8840546a0ebb0cb6eab2eecb9d34557b1aa3277e377f"
+    },
+    {
+      "path": "manifests/deepseek-r1-0528.json",
+      "bytes": 1072,
+      "sha256": "41a2dd1b9f6074897375f193537a3583559e645e15b02d601ffb55e2106e8a48"
+    },
+    {
+      "path": "manifests/glm-4.7.json",
+      "bytes": 1121,
+      "sha256": "8904af365e30cb491577337431063f750c8b22afb3e6b54d8e4b8907c78d9adf"
+    },
+    {
+      "path": "manifests/kimi-k2-thinking.json",
+      "bytes": 980,
+      "sha256": "eec146741d4c35cdcd55d3b75d5433f2497888f9dedf051c25ea9748bdc51933"
+    },
+    {
+      "path": "manifests/mimo-v2-flash.json",
+      "bytes": 1332,
+      "sha256": "62acf11dee373d699465c2b6890d79e0d6ce1d3a8191c39b6c67f74aef0a2c74"
+    },
+    {
+      "path": "manifests/minimax-m3.json",
+      "bytes": 918,
+      "sha256": "40877e7c2d13c27962dc7b44a86d09b944a674f6beb4efedd76b32142be03031"
+    },
+    {
+      "path": "manifests/nemotron-ultra-253b.json",
+      "bytes": 1372,
+      "sha256": "9a6e0fd9a3adb5971b2acd11edc77587a9647a083e358158c2bffd3c58693e13"
+    },
+    {
+      "path": "manifests/qwen3-235b-a22b-2507.json",
+      "bytes": 1447,
+      "sha256": "e3a5248190fa82ac11c0fa1720f58496d9c244220fdbe299df15ea2b55ed0e53"
+    },
+    {
+      "path": "manifests/step-3.7-flash.json",
+      "bytes": 1300,
+      "sha256": "70f9ab4d2855d262ffcdc6efdbe0e06e65844ffeff785a661877dd39f5b20e1d"
+    },
+    {
+      "path": "manifests/tulu3-405b.json",
+      "bytes": 1069,
+      "sha256": "10f8f1542037232f7c0747e8a1d5c0442f37a80b7f9690044a270df021170e0e"
+    },
+    {
+      "path": "mkdocs.yml",
+      "bytes": 558,
+      "sha256": "6a270d0b75bf916d9d82a029425534be783c386cbb1968b020fa2d7517d8a51d"
+    },
+    {
+      "path": "pages/Candidate-Matrix.md",
+      "bytes": 1736,
+      "sha256": "ef09509891d352233345c5b4515cb9f8e374cfc940cef4193b7bab8165816df9"
+    },
+    {
+      "path": "pages/Capacity-Planning.md",
+      "bytes": 3857,
+      "sha256": "26a226b17f95f82e7dafedecdd462c8318377a1c4185de2f774b691e1c6fb8dd"
+    },
+    {
+      "path": "pages/Dense-vs-MoE.md",
+      "bytes": 2169,
+      "sha256": "6762818ea5254f609b516f76904260a332eda48e53f7cec438da8cf02a1e904a"
+    },
+    {
+      "path": "pages/Download-Provenance.md",
+      "bytes": 3159,
+      "sha256": "f054ab1e8210b528fb32bfae911eda4dfb0485bc511f41b15a0b5ef46b98cbdf"
+    },
+    {
+      "path": "pages/KV-Cache-and-Buffers.md",
+      "bytes": 2182,
+      "sha256": "ce6a2df4020c57332dacd969878f936d96b6aa32a1913d5f5935597290043a62"
+    },
+    {
+      "path": "pages/Methodology.md",
+      "bytes": 1865,
+      "sha256": "b1abb621e2105001b781491b1840a9698cdeae8aea08bf40b5fb8f4137f57e05"
+    },
+    {
+      "path": "pages/Per-Node-Budgets.md",
+      "bytes": 9284,
+      "sha256": "35f1794307afb3c9367cec87966dcad87d7a3ae764d9502a281cffd2569d3a6b"
+    },
+    {
+      "path": "pages/Quality-Evidence.md",
+      "bytes": 3515,
+      "sha256": "62d5241111bf506f72ce6c9b0ad382d94917575ee56a5db1e84ef69e3d5766df"
+    },
+    {
+      "path": "pages/Quantization-Comparison.md",
+      "bytes": 3740,
+      "sha256": "1aaa90875f0710d76a19cda8ba59e21f65b722d347c3cafe67c8b424429f07ed"
+    },
+    {
+      "path": "pages/Ranked-Shortlist.md",
+      "bytes": 3261,
+      "sha256": "a4033ae901e8ae0ee47bebfdc5a748434434c2d577402356d41dff093e183590"
+    },
+    {
+      "path": "pages/Reproduction.md",
+      "bytes": 1560,
+      "sha256": "5ed83eca2d5c0741f5182a18736201d1e2d9d57a2bff72cc892b9967174ed94b"
+    },
+    {
+      "path": "pages/Runtime-Support.md",
+      "bytes": 3960,
+      "sha256": "7da0b3ab2a1451f88e48a391cc914b221c95167c56763a12867b5a8be4d8a35b"
+    },
+    {
+      "path": "pages/Source-Index.md",
+      "bytes": 3545,
+      "sha256": "164d658ff1535001e78aafb9511a721cae2c108819205ae82064e20ed592191f"
+    },
+    {
+      "path": "pages/Strix-Halo-Open-Questions.md",
+      "bytes": 1796,
+      "sha256": "c2053845846346bbcb1d35c231a68839a0a133620e4df8fb27c7a8728d1614ae"
+    },
+    {
+      "path": "pages/Tokenizers-and-Templates.md",
+      "bytes": 2619,
+      "sha256": "e6657ff1f07464b66a6f44ec3dd734d783608187ab4fd56e81afc39a4951e16d"
+    },
+    {
+      "path": "scripts/build_static.py",
+      "bytes": 4808,
+      "sha256": "d0291eb4f4445eca4eaee7dae0348b118e390855db6d063eb6b5f8cab6641679"
+    },
+    {
+      "path": "scripts/calculate_capacity.py",
+      "bytes": 12271,
+      "sha256": "3f036ab595727ee9fbb68e232b2bb1a447282fb9399fca2f0fccfbb4f9e4d51d"
+    },
+    {
+      "path": "scripts/download_selected.sh",
+      "bytes": 1301,
+      "sha256": "f5128f65dde676b9a5f4ba70731049d104b458b647000c83ac817d6bfb7261e0"
+    },
+    {
+      "path": "scripts/parse_llama_memory.py",
+      "bytes": 1184,
+      "sha256": "64f6661d291882fd9787955cb1a55860fd6d4053b3f27a1820b50580cc7c7227"
+    },
+    {
+      "path": "scripts/refresh_hf_manifests.py",
+      "bytes": 2227,
+      "sha256": "68e6ad903189cd0d8c982f29b2571b15197afaf9464e3a1f97794e1ad992ed21"
+    },
+    {
+      "path": "scripts/self_check.py",
+      "bytes": 5608,
+      "sha256": "d1f7eddaee96f0805ffff5efc16b28440694dae9053d673d47575a547cd07178"
+    },
+    {
+      "path": "scripts/verify_downloads.py",
+      "bytes": 1261,
+      "sha256": "0002dd831e634c4e53a9483005fb272d5b6b5016a5970ec73e3543a583349af5"
+    },
+    {
+      "path": "site/LICENSE-NOTES.html",
+      "bytes": 3788,
+      "sha256": "b8c4bfd1633c4d7ee55354007787d71cb8bfe97186559e6357b4aa4bc1b4e1d5"
+    },
+    {
+      "path": "site/README.html",
+      "bytes": 4773,
+      "sha256": "80d87a6e9e364e89db9dd1fd94f20ace1672b856b9804299df153da3c07047fd"
+    },
+    {
+      "path": "site/assets/wiki.css",
+      "bytes": 2727,
+      "sha256": "c809dab14b2de937edac7856f3ac54d2a21483033849e5a1844230ea60480be0"
+    },
+    {
+      "path": "site/assets/wiki.js",
+      "bytes": 257,
+      "sha256": "5fd7378a5e2c4a306d796e8e37b7332351da3a4eb7046ec24d503c8b4e448c2c"
+    },
+    {
+      "path": "site/candidates/deepseek-r1-0528.html",
+      "bytes": 7233,
+      "sha256": "b2914d0785a635cbd9e4d3663141d933326d49ba59519f13fd41f0e727361810"
+    },
+    {
+      "path": "site/candidates/glm-4.7.html",
+      "bytes": 7076,
+      "sha256": "d94b5c3f6310e5c3dc14112e87659ecc9414b4d898997318673a68113d0086cb"
+    },
+    {
+      "path": "site/candidates/kimi-k2-thinking.html",
+      "bytes": 7095,
+      "sha256": "87fbb9d819774de0829e8f8c9075c89622db56f279fad748814293583094044b"
+    },
+    {
+      "path": "site/candidates/mimo-v2-flash.html",
+      "bytes": 7372,
+      "sha256": "de19fe35041095de3fb9b797f61459d6c000a842ceea4f26aa16f301a5610cd6"
+    },
+    {
+      "path": "site/candidates/minimax-m3.html",
+      "bytes": 7187,
+      "sha256": "ba0bb6b8bbddf295b0735cc94903971166e6462907f3097494bc146715f32c17"
+    },
+    {
+      "path": "site/candidates/nemotron-ultra-253b.html",
+      "bytes": 7450,
+      "sha256": "234a55abd3e6090a68f1b40698b8c884ed6f16de41de87347e49a62592b9efff"
+    },
+    {
+      "path": "site/candidates/qwen3-235b-a22b-2507.html",
+      "bytes": 7384,
+      "sha256": "5845391b99e3175346c798081c03dc48f19137e602f06c722e71c59b5e9bbff6"
+    },
+    {
+      "path": "site/candidates/step-3.7-flash.html",
+      "bytes": 7432,
+      "sha256": "0c8de39071c938c3cf6ca8a0030d775cae3fbcdd69d63d5f6a08b84f7191e9dc"
+    },
+    {
+      "path": "site/candidates/tulu3-405b.html",
+      "bytes": 7137,
+      "sha256": "d1204bfaa0eb4b81476b368ae085ffc44127983a2918fe4bf2203989be241ffd"
+    },
+    {
+      "path": "site/data/candidates.csv",
+      "bytes": 3176,
+      "sha256": "73f66e5c1e6e711cbd53e6488cd43b20bce90710b04dfaec0229e6a8b5151224"
+    },
+    {
+      "path": "site/data/candidates.json",
+      "bytes": 19243,
+      "sha256": "8f013908777de72f86f8455fc04719cad209e11254764e28325e6db657c3bc48"
+    },
+    {
+      "path": "site/data/capacity_budgets.csv",
+      "bytes": 40044,
+      "sha256": "e898fd6cfa8a03599816b123717850763f288706fbff8b9ad260ae4ada2055d5"
+    },
+    {
+      "path": "site/data/capacity_budgets.json",
+      "bytes": 132290,
+      "sha256": "435e15305c75465fa240959dd3e44d4579b7d17cdce6acf2e3fe0633c48e1e93"
+    },
+    {
+      "path": "site/data/capacity_summary.csv",
+      "bytes": 7461,
+      "sha256": "ec123f54cc004fcd6acb0b17d92b80594f5b8e55cbbb5277fbc4e3762d694581"
+    },
+    {
+      "path": "site/data/capacity_summary.json",
+      "bytes": 29992,
+      "sha256": "595cd550b1697a87bc98ef751b0cf9b4da03b6c34c6d67ec6b68bdedfcb2589c"
+    },
+    {
+      "path": "site/data/kv_cache.csv",
+      "bytes": 9445,
+      "sha256": "6a1bef161f6c9d8c8887942afc042a1b1964d9c530d8ffada08a969e947b44fb"
+    },
+    {
+      "path": "site/data/kv_cache.json",
+      "bytes": 22402,
+      "sha256": "9bf1091d5e7e0ba9d8ff0467eff251fb1b9a40708243eee819ff1a07978b5d4d"
+    },
+    {
+      "path": "site/data/profiles.json",
+      "bytes": 2899,
+      "sha256": "8a621680ab9e0d62beb549e5abb889b79fd217aa537ef253895310d2d976aa12"
+    },
+    {
+      "path": "site/data/quantization_comparison.csv",
+      "bytes": 1673,
+      "sha256": "d049a4ea73914a503672843328c30222089aafd6f86f7decfe57fb171a86321a"
+    },
+    {
+      "path": "site/data/shortlist.csv",
+      "bytes": 1150,
+      "sha256": "0f579d1a351319263f47e94eca8a352a6643b03f3a3c16c2bbd45fc0f3a95573"
+    },
+    {
+      "path": "site/data/sources.json",
+      "bytes": 3543,
+      "sha256": "2cef1519da773989258dad331f65fcf3ba9bbb897a8aee8922b1e0831a8b969c"
+    },
+    {
+      "path": "site/index.html",
+      "bytes": 7990,
+      "sha256": "6bdf8a85efc7e2e4d912dba5d117870948d3e2d272c9c7a68b3e108550bdacfd"
+    },
+    {
+      "path": "site/manifests/README.md",
+      "bytes": 417,
+      "sha256": "7386d12b89887101679b8840546a0ebb0cb6eab2eecb9d34557b1aa3277e377f"
+    },
+    {
+      "path": "site/manifests/deepseek-r1-0528.json",
+      "bytes": 1072,
+      "sha256": "41a2dd1b9f6074897375f193537a3583559e645e15b02d601ffb55e2106e8a48"
+    },
+    {
+      "path": "site/manifests/glm-4.7.json",
+      "bytes": 1121,
+      "sha256": "8904af365e30cb491577337431063f750c8b22afb3e6b54d8e4b8907c78d9adf"
+    },
+    {
+      "path": "site/manifests/kimi-k2-thinking.json",
+      "bytes": 980,
+      "sha256": "eec146741d4c35cdcd55d3b75d5433f2497888f9dedf051c25ea9748bdc51933"
+    },
+    {
+      "path": "site/manifests/mimo-v2-flash.json",
+      "bytes": 1332,
+      "sha256": "62acf11dee373d699465c2b6890d79e0d6ce1d3a8191c39b6c67f74aef0a2c74"
+    },
+    {
+      "path": "site/manifests/minimax-m3.json",
+      "bytes": 918,
+      "sha256": "40877e7c2d13c27962dc7b44a86d09b944a674f6beb4efedd76b32142be03031"
+    },
+    {
+      "path": "site/manifests/nemotron-ultra-253b.json",
+      "bytes": 1372,
+      "sha256": "9a6e0fd9a3adb5971b2acd11edc77587a9647a083e358158c2bffd3c58693e13"
+    },
+    {
+      "path": "site/manifests/qwen3-235b-a22b-2507.json",
+      "bytes": 1447,
+      "sha256": "e3a5248190fa82ac11c0fa1720f58496d9c244220fdbe299df15ea2b55ed0e53"
+    },
+    {
+      "path": "site/manifests/step-3.7-flash.json",
+      "bytes": 1300,
+      "sha256": "70f9ab4d2855d262ffcdc6efdbe0e06e65844ffeff785a661877dd39f5b20e1d"
+    },
+    {
+      "path": "site/manifests/tulu3-405b.json",
+      "bytes": 1069,
+      "sha256": "10f8f1542037232f7c0747e8a1d5c0442f37a80b7f9690044a270df021170e0e"
+    },
+    {
+      "path": "site/pages/Candidate-Matrix.html",
+      "bytes": 5975,
+      "sha256": "a28b6aaccc5f9c5768ab10e2a0b7422106d8e17667c1e7ae9aaef8931ed5e515"
+    },
+    {
+      "path": "site/pages/Capacity-Planning.html",
+      "bytes": 8560,
+      "sha256": "422ff5b39a0bd9ad6171d37520cadf788adbd6a6153bbf699abbb9ee2142a165"
+    },
+    {
+      "path": "site/pages/Dense-vs-MoE.html",
+      "bytes": 5998,
+      "sha256": "3e1427a1c37c99922c00333f77fb224421cd96f12b8d32e989a6c958d335edaf"
+    },
+    {
+      "path": "site/pages/Download-Provenance.html",
+      "bytes": 7182,
+      "sha256": "f3dde0deac9df35557dbce18e91f6e0a3202c37a62b7b8300c8741f76019bf7f"
+    },
+    {
+      "path": "site/pages/KV-Cache-and-Buffers.html",
+      "bytes": 6480,
+      "sha256": "01364b7882582a38b953145f65e4e890c7cf925beb5ba274de3fb1121847f858"
+    },
+    {
+      "path": "site/pages/Methodology.html",
+      "bytes": 5215,
+      "sha256": "4e5f1593e75a8491417115b83de24dec11a0e5c261a080741101db2fd0d1e3d6"
+    },
+    {
+      "path": "site/pages/Per-Node-Budgets.html",
+      "bytes": 21235,
+      "sha256": "43f7bdb23cacbf64b52335db8b9d7460461c168c66e7fc3a0e620ebaf58a3e0c"
+    },
+    {
+      "path": "site/pages/Quality-Evidence.html",
+      "bytes": 7238,
+      "sha256": "a0410f80bd6f35b3f3afe0fb8c14b074f4beb62d1fd79c902295ada0998044f2"
+    },
+    {
+      "path": "site/pages/Quantization-Comparison.html",
+      "bytes": 7760,
+      "sha256": "c5e207369098b4f8260e2015e5677e61ea4204c9704fd26ed7d4214c9a5bf14a"
+    },
+    {
+      "path": "site/pages/Ranked-Shortlist.html",
+      "bytes": 8127,
+      "sha256": "a3f96e2281c9883550f2f2bd0b206a344ba412966cdf411f412d9bac8e554047"
+    },
+    {
+      "path": "site/pages/Reproduction.html",
+      "bytes": 5019,
+      "sha256": "57dea50ea94f01d0245892da0e2476ceb4d0a6e93612a73881d819ae0b1f36c9"
+    },
+    {
+      "path": "site/pages/Runtime-Support.html",
+      "bytes": 7839,
+      "sha256": "ad23b5664a90894eb889623545bba4404f7d0d1149ce5fbd57b44ca560ae3777"
+    },
+    {
+      "path": "site/pages/Source-Index.html",
+      "bytes": 10657,
+      "sha256": "b601ca6da9c38e04984f6d72545a24abf4d14f78cd4ecbd775027193c7e3f9f4"
+    },
+    {
+      "path": "site/pages/Strix-Halo-Open-Questions.html",
+      "bytes": 5435,
+      "sha256": "10c96867270843b46c6a0c7f095ed3febfe3f215629f788a7ca5d9c5d60b615c"
+    },
+    {
+      "path": "site/pages/Tokenizers-and-Templates.html",
+      "bytes": 6443,
+      "sha256": "8c5c0f3cd104eb2a0d297856022d4322ace92aef2fed1d07686531db18e0ed8f"
+    }
+  ],
+  "notes": [
+    "No model weights are included.",
+    "Artifact manifests are revision/path records; exact LFS hashes are captured where available and can be refreshed with scripts/refresh_hf_manifests.py.",
+    "Memory budgets are deterministic planning envelopes under the package assumptions, not measured allocator traces.",
+    "Target-size Strix Halo throughput remains an open measurement question."
+  ]
+}
