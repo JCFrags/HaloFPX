@@ -1,0 +1,332 @@
+; HaloFPX context-store v1 closed field registry.
+; Deterministic CBOR per RFC 8949, definite lengths, and ADR parser limits are
+; mandatory. These exact maps admit no unlisted integer keys.
+
+bytes16 = bstr .size 16
+bytes32 = bstr .size 32
+registered-id = tstr .size (1..128)
+float64-bits = bstr .size 8     ; big-endian IEEE-754 binary64; finite only
+
+authenticated-manifest-v1 = {
+  0: manifest-auth-input-v1,
+  1: bytes32                    ; authentication tag; only excluded field
+}
+
+manifest-auth-input-v1 = {
+  0: manifest-body-v1,
+  1: registered-id,             ; authentication key id
+  2: 1,                         ; HMAC-SHA-256
+  3: uint                       ; key generation
+}
+
+manifest-body-v1 = {
+  0: 1,                         ; format major
+  1: 0,                         ; format minor
+  2: bytes16,                   ; store UUID
+  3: bytes32,                   ; checkpoint lineage id
+  4: uint .ge 1,                ; generation
+  5: bytes32 / null,            ; predecessor manifest digest
+  6: compatibility-manifest,
+  7: bytes32,                   ; compatibility root
+  8: bytes32,                   ; opaque namespace id
+  9: uint,                      ; policy epoch
+  10: topology-manifest,
+  11: registered-id,            ; admitted state profile id
+  12: [1*128 object-descriptor],
+  13: bytes32,                  ; producer executable/runtime identity
+  14: 0 / 1 / 2                 ; durability: performance/turn/strict
+}
+
+compatibility-manifest = {
+  0: bytes32,  ; exact model/shard bytes
+  1: bytes32,  ; typed model metadata
+  2: bytes32,  ; tokenizer bytes, merges, specials and policy
+  3: bytes32,  ; chat-template bytes and renderer version
+  4: bytes32,  ; rendered system/tool context and boundary policy
+  5: bytes32,  ; ordered adapters/projectors/multimodal identity
+  6: bytes32,  ; runtime build and state ABI
+  7: bytes32,  ; backend/device ABI
+  8: bytes32,  ; quantization, KV types/layout/recipes
+  9: bytes32,  ; context, RoPE, window and position semantics
+  10: bytes32, ; sampler and logits processors
+  11: bytes32, ; grammar, parser and tool semantics
+  12: bytes32, ; RNG algorithm/state/counter/seed provenance
+  13: bytes32, ; target/draft/MTP/speculative semantics
+  14: bytes32, ; topology/partition/rank/world/placement/epoch
+  15: bytes32  ; security domain and scope policy
+}
+
+; Each field above is the domain-separated digest of the corresponding exact
+; input below. Source maps are canonical-key sorted before entering arrays.
+
+artifact-record = {
+  0: registered-id,             ; registered role
+  1: uint,                      ; semantic order
+  2: uint .ge 1,                ; exact bytes
+  3: bytes32                    ; SHA-256 of exact artifact bytes
+}
+
+typed-value =
+  [0, uint] /
+  [1, nint] /
+  [2, bstr] /
+  [3, tstr] /
+  [4, bool] /
+  [5, float64-bits] /
+  [6, [* typed-value]]
+
+parameter-entry = {
+  0: registered-id,
+  1: typed-value
+}
+
+model-bytes-and-shards-input-v1 = {
+  0: [1*1024 artifact-record]
+}
+
+model-metadata-input-v1 = {
+  0: registered-id,             ; container/schema id
+  1: [* metadata-entry],        ; canonical-key order
+  2: [1*65535 tensor-entry]     ; file/offset order
+}
+
+metadata-entry = {
+  0: tstr .size (1..16384),
+  1: typed-value
+}
+
+tensor-entry = {
+  0: tstr .size (1..16384),     ; tensor name
+  1: [1*16 uint],               ; dimensions in declared order
+  2: uint,                      ; registered tensor type
+  3: uint,                      ; exact container offset
+  4: uint .ge 1                 ; exact encoded bytes
+}
+
+tokenizer-bytes-and-policy-input-v1 = {
+  0: [1*64 artifact-record],
+  1: [1*4294967295 token-entry],
+  2: [* merge-entry],
+  3: [* special-token-entry],
+  4: [* parameter-entry]
+}
+
+token-entry = {
+  0: uint,                      ; token id
+  1: bstr,                      ; exact token bytes
+  2: float64-bits,              ; exact finite IEEE-754 score bits
+  3: uint                       ; registered token type
+}
+
+merge-entry = { 0: bstr, 1: bstr }
+special-token-entry = { 0: registered-id, 1: uint }
+
+chat-template-input-v1 = {
+  0: uint,                      ; exact template bytes length
+  1: bytes32,                   ; exact template bytes SHA-256
+  2: registered-id,             ; renderer implementation/version
+  3: bytes32                    ; renderer executable/library identity
+}
+
+system-tool-context-input-v1 = {
+  0: uint,                      ; rendered context bytes length
+  1: bytes32,                   ; rendered context bytes SHA-256
+  2: registered-id,             ; boundary policy
+  3: uint,                      ; canonical tool schema bytes length
+  4: bytes32                    ; canonical tool schema SHA-256
+}
+
+adapter-projector-input-v1 = {
+  0: [* artifact-record],       ; effective load order
+  1: [* parameter-entry]        ; scaling and composition policy
+}
+
+runtime-abi-build-input-v1 = {
+  0: bytes32,                   ; source tree identity
+  1: [1*1024 artifact-record],  ; executable and loaded libraries
+  2: registered-id,             ; compiler/toolchain tuple
+  3: [* parameter-entry],       ; output-affecting build options
+  4: registered-id              ; state ABI id
+}
+
+backend-device-abi-input-v1 = {
+  0: registered-id,             ; backend
+  1: registered-id,             ; target architecture
+  2: [1*256 artifact-record],   ; backend, driver and runtime binaries
+  3: registered-id,             ; memory/layout ABI
+  4: [* parameter-entry]
+}
+
+quantization-kv-input-v1 = {
+  0: [1*65535 quant-tensor-entry],
+  1: registered-id,             ; K cache type/layout
+  2: registered-id,             ; V cache type/layout
+  3: [* parameter-entry]        ; recipes and numeric modes
+}
+
+quant-tensor-entry = {
+  0: tstr .size (1..16384),
+  1: registered-id,
+  2: [1*16 uint],
+  3: registered-id
+}
+
+context-position-input-v1 = { 0: [1*256 parameter-entry] }
+sampler-logits-input-v1 = { 0: registered-id, 1: [* parameter-entry] }
+
+grammar-parser-tool-input-v1 = {
+  0: registered-id,
+  1: uint,
+  2: bytes32,
+  3: [* parameter-entry]
+}
+
+rng-input-v1 = {
+  0: registered-id,             ; algorithm
+  1: registered-id,             ; state/counter schema
+  2: registered-id,             ; seed provenance semantics
+  3: [* parameter-entry]
+}
+
+target-draft-mtp-spec-input-v1 = {
+  0: bytes32,                   ; target identity
+  1: bytes32 / null,            ; draft identity
+  2: registered-id,             ; controller/mode
+  3: [* parameter-entry]
+}
+
+topology-compat-input-v1 = { 0: topology-manifest }
+
+security-scope-input-v1 = {
+  0: registered-id,             ; security domain
+  1: uint,                      ; policy version/epoch
+  2: 0,                         ; authenticated private scope
+  3: registered-id              ; authentication issuer
+}
+
+compatibility-component-input-v1 =
+  [0, model-bytes-and-shards-input-v1] /
+  [1, model-metadata-input-v1] /
+  [2, tokenizer-bytes-and-policy-input-v1] /
+  [3, chat-template-input-v1] /
+  [4, system-tool-context-input-v1] /
+  [5, adapter-projector-input-v1] /
+  [6, runtime-abi-build-input-v1] /
+  [7, backend-device-abi-input-v1] /
+  [8, quantization-kv-input-v1] /
+  [9, context-position-input-v1] /
+  [10, sampler-logits-input-v1] /
+  [11, grammar-parser-tool-input-v1] /
+  [12, rng-input-v1] /
+  [13, target-draft-mtp-spec-input-v1] /
+  [14, topology-compat-input-v1] /
+  [15, security-scope-input-v1]
+
+topology-manifest = {
+  0: registered-id,             ; plan schema
+  1: registered-id,             ; execution mode
+  2: uint .ge 1,                ; world size
+  3: bytes32,                   ; global plan digest
+  4: uint,                      ; topology epoch
+  5: [1*128 rank-ownership]
+}
+
+rank-ownership = {
+  0: uint,                      ; logical rank
+  1: bytes32,                   ; exact ownership/range digest
+  2: bytes32                    ; placement/backend-layout digest
+}
+
+object-descriptor = {
+  0: bytes32,                   ; SHA-256 of object frame
+  1: registered-id,             ; registered stream type
+  2: registered-id,             ; admitted codec id
+  3: uint,                      ; codec schema major
+  4: uint,                      ; codec schema minor
+  5: true,                      ; required in v1 admitted profiles
+  6: uint .ge 1,                ; exact frame bytes
+  7: bytes32,                   ; canonical token-sequence digest
+  8: uint,                      ; logical sequence position
+  9: uint,                      ; committed output boundary
+  10: uint / null,              ; logical rank or coordinator-owned
+  11: bytes32,                  ; rank/layer ownership digest
+  12: bytes32                   ; compatibility root
+}
+
+namespace-preimage-v1 = {
+  0: registered-id,             ; policy key id, never key material
+  1: registered-id,             ; authentication issuer id
+  2: bstr .size (1..16384),     ; canonical opaque subject
+  3: registered-id,             ; security domain
+  4: uint,                      ; policy version/epoch
+  5: 0,                         ; private scope only in v1
+  6: bytes32                    ; compatibility root
+}
+
+publication-anchor-v1 = {
+  0: bytes16,                   ; store UUID
+  1: bytes32,                   ; namespace id
+  2: uint,                      ; policy epoch
+  3: bytes32,                   ; checkpoint lineage id
+  4: uint,                      ; manifest key generation
+  5: uint .ge 1,                ; selected generation
+  6: bytes32,                   ; selected manifest digest
+  7: bytes32 / null             ; predecessor manifest digest
+}
+
+authenticated-control-message-v1 = {
+  0: control-auth-input-v1,
+  1: bytes32                    ; authentication tag; only excluded field
+}
+
+control-auth-input-v1 = {
+  0: 1,                         ; protocol version
+  1: registered-id,             ; authentication key id
+  2: 1,                         ; HMAC-SHA-256
+  3: uint,                      ; key generation
+  4: registered-id,             ; cluster id
+  5: uint,                      ; policy/topology epoch
+  6: bytes32,                   ; coordinator attempt id
+  7: bytes32,                   ; channel/transcript binding
+  8: control-message-v1
+}
+
+control-message-v1 =
+  [0, ready-body-v1] /
+  [1, commit-body-v1] /
+  [2, abort-body-v1]
+
+ready-body-v1 = {
+  0: bytes32,                   ; checkpoint id
+  1: uint .ge 1,                ; generation
+  2: uint,                      ; logical rank
+  3: uint .ge 1,                ; world size
+  4: bytes32,                   ; rank manifest digest
+  5: bytes32,                   ; global plan digest
+  6: bytes32,                   ; rank ownership digest
+  7: uint,                      ; verified object count
+  8: bytes32                    ; fresh 256-bit commit nonce
+}
+
+commit-rank-v1 = {
+  0: uint,                      ; logical rank
+  1: bytes32,                   ; rank manifest digest
+  2: bytes32,                   ; ownership digest
+  3: bytes32                    ; READY commit nonce
+}
+
+commit-body-v1 = {
+  0: bytes32,                   ; checkpoint id
+  1: uint .ge 1,                ; generation
+  2: uint .ge 1,                ; world size
+  3: bytes32,                   ; global plan digest
+  4: [1*128 commit-rank-v1],
+  5: bytes32                    ; committed global manifest digest
+}
+
+abort-body-v1 = {
+  0: bytes32,                   ; checkpoint id
+  1: uint .ge 1,                ; generation
+  2: 0..31,                     ; bounded registered reason
+  3: [*128 uint]                ; affected logical ranks
+}

@@ -7,6 +7,10 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [Clean baseline manifest](baseline-manifest.json)
 - [Feature-off baseline](feature-off-baseline.md)
 - [L01 milestone review](reviews/2026-07-17__l01-feature-off-contract__review__v01.md)
+- [L02 milestone review](reviews/2026-07-17__l02-persistence-contracts__review__v01.md)
+- [L02 contract index](l02-contracts.md)
+- [Machine-readable L02 contract](contracts/context-store-v1.json)
+- [L02 decisions](decisions/README.md)
 
 Do not place donor snapshots, models, corpora, WebUI assets, or persistent cache
 data here.

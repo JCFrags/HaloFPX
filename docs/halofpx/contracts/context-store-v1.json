@@ -1,0 +1,69 @@
+{
+  "contract": "halofpx.context-store.l02.v1",
+  "status": "design-only",
+  "feature_default": "off",
+  "persistent_reads_enabled": false,
+  "persistent_writes_enabled": false,
+  "legacy_server_hits_enabled": false,
+  "admitted_state_profiles": [],
+  "admitted_codecs": [],
+  "compatibility_required": [
+    "model_bytes_and_shards", "model_metadata", "tokenizer_bytes_and_policy",
+    "chat_template_bytes_renderer_and_rendered_output", "system_and_tool_context", "adapter_projector_set_and_order",
+    "runtime_abi_and_build", "backend_and_device_abi", "quantization_and_kv_layout",
+    "context_rope_window_and_position", "sampler_and_logits_processors",
+    "grammar_parser_and_tool_state", "rng_state_and_counter", "target_draft_mtp_speculative_state",
+    "topology_plan_rank_world_placement_epoch", "security_domain_and_scope_policy"
+  ],
+  "scope": {
+    "default": "authenticated-private-per-principal",
+    "authority": "trusted-server-authn-policy",
+    "namespace_kdf": "HMAC-SHA-256",
+    "anonymous_persistence": false,
+    "cross_principal_reuse": false,
+    "shared_reuse": false,
+    "implicit_scope_fallback": false,
+    "key_rotation": "new-namespace-old-read-disabled"
+  },
+  "format": {
+    "owner": "HaloFPX",
+    "major": 1,
+    "manifest_encoding": "deterministic-CBOR-RFC8949",
+    "manifest_schema": "context-store-v1.cddl",
+    "manifest_field_registry": "closed-integer-keys-no-extensions",
+    "manifest_authentication": "HMAC-SHA-256-protected-key-before-payload-decode",
+    "digest": "SHA-256",
+    "object_magic_hex": "48414c4f4f424a01",
+    "object_domain": "halofpx.object.v1",
+    "unknown_fields": "reject",
+    "duplicate_fields": "reject",
+    "trailing_bytes": "reject",
+    "manifest_max_bytes": 1048576,
+    "nesting_max": 16,
+    "components_max": 128,
+    "metadata_value_max_bytes": 16384,
+    "indefinite_lengths": false
+  },
+  "publication": {
+    "writers_per_root": 1,
+    "destination_replacement": false,
+    "visibility_authority": "protected-anchor-bound-authenticated-immutable-manifest",
+    "anchor_linearization_order": "objects-manifest-anchor",
+    "object_sync_before_visibility": true,
+    "same_filesystem_atomic_publish": true,
+    "directory_sync_required_where_supported": true,
+    "writer_gate": "closed"
+  },
+  "distributed": {
+    "rank_local_objects": true,
+    "whole_generation_acceptance": true,
+    "mixed_generation": "reject",
+    "state_payload_on_restore_control_plane": false,
+    "ready_authentication": "mutually-authenticated-confidential-channel-plus-full-message-authenticator",
+    "single_node_fallback": "separate-compatible-checkpoint-or-recompute"
+  },
+  "failure_default": "miss-recompute",
+  "quarantine_never_authoritative": true,
+  "replay_anchor": "per-store-namespace-policy-lineage-protected-manifest-predecessor-anchor",
+  "donor_formats": "offline-bounded-read-only-inventory-only"
+}

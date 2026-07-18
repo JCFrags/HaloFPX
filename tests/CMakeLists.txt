@@ -126,6 +126,13 @@ if (LLAMA_BUILD_SERVER)
     set_property(TEST test-halofpx-feature-off-contract PROPERTY LABELS "main;halofpx")
 endif()
 
+add_test(
+    NAME test-halofpx-l02-contracts
+    COMMAND ${CMAKE_COMMAND}
+        -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-l02-contracts.cmake)
+set_property(TEST test-halofpx-l02-contracts PROPERTY LABELS "main;halofpx")
+
 # build test-tokenizer-0 target once and add many tests
 llama_build(test-tokenizer-0.cpp)
 
