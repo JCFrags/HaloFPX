@@ -1,5 +1,13 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
+# Offline-only L04 manifest parser. This target is deliberately not linked into
+# server-context or llama-server.
+add_library(halofpx-context-store-format STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-format.cpp
+    halofpx-context-store-format.h
+)
+target_compile_features(halofpx-context-store-format PRIVATE cxx_std_17)
+
 # server-context containing the core server logic, used by llama-server and CLI
 
 set(TARGET server-context)
