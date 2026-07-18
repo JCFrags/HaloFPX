@@ -1,20 +1,18 @@
 #include "halofpx-context-store-publication-simulator.h"
 
+#include <algorithm>
+
 namespace halofpx {
 namespace {
 
 bool exact_anchor(
         const context_store_publication_anchor & left,
         const context_store_publication_anchor & right) noexcept {
-    return left.store_id == right.store_id &&
-        left.namespace_id == right.namespace_id &&
-        left.checkpoint_lineage_id == right.checkpoint_lineage_id &&
-        left.policy_epoch == right.policy_epoch &&
-        left.key_generation == right.key_generation &&
-        left.authority_epoch == right.authority_epoch &&
-        left.generation == right.generation &&
-        left.manifest_digest == right.manifest_digest &&
-        left.predecessor_manifest_digest == right.predecessor_manifest_digest;
+    return left.authenticated() && right.authenticated() &&
+        left.envelope_size() == right.envelope_size() &&
+        left.envelope_digest() != nullptr && right.envelope_digest() != nullptr &&
+        *left.envelope_digest() == *right.envelope_digest() &&
+        std::equal(left.envelope_data(), left.envelope_data() + left.envelope_size(), right.envelope_data());
 }
 
 } // namespace
@@ -27,10 +25,11 @@ context_store_publication_simulator::context_store_publication_simulator(
     next_(next),
     live_anchor_(predecessor),
     durable_anchor_(predecessor),
-    verified_manifest_digest_(next.manifest_digest),
+    verified_manifest_digest_(next.body() == nullptr ? context_store_digest {} : next.body()->selected_manifest_digest),
     objects_(object_count <= context_store_publication_max_objects_v1 ? object_count : 0),
     trace_limit_(2 * (2 + 6 * objects_.size() + 6 + 3)),
-    valid_(object_count > 0 && object_count <= context_store_publication_max_objects_v1) {
+    valid_(predecessor.authenticated() && next.authenticated() &&
+           object_count > 0 && object_count <= context_store_publication_max_objects_v1) {
     trace_.reserve(trace_limit_);
     terminal_attempt_ids_.reserve(context_store_publication_simulator_max_attempt_history);
 }

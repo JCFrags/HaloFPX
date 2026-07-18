@@ -13,6 +13,7 @@
 #include <vector>
 
 static_assert(!std::is_aggregate_v<halofpx::context_store_anchor_result>);
+static_assert(!std::is_aggregate_v<halofpx::context_store_authenticated_anchor>);
 
 namespace {
 
@@ -68,12 +69,22 @@ void refresh_borrowed_key(fixture & f) {
 }
 
 void test_round_trip_and_golden() {
+    const halofpx::context_store_authenticated_anchor empty;
+    assert(!empty.authenticated() && empty.body() == nullptr && empty.envelope_data() == nullptr && empty.envelope_size() == 0);
     auto f = make_fixture();
     refresh_borrowed_key(f);
     const auto verified = halofpx::context_store_verify_anchor_v1(f.encoded.data(), f.size, f.policy);
     assert(verified.status == halofpx::context_store_anchor_status::authenticated_unadmitted);
     assert(verified.has_authenticated_anchor());
     assert(verified.authenticated_anchor() != nullptr);
+    const auto * carrier = verified.authenticated_carrier();
+    assert(carrier != nullptr && carrier->authenticated());
+    assert(carrier->body()->store_uuid == f.policy.expected.store_uuid);
+    assert(carrier->authentication_key_id()->size == f.key.key_id.size);
+    assert(carrier->authentication_key_generation() == f.key.generation);
+    assert(carrier->authority_binding() != nullptr);
+    assert(carrier->envelope_size() == f.size);
+    assert(std::equal(carrier->envelope_data(), carrier->envelope_data() + carrier->envelope_size(), f.encoded.begin()));
     assert(verified.encoded_size == f.size);
     // Fixed independent receipt values. These pin canonical bytes and domains.
     assert(f.size == 229);
@@ -85,6 +96,10 @@ void test_round_trip_and_golden() {
         0x41,0xb4,0xd7,0xa3,0x82,0x17,0x84,0xaa,0x87,0x76,0xac,0x4d,0xad,0x38,0xdb,0x57,
         0xff,0xea,0x38,0x1e,0x89,0x2d,0x59,0x7e,0x0e,0xfc,0xa1,0xb9,0x71,0x72,0x74,0xa3 };
     assert(std::equal(expected_tag.begin(), expected_tag.end(), f.encoded.begin() + f.size - expected_tag.size()));
+    const auto owned = *carrier;
+    f.encoded.fill(0);
+    assert(owned.authenticated() && owned.envelope_size() == 229);
+    assert(std::equal(expected_tag.begin(), expected_tag.end(), owned.envelope_data() + owned.envelope_size() - expected_tag.size()));
 }
 
 void test_bounds_and_mutations() {

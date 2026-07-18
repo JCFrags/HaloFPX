@@ -1,0 +1,45 @@
+{
+  "schema": "halofpx.l05f.repeat-receipt.v1",
+  "date": "2026-07-18",
+  "parent_commit": "8537a83016b9fa896236d422e3c76bcd61178c22",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "build_directory": "build/halofpx-l05f-clean",
+  "configuration": "Release",
+  "backends": "CPU only; HIP OFF; Vulkan OFF",
+  "webui": "OFF via LLAMA_BUILD_WEBUI=OFF",
+  "executables": [
+    {
+      "path": "build/halofpx-l05f-clean/bin/Release/test-halofpx-context-store-anchor.exe",
+      "sha256": "f2f1a94552d4c9ea3af787042b5ba9ce179cf21399722e2e57d49660a5c2ff27",
+      "process_runs": 100,
+      "passed": 100,
+      "elapsed_ms": 450
+    },
+    {
+      "path": "build/halofpx-l05f-clean/bin/Release/test-halofpx-context-store-publication.exe",
+      "sha256": "4f353a962e5c7da95e165df16ffff50af4aec8c2a3d1d54d2450bfe3440c3819",
+      "process_runs": 100,
+      "passed": 100,
+      "elapsed_ms": 559
+    },
+    {
+      "path": "build/halofpx-l05f-clean/bin/Release/test-halofpx-context-store-publication-simulator.exe",
+      "sha256": "ea99dc631a1cb8ff3a201ec06ae87a5567e4c9d60dbc602be4444f380ae1639d",
+      "process_runs": 100,
+      "passed": 100,
+      "elapsed_ms": 494,
+      "core_failpoint_scenarios_per_process": 1472,
+      "core_failpoint_scenarios_total": 147200
+    }
+  ],
+  "combined_process_runs": 300,
+  "combined_elapsed_ms": 1503,
+  "timing_is_benchmark": false,
+  "notes": [
+    "All processes returned exit code zero.",
+    "The simulator core matrix is 23 operations times 2 phases times 8 faults times 4 crash projections.",
+    "Additional carrier, transition, ambiguity, lifecycle, and bootstrap cases are outside the core count.",
+    "Executable hashes identify the exact clean-build test artifacts; build products are intentionally not committed."
+  ]
+}

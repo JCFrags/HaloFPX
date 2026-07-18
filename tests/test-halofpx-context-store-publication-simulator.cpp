@@ -6,6 +6,7 @@
 #include "halofpx-context-store-publication-simulator.h"
 
 #include <array>
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -15,18 +16,45 @@ namespace {
 
 using namespace halofpx;
 
-context_store_publication_anchor make_anchor(uint64_t generation) {
-    context_store_publication_anchor value;
-    value.store_id[0] = 1;
+const std::array<uint8_t, 32> simulator_master = { 8,7,6,5,4,3,2,1 };
+
+context_store_anchor_key_record simulator_key(uint64_t generation = 9, char suffix = 'a') {
+    context_store_anchor_key_record key;
+    key.disposition = context_store_key_disposition::active;
+    const std::string name = std::string("simulator-key-") + suffix;
+    key.key_id.size = static_cast<uint8_t>(name.size());
+    std::copy(name.begin(), name.end(), key.key_id.bytes.begin());
+    key.generation = generation;
+    key.master_key = { simulator_master.data(), simulator_master.size() };
+    return key;
+}
+
+context_store_anchor_body make_anchor_body(uint64_t generation) {
+    context_store_anchor_body value;
+    value.store_uuid[0] = 1;
     value.namespace_id[0] = 2;
     value.checkpoint_lineage_id[0] = 3;
     value.policy_epoch = 4;
-    value.key_generation = 5;
+    value.manifest_key_generation = 5;
     value.authority_epoch = 6;
     value.generation = generation;
-    value.manifest_digest[0] = static_cast<uint8_t>(0x20 + generation);
-    value.predecessor_manifest_digest[0] = generation == 0 ? 0 : static_cast<uint8_t>(0x1f + generation);
+    value.selected_manifest_digest[0] = static_cast<uint8_t>(0x20 + generation);
+    value.has_predecessor = generation > 1;
+    value.predecessor_manifest_digest[0] = generation <= 1 ? 0 : static_cast<uint8_t>(0x1f + generation);
     return value;
+}
+
+context_store_publication_anchor make_anchor(
+        context_store_anchor_body body,
+        context_store_anchor_key_record key = simulator_key()) {
+    std::array<uint8_t, context_store_anchor_max_bytes> bytes {};
+    const auto result = context_store_encode_anchor_v1(body, key, bytes.data(), bytes.size());
+    assert(result.status == context_store_anchor_status::authenticated_unadmitted);
+    return *result.authenticated_carrier();
+}
+
+context_store_publication_anchor make_anchor(uint64_t generation) {
+    return make_anchor(make_anchor_body(generation));
 }
 
 context_store_publication_request make_request() {
@@ -34,7 +62,6 @@ context_store_publication_request make_request() {
     request.attempt_id[0] = 0xa5;
     request.expected_predecessor = make_anchor(7);
     request.next = make_anchor(8);
-    request.next.predecessor_manifest_digest = request.expected_predecessor.manifest_digest;
     request.object_count = 2;
     return request;
 }
@@ -364,7 +391,7 @@ void test_manifest_binding_bounds_and_names() {
         context_store_publication_writer writer(fence);
         context_store_publication_simulator simulator(
             request.expected_predecessor, request.next, request.object_count);
-        auto wrong = request.next.manifest_digest;
+        auto wrong = request.next.body()->selected_manifest_digest;
         wrong[0] ^= 1;
         simulator.set_verified_manifest_digest(wrong);
         auto result = writer.publish(request, simulator);
@@ -401,7 +428,6 @@ void test_sequential_stale_retry_and_maximum_bounds() {
         assert(first.recover() == context_store_publication_simulator_recovery::new_generation);
 
         auto generation_nine = make_anchor(9);
-        generation_nine.predecessor_manifest_digest = request.next.manifest_digest;
         context_store_publication_root_fence retry_fence;
         context_store_publication_writer retry_writer(retry_fence);
         context_store_publication_simulator retry(
@@ -471,7 +497,7 @@ void test_post_linearization_stale_injection_is_uncertain() {
     auto result = writer.publish(request, simulator);
     assert(result.status == context_store_publication_status::anchor_visibility_uncertain);
     assert(!result.anchor_replaced && !result.durability_acknowledged);
-    assert(simulator.live_anchor().generation == request.next.generation);
+    assert(simulator.live_anchor().body()->generation == request.next.body()->generation);
 }
 
 void test_attempt_lifecycle_and_late_call_fencing() {
@@ -551,26 +577,28 @@ void test_attempt_lifecycle_and_late_call_fencing() {
     }
 
     const std::vector<std::function<void(
-        context_store_publication_anchor &,
-        context_store_publication_anchor &,
+        context_store_anchor_body &,
+        context_store_anchor_body &,
         size_t &)>> binding_mutations = {
-        [](auto & expected, auto &, auto &) { expected.store_id[0] ^= 1; },
+        [](auto & expected, auto &, auto &) { expected.store_uuid[0] ^= 1; },
         [](auto & expected, auto &, auto &) { expected.namespace_id[0] ^= 1; },
         [](auto & expected, auto &, auto &) { expected.checkpoint_lineage_id[0] ^= 1; },
         [](auto & expected, auto &, auto &) { ++expected.policy_epoch; },
-        [](auto & expected, auto &, auto &) { ++expected.key_generation; },
+        [](auto & expected, auto &, auto &) { ++expected.manifest_key_generation; },
         [](auto & expected, auto &, auto &) { ++expected.authority_epoch; },
-        [](auto &, auto & next, auto &) { next.manifest_digest[0] ^= 1; },
+        [](auto &, auto & next, auto &) { next.selected_manifest_digest[0] ^= 1; },
         [](auto &, auto & next, auto &) { next.predecessor_manifest_digest[0] ^= 1; },
         [](auto &, auto &, auto & count) { ++count; },
     };
     for (const auto & mutate : binding_mutations) {
         context_store_publication_simulator simulator(
             request.expected_predecessor, request.next, request.object_count);
-        auto expected = request.expected_predecessor;
-        auto next = request.next;
+        auto expected_body = *request.expected_predecessor.body();
+        auto next_body = *request.next.body();
         auto count = request.object_count;
-        mutate(expected, next, count);
+        mutate(expected_body, next_body, count);
+        auto expected = make_anchor(expected_body);
+        auto next = make_anchor(next_body);
         const auto status = simulator.begin_attempt(second_id, expected, next, count);
         assert(status == context_store_publication_step_result::attempt_fenced ||
                status == context_store_publication_step_result::stale_predecessor);

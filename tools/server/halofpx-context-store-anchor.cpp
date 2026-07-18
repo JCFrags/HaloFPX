@@ -10,6 +10,7 @@ namespace {
 constexpr char anchor_key_domain[] = "halofpx.anchor-key.v1";
 constexpr char anchor_auth_domain[] = "halofpx.anchor-auth.v1";
 constexpr char anchor_digest_domain[] = "halofpx.anchor.v1";
+constexpr char anchor_authority_binding_domain[] = "halofpx.anchor-authority-binding.v1";
 
 struct buffer {
     std::array<uint8_t, context_store_anchor_max_bytes> bytes {};
@@ -89,6 +90,14 @@ bool digest_envelope(const uint8_t * data, size_t size, context_store_format_dig
     buffer input;
     return input.append(reinterpret_cast<const uint8_t *>(anchor_digest_domain), sizeof(anchor_digest_domain)) &&
         input.append(data, size) && context_store_sha256(input.bytes.data(), input.size, digest);
+}
+
+bool authority_binding(const context_store_format_digest & derived_key,
+        context_store_format_digest & binding) noexcept {
+    return context_store_hmac_sha256(
+        derived_key.data(), derived_key.size(),
+        reinterpret_cast<const uint8_t *>(anchor_authority_binding_domain),
+        sizeof(anchor_authority_binding_domain), binding);
 }
 
 class cursor {
@@ -187,11 +196,12 @@ context_store_anchor_result context_store_encode_anchor_v1(const context_store_a
         key.master_key.data == nullptr || key.master_key.size == 0 || key.master_key.size > context_store_master_key_max_bytes) {
         result.status = context_store_anchor_status::invalid_policy; return result;
     }
-    buffer auth, envelope, message; context_store_format_digest derived {}, tag {};
+    buffer auth, envelope, message; context_store_format_digest derived {}, tag {}, binding {};
     if (!encode_auth_input(auth, anchor, key) || !derive_key(anchor, key, derived) ||
         !message.append(reinterpret_cast<const uint8_t *>(anchor_auth_domain), sizeof(anchor_auth_domain)) ||
         !message.append(auth.bytes.data(), auth.size) ||
-        !context_store_hmac_sha256(derived.data(), derived.size(), message.bytes.data(), message.size, tag)) {
+        !context_store_hmac_sha256(derived.data(), derived.size(), message.bytes.data(), message.size, tag) ||
+        !authority_binding(derived, binding)) {
         wipe(derived.data(), derived.size()); result.status = context_store_anchor_status::invalid_policy; return result;
     }
     wipe(derived.data(), derived.size());
@@ -201,7 +211,14 @@ context_store_anchor_result context_store_encode_anchor_v1(const context_store_a
     if (output == nullptr || capacity < envelope.size) { result.status = context_store_anchor_status::output_too_small; return result; }
     std::copy_n(envelope.bytes.data(), envelope.size, output);
     if (!digest_envelope(output, envelope.size, result.envelope_digest)) { result.status = context_store_anchor_status::invalid_policy; return result; }
-    result.anchor_ = anchor; result.authenticated_ = true;
+    result.carrier_.body_ = anchor;
+    result.carrier_.key_id_ = key.key_id;
+    result.carrier_.key_generation_ = key.generation;
+    result.carrier_.authority_binding_ = binding;
+    result.carrier_.digest_ = result.envelope_digest;
+    std::copy_n(output, envelope.size, result.carrier_.envelope_.begin());
+    result.carrier_.envelope_size_ = envelope.size;
+    result.carrier_.authenticated_ = true;
     result.status = context_store_anchor_status::authenticated_unadmitted; return result;
 }
 
@@ -225,11 +242,12 @@ context_store_anchor_result context_store_verify_anchor_v1(const uint8_t * data,
         result.status = context_store_anchor_status::invalid_policy; return result;
     }
     if (parsed.key_generation != policy.key.generation) { result.status = context_store_anchor_status::key_generation_mismatch; return result; }
-    context_store_format_digest derived {}, expected_tag {}; buffer message;
+    context_store_format_digest derived {}, expected_tag {}, binding {}; buffer message;
     const bool crypto_ok = derive_key(parsed.body, policy.key, derived) &&
         message.append(reinterpret_cast<const uint8_t *>(anchor_auth_domain), sizeof(anchor_auth_domain)) &&
         message.append(data + parsed.auth_offset, parsed.auth_size) &&
-        context_store_hmac_sha256(derived.data(), derived.size(), message.bytes.data(), message.size, expected_tag);
+        context_store_hmac_sha256(derived.data(), derived.size(), message.bytes.data(), message.size, expected_tag) &&
+        authority_binding(derived, binding);
     wipe(derived.data(), derived.size());
     const bool tag_ok = crypto_ok && digest_equal(expected_tag, parsed.tag); wipe(expected_tag.data(), expected_tag.size());
     if (!tag_ok) { result.status = context_store_anchor_status::authentication_failed; return result; }
@@ -237,7 +255,14 @@ context_store_anchor_result context_store_verify_anchor_v1(const uint8_t * data,
     if (parsed.body.generation < policy.expected.generation) { result.status = context_store_anchor_status::rollback_detected; return result; }
     if (!same_replay(parsed.body, policy.expected)) { result.status = context_store_anchor_status::replay_mismatch; return result; }
     if (!digest_envelope(data, size, result.envelope_digest)) { result.status = context_store_anchor_status::invalid_policy; return result; }
-    result.anchor_ = parsed.body; result.authenticated_ = true;
+    result.carrier_.body_ = parsed.body;
+    result.carrier_.key_id_ = parsed.key_id;
+    result.carrier_.key_generation_ = parsed.key_generation;
+    result.carrier_.authority_binding_ = binding;
+    result.carrier_.digest_ = result.envelope_digest;
+    std::copy_n(data, size, result.carrier_.envelope_.begin());
+    result.carrier_.envelope_size_ = size;
+    result.carrier_.authenticated_ = true;
     result.status = context_store_anchor_status::authenticated_unadmitted; return result;
 }
 

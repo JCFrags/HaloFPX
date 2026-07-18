@@ -6,12 +6,14 @@
 #include "halofpx-context-store-publication.h"
 
 #include <condition_variable>
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <mutex>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 namespace {
@@ -26,32 +28,79 @@ using halofpx::context_store_publication_status;
 using halofpx::context_store_publication_step_result;
 using halofpx::context_store_publication_writer;
 
-context_store_publication_anchor make_anchor(uint64_t generation) {
-    context_store_publication_anchor value;
-    value.store_id[0] = 1;
+static_assert(std::tuple_size_v<decltype(halofpx::context_store_anchor_body::store_uuid)> == 16);
+static_assert(!std::is_aggregate_v<halofpx::context_store_publication_anchor>);
+
+const std::array<uint8_t, 32> publication_master = { 1,2,3,4,5,6,7,8 };
+const std::array<uint8_t, 32> alternate_publication_master = { 8,7,6,5,4,3,2,1 };
+
+halofpx::context_store_anchor_key_record publication_key(uint64_t generation = 9, char suffix = 'a') {
+    halofpx::context_store_anchor_key_record key;
+    key.disposition = halofpx::context_store_key_disposition::active;
+    const std::string key_id = std::string("publication-key-") + suffix;
+    key.key_id.size = static_cast<uint8_t>(key_id.size());
+    std::copy(key_id.begin(), key_id.end(), key.key_id.bytes.begin());
+    key.generation = generation;
+    key.master_key = { publication_master.data(), publication_master.size() };
+    return key;
+}
+
+halofpx::context_store_anchor_key_record alternate_master_key() {
+    auto key = publication_key();
+    key.master_key = { alternate_publication_master.data(), alternate_publication_master.size() };
+    return key;
+}
+
+halofpx::context_store_anchor_body make_anchor_body(uint64_t generation) {
+    halofpx::context_store_anchor_body value;
+    value.store_uuid[0] = 1;
     value.namespace_id[0] = 2;
     value.checkpoint_lineage_id[0] = 3;
     value.policy_epoch = 4;
-    value.key_generation = 5;
+    value.manifest_key_generation = 5;
     value.authority_epoch = 6;
     value.generation = generation;
-    value.manifest_digest[0] = static_cast<uint8_t>(0x20 + generation);
-    value.predecessor_manifest_digest[0] = generation == 0 ? 0 : static_cast<uint8_t>(0x1f + generation);
+    value.selected_manifest_digest[0] = static_cast<uint8_t>(0x20 + generation);
+    value.has_predecessor = generation > 1;
+    value.predecessor_manifest_digest[0] = generation <= 1 ? 0 : static_cast<uint8_t>(0x1f + generation);
     return value;
+}
+
+context_store_publication_anchor make_anchor(
+        uint64_t generation,
+        halofpx::context_store_anchor_key_record key = publication_key()) {
+    const auto body = make_anchor_body(generation);
+    std::array<uint8_t, halofpx::context_store_anchor_max_bytes> encoded {};
+    const auto result = halofpx::context_store_encode_anchor_v1(body, key, encoded.data(), encoded.size());
+    assert(result.status == halofpx::context_store_anchor_status::authenticated_unadmitted);
+    assert(result.authenticated_carrier() != nullptr);
+    return *result.authenticated_carrier();
+}
+
+context_store_publication_anchor make_anchor(halofpx::context_store_anchor_body body,
+        halofpx::context_store_anchor_key_record key = publication_key()) {
+    std::array<uint8_t, halofpx::context_store_anchor_max_bytes> encoded {};
+    const auto result = halofpx::context_store_encode_anchor_v1(body, key, encoded.data(), encoded.size());
+    assert(result.status == halofpx::context_store_anchor_status::authenticated_unadmitted);
+    return *result.authenticated_carrier();
+}
+
+context_store_publication_anchor modified_anchor(
+        uint64_t generation,
+        const std::function<void(halofpx::context_store_anchor_body &)> & mutate,
+        halofpx::context_store_anchor_key_record key = publication_key()) {
+    auto body = make_anchor_body(generation);
+    mutate(body);
+    return make_anchor(body, key);
 }
 
 bool same_anchor(
         const context_store_publication_anchor & left,
         const context_store_publication_anchor & right) {
-    return left.store_id == right.store_id &&
-        left.namespace_id == right.namespace_id &&
-        left.checkpoint_lineage_id == right.checkpoint_lineage_id &&
-        left.policy_epoch == right.policy_epoch &&
-        left.key_generation == right.key_generation &&
-        left.authority_epoch == right.authority_epoch &&
-        left.generation == right.generation &&
-        left.manifest_digest == right.manifest_digest &&
-        left.predecessor_manifest_digest == right.predecessor_manifest_digest;
+    return left.authenticated() && right.authenticated() &&
+        left.envelope_size() == right.envelope_size() &&
+        *left.envelope_digest() == *right.envelope_digest() &&
+        std::equal(left.envelope_data(), left.envelope_data() + left.envelope_size(), right.envelope_data());
 }
 
 context_store_publication_request make_request(size_t object_count = 2) {
@@ -59,7 +108,6 @@ context_store_publication_request make_request(size_t object_count = 2) {
     request.attempt_id[0] = 0xa5;
     request.expected_predecessor = make_anchor(7);
     request.next = make_anchor(8);
-    request.next.predecessor_manifest_digest = request.expected_predecessor.manifest_digest;
     request.object_count = object_count;
     return request;
 }
@@ -82,7 +130,7 @@ public:
     size_t abandon_count = 0;
     size_t uncertain_fence_count = 0;
     context_store_publication_step_result uncertain_fence_result = context_store_publication_step_result::ok;
-    halofpx::context_store_digest verified_manifest_digest = make_anchor(8).manifest_digest;
+    halofpx::context_store_digest verified_manifest_digest = make_anchor_body(8).selected_manifest_digest;
 
     context_store_publication_step_result read_anchor(context_store_publication_anchor & anchor) override {
         if (block_read) {
@@ -313,19 +361,42 @@ void test_identity_and_request_rejection() {
     auto request = make_request(); request.object_count = 0; reject(request);
     request = make_request(); request.attempt_id = {}; reject(request);
     request = make_request(context_store_publication_max_objects_v1 + 1); reject(request);
-    request = make_request(); request.next.generation = request.expected_predecessor.generation; reject(request);
-    request = make_request(); request.next.predecessor_manifest_digest[0] ^= 1; reject(request);
-    request = make_request(); request.next.store_id[0] ^= 1; reject(request);
-    request = make_request(); request.next.namespace_id[0] ^= 1; reject(request);
-    request = make_request(); request.next.checkpoint_lineage_id[0] ^= 1; reject(request);
-    request = make_request(); ++request.next.policy_epoch; reject(request);
-    request = make_request(); ++request.next.key_generation; reject(request);
-    request = make_request(); --request.next.authority_epoch; reject(request);
-    request = make_request(); ++request.next.authority_epoch; reject(request);
-    request = make_request();
-    request.expected_predecessor.generation = UINT64_MAX;
-    request.next.generation = 0;
-    reject(request);
+    request = make_request(); request.next = modified_anchor(8, [](auto & b) { b.generation = 7; }); reject(request);
+    request = make_request(); request.next = make_anchor(9); reject(request);
+    request = make_request(); request.next = modified_anchor(8, [](auto & b) { b.predecessor_manifest_digest[0] ^= 1; }); reject(request);
+    request = make_request(); request.next = modified_anchor(8, [](auto & b) { b.store_uuid[0] ^= 1; }); reject(request);
+    request = make_request(); request.next = modified_anchor(8, [](auto & b) { b.namespace_id[0] ^= 1; }); reject(request);
+    request = make_request(); request.next = modified_anchor(8, [](auto & b) { b.checkpoint_lineage_id[0] ^= 1; }); reject(request);
+    request = make_request(); request.next = modified_anchor(8, [](auto & b) { ++b.policy_epoch; }); reject(request);
+    request = make_request(); request.next = modified_anchor(8, [](auto & b) { ++b.manifest_key_generation; }); reject(request);
+    request = make_request(); request.next = modified_anchor(8, [](auto & b) { --b.authority_epoch; }); reject(request);
+    request = make_request(); request.next = modified_anchor(8, [](auto & b) { ++b.authority_epoch; }); reject(request);
+    request = make_request(); request.next = make_anchor(8, publication_key(10)); reject(request);
+    request = make_request(); request.next = make_anchor(8, publication_key(9, 'b')); reject(request);
+    request = make_request(); request.next = make_anchor(8, alternate_master_key()); reject(request);
+    request = make_request(); request.expected_predecessor = modified_anchor(7, [](auto & b) { b.generation = UINT64_MAX; }); reject(request);
+    request = make_request(); request.expected_predecessor = {}; reject(request);
+    request = make_request(); request.next = {}; reject(request);
+
+    {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.current = {};
+        const auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::storage_error);
+        assert(result.completed_steps == 1 && backend.calls.size() == 1);
+    }
+    {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.fail_at = 1;
+        backend.failure = context_store_publication_step_result::anchor_absent;
+        const auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::bootstrap_required);
+        assert(result.completed_steps == 0 && backend.calls.size() == 1);
+    }
 
     const auto reject_stale = [](context_store_publication_anchor current) {
         context_store_publication_root_fence fence;
@@ -337,15 +408,16 @@ void test_identity_and_request_rejection() {
         assert(result.completed_steps == 1);
         assert(backend.calls.size() == 1);
     };
-    auto current = make_anchor(7); current.store_id[0] ^= 1; reject_stale(current);
-    current = make_anchor(7); current.namespace_id[0] ^= 1; reject_stale(current);
-    current = make_anchor(7); current.checkpoint_lineage_id[0] ^= 1; reject_stale(current);
-    current = make_anchor(7); ++current.policy_epoch; reject_stale(current);
-    current = make_anchor(7); ++current.key_generation; reject_stale(current);
-    current = make_anchor(7); ++current.authority_epoch; reject_stale(current);
-    current = make_anchor(7); ++current.generation; reject_stale(current);
-    current = make_anchor(7); current.manifest_digest[0] ^= 1; reject_stale(current);
-    current = make_anchor(7); current.predecessor_manifest_digest[0] ^= 1; reject_stale(current);
+    reject_stale(modified_anchor(7, [](auto & b) { b.store_uuid[0] ^= 1; }));
+    reject_stale(modified_anchor(7, [](auto & b) { b.namespace_id[0] ^= 1; }));
+    reject_stale(modified_anchor(7, [](auto & b) { b.checkpoint_lineage_id[0] ^= 1; }));
+    reject_stale(modified_anchor(7, [](auto & b) { ++b.policy_epoch; }));
+    reject_stale(modified_anchor(7, [](auto & b) { ++b.manifest_key_generation; }));
+    reject_stale(modified_anchor(7, [](auto & b) { ++b.authority_epoch; }));
+    reject_stale(modified_anchor(7, [](auto & b) { ++b.generation; }));
+    reject_stale(modified_anchor(7, [](auto & b) { b.selected_manifest_digest[0] ^= 1; }));
+    reject_stale(modified_anchor(7, [](auto & b) { b.predecessor_manifest_digest[0] ^= 1; }));
+    reject_stale(make_anchor(7, publication_key(10)));
 
     context_store_publication_root_fence fence;
     context_store_publication_writer writer(fence);
@@ -436,21 +508,24 @@ void test_cross_fence_stale_compare_and_swap() {
     assert(first_result.status == context_store_publication_status::stale_predecessor);
     assert(first_result.completed_steps == 20);
     assert(!first_result.anchor_replaced && !first_result.durability_acknowledged);
-    assert(shared.generation == 8);
+    assert(shared.body() != nullptr && shared.body()->generation == 8);
     assert(first.calls.back() == "replace_anchor");
 }
 
 void test_final_cas_compares_every_predecessor_field() {
-    const std::vector<std::function<void(context_store_publication_anchor &)>> mutations = {
-        [](auto & value) { value.store_id[0] ^= 1; },
-        [](auto & value) { value.namespace_id[0] ^= 1; },
-        [](auto & value) { value.checkpoint_lineage_id[0] ^= 1; },
-        [](auto & value) { ++value.policy_epoch; },
-        [](auto & value) { ++value.key_generation; },
-        [](auto & value) { ++value.authority_epoch; },
-        [](auto & value) { ++value.generation; },
-        [](auto & value) { value.manifest_digest[0] ^= 1; },
-        [](auto & value) { value.predecessor_manifest_digest[0] ^= 1; },
+    const std::vector<std::function<context_store_publication_anchor()>> mutations = {
+        [] { return modified_anchor(7, [](auto & b) { b.store_uuid[0] ^= 1; }); },
+        [] { return modified_anchor(7, [](auto & b) { b.namespace_id[0] ^= 1; }); },
+        [] { return modified_anchor(7, [](auto & b) { b.checkpoint_lineage_id[0] ^= 1; }); },
+        [] { return modified_anchor(7, [](auto & b) { ++b.policy_epoch; }); },
+        [] { return modified_anchor(7, [](auto & b) { ++b.manifest_key_generation; }); },
+        [] { return modified_anchor(7, [](auto & b) { ++b.authority_epoch; }); },
+        [] { return modified_anchor(7, [](auto & b) { ++b.generation; }); },
+        [] { return modified_anchor(7, [](auto & b) { b.selected_manifest_digest[0] ^= 1; }); },
+        [] { return modified_anchor(7, [](auto & b) { b.predecessor_manifest_digest[0] ^= 1; }); },
+        [] { return make_anchor(7, publication_key(10)); },
+        [] { return make_anchor(7, publication_key(9, 'b')); },
+        [] { return make_anchor(7, alternate_master_key()); },
     };
     for (const auto & mutate : mutations) {
         context_store_publication_anchor shared = make_anchor(7);
@@ -458,8 +533,7 @@ void test_final_cas_compares_every_predecessor_field() {
         context_store_publication_writer writer(fence);
         scripted_backend backend;
         backend.shared_current = &shared;
-        auto expected_mutated = shared;
-        mutate(expected_mutated);
+        auto expected_mutated = mutate();
         backend.before_replace = [&] { shared = expected_mutated; };
         auto result = writer.publish(make_request(), backend);
         assert(result.status == context_store_publication_status::stale_predecessor);
@@ -472,6 +546,8 @@ void test_final_cas_compares_every_predecessor_field() {
 void test_status_names() {
     assert(std::string(halofpx::context_store_publication_status_name(
         context_store_publication_status::published)) == "published");
+    assert(std::string(halofpx::context_store_publication_status_name(
+        context_store_publication_status::bootstrap_required)) == "bootstrap_required");
     assert(std::string(halofpx::context_store_publication_status_name(
         static_cast<context_store_publication_status>(255))) == "unknown");
 }

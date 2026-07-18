@@ -35,6 +35,40 @@ struct context_store_anchor_policy {
     context_store_anchor_body expected;
 };
 
+struct context_store_anchor_result;
+
+// Owned, copyable proof carrier created only by the bounded encoder/verifier.
+// A public default instance is deliberately unauthenticated; callers cannot
+// populate or mark it trusted. It retains no key material.
+class context_store_authenticated_anchor {
+public:
+    context_store_authenticated_anchor() = default;
+
+    bool authenticated() const noexcept { return authenticated_; }
+    const context_store_anchor_body * body() const noexcept { return authenticated_ ? &body_ : nullptr; }
+    const context_store_registered_id * authentication_key_id() const noexcept { return authenticated_ ? &key_id_ : nullptr; }
+    uint64_t authentication_key_generation() const noexcept { return authenticated_ ? key_generation_ : 0; }
+    const context_store_format_digest * authority_binding() const noexcept { return authenticated_ ? &authority_binding_ : nullptr; }
+    const context_store_format_digest * envelope_digest() const noexcept { return authenticated_ ? &digest_ : nullptr; }
+    const uint8_t * envelope_data() const noexcept { return authenticated_ ? envelope_.data() : nullptr; }
+    size_t envelope_size() const noexcept { return authenticated_ ? envelope_size_ : 0; }
+
+private:
+    bool authenticated_ = false;
+    context_store_anchor_body body_;
+    context_store_registered_id key_id_;
+    uint64_t key_generation_ = 0;
+    context_store_format_digest authority_binding_ {};
+    context_store_format_digest digest_ {};
+    std::array<uint8_t, context_store_anchor_max_bytes> envelope_ {};
+    size_t envelope_size_ = 0;
+
+    friend context_store_anchor_result context_store_encode_anchor_v1(
+        const context_store_anchor_body &, const context_store_anchor_key_record &, uint8_t *, size_t) noexcept;
+    friend context_store_anchor_result context_store_verify_anchor_v1(
+        const uint8_t *, size_t, const context_store_anchor_policy &) noexcept;
+};
+
 enum class context_store_anchor_status : uint8_t {
     authenticated_unadmitted,
     structural_rejection,
@@ -55,15 +89,17 @@ struct context_store_anchor_result {
     context_store_format_digest envelope_digest {};
     size_t encoded_size = 0;
     bool has_authenticated_anchor() const noexcept {
-        return authenticated_ && status == context_store_anchor_status::authenticated_unadmitted;
+        return carrier_.authenticated() && status == context_store_anchor_status::authenticated_unadmitted;
     }
     const context_store_anchor_body * authenticated_anchor() const noexcept {
-        return has_authenticated_anchor() ? &anchor_ : nullptr;
+        return has_authenticated_anchor() ? carrier_.body() : nullptr;
+    }
+    const context_store_authenticated_anchor * authenticated_carrier() const noexcept {
+        return has_authenticated_anchor() ? &carrier_ : nullptr;
     }
 
 private:
-    bool authenticated_ = false;
-    context_store_anchor_body anchor_;
+    context_store_authenticated_anchor carrier_;
     friend context_store_anchor_result context_store_encode_anchor_v1(
         const context_store_anchor_body &, const context_store_anchor_key_record &, uint8_t *, size_t) noexcept;
     friend context_store_anchor_result context_store_verify_anchor_v1(

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "halofpx-context-store.h"
+#include "halofpx-context-store-anchor.h"
 
 #include <array>
 #include <atomic>
@@ -10,22 +10,12 @@
 namespace halofpx {
 
 using context_store_publication_id = std::array<uint8_t, 32>;
+using context_store_digest = context_store_format_digest;
+using context_store_publication_anchor = context_store_authenticated_anchor;
 
 // Matches the accepted v1 manifest object bound. The offline coordinator
 // rejects larger synthetic plans before calling an injected backend.
 constexpr size_t context_store_publication_max_objects_v1 = 128;
-
-struct context_store_publication_anchor {
-    context_store_publication_id store_id {};
-    context_store_publication_id namespace_id {};
-    context_store_publication_id checkpoint_lineage_id {};
-    uint64_t policy_epoch = 0;
-    uint64_t key_generation = 0;
-    uint64_t authority_epoch = 0;
-    uint64_t generation = 0;
-    context_store_digest manifest_digest {};
-    context_store_digest predecessor_manifest_digest {};
-};
 
 struct context_store_publication_request {
     // Caller-owned, cryptographically fresh operation identity. It is not an
@@ -47,6 +37,9 @@ enum class context_store_publication_step_result : uint8_t {
     read_only,
     io_error,
     interrupted,
+    // Protected authority reports no anchor for this lineage. Ordinary
+    // publication cannot bootstrap it.
+    anchor_absent,
     // A conclusive compare-and-swap rejection: the protected anchor did not
     // equal the supplied predecessor and the replacement was not applied.
     stale_predecessor,
@@ -114,6 +107,7 @@ public:
 enum class context_store_publication_status : uint8_t {
     published,
     invalid_request,
+    bootstrap_required,
     stale_predecessor,
     attempt_fenced,
     writer_busy,

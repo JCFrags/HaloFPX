@@ -51,6 +51,7 @@ add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-publication-simulator.cpp
     halofpx-context-store-publication-simulator.h
 )
+target_link_libraries(halofpx-context-store-publication PUBLIC halofpx-context-store-anchor)
 target_compile_features(halofpx-context-store-publication PRIVATE cxx_std_17)
 
 # server-context containing the core server logic, used by llama-server and CLI

@@ -1,6 +1,7 @@
 #include "halofpx-context-store-publication.h"
 
 #include <limits>
+#include <algorithm>
 
 namespace halofpx {
 
@@ -8,38 +9,57 @@ context_store_publication_backend::~context_store_publication_backend() = defaul
 
 namespace {
 
+bool fixed_digest_equal(const context_store_format_digest & left,
+        const context_store_format_digest & right) noexcept {
+    volatile uint8_t difference = 0;
+    for (size_t index = 0; index < left.size(); ++index) {
+        difference = static_cast<uint8_t>(difference | static_cast<uint8_t>(left[index] ^ right[index]));
+    }
+    return difference == 0;
+}
+
 bool same_lineage_domain(
         const context_store_publication_anchor & left,
         const context_store_publication_anchor & right) noexcept {
-    return left.store_id == right.store_id &&
-        left.namespace_id == right.namespace_id &&
-        left.checkpoint_lineage_id == right.checkpoint_lineage_id &&
-        left.policy_epoch == right.policy_epoch &&
-        left.key_generation == right.key_generation;
+    const auto * l = left.body();
+    const auto * r = right.body();
+    const auto * lk = left.authentication_key_id();
+    const auto * rk = right.authentication_key_id();
+    const auto * lb = left.authority_binding();
+    const auto * rb = right.authority_binding();
+    return l != nullptr && r != nullptr && lk != nullptr && rk != nullptr && lb != nullptr && rb != nullptr &&
+        l->store_uuid == r->store_uuid && l->namespace_id == r->namespace_id &&
+        l->checkpoint_lineage_id == r->checkpoint_lineage_id && l->policy_epoch == r->policy_epoch &&
+        l->manifest_key_generation == r->manifest_key_generation && l->authority_epoch == r->authority_epoch &&
+        lk->size == rk->size && std::equal(lk->bytes.begin(), lk->bytes.begin() + lk->size, rk->bytes.begin()) &&
+        left.authentication_key_generation() == right.authentication_key_generation() && fixed_digest_equal(*lb, *rb);
 }
 
 bool valid_transition(const context_store_publication_request & request) noexcept {
     const auto & predecessor = request.expected_predecessor;
     const auto & next = request.next;
+    const auto * predecessor_body = predecessor.body();
+    const auto * next_body = next.body();
     const bool nonzero_attempt = request.attempt_id != context_store_publication_id {};
-    return nonzero_attempt &&
+    return predecessor_body != nullptr && next_body != nullptr && nonzero_attempt &&
         request.object_count > 0 &&
         request.object_count <= context_store_publication_max_objects_v1 &&
-        predecessor.generation != std::numeric_limits<uint64_t>::max() &&
+        predecessor_body->generation >= 1 &&
+        predecessor_body->generation != std::numeric_limits<uint64_t>::max() &&
         same_lineage_domain(predecessor, next) &&
-        next.generation == predecessor.generation + 1 &&
-        next.predecessor_manifest_digest == predecessor.manifest_digest &&
-        next.authority_epoch == predecessor.authority_epoch;
+        next_body->generation == predecessor_body->generation + 1 &&
+        next_body->has_predecessor &&
+        next_body->predecessor_manifest_digest == predecessor_body->selected_manifest_digest;
 }
 
 bool exact_anchor(
         const context_store_publication_anchor & left,
         const context_store_publication_anchor & right) noexcept {
-    return same_lineage_domain(left, right) &&
-        left.authority_epoch == right.authority_epoch &&
-        left.generation == right.generation &&
-        left.manifest_digest == right.manifest_digest &&
-        left.predecessor_manifest_digest == right.predecessor_manifest_digest;
+    if (!left.authenticated() || !right.authenticated() ||
+        left.envelope_size() != right.envelope_size() ||
+        left.envelope_digest() == nullptr || right.envelope_digest() == nullptr ||
+        *left.envelope_digest() != *right.envelope_digest()) return false;
+    return std::equal(left.envelope_data(), left.envelope_data() + left.envelope_size(), right.envelope_data());
 }
 
 class active_guard {
@@ -123,11 +143,19 @@ context_store_publication_result context_store_publication_writer::publish(
     try {
         context_store_publication_anchor current;
         auto step = backend.read_anchor(current);
+        if (step == context_store_publication_step_result::anchor_absent) {
+            result.status = context_store_publication_status::bootstrap_required;
+            return result;
+        }
         if (!completed(step)) {
             result.status = ordinary_failure(step, context_store_publication_status::storage_error);
             return result;
         }
         ++result.completed_steps;
+        if (!current.authenticated()) {
+            result.status = context_store_publication_status::storage_error;
+            return result;
+        }
         if (!exact_anchor(current, request.expected_predecessor)) {
             result.status = context_store_publication_status::stale_predecessor;
             return result;
@@ -192,7 +220,7 @@ context_store_publication_result context_store_publication_writer::publish(
             result.status = ordinary_failure(step, context_store_publication_status::manifest_collision);
             return fail_after_abandon();
         }
-        if (verified_manifest_digest != request.next.manifest_digest) {
+        if (request.next.body() == nullptr || verified_manifest_digest != request.next.body()->selected_manifest_digest) {
             result.status = context_store_publication_status::manifest_identity_mismatch;
             return fail_after_abandon();
         }
@@ -269,6 +297,7 @@ const char * context_store_publication_status_name(
     switch (status) {
         case context_store_publication_status::published: return "published";
         case context_store_publication_status::invalid_request: return "invalid_request";
+        case context_store_publication_status::bootstrap_required: return "bootstrap_required";
         case context_store_publication_status::stale_predecessor: return "stale_predecessor";
         case context_store_publication_status::attempt_fenced: return "attempt_fenced";
         case context_store_publication_status::writer_busy: return "writer_busy";
