@@ -27,7 +27,7 @@ Manifest fields: format/version; generation and predecessor; compatibility/topol
 3. Validate schema/fingerprint/generation.
 4. Validate every required object's path, size, and digest.
 5. Quarantine bad manifests/objects with reason; do not delete automatically.
-6. Choose newest complete valid generation; otherwise miss/recompute.
+6. Validate only the exact protected anchor-selected identity. Directory enumeration must never select a newer or older generation; any missing, corrupt, replayed, cross-lineage, or incompatible selected chain is a miss/recompute [S63-07].
 
 **[RECOMMENDATION]** Stale/mixed-generation rank shards are never combined. Rebuild index data from valid manifests, not directory guesses.
 
@@ -37,4 +37,4 @@ Manifest fields: format/version; generation and predecessor; compatibility/topol
 
 Required safety includes: a published manifest names one complete generation/fingerprint; recovery never mixes generations; corruption/incomplete references are rejected; performance mode may lose the checkpoint and recompute after failure; and turn-durable/strict acknowledgement requires every object and manifest promised by that mode to be durable. Required conditional liveness includes: a fully durable prepared generation is eventually published or explicitly abandoned, assuming the coordinator and storage actions eventually run and storage does not fail permanently. Fairness assumptions and finite bounds must be explicit.
 
-**[OPEN]** No TLA+/TLC model has been created or executed for HaloKV. A future bounded pass would validate only the chosen abstraction/configuration, not implementation conformance, filesystem behavior, or the machine durability promise; Section 80 fault injection and M63-03 remain mandatory.
+**[MEASURED]** P63-00 now has a target-owned TLA+ model checked against the exact final source SHA-256 `320d294949624469a5c636fc510300f6f558845094139402a6845d765b1c38fe`. The promoted TLC matrix matched 17/17 expected outcomes across 44,539,476 generated and 5,968,128 distinct states; Apalache independently typechecked the model and bounded `Safety` through length 5 [S63-07]. This validates only the reviewed finite abstraction. Implementation conformance, filesystem behavior, power-loss behavior, and the machine durability promise remain open and require the disabled writer/fault harness, Section 80 fault injection, and M63-01..03.

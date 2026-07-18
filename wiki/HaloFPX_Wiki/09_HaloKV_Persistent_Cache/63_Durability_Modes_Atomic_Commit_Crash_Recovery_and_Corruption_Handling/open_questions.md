@@ -22,4 +22,4 @@ related_sections: ["21", "58", "63"]
 | O63-06 | Can ranks acknowledge prepared state without durable network consensus? | failure analysis |
 | O63-07 | What quarantine retention and operator workflow apply? | section 65 tooling |
 | O63-08 | Do device volatile caches honor the tested flush sequence? | M63-03 power tests |
-| O63-09 | Which bounded TLA+/TLC configurations, fairness assumptions, and negative variants are sufficient for the mode-aware publication/recovery gate? | P63-00 model artifacts and independent review |
+| O63-09 | **[RESOLVED 2026-07-18]** P63-00 uses split exhaustive TLC safety/chain/two-lineage/liveness configurations, explicit weak fairness only in the reduced liveness model, five required negative variants, and an Apalache type/bounded-safety cross-check. | P63-00 final evidence and independent adversarial review [S63-07] |

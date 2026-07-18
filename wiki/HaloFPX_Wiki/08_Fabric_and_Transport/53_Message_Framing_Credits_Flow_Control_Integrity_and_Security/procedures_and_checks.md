@@ -49,7 +49,7 @@ Sweep declared receive windows, descriptor limits, record sizes, batching caps a
 
 **[RECOMMENDATION]** Before wire-v1 implementation freeze, create a small TLA+ model and run TLC from pinned TLA+ Tools `v1.7.4` (`5a47802b5c391f59ecdd44117981f4ff8c0656ba`). Model two rails, loss/duplication/reordering, DATA and CREDIT in flight, cancellation, crash/restart, global epoch reset, whole-operation retry, control reserve, and stale records. Assert credit conservation, no refund on DATA loss, idempotent credit application, epoch isolation, safe retry, bounded queues, and conditional control progress. Retain `.tla`, `.cfg`, tool/JAR SHA-256, command, state/depth/runtime, results, and deliberate broken variants that produce expected counterexamples [S53-SRC-011, S53-SRC-012].
 
-**[OPEN]** No TLA+/TLC model or model-checking run has been executed for HaloFPX. A bounded pass would validate only the reviewed abstraction/configuration; it would not prove C++ conformance, cryptography, performance, or unbounded behavior. Model-derived protocol changes require human review and corresponding simulator/fault tests.
+**[OPEN]** No TLA+/TLC model or model-checking run has been executed for the Section 53 wire/credit protocol. The P63-00 HaloKV publication model is a separate abstraction and does not close this gate. A future bounded pass would validate only the reviewed wire abstraction/configuration; it would not prove C++ conformance, cryptography, performance, or unbounded behavior.
 
 ## S53-EXP-003 — USB4STREAM short-I/O and correctness soak
 
