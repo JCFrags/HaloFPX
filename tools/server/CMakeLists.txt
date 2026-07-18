@@ -35,6 +35,15 @@ add_library(halofpx-context-store-anchor STATIC EXCLUDE_FROM_ALL
 target_link_libraries(halofpx-context-store-anchor PUBLIC halofpx-context-store-auth)
 target_compile_features(halofpx-context-store-anchor PRIVATE cxx_std_17)
 
+# Offline-only L05g memory-resident bootstrap authority planner. It owns its
+# bounded key snapshot, performs no I/O, and is not linked into the server.
+add_library(halofpx-context-store-authority STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-authority.cpp
+    halofpx-context-store-authority.h
+)
+target_link_libraries(halofpx-context-store-authority PUBLIC halofpx-context-store-anchor)
+target_compile_features(halofpx-context-store-authority PRIVATE cxx_std_17)
+
 # Offline-only L04 immutable object-frame verifier.
 add_library(halofpx-context-store-object STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-object.cpp

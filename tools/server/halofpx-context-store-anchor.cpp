@@ -202,15 +202,32 @@ context_store_anchor_result context_store_encode_anchor_v1(const context_store_a
         !message.append(auth.bytes.data(), auth.size) ||
         !context_store_hmac_sha256(derived.data(), derived.size(), message.bytes.data(), message.size, tag) ||
         !authority_binding(derived, binding)) {
-        wipe(derived.data(), derived.size()); result.status = context_store_anchor_status::invalid_policy; return result;
+        wipe(derived.data(), derived.size());
+        wipe(tag.data(), tag.size());
+        wipe(binding.data(), binding.size());
+        result.status = context_store_anchor_status::invalid_policy;
+        return result;
     }
     wipe(derived.data(), derived.size());
     if (!map(envelope, 2) || !uint(envelope, 0) || !envelope.append(auth.bytes.data(), auth.size) ||
-        !uint(envelope, 1) || !bstr(envelope, tag)) { wipe(tag.data(), tag.size()); result.status = context_store_anchor_status::invalid_policy; return result; }
+        !uint(envelope, 1) || !bstr(envelope, tag)) {
+        wipe(tag.data(), tag.size());
+        wipe(binding.data(), binding.size());
+        result.status = context_store_anchor_status::invalid_policy;
+        return result;
+    }
     wipe(tag.data(), tag.size()); result.encoded_size = envelope.size;
-    if (output == nullptr || capacity < envelope.size) { result.status = context_store_anchor_status::output_too_small; return result; }
+    if (output == nullptr || capacity < envelope.size) {
+        wipe(binding.data(), binding.size());
+        result.status = context_store_anchor_status::output_too_small;
+        return result;
+    }
     std::copy_n(envelope.bytes.data(), envelope.size, output);
-    if (!digest_envelope(output, envelope.size, result.envelope_digest)) { result.status = context_store_anchor_status::invalid_policy; return result; }
+    if (!digest_envelope(output, envelope.size, result.envelope_digest)) {
+        wipe(binding.data(), binding.size());
+        result.status = context_store_anchor_status::invalid_policy;
+        return result;
+    }
     result.carrier_.body_ = anchor;
     result.carrier_.key_id_ = key.key_id;
     result.carrier_.key_generation_ = key.generation;
@@ -219,6 +236,7 @@ context_store_anchor_result context_store_encode_anchor_v1(const context_store_a
     std::copy_n(output, envelope.size, result.carrier_.envelope_.begin());
     result.carrier_.envelope_size_ = envelope.size;
     result.carrier_.authenticated_ = true;
+    wipe(binding.data(), binding.size());
     result.status = context_store_anchor_status::authenticated_unadmitted; return result;
 }
 
@@ -250,11 +268,31 @@ context_store_anchor_result context_store_verify_anchor_v1(const uint8_t * data,
         authority_binding(derived, binding);
     wipe(derived.data(), derived.size());
     const bool tag_ok = crypto_ok && digest_equal(expected_tag, parsed.tag); wipe(expected_tag.data(), expected_tag.size());
-    if (!tag_ok) { result.status = context_store_anchor_status::authentication_failed; return result; }
-    if (!same_authority(parsed.body, policy.expected)) { result.status = context_store_anchor_status::authority_mismatch; return result; }
-    if (parsed.body.generation < policy.expected.generation) { result.status = context_store_anchor_status::rollback_detected; return result; }
-    if (!same_replay(parsed.body, policy.expected)) { result.status = context_store_anchor_status::replay_mismatch; return result; }
-    if (!digest_envelope(data, size, result.envelope_digest)) { result.status = context_store_anchor_status::invalid_policy; return result; }
+    if (!tag_ok) {
+        wipe(binding.data(), binding.size());
+        result.status = context_store_anchor_status::authentication_failed;
+        return result;
+    }
+    if (!same_authority(parsed.body, policy.expected)) {
+        wipe(binding.data(), binding.size());
+        result.status = context_store_anchor_status::authority_mismatch;
+        return result;
+    }
+    if (parsed.body.generation < policy.expected.generation) {
+        wipe(binding.data(), binding.size());
+        result.status = context_store_anchor_status::rollback_detected;
+        return result;
+    }
+    if (!same_replay(parsed.body, policy.expected)) {
+        wipe(binding.data(), binding.size());
+        result.status = context_store_anchor_status::replay_mismatch;
+        return result;
+    }
+    if (!digest_envelope(data, size, result.envelope_digest)) {
+        wipe(binding.data(), binding.size());
+        result.status = context_store_anchor_status::invalid_policy;
+        return result;
+    }
     result.carrier_.body_ = parsed.body;
     result.carrier_.key_id_ = parsed.key_id;
     result.carrier_.key_generation_ = parsed.key_generation;
@@ -263,6 +301,7 @@ context_store_anchor_result context_store_verify_anchor_v1(const uint8_t * data,
     std::copy_n(data, size, result.carrier_.envelope_.begin());
     result.carrier_.envelope_size_ = size;
     result.carrier_.authenticated_ = true;
+    wipe(binding.data(), binding.size());
     result.status = context_store_anchor_status::authenticated_unadmitted; return result;
 }
 

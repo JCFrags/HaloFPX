@@ -1,0 +1,139 @@
+#pragma once
+
+#include "halofpx-context-store-anchor.h"
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+
+namespace halofpx {
+
+using context_store_bootstrap_attempt_id = std::array<uint8_t, 32>;
+
+struct context_store_bootstrap_admin_key_record {
+    context_store_key_disposition disposition = context_store_key_disposition::unknown;
+    context_store_registered_id key_id;
+    uint64_t generation = 0;
+    context_store_key_view master_key;
+};
+
+struct context_store_bootstrap_authority_config {
+    context_store_anchor_key_record anchor_signing_key;
+    context_store_bootstrap_admin_key_record bootstrap_admin_key;
+    std::array<uint8_t, 16> store_uuid {};
+    context_store_format_digest namespace_id {};
+    uint64_t policy_epoch = 0;
+    context_store_format_digest checkpoint_lineage_id {};
+    uint64_t manifest_key_generation = 0;
+    uint64_t authority_epoch = 0;
+};
+
+struct context_store_bootstrap_request {
+    context_store_bootstrap_attempt_id attempt_id {};
+    size_t object_count = 0;
+    context_store_format_digest selected_manifest_digest {};
+};
+
+class context_store_bootstrap_authority;
+struct context_store_bootstrap_result;
+
+// An opaque, memory-only authorization plan. It authorizes no I/O and carries
+// no durable replay assertion. Only an authorized result can expose one.
+class context_store_bootstrap_plan {
+public:
+    context_store_bootstrap_plan() = default;
+
+    bool authorized() const noexcept { return authorized_; }
+    const context_store_bootstrap_attempt_id * attempt_id() const noexcept {
+        return authorized_ ? &attempt_id_ : nullptr;
+    }
+    size_t object_count() const noexcept { return authorized_ ? object_count_ : 0; }
+    const context_store_format_digest * selected_manifest_digest() const noexcept {
+        return authorized_ ? &selected_manifest_digest_ : nullptr;
+    }
+    const context_store_format_digest * authority_snapshot_commitment() const noexcept {
+        return authorized_ ? &authority_snapshot_commitment_ : nullptr;
+    }
+    const context_store_format_digest * authorization_commitment() const noexcept {
+        return authorized_ ? &authorization_commitment_ : nullptr;
+    }
+    const context_store_registered_id * bootstrap_admin_key_id() const noexcept {
+        return authorized_ ? &bootstrap_admin_key_id_ : nullptr;
+    }
+    uint64_t bootstrap_admin_key_generation() const noexcept {
+        return authorized_ ? bootstrap_admin_key_generation_ : 0;
+    }
+    const context_store_authenticated_anchor * anchor() const noexcept {
+        return authorized_ ? &anchor_ : nullptr;
+    }
+
+private:
+    bool authorized_ = false;
+    context_store_bootstrap_attempt_id attempt_id_ {};
+    size_t object_count_ = 0;
+    context_store_format_digest selected_manifest_digest_ {};
+    context_store_format_digest authority_snapshot_commitment_ {};
+    context_store_format_digest authorization_commitment_ {};
+    context_store_registered_id bootstrap_admin_key_id_;
+    uint64_t bootstrap_admin_key_generation_ = 0;
+    context_store_authenticated_anchor anchor_;
+
+    friend class context_store_bootstrap_authority;
+};
+
+enum class context_store_bootstrap_status : uint8_t {
+    authorized_unexecuted,
+    invalid_authority,
+    invalid_request,
+    signing_failed,
+};
+
+struct context_store_bootstrap_result {
+    context_store_bootstrap_status status = context_store_bootstrap_status::invalid_authority;
+
+    bool has_authorized_plan() const noexcept {
+        return status == context_store_bootstrap_status::authorized_unexecuted && plan_.authorized();
+    }
+    const context_store_bootstrap_plan * authorized_plan() const noexcept {
+        return has_authorized_plan() ? &plan_ : nullptr;
+    }
+
+private:
+    context_store_bootstrap_plan plan_;
+    friend class context_store_bootstrap_authority;
+};
+
+// A bounded authority snapshot. It synchronously copies both purpose-separated
+// keys and all configuration, exposes no key bytes, and wipes private storage
+// on destruction. Planning is deterministic, stateless, and performs no I/O.
+class context_store_bootstrap_authority {
+public:
+    explicit context_store_bootstrap_authority(
+        const context_store_bootstrap_authority_config & config) noexcept;
+    ~context_store_bootstrap_authority() noexcept;
+
+    context_store_bootstrap_authority(const context_store_bootstrap_authority &) = delete;
+    context_store_bootstrap_authority & operator=(const context_store_bootstrap_authority &) = delete;
+    context_store_bootstrap_authority(context_store_bootstrap_authority &&) = delete;
+    context_store_bootstrap_authority & operator=(context_store_bootstrap_authority &&) = delete;
+
+    bool valid() const noexcept { return valid_; }
+    context_store_bootstrap_result plan(const context_store_bootstrap_request & request) const noexcept;
+
+private:
+    bool valid_ = false;
+    context_store_registered_id anchor_key_id_;
+    uint64_t anchor_key_generation_ = 0;
+    std::array<uint8_t, context_store_master_key_max_bytes> anchor_key_ {};
+    size_t anchor_key_size_ = 0;
+    context_store_registered_id admin_key_id_;
+    uint64_t admin_key_generation_ = 0;
+    std::array<uint8_t, context_store_master_key_max_bytes> admin_key_ {};
+    size_t admin_key_size_ = 0;
+    context_store_anchor_body bootstrap_body_;
+    context_store_format_digest snapshot_commitment_ {};
+};
+
+const char * context_store_bootstrap_status_name(context_store_bootstrap_status status) noexcept;
+
+} // namespace halofpx

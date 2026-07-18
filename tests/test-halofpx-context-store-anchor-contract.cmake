@@ -25,3 +25,13 @@ foreach(FORBIDDEN_PATTERN
         message(FATAL_ERROR "forbidden runtime or filesystem dependency in offline anchor codec: ${FORBIDDEN_PATTERN}")
     endif()
 endforeach()
+
+# The derived authority commitment is key-derived linkage material. Every
+# post-derivation encoder/verifier return path must erase its local copy. This
+# count is intentionally coupled to the reviewed explicit-cleanup structure;
+# a refactor must preserve or replace the cleanup proof.
+string(REGEX MATCHALL "wipe\\(binding\\.data\\(\\), binding\\.size\\(\\)\\)" BINDING_WIPES "${ANCHOR_SOURCE}")
+list(LENGTH BINDING_WIPES BINDING_WIPE_COUNT)
+if(BINDING_WIPE_COUNT LESS 11)
+    message(FATAL_ERROR "anchor authority-binding cleanup coverage regressed: ${BINDING_WIPE_COUNT}/11")
+endif()
