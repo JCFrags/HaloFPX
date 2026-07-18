@@ -60,14 +60,20 @@ target_link_libraries(halofpx-context-store-authority PUBLIC
     halofpx-context-store-protected-registry)
 target_compile_features(halofpx-context-store-authority PRIVATE cxx_std_17)
 
-add_library(halofpx-context-store-bootstrap-consumption STATIC EXCLUDE_FROM_ALL
+add_library(halofpx-context-store-registry-successor STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-protected-registry-successor.cpp
     halofpx-context-store-protected-registry-successor.h
+)
+target_link_libraries(halofpx-context-store-registry-successor PUBLIC
+    halofpx-context-store-protected-registry)
+target_compile_features(halofpx-context-store-registry-successor PRIVATE cxx_std_17)
+
+add_library(halofpx-context-store-bootstrap-consumption STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-bootstrap-consumption.cpp
     halofpx-context-store-bootstrap-consumption.h
 )
 target_link_libraries(halofpx-context-store-bootstrap-consumption PUBLIC
-    halofpx-context-store-authority halofpx-context-store-protected-registry)
+    halofpx-context-store-authority halofpx-context-store-registry-successor)
 target_compile_features(halofpx-context-store-bootstrap-consumption PRIVATE cxx_std_17)
 
 # Offline-only L04 immutable object-frame verifier.
@@ -97,6 +103,16 @@ add_library(halofpx-context-store-bootstrap-anchor STATIC EXCLUDE_FROM_ALL
 target_link_libraries(halofpx-context-store-bootstrap-anchor PUBLIC
     halofpx-context-store-bootstrap-material)
 target_compile_features(halofpx-context-store-bootstrap-anchor PRIVATE cxx_std_17)
+
+# L05o target-native deterministic-CBOR and semantic validation slice. It has
+# no filesystem implementation and is excluded from every server/product target.
+add_library(halofpx-context-store-registry-lab-wire STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-registry-lab-wire.cpp
+    halofpx-context-store-registry-lab-wire.h
+)
+target_link_libraries(halofpx-context-store-registry-lab-wire PUBLIC
+    halofpx-context-store-registry-successor)
+target_compile_features(halofpx-context-store-registry-lab-wire PRIVATE cxx_std_17)
 
 # Offline-only L05a publication coordinator and injected fault seam. No
 # concrete filesystem backend exists and this target is not linked to server.

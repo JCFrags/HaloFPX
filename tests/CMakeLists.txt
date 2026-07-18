@@ -284,6 +284,24 @@ add_test(NAME test-halofpx-context-store-bootstrap-anchor-golden
         ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05n-bootstrap-anchor-golden-vector.json)
 set_property(TEST test-halofpx-context-store-bootstrap-anchor-golden PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-context-store-registry-lab-wire.cpp)
+target_include_directories(test-halofpx-context-store-registry-lab-wire PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-registry-lab-wire PRIVATE halofpx-context-store-registry-lab-wire)
+llama_test(test-halofpx-context-store-registry-lab-wire ARGS
+    ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05o-registry-lab-golden-vector.json)
+set_property(TEST test-halofpx-context-store-registry-lab-wire PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-registry-lab-wire-contract
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-registry-lab-wire-contract.cmake)
+set_property(TEST test-halofpx-context-store-registry-lab-wire-contract PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-registry-lab-golden
+    COMMAND ${HALOFPX_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/halofpx-registry-lab-golden.py --check
+        ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05o-registry-lab-golden-vector.json)
+set_property(TEST test-halofpx-context-store-registry-lab-golden PROPERTY LABELS "main;halofpx")
+
 add_test(
     NAME test-halofpx-context-store-bootstrap-token-golden
     COMMAND ${HALOFPX_PYTHON_EXECUTABLE}
