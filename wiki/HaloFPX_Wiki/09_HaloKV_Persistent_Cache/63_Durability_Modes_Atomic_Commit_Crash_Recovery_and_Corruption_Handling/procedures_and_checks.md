@@ -26,6 +26,8 @@ The accepted `b8123fe5` offline coordinator slice covers order, exact predecesso
 
 The accepted `4366e493` simulator adds high-level live/durable crash projection and 134,400 repeated core cases [S63-09]. It still does not satisfy M63-01: byte/capacity/short-I/O faults, asynchronous stale-attempt fencing, concrete process/filesystem boundaries, and retained disposable-target recovery evidence remain open.
 
+The accepted `3ae385d2` slice supplies the final exact predecessor CAS and nonzero attempt identity [S63-10]. Its clean CPU matrix passed 13/13 HaloFPX and 7/7 inherited controls; 100 coordinator plus 100 simulator processes passed, including 134,400 repeated core fault cases. M63-01 still requires authenticated attempt registration and per-operation late-completion fencing, canonical bytes, byte/capacity/short-I/O faults, concrete process/filesystem boundaries, and disposable-target recovery evidence.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
