@@ -1,0 +1,58 @@
+{
+  "milestone": "L05k bootstrap-authorization consumption transition",
+  "date": "2026-07-18",
+  "source_parent_commit": "76494b5912c514159e40bec1f1db9e43f6cc1f92",
+  "build_directory": "build/halofpx-l05k-clean",
+  "configuration": "Windows CPU Release; GGML_NATIVE=OFF; server/tests/examples ON; WebUI/CUDA/HIP/Vulkan OFF",
+  "build_cache_sha256": "af98e71c7197283b6f4301ba99f3f3e3e7029437dde69db45442da7b64e07a5e",
+  "llama_server_sha256": "1230b9a25b44ea40aaa6fc3fd2ee6f1149a0803acda5346458c0a66727b47072",
+  "validation": {
+    "halofpx_ctests": { "passed": 27, "selected": 27 },
+    "focused_inherited_ctests": { "passed": 7, "selected": 7 },
+    "successor_processes": { "passed": 200, "selected": 200, "elapsed_ms": 775 },
+    "authority_consumption_processes": { "passed": 200, "selected": 200, "elapsed_ms": 2310 },
+    "independent_golden_processes": { "passed": 200, "selected": 200, "elapsed_ms": 7045 }
+  },
+  "executables": {
+    "test-halofpx-context-store-registry-successor.exe": "b8c476b8dd772aa58f9656a536cfcc406172a2c61d9d0822e4c5f89677961e72",
+    "test-halofpx-context-store-authority.exe": "bc4f9baf3d56fb4e651fd39c530258a05ad009d895baf2ca3ae386cc93ad44bf"
+  },
+  "golden": {
+    "encoded_bytes": 371,
+    "tag_hmac_sha256": "1f3f79689d0b2dd37988aac8c92bf90be6689b0079bd5fc4a7066973fdebd202",
+    "envelope_digest_sha256": "fd1a86a341a6b90639e7fa31730d1c77fcbc898ce11b527d241b9d55325069e2",
+    "key_continuity_hmac_sha256": "3390a19271852403712dac091321cebfac9abb640422d81ae4136cc7a7cc7386",
+    "checker_sha256": "52c4d195a8425f206365dd5d71b0f80faec941adccdf615a4b63f2545c4110fe",
+    "vector_sha256": "0b3ee37d00693663140c581ae80b8ccdbd77d677ad008d7ea5a7a200e8f87137"
+  },
+  "reviewed_source_sha256": {
+    "tools/server/halofpx-context-store-protected-registry.h": "12a619a7aafe2a2b6422ca7a22cee4a46e45947ae9aec3df4cfb5ff3f2b45edc",
+    "tools/server/halofpx-context-store-protected-registry.cpp": "0eee86ebcb7c59566364cfdefd7aaa5feb6ef58a8a100ef0a267b6e5b1a168bb",
+    "tools/server/halofpx-context-store-protected-registry-successor.h": "bd88d2050bfbd8397d541eeb8dad0ada0efef42b3b6982a5e649f4bc3f36edd6",
+    "tools/server/halofpx-context-store-protected-registry-successor.cpp": "ff81541c524ecdc02c850a0ca18f10e8c65ede3b84b6908e032cde31a65f8275",
+    "tools/server/halofpx-context-store-authority.h": "f64ef4149d2347eb859af2df671683c16e67a20fcde4217529c4a714e00966b9",
+    "tools/server/halofpx-context-store-authority.cpp": "066edd8691b7de4972d7c6455b435f79ed7e082332b460e4f48762832f5662ed",
+    "tools/server/halofpx-context-store-bootstrap-consumption.h": "3a0c70e51f3e52e8276051a4ee5de7060280ebc567d5e277ccc1ea655dbf4700",
+    "tools/server/halofpx-context-store-bootstrap-consumption.cpp": "f067ef1126140fc07d393e154b3993381101874af5fb233ba66d655cf7ee9e07",
+    "tests/test-halofpx-context-store-protected-registry.cpp": "1748e3cf071918fceb639b459da7da60381520f1b36867c3e314c0b56bc56e8f",
+    "tests/test-halofpx-context-store-registry-successor.cpp": "add6d99425e3079d6855bcc392c15cc574d59cb6ee3f96383f673ec773652e8e",
+    "tests/test-halofpx-context-store-authority.cpp": "952b707f25c857918f7bb71ced3e381fcd1054f1686e8373809eb1a1888e7c92",
+    "tests/test-halofpx-context-store-bootstrap-consumption-contract.cmake": "7b73d7ac87f522445e0453e0c6406b2230d9b91b921ac3e725cb81275ace1de8",
+    "docs/halofpx/contracts/context-store-v1.cddl": "87e9c3fc394226b4a7f3e109ecf56eb46b0f199fea26124e5041860f7970c663",
+    "docs/halofpx/decisions/0014-bootstrap-authorization-consumption-transition.md": "6d72b34969cecd2ec4880e1daaf21bc3c2273468679bb4c24060d9c9abd9bf2b"
+  },
+  "negative_coverage": [
+    "every strict successor truncation and every single-byte corruption rejected",
+    "duplicate, extra, noncanonical, malformed-length, wrong-version, wrong-domain, wrong-key, wrong-generation, and wrong-tag inputs rejected",
+    "wrong predecessor, sequence, command, token, plan, authority, manifest, anchor, registry identity, scope, policy, and continuity rejected",
+    "positive backend outcomes without the exact authenticated current successor witness quarantine the root",
+    "distinct commands with fresh attempts from one predecessor admit exactly one advancement; exact same-command fresh-attempt retry is idempotent",
+    "exceptions, malformed responses, uncertainty, and late-completion risk sticky-quarantine all coordinators sharing the backend"
+  ],
+  "exclusions": [
+    "no concrete protected registry, restart-surviving fencing, cross-process CAS, or reconciliation",
+    "no key custody, operator identity, policy evaluation, or rollback resistance",
+    "no conclusive anchor absence, create-if-absent, bootstrap execution, or exactly-once completion",
+    "no filesystem, server/provider, persistent-write, cache-hit, or node path"
+  ]
+}

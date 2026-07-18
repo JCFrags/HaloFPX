@@ -11,3 +11,10 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0005](0005-distributed-ownership-and-threat-model.md): distributed ownership and threat model
 - [ADR-0006](0006-anchor-cas-and-attempt-identity.md): anchor compare-and-swap and publication attempt identity
 - [ADR-0007](0007-publication-attempt-lifecycle.md): publication attempt lifecycle and operation fencing
+- [ADR-0008](0008-authenticated-protected-anchor.md): authenticated protected anchor
+- [ADR-0009](0009-authenticated-anchor-carrier-and-ordinary-transition.md): authenticated carrier and ordinary transition
+- [ADR-0010](0010-offline-bootstrap-authority-plan.md): offline bootstrap-authority plan
+- [ADR-0011](0011-authority-admitted-bootstrap-manifest.md): authority-admitted bootstrap manifest
+- [ADR-0012](0012-authenticated-bootstrap-admin-token.md): authenticated bootstrap-admin token
+- [ADR-0013](0013-authenticated-protected-registry-snapshot.md): authenticated protected-registry snapshot
+- [ADR-0014](0014-bootstrap-authorization-consumption-transition.md): bootstrap-authorization consumption transition

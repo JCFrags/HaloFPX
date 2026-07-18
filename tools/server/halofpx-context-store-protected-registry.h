@@ -48,6 +48,9 @@ public:
     const context_store_registered_id * key_id() const noexcept { return valid_ ? &key_id_ : nullptr; }
     uint64_t key_generation() const noexcept { return valid_ ? key_generation_ : 0; }
     const context_store_format_digest * authority_binding() const noexcept { return valid_ ? &authority_binding_ : nullptr; }
+    const context_store_format_digest * key_continuity_commitment() const noexcept { return valid_ ? &key_continuity_commitment_ : nullptr; }
+    const uint8_t * envelope_data() const noexcept { return valid_ ? envelope_.data() : nullptr; }
+    size_t envelope_size() const noexcept { return valid_ ? envelope_size_ : 0; }
 
 private:
     bool valid_ = false;
@@ -56,6 +59,9 @@ private:
     context_store_registered_id key_id_;
     uint64_t key_generation_ = 0;
     context_store_format_digest authority_binding_ {};
+    context_store_format_digest key_continuity_commitment_ {};
+    std::array<uint8_t, context_store_protected_registry_max_bytes> envelope_ {};
+    size_t envelope_size_ = 0;
     friend struct context_store_protected_registry_result;
 };
 
@@ -70,7 +76,9 @@ private:
     void set_authenticated(const context_store_protected_registry_body & body,
         const context_store_protected_registry_key_record & key,
         const context_store_format_digest & envelope_digest,
-        const context_store_format_digest & authority_binding) noexcept;
+        const context_store_format_digest & authority_binding,
+        const context_store_format_digest & key_continuity_commitment,
+        const uint8_t * envelope, size_t envelope_size) noexcept;
     friend context_store_protected_registry_result context_store_encode_protected_registry_v1(
         const context_store_protected_registry_body &, const context_store_protected_registry_key_record &,
         uint8_t *, size_t) noexcept;

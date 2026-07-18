@@ -317,6 +317,40 @@ protected-registry-snapshot-body-v1 = {
   7: uint                        ; last consumed authorization sequence
 }
 
+authenticated-protected-registry-successor-v1 = {
+  0: protected-registry-successor-auth-input-v1,
+  1: bytes32                    ; HMAC-SHA-256 tag; sole excluded field
+}
+
+protected-registry-successor-auth-input-v1 = {
+  0: protected-registry-successor-body-v1,
+  1: registered-id,             ; registry-authentication key id
+  2: 1,                         ; HMAC-SHA-256
+  3: uint .ge 1                 ; registry-authentication key generation
+}
+
+protected-registry-successor-body-v1 = {
+  0: 2,                         ; format major
+  1: 0,                         ; format minor
+  2: 0,                         ; bootstrap-authorization registry
+  3: registered-id,             ; protected registry id
+  4: uint .ge 1,                ; protected registry epoch
+  5: bytes32,                   ; public authority-base-scope commitment
+  6: bytes32,                   ; opaque registry-policy commitment
+  7: uint .ge 1,                ; consumed authorization high-water
+  8: bytes32,                   ; exact predecessor snapshot-envelope digest
+  9: bootstrap-consumption-receipt-v1
+}
+
+bootstrap-consumption-receipt-v1 = {
+  0: uint .ge 1,                ; authorization sequence; equals body key 7
+  1: bytes32,                   ; command identity
+  2: bytes32,                   ; bootstrap-token envelope digest
+  3: bytes32,                   ; bootstrap-plan commitment
+  4: bytes32,                   ; selected-manifest digest
+  5: bytes32                    ; proposed bootstrap-anchor envelope digest
+}
+
 bootstrap-admin-token-auth-input-v1 = {
   0: bootstrap-admin-token-body-v1,
   1: registered-id,             ; bootstrap-admin key id

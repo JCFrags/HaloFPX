@@ -63,6 +63,9 @@ public:
     const context_store_format_digest * plan_commitment() const noexcept {
         return authorized_ ? &plan_commitment_ : nullptr;
     }
+    const context_store_format_digest * expected_registry_snapshot_digest() const noexcept {
+        return authorized_ ? &expected_registry_snapshot_digest_ : nullptr;
+    }
     const context_store_registered_id * bootstrap_admin_key_id() const noexcept {
         return authorized_ ? &bootstrap_admin_key_id_ : nullptr;
     }
@@ -82,6 +85,7 @@ private:
     context_store_format_digest authority_snapshot_commitment_ {};
     context_store_format_digest authorization_token_digest_ {};
     context_store_format_digest plan_commitment_ {};
+    context_store_format_digest expected_registry_snapshot_digest_ {};
     context_store_registered_id bootstrap_admin_key_id_;
     uint64_t bootstrap_admin_key_generation_ = 0;
     context_store_authenticated_anchor anchor_;

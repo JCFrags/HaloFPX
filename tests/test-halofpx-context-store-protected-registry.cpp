@@ -34,6 +34,8 @@ int main(){
     auto encoded=context_store_encode_protected_registry_v1(body(),f.key,bytes.data(),bytes.size());
     assert(encoded.status==context_store_protected_registry_status::authenticated_unadmitted&&encoded.encoded_size==156);
     auto verified=context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,f.key);auto*c=verified.authenticated_carrier();
+    assert(c->envelope_size()==encoded.encoded_size&&std::equal(bytes.begin(),bytes.begin()+encoded.encoded_size,c->envelope_data()));
+    assert(c->key_continuity_commitment()!=nullptr);
     assert(c&&c->body()&&c->body()->last_consumed_sequence==40&&c->envelope_digest()&&c->authority_binding());
     assert(*c->envelope_digest()==hex("a7b731bccfdea83a4595d5257ffa34ef9248bb61499b40a37874895cff6bc1ec"));
     assert(*c->authority_binding()==hex("f88b0080d50222b31e66879ecd4c14789279b9d15b786f6b22f32240d2ea5f7a"));

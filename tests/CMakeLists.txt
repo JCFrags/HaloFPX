@@ -195,7 +195,7 @@ set_property(TEST test-halofpx-context-store-anchor-golden PROPERTY LABELS "main
 
 llama_build(test-halofpx-context-store-authority.cpp)
 target_include_directories(test-halofpx-context-store-authority PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
-target_link_libraries(test-halofpx-context-store-authority PRIVATE halofpx-context-store-authority)
+target_link_libraries(test-halofpx-context-store-authority PRIVATE halofpx-context-store-bootstrap-consumption)
 llama_test(test-halofpx-context-store-authority)
 set_property(TEST test-halofpx-context-store-authority PROPERTY LABELS "main;halofpx")
 
@@ -233,6 +233,23 @@ add_test(NAME test-halofpx-context-store-protected-registry-golden
         ${CMAKE_CURRENT_SOURCE_DIR}/halofpx-protected-registry-golden.py
         --check ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05j-protected-registry-golden-vector.json)
 set_property(TEST test-halofpx-context-store-protected-registry-golden PROPERTY LABELS "main;halofpx")
+
+llama_build(test-halofpx-context-store-registry-successor.cpp)
+target_include_directories(test-halofpx-context-store-registry-successor PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-registry-successor PRIVATE halofpx-context-store-bootstrap-consumption)
+llama_test(test-halofpx-context-store-registry-successor)
+set_property(TEST test-halofpx-context-store-registry-successor PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-registry-successor-golden
+    COMMAND ${HALOFPX_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/halofpx-registry-successor-golden.py
+        --check ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05k-registry-successor-golden-vector.json)
+set_property(TEST test-halofpx-context-store-registry-successor-golden PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-bootstrap-consumption-contract
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-bootstrap-consumption-contract.cmake)
+set_property(TEST test-halofpx-context-store-bootstrap-consumption-contract PROPERTY LABELS "main;halofpx")
 
 add_test(
     NAME test-halofpx-context-store-bootstrap-token-golden

@@ -1,4 +1,5 @@
 #include "halofpx-context-store-authority.h"
+#include "halofpx-context-store-bootstrap-consumption.h"
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -335,6 +336,58 @@ void test_authenticated_token_semantic_rejections() {
     auto wrong_manifest=base;bind(wrong_manifest);auto body=token_body(wrong_manifest);body.selected_manifest_digest[0]^=1;encode_token(wrong_manifest,body);
     auto result=authority.plan(request(wrong_manifest,wrong_manifest.signed_data.data));assert(result.status==halofpx::context_store_bootstrap_status::manifest_rejected);rejected(result);
 }
+
+class consumption_backend final : public halofpx::context_store_bootstrap_consumption_backend {
+public:
+    consumption_backend(const digest & root, halofpx::context_store_bootstrap_backend_outcome result)
+        : context_store_bootstrap_consumption_backend(root), result_(result) {}
+    halofpx::context_store_bootstrap_backend_outcome result_;
+    bool throws_=false,bad_positive_witness_=false,stateful_=false,has_current_=false,check_quarantine_=false;
+    size_t calls_=0;
+    halofpx::context_store_authenticated_protected_registry_successor current_;
+protected:
+    halofpx::context_store_bootstrap_backend_result compare_and_advance(const halofpx::context_store_bootstrap_consumption_operation & op) override {
+        ++calls_;assert(op.predecessor.envelope_size()>0&&op.successor.envelope_size()>0);if(check_quarantine_)assert(!quarantined());if(throws_)throw 1;
+        halofpx::context_store_bootstrap_backend_result out;
+        if(stateful_){if(!has_current_){current_=op.successor;has_current_=true;out.outcome=halofpx::context_store_bootstrap_backend_outcome::advanced_durable;out.observed_current=current_;return out;}
+            const bool exact=current_.envelope_size()==op.successor.envelope_size()&&current_.envelope_digest()&&op.successor.envelope_digest()&&*current_.envelope_digest()==*op.successor.envelope_digest()&&std::equal(current_.envelope_data(),current_.envelope_data()+current_.envelope_size(),op.successor.envelope_data());
+            if(exact){out.outcome=halofpx::context_store_bootstrap_backend_outcome::already_same_durable;out.observed_current=current_;return out;}out.outcome=halofpx::context_store_bootstrap_backend_outcome::conflict;return out;}
+        out.outcome=result_;if(!bad_positive_witness_&&(result_==halofpx::context_store_bootstrap_backend_outcome::advanced_durable||result_==halofpx::context_store_bootstrap_backend_outcome::already_same_durable))out.observed_current=op.successor;return out;
+    }
+};
+
+halofpx::context_store_bootstrap_consumption_request consumption_request(fixture & f,const halofpx::context_store_bootstrap_plan & p,uint8_t attempt) {
+    halofpx::context_store_bootstrap_consumption_request r;r.attempt_id.fill(attempt);r.plan=p;r.registry_authentication_key=f.config.protected_registry_authentication_key;
+    auto verified=halofpx::context_store_verify_protected_registry_v1(f.registry_snapshot.data(),f.registry_snapshot.size(),f.config.protected_registry_authentication_key);
+    assert(verified.authenticated_carrier());r.predecessor=*verified.authenticated_carrier();return r;
 }
 
-int main(){test_derived_plan_and_ownership();test_manifest_rejections();test_invalid_authority_and_separation();test_base_scope_sensitivity();test_public_scope_helpers_reject_malformed_ids();test_old_authenticated_snapshot_is_still_accepted();test_attempt_snapshot_bindings_and_concurrency();test_authenticated_token_semantic_rejections();}
+void test_consumption_coordinator_backend_fencing() {
+    static_assert(!std::is_copy_constructible_v<halofpx::context_store_bootstrap_consumption_proof>);
+    auto f=make_fixture();halofpx::context_store_bootstrap_authority authority(f.config);auto p=plan(authority.plan(request(f,f.signed_data.data)));
+    halofpx::context_store_bootstrap_consumption_result forged;forged.status=halofpx::context_store_bootstrap_consumption_status::advanced_unexecuted;assert(!forged.has_proof());
+    assert(p.expected_registry_snapshot_digest());digest root{};root.fill(0x91);consumption_backend backend(root,halofpx::context_store_bootstrap_backend_outcome::advanced_durable);
+    halofpx::context_store_bootstrap_consumption_coordinator first(backend);auto req=consumption_request(f,p,1);auto advanced=first.consume(req);assert(advanced.status==halofpx::context_store_bootstrap_consumption_status::advanced_unexecuted&&advanced.has_proof()&&backend.calls_==1);
+    auto moved=std::move(advanced.proof);assert(moved.valid()&&!advanced.proof.valid()&&moved.predecessor()&&moved.successor()&&moved.proposed_anchor()&&moved.root_identity()&&moved.attempt_id()&&moved.operation_commitment()&&moved.command_id()&&moved.authorization_token_digest()&&moved.plan_commitment()&&moved.authority_snapshot_commitment()&&moved.selected_manifest_digest()&&moved.authorization_sequence()==p.authorization_sequence()&&moved.classified_outcome()==halofpx::context_store_bootstrap_backend_outcome::advanced_durable);
+    halofpx::context_store_bootstrap_consumption_coordinator second(backend);auto replay=second.consume(req);assert(replay.status==halofpx::context_store_bootstrap_consumption_status::attempt_replayed&&!replay.has_proof()&&backend.calls_==1);
+    backend.result_=halofpx::context_store_bootstrap_backend_outcome::already_same_durable;auto retry=consumption_request(f,p,2);auto same=second.consume(retry);assert(same.status==halofpx::context_store_bootstrap_consumption_status::already_consumed_same_unexecuted&&same.has_proof());
+    backend.result_=halofpx::context_store_bootstrap_backend_outcome::conflict;auto conflict=second.consume(consumption_request(f,p,3));assert(conflict.status==halofpx::context_store_bootstrap_consumption_status::conflict&&!conflict.has_proof());
+    backend.result_=halofpx::context_store_bootstrap_backend_outcome::uncertain;auto uncertain=second.consume(consumption_request(f,p,4));assert(uncertain.status==halofpx::context_store_bootstrap_consumption_status::visibility_uncertain&&backend.quarantined());auto after=first.consume(consumption_request(f,p,5));assert(after.status==halofpx::context_store_bootstrap_consumption_status::root_quarantined);
+    consumption_backend fresh(root,halofpx::context_store_bootstrap_backend_outcome::advanced_durable);halofpx::context_store_bootstrap_consumption_coordinator nonpersistent_limit(fresh);assert(nonpersistent_limit.consume(consumption_request(f,p,6)).has_proof());
+    consumption_backend exception(root,halofpx::context_store_bootstrap_backend_outcome::advanced_durable);exception.throws_=true;halofpx::context_store_bootstrap_consumption_coordinator exception_coordinator(exception);assert(exception_coordinator.consume(consumption_request(f,p,7)).status==halofpx::context_store_bootstrap_consumption_status::visibility_uncertain&&exception.quarantined());
+    consumption_backend late(root,halofpx::context_store_bootstrap_backend_outcome::late_completion_risk);halofpx::context_store_bootstrap_consumption_coordinator late_coordinator(late);assert(late_coordinator.consume(consumption_request(f,p,10)).status==halofpx::context_store_bootstrap_consumption_status::visibility_uncertain&&late.quarantined());
+    consumption_backend malformed(root,halofpx::context_store_bootstrap_backend_outcome::malformed_response);halofpx::context_store_bootstrap_consumption_coordinator malformed_coordinator(malformed);assert(malformed_coordinator.consume(consumption_request(f,p,11)).status==halofpx::context_store_bootstrap_consumption_status::visibility_uncertain&&malformed.quarantined());
+    consumption_backend missing_witness(root,halofpx::context_store_bootstrap_backend_outcome::advanced_durable);missing_witness.bad_positive_witness_=true;halofpx::context_store_bootstrap_consumption_coordinator witness_coordinator(missing_witness);assert(witness_coordinator.consume(consumption_request(f,p,16)).status==halofpx::context_store_bootstrap_consumption_status::visibility_uncertain&&missing_witness.quarantined());
+    consumption_backend reentrant_status(root,halofpx::context_store_bootstrap_backend_outcome::advanced_durable);reentrant_status.check_quarantine_=true;halofpx::context_store_bootstrap_consumption_coordinator reentrant_coordinator(reentrant_status);assert(reentrant_coordinator.consume(consumption_request(f,p,17)).has_proof());
+    auto bad=consumption_request(f,p,8);bad.attempt_id.fill(0);assert(nonpersistent_limit.consume(bad).status==halofpx::context_store_bootstrap_consumption_status::invalid_request);
+    bad=consumption_request(f,p,9);bad.registry_authentication_key.master_key={};assert(nonpersistent_limit.consume(bad).status==halofpx::context_store_bootstrap_consumption_status::invalid_request);
+    auto wrong_secret=consumption_request(f,p,12);auto other_secret=f.registry;other_secret[0]^=1;wrong_secret.registry_authentication_key.master_key={other_secret.data(),other_secret.size()};assert(nonpersistent_limit.consume(wrong_secret).status==halofpx::context_store_bootstrap_consumption_status::invalid_request);
+    auto different=f;bind(different);seal_registry(different,39);auto wrong_predecessor=consumption_request(different,p,13);assert(nonpersistent_limit.consume(wrong_predecessor).status==halofpx::context_store_bootstrap_consumption_status::invalid_request);
+    auto f2=make_fixture();authorize(f2,92);auto p2=plan(authority.plan(request(f2,f2.signed_data.data)));consumption_backend racing(root,halofpx::context_store_bootstrap_backend_outcome::advanced_durable);racing.stateful_=true;halofpx::context_store_bootstrap_consumption_coordinator racer_a(racing),racer_b(racing);auto race_a=consumption_request(f,p,14),race_b=consumption_request(f2,p2,15);std::array<halofpx::context_store_bootstrap_consumption_status,2> race_status{};
+    std::thread ta([&]{race_status[0]=racer_a.consume(race_a).status;}),tb([&]{race_status[1]=racer_b.consume(race_b).status;});ta.join();tb.join();
+    assert((race_status[0]==halofpx::context_store_bootstrap_consumption_status::advanced_unexecuted&&race_status[1]==halofpx::context_store_bootstrap_consumption_status::conflict)||(race_status[1]==halofpx::context_store_bootstrap_consumption_status::advanced_unexecuted&&race_status[0]==halofpx::context_store_bootstrap_consumption_status::conflict));assert(racing.calls_==2);
+    auto same_retry=race_status[0]==halofpx::context_store_bootstrap_consumption_status::advanced_unexecuted?consumption_request(f,p,18):consumption_request(f2,p2,18);assert(racer_a.consume(same_retry).status==halofpx::context_store_bootstrap_consumption_status::already_consumed_same_unexecuted&&racing.calls_==3);
+}
+}
+
+int main(){test_derived_plan_and_ownership();test_manifest_rejections();test_invalid_authority_and_separation();test_base_scope_sensitivity();test_public_scope_helpers_reject_malformed_ids();test_old_authenticated_snapshot_is_still_accepted();test_attempt_snapshot_bindings_and_concurrency();test_authenticated_token_semantic_rejections();test_consumption_coordinator_backend_fencing();}

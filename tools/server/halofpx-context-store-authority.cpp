@@ -498,6 +498,7 @@ context_store_bootstrap_result context_store_bootstrap_authority::plan(
     result.plan_.authority_snapshot_commitment_ = snapshot_commitment_;
     result.plan_.authorization_token_digest_ = *token_digest;
     result.plan_.plan_commitment_ = authorization;
+    result.plan_.expected_registry_snapshot_digest_ = protected_registry_snapshot_digest_;
     wipe(authorization.data(), authorization.size());
     result.plan_.bootstrap_admin_key_id_ = admin_key_id_;
     result.plan_.bootstrap_admin_key_generation_ = admin_key_generation_;
