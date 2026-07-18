@@ -8,7 +8,14 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
+
+static_assert(!std::is_aggregate_v<halofpx::context_store_manifest_verify_result>);
+static_assert(std::is_same_v<
+    decltype(std::declval<const halofpx::context_store_manifest_verify_result &>().authenticated_object_reference(0)),
+    const halofpx::context_store_object_reference *>);
 
 namespace {
 
@@ -270,7 +277,17 @@ void test_authenticated_terminal_miss() {
     assert(hex(fixture.derived_key) == "32842cd046eecc78fe2bbdb9b6f8e5ce2561f4fdbc198a7f32d5eec8e1e251f9");
     assert(hex(fixture.tag) == "81f26ac59223fbd9cdcfe5fec47f0db0bf53c886523d7f1b2c9e1d3497a7b54c");
     assert(hex(fixture.policy.anchor.selected_manifest_digest) == "5139b769df3ff7b40ac5177b45aafb78991d9b0a4e9a48663b4a9a83e8be261f");
-    assert(verify(fixture) == halofpx::context_store_manifest_verify_status::authenticated_unadmitted);
+    fixture.bind_key();
+    const auto result = halofpx::context_store_verify_manifest_v1(
+        fixture.manifest.data(), fixture.manifest.size(), fixture.policy);
+    assert(result.status == halofpx::context_store_manifest_verify_status::authenticated_unadmitted);
+    assert(result.authenticated_object_count() == 1);
+    const auto * reference = result.authenticated_object_reference(0);
+    assert(reference != nullptr && result.authenticated_object_reference(1) == nullptr);
+    assert(reference->object_id[0] == 0xd0);
+    assert(reference->stream_type.size == 6);
+    assert(std::string(reference->stream_type.bytes.data(), 6) == "tokens");
+    assert(reference->frame_bytes == 64);
 
     auto changed_descriptor = make_signed_fixture({ 0, false, "sampler" });
     assert(verify(changed_descriptor) == halofpx::context_store_manifest_verify_status::authenticated_unadmitted);
@@ -290,7 +307,11 @@ void test_authentication_and_key_rejection() {
     for (size_t tag_index : { size_t(0), size_t(16), size_t(31) }) {
         auto fixture = make_signed_fixture();
         fixture.manifest[fixture.manifest.size() - 32 + tag_index] ^= 0x01;
-        assert(verify(fixture) == halofpx::context_store_manifest_verify_status::authentication_failed);
+        fixture.bind_key();
+        const auto result = halofpx::context_store_verify_manifest_v1(
+            fixture.manifest.data(), fixture.manifest.size(), fixture.policy);
+        assert(result.status == halofpx::context_store_manifest_verify_status::authentication_failed);
+        assert(result.authenticated_object_count() == 0);
     }
     auto body_flip = make_signed_fixture();
     body_flip.manifest[20] ^= 0x01;

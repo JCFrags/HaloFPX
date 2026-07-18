@@ -52,9 +52,10 @@ unqualified and blocks live protected-key use.
 
 The selected base contains one suitable portable SHA-256 primitive at
 `examples/gguf-hash/deps/sha256`. Its source declares Igor Pavlov public-domain
-code based on public-domain Crypto++ work. L04b compiles the exact inherited
-source into its excluded target and adds a target-owned RFC 2104 HMAC wrapper;
-it does not copy a donor unit or add OpenSSL, BCrypt, server, or network linkage.
+code based on public-domain Crypto++ work. The exact inherited source now builds
+once in the excluded `halofpx-context-store-sha256` target; the excluded L04b
+target links it and adds a target-owned RFC 2104 HMAC wrapper. This does not copy
+a donor unit or add OpenSSL, BCrypt, server, or network linkage.
 
 The static contract pins:
 

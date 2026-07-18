@@ -311,20 +311,20 @@ bool parse_topology_manifest(
 bool parse_object_descriptor(
         cbor_cursor & cursor,
         const context_store_parsed_manifest & manifest,
-        context_store_format_digest & object_id) noexcept {
+        context_store_object_reference & reference) noexcept {
     context_store_registered_id ignored_id;
     context_store_format_digest ignored_digest {};
     context_store_format_digest object_compatibility {};
     uint64_t value = 0;
 
     if (!cursor.read_map(13) ||
-        !cursor.read_key(0) || !cursor.read_bytes(object_id) ||
-        !cursor.read_key(1) || !cursor.read_registered_id(ignored_id) ||
+        !cursor.read_key(0) || !cursor.read_bytes(reference.object_id) ||
+        !cursor.read_key(1) || !cursor.read_registered_id(reference.stream_type) ||
         !cursor.read_key(2) || !cursor.read_registered_id(ignored_id) ||
         !cursor.read_key(3) || !cursor.read_uint(value) ||
         !cursor.read_key(4) || !cursor.read_uint(value) ||
         !cursor.read_key(5) || !cursor.read_true() ||
-        !cursor.read_key(6) || !cursor.read_uint(value) || value < 1 ||
+        !cursor.read_key(6) || !cursor.read_uint(reference.frame_bytes) || reference.frame_bytes < 1 ||
         !cursor.read_key(7) || !cursor.read_bytes(ignored_digest) ||
         !cursor.read_key(8) || !cursor.read_uint(value) ||
         !cursor.read_key(9) || !cursor.read_uint(value) ||
@@ -398,9 +398,9 @@ context_store_manifest_parse_result context_store_parse_manifest_v1(
     if (!cursor.read_array(1, context_store_manifest_max_objects, object_count)) {
         return result;
     }
-    std::array<context_store_format_digest, context_store_manifest_max_objects> object_ids {};
     for (uint64_t index = 0; index < object_count; ++index) {
-        if (!parse_object_descriptor(cursor, manifest, object_ids[static_cast<size_t>(index)])) {
+        auto & reference = manifest.object_references[static_cast<size_t>(index)];
+        if (!parse_object_descriptor(cursor, manifest, reference)) {
             if (result.status == context_store_manifest_parse_status::structural_only) {
                 result.status = context_store_manifest_parse_status::semantic_mismatch;
                 result.error_offset = cursor.position();
@@ -408,7 +408,7 @@ context_store_manifest_parse_result context_store_parse_manifest_v1(
             return result;
         }
         for (uint64_t previous = 0; previous < index; ++previous) {
-            if (object_ids[static_cast<size_t>(previous)] == object_ids[static_cast<size_t>(index)]) {
+            if (manifest.object_references[static_cast<size_t>(previous)].object_id == reference.object_id) {
                 result.status = context_store_manifest_parse_status::semantic_mismatch;
                 result.error_offset = cursor.position();
                 return result;

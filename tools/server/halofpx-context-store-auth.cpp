@@ -35,13 +35,18 @@ bool valid_span(const byte_span & span) noexcept {
     return span.size == 0 || span.data != nullptr;
 }
 
-bool spans_bounded(const byte_span * spans, size_t span_count) noexcept {
+bool spans_bounded(
+        const byte_span * spans,
+        size_t span_count,
+        uint64_t max_input_bytes) noexcept {
     if (spans == nullptr && span_count != 0) {
         return false;
     }
     size_t total = 0;
     for (size_t index = 0; index < span_count; ++index) {
-        if (!valid_span(spans[index]) || spans[index].size > crypto_input_max_bytes - total) {
+        if (!valid_span(spans[index]) ||
+            total > max_input_bytes ||
+            spans[index].size > max_input_bytes - total) {
             return false;
         }
         total += spans[index].size;
@@ -52,8 +57,10 @@ bool spans_bounded(const byte_span * spans, size_t span_count) noexcept {
 bool sha256_spans(
         const byte_span * spans,
         size_t span_count,
+        uint64_t max_input_bytes,
         context_store_format_digest & digest) noexcept {
-    if (!spans_bounded(spans, span_count)) {
+    if (max_input_bytes > UINT64_MAX / 8 ||
+        !spans_bounded(spans, span_count, max_input_bytes)) {
         return false;
     }
     sha256_t context;
@@ -80,7 +87,7 @@ bool hmac_sha256_spans(
         context_store_format_digest & tag) noexcept {
     if ((key == nullptr && key_size != 0) ||
         key_size > context_store_master_key_max_bytes ||
-        !spans_bounded(spans, span_count)) {
+        !spans_bounded(spans, span_count, crypto_input_max_bytes)) {
         return false;
     }
 
@@ -88,7 +95,7 @@ bool hmac_sha256_spans(
     context_store_format_digest hashed_key {};
     if (key_size > sha256_block_bytes) {
         const byte_span key_span { key, key_size };
-        if (!sha256_spans(&key_span, 1, hashed_key)) {
+        if (!sha256_spans(&key_span, 1, context_store_master_key_max_bytes, hashed_key)) {
             return false;
         }
         std::copy(hashed_key.begin(), hashed_key.end(), key_block.begin());
@@ -223,7 +230,16 @@ bool context_store_sha256(
         size_t size,
         context_store_format_digest & digest) noexcept {
     const byte_span span { data, size };
-    return sha256_spans(&span, 1, digest);
+    return sha256_spans(&span, 1, crypto_input_max_bytes, digest);
+}
+
+bool context_store_sha256_bounded(
+        const uint8_t * data,
+        size_t size,
+        uint64_t max_size,
+        context_store_format_digest & digest) noexcept {
+    const byte_span span { data, size };
+    return sha256_spans(&span, 1, max_size, digest);
 }
 
 bool context_store_hmac_sha256(
@@ -315,6 +331,7 @@ context_store_manifest_verify_result context_store_verify_manifest_v1(
         { data, size },
     };
     if (!sha256_spans(manifest_spans, sizeof(manifest_spans) / sizeof(manifest_spans[0]),
+            crypto_input_max_bytes,
             verification.manifest_digest) ||
         verification.manifest_digest != anchor.selected_manifest_digest) {
         verification.status = context_store_manifest_verify_status::replay_mismatch;
@@ -328,6 +345,7 @@ context_store_manifest_verify_result context_store_verify_manifest_v1(
     };
     if (!sha256_spans(compatibility_spans,
             sizeof(compatibility_spans) / sizeof(compatibility_spans[0]),
+            crypto_input_max_bytes,
             computed_compatibility_root) ||
         computed_compatibility_root != manifest.compatibility_root) {
         verification.status = context_store_manifest_verify_status::compatibility_corrupt;
@@ -343,6 +361,9 @@ context_store_manifest_verify_result context_store_verify_manifest_v1(
     }
 
     verification.status = context_store_manifest_verify_status::authenticated_unadmitted;
+    verification.object_count_ = manifest.object_count;
+    verification.object_references_ = manifest.object_references;
+    verification.authenticated_carrier_ = true;
     return verification;
 }
 

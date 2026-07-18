@@ -8,17 +8,31 @@ add_library(halofpx-context-store-format STATIC EXCLUDE_FROM_ALL
 )
 target_compile_features(halofpx-context-store-format PRIVATE cxx_std_17)
 
-# Offline-only L04 authentication/compatibility verifier. The selected-base
-# SHA-256 source is inherited public-domain code; HMAC and policy are HaloFPX.
+# Shared offline-only selected-base public-domain SHA-256 primitive.
+add_library(halofpx-context-store-sha256 STATIC EXCLUDE_FROM_ALL
+    ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps/sha256/sha256.c
+)
+target_include_directories(halofpx-context-store-sha256 PUBLIC
+    ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps)
+
+# Offline-only L04 authentication/compatibility verifier. HMAC and policy are
+# target-owned; the SHA primitive remains a separate exact source-locked target.
 add_library(halofpx-context-store-auth STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-auth.cpp
     halofpx-context-store-auth.h
-    ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps/sha256/sha256.c
 )
-target_include_directories(halofpx-context-store-auth PRIVATE
-    ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps)
-target_link_libraries(halofpx-context-store-auth PUBLIC halofpx-context-store-format)
+target_link_libraries(halofpx-context-store-auth
+    PUBLIC halofpx-context-store-format
+    PRIVATE halofpx-context-store-sha256)
 target_compile_features(halofpx-context-store-auth PRIVATE cxx_std_17)
+
+# Offline-only L04 immutable object-frame verifier.
+add_library(halofpx-context-store-object STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-object.cpp
+    halofpx-context-store-object.h
+)
+target_link_libraries(halofpx-context-store-object PUBLIC halofpx-context-store-auth)
+target_compile_features(halofpx-context-store-object PRIVATE cxx_std_17)
 
 # server-context containing the core server logic, used by llama-server and CLI
 

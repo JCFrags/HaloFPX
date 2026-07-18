@@ -14,6 +14,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L04a milestone review](reviews/2026-07-17__l04a-offline-manifest-parser__review__v01.md)
 - [L04b offline authenticated-manifest verifier](l04b-authenticated-manifest-verifier.md)
 - [L04b milestone review](reviews/2026-07-17__l04b-authenticated-manifest-verifier__review__v01.md)
+- [L04c offline immutable object-frame verifier](l04c-offline-object-frame-verifier.md)
+- [L04c milestone review](reviews/2026-07-18__l04c-offline-object-frame-verifier__review__v01.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

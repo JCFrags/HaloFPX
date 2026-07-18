@@ -36,6 +36,12 @@ struct context_store_registered_id {
     uint8_t size = 0;
 };
 
+struct context_store_object_reference {
+    context_store_format_digest object_id {};
+    context_store_registered_id stream_type;
+    uint64_t frame_bytes = 0;
+};
+
 struct context_store_parsed_manifest {
     std::array<uint8_t, 16> store_uuid {};
     context_store_format_digest checkpoint_lineage_id {};
@@ -53,6 +59,7 @@ struct context_store_parsed_manifest {
     size_t rank_count = 0;
     std::array<context_store_format_digest, context_store_manifest_max_ranks> rank_ownership {};
     size_t object_count = 0;
+    std::array<context_store_object_reference, context_store_manifest_max_objects> object_references {};
     context_store_registered_id state_profile_id;
     context_store_format_digest producer_identity {};
     uint8_t durability_mode = 0;

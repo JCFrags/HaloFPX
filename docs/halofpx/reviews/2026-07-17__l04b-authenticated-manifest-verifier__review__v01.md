@@ -23,8 +23,9 @@ logging, provider call, context mutation, or persistent read/write.
 
 ## Cryptographic and provenance boundary
 
-The target-owned HMAC wrapper compiles the exact selected-base public-domain
-SHA-256 source already present under `examples/gguf-hash`. Static tests pin the
+The target-owned HMAC wrapper links the separate excluded
+`halofpx-context-store-sha256` target, which compiles the exact selected-base
+public-domain source already present under `examples/gguf-hash`. Static tests pin the
 three source/header hashes and reject OpenSSL, BCrypt, network/server, donor,
 filesystem, provider, state, logging, and `memcmp` dependencies. The wrapper
 uses checked bounded spans, RFC 2104 long-key handling, exact NUL-terminated

@@ -72,6 +72,26 @@ struct context_store_manifest_verify_result {
     context_store_manifest_verify_status status = context_store_manifest_verify_status::structural_rejection;
     context_store_manifest_parse_status parse_status = context_store_manifest_parse_status::input_empty;
     context_store_format_digest manifest_digest {};
+    bool has_authenticated_carrier() const noexcept {
+        return authenticated_carrier_ &&
+            status == context_store_manifest_verify_status::authenticated_unadmitted;
+    }
+
+    size_t authenticated_object_count() const noexcept {
+        return has_authenticated_carrier() ? object_count_ : 0;
+    }
+
+    const context_store_object_reference * authenticated_object_reference(size_t index) const noexcept {
+        return has_authenticated_carrier() && index < object_count_ ? &object_references_[index] : nullptr;
+    }
+
+private:
+    bool authenticated_carrier_ = false;
+    size_t object_count_ = 0;
+    std::array<context_store_object_reference, context_store_manifest_max_objects> object_references_ {};
+
+    friend context_store_manifest_verify_result context_store_verify_manifest_v1(
+        const uint8_t *, size_t, const context_store_manifest_verification_policy &) noexcept;
 };
 
 // Offline verification only. Even the sole authenticated result remains a
@@ -86,6 +106,12 @@ context_store_manifest_verify_result context_store_verify_manifest_v1(
 bool context_store_sha256(
     const uint8_t * data,
     size_t size,
+    context_store_format_digest & digest) noexcept;
+
+bool context_store_sha256_bounded(
+    const uint8_t * data,
+    size_t size,
+    uint64_t max_size,
     context_store_format_digest & digest) noexcept;
 
 bool context_store_hmac_sha256(
