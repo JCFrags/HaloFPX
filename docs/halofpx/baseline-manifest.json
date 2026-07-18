@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "artifact_type": "halofpx_local_implementation_baseline",
+  "captured_at": "2026-07-17T21:27:12.8908476-07:00",
+  "status": "clean_source_baseline_reproduced",
+  "source": {
+    "repository": "charlie12345/ROCmFPX",
+    "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+    "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+    "parent": "a5605a72768c6562241b248e268e33dc92787394",
+    "branch_created": "codex/integration-base-61f2f2d",
+    "tracked_file_count": 2965,
+    "recursive_gitlinks": [],
+    "initial_status_porcelain_v2": [
+      "# branch.oid 61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "# branch.head codex/integration-base-61f2f2d"
+    ],
+    "configured_remotes": []
+  },
+  "restore": {
+    "method": "git init; git fetch --no-tags <locked-bundle> <exact-commit>; git checkout -b <branch> FETCH_HEAD",
+    "bundle_relative_to_evidence_workspace": "sources/repositories/source-locks/2026-07-17-pre-fork/bundles/charlie12345__rocmfpx--all-refs.bundle",
+    "bundle_bytes": 36143527,
+    "bundle_sha256": "bcbe6cf910f4dd183d8ad96ea0d936ac85bd636a1cfe570179599d3fc5e307fa",
+    "source_lock_manifest_relative_to_evidence_workspace": "sources/repositories/source-locks/2026-07-17-pre-fork/source-lock-manifest.json"
+  },
+  "patch_identity": {
+    "range": "a5605a72768c6562241b248e268e33dc92787394..61f2f2d7bc4955e9bca821095ef69125837133b5",
+    "stable_patch_id": "d163e5dcf4188dcf1cace0573b677376b7cd78f0"
+  },
+  "licenses": [
+    {
+      "path": "LICENSE",
+      "git_blob": "e7dca554bcb802f98408383a864404e3aa4eacca",
+      "git_blob_sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+      "worktree_sha256": "bcd8ec749126d45cb06737d0690295d73df4b6e7e194205bcf91190368f27285",
+      "worktree_note": "Differs from raw Git bytes because core.autocrlf=true."
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "git_blob": "4b2f877fe5011ac7eca70b5409a1cb7b032109ea",
+      "git_blob_sha256": "038b892fb3e926f9f85c3256554f1e74c7a6fab023574ad5869aa389dcf45729",
+      "worktree_sha256": "f11a63b4d69c57fd504b3c04a2f0140c75176a56e9b70d7a36d727575db48ffc",
+      "worktree_note": "Differs from raw Git bytes because core.autocrlf=true."
+    }
+  ],
+  "build": {
+    "host_os": "Microsoft Windows 11 Pro 10.0.26200 x64",
+    "git": "2.55.0.windows.2",
+    "cmake": "4.1.2-msvc8",
+    "generator": "Visual Studio 18 2026",
+    "platform": "x64",
+    "compiler": "MSVC 19.50.35725.0",
+    "configuration": "Release",
+    "cmake_definitions": {
+      "GGML_NATIVE": false,
+      "LLAMA_CURL": false,
+      "LLAMA_BUILD_SERVER": true,
+      "LLAMA_BUILD_WEBUI": false,
+      "LLAMA_BUILD_TESTS": true,
+      "LLAMA_BUILD_EXAMPLES": true
+    },
+    "cmake_cache_sha256": "b71b70062d5d42da9e1a09c81637df45bd50b4cce7aa4aa163f8fea8f6e59e41",
+    "artifacts": {
+      "llama-cli.exe": "08e82f5cf55b8adc96cf5eb915734695b61de6b7c2b3a2068d6f813f5f266afc",
+      "llama-server.exe": "5c79dbb2b04a149655e4418c586982093f27d250a5001f6cdee4c7917341cb7c",
+      "test-arg-parser.exe": "6fd86e459811c65d5408375de102ad347f6bb275909beef818fa1c34078ca83f",
+      "test-state-restore-fragmented.exe": "fca07fd61cbad6655077b21e2bc398ad822f3efc5bfb096367125816a4b1d095",
+      "test-turboquant.exe": "12d7feabcebe2a2864ec3cd2ee8282e8fec9a159b7791b037dc3d69835595562"
+    }
+  },
+  "boundaries": {
+    "remote_created": false,
+    "remote_pushed": false,
+    "reference_clone_modified": false,
+    "donor_code_imported": false,
+    "llama_ai_code_copied": false,
+    "cachyllama_imported": false,
+    "persistent_write_path_added_or_enabled": false
+  }
+}
