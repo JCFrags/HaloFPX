@@ -302,6 +302,21 @@ add_test(NAME test-halofpx-context-store-registry-lab-golden
         ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05o-registry-lab-golden-vector.json)
 set_property(TEST test-halofpx-context-store-registry-lab-golden PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-context-store-registry-lab-read-only.cpp)
+target_include_directories(test-halofpx-context-store-registry-lab-read-only PRIVATE
+    ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-registry-lab-read-only PRIVATE
+    halofpx-context-store-registry-lab-read-only)
+llama_test(test-halofpx-context-store-registry-lab-read-only)
+set_property(TEST test-halofpx-context-store-registry-lab-read-only PROPERTY
+    LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-registry-lab-read-only-contract
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-registry-lab-read-only-contract.cmake)
+set_property(TEST test-halofpx-context-store-registry-lab-read-only-contract PROPERTY
+    LABELS "main;halofpx")
+
 add_test(
     NAME test-halofpx-context-store-bootstrap-token-golden
     COMMAND ${HALOFPX_PYTHON_EXECUTABLE}

@@ -115,6 +115,18 @@ target_link_libraries(halofpx-context-store-registry-lab-wire PUBLIC
 target_compile_features(halofpx-context-store-registry-lab-wire PRIVATE cxx_std_17)
 set(HALOFPX_REGISTRY_LAB_WIRE_TARGET halofpx-context-store-registry-lab-wire)
 
+# Internal-only L05p portable fake-engine prefix through operations 1-4. It has
+# no public header, decoder, mutation path, filesystem adapter, or product edge.
+add_library(halofpx-context-store-registry-lab-read-only STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-registry-lab-read-only.cpp
+    halofpx-context-store-registry-lab-read-only-internal.h
+)
+target_link_libraries(halofpx-context-store-registry-lab-read-only PRIVATE
+    halofpx-context-store-registry-lab-wire)
+target_compile_features(halofpx-context-store-registry-lab-read-only PRIVATE cxx_std_17)
+set(HALOFPX_REGISTRY_LAB_READ_ONLY_TARGET
+    halofpx-context-store-registry-lab-read-only)
+
 # Offline-only L05a publication coordinator and injected fault seam. No
 # concrete filesystem backend exists and this target is not linked to server.
 add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL
@@ -131,6 +143,16 @@ target_compile_features(halofpx-context-store-publication PRIVATE cxx_std_17)
 if (BUILD_TESTING AND MSVC)
     add_custom_target(halofpx-registry-lab-static-audit-inputs
         DEPENDS
+            ${HALOFPX_REGISTRY_LAB_WIRE_TARGET}
+            halofpx-context-store-registry-successor
+            halofpx-context-store-protected-registry
+            halofpx-context-store-auth
+            halofpx-context-store-format
+            halofpx-context-store-sha256)
+
+    add_custom_target(halofpx-registry-lab-read-only-static-audit-inputs
+        DEPENDS
+            ${HALOFPX_REGISTRY_LAB_READ_ONLY_TARGET}
             ${HALOFPX_REGISTRY_LAB_WIRE_TARGET}
             halofpx-context-store-registry-successor
             halofpx-context-store-protected-registry
@@ -173,6 +195,18 @@ if (BUILD_TESTING AND MSVC)
   \"$<TARGET_FILE:halofpx-context-store-format>\"
   \"$<TARGET_FILE:halofpx-context-store-sha256>\")
 ")
+    file(GENERATE
+        OUTPUT "${CMAKE_BINARY_DIR}/halofpx-registry-lab-read-only-archives-$<CONFIG>.cmake"
+        CONTENT
+"set(HALOFPX_REGISTRY_LAB_READ_ONLY_ARCHIVES
+  \"$<TARGET_FILE:${HALOFPX_REGISTRY_LAB_READ_ONLY_TARGET}>\"
+  \"$<TARGET_FILE:${HALOFPX_REGISTRY_LAB_WIRE_TARGET}>\"
+  \"$<TARGET_FILE:halofpx-context-store-registry-successor>\"
+  \"$<TARGET_FILE:halofpx-context-store-protected-registry>\"
+  \"$<TARGET_FILE:halofpx-context-store-auth>\"
+  \"$<TARGET_FILE:halofpx-context-store-format>\"
+  \"$<TARGET_FILE:halofpx-context-store-sha256>\")
+")
 
     add_test(NAME test-halofpx-context-store-registry-lab-static-audit
         COMMAND ${CMAKE_COMMAND}
@@ -180,6 +214,7 @@ if (BUILD_TESTING AND MSVC)
             -DCONFIG=$<CONFIG>
             -DGRAPH_MANIFEST=${HALOFPX_REGISTRY_LAB_GRAPH_MANIFEST}
             -DARCHIVE_MANIFEST=${CMAKE_BINARY_DIR}/halofpx-registry-lab-archives-$<CONFIG>.cmake
+            -DREAD_ONLY_ARCHIVE_MANIFEST=${CMAKE_BINARY_DIR}/halofpx-registry-lab-read-only-archives-$<CONFIG>.cmake
             -DDUMPBIN=${HALOFPX_DUMPBIN_EXECUTABLE}
             -DLIB_TOOL=${HALOFPX_LIB_EXECUTABLE}
             -P ${CMAKE_SOURCE_DIR}/tests/halofpx-registry-lab-static-audit.cmake)
@@ -206,6 +241,15 @@ if (BUILD_TESTING AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
             halofpx-context-store-auth
             halofpx-context-store-format
             halofpx-context-store-sha256)
+    add_custom_target(halofpx-registry-lab-read-only-linux-audit-inputs
+        DEPENDS
+            ${HALOFPX_REGISTRY_LAB_READ_ONLY_TARGET}
+            ${HALOFPX_REGISTRY_LAB_WIRE_TARGET}
+            halofpx-context-store-registry-successor
+            halofpx-context-store-protected-registry
+            halofpx-context-store-auth
+            halofpx-context-store-format
+            halofpx-context-store-sha256)
     find_program(HALOFPX_NM_EXECUTABLE NAMES llvm-nm nm)
     find_program(HALOFPX_AR_EXECUTABLE NAMES llvm-ar ar)
     find_program(HALOFPX_READELF_EXECUTABLE NAMES llvm-readelf readelf)
@@ -226,11 +270,24 @@ if (BUILD_TESTING AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   \"$<TARGET_FILE:halofpx-context-store-format>\"
   \"$<TARGET_FILE:halofpx-context-store-sha256>\")
 ")
+    file(GENERATE
+        OUTPUT "${CMAKE_BINARY_DIR}/halofpx-registry-lab-read-only-linux-archives-$<CONFIG>.cmake"
+        CONTENT
+"set(HALOFPX_REGISTRY_LAB_READ_ONLY_ARCHIVES
+  \"$<TARGET_FILE:${HALOFPX_REGISTRY_LAB_READ_ONLY_TARGET}>\"
+  \"$<TARGET_FILE:${HALOFPX_REGISTRY_LAB_WIRE_TARGET}>\"
+  \"$<TARGET_FILE:halofpx-context-store-registry-successor>\"
+  \"$<TARGET_FILE:halofpx-context-store-protected-registry>\"
+  \"$<TARGET_FILE:halofpx-context-store-auth>\"
+  \"$<TARGET_FILE:halofpx-context-store-format>\"
+  \"$<TARGET_FILE:halofpx-context-store-sha256>\")
+")
     add_test(NAME test-halofpx-context-store-registry-lab-linux-archive-audit
         COMMAND ${CMAKE_COMMAND}
             -DBUILD_ROOT=${CMAKE_BINARY_DIR}
             -DCONFIG=$<CONFIG>
             -DARCHIVE_MANIFEST=${CMAKE_BINARY_DIR}/halofpx-registry-lab-linux-archives-$<CONFIG>.cmake
+            -DREAD_ONLY_ARCHIVE_MANIFEST=${CMAKE_BINARY_DIR}/halofpx-registry-lab-read-only-linux-archives-$<CONFIG>.cmake
             -DNM_TOOL=${HALOFPX_NM_EXECUTABLE}
             -DAR_TOOL=${HALOFPX_AR_EXECUTABLE}
             -DREADELF_TOOL=${HALOFPX_READELF_EXECUTABLE}
