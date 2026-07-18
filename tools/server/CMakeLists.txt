@@ -88,6 +88,16 @@ target_link_libraries(halofpx-context-store-bootstrap-material PUBLIC
     halofpx-context-store-bootstrap-consumption halofpx-context-store-object)
 target_compile_features(halofpx-context-store-bootstrap-material PRIVATE cxx_std_17)
 
+# Permanently synthetic L05n protected-anchor bootstrap create/reconciliation
+# model. It owns no concrete storage and remains excluded from every product.
+add_library(halofpx-context-store-bootstrap-anchor STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-bootstrap-anchor.cpp
+    halofpx-context-store-bootstrap-anchor.h
+)
+target_link_libraries(halofpx-context-store-bootstrap-anchor PUBLIC
+    halofpx-context-store-bootstrap-material)
+target_compile_features(halofpx-context-store-bootstrap-anchor PRIVATE cxx_std_17)
+
 # Offline-only L05a publication coordinator and injected fault seam. No
 # concrete filesystem backend exists and this target is not linked to server.
 add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL

@@ -45,13 +45,15 @@ foreach(runtime_path IN LISTS runtime_paths)
     set(authority_header "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-authority.h")
     set(authority_source "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-authority.cpp")
     set(bootstrap_material_source "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-bootstrap-material.cpp")
+    set(bootstrap_anchor_source "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-bootstrap-anchor.cpp")
     if ("${runtime_path}" STREQUAL "${format_header}" OR
         "${runtime_path}" STREQUAL "${format_source}" OR
         "${runtime_path}" STREQUAL "${auth_header}" OR
         "${runtime_path}" STREQUAL "${auth_source}" OR
         "${runtime_path}" STREQUAL "${authority_header}" OR
         "${runtime_path}" STREQUAL "${authority_source}" OR
-        "${runtime_path}" STREQUAL "${bootstrap_material_source}")
+        "${runtime_path}" STREQUAL "${bootstrap_material_source}" OR
+        "${runtime_path}" STREQUAL "${bootstrap_anchor_source}")
         continue()
     endif()
     file(READ "${runtime_path}" runtime_source)

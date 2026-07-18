@@ -1,0 +1,44 @@
+{
+  "milestone": "L05n synthetic protected-anchor bootstrap create and reconciliation",
+  "date": "2026-07-18",
+  "source_parent_commit": "b60c2ee321126d842a3dcd2256e037c2d9e6906e",
+  "build_directory": "build/halofpx-l05n-dev",
+  "configuration": "Windows CPU Release; GGML_NATIVE=OFF; server/tests/examples ON; WebUI/CUDA/HIP/Vulkan OFF",
+  "build_cache_sha256": "6e3c5de77f32541c38918843e99378f864ed9c9049580abe9513c5c9ac2073e1",
+  "llama_server_sha256": "f64d2dc0da3c25c9d03d38a81c334cda7c054b3b236662902d67fbbb2891f249",
+  "validation": {
+    "halofpx_ctests": { "passed": 33, "selected": 33 },
+    "focused_inherited_ctests": { "passed": 7, "selected": 7 },
+    "authority_state_machine_processes": { "passed": 200, "selected": 200 },
+    "static_contract_processes": { "passed": 200, "selected": 200 },
+    "independent_golden_processes": { "passed": 200, "selected": 200 },
+    "repeated_total_elapsed_ms": 35444
+  },
+  "executables": {
+    "test-halofpx-context-store-authority.exe": "96771969d135bf1abf5fddb2470198ffe49f1d1bdc446d145df573ca3efd411f"
+  },
+  "golden": {
+    "mutation_checks": 145,
+    "root_policy_sha256": "28bb763f361d3150fb5159bba2437156539c657b3f6697936dce4e8a615ddec7",
+    "prepared_material_source_sha256": "22e4bfc15b077005321c6f1c5a16f1daec24a0e01eb74982db20c2b5fb9c2860",
+    "already_same_material_source_sha256": "80e37febfe745673fdcf0bb7070b558fc0e00f50946dce91219f4878ac264aff",
+    "prepared_create_sha256": "a7f7df3576045cf526f686090d92317f59ad1578c2ab24b891477ce9fc7238ae",
+    "create_linearized_reconciliation_sha256": "c478d60c9c175f0ecccec6736162b61570926904749ce38692303b7ca7d490ae",
+    "recovered_close_sha256": "65636eef01cb39ce0711cf7a52fa64149b60e6e796ad5d98de4ee9a2eeeda1e1",
+    "checker_sha256": "65f9dbae7a264630f410b67b0cd6de35eb1078dcf50fa29524ac1d801d67fd79",
+    "vector_sha256": "45cd72d213d4ec9142b30c9162ce4b330bc5568de6c47e8a464d6979ab8ecd86"
+  },
+  "reviewed_source_sha256": {
+    "tools/server/halofpx-context-store-bootstrap-anchor.h": "f8f9588f270a5a1ee59b6b8fc4fef5ca415cba7a1baa37c468f28cada1d8e70d",
+    "tools/server/halofpx-context-store-bootstrap-anchor.cpp": "6674e4b0ed14cbd30af39aa764bbdb36d5d910c89115c5ccc457439b9421504e",
+    "tests/test-halofpx-context-store-authority.cpp": "dba0c929af7b80dce40238b8331459dd5efb26b0dd9c583b7c85b8adb48dfc61",
+    "tests/test-halofpx-context-store-bootstrap-anchor-contract.cmake": "3125bb1b967c527976f4285e0702f76dd3cfa5f30aeb7a684dec4d99f87e698f",
+    "tests/test-halofpx-context-store-format-contract.cmake": "347485f940cd363307c79524e2dfc1967980a838bb88e0a5d7608dbaa044183d",
+    "docs/halofpx/decisions/0017-synthetic-protected-anchor-bootstrap-create.md": "b4718aa28e917682e2ba29030bce2f45a0570ed7ed45988a5e1b1ae8f2365ee9"
+  },
+  "exclusions": [
+    "permanently synthetic proofs with no conversion to concrete durability or cache authority",
+    "no filesystem, path, protected-state backend, key custody, restart/cross-process fence, or real synchronization claim",
+    "no server/provider, persistent-write, node, or performance path"
+  ]
+}
