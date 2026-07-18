@@ -128,7 +128,7 @@ endforeach()
 set(schema_path "${HALOFPX_SOURCE_DIR}/docs/halofpx/contracts/context-store-v1.cddl")
 file(READ "${schema_path}" schema)
 file(SHA256 "${schema_path}" schema_sha256)
-if (NOT schema_sha256 STREQUAL "920a95677d8cebeb451916c98d2742b4d1dae9b2e6715e8f7c0c4c5452db36f7")
+if (NOT schema_sha256 STREQUAL "a7c147b4a5ed11a3975d293b9b1a8cad61e7b1c884b3bd43a38085b829497369")
     message(FATAL_ERROR "reviewed L02 CDDL changed: ${schema_sha256}")
 endif()
 foreach(schema_marker

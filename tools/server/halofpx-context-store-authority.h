@@ -1,5 +1,6 @@
 #pragma once
 
+#include "halofpx-context-store-bootstrap-token.h"
 #include "halofpx-context-store-anchor.h"
 
 #include <array>
@@ -7,15 +8,6 @@
 #include <cstdint>
 
 namespace halofpx {
-
-using context_store_bootstrap_attempt_id = std::array<uint8_t, 32>;
-
-struct context_store_bootstrap_admin_key_record {
-    context_store_key_disposition disposition = context_store_key_disposition::unknown;
-    context_store_registered_id key_id;
-    uint64_t generation = 0;
-    context_store_key_view master_key;
-};
 
 struct context_store_bootstrap_authority_config {
     context_store_anchor_key_record anchor_signing_key;
@@ -28,13 +20,19 @@ struct context_store_bootstrap_authority_config {
     context_store_format_digest checkpoint_lineage_id {};
     uint64_t manifest_key_generation = 0;
     uint64_t authority_epoch = 0;
+    context_store_registered_id protected_registry_id;
+    uint64_t protected_registry_epoch = 0;
+    context_store_format_digest protected_registry_snapshot_digest {};
+    context_store_format_digest protected_registry_policy_digest {};
+    uint64_t last_consumed_sequence = 0;
 };
 
 struct context_store_bootstrap_request {
-    context_store_bootstrap_attempt_id attempt_id {};
     // Borrowed synchronously. Planning never retains these bytes.
     const uint8_t * manifest_data = nullptr;
     size_t manifest_size = 0;
+    const uint8_t * authorization_token_data = nullptr;
+    size_t authorization_token_size = 0;
 };
 
 class context_store_bootstrap_authority;
@@ -47,9 +45,10 @@ public:
     context_store_bootstrap_plan() = default;
 
     bool authorized() const noexcept { return authorized_; }
-    const context_store_bootstrap_attempt_id * attempt_id() const noexcept {
-        return authorized_ ? &attempt_id_ : nullptr;
+    const context_store_bootstrap_command_id * command_id() const noexcept {
+        return authorized_ ? &command_id_ : nullptr;
     }
+    uint64_t authorization_sequence() const noexcept { return authorized_ ? authorization_sequence_ : 0; }
     size_t object_count() const noexcept { return authorized_ ? object_count_ : 0; }
     const context_store_format_digest * selected_manifest_digest() const noexcept {
         return authorized_ ? &selected_manifest_digest_ : nullptr;
@@ -57,8 +56,11 @@ public:
     const context_store_format_digest * authority_snapshot_commitment() const noexcept {
         return authorized_ ? &authority_snapshot_commitment_ : nullptr;
     }
-    const context_store_format_digest * authorization_commitment() const noexcept {
-        return authorized_ ? &authorization_commitment_ : nullptr;
+    const context_store_format_digest * authorization_token_digest() const noexcept {
+        return authorized_ ? &authorization_token_digest_ : nullptr;
+    }
+    const context_store_format_digest * plan_commitment() const noexcept {
+        return authorized_ ? &plan_commitment_ : nullptr;
     }
     const context_store_registered_id * bootstrap_admin_key_id() const noexcept {
         return authorized_ ? &bootstrap_admin_key_id_ : nullptr;
@@ -72,11 +74,13 @@ public:
 
 private:
     bool authorized_ = false;
-    context_store_bootstrap_attempt_id attempt_id_ {};
+    context_store_bootstrap_command_id command_id_ {};
+    uint64_t authorization_sequence_ = 0;
     size_t object_count_ = 0;
     context_store_format_digest selected_manifest_digest_ {};
     context_store_format_digest authority_snapshot_commitment_ {};
-    context_store_format_digest authorization_commitment_ {};
+    context_store_format_digest authorization_token_digest_ {};
+    context_store_format_digest plan_commitment_ {};
     context_store_registered_id bootstrap_admin_key_id_;
     uint64_t bootstrap_admin_key_generation_ = 0;
     context_store_authenticated_anchor anchor_;
@@ -88,6 +92,7 @@ enum class context_store_bootstrap_status : uint8_t {
     authorized_unexecuted,
     invalid_authority,
     invalid_request,
+    authorization_rejected,
     manifest_rejected,
     signing_failed,
 };
@@ -122,6 +127,9 @@ public:
     context_store_bootstrap_authority & operator=(context_store_bootstrap_authority &&) = delete;
 
     bool valid() const noexcept { return valid_; }
+    const context_store_format_digest * authority_scope_commitment() const noexcept {
+        return valid_ ? &authority_scope_commitment_ : nullptr;
+    }
     context_store_bootstrap_result plan(const context_store_bootstrap_request & request) const noexcept;
 
 private:
@@ -140,8 +148,20 @@ private:
     size_t manifest_key_size_ = 0;
     context_store_compatibility_expectation trusted_compatibility_;
     context_store_anchor_body bootstrap_body_;
+    context_store_registered_id protected_registry_id_;
+    uint64_t protected_registry_epoch_ = 0;
+    context_store_format_digest protected_registry_snapshot_digest_ {};
+    context_store_format_digest protected_registry_policy_digest_ {};
+    uint64_t expected_authorization_sequence_ = 0;
+    context_store_format_digest authority_scope_commitment_ {};
     context_store_format_digest snapshot_commitment_ {};
 };
+
+// Deterministic public descriptor. No key bytes or secret-derived values enter
+// this commitment; an offline token issuer can compute it independently.
+bool context_store_bootstrap_authority_scope_commitment(
+    const context_store_bootstrap_authority_config & config,
+    context_store_format_digest & commitment) noexcept;
 
 const char * context_store_bootstrap_status_name(context_store_bootstrap_status status) noexcept;
 

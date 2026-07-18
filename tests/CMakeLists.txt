@@ -206,6 +206,24 @@ add_test(
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-authority-contract.cmake)
 set_property(TEST test-halofpx-context-store-authority-contract PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-context-store-bootstrap-token.cpp)
+target_include_directories(test-halofpx-context-store-bootstrap-token PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-bootstrap-token PRIVATE halofpx-context-store-bootstrap-token)
+llama_test(test-halofpx-context-store-bootstrap-token)
+set_property(TEST test-halofpx-context-store-bootstrap-token PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-bootstrap-token-contract
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-bootstrap-token-contract.cmake)
+set_property(TEST test-halofpx-context-store-bootstrap-token-contract PROPERTY LABELS "main;halofpx")
+
+add_test(
+    NAME test-halofpx-context-store-bootstrap-token-golden
+    COMMAND ${HALOFPX_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/halofpx-bootstrap-token-golden.py
+        --check ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05i-bootstrap-token-golden-vector.json)
+set_property(TEST test-halofpx-context-store-bootstrap-token-golden PROPERTY LABELS "main;halofpx")
+
 llama_build(test-halofpx-context-store-object.cpp)
 target_include_directories(test-halofpx-context-store-object PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
 target_link_libraries(test-halofpx-context-store-object PRIVATE halofpx-context-store-object)

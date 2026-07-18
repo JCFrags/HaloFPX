@@ -1,0 +1,50 @@
+{
+  "milestone": "L05i authenticated bootstrap-admin token",
+  "date": "2026-07-18",
+  "source_parent_commit": "c4cd76f0dd6e98bba9094db184bc5657359d2f34",
+  "build_directory": "build/halofpx-l05i-clean",
+  "configuration": "Windows CPU Release; GGML_NATIVE=OFF; server/tests/examples ON; WebUI/CUDA/HIP/Vulkan OFF",
+  "build_cache_sha256": "42ab830eea171c45b8018d83b90966c76d9999e3c5313bac2db46f5c46dadafc",
+  "llama_server_sha256": "713ece5b3326d7fe66a2e03a92e0243eff962c72c2793ddfcdba8290da0a9b59",
+  "validation": {
+    "halofpx_ctests": { "passed": 21, "selected": 21 },
+    "focused_inherited_ctests": { "passed": 7, "selected": 7 },
+    "token_processes": { "passed": 200, "selected": 200, "elapsed_ms": 1042 },
+    "authority_processes": { "passed": 200, "selected": 200, "elapsed_ms": 1663 },
+    "independent_golden_processes": { "passed": 200, "selected": 200, "elapsed_ms": 6698 }
+  },
+  "executables": {
+    "test-halofpx-context-store-bootstrap-token.exe": "1a3b9432023e03bf261ecc89d7402bd203e346b3530d05aa8e30bcb6481aaee6",
+    "test-halofpx-context-store-authority.exe": "243f9855d462304b0b787eda1f42ba3139f530833bf2c3721fc3de818a87e121"
+  },
+  "golden": {
+    "encoded_bytes": 399,
+    "tag_hmac_sha256": "e979b8ae4864f29e3a962a883cd66c5f8e06f533d45808661eaef76e2c37963c",
+    "envelope_digest_sha256": "3e2b07d2321dafe84510c5b2062425c4154ceb8e0cf77a2f81dc74b393a5e320",
+    "checker_sha256": "3f37799f9182a0292e9f846825f655842784f1ad4b75df3cded6588e22fd799c",
+    "vector_sha256": "ece85ca8213d6f69ae46c0e495cdd26b794bd12f09892c53c13915aa81a25514"
+  },
+  "reviewed_source_sha256": {
+    "tools/server/halofpx-context-store-bootstrap-token.h": "f1fba594099666dac014bcff77fae4f3b126f3af54e5816e8650b1c0d4046256",
+    "tools/server/halofpx-context-store-bootstrap-token.cpp": "96ad2ff8e82e150d99ca26759d9a7e7d379314cc29799076e46868fd779ff8c6",
+    "tools/server/halofpx-context-store-authority.h": "6168ac67e7eeab83299e308c985e1e399cf44ab14e32d546d1ad37facb0ff440",
+    "tools/server/halofpx-context-store-authority.cpp": "79c361fff87e3c9892ea1f97eb8bd696183ed17dd6274afbdfb39b03fb385749",
+    "tests/test-halofpx-context-store-bootstrap-token.cpp": "a5e48347dae7484201e01708dc74c5fc0e9e1e7127bff6fd82d53fd996d93e96",
+    "tests/test-halofpx-context-store-authority.cpp": "e233389dcae4ec2ef9f9836c9caf76e6e59247581dd7f5ec5d8d22fa24a4b1b2",
+    "docs/halofpx/contracts/context-store-v1.cddl": "a7c147b4a5ed11a3975d293b9b1a8cad61e7b1c884b3bd43a38085b829497369"
+  },
+  "negative_coverage": [
+    "every strict token truncation rejected",
+    "every single-byte token mutation rejected",
+    "noncanonical, trailing, wrong-map, wrong-key, wrong-generation, revoked, read-disabled, and wrong-tag inputs rejected",
+    "retagged wrong scope, authority, registry, sequence, compatibility, and manifest identities rejected",
+    "same authenticated token deliberately accepted repeatedly against the same immutable snapshot"
+  ],
+  "exclusions": [
+    "no token consumption or historical replay prevention",
+    "no credential provider or operator-principal authentication",
+    "no protected registry storage or rollback proof",
+    "no anchor-absence proof or create-if-absent execution",
+    "no filesystem, server/provider, persistent-write, cache-hit, or node path"
+  ]
+}

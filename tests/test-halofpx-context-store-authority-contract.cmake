@@ -20,7 +20,6 @@ foreach(FORBIDDEN_PATTERN
         "rename[at0-9_]*[ \t]*\\("
         "context_store_provider"
         "server-context"
-        "external_token"
         "replay_history")
     if(AUTHORITY_ALL MATCHES "${FORBIDDEN_PATTERN}")
         message(FATAL_ERROR "forbidden I/O, runtime, or durability claim in bootstrap authority: ${FORBIDDEN_PATTERN}")
@@ -37,10 +36,21 @@ foreach(REQUIRED_PATTERN
         "trusted_compatibility"
         "manifest_data"
         "manifest_size"
+        "authorization_token_data"
+        "authorization_token_size"
+        "context_store_verify_bootstrap_token_v1"
+        "context_store_bootstrap_status::authorization_rejected"
+        "protected_registry_snapshot_digest"
+        "protected_registry_policy_digest"
+        "expected_authorization_sequence"
+        "authority_scope_commitment"
+        "authorization_token_digest"
+        "plan_commitment"
         "generation = 1"
         "has_predecessor = false"
         "halofpx.bootstrap-authority-snapshot.v1"
-        "halofpx.bootstrap-authorization.v1"
+        "halofpx.bootstrap-authority-scope.v1"
+        "halofpx.bootstrap-plan.v2"
         "same_secret"
         "nonzero_bytes"
         "wipe\\(")

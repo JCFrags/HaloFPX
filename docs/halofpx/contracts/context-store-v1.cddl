@@ -289,6 +289,44 @@ publication-anchor-v1 = {
   10: bytes32 / null            ; predecessor manifest digest
 }
 
+authenticated-bootstrap-admin-token-v1 = {
+  0: bootstrap-admin-token-auth-input-v1,
+  1: bytes32                    ; HMAC-SHA-256 tag; sole excluded field
+}
+
+bootstrap-admin-token-auth-input-v1 = {
+  0: bootstrap-admin-token-body-v1,
+  1: registered-id,             ; bootstrap-admin key id
+  2: 1,                         ; HMAC-SHA-256
+  3: uint .ge 1                 ; bootstrap-admin key generation
+}
+
+bootstrap-admin-token-body-v1 = {
+  0: 1,                         ; format major
+  1: 0,                         ; format minor
+  2: 0,                         ; first-store bootstrap only
+  3: bytes16,                   ; store UUID
+  4: bytes32,                   ; namespace id
+  5: uint .ge 1,                ; policy epoch
+  6: bytes32,                   ; checkpoint lineage id
+  7: registered-id,             ; manifest-authentication key id
+  8: uint .ge 1,                ; manifest key generation
+  9: bytes32,                   ; compatibility root
+  10: uint .ge 1,               ; writer-authority epoch
+  11: registered-id,            ; anchor-authentication key id
+  12: uint .ge 1,               ; anchor key generation
+  13: 1,                        ; target generation
+  14: null,                     ; predecessor must be absent
+  15: bytes32,                  ; authenticated-manifest digest
+  16: bytes32,                  ; public authority-scope commitment
+  17: registered-id,            ; protected registry id
+  18: uint .ge 1,               ; protected registry epoch
+  19: bytes32,                  ; protected registry snapshot digest
+  20: bytes32,                  ; protected registry policy digest
+  21: uint .ge 1,               ; next authorization sequence
+  22: bytes32                   ; nonzero command identity
+}
+
 authenticated-control-message-v1 = {
   0: control-auth-input-v1,
   1: bytes32                    ; authentication tag; only excluded field
