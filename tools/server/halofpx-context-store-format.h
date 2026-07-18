@@ -10,6 +10,7 @@ constexpr size_t context_store_manifest_max_bytes = 1024 * 1024;
 constexpr size_t context_store_manifest_max_objects = 128;
 constexpr size_t context_store_manifest_max_ranks = 128;
 constexpr size_t context_store_registered_id_max_bytes = 128;
+constexpr size_t context_store_compatibility_component_count = 16;
 
 // Format-local by design: the offline structural parser must not depend on
 // the L03 provider seam or expose its candidate/provider types transitively.
@@ -41,7 +42,10 @@ struct context_store_parsed_manifest {
     uint64_t generation = 0;
     bool has_predecessor = false;
     context_store_format_digest predecessor_manifest_digest {};
+    std::array<context_store_format_digest, context_store_compatibility_component_count> compatibility_components {};
     context_store_format_digest compatibility_root {};
+    size_t compatibility_manifest_offset = 0;
+    size_t compatibility_manifest_size = 0;
     context_store_format_digest scope_namespace {};
     uint64_t policy_epoch = 0;
     uint64_t world_size = 0;

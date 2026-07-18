@@ -4,6 +4,8 @@ endif()
 
 set(format_header "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-format.h")
 set(format_source "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-format.cpp")
+set(auth_header "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-auth.h")
+set(auth_source "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-auth.cpp")
 file(READ "${format_header}" header)
 file(READ "${format_source}" source)
 set(parser "${header}\n${source}")
@@ -40,7 +42,10 @@ file(GLOB_RECURSE runtime_paths
     "${HALOFPX_SOURCE_DIR}/tools/server/*.h"
     "${HALOFPX_SOURCE_DIR}/tools/server/*.cpp")
 foreach(runtime_path IN LISTS runtime_paths)
-    if ("${runtime_path}" STREQUAL "${format_header}" OR "${runtime_path}" STREQUAL "${format_source}")
+    if ("${runtime_path}" STREQUAL "${format_header}" OR
+        "${runtime_path}" STREQUAL "${format_source}" OR
+        "${runtime_path}" STREQUAL "${auth_header}" OR
+        "${runtime_path}" STREQUAL "${auth_source}")
         continue()
     endif()
     file(READ "${runtime_path}" runtime_source)

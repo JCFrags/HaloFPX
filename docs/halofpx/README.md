@@ -12,6 +12,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L03a milestone review](reviews/2026-07-17__l03a-inert-provider-seam__review__v01.md)
 - [L04a offline manifest parser](l04a-offline-manifest-parser.md)
 - [L04a milestone review](reviews/2026-07-17__l04a-offline-manifest-parser__review__v01.md)
+- [L04b offline authenticated-manifest verifier](l04b-authenticated-manifest-verifier.md)
+- [L04b milestone review](reviews/2026-07-17__l04b-authenticated-manifest-verifier__review__v01.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

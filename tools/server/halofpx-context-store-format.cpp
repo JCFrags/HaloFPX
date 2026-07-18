@@ -251,16 +251,20 @@ private:
     context_store_manifest_parse_result & result_;
 };
 
-bool parse_compatibility_manifest(cbor_cursor & cursor) noexcept {
+bool parse_compatibility_manifest(
+        cbor_cursor & cursor,
+        context_store_parsed_manifest & manifest) noexcept {
+    manifest.compatibility_manifest_offset = cursor.position();
     if (!cursor.read_map(16)) {
         return false;
     }
     for (uint64_t field = 0; field < 16; ++field) {
-        context_store_format_digest ignored {};
-        if (!cursor.read_key(field) || !cursor.read_bytes(ignored)) {
+        if (!cursor.read_key(field) ||
+            !cursor.read_bytes(manifest.compatibility_components[static_cast<size_t>(field)])) {
             return false;
         }
     }
+    manifest.compatibility_manifest_size = cursor.position() - manifest.compatibility_manifest_offset;
     return true;
 }
 
@@ -376,7 +380,7 @@ context_store_manifest_parse_result context_store_parse_manifest_v1(
         !cursor.read_key(5) || !cursor.read_null_or_digest(manifest.has_predecessor, manifest.predecessor_manifest_digest) ||
         (manifest.generation == 1 && manifest.has_predecessor) ||
         (manifest.generation > 1 && !manifest.has_predecessor) ||
-        !cursor.read_key(6) || !parse_compatibility_manifest(cursor) ||
+        !cursor.read_key(6) || !parse_compatibility_manifest(cursor, manifest) ||
         !cursor.read_key(7) || !cursor.read_bytes(manifest.compatibility_root) ||
         !cursor.read_key(8) || !cursor.read_bytes(manifest.scope_namespace) ||
         !cursor.read_key(9) || !cursor.read_uint(manifest.policy_epoch) ||
