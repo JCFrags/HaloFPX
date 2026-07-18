@@ -1,0 +1,42 @@
+file(READ "${HALOFPX_SOURCE_DIR}/tools/server/CMakeLists.txt" SERVER_CMAKE)
+file(READ "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-publication.cpp" PUBLICATION_CPP)
+file(READ "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-publication.h" PUBLICATION_H)
+
+string(FIND "${SERVER_CMAKE}"
+    "add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL"
+    PUBLICATION_TARGET_POSITION)
+if(PUBLICATION_TARGET_POSITION EQUAL -1)
+    message(FATAL_ERROR "publication coordinator must remain an excluded offline target")
+endif()
+string(REGEX MATCHALL "halofpx-context-store-publication" PUBLICATION_TARGET_REFERENCES "${SERVER_CMAKE}")
+list(LENGTH PUBLICATION_TARGET_REFERENCES PUBLICATION_TARGET_REFERENCE_COUNT)
+if(NOT PUBLICATION_TARGET_REFERENCE_COUNT EQUAL 4)
+    message(FATAL_ERROR "publication target reference count changed; review for product linkage")
+endif()
+if(SERVER_CMAKE MATCHES "server-context STATIC[^)]*halofpx-context-store-publication")
+    message(FATAL_ERROR "publication coordinator entered server-context")
+endif()
+if(SERVER_CMAKE MATCHES "target_link_libraries[^)]*server-context[^)]*halofpx-context-store-publication")
+    message(FATAL_ERROR "publication coordinator linked into server-context")
+endif()
+
+foreach(FORBIDDEN IN ITEMS
+        "CreateFile" "MoveFile" "ReplaceFile" "rename" "fopen"
+        "std::filesystem" "io_uring" "CachyLLama" "llama-ai" "context_store_provider")
+    if(PUBLICATION_CPP MATCHES "${FORBIDDEN}" OR PUBLICATION_H MATCHES "${FORBIDDEN}")
+        message(FATAL_ERROR "publication coordinator contains forbidden production/donor surface: ${FORBIDDEN}")
+    endif()
+endforeach()
+
+if(NOT PUBLICATION_CPP MATCHES "anchor_visibility_uncertain")
+    message(FATAL_ERROR "post-anchor sync failure must remain explicitly uncertain")
+endif()
+if(NOT PUBLICATION_CPP MATCHES "writer_busy")
+    message(FATAL_ERROR "single-writer fence missing")
+endif()
+if(NOT PUBLICATION_H MATCHES "context_store_publication_root_fence")
+    message(FATAL_ERROR "publication-root fence authority missing")
+endif()
+if(NOT PUBLICATION_CPP MATCHES "verified_manifest_digest != request.next.manifest_digest")
+    message(FATAL_ERROR "verified manifest is not bound to the next anchor")
+endif()

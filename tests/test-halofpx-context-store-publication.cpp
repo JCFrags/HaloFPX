@@ -1,0 +1,365 @@
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+#include <cassert>
+
+#include "halofpx-context-store-publication.h"
+
+#include <condition_variable>
+#include <cstdint>
+#include <mutex>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <vector>
+
+namespace {
+
+using halofpx::context_store_publication_anchor;
+using halofpx::context_store_publication_backend;
+using halofpx::context_store_publication_max_objects_v1;
+using halofpx::context_store_publication_request;
+using halofpx::context_store_publication_result;
+using halofpx::context_store_publication_root_fence;
+using halofpx::context_store_publication_status;
+using halofpx::context_store_publication_step_result;
+using halofpx::context_store_publication_writer;
+
+context_store_publication_anchor make_anchor(uint64_t generation) {
+    context_store_publication_anchor value;
+    value.store_id[0] = 1;
+    value.namespace_id[0] = 2;
+    value.checkpoint_lineage_id[0] = 3;
+    value.policy_epoch = 4;
+    value.key_generation = 5;
+    value.authority_epoch = 6;
+    value.generation = generation;
+    value.manifest_digest[0] = static_cast<uint8_t>(0x20 + generation);
+    value.predecessor_manifest_digest[0] = generation == 0 ? 0 : static_cast<uint8_t>(0x1f + generation);
+    return value;
+}
+
+context_store_publication_request make_request(size_t object_count = 2) {
+    context_store_publication_request request;
+    request.expected_predecessor = make_anchor(7);
+    request.next = make_anchor(8);
+    request.next.predecessor_manifest_digest = request.expected_predecessor.manifest_digest;
+    request.object_count = object_count;
+    return request;
+}
+
+class scripted_backend final : public context_store_publication_backend {
+public:
+    context_store_publication_anchor current = make_anchor(7);
+    std::vector<std::string> calls;
+    size_t fail_at = 0;
+    context_store_publication_step_result failure = context_store_publication_step_result::storage_error;
+    bool anchor_replaced = false;
+    bool anchor_synced = false;
+    bool throw_at_failure = false;
+    bool block_read = false;
+    halofpx::context_store_digest verified_manifest_digest = make_anchor(8).manifest_digest;
+
+    context_store_publication_step_result read_anchor(context_store_publication_anchor & anchor) override {
+        if (block_read) {
+            std::unique_lock<std::mutex> lock(mutex_);
+            read_entered_ = true;
+            condition_.notify_all();
+            condition_.wait(lock, [&] { return release_read_; });
+        }
+        auto result = invoke("read_anchor");
+        if (complete(result)) anchor = current;
+        return result;
+    }
+    context_store_publication_step_result stage_object(size_t index) override { return invoke(object("stage_object", index)); }
+    context_store_publication_step_result write_object(size_t index) override { return invoke(object("write_object", index)); }
+    context_store_publication_step_result verify_object(size_t index) override { return invoke(object("verify_object", index)); }
+    context_store_publication_step_result sync_object_file(size_t index) override { return invoke(object("sync_object_file", index)); }
+    context_store_publication_step_result publish_object_no_replace(size_t index) override { return invoke(object("publish_object", index)); }
+    context_store_publication_step_result sync_object_directory(size_t index) override { return invoke(object("sync_object_directory", index)); }
+    context_store_publication_step_result stage_manifest() override { return invoke("stage_manifest"); }
+    context_store_publication_step_result write_manifest() override { return invoke("write_manifest"); }
+    context_store_publication_step_result verify_manifest(
+            halofpx::context_store_digest & digest) override {
+        auto result = invoke("verify_manifest");
+        if (result == context_store_publication_step_result::ok) {
+            digest = verified_manifest_digest;
+        }
+        return result;
+    }
+    context_store_publication_step_result sync_manifest_file() override { return invoke("sync_manifest_file"); }
+    context_store_publication_step_result publish_manifest_no_replace() override { return invoke("publish_manifest"); }
+    context_store_publication_step_result sync_manifest_directory() override { return invoke("sync_manifest_directory"); }
+    context_store_publication_step_result replace_anchor_atomically(const context_store_publication_anchor & next) override {
+        auto result = invoke("replace_anchor");
+        if (complete(result)) {
+            current = next;
+            anchor_replaced = true;
+        }
+        return result;
+    }
+    context_store_publication_step_result sync_anchor() override {
+        auto result = invoke("sync_anchor");
+        if (complete(result)) anchor_synced = true;
+        return result;
+    }
+
+    void wait_until_read_entered() {
+        std::unique_lock<std::mutex> lock(mutex_);
+        condition_.wait(lock, [&] { return read_entered_; });
+    }
+    void release_read() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        release_read_ = true;
+        condition_.notify_all();
+    }
+
+private:
+    std::mutex mutex_;
+    std::condition_variable condition_;
+    bool read_entered_ = false;
+    bool release_read_ = false;
+
+    static bool complete(context_store_publication_step_result result) {
+        return result == context_store_publication_step_result::ok ||
+            result == context_store_publication_step_result::already_equal;
+    }
+    static std::string object(const char * name, size_t index) {
+        return std::string(name) + "[" + std::to_string(index) + "]";
+    }
+    context_store_publication_step_result invoke(std::string name) {
+        calls.push_back(std::move(name));
+        if (fail_at != 0 && calls.size() == fail_at) {
+            if (throw_at_failure) throw std::runtime_error("injected");
+            return failure;
+        }
+        return context_store_publication_step_result::ok;
+    }
+};
+
+void assert_unacknowledged(const context_store_publication_result & result) {
+    assert(result.status != context_store_publication_status::published);
+    assert(!result.durability_acknowledged);
+}
+
+void test_complete_order() {
+    context_store_publication_root_fence fence;
+    context_store_publication_writer writer(fence);
+    scripted_backend backend;
+    auto result = writer.publish(make_request(), backend);
+    assert(result.status == context_store_publication_status::published);
+    assert(result.completed_steps == 21);
+    assert(result.anchor_replaced && result.durability_acknowledged);
+    assert(backend.anchor_replaced && backend.anchor_synced);
+    const std::vector<std::string> expected = {
+        "read_anchor",
+        "stage_object[0]", "write_object[0]", "verify_object[0]",
+        "sync_object_file[0]", "publish_object[0]", "sync_object_directory[0]",
+        "stage_object[1]", "write_object[1]", "verify_object[1]",
+        "sync_object_file[1]", "publish_object[1]", "sync_object_directory[1]",
+        "stage_manifest", "write_manifest", "verify_manifest",
+        "sync_manifest_file", "publish_manifest", "sync_manifest_directory",
+        "replace_anchor", "sync_anchor"
+    };
+    assert(backend.calls == expected);
+}
+
+void test_every_failure_boundary() {
+    for (size_t fail_at = 1; fail_at <= 21; ++fail_at) {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.fail_at = fail_at;
+        backend.failure = (fail_at == 5 || fail_at == 7 || fail_at == 11 || fail_at == 13 ||
+                           fail_at == 17 || fail_at == 19 || fail_at == 21) ?
+            context_store_publication_step_result::sync_error :
+            context_store_publication_step_result::storage_error;
+        auto result = writer.publish(make_request(), backend);
+        assert_unacknowledged(result);
+        assert(result.completed_steps == fail_at - 1);
+        assert(backend.calls.size() == fail_at);
+        if (fail_at < 20) {
+            assert(!backend.anchor_replaced);
+            assert(!result.anchor_replaced);
+        } else if (fail_at == 20) {
+            assert(!backend.anchor_replaced);
+            assert(!result.anchor_replaced);
+            assert(result.status == context_store_publication_status::anchor_visibility_uncertain);
+        } else {
+            assert(backend.anchor_replaced);
+            assert(result.anchor_replaced);
+            assert(result.status == context_store_publication_status::anchor_visibility_uncertain);
+        }
+    }
+}
+
+void test_collision_and_idempotent_existing() {
+    for (size_t fail_at : { size_t(6), size_t(12) }) {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.fail_at = fail_at;
+        backend.failure = context_store_publication_step_result::conflict;
+        auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::object_collision);
+        assert(!backend.anchor_replaced);
+    }
+    {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.fail_at = 18;
+        backend.failure = context_store_publication_step_result::conflict;
+        auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::manifest_collision);
+        assert(!backend.anchor_replaced);
+    }
+    for (size_t equal_at : { size_t(6), size_t(12), size_t(18) }) {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.fail_at = equal_at;
+        backend.failure = context_store_publication_step_result::already_equal;
+        auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::published);
+        assert(result.durability_acknowledged);
+    }
+    for (size_t invalid_equal_at : { size_t(1), size_t(3), size_t(5), size_t(16), size_t(17), size_t(20), size_t(21) }) {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.fail_at = invalid_equal_at;
+        backend.failure = context_store_publication_step_result::already_equal;
+        auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::storage_error ||
+               result.status == context_store_publication_status::anchor_visibility_uncertain);
+        assert_unacknowledged(result);
+    }
+}
+
+void test_identity_and_request_rejection() {
+    const auto reject = [](context_store_publication_request request) {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        auto result = writer.publish(request, backend);
+        assert(result.status == context_store_publication_status::invalid_request);
+        assert(backend.calls.empty());
+    };
+    auto request = make_request(); request.object_count = 0; reject(request);
+    request = make_request(context_store_publication_max_objects_v1 + 1); reject(request);
+    request = make_request(); request.next.generation = request.expected_predecessor.generation; reject(request);
+    request = make_request(); request.next.predecessor_manifest_digest[0] ^= 1; reject(request);
+    request = make_request(); request.next.store_id[0] ^= 1; reject(request);
+    request = make_request(); request.next.namespace_id[0] ^= 1; reject(request);
+    request = make_request(); request.next.checkpoint_lineage_id[0] ^= 1; reject(request);
+    request = make_request(); ++request.next.policy_epoch; reject(request);
+    request = make_request(); ++request.next.key_generation; reject(request);
+    request = make_request(); --request.next.authority_epoch; reject(request);
+    request = make_request(); ++request.next.authority_epoch; reject(request);
+    request = make_request();
+    request.expected_predecessor.generation = UINT64_MAX;
+    request.next.generation = 0;
+    reject(request);
+
+    const auto reject_stale = [](context_store_publication_anchor current) {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.current = current;
+        auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::stale_predecessor);
+        assert(result.completed_steps == 1);
+        assert(backend.calls.size() == 1);
+    };
+    auto current = make_anchor(7); current.store_id[0] ^= 1; reject_stale(current);
+    current = make_anchor(7); current.namespace_id[0] ^= 1; reject_stale(current);
+    current = make_anchor(7); current.checkpoint_lineage_id[0] ^= 1; reject_stale(current);
+    current = make_anchor(7); ++current.policy_epoch; reject_stale(current);
+    current = make_anchor(7); ++current.key_generation; reject_stale(current);
+    current = make_anchor(7); ++current.authority_epoch; reject_stale(current);
+    current = make_anchor(7); ++current.generation; reject_stale(current);
+    current = make_anchor(7); current.manifest_digest[0] ^= 1; reject_stale(current);
+    current = make_anchor(7); current.predecessor_manifest_digest[0] ^= 1; reject_stale(current);
+
+    context_store_publication_root_fence fence;
+    context_store_publication_writer writer(fence);
+    scripted_backend backend;
+    backend.verified_manifest_digest[0] ^= 1;
+    auto mismatch = writer.publish(make_request(), backend);
+    assert(mismatch.status == context_store_publication_status::manifest_identity_mismatch);
+    assert(mismatch.completed_steps == 15);
+    assert(!mismatch.anchor_replaced && !mismatch.durability_acknowledged);
+    assert(backend.calls.back() == "verify_manifest");
+}
+
+void test_exception_and_single_writer_fence() {
+    {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.fail_at = 4;
+        backend.throw_at_failure = true;
+        auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::storage_error);
+        assert_unacknowledged(result);
+    }
+    {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.fail_at = 20;
+        backend.throw_at_failure = true;
+        auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::anchor_visibility_uncertain);
+        assert(!result.anchor_replaced);
+        assert_unacknowledged(result);
+    }
+    {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.fail_at = 21;
+        backend.throw_at_failure = true;
+        auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::anchor_visibility_uncertain);
+        assert(result.anchor_replaced);
+        assert_unacknowledged(result);
+    }
+    {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer first_writer(fence);
+        context_store_publication_writer second_writer(fence);
+        scripted_backend first;
+        first.block_read = true;
+        context_store_publication_result first_result;
+        std::thread active([&] { first_result = first_writer.publish(make_request(), first); });
+        first.wait_until_read_entered();
+        scripted_backend second;
+        auto busy = second_writer.publish(make_request(), second);
+        assert(busy.status == context_store_publication_status::writer_busy);
+        assert(second.calls.empty());
+        first.release_read();
+        active.join();
+        assert(first_result.status == context_store_publication_status::published);
+    }
+}
+
+void test_status_names() {
+    assert(std::string(halofpx::context_store_publication_status_name(
+        context_store_publication_status::published)) == "published");
+    assert(std::string(halofpx::context_store_publication_status_name(
+        static_cast<context_store_publication_status>(255))) == "unknown");
+}
+
+} // namespace
+
+int main() {
+    test_complete_order();
+    test_every_failure_boundary();
+    test_collision_and_idempotent_existing();
+    test_identity_and_request_rejection();
+    test_exception_and_single_writer_fence();
+    test_status_names();
+    return 0;
+}

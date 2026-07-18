@@ -34,6 +34,14 @@ add_library(halofpx-context-store-object STATIC EXCLUDE_FROM_ALL
 target_link_libraries(halofpx-context-store-object PUBLIC halofpx-context-store-auth)
 target_compile_features(halofpx-context-store-object PRIVATE cxx_std_17)
 
+# Offline-only L05a publication coordinator and injected fault seam. No
+# concrete filesystem backend exists and this target is not linked to server.
+add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-publication.cpp
+    halofpx-context-store-publication.h
+)
+target_compile_features(halofpx-context-store-publication PRIVATE cxx_std_17)
+
 # server-context containing the core server logic, used by llama-server and CLI
 
 set(TARGET server-context)
