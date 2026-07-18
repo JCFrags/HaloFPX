@@ -26,6 +26,15 @@ target_link_libraries(halofpx-context-store-auth
     PRIVATE halofpx-context-store-sha256)
 target_compile_features(halofpx-context-store-auth PRIVATE cxx_std_17)
 
+# Offline-only L05e authenticated protected-anchor codec. It performs no I/O
+# and is not linked into server-context, the publication coordinator, or server.
+add_library(halofpx-context-store-anchor STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-anchor.cpp
+    halofpx-context-store-anchor.h
+)
+target_link_libraries(halofpx-context-store-anchor PUBLIC halofpx-context-store-auth)
+target_compile_features(halofpx-context-store-anchor PRIVATE cxx_std_17)
+
 # Offline-only L04 immutable object-frame verifier.
 add_library(halofpx-context-store-object STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-object.cpp

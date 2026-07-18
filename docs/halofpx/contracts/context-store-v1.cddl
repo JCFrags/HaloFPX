@@ -263,15 +263,30 @@ namespace-preimage-v1 = {
   6: bytes32                    ; compatibility root
 }
 
+authenticated-publication-anchor-v1 = {
+  0: publication-anchor-auth-input-v1,
+  1: bytes32                    ; authentication tag; only excluded field
+}
+
+publication-anchor-auth-input-v1 = {
+  0: publication-anchor-v1,
+  1: registered-id,             ; anchor authentication key id; ASCII profile
+  2: 1,                         ; HMAC-SHA-256
+  3: uint                       ; anchor authentication key generation
+}
+
 publication-anchor-v1 = {
-  0: bytes16,                   ; store UUID
-  1: bytes32,                   ; namespace id
-  2: uint,                      ; policy epoch
-  3: bytes32,                   ; checkpoint lineage id
-  4: uint,                      ; manifest key generation
-  5: uint .ge 1,                ; selected generation
-  6: bytes32,                   ; selected manifest digest
-  7: bytes32 / null             ; predecessor manifest digest
+  0: 1,                         ; format major
+  1: 0,                         ; format minor
+  2: bytes16,                   ; store UUID
+  3: bytes32,                   ; namespace id
+  4: uint,                      ; policy epoch
+  5: bytes32,                   ; checkpoint lineage id
+  6: uint,                      ; selected manifest key generation
+  7: uint,                      ; writer-authority epoch
+  8: uint .ge 1,                ; selected generation/high-water
+  9: bytes32,                   ; selected manifest digest
+  10: bytes32 / null            ; predecessor manifest digest
 }
 
 authenticated-control-message-v1 = {

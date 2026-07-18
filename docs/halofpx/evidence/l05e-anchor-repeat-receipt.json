@@ -1,0 +1,15 @@
+{
+  "milestone": "L05e",
+  "build": "build/halofpx-l05e-clean",
+  "configuration": "Release; LLAMA_BUILD_WEBUI=OFF; LLAMA_CURL=OFF; GGML_NATIVE=OFF; GGML_CPU_ALL_VARIANTS=OFF",
+  "cpp_processes_passed": 100,
+  "python_golden_processes_passed": 100,
+  "halofpx_ctests_passed": 16,
+  "focused_inherited_ctests_passed": 7,
+  "executable_sha256": "489e985d202c1e558fd07a69449ed09b022875652ab16e06e041a48a1ce36507",
+  "generator_sha256": "50a5c869995371eaa8563b7d63caadddcebc2edc010f9fdc1b34a94c55638b9f",
+  "anchor_source_sha256": "dec8637f9362d5acfbce9de87e49fb50a7c7dcf54d7cb69138db018ce3cfaa31",
+  "anchor_header_sha256": "449a05a8a61307472d85e18d7af0e79d92b418e8246d0baa3061897bed856c2a",
+  "golden_receipt_sha256": "5b597c2f8241ade255217cc2c40b2db6ab45fc847e9e7bc697479483a5a786f4",
+  "scope": "offline memory-only codec; no persistent writes, server hook, provider admission, nodes, or reference repositories"
+}
