@@ -7,6 +7,7 @@
 
 #include <condition_variable>
 #include <cstdint>
+#include <functional>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -39,8 +40,23 @@ context_store_publication_anchor make_anchor(uint64_t generation) {
     return value;
 }
 
+bool same_anchor(
+        const context_store_publication_anchor & left,
+        const context_store_publication_anchor & right) {
+    return left.store_id == right.store_id &&
+        left.namespace_id == right.namespace_id &&
+        left.checkpoint_lineage_id == right.checkpoint_lineage_id &&
+        left.policy_epoch == right.policy_epoch &&
+        left.key_generation == right.key_generation &&
+        left.authority_epoch == right.authority_epoch &&
+        left.generation == right.generation &&
+        left.manifest_digest == right.manifest_digest &&
+        left.predecessor_manifest_digest == right.predecessor_manifest_digest;
+}
+
 context_store_publication_request make_request(size_t object_count = 2) {
     context_store_publication_request request;
+    request.attempt_id[0] = 0xa5;
     request.expected_predecessor = make_anchor(7);
     request.next = make_anchor(8);
     request.next.predecessor_manifest_digest = request.expected_predecessor.manifest_digest;
@@ -58,6 +74,9 @@ public:
     bool anchor_synced = false;
     bool throw_at_failure = false;
     bool block_read = false;
+    halofpx::context_store_publication_id observed_attempt_id {};
+    context_store_publication_anchor * shared_current = nullptr;
+    std::function<void()> before_replace;
     halofpx::context_store_digest verified_manifest_digest = make_anchor(8).manifest_digest;
 
     context_store_publication_step_result read_anchor(context_store_publication_anchor & anchor) override {
@@ -68,7 +87,7 @@ public:
             condition_.wait(lock, [&] { return release_read_; });
         }
         auto result = invoke("read_anchor");
-        if (complete(result)) anchor = current;
+        if (complete(result)) anchor = shared_current ? *shared_current : current;
         return result;
     }
     context_store_publication_step_result stage_object(size_t index) override { return invoke(object("stage_object", index)); }
@@ -90,10 +109,20 @@ public:
     context_store_publication_step_result sync_manifest_file() override { return invoke("sync_manifest_file"); }
     context_store_publication_step_result publish_manifest_no_replace() override { return invoke("publish_manifest"); }
     context_store_publication_step_result sync_manifest_directory() override { return invoke("sync_manifest_directory"); }
-    context_store_publication_step_result replace_anchor_atomically(const context_store_publication_anchor & next) override {
+    context_store_publication_step_result replace_anchor_atomically(
+            const halofpx::context_store_publication_id & attempt_id,
+            const context_store_publication_anchor & expected_predecessor,
+            const context_store_publication_anchor & next) override {
         auto result = invoke("replace_anchor");
         if (complete(result)) {
-            current = next;
+            if (before_replace) before_replace();
+            assert(attempt_id != halofpx::context_store_publication_id {});
+            observed_attempt_id = attempt_id;
+            auto & selected = shared_current ? *shared_current : current;
+            if (!same_anchor(selected, expected_predecessor)) {
+                return context_store_publication_step_result::stale_predecessor;
+            }
+            selected = next;
             anchor_replaced = true;
         }
         return result;
@@ -151,6 +180,7 @@ void test_complete_order() {
     assert(result.completed_steps == 21);
     assert(result.anchor_replaced && result.durability_acknowledged);
     assert(backend.anchor_replaced && backend.anchor_synced);
+    assert(backend.observed_attempt_id == make_request().attempt_id);
     const std::vector<std::string> expected = {
         "read_anchor",
         "stage_object[0]", "write_object[0]", "verify_object[0]",
@@ -247,6 +277,7 @@ void test_identity_and_request_rejection() {
         assert(backend.calls.empty());
     };
     auto request = make_request(); request.object_count = 0; reject(request);
+    request = make_request(); request.attempt_id = {}; reject(request);
     request = make_request(context_store_publication_max_objects_v1 + 1); reject(request);
     request = make_request(); request.next.generation = request.expected_predecessor.generation; reject(request);
     request = make_request(); request.next.predecessor_manifest_digest[0] ^= 1; reject(request);
@@ -345,6 +376,65 @@ void test_exception_and_single_writer_fence() {
     }
 }
 
+void test_cross_fence_stale_compare_and_swap() {
+    // Distinct fences model coordinators that cannot see one another's
+    // in-process exclusion (for example, separate processes). Both initially
+    // observe generation 7; the nested coordinator wins the final CAS, and
+    // the original coordinator is conclusively rejected without replacement.
+    context_store_publication_anchor shared = make_anchor(7);
+    context_store_publication_root_fence first_fence;
+    context_store_publication_root_fence second_fence;
+    context_store_publication_writer first_writer(first_fence);
+    context_store_publication_writer second_writer(second_fence);
+    scripted_backend first;
+    scripted_backend second;
+    first.shared_current = &shared;
+    second.shared_current = &shared;
+    auto second_request = make_request();
+    second_request.attempt_id[0] = 0xb6;
+    context_store_publication_result second_result;
+    first.before_replace = [&] {
+        second_result = second_writer.publish(second_request, second);
+    };
+
+    auto first_result = first_writer.publish(make_request(), first);
+    assert(second_result.status == context_store_publication_status::published);
+    assert(first_result.status == context_store_publication_status::stale_predecessor);
+    assert(first_result.completed_steps == 19);
+    assert(!first_result.anchor_replaced && !first_result.durability_acknowledged);
+    assert(shared.generation == 8);
+    assert(first.calls.back() == "replace_anchor");
+}
+
+void test_final_cas_compares_every_predecessor_field() {
+    const std::vector<std::function<void(context_store_publication_anchor &)>> mutations = {
+        [](auto & value) { value.store_id[0] ^= 1; },
+        [](auto & value) { value.namespace_id[0] ^= 1; },
+        [](auto & value) { value.checkpoint_lineage_id[0] ^= 1; },
+        [](auto & value) { ++value.policy_epoch; },
+        [](auto & value) { ++value.key_generation; },
+        [](auto & value) { ++value.authority_epoch; },
+        [](auto & value) { ++value.generation; },
+        [](auto & value) { value.manifest_digest[0] ^= 1; },
+        [](auto & value) { value.predecessor_manifest_digest[0] ^= 1; },
+    };
+    for (const auto & mutate : mutations) {
+        context_store_publication_anchor shared = make_anchor(7);
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        scripted_backend backend;
+        backend.shared_current = &shared;
+        auto expected_mutated = shared;
+        mutate(expected_mutated);
+        backend.before_replace = [&] { shared = expected_mutated; };
+        auto result = writer.publish(make_request(), backend);
+        assert(result.status == context_store_publication_status::stale_predecessor);
+        assert(result.completed_steps == 19);
+        assert(!result.anchor_replaced && !result.durability_acknowledged);
+        assert(same_anchor(shared, expected_mutated));
+    }
+}
+
 void test_status_names() {
     assert(std::string(halofpx::context_store_publication_status_name(
         context_store_publication_status::published)) == "published");
@@ -360,6 +450,8 @@ int main() {
     test_collision_and_idempotent_existing();
     test_identity_and_request_rejection();
     test_exception_and_single_writer_fence();
+    test_cross_fence_stale_compare_and_swap();
+    test_final_cas_compares_every_predecessor_field();
     test_status_names();
     return 0;
 }

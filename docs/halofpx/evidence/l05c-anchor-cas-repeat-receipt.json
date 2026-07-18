@@ -1,0 +1,32 @@
+{
+  "schema": "halofpx.l05c.repeat-receipt.v1",
+  "date": "2026-07-18",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "build_directory": "build/halofpx-l05c-clean",
+  "configuration": "Release",
+  "backends": "CPU only; HIP OFF; Vulkan OFF",
+  "webui": "OFF via LLAMA_BUILD_WEBUI=OFF",
+  "coordinator_executable": {
+    "path": "build/halofpx-l05c-clean/bin/Release/test-halofpx-context-store-publication.exe",
+    "sha256": "0c4731bede1859c0a0edea15a14413df380523585480001467fb9c12eb4d9600",
+    "process_runs": 100,
+    "passed": 100
+  },
+  "simulator_executable": {
+    "path": "build/halofpx-l05c-clean/bin/Release/test-halofpx-context-store-publication-simulator.exe",
+    "sha256": "598a62ffe1efcde629b11f64116843ca3a16f8bec90e0e2130c00f7e39170448",
+    "process_runs": 100,
+    "passed": 100,
+    "core_failpoint_scenarios_per_process": 1344,
+    "core_failpoint_scenarios_total": 134400
+  },
+  "combined_process_runs": 200,
+  "combined_elapsed_ms": 833,
+  "timing_is_benchmark": false,
+  "notes": [
+    "All processes returned exit code zero.",
+    "The simulator executable also includes the post-linearization stale-result regression.",
+    "The coordinator executable includes distinct-fence interleaving and all-nine-field final-CAS mutations."
+  ]
+}

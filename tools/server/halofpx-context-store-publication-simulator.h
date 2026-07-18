@@ -124,6 +124,8 @@ public:
     context_store_publication_step_result publish_manifest_no_replace() override;
     context_store_publication_step_result sync_manifest_directory() override;
     context_store_publication_step_result replace_anchor_atomically(
+        const context_store_publication_id & attempt_id,
+        const context_store_publication_anchor & expected_predecessor,
         const context_store_publication_anchor & next) override;
     context_store_publication_step_result sync_anchor() override;
 

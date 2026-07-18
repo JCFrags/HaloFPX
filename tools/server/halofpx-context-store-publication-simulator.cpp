@@ -106,6 +106,12 @@ context_store_publication_step_result context_store_publication_simulator::after
         failpoint_.index == index &&
         failpoint_.phase == context_store_publication_simulator_phase::after) {
         result = failpoint_.result;
+        // Once the simulated anchor linearization has occurred, no injected
+        // result may claim the replacement definitely did not happen.
+        if (operation == context_store_publication_simulator_operation::replace_anchor &&
+                result == context_store_publication_step_result::stale_predecessor) {
+            result = context_store_publication_step_result::interrupted;
+        }
         trace_.push_back({ operation, index, context_store_publication_simulator_phase::after, result, true });
         return result;
     }
@@ -303,13 +309,20 @@ context_store_publication_step_result context_store_publication_simulator::sync_
 }
 
 context_store_publication_step_result context_store_publication_simulator::replace_anchor_atomically(
+        const context_store_publication_id & attempt_id,
+        const context_store_publication_anchor & expected_predecessor,
         const context_store_publication_anchor & next) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::replace_anchor;
     if (!before(op, context_store_publication_simulator_no_index, result)) return result;
-    if (!valid_ || !manifest_.published_durable || !exact_anchor(next, next_)) {
+    if (!valid_ || attempt_id == context_store_publication_id {} ||
+            !manifest_.published_durable || !exact_anchor(next, next_)) {
         return after(op, context_store_publication_simulator_no_index,
-                     context_store_publication_step_result::storage_error);
+                      context_store_publication_step_result::storage_error);
+    }
+    if (!exact_anchor(live_anchor_, expected_predecessor)) {
+        return after(op, context_store_publication_simulator_no_index,
+                     context_store_publication_step_result::stale_predecessor);
     }
     live_anchor_ = next;
     anchor_unsynced_ = true;

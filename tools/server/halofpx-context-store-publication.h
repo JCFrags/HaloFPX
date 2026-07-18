@@ -28,6 +28,10 @@ struct context_store_publication_anchor {
 };
 
 struct context_store_publication_request {
+    // Caller-owned, cryptographically fresh operation identity. It is not an
+    // anchor field and conveys no authority by itself; a qualified backend
+    // binds it to this exact predecessor/next transition for replay fencing.
+    context_store_publication_id attempt_id {};
     context_store_publication_anchor expected_predecessor;
     context_store_publication_anchor next;
     size_t object_count = 0;
@@ -43,6 +47,9 @@ enum class context_store_publication_step_result : uint8_t {
     read_only,
     io_error,
     interrupted,
+    // A conclusive compare-and-swap rejection: the protected anchor did not
+    // equal the supplied predecessor and the replacement was not applied.
+    stale_predecessor,
     storage_error,
     sync_error,
 };
@@ -75,6 +82,8 @@ public:
     virtual context_store_publication_step_result sync_manifest_directory() = 0;
 
     virtual context_store_publication_step_result replace_anchor_atomically(
+        const context_store_publication_id & attempt_id,
+        const context_store_publication_anchor & expected_predecessor,
         const context_store_publication_anchor & next) = 0;
     virtual context_store_publication_step_result sync_anchor() = 0;
 };

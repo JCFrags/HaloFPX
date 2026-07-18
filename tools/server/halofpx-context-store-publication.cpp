@@ -21,7 +21,9 @@ bool same_lineage_domain(
 bool valid_transition(const context_store_publication_request & request) noexcept {
     const auto & predecessor = request.expected_predecessor;
     const auto & next = request.next;
-    return request.object_count > 0 &&
+    const bool nonzero_attempt = request.attempt_id != context_store_publication_id {};
+    return nonzero_attempt &&
+        request.object_count > 0 &&
         request.object_count <= context_store_publication_max_objects_v1 &&
         predecessor.generation != std::numeric_limits<uint64_t>::max() &&
         same_lineage_domain(predecessor, next) &&
@@ -152,7 +154,14 @@ context_store_publication_result context_store_publication_writer::publish(
         }
 
         anchor_attempted = true;
-        step = backend.replace_anchor_atomically(request.next);
+        step = backend.replace_anchor_atomically(
+            request.attempt_id, request.expected_predecessor, request.next);
+        if (step == context_store_publication_step_result::stale_predecessor) {
+            // This typed result is admitted only when the backend guarantees
+            // that the atomic replacement did not take effect.
+            result.status = context_store_publication_status::stale_predecessor;
+            return result;
+        }
         if (!completed(step)) {
             // The abstract seam cannot prove that a failed or interrupted
             // replacement did not complete late.

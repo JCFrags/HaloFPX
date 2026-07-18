@@ -30,6 +30,7 @@ context_store_publication_anchor make_anchor(uint64_t generation) {
 
 context_store_publication_request make_request() {
     context_store_publication_request request;
+    request.attempt_id[0] = 0xa5;
     request.expected_predecessor = make_anchor(7);
     request.next = make_anchor(8);
     request.next.predecessor_manifest_digest = request.expected_predecessor.manifest_digest;
@@ -448,6 +449,25 @@ void test_predecessor_chain_control() {
     }
 }
 
+void test_post_linearization_stale_injection_is_uncertain() {
+    auto request = make_request();
+    context_store_publication_root_fence fence;
+    context_store_publication_writer writer(fence);
+    context_store_publication_simulator simulator(
+        request.expected_predecessor, request.next, request.object_count);
+    simulator.set_failpoint({
+        true,
+        context_store_publication_simulator_operation::replace_anchor,
+        context_store_publication_simulator_no_index,
+        context_store_publication_simulator_phase::after,
+        context_store_publication_step_result::stale_predecessor,
+    });
+    auto result = writer.publish(request, simulator);
+    assert(result.status == context_store_publication_status::anchor_visibility_uncertain);
+    assert(!result.anchor_replaced && !result.durability_acknowledged);
+    assert(simulator.live_anchor().generation == request.next.generation);
+}
+
 } // namespace
 
 int main() {
@@ -458,5 +478,6 @@ int main() {
     test_manifest_binding_bounds_and_names();
     test_sequential_stale_retry_and_maximum_bounds();
     test_predecessor_chain_control();
+    test_post_linearization_stale_injection_is_uncertain();
     return 0;
 }
