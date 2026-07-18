@@ -2,7 +2,7 @@
 section_id: "63"
 title: "Atomic commit and recovery design"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-07-18"
 applies_to:
   repositories: []
   software_versions: []
@@ -38,3 +38,5 @@ Manifest fields: format/version; generation and predecessor; compatibility/topol
 Required safety includes: a published manifest names one complete generation/fingerprint; recovery never mixes generations; corruption/incomplete references are rejected; performance mode may lose the checkpoint and recompute after failure; and turn-durable/strict acknowledgement requires every object and manifest promised by that mode to be durable. Required conditional liveness includes: a fully durable prepared generation is eventually published or explicitly abandoned, assuming the coordinator and storage actions eventually run and storage does not fail permanently. Fairness assumptions and finite bounds must be explicit.
 
 **[MEASURED]** P63-00 now has a target-owned TLA+ model checked against the exact final source SHA-256 `320d294949624469a5c636fc510300f6f558845094139402a6845d765b1c38fe`. The promoted TLC matrix matched 17/17 expected outcomes across 44,539,476 generated and 5,968,128 distinct states; Apalache independently typechecked the model and bounded `Safety` through length 5 [S63-07]. This validates only the reviewed finite abstraction. Implementation conformance, filesystem behavior, power-loss behavior, and the machine durability promise remain open and require the disabled writer/fault harness, Section 80 fault injection, and M63-01..03.
+
+**[VERIFIED]** The first C++ conformance slice at `b8123fe5` remains excluded from all product targets and accepts no paths or bytes. It orders bounded injected operations, binds the verified canonical manifest digest to the next exact anchor, rejects authority transfer, serializes coordinators sharing one in-process root fence, and never acknowledges an ambiguous anchor outcome [S63-08]. This is evidence for the coordinator kernel only. M63-01 still requires the deterministic durable-filesystem simulator, named crash/fault matrix, stale-attempt behavior, and retained recovery evidence.

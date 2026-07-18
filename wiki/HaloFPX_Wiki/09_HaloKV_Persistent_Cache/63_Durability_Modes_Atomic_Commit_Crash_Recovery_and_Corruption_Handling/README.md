@@ -2,7 +2,7 @@
 section_id: "63"
 title: "Durability Modes, Atomic Commit, Crash Recovery, and Corruption Handling"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-07-18"
 applies_to:
   repositories: ["fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"]
   software_versions: []
@@ -18,6 +18,7 @@ The non-negotiable rule is: cache failure causes a miss and recomputation, never
 - **[VERIFIED]** The pinned record has magic/version/length fields but no payload checksum; directory fsync and temp-file rename commit were not identified [S63-01].
 - **[VERIFIED]** The deployed ggml RPC tensor cache at `rocmfp4-llama@4860505e` uses a 64-bit FNV-derived filename, direct final-path writes, and no read-time content rehash in the inspected path [S63-L01]. It is separate from HaloKV, but demonstrates a live corruption-acceptance risk that must not be inherited.
 - **[MEASURED]** nimo-1 held about 112 GiB across 187 RPC tensor-cache files while only about 43 GiB of filesystem headroom remained [S63-L01].
+- **[VERIFIED]** HaloFPX `b8123fe5` adds only a disabled, offline publication-coordinator slice: exact predecessor/manifest-anchor binding, bounded ordered steps, ambiguous-anchor fail-stop handling, and a shared in-process root fence. It is not M63-01, a filesystem writer, or persistence authorization [S63-08].
 - **[RECOMMENDATION]** HaloKV needs immutable data files plus a two-phase, checksummed generation manifest and explicit durability modes.
 - **[OPEN]** Power-loss semantics of the selected SSD/filesystem/kernel are unmeasured.
 
