@@ -1,0 +1,13 @@
+CAPTURE_TYPE: structured primary-source excerpt (not a full mirror)
+SOURCE_ID: S016
+URL: https://www.kernel.org/doc/html/next/admin-guide/thunderbolt.html
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn921834view2; turn921834view3
+LINE_LOCATORS: 278-319
+CAPTURED_INTERFACE:
+- Driver/module command: modprobe thunderbolt-stream.
+- ConfigFS root: /sys/kernel/config/thunderbolt/stream.
+- Data endpoints: /dev/tbstreamX.
+- Uses read(2)/write(2); multiple streams are possible.
+- USB4STREAM can coexist with thunderbolt-net.
+SECURITY_NOTE: qualify with IOMMU/DMA protection enabled and recorded.

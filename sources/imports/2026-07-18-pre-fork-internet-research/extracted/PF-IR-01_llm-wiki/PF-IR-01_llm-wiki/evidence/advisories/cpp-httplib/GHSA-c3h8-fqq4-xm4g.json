@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-c3h8-fqq4-xm4g",
+  "title": "TLS verification bypass through proxy redirect",
+  "severity": "High",
+  "affected_versions": "<=0.37.1",
+  "patched_versions": "0.37.2",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-c3h8-fqq4-xm4g",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "proxied TLS redirect verification",
+    "precondition": "HTTPS client uses proxy and follows redirect"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "0482af8c448bccf9eeeec45241981884612f8f7116fbebe59564223e3b3905dc"
+}

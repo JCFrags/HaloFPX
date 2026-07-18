@@ -1,0 +1,15 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "Cisco Talos vulnerability report",
+  "report_id": "TALOS-2024-1915",
+  "cve": "CVE-2024-21836",
+  "title": "header.n_tensors heap overflow",
+  "source_url": "https://talosintelligence.com/vulnerability_reports/TALOS-2024-1915",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "GGUF header tensor count",
+    "affected": "Legacy parser before 2024-01-29 fixes"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved; the full report is not redistributed.",
+  "payload_sha256": "f9715d77603e846cacb530a73006069ba68ac3ae3f80f7f6d50f4c12fb0e5932"
+}

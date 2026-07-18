@@ -1,0 +1,18 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "TEST-ACTIVE-GROW"
+source_class: "test"
+claim_label: "[UPSTREAM_TEST]"
+upstream_path: "projects/rccl/test/GrowMPITests.cpp"
+upstream_blob_sha: "f5cf608e3b9498e75f04b63f3558af24cd1a47b3"
+upstream_locator: "MPI grow scenarios"
+snapshot_kind: "structured relevant excerpt summary"
+completeness: "selected relevant content; not full file"
+license: "RCCL repository license / per-file terms"
+---
+
+```text
+The active MPI tests exercise communicator growth with existing and joining ranks, single-use grow IDs, and blocking/non-blocking completion. They do not implement transparent reconnection of an existing failed transport connection.
+```

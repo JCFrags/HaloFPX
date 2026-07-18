@@ -1,0 +1,19 @@
+# Gaps Register
+
+| gap_id | gap | label | risk | evidence_to_collect | blocking | source_id |
+| --- | --- | --- | --- | --- | --- | --- |
+| G-001 | Exact NIMO MME3L / board v1.0 BIOS package, release notes and AMD PI manifest | [OPEN] [NO_PUBLIC_PACKAGE] | Cannot prove security coverage or compatibility | OEM package/statement; capsule metadata; hash; release notes | Yes — BIOS rollout and closure | OEM-NIMO-SUPPORT-AI395 |
+| G-002 | BIOS payload signature verification and anti-rollback/recovery behavior | [SIGNATURE_UNPROVEN] [ROLLBACK_UNPROVEN] | Bricking, unauthorized image, no recovery | Capsule signature chain, setup/flash logs, recovery procedure, sacrificial-device test | Yes | FWUPD-ONLYTRUSTED |
+| G-003 | Exact PCI 1002:1586 rev c1 -> retail SKU/silicon revision mapping | [OPEN] | Revision-specific errata may be misapplied | Subsystem IDs, VBIOS, CPUID, AMD/OEM confirmation | For revision-level service action | AMD-ROCM-GFX1151-MATRIX |
+| G-004 | CPUID family/model/stepping and AMDGPU IP discovery tuple | [OPEN] | EDAC/amdgpu RAS support cannot be classified | lscpu/cpuid, debugfs IP discovery, dmesg, firmware info | Yes — RAS classification | KERNEL-SOURCE-AMDGPU-DISCOVERY |
+| G-005 | System-memory ECC/EDAC availability and event routing | [UNKNOWN] | Silent or unobserved memory errors | EDAC sysfs, amd64_edac bind, ECC status, GHES/MCA/rasdaemon logs | Reliability closure | KERNEL-EDAC-DOC |
+| G-006 | AMDGPU RAS block support for gfx1151 target | [UNKNOWN] | No proven GPU CE/UE counters or page retirement | MP0/UMC/NBIO tuple, ras_mask, features, err_count files, init logs | Reliability closure | KERNEL-SOURCE-AMDGPU-RAS |
+| G-007 | AER capability, ACPI _OSC ownership, DPC and masks | [OPEN] | PCIe link errors may be invisible or firmware-owned | lspci -vv, kernel config/logs, sysfs AER counters | Telemetry baseline | KERNEL-PCIE-AER |
+| G-008 | Exact Crucial P310 model/part/serial and VACR001 slot/signature/rollback semantics | [OPEN] | Wrong package or unsupported update/recovery | nvme id-ctrl/fw-log/smart/error-log; vendor statement | Yes — SSD firmware action | CRUCIAL-P310-SUPPORT |
+| G-009 | USB4 host router/controller/retimer identities and NVM versions | [OPEN: LOCAL_ID_REQUIRED] | No authoritative errata/package mapping; brick risk | boltctl, fwupd JSON, sysfs identity/NVM/security/IOMMU, lspci/lsusb | Yes — USB4 firmware action | KERNEL-USB4-THUNDERBOLT |
+| G-010 | Local fwupd GUIDs, flags, lowest/bootloader versions and current remote metadata | [OPEN] | Public manifest filename absence may miss valid update mapping | fwupdmgr get-devices/get-updates/get-history/get-remotes --json | Firmware coverage conclusion | FWUPD-VERSION-GATES |
+| G-011 | Loaded linux-firmware files/versions/hashes | [OPEN] | Repository version is not runtime version | package provenance, amdgpu_firmware_info, initramfs contents, file hashes | Kernel/GPU tuple validation | LINUX-FIRMWARE-MAIN |
+| G-012 | Running OS/kernel and downstream backports | [OPEN] | Required Strix Halo KFD fixes may be absent | uname, package changelog/source commit, backport proof | Yes — ROCm/KFD production | AMD-ROCM-STRIXHALO-SYSOPT |
+| G-013 | Windows chipset/GPU/RAID component inventory | [OPEN] | Security bulletin floors cannot be evaluated | driver store/package versions/services/controllers | Conditional on Windows/RAID use | AMD-SB-4015; AMD-SB-6024; AMD-SB-4016 |
+| G-014 | Mixed Refresh Mode availability and enabled state | [OPEN] | Rowhammer mitigation cannot be asserted | OEM BIOS release notes, setup variable, vendor confirmation | Yes — Rowhammer closure | AMD-SB-7048 |
+| G-015 | Local inventory, error rates, workload criticality and service thresholds | [OPEN] | No defensible replacement/rollout thresholds | fleet inventory, baselines, alerts, failure history, spares, SLA/risk approval | Yes — service thresholds | [LOCAL_CONTROL] |

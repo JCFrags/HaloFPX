@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Btrfs conditional profile · PF-IR-06</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="../index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="00-scope-and-claim-language.html">Scope / labels</a><a href="01-executive-decision-record.html">Decision record</a><a href="02-portable-linux-minimum.html">Portable minimum</a><a href="03-temporary-files-and-publication.html">Publication</a><a href="04-deployed-filesystem-profile.html">Deployed profile</a><a href="05-ext4.html">ext4</a><a href="06-xfs.html">XFS</a><a class="active" href="07-btrfs.html">Btrfs</a><a href="08-io-uring.html">io_uring</a><a href="09-errors-space-direct-io.html">Errors / DIO</a><a href="10-locking-and-fencing.html">Locking</a><a href="11-fault-test-matrix.html">Fault program</a><a href="12-nontarget-portability.html">Non-targets</a><a href="13-open-questions.html">Open questions</a><a href="14-source-audit.html">Source audit</a><a href="../matrices/claim-ledger.html">Claim ledger</a><a href="../matrices/guarantee-source-test.html">Guarantee map</a><a href="../matrices/experiment-matrix.html">Experiment matrix</a><a href="../matrices/source-register.html">Source register</a><a href="../VERSION-PINS.html">Version pins</a><a href="../raw/README.html">Raw capture policy</a><a href="../licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="../scripts/fault-tests/README.html">Harness notes</a><a href="../BUILD-VALIDATION.html">Build validation</a><a href="../README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="../index.html">Wiki home</a><span>·</span><a href="07-btrfs.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>Btrfs conditional profile</h1>
+<p>Btrfs is realistic only as a conditional alternative. Copy-on-write, checksums, compression, snapshots, subvolumes, reflink/deduplication and global metadata allocation materially change space-failure and recovery behavior.</p>
+<h2>Hazards</h2>
+<ul>
+<li>A logically small write can require new data and metadata extents; free-space readings do not by themselves guarantee the transaction will complete.</li>
+<li>snapshots and reflinks retain shared extents and can amplify later COW allocation.</li>
+<li>compression changes physical allocation and write granularity.</li>
+<li><code>nodatacow</code> implies <code>nodatasum</code>, disables compression for affected new files, and permits interrupted in-place updates to be partial. It does not justify mutable published cache objects.</li>
+<li>mount options generally apply to the whole filesystem based on the first mounted subvolume, not independently per cache subvolume.</li>
+<li><code>commit=</code> and <code>flushoncommit</code> change global transaction behavior but do not replace explicit application synchronization.</li>
+<li><code>discard=async</code> is an allocation/reclamation setting, not a durability primitive.</li>
+</ul>
+<h2>Candidate posture</h2>
+<p>Use immutable objects and the same file-sync → publish → directory-sync sequence. Prefer the normal COW/checksum profile rather than NOCOW for live immutable objects unless a separate test record establishes otherwise. Avoid relying on reflink clones as private mutable copies.</p>
+<h2>Mandatory extra tests</h2>
+<p><code>T037</code> must cover data and metadata near-full states, multiple snapshots, reflinked objects, compression on/off, qgroups/quotas if enabled, orphan temps, repeated replacement and host power cuts. Support remains conditional until this exact profile passes.</p>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="../assets/wiki.js"></script></body></html>

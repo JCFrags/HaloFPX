@@ -1,0 +1,15 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "Cisco Talos vulnerability report",
+  "report_id": "TALOS-2024-1912",
+  "cve": "CVE-2024-21825",
+  "title": "GGUF array/string size integer overflow",
+  "source_url": "https://talosintelligence.com/vulnerability_reports/TALOS-2024-1912",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "legacy gguf array/string size parsing",
+    "affected": "Legacy parser before 2024-01-29 fixes"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved; the full report is not redistributed.",
+  "payload_sha256": "16eb2909456b914f05c27c1fe1403e18db0d6bac30ac401fa24f662012c4d3fd"
+}

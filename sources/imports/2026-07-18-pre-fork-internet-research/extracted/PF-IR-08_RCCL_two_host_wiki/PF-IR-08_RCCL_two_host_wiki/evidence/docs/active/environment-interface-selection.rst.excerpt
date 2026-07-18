@@ -1,0 +1,25 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "DOC-ACTIVE-ENV"
+source_class: "documentation"
+claim_label: "[NORMATIVE_DOC]"
+upstream_path: "projects/rccl/docs/api-reference/env-variables.rst"
+upstream_blob_sha: "81ab66a55304f58122d8dba29ee1a0414112b973"
+upstream_locator: "NCCL_SOCKET_IFNAME and NCCL_SOCKET_FAMILY sections"
+snapshot_kind: "structured documentation excerpt preserving literal values"
+completeness: "selected relevant excerpt; not full file"
+license: "RCCL repository/documentation terms; file SPDX not captured"
+---
+
+```rst
+NCCL_SOCKET_IFNAME
+-----------------
+Specifies which IP interface to use for communication. The value can be a comma-separated list of prefixes.
+Prefix a token with ``^`` to exclude matching interfaces. Prefix a token with ``=`` to request an exact interface name.
+
+NCCL_SOCKET_FAMILY
+------------------
+Forces the IP family used by sockets. Accepted values are ``AF_INET`` and ``AF_INET6``.
+```

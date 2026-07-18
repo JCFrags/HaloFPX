@@ -1,0 +1,12 @@
+---
+source_id: "S035"
+title: "Windows FlushFileBuffers"
+capture_kind: "official-web-receipt-with-short-excerpt"
+canonical_url: "https://learn.microsoft.com/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers"
+version: "Microsoft documentation current at access"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "Microsoft documentation terms"
+---
+NON-TARGET: Windows has different handle, cache, volume, and remote-file
+semantics. FlushFileBuffers is not treated as a drop-in equivalent to the Linux
+file-plus-directory synchronization sequence.

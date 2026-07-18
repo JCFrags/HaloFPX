@@ -1,0 +1,11 @@
+{
+  "claim_labels": [
+    "SELF-GENERATED"
+  ],
+  "manifest_excludes_itself": true,
+  "schema_version": 1,
+  "source_date_epoch": 0,
+  "symlinks_allowed": false,
+  "tar_mtime": 0,
+  "zip_timestamp": "1980-01-01T00:00:00"
+}

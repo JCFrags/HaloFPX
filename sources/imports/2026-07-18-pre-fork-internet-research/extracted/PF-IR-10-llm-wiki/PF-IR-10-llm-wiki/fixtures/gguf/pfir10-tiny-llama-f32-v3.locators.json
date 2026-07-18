@@ -1,0 +1,325 @@
+{
+  "header": {
+    "end": 24,
+    "start": 0
+  },
+  "metadata": {
+    "general.alignment": {
+      "end": 339,
+      "length": 33,
+      "start": 306
+    },
+    "general.architecture": {
+      "end": 106,
+      "length": 45,
+      "start": 61
+    },
+    "general.description": {
+      "end": 306,
+      "length": 107,
+      "start": 199
+    },
+    "general.file_type": {
+      "end": 372,
+      "length": 33,
+      "start": 339
+    },
+    "general.license": {
+      "end": 414,
+      "length": 42,
+      "start": 372
+    },
+    "general.name": {
+      "end": 159,
+      "length": 53,
+      "start": 106
+    },
+    "general.source.repo_url": {
+      "end": 484,
+      "length": 70,
+      "start": 414
+    },
+    "general.type": {
+      "end": 61,
+      "length": 37,
+      "start": 24
+    },
+    "general.version": {
+      "end": 199,
+      "length": 40,
+      "start": 159
+    },
+    "llama.attention.head_count": {
+      "end": 840,
+      "length": 42,
+      "start": 798
+    },
+    "llama.attention.head_count_kv": {
+      "end": 885,
+      "length": 45,
+      "start": 840
+    },
+    "llama.attention.layer_norm_rms_epsilon": {
+      "end": 939,
+      "length": 54,
+      "start": 885
+    },
+    "llama.block_count": {
+      "end": 715,
+      "length": 33,
+      "start": 682
+    },
+    "llama.context_length": {
+      "end": 644,
+      "length": 36,
+      "start": 608
+    },
+    "llama.embedding_length": {
+      "end": 682,
+      "length": 38,
+      "start": 644
+    },
+    "llama.feed_forward_length": {
+      "end": 756,
+      "length": 41,
+      "start": 715
+    },
+    "llama.rope.dimension_count": {
+      "end": 798,
+      "length": 42,
+      "start": 756
+    },
+    "llama.vocab_size": {
+      "end": 608,
+      "length": 32,
+      "start": 576
+    },
+    "pfir10.deterministic": {
+      "end": 576,
+      "length": 33,
+      "start": 543
+    },
+    "pfir10.recipe": {
+      "end": 543,
+      "length": 59,
+      "start": 484
+    },
+    "tokenizer.chat_template": {
+      "end": 5359,
+      "length": 212,
+      "start": 5147
+    },
+    "tokenizer.chat_template.strict": {
+      "end": 5696,
+      "length": 337,
+      "start": 5359
+    },
+    "tokenizer.chat_template.tools": {
+      "end": 6082,
+      "length": 386,
+      "start": 5696
+    },
+    "tokenizer.ggml.add_bos_token": {
+      "end": 5062,
+      "length": 41,
+      "start": 5021
+    },
+    "tokenizer.ggml.add_eos_token": {
+      "end": 5103,
+      "length": 41,
+      "start": 5062
+    },
+    "tokenizer.ggml.add_space_prefix": {
+      "end": 5147,
+      "length": 44,
+      "start": 5103
+    },
+    "tokenizer.ggml.bos_token_id": {
+      "end": 4841,
+      "length": 43,
+      "start": 4798
+    },
+    "tokenizer.ggml.eos_token_id": {
+      "end": 4884,
+      "length": 43,
+      "start": 4841
+    },
+    "tokenizer.ggml.eot_token_id": {
+      "end": 4927,
+      "length": 43,
+      "start": 4884
+    },
+    "tokenizer.ggml.merges": {
+      "end": 4798,
+      "length": 45,
+      "start": 4753
+    },
+    "tokenizer.ggml.model": {
+      "end": 983,
+      "length": 44,
+      "start": 939
+    },
+    "tokenizer.ggml.padding_token_id": {
+      "end": 5021,
+      "length": 47,
+      "start": 4974
+    },
+    "tokenizer.ggml.pre": {
+      "end": 1026,
+      "length": 43,
+      "start": 983
+    },
+    "tokenizer.ggml.token_type": {
+      "end": 4753,
+      "length": 1101,
+      "start": 3652
+    },
+    "tokenizer.ggml.tokens": {
+      "end": 3652,
+      "length": 2626,
+      "start": 1026
+    },
+    "tokenizer.ggml.unknown_token_id": {
+      "end": 4974,
+      "length": 47,
+      "start": 4927
+    }
+  },
+  "tensor_data": {
+    "blk.0.attn_k.weight": {
+      "end": 24192,
+      "length": 256,
+      "start": 23936
+    },
+    "blk.0.attn_norm.weight": {
+      "end": 23680,
+      "length": 32,
+      "start": 23648
+    },
+    "blk.0.attn_output.weight": {
+      "end": 24704,
+      "length": 256,
+      "start": 24448
+    },
+    "blk.0.attn_q.weight": {
+      "end": 23936,
+      "length": 256,
+      "start": 23680
+    },
+    "blk.0.attn_v.weight": {
+      "end": 24448,
+      "length": 256,
+      "start": 24192
+    },
+    "blk.0.ffn_down.weight": {
+      "end": 26272,
+      "length": 512,
+      "start": 25760
+    },
+    "blk.0.ffn_gate.weight": {
+      "end": 25248,
+      "length": 512,
+      "start": 24736
+    },
+    "blk.0.ffn_norm.weight": {
+      "end": 24736,
+      "length": 32,
+      "start": 24704
+    },
+    "blk.0.ffn_up.weight": {
+      "end": 25760,
+      "length": 512,
+      "start": 25248
+    },
+    "output.weight": {
+      "end": 23648,
+      "length": 8416,
+      "start": 15232
+    },
+    "output_norm.weight": {
+      "end": 15232,
+      "length": 32,
+      "start": 15200
+    },
+    "token_embd.weight": {
+      "end": 15200,
+      "length": 8416,
+      "start": 6784
+    }
+  },
+  "tensor_data_start": 6784,
+  "tensor_info": {
+    "blk.0.attn_k.weight": {
+      "end": 6414,
+      "offset_field_start": 6406,
+      "relative_offset": 17152,
+      "start": 6355
+    },
+    "blk.0.attn_norm.weight": {
+      "end": 6296,
+      "offset_field_start": 6288,
+      "relative_offset": 16864,
+      "start": 6242
+    },
+    "blk.0.attn_output.weight": {
+      "end": 6537,
+      "offset_field_start": 6529,
+      "relative_offset": 17664,
+      "start": 6473
+    },
+    "blk.0.attn_q.weight": {
+      "end": 6355,
+      "offset_field_start": 6347,
+      "relative_offset": 16896,
+      "start": 6296
+    },
+    "blk.0.attn_v.weight": {
+      "end": 6473,
+      "offset_field_start": 6465,
+      "relative_offset": 17408,
+      "start": 6414
+    },
+    "blk.0.ffn_down.weight": {
+      "end": 6771,
+      "offset_field_start": 6763,
+      "relative_offset": 18976,
+      "start": 6710
+    },
+    "blk.0.ffn_gate.weight": {
+      "end": 6651,
+      "offset_field_start": 6643,
+      "relative_offset": 17952,
+      "start": 6590
+    },
+    "blk.0.ffn_norm.weight": {
+      "end": 6590,
+      "offset_field_start": 6582,
+      "relative_offset": 17920,
+      "start": 6537
+    },
+    "blk.0.ffn_up.weight": {
+      "end": 6710,
+      "offset_field_start": 6702,
+      "relative_offset": 18464,
+      "start": 6651
+    },
+    "output.weight": {
+      "end": 6242,
+      "offset_field_start": 6234,
+      "relative_offset": 8448,
+      "start": 6189
+    },
+    "output_norm.weight": {
+      "end": 6189,
+      "offset_field_start": 6181,
+      "relative_offset": 8416,
+      "start": 6139
+    },
+    "token_embd.weight": {
+      "end": 6139,
+      "offset_field_start": 6131,
+      "relative_offset": 0,
+      "start": 6082
+    }
+  }
+}

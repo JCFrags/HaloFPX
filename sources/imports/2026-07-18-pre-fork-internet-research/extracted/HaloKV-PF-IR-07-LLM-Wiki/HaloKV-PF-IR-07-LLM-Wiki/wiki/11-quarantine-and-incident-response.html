@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Quarantine and incident response Detection classes Class Examples Immediate serving behavior Object authentication failure Tag failure, AAD mismatch, wrong key, CID mismatch, malfo…">
+  <title>Quarantine and incident response · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link active" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Quarantine and incident response</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Quarantine and incident response</h1>
+<h2 id="detection-classes">Detection classes<a class="heading-anchor" href="#detection-classes" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Class</th>
+  <th>Examples</th>
+  <th>Immediate serving behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Object-authentication failure</td>
+  <td>Tag failure, AAD mismatch, wrong key, CID mismatch, malformed envelope</td>
+  <td><code>MISS_RECOMPUTE</code>; remove from serving index; quarantine only if evidence policy requires</td>
+</tr>
+<tr>
+  <td>Freshness failure</td>
+  <td>Old generation, revoked epoch, superseded manifest, tombstoned object</td>
+  <td><code>MISS_RECOMPUTE</code>; preserve metadata for rollback investigation</td>
+</tr>
+<tr>
+  <td>Nonce/key incident</td>
+  <td>Suspected reuse, counter rollback, exposed rank key, unauthorized unwrap</td>
+  <td>Stop affected epoch reads/writes; new epoch; quarantine affected ciphertext</td>
+</tr>
+<tr>
+  <td>Lower-layer integrity failure</td>
+  <td>dm-integrity I/O error, filesystem corruption, LUKS header anomaly</td>
+  <td>Stop affected volume; do not “repair” object authentication; image/evidence as authorized</td>
+</tr>
+<tr>
+  <td>Principal/policy incident</td>
+  <td>Wrong tenant mapping, over-broad dedup scope, unauthorized public promotion</td>
+  <td>Stop affected scopes; revoke policy/key access; audit every touched manifest/object</td>
+</tr>
+<tr>
+  <td>Publisher compromise</td>
+  <td>Validly authenticated but malicious public/system content</td>
+  <td>Revoke publication generation/key; advance rollback floor; remove system prefix from serving</td>
+</tr>
+<tr>
+  <td>Deletion/backup incident</td>
+  <td>Deleted content restored, unexpected snapshot/header backup, failed destroy</td>
+  <td>Isolate copy; preserve chain of custody; update key-copy and retention inventory</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="quarantine-properties">Quarantine properties<a class="heading-anchor" href="#quarantine-properties" aria-label="Link to section">#</a></h2>
+<p>Quarantine is a separate non-serving security domain:</p>
+<ul>
+<li>separate path, storage account, credentials, and encryption key;</li>
+<li>no lookup path, symlink, bind mount, object-store alias, or manifest pointer reachable by normal cache service;</li>
+<li>ciphertext preserved by default; plaintext extraction only in an authorized analysis environment;</li>
+<li>immutable intake record with source path, hashes, detection reason, time, rank, scope, epoch, and collector;</li>
+<li>retention deadline or incident/legal-hold authority;</li>
+<li>access logging and least privilege;</li>
+<li>disposition action: release only through revalidation/re-encryption, delete logically, CE under stated scope, or media process.</li>
+</ul>
+<p>Quarantine is not a place to bypass failed authentication. An analyst may inspect raw bytes, but the serving system never consumes unauthenticated content from it.</p>
+<h2 id="incident-sequence">Incident sequence<a class="heading-anchor" href="#incident-sequence" aria-label="Link to section">#</a></h2>
+<ol>
+<li><strong>Contain:</strong> stop admission and serving for the affected scope/epoch; preserve the authoritative recomputation path if trustworthy.</li>
+<li><strong>Classify:</strong> key compromise, nonce uncertainty, object corruption, replay, lower-layer failure, authority error, publisher compromise, or deletion failure.</li>
+<li><strong>Preserve:</strong> collect ciphertext, manifests, key IDs—not plaintext keys—logs, KMS audit, allocator state, host/mapping status, and hashes under chain of custody.</li>
+<li><strong>Revoke:</strong> disable unwrap/derive authorization; mark epoch/key <code>COMPROMISED</code>; revoke principal/publisher credentials as applicable.</li>
+<li><strong>Drain:</strong> terminate workers, close files/mappings, remove fscrypt/kernel keys where configured, and record any incomplete busy state.</li>
+<li><strong>Re-key:</strong> establish a new rank/namespace epoch with fresh key and nonce allocator identity. Never resume uncertain state.</li>
+<li><strong>Invalidate:</strong> advance trusted epoch/generation floors; publish tombstone/revocation records; remove affected entries from serving indexes.</li>
+<li><strong>Recover:</strong> recompute from trusted source or authenticate and re-encrypt only through quarantine import into the new context.</li>
+<li><strong>Assess copies:</strong> backups, snapshots, LUKS headers, detached headers, KMS replicas, escrow, exports, crash dumps, swap, and peer copies.</li>
+<li><strong>Communicate:</strong> notify accountable tenant/key/publisher owners according to incident policy; do not overstate erasure.</li>
+<li><strong>Close:</strong> document cause, affected scope, dwell window, key/nonce usage, residual risk, and corrective controls; update test vectors/runbooks.</li>
+</ol>
+<p><span class="claim-label" data-claim="PFIR07-C070" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C070][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C031-C033,C040,C058-C065]</span></p>
+<h2 id="failure-to-miss-mapping">Failure-to-miss mapping<a class="heading-anchor" href="#failure-to-miss-mapping" aria-label="Link to section">#</a></h2>
+<p>Externally, every invalid object maps to the same result. Internally:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Internal reason</th>
+  <th>Security action</th>
+  <th>Serving result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>KEY_NOT_AUTHORIZED</code></td>
+  <td>Audit denied key request; no broad key search</td>
+  <td><code>MISS_RECOMPUTE</code></td>
+</tr>
+<tr>
+  <td><code>KEY_REVOKED</code></td>
+  <td>Enforce epoch floor; investigate stale index</td>
+  <td><code>MISS_RECOMPUTE</code></td>
+</tr>
+<tr>
+  <td><code>FORMAT_BOUNDS</code></td>
+  <td>Quarantine/delete malformed object; increment abuse metric</td>
+  <td><code>MISS_RECOMPUTE</code></td>
+</tr>
+<tr>
+  <td><code>AAD_EXPECTED_DIFFERENT</code></td>
+  <td>Investigate path/rank/tenant substitution</td>
+  <td><code>MISS_RECOMPUTE</code></td>
+</tr>
+<tr>
+  <td><code>AEAD_TAG_FAIL</code></td>
+  <td>Quarantine sample/evidence; invalidate candidate</td>
+  <td><code>MISS_RECOMPUTE</code></td>
+</tr>
+<tr>
+  <td><code>CID_FAIL</code></td>
+  <td>Treat as semantic corruption/bug; invalidate candidate</td>
+  <td><code>MISS_RECOMPUTE</code></td>
+</tr>
+<tr>
+  <td><code>REPLAY_FLOOR</code></td>
+  <td>Preserve old generation metadata; enforce tombstone</td>
+  <td><code>MISS_RECOMPUTE</code></td>
+</tr>
+<tr>
+  <td><code>OBJECT_MISSING</code></td>
+  <td>Remove stale manifest entry or rebuild generation</td>
+  <td><code>MISS_RECOMPUTE</code></td>
+</tr>
+<tr>
+  <td><code>UNSUPPORTED_CRITICAL_EXTENSION</code></td>
+  <td>Format-policy miss; no best-effort parsing</td>
+  <td><code>MISS_RECOMPUTE</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Reason detail is not returned to the tenant-facing caller. Aggregate observability must avoid key IDs, CIDs, plaintext, nonces paired with keys, and tenant-crossing timing oracles.</p>
+<h2 id="public-system-incident">Public/system incident<a class="heading-anchor" href="#public-system-incident" aria-label="Link to section">#</a></h2>
+<p>A compromised publisher can create cryptographically valid harmful content. Response requires publication-key/credential revocation, generation rollback floor, manifest withdrawal, new publisher epoch/key, review of source provenance, and tenant notification according to impact. Object AEAD or a signature does not prove semantic safety.</p>
+<h2 id="availability-during-incident">Availability during incident<a class="heading-anchor" href="#availability-during-incident" aria-label="Link to section">#</a></h2>
+<p>Fail-closed behavior may create a recomputation surge. Use per-scope admission control, duplicate-work coalescing only within the same authorized scope, backoff, quotas, and circuit breakers. Never relax tag/AAD/freshness checks to preserve hit rate.</p>
+<p><span class="claim-label" data-claim="PFIR07-C063" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C063][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C030,C034,C058-C059]</span></p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

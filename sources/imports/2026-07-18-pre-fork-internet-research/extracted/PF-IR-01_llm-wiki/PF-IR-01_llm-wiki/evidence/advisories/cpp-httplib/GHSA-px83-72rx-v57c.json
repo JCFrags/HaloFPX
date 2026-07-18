@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-px83-72rx-v57c",
+  "title": "Unbounded memory allocation in chunked/no-length requests",
+  "severity": "High",
+  "affected_versions": "<=0.20.0",
+  "patched_versions": "0.20.1",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-px83-72rx-v57c",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "read_content_chunked/body stream",
+    "precondition": "Server receives unterminated chunked or no-length body"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "dcd7a86c1b59aa4f09007081a5a87e3ee0296e499b929f23733f272bd1fe3813"
+}

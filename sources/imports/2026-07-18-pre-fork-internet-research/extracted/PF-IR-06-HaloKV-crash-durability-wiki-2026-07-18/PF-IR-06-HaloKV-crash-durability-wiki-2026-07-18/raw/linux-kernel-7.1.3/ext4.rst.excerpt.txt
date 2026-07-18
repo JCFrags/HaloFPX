@@ -1,0 +1,41 @@
+---
+source_id: "S002"
+title: "Linux ext4 documentation"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "gregkh/linux mirror of Linux stable"
+path: "Documentation/admin-guide/ext4.rst"
+version: "Linux 7.1.3"
+commit: "199c9959d3a9b53f346c221757fc7ac507fbac50"
+upstream_blob_sha1: "ac0c709ea9e7c1f15475b7f0b7b550968f3fdbc0"
+line_ranges: "157-205, 280-289, 319-330, 399-425"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "GPL-2.0"
+---
+SPDX-License-Identifier: GPL-2.0
+
+  data=journal
+        All data are committed into the journal prior to being written into the
+        main file system.  Enabling this mode will disable delayed allocation
+        and O_DIRECT support.
+
+  data=ordered (*)
+        All data are forced directly out to the main file system prior to its
+        metadata being committed to the journal.
+
+  data=writeback
+        Data ordering is not preserved, data may be written into the main file
+        system after its metadata has been committed to the journal.
+
+  delalloc (*)
+        Defer block allocation until just before ext4 writes out the block(s)
+        in question.
+
+  auto_da_alloc(*), noauto_da_alloc
+        Many broken applications don't use fsync() when replacing existing
+        files via patterns such as fd = open("foo.new")/write(fd,..)/close(fd)/
+        rename("foo.new", "foo") ... If auto_da_alloc is enabled, ext4
+        will detect the replace-via-rename and replace-via-truncate patterns
+        and force that any delayed allocation blocks are allocated ... This
+        provides roughly the same level of guarantees as ext3, and avoids the
+        "zero-length" problem ...

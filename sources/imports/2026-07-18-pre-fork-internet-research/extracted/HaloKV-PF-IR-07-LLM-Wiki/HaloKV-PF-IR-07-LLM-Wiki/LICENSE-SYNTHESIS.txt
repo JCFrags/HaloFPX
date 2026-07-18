@@ -1,0 +1,12 @@
+HaloKV PF-IR-07 synthesis license notice
+========================================
+
+The original synthesis, matrices, schemas, runbooks, and static-wiki code in
+this bundle are provided under the Creative Commons Attribution 4.0
+International license (CC BY 4.0), excluding all third-party source material.
+
+Third-party standards, documentation, trademarks, and copied source files are
+not relicensed. They remain subject to the notices and licenses identified in
+`sources/LICENSE-METADATA.md`, the source documents, and `THIRD_PARTY_NOTICES.md`.
+No patent license, certification, compliance representation, or warranty is
+granted.

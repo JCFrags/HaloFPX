@@ -1,0 +1,20 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-DSV31-PUBLISHER
+authority: publisher
+capture_type: rendered_text_extract
+source_title: deepseek-ai/DeepSeek-V3.1
+source_url: https://huggingface.co/deepseek-ai/DeepSeek-V3.1/tree/c0781d039fb7a1ba2abc4add0bdc293e92d2b8db
+immutable_revision: c0781d039fb7a1ba2abc4add0bdc293e92d2b8db
+accessed_at: 2026-07-18
+completeness: SELECTED_FACTS
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Normalized publisher facts:
+- 671B total parameters; 37B activated; 128K model-card context.
+- Hybrid thinking and non-thinking behavior selected through chat-template construction.
+- Structured tool-call token format with JSON arguments is documented.
+- Model structure is stated to match DeepSeek-V3; license is MIT.
+- Official repository tree observed at about 689 GB with 163 safetensor shards.
+
+No local fit, load, quality, context, or tool-use result is included.

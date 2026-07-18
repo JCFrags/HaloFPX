@@ -1,0 +1,58 @@
+function cache_read(request, locator):
+    # Authorization happens before scope/index lookup.
+    authz = principal_authority.authorize(
+        request.principal,
+        request.authority_id,
+        request.tenant_id,
+        request.project_id,
+        request.prefix_id,
+        request.namespace_id,
+        request.sharing_class,
+        action="cache-read")
+    if not authz.allowed:
+        return MISS_RECOMPUTE
+
+    candidate = scope_index(authz.scope).lookup(locator)
+    if candidate is NONE:
+        return MISS_RECOMPUTE
+
+    try:
+        outer = parse_fixed_bounded_header(candidate)
+        enforce_suite_and_size_policy(outer)
+
+        policy = trusted_policy.load(authz.scope)
+        enforce_epoch_generation_tombstone_policy(outer, policy)
+
+        expected_aad = canonical_aad_from(
+            trusted_request=authz,
+            manifest_entry=policy.accepted_manifest.entry(locator),
+            bounded_header=outer)
+        require_constant_bytes_equal(outer.aad_bytes, encode_deterministic(expected_aad))
+
+        key = key_broker.open_exact_key(
+            request.principal, outer.key_id, expected_context=expected_aad.key_context)
+
+        plaintext = AEAD_OPEN(
+            suite=outer.suite,
+            key=key,
+            nonce=outer.nonce,
+            aad=outer.aad_bytes,
+            ciphertext=outer.ciphertext,
+            tag=outer.tag)
+        # AEAD_OPEN returns plaintext or raises authentication failure.
+
+        require(HMAC_SHA256(K_id, CID_LABEL || canonical_semantics(plaintext))
+                == expected_aad.scoped_cid)
+
+        value = bounded_decompress_and_deserialize(
+            plaintext,
+            compression=expected_aad.compression_id,
+            codec=expected_aad.codec_id,
+            expected_length=expected_aad.uncompressed_length)
+        return CACHE_HIT(value)
+
+    except any_cache_validation_error as e:
+        protected_security_event(normalize_reason(e), external_result="MISS_RECOMPUTE")
+        remove_candidate_from_serving_index(candidate)
+        quarantine_if_policy_requires(candidate, e)
+        return MISS_RECOMPUTE

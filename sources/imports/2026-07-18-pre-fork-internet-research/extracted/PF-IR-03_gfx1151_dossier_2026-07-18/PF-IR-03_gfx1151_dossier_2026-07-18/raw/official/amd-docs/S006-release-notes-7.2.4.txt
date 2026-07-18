@@ -1,0 +1,12 @@
+CAPTURE_TYPE: structured primary-source excerpt (not a full mirror)
+SOURCE_ID: S006
+SOURCE_URL: https://rocm.docs.amd.com/en/docs-7.2.4/about/release-notes.html
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn619120view5
+LINE_LOCATORS: 135-177 and component table in the same page
+CAPTURED_FACTS:
+- Published: 2026-05-29.
+- 7.2.4 is a quality release focused on Instinct inference performance/stability fixes.
+- Component versions are inherited from the 7.2.3 section; relevant values are materialized in manifests/components.*.
+- Known issue: minor MIGraphX int8 performance regression.
+- Deprecations include ROCTracer/ROCProfiler/rocprof tools, ROCm SMI and ROCm object tooling.

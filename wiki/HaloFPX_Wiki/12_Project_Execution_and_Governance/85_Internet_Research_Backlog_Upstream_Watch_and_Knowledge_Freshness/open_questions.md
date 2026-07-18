@@ -37,11 +37,9 @@ All items are **[OPEN]**. No empty feed, unavailable proprietary erratum, issue 
 
 ## Immediate Internet follow-up
 
-1. Map current Linux 7.2 USB4STREAM commits to distro package/backport candidates and follow the relevant kernel mailing-list threads.
-2. Diff ROCm 7.2.3, its gfx1151 support matrix, and any applicable preview lane at component—not umbrella-version—granularity.
-3. Build path/symbol watch lists from Sections 12-15, 23-24, 29-37, 50, and 56-63.
-4. After OQ85-01, register exact OEM/LVFS/AMD bulletin queries and preserve revision history.
-5. Define full model artifact manifests for the five Section 29 pins and monitor publisher revision/gating/license metadata.
+1. Receive PF-IR-04, the remaining donor/test-asset/release-artifact licensing and provenance package.
+2. Revalidate a returned package's exact primary sources only when its candidate is selected for a build, release, security, firmware, or destructive-test decision.
+3. Continue the registered freshness feeds; returned research is a dated snapshot, not a replacement for monitoring.
 
 ## Decisions contingent on closure
 

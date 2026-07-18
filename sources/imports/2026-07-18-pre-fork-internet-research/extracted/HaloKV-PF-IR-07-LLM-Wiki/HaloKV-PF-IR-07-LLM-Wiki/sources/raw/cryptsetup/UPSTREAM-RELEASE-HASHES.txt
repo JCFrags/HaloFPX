@@ -1,0 +1,16 @@
+cryptsetup upstream release record
+==================================
+
+Selected stable release: cryptsetup 2.8.6
+Release date shown by official release archive: 2026-04-02
+Release tag used for selected documentation: v2.8.6
+Official upstream cryptsetup-2.8.6.tar.xz SHA-256:
+8004265fd993885d08f7b633dbe056851de1a210307613a4ebddc743fccefe5a
+Access date: 2026-07-18
+
+The selected release notes and AsciiDoc manual sources in this directory are
+preserved separately and are covered by this bundle's SHA-256 source manifest.
+The release tarball and detached signature were not embedded or independently
+verified in this research run because the available download transport did not
+provide the archive bytes. Consequently, this bundle records, but does not
+claim to have verified, the upstream release hash or signature.

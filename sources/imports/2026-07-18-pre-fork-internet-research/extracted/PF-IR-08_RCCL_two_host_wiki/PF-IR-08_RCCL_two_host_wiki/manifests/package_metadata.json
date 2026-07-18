@@ -1,0 +1,14 @@
+{
+  "audit_id": "PF-IR-08",
+  "generated_at": "2026-07-18",
+  "active_head": "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab",
+  "active_audit_base": "3dddea1389e5d28e84fe2c29f50450f00b7474a1",
+  "stable_7_2_commit": "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4",
+  "claim_count": 54,
+  "source_manifest_count": 42,
+  "package_file_count": 88,
+  "integrity_manifest": "manifests/SHA256SUMS",
+  "suitability_status": "machine evidence required",
+  "raw_evidence_count": 8,
+  "raw_blob_verification": "all matched"
+}

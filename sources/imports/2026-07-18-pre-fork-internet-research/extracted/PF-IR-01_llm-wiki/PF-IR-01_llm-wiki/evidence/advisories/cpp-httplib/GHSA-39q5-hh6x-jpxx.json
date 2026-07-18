@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-39q5-hh6x-jpxx",
+  "title": "Client crash on malformed Content-Length",
+  "severity": "Moderate",
+  "affected_versions": "<=0.37.0",
+  "patched_versions": "0.37.1",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-39q5-hh6x-jpxx",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "Content-Length parser",
+    "precondition": "HTTP client receives malformed length"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "909c23a9fa948edaaaceca7179ade605950ee435d89befe413df2fb97ec3d80a"
+}

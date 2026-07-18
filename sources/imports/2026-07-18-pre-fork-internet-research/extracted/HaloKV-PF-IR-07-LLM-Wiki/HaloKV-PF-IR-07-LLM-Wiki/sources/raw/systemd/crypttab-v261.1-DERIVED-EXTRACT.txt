@@ -1,0 +1,37 @@
+DERIVATIVE TEXT EXTRACT — NOT A BYTE-IDENTICAL COPY OF crypttab.xml
+===================================================================
+
+Upstream project: systemd
+Release tag: v261.1
+Release date: 2026-06-26
+Tag commit: eff9446d505d62c075bed37d606860b38cfe51fb
+Upstream file: man/crypttab.xml
+Git blob SHA-1: 38ba4ceafbe80aead3025bc0866a3573a0a36ad5
+Access date: 2026-07-18
+License identifier in source: LGPL-2.1-or-later
+
+Archival limitation
+-------------------
+The source was inspected through the connected GitHub repository service at the
+release tag above. The file-download transport available to this research run
+rejected the XML media type, so this bundle does not claim to contain a
+byte-identical raw copy. The exact tag, commit, path, blob identifier, license,
+and upstream URL are retained in sources/catalog.csv and sources/catalog.json.
+The full tagged source should be re-fetched and its blob identifier checked
+before treating a local copy as evidentiary raw source.
+
+Selected source-faithful facts used in the analysis
+---------------------------------------------------
+* /etc/crypttab describes encrypted block devices set up during system boot.
+* Unlock material may be entered interactively, read from a file, requested
+  through an AF_UNIX socket, or obtained through PKCS#11, FIDO2, or TPM2 flows.
+* noauto can suppress automatic activation. nofail can allow boot to continue
+  when activation fails. headless disallows interactive credential queries.
+* password-cache controls temporary caching of interactively entered passwords
+  or PINs by systemd's password-agent infrastructure.
+* link-volume-key can link a LUKS2 volume key into a kernel keyring; the source
+  warns that the key is not automatically removed when the device is detached.
+* discard passes discard requests through and the source states that it has
+  security implications.
+
+This extract is a research aid, not a substitute for the tagged source file.

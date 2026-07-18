@@ -1,0 +1,14 @@
+CAPTURE_TYPE: structured primary-source excerpt (not a full mirror)
+SOURCE_ID: S004
+SOURCE_URL: https://rocm.docs.amd.com/en/docs-7.14.0/about/release-notes.html
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn890393view0; turn890393view1; turn890393view2; turn890393view3
+CAPTURED_FACTS:
+- Added gfx1151 support includes Ryzen AI MAX+ PRO 495, MAX PRO 490 and MAX PRO 485.
+- RCCL 2.30.4 is listed for Linux Instinct/Radeon/Ryzen.
+- vLLM 0.23.0 lists gfx1151; the SGLang 0.5.13 validated target list does not.
+KNOWN_ISSUES:
+- Lower LLM inference performance may be mitigated with TORCH_BLAS_PREFER_HIPBLASLT=1 for affected PyTorch versions.
+- gfx1151 TCP_REQ_sum/GL0 counters report zero; max_mclk-derived bandwidth can be incorrect without correction.
+- RCCL 64–512 MB multi-node operations can underperform; the documented build workaround disables FAULT_INJECTION.
+- RDNA3.5 gfx115x roofline support is listed as upcoming.

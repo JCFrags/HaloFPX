@@ -1,0 +1,164 @@
+[
+  {
+    "title": "HaloKV PF-IR-07 LLM Wiki",
+    "section": "Home",
+    "path": "index.html",
+    "summary": "Decision package for rank-local persistent cache encryption, tenant identity, key lifecycle, deduplication, backup, deletion, and residual risks."
+  },
+  {
+    "title": "PF-IR-07 decision record",
+    "section": "Research wiki",
+    "path": "wiki/00-decision-record.html",
+    "summary": "PF IR 07 decision record Status: Proposed standards backed option set for OPEN SCOPE 01 Priority: P1 Research access date: 2026 07 18 Bundle version: 1.0.0 Decision HaloKV's minimum multi user persistent cache profile us…"
+  },
+  {
+    "title": "Threat model and invariant",
+    "section": "Research wiki",
+    "path": "wiki/01-threat-model.html",
+    "summary": "Threat model and invariant System model HaloKV is treated as a non authoritative, rank local persistent cache . Correctness comes from recomputation or retrieval through an authoritative pipeline. Persistent entries may…"
+  },
+  {
+    "title": "fscrypt, LUKS/dm-crypt, and object AEAD",
+    "section": "Research wiki",
+    "path": "wiki/02-option-comparison.html",
+    "summary": "fscrypt, LUKS/dm crypt, and object AEAD Comparative conclusion The three mechanisms enforce controls at different abstraction layers: fscrypt is a filesystem policy/key domain mechanism. It is useful for selective offlin…"
+  },
+  {
+    "title": "Tenant identity, principal binding, and key hierarchy",
+    "section": "Research wiki",
+    "path": "wiki/03-identity-and-key-hierarchy.html",
+    "summary": "Tenant identity, principal binding, and key hierarchy Identity is an authority decision Cryptographic keys do not decide who a tenant is. HaloKV accepts only immutable, authority issued identifiers and an authorization a…"
+  },
+  {
+    "title": "Object AEAD, nonce allocation, and associated data",
+    "section": "Research wiki",
+    "path": "wiki/04-object-aead-and-nonces.html",
+    "summary": "Object AEAD, nonce allocation, and associated data Algorithm profile The minimum profile permits two primary suites, each with a 128 bit authentication tag: Suite ID Algorithm Nonce Local policy HKV1 A256GCM AES 256 GCM…"
+  },
+  {
+    "title": "Content addressing, deduplication, identifiers, and manifests",
+    "section": "Research wiki",
+    "path": "wiki/05-content-addressing-and-dedup.html",
+    "summary": "Content addressing, deduplication, identifiers, and manifests Why a raw global digest is unsafe for private cache content A public unkeyed digest of canonical plaintext allows any observer who can query or inspect the in…"
+  },
+  {
+    "title": "Key storage, unlock, and boot behavior",
+    "section": "Research wiki",
+    "path": "wiki/06-key-storage-unlock-and-boot.html",
+    "summary": "Key storage, unlock, and boot behavior Storage model by key class Key class Long term location Runtime exposure Prohibited location Authority/root KEK KMS/HSM or equivalent controlled key authority Never delivered to ran…"
+  },
+  {
+    "title": "Rotation, revocation, peer separation, and process retention",
+    "section": "Research wiki",
+    "path": "wiki/07-rotation-revocation-and-process-retention.html",
+    "summary": "Rotation, revocation, peer separation, and process retention Rotation taxonomy Operation Changes Does not necessarily change LUKS passphrase/keyslot change Credential/KDF wrapper for a volume key Payload volume key or ci…"
+  },
+  {
+    "title": "Crash recovery, immutable writes, and manifests",
+    "section": "Research wiki",
+    "path": "wiki/08-crash-recovery-and-manifests.html",
+    "summary": "Crash recovery, immutable writes, and manifests Object write protocol HaloKV objects are immutable after publication. A safe local write sequence is: 1. Authorize principal and scope; obtain exact rank epoch keys. 2. Can…"
+  },
+  {
+    "title": "Backup, restore, snapshots, and export",
+    "section": "Research wiki",
+    "path": "wiki/09-backup-restore-and-export.html",
+    "summary": "Backup, restore, snapshots, and export Default: do not back up regenerable cache content Persistent cache backup increases secret copy inventory, rollback risk, deletion propagation, and restore complexity. The default i…"
+  },
+  {
+    "title": "Logical deletion, cryptographic erasure, discard, and media sanitization",
+    "section": "Research wiki",
+    "path": "wiki/10-deletion-cryptographic-erasure-and-media.html",
+    "summary": "Logical deletion, cryptographic erasure, discard, and media sanitization Terms must remain distinct Term HaloKV meaning Evidence allowed Prohibited wording Logical deletion Remove authorization, serving indexes/manifests…"
+  },
+  {
+    "title": "Quarantine and incident response",
+    "section": "Research wiki",
+    "path": "wiki/11-quarantine-and-incident-response.html",
+    "summary": "Quarantine and incident response Detection classes Class Examples Immediate serving behavior Object authentication failure Tag failure, AAD mismatch, wrong key, CID mismatch, malformed envelope MISS RECOMPUTE ; remove fr…"
+  },
+  {
+    "title": "Minimum multi-user persistent-cache security profile",
+    "section": "Research wiki",
+    "path": "wiki/12-minimum-security-profile.html",
+    "summary": "Minimum multi user persistent cache security profile Normative language HALOKV MUST and HALOKV SHOULD are local profile labels , not IETF/NIST normative statements and not compliance claims. They define the proposed mini…"
+  },
+  {
+    "title": "Residual-risk ledger and unsupported claims",
+    "section": "Research wiki",
+    "path": "wiki/13-residual-risks-and-unsupported.html",
+    "summary": "Residual risk ledger and unsupported claims Residual risks Encryption narrows specific threat boundaries; it does not eliminate policy, implementation, online compromise, side channel, backup, or media uncertainty. Each…"
+  },
+  {
+    "title": "Sources, claim labels, revisions, licenses, and reproducibility",
+    "section": "Research wiki",
+    "path": "wiki/14-sources-claims-and-reproducibility.html",
+    "summary": "Sources, claim labels, revisions, licenses, and reproducibility Evidence rules used 1. Prefer final standards and official kernel/platform/project documentation. 2. Record exact standard revision, release tag, commit/blo…"
+  },
+  {
+    "title": "Validation and adversarial test plan",
+    "section": "Research wiki",
+    "path": "wiki/15-validation-and-test-plan.html",
+    "summary": "Validation and adversarial test plan Cryptographic conformance Run official/known answer tests for every enabled AEAD, HMAC, KDF, and deterministic encoding implementation. Test 128 bit tag enforcement and reject shorter…"
+  },
+  {
+    "title": "RB-01 — Boot, unlock, and cache readiness",
+    "section": "Operational runbooks",
+    "path": "runbooks/RB-01-boot-unlock.html",
+    "summary": "RB 01 — Boot, unlock, and cache readiness Preconditions Approved host/rank identity and workload principal. Current lower layer configuration, key broker trust, and policy hashes. Current tenant/project/prefix epoch floo…"
+  },
+  {
+    "title": "RB-02 — Epoch rotation and revocation",
+    "section": "Operational runbooks",
+    "path": "runbooks/RB-02-epoch-rotation-and-revocation.html",
+    "summary": "RB 02 — Epoch rotation and revocation Trigger classes Scheduled rotation or policy change. Rank replacement, clone prevention, or namespace migration. Principal membership/sharing class change. Suspected key disclosure,…"
+  },
+  {
+    "title": "RB-03 — Nonce-state loss, crash, clone, or snapshot restore",
+    "section": "Operational runbooks",
+    "path": "runbooks/RB-03-nonce-state-loss-and-crash.html",
+    "summary": "RB 03 — Nonce state loss, crash, clone, or snapshot restore Trigger Use this runbook whenever the system cannot prove which nonces were consumed under a specific AEAD key, including allocator corruption, rollback, restor…"
+  },
+  {
+    "title": "RB-04 — Backup exception and quarantine restore",
+    "section": "Operational runbooks",
+    "path": "runbooks/RB-04-backup-and-quarantine-restore.html",
+    "summary": "RB 04 — Backup exception and quarantine restore Backup decision gate The default answer is no cache content backup. An exception requires an approved RPO/RTO, retention, legal hold, key ownership, restore authority, and…"
+  },
+  {
+    "title": "RB-05 — Logical deletion, CE decision, and media disposition",
+    "section": "Operational runbooks",
+    "path": "runbooks/RB-05-deletion-ce-and-media.html",
+    "summary": "RB 05 — Logical deletion, CE decision, and media disposition Phase A — Logical deletion 1. Authorize immutable target scope and check legal hold/retention/shared references. 2. Create authenticated tombstone and advance…"
+  },
+  {
+    "title": "RB-06 — Export and cryptographic scope transition",
+    "section": "Operational runbooks",
+    "path": "runbooks/RB-06-export-and-scope-transition.html",
+    "summary": "RB 06 — Export and cryptographic scope transition Preconditions Source and destination authorities/scopes are explicit. Caller is authorized for source decrypt and destination write. Destination sharing class and publish…"
+  },
+  {
+    "title": "RB-07 — Quarantine and key/object incident",
+    "section": "Operational runbooks",
+    "path": "runbooks/RB-07-quarantine-and-key-incident.html",
+    "summary": "RB 07 — Quarantine and key/object incident Immediate actions 1. Stop serving and writes for the smallest safely identifiable affected scope. 2. Preserve caller facing behavior as MISS RECOMPUTE ; do not expose failure cl…"
+  },
+  {
+    "title": "RB-08 — Busy files, mappings, kernel keys, and process drain",
+    "section": "Operational runbooks",
+    "path": "runbooks/RB-08-fscrypt-luks-busy-drain.html",
+    "summary": "RB 08 — Busy files, mappings, kernel keys, and process drain Goal Bound continued access before declaring key revocation or shutdown complete. This runbook does not claim universal memory wiping. Drain sequence 1. Stop n…"
+  },
+  {
+    "title": "Runbook index",
+    "section": "Operational runbooks",
+    "path": "runbooks/index.html",
+    "summary": "PF IR 07 operational runbooks These runbooks are implementation templates. Replace placeholders with the exact service, filesystem, KMS, cryptsetup, systemd, and media provider procedures in the deployment. Command succe…"
+  },
+  {
+    "title": "README and file map",
+    "section": "Bundle",
+    "path": "readme.html",
+    "summary": "HaloKV PF IR 07 — encryption, tenant identity, key lifecycle, backup, and deletion This folder is a self contained static “LLM Wiki” research bundle for the standards backed option set and residual risk ledger required t…"
+  }
+]

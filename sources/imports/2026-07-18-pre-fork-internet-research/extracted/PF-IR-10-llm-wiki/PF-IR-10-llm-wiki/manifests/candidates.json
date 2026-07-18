@@ -1,0 +1,58 @@
+{
+  "access_date": "2026-07-18",
+  "approval_status": "proposal-not-approved",
+  "candidates": [
+    {
+      "candidate_id": "llama.cpp",
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "commit_evidence": "evidence/raw/commits/llama_cpp.json",
+      "default_branch": "master",
+      "identity_status": "verified",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "repository": "ggml-org/llama.cpp"
+    },
+    {
+      "candidate_id": "ROCmFPX",
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "commit_evidence": "evidence/raw/commits/ROCmFPX.json",
+      "default_branch": "main",
+      "identity_status": "verified",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/ROCmFPX-LICENSE.txt",
+      "repository": "charlie12345/ROCmFPX",
+      "third_party_notice": "evidence/licenses/ROCmFPX-THIRD_PARTY_NOTICES.md"
+    },
+    {
+      "candidate_id": "CachyLLama",
+      "commit": "6be745998f568e379ea197fcf827baec73ff9940",
+      "commit_evidence": "evidence/raw/commits/CachyLLama.json",
+      "default_branch": "master",
+      "identity_status": "verified",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/CachyLLama-LICENSE.txt",
+      "repository": "fewtarius/CachyLLama"
+    },
+    {
+      "candidate_id": "HaloFPX",
+      "claim_labels": [
+        "UNVERIFIED-IDENTITY",
+        "OPEN-QUESTION"
+      ],
+      "commit": null,
+      "commit_evidence": "evidence/raw/commits/HaloFPX.json",
+      "default_branch": null,
+      "identity_status": "open",
+      "license": null,
+      "license_evidence": null,
+      "repository": null,
+      "rule": "All applicability remains open; do not infer a substitute repository."
+    }
+  ],
+  "claim_labels": [
+    "VERIFIED-SOURCE",
+    "PROPOSAL",
+    "QUALIFICATION-REQUIRED"
+  ],
+  "schema_version": 1
+}

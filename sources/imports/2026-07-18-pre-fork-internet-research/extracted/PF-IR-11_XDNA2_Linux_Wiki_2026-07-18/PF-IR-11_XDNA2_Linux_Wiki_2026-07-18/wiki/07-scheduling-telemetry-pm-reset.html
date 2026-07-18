@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>7. Scheduling, telemetry, power management, and reset boundary — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a class="active" href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/07-scheduling-telemetry-pm-reset.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>7. Scheduling, telemetry, power management, and reset boundary</h1>
+<h2 id="scheduling">Scheduling</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The architecture supports mixed spatial and temporal scheduling of array columns.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The driver resource solver allocates columns using workload metadata and QoS hints; firmware enforces context-to-column binding.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The pinned npu5 definition allows 16 hardware contexts.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> Each hardware context uses a DRM scheduler/entity and fence/sync-object based completion.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The captured implementation defines a default firmware/resource time quantum of 30,000 microseconds and a scheduler timeout path. These implementation values are not product service-level guarantees.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> Cross-process fairness, tail latency under contention, QoS enforcement, and interaction with desktop AI workloads are not measured.</p>
+<h2 id="telemetry">Telemetry</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The pinned UAPI includes:</p>
+<ul>
+<li>firmware version;</li>
+<li>AIE metadata and status;</li>
+<li>clocks;</li>
+<li>power;</li>
+<li>per-column utilization;</li>
+<li>hardware contexts;</li>
+<li>command submissions/completions;</li>
+<li>migrations, preemptions, suspensions, and errors;</li>
+<li>resource information;</li>
+<li>firmware telemetry maps;</li>
+<li>buffer usage and DRM client memory statistics.</li>
+</ul>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD warns that telemetry and array queries may fail when userspace is newer than the loaded in-tree driver.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> Telemetry surface availability is not proof of accuracy, sampling stability, or compatibility with an arbitrary monitoring stack.</p>
+<h2 id="suspend-and-resume">Suspend and resume</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> System suspend stops contexts and hardware.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> Resume starts the hardware, reloads/initializes firmware, and attempts to resume contexts.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> Transparent application behavior across suspend/resume is not validated on the target.</p>
+<p><span class="claim claim-decision">[DECISION]</span> The initial bounded experiment must not claim suspend/resume support. It may record naturally occurring events but must not initiate system suspend.</p>
+<h2 id="error-and-reset-behavior">Error and reset behavior</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> Firmware can report asynchronous errors and capture register state for a faulting context.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The UAPI exposes context errors and fatal-error fields.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> A deterministic, production-safe user-triggered reset/recovery contract was not established from the captured boundary.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> Firmware/driver mismatch is a known source of command aborts and mailbox timeouts.</p>
+<p><span class="claim claim-decision">[DECISION]</span> The read-only probe never resets, reloads, unbinds, suspends, or writes device state. Any experiment encountering a device disappearance, mailbox timeout, command abort, or required module reload fails the stability gate.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

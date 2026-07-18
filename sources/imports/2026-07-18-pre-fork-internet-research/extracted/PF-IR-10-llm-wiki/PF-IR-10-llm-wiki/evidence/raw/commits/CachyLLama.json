@@ -1,0 +1,13 @@
+{
+  "access_date": "2026-07-18",
+  "candidate_id": "CachyLLama",
+  "claim_labels": [
+    "VERIFIED-SOURCE"
+  ],
+  "commit": "6be745998f568e379ea197fcf827baec73ff9940",
+  "commit_created_at": null,
+  "default_branch": "master",
+  "message": "Merge upstream/master: 61 commits (server: SSD checkpoint fix, eviction, SSE ping, /responses timings, prompt cache RAM limit, HTTP CLI, schema validation, UI context gauge, MCP, OpenCL/SYCL/Vulkan backends)",
+  "note": "Commit timestamp was not needed for the asset decision and was not recovered from the connector response; commit identity is exact.",
+  "repository": "fewtarius/CachyLLama"
+}

@@ -1,0 +1,41 @@
+{
+  "messages": [
+    {
+      "content": "Echo A",
+      "role": "user"
+    }
+  ],
+  "model": "pfir10-tiny",
+  "parallel_tool_calls": false,
+  "seed": 1234,
+  "stream": false,
+  "temperature": 0,
+  "tool_choice": {
+    "function": {
+      "name": "echo"
+    },
+    "type": "function"
+  },
+  "tools": [
+    {
+      "function": {
+        "description": "Echo text",
+        "name": "echo",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "text": {
+              "const": "A",
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "function"
+    }
+  ]
+}

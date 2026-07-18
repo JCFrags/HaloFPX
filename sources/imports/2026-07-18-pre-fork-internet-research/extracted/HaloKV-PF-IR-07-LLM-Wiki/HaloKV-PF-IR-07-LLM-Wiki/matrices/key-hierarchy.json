@@ -1,0 +1,83 @@
+[
+  {
+    "level": "0",
+    "name": "Authority root",
+    "example_id": "authority_id",
+    "key_material": "Root KEK or root derivation key in KMS/HSM",
+    "binding": "Organization/security-domain authority",
+    "rotation_scope": "All subordinate domains; avoid direct data encryption",
+    "notes": "Human decision: owner, custody, quorum, escrow."
+  },
+  {
+    "level": "1",
+    "name": "Tenant root",
+    "example_id": "tenant_id",
+    "key_material": "Random tenant root wrapped by authority root, or KDF-isolated tenant branch",
+    "binding": "Immutable tenant UUID from principal authority",
+    "rotation_scope": "All tenant projects/prefixes",
+    "notes": "Do not derive from tenant display name."
+  },
+  {
+    "level": "2",
+    "name": "Project root",
+    "example_id": "project_id",
+    "key_material": "Random/wrapped project root or context-derived branch",
+    "binding": "Immutable project UUID and authorization relation",
+    "rotation_scope": "Project cache",
+    "notes": "Optional if tenant has no project separation; do not omit field silently."
+  },
+  {
+    "level": "3",
+    "name": "Prefix authority",
+    "example_id": "prefix_id",
+    "key_material": "Prefix branch",
+    "binding": "Private prefix, public/system prefix, or service-controlled prefix",
+    "rotation_scope": "Objects under prefix",
+    "notes": "System/public prefix uses a separate authority, not a tenant key."
+  },
+  {
+    "level": "4",
+    "name": "Namespace and sharing class",
+    "example_id": "namespace_id + sharing_class",
+    "key_material": "Namespace branch",
+    "binding": "private-tenant, private-project, public-system, explicit-share-group",
+    "rotation_scope": "Deduplication and authorization domain",
+    "notes": "This level fixes maximum CID/dedup scope."
+  },
+  {
+    "level": "5",
+    "name": "Rank/peer branch",
+    "example_id": "rank_id",
+    "key_material": "Rank root delivered/wrapped to one rank",
+    "binding": "Authority-assigned rank identity",
+    "rotation_scope": "One rank within one namespace",
+    "notes": "Prevents cross-rank ciphertext reuse and partitions nonce state."
+  },
+  {
+    "level": "6",
+    "name": "Epoch",
+    "example_id": "epoch_id",
+    "key_material": "Random epoch root or derived epoch branch",
+    "binding": "Monotonic or random unique epoch identifier",
+    "rotation_scope": "New writes for rank/namespace",
+    "notes": "Old epoch can be read-only during bounded migration; uncertain nonce state requires new epoch."
+  },
+  {
+    "level": "7",
+    "name": "Purpose keys",
+    "example_id": "purpose",
+    "key_material": "K_enc, K_id, K_manifest, optional K_audit; optionally K_wrap",
+    "binding": "Literal versioned purpose labels",
+    "rotation_scope": "One cryptographic purpose",
+    "notes": "Never reuse AEAD key as HMAC/CID/manifest key."
+  },
+  {
+    "level": "8",
+    "name": "Optional per-object DEK",
+    "example_id": "object_id or random DEK id",
+    "key_material": "Random DEK wrapped by K_wrap",
+    "binding": "One object or independently erasable group",
+    "rotation_scope": "Object/group",
+    "notes": "Needed only for fine-grained CE; increases metadata and key-record cost."
+  }
+]

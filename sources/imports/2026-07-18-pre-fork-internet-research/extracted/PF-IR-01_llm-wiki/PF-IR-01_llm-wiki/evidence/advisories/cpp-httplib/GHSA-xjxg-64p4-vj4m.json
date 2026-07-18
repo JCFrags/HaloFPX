@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-xjxg-64p4-vj4m",
+  "title": "Percent-decoded header CRLF injection",
+  "severity": "High",
+  "affected_versions": "<=0.43.4",
+  "patched_versions": "0.44.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-xjxg-64p4-vj4m",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "header decoding/validation",
+    "precondition": "Encoded CR/LF reaches header parsing"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "f2d92a35d48c4318ddf3c75e2992f3d1d0fa4772fa6b241d4161907cde39a343"
+}

@@ -1,0 +1,16 @@
+{
+  "project": "PF-IR-02",
+  "as_of": "2026-07-18",
+  "decision": {
+    "source_qualification_candidate": "K3: Linux v7.2-rc3 plus accepted one-line DMA-unmap correction",
+    "package_content_candidate": "K5: exact-hash CachyOS linux-cachyos-rc 7.2.rc3-1",
+    "abi_target": "CONFIG_USB4_STREAM + ConfigFS + /dev/tbstreamX",
+    "mptcp_fallback_boundary": "initial negotiation/passive acceptance are distinct from additional-subflow failure",
+    "machine_tests_performed": false
+  },
+  "counts": {
+    "sources": 31,
+    "claims": 70,
+    "machine_tested_claims": 0
+  }
+}

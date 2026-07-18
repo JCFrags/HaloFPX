@@ -1,0 +1,38 @@
+{
+  "bundle": "HaloKV PF-IR-07 LLM Wiki",
+  "version": "1.0.0",
+  "build_date": "2026-07-18",
+  "access_date": "2026-07-18",
+  "hash_algorithm": "SHA-256",
+  "content_record_count": 153,
+  "source_file_count": 63,
+  "claim_count": 83,
+  "source_record_count": 26,
+  "material_limitations": [
+    "systemd man/crypttab.xml is pinned by tag/commit/blob but not byte-preserved; derivative extract only",
+    "cryptsetup 2.8.6 release tarball hash is recorded but archive/signature were not independently verified",
+    "hash verification establishes bundle consistency, not upstream publisher authenticity"
+  ],
+  "primary_manifests": [
+    {
+      "path": "manifests/README.md",
+      "size_bytes": 615,
+      "sha256": "fa4f6ea4a192a3f797771728f91675fe9cf4c104d731944b7fd8ee939ddd9219"
+    },
+    {
+      "path": "manifests/SHA256SUMS",
+      "size_bytes": 15742,
+      "sha256": "f7bb54339c3ac7f64095dda411f68c5426d4eb601c5d97957fec0d5afe0c75ee"
+    },
+    {
+      "path": "manifests/SOURCE_SHA256SUMS",
+      "size_bytes": 6738,
+      "sha256": "d3d6be190a33d4b00d992479f5c3b5133e49ff61d34502236858f772ba672e77"
+    },
+    {
+      "path": "manifests/files.json",
+      "size_bytes": 27232,
+      "sha256": "998fcac7ca96f52623357c4e1edcf2b789b740f0674654ee5dd4de58c03e49b5"
+    }
+  ]
+}

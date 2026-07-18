@@ -1,0 +1,164 @@
+[
+  {
+    "threat_id": "T01",
+    "threat": "Stolen or decommissioned rank-local drive, mapping closed",
+    "fscrypt_v2": "Mitigates protected-tree content/filename disclosure if keys absent",
+    "dmcrypt_luks2": "Primary volume-level mitigation if volume key absent",
+    "object_aead": "Mitigates payload disclosure if object keys absent",
+    "operational_controls": "KMS separation; no plaintext keys on cache media; media inventory",
+    "residual_risk": "Visible metadata, sizes, headers, backups, keys elsewhere, weak unlock credentials"
+  },
+  {
+    "threat_id": "T02",
+    "threat": "Offline modification or ciphertext substitution",
+    "fscrypt_v2": "Does not authenticate ordinary file ciphertext",
+    "dmcrypt_luks2": "XTS does not authenticate; dm-integrity AEAD may detect block tampering",
+    "object_aead": "Detects payload/AAD substitution; wrong tag => miss",
+    "operational_controls": "Immutable objects; manifest authentication; quarantine evidence",
+    "residual_risk": "Replay of an older valid object without trusted freshness state"
+  },
+  {
+    "threat_id": "T03",
+    "threat": "Online co-tenant reads another tenant cache entry",
+    "fscrypt_v2": "Helps only with correct directory-key and OS access separation",
+    "dmcrypt_luks2": "Shared unlocked volume does not separate tenants",
+    "object_aead": "Per-scope key and AAD principal binding deny wrong-tenant authentication",
+    "operational_controls": "Authoritative principal mapping; per-request authorization; service isolation",
+    "residual_risk": "Compromised cache service, kernel, or authority mapping"
+  },
+  {
+    "threat_id": "T04",
+    "threat": "Compromised root/kernel/hypervisor while cache is live",
+    "fscrypt_v2": "Outside intended protected-at-rest boundary",
+    "dmcrypt_luks2": "Outside intended protected-at-rest boundary",
+    "object_aead": "Keys/plaintext accessible to compromised trusted computing base",
+    "operational_controls": "Host hardening, measured boot, MAC, least privilege, separate key broker, rapid drain",
+    "residual_risk": "Cryptography cannot make live plaintext unavailable to an authorized computation path"
+  },
+  {
+    "threat_id": "T05",
+    "threat": "Object copied between ranks or peers",
+    "fscrypt_v2": "No native rank semantic binding",
+    "dmcrypt_luks2": "No native rank semantic binding",
+    "object_aead": "Rank and epoch in KDF/AAD make copied object fail authentication",
+    "operational_controls": "Rank identity assigned by authority; peer protocol mutually authenticated",
+    "residual_risk": "Incorrect authority assignment or shared rank key"
+  },
+  {
+    "threat_id": "T06",
+    "threat": "Wrong key epoch, tenant, project, prefix, codec, or manifest",
+    "fscrypt_v2": "May fail access but not normalized semantically",
+    "dmcrypt_luks2": "Volume mapping only",
+    "object_aead": "AAD/key mismatch causes AEAD FAIL; normalize to miss",
+    "operational_controls": "Single miss path; rate-limited structured diagnostics",
+    "residual_risk": "Diagnostic side channels if error classes leak to callers"
+  },
+  {
+    "threat_id": "T07",
+    "threat": "AEAD nonce reuse after crash or state rollback",
+    "fscrypt_v2": "Not application-managed",
+    "dmcrypt_luks2": "Sector-IV semantics separate",
+    "object_aead": "Can catastrophically weaken GCM/ChaCha20-Poly1305",
+    "operational_controls": "Per-rank epoch keys; crash-safe allocator; epoch rollover on uncertainty; invocation ceilings",
+    "residual_risk": "Implementation error or restored counter snapshot without epoch change"
+  },
+  {
+    "threat_id": "T08",
+    "threat": "Replay of an old but valid object or manifest",
+    "fscrypt_v2": "No replay control",
+    "dmcrypt_luks2": "No replay control",
+    "object_aead": "Authenticates replayed object as valid unless freshness is checked",
+    "operational_controls": "Trusted epoch floor, generation, expiration, source version, monotonic manifest state",
+    "residual_risk": "Rollback of the trusted freshness store itself"
+  },
+  {
+    "threat_id": "T09",
+    "threat": "Torn write or power loss during object/manifest commit",
+    "fscrypt_v2": "Filesystem-dependent",
+    "dmcrypt_luks2": "Filesystem and optional dm-integrity journal dependent",
+    "object_aead": "Incomplete object fails bounds/tag/digest; unpublished temp file is not indexed",
+    "operational_controls": "Write-temp, fsync file, atomic rename, fsync directory, publish manifest last",
+    "residual_risk": "Filesystems/storage that do not honor assumed durability semantics"
+  },
+  {
+    "threat_id": "T10",
+    "threat": "Backup theft or unauthorized snapshot restore",
+    "fscrypt_v2": "Protection depends on whether backup is ciphertext and keys are separate",
+    "dmcrypt_luks2": "Raw encrypted volume helps; header backups and unlock material remain sensitive",
+    "object_aead": "Ciphertext remains confidential; wrapped epoch roots and manifests are key dependencies",
+    "operational_controls": "No cache backup by default; independent backup KEK; access logging; retention inventory",
+    "residual_risk": "Escrow, replicated KMS, stale credentials, provider snapshots"
+  },
+  {
+    "threat_id": "T11",
+    "threat": "Cross-tenant content-confirmation through global dedup",
+    "fscrypt_v2": "Does not define logical dedup scope",
+    "dmcrypt_luks2": "Does not define logical dedup scope",
+    "object_aead": "Keyed scope-specific CID prevents public raw digest lookup",
+    "operational_controls": "No cross-tenant private index; admission padding/rate controls; separate public namespace",
+    "residual_risk": "Timing/size/access leakage and equality inside approved scope"
+  },
+  {
+    "threat_id": "T12",
+    "threat": "Malicious or corrupt public/system-prefix object",
+    "fscrypt_v2": "No publisher identity binding",
+    "dmcrypt_luks2": "No publisher identity binding",
+    "object_aead": "Authority/prefix/publication metadata authenticated; optionally signed manifest",
+    "operational_controls": "Separate publisher role; immutable release; rollback controls; read-only tenants",
+    "residual_risk": "Compromised system publisher or signing key; semantic poisoning in valid content"
+  },
+  {
+    "threat_id": "T13",
+    "threat": "Key compromise for one tenant/project/rank/epoch",
+    "fscrypt_v2": "Blast radius follows policy/master key",
+    "dmcrypt_luks2": "Blast radius follows volume key",
+    "object_aead": "Hierarchy limits blast radius to derived scope if roots are separated",
+    "operational_controls": "New epoch; revoke broker authorization; invalidate manifests; recompute",
+    "residual_risk": "Parent authority-root compromise or copied plaintext/keys"
+  },
+  {
+    "threat_id": "T14",
+    "threat": "Revocation while files, mappings, or processes are busy",
+    "fscrypt_v2": "Open files may retain per-file keys",
+    "dmcrypt_luks2": "Mapping cannot close until users drain; deferred close waits",
+    "object_aead": "Process memory and decrypted buffers persist until wiped/terminated",
+    "operational_controls": "Stop admission; drain; close descriptors; unmount; close mapping; revoke; verify; restart",
+    "residual_risk": "Unobservable copies, kernel caches, crash dumps, swap, DMA, hardware state"
+  },
+  {
+    "threat_id": "T15",
+    "threat": "Logical tenant/project deletion request",
+    "fscrypt_v2": "Remove namespace/key references but open files and backups remain",
+    "dmcrypt_luks2": "Volume key destruction may be over-broad; keyslot deletion may be reversible via backups",
+    "object_aead": "Delete manifests/indexes and object/wrapped-key records; tombstone scope",
+    "operational_controls": "Retention policy; garbage collection; backup expiry; audit evidence",
+    "residual_risk": "Shared objects, logs, snapshots, and delayed replicas"
+  },
+  {
+    "threat_id": "T16",
+    "threat": "Claimed cryptographic erasure",
+    "fscrypt_v2": "Conditional on all key copies/derived uses and busy files",
+    "dmcrypt_luks2": "Conditional on all unlock paths, headers, backups, escrow, snapshots",
+    "object_aead": "Conditional on independently destroyable DEK/epoch key and all copies",
+    "operational_controls": "Key inventory, destroy operation, verification, validation, documented scope",
+    "residual_risk": "Unknown copies or future cryptanalytic/implementation failure; not physical zeroization"
+  },
+  {
+    "threat_id": "T17",
+    "threat": "Physical media retirement or reuse",
+    "fscrypt_v2": "Encryption is one input, not complete sanitization evidence",
+    "dmcrypt_luks2": "Encryption/CE may support policy if all conditions met",
+    "object_aead": "Does not itself issue device sanitize commands",
+    "operational_controls": "Media-specific NIST SP 800-88r2 procedure; verify, validate, document; destroy where required",
+    "residual_risk": "Device remapping, inaccessible cells, provider limitations, failed sanitize implementation"
+  },
+  {
+    "threat_id": "T18",
+    "threat": "Any unknown, malformed, corrupt, unauthenticated, mismatched object",
+    "fscrypt_v2": "Not sufficient to classify application object",
+    "dmcrypt_luks2": "Not sufficient to classify application object",
+    "object_aead": "All checks collapse to MISS_RECOMPUTE; optional quarantine",
+    "operational_controls": "Constant-shaped response, bounded parsing, rate limits, metrics, recompute authority",
+    "residual_risk": "Denial-of-service through repeated forced misses or expensive recomputation"
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "name": "PF-IR-01 llama.cpp/RPC/GGUF security applicability and backport ledger",
+  "version": "1.0.0",
+  "created": "2026-07-18T00:00:00-07:00",
+  "claim_labels": [
+    "[VERIFIED]",
+    "[MEASURED]",
+    "[INFERENCE]",
+    "[ASSUMPTION]",
+    "[RECOMMENDATION]",
+    "[OPEN]"
+  ],
+  "decision": "HOLD",
+  "no_exploit_code": true,
+  "no_live_probe": true,
+  "capture_policy": "bounded primary-source metadata/excerpts plus exact URLs, refs, blob IDs, and hashes"
+}

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Version and revision pins · PF-IR-06</title><link rel="stylesheet" href="assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="wiki/00-scope-and-claim-language.html">Scope / labels</a><a href="wiki/01-executive-decision-record.html">Decision record</a><a href="wiki/02-portable-linux-minimum.html">Portable minimum</a><a href="wiki/03-temporary-files-and-publication.html">Publication</a><a href="wiki/04-deployed-filesystem-profile.html">Deployed profile</a><a href="wiki/05-ext4.html">ext4</a><a href="wiki/06-xfs.html">XFS</a><a href="wiki/07-btrfs.html">Btrfs</a><a href="wiki/08-io-uring.html">io_uring</a><a href="wiki/09-errors-space-direct-io.html">Errors / DIO</a><a href="wiki/10-locking-and-fencing.html">Locking</a><a href="wiki/11-fault-test-matrix.html">Fault program</a><a href="wiki/12-nontarget-portability.html">Non-targets</a><a href="wiki/13-open-questions.html">Open questions</a><a href="wiki/14-source-audit.html">Source audit</a><a href="matrices/claim-ledger.html">Claim ledger</a><a href="matrices/guarantee-source-test.html">Guarantee map</a><a href="matrices/experiment-matrix.html">Experiment matrix</a><a href="matrices/source-register.html">Source register</a><a class="active" href="VERSION-PINS.html">Version pins</a><a href="raw/README.html">Raw capture policy</a><a href="licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="scripts/fault-tests/README.html">Harness notes</a><a href="BUILD-VALIDATION.html">Build validation</a><a href="README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="index.html">Wiki home</a><span>·</span><a href="VERSION-PINS.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>Version and revision pins</h1>
+<p>Access date: <strong>2026-07-18</strong> (America/Los_Angeles).</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Semantic pin</th>
+<th>Exact revision / artifact</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux stable kernel</td>
+<td><strong>7.1.3</strong>, released 2026-07-04</td>
+<td>commit <code>199c9959d3a9b53f346c221757fc7ac507fbac50</code>; annotated tag object <code>113be0295f4f632d61f4e9c93322f70e2365f54d</code></td>
+<td>Kernel/VFS/filesystem/io_uring semantic anchor</td>
+</tr>
+<tr>
+<td>Linux mainline</td>
+<td>7.2-rc3 at access</td>
+<td>not used as contract anchor</td>
+<td>Recency note only</td>
+</tr>
+<tr>
+<td>liburing</td>
+<td><strong>2.15</strong>, released 2026-06-29</td>
+<td>commit <code>d41bf9220ec39277ff235379e9089d9e0fd6c2a5</code></td>
+<td>Userspace API/manual anchor</td>
+</tr>
+<tr>
+<td>Linux man-pages</td>
+<td><strong>6.18</strong>, released 2026-04-22</td>
+<td>tag <code>man-pages-6.18</code>; tarball SHA-256 <code>c934fadc8b59748c68227a34f6581d2ddf8282b73cdcd52546c8cd88b74b24d1</code></td>
+<td>Syscall semantics and errors</td>
+</tr>
+<tr>
+<td>ext4 docs</td>
+<td>Linux 7.1.3 tree</td>
+<td><code>Documentation/admin-guide/ext4.rst</code>; blob <code>ac0c709ea9e7c1f15475b7f0b7b550968f3fdbc0</code></td>
+<td>ext4 profile</td>
+</tr>
+<tr>
+<td>XFS docs</td>
+<td>Linux 7.1.3 tree</td>
+<td><code>Documentation/admin-guide/xfs.rst</code>; blob <code>acdd4b65964c058647a7b383d8c2c778777a538e</code></td>
+<td>XFS profile</td>
+</tr>
+<tr>
+<td>xfsprogs release</td>
+<td><strong>7.1.0</strong>, listed 2026-07-13</td>
+<td>kernel.org release-index receipt; kernel docs above remain semantic pin</td>
+<td>Tooling recency record</td>
+</tr>
+<tr>
+<td>Btrfs kernel docs</td>
+<td>Linux 7.1.3 tree</td>
+<td><code>Documentation/filesystems/btrfs.rst</code>; blob <code>a81db8f54d689300a49ff78cb06ba783dcdad21d</code></td>
+<td>Kernel overview</td>
+</tr>
+<tr>
+<td>btrfs-progs docs</td>
+<td><strong>7.1</strong>, released 2026-07-14</td>
+<td>commit <code>4ab0e80be9e3bb1db2e6038e6d4316d35fb7ba8b</code>; mount-option blob <code>8f65b8311e7eee1043e690ec40ff73fca395f686</code></td>
+<td>Current admin/mount semantics</td>
+</tr>
+<tr>
+<td>POSIX</td>
+<td>POSIX.1-2024</td>
+<td>The Open Group issue <code>9799919799</code></td>
+<td>Portable namespace/open floor</td>
+</tr>
+</tbody>
+</table>
+<h2>Pinning policy</h2>
+<ul>
+<li>Kernel and liburing claims cite immutable commits and upstream blob IDs where available.</li>
+<li>Web/standards pages are stored as <strong>normalized receipts with short excerpts</strong>, not falsely described as byte-for-byte captures.</li>
+<li>Raw-capture scope is literal in <code>matrices/source-register.csv</code>: <code>normalized source excerpt</code>, <code>official web receipt</code>, or <code>metadata receipt</code>.</li>
+<li>The deployed kernel, filesystem feature set, mount options, block stack, firmware and device remain unpinned until <code>T001</code> records them.</li>
+</ul>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="assets/wiki.js"></script></body></html>

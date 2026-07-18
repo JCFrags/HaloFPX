@@ -1,0 +1,170 @@
+[
+  {
+    "dimension": "Control granularity",
+    "fscrypt_v2": "Per encrypted directory tree / inode policy; file and filename encryption",
+    "dmcrypt_luks2": "Whole block mapping or volume",
+    "object_aead": "Per object/chunk/envelope and manifest",
+    "decision": "Use object AEAD as semantic enforcement; layer fscrypt/LUKS where operationally justified."
+  },
+  {
+    "dimension": "Primary threat boundary",
+    "fscrypt_v2": "Offline filesystem access without installed policy key",
+    "dmcrypt_luks2": "Offline block-device or volume access without active volume key",
+    "object_aead": "Unauthorized, wrong-domain, corrupt, substituted, or tampered cache object",
+    "decision": "These boundaries are complementary, not interchangeable."
+  },
+  {
+    "dimension": "At-rest payload confidentiality",
+    "fscrypt_v2": "Native for file contents and filenames within protected trees",
+    "dmcrypt_luks2": "Native for mapped blocks while mapping is closed; common XTS mode",
+    "object_aead": "Native for each encrypted payload",
+    "decision": "Require object AEAD; prefer at least one lower storage layer for stolen-media defense."
+  },
+  {
+    "dimension": "Cryptographic authenticity",
+    "fscrypt_v2": "Absent for ordinary file-content modes",
+    "dmcrypt_luks2": "Absent for ordinary XTS; possible with dm-integrity authenticated modes, selected stack marks experimental",
+    "object_aead": "Native tag verification over ciphertext and AAD",
+    "decision": "Only object AEAD supplies required object-semantic authentication in the minimum profile."
+  },
+  {
+    "dimension": "Tenant/project/principal binding",
+    "fscrypt_v2": "Indirect key-domain separation only; no HaloKV principal fields",
+    "dmcrypt_luks2": "Volume unlock identity only; no HaloKV principal fields",
+    "object_aead": "Explicit canonical principal/scope fields in AAD and KDF context",
+    "decision": "Bind authoritative principal IDs in AAD and authorization, not display names or mutable OS labels."
+  },
+  {
+    "dimension": "Wrong key / wrong tenant behavior",
+    "fscrypt_v2": "May appear as unavailable names/content; not a HaloKV miss contract",
+    "dmcrypt_luks2": "Mapping activation failure or garbage/I/O behavior depending mode",
+    "object_aead": "AEAD FAIL normalized to MISS_RECOMPUTE",
+    "decision": "One external miss class; precise reason only in access-controlled telemetry."
+  },
+  {
+    "dimension": "Unknown/corrupt object",
+    "fscrypt_v2": "Filesystem/application-dependent",
+    "dmcrypt_luks2": "May produce I/O errors only with supporting integrity; otherwise corruption may pass upward",
+    "object_aead": "Envelope parse bounds + tag + identifier + manifest checks; any failure is miss",
+    "decision": "Fail closed before decompression/deserialization."
+  },
+  {
+    "dimension": "Replay / rollback protection",
+    "fscrypt_v2": "None",
+    "dmcrypt_luks2": "None by default",
+    "object_aead": "Not supplied by AEAD alone; can bind epoch/generation but needs trusted freshness state",
+    "decision": "Maintain trusted epoch floors and manifest generations where freshness is required."
+  },
+  {
+    "dimension": "Online privileged compromise",
+    "fscrypt_v2": "Does not protect after keys are installed against privileged live compromise",
+    "dmcrypt_luks2": "Does not protect after mapping is active",
+    "object_aead": "Keys/plaintext available to authorized process; does not defeat compromised process/kernel",
+    "decision": "Out of cryptographic at-rest scope; use OS isolation, least privilege, attestation only as separate controls."
+  },
+  {
+    "dimension": "Online co-tenant separation",
+    "fscrypt_v2": "Possible directory-key separation plus OS access controls",
+    "dmcrypt_luks2": "Weak if tenants share one unlocked mapping",
+    "object_aead": "Strongest native cryptographic tenant/project binding if keys and AAD are separated",
+    "decision": "Object AEAD mandatory for shared multi-user cache."
+  },
+  {
+    "dimension": "Peer/rank separation",
+    "fscrypt_v2": "Possible separate directory policies but operationally coarse",
+    "dmcrypt_luks2": "Separate volumes/mappings are coarse",
+    "object_aead": "Per-rank derived key within epoch; rank ID in AAD",
+    "decision": "Use rank-local AEAD key domain and rank-local nonce state."
+  },
+  {
+    "dimension": "Nonce/IV lifecycle",
+    "fscrypt_v2": "Kernel/filesystem mode-specific; application does not manage object nonce",
+    "dmcrypt_luks2": "Sector-IV mode managed by mapping configuration",
+    "object_aead": "Explicit 96-bit nonce allocation and per-key uniqueness; epoch rollover on uncertain state",
+    "decision": "Persist monotonic allocation safely or use randomly generated nonces under strict limits; never reuse intentionally."
+  },
+  {
+    "dimension": "Key storage and unlock",
+    "fscrypt_v2": "Filesystem master keys installed through fscrypt key APIs/keyrings",
+    "dmcrypt_luks2": "LUKS2 keyslots/tokens unwrap volume key; boot via crypttab or orchestrator",
+    "object_aead": "KMS/HSM/wrapped epoch roots; rank keys delivered to least-privileged service memory",
+    "decision": "No plaintext long-lived rank key on cache media; record authority and key owner."
+  },
+  {
+    "dimension": "Boot behavior",
+    "fscrypt_v2": "Mount may proceed while protected names remain inaccessible until key installation",
+    "dmcrypt_luks2": "Mapping may block, fail, or be optional depending crypttab/orchestrator policy",
+    "object_aead": "Cache starts cold/read-disabled until key authorization; compute path remains authoritative",
+    "decision": "Boot must fail closed for cache serving but should degrade to recomputation rather than plaintext cache."
+  },
+  {
+    "dimension": "Busy-file/mapping revocation",
+    "fscrypt_v2": "Open/in-use files can retain per-file keys after master-key removal",
+    "dmcrypt_luks2": "Mapping close can fail while busy; deferred close is not immediate",
+    "object_aead": "Process-held keys and already decrypted buffers survive until drained/wiped/terminated",
+    "decision": "Drain, close/unmap, revoke, verify absence, then destroy key references; document incomplete eviction."
+  },
+  {
+    "dimension": "Rotation",
+    "fscrypt_v2": "New policy/key usually means migration/rewrite or new tree",
+    "dmcrypt_luks2": "Credential/keyslot rotation differs from payload reencryption; reencryption has recovery modes",
+    "object_aead": "New epoch for writes; old epoch read-only during bounded transition; lazy recompute preferred",
+    "decision": "Prefer epoch rollover and cache recomputation over bulk in-place transformation."
+  },
+  {
+    "dimension": "Revocation blast radius",
+    "fscrypt_v2": "Directory-tree policy key",
+    "dmcrypt_luks2": "Entire volume key / all data on mapping",
+    "object_aead": "Tenant/project/prefix/rank/epoch scope; per-object with independent DEKs if required",
+    "decision": "Choose hierarchy granularity according to deletion and incident requirements."
+  },
+  {
+    "dimension": "Crash recovery",
+    "fscrypt_v2": "Filesystem crash behavior; no application authenticity/freshness semantics",
+    "dmcrypt_luks2": "Filesystem plus mapping; dm-integrity journal and LUKS reencryption resilience matter",
+    "object_aead": "Immutable object write + atomic manifest publish; nonce state and epoch recovery are explicit",
+    "decision": "Treat uncertain nonce counters or partially published manifests as miss/new epoch."
+  },
+  {
+    "dimension": "Backup/restore",
+    "fscrypt_v2": "Backup needs keys/policies and may expose names/metadata depending tool",
+    "dmcrypt_luks2": "Raw volume plus protected LUKS header/key dependencies; header backups are sensitive",
+    "object_aead": "Coherent ciphertext, authenticated manifests, format version, wrapped epochs, policy metadata",
+    "decision": "No cache backup by default; quarantine and validate any restore."
+  },
+  {
+    "dimension": "Content addressing and dedup",
+    "fscrypt_v2": "Filesystem block/file dedup interactions are filesystem-specific and can leak equality",
+    "dmcrypt_luks2": "Below-filesystem encryption usually disrupts physical ciphertext dedup and reveals allocation via discard",
+    "object_aead": "Scoped keyed CID enables authorized logical dedup; randomized ciphertext itself is not the stable key",
+    "decision": "Private dedup ≤ tenant/project sharing scope; public/system namespace separate."
+  },
+  {
+    "dimension": "Cryptographic erasure",
+    "fscrypt_v2": "Potentially tree-scoped only if all master/derived copies become inaccessible; busy files complicate",
+    "dmcrypt_luks2": "Volume-scoped if all volume-key unlock paths, headers, backups, escrow, and snapshots are eliminated",
+    "object_aead": "Epoch- or object-scoped depending independent key wrapping; all copies and backups still matter",
+    "decision": "State scope and evidence; never claim physical zeroization."
+  },
+  {
+    "dimension": "Discard and physical sanitization",
+    "fscrypt_v2": "Filesystem discard behavior separate from encryption",
+    "dmcrypt_luks2": "Pass-through discard leaks allocation and does not prove erase",
+    "object_aead": "Logical deletion/key destruction does not command media sanitization by itself",
+    "decision": "Use NIST SP 800-88r2-aligned media-specific procedure with verification/validation."
+  },
+  {
+    "dimension": "Operational complexity",
+    "fscrypt_v2": "Moderate; policy inheritance/keyring/busy-file caveats",
+    "dmcrypt_luks2": "Moderate; boot dependencies, mappings, header backup, reencryption",
+    "object_aead": "Highest implementation responsibility; envelope, canonicalization, nonce state, key authority, telemetry",
+    "decision": "Complexity is justified because semantic tenant/object binding cannot be delegated to lower layers."
+  },
+  {
+    "dimension": "Recommended HaloKV role",
+    "fscrypt_v2": "Optional/conditional defense-in-depth for per-tenant or service directory isolation",
+    "dmcrypt_luks2": "Recommended host-volume baseline where operationally supported",
+    "object_aead": "Required minimum multi-user persistent-cache control",
+    "decision": "Profile: object AEAD + optional fscrypt v2 + LUKS2/dm-crypt at host-volume layer."
+  }
+]

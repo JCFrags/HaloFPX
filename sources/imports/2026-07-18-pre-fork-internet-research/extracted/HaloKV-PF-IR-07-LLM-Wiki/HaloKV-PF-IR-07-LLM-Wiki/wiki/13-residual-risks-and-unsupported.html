@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Residual risk ledger and unsupported claims Residual risks Encryption narrows specific threat boundaries; it does not eliminate policy, implementation, online compromise, side chan…">
+  <title>Residual-risk ledger and unsupported claims · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link active" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Residual-risk ledger and unsupported claims</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Residual-risk ledger and unsupported claims</h1>
+<h2 id="residual-risks">Residual risks<a class="heading-anchor" href="#residual-risks" aria-label="Link to section">#</a></h2>
+<p>Encryption narrows specific threat boundaries; it does not eliminate policy, implementation, online compromise, side-channel, backup, or media uncertainty. Each risk needs an accountable owner and an explicit treatment/acceptance decision.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>ID</th>
+  <th>Residual risk</th>
+  <th>Area</th>
+  <th>Impact</th>
+  <th>Likelihood</th>
+  <th>Treatment</th>
+  <th>Human decision</th>
+  <th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>RR01</td>
+  <td>Privileged live compromise can read keys or plaintext from an authorized process or kernel.</td>
+  <td>All options</td>
+  <td>High</td>
+  <td>Environment-dependent</td>
+  <td>Host isolation, least privilege, MAC, separate broker, rapid drain, incident response.</td>
+  <td>Accept host trust boundary or require stronger execution isolation.</td>
+  <td>PFIR07-C004,C075</td>
+</tr>
+<tr>
+  <td>RR02</td>
+  <td>Principal authority may map a user, service, tenant, or project incorrectly.</td>
+  <td>Tenant identity</td>
+  <td>High</td>
+  <td>Governance-dependent</td>
+  <td>Immutable authority IDs, signed authorization assertions, audit trail, separation of duties.</td>
+  <td>Select principal authority and lifecycle.</td>
+  <td>PFIR07-C027,C051</td>
+</tr>
+<tr>
+  <td>RR03</td>
+  <td>Sharing policy may authorize a dedup scope broader than users expect.</td>
+  <td>Dedup scope</td>
+  <td>High</td>
+  <td>Policy-dependent</td>
+  <td>Explicit sharing class in AAD/manifests; default private; review public promotion.</td>
+  <td>Approve tenant/project/public sharing policy.</td>
+  <td>PFIR07-C052,C053,C078</td>
+</tr>
+<tr>
+  <td>RR04</td>
+  <td>Parent key ownership, escrow, or recovery authority can expand access and defeat erasure.</td>
+  <td>Key hierarchy</td>
+  <td>High</td>
+  <td>Governance-dependent</td>
+  <td>Document owner/custodian, quorum, escrow, backup KEK, destroy authority, audit.</td>
+  <td>Assign key ownership and escrow policy.</td>
+  <td>PFIR07-C042,C054</td>
+</tr>
+<tr>
+  <td>RR05</td>
+  <td>Restored or rolled-back nonce allocator state can cause nonce reuse.</td>
+  <td>AEAD nonce</td>
+  <td>Critical</td>
+  <td>Implementation-dependent</td>
+  <td>Per-rank epoch; crash-safe reservation; restored state always receives new epoch/key.</td>
+  <td>Approve allocator and persistence implementation.</td>
+  <td>PFIR07-C031-C033,C055</td>
+</tr>
+<tr>
+  <td>RR06</td>
+  <td>Randomly generated nonces retain a non-zero collision probability and invocation bound.</td>
+  <td>AEAD nonce</td>
+  <td>High</td>
+  <td>Low under bounded use</td>
+  <td>96-bit nonces from approved RNG, per-key invocation cap well below source limit, rotate early.</td>
+  <td>Select deterministic reservation or bounded random strategy.</td>
+  <td>PFIR07-C032,C035</td>
+</tr>
+<tr>
+  <td>RR07</td>
+  <td>AEAD accepts an old valid object unless trusted freshness is checked.</td>
+  <td>Replay</td>
+  <td>Medium/High</td>
+  <td>Threat-dependent</td>
+  <td>Epoch floor, manifest generation, expiration, source revision, monotonic publish record.</td>
+  <td>Define freshness and rollback tolerance.</td>
+  <td>PFIR07-C060,C076</td>
+</tr>
+<tr>
+  <td>RR08</td>
+  <td>Keyed identifiers reveal equality within their authorized dedup scope.</td>
+  <td>Identifiers/dedup</td>
+  <td>Medium</td>
+  <td>Expected</td>
+  <td>Minimize scope; rotate identifier epochs only with migration plan; avoid exposing index.</td>
+  <td>Accept within-scope equality leakage.</td>
+  <td>PFIR07-C056,C062,C077</td>
+</tr>
+<tr>
+  <td>RR09</td>
+  <td>Ciphertext length, object count, access pattern, allocation, and timing remain observable.</td>
+  <td>Privacy</td>
+  <td>Medium/High</td>
+  <td>Expected</td>
+  <td>Length buckets/padding where justified, scheduler isolation, per-tenant indexes, batching, rate limits.</td>
+  <td>Choose performance/privacy trade-off.</td>
+  <td>PFIR07-C015,C062</td>
+</tr>
+<tr>
+  <td>RR10</td>
+  <td>Shared cache timing can reveal a hit/miss or cross-tenant activity even when errors are normalized.</td>
+  <td>Timing leakage</td>
+  <td>Medium</td>
+  <td>Architecture-dependent</td>
+  <td>Tenant-local lookup path, equalized error classes, jitter/batching only if measured, quota isolation.</td>
+  <td>Set side-channel objective and performance budget.</td>
+  <td>PFIR07-C058,C062</td>
+</tr>
+<tr>
+  <td>RR11</td>
+  <td>fscrypt master-key removal leaves keys for open/in-use files.</td>
+  <td>fscrypt revocation</td>
+  <td>High</td>
+  <td>Expected under load</td>
+  <td>Drain processes, close files, change cwd/root references, verify removal status, restart if necessary.</td>
+  <td>Set revocation SLA that accounts for drain.</td>
+  <td>PFIR07-C005,C074</td>
+</tr>
+<tr>
+  <td>RR12</td>
+  <td>An active dm-crypt mapping retains the volume key while busy or deferred.</td>
+  <td>LUKS revocation</td>
+  <td>High</td>
+  <td>Expected under load</td>
+  <td>Stop I/O, unmount, close mapping, verify device-mapper state, avoid treating deferred close as completion.</td>
+  <td>Set maintenance and emergency availability policy.</td>
+  <td>PFIR07-C019,C020,C074</td>
+</tr>
+<tr>
+  <td>RR13</td>
+  <td>Keys/plaintext can remain in process memory, VFS caches, swap, crash dumps, registers, or hardware buffers.</td>
+  <td>Process retention</td>
+  <td>High</td>
+  <td>Environment-dependent</td>
+  <td>mlock where appropriate, no core dumps, encrypted swap, short-lived workers, explicit zeroization, process exit, dump controls.</td>
+  <td>Accept limits of software memory erasure.</td>
+  <td>PFIR07-C006,C007,C043</td>
+</tr>
+<tr>
+  <td>RR14</td>
+  <td>LUKS header backups or detached headers provide alternate unlock paths.</td>
+  <td>Backup/erasure</td>
+  <td>High</td>
+  <td>Operationally common</td>
+  <td>Inventory, encrypt separately, access-control, rotate/destroy coherently, test restoration under change control.</td>
+  <td>Retain or prohibit header backups.</td>
+  <td>PFIR07-C014,C021,C082</td>
+</tr>
+<tr>
+  <td>RR15</td>
+  <td>Backup KMS replicas, escrow, snapshots, and offline copies can outlive logical deletion.</td>
+  <td>Backup/deletion</td>
+  <td>High</td>
+  <td>Policy-dependent</td>
+  <td>Retention ledger, deletion propagation, legal holds, backup expiry, key-copy inventory.</td>
+  <td>Define retention and legal-hold policy.</td>
+  <td>PFIR07-C042,C064,C067</td>
+</tr>
+<tr>
+  <td>RR16</td>
+  <td>Restoring old ciphertext plus still-valid old keys can resurrect deleted or revoked content.</td>
+  <td>Restore</td>
+  <td>High</td>
+  <td>Process-dependent</td>
+  <td>Quarantine restore, trusted epoch floor, tombstone ledger, rewrap/re-encrypt into current context.</td>
+  <td>Define restore authorization and rollback window.</td>
+  <td>PFIR07-C060,C065</td>
+</tr>
+<tr>
+  <td>RR17</td>
+  <td>dm-integrity authenticated modes add performance, recovery, and maturity complexity.</td>
+  <td>Block integrity</td>
+  <td>Medium/High</td>
+  <td>Deployment-dependent</td>
+  <td>Prototype, benchmark, fault-inject, pin versions/configuration, keep object AEAD regardless.</td>
+  <td>Decide whether block integrity is worth operational cost.</td>
+  <td>PFIR07-C012,C016-C018</td>
+</tr>
+<tr>
+  <td>RR18</td>
+  <td>Discard pass-through leaks allocation and does not prove sanitization.</td>
+  <td>Discard</td>
+  <td>Medium</td>
+  <td>Expected when enabled</td>
+  <td>Default off; document exception; do not use as erasure evidence.</td>
+  <td>Approve performance exception.</td>
+  <td>PFIR07-C015,C069,C083</td>
+</tr>
+<tr>
+  <td>RR19</td>
+  <td>Sanitize commands may not reach remapped, failed, over-provisioned, or provider-controlled media.</td>
+  <td>Physical sanitization</td>
+  <td>High</td>
+  <td>Media/provider-dependent</td>
+  <td>Use media-specific procedure and authoritative vendor/provider capability; verify/validate; destroy where required.</td>
+  <td>Select purge/destroy method and acceptance evidence.</td>
+  <td>PFIR07-C041-C044,C083</td>
+</tr>
+<tr>
+  <td>RR20</td>
+  <td>A cloud or storage provider may not expose evidence sufficient to validate media sanitization.</td>
+  <td>Hosted media</td>
+  <td>High</td>
+  <td>Provider-dependent</td>
+  <td>Contractual controls, provider attestations/evidence, encryption key control, data-lifecycle audit.</td>
+  <td>Accept provider assurance model or avoid persistent cache there.</td>
+  <td>PFIR07-C044</td>
+</tr>
+<tr>
+  <td>RR21</td>
+  <td>Different implementations may canonicalize AAD, identifiers, or manifests differently.</td>
+  <td>Interoperability</td>
+  <td>High</td>
+  <td>Implementation-dependent</td>
+  <td>Versioned deterministic encoding, test vectors, reject duplicate/unknown critical fields, cross-language conformance.</td>
+  <td>Approve canonical format and compatibility policy.</td>
+  <td>PFIR07-C049,C057</td>
+</tr>
+<tr>
+  <td>RR22</td>
+  <td>Quarantine storage can become an alternate serving path or retain sensitive evidence indefinitely.</td>
+  <td>Quarantine</td>
+  <td>Medium/High</td>
+  <td>Process-dependent</td>
+  <td>Separate credentials/path, no cache lookup integration, retention cap, access logging, incident hold workflow.</td>
+  <td>Set evidence retention and access authority.</td>
+  <td>PFIR07-C063,C065,C070</td>
+</tr>
+<tr>
+  <td>RR23</td>
+  <td>Detailed cryptographic error logs can become a tenant oracle or leak key/identifier material.</td>
+  <td>Telemetry</td>
+  <td>Medium</td>
+  <td>Implementation-dependent</td>
+  <td>Opaque external miss; access-controlled internal reason code; redact secrets; aggregate metrics; rate limit.</td>
+  <td>Set logging retention and analyst access.</td>
+  <td>PFIR07-C058,C062</td>
+</tr>
+<tr>
+  <td>RR24</td>
+  <td>A compromised public/system publisher can distribute semantically malicious but cryptographically valid content.</td>
+  <td>Public/system prefix</td>
+  <td>High</td>
+  <td>Authority-dependent</td>
+  <td>Two-person publication, reproducible generation, signed immutable manifests, rollback and emergency revoke.</td>
+  <td>Select publisher authority and review process.</td>
+  <td>PFIR07-C053</td>
+</tr>
+<tr>
+  <td>RR25</td>
+  <td>Strict fail-closed behavior can amplify denial-of-service through repeated misses and recomputation.</td>
+  <td>Availability</td>
+  <td>Medium/High</td>
+  <td>Threat/load-dependent</td>
+  <td>Per-principal quotas, backoff, duplicate recompute suppression, circuit breakers, protected authoritative source.</td>
+  <td>Set availability and abuse-control budget.</td>
+  <td>PFIR07-C058,C063</td>
+</tr>
+</tbody>
+</table></div>
+<p>The machine-readable ledger is <a href="../matrices/residual-risks.csv"><code>matrices/residual-risks.csv</code></a>.</p>
+<h2 id="explicitly-unsupported-or-rejected-claims">Explicitly unsupported or rejected claims<a class="heading-anchor" href="#explicitly-unsupported-or-rejected-claims" aria-label="Link to section">#</a></h2>
+<p>The following labels are literal claim-registry entries. They are included to prevent lower-layer features, primitive names, or deletion commands from being converted into unsupported assurance language.</p>
+<p><span class="claim-label" data-claim="PFIR07-C071" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C071][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C003,C009]</span></p>
+<p><strong>Unsupported claim: fscrypt alone authenticates HaloKV objects or detects all offline tampering.</strong><br />
+False for selected boundary.</p>
+<p><span class="claim-label" data-claim="PFIR07-C072" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C072][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C011-C012,C039]</span></p>
+<p><strong>Unsupported claim: ordinary LUKS2/dm-crypt XTS provides per-object authenticity or tenant binding.</strong><br />
+Confidentiality boundary only.</p>
+<p><span class="claim-label" data-claim="PFIR07-C073" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C073][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C041-C044]</span></p>
+<p><strong>Unsupported claim: unlink, overwrite, TRIM, discard, or filesystem free-space release is automatically secure deletion.</strong><br />
+Media-dependent and unverified.</p>
+<p><span class="claim-label" data-claim="PFIR07-C074" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C074][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C005-C007,C019-C020,C026,C029]</span></p>
+<p><strong>Unsupported claim: key revocation instantly removes access from open files, active mappings, kernel keyrings, or processes.</strong><br />
+Drain and memory lifecycle required.</p>
+<p><span class="claim-label" data-claim="PFIR07-C075" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C075][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C004,C045]</span></p>
+<p><strong>Unsupported claim: at-rest encryption protects plaintext from a compromised root account, kernel, hypervisor, DMA-capable actor, or authorized live process.</strong><br />
+Outside selected control boundary.</p>
+<p><span class="claim-label" data-claim="PFIR07-C076" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C076][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C060]</span></p>
+<p><strong>Unsupported claim: AEAD authentication by itself prevents rollback or replay of an older valid object.</strong><br />
+Freshness state is separate.</p>
+<p><span class="claim-label" data-claim="PFIR07-C077" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C077][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C056,C062]</span></p>
+<p><strong>Unsupported claim: keyed content identifiers eliminate access-pattern, size, timing, or within-scope equality leakage.</strong><br />
+They reduce public digest exposure only.</p>
+<p><span class="claim-label" data-claim="PFIR07-C078" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C078][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C052,C062]</span></p>
+<p><strong>Unsupported claim: cross-tenant global deduplication is privacy-neutral merely because payloads are encrypted.</strong><br />
+Lookup and timing can form confirmation oracles.</p>
+<p><span class="claim-label" data-claim="PFIR07-C079" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C079][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C041-C044]</span></p>
+<p><strong>Unsupported claim: cryptographic erase is physical zeroization or proves all remanent media states are unrecoverable.</strong><br />
+CE is key inaccessibility under stated assumptions.</p>
+<p><span class="claim-label" data-claim="PFIR07-C080" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C080][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C024,C027]</span></p>
+<p><strong>Unsupported claim: TPM-, FIDO2-, or PKCS#11-assisted volume unlock establishes HaloKV tenant/project principal authority.</strong><br />
+It establishes a device/credential unlock condition.</p>
+<p><span class="claim-label" data-claim="PFIR07-C081" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C081][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C030-C049]</span></p>
+<p><strong>Unsupported claim: selecting a NIST-specified primitive automatically makes the HaloKV implementation FIPS validated, certified, or compliant.</strong><br />
+Implementation/module/program status is separate.</p>
+<p><span class="claim-label" data-claim="PFIR07-C082" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C082][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C014,C021-C022,C042]</span></p>
+<p><strong>Unsupported claim: removing a LUKS keyslot is irreversible while header backups, alternate keyslots, escrow, or snapshots exist.</strong><br />
+All unlock paths matter.</p>
+<p><span class="claim-label" data-claim="PFIR07-C083" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C083][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C015,C041-C044]</span></p>
+<p><strong>Unsupported claim: an SSD or storage-provider discard acknowledgement proves physical cells have been sanitized.</strong><br />
+Use media/provider-specific sanitize evidence and validation.</p>
+<h2 id="compliance-and-validation-boundary">Compliance and validation boundary<a class="heading-anchor" href="#compliance-and-validation-boundary" aria-label="Link to section">#</a></h2>
+<p>This bundle compares technical controls and source-defined behavior. It does not determine whether a deployment is FIPS validated, Common Criteria evaluated, certified under any regulatory program, contractually compliant, or securely deleted. Those conclusions require the exact cryptographic module, operational environment, configuration, policy, evidence, and applicable program requirements.</p>
+<p><span class="claim-label" data-claim="PFIR07-C081" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C081][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C030-C049]</span></p>
+<h2 id="decision-owner-checklist">Decision-owner checklist<a class="heading-anchor" href="#decision-owner-checklist" aria-label="Link to section">#</a></h2>
+<p>Before closing <code>OPEN-SCOPE-01</code>, humans must sign off on:</p>
+<ul>
+<li>authoritative identity issuer and immutable ID lifecycle;</li>
+<li>private/project/shared/public dedup scopes;</li>
+<li>system-prefix publisher and rollback authority;</li>
+<li>root/tenant/project key owner, custodian, escrow, and destroy quorum;</li>
+<li>accepted live-host trust boundary;</li>
+<li>nonce allocator design and local invocation ceilings;</li>
+<li>rollback/staleness tolerance;</li>
+<li>cache backup RPO/RTO and retention exception, if any;</li>
+<li>quarantine and incident evidence retention;</li>
+<li>CE scope, media-sanitization method, and acceptable evidence;</li>
+<li>performance/privacy trade-offs for padding, indexing, discard, and isolation.</li>
+</ul>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

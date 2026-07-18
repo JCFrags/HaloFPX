@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>PF-IR-11 — Linux XDNA2 suitability for a bounded auxiliary role — PF-IR-11</title>
+<link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="wiki/00-home.html">Home / decision</a></li><li><a href="wiki/01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="wiki/02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="wiki/03-firmware.html">Firmware</a></li><li><a href="wiki/04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="wiki/05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="wiki/06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="wiki/07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="wiki/08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="wiki/09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="wiki/10-role-evaluation.html">Role evaluation</a></li><li><a href="wiki/11-bounded-experiment.html">Bounded experiment</a></li><li><a href="wiki/12-read-only-probe.html">Read-only probe</a></li><li><a href="wiki/13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="wiki/14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="DECISION.html">Decision memo</a></li>
+    <li><a href="manifests/sources.csv">Source manifest</a></li>
+    <li><a href="manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">README.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>PF-IR-11 — Linux XDNA2 suitability for a bounded auxiliary role</h1>
+<p><strong>Research date:</strong> 2026-07-18<br />
+<strong>Target:</strong> AMD Ryzen AI MAX+ 395 / Strix Halo / XDNA2<br />
+<strong>Decision:</strong> <strong>KEEP EXCLUDED</strong></p>
+<p>This directory is an offline evidence bundle styled as an LLM Wiki. Open <a href="index.html"><code>index.html</code></a> for the rendered local site or start with <a href="DECISION.html"><code>DECISION.md</code></a>.</p>
+<h2 id="executive-result">Executive result</h2>
+<p><span class="claim claim-decision">[DECISION]</span> The XDNA2 NPU is not adopted for embeddings, reranking, moderation, prompt classification, draft-model inference, or transformer offload in the primary architecture.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> Linux has a real <code>amdxdna</code> substrate for the expected npu5 PCI revision.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> High-level deployment remains dependent on AMD's exact XRT/plugin/Ryzen AI package set, compiler/runtime assets, model preparation, and release-specific compatibility.</p>
+<p><span class="claim claim-missing">[MISSING]</span> The actual target distro and local behavior have not been probed.</p>
+<p><span class="claim claim-decision">[DECISION]</span> The only preserved re-entry gate is an isolated BF16 DistilBERT-class prompt classifier or moderation experiment. It must not alter or delay the primary HIP/Vulkan fork.</p>
+<h2 id="bundle-map">Bundle map</h2>
+<table>
+<thead>
+<tr>
+  <th>Path</th>
+  <th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><a href="wiki/"><code>wiki/</code></a></td>
+  <td>Research chapters in Markdown and rendered HTML</td>
+</tr>
+<tr>
+  <td><a href="decision/"><code>decision/</code></a></td>
+  <td>Dated decision and conditional experiment gate</td>
+</tr>
+<tr>
+  <td><a href="sources/raw/"><code>sources/raw/</code></a></td>
+  <td>Exact primary-source snapshots where captured</td>
+</tr>
+<tr>
+  <td><a href="sources/excerpts/"><code>sources/excerpts/</code></a></td>
+  <td>Exact source excerpts with pinned provenance</td>
+</tr>
+<tr>
+  <td><a href="sources/records/"><code>sources/records/</code></a></td>
+  <td>Structured claim captures where full mirroring was not appropriate</td>
+</tr>
+<tr>
+  <td><a href="manifests/"><code>manifests/</code></a></td>
+  <td>Sources, claims, versions, support boundary, licenses, access log, verification, and hashes</td>
+</tr>
+<tr>
+  <td><a href="probe/"><code>probe/</code></a></td>
+  <td>Non-invasive target-host probe; no install, load, reset, or workload by default</td>
+</tr>
+<tr>
+  <td><a href="sources/fetch-primary-sources.sh"><code>sources/fetch-primary-sources.sh</code></a></td>
+  <td>Re-fetch recipe using immutable source URLs</td>
+</tr>
+<tr>
+  <td><a href="assets/"><code>assets/</code></a></td>
+  <td>Offline wiki CSS and JavaScript</td>
+</tr>
+</tbody>
+</table>
+<h2 id="integrity">Integrity</h2>
+<p>Run:</p>
+<pre><code class="language-bash">sha256sum -c manifests/files.sha256
+</code></pre>
+<p>The ZIP has a separate SHA-256 sibling file.</p>
+<h2 id="important-limitations">Important limitations</h2>
+<p><span class="claim claim-missing">[MISSING]</span> Account-gated AMD DEB/TGZ packages were not downloaded, so their hashes are absent.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Firmware binaries are not redistributed in this bundle. Exact paths, versions, source pin, license reference, and target-host hashing procedure are preserved.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> Public XRT, <code>llvm-aie</code>, and <code>mlir-aie</code> repository heads are recorded, but they are not asserted to be the build inputs for AMD's Ryzen AI 1.7.1 binary packages.</p>
+<p><span class="claim claim-missing">[MISSING]</span> No target performance result is claimed.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="assets/wiki.js"></script>
+</body>
+</html>

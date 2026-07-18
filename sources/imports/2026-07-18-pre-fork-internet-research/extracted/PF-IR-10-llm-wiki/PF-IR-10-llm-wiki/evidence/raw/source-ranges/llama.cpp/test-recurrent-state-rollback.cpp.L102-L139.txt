@@ -1,0 +1,38 @@
+    if (!decode_tokens(ctx_src, tokens, n_tokens)) {
+        fprintf(stderr, "%s : failed to decode prompt\n", __func__);
+        return 1;
+    }
+    if (!llama_memory_seq_rm(llama_get_memory(ctx_src), 0, last_pos, -1)) {
+        fprintf(stderr, "%s : rollback failed\n", __func__);
+        return 1;
+    }
+
+    // Save the rolled-back state and restore it into a fresh context.
+    common_prompt_checkpoint ckpt;
+    ckpt.update_tgt(ctx_src, 0, 0);
+    ckpt.load_tgt(ctx_dst, 0, 0);
+
+    // Replay the rolled-back token on both contexts and compare logits.
+    if (!decode_one(ctx_src, last_tok, last_pos) ||
+        !decode_one(ctx_dst, last_tok, last_pos)) {
+        fprintf(stderr, "%s : replay failed\n", __func__);
+        return 1;
+    }
+
+    const float * logits_src = llama_get_logits_ith(ctx_src, 0);
+    const float * logits_dst = llama_get_logits_ith(ctx_dst, 0);
+    if (logits_src == nullptr || logits_dst == nullptr) {
+        fprintf(stderr, "%s : missing logits\n", __func__);
+        return 1;
+    }
+
+    constexpr float eps = 1e-5f;
+    for (int i = 0; i < n_vocab; ++i) {
+        if (std::fabs(logits_src[i] - logits_dst[i]) > eps) {
+            fprintf(stderr, "%s : logits mismatch at token %d (%g != %g)\n",
+                    __func__, i, (double) logits_src[i], (double) logits_dst[i]);
+            return 1;
+        }
+    }
+
+    // Repeat the load into a context that already has its own rollback state:

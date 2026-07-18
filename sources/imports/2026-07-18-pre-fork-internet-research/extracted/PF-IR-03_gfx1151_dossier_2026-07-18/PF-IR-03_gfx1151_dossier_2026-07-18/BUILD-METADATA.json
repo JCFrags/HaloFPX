@@ -1,0 +1,12 @@
+{
+  "dossier_id": "PF-IR-03",
+  "title": "PF-IR-03 — Official gfx1151 Compute-Stack and Signed-Artifact Compatibility Tuple",
+  "capture_date": "2026-07-18",
+  "local_comparison_capture_date": "2026-07-17",
+  "generator": "generate_pf_ir_03_fixed.py",
+  "integrity_policy": "unknown external hashes remain null and non-promotable",
+  "external_artifacts_redistributed": false,
+  "primary_source_records": 21,
+  "claim_count": 40,
+  "component_count": 32
+}

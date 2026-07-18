@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-p5mv-gjc5-mwqv",
+  "cve": "CVE-2024-32878",
+  "title": "Legacy GGUF uninitialized free after short read",
+  "severity": "High",
+  "published": "2024-04-26",
+  "affected_versions_as_displayed_or_normalized": "Official page lists b2715",
+  "patched_versions_as_displayed_or_normalized": "Official page lists b2740",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-p5mv-gjc5-mwqv",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "legacy gguf_init_from_file string-array allocation/free loop",
+    "preconditions_summary": "Truncated malicious GGUF causes a short read after an uninitialized pointer array allocation."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "bad8f91fb891bc547325fbf472057b92743b5490033806343c0439389c9038e7"
+}

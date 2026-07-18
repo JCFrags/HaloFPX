@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>XDNA2 read-only probe — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="../wiki/00-home.html">Home / decision</a></li><li><a href="../wiki/01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="../wiki/02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="../wiki/03-firmware.html">Firmware</a></li><li><a href="../wiki/04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="../wiki/05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="../wiki/06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="../wiki/07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="../wiki/08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="../wiki/09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="../wiki/10-role-evaluation.html">Role evaluation</a></li><li><a href="../wiki/11-bounded-experiment.html">Bounded experiment</a></li><li><a href="../wiki/12-read-only-probe.html">Read-only probe</a></li><li><a href="../wiki/13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="../wiki/14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">probe/README.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>XDNA2 read-only probe</h1>
+<p>The probe inventories the target Linux substrate without changing it.</p>
+<h2 id="default-guarantees">Default guarantees</h2>
+<p>It does not use <code>sudo</code>, install packages, load or unload modules, bind or unbind PCI devices, write sysfs/debugfs, change limits, reset the NPU, suspend the system, compile a model, or run inference.</p>
+<h2 id="run">Run</h2>
+<pre><code class="language-bash">./xdna2_readonly_probe.sh
+</code></pre>
+<p>Use a named output directory:</p>
+<pre><code class="language-bash">./xdna2_readonly_probe.sh --output ./pf-ir-11-probe
+</code></pre>
+<p>Opt in to a pre-existing XRT read-only query:</p>
+<pre><code class="language-bash">./xdna2_readonly_probe.sh --output ./pf-ir-11-probe --xrt-query
+</code></pre>
+<p><code>--xrt-query</code> runs <code>xrt-smi examine</code> only when the command already exists. It does not install XRT.</p>
+<h2 id="output">Output</h2>
+<p>The directory contains raw text captures, a compact <code>summary.json</code>, and <code>SHA256SUMS</code>.</p>
+<p>The probe is a substrate check. It cannot establish graph placement, correctness, performance, energy efficiency, or production recovery.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

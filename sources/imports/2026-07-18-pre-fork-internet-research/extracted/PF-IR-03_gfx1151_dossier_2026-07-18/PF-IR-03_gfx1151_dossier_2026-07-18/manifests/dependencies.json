@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "edges": [
+    {
+      "from": "application",
+      "to": "HIP runtime"
+    },
+    {
+      "from": "HIP runtime",
+      "to": "ROCr Runtime / HSA"
+    },
+    {
+      "from": "HIP runtime",
+      "to": "LLVM device code toolchain"
+    },
+    {
+      "from": "LLVM device code toolchain",
+      "to": "AMDGPU device libraries"
+    },
+    {
+      "from": "ROCr Runtime / HSA",
+      "to": "amdgpu/KFD"
+    },
+    {
+      "from": "amdgpu/KFD",
+      "to": "Linux kernel"
+    },
+    {
+      "from": "Linux kernel",
+      "to": "AMD GPU firmware"
+    },
+    {
+      "from": "hipBLAS",
+      "to": "rocBLAS"
+    },
+    {
+      "from": "hipBLAS",
+      "to": "hipBLASLt"
+    },
+    {
+      "from": "hipBLASLt",
+      "to": "Composable Kernel / Tensile kernels"
+    },
+    {
+      "from": "rocBLAS",
+      "to": "AMDGPU kernel packs (.kpack)"
+    },
+    {
+      "from": "rocWMMA",
+      "to": "HIP/LLVM"
+    },
+    {
+      "from": "RCCL",
+      "to": "HIP runtime"
+    },
+    {
+      "from": "RCCL",
+      "to": "ROCr Runtime / HSA"
+    },
+    {
+      "from": "RCCL",
+      "to": "network/IPC transports"
+    },
+    {
+      "from": "Mesa RADV",
+      "to": "amdgpu DRM"
+    },
+    {
+      "from": "Mesa RADV",
+      "to": "Vulkan loader"
+    },
+    {
+      "from": "USB4STREAM application",
+      "to": "thunderbolt-stream"
+    },
+    {
+      "from": "thunderbolt-stream",
+      "to": "Linux 7.2-rc/next kernel"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "status": "NOT_FOUND",
+  "search_locations": [
+    "/mnt/data",
+    "/home/oai/share",
+    "/home/oai"
+  ],
+  "resolution": "Candidate baseline reconstructed from authoritative publisher repositories and third-party conversion repositories.",
+  "warning": "This package does not claim fidelity to an unavailable imported catalog."
+}

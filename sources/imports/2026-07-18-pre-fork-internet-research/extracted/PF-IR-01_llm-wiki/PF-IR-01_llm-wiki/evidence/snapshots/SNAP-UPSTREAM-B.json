@@ -1,0 +1,11 @@
+{
+  "capture_format": "primary-source-commit-metadata/v1",
+  "repository": "ggml-org/llama.cpp",
+  "commit": "86d86ed4396b4130922f7b9af26e3d9fc11a591b",
+  "role": "upstream comparison snapshot",
+  "commit_title": "opencl: transpose q4_K no-shuffle scales",
+  "source_url": "https://github.com/ggml-org/llama.cpp/commit/86d86ed4396b4130922f7b9af26e3d9fc11a591b",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "proof_scope": "Commit object/source selection only; not deployed binary proof.",
+  "payload_sha256": "3c591d116cee8a217186c2ff78a30b0a8178e3284100d82c4ad701469d5a758e"
+}

@@ -1,0 +1,17 @@
+{
+  "accessed_at": "2026-07-18",
+  "active_repository": "ROCm/rocm-systems",
+  "active_component_path": "projects/rccl",
+  "final_observed_develop_head": "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab",
+  "fully_inspected_base": "3dddea1389e5d28e84fe2c29f50450f00b7474a1",
+  "critical_blob_stability_check": {
+    "projects/rccl/makefiles/version.mk": "a623ed8aa0ff402b2a66c8d916407b93217cadd9",
+    "projects/rccl/src/transport/net_socket.cc": "cfd58c550421807a1ae240cb3a1f1abb1a6cb11a",
+    "projects/rccl/src/nccl.h.in": "4e93c73d15cb294e5f22016e0d31f39073d8926e",
+    "projects/rccl/docs/how-to/fault-tolerance.rst": "4cdd5a668e693bc2ffc03056c00de13e61ae87a8"
+  },
+  "observation": "Critical RCCL blobs were identical at the fully inspected base and final observed monorepo head. The final head commit itself modified another project.",
+  "retired_repository": "ROCm/rccl",
+  "retired_default_branch": "develop_deprecated",
+  "release_activity_note": "Standalone tags remain useful release evidence even though active development moved to the monorepo."
+}

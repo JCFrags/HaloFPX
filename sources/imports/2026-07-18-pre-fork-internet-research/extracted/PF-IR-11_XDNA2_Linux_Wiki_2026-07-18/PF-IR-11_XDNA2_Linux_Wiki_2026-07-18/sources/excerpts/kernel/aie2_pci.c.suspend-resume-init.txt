@@ -1,0 +1,80 @@
+static int aie2_hw_suspend(struct amdxdna_dev *xdna)
+{
+	struct amdxdna_client *client;
+
+	list_for_each_entry(client, &xdna->client_list, node)
+		aie2_hwctx_suspend(client);
+
+	aie2_hw_stop(xdna);
+
+	return 0;
+}
+
+static int aie2_hw_resume(struct amdxdna_dev *xdna)
+{
+	struct amdxdna_client *client;
+	int ret;
+
+	ret = aie2_hw_start(xdna);
+	if (ret) {
+		XDNA_ERR(xdna, "Start hardware failed, %d", ret);
+		return ret;
+	}
+
+	list_for_each_entry(client, &xdna->client_list, node) {
+		ret = aie2_hwctx_resume(client);
+		if (ret)
+			break;
+	}
+
+	return ret;
+}
+
+static int aie2_init(struct amdxdna_dev *xdna)
+{
+	struct pci_dev *pdev = to_pci_dev(xdna->ddev.dev);
+	void __iomem *tbl[PCI_NUM_RESOURCES] = {0};
+	struct init_config xrs_cfg = { 0 };
+	struct amdxdna_dev_hdl *ndev;
+	struct psp_config psp_conf = { 0 };
+	struct smu_config smu_conf;
+	const struct firmware *fw;
+	unsigned long bars = 0;
+	char *fw_full_path;
+	int i, nvec, ret;
+
+	if (!hypervisor_is_type(X86_HYPER_NATIVE)) {
+		XDNA_ERR(xdna, "Running under hypervisor not supported");
+		return -EINVAL;
+	}
+
+	if (!xdna->group) {
+		XDNA_ERR(xdna, "Running without IOMMU not supported");
+		return -EINVAL;
+	}
+
+	ndev = drmm_kzalloc(&xdna->ddev, sizeof(*ndev), GFP_KERNEL);
+	if (!ndev)
+		return -ENOMEM;
+
+	ndev->priv = xdna->dev_info->dev_priv;
+	ndev->aie.xdna = xdna;
+
+	for (i = 0; i < ARRAY_SIZE(npu_fw); i++) {
+		fw_full_path = kasprintf(GFP_KERNEL, "%s%s", ndev->priv->fw_path, npu_fw[i]);
+		if (!fw_full_path)
+			return -ENOMEM;
+
+		ret = firmware_request_nowarn(&fw, fw_full_path, &pdev->dev);
+		kfree(fw_full_path);
+		if (!ret) {
+			XDNA_INFO(xdna, "Load firmware %s%s", ndev->priv->fw_path, npu_fw[i]);
+			break;
+		}
+	}
+
+	if (ret) {
+		XDNA_ERR(xdna, "failed to request_firmware %s, ret %d",
+			 ndev->priv->fw_path, ret);
+		return ret;
+	}

@@ -1,0 +1,408 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-18T00:00:00-07:00",
+  "candidates": [
+    {
+      "candidate_id": "deepseek-v3.1",
+      "name": "DeepSeek-V3.1",
+      "publisher": "DeepSeek-AI",
+      "decision": "ADVANCE_TO_LOCAL_PREFLIGHT",
+      "priority_rank": 1,
+      "artifact_key": "deepseek-v3.1-ud-iq2-xxs",
+      "publisher_identity": {
+        "repo": "deepseek-ai/DeepSeek-V3.1",
+        "revision": "c0781d039fb7a1ba2abc4add0bdc293e92d2b8db"
+      },
+      "publisher_facts": {
+        "parameters": "671B total / 37B activated",
+        "architecture": "DeepSeek-V3-family sparse MoE with Multi-head Latent Attention (MLA)",
+        "state_requirements": [
+          "KV/latent attention state",
+          "routed and shared expert weights",
+          "YaRN/RoPE scaling metadata"
+        ],
+        "layers": 61,
+        "experts": "256 routed, 8 selected per token, 1 shared; 3 leading dense blocks",
+        "mla": "q_lora_rank=1536; kv_lora_rank=512; qk_nope_head_dim=128; qk_rope_head_dim=64",
+        "mtp": "config nextn_predict_layers=1; publisher model is trained with NextN lineage; selected GGUF MTP usability is not assumed",
+        "context": {
+          "publisher_card": "128K",
+          "config_max_position_embeddings": 163840,
+          "discrepancy": "Preserved; runtime maximum requires qualification."
+        },
+        "precision": "Publisher config identifies FP8 e4m3-style weights with UE8M0 scale metadata.",
+        "tokenizer": {
+          "vocab_size": 129280,
+          "files": [
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "assets/chat_template.jinja"
+          ],
+          "exact_file_hashes": null
+        },
+        "chat_template": "Hybrid thinking/non-thinking. Non-thinking generation prefix closes thinking with </think>; thinking prefix opens <think>.",
+        "tool_use": "Publisher documents structured tool tokens and JSON arguments; non-thinking tool calls and search-agent templates are documented.",
+        "license": "MIT",
+        "gating": "Repository was publicly readable without an access gate at capture time; future availability is not guaranteed."
+      },
+      "conversion_facts": {
+        "selected_quant": "UD-IQ2_XXS",
+        "display_size": "226 GB rounded",
+        "manifest": "partial",
+        "imatrix": "partial provenance",
+        "chat_template_note": "Converter states llama.cpp quants contain template fixes and require Jinja."
+      },
+      "static_source": {
+        "llama_arch": "deepseek2",
+        "llama_graph": "Concrete DeepSeek2 class and MLA/MoE graph present.",
+        "mtp": "No explicit decoder-MTP graph path identified in deepseek2.cpp at pinned revision.",
+        "rocmfpx": "HIP/CUDA backend contains generic MoE, attention, and matrix paths; candidate execution not tested.",
+        "claim_level": "STATIC_SOURCE_ONLY"
+      },
+      "risks": [
+        "Selected artifact exact bytes/hashes incomplete",
+        "MLA memory behavior and long-context state unqualified",
+        "MTP/speculative acceleration not established",
+        "Quant quality not measured locally"
+      ],
+      "sources": [
+        "SRC-DSV31-PUBLISHER",
+        "SRC-DSV31-CONFIG",
+        "SRC-DSV31-CONVERSION",
+        "SRC-LLAMACPP-MODELS",
+        "SRC-ROCMFPX-OPS"
+      ]
+    },
+    {
+      "candidate_id": "glm-4.7",
+      "name": "GLM-4.7",
+      "publisher": "Z.ai",
+      "decision": "ADVANCE_TO_LOCAL_PREFLIGHT",
+      "priority_rank": 2,
+      "artifact_key": "glm-4.7-q4-k-m",
+      "publisher_identity": {
+        "repo": "zai-org/GLM-4.7",
+        "revision": "602d01efcdd332c5238ca4bcede555defbe83eb7"
+      },
+      "publisher_facts": {
+        "parameters": "Publisher card: 358B total / 32B activated; pinned llama.cpp static type label: 355B-A32B",
+        "architecture": "GLM4 MoE transformer with interleaved/preserved thinking and a NextN layer",
+        "state_requirements": [
+          "standard attention KV cache",
+          "routed/shared expert weights",
+          "thinking-history/template state"
+        ],
+        "layers": 92,
+        "experts": "160 routed, 8 selected per token, 1 shared; 3 initial dense layers",
+        "mtp": "Publisher/config expose one NextN layer.",
+        "context": {
+          "publisher_card": "128K operating guidance",
+          "config_max_position_embeddings": 202752,
+          "discrepancy": "Preserved; no local max-context claim."
+        },
+        "tokenizer": {
+          "files": [
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "chat_template.jinja"
+          ],
+          "exact_file_hashes": null
+        },
+        "chat_template": "Thinking is enabled by default in documented engines; preserved-thinking and per-turn thinking controls are documented.",
+        "tool_use": "OpenAI-style tools; publisher documents thinking before actions and tool calls.",
+        "license": "MIT",
+        "gating": "Publicly readable at capture time."
+      },
+      "conversion_facts": {
+        "selected_quant": "Q4_K_M",
+        "exact_total_bytes": 216455572576,
+        "manifest": "all five selected shards exact",
+        "imatrix": "partial provenance"
+      },
+      "static_source": {
+        "llama_arch": "glm4moe",
+        "llama_graph": "Concrete GLM4-MoE model graph present.",
+        "mtp": "NextN tensors are loaded with skip flags and excluded from forward execution in pinned source.",
+        "rocmfpx": "Generic attention/MoE source is present; no local dispatch trace.",
+        "claim_level": "STATIC_SOURCE_ONLY"
+      },
+      "risks": [
+        "MTP speculative path absent in pinned graph",
+        "Publisher parameter total differs from static runtime type label",
+        "Long-context memory and quality unqualified"
+      ],
+      "sources": [
+        "SRC-GLM47-PUBLISHER",
+        "SRC-GLM47-CONVERSION",
+        "SRC-LLAMACPP-MODELS",
+        "SRC-ROCMFPX-OPS"
+      ]
+    },
+    {
+      "candidate_id": "qwen3.5-397b-a17b",
+      "name": "Qwen3.5-397B-A17B",
+      "publisher": "Qwen",
+      "decision": "ADVANCE_TO_LOCAL_PREFLIGHT",
+      "priority_rank": 3,
+      "artifact_key": "qwen3.5-397b-a17b-ud-q4-k-s",
+      "publisher_identity": {
+        "repo": "Qwen/Qwen3.5-397B-A17B",
+        "revision": "8472618112abcbd45acbcdc58436aff4233c23f7"
+      },
+      "publisher_facts": {
+        "parameters": "397B total / 17B activated",
+        "architecture": "Multimodal causal model with vision encoder; 60-layer hybrid Gated DeltaNet + gated attention sparse MoE",
+        "state_requirements": [
+          "recurrent DeltaNet state",
+          "attention KV cache",
+          "512 routed-expert set plus shared expert",
+          "vision encoder/projector assets for multimodal use"
+        ],
+        "layout": "15 × [3 × (Gated DeltaNet → MoE) + 1 × (Gated Attention → MoE)]",
+        "attention": "DeltaNet: 64 V heads / 16 QK heads, dimension 128. Attention: 32 Q / 2 KV, head dimension 256, rotary dimension 64.",
+        "experts": "512 total; 10 routed + 1 shared active; expert intermediate dimension 1024",
+        "mtp": "Publisher states multi-step MTP training and documents NEXTN/qwen3_next_mtp serving modes.",
+        "context": {
+          "native": 262144,
+          "extended": 1010000,
+          "qualification": "Extension requires explicit RoPE/YaRN configuration and local validation."
+        },
+        "tokenizer": {
+          "embedding_output_padded": 248320,
+          "files": [
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "chat_template.jinja"
+          ],
+          "exact_file_hashes": null
+        },
+        "chat_template": "Thinking is default; disable with enable_thinking=false. Thinking history handling is template-dependent.",
+        "tool_use": "Publisher documents qwen3 reasoning parser, qwen3_coder tool parser, Qwen-Agent, and MCP integration.",
+        "license": "Apache-2.0",
+        "gating": "Publicly readable at capture time."
+      },
+      "conversion_facts": {
+        "selected_quant": "UD-Q4_K_S",
+        "display_size": "228 GB rounded",
+        "manifest": "5/6 exact pointers",
+        "imatrix": "converter update claim; corpus/hash unavailable",
+        "multimodal": "Selected GGUF does not by itself prove complete vision asset lineage."
+      },
+      "static_source": {
+        "llama_arch": "qwen35moe",
+        "llama_graph": "Concrete hybrid recurrent/full-attention graph and recurrent memory are present.",
+        "mtp": "Explicit decoder-MTP graph path and NextN tensors are present.",
+        "rocmfpx": "Pinned backend contains gated-delta-net and SSM source files/includes; no machine execution or fallback trace.",
+        "claim_level": "STATIC_SOURCE_ONLY"
+      },
+      "risks": [
+        "Sixth selected shard exact bytes/hash unavailable",
+        "Recurrent state semantics require sequence/reset/copy tests",
+        "Multimodal projector/vision assets and operator coverage unqualified",
+        "MTP must be tested separately from base decoding"
+      ],
+      "sources": [
+        "SRC-QWEN35-PUBLISHER",
+        "SRC-QWEN35-CONVERSION",
+        "SRC-LLAMACPP-MODELS",
+        "SRC-ROCMFPX-OPS"
+      ]
+    },
+    {
+      "candidate_id": "nemotron-3-ultra",
+      "name": "NVIDIA Nemotron 3 Ultra 550B-A55B",
+      "publisher": "NVIDIA",
+      "decision": "ADVANCE_TO_LOCAL_PREFLIGHT",
+      "priority_rank": 4,
+      "artifact_key": "nemotron-3-ultra-ud-iq3-xxs",
+      "publisher_identity": {
+        "repo": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+        "revision": "624ba927cfbef0427354998700de3d51173c8c04"
+      },
+      "publisher_facts": {
+        "parameters": "550B total / 55B activated",
+        "architecture": "Mamba-2/Transformer hybrid LatentMoE with selected attention layers and MTP",
+        "state_requirements": [
+          "Mamba-2 recurrent state and convolution state",
+          "attention KV cache on attention layers",
+          "LatentMoE projections and expert weights",
+          "MTP state if accelerated"
+        ],
+        "mtp": "Publisher describes shared-weight MTP layers.",
+        "context": {
+          "maximum": "up to 1M tokens",
+          "qualification": "No local long-context or memory claim."
+        },
+        "training_precision": "Publisher describes an NVFP4 pretraining recipe with selected layers retained in BF16/MXFP8.",
+        "tokenizer": {
+          "files": [
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "chat_template.jinja"
+          ],
+          "exact_file_hashes": null
+        },
+        "chat_template": "Configurable thinking on/off through chat template.",
+        "tool_use": "Publisher positions model for agentic workflows and tool use; exact workload behavior remains a local quality gate.",
+        "license": "OpenMDW-1.1",
+        "gating": "Publicly readable at capture time."
+      },
+      "conversion_facts": {
+        "selected_quant": "UD-IQ3_XXS",
+        "display_size": "223 GB rounded",
+        "manifest": "names/rounded sizes only",
+        "imatrix": "unavailable"
+      },
+      "static_source": {
+        "llama_arch": "nemotron_h_moe",
+        "llama_graph": "Concrete Mamba2 recurrent, attention, and MoE graph paths are present.",
+        "mtp": "No explicit decoder-MTP graph identified in pinned nemotron-h model source.",
+        "rocmfpx": "Pinned backend includes SSM scan/conv sources; execution and performance are untested.",
+        "claim_level": "STATIC_SOURCE_ONLY"
+      },
+      "risks": [
+        "Selected artifact lacks exact shard pointers in capture",
+        "Hybrid recurrent state is backend-sensitive",
+        "MTP not established in pinned llama.cpp graph",
+        "OpenMDW terms require legal review despite publisher commercial-use statement"
+      ],
+      "sources": [
+        "SRC-NEMOTRON-PUBLISHER",
+        "SRC-NEMOTRON-CONVERSION",
+        "SRC-OPENMDW",
+        "SRC-LLAMACPP-MODELS",
+        "SRC-ROCMFPX-OPS"
+      ]
+    },
+    {
+      "candidate_id": "deepseek-r1",
+      "name": "DeepSeek-R1",
+      "publisher": "DeepSeek-AI",
+      "decision": "ADVANCE_TO_LOCAL_PREFLIGHT",
+      "priority_rank": 5,
+      "artifact_key": "deepseek-r1-q2-k-xs",
+      "publisher_identity": {
+        "repo": "deepseek-ai/DeepSeek-R1",
+        "revision": "56d4cbbb4d29f4355bab4b9a39ccb717a14ad5ad"
+      },
+      "publisher_facts": {
+        "parameters": "671B total / 37B activated",
+        "architecture": "DeepSeek2/DeepSeek-V3-family MLA sparse MoE reasoning model",
+        "state_requirements": [
+          "MLA latent attention state",
+          "routed/shared expert weights",
+          "reasoning template discipline"
+        ],
+        "mtp": "Training/config lineage exposes one NextN prediction layer; selected GGUF acceleration is not assumed.",
+        "context": {
+          "publisher_card": "128K",
+          "qualification": "No local maximum-context claim."
+        },
+        "tokenizer": {
+          "vocab_size": 129280,
+          "files": [
+            "tokenizer.json",
+            "tokenizer_config.json"
+          ],
+          "exact_file_hashes": null
+        },
+        "chat_template": "Reasoning-oriented DeepSeek template. Publisher usage guidance recommends avoiding a system prompt in benchmark-style use.",
+        "tool_use": "No publisher-authoritative structured tool contract was accepted as established for this shortlist.",
+        "license": "MIT",
+        "gating": "Publicly readable at capture time."
+      },
+      "conversion_facts": {
+        "selected_quant": "Q2_K_XS",
+        "exact_total_bytes": 221253686944,
+        "manifest": "all five selected shards exact",
+        "imatrix": "partial provenance"
+      },
+      "static_source": {
+        "llama_arch": "deepseek2",
+        "llama_graph": "Concrete MLA/MoE graph present.",
+        "mtp": "No explicit decoder-MTP graph identified in pinned deepseek2.cpp.",
+        "rocmfpx": "Generic attention/MoE paths present; no local run.",
+        "claim_level": "STATIC_SOURCE_ONLY"
+      },
+      "risks": [
+        "Aggressive Q2 quality must be measured against workload reference",
+        "Tool-call suitability not publisher-established",
+        "MLA and long-context memory behavior unqualified",
+        "MTP acceleration not established"
+      ],
+      "sources": [
+        "SRC-DSR1-PUBLISHER",
+        "SRC-DSR1-CONVERSION",
+        "SRC-LLAMACPP-MODELS",
+        "SRC-ROCMFPX-OPS"
+      ]
+    },
+    {
+      "candidate_id": "minimax-m2.7",
+      "name": "MiniMax-M2.7",
+      "publisher": "MiniMax",
+      "decision": "HOLD_LICENSE_AND_CONVERSION_PREFLIGHT",
+      "priority_rank": 6,
+      "artifact_key": "minimax-m2.7-ud-q6-k-xl",
+      "publisher_identity": {
+        "repo": "MiniMaxAI/MiniMax-M2.7",
+        "revision": "d494266a4affc0d2995ba1fa35c8481cbd84294b"
+      },
+      "publisher_facts": {
+        "parameters": "Publisher repository/model metadata: about 229B/230B total; pinned llama.cpp static type label: 230B-A10B",
+        "architecture": "MiniMax-M2 sparse MoE transformer; config exposes one MTP transformer layer",
+        "state_requirements": [
+          "attention KV cache",
+          "routed expert weights",
+          "MTP layer state if used"
+        ],
+        "layers": 62,
+        "mtp": "mtp_transformer_layers=1 in captured config summary.",
+        "context": {
+          "config_max_position_embeddings": 204800,
+          "qualification": "No local maximum-context claim."
+        },
+        "tokenizer": {
+          "files": [
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "chat template/custom-code files"
+          ],
+          "trust_remote_code": "Publisher examples use trust_remote_code=True",
+          "exact_file_hashes": null
+        },
+        "chat_template": "Default system prompt and sampling recommendations are documented; exact template file must be hashed locally.",
+        "tool_use": "Publisher markets agent teams, tool use, skill use, and dynamic tool search. Workload quality remains unqualified.",
+        "license": "Custom non-commercial license; commercial use requires prior written authorization and attribution; prohibited-use appendix.",
+        "gating": "Publicly readable at capture time; legal terms are the blocking gate."
+      },
+      "conversion_facts": {
+        "selected_quant": "UD-Q6_K_XL",
+        "display_size": "207 GB rounded",
+        "manifest": "incomplete",
+        "imatrix": "partial provenance",
+        "license_metadata": "modified-mit does not override upstream restrictions"
+      },
+      "static_source": {
+        "llama_arch": "minimax-m2",
+        "llama_graph": "Concrete attention + MoE graph present.",
+        "mtp": "No explicit decoder-MTP graph identified in pinned minimax-m2.cpp.",
+        "rocmfpx": "Generic MoE/attention source present; no run.",
+        "claim_level": "STATIC_SOURCE_ONLY"
+      },
+      "risks": [
+        "Commercial deployment prohibited absent written authorization",
+        "Selected shard hashes/bytes incomplete",
+        "Custom code/template lineage must be reviewed",
+        "MTP mismatch and backend behavior unqualified"
+      ],
+      "sources": [
+        "SRC-MINIMAX-PUBLISHER",
+        "SRC-MINIMAX-LICENSE",
+        "SRC-MINIMAX-CONVERSION",
+        "SRC-LLAMACPP-MODELS",
+        "SRC-ROCMFPX-OPS"
+      ]
+    }
+  ]
+}

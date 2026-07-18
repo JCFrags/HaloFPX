@@ -1,0 +1,12 @@
+---
+source_id: "S034"
+title: "POSIX.1-2024 open()"
+capture_kind: "official-standards-receipt-with-short-excerpt"
+canonical_url: "https://pubs.opengroup.org/onlinepubs/9799919799/functions/open.html"
+version: "POSIX.1-2024"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "The Open Group terms; short excerpt only"
+---
+O_CREAT together with O_EXCL provides atomic create-if-absent semantics for a
+named temporary-file fallback. Linux O_TMPFILE and renameat2 flags are outside
+the portable POSIX minimum.

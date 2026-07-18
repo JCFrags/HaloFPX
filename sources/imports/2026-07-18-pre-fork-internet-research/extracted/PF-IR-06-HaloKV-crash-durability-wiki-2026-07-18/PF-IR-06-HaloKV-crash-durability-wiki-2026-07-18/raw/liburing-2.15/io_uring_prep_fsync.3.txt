@@ -1,0 +1,17 @@
+---
+source_id: "S017"
+title: "liburing io_uring_prep_fsync(3)"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "axboe/liburing"
+path: "man/io_uring_prep_fsync.3"
+version: "2.15"
+commit: "d41bf9220ec39277ff235379e9089d9e0fd6c2a5"
+upstream_blob_sha1: "a3259a0cdef88cbb2a1c9bee2873595926b98bf4"
+line_ranges: "18-67"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "LGPL-2.0-or-later"
+---
+The default request acts like fsync(2). IORING_FSYNC_DATASYNC makes it act
+like fdatasync(2). Without an explicit range, the file is synchronized from
+zero to end of file. The CQE res field carries zero or a negated errno.

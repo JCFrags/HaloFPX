@@ -1,0 +1,19 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-MINIMAX-CONVERSION
+authority: third_party_converter
+capture_type: rendered_text_extract
+source_title: unsloth/MiniMax-M2.7-GGUF UD-Q6_K_XL
+source_url: https://huggingface.co/unsloth/MiniMax-M2.7-GGUF/tree/04ab68de18da5486aa9869e3bc72f0249ef51f89/UD-Q6_K_XL
+immutable_revision: 04ab68de18da5486aa9869e3bc72f0249ef51f89
+accessed_at: 2026-07-18
+completeness: NAMES_AND_PARTIAL_ROUNDED_SIZES_ONLY
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf	display_size=8.24 MB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+MiniMax-M2.7-UD-Q6_K_XL-00002-of-00006.gguf	display_size=49.0 GB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+MiniMax-M2.7-UD-Q6_K_XL-00003-of-00006.gguf	display_size=49.7 GB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+MiniMax-M2.7-UD-Q6_K_XL-00004-of-00006.gguf	display_size=49.7 GB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+MiniMax-M2.7-UD-Q6_K_XL-00005-of-00006.gguf	display_size=49.7 GB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+MiniMax-M2.7-UD-Q6_K_XL-00006-of-00006.gguf	display_size=UNAVAILABLE	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+Rounded folder total: 207 GB. Prior-snapshot hashes are excluded from selected identity.

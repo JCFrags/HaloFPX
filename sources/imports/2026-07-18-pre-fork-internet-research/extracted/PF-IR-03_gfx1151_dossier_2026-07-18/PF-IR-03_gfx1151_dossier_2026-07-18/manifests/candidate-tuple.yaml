@@ -1,0 +1,48 @@
+tuple_id: PF-IR-03-CANDIDATE-7.14.0
+classification: separately testable Core SDK preview candidate
+claim_labels:
+- '[DOCUMENTED_SUPPORT]'
+- '[PREVIEW_AVAILABILITY]'
+- '[NOT_RELEASE_READY]'
+- '[MATURITY_CONFLICT]'
+os_options:
+- name: Ubuntu
+  version: '26.04'
+  kernel: GA 7.0
+  driver: inbox amdgpu/KFD
+- name: Ubuntu
+  version: 24.04.4
+  kernel: HWE 6.17
+  driver: inbox amdgpu/KFD
+gpu:
+  architecture: gfx1151
+  architecture_name: RDNA 3.5
+  products: all gfx1151 Ryzen models listed in current 7.14 matrix
+userspace:
+  release: 7.14.0
+  package_lane: amdrocm-*
+  install_prefix: /opt/rocm/core
+  preferred_delivery: stable native package repository with GPG-verified metadata
+  meta_package: amdrocm-core-sdk7.14-gfx1151
+raw_tarball:
+  url: https://repo.amd.com/rocm/tarball-multi-arch/therock-dist-linux-gfx1151-7.14.0.tar.gz
+  sha256: null
+  signature: null
+  status: blocked pending authenticated acquisition
+source_pins_ref: manifests/source-pins.yaml#core_sdk_7_14_0
+compiler_resource_capture:
+- amdclang --print-resource-dir
+- hipconfig --path
+- hipconfig -R
+- find $ROCM_PATH -path */amdgcn/bitcode
+- find $ROCM_PATH -path */lib/clang/*
+promotion_gates:
+- package signing-key fingerprint and metadata retained
+- exact package NEVRAs/versions and SHA256 pinned
+- TheRock artifact source manifest matched to source checkout
+- full license/notice inventory and SBOM
+- gfx1151 KFD fixes confirmed
+- known-issue test cases executed
+- no legacy 7.2 files in runtime namespace
+- two-node runtime qualification local
+maturity: preview; candidate only

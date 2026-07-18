@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guarantee → authoritative source → local fault test · PF-IR-06</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="../index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="../wiki/00-scope-and-claim-language.html">Scope / labels</a><a href="../wiki/01-executive-decision-record.html">Decision record</a><a href="../wiki/02-portable-linux-minimum.html">Portable minimum</a><a href="../wiki/03-temporary-files-and-publication.html">Publication</a><a href="../wiki/04-deployed-filesystem-profile.html">Deployed profile</a><a href="../wiki/05-ext4.html">ext4</a><a href="../wiki/06-xfs.html">XFS</a><a href="../wiki/07-btrfs.html">Btrfs</a><a href="../wiki/08-io-uring.html">io_uring</a><a href="../wiki/09-errors-space-direct-io.html">Errors / DIO</a><a href="../wiki/10-locking-and-fencing.html">Locking</a><a href="../wiki/11-fault-test-matrix.html">Fault program</a><a href="../wiki/12-nontarget-portability.html">Non-targets</a><a href="../wiki/13-open-questions.html">Open questions</a><a href="../wiki/14-source-audit.html">Source audit</a><a href="claim-ledger.html">Claim ledger</a><a class="active" href="guarantee-source-test.html">Guarantee map</a><a href="experiment-matrix.html">Experiment matrix</a><a href="source-register.html">Source register</a><a href="../VERSION-PINS.html">Version pins</a><a href="../raw/README.html">Raw capture policy</a><a href="../licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="../scripts/fault-tests/README.html">Harness notes</a><a href="../BUILD-VALIDATION.html">Build validation</a><a href="../README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="../index.html">Wiki home</a><span>·</span><a href="guarantee-source-test.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>Guarantee → authoritative source → local fault test</h1>
+<p>Guarantees: <strong>38</strong>. A mapping is not a durability result; the listed test must pass on the deployed profile.</p>
+<table>
+<thead>
+<tr>
+<th>Guarantee</th>
+<th>Required property</th>
+<th>Implementation rule</th>
+<th>Authoritative sources</th>
+<th>Local tests</th>
+<th>Portability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G001</td>
+<td>Detect and record deployed filesystem before enabling writes</td>
+<td>Startup profile probe; refuse unknown/nonlocal layers</td>
+<td>S001;S002;S003;S004</td>
+<td>T001;T038</td>
+<td>portable gate</td>
+</tr>
+<tr>
+<td>G002</td>
+<td>Create unpublished inode on destination filesystem</td>
+<td>O_TMPFILE after probe, otherwise openat O_CREAT|O_EXCL in parent</td>
+<td>S022;S034</td>
+<td>T002;T003</td>
+<td>portable Linux minimum</td>
+</tr>
+<tr>
+<td>G003</td>
+<td>Prevent accidental temp-name collision</td>
+<td>O_EXCL fallback or unnamed inode</td>
+<td>S022;S034</td>
+<td>T003</td>
+<td>portable minimum</td>
+</tr>
+<tr>
+<td>G004</td>
+<td>Transfer exact object length</td>
+<td>Explicit offsets; accumulate positive results; reject zero or terminal error</td>
+<td>S023;S016</td>
+<td>T004-T006</td>
+<td>portable minimum</td>
+</tr>
+<tr>
+<td>G005</td>
+<td>Validate format before publication</td>
+<td>Check magic/version/declared length/hash/object key</td>
+<td>S023</td>
+<td>T039</td>
+<td>application guarantee</td>
+</tr>
+<tr>
+<td>G006</td>
+<td>Persist payload and size before name publication</td>
+<td>fdatasync; fsync when contract includes other inode metadata</td>
+<td>S020;S017;S007</td>
+<td>T014;T015;T019</td>
+<td>portable minimum</td>
+</tr>
+<tr>
+<td>G007</td>
+<td>Atomic create-if-absent publication</td>
+<td>linkat for O_TMPFILE or renameat2 RENAME_NOREPLACE</td>
+<td>S021;S022;S010</td>
+<td>T002;T021</td>
+<td>Linux minimum</td>
+</tr>
+<tr>
+<td>G008</td>
+<td>Atomic whole-object replacement</td>
+<td>same-filesystem rename/renameat2; never mutate old object</td>
+<td>S021;S033</td>
+<td>T020</td>
+<td>portable minimum</td>
+</tr>
+<tr>
+<td>G009</td>
+<td>Atomic name exchange when selected</td>
+<td>renameat2 RENAME_EXCHANGE, followed by directory sync</td>
+<td>S021;S010</td>
+<td>T022</td>
+<td>Linux optimization</td>
+</tr>
+<tr>
+<td>G010</td>
+<td>Persist namespace mutation</td>
+<td>fsync parent directory after link/rename/unlink</td>
+<td>S020</td>
+<td>T017-T019</td>
+<td>portable Linux minimum</td>
+</tr>
+<tr>
+<td>G011</td>
+<td>Avoid cross-filesystem publication</td>
+<td>Use same parent directory; reject EXDEV</td>
+<td>S021</td>
+<td>T001;T020</td>
+<td>portable minimum</td>
+</tr>
+<tr>
+<td>G012</td>
+<td>Handle cross-directory changes conservatively</td>
+<td>Sync both changed directories; prefer not to use this mode</td>
+<td>S020;S021</td>
+<td>T019</td>
+<td>conservative rule</td>
+</tr>
+<tr>
+<td>G013</td>
+<td>Preserve prior object on write/allocation failure</td>
+<td>Publish only after full validation and file sync</td>
+<td>S020;S021;S023</td>
+<td>T007-T016</td>
+<td>application guarantee</td>
+</tr>
+<tr>
+<td>G014</td>
+<td>Fail transaction on ENOSPC/EDQUOT at any stage</td>
+<td>Check every syscall/CQE including file and directory sync</td>
+<td>S020;S021;S022;S025</td>
+<td>T007-T009</td>
+<td>portable minimum</td>
+</tr>
+<tr>
+<td>G015</td>
+<td>Fence root on EIO</td>
+<td>Stop writer/acks, preserve diagnostics, require recovery</td>
+<td>S020;S023</td>
+<td>T010;T011</td>
+<td>policy</td>
+</tr>
+<tr>
+<td>G016</td>
+<td>Treat close errors safely</td>
+<td>Decisive sync first; never retry close</td>
+<td>S029</td>
+<td>T011</td>
+<td>portable rule</td>
+</tr>
+<tr>
+<td>G017</td>
+<td>Optional capacity reservation</td>
+<td>fallocate mode 0 or KEEP_SIZE; still write/validate/sync</td>
+<td>S025;S007</td>
+<td>T007</td>
+<td>optimization</td>
+</tr>
+<tr>
+<td>G018</td>
+<td>Do not use discard as durability</td>
+<td>Batch fstrim/async discard only as operational policy</td>
+<td>S003;S031</td>
+<td>T038</td>
+<td>filesystem policy</td>
+</tr>
+<tr>
+<td>G019</td>
+<td>Enable DIO only with discovered alignment</td>
+<td>statx STATX_DIOALIGN; aligned memory, offset and length</td>
+<td>S024</td>
+<td>T023;T024</td>
+<td>optional optimization</td>
+</tr>
+<tr>
+<td>G020</td>
+<td>Reject partial DIO object after error</td>
+<td>Quarantine/rebuild whole immutable object</td>
+<td>S023</td>
+<td>T025</td>
+<td>DIO minimum</td>
+</tr>
+<tr>
+<td>G021</td>
+<td>Avoid coherency hazards</td>
+<td>No buffered/DIO/writable-mmap mixture on same object</td>
+<td>S022;S024</td>
+<td>T026</td>
+<td>conservative rule</td>
+</tr>
+<tr>
+<td>G022</td>
+<td>ext4 supported profile</td>
+<td>data=ordered, barriers enabled, local block stack; explicit app sync</td>
+<td>S002;S005</td>
+<td>T019;T038;T040</td>
+<td>provisional baseline</td>
+</tr>
+<tr>
+<td>G023</td>
+<td>ext4 denied profile</td>
+<td>data=writeback/nobarrier unless separately proven; no DIO assumption under data=journal</td>
+<td>S002</td>
+<td>T023;T038</td>
+<td>denylist</td>
+</tr>
+<tr>
+<td>G024</td>
+<td>XFS supported profile</td>
+<td>local XFS, explicit app sync, delayed-allocation fault tests</td>
+<td>S003;S020</td>
+<td>T007;T019;T040</td>
+<td>candidate</td>
+</tr>
+<tr>
+<td>G025</td>
+<td>Btrfs conditional profile</td>
+<td>default COW/checksum plus near-full/snapshot/reflink tests; immutable objects</td>
+<td>S004;S031</td>
+<td>T037;T040</td>
+<td>conditional</td>
+</tr>
+<tr>
+<td>G026</td>
+<td>Single local writer</td>
+<td>Exclusive OFD lock or flock on dedicated root lock file</td>
+<td>S026;S027</td>
+<td>T027;T028</td>
+<td>writer policy</td>
+</tr>
+<tr>
+<td>G027</td>
+<td>Avoid classic fcntl lock lifetime hazard</td>
+<td>Do not use process-associated record lock for root ownership</td>
+<td>S027</td>
+<td>T029</td>
+<td>writer policy</td>
+</tr>
+<tr>
+<td>G028</td>
+<td>io_uring write completion accounting</td>
+<td>Check every CQE; require res == requested bytes</td>
+<td>S012;S016</td>
+<td>T004;T035</td>
+<td>uring minimum</td>
+</tr>
+<tr>
+<td>G029</td>
+<td>io_uring persistence sequence</td>
+<td>Submit fsync/fdatasync only after exact write success; submit directory fsync after publish</td>
+<td>S007;S017;S020</td>
+<td>T018;T019</td>
+<td>uring minimum</td>
+</tr>
+<tr>
+<td>G030</td>
+<td>io_uring cancellation safety</td>
+<td>Track target+cancel CQEs, either order, documented result set</td>
+<td>S008;S013</td>
+<td>T030;T031</td>
+<td>uring minimum</td>
+</tr>
+<tr>
+<td>G031</td>
+<td>io_uring registered-file lifetime</td>
+<td>Do not equate close(fd) with cancel or resource release</td>
+<td>S009;S013;S015</td>
+<td>T033</td>
+<td>uring minimum</td>
+</tr>
+<tr>
+<td>G032</td>
+<td>io_uring registered-buffer lifetime</td>
+<td>Keep memory valid through operation CQEs; for update/replacement, wait for release tag before reuse; treat explicit unregister and ring teardown according to their distinct documented semantics</td>
+<td>S009;S015</td>
+<td>T034</td>
+<td>uring minimum</td>
+</tr>
+<tr>
+<td>G033</td>
+<td>io_uring linked-operation correctness</td>
+<td>Check each CQE; no blind write→fsync link for short-write-sensitive path</td>
+<td>S014;S016</td>
+<td>T035</td>
+<td>uring minimum</td>
+</tr>
+<tr>
+<td>G034</td>
+<td>io_uring teardown</td>
+<td>Stop, cancel, drain, unregister, observe release, exit</td>
+<td>S013;S015;S018</td>
+<td>T036</td>
+<td>uring minimum</td>
+</tr>
+<tr>
+<td>G035</td>
+<td>Late CQE isolation</td>
+<td>Generation-tag user_data and defer state reuse</td>
+<td>S012;S013;S015</td>
+<td>T032;T034</td>
+<td>application rule</td>
+</tr>
+<tr>
+<td>G036</td>
+<td>Hardware crash boundary</td>
+<td>Certify flush/FUA through deployed dm/RAID/virt/device stack</td>
+<td>S005</td>
+<td>T040</td>
+<td>deployment proof</td>
+</tr>
+<tr>
+<td>G037</td>
+<td>Recovery idempotence</td>
+<td>Validate and select only complete generations; tolerate orphan temp and duplicate retry</td>
+<td>S023</td>
+<td>T018;T039</td>
+<td>application guarantee</td>
+</tr>
+<tr>
+<td>G038</td>
+<td>No durability claim from this report</td>
+<td>Implementation must pass complete matrix on deployed profile</td>
+<td>S001-S037</td>
+<td>T001-T040</td>
+<td>release gate</td>
+</tr>
+</tbody>
+</table>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="../assets/wiki.js"></script></body></html>

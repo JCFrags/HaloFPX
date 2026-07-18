@@ -1,0 +1,7 @@
+{"id":"answer-valid-compact","json_text":"{\"answer\":42}","schema":"answer.schema.json","valid":true}
+{"id":"answer-valid-spaced","json_text":"{ \"answer\" : 42 }","schema":"answer.schema.json","valid":true}
+{"id":"answer-wrong-const","json_text":"{\"answer\":41}","schema":"answer.schema.json","valid":false}
+{"id":"answer-extra-key","json_text":"{\"answer\":42,\"x\":0}","schema":"answer.schema.json","valid":false}
+{"id":"answer-trailing","json_text":"{\"answer\":42}x","schema":"answer.schema.json","valid":false}
+{"id":"tool-valid","json_text":"{\"text\":\"A\"}","schema":"echo-tool.schema.json","valid":true}
+{"id":"tool-empty","json_text":"{\"text\":\"\"}","schema":"echo-tool.schema.json","valid":false}

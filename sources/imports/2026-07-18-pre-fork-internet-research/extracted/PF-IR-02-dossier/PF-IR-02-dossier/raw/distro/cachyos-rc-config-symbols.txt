@@ -1,0 +1,5 @@
+CachyOS RC configuration evidence at repository commit 5aeec554010d57edf03e7cad83c174fd945da8b9
+config blob: 69d62dfb8752dfc550e3e31011acd05bda1ae039
+CONFIG_USB4_STREAM=m
+CONFIG_MPTCP=y
+The generated header identifies a Linux 7.2.0-rc1-era configuration. This proves the moving RC packaging branch enables both features at the captured commit, not that the 7.2.rc3-1 binary was built from this exact blob.

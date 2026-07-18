@@ -1,0 +1,23 @@
+---
+source_id: "S014"
+title: "liburing linked requests overview"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "axboe/liburing"
+path: "man/io_uring_linked_requests.7"
+version: "2.15"
+commit: "d41bf9220ec39277ff235379e9089d9e0fd6c2a5"
+upstream_blob_sha1: "8f58ad13ff6b2a5aea3edf17a2f18503abd5ce25"
+line_ranges: "10-86, 154-170, 238-268"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "LGPL-2.0-or-later"
+---
+Linked requests execute sequentially. With IOSQE_IO_LINK, a negative result
+breaks the chain and later requests complete with -ECANCELED. With
+IOSQE_IO_HARDLINK, the chain continues after failure.
+
+Each request in a linked chain has its own CQE. CQEs are ordered within the
+chain, although unrelated completions can interleave.
+
+A linked chain must be submitted together. Cancellation of a chain member
+breaks a soft-linked chain as though that request failed.

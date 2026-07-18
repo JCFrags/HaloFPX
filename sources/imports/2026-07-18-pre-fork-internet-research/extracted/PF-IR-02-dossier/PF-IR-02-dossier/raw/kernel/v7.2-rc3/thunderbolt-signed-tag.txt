@@ -1,0 +1,7 @@
+tag: thunderbolt-for-v7.2-rc1
+tag object: aa1565cc3d6aa4bd75fce5dcf9338d763906c077
+target commit: c1bef05763c94ae284ee2881c03bf0753f8d213a
+parent of target: 503c5ae1e72aa9ed91925dafa3d82ee2e992747f
+tagger: Mika Westerberg
+date: 2026-06-11
+Tag summary includes USB4STREAM and states the changes had been in linux-next with no reported issues. That statement is maintainer integration testimony, not a machine-test result in this dossier.

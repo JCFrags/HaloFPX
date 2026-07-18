@@ -1,0 +1,20 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-GLM47-PUBLISHER
+authority: publisher
+capture_type: rendered_text_extract
+source_title: zai-org/GLM-4.7
+source_url: https://huggingface.co/zai-org/GLM-4.7/tree/602d01efcdd332c5238ca4bcede555defbe83eb7
+immutable_revision: 602d01efcdd332c5238ca4bcede555defbe83eb7
+accessed_at: 2026-07-18
+completeness: SELECTED_FACTS
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Normalized publisher facts:
+- Model card reports 358B total / 32B activated.
+- MoE model with interleaved thinking, preserved thinking, and turn-level thinking controls.
+- OpenAI-style tool descriptions are documented.
+- 128K operating guidance; config evidence records max_position_embeddings=202752.
+- MIT license; official tree observed around 717 GB with 92 safetensor shards.
+
+Parameter and context discrepancies are retained rather than reconciled by inference.

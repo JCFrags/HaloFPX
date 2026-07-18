@@ -1,0 +1,6 @@
+{"accepted_prefix":"","allowed_next_utf8":["A"],"id":"start"}
+{"accepted_prefix":"A","allowed_next_utf8":["B","C"],"id":"after-a"}
+{"accepted_prefix":"AB","allowed_next_utf8":["\n"],"id":"after-ab"}
+{"accepted_prefix":"AC","allowed_next_utf8":["\n"],"id":"after-ac"}
+{"accepted_prefix":"AB\n","allowed_next_utf8":[],"id":"complete"}
+{"accepted_prefix":"AD","expected":"reject","id":"reject-ad"}

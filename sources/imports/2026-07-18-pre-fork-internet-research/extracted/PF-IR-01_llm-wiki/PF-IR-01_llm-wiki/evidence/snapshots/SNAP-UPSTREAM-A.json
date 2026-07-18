@@ -1,0 +1,11 @@
+{
+  "capture_format": "primary-source-commit-metadata/v1",
+  "repository": "ggml-org/llama.cpp",
+  "commit": "788e07dc91d266ad3162a1ce9037665656269689",
+  "role": "upstream comparison snapshot",
+  "commit_title": "vulkan: Support Q2_0 (#25430)",
+  "source_url": "https://github.com/ggml-org/llama.cpp/commit/788e07dc91d266ad3162a1ce9037665656269689",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "proof_scope": "Commit object/source selection only; not deployed binary proof.",
+  "payload_sha256": "8aed4b5cbc0a3198162c3aed5119d4bfb6bc910415673575ee9e3c8c5579f107"
+}

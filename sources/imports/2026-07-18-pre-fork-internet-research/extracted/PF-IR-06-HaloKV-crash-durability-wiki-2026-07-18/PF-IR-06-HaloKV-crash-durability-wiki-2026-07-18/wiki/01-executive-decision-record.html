@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Executive decision record · PF-IR-06</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="../index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="00-scope-and-claim-language.html">Scope / labels</a><a class="active" href="01-executive-decision-record.html">Decision record</a><a href="02-portable-linux-minimum.html">Portable minimum</a><a href="03-temporary-files-and-publication.html">Publication</a><a href="04-deployed-filesystem-profile.html">Deployed profile</a><a href="05-ext4.html">ext4</a><a href="06-xfs.html">XFS</a><a href="07-btrfs.html">Btrfs</a><a href="08-io-uring.html">io_uring</a><a href="09-errors-space-direct-io.html">Errors / DIO</a><a href="10-locking-and-fencing.html">Locking</a><a href="11-fault-test-matrix.html">Fault program</a><a href="12-nontarget-portability.html">Non-targets</a><a href="13-open-questions.html">Open questions</a><a href="14-source-audit.html">Source audit</a><a href="../matrices/claim-ledger.html">Claim ledger</a><a href="../matrices/guarantee-source-test.html">Guarantee map</a><a href="../matrices/experiment-matrix.html">Experiment matrix</a><a href="../matrices/source-register.html">Source register</a><a href="../VERSION-PINS.html">Version pins</a><a href="../raw/README.html">Raw capture policy</a><a href="../licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="../scripts/fault-tests/README.html">Harness notes</a><a href="../BUILD-VALIDATION.html">Build validation</a><a href="../README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="../index.html">Wiki home</a><span>·</span><a href="01-executive-decision-record.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>Executive decision record</h1>
+<h2>Decisions that can be unblocked now</h2>
+<h3>OPEN-FMT-01 — candidate format primitive</h3>
+<p><span class="badge r">RECOMMENDATION</span> Use immutable, self-describing objects. Minimum fields: magic, format version, header length, declared payload length, object/cache identity, content hash, generation/epoch, and flags. The live namespace points only to a fully validated object. The format must support rejecting truncation, stale generation, wrong key, wrong cache type and hash mismatch during recovery.</p>
+<p>This is a source-backed design option, not a finalized wire/on-disk format. Endianness, hash choice, header extensibility and compatibility policy remain implementation decisions.</p>
+<h3>OPEN-STORAGE-01 — candidate storage primitive</h3>
+<p><span class="badge r">RECOMMENDATION</span> One parent directory and one writer per cache root. Create an unpublished inode in that directory, write exactly, validate, <code>fdatasync</code>/<code>fsync</code> it, atomically publish with <code>linkat</code> or same-filesystem <code>renameat2</code>, <code>fsync</code> the directory, then acknowledge.</p>
+<ul>
+<li><code>O_TMPFILE</code> is an optimization after a runtime probe; named <code>O_CREAT|O_EXCL</code> is the fallback.</li>
+<li>Create-only uses <code>linkat</code>/<code>RENAME_NOREPLACE</code> semantics.</li>
+<li>Replacement uses whole-inode <code>rename</code>; published files are never mutated in place.</li>
+<li><code>RENAME_EXCHANGE</code> is optional and does not remove synchronization steps.</li>
+</ul>
+<h2>Supported-filesystem posture</h2>
+<table>
+<thead>
+<tr>
+<th>Filesystem</th>
+<th>Posture</th>
+<th>Minimum profile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deployed filesystem</td>
+<td><strong>Unknown / release blocker</strong></td>
+<td>Record with <code>T001</code>; certify exact mount and block stack</td>
+</tr>
+<tr>
+<td>ext4</td>
+<td><strong>Provisional baseline</strong></td>
+<td><code>data=ordered</code>, barriers enabled, no unsupported overlay/network layer, explicit app sync</td>
+</tr>
+<tr>
+<td>XFS</td>
+<td><strong>Supported candidate</strong></td>
+<td>Local XFS, explicit sync, delayed-allocation and power-cut tests</td>
+</tr>
+<tr>
+<td>Btrfs</td>
+<td><strong>Conditional</strong></td>
+<td>Immutable objects, default COW/checksum behavior, near-full metadata/data + snapshot/reflink tests</td>
+</tr>
+</tbody>
+</table>
+<h2>Writer policy</h2>
+<p><span class="badge r">RECOMMENDATION</span> HaloKV and the RPC model-tensor cache use separate roots and dedicated lock files. One writer owns each root through an exclusive OFD lock or <code>flock</code> for the process lifetime. Locks are advisory and local; they are not durable fencing or multi-host consensus.</p>
+<h2>Minimum pre-write gate</h2>
+<p>Persistent writes remain disabled until the exact implementation passes: deployment discovery, all kill boundaries, data- and metadata-ENOSPC, delayed EIO at sync, overwrite/create collision, recovery validation, io_uring cancel/late-CQE/resource teardown, and host-level power cut over the deployed stack. See <code>../matrices/experiment-matrix.md</code>.</p>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="../assets/wiki.js"></script></body></html>

@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-6hrp-7fq9-3qv2",
+  "title": "Credentials leaked across cross-origin redirect",
+  "severity": "High",
+  "affected_versions": "<=0.38.0",
+  "patched_versions": "0.39.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-6hrp-7fq9-3qv2",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "HTTP client redirect authorization handling",
+    "precondition": "Client follows redirect to a different origin with credentials"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "0681af2a87e0034087912b31b62bfcd0d08e4b022e94ed49cd6ca28bd7af86ae"
+}

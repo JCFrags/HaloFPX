@@ -1,0 +1,764 @@
+{
+  "candidate_id": "qwen3.5-397b-a17b",
+  "publisher_repository": "Qwen/Qwen3.5-397B-A17B",
+  "publisher_revision": "8472618112abcbd45acbcdc58436aff4233c23f7",
+  "observed_tree_display_size": "807 GB",
+  "expected_shard_count": 94,
+  "list_status": "FILENAMES_GENERATED_FROM_OBSERVED_IMMUTABLE_TREE_PATTERN",
+  "per_file_hash_status": "UNAVAILABLE_EXCEPT_EXPLICIT_ROWS",
+  "files": [
+    {
+      "ordinal": 0,
+      "name": "model.safetensors-00001-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 1,
+      "name": "model.safetensors-00002-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 2,
+      "name": "model.safetensors-00003-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 3,
+      "name": "model.safetensors-00004-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 4,
+      "name": "model.safetensors-00005-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 5,
+      "name": "model.safetensors-00006-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 6,
+      "name": "model.safetensors-00007-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 7,
+      "name": "model.safetensors-00008-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 8,
+      "name": "model.safetensors-00009-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 9,
+      "name": "model.safetensors-00010-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 10,
+      "name": "model.safetensors-00011-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 11,
+      "name": "model.safetensors-00012-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 12,
+      "name": "model.safetensors-00013-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 13,
+      "name": "model.safetensors-00014-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 14,
+      "name": "model.safetensors-00015-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 15,
+      "name": "model.safetensors-00016-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 16,
+      "name": "model.safetensors-00017-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 17,
+      "name": "model.safetensors-00018-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 18,
+      "name": "model.safetensors-00019-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 19,
+      "name": "model.safetensors-00020-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 20,
+      "name": "model.safetensors-00021-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 21,
+      "name": "model.safetensors-00022-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 22,
+      "name": "model.safetensors-00023-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 23,
+      "name": "model.safetensors-00024-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 24,
+      "name": "model.safetensors-00025-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 25,
+      "name": "model.safetensors-00026-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 26,
+      "name": "model.safetensors-00027-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 27,
+      "name": "model.safetensors-00028-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 28,
+      "name": "model.safetensors-00029-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 29,
+      "name": "model.safetensors-00030-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 30,
+      "name": "model.safetensors-00031-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 31,
+      "name": "model.safetensors-00032-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 32,
+      "name": "model.safetensors-00033-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 33,
+      "name": "model.safetensors-00034-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 34,
+      "name": "model.safetensors-00035-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 35,
+      "name": "model.safetensors-00036-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 36,
+      "name": "model.safetensors-00037-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 37,
+      "name": "model.safetensors-00038-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 38,
+      "name": "model.safetensors-00039-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 39,
+      "name": "model.safetensors-00040-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 40,
+      "name": "model.safetensors-00041-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 41,
+      "name": "model.safetensors-00042-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 42,
+      "name": "model.safetensors-00043-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 43,
+      "name": "model.safetensors-00044-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 44,
+      "name": "model.safetensors-00045-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 45,
+      "name": "model.safetensors-00046-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 46,
+      "name": "model.safetensors-00047-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 47,
+      "name": "model.safetensors-00048-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 48,
+      "name": "model.safetensors-00049-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 49,
+      "name": "model.safetensors-00050-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 50,
+      "name": "model.safetensors-00051-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 51,
+      "name": "model.safetensors-00052-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 52,
+      "name": "model.safetensors-00053-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 53,
+      "name": "model.safetensors-00054-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 54,
+      "name": "model.safetensors-00055-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 55,
+      "name": "model.safetensors-00056-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 56,
+      "name": "model.safetensors-00057-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 57,
+      "name": "model.safetensors-00058-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 58,
+      "name": "model.safetensors-00059-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 59,
+      "name": "model.safetensors-00060-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 60,
+      "name": "model.safetensors-00061-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 61,
+      "name": "model.safetensors-00062-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 62,
+      "name": "model.safetensors-00063-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 63,
+      "name": "model.safetensors-00064-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 64,
+      "name": "model.safetensors-00065-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 65,
+      "name": "model.safetensors-00066-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 66,
+      "name": "model.safetensors-00067-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 67,
+      "name": "model.safetensors-00068-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 68,
+      "name": "model.safetensors-00069-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 69,
+      "name": "model.safetensors-00070-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 70,
+      "name": "model.safetensors-00071-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 71,
+      "name": "model.safetensors-00072-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 72,
+      "name": "model.safetensors-00073-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 73,
+      "name": "model.safetensors-00074-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 74,
+      "name": "model.safetensors-00075-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 75,
+      "name": "model.safetensors-00076-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 76,
+      "name": "model.safetensors-00077-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 77,
+      "name": "model.safetensors-00078-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 78,
+      "name": "model.safetensors-00079-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 79,
+      "name": "model.safetensors-00080-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 80,
+      "name": "model.safetensors-00081-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 81,
+      "name": "model.safetensors-00082-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 82,
+      "name": "model.safetensors-00083-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 83,
+      "name": "model.safetensors-00084-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 84,
+      "name": "model.safetensors-00085-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 85,
+      "name": "model.safetensors-00086-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 86,
+      "name": "model.safetensors-00087-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 87,
+      "name": "model.safetensors-00088-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 88,
+      "name": "model.safetensors-00089-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 89,
+      "name": "model.safetensors-00090-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 90,
+      "name": "model.safetensors-00091-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 91,
+      "name": "model.safetensors-00092-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 92,
+      "name": "model.safetensors-00093-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    },
+    {
+      "ordinal": 93,
+      "name": "model.safetensors-00094-of-00094.safetensors",
+      "bytes": null,
+      "sha256": null,
+      "xet_hash": null,
+      "exact_status": "UNAVAILABLE"
+    }
+  ],
+  "warning": "Generated names are a captured tree-pattern manifest. Refresh against the exact revision before downloading."
+}

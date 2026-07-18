@@ -1,0 +1,2 @@
+PRIMARY PLATFORM DOCUMENTATION CAPTURE
+Microsoft documents Windows USB4 connection-manager support for Ethernet over USB4 (USB4NET), compatibility with Thunderbolt 3, and a two-PC interdomain scenario. This is evidence for non-Linux USB4NET interoperability, not for USB4STREAM interoperability.

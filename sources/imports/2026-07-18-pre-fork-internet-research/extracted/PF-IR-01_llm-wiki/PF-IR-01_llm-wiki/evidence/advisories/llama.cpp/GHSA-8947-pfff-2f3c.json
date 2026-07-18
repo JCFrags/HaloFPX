@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-8947-pfff-2f3c",
+  "cve": "CVE-2026-21869",
+  "title": "HTTP server negative n_discard out-of-bounds write",
+  "severity": "Low",
+  "published": "2026-01-05",
+  "affected_versions_as_displayed_or_normalized": "<= 55d4206c8",
+  "patched_versions_as_displayed_or_normalized": ">= c78fb90",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-8947-pfff-2f3c",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "server_task::params_from_json_cmpl; context-shift discard arithmetic",
+    "preconditions_summary": "llama-server running; route reachable; context shift enabled; context full; negative n_discard supplied."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "52101d6e14a9b0c36d2d076ad65fab0ba44c74cfd9dbf55e84d8fe1674efdee6"
+}

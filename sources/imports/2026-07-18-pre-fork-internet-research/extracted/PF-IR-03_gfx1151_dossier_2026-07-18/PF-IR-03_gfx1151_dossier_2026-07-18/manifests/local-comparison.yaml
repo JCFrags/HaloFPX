@@ -1,0 +1,11 @@
+tuple_id: PF-IR-03-LOCAL-2026-07-17
+classification: local comparison only
+capture_date: '2026-07-17'
+rocm_packages: 7.2.4
+mesa: 26.1.4
+kernel: 7.1.3
+official_qualification: false
+notes:
+- Mesa 26.1.4 source digest is independently published, but installed package provenance still requires capture.
+- Kernel 7.1.3 is outside the current ROCm 7.14 Ryzen matrix.
+- Both-node build and runtime qualification remain local.

@@ -1,0 +1,1816 @@
+{
+  "access_date": "2026-07-18",
+  "report_id": "PF-IR-09",
+  "sources": [
+    {
+      "applicability": "[FAMILY_APPLIES]",
+      "authority": "NIMO official support",
+      "capture_path": "01_oem_nimo/sources/OEM-NIMO-SUPPORT-AI395.md",
+      "claims": [
+        "[OFFICIAL] Article title is “Nimo AI 395 Minipc Manual & Driver Downloads” and the captured page reports an update date of 2026-02-12.",
+        "[OFFICIAL] The page exposes Windows 11 OS, Windows 11 Pro OS, and a manual download path for the AI 395 mini PC.",
+        "[NO_PUBLIC_PACKAGE] The captured page does not list an MME3L / NIMO Mini PC board v1.0 BIOS package, BIOS release notes, AMD PI version, capsule signature model, anti-rollback policy, or recovery image."
+      ],
+      "confidence": "High for page contents; Low for exact MME3L/board-v1.0 mapping",
+      "gaps": [
+        "[OPEN] Exact applicability of any linked OS image to measured board v1.0.",
+        "[OPEN] Exact BIOS 3.05 provenance and update chain.",
+        "[SIGNATURE_UNPROVEN] [ROLLBACK_UNPROVEN]"
+      ],
+      "reuse": "NIMO page content; no affirmative reuse license located. Store this normalized factual extract with attribution and source URL.",
+      "source_id": "OEM-NIMO-SUPPORT-AI395",
+      "source_type": "Official OEM support article",
+      "title": "Nimo AI 395 Minipc Manual & Driver Downloads",
+      "url": "https://support.nimopc.com/hc/en-us/articles/55128906923033-Nimo-AI-395-Minipc-Manual-Driver-Downloads"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES]",
+      "authority": "NIMO official product page",
+      "capture_path": "01_oem_nimo/sources/OEM-NIMO-PRODUCT-AI395.md",
+      "claims": [
+        "[OFFICIAL] Product page identifies an AMD Ryzen AI MAX+ 395 / Strix Halo configuration with Radeon 8060S graphics and 1 TB storage options.",
+        "[OFFICIAL] The page states the original configuration may be 0 GB memory / 0 GB storage and that upgraded configurations may be supplied by authorized third parties."
+      ],
+      "confidence": "Medium",
+      "gaps": [
+        "[OPEN] Product page does not establish the exact board string MME3L, board revision v1.0, BIOS 3.05, or SSD firmware VACR001.",
+        "[OPEN] Storage brand/part applicability requires local namespace/model/serial capture."
+      ],
+      "reuse": "NIMO page content; no affirmative reuse license located. Normalized factual extract only.",
+      "source_id": "OEM-NIMO-PRODUCT-AI395",
+      "source_type": "Official OEM product page",
+      "title": "NIMO AMD Ryzen AI MAX+ 395 Mini PC product page",
+      "url": "https://www.nimopc.com/products/nimos-smallest-office-gaming-ai-pc-amd-ryzen-ai-max-395-up-to-5-1-ghz-128gb-lpddr5-8000mhz-16gb-8-2tb-4tb-ssd-with-3-performance-modes-up-to-120w"
+    },
+    {
+      "applicability": "[OFFICIAL] [DISCLOSURE_LIMITED]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-PSIRT-SCOPE.md",
+      "claims": [
+        "[OFFICIAL] AMD Product Security bulletins identify affected product families and mitigations when AMD elects to publish them.",
+        "[DISCLOSURE_LIMITED] AMD bulletin language states information may change, may contain omissions, creates no obligation, and grants no license; unavoidable security risk remains."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[OPEN] Non-public advisories, OEM-specific integration defects, and unpublished silicon/firmware errata cannot be excluded.",
+        "[NOT_LISTED_FOR_TARGET] is never interpreted as unaffected."
+      ],
+      "reuse": "Copyright AMD. No license grant inferred; short factual summary and identifiers retained for security tracking.",
+      "source_id": "AMD-PSIRT-SCOPE",
+      "source_type": "Official vendor security program page and bulletin disclaimer",
+      "title": "AMD Product Security bulletin scope and disclosure boundary",
+      "url": "https://www.amd.com/en/resources/product-security.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-7033.md",
+      "claims": [
+        "[EXPLICITLY_APPLIES] The bulletin names AMD Ryzen AI Max+ / Strix Halo.",
+        "[OFFICIAL] CVE-2024-36347 mitigation for Strix Halo is `StrixHaloPI-FP11 1.0.0.1`, released by AMD to OEMs on 2025-03-20."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[OPEN] No proof BIOS 3.05 contains this PI floor.",
+        "[OPEN] No public exact-board image or integration release note."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-7033",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-7033 — CPU Microcode Signature Verification Vulnerability",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-7033.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-4013.md",
+      "claims": [
+        "[EXPLICITLY_APPLIES] `AMD Ryzen AI Max 300 Series Processors` are listed.",
+        "[OFFICIAL] CVE-2024-36310 -> `StrixHaloPI-FP11_1.0.0.1`, OEM release 2025-03-20.",
+        "[OFFICIAL] CVE-2025-54514 -> `StrixHaloPI-FP11_1.0.0.1c`, OEM release 2025-08-18.",
+        "[OFFICIAL] CVE-2025-52533 mitigation is a Key Distribution Server defense-in-depth control, not a target BIOS version."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[OPEN] No proof of target BIOS PI contents.",
+        "[OPEN] KDS control availability and enrollment for this deployment are not established."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-4013",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-4013 — AMD Athlon and Ryzen Processor Vulnerabilities, February 2026",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-4013.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-4017.md",
+      "claims": [
+        "[EXPLICITLY_APPLIES] `AMD Ryzen AI MAX` / `AMD Ryzen AI Max 300 Series Processors` are listed.",
+        "[OFFICIAL] CVE-2024-36345 and CVE-2024-36343 -> `StrixHaloPI-FP11_1.0.0.2b`, OEM release 2025-12-29.",
+        "[OFFICIAL] CVE-2026-0438 -> `StrixHaloPI-FP11_1.0.0.2a`, OEM release 2025-11-25.",
+        "[OFFICIAL] CVE-2025-48516 -> `No fix planned`; bulletin footnote says mitigation requires hardware modifications targeted for future platforms."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[HOLD] Measured BIOS date 2025-10-11 predates the 1.0.0.2a and 1.0.0.2b OEM release dates; inclusion must not be presumed.",
+        "[OPEN] Exact OEM integration and board-specific package."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-4017",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-4017 — Ryzen Processor Vulnerabilities, May 2026",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-4017.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-7048.md",
+      "claims": [
+        "[EXPLICITLY_APPLIES] `AMD Ryzen AI Max 300 Series Processors` appear in the affected DDR5-capable product list.",
+        "[OFFICIAL] AMD released updated PI packages to OEMs to allow customers to enable Mixed Refresh Mode as a DRAM workaround.",
+        "[OFFICIAL] Customers are directed to the OEM for a product-specific BIOS."
+      ],
+      "confidence": "High for affected-family listing; Medium for mitigation package",
+      "gaps": [
+        "[OPEN] The captured mitigated-version table does not publish a Strix Halo PI version row.",
+        "[OPEN] Whether BIOS 3.05 exposes/enables Mixed Refresh Mode.",
+        "[OPEN] No target telemetry counter is documented for confirming mitigation efficacy."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-7048",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-7048 — Phoenix: Rowhammer Attacks on DDR5 Memory",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-7048.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-7054.md",
+      "claims": [
+        "[EXPLICITLY_APPLIES] `AMD Ryzen AI Max 300 Series Processors` are listed.",
+        "[OFFICIAL] CVE-2025-54502 mitigation is `StrixHaloPI-FP11_1.0.0.2a`, OEM release 2025-11-25."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[HOLD] Measured BIOS date 2025-10-11 predates the published OEM release date.",
+        "[OPEN] BIOS 3.05 PI content."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-7054",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-7054 — Incorrect EFI LocateProtocol use in SMI handler",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-7054.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-7055.md",
+      "claims": [
+        "[EXPLICITLY_APPLIES] `AMD Ryzen AI Max 300 Series Processors` are listed.",
+        "[OFFICIAL] CVE-2025-62626 mitigation is `StrixHaloPI-FP11_1.0.0.2a`, release 2025-11-25.",
+        "[OFFICIAL] Bulletin distinguishes affected 16/32-bit RDSEED behavior from unaffected 64-bit RDSEED and documents software workarounds such as treating a zero result as failure."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[HOLD] BIOS date precedes mitigation release.",
+        "[OPEN] Target workload use of affected instruction forms."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-7055",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-7055 — RDSEED Failure on AMD Zen 5 Processors",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-7055.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-4015.md",
+      "claims": [
+        "[EXPLICITLY_APPLIES] The table names `AMD Ryzen AI Max 300 Series Processors “Strix Halo”`.",
+        "[OFFICIAL] CVE-2026-0432 -> AMD Ryzen Chipset Driver 8.01.20.513, 2026-02-16.",
+        "[OFFICIAL] CVE-2025-29936 -> 7.06.02.123; CVE-2025-29944 and CVE-2025-48512 -> 7.04.09.545; CVE-2025-0045 and CVE-2025-48521 -> 7.02.13.148."
+      ],
+      "confidence": "High for Windows driver scope",
+      "gaps": [
+        "[OPEN] Installed Windows chipset driver version and component inventory.",
+        "Not a Linux firmware closure."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-4015",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-4015 — AMD Chipset Driver Vulnerabilities",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-4015.html"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-6024.md",
+      "claims": [
+        "[OFFICIAL] Ryzen AI Max 300 integrated graphics map to the Radeon RX 7000 and Radeon PRO W7000 mitigation tables.",
+        "[OFFICIAL] RX 7000 floors include Adrenalin 25.6.1 for CVE-2024-36324/CVE-2025-48518; Adrenalin 25.5.1 for CVE-2024-36316/CVE-2024-36320/CVE-2024-36319; Radeon Software for Linux 25.10.1 for CVE-2024-36319; Linux 25.10.2 for non-AMD CVE-2025-21940.",
+        "[OFFICIAL] PRO W7000 uses PRO Edition 25.Q2 for listed AMD CVEs and Linux 25.10.1/25.10.2 where specified."
+      ],
+      "confidence": "High for AMD family mapping; Medium for exact installed stack",
+      "gaps": [
+        "[OPEN] Installed operating system, AMD driver branch, packaging source, and loaded firmware tuple.",
+        "Linux distribution kernels may not use the Radeon Software for Linux package version scheme."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-6024",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-6024 — AMD Graphics Driver Vulnerabilities, February 2026",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-6024.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-6027.md",
+      "claims": [
+        "[EXPLICITLY_APPLIES] AMD Ryzen AI Max+ is listed.",
+        "[OFFICIAL] CVE-2025-0044 mitigation floor is Adrenalin 24.7.1 / PRO 24.Q2, released 2024-07-19."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[OPEN] Installed driver version."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-6027",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-6027 — AMD Graphics Driver Vulnerability",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-6027.html"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-6010.md",
+      "claims": [
+        "[OFFICIAL] CVE-2023-4969 is mitigated through an isolation mode that clears relevant state and prevents parallel process use; the mode is not enabled by default and can affect performance.",
+        "[OFFICIAL] Ryzen AI Max 300 maps to RX 7000 / PRO W7000 guidance; captured current floors are Adrenalin 26.1.1 / PRO 26.Q1."
+      ],
+      "confidence": "Medium",
+      "gaps": [
+        "[OPEN] Whether the isolation mode is enabled and acceptable for the deployment.",
+        "[OPEN] Linux-equivalent operational control for the chosen stack."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-6010",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-6010 — GPU memory information disclosure",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-6010.html"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-6013.md",
+      "claims": [
+        "[OFFICIAL] CVE-2024-21969 uses the same non-default isolation-mode class of mitigation with possible performance impact.",
+        "[OFFICIAL] Ryzen AI Max 300 maps to RX 7000 / PRO W7000 guidance; captured current floors are Adrenalin 26.1.1 / PRO 26.Q1."
+      ],
+      "confidence": "Medium",
+      "gaps": [
+        "[OPEN] Isolation configuration and workload impact."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-6013",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-6013 — GPU register information disclosure",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-6013.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-4016.md",
+      "claims": [
+        "[OFFICIAL] Ryzen AI Max 300 mitigation floor is AMD RAID Software 9.3.3.245, released 2025-11-03."
+      ],
+      "confidence": "High if AMD RAID is installed; otherwise conditional",
+      "gaps": [
+        "[OPEN] Whether AMD RAID is installed or active.",
+        "Not applicable to plain NVMe operation unless the RAID stack is present."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-4016",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-4016 — AMD RAID software vulnerabilities",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-4016.html"
+    },
+    {
+      "applicability": "[NOT_LISTED_FOR_TARGET]",
+      "authority": "AMD Product Security",
+      "capture_path": "02_amd_product_security/sources/AMD-SB-7056.md",
+      "claims": [
+        "[OFFICIAL] Captured affected-product list names AMD EPYC 9005 and Embedded 9005 products.",
+        "[NOT_LISTED_FOR_TARGET] Strix Halo / Ryzen AI Max 300 is not listed in the captured affected list."
+      ],
+      "confidence": "High for captured list; no unaffected conclusion",
+      "gaps": [
+        "This does not prove the target is unaffected by all PCIe errata or by unpublished/OEM-specific issues."
+      ],
+      "reuse": "Copyright AMD; normalized factual extract. No reuse license grant inferred.",
+      "source_id": "AMD-SB-7056",
+      "source_type": "Official security bulletin",
+      "title": "AMD-SB-7056 — PCIe specification-related issue",
+      "url": "https://www.amd.com/en/resources/product-security/bulletin/amd-sb-7056.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES]",
+      "authority": "AMD ROCm documentation",
+      "capture_path": "02_amd_product_security/sources/AMD-ROCM-STRIXHALO-SYSOPT.md",
+      "claims": [
+        "[OFFICIAL] AMD documents required KFD kernel fixes for Strix Halo and names commits `7f26af7` and `7445db6`.",
+        "[OFFICIAL] The fixes are documented as included in Linux 6.18.4 and later."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[OPEN] Running kernel version and downstream backport status.",
+        "[HOLD] Compute/ROCm deployment should not be assumed sound below the documented floor without verified backports."
+      ],
+      "reuse": "AMD ROCm documentation is generally provided under its documented site/repository terms; preserve attribution and inspect the source license before redistribution beyond this evidence pack.",
+      "source_id": "AMD-ROCM-STRIXHALO-SYSOPT",
+      "source_type": "Official technical documentation",
+      "title": "System optimization for Strix Halo",
+      "url": "https://rocm.docs.amd.com/en/docs-7.2.0/how-to/system-optimization/strixhalo.html"
+    },
+    {
+      "applicability": "[EXPLICITLY_APPLIES]",
+      "authority": "AMD ROCm documentation",
+      "capture_path": "02_amd_product_security/sources/AMD-ROCM-GFX1151-MATRIX.md",
+      "claims": [
+        "[OFFICIAL] AMD maps Ryzen AI Max 395/390/385 Strix Halo integrated graphics to `gfx1151`."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[OPEN] `1002:1586` revision `c1` is not authoritatively mapped to the retail 395 SKU by the captured primary source.",
+        "gfx target alone does not establish MP0/UMC/NBIO RAS capability."
+      ],
+      "reuse": "AMD ROCm documentation; retain attribution and source URL. No additional license conclusion is inferred here.",
+      "source_id": "AMD-ROCM-GFX1151-MATRIX",
+      "source_type": "Official compatibility documentation",
+      "title": "Ryzen AI Max graphics target mapping",
+      "url": "https://rocm.docs.amd.com/en/latest/compatibility/compatibility-matrix.html"
+    },
+    {
+      "applicability": "[OFFICIAL] [OPEN]",
+      "authority": "Linux Vendor Firmware Service",
+      "capture_path": "03_firmware_supply/sources/LVFS-PULP-MANIFEST.md",
+      "claims": [
+        "[OFFICIAL] Raw public manifest is preserved at `raw_official/lvfs/PULP_MANIFEST`.",
+        "[OFFICIAL] The public PULP manifest can be used to mirror public LVFS content; private and embargo firmware are not included.",
+        "[OPEN] No filename entry contains `NIMO`, `MME3L`, `P310`, `CT1000P310SSD2`, `VACR001`, or the exact PCI string `1002:1586`. The substring `1586` occurs 19 times only inside unrelated hashes, filenames, numeric identifiers, or size fields and does not establish target coverage."
+      ],
+      "confidence": "High for literal filename search; Low for device applicability",
+      "gaps": [
+        "Manifest filenames are not the full LVFS GUID/instance-ID applicability catalog.",
+        "Absence does not prove no LVFS match; local `fwupdmgr get-devices --json` GUIDs and current metadata are required.",
+        "Private/embargo firmware is intentionally outside the public manifest."
+      ],
+      "reuse": "LVFS public firmware is intended for redistribution/mirroring under vendor metadata and firmware-specific licenses. Individual payload licenses must be checked; this raw manifest is retained with source attribution.",
+      "source_id": "LVFS-PULP-MANIFEST",
+      "source_type": "Official public repository manifest; raw artifact preserved",
+      "title": "LVFS public PULP_MANIFEST and literal target search",
+      "url": "https://cdn.fwupd.org/downloads/PULP_MANIFEST"
+    },
+    {
+      "applicability": "[OFFICIAL]",
+      "authority": "LVFS documentation",
+      "capture_path": "03_firmware_supply/sources/LVFS-UPLOAD-SIGNING.md",
+      "claims": [
+        "[OFFICIAL] LVFS repacks an uploaded cabinet and applies a detached GPG or PKCS#7 signature so clients can verify LVFS origin.",
+        "[OFFICIAL] Private and embargo remotes are not public; testing and stable remotes are public.",
+        "[OFFICIAL] Existing Windows Update signatures are copied, while the LVFS detached signature is the Linux distribution trust layer."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "LVFS repository signing is not proof of vendor payload signing or device-side authentication.",
+        "It does not prove hardware anti-rollback."
+      ],
+      "reuse": "LVFS documentation © Richard Hughes / project contributors; factual extract with attribution. Check site/source license for broader reuse.",
+      "source_id": "LVFS-UPLOAD-SIGNING",
+      "source_type": "Official project documentation",
+      "title": "LVFS upload, detached signing, and remote visibility model",
+      "url": "https://lvfs.readthedocs.io/en/latest/upload.html"
+    },
+    {
+      "applicability": "[OFFICIAL]",
+      "authority": "fwupd project documentation",
+      "capture_path": "03_firmware_supply/sources/FWUPD-ONLYTRUSTED.md",
+      "claims": [
+        "[OFFICIAL] LVFS leaves the original firmware payload unmodified and uses Jcat detached checksums and PKCS#7 signatures.",
+        "[OFFICIAL] fwupd trust answers whether an update came from a trusted source; device-side vendor-payload verification is a separate mechanism that may be implemented by the device.",
+        "[OFFICIAL] Missing or untrusted firmware signatures are rejected when `OnlyTrusted` policy is enforced."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[SIGNATURE_UNPROVEN] No exact NIMO BIOS, Crucial P310, or USB4 payload/device signature chain was located.",
+        "Repository authenticity does not establish payload authorization by target firmware."
+      ],
+      "reuse": "fwupd project documentation; source examples carry LGPL-2.1-or-later notices. Retain attribution and license notices.",
+      "source_id": "FWUPD-ONLYTRUSTED",
+      "source_type": "Official project documentation",
+      "title": "fwupd OnlyTrusted and Jcat trust semantics",
+      "url": "https://fwupd.github.io/libfwupdplugin/only-trusted.html"
+    },
+    {
+      "applicability": "[OFFICIAL]",
+      "authority": "fwupd project documentation",
+      "capture_path": "03_firmware_supply/sources/FWUPD-VERSION-GATES.md",
+      "claims": [
+        "[OFFICIAL] A device GUID/instance ID must match metadata for an update to succeed.",
+        "[OFFICIAL] Plugins can expose a lowest allowed firmware version and a bootloader version, allowing client-side downgrade or signed-firmware gates.",
+        "[OFFICIAL] Update eligibility is device/plugin-specific."
+      ],
+      "confidence": "High",
+      "gaps": [
+        "[ROLLBACK_UNPROVEN] Client-side minimum-version policy is not the same as hardware-enforced anti-rollback.",
+        "[OPEN] Target fwupd GUIDs, flags, lowest version, and bootloader version."
+      ],
+      "reuse": "fwupd project documentation and examples include LGPL-2.1-or-later notices; retain attribution and license notices.",
+      "source_id": "FWUPD-VERSION-GATES",
+      "source_type": "Official project documentation",
+      "title": "fwupd device GUID, minimum version, and bootloader gates",
+      "url": "https://fwupd.github.io/libfwupdplugin/tutorial.html"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES]",
+      "authority": "linux-firmware upstream",
+      "capture_path": "03_firmware_supply/sources/LINUX-FIRMWARE-MAIN.md",
+      "claims": [
+        "[OFFICIAL] Captured main branch points to commit `924d73c9a2501a256d18a26cbe640548c70b3a9a`, dated 2026-07-16.",
+        "[OFFICIAL] The repository contains AMDGPU blobs including `gc_11_5_1_*` firmware names consistent with gfx1151-era IP.",
+        "[OFFICIAL] linux-firmware provenance is repository/commit/file based; runtime loading must be measured separately."
+      ],
+      "confidence": "High for repository state; Medium for loaded target firmware",
+      "gaps": [
+        "[OPEN] Exact distro package commit, per-file hashes, and loaded versions on the target.",
+        "No claim that every `gc_11_5_1_*` file is loaded by PCI 1002:1586 rev c1."
+      ],
+      "reuse": "linux-firmware blobs are redistributable under per-vendor license files and WHENCE entries; source tree metadata must accompany redistribution.",
+      "source_id": "LINUX-FIRMWARE-MAIN",
+      "source_type": "Official upstream repository",
+      "title": "linux-firmware main branch snapshot",
+      "url": "https://kernel.googlesource.com/pub/scm/linux/kernel/git/firmware/linux-firmware/+/refs/heads/main"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES]",
+      "authority": "linux-firmware upstream",
+      "capture_path": "03_firmware_supply/sources/LINUX-FIRMWARE-WHENCE-AMD.md",
+      "claims": [
+        "[OFFICIAL] WHENCE records AMDGPU firmware families including SDMA 6.1.x and SMU 14.0.2/14.0.3 entries and points to `LICENSE.amdgpu`.",
+        "[OFFICIAL] Repository inclusion and Signed-off-by provenance support distribution provenance, not device-side signature or anti-rollback proof."
+      ],
+      "confidence": "Medium",
+      "gaps": [
+        "[OPEN] Actual MP0/SMU/SDMA/GFX IP discovery tuple and loaded filenames.",
+        "[SIGNATURE_UNPROVEN] Runtime cryptographic verification path."
+      ],
+      "reuse": "Redistribution governed by `LICENSE.amdgpu` and WHENCE. Preserve license and provenance files with blobs.",
+      "source_id": "LINUX-FIRMWARE-WHENCE-AMD",
+      "source_type": "Official upstream repository metadata",
+      "title": "linux-firmware WHENCE and AMDGPU license/provenance",
+      "url": "https://kernel.googlesource.com/pub/scm/linux/kernel/git/firmware/linux-firmware/+/refs/heads/main/WHENCE"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES]",
+      "authority": "Crucial / Micron",
+      "capture_path": "04_storage_crucial_micron/sources/CRUCIAL-P310-PRODUCT-FLYER.md",
+      "claims": [
+        "[OFFICIAL] Raw official PDF is preserved at `raw_official/crucial/crucial-P310-2230-b2c-product-flyer-en-combination.pdf` with rendered page captures.",
+        "[OFFICIAL] The 1 TB 2230 product part number is `CT1000P310SSD2`; published sequential read/write figures are up to 7,100/6,000 MB/s.",
+        "[OFFICIAL] The document is © 2024 Micron Technology and states specifications are subject to change."
+      ],
+      "confidence": "High for product specs; Medium for exact installed part",
+      "gaps": [
+        "[OPEN] Exact form factor and part number of the installed 1 TB P310.",
+        "The PDF does not enumerate firmware `VACR001`, update packages, signing, rollback, telemetry, or errata."
+      ],
+      "reuse": "© 2024 Micron Technology, Inc. All rights reserved. Raw PDF retained for evidentiary use; no redistribution license inferred.",
+      "source_id": "CRUCIAL-P310-PRODUCT-FLYER",
+      "source_type": "Official vendor PDF; raw artifact preserved",
+      "title": "Crucial P310 2230 product flyer",
+      "url": "https://assets.micron.com/adobe/assets/urn%3Aaaid%3Aaem%3A6b396995-e6da-4bad-9762-cf9e7e94dd5d/renditions/original/as/crucial-P310-2230-b2c-product-flyer-en-combination.pdf"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES] [NO_PUBLIC_PACKAGE]",
+      "authority": "Crucial official support",
+      "capture_path": "04_storage_crucial_micron/sources/CRUCIAL-P310-SUPPORT.md",
+      "claims": [
+        "[OFFICIAL] The official indexed support result states: no firmware updates are available for P310 at capture time.",
+        "[OFFICIAL] Crucial Storage Executive is identified as the supported management utility for P-series drives."
+      ],
+      "confidence": "Medium because direct page rejected automated access",
+      "gaps": [
+        "[OPEN] The page does not publicly enumerate `VACR001`, prior/new firmware, security fixes, signing, downgrade, or slot behavior in the captured index.",
+        "Direct page access was rejected by the vendor edge, so the capture relies on the official indexed result and records that limitation."
+      ],
+      "reuse": "Crucial/Micron content; no reuse license inferred. Factual indexed extract only.",
+      "source_id": "CRUCIAL-P310-SUPPORT",
+      "source_type": "Official support index; normalized search capture",
+      "title": "Crucial P310 SSD support page",
+      "url": "https://www.crucial.com/support/ssd-support/p310-support"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES]",
+      "authority": "Crucial official support",
+      "capture_path": "04_storage_crucial_micron/sources/CRUCIAL-STORAGE-EXECUTIVE-FAQ.md",
+      "claims": [
+        "[OFFICIAL] Storage Executive is a Windows management utility.",
+        "[OFFICIAL] The indexed FAQ states SMART values are stored in the SSD controller."
+      ],
+      "confidence": "Medium",
+      "gaps": [
+        "[OPEN] Linux update utility, firmware package format, signature model, rollback, and exact SMART attribute semantics for P310 VACR001.",
+        "Direct page access was rejected by the vendor edge."
+      ],
+      "reuse": "Crucial/Micron content; no reuse license inferred. Factual indexed extract only.",
+      "source_id": "CRUCIAL-STORAGE-EXECUTIVE-FAQ",
+      "source_type": "Official support index; normalized search capture",
+      "title": "Crucial Storage Executive FAQ",
+      "url": "https://www.crucial.com/support/articles-faq-ssd/storage-executive-faq"
+    },
+    {
+      "applicability": "[SUPPORTED_IF_PRESENT]",
+      "authority": "Linux kernel documentation",
+      "capture_path": "05_kernel_ras/sources/KERNEL-PCIE-AER.md",
+      "claims": [
+        "[OFFICIAL] AER attaches only to Root Ports/RCECs that implement AER capability.",
+        "[OFFICIAL] `CONFIG_PCIEAER` depends on `CONFIG_PCIEPORTBUS`; Linux handles AER only when firmware grants control through ACPI `_OSC`.",
+        "[OFFICIAL] Correctable and uncorrectable statistics can be exposed in sysfs when events are captured.",
+        "[OFFICIAL] AER covers PCIe hierarchy/link errors and excludes device-specific internal errors."
+      ],
+      "confidence": "High for interface; Medium for target capability",
+      "gaps": [
+        "[OPEN] Target AER capability, `_OSC` ownership, masks, counters, DPC, and driver recovery callbacks.",
+        "No conclusion about internal GPU/NVMe/USB4 controller ECC coverage."
+      ],
+      "reuse": "Linux kernel documentation; source documentation follows kernel licensing terms. Preserve copyright and attribution.",
+      "source_id": "KERNEL-PCIE-AER",
+      "source_type": "Official upstream documentation",
+      "title": "PCI Express Advanced Error Reporting driver guide",
+      "url": "https://docs.kernel.org/PCI/pcieaer-howto.html"
+    },
+    {
+      "applicability": "[SUPPORTED_IF_PRESENT]",
+      "authority": "Linux kernel documentation",
+      "capture_path": "05_kernel_ras/sources/KERNEL-EDAC-DOC.md",
+      "claims": [
+        "[OFFICIAL] EDAC defines corrected, uncorrected, deferred, fatal, and informational memory-controller event types.",
+        "[OFFICIAL] EDAC core capability requires a hardware-specific driver and exposed memory-controller instance."
+      ],
+      "confidence": "High for taxonomy; Low for exact target exposure",
+      "gaps": [
+        "[UNKNOWN] Whether Strix Halo system memory ECC is implemented, enabled, and exported by `amd64_edac`.",
+        "Generic EDAC taxonomy is not proof of target CE/UE telemetry."
+      ],
+      "reuse": "Linux kernel documentation under kernel documentation licensing terms; preserve attribution.",
+      "source_id": "KERNEL-EDAC-DOC",
+      "source_type": "Official upstream documentation",
+      "title": "Error Detection and Correction devices",
+      "url": "https://docs.kernel.org/driver-api/edac.html"
+    },
+    {
+      "applicability": "[SUPPORTED_IF_PRESENT]",
+      "authority": "Linux kernel documentation",
+      "capture_path": "05_kernel_ras/sources/KERNEL-X86-MCA.md",
+      "claims": [
+        "[OFFICIAL] Machine checks report CPU-detected internal hardware error conditions; corrected errors typically create log entries and uncorrected errors often cause a machine check and may panic.",
+        "[OFFICIAL] Machine-check banks and subevents are CPU-specific."
+      ],
+      "confidence": "High for generic x86 behavior; Low for exact bank decoding",
+      "gaps": [
+        "[UNKNOWN] Exact Strix Halo MCA banks, firmware-first/GHES routing, threshold interrupts, and decoded telemetry.",
+        "Local rasdaemon/journal/trace and CPUID evidence required."
+      ],
+      "reuse": "Linux kernel documentation under kernel documentation licensing terms; preserve attribution.",
+      "source_id": "KERNEL-X86-MCA",
+      "source_type": "Official upstream documentation",
+      "title": "x86-64 machine-check interface",
+      "url": "https://docs.kernel.org/arch/x86/x86_64/machinecheck.html"
+    },
+    {
+      "applicability": "[SUPPORTED_IF_PRESENT]",
+      "authority": "Linux kernel documentation",
+      "capture_path": "05_kernel_ras/sources/KERNEL-AMDGPU-RAS-DOC.md",
+      "claims": [
+        "[OFFICIAL] AMDGPU exposes informational RAS queries in sysfs and injection controls in debugfs.",
+        "[OFFICIAL] Error classes include `ue`, `ce`, and `poison`; per-block files report corrected and uncorrected counts.",
+        "[OFFICIAL] Operations are allowed only for supported blocks; users must inspect `ras_mask` and per-device `ras/features`.",
+        "[OFFICIAL] Unrecoverable-error handling can include GPU reset or optional system reboot."
+      ],
+      "confidence": "High for interface; Low for target block support",
+      "gaps": [
+        "[UNKNOWN] Whether gfx1151/PCI 1002:1586 rev c1 exposes any supported RAS blocks.",
+        "Absence of sysfs counters may mean unsupported/gated capability, not absence of faults."
+      ],
+      "reuse": "Linux kernel documentation; preserve attribution and source license.",
+      "source_id": "KERNEL-AMDGPU-RAS-DOC",
+      "source_type": "Official upstream documentation",
+      "title": "AMDGPU RAS support interfaces",
+      "url": "https://docs.kernel.org/gpu/amdgpu/ras.html"
+    },
+    {
+      "applicability": "[SUPPORTED_IF_PRESENT]",
+      "authority": "Linux kernel documentation",
+      "capture_path": "05_kernel_ras/sources/KERNEL-USB4-THUNDERBOLT.md",
+      "claims": [
+        "[OFFICIAL] Kernel documentation covers device authorization/security levels, IOMMU DMA protection, sysfs identity, NVM version, host/device/retimer update paths, and safe mode.",
+        "[OFFICIAL] fwupd/LVFS is preferred; manual update writes a suitable image to non-active NVM and triggers `nvm_authenticate`.",
+        "[OFFICIAL] A non-zero authentication status indicates failure; retimer servicing may use `offline` and `rescan` where supported.",
+        "[OFFICIAL] The documentation warns that an unsuitable update may render hardware unusable without special tools."
+      ],
+      "confidence": "High for interface; Low for exact controller",
+      "gaps": [
+        "[OPEN: LOCAL_ID_REQUIRED] Exact host router/controller/retimer vendor, device, generation, NVM version, security level, IOMMU status, and OEM image.",
+        "[ROLLBACK_UNPROVEN] Non-active NVM is not proof that rollback is supported.",
+        "No documented generic CE/UE link-error counter equivalent to AER for every USB4 topology."
+      ],
+      "reuse": "Linux kernel documentation; preserve attribution and source license.",
+      "source_id": "KERNEL-USB4-THUNDERBOLT",
+      "source_type": "Official upstream documentation",
+      "title": "USB4 and Thunderbolt security and NVM update authority",
+      "url": "https://docs.kernel.org/admin-guide/thunderbolt.html"
+    },
+    {
+      "applicability": "[UNKNOWN]",
+      "authority": "Linux kernel upstream source",
+      "capture_path": "05_kernel_ras/sources/KERNEL-SOURCE-AMD64-EDAC.md",
+      "claims": [
+        "[OFFICIAL] Source blob SHA is `c6aa69dbd9fb12a04353e8f100730734a6f9053d` at kernel commit `94515f3a7d4256a5062176b7d6ed0471938cd51a`.",
+        "[OFFICIAL] The driver matches AMD family 0x1A generally and uses UMC operations for families >= 0x17.",
+        "[OFFICIAL] Probe requires a memory instance and ECC enabled; forcing ECC is discouraged on newer systems and BIOS enablement is expected."
+      ],
+      "confidence": "Medium",
+      "gaps": [
+        "[UNKNOWN] Exact target CPUID family/model/stepping and whether the generic Family 1Ah model path correctly decodes Strix Halo.",
+        "[UNKNOWN] LPDDR5 ECC implementation and firmware exposure."
+      ],
+      "reuse": "Linux kernel source is GPL-2.0-only with documented exceptions; module declares GPL. Preserve license and copyright.",
+      "source_id": "KERNEL-SOURCE-AMD64-EDAC",
+      "source_type": "Official upstream source capture",
+      "title": "amd64_edac source at commit 94515f3a",
+      "url": "https://github.com/torvalds/linux/blob/94515f3a7d4256a5062176b7d6ed0471938cd51a/drivers/edac/amd64_edac.c"
+    },
+    {
+      "applicability": "[UNKNOWN]",
+      "authority": "Linux kernel upstream source",
+      "capture_path": "05_kernel_ras/sources/KERNEL-SOURCE-AMDGPU-RAS.md",
+      "claims": [
+        "[OFFICIAL] Source blob SHA is `764cd49504083c077c7952b8408e293eebbaf190` at kernel commit `94515f3a7d4256a5062176b7d6ed0471938cd51a`.",
+        "[OFFICIAL] RAS enablement is gated by ASIC/IP discovery support, PSP or VBIOS capability, module policy, and block mask.",
+        "[OFFICIAL] The captured IP-discovery whitelist includes MP0 14.0.3 but not MP0 14.0.2.",
+        "[OFFICIAL] CE/UE counts exist only after supported blocks initialize."
+      ],
+      "confidence": "Medium",
+      "gaps": [
+        "[OPEN] Actual target MP0, UMC, NBIO, DF, PSP, and VBIOS capability tuple.",
+        "If target MP0 is 14.0.2, this source revision fails the shown IP-discovery whitelist; if 14.0.3, later capability gates still apply.",
+        "gfx1151 alone is insufficient to classify support."
+      ],
+      "reuse": "File carries the MIT-style AMD permission notice; preserve copyright and license text.",
+      "source_id": "KERNEL-SOURCE-AMDGPU-RAS",
+      "source_type": "Official upstream source capture",
+      "title": "amdgpu_ras source at commit 94515f3a",
+      "url": "https://github.com/torvalds/linux/blob/94515f3a7d4256a5062176b7d6ed0471938cd51a/drivers/gpu/drm/amd/amdgpu/amdgpu_ras.c"
+    },
+    {
+      "applicability": "[FAMILY_APPLIES]",
+      "authority": "Linux kernel upstream source",
+      "capture_path": "05_kernel_ras/sources/KERNEL-SOURCE-AMDGPU-DISCOVERY.md",
+      "claims": [
+        "[OFFICIAL] Source blob SHA is `7b9bb998906d3ab9ccfb634b8c494bb6c5f9700e` at kernel commit `94515f3a7d4256a5062176b7d6ed0471938cd51a`.",
+        "[OFFICIAL] AMDGPU discovers separate GC, UMC, NBIO, MP0, SMU and other hardware-IP versions; a gfx target is only one component of the capability tuple."
+      ],
+      "confidence": "High for mechanism",
+      "gaps": [
+        "[OPEN] Target runtime IP discovery dump."
+      ],
+      "reuse": "File carries the MIT-style AMD permission notice; preserve copyright and license text.",
+      "source_id": "KERNEL-SOURCE-AMDGPU-DISCOVERY",
+      "source_type": "Official upstream source capture",
+      "title": "amdgpu IP discovery source at commit 94515f3a",
+      "url": "https://github.com/torvalds/linux/blob/94515f3a7d4256a5062176b7d6ed0471938cd51a/drivers/gpu/drm/amd/amdgpu/amdgpu_discovery.c"
+    }
+  ],
+  "tables": {
+    "candidate-rollback-sources": [
+      {
+        "candidate": "Exact OEM BIOS capsule/image for MME3L board v1.0",
+        "do_not_assume": "A version-number decrease is accepted or safe",
+        "proof_required": "Board/revision match; signed hash; recovery mode; downgrade acceptance; settings/NVRAM compatibility",
+        "protects": "UEFI/PI rollback or recovery",
+        "source_id": "OEM-NIMO-SUPPORT-AI395",
+        "status": "[OPEN] candidate only"
+      },
+      {
+        "candidate": "Read-only backup of current SPI/UEFI regions",
+        "do_not_assume": "A software-created dump is complete, writable, or recoverable in-system",
+        "proof_required": "Region map, read consistency, external programmer path, legal/warranty approval, restore drill on sacrificial hardware",
+        "protects": "Forensic baseline and vendor-assisted recovery",
+        "source_id": "[LOCAL_CONTROL]",
+        "status": "Evidence candidate, not proven restore source"
+      },
+      {
+        "candidate": "Current BIOS installer/capsule retained with hashes",
+        "do_not_assume": "Installer permits reinstall/downgrade",
+        "proof_required": "Official origin, exact package, signature, offline copy, known invocation and result",
+        "protects": "Reinstallation if platform permits",
+        "source_id": "OEM-NIMO-SUPPORT-AI395",
+        "status": "[OPEN]"
+      },
+      {
+        "candidate": "LVFS CAB/Jcat for exact GUID",
+        "do_not_assume": "LVFS package exists from filename search or that hardware anti-rollback is absent",
+        "proof_required": "Device GUID, release metadata, CAB/Jcat hashes, `version_lowest`, plugin flags and history",
+        "protects": "Reproducible peripheral firmware package",
+        "source_id": "FWUPD-ONLYTRUSTED; FWUPD-VERSION-GATES",
+        "status": "[OPEN] until GUID/release match"
+      },
+      {
+        "candidate": "Crucial P310 alternate firmware slot",
+        "do_not_assume": "Multiple slots mean downgrade or rollback is allowed",
+        "proof_required": "NVMe FRMW field, active/next slot, vendor semantics, approved images and activation method",
+        "protects": "Potential controller activation fallback",
+        "source_id": "CRUCIAL-P310-SUPPORT",
+        "status": "[OPEN]"
+      },
+      {
+        "candidate": "USB4 non-active NVM",
+        "do_not_assume": "Non-active partition is a user-selectable rollback bank",
+        "proof_required": "Exact host/device/retimer IDs, suitable image, NVM version, authenticate result, safe-mode recovery",
+        "protects": "Staging before authentication",
+        "source_id": "KERNEL-USB4-THUNDERBOLT",
+        "status": "[SUPPORTED_IF_PRESENT] but rollback unproven"
+      },
+      {
+        "candidate": "Tested kernel + initramfs + linux-firmware package tuple",
+        "do_not_assume": "Kernel rollback is safe if firmware/package ABI changed independently",
+        "proof_required": "Package versions, bootloader entry, file hashes, rootfs snapshot, successful alternate boot",
+        "protects": "OS driver/firmware compatibility regression",
+        "source_id": "LINUX-FIRMWARE-MAIN; AMD-ROCM-STRIXHALO-SYSOPT",
+        "status": "Recommended rollback unit"
+      },
+      {
+        "candidate": "Signed Windows chipset/GPU driver packages and restore point",
+        "do_not_assume": "Rolling below a bulletin floor is acceptable",
+        "proof_required": "Package signature, component versions, offline installer, uninstall/rollback procedure, security-floor check",
+        "protects": "Driver regression",
+        "source_id": "AMD-SB-4015; AMD-SB-6024",
+        "status": "Conditional Windows candidate"
+      },
+      {
+        "candidate": "BIOS settings and security-state export",
+        "do_not_assume": "Firmware update preserves NVRAM or security settings",
+        "proof_required": "Photos/export of setup, Secure Boot keys/state, boot order, IOMMU, memory and USB4 settings",
+        "protects": "Configuration regression after firmware reset",
+        "source_id": "[LOCAL_CONTROL]",
+        "status": "Required adjunct"
+      }
+    ],
+    "gaps-register": [
+      {
+        "blocking": "Yes — BIOS rollout and closure",
+        "evidence_to_collect": "OEM package/statement; capsule metadata; hash; release notes",
+        "gap": "Exact NIMO MME3L / board v1.0 BIOS package, release notes and AMD PI manifest",
+        "gap_id": "G-001",
+        "label": "[OPEN] [NO_PUBLIC_PACKAGE]",
+        "risk": "Cannot prove security coverage or compatibility",
+        "source_id": "OEM-NIMO-SUPPORT-AI395"
+      },
+      {
+        "blocking": "Yes",
+        "evidence_to_collect": "Capsule signature chain, setup/flash logs, recovery procedure, sacrificial-device test",
+        "gap": "BIOS payload signature verification and anti-rollback/recovery behavior",
+        "gap_id": "G-002",
+        "label": "[SIGNATURE_UNPROVEN] [ROLLBACK_UNPROVEN]",
+        "risk": "Bricking, unauthorized image, no recovery",
+        "source_id": "FWUPD-ONLYTRUSTED"
+      },
+      {
+        "blocking": "For revision-level service action",
+        "evidence_to_collect": "Subsystem IDs, VBIOS, CPUID, AMD/OEM confirmation",
+        "gap": "Exact PCI 1002:1586 rev c1 -> retail SKU/silicon revision mapping",
+        "gap_id": "G-003",
+        "label": "[OPEN]",
+        "risk": "Revision-specific errata may be misapplied",
+        "source_id": "AMD-ROCM-GFX1151-MATRIX"
+      },
+      {
+        "blocking": "Yes — RAS classification",
+        "evidence_to_collect": "lscpu/cpuid, debugfs IP discovery, dmesg, firmware info",
+        "gap": "CPUID family/model/stepping and AMDGPU IP discovery tuple",
+        "gap_id": "G-004",
+        "label": "[OPEN]",
+        "risk": "EDAC/amdgpu RAS support cannot be classified",
+        "source_id": "KERNEL-SOURCE-AMDGPU-DISCOVERY"
+      },
+      {
+        "blocking": "Reliability closure",
+        "evidence_to_collect": "EDAC sysfs, amd64_edac bind, ECC status, GHES/MCA/rasdaemon logs",
+        "gap": "System-memory ECC/EDAC availability and event routing",
+        "gap_id": "G-005",
+        "label": "[UNKNOWN]",
+        "risk": "Silent or unobserved memory errors",
+        "source_id": "KERNEL-EDAC-DOC"
+      },
+      {
+        "blocking": "Reliability closure",
+        "evidence_to_collect": "MP0/UMC/NBIO tuple, ras_mask, features, err_count files, init logs",
+        "gap": "AMDGPU RAS block support for gfx1151 target",
+        "gap_id": "G-006",
+        "label": "[UNKNOWN]",
+        "risk": "No proven GPU CE/UE counters or page retirement",
+        "source_id": "KERNEL-SOURCE-AMDGPU-RAS"
+      },
+      {
+        "blocking": "Telemetry baseline",
+        "evidence_to_collect": "lspci -vv, kernel config/logs, sysfs AER counters",
+        "gap": "AER capability, ACPI _OSC ownership, DPC and masks",
+        "gap_id": "G-007",
+        "label": "[OPEN]",
+        "risk": "PCIe link errors may be invisible or firmware-owned",
+        "source_id": "KERNEL-PCIE-AER"
+      },
+      {
+        "blocking": "Yes — SSD firmware action",
+        "evidence_to_collect": "nvme id-ctrl/fw-log/smart/error-log; vendor statement",
+        "gap": "Exact Crucial P310 model/part/serial and VACR001 slot/signature/rollback semantics",
+        "gap_id": "G-008",
+        "label": "[OPEN]",
+        "risk": "Wrong package or unsupported update/recovery",
+        "source_id": "CRUCIAL-P310-SUPPORT"
+      },
+      {
+        "blocking": "Yes — USB4 firmware action",
+        "evidence_to_collect": "boltctl, fwupd JSON, sysfs identity/NVM/security/IOMMU, lspci/lsusb",
+        "gap": "USB4 host router/controller/retimer identities and NVM versions",
+        "gap_id": "G-009",
+        "label": "[OPEN: LOCAL_ID_REQUIRED]",
+        "risk": "No authoritative errata/package mapping; brick risk",
+        "source_id": "KERNEL-USB4-THUNDERBOLT"
+      },
+      {
+        "blocking": "Firmware coverage conclusion",
+        "evidence_to_collect": "fwupdmgr get-devices/get-updates/get-history/get-remotes --json",
+        "gap": "Local fwupd GUIDs, flags, lowest/bootloader versions and current remote metadata",
+        "gap_id": "G-010",
+        "label": "[OPEN]",
+        "risk": "Public manifest filename absence may miss valid update mapping",
+        "source_id": "FWUPD-VERSION-GATES"
+      },
+      {
+        "blocking": "Kernel/GPU tuple validation",
+        "evidence_to_collect": "package provenance, amdgpu_firmware_info, initramfs contents, file hashes",
+        "gap": "Loaded linux-firmware files/versions/hashes",
+        "gap_id": "G-011",
+        "label": "[OPEN]",
+        "risk": "Repository version is not runtime version",
+        "source_id": "LINUX-FIRMWARE-MAIN"
+      },
+      {
+        "blocking": "Yes — ROCm/KFD production",
+        "evidence_to_collect": "uname, package changelog/source commit, backport proof",
+        "gap": "Running OS/kernel and downstream backports",
+        "gap_id": "G-012",
+        "label": "[OPEN]",
+        "risk": "Required Strix Halo KFD fixes may be absent",
+        "source_id": "AMD-ROCM-STRIXHALO-SYSOPT"
+      },
+      {
+        "blocking": "Conditional on Windows/RAID use",
+        "evidence_to_collect": "driver store/package versions/services/controllers",
+        "gap": "Windows chipset/GPU/RAID component inventory",
+        "gap_id": "G-013",
+        "label": "[OPEN]",
+        "risk": "Security bulletin floors cannot be evaluated",
+        "source_id": "AMD-SB-4015; AMD-SB-6024; AMD-SB-4016"
+      },
+      {
+        "blocking": "Yes — Rowhammer closure",
+        "evidence_to_collect": "OEM BIOS release notes, setup variable, vendor confirmation",
+        "gap": "Mixed Refresh Mode availability and enabled state",
+        "gap_id": "G-014",
+        "label": "[OPEN]",
+        "risk": "Rowhammer mitigation cannot be asserted",
+        "source_id": "AMD-SB-7048"
+      },
+      {
+        "blocking": "Yes — service thresholds",
+        "evidence_to_collect": "fleet inventory, baselines, alerts, failure history, spares, SLA/risk approval",
+        "gap": "Local inventory, error rates, workload criticality and service thresholds",
+        "gap_id": "G-015",
+        "label": "[OPEN]",
+        "risk": "No defensible replacement/rollout thresholds",
+        "source_id": "[LOCAL_CONTROL]"
+      }
+    ],
+    "integrity-check-candidates": [
+      {
+        "candidate": "Btrfs/ZFS data+metadata checksums with scheduled scrub and redundant repair source",
+        "detects": "Persistent block/path corruption within protected filesystem scope",
+        "does_not_cover": "Transient CPU/GPU execution corruption; unprotected volumes; corruption copied before checksum",
+        "implementation_evidence": "Checksum mode, redundancy, scrub schedule, alert test, restore drill",
+        "priority": "P1 when storage/RAM RAS absent",
+        "status": "Candidate compensating control"
+      },
+      {
+        "candidate": "dm-integrity, optionally with authenticated encryption",
+        "detects": "Block-level integrity mismatch/torn writes in configured mapping",
+        "does_not_cover": "Corruption above the block layer; all transient computation errors",
+        "implementation_evidence": "Tag mode, journal mode, key management, performance validation, recovery test",
+        "priority": "P2",
+        "status": "Candidate"
+      },
+      {
+        "candidate": "Application artifact hashes and signed manifests",
+        "detects": "Changed model weights, binaries, datasets, firmware files and configuration artifacts",
+        "does_not_cover": "In-memory corruption after verification unless rechecked",
+        "implementation_evidence": "SHA-256/stronger manifests, signer trust, verify-on-load and periodic recheck",
+        "priority": "P1",
+        "status": "Recommended"
+      },
+      {
+        "candidate": "fs-verity for immutable files",
+        "detects": "On-read modification/corruption of protected files",
+        "does_not_cover": "Mutable data and runtime memory errors",
+        "implementation_evidence": "Enabled files, root hash provenance, enforcement and alert path",
+        "priority": "P2",
+        "status": "Candidate"
+      },
+      {
+        "candidate": "IMA appraisal/measurement plus TPM-backed measured boot",
+        "detects": "Unexpected executable/config changes and boot-chain measurement drift",
+        "does_not_cover": "Physical faults producing transient correct execution-path corruption",
+        "implementation_evidence": "Policy, key chain, TPM quote baseline, verifier, failure behavior",
+        "priority": "P1 for firmware trust gap",
+        "status": "Recommended candidate"
+      },
+      {
+        "candidate": "Database page checksums, consistency checks and verified replicas",
+        "detects": "Page/log corruption and logical inconsistency within database scope",
+        "does_not_cover": "Identical corruption propagated to replicas or undetected computation errors",
+        "implementation_evidence": "Checksum enabled, validation cadence, replica independence, restore drill",
+        "priority": "P1 for critical data",
+        "status": "Recommended"
+      },
+      {
+        "candidate": "Object-store content addressing and cross-node hash comparison",
+        "detects": "Replica/content divergence",
+        "does_not_cover": "Common-mode corruption before hashing",
+        "implementation_evidence": "Independent hash calculation, quorum/repair logic, audit logs",
+        "priority": "P2",
+        "status": "Candidate"
+      },
+      {
+        "candidate": "GPU/CPU result validation: deterministic canaries, redundant execution, bounds/invariant checks",
+        "detects": "Some silent computation errors and driver/firmware regressions",
+        "does_not_cover": "Errors that preserve checked invariants or affect both redundant paths identically",
+        "implementation_evidence": "Golden outputs, cadence, independent execution path, fail-closed policy",
+        "priority": "P1 for safety/financial/scientific workloads",
+        "status": "Recommended candidate"
+      },
+      {
+        "candidate": "Read-only firmware and package inventory with recurring hashes",
+        "detects": "Unexpected changes to BIOS-reported versions, linux-firmware files, initramfs, drivers and fwupd metadata",
+        "does_not_cover": "Authenticity without trusted reference; hidden device firmware changes",
+        "implementation_evidence": "Trusted baseline, signed report, recurring collection, alerting",
+        "priority": "P1",
+        "status": "Recommended"
+      },
+      {
+        "candidate": "pstore/ramoops, persistent journal and remote log shipping",
+        "detects": "Preserves pre-crash AER/MCA/EDAC/amdgpu/NVMe evidence",
+        "does_not_cover": "Silent errors that produce no log; log loss before persistence",
+        "implementation_evidence": "Reserved storage, crash test, remote receipt and retention",
+        "priority": "P1 for telemetry gap",
+        "status": "Recommended"
+      },
+      {
+        "candidate": "Periodic offline memory/storage diagnostics with known-good images and hashes",
+        "detects": "Some reproducible memory, media and controller failures",
+        "does_not_cover": "All intermittent faults; destructive tests may alter state",
+        "implementation_evidence": "Non-destructive test plan, maintenance approval, baseline and trend",
+        "priority": "P2",
+        "status": "Candidate; human-approved only"
+      },
+      {
+        "candidate": "Immutable deployment images and signed rollback bundle",
+        "detects": "Configuration/package drift and enables deterministic recovery",
+        "does_not_cover": "Hardware faults or vulnerable firmware retained in image",
+        "implementation_evidence": "Image digest, SBOM, signing key, alternate boot and restore test",
+        "priority": "P1",
+        "status": "Recommended"
+      }
+    ],
+    "pre-deployment-update-holds": [
+      {
+        "hold_id": "H-001",
+        "owner": "Firmware/change authority",
+        "reason": "No exact MME3L board-v1.0 public BIOS package or PI manifest; measured date predates 1.0.0.2a/b releases",
+        "release_conditions": "Exact board match; PI >= 1.0.0.2b/equivalent; signed payload verification; recovery media; rollback proof; settings diff; maintenance approval",
+        "scope": "BIOS/UEFI rollout",
+        "severity": "P1",
+        "source_id": "OEM-NIMO-SUPPORT-AI395; AMD-SB-4017",
+        "state": "[HOLD]"
+      },
+      {
+        "hold_id": "H-002",
+        "owner": "Platform firmware authority",
+        "reason": "Exact identities and NVM versions absent; unsuitable image can make device unusable",
+        "release_conditions": "Complete topology/ID inventory, OEM image applicability, authentication behavior, power/recovery procedure and rollback test",
+        "scope": "USB4 host/router/retimer update",
+        "severity": "P1",
+        "source_id": "KERNEL-USB4-THUNDERBOLT",
+        "state": "[HOLD]"
+      },
+      {
+        "hold_id": "H-003",
+        "owner": "Storage authority",
+        "reason": "VACR001 not enumerated in public package; signing/slot/downgrade unknown",
+        "release_conditions": "Exact model/serial match; vendor-approved package; fw slot and activation proof; backup and recovery; approval",
+        "scope": "Crucial P310 firmware change",
+        "severity": "P1",
+        "source_id": "CRUCIAL-P310-SUPPORT",
+        "state": "[HOLD]"
+      },
+      {
+        "hold_id": "H-004",
+        "owner": "OS/GPU platform authority",
+        "reason": "AMD-required Strix Halo kernel fixes not locally proven",
+        "release_conditions": "Linux 6.18.4+ or exact backports; tested kernel/linux-firmware pair; workload validation",
+        "scope": "ROCm/KFD production deployment",
+        "severity": "P1",
+        "source_id": "AMD-ROCM-STRIXHALO-SYSOPT",
+        "state": "[HOLD]"
+      },
+      {
+        "hold_id": "H-005",
+        "owner": "Reliability authority",
+        "reason": "EDAC/MCA/amdgpu RAS target support unknown",
+        "release_conditions": "Interface/counter inventory, alert tests and documented blind spots; integrity controls for remaining gaps",
+        "scope": "Close hardware-RAS monitoring requirement",
+        "severity": "P1",
+        "source_id": "KERNEL-EDAC-DOC; KERNEL-AMDGPU-RAS-DOC",
+        "state": "[HOLD]"
+      },
+      {
+        "hold_id": "H-006",
+        "owner": "Security/risk authority",
+        "reason": "AMD lists no fix planned and future hardware changes",
+        "release_conditions": "Only hardware replacement or superseding official mitigation can close; otherwise formal risk acceptance",
+        "scope": "Treat CVE-2025-48516 as remediated",
+        "severity": "P1",
+        "source_id": "AMD-SB-4017",
+        "state": "[HOLD]"
+      },
+      {
+        "hold_id": "H-007",
+        "owner": "Firmware/security authority",
+        "reason": "Exact Strix Halo PI/version and BIOS setting state not published",
+        "release_conditions": "OEM confirmation, setting evidence, validation, performance acceptance",
+        "scope": "Enable/claim Rowhammer mitigation",
+        "severity": "P1",
+        "source_id": "AMD-SB-7048",
+        "state": "[HOLD]"
+      },
+      {
+        "hold_id": "H-008",
+        "owner": "Hardware service authority",
+        "reason": "Exact official retail-sku/revision mapping not captured",
+        "release_conditions": "Subsystem IDs, VBIOS, CPUID, IP discovery and OEM/AMD mapping",
+        "scope": "Use PCI 1002:1586 rev c1 for revision-level service decision",
+        "severity": "P2",
+        "source_id": "AMD-ROCM-GFX1151-MATRIX",
+        "state": "[HOLD]"
+      }
+    ],
+    "product-to-advisory-applicability": [
+      {
+        "advisory_or_source": "AI 395 Mini PC support page",
+        "applicability": "[FAMILY_APPLIES] [NO_PUBLIC_PACKAGE]",
+        "authority": "NIMO",
+        "component": "OEM system BIOS",
+        "confidence": "High for page contents; Low exact board",
+        "covered_product": "Nimo AI 395 Minipc",
+        "decision": "[HOLD] Require exact board/revision package, release notes, PI contents, signature and recovery proof",
+        "id": "A-001",
+        "issue_or_scope": "Public update channel",
+        "measured_identity": "NIMO Mini PC board v1.0; BIOS 3.05 (2025-10-11)",
+        "official_floor_or_status": "No exact board BIOS package listed",
+        "release_date": "",
+        "source_id": "OEM-NIMO-SUPPORT-AI395",
+        "target_state": "[OPEN]"
+      },
+      {
+        "advisory_or_source": "AMD-SB-7033 / CVE-2024-36347",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "CPU/PI firmware",
+        "confidence": "High",
+        "covered_product": "Ryzen AI Max+ / Strix Halo",
+        "decision": "Verify OEM BIOS contains at least this PI; superseded by later 1.0.0.2b floor for watch-list purposes",
+        "id": "A-002",
+        "issue_or_scope": "CPU microcode signature verification",
+        "measured_identity": "Ryzen AI MAX+ 395 / Strix Halo",
+        "official_floor_or_status": "StrixHaloPI-FP11 1.0.0.1",
+        "release_date": "2025-03-20",
+        "source_id": "AMD-SB-7033",
+        "target_state": "[OPEN] BIOS PI not disclosed"
+      },
+      {
+        "advisory_or_source": "AMD-SB-4013 / CVE-2024-36310",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "CPU/PI firmware",
+        "confidence": "High",
+        "covered_product": "Ryzen AI Max 300 Series",
+        "decision": "Do not infer inclusion from BIOS date/version; require PI disclosure",
+        "id": "A-003",
+        "issue_or_scope": "SMM communications-buffer validation",
+        "measured_identity": "Ryzen AI MAX+ 395 / BIOS 3.05",
+        "official_floor_or_status": "StrixHaloPI-FP11_1.0.0.1",
+        "release_date": "2025-03-20",
+        "source_id": "AMD-SB-4013",
+        "target_state": "[OPEN]"
+      },
+      {
+        "advisory_or_source": "AMD-SB-4013 / CVE-2025-54514",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "CPU/PI firmware",
+        "confidence": "High",
+        "covered_product": "Ryzen AI Max 300 Series",
+        "decision": "Require OEM PI manifest; date ordering alone is not proof",
+        "id": "A-004",
+        "issue_or_scope": "SoC shared-resource isolation",
+        "measured_identity": "Ryzen AI MAX+ 395 / BIOS 3.05",
+        "official_floor_or_status": "StrixHaloPI-FP11_1.0.0.1c",
+        "release_date": "2025-08-18",
+        "source_id": "AMD-SB-4013",
+        "target_state": "[OPEN] measured BIOS date is later, but PI content unknown"
+      },
+      {
+        "advisory_or_source": "AMD-SB-4013 / CVE-2025-52533",
+        "applicability": "[EXPLICITLY_APPLIES]",
+        "authority": "AMD Product Security",
+        "component": "Attestation/signing service",
+        "confidence": "High for bulletin; Low deployment state",
+        "covered_product": "Ryzen AI Max 300 Series",
+        "decision": "Track KDS/enrollment separately from BIOS; obtain platform attestation design evidence",
+        "id": "A-005",
+        "issue_or_scope": "On-chip debug / nonce defense in depth",
+        "measured_identity": "Ryzen AI MAX+ 395",
+        "official_floor_or_status": "Key Distribution Server control",
+        "release_date": "N/A",
+        "source_id": "AMD-SB-4013",
+        "target_state": "[OPEN]"
+      },
+      {
+        "advisory_or_source": "AMD-SB-4017 / CVE-2024-36345, CVE-2024-36343",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "CPU/PI firmware",
+        "confidence": "High",
+        "covered_product": "AMD Ryzen AI MAX / Strix Halo",
+        "decision": "[HOLD] Treat 1.0.0.2b as current public PI floor until OEM proves equivalent/newer integration",
+        "id": "A-006",
+        "issue_or_scope": "AOD SMM OOB read; SMM communications-buffer OOB read/write",
+        "measured_identity": "Ryzen AI MAX+ 395 / BIOS dated 2025-10-11",
+        "official_floor_or_status": "StrixHaloPI-FP11_1.0.0.2b",
+        "release_date": "2025-12-29",
+        "source_id": "AMD-SB-4017",
+        "target_state": "[INFERRED] measured BIOS date predates AMD OEM release"
+      },
+      {
+        "advisory_or_source": "AMD-SB-4017 / CVE-2026-0438",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "CPU/PI firmware",
+        "confidence": "High",
+        "covered_product": "Ryzen AI Max 300 Series",
+        "decision": "[HOLD] Require board-specific BIOS integrating 1.0.0.2a or later",
+        "id": "A-007",
+        "issue_or_scope": "SMM handler callout to untrusted memory",
+        "measured_identity": "Ryzen AI MAX+ 395 / BIOS dated 2025-10-11",
+        "official_floor_or_status": "StrixHaloPI-FP11_1.0.0.2a",
+        "release_date": "2025-11-25",
+        "source_id": "AMD-SB-4017",
+        "target_state": "[INFERRED] measured BIOS date predates AMD OEM release"
+      },
+      {
+        "advisory_or_source": "AMD-SB-4017 / CVE-2025-48516",
+        "applicability": "[EXPLICITLY_APPLIES]",
+        "authority": "AMD Product Security",
+        "component": "Memory module / PI policy",
+        "confidence": "High",
+        "covered_product": "Ryzen AI Max 300 Series",
+        "decision": "Persistent watch item; enforce physical/local privilege controls and service threshold; firmware update cannot close it",
+        "id": "A-008",
+        "issue_or_scope": "Unprotected DDR5 PMIC interface; permanent DoS or integrity impact",
+        "measured_identity": "Ryzen AI MAX+ 395 with DDR5-class memory",
+        "official_floor_or_status": "No fix planned; hardware changes targeted for future platforms",
+        "release_date": "N/A",
+        "source_id": "AMD-SB-4017",
+        "target_state": "Residual risk"
+      },
+      {
+        "advisory_or_source": "AMD-SB-7048",
+        "applicability": "[EXPLICITLY_APPLIES]",
+        "authority": "AMD Product Security",
+        "component": "DRAM/PI policy",
+        "confidence": "High affected-family; Medium mitigation package",
+        "covered_product": "Ryzen AI Max 300 Series",
+        "decision": "[HOLD] Require OEM confirmation that target BIOS exposes/enables mitigation and documents performance/coverage",
+        "id": "A-009",
+        "issue_or_scope": "DDR5 Rowhammer / Mixed Refresh Mode",
+        "measured_identity": "Ryzen AI MAX+ 395 / LPDDR5-class platform",
+        "official_floor_or_status": "Updated PI enables Mixed Refresh Mode; exact Strix Halo version not published in captured table",
+        "release_date": "[OPEN]",
+        "source_id": "AMD-SB-7048",
+        "target_state": "[OPEN]"
+      },
+      {
+        "advisory_or_source": "AMD-SB-7054 / CVE-2025-54502",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "CPU/PI firmware",
+        "confidence": "High",
+        "covered_product": "Ryzen AI Max 300 Series",
+        "decision": "[HOLD] Same board-specific 1.0.0.2a-or-later requirement",
+        "id": "A-010",
+        "issue_or_scope": "EFI LocateProtocol misuse in SMI handler",
+        "measured_identity": "Ryzen AI MAX+ 395 / BIOS dated 2025-10-11",
+        "official_floor_or_status": "StrixHaloPI-FP11_1.0.0.2a",
+        "release_date": "2025-11-25",
+        "source_id": "AMD-SB-7054",
+        "target_state": "[INFERRED] measured BIOS date predates release"
+      },
+      {
+        "advisory_or_source": "AMD-SB-7055 / CVE-2025-62626",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "CPU/PI firmware / software RNG",
+        "confidence": "High",
+        "covered_product": "Ryzen AI Max 300 Series",
+        "decision": "[HOLD] Update PI; audit code for 16/32-bit forms and apply documented software workaround until proven",
+        "id": "A-011",
+        "issue_or_scope": "16/32-bit RDSEED may return incorrect zero/success behavior",
+        "measured_identity": "Ryzen AI MAX+ 395 / Zen 5",
+        "official_floor_or_status": "StrixHaloPI-FP11_1.0.0.2a",
+        "release_date": "2025-11-25",
+        "source_id": "AMD-SB-7055",
+        "target_state": "[INFERRED] BIOS date predates release"
+      },
+      {
+        "advisory_or_source": "AMD-SB-4015",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "Windows chipset driver",
+        "confidence": "High for Windows",
+        "covered_product": "Ryzen AI Max 300 “Strix Halo”",
+        "decision": "Inventory exact Windows driver/component versions before deployment",
+        "id": "A-012",
+        "issue_or_scope": "Chipset driver vulnerabilities",
+        "measured_identity": "Strix Halo",
+        "official_floor_or_status": "8.01.20.513 current listed floor; prior issue-specific floors 7.06.02.123 / 7.04.09.545 / 7.02.13.148",
+        "release_date": "2026-02-16",
+        "source_id": "AMD-SB-4015",
+        "target_state": "[OPEN] installed OS/driver unknown"
+      },
+      {
+        "advisory_or_source": "AMD-SB-6024",
+        "applicability": "[FAMILY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "GPU driver",
+        "confidence": "High mapping; Medium installed stack",
+        "covered_product": "Ryzen AI Max 300 -> RX 7000 / PRO W7000 tables",
+        "decision": "Inventory OS-specific driver branch; do not compare distro kernel versions directly to Radeon package numbers",
+        "id": "A-013",
+        "issue_or_scope": "Multiple graphics-driver CVEs",
+        "measured_identity": "gfx1151 / Ryzen AI Max 300 iGPU",
+        "official_floor_or_status": "Adrenalin 25.6.1 and 25.5.1 issue-dependent; PRO 25.Q2; Linux 25.10.1/25.10.2 issue-dependent",
+        "release_date": "2025-05 to 2025-07",
+        "source_id": "AMD-SB-6024",
+        "target_state": "[OPEN]"
+      },
+      {
+        "advisory_or_source": "AMD-SB-6027 / CVE-2025-0044",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "GPU driver",
+        "confidence": "High",
+        "covered_product": "AMD Ryzen AI Max+",
+        "decision": "Verify installed driver is above floor",
+        "id": "A-014",
+        "issue_or_scope": "Graphics driver vulnerability",
+        "measured_identity": "Ryzen AI Max+",
+        "official_floor_or_status": "Adrenalin 24.7.1 / PRO 24.Q2",
+        "release_date": "2024-07-19",
+        "source_id": "AMD-SB-6027",
+        "target_state": "[OPEN]"
+      },
+      {
+        "advisory_or_source": "AMD-SB-6010 / CVE-2023-4969",
+        "applicability": "[FAMILY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "GPU process isolation",
+        "confidence": "Medium",
+        "covered_product": "RX 7000 / PRO W7000 mapped family",
+        "decision": "Security/performance acceptance required; version alone may not enable isolation",
+        "id": "A-015",
+        "issue_or_scope": "GPU memory information disclosure",
+        "measured_identity": "Ryzen AI Max 300 iGPU",
+        "official_floor_or_status": "Adrenalin 26.1.1 / PRO 26.Q1 plus non-default isolation mode",
+        "release_date": "Captured current bulletin state",
+        "source_id": "AMD-SB-6010",
+        "target_state": "[OPEN] isolation mode unknown"
+      },
+      {
+        "advisory_or_source": "AMD-SB-6013 / CVE-2024-21969",
+        "applicability": "[FAMILY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "GPU process isolation",
+        "confidence": "Medium",
+        "covered_product": "RX 7000 / PRO W7000 mapped family",
+        "decision": "Security/performance acceptance required",
+        "id": "A-016",
+        "issue_or_scope": "GPU register information disclosure",
+        "measured_identity": "Ryzen AI Max 300 iGPU",
+        "official_floor_or_status": "Adrenalin 26.1.1 / PRO 26.Q1 plus non-default isolation mode",
+        "release_date": "Captured current bulletin state",
+        "source_id": "AMD-SB-6013",
+        "target_state": "[OPEN] isolation mode unknown"
+      },
+      {
+        "advisory_or_source": "AMD-SB-4016",
+        "applicability": "[EXPLICITLY_APPLIES] [FIX_AVAILABLE]",
+        "authority": "AMD Product Security",
+        "component": "AMD RAID software",
+        "confidence": "High if RAID installed",
+        "covered_product": "Ryzen AI Max 300 Series",
+        "decision": "Conditional: inventory/remove/update RAID stack",
+        "id": "A-017",
+        "issue_or_scope": "RAID software vulnerabilities",
+        "measured_identity": "Ryzen AI Max 300",
+        "official_floor_or_status": "AMD RAID Software 9.3.3.245",
+        "release_date": "2025-11-03",
+        "source_id": "AMD-SB-4016",
+        "target_state": "[OPEN] RAID presence unknown"
+      },
+      {
+        "advisory_or_source": "P310 support page",
+        "applicability": "[FAMILY_APPLIES] [NO_PUBLIC_PACKAGE]",
+        "authority": "Crucial/Micron",
+        "component": "NVMe SSD firmware",
+        "confidence": "Medium",
+        "covered_product": "Crucial P310 family",
+        "decision": "[HOLD] Do not cross-flash; collect exact model, fw slots, activation behavior, vendor support statement",
+        "id": "A-018",
+        "issue_or_scope": "Public firmware availability",
+        "measured_identity": "Crucial P310 1 TB / VACR001",
+        "official_floor_or_status": "No firmware updates at capture time",
+        "release_date": "2026-07-18 capture",
+        "source_id": "CRUCIAL-P310-SUPPORT",
+        "target_state": "VACR001 exact status [OPEN]"
+      },
+      {
+        "advisory_or_source": "Public PULP manifest",
+        "applicability": "[OPEN]",
+        "authority": "LVFS/fwupd",
+        "component": "LVFS/fwupd coverage",
+        "confidence": "High literal search; Low applicability",
+        "covered_product": "Public firmware filenames only",
+        "decision": "Run fwupd inventory; preserve GUIDs, flags, lowest version, bootloader version, remote and release metadata",
+        "id": "A-019",
+        "issue_or_scope": "Repository candidate coverage",
+        "measured_identity": "NIMO MME3L; P310; 1002:1586; VACR001",
+        "official_floor_or_status": "No literal target strings found",
+        "release_date": "2026-07-18 capture",
+        "source_id": "LVFS-PULP-MANIFEST",
+        "target_state": "Unknown until local GUID match"
+      },
+      {
+        "advisory_or_source": "main + WHENCE",
+        "applicability": "[FAMILY_APPLIES]",
+        "authority": "linux-firmware",
+        "component": "AMDGPU firmware blobs",
+        "confidence": "Medium",
+        "covered_product": "AMDGPU gc_11_5_1 and related IP firmware families",
+        "decision": "Pin and hash tested kernel + linux-firmware tuple; capture `amdgpu_firmware_info` and package commit",
+        "id": "A-020",
+        "issue_or_scope": "Runtime firmware supply",
+        "measured_identity": "gfx1151 / PCI 1002:1586 rev c1",
+        "official_floor_or_status": "Repository commit 924d73c9a2501a256d18a26cbe640548c70b3a9a",
+        "release_date": "2026-07-16",
+        "source_id": "LINUX-FIRMWARE-MAIN",
+        "target_state": "Loaded tuple [OPEN]"
+      },
+      {
+        "advisory_or_source": "Strix Halo system optimization",
+        "applicability": "[EXPLICITLY_APPLIES]",
+        "authority": "AMD ROCm",
+        "component": "Linux kernel/KFD",
+        "confidence": "High",
+        "covered_product": "Strix Halo",
+        "decision": "[HOLD] Compute deployment until kernel floor/backports proven",
+        "id": "A-021",
+        "issue_or_scope": "Required KFD fixes",
+        "measured_identity": "Strix Halo / gfx1151",
+        "official_floor_or_status": "Linux 6.18.4+ or verified backports of 7f26af7 and 7445db6",
+        "release_date": "Official documentation current at access",
+        "source_id": "AMD-ROCM-STRIXHALO-SYSOPT",
+        "target_state": "Running kernel [OPEN]"
+      },
+      {
+        "advisory_or_source": "PCIe AER driver guide",
+        "applicability": "[SUPPORTED_IF_PRESENT]",
+        "authority": "Linux kernel / PCIe AER",
+        "component": "PCIe telemetry",
+        "confidence": "Medium target",
+        "covered_product": "AER-capable Root Ports/RCECs",
+        "decision": "Collect capabilities, `_OSC` logs, masks and sysfs counters; absence is a telemetry gap",
+        "id": "A-022",
+        "issue_or_scope": "Correctable/uncorrectable link and hierarchy errors",
+        "measured_identity": "All PCIe hierarchy devices including NVMe/GPU/USB4 bridges",
+        "official_floor_or_status": "CONFIG_PCIEAER + AER capability + ACPI _OSC OS control",
+        "release_date": "N/A",
+        "source_id": "KERNEL-PCIE-AER",
+        "target_state": "[OPEN]"
+      },
+      {
+        "advisory_or_source": "EDAC and machine-check docs/source",
+        "applicability": "[UNKNOWN] [SUPPORTED_IF_PRESENT]",
+        "authority": "Linux EDAC/MCA",
+        "component": "Memory/CPU RAS",
+        "confidence": "Low target",
+        "covered_product": "Generic AMD x86; exact target not named",
+        "decision": "Treat memory CE/UE visibility as absent until EDAC/MCA instances and decoded events are demonstrated",
+        "id": "A-023",
+        "issue_or_scope": "Memory CE/UE and CPU internal hardware errors",
+        "measured_identity": "Strix Halo platform",
+        "official_floor_or_status": "Driver/capability dependent",
+        "release_date": "N/A",
+        "source_id": "KERNEL-EDAC-DOC; KERNEL-X86-MCA; KERNEL-SOURCE-AMD64-EDAC",
+        "target_state": "Unproven"
+      },
+      {
+        "advisory_or_source": "AMDGPU RAS docs/source",
+        "applicability": "[UNKNOWN]",
+        "authority": "Linux AMDGPU",
+        "component": "GPU RAS",
+        "confidence": "Low target",
+        "covered_product": "Supported ASIC/IP blocks only",
+        "decision": "Capture IP discovery, `ras_mask`, `ras/features`, `*_err_count`; do not count generic docs as coverage",
+        "id": "A-024",
+        "issue_or_scope": "Per-block CE/UE/poison, reset/recovery",
+        "measured_identity": "gfx1151 / PCI 1002:1586 rev c1",
+        "official_floor_or_status": "ASIC/IP + PSP/VBIOS + ras_mask gated",
+        "release_date": "N/A",
+        "source_id": "KERNEL-AMDGPU-RAS-DOC; KERNEL-SOURCE-AMDGPU-RAS; KERNEL-SOURCE-AMDGPU-DISCOVERY",
+        "target_state": "Unproven"
+      },
+      {
+        "advisory_or_source": "USB4 and Thunderbolt admin guide",
+        "applicability": "[OPEN: LOCAL_ID_REQUIRED]",
+        "authority": "Linux USB4/Thunderbolt + OEM/LVFS",
+        "component": "USB4 routers/controllers/retimers",
+        "confidence": "Low",
+        "covered_product": "Enumerated host/device/retimer only",
+        "decision": "[HOLD] No firmware action until IDs, NVM versions, exact image applicability, authentication and recovery are proven",
+        "id": "A-025",
+        "issue_or_scope": "Security level, DMA protection, NVM update/authentication, safe mode",
+        "measured_identity": "Not supplied in request payload",
+        "official_floor_or_status": "Device/OEM-specific",
+        "release_date": "N/A",
+        "source_id": "KERNEL-USB4-THUNDERBOLT",
+        "target_state": "Unknown"
+      },
+      {
+        "advisory_or_source": "AMD-SB-7056",
+        "applicability": "[NOT_LISTED_FOR_TARGET]",
+        "authority": "AMD Product Security",
+        "component": "PCIe errata",
+        "confidence": "High captured list",
+        "covered_product": "Captured EPYC 9005 / Embedded 9005 list",
+        "decision": "Keep generic PCIe/AER and OEM errata watch open",
+        "id": "A-026",
+        "issue_or_scope": "PCIe specification-related issue",
+        "measured_identity": "Strix Halo",
+        "official_floor_or_status": "Target not listed",
+        "release_date": "",
+        "source_id": "AMD-SB-7056",
+        "target_state": "No unaffected conclusion"
+      },
+      {
+        "advisory_or_source": "Official gfx1151 mapping + local PCI identity",
+        "applicability": "[OPEN]",
+        "authority": "AMD/Linux PCI ID ecosystem",
+        "component": "PCI identity mapping",
+        "confidence": "Low",
+        "covered_product": "gfx1151 maps to Ryzen AI Max family; exact PCI revision map not captured",
+        "decision": "Collect subsystem vendor/device, class, VBIOS, CPUID, IP discovery; request AMD/OEM confirmation if revision-level service action is contemplated",
+        "id": "A-027",
+        "issue_or_scope": "Exact silicon/revision applicability",
+        "measured_identity": "1002:1586 revision c1",
+        "official_floor_or_status": "[OPEN]",
+        "release_date": "",
+        "source_id": "AMD-ROCM-GFX1151-MATRIX; KERNEL-SOURCE-AMDGPU-DISCOVERY",
+        "target_state": "Unresolved"
+      }
+    ],
+    "security-firmware-watch-list": [
+      {
+        "closure_evidence": "OEM package hash, release notes, PI manifest, board/revision match, signature verification, recovery/rollback test, change approval",
+        "current_status": "[HOLD] [NO_PUBLIC_PACKAGE] [SIGNATURE_UNPROVEN] [ROLLBACK_UNPROVEN]",
+        "minimum_or_control": "Board v1.0-specific signed package integrating >= StrixHaloPI-FP11_1.0.0.2b or OEM-documented equivalent/newer",
+        "priority": "P1",
+        "source_id": "OEM-NIMO-SUPPORT-AI395; AMD-SB-4017",
+        "trigger_or_risk": "Public Strix Halo PI floor reaches 1.0.0.2b; measured BIOS date predates 1.0.0.2a/b releases",
+        "watch_item": "Exact NIMO BIOS / AMD PI integration"
+      },
+      {
+        "closure_evidence": "Human risk acceptance or hardware platform change",
+        "current_status": "Residual risk; cannot close by firmware",
+        "minimum_or_control": "Physical/local privilege controls, workload isolation, replacement/service criteria, watch future platform guidance",
+        "priority": "P1",
+        "source_id": "AMD-SB-4017",
+        "trigger_or_risk": "Permanent DoS/integrity impact; no fix planned for target family",
+        "watch_item": "CVE-2025-48516 DDR5 PMIC residual"
+      },
+      {
+        "closure_evidence": "Release note + setup evidence + post-update validation",
+        "current_status": "[OPEN] [HOLD]",
+        "minimum_or_control": "OEM-confirmed PI and setting state; performance/reliability validation",
+        "priority": "P1",
+        "source_id": "AMD-SB-7048",
+        "trigger_or_risk": "Target family listed; exact Strix Halo mitigated PI row absent",
+        "watch_item": "Rowhammer / Mixed Refresh Mode"
+      },
+      {
+        "closure_evidence": "OEM PI proof and binary/workload audit",
+        "current_status": "Likely not covered by date; exact PI unknown",
+        "minimum_or_control": "PI >= 1.0.0.2a plus software workaround audit",
+        "priority": "P1",
+        "source_id": "AMD-SB-7055",
+        "trigger_or_risk": "Measured BIOS date predates 1.0.0.2a",
+        "watch_item": "RDSEED CVE-2025-62626"
+      },
+      {
+        "closure_evidence": "Exact OEM integration evidence",
+        "current_status": "[HOLD]",
+        "minimum_or_control": "PI >= 1.0.0.2b",
+        "priority": "P1",
+        "source_id": "AMD-SB-7054; AMD-SB-4017",
+        "trigger_or_risk": "Required PI released after measured BIOS date",
+        "watch_item": "EFI/SMM issues CVE-2025-54502, CVE-2026-0438, CVE-2024-36345/43"
+      },
+      {
+        "closure_evidence": "Official firmware advisory/package or written support statement; fw slot/auth proof",
+        "current_status": "[NO_PUBLIC_PACKAGE] [OPEN]",
+        "minimum_or_control": "Vendor confirmation for exact model/serial and VACR001; no cross-flash",
+        "priority": "P1",
+        "source_id": "CRUCIAL-P310-SUPPORT",
+        "trigger_or_risk": "No public update; exact firmware status/signing/rollback unknown",
+        "watch_item": "Crucial P310 VACR001"
+      },
+      {
+        "closure_evidence": "Inventory + signed applicable package + tested recovery + approval",
+        "current_status": "[OPEN: LOCAL_ID_REQUIRED] [HOLD]",
+        "minimum_or_control": "Exact sysfs/fwupd IDs, NVM versions, OEM image, auth and recovery proof",
+        "priority": "P1",
+        "source_id": "KERNEL-USB4-THUNDERBOLT",
+        "trigger_or_risk": "Exact identities absent; unsuitable images can brick controller",
+        "watch_item": "USB4 host/router/retimer firmware"
+      },
+      {
+        "closure_evidence": "uname/package provenance + commit/backport proof + workload validation",
+        "current_status": "Running kernel/backports unknown",
+        "minimum_or_control": "Linux >= 6.18.4 or verified inclusion of commits 7f26af7 and 7445db6",
+        "priority": "P1",
+        "source_id": "AMD-ROCM-STRIXHALO-SYSOPT",
+        "trigger_or_risk": "AMD documents required fixes in Linux 6.18.4+",
+        "watch_item": "Strix Halo Linux KFD fixes"
+      },
+      {
+        "closure_evidence": "Local capability inventory and tested alert path",
+        "current_status": "[UNKNOWN]",
+        "minimum_or_control": "Collect and demonstrate target interfaces; deploy integrity controls where absent",
+        "priority": "P1",
+        "source_id": "KERNEL-EDAC-DOC; KERNEL-AMDGPU-RAS-DOC",
+        "trigger_or_risk": "EDAC/MCA/amdgpu RAS exact coverage unproven",
+        "watch_item": "Hardware RAS coverage gap"
+      },
+      {
+        "closure_evidence": "Installed component versions and signed package provenance",
+        "current_status": "Installed version unknown",
+        "minimum_or_control": "At least 8.01.20.513 where Windows stack applies",
+        "priority": "P2",
+        "source_id": "AMD-SB-4015",
+        "trigger_or_risk": "Strix Halo exact bulletin floors",
+        "watch_item": "Windows chipset driver"
+      },
+      {
+        "closure_evidence": "Driver/package inventory, mode evidence, performance/security approval",
+        "current_status": "Driver branch and mode unknown",
+        "minimum_or_control": "Meet applicable branch floor and explicitly decide isolation mode",
+        "priority": "P2",
+        "source_id": "AMD-SB-6024; AMD-SB-6010; AMD-SB-6013",
+        "trigger_or_risk": "Issue-specific driver floors; some isolation controls not default",
+        "watch_item": "GPU driver CVEs and isolation modes"
+      },
+      {
+        "closure_evidence": "Package commit, per-file hashes, amdgpu_firmware_info, boot logs",
+        "current_status": "Repository has family blobs; loaded tuple unknown",
+        "minimum_or_control": "Pin tested commit/package and hash loaded files",
+        "priority": "P2",
+        "source_id": "LINUX-FIRMWARE-MAIN",
+        "trigger_or_risk": "Loaded microcode blobs can change independently of kernel",
+        "watch_item": "linux-firmware tuple"
+      },
+      {
+        "closure_evidence": "fwupd JSON and release metadata retained",
+        "current_status": "[OPEN]",
+        "minimum_or_control": "Local GUID/instance-ID match against current stable metadata",
+        "priority": "P2",
+        "source_id": "LVFS-PULP-MANIFEST",
+        "trigger_or_risk": "No literal public-manifest filename match",
+        "watch_item": "LVFS device coverage"
+      },
+      {
+        "closure_evidence": "Software/service/driver inventory",
+        "current_status": "Presence unknown",
+        "minimum_or_control": "Remove if unused or update to >= 9.3.3.245",
+        "priority": "P2",
+        "source_id": "AMD-SB-4016",
+        "trigger_or_risk": "Only relevant if installed/active",
+        "watch_item": "AMD RAID software"
+      }
+    ],
+    "telemetry-support-matrix": [
+      {
+        "correctable": "[SUPPORTED_IF_PRESENT] Correctable counters/log warnings",
+        "coverage_gap": "Does not include device-internal errors",
+        "domain": "PCIe hierarchy/link",
+        "fatal_or_recovery": "Driver callbacks; reset required for fatal link errors",
+        "interface": "Linux AER sysfs + kernel log",
+        "proof_required": "lspci -vv; /sys/bus/pci/devices/*/aer_*; boot log _OSC/AER/DPC; kernel config",
+        "source_id": "KERNEL-PCIE-AER",
+        "strix_halo_status": "[UNKNOWN] until AER capability and ACPI _OSC ownership proven",
+        "uncorrectable": "[SUPPORTED_IF_PRESENT] Non-fatal/fatal counters and recovery path"
+      },
+      {
+        "correctable": "[SUPPORTED_IF_PRESENT] Corrected events can be logged",
+        "coverage_gap": "Bank meanings CPU-specific; corrected logging can be disabled",
+        "domain": "CPU core/cache/fabric MCA",
+        "fatal_or_recovery": "CPU/bank/severity specific",
+        "interface": "x86 machine-check records, rasdaemon/journal/trace",
+        "proof_required": "CPUID; kernel config; journal; tracefs; rasdaemon; GHES/APEI inventory",
+        "source_id": "KERNEL-X86-MCA",
+        "strix_halo_status": "[UNKNOWN] exact banks/decoding/firmware routing",
+        "uncorrectable": "[SUPPORTED_IF_PRESENT] May produce MCE, SIGBUS, panic or reboot"
+      },
+      {
+        "correctable": "[SUPPORTED_IF_PRESENT] EDAC corrected events",
+        "coverage_gap": "No target-specific public guarantee; absence of counters is not absence of faults",
+        "domain": "System memory EDAC",
+        "fatal_or_recovery": "Driver/controller/OS policy dependent",
+        "interface": "/sys/devices/system/edac/mc and rasdaemon",
+        "proof_required": "EDAC sysfs instances, driver bind, ECC-enable status, decoded events",
+        "source_id": "KERNEL-EDAC-DOC; KERNEL-SOURCE-AMD64-EDAC",
+        "strix_halo_status": "[UNKNOWN] LPDDR5 ECC and amd64_edac exposure unproven",
+        "uncorrectable": "[SUPPORTED_IF_PRESENT] uncorrected/deferred/fatal types"
+      },
+      {
+        "correctable": "[SUPPORTED_IF_PRESENT] `ce` per supported block",
+        "coverage_gap": "gfx1151 does not prove any RAS block; missing interface may mean unsupported/gated",
+        "domain": "AMDGPU hardware RAS",
+        "fatal_or_recovery": "GPU reset; optional auto reboot for unrecoverable errors",
+        "interface": "/sys/class/drm/card*/device/ras/*_err_count and ras/features",
+        "proof_required": "amdgpu IP discovery, MP0/UMC/NBIO versions, ras_mask, features, err_count files, dmesg RAS init",
+        "source_id": "KERNEL-AMDGPU-RAS-DOC; KERNEL-SOURCE-AMDGPU-RAS",
+        "strix_halo_status": "[UNKNOWN] ASIC/IP/PSP/VBIOS/ras_mask gated",
+        "uncorrectable": "[SUPPORTED_IF_PRESENT] `ue` and poison per supported block"
+      },
+      {
+        "correctable": "Not an ECC CE counter",
+        "coverage_gap": "Detects symptoms, not silent corruption or complete RAS coverage",
+        "domain": "AMDGPU operational failures",
+        "fatal_or_recovery": "GPU reset/rebind/reboot depending failure",
+        "interface": "DRM scheduler/reset/VM fault logs",
+        "proof_required": "journalctl -k; pstore; amdgpu debug info",
+        "source_id": "KERNEL-AMDGPU-RAS-DOC",
+        "strix_halo_status": "[SUPPORTED_IF_PRESENT] operational telemetry",
+        "uncorrectable": "Can reveal hangs, resets, page faults, firmware faults"
+      },
+      {
+        "correctable": "Vendor/generic fields may report corrected/internal events; semantics vary",
+        "coverage_gap": "Does not prove NAND/controller internal ECC observability or host-memory integrity",
+        "domain": "NVMe controller health",
+        "fatal_or_recovery": "Controller reset, namespace offline, read-only, replacement",
+        "interface": "NVMe SMART / health log",
+        "proof_required": "nvme smart-log -H; id-ctrl; smartctl -x; baseline and trend",
+        "source_id": "CRUCIAL-STORAGE-EXECUTIVE-FAQ",
+        "strix_halo_status": "[SUPPORTED_IF_PRESENT] for installed P310 controller",
+        "uncorrectable": "Media/data-integrity error and critical-warning fields where implemented"
+      },
+      {
+        "correctable": "No standardized CE taxonomy equivalent to EDAC",
+        "coverage_gap": "Ring buffer may wrap; zero entries is not proof of no latent faults",
+        "domain": "NVMe command/error history",
+        "fatal_or_recovery": "Controller/device-specific",
+        "interface": "NVMe error log",
+        "proof_required": "nvme error-log with entry count and timestamps/context",
+        "source_id": "CRUCIAL-P310-SUPPORT",
+        "strix_halo_status": "[SUPPORTED_IF_PRESENT]",
+        "uncorrectable": "Command/status error entries; may reveal media/transport faults"
+      },
+      {
+        "correctable": "N/A",
+        "coverage_gap": "Slot presence does not prove downgrade or image authentication",
+        "domain": "SSD firmware update state",
+        "fatal_or_recovery": "Shows active/next slot and slot capabilities when implemented",
+        "interface": "NVMe Firmware Slot Information log",
+        "proof_required": "nvme fw-log; id-ctrl FRMW fields; vendor statement",
+        "source_id": "CRUCIAL-P310-SUPPORT",
+        "strix_halo_status": "[UNKNOWN] for VACR001",
+        "uncorrectable": "N/A"
+      },
+      {
+        "correctable": "N/A",
+        "coverage_gap": "Authentication result is not CE/UE link telemetry and does not prove rollback",
+        "domain": "USB4/Thunderbolt NVM authentication",
+        "fatal_or_recovery": "Valid image may recover safe mode; unsuitable image can require special tools",
+        "interface": "nvm_version and nvm_authenticate; fwupd history",
+        "proof_required": "sysfs identity/NVM fields; fwupd device JSON/history; exact OEM image",
+        "source_id": "KERNEL-USB4-THUNDERBOLT",
+        "strix_halo_status": "[OPEN: LOCAL_ID_REQUIRED]",
+        "uncorrectable": "Authentication failure code and safe-mode state"
+      },
+      {
+        "correctable": "N/A",
+        "coverage_gap": "Policy protects DMA exposure; does not detect hardware bit errors",
+        "domain": "USB4 DMA/security policy",
+        "fatal_or_recovery": "Authorization/tunnel policy",
+        "interface": "security level, authorization, IOMMU DMA protection",
+        "proof_required": "boltctl, sysfs security/iommu_dma_protection, IOMMU boot logs",
+        "source_id": "KERNEL-USB4-THUNDERBOLT",
+        "strix_halo_status": "[OPEN: LOCAL_ID_REQUIRED]",
+        "uncorrectable": "N/A"
+      },
+      {
+        "correctable": "No generic CE counter documented for every topology",
+        "coverage_gap": "Not an errata or hardware-RAS substitute",
+        "domain": "USB4 tunnel events",
+        "fatal_or_recovery": "Tunnel teardown/re-enumeration",
+        "interface": "kernel KOBJ_CHANGE events and logs",
+        "proof_required": "udev monitor, journal, topology capture",
+        "source_id": "KERNEL-USB4-THUNDERBOLT",
+        "strix_halo_status": "[SUPPORTED_IF_PRESENT] operational telemetry",
+        "uncorrectable": "Disconnect/low/insufficient-bandwidth symptoms may be emitted"
+      },
+      {
+        "correctable": "No target CE counter documented",
+        "coverage_gap": "Cannot validate Mixed Refresh Mode from generic EDAC/AER alone",
+        "domain": "DDR5 Rowhammer mitigation",
+        "fatal_or_recovery": "Mitigation configuration, not telemetry",
+        "interface": "OEM BIOS/PI configuration evidence",
+        "proof_required": "OEM release notes, setup variable evidence, AMD/OEM statement",
+        "source_id": "AMD-SB-7048",
+        "strix_halo_status": "[OPEN] affected family; exact PI/settings unpublished",
+        "uncorrectable": "No public target counter tied to mitigation efficacy"
+      },
+      {
+        "correctable": "N/A",
+        "coverage_gap": "LVFS origin trust is separate from vendor payload signature and anti-rollback",
+        "domain": "Firmware update provenance",
+        "fatal_or_recovery": "Repository trust and update result",
+        "interface": "fwupd Jcat/checksum/signature + device history",
+        "proof_required": "fwupdmgr get-devices/get-updates/get-history; CAB/Jcat hashes",
+        "source_id": "FWUPD-ONLYTRUSTED; LVFS-UPLOAD-SIGNING",
+        "strix_halo_status": "[OPEN] exact device GUIDs/payloads",
+        "uncorrectable": "N/A"
+      },
+      {
+        "correctable": "Can detect and sometimes repair when redundant copy exists",
+        "coverage_gap": "Does not cover all transient CPU/GPU/memory execution corruption",
+        "domain": "End-to-end data integrity",
+        "fatal_or_recovery": "Restore from verified replica/backup",
+        "interface": "Filesystem/database/application checksums and scrubs",
+        "proof_required": "Documented checksum scope, scrub cadence, repair source, alert tests",
+        "source_id": "[LOCAL_CONTROL]",
+        "strix_halo_status": "Candidate compensating control",
+        "uncorrectable": "Detects mismatch/corruption at protected layer"
+      }
+    ]
+  },
+  "target": {
+    "bios": "3.05",
+    "bios_date": "2025-10-11",
+    "board": "NIMO Mini PC board v1.0",
+    "cpu": "AMD Ryzen AI MAX+ 395",
+    "gfx": "gfx1151",
+    "oem": "Nimo Direct MME3L",
+    "pci": "1002:1586 rev c1",
+    "ssd": "Crucial P310 1 TB / VACR001",
+    "usb4": "[OPEN: LOCAL_ID_REQUIRED]"
+  }
+}

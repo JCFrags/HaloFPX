@@ -1,0 +1,8 @@
+role,primary_evidence,blocking_boundary,decision,label
+prompt classification,DistilBERT-class ONNX17 BF16 example,vendor high-level stack; target unprobed,conditional isolated experiment only,[VENDOR-ONLY]
+moderation,classifier-shaped; task-specific model absent,accuracy/policy fitness missing,conditional only after classifier gate,[INFERENCE]
+embeddings,BGE Vitis AI EP sample,captured 1.7.0 hybrid/Conda flow; exact Linux qualification unknown,keep excluded,[UNKNOWN]
+reranking,no exact primary Linux example captured,model/compiler/operator path missing,keep excluded,[MISSING]
+small draft model,SmolLM/SmolLM2 135M listed,no speculative-decoding interface or target economics,keep excluded,[VENDOR-ONLY]
+llama.cpp transformer offload,AMD documents llama.cpp for iGPU,no NPU backend established,keep excluded,[UNSUPPORTED]
+Whisper NPU,AMD NPU path currently Windows-only,Linux planned,keep excluded,[WINDOWS-ONLY]

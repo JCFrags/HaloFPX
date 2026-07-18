@@ -1,0 +1,24 @@
+digraph PF_IR_03 {
+  rankdir=LR;
+  graph [fontname="sans-serif"];
+  node [shape=box, fontname="sans-serif"];
+  "application" -> "HIP runtime";
+  "HIP runtime" -> "ROCr Runtime / HSA";
+  "HIP runtime" -> "LLVM device code toolchain";
+  "LLVM device code toolchain" -> "AMDGPU device libraries";
+  "ROCr Runtime / HSA" -> "amdgpu/KFD";
+  "amdgpu/KFD" -> "Linux kernel";
+  "Linux kernel" -> "AMD GPU firmware";
+  "hipBLAS" -> "rocBLAS";
+  "hipBLAS" -> "hipBLASLt";
+  "hipBLASLt" -> "Composable Kernel / Tensile kernels";
+  "rocBLAS" -> "AMDGPU kernel packs (.kpack)";
+  "rocWMMA" -> "HIP/LLVM";
+  "RCCL" -> "HIP runtime";
+  "RCCL" -> "ROCr Runtime / HSA";
+  "RCCL" -> "network/IPC transports";
+  "Mesa RADV" -> "amdgpu DRM";
+  "Mesa RADV" -> "Vulkan loader";
+  "USB4STREAM application" -> "thunderbolt-stream";
+  "thunderbolt-stream" -> "Linux 7.2-rc/next kernel";
+}

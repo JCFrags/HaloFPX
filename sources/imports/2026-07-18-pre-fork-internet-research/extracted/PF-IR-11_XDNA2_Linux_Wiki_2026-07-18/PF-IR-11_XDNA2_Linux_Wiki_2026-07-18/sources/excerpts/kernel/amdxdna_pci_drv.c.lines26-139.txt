@@ -1,0 +1,114 @@
+MODULE_FIRMWARE("amdnpu/1502_00/npu.sbin");
+MODULE_FIRMWARE("amdnpu/17f0_10/npu.sbin");
+MODULE_FIRMWARE("amdnpu/17f0_11/npu.sbin");
+MODULE_FIRMWARE("amdnpu/17f0_20/npu.sbin");
+MODULE_FIRMWARE("amdnpu/1502_00/npu_7.sbin");
+MODULE_FIRMWARE("amdnpu/17f0_10/npu_7.sbin");
+MODULE_FIRMWARE("amdnpu/17f0_11/npu_7.sbin");
+
+/*
+ * 0.0: Initial version
+ * 0.1: Support getting all hardware contexts by DRM_IOCTL_AMDXDNA_GET_ARRAY
+ * 0.2: Support getting last error hardware error
+ * 0.3: Support firmware debug buffer
+ * 0.4: Support getting resource information
+ * 0.5: Support getting telemetry data
+ * 0.6: Support preemption
+ * 0.7: Support getting power and utilization data
+ * 0.8: Support BO usage query
+ * 0.9: Add new device type AMDXDNA_DEV_TYPE_PF
+ * 0.10: Support AIE4 UMQ
+ */
+#define AMDXDNA_DRIVER_MAJOR		0
+#define AMDXDNA_DRIVER_MINOR		10
+
+/*
+ * Bind the driver base on (vendor_id, device_id) pair and later use the
+ * (device_id, rev_id) pair as a key to select the devices. The devices with
+ * same device_id have very similar interface to host driver.
+ */
+static const struct pci_device_id pci_ids[] = {
+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, 0x1502) },
+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, 0x17f0) },
+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, 0x17f2) },
+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, 0x17f3) },
+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, 0x1B0B) },
+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, 0x1B0C) },
+	{0}
+};
+
+MODULE_DEVICE_TABLE(pci, pci_ids);
+
+static const struct amdxdna_device_id amdxdna_ids[] = {
+	{ 0x1502, 0x0,  &dev_npu1_info },
+	{ 0x17f0, 0x10, &dev_npu4_info },
+	{ 0x17f0, 0x11, &dev_npu5_info },
+	{ 0x17f0, 0x20, &dev_npu6_info },
+	{ 0x17f2, 0x10, &dev_npu3_pf_info },
+	{ 0x17f3, 0x10, &dev_npu3_vf_info },
+	{ 0x1B0B, 0x10, &dev_npu3_pf_info },
+	{ 0x1B0C, 0x10, &dev_npu3_vf_info },
+	{0}
+};
+
+static int amdxdna_sva_init(struct amdxdna_client *client)
+{
+	struct amdxdna_dev *xdna = client->xdna;
+
+	client->sva = iommu_sva_bind_device(xdna->ddev.dev, client->mm);
+	if (IS_ERR(client->sva)) {
+		XDNA_ERR(xdna, "SVA bind device failed, ret %ld", PTR_ERR(client->sva));
+		return PTR_ERR(client->sva);
+	}
+
+	client->pasid = iommu_sva_get_pasid(client->sva);
+	if (client->pasid == IOMMU_PASID_INVALID) {
+		iommu_sva_unbind_device(client->sva);
+		client->sva = NULL;
+		XDNA_ERR(xdna, "SVA get pasid failed");
+		return -ENODEV;
+	}
+
+	return 0;
+}
+
+static void amdxdna_sva_fini(struct amdxdna_client *client)
+{
+	if (IS_ERR_OR_NULL(client->sva))
+		return;
+
+	iommu_sva_unbind_device(client->sva);
+	client->sva = NULL;
+	client->pasid = IOMMU_PASID_INVALID;
+}
+
+static int amdxdna_drm_open(struct drm_device *ddev, struct drm_file *filp)
+{
+	struct amdxdna_dev *xdna = to_xdna_dev(ddev);
+	struct amdxdna_client *client;
+	int ret;
+
+	client = kzalloc_obj(*client);
+	if (!client)
+		return -ENOMEM;
+
+	ret = init_srcu_struct(&client->hwctx_srcu);
+	if (ret)
+		goto free_client;
+
+	client->pid = pid_nr(rcu_access_pointer(filp->pid));
+	client->xdna = xdna;
+	client->pasid = IOMMU_PASID_INVALID;
+	client->mm = current->mm;
+
+	if (!amdxdna_iova_on(xdna)) {
+		/* No need to fail open since user may use pa + carveout later. */
+		if (amdxdna_sva_init(client)) {
+			XDNA_WARN(xdna, "PASID not available for pid %d", client->pid);
+			if (!amdxdna_use_carveout(xdna)) {
+				XDNA_ERR(xdna, "PASID unavailable and carveout not configured");
+				ret = -EINVAL;
+				goto cleanup_srcu;
+			}
+		}
+	}

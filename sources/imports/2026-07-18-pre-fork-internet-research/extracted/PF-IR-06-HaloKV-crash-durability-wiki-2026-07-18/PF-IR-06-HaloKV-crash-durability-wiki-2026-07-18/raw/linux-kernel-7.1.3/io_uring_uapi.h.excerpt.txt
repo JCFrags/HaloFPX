@@ -1,0 +1,36 @@
+---
+source_id: "S006"
+title: "Linux io_uring UAPI"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "gregkh/linux mirror of Linux stable"
+path: "include/uapi/linux/io_uring.h"
+version: "Linux 7.1.3"
+commit: "199c9959d3a9b53f346c221757fc7ac507fbac50"
+upstream_blob_sha1: "909fb7aea638eb0714ca4d91f58b6d419725f1b6"
+line_ranges: "145-171, enum opcodes, fsync/cancel/CQE flags"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "(GPL-2.0 WITH Linux-syscall-note) OR MIT"
+---
+/* use fixed fileset */
+#define IOSQE_FIXED_FILE        (1U << IOSQE_FIXED_FILE_BIT)
+/* links next sqe */
+#define IOSQE_IO_LINK           (1U << IOSQE_IO_LINK_BIT)
+/* like LINK, but stronger */
+#define IOSQE_IO_HARDLINK       (1U << IOSQE_IO_HARDLINK_BIT)
+/* don't post CQE if request succeeded */
+#define IOSQE_CQE_SKIP_SUCCESS  (1U << IOSQE_CQE_SKIP_SUCCESS_BIT)
+
+#define IORING_FSYNC_DATASYNC   (1U << 0)
+
+#define IORING_ASYNC_CANCEL_ALL       (1U << 0)
+#define IORING_ASYNC_CANCEL_FD        (1U << 1)
+#define IORING_ASYNC_CANCEL_ANY       (1U << 2)
+#define IORING_ASYNC_CANCEL_FD_FIXED  (1U << 3)
+
+struct io_uring_cqe {
+        __u64 user_data;
+        __s32 res;
+        __u32 flags;
+        __u64 big_cqe[];
+};

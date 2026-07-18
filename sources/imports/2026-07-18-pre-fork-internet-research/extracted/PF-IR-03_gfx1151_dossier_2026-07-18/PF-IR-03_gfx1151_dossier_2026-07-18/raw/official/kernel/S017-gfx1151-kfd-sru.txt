@@ -1,0 +1,12 @@
+CAPTURE_TYPE: distro-kernel provenance record
+SOURCE_ID: S017
+URL: https://lists.ubuntu.com/archives/kernel-team/2026-January/165207.html
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn398973view1
+ISSUE: gfx1151 context save/restore area sizing can hang ROCm.
+FIX_ORIGIN: upstream 6.19-rc1.
+BACKPORT_CONTEXT: OEM 6.14 and OEM 6.17; requested for 6.17 HWE.
+PATCHES:
+- drm/amdkfd: bump minimum vgpr size for gfx1151
+- drm/amdkfd: export cwsr_size and ctl_stack_size to userspace
+MATCHING_ROCM_COMMIT: 0a2ea9ef55403341a43df4c96dd946c4641a7f79

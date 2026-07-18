@@ -1,0 +1,233 @@
+[
+  {
+    "source_id": "S001",
+    "title": "ROCm 7.14.0 compatibility matrix",
+    "url": "https://rocm.docs.amd.com/en/docs-7.14.0/compatibility/compatibility-matrix.html",
+    "publisher": "AMD",
+    "authority": "official documentation",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn800020view0",
+    "raw_path": "raw/official/amd-docs/S001-rocm-7.14-compatibility.txt",
+    "scope": "gfx1151 devices, supported Ubuntu/kernel, Core SDK component versions"
+  },
+  {
+    "source_id": "S002",
+    "title": "Transition guide from legacy ROCm release stream",
+    "url": "https://rocm.docs.amd.com/en/latest/about/transition-guide-TheRock.html",
+    "publisher": "AMD",
+    "authority": "official documentation",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn921834view4; turn628835view0",
+    "raw_path": "raw/official/amd-docs/S002-transition-guide.txt",
+    "scope": "preview statement, paths, package mapping, ABI/API compatibility"
+  },
+  {
+    "source_id": "S003",
+    "title": "Install AMD ROCm 7.14.0",
+    "url": "https://rocm.docs.amd.com/en/docs-7.14.0/install/rocm.html",
+    "publisher": "AMD",
+    "authority": "official documentation",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn619120view2; turn619120view3; turn921834view5; turn921834view6",
+    "raw_path": "raw/official/amd-docs/S003-install-rocm-7.14.txt",
+    "scope": "artifact URL, package repository signing, prerequisites, install/uninstall"
+  },
+  {
+    "source_id": "S004",
+    "title": "ROCm Core SDK 7.14.0 release notes",
+    "url": "https://rocm.docs.amd.com/en/docs-7.14.0/about/release-notes.html",
+    "publisher": "AMD",
+    "authority": "official documentation",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn890393view0; turn890393view1; turn890393view2; turn890393view3",
+    "raw_path": "raw/official/amd-docs/S004-release-notes-7.14.txt",
+    "scope": "hardware additions, component applicability, known issues, firmware/driver notes"
+  },
+  {
+    "source_id": "S005",
+    "title": "ROCm 7.2 Ryzen native Linux support matrix",
+    "url": "https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2/docs/compatibility/compatibilityryz/native_linux/native_linux_compatibility.html",
+    "publisher": "AMD",
+    "authority": "official documentation",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn619120view0",
+    "raw_path": "raw/official/amd-docs/S005-ryzen-linux-7.2-matrix.txt",
+    "scope": "Ubuntu 24.04.3, gfx1151, PyTorch 2.9, FP16 validation"
+  },
+  {
+    "source_id": "S006",
+    "title": "ROCm 7.2.4 release notes",
+    "url": "https://rocm.docs.amd.com/en/docs-7.2.4/about/release-notes.html",
+    "publisher": "AMD",
+    "authority": "official documentation",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn619120view5",
+    "raw_path": "raw/official/amd-docs/S006-release-notes-7.2.4.txt",
+    "scope": "patch release purpose, inherited component versions, known issues/deprecations"
+  },
+  {
+    "source_id": "S007",
+    "title": "ROCm/TheRock tag therock-7.14",
+    "url": "https://github.com/ROCm/TheRock/tree/therock-7.14",
+    "publisher": "AMD / GitHub",
+    "authority": "official source repository",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn744481view0; turn18file0; turn50file0; turn53file0; turn54file0",
+    "raw_path": "raw/official/github/S007-TheRock-tag.txt",
+    "scope": "tag commit, top-level gitlinks including LLVM/HIPIFY/SPIR-V, early-preview status, build entry point"
+  },
+  {
+    "source_id": "S008",
+    "title": "TheRock SUPPORTED_GPUS.md at therock-7.14",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/SUPPORTED_GPUS.md",
+    "publisher": "AMD / GitHub",
+    "authority": "official source repository",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn15file0",
+    "raw_path": "raw/official/github/S008-SUPPORTED_GPUS.txt",
+    "scope": "gfx1151 build/sanity/release-ready status and project-status warning"
+  },
+  {
+    "source_id": "S009",
+    "title": "TheRock RELEASES.md at therock-7.14",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/RELEASES.md",
+    "publisher": "AMD / GitHub",
+    "authority": "official source repository",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn20file0 through turn24file0",
+    "raw_path": "raw/official/github/S009-RELEASES.txt",
+    "scope": "tarball layout, .kpack, source manifest, native package signing warning"
+  },
+  {
+    "source_id": "S010",
+    "title": "TheRock .gitmodules at therock-7.14",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/.gitmodules",
+    "publisher": "AMD / GitHub",
+    "authority": "official source repository",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn19file0",
+    "raw_path": "raw/official/github/S010-gitmodules.txt",
+    "scope": "authoritative source repository mapping"
+  },
+  {
+    "source_id": "S011",
+    "title": "TheRock manifest generator",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/build_tools/generate_therock_manifest.py",
+    "publisher": "AMD / GitHub",
+    "authority": "official source repository",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn27file0",
+    "raw_path": "raw/official/github/S011-manifest-generator.txt",
+    "scope": "embedded source-pin manifest semantics"
+  },
+  {
+    "source_id": "S012",
+    "title": "TheRock Linux package mapping",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/build_tools/packaging/linux/package.json",
+    "publisher": "AMD / GitHub",
+    "authority": "official source repository",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn42file0; turn44file0",
+    "raw_path": "raw/official/github/S012-package-json.txt",
+    "scope": "RCCL package names, dependencies, components, declared licenses"
+  },
+  {
+    "source_id": "S013",
+    "title": "TheRock root LICENSE at therock-7.14",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/LICENSE",
+    "publisher": "AMD / GitHub",
+    "authority": "official source repository",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn40file0",
+    "raw_path": "raw/official/github/S013-TheRock-LICENSE.txt",
+    "scope": "TheRock build-system license"
+  },
+  {
+    "source_id": "S014",
+    "title": "ROCm/ROCm default.xml at rocm-7.2.4",
+    "url": "https://github.com/ROCm/ROCm/blob/rocm-7.2.4/default.xml",
+    "publisher": "AMD / GitHub",
+    "authority": "official source repository",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn31file0",
+    "raw_path": "raw/official/github/S014-rocm-7.2.4-default-xml.txt",
+    "scope": "legacy source-manifest caveat: default revision remains rocm-7.2.0"
+  },
+  {
+    "source_id": "S015",
+    "title": "Linux Kernel Archives release index",
+    "url": "https://www.kernel.org/",
+    "publisher": "Linux Kernel Organization",
+    "authority": "official release index",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn398973view0",
+    "raw_path": "raw/official/kernel/S015-kernel-org-release-index.txt",
+    "scope": "7.1.3 stable, 7.2-rc3 mainline, linux-next next-20260717"
+  },
+  {
+    "source_id": "S016",
+    "title": "USB4 and Thunderbolt admin guide (linux-next)",
+    "url": "https://www.kernel.org/doc/html/next/admin-guide/thunderbolt.html",
+    "publisher": "Linux kernel documentation",
+    "authority": "official project documentation",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn921834view2; turn921834view3",
+    "raw_path": "raw/official/kernel/S016-usb4stream.txt",
+    "scope": "USB4STREAM driver, ConfigFS, character devices, coexistence with USB4NET"
+  },
+  {
+    "source_id": "S017",
+    "title": "Ubuntu kernel-team GFX1151 KFD fixes SRU cover",
+    "url": "https://lists.ubuntu.com/archives/kernel-team/2026-January/165207.html",
+    "publisher": "Canonical / Ubuntu kernel team",
+    "authority": "official distro kernel record",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn398973view1",
+    "raw_path": "raw/official/kernel/S017-gfx1151-kfd-sru.txt",
+    "scope": "CWSR sizing hang, upstream 6.19-rc1, OEM/HWE backports, matching ROCm commit"
+  },
+  {
+    "source_id": "S018",
+    "title": "Ubuntu noble HWE 6.17 accepted changelog",
+    "url": "https://lists.ubuntu.com/archives/noble-changes/2026-February/053556.html",
+    "publisher": "Canonical / Ubuntu archive",
+    "authority": "official distro package record",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn398973view2",
+    "raw_path": "raw/official/kernel/S018-hwe-6.17-accepted.txt",
+    "scope": "accepted gfx1151 KFD fixes in 6.17.0-16.16~24.04.1"
+  },
+  {
+    "source_id": "S019",
+    "title": "Mesa 26.1.4 release notes",
+    "url": "https://docs.mesa3d.org/relnotes/26.1.4.html",
+    "publisher": "Mesa project",
+    "authority": "official project documentation",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn689053view2",
+    "raw_path": "raw/official/mesa/S019-mesa-26.1.4.txt",
+    "scope": "release date, API statements, official tarball SHA-256/SHA-512"
+  },
+  {
+    "source_id": "S020",
+    "title": "AMD stable ROCm SDK tarball index",
+    "url": "https://repo.amd.com/rocm/tarball-multi-arch/",
+    "publisher": "AMD",
+    "authority": "official artifact repository index",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn531743view1",
+    "raw_path": "raw/official/amd-docs/S020-tarball-index.txt",
+    "scope": "artifact repository namespace and architecture filters"
+  },
+  {
+    "source_id": "S021",
+    "title": "Installed two-node tuple supplied by requester",
+    "url": "",
+    "publisher": "local capture",
+    "authority": "user-provided local comparison only",
+    "access_date": "2026-07-17",
+    "capture_ref": "user prompt",
+    "raw_path": "raw/local/S021-local-two-node-comparison.txt",
+    "scope": "ROCm packages 7.2.4, Mesa 26.1.4, kernel 7.1.3"
+  }
+]

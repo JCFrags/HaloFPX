@@ -1,0 +1,313 @@
+{
+  "schema_version": 1,
+  "identities": [
+    {
+      "candidate_id": "deepseek-v3.1",
+      "publisher_repository": "deepseek-ai/DeepSeek-V3.1",
+      "publisher_revision": "c0781d039fb7a1ba2abc4add0bdc293e92d2b8db",
+      "artifact": {
+        "repository": "unsloth/DeepSeek-V3.1-GGUF",
+        "revision": "f69aacf1ee1e4f66737daebc7e71fa527dfda1bd",
+        "selected_path": "UD-IQ2_XXS",
+        "ordered_shards": [
+          {
+            "name": "DeepSeek-V3.1-UD-IQ2_XXS-00001-of-00005.gguf",
+            "bytes": 48771619904,
+            "sha256": "cfe213b5cd15f7f311b3e6e65e69193794d4d745f2984efa505e852bb7875b71"
+          },
+          {
+            "name": "DeepSeek-V3.1-UD-IQ2_XXS-00002-of-00005.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "DeepSeek-V3.1-UD-IQ2_XXS-00003-of-00005.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "af31108fe922eb2b8559313f32c2795bb0e805c99b14244e575960517ee19a2a"
+          },
+          {
+            "name": "DeepSeek-V3.1-UD-IQ2_XXS-00004-of-00005.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "DeepSeek-V3.1-UD-IQ2_XXS-00005-of-00005.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          }
+        ]
+      },
+      "artifact_identity_sha256": "39ab0f87ed8a778282ac3f7440bb1a0df5cdac4ee727f477bd0b1b7917f2c513",
+      "artifact_identity_complete": false,
+      "tokenizer_files": [
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "assets/chat_template.jinja"
+      ],
+      "tokenizer_hashes": "UNAVAILABLE",
+      "chat_template_hash": "UNAVAILABLE",
+      "llama_cpp_revision": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "rocmfpx_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "local_validation": "NOT_RUN"
+    },
+    {
+      "candidate_id": "glm-4.7",
+      "publisher_repository": "zai-org/GLM-4.7",
+      "publisher_revision": "602d01efcdd332c5238ca4bcede555defbe83eb7",
+      "artifact": {
+        "repository": "unsloth/GLM-4.7-GGUF",
+        "revision": "a030db4a327b2dece3f0e5c4ff82c5f4feab4f26",
+        "selected_path": "Q4_K_M",
+        "ordered_shards": [
+          {
+            "name": "GLM-4.7-Q4_K_M-00001-of-00005.gguf",
+            "bytes": 50006655232,
+            "sha256": "85b45d0fe56295af49a080dc498882173ac8e90f60e6c5eab9a995c3564e754a"
+          },
+          {
+            "name": "GLM-4.7-Q4_K_M-00002-of-00005.gguf",
+            "bytes": 49705685664,
+            "sha256": "732329c8d48b5468bf3a54355bf5d155471640041a9963433f0931b7fc5226b1"
+          },
+          {
+            "name": "GLM-4.7-Q4_K_M-00003-of-00005.gguf",
+            "bytes": 49631164960,
+            "sha256": "e6d241ebfeb59a09a25237a4b2bf8efc05806b4b067aa51c7ca1c9f530ffc736"
+          },
+          {
+            "name": "GLM-4.7-Q4_K_M-00004-of-00005.gguf",
+            "bytes": 49501239424,
+            "sha256": "96e609ec3c6259ab82be1ee322424588fde98816431030175f82af561e1457ec"
+          },
+          {
+            "name": "GLM-4.7-Q4_K_M-00005-of-00005.gguf",
+            "bytes": 17610827296,
+            "sha256": "2ffdc358f1f71f7f96952408e1e0202f17ecf0a527783018d0b83b186d125f31"
+          }
+        ]
+      },
+      "artifact_identity_sha256": "44c3f52cf06b243ad39d093e933a24144fb5ee968ffac0a1dcfb60884f0f7094",
+      "artifact_identity_complete": true,
+      "tokenizer_files": [
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "chat_template.jinja"
+      ],
+      "tokenizer_hashes": "UNAVAILABLE",
+      "chat_template_hash": "UNAVAILABLE",
+      "llama_cpp_revision": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "rocmfpx_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "local_validation": "NOT_RUN"
+    },
+    {
+      "candidate_id": "qwen3.5-397b-a17b",
+      "publisher_repository": "Qwen/Qwen3.5-397B-A17B",
+      "publisher_revision": "8472618112abcbd45acbcdc58436aff4233c23f7",
+      "artifact": {
+        "repository": "unsloth/Qwen3.5-397B-A17B-GGUF",
+        "revision": "0b7386368898883d58d445525ba8fa45e3f7289f",
+        "selected_path": "UD-Q4_K_S",
+        "ordered_shards": [
+          {
+            "name": "Qwen3.5-397B-A17B-UD-Q4_K_S-00001-of-00006.gguf",
+            "bytes": 10943552,
+            "sha256": "0c281dd4cc77769c0945704f770dbf950950e23c45680c64caa8e680b76fc0cc"
+          },
+          {
+            "name": "Qwen3.5-397B-A17B-UD-Q4_K_S-00002-of-00006.gguf",
+            "bytes": 49649743104,
+            "sha256": "817bc274bbc50b0b093e6a7c7f4a236304de9b5e572b1a20f74ce2aece58f292"
+          },
+          {
+            "name": "Qwen3.5-397B-A17B-UD-Q4_K_S-00003-of-00006.gguf",
+            "bytes": 48983522144,
+            "sha256": "05f99ad3a60c3afc69911ddcdc36494bc50f26ba8825db66f64a0880ce3c05f0"
+          },
+          {
+            "name": "Qwen3.5-397B-A17B-UD-Q4_K_S-00004-of-00006.gguf",
+            "bytes": 48983522144,
+            "sha256": "b3af6efac978262e7242f0ebfdf9dc438697e1dfd1b61c35dec848613ea4ba4e"
+          },
+          {
+            "name": "Qwen3.5-397B-A17B-UD-Q4_K_S-00005-of-00006.gguf",
+            "bytes": 49005806656,
+            "sha256": "b2519d7617f8c8d350c07d37ae2fa46b56157fa11d197ea5d939e6f443418de5"
+          },
+          {
+            "name": "Qwen3.5-397B-A17B-UD-Q4_K_S-00006-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          }
+        ]
+      },
+      "artifact_identity_sha256": "5b6cd8917802d9f8db467081f0852f0778b4c4c6cff81513ef89afb89d17923a",
+      "artifact_identity_complete": false,
+      "tokenizer_files": [
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "chat_template.jinja"
+      ],
+      "tokenizer_hashes": "UNAVAILABLE",
+      "chat_template_hash": "UNAVAILABLE",
+      "llama_cpp_revision": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "rocmfpx_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "local_validation": "NOT_RUN"
+    },
+    {
+      "candidate_id": "nemotron-3-ultra",
+      "publisher_repository": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+      "publisher_revision": "624ba927cfbef0427354998700de3d51173c8c04",
+      "artifact": {
+        "repository": "unsloth/NVIDIA-Nemotron-3-Ultra-550B-A55B-GGUF",
+        "revision": "05c80881664d32be9b26bab9d0360be00230ade4",
+        "selected_path": "UD-IQ3_XXS",
+        "ordered_shards": [
+          {
+            "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00001-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00002-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00003-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00004-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00005-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00006-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          }
+        ]
+      },
+      "artifact_identity_sha256": "7d7380303d39bbf712cf2f4ed3b2cd865204b25fdca56293efadd21f5164cf29",
+      "artifact_identity_complete": false,
+      "tokenizer_files": [
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "chat_template.jinja"
+      ],
+      "tokenizer_hashes": "UNAVAILABLE",
+      "chat_template_hash": "UNAVAILABLE",
+      "llama_cpp_revision": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "rocmfpx_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "local_validation": "NOT_RUN"
+    },
+    {
+      "candidate_id": "deepseek-r1",
+      "publisher_repository": "deepseek-ai/DeepSeek-R1",
+      "publisher_revision": "56d4cbbb4d29f4355bab4b9a39ccb717a14ad5ad",
+      "artifact": {
+        "repository": "unsloth/DeepSeek-R1-GGUF",
+        "revision": "4dab99fdb3fea560e5a402b49c6ef11e025321a8",
+        "selected_path": "DeepSeek-R1-Q2_K_XS",
+        "ordered_shards": [
+          {
+            "name": "DeepSeek-R1-Q2_K_XS-00001-of-00005.gguf",
+            "bytes": 49797465088,
+            "sha256": "df8e381870dd3aa2ea20b698f5484a1493fffe5503cae9dd4dcdd6ac56319e6d"
+          },
+          {
+            "name": "DeepSeek-R1-Q2_K_XS-00002-of-00005.gguf",
+            "bytes": 49174169600,
+            "sha256": "87b29033b0988ebfdce71cc0678b4cbb0954c00562be6c71f529001b9ab7244f"
+          },
+          {
+            "name": "DeepSeek-R1-Q2_K_XS-00003-of-00005.gguf",
+            "bytes": 49174169600,
+            "sha256": "03dfc0f75f94710ccace9e9ef39cd93f691cc05a33dbc425f0d4237719218a68"
+          },
+          {
+            "name": "DeepSeek-R1-Q2_K_XS-00004-of-00005.gguf",
+            "bytes": 49174169600,
+            "sha256": "cb3125f56b745364cb552660fcee089163f99aa8e2d8ebbbff70722b3684e7de"
+          },
+          {
+            "name": "DeepSeek-R1-Q2_K_XS-00005-of-00005.gguf",
+            "bytes": 23933713056,
+            "sha256": "84d95c85fb5ae9be44540a0491e80bdf8557665cafbb94d65dd948333b3f3e5f"
+          }
+        ]
+      },
+      "artifact_identity_sha256": "5c004e2b73bd99a39bfdd2ff2ab90ff4d1a30cc1ce69208eb556c59915e8d2fd",
+      "artifact_identity_complete": true,
+      "tokenizer_files": [
+        "tokenizer.json",
+        "tokenizer_config.json"
+      ],
+      "tokenizer_hashes": "UNAVAILABLE",
+      "chat_template_hash": "UNAVAILABLE",
+      "llama_cpp_revision": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "rocmfpx_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "local_validation": "NOT_RUN"
+    },
+    {
+      "candidate_id": "minimax-m2.7",
+      "publisher_repository": "MiniMaxAI/MiniMax-M2.7",
+      "publisher_revision": "d494266a4affc0d2995ba1fa35c8481cbd84294b",
+      "artifact": {
+        "repository": "unsloth/MiniMax-M2.7-GGUF",
+        "revision": "04ab68de18da5486aa9869e3bc72f0249ef51f89",
+        "selected_path": "UD-Q6_K_XL",
+        "ordered_shards": [
+          {
+            "name": "MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "MiniMax-M2.7-UD-Q6_K_XL-00002-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "MiniMax-M2.7-UD-Q6_K_XL-00003-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "MiniMax-M2.7-UD-Q6_K_XL-00004-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "MiniMax-M2.7-UD-Q6_K_XL-00005-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          },
+          {
+            "name": "MiniMax-M2.7-UD-Q6_K_XL-00006-of-00006.gguf",
+            "bytes": "UNAVAILABLE",
+            "sha256": "UNAVAILABLE"
+          }
+        ]
+      },
+      "artifact_identity_sha256": "bb46263ea09795e242dd8fee821933c1af8106599632d87ca1d13ff24a84112c",
+      "artifact_identity_complete": false,
+      "tokenizer_files": [
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "chat template/custom-code files"
+      ],
+      "tokenizer_hashes": "UNAVAILABLE",
+      "chat_template_hash": "UNAVAILABLE",
+      "llama_cpp_revision": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "rocmfpx_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "local_validation": "NOT_RUN"
+    }
+  ]
+}

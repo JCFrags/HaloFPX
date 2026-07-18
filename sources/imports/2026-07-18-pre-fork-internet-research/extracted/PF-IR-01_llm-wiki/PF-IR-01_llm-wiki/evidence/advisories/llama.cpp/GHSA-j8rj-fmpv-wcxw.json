@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-j8rj-fmpv-wcxw",
+  "cve": "CVE-2026-34159",
+  "title": "RPC GRAPH_COMPUTE null-buffer validation bypass",
+  "severity": "Critical",
+  "published": "2026-03-26",
+  "affected_versions_as_displayed_or_normalized": "<= b7991",
+  "patched_versions_as_displayed_or_normalized": "None listed",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-j8rj-fmpv-wcxw",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "deserialize_tensor; create_node; client tensor serialization; GRAPH_COMPUTE command",
+    "preconditions_summary": "RPC server built, launched, and reachable; unauthenticated protocol peer can submit graph metadata."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "e36c0bf670462f71ea5c75aabcdb988186fbb1e86e9d41c32337579b2e9e81a5"
+}

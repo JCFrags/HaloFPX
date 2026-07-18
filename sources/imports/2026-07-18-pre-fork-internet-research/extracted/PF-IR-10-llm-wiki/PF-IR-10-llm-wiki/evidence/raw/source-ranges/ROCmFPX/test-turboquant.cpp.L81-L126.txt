@@ -1,0 +1,46 @@
+static void generate_random_vectors(float * dst, int n_elements, unsigned int seed) {
+    unsigned int state = seed;
+    for (int i = 0; i < n_elements; i++) {
+        state = state * 1664525u + 1013904223u;
+        dst[i] = ((float)(state >> 8) / (float)(1 << 24)) * 2.0f - 1.0f;
+    }
+}
+
+static int test_roundtrip_mse(ggml_type type, float mse_d_min, float mse_d_max) {
+    const char * name = ggml_type_name(type);
+    printf("  %s roundtrip MSE*d (n=%d, d=%d)... ", name, N_VECTORS, HEAD_DIM);
+
+    const ggml_type_traits * traits = ggml_get_type_traits(type);
+    assert(traits->from_float_ref != nullptr);
+    assert(traits->to_float != nullptr);
+
+    std::vector<float> src(N_ELEMENTS);
+    std::vector<float> dst(N_ELEMENTS);
+    size_t quant_size = (size_t)N_ELEMENTS / BLOCK_SIZE * ggml_type_size(type);
+    std::vector<uint8_t> quant(quant_size);
+
+    generate_random_vectors(src.data(), N_ELEMENTS, 42);
+
+    traits->from_float_ref(src.data(), quant.data(), N_ELEMENTS);
+    traits->to_float(quant.data(), dst.data(), N_ELEMENTS);
+
+    // MSE*d = E[ ||x - x̃||² / ||x||² ] (normalized reconstruction error)
+    double total_nmse = 0.0;
+    for (int v = 0; v < N_VECTORS; v++) {
+        double err_sq = 0.0;
+        double norm_sq = 0.0;
+        for (int i = 0; i < HEAD_DIM; i++) {
+            double diff = (double)src[v * HEAD_DIM + i] - (double)dst[v * HEAD_DIM + i];
+            err_sq += diff * diff;
+            norm_sq += (double)src[v * HEAD_DIM + i] * (double)src[v * HEAD_DIM + i];
+        }
+        if (norm_sq > 1e-20) {
+            total_nmse += err_sq / norm_sq;
+        }
+    }
+    float mse_d = (float)(total_nmse / N_VECTORS);
+
+    bool pass = mse_d >= mse_d_min && mse_d <= mse_d_max;
+    printf("MSE*d=%.4f [%.3f..%.3f] %s\n", mse_d, mse_d_min, mse_d_max, pass ? "ok" : "FAILED");
+    return pass ? 0 : 1;
+}

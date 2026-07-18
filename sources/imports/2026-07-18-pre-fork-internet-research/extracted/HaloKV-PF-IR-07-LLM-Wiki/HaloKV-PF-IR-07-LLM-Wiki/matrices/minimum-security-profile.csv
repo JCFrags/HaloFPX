@@ -1,0 +1,31 @@
+control_id,level,control,verification,basis
+PFIR07-MP-001,HALOKV-MUST,"Use authenticated object encryption for every persistent private, project, or system/public cache object.",Format inspection and negative tag tests.,"PFIR07-C050,C058"
+PFIR07-MP-002,HALOKV-MUST,Use an approved implementation of AES-256-GCM or ChaCha20-Poly1305 with a 128-bit authentication tag; AES-GCM-SIV may be an explicitly versioned alternative.,Cryptographic module inventory; test vectors.,PFIR07-C030-C036
+PFIR07-MP-003,HALOKV-MUST,Use 96-bit nonces and enforce uniqueness within each AEAD key domain; never truncate or recycle nonce state.,"Allocator review, collision tests, invocation metrics.",PFIR07-C031-C035
+PFIR07-MP-004,HALOKV-MUST,"Assign a separate rank key domain per epoch, or document an equivalently rigorous nonce partition.",KDF context and key-broker policy inspection.,PFIR07-C055
+PFIR07-MP-005,HALOKV-MUST,"Roll to a fresh epoch/key after uncertain nonce state, restored counter state, or suspected reuse.",Crash/restore fault-injection.,"PFIR07-C033,C070"
+PFIR07-MP-006,HALOKV-MUST,"Bind immutable authority, tenant, project, prefix, namespace, sharing class, rank, epoch, object type, format, codec, sizes, chunk position, CID, and manifest generation in canonical AAD as applicable.",Cross-field substitution tests.,PFIR07-C057
+PFIR07-MP-007,HALOKV-MUST,Canonicalize AAD and identifier input with a versioned deterministic encoding and published test vectors.,Cross-language canonicalization suite.,"PFIR07-C049,C057"
+PFIR07-MP-008,HALOKV-MUST,"Authenticate before decompression, deserialization, semantic parsing, or data exposure.",Fuzzing and code-path review.,PFIR07-C059
+PFIR07-MP-009,HALOKV-MUST,Normalize every unknown/corrupt/unauthenticated/wrong-key/wrong-principal/mismatch outcome to MISS_RECOMPUTE at the caller boundary.,Negative corpus and API contract tests.,"PFIR07-C058,C063"
+PFIR07-MP-010,HALOKV-MUST,Never serve cached plaintext or partially parsed data after authentication failure.,Taint and exception-path review.,"PFIR07-C059,C063"
+PFIR07-MP-011,HALOKV-MUST,"Use purpose-separated encryption, identifier, manifest, and optional audit keys.",KDF/wrapping context review.,PFIR07-C054
+PFIR07-MP-012,HALOKV-MUST,Use immutable authority-issued tenant/project identifiers; mutable names are metadata only.,Principal-schema and rename tests.,"PFIR07-C027,C051"
+PFIR07-MP-013,HALOKV-MUST,Scope private deduplication/index lookup no wider than the authorized tenant/project sharing domain.,Index partition and authorization tests.,"PFIR07-C052,C078"
+PFIR07-MP-014,HALOKV-MUST,"Use a separate authority-owned, publication-controlled namespace for public/system prefixes.",Key ownership and write-ACL inspection.,PFIR07-C053
+PFIR07-MP-015,HALOKV-MUST,"Use a keyed, scope-specific private content identifier rather than a globally exposed raw plaintext digest.",CID derivation test vectors and index review.,PFIR07-C056
+PFIR07-MP-016,HALOKV-MUST,Authenticate manifests and bind generation/epoch; enforce a trusted freshness policy where rollback matters.,Replay/rollback tests.,PFIR07-C060
+PFIR07-MP-017,HALOKV-MUST,"Write immutable objects with bounded lengths, fsync/atomic publish semantics, and publish the manifest/index last.",Power-failure and torn-write tests.,"PFIR07-C059,C065"
+PFIR07-MP-018,HALOKV-MUST,Keep object and epoch keys out of cache-media plaintext; obtain them from a controlled KMS/HSM or wrapped-key broker.,"Filesystem scan, deployment configuration, key-broker audit.","PFIR07-C040,C046"
+PFIR07-MP-019,HALOKV-MUST,"Record key owner, custodian, authorization policy, lifecycle state, epoch, and destroy/escrow dependencies.",Key inventory and state-transition audit.,"PFIR07-C040,C042"
+PFIR07-MP-020,HALOKV-MUST,Drain users and terminate/restart affected workers before declaring revocation complete; verify fscrypt key status and/or dm-crypt mapping closure when used.,Revocation runbook exercise.,"PFIR07-C005-C007,C019-C020,C026"
+PFIR07-MP-021,HALOKV-MUST,"Treat LUKS headers, header backups, detached headers, recovery credentials, KMS replicas, and snapshots as key-bearing dependencies.",Backup/key-copy inventory.,"PFIR07-C014,C021,C042"
+PFIR07-MP-022,HALOKV-MUST,"Restore only into a quarantine namespace and enforce current epoch floors, tombstones, format policy, and authentication before publication.",Restore drill.,PFIR07-C065
+PFIR07-MP-023,HALOKV-MUST,"Authorize and authenticate before export, then re-encrypt under the destination authority/scope and emit a new manifest.",Export integration tests and audit record.,PFIR07-C066
+PFIR07-MP-024,HALOKV-MUST,Describe deletion as logical deletion unless a documented CE or media-sanitization procedure has met its preconditions and evidence requirements.,Deletion report wording and evidence review.,"PFIR07-C041-C044,C067"
+PFIR07-MP-025,HALOKV-MUST,Do not claim per-object CE when an epoch key is shared by other live objects or usable key copies/backups remain.,Key-scope and copy inventory.,PFIR07-C068
+PFIR07-MP-026,HALOKV-MUST,Do not treat discard/TRIM acknowledgement as secure deletion or physical sanitization evidence.,Configuration and deletion-report review.,"PFIR07-C069,C083"
+PFIR07-MP-027,HALOKV-SHOULD,Use LUKS2/dm-crypt for the rank-local cache volume to protect offline media; keep discard off absent a reviewed exception.,Host storage configuration.,"PFIR07-C039,C045,C069"
+PFIR07-MP-028,HALOKV-SHOULD,Use fscrypt v2 when directory-level offline isolation or selective unlock adds value; do not count it as object authenticity.,Policy version and key-removal drill.,PFIR07-C001-C009
+PFIR07-MP-029,HALOKV-SHOULD,"Avoid backing up regenerable cache content; when required, back up a coherent protected set and test quarantine restore.",Backup policy and restore evidence.,PFIR07-C064-C065
+PFIR07-MP-030,HALOKV-MUST,"Maintain rate limits, recomputation coalescing, quotas, and circuit breakers so fail-closed misses do not become an unbounded denial-of-service primitive.",Load/abuse tests.,"PFIR07-C058,C063; RR25"

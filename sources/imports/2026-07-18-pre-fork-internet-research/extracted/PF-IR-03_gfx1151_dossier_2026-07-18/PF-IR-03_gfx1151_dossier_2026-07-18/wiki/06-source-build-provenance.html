@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Source/build provenance · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html">Lane map</a><a href="02-official-support-matrices.html">Official support matrices</a><a href="03-component-dossier.html">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="06-source-build-provenance.html" class="active">Source/build provenance</a><a href="07-known-issues.html">Known issues</a><a href="08-rollback-removal.html">Rollback and removal</a><a href="09-licensing-sbom.html">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / Source/build provenance</div>
+  <article><h1>Source and build provenance</h1>
+<h2>Core SDK/TheRock 7.14.0</h2>
+<table>
+<thead>
+<tr>
+  <th>Item</th>
+  <th>Exact pin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>TheRock tag</td>
+  <td><code>therock-7.14</code></td>
+</tr>
+<tr>
+  <td>TheRock commit</td>
+  <td><code>418cd5f63abb7a604bad5874cd7b2e29334e640f</code></td>
+</tr>
+<tr>
+  <td>LLVM (<code>compiler/amd-llvm</code>) gitlink</td>
+  <td><code>aa451e1fe6a793394d6733051b1778633063ae96</code></td>
+</tr>
+<tr>
+  <td>HIPIFY gitlink</td>
+  <td><code>6acec7751d2b2bfe162dba9efdcf7c16efb27bd8</code></td>
+</tr>
+<tr>
+  <td>SPIR-V LLVM Translator gitlink</td>
+  <td><code>fb08e83ae872775acfeaee53fda3ccf99a04ba53</code></td>
+</tr>
+<tr>
+  <td>rocm-libraries gitlink</td>
+  <td><code>cd9574023093742434e8c992d13b89ab9a6c1cf8</code></td>
+</tr>
+<tr>
+  <td>rocm-systems gitlink</td>
+  <td><code>2b22ab0195cc1461cd9abf3b969e9dd7c10af350</code></td>
+</tr>
+<tr>
+  <td>Tag/commit signature</td>
+  <td>unverified in this capture</td>
+</tr>
+</tbody>
+</table>
+<p>The authoritative recursive component pins are the gitlinks reachable from the frozen TheRock commit and the acquired artifact's <code>share/therock/therock_manifest.json</code>. Branch names in <code>.gitmodules</code> are discovery metadata, not lock values.</p>
+<p>Use <code>scripts/fetch-7.14-sources.sh</code>. It checks out the exact commit, initializes submodules, records <code>git submodule status --recursive</code>, emits <code>git ls-tree</code> gitlinks, hashes patch files, and optionally compares the checkout to an extracted artifact manifest.</p>
+<h2>Legacy ROCm 7.2.4</h2>
+<table>
+<thead>
+<tr>
+  <th>Repository</th>
+  <th>Ref</th>
+  <th>Commit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>ROCm/ROCm</td>
+  <td><code>rocm-7.2.4</code></td>
+  <td><code>e0b62c25d8ea39473a7208c1c8995f1b5c2e277c</code></td>
+</tr>
+<tr>
+  <td>ROCm/rocm-systems</td>
+  <td><code>rocm-7.2.4</code></td>
+  <td><code>97f5574fe2fdc7bef44fb01545347912ee9f1779</code></td>
+</tr>
+<tr>
+  <td>ROCm/rocm-libraries</td>
+  <td><code>rocm-7.2.4</code></td>
+  <td><code>dabb6df2b988f8eabed1e2fecefaaf4e818bc7ef</code></td>
+</tr>
+<tr>
+  <td>ROCm/llvm-project</td>
+  <td><code>rocm-7.2.4</code></td>
+  <td><code>f58b06dce1f9c15707c5f808fd002e18c2accf7e</code></td>
+</tr>
+</tbody>
+</table>
+<p>[PROVENANCE_GAP] The umbrella <code>default.xml</code> at the 7.2.4 tag defaults projects to <code>rocm-7.2.0</code>; it cannot serve as a patch-level lock by itself. Use the exact superrepository commits and record every recursive gitlink.</p>
+<h2>Build-environment manifest</h2>
+<p>A reproducible build must additionally pin:</p>
+<ul>
+<li>base image digest and package snapshot;</li>
+<li>CMake/Ninja/Python/compiler versions;</li>
+<li>environment variables and CMake cache;</li>
+<li>source patches and their hashes;</li>
+<li>GPU target selection (<code>gfx1151</code> or the documented family selector);</li>
+<li>generated kernel packs and tuning databases;</li>
+<li>install file list and hashes;</li>
+<li>tests executed and their source revisions.</li>
+</ul>
+<p>The external portion of this contract is in <a href="../manifests/open-base-01-external.yaml">open-base-01-external.yaml</a>.</p>
+<h2>Compiler and device-library identity</h2>
+<p>Capture both path and content identity. The minimum record is:</p>
+<pre><code class="language-text">amdclang --version
+amdclang --print-resource-dir
+hipcc --version
+hipconfig --full
+find &lt;rocm-root&gt; -path '*/amdgcn/bitcode' -type d
+find &lt;rocm-root&gt; -path '*/lib/clang/*' -type d
+sha256sum of every bitcode/resource file
+</code></pre>
+<p>A path such as <code>/opt/rocm/lib/llvm/amdgcn/bitcode</code> is not assumed to be valid across lanes. The selected compiler is authoritative for its resource directory; the artifact inventory is authoritative for the device-library directory.</p>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

@@ -1,0 +1,23 @@
+---
+source_id: "S012"
+title: "liburing io_uring(7)"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "axboe/liburing"
+path: "man/io_uring.7"
+version: "2.15"
+commit: "d41bf9220ec39277ff235379e9089d9e0fd6c2a5"
+upstream_blob_sha1: "723d7d0f349e6514cdbe64f7f9225c066227a0de"
+line_ranges: "79-164, 174-182"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "LGPL-2.0-or-later"
+---
+For each SQE, once processing completes, the kernel normally places a matching
+CQE in the CQ. The CQE res field contains the equivalent system-call return
+value, or the negated errno on failure.
+
+I/O requests can complete in any order. Requests are attempted in submission
+order, but that does not imply execution or completion order.
+
+IOSQE_IO_LINK can enforce execution order for requests submitted in one batch.
+Exceptions to one-CQE-per-SQE include CQE_SKIP_SUCCESS and multishot operations.

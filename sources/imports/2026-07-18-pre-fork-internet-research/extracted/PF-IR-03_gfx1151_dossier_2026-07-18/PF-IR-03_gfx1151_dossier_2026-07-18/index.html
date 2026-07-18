@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dossier home · PF-IR-03</title>
+<link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="index.html" class="active">Dossier home</a><a href="wiki/00-executive-decision.html">Executive decision</a><a href="wiki/01-lane-map.html">Lane map</a><a href="wiki/02-official-support-matrices.html">Official support matrices</a><a href="wiki/03-component-dossier.html">Component dossier</a><a href="wiki/04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="wiki/05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="wiki/06-source-build-provenance.html">Source/build provenance</a><a href="wiki/07-known-issues.html">Known issues</a><a href="wiki/08-rollback-removal.html">Rollback and removal</a><a href="wiki/09-licensing-sbom.html">Licensing and SBOM</a><a href="wiki/10-control-candidate-tuples.html">Control and candidate tuples</a><a href="wiki/11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="wiki/12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / Dossier home</div>
+  <article><h1>PF-IR-03 — Official gfx1151 Compute-Stack and Signed-Artifact Compatibility Tuple</h1>
+<p><strong>Priority:</strong> P0<br />
+<strong>Evidence date:</strong> 2026-07-18<br />
+<strong>Local comparison date:</strong> 2026-07-17</p>
+<p>This offline dossier separates the legacy ROCm 7.2.4 lane, the Core SDK/TheRock 7.14.0 preview lane, the local two-node comparison tuple, and a Linux 7.2/USB4STREAM kernel overlay candidate. It preserves source identifiers, exact known commits and hashes, machine-readable claims, dependency/package mappings, license status, acquisition scripts and rollback guidance.</p>
+<h2>Immediate findings</h2>
+<ul>
+<li>The current official gfx1151 Core SDK matrix supports Ubuntu 26.04/GA 7.0 or Ubuntu 24.04.4/HWE 6.17 with the inbox kernel driver.</li>
+<li>Core SDK 7.14.0 is explicitly preview; TheRock gfx1151 is build/sanity tested but not marked Release Ready.</li>
+<li>The exact stable gfx1151 tarball URL is pinned, but no vendor checksum, detached signature or SBOM was located. The raw tarball lane is therefore non-promotable.</li>
+<li>Stable native package repositories document GPG-verified metadata and are the preferred signed-artifact candidate lane.</li>
+<li>The 7.2.4 control uses exact superrepository commits; <code>default.xml</code> alone is not a 7.2.4 lock because it defaults projects to 7.2.0.</li>
+<li>The installed ROCm 7.2.4/Mesa 26.1.4/kernel 7.1.3 tuple is comparison-only.</li>
+<li>Linux 7.2/USB4STREAM is a plausible separate candidate overlay, not an official replacement for the compute baseline.</li>
+</ul>
+<h2>Start here</h2>
+<p>Open <code>index.html</code>, or read <a href="wiki/00-executive-decision.html">Executive decision</a>.</p>
+<h2>Folder map</h2>
+<ul>
+<li><code>wiki/</code> and <code>index.html</code>: offline LLM-Wiki rendering.</li>
+<li><code>docs/</code>: canonical Markdown dossier.</li>
+<li><code>manifests/</code>: claims, sources, component/source/dependency locks and tuple definitions.</li>
+<li><code>raw/</code>: structured primary-source capture records and provenance-gap records.</li>
+<li><code>scripts/</code>: fail-closed acquisition, source checkout, inventory, SBOM, tuple capture and preflight tooling.</li>
+<li><code>SHA256SUMS</code>: checksums for dossier files.</li>
+</ul>
+<h2>Integrity note</h2>
+<p><code>SHA256SUMS</code> authenticates this generated dossier only when its digest is received through a trusted channel. It does not authenticate external AMD/kernel/Mesa artifacts.</p>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="assets/wiki.js"></script></body></html>

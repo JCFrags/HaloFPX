@@ -1,0 +1,10 @@
+CAPTURE_TYPE: release-index record
+SOURCE_ID: S015
+URL: https://www.kernel.org/
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn398973view0
+CAPTURED_STATE:
+- latest/stable: 7.1.3, released 2026-07-04; tarball and detached PGP link listed.
+- mainline: 7.2-rc3, dated 2026-07-12.
+- linux-next: next-20260717, dated 2026-07-17.
+DECISION: Linux 7.2 was not stable at capture.

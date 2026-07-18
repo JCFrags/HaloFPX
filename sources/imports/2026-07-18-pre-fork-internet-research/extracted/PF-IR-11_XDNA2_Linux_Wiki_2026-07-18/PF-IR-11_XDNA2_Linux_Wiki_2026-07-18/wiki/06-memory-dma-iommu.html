@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>6. Memory, DMA, and IOMMU boundary — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a class="active" href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/06-memory-dma-iommu.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>6. Memory, DMA, and IOMMU boundary</h1>
+<h2 id="coherence">Coherence</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The upstream driver explicitly states that the NPU is <strong>not cache coherent</strong>.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The UAPI exposes <code>SYNC_DIRECT_TO_DEVICE</code> and <code>SYNC_DIRECT_FROM_DEVICE</code>, and the driver performs explicit cache flushing/invalidation outside command submission.</p>
+<p>Exact source excerpt: <a href="../sources/excerpts/kernel/amdxdna_gem.c.noncoherent-sync.txt"><code>../sources/excerpts/kernel/amdxdna_gem.c.noncoherent-sync.txt</code></a>.</p>
+<p><span class="claim claim-decision">[DECISION]</span> Do not describe the platform as shared coherent memory for NPU workloads.</p>
+<h2 id="data-movement">Data movement</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The architecture has per-column DMA engines that move data between host DDR and memory-tile/L2 storage.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> Local L2 is software managed.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> DMA instructions are encoded in compiler-generated <code>ctrlcode</code>; execution moves data while the array runs.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> A host pointer visible through SVA is not equivalent to zero-copy coherent execution. Page mapping, pinning, cache maintenance, DMA, local placement, and synchronization remain material costs.</p>
+<h2 id="buffer-model">Buffer model</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The UAPI includes:</p>
+<ul>
+<li>shared host buffers;</li>
+<li>device heap buffers;</li>
+<li>device buffers allocated from a heap;</li>
+<li>command buffers;</li>
+<li>DMA-BUF or virtual-address table inputs;</li>
+<li>explicit mapping and synchronization information.</li>
+</ul>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> Each workload context uses a host-resident instruction buffer described by the kernel documentation as 64 MB.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's source-build guidance notes that locked-memory limits can prevent large buffer allocation and may need configuration.</p>
+<p><span class="claim claim-decision">[DECISION]</span> The read-only probe records the current locked-memory limit but does not change it.</p>
+<h2 id="iommu-sva-hmm-and-pasid">IOMMU, SVA, HMM, and PASID</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> <code>amdxdna</code> requires AMD IOMMU support at Kconfig level.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The npu5 path requires an IOMMU group and normally binds SVA per client, obtaining a PASID.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The driver uses HMM/MMU interval-notifier mechanisms to repopulate invalidated user mappings before command submission.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> PASID is also part of hardware context isolation and partition access control.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> IOMMU availability is a functional dependency, not an optional performance feature.</p>
+<h2 id="virtualization-boundary">Virtualization boundary</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The npu5/AIE2 initialization code rejects a non-native hypervisor environment.</p>
+<p><span class="claim claim-unsupported">[UNSUPPORTED]</span> This research does not approve VM passthrough, mediated devices, or nested/container abstractions as deployment targets.</p>
+<h2 id="measurement-requirements">Measurement requirements</h2>
+<p>A bounded experiment must separate:</p>
+<ul>
+<li>tokenization and input construction;</li>
+<li>host allocation and pinning;</li>
+<li>compile/cache load;</li>
+<li>host-to-device synchronization;</li>
+<li>NPU execution;</li>
+<li>device-to-host synchronization;</li>
+<li>output postprocessing.</li>
+</ul>
+<p>Reporting only <code>session.run()</code> or only array execution time is insufficient for the auxiliary-role decision.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

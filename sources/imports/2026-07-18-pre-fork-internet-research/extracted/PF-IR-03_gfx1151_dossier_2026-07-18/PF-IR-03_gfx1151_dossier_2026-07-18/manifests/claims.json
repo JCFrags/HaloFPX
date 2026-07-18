@@ -1,0 +1,463 @@
+[
+  {
+    "claim_id": "C001",
+    "label": "[DOCUMENTED_SUPPORT]",
+    "lane": "7.14-core-sdk",
+    "claim": "gfx1151 Ryzen APUs are listed in the ROCm 7.14.0 hardware selector.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S001",
+      "S004"
+    ],
+    "decision_effect": "candidate hardware identity established"
+  },
+  {
+    "claim_id": "C002",
+    "label": "[DOCUMENTED_SUPPORT]",
+    "lane": "7.14-core-sdk",
+    "claim": "The current Ubuntu bounds for Ryzen APUs are Ubuntu 26.04 with GA kernel 7.0 or Ubuntu 24.04.4 with HWE kernel 6.17.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S001"
+    ],
+    "decision_effect": "candidate OS/kernel boundary"
+  },
+  {
+    "claim_id": "C003",
+    "label": "[DOCUMENTED_SUPPORT]",
+    "lane": "7.14-core-sdk",
+    "claim": "The supported Ryzen driver is the inbox kernel driver supplied by the supported Ubuntu release.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S001",
+      "S003"
+    ],
+    "decision_effect": "do not substitute a data-center amdgpu package version"
+  },
+  {
+    "claim_id": "C004",
+    "label": "[PREVIEW_AVAILABILITY]",
+    "lane": "7.14-core-sdk",
+    "claim": "AMD explicitly describes Core SDK 7.14.0 as a preview release built with TheRock.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S002"
+    ],
+    "decision_effect": "candidate lane, not control baseline"
+  },
+  {
+    "claim_id": "C005",
+    "label": "[NOT_RELEASE_READY]",
+    "lane": "7.14-core-sdk",
+    "claim": "TheRock gfx1151 status records build and sanity success but no Release Ready mark.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S008"
+    ],
+    "decision_effect": "promotion gate remains closed"
+  },
+  {
+    "claim_id": "C006",
+    "label": "[MATURITY_CONFLICT]",
+    "lane": "7.14-core-sdk",
+    "claim": "The compatibility matrix documents supported devices while TheRock project status remains preview/not-release-ready; both statements must be retained.",
+    "status": "reasoned-from-sources",
+    "source_ids": [
+      "S001",
+      "S002",
+      "S008"
+    ],
+    "decision_effect": "support availability does not imply production maturity"
+  },
+  {
+    "claim_id": "C007",
+    "label": "[LANE_BOUNDARY]",
+    "lane": "cross-lane",
+    "claim": "Legacy ROCm installs under /opt/rocm with rocm-/roc-/hip- package names; Core SDK uses /opt/rocm/core and amdrocm- names.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S002"
+    ],
+    "decision_effect": "prevent path and package mixing"
+  },
+  {
+    "claim_id": "C008",
+    "label": "[DOCUMENTED_SUPPORT]",
+    "lane": "cross-lane",
+    "claim": "AMD states Core SDK 7.14.0 maintains ABI and API compatibility with legacy 7.2 releases.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S002"
+    ],
+    "decision_effect": "compatibility claim does not waive lane isolation"
+  },
+  {
+    "claim_id": "C009",
+    "label": "[SOURCE_PIN]",
+    "lane": "7.14-core-sdk",
+    "claim": "TheRock therock-7.14 resolves to commit 418cd5f63abb7a604bad5874cd7b2e29334e640f.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S007"
+    ],
+    "decision_effect": "candidate source root pin"
+  },
+  {
+    "claim_id": "C010",
+    "label": "[SOURCE_PIN]",
+    "lane": "7.14-core-sdk",
+    "claim": "TheRock top-level rocm-libraries gitlink is cd9574023093742434e8c992d13b89ab9a6c1cf8 and rocm-systems gitlink is 2b22ab0195cc1461cd9abf3b969e9dd7c10af350.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S007"
+    ],
+    "decision_effect": "candidate component super-repository pins"
+  },
+  {
+    "claim_id": "C011",
+    "label": "[UNVERIFIED_SIGNATURE_STATUS]",
+    "lane": "7.14-core-sdk",
+    "claim": "The cryptographic signature status of the TheRock tag/commit was not verified in this capture.",
+    "status": "open-gap",
+    "source_ids": [
+      "S007"
+    ],
+    "decision_effect": "verify tag/commit provenance before promotion"
+  },
+  {
+    "claim_id": "C012",
+    "label": "[DOCUMENTED_SUPPORT]",
+    "lane": "7.14-core-sdk",
+    "claim": "The exact gfx1151 tarball URL is https://repo.amd.com/rocm/tarball-multi-arch/therock-dist-linux-gfx1151-7.14.0.tar.gz.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S003"
+    ],
+    "decision_effect": "candidate fetch target frozen"
+  },
+  {
+    "claim_id": "C013",
+    "label": "[PROVENANCE_GAP]",
+    "lane": "7.14-core-sdk",
+    "claim": "No AMD-published detached checksum or detached signature for the stable gfx1151 tarball was located in the captured install/index material.",
+    "status": "open-gap",
+    "source_ids": [
+      "S003",
+      "S020"
+    ],
+    "decision_effect": "raw tarball is non-promotable until independently authenticated"
+  },
+  {
+    "claim_id": "C014",
+    "label": "[SIGNED_REPOSITORY_METADATA]",
+    "lane": "7.14-core-sdk",
+    "claim": "AMD documents a GPG key and signed-by APT repository configuration for stable multi-architecture packages.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S003"
+    ],
+    "decision_effect": "prefer native packages for a signed-metadata candidate"
+  },
+  {
+    "claim_id": "C015",
+    "label": "[SBOM_NOT_LOCATED]",
+    "lane": "7.14-core-sdk",
+    "claim": "The embedded therock_manifest.json records source pins and patches; it is not a complete SBOM. No AMD artifact SBOM was located for the stable tarball.",
+    "status": "open-gap",
+    "source_ids": [
+      "S009",
+      "S011"
+    ],
+    "decision_effect": "generate and retain an acquisition-time SBOM"
+  },
+  {
+    "claim_id": "C016",
+    "label": "[DOCUMENTED_SUPPORT]",
+    "lane": "7.14-core-sdk",
+    "claim": "The tarball is a flattened SDK with bin, lib, include, share and .kpack content and requires explicit environment setup.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S009",
+      "S003"
+    ],
+    "decision_effect": "capture root-relative compiler/device-library paths"
+  },
+  {
+    "claim_id": "C017",
+    "label": "[SOURCE_PIN]",
+    "lane": "7.2-legacy",
+    "claim": "ROCm/ROCm rocm-7.2.4 resolves to e0b62c25d8ea39473a7208c1c8995f1b5c2e277c.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S014"
+    ],
+    "decision_effect": "legacy source umbrella pin"
+  },
+  {
+    "claim_id": "C018",
+    "label": "[SOURCE_PIN]",
+    "lane": "7.2-legacy",
+    "claim": "rocm-systems, rocm-libraries and llvm-project 7.2.4 source roots are pinned to 97f5574fe2fdc7bef44fb01545347912ee9f1779, dabb6df2b988f8eabed1e2fecefaaf4e818bc7ef and f58b06dce1f9c15707c5f808fd002e18c2accf7e.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S014"
+    ],
+    "decision_effect": "legacy component source roots"
+  },
+  {
+    "claim_id": "C019",
+    "label": "[PROVENANCE_GAP]",
+    "lane": "7.2-legacy",
+    "claim": "The rocm-7.2.4 default.xml still defaults projects to rocm-7.2.0 and is not a patch-level 7.2.4 lockfile.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S014"
+    ],
+    "decision_effect": "do not reproduce 7.2.4 from default.xml alone"
+  },
+  {
+    "claim_id": "C020",
+    "label": "[PREVIEW_AVAILABILITY]",
+    "lane": "7.2-legacy",
+    "claim": "The 7.2 Ryzen matrix marks Ubuntu 24.04.3 support as preliminary via the Ubuntu 24.04.2 installer.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S005"
+    ],
+    "decision_effect": "legacy control has platform qualification caveat"
+  },
+  {
+    "claim_id": "C021",
+    "label": "[DOCUMENTED_SUPPORT]",
+    "lane": "7.2-legacy",
+    "claim": "The 7.2 Ryzen matrix lists gfx1151 and a PyTorch 2.9 / ROCm 7.2 / Python 3.12 configuration as official production support, with only FP16 officially validated.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S005"
+    ],
+    "decision_effect": "framework statement is narrower than blanket stack maturity"
+  },
+  {
+    "claim_id": "C022",
+    "label": "[LANE_BOUNDARY]",
+    "lane": "7.2-legacy",
+    "claim": "ROCm 7.2.4 is an Instinct-focused quality patch and does not independently re-qualify the Ryzen platform matrix.",
+    "status": "reasoned-from-sources",
+    "source_ids": [
+      "S005",
+      "S006"
+    ],
+    "decision_effect": "use 7.2 Ryzen matrix for APU platform claims"
+  },
+  {
+    "claim_id": "C023",
+    "label": "[LOCAL_COMPARISON_ONLY]",
+    "lane": "local",
+    "claim": "The installed two-node tuple captured 2026-07-17 is ROCm packages 7.2.4, Mesa 26.1.4 and kernel 7.1.3.",
+    "status": "user-provided",
+    "source_ids": [
+      "S021"
+    ],
+    "decision_effect": "comparison only; no official qualification inference"
+  },
+  {
+    "claim_id": "C024",
+    "label": "[UNVERIFIED_COMBINATION]",
+    "lane": "local",
+    "claim": "Kernel 7.1.3 is outside the documented 7.14 Ryzen Ubuntu matrix and the local tuple is not an official 7.14 qualification.",
+    "status": "reasoned-from-sources",
+    "source_ids": [
+      "S001",
+      "S021"
+    ],
+    "decision_effect": "do not promote local tuple as baseline"
+  },
+  {
+    "claim_id": "C025",
+    "label": "[DOCUMENTATION_DRIFT]",
+    "lane": "7.14-core-sdk",
+    "claim": "A 7.14 release-note minimum referring to Ubuntu 24.04 OEM kernel 6.14.0-1018 or newer differs from the current compatibility matrix requirement of Ubuntu 24.04.4 HWE 6.17.",
+    "status": "source-conflict",
+    "source_ids": [
+      "S001",
+      "S004"
+    ],
+    "decision_effect": "matrix governs qualification; retain drift record"
+  },
+  {
+    "claim_id": "C026",
+    "label": "[PROVENANCE_GAP]",
+    "lane": "kernel-firmware",
+    "claim": "No gfx1151-specific linux-firmware package version or per-blob digest is fixed by the current ROCm Ryzen matrix.",
+    "status": "open-gap",
+    "source_ids": [
+      "S001",
+      "S003"
+    ],
+    "decision_effect": "capture distro package and firmware blob hashes locally"
+  },
+  {
+    "claim_id": "C027",
+    "label": "[KNOWN_ISSUE]",
+    "lane": "kernel-firmware",
+    "claim": "Incorrect gfx1151 KFD CWSR sizing can hang ROCm; fixes were upstreamed in 6.19-rc1 and backported to OEM/HWE lines.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S017",
+      "S018"
+    ],
+    "decision_effect": "verify both KFD fixes in any selected kernel"
+  },
+  {
+    "claim_id": "C028",
+    "label": "[SOURCE_PIN]",
+    "lane": "kernel-firmware",
+    "claim": "The matching ROCm userspace commit cited by the KFD SRU is 0a2ea9ef55403341a43df4c96dd946c4641a7f79.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S017"
+    ],
+    "decision_effect": "retain kernel/userspace coupling evidence"
+  },
+  {
+    "claim_id": "C029",
+    "label": "[LANE_BOUNDARY]",
+    "lane": "mesa-radv",
+    "claim": "Mesa/RADV is a graphics/Vulkan overlay and is not the HIP/HSA compute qualification source of truth.",
+    "status": "architectural-classification",
+    "source_ids": [
+      "S001",
+      "S019"
+    ],
+    "decision_effect": "pin and test separately"
+  },
+  {
+    "claim_id": "C030",
+    "label": "[SOURCE_PIN]",
+    "lane": "mesa-radv",
+    "claim": "Mesa 26.1.4 source tarball SHA-256 is 072705caa9adf4740f1489194b13e278ad959166863b5271fe423a86353c9ab6.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S019"
+    ],
+    "decision_effect": "local graphics overlay source can be reproduced"
+  },
+  {
+    "claim_id": "C031",
+    "label": "[KNOWN_ISSUE]",
+    "lane": "7.14-core-sdk",
+    "claim": "Some gfx1151 profiler counters/derived metrics are zero or incorrect because TCP_REQ_sum is zero and max_mclk is not auto-populated.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S004"
+    ],
+    "decision_effect": "exclude affected metrics or apply documented correction"
+  },
+  {
+    "claim_id": "C032",
+    "label": "[KNOWN_ISSUE]",
+    "lane": "7.14-core-sdk",
+    "claim": "RDNA3/Ryzen AI MAX LLM inference can underperform; AMD documents TORCH_BLAS_PREFER_HIPBLASLT=1 as a workaround for affected PyTorch versions.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S004"
+    ],
+    "decision_effect": "record performance environment explicitly"
+  },
+  {
+    "claim_id": "C033",
+    "label": "[KNOWN_ISSUE]",
+    "lane": "7.14-core-sdk",
+    "claim": "RCCL 64–512 MB multi-node operations can underperform and AMD documents disabling fault injection as a workaround.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S004"
+    ],
+    "decision_effect": "multi-node qualification must include affected message sizes"
+  },
+  {
+    "claim_id": "C034",
+    "label": "[DOCUMENTED_SUPPORT]",
+    "lane": "7.14-core-sdk",
+    "claim": "RCCL 2.30.4 is listed for Linux on Instinct, Radeon and Ryzen.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S001",
+      "S004"
+    ],
+    "decision_effect": "RCCL belongs in candidate component set"
+  },
+  {
+    "claim_id": "C035",
+    "label": "[LANE_BOUNDARY]",
+    "lane": "7.14-core-sdk",
+    "claim": "amdrocm-ccl packages primitives (rocPRIM, rocThrust, hipCUB); RCCL is separately packaged as amdrocm-rccl.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S002",
+      "S012"
+    ],
+    "decision_effect": "avoid collective package-name confusion"
+  },
+  {
+    "claim_id": "C036",
+    "label": "[DOCUMENTED_SUPPORT]",
+    "lane": "usb4stream",
+    "claim": "linux-next documentation describes USB4STREAM through thunderbolt-stream, ConfigFS and /dev/tbstreamX, with multiple streams and coexistence with thunderbolt-net.",
+    "status": "supported-by-source",
+    "source_ids": [
+      "S016"
+    ],
+    "decision_effect": "feature has an upstream candidate interface"
+  },
+  {
+    "claim_id": "C037",
+    "label": "[PLAUSIBLE_SEPARATE_CANDIDATE]",
+    "lane": "usb4stream",
+    "claim": "At capture, stable Linux was 7.1.3 while 7.2 was at rc3 and linux-next was next-20260717; a Linux 7.2 USB4STREAM lane is therefore candidate-only.",
+    "status": "reasoned-from-sources",
+    "source_ids": [
+      "S015",
+      "S016"
+    ],
+    "decision_effect": "test as a kernel overlay, not baseline"
+  },
+  {
+    "claim_id": "C038",
+    "label": "[UNVERIFIED_COMBINATION]",
+    "lane": "usb4stream",
+    "claim": "No official AMD qualification was located for gfx1151 ROCm with a Linux 7.2-rc/USB4STREAM kernel.",
+    "status": "open-gap",
+    "source_ids": [
+      "S001",
+      "S015",
+      "S016"
+    ],
+    "decision_effect": "local two-node qualification required"
+  },
+  {
+    "claim_id": "C039",
+    "label": "[DO_NOT_MIX]",
+    "lane": "cross-lane",
+    "claim": "Do not combine 7.2 legacy packages, 7.14 amdrocm packages, tarball libraries, compilers or device-library/resource trees in one runtime namespace.",
+    "status": "control-rule",
+    "source_ids": [
+      "S002",
+      "S003"
+    ],
+    "decision_effect": "fail build on mixed provenance"
+  },
+  {
+    "claim_id": "C040",
+    "label": "[LICENSE_INVENTORY_PARTIAL_UNTIL_ARTIFACT_SCAN]",
+    "lane": "7.14-core-sdk",
+    "claim": "A complete license/notice inventory cannot be closed without the acquired package/tarball bytes and exact bundled system-dependency set.",
+    "status": "open-gap",
+    "source_ids": [
+      "S009",
+      "S012",
+      "S013"
+    ],
+    "decision_effect": "artifact scan is a promotion gate"
+  }
+]

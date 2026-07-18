@@ -1,0 +1,15 @@
+CAPTURE_TYPE: source provenance record
+SOURCE_ID: S007
+REPOSITORY: https://github.com/ROCm/TheRock.git
+REF: therock-7.14
+ACCESS_DATE: 2026-07-18
+TAG_COMMIT: 418cd5f63abb7a604bad5874cd7b2e29334e640f
+TAG_COMMIT_DATE: 2026-07-09T21:48:16Z
+TOP_LEVEL_GITLINKS:
+- compiler/amd-llvm: aa451e1fe6a793394d6733051b1778633063ae96
+- compiler/hipify: 6acec7751d2b2bfe162dba9efdcf7c16efb27bd8
+- compiler/spirv-llvm-translator: fb08e83ae872775acfeaee53fda3ccf99a04ba53
+- rocm-libraries: cd9574023093742434e8c992d13b89ab9a6c1cf8
+- rocm-systems: 2b22ab0195cc1461cd9abf3b969e9dd7c10af350
+SIGNATURE_STATUS: not verified in this capture
+PROJECT_STATUS_FACT: repository README describes an early preview state.

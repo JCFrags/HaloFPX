@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-8wwf-w4qm-gpqr",
+  "cve": "",
+  "title": "token_to_piece size-conversion buffer overflow",
+  "severity": "High",
+  "published": "2025-06-14",
+  "affected_versions_as_displayed_or_normalized": "All versions before patch",
+  "patched_versions_as_displayed_or_normalized": ">= b5662",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-8wwf-w4qm-gpqr",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "llama_vocab::impl::token_to_piece; _try_copy",
+    "preconditions_summary": "Attacker-controlled token piece length exceeds signed 32-bit representation during vocabulary loading or token conversion."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "f836bfdf3936ff8c80b4ec93a2e2b6184143ee2bb09ec1caeb0e6086223bef86"
+}

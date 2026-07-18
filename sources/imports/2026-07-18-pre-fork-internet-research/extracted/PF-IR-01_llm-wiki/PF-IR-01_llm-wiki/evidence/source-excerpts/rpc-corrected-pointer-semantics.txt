@@ -1,0 +1,5 @@
+[VERIFIED] Source: charlie12345/ROCmFPX@61f2f2d7bc4955e9bca821095ef69125837133b5
+[VERIFIED] Path: ggml/src/ggml-rpc/ggml-rpc.cpp
+[VERIFIED] Blob: 1cb8f563d8583db966c424b7f2fd58f65f8f9c7f
+[MEASURED] Sentinel semantics: client serializes data=0 for non-RPC buffers; server rejects a tensor descriptor when buffer is null and the serialized data pointer is nonzero.
+[VERIFIED] License: MIT.

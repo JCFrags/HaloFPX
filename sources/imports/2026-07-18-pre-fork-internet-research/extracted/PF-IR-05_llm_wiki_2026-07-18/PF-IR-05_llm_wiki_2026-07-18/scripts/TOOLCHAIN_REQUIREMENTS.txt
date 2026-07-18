@@ -1,0 +1,13 @@
+Required for metadata-only refresh:
+- Python 3.10+
+- git 2.30+
+- network access to the exact Hugging Face/GitHub repositories
+
+Required to materialize selected large files:
+- git-lfs
+- sufficient storage and bandwidth
+
+Required for local runtime qualification:
+- a build toolchain suitable for the pinned llama.cpp/ROCmFPX revisions
+- exact ROCm and driver versions recorded in the validation report
+- target GPU architecture and sufficient RAM/VRAM/storage

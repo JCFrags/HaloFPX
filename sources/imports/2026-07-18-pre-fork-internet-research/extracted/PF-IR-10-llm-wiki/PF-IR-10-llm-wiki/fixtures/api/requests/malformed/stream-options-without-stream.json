@@ -1,0 +1,13 @@
+{
+  "messages": [
+    {
+      "content": "x",
+      "role": "user"
+    }
+  ],
+  "model": "pfir10-tiny",
+  "stream": false,
+  "stream_options": {
+    "include_usage": true
+  }
+}

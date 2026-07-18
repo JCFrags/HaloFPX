@@ -1,0 +1,252 @@
+[
+  {
+    "risk_id": "RR01",
+    "residual_risk": "Privileged live compromise can read keys or plaintext from an authorized process or kernel.",
+    "affected_decision": "All options",
+    "impact": "High",
+    "likelihood": "Environment-dependent",
+    "control_or_treatment": "Host isolation, least privilege, MAC, separate broker, rapid drain, incident response.",
+    "owner_decision": "Accept host trust boundary or require stronger execution isolation.",
+    "claim_basis": "PFIR07-C004,C075"
+  },
+  {
+    "risk_id": "RR02",
+    "residual_risk": "Principal authority may map a user, service, tenant, or project incorrectly.",
+    "affected_decision": "Tenant identity",
+    "impact": "High",
+    "likelihood": "Governance-dependent",
+    "control_or_treatment": "Immutable authority IDs, signed authorization assertions, audit trail, separation of duties.",
+    "owner_decision": "Select principal authority and lifecycle.",
+    "claim_basis": "PFIR07-C027,C051"
+  },
+  {
+    "risk_id": "RR03",
+    "residual_risk": "Sharing policy may authorize a dedup scope broader than users expect.",
+    "affected_decision": "Dedup scope",
+    "impact": "High",
+    "likelihood": "Policy-dependent",
+    "control_or_treatment": "Explicit sharing class in AAD/manifests; default private; review public promotion.",
+    "owner_decision": "Approve tenant/project/public sharing policy.",
+    "claim_basis": "PFIR07-C052,C053,C078"
+  },
+  {
+    "risk_id": "RR04",
+    "residual_risk": "Parent key ownership, escrow, or recovery authority can expand access and defeat erasure.",
+    "affected_decision": "Key hierarchy",
+    "impact": "High",
+    "likelihood": "Governance-dependent",
+    "control_or_treatment": "Document owner/custodian, quorum, escrow, backup KEK, destroy authority, audit.",
+    "owner_decision": "Assign key ownership and escrow policy.",
+    "claim_basis": "PFIR07-C042,C054"
+  },
+  {
+    "risk_id": "RR05",
+    "residual_risk": "Restored or rolled-back nonce allocator state can cause nonce reuse.",
+    "affected_decision": "AEAD nonce",
+    "impact": "Critical",
+    "likelihood": "Implementation-dependent",
+    "control_or_treatment": "Per-rank epoch; crash-safe reservation; restored state always receives new epoch/key.",
+    "owner_decision": "Approve allocator and persistence implementation.",
+    "claim_basis": "PFIR07-C031-C033,C055"
+  },
+  {
+    "risk_id": "RR06",
+    "residual_risk": "Randomly generated nonces retain a non-zero collision probability and invocation bound.",
+    "affected_decision": "AEAD nonce",
+    "impact": "High",
+    "likelihood": "Low under bounded use",
+    "control_or_treatment": "96-bit nonces from approved RNG, per-key invocation cap well below source limit, rotate early.",
+    "owner_decision": "Select deterministic reservation or bounded random strategy.",
+    "claim_basis": "PFIR07-C032,C035"
+  },
+  {
+    "risk_id": "RR07",
+    "residual_risk": "AEAD accepts an old valid object unless trusted freshness is checked.",
+    "affected_decision": "Replay",
+    "impact": "Medium/High",
+    "likelihood": "Threat-dependent",
+    "control_or_treatment": "Epoch floor, manifest generation, expiration, source revision, monotonic publish record.",
+    "owner_decision": "Define freshness and rollback tolerance.",
+    "claim_basis": "PFIR07-C060,C076"
+  },
+  {
+    "risk_id": "RR08",
+    "residual_risk": "Keyed identifiers reveal equality within their authorized dedup scope.",
+    "affected_decision": "Identifiers/dedup",
+    "impact": "Medium",
+    "likelihood": "Expected",
+    "control_or_treatment": "Minimize scope; rotate identifier epochs only with migration plan; avoid exposing index.",
+    "owner_decision": "Accept within-scope equality leakage.",
+    "claim_basis": "PFIR07-C056,C062,C077"
+  },
+  {
+    "risk_id": "RR09",
+    "residual_risk": "Ciphertext length, object count, access pattern, allocation, and timing remain observable.",
+    "affected_decision": "Privacy",
+    "impact": "Medium/High",
+    "likelihood": "Expected",
+    "control_or_treatment": "Length buckets/padding where justified, scheduler isolation, per-tenant indexes, batching, rate limits.",
+    "owner_decision": "Choose performance/privacy trade-off.",
+    "claim_basis": "PFIR07-C015,C062"
+  },
+  {
+    "risk_id": "RR10",
+    "residual_risk": "Shared cache timing can reveal a hit/miss or cross-tenant activity even when errors are normalized.",
+    "affected_decision": "Timing leakage",
+    "impact": "Medium",
+    "likelihood": "Architecture-dependent",
+    "control_or_treatment": "Tenant-local lookup path, equalized error classes, jitter/batching only if measured, quota isolation.",
+    "owner_decision": "Set side-channel objective and performance budget.",
+    "claim_basis": "PFIR07-C058,C062"
+  },
+  {
+    "risk_id": "RR11",
+    "residual_risk": "fscrypt master-key removal leaves keys for open/in-use files.",
+    "affected_decision": "fscrypt revocation",
+    "impact": "High",
+    "likelihood": "Expected under load",
+    "control_or_treatment": "Drain processes, close files, change cwd/root references, verify removal status, restart if necessary.",
+    "owner_decision": "Set revocation SLA that accounts for drain.",
+    "claim_basis": "PFIR07-C005,C074"
+  },
+  {
+    "risk_id": "RR12",
+    "residual_risk": "An active dm-crypt mapping retains the volume key while busy or deferred.",
+    "affected_decision": "LUKS revocation",
+    "impact": "High",
+    "likelihood": "Expected under load",
+    "control_or_treatment": "Stop I/O, unmount, close mapping, verify device-mapper state, avoid treating deferred close as completion.",
+    "owner_decision": "Set maintenance and emergency availability policy.",
+    "claim_basis": "PFIR07-C019,C020,C074"
+  },
+  {
+    "risk_id": "RR13",
+    "residual_risk": "Keys/plaintext can remain in process memory, VFS caches, swap, crash dumps, registers, or hardware buffers.",
+    "affected_decision": "Process retention",
+    "impact": "High",
+    "likelihood": "Environment-dependent",
+    "control_or_treatment": "mlock where appropriate, no core dumps, encrypted swap, short-lived workers, explicit zeroization, process exit, dump controls.",
+    "owner_decision": "Accept limits of software memory erasure.",
+    "claim_basis": "PFIR07-C006,C007,C043"
+  },
+  {
+    "risk_id": "RR14",
+    "residual_risk": "LUKS header backups or detached headers provide alternate unlock paths.",
+    "affected_decision": "Backup/erasure",
+    "impact": "High",
+    "likelihood": "Operationally common",
+    "control_or_treatment": "Inventory, encrypt separately, access-control, rotate/destroy coherently, test restoration under change control.",
+    "owner_decision": "Retain or prohibit header backups.",
+    "claim_basis": "PFIR07-C014,C021,C082"
+  },
+  {
+    "risk_id": "RR15",
+    "residual_risk": "Backup KMS replicas, escrow, snapshots, and offline copies can outlive logical deletion.",
+    "affected_decision": "Backup/deletion",
+    "impact": "High",
+    "likelihood": "Policy-dependent",
+    "control_or_treatment": "Retention ledger, deletion propagation, legal holds, backup expiry, key-copy inventory.",
+    "owner_decision": "Define retention and legal-hold policy.",
+    "claim_basis": "PFIR07-C042,C064,C067"
+  },
+  {
+    "risk_id": "RR16",
+    "residual_risk": "Restoring old ciphertext plus still-valid old keys can resurrect deleted or revoked content.",
+    "affected_decision": "Restore",
+    "impact": "High",
+    "likelihood": "Process-dependent",
+    "control_or_treatment": "Quarantine restore, trusted epoch floor, tombstone ledger, rewrap/re-encrypt into current context.",
+    "owner_decision": "Define restore authorization and rollback window.",
+    "claim_basis": "PFIR07-C060,C065"
+  },
+  {
+    "risk_id": "RR17",
+    "residual_risk": "dm-integrity authenticated modes add performance, recovery, and maturity complexity.",
+    "affected_decision": "Block integrity",
+    "impact": "Medium/High",
+    "likelihood": "Deployment-dependent",
+    "control_or_treatment": "Prototype, benchmark, fault-inject, pin versions/configuration, keep object AEAD regardless.",
+    "owner_decision": "Decide whether block integrity is worth operational cost.",
+    "claim_basis": "PFIR07-C012,C016-C018"
+  },
+  {
+    "risk_id": "RR18",
+    "residual_risk": "Discard pass-through leaks allocation and does not prove sanitization.",
+    "affected_decision": "Discard",
+    "impact": "Medium",
+    "likelihood": "Expected when enabled",
+    "control_or_treatment": "Default off; document exception; do not use as erasure evidence.",
+    "owner_decision": "Approve performance exception.",
+    "claim_basis": "PFIR07-C015,C069,C083"
+  },
+  {
+    "risk_id": "RR19",
+    "residual_risk": "Sanitize commands may not reach remapped, failed, over-provisioned, or provider-controlled media.",
+    "affected_decision": "Physical sanitization",
+    "impact": "High",
+    "likelihood": "Media/provider-dependent",
+    "control_or_treatment": "Use media-specific procedure and authoritative vendor/provider capability; verify/validate; destroy where required.",
+    "owner_decision": "Select purge/destroy method and acceptance evidence.",
+    "claim_basis": "PFIR07-C041-C044,C083"
+  },
+  {
+    "risk_id": "RR20",
+    "residual_risk": "A cloud or storage provider may not expose evidence sufficient to validate media sanitization.",
+    "affected_decision": "Hosted media",
+    "impact": "High",
+    "likelihood": "Provider-dependent",
+    "control_or_treatment": "Contractual controls, provider attestations/evidence, encryption key control, data-lifecycle audit.",
+    "owner_decision": "Accept provider assurance model or avoid persistent cache there.",
+    "claim_basis": "PFIR07-C044"
+  },
+  {
+    "risk_id": "RR21",
+    "residual_risk": "Different implementations may canonicalize AAD, identifiers, or manifests differently.",
+    "affected_decision": "Interoperability",
+    "impact": "High",
+    "likelihood": "Implementation-dependent",
+    "control_or_treatment": "Versioned deterministic encoding, test vectors, reject duplicate/unknown critical fields, cross-language conformance.",
+    "owner_decision": "Approve canonical format and compatibility policy.",
+    "claim_basis": "PFIR07-C049,C057"
+  },
+  {
+    "risk_id": "RR22",
+    "residual_risk": "Quarantine storage can become an alternate serving path or retain sensitive evidence indefinitely.",
+    "affected_decision": "Quarantine",
+    "impact": "Medium/High",
+    "likelihood": "Process-dependent",
+    "control_or_treatment": "Separate credentials/path, no cache lookup integration, retention cap, access logging, incident hold workflow.",
+    "owner_decision": "Set evidence retention and access authority.",
+    "claim_basis": "PFIR07-C063,C065,C070"
+  },
+  {
+    "risk_id": "RR23",
+    "residual_risk": "Detailed cryptographic error logs can become a tenant oracle or leak key/identifier material.",
+    "affected_decision": "Telemetry",
+    "impact": "Medium",
+    "likelihood": "Implementation-dependent",
+    "control_or_treatment": "Opaque external miss; access-controlled internal reason code; redact secrets; aggregate metrics; rate limit.",
+    "owner_decision": "Set logging retention and analyst access.",
+    "claim_basis": "PFIR07-C058,C062"
+  },
+  {
+    "risk_id": "RR24",
+    "residual_risk": "A compromised public/system publisher can distribute semantically malicious but cryptographically valid content.",
+    "affected_decision": "Public/system prefix",
+    "impact": "High",
+    "likelihood": "Authority-dependent",
+    "control_or_treatment": "Two-person publication, reproducible generation, signed immutable manifests, rollback and emergency revoke.",
+    "owner_decision": "Select publisher authority and review process.",
+    "claim_basis": "PFIR07-C053"
+  },
+  {
+    "risk_id": "RR25",
+    "residual_risk": "Strict fail-closed behavior can amplify denial-of-service through repeated misses and recomputation.",
+    "affected_decision": "Availability",
+    "impact": "Medium/High",
+    "likelihood": "Threat/load-dependent",
+    "control_or_treatment": "Per-principal quotas, backoff, duplicate recompute suppression, circuit breakers, protected authoritative source.",
+    "owner_decision": "Set availability and abuse-control budget.",
+    "claim_basis": "PFIR07-C058,C063"
+  }
+]

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Target baseline — PF-IR-11</title>
+<link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="wiki/00-home.html">Home / decision</a></li><li><a href="wiki/01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="wiki/02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="wiki/03-firmware.html">Firmware</a></li><li><a href="wiki/04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="wiki/05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="wiki/06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="wiki/07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="wiki/08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="wiki/09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="wiki/10-role-evaluation.html">Role evaluation</a></li><li><a href="wiki/11-bounded-experiment.html">Bounded experiment</a></li><li><a href="wiki/12-read-only-probe.html">Read-only probe</a></li><li><a href="wiki/13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="wiki/14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="DECISION.html">Decision memo</a></li>
+    <li><a href="manifests/sources.csv">Source manifest</a></li>
+    <li><a href="manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">TARGET_BASELINE.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>Target baseline</h1>
+<h2 id="hardware-identity">Hardware identity</h2>
+<p><span class="claim claim-inference">[INFERENCE]</span> The expected target is AMD Ryzen AI MAX+ 395, Strix Halo, with an XDNA2 NPU that maps to the upstream <code>npu5</code> entry at PCI vendor/device <code>1022:17f0</code>, revision <code>0x11</code>.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The pinned Linux source maps <code>0x17f0, 0x11</code> to <code>dev_npu5_info</code>, uses firmware directory <code>amdnpu/17f0_11/</code>, reports default VBNV <code>RyzenAI-npu5</code>, and exposes a kernel-mode queue device type.</p>
+<h2 id="target-linux-state">Target Linux state</h2>
+<p><span class="claim claim-missing">[MISSING]</span> The actual target distribution, release, kernel, kernel configuration, <code>linux-firmware</code> package, firmware links, <code>amdxdna</code> module source, XRT/plugin packages, Ryzen AI package, IOMMU state, and <code>/dev/accel</code> permissions were not supplied and were not probed.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's captured Ryzen AI Software 1.7.1 Linux reference environment is Ubuntu 24.04 LTS, kernel 6.10 or newer, Python 3.12.x, and a matched set of versioned XRT, NPU, plugin, and Ryzen AI packages.</p>
+<p><span class="claim claim-target-distro">[TARGET-DISTRO]</span> The AMD reference environment is not silently treated as the target. Run <a href="probe/xdna2_readonly_probe.sh"><code>probe/xdna2_readonly_probe.sh</code></a> on the real host before any install or workload test.</p>
+<h2 id="non-assumptions">Non-assumptions</h2>
+<p><span class="claim claim-unsupported">[UNSUPPORTED]</span> No <code>llama.cpp</code> transformer offload to the XDNA2 NPU is assumed.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> No coherent shared-memory behavior is assumed. The upstream driver explicitly describes the NPU as non-cache-coherent and exposes explicit buffer synchronization.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> No useful end-to-end performance, energy efficiency, recovery behavior, or operator placement is assumed.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="assets/wiki.js"></script>
+</body>
+</html>

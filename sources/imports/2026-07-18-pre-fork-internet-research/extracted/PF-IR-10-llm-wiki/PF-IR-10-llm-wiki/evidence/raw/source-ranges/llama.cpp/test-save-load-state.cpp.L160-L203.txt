@@ -1,0 +1,44 @@
+// - load state from file
+// - replay the last prompt token
+// - generate n_predict tokens and compare against expected result
+static bool test_state_load(struct llama_model * model, const struct common_params & params, const llama_tokens & tokens, const llama_tokens & expected_result) {
+    auto ctx = llama_context_ptr{llama_init_from_model(model, common_context_params_to_llama(params))};
+
+    auto sparams = llama_sampler_chain_default_params();
+    auto smpl = llama_sampler_ptr{llama_sampler_chain_init(sparams)};
+    llama_sampler_chain_add(smpl.get(), llama_sampler_init_dist(params.sampling.seed));
+
+    LOG("\n=== Test 3: state load ===\n");
+
+    // Load state from file
+    llama_tokens unused_sts(tokens.size());
+    size_t n_token_count_out = 0;
+
+    if (!llama_state_load_file(ctx.get(), params.out_file.data(), unused_sts.data(), unused_sts.size(), &n_token_count_out)) {
+        LOG_ERR("\n%s: failed to load state\n", __func__);
+        return false;
+    }
+
+    LOG_TRC("%s: loaded state with %zu tokens\n", __func__, n_token_count_out);
+
+    // Replay last token
+    int n_past = (int) n_token_count_out - 1;
+    if (!common_replay_last_token(ctx.get(), tokens.back(), n_past)) {
+        return false;
+    }
+    n_past++;
+
+    // Generate tokens
+    auto result = generate_tokens(ctx.get(), smpl.get(), n_past, params.n_predict, 0);
+    if (result.empty()) {
+        return false;
+    }
+
+    if (result != expected_result) {
+        LOG_ERR("\n%s: error: generation differs from expected\n", __func__);
+        return false;
+    }
+
+    LOG("\nPASS\n");
+    return true;
+}

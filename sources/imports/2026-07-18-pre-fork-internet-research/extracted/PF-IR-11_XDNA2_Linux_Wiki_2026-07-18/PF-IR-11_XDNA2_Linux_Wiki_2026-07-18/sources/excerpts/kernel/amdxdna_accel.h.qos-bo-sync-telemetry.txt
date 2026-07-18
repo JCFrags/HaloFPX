@@ -1,0 +1,58 @@
+#define AMDXDNA_QOS_REALTIME_PRIORITY	0x100
+#define AMDXDNA_QOS_HIGH_PRIORITY	0x180
+#define AMDXDNA_QOS_NORMAL_PRIORITY	0x200
+#define AMDXDNA_QOS_LOW_PRIORITY	0x280
+
+struct amdxdna_qos_info {
+	__u32 gops;
+	__u32 fps;
+	__u32 dma_bandwidth;
+	__u32 latency;
+	__u32 frame_exec_time;
+	__u32 priority;
+};
+
+enum amdxdna_bo_type {
+	AMDXDNA_BO_INVALID = 0,
+	AMDXDNA_BO_SHMEM = 1, /* Be compatible with legacy application code. */
+	AMDXDNA_BO_SHARE = 1,
+	AMDXDNA_BO_DEV_HEAP = 2,
+	AMDXDNA_BO_DEV = 3,
+	AMDXDNA_BO_CMD = 4,
+};
+
+struct amdxdna_drm_sync_bo {
+	__u32 handle;
+#define SYNC_DIRECT_TO_DEVICE	0U
+#define SYNC_DIRECT_FROM_DEVICE	1U
+	__u32 direction;
+	__u64 offset;
+	__u64 size;
+};
+
+enum amdxdna_sensor_type {
+	AMDXDNA_SENSOR_TYPE_POWER,
+	AMDXDNA_SENSOR_TYPE_COLUMN_UTILIZATION
+};
+
+struct amdxdna_drm_query_firmware_version {
+	__u32 major; /* out */
+	__u32 minor; /* out */
+	__u32 patch; /* out */
+	__u32 build; /* out */
+};
+
+enum amdxdna_drm_get_param {
+	DRM_AMDXDNA_QUERY_AIE_STATUS,
+	DRM_AMDXDNA_QUERY_AIE_METADATA,
+	DRM_AMDXDNA_QUERY_AIE_VERSION,
+	DRM_AMDXDNA_QUERY_CLOCK_METADATA,
+	DRM_AMDXDNA_QUERY_SENSORS,
+	DRM_AMDXDNA_QUERY_HW_CONTEXTS,
+	DRM_AMDXDNA_QUERY_FIRMWARE_VERSION = 8,
+	DRM_AMDXDNA_GET_POWER_MODE,
+	DRM_AMDXDNA_QUERY_TELEMETRY,
+	DRM_AMDXDNA_GET_FORCE_PREEMPT_STATE,
+	DRM_AMDXDNA_QUERY_RESOURCE_INFO,
+	DRM_AMDXDNA_GET_FRAME_BOUNDARY_PREEMPT_STATE,
+};

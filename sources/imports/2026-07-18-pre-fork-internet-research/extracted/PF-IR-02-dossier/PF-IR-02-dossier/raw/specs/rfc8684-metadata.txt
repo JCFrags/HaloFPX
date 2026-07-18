@@ -1,0 +1,7 @@
+[NORMATIVE]
+RFC 8684 — TCP Extensions for Multipath Operation with Multiple Addresses
+Published: March 2020
+Status: Standards Track
+Obsoletes: RFC 6824
+Public access: yes
+The RFC defines MP_CAPABLE/MP_JOIN, data sequence mappings, address signaling, fallback, multiple subflows, reinjection and connection closure semantics.

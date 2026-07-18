@@ -1,0 +1,12 @@
+CAPTURE_TYPE: structured primary-source excerpt (not a full mirror)
+SOURCE_ID: S005
+SOURCE_URL: https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2/docs/compatibility/compatibilityryz/native_linux/native_linux_compatibility.html
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn619120view0
+LINE_LOCATORS: 117-186
+CAPTURED_FACTS:
+- Ubuntu 24.04.3: supported, with preliminary support through the Ubuntu 24.04.2 installer.
+- Supported architectures: gfx1150 and gfx1151.
+- Listed gfx1151 products: Ryzen AI Max+ 395, Max 390 and Max 385.
+- PyTorch 2.9 / ROCm 7.2 / Python 3.12: official production support.
+- Only FP16 is officially validated.

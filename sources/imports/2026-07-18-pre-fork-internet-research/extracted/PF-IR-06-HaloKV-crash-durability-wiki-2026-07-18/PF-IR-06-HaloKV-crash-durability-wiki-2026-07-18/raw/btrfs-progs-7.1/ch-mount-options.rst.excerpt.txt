@@ -1,0 +1,30 @@
+---
+source_id: "S031"
+title: "Btrfs specific mount options"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "kdave/btrfs-progs"
+path: "Documentation/ch-mount-options.rst"
+version: "7.1"
+commit: "4ab0e80be9e3bb1db2e6038e6d4316d35fb7ba8b"
+upstream_blob_sha1: "8f65b8311e7eee1043e690ec40ff73fca395f686"
+line_ranges: "11-22, 55-73, 91-103, 133-161, 198-253"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "GPL-2.0"
+---
+Most mount options apply to the whole filesystem and only options in the first
+mounted subvolume take effect.
+
+barrier is on by default. Disabling it can lead to filesystem corruption after
+a crash or power loss unless a nonvolatile, battery-backed cache supplies the
+required guarantees.
+
+nodatacow implies nodatasum and disables compression. In-place updates can
+improve performance at the cost of potential partial writes after interruption.
+
+The periodic commit interval controls accumulated unwritten state. flushoncommit
+forces prior dirty data into the current commit. Neither option replaces the
+application's explicit file and directory synchronization protocol.
+
+discard=async batches TRIM. fstrim is an alternative. ENOSPC debugging is an
+administrative aid, not an allocation guarantee.

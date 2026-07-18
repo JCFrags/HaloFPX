@@ -1,0 +1,15 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "Cisco Talos vulnerability report",
+  "report_id": "TALOS-2024-1913",
+  "cve": "CVE-2024-23496",
+  "title": "gguf_fread_str heap overflow",
+  "source_url": "https://talosintelligence.com/vulnerability_reports/TALOS-2024-1913",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "gguf_fread_str",
+    "affected": "Legacy parser before 2024-01-29 fixes"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved; the full report is not redistributed.",
+  "payload_sha256": "c47a616e81087f6de4bc4f789f1fb03cc1c5ab9246777562cb9ed338ada15eaa"
+}

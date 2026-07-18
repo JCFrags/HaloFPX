@@ -1,0 +1,22 @@
+{
+  "warning": "Examples only. Replace paths and execute only after exact shard verification. No command in this package was run against model weights.",
+  "runtime_revisions": {
+    "llama_cpp": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+    "rocmfpx": "61f2f2d7bc4955e9bca821095ef69125837133b5"
+  },
+  "commands": {
+    "metadata": [
+      "./llama-gguf-info <FIRST_SHARD>"
+    ],
+    "cpu_smoke": [
+      "./llama-cli -m <FIRST_SHARD> --ctx-size 4096 --n-predict 16 --seed 1 --temp 0"
+    ],
+    "rocm_smoke": [
+      "GGML_CUDA_NO_PEER_COPY=1 ./llama-cli -m <FIRST_SHARD> -ngl 999 --ctx-size 4096 --n-predict 16 --seed 1 --temp 0"
+    ],
+    "server": [
+      "./llama-server -m <FIRST_SHARD> -ngl 999 --ctx-size 32768 --jinja --port 8080"
+    ],
+    "trace_requirement": "Capture backend assignment per node and reject unexpected CPU fallback."
+  }
+}

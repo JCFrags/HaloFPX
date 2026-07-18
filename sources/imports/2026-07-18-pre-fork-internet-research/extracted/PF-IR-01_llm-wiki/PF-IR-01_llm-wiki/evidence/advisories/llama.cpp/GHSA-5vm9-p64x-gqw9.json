@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-5vm9-p64x-gqw9",
+  "cve": "CVE-2024-42478",
+  "title": "RPC GET_TENSOR arbitrary read",
+  "severity": "Moderate",
+  "published": "2024-08-12",
+  "affected_versions_as_displayed_or_normalized": "Before b3561",
+  "patched_versions_as_displayed_or_normalized": "b3561",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-5vm9-p64x-gqw9",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "rpc_server::get_tensor; source-buffer range validation",
+    "preconditions_summary": "RPC server built, launched, and reachable."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "c54ebd8325a8f9099e6bd9da5964e8f17f10869b4cae6fda59f5157aa74b8e3f"
+}

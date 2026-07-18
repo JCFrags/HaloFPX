@@ -1,0 +1,84 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "SRC-ACTIVE-INTERFACE"
+source_class: "source"
+claim_label: "[SOURCE_IMPLEMENTATION]"
+upstream_path: "projects/rccl/src/misc/socket.cc"
+upstream_blob_sha: "9e38eef99d8fb3c2f7ef055aac9abb4c34511a16"
+upstream_locator: "lines 20-47 and 130-215"
+snapshot_kind: "verbatim selected excerpts"
+completeness: "selected relevant excerpts; not full file"
+license: "Apache-2.0 (per-file SPDX)"
+---
+
+```cpp
+NCCL_PARAM(RetryCnt, "SOCKET_RETRY_CNT", 34);
+NCCL_PARAM(RetryTimeOut, "SOCKET_RETRY_SLEEP_MSEC", 100);
+NCCL_PARAM(PollTimeOut, "SOCKET_POLL_TIMEOUT_MSEC", 0);
+NCCL_PARAM(SocketMaxRecvBuff, "SOCKET_RCVBUF", -1);
+NCCL_PARAM(SocketMaxSendBuff, "SOCKET_SNDBUF", -1);
+
+static ncclResult_t socketProgress(int op, struct ncclSocket* sock, void* ptr, int size, int* offset,
+                                   int* pclosed = NULL) {
+  int closed;
+  NCCLCHECK(ncclOsSocketProgressOpt(op, sock, ptr, size, offset, 0 /*block*/, &closed));
+  if (closed) {
+    if (pclosed) {
+      *pclosed = closed;
+      return ncclSuccess;
+    } else {
+      char line[SOCKET_NAME_MAXLEN + 1];
+      WARN("socketProgress: Connection closed by remote peer %s",
+           ncclSocketToString(&sock->addr, line, /*numericHostForm*/ 0));
+      return ncclRemoteError;
+    }
+  }
+  return ncclSuccess;
+}
+
+/* Allow the user to force the IPv4/IPv6 interface selection */
+int ncclEnvSocketFamily(void) {
+  int family = -1; // Family selection is not forced, will use first one found
+  const char* env = ncclGetEnv("NCCL_SOCKET_FAMILY");
+  if (env == NULL) return family;
+
+  INFO(NCCL_ENV, "NCCL_SOCKET_FAMILY set by environment to %s", env);
+
+  if (strcmp(env, "AF_INET") == 0) family = AF_INET;  // IPv4
+  else if (strcmp(env, "AF_INET6") == 0) family = AF_INET6; // IPv6
+  return family;
+}
+
+ncclResult_t ncclFindInterfaces(char* ifNames, union ncclSocketAddress* ifAddrs, int ifNameMaxSize, int maxIfs,
+                                int* nIfs) {
+  static int shownIfName = 0;
+  int sock_family = ncclEnvSocketFamily();
+  const char* env = ncclGetEnv("NCCL_SOCKET_IFNAME");
+  *nIfs = 0;
+  if (env && strlen(env) > 1) {
+    INFO(NCCL_ENV, "NCCL_SOCKET_IFNAME set by environment to %s", env);
+    if (shownIfName++ == 0) INFO(NCCL_NET, "NCCL_SOCKET_IFNAME set to %s", env);
+    NCCLCHECK(ncclOsFindInterfaces(env, ifNames, ifAddrs, sock_family, ifNameMaxSize, maxIfs, nIfs));
+  } else {
+    NCCLCHECK(ncclOsFindInterfaces("ib", ifNames, ifAddrs, sock_family, ifNameMaxSize, maxIfs, nIfs));
+    if (*nIfs == 0) {
+      const char* commId = ncclGetEnv("NCCL_COMM_ID");
+      if (commId && strlen(commId) > 1) {
+        union ncclSocketAddress idAddr;
+        NCCLCHECK(ncclSocketGetAddrFromString(&idAddr, commId));
+        NCCLCHECK(ncclFindInterfaceMatchSubnet(ifNames, ifAddrs, &idAddr, ifNameMaxSize, nIfs));
+      }
+    }
+    if (*nIfs == 0)
+      NCCLCHECK(ncclOsFindInterfaces("^docker,lo,virbr", ifNames, ifAddrs, sock_family, ifNameMaxSize, maxIfs, nIfs));
+    if (*nIfs == 0)
+      NCCLCHECK(ncclOsFindInterfaces("docker", ifNames, ifAddrs, sock_family, ifNameMaxSize, maxIfs, nIfs));
+    if (*nIfs == 0) NCCLCHECK(ncclOsFindInterfaces("lo", ifNames, ifAddrs, sock_family, ifNameMaxSize, maxIfs, nIfs));
+    if (*nIfs == 0)
+      NCCLCHECK(ncclOsFindInterfaces("virbr", ifNames, ifAddrs, sock_family, ifNameMaxSize, maxIfs, nIfs));
+  }
+  return ncclSuccess;
+}
+```

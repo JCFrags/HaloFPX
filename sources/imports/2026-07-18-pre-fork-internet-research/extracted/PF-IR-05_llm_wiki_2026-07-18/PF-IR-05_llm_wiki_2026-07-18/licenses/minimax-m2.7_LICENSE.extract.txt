@@ -1,0 +1,20 @@
+PF-IR-05 LICENSE CAPTURE — PARTIAL TEXT EXTRACT
+source: https://huggingface.co/MiniMaxAI/MiniMax-M2.7/blob/d494266a4affc0d2995ba1fa35c8481cbd84294b/LICENSE
+publisher revision: d494266a4affc0d2995ba1fa35c8481cbd84294b
+accessed: 2026-07-18
+capture completeness: PARTIAL; the prohibited-use appendix is not reproduced in full here.
+
+NON-COMMERCIAL LICENSE
+Non-commercial use permitted based on MIT-style terms; commercial use requires prior written authorization.
+Copyright (c) 2026 MiniMax
+
+Core captured obligations:
+1. Preserve the copyright and permission notice.
+2. Commercial use requires prominent “Built with MiniMax M2.7” attribution.
+3. Commercial use is prohibited without separate prior written authorization from MiniMax.
+4. “Commercial Use” is defined broadly, including fee-based products/services, commercial APIs/operations, and commercially deployed post-trained or modified derivatives.
+5. The pinned revision adds expressly permitted personal, nonprofit, academic, non-commercial research, educational, and related modification uses.
+6. An appendix defines prohibited uses, including legal-compliance, military, minors, harmful deception, discrimination/hate and other restrictions. Review the exact source before any deployment.
+
+LEGAL STATUS IN THIS PACKAGE: LEGAL_REVIEW_REQUIRED / HOLD.
+This is not legal advice and not a substitute for reading the exact publisher file.

@@ -1,0 +1,7 @@
+PRIMARY SOURCE AUDIT CAPTURE — net/mptcp/sched.c and protocol.c at v7.2-rc3
+- scheduler name default selects eligible non-stale active subflows before backup subflows.
+- it estimates linger from queued data and pacing, applies window/memory/burst constraints, and contains a blocking-estimation guard.
+- fallback scheduler selects the first subflow.
+- stale_count advances across MPTCP-level retransmission intervals without receive timestamp progress; timestamp progress resets it.
+- a subflow becomes stale only when stale_loss_cnt is nonzero, stale_count is strictly greater than stale_loss_cnt, and another active subflow has a lower count. With the default 4, the transition can occur on the fifth counted no-progress interval.
+- stale_loss_cnt=0 disables this stale transition.

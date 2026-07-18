@@ -1,0 +1,6 @@
+[PACKAGED]
+Package: linux-cachyos
+Version: 7.1.3-2
+x86_64 build date: 2026-07-09
+x86_64 package SHA256: 6c63efb0b639ab91ac3a69fc0efbf1303afac16c33e557073fe0806ee6430a47
+Upstream 7.1.3 does not contain USB4STREAM. No CachyOS USB4STREAM backport was found in the public packaging-tree search. This is negative-source evidence, not a package-content machine test.

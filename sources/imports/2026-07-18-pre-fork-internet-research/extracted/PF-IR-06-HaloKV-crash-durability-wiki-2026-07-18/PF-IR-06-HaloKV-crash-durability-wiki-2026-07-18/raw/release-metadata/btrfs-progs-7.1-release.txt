@@ -1,0 +1,15 @@
+---
+source_id: "S030"
+title: "btrfs-progs 7.1 release receipt"
+capture_kind: "metadata-receipt"
+canonical_url: "https://github.com/kdave/btrfs-progs/commit/4ab0e80be9e3bb1db2e6038e6d4316d35fb7ba8b"
+version: "btrfs-progs 7.1"
+commit: "4ab0e80be9e3bb1db2e6038e6d4316d35fb7ba8b"
+release_date: "2026-07-14"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "GPL-2.0"
+---
+Verified release commit:
+  sha: 4ab0e80be9e3bb1db2e6038e6d4316d35fb7ba8b
+  subject: Btrfs progs v7.1
+  signed-off-by: David Sterba

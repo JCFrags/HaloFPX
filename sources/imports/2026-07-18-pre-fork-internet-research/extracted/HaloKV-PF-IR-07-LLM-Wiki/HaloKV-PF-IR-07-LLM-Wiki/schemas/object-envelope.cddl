@@ -1,0 +1,70 @@
+; HaloKV object envelope, design version HKV1.
+; AAD is deterministic-CBOR encoded and passed verbatim to the AEAD operation.
+; The outer framing may be a binary record instead of CBOR in an implementation,
+; but the authenticated semantic fields and bounds must be equivalent.
+
+halokv-envelope = {
+  1: "HKV1",                  ; magic
+  2: 1,                       ; envelope version
+  3: suite-id,
+  4: bstr .size 16,           ; key reference, opaque identifier, not key bytes
+  5: bstr .size 12,           ; 96-bit AEAD nonce
+  6: bstr,                    ; deterministic CBOR encoding of halokv-aad
+  7: bstr,                    ; ciphertext
+  8: bstr .size 16            ; 128-bit authentication tag
+}
+
+suite-id = 1 / 2 / 3
+; 1 = HKV1-A256GCM
+; 2 = HKV1-C20P
+; 3 = HKV1-A256GCMSIV (optional and separately negotiated)
+
+halokv-aad = {
+  1: 1,                       ; AAD schema version
+  2: suite-id,
+  3: id128,                   ; authority_id
+  4: id128,                   ; principal_scope_id / authorization scope
+  5: id128,                   ; tenant_id, or zero sentinel only for public-system
+  6: id128 / null,            ; project_id
+  7: id128,                   ; prefix_id
+  8: id128,                   ; namespace_id
+  9: sharing-class,
+  10: id128,                  ; rank_id
+  11: id128,                  ; epoch_id
+  12: bstr .size 16,          ; key_id; must match envelope key reference
+  13: object-type,
+  14: uint,                   ; object schema version
+  15: uint,                   ; codec_id
+  16: uint,                   ; compression_id; 0 means none
+  17: uint,                   ; uncompressed length
+  18: uint,                   ; ciphertext length
+  19: uint,                   ; chunk index, zero-based
+  20: uint,                   ; chunk count, >0
+  21: bstr .size 32,          ; scoped content identifier
+  22: id128,                  ; manifest_id
+  23: uint,                   ; manifest generation
+  ? 24: bstr / null,          ; source revision, opaque canonical bytes
+  ? 25: uint / null,          ; coarse time bucket, only if policy needs it
+  ? 26: [* critical-extension]
+}
+
+critical-extension = [
+  extension-id: uint,
+  extension-version: uint,
+  value: any
+]
+
+sharing-class = 1 / 2 / 3 / 4
+; 1 = private-project
+; 2 = private-tenant
+; 3 = explicit-group
+; 4 = public-system
+
+object-type = 1 / 2 / 3 / 4 / 5
+; 1 = value object
+; 2 = chunk
+; 3 = index segment
+; 4 = model/system-prefix artifact
+; 5 = implementation-defined, only through registered extension policy
+
+id128 = bstr .size 16

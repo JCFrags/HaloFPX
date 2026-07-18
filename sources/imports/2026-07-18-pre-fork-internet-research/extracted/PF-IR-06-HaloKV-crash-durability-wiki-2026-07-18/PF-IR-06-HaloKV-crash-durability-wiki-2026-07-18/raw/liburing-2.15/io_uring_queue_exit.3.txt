@@ -1,0 +1,17 @@
+---
+source_id: "S018"
+title: "liburing io_uring_queue_exit(3)"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "axboe/liburing"
+path: "man/io_uring_queue_exit.3"
+version: "2.15"
+commit: "d41bf9220ec39277ff235379e9089d9e0fd6c2a5"
+upstream_blob_sha1: "6425ffcffec6b2a18438ff4df5176751d784386b"
+line_ranges: "17-26"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "LGPL-2.0-or-later"
+---
+io_uring_queue_exit() releases initialized resources, unmaps shared memory,
+and closes the ring file descriptor. Some accounting is asynchronous, so
+locked memory can remain charged briefly after return.

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "research_date": "2026-07-18",
+  "decision": "KEEP EXCLUDED",
+  "checks": {
+    "decision_marker_present": true,
+    "exact_source_git_blobs_all_verified": true,
+    "exact_source_file_count": 11,
+    "probe_bash_syntax_ok": true,
+    "fetch_script_bash_syntax_ok": true,
+    "probe_help_ok": true,
+    "empty_files": [],
+    "internal_links_checked": 634,
+    "broken_internal_links": [],
+    "wiki_markdown_pages": 15,
+    "html_pages": 25,
+    "claim_rows": 40,
+    "invalid_claim_labels": [],
+    "source_rows": 25,
+    "sources_missing_access_date": [],
+    "checksum_manifest_expected_entries": 96
+  },
+  "limitations": [
+    "No target host probe was run.",
+    "AMD account-gated package payloads and hashes are absent.",
+    "Firmware binaries are not redistributed.",
+    "No local correctness, performance, energy, thermal, suspend, or recovery result is claimed.",
+    "Chromium screenshot rendering was not used as a validation gate; HTML structure and local links were checked directly."
+  ],
+  "all_structural_checks_passed": true
+}

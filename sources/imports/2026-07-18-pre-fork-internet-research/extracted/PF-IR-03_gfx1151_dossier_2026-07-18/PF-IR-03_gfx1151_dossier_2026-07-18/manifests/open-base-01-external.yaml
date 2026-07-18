@@ -1,0 +1,48 @@
+manifest_id: OPEN-BASE-01-external-PF-IR-03
+capture_date: '2026-07-18'
+policy:
+  lane_mixing: forbidden
+  unknown_hash: fail closed
+  branch_heads: forbidden
+  local_runtime_results: not included
+control_tuple: manifests/control-tuple.yaml
+candidate_tuple: manifests/candidate-tuple.yaml
+local_comparison: manifests/local-comparison.yaml
+source_pins: manifests/source-pins.yaml
+artifact_lock: manifests/artifacts.lock.yaml
+component_manifest: manifests/components.yaml
+license_inventory: manifests/licenses.json
+required_external_inputs:
+- name: Ubuntu base image/package snapshot
+  pin: release ISO/cloud image digest plus APT snapshot metadata
+  lane_specific: true
+- name: ROCm repository metadata
+  pin: GPG key fingerprint, InRelease, Release, Packages, package SHA256
+  lane_specific: true
+- name: ROCm source trees
+  pin: commits in source-pins.yaml plus recursive gitlink manifest
+  lane_specific: true
+- name: Linux kernel
+  pin: source tag/commit, tarball digest/signature, distro package version, config and local patches
+  lane_specific: true
+- name: linux-firmware
+  pin: distro package version/hash/signature, WHENCE, per-used-blob hashes
+  lane_specific: false
+- name: Mesa/RADV overlay
+  pin: source/package version, source digest, build options, package hashes
+  lane_specific: false
+- name: Compiler resource/device libraries
+  pin: absolute resolved directories and recursive hashes
+  lane_specific: true
+candidate_usb4stream_overlay:
+  status: plausible but unverified
+  baseline_redefinition_allowed: false
+  kernel_at_capture: 7.2-rc3 or pinned linux-next containing USB4STREAM
+  userspace: freeze either control or candidate userspace without changes
+  required_tests:
+  - ROCm smoke/regression
+  - KFD queue/CWSR stress
+  - USB4STREAM two-node transport
+  - IOMMU/DMA protection
+  - suspend/resume/hotplug
+  - thunderbolt-net coexistence

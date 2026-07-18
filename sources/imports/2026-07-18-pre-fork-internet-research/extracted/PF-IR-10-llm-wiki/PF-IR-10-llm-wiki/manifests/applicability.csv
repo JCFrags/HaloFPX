@@ -1,0 +1,28 @@
+test_id,scope,oracle_profile,llama.cpp,ROCmFPX,CachyLLama,HaloFPX,approval_status,claim_labels
+GGUF-01,generic GGUF v3 header/tensor parser,gguf-structural,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+GGUF-02,vocab-only GGUF load,gguf-structural,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+GGUF-03,tiny self-generated Llama F32 model load/inference,numeric_f32_restore,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+GGUF-NEG-01,bad magic/truncation/alignment/type boundary corpus,rejection-class,expected-reject,expected-reject,expected-reject,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+TOK-01,byte BPE edge cases including invalid UTF-8,exact-token-ids,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+TOK-02,special-token parse/no-parse and BOS behavior,exact-token-ids,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+CHAT-01,default chat template metadata/rendering,exact-template-utf8,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+CHAT-02,named strict/tools chat templates,exact-template-utf8,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+CHAT-NEG-01,malformed templates and unsupported role,rejection-class,expected-reject,expected-reject,expected-reject,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+STRUCT-01,JSON Schema and GBNF structured output,schema-validity,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+GRAMMAR-STATE-01,grammar accepted-prefix/clone state,exact-allowed-token-set,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+SAMPLER-01,temperature/top-k/top-p/min-p/penalty vectors,numeric-probabilities,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+RNG-01,same-candidate seeded clone/replay property,rng-metamorphic,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+RNG-XFORK-EXACT,exact RNG token sequence across forks,rng-metamorphic,not-applicable,not-applicable,not-applicable,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+API-01,static tool-call and structured-output response normalization,canonical-json,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+API-02,incremental SSE content/tool/structured traces,sse-normalized,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+API-NEG-01,invalid request/schema/message shapes,rejection-class,expected-reject,expected-reject,expected-reject,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+API-EXT-01,stream_options with stream=false,rejection-class,open,open,open,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+API-LIVE-TOOL-01,live required tool call from generated model,canonical-json,open,open,open,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+STATE-01,whole-context save/restore semantic continuation,state-semantic,required,open,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+STATE-02,fragmented/sequence state isolation and restore,state-semantic,required,required,required,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+STATE-BYTES-01,opaque state-file byte equality across forks,state-metamorphic,not-applicable,not-applicable,not-applicable,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+RECURRENT-01,recurrent rollback and dirty-context restore,numeric_f32_restore,open,open,open,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+SPEC-NGRAM-01,model-free ngram-simple speculative equivalence,state-semantic,required,open,open,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+SPEC-MTP-01,MTP/model-assisted speculative equivalence,state-semantic,open,open,open,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+ROCM-TYPE-106,ROCmFPX TURBO4 type-ID dispatch probe,fork-specific,expected-reject,required,expected-reject,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED
+ROCM-TURBO-CPU,ROCmFPX TurboQuant CPU vector recipe,fork-specific,not-applicable,required,not-applicable,open,not-approved,PROPOSAL;QUALIFICATION-REQUIRED

@@ -1,0 +1,2 @@
+{"id":"nonrecurrent-guard","model":"../gguf/pfir10-tiny-llama-f32-v3.gguf","oracle":"report not-applicable without mutating state"}
+{"id":"qwen35-rollback-recipe","model_recipe":"../../recipes/portable-recurrent-model.md","oracle":{"dirty_context_restored_logits":"numeric_f32_restore","restored_logits":"numeric_f32_restore"},"prompt_tokens":[1,2,3,4,5,6,7,8,9],"rollback_last_position":true}

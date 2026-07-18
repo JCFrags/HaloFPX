@@ -1,0 +1,41 @@
+claim_id,literal_label,statement,source_ids,confidence,decision_impact
+C-001,[DECISION],KEEP EXCLUDED as of 2026-07-18; do not put XDNA2 NPU on the primary product path.,Multiple,high,unblocks decision
+C-002,[INFERENCE],Ryzen AI MAX+ 395 / Strix Halo maps to upstream npu5: PCI 1022:17f0 revision 0x11.,KERNEL-PCI;KERNEL-NPU5;XDNA-LEGACY-NPU5;AMD-RELNOTES-171,high,hardware applicability
+C-003,[UPSTREAM],The current upstream driver recognizes 1022:17f0 revision 0x11 and declares both npu.sbin and npu_7.sbin firmware paths.,KERNEL-PCI;KERNEL-NPU5,high,kernel substrate exists
+C-004,[UPSTREAM],"amdxdna Kconfig depends on AMD_IOMMU, DRM_ACCEL, PCI/HAS_IOMEM and X86_64.",KERNEL-KCONFIG,high,hard prerequisite
+C-005,[UPSTREAM],The AIE2/npu5 initialization path rejects execution under a hypervisor.,KERNEL-AIE2-PCI,high,deployment constraint
+C-006,[UPSTREAM],The AIE2/npu5 initialization path rejects operation without an IOMMU group.,KERNEL-AIE2-PCI,high,deployment constraint
+C-007,[UPSTREAM],Opening an amdxdna client normally binds IOMMU SVA and obtains a PASID; absence of PASID fails unless a carveout path is configured.,KERNEL-PCI,high,isolation/addressing
+C-008,[UPSTREAM],The NPU is explicitly non-cache-coherent and requires explicit host-cache synchronization.,KERNEL-GEM,high,reject coherent memory assumption
+C-009,[UPSTREAM],Data movement is described as DMA between host DDR and NPU memory-tile/L2 storage under ctrlcode orchestration.,KERNEL-DOC,high,DMA boundary
+C-010,[UPSTREAM],The upstream device record exposes 16 hardware contexts for npu5.,KERNEL-NPU5,high,concurrency ceiling
+C-011,[UPSTREAM],"Scheduling combines spatial partitioning and temporal sharing, with DRM scheduler machinery in the host driver and firmware enforcement on device.",KERNEL-DOC;KERNEL-AIE2-PCI,high,scheduling boundary
+C-012,[UPSTREAM],"The UAPI contains QoS, BO synchronization, firmware-version, telemetry, power and utilization query structures.",KERNEL-UAPI,high,telemetry surface exists
+C-013,[UPSTREAM],System suspend stops the NPU; resume reloads firmware and recreates/resumes contexts.,KERNEL-DOC;KERNEL-AIE2-PCI,high,power-management boundary
+C-014,[INFERENCE],Suspend/resume should not be assumed transparent to an application until a workload survives repeated cycles on the target.,KERNEL-AIE2-PCI,medium,reliability gate
+C-015,[UPSTREAM],linux-firmware contains two 17f0_11 firmware tracks: npu.sbin.1.0.0.166 and npu.sbin.1.1.2.65 via npu_7.sbin.,LINUX-FIRMWARE,high,firmware availability
+C-016,[VENDOR-ONLY],The vendor legacy driver for npu5 expects npu.dev.sbin and declares minimum firmware 6.12.,XDNA-LEGACY-NPU5,high,firmware namespaces differ
+C-017,[VENDOR-ONLY],AMD warns that driver/firmware mismatches commonly cause mailbox timeouts or aborted commands.,XDNA-VENDOR,high,version coupling
+C-018,[VENDOR-ONLY],"AMD warns that a newer XRT/plugin can issue ioctls missing from an older in-tree driver, including telemetry/array queries.",XDNA-VENDOR,high,UAPI coupling
+C-019,[VENDOR-ONLY],"AMD's documented Linux 1.7.1 reference is Ubuntu 24.04, kernel >=6.10, Python 3.12.x, with exact account-downloaded XRT/plugin packages.",AMD-LINUX-171,high,packaging boundary
+C-020,[MISSING],"The actual target distro, kernel build, kernel config, firmware package and installed XRT/Ryzen AI package inventory are unknown.",AMD-LINUX-171,high,blocks adoption
+C-021,[UPSTREAM],"Open low-level components exist: kernel driver, XRT, llvm-aie/Peano and mlir-aie/IRON.",KERNEL-DOC;XRT;LLVM-AIE;MLIR-AIE,high,open-source boundary
+C-022,[VENDOR-ONLY],The documented high-level ONNX/Vitis AI and OGA deployment flows rely on AMD's packaged runtime/compiler assets and EULA-governed downloads.,AMD-LINUX-171;AMD-LLM-LINUX,high,vendor stack dependency
+C-023,[VENDOR-ONLY],ONNX opset 17 is the recommended CNN/transformer interchange path; FP32 transformer inputs are compiled through BF16.,AMD-MODEL;RYZENAI-DISTIL,high,model-format boundary
+C-024,[VENDOR-ONLY],"Documented data-type families include BF16, XINT8, A8W8 and A16W8, subject to model and operator constraints.",AMD-MODEL;AMD-OPS,high,data-type coverage
+C-025,[VENDOR-ONLY],Operator-table support is broad rather than universal; specific configurations can remain unsupported.,AMD-OPS,high,operator caveat
+C-026,[VENDOR-ONLY],Vitis AI EP may partition unsupported model subgraphs to CPU; useful NPU coverage must be measured from the actual assignment report.,AMD-MODEL,high,performance caveat
+C-027,[UNSUPPORTED],No llama.cpp transformer/NPU offload path is established; AMD documents llama.cpp for iGPU.,AMD-OVERVIEW,high,reject requested assumption
+C-028,[WINDOWS-ONLY],AMD's Whisper.cpp NPU acceleration is currently Windows-only; Linux support is planned.,AMD-WHISPER,high,OS boundary
+C-029,[VENDOR-ONLY],The Linux LLM path is documented as NPU-only and uses versioned AMD-prepared model/deployment assets.,AMD-LLM-LINUX,high,draft-model constraint
+C-030,[VENDOR-ONLY],Ryzen AI 1.7.1 lists NPU support for SmolLM and SmolLM2 135M instruction models.,AMD-RELNOTES-171,high,small-model existence
+C-031,[INFERENCE],"The existence of a 135M OGA model does not establish a useful draft-model integration, speculative-decoding interface or target performance.",AMD-RELNOTES-171;AMD-LLM-LINUX,high,keep draft model excluded
+C-032,[VENDOR-ONLY],"AMD publishes an exact DistilBERT sentiment classifier example using VitisAIExecutionProvider, ONNX opset 17, BF16, batch 1 and fixed length 128.",RYZENAI-DISTIL,high,bounded experiment candidate
+C-033,[UNKNOWN],"AMD publishes an NPU BGE embedding implementation, but the captured public RAG instructions are pinned to a 1.7.0 hybrid/Conda flow and do not establish Linux qualification.",RYZENAI-EMBED;AMD-RELNOTES-171,medium,embedding remains excluded
+C-034,[MISSING],No captured primary Linux reranker example or exact supported reranker model was found.,Multiple,medium,reranker excluded
+C-035,[INFERENCE],"Moderation can be represented as a classifier workload, but the sentiment example does not establish moderation accuracy, labels or policy fitness.",RYZENAI-DISTIL,high,experiment requires task-specific model
+C-036,[MISSING],"No local latency, throughput, energy, memory, thermal, correctness or recovery measurement exists for the target.",Multiple,high,no performance claim
+C-037,[DECISION],The only permitted re-entry activity is an isolated classifier experiment after a read-only substrate probe; it must not modify the HIP/Vulkan path.,RYZENAI-DISTIL,high,scope guardrail
+C-038,[MISSING],Hashes for account-gated AMD DEB/TGZ packages are not available in this research capture.,AMD-LINUX-171,high,supply-chain gap
+C-039,[UNKNOWN],The public XRT/compiler repository HEADs are not proven to be the build inputs for AMD's 1.7.1 binary packages.,XRT;LLVM-AIE;MLIR-AIE;AMD-LINUX-171,high,provenance gap
+C-040,[UPSTREAM],Firmware WHENCE marks the amdnpu payload redistributable and points to LICENSE.amdnpu; this bundle does not restate unreviewed license terms.,LINUX-FIRMWARE,high,license handling

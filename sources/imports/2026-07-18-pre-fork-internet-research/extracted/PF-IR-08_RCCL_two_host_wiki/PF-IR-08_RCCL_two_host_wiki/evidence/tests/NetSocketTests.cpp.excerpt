@@ -1,0 +1,24 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "TEST-NET-SOCKET-UNIT"
+source_class: "test"
+claim_label: "[UPSTREAM_TEST]"
+upstream_path: "projects/rccl/test/NetSocketTests.cpp"
+upstream_blob_sha: "011bd24bf652524fef2c20955e1aa28ed23c7691"
+upstream_locator: "socket unit fixtures and send/receive tests"
+snapshot_kind: "structured relevant excerpt summary"
+completeness: "not full file; audited test topology and assertions recorded"
+license: "RCCL repository license / per-file terms"
+---
+
+```text
+The unit tests instantiate the Socket network implementation inside one test
+process, using local listener/connector objects and threads. They allocate host
+vectors, exercise asynchronous send/receive/test progress, and apply a
+test-owned timeout. They validate the implementation's local control flow and
+payload correctness.
+
+They are not a two-host, two-gfx1151, Ethernet-over-USB4 integration test.
+```

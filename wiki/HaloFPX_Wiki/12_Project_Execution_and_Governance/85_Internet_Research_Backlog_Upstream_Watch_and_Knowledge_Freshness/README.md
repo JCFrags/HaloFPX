@@ -18,6 +18,26 @@ related_sections: ["02", "04", "11", "13", "15", "18", "23", "24", "29", "50", "
 
 # 85 - Internet Research Backlog, Upstream Watch, and Knowledge Freshness
 
+## PF-IR return status — 2026-07-18
+
+**[VERIFIED]** Ten requested research archives—PF-IR-01, 02, 03, and 05 through
+11—were preserved and extracted under the dated intake at [S85-18]. PF-IR-04 is
+the only outstanding package. **[INFERENCE]** The returned material narrows the
+external option set but leaves its implementation, machine, security, license,
+and human-decision gates open. The reviewed disposition is authoritative for
+project routing; package self-verdicts are not [S85-18].
+
+| Return group | Current project effect |
+|---|---|
+| Security and conformance (01, 10) | Start local artifact/source review; no release exposure or fixture promotion approved |
+| Kernel, compute and RCCL (02, 03, 08) | Admit separate reversible candidate experiments; no combined upgrade or target support claim |
+| Models (05) | Shortlist inputs available; human workload selection and machine preflight remain required |
+| Persistence and keying (06, 07) | Source-backed design constraints available; format, authority and destructive fault tests remain open |
+| Hardware and XDNA2 (09, 11) | Firmware rollout stays held; XDNA2 stays excluded from the primary path |
+
+The next external intake is PF-IR-04. The immediate local sequence is maintained
+in the [research-return synthesis](../../../../knowledge/pre-fork-research-return-synthesis.md).
+
 ## Decision-use summary
 
 **[VERIFIED]** On 2026-07-17, live default-branch checks returned the same four project heads frozen by Sections 11-15: llama.cpp `788e07d`, ROCmFPX `a5605a7`, CachyLLama `6be7459`, and llama-ai `1017f3d` [S85-02, S85-03, S85-04, S85-05]. This is a checked-at snapshot, not a promise that those refs remain unchanged.

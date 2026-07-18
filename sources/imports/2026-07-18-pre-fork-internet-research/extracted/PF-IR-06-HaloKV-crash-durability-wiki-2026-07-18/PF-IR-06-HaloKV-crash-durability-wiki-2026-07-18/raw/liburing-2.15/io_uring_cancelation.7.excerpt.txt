@@ -1,0 +1,25 @@
+---
+source_id: "S013"
+title: "liburing cancellation overview"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "axboe/liburing"
+path: "man/io_uring_cancelation.7"
+version: "2.15"
+commit: "d41bf9220ec39277ff235379e9089d9e0fd6c2a5"
+upstream_blob_sha1: "f74bed207f86089bd1d836a836e656e48140a55e"
+line_ranges: "51-87, 140-172, 217-317"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "LGPL-2.0-or-later"
+---
+When a cancellation is submitted, two CQEs are generated: one for the target
+and one for the cancel request. Their order is not guaranteed. The cancel CQE
+can report 0, -ENOENT, or -EALREADY; the target can still complete normally,
+fail independently, or report cancellation.
+
+Closing the application's file descriptor does not automatically cancel pending
+io_uring requests, because the ring holds its own file reference.
+
+Closing the ring cancels pending requests, but explicit cancellation and CQE
+draining are needed when results must be processed or resources freed safely.
+Disk I/O already submitted to hardware is typically not cancelable.

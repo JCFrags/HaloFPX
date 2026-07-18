@@ -1,0 +1,65 @@
+{
+  "records": [
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "claim_labels": [
+        "VERIFIED-LICENSE-TEXT"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "local_length": 1078,
+      "local_path": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+      "repository": "ggml-org/llama.cpp",
+      "source_git_blob_sha1": "e7dca554bcb802f98408383a864404e3aa4eacca",
+      "source_path": "LICENSE"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "ROCmFPX",
+      "claim_labels": [
+        "VERIFIED-LICENSE-TEXT"
+      ],
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "license": "MIT",
+      "local_length": 1078,
+      "local_path": "evidence/licenses/ROCmFPX-LICENSE.txt",
+      "local_sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+      "repository": "charlie12345/ROCmFPX",
+      "source_git_blob_sha1": "e7dca554bcb802f98408383a864404e3aa4eacca",
+      "source_path": "LICENSE"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "ROCmFPX",
+      "claim_labels": [
+        "VERIFIED-LICENSE-TEXT"
+      ],
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "license": "notice-record",
+      "local_length": 1372,
+      "local_path": "evidence/licenses/ROCmFPX-THIRD_PARTY_NOTICES.md",
+      "local_sha256": "038b892fb3e926f9f85c3256554f1e74c7a6fab023574ad5869aa389dcf45729",
+      "repository": "charlie12345/ROCmFPX",
+      "source_git_blob_sha1": "4b2f877fe5011ac7eca70b5409a1cb7b032109ea",
+      "source_path": "THIRD_PARTY_NOTICES.md"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "CachyLLama",
+      "claim_labels": [
+        "VERIFIED-LICENSE-TEXT"
+      ],
+      "commit": "6be745998f568e379ea197fcf827baec73ff9940",
+      "license": "MIT",
+      "local_length": 1078,
+      "local_path": "evidence/licenses/CachyLLama-LICENSE.txt",
+      "local_sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+      "repository": "fewtarius/CachyLLama",
+      "source_git_blob_sha1": "e7dca554bcb802f98408383a864404e3aa4eacca",
+      "source_path": "LICENSE"
+    }
+  ],
+  "schema_version": 1
+}

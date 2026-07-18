@@ -1,0 +1,53 @@
+int aie2_hwctx_init(struct amdxdna_hwctx *hwctx)
+{
+	struct amdxdna_client *client = hwctx->client;
+	struct amdxdna_dev *xdna = client->xdna;
+	const struct drm_sched_init_args args = {
+		.ops = &sched_ops,
+		.credit_limit = HWCTX_MAX_CMDS,
+		.timeout = msecs_to_jiffies(tdr_timeout_ms),
+		.name = "amdxdna_js",
+		.dev = xdna->ddev.dev,
+	};
+	struct drm_gpu_scheduler *sched;
+	struct amdxdna_hwctx_priv *priv;
+	struct amdxdna_gem_obj *heap;
+	int i, ret;
+
+	priv = kzalloc_obj(*hwctx->priv);
+	if (!priv)
+		return -ENOMEM;
+	hwctx->priv = priv;
+
+	mutex_lock(&client->mm_lock);
+	heap = xa_load(&client->dev_heap_xa, 0);
+	if (!heap) {
+		XDNA_ERR(xdna, "The client dev heap object not exist");
+		mutex_unlock(&client->mm_lock);
+		ret = -ENOENT;
+		goto free_priv;
+	}
+	drm_gem_object_get(to_gobj(heap));
+	mutex_unlock(&client->mm_lock);
+	priv->heap = heap;
+	sema_init(&priv->job_sem, HWCTX_MAX_CMDS);
+
+	ret = amdxdna_gem_pin(heap);
+	if (ret) {
+		XDNA_ERR(xdna, "Dev heap pin failed, ret %d", ret);
+		goto put_heap;
+	}
+
+	/* ... command-buffer allocation omitted in this exact source slice ... */
+
+	sched = &priv->sched;
+	mutex_init(&priv->io_lock);
+
+	ret = drm_sched_init(sched, &args);
+	if (ret) {
+		XDNA_ERR(xdna, "Failed to init DRM scheduler. ret %d", ret);
+		goto free_cmd_bufs;
+	}
+
+	ret = drm_sched_entity_init(&priv->entity, DRM_SCHED_PRIORITY_NORMAL,
+				    &sched, 1, NULL);

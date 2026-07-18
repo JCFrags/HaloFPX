@@ -1,0 +1,22 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-QWEN35-PUBLISHER
+authority: publisher
+capture_type: rendered_text_extract
+source_title: Qwen/Qwen3.5-397B-A17B
+source_url: https://huggingface.co/Qwen/Qwen3.5-397B-A17B/tree/8472618112abcbd45acbcdc58436aff4233c23f7
+immutable_revision: 8472618112abcbd45acbcdc58436aff4233c23f7
+accessed_at: 2026-07-18
+completeness: SELECTED_FACTS
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Normalized publisher facts:
+- 397B total / 17B activated, 60 layers, multimodal causal model with vision encoder.
+- Hybrid layout: 15 groups of three Gated DeltaNet-MoE layers followed by one gated-attention-MoE layer.
+- 512 experts; 10 routed plus 1 shared active.
+- Native context 262,144; publisher documents extension to 1,010,000 with explicit RoPE/YaRN configuration.
+- MTP trained with multiple steps; publisher documents NEXTN/qwen3_next_mtp serving modes.
+- Thinking default, qwen3 reasoning parser, qwen3_coder tool parser, Qwen-Agent/MCP.
+- Apache-2.0; official tree observed around 807 GB with 94 safetensor shards.
+
+Selected GGUF vision completeness is not established by this publisher capture.

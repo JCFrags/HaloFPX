@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Standards-backed HaloKV encryption, tenant identity, key lifecycle, backup, deletion, and residual-risk decision package.">
+  <title>HaloKV PF-IR-07 LLM Wiki · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-root="">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="wiki/00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="wiki/01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="wiki/02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="wiki/03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="wiki/04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="wiki/05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="wiki/06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="wiki/07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="wiki/08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="wiki/09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="wiki/10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="wiki/11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="wiki/12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="wiki/13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="wiki/14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="wiki/15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Home / PF-IR-07</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article">
+<section class="hero">
+  <div class="eyebrow">PF-IR-07 · priority P1 · decision package</div>
+  <h1>Rank-local cache encryption with explicit tenant semantics.</h1>
+  <p>Authoritative comparison of fscrypt, LUKS2/dm-crypt, and object-level authenticated encryption, with a key hierarchy, miss/recompute invariant, deduplication boundaries, lifecycle and deletion runbooks, raw primary sources, literal claim labels, and reproducible hashes.</p>
+  <div class="hero-actions">
+    <a class="button primary" href="wiki/00-decision-record.html">Open decision record</a>
+    <a class="button" href="wiki/12-minimum-security-profile.html">Minimum profile</a>
+    <a class="button" href="runbooks/index.html">Operational runbooks</a>
+    <a class="button" href="wiki/14-sources-claims-and-reproducibility.html">Evidence catalog</a>
+  </div>
+</section>
+
+<div class="callout success"><strong>Selected control stack</strong>Object AEAD is mandatory. LUKS2/dm-crypt is the recommended offline-volume baseline. fscrypt v2 is conditional defense in depth. Invalid, unknown, corrupt, unauthenticated, wrong-key, wrong-principal, wrong-rank, stale, or mismatched objects are one caller-visible result: <code>MISS_RECOMPUTE</code>.</div>
+
+<div class="grid">
+  <div class="card"><div class="stat">83</div><div class="stat-label">claim-ledger entries</div></div>
+  <div class="card"><div class="stat">26</div><div class="stat-label">primary-source records</div></div>
+  <div class="card"><div class="stat">18</div><div class="stat-label">threat/control rows</div></div>
+  <div class="card"><div class="stat">30</div><div class="stat-label">minimum-profile controls</div></div>
+  <div class="card"><div class="stat">25</div><div class="stat-label">explicit residual risks</div></div>
+  <div class="card"><div class="stat">8</div><div class="stat-label">operational runbooks</div></div>
+</div>
+
+<div class="grid">
+  <div class="card wide">
+    <span class="badge required">Required</span>
+    <h2>Authenticated object layer</h2>
+    <p>Canonical AAD binds authority, tenant, project, prefix, namespace, sharing class, rank, epoch, format, codec, chunk, CID, and manifest generation. Authentication precedes decompression and parsing.</p>
+    <p><a href="wiki/04-object-aead-and-nonces.html">AEAD and nonce design →</a></p>
+  </div>
+  <div class="card wide">
+    <span class="badge good">Scoped privacy</span>
+    <h2>Tenant/project dedup boundaries</h2>
+    <p>Private content uses a scope-specific keyed CID. Public/system prefixes use a separate publisher authority and cannot be populated by silent cross-tenant equality.</p>
+    <p><a href="wiki/05-content-addressing-and-dedup.html">Content addressing and manifests →</a></p>
+  </div>
+  <div class="card wide">
+    <span class="badge">Operational</span>
+    <h2>Key lifecycle and recovery</h2>
+    <p>Rank/epoch separation constrains nonce state and blast radius. Busy files, mappings, kernel keyrings, process memory, backups, escrow, and restored snapshots remain explicit dependencies.</p>
+    <p><a href="wiki/07-rotation-revocation-and-process-retention.html">Rotation and revocation →</a></p>
+  </div>
+  <div class="card wide">
+    <span class="badge risk">No overclaim</span>
+    <h2>Deletion and media</h2>
+    <p>Logical deletion, cryptographic erasure, discard, and physical-media sanitization are separate outcomes with separate evidence. No universal secure-delete or compliance guarantee is asserted.</p>
+    <p><a href="wiki/10-deletion-cryptographic-erasure-and-media.html">Deletion and sanitization →</a></p>
+  </div>
+</div>
+
+<h2>Decision boundary</h2>
+<div class="table-wrap"><table><thead><tr><th>Layer</th><th>Status</th><th>What it controls</th><th>What remains</th></tr></thead><tbody>
+<tr><td>Object AEAD</td><td><span class="badge required">HALOKV-MUST</span></td><td>Object authenticity, principal/rank/epoch binding, fail-closed miss semantics</td><td>Replay state, live-host compromise, timing and size leakage</td></tr>
+<tr><td>LUKS2/dm-crypt</td><td><span class="badge good">Recommended</span></td><td>Offline rank-volume confidentiality and boot unlock</td><td>Object identity/authenticity, tenant separation on an unlocked shared volume</td></tr>
+<tr><td>fscrypt v2</td><td><span class="badge">Conditional</span></td><td>Filesystem tree/key-domain isolation, filename/content confidentiality offline</td><td>Object authentication, instant busy-file revocation, privileged live compromise</td></tr>
+<tr><td>dm-integrity authenticated mode</td><td><span class="badge">Evaluate</span></td><td>Block integrity depending configuration</td><td>HaloKV semantics; selected stack maturity/operational complexity</td></tr>
+</tbody></table></div>
+
+<div class="callout warning"><strong>Evidence/archive caveat</strong>The systemd v261.1 <code>crypttab.xml</code> source is pinned by tag, commit, path, license, and Git blob SHA-1, but the available transport did not permit a byte-identical XML archive. The bundle contains a clearly marked derivative extract. The cryptsetup release tarball hash is recorded but was not independently signature-verified in this run.</div>
+
+<h2>Human decisions still required</h2>
+<p>The source-backed profile does not choose the principal authority, sharing policy, public/system publisher, key owner/custodian, escrow, retention, rollback tolerance, or physical-media disposition authority. The <a href="matrices/human-decisions.csv">human-decision ledger</a> names the required artifacts and safe defaults.</p>
+
+<h2>Reproducibility</h2>
+<p>Raw primary documents, exact revisions and access dates, license notices, text extracts, claim labels, CSV/JSON matrices, SHA-256 manifests, and an offline verifier are included. Run <code>python3 validation/verify_bundle.py</code> from the folder root after extraction.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sources, claim labels, revisions, licenses, and reproducibility Evidence rules used 1. Prefer final standards and official kernel/platform/project documentation. 2. Record exact st…">
+  <title>Sources, claim labels, revisions, licenses, and reproducibility · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link active" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Sources, claim labels, revisions, licenses, and reproducibility</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Sources, claim labels, revisions, licenses, and reproducibility</h1>
+<h2 id="evidence-rules-used">Evidence rules used<a class="heading-anchor" href="#evidence-rules-used" aria-label="Link to section">#</a></h2>
+<ol>
+<li>Prefer final standards and official kernel/platform/project documentation.</li>
+<li>Record exact standard revision, release tag, commit/blob identifier where available, publication/release date, and research access date.</li>
+<li>Preserve raw bytes where the toolchain permits; preserve an extracted text copy only as a convenience, not as a substitute for the PDF.</li>
+<li>Hash every preserved source file in <code>manifests/SOURCE_SHA256SUMS</code>.</li>
+<li>Separate direct source claims, supported inferences, local synthesis recommendations, residual risks, and rejected/unsupported claims.</li>
+<li>Treat selected release maturity labels literally; do not upgrade “experimental” into a production guarantee.</li>
+<li>Avoid compliance, certification, cryptographic-erasure, or secure-deletion conclusions without deployment evidence.</li>
+</ol>
+<h2 id="literal-claim-label-syntax">Literal claim-label syntax<a class="heading-anchor" href="#literal-claim-label-syntax" aria-label="Link to section">#</a></h2>
+<pre><code class="language-text">[CLAIM:PFIR07-CNNN][CLASS:SOURCE|INFERENCE|SYNTHESIS|UNSUPPORTED]
+[STATUS:SUPPORTED|RECOMMENDED|REQUIRED|CONDITIONAL|RESIDUAL-RISK|REJECTED]
+[SRC:source-id/section or claim basis]
+</code></pre>
+<p>The complete ledger is available as <a href="../matrices/claims.csv"><code>claims.csv</code></a> and <a href="../matrices/claims.json"><code>claims.json</code></a>. Labels remain literal text in the Markdown and are styled in HTML.</p>
+<h2 id="source-catalog">Source catalog<a class="heading-anchor" href="#source-catalog" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Source ID</th>
+  <th>Title</th>
+  <th>Revision</th>
+  <th>Published/released</th>
+  <th>Accessed</th>
+  <th>Archive status</th>
+  <th>License/notice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>LINUX-FSCRYPT-7.2RC3</td>
+  <td>Filesystem-level encryption (fscrypt)</td>
+  <td>Linux documentation snapshot 7.2.0-rc3; source tag v7.2-rc3</td>
+  <td>2026-07 (release-candidate snapshot)</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved local text snapshot</td>
+  <td>Linux source-tree license notices; see copied COPYING and license-rules</td>
+</tr>
+<tr>
+  <td>LINUX-DMCRYPT-7.2RC3</td>
+  <td>dm-crypt target documentation</td>
+  <td>Linux documentation snapshot 7.2.0-rc3; source tag v7.2-rc3</td>
+  <td>2026-07 (release-candidate snapshot)</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved local text snapshot</td>
+  <td>Linux source-tree license notices</td>
+</tr>
+<tr>
+  <td>LINUX-DMINTEGRITY-7.2RC3</td>
+  <td>dm-integrity target documentation</td>
+  <td>Linux documentation snapshot 7.2.0-rc3; source tag v7.2-rc3</td>
+  <td>2026-07 (release-candidate snapshot)</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved local text snapshot</td>
+  <td>Linux source-tree license notices</td>
+</tr>
+<tr>
+  <td>LINUX-KEYS-7.2RC3</td>
+  <td>Kernel key retention service — core documentation</td>
+  <td>Linux documentation snapshot 7.2.0-rc3; source tag v7.2-rc3</td>
+  <td>2026-07 (release-candidate snapshot)</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved local text snapshot</td>
+  <td>Linux source-tree license notices</td>
+</tr>
+<tr>
+  <td>LUKS2-SPEC-1.1.4</td>
+  <td>LUKS2 On-Disk Format Specification</td>
+  <td>version 1.1.4; repository commit a81aa2fef8d176debdbec297c1e0b74bb50cfee8</td>
+  <td>2025-06-16</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved PDF plus text extract</td>
+  <td>CC BY-SA 4.0 (stated in document and copied repository license)</td>
+</tr>
+<tr>
+  <td>CRYPTSETUP-2.8.6</td>
+  <td>cryptsetup 2.8.6 selected release notes and manual sources</td>
+  <td>stable release 2.8.6; tag v2.8.6</td>
+  <td>2026-04-02</td>
+  <td>2026-07-18</td>
+  <td>selected byte-preserved manual sources; release tarball not embedded</td>
+  <td>cryptsetup COPYING retained in sources/licenses</td>
+</tr>
+<tr>
+  <td>SYSTEMD-CRYPTTAB-261.1</td>
+  <td>systemd crypttab(5) source</td>
+  <td>v261.1; tag commit eff9446d505d62c075bed37d606860b38cfe51fb; man/crypttab.xml blob SHA-1 38ba4ceafbe80aead3025bc0866a3573a0a36ad5</td>
+  <td>2026-06-26</td>
+  <td>2026-07-18</td>
+  <td>reference plus derivative extract; raw XML not byte-preserved</td>
+  <td>LGPL-2.1-or-later SPDX identifier in source; LGPL text retained</td>
+</tr>
+<tr>
+  <td>NIST-SP800-38D</td>
+  <td>NIST SP 800-38D — GCM and GMAC</td>
+  <td>NIST SP 800-38D, final</td>
+  <td>2007-11</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-SP800-38E</td>
+  <td>NIST SP 800-38E — XTS-AES for confidentiality on storage devices</td>
+  <td>NIST SP 800-38E, final</td>
+  <td>2010-01</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-SP800-57P1R5</td>
+  <td>NIST SP 800-57 Part 1 Revision 5 — Key Management</td>
+  <td>NIST SP 800-57 Part 1 Rev. 5, final</td>
+  <td>2020-05</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-SP800-88R2</td>
+  <td>NIST SP 800-88 Revision 2 — Guidelines for Media Sanitization</td>
+  <td>NIST SP 800-88 Rev. 2, final</td>
+  <td>2025-09</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-SP800-108R1U1</td>
+  <td>NIST SP 800-108 Revision 1 Update 1 — KDFs using PRFs</td>
+  <td>NIST SP 800-108 Rev. 1 Update 1; updates through 2024-02-02</td>
+  <td>2022-08 / updated 2024-02-02</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-SP800-90AR1</td>
+  <td>NIST SP 800-90A Revision 1 — Deterministic Random Bit Generators</td>
+  <td>NIST SP 800-90A Rev. 1, final</td>
+  <td>2015-06</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-SP800-111</td>
+  <td>NIST SP 800-111 — Guide to Storage Encryption Technologies for End User Devices</td>
+  <td>NIST SP 800-111, final</td>
+  <td>2007-11</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-SP800-133R2</td>
+  <td>NIST SP 800-133 Revision 2 — Cryptographic Key Generation</td>
+  <td>NIST SP 800-133 Rev. 2, final</td>
+  <td>2020-06</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-FIPS180-4</td>
+  <td>FIPS 180-4 — Secure Hash Standard</td>
+  <td>FIPS 180-4</td>
+  <td>2015-08</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-FIPS197-U1</td>
+  <td>FIPS 197 Update 1 — Advanced Encryption Standard</td>
+  <td>FIPS 197; updated 2023-05-09</td>
+  <td>2001-11-26 / updated 2023-05-09</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>NIST-FIPS198-1</td>
+  <td>FIPS 198-1 — HMAC</td>
+  <td>FIPS 198-1</td>
+  <td>2008-07</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved final publication PDF plus text extract</td>
+  <td>Document-embedded NIST notices; no blanket relicensing claim by this bundle</td>
+</tr>
+<tr>
+  <td>RFC5116</td>
+  <td>RFC5116 — An Interface and Algorithms for Authenticated Encryption</td>
+  <td>RFC 5116</td>
+  <td>2008-01</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved RFC text</td>
+  <td>Document-embedded IETF Trust copyright and legal-provisions notice</td>
+</tr>
+<tr>
+  <td>RFC8439</td>
+  <td>RFC8439 — ChaCha20 and Poly1305 for IETF Protocols</td>
+  <td>RFC 8439</td>
+  <td>2018-06</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved RFC text</td>
+  <td>Document-embedded IETF Trust copyright and legal-provisions notice</td>
+</tr>
+<tr>
+  <td>RFC8452</td>
+  <td>RFC8452 — AES-GCM-SIV: Nonce Misuse-Resistant Authenticated Encryption</td>
+  <td>RFC 8452</td>
+  <td>2019-04</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved RFC text</td>
+  <td>Document-embedded IETF Trust copyright and legal-provisions notice</td>
+</tr>
+<tr>
+  <td>RFC5869</td>
+  <td>RFC5869 — HMAC-based Extract-and-Expand Key Derivation Function (HKDF)</td>
+  <td>RFC 5869</td>
+  <td>2010-05</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved RFC text</td>
+  <td>Document-embedded IETF Trust copyright and legal-provisions notice</td>
+</tr>
+<tr>
+  <td>RFC2104</td>
+  <td>RFC2104 — HMAC: Keyed-Hashing for Message Authentication</td>
+  <td>RFC 2104</td>
+  <td>1997-02</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved RFC text</td>
+  <td>Document-embedded IETF Trust copyright and legal-provisions notice</td>
+</tr>
+<tr>
+  <td>RFC9106</td>
+  <td>RFC9106 — Argon2 Memory-Hard Function for Password Hashing and Proof-of-Work</td>
+  <td>RFC 9106</td>
+  <td>2021-09</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved RFC text</td>
+  <td>Document-embedded IETF Trust copyright and legal-provisions notice</td>
+</tr>
+<tr>
+  <td>RFC8018</td>
+  <td>RFC8018 — PKCS #5: Password-Based Cryptography Specification Version 2.1</td>
+  <td>RFC 8018</td>
+  <td>2017-01</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved RFC text</td>
+  <td>Document-embedded IETF Trust copyright and legal-provisions notice</td>
+</tr>
+<tr>
+  <td>RFC8949</td>
+  <td>RFC8949 — Concise Binary Object Representation (CBOR)</td>
+  <td>RFC 8949</td>
+  <td>2020-12</td>
+  <td>2026-07-18</td>
+  <td>byte-preserved RFC text</td>
+  <td>Document-embedded IETF Trust copyright and legal-provisions notice</td>
+</tr>
+</tbody>
+</table></div>
+<p>The machine-readable catalog is <a href="../sources/catalog.csv"><code>sources/catalog.csv</code></a> and <a href="../sources/catalog.json"><code>sources/catalog.json</code></a>.</p>
+<h2 id="material-archival-limitation">Material archival limitation<a class="heading-anchor" href="#material-archival-limitation" aria-label="Link to section">#</a></h2>
+<p>The systemd <code>man/crypttab.xml</code> source was inspected at <code>v261.1</code>, tag commit <code>eff9446d505d62c075bed37d606860b38cfe51fb</code>, with Git blob SHA-1 <code>38ba4ceafbe80aead3025bc0866a3573a0a36ad5</code>. The connected file-download transport rejected the XML media type, so this bundle contains a clearly marked derivative extract and exact source reference—not a byte-identical raw XML copy. Re-fetch and verify the tagged blob before using it as raw evidentiary source.</p>
+<p>The cryptsetup 2.8.6 official release-archive SHA-256 is recorded, but the tarball and detached signature were not embedded or independently verified in this run. The selected tagged manual sources and release notes are locally hashed.</p>
+<h2 id="revision-cautions">Revision cautions<a class="heading-anchor" href="#revision-cautions" aria-label="Link to section">#</a></h2>
+<ul>
+<li>Linux documentation is pinned to <code>v7.2-rc3</code>, matching the current documentation snapshot accessed on 2026-07-18; it is a release-candidate revision.</li>
+<li>cryptsetup is pinned to the then-current stable <code>2.8.6</code>, not the <code>2.8.7-rc2</code> pre-release visible in the official archive.</li>
+<li>systemd is pinned to <code>v261.1</code> and its exact tag commit.</li>
+<li>NIST PDFs are final publications as named; draft replacements are not treated as final requirements.</li>
+<li>RFC text is pinned by RFC number; errata and later updates may affect implementation interpretation and should be reviewed at implementation time.</li>
+<li>FIPS 198-1 is retained as a historical HMAC source; the catalog and implementation decision must use the current NIST status at deployment time rather than infer validation from the copied PDF.</li>
+</ul>
+<h2 id="hashes-and-manifests">Hashes and manifests<a class="heading-anchor" href="#hashes-and-manifests" aria-label="Link to section">#</a></h2>
+<ul>
+<li><code>manifests/SOURCE_SHA256SUMS</code>: all files in <code>sources/</code>.</li>
+<li><code>manifests/SHA256SUMS</code>: all generated and copied files outside <code>manifests/</code>.</li>
+<li><code>manifests/files.json</code>: path, size, and SHA-256 inventory.</li>
+<li><code>manifests/manifest-root.json</code>: hashes of the manifests and bundle metadata.</li>
+<li><code>validation/verify_bundle.py</code>: offline verifier.</li>
+</ul>
+<p>A SHA-256 match proves byte consistency with this bundle's manifest. It does not prove publisher authenticity unless the upstream signature or immutable source identity was independently verified and recorded.</p>
+<h2 id="license-handling">License handling<a class="heading-anchor" href="#license-handling" aria-label="Link to section">#</a></h2>
+<p><code>LICENSE-SYNTHESIS.txt</code> applies only to original analysis and static-wiki code. Third-party source material retains its own terms. See <code>sources/LICENSE-METADATA.md</code>, <code>THIRD_PARTY_NOTICES.md</code>, copied license files, and document-embedded notices.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

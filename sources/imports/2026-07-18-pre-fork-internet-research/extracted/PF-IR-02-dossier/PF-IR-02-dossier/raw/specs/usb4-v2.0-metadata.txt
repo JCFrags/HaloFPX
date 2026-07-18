@@ -1,0 +1,7 @@
+[NORMATIVE METADATA / REDISTRIBUTION GAP]
+USB-IF page: USB4 Specification v2.0
+Public package label: USB4 Specification November 2025.zip
+Page date observed: 2026-04-02
+Package size observed: approximately 41.4 MB
+Access: public download subject to USB-IF specification license.
+Constraint: the normative package is not redistributed in this dossier. Exact clause-level mappings for proprietary/restricted text are therefore marked EVIDENCE-GAP.

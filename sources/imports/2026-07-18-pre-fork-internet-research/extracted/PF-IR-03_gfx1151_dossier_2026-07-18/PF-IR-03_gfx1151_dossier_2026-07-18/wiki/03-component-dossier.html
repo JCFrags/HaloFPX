@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component dossier · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html">Lane map</a><a href="02-official-support-matrices.html">Official support matrices</a><a href="03-component-dossier.html" class="active">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="06-source-build-provenance.html">Source/build provenance</a><a href="07-known-issues.html">Known issues</a><a href="08-rollback-removal.html">Rollback and removal</a><a href="09-licensing-sbom.html">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / Component dossier</div>
+  <article><h1>Component dossier</h1>
+<p>The machine-readable table is in <a href="../manifests/components.csv">components.csv</a> and <a href="../manifests/components.yaml">components.yaml</a>.</p>
+<h2>Focus components</h2>
+<h3>HIP / HSA / KFD</h3>
+<p>HIP is the user-facing runtime/language layer. ROCR implements the HSA runtime and communicates through KFD in the inbox <code>amdgpu</code> kernel driver. Treat <code>libamdhip64</code>, <code>libhsa-runtime64</code>, COMGR, the device libraries and KFD as one compatibility chain. A successful <code>rocminfo</code> enumeration is necessary but not sufficient; queue creation, CWSR stress and kernel dispatch must also pass.</p>
+<h3>rocBLAS and hipBLASLt</h3>
+<p><code>hipBLAS</code> is the common API layer; <code>rocBLAS</code> and <code>hipBLASLt</code> are distinct implementation paths. In Core SDK 7.14 they are consolidated into <code>amdrocm-blas</code>. The 7.14 performance workaround for affected Ryzen AI MAX LLM inference forces the hipBLASLt backend. Record <code>TORCH_BLAS_PREFER_HIPBLASLT</code> and any tuning/kernel cache identity in the runtime manifest.</p>
+<h3>rocWMMA</h3>
+<p>rocWMMA is 2.2.0 in the 7.2.4 lane and 2.2.1 in Core SDK 7.14.0. Its headers compile through the lane's HIP/LLVM toolchain and target gfx1151. The transition table associates legacy <code>rocwmma</code> with the consolidated <code>amdrocm-ccl</code> migration row; verify the installed package file owner rather than inferring from the row label.</p>
+<h3>LLVM and compiler resources</h3>
+<p>Do not hardcode a versioned Clang resource directory. Capture it from the installed compiler:</p>
+<pre><code class="language-bash">amdclang --print-resource-dir
+clang --print-resource-dir
+hipconfig --path
+hipconfig -R
+hipconfig -l
+find &quot;$ROCM_PATH&quot; -path '*/amdgcn/bitcode' -type d -print
+find &quot;$ROCM_PATH&quot; -path '*/lib/clang/*' -type d -print
+</code></pre>
+<p>For the Core SDK tarball, the root contains <code>bin</code> and <code>lib</code>; the exact versioned resource directory and device-bitcode location must be hashed after extraction. For native Core SDK packages, resolve <code>/opt/rocm</code> compatibility symlinks back to <code>/opt/rocm/core</code> package owners.</p>
+<h3>RCCL packaging</h3>
+<p>[LANE_BOUNDARY] <code>amdrocm-ccl</code> is not RCCL. It consolidates rocPRIM, rocThrust and hipCUB. RCCL is packaged separately:</p>
+<table>
+<thead>
+<tr>
+  <th>Package</th>
+  <th>Role</th>
+  <th>Relevant dependencies from package metadata</th>
+  <th>GFX-specific package</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>amdrocm-rccl</code></td>
+  <td>runtime/lib/doc</td>
+  <td>base, AMD SMI, profiler base, libc on Debian</td>
+  <td>no (<code>Gfxarch: false</code>)</td>
+</tr>
+<tr>
+  <td><code>amdrocm-rccl-devel</code></td>
+  <td>headers/development</td>
+  <td><code>amdrocm-rccl</code>, Python/system runtime</td>
+  <td>no</td>
+</tr>
+<tr>
+  <td><code>amdrocm-rccl-test</code></td>
+  <td>tests</td>
+  <td>base, profiler base, rccl-devel</td>
+  <td>no</td>
+</tr>
+</tbody>
+</table>
+<p>The architecture-specific Core SDK meta package supplies the compatible GPU kernel packs and math/runtime dependencies around this host-side RCCL package.</p>
+<h2>Dependency boundary</h2>
+<p>See <a href="../manifests/dependencies.dot">dependencies.dot</a>. Exact ELF linkage, RPATH and package ownership are acquisition-time facts and are collected by <code>scripts/inventory-artifact.sh</code> and <code>scripts/capture-runtime-tuple.sh</code>.</p>
+<h2>Version comparison</h2>
+<table>
+<thead>
+<tr>
+  <th>Component</th>
+  <th style="text-align:right">ROCm 7.2.4 lane</th>
+  <th style="text-align:right">Core SDK 7.14.0</th>
+  <th>7.14 package grouping</th>
+  <th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Composable Kernel</td>
+  <td style="text-align:right">1.2.0</td>
+  <td style="text-align:right">1.2.0</td>
+  <td>amdrocm-ck</td>
+  <td>math/ML kernels</td>
+</tr>
+<tr>
+  <td>hipBLAS</td>
+  <td style="text-align:right">3.2.0</td>
+  <td style="text-align:right">3.5.0</td>
+  <td>amdrocm-blas</td>
+  <td>BLAS API front end</td>
+</tr>
+<tr>
+  <td>hipBLASLt</td>
+  <td style="text-align:right">1.2.2</td>
+  <td style="text-align:right">1.4.1</td>
+  <td>amdrocm-blas</td>
+  <td>GEMM/Lt back end; performance-sensitive</td>
+</tr>
+<tr>
+  <td>hipCUB</td>
+  <td style="text-align:right">4.2.0</td>
+  <td style="text-align:right">4.5.0</td>
+  <td>amdrocm-ccl</td>
+  <td>device primitives; not RCCL</td>
+</tr>
+<tr>
+  <td>hipFFT</td>
+  <td style="text-align:right">1.0.22</td>
+  <td style="text-align:right">1.0.24</td>
+  <td>amdrocm-fft</td>
+  <td>FFT front end</td>
+</tr>
+<tr>
+  <td>hipRAND</td>
+  <td style="text-align:right">3.1.0</td>
+  <td style="text-align:right">3.4.0</td>
+  <td>amdrocm-rand</td>
+  <td>random API front end</td>
+</tr>
+<tr>
+  <td>hipSOLVER</td>
+  <td style="text-align:right">3.2.0</td>
+  <td style="text-align:right">3.5.0</td>
+  <td>amdrocm-solver</td>
+  <td>solver front end</td>
+</tr>
+<tr>
+  <td>hipSPARSE</td>
+  <td style="text-align:right">4.2.0</td>
+  <td style="text-align:right">4.6.0</td>
+  <td>amdrocm-sparse</td>
+  <td>sparse front end</td>
+</tr>
+<tr>
+  <td>hipSPARSELt</td>
+  <td style="text-align:right">0.2.6</td>
+  <td style="text-align:right">0.2.9</td>
+  <td>amdrocm-blas</td>
+  <td>7.14 release table limits to Instinct; do not assume gfx1151</td>
+</tr>
+<tr>
+  <td>MIOpen</td>
+  <td style="text-align:right">3.5.1</td>
+  <td style="text-align:right">3.5.2</td>
+  <td>amdrocm-dnn</td>
+  <td>deep learning primitives</td>
+</tr>
+<tr>
+  <td>rocBLAS</td>
+  <td style="text-align:right">5.2.0</td>
+  <td style="text-align:right">5.5.0</td>
+  <td>amdrocm-blas</td>
+  <td>BLAS implementation</td>
+</tr>
+<tr>
+  <td>rocFFT</td>
+  <td style="text-align:right">1.0.36</td>
+  <td style="text-align:right">1.0.38</td>
+  <td>amdrocm-fft</td>
+  <td>FFT implementation</td>
+</tr>
+<tr>
+  <td>rocPRIM</td>
+  <td style="text-align:right">4.2.0</td>
+  <td style="text-align:right">4.5.0</td>
+  <td>amdrocm-ccl</td>
+  <td>device primitives; not RCCL</td>
+</tr>
+<tr>
+  <td>rocRAND</td>
+  <td style="text-align:right">4.2.0</td>
+  <td style="text-align:right">4.5.0</td>
+  <td>amdrocm-rand</td>
+  <td>random implementation</td>
+</tr>
+<tr>
+  <td>rocSOLVER</td>
+  <td style="text-align:right">3.32.0</td>
+  <td style="text-align:right">3.35.0</td>
+  <td>amdrocm-solver</td>
+  <td>solver implementation</td>
+</tr>
+<tr>
+  <td>rocSPARSE</td>
+  <td style="text-align:right">4.2.0</td>
+  <td style="text-align:right">4.7.0</td>
+  <td>amdrocm-sparse</td>
+  <td>sparse implementation</td>
+</tr>
+<tr>
+  <td>rocThrust</td>
+  <td style="text-align:right">4.2.0</td>
+  <td style="text-align:right">4.5.0</td>
+  <td>amdrocm-ccl</td>
+  <td>parallel algorithms; not RCCL</td>
+</tr>
+<tr>
+  <td>rocWMMA</td>
+  <td style="text-align:right">2.2.0</td>
+  <td style="text-align:right">2.2.1</td>
+  <td>amdrocm-ccl (legacy mapping includes rocwmma; verify installed package file owner)</td>
+  <td>wave matrix templates</td>
+</tr>
+<tr>
+  <td>RCCL</td>
+  <td style="text-align:right">2.27.7</td>
+  <td style="text-align:right">2.30.4</td>
+  <td>amdrocm-rccl</td>
+  <td>collective communication</td>
+</tr>
+<tr>
+  <td>rocSHMEM</td>
+  <td style="text-align:right">3.2.0</td>
+  <td style="text-align:right">3.5.0</td>
+  <td>amdrocm-rocshmem</td>
+  <td>GPU-centric SHMEM</td>
+</tr>
+<tr>
+  <td>rocDecode</td>
+  <td style="text-align:right">1.7.0</td>
+  <td style="text-align:right">1.8.0</td>
+  <td>amdrocm-decode</td>
+  <td>media decode; gfx1151 listed in 7.14 applicability</td>
+</tr>
+<tr>
+  <td>rocJPEG</td>
+  <td style="text-align:right">1.4.0</td>
+  <td style="text-align:right">1.6.0</td>
+  <td>amdrocm-jpeg</td>
+  <td>JPEG</td>
+</tr>
+<tr>
+  <td>hipFile</td>
+  <td style="text-align:right">not listed</td>
+  <td style="text-align:right">0.3.0</td>
+  <td>see package manifest</td>
+  <td>7.14 release table limits to Instinct</td>
+</tr>
+<tr>
+  <td>HIP</td>
+  <td style="text-align:right">7.2.1</td>
+  <td style="text-align:right">7.14</td>
+  <td>amdrocm-runtime</td>
+  <td>runtime and language</td>
+</tr>
+<tr>
+  <td>ROCr Runtime / HSA</td>
+  <td style="text-align:right">1.18.0</td>
+  <td style="text-align:right">1.21.0</td>
+  <td>amdrocm-runtime</td>
+  <td>HSA runtime</td>
+</tr>
+<tr>
+  <td>LLVM</td>
+  <td style="text-align:right">22.0.0</td>
+  <td style="text-align:right">23.0.0</td>
+  <td>amdrocm-llvm</td>
+  <td>compiler/toolchain</td>
+</tr>
+<tr>
+  <td>HIPIFY</td>
+  <td style="text-align:right">22.0.0</td>
+  <td style="text-align:right">7.14</td>
+  <td>amdrocm-hipify</td>
+  <td>source translation</td>
+</tr>
+<tr>
+  <td>SPIRV-LLVM-Translator</td>
+  <td style="text-align:right">not listed</td>
+  <td style="text-align:right">23.0.0</td>
+  <td>amdrocm-llvm/runtime dependency</td>
+  <td>SPIR-V translation</td>
+</tr>
+<tr>
+  <td>rocminfo</td>
+  <td style="text-align:right">package-version capture required</td>
+  <td style="text-align:right">1.0.0</td>
+  <td>amdrocm-base</td>
+  <td>runtime discovery</td>
+</tr>
+<tr>
+  <td>AMD SMI</td>
+  <td style="text-align:right">legacy ROCm SMI/AMD SMI capture required</td>
+  <td style="text-align:right">26.5.0</td>
+  <td>amdrocm-amdsmi</td>
+  <td>monitoring; APU metrics added</td>
+</tr>
+<tr>
+  <td>ROCm Compute Profiler</td>
+  <td style="text-align:right">capture required</td>
+  <td style="text-align:right">3.7.0</td>
+  <td>amdrocm-profiler</td>
+  <td>gfx1151 known counter issues</td>
+</tr>
+<tr>
+  <td>ROCprofiler-SDK</td>
+  <td style="text-align:right">capture required</td>
+  <td style="text-align:right">1.3.2</td>
+  <td>amdrocm-profiler / profiler-base</td>
+  <td>profiling runtime</td>
+</tr>
+</tbody>
+</table>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

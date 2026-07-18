@@ -1,0 +1,41 @@
+test_id,scenario,method,operation,pass_invariant,privilege
+T001,Deployment discovery,Run inspect_fs_profile.sh on each cache root,"Record fstype, mount ID, source, options, block stack, kernel, container/overlay state","No support decision if the root is unknown, networked, overlay/FUSE, or differs from certified profile",unprivileged
+T002,O_TMPFILE creation/link,Run o_tmpfile_probe in the target directory,"Create unnamed inode, exact write, fdatasync, linkat(AT_EMPTY_PATH), fsync directory",Either complete success or documented fallback; no partial visible target,unprivileged
+T003,Named temp O_EXCL,Two concurrent creators use identical temp name,openat(O_CREAT|O_EXCL) race,Exactly one creator succeeds; loser gets EEXIST,unprivileged
+T004,Short positive write,LD_PRELOAD injector caps pwrite/write to small chunks,Exercise exact-length loop,Published content is complete and validated; no short object accepted,unprivileged
+T005,EINTR write,Inject EINTR before progress and after prior chunks,Retry only remaining bytes,No duplicated/skipped range; terminal failure if retry policy exhausted,unprivileged
+T006,Zero-byte write,Inject a zero result with nonzero remaining length,Exercise progress guard,Transaction aborts; no infinite loop and no publish,unprivileged
+T007,Data-block ENOSPC,Fill small loopback FS after temp creation,Fail write/fallocate/fdatasync,No acknowledgement; old published object remains valid,root for loopback
+T008,Metadata ENOSPC,Exhaust inodes/directory metadata separately,Fail create/link/rename/dir fsync,No acknowledgement; recovery tolerates orphan temp,root recommended
+T009,EDQUOT,Apply project/user quota below object size,Fail allocation or synchronization,No acknowledgement; quota error preserved in telemetry,root
+T010,Immediate EIO,dm-error or syscall injector returns EIO on write,Observe transaction state,Root is fenced; no subsequent writer acknowledgement,root for block injection
+T011,Delayed writeback EIO,dm-flakey/error after buffered writes before fdatasync,Error surfaces at file synchronization,Transaction fails and root is fenced,root/VM
+T012,SIGKILL before first write,PF_FAILPOINT=after_create,Kill publisher,No final name; temp is recoverable garbage,unprivileged
+T013,SIGKILL during write,Injector kills after selected byte count,Kill publisher,No final name; old target remains valid,unprivileged
+T014,SIGKILL after write before file sync,PF_FAILPOINT=after_write,Kill publisher,No final name; temp may be incomplete after reboot,unprivileged plus reboot for persistence
+T015,SIGKILL after file sync before publish,PF_FAILPOINT=after_file_sync,Kill publisher,Final name absent; durable orphan temp is safe to remove,unprivileged
+T016,Kill during namespace operation,Stress publisher while killing at publish boundary,Race rename/link and process death,"Namespace shows old or new complete object, never a partially named object",unprivileged
+T017,Kill after publish before dir sync,PF_FAILPOINT=after_publish,Kill publisher,"Process-crash state may show new name, but power-crash durability is not claimed",unprivileged
+T018,Kill after dir sync before ack,PF_FAILPOINT=after_dir_sync,Kill publisher,Recovery finds valid new object; acknowledgement may be absent and retry must be idempotent,unprivileged
+T019,Hard power cut matrix,Power off VM host at every persisted failpoint without guest shutdown,Remount/replay and validate cache,"At pre-ack boundaries, recovery may show the old complete generation, the new complete generation, or no entry for create-only publication; every visible object validates. After successful directory sync/ack, the new complete generation must be present on the certified stack",VM/host control
+T020,Overwrite replacement,Publish generation N then N+1 with replace policy,Crash at each boundary,Readers see complete N or complete N+1; never in-place mixture,VM for power loss
+T021,RENAME_NOREPLACE collision,Two publishers target same key,renameat2 race,Exactly one publish succeeds; loser handles EEXIST idempotently,unprivileged
+T022,RENAME_EXCHANGE,Swap two prepared names then crash before/after directory fsync,Validate paired names,Exchange is namespace-atomic but only durable after required directory sync,VM for power loss
+T023,DIO alignment discovery,statx(STATX_DIOALIGN) on candidate file,Record memory/offset/read/write alignments,DIO enabled only when nonzero and harness obeys reported values,unprivileged
+T024,Misaligned DIO,Issue memory/offset/length violations,Observe EINVAL or filesystem-specific fallback,No code assumes 4096; unsupported/fallback behavior is detected and DIO disabled,unprivileged
+T025,DIO partial/error region,dm-flakey during aligned direct write,Read back attempted region,Object is rejected/quarantined; no in-place recovery assumption,root/VM
+T026,Buffered/DIO/mmap isolation,Attempt prohibited mixed access in test-only object,Race readers/writers,Production profile forbids mix; guard rejects configuration,unprivileged
+T027,Writer lock contention,Start two processes on one cache root,Acquire nonblocking OFD/flock exclusive lock,Exactly one writer proceeds; loser is read-only or exits,unprivileged
+T028,Lock-owner SIGKILL,Kill writer while lock held,Start replacement writer,Kernel releases last-close advisory lock; new writer performs recovery before writing,unprivileged
+T029,Classic-lock accidental close regression,Acquire classic fcntl lock then close unrelated fd to same file,Observe lock loss,Test demonstrates why classic locks are denied by policy,unprivileged
+T030,io_uring cancel before issue,Submit cancellable timeout/read then cancel,Drain target and cancel CQEs,Handle both CQEs in either order and accepted result set,liburing/kernel feature
+T031,io_uring cancel while running,Cancel disk I/O after dispatch,Drain CQEs,Original success/error is accepted even if cancel reports EALREADY/ENOENT,liburing + slow device
+T032,Late CQE/user_data reuse,"Cancel generation G, submit G+1 rapidly",Delay CQ processing,Generation tag prevents late G completion from mutating G+1 state,liburing
+T033,Registered file lifetime,"Register fd, close ordinary fd, submit/use/cancel",Observe ring-held reference,Close is not treated as cancellation; explicit lifecycle succeeds,liburing
+T034,Registered buffer update/unregister/tag lifecycle,Register tagged buffer; update/replace with in-flight op; separately test explicit unregister and ring teardown,"Observe operation CQEs, tag CQE, synchronous explicit-unregister return, and asynchronous shutdown accounting",No buffer is unmapped or reused while referenced; update/replacement reuse waits for terminal tag; explicit unregister and teardown match documented behavior,liburing
+T035,Linked short write,Force first linked write to return short positive result,Observe linked fsync behavior,Test proves positive-short does not break soft link; production does not blind-link write to fsync,liburing + injector
+T036,Ring teardown,"Stop submission, cancel all, drain, unregister, observe tags, queue_exit",Check no use-after-free/late app access,All application-owned resources remain valid until terminal release,liburing + sanitizers
+T037,Btrfs near-full COW,"Snapshot/reflink objects, fill data and metadata space, overwrite test-only clone",Run publish protocol,No mutable shared-extent assumption; all ENOSPC points fail safely,root/loopback btrfs
+T038,Mount-option denylist,Mount each candidate with supported and denied options,Run startup profile check,nobarrier/writeback/unsupported layers refuse persistent mode,root/VM
+T039,Recovery scan,"Seed orphan temps, truncated objects, bad hash, duplicate generations",Restart recovery,Only fully validated object becomes live; corrupt/unpublished files quarantined or removed,unprivileged
+T040,Flush/FUA propagation,Place FS above dm/RAID/virt stack and power-cut after fsync boundaries,Compare acknowledged generations after restart,Persistent mode certified only when the deployed stack passes; docs alone do not prove propagation,hardware/VM

@@ -1,0 +1,15 @@
+CAPTURE_TYPE: structured primary-source excerpt (not a full mirror)
+SOURCE_ID: S002
+SOURCE_URL: https://rocm.docs.amd.com/en/latest/about/transition-guide-TheRock.html
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn921834view4; turn628835view0
+LINE_LOCATORS: 168-180; 183-225; 228-275
+CAPTURED_FACTS:
+- Core SDK 7.14.0 is explicitly called a preview release built on TheRock.
+- Core SDK prefix: /opt/rocm/core; legacy prefix: /opt/rocm/.
+- Core SDK package prefix: amdrocm-; legacy package prefixes include rocm-, roc- and hip-.
+- AMD states ABI/API compatibility with legacy 7.2.
+- amdrocm-runtime contains HIP, ROCR and runtime compilation.
+- amdrocm-blas contains rocBLAS, hipBLAS, hipBLASLt and hipSPARSELt.
+- amdrocm-ccl contains rocPRIM, rocThrust and hipCUB; amdrocm-rccl is RCCL.
+- Architecture suffix -gfx1151 is documented.

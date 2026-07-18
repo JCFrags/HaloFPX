@@ -1,0 +1,20 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-LLAMACPP-ARCH
+authority: primary_runtime_source
+capture_type: connector_text_extract
+source_title: llama.cpp architecture and model mapping
+source_url: https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/src/llama-model.cpp
+immutable_revision: 86a9c79f866799eb0e7e89c03578ccfbcc5d808e
+accessed_at: 2026-07-18
+completeness: SELECTED_FACTS
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Static source observations at the pinned commit:
+- Architecture names include deepseek2, glm4moe, nemotron_h_moe, qwen35moe, and minimax-m2.
+- llama_model_mapping returns concrete model classes for all five architecture families used by the six candidates.
+- Registration is not treated as proof of tensor compatibility, successful load, correct execution, or output quality.
+
+Relevant source files:
+- src/llama-arch.cpp (blob 72968607db809f91ff87afb68a222b4ef52a6cf7)
+- src/llama-model.cpp (blob 4c10e4126f627847088d86f68edfbfef24ead63b)

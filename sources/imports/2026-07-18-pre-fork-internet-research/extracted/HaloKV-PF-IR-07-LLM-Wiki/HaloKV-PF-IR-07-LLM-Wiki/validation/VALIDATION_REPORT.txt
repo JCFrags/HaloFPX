@@ -1,0 +1,38 @@
+HaloKV PF-IR-07 bundle validation report
+========================================
+
+Build date: 2026-07-18
+Research access date: 2026-07-18
+Bundle version: 1.0.0
+
+Structured data
+---------------
+PASS: parsed 16 JSON and 9 CSV files; claims/sources/matrix counts valid
+
+Static links
+------------
+PASS: 958 local references across 27 HTML files
+
+Integrity manifest pre-report run
+---------------------------------
+PASS: bundle integrity verified
+  manifests/SHA256SUMS: 152 records
+  manifests/SOURCE_SHA256SUMS: 63 records
+  manifests/ROOT_SHA256SUMS: 5 records
+  manifests/files.json: 152 records
+
+Finalization note
+-----------------
+This report was added after the integrity run above. The bundle manifests were
+regenerated afterward to include this report, and the verifier was run again.
+The final verifier result is reported outside this file and can be reproduced
+with: python3 validation/verify_bundle.py
+
+Material archival limitations
+------------------------------
+* systemd v261.1 man/crypttab.xml: exact tag, commit, path, license, and blob
+  identifier retained; derivative extract only, not byte-identical XML.
+* cryptsetup 2.8.6 release archive: upstream SHA-256 recorded; archive and
+  detached signature not independently verified in this run.
+* Bundle hashes establish byte consistency with the manifest, not publisher
+  authenticity, certification, compliance, or secure deletion.

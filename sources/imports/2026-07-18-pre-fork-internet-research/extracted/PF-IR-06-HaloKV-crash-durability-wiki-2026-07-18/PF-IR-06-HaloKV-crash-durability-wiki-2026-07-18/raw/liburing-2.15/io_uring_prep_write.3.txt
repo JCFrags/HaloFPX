@@ -1,0 +1,18 @@
+---
+source_id: "S016"
+title: "liburing io_uring_prep_write(3)"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "axboe/liburing"
+path: "man/io_uring_prep_write.3"
+version: "2.15"
+commit: "d41bf9220ec39277ff235379e9089d9e0fd6c2a5"
+upstream_blob_sha1: "fde22136b1e58240923ff37beb26f25bb68091d1"
+line_ranges: "20-69"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "LGPL-2.0-or-later"
+---
+The write request starts nbytes at the specified offset. The CQE res field is
+the operation result; failures are returned as negated errno rather than via
+errno. Despite an unsigned byte count, the underlying interface transfers at
+most INT_MAX bytes per request.

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rollback and removal · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html">Lane map</a><a href="02-official-support-matrices.html">Official support matrices</a><a href="03-component-dossier.html">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="06-source-build-provenance.html">Source/build provenance</a><a href="07-known-issues.html">Known issues</a><a href="08-rollback-removal.html" class="active">Rollback and removal</a><a href="09-licensing-sbom.html">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / Rollback and removal</div>
+  <article><h1>Rollback and removal</h1>
+<h2>Core SDK native packages</h2>
+<p>For the gfx1151 meta package:</p>
+<pre><code class="language-bash">sudo apt autoremove amdrocm7.14-gfx1151
+# or on RPM systems
+sudo dnf remove amdrocm7.14-gfx1151
+</code></pre>
+<p>Then remove only the repository/key files created for the candidate and refresh package-manager metadata. Before removal, export the installed package list, package-file list, alternatives and resolved <code>/opt/rocm</code> symlinks.</p>
+<h2>Raw tarball</h2>
+<p>Remove the selected extraction directory and delete the corresponding profile/environment block. Do not use a broad wildcard that can delete a legacy control installation. AMD's example assumes a <code>therock-tarball</code> directory:</p>
+<pre><code class="language-bash">sudo rm -rf therock-tarball
+sudo rm -f /etc/profile.d/set-rocm-env.sh   # only when this file belongs to this install
+</code></pre>
+<h2>Python/pip lane</h2>
+<p>Purge the dedicated virtual environment, not the system interpreter:</p>
+<pre><code class="language-bash">python -m pip cache purge
+rm -rf .venv
+</code></pre>
+<h2>Runfile</h2>
+<pre><code class="language-bash">bash rocm-installer-7.14.0-6.run uninstall-rocm gfx=gfx1151
+</code></pre>
+<p>Driver removal is a separate operation and normally should not be used for the documented Ryzen inbox-driver lane. When a runfile-installed driver was deliberately used for a non-Ryzen test, preserve its installer and manifest before <code>uninstall-amdgpu</code>.</p>
+<h2>Rollback acceptance</h2>
+<p>After rollback, verify that no 7.14 package, library, alternative, profile fragment, CMake package or cache remains in the 7.2 control namespace. <code>scripts/rollback-7.14.sh</code> is dry-run by default and requires an explicit <code>--execute</code> flag.</p>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

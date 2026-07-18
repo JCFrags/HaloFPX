@@ -1,0 +1,16 @@
+PRIMARY SOURCE EXCERPT
+Path: Documentation/ABI/testing/configfs-thunderbolt_stream
+Version: v7.2 source
+
+What: /sys/kernel/config/thunderbolt/stream/<xdomain>.<service>
+Date: Sep 2026
+KernelVersion: v7.2
+
+Per-stream attributes:
+- index: maps the configfs stream to /dev/tbstreamX
+- in_hopid: input/read-path HopID; values start at 8; -1 automatic; 0 deallocates while idle
+- out_hopid: output/write-path HopID; values start at 8; -1 automatic; 0 deallocates while idle
+- ring_size: 32..4096; default 256
+- throttling: interrupt throttling in ns; default 8192
+
+Audit note: the metadata date is later than the 2026-07-18 access date and is retained verbatim as a documentation anomaly.

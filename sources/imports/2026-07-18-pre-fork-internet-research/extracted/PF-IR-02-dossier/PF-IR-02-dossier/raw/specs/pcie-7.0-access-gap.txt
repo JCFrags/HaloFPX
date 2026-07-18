@@ -1,0 +1,5 @@
+[NORMATIVE METADATA / MEMBER-ONLY GAP]
+PCI Express Base Specification Revision 7.0
+Approved: 2025-06-11
+Normative access: PCI-SIG member/license controlled.
+The public overview and ECN/errata index were accessible; normative clauses were not. No PCIe link-rate statement is used as application-throughput evidence.

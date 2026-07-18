@@ -1,0 +1,20 @@
+CAPTURE_TYPE: structured primary-source excerpt (not a full mirror)
+SOURCE_ID: S003
+SOURCE_URL: https://rocm.docs.amd.com/en/docs-7.14.0/install/rocm.html
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn619120view2; turn619120view3; turn921834view5; turn921834view6
+LINE_LOCATORS: 1154-1168; 1180-1220; 2758-2761; 3296-3390
+EXACT_ARTIFACT_URL:
+https://repo.amd.com/rocm/tarball-multi-arch/therock-dist-linux-gfx1151-7.14.0.tar.gz
+SIGNED_APT_CONFIGURATION:
+- Key URL: https://repo.amd.com/rocm/packages-multi-arch/gpg/rocm.gpg
+- Ubuntu 26.04 repository: https://repo.amd.com/rocm/packages-multi-arch/ubuntu2604 stable main
+- Ubuntu 24.04 repository: https://repo.amd.com/rocm/packages-multi-arch/ubuntu2404 stable main
+- APT uses signed-by=/etc/apt/keyrings/amdrocm.gpg.
+DRIVER REQUIREMENT:
+- Supported Ryzen APUs use the inbox driver from Ubuntu 26.04 or 24.04.4.
+ROLLBACK_IDENTIFIERS:
+- Native package: amdrocm7.14-gfx1151.
+- Runfile: rocm-installer-7.14.0-6.run.
+INTEGRITY OBSERVATION:
+- No adjacent stable-tarball SHA or detached-signature instruction was located in this page capture.

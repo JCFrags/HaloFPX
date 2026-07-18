@@ -1,0 +1,1 @@
+Linux v7.1.3 source audit: drivers/thunderbolt/stream.c and CONFIG_USB4_STREAM are absent. thunderbolt-net and MPTCP remain available according to their existing configurations.

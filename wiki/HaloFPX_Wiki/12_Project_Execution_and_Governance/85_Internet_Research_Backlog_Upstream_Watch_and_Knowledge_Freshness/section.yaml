@@ -3,8 +3,8 @@ title: "Internet Research Backlog, Upstream Watch, and Knowledge Freshness"
 category_id: "12"
 category_title: "Project Execution and Governance"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
-source_count: 17
+last_verified: "2026-07-18"
+source_count: 18
 open_question_count: 18
 required_machine_experiments:
   - id: "EX85-01"

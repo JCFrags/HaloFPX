@@ -1,0 +1,4 @@
+[PROPOSED -> RELEASED LINEAGE] USB4STREAM v2 cover metadata
+Date: 2026-05-11
+Message-ID: <20260511102744.1867485-1-mika.westerberg@linux.intel.com>
+V2 used miscdevice allocation instead of a custom major, dropped the proposed thunderbolt-net parameter change, and added administrator documentation. The exact ten patch subjects are retained in pages/02-usb4stream-source-trace.md.

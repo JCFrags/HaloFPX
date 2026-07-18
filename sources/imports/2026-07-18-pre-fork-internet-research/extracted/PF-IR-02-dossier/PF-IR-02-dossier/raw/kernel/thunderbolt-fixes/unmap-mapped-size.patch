@@ -1,0 +1,19 @@
+From: Xu Rao <raoxu@uniontech.com>
+Date: 2026-06-11
+Subject: [PATCH tb-next] thunderbolt: stream: unmap buffers with mapped size
+
+The pools map each page with TB_MAX_FRAME_SIZE. v7.2-rc3 releases each mapping using tb_ring_frame_size(), which can be shorter for the final DATA frame and the 256-byte CLOSE frame. The accepted patch changes the unmap size to TB_MAX_FRAME_SIZE.
+
+diff --git a/drivers/thunderbolt/stream.c b/drivers/thunderbolt/stream.c
+index c1f5c55583d0..4cc86d8d6491 100644
+--- a/drivers/thunderbolt/stream.c
++++ b/drivers/thunderbolt/stream.c
+@@ -257,7 +257,7 @@ static void tbstream_ring_free(struct tbstream_ring *ring)
+ 		if (sf->frame.buffer_phy)
+ 			dma_unmap_page(dma_dev, sf->frame.buffer_phy,
+-				       tb_ring_frame_size(&sf->frame), dir);
++				       TB_MAX_FRAME_SIZE, dir);
+
+Maintainer reply: applied to thunderbolt.git/fixes.
+Observed fixes-branch head during audit: db79679595326fd3f6bd1e6fd0cefc3ba016039a.
+Evidence limitation: the individual accepted commit object ID was not independently recovered from the accessible views.

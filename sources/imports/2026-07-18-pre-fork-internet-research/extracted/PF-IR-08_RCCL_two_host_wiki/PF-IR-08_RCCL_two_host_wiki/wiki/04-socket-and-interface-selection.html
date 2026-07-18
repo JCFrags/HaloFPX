@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Socket transport and interface selection · PF-IR-08</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-08<br>RCCL two-host boundary</div><div class="audit">Evidence snapshot · 2026-07-18<br><code>801a9ca…</code> active authority</div><input id="nav-search" class="search" type="search" placeholder="Filter pages…"><nav class="nav"><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-method.html" class="">Scope, method, and evidence rules</a><a href="../wiki/01-executive-decision.html" class="">Executive decision</a><a href="../wiki/02-authority-and-version-lanes.html" class="">Authority and version lanes</a><a href="../wiki/03-strix-halo-evidence.html" class="">Strix Halo evidence and support boundary</a><a href="../wiki/04-socket-and-interface-selection.html" class="active">Socket transport and interface selection</a><a href="../wiki/05-topology-and-memory-registration.html" class="">Topology discovery and memory registration</a><a href="../wiki/06-network-plugin-abi.html" class="">Network-plugin ABI and custom transport boundary</a><a href="../wiki/07-communicator-failure-semantics.html" class="">Communicator creation and failure semantics</a><a href="../wiki/08-two-way-tensor-parallelism-boundary.html" class="">Two-way tensor parallelism and adjacent architectures</a><a href="../wiki/09-upstream-tests-statements.html" class="">Upstream tests and maintainer statements</a><a href="../wiki/10-local-experiment-matrix.html" class="">Local experiment matrix</a><a href="../wiki/11-open-questions-machine-evidence.html" class="">Open questions requiring machine evidence</a><a href="../wiki/12-evidence-index.html" class="">Evidence index</a></nav><div class="mini"><b>Non-claim boundary</b><br>No RCCL suitability or GPU-direct-over-USB4 conclusion without exact two-node evidence.</div></aside><main class="main"><div class="topbar"><span class="crumb">PF-IR-08 / Socket transport and interface selection</span><span><a href="../README.md">README</a> · <a href="../claims/claims.csv">claims.csv</a> · <a href="../manifests/source_manifest.csv">manifest</a></span></div><div class="content"><article class="article"><h1>Socket transport and interface selection</h1>
+<h2>Stock Socket data path</h2>
+<p>The inspected active and 2.27.7 Socket implementations are explicit:</p>
+<ul>
+<li><code>ptrSupport = NCCL_PTR_HOST</code>.</li>
+<li><code>netDeviceType = NCCL_NET_DEVICE_HOST</code>.</li>
+<li><code>regMr</code> rejects any pointer type other than <code>NCCL_PTR_HOST</code>.</li>
+<li><code>iflush</code> says device pointers are unsupported.</li>
+<li><code>regMrDmaBuf</code> is a null callback.</li>
+</ul>
+<p>That source boundary supports a host-staged interpretation. It does not establish which copies, pinning strategy, or CPU load will be observed on the target APU; those require profiling.</p>
+<h2>Interface controls</h2>
+<p>Use exact, logged selection rather than auto-discovery:</p>
+<pre><code class="language-bash">export NCCL_NET=Socket
+export NCCL_SOCKET_IFNAME='=usb4eth0'   # replace with the exact Linux name
+export NCCL_SOCKET_FAMILY=AF_INET
+export NCCL_DEBUG=INFO
+export NCCL_DEBUG_SUBSYS=INIT,NET,ENV,GRAPH
+</code></pre>
+<p><code>NCCL_SOCKET_IFNAME</code> supports prefix lists, exclusion with <code>^</code>, and exact matching with <code>=</code>. Without a setting, source tries IB first, then a <code>NCCL_COMM_ID</code> subnet match, then ordinary interfaces excluding docker/loopback/virbr, followed by docker, loopback, and virbr.</p>
+<h2>Retry, close, and reconnect</h2>
+<p>The source exposes connection/progress parameters including retry count, retry sleep, and poll timeout. A remote close is converted to <code>ncclRemoteError</code>. These knobs are not a documented universal deadline for every collective. No audited path transparently reconnects a failed established peer and restores the same communicator. The experiment harness must own a wall-clock watchdog, async polling, abort, and fresh initialization.</p>
+</article><div class="footer">Commit-pinned research snapshot. Literal labels distinguish API, implementation, documentation, tests, commentary, inference, and unresolved machine evidence.</div></div></main></div><script src="../assets/wiki.js"></script></body></html>

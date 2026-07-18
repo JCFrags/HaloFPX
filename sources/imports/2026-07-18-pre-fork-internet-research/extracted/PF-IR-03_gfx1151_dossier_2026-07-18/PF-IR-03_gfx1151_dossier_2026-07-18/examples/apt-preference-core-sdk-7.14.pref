@@ -1,0 +1,7 @@
+Package: amdrocm*
+Pin: origin repo.amd.com
+Pin-Priority: 700
+
+Package: rocm-* roc-* hip-*
+Pin: *
+Pin-Priority: -1

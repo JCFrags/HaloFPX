@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Backup, restore, snapshots, and export Default: do not back up regenerable cache content Persistent cache backup increases secret copy inventory, rollback risk, deletion propagatio…">
+  <title>Backup, restore, snapshots, and export · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link active" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Backup, restore, snapshots, and export</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Backup, restore, snapshots, and export</h1>
+<h2 id="default-do-not-back-up-regenerable-cache-content">Default: do not back up regenerable cache content<a class="heading-anchor" href="#default-do-not-back-up-regenerable-cache-content" aria-label="Link to section">#</a></h2>
+<p>Persistent cache backup increases secret-copy inventory, rollback risk, deletion propagation, and restore complexity. The default is to back up only configuration and authority records needed to rebuild—not rank-local cache objects. Business-approved exceptions must document why recomputation cannot meet recovery objectives.</p>
+<p><span class="claim-label" data-claim="PFIR07-C064" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C064][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C013-C014,C040-C044]</span></p>
+<h2 id="coherent-backup-set">Coherent backup set<a class="heading-anchor" href="#coherent-backup-set" aria-label="Link to section">#</a></h2>
+<p>A usable and auditable backup may require all of the following as a coordinated recovery point:</p>
+<ul>
+<li>encrypted object files;</li>
+<li>authenticated manifests and serving-index generation;</li>
+<li>format/schema/codec/chunking versions;</li>
+<li>authority, tenant, project, prefix, namespace, sharing, rank, and epoch metadata;</li>
+<li>wrapped child roots or KMS references and wrapping-key versions;</li>
+<li>nonce allocator state <strong>only for forensic continuity</strong>—restored writers still receive a new epoch;</li>
+<li>trusted epoch/generation floors and deletion tombstones;</li>
+<li>LUKS2 header/detached-header backup if raw-volume recovery requires it;</li>
+<li>fscrypt policy/key-descriptor metadata if tree-level recovery requires it;</li>
+<li>backup encryption metadata, retention, legal hold, and restore authorization.</li>
+</ul>
+<p>Do not store plaintext object keys in the backup. Backup encryption uses a separately governed backup KEK; simply nesting cache ciphertext does not eliminate access-policy and rollback obligations.</p>
+<h2 id="luks-header-backups">LUKS header backups<a class="heading-anchor" href="#luks-header-backups" aria-label="Link to section">#</a></h2>
+<p>A LUKS header backup is key-bearing recovery material. It can restore keyslots/metadata and may reactivate access that operators believed revoked. Store it separately, encrypt and access-control it, inventory copies, bind it to the volume UUID/recovery point, and include it in rotation, incident, and CE analysis.</p>
+<p><span class="claim-label" data-claim="PFIR07-C014" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C014][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-luksHeaderBackup]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C082" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C082][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C014,C021-C022,C042]</span></p>
+<h2 id="snapshot-rules">Snapshot rules<a class="heading-anchor" href="#snapshot-rules" aria-label="Link to section">#</a></h2>
+<ul>
+<li>A live filesystem/block snapshot must use an application-aware quiesce or an explicitly crash-consistent recovery design.</li>
+<li>A snapshot of nonce allocator state must never resume writes under the same restored AEAD key; allocate a new epoch.</li>
+<li>A snapshot can preserve deleted objects, old manifests, old LUKS headers, and wrapped keys. It participates in retention and erasure scope.</li>
+<li>Cross-region/provider replicas are separate copies in the key and deletion inventory.</li>
+<li>Snapshot names and tags are not trusted freshness state unless protected by the authority.</li>
+</ul>
+<h2 id="restore-workflow">Restore workflow<a class="heading-anchor" href="#restore-workflow" aria-label="Link to section">#</a></h2>
+<p>All restore targets start in a <strong>non-serving quarantine namespace</strong> with separate credentials and no symlink/path into the live cache.</p>
+<ol>
+<li>Authorize the restore and record source, owner, reason, scope, and expected revision.</li>
+<li>Verify backup transport/container hashes and signatures where available.</li>
+<li>Restore ciphertext and metadata without unlocking object keys.</li>
+<li>Load current authority policy, revocation state, epoch floors, tombstones, and accepted format versions.</li>
+<li>Validate lower-layer volume/header identity before activation; never apply a header backup to an unverified target.</li>
+<li>Obtain only the old keys explicitly authorized for validation; do not reactivate compromised/destroyed epochs for serving.</li>
+<li>Authenticate every manifest and enforce current freshness/deletion policy.</li>
+<li>Validate objects eagerly for high assurance or lazily with a declared sampling/coverage policy; any failure is miss/quarantine.</li>
+<li>Re-encrypt or recompute accepted data into a <strong>new destination rank and epoch</strong>, with fresh nonces and new manifests.</li>
+<li>Atomically publish only the new destination manifest/index.</li>
+<li>Remove temporary keys, close mappings, and apply quarantine retention/disposition policy.</li>
+<li>Produce a restore report with accepted/rejected counts and unresolved residual risks.</li>
+</ol>
+<p><span class="claim-label" data-claim="PFIR07-C065" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C065][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C013-C014,C058-C060,C064]</span></p>
+<h2 id="restore-of-an-old-deleted-epoch">Restore of an old deleted epoch<a class="heading-anchor" href="#restore-of-an-old-deleted-epoch" aria-label="Link to section">#</a></h2>
+<p>A valid old tag does not override a current tombstone or epoch floor. The data may be retained as incident/legal evidence under separate authority, but it does not return to cache service. If policy authorizes reintroduction, it is treated as a new authoritative import and receives a new scope, epoch, key, nonce, CID policy, and manifest.</p>
+<h2 id="export">Export<a class="heading-anchor" href="#export" aria-label="Link to section">#</a></h2>
+<p>Export is an authorization and cryptographic-context transition:</p>
+<ol>
+<li>Identify source and destination authorities, tenants/projects, sharing class, purpose, and recipient.</li>
+<li>Authorize the principal for source decrypt and destination write; log both decisions.</li>
+<li>Authenticate source manifest/object and enforce freshness/tombstones.</li>
+<li>Decrypt into bounded memory; never export from a tag-failed or stale cache entry.</li>
+<li>Transform only through an approved semantic export codec.</li>
+<li>Recompute destination-scoped CID; do not reuse a source-private CID as a global identifier.</li>
+<li>Encrypt under destination key/AAD with a fresh nonce and publish a destination manifest.</li>
+<li>Erase temporary plaintext/key buffers to the practical software limit and report residuals.</li>
+</ol>
+<p>Copying ciphertext is acceptable only as an opaque backup/evidence transfer; it does not transfer principal authorization or make the object directly consumable by the destination.</p>
+<p><span class="claim-label" data-claim="PFIR07-C066" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C066][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C030,C034,C052-C057]</span></p>
+<h2 id="backup-restore-test-cadence">Backup/restore test cadence<a class="heading-anchor" href="#backup-restore-test-cadence" aria-label="Link to section">#</a></h2>
+<p>At least one controlled restore drill should exercise: missing key, wrong key, revoked epoch, corrupted tag, modified AAD, stale manifest, absent object, duplicate object, old tombstoned object, wrong LUKS header, busy mapping, and restored nonce state. The expected serving result for each invalid cache object is <code>MISS_RECOMPUTE</code>.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

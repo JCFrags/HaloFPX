@@ -1,0 +1,776 @@
+{
+  "bundle": "HaloKV PF-IR-07 LLM Wiki",
+  "version": "1.0.0",
+  "build_date": "2026-07-18",
+  "access_date": "2026-07-18",
+  "hash_algorithm": "SHA-256",
+  "scope": "All files outside manifests/",
+  "record_count": 153,
+  "records": [
+    {
+      "path": "LICENSE-SYNTHESIS.txt",
+      "size_bytes": 631,
+      "sha256": "529e3872739b9d8a894e4db2e252ead4e6c182e267bdb5b596e013cdd7bab3ce"
+    },
+    {
+      "path": "README.md",
+      "size_bytes": 2654,
+      "sha256": "bbcdb860aac61bf14b13032d5955e51c612b383fad79d9c3cc1e814b155921e6"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "size_bytes": 799,
+      "sha256": "647a0d43ed792085e7fd2d2c3368320783480764d3c3f6f4dfb79f6bfbc8cc8e"
+    },
+    {
+      "path": "assets/app.js",
+      "size_bytes": 2858,
+      "sha256": "e6c5642d6b5bdb95b85e48c83c93c408e04cfcb01a2998018ae3fb0d70947d7f"
+    },
+    {
+      "path": "assets/search-index.json",
+      "size_bytes": 10722,
+      "sha256": "8e15e7dd4ed27a4c2c9bef42418dfea361190b4abcf5f4d17ec019b565f6f07f"
+    },
+    {
+      "path": "assets/style.css",
+      "size_bytes": 11807,
+      "sha256": "e1a5da494f7c1a9502ebbc21f4a4fb8ce5215264f5b27fefd5d66cf1321a2dd6"
+    },
+    {
+      "path": "examples/README.md",
+      "size_bytes": 289,
+      "sha256": "e14257870378c6830b04533838002cd64e779c13d45e89a4f2ec16c3e2f67cbe"
+    },
+    {
+      "path": "examples/cache-read.pseudocode",
+      "size_bytes": 2108,
+      "sha256": "6994a8b7aa45f6162740a74b55102df2f59c8b45980f269773b21424d7624ed0"
+    },
+    {
+      "path": "examples/cache-write.pseudocode",
+      "size_bytes": 1572,
+      "sha256": "4c15e4fd59c627b0eff767c7c32ba92bd34cca3ba3c48aee9a5d8b38d72854b3"
+    },
+    {
+      "path": "examples/failure-map.csv",
+      "size_bytes": 1365,
+      "sha256": "3eb82e8f714b7893ec4800a76e978d49532723d44e4d7e18d459ad11be94c9ea"
+    },
+    {
+      "path": "examples/halokv-policy.example.yaml",
+      "size_bytes": 1515,
+      "sha256": "efe466e3d9deb361c8e698c5a496c0a831bb5f8c988cf93a5e6a6ed90d86497e"
+    },
+    {
+      "path": "examples/nonce-reservation.pseudocode",
+      "size_bytes": 964,
+      "sha256": "a08810450943ed3536c56fb754ecbcc91d99a380cff1353a6f3eb6ca9b038653"
+    },
+    {
+      "path": "examples/test-vector-template.json",
+      "size_bytes": 616,
+      "sha256": "7356dc779eb1cc65352aff4d2db5dfa531ba1911b05b801ada368eff454167ba"
+    },
+    {
+      "path": "index.html",
+      "size_bytes": 10892,
+      "sha256": "f2db041ae93f54217eaf9b1bfa242c6831b7fcf4c7782a0c854fa3255573c786"
+    },
+    {
+      "path": "matrices/claims.csv",
+      "size_bytes": 28430,
+      "sha256": "9f472892eb56471ba4c19d97581f665da7365c656747e3e5615851fddb51ecb9"
+    },
+    {
+      "path": "matrices/claims.json",
+      "size_bytes": 42899,
+      "sha256": "f152b005622994e63cb82902936664af7acfd6a78edccaa246b003fd97c2eb6f"
+    },
+    {
+      "path": "matrices/human-decisions.csv",
+      "size_bytes": 1559,
+      "sha256": "b50bc82ee9d88df2c0cedad74ef7095c5b561bd0dd6b3111caf3162de2d3f6fa"
+    },
+    {
+      "path": "matrices/human-decisions.json",
+      "size_bytes": 2249,
+      "sha256": "b6576936bca221c53f5b8bcc09647d1711d1a72f1c92e0dbd15e59ed05c76c4b"
+    },
+    {
+      "path": "matrices/key-hierarchy.csv",
+      "size_bytes": 1981,
+      "sha256": "51ba505e83f6cfe5eba7a833a4ab5e9029be511ee125546183b338ad999e93d8"
+    },
+    {
+      "path": "matrices/key-hierarchy.json",
+      "size_bytes": 3176,
+      "sha256": "9e95474822e839fc8698ecfc44f8a0608bf0e375e351094dc0f62a6f7006ecf5"
+    },
+    {
+      "path": "matrices/minimum-security-profile.csv",
+      "size_bytes": 6064,
+      "sha256": "4810b1aa28e382acca3542d4c68081a32d1bb29c54d2b741b30fe81986de7541"
+    },
+    {
+      "path": "matrices/minimum-security-profile.json",
+      "size_bytes": 8986,
+      "sha256": "30f2660348972f35feb1e736e41a938942c8a9f74b956c5a0644433e5d302951"
+    },
+    {
+      "path": "matrices/option-comparison.csv",
+      "size_bytes": 7602,
+      "sha256": "11ae388a02d0cb038026d8f65069ad09ad7acaab0621e2906d51a18f938250d2"
+    },
+    {
+      "path": "matrices/option-comparison.json",
+      "size_bytes": 10238,
+      "sha256": "cdbd2c8c5b7989f402f9fabff217cc1f8072453db61107a97f19424b33b13f6e"
+    },
+    {
+      "path": "matrices/residual-risks.csv",
+      "size_bytes": 7658,
+      "sha256": "1ef840d72bcdee074f54e0c8d3ef2c2aaef2307648384340c5a72e7c89526db1"
+    },
+    {
+      "path": "matrices/residual-risks.json",
+      "size_bytes": 12279,
+      "sha256": "c34a3fccd840db61497c4a8c0748956bf3a75876be8bae65632539c4ec611064"
+    },
+    {
+      "path": "matrices/threat-to-control.csv",
+      "size_bytes": 6603,
+      "sha256": "0a6ce9106d7fd0e42c63376756cc6e18bd469d095c7b24af2a2c3b25cac9a3ba"
+    },
+    {
+      "path": "matrices/threat-to-control.json",
+      "size_bytes": 9468,
+      "sha256": "bfdd8e5cbfd8db8dd5446993ae697389df36bf181baf61849939e9a559f6f1f6"
+    },
+    {
+      "path": "readme.html",
+      "size_bytes": 8702,
+      "sha256": "f061bd295fb07500dab2c40cff33a5574d9c1eefd5d952850fc0df5251d4907c"
+    },
+    {
+      "path": "runbooks/RB-01-boot-unlock.html",
+      "size_bytes": 8888,
+      "sha256": "a20722709d804fb3015d7f8faadde990d99310b2014cb88f509f2b92bbe82dcc"
+    },
+    {
+      "path": "runbooks/RB-01-boot-unlock.md",
+      "size_bytes": 2819,
+      "sha256": "aeea8816956617eba51add8b454ad6a2ab2c74f0edcd66dce695c449ddbb3c96"
+    },
+    {
+      "path": "runbooks/RB-02-epoch-rotation-and-revocation.html",
+      "size_bytes": 8603,
+      "sha256": "0838b9b8815d8ce14047d9d1f6a862978b8f2acb48505dfd5cbf6267bd93e9f1"
+    },
+    {
+      "path": "runbooks/RB-02-epoch-rotation-and-revocation.md",
+      "size_bytes": 2503,
+      "sha256": "9b512b9e98a2f8cad68fcb63cdcf848fd3d502b96dd3a5d6627aea8489ef8426"
+    },
+    {
+      "path": "runbooks/RB-03-nonce-state-loss-and-crash.html",
+      "size_bytes": 8098,
+      "sha256": "ee33454af313e93047abe8205a448c64f1e31ead494d6b7d8497d28ffae7d579"
+    },
+    {
+      "path": "runbooks/RB-03-nonce-state-loss-and-crash.md",
+      "size_bytes": 2039,
+      "sha256": "fb375f90b91eb53be2603843bd352236e035ad42133a810c871e65582b4afd04"
+    },
+    {
+      "path": "runbooks/RB-04-backup-and-quarantine-restore.html",
+      "size_bytes": 8475,
+      "sha256": "d7aa60eda21f66cda6726a3e7d670e1866b3dd95e5f4ffb00228b8a30aab89cc"
+    },
+    {
+      "path": "runbooks/RB-04-backup-and-quarantine-restore.md",
+      "size_bytes": 2406,
+      "sha256": "ee833100c9640c43cf7871a167829f449275facb5be82f585d237c12feb6077a"
+    },
+    {
+      "path": "runbooks/RB-05-deletion-ce-and-media.html",
+      "size_bytes": 8581,
+      "sha256": "a6b83a150f043928469ea79bc0eb390317c172f0a524529e1adebd96fafb7449"
+    },
+    {
+      "path": "runbooks/RB-05-deletion-ce-and-media.md",
+      "size_bytes": 2417,
+      "sha256": "a1d5829b50dbd79d6f9afb66e907be239fc0fd33152160924250a43a0acf7f44"
+    },
+    {
+      "path": "runbooks/RB-06-export-and-scope-transition.html",
+      "size_bytes": 7740,
+      "sha256": "debde1036c8058492221a41c1b51e335715b3a1e3666bb7dd7e5553740880fac"
+    },
+    {
+      "path": "runbooks/RB-06-export-and-scope-transition.md",
+      "size_bytes": 1799,
+      "sha256": "b7dd6b73d4aefd0008515de25edaeab00d9c441d71da47b3bd47d1023acbbd13"
+    },
+    {
+      "path": "runbooks/RB-07-quarantine-and-key-incident.html",
+      "size_bytes": 7649,
+      "sha256": "2db3c98d980cfa50b972005caf625b1da6b0c20f59a3feca5f148a30fb1e74c3"
+    },
+    {
+      "path": "runbooks/RB-07-quarantine-and-key-incident.md",
+      "size_bytes": 1738,
+      "sha256": "130caf46003e3c2904c7f05a383859df2ff2ae90fe0e1f589aa0b88fb9610b81"
+    },
+    {
+      "path": "runbooks/RB-08-fscrypt-luks-busy-drain.html",
+      "size_bytes": 8261,
+      "sha256": "badc42aa429b5b8e3dd3fc34bdd51514ae830e648459b2d2877f1efcc9059a39"
+    },
+    {
+      "path": "runbooks/RB-08-fscrypt-luks-busy-drain.md",
+      "size_bytes": 2210,
+      "sha256": "19c742742215d440537a47d8af8c774610f4e34fe2dffeb520e630b5f475bf2d"
+    },
+    {
+      "path": "runbooks/README.md",
+      "size_bytes": 1308,
+      "sha256": "06ef6adf932d24ea64be37a244ca58ed62af23ddc141b893e91999284e8ced69"
+    },
+    {
+      "path": "runbooks/index.html",
+      "size_bytes": 6894,
+      "sha256": "031f716e1c73b7608633fa47a4fb81ea93dc7c4efa45a9565a77bf632b42e724"
+    },
+    {
+      "path": "schemas/README.md",
+      "size_bytes": 414,
+      "sha256": "f0852feeb3dddfd47afd7f64265538d9457da14f724f70bf2d4e3aa7a9dd68b3"
+    },
+    {
+      "path": "schemas/key-record.schema.json",
+      "size_bytes": 3695,
+      "sha256": "c72b5625e6081833c2185069cff637bc034e55fc70fb244082486075e592305d"
+    },
+    {
+      "path": "schemas/manifest.cddl",
+      "size_bytes": 2649,
+      "sha256": "b218b8bbef08fa9a32d7d5544a216622c5ce20d0d7a64eb3dec874910e509ecc"
+    },
+    {
+      "path": "schemas/object-envelope.cddl",
+      "size_bytes": 2545,
+      "sha256": "bcba474e945d1365319ea8a131b6b308117230d13c10be502104a6bb9bbfa6d3"
+    },
+    {
+      "path": "schemas/security-event.schema.json",
+      "size_bytes": 2417,
+      "sha256": "36931b83fc31a8576c97e6c691baf6b6d648e3eaac5e80e8a8575f7dd355dbd5"
+    },
+    {
+      "path": "serve.py",
+      "size_bytes": 392,
+      "sha256": "ef51ce3da9177f0f124f313b0c114aa671ea865b79cd0ba3b951fc91c9a2ee7e"
+    },
+    {
+      "path": "sources/ACCESS_DATE.txt",
+      "size_bytes": 11,
+      "sha256": "fee8057cce03f8eac94f5329dbb150c498e0c612ab084a55cb1c36cef83913c6"
+    },
+    {
+      "path": "sources/CURRENT-STATUS-NOTES.md",
+      "size_bytes": 2255,
+      "sha256": "7ae67ecd8465aca287f92eea3ff76457f39c5ac94bfbede22b7efc0306c9ab58"
+    },
+    {
+      "path": "sources/LICENSE-METADATA.md",
+      "size_bytes": 1554,
+      "sha256": "cbd2da0a8e0a163004a2890168e1f1d4193b2232ac1d235a5a4cf81965d0b93d"
+    },
+    {
+      "path": "sources/catalog.csv",
+      "size_bytes": 14162,
+      "sha256": "cff63f576d746815662b84bb3928f224f993994b2eb605ee0ae11553168442e4"
+    },
+    {
+      "path": "sources/catalog.json",
+      "size_bytes": 23327,
+      "sha256": "58bc7cc7e7b9913c507bf57fe7911fefb968bfdf2b769da51b16b76249a0ef79"
+    },
+    {
+      "path": "sources/licenses/LUKS2-docs-LICENSE-a81aa2f",
+      "size_bytes": 20133,
+      "sha256": "6d4e2239c9605f95e1031309e8bd156dec62c55817427655003c57baceafb1e2"
+    },
+    {
+      "path": "sources/licenses/cryptsetup-COPYING-v2.8.6",
+      "size_bytes": 18802,
+      "sha256": "45670cce8b6a0ddd66c8016cd8ccef6cd71f35717cbacc7f1e895b3855207b33"
+    },
+    {
+      "path": "sources/licenses/linux-kernel-COPYING-v7.2-rc3",
+      "size_bytes": 496,
+      "sha256": "fb5a425bd3b3cd6071a3a9aff9909a859e7c1158d54d32e07658398cd67eb6a0"
+    },
+    {
+      "path": "sources/licenses/systemd-LICENSE.LGPL2.1-v261.1",
+      "size_bytes": 26518,
+      "sha256": "6d9bb3b7fc818a8facc4cc296060a0883fef8710d6498f86165335846e82ee9d"
+    },
+    {
+      "path": "sources/raw/cryptsetup/UPSTREAM-RELEASE-HASHES.txt",
+      "size_bytes": 817,
+      "sha256": "b5e1ecba3c720ef82329ad512a6df05b79f6b74d01a54fbe4843a254ef4d22ae"
+    },
+    {
+      "path": "sources/raw/cryptsetup/common_options.adoc",
+      "size_bytes": 59874,
+      "sha256": "cef5ce10abf1e76fb62545c0deb5650e252650590a9bbbb6fd1a1ca1b9afbd01"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-close.8.adoc",
+      "size_bytes": 797,
+      "sha256": "5b0c2c97fc05403f61e0ce6ce379e87f531ac97da88df10497320691f8f61369"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-erase.8.adoc",
+      "size_bytes": 1346,
+      "sha256": "d694b8e3caba1e14821fb926488e67b5afbf885c730f0d901f19ddda1a83db0d"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-luksAddKey.8.adoc",
+      "size_bytes": 3018,
+      "sha256": "5c81dc955800c76425c337cf0e978965c447f90602b17e88dece6f01cc861658"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-luksChangeKey.8.adoc",
+      "size_bytes": 2097,
+      "sha256": "ab8ad146bab3d86acb840e1fd2ef2cdb9310c0683b313c47fc08d63d3e392993"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-luksHeaderBackup.8.adoc",
+      "size_bytes": 1079,
+      "sha256": "b50a13c7b343a321896d3b6b7812784c43e38aa8764e7124f502cff8643634df"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-luksHeaderRestore.8.adoc",
+      "size_bytes": 989,
+      "sha256": "9d97159b347ae28a4afff2fb61475eca9f75361c22dbfa1237a8428d83367f17"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-luksKillSlot.8.adoc",
+      "size_bytes": 1503,
+      "sha256": "ec022a2a164aa063e30aef68a282511338f8969ce94b2a54aa812560d9dc5ea7"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-luksSuspend.8.adoc",
+      "size_bytes": 1041,
+      "sha256": "66518d49d2eaa6adf77d678eb2cadecf585bc993c05a99a55caeef5eb05e4104"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-open.8.adoc",
+      "size_bytes": 8001,
+      "sha256": "14dca6dfb695952eef27410c1b26e54b46eb456ad1ea45a0e6a5810a0b02a94c"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup-reencrypt.8.adoc",
+      "size_bytes": 6468,
+      "sha256": "d03f6a86c32ef670fd262b7fbb4c2f8ba88a0bec3cef6bef5ae0a192042dbed1"
+    },
+    {
+      "path": "sources/raw/cryptsetup/cryptsetup.8.adoc",
+      "size_bytes": 29341,
+      "sha256": "7f824a38107bcad0f3cb7118f016b0adf6b5061b5d94e0e1b5eb8564dcc7950b"
+    },
+    {
+      "path": "sources/raw/cryptsetup/v2.8.6-ReleaseNotes",
+      "size_bytes": 3891,
+      "sha256": "87ec53a34c79387e098b31bc69778af8c8dedbee69635d436995e4f6a142310c"
+    },
+    {
+      "path": "sources/raw/linux-kernel/dm-crypt.rst.txt",
+      "size_bytes": 7860,
+      "sha256": "31d61c55fae026bc95c7f4e9e08d8eaceeba64c1fb44e0efdba492f27d6a774d"
+    },
+    {
+      "path": "sources/raw/linux-kernel/dm-integrity.rst.txt",
+      "size_bytes": 12577,
+      "sha256": "c943546f0ed867587ef8182b9e4aee9bad18c4b1ac91a49d37e2acf8c8c8b5f4"
+    },
+    {
+      "path": "sources/raw/linux-kernel/fscrypt.rst.txt",
+      "size_bytes": 73360,
+      "sha256": "e3637b6c5d549c9d3eaee53add2a28ab5c9f6b7955984749725319510016d7fc"
+    },
+    {
+      "path": "sources/raw/linux-kernel/key-retention-core.rst.txt",
+      "size_bytes": 72604,
+      "sha256": "863a379d48b4b7999183e7638c26b79b7aabc86fec813ee9b021795007ca258e"
+    },
+    {
+      "path": "sources/raw/linux-kernel/license-rules-v7.2-rc3.rst",
+      "size_bytes": 18477,
+      "sha256": "635a61aa47349007033c64fcdf403d33be35040b62284494bbbd4a9b546ec06d"
+    },
+    {
+      "path": "sources/raw/luks2/LUKS2-On-Disk-Format-1.1.4.pdf",
+      "size_bytes": 373682,
+      "sha256": "96726a86d0c28885d11e0c17a162d112b061e3d0561b1aaa269e37a155bc039f"
+    },
+    {
+      "path": "sources/raw/luks2/README.md",
+      "size_bytes": 432,
+      "sha256": "cbb40ce8fc568256d47126c28580a3f4c7dff38b068020c2548272e3456d77e6"
+    },
+    {
+      "path": "sources/raw/nist/NIST.FIPS.180-4.pdf",
+      "size_bytes": 833315,
+      "sha256": "0455b406d89648d20cbde375561e19c245b9815e894164c2670772e3d54deb82"
+    },
+    {
+      "path": "sources/raw/nist/NIST.FIPS.197-upd1.pdf",
+      "size_bytes": 1184436,
+      "sha256": "62c86eb567f13edb8f71826e985da870b04ef6381634f303cdb16e84d47becd1"
+    },
+    {
+      "path": "sources/raw/nist/NIST.FIPS.198-1.pdf",
+      "size_bytes": 129454,
+      "sha256": "67661ba1407b391c799ff407471de18f36697af51d78a777e817c067ac30da23"
+    },
+    {
+      "path": "sources/raw/nist/NIST.SP.800-108r1-upd1.pdf",
+      "size_bytes": 745462,
+      "sha256": "7f7603e92a69590acd4330a5c6193b6b3093b87a5387b124a1050f4d25a10e07"
+    },
+    {
+      "path": "sources/raw/nist/NIST.SP.800-111.pdf",
+      "size_bytes": 224366,
+      "sha256": "cbee78e499681f636f5021cd1ef5f55968ed7000af402189ed330ee7591cfb48"
+    },
+    {
+      "path": "sources/raw/nist/NIST.SP.800-133r2.pdf",
+      "size_bytes": 543589,
+      "sha256": "11384a58e3036382b7d7bd45d6e9e8dec5c8c3de43c73ed18edcb59cea3f8bbb"
+    },
+    {
+      "path": "sources/raw/nist/NIST.SP.800-38D.pdf",
+      "size_bytes": 271960,
+      "sha256": "d99f3921ccebca049e7522426553aba071dae14ec3d5b6041e8c111a6cb57bba"
+    },
+    {
+      "path": "sources/raw/nist/NIST.SP.800-38E.pdf",
+      "size_bytes": 68990,
+      "sha256": "b43ed11fd9f85bf06aa3a6e54206da361a3d02eb09da6974b80eb1b3e1803342"
+    },
+    {
+      "path": "sources/raw/nist/NIST.SP.800-57pt1r5.pdf",
+      "size_bytes": 1688080,
+      "sha256": "cc32391022c1382ac7c91490f6bcc8838e0f889925270da23ef4e800e2ecb7ad"
+    },
+    {
+      "path": "sources/raw/nist/NIST.SP.800-88r2.pdf",
+      "size_bytes": 983677,
+      "sha256": "39bb805c72723ed74f08e5806cd8463ca2554a62abb4f97b9d19c0398a8a7c55"
+    },
+    {
+      "path": "sources/raw/nist/NIST.SP.800-90Ar1.pdf",
+      "size_bytes": 2417007,
+      "sha256": "d58e3dac4aaa5971c9a6a20a9bd5c13e2f1930cd1a199c0c00f768e7327355e2"
+    },
+    {
+      "path": "sources/raw/rfc/RFC2104.txt",
+      "size_bytes": 22297,
+      "sha256": "64d5245a9101929025336e470e3737f118704001249d503c85a86e19fe9fbb01"
+    },
+    {
+      "path": "sources/raw/rfc/RFC5116.txt",
+      "size_bytes": 50539,
+      "sha256": "8762fee7c85e682fce609c75e0f5040ee7efa8fca96969ffd85df37585e0eda1"
+    },
+    {
+      "path": "sources/raw/rfc/RFC5869.txt",
+      "size_bytes": 25854,
+      "sha256": "7a40eb3835b35fc947eb12a2ed614db079d43b26e50dbc537c31fba16397089c"
+    },
+    {
+      "path": "sources/raw/rfc/RFC8018.txt",
+      "size_bytes": 80887,
+      "sha256": "cf96b02e68216f618ea33b20b49d476edba9d70f2333597ec516629d22971cda"
+    },
+    {
+      "path": "sources/raw/rfc/RFC8439.txt",
+      "size_bytes": 88847,
+      "sha256": "25bef70fbf7a07ff45c2fe4cb7c6ce954eac687413d8610603268b4e4415324c"
+    },
+    {
+      "path": "sources/raw/rfc/RFC8452.txt",
+      "size_bytes": 102765,
+      "sha256": "ca48ec466b401ce5d68d6d1628127a1800adcc16f2573646aaa3d7df284d3c17"
+    },
+    {
+      "path": "sources/raw/rfc/RFC8949.txt",
+      "size_bytes": 185226,
+      "sha256": "f1164a5b31a39350ad46abe29b83575eb933ca6c45366989c118b6b1058a214a"
+    },
+    {
+      "path": "sources/raw/rfc/RFC9106.txt",
+      "size_bytes": 37228,
+      "sha256": "855c06f060379e34285e83a217e9069b5c72e161a1e54df9af5cd88dbb231f31"
+    },
+    {
+      "path": "sources/raw/systemd/crypttab-v261.1-DERIVED-EXTRACT.txt",
+      "size_bytes": 1949,
+      "sha256": "277c1b28893476bfbb5bd5be874f11a57d452d019fd0531dcdc7b05196c9c2c1"
+    },
+    {
+      "path": "sources/raw-files.json",
+      "size_bytes": 11349,
+      "sha256": "c0d79f2c720633cdf6920065a3a9a893bb8c0e828cc02ce5d0f23ead78c2bde0"
+    },
+    {
+      "path": "sources/text-extracts/LUKS2-On-Disk-Format-1.1.4.txt",
+      "size_bytes": 58647,
+      "sha256": "e3cd09ffd4734b99ce4a71d87972433729f982d0ee54e16d331105fb745786e5"
+    },
+    {
+      "path": "sources/text-extracts/NIST.FIPS.180-4.txt",
+      "size_bytes": 63213,
+      "sha256": "15cacf3dc1ff75c71baef4fc35345a650d58f7396bc5c44361ad7cf2ddfd1401"
+    },
+    {
+      "path": "sources/text-extracts/NIST.FIPS.197-upd1.txt",
+      "size_bytes": 101364,
+      "sha256": "abbe5148ca9378a5ff49d7189487b45726b73dbac08e42ef817a5943ff7e4781"
+    },
+    {
+      "path": "sources/text-extracts/NIST.FIPS.198-1.txt",
+      "size_bytes": 18790,
+      "sha256": "402656e6d5fa0cf2293908b234c43bace842aaf6cf2cff7150b34224d224fc2f"
+    },
+    {
+      "path": "sources/text-extracts/NIST.SP.800-108r1-upd1.txt",
+      "size_bytes": 73274,
+      "sha256": "da8f0a047786c5c3668e7dccf4222def6a59b43edc2ce9382631913a5d142446"
+    },
+    {
+      "path": "sources/text-extracts/NIST.SP.800-111.txt",
+      "size_bytes": 127231,
+      "sha256": "a49835e47a8e96a77ba795d77091abaf8d4094c6c19174860e43258e344784d4"
+    },
+    {
+      "path": "sources/text-extracts/NIST.SP.800-133r2.txt",
+      "size_bytes": 202054,
+      "sha256": "0268220f32cdf25fadbdd3c69dc45191332ec128028db47fedeba8f3af03a11b"
+    },
+    {
+      "path": "sources/text-extracts/NIST.SP.800-38D.txt",
+      "size_bytes": 86335,
+      "sha256": "37314f0ea9cb1d8ef75d854f142d63a1a2d67aaeeb733e637693afebd4011f2b"
+    },
+    {
+      "path": "sources/text-extracts/NIST.SP.800-38E.txt",
+      "size_bytes": 14526,
+      "sha256": "85289b6f0541ce9ab9da9aad1acd2ef75ff121a6ad33ee4ac51be7e304667754"
+    },
+    {
+      "path": "sources/text-extracts/NIST.SP.800-57pt1r5.txt",
+      "size_bytes": 1256398,
+      "sha256": "b4887620826b14b6ca801da6f57d889647206c6156cf8c87da408a21ddefd50a"
+    },
+    {
+      "path": "sources/text-extracts/NIST.SP.800-88r2.txt",
+      "size_bytes": 124201,
+      "sha256": "6d8265fad0101fd030413ff848ac3a6ced68cf3290cc652c88fcd94f66e9fc58"
+    },
+    {
+      "path": "sources/text-extracts/NIST.SP.800-90Ar1.txt",
+      "size_bytes": 288764,
+      "sha256": "dfe203a29a8d6ee06a7d5a811a50536f3f3cc2b88acc6bba39ee3eae2aa71e94"
+    },
+    {
+      "path": "validation/VALIDATION_REPORT.txt",
+      "size_bytes": 1397,
+      "sha256": "7b2f8f80a9cae19e7711cf57a664f08a28629ab000f574f07597ee29334be6a5"
+    },
+    {
+      "path": "validation/build-report.json",
+      "size_bytes": 439,
+      "sha256": "81d54704b32f91a7dba1d15bb49f19107e365c7308fea79318afdf45b25e8d57"
+    },
+    {
+      "path": "validation/check_links.py",
+      "size_bytes": 2202,
+      "sha256": "b91bb2ee6dfacbd28bece982c87aa60e41605072459d0095ecdab7231f41b54a"
+    },
+    {
+      "path": "validation/validate_data.py",
+      "size_bytes": 2985,
+      "sha256": "32e6674c0f01e992030073c1777a96251755845a2e04668fdc118339aef3a516"
+    },
+    {
+      "path": "validation/verify_bundle.py",
+      "size_bytes": 2258,
+      "sha256": "10cf796d47a7789333b1e839430612756d9faecdc1462afb6651a802ba1773eb"
+    },
+    {
+      "path": "wiki/00-decision-record.html",
+      "size_bytes": 13313,
+      "sha256": "eaf919bc8bc8882054fa6c9462eb178e3c90119ea588ea2ca2c85486c80b1bcc"
+    },
+    {
+      "path": "wiki/00-decision-record.md",
+      "size_bytes": 5692,
+      "sha256": "94c7d69deba625e67923a8d7f6c469de360428e3f3d530214efa1b909b31a6b0"
+    },
+    {
+      "path": "wiki/01-threat-model.html",
+      "size_bytes": 15299,
+      "sha256": "ee9686878f07502af14d3f3e10700b67c96c98c7c73ef6765589affc345ea069"
+    },
+    {
+      "path": "wiki/01-threat-model.md",
+      "size_bytes": 7338,
+      "sha256": "05ad74c96fa362737a1f7b0ad07ccb0040395cfb338f77675c4514d75d28ec16"
+    },
+    {
+      "path": "wiki/02-option-comparison.html",
+      "size_bytes": 22149,
+      "sha256": "bd3f71903ea52cc17fa5b0e6480b687c3e3ef47be7a96328d440662eb151f84c"
+    },
+    {
+      "path": "wiki/02-option-comparison.md",
+      "size_bytes": 12938,
+      "sha256": "833f4f8c5d363d3dfb28956365c6de51dbcf3f12469b7cbd3791dc167f338b12"
+    },
+    {
+      "path": "wiki/03-identity-and-key-hierarchy.html",
+      "size_bytes": 16023,
+      "sha256": "1aa862b823ebbc541173c2c17f1b922b05501a1dd4f59218654dca05e7b8c913"
+    },
+    {
+      "path": "wiki/03-identity-and-key-hierarchy.md",
+      "size_bytes": 7681,
+      "sha256": "f13238719901b1b75deb310e5a69ee120b539f62a6f2a32bfe77169d89b42676"
+    },
+    {
+      "path": "wiki/04-object-aead-and-nonces.html",
+      "size_bytes": 14170,
+      "sha256": "568d74cf2f3db8c70abf4c83142a9134608b9698c323fb3558f6e8f2f30784ea"
+    },
+    {
+      "path": "wiki/04-object-aead-and-nonces.md",
+      "size_bytes": 6300,
+      "sha256": "5cc2028982cc965281c4f5a8b9c6868ad37f81c8ccb2c2cf5d8110c37c77d5a4"
+    },
+    {
+      "path": "wiki/05-content-addressing-and-dedup.html",
+      "size_bytes": 13656,
+      "sha256": "2058d05fd1db5fc1486ed8cf203c505f4e11cb5b496b5fab28a86a4ea307f2ac"
+    },
+    {
+      "path": "wiki/05-content-addressing-and-dedup.md",
+      "size_bytes": 5744,
+      "sha256": "5ff145aa808ee4b03a1974bd80f79b986ac6353b750e87973734754730a3c28e"
+    },
+    {
+      "path": "wiki/06-key-storage-unlock-and-boot.html",
+      "size_bytes": 13908,
+      "sha256": "5aa38c8219b3ad82ba6d176086464c7d675137ef2f7ee2ead38aa4ac9d9f0231"
+    },
+    {
+      "path": "wiki/06-key-storage-unlock-and-boot.md",
+      "size_bytes": 6294,
+      "sha256": "1001bf84b08e5e0aa9116dffb774387c6bd702717c26619b1de0acb5a58cd713"
+    },
+    {
+      "path": "wiki/07-rotation-revocation-and-process-retention.html",
+      "size_bytes": 13868,
+      "sha256": "94219a895559dc534c262762d27a78563cb4a3f3d3ee5893ee6bdbc139402b26"
+    },
+    {
+      "path": "wiki/07-rotation-revocation-and-process-retention.md",
+      "size_bytes": 6051,
+      "sha256": "572c7b63ff03d164bdfed032a16eb265dc5cdd7e39868ac42e4adccc865e7bf6"
+    },
+    {
+      "path": "wiki/08-crash-recovery-and-manifests.html",
+      "size_bytes": 12503,
+      "sha256": "b1599f37e199f77e400d21ec6473abb13fe278fc22c139dce6a0db6486f2d420"
+    },
+    {
+      "path": "wiki/08-crash-recovery-and-manifests.md",
+      "size_bytes": 5310,
+      "sha256": "aa2a3ee61cbf06627c30b84cafc0789e2a4529e82d19a71c5e6da55e8461f405"
+    },
+    {
+      "path": "wiki/09-backup-restore-and-export.html",
+      "size_bytes": 12879,
+      "sha256": "60e7d435e7d93406fb1faf7b9fb6051218ad39974d39935ddb79e3e5ffcb3990"
+    },
+    {
+      "path": "wiki/09-backup-restore-and-export.md",
+      "size_bytes": 5791,
+      "sha256": "20d08a1c2b4ec7d67f1782d2e98ebeb0f2246695df6363d885329efe9078b569"
+    },
+    {
+      "path": "wiki/10-deletion-cryptographic-erasure-and-media.html",
+      "size_bytes": 14456,
+      "sha256": "6adf9840700fd415334c0cb47849b686646749acd5f153f9a7f940d2e7068277"
+    },
+    {
+      "path": "wiki/10-deletion-cryptographic-erasure-and-media.md",
+      "size_bytes": 6702,
+      "sha256": "4aa6f8e233668cfc2061ebded0b12dd8d1c1e26650f577123f37369e1f9ef589"
+    },
+    {
+      "path": "wiki/11-quarantine-and-incident-response.html",
+      "size_bytes": 13293,
+      "sha256": "257b20b831056addd913ae9bfcbc019a8bc4384871124832e88c8296c1e189d3"
+    },
+    {
+      "path": "wiki/11-quarantine-and-incident-response.md",
+      "size_bytes": 5857,
+      "sha256": "8cd112fafb36f23b977fc789c0b91f9c91e615e7b74ff9556f8e8f93d140ad12"
+    },
+    {
+      "path": "wiki/12-minimum-security-profile.html",
+      "size_bytes": 20070,
+      "sha256": "3c1fdce985332555bc69c3bc685090dbe9932eae16114a40153a7887f30b2d27"
+    },
+    {
+      "path": "wiki/12-minimum-security-profile.md",
+      "size_bytes": 11318,
+      "sha256": "168d9ee61d1cdb4f7bc235828a330123c72a294f0f782b38c6e34b99f1efc804"
+    },
+    {
+      "path": "wiki/13-residual-risks-and-unsupported.html",
+      "size_bytes": 22885,
+      "sha256": "5cec6503448dca9e50d4ea66ba9e68db3af73eb1ae16a62cf5b1b52768517b42"
+    },
+    {
+      "path": "wiki/13-residual-risks-and-unsupported.md",
+      "size_bytes": 13009,
+      "sha256": "e87f7623e2ff89825c5524a55be53b17d194a170651215f50a2951fcde037f11"
+    },
+    {
+      "path": "wiki/14-sources-claims-and-reproducibility.html",
+      "size_bytes": 19064,
+      "sha256": "051874bb7a23ec114ee2975f1be0308319887e2e1cfe03ac8ced83cf2cdfa845"
+    },
+    {
+      "path": "wiki/14-sources-claims-and-reproducibility.md",
+      "size_bytes": 10509,
+      "sha256": "b2f8ceff22bc0d882bd67398955274ddaaa9b6cfd76fd8af4181a974ca2a7e85"
+    },
+    {
+      "path": "wiki/15-validation-and-test-plan.html",
+      "size_bytes": 11882,
+      "sha256": "7c4da37dbab589d962b2257f16bf665badf4169cdb83270bfa81f34d47a621e7"
+    },
+    {
+      "path": "wiki/15-validation-and-test-plan.md",
+      "size_bytes": 5282,
+      "sha256": "7864c5d39de7509da270d10938ad1071876b155e794fd15505cc020dfa77f361"
+    }
+  ]
+}

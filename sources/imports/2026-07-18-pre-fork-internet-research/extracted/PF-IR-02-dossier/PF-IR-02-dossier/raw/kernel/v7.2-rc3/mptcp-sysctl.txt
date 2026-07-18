@@ -1,0 +1,15 @@
+PRIMARY SOURCE EXCERPT — Documentation/networking/mptcp-sysctl.rst (v7.2-rc3)
+Defaults:
+add_addr_timeout=120
+allow_join_initial_addr_port=1
+blackhole_timeout=3600
+checksum_enabled=0
+close_timeout=60
+enabled=1
+path_manager=kernel
+pm_type=0 (deprecated control)
+scheduler=default
+stale_loss_cnt=4
+syn_retrans_before_tcp_fallback=2
+
+The precise operational interpretation is cross-checked against net/mptcp source in the dossier.

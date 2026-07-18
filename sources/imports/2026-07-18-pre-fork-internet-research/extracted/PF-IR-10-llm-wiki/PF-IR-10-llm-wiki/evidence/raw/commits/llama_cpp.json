@@ -1,0 +1,12 @@
+{
+  "access_date": "2026-07-18",
+  "candidate_id": "llama.cpp",
+  "claim_labels": [
+    "VERIFIED-SOURCE"
+  ],
+  "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+  "commit_created_at": "2026-07-17T22:29:29Z",
+  "default_branch": "master",
+  "message": "opencl: load and use kernel_gemm_moe_q6_k_f32_ns from bin kernel lib (#25797)",
+  "repository": "ggml-org/llama.cpp"
+}

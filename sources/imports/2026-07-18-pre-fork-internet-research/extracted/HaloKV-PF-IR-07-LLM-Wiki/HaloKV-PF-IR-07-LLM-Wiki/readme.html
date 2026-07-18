@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="HaloKV PF IR 07 — encryption, tenant identity, key lifecycle, backup, and deletion This folder is a self contained static “LLM Wiki” research bundle for the standards backed option…">
+  <title>README and file map · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-root="">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="wiki/00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="wiki/01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="wiki/02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="wiki/03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="wiki/04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="wiki/05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="wiki/06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="wiki/07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="wiki/08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="wiki/09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="wiki/10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="wiki/11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="wiki/12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="wiki/13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="wiki/14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="wiki/15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Bundle / README and file map</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>HaloKV PF-IR-07 — encryption, tenant identity, key lifecycle, backup, and deletion</h1>
+<p>This folder is a self-contained static “LLM Wiki” research bundle for the
+standards-backed option set and residual-risk ledger required to unblock
+<code>OPEN-SCOPE-01</code>.</p>
+<h2 id="open">Open<a class="heading-anchor" href="#open" aria-label="Link to section">#</a></h2>
+<p>Open <code>index.html</code> directly, or run:</p>
+<pre><code class="language-bash">python3 serve.py
+</code></pre>
+<p>Then browse the local address printed by the server. The wiki has no external
+runtime dependencies; source links require network access only when followed.</p>
+<h2 id="decision-summary">Decision summary<a class="heading-anchor" href="#decision-summary" aria-label="Link to section">#</a></h2>
+<ul>
+<li>Object-level AEAD is mandatory for multi-user persistent cache objects and manifests.</li>
+<li>LUKS2/dm-crypt is the recommended rank-local volume baseline where supported.</li>
+<li>fscrypt v2 is conditional defense in depth, not object authentication.</li>
+<li>Private deduplication is scoped no wider than authorized tenant/project sharing.</li>
+<li>Public/system prefixes have a separate publisher authority and namespace.</li>
+<li>Any unknown/corrupt/unauthenticated/wrong-key/mismatched/stale object is <code>MISS_RECOMPUTE</code>.</li>
+<li>Cache backup is disabled by default; restore is quarantined and re-encrypted.</li>
+<li>Logical deletion, cryptographic erasure, discard, and media sanitization remain distinct claims.</li>
+</ul>
+<h2 id="contents">Contents<a class="heading-anchor" href="#contents" aria-label="Link to section">#</a></h2>
+<ul>
+<li><code>wiki/</code> — 16 research and decision chapters, Markdown and HTML.</li>
+<li><code>runbooks/</code> — 8 operational runbooks plus index, Markdown and HTML.</li>
+<li><code>matrices/</code> — claims, option comparison, threat/control mapping, key hierarchy, minimum profile, human decisions, and residual risks in CSV/JSON.</li>
+<li><code>schemas/</code> — CDDL and JSON Schema design artifacts.</li>
+<li><code>examples/</code> — fail-closed pseudocode, nonce allocator, policy, and negative-test template.</li>
+<li><code>sources/</code> — raw primary documents, exact revisions/access dates, license notices, extracted text, catalog, and archival limitations.</li>
+<li><code>manifests/</code> — SHA-256 inventories and root manifest.</li>
+<li><code>validation/verify_bundle.py</code> — offline integrity verifier.</li>
+</ul>
+<h2 id="integrity">Integrity<a class="heading-anchor" href="#integrity" aria-label="Link to section">#</a></h2>
+<p>Run from the folder root:</p>
+<pre><code class="language-bash">python3 validation/verify_bundle.py
+</code></pre>
+<p>A matching hash verifies consistency with this bundle's manifest; it does not
+replace upstream signature or publisher-authenticity verification. The systemd
+XML and cryptsetup release-archive verification limitations are documented in
+the source catalog and source notes.</p>
+<h2 id="scope-caveat">Scope caveat<a class="heading-anchor" href="#scope-caveat" aria-label="Link to section">#</a></h2>
+<p>This bundle does not select the principal authority, sharing policy, key owner,
+escrow, retention, or physical-media disposition authority. It also makes no
+certification, compliance, FIPS-validation, cryptographic-erasure, or secure-
+deletion guarantee for a deployment without deployment-specific evidence.</p>
+<p>Research access date: <strong>2026-07-18</strong>. Bundle version: <strong>1.0.0</strong>.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>

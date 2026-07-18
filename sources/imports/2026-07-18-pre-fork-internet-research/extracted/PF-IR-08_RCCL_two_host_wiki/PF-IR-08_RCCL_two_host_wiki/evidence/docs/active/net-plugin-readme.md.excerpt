@@ -1,0 +1,21 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "DOC-ACTIVE-NET-PLUGIN"
+source_class: "documentation"
+claim_label: "[NORMATIVE_DOC]"
+upstream_path: "projects/rccl/plugins/net/README.md"
+upstream_blob_sha: "8bcafc0a9e0f108e02c31f22df5ec31e129a9495"
+upstream_locator: "network properties / pciPath guidance"
+snapshot_kind: "structured documentation excerpt preserving literal field names"
+completeness: "selected relevant content; not full file"
+license: "RCCL repository/documentation terms; file SPDX not captured"
+---
+
+```text
+A network plugin reports a ``pciPath`` used for topology discovery. It normally
+points at a device path under ``/sys``. Virtual interfaces may not have a usable
+PCI path and can report a null path. Plugin properties also report pointer
+support, speed, latency, and device-offload information.
+```

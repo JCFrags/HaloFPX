@@ -1,0 +1,2 @@
+{"draft_n_max":4,"id":"ngram-simple-no-sidecar","model":"../gguf/pfir10-tiny-llama-f32-v3.gguf","oracle":"final accepted token IDs equal non-speculative greedy token IDs; draft counters are diagnostic","prompt_hex":"414241424142","seed":1234,"spec_type":"ngram-simple"}
+{"id":"mtp-sidecar-open","model_recipe":"../../recipes/portable-mtp-sidecar.md","oracle":"open until a qualified minimal sidecar exists","spec_type":"draft-mtp"}

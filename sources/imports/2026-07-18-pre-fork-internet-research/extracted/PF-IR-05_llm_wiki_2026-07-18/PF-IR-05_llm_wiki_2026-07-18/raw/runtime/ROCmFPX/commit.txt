@@ -1,0 +1,15 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-ROCMFPX-COMMIT
+authority: primary_runtime_source
+capture_type: connector_metadata_capture
+source_title: charlie12345/ROCmFPX
+source_url: https://github.com/charlie12345/ROCmFPX/tree/61f2f2d7bc4955e9bca821095ef69125837133b5
+immutable_revision: 61f2f2d7bc4955e9bca821095ef69125837133b5
+accessed_at: 2026-07-18
+completeness: EXACT_COMMIT_METADATA
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+commit: 61f2f2d7bc4955e9bca821095ef69125837133b5
+captured commit message: hip: avoid full-cache TurboQuant flash-attention staging (#34)
+execution status: NOT_RUN

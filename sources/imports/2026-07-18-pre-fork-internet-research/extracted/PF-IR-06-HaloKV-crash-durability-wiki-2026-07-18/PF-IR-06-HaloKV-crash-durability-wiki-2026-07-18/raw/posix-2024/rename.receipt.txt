@@ -1,0 +1,12 @@
+---
+source_id: "S033"
+title: "POSIX.1-2024 rename()"
+capture_kind: "official-standards-receipt-with-short-excerpt"
+canonical_url: "https://pubs.opengroup.org/onlinepubs/9799919799/functions/rename.html"
+version: "POSIX.1-2024"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "The Open Group terms; short excerpt only"
+---
+The standard requires the destination name to remain visible, referring either
+to the old object or the new object during replacement. This is namespace
+atomicity, not an application crash-durability statement.

@@ -1,0 +1,47 @@
+claim_id,label,claim,scope
+CLM-DECISION-001,[RECOMMENDATION],"HOLD the standard security release until RPC is absent from the standard artifact, HTTP is fail-closed by listener/auth policy, and local binary/listener/library evidence passes.",release
+CLM-SOURCE-001,[MEASURED],No unpatched published llama.cpp advisory was identified in the ROCmFPX candidate source; residual P0 risk is primarily build/runtime exposure and unproven deployed-binary equivalence.,candidate-source
+CLM-RPC-001,[VERIFIED],"Upstream explicitly says not to use the RPC backend, ggml-rpc-server, or llama-server on untrusted networks.",policy
+CLM-RPC-002,[MEASURED],ROCmFPX and predecessor release workflows explicitly enable both server and RPC even though GGML_RPC defaults off in generic source configuration.,build
+CLM-HTTP-001,[MEASURED],The candidate defaults HTTP to loopback but leaves API keys empty and slots enabled; an empty key set bypasses authentication for non-public routes.,http
+CLM-STATE-001,[MEASURED],"The candidate state/cache paths implement magic/version/capacity/exact-read checks and owner-scoped prompt-cache controls, but exhaustive nested parser and symlink-race safety remains local evidence.",state-cache
+CLM-BINARY-001,[OPEN],"No remote source review can prove the deployed executable, compile flags, initialized submodules, loaded libraries, listener bindings, or negative reachability.",deployment
+CLM-LLAMAAI-001,[VERIFIED],llama-ai@1017f3dfdce3ca2b06aa9007b23295db3bb35722 selects exactly CachyLlama@6be745998f568e379ea197fcf827baec73ff9940 as its submodule pointer.,source-selection
+CLM-DEPS-001,[MEASURED],"The candidate vendors cpp-httplib 0.47.0, which is at or above the patched version for all 18 captured public cpp-httplib advisories; the newest TLS advisory is also MbedTLS/wolfSSL-specific while the candidate enables OpenSSL.",dependencies
+CLM-DEPS-002,[OPEN],The cpp-httplib security/quality counter and enumerable public advisory list differ by one item.,dependencies
+CLM-LLAMA-ADV-01,[MEASURED],GHSA-3p4r-fq3f-q74v: All requested core snapshots inspected contain the overflow/representability guard family; blobs diverge but semantics match.,advisory-applicability
+CLM-LLAMA-ADV-02,[MEASURED],GHSA-j8rj-fmpv-wcxw: All requested core snapshots inspected contain the corrected client data-zeroing and server buffer==nullptr/data!=nullptr rejection semantics. ROCm lineage and upstream/Cachy use different blobs.,advisory-applicability
+CLM-LLAMA-ADV-03,[MEASURED],GHSA-96jg-mvhq-q7q7: All requested core snapshots inspected contain tensor-size representability checks.,advisory-applicability
+CLM-LLAMA-ADV-04,[MEASURED],"GHSA-8947-pfff-2f3c: ROCmFPX baseline/candidate and upstream source checks show the std::max(0, n_discard) clamp. Cachy inclusion is inferred from its later merged source snapshot.",advisory-applicability
+CLM-LLAMA-ADV-05,[MEASURED],GHSA-vgg9-87g3-85w8: All requested core snapshots inspected contain the cumulative-size checks.,advisory-applicability
+CLM-LLAMA-ADV-06,[MEASURED],"GHSA-7rxv-5jhh-j6xx: The ROCm, deployed-source, Cachy, and upstream vocab lineages contain the INT32_MAX result guard.",advisory-applicability
+CLM-LLAMA-ADV-07,[MEASURED],GHSA-g4cc-763q-h9h6: All requested vocab lineages inspected use checked .at() access in the material print path.,advisory-applicability
+CLM-LLAMA-ADV-08,[MEASURED],GHSA-8wwf-w4qm-gpqr: All requested vocab lineages inspected contain the INT32_MAX token-piece guard.,advisory-applicability
+CLM-LLAMA-ADV-09,[MEASURED],GHSA-wcr5-566p-9cwj: All requested RPC lineages contain bounds/type/buffer validation introduced by and after b3561.,advisory-applicability
+CLM-LLAMA-ADV-10,[MEASURED],GHSA-5vm9-p64x-gqw9: All requested RPC lineages contain the b3561-era read bounds checks and later null-buffer checks.,advisory-applicability
+CLM-LLAMA-ADV-11,[MEASURED],"GHSA-mqp6-7pv6-fqjf: All requested RPC lineages contain type range/block-size checks, including the later zero-block-size patch.",advisory-applicability
+CLM-LLAMA-ADV-12,[MEASURED],GHSA-49q7-2jmh-92fp: Requested snapshots use the later C++ parser and postdate the fix; the exact legacy loop is absent.,advisory-applicability
+CLM-LLAMA-ADV-13,[MEASURED],"GHSA-p5mv-gjc5-mwqv: Modern requested snapshots use vector/string ownership and avoid the exact allocation/free pattern. The official b2740 tag still shows the legacy malloc/free pattern, so the exact historical remediation commit is unresolved.",advisory-applicability
+CLM-TALOS-01,[INFERENCE],"TALOS-2024-1912: requested snapshots postdate and use a rewritten parser, but the exact historical vendor fix commit remains unresolved.",historical-gguf
+CLM-TALOS-02,[INFERENCE],"TALOS-2024-1913: requested snapshots postdate and use a rewritten parser, but the exact historical vendor fix commit remains unresolved.",historical-gguf
+CLM-TALOS-03,[INFERENCE],"TALOS-2024-1914: requested snapshots postdate and use a rewritten parser, but the exact historical vendor fix commit remains unresolved.",historical-gguf
+CLM-TALOS-04,[INFERENCE],"TALOS-2024-1915: requested snapshots postdate and use a rewritten parser, but the exact historical vendor fix commit remains unresolved.",historical-gguf
+CLM-TALOS-05,[INFERENCE],"TALOS-2024-1916: requested snapshots postdate and use a rewritten parser, but the exact historical vendor fix commit remains unresolved.",historical-gguf
+CLM-CPP-01,[VERIFIED],"GHSA-8ffh-4p95-g3p2 is fixed by cpp-httplib 0.47.0; candidate 0.47.0 is not in the captured affected range >=0.31.0,<0.47.0.",dependency-advisory
+CLM-CPP-02,[VERIFIED],GHSA-hg3g-vrg8-578g is fixed by cpp-httplib 0.44.0; candidate 0.47.0 is not in the captured affected range <0.44.0.,dependency-advisory
+CLM-CPP-03,[VERIFIED],GHSA-xjxg-64p4-vj4m is fixed by cpp-httplib 0.44.0; candidate 0.47.0 is not in the captured affected range <=0.43.4.,dependency-advisory
+CLM-CPP-04,[VERIFIED],GHSA-h6wq-j5mv-f3q8 is fixed by cpp-httplib 0.43.4; candidate 0.47.0 is not in the captured affected range <=0.43.3.,dependency-advisory
+CLM-CPP-05,[VERIFIED],GHSA-jv63-rm9j-6jwc is fixed by cpp-httplib 0.40.0; candidate 0.47.0 is not in the captured affected range <=0.38.0.,dependency-advisory
+CLM-CPP-06,[VERIFIED],GHSA-6hrp-7fq9-3qv2 is fixed by cpp-httplib 0.39.0; candidate 0.47.0 is not in the captured affected range <=0.38.0.,dependency-advisory
+CLM-CPP-07,[VERIFIED],GHSA-c3h8-fqq4-xm4g is fixed by cpp-httplib 0.37.2; candidate 0.47.0 is not in the captured affected range <=0.37.1.,dependency-advisory
+CLM-CPP-08,[VERIFIED],GHSA-39q5-hh6x-jpxx is fixed by cpp-httplib 0.37.1; candidate 0.47.0 is not in the captured affected range <=0.37.0.,dependency-advisory
+CLM-CPP-09,[VERIFIED],GHSA-qq6v-r583-3h69 is fixed by cpp-httplib 0.37.0; candidate 0.47.0 is not in the captured affected range <=0.35.0.,dependency-advisory
+CLM-CPP-10,[VERIFIED],GHSA-8mpw-r4gc-xm7q is fixed by cpp-httplib 0.35.0; candidate 0.47.0 is not in the captured affected range <=0.34.0.,dependency-advisory
+CLM-CPP-11,[VERIFIED],GHSA-h934-98h4-j43q is fixed by cpp-httplib 0.30.1; candidate 0.47.0 is not in the captured affected range <=0.29.0.,dependency-advisory
+CLM-CPP-12,[VERIFIED],GHSA-wpc6-j37r-jcx7 is fixed by cpp-httplib 0.30.0; candidate 0.47.0 is not in the captured affected range <=0.29.0.,dependency-advisory
+CLM-CPP-13,[VERIFIED],GHSA-gfpf-r66f-5mh2 is fixed by cpp-httplib 0.27.0; candidate 0.47.0 is not in the captured affected range <=0.26.0.,dependency-advisory
+CLM-CPP-14,[VERIFIED],GHSA-xm2j-vfr9-mg9m is fixed by cpp-httplib 0.27.0; candidate 0.47.0 is not in the captured affected range <=0.26.0.,dependency-advisory
+CLM-CPP-15,[VERIFIED],GHSA-j6p8-779x-p5pw is fixed by cpp-httplib 0.23.0; candidate 0.47.0 is not in the captured affected range <=0.22.0.,dependency-advisory
+CLM-CPP-16,[VERIFIED],GHSA-qjmq-h3cc-qv6w is fixed by cpp-httplib 0.23.0; candidate 0.47.0 is not in the captured affected range <0.22.0.,dependency-advisory
+CLM-CPP-17,[VERIFIED],GHSA-xjhg-gf59-p92h is fixed by cpp-httplib 0.22.0; candidate 0.47.0 is not in the captured affected range 0.21.0.,dependency-advisory
+CLM-CPP-18,[VERIFIED],GHSA-px83-72rx-v57c is fixed by cpp-httplib 0.20.1; candidate 0.47.0 is not in the captured affected range <=0.20.0.,dependency-advisory

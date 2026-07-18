@@ -1,0 +1,33 @@
+{
+  "repository": "ROCm/rocm-systems",
+  "number": 2788,
+  "title": "[Feature]: Enable RCCL on Strix Halo gfx1151",
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-22T02:04:32Z",
+  "closed_at": "2026-02-26T12:14:11Z",
+  "accessed_at": "2026-07-18",
+  "url": "https://github.com/ROCm/rocm-systems/issues/2788",
+  "body": "Migrated from ROCm/rccl#2118. The requester wanted RCCL enabled on gfx1151 to test a Thunderbolt 5 / USB4 v2 RCCL plugin and distribute llama.cpp/lemonade-server work.",
+  "comments": [
+    {
+      "attributed_author": "manhalt",
+      "embedded_original_date": "2026-01-10T17:39:20Z",
+      "text": "Asked whether the gfx1151 PR would make it work; reported trying Thunderbolt networking on Framework Desktop and observing an apparent limit. This is community commentary, not AMD validation."
+    },
+    {
+      "attributed_author": "Geramy",
+      "embedded_original_date": "2026-01-10T17:47:02Z",
+      "text": "Discussed TB4/USB4 expectations, MINISFORUM MS-S1 hardware, and a basic device-to-device driver. This is requester commentary, not validated RCCL support."
+    },
+    {
+      "attributed_author": "Geramy",
+      "text": "Acknowledged contributors after the gfx1151 enablement was merged."
+    },
+    {
+      "attributed_author": "huanrwan-amd",
+      "text": "Added another AMD participant."
+    }
+  ],
+  "claim_label": "[ISSUE_COMMENTARY]"
+}

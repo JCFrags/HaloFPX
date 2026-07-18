@@ -1,0 +1,151 @@
+{
+  "header": {
+    "end": 24,
+    "start": 0
+  },
+  "metadata": {
+    "general.alignment": {
+      "end": 329,
+      "length": 33,
+      "start": 296
+    },
+    "general.architecture": {
+      "end": 106,
+      "length": 45,
+      "start": 61
+    },
+    "general.description": {
+      "end": 296,
+      "length": 96,
+      "start": 200
+    },
+    "general.file_type": {
+      "end": 362,
+      "length": 33,
+      "start": 329
+    },
+    "general.license": {
+      "end": 404,
+      "length": 42,
+      "start": 362
+    },
+    "general.name": {
+      "end": 160,
+      "length": 54,
+      "start": 106
+    },
+    "general.source.repo_url": {
+      "end": 474,
+      "length": 70,
+      "start": 404
+    },
+    "general.type": {
+      "end": 61,
+      "length": 37,
+      "start": 24
+    },
+    "general.version": {
+      "end": 200,
+      "length": 40,
+      "start": 160
+    },
+    "llama.vocab_size": {
+      "end": 598,
+      "length": 32,
+      "start": 566
+    },
+    "pfir10.deterministic": {
+      "end": 566,
+      "length": 33,
+      "start": 533
+    },
+    "pfir10.recipe": {
+      "end": 533,
+      "length": 59,
+      "start": 474
+    },
+    "tokenizer.chat_template": {
+      "end": 5018,
+      "length": 212,
+      "start": 4806
+    },
+    "tokenizer.chat_template.strict": {
+      "end": 5355,
+      "length": 337,
+      "start": 5018
+    },
+    "tokenizer.chat_template.tools": {
+      "end": 5741,
+      "length": 386,
+      "start": 5355
+    },
+    "tokenizer.ggml.add_bos_token": {
+      "end": 4721,
+      "length": 41,
+      "start": 4680
+    },
+    "tokenizer.ggml.add_eos_token": {
+      "end": 4762,
+      "length": 41,
+      "start": 4721
+    },
+    "tokenizer.ggml.add_space_prefix": {
+      "end": 4806,
+      "length": 44,
+      "start": 4762
+    },
+    "tokenizer.ggml.bos_token_id": {
+      "end": 4500,
+      "length": 43,
+      "start": 4457
+    },
+    "tokenizer.ggml.eos_token_id": {
+      "end": 4543,
+      "length": 43,
+      "start": 4500
+    },
+    "tokenizer.ggml.eot_token_id": {
+      "end": 4586,
+      "length": 43,
+      "start": 4543
+    },
+    "tokenizer.ggml.merges": {
+      "end": 4457,
+      "length": 45,
+      "start": 4412
+    },
+    "tokenizer.ggml.model": {
+      "end": 642,
+      "length": 44,
+      "start": 598
+    },
+    "tokenizer.ggml.padding_token_id": {
+      "end": 4680,
+      "length": 47,
+      "start": 4633
+    },
+    "tokenizer.ggml.pre": {
+      "end": 685,
+      "length": 43,
+      "start": 642
+    },
+    "tokenizer.ggml.token_type": {
+      "end": 4412,
+      "length": 1101,
+      "start": 3311
+    },
+    "tokenizer.ggml.tokens": {
+      "end": 3311,
+      "length": 2626,
+      "start": 685
+    },
+    "tokenizer.ggml.unknown_token_id": {
+      "end": 4633,
+      "length": 47,
+      "start": 4586
+    }
+  },
+  "tensor_data": {},
+  "tensor_data_start": 5760,
+  "tensor_info": {}
+}

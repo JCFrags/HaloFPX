@@ -1,0 +1,30 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "SRC-ACTIVE-VERSION"
+source_class: "source"
+claim_label: "[SOURCE_IMPLEMENTATION]"
+upstream_path: "projects/rccl/makefiles/version.mk"
+upstream_blob_sha: "a623ed8aa0ff402b2a66c8d916407b93217cadd9"
+upstream_locator: "lines 1-13"
+snapshot_kind: "verbatim complete file"
+completeness: "complete"
+license: "Apache-2.0 (per-file SPDX)"
+---
+
+```text
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# See LICENSE.txt for more license information
+#
+
+##### version
+NCCL_MAJOR   := 2
+NCCL_MINOR   := 30
+NCCL_PATCH   := 4
+NCCL_SUFFIX  :=
+PKG_REVISION := 1
+```

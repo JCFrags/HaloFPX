@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pf-ir-11:xdna2-readonly-probe-summary:1.0",
+  "title": "PF-IR-11 XDNA2 read-only probe summary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "probe_version",
+    "generated_utc",
+    "expected",
+    "devices",
+    "expected_device_match",
+    "kernel_config",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "probe_version": {
+      "type": "string"
+    },
+    "generated_utc": {
+      "type": "string"
+    },
+    "expected": {
+      "type": "object",
+      "required": [
+        "vendor_device",
+        "revision",
+        "kernel_device"
+      ],
+      "properties": {
+        "vendor_device": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "kernel_device": {
+          "type": "string"
+        }
+      }
+    },
+    "devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "bdf"
+        ],
+        "properties": {
+          "bdf": {
+            "type": "string"
+          },
+          "vendor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "driver": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iommu_group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "expected_device_match": {
+      "type": "boolean"
+    },
+    "kernel_config": {
+      "type": "object"
+    },
+    "firmware_directory_found": {
+      "type": "boolean"
+    },
+    "firmware_report": {
+      "type": "string"
+    },
+    "amdxdna_modinfo_available": {
+      "type": "boolean"
+    },
+    "dev_accel_present": {
+      "type": "boolean"
+    },
+    "candidate_packages_present": {
+      "type": "boolean"
+    },
+    "xrt_query_requested": {
+      "type": "boolean"
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

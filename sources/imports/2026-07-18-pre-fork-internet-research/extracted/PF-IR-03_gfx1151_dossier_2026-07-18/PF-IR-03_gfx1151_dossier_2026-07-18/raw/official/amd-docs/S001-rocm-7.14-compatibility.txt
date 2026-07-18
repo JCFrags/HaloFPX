@@ -1,0 +1,14 @@
+CAPTURE_TYPE: structured primary-source excerpt (not a full mirror)
+SOURCE_ID: S001
+SOURCE_URL: https://rocm.docs.amd.com/en/docs-7.14.0/compatibility/compatibility-matrix.html
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn800020view0
+LINE_LOCATORS: 148-163; 178-179; 565-596; 606-673
+CAPTURED_FACTS:
+- Matrix date: 2026-07-16.
+- gfx1151 Ryzen APUs are listed; architecture is RDNA 3.5.
+- Supported Ubuntu: 26.04 (GA 7.0) and 24.04.4 (HWE 6.17).
+- Supported driver: inbox kernel driver in the supported Ubuntu version.
+- Core component versions include HIP 7.14, ROCR 1.21.0, LLVM 23.0.0, rocBLAS 5.5.0, hipBLASLt 1.4.1, rocWMMA 2.2.1 and RCCL 2.30.4.
+NOTES:
+- Instinct firmware/amdgpu package rows are not applied to Ryzen APUs.

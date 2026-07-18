@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Conditional experiment: bounded auxiliary classifier — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="../wiki/00-home.html">Home / decision</a></li><li><a href="../wiki/01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="../wiki/02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="../wiki/03-firmware.html">Firmware</a></li><li><a href="../wiki/04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="../wiki/05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="../wiki/06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="../wiki/07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="../wiki/08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="../wiki/09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="../wiki/10-role-evaluation.html">Role evaluation</a></li><li><a href="../wiki/11-bounded-experiment.html">Bounded experiment</a></li><li><a href="../wiki/12-read-only-probe.html">Read-only probe</a></li><li><a href="../wiki/13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="../wiki/14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">decision/bounded-classifier-experiment.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>Conditional experiment: bounded auxiliary classifier</h1>
+<p>This document is a gate specification, not an instruction to integrate the NPU.</p>
+<h2 id="scope">Scope</h2>
+<p><span class="claim claim-decision">[DECISION]</span> The only admissible experiment is a small prompt-classification or moderation workload with the shape of AMD's public BF16 DistilBERT example.</p>
+<table>
+<thead>
+<tr>
+  <th>Parameter</th>
+  <th>Fixed boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Task</td>
+  <td>Prompt classification or moderation</td>
+</tr>
+<tr>
+  <td>Model family</td>
+  <td>DistilBERT-class encoder classifier</td>
+</tr>
+<tr>
+  <td>Interchange</td>
+  <td>ONNX, opset 17</td>
+</tr>
+<tr>
+  <td>Numeric format</td>
+  <td>BF16</td>
+</tr>
+<tr>
+  <td>Batch</td>
+  <td>1</td>
+</tr>
+<tr>
+  <td>Sequence length</td>
+  <td>128, fixed</td>
+</tr>
+<tr>
+  <td>Runtime</td>
+  <td><code>VitisAIExecutionProvider</code> from a matched AMD Linux package set</td>
+</tr>
+<tr>
+  <td>Deployment</td>
+  <td>isolated environment, isolated process, no primary-path dependency</td>
+</tr>
+<tr>
+  <td>Baseline</td>
+  <td>CPU ONNX Runtime using the same model inputs and outputs</td>
+</tr>
+</tbody>
+</table>
+<p><span class="claim claim-inference">[INFERENCE]</span> Moderation is classifier-shaped, but AMD's sentiment example is not a moderation model. A task-specific dataset, labels, policy threshold, and calibration are mandatory.</p>
+<h2 id="preconditions">Preconditions</h2>
+<ol>
+<li><span class="claim claim-target-distro">[TARGET-DISTRO]</span> The read-only probe identifies PCI <code>1022:17f0</code> revision <code>0x11</code> and a bound <code>amdxdna</code> driver.</li>
+<li><span class="claim claim-target-distro">[TARGET-DISTRO]</span> Required kernel symbols are enabled and an IOMMU group is present.</li>
+<li><span class="claim claim-target-distro">[TARGET-DISTRO]</span> Firmware links resolve under <code>amdnpu/17f0_11/</code> and hashes are recorded.</li>
+<li><span class="claim claim-target-distro">[TARGET-DISTRO]</span> XRT, plugin, Ryzen AI, firmware, and driver versions are mutually matched.</li>
+<li><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> Package filenames, hashes, source URLs, license/EULA records, and install commands are captured before installation.</li>
+<li><span class="claim claim-decision">[DECISION]</span> The experiment has a separate environment, repository branch, build target, and removal procedure.</li>
+<li><span class="claim claim-decision">[DECISION]</span> No HIP/Vulkan code or release dependency is changed.</li>
+</ol>
+<h2 id="required-evidence">Required evidence</h2>
+<ul>
+<li>exact model and tokenizer identifiers, licenses, SHA-256 hashes, and conversion command;</li>
+<li>exact ONNX opset, static input shapes, input/output dtypes, and graph hash;</li>
+<li>quantization/compilation command, configuration file, package versions, generated cache contents, and hashes;</li>
+<li>ONNX Runtime provider list and provider options;</li>
+<li>graph/operator assignment report distinguishing NPU and CPU nodes;</li>
+<li>CPU and NPU raw outputs for the same evaluation corpus;</li>
+<li>latency distributions for preprocessing, inference, synchronization, and postprocessing separately;</li>
+<li>host CPU utilization, NPU power/utilization telemetry where available, and wall energy measurement method;</li>
+<li>kernel log delta, firmware errors, command aborts, timeouts, and process exit status;</li>
+<li>cold-compile and warm-cache results separately.</li>
+</ul>
+<h2 id="acceptance-gates">Acceptance gates</h2>
+<p>The experiment passes only when every gate passes:</p>
+<ol>
+<li><strong>Correctness:</strong> classification metric is within 0.5 percentage point of the CPU reference, with no unexplained per-example divergence.</li>
+<li><strong>Placement:</strong> the expensive encoder subgraph is assigned to NPU; CPU work is limited to tokenization, unsupported trivial edges, and postprocessing. A silent mostly-CPU partition is a fail.</li>
+<li><strong>Stability:</strong> 10,000 inference requests complete without kernel error, mailbox timeout, command abort, device disappearance, process crash, or forced reload.</li>
+<li><strong>Performance:</strong> either warm-cache P95 end-to-end latency is at least 20% lower than the CPU baseline, or measured energy per request is at least 15% lower at equal or better P95 latency.</li>
+<li><strong>Cold-start accounting:</strong> first-run compilation and cache generation are reported separately and do not contaminate warm-path claims.</li>
+<li><strong>Memory accounting:</strong> locked memory, device/heap allocation, input/output transfer, explicit sync, and cache size are recorded.</li>
+<li><strong>Operational isolation:</strong> removing the experiment leaves the primary product build, packaging, runtime, and test matrix unchanged.</li>
+<li><strong>Recovery:</strong> ordinary process termination and restart succeed without reboot or driver reload. Suspend/resume and fault injection are outside the initial experiment and cannot be claimed as validated.</li>
+</ol>
+<h2 id="automatic-fail-conditions">Automatic fail conditions</h2>
+<ul>
+<li>any need to patch the product's HIP/Vulkan path;</li>
+<li>unsupported or undocumented package mixing;</li>
+<li>unrecorded firmware replacement;</li>
+<li>hypervisor deployment;</li>
+<li>IOMMU/SVA/PASID failure;</li>
+<li>mostly-CPU graph execution;</li>
+<li>material accuracy regression;</li>
+<li>no material latency or energy gain;</li>
+<li>repeated mailbox, firmware, reset, or suspend defects;</li>
+<li>reliance on unpublished manual steps.</li>
+</ul>
+<p><span class="claim claim-decision">[DECISION]</span> Any failed gate returns to <code>keep excluded</code>.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

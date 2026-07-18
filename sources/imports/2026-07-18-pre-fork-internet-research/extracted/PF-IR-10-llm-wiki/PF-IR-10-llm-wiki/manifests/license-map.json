@@ -1,0 +1,77 @@
+{
+  "note": "Per-fixture license and hash records are normative in manifests/fixtures.jsonl. Literal upstream source-range captures are MIT evidence-only files and are not candidate executables.",
+  "rules": [
+    {
+      "evidence": "evidence/licenses/CC0-1.0.txt",
+      "license": "CC0-1.0",
+      "paths": [
+        "fixtures/**",
+        "recipes/**",
+        "comparators/**",
+        "adapters/**",
+        "wiki/**",
+        "manifests/**",
+        "qualification/**",
+        "README.md",
+        "NOTICE.md"
+      ]
+    },
+    {
+      "evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "license": "MIT",
+      "paths": [
+        "evidence/raw/source-ranges/llama.cpp/**"
+      ]
+    },
+    {
+      "evidence": "evidence/licenses/ROCmFPX-LICENSE.txt",
+      "license": "MIT",
+      "paths": [
+        "evidence/raw/source-ranges/ROCmFPX/**"
+      ]
+    },
+    {
+      "evidence": "evidence/licenses/CachyLLama-LICENSE.txt",
+      "license": "MIT",
+      "paths": [
+        "evidence/raw/source-ranges/CachyLLama/**"
+      ]
+    },
+    {
+      "evidence": "self",
+      "license": "MIT",
+      "paths": [
+        "evidence/licenses/llama.cpp-LICENSE.txt",
+        "evidence/licenses/ROCmFPX-LICENSE.txt",
+        "evidence/licenses/CachyLLama-LICENSE.txt"
+      ]
+    },
+    {
+      "evidence": "self",
+      "license": "notice-record",
+      "paths": [
+        "evidence/licenses/ROCmFPX-THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    {
+      "evidence": "evidence/licenses/CC0-1.0.txt",
+      "license": "CC0-1.0",
+      "paths": [
+        "evidence/raw/**",
+        "evidence/source-excerpts/**",
+        "evidence/CLAIM-LABELS.*",
+        "evidence/licenses/README.md",
+        "evidence/licenses/hashes.json"
+      ]
+    },
+    {
+      "evidence": "self",
+      "license": "CC0-1.0-legal-code",
+      "paths": [
+        "LICENSE",
+        "evidence/licenses/CC0-1.0.txt"
+      ]
+    }
+  ],
+  "schema_version": 1
+}

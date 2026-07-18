@@ -1,0 +1,16 @@
+{
+  "repository": "ROCm/rocm-systems",
+  "number": 4875,
+  "title": "[RCCL] Strix-Halo tuning",
+  "state": "closed",
+  "merged": true,
+  "merged_at": "2026-04-27T22:04:56Z",
+  "merge_commit_sha": "e06b1a9053a9d7e59a77ebb80104b485c83b04d1",
+  "author": "PJAvinash",
+  "base": "develop",
+  "accessed_at": "2026-07-18",
+  "body": "Motivation: performance enhancements primarily for Strix Halo and initialization optimizations in RCCL. Changes include safer topology preset handling, O(nChannel*Ranks) topology post-processing, load-balanced Hamiltonian rings for larger node counts, and gfx1151-isolated tuning.\n\nTest plan: Tested on 1, 2, 3, and 4 nodes in a star-connected topology via Ethernet switch.\n\nTest result: RCCL executes without failures. Performance improvements were minimal on the test system; 10 Gbps links were practically saturating for collectives at larger data sizes. RCCL unit tests for gfx1151 succeeded.",
+  "claim_label": "[MAINTAINER_REPORTED_MACHINE_EVIDENCE]",
+  "scope_warning": "PR-author report; no raw logs preserved in the connector response; topology is Ethernet switch, not Ethernet-over-USB4.",
+  "url": "https://github.com/ROCm/rocm-systems/pull/4875"
+}

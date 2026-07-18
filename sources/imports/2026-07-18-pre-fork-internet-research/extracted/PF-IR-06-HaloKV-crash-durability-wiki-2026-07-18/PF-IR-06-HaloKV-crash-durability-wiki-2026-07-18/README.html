@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PF-IR-06 — HaloKV persistent-cache crash-durability wiki · PF-IR-06</title><link rel="stylesheet" href="assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="wiki/00-scope-and-claim-language.html">Scope / labels</a><a href="wiki/01-executive-decision-record.html">Decision record</a><a href="wiki/02-portable-linux-minimum.html">Portable minimum</a><a href="wiki/03-temporary-files-and-publication.html">Publication</a><a href="wiki/04-deployed-filesystem-profile.html">Deployed profile</a><a href="wiki/05-ext4.html">ext4</a><a href="wiki/06-xfs.html">XFS</a><a href="wiki/07-btrfs.html">Btrfs</a><a href="wiki/08-io-uring.html">io_uring</a><a href="wiki/09-errors-space-direct-io.html">Errors / DIO</a><a href="wiki/10-locking-and-fencing.html">Locking</a><a href="wiki/11-fault-test-matrix.html">Fault program</a><a href="wiki/12-nontarget-portability.html">Non-targets</a><a href="wiki/13-open-questions.html">Open questions</a><a href="wiki/14-source-audit.html">Source audit</a><a href="matrices/claim-ledger.html">Claim ledger</a><a href="matrices/guarantee-source-test.html">Guarantee map</a><a href="matrices/experiment-matrix.html">Experiment matrix</a><a href="matrices/source-register.html">Source register</a><a href="VERSION-PINS.html">Version pins</a><a href="raw/README.html">Raw capture policy</a><a href="licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="scripts/fault-tests/README.html">Harness notes</a><a href="BUILD-VALIDATION.html">Build validation</a><a class="active" href="README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="index.html">Wiki home</a><span>·</span><a href="README.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>PF-IR-06 — HaloKV persistent-cache crash-durability wiki</h1>
+<p><strong>Access date:</strong> 2026-07-18<br/>
+<strong>Kernel semantic anchor:</strong> Linux 7.1.3 <code>199c9959d3a9b53f346c221757fc7ac507fbac50</code><br/>
+<strong>liburing anchor:</strong> 2.15 <code>d41bf9220ec39277ff235379e9089d9e0fd6c2a5</code></p>
+<blockquote>
+<p><strong>No durability claim.</strong> This bundle selects source-backed candidate primitives and a proof plan. It does not establish that a future or current implementation is durable. The deployed filesystem was not supplied and remains a release-blocking input.</p>
+</blockquote>
+<h2>Start here</h2>
+<ol>
+<li>Open <code>index.html</code> for the styled wiki landing page.</li>
+<li>Read <code>wiki/01-executive-decision-record.md</code>.</li>
+<li>Review <code>matrices/guarantee-source-test.md</code> and <code>matrices/experiment-matrix.md</code>.</li>
+<li>Run <code>scripts/inspect_fs_profile.sh</code> on both cache roots.</li>
+<li>Verify evidence hashes with <code>python3 scripts/verify_manifest.py</code>.</li>
+</ol>
+<h2>Candidate decision</h2>
+<p>Use immutable self-validating objects and a single-writer root. Create an unpublished inode in the destination directory, write exactly, validate, synchronize the file, atomically publish, synchronize the directory, then acknowledge. <code>O_TMPFILE</code>, direct I/O, <code>fallocate</code>, XFS <code>wsync</code>, reflink and Btrfs-specific settings are optimizations or conditional profiles—not portable durability primitives.</p>
+<h2>Bundle map</h2>
+<ul>
+<li><code>wiki/</code> — research synthesis and decision record</li>
+<li><code>matrices/</code> — claim ledger, source register, guarantee→source→test table, experiment matrix</li>
+<li><code>raw/</code> — pinned source excerpts and official metadata/standards receipts</li>
+<li><code>scripts/</code> — profile, publication, short-write, kill and manifest probes</li>
+<li><code>manifests/</code> — SHA-256 manifests</li>
+<li><code>licenses/</code> — source-license inventory</li>
+<li><code>VERSION-PINS.md</code> — immutable revisions and documentation versions</li>
+</ul>
+<h2>Deployment gate</h2>
+<p>Persistent writes remain disabled until the selected implementation passes the applicable <code>T001–T040</code> matrix on the exact deployed filesystem, mount options and block/device stack, including real host-level power cuts.</p>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="assets/wiki.js"></script></body></html>

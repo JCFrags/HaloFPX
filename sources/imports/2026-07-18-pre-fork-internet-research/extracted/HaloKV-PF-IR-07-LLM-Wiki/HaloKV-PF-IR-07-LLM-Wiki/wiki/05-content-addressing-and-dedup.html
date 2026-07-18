@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Content addressing, deduplication, identifiers, and manifests Why a raw global digest is unsafe for private cache content A public unkeyed digest of canonical plaintext allows any…">
+  <title>Content addressing, deduplication, identifiers, and manifests · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link active" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Content addressing, deduplication, identifiers, and manifests</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Content addressing, deduplication, identifiers, and manifests</h1>
+<h2 id="why-a-raw-global-digest-is-unsafe-for-private-cache-content">Why a raw global digest is unsafe for private cache content<a class="heading-anchor" href="#why-a-raw-global-digest-is-unsafe-for-private-cache-content" aria-label="Link to section">#</a></h2>
+<p>A public unkeyed digest of canonical plaintext allows any observer who can query or inspect the index to test guesses and learn equality across tenants. Encryption of the payload does not remove that lookup oracle. Cross-tenant hit latency, admission behavior, storage accounting, or error detail can further confirm the guess.</p>
+<p>The private identifier is therefore scoped and keyed:</p>
+<pre><code class="language-text">semantic_bytes = deterministic_encode(object_type, schema, codec-normalized-content)
+scoped_cid = HMAC-SHA-256(K_id, &quot;HaloKV/CID/v1&quot; || semantic_bytes)
+</code></pre>
+<p>Use the complete 256-bit result internally unless a collision analysis and protocol version explicitly approve truncation. The identifier key is separate from <code>K_enc</code> and <code>K_manifest</code>. The <code>sharing_class</code> and namespace are fixed by the key domain and also bound in object/manifest AAD.</p>
+<p><span class="claim-label" data-claim="PFIR07-C056" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C056][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C047,C052]</span></p>
+<h2 id="deduplication-scopes">Deduplication scopes<a class="heading-anchor" href="#deduplication-scopes" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Sharing class</th>
+  <th>CID/index key</th>
+  <th>Maximum lookup scope</th>
+  <th>Write authority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>private-project</code></td>
+  <td>Project/namespace <code>K_id</code></td>
+  <td>One project</td>
+  <td>Authorized project workloads/cache service</td>
+</tr>
+<tr>
+  <td><code>private-tenant</code></td>
+  <td>Tenant/namespace <code>K_id</code></td>
+  <td>One tenant</td>
+  <td>Authorized tenant workloads/cache service</td>
+</tr>
+<tr>
+  <td><code>explicit-group:&lt;id&gt;</code></td>
+  <td>Group authority <code>K_id</code></td>
+  <td>Current authorized group</td>
+  <td>Group-controlled publisher/cache service</td>
+</tr>
+<tr>
+  <td><code>public-system</code></td>
+  <td>System publisher identifier/signature policy</td>
+  <td>Explicit public/system namespace</td>
+  <td>Publisher only; tenants read only</td>
+</tr>
+</tbody>
+</table></div>
+<p>The safer default is <code>private-project</code> when project isolation exists, otherwise <code>private-tenant</code>. Cross-tenant private dedup is rejected. A public/system object is not created by observing that several tenants produced equal private content; it enters the public namespace only through an explicit publication workflow.</p>
+<p><span class="claim-label" data-claim="PFIR07-C052" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C052][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C047,C056,C061-C062]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C053" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C053][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C027,C052]</span></p>
+<h2 id="ciphertext-and-dedup">Ciphertext and dedup<a class="heading-anchor" href="#ciphertext-and-dedup" aria-label="Link to section">#</a></h2>
+<p>Randomized AEAD intentionally makes repeated encryption under distinct nonces produce different ciphertext. The logical dedup process is:</p>
+<ol>
+<li>Authorize the request for a sharing scope.</li>
+<li>Compute the scope-specific keyed CID over canonical semantics.</li>
+<li>Lookup only within that scope's index.</li>
+<li>On a candidate hit, authenticate the object and validate AAD, CID, and freshness.</li>
+<li>On any failure, treat it as a miss; quarantine/delete candidate and recompute.</li>
+<li>On a miss, encrypt a new object with a fresh nonce and publish atomically.</li>
+</ol>
+<p>Do not deduplicate private objects by raw plaintext digest, storage-block equality, unauthenticated compressed bytes, or ciphertext equality.</p>
+<p><span class="claim-label" data-claim="PFIR07-C061" data-class="SYNTHESIS" data-status="SUPPORTED">[CLAIM:PFIR07-C061][CLASS:SYNTHESIS][STATUS:SUPPORTED][SRC:C030-C036]</span></p>
+<h2 id="canonical-semantic-input">Canonical semantic input<a class="heading-anchor" href="#canonical-semantic-input" aria-label="Link to section">#</a></h2>
+<p>The CID may be over exact plaintext bytes or normalized semantics. The choice must be versioned and deterministic. If normalization is used, it must define:</p>
+<ul>
+<li>byte encoding and map-key order;</li>
+<li>numeric and Unicode representation;</li>
+<li>treatment of default/absent/null fields;</li>
+<li>codec and compression boundaries;</li>
+<li>stable object type/schema version;</li>
+<li>chunking algorithm/version;</li>
+<li>whether volatile timestamps or request IDs are excluded;</li>
+<li>duplicate-key rejection and extension handling.</li>
+</ul>
+<p>Two implementations that disagree must generate different namespace/schema versions rather than silently sharing identifiers.</p>
+<p><span class="claim-label" data-claim="PFIR07-C049" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C049][CLASS:SOURCE][STATUS:SUPPORTED][SRC:RFC8949 §4.2]</span></p>
+<h2 id="manifests">Manifests<a class="heading-anchor" href="#manifests" aria-label="Link to section">#</a></h2>
+<p>A manifest authenticates object membership, order, chunk lengths, scoped CIDs, key epochs, source revision, sharing class, and generation. It is either:</p>
+<ul>
+<li>AEAD-encrypted/MACed under <code>K_manifest</code> when only scope members need to read it; or</li>
+<li>deterministically encoded and digitally signed by a separate public/system publisher when broad verification without shared secret is required.</li>
+</ul>
+<p>Manifest identity is not a substitute for authenticating each referenced object. Each object binds its manifest ID/generation and chunk position in AAD; the manifest binds the object key/CID/length tuple. This bidirectional binding prevents path-only substitution.</p>
+<h2 id="privacy-preserving-identifiers-are-limited-controls">Privacy-preserving identifiers are limited controls<a class="heading-anchor" href="#privacy-preserving-identifiers-are-limited-controls" aria-label="Link to section">#</a></h2>
+<p>Keyed CIDs reduce public dictionary and cross-scope equality exposure. They do not hide:</p>
+<ul>
+<li>equality within the authorized scope;</li>
+<li>object size, count, or access frequency;</li>
+<li>which tenant/rank performed work when observable elsewhere;</li>
+<li>hit/miss timing unless the architecture isolates it;</li>
+<li>semantic leakage from public/system artifacts;</li>
+<li>leakage after <code>K_id</code> compromise.</li>
+</ul>
+<p><span class="claim-label" data-claim="PFIR07-C062" data-class="SYNTHESIS" data-status="RESIDUAL-RISK">[CLAIM:PFIR07-C062][CLASS:SYNTHESIS][STATUS:RESIDUAL-RISK][SRC:C002,C011,C015,C056-C061]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C077" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C077][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C056,C062]</span></p>
+<h2 id="cross-tenant-timing-leakage-controls">Cross-tenant timing leakage controls<a class="heading-anchor" href="#cross-tenant-timing-leakage-controls" aria-label="Link to section">#</a></h2>
+<p>Cryptography alone is insufficient. Use separate per-tenant/project indexes, authorization before lookup, quota/accounting after authorization, bounded constant-shaped miss errors, recomputation coalescing only inside the same scope, and scheduler/resource isolation for sensitive tenants. Padding or artificial delay should be introduced only against a measured threat because it can worsen denial-of-service and rarely makes full execution time constant.</p>
+<h2 id="public-system-prefix-poisoning-controls">Public/system-prefix poisoning controls<a class="heading-anchor" href="#public-system-prefix-poisoning-controls" aria-label="Link to section">#</a></h2>
+<p>A public namespace needs a publisher-specific manifest signature or MAC authority, immutable release/generation, reproducible generation where feasible, review, emergency revoke, and rollback protection. A valid signature proves publisher authorization—not semantic correctness—so publication review and source provenance remain required.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

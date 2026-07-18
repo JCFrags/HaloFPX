@@ -1,0 +1,22 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "TEST-MPI-FRAMEWORK"
+source_class: "test"
+claim_label: "[UPSTREAM_TEST]"
+upstream_path: "projects/rccl/test/common/MPITestFramework.md"
+upstream_blob_sha: "32ada53a93a9e6cd62ef388ead383ee14a772caa"
+upstream_locator: "multi-node MPI execution and interface configuration"
+snapshot_kind: "structured relevant excerpt summary"
+completeness: "selected relevant content; not full file"
+license: "RCCL repository license / per-file terms"
+---
+
+```text
+The MPI test framework supports multi-process and multi-node test execution.
+Hostfiles and MPI implementation-specific interface arguments are supplied by
+the runner. RCCL's network interface can be pinned with ``NCCL_SOCKET_IFNAME``.
+The framework distinguishes node-local P2P/SHM tests from multi-node NET and
+distributed-collective tests.
+```

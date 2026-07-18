@@ -1,0 +1,21 @@
+# One possible deterministic 96-bit nonce allocator.
+# The durable authority must prevent rollback and concurrent allocator identity reuse.
+
+function reserve_range(key_id, allocator_instance_u32, count):
+    require(1 <= count <= LOCAL_MAX_RANGE)
+    transaction trusted_nonce_store:
+        state = load_for_update(key_id, allocator_instance_u32)
+        require(state.epoch_state == ACTIVE)
+        require(state.high_water + count <= LOCAL_INVOCATION_CEILING)
+        start = state.high_water
+        state.high_water += count
+        persist_and_commit(state)  # Must be durable before any returned nonce is used.
+    return [start, start + count)
+
+function nonce(allocator_instance_u32, counter_u64):
+    return uint32_be(allocator_instance_u32) || uint64_be(counter_u64)
+
+# On state loss, clone, rollback, or uncertain commit:
+#   DENY seals under key_id
+#   CREATE fresh epoch/key_id and allocator_instance
+#   NEVER infer the next counter from cache files

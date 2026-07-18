@@ -1,0 +1,6 @@
+filename,role,version,platform,acquisition,sha256,terms,label
+xrt_202610.2.21.75_24.04-amd64-base.deb,XRT base,202610.2.21.75,Ubuntu 24.04 amd64,AMD account download,not captured,AMD EULA/third-party notices,[VENDOR-ONLY]
+xrt_202610.2.21.75_24.04-amd64-base-dev.deb,XRT development,202610.2.21.75,Ubuntu 24.04 amd64,AMD account download,not captured,AMD EULA/third-party notices,[VENDOR-ONLY]
+xrt_202610.2.21.75_24.04-amd64-npu.deb,XRT NPU,202610.2.21.75,Ubuntu 24.04 amd64,AMD account download,not captured,AMD EULA/third-party notices,[VENDOR-ONLY]
+xrt_plugin.2.21.260102.53.release_24.04-amd64-amdxdna.deb,XDNA XRT plugin/shim,2.21.260102.53.release,Ubuntu 24.04 amd64,AMD account download,not captured,AMD EULA/third-party notices plus component licenses,[VENDOR-ONLY]
+ryzen_ai-1.7.1.tgz,Ryzen AI Software,1.7.1,Linux reference package,AMD account download,not captured,AMD EULA/third-party notices,[VENDOR-ONLY]

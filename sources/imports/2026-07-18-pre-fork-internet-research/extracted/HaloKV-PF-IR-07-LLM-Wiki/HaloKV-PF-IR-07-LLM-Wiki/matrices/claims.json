@@ -1,0 +1,832 @@
+[
+  {
+    "claim_id": "PFIR07-C001",
+    "literal_label": "[CLAIM:PFIR07-C001][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Introduction]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-FSCRYPT-7.2RC3 §Introduction",
+    "claim_text": "fscrypt operates at filesystem level and can protect different directory trees with distinct key domains.",
+    "topic": "Option boundary",
+    "qualification_or_note": "Direct source characterization."
+  },
+  {
+    "claim_id": "PFIR07-C002",
+    "literal_label": "[CLAIM:PFIR07-C002][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Threat model]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-FSCRYPT-7.2RC3 §Threat model",
+    "claim_text": "fscrypt protects file contents and filenames for an offline point-in-time view, while most filesystem metadata remains visible.",
+    "topic": "Threat boundary",
+    "qualification_or_note": "Do not generalize to full metadata secrecy."
+  },
+  {
+    "claim_id": "PFIR07-C003",
+    "literal_label": "[CLAIM:PFIR07-C003][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Threat model]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-FSCRYPT-7.2RC3 §Threat model",
+    "claim_text": "fscrypt does not provide authenticity against an adversary that can modify encrypted storage while it is offline.",
+    "topic": "Integrity",
+    "qualification_or_note": "Direct source limitation."
+  },
+  {
+    "claim_id": "PFIR07-C004",
+    "literal_label": "[CLAIM:PFIR07-C004][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Threat model]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-FSCRYPT-7.2RC3 §Threat model",
+    "claim_text": "After an fscrypt key is installed, normal operating-system access controls govern access; privileged online compromise is outside its storage-at-rest boundary.",
+    "topic": "Threat boundary",
+    "qualification_or_note": "Inference phrased at source boundary, not a root-resistance claim."
+  },
+  {
+    "claim_id": "PFIR07-C005",
+    "literal_label": "[CLAIM:PFIR07-C005][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Removing keys]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-FSCRYPT-7.2RC3 §Removing keys",
+    "claim_text": "Removing an fscrypt master key does not immediately remove per-file keys for files still in use, including open files and certain active references.",
+    "topic": "Busy files",
+    "qualification_or_note": "Operationally material revocation caveat."
+  },
+  {
+    "claim_id": "PFIR07-C006",
+    "literal_label": "[CLAIM:PFIR07-C006][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Removing keys]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-FSCRYPT-7.2RC3 §Removing keys",
+    "claim_text": "Userspace must separately erase its own copies of fscrypt key material.",
+    "topic": "Process retention",
+    "qualification_or_note": "Direct source requirement."
+  },
+  {
+    "claim_id": "PFIR07-C007",
+    "literal_label": "[CLAIM:PFIR07-C007][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Memory wiping]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-FSCRYPT-7.2RC3 §Memory wiping",
+    "claim_text": "fscrypt key removal does not guarantee that every plaintext or key-derived copy in VFS caches, process memory, registers, or other layers has been erased.",
+    "topic": "Memory retention",
+    "qualification_or_note": "No secure-wipe guarantee."
+  },
+  {
+    "claim_id": "PFIR07-C008",
+    "literal_label": "[CLAIM:PFIR07-C008][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Encryption policy enforcement]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-FSCRYPT-7.2RC3 §Encryption policy enforcement",
+    "claim_text": "fscrypt v2 policies are recommended over v1 for new deployments because v2 strengthens policy and key semantics.",
+    "topic": "Configuration",
+    "qualification_or_note": "Use kernel-supported current policy versions."
+  },
+  {
+    "claim_id": "PFIR07-C009",
+    "literal_label": "[CLAIM:PFIR07-C009][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Encryption modes and usage]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-FSCRYPT-7.2RC3 §Encryption modes and usage",
+    "claim_text": "The documented fscrypt modes do not provide authenticated encryption for file contents; ciphertext expansion and filesystem semantics are cited constraints.",
+    "topic": "Integrity",
+    "qualification_or_note": "Do not label fscrypt object-authenticating."
+  },
+  {
+    "claim_id": "PFIR07-C010",
+    "literal_label": "[CLAIM:PFIR07-C010][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LUKS2-SPEC-1.1.4 §Introduction]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LUKS2-SPEC-1.1.4 §Introduction",
+    "claim_text": "LUKS2 is a generic key store for a volume key with multiple credentials/keyslots and extensible metadata.",
+    "topic": "Key storage",
+    "qualification_or_note": "Volume-key wrapping is distinct from object identity."
+  },
+  {
+    "claim_id": "PFIR07-C011",
+    "literal_label": "[CLAIM:PFIR07-C011][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LUKS2-SPEC-1.1.4 §§1.1,2]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LUKS2-SPEC-1.1.4 §§1.1,2",
+    "claim_text": "LUKS2 header redundancy and checksums detect corruption but are not a general malicious-metadata authentication guarantee; metadata remains observable unless detached.",
+    "topic": "Metadata integrity",
+    "qualification_or_note": "Do not conflate checksum with adversarial authenticity."
+  },
+  {
+    "claim_id": "PFIR07-C012",
+    "literal_label": "[CLAIM:PFIR07-C012][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LUKS2-SPEC-1.1.4 §5.4; CRYPTSETUP-2.8.6 manual]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LUKS2-SPEC-1.1.4 §5.4; CRYPTSETUP-2.8.6 manual",
+    "claim_text": "Authenticated disk-encryption support through dm-crypt/dm-integrity is optional and documented as experimental in the selected stack.",
+    "topic": "Option maturity",
+    "qualification_or_note": "Not the minimum portable baseline."
+  },
+  {
+    "claim_id": "PFIR07-C013",
+    "literal_label": "[CLAIM:PFIR07-C013][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LUKS2-SPEC-1.1.4 §7; CRYPTSETUP-2.8.6 cryptsetup-reencrypt]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LUKS2-SPEC-1.1.4 §7; CRYPTSETUP-2.8.6 cryptsetup-reencrypt",
+    "claim_text": "LUKS2 reencryption has resilience modes with different crash-recovery behavior; partial or resilience-none operations carry explicit recovery risk.",
+    "topic": "Crash recovery",
+    "qualification_or_note": "Runbook must pin resilience and backup behavior."
+  },
+  {
+    "claim_id": "PFIR07-C014",
+    "literal_label": "[CLAIM:PFIR07-C014][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-luksHeaderBackup]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "CRYPTSETUP-2.8.6 cryptsetup-luksHeaderBackup",
+    "claim_text": "A LUKS header backup contains key material sufficient to unlock data with valid credentials and must be protected as sensitive key-bearing backup material.",
+    "topic": "Backup",
+    "qualification_or_note": "Header backups participate in erasure and revocation analysis."
+  },
+  {
+    "claim_id": "PFIR07-C015",
+    "literal_label": "[CLAIM:PFIR07-C015][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-DMCRYPT-7.2RC3; CRYPTSETUP-2.8.6 common options]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-DMCRYPT-7.2RC3; CRYPTSETUP-2.8.6 common options",
+    "claim_text": "Passing discard through an encrypted mapping can reveal allocation or filesystem-use patterns and has security implications.",
+    "topic": "Discard",
+    "qualification_or_note": "Performance option, not deletion primitive."
+  },
+  {
+    "claim_id": "PFIR07-C016",
+    "literal_label": "[CLAIM:PFIR07-C016][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-DMINTEGRITY-7.2RC3 §Introduction]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-DMINTEGRITY-7.2RC3 §Introduction",
+    "claim_text": "dm-integrity can store integrity tags and, when combined with dm-crypt authenticated modes, can convert detected tampering into I/O failure.",
+    "topic": "Integrity",
+    "qualification_or_note": "Block-level, not HaloKV principal binding."
+  },
+  {
+    "claim_id": "PFIR07-C017",
+    "literal_label": "[CLAIM:PFIR07-C017][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-DMINTEGRITY-7.2RC3 §Modes]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-DMINTEGRITY-7.2RC3 §Modes",
+    "claim_text": "dm-integrity journal mode provides atomicity for data and integrity tags, while direct mode can expose tag/data mismatch after a crash.",
+    "topic": "Crash recovery",
+    "qualification_or_note": "Configuration materially affects recovery semantics."
+  },
+  {
+    "claim_id": "PFIR07-C018",
+    "literal_label": "[CLAIM:PFIR07-C018][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-DMINTEGRITY-7.2RC3 §Security considerations]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-DMINTEGRITY-7.2RC3 §Security considerations",
+    "claim_text": "An unencrypted integrity journal may expose recent write patterns or data unless protected by the selected authenticated-encryption construction.",
+    "topic": "Metadata leakage",
+    "qualification_or_note": "Residual leakage requires review."
+  },
+  {
+    "claim_id": "PFIR07-C019",
+    "literal_label": "[CLAIM:PFIR07-C019][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-close]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "CRYPTSETUP-2.8.6 cryptsetup-close",
+    "claim_text": "Closing a dm-crypt mapping removes the active mapping and key only when the mapping is no longer in use.",
+    "topic": "Busy mapping",
+    "qualification_or_note": "Unmount and drain first."
+  },
+  {
+    "claim_id": "PFIR07-C020",
+    "literal_label": "[CLAIM:PFIR07-C020][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-close]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "CRYPTSETUP-2.8.6 cryptsetup-close",
+    "claim_text": "Deferred close schedules mapping removal after the last user releases it rather than providing immediate revocation.",
+    "topic": "Busy mapping",
+    "qualification_or_note": "Deferred is availability-oriented, not instant key eviction."
+  },
+  {
+    "claim_id": "PFIR07-C021",
+    "literal_label": "[CLAIM:PFIR07-C021][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-erase and luksKillSlot]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "CRYPTSETUP-2.8.6 cryptsetup-erase and luksKillSlot",
+    "claim_text": "Erasing LUKS keyslots does not overwrite payload data, and an extant LUKS header backup can restore access.",
+    "topic": "Cryptographic erasure",
+    "qualification_or_note": "All key-bearing copies must be considered."
+  },
+  {
+    "claim_id": "PFIR07-C022",
+    "literal_label": "[CLAIM:PFIR07-C022][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 luksChangeKey and reencrypt]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "CRYPTSETUP-2.8.6 luksChangeKey and reencrypt",
+    "claim_text": "Changing a passphrase or keyslot wrapper is not the same operation as reencrypting payload data under a new volume key.",
+    "topic": "Rotation",
+    "qualification_or_note": "Separate credential rotation from data-key rotation."
+  },
+  {
+    "claim_id": "PFIR07-C023",
+    "literal_label": "[CLAIM:PFIR07-C023][CLASS:SOURCE][STATUS:SUPPORTED][SRC:SYSTEMD-CRYPTTAB-261.1 §Description]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "SYSTEMD-CRYPTTAB-261.1 §Description",
+    "claim_text": "systemd crypttab configures encrypted block devices that are activated during boot.",
+    "topic": "Boot",
+    "qualification_or_note": "Reference exact tagged source."
+  },
+  {
+    "claim_id": "PFIR07-C024",
+    "literal_label": "[CLAIM:PFIR07-C024][CLASS:SOURCE][STATUS:SUPPORTED][SRC:SYSTEMD-CRYPTTAB-261.1 §Key Acquisition]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "SYSTEMD-CRYPTTAB-261.1 §Key Acquisition",
+    "claim_text": "systemd supports interactive, file, AF_UNIX, PKCS#11, FIDO2, and TPM2-related unlock mechanisms for encrypted volumes.",
+    "topic": "Unlock",
+    "qualification_or_note": "Mechanism choice does not by itself establish tenant identity."
+  },
+  {
+    "claim_id": "PFIR07-C025",
+    "literal_label": "[CLAIM:PFIR07-C025][CLASS:SOURCE][STATUS:SUPPORTED][SRC:SYSTEMD-CRYPTTAB-261.1 password-cache option]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "SYSTEMD-CRYPTTAB-261.1 password-cache option",
+    "claim_text": "systemd password-agent infrastructure may temporarily cache interactively supplied passwords or PINs when configured to do so.",
+    "topic": "Process retention",
+    "qualification_or_note": "Disable or account for caching in threat model."
+  },
+  {
+    "claim_id": "PFIR07-C026",
+    "literal_label": "[CLAIM:PFIR07-C026][CLASS:SOURCE][STATUS:SUPPORTED][SRC:SYSTEMD-CRYPTTAB-261.1 link-volume-key option]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "SYSTEMD-CRYPTTAB-261.1 link-volume-key option",
+    "claim_text": "A LUKS2 volume key linked into a kernel keyring is not automatically removed merely because the encrypted device is detached.",
+    "topic": "Key retention",
+    "qualification_or_note": "Explicit unlink/revoke lifecycle required."
+  },
+  {
+    "claim_id": "PFIR07-C027",
+    "literal_label": "[CLAIM:PFIR07-C027][CLASS:INFERENCE][STATUS:SUPPORTED][SRC:SYSTEMD-CRYPTTAB-261.1 TPM2 option; principal model]",
+    "class": "INFERENCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "SYSTEMD-CRYPTTAB-261.1 TPM2 option; principal model",
+    "claim_text": "TPM2-bound unlock proves platform or policy state according to enrollment, not HaloKV tenant/project authority; principal binding remains an application control.",
+    "topic": "Principal binding",
+    "qualification_or_note": "Human authority mapping remains open."
+  },
+  {
+    "claim_id": "PFIR07-C028",
+    "literal_label": "[CLAIM:PFIR07-C028][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-KEYS-7.2RC3 §Keyrings]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-KEYS-7.2RC3 §Keyrings",
+    "claim_text": "Linux thread, process, session, user, and persistent keyrings have different possession and lifetime semantics; logon-type keys are not readable through normal userspace key-read APIs.",
+    "topic": "Key storage",
+    "qualification_or_note": "Kernel retention still requires lifecycle control."
+  },
+  {
+    "claim_id": "PFIR07-C029",
+    "literal_label": "[CLAIM:PFIR07-C029][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-KEYS-7.2RC3 §Revocation]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "LINUX-KEYS-7.2RC3 §Revocation",
+    "claim_text": "Kernel key revocation marks a key unusable for future operations but does not prove erasure of every derived or copied key.",
+    "topic": "Revocation",
+    "qualification_or_note": "Derived keys and active mappings are separate."
+  },
+  {
+    "claim_id": "PFIR07-C030",
+    "literal_label": "[CLAIM:PFIR07-C030][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38D §§5.2,7]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-38D §§5.2,7",
+    "claim_text": "GCM authenticates additional data without encrypting it and authenticated decryption returns plaintext or FAIL.",
+    "topic": "AEAD",
+    "qualification_or_note": "Foundation for fail-closed object handling."
+  },
+  {
+    "claim_id": "PFIR07-C031",
+    "literal_label": "[CLAIM:PFIR07-C031][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38D §8]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-38D §8",
+    "claim_text": "GCM IV uniqueness is a critical per-key requirement; reuse can compromise security.",
+    "topic": "Nonce",
+    "qualification_or_note": "Hard requirement."
+  },
+  {
+    "claim_id": "PFIR07-C032",
+    "literal_label": "[CLAIM:PFIR07-C032][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38D §8.3]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-38D §8.3",
+    "claim_text": "For the RBG-based GCM IV construction, the total invocations under a given key and supported IV length are bounded by 2^32.",
+    "topic": "Nonce",
+    "qualification_or_note": "Use stricter local limits where appropriate."
+  },
+  {
+    "claim_id": "PFIR07-C033",
+    "literal_label": "[CLAIM:PFIR07-C033][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38D §8.2.1]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-38D §8.2.1",
+    "claim_text": "A deterministic IV construction requires invocation-state preservation across power loss; inability to establish uniqueness requires a new key domain.",
+    "topic": "Crash recovery",
+    "qualification_or_note": "Epoch rollover is safer than guessing."
+  },
+  {
+    "claim_id": "PFIR07-C034",
+    "literal_label": "[CLAIM:PFIR07-C034][CLASS:SOURCE][STATUS:SUPPORTED][SRC:RFC5116 §§2-3]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "RFC5116 §§2-3",
+    "claim_text": "An AEAD interface binds plaintext and associated data and returns an error on authentication failure.",
+    "topic": "AEAD",
+    "qualification_or_note": "Protocol-level framing reference."
+  },
+  {
+    "claim_id": "PFIR07-C035",
+    "literal_label": "[CLAIM:PFIR07-C035][CLASS:SOURCE][STATUS:SUPPORTED][SRC:RFC8439 §2.8]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "RFC8439 §2.8",
+    "claim_text": "IETF ChaCha20-Poly1305 uses a 96-bit nonce that must be unique for each invocation with the same key.",
+    "topic": "Nonce",
+    "qualification_or_note": "Alternative AEAD suite."
+  },
+  {
+    "claim_id": "PFIR07-C036",
+    "literal_label": "[CLAIM:PFIR07-C036][CLASS:SOURCE][STATUS:SUPPORTED][SRC:RFC8452 §§3,9]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "RFC8452 §§3,9",
+    "claim_text": "AES-GCM-SIV provides nonce-misuse resistance with explicit usage limits, but it does not make deliberate or unlimited nonce reuse acceptable.",
+    "topic": "AEAD",
+    "qualification_or_note": "Optional suite, not permission to ignore nonce state."
+  },
+  {
+    "claim_id": "PFIR07-C037",
+    "literal_label": "[CLAIM:PFIR07-C037][CLASS:SOURCE][STATUS:SUPPORTED][SRC:RFC5869 §§2-3]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "RFC5869 §§2-3",
+    "claim_text": "HKDF uses extract-and-expand stages and an application-specific info field for context separation.",
+    "topic": "KDF",
+    "qualification_or_note": "Suitable where HKDF is an approved implementation choice."
+  },
+  {
+    "claim_id": "PFIR07-C038",
+    "literal_label": "[CLAIM:PFIR07-C038][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-108R1U1 §§4-5]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-108R1U1 §§4-5",
+    "claim_text": "SP 800-108 KDF constructions include Label and Context inputs intended to separate derived-key purposes and parties.",
+    "topic": "KDF",
+    "qualification_or_note": "Encode canonical hierarchy context."
+  },
+  {
+    "claim_id": "PFIR07-C039",
+    "literal_label": "[CLAIM:PFIR07-C039][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38E §1]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-38E §1",
+    "claim_text": "XTS-AES is a confidentiality mode for storage devices and does not provide authentication.",
+    "topic": "Block encryption",
+    "qualification_or_note": "Do not treat default LUKS XTS as integrity protection."
+  },
+  {
+    "claim_id": "PFIR07-C040",
+    "literal_label": "[CLAIM:PFIR07-C040][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-57P1R5 §7]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-57P1R5 §7",
+    "claim_text": "Cryptographic keys move through defined lifecycle states, including pre-activation, active, deactivated, compromised, and destroyed states.",
+    "topic": "Key lifecycle",
+    "qualification_or_note": "HaloKV epochs map to explicit state transitions."
+  },
+  {
+    "claim_id": "PFIR07-C041",
+    "literal_label": "[CLAIM:PFIR07-C041][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-88R2 §§2,5,7]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-88R2 §§2,5,7",
+    "claim_text": "Logical deletion, overwrite commands, or discard are not automatically equivalent to verified media sanitization or cryptographic erase.",
+    "topic": "Deletion",
+    "qualification_or_note": "Technique must match media and policy."
+  },
+  {
+    "claim_id": "PFIR07-C042",
+    "literal_label": "[CLAIM:PFIR07-C042][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-88R2 §5.4]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-88R2 §5.4",
+    "claim_text": "Cryptographic erase depends on rendering all relevant target-data encryption keys inaccessible, including copies, escrow, and hierarchical dependencies.",
+    "topic": "Cryptographic erase",
+    "qualification_or_note": "Scope is key-copy complete."
+  },
+  {
+    "claim_id": "PFIR07-C043",
+    "literal_label": "[CLAIM:PFIR07-C043][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-88R2 §5.4]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-88R2 §5.4",
+    "claim_text": "Keys or plaintext may persist in volatile memory, processor registers, caches, or supporting systems and require separate handling.",
+    "topic": "Memory retention",
+    "qualification_or_note": "CE is not a universal memory wipe."
+  },
+  {
+    "claim_id": "PFIR07-C044",
+    "literal_label": "[CLAIM:PFIR07-C044][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-88R2 §§6-7]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-88R2 §§6-7",
+    "claim_text": "A sanitization program includes verification, validation, and documentation rather than relying only on command success.",
+    "topic": "Media sanitization",
+    "qualification_or_note": "Evidence trail is part of the procedure."
+  },
+  {
+    "claim_id": "PFIR07-C045",
+    "literal_label": "[CLAIM:PFIR07-C045][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-111 §§2-4]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-111 §§2-4",
+    "claim_text": "Storage encryption technologies protect different layers and threat boundaries; full-disk, volume, file/folder, and virtual-disk controls are not interchangeable.",
+    "topic": "Option boundary",
+    "qualification_or_note": "Use layered control selection."
+  },
+  {
+    "claim_id": "PFIR07-C046",
+    "literal_label": "[CLAIM:PFIR07-C046][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-133R2]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-SP800-133R2",
+    "claim_text": "Cryptographic keys must be generated with approved random-bit-generation processes and sufficient strength for their intended algorithms.",
+    "topic": "Key generation",
+    "qualification_or_note": "No human-chosen data keys."
+  },
+  {
+    "claim_id": "PFIR07-C047",
+    "literal_label": "[CLAIM:PFIR07-C047][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-FIPS198-1; RFC2104]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "NIST-FIPS198-1; RFC2104",
+    "claim_text": "HMAC is a keyed message-authentication construction suitable for scoped identifiers and manifest authentication when instantiated correctly.",
+    "topic": "Identifiers",
+    "qualification_or_note": "Keyed identifier use is a synthesis decision."
+  },
+  {
+    "claim_id": "PFIR07-C048",
+    "literal_label": "[CLAIM:PFIR07-C048][CLASS:SOURCE][STATUS:SUPPORTED][SRC:RFC9106 §4]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "RFC9106 §4",
+    "claim_text": "Argon2id is the primary Argon2 variant recommended by RFC 9106 for password hashing under its stated parameter profiles.",
+    "topic": "Human credentials",
+    "qualification_or_note": "Use only when human memorized secrets are unavoidable."
+  },
+  {
+    "claim_id": "PFIR07-C049",
+    "literal_label": "[CLAIM:PFIR07-C049][CLASS:SOURCE][STATUS:SUPPORTED][SRC:RFC8949 §4.2]",
+    "class": "SOURCE",
+    "status": "SUPPORTED",
+    "source_or_basis": "RFC8949 §4.2",
+    "claim_text": "Deterministically encoded CBOR requires defined canonicalization choices so semantically identical data produces the same encoding.",
+    "topic": "Canonicalization",
+    "qualification_or_note": "Needed for stable AAD and identifiers."
+  },
+  {
+    "claim_id": "PFIR07-C050",
+    "literal_label": "[CLAIM:PFIR07-C050][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C002-C004,C009,C030-C035,C045]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C002-C004,C009,C030-C035,C045",
+    "claim_text": "Object-level AEAD is mandatory for the minimum multi-user HaloKV persistent-cache profile; fscrypt and LUKS are defense-in-depth rather than substitutes.",
+    "topic": "Decision",
+    "qualification_or_note": "Standards-backed synthesis."
+  },
+  {
+    "claim_id": "PFIR07-C051",
+    "literal_label": "[CLAIM:PFIR07-C051][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C004,C009-C012,C027,C039]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C004,C009-C012,C027,C039",
+    "claim_text": "An unlocked LUKS volume is a host storage boundary, and fscrypt is a filesystem key-domain boundary; neither natively authenticates HaloKV tenant, project, prefix, rank, or object semantics.",
+    "topic": "Threat boundary",
+    "qualification_or_note": "Principal binding belongs in object AAD and authorization."
+  },
+  {
+    "claim_id": "PFIR07-C052",
+    "literal_label": "[CLAIM:PFIR07-C052][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C047,C056,C061-C062]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C047,C056,C061-C062",
+    "claim_text": "Private content-addressed deduplication must be scoped no wider than the authorized tenant/project sharing domain.",
+    "topic": "Deduplication",
+    "qualification_or_note": "Human-approved sharing policy sets the boundary."
+  },
+  {
+    "claim_id": "PFIR07-C053",
+    "literal_label": "[CLAIM:PFIR07-C053][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C027,C052]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C027,C052",
+    "claim_text": "Public or system-prefix objects require a separate authority-owned namespace, signing/key policy, publication workflow, and read-only tenant consumption path.",
+    "topic": "System prefix",
+    "qualification_or_note": "Never silently promote private tenant objects into a global pool."
+  },
+  {
+    "claim_id": "PFIR07-C054",
+    "literal_label": "[CLAIM:PFIR07-C054][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C037-C040,C046]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C037-C040,C046",
+    "claim_text": "Derive or wrap purpose-separated keys through canonical tenant/project/prefix/namespace/rank/epoch contexts, with separate encryption, identifier, manifest, and audit purposes.",
+    "topic": "Key hierarchy",
+    "qualification_or_note": "Prevents cross-purpose and cross-domain key reuse."
+  },
+  {
+    "claim_id": "PFIR07-C055",
+    "literal_label": "[CLAIM:PFIR07-C055][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C031-C033,C035-C036]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C031-C033,C035-C036",
+    "claim_text": "Each rank receives a separate AEAD key domain per epoch, or an equivalently rigorous nonce partition; uncertain nonce state forces a new epoch.",
+    "topic": "Peer separation",
+    "qualification_or_note": "Simplifies local crash recovery and blast radius."
+  },
+  {
+    "claim_id": "PFIR07-C056",
+    "literal_label": "[CLAIM:PFIR07-C056][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C047,C052]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C047,C052",
+    "claim_text": "Use HMAC-SHA-256 or another reviewed PRF under a scope-specific identifier key for private content identifiers; do not expose a global raw plaintext digest.",
+    "topic": "Privacy identifiers",
+    "qualification_or_note": "Still leaks equality within the authorized scope."
+  },
+  {
+    "claim_id": "PFIR07-C057",
+    "literal_label": "[CLAIM:PFIR07-C057][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C030,C034,C038,C049]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C030,C034,C038,C049",
+    "claim_text": "Canonical AEAD associated data binds format version, suite, key epoch, authority, principal scope, prefix, namespace, sharing class, rank, object type, codec, sizes, chunk position, identifier, and manifest generation.",
+    "topic": "AAD",
+    "qualification_or_note": "AAD fields remain visible unless separately encrypted."
+  },
+  {
+    "claim_id": "PFIR07-C058",
+    "literal_label": "[CLAIM:PFIR07-C058][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C003,C016,C030,C034]",
+    "class": "SYNTHESIS",
+    "status": "REQUIRED",
+    "source_or_basis": "C003,C016,C030,C034",
+    "claim_text": "Any unknown, malformed, corrupt, unauthenticated, wrong-key, wrong-principal, wrong-rank, stale, or mismatched cache object produces one external result: MISS_RECOMPUTE.",
+    "topic": "Invariant",
+    "qualification_or_note": "No plaintext fallback or partial accept path."
+  },
+  {
+    "claim_id": "PFIR07-C059",
+    "literal_label": "[CLAIM:PFIR07-C059][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C030,C034]",
+    "class": "SYNTHESIS",
+    "status": "REQUIRED",
+    "source_or_basis": "C030,C034",
+    "claim_text": "Authenticate the complete envelope and required AAD before decompression, deserialization, digest trust, manifest traversal, or exposure to a consumer.",
+    "topic": "Parser safety",
+    "qualification_or_note": "Length limits are checked before allocation; authenticity before semantic use."
+  },
+  {
+    "claim_id": "PFIR07-C060",
+    "literal_label": "[CLAIM:PFIR07-C060][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C030-C036]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C030-C036",
+    "claim_text": "AEAD authenticity alone does not prevent replay of an older valid object; enforce trusted epoch floors, manifest generations, or monotonic state where freshness matters.",
+    "topic": "Replay",
+    "qualification_or_note": "Freshness is a separate control."
+  },
+  {
+    "claim_id": "PFIR07-C061",
+    "literal_label": "[CLAIM:PFIR07-C061][CLASS:SYNTHESIS][STATUS:SUPPORTED][SRC:C030-C036]",
+    "class": "SYNTHESIS",
+    "status": "SUPPORTED",
+    "source_or_basis": "C030-C036",
+    "claim_text": "Randomized AEAD ciphertext is not a stable cross-write deduplication key; deduplication should operate on a scoped authenticated identifier and then store one authorized ciphertext representation.",
+    "topic": "Deduplication",
+    "qualification_or_note": "Do not deduplicate by global ciphertext equality."
+  },
+  {
+    "claim_id": "PFIR07-C062",
+    "literal_label": "[CLAIM:PFIR07-C062][CLASS:SYNTHESIS][STATUS:RESIDUAL-RISK][SRC:C002,C011,C015,C056-C061]",
+    "class": "SYNTHESIS",
+    "status": "RESIDUAL-RISK",
+    "source_or_basis": "C002,C011,C015,C056-C061",
+    "claim_text": "Encryption does not hide all sizes, access patterns, timing, allocation changes, or within-scope equality; cross-tenant timing isolation requires scheduling and lookup controls beyond cryptography.",
+    "topic": "Side channels",
+    "qualification_or_note": "Residual risk remains."
+  },
+  {
+    "claim_id": "PFIR07-C063",
+    "literal_label": "[CLAIM:PFIR07-C063][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C030,C034,C058-C059]",
+    "class": "SYNTHESIS",
+    "status": "REQUIRED",
+    "source_or_basis": "C030,C034,C058-C059",
+    "claim_text": "On any cryptographic or format failure, delete or quarantine the suspect cache entry and recompute through the authoritative pipeline; never fall back to unauthenticated cached plaintext.",
+    "topic": "Failure handling",
+    "qualification_or_note": "Availability impact is accepted over unsafe reuse."
+  },
+  {
+    "claim_id": "PFIR07-C064",
+    "literal_label": "[CLAIM:PFIR07-C064][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C013-C014,C040-C044]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C013-C014,C040-C044",
+    "claim_text": "Do not back up regenerable cache content by default. If backup is required, treat ciphertext, manifests, format metadata, wrapped keys, header backups, and epoch state as one coherent protected set.",
+    "topic": "Backup",
+    "qualification_or_note": "Backup policy is a human decision."
+  },
+  {
+    "claim_id": "PFIR07-C065",
+    "literal_label": "[CLAIM:PFIR07-C065][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C013-C014,C058-C060,C064]",
+    "class": "SYNTHESIS",
+    "status": "REQUIRED",
+    "source_or_basis": "C013-C014,C058-C060,C064",
+    "claim_text": "Restore into a non-serving quarantine namespace, validate format and policy, unwrap only authorized epochs, authenticate every object or sample according to declared policy, and publish atomically only after acceptance.",
+    "topic": "Restore",
+    "qualification_or_note": "No direct restore into live lookup path."
+  },
+  {
+    "claim_id": "PFIR07-C066",
+    "literal_label": "[CLAIM:PFIR07-C066][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C030,C034,C052-C057]",
+    "class": "SYNTHESIS",
+    "status": "REQUIRED",
+    "source_or_basis": "C030,C034,C052-C057",
+    "claim_text": "Export decrypts only after authorization and authentication, then re-encrypts under an explicit destination authority and sharing scope; copying source ciphertext does not transfer principal authority.",
+    "topic": "Export",
+    "qualification_or_note": "Export is a new cryptographic context."
+  },
+  {
+    "claim_id": "PFIR07-C067",
+    "literal_label": "[CLAIM:PFIR07-C067][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C041-C044]",
+    "class": "SYNTHESIS",
+    "status": "REQUIRED",
+    "source_or_basis": "C041-C044",
+    "claim_text": "Logical deletion removes indexes, manifests, serving references, and scheduled storage objects, but must not be described as physical sanitization or immediate byte erasure.",
+    "topic": "Deletion",
+    "qualification_or_note": "Record tombstone and retention effects."
+  },
+  {
+    "claim_id": "PFIR07-C068",
+    "literal_label": "[CLAIM:PFIR07-C068][CLASS:SYNTHESIS][STATUS:CONDITIONAL][SRC:C042-C044,C054]",
+    "class": "SYNTHESIS",
+    "status": "CONDITIONAL",
+    "source_or_basis": "C042-C044,C054",
+    "claim_text": "Per-object cryptographic erasure is supportable only when the object has an independently destroyable DEK or key-wrapping record and every usable copy and backup dependency is rendered inaccessible.",
+    "topic": "Cryptographic erase",
+    "qualification_or_note": "Shared epoch keys usually make erasure scope larger than one object."
+  },
+  {
+    "claim_id": "PFIR07-C069",
+    "literal_label": "[CLAIM:PFIR07-C069][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C015,C041-C044]",
+    "class": "SYNTHESIS",
+    "status": "RECOMMENDED",
+    "source_or_basis": "C015,C041-C044",
+    "claim_text": "Keep discard disabled unless a documented performance decision accepts allocation leakage; enabling discard does not create a secure-deletion guarantee.",
+    "topic": "Discard",
+    "qualification_or_note": "Separate performance and sanitization decisions."
+  },
+  {
+    "claim_id": "PFIR07-C070",
+    "literal_label": "[CLAIM:PFIR07-C070][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C031-C033,C040,C058-C065]",
+    "class": "SYNTHESIS",
+    "status": "REQUIRED",
+    "source_or_basis": "C031-C033,C040,C058-C065",
+    "claim_text": "Following suspected key or nonce compromise, stop writes, establish a new epoch, revoke authorization, drain active users, invalidate affected manifests, quarantine suspect objects, and recompute or re-encrypt from trusted inputs.",
+    "topic": "Incident response",
+    "qualification_or_note": "Old ciphertext remains evidence, not serving data."
+  },
+  {
+    "claim_id": "PFIR07-C071",
+    "literal_label": "[CLAIM:PFIR07-C071][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C003,C009]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C003,C009",
+    "claim_text": "Unsupported claim: fscrypt alone authenticates HaloKV objects or detects all offline tampering.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "False for selected boundary."
+  },
+  {
+    "claim_id": "PFIR07-C072",
+    "literal_label": "[CLAIM:PFIR07-C072][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C011-C012,C039]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C011-C012,C039",
+    "claim_text": "Unsupported claim: ordinary LUKS2/dm-crypt XTS provides per-object authenticity or tenant binding.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "Confidentiality boundary only."
+  },
+  {
+    "claim_id": "PFIR07-C073",
+    "literal_label": "[CLAIM:PFIR07-C073][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C041-C044]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C041-C044",
+    "claim_text": "Unsupported claim: unlink, overwrite, TRIM, discard, or filesystem free-space release is automatically secure deletion.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "Media-dependent and unverified."
+  },
+  {
+    "claim_id": "PFIR07-C074",
+    "literal_label": "[CLAIM:PFIR07-C074][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C005-C007,C019-C020,C026,C029]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C005-C007,C019-C020,C026,C029",
+    "claim_text": "Unsupported claim: key revocation instantly removes access from open files, active mappings, kernel keyrings, or processes.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "Drain and memory lifecycle required."
+  },
+  {
+    "claim_id": "PFIR07-C075",
+    "literal_label": "[CLAIM:PFIR07-C075][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C004,C045]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C004,C045",
+    "claim_text": "Unsupported claim: at-rest encryption protects plaintext from a compromised root account, kernel, hypervisor, DMA-capable actor, or authorized live process.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "Outside selected control boundary."
+  },
+  {
+    "claim_id": "PFIR07-C076",
+    "literal_label": "[CLAIM:PFIR07-C076][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C060]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C060",
+    "claim_text": "Unsupported claim: AEAD authentication by itself prevents rollback or replay of an older valid object.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "Freshness state is separate."
+  },
+  {
+    "claim_id": "PFIR07-C077",
+    "literal_label": "[CLAIM:PFIR07-C077][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C056,C062]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C056,C062",
+    "claim_text": "Unsupported claim: keyed content identifiers eliminate access-pattern, size, timing, or within-scope equality leakage.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "They reduce public digest exposure only."
+  },
+  {
+    "claim_id": "PFIR07-C078",
+    "literal_label": "[CLAIM:PFIR07-C078][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C052,C062]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C052,C062",
+    "claim_text": "Unsupported claim: cross-tenant global deduplication is privacy-neutral merely because payloads are encrypted.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "Lookup and timing can form confirmation oracles."
+  },
+  {
+    "claim_id": "PFIR07-C079",
+    "literal_label": "[CLAIM:PFIR07-C079][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C041-C044]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C041-C044",
+    "claim_text": "Unsupported claim: cryptographic erase is physical zeroization or proves all remanent media states are unrecoverable.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "CE is key inaccessibility under stated assumptions."
+  },
+  {
+    "claim_id": "PFIR07-C080",
+    "literal_label": "[CLAIM:PFIR07-C080][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C024,C027]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C024,C027",
+    "claim_text": "Unsupported claim: TPM-, FIDO2-, or PKCS#11-assisted volume unlock establishes HaloKV tenant/project principal authority.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "It establishes a device/credential unlock condition."
+  },
+  {
+    "claim_id": "PFIR07-C081",
+    "literal_label": "[CLAIM:PFIR07-C081][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C030-C049]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C030-C049",
+    "claim_text": "Unsupported claim: selecting a NIST-specified primitive automatically makes the HaloKV implementation FIPS validated, certified, or compliant.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "Implementation/module/program status is separate."
+  },
+  {
+    "claim_id": "PFIR07-C082",
+    "literal_label": "[CLAIM:PFIR07-C082][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C014,C021-C022,C042]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C014,C021-C022,C042",
+    "claim_text": "Unsupported claim: removing a LUKS keyslot is irreversible while header backups, alternate keyslots, escrow, or snapshots exist.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "All unlock paths matter."
+  },
+  {
+    "claim_id": "PFIR07-C083",
+    "literal_label": "[CLAIM:PFIR07-C083][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C015,C041-C044]",
+    "class": "UNSUPPORTED",
+    "status": "REJECTED",
+    "source_or_basis": "C015,C041-C044",
+    "claim_text": "Unsupported claim: an SSD or storage-provider discard acknowledgement proves physical cells have been sanitized.",
+    "topic": "Unsupported claim",
+    "qualification_or_note": "Use media/provider-specific sanitize evidence and validation."
+  }
+]

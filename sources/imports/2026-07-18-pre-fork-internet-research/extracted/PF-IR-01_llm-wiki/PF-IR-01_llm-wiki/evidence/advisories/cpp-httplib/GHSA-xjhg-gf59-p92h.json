@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-xjhg-gf59-p92h",
+  "title": "Unlimited HTTP header fields cause memory exhaustion",
+  "severity": "High",
+  "affected_versions": "0.21.0",
+  "patched_versions": "0.22.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-xjhg-gf59-p92h",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "read_headers",
+    "precondition": "Unauthenticated connection sends many header fields before routing"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "532af437aca0c9187f595c7c449790ab4cb9a486435f1d2ad94431f4777f27f8"
+}

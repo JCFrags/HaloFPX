@@ -1,0 +1,28 @@
+---
+source_id: "S008"
+title: "Linux io_uring cancellation implementation"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "gregkh/linux mirror of Linux stable"
+path: "io_uring/cancel.c"
+version: "Linux 7.1.3"
+commit: "199c9959d3a9b53f346c221757fc7ac507fbac50"
+upstream_blob_sha1: "4aa3103ba9c39c388074d3fcc4e2afeec732101e"
+line_ranges: "80-105, 176-246, 307-356"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "GPL-2.0"
+---
+switch (cancel_ret) {
+case IO_WQ_CANCEL_OK:
+        ret = 0;
+        break;
+case IO_WQ_CANCEL_RUNNING:
+        ret = -EALREADY;
+        break;
+case IO_WQ_CANCEL_NOTFOUND:
+        ret = -ENOENT;
+        break;
+}
+
+/* synchronous cancellation keeps retrying a request that is already running
+ * until it disappears, completes, or the timeout expires. */

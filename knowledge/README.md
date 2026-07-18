@@ -22,6 +22,7 @@ Claim labels are literal: `[VERIFIED]` is source-backed, `[MEASURED]` is scoped 
 3. [Cache and state safety invariants](cache-state-safety-invariants.md) — the acceptance boundary for model tensors, prefix state, and session continuation.
 4. [Dual-node transport and capacity constraints](dual-node-transport-and-capacity-constraints.md) — measured host limits, current carrier, experimental transport, ownership, and failure constraints.
 5. [Implementation readiness gates](implementation-readiness-gates.md) — the shortest defensible path from research control to authorized implementation.
+6. [Pre-fork research return synthesis](pre-fork-research-return-synthesis.md) — decision routing from the 2026-07-18 PF-IR returns and the immediate next sequence.
 
 Read the baseline and readiness modules before starting work. Load the integration, cache, or transport module only when its lane is active.
 

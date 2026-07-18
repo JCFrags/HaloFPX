@@ -1,0 +1,3 @@
+{"continuation_tokens":8,"id":"full-state-continuation","model":"../gguf/pfir10-tiny-llama-f32-v3.gguf","oracle":{"logits":"numeric_f32_restore","token_ids":"exact"},"prompt_hex":"53746174652041","save_after_prompt":true,"seed":1234}
+{"id":"sequence-isolation","model":"../gguf/pfir10-tiny-llama-f32-v3.gguf","operation":"remove sequence 0","oracle":"serialized state bytes for sequence 1 are unchanged within the same process","prompt_hex":"41424344","sequences":2}
+{"id":"fragmented-kv-restore","model":"../gguf/pfir10-tiny-llama-f32-v3.gguf","operations":["decode seq0 positions 0..7","remove positions 2..4","save","restore fresh context","replay position 2"],"oracle":{"logits":"numeric_f32_restore","token_ids":"exact"}}

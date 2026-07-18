@@ -1,0 +1,21 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-NEMOTRON-PUBLISHER
+authority: publisher
+capture_type: rendered_text_extract
+source_title: nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16
+source_url: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16/tree/624ba927cfbef0427354998700de3d51173c8c04
+immutable_revision: 624ba927cfbef0427354998700de3d51173c8c04
+accessed_at: 2026-07-18
+completeness: SELECTED_FACTS
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Normalized publisher facts:
+- 550B total / 55B activated.
+- Mamba-2/Transformer hybrid LatentMoE with selected attention layers and MTP.
+- Up to 1M token context; configurable thinking through chat template.
+- NVFP4 pretraining recipe with selected layers in BF16/MXFP8.
+- OpenMDW-1.1; publisher states readiness for commercial and non-commercial use.
+- Official BF16 tree observed around 1.12 TB with 225 shards.
+
+OpenMDW obligations are independently captured; publisher marketing language is not a legal opinion.

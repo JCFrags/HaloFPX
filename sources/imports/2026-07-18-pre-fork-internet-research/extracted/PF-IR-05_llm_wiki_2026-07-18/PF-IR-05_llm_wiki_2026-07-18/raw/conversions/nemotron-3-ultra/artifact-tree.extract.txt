@@ -1,0 +1,19 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-NEMOTRON-CONVERSION
+authority: third_party_converter
+capture_type: rendered_text_extract
+source_title: unsloth/NVIDIA-Nemotron-3-Ultra-550B-A55B-GGUF UD-IQ3_XXS
+source_url: https://huggingface.co/unsloth/NVIDIA-Nemotron-3-Ultra-550B-A55B-GGUF/tree/05c80881664d32be9b26bab9d0360be00230ade4/UD-IQ3_XXS
+immutable_revision: 05c80881664d32be9b26bab9d0360be00230ade4
+accessed_at: 2026-07-18
+completeness: NAMES_AND_ROUNDED_SIZES_ONLY
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00001-of-00006.gguf	display_size=7.87 MB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00002-of-00006.gguf	display_size=48.1 GB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00003-of-00006.gguf	display_size=48.3 GB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00004-of-00006.gguf	display_size=48.1 GB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00005-of-00006.gguf	display_size=48.4 GB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00006-of-00006.gguf	display_size=30.5 GB	bytes=UNAVAILABLE	sha256=UNAVAILABLE
+Rounded folder total: 223 GB.

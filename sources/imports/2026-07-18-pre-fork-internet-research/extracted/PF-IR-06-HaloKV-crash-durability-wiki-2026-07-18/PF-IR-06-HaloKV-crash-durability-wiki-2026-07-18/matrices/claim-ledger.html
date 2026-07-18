@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Literal claim ledger · PF-IR-06</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="../index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="../wiki/00-scope-and-claim-language.html">Scope / labels</a><a href="../wiki/01-executive-decision-record.html">Decision record</a><a href="../wiki/02-portable-linux-minimum.html">Portable minimum</a><a href="../wiki/03-temporary-files-and-publication.html">Publication</a><a href="../wiki/04-deployed-filesystem-profile.html">Deployed profile</a><a href="../wiki/05-ext4.html">ext4</a><a href="../wiki/06-xfs.html">XFS</a><a href="../wiki/07-btrfs.html">Btrfs</a><a href="../wiki/08-io-uring.html">io_uring</a><a href="../wiki/09-errors-space-direct-io.html">Errors / DIO</a><a href="../wiki/10-locking-and-fencing.html">Locking</a><a href="../wiki/11-fault-test-matrix.html">Fault program</a><a href="../wiki/12-nontarget-portability.html">Non-targets</a><a href="../wiki/13-open-questions.html">Open questions</a><a href="../wiki/14-source-audit.html">Source audit</a><a class="active" href="claim-ledger.html">Claim ledger</a><a href="guarantee-source-test.html">Guarantee map</a><a href="experiment-matrix.html">Experiment matrix</a><a href="source-register.html">Source register</a><a href="../VERSION-PINS.html">Version pins</a><a href="../raw/README.html">Raw capture policy</a><a href="../licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="../scripts/fault-tests/README.html">Harness notes</a><a href="../BUILD-VALIDATION.html">Build validation</a><a href="../README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="../index.html">Wiki home</a><span>·</span><a href="claim-ledger.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>Literal claim ledger</h1>
+<p>Claims: <strong>56</strong>. Labels are literal and intentionally distinguish upstream guarantees from design recommendations and test gates.</p>
+<table>
+<thead>
+<tr>
+<th>Claim ID</th>
+<th>Label</th>
+<th>Literal claim</th>
+<th>Scope</th>
+<th>Sources</th>
+<th>Tests</th>
+<th>Disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PF-IR-06-C001</td>
+<td>UNKNOWN-DEPLOYMENT</td>
+<td>The deployed cache filesystem and mount stack were not supplied; no filesystem-specific durability claim is made.</td>
+<td>All</td>
+<td>S001</td>
+<td>T001</td>
+<td>open deployment fact</td>
+</tr>
+<tr>
+<td>PF-IR-06-C002</td>
+<td>A-CONSTRAINT</td>
+<td>Persistent mode targets a local Linux filesystem and block stack only. NFS, SMB/CIFS, FUSE, overlayfs, virtiofs and clustered filesystems require separate contracts.</td>
+<td>All</td>
+<td>S021;S026;S027</td>
+<td>T001;T038</td>
+<td>minimum profile</td>
+</tr>
+<tr>
+<td>PF-IR-06-C003</td>
+<td>A-GUARANTEE</td>
+<td>Same-filesystem rename can atomically replace a target name in the namespace.</td>
+<td>Portable Linux</td>
+<td>S021;S033</td>
+<td>T020</td>
+<td>source guarantee</td>
+</tr>
+<tr>
+<td>PF-IR-06-C004</td>
+<td>A-CONSTRAINT</td>
+<td>Namespace atomicity does not by itself establish crash-durable publication.</td>
+<td>All</td>
+<td>S020;S021</td>
+<td>T017;T019</td>
+<td>contract distinction</td>
+</tr>
+<tr>
+<td>PF-IR-06-C005</td>
+<td>A-GUARANTEE</td>
+<td>A successful file fsync/fdatasync does not necessarily persist the containing directory entry; synchronize the directory explicitly.</td>
+<td>Portable Linux</td>
+<td>S020</td>
+<td>T017;T019</td>
+<td>source guarantee</td>
+</tr>
+<tr>
+<td>PF-IR-06-C006</td>
+<td>RECOMMENDATION</td>
+<td>Use fdatasync for immutable payloads whose required metadata is limited to retrievability and size; use fsync when other inode metadata is part of the format contract.</td>
+<td>All</td>
+<td>S020;S017</td>
+<td>T014;T019</td>
+<td>design option</td>
+</tr>
+<tr>
+<td>PF-IR-06-C007</td>
+<td>A-CONSTRAINT</td>
+<td>Create the unpublished inode in the target directory/filesystem; cross-mount rename is rejected and cross-directory durability broadens the sync set.</td>
+<td>All</td>
+<td>S021;S022</td>
+<td>T001;T002</td>
+<td>minimum protocol</td>
+</tr>
+<tr>
+<td>PF-IR-06-C008</td>
+<td>RECOMMENDATION</td>
+<td>Prefer O_TMPFILE only after a runtime capability probe; retain a named O_CREAT|O_EXCL fallback.</td>
+<td>Local Linux</td>
+<td>S022;S034</td>
+<td>T002;T003</td>
+<td>optimization with fallback</td>
+</tr>
+<tr>
+<td>PF-IR-06-C009</td>
+<td>A-CONSTRAINT</td>
+<td>An object write is successful only when the accumulated result exactly equals the requested object length.</td>
+<td>All</td>
+<td>S023;S016</td>
+<td>T004;T005;T006</td>
+<td>minimum protocol</td>
+</tr>
+<tr>
+<td>PF-IR-06-C010</td>
+<td>A-GUARANTEE</td>
+<td>A positive write result may be short and must be followed by writes of the remaining range.</td>
+<td>All</td>
+<td>S023</td>
+<td>T004</td>
+<td>source guarantee</td>
+</tr>
+<tr>
+<td>PF-IR-06-C011</td>
+<td>A-CONSTRAINT</td>
+<td>A completed write or write CQE is not a persistence boundary.</td>
+<td>All</td>
+<td>S020;S012</td>
+<td>T014;T019</td>
+<td>minimum protocol</td>
+</tr>
+<tr>
+<td>PF-IR-06-C012</td>
+<td>A-CONSTRAINT</td>
+<td>A direct-I/O error can leave part of the requested region written and inconsistent; reject the object rather than infer all-or-none behavior.</td>
+<td>DIO</td>
+<td>S023</td>
+<td>T025</td>
+<td>source constraint</td>
+</tr>
+<tr>
+<td>PF-IR-06-C013</td>
+<td>A-GUARANTEE</td>
+<td>Buffered writeback errors and ENOSPC can surface at file synchronization rather than at the original write.</td>
+<td>All</td>
+<td>S020;S023</td>
+<td>T011</td>
+<td>source guarantee</td>
+</tr>
+<tr>
+<td>PF-IR-06-C014</td>
+<td>A-CONSTRAINT</td>
+<td>fallocate is an optional space-management step, not a replacement for exact writes, validation, or synchronization.</td>
+<td>All</td>
+<td>S025;S007</td>
+<td>T007</td>
+<td>minimum protocol</td>
+</tr>
+<tr>
+<td>PF-IR-06-C015</td>
+<td>A-CONSTRAINT</td>
+<td>ENOSPC or EDQUOT at create, allocation, write, file sync, namespace mutation, or directory sync fails the transaction and forbids acknowledgement.</td>
+<td>All</td>
+<td>S020;S021;S022;S025</td>
+<td>T007;T008;T009</td>
+<td>error policy</td>
+</tr>
+<tr>
+<td>PF-IR-06-C016</td>
+<td>RECOMMENDATION</td>
+<td>Treat EIO as a root-level health event: stop acknowledgements, fence the writer, retain diagnostics, and require recovery/operator action.</td>
+<td>All</td>
+<td>S020;S023</td>
+<td>T010;T011</td>
+<td>fail-closed policy</td>
+</tr>
+<tr>
+<td>PF-IR-06-C017</td>
+<td>A-CONSTRAINT</td>
+<td>Do not retry close after an error; perform the decisive fsync/fdatasync first and record close errors diagnostically.</td>
+<td>All</td>
+<td>S029</td>
+<td>T011</td>
+<td>minimum protocol</td>
+</tr>
+<tr>
+<td>PF-IR-06-C018</td>
+<td>RECOMMENDATION</td>
+<td>Published cache objects are immutable; updates create a new inode and replace a name or manifest pointer.</td>
+<td>HaloKV and tensor cache</td>
+<td>S021;S028;S031</td>
+<td>T020;T037</td>
+<td>architecture decision</td>
+</tr>
+<tr>
+<td>PF-IR-06-C019</td>
+<td>RECOMMENDATION</td>
+<td>Publication order is: create unpublished inode, exact write, validate, file sync, atomic publish, directory sync, then acknowledge.</td>
+<td>All</td>
+<td>S020;S021;S022</td>
+<td>T012-T019</td>
+<td>candidate contract</td>
+</tr>
+<tr>
+<td>PF-IR-06-C020</td>
+<td>A-CONSTRAINT</td>
+<td>Synchronize every directory whose entry set changed; prefer one parent directory to keep the durability boundary explicit.</td>
+<td>All</td>
+<td>S020</td>
+<td>T017;T019</td>
+<td>minimum protocol</td>
+</tr>
+<tr>
+<td>PF-IR-06-C021</td>
+<td>RECOMMENDATION</td>
+<td>Avoid cross-directory publication. If unavoidable, synchronize both source and destination directories and test the precise operation.</td>
+<td>All</td>
+<td>S020;S021</td>
+<td>T019</td>
+<td>portable conservative rule</td>
+</tr>
+<tr>
+<td>PF-IR-06-C022</td>
+<td>A-CONSTRAINT</td>
+<td>Overwrite policy permits atomic whole-inode replacement, not in-place mutation of a published object.</td>
+<td>All</td>
+<td>S021</td>
+<td>T020</td>
+<td>minimum protocol</td>
+</tr>
+<tr>
+<td>PF-IR-06-C023</td>
+<td>A-CONSTRAINT</td>
+<td>RENAME_EXCHANGE is atomic name exchange only; it does not eliminate file-sync or directory-sync requirements.</td>
+<td>Linux</td>
+<td>S021</td>
+<td>T022</td>
+<td>source plus inference</td>
+</tr>
+<tr>
+<td>PF-IR-06-C024</td>
+<td>A-GUARANTEE</td>
+<td>ext4 data=ordered orders associated data before the transaction metadata commit; delayed allocation remains enabled by default.</td>
+<td>ext4</td>
+<td>S002</td>
+<td>T019;T038</td>
+<td>filesystem profile</td>
+</tr>
+<tr>
+<td>PF-IR-06-C025</td>
+<td>A-CONSTRAINT</td>
+<td>ext4 auto_da_alloc is a compatibility heuristic for broken applications and is not the selected application durability primitive.</td>
+<td>ext4</td>
+<td>S002</td>
+<td>T017;T019</td>
+<td>filesystem caveat</td>
+</tr>
+<tr>
+<td>PF-IR-06-C026</td>
+<td>RECOMMENDATION</td>
+<td>Do not support ext4 data=writeback for persistent mode without a separately proven contract.</td>
+<td>ext4</td>
+<td>S002</td>
+<td>T038</td>
+<td>denylist</td>
+</tr>
+<tr>
+<td>PF-IR-06-C027</td>
+<td>A-CONSTRAINT</td>
+<td>ext4 data=journal disables delayed allocation and O_DIRECT; do not assume the normal DIO profile under that mount mode.</td>
+<td>ext4</td>
+<td>S002</td>
+<td>T023;T038</td>
+<td>filesystem constraint</td>
+</tr>
+<tr>
+<td>PF-IR-06-C028</td>
+<td>RECOMMENDATION</td>
+<td>Keep ext4 ordering barriers enabled and reject nobarrier unless the complete nonvolatile cache claim is independently proven and tested.</td>
+<td>ext4</td>
+<td>S002;S005</td>
+<td>T038;T040</td>
+<td>denylist</td>
+</tr>
+<tr>
+<td>PF-IR-06-C029</td>
+<td>A-CONSTRAINT</td>
+<td>XFS buffered writes use delayed allocation; explicit file and directory synchronization remains the baseline.</td>
+<td>XFS</td>
+<td>S003;S020</td>
+<td>T007;T019</td>
+<td>filesystem profile</td>
+</tr>
+<tr>
+<td>PF-IR-06-C030</td>
+<td>RECOMMENDATION</td>
+<td>XFS wsync may be evaluated as an optimization/HA option but is not part of the portable application contract.</td>
+<td>XFS</td>
+<td>S003</td>
+<td>T038</td>
+<td>filesystem optimization</td>
+</tr>
+<tr>
+<td>PF-IR-06-C031</td>
+<td>A-CONSTRAINT</td>
+<td>Btrfs COW, snapshots, compression and reflink alter allocation and sharing behavior; immutable publication avoids mutable shared-extent assumptions.</td>
+<td>Btrfs</td>
+<td>S004;S028;S031</td>
+<td>T037</td>
+<td>filesystem hazard</td>
+</tr>
+<tr>
+<td>PF-IR-06-C032</td>
+<td>A-CONSTRAINT</td>
+<td>Btrfs nodatacow implies nodatasum and permits interrupted in-place updates to be partial; do not combine it with mutable published objects.</td>
+<td>Btrfs</td>
+<td>S031</td>
+<td>T037;T038</td>
+<td>filesystem hazard</td>
+</tr>
+<tr>
+<td>PF-IR-06-C033</td>
+<td>TEST-REQUIRED</td>
+<td>Btrfs support is conditional on near-full data and metadata, snapshot, reflink, compression, and recovery tests on the deployed profile.</td>
+<td>Btrfs</td>
+<td>S031</td>
+<td>T037</td>
+<td>conditional support</td>
+</tr>
+<tr>
+<td>PF-IR-06-C034</td>
+<td>A-CONSTRAINT</td>
+<td>Discard/TRIM reclaims storage and can affect latency; it is neither a durability boundary nor a secure-erasure guarantee.</td>
+<td>All</td>
+<td>S003;S004;S031</td>
+<td>T038</td>
+<td>space-management rule</td>
+</tr>
+<tr>
+<td>PF-IR-06-C035</td>
+<td>A-CONSTRAINT</td>
+<td>Direct-I/O alignment must be queried with statx when available; never hard-code 4096 as a portable alignment.</td>
+<td>DIO</td>
+<td>S024</td>
+<td>T023;T024</td>
+<td>minimum DIO rule</td>
+</tr>
+<tr>
+<td>PF-IR-06-C036</td>
+<td>RECOMMENDATION</td>
+<td>Do not mix buffered I/O, O_DIRECT, and writable mmap for one object; do not fork with in-flight DIO using private mappings.</td>
+<td>DIO</td>
+<td>S022;S024</td>
+<td>T026</td>
+<td>conservative rule</td>
+</tr>
+<tr>
+<td>PF-IR-06-C037</td>
+<td>A-CONSTRAINT</td>
+<td>An io_uring CQE proves only the submitted operation result; durability follows only from successful sync CQEs and the tested storage stack.</td>
+<td>io_uring</td>
+<td>S012;S017;S005</td>
+<td>T019;T040</td>
+<td>minimum uring rule</td>
+</tr>
+<tr>
+<td>PF-IR-06-C038</td>
+<td>A-CONSTRAINT</td>
+<td>For writes, require CQE res to equal the submitted length; res &gt; 0 but short is not a chain-breaking error.</td>
+<td>io_uring</td>
+<td>S012;S016</td>
+<td>T004;T035</td>
+<td>minimum uring rule</td>
+</tr>
+<tr>
+<td>PF-IR-06-C039</td>
+<td>A-GUARANTEE</td>
+<td>Registered files and pending requests hold kernel file references; closing the userspace descriptor does not cancel them.</td>
+<td>io_uring</td>
+<td>S013;S015;S009</td>
+<td>T033</td>
+<td>source guarantee</td>
+</tr>
+<tr>
+<td>PF-IR-06-C040</td>
+<td>A-CONSTRAINT</td>
+<td>Registered-buffer updates/replacements can leave old resources alive after the update returns; tagged release CQEs identify terminal release. Explicit UNREGISTER_BUFFERS is documented synchronous, while ring-shutdown unpinning can complete asynchronously.</td>
+<td>io_uring</td>
+<td>S015;S009</td>
+<td>T034</td>
+<td>resource-lifetime rule</td>
+</tr>
+<tr>
+<td>PF-IR-06-C041</td>
+<td>A-CONSTRAINT</td>
+<td>Cancellation is racy. Handle target and cancel CQEs in either order and accept completion, independent failure, -ECANCELED/-EINTR, -ENOENT, and -EALREADY as documented.</td>
+<td>io_uring</td>
+<td>S013;S008</td>
+<td>T030;T031</td>
+<td>cancellation rule</td>
+</tr>
+<tr>
+<td>PF-IR-06-C042</td>
+<td>A-CONSTRAINT</td>
+<td>Linked operations sequence execution but do not validate application-level success. Check every CQE and do not blindly link a potentially short write to fsync.</td>
+<td>io_uring</td>
+<td>S014;S016</td>
+<td>T035</td>
+<td>link rule</td>
+</tr>
+<tr>
+<td>PF-IR-06-C043</td>
+<td>RECOMMENDATION</td>
+<td>Graceful teardown: stop submissions, cancel/drain outstanding requests, unregister resources, observe release tags, then queue_exit.</td>
+<td>io_uring</td>
+<td>S013;S015;S018</td>
+<td>T036</td>
+<td>lifecycle policy</td>
+</tr>
+<tr>
+<td>PF-IR-06-C044</td>
+<td>RECOMMENDATION</td>
+<td>Encode operation kind, object generation, and slot generation in user_data; do not reuse state until all terminal CQEs are consumed.</td>
+<td>io_uring</td>
+<td>S012;S013;S015</td>
+<td>T032;T034</td>
+<td>late-CQE defense</td>
+</tr>
+<tr>
+<td>PF-IR-06-C045</td>
+<td>A-GUARANTEE</td>
+<td>Linux 7.1.3 implements IORING_OP_FSYNC via vfs_fsync_range and maps IORING_FSYNC_DATASYNC to the datasync argument.</td>
+<td>io_uring</td>
+<td>S006;S007</td>
+<td>T019</td>
+<td>kernel implementation fact</td>
+</tr>
+<tr>
+<td>PF-IR-06-C046</td>
+<td>A-CONSTRAINT</td>
+<td>The final crash boundary depends on filesystem, block layer, device, firmware, RAID/dm/hypervisor and power-loss behavior honoring flush/FUA.</td>
+<td>All</td>
+<td>S005</td>
+<td>T040</td>
+<td>hardware boundary</td>
+</tr>
+<tr>
+<td>PF-IR-06-C047</td>
+<td>RECOMMENDATION</td>
+<td>Use exactly one writer process per cache root; give HaloKV and the RPC tensor cache separate roots and lock files.</td>
+<td>Multiprocess</td>
+<td>S026;S027</td>
+<td>T027;T028</td>
+<td>writer policy</td>
+</tr>
+<tr>
+<td>PF-IR-06-C048</td>
+<td>A-CONSTRAINT</td>
+<td>flock/OFD locks are advisory and released with the open-file-description lifetime; all participating writers must cooperate.</td>
+<td>Multiprocess</td>
+<td>S026;S027</td>
+<td>T027;T028</td>
+<td>locking semantics</td>
+</tr>
+<tr>
+<td>PF-IR-06-C049</td>
+<td>A-CONSTRAINT</td>
+<td>Classic process-associated fcntl locks can be dropped by closing any descriptor for the same file and are not the preferred writer fence.</td>
+<td>Multiprocess</td>
+<td>S027</td>
+<td>T029</td>
+<td>locking hazard</td>
+</tr>
+<tr>
+<td>PF-IR-06-C050</td>
+<td>A-CONSTRAINT</td>
+<td>A local advisory lock is not durable fencing, lease arbitration, or a multi-host consensus mechanism.</td>
+<td>Multiprocess</td>
+<td>S026;S027</td>
+<td>T001;T027</td>
+<td>scope limit</td>
+</tr>
+<tr>
+<td>PF-IR-06-C051</td>
+<td>RECOMMENDATION</td>
+<td>OPEN-FMT-01 should use an immutable self-describing object with magic, version, declared length, checksum/hash, object identity, and generation.</td>
+<td>Format</td>
+<td>S023</td>
+<td>T039</td>
+<td>decision option</td>
+</tr>
+<tr>
+<td>PF-IR-06-C052</td>
+<td>RECOMMENDATION</td>
+<td>HaloKV and model-tensor cache share the primitive but retain separate format namespaces, roots, admission/eviction policy, and writer fences.</td>
+<td>Architecture</td>
+<td>S026;S027</td>
+<td>T027;T039</td>
+<td>decision option</td>
+</tr>
+<tr>
+<td>PF-IR-06-C053</td>
+<td>A-CONSTRAINT</td>
+<td>Do not report success to a caller until directory synchronization succeeds after publication.</td>
+<td>All</td>
+<td>S020</td>
+<td>T018;T019</td>
+<td>ack boundary</td>
+</tr>
+<tr>
+<td>PF-IR-06-C054</td>
+<td>RECOMMENDATION</td>
+<td>Startup recovery validates object header, exact length and hash before making an object live; orphan temps and corrupt generations are quarantined or removed.</td>
+<td>All</td>
+<td>S023</td>
+<td>T039</td>
+<td>recovery policy</td>
+</tr>
+<tr>
+<td>PF-IR-06-C055</td>
+<td>TEST-REQUIRED</td>
+<td>Record and enforce filesystem type, kernel, mount options, block topology, DIO alignment and O_TMPFILE support as a certified profile.</td>
+<td>Deployment</td>
+<td>S001;S002;S003;S031</td>
+<td>T001;T002;T023;T038</td>
+<td>profile gate</td>
+</tr>
+<tr>
+<td>PF-IR-06-C056</td>
+<td>TEST-REQUIRED</td>
+<td>Documentation selects candidate primitives; only the implementation and local kill/ENOSPC/EIO/power-cut matrix can establish the deployed contract.</td>
+<td>All</td>
+<td>S001-S037</td>
+<td>T001-T040</td>
+<td>no durability claim</td>
+</tr>
+</tbody>
+</table>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="../assets/wiki.js"></script></body></html>

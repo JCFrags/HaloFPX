@@ -1,0 +1,30 @@
+---
+source_id: "S005"
+title: "Linux explicit volatile write-back cache control"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "gregkh/linux mirror of Linux stable"
+path: "Documentation/block/writeback_cache_control.rst"
+version: "Linux 7.1.3"
+commit: "199c9959d3a9b53f346c221757fc7ac507fbac50"
+upstream_blob_sha1: "c3707d071780458425d89760f23e648186ccf94e"
+line_ranges: "3-49, 83-97"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "GPL-2.0"
+---
+Many storage devices, especially in the consumer market, come with volatile
+write back caches. That means the devices signal I/O completion to the
+operating system before data actually has hit the non-volatile storage.
+
+The Linux block layer provides two simple mechanisms that let filesystems
+control the caching behavior of the storage device. These mechanisms are
+a forced cache flush, and the Force Unit Access (FUA) flag for requests.
+
+REQ_PREFLUSH ... guarantees that previously completed write requests are on
+non-volatile storage before the flagged bio starts.
+
+REQ_FUA ... makes sure that I/O completion for this request is only signaled
+after the data has been committed to non-volatile storage.
+
+For remapping drivers the REQ_FUA bits need to be propagated to underlying
+devices, and a global flush needs to be implemented for REQ_PREFLUSH.

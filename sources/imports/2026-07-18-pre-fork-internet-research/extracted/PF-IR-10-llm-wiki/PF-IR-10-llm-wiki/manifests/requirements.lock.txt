@@ -1,0 +1,2 @@
+# PF-IR-10 artifact generation, validation, and packaging use no third-party Python packages.
+# Python requirement: CPython or compatible Python >= 3.11.

@@ -1,0 +1,16 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-LLAMACPP-COMMIT
+authority: primary_runtime_source
+capture_type: connector_metadata_capture
+source_title: ggml-org/llama.cpp
+source_url: https://github.com/ggml-org/llama.cpp/tree/86a9c79f866799eb0e7e89c03578ccfbcc5d808e
+immutable_revision: 86a9c79f866799eb0e7e89c03578ccfbcc5d808e
+accessed_at: 2026-07-18
+completeness: EXACT_COMMIT_METADATA
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+commit: 86a9c79f866799eb0e7e89c03578ccfbcc5d808e
+captured commit message: opencl: load and use kernel_gemm_moe_q6_k_f32_ns from bin kernel lib (#25797)
+review scope: static architecture registration, model class mapping, graph construction, and selected state paths.
+execution status: NOT_RUN

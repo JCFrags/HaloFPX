@@ -1,0 +1,7 @@
+candidate_id,candidate,label,pin,feature_state,enter_machine_qualification,posture,source_ids
+K1,Linux v7.1.3 stable,[RELEASED],stable tag/release,USB4STREAM absent; thunderbolt-net and MPTCP baseline,No,Not a USB4STREAM candidate; useful control/rollback lane,S001
+K2,Linux v7.2-rc3,[RELEASED],tag a13c140cc289c0b7b3770bce5b3ad42ab35074aa,USB4STREAM present; original DMA-unmap-size defect present,No,Hold from stream qualification unless patched; valid source-comparison lane,S002;S005;S013
+K3,v7.2-rc3 + accepted unmap correction,[BACKPORTED],K2 plus exact one-line patch c1f5c55583d0..4cc86d8d6491,Minimal sourced feature + known correction,"Yes, source qualification only",Sufficiently evidenced for reversible machine qualification; install still gated by local compatibility/rollback tests,S002;S005;S013
+K4,linux-next next-20260717,[RELEASED],next-20260717 integration snapshot,Correction integrated plus unrelated churn,Conditional,"Useful integration/reference lane, not a minimal externally supportable package target",S030;S013
+K5,CachyOS linux-cachyos-rc 7.2.rc3-1,[PACKAGED],v3/v4 package SHA256 pinned,Binary packaged; exact frozen recipe/config/source not recovered,Conditional package inspection,Enter hash-pinned package-content qualification only; provenance closure required before support claim,S025;S026;S028;S029
+K6,CachyOS linux-cachyos 7.1.3-2,[PACKAGED],published stable package,Upstream feature absent; no public backport found,No,"Rollback/control lane, not USB4STREAM",S027;S001

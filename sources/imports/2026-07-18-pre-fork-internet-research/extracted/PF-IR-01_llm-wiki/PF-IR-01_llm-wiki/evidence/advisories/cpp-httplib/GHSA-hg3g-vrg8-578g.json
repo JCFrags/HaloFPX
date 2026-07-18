@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-hg3g-vrg8-578g",
+  "title": "Malformed X-Forwarded-For with trusted proxies can crash",
+  "severity": "High",
+  "affected_versions": "<0.44.0",
+  "patched_versions": "0.44.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-hg3g-vrg8-578g",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "trusted-proxy/XFF parsing",
+    "precondition": "Server trusts proxy headers and receives malformed XFF"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "371e7cb29d2af9dcf672f873edb632caf09ff89d8630c568d7aca4884e6a8c87"
+}

@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "generated_date": "2026-07-18",
+  "algorithm": "Git blob object ID = SHA-1('blob ' + byte_length + NUL + exact_bytes)",
+  "all_verified": true,
+  "files": [
+    {
+      "path": "sources/raw/kernel/Kconfig",
+      "expected_git_blob_sha1": "f39d7a87296cda75bc3cf9548b742e4e814ce491",
+      "actual_git_blob_sha1": "f39d7a87296cda75bc3cf9548b742e4e814ce491",
+      "sha256": "1c715c299b9aeef931e6fd3c78849c57487bb4f52e4fb1f055d97a17b2b00f2e",
+      "size_bytes": 514,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/kernel/npu5_regs.c",
+      "expected_git_blob_sha1": "306b359d0cd39c9939bc5f08625f822f12e65168",
+      "actual_git_blob_sha1": "306b359d0cd39c9939bc5f08625f822f12e65168",
+      "sha256": "0547213180239e1705ef08d39426708bc0c15a988814493965599c5295994550",
+      "size_bytes": 4521,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/kernel/amdnpu.rst",
+      "expected_git_blob_sha1": "064973bf489391a198a1b961b8c7a27693267201",
+      "actual_git_blob_sha1": "064973bf489391a198a1b961b8c7a27693267201",
+      "sha256": "5547d2bdbaf817f7d367cc2992e60205aaa4d7f8719c9ddc80b51f270fc9a523",
+      "size_bytes": 11715,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/amd-xdna-driver/legacy-npu5_regs.c",
+      "expected_git_blob_sha1": "a8be3ae6634c8812393f5f03641b007175e8e1f6",
+      "actual_git_blob_sha1": "a8be3ae6634c8812393f5f03641b007175e8e1f6",
+      "sha256": "c2f07ec70446357d8e09eb8647b12b0fe55bbacfa947ee9d88c5858b9698da08",
+      "size_bytes": 440,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/amd-xdna-driver/.gitmodules",
+      "expected_git_blob_sha1": "9cf659f468cb29fc99388d6c54e013116725376e",
+      "actual_git_blob_sha1": "9cf659f468cb29fc99388d6c54e013116725376e",
+      "sha256": "29ecf715c1e9c3b8e29bb4ce5d7e078ca59649b454292f387723f56282d70a9d",
+      "size_bytes": 71,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/amd-xdna-driver/CMakeLists.txt",
+      "expected_git_blob_sha1": "bb635e8422cadddc6d80de9911cb7123c3402d3a",
+      "actual_git_blob_sha1": "bb635e8422cadddc6d80de9911cb7123c3402d3a",
+      "sha256": "d4f954161b83689a979c8dfa376e00aa90ecad5e8754b6eed3a3c1acd066dd37",
+      "size_bytes": 1461,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/ryzenai-sw/LICENSE.txt",
+      "expected_git_blob_sha1": "a218338fe53898af5f1a6aeb7757b1a1c6ae34f9",
+      "actual_git_blob_sha1": "a218338fe53898af5f1a6aeb7757b1a1c6ae34f9",
+      "sha256": "423e2f5994ad309b732e8cac7f7e16da162f49a5f5d9c5679afcc3ca38c810f1",
+      "size_bytes": 1112,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/ryzenai-sw/DistilBERT_text_classification_bf16_README.md",
+      "expected_git_blob_sha1": "f5f7cde87b16ea170613ec3e032e276188d31312",
+      "actual_git_blob_sha1": "f5f7cde87b16ea170613ec3e032e276188d31312",
+      "sha256": "a39a928aa1d8407712b2f65b6fa91afc1ea282fac73ba27b5333aa56e27f92a9",
+      "size_bytes": 2882,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/ryzenai-sw/run_inference.py",
+      "expected_git_blob_sha1": "68540e2c4b646131ed6c8ea6a9710616e0c134fe",
+      "actual_git_blob_sha1": "68540e2c4b646131ed6c8ea6a9710616e0c134fe",
+      "sha256": "97333798adfb7e0c7dac59c6144515382aaa31be73372720fb1d3cb142763f1b",
+      "size_bytes": 1809,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/ryzenai-sw/vitisai_config.json",
+      "expected_git_blob_sha1": "0437e56a442676efb81284e4a483e251ea2a4c47",
+      "actual_git_blob_sha1": "0437e56a442676efb81284e4a483e251ea2a4c47",
+      "sha256": "82f274eb1341bafe69e203a7b6187bc814aa6c378bc028508acf733b0a1cd801",
+      "size_bytes": 473,
+      "verified": true
+    },
+    {
+      "path": "sources/raw/ryzenai-sw/custom_embedding.py",
+      "expected_git_blob_sha1": "780f9f4cfe6cbf756e8fa1d7c26dc91a40c65fb4",
+      "actual_git_blob_sha1": "780f9f4cfe6cbf756e8fa1d7c26dc91a40c65fb4",
+      "sha256": "3446703090146ce8dd79e9d990ba87db830ed4eced9cc0b0a50a6a44a35b28a0",
+      "size_bytes": 2113,
+      "verified": true
+    }
+  ],
+  "note": "Exact excerpts are separately pinned to the parent file blob in sources.csv; they are not expected to have the parent full-file blob ID."
+}

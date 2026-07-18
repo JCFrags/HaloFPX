@@ -1,0 +1,7 @@
+decision_id,decision,why_human,required_artifact,default_safety_posture
+HD-01,Principal authority,Determines which identity source can issue immutable tenant/project/service IDs and revoke them.,"Authority policy, issuer trust roots, identifier lifecycle, audit ownership.",No cache-key issuance without authoritative immutable IDs.
+HD-02,Sharing and deduplication policy,"Defines whether content equality may be shared within a project, tenant, explicit group, or public/system namespace.",Approved sharing classes and promotion workflow.,Private tenant/project scope; no cross-tenant dedup.
+HD-03,Key ownership and custody,"Defines who can create, unwrap, escrow, rotate, revoke, and destroy roots and backups.","RACI/quorum, KMS policy, escrow and legal-hold rules.",Service cannot self-authorize parent-root access.
+HD-04,Backup requirement and retention,A regenerable cache may not merit backup; retaining it expands key copies and deletion obligations.,"Data classification, RPO/RTO, retention and legal-hold policy.",No cache-content backup.
+HD-05,Freshness/rollback requirement,Some caches tolerate stale valid data; others need a monotonic source generation.,Maximum tolerated staleness and trusted state design.,Reject epochs/generations below current trusted floor.
+HD-06,Physical sanitization method,"Depends on media, provider capability, reuse/disposition, regulatory policy, and evidence threshold.","Media-specific procedure, verification/validation criteria, disposition record.",Do not assert sanitization without procedure evidence.

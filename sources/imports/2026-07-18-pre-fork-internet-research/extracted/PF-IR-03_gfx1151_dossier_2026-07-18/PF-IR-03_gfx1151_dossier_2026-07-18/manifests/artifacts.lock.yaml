@@ -1,0 +1,121 @@
+schema_version: 1
+capture_date: '2026-07-18'
+artifacts:
+- id: rocm-7.14.0-linux-gfx1151-tarball
+  lane: 7.14-core-sdk-tarball
+  url: https://repo.amd.com/rocm/tarball-multi-arch/therock-dist-linux-gfx1151-7.14.0.tar.gz
+  version: 7.14.0
+  architecture: gfx1151
+  sha256: null
+  sha512: null
+  detached_signature_url: null
+  vendor_digest_status: not located in captured official install/index material
+  signature_status: not located
+  https_only: true
+  embedded_source_manifest: share/therock/therock_manifest.json (expected; verify acquired bytes)
+  sbom: not located
+  licenses: must be inventoried from acquired bytes
+  promotable: false
+  promotion_blockers:
+  - vendor-authenticated byte digest or signature
+  - acquisition hash
+  - tar inventory
+  - embedded source manifest validation
+  - license/notice inventory
+  - SBOM
+  source_ids:
+  - S003
+  - S009
+  - S011
+  - S020
+- id: rocm-7.14.0-ubuntu2604-native-packages
+  lane: 7.14-core-sdk-native-packages
+  repository: https://repo.amd.com/rocm/packages-multi-arch/ubuntu2604
+  suite: stable
+  component: main
+  gpg_key_url: https://repo.amd.com/rocm/packages-multi-arch/gpg/rocm.gpg
+  gpg_key_fingerprint: null
+  signature_model: APT InRelease/Release metadata with signed-by keyring
+  meta_packages:
+  - amdrocm7.14-gfx1151
+  - amdrocm-core-sdk7.14-gfx1151
+  - amdrocm-core-devel7.14-gfx1151
+  - amdrocm-core-dev7.14-gfx1151
+  package_versions: null
+  package_sha256: null
+  promotable: false
+  promotion_blockers:
+  - capture signing-key fingerprint
+  - retain InRelease/Release/Release.gpg
+  - retain Packages metadata
+  - pin every package version and SHA256
+  source_ids:
+  - S003
+- id: rocm-7.14.0-ubuntu2404-native-packages
+  lane: 7.14-core-sdk-native-packages
+  repository: https://repo.amd.com/rocm/packages-multi-arch/ubuntu2404
+  suite: stable
+  component: main
+  gpg_key_url: https://repo.amd.com/rocm/packages-multi-arch/gpg/rocm.gpg
+  gpg_key_fingerprint: null
+  signature_model: APT InRelease/Release metadata with signed-by keyring
+  meta_packages:
+  - amdrocm7.14-gfx1151
+  - amdrocm-core-sdk7.14-gfx1151
+  - amdrocm-core-devel7.14-gfx1151
+  - amdrocm-core-dev7.14-gfx1151
+  package_versions: null
+  package_sha256: null
+  promotable: false
+  promotion_blockers:
+  - capture signing-key fingerprint
+  - retain InRelease/Release/Release.gpg
+  - retain Packages metadata
+  - pin every package version and SHA256
+  source_ids:
+  - S003
+- id: mesa-26.1.4-source
+  lane: mesa-radv-overlay
+  filename: mesa-26.1.4.tar.xz
+  version: 26.1.4
+  sha256: 072705caa9adf4740f1489194b13e278ad959166863b5271fe423a86353c9ab6
+  sha512: 39d15574e876005fd1a483d1cb3c801b08297ec73820a89cbf368d0f2a922cc770d0e623e99acc66b71791332cdadc6cc3095f059f713b09128921ff2d0197a8
+  signature_status: not assessed in this dossier
+  promotable: false
+  promotion_blockers:
+  - select source URL or distro package
+  - verify exact build options/commit
+  - capture package/build provenance
+  source_ids:
+  - S019
+- id: linux-7.1.3-stable
+  lane: local-comparison-kernel
+  version: 7.1.3
+  release_date: '2026-07-04'
+  signature_model: kernel.org tarball plus detached PGP signature available
+  sha256: null
+  pgp_signature: null
+  promotable: false
+  promotion_blockers:
+  - not in official 7.14 Ryzen matrix
+  - pin tarball digest and signer
+  - pin config and patches
+  source_ids:
+  - S015
+  - S021
+- id: linux-7.2-rc3-usb4stream-candidate
+  lane: usb4stream-kernel-overlay
+  version: 7.2-rc3
+  release_date: '2026-07-12'
+  signature_model: mainline Git tag/tarball provenance must be verified
+  sha256: null
+  pgp_signature: null
+  promotable: false
+  promotion_blockers:
+  - release candidate
+  - not AMD-qualified with gfx1151
+  - pin exact tree/config
+  - two-node USB4STREAM and ROCm regression qualification
+  source_ids:
+  - S015
+  - S016

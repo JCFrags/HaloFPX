@@ -1,0 +1,67 @@
+---
+upstream_repository: "ROCm/rccl"
+upstream_ref: "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4"
+accessed_at: "2026-07-18"
+source_id: "SRC-STABLE-SOCKET"
+source_class: "source"
+claim_label: "[SOURCE_IMPLEMENTATION]"
+upstream_path: "src/transport/net_socket.cc"
+upstream_blob_sha: "985810c47fc87dc950193f4a0f200828e15ac91f"
+upstream_locator: "getProperties and lines 610-830"
+snapshot_kind: "verbatim selected excerpts"
+completeness: "selected relevant excerpts; not full file"
+license: "RCCL LICENSE.txt"
+---
+
+```cpp
+ncclResult_t ncclNetSocketGetProperties(int dev, ncclNetProperties_t* props) {
+  props->name = ncclNetSocketDevs[dev].devName;
+  props->pciPath = ncclNetSocketDevs[dev].pciPath;
+  props->guid = dev;
+  props->ptrSupport = NCCL_PTR_HOST;
+  props->regIsGlobal = 0;
+  props->forceFlush = 0;
+  NCCLCHECK(ncclNetSocketGetSpeed(props->name, &props->speed));
+  props->latency = 0; // Not set
+  props->port = 0;
+  props->maxComms = 65536;
+  props->maxRecvs = 1;
+  props->netDeviceType    = NCCL_NET_DEVICE_HOST;
+  props->netDeviceVersion = NCCL_NET_DEVICE_INVALID_VERSION;
+  props->maxP2pBytes = NCCL_MAX_NET_SIZE_BYTES;
+  return ncclSuccess;
+}
+
+ncclResult_t ncclNetSocketRegMr(void* comm, void* data, size_t size, int type, void** mhandle) {
+  return (type != NCCL_PTR_HOST) ? ncclInternalError : ncclSuccess;
+}
+ncclResult_t ncclNetSocketDeregMr(void* comm, void* mhandle) { return ncclSuccess; }
+
+ncclResult_t ncclNetSocketIflush(void* recvComm, int n, void** data, int* sizes, void** mhandles, void** request) {
+  // We don't support CUDA pointers, so we don't need a flush operation
+  return ncclInternalError;
+}
+
+ncclNet_t ncclNetSocket = {
+  "Socket",
+  ncclNetSocketInit,
+  ncclNetSocketDevices,
+  ncclNetSocketGetProperties,
+  ncclNetSocketListen,
+  ncclNetSocketConnect,
+  ncclNetSocketAccept,
+  ncclNetSocketRegMr,
+  NULL, // No DMA-BUF support
+  ncclNetSocketDeregMr,
+  ncclNetSocketIsend,
+  ncclNetSocketIrecv,
+  ncclNetSocketIflush,
+  ncclNetSocketTest,
+  ncclNetSocketClose,
+  ncclNetSocketClose,
+  ncclNetSocketCloseListen,
+  NULL /* getDeviceMr */,
+  NULL /* irecvConsumed */,
+  NULL /* mergeDevices */
+};
+```

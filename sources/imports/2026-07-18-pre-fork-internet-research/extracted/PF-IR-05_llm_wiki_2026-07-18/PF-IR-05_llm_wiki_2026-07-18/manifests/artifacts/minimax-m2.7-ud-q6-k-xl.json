@@ -1,0 +1,85 @@
+{
+  "artifact_id": "ART-MINIMAX-UD-Q6-K-XL",
+  "candidate_id": "minimax-m2.7",
+  "repository": "unsloth/MiniMax-M2.7-GGUF",
+  "revision": "04ab68de18da5486aa9869e3bc72f0249ef51f89",
+  "folder_content_commit": "0d39ef76871c07440473f84bd104eef4a49d8398",
+  "selected_path": "UD-Q6_K_XL",
+  "quantization": "UD-Q6_K_XL",
+  "lineage": {
+    "publisher_repository": "MiniMaxAI/MiniMax-M2.7",
+    "publisher_revision": "d494266a4affc0d2995ba1fa35c8481cbd84294b",
+    "converter": "Unsloth",
+    "format": "GGUF",
+    "conversion_recipe_commit": null
+  },
+  "display_total": "207 GB (Hugging Face UI, rounded)",
+  "exact_total_bytes": null,
+  "known_exact_subtotal_bytes": 0,
+  "manifest_completeness": "NAMES_AND_PARTIAL_ROUNDED_SIZES_ONLY",
+  "file_count": 6,
+  "shards": [
+    {
+      "name": "MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "8.24 MB",
+      "hash_provenance": "UNAVAILABLE at selected revision"
+    },
+    {
+      "name": "MiniMax-M2.7-UD-Q6_K_XL-00002-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "49.0 GB",
+      "hash_provenance": "UNAVAILABLE at selected revision"
+    },
+    {
+      "name": "MiniMax-M2.7-UD-Q6_K_XL-00003-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "49.7 GB",
+      "hash_provenance": "UNAVAILABLE at selected revision"
+    },
+    {
+      "name": "MiniMax-M2.7-UD-Q6_K_XL-00004-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "49.7 GB",
+      "hash_provenance": "UNAVAILABLE at selected revision"
+    },
+    {
+      "name": "MiniMax-M2.7-UD-Q6_K_XL-00005-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "49.7 GB",
+      "hash_provenance": "UNAVAILABLE at selected revision"
+    },
+    {
+      "name": "MiniMax-M2.7-UD-Q6_K_XL-00006-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "UNAVAILABLE",
+      "hash_provenance": "UNAVAILABLE at selected revision"
+    }
+  ],
+  "prior_snapshot_observation": {
+    "warning": "Not part of selected immutable artifact identity",
+    "file": "MiniMax-M2.7-UD-Q6_K_XL-00005-of-00006.gguf",
+    "sha256": "c21dda81ee3275a19630c061ec0fac6f710d99a90318730cea2cf2cf1c0dfd8c",
+    "xet_hash": "c685903dc4c5a942a4a480e681f3d8af7e7d88f5bbf4bcf3f1bd3e0a4a012584"
+  },
+  "imatrix": {
+    "file": "imatrix_unsloth.dat",
+    "display_size": "about 492 MB",
+    "sha256": null,
+    "prompt_corpus": null,
+    "method": "Unsloth imatrix; exact corpus and command not captured",
+    "provenance_status": "PARTIAL_PROVENANCE"
+  },
+  "license": {
+    "declared": "modified-mit metadata; upstream custom non-commercial license controls",
+    "upstream_license_source": "SRC-MINIMAX-LICENSE",
+    "conversion_repository_license_metadata": "modified-mit"
+  },
+  "local_validation": "NOT_RUN"
+}

@@ -1,0 +1,6 @@
+name,bytes,sha256,xet_hash,display_size,hash_provenance
+DeepSeek-V3.1-UD-IQ2_XXS-00001-of-00005.gguf,48771619904,cfe213b5cd15f7f311b3e6e65e69193794d4d745f2984efa505e852bb7875b71,,,LFS/Xet pointer
+DeepSeek-V3.1-UD-IQ2_XXS-00002-of-00005.gguf,,,,49.3 GB,UNAVAILABLE
+DeepSeek-V3.1-UD-IQ2_XXS-00003-of-00005.gguf,,af31108fe922eb2b8559313f32c2795bb0e805c99b14244e575960517ee19a2a,,49.4 GB,pointer hash captured; exact byte count unavailable
+DeepSeek-V3.1-UD-IQ2_XXS-00004-of-00005.gguf,,,,49.3 GB,UNAVAILABLE
+DeepSeek-V3.1-UD-IQ2_XXS-00005-of-00005.gguf,,,,29.1 GB,UNAVAILABLE

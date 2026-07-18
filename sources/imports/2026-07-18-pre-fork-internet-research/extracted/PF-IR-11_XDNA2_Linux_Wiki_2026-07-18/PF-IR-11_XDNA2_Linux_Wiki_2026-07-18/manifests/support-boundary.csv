@@ -1,0 +1,25 @@
+area,exact_boundary,label,available_state,target_gap
+Kernel PCI recognition,1022:17f0 rev 0x11 -> npu5,[UPSTREAM],present in pinned upstream tree,target kernel not yet checked
+Kernel configuration,AMD_IOMMU + DRM_ACCEL + X86_64,[UPSTREAM],required,target config unknown
+Firmware,npu.sbin 1.0.0.166; npu_7 -> 1.1.2.65,[UPSTREAM],present in current linux-firmware,target package/version unknown
+Vendor legacy firmware,npu.dev.sbin; min 6.12,[VENDOR-ONLY],separate legacy path,must not mix namespaces
+XRT base runtime,XRT + NPU plugin/shim,[VENDOR-ONLY],public source exists; supported packages are exact vendor builds,not installed/probed
+High-level compiler/runtime,Ryzen AI 1.7.1 Vitis AI EP / OGA,[VENDOR-ONLY],account download + EULA,package hashes missing
+Reference distro,"Ubuntu 24.04 LTS, kernel >=6.10",[VENDOR-ONLY],documented reference,actual target unknown
+Model interchange,ONNX; opset 17 recommended,[VENDOR-ONLY],documented for CNN/transformer,model-specific compile not tested
+CNN/NLP data types,BF16; CNN INT8; matrices include XINT8/A8W8/A16W8,[VENDOR-ONLY],conditional coverage,graph-specific coverage unknown
+LLM format,AMD-prepared OGA/NPU model folders,[VENDOR-ONLY],version-coupled,not generic GGUF
+llama.cpp NPU,no documented NPU backend,[UNSUPPORTED],iGPU only in AMD overview,keep off NPU
+Whisper.cpp NPU on Linux,planned,[WINDOWS-ONLY],not Linux-supported,excluded
+Memory coherence,non-coherent,[UPSTREAM],explicit cache sync,no shared-coherent-memory assumption
+DMA,host DDR <-> memory tile/L2,[UPSTREAM],ctrlcode-driven DMA,copy cost must be measured
+IOMMU/SVA/PASID,required on npu5 path,[UPSTREAM],hard dependency,VM/hypervisor rejected
+Scheduling,spatial + temporal; DRM scheduler; FW enforcement,[UPSTREAM],16 npu5 contexts,QoS behavior not benchmarked
+Telemetry,UAPI queries and DRM client stats,[UPSTREAM],surface exists,driver/plugin UAPI mismatch can break queries
+Reset/error recovery,error capture exists; full reset semantics not adopted,[UNKNOWN],mailbox/firmware failure modes documented,target recovery test missing
+Suspend/resume,FW reload + context recreation,[UPSTREAM],implemented,transparent recovery unproven
+Embeddings,BGE sample exists,[UNKNOWN],Linux qualification not established,keep excluded until classifier gate passes
+Reranking,no exact Linux example captured,[MISSING],no validated path,excluded
+Prompt classification,DistilBERT BF16 example,[VENDOR-ONLY],best bounded candidate,conditional experiment only
+Moderation,classifier-shaped but task accuracy not established,[INFERENCE],possible after task-specific validation,conditional experiment only
+Small draft model,SmolLM/SmolLM2 135M listed,[VENDOR-ONLY],versioned OGA path,no speculative-decode integration; excluded

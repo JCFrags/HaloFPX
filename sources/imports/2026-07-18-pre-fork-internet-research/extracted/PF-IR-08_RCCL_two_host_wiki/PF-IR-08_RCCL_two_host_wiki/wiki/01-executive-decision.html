@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Executive decision · PF-IR-08</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-08<br>RCCL two-host boundary</div><div class="audit">Evidence snapshot · 2026-07-18<br><code>801a9ca…</code> active authority</div><input id="nav-search" class="search" type="search" placeholder="Filter pages…"><nav class="nav"><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-method.html" class="">Scope, method, and evidence rules</a><a href="../wiki/01-executive-decision.html" class="active">Executive decision</a><a href="../wiki/02-authority-and-version-lanes.html" class="">Authority and version lanes</a><a href="../wiki/03-strix-halo-evidence.html" class="">Strix Halo evidence and support boundary</a><a href="../wiki/04-socket-and-interface-selection.html" class="">Socket transport and interface selection</a><a href="../wiki/05-topology-and-memory-registration.html" class="">Topology discovery and memory registration</a><a href="../wiki/06-network-plugin-abi.html" class="">Network-plugin ABI and custom transport boundary</a><a href="../wiki/07-communicator-failure-semantics.html" class="">Communicator creation and failure semantics</a><a href="../wiki/08-two-way-tensor-parallelism-boundary.html" class="">Two-way tensor parallelism and adjacent architectures</a><a href="../wiki/09-upstream-tests-statements.html" class="">Upstream tests and maintainer statements</a><a href="../wiki/10-local-experiment-matrix.html" class="">Local experiment matrix</a><a href="../wiki/11-open-questions-machine-evidence.html" class="">Open questions requiring machine evidence</a><a href="../wiki/12-evidence-index.html" class="">Evidence index</a></nav><div class="mini"><b>Non-claim boundary</b><br>No RCCL suitability or GPU-direct-over-USB4 conclusion without exact two-node evidence.</div></aside><main class="main"><div class="topbar"><span class="crumb">PF-IR-08 / Executive decision</span><span><a href="../README.md">README</a> · <a href="../claims/claims.csv">claims.csv</a> · <a href="../manifests/source_manifest.csv">manifest</a></span></div><div class="content"><article class="article"><h1>Executive decision</h1>
+<h2>Decision unblocked</h2>
+<p><strong>Place RCCL in the local experiment matrix as a gated research candidate and the standard IP-socket collective baseline. Do not classify it as supported or suitable for the target APU pair until the exact two-host experiment passes.</strong></p>
+<table>
+<thead>
+<tr>
+  <th>Question</th>
+  <th>Determination</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Does RCCL expose mechanisms worth adapting?</td>
+  <td>Yes: standard collectives, point-to-point operations, explicit interface/network selection, nonblocking async-error polling, abort/recreate, and version-dependent shrink/revoke/grow.</td>
+</tr>
+<tr>
+  <td>Does stock Socket provide a documented GPU-direct USB4 path?</td>
+  <td>No. The inspected Socket implementation advertises host pointers only, rejects non-host registration, and exports no DMA-BUF callback.</td>
+</tr>
+<tr>
+  <td>Is gfx1151 enabled upstream?</td>
+  <td>Yes on active <code>develop</code>; the enabling PR explicitly said distributed validation was pending. A later merged tuning PR reports multi-node Ethernet-switch execution, not USB4.</td>
+</tr>
+<tr>
+  <td>Is 7.2.x equivalent to active <code>develop</code>?</td>
+  <td>No. 7.2.x carries RCCL 2.27.7; active source is 2.30.4 with a larger fault-tolerance and plugin surface.</td>
+</tr>
+<tr>
+  <td>Is transparent reconnect provided?</td>
+  <td>No audited API or source path establishes transparent peer reconnection. Recovery is application-coordinated.</td>
+</tr>
+<tr>
+  <td>Is a custom USB4STREAM transport immediately necessary?</td>
+  <td>Not for the Phase 1 IP-over-USB4 baseline. It becomes a Phase 2 candidate only if non-IP/direct semantics or measured performance requirements justify it.</td>
+</tr>
+</tbody>
+</table>
+<h2>Hard boundaries</h2>
+<ul>
+<li><code>[MACHINE_EVIDENCE_REQUIRED]</code> This report does <strong>not</strong> claim RCCL works on the two target Strix Halo hosts.</li>
+<li><code>[SOURCE_IMPLEMENTATION]</code> This report does <strong>not</strong> claim stock Socket performs GPU-direct or DMA-BUF transfer over USB4.</li>
+<li><code>[NEGATIVE_EVIDENCE]</code> No exact upstream two-host Ethernet-over-USB4 test was found.</li>
+<li><code>[MAINTAINER_REPORTED_MACHINE_EVIDENCE]</code> A merged 2026 tuning PR reports 1–4 Strix Halo nodes over a 10 Gbps Ethernet switch. That is relevant but not topology-equivalent.</li>
+</ul>
+<h2>Adapter-worthy abstractions</h2>
+<p>The lowest-risk adapter surface consists of: unique-ID distribution; exact <code>NCCL_NET</code>/<code>NCCL_SOCKET_IFNAME</code>/family controls; nonblocking communicator creation; async-state polling; coordinated abort; fresh unique-ID reinitialization; and structured logs that prove the selected interface and network provider. Active-only revoke/grow experiments must remain separate from the 2.27.7 release lane.</p>
+</article><div class="footer">Commit-pinned research snapshot. Literal labels distinguish API, implementation, documentation, tests, commentary, inference, and unresolved machine evidence.</div></div></main></div><script src="../assets/wiki.js"></script></body></html>

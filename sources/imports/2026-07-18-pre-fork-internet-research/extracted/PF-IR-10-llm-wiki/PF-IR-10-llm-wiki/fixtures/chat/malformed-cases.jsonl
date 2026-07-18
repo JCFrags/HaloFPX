@@ -1,0 +1,3 @@
+{"expected":"reject-template-parse","id":"unclosed-expression","template_utf8":"{{ messages[0]['content'] "}
+{"expected":"reject-template-render","id":"unknown-filter","template_utf8":"{{ 'x' | pfir10_missing_filter }}"}
+{"expected":"reject-role","id":"strict-unknown-role","messages":[{"content":"x","role":"alien"}],"template":"strict"}

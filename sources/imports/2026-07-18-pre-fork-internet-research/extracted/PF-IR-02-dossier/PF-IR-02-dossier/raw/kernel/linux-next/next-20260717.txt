@@ -1,0 +1,2 @@
+Integration snapshot: linux-next next-20260717
+The USB4STREAM unmap-size correction is present in the observed linux-next/thunderbolt integration lane. linux-next also contains unrelated subsystem churn and is not treated as a stable-package equivalent.

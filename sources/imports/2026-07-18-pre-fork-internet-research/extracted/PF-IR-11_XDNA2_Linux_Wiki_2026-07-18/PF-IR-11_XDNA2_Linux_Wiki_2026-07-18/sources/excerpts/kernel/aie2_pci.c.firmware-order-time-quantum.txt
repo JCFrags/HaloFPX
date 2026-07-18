@@ -1,0 +1,6 @@
+#define DEFAULT_TIME_QUANTUM 30000 /* microseconds */
+
+static char *npu_fw[] = {
+	"npu_7.sbin",
+	"npu.sbin"
+};

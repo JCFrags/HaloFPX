@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Known issues · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html">Lane map</a><a href="02-official-support-matrices.html">Official support matrices</a><a href="03-component-dossier.html">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="06-source-build-provenance.html">Source/build provenance</a><a href="07-known-issues.html" class="active">Known issues</a><a href="08-rollback-removal.html">Rollback and removal</a><a href="09-licensing-sbom.html">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / Known issues</div>
+  <article><h1>Known issues and qualification implications</h1>
+<table>
+<thead>
+<tr>
+  <th>Label</th>
+  <th>Scope</th>
+  <th>Issue</th>
+  <th>Required qualification action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>[KNOWN_ISSUE]</td>
+  <td>gfx1151 KFD</td>
+  <td>Incorrect CWSR/VGPR sizing can hang ROCm on kernels missing the two fixes</td>
+  <td>prove both fixes are present; queue/CWSR stress and suspend/resume</td>
+</tr>
+<tr>
+  <td>[KNOWN_ISSUE]</td>
+  <td>rocprofiler-compute</td>
+  <td><code>TCP_REQ_sum</code> and related GL0 metrics report zero on gfx1151</td>
+  <td>exclude affected metrics from pass/fail claims</td>
+</tr>
+<tr>
+  <td>[KNOWN_ISSUE]</td>
+  <td>rocprofiler-compute</td>
+  <td><code>$max_mclk</code> not auto-populated; bandwidth metrics may be wrong</td>
+  <td>capture max memory clock via AMD SMI and use specs correction</td>
+</tr>
+<tr>
+  <td>[KNOWN_ISSUE]</td>
+  <td>RDNA3/Ryzen AI MAX inference</td>
+  <td>lower LLM performance in affected PyTorch versions</td>
+  <td>test both default and <code>TORCH_BLAS_PREFER_HIPBLASLT=1</code>; record environment</td>
+</tr>
+<tr>
+  <td>[KNOWN_ISSUE]</td>
+  <td>RCCL</td>
+  <td>64–512 MB multi-node collective performance can be degraded</td>
+  <td>include this size band and a build with fault injection disabled</td>
+</tr>
+<tr>
+  <td>[KNOWN_ISSUE]</td>
+  <td>SGLang</td>
+  <td>default AITER/fused decode settings can fail on validated Radeon targets; gfx1151 is not in the listed SGLang target set</td>
+  <td>classify gfx1151 SGLang as unverified; do not infer from generic Radeon wording</td>
+</tr>
+<tr>
+  <td>[KNOWN_ISSUE]</td>
+  <td>HIP SPIR-V</td>
+  <td>first-launch segmentation fault is listed</td>
+  <td>include cold-start SPIR-V test if used</td>
+</tr>
+<tr>
+  <td>[KNOWN_ISSUE]</td>
+  <td>profiling</td>
+  <td>stale SPM sessions may require reboot; normalization issues are documented</td>
+  <td>clean boot and record profiler state before qualification</td>
+</tr>
+<tr>
+  <td>[KNOWN_ISSUE]</td>
+  <td>7.2.4 MIGraphX</td>
+  <td>minor int8 performance regression</td>
+  <td>retain in legacy control comparisons; MIGraphX moves outside Core SDK in 7.14</td>
+</tr>
+<tr>
+  <td>[UNVERIFIED_COMBINATION]</td>
+  <td>USB4STREAM</td>
+  <td>no AMD gfx1151 ROCm qualification for 7.2-rc/next kernel</td>
+  <td>separate boot image; full compute regression and two-node transport test</td>
+</tr>
+</tbody>
+</table>
+<h2>Performance-claim discipline</h2>
+<p>A workaround-enabled result must not replace the default result. Record both, including environment variables, library resolution, kernel version, firmware identity, power profile, memory clocks and workload commit. Profiler counters known to be invalid cannot support a performance acceptance decision.</p>
+<h2>RCCL two-node scope</h2>
+<p>RCCL is documented for Ryzen, but multi-node transport, topology and message-size performance remain system-specific. At minimum test all-reduce, all-gather, reduce-scatter and broadcast across small, 64–512 MB and large buffers, with correctness checks and failure recovery. Capture RCCL build options and <code>NCCL_*</code>/<code>RCCL_*</code> environment variables.</p>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

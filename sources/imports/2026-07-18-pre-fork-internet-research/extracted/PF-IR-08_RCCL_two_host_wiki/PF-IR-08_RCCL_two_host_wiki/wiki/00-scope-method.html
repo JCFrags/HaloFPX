@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scope, method, and evidence rules · PF-IR-08</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-08<br>RCCL two-host boundary</div><div class="audit">Evidence snapshot · 2026-07-18<br><code>801a9ca…</code> active authority</div><input id="nav-search" class="search" type="search" placeholder="Filter pages…"><nav class="nav"><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-method.html" class="active">Scope, method, and evidence rules</a><a href="../wiki/01-executive-decision.html" class="">Executive decision</a><a href="../wiki/02-authority-and-version-lanes.html" class="">Authority and version lanes</a><a href="../wiki/03-strix-halo-evidence.html" class="">Strix Halo evidence and support boundary</a><a href="../wiki/04-socket-and-interface-selection.html" class="">Socket transport and interface selection</a><a href="../wiki/05-topology-and-memory-registration.html" class="">Topology discovery and memory registration</a><a href="../wiki/06-network-plugin-abi.html" class="">Network-plugin ABI and custom transport boundary</a><a href="../wiki/07-communicator-failure-semantics.html" class="">Communicator creation and failure semantics</a><a href="../wiki/08-two-way-tensor-parallelism-boundary.html" class="">Two-way tensor parallelism and adjacent architectures</a><a href="../wiki/09-upstream-tests-statements.html" class="">Upstream tests and maintainer statements</a><a href="../wiki/10-local-experiment-matrix.html" class="">Local experiment matrix</a><a href="../wiki/11-open-questions-machine-evidence.html" class="">Open questions requiring machine evidence</a><a href="../wiki/12-evidence-index.html" class="">Evidence index</a></nav><div class="mini"><b>Non-claim boundary</b><br>No RCCL suitability or GPU-direct-over-USB4 conclusion without exact two-node evidence.</div></aside><main class="main"><div class="topbar"><span class="crumb">PF-IR-08 / Scope, method, and evidence rules</span><span><a href="../README.md">README</a> · <a href="../claims/claims.csv">claims.csv</a> · <a href="../manifests/source_manifest.csv">manifest</a></span></div><div class="content"><article class="article"><h1>Scope, method, and evidence rules</h1>
+<blockquote>
+<p><strong>Audit ID:</strong> PF-IR-08<br />
+<strong>Access date:</strong> 2026-07-18<br />
+<strong>Final observed authority head:</strong> <code>801a9ca2ad8940ac7cd7d571163e003f3a3d6cab</code><br />
+<strong>Fully inspected active base:</strong> <code>3dddea1389e5d28e84fe2c29f50450f00b7474a1</code><br />
+<strong>Stable 7.2.x release pin:</strong> <code>96a25b5fd6f73fba58c7d83eb57cf19a50230aa4</code></p>
+</blockquote>
+<h2>Scope resolution</h2>
+<p>The request did not enumerate the exact local “candidate ROCm lanes.” This audit therefore covers the visible relevant release lanes <strong>6.4.3, 7.0.2, 7.1.1, 7.2.1–7.2.4</strong>, plus active <code>develop</code>. The lane table records exact RCCL versions and tag commits. The installed local <code>librccl.so</code> remains the operational source of truth and must be fingerprinted before testing.</p>
+<h2>Authority handling</h2>
+<p>Active source lives under <code>ROCm/rocm-systems/projects/rccl</code>. The standalone <code>ROCm/rccl</code> repository is retired for active development but remains authoritative evidence for its release tags. The monorepo advanced during collection from <code>3dddea1389e5d28e84fe2c29f50450f00b7474a1</code> to <code>801a9ca2ad8940ac7cd7d571163e003f3a3d6cab</code>. Critical RCCL files checked at both points had identical Git blob hashes; the later head changed another project.</p>
+<h2>Evidence hierarchy</h2>
+<ol>
+<li>Versioned public headers and plugin ABI declarations.</li>
+<li>Pinned implementation source.</li>
+<li>Official AMD documentation.</li>
+<li>Upstream tests, limited to what their topology and assertions actually exercise.</li>
+<li>Maintainer statements and PR test reports.</li>
+<li>Community reports.</li>
+<li>Inferences, always labeled and never promoted to machine evidence.</li>
+</ol>
+<h2>Preservation model</h2>
+<p>This is a <strong>commit-pinned evidence snapshot</strong>, not a full repository mirror. Relevant complete small files and verbatim source excerpts are preserved with repository, path, ref, blob SHA, line locator, access date, completeness, license, and local SHA-256. Large issue/PR logs are marked partial when the connector response was truncated. No partial snapshot is represented as complete.</p>
+<h2>Search boundary</h2>
+<p>The audit searched RCCL source, docs, tests, issues, and PRs for <code>gfx1151</code>, Strix Halo, socket interface selection, USB4, Thunderbolt, DMA-BUF, Net ABI, communicator timeout/abort/revoke/shrink/grow, remote errors, and multi-node test execution. No exact two-host Ethernet-over-USB4 upstream integration test was found in the audited corpus. That is negative evidence, not proof that no private or later test exists.</p>
+</article><div class="footer">Commit-pinned research snapshot. Literal labels distinguish API, implementation, documentation, tests, commentary, inference, and unresolved machine evidence.</div></div></main></div><script src="../assets/wiki.js"></script></body></html>

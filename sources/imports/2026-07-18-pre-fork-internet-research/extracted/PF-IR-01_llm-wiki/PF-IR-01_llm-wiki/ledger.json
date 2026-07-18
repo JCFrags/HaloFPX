@@ -1,0 +1,827 @@
+{
+  "schema": "PF-IR-01-ledger/v1",
+  "package_version": "1.0.0",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "decision": {
+    "label": "[RECOMMENDATION]",
+    "status": "HOLD",
+    "reason": "Source fixes present; standard release still compiles RPC/server and local deployment evidence is open."
+  },
+  "snapshots": [
+    {
+      "id": "SNAP-ROCMFPX-BASE",
+      "repo": "charlie12345/ROCmFPX",
+      "sha": "a5605a72768c6562241b248e268e33dc92787394",
+      "role": "baseline source snapshot",
+      "commit_title": "Integrate HY3 MTP, ROCmFP2, and cross-platform server fixes",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-ROCMFPX-CANDIDATE",
+      "repo": "charlie12345/ROCmFPX",
+      "sha": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "role": "candidate source snapshot",
+      "commit_title": "hip: avoid full-cache TurboQuant flash-attention staging (#34)",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-CACHY",
+      "repo": "fewtarius/CachyLlama",
+      "sha": "6be745998f568e379ea197fcf827baec73ff9940",
+      "role": "CachyLlama source snapshot",
+      "commit_title": "Merge upstream server and core changes",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-LLAMA-AI",
+      "repo": "fewtarius/llama-ai",
+      "sha": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "role": "wrapper/submodule selection snapshot",
+      "commit_title": "Submodule pointer update",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-UPSTREAM-A",
+      "repo": "ggml-org/llama.cpp",
+      "sha": "788e07dc91d266ad3162a1ce9037665656269689",
+      "role": "upstream comparison snapshot",
+      "commit_title": "vulkan: Support Q2_0 (#25430)",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-UPSTREAM-B",
+      "repo": "ggml-org/llama.cpp",
+      "sha": "86d86ed4396b4130922f7b9af26e3d9fc11a591b",
+      "role": "upstream comparison snapshot",
+      "commit_title": "opencl: transpose q4_K no-shuffle scales",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-DEPLOYED-SOURCE",
+      "repo": "charlie12345/rocmfp4-llama",
+      "sha": "4860505ee322091f0f61eba77d6ad49be88cf4ea",
+      "role": "declared deployed predecessor source",
+      "commit_title": "vulkan: enable CM2 decode-vector extension",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    }
+  ],
+  "llama_cpp_advisories": [
+    {
+      "id": "GHSA-3p4r-fq3f-q74v",
+      "cve": "",
+      "severity": "High",
+      "title": "GGUF mem_size integer-overflow validation bypass",
+      "published": "2026-03-12",
+      "affected": "<= b8145",
+      "official_patched": ">= b8146",
+      "fix_refs": "b8146 / 418dea39cea85d3496c8b04a118c3b17f3940ad8",
+      "symbols": "gguf_init_from_file_impl; cumulative object/tensor/string/array size arithmetic",
+      "preconditions": "Attacker-controlled GGUF reaches a path using allocation/parsing; highest relevance to quantize, imatrix, control-vector and GGUF tools using no_alloc=false.",
+      "source_status": "All requested core snapshots inspected contain the overflow/representability guard family; blobs diverge but semantics match.",
+      "compile_runtime": "GGUF parser is core code and normally compiled. Runtime reachability requires an operator or workflow to ingest the untrusted file.",
+      "boundary": "File/model supply-chain boundary; no listener required.",
+      "test": "In an isolated ASan/UBSan build, feed bounded synthetic headers at each arithmetic limit and require deterministic parse rejection before allocation; do not use public exploit files.",
+      "action": "No source backport identified for the candidate. Keep model ingestion untrusted and retain bounded parser tests.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-3P4R",
+        "SRC-COMMIT-418DEA",
+        "SRC-BLOB-GGUF-ROCM",
+        "SRC-BLOB-GGUF-UPSTREAM",
+        "SRC-BLOB-GGUF-CACHY"
+      ]
+    },
+    {
+      "id": "GHSA-j8rj-fmpv-wcxw",
+      "cve": "CVE-2026-34159",
+      "severity": "Critical",
+      "title": "RPC GRAPH_COMPUTE null-buffer validation bypass",
+      "published": "2026-03-26",
+      "affected": "<= b7991",
+      "official_patched": "None listed",
+      "fix_refs": "Emergency 39bf0d3c6a95803e0f41aaba069ffbee26721042; corrected ba38f3becce7d1283585c73d796eb47d72bbbd30",
+      "symbols": "deserialize_tensor; create_node; client tensor serialization; GRAPH_COMPUTE command",
+      "preconditions": "RPC server built, launched, and reachable; unauthenticated protocol peer can submit graph metadata.",
+      "source_status": "All requested core snapshots inspected contain the corrected client data-zeroing and server buffer==nullptr/data!=nullptr rejection semantics. ROCm lineage and upstream/Cachy use different blobs.",
+      "compile_runtime": "Generic source default GGML_RPC=OFF, but ROCmFPX and predecessor release workflows explicitly pass -DGGML_RPC=ON. Runtime requires rpc-server launch.",
+      "boundary": "Unauthenticated raw TCP RPC listener; default loopback does not make it safe for untrusted networks.",
+      "test": "Use a disposable loopback-only RPC unit harness: a legitimate CPU-buffer graph must remain accepted, while an inconsistent null-buffer/nonzero-data descriptor must be rejected before graph construction. No live-service probing.",
+      "action": "Do not treat the patch as permission to expose RPC. Remove RPC from standard release artifacts; use ba38 semantics rather than the superseded emergency-only behavior.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-J8RJ",
+        "SRC-COMMIT-39BF",
+        "SRC-COMMIT-BA38",
+        "SRC-BLOB-RPC-ROCM",
+        "SRC-BLOB-RPC-UPSTREAM",
+        "SRC-SECURITY-POLICY"
+      ]
+    },
+    {
+      "id": "GHSA-96jg-mvhq-q7q7",
+      "cve": "CVE-2026-33298",
+      "severity": "High",
+      "title": "GGUF tensor-size representability overflow",
+      "published": "2026-03-18",
+      "affected": "< b7437",
+      "official_patched": "b7824",
+      "fix_refs": "b7824 / 4e5b83b226919c146fbfa754641a6772bcb2d722",
+      "symbols": "ggml_nbytes; GGUF tensor dimension validation",
+      "preconditions": "Untrusted GGUF with crafted dimensions is loaded.",
+      "source_status": "All requested core snapshots inspected contain tensor-size representability checks.",
+      "compile_runtime": "Core parser path; normally compiled and reachable during model or auxiliary GGUF ingestion.",
+      "boundary": "File/model supply-chain boundary.",
+      "test": "Generate only bounded dimension tuples around SIZE_MAX division boundaries in a unit seam; require rejection without allocation or wraparound under sanitizers.",
+      "action": "No candidate backport identified; retain source sentinel and sanitizer regression.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-96JG",
+        "SRC-COMMIT-4E5B",
+        "SRC-BLOB-GGUF-ROCM",
+        "SRC-BLOB-GGUF-UPSTREAM"
+      ]
+    },
+    {
+      "id": "GHSA-8947-pfff-2f3c",
+      "cve": "CVE-2026-21869",
+      "severity": "Low",
+      "title": "HTTP server negative n_discard out-of-bounds write",
+      "published": "2026-01-05",
+      "affected": "<= 55d4206c8",
+      "official_patched": ">= c78fb90",
+      "fix_refs": "c78fb909b23758f5e418cf98a69bc8a0ef142fb8",
+      "symbols": "server_task::params_from_json_cmpl; context-shift discard arithmetic",
+      "preconditions": "llama-server running; route reachable; context shift enabled; context full; negative n_discard supplied.",
+      "source_status": "ROCmFPX baseline/candidate and upstream source checks show the std::max(0, n_discard) clamp. Cachy inclusion is inferred from its later merged source snapshot.",
+      "compile_runtime": "ROCmFPX release builds include llama-server. The project launcher passes --no-context-shift, but other launch paths remain reachable.",
+      "boundary": "HTTP listener; unauthenticated when API-key set is empty.",
+      "test": "In a loopback-only tiny-model lab, fill context and send a negative n_discard through the normal API; require 4xx or clamped behavior, no sanitizer finding, and process survival.",
+      "action": "No candidate source backport identified. Enforce context-shift policy and authenticated loopback listener independently of this fix.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-8947",
+        "SRC-COMMIT-C78F",
+        "SRC-BLOB-SERVER-TASK-ROCM",
+        "SRC-LAUNCHER-ROCM"
+      ]
+    },
+    {
+      "id": "GHSA-vgg9-87g3-85w8",
+      "cve": "CVE-2025-53630",
+      "severity": "High",
+      "title": "GGUF cumulative context-size overflow",
+      "published": "2025-07-10",
+      "affected": "< 26a48ad",
+      "official_patched": "26a48ad",
+      "fix_refs": "26a48ad699d50b6268900062661bd22f3e792579",
+      "symbols": "gguf_init_from_file_impl; ctx->size accumulation",
+      "preconditions": "Untrusted GGUF drives cumulative metadata/tensor-size arithmetic.",
+      "source_status": "All requested core snapshots inspected contain the cumulative-size checks.",
+      "compile_runtime": "Core parser; normally compiled and reached on file ingestion.",
+      "boundary": "File/model supply-chain boundary.",
+      "test": "Use bounded metadata sections whose individual sizes are valid but cumulative sum crosses the configured limit; require early rejection.",
+      "action": "No candidate backport identified.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-VGG9",
+        "SRC-COMMIT-26A48",
+        "SRC-BLOB-GGUF-ROCM"
+      ]
+    },
+    {
+      "id": "GHSA-7rxv-5jhh-j6xx",
+      "cve": "CVE-2025-52566",
+      "severity": "High",
+      "title": "Tokenizer result-size signed/unsigned overflow",
+      "published": "2025-06-23",
+      "affected": "< b5721",
+      "official_patched": "b5721",
+      "fix_refs": "b5721 / dd6e6d0b6a4bbe3ebfc931d1eb14db2f2b1d70af",
+      "symbols": "llama_vocab::tokenize; result-size conversion to int32_t",
+      "preconditions": "A prompt/template/tokenization result approaches or exceeds INT32_MAX; practical exploitation is resource-intensive but input can originate at HTTP/API boundaries.",
+      "source_status": "The ROCm, deployed-source, Cachy, and upstream vocab lineages contain the INT32_MAX result guard.",
+      "compile_runtime": "Tokenizer is core and reachable from CLI and HTTP request handling.",
+      "boundary": "Prompt/message/API boundary and local CLI input.",
+      "test": "Use a mocked tokenizer-result container reporting boundary sizes; require INT32_MIN/error without allocating multi-gigabyte memory.",
+      "action": "No candidate backport identified; keep a mock-based boundary test.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-7RXV",
+        "SRC-COMMIT-DD6E",
+        "SRC-BLOB-VOCAB-ROCM",
+        "SRC-BLOB-VOCAB-UPSTREAM",
+        "SRC-BLOB-VOCAB-DEPLOYED"
+      ]
+    },
+    {
+      "id": "GHSA-g4cc-763q-h9h6",
+      "cve": "",
+      "severity": "Moderate",
+      "title": "Vocabulary special-token heap over-read",
+      "published": "2025-06-25",
+      "affected": "Official page lists c33fe8b8",
+      "official_patched": "Official page also lists c33fe8b8",
+      "fix_refs": "c33fe8b8c4427202706b1434e9fc8ab5752c9cac",
+      "symbols": "llama_vocab::impl::print_info; id_to_token special-token indexing",
+      "preconditions": "Malicious or malformed GGUF has a vocabulary smaller than default/specified special-token IDs.",
+      "source_status": "All requested vocab lineages inspected use checked .at() access in the material print path.",
+      "compile_runtime": "Core model-load/info path.",
+      "boundary": "File/model supply-chain boundary.",
+      "test": "Load a tiny synthetic vocabulary with every special-token ID just outside range; require clean error handling, not an out-of-bounds access.",
+      "action": "No source backport identified. Record the official affected/patched metadata inconsistency in intake tooling.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-G4CC",
+        "SRC-COMMIT-C33F",
+        "SRC-BLOB-VOCAB-ROCM"
+      ]
+    },
+    {
+      "id": "GHSA-8wwf-w4qm-gpqr",
+      "cve": "",
+      "severity": "High",
+      "title": "token_to_piece size-conversion buffer overflow",
+      "published": "2025-06-14",
+      "affected": "All versions before patch",
+      "official_patched": ">= b5662",
+      "fix_refs": "Security fix 3cfbbdb44e08fd19429fed6cc85b982a91f0efd5; build follow-up b5662 / fb85a288d72abbd5e5daa8de96e6f8bfa7b5ab46",
+      "symbols": "llama_vocab::impl::token_to_piece; _try_copy",
+      "preconditions": "Attacker-controlled token piece length exceeds signed 32-bit representation during vocabulary loading or token conversion.",
+      "source_status": "All requested vocab lineages inspected contain the INT32_MAX token-piece guard.",
+      "compile_runtime": "Core vocabulary/model path.",
+      "boundary": "File/model supply-chain boundary; output conversion can also be API-reachable after model load.",
+      "test": "Mock a token piece length at INT32_MAX and above; require error/abort through the documented error path before memcpy.",
+      "action": "No candidate backport identified. Track the security commit separately from the b5662 build-fix tag.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-8WWF",
+        "SRC-COMMIT-3CFB",
+        "SRC-COMMIT-FB85",
+        "SRC-BLOB-VOCAB-ROCM"
+      ]
+    },
+    {
+      "id": "GHSA-wcr5-566p-9cwj",
+      "cve": "CVE-2024-42479",
+      "severity": "Critical",
+      "title": "RPC SET_TENSOR arbitrary write",
+      "published": "2024-08-12",
+      "affected": "Before b3561",
+      "official_patched": "b3561",
+      "fix_refs": "b3561 / b72942fac998672a79a1ae3c03b340f7e629980b",
+      "symbols": "rpc_server::set_tensor; tensor-buffer offset/length validation",
+      "preconditions": "RPC server built, launched, reachable; unauthenticated peer sends out-of-range tensor metadata.",
+      "source_status": "All requested RPC lineages contain bounds/type/buffer validation introduced by and after b3561.",
+      "compile_runtime": "ROCm release workflows explicitly enable RPC; generic source default is off.",
+      "boundary": "Unauthenticated raw TCP RPC.",
+      "test": "Direct unit-test the handler with offsets one byte below, at, and above the destination buffer end; require rejection and unchanged guard bytes.",
+      "action": "No code backport identified; remove RPC from standard release and retain handler tests.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-WCR5",
+        "SRC-COMMIT-B729",
+        "SRC-BLOB-RPC-ROCM"
+      ]
+    },
+    {
+      "id": "GHSA-5vm9-p64x-gqw9",
+      "cve": "CVE-2024-42478",
+      "severity": "Moderate",
+      "title": "RPC GET_TENSOR arbitrary read",
+      "published": "2024-08-12",
+      "affected": "Before b3561",
+      "official_patched": "b3561",
+      "fix_refs": "b3561 / b72942fac998672a79a1ae3c03b340f7e629980b",
+      "symbols": "rpc_server::get_tensor; source-buffer range validation",
+      "preconditions": "RPC server built, launched, and reachable.",
+      "source_status": "All requested RPC lineages contain the b3561-era read bounds checks and later null-buffer checks.",
+      "compile_runtime": "Release workflow inclusion makes the code present; listener launch determines reachability.",
+      "boundary": "Unauthenticated raw TCP RPC.",
+      "test": "Direct handler test with a source region crossing the buffer end; require rejection and zero response payload.",
+      "action": "No code backport identified; deny RPC by build policy.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-5VM9",
+        "SRC-COMMIT-B729",
+        "SRC-BLOB-RPC-ROCM"
+      ]
+    },
+    {
+      "id": "GHSA-mqp6-7pv6-fqjf",
+      "cve": "CVE-2024-42477",
+      "severity": "Moderate",
+      "title": "RPC invalid tensor type global buffer overflow",
+      "published": "2024-08-12",
+      "affected": "Before b3561",
+      "official_patched": "b3561",
+      "fix_refs": "b3561 / b72942fac998672a79a1ae3c03b340f7e629980b",
+      "symbols": "RPC tensor deserialization; ggml_type and block-size validation",
+      "preconditions": "RPC server built, launched, reachable; peer supplies invalid/deprecated type.",
+      "source_status": "All requested RPC lineages contain type range/block-size checks, including the later zero-block-size patch.",
+      "compile_runtime": "Same RPC inclusion/reachability conditions as other RPC advisories.",
+      "boundary": "Unauthenticated raw TCP RPC.",
+      "test": "Unit-test every invalid and deprecated enum value through deserialization; require false/error and no arithmetic with a zero block size.",
+      "action": "No candidate backport identified; retain type-fuzz unit coverage without network exposure.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-MQP6",
+        "SRC-COMMIT-B729",
+        "SRC-COMMIT-2BCD",
+        "SRC-BLOB-RPC-ROCM"
+      ]
+    },
+    {
+      "id": "GHSA-49q7-2jmh-92fp",
+      "cve": "CVE-2024-41130",
+      "severity": "Moderate",
+      "title": "Legacy GGUF duplicate-key null dereference",
+      "published": "2024-07-22",
+      "affected": "<= b3426",
+      "official_patched": "b3427",
+      "fix_refs": "b3427 / 07283b1a90e1320aae4762c7e03c879043910252",
+      "symbols": "legacy gguf_init_from_file duplicate-name loop",
+      "preconditions": "Malformed GGUF with duplicate/inconsistent key metadata reaches the legacy parser.",
+      "source_status": "Requested snapshots use the later C++ parser and postdate the fix; the exact legacy loop is absent.",
+      "compile_runtime": "Core GGUF parsing.",
+      "boundary": "File/model supply-chain boundary.",
+      "test": "Use a bounded GGUF fixture with duplicate keys and a truncated second entry; require parse failure without null dereference.",
+      "action": "No candidate backport identified.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-49Q7",
+        "SRC-COMMIT-0728",
+        "SRC-BLOB-GGUF-ROCM"
+      ]
+    },
+    {
+      "id": "GHSA-p5mv-gjc5-mwqv",
+      "cve": "CVE-2024-32878",
+      "severity": "High",
+      "title": "Legacy GGUF uninitialized free after short read",
+      "published": "2024-04-26",
+      "affected": "Official page lists b2715",
+      "official_patched": "Official page lists b2740",
+      "fix_refs": "b2715 / 192090bae47960f0d38d4967abe398a5d190057e; b2740 / d4a9afc1009f0da88d04b2c5f672d81d5ae94675",
+      "symbols": "legacy gguf_init_from_file string-array allocation/free loop",
+      "preconditions": "Truncated malicious GGUF causes a short read after an uninitialized pointer array allocation.",
+      "source_status": "Modern requested snapshots use vector/string ownership and avoid the exact allocation/free pattern. The official b2740 tag still shows the legacy malloc/free pattern, so the exact historical remediation commit is unresolved.",
+      "compile_runtime": "Core GGUF parsing in old builds; modern snapshots use rewritten code.",
+      "boundary": "File/model supply-chain boundary.",
+      "test": "Under ASan, truncate a bounded string-array fixture after each element and require clean failure with no invalid free.",
+      "action": "No modern backport identified. Keep the historical exact-remediation field open and do not equate the b2740 tag label with source proof.",
+      "label": "[MEASURED]",
+      "sources": [
+        "SRC-LLAMA-GHSA-P5MV",
+        "SRC-COMMIT-B2715",
+        "SRC-COMMIT-B2740",
+        "SRC-LEGACY-GGUF-B2715",
+        "SRC-LEGACY-GGUF-B2740"
+      ]
+    }
+  ],
+  "talos_gguf_reports": [
+    {
+      "id": "TALOS-2024-1912",
+      "cve": "CVE-2024-21825",
+      "title": "GGUF array/string size integer overflow",
+      "symbol": "legacy gguf array/string size parsing",
+      "affected": "Legacy parser before 2024-01-29 fixes",
+      "patched": "Exact vendor commit not resolved",
+      "test": "Bounded array/string count and length arithmetic at limit; reject before allocation."
+    },
+    {
+      "id": "TALOS-2024-1913",
+      "cve": "CVE-2024-23496",
+      "title": "gguf_fread_str heap overflow",
+      "symbol": "gguf_fread_str",
+      "affected": "Legacy parser before 2024-01-29 fixes",
+      "patched": "Exact vendor commit not resolved",
+      "test": "Truncated and oversized bounded string records; reject without write past destination."
+    },
+    {
+      "id": "TALOS-2024-1914",
+      "cve": "CVE-2024-21802",
+      "title": "info->ne tensor-dimension heap overflow",
+      "symbol": "legacy tensor dimension metadata",
+      "affected": "Legacy parser before 2024-01-29 fixes",
+      "patched": "Exact vendor commit not resolved",
+      "test": "Dimension-count boundary fixture; reject invalid rank/count before allocation."
+    },
+    {
+      "id": "TALOS-2024-1915",
+      "cve": "CVE-2024-21836",
+      "title": "header.n_tensors heap overflow",
+      "symbol": "GGUF header tensor count",
+      "affected": "Legacy parser before 2024-01-29 fixes",
+      "patched": "Exact vendor commit not resolved",
+      "test": "Bounded excessive tensor-count header; reject before table allocation."
+    },
+    {
+      "id": "TALOS-2024-1916",
+      "cve": "CVE-2024-23605",
+      "title": "header.n_kv heap overflow",
+      "symbol": "GGUF header key/value count",
+      "affected": "Legacy parser before 2024-01-29 fixes",
+      "patched": "Exact vendor commit not resolved",
+      "test": "Bounded excessive key/value-count header; reject before table allocation."
+    }
+  ],
+  "cpp_httplib_advisories": [
+    {
+      "id": "GHSA-8ffh-4p95-g3p2",
+      "severity": "High",
+      "title": "TLS IP-literal chain-verification bypass on MbedTLS/wolfSSL",
+      "affected": ">=0.31.0,<0.47.0",
+      "patched": "0.47.0",
+      "symbol": "TLS client host/IP verification",
+      "pre": "Client built with MbedTLS or wolfSSL; IP-literal HTTPS target",
+      "test": "Local TLS fixture with mismatched IP SAN must fail verification."
+    },
+    {
+      "id": "GHSA-hg3g-vrg8-578g",
+      "severity": "High",
+      "title": "Malformed X-Forwarded-For with trusted proxies can crash",
+      "affected": "<0.44.0",
+      "patched": "0.44.0",
+      "symbol": "trusted-proxy/XFF parsing",
+      "pre": "Server trusts proxy headers and receives malformed XFF",
+      "test": "Loopback unit request with malformed XFF must return an error and keep process alive."
+    },
+    {
+      "id": "GHSA-xjxg-64p4-vj4m",
+      "severity": "High",
+      "title": "Percent-decoded header CRLF injection",
+      "affected": "<=0.43.4",
+      "patched": "0.44.0",
+      "symbol": "header decoding/validation",
+      "pre": "Encoded CR/LF reaches header parsing",
+      "test": "Parser unit test rejects encoded control characters."
+    },
+    {
+      "id": "GHSA-h6wq-j5mv-f3q8",
+      "severity": "High",
+      "title": "Negative chunk-size denial of service",
+      "affected": "<=0.43.3",
+      "patched": "0.43.4",
+      "symbol": "chunked transfer parser",
+      "pre": "Server accepts malformed negative chunk size",
+      "test": "Bounded malformed chunk line is rejected before body allocation."
+    },
+    {
+      "id": "GHSA-jv63-rm9j-6jwc",
+      "severity": "High",
+      "title": "GET body request smuggling",
+      "affected": "<=0.38.0",
+      "patched": "0.40.0",
+      "symbol": "HTTP request framing",
+      "pre": "Proxy/server disagreement over GET bodies",
+      "test": "Two-request local parser fixture must preserve message boundaries."
+    },
+    {
+      "id": "GHSA-6hrp-7fq9-3qv2",
+      "severity": "High",
+      "title": "Credentials leaked across cross-origin redirect",
+      "affected": "<=0.38.0",
+      "patched": "0.39.0",
+      "symbol": "HTTP client redirect authorization handling",
+      "pre": "Client follows redirect to a different origin with credentials",
+      "test": "Two local origins; redirected request must omit authorization."
+    },
+    {
+      "id": "GHSA-c3h8-fqq4-xm4g",
+      "severity": "High",
+      "title": "TLS verification bypass through proxy redirect",
+      "affected": "<=0.37.1",
+      "patched": "0.37.2",
+      "symbol": "proxied TLS redirect verification",
+      "pre": "HTTPS client uses proxy and follows redirect",
+      "test": "Local proxy/TLS fixture with invalid certificate must fail."
+    },
+    {
+      "id": "GHSA-39q5-hh6x-jpxx",
+      "severity": "Moderate",
+      "title": "Client crash on malformed Content-Length",
+      "affected": "<=0.37.0",
+      "patched": "0.37.1",
+      "symbol": "Content-Length parser",
+      "pre": "HTTP client receives malformed length",
+      "test": "Local response parser rejects malformed length without exception escape."
+    },
+    {
+      "id": "GHSA-qq6v-r583-3h69",
+      "severity": "High",
+      "title": "Multipart filename* regex stack overflow",
+      "affected": "<=0.35.0",
+      "patched": "0.37.0",
+      "symbol": "multipart Content-Disposition filename* parser",
+      "pre": "Server parses attacker-controlled multipart metadata",
+      "test": "Bounded adversarial filename* grammar must fail within time and stack limits."
+    },
+    {
+      "id": "GHSA-8mpw-r4gc-xm7q",
+      "severity": "Moderate",
+      "title": "Default exception handler information disclosure",
+      "affected": "<=0.34.0",
+      "patched": "0.35.0",
+      "symbol": "default server exception handler",
+      "pre": "Unhandled server exception reaches default error response",
+      "test": "Throw controlled exception; response must not contain internal message/path."
+    },
+    {
+      "id": "GHSA-h934-98h4-j43q",
+      "severity": "High",
+      "title": "Compressed-body zip-bomb resource exhaustion",
+      "affected": "<=0.29.0",
+      "patched": "0.30.1",
+      "symbol": "compressed content reader",
+      "pre": "Compression support compiled and server accepts encoded body",
+      "test": "Small bounded high-ratio fixture must stop at configured decompressed limit."
+    },
+    {
+      "id": "GHSA-wpc6-j37r-jcx7",
+      "severity": "High",
+      "title": "Outbound header CRLF injection",
+      "affected": "<=0.29.0",
+      "patched": "0.30.0",
+      "symbol": "client/server header setters",
+      "pre": "Untrusted value passed to outbound header API",
+      "test": "Header API rejects CR/LF values."
+    },
+    {
+      "id": "GHSA-gfpf-r66f-5mh2",
+      "severity": "High",
+      "title": "Untrusted X-Forwarded-For/X-Real-IP spoofing",
+      "affected": "<=0.26.0",
+      "patched": "0.27.0",
+      "symbol": "remote address derivation",
+      "pre": "Application trusts derived remote address without trusted-proxy configuration",
+      "test": "Direct client-supplied forwarding headers must not override peer address."
+    },
+    {
+      "id": "GHSA-xm2j-vfr9-mg9m",
+      "severity": "High",
+      "title": "Internal REMOTE/LOCAL header shadowing",
+      "affected": "<=0.26.0",
+      "patched": "0.27.0",
+      "symbol": "internal connection metadata headers",
+      "pre": "Client supplies reserved internal header names",
+      "test": "Reserved headers are stripped or overwritten by transport metadata."
+    },
+    {
+      "id": "GHSA-j6p8-779x-p5pw",
+      "severity": "High",
+      "title": "Trailer-header request smuggling",
+      "affected": "<=0.22.0",
+      "patched": "0.23.0",
+      "symbol": "chunk trailer parser",
+      "pre": "Chunked request carries conflicting trailers",
+      "test": "Local two-request framing fixture rejects forbidden/conflicting trailers."
+    },
+    {
+      "id": "GHSA-qjmq-h3cc-qv6w",
+      "severity": "High",
+      "title": "Persistent unbounded allocation in chunked/no-length requests",
+      "affected": "<0.22.0",
+      "patched": "0.23.0",
+      "symbol": "request body accumulation",
+      "pre": "Server reads chunked or no-length body without aggregate limit",
+      "test": "Bounded stream exceeding configured limit must close and release memory."
+    },
+    {
+      "id": "GHSA-xjhg-gf59-p92h",
+      "severity": "High",
+      "title": "Unlimited HTTP header fields cause memory exhaustion",
+      "affected": "0.21.0",
+      "patched": "0.22.0",
+      "symbol": "read_headers",
+      "pre": "Unauthenticated connection sends many header fields before routing",
+      "test": "Loopback parser test crosses configured total-header/count limit and is terminated."
+    },
+    {
+      "id": "GHSA-px83-72rx-v57c",
+      "severity": "High",
+      "title": "Unbounded memory allocation in chunked/no-length requests",
+      "affected": "<=0.20.0",
+      "patched": "0.20.1",
+      "symbol": "read_content_chunked/body stream",
+      "pre": "Server receives unterminated chunked or no-length body",
+      "test": "Bounded stream crosses payload limit and connection is closed without growth."
+    }
+  ],
+  "security_relevant_post_b3561": [
+    {
+      "date": "2024-08-12",
+      "sha": "1f67436c5ee6f4c99e71a8518bdfc214c27ce934",
+      "title": "Enable RPC in released builds",
+      "kind": "attack-surface expansion",
+      "candidate": "Downstream release workflow retains equivalent explicit enablement",
+      "action": "Reverse in standard release; isolate RPC artifact."
+    },
+    {
+      "date": "2024-08-19",
+      "sha": "18eaf29f4c5f7c8e89412f3a9a0392a9e4e01d75",
+      "title": "Reject invalid commands and contain allocation failures",
+      "kind": "malformed-input/DoS hardening",
+      "candidate": "Semantic checks present",
+      "action": "Keep sentinel coverage."
+    },
+    {
+      "date": "2024-10-08",
+      "sha": "458367a90606448a9c0262b276947c9e536086e0",
+      "title": "Server public-deployment security controls",
+      "kind": "HTTP authorization/defaults",
+      "candidate": "Middleware present; fork diverges with slots enabled by default",
+      "action": "Backport policy/default portion: slots off, protected-by-default."
+    },
+    {
+      "date": "2025-02-06",
+      "sha": "1d20e53c40c3cc848ba2b95f5bf7c075eeec8b19",
+      "title": "COPY_TENSOR destination bounds check",
+      "kind": "known RCE-class RPC hardening",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-04",
+      "sha": "43ddab6eeeaab5a04fe5a364af0bafb0e4d35065",
+      "title": "Broader RPC malformed-input and failure handling",
+      "kind": "RPC validation/DoS hardening",
+      "candidate": "Measured present",
+      "action": "Keep; review integer sums in local static analysis."
+    },
+    {
+      "date": "2025-04-22",
+      "sha": "ab47dec3d37aa1927c2ec590e166b76141374ed3",
+      "title": "Explicit untrusted-network prohibition in SECURITY.md",
+      "kind": "security policy",
+      "candidate": "Policy is upstream documentation, not enforced by fork build",
+      "action": "Adopt as deployment policy and CI gate."
+    },
+    {
+      "date": "2025-05-01",
+      "sha": "8efbdadc616fa717c369059b9b388160958d886c",
+      "title": "Zero RPC tensor name/padding before serialization",
+      "kind": "information-leak hygiene",
+      "candidate": "Included by ancestry/semantics",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-07-25",
+      "sha": "64bf1c3744053cf7def10aeed21ff48883ee755b",
+      "title": "RPC null-buffer checks for get/set/copy",
+      "kind": "RPC validation",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-10-04",
+      "sha": "f39283960b58a92ecc0c72567711318b20e22b55",
+      "title": "COPY_TENSOR source-buffer validation",
+      "kind": "RPC validation",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-12-23",
+      "sha": "12ee1763a6f6130ce820a366d220bbadff54b818",
+      "title": "RPC buffer-type validation",
+      "kind": "RPC validation",
+      "candidate": "Included",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-12-28",
+      "sha": "60f17f56da78d8fabc658279fd25e109700122da",
+      "title": "Invalid endpoint crash handling",
+      "kind": "RPC robustness",
+      "candidate": "Included",
+      "action": "No source backport."
+    },
+    {
+      "date": "2026-01-11",
+      "sha": "28068af78996485eaa5c34557eae56dc1f996f92",
+      "title": "Narrow and clarify supported security scope",
+      "kind": "security policy",
+      "candidate": "External policy evidence",
+      "action": "Mirror scope in HaloFPX release documentation."
+    },
+    {
+      "date": "2026-01-11",
+      "sha": "4b060bf240daaeb4fc83386a628b9dfedeb33342",
+      "title": "Clarify server and DoS exclusions",
+      "kind": "security policy",
+      "candidate": "External policy evidence",
+      "action": "Do not infer network hardening from advisory status."
+    },
+    {
+      "date": "2026-03-21",
+      "sha": "2bcdddd5e3ade6b1e8c9437a652f9fbcf2ad2512",
+      "title": "Reject deprecated zero-block-size tensor types",
+      "kind": "RPC divide-by-zero/security hardening",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    },
+    {
+      "date": "2026-03-23",
+      "sha": "39bf0d3c6a95803e0f41aaba069ffbee26721042",
+      "title": "Emergency GRAPH_COMPUTE null-buffer rejection",
+      "kind": "RPC RCE mitigation",
+      "candidate": "Superseded by corrected behavior",
+      "action": "Do not cherry-pick alone."
+    },
+    {
+      "date": "2026-03-27",
+      "sha": "ba38f3becce7d1283585c73d796eb47d72bbbd30",
+      "title": "Correct CPU-buffer data-pointer serialization/validation",
+      "kind": "RPC RCE mitigation",
+      "candidate": "Measured semantic equivalent",
+      "action": "Required minimum if maintaining RPC."
+    },
+    {
+      "date": "2026-04-23",
+      "sha": "c78fb909b23758f5e418cf98a69bc8a0ef142fb8",
+      "title": "Clamp negative n_discard",
+      "kind": "HTTP memory-safety fix",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "cpp-httplib",
+      "snapshot": "ROCmFPX a560/candidate + rocmfp4",
+      "version": "0.47.0",
+      "blob": "45a55ae100056876a493eec87e6f8bfcea80d08d",
+      "license": "MIT",
+      "advisory_status": "18 public advisory entries captured; all patched at or before 0.47.0; UI counter showed 19, one-entry discrepancy open",
+      "boundary": "HTTP server and HTTP client/download code"
+    },
+    {
+      "name": "cpp-httplib",
+      "snapshot": "CachyLlama",
+      "version": "0.49.0",
+      "blob": "e7ef56370cbd5fc208c83c51099db90bcf58dff9",
+      "license": "MIT",
+      "advisory_status": "Version newer than all captured fixes",
+      "boundary": "HTTP server/client"
+    },
+    {
+      "name": "cpp-httplib",
+      "snapshot": "upstream 788e/86d",
+      "version": "0.50.1",
+      "blob": "de026a25326634026f082579e34675c6af897f35",
+      "license": "MIT",
+      "advisory_status": "Version newer than all captured fixes",
+      "boundary": "HTTP server/client"
+    },
+    {
+      "name": "nlohmann/json",
+      "snapshot": "ROCmFPX candidate",
+      "version": "3.12.0",
+      "blob": "82d69f7c5d044c9887c96b90c97f5639083ecd14",
+      "license": "MIT",
+      "advisory_status": "Official repository security page showed no published advisories at access date",
+      "boundary": "HTTP/API JSON parsing and configuration"
+    },
+    {
+      "name": "stb_image",
+      "snapshot": "ROCmFPX candidate",
+      "version": "2.30",
+      "blob": "9eedabedc45b3e6fd88fae6f14a160b4d53272ec",
+      "license": "Public domain or MIT alternative",
+      "advisory_status": "Official repository security page showed no published advisories; public issue workflow remains relevant",
+      "boundary": "Multimodal image ingestion when compiled/reachable"
+    },
+    {
+      "name": "miniaudio",
+      "snapshot": "ROCmFPX candidate",
+      "version": "0.11.25 (2026-03-04)",
+      "blob": "c6d493ee81f553b8dd584e402453f130c20e0546",
+      "license": "Public domain or MIT-0",
+      "advisory_status": "Official repository security page showed no published advisories",
+      "boundary": "Audio ingestion when multimodal/audio path compiled and used"
+    },
+    {
+      "name": "sheredom/subprocess.h",
+      "snapshot": "ROCmFPX candidate",
+      "version": "upstream commit b49c56e9fe214488493021017bf3954b91c7c1f5",
+      "blob": "3e40bae046a21339752bf15221ff7d1d39f6a8ce",
+      "license": "Unlicense/public-domain dedication",
+      "advisory_status": "No official project advisory program was verified; status remains open",
+      "boundary": "Local helper process execution where included"
+    }
+  ],
+  "proof_boundary": {
+    "source_equivalence": "captured",
+    "deployed_binary_equivalence": "open/local",
+    "loaded_library_provenance": "open/local",
+    "negative_reachability": "open/local"
+  }
+}

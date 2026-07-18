@@ -1,0 +1,6 @@
+PRIMARY SOURCE AUDIT CAPTURE — net/mptcp/ctrl.c, protocol.c and subflow code at v7.2-rc3
+- close_timeout defaults to TCP_TIMEWAIT_LEN / HZ = 60 seconds. It bounds the make-after-break interval after the last subflow is removed while the MPTCP-level socket is not yet closed.
+- syn_retrans_before_tcp_fallback defaults to 2. The initial MP_CAPABLE SYN and the configured number of retransmissions retain MPTCP; the subsequent attempt can be sent as plain TCP.
+- an MPTCP listener may accept a peer that does not negotiate MP_CAPABLE as an ordinary TCP flow.
+- failure to establish an additional subflow is a path-level failure; it does not by itself convert an established MPTCP connection into ordinary TCP.
+- established fallback/reset paths depend on specific MP_CAPABLE/DSS and protocol-error states.

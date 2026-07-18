@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>13. Gaps, stop conditions, and re-entry — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a class="active" href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/13-gaps-and-reentry.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>13. Gaps, stop conditions, and re-entry</h1>
+<h2 id="open-evidence-gaps">Open evidence gaps</h2>
+<p><span class="claim claim-missing">[MISSING]</span> Actual target distro and kernel build.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Kernel configuration and IOMMU/PASID state.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Exact loaded module provenance and UAPI compatibility.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Firmware package, symlink targets, and hashes.</p>
+<p><span class="claim claim-missing">[MISSING]</span> AMD package hashes and EULA/third-party notice records.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Exact target model compile and operator assignment.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Correctness, latency, throughput, energy, thermal, memory, and stability measurements.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Recovery evidence after ordinary process failure, runtime error, or device timeout.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Exact Linux reranker support.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> Linux qualification of the public embedding sample.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> Draft-model integration interface and economics.</p>
+<h2 id="re-entry-trigger">Re-entry trigger</h2>
+<p><span class="claim claim-decision">[DECISION]</span> Re-entry requires a concrete artifact set, not a new marketing claim:</p>
+<ol>
+<li>target read-only probe;</li>
+<li>matched package and firmware manifest;</li>
+<li>exact classifier model manifest;</li>
+<li>compiler/cache manifest;</li>
+<li>provider assignment report;</li>
+<li>CPU/NPU correctness report;</li>
+<li>raw performance and energy data;</li>
+<li>stability logs;</li>
+<li>teardown proof;</li>
+<li>written confirmation that HIP/Vulkan scope is unchanged.</li>
+</ol>
+<h2 id="stop-conditions">Stop conditions</h2>
+<p><span class="claim claim-decision">[DECISION]</span> Retain <code>keep excluded</code> when any of the following remains true:</p>
+<ul>
+<li>target distro is outside the supported package baseline without a reproducible alternative;</li>
+<li>packages cannot be independently hashed and archived under acceptable terms;</li>
+<li>kernel/firmware/plugin versions must be mixed;</li>
+<li>IOMMU or native-host constraints cannot be met;</li>
+<li>NPU partition is small or mostly CPU;</li>
+<li>memory movement erases the expected benefit;</li>
+<li>accuracy or policy behavior regresses;</li>
+<li>stability requires module reload or reboot;</li>
+<li>the experiment consumes primary-path engineering capacity.</li>
+</ul>
+<h2 id="review-date-semantics">Review date semantics</h2>
+<p>The decision is dated 2026-07-18. It is not a permanent statement about future AMD or Linux releases.</p>
+<p><span class="claim claim-decision">[DECISION]</span> Until a complete re-entry artifact set supersedes this bundle, the operative state is <code>keep excluded</code>.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+{"id":"sampler-clone","oracle":"both token sequences are exactly equal","recipe":["create fixed-seed distribution sampler","accept token IDs 7,8,9","clone sampler","sample 16 times from identical candidate arrays"]}
+{"id":"sampler-reset","oracle":"post-reset sequence equals initial sequence if reset contract includes RNG; otherwise explicit expected-reject","recipe":["create fixed-seed distribution sampler","sample 16 tokens","reset","repeat from identical candidate arrays"]}
+{"id":"grammar-clone","oracle":"both allowed token-ID sets equal [73,74] under byte-token rule","recipe":["initialize abc-state.gbnf","accept byte token A","clone grammar sampler","query allowed tokens"]}

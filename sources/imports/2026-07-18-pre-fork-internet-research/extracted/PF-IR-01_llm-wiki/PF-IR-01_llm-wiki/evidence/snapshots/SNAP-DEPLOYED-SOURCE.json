@@ -1,0 +1,11 @@
+{
+  "capture_format": "primary-source-commit-metadata/v1",
+  "repository": "charlie12345/rocmfp4-llama",
+  "commit": "4860505ee322091f0f61eba77d6ad49be88cf4ea",
+  "role": "declared deployed predecessor source",
+  "commit_title": "vulkan: enable CM2 decode-vector extension",
+  "source_url": "https://github.com/charlie12345/rocmfp4-llama/commit/4860505ee322091f0f61eba77d6ad49be88cf4ea",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "proof_scope": "Commit object/source selection only; not deployed binary proof.",
+  "payload_sha256": "9e8b3cef5c3867deb2d07da33dcd9051469e84fff85c938b87d78b5a47f7f105"
+}

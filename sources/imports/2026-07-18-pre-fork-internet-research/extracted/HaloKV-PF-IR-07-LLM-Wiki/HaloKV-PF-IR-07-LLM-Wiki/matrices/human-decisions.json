@@ -1,0 +1,44 @@
+[
+  {
+    "decision_id": "HD-01",
+    "decision": "Principal authority",
+    "why_human": "Determines which identity source can issue immutable tenant/project/service IDs and revoke them.",
+    "required_artifact": "Authority policy, issuer trust roots, identifier lifecycle, audit ownership.",
+    "default_safety_posture": "No cache-key issuance without authoritative immutable IDs."
+  },
+  {
+    "decision_id": "HD-02",
+    "decision": "Sharing and deduplication policy",
+    "why_human": "Defines whether content equality may be shared within a project, tenant, explicit group, or public/system namespace.",
+    "required_artifact": "Approved sharing classes and promotion workflow.",
+    "default_safety_posture": "Private tenant/project scope; no cross-tenant dedup."
+  },
+  {
+    "decision_id": "HD-03",
+    "decision": "Key ownership and custody",
+    "why_human": "Defines who can create, unwrap, escrow, rotate, revoke, and destroy roots and backups.",
+    "required_artifact": "RACI/quorum, KMS policy, escrow and legal-hold rules.",
+    "default_safety_posture": "Service cannot self-authorize parent-root access."
+  },
+  {
+    "decision_id": "HD-04",
+    "decision": "Backup requirement and retention",
+    "why_human": "A regenerable cache may not merit backup; retaining it expands key copies and deletion obligations.",
+    "required_artifact": "Data classification, RPO/RTO, retention and legal-hold policy.",
+    "default_safety_posture": "No cache-content backup."
+  },
+  {
+    "decision_id": "HD-05",
+    "decision": "Freshness/rollback requirement",
+    "why_human": "Some caches tolerate stale valid data; others need a monotonic source generation.",
+    "required_artifact": "Maximum tolerated staleness and trusted state design.",
+    "default_safety_posture": "Reject epochs/generations below current trusted floor."
+  },
+  {
+    "decision_id": "HD-06",
+    "decision": "Physical sanitization method",
+    "why_human": "Depends on media, provider capability, reuse/disposition, regulatory policy, and evidence threshold.",
+    "required_artifact": "Media-specific procedure, verification/validation criteria, disposition record.",
+    "default_safety_posture": "Do not assert sanitization without procedure evidence."
+  }
+]

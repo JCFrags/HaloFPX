@@ -1,0 +1,22 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-ROCMFPX-OPS
+authority: primary_runtime_source
+capture_type: connector_text_extract
+source_title: ROCmFPX HIP/CUDA backend operator sources
+source_url: https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/ggml/src/ggml-cuda/ggml-cuda.cu
+immutable_revision: 61f2f2d7bc4955e9bca821095ef69125837133b5
+accessed_at: 2026-07-18
+completeness: SELECTED_FACTS
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Static source observations at the pinned commit:
+- ggml/src/ggml-cuda/ggml-cuda.cu is compiled for HIP when GGML_USE_HIP is defined.
+- The translation unit includes ssm-conv.cuh, ssm-scan.cuh, topk-moe.cuh, wkv.cuh, gla.cuh, and gated_delta_net.cuh.
+- Dedicated source/header files exist for ggml_cuda_op_ssm_conv and ggml_cuda_op_gated_delta_net.
+- GGML_OP_MUL_MAT_ID appears in the HIP/CUDA backend source.
+- Source-file/operator-name presence does not establish complete dispatch coverage for every tensor type, no-fallback execution, numerical correctness, performance, or a successful candidate run.
+
+Reviewed ggml-cuda.cu blob: 3896cac72c568ef1fa0e7cbe1d7f187236acee2d
+Kernel/operator matrix status: INCOMPLETE_STATIC_REVIEW
+Machine validation: NOT_RUN

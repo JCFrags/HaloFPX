@@ -1,0 +1,7 @@
+name,bytes,sha256,xet_hash,display_size,hash_provenance
+Qwen3.5-397B-A17B-UD-Q4_K_S-00001-of-00006.gguf,10943552,0c281dd4cc77769c0945704f770dbf950950e23c45680c64caa8e680b76fc0cc,ff7b84227cb6ac33955c2284eb589d4a9080d7bab78c00bdf02d68737adde63c,,publisher-hosted LFS/Xet pointer exposed by converter repository
+Qwen3.5-397B-A17B-UD-Q4_K_S-00002-of-00006.gguf,49649743104,817bc274bbc50b0b093e6a7c7f4a236304de9b5e572b1a20f74ce2aece58f292,de67e55a7888d2e16cdb4323221e25fd0443e9aad3bf9e793ed6b147ff99e808,,publisher-hosted LFS/Xet pointer exposed by converter repository
+Qwen3.5-397B-A17B-UD-Q4_K_S-00003-of-00006.gguf,48983522144,05f99ad3a60c3afc69911ddcdc36494bc50f26ba8825db66f64a0880ce3c05f0,936ec3135953218f00946bc0deb7b8baf47afe354f803eff5459ecb9485bab95,,publisher-hosted LFS/Xet pointer exposed by converter repository
+Qwen3.5-397B-A17B-UD-Q4_K_S-00004-of-00006.gguf,48983522144,b3af6efac978262e7242f0ebfdf9dc438697e1dfd1b61c35dec848613ea4ba4e,76ed6a75db84ec986448cf55d7a77e1884f4d662311f62beb7070402e91140b1,,publisher-hosted LFS/Xet pointer exposed by converter repository
+Qwen3.5-397B-A17B-UD-Q4_K_S-00005-of-00006.gguf,49005806656,b2519d7617f8c8d350c07d37ae2fa46b56157fa11d197ea5d939e6f443418de5,ce9fe0f554fac8fb91654745b126ab0a24ec60c4e47d6835988a8aa72610d3f0,,publisher-hosted LFS/Xet pointer exposed by converter repository
+Qwen3.5-397B-A17B-UD-Q4_K_S-00006-of-00006.gguf,,,,,UNAVAILABLE

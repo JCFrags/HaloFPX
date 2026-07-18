@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lane map · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html" class="active">Lane map</a><a href="02-official-support-matrices.html">Official support matrices</a><a href="03-component-dossier.html">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="06-source-build-provenance.html">Source/build provenance</a><a href="07-known-issues.html">Known issues</a><a href="08-rollback-removal.html">Rollback and removal</a><a href="09-licensing-sbom.html">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / Lane map</div>
+  <article><h1>Lane map and non-mixing rules</h1>
+<h2>Version lanes</h2>
+<table>
+<thead>
+<tr>
+  <th>Property</th>
+  <th>Legacy ROCm 7.2.x</th>
+  <th>Core SDK/TheRock 7.14.x</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Release/build model</td>
+  <td>Legacy ROCm release stream</td>
+  <td>TheRock-built Core SDK</td>
+</tr>
+<tr>
+  <td>Primary prefix</td>
+  <td><code>/opt/rocm</code></td>
+  <td><code>/opt/rocm/core</code> for package installs; selected tarball root for raw SDK</td>
+</tr>
+<tr>
+  <td>Package naming</td>
+  <td><code>rocm-*</code>, <code>roc*</code>, <code>hip*</code></td>
+  <td><code>amdrocm-*</code>, architecture-suffixed meta packages</td>
+</tr>
+<tr>
+  <td>gfx1151 package example</td>
+  <td>legacy packages resolved from 7.2.4 repository</td>
+  <td><code>amdrocm-core-sdk7.14-gfx1151</code> or <code>amdrocm7.14-gfx1151</code></td>
+</tr>
+<tr>
+  <td>Source root</td>
+  <td>ROCm umbrella/superrepositories at <code>rocm-7.2.4</code></td>
+  <td>TheRock <code>therock-7.14</code> plus exact gitlinks</td>
+</tr>
+<tr>
+  <td>Maturity</td>
+  <td>7.2.4 production release broadly; Ryzen platform wording remains preliminary/preview-scoped</td>
+  <td>Explicit preview release; gfx1151 build/sanity pass but no Release Ready mark</td>
+</tr>
+<tr>
+  <td>Package signing</td>
+  <td>Distro package-manager metadata must be retained and verified</td>
+  <td>Stable multi-arch package repository documents GPG <code>signed-by</code>; nightly native packages are a different, explicitly unsigned lane</td>
+</tr>
+</tbody>
+</table>
+<h2>[DO_NOT_MIX] Runtime namespace rules</h2>
+<p>A tuple fails provenance review when any of these conditions is true:</p>
+<ul>
+<li><code>ldd</code>, RPATH, <code>LD_LIBRARY_PATH</code>, <code>PATH</code>, <code>HIP_PATH</code>, <code>ROCM_PATH</code>, <code>HIP_DEVICE_LIB_PATH</code> or CMake package discovery crosses lane roots.</li>
+<li>A 7.14 <code>amdclang</code> uses 7.2 device bitcode, or a 7.2 compiler resolves 7.14 <code>.kpack</code>/device libraries.</li>
+<li><code>libamdhip64</code>, <code>libhsa-runtime64</code>, COMGR, rocBLAS/hipBLASLt or RCCL come from different lanes.</li>
+<li>Package-manager files and an unpacked SDK shadow the same SONAMEs.</li>
+<li><code>/opt/rocm</code> compatibility symlinks are treated as proof of source identity instead of resolving them to their target package.</li>
+</ul>
+<p>The ABI/API compatibility statement in AMD's transition guide is not permission to create an untracked mixed installation. It describes application compatibility; it does not replace artifact provenance.</p>
+<h2>Isolation patterns</h2>
+<p>Preferred patterns are separate immutable images, separate boot entries for kernel overlays, and explicit environment activation. At minimum, record:</p>
+<pre><code class="language-text">readlink -f /opt/rocm
+readlink -f /opt/rocm/core
+command -v amdclang hipcc rocminfo
+ldd &lt;workload-binary&gt;
+readelf -d &lt;workload-binary&gt;
+</code></pre>
+<p>The supplied scripts capture resource directories and shared-object resolution so a mixed lane can be rejected mechanically.</p>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

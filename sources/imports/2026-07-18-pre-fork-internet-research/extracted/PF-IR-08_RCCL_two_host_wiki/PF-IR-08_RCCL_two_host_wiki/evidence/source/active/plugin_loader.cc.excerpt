@@ -1,0 +1,32 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "SRC-ACTIVE-PLUGIN-LOADER"
+source_class: "source"
+claim_label: "[SOURCE_IMPLEMENTATION]"
+upstream_path: "projects/rccl/src/plugin/net.cc"
+upstream_blob_sha: "b726fd6c86288e61051724d3ace2cd8370f62c54"
+upstream_locator: "version probe, environment loading, internal fallbacks, provider selection"
+snapshot_kind: "structured selected source excerpt preserving literal identifiers"
+completeness: "selected relevant excerpts; not full file"
+license: "Apache-2.0 (per-file SPDX)"
+---
+
+```cpp
+#define NCCL_NET_VERSION_COUNT 7
+int ncclNetVersion[NCCL_NET_VERSION_COUNT] = {12, 11, 10, 9, 8, 7, 6};
+
+const char* defaultNetPlugin = "librccl-net.so";
+envNetPlugin = ncclGetEnv("NCCL_NET_PLUGIN");
+
+// External plugins are loaded first. The internal IB and Socket plugins are appended as fallbacks.
+netPluginLibs[pluginCounter].ncclNet = &ncclNetIb;
+netPluginLibs[pluginCounter++].ncclNetPluginState = ncclNetPluginStateInitReady;
+netPluginLibs[pluginCounter].ncclNet = &ncclNetSocket;
+netPluginLibs[pluginCounter++].ncclNetPluginState = ncclNetPluginStateInitReady;
+
+// A communicator can request an exact network by config.netName (NCCL_NET).
+const char* netName = comm->config.netName;
+if (netName && strcasecmp(netName, netPluginLibs[pluginIndex].ncclNet->name) != 0) goto fail;
+```

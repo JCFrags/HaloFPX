@@ -1,0 +1,24 @@
+{
+  "repository": "ROCm/rccl",
+  "number": 2026,
+  "title": "[Feature]: Any plan to support strix halo gfx1151?",
+  "state": "closed",
+  "created_at": "2025-11-03T01:07:31Z",
+  "closed_at": "2025-11-19T21:54:28Z",
+  "accessed_at": "2026-07-18",
+  "url": "https://github.com/ROCm/rccl/issues/2026",
+  "body": "A user reported trying RCCL tests on two Strix Halo devices over Thunderbolt, failing to build RCCL after manually adding gfx1151, and asked about support.",
+  "comments": [
+    {
+      "author": "huanrwan-amd",
+      "text": "At the moment, we do not have plans to support Strix Halo for RCCL. Please stay tuned for future updates.",
+      "status": "historical; superseded by later tracking and merged enablement"
+    },
+    {
+      "author": "huanrwan-amd",
+      "text": "Support will be tracked through ROCm/rocm-systems#2788.",
+      "status": "later maintainer direction"
+    }
+  ],
+  "claim_label": "[MAINTAINER_STATEMENT]"
+}

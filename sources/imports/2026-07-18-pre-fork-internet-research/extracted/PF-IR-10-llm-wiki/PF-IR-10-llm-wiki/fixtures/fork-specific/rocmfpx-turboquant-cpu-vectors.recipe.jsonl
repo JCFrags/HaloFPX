@@ -1,0 +1,2 @@
+{"encoded_bytes_hex":"000000000000000000000000000000000000","ggml_type":106,"id":"turbo4-zero-block","logical_values":32,"oracle":"decode to finite values; exact numerical values open until source algorithm is independently transcribed and qualified","status":"unexecuted-evidence"}
+{"encoded_bytes_hex":"0000000000000000000000000000","ggml_type":105,"id":"turbo3-zero-block","logical_values":32,"oracle":"decode to finite values; exact numerical values open until source algorithm is independently transcribed and qualified","status":"unexecuted-evidence"}

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>11. Tightly bounded auxiliary experiment — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a class="active" href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/11-bounded-experiment.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>11. Tightly bounded auxiliary experiment</h1>
+<blockquote>
+<p>This page summarizes the normative gate in <a href="../decision/bounded-classifier-experiment.html"><code>../decision/bounded-classifier-experiment.md</code></a>.</p>
+</blockquote>
+<h2 id="experiment-identity">Experiment identity</h2>
+<p><span class="claim claim-decision">[DECISION]</span> One process, one task-specific DistilBERT-class classifier, ONNX opset 17, BF16, batch 1, fixed sequence length 128.</p>
+<p><span class="claim claim-decision">[DECISION]</span> The CPU reference uses the same ONNX graph, tokenizer, inputs, outputs, evaluation corpus, and thresholding logic.</p>
+<p><span class="claim claim-decision">[DECISION]</span> The NPU environment is isolated from the product build and from the HIP/Vulkan fork.</p>
+<h2 id="required-sequence">Required sequence</h2>
+<ol>
+<li>Run the read-only probe.</li>
+<li>Confirm exact PCI revision, IOMMU group, kernel config, module, firmware, and packages.</li>
+<li>Capture package hashes and license acceptance before installation.</li>
+<li>Create an isolated environment.</li>
+<li>Produce and hash the exact ONNX graph and compile/cache outputs.</li>
+<li>Capture provider/operator assignment.</li>
+<li>Run correctness before performance.</li>
+<li>Run warm-cache stability and performance tests.</li>
+<li>Remove the environment and verify the primary path is unchanged.</li>
+</ol>
+<h2 id="pass-criteria">Pass criteria</h2>
+<table>
+<thead>
+<tr>
+  <th>Gate</th>
+  <th>Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Correctness</td>
+  <td>within 0.5 percentage point of CPU reference</td>
+</tr>
+<tr>
+  <td>Placement</td>
+  <td>expensive encoder subgraph on NPU</td>
+</tr>
+<tr>
+  <td>Stability</td>
+  <td>10,000 requests without device/kernel/runtime failure</td>
+</tr>
+<tr>
+  <td>Performance</td>
+  <td>P95 latency ≥20% better, or energy/request ≥15% lower at equal/better P95</td>
+</tr>
+<tr>
+  <td>Accounting</td>
+  <td>cold compile, cache load, sync, preprocessing, inference, and postprocessing separated</td>
+</tr>
+<tr>
+  <td>Isolation</td>
+  <td>no primary-path dependency or release-package change</td>
+</tr>
+<tr>
+  <td>Restart</td>
+  <td>ordinary process stop/start works without module reload or reboot</td>
+</tr>
+</tbody>
+</table>
+<h2 id="fail-fast-conditions">Fail-fast conditions</h2>
+<p><span class="claim claim-decision">[DECISION]</span> Stop and retain <code>keep excluded</code> on:</p>
+<ul>
+<li>firmware or plugin mixing;</li>
+<li>mailbox timeout or command abort;</li>
+<li>unsupported ioctl;</li>
+<li>device disappearance;</li>
+<li>mostly-CPU graph partition;</li>
+<li>accuracy regression;</li>
+<li>no material latency or energy gain;</li>
+<li>hidden install steps;</li>
+<li>any pressure to change the HIP/Vulkan roadmap.</li>
+</ul>
+<h2 id="claims-prohibited-after-a-narrow-pass">Claims prohibited after a narrow pass</h2>
+<p>Even a passing classifier experiment would not establish:</p>
+<ul>
+<li>embedding support;</li>
+<li>reranking support;</li>
+<li>LLM or <code>llama.cpp</code> offload;</li>
+<li>draft-model integration;</li>
+<li>coherent shared memory;</li>
+<li>multi-tenant QoS;</li>
+<li>suspend/resume transparency;</li>
+<li>VM support;</li>
+<li>general operator coverage;</li>
+<li>product readiness.</li>
+</ul>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{"bytes_hex":"41","id":"valid-ascii","valid_utf8":true}
+{"bytes_hex":"f09f92be","id":"valid-emoji","valid_utf8":true}
+{"bytes_hex":"c0af","id":"overlong-slash","valid_utf8":false}
+{"bytes_hex":"eda080","id":"surrogate","valid_utf8":false}
+{"bytes_hex":"f4908080","id":"too-high","valid_utf8":false}
+{"bytes_hex":"80","id":"orphan-continuation","valid_utf8":false}
+{"bytes_hex":"e282","id":"truncated-3","valid_utf8":false}
+{"bytes_hex":"f09f92","id":"truncated-4","valid_utf8":false}

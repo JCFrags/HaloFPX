@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>3. Firmware boundary — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a class="active" href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/03-firmware.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>3. Firmware boundary</h1>
+<h2 id="upstream-firmware-namespace">Upstream firmware namespace</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The pinned kernel requests firmware from <code>amdnpu/17f0_11/</code> and tries <code>npu_7.sbin</code> before <code>npu.sbin</code>.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The pinned <code>linux-firmware</code> commit is <code>924d73c9a2501a256d18a26cbe640548c70b3a9a</code>. Its WHENCE entry records:</p>
+<table>
+<thead>
+<tr>
+  <th>Logical filename</th>
+  <th>Versioned payload</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>amdnpu/17f0_11/npu.sbin</code></td>
+  <td><code>npu.sbin.1.0.0.166</code></td>
+</tr>
+<tr>
+  <td><code>amdnpu/17f0_11/npu_7.sbin</code></td>
+  <td><code>npu.sbin.1.1.2.65</code></td>
+</tr>
+</tbody>
+</table>
+<p>Exact captured WHENCE excerpt: <a href="../sources/excerpts/vendor-docs/linux-firmware-WHENCE.amdxdna.txt"><code>../sources/excerpts/vendor-docs/linux-firmware-WHENCE.amdxdna.txt</code></a>.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> WHENCE classifies the payload as redistributable and refers to <code>LICENSE.amdnpu</code>.</p>
+<h2 id="vendor-legacy-namespace">Vendor legacy namespace</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's pinned legacy npu5 source is different:</p>
+<ul>
+<li>expected file: <code>amdnpu/17f0_11/npu.dev.sbin</code>;</li>
+<li>minimum firmware version: 6.12;</li>
+<li>VBNV: <code>NPU Strix Halo</code>.</li>
+</ul>
+<p>Exact source: <a href="../sources/raw/amd-xdna-driver/legacy-npu5_regs.c"><code>../sources/raw/amd-xdna-driver/legacy-npu5_regs.c</code></a>.</p>
+<p><span class="claim claim-decision">[DECISION]</span> Do not mix the upstream <code>npu.sbin</code>/<code>npu_7.sbin</code> namespace with the legacy <code>npu.dev.sbin</code> path. They are separate compatibility paths.</p>
+<h2 id="version-coupling">Version coupling</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's driver repository warns that stale or mismatched firmware commonly causes <code>ERT_CMD_STATE_ABORT</code>, mailbox timeout, or immediate post-load failure.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> The plugin package installs a matched firmware copy under <code>/usr/lib/firmware/amdnpu</code>.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> A firmware symlink resolving to a valid file is necessary but not sufficient. Its exact hash and provenance must match the selected driver/plugin release.</p>
+<h2 id="secure-load-and-lifecycle">Secure load and lifecycle</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The driver asks the PSP to securely load signed NPU firmware and starts the NPU microcontroller.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The NPU is switched off during system suspend; resume starts hardware and reloads firmware before contexts are resumed.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> The implementation does not by itself prove transparent application recovery under all target suspend, firmware fault, mailbox timeout, or partial-hang scenarios.</p>
+<h2 id="bundle-handling">Bundle handling</h2>
+<p><span class="claim claim-missing">[MISSING]</span> Firmware binaries are intentionally not redistributed here.</p>
+<p>This bundle preserves:</p>
+<ul>
+<li>exact kernel request paths;</li>
+<li>exact current <code>linux-firmware</code> commit;</li>
+<li>current versioned WHENCE names;</li>
+<li>the license reference;</li>
+<li>a read-only target-host hashing procedure.</li>
+</ul>
+<h2 id="target-checks">Target checks</h2>
+<p>The probe records:</p>
+<ol>
+<li>symlink targets and filesystem metadata;</li>
+<li>SHA-256 of compressed or uncompressed payloads;</li>
+<li>decompressed SHA-256 for <code>.zst</code> files when <code>zstdcat</code> is available;</li>
+<li>package ownership/inventory;</li>
+<li>module firmware declarations;</li>
+<li>firmware load messages.</li>
+</ol>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+condition,internal_reason,serving_result,side_effect
+Object absent,OBJECT_MISSING,MISS_RECOMPUTE,Optional stale-index cleanup
+Key not authorized or unavailable,KEY_NOT_AUTHORIZED / KEY_UNAVAILABLE,MISS_RECOMPUTE,Audit/rate limit; never search sibling keys
+Revoked/destroyed key or epoch,KEY_REVOKED,MISS_RECOMPUTE,Remove stale serving reference
+Malformed/truncated/oversized envelope,FORMAT_BOUNDS,MISS_RECOMPUTE,Delete/quarantine under abuse policy
+Non-canonical or duplicate fields,FORMAT_NONCANONICAL,MISS_RECOMPUTE,Format telemetry
+Expected AAD differs,AAD_EXPECTED_DIFFERENT,MISS_RECOMPUTE,Investigate substitution/policy bug
+AEAD authentication failure,AEAD_TAG_FAIL,MISS_RECOMPUTE,Invalidate candidate; quarantine sample/evidence
+Scoped CID mismatch after valid open,CID_FAIL,MISS_RECOMPUTE,Treat as semantic corruption/implementation bug
+Stale generation/epoch,REPLAY_FLOOR,MISS_RECOMPUTE,Preserve rollback evidence as policy requires
+Deletion tombstone supersedes object,TOMBSTONED,MISS_RECOMPUTE,Purge stale reference and propagate deletion
+Unsupported critical extension/suite,UNSUPPORTED_*,MISS_RECOMPUTE,No best-effort downgrade
+Nonce allocator uncertainty,NONCE_STATE_UNCERTAIN,MISS_RECOMPUTE / seal disabled,New epoch before writes
+Lower-layer I/O/integrity error,LOWER_LAYER_IO,MISS_RECOMPUTE,Stop/quarantine affected volume as needed

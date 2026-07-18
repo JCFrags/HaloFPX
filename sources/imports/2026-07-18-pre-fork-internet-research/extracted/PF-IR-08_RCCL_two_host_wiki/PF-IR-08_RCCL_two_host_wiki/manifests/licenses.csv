@@ -1,0 +1,43 @@
+source_id,local_path,license,source_class
+SRC-ACTIVE-VERSION,evidence/source/active/version.mk.txt,Apache-2.0 (per-file SPDX),source
+SRC-STABLE-VERSION,evidence/source/stable/version.mk.txt,RCCL LICENSE.txt,source
+SRC-ACTIVE-SOCKET,evidence/source/active/net_socket.cc.excerpt,Apache-2.0 (per-file SPDX),source
+SRC-STABLE-SOCKET,evidence/source/stable/net_socket.cc.excerpt,RCCL LICENSE.txt,source
+SRC-ACTIVE-INTERFACE,evidence/source/active/socket_interface_selection.cc.excerpt,Apache-2.0 (per-file SPDX),source
+DOC-ACTIVE-ENV,evidence/docs/active/environment-interface-selection.rst.excerpt,RCCL repository/documentation terms; file SPDX not captured,documentation
+SRC-ACTIVE-PLUGIN-HEADER,evidence/source/active/nccl_net.h,Apache-2.0 (per-file SPDX),source
+SRC-ACTIVE-PLUGIN-V12,evidence/source/active/net_v12.h.excerpt,Apache-2.0 (per-file SPDX),source
+SRC-STABLE-PLUGIN-HEADER,evidence/source/stable/nccl_net.h,RCCL LICENSE.txt,source
+SRC-ACTIVE-PLUGIN-LOADER,evidence/source/active/plugin_loader.cc.excerpt,Apache-2.0 (per-file SPDX),source
+SRC-STABLE-PLUGIN-LOADER,evidence/source/stable/plugin_loader.cc.excerpt,RCCL LICENSE.txt,source
+SRC-STABLE-REGISTER,evidence/source/stable/register.cc.excerpt,RCCL LICENSE.txt,source
+SRC-STABLE-DMABUF,evidence/source/stable/rocmwrap_dmabuf.cc.excerpt,RCCL LICENSE.txt,source
+SRC-ACTIVE-API,evidence/source/active/public_api.h.excerpt,Apache-2.0 (per-file SPDX),source
+SRC-STABLE-API,evidence/source/stable/public_api.h.excerpt,RCCL LICENSE.txt,source
+DOC-ACTIVE-FAULT,evidence/docs/active/fault-tolerance.rst,RCCL repository/documentation terms; file SPDX not captured,documentation
+SRC-STABLE-TOPOLOGY,evidence/source/stable/topology.cc.excerpt,RCCL LICENSE.txt,source
+DOC-ACTIVE-NET-PLUGIN,evidence/docs/active/net-plugin-readme.md.excerpt,RCCL repository/documentation terms; file SPDX not captured,documentation
+TEST-RCCL-TESTS-MPI,evidence/tests/rccl-tests-readme.md.excerpt,RCCL-tests repository license; exact file SPDX not captured,test
+TEST-NET-SOCKET-UNIT,evidence/tests/NetSocketTests.cpp.excerpt,RCCL repository license / per-file terms,test
+TEST-MPI-FRAMEWORK,evidence/tests/MPITestFramework.md.excerpt,RCCL repository license / per-file terms,test
+TEST-ACTIVE-TIMEOUT,evidence/tests/TimeoutTests.cpp.excerpt,RCCL repository license / per-file terms,test
+TEST-ACTIVE-REVOKE,evidence/tests/RevokeMPITests.cpp.excerpt,RCCL repository license / per-file terms,test
+TEST-ACTIVE-GROW,evidence/tests/GrowMPITests.cpp.excerpt,RCCL repository license / per-file terms,test
+DOC-ROCM-LANES,evidence/docs/rocm-lane-map.json,documentation terms not independently determined,documentation
+DOC-RYZEN-GFX1151,evidence/docs/ryzen-gfx1151-support-matrix.md.excerpt,documentation terms not independently determined,documentation
+PR-3415,evidence/issues/PR-3415.json,commentary license not independently determined,pull_request
+PR-4875,evidence/issues/PR-4875.json,commentary license not independently determined,pull_request
+ISSUE-2788,evidence/issues/ISSUE-2788.json,commentary license not independently determined,issue
+ISSUE-2026,evidence/issues/ISSUE-2026.json,commentary license not independently determined,issue
+PR-2075,evidence/issues/PR-2075.json,commentary/license not independently determined,pull_request
+AUTHORITY,evidence/authority.json,metadata; source licenses separately preserved,repository metadata
+LICENSE-ACTIVE,licenses/RCCL-active-LICENSE.txt,self,license
+LICENSE-STABLE,licenses/RCCL-stable-2.27.7-LICENSE.txt,self,license
+RAW-ACTIVE-FAULT-DOC,evidence/raw/active/docs/how-to/fault-tolerance.rst,RCCL repository/documentation terms; file SPDX not captured,documentation
+RAW-ACTIVE-PLUGIN-HEADER,evidence/raw/active/src/include/plugin/nccl_net.h,Apache-2.0 (per-file SPDX),source
+RAW-ACTIVE-PLUGIN-V12,evidence/raw/active/src/include/plugin/net/net_v12.h,Apache-2.0 (per-file SPDX),source
+RAW-ACTIVE-VERSION,evidence/raw/active/makefiles/version.mk,Apache-2.0 (per-file SPDX),source
+RAW-STABLE-VERSION,evidence/raw/stable/makefiles/version.mk,RCCL LICENSE.txt,source
+RAW-STABLE-PLUGIN-HEADER,evidence/raw/stable/src/include/plugin/nccl_net.h,RCCL LICENSE.txt,source
+RAW-ACTIVE-LICENSE,evidence/raw/active/LICENSE.txt,self,license
+RAW-STABLE-LICENSE,evidence/raw/stable/LICENSE.txt,self,license

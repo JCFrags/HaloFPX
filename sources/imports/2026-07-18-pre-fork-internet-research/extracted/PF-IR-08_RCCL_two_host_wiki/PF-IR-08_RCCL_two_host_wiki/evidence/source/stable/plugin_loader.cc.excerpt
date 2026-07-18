@@ -1,0 +1,31 @@
+---
+upstream_repository: "ROCm/rccl"
+upstream_ref: "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4"
+accessed_at: "2026-07-18"
+source_id: "SRC-STABLE-PLUGIN-LOADER"
+source_class: "source"
+claim_label: "[SOURCE_IMPLEMENTATION]"
+upstream_path: "src/plugin/net.cc"
+upstream_blob_sha: "321cd74da7fd7ebdb85004ac3b259016dd9c254d"
+upstream_locator: "loader version probe, library selection, fallback order, provider assignment"
+snapshot_kind: "structured selected source excerpt preserving literal identifiers"
+completeness: "selected relevant excerpts; not full file"
+license: "RCCL LICENSE.txt"
+---
+
+```cpp
+#define NCCL_NET_VERSION_COUNT 5
+int ncclNetVersion[NCCL_NET_VERSION_COUNT] = {10, 9, 8, 7, 6};
+
+const char* defaultNetPlugin = "libnccl-net.so";
+envNetPlugin = ncclGetEnv("NCCL_NET_PLUGIN");
+
+// Add 2 internal ib and socket plugins
+netPluginLibs[pluginCounter].ncclNet = &ncclNetIb;
+netPluginLibs[pluginCounter++].ncclNetPluginState = ncclNetPluginStateInitReady;
+netPluginLibs[pluginCounter].ncclNet = &ncclNetSocket;
+netPluginLibs[pluginCounter++].ncclNetPluginState = ncclNetPluginStateInitReady;
+
+const char* netName = comm->config.netName;
+if (netName && strcasecmp(netName, netPluginLibs[pluginIndex].ncclNet->name) != 0) goto fail;
+```

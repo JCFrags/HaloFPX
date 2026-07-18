@@ -1,0 +1,18 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "TEST-ACTIVE-REVOKE"
+source_class: "test"
+claim_label: "[UPSTREAM_TEST]"
+upstream_path: "projects/rccl/test/RevokeMPITests.cpp"
+upstream_blob_sha: "51b93844fc42eae9437668b9f78542dc6acc1dc7"
+upstream_locator: "MPI revoke scenarios"
+snapshot_kind: "structured relevant excerpt summary"
+completeness: "selected relevant content; not full file"
+license: "RCCL repository license / per-file terms"
+---
+
+```text
+The active MPI tests exercise communicator revoke, post-revoke API rejection, and recovery sequencing. They test API semantics, not the target Ethernet-over-USB4 topology.
+```

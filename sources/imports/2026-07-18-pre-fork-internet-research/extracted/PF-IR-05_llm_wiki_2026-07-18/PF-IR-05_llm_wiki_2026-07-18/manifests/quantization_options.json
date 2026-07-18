@@ -1,0 +1,1055 @@
+{
+  "schema_version": 1,
+  "accessed_at": "2026-07-18",
+  "evidence_label": "[CONVERTER]",
+  "size_semantics": "Converter-published rounded UI totals. They are not exact stored-byte identities unless selected_exact_bytes is populated from a complete shard pointer manifest.",
+  "candidates": [
+    {
+      "candidate_id": "deepseek-v3.1",
+      "display_name": "DeepSeek-V3.1",
+      "repository": "unsloth/DeepSeek-V3.1-GGUF",
+      "revision": "f69aacf1ee1e4f66737daebc7e71fa527dfda1bd",
+      "immutable_model_card_url": "https://huggingface.co/unsloth/DeepSeek-V3.1-GGUF/blob/f69aacf1ee1e4f66737daebc7e71fa527dfda1bd/README.md",
+      "selected_quantization": "UD-IQ2_XXS",
+      "options": [
+        {
+          "quantization": "UD-IQ1_S",
+          "display_size": "192 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-TQ1_0",
+          "display_size": "170 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ1_M",
+          "display_size": "207 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_XXS",
+          "display_size": "226 GB",
+          "selected": true,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q2_K",
+          "display_size": "246 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_M",
+          "display_size": "236 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q2_K_L",
+          "display_size": "246 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q2_K_XL",
+          "display_size": "256 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ3_XXS",
+          "display_size": "280 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q3_K_S",
+          "display_size": "290 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q3_K_M",
+          "display_size": "320 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_XL",
+          "display_size": "300 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "IQ4_XS",
+          "display_size": "358 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_K_S",
+          "display_size": "381 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "IQ4_NL",
+          "display_size": "379 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_0",
+          "display_size": "380 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_1",
+          "display_size": "421 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_K_M",
+          "display_size": "405 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_XL",
+          "display_size": "387 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q5_K_S",
+          "display_size": "463 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q5_K_M",
+          "display_size": "476 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_XL",
+          "display_size": "485 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q6_K",
+          "display_size": "551 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q6_K_XL",
+          "display_size": "574 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q8_0",
+          "display_size": "713 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q8_K_XL",
+          "display_size": "781 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "BF16",
+          "display_size": "1.34 TB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        }
+      ]
+    },
+    {
+      "candidate_id": "glm-4.7",
+      "display_name": "GLM-4.7",
+      "repository": "unsloth/GLM-4.7-GGUF",
+      "revision": "a030db4a327b2dece3f0e5c4ff82c5f4feab4f26",
+      "immutable_model_card_url": "https://huggingface.co/unsloth/GLM-4.7-GGUF/blob/a030db4a327b2dece3f0e5c4ff82c5f4feab4f26/README.md",
+      "selected_quantization": "Q4_K_M",
+      "options": [
+        {
+          "quantization": "UD-IQ1_S",
+          "display_size": "97.2 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-TQ1_0",
+          "display_size": "84.5 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ1_M",
+          "display_size": "108 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_XXS",
+          "display_size": "116 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q2_K",
+          "display_size": "131 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_M",
+          "display_size": "122 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q2_K_L",
+          "display_size": "131 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q2_K_XL",
+          "display_size": "135 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ3_XXS",
+          "display_size": "145 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q3_K_S",
+          "display_size": "155 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q3_K_M",
+          "display_size": "171 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_XL",
+          "display_size": "159 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "IQ4_XS",
+          "display_size": "192 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_K_S",
+          "display_size": "204 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "IQ4_NL",
+          "display_size": "202 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_0",
+          "display_size": "203 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_1",
+          "display_size": "225 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_K_M",
+          "display_size": "216 GB",
+          "selected": true,
+          "exact_total_bytes": 216455572576,
+          "evidence_status": "EXACT_SELECTED_MANIFEST"
+        },
+        {
+          "quantization": "UD-Q4_K_XL",
+          "display_size": "205 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q5_K_S",
+          "display_size": "247 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q5_K_M",
+          "display_size": "254 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_XL",
+          "display_size": "254 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q6_K",
+          "display_size": "294 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q6_K_XL",
+          "display_size": "301 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q8_0",
+          "display_size": "381 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q8_K_XL",
+          "display_size": "395 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "BF16",
+          "display_size": "717 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        }
+      ]
+    },
+    {
+      "candidate_id": "qwen3.5-397b-a17b",
+      "display_name": "Qwen3.5-397B-A17B",
+      "repository": "unsloth/Qwen3.5-397B-A17B-GGUF",
+      "revision": "0b7386368898883d58d445525ba8fa45e3f7289f",
+      "immutable_model_card_url": "https://huggingface.co/unsloth/Qwen3.5-397B-A17B-GGUF/blob/0b7386368898883d58d445525ba8fa45e3f7289f/README.md",
+      "selected_quantization": "UD-Q4_K_S",
+      "options": [
+        {
+          "quantization": "UD-IQ1_M",
+          "display_size": "107 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_XXS",
+          "display_size": "115 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_M",
+          "display_size": "123 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ3_XXS",
+          "display_size": "140 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q3_K_S",
+          "display_size": "164 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ3_S",
+          "display_size": "146 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_S",
+          "display_size": "164 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q3_K_M",
+          "display_size": "177 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_M",
+          "display_size": "177 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_XL",
+          "display_size": "179 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ4_XS",
+          "display_size": "190 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_K_S",
+          "display_size": "228 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_S",
+          "display_size": "228 GB",
+          "selected": true,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "MXFP4_MOE",
+          "display_size": "237 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ4_NL",
+          "display_size": "194 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_K_M",
+          "display_size": "244 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_M",
+          "display_size": "244 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_XL",
+          "display_size": "245 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q5_K_S",
+          "display_size": "277 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_S",
+          "display_size": "277 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q5_K_M",
+          "display_size": "294 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_M",
+          "display_size": "294 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_XL",
+          "display_size": "295 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q6_K",
+          "display_size": "327 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q6_K",
+          "display_size": "327 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q6_K_XL",
+          "display_size": "362 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q8_0",
+          "display_size": "422 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q8_K_XL",
+          "display_size": "428 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "BF16",
+          "display_size": "793 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        }
+      ]
+    },
+    {
+      "candidate_id": "nemotron-3-ultra",
+      "display_name": "NVIDIA Nemotron 3 Ultra 550B-A55B",
+      "repository": "unsloth/NVIDIA-Nemotron-3-Ultra-550B-A55B-GGUF",
+      "revision": "05c80881664d32be9b26bab9d0360be00230ade4",
+      "immutable_model_card_url": "https://huggingface.co/unsloth/NVIDIA-Nemotron-3-Ultra-550B-A55B-GGUF/blob/05c80881664d32be9b26bab9d0360be00230ade4/README.md",
+      "selected_quantization": "UD-IQ3_XXS",
+      "options": [
+        {
+          "quantization": "UD-IQ1_M",
+          "display_size": "188 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_XXS",
+          "display_size": "194 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_M",
+          "display_size": "194 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q2_K_XL",
+          "display_size": "202 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ3_XXS",
+          "display_size": "223 GB",
+          "selected": true,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ3_S",
+          "display_size": "251 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_M",
+          "display_size": "274 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_XL",
+          "display_size": "274 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ4_XS",
+          "display_size": "286 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_S",
+          "display_size": "328 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "MXFP4_MOE",
+          "display_size": "352 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ4_NL",
+          "display_size": "294 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_M",
+          "display_size": "359 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_XL",
+          "display_size": "360 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_S",
+          "display_size": "392 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_M",
+          "display_size": "427 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_XL",
+          "display_size": "427 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q6_K",
+          "display_size": "461 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q6_K_XL",
+          "display_size": "523 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q8_0",
+          "display_size": "584 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q8_K_XL",
+          "display_size": "595 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "BF16",
+          "display_size": "1.1 TB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        }
+      ]
+    },
+    {
+      "candidate_id": "deepseek-r1",
+      "display_name": "DeepSeek-R1",
+      "repository": "unsloth/DeepSeek-R1-GGUF",
+      "revision": "4dab99fdb3fea560e5a402b49c6ef11e025321a8",
+      "immutable_model_card_url": "https://huggingface.co/unsloth/DeepSeek-R1-GGUF/blob/4dab99fdb3fea560e5a402b49c6ef11e025321a8/README.md",
+      "selected_quantization": "Q2_K_XS",
+      "options": [
+        {
+          "quantization": "UD-IQ1_S",
+          "display_size": "140 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ1_M",
+          "display_size": "169 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_XXS",
+          "display_size": "196 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q2_K_XS",
+          "display_size": "221 GB",
+          "selected": true,
+          "exact_total_bytes": 221253686944,
+          "evidence_status": "EXACT_SELECTED_MANIFEST"
+        },
+        {
+          "quantization": "Q2_K",
+          "display_size": "244 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q2_K_L",
+          "display_size": "244 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q2_K_XL",
+          "display_size": "227 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q3_K_M",
+          "display_size": "319 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q4_K_M",
+          "display_size": "404 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q5_K_M",
+          "display_size": "475 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q6_K",
+          "display_size": "551 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q8_0",
+          "display_size": "713 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "BF16",
+          "display_size": "1.34 TB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        }
+      ]
+    },
+    {
+      "candidate_id": "minimax-m2.7",
+      "display_name": "MiniMax-M2.7",
+      "repository": "unsloth/MiniMax-M2.7-GGUF",
+      "revision": "04ab68de18da5486aa9869e3bc72f0249ef51f89",
+      "immutable_model_card_url": "https://huggingface.co/unsloth/MiniMax-M2.7-GGUF/blob/04ab68de18da5486aa9869e3bc72f0249ef51f89/README.md",
+      "selected_quantization": "UD-Q6_K_XL",
+      "options": [
+        {
+          "quantization": "UD-IQ1_M",
+          "display_size": "60.7 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_XXS",
+          "display_size": "65.4 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ2_M",
+          "display_size": "70.1 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q2_K_XL",
+          "display_size": "75.3 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ3_XXS",
+          "display_size": "80.1 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ3_S",
+          "display_size": "83.6 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_S",
+          "display_size": "93.6 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_M",
+          "display_size": "101 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q3_K_XL",
+          "display_size": "102 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ4_XS",
+          "display_size": "108 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_S",
+          "display_size": "131 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "MXFP4_MOE",
+          "display_size": "136 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-IQ4_NL",
+          "display_size": "111 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_M",
+          "display_size": "140 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q4_K_XL",
+          "display_size": "141 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_S",
+          "display_size": "159 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_M",
+          "display_size": "169 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q5_K_XL",
+          "display_size": "169 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q6_K",
+          "display_size": "188 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q6_K_XL",
+          "display_size": "207 GB",
+          "selected": true,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "Q8_0",
+          "display_size": "243 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "UD-Q8_K_XL",
+          "display_size": "247 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        },
+        {
+          "quantization": "BF16",
+          "display_size": "457 GB",
+          "selected": false,
+          "exact_total_bytes": null,
+          "evidence_status": "ROUNDED_CONVERTER_UI"
+        }
+      ]
+    }
+  ]
+}

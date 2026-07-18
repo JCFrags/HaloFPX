@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Licensing and SBOM · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html">Lane map</a><a href="02-official-support-matrices.html">Official support matrices</a><a href="03-component-dossier.html">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="06-source-build-provenance.html">Source/build provenance</a><a href="07-known-issues.html">Known issues</a><a href="08-rollback-removal.html">Rollback and removal</a><a href="09-licensing-sbom.html" class="active">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / Licensing and SBOM</div>
+  <article><h1>Licenses, notices and SBOM</h1>
+<h2>Status</h2>
+<p>[LICENSE_INVENTORY_PARTIAL_UNTIL_ARTIFACT_SCAN] The source/build roots and package declarations identify many licenses, but the stable gfx1151 artifact bytes were not available for a complete file-level inventory. The table in <a href="../manifests/licenses.csv">licenses.csv</a> distinguishes verified declarations from mandatory acquisition-time scans.</p>
+<h2>Confirmed or declared categories</h2>
+<ul>
+<li>TheRock build system: MIT.</li>
+<li>LLVM/Clang: Apache-2.0 with LLVM exception.</li>
+<li>Most ROCm runtime/math packages, including RCCL package metadata: MIT declarations, subject to per-component/imported-code notices.</li>
+<li>Linux kernel: GPL-2.0-only.</li>
+<li>Mesa/RADV: mixed permissive licenses, predominantly MIT/X11-family; exact files control.</li>
+<li><code>linux-firmware</code>: mixed per-file licensing; <code>WHENCE</code> and per-blob notices are mandatory.</li>
+<li>Bundled system dependencies: multiple licenses; package metadata's aggregate <code>MIT</code> field is not sufficient to inventory them.</li>
+</ul>
+<h2>Required artifact scan</h2>
+<p>Run:</p>
+<pre><code class="language-bash">scripts/inventory-artifact.sh &lt;extracted-sdk-or-rootfs&gt; &lt;output-directory&gt;
+scripts/generate-sbom.sh &lt;extracted-sdk-or-rootfs&gt; &lt;output-directory&gt;
+</code></pre>
+<p>Review every match for <code>LICENSE*</code>, <code>COPYING*</code>, <code>NOTICE*</code>, package copyright metadata and SPDX headers. Retain the raw files, normalized inventory, file hashes and tool versions. A generated SBOM is evidence produced by the build process, not an AMD-issued SBOM.</p>
+<h2>Notice handling</h2>
+<p><code>NOTICE.md</code> in this folder describes the dossier's own content. It does not grant redistribution rights for AMD binaries or third-party code. Redistributors must follow each acquired component's license and notice requirements.</p>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

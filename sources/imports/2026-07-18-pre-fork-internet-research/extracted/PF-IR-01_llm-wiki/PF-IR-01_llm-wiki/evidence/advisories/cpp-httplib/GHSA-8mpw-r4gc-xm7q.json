@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-8mpw-r4gc-xm7q",
+  "title": "Default exception handler information disclosure",
+  "severity": "Moderate",
+  "affected_versions": "<=0.34.0",
+  "patched_versions": "0.35.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-8mpw-r4gc-xm7q",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "default server exception handler",
+    "precondition": "Unhandled server exception reaches default error response"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "3f6e44cd027a62c22f5d955ca4a2a6f864e5e23ef23acfe55e8e5818fc4007c6"
+}

@@ -1,0 +1,12 @@
+---
+source_id: "S037"
+title: "macOS fsync and F_FULLFSYNC"
+capture_kind: "official-web-receipt-with-short-excerpt"
+canonical_url: "https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/fsync.2.html"
+version: "Apple archived manual page"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "Apple documentation terms"
+---
+NON-TARGET: macOS distinguishes fsync from F_FULLFSYNC and notes that device
+firmware may still affect the physical-media boundary. A separate implementation
+and test contract is required.

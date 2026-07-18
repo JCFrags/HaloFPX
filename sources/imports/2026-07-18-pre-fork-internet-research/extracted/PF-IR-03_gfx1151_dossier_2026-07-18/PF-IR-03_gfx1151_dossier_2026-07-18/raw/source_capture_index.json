@@ -1,0 +1,149 @@
+[
+  {
+    "source_id": "S001",
+    "path": "raw/official/amd-docs/S001-rocm-7.14-compatibility.txt",
+    "url": "https://rocm.docs.amd.com/en/docs-7.14.0/compatibility/compatibility-matrix.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn800020view0"
+  },
+  {
+    "source_id": "S002",
+    "path": "raw/official/amd-docs/S002-transition-guide.txt",
+    "url": "https://rocm.docs.amd.com/en/latest/about/transition-guide-TheRock.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn921834view4; turn628835view0"
+  },
+  {
+    "source_id": "S003",
+    "path": "raw/official/amd-docs/S003-install-rocm-7.14.txt",
+    "url": "https://rocm.docs.amd.com/en/docs-7.14.0/install/rocm.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn619120view2; turn619120view3; turn921834view5; turn921834view6"
+  },
+  {
+    "source_id": "S004",
+    "path": "raw/official/amd-docs/S004-release-notes-7.14.txt",
+    "url": "https://rocm.docs.amd.com/en/docs-7.14.0/about/release-notes.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn890393view0; turn890393view1; turn890393view2; turn890393view3"
+  },
+  {
+    "source_id": "S005",
+    "path": "raw/official/amd-docs/S005-ryzen-linux-7.2-matrix.txt",
+    "url": "https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2/docs/compatibility/compatibilityryz/native_linux/native_linux_compatibility.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn619120view0"
+  },
+  {
+    "source_id": "S006",
+    "path": "raw/official/amd-docs/S006-release-notes-7.2.4.txt",
+    "url": "https://rocm.docs.amd.com/en/docs-7.2.4/about/release-notes.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn619120view5"
+  },
+  {
+    "source_id": "S007",
+    "path": "raw/official/github/S007-TheRock-tag.txt",
+    "url": "https://github.com/ROCm/TheRock/tree/therock-7.14",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn744481view0; turn18file0; turn50file0; turn53file0; turn54file0"
+  },
+  {
+    "source_id": "S008",
+    "path": "raw/official/github/S008-SUPPORTED_GPUS.txt",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/SUPPORTED_GPUS.md",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn15file0"
+  },
+  {
+    "source_id": "S009",
+    "path": "raw/official/github/S009-RELEASES.txt",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/RELEASES.md",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn20file0 through turn24file0"
+  },
+  {
+    "source_id": "S010",
+    "path": "raw/official/github/S010-gitmodules.txt",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/.gitmodules",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn19file0"
+  },
+  {
+    "source_id": "S011",
+    "path": "raw/official/github/S011-manifest-generator.txt",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/build_tools/generate_therock_manifest.py",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn27file0"
+  },
+  {
+    "source_id": "S012",
+    "path": "raw/official/github/S012-package-json.txt",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/build_tools/packaging/linux/package.json",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn42file0; turn44file0"
+  },
+  {
+    "source_id": "S013",
+    "path": "raw/official/github/S013-TheRock-LICENSE.txt",
+    "url": "https://github.com/ROCm/TheRock/blob/therock-7.14/LICENSE",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn40file0"
+  },
+  {
+    "source_id": "S014",
+    "path": "raw/official/github/S014-rocm-7.2.4-default-xml.txt",
+    "url": "https://github.com/ROCm/ROCm/blob/rocm-7.2.4/default.xml",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn31file0"
+  },
+  {
+    "source_id": "S015",
+    "path": "raw/official/kernel/S015-kernel-org-release-index.txt",
+    "url": "https://www.kernel.org/",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn398973view0"
+  },
+  {
+    "source_id": "S016",
+    "path": "raw/official/kernel/S016-usb4stream.txt",
+    "url": "https://www.kernel.org/doc/html/next/admin-guide/thunderbolt.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn921834view2; turn921834view3"
+  },
+  {
+    "source_id": "S017",
+    "path": "raw/official/kernel/S017-gfx1151-kfd-sru.txt",
+    "url": "https://lists.ubuntu.com/archives/kernel-team/2026-January/165207.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn398973view1"
+  },
+  {
+    "source_id": "S018",
+    "path": "raw/official/kernel/S018-hwe-6.17-accepted.txt",
+    "url": "https://lists.ubuntu.com/archives/noble-changes/2026-February/053556.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn398973view2"
+  },
+  {
+    "source_id": "S019",
+    "path": "raw/official/mesa/S019-mesa-26.1.4.txt",
+    "url": "https://docs.mesa3d.org/relnotes/26.1.4.html",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn689053view2"
+  },
+  {
+    "source_id": "S020",
+    "path": "raw/official/amd-docs/S020-tarball-index.txt",
+    "url": "https://repo.amd.com/rocm/tarball-multi-arch/",
+    "access_date": "2026-07-18",
+    "capture_ref": "turn531743view1"
+  },
+  {
+    "source_id": "S021",
+    "path": "raw/local/S021-local-two-node-comparison.txt",
+    "url": "",
+    "access_date": "2026-07-17",
+    "capture_ref": "user prompt"
+  }
+]
