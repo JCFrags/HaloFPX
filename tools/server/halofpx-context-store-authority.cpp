@@ -8,7 +8,8 @@ namespace halofpx {
 namespace {
 
 constexpr char snapshot_domain[] = "halofpx.bootstrap-authority-snapshot.v1";
-constexpr char scope_domain[] = "halofpx.bootstrap-authority-scope.v1";
+constexpr char base_scope_domain[] = "halofpx.bootstrap-authority-base-scope.v1";
+constexpr char scope_domain[] = "halofpx.bootstrap-authority-scope.v2";
 constexpr char plan_domain[] = "halofpx.bootstrap-plan.v2";
 
 struct bounded_buffer {
@@ -28,6 +29,10 @@ struct bounded_buffer {
         return append(encoded.data(), encoded.size());
     }
     bool id(const context_store_registered_id & value) noexcept {
+        if (value.size == 0 || value.size > context_store_registered_id_max_bytes) return false;
+        for (size_t i = 0; i < value.size; ++i) {
+            if (value.bytes[i] == 0 || value.bytes[i] > 0x7f) return false;
+        }
         const uint8_t length[2] = { 0, value.size };
         return append(length, sizeof(length)) && append(value.bytes.data(), value.size);
     }
@@ -61,9 +66,32 @@ bool same_id(const context_store_registered_id & left, const context_store_regis
 }
 
 bool same_secret(const context_store_key_view & left, const context_store_key_view & right) noexcept {
-    if (left.size != right.size) return false;
+    constexpr size_t hmac_sha256_block_bytes = 64;
+    std::array<uint8_t, hmac_sha256_block_bytes> left_effective {};
+    std::array<uint8_t, hmac_sha256_block_bytes> right_effective {};
+    auto normalize = [](const context_store_key_view & source,
+            std::array<uint8_t, hmac_sha256_block_bytes> & effective) noexcept {
+        if (source.size <= effective.size()) {
+            std::copy_n(source.data, source.size, effective.begin());
+            return true;
+        }
+        context_store_format_digest hashed {};
+        const bool ok = context_store_sha256_bounded(source.data, source.size,
+            context_store_master_key_max_bytes, hashed);
+        if (ok) std::copy(hashed.begin(), hashed.end(), effective.begin());
+        wipe(hashed.data(), hashed.size());
+        return ok;
+    };
+    if (!normalize(left, left_effective) || !normalize(right, right_effective)) {
+        wipe(left_effective.data(), left_effective.size());
+        wipe(right_effective.data(), right_effective.size());
+        return true;
+    }
     volatile uint8_t difference = 0;
-    for (size_t i = 0; i < left.size; ++i) difference = static_cast<uint8_t>(difference | (left.data[i] ^ right.data[i]));
+    for (size_t i = 0; i < left_effective.size(); ++i)
+        difference = static_cast<uint8_t>(difference | (left_effective[i] ^ right_effective[i]));
+    wipe(left_effective.data(), left_effective.size());
+    wipe(right_effective.data(), right_effective.size());
     return difference == 0;
 }
 
@@ -71,6 +99,9 @@ bool snapshot_message(const context_store_bootstrap_authority_config & config,
         const context_store_format_digest & anchor_secret_digest,
         const context_store_format_digest & admin_secret_digest,
         const context_store_format_digest & manifest_secret_digest,
+        const context_store_format_digest & registry_authority_binding,
+        const context_store_protected_registry_body & registry,
+        const context_store_format_digest & registry_snapshot_digest,
         bounded_buffer & message) noexcept {
     return message.append(snapshot_domain, sizeof(snapshot_domain)) &&
         message.id(config.bootstrap_admin_key.key_id) && message.u64(config.bootstrap_admin_key.generation) &&
@@ -80,21 +111,53 @@ bool snapshot_message(const context_store_bootstrap_authority_config & config,
         message.id(config.manifest_authentication_key.key_id) &&
         message.u64(config.manifest_authentication_key.generation) &&
         message.append(manifest_secret_digest.data(), manifest_secret_digest.size()) &&
+        message.id(config.protected_registry_authentication_key.key_id) &&
+        message.u64(config.protected_registry_authentication_key.generation) &&
+        message.append(registry_authority_binding.data(), registry_authority_binding.size()) &&
         message.append(config.store_uuid.data(), config.store_uuid.size()) &&
         message.append(config.namespace_id.data(), config.namespace_id.size()) &&
         message.u64(config.policy_epoch) &&
         message.append(config.checkpoint_lineage_id.data(), config.checkpoint_lineage_id.size()) &&
         message.u64(config.manifest_key_generation) && message.u64(config.authority_epoch) &&
-        message.id(config.protected_registry_id) && message.u64(config.protected_registry_epoch) &&
-        message.append(config.protected_registry_snapshot_digest.data(), config.protected_registry_snapshot_digest.size()) &&
-        message.append(config.protected_registry_policy_digest.data(), config.protected_registry_policy_digest.size()) &&
-        message.u64(config.last_consumed_sequence) && [&] {
+        message.id(registry.registry_id) && message.u64(registry.registry_epoch) &&
+        message.append(registry_snapshot_digest.data(), registry_snapshot_digest.size()) &&
+        message.append(registry.policy_commitment.data(), registry.policy_commitment.size()) &&
+        message.u64(registry.last_consumed_sequence) && [&] {
             for (const auto & component : config.trusted_compatibility.components) {
                 if (!message.append(component.data(), component.size())) return false;
             }
             return message.append(config.trusted_compatibility.root.data(),
                 config.trusted_compatibility.root.size());
         }();
+}
+
+bool base_scope_message(const context_store_bootstrap_authority_config & config,
+        bounded_buffer & message) noexcept {
+    return message.append(base_scope_domain, sizeof(base_scope_domain)) &&
+        message.id(config.bootstrap_admin_key.key_id) && message.u64(config.bootstrap_admin_key.generation) &&
+        message.id(config.anchor_signing_key.key_id) && message.u64(config.anchor_signing_key.generation) &&
+        message.id(config.manifest_authentication_key.key_id) && message.u64(config.manifest_authentication_key.generation) &&
+        message.id(config.protected_registry_authentication_key.key_id) &&
+        message.u64(config.protected_registry_authentication_key.generation) &&
+        message.append(config.store_uuid.data(), config.store_uuid.size()) &&
+        message.append(config.namespace_id.data(), config.namespace_id.size()) && message.u64(config.policy_epoch) &&
+        message.append(config.checkpoint_lineage_id.data(), config.checkpoint_lineage_id.size()) &&
+        message.u64(config.manifest_key_generation) && message.u64(config.authority_epoch) && [&] {
+            for (const auto & component : config.trusted_compatibility.components)
+                if (!message.append(component.data(), component.size())) return false;
+            return message.append(config.trusted_compatibility.root.data(), config.trusted_compatibility.root.size());
+        }();
+}
+
+bool full_scope_message(const context_store_format_digest & base,
+        const context_store_protected_registry_body & registry,
+        const context_store_format_digest & snapshot_digest,
+        bounded_buffer & message) noexcept {
+    return message.append(scope_domain, sizeof(scope_domain)) &&
+        message.append(base.data(), base.size()) && message.id(registry.registry_id) &&
+        message.u64(registry.registry_epoch) && message.append(snapshot_digest.data(), snapshot_digest.size()) &&
+        message.append(registry.policy_commitment.data(), registry.policy_commitment.size()) &&
+        message.u64(registry.last_consumed_sequence);
 }
 
 bool trusted_compatibility_valid(
@@ -148,30 +211,34 @@ bool nonzero_bytes(const std::array<uint8_t, N> & value) noexcept {
 
 } // namespace
 
-bool context_store_bootstrap_authority_scope_commitment(
+bool context_store_bootstrap_authority_base_scope_commitment(
         const context_store_bootstrap_authority_config & config,
         context_store_format_digest & commitment) noexcept {
     bounded_buffer message;
-    const bool encoded = message.append(scope_domain, sizeof(scope_domain)) &&
-        message.id(config.bootstrap_admin_key.key_id) && message.u64(config.bootstrap_admin_key.generation) &&
-        message.id(config.anchor_signing_key.key_id) && message.u64(config.anchor_signing_key.generation) &&
-        message.id(config.manifest_authentication_key.key_id) && message.u64(config.manifest_authentication_key.generation) &&
-        message.append(config.store_uuid.data(), config.store_uuid.size()) &&
-        message.append(config.namespace_id.data(), config.namespace_id.size()) && message.u64(config.policy_epoch) &&
-        message.append(config.checkpoint_lineage_id.data(), config.checkpoint_lineage_id.size()) &&
-        message.u64(config.manifest_key_generation) && message.u64(config.authority_epoch) &&
-        message.id(config.protected_registry_id) && message.u64(config.protected_registry_epoch) &&
-        message.append(config.protected_registry_snapshot_digest.data(), config.protected_registry_snapshot_digest.size()) &&
-        message.append(config.protected_registry_policy_digest.data(), config.protected_registry_policy_digest.size()) &&
-        message.u64(config.last_consumed_sequence) && [&] {
-            for (const auto & component : config.trusted_compatibility.components) {
-                if (!message.append(component.data(), component.size())) return false;
-            }
-            return message.append(config.trusted_compatibility.root.data(), config.trusted_compatibility.root.size());
-        }();
+    const bool encoded = base_scope_message(config, message);
     const bool hashed = encoded && context_store_sha256_bounded(
         message.bytes.data(), message.size, message.bytes.size(), commitment);
     wipe(message.bytes.data(), message.bytes.size());
+    return hashed;
+}
+
+bool context_store_bootstrap_authority_scope_commitment(
+        const context_store_bootstrap_authority_config & config,
+        context_store_format_digest & commitment) noexcept {
+    context_store_format_digest base {};
+    if (!context_store_bootstrap_authority_base_scope_commitment(config, base)) return false;
+    const auto verified = context_store_verify_protected_registry_v1(
+        config.protected_registry_snapshot_data, config.protected_registry_snapshot_size,
+        config.protected_registry_authentication_key);
+    const auto * carrier = verified.authenticated_carrier();
+    const auto * body = carrier ? carrier->body() : nullptr;
+    const auto * digest = carrier ? carrier->envelope_digest() : nullptr;
+    bounded_buffer message;
+    const bool encoded = body && digest && body->authority_base_scope_commitment == base &&
+        full_scope_message(base, *body, *digest, message);
+    const bool hashed = encoded && context_store_sha256_bounded(
+        message.bytes.data(), message.size, message.bytes.size(), commitment);
+    wipe(base.data(), base.size()); wipe(message.bytes.data(), message.bytes.size());
     return hashed;
 }
 
@@ -180,25 +247,45 @@ context_store_bootstrap_authority::context_store_bootstrap_authority(
     const auto & anchor = config.anchor_signing_key;
     const auto & admin = config.bootstrap_admin_key;
     const auto & manifest = config.manifest_authentication_key;
+    const auto & registry_key = config.protected_registry_authentication_key;
     if (!valid_key(anchor.disposition, anchor.key_id, anchor.master_key) ||
         !valid_key(admin.disposition, admin.key_id, admin.master_key) ||
         !valid_key(manifest.disposition, manifest.key_id, manifest.master_key) ||
-        anchor.generation == 0 || admin.generation == 0 || manifest.generation == 0 ||
+        !valid_key(registry_key.disposition, registry_key.key_id, registry_key.master_key) ||
+        anchor.generation == 0 || admin.generation == 0 || manifest.generation == 0 || registry_key.generation == 0 ||
         manifest.generation != config.manifest_key_generation || config.policy_epoch == 0 ||
         config.manifest_key_generation == 0 || config.authority_epoch == 0 ||
-        !valid_id(config.protected_registry_id) || config.protected_registry_epoch == 0 ||
-        !nonzero_bytes(config.protected_registry_snapshot_digest) ||
-        !nonzero_bytes(config.protected_registry_policy_digest) ||
-        config.last_consumed_sequence == UINT64_MAX ||
+        config.protected_registry_snapshot_data == nullptr || config.protected_registry_snapshot_size == 0 ||
+        config.protected_registry_snapshot_size > context_store_protected_registry_max_bytes ||
         !nonzero_bytes(config.store_uuid) || !nonzero_bytes(config.namespace_id) ||
         !nonzero_bytes(config.checkpoint_lineage_id) ||
         !trusted_compatibility_valid(config.trusted_compatibility) ||
         (anchor.generation == admin.generation && same_id(anchor.key_id, admin.key_id)) ||
         (anchor.generation == manifest.generation && same_id(anchor.key_id, manifest.key_id)) ||
         (admin.generation == manifest.generation && same_id(admin.key_id, manifest.key_id)) ||
+        (anchor.generation == registry_key.generation && same_id(anchor.key_id, registry_key.key_id)) ||
+        (admin.generation == registry_key.generation && same_id(admin.key_id, registry_key.key_id)) ||
+        (manifest.generation == registry_key.generation && same_id(manifest.key_id, registry_key.key_id)) ||
         same_secret(anchor.master_key, admin.master_key) ||
         same_secret(anchor.master_key, manifest.master_key) ||
-        same_secret(admin.master_key, manifest.master_key)) return;
+        same_secret(admin.master_key, manifest.master_key) ||
+        same_secret(anchor.master_key, registry_key.master_key) ||
+        same_secret(admin.master_key, registry_key.master_key) ||
+        same_secret(manifest.master_key, registry_key.master_key)) return;
+
+    context_store_format_digest base_scope {};
+    if (!context_store_bootstrap_authority_base_scope_commitment(config, base_scope)) return;
+    const auto registry_result = context_store_verify_protected_registry_v1(
+        config.protected_registry_snapshot_data, config.protected_registry_snapshot_size, registry_key);
+    const auto * registry = registry_result.authenticated_carrier();
+    const auto * registry_body = registry ? registry->body() : nullptr;
+    const auto * registry_digest = registry ? registry->envelope_digest() : nullptr;
+    const auto * registry_binding = registry ? registry->authority_binding() : nullptr;
+    if (!registry_body || !registry_digest || !registry_binding ||
+        registry_body->authority_base_scope_commitment != base_scope ||
+        registry_body->last_consumed_sequence == UINT64_MAX) {
+        wipe(base_scope.data(), base_scope.size()); return;
+    }
 
     anchor_key_id_ = anchor.key_id;
     anchor_key_generation_ = anchor.generation;
@@ -213,11 +300,11 @@ context_store_bootstrap_authority::context_store_bootstrap_authority(
     manifest_key_size_ = manifest.master_key.size;
     std::copy_n(manifest.master_key.data, manifest_key_size_, manifest_key_.begin());
     trusted_compatibility_ = config.trusted_compatibility;
-    protected_registry_id_ = config.protected_registry_id;
-    protected_registry_epoch_ = config.protected_registry_epoch;
-    protected_registry_snapshot_digest_ = config.protected_registry_snapshot_digest;
-    protected_registry_policy_digest_ = config.protected_registry_policy_digest;
-    expected_authorization_sequence_ = config.last_consumed_sequence + 1;
+    protected_registry_id_ = registry_body->registry_id;
+    protected_registry_epoch_ = registry_body->registry_epoch;
+    protected_registry_snapshot_digest_ = *registry_digest;
+    protected_registry_policy_digest_ = registry_body->policy_commitment;
+    expected_authorization_sequence_ = registry_body->last_consumed_sequence + 1;
 
     bootstrap_body_.store_uuid = config.store_uuid;
     bootstrap_body_.namespace_id = config.namespace_id;
@@ -247,25 +334,26 @@ context_store_bootstrap_authority::context_store_bootstrap_authority(
     owned_config.manifest_key_generation = bootstrap_body_.manifest_key_generation;
     owned_config.authority_epoch = bootstrap_body_.authority_epoch;
     owned_config.trusted_compatibility = trusted_compatibility_;
-    owned_config.protected_registry_id = protected_registry_id_;
-    owned_config.protected_registry_epoch = protected_registry_epoch_;
-    owned_config.protected_registry_snapshot_digest = protected_registry_snapshot_digest_;
-    owned_config.protected_registry_policy_digest = protected_registry_policy_digest_;
-    owned_config.last_consumed_sequence = config.last_consumed_sequence;
-    const bool ok = context_store_sha256_bounded(anchor_key_.data(), anchor_key_size_,
+    owned_config.protected_registry_authentication_key.key_id = registry_key.key_id;
+    owned_config.protected_registry_authentication_key.generation = registry_key.generation;
+    const bool secrets_hashed = context_store_sha256_bounded(anchor_key_.data(), anchor_key_size_,
             context_store_master_key_max_bytes, anchor_secret_digest) &&
         context_store_sha256_bounded(admin_key_.data(), admin_key_size_,
             context_store_master_key_max_bytes, admin_secret_digest) &&
         context_store_sha256_bounded(manifest_key_.data(), manifest_key_size_,
-            context_store_master_key_max_bytes, manifest_secret_digest) &&
-        context_store_bootstrap_authority_scope_commitment(owned_config, authority_scope_commitment_) &&
+            context_store_master_key_max_bytes, manifest_secret_digest);
+    const bool scope_hashed = full_scope_message(base_scope, *registry_body, *registry_digest, message) &&
+        context_store_sha256_bounded(message.bytes.data(), message.size, message.bytes.size(), authority_scope_commitment_);
+    wipe(message.bytes.data(), message.bytes.size()); message.size = 0;
+    const bool ok = secrets_hashed && scope_hashed &&
         snapshot_message(owned_config, anchor_secret_digest, admin_secret_digest,
-            manifest_secret_digest, message) &&
+            manifest_secret_digest, *registry_binding, *registry_body, *registry_digest, message) &&
         context_store_hmac_sha256(admin_key_.data(), admin_key_size_, message.bytes.data(), message.size,
             snapshot_commitment_);
     wipe(anchor_secret_digest.data(), anchor_secret_digest.size());
     wipe(admin_secret_digest.data(), admin_secret_digest.size());
     wipe(manifest_secret_digest.data(), manifest_secret_digest.size());
+    wipe(base_scope.data(), base_scope.size());
     wipe(message.bytes.data(), message.bytes.size());
     wipe(&owned_config, sizeof(owned_config));
     valid_ = ok;

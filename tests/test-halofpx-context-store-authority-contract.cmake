@@ -39,9 +39,12 @@ foreach(REQUIRED_PATTERN
         "authorization_token_data"
         "authorization_token_size"
         "context_store_verify_bootstrap_token_v1"
+        "context_store_verify_protected_registry_v1"
         "context_store_bootstrap_status::authorization_rejected"
         "protected_registry_snapshot_digest"
         "protected_registry_policy_digest"
+        "protected_registry_snapshot_data"
+        "protected_registry_authentication_key"
         "expected_authorization_sequence"
         "authority_scope_commitment"
         "authorization_token_digest"
@@ -49,7 +52,8 @@ foreach(REQUIRED_PATTERN
         "generation = 1"
         "has_predecessor = false"
         "halofpx.bootstrap-authority-snapshot.v1"
-        "halofpx.bootstrap-authority-scope.v1"
+        "halofpx.bootstrap-authority-base-scope.v1"
+        "halofpx.bootstrap-authority-scope.v2"
         "halofpx.bootstrap-plan.v2"
         "same_secret"
         "nonzero_bytes"
@@ -58,3 +62,18 @@ foreach(REQUIRED_PATTERN
         message(FATAL_ERROR "missing sealed bootstrap-authority contract marker: ${REQUIRED_PATTERN}")
     endif()
 endforeach()
+
+string(REGEX MATCH "struct context_store_bootstrap_authority_config \\{[^}]*\\}" CONFIG_SHAPE "${AUTHORITY_HEADER}")
+foreach(FORMER_RAW "context_store_registered_id protected_registry_id" "uint64_t protected_registry_epoch" "context_store_format_digest protected_registry_snapshot_digest" "context_store_format_digest protected_registry_policy_digest" "uint64_t last_consumed_sequence")
+    if(CONFIG_SHAPE MATCHES "${FORMER_RAW}")
+        message(FATAL_ERROR "former caller-trusted registry scalar remains: ${FORMER_RAW}")
+    endif()
+endforeach()
+foreach(FORMER_SOURCE "config.protected_registry_id" "config.protected_registry_epoch" "config.protected_registry_snapshot_digest" "config.protected_registry_policy_digest" "config.last_consumed_sequence")
+    if(AUTHORITY_SOURCE MATCHES "${FORMER_SOURCE}")
+        message(FATAL_ERROR "former caller-trusted registry source access remains: ${FORMER_SOURCE}")
+    endif()
+endforeach()
+if(AUTHORITY_HEADER MATCHES "std::array<uint8_t,[^>]*>[^;]*registry[^;]*;" OR AUTHORITY_HEADER MATCHES "protected_registry_snapshot_data_")
+    message(FATAL_ERROR "authority must not retain registry secret or borrowed snapshot bytes")
+endif()

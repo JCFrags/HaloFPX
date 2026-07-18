@@ -294,6 +294,29 @@ authenticated-bootstrap-admin-token-v1 = {
   1: bytes32                    ; HMAC-SHA-256 tag; sole excluded field
 }
 
+authenticated-protected-registry-snapshot-v1 = {
+  0: protected-registry-snapshot-auth-input-v1,
+  1: bytes32                    ; HMAC-SHA-256 tag; sole excluded field
+}
+
+protected-registry-snapshot-auth-input-v1 = {
+  0: protected-registry-snapshot-body-v1,
+  1: registered-id,             ; registry-authentication key id
+  2: 1,                         ; HMAC-SHA-256
+  3: uint .ge 1                 ; registry-authentication key generation
+}
+
+protected-registry-snapshot-body-v1 = {
+  0: 1,                         ; format major
+  1: 0,                         ; format minor
+  2: 0,                         ; bootstrap-authorization registry
+  3: registered-id,             ; protected registry id
+  4: uint .ge 1,                ; protected registry epoch
+  5: bytes32,                   ; public authority-base-scope commitment
+  6: bytes32,                   ; opaque registry-policy commitment
+  7: uint                        ; last consumed authorization sequence
+}
+
 bootstrap-admin-token-auth-input-v1 = {
   0: bootstrap-admin-token-body-v1,
   1: registered-id,             ; bootstrap-admin key id

@@ -2,6 +2,7 @@
 
 #include "halofpx-context-store-bootstrap-token.h"
 #include "halofpx-context-store-anchor.h"
+#include "halofpx-context-store-protected-registry.h"
 
 #include <array>
 #include <cstddef>
@@ -13,6 +14,7 @@ struct context_store_bootstrap_authority_config {
     context_store_anchor_key_record anchor_signing_key;
     context_store_bootstrap_admin_key_record bootstrap_admin_key;
     context_store_manifest_key_record manifest_authentication_key;
+    context_store_protected_registry_key_record protected_registry_authentication_key;
     context_store_compatibility_expectation trusted_compatibility;
     std::array<uint8_t, 16> store_uuid {};
     context_store_format_digest namespace_id {};
@@ -20,11 +22,10 @@ struct context_store_bootstrap_authority_config {
     context_store_format_digest checkpoint_lineage_id {};
     uint64_t manifest_key_generation = 0;
     uint64_t authority_epoch = 0;
-    context_store_registered_id protected_registry_id;
-    uint64_t protected_registry_epoch = 0;
-    context_store_format_digest protected_registry_snapshot_digest {};
-    context_store_format_digest protected_registry_policy_digest {};
-    uint64_t last_consumed_sequence = 0;
+    // Borrowed synchronously. Construction retains neither these exact bytes
+    // nor the registry authentication secret.
+    const uint8_t * protected_registry_snapshot_data = nullptr;
+    size_t protected_registry_snapshot_size = 0;
 };
 
 struct context_store_bootstrap_request {
@@ -112,9 +113,10 @@ private:
     friend class context_store_bootstrap_authority;
 };
 
-// A bounded authority snapshot. It synchronously copies all purpose-separated
-// keys and all configuration, exposes no key bytes, and wipes private storage
-// on destruction. Planning is deterministic, stateless, and performs no I/O.
+// A bounded authority snapshot. It synchronously copies only the three keys
+// needed for planning, verifies the transient fourth registry key and borrowed
+// snapshot, exposes no key bytes, and wipes private storage on destruction.
+// Planning is deterministic, stateless, and performs no I/O.
 class context_store_bootstrap_authority {
 public:
     explicit context_store_bootstrap_authority(
@@ -160,6 +162,10 @@ private:
 // Deterministic public descriptor. No key bytes or secret-derived values enter
 // this commitment; an offline token issuer can compute it independently.
 bool context_store_bootstrap_authority_scope_commitment(
+    const context_store_bootstrap_authority_config & config,
+    context_store_format_digest & commitment) noexcept;
+
+bool context_store_bootstrap_authority_base_scope_commitment(
     const context_store_bootstrap_authority_config & config,
     context_store_format_digest & commitment) noexcept;
 

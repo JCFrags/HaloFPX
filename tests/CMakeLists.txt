@@ -217,6 +217,23 @@ add_test(NAME test-halofpx-context-store-bootstrap-token-contract
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-bootstrap-token-contract.cmake)
 set_property(TEST test-halofpx-context-store-bootstrap-token-contract PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-context-store-protected-registry.cpp)
+target_include_directories(test-halofpx-context-store-protected-registry PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-protected-registry PRIVATE halofpx-context-store-protected-registry)
+llama_test(test-halofpx-context-store-protected-registry)
+set_property(TEST test-halofpx-context-store-protected-registry PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-protected-registry-contract
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_ROOT=${PROJECT_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-protected-registry-contract.cmake)
+set_property(TEST test-halofpx-context-store-protected-registry-contract PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-protected-registry-golden
+    COMMAND ${HALOFPX_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/halofpx-protected-registry-golden.py
+        --check ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05j-protected-registry-golden-vector.json)
+set_property(TEST test-halofpx-context-store-protected-registry-golden PROPERTY LABELS "main;halofpx")
+
 add_test(
     NAME test-halofpx-context-store-bootstrap-token-golden
     COMMAND ${HALOFPX_PYTHON_EXECUTABLE}

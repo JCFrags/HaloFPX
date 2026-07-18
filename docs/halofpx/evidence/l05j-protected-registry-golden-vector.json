@@ -1,0 +1,7 @@
+{
+  "authority_binding_hmac_sha256_hex": "f88b0080d50222b31e66879ecd4c14789279b9d15b786f6b22f32240d2ea5f7a",
+  "encoded_bytes": 156,
+  "envelope_digest_sha256_hex": "a7b731bccfdea83a4595d5257ffa34ef9248bb61499b40a37874895cff6bc1ec",
+  "envelope_hex": "a200a400a8000101000200036b72656769737472792d76310409055820aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa065820bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb071828017072656769737472792d617574682d76310201030d0158208f563d0a255e6b09a44b87be0867e84b4b8368d043e5f885fa86348662c509d4",
+  "tag_hmac_sha256_hex": "8f563d0a255e6b09a44b87be0867e84b4b8368d043e5f885fa86348662c509d4"
+}

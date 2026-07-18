@@ -1,0 +1,53 @@
+{
+  "milestone": "L05j authenticated protected-registry snapshot",
+  "date": "2026-07-18",
+  "source_parent_commit": "31e4d6ca20a602c9a927cda5b9a47d2905d974ce",
+  "build_directory": "build/halofpx-l05j-clean",
+  "configuration": "Windows CPU Release; GGML_NATIVE=OFF; server/tests/examples ON; WebUI/CUDA/HIP/Vulkan OFF",
+  "build_cache_sha256": "8aefbdf8f0896fd60a55079e87fbe57dc7c05c7de2ec467b9e163fa77056681a",
+  "llama_server_sha256": "6c49ce49cf9438a1930f33b26c3d5a9f37fe20693d04628dbcb2feb4dd30e645",
+  "validation": {
+    "halofpx_ctests": { "passed": 24, "selected": 24 },
+    "focused_inherited_ctests": { "passed": 7, "selected": 7 },
+    "registry_processes": { "passed": 200, "selected": 200, "elapsed_ms": 844 },
+    "authority_processes": { "passed": 200, "selected": 200, "elapsed_ms": 2230 },
+    "independent_golden_processes": { "passed": 200, "selected": 200, "elapsed_ms": 7055 }
+  },
+  "executables": {
+    "test-halofpx-context-store-protected-registry.exe": "2cdfcc991d4aa0b1debfef5a5e72985e597908309a0f494880c1ee5b5916a46d",
+    "test-halofpx-context-store-authority.exe": "72035e1255910ba136f4c18c5b6db105eff3e435c4102d3bbd979ae29ae1e200"
+  },
+  "golden": {
+    "encoded_bytes": 156,
+    "tag_hmac_sha256": "8f563d0a255e6b09a44b87be0867e84b4b8368d043e5f885fa86348662c509d4",
+    "envelope_digest_sha256": "a7b731bccfdea83a4595d5257ffa34ef9248bb61499b40a37874895cff6bc1ec",
+    "authority_binding_hmac_sha256": "f88b0080d50222b31e66879ecd4c14789279b9d15b786f6b22f32240d2ea5f7a",
+    "checker_sha256": "c80f6e5422af654ce81292cde84287182a4a3964d9c05e39c2504081c0f15af2",
+    "vector_sha256": "a0829ebcb103c0787a8fb6da2406b12459be89a51eaccccf4e508c8b67af0295"
+  },
+  "reviewed_source_sha256": {
+    "tools/server/halofpx-context-store-protected-registry.h": "ca2bfa5c315f7c4241907c4b2fc7bd7c8433ed75ddb5f4ca981e88e4b6b179e7",
+    "tools/server/halofpx-context-store-protected-registry.cpp": "d68532ba25d381ca7a52c417e018e07427c051b051ab45af3d803c3bf446d998",
+    "tools/server/halofpx-context-store-authority.h": "1fa820025f860b8b17339beff843bf4e08e07d55d36a97104d5e9b3f9e66f7f4",
+    "tools/server/halofpx-context-store-authority.cpp": "1b846ba3c77a32b5f6650635a1d61b676b2a973ea333772f9bc2e1875d9b4e8c",
+    "tests/test-halofpx-context-store-protected-registry.cpp": "ee165203ae3fbcb04f19dcec38264f452fd835f80645c2b819bde26482ab422e",
+    "tests/test-halofpx-context-store-authority.cpp": "ab6fd3398f69b34e7e91edbba318682b2200db2b9e9c2d6aade9d69e13f41dba",
+    "docs/halofpx/contracts/context-store-v1.cddl": "abe07592e3995e22de05cc65699ee0baf351cfaa2940547f6af78e85794b6a69"
+  },
+  "negative_coverage": [
+    "every strict registry-snapshot truncation rejected",
+    "every single-byte registry-snapshot mutation rejected",
+    "duplicate, extra, noncanonical, trailing, wrong-map, wrong-key, wrong-generation, revoked, read-disabled, and wrong-tag inputs rejected",
+    "correctly authenticated 0x80 and 0xff non-ASCII registered IDs rejected structurally",
+    "oversized public key IDs rejected before scope-helper reads",
+    "all six key-tuple pairs and HMAC-equivalent effective secrets rejected",
+    "re-signed wrong-base snapshot rejected",
+    "same token and older valid signed snapshot deliberately accepted against their matching immutable snapshot"
+  ],
+  "exclusions": [
+    "no registry freshness, anti-rollback, protected key custody, or policy semantic evaluation",
+    "no durable high-water, atomic advancement, token consumption, or one-shot execution",
+    "no anchor-absence proof or create-if-absent execution",
+    "no filesystem, server/provider, persistent-write, cache-hit, or node path"
+  ]
+}

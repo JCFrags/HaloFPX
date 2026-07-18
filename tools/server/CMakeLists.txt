@@ -44,12 +44,20 @@ add_library(halofpx-context-store-bootstrap-token STATIC EXCLUDE_FROM_ALL
 target_link_libraries(halofpx-context-store-bootstrap-token PUBLIC halofpx-context-store-auth)
 target_compile_features(halofpx-context-store-bootstrap-token PRIVATE cxx_std_17)
 
+add_library(halofpx-context-store-protected-registry STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-protected-registry.cpp
+    halofpx-context-store-protected-registry.h
+)
+target_link_libraries(halofpx-context-store-protected-registry PUBLIC halofpx-context-store-auth)
+target_compile_features(halofpx-context-store-protected-registry PRIVATE cxx_std_17)
+
 add_library(halofpx-context-store-authority STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-authority.cpp
     halofpx-context-store-authority.h
 )
 target_link_libraries(halofpx-context-store-authority PUBLIC
-    halofpx-context-store-anchor halofpx-context-store-bootstrap-token)
+    halofpx-context-store-anchor halofpx-context-store-bootstrap-token
+    halofpx-context-store-protected-registry)
 target_compile_features(halofpx-context-store-authority PRIVATE cxx_std_17)
 
 # Offline-only L04 immutable object-frame verifier.
