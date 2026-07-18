@@ -251,6 +251,17 @@ add_test(NAME test-halofpx-context-store-bootstrap-consumption-contract
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-bootstrap-consumption-contract.cmake)
 set_property(TEST test-halofpx-context-store-bootstrap-consumption-contract PROPERTY LABELS "main;halofpx")
 
+add_test(NAME test-halofpx-context-store-bootstrap-reconciliation-contract
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-bootstrap-reconciliation-contract.cmake)
+set_property(TEST test-halofpx-context-store-bootstrap-reconciliation-contract PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-bootstrap-reconciliation-golden
+    COMMAND ${HALOFPX_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/halofpx-bootstrap-reconciliation-golden.py --check
+        ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05l-bootstrap-reconciliation-golden-vector.json)
+set_property(TEST test-halofpx-context-store-bootstrap-reconciliation-golden PROPERTY LABELS "main;halofpx")
+
 add_test(
     NAME test-halofpx-context-store-bootstrap-token-golden
     COMMAND ${HALOFPX_PYTHON_EXECUTABLE}

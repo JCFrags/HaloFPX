@@ -1,0 +1,46 @@
+{
+  "milestone": "L05l bootstrap-consumption ambiguity reconciliation",
+  "date": "2026-07-18",
+  "source_parent_commit": "354bfe3746ef0ff7b1ffcdbb36fc1ef1d3db3997",
+  "build_directory": "build/halofpx-l05l-clean",
+  "configuration": "Windows CPU Release; GGML_NATIVE=OFF; server/tests/examples ON; WebUI/CUDA/HIP/Vulkan OFF",
+  "build_cache_sha256": "569258e68211e2e23691fad3237e1fc7234a90859fde53a994a6d607626a220f",
+  "llama_server_sha256": "e45ecd1ada6c7c5fa0834633a284768ec9c9d50df009a6c448f1c9df7181db0f",
+  "validation": {
+    "halofpx_ctests": { "passed": 29, "selected": 29 },
+    "focused_inherited_ctests": { "passed": 7, "selected": 7 },
+    "authority_reconciliation_processes": { "passed": 200, "selected": 200 },
+    "registry_successor_golden_processes": { "passed": 200, "selected": 200 },
+    "independent_reconciliation_golden_processes": { "passed": 200, "selected": 200 },
+    "repeated_total_elapsed_ms": 41200
+  },
+  "executables": {
+    "test-halofpx-context-store-authority.exe": "3b74786f43653481a4740ba0d4c653271fcd39d6136943b4c7e98642c7180f3f"
+  },
+  "golden": {
+    "preimage_bytes": 956,
+    "reconciliation_commitment_sha256": "649f3b5dd71f2318c03a9ab7bc8d09318e8362673681446db7a1343a3ea333bf",
+    "mutation_checks": 9,
+    "checker_sha256": "68883cb77cc58f86db087613b4f57d32627b812a7b141336668ebe574d461954",
+    "vector_sha256": "4587cff8bdd962f82e66e5de49e9f96eb06655b23bbaf7e1387e43e496cc4a86"
+  },
+  "reviewed_source_sha256": {
+    "tools/server/halofpx-context-store-bootstrap-consumption.h": "2dfd77a08ee60246273186ada8ff606ef232032465cd8ad44c2fa4b22120f33a",
+    "tools/server/halofpx-context-store-bootstrap-consumption.cpp": "e2a32fbcfd0b874b3894b5d98a811e9af509e2ff22f2bbe6d74467f9ebf2d4ca",
+    "tests/test-halofpx-context-store-authority.cpp": "4efc64768a56e8df6863b7277dc9b8e69d409d4d1b6b942415c2b0bea3b01153",
+    "tests/test-halofpx-context-store-bootstrap-reconciliation-contract.cmake": "8ebf5780c7d1ff71a6108ba05f3d19278ba554cdd3833b60f4e3d575cc7ad8d1",
+    "docs/halofpx/decisions/0015-bootstrap-consumption-reconciliation.md": "697735ed5fab3c30848f366064d078e9f0237c497ffa5f7146d69c1239c2c43b"
+  },
+  "negative_coverage": [
+    "all five backend confirmations must exactly echo before witness classification",
+    "truncated, bit-different, oversized, absent-with-bytes, and present-without-bytes witnesses expose no proof",
+    "wrong key, predecessor, root, command, token, plan, manifest, anchor, and material plan cannot enter reconciliation",
+    "authoritative absence, unreadable, incomplete, unconfirmed fence, malformed response, uncertainty, and late completion sticky-quarantine",
+    "two fresh concurrent attempts admit exactly one atomic callback and callback quarantine reentry cannot deadlock"
+  ],
+  "exclusions": [
+    "no concrete registry, restart-surviving or cross-process fence, key custody, or rollback-resistance claim",
+    "no durable-material proof, protected-anchor inspection/create, bootstrap execution, or retry permit",
+    "no filesystem, server/provider, persistent-write, cache-hit, or node path"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "anchor_envelope_bytes": 229,
+  "anchor_envelope_sha256_hex": "87dad55765fafd5459cb814856ea8d10f2358e0c626120a22782d8aeed60a7e6",
+  "anchor_source_vector": "docs/halofpx/evidence/l05e-anchor-golden-vector.json",
+  "domain_ascii_with_nul_hex": "68616c6f6670782e626f6f7473747261702d636f6e73756d7074696f6e2d7265636f6e63696c696174696f6e2e763100",
+  "generator": "tests/halofpx-bootstrap-reconciliation-golden.py",
+  "generator_class": "independent Python standard-library commitment checker",
+  "generator_sha256": "68883cb77cc58f86db087613b4f57d32627b812a7b141336668ebe574d461954",
+  "mutation_checks": 9,
+  "original_attempt_id_hex": "4444444444444444444444444444444444444444444444444444444444444444",
+  "original_operation_commitment_hex": "6666666666666666666666666666666666666666666666666666666666666666",
+  "predecessor_envelope_bytes": 156,
+  "predecessor_envelope_sha256_hex": "7f8505ffb2b8aa08a94e3ada8e1a0df491f69548a70f2e276971a250e725e601",
+  "predecessor_source_vector": "docs/halofpx/evidence/l05j-protected-registry-golden-vector.json",
+  "preimage_bytes": 956,
+  "reconciliation_attempt_id_hex": "5555555555555555555555555555555555555555555555555555555555555555",
+  "reconciliation_commitment_sha256_hex": "649f3b5dd71f2318c03a9ab7bc8d09318e8362673681446db7a1343a3ea333bf",
+  "reference_runtime": "CPython 3.14.4 hashlib standard library",
+  "root_identity_hex": "3333333333333333333333333333333333333333333333333333333333333333",
+  "successor_envelope_bytes": 371,
+  "successor_envelope_sha256_hex": "1eba7cb2669fdba2b172d319682e547400cd154357570df2eaa0dbdb5dcfec79",
+  "successor_source_vector": "docs/halofpx/evidence/l05k-registry-successor-golden-vector.json"
+}
