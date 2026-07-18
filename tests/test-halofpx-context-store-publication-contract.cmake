@@ -1,6 +1,8 @@
 file(READ "${HALOFPX_SOURCE_DIR}/tools/server/CMakeLists.txt" SERVER_CMAKE)
 file(READ "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-publication.cpp" PUBLICATION_CPP)
 file(READ "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-publication.h" PUBLICATION_H)
+file(READ "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-publication-simulator.cpp" SIMULATOR_CPP)
+file(READ "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-publication-simulator.h" SIMULATOR_H)
 
 string(FIND "${SERVER_CMAKE}"
     "add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL"
@@ -10,7 +12,7 @@ if(PUBLICATION_TARGET_POSITION EQUAL -1)
 endif()
 string(REGEX MATCHALL "halofpx-context-store-publication" PUBLICATION_TARGET_REFERENCES "${SERVER_CMAKE}")
 list(LENGTH PUBLICATION_TARGET_REFERENCES PUBLICATION_TARGET_REFERENCE_COUNT)
-if(NOT PUBLICATION_TARGET_REFERENCE_COUNT EQUAL 4)
+if(NOT PUBLICATION_TARGET_REFERENCE_COUNT EQUAL 6)
     message(FATAL_ERROR "publication target reference count changed; review for product linkage")
 endif()
 if(SERVER_CMAKE MATCHES "server-context STATIC[^)]*halofpx-context-store-publication")
@@ -23,7 +25,8 @@ endif()
 foreach(FORBIDDEN IN ITEMS
         "CreateFile" "MoveFile" "ReplaceFile" "rename" "fopen"
         "std::filesystem" "io_uring" "CachyLLama" "llama-ai" "context_store_provider")
-    if(PUBLICATION_CPP MATCHES "${FORBIDDEN}" OR PUBLICATION_H MATCHES "${FORBIDDEN}")
+    if(PUBLICATION_CPP MATCHES "${FORBIDDEN}" OR PUBLICATION_H MATCHES "${FORBIDDEN}" OR
+       SIMULATOR_CPP MATCHES "${FORBIDDEN}" OR SIMULATOR_H MATCHES "${FORBIDDEN}")
         message(FATAL_ERROR "publication coordinator contains forbidden production/donor surface: ${FORBIDDEN}")
     endif()
 endforeach()

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "evidence_type": "local_repeat_test_receipt",
+  "date": "2026-07-18",
+  "source_parent_commit": "b8123fe5518fb769f6c4f6a75c2933bbd658a649",
+  "build_directory": "build/halofpx-l05b-clean",
+  "configuration": "Release",
+  "webui": "OFF",
+  "executable": "build/halofpx-l05b-clean/bin/Release/test-halofpx-context-store-publication-simulator.exe",
+  "executable_sha256": "ca3bc2bc6666373e02586b1754027b2e8bec1780657630c0594a23a5217eb091",
+  "command_contract": "invoke the exact executable 100 sequential times; stop on first nonzero exit",
+  "process_runs": 100,
+  "process_failures": 0,
+  "core_fault_crash_scenarios_per_process": 1344,
+  "core_fault_crash_scenarios_total": 134400,
+  "elapsed_milliseconds_observed": 422,
+  "limitations": [
+    "local Windows CPU process-level repeat only",
+    "elapsed time is an operational receipt, not a performance benchmark",
+    "the simulator performs no filesystem or persistent write",
+    "additional focused cases run in each process are not included in the 134400 core-matrix count"
+  ]
+}

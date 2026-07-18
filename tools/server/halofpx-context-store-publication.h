@@ -37,6 +37,12 @@ enum class context_store_publication_step_result : uint8_t {
     ok,
     already_equal,
     conflict,
+    no_space,
+    quota_exhausted,
+    reserve_exhausted,
+    read_only,
+    io_error,
+    interrupted,
     storage_error,
     sync_error,
 };

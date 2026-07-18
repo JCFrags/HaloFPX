@@ -39,6 +39,8 @@ target_compile_features(halofpx-context-store-object PRIVATE cxx_std_17)
 add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-publication.cpp
     halofpx-context-store-publication.h
+    halofpx-context-store-publication-simulator.cpp
+    halofpx-context-store-publication-simulator.h
 )
 target_compile_features(halofpx-context-store-publication PRIVATE cxx_std_17)
 

@@ -198,6 +198,12 @@ add_test(
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-publication-contract.cmake)
 set_property(TEST test-halofpx-context-store-publication-contract PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-context-store-publication-simulator.cpp)
+target_include_directories(test-halofpx-context-store-publication-simulator PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-publication-simulator PRIVATE halofpx-context-store-publication)
+llama_test(test-halofpx-context-store-publication-simulator)
+set_property(TEST test-halofpx-context-store-publication-simulator PROPERTY LABELS "main;halofpx")
+
 # build test-tokenizer-0 target once and add many tests
 llama_build(test-tokenizer-0.cpp)
 
