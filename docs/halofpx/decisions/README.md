@@ -24,3 +24,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0018](0018-linux-concrete-protected-registry-lab-substrate.md): Linux concrete protected-registry lab substrate
 - [ADR-0019](0019-portable-registry-lab-engine-before-linux-mutation.md): portable registry-lab engine before Linux mutation
 - [ADR-0020](0020-portable-registry-lab-read-only-prologue.md): portable registry-lab read-only prologue
+- [ADR-0021](0021-portable-registry-lab-operations-1-4-execution-closure.md): portable registry-lab operations 1-4 execution closure

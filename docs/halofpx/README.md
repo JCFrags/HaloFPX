@@ -51,6 +51,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05o canonical encoders and static qualification](reviews/2026-07-18__l05o-canonical-encoders-static-qualification__review__v01.md)
 - [ADR-0020 portable registry-lab read-only prologue](decisions/0020-portable-registry-lab-read-only-prologue.md)
 - [ADR-0020 independent adversarial review](reviews/2026-07-18__adr-0020-read-only-prologue__review__v01.md)
+- [ADR-0021 operations 1-4 execution closure](decisions/0021-portable-registry-lab-operations-1-4-execution-closure.md)
+- [ADR-0021 independent adversarial review](reviews/2026-07-18__adr-0021-operations-1-4-execution-closure__review__v01.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)
