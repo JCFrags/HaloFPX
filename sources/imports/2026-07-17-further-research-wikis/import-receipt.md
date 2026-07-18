@@ -23,7 +23,7 @@ Verification:
 
 - All 12 named source archives existed in `C:\Users\britt\Downloads`.
 - ZIP entry inspection found zero absolute paths, drive-qualified paths, parent traversal entries, or nested archives.
-- Preserved archives are canonical raw evidence under `source-archive/`; the Downloads copies were left untouched.
+- Preserved archives are canonical raw evidence under `source-archive/`. On 2026-07-17, the 12 hash-identical Downloads copies were sent to the Windows Recycle Bin; see `2026-07-17__downloads-duplicate-cleanup__receipt__v01.md`.
 - All 1,293 file entries extracted successfully and each package's extracted file count matched its ZIP file-entry count.
 - No imported script or command was executed.
 - Research content remains candidate evidence until a separate review records accept, revise, defer, or reject.
