@@ -227,9 +227,16 @@ def validate_section_metadata(
     sources_path = section_dir / "sources.md"
     questions_path = section_dir / "open_questions.md"
     if sources_path.is_file() and isinstance(data.get("source_count"), int):
-        actual = count_source_records(sources_path.read_text(encoding="utf-8"), expected_id)
+        sources_text = sources_path.read_text(encoding="utf-8")
+        actual = count_source_records(sources_text, expected_id)
         if data["source_count"] != actual:
             errors.append(f"source_count is {data['source_count']}, but sources.md declares {actual} records")
+        prose_counts = [int(value) for value in re.findall(r"(?im)^Source count is (\d+)\.\s*$", sources_text)]
+        for prose_count in prose_counts:
+            if prose_count != actual:
+                errors.append(
+                    f"sources.md prose count is {prose_count}, but its source table declares {actual} records"
+                )
     if questions_path.is_file() and isinstance(data.get("open_question_count"), int):
         actual = count_open_question_records(questions_path.read_text(encoding="utf-8"))
         if data["open_question_count"] != actual:

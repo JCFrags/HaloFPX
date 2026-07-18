@@ -52,6 +52,19 @@ The accepted `6d21c34` L05n slice supplies the final synthetic protected-anchor 
 
 The accepted `cd4a8dde` L05o contract freezes the first concrete protected-registry laboratory boundary but contains no backend [S63-22]. Independent adversarial review closed twelve contract blockers across wire/layout closure, transition authority, selector identity, uncertainty, quarantine, credentials, locking, initialization, reserve accounting, result naming, inner-envelope authentication, and hostile recomputed-tag validation before final ACCEPT. The standalone checker passed eight fixtures and 3,260 mutations; the CPU/WebUI-off control remained 33/33 HaloFPX and 7/7 focused inherited tests. Read-only nimo-2 inventory selected the future disposable qualification host without creating a directory, loop device, mount, credential, service, model, cache, or other node state. M63-01 remains open until the excluded Linux backend, concrete syscalls, multi-process fencing, boundary `SIGKILL`, restart recovery, corruption/hostile-path/capacity/fault matrices, raw disposable-target evidence, and an independent implementation review pass. Filesystem/device/power-loss durability, whole-domain rollback resistance, persistence, and runtime linkage remain unclaimed.
 
+The accepted `a7f0ba7c` L05o wire slice closes only the target-native parsing,
+authentication, and semantic-validation prerequisite [S63-23]. Its Release
+qualification passed 80/80 configured CTests, 36/36 HaloFPX tests, and 200
+processes each of the C++ validator, static isolation contract, and independent
+oracle. Recomputed-tag cases exercise root nonzero constraints, arbitrary
+high-water and selector generations, independently wrong HEAD context, fully
+repaired `H+2`, wrong operation binding, terminal recovery classes, and both
+quarantine attribution shapes. The validator remains non-authoritative: future
+recovery must verify PREPARE plus exact transition bytes before admitting a
+successor HEAD. M63-01 remains open on the same concrete Linux syscall,
+cross-process, crash/restart, hostile-path, corruption, capacity, and raw-node
+evidence gates; no persistence or durability claim has opened.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.

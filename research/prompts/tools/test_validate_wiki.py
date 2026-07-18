@@ -102,6 +102,14 @@ class ValidateWikiTests(unittest.TestCase):
         self.assertIn("title must equal", joined)
         self.assertIn("category must equal '01_Category'", joined)
 
+    def test_stale_sources_prose_count_is_rejected(self) -> None:
+        temporary, wiki_root, registry = self.make_fixture()
+        self.addCleanup(temporary.cleanup)
+        sources = wiki_root / "01_Category" / "01_Example" / "sources.md"
+        sources.write_text(sources.read_text(encoding="utf-8") + "\nSource count is 2.\n", encoding="utf-8")
+        joined = "\n".join(validate_wiki(wiki_root, registry)[0].metadata_errors)
+        self.assertIn("sources.md prose count is 2", joined)
+
 
 if __name__ == "__main__":
     unittest.main()
