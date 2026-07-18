@@ -133,6 +133,19 @@ add_test(
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-l02-contracts.cmake)
 set_property(TEST test-halofpx-l02-contracts PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-context-store.cpp
+    ${CMAKE_SOURCE_DIR}/tools/server/halofpx-context-store.cpp)
+target_include_directories(test-halofpx-context-store PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+llama_test(test-halofpx-context-store)
+set_property(TEST test-halofpx-context-store PROPERTY LABELS "main;halofpx")
+
+add_test(
+    NAME test-halofpx-context-store-contract
+    COMMAND ${CMAKE_COMMAND}
+        -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-contract.cmake)
+set_property(TEST test-halofpx-context-store-contract PROPERTY LABELS "main;halofpx")
+
 # build test-tokenizer-0 target once and add many tests
 llama_build(test-tokenizer-0.cpp)
 

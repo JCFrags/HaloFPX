@@ -6,6 +6,8 @@ set(TARGET server-context)
 
 add_library(${TARGET} STATIC
     ${CMAKE_SOURCE_DIR}/examples/diffusion/diffusion.cpp
+    halofpx-context-store.cpp
+    halofpx-context-store.h
     server-chat.cpp
     server-chat.h
     server-task.cpp
