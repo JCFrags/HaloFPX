@@ -1,0 +1,28 @@
+{
+  "schema": "halofpx.l05o.contract-receipt.v1",
+  "date": "2026-07-18",
+  "milestone": "L05o concrete protected-registry contract",
+  "status": "accepted_contract_no_implementation",
+  "validation": {
+    "command": "python tests/halofpx-registry-lab-golden.py --check docs/halofpx/evidence/l05o-registry-lab-golden-vector.json",
+    "fixtures": 8,
+    "mutation_checks": 3260,
+    "result": "pass",
+    "python_compile": "pass",
+    "halofpx_ctest": "33/33 pass",
+    "focused_inherited_ctest": "7/7 pass",
+    "git_diff_check": "pass",
+    "independent_adversarial_review": "accept_after_two_revise_rounds"
+  },
+  "artifacts": {
+    "adr_0018_sha256": "b1724e039baac90d81f0b5f73976d12e6a5c208820aaf3df0423ff00fcb17e10",
+    "cddl_sha256": "fbdac204e153dca068578b8bae32652d0a4374d9501d2766f080a678508f2db1",
+    "golden_checker_sha256": "1170b7a0c2c146e47417d15d0927ca47e9756aa9c1410042c10614173c878ab6",
+    "golden_vector_sha256": "8ab5c5d2999056a1b1ef52af8b4f9bd767a00fa5f06e432eb94c1ed650228630",
+    "nimo2_readonly_preflight_sha256": "a96b31b57a2997d446e281ae88ed2e3060b7d75ac196cb1e3b6ca589427373bf"
+  },
+  "node_mutations": false,
+  "implementation_present": false,
+  "persistent_feature_enabled": false,
+  "qualification": "Contract and independent oracle only. No filesystem, process-crash, device, power-loss, server, provider, cache, restore, inference, or performance claim."
+}

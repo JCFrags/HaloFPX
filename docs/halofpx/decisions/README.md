@@ -21,3 +21,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0015](0015-bootstrap-consumption-reconciliation.md): bootstrap-consumption ambiguity reconciliation
 - [ADR-0016](0016-offline-bootstrap-material-preparation.md): offline bootstrap-material preparation seam
 - [ADR-0017](0017-synthetic-protected-anchor-bootstrap-create.md): synthetic protected-anchor bootstrap create and reconciliation
+- [ADR-0018](0018-linux-concrete-protected-registry-lab-substrate.md): Linux concrete protected-registry lab substrate

@@ -1,0 +1,199 @@
+; HaloFPX L05o concrete protected-registry laboratory wire contract.
+; Proposed with ADR-0018. This is not a production or server ABI.
+;
+; Encoding profile: RFC 8949 deterministic CBOR; definite lengths only; shortest
+; integer/length encodings; map keys in the exact increasing order shown; no
+; duplicate, omitted, unknown, or trailing fields. All top-level objects consume
+; the complete file. root/HEAD/terminal/quarantine envelopes are <= 1024 bytes;
+; PREPARE is <= 4096 bytes; embedded registry envelopes are 1..1024 bytes.
+;
+; Fixed layout (no discovery of authority by enumeration):
+;   root.marker                         authenticated-root-marker-v1
+;   writer.lock                         permanent never-replaced lock inode
+;   HEAD                                authenticated-head-selector-v1
+;   QUARANTINE                          authenticated-quarantine-v1, if present
+;   envelopes/e-<64-lower-hex>.cbor     immutable exact registry envelope
+;   attempts/000.prepare .. 511.prepare fixed one-shot PREPARE names
+;   attempts/000.close .. 511.close     fixed one-shot CLOSE names
+;   attempts/000.abort .. 511.abort     fixed one-shot ABORT names
+;   staging/000.successor.tmp .. 511.successor.tmp
+;   staging/000.head.tmp .. 511.head.tmp
+;   staging/QUARANTINE.tmp               sole sticky-quarantine staging name
+; A slot may have PREPARE and exactly one of CLOSE/ABORT. Staging names confer no
+; authority. The envelope filename is derived only from the authenticated HEAD
+; digest after the selector itself verifies.
+;
+; One credential-derived key authenticates the six envelope types:
+;   K_lab = HMAC-SHA-256(K_credential,
+;     "halofpx.registry-lab-key.v1\0" || DCBOR(tstr(key-id)) ||
+;     DCBOR(uint(key-generation)))
+; Each quoted domain below contributes exactly the single shown trailing NUL.
+; Tags are HMAC-SHA-256(K_lab, AUTH_DOMAIN || exact DCBOR(auth-input)).
+; Content IDs are SHA-256(CONTENT_DOMAIN || exact DCBOR(envelope)).
+;
+; AUTH / CONTENT domains:
+;   root:       "halofpx.registry-lab-root-auth.v1\0"
+;               "halofpx.registry-lab-root.v1\0"
+;   HEAD:       "halofpx.registry-lab-head-auth.v1\0"
+;               "halofpx.registry-lab-head.v1\0"
+;   PREPARE:    "halofpx.registry-lab-prepare-auth.v1\0"
+;               "halofpx.registry-lab-prepare.v1\0"
+;   CLOSE:      "halofpx.registry-lab-close-auth.v1\0"
+;               "halofpx.registry-lab-close.v1\0"
+;   ABORT:      "halofpx.registry-lab-abort-auth.v1\0"
+;               "halofpx.registry-lab-abort.v1\0"
+;   QUARANTINE: "halofpx.registry-lab-quarantine-auth.v1\0"
+;               "halofpx.registry-lab-quarantine.v1\0"
+; Exact immutable registry-envelope identity is:
+;   SHA-256("halofpx.registry-lab-registry-envelope.v1\0" || exact bytes).
+; The operation commitment is:
+;   SHA-256("halofpx.registry-lab-operation.v1\0" ||
+;     DCBOR(operation-commitment-input-v1)).
+; Embedded predecessor/successor bytes are independently authenticated and
+; semantically validated under ADR-0013/0014 using the existing snapshot-key,
+; snapshot-auth, snapshot-content, successor-key, successor-auth,
+; successor-content, and registry-key-continuity v1 domains. L05o's K_lab and
+; outer domains do not substitute for that inner verification.
+; The exact path-policy commitment is SHA-256 over, in this order:
+;   "halofpx.registry-lab-path-policy.v1\0" ||
+;   uint64be(parent length) || parent ASCII bytes ||
+;   uint64be(root length) || root ASCII bytes ||
+;   filesystem UUID[16] || subvolume UUID[16] ||
+;   uint64be(mount ID) || uint64be(st_dev) || uint64be(owner UID) ||
+;   uint32be(root mode) || uint32be(authority-file mode) ||
+;   uint64be(capacity) || uint64be(maximum logical authority bytes) ||
+;   uint64be(loop-image bytes) || uint64be(required host reserve bytes) ||
+;   uint64be(required loop free bytes).
+; Paths are absolute 1..4096-byte ASCII 0x21..0x7e strings without NUL.
+;
+; The sealed fd-3 credential package is exactly:
+;   bytes16("HaloFPXRegKey01\0") || uint16be(key-ID length) || key-ID bytes ||
+;   uint64be(nonzero generation) || uint16be(32) || secret[32].
+; No trailing bytes are admitted.
+
+bytes16 = bstr .size 16
+bytes32 = bstr .size 32
+nonzero-bytes32 = bytes32 ; semantic rule: not 32 zero bytes
+registered-id = tstr .size (1..128) ; printable ASCII 0x21..0x7e, no NUL
+registry-envelope = bstr .size (1..1024)
+slot = 0..511
+envelope-length = 1..1024
+
+authenticated-root-marker-v1 = { 0: root-marker-auth-input-v1, 1: bytes32 }
+root-marker-auth-input-v1 = { 0: root-marker-body-v1, 1: registered-id, 2: 1, 3: uint .ge 1 }
+root-marker-body-v1 = {
+  0: 1,                         ; format major
+  1: 0,                         ; format minor
+  2: 0,                         ; root-marker kind
+  3: nonzero-bytes32,           ; random lab-root identity
+  4: bytes16,                   ; store UUID
+  5: registered-id,             ; protected registry ID
+  6: uint .ge 1,                ; protected registry epoch
+  7: bytes16,                   ; filesystem UUID
+  8: uint .ge 1,                ; Linux mount ID
+  9: uint,                      ; owner UID
+  10: registered-id,            ; credential key ID; equals auth-input key 1
+  11: uint .ge 1,               ; key generation; equals auth-input key 3
+  12: 512,                      ; fixed one-shot attempt capacity
+  13: bytes32,                  ; complete canonical path-policy commitment
+  14: 0 / 1,                    ; 0 initializing, 1 initialized
+  15: bytes32 / null,           ; state 0 iff null; state 1 iff exact initial HEAD digest
+  16: uint .ge 1,               ; permanent writer.lock st_dev
+  17: uint .ge 1                ; permanent writer.lock st_ino
+}
+
+authenticated-head-selector-v1 = { 0: head-selector-auth-input-v1, 1: bytes32 }
+head-selector-auth-input-v1 = { 0: head-selector-body-v1, 1: registered-id, 2: 1, 3: uint .ge 1 }
+head-selector-body-v1 = {
+  0: 1,                         ; format major
+  1: 0,                         ; format minor
+  2: 1,                         ; HEAD selector kind
+  3: bytes32,                   ; lab-root identity
+  4: bytes32,                   ; path-policy commitment
+  5: bytes32,                   ; selected immutable registry-envelope digest
+  6: envelope-length,           ; exact selected envelope byte length
+  7: registered-id,             ; protected registry ID
+  8: uint .ge 1,                ; protected registry epoch
+  9: uint,                      ; selected registry high-water
+  10: uint .ge 1,               ; monotonic selector generation
+  11: registered-id,            ; key ID; equals auth-input key 1
+  12: uint .ge 1                ; key generation; equals auth-input key 3
+}
+
+; PREPARE transitively binds its predecessor selector through key 16 and binds
+; both complete exact registry envelopes. Key 14 is the durable prepared phase.
+authenticated-prepare-v1 = { 0: prepare-auth-input-v1, 1: bytes32 }
+prepare-auth-input-v1 = { 0: prepare-body-v1, 1: registered-id, 2: 1, 3: uint .ge 1 }
+prepare-body-v1 = {
+  0: 1, 1: 0, 2: 2,             ; version and PREPARE kind
+  3: bytes32,                   ; lab-root identity
+  4: bytes32,                   ; path-policy commitment
+  5: nonzero-bytes32,           ; attempt ID
+  6: slot,                      ; fixed slot number
+  7: bytes32,                   ; operation commitment
+  8: envelope-length,           ; predecessor exact length
+  9: registry-envelope,         ; complete exact predecessor
+  10: bytes32,                  ; predecessor domain-separated digest
+  11: envelope-length,          ; successor exact length
+  12: registry-envelope,        ; complete exact successor
+  13: bytes32,                  ; successor domain-separated digest
+  14: 1,                        ; phase: PREPARE durable, selector not attributed
+  15: bytes32,                  ; previous authenticated HEAD envelope digest
+  16: bytes32                   ; exact predecessor HEAD-selector envelope digest
+}
+
+; Terminal records bind the complete PREPARE through key 10; PREPARE in turn
+; binds both exact envelopes. Their envelope size therefore remains <= 1 KiB.
+authenticated-close-v1 = { 0: close-auth-input-v1, 1: bytes32 }
+close-auth-input-v1 = { 0: close-body-v1, 1: registered-id, 2: 1, 3: uint .ge 1 }
+close-body-v1 = {
+  0: 1, 1: 0, 2: 3,             ; version and CLOSE kind
+  3: bytes32, 4: bytes32,       ; lab-root ID, path-policy commitment
+  5: nonzero-bytes32, 6: slot,
+  7: bytes32,                   ; operation commitment
+  8: bytes32, 9: bytes32,       ; predecessor and successor digests
+  10: bytes32,                  ; previous PREPARE envelope digest
+  11: 2,                        ; phase: selector replacement durable and verified
+  12: 0 / 1,                    ; 0 normal advance, 1 restart recovery
+  13: bytes32                   ; authenticated successor HEAD-selector digest
+}
+
+authenticated-abort-v1 = { 0: abort-auth-input-v1, 1: bytes32 }
+abort-auth-input-v1 = { 0: abort-body-v1, 1: registered-id, 2: 1, 3: uint .ge 1 }
+abort-body-v1 = {
+  0: 1, 1: 0, 2: 4,             ; version and ABORT kind
+  3: bytes32, 4: bytes32,       ; lab-root ID, path-policy commitment
+  5: nonzero-bytes32, 6: slot,
+  7: bytes32,                   ; operation commitment
+  8: bytes32, 9: bytes32,       ; predecessor and successor digests
+  10: bytes32,                  ; previous PREPARE envelope digest
+  11: 1,                        ; phase: no selector replacement attributed
+  12: 0 / 1,                    ; 0 mismatch, 1 recovered not applied
+  13: bytes32                   ; authenticated unchanged HEAD-selector digest
+}
+
+authenticated-quarantine-v1 = { 0: quarantine-auth-input-v1, 1: bytes32 }
+quarantine-auth-input-v1 = { 0: quarantine-body-v1, 1: registered-id, 2: 1, 3: uint .ge 1 }
+quarantine-body-v1 = {
+  0: 1, 1: 0, 2: 5,             ; version and sticky QUARANTINE kind
+  3: bytes32, 4: bytes32,       ; lab-root ID, path-policy commitment
+  5: nonzero-bytes32,           ; quarantine event ID
+  6: bytes32 / null,            ; triggering attempt ID, if attributable
+  7: slot / null,               ; triggering slot, if attributable
+  8: 0..15,                     ; closed public reason code
+  9: 0..2,                      ; last observed phase: 0 pre, 1 prepared, 2 replaced
+  10: bytes32 / null,           ; previous authenticated record digest
+  11: bytes32 / null,           ; last readable authenticated HEAD digest
+  12: bytes32 / null            ; operation commitment, if attributable
+}
+
+operation-commitment-input-v1 = {
+  0: bytes32,                   ; lab-root identity
+  1: bytes32,                   ; path-policy commitment
+  2: nonzero-bytes32,           ; attempt ID
+  3: slot,                      ; slot
+  4: bytes32,                   ; predecessor envelope digest
+  5: bytes32,                   ; successor envelope digest
+  6: envelope-length,           ; exact predecessor byte length
+  7: envelope-length            ; exact successor byte length
+}
