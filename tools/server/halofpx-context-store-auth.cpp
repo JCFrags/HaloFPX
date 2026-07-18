@@ -242,6 +242,21 @@ bool context_store_sha256_bounded(
     return sha256_spans(&span, 1, max_size, digest);
 }
 
+bool context_store_manifest_digest_v1(
+        const uint8_t * data,
+        size_t size,
+        context_store_format_digest & digest) noexcept {
+    if (data == nullptr || size == 0 || size > context_store_manifest_max_bytes) {
+        return false;
+    }
+    const byte_span spans[] = {
+        { reinterpret_cast<const uint8_t *>(manifest_domain), sizeof(manifest_domain) },
+        { data, size },
+    };
+    return sha256_spans(spans, sizeof(spans) / sizeof(spans[0]),
+        context_store_manifest_max_bytes + sizeof(manifest_domain), digest);
+}
+
 bool context_store_hmac_sha256(
         const uint8_t * key,
         size_t key_size,
@@ -326,13 +341,7 @@ context_store_manifest_verify_result context_store_verify_manifest_v1(
         return verification;
     }
 
-    const byte_span manifest_spans[] = {
-        { reinterpret_cast<const uint8_t *>(manifest_domain), sizeof(manifest_domain) },
-        { data, size },
-    };
-    if (!sha256_spans(manifest_spans, sizeof(manifest_spans) / sizeof(manifest_spans[0]),
-            crypto_input_max_bytes,
-            verification.manifest_digest) ||
+    if (!context_store_manifest_digest_v1(data, size, verification.manifest_digest) ||
         verification.manifest_digest != anchor.selected_manifest_digest) {
         verification.status = context_store_manifest_verify_status::replay_mismatch;
         return verification;

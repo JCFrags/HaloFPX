@@ -114,6 +114,14 @@ bool context_store_sha256_bounded(
     uint64_t max_size,
     context_store_format_digest & digest) noexcept;
 
+// Hashes the exact, complete v1 manifest envelope under the target-owned
+// manifest identity domain. No parsing, normalization, or partial hashing is
+// performed. Inputs larger than context_store_manifest_max_bytes fail.
+bool context_store_manifest_digest_v1(
+    const uint8_t * data,
+    size_t size,
+    context_store_format_digest & digest) noexcept;
+
 bool context_store_hmac_sha256(
     const uint8_t * key,
     size_t key_size,

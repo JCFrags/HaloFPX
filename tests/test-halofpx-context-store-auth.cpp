@@ -269,6 +269,15 @@ void test_standard_vectors() {
 
     assert(!halofpx::context_store_sha256(nullptr, 1, digest));
     assert(!halofpx::context_store_hmac_sha256(nullptr, 1, abc.data(), abc.size(), digest));
+
+    context_store_format_digest manifest_digest {};
+    const auto expected_manifest_digest = sha256(domain_message("halofpx.manifest.v1", abc));
+    assert(halofpx::context_store_manifest_digest_v1(abc.data(), abc.size(), manifest_digest));
+    assert(manifest_digest == expected_manifest_digest);
+    assert(!halofpx::context_store_manifest_digest_v1(nullptr, 1, manifest_digest));
+    assert(!halofpx::context_store_manifest_digest_v1(nullptr, 0, manifest_digest));
+    const bytes oversized(halofpx::context_store_manifest_max_bytes + 1, 0);
+    assert(!halofpx::context_store_manifest_digest_v1(oversized.data(), oversized.size(), manifest_digest));
 }
 
 void test_authenticated_terminal_miss() {

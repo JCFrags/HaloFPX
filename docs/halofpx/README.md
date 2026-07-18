@@ -30,6 +30,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05f authenticated-anchor carrier reconciliation](l05f-authenticated-anchor-carrier.md)
 - [L05f milestone review](reviews/2026-07-18__l05f-authenticated-anchor-carrier__review__v01.md)
 - [L05g offline bootstrap-authority planner](l05g-offline-bootstrap-authority.md)
+- [L05g milestone review](reviews/2026-07-18__l05g-offline-bootstrap-authority__review__v01.md)
+- [L05h authority-admitted bootstrap manifest](l05h-authority-admitted-bootstrap-manifest.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

@@ -1,0 +1,35 @@
+{
+  "schema": "halofpx.l05h.repeat-receipt.v1",
+  "date": "2026-07-18",
+  "parent_commit": "d610e82f1dcc7d230567b65d54bb24eabd939c47",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "build_directory": "build/halofpx-l05h-clean",
+  "configuration": "Release",
+  "backends": "CPU only; HIP OFF; Vulkan OFF",
+  "webui": "OFF via LLAMA_BUILD_WEBUI=OFF",
+  "executables": [
+    {
+      "path": "build/halofpx-l05h-clean/bin/Release/test-halofpx-context-store-auth.exe",
+      "sha256": "8bfb67fb92cc9f234c7747aedcd0df03a2163549e9085275c6a291b2f83a4488",
+      "process_runs": 100,
+      "passed": 100,
+      "elapsed_ms": 537
+    },
+    {
+      "path": "build/halofpx-l05h-clean/bin/Release/test-halofpx-context-store-authority.exe",
+      "sha256": "eed8232d037cb10d5007546cb70dfcdb8897f5f69b4377eadda891f44469afc6",
+      "process_runs": 100,
+      "passed": 100,
+      "elapsed_ms": 771
+    }
+  ],
+  "combined_process_runs": 200,
+  "combined_elapsed_ms": 1308,
+  "timing_is_benchmark": false,
+  "notes": [
+    "All processes returned exit code zero.",
+    "Each authority process authenticates exact synthetic manifest bytes and exercises malformed, authentication, replay, scope, compatibility, key-purpose, lifetime, bounds, and 32-thread deterministic cases.",
+    "Executable hashes identify the exact clean-build test artifacts; build products are intentionally not committed."
+  ]
+}

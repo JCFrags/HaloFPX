@@ -20,6 +20,8 @@ struct context_store_bootstrap_admin_key_record {
 struct context_store_bootstrap_authority_config {
     context_store_anchor_key_record anchor_signing_key;
     context_store_bootstrap_admin_key_record bootstrap_admin_key;
+    context_store_manifest_key_record manifest_authentication_key;
+    context_store_compatibility_expectation trusted_compatibility;
     std::array<uint8_t, 16> store_uuid {};
     context_store_format_digest namespace_id {};
     uint64_t policy_epoch = 0;
@@ -30,8 +32,9 @@ struct context_store_bootstrap_authority_config {
 
 struct context_store_bootstrap_request {
     context_store_bootstrap_attempt_id attempt_id {};
-    size_t object_count = 0;
-    context_store_format_digest selected_manifest_digest {};
+    // Borrowed synchronously. Planning never retains these bytes.
+    const uint8_t * manifest_data = nullptr;
+    size_t manifest_size = 0;
 };
 
 class context_store_bootstrap_authority;
@@ -85,6 +88,7 @@ enum class context_store_bootstrap_status : uint8_t {
     authorized_unexecuted,
     invalid_authority,
     invalid_request,
+    manifest_rejected,
     signing_failed,
 };
 
@@ -103,7 +107,7 @@ private:
     friend class context_store_bootstrap_authority;
 };
 
-// A bounded authority snapshot. It synchronously copies both purpose-separated
+// A bounded authority snapshot. It synchronously copies all purpose-separated
 // keys and all configuration, exposes no key bytes, and wipes private storage
 // on destruction. Planning is deterministic, stateless, and performs no I/O.
 class context_store_bootstrap_authority {
@@ -130,6 +134,11 @@ private:
     uint64_t admin_key_generation_ = 0;
     std::array<uint8_t, context_store_master_key_max_bytes> admin_key_ {};
     size_t admin_key_size_ = 0;
+    context_store_registered_id manifest_key_id_;
+    uint64_t manifest_key_generation_ = 0;
+    std::array<uint8_t, context_store_master_key_max_bytes> manifest_key_ {};
+    size_t manifest_key_size_ = 0;
+    context_store_compatibility_expectation trusted_compatibility_;
     context_store_anchor_body bootstrap_body_;
     context_store_format_digest snapshot_commitment_ {};
 };
