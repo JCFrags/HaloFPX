@@ -17,7 +17,7 @@ bool valid_credential(const credential_owner & owner) noexcept {
     if (!owner.owns || owner.key_id.size == 0 || owner.key_id.size > context_store_registered_id_max_bytes || owner.generation == 0 || all_zero(owner.secret)) return false;
     for (size_t i = 0; i < owner.key_id.size; ++i) {
         const uint8_t byte = static_cast<uint8_t>(owner.key_id.bytes[i]);
-        if (byte == 0 || byte > 0x7f) return false;
+        if (byte < 0x21 || byte > 0x7e) return false;
     }
     return owner.key_id.bytes[owner.key_id.size] == '\0';
 }

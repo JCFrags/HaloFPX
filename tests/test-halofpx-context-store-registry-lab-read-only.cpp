@@ -221,8 +221,13 @@ void admission_shape_and_payloads() {
     credential_owner embedded_nul = credential(); embedded_nul.key_id.bytes[1] = '\0';
     h = f->begin(10, 0, std::move(embedded_nul), normal_script()); assert(f->result(h).state == visibility::ordinary_result && f->trace_size(h) == 0 && credential_is_zero(embedded_nul));
     for (uint8_t boundary : { uint8_t { 0x01 }, uint8_t { 0x20 }, uint8_t { 0x7f } }) {
+        credential_owner rejected = credential(); rejected.key_id.bytes[1] = static_cast<char>(boundary);
+        h = f->begin(11 + boundary, 0, std::move(rejected), normal_script());
+        assert(f->result(h).state == visibility::ordinary_result && f->trace_size(h) == 0 && credential_is_zero(rejected) && f->rejection_wipe_audited(h));
+    }
+    for (uint8_t boundary : { uint8_t { 0x21 }, uint8_t { 0x7e } }) {
         credential_owner admitted = credential(); admitted.key_id.bytes[1] = static_cast<char>(boundary);
-        h = f->begin(11 + boundary, 0, std::move(admitted), normal_script()); finish(*f, h);
+        h = f->begin(300 + boundary, 0, std::move(admitted), normal_script()); finish(*f, h);
         assert(f->trace(h, 0).event == 1 && credential_is_zero(admitted) && f->ordinary_wipe_audited(h));
     }
 }

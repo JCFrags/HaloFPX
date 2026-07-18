@@ -1,7 +1,7 @@
 {
   "milestone": "L05p portable registry-lab read-only operations 1-4",
   "date": "2026-07-18",
-  "source_parent_commit": "c19bcd912ad6fafe86bc0eadc77140fcf7fc62c4",
+  "source_parent_commit": "bd8ae9fad1edccc59cf25541920a0de6b3301528",
   "build_directory": "build/halofpx-l05p-read-only-dev",
   "configuration": {
     "windows": "Visual Studio 18 2026 CPU Release and Debug; HIP/Vulkan OFF; WebUI and prebuilt WebUI OFF",
@@ -15,12 +15,13 @@
     "windows_release_registry_lab_ctests": { "passed": 7, "selected": 7 },
     "windows_debug_registry_lab_ctests": { "passed": 7, "selected": 7 },
     "windows_release_configured_ctests": { "passed": 84, "selected": 84 },
-    "windows_release_repeated_processes": { "passed": 1000, "selected": 1000, "elapsed_seconds": 77.30 },
-    "windows_debug_repeated_processes": { "passed": 200, "selected": 200, "elapsed_seconds": 24.68 },
+    "windows_release_repeated_processes": { "passed": 1000, "selected": 1000, "elapsed_seconds": 81.48 },
+    "windows_debug_repeated_processes": { "passed": 200, "selected": 200, "elapsed_seconds": 27.28 },
     "linux_asan_ubsan_registry_lab_ctests": { "passed": 6, "selected": 6 },
-    "linux_asan_ubsan_repeated_processes": { "passed": 1000, "selected": 1000, "elapsed_seconds": 61.41 },
+    "linux_asan_ubsan_repeated_processes": { "passed": 1000, "selected": 1000, "elapsed_seconds": 60.96 },
     "retained_controlled_resource_failure": "An initial sanitizer repeat passed 68 processes, then the kernel killed process 69 under global OOM while the approximately 200 GB distributed model was loaded. The test unit peaked at 329.6 MiB. After stopping the model server and RPC worker in dependency order, available memory increased from 13 GiB to 122 GiB and 1000/1000 completed. The failure and kernel log are retained, not counted as a code pass.",
-    "independent_adversarial_review": "ACCEPT after three review rounds and repair of all blockers",
+    "independent_adversarial_review": "ACCEPT after three implementation review rounds plus a post-commit registry-lab credential-profile specificity correction",
+    "profile_correction": "The registry-lab-specific normative CDDL and independent golden oracle constrain credential-package key IDs to printable ASCII 0x21..0x7e. They override the broader non-NUL ASCII profile used by other record families. The exact corrected candidate was rebuilt and all repeat evidence was recollected.",
     "reference_repositories_clean": 4,
     "configured_implementation_remote_count": 0,
     "rollback_control": "nimo-2 worker restored before nimo-1 server; ports 50052 and 8081 listening; health HTTP 200; real chat returned exact HALOFPX_ROLLBACK_OK"
@@ -35,24 +36,24 @@
     "linux_final_matrix": "build/halofpx-l05p-read-only-dev/evidence/nimo-2/linux-asan-final-matrix.log"
   },
   "evidence_sha256": {
-    "windows_release_repeat": "a439675da717755dfd15fadbaa5d24f3924148811885b698154e2b5818e6a380",
-    "windows_debug_repeat": "7b30dc8e66abd1956a13c8d8ea6e7d3d90c8dca7821c0abd34611044483a47e9",
-    "linux_success_repeat": "9d13143618f87b34f238a7fab96e14d4e5d307874d69a6373dec5fff2c38dd8e",
+    "windows_release_repeat": "9d31e70ac3fde2f1631e0e97d103f350fab96d40dea941ba2d27c72b26248bec",
+    "windows_debug_repeat": "56b06e46a2ba534fd1e9b88d36bfe0552615471bcee8cc5aa0813746acc75db2",
+    "linux_success_repeat": "8bfc6fe4d099198fd9bb538f1f5f071e6c0eaa5c84ff068e6f05b7b07e6c2802",
     "linux_oom_failure": "0dab97960718b8ee25d90fe6bbe347c695907865e7449434a1940b4f0b1b1c48",
     "linux_oom_kernel": "46ddadec0be52ff7b1487a17f54fbcacc0508022881dfa0ba39a45b5daeb88de",
-    "linux_final_matrix": "6344e98e52d78832fd3b5bf918ea73658b37e50e36d9164fc5de65c53a20e48a"
+    "linux_final_matrix": "93d72268ec6fb22da63b209e650333ea4f137eb2e4b21b3d155e746d67253f88"
   },
   "build_artifact_sha256": {
     "windows_cmake_cache": "8ff9c0b4051966a0cc8c97e6790265c1c95b6bd8dc41a3002170fbdd2d1fe7d6",
-    "windows_release_test": "61a626bc7fd070849f2beb82b8ad7d8806b041f906e853963a4e5c3183a26407",
-    "windows_debug_test": "54bc3954b1005ce4ff3d8694049795b02943d39718ade3ff6f909628e4940803",
-    "linux_asan_ubsan_test": "adc8baa3992ede776f7c09f147627e596f10315a9a2f643db7bbc1462224688f",
-    "linux_read_only_archive": "6e65d3cc1dc8129d3075c03691843d845eacf40655111fd891e755fb6db54417"
+    "windows_release_test": "c587e1f87e24638674526cbea485f291611129d6adff0d68eebf5d7302b88b51",
+    "windows_debug_test": "a0d5d68c6226f490e4fd1b69075f16268089f7aa9c7753ac6c1330d1b1bfe9e5",
+    "linux_asan_ubsan_test": "5bb3508fe08a0d978b00996bd01c5927837570991e8cd4c520f0fafa7416e882",
+    "linux_read_only_archive": "b49f21349369a3e40fdc4f6dc0cbf0685feb642abb6f9d1bc382706fedff4606"
   },
   "reviewed_source_sha256": {
     "tools/server/halofpx-context-store-registry-lab-read-only-internal.h": "800917751e08e2ab23500c1be187f994014fbe4e5e899878947c726274f67474",
-    "tools/server/halofpx-context-store-registry-lab-read-only.cpp": "7e83ac0f571cc135ed35344cf5f85db9a4d47567d7a583b24800036296756c8a",
-    "tests/test-halofpx-context-store-registry-lab-read-only.cpp": "08c8065f4156ff66793f17e1e6614ec0f9546c2e5eabb014ae70230806517256",
+    "tools/server/halofpx-context-store-registry-lab-read-only.cpp": "79cecb2357795ad739e1a339bb1ac8b2abeec96a58edbd301f9506bcf6b5d779",
+    "tests/test-halofpx-context-store-registry-lab-read-only.cpp": "3ac406a4d1d121907150c25a469551c5eb4f8bae7950f8e796a7e1a16b2e8ba5",
     "tests/test-halofpx-context-store-registry-lab-read-only-contract.cmake": "f189333886f112462106ad8a80d1b94ceb5f574d62ba56db630109b74bcae4ef",
     "tests/halofpx-registry-lab-static-audit.cmake": "0503503eee8fada087812c90cc0ad5587954afaa747e551b9711d2f6e8337398",
     "tests/halofpx-registry-lab-linux-archive-audit.cmake": "a88f4d98efd0618a1276d2bc758b722591be4396234fb1ec7d15978a1e7649ee"
