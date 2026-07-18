@@ -54,6 +54,9 @@ context_store_publication_status ordinary_failure(
         context_store_publication_step_result step,
         context_store_publication_status collision) noexcept {
     if (step == context_store_publication_step_result::conflict) return collision;
+    if (step == context_store_publication_step_result::attempt_fenced) {
+        return context_store_publication_status::attempt_fenced;
+    }
     if (step == context_store_publication_step_result::sync_error) {
         return context_store_publication_status::sync_error;
     }
@@ -87,7 +90,36 @@ context_store_publication_result context_store_publication_writer::publish(
         return result;
     }
 
+    bool attempt_started = false;
     bool anchor_attempted = false;
+    const auto abandon = [&]() noexcept {
+        if (!attempt_started) return true;
+        try {
+            const auto abandoned = backend.abandon_attempt(request.attempt_id);
+            if (!completed(abandoned)) return false;
+            attempt_started = false;
+            return true;
+        } catch (...) {
+            return false;
+        }
+    };
+    const auto fence_uncertain = [&]() noexcept {
+        try {
+            const auto fenced = backend.fence_attempt_uncertain(request.attempt_id);
+            result.attempt_fence_confirmed = completed(fenced);
+        } catch (...) {
+            result.attempt_fence_confirmed = false;
+        }
+        return result.attempt_fence_confirmed;
+    };
+    const auto fail_after_abandon = [&]() noexcept {
+        if (!abandon()) {
+            result.status = context_store_publication_status::attempt_fencing_uncertain;
+            fence_uncertain();
+        }
+        result.durability_acknowledged = false;
+        return result;
+    };
     try {
         context_store_publication_anchor current;
         auto step = backend.read_anchor(current);
@@ -101,9 +133,28 @@ context_store_publication_result context_store_publication_writer::publish(
             return result;
         }
 
+        step = backend.begin_attempt(
+            request.attempt_id, request.expected_predecessor, request.next,
+            request.object_count);
+        if (step == context_store_publication_step_result::stale_predecessor) {
+            result.status = context_store_publication_status::stale_predecessor;
+            return result;
+        }
+        if (step == context_store_publication_step_result::attempt_fenced) {
+            result.status = context_store_publication_status::attempt_fenced;
+            return result;
+        }
+        if (!completed(step)) {
+            result.status = context_store_publication_status::attempt_fencing_uncertain;
+            fence_uncertain();
+            return result;
+        }
+        ++result.completed_steps;
+        attempt_started = true;
+
         for (size_t index = 0; index < request.object_count; ++index) {
             const auto run = [&](auto operation, context_store_publication_status collision, bool allow_equal = false) {
-                step = (backend.*operation)(index);
+                step = (backend.*operation)(request.attempt_id, index);
                 if (completed(step, allow_equal)) {
                     ++result.completed_steps;
                     return true;
@@ -117,12 +168,12 @@ context_store_publication_result context_store_publication_writer::publish(
                 !run(&context_store_publication_backend::sync_object_file, context_store_publication_status::object_collision) ||
                 !run(&context_store_publication_backend::publish_object_no_replace, context_store_publication_status::object_collision, true) ||
                 !run(&context_store_publication_backend::sync_object_directory, context_store_publication_status::object_collision)) {
-                return result;
+                return fail_after_abandon();
             }
         }
 
         const auto run_manifest = [&](auto operation, bool allow_equal = false) {
-            step = (backend.*operation)();
+            step = (backend.*operation)(request.attempt_id);
             if (completed(step, allow_equal)) {
                 ++result.completed_steps;
                 return true;
@@ -132,25 +183,25 @@ context_store_publication_result context_store_publication_writer::publish(
         };
         if (!run_manifest(&context_store_publication_backend::stage_manifest) ||
             !run_manifest(&context_store_publication_backend::write_manifest)) {
-            return result;
+            return fail_after_abandon();
         }
 
         context_store_digest verified_manifest_digest {};
-        step = backend.verify_manifest(verified_manifest_digest);
+        step = backend.verify_manifest(request.attempt_id, verified_manifest_digest);
         if (!completed(step)) {
             result.status = ordinary_failure(step, context_store_publication_status::manifest_collision);
-            return result;
+            return fail_after_abandon();
         }
         if (verified_manifest_digest != request.next.manifest_digest) {
             result.status = context_store_publication_status::manifest_identity_mismatch;
-            return result;
+            return fail_after_abandon();
         }
         ++result.completed_steps;
 
         if (!run_manifest(&context_store_publication_backend::sync_manifest_file) ||
             !run_manifest(&context_store_publication_backend::publish_manifest_no_replace, true) ||
             !run_manifest(&context_store_publication_backend::sync_manifest_directory)) {
-            return result;
+            return fail_after_abandon();
         }
 
         anchor_attempted = true;
@@ -160,30 +211,54 @@ context_store_publication_result context_store_publication_writer::publish(
             // This typed result is admitted only when the backend guarantees
             // that the atomic replacement did not take effect.
             result.status = context_store_publication_status::stale_predecessor;
-            return result;
+            anchor_attempted = false;
+            return fail_after_abandon();
+        }
+        if (step == context_store_publication_step_result::attempt_fenced) {
+            result.status = context_store_publication_status::attempt_fenced;
+            anchor_attempted = false;
+            return fail_after_abandon();
         }
         if (!completed(step)) {
             // The abstract seam cannot prove that a failed or interrupted
             // replacement did not complete late.
             result.status = context_store_publication_status::anchor_visibility_uncertain;
+            fence_uncertain();
             return result;
         }
         ++result.completed_steps;
         result.anchor_replaced = true;
 
-        step = backend.sync_anchor();
+        step = backend.sync_anchor(request.attempt_id, request.next);
         if (!completed(step)) {
             result.status = context_store_publication_status::anchor_visibility_uncertain;
+            fence_uncertain();
             return result;
         }
         ++result.completed_steps;
+
+        step = backend.close_durable_attempt(request.attempt_id, request.next);
+        if (!completed(step)) {
+            result.status = context_store_publication_status::anchor_visibility_uncertain;
+            fence_uncertain();
+            return result;
+        }
+        ++result.completed_steps;
+        attempt_started = false;
         result.status = context_store_publication_status::published;
         result.durability_acknowledged = true;
         return result;
     } catch (...) {
-        result.status = anchor_attempted ?
-            context_store_publication_status::anchor_visibility_uncertain :
-            context_store_publication_status::storage_error;
+        if (anchor_attempted) {
+            result.status = context_store_publication_status::anchor_visibility_uncertain;
+            fence_uncertain();
+        } else {
+            result.status = context_store_publication_status::storage_error;
+            if (!abandon()) {
+                result.status = context_store_publication_status::attempt_fencing_uncertain;
+                fence_uncertain();
+            }
+        }
         result.durability_acknowledged = false;
         return result;
     }
@@ -195,6 +270,7 @@ const char * context_store_publication_status_name(
         case context_store_publication_status::published: return "published";
         case context_store_publication_status::invalid_request: return "invalid_request";
         case context_store_publication_status::stale_predecessor: return "stale_predecessor";
+        case context_store_publication_status::attempt_fenced: return "attempt_fenced";
         case context_store_publication_status::writer_busy: return "writer_busy";
         case context_store_publication_status::object_collision: return "object_collision";
         case context_store_publication_status::manifest_collision: return "manifest_collision";
@@ -202,6 +278,7 @@ const char * context_store_publication_status_name(
         case context_store_publication_status::storage_error: return "storage_error";
         case context_store_publication_status::sync_error: return "sync_error";
         case context_store_publication_status::anchor_visibility_uncertain: return "anchor_visibility_uncertain";
+        case context_store_publication_status::attempt_fencing_uncertain: return "attempt_fencing_uncertain";
     }
     return "unknown";
 }

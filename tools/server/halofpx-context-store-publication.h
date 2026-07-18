@@ -50,6 +50,9 @@ enum class context_store_publication_step_result : uint8_t {
     // A conclusive compare-and-swap rejection: the protected anchor did not
     // equal the supplied predecessor and the replacement was not applied.
     stale_predecessor,
+    // The supplied attempt is unknown, closed, uncertain, replayed, or bound
+    // to a different transition. The operation was not applied.
+    attempt_fenced,
     storage_error,
     sync_error,
 };
@@ -63,35 +66,56 @@ public:
 
     virtual context_store_publication_step_result read_anchor(
         context_store_publication_anchor & anchor) = 0;
+    virtual context_store_publication_step_result begin_attempt(
+        const context_store_publication_id & attempt_id,
+        const context_store_publication_anchor & expected_predecessor,
+        const context_store_publication_anchor & next,
+        size_t object_count) = 0;
 
-    virtual context_store_publication_step_result stage_object(size_t index) = 0;
-    virtual context_store_publication_step_result write_object(size_t index) = 0;
-    virtual context_store_publication_step_result verify_object(size_t index) = 0;
-    virtual context_store_publication_step_result sync_object_file(size_t index) = 0;
-    virtual context_store_publication_step_result publish_object_no_replace(size_t index) = 0;
-    virtual context_store_publication_step_result sync_object_directory(size_t index) = 0;
+    virtual context_store_publication_step_result stage_object(const context_store_publication_id & attempt_id, size_t index) = 0;
+    virtual context_store_publication_step_result write_object(const context_store_publication_id & attempt_id, size_t index) = 0;
+    virtual context_store_publication_step_result verify_object(const context_store_publication_id & attempt_id, size_t index) = 0;
+    virtual context_store_publication_step_result sync_object_file(const context_store_publication_id & attempt_id, size_t index) = 0;
+    virtual context_store_publication_step_result publish_object_no_replace(const context_store_publication_id & attempt_id, size_t index) = 0;
+    virtual context_store_publication_step_result sync_object_directory(const context_store_publication_id & attempt_id, size_t index) = 0;
 
-    virtual context_store_publication_step_result stage_manifest() = 0;
-    virtual context_store_publication_step_result write_manifest() = 0;
+    virtual context_store_publication_step_result stage_manifest(const context_store_publication_id & attempt_id) = 0;
+    virtual context_store_publication_step_result write_manifest(const context_store_publication_id & attempt_id) = 0;
     // Success must return the digest of the exact canonical authenticated
     // manifest bytes that were verified and are about to be published.
     virtual context_store_publication_step_result verify_manifest(
+        const context_store_publication_id & attempt_id,
         context_store_digest & verified_digest) = 0;
-    virtual context_store_publication_step_result sync_manifest_file() = 0;
-    virtual context_store_publication_step_result publish_manifest_no_replace() = 0;
-    virtual context_store_publication_step_result sync_manifest_directory() = 0;
+    virtual context_store_publication_step_result sync_manifest_file(const context_store_publication_id & attempt_id) = 0;
+    virtual context_store_publication_step_result publish_manifest_no_replace(const context_store_publication_id & attempt_id) = 0;
+    virtual context_store_publication_step_result sync_manifest_directory(const context_store_publication_id & attempt_id) = 0;
 
     virtual context_store_publication_step_result replace_anchor_atomically(
         const context_store_publication_id & attempt_id,
         const context_store_publication_anchor & expected_predecessor,
         const context_store_publication_anchor & next) = 0;
-    virtual context_store_publication_step_result sync_anchor() = 0;
+    virtual context_store_publication_step_result sync_anchor(
+        const context_store_publication_id & attempt_id,
+        const context_store_publication_anchor & next) = 0;
+    // Durability may be acknowledged only after this exact terminal close.
+    virtual context_store_publication_step_result close_durable_attempt(
+        const context_store_publication_id & attempt_id,
+        const context_store_publication_anchor & next) = 0;
+
+    // Required fencing transitions. A backend must reject all subsequent
+    // mutations for an abandoned or uncertain attempt. These calls are not a
+    // substitute for persistent reconciliation in a concrete backend.
+    virtual context_store_publication_step_result abandon_attempt(
+        const context_store_publication_id & attempt_id) = 0;
+    virtual context_store_publication_step_result fence_attempt_uncertain(
+        const context_store_publication_id & attempt_id) = 0;
 };
 
 enum class context_store_publication_status : uint8_t {
     published,
     invalid_request,
     stale_predecessor,
+    attempt_fenced,
     writer_busy,
     object_collision,
     manifest_collision,
@@ -99,6 +123,7 @@ enum class context_store_publication_status : uint8_t {
     storage_error,
     sync_error,
     anchor_visibility_uncertain,
+    attempt_fencing_uncertain,
 };
 
 struct context_store_publication_result {
@@ -106,6 +131,9 @@ struct context_store_publication_result {
     size_t completed_steps = 0;
     bool anchor_replaced = false;
     bool durability_acknowledged = false;
+    // True only when an uncertain backend transition was explicitly confirmed
+    // fenced for this root. False requires external root quarantine.
+    bool attempt_fence_confirmed = false;
 };
 
 // One noncopyable instance must be owned by each configured publication root.

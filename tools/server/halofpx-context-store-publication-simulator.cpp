@@ -29,9 +29,10 @@ context_store_publication_simulator::context_store_publication_simulator(
     durable_anchor_(predecessor),
     verified_manifest_digest_(next.manifest_digest),
     objects_(object_count <= context_store_publication_max_objects_v1 ? object_count : 0),
-    trace_limit_(2 * (1 + 6 * objects_.size() + 6 + 2)),
+    trace_limit_(2 * (2 + 6 * objects_.size() + 6 + 3)),
     valid_(object_count > 0 && object_count <= context_store_publication_max_objects_v1) {
     trace_.reserve(trace_limit_);
+    terminal_attempt_ids_.reserve(context_store_publication_simulator_max_attempt_history);
 }
 
 void context_store_publication_simulator::set_failpoint(
@@ -69,6 +70,10 @@ void context_store_publication_simulator::set_verified_manifest_digest(
 
 void context_store_publication_simulator::invalidate_predecessor_chain() noexcept {
     predecessor_chain_valid_ = false;
+}
+
+void context_store_publication_simulator::set_abandonment_uncertain(bool enabled) noexcept {
+    abandonment_uncertain_ = enabled;
 }
 
 bool context_store_publication_simulator::before(
@@ -123,6 +128,27 @@ bool context_store_publication_simulator::valid_object(size_t index) const noexc
     return valid_ && index < objects_.size();
 }
 
+bool context_store_publication_simulator::active_attempt(
+        const context_store_publication_id & attempt_id) const noexcept {
+    return attempt_active_ && !attempt_uncertain_ && attempt_id == active_attempt_id_;
+}
+
+bool context_store_publication_simulator::attempt_seen(
+        const context_store_publication_id & attempt_id) const noexcept {
+    for (const auto & terminal : terminal_attempt_ids_) {
+        if (terminal == attempt_id) return true;
+    }
+    return false;
+}
+
+bool context_store_publication_simulator::record_terminal_attempt(
+        const context_store_publication_id & attempt_id) {
+    if (attempt_seen(attempt_id)) return true;
+    if (terminal_attempt_ids_.size() >= context_store_publication_simulator_max_attempt_history) return false;
+    terminal_attempt_ids_.push_back(attempt_id);
+    return true;
+}
+
 context_store_publication_step_result context_store_publication_simulator::read_anchor(
         context_store_publication_anchor & anchor) {
     context_store_publication_step_result result;
@@ -137,10 +163,43 @@ context_store_publication_step_result context_store_publication_simulator::read_
                  context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::stage_object(size_t index) {
+context_store_publication_step_result context_store_publication_simulator::begin_attempt(
+        const context_store_publication_id & attempt_id,
+        const context_store_publication_anchor & expected_predecessor,
+        const context_store_publication_anchor & next,
+        size_t object_count) {
+    context_store_publication_step_result result;
+    const auto op = context_store_publication_simulator_operation::begin_attempt;
+    if (!before(op, context_store_publication_simulator_no_index, result)) return result;
+    if (!valid_ || attempt_id == context_store_publication_id {} ||
+            attempt_seen(attempt_id) || attempt_active_ || attempt_uncertain_ ||
+            terminal_attempt_ids_.size() >= context_store_publication_simulator_max_attempt_history) {
+        return after(op, context_store_publication_simulator_no_index,
+                     context_store_publication_step_result::attempt_fenced);
+    }
+    if (!exact_anchor(live_anchor_, expected_predecessor)) {
+        return after(op, context_store_publication_simulator_no_index,
+                     context_store_publication_step_result::stale_predecessor);
+    }
+    if (!exact_anchor(expected_predecessor, predecessor_) ||
+            !exact_anchor(next, next_) || object_count != objects_.size()) {
+        return after(op, context_store_publication_simulator_no_index,
+                     context_store_publication_step_result::attempt_fenced);
+    }
+    const auto final = after(op, context_store_publication_simulator_no_index,
+                             context_store_publication_step_result::ok);
+    active_attempt_id_ = attempt_id;
+    attempt_active_ = true;
+    attempt_uncertain_ = final != context_store_publication_step_result::ok;
+    return final;
+}
+
+context_store_publication_step_result context_store_publication_simulator::stage_object(
+        const context_store_publication_id & attempt_id, size_t index) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::stage_object;
     if (!before(op, index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_object(index) || objects_[index].temp_live) {
         return after(op, index, context_store_publication_step_result::storage_error);
     }
@@ -148,10 +207,12 @@ context_store_publication_step_result context_store_publication_simulator::stage
     return after(op, index, context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::write_object(size_t index) {
+context_store_publication_step_result context_store_publication_simulator::write_object(
+        const context_store_publication_id & attempt_id, size_t index) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::write_object;
     if (!before(op, index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_object(index) || !objects_[index].temp_live) {
         return after(op, index, context_store_publication_step_result::storage_error);
     }
@@ -159,10 +220,12 @@ context_store_publication_step_result context_store_publication_simulator::write
     return after(op, index, context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::verify_object(size_t index) {
+context_store_publication_step_result context_store_publication_simulator::verify_object(
+        const context_store_publication_id & attempt_id, size_t index) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::verify_object;
     if (!before(op, index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_object(index) || !objects_[index].temp_written) {
         return after(op, index, context_store_publication_step_result::storage_error);
     }
@@ -170,10 +233,12 @@ context_store_publication_step_result context_store_publication_simulator::verif
     return after(op, index, context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::sync_object_file(size_t index) {
+context_store_publication_step_result context_store_publication_simulator::sync_object_file(
+        const context_store_publication_id & attempt_id, size_t index) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::sync_object_file;
     if (!before(op, index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_object(index) || !objects_[index].temp_verified) {
         return after(op, index, context_store_publication_step_result::storage_error);
     }
@@ -181,10 +246,12 @@ context_store_publication_step_result context_store_publication_simulator::sync_
     return after(op, index, context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::publish_object_no_replace(size_t index) {
+context_store_publication_step_result context_store_publication_simulator::publish_object_no_replace(
+        const context_store_publication_id & attempt_id, size_t index) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::publish_object;
     if (!before(op, index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_object(index) || !objects_[index].temp_durable) {
         return after(op, index, context_store_publication_step_result::storage_error);
     }
@@ -204,10 +271,12 @@ context_store_publication_step_result context_store_publication_simulator::publi
     return after(op, index, context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::sync_object_directory(size_t index) {
+context_store_publication_step_result context_store_publication_simulator::sync_object_directory(
+        const context_store_publication_id & attempt_id, size_t index) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::sync_object_directory;
     if (!before(op, index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_object(index) || !objects_[index].published_live) {
         return after(op, index, context_store_publication_step_result::storage_error);
     }
@@ -215,10 +284,12 @@ context_store_publication_step_result context_store_publication_simulator::sync_
     return after(op, index, context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::stage_manifest() {
+context_store_publication_step_result context_store_publication_simulator::stage_manifest(
+        const context_store_publication_id & attempt_id) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::stage_manifest;
     if (!before(op, context_store_publication_simulator_no_index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_ || manifest_.temp_live) {
         return after(op, context_store_publication_simulator_no_index,
                      context_store_publication_step_result::storage_error);
@@ -228,10 +299,12 @@ context_store_publication_step_result context_store_publication_simulator::stage
                  context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::write_manifest() {
+context_store_publication_step_result context_store_publication_simulator::write_manifest(
+        const context_store_publication_id & attempt_id) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::write_manifest;
     if (!before(op, context_store_publication_simulator_no_index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_ || !manifest_.temp_live) {
         return after(op, context_store_publication_simulator_no_index,
                      context_store_publication_step_result::storage_error);
@@ -242,10 +315,12 @@ context_store_publication_step_result context_store_publication_simulator::write
 }
 
 context_store_publication_step_result context_store_publication_simulator::verify_manifest(
+        const context_store_publication_id & attempt_id,
         context_store_digest & digest) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::verify_manifest;
     if (!before(op, context_store_publication_simulator_no_index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_ || !manifest_.temp_written) {
         return after(op, context_store_publication_simulator_no_index,
                      context_store_publication_step_result::storage_error);
@@ -256,10 +331,12 @@ context_store_publication_step_result context_store_publication_simulator::verif
                  context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::sync_manifest_file() {
+context_store_publication_step_result context_store_publication_simulator::sync_manifest_file(
+        const context_store_publication_id & attempt_id) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::sync_manifest_file;
     if (!before(op, context_store_publication_simulator_no_index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_ || !manifest_.temp_verified) {
         return after(op, context_store_publication_simulator_no_index,
                      context_store_publication_step_result::storage_error);
@@ -269,10 +346,12 @@ context_store_publication_step_result context_store_publication_simulator::sync_
                  context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::publish_manifest_no_replace() {
+context_store_publication_step_result context_store_publication_simulator::publish_manifest_no_replace(
+        const context_store_publication_id & attempt_id) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::publish_manifest;
     if (!before(op, context_store_publication_simulator_no_index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_ || !manifest_.temp_durable) {
         return after(op, context_store_publication_simulator_no_index,
                      context_store_publication_step_result::storage_error);
@@ -295,10 +374,12 @@ context_store_publication_step_result context_store_publication_simulator::publi
                  context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::sync_manifest_directory() {
+context_store_publication_step_result context_store_publication_simulator::sync_manifest_directory(
+        const context_store_publication_id & attempt_id) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::sync_manifest_directory;
     if (!before(op, context_store_publication_simulator_no_index, result)) return result;
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
     if (!valid_ || !manifest_.published_live) {
         return after(op, context_store_publication_simulator_no_index,
                      context_store_publication_step_result::storage_error);
@@ -315,7 +396,7 @@ context_store_publication_step_result context_store_publication_simulator::repla
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::replace_anchor;
     if (!before(op, context_store_publication_simulator_no_index, result)) return result;
-    if (!valid_ || attempt_id == context_store_publication_id {} ||
+    if (!active_attempt(attempt_id) ||
             !manifest_.published_durable || !exact_anchor(next, next_)) {
         return after(op, context_store_publication_simulator_no_index,
                       context_store_publication_step_result::storage_error);
@@ -330,11 +411,15 @@ context_store_publication_step_result context_store_publication_simulator::repla
                  context_store_publication_step_result::ok);
 }
 
-context_store_publication_step_result context_store_publication_simulator::sync_anchor() {
+context_store_publication_step_result context_store_publication_simulator::sync_anchor(
+        const context_store_publication_id & attempt_id,
+        const context_store_publication_anchor & next) {
     context_store_publication_step_result result;
     const auto op = context_store_publication_simulator_operation::sync_anchor;
     if (!before(op, context_store_publication_simulator_no_index, result)) return result;
-    if (!valid_ || !anchor_unsynced_ || !exact_anchor(live_anchor_, next_)) {
+    if (!active_attempt(attempt_id)) return context_store_publication_step_result::attempt_fenced;
+    if (!valid_ || !anchor_unsynced_ || !exact_anchor(next, next_) ||
+            !exact_anchor(live_anchor_, next_)) {
         return after(op, context_store_publication_simulator_no_index,
                      context_store_publication_step_result::sync_error);
     }
@@ -342,6 +427,65 @@ context_store_publication_step_result context_store_publication_simulator::sync_
     anchor_unsynced_ = false;
     return after(op, context_store_publication_simulator_no_index,
                  context_store_publication_step_result::ok);
+}
+
+context_store_publication_step_result context_store_publication_simulator::close_durable_attempt(
+        const context_store_publication_id & attempt_id,
+        const context_store_publication_anchor & next) {
+    context_store_publication_step_result result;
+    const auto op = context_store_publication_simulator_operation::close_attempt;
+    if (!before(op, context_store_publication_simulator_no_index, result)) return result;
+    if (!active_attempt(attempt_id) || !exact_anchor(next, next_) ||
+            !exact_anchor(durable_anchor_, next_)) {
+        return after(op, context_store_publication_simulator_no_index,
+                     context_store_publication_step_result::attempt_fenced);
+    }
+    const auto final = after(op, context_store_publication_simulator_no_index,
+                             context_store_publication_step_result::ok);
+    if (final != context_store_publication_step_result::ok) {
+        attempt_uncertain_ = true;
+        return final;
+    }
+    if (!record_terminal_attempt(attempt_id)) {
+        attempt_uncertain_ = true;
+        return context_store_publication_step_result::interrupted;
+    }
+    active_attempt_id_ = {};
+    attempt_active_ = false;
+    return final;
+}
+
+context_store_publication_step_result context_store_publication_simulator::abandon_attempt(
+        const context_store_publication_id & attempt_id) {
+    if (!active_attempt(attempt_id) || anchor_unsynced_) {
+        return context_store_publication_step_result::attempt_fenced;
+    }
+    if (abandonment_uncertain_) {
+        attempt_uncertain_ = true;
+        return context_store_publication_step_result::interrupted;
+    }
+    if (!record_terminal_attempt(attempt_id)) {
+        attempt_uncertain_ = true;
+        return context_store_publication_step_result::interrupted;
+    }
+    active_attempt_id_ = {};
+    attempt_active_ = false;
+    for (auto & object : objects_) discard_temp(object, retained_garbage_count_);
+    discard_temp(manifest_, retained_garbage_count_);
+    return context_store_publication_step_result::ok;
+}
+
+context_store_publication_step_result context_store_publication_simulator::fence_attempt_uncertain(
+        const context_store_publication_id & attempt_id) {
+    if (attempt_id == context_store_publication_id {}) {
+        return context_store_publication_step_result::attempt_fenced;
+    }
+    if (!attempt_active_) {
+        active_attempt_id_ = attempt_id;
+        attempt_active_ = true;
+    }
+    attempt_uncertain_ = true;
+    return context_store_publication_step_result::ok;
 }
 
 void context_store_publication_simulator::discard_temp(
@@ -356,6 +500,12 @@ void context_store_publication_simulator::discard_temp(
 
 void context_store_publication_simulator::crash(
         const context_store_publication_simulator_crash_policy & policy) noexcept {
+    if (attempt_active_) {
+        record_terminal_attempt(active_attempt_id_);
+        active_attempt_id_ = {};
+        attempt_active_ = false;
+        attempt_uncertain_ = true;
+    }
     for (auto & object : objects_) {
         discard_temp(object, retained_garbage_count_);
         if (!object.published_durable) {
@@ -445,6 +595,7 @@ const char * context_store_publication_simulator_operation_name(
         context_store_publication_simulator_operation operation) noexcept {
     switch (operation) {
         case context_store_publication_simulator_operation::read_anchor: return "read_anchor";
+        case context_store_publication_simulator_operation::begin_attempt: return "begin_attempt";
         case context_store_publication_simulator_operation::stage_object: return "stage_object";
         case context_store_publication_simulator_operation::write_object: return "write_object";
         case context_store_publication_simulator_operation::verify_object: return "verify_object";
@@ -459,6 +610,7 @@ const char * context_store_publication_simulator_operation_name(
         case context_store_publication_simulator_operation::sync_manifest_directory: return "sync_manifest_directory";
         case context_store_publication_simulator_operation::replace_anchor: return "replace_anchor";
         case context_store_publication_simulator_operation::sync_anchor: return "sync_anchor";
+        case context_store_publication_simulator_operation::close_attempt: return "close_attempt";
     }
     return "unknown";
 }

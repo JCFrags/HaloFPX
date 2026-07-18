@@ -10,3 +10,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0004](0004-publication-and-failure.md): publication and failure
 - [ADR-0005](0005-distributed-ownership-and-threat-model.md): distributed ownership and threat model
 - [ADR-0006](0006-anchor-cas-and-attempt-identity.md): anchor compare-and-swap and publication attempt identity
+- [ADR-0007](0007-publication-attempt-lifecycle.md): publication attempt lifecycle and operation fencing

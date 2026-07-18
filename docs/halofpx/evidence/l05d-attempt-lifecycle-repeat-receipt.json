@@ -1,0 +1,33 @@
+{
+  "schema": "halofpx.l05d.repeat-receipt.v1",
+  "date": "2026-07-18",
+  "parent_commit": "3ae385d30441eef6ebf65322fd7bab87fd03901c",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "build_directory": "build/halofpx-l05d-clean",
+  "configuration": "Release",
+  "backends": "CPU only; HIP OFF; Vulkan OFF",
+  "webui": "OFF via LLAMA_BUILD_WEBUI=OFF",
+  "coordinator_executable": {
+    "path": "build/halofpx-l05d-clean/bin/Release/test-halofpx-context-store-publication.exe",
+    "sha256": "00b4bff664d157f458ddecb9586507a65fd0bd43b921e50ffc840a1858727cb0",
+    "process_runs": 100,
+    "passed": 100
+  },
+  "simulator_executable": {
+    "path": "build/halofpx-l05d-clean/bin/Release/test-halofpx-context-store-publication-simulator.exe",
+    "sha256": "c7698dfcb38630b86e8ceba8133aa90b5dc76004de84702ada2036f6e3850f48",
+    "process_runs": 100,
+    "passed": 100,
+    "core_failpoint_scenarios_per_process": 1472,
+    "core_failpoint_scenarios_total": 147200
+  },
+  "combined_process_runs": 200,
+  "combined_elapsed_ms": 946,
+  "timing_is_benchmark": false,
+  "notes": [
+    "All processes returned exit code zero.",
+    "The core matrix is 23 operations times 2 phases times 8 faults times 4 crash projections.",
+    "Focused lifecycle tests include ambiguous begin and abandonment root fencing outside the core count."
+  ]
+}

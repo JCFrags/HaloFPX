@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -47,6 +48,7 @@ std::vector<operation_key> operation_matrix() {
     const size_t none = context_store_publication_simulator_no_index;
     return {
         { context_store_publication_simulator_operation::read_anchor, none },
+        { context_store_publication_simulator_operation::begin_attempt, none },
         { context_store_publication_simulator_operation::stage_object, 0 },
         { context_store_publication_simulator_operation::write_object, 0 },
         { context_store_publication_simulator_operation::verify_object, 0 },
@@ -67,6 +69,7 @@ std::vector<operation_key> operation_matrix() {
         { context_store_publication_simulator_operation::sync_manifest_directory, none },
         { context_store_publication_simulator_operation::replace_anchor, none },
         { context_store_publication_simulator_operation::sync_anchor, none },
+        { context_store_publication_simulator_operation::close_attempt, none },
     };
 }
 
@@ -144,6 +147,9 @@ context_store_publication_simulator_recovery expected_after_crash(
         return retain_anchor ? context_store_publication_simulator_recovery::new_generation :
             context_store_publication_simulator_recovery::old_generation;
     }
+    if (operation == context_store_publication_simulator_operation::close_attempt) {
+        return context_store_publication_simulator_recovery::new_generation;
+    }
     return context_store_publication_simulator_recovery::old_generation;
 }
 
@@ -196,7 +202,7 @@ void test_every_before_after_resource_failure_and_crash_policy() {
             }
         }
     }
-    assert(runs == 21 * 2 * 8 * 4);
+    assert(runs == 23 * 2 * 8 * 4);
 }
 
 void test_namespace_live_durable_projection() {
@@ -370,7 +376,7 @@ void test_manifest_binding_bounds_and_names() {
     context_store_publication_anchor anchor;
     assert(invalid.read_anchor(anchor) == context_store_publication_step_result::storage_error);
     assert(invalid.objects().empty());
-    assert(invalid.stage_manifest() == context_store_publication_step_result::storage_error);
+    assert(invalid.stage_manifest(request.attempt_id) == context_store_publication_step_result::attempt_fenced);
     assert(!invalid.manifest().temp_live);
     assert(std::string(context_store_publication_simulator_operation_name(
         context_store_publication_simulator_operation::replace_anchor)) == "replace_anchor");
@@ -415,7 +421,7 @@ void test_sequential_stale_retry_and_maximum_bounds() {
         maximum.expected_predecessor, maximum.next, maximum.object_count);
     auto result = writer.publish(maximum, simulator);
     assert(result.status == context_store_publication_status::published);
-    assert(result.completed_steps == 6 * context_store_publication_max_objects_v1 + 9);
+    assert(result.completed_steps == 6 * context_store_publication_max_objects_v1 + 11);
     assert(simulator.trace().size() == 2 * result.completed_steps);
     assert(!simulator.trace_overflowed());
     context_store_publication_anchor anchor;
@@ -468,6 +474,130 @@ void test_post_linearization_stale_injection_is_uncertain() {
     assert(simulator.live_anchor().generation == request.next.generation);
 }
 
+void test_attempt_lifecycle_and_late_call_fencing() {
+    auto request = make_request();
+    auto second_id = request.attempt_id;
+    second_id[0] ^= 0x33;
+    auto third_id = request.attempt_id;
+    third_id[0] ^= 0x55;
+
+    for (auto phase : { context_store_publication_simulator_phase::before,
+                        context_store_publication_simulator_phase::after }) {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        context_store_publication_simulator simulator(
+            request.expected_predecessor, request.next, request.object_count);
+        simulator.set_failpoint({ true,
+            context_store_publication_simulator_operation::begin_attempt,
+            context_store_publication_simulator_no_index, phase,
+            context_store_publication_step_result::interrupted });
+        auto result = writer.publish(request, simulator);
+        assert(result.status == context_store_publication_status::attempt_fencing_uncertain);
+        assert(result.attempt_fence_confirmed);
+        simulator.clear_failpoint();
+        assert(simulator.begin_attempt(second_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::attempt_fenced);
+    }
+
+    {
+        context_store_publication_root_fence fence;
+        context_store_publication_writer writer(fence);
+        context_store_publication_simulator simulator(
+            request.expected_predecessor, request.next, request.object_count);
+        simulator.set_abandonment_uncertain(true);
+        simulator.set_failpoint({ true,
+            context_store_publication_simulator_operation::stage_object, 0,
+            context_store_publication_simulator_phase::before,
+            context_store_publication_step_result::io_error });
+        auto result = writer.publish(request, simulator);
+        assert(result.status == context_store_publication_status::attempt_fencing_uncertain);
+        assert(result.attempt_fence_confirmed);
+        simulator.clear_failpoint();
+        assert(simulator.begin_attempt(second_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::attempt_fenced);
+    }
+
+    {
+        context_store_publication_simulator simulator(
+            request.expected_predecessor, request.next, request.object_count);
+        context_store_publication_anchor observed;
+        assert(simulator.read_anchor(observed) == context_store_publication_step_result::ok);
+        assert(simulator.begin_attempt(request.attempt_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::ok);
+        assert(simulator.stage_object(second_id, 0) == context_store_publication_step_result::attempt_fenced);
+        assert(!simulator.objects()[0].temp_live);
+        assert(simulator.abandon_attempt(request.attempt_id) == context_store_publication_step_result::ok);
+        assert(simulator.stage_object(request.attempt_id, 0) == context_store_publication_step_result::attempt_fenced);
+        assert(simulator.begin_attempt(request.attempt_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::attempt_fenced);
+        assert(simulator.begin_attempt(second_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::ok);
+        assert(simulator.fence_attempt_uncertain(second_id) == context_store_publication_step_result::ok);
+        assert(simulator.stage_object(second_id, 0) == context_store_publication_step_result::attempt_fenced);
+        assert(simulator.begin_attempt(third_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::attempt_fenced);
+    }
+    {
+        context_store_publication_simulator simulator(
+            request.expected_predecessor, request.next, request.object_count);
+        assert(simulator.begin_attempt(request.attempt_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::ok);
+        assert(simulator.abandon_attempt(request.attempt_id) == context_store_publication_step_result::ok);
+        assert(simulator.begin_attempt(second_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::ok);
+        assert(simulator.abandon_attempt(second_id) == context_store_publication_step_result::ok);
+        assert(simulator.begin_attempt(request.attempt_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::attempt_fenced);
+    }
+
+    const std::vector<std::function<void(
+        context_store_publication_anchor &,
+        context_store_publication_anchor &,
+        size_t &)>> binding_mutations = {
+        [](auto & expected, auto &, auto &) { expected.store_id[0] ^= 1; },
+        [](auto & expected, auto &, auto &) { expected.namespace_id[0] ^= 1; },
+        [](auto & expected, auto &, auto &) { expected.checkpoint_lineage_id[0] ^= 1; },
+        [](auto & expected, auto &, auto &) { ++expected.policy_epoch; },
+        [](auto & expected, auto &, auto &) { ++expected.key_generation; },
+        [](auto & expected, auto &, auto &) { ++expected.authority_epoch; },
+        [](auto &, auto & next, auto &) { next.manifest_digest[0] ^= 1; },
+        [](auto &, auto & next, auto &) { next.predecessor_manifest_digest[0] ^= 1; },
+        [](auto &, auto &, auto & count) { ++count; },
+    };
+    for (const auto & mutate : binding_mutations) {
+        context_store_publication_simulator simulator(
+            request.expected_predecessor, request.next, request.object_count);
+        auto expected = request.expected_predecessor;
+        auto next = request.next;
+        auto count = request.object_count;
+        mutate(expected, next, count);
+        const auto status = simulator.begin_attempt(second_id, expected, next, count);
+        assert(status == context_store_publication_step_result::attempt_fenced ||
+               status == context_store_publication_step_result::stale_predecessor);
+        assert(simulator.stage_object(second_id, 0) == context_store_publication_step_result::attempt_fenced);
+    }
+
+    {
+        context_store_publication_root_fence first_fence;
+        context_store_publication_writer first_writer(first_fence);
+        context_store_publication_simulator simulator(
+            request.expected_predecessor, request.next, request.object_count);
+        simulator.set_failpoint({ true,
+            context_store_publication_simulator_operation::stage_object, 0,
+            context_store_publication_simulator_phase::before,
+            context_store_publication_step_result::io_error });
+        auto failed = first_writer.publish(request, simulator);
+        assert(failed.status == context_store_publication_status::storage_error);
+        simulator.clear_failpoint();
+        assert(simulator.stage_object(request.attempt_id, 0) == context_store_publication_step_result::attempt_fenced);
+        assert(simulator.begin_attempt(second_id, request.expected_predecessor,
+            request.next, request.object_count) == context_store_publication_step_result::ok);
+        assert(simulator.stage_object(second_id, 0) == context_store_publication_step_result::ok);
+        assert(simulator.abandon_attempt(second_id) == context_store_publication_step_result::ok);
+        assert(simulator.stage_object(second_id, 0) == context_store_publication_step_result::attempt_fenced);
+    }
+}
+
 } // namespace
 
 int main() {
@@ -479,5 +609,6 @@ int main() {
     test_sequential_stale_retry_and_maximum_bounds();
     test_predecessor_chain_control();
     test_post_linearization_stale_injection_is_uncertain();
+    test_attempt_lifecycle_and_late_call_fencing();
     return 0;
 }
