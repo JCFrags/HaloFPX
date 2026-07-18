@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "artifact_type": "g0a-candidate-source-lock",
+  "status": "candidate",
+  "generated_at_utc": "2026-07-18T01:11:25.300576+00:00",
+  "generation_started_at_utc": "2026-07-18T01:10:06.382607+00:00",
+  "implementation_pin_decision": {
+    "state": "OPEN",
+    "item": "OPEN-PIN-01",
+    "nominated_candidate": "charlie12345/ROCmFPX@61f2f2d7bc4955e9bca821095ef69125837133b5",
+    "research_control": "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394",
+    "note": "This source lock preserves both revisions and does not approve either as the implementation pin."
+  },
+  "generation_environment": {
+    "git": "git version 2.55.0.windows.2",
+    "python": "3.14.4 (tags/v3.14.4:23116f9, Apr  7 2026, 14:10:54) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "workspace_root": "C:\\Users\\britt\\Documents\\Custom_Inference_Project"
+  },
+  "policies": {
+    "clone_mutation": "forbidden; status and refs compared before and after",
+    "network_fetch": "not performed",
+    "checkout": "not performed",
+    "donor_or_imported_code_execution": "not performed",
+    "bundle_scope": "all refs present in each complete, non-shallow local clone at capture time",
+    "license_build_input_inventory": "deterministic path-policy inventory at each locked revision with raw Git blob SHA-256"
+  },
+  "repositories": [
+    {
+      "repository": "charlie12345/ROCmFPX",
+      "slug": "charlie12345__rocmfpx",
+      "canonical_path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\repositories\\charlie12345__rocmfpx",
+      "head": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "branch": "main",
+      "shallow": false,
+      "object_format": "sha1",
+      "remotes_file": "repository-records/charlie12345__rocmfpx--record/remotes.txt",
+      "refs_file": "repository-records/charlie12345__rocmfpx--record/refs.txt",
+      "dirty_state_file": "repository-records/charlie12345__rocmfpx--record/status-before.txt",
+      "worktree_and_refs_unchanged": true,
+      "fsck_strict_passed": true,
+      "locked_revisions": [
+        {
+          "role": "implementation-candidate",
+          "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+          "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+          "parents": [
+            "a5605a72768c6562241b248e268e33dc92787394"
+          ],
+          "commit_date": "2026-07-17T15:41:08-04:00",
+          "author": "Carlo Pasquale <4635904+charlie12345@users.noreply.github.com>",
+          "subject": "hip : avoid full-cache TurboQuant flash-attention staging (#34)",
+          "gitlinks": []
+        },
+        {
+          "role": "research-control",
+          "commit": "a5605a72768c6562241b248e268e33dc92787394",
+          "tree": "6528a116ad015c316948d288b4ffd9c3586c00ad",
+          "parents": [
+            "25c71fc6e12d73bb3804127e032d29fb8976ae40",
+            "a8b5fa906ccd13c6a8ca06d55aa287854c376868"
+          ],
+          "commit_date": "2026-07-16T22:34:40-04:00",
+          "author": "Carlo Pasquale <4635904+charlie12345@users.noreply.github.com>",
+          "subject": "Merge pull request #32 from charlie12345/qualify/hy3-on-github-main-20260716",
+          "gitlinks": []
+        }
+      ],
+      "bundle": {
+        "path": "bundles/charlie12345__rocmfpx--all-refs.bundle",
+        "bytes": 36143527,
+        "sha256": "bcbe6cf910f4dd183d8ad96ea0d936ac85bd636a1cfe570179599d3fc5e307fa",
+        "verify_file": "repository-records/charlie12345__rocmfpx--record/bundle-verify.txt",
+        "verified": true
+      }
+    },
+    {
+      "repository": "fewtarius/llama-ai",
+      "slug": "fewtarius__llama-ai",
+      "canonical_path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\repositories\\fewtarius__llama-ai",
+      "head": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "branch": "main",
+      "shallow": false,
+      "object_format": "sha1",
+      "remotes_file": "repository-records/fewtarius__llama-ai--record/remotes.txt",
+      "refs_file": "repository-records/fewtarius__llama-ai--record/refs.txt",
+      "dirty_state_file": "repository-records/fewtarius__llama-ai--record/status-before.txt",
+      "worktree_and_refs_unchanged": true,
+      "fsck_strict_passed": true,
+      "locked_revisions": [
+        {
+          "role": "operational-requirements-donor",
+          "commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+          "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf",
+          "parents": [
+            "d8a07baad6ab175f8badbc4d496c9190b0cc3b2d"
+          ],
+          "commit_date": "2026-07-08T20:21:33-04:00",
+          "author": "fewtarius <fewtarius@steamfork.org>",
+          "subject": "submodules(CachyLLama): merge upstream/master (61 commits, server fixes)",
+          "gitlinks": [
+            {
+              "path": "CachyLLama",
+              "commit": "6be745998f568e379ea197fcf827baec73ff9940"
+            }
+          ]
+        }
+      ],
+      "bundle": {
+        "path": "bundles/fewtarius__llama-ai--all-refs.bundle",
+        "bytes": 1221275,
+        "sha256": "65915e35a7e628ecdea103d119efcf6f716eb3e9fbbdcaf2a3268812abd72dd4",
+        "verify_file": "repository-records/fewtarius__llama-ai--record/bundle-verify.txt",
+        "verified": true
+      }
+    },
+    {
+      "repository": "fewtarius/CachyLLama",
+      "slug": "fewtarius__cachyllama",
+      "canonical_path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\repositories\\fewtarius__cachyllama",
+      "head": "6be745998f568e379ea197fcf827baec73ff9940",
+      "branch": "master",
+      "shallow": false,
+      "object_format": "sha1",
+      "remotes_file": "repository-records/fewtarius__cachyllama--record/remotes.txt",
+      "refs_file": "repository-records/fewtarius__cachyllama--record/refs.txt",
+      "dirty_state_file": "repository-records/fewtarius__cachyllama--record/status-before.txt",
+      "worktree_and_refs_unchanged": true,
+      "fsck_strict_passed": true,
+      "locked_revisions": [
+        {
+          "role": "mit-engine-donor",
+          "commit": "6be745998f568e379ea197fcf827baec73ff9940",
+          "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd",
+          "parents": [
+            "c8ead677a7fe42fb0a67e6e866fb254cc338e9fd",
+            "92366df30d4eaa4b85139b5fd694360237731b19"
+          ],
+          "commit_date": "2026-07-08T20:17:28-04:00",
+          "author": "fewtarius <fewtarius@steamfork.org>",
+          "subject": "Merge upstream/master: 61 commits (server: SSD checkpoint fix, eviction, SSE ping, /responses timings, prompt cache RAM limit, HTTP CLI, schema validation, UI context gauge, MCP, OpenCL/SYCL/Vulkan backends)",
+          "gitlinks": []
+        },
+        {
+          "role": "donor-comparison-parent",
+          "commit": "92366df30d4eaa4b85139b5fd694360237731b19",
+          "tree": "2a9a8f997e8315566940b421de84730c7f34fda0",
+          "parents": [
+            "a646006f09d2f76f2d62d6c0d5e8e8490d570720"
+          ],
+          "commit_date": "2026-07-08T15:52:21-07:00",
+          "author": "Hongqiang Wang <wangh@qti.qualcomm.com>",
+          "subject": "opencl:  Q6_K GEMM/GEMV fix for ne01 of weights that are not multiples of 128.  (#25464)",
+          "gitlinks": []
+        }
+      ],
+      "bundle": {
+        "path": "bundles/fewtarius__cachyllama--all-refs.bundle",
+        "bytes": 377303761,
+        "sha256": "fc9b1e067de688527580f9f5a2b297b277e076e131d37544dbd7e29456975d80",
+        "verify_file": "repository-records/fewtarius__cachyllama--record/bundle-verify.txt",
+        "verified": true
+      }
+    },
+    {
+      "repository": "ggml-org/llama.cpp",
+      "slug": "ggml-org__llama.cpp",
+      "canonical_path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\repositories\\ggml-org__llama.cpp",
+      "head": "6bdd77f13cf11b264b4231d320afc404f48d576e",
+      "branch": "master",
+      "shallow": false,
+      "object_format": "sha1",
+      "remotes_file": "repository-records/ggml-org__llama.cpp--record/remotes.txt",
+      "refs_file": "repository-records/ggml-org__llama.cpp--record/refs.txt",
+      "dirty_state_file": "repository-records/ggml-org__llama.cpp--record/status-before.txt",
+      "worktree_and_refs_unchanged": true,
+      "fsck_strict_passed": true,
+      "locked_revisions": [
+        {
+          "role": "captured-head",
+          "commit": "6bdd77f13cf11b264b4231d320afc404f48d576e",
+          "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6",
+          "parents": [
+            "86d86ed4396b4130922f7b9af26e3d9fc11a591b"
+          ],
+          "commit_date": "2026-07-17T12:02:27-07:00",
+          "author": "Hongqiang Wang <wangh@qti.qualcomm.com>",
+          "subject": "opencl:  read/write MoE dp4a activation tiles to local memory as 128-bit (vectorized LD/ST perf opt) for Adreno GPUs (#25810)",
+          "gitlinks": []
+        },
+        {
+          "role": "wiki-upstream-control",
+          "commit": "788e07dc91d266ad3162a1ce9037665656269689",
+          "tree": "e37a1764d53553379bb39bb52c25c00ce21ced08",
+          "parents": [
+            "0bd0ec60998d0f71ec45471b633bf2403ac81956"
+          ],
+          "commit_date": "2026-07-17T08:42:59+02:00",
+          "author": "Jeff Bolz <jbolz@nvidia.com>",
+          "subject": "vulkan: Support Q2_0 (#25430)",
+          "gitlinks": []
+        },
+        {
+          "role": "donor-comparison-parent",
+          "commit": "92366df30d4eaa4b85139b5fd694360237731b19",
+          "tree": "2a9a8f997e8315566940b421de84730c7f34fda0",
+          "parents": [
+            "a646006f09d2f76f2d62d6c0d5e8e8490d570720"
+          ],
+          "commit_date": "2026-07-08T15:52:21-07:00",
+          "author": "Hongqiang Wang <wangh@qti.qualcomm.com>",
+          "subject": "opencl:  Q6_K GEMM/GEMV fix for ne01 of weights that are not multiples of 128.  (#25464)",
+          "gitlinks": []
+        }
+      ],
+      "bundle": {
+        "path": "bundles/ggml-org__llama.cpp--all-refs.bundle",
+        "bytes": 430919351,
+        "sha256": "66f5e48ec9b175c191d6a57eeef4d0da98e4fdb6ae86edc1a9d1bab40082623a",
+        "verify_file": "repository-records/ggml-org__llama.cpp--record/bundle-verify.txt",
+        "verified": true
+      }
+    }
+  ],
+  "deltas": [
+    {
+      "repository_slug": "charlie12345__rocmfpx",
+      "label": "research-control_to_implementation-candidate",
+      "from": "a5605a72768c6562241b248e268e33dc92787394",
+      "to": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "aggregate_patch_id_file": "patch-ids/charlie12345__rocmfpx--research-control_to_implementation-candidate--aggregate.patch-id",
+      "series_patch_ids_file": "patch-ids/charlie12345__rocmfpx--research-control_to_implementation-candidate--series.patch-ids"
+    },
+    {
+      "repository_slug": "fewtarius__cachyllama",
+      "label": "upstream-comparison-parent_to_donor-head",
+      "from": "92366df30d4eaa4b85139b5fd694360237731b19",
+      "to": "6be745998f568e379ea197fcf827baec73ff9940",
+      "aggregate_patch_id_file": "patch-ids/fewtarius__cachyllama--upstream-comparison-parent_to_donor-head--aggregate.patch-id",
+      "series_patch_ids_file": "patch-ids/fewtarius__cachyllama--upstream-comparison-parent_to_donor-head--series.patch-ids"
+    },
+    {
+      "repository_slug": "fewtarius__cachyllama",
+      "label": "custom-first-parent_to_merge-head",
+      "from": "c8ead677a7fe42fb0a67e6e866fb254cc338e9fd",
+      "to": "6be745998f568e379ea197fcf827baec73ff9940",
+      "aggregate_patch_id_file": "patch-ids/fewtarius__cachyllama--custom-first-parent_to_merge-head--aggregate.patch-id",
+      "series_patch_ids_file": "patch-ids/fewtarius__cachyllama--custom-first-parent_to_merge-head--series.patch-ids"
+    },
+    {
+      "repository_slug": "ggml-org__llama.cpp",
+      "label": "donor-comparison-parent_to_wiki-control",
+      "from": "92366df30d4eaa4b85139b5fd694360237731b19",
+      "to": "788e07dc91d266ad3162a1ce9037665656269689",
+      "aggregate_patch_id_file": "patch-ids/ggml-org__llama.cpp--donor-comparison-parent_to_wiki-control--aggregate.patch-id",
+      "series_patch_ids_file": "patch-ids/ggml-org__llama.cpp--donor-comparison-parent_to_wiki-control--series.patch-ids"
+    },
+    {
+      "repository_slug": "ggml-org__llama.cpp",
+      "label": "wiki-control_to_captured-head",
+      "from": "788e07dc91d266ad3162a1ce9037665656269689",
+      "to": "6bdd77f13cf11b264b4231d320afc404f48d576e",
+      "aggregate_patch_id_file": "patch-ids/ggml-org__llama.cpp--wiki-control_to_captured-head--aggregate.patch-id",
+      "series_patch_ids_file": "patch-ids/ggml-org__llama.cpp--wiki-control_to_captured-head--series.patch-ids"
+    }
+  ]
+}

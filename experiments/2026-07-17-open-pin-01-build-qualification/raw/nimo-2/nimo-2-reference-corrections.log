@@ -1,0 +1,463 @@
+######## control a5605a72768c6562241b248e268e33dc92787394 ########
+===== control-rocmfp4-quant-regression-corrected =====
+argv=env ROOT=/home/connorb/halofpx-lab/open-pin-01/control BUILD_DIR=/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01 /home/connorb/halofpx-lab/open-pin-01/control/scripts/check-rocmfp4-quant-regression.sh
+q4_0_rocmfp4
+  quantize_row_q_reference
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   4426.86
+      avg cycles/32 vals   :   4625.20
+      float32 throughput   :      0.08 GB/s
+      quantized throughput :      0.01 GB/s
+
+  quantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   4401.68
+      avg cycles/32 vals   :   4419.55
+      float32 throughput   :      0.08 GB/s
+      quantized throughput :      0.01 GB/s
+
+  dequantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :     33.25
+      avg cycles/32 vals   :     33.30
+      float32 throughput   :     10.73 GB/s
+      quantized throughput :      1.51 GB/s
+
+  quantize_row_q_dot
+    65536 values (0.25 MB)
+      min cycles/32 vals   :     10.37
+      avg cycles/32 vals   :     10.39
+      float32 throughput   :     34.15 GB/s
+      quantized throughput :      4.80 GB/s
+
+  vec_dot_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :      9.54
+      avg cycles/32 vals   :      9.55
+      float32 throughput   :     36.99 GB/s
+      quantized throughput :      5.20 GB/s
+q4_0_rocmfp4_fast
+  quantize_row_q_reference
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   4261.77
+      avg cycles/32 vals   :   4472.41
+      float32 throughput   :      0.08 GB/s
+      quantized throughput :      0.01 GB/s
+
+  quantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   4273.56
+      avg cycles/32 vals   :   4294.17
+      float32 throughput   :      0.08 GB/s
+      quantized throughput :      0.01 GB/s
+
+  dequantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :     32.90
+      avg cycles/32 vals   :     32.95
+      float32 throughput   :     10.85 GB/s
+      quantized throughput :      1.44 GB/s
+
+  quantize_row_q_dot
+    65536 values (0.25 MB)
+      min cycles/32 vals   :     10.30
+      avg cycles/32 vals   :     10.31
+      float32 throughput   :     34.88 GB/s
+      quantized throughput :      4.63 GB/s
+
+  vec_dot_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :      7.18
+      avg cycles/32 vals   :      7.18
+      float32 throughput   :     49.32 GB/s
+      quantized throughput :      6.55 GB/s
+q4_0_rocmfp4
+  quantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   5876.46
+      avg cycles/32 vals   :   5914.36
+      float32 throughput   :      0.06 GB/s
+      quantized throughput :      0.01 GB/s
+q4_0_rocmfp4_fast
+  quantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   5090.45
+      avg cycles/32 vals   :   5341.70
+      float32 throughput   :      0.07 GB/s
+      quantized throughput :      0.01 GB/s
+PASS: q4_0_rocmfp4 4401.68 cycles/32 <= 5450.00
+PASS: q4_0_rocmfp4_fast 4273.56 cycles/32 <= 4700.00
+PASS: q4_0_rocmfp4 dequant 33.25 cycles/32 <= 42.00
+PASS: q4_0_rocmfp4_fast dequant 32.90 cycles/32 <= 42.00
+PASS: q4_0_rocmfp4 vec_dot 9.54 cycles/32 <= 36.00
+PASS: q4_0_rocmfp4_fast vec_dot 7.18 cycles/32 <= 32.00
+PASS: q4_0_rocmfp4 imatrix 5876.46 cycles/32 <= 7350.00
+PASS: q4_0_rocmfp4_fast imatrix 5090.45 cycles/32 <= 6300.00
+rc=0
+===== control-list-ops-corrected =====
+argv=env LD_LIBRARY_PATH=/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-backend-ops --list-ops
+GGML operations:
+  ABS
+  ACC
+  ADD
+  ADD1
+  ADD_ID
+  ADD_REL_POS
+  ARANGE
+  ARGMAX
+  ARGSORT
+  CEIL
+  CLAMP
+  COL2IM_1D
+  CONCAT
+  CONT
+  CONV_2D
+  CONV_2D_DW
+  CONV_3D
+  CONV_TRANSPOSE_1D
+  CONV_TRANSPOSE_2D
+  COS
+  COUNT_EQUAL
+  CPY
+  CROSS_ENTROPY_LOSS
+  CROSS_ENTROPY_LOSS_BACK
+  CUMSUM
+  CUSTOM
+  DIAG
+  DIAG_MASK_INF
+  DIAG_MASK_ZERO
+  DIV
+  DSV4_FP8_KV_QUANTIZE
+  DSV4_HC_EXPAND
+  DSV4_HC_SPLIT_SINKHORN
+  DSV4_HC_WEIGHTED_SUM
+  DSV4_ROPE_TAIL
+  DUP
+  ELU
+  EXP
+  EXPM1
+  FILL
+  FLASH_ATTN_BACK
+  FLASH_ATTN_EXT
+  FLOOR
+  GATED_DELTA_NET
+  GATED_LINEAR_ATTN
+  GEGLU
+  GEGLU_ERF
+  GEGLU_QUICK
+  GELU
+  GELU_ERF
+  GELU_QUICK
+  GET_REL_POS
+  GET_ROWS
+  GET_ROWS_BACK
+  GLU
+  GROUP_NORM
+  HARDSIGMOID
+  HARDSWISH
+  IM2COL
+  IM2COL_3D
+  IM2COL_BACK
+  L2_NORM
+  LEAKY_RELU
+  LOG
+  MAP_CUSTOM1
+  MAP_CUSTOM2
+  MAP_CUSTOM3
+  MEAN
+  MUL
+  MUL_MAT
+  MUL_MAT_ID
+  NEG
+  NORM
+  OPT_STEP_ADAMW
+  OPT_STEP_SGD
+  OUT_PROD
+  PAD
+  PAD_REFLECT_1D
+  PERMUTE
+  POOL_1D
+  POOL_2D
+  POOL_2D_BACK
+  REGLU
+  RELU
+  REPEAT
+  REPEAT_BACK
+  RESHAPE
+  RMS_NORM
+  RMS_NORM_BACK
+  ROLL
+  ROPE
+  ROPE_BACK
+  ROUND
+  RWKV_WKV6
+  RWKV_WKV7
+  SCALE
+  SET
+  SET_ROWS
+  SGN
+  SIGMOID
+  SILU
+  SILU_BACK
+  SIN
+  SOFTPLUS
+  SOFT_MAX
+  SOFT_MAX_BACK
+  SOLVE_TRI
+  SQR
+  SQRT
+  SSM_CONV
+  SSM_SCAN
+  STEP
+  SUB
+  SUM
+  SUM_ROWS
+  SWIGLU
+  SWIGLU_OAI
+  TANH
+  TIMESTEP_EMBEDDING
+  TOP_K
+  TRANSPOSE
+  TRI
+  TRUNC
+  UNARY
+  UPSCALE
+  VIEW
+  WIN_PART
+  WIN_UNPART
+  XIELU
+
+Total: 129 operations
+rc=0
+######## candidate 61f2f2d7bc4955e9bca821095ef69125837133b5 ########
+===== candidate-rocmfp4-quant-regression-corrected =====
+argv=env ROOT=/home/connorb/halofpx-lab/open-pin-01/candidate BUILD_DIR=/home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01 /home/connorb/halofpx-lab/open-pin-01/candidate/scripts/check-rocmfp4-quant-regression.sh
+q4_0_rocmfp4
+  quantize_row_q_reference
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   4244.47
+      avg cycles/32 vals   :   4331.93
+      float32 throughput   :      0.08 GB/s
+      quantized throughput :      0.01 GB/s
+
+  quantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   4229.59
+      avg cycles/32 vals   :   4270.24
+      float32 throughput   :      0.08 GB/s
+      quantized throughput :      0.01 GB/s
+
+  dequantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :     33.28
+      avg cycles/32 vals   :     33.32
+      float32 throughput   :     10.71 GB/s
+      quantized throughput :      1.51 GB/s
+
+  quantize_row_q_dot
+    65536 values (0.25 MB)
+      min cycles/32 vals   :     10.47
+      avg cycles/32 vals   :     10.64
+      float32 throughput   :     33.22 GB/s
+      quantized throughput :      4.67 GB/s
+
+  vec_dot_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :      9.55
+      avg cycles/32 vals   :      9.56
+      float32 throughput   :     37.27 GB/s
+      quantized throughput :      5.24 GB/s
+q4_0_rocmfp4_fast
+  quantize_row_q_reference
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   4523.38
+      avg cycles/32 vals   :   4683.72
+      float32 throughput   :      0.08 GB/s
+      quantized throughput :      0.01 GB/s
+
+  quantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   4486.16
+      avg cycles/32 vals   :   4501.03
+      float32 throughput   :      0.08 GB/s
+      quantized throughput :      0.01 GB/s
+
+  dequantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :     33.06
+      avg cycles/32 vals   :     33.27
+      float32 throughput   :     10.76 GB/s
+      quantized throughput :      1.43 GB/s
+
+  quantize_row_q_dot
+    65536 values (0.25 MB)
+      min cycles/32 vals   :     10.28
+      avg cycles/32 vals   :     10.32
+      float32 throughput   :     34.63 GB/s
+      quantized throughput :      4.60 GB/s
+
+  vec_dot_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :      7.19
+      avg cycles/32 vals   :      7.20
+      float32 throughput   :     49.32 GB/s
+      quantized throughput :      6.55 GB/s
+q4_0_rocmfp4
+  quantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   5892.45
+      avg cycles/32 vals   :   6086.37
+      float32 throughput   :      0.06 GB/s
+      quantized throughput :      0.01 GB/s
+q4_0_rocmfp4_fast
+  quantize_row_q
+    65536 values (0.25 MB)
+      min cycles/32 vals   :   5082.93
+      avg cycles/32 vals   :   5094.18
+      float32 throughput   :      0.07 GB/s
+      quantized throughput :      0.01 GB/s
+PASS: q4_0_rocmfp4 4229.59 cycles/32 <= 5450.00
+PASS: q4_0_rocmfp4_fast 4486.16 cycles/32 <= 4700.00
+PASS: q4_0_rocmfp4 dequant 33.28 cycles/32 <= 42.00
+PASS: q4_0_rocmfp4_fast dequant 33.06 cycles/32 <= 42.00
+PASS: q4_0_rocmfp4 vec_dot 9.55 cycles/32 <= 36.00
+PASS: q4_0_rocmfp4_fast vec_dot 7.19 cycles/32 <= 32.00
+PASS: q4_0_rocmfp4 imatrix 5892.45 cycles/32 <= 7350.00
+PASS: q4_0_rocmfp4_fast imatrix 5082.93 cycles/32 <= 6300.00
+rc=0
+===== candidate-list-ops-corrected =====
+argv=env LD_LIBRARY_PATH=/home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-backend-ops --list-ops
+GGML operations:
+  ABS
+  ACC
+  ADD
+  ADD1
+  ADD_ID
+  ADD_REL_POS
+  ARANGE
+  ARGMAX
+  ARGSORT
+  CEIL
+  CLAMP
+  COL2IM_1D
+  CONCAT
+  CONT
+  CONV_2D
+  CONV_2D_DW
+  CONV_3D
+  CONV_TRANSPOSE_1D
+  CONV_TRANSPOSE_2D
+  COS
+  COUNT_EQUAL
+  CPY
+  CROSS_ENTROPY_LOSS
+  CROSS_ENTROPY_LOSS_BACK
+  CUMSUM
+  CUSTOM
+  DIAG
+  DIAG_MASK_INF
+  DIAG_MASK_ZERO
+  DIV
+  DSV4_FP8_KV_QUANTIZE
+  DSV4_HC_EXPAND
+  DSV4_HC_SPLIT_SINKHORN
+  DSV4_HC_WEIGHTED_SUM
+  DSV4_ROPE_TAIL
+  DUP
+  ELU
+  EXP
+  EXPM1
+  FILL
+  FLASH_ATTN_BACK
+  FLASH_ATTN_EXT
+  FLOOR
+  GATED_DELTA_NET
+  GATED_LINEAR_ATTN
+  GEGLU
+  GEGLU_ERF
+  GEGLU_QUICK
+  GELU
+  GELU_ERF
+  GELU_QUICK
+  GET_REL_POS
+  GET_ROWS
+  GET_ROWS_BACK
+  GLU
+  GROUP_NORM
+  HARDSIGMOID
+  HARDSWISH
+  IM2COL
+  IM2COL_3D
+  IM2COL_BACK
+  L2_NORM
+  LEAKY_RELU
+  LOG
+  MAP_CUSTOM1
+  MAP_CUSTOM2
+  MAP_CUSTOM3
+  MEAN
+  MUL
+  MUL_MAT
+  MUL_MAT_ID
+  NEG
+  NORM
+  OPT_STEP_ADAMW
+  OPT_STEP_SGD
+  OUT_PROD
+  PAD
+  PAD_REFLECT_1D
+  PERMUTE
+  POOL_1D
+  POOL_2D
+  POOL_2D_BACK
+  REGLU
+  RELU
+  REPEAT
+  REPEAT_BACK
+  RESHAPE
+  RMS_NORM
+  RMS_NORM_BACK
+  ROLL
+  ROPE
+  ROPE_BACK
+  ROUND
+  RWKV_WKV6
+  RWKV_WKV7
+  SCALE
+  SET
+  SET_ROWS
+  SGN
+  SIGMOID
+  SILU
+  SILU_BACK
+  SIN
+  SOFTPLUS
+  SOFT_MAX
+  SOFT_MAX_BACK
+  SOLVE_TRI
+  SQR
+  SQRT
+  SSM_CONV
+  SSM_SCAN
+  STEP
+  SUB
+  SUM
+  SUM_ROWS
+  SWIGLU
+  SWIGLU_OAI
+  TANH
+  TIMESTEP_EMBEDDING
+  TOP_K
+  TRANSPOSE
+  TRI
+  TRUNC
+  UNARY
+  UPSCALE
+  VIEW
+  WIN_PART
+  WIN_UNPART
+  XIELU
+
+Total: 129 operations
+rc=0
+overall_rc=0

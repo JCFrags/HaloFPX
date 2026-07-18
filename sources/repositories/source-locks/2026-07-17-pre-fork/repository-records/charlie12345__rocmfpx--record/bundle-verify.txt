@@ -1,0 +1,13 @@
+The bundle contains these 10 refs:
+61f2f2d7bc4955e9bca821095ef69125837133b5 refs/heads/main
+61f2f2d7bc4955e9bca821095ef69125837133b5 refs/remotes/origin/HEAD
+1b49f4a004b8a2e0183c6cda7a61e7d322ac8d60 refs/remotes/origin/agent/add-buy-me-a-coffee
+ccac6e55ec7c0fa8acdcb6e80b1a242e4f7d654e refs/remotes/origin/agent/promote-experimental-to-main-2026-07-11
+5b3956605309dd3e6beed49c8f3a41423ba71d25 refs/remotes/origin/archive/main-before-experimental-2026-07-11
+a6a93765f7ce9779c13f9881164a65f7a9f31198 refs/remotes/origin/experimental-rocmfpx-branch
+0578237f969d0b4858aa6dac018d98188f1f7560 refs/remotes/origin/fix/hip-turbo-fa-vram
+61f2f2d7bc4955e9bca821095ef69125837133b5 refs/remotes/origin/main
+a8b5fa906ccd13c6a8ca06d55aa287854c376868 refs/remotes/origin/qualify/hy3-on-github-main-20260716
+61f2f2d7bc4955e9bca821095ef69125837133b5 HEAD
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1

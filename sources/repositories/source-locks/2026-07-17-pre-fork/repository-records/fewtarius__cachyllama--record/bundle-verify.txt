@@ -1,0 +1,11 @@
+The bundle contains these 8 refs:
+6be745998f568e379ea197fcf827baec73ff9940 refs/heads/master
+b56d9c952380f760bb69046352324e5f706b1a90 refs/remotes/origin/20260625
+de62cdfbd5def9104a396975b0679eb90fd23f5e refs/remotes/origin/20260630
+4db9548a8c421da633e1124b4d4110b82306803e refs/remotes/origin/20260704
+c8ead677a7fe42fb0a67e6e866fb254cc338e9fd refs/remotes/origin/20260708
+6be745998f568e379ea197fcf827baec73ff9940 refs/remotes/origin/HEAD
+6be745998f568e379ea197fcf827baec73ff9940 refs/remotes/origin/master
+6be745998f568e379ea197fcf827baec73ff9940 HEAD
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1

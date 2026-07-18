@@ -1,0 +1,86 @@
+timestamp=2026-07-17T18:42:50-07:00
+host=nimo-1
+Filesystem     1G-blocks  Used Available Use% Mounted on
+/dev/nvme0n1p2      932G  889G       43G  96% /
+61f2f2d7bc4955e9bca821095ef69125837133b5
+0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd
+MemAvailable:   128180024 kB
+SwapTotal:      33554428 kB
+SwapFree:       33536340 kB
+CMAKE_BUILD_TYPE=Release
+-- Warning: ccache not found - consider installing it for faster compilation or disable this warning with GGML_CCACHE=OFF
+-- CMAKE_SYSTEM_PROCESSOR: x86_64
+-- GGML_SYSTEM_ARCH: x86
+-- Including CPU backend
+-- x86 detected
+-- Adding CPU backend variant ggml-cpu: -march=native 
+-- HIP and hipBLAS found
+-- Including HIP backend
+-- Using RPC backend
+--   RDMA transport disabled
+-- Including RPC backend
+-- Vulkan found
+-- GL_KHR_cooperative_matrix supported by glslc
+-- GL_NV_cooperative_matrix2 supported by glslc
+-- GL_NV_cooperative_matrix_decode_vector not supported by glslc
+-- GL_EXT_integer_dot_product supported by glslc
+-- GL_EXT_bfloat16 supported by glslc
+-- Including Vulkan backend
+-- ggml version: 0.11.1
+-- ggml commit:  61f2f2d
+-- OpenSSL found: 3.6.3
+-- Generating embedded license file for target: llama-common
+-- Configuring done (0.5s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01-rpc
+[  0%] Performing build step for 'vulkan-shaders-gen'
+[  3%] Built target ggml-base
+[  3%] Built target ggml-rpc
+[  5%] Built target ggml-cpu
+[100%] Built target vulkan-shaders-gen
+[  5%] Performing install step for 'vulkan-shaders-gen'
+[  5%] Linking HIP shared library ../../../bin/libggml-hip.so
+-- Up-to-date: /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01-rpc/Release/./vulkan-shaders-gen
+[  7%] Completed 'vulkan-shaders-gen'
+[  7%] Built target vulkan-shaders-gen
+[ 66%] Built target ggml-vulkan
+[100%] Built target ggml-hip
+[100%] Linking CXX shared library ../../bin/libggml.so
+[100%] Built target ggml
+[100%] Linking CXX executable ../../bin/rpc-server
+[100%] Built target rpc-server
+[  0%] Performing build step for 'vulkan-shaders-gen'
+[  0%] Built target llama-common-base
+[  2%] Built target ggml-base
+[  2%] Built target cpp-httplib
+[  2%] Built target ggml-rpc
+[  3%] Built target ggml-cpu
+[ 25%] Built target ggml-hip
+[100%] Built target vulkan-shaders-gen
+[ 25%] Performing install step for 'vulkan-shaders-gen'
+-- Up-to-date: /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01-rpc/Release/./vulkan-shaders-gen
+[ 26%] Completed 'vulkan-shaders-gen'
+[ 26%] Built target vulkan-shaders-gen
+[ 65%] Built target ggml-vulkan
+[ 65%] Built target ggml
+[ 66%] Linking CXX shared library ../bin/libllama.so
+[ 88%] Built target llama
+[ 88%] Linking CXX shared library ../../bin/libmtmd.so
+[ 88%] Building CXX object common/CMakeFiles/llama-common.dir/__/license.cpp.o
+[ 89%] Linking CXX shared library ../bin/libllama-common.so
+[ 94%] Built target mtmd
+[ 97%] Built target llama-common
+[ 98%] Built target server-context
+[ 98%] Linking CXX executable ../../bin/llama-server
+[100%] Built target llama-server
+
+real	0m0.828s
+user	0m0.705s
+sys	0m1.026s
+3327b1d7165d6084aeff8694163b1a69a1110dd7538a89389794bba9d78d5868  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01-rpc/bin/rpc-server
+d752b7f327b51d50f3a868fda537ffec90f999ae2144ad61416203ccc12d4b4c  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01-rpc/bin/llama-server
+Filesystem     1G-blocks  Used Available Use% Mounted on
+/dev/nvme0n1p2      932G  888G       43G  96% /
+MemAvailable:   128127624 kB
+SwapTotal:      33554428 kB
+SwapFree:       33536340 kB

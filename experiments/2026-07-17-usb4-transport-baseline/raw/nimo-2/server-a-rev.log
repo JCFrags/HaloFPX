@@ -1,0 +1,26 @@
+-----------------------------------------------------------
+Server listening on 55201 (test #1)
+-----------------------------------------------------------
+Accepted connection from 10.44.0.1, port 44163
+[  6] local 10.44.0.2 port 55201 connected to 10.44.0.1 port 34951
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  6]   0.00-1.00   sec  1.09 GBytes  9.34 Gbits/sec    1    725 KBytes       (omitted)
+[  6]   1.00-2.00   sec  1.10 GBytes  9.43 Gbits/sec    0    725 KBytes       (omitted)
+[  6]   0.00-1.00   sec  1.10 GBytes  9.41 Gbits/sec    0    725 KBytes       
+[  6]   1.00-2.00   sec  1.10 GBytes  9.42 Gbits/sec    0    725 KBytes       
+[  6]   2.00-3.00   sec  1.09 GBytes  9.40 Gbits/sec    0    725 KBytes       
+[  6]   3.00-4.00   sec  1.10 GBytes  9.41 Gbits/sec    0    725 KBytes       
+[  6]   4.00-5.00   sec  1.10 GBytes  9.41 Gbits/sec    0    725 KBytes       
+[  6]   5.00-6.00   sec  1.10 GBytes  9.43 Gbits/sec    0    725 KBytes       
+[  6]   6.00-7.00   sec  1.10 GBytes  9.42 Gbits/sec    0    725 KBytes       
+[  6]   7.00-8.00   sec  1.10 GBytes  9.42 Gbits/sec    0    725 KBytes       
+[  6]   8.00-9.00   sec  1.10 GBytes  9.42 Gbits/sec    0    725 KBytes       
+[  6]   9.00-10.00  sec  1.10 GBytes  9.43 Gbits/sec    0    725 KBytes       
+[  6]  10.00-11.00  sec  1.10 GBytes  9.42 Gbits/sec    0    725 KBytes       
+[  6]  11.00-12.00  sec  1.10 GBytes  9.42 Gbits/sec    0    725 KBytes       
+[  6]  12.00-13.00  sec  1.10 GBytes  9.42 Gbits/sec    0    725 KBytes       
+[  6]  13.00-14.00  sec  1.10 GBytes  9.44 Gbits/sec    0    725 KBytes       
+[  6]  14.00-15.00  sec  1.10 GBytes  9.43 Gbits/sec    0    725 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  6]   0.00-15.00  sec  16.5 GBytes  9.42 Gbits/sec    0            sender

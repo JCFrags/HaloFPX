@@ -4,15 +4,17 @@
 
 **[VERIFIED]** The v03 fork plan passed independent review for authorized L00A/local read-only Phase 0A only: existing-object verification, local cryptographic inventories/bundles/manifests, provenance/license records, static source archaeology, and non-executing Stage 1 candidate-asset inspection. **[OPEN]** This acceptance does not authorize remote or commit mutation, candidate-tool execution without a separately approved Stage 2 isolation contract, donor import or implementation, persistence work, deployment, or disruptive target-node activity. [Fork-plan v03](../reviews/plans/2026-07-17__rocmfpx-llama-ai-fork-plan__draft__v03.md) and [final review](../reviews/plans/2026-07-17__rocmfpx-llama-ai-fork-plan__review__v03.md)
 
+**[MEASURED]** A later explicit user authorization permits controlled local experiments on both target nodes and unloading the current model. It does not authorize donor import, remote-fork creation, production cutover, model/cache deletion, or release promotion. The controlled unload and current experiment scopes are preserved under `sources/measurements/2026-07-17-local-preparation/` and `experiments/`.
+
 ## Gate map
 
 | Gate | Required evidence | Current state |
 |---|---|---|
-| G0A local source identity | selected candidate, full commit/tree/gitlinks, clean state, bundles, patch/license/build-input manifest, hashes | **[OPEN]** Clones and research pins exist; candidate selection and complete offline/source-lock receipt remain |
+| G0A local source identity | selected candidate, full commit/tree/gitlinks, clean state, bundles, patch/license/build-input manifest, hashes | **[OPEN]** Complete candidate source-lock package and offline bundles exist; only selected-pin decision `OPEN-PIN-01` remains |
 | G0B repository governance | owner/name, visibility, fork form, permissions, branch protections, force-push/tag/signing policy, evidence location, create/push authority | **[OPEN]** `OPEN-GOV-01` |
 | G0C candidate test assets | hashes, provenance, license, static review, isolated deterministic validation, explicit promotion | **[OPEN]** Imported scripts remain untrusted candidate code; `OPEN-TEST-01` |
-| G1 provenance/license | every selected capability at P3; treatment, dependency closure, notices/SBOM, distribution and clean-reimplementation decisions | **[OPEN]** Direct cherry-pick roster is empty; `OPEN-PROV-01`, `OPEN-LIC-01` |
-| G2 target baseline | selected ROCmFPX builds and is characterized on both nodes with exact manifests and approved API/cache/backend fixtures | **[OPEN]** `OPEN-PIN-01`, `OPEN-BASE-01`, `OPEN-API-01` |
+| G1 provenance/license | every selected capability at P3; treatment, dependency closure, notices/SBOM, distribution and clean-reimplementation decisions | **[OPEN]** Static Git archaeology completed P2 lineage only; direct cherry-pick roster remains empty; `OPEN-PROV-01`, `OPEN-LIC-01` |
+| G2 target baseline | selected ROCmFPX builds and is characterized on both nodes with exact manifests and approved API/cache/backend fixtures | **[IN PROGRESS]** Both candidate revisions build reproducibly on both nodes; CPU references, ROCm0 attention matrices, and small-model F16/Turbo4 request smokes pass. Turbo4 output differs reproducibly from F16 and quality remains unresolved; `OPEN-PIN-01`, `OPEN-BASE-01`, `OPEN-API-01` remain open |
 | G3 feature-off equivalence | defaults, API, scheduler, current cache, quantization, MTP/speculative, HIP/Vulkan, RPC behavior match approved baseline | **[OPEN]** No integration implementation exists |
 | G4–G7 persistent-state safety | complete transactional restore, corruption-as-miss, crash/storage safety, isolation, quotas/reserve, diagnostics, rollback | **[OPEN]** Format/state/scope/storage contracts and experiments unresolved |
 | G8 target matrix | both nimo hosts pass exact build/runtime matrix; package and boot skew controlled | **[OPEN]** Live inventory is evidence, not qualification |

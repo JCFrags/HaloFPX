@@ -1,0 +1,53 @@
+0.00.024.177 I log_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.024.179 I device_info:
+0.00.024.222 I   - ROCm0   : AMD Radeon 8060S Graphics (126976 MiB, 125322 MiB free)
+0.00.024.253 I   - Vulkan0 : AMD Radeon 8060S Graphics (RADV STRIX_HALO) (128000 MiB, 127830 MiB free)
+0.00.024.256 I   - CPU     : AMD RYZEN AI MAX+ 395 w/ Radeon 8060S (127433 MiB, 127433 MiB free)
+0.00.024.298 I system_info: n_threads = 16 (n_threads_batch = 16) / 32 | ROCm : FORCE_MMQ = 1 | NO_VMM = 1 | PEER_MAX_BATCH_SIZE = 128 | CPU : SSE3 = 1 | SSSE3 = 1 | AVX = 1 | AVX_VNNI = 1 | AVX2 = 1 | F16C = 1 | FMA = 1 | BMI2 = 1 | AVX512 = 1 | AVX512_VBMI = 1 | AVX512_VNNI = 1 | AVX512_BF16 = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.00.024.328 I srv          init: running without SSL
+0.00.024.363 I srv          init: using 31 threads for HTTP server
+0.00.024.364 I srv          init: the WebUI is disabled
+0.00.024.436 I srv         start: binding port with default address family
+0.00.025.550 I srv          main: loading model
+0.00.025.558 I srv    load_model: loading model '/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-4b-gguf__bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q8_0.gguf'
+0.00.025.579 I common_init_result: fitting params to device memory ...
+0.00.025.580 I common_init_result: (for bugs during this step try to reproduce them with -fit off, or provide --verbose logs if the bug only occurs with -fit on)
+0.00.222.095 W load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+0.00.724.919 W llama_context: n_ctx_seq (4096) < n_ctx_train (40960) -- the full capacity of the model will not be utilized
+0.00.735.220 W llama_kv_cache: attention rotation disabled for fp3 ROCmFPX/TurboQuant KV cache (K=turbo4, V=turbo4)
+0.00.749.546 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+0.00.800.835 I srv    load_model: initializing slots, n_slots = 1
+0.00.830.614 W common_speculative_init: no implementations specified for speculative decoding
+0.00.830.617 I slot   load_model: id  0 | task -1 | new slot, n_ctx = 4096
+0.00.830.653 I srv    load_model: prompt cache RAM enabled: limit_mib=8192
+0.00.830.658 I srv    load_model: for more info see https://github.com/ggml-org/llama.cpp/pull/16391
+0.00.830.680 I srv          init: idle slots will be saved to prompt cache upon starting a new task
+0.00.834.487 I init: chat template, example_format: '<|im_start|>system
+You are a helpful assistant<|im_end|>
+<|im_start|>user
+Hello<|im_end|>
+<|im_start|>assistant
+Hi there<|im_end|>
+<|im_start|>user
+How are you?<|im_end|>
+<|im_start|>assistant
+'
+0.00.836.568 I srv          init: init: chat template, thinking = 1
+0.00.836.597 I srv          main: model loaded
+0.00.836.602 I srv          main: server is listening on http://127.0.0.1:18081
+0.00.836.608 I srv  update_slots: all slots are idle
+0.00.991.828 I srv  update_slots: all slots are idle
+0.00.994.901 I slot get_availabl: id  0 | task -1 | selected slot by LRU, t_last = -1
+0.00.994.902 I srv  get_availabl: updating prompt cache
+0.00.994.910 I srv          load:  - looking for better prompt, base f_keep = -1.000, sim = 0.000
+0.00.994.915 I srv        update:  - cache state: 0 prompts, 0.000 MiB (limits: 8192.000 MiB, 4096 tokens, 8589934592 est)
+0.00.994.919 I srv  get_availabl: prompt cache update took 0.01 ms
+0.00.994.935 I slot launch_slot_: id  0 | task 1 | processing task, is_child = 0
+0.01.748.508 I slot print_timing: id  0 | task 1 | 
+prompt eval time =      54.58 ms /    18 tokens (    3.03 ms per token,   329.79 tokens per second)
+       eval time =     698.97 ms /    32 tokens (   21.84 ms per token,    45.78 tokens per second)
+      total time =     753.55 ms /    50 tokens
+0.01.748.528 I slot      release: id  0 | task 1 | stop processing: n_tokens = 49, truncated = 0
+0.01.748.530 I srv  update_slots: all slots are idle
+0.01.751.677 I srv  update_slots: all slots are idle
+0.01.828.243 I srv    operator(): operator(): cleaning up before exit...

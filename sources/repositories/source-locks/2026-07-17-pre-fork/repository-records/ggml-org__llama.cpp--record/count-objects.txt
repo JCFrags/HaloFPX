@@ -1,0 +1,8 @@
+count: 0
+size: 0 bytes
+in-pack: 104264
+packs: 1
+size-pack: 413.34 MiB
+prune-packable: 0
+garbage: 0
+size-garbage: 0 bytes

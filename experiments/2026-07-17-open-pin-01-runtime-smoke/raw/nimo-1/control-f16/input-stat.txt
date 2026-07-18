@@ -1,0 +1,2 @@
+/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-server|2683176|2026-07-17 18:25:19.191665673 -0700
+/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-4b-gguf__bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q8_0.gguf|4280404704|2026-07-12 15:20:33.822572536 -0700

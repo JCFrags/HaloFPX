@@ -8,6 +8,8 @@ The four clone directories are deliberately ignored by the parent project so the
 
 ## Usage contract
 
+The [2026-07-17 pre-fork source lock](source-locks/2026-07-17-pre-fork/README.md) preserves complete all-ref bundles, exact object/patch/build/license inventories, cryptographic manifests, and verification evidence for the accepted L00A lane. It is a candidate evidence package; OPEN-PIN-01 remains unresolved.
+
 - Treat each clone as immutable evidence captured at the manifest retrieval time.
 - Inspect files and history without building, executing, rebasing, pulling, checking out, or editing in place.
 - Use the manifest's frozen research pins when reproducing Wiki claims; use captured HEAD only to assess newer upstream changes.
@@ -24,4 +26,3 @@ The four clone directories are deliberately ignored by the parent project so the
 | `ggml-org/llama.cpp` | `sources/repositories/ggml-org__llama.cpp/` |
 
 > This is a source layer, not an implementation decision. Route conclusions through the Wiki and reviewed fork plan.
-

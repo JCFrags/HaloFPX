@@ -1,0 +1,2 @@
+commit	parents	author_date	author	subject
+61f2f2d7bc4955e9bca821095ef69125837133b5	a5605a72768c6562241b248e268e33dc92787394	2026-07-17T15:41:08-04:00	Carlo Pasquale <4635904+charlie12345@users.noreply.github.com>	hip : avoid full-cache TurboQuant flash-attention staging (#34)

@@ -1,0 +1,5 @@
+PING 10.44.0.6 (10.44.0.6) from 10.44.0.5 : 56(84) bytes of data.
+
+--- 10.44.0.6 ping statistics ---
+600 packets transmitted, 600 received, 0% packet loss, time 12711ms
+rtt min/avg/max/mdev = 0.128/0.368/0.515/0.074 ms

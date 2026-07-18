@@ -22,7 +22,9 @@ related_sections: ["11", "12", "15", "16", "23", "30", "31", "33", "36", "37", "
 
 **[VERIFIED]** The current code, not older handoff prose, is authoritative for the format list. It registers `Q2_0_ROCMFPX`, `Q3_0_ROCMFPX`, `Q4_0_ROCMFP4`, `Q4_0_ROCMFP4_FAST`, `Q6_0_ROCMFPX`, and `Q8_0_ROCMFPX`; `turbo3` and `turbo4` are runtime cache types, not model-weight formats [S13-02, S13-03, S13-04, S13-05, S13-06].
 
-**[OPEN]** No code was built and no model was run on either HaloFPX machine for this section. Repository benchmark tables and “passed” statements are upstream/fork-reported results, not HaloFPX **[MEASURED]** evidence.
+**[MEASURED]** The control `a5605a7` and candidate `61f2f2d` now build reproducibly from the locked offline bundle on both target nodes. CPU references, TurboQuant 7/7, ROCmFP4 quant regression, and the ROCm0 `FLASH_ATTN_EXT` matrices pass: 2881/2881 control and 2899/2899 candidate on each node [S13-L02].
+
+**[MEASURED]** Both commits also load the same hashed Qwen3-4B-Q8_0 model and complete deterministic loopback requests with F16 and Turbo4 cache on each node [S13-L03]. F16 output is identical across commits/nodes; Turbo4 output is likewise identical across commits/nodes but differs from F16. This is a quality gate, not a candidate-commit regression. Large-model, long-context, MTP, RPC, SSD-state, Vulkan-parity, and performance qualification remain **[OPEN]**.
 
 **[MEASURED]** The live cluster currently runs the separate predecessor `charlie12345/rocmfp4-llama@4860505ee322091f0f61eba77d6ad49be88cf4ea`, not the pinned ROCmFPX goal tree [S13-L01]. Its executable hashes, process roles, model placement, and MPTCP topology are now preserved as a comparison baseline; they do not validate ROCmFPX `a5605a7`.
 

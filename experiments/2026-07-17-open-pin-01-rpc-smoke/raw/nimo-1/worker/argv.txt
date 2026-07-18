@@ -1,0 +1,1 @@
+/home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01-rpc/bin/rpc-server --host 10.44.0.1 --port 50053 --device ROCm0 

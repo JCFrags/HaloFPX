@@ -14,7 +14,7 @@ related_sections: ["02", "11", "15", "16"]
 
 # Sources
 
-All repository links are pinned. Internet access date: 2026-07-16. Source count: **11**.
+All repository links are pinned. Internet access date: 2026-07-16. Source count: **13**.
 
 ## S13-L01 — Live deployed comparison baseline
 
@@ -22,6 +22,20 @@ All repository links are pinned. Internet access date: 2026-07-16. Source count:
 - Revision/capture: both nodes, 2026-07-17; deployed `charlie12345/rocmfp4-llama@4860505ee322091f0f61eba77d6ad49be88cf4ea`.
 - Supports: current predecessor checkout, executable hashes, node roles, process configuration, active artifact size, and service readiness.
 - Limitations: different repository from ROCmFPX; no build reproduction, output correctness, or performance experiment was performed in this capture.
+
+## S13-L02 — Matched two-node build/reference qualification
+
+- Canonical source: [`../../../../experiments/2026-07-17-open-pin-01-build-qualification/RESULTS.md`](../../../../experiments/2026-07-17-open-pin-01-build-qualification/RESULTS.md)
+- Revision/capture: control `a5605a7`, candidate `61f2f2d`, nimo-1 and nimo-2, 2026-07-17.
+- Supports: offline source restoration, exact build times, cross-host artifact identity, CPU references, quant regression, TurboQuant unit results, and complete ROCm0 attention-matrix summaries.
+- Limitations: build/reference lane only; no pin selection, model conversion, long context, MTP, RPC, Vulkan parity, quality, performance, persistence, or release proof.
+
+## S13-L03 — Matched small-model ROCm0 runtime smoke
+
+- Canonical source: [`../../../../experiments/2026-07-17-open-pin-01-runtime-smoke/RESULTS.md`](../../../../experiments/2026-07-17-open-pin-01-runtime-smoke/RESULTS.md)
+- Revision/capture: same two revisions and nodes; Qwen3-4B-Q8_0 SHA-256 `8c2f07f...473300`; 2026-07-17.
+- Supports: ROCm0 model load, F16/Turbo4 K/V-cache request completion, cross-node/commit output reproducibility, cache-mode divergence, telemetry, and clean teardown.
+- Limitations: one short prompt and one seed; not a quality or performance qualification; SSD prompt-cache behavior was not exercised.
 
 ## S13-01 — ROCmFPX repository head and history
 

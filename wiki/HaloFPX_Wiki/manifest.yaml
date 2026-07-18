@@ -5,7 +5,7 @@ generated_on: '2026-07-17'
 registry: ../../research/prompts/section_index.yaml
 schema: manifest.schema.json
 generator: ../../research/prompts/tools/generate_wiki_manifest.py
-input_digest_sha256: 3d236987f82ebc92a9e76e5dfca5938c6c5dcaf19273ea3d5b5bb3f424e5776b
+input_digest_sha256: b3549857b54fb2362c6bc0388a426a67d51d26c06eb6c72924cf3a5ae3509bf7
 planned_category_count: 12
 planned_section_count: 86
 categories:
@@ -181,7 +181,7 @@ categories:
     - category_id must equal 03
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
-    source_count: 11
+    source_count: 13
     open_question_count: 15
   - section_id: '14'
     title: llama-ai and CachyLLama Feature and Patch Inventory
@@ -677,7 +677,7 @@ categories:
     metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
-    source_count: 8
+    source_count: 9
     open_question_count: 9
   - section_id: '52'
     title: 'Dual-Link Multipath: Striping, Alternation, Hedging, and Failover'
@@ -725,7 +725,7 @@ categories:
     metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
-    source_count: 7
+    source_count: 8
     open_question_count: 10
   artifact_state: complete
   section_count: 7

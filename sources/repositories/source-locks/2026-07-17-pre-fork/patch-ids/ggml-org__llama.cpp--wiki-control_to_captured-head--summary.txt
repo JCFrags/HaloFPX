@@ -1,0 +1,20 @@
+ common/arg.cpp                                     | 44 ++++++++++++++++++++++
+ common/download.cpp                                | 26 +++++++++++--
+ common/download.h                                  |  8 +++-
+ ggml/CMakeLists.txt                                |  2 +-
+ ggml/src/ggml-blas/ggml-blas.cpp                   |  7 ++++
+ ggml/src/ggml-opencl/ggml-opencl.cpp               | 21 ++++++++---
+ .../kernels/gemm_moe_mxfp4_q8_1_dp4a.cl            | 30 ++++++++-------
+ .../ggml-opencl/kernels/gemm_moe_q4_0_q8_1_dp4a.cl | 30 ++++++++-------
+ .../ggml-opencl/kernels/gemm_moe_q4_k_q8_1_dp4a.cl | 35 ++++++++++-------
+ .../ggml-opencl/kernels/gemm_moe_q6_k_q8_1_dp4a.cl | 18 +++++----
+ ggml/src/ggml-opencl/kernels/gemm_moe_q8_1_dp4a.cl | 17 ++++++---
+ .../ggml-opencl/kernels/gemm_noshuffle_q4_k_f32.cl | 27 ++++++-------
+ .../kernels/gemm_noshuffle_q4_k_q8_1_dp4a.cl       | 20 +++++-----
+ .../ggml-opencl/kernels/gemv_noshuffle_q4_k_f32.cl | 19 +++++-----
+ scripts/sync-ggml.last                             |  2 +-
+ tests/test-backend-ops.cpp                         |  1 +
+ tools/cli/README.md                                |  8 +++-
+ tools/completion/README.md                         |  2 +
+ tools/server/README.md                             | 14 +++++--
+ 19 files changed, 227 insertions(+), 104 deletions(-)

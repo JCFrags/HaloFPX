@@ -1,0 +1,10 @@
+164633502592	2026-07-10T14:18:40.9390483780-0700	166019	/home/connorb/ds4-models/DeepSeek-V4-Flash-Q4KExperts-F16HC-F16Compressor-F16Indexer-Q8Attn-Q8Shared-Q8Out-chat-v2-imatrix.gguf
+121861632736	2026-07-13T23:08:15.6871730710-0700	1273305	/opt/llm-usb4-cluster/models/rcmorano_llmfan46-minimax-m2.7-ultra-uncensored-heretic-rocmfp/f4e1087425e02cd770d29a9ece5912e5e0730f41/llmfan46-MiniMax-M2.7-ultra-uncensored-heretic-ROCMFP4.gguf
+26883306112	2026-07-12T14:56:36.5747674840-0700	1257055	/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-32b-gguf__938a7432affaec9157f883a87164e2646ae17555/Qwen3-32B-Q6_K.gguf
+25092531712	2026-07-12T15:19:23.5377744310-0700	1257068	/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-30b-a3b-gguf__e4d4bafdfb96a411a163846265362aceb0b9c63a/Qwen3-30B-A3B-Q6_K.gguf
+4280404704	2026-07-12T15:20:33.8225725360-0700	1257080	/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-4b-gguf__bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q8_0.gguf
+162348	2026-06-09T22:47:51.0000000000-0700	109302	/home/connorb/.local/share/containers/storage/overlay/5b0210578f251b3d7f46bde4eb39178de1404ca5e0c46ea1eba910277462fb45/diff/etc/pki/ca-trust/extracted/edk2/cacerts.bin
+68	2026-07-10T13:59:15.7596460530-0700	163475	/home/connorb/.local/share/pipx/venvs/huggingface-hub/lib/python3.14/site-packages/pipx_shared.pth
+
+===== container images =====
+792eac5fcbbc3b8008dfdcc6e6f21b6730001fd3f5f5a71a9a5317f5c2355844	docker.io/kyuz0/strix-halo-ds4-toolbox:multi-node-rocm-7.2.4	6.97 GB

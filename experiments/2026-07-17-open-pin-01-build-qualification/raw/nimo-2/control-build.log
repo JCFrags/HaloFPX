@@ -1,0 +1,38 @@
+start=2026-07-17T18:15:43,693409336-07:00
+commit=a5605a72768c6562241b248e268e33dc92787394
+tree=6528a116ad015c316948d288b4ffd9c3586c00ad
+status_begin=0
+Linux nimo-2 7.1.3-1-cachyos #1 SMP PREEMPT_DYNAMIC Sat, 04 Jul 2026 20:05:25 +0000 x86_64 GNU/Linux
+cmake version 4.3.4
+
+CMake suite maintained and supported by Kitware (kitware.com/cmake).
+1.13.2
+HIP version: 7.2.53211-3d9ef42
+AMD clang version 22.0.0git (/startdir/rocm-llvm f58b06dce1f9c15707c5f808fd002e18c2accf7e)
+Target: x86_64-pc-linux-gnu
+Thread model: posix
+InstalledDir: /opt/rocm/lib/llvm/bin
+clang version 22.1.6
+Target: x86_64-pc-linux-gnu
+Thread model: posix
+InstalledDir: /usr/bin
+               total        used        free      shared  buff/cache   available
+Mem:     133623500800  2673643520 68803780608      679936 63513812992 130949857280
+Swap:    34359734272   478515200 33881219072
+NAME      TYPE        SIZE      USED PRIO
+/swapfile file 34359734272 478515200  100
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/nvme0n1p2 999665881088 658987237376 340815298560  66% /
+build_command=env JOBS=16 BUILD_DIR=/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01 scripts/build-strix-rocmfp4-mtp.sh
+/home/connorb/halofpx-lab/open-pin-01/run-control.sh: line 22: /usr/bin/time: No such file or directory
+build_rc=127
+status_end=0
+               total        used        free      shared  buff/cache   available
+Mem:     133623500800  2674925568 68802490368      679936 63513821184 130948575232
+Swap:    34359734272   478515200 33881219072
+NAME      TYPE        SIZE      USED PRIO
+/swapfile file 34359734272 478515200  100
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/nvme0n1p2 999665881088 658987237376 340815298560  66% /
+-- No entries --
+end=2026-07-17T18:15:43,745886062-07:00

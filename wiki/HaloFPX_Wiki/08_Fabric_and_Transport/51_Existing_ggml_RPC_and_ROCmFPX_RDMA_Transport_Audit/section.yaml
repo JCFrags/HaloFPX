@@ -4,7 +4,7 @@ category_id: "08"
 category_title: "Fabric and Transport"
 status: "needs-machine-validation"
 last_verified: "2026-07-17"
-source_count: 8
+source_count: 9
 open_question_count: 9
 required_machine_experiments:
   - "FT-51-E0 mandatory RPC security admission"
@@ -18,4 +18,4 @@ applicability:
     - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
     - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
   software: "libibverbs path when detected; exact build tuple unresolved"
-  hardware: "target RDMA/USB4 capability unverified"
+  hardware: "USB4 rail-A RPC smoke measured; RDMA and dual-rail behavior unverified"

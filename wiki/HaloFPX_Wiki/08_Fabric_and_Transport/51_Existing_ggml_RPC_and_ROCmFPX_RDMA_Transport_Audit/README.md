@@ -18,6 +18,8 @@ related_sections: ["11", "12", "15", "32", "39", "49", "50", "53", "54", "55"]
 
 **[RECOMMENDATION] SECURITY GATE:** Keep RPC disabled unless both peers prove that the deployed executables and loaded libraries were built from reviewed source containing the `ba38f3b` malformed-tensor rejection, and the listener/exposure/least-privilege checks pass. The pinned llama.cpp and ROCmFPX source contain the relevant guards, but installed artifact provenance and current network exposure remain **[OPEN]**; no patched-release claim is made [S51-07, S51-08].
 
+**[MEASURED]** A separately built candidate `61f2f2d` RPC pair completed one Qwen3-4B layer-split request over USB4 rail A with explicit `RPC0,ROCm0` ordering and 1:1 split [S51-L01]. Remote allocation and graph warmup occurred on nimo-1, then both alternate-port processes were removed cleanly. This advances bring-up only: security admission, faults, matched control, dual-rail behavior, and representative performance remain **[OPEN]**.
+
 ## Pages
 
 - [Facts and constraints](facts_and_constraints.md)

@@ -11,8 +11,12 @@
 
 - **[MEASURED]** Two private USB4NET rails use `10.44.0.0/30` and `10.44.0.4/30`, MTU 9000, and one MPTCP connection with two active subflows. Each peer path reported two receive and two transmit lanes at 20.0 Gb/s per lane. These are negotiated/counter observations, not additive application goodput.
 - **[MEASURED]** Interface-to-domain mapping is crossed between hosts. Bind rail identity by address and sysfs ancestry; never infer a physical path from `tb0`/`tb1` alone.
-- **[MEASURED]** Five-packet RTT checks established reachability only. They are not fabric, tail-latency, independence, or GPU-to-peer measurements.
+- **[MEASURED]** The 2026-07-17 control measured 9.4–9.8 Gb/s on one bound TCP flow per rail, 20.54–21.04 Gb/s with both rails active independently, and 20.69–20.71 Gb/s for one MPTCP connection with two observed subflows. Idle mean RTT was 0.129–0.135 ms; concurrent-load mean RTT was 0.317–0.576 ms with zero observed loss. This was one sample per throughput cell and is not a tail-latency, tensor, or GPU-to-peer qualification. [Current experiment](../experiments/2026-07-17-usb4-transport-baseline/RESULTS.md)
 - **[RECOMMENDATION]** Keep TCP/MPTCP over `thunderbolt-net` as bring-up, control, fallback, and recovery baseline until a matched experiment proves a better carrier. [Wiki Section 50](../wiki/HaloFPX_Wiki/08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/README.md)
+
+## Candidate RPC bring-up
+
+- **[MEASURED]** Candidate `ROCmFPX@61f2f2d` built with `GGML_RPC=ON` on both nodes and completed a Qwen3-4B request using rail A, explicit `RPC0,ROCm0` ordering, 1:1 layer split, and F16 KV. Remote allocation and ROCm graph execution occurred on nimo-1. This proves a bounded RPC bring-up path, not tensor parallelism, dual-rail use, security, resilience, or representative performance. [RPC smoke](../experiments/2026-07-17-open-pin-01-rpc-smoke/RESULTS.md)
 
 ## USB4STREAM boundary
 
@@ -30,8 +34,8 @@
 
 ## OPEN measurement gates
 
-- single-rail capacity and latency distributions for each rail;
-- both rails simultaneously in each direction and bidirectionally, including CPU cost and tail behavior;
+- repeated single-rail capacity and latency distributions for each rail;
+- repeated both-rail and simultaneous-bidirectional trials with system-wide CPU/IRQ cost and tail behavior;
 - MPTCP construction, fallback, link-loss, reorder, and recovery proof;
 - GPU-produced to peer-GPU-consumed end-to-end transfer and copy breakdown;
 - isolated USB4STREAM probe on an approved additional kernel with stable rollback;
