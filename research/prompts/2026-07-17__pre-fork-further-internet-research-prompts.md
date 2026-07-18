@@ -14,6 +14,8 @@ This is the deduplicated external-research backlog for preparing the ROCmFPX-bas
 
 Dispatch only the prompts below to an Internet research agent, as one independently downloadable LLM-Wiki folder per prompt. Do **not** substitute external summaries for the local source archaeology or machine experiments listed at the end. Imported research remains candidate evidence and must follow `sources -> wiki -> implementation decision`; no returned Wiki approves a baseline by itself. The accepted fork plan requires no additional Internet research before local/read-only Phase 0A (L00A); these priorities apply to later named gates.
 
+Send each complete prompt section, including its **Priority**, research instructions, **Expected output**, and **Decision unblocked** field. `Decision unblocked` gives the research agent the project context and evidence target; it does not authorize the agent or its returned Wiki to make, approve, or implement that decision.
+
 Priority meanings:
 
 - **P0:** external evidence needed before donor/test-asset promotion, a security-sensitive exposure decision, or locking the first implementation source/toolchain candidate; it does not block L00A.
