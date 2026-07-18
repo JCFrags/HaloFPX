@@ -19,6 +19,7 @@ The non-negotiable rule is: cache failure causes a miss and recomputation, never
 - **[VERIFIED]** The deployed ggml RPC tensor cache at `rocmfp4-llama@4860505e` uses a 64-bit FNV-derived filename, direct final-path writes, and no read-time content rehash in the inspected path [S63-L01]. It is separate from HaloKV, but demonstrates a live corruption-acceptance risk that must not be inherited.
 - **[MEASURED]** nimo-1 held about 112 GiB across 187 RPC tensor-cache files while only about 43 GiB of filesystem headroom remained [S63-L01].
 - **[VERIFIED]** HaloFPX `b8123fe5` adds only a disabled, offline publication-coordinator slice: exact predecessor/manifest-anchor binding, bounded ordered steps, ambiguous-anchor fail-stop handling, and a shared in-process root fence. It is not M63-01, a filesystem writer, or persistence authorization [S63-08].
+- **[VERIFIED]** HaloFPX `4366e493` adds an excluded deterministic live/durable simulator. Its accepted matrix covers named before/after faults and four crash projections, but it has no real bytes, capacity engine, asynchronous fencing, filesystem, or M63-01 completion claim [S63-09].
 - **[RECOMMENDATION]** HaloKV needs immutable data files plus a two-phase, checksummed generation manifest and explicit durability modes.
 - **[OPEN]** Power-loss semantics of the selected SSD/filesystem/kernel are unmeasured.
 

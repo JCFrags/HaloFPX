@@ -24,6 +24,8 @@ The writer harness must then crash at every concrete publication boundary and in
 
 The accepted `b8123fe5` offline coordinator slice covers order, exact predecessor and manifest-anchor binding, in-process root serialization, and fail-closed ambiguous anchor replacement [S63-08]. It does not satisfy this writer-harness requirement: its scripted backend is not a durable-filesystem simulator, and no M63-01 crash/recovery evidence has yet been promoted.
 
+The accepted `4366e493` simulator adds high-level live/durable crash projection and 134,400 repeated core cases [S63-09]. It still does not satisfy M63-01: byte/capacity/short-I/O faults, asynchronous stale-attempt fencing, concrete process/filesystem boundaries, and retained disposable-target recovery evidence remain open.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
