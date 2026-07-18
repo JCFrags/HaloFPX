@@ -2,7 +2,7 @@
 section_id: "33"
 title: "Attention and cache design implications"
 status: "needs-machine-validation"
-last_verified: "2026-07-16"
+last_verified: "2026-07-18"
 applies_to:
   repositories: ["charlie12345/ROCmFPX", "ggml-org/llama.cpp"]
   software_versions: ["a5605a7", "788e07d"]
@@ -20,6 +20,8 @@ related_sections: ["35", "42", "57", "58", "61"]
 - **[INFERENCE]** MLA needs an architecture-specific compressed-latent cache schema and may reduce transport/state size, but only the exact graph/tensors define what is persisted.
 - **[RECOMMENDATION]** Global/sliding layers use separate segment classes so retention, eviction, restore and corruption checks match semantics.
 - **[RECOMMENDATION]** Recurrent state and KV state commit atomically at a token boundary across ranks. Partial rank writes are invalid generations.
+- **[RECOMMENDATION]** Add the shared-dequant work as an independent L14Q backend lane after the current in-flight persistence milestone closes and before final performance/release acceptance. Port HIP decode and Vulkan prompt processing separately; neither may overwrite ROCmFPX's existing TurboQuant/FA dispatch.
+- **[RECOMMENDATION]** Qualify standard Q8_0/Q4_0 first. Treat ROCmFPX-only K/V types as a later extension requiring type-specific kernels, correctness oracles, and matched performance evidence.
+- **[RECOMMENDATION]** For the large non-ROCmFPX MiniMax weights, benchmark runtime K/V types independently. Record prefill, decode, peak scratch/resident memory, fallback, and long-context headroom rather than reporting one blended throughput number.
 
 Single-node fallback must reconstruct or load all rank-owned state locally. If that is impossible, reject before modifying slot state.
-

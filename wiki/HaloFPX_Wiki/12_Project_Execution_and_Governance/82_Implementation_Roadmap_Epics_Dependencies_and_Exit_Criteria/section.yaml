@@ -3,8 +3,8 @@ title: "Implementation Roadmap, Epics, Dependencies, and Exit Criteria"
 category_id: "12"
 category_title: "Project Execution and Governance"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
-source_count: 10
+last_verified: "2026-07-18"
+source_count: 11
 open_question_count: 16
 required_machine_experiments:
   - "M82-01 same-window hardware, firmware, cabling, port, and software inventory"
@@ -60,10 +60,11 @@ applicability:
     - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
     - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
     - "fewtarius/llama-ai@1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+    - "Nathanw1014/llama.cpp@a18067a85e986f7798f43d98345ed5b86b55cf88"
   software_versions: ["roadmap baseline 2026-07-17", "SLSA 1.2", "SPDX 3.0.1", "NIST SP 800-218 v1.1"]
   hardware_revisions: ["two planned matched AMD Strix Halo systems; exact revisions unresolved"]
 research_split:
-  internet_source_code: "complete for pinned roadmap authorities as of 2026-07-17"
+  internet_source_code: "pinned roadmap authorities plus the L14Q quantized-KV candidate preserved through 2026-07-18"
   target_machine_measurements: "required; local aggregates M82-01 through M82-12 have not run and must execute under resolved Section 84 HLX-EXP owner cards"
   contingent_decisions: "MUP model/backend, SLOs, transport, coupled mode, HaloKV defaults, security, support window, and release remain open"
 unresolved_evidence_gaps:

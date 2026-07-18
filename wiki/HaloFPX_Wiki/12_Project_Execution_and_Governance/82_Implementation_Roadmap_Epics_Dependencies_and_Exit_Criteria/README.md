@@ -2,7 +2,7 @@
 section_id: "82"
 title: "Implementation Roadmap, Epics, Dependencies, and Exit Criteria"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-07-18"
 applies_to:
   repositories:
     - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
@@ -25,6 +25,8 @@ related_sections: ["06", "09", "10", "11", "15", "16", "18", "20", "23", "29", "
 **[ASSUMPTION]** One admitted target model and context will fit safely on one node. If the Section 29/74 capacity gate disproves this, the minimum useful product (MUP) changes from single-node serving to a capacity-only two-rank prototype; record that change in an ADR rather than silently reordering the program.
 
 **[OPEN]** Numeric performance targets in Section 09 remain candidate targets. Exit gates below require ratified targets or explicit evidence-backed waivers; they do not promote those candidates to commitments.
+
+**[RECOMMENDATION]** Treat the preserved Strix Halo shared-dequant work as optional backend epic E82-22/L14Q: retain evidence now, begin no code in the middle of an in-flight HaloKV milestone, and admit HIP or Vulkan independently only before final performance/release gates after correctness, memory, and matched zero-regression evidence. It improves runtime Q8_0/Q4_0 K/V paths and does not require ROCmFPX-formatted model weights [S82-11].
 
 ## Roadmap at a glance
 

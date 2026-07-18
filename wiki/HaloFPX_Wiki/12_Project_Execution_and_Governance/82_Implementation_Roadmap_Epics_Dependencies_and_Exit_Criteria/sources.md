@@ -89,6 +89,13 @@ Internet sources were accessed 2026-07-17. Independent `git ls-remote` refreshes
 - Supports: evidence promotion, reversible candidates, review, scoped memory, and closeout improvement.
 - Limitation: conceptual harness guidance; root HaloFPX rules take precedence.
 
+### S82-11 - Strix Halo quantized-KV FlashAttention candidate
+
+- Publisher/revision: [Nathanw1014/llama.cpp `a18067a85e986f7798f43d98345ed5b86b55cf88`](https://github.com/Nathanw1014/llama.cpp/tree/a18067a85e986f7798f43d98345ed5b86b55cf88), [upstream Vulkan PR #25494](https://github.com/ggml-org/llama.cpp/pull/25494), preserved 2026-07-18.
+- Local evidence: [candidate intake receipt](../../../../sources/repositories/candidate-intake/2026-07-18-strix-halo-quant-kv/README.md), complete Git bundle, exact patches and GitHub snapshots.
+- Supports: a narrow optional HIP/Vulkan shared-dequant performance lane and its provenance, fallback, memory, correctness, and non-regression gates.
+- Limitation: neither patch applies cleanly to pinned ROCmFPX; upstream PR remains open; no nimo measurement or HaloFPX admission is claimed.
+
 ## Source conflicts and freshness
 
 - **[VERIFIED]** ROCmFPX documents a llama.cpp lineage that its Git graph does not encode, and its `b9438` association conflicts with the official tag target. Preserve this conflict through E82-01 [S82-01].
