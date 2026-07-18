@@ -2,7 +2,7 @@
 section_id: "85"
 title: "Internet Research and Freshness Sources"
 status: "verified"
-last_verified: "2026-07-17"
+last_verified: "2026-07-18"
 applies_to:
   repositories: ["HaloFPX wiki and watched upstream/donor repositories"]
   software_versions: ["source revisions recorded below"]
@@ -18,12 +18,12 @@ are observations, not immutable authorities.
 
 ### S85-18 - PF-IR 2026-07-18 preserved return intake and review
 
-- **Origin/revision:** ten research-agent ZIPs PF-IR-01, 02, 03, and 05 through
-  11, preserved with SHA-256 hashes under
+- **Origin/revision:** eleven research-agent ZIPs PF-IR-01 through PF-IR-11,
+  preserved with SHA-256 hashes under
   `sources/imports/2026-07-18-pre-fork-internet-research/`; review at
   `reviews/intake/2026-07-18__pf-ir-returns__review__v01.md`.
-- **Supports:** return status, provenance of the imported packages, package-to-
-  local-gate routing, and the fact that PF-IR-04 remains outstanding.
+- **Supports:** complete return status, provenance of the imported packages,
+  package-to-local-gate routing, and PF-IR-04 licensing evidence.
 - **Limit:** aggregate imported research and local review, not a substitute for
   each package's primary sources, exact-source revalidation, machine evidence,
   legal approval, or a product decision.

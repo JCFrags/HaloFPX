@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Decision summary · PF-IR-04</title><link rel="stylesheet" href="../assets/style.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-04 <span>Wiki</span></div><div class="kicker">Licensing & provenance dossier</div><input id="wiki-search" class="search" placeholder="Search this page…"><div class="nav"><div class="nav-title">Navigation</div><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-and-limits.html" class="">Scope & limits</a><a href="../wiki/01-decision-summary.html" class="active">Decision summary</a><a href="../wiki/02-component-boundaries.html" class="">Component boundaries</a><a href="../wiki/03-code-license-evidence.html" class="">Code & SPDX</a><a href="../wiki/04-fixtures-models-tokenizers.html" class="">Models & fixtures</a><a href="../wiki/05-webui-generated-assets.html" class="">Web UI & generated</a><a href="../wiki/06-release-evidence.html" class="">Release evidence</a><a href="../wiki/07-gpl-separation-clean-room.html" class="">GPL & clean room</a><a href="../wiki/08-unresolved-blocked.html" class="">Unresolved items</a><a href="../wiki/09-maintainer-runbook.html" class="">Reviewer runbook</a><a href="../wiki/10-source-register.html" class="">Source register</a><div class="nav-title">Machine records</div><a href="../manifests/components.csv">Components CSV</a><a href="../manifests/files.csv">Files CSV</a><a href="../manifests/unresolved.csv">Unresolved CSV</a><a href="../manifests/provenance-chain.jsonld">Provenance JSON-LD</a><a href="../manifests/release-sbom-seed.spdx.json">SPDX seed</a><a href="../hashes/SHA256SUMS">SHA256SUMS</a></div></aside><main class="main"><div class="hero"><div class="kicker">Evidence date 2026-07-18 · P0</div><h1>Decision summary</h1><div class="doc-meta"><span class="badge info">EXTERNAL EVIDENCE</span><span class="badge warn">HUMAN DECISION REQUIRED</span><span class="badge bad">NO UNKNOWN-LICENSE APPROVAL</span></div></div><article data-searchable><h1>Decision summary</h1>
+<h2>What the external evidence unblocks</h2>
+<ul>
+<li>Candidate MIT donor records for the two ROCmFPX snapshots and the CachyLLama snapshot.</li>
+<li>Concrete evidence that repository-level MIT labels are incomplete without file-level exception and notice handling.</li>
+<li>A technical and licensing evidence boundary between the GPL <code>llama-ai</code> operational layer and the separately pinned MIT <code>CachyLLama</code> gitlink target.</li>
+<li>A conservative promotion matrix for templates, tokenizers, models, test corpora, Web UI outputs, and distribution dependencies.</li>
+<li>Release-control requirements for SBOM, source-to-binary mapping, corresponding source, notices, generated assets, and clean-room roles.</li>
+</ul>
+<h2>High-impact findings</h2>
+<table>
+<thead>
+<tr>
+  <th>Finding</th>
+  <th>Evidence status</th>
+  <th>Default disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>ROCmFPX root license is MIT at both commits</td>
+  <td>exact-byte, same Git blob</td>
+  <td>candidate, subject to exceptions/full-tree scan</td>
+</tr>
+<tr>
+  <td>CachyLLama root license is MIT</td>
+  <td>exact-byte Git blob</td>
+  <td>candidate, but create notice inventory</td>
+</tr>
+<tr>
+  <td><code>llama-ai</code> operational files are GPL-3.0-or-later</td>
+  <td>root license + repeated file SPDX</td>
+  <td>GPL release-model decision</td>
+</tr>
+<tr>
+  <td><code>llama-ai</code> documentation is separately asserted CC-BY-NC-SA-4.0</td>
+  <td>exact README</td>
+  <td>reference-only by default</td>
+</tr>
+<tr>
+  <td><code>CachyLLama</code> is a gitlink to exact commit <code>6be745...</code></td>
+  <td>exact <code>.gitmodules</code> + commit diff</td>
+  <td>separate component record</td>
+</tr>
+<tr>
+  <td>SYCL/OpenVINO backend files include Apache/LLVM exceptions</td>
+  <td>exact file blobs/headers</td>
+  <td>preserve terms and supplement notices</td>
+</tr>
+<tr>
+  <td>Models/tokenizers/templates are not licensed by repository placement alone</td>
+  <td>generation/download scripts</td>
+  <td>blocked or reference-only</td>
+</tr>
+<tr>
+  <td>Web UI is generated and embedded; direct dependencies are mixed MIT/BSD/Apache</td>
+  <td>exact package-lock blob and build files</td>
+  <td>pinned regeneration with SBOM/notices</td>
+</tr>
+</tbody>
+</table>
+<h2>Human decisions still required</h2>
+<p>Final admissibility, release aggregation/linking, GPL corresponding-source method, clean-room role design, documentation distribution, model/test-data permission, and the exact source/binary release model remain human decisions over the locally proposed tree.</p>
+</article><div class="footer">PF-IR-04 dossier · Generated 2026-07-18T01:32:31+00:00 · Not legal advice · Not a local full-tree scan.</div></main></div><script src="../assets/wiki.js"></script></body></html>

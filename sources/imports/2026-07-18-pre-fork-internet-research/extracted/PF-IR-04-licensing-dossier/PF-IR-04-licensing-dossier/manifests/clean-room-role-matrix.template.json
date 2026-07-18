@@ -1,0 +1,32 @@
+[
+  {
+    "role": "Source observer / requirements author",
+    "may_access": "GPL source, public docs, public behavior",
+    "must_not_access_or_do": "Target implementation repository; copy expressive code/text into requirements",
+    "required_records": "Access log, dated requirement document, source identifiers, expression-exclusion review"
+  },
+  {
+    "role": "Independent implementer",
+    "may_access": "Approved functional requirements, public standards, black-box interfaces, test vectors",
+    "must_not_access_or_do": "GPL donor source or restricted documentation if protocol excludes it",
+    "required_records": "Repository ACL evidence, independent design notes, implementation commits, attestation"
+  },
+  {
+    "role": "Validation team",
+    "may_access": "Donor executable/service and independent implementation binaries, approved tests",
+    "must_not_access_or_do": "Transfer donor source snippets to implementers",
+    "required_records": "Black-box comparison logs, test data provenance, defect reports stripped of donor expression"
+  },
+  {
+    "role": "Build/release engineer",
+    "may_access": "Approved source, build inputs, dependency packages",
+    "must_not_access_or_do": "Change legal conclusions or introduce unrecorded assets",
+    "required_records": "SBOM, source-to-binary map, build provenance, hashes, notice bundle"
+  },
+  {
+    "role": "Maintainer/legal reviewer",
+    "may_access": "All evidence as authorized",
+    "must_not_access_or_do": "Delegate final admissibility to this dossier",
+    "required_records": "Signed decisions on roles, release model, permissions, unresolved items, exceptions"
+  }
+]

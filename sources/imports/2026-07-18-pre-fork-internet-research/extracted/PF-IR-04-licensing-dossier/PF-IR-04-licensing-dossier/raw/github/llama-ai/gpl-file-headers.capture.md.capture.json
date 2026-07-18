@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/github/llama-ai/gpl-file-headers.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "line-normalized authoritative connector capture",
+  "source_url": "https://github.com/fewtarius/llama-ai/tree/1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+  "repository": "fewtarius/llama-ai",
+  "repository_commit_or_revision": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+  "repository_path": "sampled operational files",
+  "git_blob_sha1": null,
+  "sha256": "a5d877a66167a9e4142f6d07cb52fca03eb60a63562feae3149d722ee08bb992",
+  "size_bytes": 1497,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-FILE-SPDX"
+}

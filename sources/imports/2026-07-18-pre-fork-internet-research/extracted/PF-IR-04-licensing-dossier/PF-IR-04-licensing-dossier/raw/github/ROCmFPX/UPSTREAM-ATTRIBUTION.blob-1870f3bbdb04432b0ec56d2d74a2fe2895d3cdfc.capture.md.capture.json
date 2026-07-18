@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/github/ROCmFPX/UPSTREAM-ATTRIBUTION.blob-1870f3bbdb04432b0ec56d2d74a2fe2895d3cdfc.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "line-normalized authoritative connector capture",
+  "source_url": "https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/docs/UPSTREAM-ATTRIBUTION.md",
+  "repository": "charlie12345/ROCmFPX",
+  "repository_commit_or_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "repository_path": "docs/UPSTREAM-ATTRIBUTION.md",
+  "git_blob_sha1": "1870f3bbdb04432b0ec56d2d74a2fe2895d3cdfc",
+  "sha256": "583e3b1e6002d3124c7790da99056b9fd6653d1c2b09589d100e9d33b5d401d9",
+  "size_bytes": 1502,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-UPSTREAM-ATTRIBUTION-ASSERTION"
+}

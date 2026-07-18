@@ -2,7 +2,7 @@
 section_id: "85"
 title: "Internet Research and Freshness Open Questions"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-07-18"
 applies_to:
   repositories: ["HaloFPX wiki, donor repositories, and upstream dependencies"]
   software_versions: ["observed 2026-07-17 snapshot"]
@@ -37,9 +37,8 @@ All items are **[OPEN]**. No empty feed, unavailable proprietary erratum, issue 
 
 ## Immediate Internet follow-up
 
-1. Receive PF-IR-04, the remaining donor/test-asset/release-artifact licensing and provenance package.
-2. Revalidate a returned package's exact primary sources only when its candidate is selected for a build, release, security, firmware, or destructive-test decision.
-3. Continue the registered freshness feeds; returned research is a dated snapshot, not a replacement for monitoring.
+1. Revalidate a returned package's exact primary sources only when its candidate is selected for a build, release, security, firmware, or destructive-test decision.
+2. Continue the registered freshness feeds; returned research is a dated snapshot, not a replacement for monitoring.
 
 ## Decisions contingent on closure
 

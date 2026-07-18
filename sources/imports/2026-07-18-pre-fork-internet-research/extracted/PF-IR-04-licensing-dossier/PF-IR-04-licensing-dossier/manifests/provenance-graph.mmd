@@ -1,0 +1,15 @@
+flowchart LR
+  L[llama-ai@1017f3d<br/>GPL code / CC docs] -->|gitlink pin| C[CachyLLama@6be7459<br/>MIT root + exceptions]
+  R1[ROCmFPX@a5605a7] -->|one commit| R2[ROCmFPX@61f2f2d]
+  W[Web UI source + lockfile] --> N[npm build]
+  N --> A[index.html / bundle.js / bundle.css / loading.html]
+  A --> X[generated C++ headers]
+  X --> B[server binary]
+  M[exact licensed model source] --> Q[quantizer + command]
+  Q --> G[GGUF fixture]
+  T[pinned tokenizer_config] --> E[template extractor]
+  E --> J[Jinja template]
+  T --> V[vocab generator]
+  V --> F[ggml-vocab fixture]
+  U[unknown local model/template/tokenizer bytes]:::blocked
+  classDef blocked fill:#511b2b,stroke:#ff758f,color:#fff;

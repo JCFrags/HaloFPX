@@ -1,0 +1,114 @@
+[
+  {
+    "package": "@modelcontextprotocol/sdk",
+    "version": "1.26.0",
+    "license_field": "MIT",
+    "integrity": "sha512-Y5RmPncpiDtTXDbLKswIJzTqu2hyBKxTNsgKqKclDbhIgg1wgtf1fRuvxgTnRfcnxtvvgbIEcqUOzZrJ6iSReg==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "highlight.js",
+    "version": "11.11.1",
+    "license_field": "BSD-3-Clause",
+    "integrity": "sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "mode-watcher",
+    "version": "1.1.0",
+    "license_field": "MIT",
+    "integrity": "sha512-mUT9RRGPDYenk59qJauN1rhsIMKBmWA3xMF+uRwE8MW/tjhaDSCCARqkSuDTq8vr4/2KcAxIGVjACxTjdk5C3g==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "pdfjs-dist",
+    "version": "5.4.54",
+    "license_field": "Apache-2.0",
+    "integrity": "sha512-TBAiTfQw89gU/Z4LW98Vahzd2/LoCFprVGvGbTgFt+QCB1F+woyOPmNNVgLa6djX9Z9GGTnj7qE1UzpOVJiINw==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "rehype-highlight",
+    "version": "7.0.2",
+    "license_field": "MIT",
+    "integrity": "sha512-k158pK7wdC2qL3M5NcZROZ2tR/l7zOzjxXd5VGdcfIyoijjQqpHd3JKtYSBDpDZ38UI2WJWuFAtkMDxmx5kstA==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "rehype-stringify",
+    "version": "10.0.1",
+    "license_field": "MIT",
+    "integrity": "sha512-k9ecfXHmIPuFVI61B9DeLPN0qFHfawM6RsuX48hoqlaKSF61RskNjSm1lI8PhBEM0MRdLxVVm4WmTqJQccH9mA==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "remark",
+    "version": "15.0.1",
+    "license_field": "MIT",
+    "integrity": "sha512-Eht5w30ruCXgFmxVUSlNWQ9iiimq07URKeFS3hNc8cUWy1llX4KDWfyEDZRycMc+znsN9Ux5/tJ/BFdgdOwA3A==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "remark-breaks",
+    "version": "4.0.0",
+    "license_field": "MIT",
+    "integrity": "sha512-IjEjJOkH4FuJvHZVIW0QCDWxcG96kCq7An/KVH2NfJe6rKZU2AsHeB3OEjPNRxi4QC34Xdx7I2KGYn6IpT7gxQ==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "remark-gfm",
+    "version": "4.0.1",
+    "license_field": "MIT",
+    "integrity": "sha512-1quofZ2RQ9EWdeN34S79+KExV1764+wCUGop5CPL1WGdD0ocPpu91lzPGbwWMECpEpd42kJGQwzRfyov9j4yNg==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "remark-html",
+    "version": "16.0.1",
+    "license_field": "MIT",
+    "integrity": "sha512-B9JqA5i0qZe0Nsf49q3OXyGvyXuZFDzAP2iOFLEumymuYJITVpiH1IgsTEwTpdptDmZlMDMWeDmSawdaJIGCXQ==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "remark-rehype",
+    "version": "11.1.2",
+    "license_field": "MIT",
+    "integrity": "sha512-Dh7l57ianaEoIpzbp0PC9UKAdCSVklD8E5Rpw7ETfbTl3FqcOOgq5q2LVDhgGCkaBv7p24JXikPdvhhmHvKMsw==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "svelte-sonner",
+    "version": "1.0.5",
+    "license_field": "MIT",
+    "integrity": "sha512-9dpGPFqKb/QWudYqGnEz93vuY+NgCEvyNvxoCLMVGw6sDN/3oVeKV1xiEirW2E1N3vJEyj5imSBNOGltQHA7mg==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "unist-util-visit",
+    "version": "5.0.0",
+    "license_field": "MIT",
+    "integrity": "sha512-MR04uvD+07cwl/yhVuVWAtw+3GOR/knlL55Nd/wAdblk27GCVt3lqpTivy/tkJcZoNPzTwS1Y+KMojlLDhoTzg==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  },
+  {
+    "package": "zod",
+    "version": "4.2.1",
+    "license_field": "MIT",
+    "integrity": "sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw==",
+    "scope": "runtime direct",
+    "evidence_blob": "bf23307b82c2489a680e9da3f11efed455149246"
+  }
+]

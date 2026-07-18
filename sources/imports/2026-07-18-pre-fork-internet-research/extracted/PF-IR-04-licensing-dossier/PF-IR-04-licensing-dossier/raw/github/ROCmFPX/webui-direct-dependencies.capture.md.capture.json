@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/github/ROCmFPX/webui-direct-dependencies.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "line-normalized authoritative connector capture",
+  "source_url": "https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/tools/server/webui/package-lock.json",
+  "repository": "charlie12345/ROCmFPX",
+  "repository_commit_or_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "repository_path": "tools/server/webui/package-lock.json",
+  "git_blob_sha1": "bf23307b82c2489a680e9da3f11efed455149246",
+  "sha256": "257bde817a19ffb918aa4e09be055e1c7d1ecc3b6da2c60ed0085d651c3ba338",
+  "size_bytes": 884,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-DEPENDENCY-DECLARATION"
+}

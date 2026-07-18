@@ -1,0 +1,6 @@
+role,may_access,must_not_access_or_do,required_records
+Source observer / requirements author,"GPL source, public docs, public behavior",Target implementation repository; copy expressive code/text into requirements,"Access log, dated requirement document, source identifiers, expression-exclusion review"
+Independent implementer,"Approved functional requirements, public standards, black-box interfaces, test vectors",GPL donor source or restricted documentation if protocol excludes it,"Repository ACL evidence, independent design notes, implementation commits, attestation"
+Validation team,"Donor executable/service and independent implementation binaries, approved tests",Transfer donor source snippets to implementers,"Black-box comparison logs, test data provenance, defect reports stripped of donor expression"
+Build/release engineer,"Approved source, build inputs, dependency packages",Change legal conclusions or introduce unrecorded assets,"SBOM, source-to-binary map, build provenance, hashes, notice bundle"
+Maintainer/legal reviewer,All evidence as authorized,Delegate final admissibility to this dossier,"Signed decisions on roles, release model, permissions, unresolved items, exceptions"

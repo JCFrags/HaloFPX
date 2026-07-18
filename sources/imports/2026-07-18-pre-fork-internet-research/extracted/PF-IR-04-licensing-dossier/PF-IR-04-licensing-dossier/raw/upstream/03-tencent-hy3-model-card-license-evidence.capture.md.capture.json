@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/03-tencent-hy3-model-card-license-evidence.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://huggingface.co/tencent/Hy3",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "ec3b59f5503add6a95649fefdc40550888c6941c353386ad98941d165b487175",
+  "size_bytes": 695,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-PUBLISHER-MODEL-CARD"
+}

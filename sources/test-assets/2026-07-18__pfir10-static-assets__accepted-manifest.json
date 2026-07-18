@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "status": "accepted-static-reference",
+  "accepted_on": "2026-07-18",
+  "source_archive": "sources/imports/2026-07-18-pre-fork-internet-research/source-archive/PF-IR-10-llm-wiki.zip",
+  "source_archive_sha256": "BCA0959E7E59A7F2CACA0A5EFE9834F3C738DFBADCF821EEFF48DBA8941DFD5B",
+  "source_root": "sources/imports/2026-07-18-pre-fork-internet-research/extracted/PF-IR-10-llm-wiki/PF-IR-10-llm-wiki",
+  "license": "CC0-1.0",
+  "candidate_binaries_executed": false,
+  "disposition": "Reference exact files in preserved intake; materialize only by verified hash in the future implementation repository.",
+  "accepted_files": [
+    {
+      "path": "fixtures/api/expected/chat-structured-answer.canonical.json",
+      "sha256": "38433b84f8d70910663aff813923996090810981bbbe34ba2b07ca5793c921d5",
+      "length": 208
+    },
+    {
+      "path": "fixtures/api/expected/chat-tool-required.canonical.json",
+      "sha256": "e509344dbdc783337f0c874fbf4e5a5c68161b19d5c69fe19e2a2dc18a0f3edf",
+      "length": 437
+    },
+    {
+      "path": "fixtures/api/requests/chat-structured-answer.json",
+      "sha256": "c63af4bba88269cff3018e60605a3d1b232611158f336a171471b149496193dd",
+      "length": 630
+    },
+    {
+      "path": "fixtures/api/requests/chat-tool-required-stream.json",
+      "sha256": "138f612f4a0a86b6276c4a6cda5242bf0ffe587f96eef9a5a7f46927f876ece1",
+      "length": 778
+    },
+    {
+      "path": "fixtures/api/requests/chat-tool-required.json",
+      "sha256": "4fced590c8bb61acf6a0d0ca90a0b0a4aae8ae1d1c71f6727f7309299e11c742",
+      "length": 726
+    },
+    {
+      "path": "fixtures/api/requests/malformed-expected.jsonl",
+      "sha256": "fd3efb38db3cb05b980e9f413f07a2ec745cedc99b644187826fc611c4b6a563",
+      "length": 275
+    },
+    {
+      "path": "fixtures/api/requests/malformed/messages-not-array.json",
+      "sha256": "194487b1f3622d70cadf4c2eb8f7f1c18c1027e51cb7e89667db43349a8fab57",
+      "length": 48
+    },
+    {
+      "path": "fixtures/api/requests/malformed/schema-invalid-type.json",
+      "sha256": "f7fa3870f370307885012315020ed476fa8e8dce88a485aec5d1fe090e38f373",
+      "length": 304
+    },
+    {
+      "path": "fixtures/api/requests/malformed/stream-options-without-stream.json",
+      "sha256": "d7742c84a1b77bb0ee62b37cfba73bd238f0b41dd3cdd2b238cc57eb1efb6bc0",
+      "length": 177
+    },
+    {
+      "path": "fixtures/api/requests/malformed/tool-choice-missing-tool.json",
+      "sha256": "85fe01cb355558c3748756724222b977c945df8f461e099da3e28841e0bc2878",
+      "length": 216
+    },
+    {
+      "path": "fixtures/api/streaming/canonical.chunks.json",
+      "sha256": "301681ee9685fcc7cfdca7267566fd723776244ece8277f8ddd15a87cfa7c448",
+      "length": 208
+    },
+    {
+      "path": "fixtures/api/streaming/canonical.sse",
+      "sha256": "49086d72133d32a4e7973dd1d5a7452e8634f06091419743017d41f9e6681c9a",
+      "length": 470
+    },
+    {
+      "path": "fixtures/api/streaming/expected.jsonl",
+      "sha256": "6577c3ecd304c3e3cf6f3cb454448f7b0bcf70656ccd09b8123a8572158ac519",
+      "length": 2891
+    },
+    {
+      "path": "fixtures/api/streaming/malformed-json-and-post-done.sse",
+      "sha256": "9f9eb889f52da47846d1265a9cd658fc3fb44c1bd880d8a8470782babe66e29f",
+      "length": 488
+    },
+    {
+      "path": "fixtures/api/streaming/structured-output.sse",
+      "sha256": "c278999ddf999657babf6bf63219463c493002f6328a770ee5e6d28e64de4669",
+      "length": 497
+    },
+    {
+      "path": "fixtures/api/streaming/tool-call.chunks.json",
+      "sha256": "0b8e87d180682aa05d188b22654c3d2dbc8023e653f980a6d0dd6c2c8a12d4d5",
+      "length": 176
+    },
+    {
+      "path": "fixtures/api/streaming/tool-call.sse",
+      "sha256": "5c535e4c8f3ea18c970c207a4a99c5a3dfef3ac1fadb011e96b433b890aac9a1",
+      "length": 830
+    },
+    {
+      "path": "fixtures/api/streaming/utf8-split.chunks.json",
+      "sha256": "18dce71a0e3fcf4375638b3c7983d873d72b1e91d419d93a597435797bc2e19a",
+      "length": 146
+    },
+    {
+      "path": "fixtures/api/streaming/utf8-split.sse",
+      "sha256": "d9518c3dc6fa6ed83e6e82875737adde74d311346e75503d2d00fe09768a7df6",
+      "length": 178
+    },
+    {
+      "path": "fixtures/chat/cases.jsonl",
+      "sha256": "23ece69198b3c6d82c514d13fb551493945d7612fb4d4ef595213703f4411f65",
+      "length": 1335
+    },
+    {
+      "path": "fixtures/chat/default.jinja",
+      "sha256": "cb3c0bde4849681d0b608d2a52637f26866878554f2edbf265bd477907b7d226",
+      "length": 170
+    },
+    {
+      "path": "fixtures/chat/malformed-cases.jsonl",
+      "sha256": "c825ac1c9508623d42b5586fbf508709714caf7884e5c4f2e19edc299ba0db1d",
+      "length": 339
+    },
+    {
+      "path": "fixtures/chat/named-strict.jinja",
+      "sha256": "9f5406729d422f3488d939e5f874bdc623a0887785a71acaac685fb02deaae99",
+      "length": 288
+    },
+    {
+      "path": "fixtures/chat/named-tools.jinja",
+      "sha256": "392b863978c9af6db378014a5e0b119886d104b359e328f8f86a07d064921372",
+      "length": 338
+    },
+    {
+      "path": "fixtures/fork-specific/rocmfpx-turboquant-cpu-vectors.recipe.jsonl",
+      "sha256": "b3b8ea9d9f0342940a7400684b593e2123aeb00521a088d08b2fda9c290a0c37",
+      "length": 558
+    },
+    {
+      "path": "fixtures/fork-specific/rocmfpx-type-map.json",
+      "sha256": "5a3e5830d0c91587a25cd90d6e6a28d0b66944255b4bc723bc8ad74c0e569ff5",
+      "length": 579
+    },
+    {
+      "path": "fixtures/gguf/malformed/bad-magic.gguf",
+      "sha256": "9ecf0a281769a22bcc2129e566602031cbd8c8a491ee8156a9e80db71c2ab2bb",
+      "length": 736
+    },
+    {
+      "path": "fixtures/gguf/malformed/misaligned-tensor-offset.gguf",
+      "sha256": "ec3351fa419de6b1a26d9894112973bae23e24a14f90de01aa3d8577f0805516",
+      "length": 736
+    },
+    {
+      "path": "fixtures/gguf/malformed/mutations.json",
+      "sha256": "3c5046a766a6b62ef7120038f5998ec220000c1ab9d9c19b1497c110272d8256",
+      "length": 2925
+    },
+    {
+      "path": "fixtures/gguf/malformed/truncated-header.gguf",
+      "sha256": "43c439801c05bd36e6f20ca4d100b8f208371b62e3bdd4ae9c87367fe671d357",
+      "length": 12
+    },
+    {
+      "path": "fixtures/gguf/malformed/truncated-metadata.gguf",
+      "sha256": "e375bda7c95b4c97a22cdc54e4638507043b033ad60f2bc22620f66506bdafb5",
+      "length": 42
+    },
+    {
+      "path": "fixtures/gguf/malformed/truncated-tensor-data.gguf",
+      "sha256": "3f4f9f4b07473c7b1126ea655fea14d0ea7d4f7630f0a6c427b6e83b26cf10c2",
+      "length": 716
+    },
+    {
+      "path": "fixtures/gguf/malformed/unknown-metadata-type.gguf",
+      "sha256": "a5e2b544a26f136fbbc5ea109371886fa4a815a3444e854e905b3ff7d5f20574",
+      "length": 736
+    },
+    {
+      "path": "fixtures/gguf/pfir10-byte-bpe-chat-v3.gguf",
+      "sha256": "80b3cc41c2853288c1c31dd2ab60645155502989290ba52d73fab4530c965037",
+      "length": 5760
+    },
+    {
+      "path": "fixtures/gguf/pfir10-byte-bpe-chat-v3.locators.json",
+      "sha256": "1d0c8d8f18bc25e124ddc4cc8cab238a0441611dd030ac6a966b837203785e1f",
+      "length": 2862
+    },
+    {
+      "path": "fixtures/gguf/pfir10-tiny-tensor-v3.gguf",
+      "sha256": "cf27aa3690c25886f02340194619ab6eb7b3a3f6f7bd9d9ba0002b54b55b83bc",
+      "length": 736
+    },
+    {
+      "path": "fixtures/gguf/pfir10-tiny-tensor-v3.locators.json",
+      "sha256": "5b8826a4d32e07c850cf9b14d56dc4b9fadf2dfb13ab56dd9556e591929a4380",
+      "length": 1451
+    },
+    {
+      "path": "fixtures/malformed/json-boundaries.base.bin",
+      "sha256": "818e6ab390ef435ff84efb65b3e49e6346b1d7d73f60afd3058d7b648ac6312a",
+      "length": 36
+    },
+    {
+      "path": "fixtures/malformed/json-boundaries.jsonl",
+      "sha256": "b70a43f6ea61d17f7507379f9c6217cfff92a3010a9046bc3370e1faa9db28b4",
+      "length": 3871
+    },
+    {
+      "path": "fixtures/malformed/utf8-boundaries.jsonl",
+      "sha256": "abd709a2f53178eb3829a1537a1a532ac245a6341356305b67cf6a9b7692d7bb",
+      "length": 484
+    },
+    {
+      "path": "fixtures/sampler/probability-vectors.jsonl",
+      "sha256": "fee1cb92136ba008b56ddeab6ff1f1cc84923fd1cd3baa69edefef974591b468",
+      "length": 1159
+    },
+    {
+      "path": "fixtures/sampler/rng-properties.jsonl",
+      "sha256": "a208de0a3593e6d77bd6fed5cdfd9e2b54e0f2cf99bfae160aed0a36c0a051ea",
+      "length": 437
+    },
+    {
+      "path": "fixtures/sampler/state-properties.jsonl",
+      "sha256": "da606af289b00ad242a15352ecac401ef814f5b31528995f36e5c6a9778a3d93",
+      "length": 686
+    },
+    {
+      "path": "fixtures/structured/answer.schema.json",
+      "sha256": "0a275a3a8a29915ea76d8125c8c54f15034c90a1d73baa40aa61b2f86e4333f1",
+      "length": 239
+    },
+    {
+      "path": "fixtures/structured/cases.jsonl",
+      "sha256": "73409ecf19e9231cb89b620c053817760a86f69895b3418d8783ff3e6979e91a",
+      "length": 713
+    },
+    {
+      "path": "fixtures/structured/echo-tool.schema.json",
+      "sha256": "2eb0895a38c8114e5156cdb001d6fb520aac10bcc19426ec395c75629d4e9527",
+      "length": 279
+    },
+    {
+      "path": "fixtures/structured/grammar-state-cases.jsonl",
+      "sha256": "c07180d1f443602d7ab5400cb14ae44c4cf6f22e42b212f6beb8ee0a8496d5d2",
+      "length": 395
+    },
+    {
+      "path": "fixtures/structured/grammars/abc-state.gbnf",
+      "sha256": "ac3efee96411b6be4d26c8f5533fe69d543b9ad6f756bb0363a45a0c1ce022fc",
+      "length": 30
+    },
+    {
+      "path": "fixtures/structured/grammars/answer.gbnf",
+      "sha256": "567c0277c661a1cd48d16d7e8e34742f7722ce76cd77a534b69ba26c9643c844",
+      "length": 77
+    },
+    {
+      "path": "fixtures/tokenizer/cases.jsonl",
+      "sha256": "5c773e8828e9efdb0d9074836c55f7537704cc3a2d65224c2b9f31ec3b1988f7",
+      "length": 2271
+    },
+    {
+      "path": "fixtures/tokenizer/special-token-cases.jsonl",
+      "sha256": "4136977568e131d5951b676ce533b3e9b6447c320d670373931ee808fe183ccd",
+      "length": 1314
+    },
+    {
+      "path": "fixtures/tokenizer/vocabulary-map.json",
+      "sha256": "c6596d706c7623e8c8c4d02f384d7b7c0e1f6543e6d6261e48b69364a9618c51",
+      "length": 265
+    }
+  ],
+  "deferred_files": [
+    "fixtures/fork-specific/rocmfpx-turbo4-type106-probe.gguf",
+    "fixtures/fork-specific/rocmfpx-turbo4-type106-probe.locators.json",
+    "fixtures/gguf/pfir10-tiny-llama-f32-v3.gguf",
+    "fixtures/gguf/pfir10-tiny-llama-f32-v3.locators.json",
+    "fixtures/state/recurrent-scenarios.jsonl",
+    "fixtures/state/save-restore-scenarios.jsonl",
+    "fixtures/state/speculative-scenarios.jsonl"
+  ]
+}

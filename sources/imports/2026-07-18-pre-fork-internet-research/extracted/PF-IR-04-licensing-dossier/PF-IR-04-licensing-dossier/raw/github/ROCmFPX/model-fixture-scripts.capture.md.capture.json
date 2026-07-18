@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/github/ROCmFPX/model-fixture-scripts.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "line-normalized authoritative connector capture",
+  "source_url": "https://github.com/charlie12345/ROCmFPX/tree/61f2f2d7bc4955e9bca821095ef69125837133b5/scripts",
+  "repository": "charlie12345/ROCmFPX",
+  "repository_commit_or_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "repository_path": "scripts/build-rocmfpx-agent-fixtures.sh and scripts/run-deepseek-v4-rocmfp4-fixture.sh",
+  "git_blob_sha1": null,
+  "sha256": "c89b725985dbae568669e1447f04e32a37edc5e6da09d1693f0c723f3337f08a",
+  "size_bytes": 1252,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-GENERATION-RECIPE"
+}

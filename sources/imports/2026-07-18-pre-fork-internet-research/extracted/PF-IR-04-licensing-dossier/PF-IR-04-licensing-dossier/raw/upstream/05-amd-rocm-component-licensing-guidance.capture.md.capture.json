@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/05-amd-rocm-component-licensing-guidance.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://rocm.docs.amd.com/en/latest/about/license.html",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "403a444da2714675ddd130bf5db1bab9a0f22297af18d0942ba909121eb8dad7",
+  "size_bytes": 735,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-VENDOR-LICENSING-GUIDANCE"
+}

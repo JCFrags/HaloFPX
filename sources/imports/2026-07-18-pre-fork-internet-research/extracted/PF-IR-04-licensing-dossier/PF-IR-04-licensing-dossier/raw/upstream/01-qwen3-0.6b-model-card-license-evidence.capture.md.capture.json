@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/01-qwen3-0.6b-model-card-license-evidence.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://huggingface.co/Qwen/Qwen3-0.6B",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "341fa6dc31ac2b7ed8871589037d0e5618f4fc24ac7eaeb81e7af9c4950a268e",
+  "size_bytes": 705,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-PUBLISHER-MODEL-CARD"
+}

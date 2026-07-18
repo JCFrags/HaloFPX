@@ -1,0 +1,448 @@
+{
+  "@context": {
+    "prov": "http://www.w3.org/ns/prov#",
+    "spdx": "https://spdx.org/rdf/terms#",
+    "pf": "https://example.invalid/pf-ir-04#",
+    "type": "@type",
+    "id": "@id"
+  },
+  "id": "pf:PF-IR-04-provenance",
+  "type": "prov:Bundle",
+  "generatedAtTime": "2026-07-18T01:32:31+00:00",
+  "accessDate": "2026-07-18",
+  "entities": [
+    {
+      "id": "pf:rocmfpx-a560",
+      "type": "prov:Entity",
+      "commit": "a5605a72768c6562241b248e268e33dc92787394",
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "NOASSERTION",
+      "status": "candidate-with-full-tree-scan"
+    },
+    {
+      "id": "pf:rocmfpx-61f",
+      "type": "prov:Entity",
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "NOASSERTION",
+      "status": "candidate-with-full-tree-scan"
+    },
+    {
+      "id": "pf:cachyllama-6be",
+      "type": "prov:Entity",
+      "commit": "6be745998f568e379ea197fcf827baec73ff9940",
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "NOASSERTION",
+      "status": "candidate-with-notice-generation"
+    },
+    {
+      "id": "pf:llama-ai-1017-code",
+      "type": "prov:Entity",
+      "commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "licenseDeclared": "GPL-3.0-or-later",
+      "status": "human-release-model-decision"
+    },
+    {
+      "id": "pf:llama-ai-1017-docs",
+      "type": "prov:Entity",
+      "commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "licenseDeclared": "CC-BY-NC-SA-4.0",
+      "status": "reference-only-by-default"
+    },
+    {
+      "id": "pf:gitlink-cachyllama",
+      "type": "prov:Entity",
+      "objectName": "6be745998f568e379ea197fcf827baec73ff9940",
+      "status": "separate-component"
+    },
+    {
+      "id": "pf:webui-source",
+      "type": "prov:Entity",
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "packageJsonBlob": "2338c38402a0ad01fb85a24c646cd7ad316f21b4",
+      "lockfileBlob": "bf23307b82c2489a680e9da3f11efed455149246"
+    },
+    {
+      "id": "pf:webui-bundle",
+      "type": "prov:Entity",
+      "status": "regenerate-with-pinned-source",
+      "licenseConcluded": "NOASSERTION"
+    },
+    {
+      "id": "pf:webui-embedded-headers",
+      "type": "prov:Entity",
+      "status": "release-specific"
+    },
+    {
+      "id": "pf:server-binary",
+      "type": "prov:Entity",
+      "status": "release-specific"
+    },
+    {
+      "id": "pf:qwen-local-fixture",
+      "type": "prov:Entity",
+      "status": "blocked",
+      "licenseConcluded": "NOASSERTION"
+    },
+    {
+      "id": "pf:deepseek-local-fixture",
+      "type": "prov:Entity",
+      "status": "blocked",
+      "licenseConcluded": "NOASSERTION"
+    },
+    {
+      "id": "pf:hf-tokenizer-snapshot",
+      "type": "prov:Entity",
+      "status": "blocked-until-pinned"
+    },
+    {
+      "id": "pf:chat-template",
+      "type": "prov:Entity",
+      "status": "reference-only"
+    },
+    {
+      "id": "pf:ggml-vocab-fixture",
+      "type": "prov:Entity",
+      "status": "blocked-until-source-chain"
+    },
+    {
+      "id": "pf:gutenberg-pg1184",
+      "type": "prov:Entity",
+      "status": "reference-or-reacquire"
+    }
+  ],
+  "activities": [
+    {
+      "id": "pf:commit-delta-a560-to-61f",
+      "type": "prov:Activity",
+      "description": "One-commit ROCmFPX implementation delta"
+    },
+    {
+      "id": "pf:npm-build",
+      "type": "prov:Activity",
+      "description": "Pinned npm build; release-specific environment required"
+    },
+    {
+      "id": "pf:xxd-embed",
+      "type": "prov:Activity",
+      "description": "Convert Web UI assets to generated C++ headers"
+    },
+    {
+      "id": "pf:link-server",
+      "type": "prov:Activity",
+      "description": "Compile/link server binary"
+    },
+    {
+      "id": "pf:quantize-model",
+      "type": "prov:Activity",
+      "description": "Quantize exact licensed model input"
+    },
+    {
+      "id": "pf:extract-chat-template",
+      "type": "prov:Activity",
+      "description": "Extract chat_template from pinned tokenizer_config.json"
+    },
+    {
+      "id": "pf:generate-vocab-fixture",
+      "type": "prov:Activity",
+      "description": "Generate ggml-vocab fixture from exact tokenizer snapshot"
+    }
+  ],
+  "relations": [
+    {
+      "type": "prov:wasRevisionOf",
+      "generatedEntity": "pf:rocmfpx-61f",
+      "usedEntity": "pf:rocmfpx-a560"
+    },
+    {
+      "type": "pf:gitlinkPins",
+      "superproject": "pf:llama-ai-1017-code",
+      "gitlink": "pf:gitlink-cachyllama",
+      "target": "pf:cachyllama-6be"
+    },
+    {
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:webui-bundle",
+      "activity": "pf:npm-build"
+    },
+    {
+      "type": "prov:used",
+      "activity": "pf:npm-build",
+      "entity": "pf:webui-source"
+    },
+    {
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:webui-embedded-headers",
+      "activity": "pf:xxd-embed"
+    },
+    {
+      "type": "prov:used",
+      "activity": "pf:xxd-embed",
+      "entity": "pf:webui-bundle"
+    },
+    {
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:server-binary",
+      "activity": "pf:link-server"
+    },
+    {
+      "type": "prov:used",
+      "activity": "pf:link-server",
+      "entity": "pf:webui-embedded-headers"
+    },
+    {
+      "type": "prov:used",
+      "activity": "pf:link-server",
+      "entity": "pf:cachyllama-6be"
+    },
+    {
+      "type": "prov:used",
+      "activity": "pf:quantize-model",
+      "entity": "pf:qwen-local-fixture",
+      "comment": "Input identity unresolved; relation is a required template, not an established fact."
+    },
+    {
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:chat-template",
+      "activity": "pf:extract-chat-template"
+    },
+    {
+      "type": "prov:used",
+      "activity": "pf:extract-chat-template",
+      "entity": "pf:hf-tokenizer-snapshot"
+    },
+    {
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:ggml-vocab-fixture",
+      "activity": "pf:generate-vocab-fixture"
+    },
+    {
+      "type": "prov:used",
+      "activity": "pf:generate-vocab-fixture",
+      "entity": "pf:hf-tokenizer-snapshot"
+    }
+  ],
+  "profileNote": "W3C PROV-inspired evidence graph using custom pf terms; not a SLSA attestation or legal conclusion.",
+  "@graph": [
+    {
+      "id": "pf:rocmfpx-a560",
+      "type": "prov:Entity",
+      "commit": "a5605a72768c6562241b248e268e33dc92787394",
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "NOASSERTION",
+      "status": "candidate-with-full-tree-scan"
+    },
+    {
+      "id": "pf:rocmfpx-61f",
+      "type": "prov:Entity",
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "NOASSERTION",
+      "status": "candidate-with-full-tree-scan"
+    },
+    {
+      "id": "pf:cachyllama-6be",
+      "type": "prov:Entity",
+      "commit": "6be745998f568e379ea197fcf827baec73ff9940",
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "NOASSERTION",
+      "status": "candidate-with-notice-generation"
+    },
+    {
+      "id": "pf:llama-ai-1017-code",
+      "type": "prov:Entity",
+      "commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "licenseDeclared": "GPL-3.0-or-later",
+      "status": "human-release-model-decision"
+    },
+    {
+      "id": "pf:llama-ai-1017-docs",
+      "type": "prov:Entity",
+      "commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "licenseDeclared": "CC-BY-NC-SA-4.0",
+      "status": "reference-only-by-default"
+    },
+    {
+      "id": "pf:gitlink-cachyllama",
+      "type": "prov:Entity",
+      "objectName": "6be745998f568e379ea197fcf827baec73ff9940",
+      "status": "separate-component"
+    },
+    {
+      "id": "pf:webui-source",
+      "type": "prov:Entity",
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "packageJsonBlob": "2338c38402a0ad01fb85a24c646cd7ad316f21b4",
+      "lockfileBlob": "bf23307b82c2489a680e9da3f11efed455149246"
+    },
+    {
+      "id": "pf:webui-bundle",
+      "type": "prov:Entity",
+      "status": "regenerate-with-pinned-source",
+      "licenseConcluded": "NOASSERTION"
+    },
+    {
+      "id": "pf:webui-embedded-headers",
+      "type": "prov:Entity",
+      "status": "release-specific"
+    },
+    {
+      "id": "pf:server-binary",
+      "type": "prov:Entity",
+      "status": "release-specific"
+    },
+    {
+      "id": "pf:qwen-local-fixture",
+      "type": "prov:Entity",
+      "status": "blocked",
+      "licenseConcluded": "NOASSERTION"
+    },
+    {
+      "id": "pf:deepseek-local-fixture",
+      "type": "prov:Entity",
+      "status": "blocked",
+      "licenseConcluded": "NOASSERTION"
+    },
+    {
+      "id": "pf:hf-tokenizer-snapshot",
+      "type": "prov:Entity",
+      "status": "blocked-until-pinned"
+    },
+    {
+      "id": "pf:chat-template",
+      "type": "prov:Entity",
+      "status": "reference-only"
+    },
+    {
+      "id": "pf:ggml-vocab-fixture",
+      "type": "prov:Entity",
+      "status": "blocked-until-source-chain"
+    },
+    {
+      "id": "pf:gutenberg-pg1184",
+      "type": "prov:Entity",
+      "status": "reference-or-reacquire"
+    },
+    {
+      "id": "pf:commit-delta-a560-to-61f",
+      "type": "prov:Activity",
+      "description": "One-commit ROCmFPX implementation delta"
+    },
+    {
+      "id": "pf:npm-build",
+      "type": "prov:Activity",
+      "description": "Pinned npm build; release-specific environment required"
+    },
+    {
+      "id": "pf:xxd-embed",
+      "type": "prov:Activity",
+      "description": "Convert Web UI assets to generated C++ headers"
+    },
+    {
+      "id": "pf:link-server",
+      "type": "prov:Activity",
+      "description": "Compile/link server binary"
+    },
+    {
+      "id": "pf:quantize-model",
+      "type": "prov:Activity",
+      "description": "Quantize exact licensed model input"
+    },
+    {
+      "id": "pf:extract-chat-template",
+      "type": "prov:Activity",
+      "description": "Extract chat_template from pinned tokenizer_config.json"
+    },
+    {
+      "id": "pf:generate-vocab-fixture",
+      "type": "prov:Activity",
+      "description": "Generate ggml-vocab fixture from exact tokenizer snapshot"
+    },
+    {
+      "id": "pf:relation-001",
+      "type": "prov:wasRevisionOf",
+      "generatedEntity": "pf:rocmfpx-61f",
+      "usedEntity": "pf:rocmfpx-a560"
+    },
+    {
+      "id": "pf:relation-002",
+      "type": "pf:gitlinkPins",
+      "superproject": "pf:llama-ai-1017-code",
+      "gitlink": "pf:gitlink-cachyllama",
+      "target": "pf:cachyllama-6be"
+    },
+    {
+      "id": "pf:relation-003",
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:webui-bundle",
+      "activity": "pf:npm-build"
+    },
+    {
+      "id": "pf:relation-004",
+      "type": "prov:used",
+      "activity": "pf:npm-build",
+      "entity": "pf:webui-source"
+    },
+    {
+      "id": "pf:relation-005",
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:webui-embedded-headers",
+      "activity": "pf:xxd-embed"
+    },
+    {
+      "id": "pf:relation-006",
+      "type": "prov:used",
+      "activity": "pf:xxd-embed",
+      "entity": "pf:webui-bundle"
+    },
+    {
+      "id": "pf:relation-007",
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:server-binary",
+      "activity": "pf:link-server"
+    },
+    {
+      "id": "pf:relation-008",
+      "type": "prov:used",
+      "activity": "pf:link-server",
+      "entity": "pf:webui-embedded-headers"
+    },
+    {
+      "id": "pf:relation-009",
+      "type": "prov:used",
+      "activity": "pf:link-server",
+      "entity": "pf:cachyllama-6be"
+    },
+    {
+      "id": "pf:relation-010",
+      "type": "prov:used",
+      "activity": "pf:quantize-model",
+      "entity": "pf:qwen-local-fixture",
+      "comment": "Input identity unresolved; relation is a required template, not an established fact."
+    },
+    {
+      "id": "pf:relation-011",
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:chat-template",
+      "activity": "pf:extract-chat-template"
+    },
+    {
+      "id": "pf:relation-012",
+      "type": "prov:used",
+      "activity": "pf:extract-chat-template",
+      "entity": "pf:hf-tokenizer-snapshot"
+    },
+    {
+      "id": "pf:relation-013",
+      "type": "prov:wasGeneratedBy",
+      "entity": "pf:ggml-vocab-fixture",
+      "activity": "pf:generate-vocab-fixture"
+    },
+    {
+      "id": "pf:relation-014",
+      "type": "prov:used",
+      "activity": "pf:generate-vocab-fixture",
+      "entity": "pf:hf-tokenizer-snapshot"
+    }
+  ]
+}

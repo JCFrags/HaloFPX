@@ -1,0 +1,13 @@
+{
+  "capture_path": "raw/github/llama-ai/LICENSE.blob-f288702d2fa16d3cdf0035b15a9fcbc552cd88e7.txt",
+  "capture_method": "exact-byte HTTP retrieval followed by Git blob verification",
+  "byte_fidelity": "exact",
+  "source_url": "https://raw.githubusercontent.com/fewtarius/llama-ai/1017f3dfdce3ca2b06aa9007b23295db3bb35722/LICENSE",
+  "repository_commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+  "repository_path": "LICENSE",
+  "git_blob_sha1": "f288702d2fa16d3cdf0035b15a9fcbc552cd88e7",
+  "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+  "size_bytes": 35149,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-REPO-LICENSE-TEXT"
+}

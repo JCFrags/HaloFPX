@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/github/ROCmFPX/webui-generation-and-lockfile.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "line-normalized authoritative connector capture",
+  "source_url": "https://github.com/charlie12345/ROCmFPX/tree/61f2f2d7bc4955e9bca821095ef69125837133b5/tools/server/webui",
+  "repository": "charlie12345/ROCmFPX",
+  "repository_commit_or_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "repository_path": "tools/server/webui and server build scripts",
+  "git_blob_sha1": null,
+  "sha256": "2834b1d662067dad5efea7f231391ea55ac9ef619c14b60abe03a6d4bd209bd6",
+  "size_bytes": 1547,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-DEPENDENCY-DECLARATION"
+}

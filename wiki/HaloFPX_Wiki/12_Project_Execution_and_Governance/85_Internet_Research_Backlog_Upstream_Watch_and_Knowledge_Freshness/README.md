@@ -2,7 +2,7 @@
 section_id: "85"
 title: "Internet Research Backlog, Upstream Watch, and Knowledge Freshness"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-07-18"
 applies_to:
   repositories:
     - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
@@ -20,9 +20,9 @@ related_sections: ["02", "04", "11", "13", "15", "18", "23", "24", "29", "50", "
 
 ## PF-IR return status — 2026-07-18
 
-**[VERIFIED]** Ten requested research archives—PF-IR-01, 02, 03, and 05 through
-11—were preserved and extracted under the dated intake at [S85-18]. PF-IR-04 is
-the only outstanding package. **[INFERENCE]** The returned material narrows the
+**[VERIFIED]** All eleven requested research archives—PF-IR-01 through
+PF-IR-11—were preserved and extracted under the dated intake at [S85-18]. No
+requested return remains outstanding. **[INFERENCE]** The returned material narrows the
 external option set but leaves its implementation, machine, security, license,
 and human-decision gates open. The reviewed disposition is authoritative for
 project routing; package self-verdicts are not [S85-18].
@@ -35,7 +35,7 @@ project routing; package self-verdicts are not [S85-18].
 | Persistence and keying (06, 07) | Source-backed design constraints available; format, authority and destructive fault tests remain open |
 | Hardware and XDNA2 (09, 11) | Firmware rollout stays held; XDNA2 stays excluded from the primary path |
 
-The next external intake is PF-IR-04. The immediate local sequence is maintained
+The immediate local sequence is maintained
 in the [research-return synthesis](../../../../knowledge/pre-fork-research-return-synthesis.md).
 
 ## Decision-use summary

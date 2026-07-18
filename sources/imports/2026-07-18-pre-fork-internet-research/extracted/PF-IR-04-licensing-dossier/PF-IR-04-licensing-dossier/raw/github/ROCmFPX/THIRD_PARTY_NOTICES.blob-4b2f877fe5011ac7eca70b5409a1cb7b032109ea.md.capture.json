@@ -1,0 +1,13 @@
+{
+  "capture_path": "raw/github/ROCmFPX/THIRD_PARTY_NOTICES.blob-4b2f877fe5011ac7eca70b5409a1cb7b032109ea.md",
+  "capture_method": "exact-byte HTTP retrieval followed by Git blob verification",
+  "byte_fidelity": "exact",
+  "source_url": "https://raw.githubusercontent.com/charlie12345/ROCmFPX/main/THIRD_PARTY_NOTICES.md",
+  "repository_commit": "a5605a72768c6562241b248e268e33dc92787394 and 61f2f2d7bc4955e9bca821095ef69125837133b5 (verified unchanged by Git blob)",
+  "repository_path": "THIRD_PARTY_NOTICES.md",
+  "git_blob_sha1": "4b2f877fe5011ac7eca70b5409a1cb7b032109ea",
+  "sha256": "038b892fb3e926f9f85c3256554f1e74c7a6fab023574ad5869aa389dcf45729",
+  "size_bytes": 1372,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-FILE-NOTICE"
+}

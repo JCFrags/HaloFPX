@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/02-deepseek-v4-flash-model-card-and-license-evidence.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "9f5ae3b55293f44a66cc24548644e1fe694519079888eabd8c29940cb13171ee",
+  "size_bytes": 726,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-PUBLISHER-MODEL-CARD"
+}

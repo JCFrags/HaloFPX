@@ -1,0 +1,98 @@
+[
+  {
+    "claim_id": "CL-001",
+    "claim_label": "PRIMARY-REPO-LICENSE-TEXT",
+    "literal_claim": "ROCmFPX and CachyLLama root LICENSE blobs are byte-identical MIT texts at the exact commits.",
+    "evidence": "LICENSE blob e7dca554... exact-byte captures",
+    "confidence": "high",
+    "human_decision": "Determine file exceptions and scope over exact local tree."
+  },
+  {
+    "claim_id": "CL-002",
+    "claim_label": "PRIMARY-REPO-LICENSE-TEXT",
+    "literal_claim": "llama-ai root LICENSE blob is GPLv3 text; sampled operational files say GPL-3.0-or-later.",
+    "evidence": "LICENSE f288702d...; sampled SPDX blobs",
+    "confidence": "high",
+    "human_decision": "Determine release combination and corresponding-source method."
+  },
+  {
+    "claim_id": "CL-003",
+    "claim_label": "PRIMARY-REPOSITORY-ASSERTION",
+    "literal_claim": "llama-ai README separately labels documentation CC-BY-NC-SA-4.0.",
+    "evidence": "README cb8f9dee...",
+    "confidence": "high for assertion; file-level scope not exhaustively tested",
+    "human_decision": "Classify exact proposed documentation files and intended distribution context."
+  },
+  {
+    "claim_id": "CL-004",
+    "claim_label": "PRIMARY-GITLINK-PIN",
+    "literal_claim": "llama-ai at 1017f3d pins CachyLLama commit 6be7459 via a gitlink and .gitmodules entry.",
+    "evidence": "commit diff + .gitmodules c73a9ad...",
+    "confidence": "high",
+    "human_decision": "Determine combined/aggregate release treatment."
+  },
+  {
+    "claim_id": "CL-005",
+    "claim_label": "PRIMARY-FILE-SPDX",
+    "literal_claim": "Both MIT repositories contain representative Apache-2.0 and Apache-2.0 WITH LLVM-exception file sections.",
+    "evidence": "SYCL/OpenVINO exact file blobs",
+    "confidence": "high",
+    "human_decision": "Complete full-tree scan and notice bundle."
+  },
+  {
+    "claim_id": "CL-006",
+    "claim_label": "UNRESOLVED-NOTICE-GAP",
+    "literal_claim": "CachyLLama lacks a root THIRD_PARTY_NOTICES.md at the exact commit.",
+    "evidence": "exact path lookup returned absent",
+    "confidence": "high",
+    "human_decision": "Generate a complete notice file before release."
+  },
+  {
+    "claim_id": "CL-007",
+    "claim_label": "PRIMARY-GENERATION-RECIPE",
+    "literal_claim": "ROCmFPX Web UI assets can be built or downloaded and embedded into generated C++ headers.",
+    "evidence": "CMake/workflow/xxd/package blobs",
+    "confidence": "high",
+    "human_decision": "Choose pinned local build vs blocked bucket binary and complete dependency notices."
+  },
+  {
+    "claim_id": "CL-008",
+    "claim_label": "UNRESOLVED-LICENSE",
+    "literal_claim": "Checked-in chat templates and generated tokenizer assets are not proven MIT by repository location alone.",
+    "evidence": "mutable-main extraction script, missing template source header, external tokenizer inputs",
+    "confidence": "high as a provenance gap",
+    "human_decision": "Identify exact sources/licenses and permission."
+  },
+  {
+    "claim_id": "CL-009",
+    "claim_label": "BLOCKED-HUMAN-PERMISSION",
+    "literal_claim": "Local model fixture paths do not identify exact publisher/quantizer/revision/license/hash.",
+    "evidence": "fixture scripts and path names",
+    "confidence": "high",
+    "human_decision": "Obtain permission or exact licensed source record."
+  },
+  {
+    "claim_id": "CL-010",
+    "claim_label": "REFERENCE-ONLY",
+    "literal_claim": "GPL behavior, command names, interfaces, performance facts, and requirements may be documented separately from copying GPL expression, subject to human clean-room design.",
+    "evidence": "operational scripts + clean-room protocol in this dossier",
+    "confidence": "methodological, not a legal conclusion",
+    "human_decision": "Approve role separation and admissibility."
+  },
+  {
+    "claim_id": "CL-011",
+    "claim_label": "REGENERATE-WITH-PINNED-SOURCE",
+    "literal_claim": "Generated files may be independently regenerated only when all inputs, licenses, revisions, tools, and output hashes are recorded.",
+    "evidence": "generation recipes + SLSA/SPDX guidance",
+    "confidence": "high as release control",
+    "human_decision": "Approve exact inputs and build."
+  },
+  {
+    "claim_id": "CL-012",
+    "claim_label": "NOASSERTION",
+    "literal_claim": "This dossier is an external-evidence seed, not the local full-tree or proposed-artifact scan.",
+    "evidence": "scope and limitations",
+    "confidence": "high",
+    "human_decision": "Perform local twelve-package/exact release scan."
+  }
+]

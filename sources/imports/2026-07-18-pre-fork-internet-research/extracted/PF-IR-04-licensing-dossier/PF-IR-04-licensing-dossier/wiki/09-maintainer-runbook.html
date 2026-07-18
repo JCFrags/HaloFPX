@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maintainer and reviewer runbook · PF-IR-04</title><link rel="stylesheet" href="../assets/style.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-04 <span>Wiki</span></div><div class="kicker">Licensing & provenance dossier</div><input id="wiki-search" class="search" placeholder="Search this page…"><div class="nav"><div class="nav-title">Navigation</div><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-and-limits.html" class="">Scope & limits</a><a href="../wiki/01-decision-summary.html" class="">Decision summary</a><a href="../wiki/02-component-boundaries.html" class="">Component boundaries</a><a href="../wiki/03-code-license-evidence.html" class="">Code & SPDX</a><a href="../wiki/04-fixtures-models-tokenizers.html" class="">Models & fixtures</a><a href="../wiki/05-webui-generated-assets.html" class="">Web UI & generated</a><a href="../wiki/06-release-evidence.html" class="">Release evidence</a><a href="../wiki/07-gpl-separation-clean-room.html" class="">GPL & clean room</a><a href="../wiki/08-unresolved-blocked.html" class="">Unresolved items</a><a href="../wiki/09-maintainer-runbook.html" class="">Reviewer runbook</a><a href="../wiki/10-source-register.html" class="">Source register</a><div class="nav-title">Machine records</div><a href="../manifests/components.csv">Components CSV</a><a href="../manifests/files.csv">Files CSV</a><a href="../manifests/unresolved.csv">Unresolved CSV</a><a href="../manifests/provenance-chain.jsonld">Provenance JSON-LD</a><a href="../manifests/release-sbom-seed.spdx.json">SPDX seed</a><a href="../hashes/SHA256SUMS">SHA256SUMS</a></div></aside><main class="main"><div class="hero"><div class="kicker">Evidence date 2026-07-18 · P0</div><h1>Maintainer and reviewer runbook</h1><div class="doc-meta"><span class="badge info">EXTERNAL EVIDENCE</span><span class="badge warn">HUMAN DECISION REQUIRED</span><span class="badge bad">NO UNKNOWN-LICENSE APPROVAL</span></div></div><article data-searchable><h1>Maintainer and reviewer runbook</h1>
+<h2>Intake</h2>
+<ol>
+<li>Freeze the exact proposed artifact tree and assign a release identifier.</li>
+<li>Hash every file and record symlinks, gitlinks, submodules, LFS pointers, archives, and generated outputs.</li>
+<li>Export exact Git status, commits, submodule status, and build environment.</li>
+</ol>
+<h2>Scan and reconcile</h2>
+<ol start="4">
+<li>Run a full-tree license/origin scan and compare it with <code>manifests/files.*</code>.</li>
+<li>Reconcile every exception, dual license, generated file, copied fixture, and missing header.</li>
+<li>Resolve each row in <code>manifests/unresolved.*</code>; never replace <code>NOASSERTION</code> with a guess.</li>
+</ol>
+<h2>Build and map</h2>
+<ol start="7">
+<li>Rebuild from clean, pinned inputs.</li>
+<li>Generate source and binary SBOMs.</li>
+<li>Populate the source-to-binary map, including embedded Web UI assets.</li>
+<li>Capture build provenance and reproduce outputs where feasible.</li>
+</ol>
+<h2>Obligations and notices</h2>
+<ol start="11">
+<li>Determine the release/distribution model and all corresponding-source obligations.</li>
+<li>Assemble license texts, copyright notices, attribution, Apache/LLVM exception material, npm package notices, model/data terms, and documentation notices.</li>
+<li>Verify that source-access links/offers remain adjacent to corresponding binaries where required.</li>
+</ol>
+<h2>Approval</h2>
+<ol start="14">
+<li>Approve clean-room roles and review contamination evidence.</li>
+<li>Record maintainer/legal signoffs for admissibility, permissions, release model, and residual risk.</li>
+<li>Archive the final SBOM, hashes, notices, sources, binaries, provenance, and decisions together.</li>
+</ol>
+</article><div class="footer">PF-IR-04 dossier · Generated 2026-07-18T01:32:31+00:00 · Not legal advice · Not a local full-tree scan.</div></main></div><script src="../assets/wiki.js"></script></body></html>

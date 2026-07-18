@@ -8,7 +8,7 @@ The four clone directories are deliberately ignored by the parent project so the
 
 ## Usage contract
 
-The [2026-07-17 pre-fork source lock](source-locks/2026-07-17-pre-fork/README.md) preserves complete all-ref bundles, exact object/patch/build/license inventories, cryptographic manifests, and verification evidence for the accepted L00A lane. It is a candidate evidence package; OPEN-PIN-01 remains unresolved.
+The [2026-07-17 pre-fork source lock](source-locks/2026-07-17-pre-fork/README.md) preserves complete all-ref bundles, exact object/patch/build/license inventories, cryptographic manifests, and verification evidence for the accepted L00A lane. The later [pin decision](../../reviews/readiness/2026-07-18__implementation-pin__decision__v01.md) selects `61f2f2d7bc4955e9bca821095ef69125837133b5`; the source-lock package itself remains an immutable pre-decision receipt.
 
 - Treat each clone as immutable evidence captured at the manifest retrieval time.
 - Inspect files and history without building, executing, rebasing, pulling, checking out, or editing in place.

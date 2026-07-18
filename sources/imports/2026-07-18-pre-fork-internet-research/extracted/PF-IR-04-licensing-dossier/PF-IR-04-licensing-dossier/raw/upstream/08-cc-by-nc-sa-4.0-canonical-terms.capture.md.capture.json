@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/08-cc-by-nc-sa-4.0-canonical-terms.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.en",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "fce79d3b95b7e663a3f0cd267640bbb31ef416283bdfedda76753eedb82e22a8",
+  "size_bytes": 620,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-LICENSE-CANON"
+}

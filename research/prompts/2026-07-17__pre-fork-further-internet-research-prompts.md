@@ -1,6 +1,6 @@
 ---
 type: research-prompt-backlog
-status: awaiting-final-return
+status: complete
 created: 2026-07-17
 scope: pre-fork external research only
 canonical_wiki_edited: true
@@ -10,12 +10,12 @@ canonical_wiki_edited: true
 
 ## Return status — 2026-07-18
 
-PF-IR-01, 02, 03, and 05 through 11 have returned and are preserved under
+PF-IR-01 through PF-IR-11 have returned and are preserved under
 `sources/imports/2026-07-18-pre-fork-internet-research/`. Their reviewed
 dispositions are recorded in
-`reviews/intake/2026-07-18__pf-ir-returns__review__v01.md`. PF-IR-04 is the sole
-outstanding package. Returned packages remain candidate evidence and do not
-approve their named decision.
+`reviews/intake/2026-07-18__pf-ir-returns__review__v01.md`; PF-IR-04 has a
+separate licensing review. Returned packages remain candidate evidence and do
+not approve their named decision.
 
 ## Purpose and dispatch rule
 

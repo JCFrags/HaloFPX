@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/github/ROCmFPX/tokenizer-template-generation.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "line-normalized authoritative connector capture",
+  "source_url": "https://github.com/charlie12345/ROCmFPX/tree/61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "repository": "charlie12345/ROCmFPX",
+  "repository_commit_or_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "repository_path": "convert_hf_to_gguf_update.py; scripts/get_chat_template.py; tests/test-tokenizer-0.sh; models/templates",
+  "git_blob_sha1": null,
+  "sha256": "99d8ecafb8c2692c78ad149c181314f5f0af2302dfb72e1a4563ee1d592b1a29",
+  "size_bytes": 1560,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-GENERATION-RECIPE"
+}

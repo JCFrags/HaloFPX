@@ -1,0 +1,98 @@
+[
+  {
+    "artifact_class": "ROCmFPX/CachyLLama MIT-origin source files with no contrary file notice",
+    "default_status": "CANDIDATE-WITH-NOTICE",
+    "may_reference": "yes",
+    "may_independently_regenerate": "n/a",
+    "may_copy_or_promote": "Only after exact-tree origin/license scan and notice preservation",
+    "blocking_condition": "Any unknown or contrary file-level provenance"
+  },
+  {
+    "artifact_class": "MIT adaptations from identified upstream commits",
+    "default_status": "CANDIDATE-WITH-DONOR-TRACE",
+    "may_reference": "yes",
+    "may_independently_regenerate": "by clean re-port from pinned licensed source",
+    "may_copy_or_promote": "After source/diff/license/copyright record",
+    "blocking_condition": "Unresolved donor commit or incompatible file exception"
+  },
+  {
+    "artifact_class": "llama-ai GPL operational scripts and service/build files",
+    "default_status": "GPL-SCOPE",
+    "may_reference": "yes",
+    "may_independently_regenerate": "Potentially from behavior/spec under approved clean-room process",
+    "may_copy_or_promote": "Only under a release model satisfying GPL obligations",
+    "blocking_condition": "Attempt to copy into non-GPL target without permission/compatible release model"
+  },
+  {
+    "artifact_class": "GPL operational behavior, interfaces, command semantics, facts, measurements",
+    "default_status": "REFERENCE-ONLY-FOR-REQUIREMENTS",
+    "may_reference": "yes",
+    "may_independently_regenerate": "yes, with documented independent implementation and human approval",
+    "may_copy_or_promote": "Do not copy expressive code/text as “facts”",
+    "blocking_condition": "Role contamination or expression-level similarity"
+  },
+  {
+    "artifact_class": "llama-ai documentation",
+    "default_status": "REFERENCE-ONLY-BY-DEFAULT",
+    "may_reference": "yes with attribution",
+    "may_independently_regenerate": "Create new documentation from independently verified facts",
+    "may_copy_or_promote": "Only under CC-BY-NC-SA-4.0-compatible distribution approved by reviewer",
+    "blocking_condition": "Commercial/permissive release conflict, missing attribution/share-alike handling"
+  },
+  {
+    "artifact_class": "Schemas/grammars/protocol descriptions",
+    "default_status": "CLASSIFY-BY-EXPRESSION",
+    "may_reference": "yes",
+    "may_independently_regenerate": "facts/ideas and independently authored schemas may be regenerated",
+    "may_copy_or_promote": "Copied schema text requires source/license evidence",
+    "blocking_condition": "Unidentified copied metaschema or prose/code expression"
+  },
+  {
+    "artifact_class": "Generated Web UI bundle and embedded headers",
+    "default_status": "INDEPENDENT-REGENERATION-CANDIDATE",
+    "may_reference": "yes",
+    "may_independently_regenerate": "yes from exact source+lockfile+toolchain if all licenses allow",
+    "may_copy_or_promote": "Only with bundle hash map, source, notices, and SBOM",
+    "blocking_condition": "Mutable bucket/latest or incomplete dependency notices"
+  },
+  {
+    "artifact_class": "Chat templates extracted from tokenizer_config.json",
+    "default_status": "REFERENCE-ONLY",
+    "may_reference": "yes",
+    "may_independently_regenerate": "only from exact pinned source with compatible license",
+    "may_copy_or_promote": "Not approved on root-repo MIT assertion alone",
+    "blocking_condition": "Unknown source revision/license or version-sensitive publisher terms"
+  },
+  {
+    "artifact_class": "Tokenizer snapshots and generated ggml-vocab GGUF",
+    "default_status": "BLOCKED-PENDING-PROVENANCE",
+    "may_reference": "yes",
+    "may_independently_regenerate": "yes after exact source/license/revision capture",
+    "may_copy_or_promote": "Only with full source-to-output chain",
+    "blocking_condition": "Unknown tokenizer files/license/revision"
+  },
+  {
+    "artifact_class": "Model weights and quantized GGUF fixtures",
+    "default_status": "BLOCKED-PENDING-PERMISSION",
+    "may_reference": "yes",
+    "may_independently_regenerate": "only when base model, quantizer, terms, and transformation allow",
+    "may_copy_or_promote": "No blanket approval",
+    "blocking_condition": "Unknown exact publisher/quantizer/revision/hash or use restrictions"
+  },
+  {
+    "artifact_class": "Project Gutenberg benchmark corpus",
+    "default_status": "REFERENCE-OR-REACQUIRE",
+    "may_reference": "yes",
+    "may_independently_regenerate": "reacquire exact edition and record hash/terms",
+    "may_copy_or_promote": "Only after jurisdiction/trademark/terms review",
+    "blocking_condition": "Unrecorded cache or non-US uncertainty"
+  },
+  {
+    "artifact_class": "ROCm SDK/compiler/runtime/Vulkan/system packages",
+    "default_status": "DISTRIBUTION-DEPENDENCY",
+    "may_reference": "yes",
+    "may_independently_regenerate": "build from exact source packages where feasible",
+    "may_copy_or_promote": "Only under each package license with SBOM/notices",
+    "blocking_condition": "Parent license assumption or missing package license inventory"
+  }
+]

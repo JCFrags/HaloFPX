@@ -22,7 +22,7 @@
 1. **[RECOMMENDATION]** GPL llama-ai runner, service, router, installer, profiles, and documentation code stay outside the intended MIT engine tree unless the owner explicitly changes the distribution decision.
 2. **[RECOMMENDATION]** Operational behavior may be used as a requirements source, but a “clean-room” label alone is not legal or provenance proof. A person or agent that inspected GPL implementation must not be silently reassigned as the independent implementer.
 3. **[RECOMMENDATION]** Every adapted MIT unit preserves authorship, exact source commit/path/blob, license, and notice obligations. Broad donor commits and later fixes must not be collapsed into a generic attribution.
-4. **[OPEN]** Product distribution model, file-level notice policy, SBOM contents, Web UI/model/test-corpus licenses, and the clean-reimplementation procedure remain `OPEN-LIC-01`.
+4. **[VERIFIED]** The implementation-start policy keeps an MIT core, excludes llama-ai GPL code and CC-BY-NC-SA documentation, admits no models/WebUI/tokenizers/templates by placement, and requires per-capability P3 records for CachyLLama material. **[OPEN]** Exact release-tree notices, SBOM, clean-room roles, and legal/distribution approval remain the release portion of `OPEN-LIC-01`. [PF-IR-04 review](../reviews/intake/2026-07-18__pf-ir-04-licensing__review__v01.md)
 
 ## Architectural boundaries
 

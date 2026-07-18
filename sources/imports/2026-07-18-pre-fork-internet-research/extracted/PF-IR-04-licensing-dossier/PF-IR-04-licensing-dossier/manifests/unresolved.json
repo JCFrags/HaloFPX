@@ -1,0 +1,146 @@
+[
+  {
+    "unresolved_id": "U-001",
+    "subject": "Exact locally proposed twelve-package tree",
+    "category": "scope",
+    "reason": "Not provided and expressly out of scope",
+    "blocking_status": "BLOCKED",
+    "required_evidence": "Full file inventory, hashes, symlinks, submodules, generated files, binaries, package metadata."
+  },
+  {
+    "unresolved_id": "U-002",
+    "subject": "ROCmFPX newly added HIP files",
+    "category": "origin/SPDX",
+    "reason": "No file header; only root MIT assertion",
+    "blocking_status": "HUMAN-REVIEW",
+    "required_evidence": "git history, author/source statement, donor comparison, accurate SPDX/copyright."
+  },
+  {
+    "unresolved_id": "U-003",
+    "subject": "ROCmFPX full file-license exceptions",
+    "category": "license inventory",
+    "reason": "Representative exceptions found; no complete scan performed",
+    "blocking_status": "BLOCKED FOR RELEASE",
+    "required_evidence": "Exact-tree ScanCode/ORT/FOSSology or equivalent plus human review."
+  },
+  {
+    "unresolved_id": "U-004",
+    "subject": "CachyLLama third-party notices",
+    "category": "notice gap",
+    "reason": "No root notice file; mixed backend licenses found",
+    "blocking_status": "BLOCKED FOR BINARY RELEASE",
+    "required_evidence": "Complete exception inventory, license texts, attribution/NOTICE."
+  },
+  {
+    "unresolved_id": "U-005",
+    "subject": "llama-ai exact documentation scope",
+    "category": "separate license scope",
+    "reason": "README labels documentation CC-BY-NC-SA but per-file map not exhaustive",
+    "blocking_status": "HUMAN-REVIEW",
+    "required_evidence": "File-by-file docs classification and intended commercial/noncommercial distribution decision."
+  },
+  {
+    "unresolved_id": "U-006",
+    "subject": "GPL covered-work/aggregate determination",
+    "category": "release model",
+    "reason": "Depends on exact packaging, linking, scripts, interfaces, and distribution",
+    "blocking_status": "HUMAN LEGAL DECISION",
+    "required_evidence": "Binary composition, dynamic/static links, process boundaries, source delivery plan."
+  },
+  {
+    "unresolved_id": "U-007",
+    "subject": "Corresponding Source completeness",
+    "category": "GPL release evidence",
+    "reason": "No concrete binary/source release supplied",
+    "blocking_status": "BLOCKED",
+    "required_evidence": "Build scripts, interface definitions, modified sources, dependency sources as applicable, installation information analysis."
+  },
+  {
+    "unresolved_id": "U-008",
+    "subject": "Qwen3-0.6B Q4_K_M fixture bytes",
+    "category": "model/quantization",
+    "reason": "Local filename does not identify quantizer repository/revision",
+    "blocking_status": "BLOCKED",
+    "required_evidence": "Publisher and quantizer, exact repo commit, model card/license, file SHA256, notices, chain from base model."
+  },
+  {
+    "unresolved_id": "U-009",
+    "subject": "DeepSeek-V4-Flash-180B fixture",
+    "category": "model",
+    "reason": "Current official V4-Flash card is 284B; local 180B path unresolved",
+    "blocking_status": "BLOCKED",
+    "required_evidence": "Exact artifact identity, publisher, revision, license, file hashes, transformation chain."
+  },
+  {
+    "unresolved_id": "U-010",
+    "subject": "Tencent Hy3 chat template",
+    "category": "template",
+    "reason": "Checked-in template lacks source revision/header; Hy3 licensing changed across versions",
+    "blocking_status": "REFERENCE ONLY",
+    "required_evidence": "Exact tokenizer_config revision, source license, extracted-value hash, generator hash."
+  },
+  {
+    "unresolved_id": "U-011",
+    "subject": "Tokenizer snapshots and ggml-vocab fixtures",
+    "category": "tokenizer/generated data",
+    "reason": "External source revisions and licenses not captured",
+    "blocking_status": "BLOCKED",
+    "required_evidence": "Repo revision, all source file hashes/licenses, conversion command/tool version, output hashes."
+  },
+  {
+    "unresolved_id": "U-012",
+    "subject": "Project Gutenberg cached text",
+    "category": "test corpus",
+    "reason": "Script does not pin served bytes or bundle terms/jurisdiction record",
+    "blocking_status": "REFERENCE OR REACQUIRE",
+    "required_evidence": "Exact bytes/hash, edition metadata, terms capture, trademark handling, jurisdiction approval."
+  },
+  {
+    "unresolved_id": "U-013",
+    "subject": "Web UI full transitive dependency inventory",
+    "category": "Web UI/SBOM",
+    "reason": "Direct dependencies extracted; complete transitive license texts/notice review not performed",
+    "blocking_status": "BLOCKED FOR EMBEDDED BUNDLE",
+    "required_evidence": "npm-ci exact install, full CycloneDX/SPDX, package tarball integrities, license files, bundle composition."
+  },
+  {
+    "unresolved_id": "U-014",
+    "subject": "Web UI mutable bucket latest artifacts",
+    "category": "generated binaries",
+    "reason": "Mutable source and optional checksum handling; no notice acquisition",
+    "blocking_status": "BLOCKED",
+    "required_evidence": "Immutable revision/URL, exact hashes, source correspondence, notices, builder provenance."
+  },
+  {
+    "unresolved_id": "U-015",
+    "subject": "Web UI authored fixture content",
+    "category": "test content",
+    "reason": "ai-tutorial.ts is substantial authored-looking content without source header",
+    "blocking_status": "HUMAN-REVIEW",
+    "required_evidence": "Origin, author permission, repository history, applicable license."
+  },
+  {
+    "unresolved_id": "U-016",
+    "subject": "ROCm SDK/toolchains/runtime packages",
+    "category": "distribution dependencies",
+    "reason": "Per-component/package licenses not captured",
+    "blocking_status": "BLOCKED IF DISTRIBUTED",
+    "required_evidence": "Exact package names/versions/files, installed license texts, shared-library mapping, SBOM."
+  },
+  {
+    "unresolved_id": "U-017",
+    "subject": "Generated source/header/binary mapping",
+    "category": "source-to-binary",
+    "reason": "No concrete release artifacts supplied",
+    "blocking_status": "BLOCKED",
+    "required_evidence": "Compiler/linker commands, object/archive map, embedded asset map, hashes, reproducible build/provenance."
+  },
+  {
+    "unresolved_id": "U-018",
+    "subject": "Clean-room role separation",
+    "category": "process",
+    "reason": "No human roles/access records supplied",
+    "blocking_status": "HUMAN DECISION",
+    "required_evidence": "Approved protocol, role assignments, access logs, dated requirements, independent implementation records."
+  }
+]

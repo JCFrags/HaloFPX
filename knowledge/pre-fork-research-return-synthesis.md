@@ -22,18 +22,20 @@ owns their current disposition.
   stock GPU-direct USB4 path and no target-machine qualification.
 - XDNA2 remains outside the primary inference architecture.
 
-## Immediate sequence
+## Completed preparation sequence
 
-1. Import and review PF-IR-04 when it arrives.
-2. Complete non-executing Stage 1 review of PF-IR-10 candidate assets and draft
-   the exact proposed asset manifest; do not execute them yet.
-3. Resolve `OPEN-PIN-01` from the already-built ROCmFPX candidates and finalize
-   the paired installed/source/build/DSO manifest for `OPEN-BASE-01`.
-4. Apply PF-IR-04 to capability-level donor/license decisions and keep the
-   direct cherry-pick roster empty until G1 is approved.
-5. Freeze API/state/cache/security contracts before any donor implementation.
-6. Run later, separately authorized experiments in isolation: RCCL socket
-   baseline, patched USB4STREAM kernel, and large-model candidate preflights.
+1. All eleven PF-IR packages are preserved and reviewed.
+2. PF-IR-10 Stage 1/static qualification accepted 52 exact hash-pinned
+   references and deferred seven candidate-execution assets.
+3. `OPEN-PIN-01` selected ROCmFPX `61f2f2d...` from the completed two-node
+   qualification; `a5605a...` remains the research control.
+4. PF-IR-04 fixed the MIT-core/GPL-separation implementation-start policy; the
+   direct cherry-pick roster remains empty until per-capability P3 approval.
+5. The initial feature-off API/security contract is frozen.
+
+The project is ready to begin the local custom fork. Remote governance,
+persistent-write, deployment, performance, and release gates remain deliberately
+later work.
 
 ## Performance objective signal
 
@@ -43,4 +45,3 @@ tokens/s for the current two-node Q6 MiniMax. Treat ROCmFP4 as the incumbent for
 speed comparisons. Quantization, model variant, prompt, context, cache state,
 sampling, power and quality were not matched, so this observation cannot rank
 overall quality or establish a controlled speedup.
-

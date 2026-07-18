@@ -10,7 +10,7 @@ The user-directed destination and phase gates are defined in [`PROJECT_GOAL.md`]
 - `research/prompts/` - 86 standalone research assignments and orchestration support files.
 - `sources/imports/2026-07-16-research-project/` - preserved input archives and import receipt.
 - `sources/imports/2026-07-17-further-research-wikis/` - 12 preserved follow-up research Wiki archives, extracted candidates, hashes, and import receipt.
-- `sources/imports/2026-07-18-pre-fork-internet-research/` - ten preserved PF-IR research returns (01-03 and 05-11), extracted candidates, hashes, and intake receipt; PF-IR-04 remains pending.
+- `sources/imports/2026-07-18-pre-fork-internet-research/` - all eleven preserved PF-IR research returns (01-11), extracted candidates, hashes, and intake receipt.
 - `sources/repositories/` - read-only upstream/fork reference clones with exact HEAD, research-pin, submodule, and license provenance.
 - `knowledge/` - compact, evidence-routed pre-implementation reasoning, invariants, constraints, and readiness gates.
 - `skills/` - project-local candidate procedures for fork preparation and Strix Halo qualification; not globally installed or validated for production use.

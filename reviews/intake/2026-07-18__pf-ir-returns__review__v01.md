@@ -8,6 +8,11 @@ verdict: retain-as-candidate-evidence-and-route-to-local-gates
 
 # Review of ten returned PF-IR research Wikis
 
+> Superseded return-status note (2026-07-18): PF-IR-04 subsequently arrived and
+> is reviewed separately in
+> [`2026-07-18__pf-ir-04-licensing__review__v01.md`](2026-07-18__pf-ir-04-licensing__review__v01.md).
+> This review remains the preserved disposition of the first ten returns.
+
 ## Verdict
 
 **RETAIN AND ROUTE.** The ten packages answer their assigned external-research
@@ -62,8 +67,7 @@ claims.
 
 ## Missing package
 
-PF-IR-04 is the only outstanding Internet-research package. It owns the external
+At the time of this review, PF-IR-04 was the only outstanding Internet-research package. It owns the external
 donor/test-asset/release-artifact license and provenance evidence. Its return is
 needed before G1 can close, but it does not block continued local source-lock,
 Stage 1 test-asset inspection, or baseline characterization.
-

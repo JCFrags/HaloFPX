@@ -1,0 +1,13 @@
+{
+  "capture_path": "raw/github/ROCmFPX/README.blob-2a446c96ecb2bf7fc8510c09c325141bd0152061.md",
+  "capture_method": "exact-byte HTTP retrieval followed by Git blob verification",
+  "byte_fidelity": "exact",
+  "source_url": "https://raw.githubusercontent.com/charlie12345/ROCmFPX/a5605a72768c6562241b248e268e33dc92787394/README.md",
+  "repository_commit": "a5605a72768c6562241b248e268e33dc92787394 and 61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "repository_path": "README.md",
+  "git_blob_sha1": "2a446c96ecb2bf7fc8510c09c325141bd0152061",
+  "sha256": "739519404464e920ba26cae97c9f88d045426b2279b82c7a666cd7977ed49e44",
+  "size_bytes": 23544,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-REPOSITORY-ASSERTION"
+}
