@@ -28,6 +28,8 @@ The accepted `4366e493` simulator adds high-level live/durable crash projection 
 
 The accepted `3ae385d2` slice supplies the final exact predecessor CAS and nonzero attempt identity [S63-10]. Its clean CPU matrix passed 13/13 HaloFPX and 7/7 inherited controls; 100 coordinator plus 100 simulator processes passed, including 134,400 repeated core fault cases. M63-01 still requires authenticated attempt registration and per-operation late-completion fencing, canonical bytes, byte/capacity/short-I/O faults, concrete process/filesystem boundaries, and disposable-target recovery evidence.
 
+The accepted `d85ee807` slice propagates the attempt identity through all 23 synchronous lifecycle operations, gates acknowledgement on durable close, and expands the repeated core matrix to 147,200 cases [S63-11]. Focused tests reject wrong, abandoned, committed, replayed, and uncertain IDs and prove ambiguous begin/abandonment blocks fresh attempts. M63-01 still requires a persistent authenticated registry, real asynchronous cancellation/completion tests, reconciliation, canonical bytes, byte/capacity/short-I/O faults, and concrete disposable filesystem/process recovery.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.

@@ -3,9 +3,9 @@ title: "Durability Modes, Atomic Commit, Crash Recovery, and Corruption Handling
 category_id: "09"
 status: "needs-machine-validation"
 last_verified: "2026-07-18"
-source_count: 11
+source_count: 12
 open_question_count: 9
-required_machine_experiments: ["P63-00 TLA+/TLC + Apalache model-checking gate (accepted 2026-07-18)", "M63-01 crash-point matrix (coordinator b8123fe5, deterministic state simulator 4366e493, and final-anchor CAS 3ae385d2 accepted; authenticated per-operation fencing, byte/capacity/async/filesystem/process recovery evidence still open)", "M63-02 corruption matrix", "M63-03 filesystem/device matrix"]
+required_machine_experiments: ["P63-00 TLA+/TLC + Apalache model-checking gate (accepted 2026-07-18)", "M63-01 crash-point matrix (coordinator b8123fe5, deterministic simulator 4366e493, final-anchor CAS 3ae385d2, and synchronous attempt lifecycle d85ee807 accepted; persistent authentication, real async completion, byte/capacity/filesystem/process recovery evidence still open)", "M63-02 corruption matrix", "M63-03 filesystem/device matrix"]
 related_sections: ["21", "56", "57", "58", "59", "61", "65", "77", "80"]
 applicability:
   repositories: ["fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940", "charlie12345/rocmfp4-llama@4860505ee322091f0f61eba77d6ad49be88cf4ea"]
