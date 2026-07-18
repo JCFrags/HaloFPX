@@ -30,6 +30,8 @@ The accepted `3ae385d2` slice supplies the final exact predecessor CAS and nonze
 
 The accepted `d85ee807` slice propagates the attempt identity through all 23 synchronous lifecycle operations, gates acknowledgement on durable close, and expands the repeated core matrix to 147,200 cases [S63-11]. Focused tests reject wrong, abandoned, committed, replayed, and uncertain IDs and prove ambiguous begin/abandonment blocks fresh attempts. M63-01 still requires a persistent authenticated registry, real asynchronous cancellation/completion tests, reconciliation, canonical bytes, byte/capacity/short-I/O faults, and concrete disposable filesystem/process recovery.
 
+The accepted `8537a830` L05e slice supplies canonical authenticated anchor bytes, exact domain separation, a checked independent golden encoder, bounded hostile-input rejection, and an authenticated-only carrier [S63-12]. Its clean control passed 16/16 HaloFPX and 7/7 inherited tests, followed by 100 C++ and 100 independent Python processes. It does not open M63-01: the provisional coordinator's store/predecessor representation must first be reconciled, and bootstrap, protected key authority, cross-process exact-envelope CAS, byte/capacity/short-I/O faults, and disposable filesystem/process recovery remain open.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
