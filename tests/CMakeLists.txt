@@ -195,7 +195,7 @@ set_property(TEST test-halofpx-context-store-anchor-golden PROPERTY LABELS "main
 
 llama_build(test-halofpx-context-store-authority.cpp)
 target_include_directories(test-halofpx-context-store-authority PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
-target_link_libraries(test-halofpx-context-store-authority PRIVATE halofpx-context-store-bootstrap-consumption)
+target_link_libraries(test-halofpx-context-store-authority PRIVATE halofpx-context-store-bootstrap-material)
 llama_test(test-halofpx-context-store-authority)
 set_property(TEST test-halofpx-context-store-authority PROPERTY LABELS "main;halofpx")
 
@@ -261,6 +261,17 @@ add_test(NAME test-halofpx-context-store-bootstrap-reconciliation-golden
         ${CMAKE_CURRENT_SOURCE_DIR}/halofpx-bootstrap-reconciliation-golden.py --check
         ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05l-bootstrap-reconciliation-golden-vector.json)
 set_property(TEST test-halofpx-context-store-bootstrap-reconciliation-golden PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-bootstrap-material-contract
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-bootstrap-material-contract.cmake)
+set_property(TEST test-halofpx-context-store-bootstrap-material-contract PROPERTY LABELS "main;halofpx")
+
+add_test(NAME test-halofpx-context-store-bootstrap-material-golden
+    COMMAND ${HALOFPX_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/halofpx-bootstrap-material-golden.py --check
+        ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05m-bootstrap-material-golden-vector.json)
+set_property(TEST test-halofpx-context-store-bootstrap-material-golden PROPERTY LABELS "main;halofpx")
 
 add_test(
     NAME test-halofpx-context-store-bootstrap-token-golden

@@ -19,3 +19,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0013](0013-authenticated-protected-registry-snapshot.md): authenticated protected-registry snapshot
 - [ADR-0014](0014-bootstrap-authorization-consumption-transition.md): bootstrap-authorization consumption transition
 - [ADR-0015](0015-bootstrap-consumption-reconciliation.md): bootstrap-consumption ambiguity reconciliation
+- [ADR-0016](0016-offline-bootstrap-material-preparation.md): offline bootstrap-material preparation seam

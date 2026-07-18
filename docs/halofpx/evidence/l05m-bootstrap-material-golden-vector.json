@@ -1,0 +1,273 @@
+{
+  "authority_source_commitment_sha256_hex": {
+    "direct_advanced": "095eadb65a1a872b3a164808801025ea7115b154d629a8b0304366e2db01021e",
+    "direct_already_same": "fd979bae5e486e5a2be7a6b78dc6e4acb6e3fa663b38389bc2574335ac9c3fde",
+    "reconciled_successor": "c5e677ae2f9e3bb801e007087c3ecd70e117c31a19d8f6fa7d14cce9a1c0bd37"
+  },
+  "domain_ascii_with_nul_hex": {
+    "authority_source": "68616c6f6670782e626f6f7473747261702d6d6174657269616c2d617574686f726974792d736f757263652e763100",
+    "durable_close": "68616c6f6670782e626f6f7473747261702d6d6174657269616c2d64757261626c652d636c6f73652e763100",
+    "material_set": "68616c6f6670782e626f6f7473747261702d6d6174657269616c2d7365742e763100",
+    "operation": "68616c6f6670782e626f6f7473747261702d6d6174657269616c2d7072657061726174696f6e2e763100",
+    "root_policy": "68616c6f6670782e626f6f7473747261702d6d6174657269616c2d726f6f742d706f6c6963792e763100",
+    "source_set": "68616c6f6670782e626f6f7473747261702d6d6174657269616c2d736f757263652d7365742e763100"
+  },
+  "durable_close_confirmation_sha256_hex": "f65ea35143253641988c9d9ce77ce20acdb07e32446c0fddd146c12a35923171",
+  "fixture": {
+    "anchor_envelope_hex": "65786163742d61757468656e746963617465642d70726f706f7365642d616e63686f722d656e76656c6f7065ff776974682d6279746573",
+    "authority_snapshot_commitment_hex": "6565656565656565656565656565656565656565656565656565656565656565",
+    "authorization_sequence": 3544952156018063160,
+    "checkpoint_lineage_id_hex": "5050505050505050505050505050505050505050505050505050505050505050",
+    "command_id_hex": "6262626262626262626262626262626262626262626262626262626262626262",
+    "descriptors": [
+      {
+        "frame_length": 25,
+        "index": 0,
+        "object_id_hex": "0428c57da906e48ab3ee8c7e3c02386bc6d44a0ec9210410493f0c7abbdc666a",
+        "stream_type_hex": "6b762d73746174652d7631"
+      },
+      {
+        "frame_length": 46,
+        "index": 1,
+        "object_id_hex": "d0c5ce500bedeb935096b0c26c85a46bbf07c51dd52c8f3f7b8f36f7a736d5e0",
+        "stream_type_hex": "73616d706c65722d73746174652d7631"
+      }
+    ],
+    "durability_policy_identifier_ascii": "object-sync-manifest-sync-v1",
+    "manifest_durability_mode": 3,
+    "manifest_envelope_hex": "a30001016b6d616e69666573742d763102820102",
+    "manifest_key_generation": 1230066625199609624,
+    "material_attempt_id_hex": "7070707070707070707070707070707070707070707070707070707070707070",
+    "material_root_identity_hex": "1010101010101010101010101010101010101010101010101010101010101010",
+    "maximum_aggregate_frame_bytes": 67108864,
+    "maximum_frame_bytes": 16777216,
+    "maximum_source_object_count": 128,
+    "namespace_id_hex": "4040404040404040404040404040404040404040404040404040404040404040",
+    "observed_successor_hex": "65786163742d61757468656e746963617465642d72656769737472792d737563636573736f722d656e76656c6f706500776974682d6279746573",
+    "original_attempt_id_hex": "6060606060606060606060606060606060606060606060606060606060606060",
+    "original_operation_commitment_hex": "6161616161616161616161616161616161616161616161616161616161616161",
+    "plan_commitment_hex": "6464646464646464646464646464646464646464646464646464646464646464",
+    "policy_epoch": 72623859790382856,
+    "reconciliation_attempt_id_hex": "6666666666666666666666666666666666666666666666666666666666666666",
+    "reconciliation_commitment_hex": "6767676767676767676767676767676767676767676767676767676767676767",
+    "registry_root_identity_hex": "2020202020202020202020202020202020202020202020202020202020202020",
+    "selected_manifest_digest_hex": "b08ece24efc5b25e7ac53b8c41d9981b40e7d9113a2ac60f75da9b2a675e713f",
+    "source_frames": [
+      {
+        "frame_hex": "48414c4f4650582d4f424a4543542d4652414d452d5a45524f",
+        "index": 0
+      },
+      {
+        "frame_hex": "48414c4f4650582d4f424a4543542d4652414d452d4f4e452d574954482d444946464552454e542d4c454e475448",
+        "index": 1
+      }
+    ],
+    "store_uuid_hex": "30303030303030303030303030303030",
+    "successor_envelope_hex": "65786163742d61757468656e746963617465642d72656769737472792d737563636573736f722d656e76656c6f706500776974682d6279746573",
+    "token_digest_hex": "6363636363636363636363636363636363636363636363636363636363636363",
+    "writer_authority_epoch": 2387509390608836392
+  },
+  "material_set_commitment_sha256_hex": "4bd6dd76f2c7ece17621b61f60d693f4370b47e7e83d46e41e797055bae1928e",
+  "mutation_checks_total": 126,
+  "mutation_groups": {
+    "authority_source_direct_advanced": {
+      "count": 18,
+      "names": [
+        "anchor_length",
+        "authority_snapshot_commitment",
+        "authorization_sequence",
+        "command_id",
+        "domain_extra_nul",
+        "domain_missing_nul",
+        "field_order",
+        "original_attempt",
+        "original_operation",
+        "plan_commitment",
+        "proposed_anchor_envelope",
+        "provenance_tag",
+        "provenance_tag_length",
+        "registry_root",
+        "selected_manifest_digest",
+        "successor_envelope",
+        "successor_length",
+        "token_digest"
+      ],
+      "sha256_hex": "d7f3b127be51816ed831f9221dc03ae128d150c9cc979745b5551d3be0b1484f"
+    },
+    "authority_source_direct_already_same": {
+      "count": 18,
+      "names": [
+        "anchor_length",
+        "authority_snapshot_commitment",
+        "authorization_sequence",
+        "command_id",
+        "domain_extra_nul",
+        "domain_missing_nul",
+        "field_order",
+        "original_attempt",
+        "original_operation",
+        "plan_commitment",
+        "proposed_anchor_envelope",
+        "provenance_tag",
+        "provenance_tag_length",
+        "registry_root",
+        "selected_manifest_digest",
+        "successor_envelope",
+        "successor_length",
+        "token_digest"
+      ],
+      "sha256_hex": "358cbac16c7a4237c55d180cc881e3267d3554ab3b320962647fdfa10fd54f98"
+    },
+    "authority_source_reconciled_successor": {
+      "count": 23,
+      "names": [
+        "anchor_length",
+        "authority_snapshot_commitment",
+        "authorization_sequence",
+        "command_id",
+        "domain_extra_nul",
+        "domain_missing_nul",
+        "field_order",
+        "observed_successor",
+        "observed_successor_length",
+        "original_attempt",
+        "original_operation",
+        "plan_commitment",
+        "proposed_anchor_envelope",
+        "provenance_tag",
+        "provenance_tag_length",
+        "reconciled_field_order",
+        "reconciliation_attempt",
+        "reconciliation_commitment",
+        "registry_root",
+        "selected_manifest_digest",
+        "successor_envelope",
+        "successor_length",
+        "token_digest"
+      ],
+      "sha256_hex": "a8b40c36de304d5ddb966caf2db048577bd8898bfd55ecb2648cb56ac4ab41e8"
+    },
+    "durable_close": {
+      "count": 11,
+      "names": [
+        "domain_extra_nul",
+        "domain_missing_nul",
+        "field_order",
+        "material_attempt",
+        "material_root",
+        "material_set_commitment",
+        "operation_commitment",
+        "registry_root",
+        "selected_manifest_digest",
+        "source_set_commitment",
+        "terminal_code"
+      ],
+      "sha256_hex": "4b69710be8576ce07579e20a6c47a392ebf94243eedbc810beeb8ebfb1e14fd7"
+    },
+    "material_set": {
+      "count": 16,
+      "names": [
+        "descriptor_0_frame_length",
+        "descriptor_0_index",
+        "descriptor_0_object_id",
+        "descriptor_0_stream_type",
+        "descriptor_0_type_length",
+        "descriptor_1_frame_length",
+        "descriptor_1_index",
+        "descriptor_1_object_id",
+        "descriptor_1_stream_type",
+        "descriptor_1_type_length",
+        "descriptor_order",
+        "domain_extra_nul",
+        "domain_missing_nul",
+        "manifest_envelope",
+        "manifest_envelope_length",
+        "object_count"
+      ],
+      "sha256_hex": "78069144caabcc4572c9e8bd192b45a5eba1a703afbe8bac67ede73b9ee1baf3"
+    },
+    "operation": {
+      "count": 12,
+      "names": [
+        "domain_extra_nul",
+        "domain_missing_nul",
+        "field_order",
+        "material_attempt",
+        "material_root",
+        "material_set_commitment",
+        "proposed_anchor_envelope_digest",
+        "registry_root",
+        "root_policy_commitment",
+        "selected_manifest_digest",
+        "source_commitment",
+        "source_set_commitment"
+      ],
+      "sha256_hex": "4bae5b2d110fac236528e5a986c52ff19ef336553c49a5d21352eabe30ac2544"
+    },
+    "root_policy": {
+      "count": 18,
+      "names": [
+        "checkpoint_lineage_id",
+        "domain_extra_nul",
+        "domain_missing_nul",
+        "durability_policy_identifier",
+        "durability_policy_length",
+        "field_order",
+        "manifest_durability_mode",
+        "manifest_key_generation",
+        "material_root",
+        "maximum_aggregate_frame_bytes",
+        "maximum_frame_bytes",
+        "maximum_source_object_count",
+        "namespace_id",
+        "policy_epoch",
+        "registry_root",
+        "source_set_commitment",
+        "store_uuid",
+        "writer_authority_epoch"
+      ],
+      "sha256_hex": "1d06b46f9fad217e95deb2c861c60d65187ceda823e089a065ae584cf2707bee"
+    },
+    "source_set": {
+      "count": 10,
+      "names": [
+        "domain_extra_nul",
+        "domain_missing_nul",
+        "object_count",
+        "source_0_frame",
+        "source_0_index",
+        "source_0_length",
+        "source_1_frame",
+        "source_1_index",
+        "source_1_length",
+        "source_order"
+      ],
+      "sha256_hex": "e1d113ec20e790b7b00d097820d082940a48f98c7fd94be5bfc5ceb4732a1319"
+    }
+  },
+  "operation_commitment_sha256_hex": {
+    "direct_advanced": "2a592a981520be6f2688451e70e475f52409815cc6d2965079469ac1438c9a78",
+    "direct_already_same": "f40280373c9fba0fa16a30214fe10f726a0bd70fbe5d4c078c772944ffe41747",
+    "reconciled_successor": "0befc8dc5b87933200d05acf357477c9c5c2a2622dae9211ccf76f36f903a53e"
+  },
+  "preimage_bytes": {
+    "authority_source": {
+      "direct_advanced": 466,
+      "direct_already_same": 470,
+      "reconciled_successor": 601
+    },
+    "durable_close": 269,
+    "material_set": 209,
+    "operation": 330,
+    "root_policy": 303,
+    "source_set": 152
+  },
+  "provenance_tag_ascii": {
+    "direct_advanced": "direct-advanced-v1",
+    "direct_already_same": "direct-already-same-v1",
+    "reconciled_successor": "reconciled-successor-v1"
+  },
+  "root_policy_commitment_sha256_hex": "de2f4e7344e2f639f360222a5e722b1d21a87e1e70a5da40d1145275bfd5208b",
+  "source_set_commitment_sha256_hex": "14274b7838119b668ea651083758ba0f5708b9e8c2480cb046e92a80c801c3c2"
+}
+

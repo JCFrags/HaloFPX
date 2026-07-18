@@ -1,0 +1,49 @@
+{
+  "milestone": "L05m offline bootstrap-material preparation seam",
+  "date": "2026-07-18",
+  "source_parent_commit": "dbbdef1",
+  "build_directory": "build/halofpx-l05m-clean",
+  "configuration": "Windows CPU Release; GGML_NATIVE=OFF; server/tests/examples ON; WebUI/CUDA/HIP/Vulkan OFF",
+  "build_cache_sha256": "132eca1bb3b9d0408b3ad43458a1ad773f0f95de583f46f1f923b39d36fca3bd",
+  "llama_server_sha256": "3516c26727b72d4a4130566fe65ca1d96a4a92b9f3722ac7b37f37fef54b7001",
+  "validation": {
+    "halofpx_ctests": { "passed": 31, "selected": 31 },
+    "focused_inherited_ctests": { "passed": 7, "selected": 7 },
+    "authority_material_processes": { "passed": 200, "selected": 200 },
+    "static_contract_processes": { "passed": 200, "selected": 200 },
+    "independent_golden_processes": { "passed": 200, "selected": 200 },
+    "repeated_total_elapsed_ms": 35770
+  },
+  "executables": {
+    "test-halofpx-context-store-authority.exe": "bb605fcc03252bc16c0658ae15e015ba414ccc541b0e9105421a889ff917d6fb"
+  },
+  "golden": {
+    "mutation_checks": 126,
+    "source_set_sha256": "14274b7838119b668ea651083758ba0f5708b9e8c2480cb046e92a80c801c3c2",
+    "root_policy_sha256": "de2f4e7344e2f639f360222a5e722b1d21a87e1e70a5da40d1145275bfd5208b",
+    "material_set_sha256": "4bd6dd76f2c7ece17621b61f60d693f4370b47e7e83d46e41e797055bae1928e",
+    "durable_close_sha256": "f65ea35143253641988c9d9ce77ce20acdb07e32446c0fddd146c12a35923171",
+    "checker_sha256": "5ee9c1ca634f75f97cf26fc50a4cb7e5591989aad5e0efa6590ae53f3cb69246",
+    "vector_sha256": "ff4afa43bd42dfef0817c7e7a54d5111baeae00e11d36e73f042850df6081341"
+  },
+  "reviewed_source_sha256": {
+    "tools/server/halofpx-context-store-bootstrap-material.h": "1d58754db4b0abdb602b28b2c7e609647797c0fc09bc0b785932eed35a183fff",
+    "tools/server/halofpx-context-store-bootstrap-material.cpp": "9ac5fd94fbc730decc28b03383a4a509d48ae2a9e3dda94c0ed43719f32e121e",
+    "tests/test-halofpx-context-store-authority.cpp": "8bb4ad6c49e678f304f5f39436738a5f7befa686eb605e2b962d995707ca54f0",
+    "tests/test-halofpx-context-store-bootstrap-material-contract.cmake": "c4764055278e583f5a0f7290c3707f5da381aa79a91e8880cec222af2a35a7a4",
+    "tests/test-halofpx-context-store-format-contract.cmake": "1050e38683429f56058293cc86f9cf9415e303135b78b57ddd1b8a8c7f31a84b",
+    "docs/halofpx/decisions/0016-offline-bootstrap-material-preparation.md": "6142e9048f0a186fa54eb5363627df0589e85baf9dca5b466bb7ec45fddc5b45"
+  },
+  "negative_coverage": [
+    "consume-first invalidation covers pre-entry, definite, uncertain, positive, and post-positive exception paths",
+    "15-case manifest rejection matrix and full source/readback L04c-equivalent structural matrices",
+    "all commitment echoes, frame order/count/bytes, exact manifest bytes, and close confirmation are revalidated",
+    "512 terminal attempts have no eviction; replay before/after capacity and concurrent last-slot behavior fail closed",
+    "28 before/after object, manifest, and close boundaries classify definite versus uncertain outcomes"
+  ],
+  "exclusions": [
+    "permanently synthetic proof with no conversion to concrete durability or production anchor authority",
+    "no concrete source, filesystem, protected registry, restart/cross-process fence, or real synchronization claim",
+    "no protected-anchor storage, bootstrap execution, server/provider, persistent-write, node, or performance path"
+  ]
+}
