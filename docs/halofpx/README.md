@@ -47,6 +47,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05n milestone review](reviews/2026-07-18__l05n-synthetic-protected-anchor-bootstrap__review__v01.md)
 - [L05o concrete protected-registry contract](l05o-concrete-protected-registry-contract.md)
 - [L05o contract review](reviews/2026-07-18__l05o-concrete-registry-contract__review__v01.md)
+- [L05o wire-validator review](reviews/2026-07-18__l05o-registry-lab-wire-validator__review__v02.md)
+- [L05o canonical encoders and static qualification](reviews/2026-07-18__l05o-canonical-encoders-static-qualification__review__v01.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

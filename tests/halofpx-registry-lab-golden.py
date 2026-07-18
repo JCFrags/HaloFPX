@@ -237,7 +237,10 @@ def terminal(kind, record_kind, classification, selected_head_digest):
 
 
 CLOSE, _, CLOSE_DIGEST, close_body = terminal("close", 3, 0, HEAD_SUCCESSOR_DIGEST)
-ABORT, _, ABORT_DIGEST, abort_body = terminal("abort", 4, 0, HEAD_INITIAL_DIGEST)
+# HEAD still resolves byte-exactly to PREDECESSOR, so this is the admitted
+# recovery branch (class 1), never the operation-time predecessor-mismatch
+# branch (class 0).
+ABORT, _, ABORT_DIGEST, abort_body = terminal("abort", 4, 1, HEAD_INITIAL_DIGEST)
 
 quarantine_body = mapping([
     (0, uint(1)), (1, uint(0)), (2, uint(5)), (3, bstr(ROOT_ID)),

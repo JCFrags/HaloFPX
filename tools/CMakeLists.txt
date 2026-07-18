@@ -40,3 +40,12 @@ else()
     add_subdirectory(fit-params)
     add_subdirectory(results)
 endif()
+
+# Finalize the L05o link graph only after every tool target exists. This avoids
+# treating later project targets such as mtmd as opaque raw linker inputs.
+if(BUILD_TESTING AND TARGET halofpx-context-store-registry-lab-wire)
+    include(${CMAKE_SOURCE_DIR}/cmake/halofpx-registry-lab-finalize-graph.cmake)
+    halofpx_registry_lab_write_reachable_graph(
+        "${CMAKE_BINARY_DIR}/halofpx-registry-lab-link-graph.txt"
+        halofpx-context-store-registry-lab-wire server-context llama-server llama-cli)
+endif()

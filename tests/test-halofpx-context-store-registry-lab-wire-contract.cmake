@@ -13,12 +13,28 @@ foreach(F IN ITEMS "${H}" "${C}")
       "#include <fstream>" "std::ifstream" "std::ofstream" "getenv(" "system("
       "halofpx-context-store-bootstrap-consumption"
       "halofpx-context-store-bootstrap-material"
-      "halofpx-context-store-bootstrap-anchor")
+      "halofpx-context-store-bootstrap-anchor"
+      "concrete_registry_lab_observation"
+      "modeled_registry_lab_terminal_disposition"
+      "std::vector" "malloc(" "calloc(" "realloc(" "operator new"
+      "llama-ai" "CachyLLama")
     string(FIND "${TEXT}" "${FORBIDDEN}" HIT)
     if(NOT HIT EQUAL -1)
       message(FATAL_ERROR "L05o wire slice contains forbidden I/O/syscall token ${FORBIDDEN}: ${F}")
     endif()
   endforeach()
+endforeach()
+set(LEXICAL_CLEAN "registry_lab_encoder_bounded_scratch_only")
+foreach(PROBE IN ITEMS "concrete_registry_lab_observation" "std::filesystem" "open(" "llama-ai")
+  string(FIND "${LEXICAL_CLEAN}" "${PROBE}" CLEAN_HIT)
+  if(NOT CLEAN_HIT EQUAL -1)
+    message(FATAL_ERROR "lexical negative-control unexpectedly matched ${PROBE}")
+  endif()
+  set(LEXICAL_SYNTHETIC "${LEXICAL_CLEAN}${PROBE}")
+  string(FIND "${LEXICAL_SYNTHETIC}" "${PROBE}" SYNTHETIC_HIT)
+  if(SYNTHETIC_HIT EQUAL -1)
+    message(FATAL_ERROR "lexical positive-control failed for ${PROBE}")
+  endif()
 endforeach()
 file(READ "${ROOT}/tools/server/CMakeLists.txt" SERVER_CMAKE)
 if(NOT SERVER_CMAKE MATCHES "add_library\\(halofpx-context-store-registry-lab-wire STATIC EXCLUDE_FROM_ALL")

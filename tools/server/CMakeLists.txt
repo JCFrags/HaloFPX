@@ -113,6 +113,7 @@ add_library(halofpx-context-store-registry-lab-wire STATIC EXCLUDE_FROM_ALL
 target_link_libraries(halofpx-context-store-registry-lab-wire PUBLIC
     halofpx-context-store-registry-successor)
 target_compile_features(halofpx-context-store-registry-lab-wire PRIVATE cxx_std_17)
+set(HALOFPX_REGISTRY_LAB_WIRE_TARGET halofpx-context-store-registry-lab-wire)
 
 # Offline-only L05a publication coordinator and injected fault seam. No
 # concrete filesystem backend exists and this target is not linked to server.
@@ -124,6 +125,119 @@ add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL
 )
 target_link_libraries(halofpx-context-store-publication PUBLIC halofpx-context-store-anchor)
 target_compile_features(halofpx-context-store-publication PRIVATE cxx_std_17)
+
+# Build-only L05o static-qualification inputs. These targets are deliberately
+# excluded from ALL and have no product/server edge.
+if (BUILD_TESTING AND MSVC)
+    add_custom_target(halofpx-registry-lab-static-audit-inputs
+        DEPENDS
+            ${HALOFPX_REGISTRY_LAB_WIRE_TARGET}
+            halofpx-context-store-registry-successor
+            halofpx-context-store-protected-registry
+            halofpx-context-store-auth
+            halofpx-context-store-format
+            halofpx-context-store-sha256)
+
+    add_executable(halofpx-registry-lab-negative-construct EXCLUDE_FROM_ALL
+        ${CMAKE_SOURCE_DIR}/tests/halofpx-registry-lab-negative-construct.cpp)
+    target_include_directories(halofpx-registry-lab-negative-construct PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR})
+    target_compile_features(halofpx-registry-lab-negative-construct PRIVATE cxx_std_17)
+
+    add_executable(halofpx-registry-lab-negative-link EXCLUDE_FROM_ALL
+        ${CMAKE_SOURCE_DIR}/tests/halofpx-registry-lab-negative-link.cpp)
+    target_link_libraries(halofpx-registry-lab-negative-link PRIVATE
+        ${HALOFPX_REGISTRY_LAB_WIRE_TARGET})
+    target_compile_features(halofpx-registry-lab-negative-link PRIVATE cxx_std_17)
+
+    add_executable(halofpx-registry-lab-positive-probe EXCLUDE_FROM_ALL
+        ${CMAKE_SOURCE_DIR}/tests/halofpx-registry-lab-positive-probe.cpp)
+    target_compile_features(halofpx-registry-lab-positive-probe PRIVATE cxx_std_17)
+
+    get_filename_component(HALOFPX_MSVC_BIN_DIR "${CMAKE_LINKER}" DIRECTORY)
+    find_program(HALOFPX_DUMPBIN_EXECUTABLE dumpbin.exe
+        HINTS "${HALOFPX_MSVC_BIN_DIR}" NO_DEFAULT_PATH REQUIRED)
+    find_program(HALOFPX_LIB_EXECUTABLE lib.exe
+        HINTS "${HALOFPX_MSVC_BIN_DIR}" NO_DEFAULT_PATH REQUIRED)
+
+    set(HALOFPX_REGISTRY_LAB_GRAPH_MANIFEST
+        "${CMAKE_BINARY_DIR}/halofpx-registry-lab-link-graph.txt")
+    file(GENERATE
+        OUTPUT "${CMAKE_BINARY_DIR}/halofpx-registry-lab-archives-$<CONFIG>.cmake"
+        CONTENT
+"set(HALOFPX_REGISTRY_LAB_ARCHIVES
+  \"$<TARGET_FILE:${HALOFPX_REGISTRY_LAB_WIRE_TARGET}>\"
+  \"$<TARGET_FILE:halofpx-context-store-registry-successor>\"
+  \"$<TARGET_FILE:halofpx-context-store-protected-registry>\"
+  \"$<TARGET_FILE:halofpx-context-store-auth>\"
+  \"$<TARGET_FILE:halofpx-context-store-format>\"
+  \"$<TARGET_FILE:halofpx-context-store-sha256>\")
+")
+
+    add_test(NAME test-halofpx-context-store-registry-lab-static-audit
+        COMMAND ${CMAKE_COMMAND}
+            -DBUILD_ROOT=${CMAKE_BINARY_DIR}
+            -DCONFIG=$<CONFIG>
+            -DGRAPH_MANIFEST=${HALOFPX_REGISTRY_LAB_GRAPH_MANIFEST}
+            -DARCHIVE_MANIFEST=${CMAKE_BINARY_DIR}/halofpx-registry-lab-archives-$<CONFIG>.cmake
+            -DDUMPBIN=${HALOFPX_DUMPBIN_EXECUTABLE}
+            -DLIB_TOOL=${HALOFPX_LIB_EXECUTABLE}
+            -P ${CMAKE_SOURCE_DIR}/tests/halofpx-registry-lab-static-audit.cmake)
+    set_tests_properties(test-halofpx-context-store-registry-lab-static-audit PROPERTIES
+        LABELS "main;halofpx" RUN_SERIAL TRUE)
+
+    add_test(NAME test-halofpx-context-store-registry-lab-negative-probes
+        COMMAND ${CMAKE_COMMAND}
+            -DBUILD_ROOT=${CMAKE_BINARY_DIR}
+            -DCONFIG=$<CONFIG>
+            -P ${CMAKE_SOURCE_DIR}/tests/halofpx-registry-lab-negative-probes.cmake)
+    set_tests_properties(test-halofpx-context-store-registry-lab-negative-probes PROPERTIES
+        LABELS "main;halofpx" RUN_SERIAL TRUE)
+endif()
+
+# The Linux object/archive audit is independently runnable on the disposable
+# qualification nodes. It makes no claim about Windows COFF or concrete I/O.
+if (BUILD_TESTING AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_custom_target(halofpx-registry-lab-linux-audit-inputs
+        DEPENDS
+            ${HALOFPX_REGISTRY_LAB_WIRE_TARGET}
+            halofpx-context-store-registry-successor
+            halofpx-context-store-protected-registry
+            halofpx-context-store-auth
+            halofpx-context-store-format
+            halofpx-context-store-sha256)
+    find_program(HALOFPX_NM_EXECUTABLE NAMES llvm-nm nm)
+    find_program(HALOFPX_AR_EXECUTABLE NAMES llvm-ar ar)
+    find_program(HALOFPX_READELF_EXECUTABLE NAMES llvm-readelf readelf)
+    foreach(HALOFPX_LINUX_TOOL IN ITEMS
+            HALOFPX_NM_EXECUTABLE HALOFPX_AR_EXECUTABLE HALOFPX_READELF_EXECUTABLE)
+        if(NOT ${HALOFPX_LINUX_TOOL})
+            message(FATAL_ERROR "Linux registry-lab audit requires ${HALOFPX_LINUX_TOOL}")
+        endif()
+    endforeach()
+    file(GENERATE
+        OUTPUT "${CMAKE_BINARY_DIR}/halofpx-registry-lab-linux-archives-$<CONFIG>.cmake"
+        CONTENT
+"set(HALOFPX_REGISTRY_LAB_ARCHIVES
+  \"$<TARGET_FILE:${HALOFPX_REGISTRY_LAB_WIRE_TARGET}>\"
+  \"$<TARGET_FILE:halofpx-context-store-registry-successor>\"
+  \"$<TARGET_FILE:halofpx-context-store-protected-registry>\"
+  \"$<TARGET_FILE:halofpx-context-store-auth>\"
+  \"$<TARGET_FILE:halofpx-context-store-format>\"
+  \"$<TARGET_FILE:halofpx-context-store-sha256>\")
+")
+    add_test(NAME test-halofpx-context-store-registry-lab-linux-archive-audit
+        COMMAND ${CMAKE_COMMAND}
+            -DBUILD_ROOT=${CMAKE_BINARY_DIR}
+            -DCONFIG=$<CONFIG>
+            -DARCHIVE_MANIFEST=${CMAKE_BINARY_DIR}/halofpx-registry-lab-linux-archives-$<CONFIG>.cmake
+            -DNM_TOOL=${HALOFPX_NM_EXECUTABLE}
+            -DAR_TOOL=${HALOFPX_AR_EXECUTABLE}
+            -DREADELF_TOOL=${HALOFPX_READELF_EXECUTABLE}
+            -P ${CMAKE_SOURCE_DIR}/tests/halofpx-registry-lab-linux-archive-audit.cmake)
+    set_tests_properties(test-halofpx-context-store-registry-lab-linux-archive-audit PROPERTIES
+        LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+endif()
 
 # server-context containing the core server logic, used by llama-server and CLI
 
