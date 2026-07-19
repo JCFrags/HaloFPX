@@ -51,7 +51,8 @@ foreach(REQUIRED IN ITEMS
   endif()
 endforeach()
 foreach(REQUIRED IN ITEMS
-    "recovery_admitted == 287" "admitted_algebra_count() == 342"
+    "recovery_admitted == 287" "quarantine_admitted == 155" "quarantine_forbidden == 805"
+    "admitted_algebra_count() == 497"
     "operation_6_recovery_success_and_prior_request_isolation"
     "operation_6_state_critical_mismatch_is_unavailable" "operation_6_post_admission_faults"
     "operation_6_unavailable_requires_state_mismatch"
@@ -131,6 +132,8 @@ endforeach()
 foreach(REQUIRED IN ITEMS
     "action_mutation_admission = 6" "staging_directory_sync_after_successor = 36"
     "staging_directory_sync_after_head = 46" "terminal_create = 60" "attempts_directory_sync = 64"
+    "quarantine_event_id_acquire = 69" "quarantine_staging_create = 70"
+    "quarantine_staging_directory_sync = 76"
     "halofpx.registry-lab-recovery-action.v1" "script_matches_recovery" "derive_recovery_terminal"
     "context_store_registry_lab_terminal_class_v1::recovered" "return step(handle)")
   string(FIND "${IMPLEMENTATION}${HEADER_TEXT}" "${REQUIRED}" HIT)

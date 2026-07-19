@@ -16,6 +16,10 @@ enum class operation : uint8_t {
     head_read = 50, successor_read = 51,
     terminal_create = 60, terminal_write = 61, terminal_readback = 62,
     terminal_file_sync = 63, attempts_directory_sync = 64,
+    quarantine_event_id_acquire = 69,
+    quarantine_staging_create = 70, quarantine_staging_write = 71, quarantine_staging_readback = 72,
+    quarantine_file_sync = 73, quarantine_publish_rename = 74,
+    quarantine_root_directory_sync = 75, quarantine_staging_directory_sync = 76,
 };
 enum class storage_effect : uint8_t { none, bounded_partial_bytes, complete_live, bounded_partial_durability_projection, complete_durability_projection };
 enum class completion : uint8_t { response_confirmed, response_lost, process_death };
@@ -59,6 +63,10 @@ constexpr bool valid_operation(operation value) noexcept {
         case operation::head_file_sync: case operation::root_directory_sync: case operation::staging_directory_sync_after_head:
         case operation::head_read: case operation::successor_read: case operation::terminal_create: case operation::terminal_write:
         case operation::terminal_readback: case operation::terminal_file_sync: case operation::attempts_directory_sync: return true;
+        case operation::quarantine_event_id_acquire: case operation::quarantine_staging_create:
+        case operation::quarantine_staging_write: case operation::quarantine_staging_readback:
+        case operation::quarantine_file_sync: case operation::quarantine_publish_rename:
+        case operation::quarantine_root_directory_sync: case operation::quarantine_staging_directory_sync: return true;
     }
     return false;
 }
@@ -81,6 +89,7 @@ constexpr bool admitted_product(operation op, storage_effect effect, completion 
             return effect == storage_effect::none && (confirmed || lost || death) && code != primitive_code::busy;
         case operation::snapshot_load:
         case operation::recovery_validation:
+        case operation::quarantine_event_id_acquire:
             return effect == storage_effect::none && (confirmed || lost || death) && (code == primitive_code::ok || code == primitive_code::unsupported || code == primitive_code::unavailable || code == primitive_code::io_failure);
         case operation::action_mutation_admission:
             return effect == storage_effect::none && (confirmed || lost || death) &&
@@ -88,19 +97,23 @@ constexpr bool admitted_product(operation op, storage_effect effect, completion 
                  code == primitive_code::unsupported || code == primitive_code::unavailable || code == primitive_code::io_failure);
         case operation::successor_file_sync: case operation::envelopes_directory_sync: case operation::staging_directory_sync_after_successor:
         case operation::head_file_sync: case operation::root_directory_sync: case operation::staging_directory_sync_after_head:
-        case operation::terminal_file_sync: case operation::attempts_directory_sync: {
+        case operation::terminal_file_sync: case operation::attempts_directory_sync:
+        case operation::quarantine_file_sync: case operation::quarantine_root_directory_sync:
+        case operation::quarantine_staging_directory_sync: {
             const bool allowed_effect = effect == storage_effect::none || effect == storage_effect::bounded_partial_durability_projection || effect == storage_effect::complete_durability_projection;
             return allowed_effect && (code == primitive_code::ok || code == primitive_code::unavailable || code == primitive_code::io_failure) &&
                 !(confirmed && code == primitive_code::ok && effect != storage_effect::complete_durability_projection);
         }
         case operation::head_read: case operation::successor_read: case operation::terminal_readback:
+        case operation::quarantine_staging_readback:
             return effect == storage_effect::none && (code == primitive_code::ok || code == primitive_code::unavailable || code == primitive_code::io_failure);
-        case operation::terminal_create: {
+        case operation::terminal_create: case operation::quarantine_staging_create:
+        case operation::quarantine_publish_rename: {
             const bool allowed_effect = effect == storage_effect::none || effect == storage_effect::complete_live;
             return allowed_effect && (code == primitive_code::ok || code == primitive_code::unavailable || code == primitive_code::io_failure) &&
                 !(confirmed && code == primitive_code::ok && effect != storage_effect::complete_live);
         }
-        case operation::terminal_write: {
+        case operation::terminal_write: case operation::quarantine_staging_write: {
             const bool allowed_effect = effect == storage_effect::none || effect == storage_effect::bounded_partial_bytes || effect == storage_effect::complete_live;
             return allowed_effect && (code == primitive_code::ok || code == primitive_code::unavailable || code == primitive_code::io_failure) &&
                 !(confirmed && code == primitive_code::ok && effect != storage_effect::complete_live);
@@ -119,17 +132,20 @@ constexpr bool admitted_payload(const primitive_product & product) noexcept {
 
 constexpr size_t admitted_algebra_count() noexcept {
     size_t count = 0;
-    constexpr std::array<operation, 19> operations { operation::guard_acquire, operation::writer_lock_acquire, operation::preflight,
+    constexpr std::array<operation, 27> operations { operation::guard_acquire, operation::writer_lock_acquire, operation::preflight,
         operation::snapshot_load, operation::recovery_validation, operation::action_mutation_admission, operation::successor_file_sync,
         operation::envelopes_directory_sync, operation::staging_directory_sync_after_successor, operation::head_file_sync,
         operation::root_directory_sync, operation::staging_directory_sync_after_head, operation::head_read, operation::successor_read,
-        operation::terminal_create, operation::terminal_write, operation::terminal_readback, operation::terminal_file_sync, operation::attempts_directory_sync };
+        operation::terminal_create, operation::terminal_write, operation::terminal_readback, operation::terminal_file_sync, operation::attempts_directory_sync,
+        operation::quarantine_event_id_acquire, operation::quarantine_staging_create, operation::quarantine_staging_write,
+        operation::quarantine_staging_readback, operation::quarantine_file_sync, operation::quarantine_publish_rename,
+        operation::quarantine_root_directory_sync, operation::quarantine_staging_directory_sync };
     for (operation op : operations) for (uint8_t effect = 0; effect < 5; ++effect)
         for (uint8_t completed = 0; completed < 3; ++completed) for (uint8_t code = 0; code < 8; ++code)
             count += admitted_product(op, static_cast<storage_effect>(effect), static_cast<completion>(completed), static_cast<primitive_code>(code)) ? 1U : 0U;
     return count;
 }
-static_assert(admitted_algebra_count() == 342);
+static_assert(admitted_algebra_count() == 497);
 
 constexpr uint64_t registry_logical_budget_bytes = 16777216;
 constexpr uint64_t registry_terminal_reservation_bytes = 1024;

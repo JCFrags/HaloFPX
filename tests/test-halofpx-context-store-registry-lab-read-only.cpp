@@ -493,7 +493,31 @@ void algebra() {
                 !(c == completion::response_confirmed && p == primitive_code::ok && e != storage_effect::complete_live);
             assert(admitted_product(op, e, c, p) == expected); recovery_admitted += expected;
         }
-    assert(recovery_admitted == 287 && admitted_algebra_count() == 342);
+    constexpr std::array<operation, 8> quarantine_operations { operation::quarantine_event_id_acquire,
+        operation::quarantine_staging_create, operation::quarantine_staging_write, operation::quarantine_staging_readback,
+        operation::quarantine_file_sync, operation::quarantine_publish_rename,
+        operation::quarantine_root_directory_sync, operation::quarantine_staging_directory_sync };
+    size_t quarantine_admitted = 0, quarantine_forbidden = 0;
+    for (operation op : quarantine_operations) for (uint8_t effect = 0; effect < 5; ++effect)
+        for (uint8_t completed = 0; completed < 3; ++completed) for (uint8_t code = 0; code < 8; ++code) {
+            const auto e = static_cast<storage_effect>(effect); const auto c = static_cast<completion>(completed); const auto p = static_cast<primitive_code>(code);
+            const bool code3 = p == primitive_code::ok || p == primitive_code::unavailable || p == primitive_code::io_failure;
+            const bool confirmed_ok = c == completion::response_confirmed && p == primitive_code::ok;
+            bool expected = false;
+            if (op == operation::quarantine_event_id_acquire)
+                expected = e == storage_effect::none && (p == primitive_code::ok || p == primitive_code::unsupported || p == primitive_code::unavailable || p == primitive_code::io_failure);
+            if (op == operation::quarantine_staging_create || op == operation::quarantine_publish_rename)
+                expected = code3 && (e == storage_effect::none || e == storage_effect::complete_live) && !(confirmed_ok && e != storage_effect::complete_live);
+            if (op == operation::quarantine_staging_write)
+                expected = code3 && (e == storage_effect::none || e == storage_effect::bounded_partial_bytes || e == storage_effect::complete_live) && !(confirmed_ok && e != storage_effect::complete_live);
+            if (op == operation::quarantine_staging_readback) expected = code3 && e == storage_effect::none;
+            if (op == operation::quarantine_file_sync || op == operation::quarantine_root_directory_sync || op == operation::quarantine_staging_directory_sync)
+                expected = code3 && (e == storage_effect::none || e == storage_effect::bounded_partial_durability_projection || e == storage_effect::complete_durability_projection) &&
+                    !(confirmed_ok && e != storage_effect::complete_durability_projection);
+            assert(admitted_product(op, e, c, p) == expected);
+            quarantine_admitted += expected; quarantine_forbidden += !expected;
+        }
+    assert(recovery_admitted == 287 && quarantine_admitted == 155 && quarantine_forbidden == 805 && admitted_algebra_count() == 497);
     primitive_product op5 = product(operation::recovery_validation);
     assert(!admitted_payload(op5)); op5.classification = recovery_classification::continue_to_mutation; assert(admitted_payload(op5));
     op5.completed = completion::response_lost; op5.classification = recovery_classification::none; assert(admitted_payload(op5));

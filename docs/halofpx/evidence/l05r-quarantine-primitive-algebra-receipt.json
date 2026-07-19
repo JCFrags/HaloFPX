@@ -1,0 +1,43 @@
+{
+  "schema": "halofpx.l05r-quarantine-primitive-algebra.v1",
+  "date": "2026-07-18",
+  "parent_commit": "e7373383de5dfb72a9a4b11c8041e1d1886cb990",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "counts": {
+    "event_id_acquire_69": 12,
+    "staging_create_70": 17,
+    "staging_write_71": 25,
+    "staging_readback_72": 9,
+    "file_sync_73": 25,
+    "publish_rename_74": 17,
+    "root_directory_sync_75": 25,
+    "staging_directory_sync_76": 25,
+    "new_admitted": 155,
+    "new_forbidden": 805,
+    "cumulative_admitted": 497
+  },
+  "qualification": {
+    "windows_release_focused": { "passes": 1, "failures": 0, "seconds": 30.95 },
+    "windows_debug_focused": { "passes": 1, "failures": 0, "seconds": 50.40 },
+    "windows_feature_off_and_contract": { "passes": 2, "failures": 0 },
+    "nimo_1_linux_release": {
+      "passes": 1,
+      "failures": 0,
+      "seconds": 4.83,
+      "executable_sha256": "d93757abd5ec84031780137aae53cd26082abbe544058d1eb20fd3c9ce90d21e"
+    },
+    "nimo_2_linux_asan_ubsan": {
+      "passes": 1,
+      "failures": 0,
+      "seconds": 22.59,
+      "executable_sha256": "d6ccb2d16356c49a574d4fc84186e22c081a0884283a96fa978b73b3e532f681"
+    },
+    "focused_source_sha256_both_nodes": "66bedb8fedc386b3c1db70ffcafc69c047e4022362bc52c5670389ab1eb9e0fd"
+  },
+  "execution_gate": "closed: valid_script_shape admits no route containing operations 69-76",
+  "nonclaims": [
+    "No event ID is issued and no quarantine bytes, names, rename, synchronization, or publication can execute.",
+    "This algebra-only seam does not authorize Linux filesystem primitives or persistent writes.",
+    "No ROCm, inference, cache, durability, or performance claim is made."
+  ]
+}
