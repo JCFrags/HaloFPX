@@ -9037,6 +9037,36 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
         }
     }
 
+    // HaloFPX L14Q-T01: bounded standard quantized-KV coverage at Strix Halo
+    // head sizes, including the 256-element boundary and GQA ratio 8.
+    struct halofpx_l14q_shape {
+        int64_t nr2;
+        int64_t kv;
+        int64_t nb;
+    };
+    static constexpr std::array<halofpx_l14q_shape, 5> halofpx_l14q_shapes {{
+        {1, 255, 1},
+        {1, 256, 1},
+        {1, 257, 1},
+        {8, 256, 1},
+        {8, 256, 9},
+    }};
+    for (ggml_type type_KV : {GGML_TYPE_Q8_0, GGML_TYPE_Q4_0}) {
+        for (int64_t hs : {INT64_C(128), INT64_C(256)}) {
+            for (const halofpx_l14q_shape & shape : halofpx_l14q_shapes) {
+                test_cases.emplace_back(new test_flash_attn_ext(
+                    hs, hs, 4, {shape.nr2, 1}, shape.kv, shape.nb,
+                    true, false, 0.0f, 0.0f, GGML_PREC_F32, type_KV, type_KV));
+            }
+        }
+    }
+
+    // The focused qualification contract requires one explicit ROCm rejection
+    // rather than treating an unsupported shape as an omitted test.
+    test_cases.emplace_back(new test_flash_attn_ext_rocm(
+        160, 160, 4, {8, 1}, 256, 1,
+        true, false, 0.0f, 0.0f, GGML_PREC_F32, GGML_TYPE_Q8_0, GGML_TYPE_Q8_0));
+
     // mixed quant and Q1_0 test cases
     test_cases.emplace_back(new test_flash_attn_ext(64, 64, 4, {1, 1}, 128, 2, true, false, 0, 0, GGML_PREC_F32, GGML_TYPE_Q8_0, GGML_TYPE_Q4_0));
     test_cases.emplace_back(new test_flash_attn_ext(64, 64, 4, {1, 1}, 128, 2, true, false, 0, 0, GGML_PREC_F32, GGML_TYPE_Q4_0, GGML_TYPE_F16));

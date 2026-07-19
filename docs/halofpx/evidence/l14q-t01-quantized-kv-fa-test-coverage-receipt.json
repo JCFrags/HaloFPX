@@ -1,0 +1,170 @@
+{
+  "schema": "halofpx.l14q-t01-quantized-kv-fa-test-coverage.v1",
+  "date": "2026-07-19",
+  "status": "qualified_independent_review_accepted",
+  "parent_commit": "051084fa3ab724cd290f864c093ff67f16e13a90",
+  "parent_tree": "b2fed43eeb5ccba9286638cf024d39452bf697e0",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "target-native test-only standard Q8_0 and Q4_0 quantized-KV FLASH_ATTN_EXT coverage; no runtime behavior change",
+  "change": {
+    "paths_modified": ["tests/test-backend-ops.cpp"],
+    "files_modified": 1,
+    "lines_added": 30,
+    "lines_deleted": 0,
+    "parent_blob": "5e712d7271f23e4ebff14b60bf234f8b7e4d394a",
+    "candidate_blob": "543c26432318b243e3412bb1aff2f8874e67a963",
+    "candidate_source_sha256": "daf6a931f1bee54aeaaaf0b9a8002f3a778598211c4849d73def9f3f038bf292",
+    "runtime_paths_changed": false,
+    "kernel_paths_changed": false,
+    "cmake_changed": false,
+    "feature_default_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "test_contract": {
+    "positive_cases": 20,
+    "types": ["Q8_0/Q8_0", "Q4_0/Q4_0"],
+    "head_dimensions": [128, 256],
+    "shapes": [
+      {"nr2": 1, "kv": 255, "nb": 1},
+      {"nr2": 1, "kv": 256, "nb": 1},
+      {"nr2": 1, "kv": 257, "nb": 1},
+      {"nr2": 8, "kv": 256, "nb": 1},
+      {"nr2": 8, "kv": 256, "nb": 9}
+    ],
+    "rocm_negative": {
+      "cases": 1,
+      "head_dimension": 160,
+      "nr2": 8,
+      "kv": 256,
+      "nb": 1,
+      "type": "Q8_0/Q8_0",
+      "expected": "explicit ROCm unsupported result"
+    }
+  },
+  "provenance": {
+    "p3_refresh_commit": "f6c56a45cbd365d2208bcb5a65c0bd6afce62be7",
+    "capability_id": "L14Q-T01",
+    "treatment": "target-native-clean-reimplementation",
+    "donor_repository": "Nathanw1014/llama.cpp",
+    "donor_introducing_commit": "6b03608e63f48c9371bf5f00423da413ac0288de",
+    "donor_result_blob": "1cbd27cb4d163fbc9970b57e0886a38adf62542f",
+    "preserved_bundle_sha256": "79c61718bd60ecce3e5ea3919fb18d8c709b3d26032c5fe9d4f24055ade3bc3f",
+    "preserved_combined_patch_sha256": "66ddb0e33301ab7231c736be318483e90cfba813701fbeb5269f547a65c4f42d",
+    "donor_code_imported": false,
+    "patch_applied": false,
+    "direct_cherry_pick_roster_changed": false,
+    "license": "MIT",
+    "notice_change_required": false,
+    "sbom_change_required": false
+  },
+  "similarity_review": {
+    "decision": "APPROVE_target_native_no_copy",
+    "target_added_lines": 30,
+    "target_nonblank_added_lines": 28,
+    "donor_added_lines": 15,
+    "donor_nonblank_added_lines": 14,
+    "exact_or_whitespace_normalized_line_matches": 0,
+    "comment_matches": 0,
+    "longest_common_token_run": 9,
+    "manual_structure_review": "No donor comment, name, ordering, literal case table, or loop structure was copied or mechanically translated."
+  },
+  "qualification": {
+    "focused_per_node": {
+      "nimo_1": {
+        "cpu": {"passed": 200, "failed": 0},
+        "rocm": {"passed": 200, "failed": 0},
+        "vulkan": {"passed": 200, "failed": 0},
+        "extra_combined_cpu": {"passed": 200, "failed": 0}
+      },
+      "nimo_2": {
+        "cpu": {"passed": 200, "failed": 0},
+        "rocm": {"passed": 200, "failed": 0},
+        "vulkan": {"passed": 200, "failed": 0}
+      }
+    },
+    "focused_required_total": 1200,
+    "focused_required_failed": 0,
+    "focused_additional_nimo_1_cpu_passed": 200,
+    "full_flash_attn_ext_per_node": {
+      "nodes_with_identical_counts": ["nimo_1", "nimo_2"],
+      "cpu": {"supported": 5136, "not_supported": 0, "failed": 0},
+      "rocm": {"supported": 2919, "not_supported": 2227, "failed": 0},
+      "vulkan": {"supported": 5132, "not_supported": 4, "failed": 0}
+    },
+    "builds": {
+      "nimo_1_cpu_targets_completed": 581,
+      "nimo_1_strix_backend_build_rc": 0,
+      "nimo_2_cpu_targets_completed": 581,
+      "nimo_2_strix_backend_build_rc": 0
+    },
+    "feature_off": {
+      "nimo_1_cpu": {"passed": 1, "failed": 0},
+      "nimo_1_strix": {"passed": 1, "failed": 0},
+      "nimo_2_admitted_subset": {"passed": 79, "failed": 0, "non_tokenizer": 78, "tokenizer_separate": 1},
+      "nimo_2_excluded_full_ctest": {"passed": 79, "total": 95, "excluded_launcher_failures": 16, "rc": 8, "reason": "tokenizer CRLF launcher artifact"}
+    },
+    "unsupported_is_not_failure": true,
+    "performance_gate_required_for_test_only_unit": false,
+    "inference_performance_claim": false
+  },
+  "binaries": {
+    "nimo_1_cpu_test_sha256": "b7060d6a7e2fcd879671c323627a06edd5f39f2bc6af871c4f0d1f64cdaec1cd",
+    "nimo_1_strix_test_sha256": "1681dca243c1c67c8807d08ac645f990282809ad80c3603a69726cf757dae3e7",
+    "nimo_1_hip_library_sha256": "60d6215d01153bb4c24fd530ad6e41aabb61a1deeede11309b682147b9201738",
+    "nimo_1_vulkan_library_sha256": "a4e1abfeaaac538a6b3377d8d5374b751a82a3f8c0c20cfaf8e0c1f644b6f9fb",
+    "nimo_2_cpu_test_sha256": "a54de44bf6faebf1bd4689b9779e4a7b1396696353c45db2691776bbe77d4c4a",
+    "nimo_2_strix_test_sha256": "da7a9a4a78302f931c91af97ba98368f073722bd84fc1f8cdd9953151a5148f8",
+    "nimo_2_hip_library_sha256": "d71b6a73fefdb4866f0082d43a01d474333c31f8b778d048b4e93e9fb1a3bc8a",
+    "nimo_2_vulkan_library_sha256": "02d49a90dd7af780cabe32ffbc5170a2e924cf50c8f0b1a1e96e31214851005c"
+  },
+  "evidence": {
+    "nimo_1": {
+      "bundle_path": "/var/tmp/halofpx-qualification/l14q-t01-20260719-nimo1/qualification-evidence.tar.zst",
+      "bundle_size_bytes": 24578905,
+      "bundle_sha256": "f03ba3e2ad6fb61e00de788362e653ee166c7b1c7ba4e43d49a372ef795a1e2f",
+      "deterministic_second_reconstruction_match": true,
+      "source_archive_sha256": "d73beba91d9aa435c6657c462d22836ab3656194e7ed41f98ea903bd2768d329",
+      "qualification_summary_sha256": "028c28facdb2880b24c76cbb2a1c6d01edcbd4bd7a4592f25d2bc5e580f37af6",
+      "help_sha256": "1e4dad84c0f72281e6bfcf48622bc3c08861af3bdc0a6fdf0cd9db71e37b4262",
+      "help_summary_sha256": "b3057af511e316d288c45097398edf044cc018965afccd2e96386fcb3a3ff419",
+      "feature_off_sha256": "83a1b4d9b46d282ea08dfd90d01cd5750b03f14c3298f1585945da35f55567b5",
+      "service_continuity_sha256": "9e76c57d8a909f3adbb007524a56522adf060ef76939a8c5609b01c784c22ee8"
+    },
+    "nimo_2": {
+      "bundle_path": "/var/tmp/halofpx-qualification/l14q-t01-20260719-nimo2/l14q-t01-20260719-nimo2-evidence.tar",
+      "bundle_size_bytes": 4904960,
+      "bundle_sha256": "5e424f1e11312f00c10b40467ee1d9c25b12aa3746a74459714045144619de21",
+      "deterministic_second_reconstruction_match": true,
+      "qualification_summary_sha256": "3ba461a8222cf0dd632024456ead6693665fab6b3c57aaae29905cae538a7e41",
+      "manifest_sha256": "d7aa556175358ed5917e461ff7aae9c99db8bdabf3090fcb45c6d18d83271d42",
+      "help_sha256": "1e4dad84c0f72281e6bfcf48622bc3c08861af3bdc0a6fdf0cd9db71e37b4262",
+      "help_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "version_stderr_sha256": "91a4d2aafa04e17201001155545ca96733c3439208648735aff594e1bf5e3d5f"
+    },
+    "excluded": [
+      "nimo-1 CRLF launcher artifact",
+      "nimo-2 full CTest 79/95 launcher result with 16 tokenizer CRLF artifacts and rc 8"
+    ]
+  },
+  "service_health_after_qualification": {
+    "nimo_1_llama_server_pid": 3783057,
+    "nimo_1_port": 8081,
+    "nimo_1_health": "ok",
+    "nimo_2_rpc_pid": 3562775,
+    "nimo_2_rpc_port": 50052,
+    "restarted_or_redeployed": false
+  },
+  "review": {
+    "p3_provenance_review": "APPROVE",
+    "similarity_review": "APPROVE",
+    "promotion_review": "ACCEPT"
+  },
+  "nonclaims": [
+    "No HIP or Vulkan runtime optimization, kernel, selector, routing, CMake, CLI, service, deployment, persistence, NOTICE, or SBOM behavior changed.",
+    "No inference throughput, latency, memory, zero-regression, or speedup claim is made.",
+    "Passing this test-only coverage does not admit the donor HIP tile or Vulkan coopmat1 runtime lanes.",
+    "The unit covers standard runtime Q8_0 and Q4_0 K/V cache types, not ROCmFPX weight or K/V formats."
+  ]
+}
