@@ -126,6 +126,19 @@ the slice never opens a root or credential, mutates a filesystem, publishes
 bytes, restores state, links a provider/server/inference path, or establishes
 durability or performance.
 
+The accepted `940af075` L05u slice closes only the inherited sealed-input
+transport boundary [S63-29]. The process blocks signals, privately unshares its
+descriptor table, requires one task, validates exact-name zero-link tmpfs
+memfds at fd 3 and fd 4, rejects aliases, reads bounded bytes into a dedicated
+locked mapping, revalidates the descriptor identities, and wipes, unlocks,
+unmaps, and closes everything before returning. Each Linux invocation covers
+1,625 fresh child cases plus a multithreaded-launch rejection; nimo-1 Release,
+nimo-2 Release, and nimo-2 ASan/UBSan passed the focused four-test matrix. The
+positive result is only `transport_validated_no_root_access`. Before any root
+or `writer.lock` access, the next slice must authenticate the credential and
+every launcher-pinned predecessor field inside locked storage and discard it;
+L05u itself grants no reusable authority and performs no registry mutation.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
