@@ -13,7 +13,7 @@
 namespace {
 using namespace halofpx;
 context_store_registered_id id(const std::string&s){context_store_registered_id x;x.size=uint8_t(s.size());std::copy(s.begin(),s.end(),x.bytes.begin());return x;}
-struct fixture{std::array<uint8_t,32>secret{};context_store_protected_registry_key_record key;fixture(){secret.fill(0x44);key={context_store_key_disposition::active,id("registry-auth-v1"),13,{secret.data(),secret.size()}};}};
+struct fixture{std::array<uint8_t,32>secret{};context_store_protected_registry_key_record key;fixture(){reset();}void reset(){secret.fill(0x44);key={context_store_key_disposition::active,id("registry-auth-v1"),13,{secret.data(),secret.size()}};}};
 context_store_protected_registry_body body(uint64_t high=40){context_store_protected_registry_body b;b.registry_id=id("registry-v1");b.registry_epoch=9;b.authority_base_scope_commitment.fill(0xaa);b.policy_commitment.fill(0xbb);b.last_consumed_sequence=high;return b;}
 std::array<uint8_t,32> hex(const std::string&s){std::array<uint8_t,32>x{};for(size_t i=0;i<x.size();++i)x[i]=uint8_t(std::stoul(s.substr(i*2,2),nullptr,16));return x;}
 void retag(std::array<uint8_t,context_store_protected_registry_max_bytes>&bytes,size_t size,const fixture&f){
@@ -41,7 +41,7 @@ int main(){
     assert(*c->authority_binding()==hex("f88b0080d50222b31e66879ecd4c14789279b9d15b786f6b22f32240d2ea5f7a"));
     const auto owned_body=*c->body();const auto owned_digest=*c->envelope_digest();const auto owned_binding=*c->authority_binding();
     auto exact=bytes;bytes.fill(0);f.secret.fill(0);assert(c->body()->registry_id.size==owned_body.registry_id.size&&std::equal(c->body()->registry_id.bytes.begin(),c->body()->registry_id.bytes.begin()+c->body()->registry_id.size,owned_body.registry_id.bytes.begin())&&*c->envelope_digest()==owned_digest&&*c->authority_binding()==owned_binding);
-    f=fixture{};bytes=exact;
+    f.reset();bytes=exact;
     assert(context_store_encode_protected_registry_v1(body(),f.key,bytes.data(),1).status==context_store_protected_registry_status::output_too_small);
     for(size_t n=0;n<encoded.encoded_size;++n)assert(context_store_verify_protected_registry_v1(bytes.data(),n,f.key).status!=context_store_protected_registry_status::authenticated_unadmitted);
     for(size_t i=0;i<encoded.encoded_size;++i){auto corrupt=bytes;corrupt[i]^=1;assert(context_store_verify_protected_registry_v1(corrupt.data(),encoded.encoded_size,f.key).status!=context_store_protected_registry_status::authenticated_unadmitted);}
