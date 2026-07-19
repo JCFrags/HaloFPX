@@ -63,6 +63,26 @@ foreach(REQUIRED IN ITEMS
   endif()
 endforeach()
 foreach(REQUIRED IN ITEMS
+    "derive_quarantine_diagnosis_commitment" "writer.map(12)"
+    "quarantine_diagnosis_commitment_for_test"
+    "halofpx.registry-lab-quarantine-diagnosis.v1"
+    "test_quarantine_diagnosis_commitment" "commitment_nonzero == publishable"
+    "diagnosis.diagnosis_commitment != test_quarantine_diagnosis_commitment(invocation, diagnosis)"
+    "092371f4b14a2df8523f09f2e50ea7683b3041b3beaf391761a17d4556f009d5"
+    "3e8ff4967a3eccf257fffa0f3e9e5bb77e5f14b08f2d32ef9772c3592e5bb8f8"
+    "26b2227f62292c195285025f828cc028e8ff8acbecc7a7c67368332cd1fedd02")
+  string(FIND "${IMPLEMENTATION}${HEADER_TEXT}${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R diagnosis commitment is missing required closure marker: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS "admitted == 25 && rejected == 39" "sensitivities == 10" "quarantine_shape::successor")
+  string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R diagnosis commitment test matrix is missing: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
     "singleton_cases == 13" "pairwise_cases == 78" "diagnosed == 16"
     "event > static_cast<uint16_t>(operation::quarantine_staging_directory_sync)"
     "_set_error_mode(_OUT_TO_STDERR)"

@@ -35,8 +35,10 @@ struct quarantine_diagnosis_view {
     quarantine_shape shape = quarantine_shape::none;
     bool attributable = false, has_previous_record = false, has_head = false;
     uint8_t phase = 0;
-    uint64_t slot = 0;
-    context_store_format_digest attempt_id {}, operation_commitment {}, previous_record_digest {}, head_digest {};
+    uint64_t slot = 0, registry_epoch = 0;
+    context_store_registered_id registry_id {};
+    context_store_format_digest root_id {}, path_policy_commitment {};
+    context_store_format_digest attempt_id {}, operation_commitment {}, previous_record_digest {}, head_digest {}, diagnosis_commitment {};
 };
 
 constexpr quarantine_reason select_quarantine_reason_for_test(const std::array<bool, 16> & flags) noexcept {
@@ -44,6 +46,8 @@ constexpr quarantine_reason select_quarantine_reason_for_test(const std::array<b
     for (uint8_t value : precedence) if (flags[value]) return static_cast<quarantine_reason>(value);
     return quarantine_reason::unknown;
 }
+bool quarantine_diagnosis_commitment_for_test(uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+    context_store_format_digest & output) noexcept;
 enum class visibility : uint8_t { not_visible, ordinary_result, dead_process_no_result };
 
 struct recovery_precedence_flags {

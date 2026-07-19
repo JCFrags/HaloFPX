@@ -149,6 +149,7 @@ struct test_cbor_writer {
     }
     bool u64(uint64_t value) { return head(0, value); }
     bool bstr(const context_store_format_digest & value) { return head(2, value.size()) && raw(value.data(), value.size()); }
+    bool null_value() { const uint8_t value = 0xf6; return raw(&value, 1); }
 };
 
 context_store_format_digest test_operation_commitment(const context_store_format_digest & root, const context_store_format_digest & path,
@@ -160,6 +161,93 @@ context_store_format_digest test_operation_commitment(const context_store_format
     constexpr char domain[] = "halofpx.registry-lab-operation.v1"; std::array<uint8_t, 384> input {};
     std::copy_n(reinterpret_cast<const uint8_t *>(domain), sizeof(domain), input.begin()); std::copy_n(writer.bytes.data(), writer.size, input.begin() + sizeof(domain));
     context_store_format_digest output {}; assert(context_store_sha256_bounded(input.data(), sizeof(domain) + writer.size, input.size(), output)); return output;
+}
+
+context_store_format_digest test_quarantine_diagnosis_commitment(uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis) {
+    test_cbor_writer writer;
+    const bool attributable = diagnosis.shape == quarantine_shape::prepare || diagnosis.shape == quarantine_shape::successor;
+    const bool head = diagnosis.shape != quarantine_shape::u0;
+    const auto optional_digest = [&](bool present, const context_store_format_digest & digest) {
+        return present ? writer.bstr(digest) : writer.null_value();
+    };
+    assert(writer.head(5, 12) && writer.u64(0) && writer.u64(1) && writer.u64(1) && writer.u64(invocation_id) &&
+        writer.u64(2) && writer.bstr(diagnosis.root_id) && writer.u64(3) && writer.bstr(diagnosis.path_policy_commitment) &&
+        writer.u64(4) && writer.u64(static_cast<uint8_t>(diagnosis.reason)) && writer.u64(5) && writer.u64(diagnosis.phase) &&
+        writer.u64(6) && writer.u64(static_cast<uint8_t>(diagnosis.shape)) && writer.u64(7) && optional_digest(attributable, diagnosis.attempt_id) &&
+        writer.u64(8) && (attributable ? writer.u64(diagnosis.slot) : writer.null_value()) &&
+        writer.u64(9) && optional_digest(attributable, diagnosis.operation_commitment) &&
+        writer.u64(10) && optional_digest(attributable, diagnosis.previous_record_digest) && writer.u64(11) && optional_digest(head, diagnosis.head_digest));
+    constexpr char domain[] = "halofpx.registry-lab-quarantine-diagnosis.v1"; std::array<uint8_t, 384> input {};
+    std::copy_n(reinterpret_cast<const uint8_t *>(domain), sizeof(domain), input.begin());
+    std::copy_n(writer.bytes.data(), writer.size, input.begin() + sizeof(domain));
+    context_store_format_digest output {};
+    assert(context_store_sha256_bounded(input.data(), sizeof(domain) + writer.size, input.size(), output)); return output;
+}
+
+quarantine_diagnosis_view test_diagnosis_plan(quarantine_reason reason, quarantine_shape shape) {
+    quarantine_diagnosis_view value; value.valid = value.publishable = value.authenticated_initialized_root = true;
+    value.reason = reason; value.shape = shape; value.root_id.fill(0x11); value.path_policy_commitment.fill(0x22);
+    constexpr char registry[] = "registry-v1"; value.registry_id.size = sizeof(registry) - 1;
+    std::copy_n(registry, value.registry_id.size, value.registry_id.bytes.begin()); value.registry_epoch = 9;
+    if (shape == quarantine_shape::uh) { value.has_head = true; value.head_digest.fill(0x31); }
+    if (shape == quarantine_shape::prepare || shape == quarantine_shape::successor) {
+        value.attributable = value.has_previous_record = value.has_head = true; value.phase = shape == quarantine_shape::prepare ? 1 : 2;
+        value.slot = 17; value.attempt_id.fill(0x41); value.operation_commitment.fill(0x42);
+        value.previous_record_digest.fill(0x43); value.head_digest.fill(shape == quarantine_shape::prepare ? 0x44 : 0x45);
+    }
+    return value;
+}
+
+bool test_reason_admits_shape(quarantine_reason reason, quarantine_shape shape) {
+    if (reason == quarantine_reason::layout_or_unexpected || reason == quarantine_reason::chain_contradiction ||
+        reason == quarantine_reason::staging_ambiguous || reason == quarantine_reason::durability_unproved) return true;
+    if (reason == quarantine_reason::head_invalid) return shape == quarantine_shape::u0;
+    if (reason == quarantine_reason::selected_envelope_invalid) return shape == quarantine_shape::uh || shape == quarantine_shape::successor;
+    if (reason == quarantine_reason::journal_invalid || reason == quarantine_reason::multiple_unresolved)
+        return shape == quarantine_shape::u0 || shape == quarantine_shape::uh;
+    if (reason == quarantine_reason::referent_invalid) return shape == quarantine_shape::uh || shape == quarantine_shape::prepare;
+    return false;
+}
+
+void quarantine_diagnosis_commitment_contract() {
+    constexpr std::array<quarantine_shape, 4> shapes { quarantine_shape::u0, quarantine_shape::uh, quarantine_shape::prepare, quarantine_shape::successor };
+    size_t admitted = 0, rejected = 0;
+    for (uint8_t reason = 0; reason < 16; ++reason) for (quarantine_shape shape : shapes) {
+        const auto plan = test_diagnosis_plan(static_cast<quarantine_reason>(reason), shape); context_store_format_digest actual {};
+        const bool expected = test_reason_admits_shape(plan.reason, shape);
+        assert(quarantine_diagnosis_commitment_for_test(777, plan, actual) == expected);
+        if (expected) { assert(actual == test_quarantine_diagnosis_commitment(777, plan)); ++admitted; }
+        else { assert(std::all_of(actual.begin(), actual.end(), [](uint8_t byte) { return byte == 0; })); ++rejected; }
+    }
+    assert(admitted == 25 && rejected == 39);
+
+    const auto valid = test_diagnosis_plan(quarantine_reason::layout_or_unexpected, quarantine_shape::prepare);
+    const auto rejects = [&](auto mutate) {
+        auto plan = valid; mutate(plan); context_store_format_digest output {}; assert(!quarantine_diagnosis_commitment_for_test(777, plan, output));
+        assert(std::all_of(output.begin(), output.end(), [](uint8_t byte) { return byte == 0; }));
+    };
+    rejects([](auto & v) { v.valid = false; }); rejects([](auto & v) { v.publishable = false; });
+    rejects([](auto & v) { v.authenticated_initialized_root = false; }); rejects([](auto & v) { v.root_id = {}; });
+    rejects([](auto & v) { v.path_policy_commitment = {}; }); rejects([](auto & v) { v.registry_id = {}; });
+    rejects([](auto & v) { v.registry_epoch = 0; }); rejects([](auto & v) { v.attributable = false; });
+    rejects([](auto & v) { v.has_previous_record = false; }); rejects([](auto & v) { v.has_head = false; });
+    rejects([](auto & v) { v.phase = 0; }); rejects([](auto & v) { v.slot = 512; });
+    rejects([](auto & v) { v.attempt_id = {}; }); rejects([](auto & v) { v.operation_commitment = {}; });
+    rejects([](auto & v) { v.previous_record_digest = {}; }); rejects([](auto & v) { v.head_digest = {}; });
+    { context_store_format_digest output {}; assert(!quarantine_diagnosis_commitment_for_test(0, valid, output)); }
+    { auto hidden = test_diagnosis_plan(quarantine_reason::layout_or_unexpected, quarantine_shape::u0); hidden.attempt_id.fill(1); rejects([&](auto & v) { v = hidden; }); }
+
+    context_store_format_digest baseline {}; assert(quarantine_diagnosis_commitment_for_test(777, valid, baseline)); size_t sensitivities = 0;
+    const auto differs = [&](uint64_t invocation, auto mutate) {
+        auto plan = valid; mutate(plan); context_store_format_digest output {}; assert(quarantine_diagnosis_commitment_for_test(invocation, plan, output));
+        assert(output != baseline); ++sensitivities;
+    };
+    differs(778, [](auto &) {}); differs(777, [](auto & v) { v.root_id[0] ^= 1; }); differs(777, [](auto & v) { v.path_policy_commitment[0] ^= 1; });
+    differs(777, [](auto & v) { v.reason = quarantine_reason::chain_contradiction; }); differs(777, [](auto & v) { v.attempt_id[0] ^= 1; });
+    differs(777, [](auto & v) { ++v.slot; }); differs(777, [](auto & v) { v.operation_commitment[0] ^= 1; });
+    differs(777, [](auto & v) { v.previous_record_digest[0] ^= 1; }); differs(777, [](auto & v) { v.head_digest[0] ^= 1; });
+    differs(777, [](auto & v) { v.shape = quarantine_shape::successor; v.phase = 2; });
+    assert(sensitivities == 10);
 }
 
 std::vector<uint8_t> golden_fixture(const std::string & json, const char * name) {
@@ -948,6 +1036,18 @@ void operation_5_quarantine_diagnosis_contract(const golden_data & g) {
                 static_cast<unsigned>(diagnosis.shape), static_cast<unsigned>(shape), diagnosis.publishable, publishable, diagnosis.valid);
         assert(diagnosis.valid && diagnosis.reason == reason && diagnosis.shape == shape &&
             diagnosis.publishable == publishable && f->derived_classification(h) == recovery_classification::needs_sticky_quarantine);
+        const bool commitment_nonzero = std::any_of(diagnosis.diagnosis_commitment.begin(), diagnosis.diagnosis_commitment.end(), [](uint8_t byte) { return byte != 0; });
+        assert(commitment_nonzero == publishable);
+        if (publishable) {
+            assert(std::all_of(diagnosis.root_id.begin(), diagnosis.root_id.end(), [](uint8_t byte) { return byte == 0x11; }));
+            assert(diagnosis.path_policy_commitment == g.preflight.path_policy_commitment);
+            assert(diagnosis.registry_id.size == g.preflight.registry_id.size && diagnosis.registry_epoch == g.preflight.registry_epoch);
+            assert(diagnosis.diagnosis_commitment == test_quarantine_diagnosis_commitment(invocation - 1, diagnosis));
+            assert(diagnosis.diagnosis_commitment != test_quarantine_diagnosis_commitment(invocation, diagnosis));
+            if (invocation - 1 == 20505) assert(diagnosis.diagnosis_commitment == hex_digest("092371f4b14a2df8523f09f2e50ea7683b3041b3beaf391761a17d4556f009d5"));
+            if (invocation - 1 == 20507) assert(diagnosis.diagnosis_commitment == hex_digest("3e8ff4967a3eccf257fffa0f3e9e5bb77e5f14b08f2d32ef9772c3592e5bb8f8"));
+            if (invocation - 1 == 20513) assert(diagnosis.diagnosis_commitment == hex_digest("26b2227f62292c195285025f828cc028e8ff8acbecc7a7c67368332cd1fedd02"));
+        }
         assert_no_quarantine_write(*f, h); ++diagnosed;
         return diagnosis;
     };
@@ -2081,10 +2181,10 @@ int main(int argc, char ** argv) {
         if (std::strcmp(argv[2], "--l05q-products") == 0) { l05q_product_execution_and_preentry_rejection(golden); return 0; }
         if (std::strcmp(argv[2], "--l05q-exhaustive") == 0) { l05q_exhaustive(golden); return 0; }
         if (std::strcmp(argv[2], "--l05r-diagnosis") == 0) {
-            quarantine_reason_pairwise_precedence_matrix(); operation_5_quarantine_diagnosis_contract(golden); return 0;
+            quarantine_reason_pairwise_precedence_matrix(); quarantine_diagnosis_commitment_contract(); operation_5_quarantine_diagnosis_contract(golden); return 0;
         }
         assert(std::strcmp(argv[2], "--repeat-core") == 0);
-        algebra(); operation_5_pairwise_precedence_matrix(); quarantine_reason_pairwise_precedence_matrix(); operation_5_allocation_free_after_construction(golden);
+        algebra(); operation_5_pairwise_precedence_matrix(); quarantine_reason_pairwise_precedence_matrix(); quarantine_diagnosis_commitment_contract(); operation_5_allocation_free_after_construction(golden);
         operation_5_core(golden); operation_5_quarantine_diagnosis_contract(golden); operation_5_recovery_and_request_precedence(golden); operation_5_retry_after_abort(golden);
         operation_5_journal_topology_faults(golden); operation_5_primitive_products(golden); operation_5_snapshot_is_immutable(golden);
         operation_5_preentry_contract(golden); operation_5_external_binding_and_request_matrix(golden);
@@ -2098,6 +2198,7 @@ int main(int argc, char ** argv) {
     algebra();
     operation_5_pairwise_precedence_matrix();
     quarantine_reason_pairwise_precedence_matrix();
+    quarantine_diagnosis_commitment_contract();
     forbidden_products_reject_before_entry();
     admitted_products_execute();
     admission_shape_and_payloads();

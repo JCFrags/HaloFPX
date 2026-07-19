@@ -280,6 +280,7 @@ struct cbor_writer {
     bool map(size_t length) noexcept { return head(5, length); }
     bool bytes(const void * value, size_t length) noexcept { return head(2, length) && raw(value, length); }
     bool text(const context_store_registered_id & value) noexcept { return head(3, value.size) && raw(value.bytes.data(), value.size); }
+    bool null_value() noexcept { const uint8_t value = 0xf6; return raw(&value, 1); }
 };
 
 struct decoded_body_v1 {
@@ -507,19 +508,20 @@ template<size_t N> bool exact_durable_copy(const modeled_file<N> & file) noexcep
 
 template<size_t N> bool any_name(const modeled_file<N> & file) noexcept { return file.live_present || file.durable_present; }
 
+bool valid_registered_id(const context_store_registered_id & id) noexcept {
+    if (!id.size || id.size > context_store_registered_id_max_bytes) return false;
+    for (size_t i = 0; i < id.size; ++i) {
+        const uint8_t byte = static_cast<uint8_t>(id.bytes[i]);
+        if (byte < 0x21 || byte > 0x7e) return false;
+    }
+    for (size_t i = id.size; i < id.bytes.size(); ++i) if (id.bytes[i] != '\0') return false;
+    return true;
+}
+
 bool valid_preflight(const preflight_context_v1 & value, const credential_owner & credential) noexcept {
-    const auto registered_id = [](const context_store_registered_id & id) noexcept {
-        if (!id.size || id.size > context_store_registered_id_max_bytes) return false;
-        for (size_t i = 0; i < id.size; ++i) {
-            const uint8_t byte = static_cast<uint8_t>(id.bytes[i]);
-            if (byte < 0x21 || byte > 0x7e) return false;
-        }
-        for (size_t i = id.size; i < id.bytes.size(); ++i) if (id.bytes[i] != '\0') return false;
-        return true;
-    };
     return nonzero(value.store_uuid) && nonzero(value.filesystem_uuid) && nonzero(value.subvolume_uuid) && value.mount_id && value.st_dev &&
         value.root_mode == 448 && value.authority_file_mode == 384 && value.lock_st_dev && value.lock_st_ino && nonzero(value.path_policy_commitment) &&
-        registered_id(value.registry_id) && registered_id(value.credential_key_id) && value.registry_epoch &&
+        valid_registered_id(value.registry_id) && valid_registered_id(value.credential_key_id) && value.registry_epoch &&
         nonzero(value.authority_base_scope_commitment) && nonzero(value.registry_policy_commitment) &&
         value.inner_key_disposition == context_store_key_disposition::active && same_id(value.credential_key_id, credential.key_id) &&
         value.credential_generation == credential.generation && value.attempt_capacity == 512 && value.maximum_logical_authority_bytes == 16777216;
@@ -640,9 +642,45 @@ bool reason_admits_shape(quarantine_reason reason, quarantine_shape shape) noexc
     }
 }
 
+bool derive_quarantine_diagnosis_commitment(uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+        context_store_format_digest & output) noexcept {
+    output = {};
+    if (!invocation_id || !diagnosis.valid || !diagnosis.publishable || !diagnosis.authenticated_initialized_root ||
+        !nonzero(diagnosis.root_id) || !nonzero(diagnosis.path_policy_commitment) ||
+        !valid_registered_id(diagnosis.registry_id) || !diagnosis.registry_epoch ||
+        !reason_admits_shape(diagnosis.reason, diagnosis.shape)) return false;
+    const bool attributable = diagnosis.shape == quarantine_shape::prepare || diagnosis.shape == quarantine_shape::successor;
+    const bool head = diagnosis.shape != quarantine_shape::u0;
+    const uint8_t phase = diagnosis.shape == quarantine_shape::successor ? 2 : diagnosis.shape == quarantine_shape::prepare ? 1 : 0;
+    if (diagnosis.attributable != attributable || diagnosis.has_previous_record != attributable || diagnosis.has_head != head ||
+        diagnosis.phase != phase || (attributable && (diagnosis.slot >= 512 || !nonzero(diagnosis.attempt_id) ||
+            !nonzero(diagnosis.operation_commitment) || !nonzero(diagnosis.previous_record_digest))) ||
+        (!attributable && (diagnosis.slot != 0 || nonzero(diagnosis.attempt_id) || nonzero(diagnosis.operation_commitment) ||
+            nonzero(diagnosis.previous_record_digest))) || (head != nonzero(diagnosis.head_digest))) return false;
+    std::array<uint8_t, 384> encoded {};
+    cbor_writer writer { encoded.data(), encoded.size() };
+    const auto optional_digest = [&](bool present, const context_store_format_digest & digest) noexcept {
+        return present ? writer.bytes(digest.data(), digest.size()) : writer.null_value();
+    };
+    const bool written = writer.map(12) && writer.unsigned_value(0) && writer.unsigned_value(1) &&
+        writer.unsigned_value(1) && writer.unsigned_value(invocation_id) &&
+        writer.unsigned_value(2) && writer.bytes(diagnosis.root_id.data(), diagnosis.root_id.size()) &&
+        writer.unsigned_value(3) && writer.bytes(diagnosis.path_policy_commitment.data(), diagnosis.path_policy_commitment.size()) &&
+        writer.unsigned_value(4) && writer.unsigned_value(static_cast<uint8_t>(diagnosis.reason)) &&
+        writer.unsigned_value(5) && writer.unsigned_value(diagnosis.phase) &&
+        writer.unsigned_value(6) && writer.unsigned_value(static_cast<uint8_t>(diagnosis.shape)) &&
+        writer.unsigned_value(7) && optional_digest(attributable, diagnosis.attempt_id) &&
+        writer.unsigned_value(8) && (attributable ? writer.unsigned_value(diagnosis.slot) : writer.null_value()) &&
+        writer.unsigned_value(9) && optional_digest(attributable, diagnosis.operation_commitment) &&
+        writer.unsigned_value(10) && optional_digest(attributable, diagnosis.previous_record_digest) &&
+        writer.unsigned_value(11) && optional_digest(head, diagnosis.head_digest);
+    const bool ok = written && hash_with_domain("halofpx.registry-lab-quarantine-diagnosis.v1", encoded.data(), writer.size, output);
+    wipe(encoded); if (!ok) output = {}; return ok;
+}
+
 recovery_classification classify_operation_5(const fixed_state & snapshot, const preflight_context_v1 & preflight,
         const request_transition_v1 & request, const credential_owner & credential, size_t & scanned, size_t & derivations,
-        quarantine_diagnosis_view & diagnosis) noexcept {
+        uint64_t invocation_id, quarantine_diagnosis_view & diagnosis) noexcept {
     diagnosis = {};
     std::array<bool, 16> diagnosis_flags {};
     const auto fault = [&](quarantine_reason reason) noexcept { diagnosis_flags[static_cast<size_t>(reason)] = true; };
@@ -859,6 +897,12 @@ recovery_classification classify_operation_5(const fixed_state & snapshot, const
     if (sticky) {
         diagnosis.valid = true;
         diagnosis.authenticated_initialized_root = root_valid && root.body().root_state == 1;
+        if (diagnosis.authenticated_initialized_root) {
+            diagnosis.root_id = root.body().root_id;
+            diagnosis.path_policy_commitment = root.body().path_policy;
+            diagnosis.registry_id = root.body().registry_id;
+            diagnosis.registry_epoch = root.body().registry_epoch;
+        }
         diagnosis.reason = select_quarantine_reason_for_test(diagnosis_flags);
         if (diagnosis.authenticated_initialized_root) {
             if (valid_prepare_count == 1) {
@@ -885,6 +929,8 @@ recovery_classification classify_operation_5(const fixed_state & snapshot, const
         }
         diagnosis.publishable = diagnosis.authenticated_initialized_root && diagnosis.shape != quarantine_shape::none &&
             reason_admits_shape(diagnosis.reason, diagnosis.shape);
+        if (diagnosis.publishable && !derive_quarantine_diagnosis_commitment(invocation_id, diagnosis, diagnosis.diagnosis_commitment))
+            diagnosis.publishable = false;
         recovery_precedence_flags flags; flags.sticky = true; return select_recovery_precedence(flags);
     }
     if (unresolved_count == 1) {
@@ -1163,6 +1209,11 @@ static_assert(std::is_nothrow_copy_constructible_v<restart_image>);
 
 } // namespace
 
+bool quarantine_diagnosis_commitment_for_test(uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+        context_store_format_digest & output) noexcept {
+    return derive_quarantine_diagnosis_commitment(invocation_id, diagnosis, output);
+}
+
 fixture::fixture() noexcept = default;
 void credential_owner::clear() noexcept {
     key_id = {}; generation = 0;
@@ -1412,7 +1463,7 @@ bool fixture::step(size_t handle) noexcept {
     if (product.op == operation::recovery_validation) {
         if (snapshot_owner_ != current.id) { finish_ordinary(current, status::invalid_request_no_mutation); return true; }
         current.derived_class = classify_operation_5(snapshot_, current.preflight, current.request, current.credential,
-            current.scanned, current.derivations, current.quarantine_plan);
+            current.scanned, current.derivations, current.id, current.quarantine_plan);
         if (current.derived_class != product.classification) { finish_ordinary(current, status::invalid_request_no_mutation); return true; }
         if (script_matches_recovery(current.immutable_script, current.derived_class)) {
             if (!derive_recovery_terminal(snapshot_, current.preflight, current.request, current.credential, current.derived_class,
