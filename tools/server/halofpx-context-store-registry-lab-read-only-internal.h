@@ -26,6 +26,24 @@ enum class completion : uint8_t { response_confirmed, response_lost, process_dea
 enum class primitive_code : uint8_t { ok, busy, unsupported, invalid_request, capacity_exhausted, reserve_exhausted, unavailable, io_failure };
 enum class recovery_classification : uint8_t { none, continue_to_mutation, needs_successor_close, needs_predecessor_abort, needs_sticky_quarantine, blocked_by_existing_quarantine, inadmissible_initialization_artifact, attempt_replayed, capacity_exhausted, requested_slot_occupied, invalid_transition, preexisting_unattributed_material };
 enum class status : uint8_t { invalid_request_no_mutation, unsupported_no_mutation, busy_no_mutation, capacity_exhausted_no_mutation, reserve_exhausted_no_mutation, attempt_replayed_no_mutation, slot_occupied_no_mutation, invalid_transition_no_mutation, preexisting_material_no_authority, uncertain_requires_recovery, quarantined_or_unavailable, recovered_not_applied_no_authority, modeled_recovered_successor_closed };
+enum class quarantine_reason : uint8_t { unknown=0, marker_invalid=1, layout_or_unexpected=2, existing_quarantine=3, head_invalid=4, selected_envelope_invalid=5, journal_invalid=6, chain_contradiction=7, multiple_unresolved=8, referent_invalid=9, staging_ambiguous=10, durability_unproved=11, scope_or_root_mismatch=12, key_or_auth_mismatch=13, resource_or_io_failure=14, internal_invariant=15 };
+enum class quarantine_shape : uint8_t { u0=0, uh=1, prepare=2, successor=3, none=255 };
+
+struct quarantine_diagnosis_view {
+    bool valid = false, publishable = false, authenticated_initialized_root = false;
+    quarantine_reason reason = quarantine_reason::unknown;
+    quarantine_shape shape = quarantine_shape::none;
+    bool attributable = false, has_previous_record = false, has_head = false;
+    uint8_t phase = 0;
+    uint64_t slot = 0;
+    context_store_format_digest attempt_id {}, operation_commitment {}, previous_record_digest {}, head_digest {};
+};
+
+constexpr quarantine_reason select_quarantine_reason_for_test(const std::array<bool, 16> & flags) noexcept {
+    constexpr std::array<uint8_t, 14> precedence { 13,12,1,15,2,10,4,5,6,7,8,9,11,0 };
+    for (uint8_t value : precedence) if (flags[value]) return static_cast<quarantine_reason>(value);
+    return quarantine_reason::unknown;
+}
 enum class visibility : uint8_t { not_visible, ordinary_result, dead_process_no_result };
 
 struct recovery_precedence_flags {
@@ -271,6 +289,7 @@ public:
     size_t teardown_audit_count() const noexcept;
     restart_teardown_audit teardown_audit(size_t index) const noexcept;
     recovery_classification derived_classification(size_t handle) const noexcept;
+    quarantine_diagnosis_view quarantine_diagnosis(size_t handle) const noexcept;
     size_t scanned_slots(size_t handle) const noexcept;
     size_t kdf_calls(size_t handle) const noexcept;
     bool serialize_restart(restart_image & caller_preallocated) const noexcept;
@@ -307,6 +326,7 @@ private:
         bool rejection_wipe_verified = false;
         bool ordinary_wipe_verified = false;
         recovery_classification derived_class = recovery_classification::none;
+        quarantine_diagnosis_view quarantine_plan {};
         size_t scanned = 0, derivations = 0;
         restart_teardown_audit teardown {};
     };

@@ -50,6 +50,28 @@ foreach(REQUIRED IN ITEMS
     message(FATAL_ERROR "L05p focused test is missing required closure marker: ${REQUIRED}")
   endif()
 endforeach()
+
+foreach(REQUIRED IN ITEMS
+    "enum class quarantine_reason" "enum class quarantine_shape"
+    "quarantine_diagnosis_view" "select_quarantine_reason_for_test"
+    "precedence { 13,12,1,15,2,10,4,5,6,7,8,9,11,0 }"
+    "authenticated_initialized_root" "reason_admits_shape"
+    "quarantine_diagnosis(size_t handle)" "--l05r-diagnosis")
+  string(FIND "${IMPLEMENTATION}${HEADER_TEXT}${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R diagnosis contract is missing required marker: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+    "singleton_cases == 13" "pairwise_cases == 78" "diagnosed == 16"
+    "event > static_cast<uint16_t>(operation::quarantine_staging_directory_sync)"
+    "_set_error_mode(_OUT_TO_STDERR)"
+    "_set_abort_behavior(_WRITE_ABORT_MSG, _WRITE_ABORT_MSG | _CALL_REPORTFAULT)")
+  string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R focused test is missing required closure marker: ${REQUIRED}")
+  endif()
+endforeach()
 foreach(REQUIRED IN ITEMS
     "recovery_admitted == 287" "quarantine_admitted == 155" "quarantine_forbidden == 805"
     "admitted_algebra_count() == 497"
@@ -142,4 +164,4 @@ foreach(REQUIRED IN ITEMS
   endif()
 endforeach()
 
-message(STATUS "PASS: L05Q fake-only recovery terminalization contract")
+message(STATUS "PASS: L05R fake-only recovery diagnosis contract")

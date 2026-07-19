@@ -496,6 +496,15 @@ template<size_t N> bool exact_published_file(const modeled_file<N> & file) noexc
         file.live_length <= N && exact_bytes(file.live_bytes.data(), file.durable_bytes.data(), file.live_length);
 }
 
+template<size_t N> bool exact_live_file(const modeled_file<N> & file) noexcept {
+    return file.live_present && file.live_complete && file.live_length <= N;
+}
+
+template<size_t N> bool exact_durable_copy(const modeled_file<N> & file) noexcept {
+    return exact_live_file(file) && file.durable_present && file.durable_complete && file.live_length == file.durable_length &&
+        exact_bytes(file.live_bytes.data(), file.durable_bytes.data(), file.live_length);
+}
+
 template<size_t N> bool any_name(const modeled_file<N> & file) noexcept { return file.live_present || file.durable_present; }
 
 bool valid_preflight(const preflight_context_v1 & value, const credential_owner & credential) noexcept {
@@ -616,16 +625,46 @@ bool bind_prepare_body(const decoded_body_v1 & body, const decoded_body_v1 & roo
     return ok;
 }
 
+bool reason_admits_shape(quarantine_reason reason, quarantine_shape shape) noexcept {
+    switch (reason) {
+        case quarantine_reason::layout_or_unexpected:
+        case quarantine_reason::chain_contradiction:
+        case quarantine_reason::staging_ambiguous:
+        case quarantine_reason::durability_unproved: return shape != quarantine_shape::none;
+        case quarantine_reason::head_invalid: return shape == quarantine_shape::u0;
+        case quarantine_reason::selected_envelope_invalid: return shape == quarantine_shape::uh || shape == quarantine_shape::successor;
+        case quarantine_reason::journal_invalid:
+        case quarantine_reason::multiple_unresolved: return shape == quarantine_shape::u0 || shape == quarantine_shape::uh;
+        case quarantine_reason::referent_invalid: return shape == quarantine_shape::uh || shape == quarantine_shape::prepare;
+        default: return false;
+    }
+}
+
 recovery_classification classify_operation_5(const fixed_state & snapshot, const preflight_context_v1 & preflight,
-        const request_transition_v1 & request, const credential_owner & credential, size_t & scanned, size_t & derivations) noexcept {
-    if (any_name(snapshot.quarantine) || any_name(snapshot.quarantine_staging))
+        const request_transition_v1 & request, const credential_owner & credential, size_t & scanned, size_t & derivations,
+        quarantine_diagnosis_view & diagnosis) noexcept {
+    diagnosis = {};
+    std::array<bool, 16> diagnosis_flags {};
+    const auto fault = [&](quarantine_reason reason) noexcept { diagnosis_flags[static_cast<size_t>(reason)] = true; };
+    if (any_name(snapshot.quarantine) || any_name(snapshot.quarantine_staging)) {
+        diagnosis.valid = true; diagnosis.reason = quarantine_reason::existing_quarantine;
         return select_recovery_precedence({ true });
+    }
 
     bool sticky = false;
     auto root = decode_record<context_store_registry_lab_kind::root>(
         snapshot.marker.live_bytes.data(), snapshot.marker.live_length, credential, derivations);
-    const bool root_valid = exact_published_file(snapshot.marker) && root.authenticated() && bind_root(root.body(), preflight, credential);
-    if (!root_valid) sticky = true;
+    const bool root_live_exact = exact_live_file(snapshot.marker);
+    const bool root_authenticated = root_live_exact && root.authenticated();
+    const bool root_compatible = root_authenticated && bind_root(root.body(), preflight, credential);
+    const bool root_valid = root_compatible && exact_durable_copy(snapshot.marker);
+    if (!root_valid) {
+        sticky = true;
+        if (!root_live_exact) fault(quarantine_reason::marker_invalid);
+        else if (!root.authenticated()) fault(quarantine_reason::key_or_auth_mismatch);
+        else if (!root_compatible) fault(quarantine_reason::scope_or_root_mismatch);
+        else fault(quarantine_reason::durability_unproved);
+    }
     if (root_valid && root.body().root_state == 0) {
         recovery_precedence_flags flags; flags.initializing = true; return select_recovery_precedence(flags);
     }
@@ -634,20 +673,36 @@ recovery_classification classify_operation_5(const fixed_state & snapshot, const
         !snapshot.attempts_directory.live_projection || !snapshot.attempts_directory.durable_projection ||
         !snapshot.staging_directory.live_projection || !snapshot.staging_directory.durable_projection ||
         !snapshot.envelopes_directory.live_projection || !snapshot.envelopes_directory.durable_projection;
+    for (const modeled_directory * directory : { &snapshot.root_directory, &snapshot.attempts_directory,
+            &snapshot.staging_directory, &snapshot.envelopes_directory }) {
+        if (!directory->live_projection) fault(quarantine_reason::layout_or_unexpected);
+        else if (!directory->durable_projection) fault(quarantine_reason::durability_unproved);
+    }
     sticky = sticky || !absent_file(snapshot.quarantine) || !absent_file(snapshot.quarantine_staging) ||
         !exact_published_file(snapshot.lock_file) || snapshot.lock_file.live_length != 0;
+    if (!absent_file(snapshot.quarantine) || !absent_file(snapshot.quarantine_staging)) fault(quarantine_reason::layout_or_unexpected);
+    const bool lock_live_exact = exact_live_file(snapshot.lock_file) && snapshot.lock_file.live_length == 0;
+    if (!lock_live_exact) fault(quarantine_reason::layout_or_unexpected);
+    else if (!exact_durable_copy(snapshot.lock_file)) fault(quarantine_reason::durability_unproved);
     sticky = sticky || !exact_published_file(snapshot.head);
     for (const modeled_unexpected_entry & entry : snapshot.unexpected) {
         sticky = sticky || entry.live_occupied || entry.durable_occupied || entry.live_length || entry.durable_length;
-        for (uint8_t byte : entry.live_name) sticky = sticky || byte != 0;
-        for (uint8_t byte : entry.durable_name) sticky = sticky || byte != 0;
+        bool unexpected = entry.live_occupied || entry.durable_occupied || entry.live_length || entry.durable_length;
+        for (uint8_t byte : entry.live_name) { sticky = sticky || byte != 0; unexpected = unexpected || byte != 0; }
+        for (uint8_t byte : entry.durable_name) { sticky = sticky || byte != 0; unexpected = unexpected || byte != 0; }
+        if (unexpected) fault(quarantine_reason::layout_or_unexpected);
     }
 
     auto head = decode_record<context_store_registry_lab_kind::head>(
         snapshot.head.live_bytes.data(), snapshot.head.live_length, credential, derivations);
-    const bool head_valid = exact_published_file(snapshot.head) && head.authenticated() && root_valid &&
+    const bool head_live_bound = exact_live_file(snapshot.head) && head.authenticated() && root_compatible &&
         same_scope(head.body(), root.body()) && same_id(head.body().registry_id, preflight.registry_id) && head.body().registry_epoch == preflight.registry_epoch;
-    if (!head_valid) sticky = true;
+    const bool head_valid = head_live_bound && exact_durable_copy(snapshot.head);
+    if (!head_valid) {
+        sticky = true;
+        if (!head_live_bound) fault(quarantine_reason::head_invalid);
+        else fault(quarantine_reason::durability_unproved);
+    }
 
     const uint8_t * initial_bytes = nullptr; size_t initial_size = 0;
     context_store_format_digest initial_digest {};
@@ -656,59 +711,100 @@ recovery_classification classify_operation_5(const fixed_state & snapshot, const
     if (!snapshot.initial_envelope.live_occupied || !snapshot.initial_envelope.durable_occupied ||
         snapshot.initial_envelope.live_digest != snapshot.initial_envelope.durable_digest || !exact_published_file(snapshot.initial_envelope.object)) sticky = true;
     bool initial_valid = false;
-    if (snapshot.initial_envelope.live_occupied && snapshot.initial_envelope.durable_occupied &&
-        snapshot.initial_envelope.live_digest == snapshot.initial_envelope.durable_digest && exact_published_file(snapshot.initial_envelope.object)) {
+    const bool initial_live_candidate = snapshot.initial_envelope.live_occupied && exact_live_file(snapshot.initial_envelope.object);
+    if (initial_live_candidate) {
         initial_bytes = snapshot.initial_envelope.object.live_bytes.data(); initial_size = snapshot.initial_envelope.object.live_length;
         if (!registry_envelope_digest(initial_bytes, initial_size, initial_digest) || initial_digest != snapshot.initial_envelope.live_digest ||
-            !bind_predecessor(initial_bytes, initial_size, preflight, credential, &initial_carrier)) sticky = true;
+            !bind_predecessor(initial_bytes, initial_size, preflight, credential, &initial_carrier)) {
+            sticky = true; fault(quarantine_reason::selected_envelope_invalid);
+        }
         else { initial_valid = true; seen_envelopes[seen_envelope_count++] = initial_digest; }
+    } else {
+        fault(quarantine_reason::selected_envelope_invalid);
     }
+    if (initial_valid && (!snapshot.initial_envelope.durable_occupied ||
+            snapshot.initial_envelope.live_digest != snapshot.initial_envelope.durable_digest ||
+            !exact_durable_copy(snapshot.initial_envelope.object))) fault(quarantine_reason::durability_unproved);
+    if (!initial_valid) sticky = true;
+
+    const auto envelope_selected_by_head = [&](const modeled_envelope & envelope) noexcept {
+        return head_live_bound && (head.body().selected_digest == envelope.live_digest || head.body().selected_digest == envelope.durable_digest);
+    };
 
     const uint8_t * selected_bytes = nullptr; size_t selected_size = 0; uint64_t selected_high_water = 0;
     bool request_successor_exists = false;
     for (const modeled_envelope & envelope : snapshot.successors) {
         if (!envelope.live_occupied && !envelope.durable_occupied && absent_file(envelope.object) && digest_zero(envelope.live_digest) && digest_zero(envelope.durable_digest)) continue;
-        if (!envelope.live_occupied || !envelope.durable_occupied || envelope.live_digest != envelope.durable_digest || !exact_published_file(envelope.object)) { sticky = true; continue; }
+        if (!envelope.live_occupied || !exact_live_file(envelope.object)) {
+            sticky = true; fault(envelope_selected_by_head(envelope) ? quarantine_reason::selected_envelope_invalid : quarantine_reason::layout_or_unexpected); continue;
+        }
         context_store_format_digest digest {};
-        if (!registry_envelope_digest(envelope.object.live_bytes.data(), envelope.object.live_length, digest) || digest != envelope.live_digest) { sticky = true; continue; }
-        for (size_t i = 0; i < seen_envelope_count; ++i) if (seen_envelopes[i] == digest) sticky = true;
-        if (seen_envelope_count < seen_envelopes.size()) seen_envelopes[seen_envelope_count++] = digest; else sticky = true;
+        if (!registry_envelope_digest(envelope.object.live_bytes.data(), envelope.object.live_length, digest) || digest != envelope.live_digest) {
+            sticky = true; fault(envelope_selected_by_head(envelope) ? quarantine_reason::selected_envelope_invalid : quarantine_reason::layout_or_unexpected); continue;
+        }
+        for (size_t i = 0; i < seen_envelope_count; ++i) if (seen_envelopes[i] == digest) { sticky = true; fault(quarantine_reason::chain_contradiction); }
+        if (seen_envelope_count < seen_envelopes.size()) seen_envelopes[seen_envelope_count++] = digest;
+        else { sticky = true; fault(quarantine_reason::internal_invariant); }
         context_store_authenticated_protected_registry_successor successor_carrier;
-        if (!bind_successor(envelope.object.live_bytes.data(), envelope.object.live_length, preflight, credential, initial_carrier, &successor_carrier)) sticky = true;
-        if (head_valid && digest == head.body().selected_digest && successor_carrier.authenticated()) {
+        if (!bind_successor(envelope.object.live_bytes.data(), envelope.object.live_length, preflight, credential, initial_carrier, &successor_carrier)) {
+            sticky = true; fault(envelope_selected_by_head(envelope) ? quarantine_reason::selected_envelope_invalid : quarantine_reason::chain_contradiction);
+        }
+        if (!envelope.durable_occupied || envelope.live_digest != envelope.durable_digest || !exact_durable_copy(envelope.object)) {
+            sticky = true; fault(quarantine_reason::durability_unproved);
+        }
+        if (head_live_bound && digest == head.body().selected_digest && successor_carrier.authenticated()) {
             selected_bytes = envelope.object.live_bytes.data(); selected_size = envelope.object.live_length;
             selected_high_water = successor_carrier.body()->consumed_authorization_high_water;
         }
         if (digest == request.successor_digest && envelope.object.live_length == request.successor_length &&
             exact_bytes(envelope.object.live_bytes.data(), request.successor.data(), request.successor_length)) request_successor_exists = true;
     }
-    if (head_valid && initial_valid && initial_digest == head.body().selected_digest) {
+    if (head_live_bound && initial_valid && initial_digest == head.body().selected_digest) {
         selected_bytes = initial_bytes; selected_size = initial_size; selected_high_water = initial_carrier.body()->last_consumed_sequence;
     }
     if (head_valid && (!selected_bytes || selected_size != head.body().selected_length || selected_high_water != head.body().selected_high_water)) sticky = true;
+    const bool head_evidence_valid = head_live_bound && selected_bytes && selected_size == head.body().selected_length &&
+        selected_high_water == head.body().selected_high_water;
+    const bool predecessor_head_evidence = head_evidence_valid && initial_valid &&
+        head.content_digest() == root.body().initial_head && head.body().selected_digest == initial_digest &&
+        selected_size == initial_size && exact_bytes(selected_bytes, initial_bytes, initial_size);
+    if (head_live_bound && !head_evidence_valid) fault(quarantine_reason::selected_envelope_invalid);
 
     std::array<context_store_format_digest, 512> attempts {}; size_t attempt_count = 0, occupied_count = 0, close_count = 0, unresolved_count = 0;
+    size_t valid_prepare_count = 0;
+    decoded_body_v1 attributable_prepare {}; context_store_format_digest attributable_prepare_digest {};
     decoded_body_v1 unresolved_body {};
     decoded_body_v1 close_prepare {}; context_store_format_digest close_head {};
     for (size_t index = 0; index < snapshot.slots.size(); ++index) {
         ++scanned;
         const modeled_slot & slot = snapshot.slots[index];
-        if (!absent_file(slot.successor_staging) || !absent_file(slot.selector_staging)) sticky = true;
+        if (!absent_file(slot.successor_staging) || !absent_file(slot.selector_staging)) { sticky = true; fault(quarantine_reason::staging_ambiguous); }
         const bool prepare_present = any_name(slot.prepare), close_present = any_name(slot.close), abort_present = any_name(slot.abort_record);
-        if (!prepare_present && !absent_file(slot.prepare)) sticky = true;
-        if (!close_present && !absent_file(slot.close)) sticky = true;
-        if (!abort_present && !absent_file(slot.abort_record)) sticky = true;
+        if (!prepare_present && !absent_file(slot.prepare)) { sticky = true; fault(quarantine_reason::journal_invalid); }
+        if (!close_present && !absent_file(slot.close)) { sticky = true; fault(quarantine_reason::journal_invalid); }
+        if (!abort_present && !absent_file(slot.abort_record)) { sticky = true; fault(quarantine_reason::journal_invalid); }
         if (!prepare_present && !close_present && !abort_present) continue;
         ++occupied_count;
-        if (!prepare_present || (close_present && abort_present)) sticky = true;
+        if (!prepare_present) { sticky = true; fault(quarantine_reason::journal_invalid); }
+        if (close_present && abort_present) { sticky = true; fault(quarantine_reason::chain_contradiction); }
         auto prepare = decode_record<context_store_registry_lab_kind::prepare>(
             slot.prepare.live_bytes.data(), slot.prepare.live_length, credential, derivations);
-        const bool prepare_authenticated = prepare_present && exact_published_file(slot.prepare) && prepare.authenticated();
-        const bool prepare_valid = prepare_authenticated && root_valid && initial_valid && prepare.body().slot == index &&
+        const bool prepare_live_authenticated = prepare_present && exact_live_file(slot.prepare) && prepare.authenticated();
+        const bool prepare_authenticated = prepare_live_authenticated && exact_durable_copy(slot.prepare);
+        if (prepare_present && !prepare_live_authenticated) fault(quarantine_reason::journal_invalid);
+        if (prepare_live_authenticated && !prepare_authenticated) fault(quarantine_reason::durability_unproved);
+        const bool prepare_local = prepare_live_authenticated && root_compatible && same_scope(prepare.body(), root.body()) && prepare.body().slot == index;
+        const bool prepare_valid = prepare_local && initial_valid &&
             bind_prepare_body(prepare.body(), root.body(), preflight, credential, initial_bytes, initial_size, initial_digest);
-        if (!prepare_valid) sticky = true;
-        if (prepare_authenticated) {
-            for (size_t i = 0; i < attempt_count; ++i) if (attempts[i] == prepare.body().attempt_id) sticky = true;
+        if (!prepare_valid) {
+            sticky = true;
+            fault(prepare_live_authenticated && prepare_local ? quarantine_reason::chain_contradiction : quarantine_reason::journal_invalid);
+        } else {
+            ++valid_prepare_count;
+            if (valid_prepare_count == 1) { attributable_prepare = prepare.body(); attributable_prepare_digest = prepare.content_digest(); }
+        }
+        if (prepare_live_authenticated) {
+            for (size_t i = 0; i < attempt_count; ++i) if (attempts[i] == prepare.body().attempt_id) { sticky = true; fault(quarantine_reason::chain_contradiction); }
             attempts[attempt_count++] = prepare.body().attempt_id;
         }
         if (!close_present && !abort_present) {
@@ -718,38 +814,79 @@ recovery_classification classify_operation_5(const fixed_state & snapshot, const
         if (close_present) {
             auto terminal = decode_record<context_store_registry_lab_kind::close>(
                 slot.close.live_bytes.data(), slot.close.live_length, credential, derivations);
-            const bool terminal_authenticated = exact_published_file(slot.close) && terminal.authenticated();
-            if (!terminal_authenticated || !prepare_valid ||
-                !same_scope(terminal.body(), root.body()) || terminal.body().slot != index ||
+            const bool terminal_live_authenticated = exact_live_file(slot.close) && terminal.authenticated();
+            const bool terminal_authenticated = terminal_live_authenticated && exact_durable_copy(slot.close);
+            if (!terminal_live_authenticated) fault(quarantine_reason::journal_invalid);
+            if (terminal_live_authenticated && !terminal_authenticated) fault(quarantine_reason::durability_unproved);
+            const bool terminal_local = terminal_live_authenticated && root_compatible && same_scope(terminal.body(), root.body()) && terminal.body().slot == index;
+            if (!terminal_live_authenticated || !prepare_valid || !terminal_local ||
                 terminal.body().attempt_id != prepare.body().attempt_id || terminal.body().operation_commitment != prepare.body().operation_commitment ||
                 terminal.body().predecessor_digest != prepare.body().predecessor_digest || terminal.body().successor_digest != prepare.body().successor_digest ||
-                terminal.body().prepare_digest != prepare.content_digest()) sticky = true;
+                terminal.body().prepare_digest != prepare.content_digest()) {
+                sticky = true; fault(terminal_live_authenticated && terminal_local && prepare_valid ? quarantine_reason::chain_contradiction : quarantine_reason::journal_invalid);
+            }
             else { ++close_count; close_prepare = prepare.body(); close_head = terminal.body().terminal_head; }
         }
         if (abort_present) {
             auto terminal = decode_record<context_store_registry_lab_kind::abort_record>(
                 slot.abort_record.live_bytes.data(), slot.abort_record.live_length, credential, derivations);
-            const bool terminal_authenticated = exact_published_file(slot.abort_record) && terminal.authenticated();
-            if (!terminal_authenticated || !prepare_valid ||
-                !same_scope(terminal.body(), root.body()) || terminal.body().slot != index ||
+            const bool terminal_live_authenticated = exact_live_file(slot.abort_record) && terminal.authenticated();
+            const bool terminal_authenticated = terminal_live_authenticated && exact_durable_copy(slot.abort_record);
+            if (!terminal_live_authenticated) fault(quarantine_reason::journal_invalid);
+            if (terminal_live_authenticated && !terminal_authenticated) fault(quarantine_reason::durability_unproved);
+            const bool terminal_local = terminal_live_authenticated && root_compatible && same_scope(terminal.body(), root.body()) && terminal.body().slot == index;
+            if (!terminal_live_authenticated || !prepare_valid || !terminal_local ||
                 terminal.body().attempt_id != prepare.body().attempt_id || terminal.body().operation_commitment != prepare.body().operation_commitment ||
                 terminal.body().predecessor_digest != prepare.body().predecessor_digest || terminal.body().successor_digest != prepare.body().successor_digest ||
-                terminal.body().prepare_digest != prepare.content_digest() || terminal.body().terminal_head != root.body().initial_head) sticky = true;
+                terminal.body().prepare_digest != prepare.content_digest() || terminal.body().terminal_head != root.body().initial_head) {
+                sticky = true; fault(terminal_live_authenticated && terminal_local && prepare_valid ? quarantine_reason::chain_contradiction : quarantine_reason::journal_invalid);
+            }
         }
     }
 
-    if (close_count > 1 || unresolved_count > 1) sticky = true;
+    if (close_count > 1) { sticky = true; fault(quarantine_reason::chain_contradiction); }
+    if (unresolved_count > 1) { sticky = true; fault(quarantine_reason::multiple_unresolved); }
     if (!sticky && unresolved_count == 0) {
         if (close_count == 0) {
             if (head.content_digest() != root.body().initial_head || head.body().selected_digest != initial_digest || selected_size != initial_size ||
-                !exact_bytes(selected_bytes, initial_bytes, initial_size)) sticky = true;
+                !exact_bytes(selected_bytes, initial_bytes, initial_size)) { sticky = true; fault(quarantine_reason::chain_contradiction); }
         } else {
             if (head.content_digest() != close_head || head.body().selected_digest != close_prepare.successor_digest || selected_size != close_prepare.successor_length ||
-                !exact_bytes(selected_bytes, close_prepare.successor.data(), selected_size)) sticky = true;
+                !exact_bytes(selected_bytes, close_prepare.successor.data(), selected_size)) { sticky = true; fault(quarantine_reason::chain_contradiction); }
         }
     }
-    if (close_count && unresolved_count) sticky = true;
-    if (sticky) { recovery_precedence_flags flags; flags.sticky = true; return select_recovery_precedence(flags); }
+    if (close_count && unresolved_count) { sticky = true; fault(quarantine_reason::chain_contradiction); }
+    if (sticky) {
+        diagnosis.valid = true;
+        diagnosis.authenticated_initialized_root = root_valid && root.body().root_state == 1;
+        diagnosis.reason = select_quarantine_reason_for_test(diagnosis_flags);
+        if (diagnosis.authenticated_initialized_root) {
+            if (valid_prepare_count == 1) {
+                const bool predecessor_head = head_evidence_valid &&
+                    head.content_digest() == attributable_prepare.previous_head &&
+                    attributable_prepare.previous_head == attributable_prepare.predecessor_head &&
+                    selected_size == attributable_prepare.predecessor_length &&
+                    exact_bytes(selected_bytes, attributable_prepare.predecessor.data(), selected_size);
+                if (predecessor_head) {
+                    diagnosis.shape = quarantine_shape::prepare;
+                    diagnosis.attributable = true; diagnosis.has_previous_record = true; diagnosis.has_head = true;
+                    diagnosis.phase = 1; diagnosis.slot = attributable_prepare.slot;
+                    diagnosis.attempt_id = attributable_prepare.attempt_id;
+                    diagnosis.operation_commitment = attributable_prepare.operation_commitment;
+                    diagnosis.previous_record_digest = attributable_prepare_digest;
+                    diagnosis.head_digest = head.content_digest();
+                }
+            } else if (predecessor_head_evidence) {
+                diagnosis.shape = quarantine_shape::uh;
+                diagnosis.has_head = true; diagnosis.head_digest = head.content_digest();
+            } else if (!head_evidence_valid) {
+                diagnosis.shape = quarantine_shape::u0;
+            }
+        }
+        diagnosis.publishable = diagnosis.authenticated_initialized_root && diagnosis.shape != quarantine_shape::none &&
+            reason_admits_shape(diagnosis.reason, diagnosis.shape);
+        recovery_precedence_flags flags; flags.sticky = true; return select_recovery_precedence(flags);
+    }
     if (unresolved_count == 1) {
         recovery_precedence_flags flags;
         flags.successor_close = selected_size == unresolved_body.successor_length && exact_bytes(selected_bytes, unresolved_body.successor.data(), selected_size);
@@ -1274,7 +1411,8 @@ bool fixture::step(size_t handle) noexcept {
     }
     if (product.op == operation::recovery_validation) {
         if (snapshot_owner_ != current.id) { finish_ordinary(current, status::invalid_request_no_mutation); return true; }
-        current.derived_class = classify_operation_5(snapshot_, current.preflight, current.request, current.credential, current.scanned, current.derivations);
+        current.derived_class = classify_operation_5(snapshot_, current.preflight, current.request, current.credential,
+            current.scanned, current.derivations, current.quarantine_plan);
         if (current.derived_class != product.classification) { finish_ordinary(current, status::invalid_request_no_mutation); return true; }
         if (script_matches_recovery(current.immutable_script, current.derived_class)) {
             if (!derive_recovery_terminal(snapshot_, current.preflight, current.request, current.credential, current.derived_class,
@@ -1352,6 +1490,9 @@ restart_teardown_audit fixture::teardown_audit(size_t index) const noexcept {
 
 recovery_classification fixture::derived_classification(size_t handle) const noexcept {
     return handle < invocations_.size() && invocations_[handle].occupied ? invocations_[handle].derived_class : recovery_classification::none;
+}
+quarantine_diagnosis_view fixture::quarantine_diagnosis(size_t handle) const noexcept {
+    return handle < invocations_.size() && invocations_[handle].occupied ? invocations_[handle].quarantine_plan : quarantine_diagnosis_view {};
 }
 size_t fixture::scanned_slots(size_t handle) const noexcept {
     return handle < invocations_.size() && invocations_[handle].occupied ? invocations_[handle].scanned : 0;

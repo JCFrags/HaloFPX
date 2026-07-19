@@ -1,0 +1,90 @@
+{
+  "schema": "halofpx.l05r-operation5-quarantine-diagnosis.v1",
+  "date": "2026-07-18",
+  "parent_commit": "e03d30a4c985512b4355d6efdd9a9f29ba73460a",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "complete-scan fake-only operation-5 sticky diagnosis, deterministic reason precedence, truthful evidence shape, and exact initialized-root publication precondition",
+  "source_sha256": {
+    "tools/server/halofpx-context-store-registry-lab-read-only-internal.h": "173000dcef2b59e6ef7e5df13c7b287850dd8148fb1f299747e86d0b1ca43948",
+    "tools/server/halofpx-context-store-registry-lab-read-only.cpp": "8797deb8b4376a7f89652989c959aa481a5b97ee4fc807302dca6a145d3b3bd8",
+    "tests/test-halofpx-context-store-registry-lab-read-only.cpp": "b17b41b1e144a9fad0b553d8e262b42dfcfd8e03a79a7552d5e868560054f6fb",
+    "tests/test-halofpx-context-store-registry-lab-read-only-contract.cmake": "4c81b1456ca7a7b1deef9183c4b285c14ce642332dc8b874ee82362b8ff62060",
+    "matched_on_windows_nimo_1_nimo_2": true
+  },
+  "qualification": {
+    "windows_release_halofpx": {
+      "passes": 40,
+      "failures": 0,
+      "seconds": 42.87,
+      "focused_repeat_executions": 100,
+      "focused_repeat_seconds": 9.118,
+      "executable_sha256": "6b4046ee4dadfae3f82f154292742b48e1a2262c41946776f6b8818f0670924f"
+    },
+    "nimo_1_linux_release": {
+      "toolchain": "GCC 16.1.1 20260625; CMake 4.3.4; Ninja 1.13.2",
+      "focused_contracts_passed": 2,
+      "focused_contracts_failed": 0,
+      "focused_seconds": 4.87,
+      "halofpx_passed": 39,
+      "halofpx_failed": 0,
+      "focused_repeat_executions": 100,
+      "focused_repeat_seconds": 0.906,
+      "executable_sha256": "ead86087e9df2d945e59e47f449f2e6cbbe8bea6c3e5fff8076703ea397c5045"
+    },
+    "nimo_2_linux_asan_ubsan": {
+      "toolchain": "GCC 16.1.1 20260625; CMake 4.3.4; Ninja 1.13.2",
+      "focused_contracts_passed": 2,
+      "focused_contracts_failed": 0,
+      "focused_seconds": 21.73,
+      "halofpx_passed": 39,
+      "halofpx_failed": 0,
+      "halofpx_seconds": 25.26,
+      "focused_repeat_executions": 100,
+      "focused_repeat_seconds": 14.693,
+      "asan_options": "detect_leaks=1:halt_on_error=1",
+      "ubsan_options": "halt_on_error=1:print_stacktrace=1",
+      "sanitizer_runtime": ["libasan.so.8", "libubsan.so.1"],
+      "executable_sha256": "a0d140ef6286a543727ac22c5ceae8517248d988229bcc68327e6b44918072a7"
+    },
+    "linux_repeat_command": "/home/connorb/halofpx-qualification/l05r-wire-uh/build-linux-{release|asan}/bin/test-halofpx-context-store-registry-lab-read-only /home/connorb/halofpx-qualification/l05r-wire-uh/docs/halofpx/evidence/l05o-registry-lab-golden-vector.json --l05r-diagnosis"
+  },
+  "adversarial_coverage": {
+    "reason_precedence": "13 singleton causes plus all 78 ordered pairs; closed order 13,12,1,15,2,10,4,5,6,7,8,9,11,0",
+    "integrated_diagnoses": 16,
+    "reasons_exercised": [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13],
+    "shapes": ["U0", "UH", "P", "none"],
+    "successor_without_reconstructible_predecessor_head": "zero, one, and multiple valid PREPARE cases remain shape none and nonpublishing; no fabricated S and no UH/P downgrade",
+    "publication_boundary": "every diagnosis trace rejects operations 69 through 76"
+  },
+  "independent_review": {
+    "initial_verdict": "REJECT",
+    "finding": "a successor HEAD with no unique PREPARE could be mislabeled as predecessor-only UH",
+    "repair": "derive predecessor_head_evidence separately and leave successor evidence with zero, one, or multiple PREPAREs nonpublishing when exact S evidence cannot be reconstructed",
+    "final_verdict": "ACCEPT"
+  },
+  "service_health_after_qualification": {
+    "nimo_1_llama_server_pid": 3783057,
+    "nimo_1_health_http": 200,
+    "nimo_2_rpc_pid": 3562775,
+    "nimo_2_rpc_listen": "0.0.0.0:50052"
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "warnings": [
+    "The Release compiler repeated inherited mismatched-new-delete warnings from the test-only custom allocation hooks; the ASan/UBSan matrix was clean.",
+    "An earlier pre-repair Linux snapshot also passed but is deliberately excluded from final qualification evidence.",
+    "One malformed pre-batch Linux invocation omitted the required golden path and correctly preserved its assertion and nonzero exit; it is excluded from all pass counts."
+  ],
+  "nonclaims": [
+    "No script can reach operations 69-76 in this slice.",
+    "No S shape is invented when predecessor-HEAD bytes are unavailable after successor selection.",
+    "No Linux filesystem primitive, persistent write, provider, cache hit, restore, inference, or performance behavior is enabled.",
+    "The target remains STATIC EXCLUDE_FROM_ALL and feature-off behavior remains the compatibility control.",
+    "No donor code or format was imported and no P3 record is required."
+  ]
+}

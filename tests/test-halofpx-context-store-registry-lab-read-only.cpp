@@ -558,6 +558,39 @@ void operation_5_pairwise_precedence_matrix() {
     assert(pairwise_precedence_combinations == 55);
 }
 
+void quarantine_reason_pairwise_precedence_matrix() {
+    constexpr std::array<quarantine_reason, 13> order {
+        quarantine_reason::key_or_auth_mismatch,
+        quarantine_reason::scope_or_root_mismatch,
+        quarantine_reason::marker_invalid,
+        quarantine_reason::internal_invariant,
+        quarantine_reason::layout_or_unexpected,
+        quarantine_reason::staging_ambiguous,
+        quarantine_reason::head_invalid,
+        quarantine_reason::selected_envelope_invalid,
+        quarantine_reason::journal_invalid,
+        quarantine_reason::chain_contradiction,
+        quarantine_reason::multiple_unresolved,
+        quarantine_reason::referent_invalid,
+        quarantine_reason::durability_unproved,
+    };
+    std::array<bool, 16> flags {};
+    assert(select_quarantine_reason_for_test(flags) == quarantine_reason::unknown);
+    flags[static_cast<size_t>(quarantine_reason::existing_quarantine)] = true;
+    flags[static_cast<size_t>(quarantine_reason::resource_or_io_failure)] = true;
+    assert(select_quarantine_reason_for_test(flags) == quarantine_reason::unknown);
+    size_t singleton_cases = 0, pairwise_cases = 0;
+    for (quarantine_reason reason : order) {
+        flags = {}; flags[static_cast<size_t>(reason)] = true;
+        assert(select_quarantine_reason_for_test(flags) == reason); ++singleton_cases;
+    }
+    for (size_t higher = 0; higher < order.size(); ++higher) for (size_t lower = higher + 1; lower < order.size(); ++lower) {
+        flags = {}; flags[static_cast<size_t>(order[higher])] = true; flags[static_cast<size_t>(order[lower])] = true;
+        assert(select_quarantine_reason_for_test(flags) == order[higher]); ++pairwise_cases;
+    }
+    assert(singleton_cases == 13 && pairwise_cases == 78);
+}
+
 void forbidden_products_reject_before_entry() {
     size_t rejected = 0;
     auto f = std::make_unique<fixture>();
@@ -894,6 +927,113 @@ void operation_5_core(const golden_data & g) {
         assert(f->derived_classification(h) == recovery_classification::continue_to_mutation &&
             f->result(h).ordinary == status::invalid_request_no_mutation);
     }
+}
+
+void operation_5_quarantine_diagnosis_contract(const golden_data & g) {
+    uint64_t invocation = 20500; size_t diagnosed = 0;
+    const auto assert_no_quarantine_write = [](const fixture & f, size_t handle) {
+        for (size_t index = 0; index < f.trace_size(handle); ++index) {
+            const uint16_t event = f.trace(handle, index).event;
+            assert(event < static_cast<uint16_t>(operation::quarantine_event_id_acquire) ||
+                event > static_cast<uint16_t>(operation::quarantine_staging_directory_sync));
+        }
+    };
+    const auto sticky = [&](auto mutate, quarantine_reason reason, quarantine_shape shape, bool publishable) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); mutate(*f);
+        const size_t h = run_operation_5(*f, g, invocation++, recovery_classification::needs_sticky_quarantine, g.request);
+        const quarantine_diagnosis_view diagnosis = f->quarantine_diagnosis(h);
+        if (!(diagnosis.valid && diagnosis.reason == reason && diagnosis.shape == shape && diagnosis.publishable == publishable))
+            std::fprintf(stderr, "diagnosis mismatch invocation=%llu reason=%u/%u shape=%u/%u publishable=%u/%u valid=%u\n",
+                static_cast<unsigned long long>(invocation - 1), static_cast<unsigned>(diagnosis.reason), static_cast<unsigned>(reason),
+                static_cast<unsigned>(diagnosis.shape), static_cast<unsigned>(shape), diagnosis.publishable, publishable, diagnosis.valid);
+        assert(diagnosis.valid && diagnosis.reason == reason && diagnosis.shape == shape &&
+            diagnosis.publishable == publishable && f->derived_classification(h) == recovery_classification::needs_sticky_quarantine);
+        assert_no_quarantine_write(*f, h); ++diagnosed;
+        return diagnosis;
+    };
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g);
+        const size_t h = run_operation_5(*f, g, invocation++, recovery_classification::continue_to_mutation, g.request);
+        assert(!f->quarantine_diagnosis(h).valid); assert_no_quarantine_write(*f, h);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); f->state().quarantine.live_present = true;
+        const size_t h = run_operation_5(*f, g, invocation++, recovery_classification::blocked_by_existing_quarantine, g.request);
+        const auto diagnosis = f->quarantine_diagnosis(h);
+        assert(diagnosis.valid && diagnosis.reason == quarantine_reason::existing_quarantine &&
+            diagnosis.shape == quarantine_shape::none && !diagnosis.publishable && !diagnosis.authenticated_initialized_root);
+        assert_no_quarantine_write(*f, h); ++diagnosed;
+    }
+    sticky([](fixture & f) { f.state().marker.live_complete = false; },
+        quarantine_reason::marker_invalid, quarantine_shape::none, false);
+    sticky([](fixture & f) { f.state().marker.live_bytes[10] ^= 1; f.state().marker.durable_bytes[10] ^= 1; },
+        quarantine_reason::key_or_auth_mismatch, quarantine_shape::none, false);
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); auto preflight = g.preflight; ++preflight.mount_id;
+        script s = operation_5_script(recovery_classification::needs_sticky_quarantine); credential_owner c = golden_data::golden_credential();
+        const size_t h = f->begin(invocation++, 0, std::move(c), preflight, g.request, s); finish(*f, h);
+        const auto diagnosis = f->quarantine_diagnosis(h);
+        assert(diagnosis.valid && diagnosis.reason == quarantine_reason::scope_or_root_mismatch &&
+            diagnosis.shape == quarantine_shape::none && !diagnosis.publishable && !diagnosis.authenticated_initialized_root);
+        assert_no_quarantine_write(*f, h); ++diagnosed;
+    }
+    {
+        const auto diagnosis = sticky([](fixture & f) { f.state().unexpected[0].live_name[0] = 'x'; },
+            quarantine_reason::layout_or_unexpected, quarantine_shape::uh, true);
+        assert(diagnosis.authenticated_initialized_root && !diagnosis.attributable && !diagnosis.has_previous_record && diagnosis.has_head && diagnosis.phase == 0);
+    }
+    sticky([](fixture & f) { f.state().slots[17].successor_staging.live_complete = true; },
+        quarantine_reason::staging_ambiguous, quarantine_shape::uh, true);
+    {
+        const auto diagnosis = sticky([](fixture & f) { f.state().head.live_complete = false; },
+            quarantine_reason::head_invalid, quarantine_shape::u0, true);
+        assert(diagnosis.authenticated_initialized_root && !diagnosis.attributable && !diagnosis.has_previous_record && !diagnosis.has_head);
+    }
+    sticky([&](fixture & f) {
+            install_successor_head(f.state(), g); f.state().successors[0].object.live_bytes[0] ^= 1; f.state().successors[0].object.durable_bytes[0] ^= 1;
+        }, quarantine_reason::selected_envelope_invalid, quarantine_shape::u0, false);
+    sticky([](fixture & f) { f.state().slots[17].prepare.live_present = true; f.state().slots[17].prepare.live_complete = true; },
+        quarantine_reason::journal_invalid, quarantine_shape::uh, true);
+    sticky([&](fixture & f) {
+            for (size_t index : { size_t(0), size_t(1) }) {
+                auto & envelope = f.state().successors[index]; envelope.live_occupied = envelope.durable_occupied = true;
+                envelope.live_digest = envelope.durable_digest = g.request.successor_digest;
+                publish(envelope.object, g.successor.data(), g.successor_size);
+            }
+        }, quarantine_reason::chain_contradiction, quarantine_shape::uh, true);
+    sticky([&](fixture & f) {
+            const auto first = generate_journal(g, 18, 20501, false), second = generate_journal(g, 19, 20502, false);
+            install_journal(f.state(), 18, first.prepare); install_journal(f.state(), 19, second.prepare);
+        }, quarantine_reason::multiple_unresolved, quarantine_shape::uh, true);
+    sticky([](fixture & f) { f.state().marker.durable_complete = false; },
+        quarantine_reason::durability_unproved, quarantine_shape::none, false);
+    {
+        const auto diagnosis = sticky([&](fixture & f) {
+                install_journal(f.state(), 17, g.prepare); f.state().unexpected[0].live_name[0] = 'x';
+            }, quarantine_reason::layout_or_unexpected, quarantine_shape::prepare, true);
+        assert(diagnosis.attributable && diagnosis.has_previous_record && diagnosis.has_head && diagnosis.phase == 1 &&
+            diagnosis.slot == 17 && diagnosis.attempt_id == g.request.attempt_id && diagnosis.operation_commitment == g.request.operation_commitment);
+    }
+    {
+        const auto diagnosis = sticky([&](fixture & f) {
+                install_journal(f.state(), 17, g.prepare); install_successor_head(f.state(), g); f.state().unexpected[0].live_name[0] = 'x';
+            }, quarantine_reason::layout_or_unexpected, quarantine_shape::none, false);
+        assert(diagnosis.authenticated_initialized_root && !diagnosis.attributable && !diagnosis.has_previous_record && !diagnosis.has_head);
+    }
+    {
+        const auto diagnosis = sticky([&](fixture & f) {
+                install_successor_head(f.state(), g); f.state().unexpected[0].live_name[0] = 'x';
+            }, quarantine_reason::layout_or_unexpected, quarantine_shape::none, false);
+        assert(diagnosis.authenticated_initialized_root && !diagnosis.attributable && !diagnosis.has_previous_record && !diagnosis.has_head);
+    }
+    {
+        const auto diagnosis = sticky([&](fixture & f) {
+                const auto first = generate_journal(g, 18, 20511, false), second = generate_journal(g, 19, 20512, false);
+                install_journal(f.state(), 18, first.prepare); install_journal(f.state(), 19, second.prepare); install_successor_head(f.state(), g);
+            }, quarantine_reason::multiple_unresolved, quarantine_shape::none, false);
+        assert(diagnosis.authenticated_initialized_root && !diagnosis.attributable && !diagnosis.has_previous_record && !diagnosis.has_head);
+    }
+    assert(diagnosed == 16);
 }
 
 void operation_5_recovery_and_request_precedence(const golden_data & g) {
@@ -1932,13 +2072,20 @@ void l05q_exhaustive(const golden_data & g) {
 } // namespace
 
 int main(int argc, char ** argv) {
+#if defined(_WIN32)
+    _set_error_mode(_OUT_TO_STDERR);
+    _set_abort_behavior(_WRITE_ABORT_MSG, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+#endif
     assert(argc == 2 || argc == 3); const golden_data golden(argv[1]);
     if (argc == 3) {
         if (std::strcmp(argv[2], "--l05q-products") == 0) { l05q_product_execution_and_preentry_rejection(golden); return 0; }
         if (std::strcmp(argv[2], "--l05q-exhaustive") == 0) { l05q_exhaustive(golden); return 0; }
+        if (std::strcmp(argv[2], "--l05r-diagnosis") == 0) {
+            quarantine_reason_pairwise_precedence_matrix(); operation_5_quarantine_diagnosis_contract(golden); return 0;
+        }
         assert(std::strcmp(argv[2], "--repeat-core") == 0);
-        algebra(); operation_5_pairwise_precedence_matrix(); operation_5_allocation_free_after_construction(golden);
-        operation_5_core(golden); operation_5_recovery_and_request_precedence(golden); operation_5_retry_after_abort(golden);
+        algebra(); operation_5_pairwise_precedence_matrix(); quarantine_reason_pairwise_precedence_matrix(); operation_5_allocation_free_after_construction(golden);
+        operation_5_core(golden); operation_5_quarantine_diagnosis_contract(golden); operation_5_recovery_and_request_precedence(golden); operation_5_retry_after_abort(golden);
         operation_5_journal_topology_faults(golden); operation_5_primitive_products(golden); operation_5_snapshot_is_immutable(golden);
         operation_5_preentry_contract(golden); operation_5_external_binding_and_request_matrix(golden);
         operation_5_projection_and_namespace_matrix(golden); operation_5_key_selection_before_kdf(golden);
@@ -1950,6 +2097,7 @@ int main(int argc, char ** argv) {
     }
     algebra();
     operation_5_pairwise_precedence_matrix();
+    quarantine_reason_pairwise_precedence_matrix();
     forbidden_products_reject_before_entry();
     admitted_products_execute();
     admission_shape_and_payloads();
@@ -1966,6 +2114,7 @@ int main(int argc, char ** argv) {
     allocation_free_after_construction();
     operation_5_allocation_free_after_construction(golden);
     operation_5_core(golden);
+    operation_5_quarantine_diagnosis_contract(golden);
     operation_5_recovery_and_request_precedence(golden);
     operation_5_integrated_precedence_overlaps(golden);
     operation_5_retry_after_abort(golden);
