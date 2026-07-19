@@ -10,11 +10,13 @@
 #include <array>
 #include <cassert>
 #include <climits>
+#include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <thread>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 static_assert(!std::is_aggregate_v<halofpx::context_store_bootstrap_plan>);
@@ -107,8 +109,9 @@ signed_manifest make_manifest(const manifest_options & option = {}) {
     bytes auth;
     map(auth,4);u(auth,0);auth.insert(auth.end(),body.begin(),body.end());u(auth,1);text(auth,option.key_id);
     u(auth,2);u(auth,1);u(auth,3);u(auth,option.key_generation);
-    bytes kdf(reinterpret_cast<const uint8_t *>("halofpx.manifest-key.v1"),
-        reinterpret_cast<const uint8_t *>("halofpx.manifest-key.v1") + sizeof("halofpx.manifest-key.v1"));
+    constexpr char manifest_key_domain[] = "halofpx.manifest-key.v1";
+    bytes kdf(reinterpret_cast<const uint8_t *>(manifest_key_domain),
+        reinterpret_cast<const uint8_t *>(manifest_key_domain) + sizeof(manifest_key_domain));
     kdf.push_back(static_cast<uint8_t>(option.key_id.size() >> 8)); kdf.push_back(static_cast<uint8_t>(option.key_id.size()));
     kdf.insert(kdf.end(),option.key_id.begin(),option.key_id.end()); kdf.insert(kdf.end(),16,option.store);
     kdf.insert(kdf.end(),32,option.scope); for (int s=56;s>=0;s-=8) kdf.push_back(static_cast<uint8_t>(option.key_generation >> s));
@@ -118,6 +121,11 @@ signed_manifest make_manifest(const manifest_options & option = {}) {
 }
 
 struct fixture {
+    fixture();
+    fixture(const fixture & other);
+    fixture(fixture && other) noexcept;
+    fixture & operator=(const fixture & other);
+    fixture & operator=(fixture && other) noexcept;
     std::array<uint8_t,64> anchor {}, admin {}, manifest {}, registry {};
     halofpx::context_store_bootstrap_authority_config config;
     signed_manifest signed_data;
@@ -131,6 +139,13 @@ void bind(fixture & f) {
     f.config.protected_registry_authentication_key.master_key={f.registry.data(),f.registry.size()};
     f.config.protected_registry_snapshot_data=f.registry_snapshot.data();
     f.config.protected_registry_snapshot_size=f.registry_snapshot.size();
+}
+bool bindings_owned(const fixture & f) {
+    return f.config.anchor_signing_key.master_key.data==f.anchor.data()&&f.config.anchor_signing_key.master_key.size==f.anchor.size()&&
+        f.config.bootstrap_admin_key.master_key.data==f.admin.data()&&f.config.bootstrap_admin_key.master_key.size==f.admin.size()&&
+        f.config.manifest_authentication_key.master_key.data==f.manifest.data()&&f.config.manifest_authentication_key.master_key.size==f.manifest.size()&&
+        f.config.protected_registry_authentication_key.master_key.data==f.registry.data()&&f.config.protected_registry_authentication_key.master_key.size==f.registry.size()&&
+        f.config.protected_registry_snapshot_data==f.registry_snapshot.data()&&f.config.protected_registry_snapshot_size==f.registry_snapshot.size();
 }
 halofpx::context_store_bootstrap_token_body token_body(fixture & f, uint64_t command=91) {
     halofpx::context_store_bootstrap_token_body body;
@@ -157,16 +172,21 @@ void seal_registry(fixture & f, uint64_t high=40) {
     halofpx::context_store_protected_registry_body rb;rb.registry_id=rid("registry-v1");rb.registry_epoch=9;rb.authority_base_scope_commitment=base;rb.policy_commitment.fill(0x62);rb.last_consumed_sequence=high;
     f.registry_snapshot.resize(halofpx::context_store_protected_registry_max_bytes);auto re=halofpx::context_store_encode_protected_registry_v1(rb,f.config.protected_registry_authentication_key,f.registry_snapshot.data(),f.registry_snapshot.size());assert(re.status==halofpx::context_store_protected_registry_status::authenticated_unadmitted);f.registry_snapshot.resize(re.encoded_size);bind(f);
 }
-fixture make_fixture() {
-    fixture f; for(size_t i=0;i<64;++i){f.anchor[i]=static_cast<uint8_t>(i+1);f.admin[i]=static_cast<uint8_t>(0xf0-i);f.manifest[i]=0x33;f.registry[i]=0x71;}
-    f.signed_data=make_manifest(); f.config.anchor_signing_key={halofpx::context_store_key_disposition::active,rid("anchor-key-v1"),7,{}};
-    f.config.bootstrap_admin_key={halofpx::context_store_key_disposition::active,rid("bootstrap-admin-v1"),11,{}};
-    f.config.manifest_authentication_key={halofpx::context_store_key_disposition::active,rid("manifest-key-v1"),5,{}};
-    f.config.protected_registry_authentication_key={halofpx::context_store_key_disposition::active,rid("registry-auth-v1"),13,{}};
-    f.config.trusted_compatibility=f.signed_data.compatibility; f.config.store_uuid.fill(0x02);f.config.namespace_id.fill(0x80);
-    f.config.policy_epoch=7;f.config.checkpoint_lineage_id.fill(0x03);f.config.manifest_key_generation=5;f.config.authority_epoch=6;
-    seal_registry(f);authorize(f);return f;
+fixture::fixture() {
+    for(size_t i=0;i<64;++i){anchor[i]=static_cast<uint8_t>(i+1);admin[i]=static_cast<uint8_t>(0xf0-i);manifest[i]=0x33;registry[i]=0x71;}
+    signed_data=make_manifest(); config.anchor_signing_key={halofpx::context_store_key_disposition::active,rid("anchor-key-v1"),7,{}};
+    config.bootstrap_admin_key={halofpx::context_store_key_disposition::active,rid("bootstrap-admin-v1"),11,{}};
+    config.manifest_authentication_key={halofpx::context_store_key_disposition::active,rid("manifest-key-v1"),5,{}};
+    config.protected_registry_authentication_key={halofpx::context_store_key_disposition::active,rid("registry-auth-v1"),13,{}};
+    config.trusted_compatibility=signed_data.compatibility; config.store_uuid.fill(0x02);config.namespace_id.fill(0x80);
+    config.policy_epoch=7;config.checkpoint_lineage_id.fill(0x03);config.manifest_key_generation=5;config.authority_epoch=6;
+    seal_registry(*this);authorize(*this);assert(bindings_owned(*this));
 }
+fixture::fixture(const fixture & other):anchor(other.anchor),admin(other.admin),manifest(other.manifest),registry(other.registry),config(other.config),signed_data(other.signed_data),token(other.token),registry_snapshot(other.registry_snapshot){bind(*this);assert(bindings_owned(*this));}
+fixture::fixture(fixture && other) noexcept:anchor(other.anchor),admin(other.admin),manifest(other.manifest),registry(other.registry),config(other.config),signed_data(std::move(other.signed_data)),token(std::move(other.token)),registry_snapshot(std::move(other.registry_snapshot)){bind(*this);assert(bindings_owned(*this));}
+fixture & fixture::operator=(const fixture & other){if(this!=&other){anchor=other.anchor;admin=other.admin;manifest=other.manifest;registry=other.registry;config=other.config;signed_data=other.signed_data;token=other.token;registry_snapshot=other.registry_snapshot;bind(*this);}assert(bindings_owned(*this));return *this;}
+fixture & fixture::operator=(fixture && other) noexcept{if(this!=&other){anchor=other.anchor;admin=other.admin;manifest=other.manifest;registry=other.registry;config=other.config;signed_data=std::move(other.signed_data);token=std::move(other.token);registry_snapshot=std::move(other.registry_snapshot);bind(*this);}assert(bindings_owned(*this));return *this;}
+fixture make_fixture() { return fixture{}; }
 halofpx::context_store_bootstrap_request request(fixture & f, bytes & manifest) {
     halofpx::context_store_bootstrap_request out;out.manifest_data=manifest.data();out.manifest_size=manifest.size();
     out.authorization_token_data=f.token.data();out.authorization_token_size=f.token.size();return out;
@@ -177,7 +197,7 @@ const halofpx::context_store_bootstrap_plan & plan(const halofpx::context_store_
 void rejected(const halofpx::context_store_bootstrap_result & result) { assert(!result.has_authorized_plan()&&result.authorized_plan()==nullptr); }
 
 void test_derived_plan_and_ownership() {
-    auto f=make_fixture();halofpx::context_store_bootstrap_authority authority(f.config);assert(authority.valid());
+    auto f=make_fixture();assert(bindings_owned(f));halofpx::context_store_bootstrap_authority authority(f.config);assert(authority.valid());
     digest public_scope{};assert(halofpx::context_store_bootstrap_authority_scope_commitment(f.config,public_scope)&&public_scope==*authority.authority_scope_commitment());
     auto public_config=f.config;public_config.anchor_signing_key.master_key={};public_config.bootstrap_admin_key.master_key={};public_config.manifest_authentication_key.master_key={};public_config.protected_registry_authentication_key.master_key={};digest base_a{},base_b{};
     assert(halofpx::context_store_bootstrap_authority_base_scope_commitment(f.config,base_a)&&halofpx::context_store_bootstrap_authority_base_scope_commitment(public_config,base_b)&&base_a==base_b);
@@ -591,4 +611,10 @@ void test_bootstrap_anchor_source_and_phase_matrix(){
 }
 }
 
-int main(){test_derived_plan_and_ownership();test_manifest_rejections();test_invalid_authority_and_separation();test_base_scope_sensitivity();test_public_scope_helpers_reject_malformed_ids();test_old_authenticated_snapshot_is_still_accepted();test_attempt_snapshot_bindings_and_concurrency();test_authenticated_token_semantic_rejections();test_consumption_coordinator_backend_fencing();test_consumption_reconciliation_fencing();test_bootstrap_material_synthetic_seam();test_bootstrap_anchor_synthetic_seam();test_bootstrap_anchor_source_and_phase_matrix();}
+int main(){
+#if defined(_WIN32)
+    _set_error_mode(_OUT_TO_STDERR);
+    _set_abort_behavior(_WRITE_ABORT_MSG, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+#endif
+    test_derived_plan_and_ownership();test_manifest_rejections();test_invalid_authority_and_separation();test_base_scope_sensitivity();test_public_scope_helpers_reject_malformed_ids();test_old_authenticated_snapshot_is_still_accepted();test_attempt_snapshot_bindings_and_concurrency();test_authenticated_token_semantic_rejections();test_consumption_coordinator_backend_fencing();test_consumption_reconciliation_fencing();test_bootstrap_material_synthetic_seam();test_bootstrap_anchor_synthetic_seam();test_bootstrap_anchor_source_and_phase_matrix();
+}

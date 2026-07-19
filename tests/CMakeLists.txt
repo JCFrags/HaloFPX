@@ -196,6 +196,9 @@ set_property(TEST test-halofpx-context-store-anchor-golden PROPERTY LABELS "main
 llama_build(test-halofpx-context-store-authority.cpp)
 target_include_directories(test-halofpx-context-store-authority PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
 target_link_libraries(test-halofpx-context-store-authority PRIVATE halofpx-context-store-bootstrap-anchor)
+if (MSVC)
+    target_link_options(test-halofpx-context-store-authority PRIVATE /STACK:8388608)
+endif()
 llama_test(test-halofpx-context-store-authority)
 set_property(TEST test-halofpx-context-store-authority PROPERTY LABELS "main;halofpx")
 

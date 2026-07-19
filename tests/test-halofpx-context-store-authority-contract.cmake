@@ -1,6 +1,8 @@
 file(READ "${SOURCE_ROOT}/tools/server/CMakeLists.txt" SERVER_CMAKE)
 file(READ "${SOURCE_ROOT}/tools/server/halofpx-context-store-authority.cpp" AUTHORITY_SOURCE)
 file(READ "${SOURCE_ROOT}/tools/server/halofpx-context-store-authority.h" AUTHORITY_HEADER)
+file(READ "${SOURCE_ROOT}/tests/test-halofpx-context-store-authority.cpp" AUTHORITY_TEST)
+file(READ "${SOURCE_ROOT}/tests/CMakeLists.txt" TEST_CMAKE)
 
 if(NOT SERVER_CMAKE MATCHES "halofpx-context-store-authority STATIC EXCLUDE_FROM_ALL")
     message(FATAL_ERROR "bootstrap authority must remain EXCLUDE_FROM_ALL")
@@ -76,4 +78,21 @@ foreach(FORMER_SOURCE "config.protected_registry_id" "config.protected_registry_
 endforeach()
 if(AUTHORITY_HEADER MATCHES "std::array<uint8_t,[^>]*>[^;]*registry[^;]*;" OR AUTHORITY_HEADER MATCHES "protected_registry_snapshot_data_")
     message(FATAL_ERROR "authority must not retain registry secret or borrowed snapshot bytes")
+endif()
+
+foreach(REQUIRED_TEST_PATTERN
+        "constexpr char manifest_key_domain"
+        "fixture::fixture(const fixture & other)"
+        "fixture::fixture(fixture && other)"
+        "bindings_owned(*this)"
+        "_set_error_mode(_OUT_TO_STDERR)"
+        "_set_abort_behavior(_WRITE_ABORT_MSG, _WRITE_ABORT_MSG | _CALL_REPORTFAULT)")
+    string(FIND "${AUTHORITY_TEST}" "${REQUIRED_TEST_PATTERN}" REQUIRED_TEST_POSITION)
+    if(REQUIRED_TEST_POSITION EQUAL -1)
+        message(FATAL_ERROR "missing Windows Debug authority-test hardening marker: ${REQUIRED_TEST_PATTERN}")
+    endif()
+endforeach()
+string(FIND "${TEST_CMAKE}" "target_link_options(test-halofpx-context-store-authority PRIVATE /STACK:8388608)" STACK_RESERVE_POSITION)
+if(STACK_RESERVE_POSITION EQUAL -1)
+    message(FATAL_ERROR "authority test must retain its isolated MSVC stack reserve")
 endif()
