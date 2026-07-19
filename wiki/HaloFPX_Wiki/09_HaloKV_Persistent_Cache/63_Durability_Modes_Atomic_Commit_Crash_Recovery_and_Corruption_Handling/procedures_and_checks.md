@@ -113,6 +113,19 @@ the next initializer contract must separately enumerate every mutation and
 crash boundary. L05s itself creates no registry state, publishes no bytes, and
 has no product, provider, cache, restore, inference, HIP, Vulkan, or RPC edge.
 
+The accepted `e918d1f8` L05t slice closes only the no-I/O initializer linkage
+seam frozen by ADR-0026 [S63-28]. The public target-owned digest admits exactly
+1..1024 registry-envelope bytes and preserves caller output on every failure.
+The Linux-only `STATIC EXCLUDE_FROM_ALL` archive contains one object and one
+global definition; its unsanitized form imports only that digest, while the
+sanitized audit admits only the corresponding ASan/UBSan runtime symbols.
+Windows feature-off passed 40/40; both nodes passed the focused Linux Release
+matrices; nimo-2 passed the focused ASan/UBSan matrix with zero findings; and
+2,400 fresh seam/wire processes failed zero times. M63-01 remains open because
+the slice never opens a root or credential, mutates a filesystem, publishes
+bytes, restores state, links a provider/server/inference path, or establishes
+durability or performance.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
