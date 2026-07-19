@@ -181,6 +181,39 @@ that crossed the latch must never be adopted or repaired. L05w does not sync
 the root directory, complete initialization, publish state, enable persistent
 writes, or add a provider/cache/restore/inference or performance edge.
 
+The accepted `051084fa` L05x slice closes only the discard-required fixed
+directory prefix [S63-32]. It preserves the committed L05w stop boundary, then
+creates `envelopes`, `attempts`, and `staging` in that order. Each directory is
+created no-replace, pinned through `O_PATH`, mode-corrected on that exact inode,
+identity-matched during anchored read-only reopen, proven to be the expected
+empty Btrfs child, and synchronized before the next accumulated-prefix
+barrier. The final barrier precedes one root-directory `fsync`, after which an
+anchored revalidation proves the exact four-entry root layout while the writer
+and fixture OFD locks remain held. Every latched outcome remains
+`initialization_discard_required`.
+
+Qualification retained exactly 225 live roots, 1,000/1,000 exact-production
+ptrace injections over ten boundaries and both entry/exit phases with 775,400
+raw events, and 1,628/1,628 generic returned-fault cases. On nimo-2 the
+returned-fault controller was ASan/UBSan-instrumented but targeted the exact
+qualified Release production binary; the fully sanitized-target controller
+smoke that exceeded its wait bound remains excluded development evidence.
+Evidence bundles remain pinned as nimo-1
+`b6e8fe9ee3d359af794be478762a3b09ea3165dce8cc22886c700e147e2fba47`
+and nimo-2
+`de64eb0189984b18d8ad5069b5648285d459bef5838e16f437774b6236eed83f`.
+Source authority remains the exact ROCmFPX base
+`61f2f2d7bc4955e9bca821095ef69125837133b5` / tree
+`0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd`; all four clean reference-clone
+locks are pinned in the receipt.
+Rollback is source-only because every target remains default-off and excluded;
+latched qualification roots stay discard-only and may never be adopted or
+repaired. Root `fsync` is process-crash ordering evidence, not power-loss or
+device-flush proof. L05x does not create a marker or `HEAD`, write an envelope,
+attempt, staging file, or publication record, complete initialization, enable
+persistence, or add a cache-hit/restore, provider, inference, or performance
+edge.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
