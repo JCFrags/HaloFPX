@@ -5,7 +5,7 @@ generated_on: '2026-07-17'
 registry: ../../research/prompts/section_index.yaml
 schema: manifest.schema.json
 generator: ../../research/prompts/tools/generate_wiki_manifest.py
-input_digest_sha256: 7b1810b0e4b88225e1d1477a8e10394da401594d4ea03df1cdf1e2e191f942ee
+input_digest_sha256: ef634f4002c02fdacc8c172afe1e45e0963603ec7916b82d9f078e90b5792fe0
 planned_category_count: 12
 planned_section_count: 86
 categories:
@@ -444,12 +444,11 @@ categories:
     section_manifest: 06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 06
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-18'
-    source_count: 11
+    last_verified: '2026-07-19'
+    source_count: 12
     open_question_count: 9
   - section_id: '34'
     title: MoE Routing, Expert Telemetry, and Expert Placement Inputs

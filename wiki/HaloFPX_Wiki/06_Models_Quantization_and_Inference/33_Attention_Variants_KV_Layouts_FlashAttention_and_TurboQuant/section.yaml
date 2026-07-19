@@ -1,16 +1,16 @@
 section_id: "33"
 title: "Attention Variants, KV Layouts, FlashAttention, and TurboQuant"
-category: "06_Models_Quantization_and_Inference"
+category_id: "06"
 status: "needs-machine-validation"
-last_verified: "2026-07-18"
-source_count: 11
+last_verified: "2026-07-19"
+source_count: 12
 open_question_count: 9
 required_machine_experiments:
-  - "actual cache layout/bytes and FA/fallback trace per model/backend/type"
+  - "L14Q-T01 test-only Q8_0/Q4_0 coverage accepted at 37ff5e4f; actual runtime cache layout/bytes and FA/fallback trace per model/backend/type remain open"
   - "symmetric/asymmetric K/V quality and long-context matrix"
   - "shift, restore, corruption, rank-loss, and fallback tests"
 related_sections: ["29", "30", "31", "35", "42", "57", "58", "61"]
 applicability:
   repositories: ["ggml-org/llama.cpp", "charlie12345/ROCmFPX"]
-  software_versions: ["788e07dc91d266ad3162a1ce9037665656269689", "61f2f2d7bc4955e9bca821095ef69125837133b5", "a18067a85e986f7798f43d98345ed5b86b55cf88"]
-  hardware_revisions: ["gfx1151 validation pending"]
+  software_versions: ["788e07dc91d266ad3162a1ce9037665656269689", "61f2f2d7bc4955e9bca821095ef69125837133b5", "a18067a85e986f7798f43d98345ed5b86b55cf88", "37ff5e4f6ab48ed7d8b0ea2fda05a6304091ae2b"]
+  hardware_revisions: ["gfx1151 L14Q-T01 test coverage qualified on nimo-1 and nimo-2; runtime optimization pending"]
