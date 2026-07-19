@@ -15,6 +15,7 @@
 
 #include <fcntl.h>
 #include <linux/btrfs.h>
+#include <linux/fs.h>
 #include <linux/magic.h>
 #include <linux/openat2.h>
 #include <linux/stat.h>
@@ -58,9 +59,16 @@ enum class root_layout : std::uint8_t {
 enum class initialization_extent : std::uint8_t {
     writer_lock_anchor,
     directory_prefix,
+    initializing_marker,
 };
 
 struct created_directory_identity {
+    std::uint64_t device = 0;
+    std::uint64_t inode = 0;
+    std::uint64_t mount_id = 0;
+};
+
+struct created_file_identity {
     std::uint64_t device = 0;
     std::uint64_t inode = 0;
     std::uint64_t mount_id = 0;
@@ -360,7 +368,7 @@ root_layout inspect_root_layout(int fd, bool expect_writer,
 }
 
 initialization_status inspect_accumulated_prefix_layout(
-        int fd, unsigned expected_directories,
+        int fd, unsigned expected_directories, bool expect_marker,
         initialization_audit & output) noexcept {
     if (expected_directories == 0 || expected_directories > 3) {
         return initialization_status::invalid_request_no_mutation;
@@ -371,6 +379,7 @@ initialization_status inspect_accumulated_prefix_layout(
     bool saw_envelopes = false;
     bool saw_attempts = false;
     bool saw_staging = false;
+    bool saw_marker = false;
     for (;;) {
         ++output.root_fixture_syscall_count;
         const long count = ::syscall(SYS_getdents64, fd, bytes.data(), bytes.size());
@@ -399,7 +408,7 @@ initialization_status inspect_accumulated_prefix_layout(
                 std::strcmp(entry->d_name, "..") == 0) {
                 continue;
             }
-            if (++entries > expected_directories + 1) {
+            if (++entries > expected_directories + 1 + (expect_marker ? 1U : 0U)) {
                 return initialization_status::invalid_request_no_mutation;
             }
             bool * seen = nullptr;
@@ -411,6 +420,8 @@ initialization_status inspect_accumulated_prefix_layout(
                 seen = &saw_attempts;
             } else if (std::strcmp(entry->d_name, "staging") == 0) {
                 seen = &saw_staging;
+            } else if (expect_marker && std::strcmp(entry->d_name, "root.marker") == 0) {
+                seen = &saw_marker;
             } else {
                 return initialization_status::invalid_request_no_mutation;
             }
@@ -420,9 +431,11 @@ initialization_status inspect_accumulated_prefix_layout(
             *seen = true;
         }
     }
-    return entries == expected_directories + 1 && saw_writer && saw_envelopes &&
+    return entries == expected_directories + 1 + (expect_marker ? 1U : 0U) &&
+                   saw_writer && saw_envelopes &&
                    saw_attempts == (expected_directories >= 2) &&
-                   saw_staging == (expected_directories >= 3)
+                   saw_staging == (expected_directories >= 3) &&
+                   saw_marker == expect_marker
                ? initialization_status::initialization_discard_required
                : initialization_status::invalid_request_no_mutation;
 }
@@ -458,6 +471,47 @@ initialization_status inspect_empty_directory(
                 std::strcmp(entry->d_name, "..") != 0) {
                 return initialization_status::invalid_request_no_mutation;
             }
+        }
+    }
+}
+
+initialization_status inspect_staging_initializing_marker_temp(
+        int fd, initialization_audit & output) noexcept {
+    std::array<char, 4096> bytes {};
+    bool saw_temp = false;
+    for (;;) {
+        ++output.root_fixture_syscall_count;
+        const long count = ::syscall(SYS_getdents64, fd, bytes.data(), bytes.size());
+        if (count < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            return initialization_status::io_failure_no_mutation;
+        }
+        if (count == 0) {
+            return saw_temp ? initialization_status::initialization_discard_required
+                            : initialization_status::invalid_request_no_mutation;
+        }
+        long offset = 0;
+        while (offset < count) {
+            const auto * entry = reinterpret_cast<const linux_dirent64 *>(bytes.data() + offset);
+            if (entry->d_reclen < offsetof(linux_dirent64, d_name) + 1 ||
+                offset + entry->d_reclen > count) {
+                return initialization_status::io_failure_no_mutation;
+            }
+            const std::size_t capacity = entry->d_reclen - offsetof(linux_dirent64, d_name);
+            if (::strnlen(entry->d_name, capacity) == capacity) {
+                return initialization_status::io_failure_no_mutation;
+            }
+            offset += entry->d_reclen;
+            if (std::strcmp(entry->d_name, ".") == 0 ||
+                std::strcmp(entry->d_name, "..") == 0) {
+                continue;
+            }
+            if (saw_temp || std::strcmp(entry->d_name, "initialize-root.tmp") != 0) {
+                return initialization_status::invalid_request_no_mutation;
+            }
+            saw_temp = true;
         }
     }
 }
@@ -644,6 +698,136 @@ initialization_status create_directory_once(
     return close_fd(directory_fd)
                ? initialization_status::initialization_discard_required
                : initialization_status::io_failure_no_mutation;
+}
+
+initialization_status inspect_marker_file(
+        int fd, const char * relative_suffix,
+        const initialization_request & input,
+        created_file_identity & identity, bool pin,
+        std::uint64_t expected_size, bool allow_umask_subset,
+        initialization_audit & output) noexcept {
+    struct stat value {};
+    ++output.root_fixture_syscall_count;
+    if (::fstat(fd, &value) != 0) {
+        return initialization_status::io_failure_no_mutation;
+    }
+    struct statx extended {};
+    ++output.root_fixture_syscall_count;
+    if (::syscall(SYS_statx, fd, "", AT_EMPTY_PATH | AT_STATX_SYNC_AS_STAT,
+                  STATX_BASIC_STATS | STATX_MNT_ID, &extended) != 0) {
+        return errno == ENOSYS || errno == EINVAL
+                   ? initialization_status::unsupported_no_mutation
+                   : initialization_status::io_failure_no_mutation;
+    }
+    const std::uint32_t observed_mode =
+        static_cast<std::uint32_t>(value.st_mode & 07777);
+    if (!S_ISREG(value.st_mode) || value.st_nlink != 1 || value.st_size < 0 ||
+        static_cast<std::uint64_t>(value.st_size) != expected_size ||
+        static_cast<std::uint64_t>(value.st_uid) != input.candidate_root.owner_uid ||
+        static_cast<std::uint64_t>(value.st_dev) != input.candidate_root.device ||
+        (allow_umask_subset ? ((observed_mode & ~0600U) != 0) : observed_mode != 0600) ||
+        (extended.stx_mask & STATX_MNT_ID) == 0 ||
+        extended.stx_mnt_id != input.candidate_root.mount_id) {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    const std::size_t suffix_size = std::strlen(relative_suffix);
+    if (input.candidate_root.path_length + suffix_size > initialization_max_path_bytes) {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    std::array<char, initialization_max_path_bytes + 1> expected_path {};
+    std::memcpy(expected_path.data(), input.candidate_root.canonical_path,
+                input.candidate_root.path_length);
+    std::memcpy(expected_path.data() + input.candidate_root.path_length,
+                relative_suffix, suffix_size);
+    const std::size_t expected_path_size = input.candidate_root.path_length + suffix_size;
+    std::array<char, initialization_max_path_bytes + 1> observed_path {};
+    std::array<char, 32> proc_name {};
+    const int proc_size = std::snprintf(proc_name.data(), proc_name.size(),
+                                        "/proc/self/fd/%d", fd);
+    if (proc_size <= 0 || static_cast<std::size_t>(proc_size) >= proc_name.size()) {
+        return initialization_status::io_failure_no_mutation;
+    }
+    ++output.root_fixture_syscall_count;
+    const ssize_t observed_path_size = ::readlink(
+        proc_name.data(), observed_path.data(), observed_path.size());
+    if (observed_path_size != static_cast<ssize_t>(expected_path_size) ||
+        std::memcmp(observed_path.data(), expected_path.data(), expected_path_size) != 0) {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    if (pin) {
+        identity.device = static_cast<std::uint64_t>(value.st_dev);
+        identity.inode = static_cast<std::uint64_t>(value.st_ino);
+        identity.mount_id = extended.stx_mnt_id;
+        return identity.inode != 0
+                   ? initialization_status::initialization_discard_required
+                   : initialization_status::invalid_request_no_mutation;
+    }
+    return identity.device == static_cast<std::uint64_t>(value.st_dev) &&
+                   identity.inode == static_cast<std::uint64_t>(value.st_ino) &&
+                   identity.mount_id == extended.stx_mnt_id
+               ? initialization_status::initialization_discard_required
+               : initialization_status::invalid_request_no_mutation;
+}
+
+initialization_status write_exact_at_zero(
+        int fd, const std::uint8_t * bytes, std::size_t size,
+        initialization_audit & output) noexcept {
+    if (!bytes || size == 0 || size > 1024) {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    std::size_t total = 0;
+    while (total < size) {
+        ++output.root_fixture_syscall_count;
+        const ssize_t count = ::pwrite(fd, bytes + total, size - total,
+                                       static_cast<off_t>(total));
+        if (count < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            return map_error(errno);
+        }
+        if (count == 0 || static_cast<std::size_t>(count) > size - total) {
+            return initialization_status::io_failure_no_mutation;
+        }
+        total += static_cast<std::size_t>(count);
+    }
+    return initialization_status::initialization_discard_required;
+}
+
+initialization_status read_exact_at_zero(
+        int fd, std::uint8_t * bytes, std::size_t size,
+        initialization_audit & output) noexcept {
+    if (!bytes || size == 0 || size > 1024) {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    std::size_t total = 0;
+    while (total < size) {
+        ++output.root_fixture_syscall_count;
+        const ssize_t count = ::pread(fd, bytes + total, size - total,
+                                      static_cast<off_t>(total));
+        if (count < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            return initialization_status::io_failure_no_mutation;
+        }
+        if (count == 0 || static_cast<std::size_t>(count) > size - total) {
+            return initialization_status::io_failure_no_mutation;
+        }
+        total += static_cast<std::size_t>(count);
+    }
+    std::uint8_t trailing = 0;
+    ssize_t trailing_count;
+    do {
+        ++output.root_fixture_syscall_count;
+        trailing_count = ::pread(fd, &trailing, 1, static_cast<off_t>(size));
+    } while (trailing_count < 0 && errno == EINTR);
+    if (trailing_count < 0) {
+        return initialization_status::io_failure_no_mutation;
+    }
+    return trailing_count == 0
+               ? initialization_status::initialization_discard_required
+               : initialization_status::invalid_request_no_mutation;
 }
 
 initialization_status inspect_fixture_layout(int fd,
@@ -1023,6 +1207,7 @@ initialization_status reopen_created_directory(
         int root_fd, const char * name, int held_root_fd,
         const initialization_request & input,
         created_directory_identity & identity,
+        bool require_empty,
         initialization_audit & output) noexcept {
     initialization_status result = initialization_status::io_failure_no_mutation;
     int reopened = open_contained(root_fd, name,
@@ -1036,7 +1221,7 @@ initialization_status reopen_created_directory(
         result = inspect_created_directory(reopened, name, input,
                                            identity, false, true, output);
     }
-    if (result == initialization_status::initialization_discard_required) {
+    if (result == initialization_status::initialization_discard_required && require_empty) {
         result = inspect_empty_directory(reopened, output);
     }
     if (!close_fd(reopened) &&
@@ -1055,7 +1240,7 @@ initialization_status revalidate_accumulated_prefix(
         created_directory_identity & envelopes_identity,
         created_directory_identity & attempts_identity,
         created_directory_identity & staging_identity,
-        bool final_revalidation,
+        bool expect_marker, bool allow_nonempty_staging, bool final_revalidation,
         initialization_audit & output) noexcept {
     auto result = revalidate_parent(parent_fd, input.parent, output);
     int reopened_root = -1;
@@ -1068,7 +1253,7 @@ initialization_status revalidate_accumulated_prefix(
     }
     if (result == initialization_status::initialization_discard_required) {
         result = inspect_accumulated_prefix_layout(
-            reopened_root, expected_directories, output);
+            reopened_root, expected_directories, expect_marker, output);
     }
     if (result == initialization_status::initialization_discard_required) {
         initialization_status reopen_error = initialization_status::io_failure_no_mutation;
@@ -1092,17 +1277,18 @@ initialization_status revalidate_accumulated_prefix(
     if (result == initialization_status::initialization_discard_required &&
         expected_directories >= 1) {
         result = reopen_created_directory(reopened_root, "envelopes", root_fd,
-                                          input, envelopes_identity, output);
+                                          input, envelopes_identity, true, output);
     }
     if (result == initialization_status::initialization_discard_required &&
         expected_directories >= 2) {
         result = reopen_created_directory(reopened_root, "attempts", root_fd,
-                                          input, attempts_identity, output);
+                                          input, attempts_identity, true, output);
     }
     if (result == initialization_status::initialization_discard_required &&
         expected_directories >= 3) {
         result = reopen_created_directory(reopened_root, "staging", root_fd,
-                                          input, staging_identity, output);
+                                          input, staging_identity,
+                                          !allow_nonempty_staging, output);
     }
     if (!close_fd(reopened_root) &&
         result == initialization_status::initialization_discard_required) {
@@ -1269,6 +1455,32 @@ void clear_pre_latch_positive_audit(initialization_audit & output) noexcept {
     output.staging_directory_final_revalidation_matched = false;
     output.root_directory_synchronized = false;
     output.directory_prefix_qualified = false;
+    output.path_policy_commitment_computed = false;
+    output.initializing_marker_admitted = false;
+    output.initializing_marker_encoded = false;
+    output.initializing_marker_self_verified = false;
+    output.initializing_marker_temp_created_no_replace = false;
+    output.initializing_marker_mode_revalidated = false;
+    output.initializing_marker_write_completed = false;
+    output.initializing_marker_readback_exact = false;
+    output.initializing_marker_readback_authenticated = false;
+    output.initializing_marker_synchronized = false;
+    output.initializing_marker_readonly_reopen_matched = false;
+    output.initializing_marker_pre_publication_revalidation_matched = false;
+    output.initializing_marker_published_no_replace = false;
+    output.root_synchronized_after_marker = false;
+    output.staging_synchronized_after_marker = false;
+    output.initializing_marker_final_revalidation_matched = false;
+    output.staging_empty_after_marker_publication = false;
+    output.initializing_marker_qualified = false;
+    wipe(output.path_policy_commitment.data(), output.path_policy_commitment.size());
+    wipe(output.initializing_marker_content_digest.data(),
+         output.initializing_marker_content_digest.size());
+    output.initializing_marker_device = 0;
+    output.initializing_marker_inode = 0;
+    output.initializing_marker_mount_id = 0;
+    output.initializing_marker_size = 0;
+    output.initializing_marker_phase_ordinal = 0;
     output.filesystem_not_reported_read_only = false;
     output.observed_filesystem_reserve = 0;
 }
@@ -1300,6 +1512,7 @@ initialization_audit finish(initialization_audit output, initialization_status r
     if (!close_ok) {
         output.lock_anchor_qualified = false;
         output.directory_prefix_qualified = false;
+        output.initializing_marker_qualified = false;
     }
     if (!close_ok && !output.discard_required_latched &&
         result != initialization_status::preexisting_root_discard_required) {
@@ -1654,7 +1867,7 @@ initialization_audit initialize_once(
         result = revalidate_accumulated_prefix(
             parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
             input, writer_identity, 1, envelopes_identity, attempts_identity,
-            staging_identity, false, output);
+             staging_identity, false, false, false, output);
     }
     if (result == initialization_status::initialization_discard_required) {
         result = create_directory_once(
@@ -1667,7 +1880,7 @@ initialization_audit initialize_once(
         result = revalidate_accumulated_prefix(
             parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
             input, writer_identity, 2, envelopes_identity, attempts_identity,
-            staging_identity, false, output);
+             staging_identity, false, false, false, output);
     }
     if (result == initialization_status::initialization_discard_required) {
         result = create_directory_once(
@@ -1680,7 +1893,7 @@ initialization_audit initialize_once(
         result = revalidate_accumulated_prefix(
             parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
             input, writer_identity, 3, envelopes_identity, attempts_identity,
-            staging_identity, false, output);
+             staging_identity, false, false, false, output);
     }
     if (result != initialization_status::initialization_discard_required) {
         return finish(output, result, writer_fd, fixture_lock_fd, fixture_fd,
@@ -1696,12 +1909,359 @@ initialization_audit initialize_once(
     result = revalidate_accumulated_prefix(
         parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
         input, writer_identity, 3, envelopes_identity, attempts_identity,
-        staging_identity, true, output);
+         staging_identity, false, false, true, output);
     if (result == initialization_status::initialization_discard_required) {
         output.directory_prefix_qualified = true;
     }
-    return finish(output, result, writer_fd, fixture_lock_fd, fixture_fd,
-                  root_fd, parent_fd, guard_owned, input_session);
+    if (result != initialization_status::initialization_discard_required ||
+        extent == initialization_extent::directory_prefix) {
+        return finish(output, result, writer_fd, fixture_lock_fd, fixture_fd,
+                      root_fd, parent_fd, guard_owned, input_session);
+    }
+
+    if (!input_session.secure || !input_session.authenticated) {
+        return finish(output, initialization_status::io_failure_no_mutation,
+                      writer_fd, fixture_lock_fd, fixture_fd, root_fd, parent_fd,
+                      guard_owned, input_session);
+    }
+    auto & marker_bytes = input_session.secure->initializing_marker;
+    auto & readback_bytes = input_session.secure->initializing_marker_readback;
+    int staging_fd = -1;
+    int staging_validation_fd = -1;
+    int staging_final_fd = -1;
+    int marker_fd = -1;
+    int marker_readonly_fd = -1;
+    int published_marker_fd = -1;
+    auto finish_marker = [&](initialization_status marker_result) noexcept {
+        bool close_ok = close_fd(published_marker_fd);
+        close_ok = close_fd(marker_readonly_fd) && close_ok;
+        close_ok = close_fd(marker_fd) && close_ok;
+        close_ok = close_fd(staging_final_fd) && close_ok;
+        close_ok = close_fd(staging_validation_fd) && close_ok;
+        close_ok = close_fd(staging_fd) && close_ok;
+        if (!close_ok) {
+            output.initializing_marker_qualified = false;
+            marker_result = initialization_status::io_failure_no_mutation;
+        }
+        return finish(output, marker_result, writer_fd, fixture_lock_fd, fixture_fd,
+                      root_fd, parent_fd, guard_owned, input_session);
+    };
+
+    std::array<std::uint8_t, 16> filesystem_uuid {};
+    std::array<std::uint8_t, 16> subvolume_uuid {};
+    std::copy_n(input.candidate_root.filesystem_uuid, filesystem_uuid.size(),
+                filesystem_uuid.begin());
+    std::copy_n(input.candidate_root.subvolume_uuid, subvolume_uuid.size(),
+                subvolume_uuid.begin());
+    if (!context_store_registry_lab_path_policy_v1(
+            reinterpret_cast<const std::uint8_t *>(input.parent.canonical_path),
+            input.parent.path_length,
+            reinterpret_cast<const std::uint8_t *>(input.candidate_root.canonical_path),
+            input.candidate_root.path_length,
+            filesystem_uuid, subvolume_uuid, input.candidate_root.mount_id,
+            input.candidate_root.device, input.candidate_root.owner_uid,
+            output.path_policy_commitment)) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.path_policy_commitment_computed = true;
+    output.initializing_marker_phase_ordinal = 1;
+
+    context_store_registry_lab_root_value_v1 marker_value {};
+    marker_value.scope.root_id = output.generated_root_id;
+    marker_value.scope.path_policy_commitment = output.path_policy_commitment;
+    marker_value.scope.registry_id = input.sealed_inputs.expected_registry_id;
+    marker_value.scope.registry_epoch = input.sealed_inputs.expected_registry_epoch;
+    marker_value.store_uuid = output.generated_store_uuid;
+    marker_value.filesystem_uuid = filesystem_uuid;
+    marker_value.mount_id = input.candidate_root.mount_id;
+    marker_value.owner_uid = input.candidate_root.owner_uid;
+    marker_value.lock_st_dev = static_cast<std::uint64_t>(writer_identity.st_dev);
+    marker_value.lock_st_ino = static_cast<std::uint64_t>(writer_identity.st_ino);
+    marker_value.state = context_store_registry_lab_root_state_v1::initializing;
+    marker_value.initial_head_digest = {};
+
+    context_store_registry_lab_root_witness marker_witness;
+    if (!context_store_registry_lab_admit_root_v1(
+            marker_value, *input_session.wire_credential, {}, marker_witness)) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.initializing_marker_admitted = true;
+    output.initializing_marker_phase_ordinal = 2;
+    std::size_t marker_size = 0;
+    const auto encoded_marker = context_store_registry_lab_encode_root_v1(
+        marker_value, *input_session.wire_credential, marker_witness,
+        marker_bytes.data(), marker_bytes.size(), marker_size);
+    if (!encoded_marker.authenticated() || marker_size == 0 ||
+        marker_size > marker_bytes.size() || marker_size > UINT32_MAX) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.initializing_marker_encoded = true;
+    output.initializing_marker_size = static_cast<std::uint32_t>(marker_size);
+    output.initializing_marker_content_digest = encoded_marker.content_digest;
+    output.initializing_marker_phase_ordinal = 3;
+
+    context_store_registry_lab_expectation marker_expectation {};
+    marker_expectation.root_id = marker_value.scope.root_id;
+    marker_expectation.path_policy_commitment = marker_value.scope.path_policy_commitment;
+    marker_expectation.store_uuid = marker_value.store_uuid;
+    marker_expectation.filesystem_uuid = marker_value.filesystem_uuid;
+    marker_expectation.registry_id = marker_value.scope.registry_id;
+    marker_expectation.registry_epoch = marker_value.scope.registry_epoch;
+    marker_expectation.mount_id = marker_value.mount_id;
+    marker_expectation.owner_uid = marker_value.owner_uid;
+    marker_expectation.lock_st_dev = marker_value.lock_st_dev;
+    marker_expectation.lock_st_ino = marker_value.lock_st_ino;
+    marker_expectation.initial_head_digest = {};
+    const auto verified_marker = context_store_registry_lab_verify_v1(
+        context_store_registry_lab_kind::root, marker_bytes.data(), marker_size,
+        *input_session.wire_credential, marker_expectation);
+    if (!verified_marker.authenticated() ||
+        !same_digest(verified_marker.content_digest,
+                     output.initializing_marker_content_digest)) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.initializing_marker_self_verified = true;
+    output.initializing_marker_phase_ordinal = 4;
+
+    result = revalidate_accumulated_prefix(
+        parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+        input, writer_identity, 3, envelopes_identity, attempts_identity,
+        staging_identity, false, false, false, output);
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_marker(result);
+    }
+    staging_fd = open_contained(
+        root_fd, "staging", O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
+        0, output, result);
+    if (staging_fd < 0) {
+        return finish_marker(result);
+    }
+    result = inspect_created_directory(staging_fd, "staging", input,
+                                       staging_identity, false, true, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_empty_directory(staging_fd, output);
+    }
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_marker(result);
+    }
+
+    constexpr char staging_marker_suffix[] = "/staging/initialize-root.tmp";
+    constexpr char published_marker_suffix[] = "/root.marker";
+    if (input.candidate_root.path_length + sizeof(staging_marker_suffix) - 1 >
+            initialization_max_path_bytes ||
+        input.candidate_root.path_length + sizeof(published_marker_suffix) - 1 >
+            initialization_max_path_bytes) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    marker_fd = open_contained(
+        staging_fd, "initialize-root.tmp",
+        O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC | O_NOFOLLOW,
+        0600, output, result);
+    if (marker_fd < 0) {
+        return finish_marker(result);
+    }
+    output.initializing_marker_temp_created_no_replace = true;
+    output.initializing_marker_phase_ordinal = 5;
+    created_file_identity marker_identity {};
+    result = inspect_marker_file(marker_fd, staging_marker_suffix,
+                                 input, marker_identity, true, 0, true, output);
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_marker(result);
+    }
+    ++output.root_fixture_syscall_count;
+    if (::fchmod(marker_fd, 0600) != 0) {
+        return finish_marker(map_error(errno));
+    }
+    result = inspect_marker_file(marker_fd, staging_marker_suffix,
+                                 input, marker_identity, false, 0, false, output);
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_marker(result);
+    }
+    output.initializing_marker_mode_revalidated = true;
+    output.initializing_marker_phase_ordinal = 6;
+
+    result = write_exact_at_zero(marker_fd, marker_bytes.data(), marker_size, output);
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_marker(result);
+    }
+    result = inspect_marker_file(marker_fd, staging_marker_suffix,
+                                 input, marker_identity, false, marker_size,
+                                 false, output);
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_marker(result);
+    }
+    output.initializing_marker_write_completed = true;
+    output.initializing_marker_phase_ordinal = 7;
+    result = read_exact_at_zero(marker_fd, readback_bytes.data(), marker_size, output);
+    if (result != initialization_status::initialization_discard_required ||
+        std::memcmp(marker_bytes.data(), readback_bytes.data(), marker_size) != 0) {
+        return finish_marker(result == initialization_status::initialization_discard_required
+                                 ? initialization_status::invalid_request_no_mutation
+                                 : result);
+    }
+    output.initializing_marker_readback_exact = true;
+    const auto verified_readback = context_store_registry_lab_verify_v1(
+        context_store_registry_lab_kind::root, readback_bytes.data(), marker_size,
+        *input_session.wire_credential, marker_expectation);
+    if (!verified_readback.authenticated() ||
+        !same_digest(verified_readback.content_digest,
+                     output.initializing_marker_content_digest)) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.initializing_marker_readback_authenticated = true;
+    output.initializing_marker_phase_ordinal = 8;
+    ++output.root_fixture_syscall_count;
+    if (::fsync(marker_fd) != 0) {
+        return finish_marker(map_error(errno));
+    }
+    output.initializing_marker_synchronized = true;
+    output.initializing_marker_phase_ordinal = 9;
+
+    result = revalidate_accumulated_prefix(
+        parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+        input, writer_identity, 3, envelopes_identity, attempts_identity,
+        staging_identity, false, true, false, output);
+    if (result == initialization_status::initialization_discard_required) {
+        staging_validation_fd = open_contained(
+            root_fd, "staging", O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
+            0, output, result);
+        if (staging_validation_fd < 0) {
+            return finish_marker(result);
+        }
+        result = compare_open_descriptions(staging_fd, staging_validation_fd, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_created_directory(staging_validation_fd, "staging", input,
+                                           staging_identity, false, true, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_staging_initializing_marker_temp(staging_validation_fd, output);
+    }
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_marker(result);
+    }
+
+    // Select and fully authenticate the exact staging inode immediately before
+    // the no-replace rename. No name-based inspection may intervene.
+    marker_readonly_fd = open_contained(
+        staging_fd, "initialize-root.tmp", O_RDONLY | O_CLOEXEC | O_NOFOLLOW,
+        0, output, result);
+    if (marker_readonly_fd < 0) {
+        return finish_marker(result);
+    }
+    result = compare_open_descriptions(marker_fd, marker_readonly_fd, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_marker_file(marker_readonly_fd, staging_marker_suffix,
+                                     input, marker_identity, false, marker_size,
+                                     false, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        wipe(readback_bytes.data(), readback_bytes.size());
+        result = read_exact_at_zero(marker_readonly_fd, readback_bytes.data(),
+                                    marker_size, output);
+    }
+    if (result != initialization_status::initialization_discard_required ||
+        std::memcmp(marker_bytes.data(), readback_bytes.data(), marker_size) != 0) {
+        return finish_marker(result == initialization_status::initialization_discard_required
+                                 ? initialization_status::invalid_request_no_mutation
+                                 : result);
+    }
+    const auto verified_readonly = context_store_registry_lab_verify_v1(
+        context_store_registry_lab_kind::root, readback_bytes.data(), marker_size,
+        *input_session.wire_credential, marker_expectation);
+    if (!verified_readonly.authenticated() ||
+        !same_digest(verified_readonly.content_digest,
+                     output.initializing_marker_content_digest)) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.initializing_marker_readonly_reopen_matched = true;
+    output.initializing_marker_pre_publication_revalidation_matched = true;
+
+    ++output.root_fixture_syscall_count;
+    if (::syscall(SYS_renameat2, staging_fd, "initialize-root.tmp",
+                  root_fd, "root.marker", RENAME_NOREPLACE) != 0) {
+        const int rename_error = errno;
+        return finish_marker(rename_error == ENOSYS || rename_error == EINVAL
+                                 ? initialization_status::unsupported_no_mutation
+                                 : map_error(rename_error));
+    }
+    output.initializing_marker_published_no_replace = true;
+    output.initializing_marker_phase_ordinal = 10;
+    ++output.root_fixture_syscall_count;
+    if (::fsync(root_fd) != 0) {
+        return finish_marker(map_error(errno));
+    }
+    output.root_synchronized_after_marker = true;
+    output.initializing_marker_phase_ordinal = 11;
+    ++output.root_fixture_syscall_count;
+    if (::fsync(staging_fd) != 0) {
+        return finish_marker(map_error(errno));
+    }
+    output.staging_synchronized_after_marker = true;
+    output.initializing_marker_phase_ordinal = 12;
+
+    published_marker_fd = open_contained(
+        root_fd, "root.marker", O_RDONLY | O_CLOEXEC | O_NOFOLLOW,
+        0, output, result);
+    if (published_marker_fd < 0) {
+        return finish_marker(result);
+    }
+    result = compare_open_descriptions(marker_fd, published_marker_fd, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_marker_file(published_marker_fd, published_marker_suffix, input,
+                                     marker_identity, false, marker_size,
+                                     false, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        wipe(readback_bytes.data(), readback_bytes.size());
+        result = read_exact_at_zero(published_marker_fd, readback_bytes.data(),
+                                    marker_size, output);
+    }
+    if (result != initialization_status::initialization_discard_required ||
+        std::memcmp(marker_bytes.data(), readback_bytes.data(), marker_size) != 0) {
+        return finish_marker(result == initialization_status::initialization_discard_required
+                                 ? initialization_status::invalid_request_no_mutation
+                                 : result);
+    }
+    const auto verified_published = context_store_registry_lab_verify_v1(
+        context_store_registry_lab_kind::root, readback_bytes.data(), marker_size,
+        *input_session.wire_credential, marker_expectation);
+    if (!verified_published.authenticated() ||
+        !same_digest(verified_published.content_digest,
+                     output.initializing_marker_content_digest)) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    result = revalidate_accumulated_prefix(
+        parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+        input, writer_identity, 3, envelopes_identity, attempts_identity,
+        staging_identity, true, false, false, output);
+    if (result == initialization_status::initialization_discard_required) {
+        staging_final_fd = open_contained(
+            root_fd, "staging", O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
+            0, output, result);
+        if (staging_final_fd < 0) {
+            return finish_marker(result);
+        }
+        result = compare_open_descriptions(staging_fd, staging_final_fd, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_created_directory(staging_final_fd, "staging", input,
+                                           staging_identity, false, true, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_empty_directory(staging_final_fd, output);
+    }
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_marker(result);
+    }
+    output.initializing_marker_device = marker_identity.device;
+    output.initializing_marker_inode = marker_identity.inode;
+    output.initializing_marker_mount_id = marker_identity.mount_id;
+    output.initializing_marker_final_revalidation_matched = true;
+    output.staging_empty_after_marker_publication = true;
+    output.initializing_marker_qualified = true;
+    output.initializing_marker_phase_ordinal = 13;
+    return finish_marker(result);
 }
 
 } // namespace
@@ -1714,6 +2274,11 @@ initialization_audit initialize_writer_lock_anchor_once(
 initialization_audit initialize_directory_prefix_once(
         const initialization_request & input) noexcept {
     return initialize_once(input, initialization_extent::directory_prefix);
+}
+
+initialization_audit initialize_initializing_marker_once(
+        const initialization_request & input) noexcept {
+    return initialize_once(input, initialization_extent::initializing_marker);
 }
 
 } // namespace halofpx::registry_lab::linux_initializer

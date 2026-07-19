@@ -42,14 +42,15 @@ foreach(LINE IN LISTS DEFINED_LINES)
   endif()
 endforeach()
 list(LENGTH DEFINED_TEXT_SYMBOL_LINES DEFINED_SYMBOL_COUNT)
-if(NOT DEFINED_SYMBOL_COUNT EQUAL 4)
-  message(FATAL_ERROR "initializer archive must define exactly four callable symbols: ${DEFINED}")
+if(NOT DEFINED_SYMBOL_COUNT EQUAL 5)
+  message(FATAL_ERROR "initializer archive must define exactly five callable symbols: ${DEFINED}")
 endif()
 foreach(REQUIRED IN ITEMS
     "halofpx::context_store_registry_lab_linux_initializer_predecessor_digest_v1"
     "halofpx::registry_lab::linux_initializer::inspect_sealed_inputs_once"
     "halofpx::registry_lab::linux_initializer::initialize_writer_lock_anchor_once"
-    "halofpx::registry_lab::linux_initializer::initialize_directory_prefix_once")
+    "halofpx::registry_lab::linux_initializer::initialize_directory_prefix_once"
+    "halofpx::registry_lab::linux_initializer::initialize_initializing_marker_once")
   string(FIND "${DEFINED}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "initializer archive is missing admitted definition: ${REQUIRED}")
@@ -80,24 +81,26 @@ foreach(LINE IN LISTS UNDEFINED_SYMBOL_LINES)
   if(LINE MATCHES "halofpx::")
     math(EXPR HALOFPX_IMPORT_COUNT "${HALOFPX_IMPORT_COUNT} + 1")
     if(NOT LINE MATCHES
-        "context_store_registry_lab_(registry_envelope_digest_v1|linux_initializer_predecessor_digest_v1)" AND
-       NOT LINE MATCHES "context_store_verify_protected_registry_facts_v1")
+        "context_store_registry_lab_(registry_envelope_digest_v1|linux_initializer_predecessor_digest_v1|path_policy_v1|admit_root_v1|encode_root_v1|verify_v1)" AND
+       NOT LINE MATCHES "context_store_verify_protected_registry_facts_v1" AND
+       NOT LINE MATCHES "context_store_registry_lab_credential::~context_store_registry_lab_credential" AND
+       NOT LINE MATCHES "context_store_registry_lab_lifecycle_witness::~context_store_registry_lab_lifecycle_witness")
       message(FATAL_ERROR "L05t archive imports an unadmitted HaloFPX symbol: ${LINE}")
     endif()
   elseif(SANITIZED_BUILD AND LINE MATCHES "[ \t]U[ \t]+__(asan|ubsan)_")
     # Compiler sanitizer runtime only; it carries no project or I/O authority.
   elseif(SANITIZED_BUILD AND LINE MATCHES "[ \t]U[ \t]+std::__glibcxx_assert_fail")
     # libstdc++ debug assertion runtime introduced by the sanitizer build type.
-  elseif(LINE MATCHES "[ \t]U[ \t]+(clock_gettime|clock_nanosleep|close|__errno_location|fcntl|fchmod|fsync|fstat|fstatfs|fstatvfs|geteuid|ioctl|__gxx_personality_v0|(__isoc23_)?strtol|memcmp|memchr|memcpy|memmove|memset|mlock|mmap|munlock|munmap|open|pread|read|readlink|sigfillset|sigprocmask|snprintf|__stack_chk_fail|strcmp|strlen|strnlen|syscall|sysconf)$")
+  elseif(LINE MATCHES "[ \t]U[ \t]+(clock_gettime|clock_nanosleep|close|__errno_location|fcntl|fchmod|fsync|fstat|fstatfs|fstatvfs|geteuid|ioctl|__gxx_personality_v0|(__isoc23_)?strtol|memcmp|memchr|memcpy|memmove|memset|mlock|mmap|munlock|munmap|open|pread|pwrite|read|readlink|sigfillset|sigprocmask|snprintf|__stack_chk_fail|strcmp|strlen|strnlen|syscall|sysconf)$")
     # Exact POSIX/libc/compiler surface admitted by sealed input plus L05w.
   else()
     message(FATAL_ERROR "L05t archive imports an unadmitted symbol: ${LINE}")
   endif()
 endforeach()
-if(NOT HALOFPX_IMPORT_COUNT EQUAL 3)
-  message(FATAL_ERROR "initializer archive must import only the two-stage digest lineage and facts verifier: ${UNDEFINED}")
+if(NOT HALOFPX_IMPORT_COUNT EQUAL 9)
+  message(FATAL_ERROR "initializer archive imports an unexpected HaloFPX symbol count: ${UNDEFINED}")
 endif()
-foreach(FORBIDDEN IN ITEMS " openat" " write" "pwrite" " rename" "fdatasync"
+foreach(FORBIDDEN IN ITEMS " openat" " write" " rename" "fdatasync"
     "mkdir" "fchmodat2" "unlink" "system" "fork" "exec" "socket" "connect")
   string(FIND "${UNDEFINED}" "${FORBIDDEN}" HIT)
   if(NOT HIT EQUAL -1)
@@ -105,4 +108,4 @@ foreach(FORBIDDEN IN ITEMS " openat" " write" "pwrite" " rename" "fdatasync"
   endif()
 endforeach()
 
-message(STATUS "PASS: L05t seam through L05x discard-only directory-prefix archive/import isolation")
+message(STATUS "PASS: L05t seam through L05y discard-only initializing-marker archive/import isolation")

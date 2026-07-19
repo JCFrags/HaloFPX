@@ -106,8 +106,8 @@ struct initialization_request {
     std::uint64_t fixture_lock_inode = 0;
 };
 
-// L05w/L05x expose only public comparison, ordering, generated-identity, and
-// narrow discard-only construction facts.
+// L05w/L05x/L05y expose only public comparison, ordering, generated-identity,
+// and narrow discard-only construction facts.
 // Even a clean anchor qualification is discard-required and returns no fd,
 // absence proof, credential, predecessor, or reusable mutation authority.
 struct initialization_audit {
@@ -145,12 +145,37 @@ struct initialization_audit {
     bool staging_directory_final_revalidation_matched = false;
     bool root_directory_synchronized = false;
     bool directory_prefix_qualified = false;
+    bool path_policy_commitment_computed = false;
+    bool initializing_marker_admitted = false;
+    bool initializing_marker_encoded = false;
+    bool initializing_marker_self_verified = false;
+    bool initializing_marker_temp_created_no_replace = false;
+    bool initializing_marker_mode_revalidated = false;
+    bool initializing_marker_write_completed = false;
+    bool initializing_marker_readback_exact = false;
+    bool initializing_marker_readback_authenticated = false;
+    bool initializing_marker_synchronized = false;
+    bool initializing_marker_readonly_reopen_matched = false;
+    bool initializing_marker_pre_publication_revalidation_matched = false;
+    bool initializing_marker_published_no_replace = false;
+    bool root_synchronized_after_marker = false;
+    bool staging_synchronized_after_marker = false;
+    bool initializing_marker_final_revalidation_matched = false;
+    bool staging_empty_after_marker_publication = false;
+    bool initializing_marker_qualified = false;
     bool writer_lock_released = false;
     bool fixture_lock_released = false;
     bool root_guard_released = false;
     bool filesystem_not_reported_read_only = false;
     std::array<std::uint8_t, 32> generated_root_id{};
     std::array<std::uint8_t, 16> generated_store_uuid{};
+    context_store_format_digest path_policy_commitment{};
+    context_store_format_digest initializing_marker_content_digest{};
+    std::uint64_t initializing_marker_device = 0;
+    std::uint64_t initializing_marker_inode = 0;
+    std::uint64_t initializing_marker_mount_id = 0;
+    std::uint32_t initializing_marker_size = 0;
+    std::uint32_t initializing_marker_phase_ordinal = 0;
     std::uint32_t root_fixture_syscall_count = 0;
     std::uint32_t fixture_ofd_attempt_count = 0;
     std::uint32_t writer_ofd_attempt_count = 0;
@@ -170,6 +195,12 @@ initialization_audit initialize_writer_lock_anchor_once(
 // only far enough to create, synchronize, and validate the fixed empty directory
 // prefix. Every post-latch outcome remains discard-required.
 initialization_audit initialize_directory_prefix_once(
+    const initialization_request & input) noexcept;
+
+// L05y preserves both earlier extents, then publishes only the authenticated
+// initializing root.marker through the fixed initialize-root.tmp staging name.
+// It publishes no predecessor envelope or HEAD and remains discard-required.
+initialization_audit initialize_initializing_marker_once(
     const initialization_request & input) noexcept;
 
 } // namespace registry_lab::linux_initializer

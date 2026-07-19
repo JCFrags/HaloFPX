@@ -1,0 +1,281 @@
+{
+  "schema": "halofpx.l05y-initializing-root-marker.v1",
+  "date": "2026-07-19",
+  "status": "qualified_and_independently_accepted",
+  "parent_commit": "37ff5e4f6ab48ed7d8b0ea2fda05a6304091ae2b",
+  "parent_tree": "921dd1709ab3ee343416d0d3137f46059eef6e6b",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Linux-only default-off creation and no-replace publication of one authenticated initializing root.marker after the qualified L05x prefix; every latched invocation remains initialization_discard_required",
+  "source_sha256": {
+    "tools/server/CMakeLists.txt": "cc216bbbb9b8c1a6f64a213e60251afb9311dc75505bbedf470e2e556f3854a0",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-anchor.inc": "b47a8e8c7f70c3717d7f0287a4b86940bfa86ba35211e8f2cf268afc1271fad3",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-inputs.cpp": "88962f1fc58b109c9be182098d888d7a704df4f0f5338d93470587fb5aebbe32",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-internal.h": "86ac670ce7472ef628094f0b9c2703551f46d960222900dddd88755a40c10319",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-anchor.cpp": "36ac78fb7b3809a0078ee42382d41544122a2912ded2e9527261009efd99fc23",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-archive-audit.cmake": "f74818b62807c6069a312ac6f958579ad961d50097680b22f8d572403a6e5bf3",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake": "9d17b81df4b8013ae8df9165e868c7f0982422ce7c16724ee97c2b158f365d52",
+    "tests/halofpx-l05y-ptrace-controller.cpp": "0f5156b95bd427d9a3325d5a689ba27528902dd44c3a67ba638e06cef26ed61a",
+    "tests/halofpx-l05y-return-fault-controller.cpp": "57fefdf4c9c7a5193fdfeec1cf7561bacd4466f2abaf4226fb528aa50741c4b9",
+    "docs/halofpx/l05y-initializing-root-marker.md": "0b166f65f6e3a1bb41bff587f4b8ef1eae0e2b8d949613e4ec181cb0fa42af07"
+  },
+  "admitted_contract": {
+    "inherited_controls": "the L05w writer-lock and L05x directory-prefix entrypoints preserve their committed extents and leave every L05y audit fact false",
+    "credential_lifetime": "the wire credential is placement-constructed only after the locked input mapping and fd3/fd4 transport, authentication, launcher-pin, alias, identity, and close checks; it is destroyed exactly once before whole-mapping wipe, zero verification, munlock, and munmap",
+    "pre_mutation_construction": "path-policy derivation, typed initializing-root construction, admission, bounded encoding, content digest, and semantic self-verification complete before staging/initialize-root.tmp is opened",
+    "marker_binding": "the marker binds generated root and store identities, authenticated registry identity and epoch, key tuple, pinned filesystem and mount facts, owner, exact writer.lock identity, capacity 512, initializing state, and a null initial HEAD",
+    "publication": "exclusive anchored create, fd-bound mode 0600, bounded complete offset-zero write, exact readback and EOF authentication, marker fsync, immediate read-only identity and byte revalidation, renameat2 RENAME_NOREPLACE, destination-root fsync, source-staging fsync, and final authenticated five-entry layout proof",
+    "failure_authority": "ambiguous, corrupt, substituted, collided, partial, late, or cleanup-failed outcomes remain discard-only; no unlink, truncation, repair, adoption, completion, or per-entry cleanup is authorized",
+    "result": "root.marker selects no HEAD and no invocation completes initialization"
+  },
+  "build_and_link_boundaries": {
+    "HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER_default": false,
+    "HALOFPX_REGISTRY_LAB_LINUX_MUTATION_default": false,
+    "initializer_target": "Linux-only STATIC EXCLUDE_FROM_ALL",
+    "initializer_archive_objects": 2,
+    "callable_initializer_definitions": 5,
+    "admitted_halofpx_imports": 9,
+    "production_fault_hooks": false,
+    "controllers": "separate Linux x86-64 EXCLUDE_FROM_ALL test-only targets outside CTest and product graphs",
+    "product_or_install_or_export_edge": false,
+    "persistent_server_write_enabled": false,
+    "webui_enabled": false
+  },
+  "qualification": {
+    "status": "qualified_evidence_bundles_reconciled",
+    "windows_release": {
+      "build_root": "C:\\Users\\britt\\AppData\\Local\\Temp\\halofpx-l05y-win-featureoff-20260719-01",
+      "toolchain": "Visual Studio 18 2026; MSVC 19.50.35725; Release",
+      "post_seam_halofpx": {"passed": 40, "failed": 0},
+      "post_seam_log_sha256": "e91dd0e39be294f14d921d5f13c8f7e4ffd0f4b32f245deb1d7ba94e713de985",
+      "authority_executable_sha256": "971c1858a8d27bad83b6deb5a74d5790a3a37db5554de55d293567b9dff0cb21",
+      "llama_server_sha256": "647017d1889f8b91660541e7eb9995ed8cb7ca698e93fcb0c9b51e4dd2aa059b",
+      "crt_assertion_contract": "_set_error_mode(_OUT_TO_STDERR) and _set_abort_behavior preserve assertion stderr and nonzero exit while suppressing abort and ReportFault UI"
+    },
+    "full_regression": {
+      "frozen_source_archive_sha256": "0022917a2c1eada182cd01172c7ec90b79dd4543995f0465d6138c391a807db2",
+      "source_manifest_sha256": "705309277ba4fa17e06199619cc0868d03720657b78b72f2b2ee90f027a6a40a",
+      "nimo_1_release": {
+        "initializer_build": {"passed": 520, "failed": 0},
+        "halofpx": {"passed": 48, "failed": 0},
+        "l05y_focused": {"passed": 6, "failed": 0},
+        "inherited": {"passed": 7, "failed": 0},
+        "feature_off_build": {"passed": 581, "failed": 0},
+        "feature_off_halofpx": {"passed": 39, "failed": 0},
+        "evidence_manifest_sha256": "13c8e6d3931b02c5b13241197dad64f6f3addd2c122f0766245710f9c64ce801",
+        "bundle": {
+          "path": "/var/tmp/halofpx-qualification/halofpx-l05y-full-regression-final-20260719-nimo1-v2.tar.zst",
+          "sha256": "ebc3d437b96c6906fedb82ce40209f63e5b5b4bd8be417a7e131c5d594dc6081",
+          "size_bytes": 188975,
+          "entries": 43
+        }
+      },
+      "nimo_2_relwithdebinfo_asan_ubsan": {
+        "initializer_build": {"passed": 517, "failed": 0},
+        "halofpx": {"passed": 48, "failed": 0},
+        "l05y_focused": {"passed": 6, "failed": 0},
+        "feature_off_build": {"passed": 349, "failed": 0},
+        "feature_off_halofpx": {"passed": 39, "failed": 0},
+        "accepted_sanitizer_findings": 0,
+        "evidence_manifest_sha256": "f3d681f47b263571a55fd185f98d6d2547453e5d5e13bbc0eb5a75f4c3ad35e1",
+        "bundle": {
+          "path": "/var/tmp/halofpx-qualification/halofpx-l05y-full-regression-final-20260719-nimo2-v2.tar.zst",
+          "sha256": "206e8e27e15f65460a1dfad72dc8464f2d4584bcee7d0b969deb788267bef75f",
+          "size_bytes": 194070,
+          "entries": 64
+        }
+      },
+      "inherited_matched_base_exception": {
+        "test": "test-gguf under UBSan",
+        "candidate_source_sha256": "9c513b99b9052324395c4f3fd73626b155c43f9a867813d15274f31a633eceea",
+        "base_source_sha256": "9c513b99b9052324395c4f3fd73626b155c43f9a867813d15274f31a633eceea",
+        "normalized_signature_sha256": "35fd665ba5f862efd4f3f81101588e34a0d2ba8335c7c55aeba1f99631533ec4",
+        "classification": "exactly reproduced on untouched selected base; retained inherited baseline exception, not an L05y regression"
+      }
+    },
+    "focused_initializer": {
+      "nimo_1_release": {
+        "build_root": "/var/tmp/halofpx-qualification/l05y-final-review-20260719-02/build",
+        "passed": 6,
+        "failed": 0,
+        "anchor_sha256": "4a57ee2b287155372e6027d1b8b19261b735660251408dba030ecf7229efa585",
+        "inputs_test_sha256": "fcc47282461b5d6d06536e620043e8b81891760c7c59c1ba60435c23731c93f5"
+      },
+      "nimo_2_release": {"passed": 6, "failed": 0},
+      "nimo_2_asan_ubsan": {"passed": 6, "failed": 0, "sanitizer_findings": 0}
+    },
+    "live_initializing_marker": {
+      "required_release_fresh_roots_per_node": 100,
+      "required_asan_ubsan_fresh_roots_nimo_2": 25,
+      "nimo_1_release": {"passed": 100, "failed": 0, "independently_reconstructed": 100},
+      "nimo_2_release": {"passed": 100, "failed": 0},
+      "nimo_2_asan_ubsan": {"passed": 25, "failed": 0, "sanitizer_findings": 0},
+      "qualified_final_runs": 225,
+      "exact_five_entry_inventories": 225,
+      "nimo_2_empty_stderr": 125,
+      "nimo_2_unique_root_ids": 125,
+      "nimo_2_unique_store_uuids": 125,
+      "nimo_2_unique_path_policy_commitments": 125,
+      "nimo_2_unique_marker_hashes": 125,
+      "nimo_2_umask_0777_canaries": 7,
+      "nimo_2_independent_reconstruction": {
+        "implementation": "target-free canonical CBOR and HMAC reconstruction",
+        "markers_matched": 125,
+        "aggregate_sha256": "b241093f1b9c81920a8ff3cdb4a5e6ef39539aad364031a947356c89087770fb"
+      }
+    },
+    "ptrace_crash_matrix": {
+      "boundaries": [
+        "openat2(marker create)",
+        "fchmod(marker)",
+        "pwrite(marker)",
+        "fsync(marker)",
+        "renameat2(marker publish)",
+        "fsync(root)",
+        "fsync(staging)"
+      ],
+      "phases": ["entry", "exit"],
+      "repetitions_per_boundary_phase_per_node": 25,
+      "nimo_1": {"passed": 350, "failed": 0},
+      "nimo_2": {"passed": 350, "failed": 0},
+      "total": {"passed": 700, "failed": 0},
+      "fully_allocated_1gib_images": 700,
+      "raw_jsonl_events": 1124300,
+      "receipt_bytes": 172821070,
+      "verified": "exact production binary, exact entry/exit stop, SIGKILL/WIFSIGNALED, sticky discard, whole-media cleanup, and zero residual mounts or loops"
+    },
+    "returned_fault_matrix": {
+      "controller_source_sha256": "57fefdf4c9c7a5193fdfeec1cf7561bacd4466f2abaf4226fb528aa50741c4b9",
+      "controller_source_size_bytes": 89713,
+      "canonical_manifest_sha256": "fa6300b129a3a275b6396382f696f1cb6de2b2624f30a608661942e3ea4476f8",
+      "canonical_manifest_size_bytes": 17344,
+      "cases_per_lane": 409,
+      "portable_short_endpoint": 228,
+      "case_arithmetic": "324 base pre/late errno + 18 EINTR-once + 38 close-marker occurrences 2/3 + 12 short endpoints + 6 zero-I/O + 11 hostile/collision/reserve = 409",
+      "nimo_1": {
+        "release_controller_release_target": {"passed": 409, "failed": 0, "receipts": 409, "receipt_bytes": 316979, "events": 1227},
+        "asan_ubsan_controller_release_target": {"passed": 409, "failed": 0, "receipts": 409, "receipt_bytes": 316979, "events": 1227, "sanitizer_findings": 0},
+        "release_controller_ubsan_target": {"passed": 409, "failed": 0, "receipts": 409, "receipt_bytes": 316979, "events": 1227, "sanitizer_findings": 0},
+        "promoted_total": {"passed": 1227, "failed": 0},
+        "evidence_manifest_sha256": "d7a2b2e6887a53debf727427f89dfdc75cff21f757ff38add047255c9fdebed2",
+        "bundle": {
+          "path_pattern": "/var/tmp/halofpx-l05y-return-nimo1-final-20260719-{a,b}.tar.zst",
+          "sha256": "f328e839737381cb348b582c8574dc7063f4aca2bc3868edc5c0e34d351fb312",
+          "size_bytes": 6075075,
+          "entries": 11784,
+          "payload_entries_verified": "11782/11782",
+          "deterministic_reconstruction_match": true
+        }
+      },
+      "nimo_2": {
+        "release": {"passed": 409, "failed": 0},
+        "asan_ubsan": {"passed": 409, "failed": 0, "sanitizer_findings": 0},
+        "promoted_total": {"passed": 818, "failed": 0},
+        "release_and_sanitized_index_sha256": "611824dfbb538ff4915ba76972f504644c362cb786872595e5ec04cd35aed667",
+        "bundle": {
+          "path": "/var/tmp/halofpx-qualification/l05y-return-final-20260719-nimo2/qualification-evidence-nimo2.tar.zst",
+          "sha256": "767d2986ed4381908aa5c63674a7b4e55187d2408f35ab7d09cf7cf3edc9d0d0",
+          "size_bytes": 715638,
+          "entries": 4245,
+          "deterministic_reconstruction_match": true
+        }
+      },
+      "promoted_total": {"passed": 2045, "failed": 0},
+      "proof": "exact audit vectors, intended and retained bytes and identities, bounded publication attempts, EINTR retry windows, hostile substitution and corruption rejection, no per-entry cleanup, sticky whole-root discard, and fixture/writer OFD release",
+      "nimo_1_asan_target_ptrace_limitation": "ASan-instrumented target under ptrace reproducibly hung for local and cross-node binaries before and after a controlled reboot; start-only 30-second bounded hangs were cleaned without residue; ASan-only hung and UBSan-only passed. This is excluded and not a pass. Complete target-plus-controller ASan/UBSan coverage passed on nimo-2."
+    },
+    "final_service_and_reference_reconciliation": "complete",
+    "independent_final_review": "ACCEPT: frozen source, contracts, build isolation, Windows/Linux regressions, live roots, crash and returned-fault matrices, retained bundles, exclusions, service/reference state, provenance, rollback, and nonclaims independently reconciled"
+  },
+  "evidence": {
+    "nimo_1_core_bundle": {
+      "path": "/var/tmp/halofpx-qualification/l05y-final-review-20260719-02-evidence-nimo1.tar",
+      "repeat_path": "/var/tmp/halofpx-qualification/l05y-final-review-20260719-02-evidence-nimo1.repeat.tar",
+      "sha256": "01d99173c27082f6a97653e4baaf298524c469059558416102f50e26af437b92",
+      "size_bytes": 1925120,
+      "entries": 1342,
+      "manifest_files": 1235,
+      "deterministic_reconstruction_match": true,
+      "scope": "6/6 focused Release, 100/100 live roots, and 100/100 independent marker reconstructions"
+    },
+    "nimo_2_core_bundle": {
+      "path": "/var/tmp/halofpx-qualification/l05y-core-20260719-nimo2/qualification-evidence.tar.zst",
+      "sha256": "95d07609d29c074d9f21565890ed83dab4f4a77adfca50d59cab39ee9c6c735e",
+      "size_bytes": 2269176,
+      "deterministic_reconstruction_match": true,
+      "scope": "6/6 Release, 6/6 ASan/UBSan, 100 Release live roots, 25 sanitized live roots, and 125 independent marker reconstructions"
+    },
+    "nimo_1_ptrace_bundle": {
+      "path": "/var/tmp/halofpx-qualification/halofpx-l05y-ptrace-scale25-final-20260719-nimo1.tar.zst",
+      "sha256": "20278a3bce90d1f163ed51018b5ea2cd53c923a40856b76bd6499959a25ae8f5",
+      "size_bytes": 5029459,
+      "entries": 4917,
+      "deterministic_reconstruction_match": true
+    },
+    "nimo_2_ptrace_bundle": {
+      "path": "/var/tmp/halofpx-qualification/halofpx-l05y-ptrace-scale25-final-20260719-nimo2.tar.zst",
+      "sha256": "3c7847b369cea3492f40f9425baafea60ba28b12b4ab265084a8f844f5b02730",
+      "size_bytes": 5064661,
+      "entries": 4923,
+      "deterministic_reconstruction_match": true
+    },
+    "excluded_or_unpromoted": [
+      "nimo-2 pre-refresh source evidence under /var/tmp/halofpx-qualification/l05y-core-20260719-nimo2-pre-refresh-b47a8e8",
+      "superseded nimo-2 core draft bundle faf3db9abcf8975de9570e86ba083192c6d94666b7e78866627b4b8958542b39 and its 10 Release plus 5 sanitized development counts",
+      "nimo-1 invalid setup canary with precreated writer.lock; the initializer correctly failed closed before mutation",
+      "CTest --output-log occupied fd5 and perturbed the alias test; ordinary redirection produced the qualified capture",
+      "Windows server/tools-OFF setup omitted required authority and server targets and is not a qualification result",
+      "nimo-1 and nimo-2 14/14 ptrace smokes and their 33ca8ba8 and 4dc16496 bundles",
+      "nimo-2 ptrace interim pre-manifest archive 76cf1f88f0605da81d4c8d39080eb9168baba4237761dff0069902168c8afc35, superseded by 3c7847b3",
+      "returned-fault controller revisions 8d22bfae and 0fa33408 plus all pre-window and pre-portable-short matrices",
+      "nimo-2 returned-fault setup runs on incorrect 4 GiB media and all aborted pre-final 1 GiB runs",
+      "nimo-1 ASan-instrumented target under ptrace hangs; bounded cleanup completed with no residue and no pass is claimed"
+    ]
+  },
+  "service_health_after_qualification": {
+    "nimo_1": {
+      "controlled_reboot": true,
+      "llama_server_pid_after_recovery": 971,
+      "port": 8081,
+      "http_status": 200,
+      "nrestarts": 0,
+      "command_preserved": true
+    },
+    "nimo_2": {
+      "rpc_pid": 3562775,
+      "rpc_listen": "0.0.0.0:50052",
+      "nrestarts": 0,
+      "continuous": true
+    },
+    "qualification_media_cleanup": "no active final qualification mounts, loop devices, controller processes, or promoted disposable-lane media remain; intentionally retained unmounted excluded, canary, and live-smoke images are evidence only and are not counted as promoted roots"
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false,
+    "new_runtime_dependency": false,
+    "license_notice_sbom_change": false,
+    "remote_created_or_pushed": false,
+    "nine_file_manifest_sha256": "c4bbe5c1facb9b7462df348638980bebf85fa033a69f4388a59537587f22ac1e",
+    "normalized_four_line_shingles": 3174,
+    "exact_donor_matches": 0,
+    "final_similarity_and_provenance_review": "ACCEPT"
+  },
+  "pending_promotion_gates": [],
+  "nonclaims": [
+    "L05y is default-off, excluded, discard-only qualification code and does not enable persistent server writes.",
+    "L05y does not complete initialization, select or publish HEAD, create envelopes or attempts, admit a cache hit, restore state, repair, adopt, quarantine, or authorize per-entry cleanup.",
+    "File and directory synchronization are process-crash ordering evidence, not proof of power-loss durability, device-cache flush, firmware behavior, or cross-kernel recovery.",
+    "The nimo-1 ASan-target ptrace hang is an explicit host/tool interaction limitation and is not a qualified pass; full target-plus-controller ASan/UBSan evidence exists on nimo-2.",
+    "Build, sanitizer, filesystem, and controller telemetry make no inference-performance or zero-regression claim.",
+    "HIP, Vulkan, ROCmFPX, TurboQuant, ROCmFP4, RPC, distributed behavior, WebUI, and L14Q quantized-KV runtime behavior are unchanged and not enabled by this slice."
+  ]
+}

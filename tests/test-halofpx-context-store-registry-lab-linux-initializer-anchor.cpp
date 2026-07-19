@@ -60,6 +60,17 @@ std::uint8_t nibble(char value) {
     return 0xff;
 }
 
+template <std::size_t N>
+std::array<char, N * 2 + 1> lower_hex(const std::array<std::uint8_t, N> & bytes) {
+    constexpr char alphabet[] = "0123456789abcdef";
+    std::array<char, N * 2 + 1> output {};
+    for (std::size_t i = 0; i < bytes.size(); ++i) {
+        output[i * 2] = alphabet[bytes[i] >> 4];
+        output[i * 2 + 1] = alphabet[bytes[i] & 0x0f];
+    }
+    return output;
+}
+
 bool hex_bytes(const std::string & text, std::vector<std::uint8_t> & output) {
     if ((text.size() & 1U) != 0) {
         return false;
@@ -313,6 +324,8 @@ bool controller_scan_directory(int fd, unsigned expected_mask) {
                 bit = 1U << 2;
             } else if (std::strcmp(entry->name, "staging") == 0) {
                 bit = 1U << 3;
+            } else if (std::strcmp(entry->name, "root.marker") == 0) {
+                bit = 1U << 4;
             } else {
                 return false;
             }
@@ -333,7 +346,8 @@ bool controller_node_mount_matches(int fd, std::uint64_t mount_id) {
 }
 
 bool inspect_final_directory_prefix(
-        const char * root_path, const initialization_request & request) {
+        const char * root_path, const initialization_request & request,
+        bool expect_marker = false) {
     int root_fd = ::open(
         root_path, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
     if (root_fd < 0) {
@@ -346,7 +360,7 @@ bool inspect_final_directory_prefix(
         static_cast<std::uint64_t>(root.st_uid) == request.candidate_root.owner_uid &&
         static_cast<std::uint32_t>(root.st_mode & 07777) == 0700 &&
         controller_node_mount_matches(root_fd, request.candidate_root.mount_id) &&
-        controller_scan_directory(root_fd, 0x0fU);
+        controller_scan_directory(root_fd, expect_marker ? 0x1fU : 0x0fU);
     std::array<std::uint64_t, 5> inodes {};
     inodes[0] = static_cast<std::uint64_t>(root.st_ino);
 
@@ -391,6 +405,21 @@ bool inspect_final_directory_prefix(
             valid = false;
         }
     }
+    if (valid && expect_marker) {
+        int marker_fd = controller_open_contained(
+            root_fd, "root.marker", O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+        struct stat marker {};
+        valid = marker_fd >= 0 && ::fstat(marker_fd, &marker) == 0 &&
+            S_ISREG(marker.st_mode) && marker.st_nlink == 1 &&
+            marker.st_size > 0 && marker.st_size <= 1024 &&
+            static_cast<std::uint64_t>(marker.st_dev) == request.candidate_root.device &&
+            static_cast<std::uint64_t>(marker.st_uid) == request.candidate_root.owner_uid &&
+            static_cast<std::uint32_t>(marker.st_mode & 07777) == 0600 &&
+            controller_node_mount_matches(marker_fd, request.candidate_root.mount_id);
+        if (marker_fd >= 0 && ::close(marker_fd) != 0) {
+            valid = false;
+        }
+    }
     for (std::size_t left = 0; valid && left < inodes.size(); ++left) {
         valid = inodes[left] != 0;
         for (std::size_t right = left + 1; valid && right < inodes.size(); ++right) {
@@ -430,6 +459,38 @@ initialization_request synthetic_valid_shape() {
     return output;
 }
 
+void assert_no_initializing_marker_facts(const initialization_audit & observed) {
+    assert(!observed.path_policy_commitment_computed);
+    assert(!observed.initializing_marker_admitted);
+    assert(!observed.initializing_marker_encoded);
+    assert(!observed.initializing_marker_self_verified);
+    assert(!observed.initializing_marker_temp_created_no_replace);
+    assert(!observed.initializing_marker_mode_revalidated);
+    assert(!observed.initializing_marker_write_completed);
+    assert(!observed.initializing_marker_readback_exact);
+    assert(!observed.initializing_marker_readback_authenticated);
+    assert(!observed.initializing_marker_synchronized);
+    assert(!observed.initializing_marker_readonly_reopen_matched);
+    assert(!observed.initializing_marker_pre_publication_revalidation_matched);
+    assert(!observed.initializing_marker_published_no_replace);
+    assert(!observed.root_synchronized_after_marker);
+    assert(!observed.staging_synchronized_after_marker);
+    assert(!observed.initializing_marker_final_revalidation_matched);
+    assert(!observed.staging_empty_after_marker_publication);
+    assert(!observed.initializing_marker_qualified);
+    assert(observed.initializing_marker_phase_ordinal == 0);
+    assert(observed.initializing_marker_size == 0);
+    assert(observed.initializing_marker_device == 0);
+    assert(observed.initializing_marker_inode == 0);
+    assert(observed.initializing_marker_mount_id == 0);
+    assert(std::all_of(observed.path_policy_commitment.begin(),
+                       observed.path_policy_commitment.end(),
+                       [](std::uint8_t value) { return value == 0; }));
+    assert(std::all_of(observed.initializing_marker_content_digest.begin(),
+                       observed.initializing_marker_content_digest.end(),
+                       [](std::uint8_t value) { return value == 0; }));
+}
+
 bool bounded_wait(pid_t child, int & wait_status);
 
 int run_directory_synthetic() {
@@ -460,6 +521,28 @@ int run_directory_synthetic() {
     assert(!observed.staging_directory_final_revalidation_matched);
     assert(!observed.root_directory_synchronized);
     assert(!observed.directory_prefix_qualified);
+    assert_no_initializing_marker_facts(observed);
+    assert(observed.sealed_inputs.input_syscall_count != 0);
+    assert(observed.sealed_inputs.secure_storage_wiped);
+    assert(observed.sealed_inputs.secure_storage_unlocked);
+    assert(observed.sealed_inputs.secure_storage_unmapped);
+    assert(observed.sealed_inputs.signal_mask_restored);
+    return 0;
+}
+
+int run_marker_synthetic() {
+    (void) ::close(3);
+    (void) ::close(4);
+    const auto observed = initialize_initializing_marker_once(synthetic_valid_shape());
+    assert(observed.result == initialization_status::invalid_request_no_mutation);
+    assert(observed.sealed_inputs.result == sealed_input_status::invalid_request_no_mutation);
+    assert(observed.sealed_inputs_preceded_root_access);
+    assert(observed.root_guard_acquired);
+    assert(observed.root_guard_released);
+    assert(observed.root_fixture_syscall_count == 0);
+    assert(!observed.discard_required_latched);
+    assert(!observed.directory_prefix_qualified);
+    assert_no_initializing_marker_facts(observed);
     assert(observed.sealed_inputs.input_syscall_count != 0);
     assert(observed.sealed_inputs.secure_storage_wiped);
     assert(observed.sealed_inputs.secure_storage_unlocked);
@@ -496,6 +579,7 @@ int run_synthetic() {
     assert(!observed.staging_directory_final_revalidation_matched);
     assert(!observed.root_directory_synchronized);
     assert(!observed.directory_prefix_qualified);
+    assert_no_initializing_marker_facts(observed);
     assert(observed.sealed_inputs.input_syscall_count != 0);
     assert(observed.sealed_inputs.secure_storage_wiped);
     assert(observed.sealed_inputs.secure_storage_unlocked);
@@ -511,18 +595,74 @@ int run_synthetic() {
         _exit(127);
     }
     int wait_status = 0;
-    return bounded_wait(child, wait_status) && WIFEXITED(wait_status)
+    if (!bounded_wait(child, wait_status) || !WIFEXITED(wait_status) ||
+        WEXITSTATUS(wait_status) != 0) {
+        return 2;
+    }
+    const pid_t marker_child = ::fork();
+    if (marker_child < 0) {
+        return 2;
+    }
+    if (marker_child == 0) {
+        ::execl("/proc/self/exe", "halofpx-l05y-synthetic-child",
+                "--synthetic-marker-child", static_cast<char *>(nullptr));
+        _exit(127);
+    }
+    return bounded_wait(marker_child, wait_status) && WIFEXITED(wait_status)
                ? WEXITSTATUS(wait_status) : 2;
 }
 
-int print_live_audit(const initialization_audit & observed, bool expect_prefix) {
+int print_live_audit(const initialization_audit & observed, bool expect_prefix,
+                     bool expect_marker = false) {
+    std::array<char, 1024> marker_suffix {};
+    if (expect_marker) {
+        const auto root_id_hex = lower_hex(observed.generated_root_id);
+        const auto store_uuid_hex = lower_hex(observed.generated_store_uuid);
+        const auto path_policy_hex = lower_hex(observed.path_policy_commitment);
+        const auto marker_digest_hex = lower_hex(observed.initializing_marker_content_digest);
+        const int count = std::snprintf(
+            marker_suffix.data(), marker_suffix.size(),
+            " path_policy_computed=%u marker=%u/%u/%u/%u/%u/%u/%u/%u/%u/%u "
+            "marker_sync=%u/%u/%u/%u marker_final=%u/%u marker_qualified=%u "
+            "root_id=%s store_uuid=%s path_policy=%s marker_digest=%s "
+            "marker_dev=%llu marker_inode=%llu marker_mount=%llu "
+            "marker_size=%u marker_phase=%u",
+            static_cast<unsigned>(observed.path_policy_commitment_computed),
+            static_cast<unsigned>(observed.initializing_marker_admitted),
+            static_cast<unsigned>(observed.initializing_marker_encoded),
+            static_cast<unsigned>(observed.initializing_marker_self_verified),
+            static_cast<unsigned>(observed.initializing_marker_temp_created_no_replace),
+            static_cast<unsigned>(observed.initializing_marker_mode_revalidated),
+            static_cast<unsigned>(observed.initializing_marker_write_completed),
+            static_cast<unsigned>(observed.initializing_marker_readback_exact),
+            static_cast<unsigned>(observed.initializing_marker_readback_authenticated),
+            static_cast<unsigned>(observed.initializing_marker_synchronized),
+            static_cast<unsigned>(observed.initializing_marker_published_no_replace),
+            static_cast<unsigned>(observed.initializing_marker_readonly_reopen_matched),
+            static_cast<unsigned>(observed.initializing_marker_pre_publication_revalidation_matched),
+            static_cast<unsigned>(observed.root_synchronized_after_marker),
+            static_cast<unsigned>(observed.staging_synchronized_after_marker),
+            static_cast<unsigned>(observed.initializing_marker_final_revalidation_matched),
+            static_cast<unsigned>(observed.staging_empty_after_marker_publication),
+            static_cast<unsigned>(observed.initializing_marker_qualified),
+            root_id_hex.data(), store_uuid_hex.data(), path_policy_hex.data(),
+            marker_digest_hex.data(),
+            static_cast<unsigned long long>(observed.initializing_marker_device),
+            static_cast<unsigned long long>(observed.initializing_marker_inode),
+            static_cast<unsigned long long>(observed.initializing_marker_mount_id),
+            observed.initializing_marker_size,
+            observed.initializing_marker_phase_ordinal);
+        if (count <= 0 || static_cast<std::size_t>(count) >= marker_suffix.size()) {
+            return 1;
+        }
+    }
     std::printf(
         "result=%u sealed_result=%u sealed_before_root=%u latch=%u qualified=%u "
         "root_syscalls=%u reserve=%llu root_id_nonzero=%u store_uuid_nonzero=%u "
         "writer_created=%u writer_synced=%u writer_ofd=%u sole_entry=%u "
         "writer_released=%u fixture_released=%u guard_released=%u "
         "envelopes=%u/%u/%u attempts=%u/%u/%u staging=%u/%u/%u "
-        "final_dirs=%u/%u/%u root_synced=%u prefix_qualified=%u\n",
+        "final_dirs=%u/%u/%u root_synced=%u prefix_qualified=%u%s\n",
         static_cast<unsigned>(observed.result),
         static_cast<unsigned>(observed.sealed_inputs.result),
         static_cast<unsigned>(observed.sealed_inputs_preceded_root_access),
@@ -552,7 +692,8 @@ int print_live_audit(const initialization_audit & observed, bool expect_prefix) 
         static_cast<unsigned>(observed.attempts_directory_final_revalidation_matched),
         static_cast<unsigned>(observed.staging_directory_final_revalidation_matched),
         static_cast<unsigned>(observed.root_directory_synchronized),
-        static_cast<unsigned>(observed.directory_prefix_qualified));
+        static_cast<unsigned>(observed.directory_prefix_qualified),
+        marker_suffix.data());
     const bool prefix_matched = expect_prefix
         ? observed.envelopes_directory_created_no_replace &&
               observed.envelopes_directory_validated &&
@@ -626,10 +767,39 @@ int print_live_audit(const initialization_audit & observed, bool expect_prefix) 
         observed.lock_anchor_qualified &&
         observed.filesystem_not_reported_read_only &&
         observed.observed_filesystem_reserve >= initialization_required_filesystem_reserve;
+    const bool marker_matched = expect_marker
+        ? observed.path_policy_commitment_computed &&
+              observed.initializing_marker_admitted &&
+              observed.initializing_marker_encoded &&
+              observed.initializing_marker_self_verified &&
+              observed.initializing_marker_temp_created_no_replace &&
+              observed.initializing_marker_mode_revalidated &&
+              observed.initializing_marker_write_completed &&
+              observed.initializing_marker_readback_exact &&
+              observed.initializing_marker_readback_authenticated &&
+              observed.initializing_marker_synchronized &&
+              observed.initializing_marker_published_no_replace &&
+              observed.initializing_marker_readonly_reopen_matched &&
+              observed.initializing_marker_pre_publication_revalidation_matched &&
+              observed.root_synchronized_after_marker &&
+              observed.staging_synchronized_after_marker &&
+              observed.initializing_marker_final_revalidation_matched &&
+              observed.staging_empty_after_marker_publication &&
+              observed.initializing_marker_qualified &&
+              observed.initializing_marker_size > 0 &&
+              observed.initializing_marker_size <= 1024 &&
+              observed.initializing_marker_device != 0 &&
+              observed.initializing_marker_inode != 0 &&
+              observed.initializing_marker_mount_id != 0 &&
+              observed.initializing_marker_phase_ordinal == 13
+        : !observed.path_policy_commitment_computed &&
+              !observed.initializing_marker_admitted &&
+              !observed.initializing_marker_encoded &&
+              !observed.initializing_marker_qualified;
     return observed.result == initialization_status::initialization_discard_required &&
                    sealed_admitted && l05w_matched &&
                    observed.writer_lock_released && observed.fixture_lock_released &&
-                   observed.root_guard_released && prefix_matched
+                   observed.root_guard_released && prefix_matched && marker_matched
                ? 0 : 1;
 }
 
@@ -675,7 +845,9 @@ bool read_live_request_handoff(initialization_request & output) {
     return trailing_count == 0 && ::close(request_fd) == 0;
 }
 
-int run_live_child(bool directory_prefix) {
+enum class live_extent : std::uint8_t { writer, directory, marker };
+
+int run_live_child(live_extent extent) {
     initialization_request request {};
     if (!read_live_request_handoff(request)) {
         std::fprintf(stderr, "invalid bounded live-request handoff\n");
@@ -688,15 +860,18 @@ int run_live_child(bool directory_prefix) {
             return 2;
         }
     }
-    if (directory_prefix) {
+    if (extent != live_extent::writer) {
         // Force mkdir(0700) to produce mode 0000 and prove the initializer's
         // fd-bound repair is independent of the launcher's global umask.
         (void) ::umask(0777);
     }
-    const auto observed = directory_prefix
-        ? initialize_directory_prefix_once(request)
-        : initialize_writer_lock_anchor_once(request);
-    return print_live_audit(observed, directory_prefix);
+    const auto observed = extent == live_extent::marker
+        ? initialize_initializing_marker_once(request)
+        : (extent == live_extent::directory
+               ? initialize_directory_prefix_once(request)
+               : initialize_writer_lock_anchor_once(request));
+    return print_live_audit(observed, extent != live_extent::writer,
+                            extent == live_extent::marker);
 }
 
 std::uint64_t monotonic_nanoseconds() {
@@ -829,8 +1004,8 @@ bool release_gate_without_sigpipe(int fd, std::uint8_t value) {
 }
 
 int run_live_controller(const char * golden_path, const char * parent_path,
-                        const char * root_path, const char * fixture_path,
-                        bool directory_prefix) {
+                         const char * root_path, const char * fixture_path,
+                         live_extent extent) {
     std::string json;
     {
         std::ifstream input(golden_path, std::ios::binary);
@@ -892,10 +1067,12 @@ int run_live_controller(const char * golden_path, const char * parent_path,
         if (count != 1 || released != 0xa5) {
             _exit(126);
         }
-        const char * child_mode = directory_prefix
-            ? "--live-directory-child" : "--live-child";
-        const char * child_name = directory_prefix
-            ? "halofpx-l05x-live-child" : "halofpx-l05w-live-child";
+        const char * child_mode = extent == live_extent::marker
+            ? "--live-marker-child"
+            : (extent == live_extent::directory ? "--live-directory-child" : "--live-child");
+        const char * child_name = extent == live_extent::marker
+            ? "halofpx-l05y-live-child"
+            : (extent == live_extent::directory ? "halofpx-l05x-live-child" : "halofpx-l05w-live-child");
         ::execl("/proc/self/exe", child_name, child_mode,
                 static_cast<char *>(nullptr));
         _exit(127);
@@ -919,8 +1096,10 @@ int run_live_controller(const char * golden_path, const char * parent_path,
     if (child_status != 0) {
         return child_status;
     }
-    if (directory_prefix && !inspect_final_directory_prefix(root_path, request)) {
-        std::fprintf(stderr, "independent L05x final-layout inspection failed\n");
+    if (extent != live_extent::writer &&
+        !inspect_final_directory_prefix(root_path, request,
+                                        extent == live_extent::marker)) {
+        std::fprintf(stderr, "independent L05x/L05y final-layout inspection failed\n");
         return 2;
     }
     return 0;
@@ -933,22 +1112,34 @@ int main(int argc, char ** argv) {
         return run_synthetic();
     }
     if (argc == 6 && std::strcmp(argv[1], "--live-controller") == 0) {
-        return run_live_controller(argv[2], argv[3], argv[4], argv[5], false);
+        return run_live_controller(argv[2], argv[3], argv[4], argv[5],
+                                   live_extent::writer);
     }
     if (argc == 6 && std::strcmp(argv[1], "--live-directory-controller") == 0) {
-        return run_live_controller(argv[2], argv[3], argv[4], argv[5], true);
+        return run_live_controller(argv[2], argv[3], argv[4], argv[5],
+                                   live_extent::directory);
+    }
+    if (argc == 6 && std::strcmp(argv[1], "--live-marker-controller") == 0) {
+        return run_live_controller(argv[2], argv[3], argv[4], argv[5],
+                                   live_extent::marker);
     }
     if (argc == 2 && std::strcmp(argv[1], "--live-child") == 0) {
-        return run_live_child(false);
+        return run_live_child(live_extent::writer);
     }
     if (argc == 2 && std::strcmp(argv[1], "--live-directory-child") == 0) {
-        return run_live_child(true);
+        return run_live_child(live_extent::directory);
+    }
+    if (argc == 2 && std::strcmp(argv[1], "--live-marker-child") == 0) {
+        return run_live_child(live_extent::marker);
     }
     if (argc == 2 && std::strcmp(argv[1], "--synthetic-directory-child") == 0) {
         return run_directory_synthetic();
     }
+    if (argc == 2 && std::strcmp(argv[1], "--synthetic-marker-child") == 0) {
+        return run_marker_synthetic();
+    }
     std::fprintf(stderr,
-        "usage: %s [--live-controller|--live-directory-controller "
+        "usage: %s [--live-controller|--live-directory-controller|--live-marker-controller "
         "golden.json canonical-parent "
         "canonical-root canonical-fixture]\n",
         argv[0]);

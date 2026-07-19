@@ -39,6 +39,13 @@ foreach(REQUIRED IN ITEMS
     "::munmap(session.mapping, session.mapping_size)"
     "context_store_registry_lab_linux_initializer_predecessor_digest_v1"
     "context_store_verify_protected_registry_facts_v1"
+    "wire_credential_storage"
+    "session.wire_credential = ::new ("
+    "wire_credential->~context_store_registry_lab_credential()"
+    "all_zero(session.secure->credential.data(),"
+    "std::array<std::uint8_t, 1024> initializing_marker"
+    "std::array<std::uint8_t, 1024> initializing_marker_readback"
+    "secure->~secure_inputs()"
     "predecessor_authenticated_pins_matched_no_root_access"
     "predecessor_authenticated_under_supplied_credential"
     "launcher_receipt_matched"
@@ -48,6 +55,20 @@ foreach(REQUIRED IN ITEMS
     message(FATAL_ERROR "missing M63-01b sealed-input contract token: ${REQUIRED}")
   endif()
 endforeach()
+
+string(FIND "${INPUT_TEXT}" "::mlock(session.mapping, session.mapping_size)" INPUT_MLOCK)
+string(FIND "${INPUT_TEXT}" "output.transport_final_revalidation_matched = true" INPUT_FINAL_PIN)
+string(FIND "${INPUT_TEXT}" "session.wire_credential = ::new (" INPUT_WIRE_CONSTRUCT)
+string(FIND "${INPUT_TEXT}" "wipe(session.secure->credential.data(), session.secure->credential.size())" INPUT_RAW_WIPE)
+string(FIND "${INPUT_TEXT}" "session.authenticated = true" INPUT_AUTHENTICATED)
+if(INPUT_MLOCK EQUAL -1 OR INPUT_FINAL_PIN EQUAL -1 OR INPUT_WIRE_CONSTRUCT EQUAL -1 OR
+   INPUT_RAW_WIPE EQUAL -1 OR INPUT_AUTHENTICATED EQUAL -1 OR
+   NOT INPUT_MLOCK LESS INPUT_FINAL_PIN OR
+   NOT INPUT_FINAL_PIN LESS INPUT_WIRE_CONSTRUCT OR
+   NOT INPUT_WIRE_CONSTRUCT LESS INPUT_RAW_WIPE OR
+   NOT INPUT_RAW_WIPE LESS INPUT_AUTHENTICATED)
+  message(FATAL_ERROR "wire credential lifetime must begin only in locked storage after final transport/pin validation, then raw input must be wiped before authentication is exposed")
+endif()
 string(REGEX MATCHALL "::open\\(" INPUT_OPEN_CALLS "${INPUT_TEXT}")
 list(LENGTH INPUT_OPEN_CALLS INPUT_OPEN_COUNT)
 if(NOT INPUT_OPEN_COUNT EQUAL 2)
@@ -82,6 +103,7 @@ file(READ "${ANCHOR}" ANCHOR_TEXT)
 foreach(REQUIRED IN ITEMS
     "initialize_writer_lock_anchor_once"
     "initialize_directory_prefix_once"
+    "initialize_initializing_marker_once"
     "authenticate_sealed_inputs_for_session"
     "O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC | O_NOFOLLOW"
     "RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS"
@@ -116,16 +138,50 @@ foreach(REQUIRED IN ITEMS
     "envelopes_directory_final_revalidation_matched = true"
     "attempts_directory_final_revalidation_matched = true"
     "staging_directory_final_revalidation_matched = true"
-    "directory_prefix_qualified = true")
+    "directory_prefix_qualified = true"
+    "initialization_extent::initializing_marker"
+    "context_store_registry_lab_path_policy_v1"
+    "context_store_registry_lab_admit_root_v1"
+    "context_store_registry_lab_encode_root_v1"
+    "context_store_registry_lab_verify_v1"
+    "context_store_registry_lab_root_state_v1::initializing"
+    "\"initialize-root.tmp\""
+    "\"root.marker\""
+    "::pwrite"
+    "SYS_renameat2"
+    "RENAME_NOREPLACE"
+    "initializing_marker_qualified = true"
+    "staging_empty_after_marker_publication = true"
+    "initializing_marker_pre_publication_revalidation_matched = true"
+    "initializing_marker_readonly_reopen_matched = true")
   string(FIND "${ANCHOR_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "missing L05w/L05x discard-only initializer contract token: ${REQUIRED}")
   endif()
 endforeach()
+string(FIND "${ANCHOR_TEXT}" "// Select and fully authenticate the exact staging inode immediately before" FINAL_SELECTION)
+if(FINAL_SELECTION EQUAL -1)
+  message(FATAL_ERROR "missing immediate pre-rename marker selection boundary")
+endif()
+string(SUBSTRING "${ANCHOR_TEXT}" ${FINAL_SELECTION} -1 FINAL_SELECTION_TEXT)
+string(FIND "${FINAL_SELECTION_TEXT}" "marker_readonly_fd = open_contained(" FINAL_OPEN)
+string(FIND "${FINAL_SELECTION_TEXT}" "compare_open_descriptions(marker_fd, marker_readonly_fd" FINAL_IDENTITY)
+string(FIND "${FINAL_SELECTION_TEXT}" "read_exact_at_zero(marker_readonly_fd" FINAL_READ)
+string(FIND "${FINAL_SELECTION_TEXT}" "const auto verified_readonly" FINAL_AUTH)
+string(FIND "${FINAL_SELECTION_TEXT}" "initializing_marker_pre_publication_revalidation_matched = true" FINAL_FACT)
+string(FIND "${FINAL_SELECTION_TEXT}" "SYS_renameat2" FINAL_RENAME)
+if(FINAL_OPEN EQUAL -1 OR FINAL_IDENTITY EQUAL -1 OR FINAL_READ EQUAL -1 OR
+   FINAL_AUTH EQUAL -1 OR FINAL_FACT EQUAL -1 OR FINAL_RENAME EQUAL -1 OR
+   NOT FINAL_OPEN LESS FINAL_IDENTITY OR NOT FINAL_IDENTITY LESS FINAL_READ OR
+   NOT FINAL_READ LESS FINAL_AUTH OR NOT FINAL_AUTH LESS FINAL_FACT OR
+   NOT FINAL_FACT LESS FINAL_RENAME)
+  message(FATAL_ERROR "marker identity, exact bytes/EOF, and authentication must immediately precede no-replace publication")
+endif()
 foreach(FORBIDDEN IN ITEMS
-    "qualify_once(" "linux-preinit" "root.marker" "initialize-root.tmp" "HEAD"
-    "::mkdir(" "::mkdirat(" "::fchmod(directory_fd" "::fchmodat2(" "rename"
-    "::write(" "SYS_write" "pwrite" "SYS_pwrite"
+    "qualify_once(" "linux-preinit" "initialize-envelope.tmp"
+    "initialize-head.tmp" "initialize-marker.tmp" "HEAD"
+    "::mkdir(" "::mkdirat(" "::fchmod(directory_fd" "::fchmodat2("
+    "::rename(" "::write(" "SYS_write" "SYS_pwrite"
     "writev" "SYS_writev" "unlink" "fdatasync" "fork(" "exec("
     "llama-ai" "CachyLLama")
   string(FIND "${ANCHOR_TEXT}" "${FORBIDDEN}" HIT)
@@ -160,7 +216,9 @@ foreach(REQUIRED IN ITEMS
     "add_library(halofpx-context-store-registry-lab-linux-initializer STATIC EXCLUDE_FROM_ALL"
     "target_link_libraries(halofpx-context-store-registry-lab-linux-initializer PRIVATE\n        halofpx-context-store-registry-lab-wire)"
     "add_executable(halofpx-l05x-ptrace-controller EXCLUDE_FROM_ALL"
-    "add_executable(halofpx-l05x-return-fault-controller EXCLUDE_FROM_ALL")
+    "add_executable(halofpx-l05x-return-fault-controller EXCLUDE_FROM_ALL"
+    "add_executable(halofpx-l05y-ptrace-controller EXCLUDE_FROM_ALL"
+    "add_executable(halofpx-l05y-return-fault-controller EXCLUDE_FROM_ALL")
   string(FIND "${SERVER_CMAKE}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "missing L05t excluded target boundary: ${REQUIRED}")
@@ -197,4 +255,4 @@ if(NOT PRODUCT_LEAK EQUAL -1)
   message(FATAL_ERROR "L05t initializer seam leaked into product/server linkage")
 endif()
 
-message(STATUS "PASS: L05t seam through L05x discard-only directory-prefix/default-off contract")
+message(STATUS "PASS: L05t seam through L05y discard-only initializing-marker/default-off contract")

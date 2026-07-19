@@ -34,6 +34,7 @@ constexpr int credential_fd = 3;
 constexpr int predecessor_fd = 4;
 constexpr std::size_t credential_capacity = context_store_registry_lab_credential_max_bytes;
 constexpr std::size_t predecessor_capacity = 1024;
+constexpr std::size_t wire_credential_secret_size = 32;
 constexpr std::size_t credential_minimum = 16 + 2 + 1 + 8 + 2 + 32;
 constexpr std::size_t max_fd_scan_entries = 4096;
 constexpr std::array<std::uint8_t, 16> credential_magic = {
@@ -61,7 +62,14 @@ struct descriptor_identity {
 struct alignas(64) secure_inputs {
     std::array<std::uint8_t, credential_capacity> credential {};
     std::array<std::uint8_t, predecessor_capacity> predecessor {};
-    std::array<std::uint8_t, 32> secret {};
+    std::array<std::uint8_t, 1024> initializing_marker {};
+    std::array<std::uint8_t, 1024> initializing_marker_readback {};
+    // The secret-bearing wire credential is placement-constructed here only
+    // after the locked transport has passed authentication and launcher-pin
+    // revalidation. The raw storage itself has no credential lifetime.
+    alignas(context_store_registry_lab_credential)
+        std::array<std::byte, sizeof(context_store_registry_lab_credential)>
+            wire_credential_storage {};
     context_store_protected_registry_facts predecessor_facts {};
 };
 
@@ -411,7 +419,8 @@ sealed_input_status read_exact(int fd, std::uint8_t * output_bytes, std::size_t 
 
 sealed_input_status parse_credential_shape(
         const sealed_input_request & input, secure_inputs & secure,
-        std::size_t size, sealed_input_audit & output) noexcept {
+        std::size_t size, std::size_t & secret_offset,
+        sealed_input_audit & output) noexcept {
     if (std::memcmp(secure.credential.data(), credential_magic.data(),
                     credential_magic.size()) != 0) {
         return sealed_input_status::invalid_request_no_mutation;
@@ -420,7 +429,8 @@ sealed_input_status parse_credential_shape(
     const std::size_t key_size = read_u16_be(secure.credential.data() + offset);
     offset += 2;
     if (key_size == 0 || key_size > input.expected_key_id.bytes.size() ||
-        size != credential_magic.size() + 2 + key_size + 8 + 2 + secure.secret.size()) {
+        size != credential_magic.size() + 2 + key_size + 8 + 2 +
+                    wire_credential_secret_size) {
         return sealed_input_status::invalid_request_no_mutation;
     }
     for (std::size_t i = 0; i < key_size; ++i) {
@@ -438,8 +448,9 @@ sealed_input_status parse_credential_shape(
         return sealed_input_status::invalid_request_no_mutation;
     }
     offset += 2;
-    std::copy_n(secure.credential.data() + offset, secure.secret.size(), secure.secret.begin());
-    if (!nonzero(secure.secret.data(), secure.secret.size())) {
+    secret_offset = offset;
+    if (!nonzero(secure.credential.data() + secret_offset,
+                 wire_credential_secret_size)) {
         return sealed_input_status::invalid_request_no_mutation;
     }
     output.expected_key_tuple_matched = key_matches &&
@@ -449,8 +460,11 @@ sealed_input_status parse_credential_shape(
         : sealed_input_status::invalid_request_no_mutation;
 }
 
-sealed_input_audit finish(sealed_input_audit output, void * mapping, std::size_t mapping_size,
-                          bool storage_locked, execution_context & context,
+sealed_input_audit finish(sealed_input_audit output, secure_inputs * secure,
+                          void * mapping, std::size_t mapping_size,
+                          bool storage_locked,
+                          context_store_registry_lab_credential * wire_credential,
+                          execution_context & context,
                           sealed_input_status result) noexcept {
     bool credential_closed = false;
     bool predecessor_closed = false;
@@ -464,6 +478,14 @@ sealed_input_audit finish(sealed_input_audit output, void * mapping, std::size_t
         result = sealed_input_status::io_failure_no_mutation;
     }
 
+    if (wire_credential != nullptr) {
+        wire_credential->~context_store_registry_lab_credential();
+        wire_credential = nullptr;
+    }
+    if (secure != nullptr) {
+        secure->~secure_inputs();
+        secure = nullptr;
+    }
     if (mapping != MAP_FAILED && mapping != nullptr && mapping_size != 0) {
         wipe(mapping, mapping_size);
         output.secure_storage_wiped = all_zero(mapping, mapping_size);
@@ -521,6 +543,7 @@ struct authenticated_input_session {
     void * mapping = MAP_FAILED;
     std::size_t mapping_size = 0;
     bool storage_locked = false;
+    context_store_registry_lab_credential * wire_credential = nullptr;
     execution_context context {};
     bool authenticated = false;
 
@@ -533,12 +556,14 @@ sealed_input_status authenticate_sealed_inputs_for_session(
         const sealed_input_request & input, authenticated_input_session & session,
         sealed_input_audit & output) noexcept {
     auto fail = [&](sealed_input_status value) noexcept {
-        output = finish(output, session.mapping, session.mapping_size,
-                        session.storage_locked, session.context, value);
+        output = finish(output, session.secure, session.mapping, session.mapping_size,
+                        session.storage_locked, session.wire_credential,
+                        session.context, value);
         session.secure = nullptr;
         session.mapping = MAP_FAILED;
         session.mapping_size = 0;
         session.storage_locked = false;
+        session.wire_credential = nullptr;
         session.context.signal_mask_changed = false;
         return output.result;
     };
@@ -635,7 +660,9 @@ sealed_input_status authenticate_sealed_inputs_for_session(
     }
     output.credential_package_size = static_cast<std::uint32_t>(credential_size);
     output.predecessor_envelope_size = static_cast<std::uint32_t>(predecessor_size);
-    result = parse_credential_shape(input, *session.secure, credential_size, output);
+    std::size_t credential_secret_offset = 0;
+    result = parse_credential_shape(input, *session.secure, credential_size,
+                                    credential_secret_offset, output);
     if (result != sealed_input_status::transport_validated_no_root_access) {
         return fail(result);
     }
@@ -658,7 +685,8 @@ sealed_input_status authenticate_sealed_inputs_for_session(
     authentication_key.key_id = input.expected_key_id;
     authentication_key.generation = input.expected_key_generation;
     authentication_key.master_key = {
-        session.secure->secret.data(), session.secure->secret.size(),
+        session.secure->credential.data() + credential_secret_offset,
+        wire_credential_secret_size,
     };
     const auto authentication_result = context_store_verify_protected_registry_facts_v1(
         session.secure->predecessor.data(), predecessor_size, authentication_key);
@@ -728,14 +756,35 @@ sealed_input_status authenticate_sealed_inputs_for_session(
     if (!output.descriptors_closed) {
         return fail(sealed_input_status::io_failure_no_mutation);
     }
+    session.wire_credential = ::new (
+        session.secure->wire_credential_storage.data())
+        context_store_registry_lab_credential {};
+    session.wire_credential->key_id = input.expected_key_id;
+    session.wire_credential->generation = input.expected_key_generation;
+    std::copy_n(session.secure->credential.data() + credential_secret_offset,
+                session.wire_credential->secret.size(),
+                session.wire_credential->secret.begin());
+    wipe(session.secure->credential.data(), session.secure->credential.size());
+    if (!all_zero(session.secure->credential.data(),
+                  session.secure->credential.size())) {
+        return fail(sealed_input_status::io_failure_no_mutation);
+    }
     session.authenticated = true;
     output.result = sealed_input_status::predecessor_authenticated_pins_matched_no_root_access;
     return output.result;
 }
 
 bool cleanup_authenticated_input_storage(authenticated_input_session & session,
-                                         sealed_input_audit & output) noexcept {
+                                           sealed_input_audit & output) noexcept {
     bool ok = true;
+    if (session.wire_credential != nullptr) {
+        session.wire_credential->~context_store_registry_lab_credential();
+        session.wire_credential = nullptr;
+    }
+    if (session.secure != nullptr) {
+        session.secure->~secure_inputs();
+        session.secure = nullptr;
+    }
     if (session.mapping != MAP_FAILED && session.mapping != nullptr &&
         session.mapping_size != 0) {
         wipe(session.mapping, session.mapping_size);
