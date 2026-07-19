@@ -1,0 +1,7 @@
+declare -a parent_id=([0]="/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent" [1]="125" [2]="257" [3]="62" [4]="1000" [5]="700" [6]="aa8d22853ce14a10aeb51109245ad61a" [7]="162cdb5e11c84aca89d4bd90b63b8dd6")
+declare -a candidate_id=([0]="/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/candidate-root" [1]="125" [2]="258" [3]="62" [4]="1000" [5]="700" [6]="aa8d22853ce14a10aeb51109245ad61a" [7]="162cdb5e11c84aca89d4bd90b63b8dd6")
+declare -a fixture_id=([0]="/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/fixture" [1]="125" [2]="259" [3]="62" [4]="1000" [5]="700" [6]="aa8d22853ce14a10aeb51109245ad61a" [7]="162cdb5e11c84aca89d4bd90b63b8dd6")
+declare -a cross_pre_id=([0]="/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/cross-root" [1]="125" [2]="260" [3]="62" [4]="1000" [5]="700" [6]="aa8d22853ce14a10aeb51109245ad61a" [7]="162cdb5e11c84aca89d4bd90b63b8dd6")
+declare -a cross_id=([0]="/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/cross-root" [1]="127" [2]="256" [3]="263" [4]="1000" [5]="700" [6]="ffc6b353cf6141ccbace953e8f270236" [7]="5b6aac54c5bb470db2547bb9679277f2")
+lock_device=125
+lock_inode_initial=261

@@ -1,0 +1,8 @@
+path=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/l05s-preinit-1g.img
+size=1073741824
+blocks=2097152
+block_bytes=512
+mode=600
+uid=1000
+dev=58
+inode=4505

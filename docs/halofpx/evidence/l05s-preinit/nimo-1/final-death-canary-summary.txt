@@ -1,0 +1,4 @@
+tracee=2158119 tracer=2158115 signal=SIGKILL busy=pass reacquire=pass
+b5edffb7190366604f9b000171609e21e52d2ff1271c667cefd891fa3fd2413d  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-death-canary.strace
+229fcc60486e780e091a346bf4f2be0a8d37afb8f4c6ec8cde44fd6ed1b83fba  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-death-canary-busy.txt
+b2d0f3a9ce2b0b975090aa58aea2de15de8e68ba4319f1affb41cfa0ee1d3621  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-death-canary-reacquire.txt

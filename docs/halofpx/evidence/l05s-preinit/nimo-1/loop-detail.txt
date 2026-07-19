@@ -1,0 +1,2 @@
+NAME       MAJ:MIN SIZELIMIT OFFSET AUTOCLEAR RO BACK-FILE
+/dev/loop0   7:0           0      0         0  0 /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/l05s-preinit-1g.img

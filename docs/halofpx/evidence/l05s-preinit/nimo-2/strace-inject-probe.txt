@@ -1,0 +1,32 @@
+execve("/usr/bin/true", ["true"], 0x7ffd80d04b20 /* 33 vars */) = 0
+brk(NULL)                               = 0x561705b82000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=181371, ...}) = 0
+mmap(NULL, 181371, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7eff51c6c000
+close(3)                                = 0
+openat(AT_FDCWD, "/usr/lib/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\220~\2\0\0\0\0\0"..., 832) = 832
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 896, 64) = 896
+fstat(3, {st_mode=S_IFREG|0755, st_size=2338304, ...}) = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7eff51c6a000
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 896, 64) = 896
+mmap(NULL, 2362352, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7eff51a00000
+mmap(0x7eff51a24000, 1667072, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x24000) = 0x7eff51a24000
+mmap(0x7eff51bbb000, 491520, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1bb000) = 0x7eff51bbb000
+mmap(0x7eff51c33000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x232000) = 0x7eff51c33000
+mmap(0x7eff51c39000, 31728, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7eff51c39000
+close(3)                                = 0
+mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7eff51c67000
+arch_prctl(ARCH_SET_FS, 0x7eff51c67740) = 0
+set_tid_address(0x7eff51c67d68)         = 1905410
+set_robust_list(0x7eff51c67a20, 24)     = 0
+rseq({cpu_id_start=0, cpu_id=RSEQ_CPU_ID_UNINITIALIZED, rseq_cs=NULL, flags=0, node_id=0, mm_cid=0, slice_ctrl={request=0, granted=0, __reserved=0}, __reserved=0}, 33, 0, 0x53053053) = 0
+mprotect(0x7eff51c33000, 16384, PROT_READ) = 0
+mprotect(0x5616cae84000, 4096, PROT_READ) = 0
+mprotect(0x7eff51cdf000, 8192, PROT_READ) = 0
+prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+getrandom("\x25\xf2\x95\x98\x52\xa9\xb3\x80", 8, GRND_NONBLOCK) = 8
+munmap(0x7eff51c6c000, 181371)          = 0
+exit_group(0)                           = ?
++++ exited with 0 +++

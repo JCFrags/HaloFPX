@@ -1,0 +1,163 @@
+{
+  "schema": "halofpx.l05s-linux-preinit-primitives.v1",
+  "date": "2026-07-19",
+  "parent_commit": "b26489865b8f727f47f0d44dc98569bca6682602",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Linux-only nonmutating registry-lab pre-initialization primitives under ADR-0025; STATIC EXCLUDE_FROM_ALL, default off, and without a product edge",
+  "source_sha256": {
+    "CMakeLists.txt": "46031f189c62a94c0ac6de4d2b9c9446e4035da493f92c6dc0fe69ad325d7463",
+    "tools/server/CMakeLists.txt": "dcd2fd7fc76b299c7fa41181e00682b23e9297ab5f7dc873ff320f2540daae0d",
+    "tools/server/halofpx-context-store-registry-lab-linux-preinit-internal.h": "d9391866432c8464167f03a089ee4fdee43d18f6a81ba83aad83bc6ed9386b9c",
+    "tools/server/halofpx-context-store-registry-lab-linux-preinit.cpp": "648d8b5006e68351a0541368c1771bf1c7f93cb8fef0baaf89f550aefd37928c",
+    "tests/test-halofpx-context-store-registry-lab-linux-preinit.cpp": "ed8b9d063184284e146c301be55be7afa8862b386561c11d8f043274d3ee763d",
+    "tests/test-halofpx-context-store-registry-lab-linux-preinit-contract.cmake": "06607bdaced901baabc746c49981b1b3ea49cc6974a707ba3b179598b25c32f8",
+    "tests/test-halofpx-context-store-registry-lab-linux-preinit-archive-audit.cmake": "8d3f220af843b02ae3ed65399d15105bbe8d16f3f306cc273b55de8436d95c8e",
+    "tests/halofpx-registry-lab-static-audit.cmake": "85b6b300f0990ae7514268c2dc58e97ed5d9b56733cda46138f464672c9cbc5b"
+  },
+  "admitted_contract": {
+    "credential_transport": "exact versioned sealed memfd at inherited fd 3; fd 4 absent; bounded grammar and alias rejection",
+    "path_resolution": "openat2 anchored traversal with RESOLVE_BENEATH, RESOLVE_NO_MAGICLINKS, RESOLVE_NO_SYMLINKS, RESOLVE_NO_XDEV, and exact identity revalidation",
+    "filesystem_identity": "statx mount ID plus Btrfs filesystem and subvolume UUIDs",
+    "layout": "empty candidate root and a single exact primitive.lock fixture with pinned ownership, mode, inode, link count, and length",
+    "admission": "reported writable mount, configured reserve, and exact OFD whole-file write lock with a bounded deadline",
+    "same_process_guard": "root-keyed single active session; same-root busy and different-root invalid return before credential or filesystem syscalls",
+    "success": "ok_non_authoritative only; scratch and owner state wipe on close",
+    "failure": "unsupported, malformed, mismatched, hostile, read-only, reserve-exhausted, contended, or stale input is invalid_request, unavailable, or busy; never partial success"
+  },
+  "build_and_link_boundaries": {
+    "HALOFPX_REGISTRY_LAB_LINUX_PREINIT_default": false,
+    "HALOFPX_REGISTRY_LAB_LINUX_MUTATION_default": false,
+    "mutation_on": "fatal configuration error",
+    "non_linux_preinit_on": "fatal configuration error",
+    "target_shape": "Linux-only STATIC EXCLUDE_FROM_ALL",
+    "product_or_fake_engine_edge": false,
+    "persistent_write_syscalls_admitted": false
+  },
+  "qualification": {
+    "windows_release_feature_off": {
+      "configuration": "MSVC 19.50.35717, Ninja, Release, Linux preinit OFF",
+      "target_absent": true,
+      "halofpx_passed": 40,
+      "halofpx_failed": 0,
+      "halofpx_seconds": 53.83,
+      "crt_assertion_contract": "_set_error_mode(_OUT_TO_STDERR) and _set_abort_behavior preserve assertion stderr and nonzero exit while suppressing abort and ReportFault UI",
+      "static_audit_compatibility_repair": "admit only the exact Visual Studio *.obj and Ninja/MSVC *.cpp.obj archive-member spellings before the unchanged COFF and machine-code comparator audit"
+    },
+    "nimo_1_linux_release": {
+      "qualification_root": "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1",
+      "configuration": "clean Linux CPU Release; Linux preinit ON; Linux mutation, HIP, Vulkan, WebUI, and prebuilt WebUI OFF",
+      "all_target_build": "pass, 581 targets",
+      "halofpx_passed": 42,
+      "halofpx_failed": 0,
+      "halofpx_seconds": 13.75,
+      "executable_sha256": "a0ad45a760b650e04cbe5c8d05df6b70515cc144ca02b3b6ba0f91d0f0edb2eb",
+      "fresh_process_runs": 100,
+      "contention_pairs": 100,
+      "pinned_mismatch_cases": 8,
+      "hostile_layout_cases": 6,
+      "read_only_remount": "unavailable, then ok_non_authoritative after exact read-write restoration",
+      "reserve_exhaustion": "unavailable at 214564864 bytes reported reserve, then ok_non_authoritative at 948568064 after controller-owned deletion and Btrfs sync",
+      "controlled_sigkill": "contender remained busy while holder lived; killing the exact traced holder released the OFD lock; immediate reacquisition succeeded",
+      "inherited_alias": "holder death left the fork-inherited alias alive; provider returned busy after 498 attempts and 5.001518253 seconds without stale-break; alias death then permitted immediate reacquisition",
+      "exec_cloexec": "exec sentinel proved the pinned lock inode had no surviving descriptor while the sentinel remained alive; provider immediately reacquired",
+      "final_attack_matrix": {"cases": 75, "failures": 0, "traversal": 25, "real_cross_mount": 25, "actual_inode_replacement": 25, "stable_tree_equalities": 2},
+      "final_fixture_facts_sha256": "35c7f92ee79641fa43eb04e4b3bc5248edebdd78c4f7728faf6bab06dbcba229",
+      "cleanup_receipt_sha256": "ab6e0860bc7987a21397c4d6be9beb36a99ad16f9a36096abe6365110b0d513d"
+    },
+    "nimo_2_linux_release": {
+      "qualification_root": "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2",
+      "executable_sha256": "72638b608dbbbbe198ff919613d555f82de58fd5c2a68a7a80c58355997a7e8f",
+      "fresh_process_runs": 100,
+      "contention_pairs": 100,
+      "live_guard_probe": "active success plus same-root busy with zero syscalls/facts plus different-root invalid with zero syscalls/facts",
+      "controlled_sigkill": "contender remained busy while holder lived; exact holder death released the OFD lock; immediate reacquisition succeeded",
+      "inherited_alias": "holder death left the fork-inherited alias alive; provider returned busy after 498 attempts and 5.001584819 seconds without stale-break; alias death then permitted immediate reacquisition",
+      "exec_cloexec": "exec sentinel remained alive with no pinned lock-inode descriptor; provider immediately reacquired",
+      "final_attack_matrix": {"cases": 75, "failures": 0, "traversal": 25, "real_cross_mount": 25, "actual_inode_replacement": 25, "stable_tree_equalities": 2},
+      "cleanup_receipt_sha256": "9a0be2f7795a304ea66ba20f7aee494ecdd54c8a4ac83b78fb0a32cd51cf505e"
+    },
+    "nimo_2_linux_asan_ubsan": {
+      "configuration": "clean Linux Debug with -fsanitize=address,undefined and -fno-omit-frame-pointer; Linux preinit ON; mutation and product accelerators OFF",
+      "all_target_build": "pass",
+      "halofpx_passed": 42,
+      "halofpx_failed": 0,
+      "halofpx_seconds": 124.57,
+      "executable_sha256": "53112ee3922839082ca061010af0c8162ed39c086923690d22acbf1b38b226e4",
+      "fresh_process_runs": 100,
+      "contention_pairs": 100,
+      "controlled_sigkill": "pass",
+      "inherited_alias": "busy after 498 attempts and 5.007187626 seconds, then immediate reacquisition after exact alias death",
+      "exec_cloexec": "pass while exec sentinel remained alive",
+      "sanitizer_findings": 0
+    }
+  },
+  "retained_raw_evidence": {
+    "nimo_1": {"path": "docs/halofpx/evidence/l05s-preinit/nimo-1", "files": 243, "bytes": 812741, "initial_export_tar_sha256": "1d46d5b82586dc7bd295fe717d80cf0d3c8a00a326c191def8e6ce3712be2d2b", "attack_bundle_sha256": "9b25d3986596a3a1a59db6b46949226d7f965ee43c3eef97d88405677ecab645"},
+    "nimo_2": {"path": "docs/halofpx/evidence/l05s-preinit/nimo-2", "files": 258, "bytes": 903382, "initial_export_tar_sha256": "7c2ddbcbcb253e420c5b4060ae7798e9f7745672b32db545400c278e2d7b6328", "attack_bundle_sha256": "610a12b6bc0e82c9019c60adc562ea470533d50376f2ecb5763b03e9d57937f5"},
+    "final_exact_binary_attack_total": {"cases": 150, "failures": 0, "nodes": 2},
+    "final_lifetime_probe_logs": {
+      "nimo_1_release_alias_sha256": "a6ad9b5a434cb15853b47d3e7e86b5204e19729fa88c4090764c285354fea459",
+      "nimo_1_release_exec_sha256": "ff82275f42c4e5b6fbe65f8b19a820de51ab5661fbb843a6a0ce901096b68da9",
+      "nimo_2_release_alias_sha256": "92b615e469e5ee3945ce5eef8a75127b08bf1207fb5e87c9162cf00f32e0dc44",
+      "nimo_2_release_exec_sha256": "b419186d2ec11afd105e6ce62e08418ec9c985e064cff5824d33cd3411504def",
+      "nimo_2_asan_alias_sha256": "c97ff4ad9db799efbd6a27183220d2968618ba4df5c6635445601e28ba4ecbad",
+      "nimo_2_asan_exec_sha256": "ede075a0e44ec5a0c4f2e5bbb105f24a2ea8b03f3fa88211249da0bb7caf5d57"
+    },
+    "excluded_from_promotion": [
+      "nimo-2 asan-fcntl-canary.out and asan-fcntl-canary.strace: superseded failed controller attempt",
+      "nimo-2 optimized-fresh-process-100-controller-failure.tsv: superseded controller failure",
+      "nimo-1 reserve-reacquire-v2.txt: immediate post-delete Btrfs delayed-allocation observation, superseded by controller sync and final reacquisition",
+      "nimo-1 hostile-layout-controller-literal-failure.log: controller quoting failure, superseded by final-hostile-layout-matrix-v2.log",
+      "nimo-1 excluded-pre-harness-final-source-sha256.txt: accurate pre-harness source snapshot retained under an explicit excluded name; final source-to-binary mapping is final-source-binary-sha256-v2.txt on both nodes",
+      "pre-harness binary/build/full-suite records on both nodes were renamed with excluded-pre-harness-*; the promoted final records are final-source-binary-sha256-v2.txt plus final-release-full-halofpx-ctest-v2.log on nimo-1 and final-asan-full-halofpx-ctest-v2.log on nimo-2",
+      "nimo-2 excluded-release-focused-build-full-ctest-attempt.log: full CTest was invoked against an intentionally focused Release build without inherited executables; final full coverage is the nimo-1 Release and nimo-2 ASan/UBSan 42/42 runs"
+    ]
+  },
+  "independent_review": {
+    "initial_findings": [
+      "final parent/root/fixture/layout/reserve/read-only/lock revalidation was incomplete",
+      "the same-process root-keyed guard was unreachable under one-shot test execution",
+      "credential alias-scan fstat errors failed open",
+      "a malformed overlapping call could close the active session's fd 3",
+      "the first guard probe inferred closure from EBADF even though fd 3 could be reused"
+    ],
+    "repairs": [
+      "added full final revalidation",
+      "added a live same-process guard probe",
+      "made alias-scan errors fail closed",
+      "preserved the active credential descriptor across malformed overlap",
+      "bound the probe to the exact memfd readlink identity"
+    ],
+    "final_verdict": "ACCEPT",
+    "remaining_actionable_findings": 0,
+    "reviewed_dimensions": ["correctness", "freshness", "clarity", "provenance", "security", "rollback", "performance", "reusable improvements"]
+  },
+  "service_health_after_qualification": {
+    "nimo_1_llama_server_pid": 3783057,
+    "nimo_1_health_http": 200,
+    "nimo_2_rpc_pid": 3562775,
+    "nimo_2_rpc_listen": "0.0.0.0:50052",
+    "restarted_or_redeployed": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false,
+    "remote_created_or_pushed": false
+  },
+  "nonclaims": [
+    "No registry initialization, mutation, publication, persistent server write, cache hit, restore path, inference path, HIP path, Vulkan path, or distributed protocol is enabled.",
+    "CPU and sanitizer timings are qualification telemetry, not an inference-performance claim.",
+    "The original two loopback Btrfs fixtures and four later attack-matrix images were controller-created qualification media; all were unmounted, detached, and removed after exact identity checks.",
+    "L14Q quantized-KV and FlashAttention work remains parked and is not part of this milestone."
+  ]
+}

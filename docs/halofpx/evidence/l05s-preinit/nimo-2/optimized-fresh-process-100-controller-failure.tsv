@@ -1,0 +1,11 @@
+001	status=ok_non_authoritative
+000	credential_before_root=1
+000	parent=1
+000	fixture=1
+000	root_empty=1
+000	not_reported_read_only=1
+000	scratch_wiped=1
+000	owner_unlocked=1
+000	root_fixture_syscalls=41
+000	filesystem_reserve=948568064
+000	

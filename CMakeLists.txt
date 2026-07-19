@@ -113,6 +113,26 @@ option(LLAMA_USE_PREBUILT_WEBUI     "llama: use prebuilt WebUI from HF Bucket wh
 option(LLAMA_TOOLS_INSTALL          "llama: install tools"                                                                          ${LLAMA_TOOLS_INSTALL_DEFAULT})
 option(LLAMA_TESTS_INSTALL          "llama: install tests"                                                                          ON)
 
+# HaloFPX L05s is a standalone Linux qualification seam. Both controls are
+# deliberately off unless an isolated qualification build selects them.
+option(HALOFPX_REGISTRY_LAB_LINUX_PREINIT
+       "Build the Linux-only nonmutating registry-lab pre-initialization primitives"
+       OFF)
+option(HALOFPX_REGISTRY_LAB_LINUX_MUTATION
+       "Build Linux registry-lab mutation support (not admitted)"
+       OFF)
+
+if (HALOFPX_REGISTRY_LAB_LINUX_MUTATION)
+    message(FATAL_ERROR
+        "HALOFPX_REGISTRY_LAB_LINUX_MUTATION is not admitted by ADR-0025")
+endif()
+
+if (HALOFPX_REGISTRY_LAB_LINUX_PREINIT AND
+    NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(FATAL_ERROR
+        "HALOFPX_REGISTRY_LAB_LINUX_PREINIT is available only on Linux")
+endif()
+
 # 3rd party libs
 option(LLAMA_OPENSSL    "llama: use openssl to support HTTPS" ON)
 option(LLAMA_LLGUIDANCE "llama-common: include LLGuidance library for structured output in common utils" OFF)

@@ -70,6 +70,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05r fake sticky-quarantine publication receipt](evidence/l05r-quarantine-publication-receipt.json)
 - [ADR-0025 Linux registry-lab pre-initialization primitives](decisions/0025-linux-registry-lab-preinitialization-primitives.md)
 - [ADR-0025 independent adversarial review](reviews/2026-07-19__adr-0025-linux-preinit-primitives__review__v01.md)
+- [L05s Linux pre-initialization primitives review](reviews/2026-07-19__l05s-linux-preinit-primitives__review__v01.md)
+- [L05s Linux pre-initialization primitives receipt](evidence/l05s-linux-preinit-primitives-receipt.json)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

@@ -1,0 +1,1 @@
+status=unavailable credential_admitted=1 credential_before_root=1 key_tuple=1 parent=1 root=1 fixture=0 lock_identity=0 root_empty=1 fixture_layout=0 not_reported_read_only=1 ofd_lock=0 scratch_wiped=1 owner_wiped=1 owner_unlocked=1 credential_syscalls=17 root_fixture_syscalls=21 ofd_attempts=0 filesystem_reserve=214564864 logical_authority_bound=16777216

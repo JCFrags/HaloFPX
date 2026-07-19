@@ -1,0 +1,2 @@
+Filesystem     Type         Avail Mounted on
+/dev/nvme0n1p2 btrfs 330519760896 /var/tmp

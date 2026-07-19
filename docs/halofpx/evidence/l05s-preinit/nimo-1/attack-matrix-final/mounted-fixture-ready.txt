@@ -1,0 +1,8 @@
+ready_timestamp=2026-07-19T04:11:34,293126202-07:00
+controller_pid=2161597
+base=/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1
+parent=/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent
+candidate=/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/candidate-root
+fixture=/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/fixture
+cross_root=/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/cross-root
+release_file=/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/release-cleanup

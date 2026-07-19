@@ -1,0 +1,2 @@
+loop=/dev/loop0
+backing=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/l05s-preinit-1g.img

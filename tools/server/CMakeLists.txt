@@ -127,6 +127,62 @@ target_compile_features(halofpx-context-store-registry-lab-read-only PRIVATE cxx
 set(HALOFPX_REGISTRY_LAB_READ_ONLY_TARGET
     halofpx-context-store-registry-lab-read-only)
 
+# Internal-only L05s Linux pre-initialization primitives. This target performs
+# no registry initialization or mutation and has no product or fake-engine edge.
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
+    HALOFPX_REGISTRY_LAB_LINUX_PREINIT)
+    add_library(halofpx-context-store-registry-lab-linux-preinit STATIC EXCLUDE_FROM_ALL
+        halofpx-context-store-registry-lab-linux-preinit.cpp
+        halofpx-context-store-registry-lab-linux-preinit-internal.h)
+    target_compile_features(halofpx-context-store-registry-lab-linux-preinit PRIVATE
+        cxx_std_17)
+    target_compile_definitions(halofpx-context-store-registry-lab-linux-preinit PRIVATE
+        _GNU_SOURCE)
+
+    if (BUILD_TESTING)
+        add_executable(test-halofpx-context-store-registry-lab-linux-preinit EXCLUDE_FROM_ALL
+            ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-registry-lab-linux-preinit.cpp)
+        target_include_directories(test-halofpx-context-store-registry-lab-linux-preinit PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR})
+        target_link_libraries(test-halofpx-context-store-registry-lab-linux-preinit PRIVATE
+            halofpx-context-store-registry-lab-linux-preinit Threads::Threads)
+        target_compile_features(test-halofpx-context-store-registry-lab-linux-preinit PRIVATE
+            cxx_std_17)
+        target_compile_definitions(test-halofpx-context-store-registry-lab-linux-preinit PRIVATE
+            _GNU_SOURCE)
+
+        add_test(NAME test-halofpx-context-store-registry-lab-linux-preinit
+            COMMAND test-halofpx-context-store-registry-lab-linux-preinit)
+        set_tests_properties(test-halofpx-context-store-registry-lab-linux-preinit PROPERTIES
+            LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+
+        add_test(NAME test-halofpx-context-store-registry-lab-linux-preinit-contract
+            COMMAND ${CMAKE_COMMAND}
+                -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+                -P ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-registry-lab-linux-preinit-contract.cmake)
+        set_tests_properties(
+            test-halofpx-context-store-registry-lab-linux-preinit-contract PROPERTIES
+            LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+
+        find_program(HALOFPX_L05S_NM_EXECUTABLE NAMES llvm-nm nm REQUIRED)
+        find_program(HALOFPX_L05S_AR_EXECUTABLE NAMES llvm-ar ar REQUIRED)
+        file(GENERATE
+            OUTPUT "${CMAKE_BINARY_DIR}/halofpx-registry-lab-linux-preinit-archive-$<CONFIG>.cmake"
+            CONTENT
+"set(HALOFPX_L05S_ARCHIVE \"$<TARGET_FILE:halofpx-context-store-registry-lab-linux-preinit>\")
+")
+        add_test(NAME test-halofpx-context-store-registry-lab-linux-preinit-archive-audit
+            COMMAND ${CMAKE_COMMAND}
+                -DARCHIVE_MANIFEST=${CMAKE_BINARY_DIR}/halofpx-registry-lab-linux-preinit-archive-$<CONFIG>.cmake
+                -DNM_TOOL=${HALOFPX_L05S_NM_EXECUTABLE}
+                -DAR_TOOL=${HALOFPX_L05S_AR_EXECUTABLE}
+                -P ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-registry-lab-linux-preinit-archive-audit.cmake)
+        set_tests_properties(
+            test-halofpx-context-store-registry-lab-linux-preinit-archive-audit PROPERTIES
+            LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+    endif()
+endif()
+
 # Offline-only L05a publication coordinator and injected fault seam. No
 # concrete filesystem backend exists and this target is not linked to server.
 add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL

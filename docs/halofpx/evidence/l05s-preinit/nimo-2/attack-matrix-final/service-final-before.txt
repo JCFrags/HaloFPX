@@ -1,0 +1,6 @@
+timestamp=2026-07-19T04:16:22,248792885-07:00
+3562775 /opt/llm-usb4-cluster/llama/ggml-rpc-server --host 0.0.0.0 --port 50052
+LISTEN 0      1            0.0.0.0:50052      0.0.0.0:*    users:(("ggml-rpc-server",pid=3562775,fd=5))
+curl: (7) Failed to connect to 127.0.0.1:8081 after 0 ms: Could not connect to server
+
+http_code=000

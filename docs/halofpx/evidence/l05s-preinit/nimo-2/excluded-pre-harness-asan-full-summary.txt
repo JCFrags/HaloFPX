@@ -1,0 +1,5 @@
+start=2026-07-19T03:36:04,986884318-07:00
+build_exit=0 end=2026-07-19T03:36:08,085164298-07:00
+ctest_exit=0 end=2026-07-19T03:38:09,511161594-07:00
+1bc3208a96620afbee33b4ba15bab5a773dee5f1ee2e2bd12094b9dbd8d7302c  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/evidence/final-asan-full-build.log
+8427ce922bc309f949693eb1bc0bd4da86148988d0b70ba4c84abcaa525a2f96  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/evidence/final-asan-full-halofpx-ctest.log

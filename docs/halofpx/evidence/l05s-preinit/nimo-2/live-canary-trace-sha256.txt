@@ -1,0 +1,2 @@
+ee9f1fd90173b837d5c91e1030616119d4d9946e6c9c8ee09b2959b583e1a066  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/evidence/live-canary.strace
+4244bcde4c5dbb52c30f28feb9ebfc4e513cc629695de58958bca50ead019ea9  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/evidence/live-canary-straced.txt

@@ -1,0 +1,7 @@
+image=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/l05s-preinit-1g.img
+image_dev=58
+image_inode=4505
+loop=/dev/loop0
+backing=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/l05s-preinit-1g.img
+mount_source=/dev/loop0
+cleanup=pass

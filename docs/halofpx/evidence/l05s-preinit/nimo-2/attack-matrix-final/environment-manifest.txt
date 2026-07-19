@@ -1,0 +1,32 @@
+timestamp=2026-07-19T04:12:15,038082654-07:00
+ Static hostname: nimo-2
+       Icon name: computer-desktop
+         Chassis: desktop 🖥️
+      Machine ID: 1045b9188a3d4662848829483f9fb70b
+         Boot ID: 4511b107942944c28e81c6b7a54c376b
+Operating System: CachyOS
+          Kernel: Linux 7.1.3-1-cachyos
+    Architecture: x86-64
+ Hardware Vendor: Nimo Direct Inc.
+  Hardware Model: MME3L
+    Hardware SKU: 199369029927
+Hardware Version: Version 1.0
+Firmware Version: 3.05
+   Firmware Date: Sat 2025-10-11
+    Firmware Age: 9month 1w
+uid=1000(connorb) gid=1000(connorb) groups=1000(connorb),3(sys),90(network),957(nopasswdlogin),979(rfkill),982(users),983(video),985(storage),987(render),989(lp),995(audio),998(wheel)
+Linux nimo-2 7.1.3-1-cachyos #1 SMP PREEMPT_DYNAMIC Sat, 04 Jul 2026 20:05:25 +0000 x86_64 GNU/Linux
+kernel=7.1.3-1-cachyos
+binary=/var/tmp/halofpx-l05s-compile-smoke-20260719/cmake-build-v1/bin/test-halofpx-context-store-registry-lab-linux-preinit
+2c369001a8b0c8578b70f8192a6c971c753d840765e10d65e043d607a3df3129  /var/tmp/halofpx-l05s-compile-smoke-20260719/cmake-build-v1/bin/test-halofpx-context-store-registry-lab-linux-preinit
+usage: /var/tmp/halofpx-l05s-compile-smoke-20260719/cmake-build-v1/bin/test-halofpx-context-store-registry-lab-linux-preinit --qualify EXPECTED PARENT_PATH DEV INO MOUNT UID MODE FSUUID SUBVOLUUID ROOT_PATH DEV INO MOUNT UID MODE FSUUID SUBVOLUUID FIXTURE_PATH DEV INO MOUNT UID MODE FSUUID SUBVOLUUID LOCK_DEV LOCK_INO KEY_ID KEY_GENERATION
+cmake version 4.3.4
+c++ (GCC) 16.1.1 20260625
+GNU ld (GNU Binutils) 2.46.1
+btrfs-progs v7.0
+-EXPERIMENTAL -INJECT -STATIC +LZO +ZSTD +UDEV +FSVERITY +ZONED CRYPTO=libgcrypt
+strace -- version 7.0
+losetup from util-linux 2.42.2
+findmnt from util-linux 2.42.2
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/nvme0n1p2 999665881088 667099914240 330931740672  67% /var/tmp

@@ -1,0 +1,5 @@
+d mode=700 uid=1000 gid=1000 dev=128 inode=257 links=1 size=42 path=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent
+d mode=700 uid=1000 gid=1000 dev=128 inode=258 links=1 size=0 path=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root
+d mode=700 uid=1000 gid=1000 dev=128 inode=259 links=1 size=28 path=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture
+f mode=600 uid=1000 gid=1000 dev=128 inode=260 links=1 size=0 path=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock

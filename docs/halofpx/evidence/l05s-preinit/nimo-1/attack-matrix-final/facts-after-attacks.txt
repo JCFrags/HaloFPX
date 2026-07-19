@@ -1,0 +1,60 @@
+timestamp=2026-07-19T04:11:34,231923958-07:00
+label=after-attacks
+host_free_bytes=132338728960
+binary_sha256=a34c3928b2071a0e8a2e19ea90cbe86a2f58a05f59ccca92f497a1187fc6adad
+mountinfo:
+62 230 /var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount /dev/loop0 btrfs rw,noatime,ssd,discard=async,space_cache=v2,subvolid=5,subvol=/
+263 62 /var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/cross-root /dev/loop1 btrfs rw,noatime,ssd,discard=async,space_cache=v2,subvolid=5,subvol=/
+loop_devices:
+/dev/loop0 /var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-1g.btrfs          0      0         0  0
+/dev/loop1 /var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/cross-1g.btrfs         0      0         0  0
+image_facts:
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-1g.btrfs dev=55 ino=6047 mode=600 uid=1000 size=1073741824 blocks=656
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/cross-1g.btrfs dev=55 ino=6048 mode=600 uid=1000 size=1073741824 blocks=656
+tree_facts:
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/candidate-root type=d dev=125 ino=258 mode=700 uid=1000 nlink=1 size=0
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/cross-root type=d dev=127 ino=256 mode=700 uid=1000 nlink=1 size=0
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/fixture/primitive.lock type=f dev=125 ino=263 mode=600 uid=1000 nlink=1 size=0
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/fixture type=d dev=125 ino=259 mode=700 uid=1000 nlink=1 size=28
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent type=d dev=125 ino=257 mode=700 uid=1000 nlink=1 size=62
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount type=d dev=125 ino=256 mode=700 uid=1000 nlink=1 size=20
+cross_root_facts:
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/cross-root type=d dev=127 ino=256 mode=700 uid=1000 nlink=1 size=0
+btrfs_parent:
+/
+	Name: 			<FS_TREE>
+	UUID: 			162cdb5e-11c8-4aca-89d4-bd90b63b8dd6
+	Parent UUID: 		-
+	Received UUID: 		-
+	Creation time: 		2026-07-19 04:11:33 -0700
+	Subvolume ID: 		5
+	Generation: 		5
+	Gen at creation: 	0
+	Parent ID: 		0
+	Top level ID: 		0
+	Flags: 			-
+	Send transid: 		0
+	Send time: 		2026-07-19 04:11:33 -0700
+	Receive transid: 	0
+	Receive time: 		-
+	Snapshot(s):
+	Quota group:		n/a
+btrfs_cross_root:
+/
+	Name: 			<FS_TREE>
+	UUID: 			5b6aac54-c5bb-470d-b254-7bb9679277f2
+	Parent UUID: 		-
+	Received UUID: 		-
+	Creation time: 		2026-07-19 04:11:33 -0700
+	Subvolume ID: 		5
+	Generation: 		5
+	Gen at creation: 	0
+	Parent ID: 		0
+	Top level ID: 		0
+	Flags: 			-
+	Send transid: 		0
+	Send time: 		2026-07-19 04:11:33 -0700
+	Receive transid: 	0
+	Receive time: 		-
+	Snapshot(s):
+	Quota group:		n/a

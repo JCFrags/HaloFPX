@@ -1,0 +1,5 @@
+a34c3928b2071a0e8a2e19ea90cbe86a2f58a05f59ccca92f497a1187fc6adad  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/build-release/bin/test-halofpx-context-store-registry-lab-linux-preinit
+ad7f2906221c2bfddb1a72136e10e1adbf88e21e5bc4e387ddcdc26ee44f15b9  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-release-configure.log
+9b84a3446572168caf9f5540a6c1f4b0707c985d8f49956a232386dd58aa940f  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-release-focused-ctest.log
+20c9530e5536768a7c7754364d15f6d3294889eb080d5a8a6f1853d76736eff5  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-release-full-build.log
+d7645bde8428ef1ed864cac2fd1fe6ba4c4e959d3e46ba5ca66cae74144a0dc7  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-release-full-halofpx-ctest.log

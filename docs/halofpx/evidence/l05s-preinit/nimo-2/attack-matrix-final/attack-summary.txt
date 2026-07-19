@@ -1,0 +1,9 @@
+initial_facts_sha256=8786f57a0372a14cfb4da815734e81e257c615e3cf234ec9e451b8dd02e81047
+after_facts_sha256=45e96756d0a355d859f176abfb9749b09c4df066eaf598a1577e1cb54134f4fa
+case_count=75
+failure_count=0
+traversal_count=25
+cross_mount_count=25
+inode_replacement_count=25
+traversal_cross_tree_equal=1
+replacement_tree_equal=1

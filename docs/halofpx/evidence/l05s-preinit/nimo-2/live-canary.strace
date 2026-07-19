@@ -1,0 +1,205 @@
+1905579 execve("/var/tmp/halofpx-l05s-compile-smoke-20260719/cmake-build-v1/bin/test-halofpx-context-store-registry-lab-linux-preinit", ["/var/tmp/halofpx-l05s-compile-smoke-20260719/cmake-build-v1/bin/test-halofpx-context-store-registry-lab-linux-preinit", "--launch-qualify", "ok_non_authoritative", "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent", "128", "257", "238", "1000", "700", "234bd550691f4497890135dd6752dd3e", "9cb9043601fd484b8c4403fb954d9296", "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root", "128", "258", "238", "1000", "700", "234bd550691f4497890135dd6752dd3e", "9cb9043601fd484b8c4403fb954d9296", "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture", "128", "259", "238", "1000", "700", "234bd550691f4497890135dd6752dd3e", "9cb9043601fd484b8c4403fb954d9296", "128", "260", "halofpx-l05s-nimo2-run", "1"], 0x7ffe22ea4aa0 /* 33 vars */) = 0
+1905579 brk(NULL)                       = 0x55a86c9d6000
+1905579 access("/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory)
+1905579 openat(AT_FDCWD</home/connorb>, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3</etc/ld.so.cache>
+1905579 fstat(3</etc/ld.so.cache>, {st_mode=S_IFREG|0644, st_size=181371, ...}) = 0
+1905579 mmap(NULL, 181371, PROT_READ, MAP_PRIVATE, 3</etc/ld.so.cache>, 0) = 0x7f86a2f49000
+1905579 close(3</etc/ld.so.cache>)      = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/usr/lib/libstdc++.so.6", O_RDONLY|O_CLOEXEC) = 3</usr/lib/libstdc++.so.6.0.35>
+1905579 read(3</usr/lib/libstdc++.so.6.0.35>, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\03042\0\0\0\0\0\0\0\0\0@\08\0\r\0@\0 \0\37\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\360\225\t\0\0\0\0\0\360\225\t\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0\240\t\0\0\0\0\0\0\240\t\0\0\0\0\0\0\240\t\0\0\0\0\0\221y\35\0\0\0\0\0\221y\35\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0 '\0\0\0\0\0\0 '\0\0\0\0\0\0 '\0\0\0\0\0 \375\t\0\0\0\0\0 \375\t\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\6\0\0\0H&1\0\0\0\0\0H&1\0\0\0\0\0"..., 832) = 832
+1905579 fstat(3</usr/lib/libstdc++.so.6.0.35>, {st_mode=S_IFREG|0755, st_size=3292184, ...}) = 0
+1905579 mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f86a2f47000
+1905579 mmap(NULL, 3306240, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</usr/lib/libstdc++.so.6.0.35>, 0) = 0x7f86a2c00000
+1905579 mmap(0x7f86a2c9a000, 1933312, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libstdc++.so.6.0.35>, 0x9a000) = 0x7f86a2c9a000
+1905579 mmap(0x7f86a2e72000, 655360, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libstdc++.so.6.0.35>, 0x272000) = 0x7f86a2e72000
+1905579 mmap(0x7f86a2f12000, 73728, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libstdc++.so.6.0.35>, 0x312000) = 0x7f86a2f12000
+1905579 mmap(0x7f86a2f24000, 13056, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f86a2f24000
+1905579 close(3</usr/lib/libstdc++.so.6.0.35>) = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/usr/lib/libm.so.6", O_RDONLY|O_CLOEXEC) = 3</usr/lib/libm.so.6>
+1905579 read(3</usr/lib/libm.so.6>, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\340a\20\0\0\0\0\0\0\0\0\0@\08\0\r\0@\0\37\0\36\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0X\361\0\0\0\0\0\0X\361\0\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\0\0qj\t\0\0\0\0\0qj\t\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0p\n\0\0\0\0\0\0p\n\0\0\0\0\0\0p\n\0\0\0\0\0\230\336\5\0\0\0\0\0\230\336\5\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\6\0\0\0\270\\\20\0\0\0\0\0\270\\\20\0\0\0\0\0"..., 832) = 832
+1905579 fstat(3</usr/lib/libm.so.6>, {st_mode=S_IFREG|0755, st_size=1075616, ...}) = 0
+1905579 mmap(NULL, 1073480, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</usr/lib/libm.so.6>, 0) = 0x7f86a2af9000
+1905579 mmap(0x7f86a2b09000, 618496, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libm.so.6>, 0x10000) = 0x7f86a2b09000
+1905579 mmap(0x7f86a2ba0000, 385024, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libm.so.6>, 0xa7000) = 0x7f86a2ba0000
+1905579 mmap(0x7f86a2bfe000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libm.so.6>, 0x105000) = 0x7f86a2bfe000
+1905579 close(3</usr/lib/libm.so.6>)    = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/usr/lib/libgcc_s.so.1", O_RDONLY|O_CLOEXEC) = 3</usr/lib/libgcc_s.so.1>
+1905579 read(3</usr/lib/libgcc_s.so.1>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\260A\3\0\0\0\0\0\0\0\0\0@\08\0\f\0@\0\35\0\34\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3608\0\0\0\0\0\0\3608\0\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0Q\242\2\0\0\0\0\0Q\242\2\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\360\2\0\0\0\0\0\0\360\2\0\0\0\0\0\0\360\2\0\0\0\0\0P?\0\0\0\0\0\0P?\0\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\6\0\0\0\310;\3\0\0\0\0\0\310;\3\0\0\0\0\0"..., 832) = 832
+1905579 fstat(3</usr/lib/libgcc_s.so.1>, {st_mode=S_IFREG|0644, st_size=215280, ...}) = 0
+1905579 mmap(NULL, 213480, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</usr/lib/libgcc_s.so.1>, 0) = 0x7f86a2ac4000
+1905579 mmap(0x7f86a2ac8000, 176128, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libgcc_s.so.1>, 0x4000) = 0x7f86a2ac8000
+1905579 mmap(0x7f86a2af3000, 16384, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libgcc_s.so.1>, 0x2f000) = 0x7f86a2af3000
+1905579 mmap(0x7f86a2af7000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libgcc_s.so.1>, 0x33000) = 0x7f86a2af7000
+1905579 close(3</usr/lib/libgcc_s.so.1>) = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/usr/lib/libc.so.6", O_RDONLY|O_CLOEXEC) = 3</usr/lib/libc.so.6>
+1905579 read(3</usr/lib/libc.so.6>, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\220~\2\0\0\0\0\0@\0\0\0\0\0\0\0\0\236#\0\0\0\0\0\0\0\0\0@\08\0\20\0@\0@\0?\0\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\200\3\0\0\0\0\0\0\200\3\0\0\0\0\0\0\10\0\0\0\0\0\0\0\3\0\0\0\4\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\36\0\0\0\0\0\0\0\36\0\0\0\0\0\0\0\20\0\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3707\2\0\0\0\0\0\3707\2\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0"..., 832) = 832
+1905579 pread64(3</usr/lib/libc.so.6>, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\200\3\0\0\0\0\0\0\200\3\0\0\0\0\0\0\10\0\0\0\0\0\0\0\3\0\0\0\4\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\36\0\0\0\0\0\0\0\36\0\0\0\0\0\0\0\20\0\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3707\2\0\0\0\0\0\3707\2\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0\215j\31\0\0\0\0\0\215j\31\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\260\33\0\0\0\0\0\0\260\33\0\0\0\0\0\0\260\33\0\0\0\0\0"..., 896, 64) = 896
+1905579 fstat(3</usr/lib/libc.so.6>, {st_mode=S_IFREG|0755, st_size=2338304, ...}) = 0
+1905579 pread64(3</usr/lib/libc.so.6>, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\200\3\0\0\0\0\0\0\200\3\0\0\0\0\0\0\10\0\0\0\0\0\0\0\3\0\0\0\4\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\36\0\0\0\0\0\0\0\36\0\0\0\0\0\0\0\20\0\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3707\2\0\0\0\0\0\3707\2\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0\215j\31\0\0\0\0\0\215j\31\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\260\33\0\0\0\0\0\0\260\33\0\0\0\0\0\0\260\33\0\0\0\0\0"..., 896, 64) = 896
+1905579 mmap(NULL, 2362352, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3</usr/lib/libc.so.6>, 0) = 0x7f86a2800000
+1905579 mmap(0x7f86a2824000, 1667072, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libc.so.6>, 0x24000) = 0x7f86a2824000
+1905579 mmap(0x7f86a29bb000, 491520, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libc.so.6>, 0x1bb000) = 0x7f86a29bb000
+1905579 mmap(0x7f86a2a33000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3</usr/lib/libc.so.6>, 0x232000) = 0x7f86a2a33000
+1905579 mmap(0x7f86a2a39000, 31728, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f86a2a39000
+1905579 close(3</usr/lib/libc.so.6>)    = 0
+1905579 mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f86a2f45000
+1905579 mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f86a2f42000
+1905579 mprotect(0x7f86a2a33000, 16384, PROT_READ) = 0
+1905579 mprotect(0x7f86a2af7000, 4096, PROT_READ) = 0
+1905579 mprotect(0x7f86a2bfe000, 4096, PROT_READ) = 0
+1905579 mprotect(0x7f86a2f12000, 69632, PROT_READ) = 0
+1905579 mprotect(0x55a83f682000, 4096, PROT_READ) = 0
+1905579 mprotect(0x7f86a2fbc000, 8192, PROT_READ) = 0
+1905579 getrandom("\xd0\x7c\x1c\xdd\xcd\xdd\xae\x7f", 8, GRND_NONBLOCK) = 8
+1905579 munmap(0x7f86a2f49000, 181371)  = 0
+1905579 brk(NULL)                       = 0x55a86c9d6000
+1905579 brk(0x55a86ca09000)             = 0x55a86ca09000
+1905579 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_DROPPABLE|MAP_ANONYMOUS, -1, 0) = 0x7f86a2f75000
+1905579 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f86a2f74000
+1905579 getrandom("\xa1\xe3\x2a\x3f\xdd\xed\x9e\x4c\x2c\x93\x95\x9c\xfc\x0c\x04\x3c\x62\x46\x50\x3c\xbc\x70\xed\x9e\x4c\x39\x94\x8b\xa7\x08\x6d\x41", 32, 0) = 32
+1905579 close(3)                        = -1 EBADF (Bad file descriptor)
+1905579 close(4)                        = -1 EBADF (Bad file descriptor)
+1905579 memfd_create("halofpx-registry-lab-credential", MFD_CLOEXEC|MFD_ALLOW_SEALING) = 3</memfd:halofpx-registry-lab-credential>(deleted)
+1905579 write(3</memfd:halofpx-registry-lab-credential>(deleted), "HaloFPXRegKey01\0\0\26halofpx-l05s-nimo2-run\0\0\0\0\0\0\0\1\0 \0\2454\213\370\361\n\\\305\241\363SRo\242\336m\363\207]\221\332\33\221\275\360\"\37_\254\257\26", 82) = 82
+1905579 fcntl(3</memfd:halofpx-registry-lab-credential>(deleted), F_ADD_SEALS, F_SEAL_SEAL|F_SEAL_SHRINK|F_SEAL_GROW|F_SEAL_WRITE) = 0
+1905579 fcntl(3</memfd:halofpx-registry-lab-credential>(deleted), F_GETFD) = 0x1 (flags FD_CLOEXEC)
+1905579 fcntl(3</memfd:halofpx-registry-lab-credential>(deleted), F_SETFD, 0) = 0
+1905579 fcntl(4, F_GETFD)               = -1 EBADF (Bad file descriptor)
+1905579 fstat(3</memfd:halofpx-registry-lab-credential>(deleted), {st_mode=S_IFREG|0777, st_size=82, ...}) = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/proc/self/fd", O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY) = 4</proc/1905579/fd>
+1905579 fstat(4</proc/1905579/fd>, {st_mode=S_IFDIR|0500, st_size=5, ...}) = 0
+1905579 getdents64(4</proc/1905579/fd>, 0x55a86c9e8050 /* 7 entries */, 32768) = 168
+1905579 fstat(0<pipe:[11144953]>, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+1905579 fstat(1<pipe:[11144960]>, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+1905579 fstat(2<pipe:[11144955]>, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+1905579 getdents64(4</proc/1905579/fd>, 0x55a86c9e8050 /* 0 entries */, 32768) = 0
+1905579 close(4</proc/1905579/fd>)      = 0
+1905579 fcntl(4, F_GETFD)               = -1 EBADF (Bad file descriptor)
+1905579 execve("/proc/self/exe", ["/var/tmp/halofpx-l05s-compile-smoke-20260719/cmake-build-v1/bin/test-halofpx-context-store-registry-lab-linux-preinit", "--qualify", "ok_non_authoritative", "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent", "128", "257", "238", "1000", "700", "234bd550691f4497890135dd6752dd3e", "9cb9043601fd484b8c4403fb954d9296", "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root", "128", "258", "238", "1000", "700", "234bd550691f4497890135dd6752dd3e", "9cb9043601fd484b8c4403fb954d9296", "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture", "128", "259", "238", "1000", "700", "234bd550691f4497890135dd6752dd3e", "9cb9043601fd484b8c4403fb954d9296", "128", "260", "halofpx-l05s-nimo2-run", "1"], 0x7ffd552809e8 /* 33 vars */) = 0
+1905579 brk(NULL)                       = 0x556411d60000
+1905579 access("/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory)
+1905579 openat(AT_FDCWD</home/connorb>, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 4</etc/ld.so.cache>
+1905579 fstat(4</etc/ld.so.cache>, {st_mode=S_IFREG|0644, st_size=181371, ...}) = 0
+1905579 mmap(NULL, 181371, PROT_READ, MAP_PRIVATE, 4</etc/ld.so.cache>, 0) = 0x7f3d0876a000
+1905579 close(4</etc/ld.so.cache>)      = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/usr/lib/libstdc++.so.6", O_RDONLY|O_CLOEXEC) = 4</usr/lib/libstdc++.so.6.0.35>
+1905579 read(4</usr/lib/libstdc++.so.6.0.35>, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\03042\0\0\0\0\0\0\0\0\0@\08\0\r\0@\0 \0\37\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\360\225\t\0\0\0\0\0\360\225\t\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0\240\t\0\0\0\0\0\0\240\t\0\0\0\0\0\0\240\t\0\0\0\0\0\221y\35\0\0\0\0\0\221y\35\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0 '\0\0\0\0\0\0 '\0\0\0\0\0\0 '\0\0\0\0\0 \375\t\0\0\0\0\0 \375\t\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\6\0\0\0H&1\0\0\0\0\0H&1\0\0\0\0\0"..., 832) = 832
+1905579 fstat(4</usr/lib/libstdc++.so.6.0.35>, {st_mode=S_IFREG|0755, st_size=3292184, ...}) = 0
+1905579 mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3d08768000
+1905579 mmap(NULL, 3306240, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 4</usr/lib/libstdc++.so.6.0.35>, 0) = 0x7f3d08400000
+1905579 mmap(0x7f3d0849a000, 1933312, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libstdc++.so.6.0.35>, 0x9a000) = 0x7f3d0849a000
+1905579 mmap(0x7f3d08672000, 655360, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libstdc++.so.6.0.35>, 0x272000) = 0x7f3d08672000
+1905579 mmap(0x7f3d08712000, 73728, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libstdc++.so.6.0.35>, 0x312000) = 0x7f3d08712000
+1905579 mmap(0x7f3d08724000, 13056, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f3d08724000
+1905579 close(4</usr/lib/libstdc++.so.6.0.35>) = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/usr/lib/libm.so.6", O_RDONLY|O_CLOEXEC) = 4</usr/lib/libm.so.6>
+1905579 read(4</usr/lib/libm.so.6>, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\340a\20\0\0\0\0\0\0\0\0\0@\08\0\r\0@\0\37\0\36\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0X\361\0\0\0\0\0\0X\361\0\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\0\0\0\0\1\0\0\0\0\0qj\t\0\0\0\0\0qj\t\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0p\n\0\0\0\0\0\0p\n\0\0\0\0\0\0p\n\0\0\0\0\0\230\336\5\0\0\0\0\0\230\336\5\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\6\0\0\0\270\\\20\0\0\0\0\0\270\\\20\0\0\0\0\0"..., 832) = 832
+1905579 fstat(4</usr/lib/libm.so.6>, {st_mode=S_IFREG|0755, st_size=1075616, ...}) = 0
+1905579 mmap(NULL, 1073480, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 4</usr/lib/libm.so.6>, 0) = 0x7f3d082f9000
+1905579 mmap(0x7f3d08309000, 618496, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libm.so.6>, 0x10000) = 0x7f3d08309000
+1905579 mmap(0x7f3d083a0000, 385024, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libm.so.6>, 0xa7000) = 0x7f3d083a0000
+1905579 mmap(0x7f3d083fe000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libm.so.6>, 0x105000) = 0x7f3d083fe000
+1905579 close(4</usr/lib/libm.so.6>)    = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/usr/lib/libgcc_s.so.1", O_RDONLY|O_CLOEXEC) = 4</usr/lib/libgcc_s.so.1>
+1905579 read(4</usr/lib/libgcc_s.so.1>, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\260A\3\0\0\0\0\0\0\0\0\0@\08\0\f\0@\0\35\0\34\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3608\0\0\0\0\0\0\3608\0\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0Q\242\2\0\0\0\0\0Q\242\2\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\360\2\0\0\0\0\0\0\360\2\0\0\0\0\0\0\360\2\0\0\0\0\0P?\0\0\0\0\0\0P?\0\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\6\0\0\0\310;\3\0\0\0\0\0\310;\3\0\0\0\0\0"..., 832) = 832
+1905579 fstat(4</usr/lib/libgcc_s.so.1>, {st_mode=S_IFREG|0644, st_size=215280, ...}) = 0
+1905579 mmap(NULL, 213480, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 4</usr/lib/libgcc_s.so.1>, 0) = 0x7f3d08733000
+1905579 mmap(0x7f3d08737000, 176128, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libgcc_s.so.1>, 0x4000) = 0x7f3d08737000
+1905579 mmap(0x7f3d08762000, 16384, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libgcc_s.so.1>, 0x2f000) = 0x7f3d08762000
+1905579 mmap(0x7f3d08766000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libgcc_s.so.1>, 0x33000) = 0x7f3d08766000
+1905579 close(4</usr/lib/libgcc_s.so.1>) = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/usr/lib/libc.so.6", O_RDONLY|O_CLOEXEC) = 4</usr/lib/libc.so.6>
+1905579 read(4</usr/lib/libc.so.6>, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\220~\2\0\0\0\0\0@\0\0\0\0\0\0\0\0\236#\0\0\0\0\0\0\0\0\0@\08\0\20\0@\0@\0?\0\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\200\3\0\0\0\0\0\0\200\3\0\0\0\0\0\0\10\0\0\0\0\0\0\0\3\0\0\0\4\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\36\0\0\0\0\0\0\0\36\0\0\0\0\0\0\0\20\0\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3707\2\0\0\0\0\0\3707\2\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0"..., 832) = 832
+1905579 pread64(4</usr/lib/libc.so.6>, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\200\3\0\0\0\0\0\0\200\3\0\0\0\0\0\0\10\0\0\0\0\0\0\0\3\0\0\0\4\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\36\0\0\0\0\0\0\0\36\0\0\0\0\0\0\0\20\0\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3707\2\0\0\0\0\0\3707\2\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0\215j\31\0\0\0\0\0\215j\31\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\260\33\0\0\0\0\0\0\260\33\0\0\0\0\0\0\260\33\0\0\0\0\0"..., 896, 64) = 896
+1905579 fstat(4</usr/lib/libc.so.6>, {st_mode=S_IFREG|0755, st_size=2338304, ...}) = 0
+1905579 pread64(4</usr/lib/libc.so.6>, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0\200\3\0\0\0\0\0\0\200\3\0\0\0\0\0\0\10\0\0\0\0\0\0\0\3\0\0\0\4\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\3001\36\0\0\0\0\0\36\0\0\0\0\0\0\0\36\0\0\0\0\0\0\0\20\0\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\3707\2\0\0\0\0\0\3707\2\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\5\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0\0@\2\0\0\0\0\0\215j\31\0\0\0\0\0\215j\31\0\0\0\0\0\0\20\0\0\0\0\0\0\1\0\0\0\4\0\0\0\0\260\33\0\0\0\0\0\0\260\33\0\0\0\0\0\0\260\33\0\0\0\0\0"..., 896, 64) = 896
+1905579 mmap(NULL, 2362352, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 4</usr/lib/libc.so.6>, 0) = 0x7f3d08000000
+1905579 mmap(0x7f3d08024000, 1667072, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libc.so.6>, 0x24000) = 0x7f3d08024000
+1905579 mmap(0x7f3d081bb000, 491520, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libc.so.6>, 0x1bb000) = 0x7f3d081bb000
+1905579 mmap(0x7f3d08233000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 4</usr/lib/libc.so.6>, 0x232000) = 0x7f3d08233000
+1905579 mmap(0x7f3d08239000, 31728, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f3d08239000
+1905579 close(4</usr/lib/libc.so.6>)    = 0
+1905579 mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3d08731000
+1905579 mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3d0872e000
+1905579 mprotect(0x7f3d08233000, 16384, PROT_READ) = 0
+1905579 mprotect(0x7f3d08766000, 4096, PROT_READ) = 0
+1905579 mprotect(0x7f3d083fe000, 4096, PROT_READ) = 0
+1905579 mprotect(0x7f3d08712000, 69632, PROT_READ) = 0
+1905579 mprotect(0x5563dd2b5000, 4096, PROT_READ) = 0
+1905579 mprotect(0x7f3d087dd000, 8192, PROT_READ) = 0
+1905579 getrandom("\x80\x6f\x5a\x6f\x0b\x18\x40\x24", 8, GRND_NONBLOCK) = 8
+1905579 munmap(0x7f3d0876a000, 181371)  = 0
+1905579 brk(NULL)                       = 0x556411d60000
+1905579 brk(0x556411d93000)             = 0x556411d93000
+1905579 fcntl(4, F_GETFD)               = -1 EBADF (Bad file descriptor)
+1905579 fcntl(3</memfd:halofpx-registry-lab-credential>(deleted), F_GETFD) = 0
+1905579 fcntl(3</memfd:halofpx-registry-lab-credential>(deleted), F_SETFD, FD_CLOEXEC) = 0
+1905579 fstat(3</memfd:halofpx-registry-lab-credential>(deleted), {st_mode=S_IFREG|0777, st_size=82, ...}) = 0
+1905579 fstatfs(3</memfd:halofpx-registry-lab-credential>(deleted), {f_type=TMPFS_MAGIC, f_bsize=4096, f_blocks=0, f_bfree=0, f_bavail=0, f_files=0, f_ffree=0, f_fsid={val=[0xe7755e7, 0x3ea97531]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID}) = 0
+1905579 readlink("/proc/self/fd/3", "/memfd:halofpx-registry-lab-credential (deleted)", 96) = 48
+1905579 fcntl(3</memfd:halofpx-registry-lab-credential>(deleted), F_GET_SEALS) = 0xf (seals F_SEAL_SEAL|F_SEAL_SHRINK|F_SEAL_GROW|F_SEAL_WRITE)
+1905579 openat(AT_FDCWD</home/connorb>, "/proc/self/fd", O_RDONLY|O_CLOEXEC|O_DIRECTORY) = 4</proc/1905579/fd>
+1905579 getdents64(4</proc/1905579/fd>, 0x7ffe748ae800 /* 7 entries */, 4096) = 168
+1905579 fstat(0<pipe:[11144953]>, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+1905579 fstat(1<pipe:[11144960]>, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+1905579 fstat(2<pipe:[11144955]>, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+1905579 getdents64(4</proc/1905579/fd>, 0x7ffe748ae800 /* 0 entries */, 4096) = 0
+1905579 close(4</proc/1905579/fd>)      = 0
+1905579 pread64(3</memfd:halofpx-registry-lab-credential>(deleted), "HaloFPXRegKey01\0\0\26halofpx-l05s-nimo2-run\0\0\0\0\0\0\0\1\0 \0\2454\213\370\361\n\\\305\241\363SRo\242\336m\363\207]\221\332\33\221\275\360\"\37_\254\257\26", 82, 0) = 82
+1905579 pread64(3</memfd:halofpx-registry-lab-credential>(deleted), "", 1, 82) = 0
+1905579 mlock(0x7ffe748ae7c0, 32)       = 0
+1905579 close(3</memfd:halofpx-registry-lab-credential>(deleted)) = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent", O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY) = 3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>
+1905579 fstat(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>, {st_mode=S_IFDIR|0700, st_size=42, ...}) = 0
+1905579 statx(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>, "", AT_STATX_SYNC_AS_STAT|AT_EMPTY_PATH, STATX_BASIC_STATS|STATX_MNT_ID, {stx_mask=STATX_ALL|STATX_MNT_ID|STATX_SUBVOL, stx_attributes=0, stx_mode=S_IFDIR|0700, stx_size=42, ...}) = 0
+1905579 fstatfs(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>, {f_type=BTRFS_SUPER_MAGIC, f_bsize=4096, f_blocks=262144, f_bfree=260592, f_bavail=231584, f_files=0, f_ffree=0, f_fsid={val=[0xaa4ae08d, 0xe4d99ac]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOATIME}) = 0
+1905579 ioctl(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>, BTRFS_IOC_FS_INFO, {max_id=1, num_devices=1, fsid=234bd550-691f-4497-8901-35dd6752dd3e, nodesize=16384, sectorsize=4096, clone_alignment=4096, flags=0}) = 0
+1905579 ioctl(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>, BTRFS_IOC_GET_SUBVOL_INFO, 0x7ffe748acdc0) = 0
+1905579 readlink("/proc/self/fd/3", "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent", 4097) = 75
+1905579 openat2(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>, "candidate-root", {flags=O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY, resolve=RESOLVE_NO_XDEV|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_SYMLINKS|RESOLVE_BENEATH}, 24) = 4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>
+1905579 fstat(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, {st_mode=S_IFDIR|0700, st_size=0, ...}) = 0
+1905579 statx(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, "", AT_STATX_SYNC_AS_STAT|AT_EMPTY_PATH, STATX_BASIC_STATS|STATX_MNT_ID, {stx_mask=STATX_ALL|STATX_MNT_ID|STATX_SUBVOL, stx_attributes=0, stx_mode=S_IFDIR|0700, stx_size=0, ...}) = 0
+1905579 fstatfs(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, {f_type=BTRFS_SUPER_MAGIC, f_bsize=4096, f_blocks=262144, f_bfree=260592, f_bavail=231584, f_files=0, f_ffree=0, f_fsid={val=[0xaa4ae08d, 0xe4d99ac]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOATIME}) = 0
+1905579 ioctl(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, BTRFS_IOC_FS_INFO, {max_id=1, num_devices=1, fsid=234bd550-691f-4497-8901-35dd6752dd3e, nodesize=16384, sectorsize=4096, clone_alignment=4096, flags=0}) = 0
+1905579 ioctl(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, BTRFS_IOC_GET_SUBVOL_INFO, 0x7ffe748acdc0) = 0
+1905579 readlink("/proc/self/fd/4", "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root", 4097) = 90
+1905579 getdents64(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, 0x7ffe748ad3b0 /* 2 entries */, 4096) = 48
+1905579 getdents64(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, 0x7ffe748ad3b0 /* 0 entries */, 4096) = 0
+1905579 fstatfs(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, {f_type=BTRFS_SUPER_MAGIC, f_bsize=4096, f_blocks=262144, f_bfree=260592, f_bavail=231584, f_files=0, f_ffree=0, f_fsid={val=[0xaa4ae08d, 0xe4d99ac]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOATIME}) = 0
+1905579 openat(AT_FDCWD</home/connorb>, "/proc/self/mountinfo", O_RDONLY|O_CLOEXEC) = 5</proc/1905579/mountinfo>
+1905579 read(5</proc/1905579/mountinfo>, "39 1 0:32 /@ / rw,noatime shared:1 - btrfs /dev/nvme0n1p2 rw,compress=zstd:1,ssd,discard=async,space_cache=v2,subvolid=256,subvol=/@\n37 39 0:7 / /dev rw,nosuid shared:2 - devtmpfs devtmpfs rw,size=65187856k,nr_inodes=16296964,mode=755,inode64,huge=advise\n4"..., 262144) = 3937
+1905579 read(5</proc/1905579/mountinfo>, "238 103 0:127 / /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount rw,noatime shared:597 - btrfs /dev/loop0 rw,ssd,discard=async,space_cache=v2,subvolid=5,subvol=/\n", 258207) = 178
+1905579 read(5</proc/1905579/mountinfo>, "", 258029) = 0
+1905579 close(5</proc/1905579/mountinfo>) = 0
+1905579 openat2(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>, "fixture", {flags=O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY, resolve=RESOLVE_NO_XDEV|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_SYMLINKS|RESOLVE_BENEATH}, 24) = 5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>
+1905579 fstat(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, {st_mode=S_IFDIR|0700, st_size=28, ...}) = 0
+1905579 statx(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, "", AT_STATX_SYNC_AS_STAT|AT_EMPTY_PATH, STATX_BASIC_STATS|STATX_MNT_ID, {stx_mask=STATX_ALL|STATX_MNT_ID|STATX_SUBVOL, stx_attributes=0, stx_mode=S_IFDIR|0700, stx_size=28, ...}) = 0
+1905579 fstatfs(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, {f_type=BTRFS_SUPER_MAGIC, f_bsize=4096, f_blocks=262144, f_bfree=260592, f_bavail=231584, f_files=0, f_ffree=0, f_fsid={val=[0xaa4ae08d, 0xe4d99ac]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOATIME}) = 0
+1905579 ioctl(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, BTRFS_IOC_FS_INFO, {max_id=1, num_devices=1, fsid=234bd550-691f-4497-8901-35dd6752dd3e, nodesize=16384, sectorsize=4096, clone_alignment=4096, flags=0}) = 0
+1905579 ioctl(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, BTRFS_IOC_GET_SUBVOL_INFO, 0x7ffe748acdc0) = 0
+1905579 readlink("/proc/self/fd/5", "/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture", 4097) = 83
+1905579 getdents64(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, 0x7ffe748ad3b0 /* 3 entries */, 4096) = 88
+1905579 getdents64(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, 0x7ffe748ad3b0 /* 0 entries */, 4096) = 0
+1905579 openat2(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, "primitive.lock", {flags=O_RDWR|O_NOFOLLOW|O_CLOEXEC, resolve=RESOLVE_NO_XDEV|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_SYMLINKS|RESOLVE_BENEATH}, 24) = 6</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock>
+1905579 fstat(6</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock>, {st_mode=S_IFREG|0600, st_size=0, ...}) = 0
+1905579 statx(6</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock>, "", AT_STATX_SYNC_AS_STAT|AT_EMPTY_PATH, STATX_BASIC_STATS|STATX_MNT_ID, {stx_mask=STATX_ALL|STATX_MNT_ID|STATX_SUBVOL, stx_attributes=0, stx_mode=S_IFREG|0600, stx_size=0, ...}) = 0
+1905579 fcntl(6</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock>, F_OFD_SETLK, {l_type=F_WRLCK, l_whence=SEEK_SET, l_start=0, l_len=0}) = 0
+1905579 openat2(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>, "candidate-root", {flags=O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY, resolve=RESOLVE_NO_XDEV|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_SYMLINKS|RESOLVE_BENEATH}, 24) = 7</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>
+1905579 fstat(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, {st_mode=S_IFDIR|0700, st_size=0, ...}) = 0
+1905579 fstat(7</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>, {st_mode=S_IFDIR|0700, st_size=0, ...}) = 0
+1905579 close(7</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>) = 0
+1905579 openat2(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>, "fixture", {flags=O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_DIRECTORY, resolve=RESOLVE_NO_XDEV|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_SYMLINKS|RESOLVE_BENEATH}, 24) = 7</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>
+1905579 fstat(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, {st_mode=S_IFDIR|0700, st_size=28, ...}) = 0
+1905579 fstat(7</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, {st_mode=S_IFDIR|0700, st_size=28, ...}) = 0
+1905579 close(7</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>) = 0
+1905579 openat2(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>, "primitive.lock", {flags=O_RDWR|O_NOFOLLOW|O_CLOEXEC, resolve=RESOLVE_NO_XDEV|RESOLVE_NO_MAGICLINKS|RESOLVE_NO_SYMLINKS|RESOLVE_BENEATH}, 24) = 7</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock>
+1905579 fstat(7</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock>, {st_mode=S_IFREG|0600, st_size=0, ...}) = 0
+1905579 close(7</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock>) = 0
+1905579 munlock(0x7ffe748ae7c0, 32)     = 0
+1905579 close(6</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock>) = 0
+1905579 close(5</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture>) = 0
+1905579 close(4</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root>) = 0
+1905579 close(3</var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent>) = 0
+1905579 fstat(1<pipe:[11144960]>, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+1905579 write(1<pipe:[11144960]>, "status=ok_non_authoritative credential_admitted=1 credential_before_root=1 key_tuple=1 parent=1 root=1 fixture=1 lock_identity=1 root_empty=1 fixture_layout=1 not_reported_read_only=1 ofd_lock=1 scratch_wiped=1 owner_wiped=1 owner_unlocked=1 credential_sys"..., 367) = 367
+1905579 +++ exited with 0 +++

@@ -1,0 +1,1 @@
+61 /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/mount /dev/loop0 btrfs rw,noatime,ssd,discard=async,space_cache=v2,subvolid=5,subvol=/

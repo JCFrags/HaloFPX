@@ -1,0 +1,1 @@
+status=ok_non_authoritative credential_admitted=1 credential_before_root=1 key_tuple=1 parent=1 root=1 fixture=1 lock_identity=1 root_empty=1 fixture_layout=1 not_reported_read_only=1 ofd_lock=1 scratch_wiped=1 owner_wiped=1 owner_unlocked=1 credential_syscalls=17 root_fixture_syscalls=41 ofd_attempts=1 filesystem_reserve=948568064 logical_authority_bound=16777216

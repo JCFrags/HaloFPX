@@ -367,7 +367,11 @@ if(CONFIG STREQUAL "Release")
   endif()
   string(REPLACE "\r\n" "\n" CT_MEMBERS_TEXT "${CT_MEMBERS_TEXT}")
   string(REPLACE "\n" ";" CT_MEMBERS "${CT_MEMBERS_TEXT}")
-  list(FILTER CT_MEMBERS INCLUDE REGEX "(^|[\\\\/])halofpx-context-store-registry-lab-read-only\\.obj$")
+  # Multi-config Visual Studio archives name this member *.obj, while the
+  # Ninja/MSVC generator preserves the source suffix as *.cpp.obj. Admit only
+  # those two exact generator spellings before applying the same fail-closed
+  # COFF section and machine-code body audit below.
+  list(FILTER CT_MEMBERS INCLUDE REGEX "(^|[\\\\/])halofpx-context-store-registry-lab-read-only(\\.cpp)?\\.obj$")
   list(LENGTH CT_MEMBERS CT_MEMBER_COUNT)
   if(NOT CT_MEMBER_COUNT EQUAL 1)
     message(FATAL_ERROR "expected one comparator implementation object; found ${CT_MEMBER_COUNT}")

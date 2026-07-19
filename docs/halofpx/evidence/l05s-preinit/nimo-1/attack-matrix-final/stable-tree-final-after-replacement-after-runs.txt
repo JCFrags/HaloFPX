@@ -1,0 +1,10 @@
+main_mount_id=62
+cross_mount_id=263
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/candidate-root type=d dev=125 ino=258 mode=700 uid=1000 gid=1000 nlink=1 size=0
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/cross-root type=d dev=127 ino=256 mode=700 uid=1000 gid=1000 nlink=1 size=0
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/fixture/primitive.lock type=f dev=125 ino=265 mode=600 uid=1000 gid=1000 nlink=1 size=0
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/fixture type=d dev=125 ino=259 mode=700 uid=1000 gid=1000 nlink=1 size=28
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent type=d dev=125 ino=257 mode=700 uid=1000 gid=1000 nlink=1 size=62
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount type=d dev=125 ino=256 mode=700 uid=1000 gid=1000 nlink=1 size=20
+/var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/cross-root type=d dev=127 ino=256 mode=700 uid=1000 gid=1000 nlink=1 size=0
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /var/tmp/halofpx-l05s-attack-20260719T2130-nimo1/main-mount/lab-parent/fixture/primitive.lock

@@ -1,0 +1,9 @@
+timestamp=2026-07-19T04:16:22,276494069-07:00
+hostname=nimo-2
+binary=/var/tmp/halofpx-l05s-compile-smoke-20260719/cmake-build-v1/bin/test-halofpx-context-store-registry-lab-linux-preinit
+72638b608dbbbbe198ff919613d555f82de58fd5c2a68a7a80c58355997a7e8f  /var/tmp/halofpx-l05s-compile-smoke-20260719/cmake-build-v1/bin/test-halofpx-context-store-registry-lab-linux-preinit
+Linux nimo-2 7.1.3-1-cachyos #1 SMP PREEMPT_DYNAMIC Sat, 04 Jul 2026 20:05:25 +0000 x86_64 GNU/Linux
+cmake version 4.3.4
+c++ (GCC) 16.1.1 20260625
+btrfs-progs v7.0
+-EXPERIMENTAL -INJECT -STATIC +LZO +ZSTD +UDEV +FSVERITY +ZONED CRYPTO=libgcrypt

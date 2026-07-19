@@ -1,0 +1,2 @@
+TARGET                                                           SOURCE     FSTYPE OPTIONS                                                         FSROOT UUID
+/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount /dev/loop0 btrfs  rw,noatime,ssd,discard=async,space_cache=v2,subvolid=5,subvol=/ /      234bd550-691f-4497-8901-35dd6752dd3e

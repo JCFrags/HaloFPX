@@ -1,0 +1,5 @@
+fresh_runs=100 elapsed_ns=111658569
+contention_pairs=100 elapsed_ns=1135187978
+582759af3f5acc5d713c1856f5a660a9af3b984586ec73fc4aed1e71658e247d  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-live-canary.strace
+73bbab999ad9851b96400490b4847fbf273c93954ce3934901aae2337e344d38  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-fresh-process-100.tsv
+226e06f7153f2eee8ee07f5d93e2449ea740047d681287a5a3e1efef65621135  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/evidence/final-contention-100.log

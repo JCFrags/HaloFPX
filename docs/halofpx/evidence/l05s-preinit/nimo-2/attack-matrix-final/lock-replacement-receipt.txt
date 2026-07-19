@@ -1,0 +1,6 @@
+replacement_timestamp=2026-07-19T04:12:15,582541052-07:00
+old_lock_device=131
+old_lock_inode=261
+new_lock_device=131
+new_lock_inode=263
+/var/tmp/halofpx-l05s-attack-20260719T2140-nimo2/main-mount/lab-parent/fixture/primitive.lock dev=131 ino=263 mode=600 uid=1000 nlink=1 size=0

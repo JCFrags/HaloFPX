@@ -1,0 +1,11 @@
+timestamp=2026-07-19T04:16:22,669077520-07:00
+binary_sha256=72638b608dbbbbe198ff919613d555f82de58fd5c2a68a7a80c58355997a7e8f
+case_count=75
+failure_count=0
+traversal_count=25
+cross_mount_count=25
+inode_replacement_count=25
+traversal_cross_tree_equal=1
+replacement_tree_equal=1
+current_lock_device=131
+current_lock_inode=265

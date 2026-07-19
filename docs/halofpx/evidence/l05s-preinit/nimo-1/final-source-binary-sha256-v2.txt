@@ -1,0 +1,8 @@
+46031f189c62a94c0ac6de4d2b9c9446e4035da493f92c6dc0fe69ad325d7463  CMakeLists.txt
+dcd2fd7fc76b299c7fa41181e00682b23e9297ab5f7dc873ff320f2540daae0d  tools/server/CMakeLists.txt
+d9391866432c8464167f03a089ee4fdee43d18f6a81ba83aad83bc6ed9386b9c  tools/server/halofpx-context-store-registry-lab-linux-preinit-internal.h
+648d8b5006e68351a0541368c1771bf1c7f93cb8fef0baaf89f550aefd37928c  tools/server/halofpx-context-store-registry-lab-linux-preinit.cpp
+ed8b9d063184284e146c301be55be7afa8862b386561c11d8f043274d3ee763d  tests/test-halofpx-context-store-registry-lab-linux-preinit.cpp
+06607bdaced901baabc746c49981b1b3ea49cc6974a707ba3b179598b25c32f8  tests/test-halofpx-context-store-registry-lab-linux-preinit-contract.cmake
+8d3f220af843b02ae3ed65399d15105bbe8d16f3f306cc273b55de8436d95c8e  tests/test-halofpx-context-store-registry-lab-linux-preinit-archive-audit.cmake
+a0ad45a760b650e04cbe5c8d05df6b70515cc144ca02b3b6ba0f91d0f0edb2eb  /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo1/build-release/bin/test-halofpx-context-store-registry-lab-linux-preinit

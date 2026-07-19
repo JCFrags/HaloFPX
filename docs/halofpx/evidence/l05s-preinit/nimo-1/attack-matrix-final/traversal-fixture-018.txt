@@ -1,0 +1,1 @@
+status=invalid_request credential_admitted=0 credential_before_root=0 key_tuple=0 parent=0 root=0 fixture=0 lock_identity=0 root_empty=0 fixture_layout=0 not_reported_read_only=0 ofd_lock=0 scratch_wiped=1 owner_wiped=1 owner_unlocked=1 credential_syscalls=0 root_fixture_syscalls=0 ofd_attempts=0 filesystem_reserve=0 logical_authority_bound=16777216

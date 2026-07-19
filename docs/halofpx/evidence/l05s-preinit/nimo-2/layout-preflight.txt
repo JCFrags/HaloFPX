@@ -1,0 +1,29 @@
+d mode=700 uid=1000 gid=1000 dev=128 inode=257 links=1 size=42 path=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent
+d mode=700 uid=1000 gid=1000 dev=128 inode=258 links=1 size=0 path=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/candidate-root
+d mode=700 uid=1000 gid=1000 dev=128 inode=259 links=1 size=28 path=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture
+f mode=600 uid=1000 gid=1000 dev=128 inode=260 links=1 size=0 path=/var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount/lab-parent/fixture/primitive.lock
+238 /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount /dev/loop0 btrfs rw,noatime,ssd,discard=async,space_cache=v2,subvolid=5,subvol=/ / 234bd550-691f-4497-8901-35dd6752dd3e
+Label: 'halofpx-l05s-nimo2'  uuid: 234bd550-691f-4497-8901-35dd6752dd3e
+	Total devices 1 FS bytes used 163840
+	devid    1 size 1073741824 used 132513792 path /dev/loop0
+/
+	Name: 			<FS_TREE>
+	UUID: 			9cb90436-01fd-484b-8c44-03fb954d9296
+	Parent UUID: 		-
+	Received UUID: 		-
+	Creation time: 		2026-07-19 03:09:49 -0700
+	Subvolume ID: 		5
+	Generation: 		5
+	Gen at creation: 	0
+	Parent ID: 		0
+	Top level ID: 		0
+	Flags: 			-
+	Send transid: 		0
+	Send time: 		2026-07-19 03:09:49 -0700
+	Receive transid: 	0
+	Receive time: 		-
+	Snapshot(s):
+	Quota group:		n/a
+fstype=btrfs magic=9123683e
+Filesystem     Type   1B-blocks    Used     Avail Mounted on
+/dev/loop0     btrfs 1073741824 6356992 948568064 /var/tmp/halofpx-qualification/l05s-preinit-20260719-nimo2/mount
