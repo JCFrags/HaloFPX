@@ -4,7 +4,7 @@ set(C "${ROOT}/tools/server/halofpx-context-store-registry-lab-read-only.cpp")
 set(T "${ROOT}/tests/test-halofpx-context-store-registry-lab-read-only.cpp")
 foreach(F IN ITEMS "${H}" "${C}" "${T}")
   if(NOT EXISTS "${F}")
-    message(FATAL_ERROR "missing L05Q registry-lab recovery source: ${F}")
+    message(FATAL_ERROR "missing L05R registry-lab quarantine source: ${F}")
   endif()
 endforeach()
 
@@ -21,23 +21,59 @@ foreach(F IN ITEMS "${H}" "${C}")
       "halofpx-context-store-bootstrap-anchor" "llama-ai" "CachyLLama")
     string(FIND "${TEXT}" "${FORBIDDEN}" HIT)
     if(NOT HIT EQUAL -1)
-      message(FATAL_ERROR "L05Q fake-only recovery contains forbidden surface ${FORBIDDEN}: ${F}")
+      message(FATAL_ERROR "L05R fake-only quarantine lane contains forbidden surface ${FORBIDDEN}: ${F}")
     endif()
   endforeach()
 endforeach()
 
 file(READ "${C}" IMPLEMENTATION)
 file(READ "${H}" HEADER_TEXT)
+file(READ "${T}" TEST_TEXT)
 foreach(UNAVAILABLE IN ITEMS
-    "before_first_mutation" "quarantine reason" "context_store_registry_lab_admit_quarantine"
-    "context_store_registry_lab_encode_quarantine" "modeled_advanced_closed")
+    "before_first_mutation" "quarantine reason"
+    "modeled_advanced_closed")
   string(FIND "${IMPLEMENTATION}" "${UNAVAILABLE}" HIT)
   if(NOT HIT EQUAL -1)
-    message(FATAL_ERROR "L05Q implementation opened an unavailable mutation surface: ${UNAVAILABLE}")
+    message(FATAL_ERROR "L05R implementation opened an unavailable mutation surface: ${UNAVAILABLE}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+    "value.size != 14" "script_matches_quarantine"
+    "quarantine_event_id_witness quarantine_event_authority"
+    "quarantine_event_confirmed" "quarantine_event_authority.authorize"
+    "quarantine_event_authority.consume" "rederived_bytes" "rederived_action"
+    "derive_quarantine_artifact" "context_store_registry_lab_admit_quarantine_v1"
+    "context_store_registry_lab_encode_quarantine_v1" "context_store_registry_lab_verify_v1"
+    "halofpx.registry-lab-quarantine-action.v1"
+    "operation::quarantine_staging_create" "operation::quarantine_staging_write"
+    "operation::quarantine_staging_readback" "operation::quarantine_file_sync"
+    "operation::quarantine_publish_rename" "operation::quarantine_root_directory_sync"
+    "operation::quarantine_staging_directory_sync"
+    "quarantine_publication_happy_path_contract" "1, 2, 3, 4, 5, 69, 6, 70, 71, 72, 73, 74, 75, 76, 90, 91, 92")
+  string(FIND "${IMPLEMENTATION}${HEADER_TEXT}${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R quarantine publication closure is missing: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+    "struct quarantine_encoding_inputs" "derive_quarantine_encoding_inputs"
+    "quarantine_encoding_inputs_for_test" "quarantine_encoding_inputs_test_audit"
+    "quarantine_encoding_inputs_contract" "quarantine_shape::successor"
+    "selected_matches_shape" "predecessor_head_witness"
+    "audit.transition_present" "audit.standalone_head_present"
+    "audit.predecessor_head_digest" "audit.successor_head_digest" "audit.prepare_digest"
+    "~quarantine_encoding_inputs() noexcept { clear(); }" "output.clear()"
+    "audit.explicit_wipe_verified" "inputs.clear()"
+    "wipe_trivially_copyable_object" "volatile uint8_t * bytes"
+    "trivially_copyable_object_is_zero(inputs.value)"
+    "trivially_copyable_object_is_zero(inputs.transition)"
+    "trivially_copyable_object_is_zero(inputs.standalone_predecessor_head)")
+  string(FIND "${IMPLEMENTATION}${HEADER_TEXT}${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R pre-event quarantine encoding seam is missing: ${REQUIRED}")
   endif()
 endforeach()
 
-file(READ "${T}" TEST_TEXT)
 foreach(REQUIRED IN ITEMS
     "admitted_all == 55" "admitted_14 == 43" "forbidden_14 == 437"
     "losses == 11" "deaths == 16" "rejected == 437" "executed == 43"
@@ -47,7 +83,7 @@ foreach(REQUIRED IN ITEMS
     "pairwise_precedence_combinations == 55" "replay_positions == 512" "corrupt_positions == 512")
   string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
-    message(FATAL_ERROR "L05p focused test is missing required closure marker: ${REQUIRED}")
+    message(FATAL_ERROR "L05R focused test is missing required inherited closure marker: ${REQUIRED}")
   endif()
 endforeach()
 
@@ -60,6 +96,22 @@ foreach(REQUIRED IN ITEMS
   string(FIND "${IMPLEMENTATION}${HEADER_TEXT}${TEST_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "L05R diagnosis contract is missing required marker: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+    "derive_quarantine_action_commitment" "writer.map(15)"
+    "halofpx.registry-lab-quarantine-action.v1"
+    "quarantine_action_commitment_for_test" "quarantine_action_commitment_contract"
+    "test_quarantine_action_commitment" "admitted == 25 && rejected == 39"
+    "quarantine_encoded_length < 1" "quarantine_encoded_length > 1024"
+    "sensitivities == 13"
+    "f049302b4e309f45e8591d02a551168563e503279771c88b1c93168d13df1968"
+    "5f60142504bb61ff54525f54c709b0ae4085d31772b444fad742f09d08cdea1f"
+    "6b021681823318f9ca268c1419270d699402ae35180af91fa2a937ff5bc4e14e"
+    "7bbdf63c2760b87fa5ce5b18d04b350afe310495267242f87ac9b87e4ced476e")
+  string(FIND "${IMPLEMENTATION}${HEADER_TEXT}${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R quarantine action commitment is missing: ${REQUIRED}")
   endif()
 endforeach()
 foreach(REQUIRED IN ITEMS
@@ -83,6 +135,33 @@ foreach(REQUIRED IN ITEMS "admitted == 25 && rejected == 39" "sensitivities == 1
   endif()
 endforeach()
 foreach(REQUIRED IN ITEMS
+    "std::atomic<uint64_t> quarantine_event_issuance_sequence"
+    "compare_exchange_weak" "observed == UINT64_MAX"
+    "HALOFPX-L05R-EV1" "0x484650584c303552"
+    "fake_quarantine_event_id_matches_test_oracle"
+    "class quarantine_event_id_witness" "~quarantine_event_id_witness() noexcept { clear(); }"
+    "quarantine_event_id_witness(const quarantine_event_id_witness &) = delete"
+    "other.clear()" "wrong_invocation_rejected" "wrong_diagnosis_rejected"
+    "replay_rejected" "moved_from_rejected" "quarantine_event_authority_for_test"
+    "quarantine_event_concurrency_begin_for_test" "quarantine_event_concurrency_worker_for_test"
+    "quarantine_event_concurrency_finish_for_test" "retained_ids")
+  string(FIND "${IMPLEMENTATION}${HEADER_TEXT}${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R private event authority is missing required closure marker: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+    "quarantine_event_authority_contract" "concurrency.retained == 64"
+    "audit.issued == 32 && audit.consumed == 32"
+    "audit.nonzero && audit.distinct && audit.exact_encoding && audit.invalid_binding_rejected"
+    "audit.move_source_wiped && audit.explicit_wipe_verified && audit.destructor_clear_path_exercised"
+    "concurrency.pairwise_distinct && concurrency.exact_encoding")
+  string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R private event authority tests are missing required marker: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
     "singleton_cases == 13" "pairwise_cases == 78" "diagnosed == 16"
     "event > static_cast<uint16_t>(operation::quarantine_staging_directory_sync)"
     "_set_error_mode(_OUT_TO_STDERR)"
@@ -90,6 +169,23 @@ foreach(REQUIRED IN ITEMS
   string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "L05R focused test is missing required closure marker: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+    "l05r_quarantine_product_execution_and_preentry_rejection"
+    "admitted == 155 && reached == 155 && rejected == 805 && frontiers == 18"
+    "--l05r-products" "l05r_expected_projection_count"
+    "l05r_validate_projection_frontier" "same_restart(*image, *deterministic)"
+    "sequence_values_consumed == (blocked ? 0U : 1U)"
+    "l05r_quarantine_operation_6_revalidation" "state_axes == 22 && private_axes == 6"
+    "inject_quarantine_private_fault_for_test" "maximum_logical_authority"
+    "l05r_quarantine_hostile_readback" "inject_quarantine_retagged_readback_for_test" "attacks == 4"
+    "l05r_quarantine_no_replace_and_writer_isolation" "blockers == 6"
+    "l05r_quarantine_script_shape_rejection" "rejected == 61"
+    "l05r_quarantine_allocation_free_after_construction")
+  string(FIND "${IMPLEMENTATION}${HEADER_TEXT}${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05R exhaustive quarantine closure is missing: ${REQUIRED}")
   endif()
 endforeach()
 foreach(REQUIRED IN ITEMS
@@ -101,7 +197,7 @@ foreach(REQUIRED IN ITEMS
     "operation_6_allocation_free_after_construction" "operation_6_accounting_boundaries")
   string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
-    message(FATAL_ERROR "L05Q focused test is missing recovery closure marker: ${REQUIRED}")
+    message(FATAL_ERROR "L05R focused test is missing inherited recovery closure marker: ${REQUIRED}")
   endif()
 endforeach()
 foreach(REQUIRED IN ITEMS
@@ -112,31 +208,35 @@ foreach(REQUIRED IN ITEMS
     "l05q_restart_contains_credential_secret" "l05q_restart_file_contains_credential_secret")
   string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
-    message(FATAL_ERROR "L05Q exhaustive test is missing required closure marker: ${REQUIRED}")
+    message(FATAL_ERROR "L05R contract is missing inherited L05Q exhaustive marker: ${REQUIRED}")
   endif()
 endforeach()
 
 foreach(REQUIRED IN ITEMS
     "current.action_latched && state_.modeled_available_bytes < registry_minimum_reserve_bytes"
-    "authenticated_readback_contradiction" "product.code == primitive_code::unavailable) derived = primitive_code::ok")
+    "authenticated_readback_contradiction" "const bool primitive_failed"
+    "derived = primitive_code::ok" "derived = primitive_code::capacity_exhausted"
+    "derived = primitive_code::reserve_exhausted"
+    "quarantine_effect_authorized" "quarantine_sequence_values_consumed"
+    "quarantine_event_fail_next_issuance_for_test")
   string(FIND "${IMPLEMENTATION}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
-    message(FATAL_ERROR "L05Q implementation is missing fail-closed post-admission marker: ${REQUIRED}")
+    message(FATAL_ERROR "L05R implementation is missing fail-closed post-admission marker: ${REQUIRED}")
   endif()
 endforeach()
 
 file(READ "${ROOT}/tools/server/CMakeLists.txt" SERVER_CMAKE)
 if(NOT SERVER_CMAKE MATCHES "add_library\\(halofpx-context-store-registry-lab-read-only STATIC EXCLUDE_FROM_ALL")
-  message(FATAL_ERROR "L05p read-only target is not STATIC EXCLUDE_FROM_ALL")
+  message(FATAL_ERROR "L05R read-only target is not STATIC EXCLUDE_FROM_ALL")
 endif()
 string(FIND "${SERVER_CMAKE}" "target_link_libraries(halofpx-context-store-registry-lab-read-only PRIVATE\n    halofpx-context-store-registry-lab-wire)" NARROW_LINK)
 if(NARROW_LINK EQUAL -1)
-  message(FATAL_ERROR "L05p target does not have the single narrow private wire edge")
+  message(FATAL_ERROR "L05R target does not have the single narrow private wire edge")
 endif()
 foreach(FORBIDDEN_SURFACE IN ITEMS "install(TARGETS halofpx-context-store-registry-lab-read-only" "PUBLIC halofpx-context-store-registry-lab-read-only" "INTERFACE halofpx-context-store-registry-lab-read-only")
   string(FIND "${SERVER_CMAKE}" "${FORBIDDEN_SURFACE}" HIT)
   if(NOT HIT EQUAL -1)
-    message(FATAL_ERROR "L05p target has a public/install/export surface: ${FORBIDDEN_SURFACE}")
+    message(FATAL_ERROR "L05R target has a public/install/export surface: ${FORBIDDEN_SURFACE}")
   endif()
 endforeach()
 string(FIND "${SERVER_CMAKE}" "set(TARGET server-context)" PRODUCT_MARKER)
@@ -146,7 +246,7 @@ endif()
 string(SUBSTRING "${SERVER_CMAKE}" ${PRODUCT_MARKER} -1 PRODUCT_TAIL)
 string(FIND "${PRODUCT_TAIL}" "halofpx-context-store-registry-lab-read-only" PRODUCT_EDGE)
 if(NOT PRODUCT_EDGE EQUAL -1)
-  message(FATAL_ERROR "L05p internal target leaked into product linkage")
+  message(FATAL_ERROR "L05R internal target leaked into product linkage")
 endif()
 
 set(DETECTOR_CLEAN "bounded_fake_read_only_engine")
@@ -167,7 +267,7 @@ foreach(REQUIRED IN ITEMS
     "snapshot_owner_" "recovery_classification::continue_to_mutation")
   string(FIND "${IMPLEMENTATION}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
-    message(FATAL_ERROR "L05p implementation is missing operation-5 closure marker: ${REQUIRED}")
+    message(FATAL_ERROR "L05R implementation is missing operation-5 closure marker: ${REQUIRED}")
   endif()
 endforeach()
 
@@ -180,8 +280,8 @@ foreach(REQUIRED IN ITEMS
     "context_store_registry_lab_terminal_class_v1::recovered" "return step(handle)")
   string(FIND "${IMPLEMENTATION}${HEADER_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
-    message(FATAL_ERROR "L05Q implementation is missing recovery closure marker: ${REQUIRED}")
+    message(FATAL_ERROR "L05R implementation is missing inherited recovery closure marker: ${REQUIRED}")
   endif()
 endforeach()
 
-message(STATUS "PASS: L05R fake-only recovery diagnosis contract")
+message(STATUS "PASS: L05R fake-only quarantine publication contract")

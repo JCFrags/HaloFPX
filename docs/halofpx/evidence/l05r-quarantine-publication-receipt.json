@@ -1,0 +1,122 @@
+{
+  "schema": "halofpx.l05r-quarantine-publication.v1",
+  "date": "2026-07-18",
+  "parent_commit": "3166917e9b34a29976924ff30f932b8aa51e63e5",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "fake-only sticky quarantine publication operations 69 through 76 under ADR-0024; target remains excluded and persistence remains disabled",
+  "source_sha256": {
+    "tools/server/CMakeLists.txt": "4a40494e441bf9d454d30789c6badefaf64cb8bd9bda78b06de140b5200bdf04",
+    "tools/server/halofpx-context-store-registry-lab-read-only-internal.h": "ac6e1121728efbbdda9ab25b4cc8a7577764f04bf2eb3cff48acaf148001836b",
+    "tools/server/halofpx-context-store-registry-lab-read-only.cpp": "7eface7267a2695d8c6afa2a5b128d7e2222f96ccb34ef0afe3e0c97d2717634",
+    "tests/test-halofpx-context-store-registry-lab-read-only.cpp": "5349aabf48d5dfb6430a8f6b578d37cf1ea1235140f78a8b930d5f01bf268050",
+    "tests/test-halofpx-context-store-registry-lab-read-only-contract.cmake": "3261be05e58fbe8b3fbbbb6827d682d273e8f9471dba5b55bf8f0e2213129839",
+    "matched_on_windows_nimo_1_nimo_2": true
+  },
+  "publication_contract": {
+    "operation_range": [69, 76],
+    "admitted_products": 155,
+    "rejected_products": 805,
+    "restart_projections": 497,
+    "state_only_restart_frontiers": 18,
+    "state_axes": 22,
+    "script_rejections": 61,
+    "publication_is_allocation_free": true,
+    "one_writer_per_root": true,
+    "no_replace": true,
+    "corruption_or_incompatibility": "miss-like rejection or sticky quarantine; never a hit",
+    "capacity_limit_bytes": 16777216,
+    "capacity_boundary_proof": "shared checked-arithmetic helper; the bounded fake topology cannot naturally reach 16 MiB"
+  },
+  "qualification": {
+    "windows_release": {
+      "configuration": "existing full Release build with feature-off defaults",
+      "all_target_build": "pass",
+      "halofpx_passed": 40,
+      "halofpx_failed": 0,
+      "halofpx_seconds": 60.62,
+      "focused_l05r_diagnosis": {"passes": 1, "failures": 0, "seconds": 21.385},
+      "focused_l05r_products": {"passes": 1, "failures": 0, "seconds": 16.3},
+      "contract": "pass",
+      "executable_sha256": "235689ff12e2821ae070f770d1df7eb64c54f66362a40ab542188dc422529f40"
+    },
+    "windows_debug": {
+      "target_build": "pass",
+      "focused_l05r_diagnosis": {"passes": 1, "failures": 0, "seconds": 47.369},
+      "executable_sha256": "013e7bb39991166ae097a7e13fb9ec4683bb874685eb21d099f3ee1b6db3caea",
+      "authority_crt_contract": "_set_error_mode(_OUT_TO_STDERR) and _set_abort_behavior retain assertion stderr/nonzero behavior while suppressing ReportFault UI",
+      "authority_ordinary_debug_execution": {"exit": 0, "executable_sha256": "b1a2514047a0bca5cf16ab6deaa8cc1b8cae44c08fd23747fcb1dd8119629c49"},
+      "authority_forced_assertion_evidence": "docs/halofpx/evidence/l05-precondition-authority-debug-repair-receipt.json"
+    },
+    "nimo_1_linux_release": {
+      "qualification_root": "/home/connorb/halofpx-qualification/l05r-quarantine-publication-20260719",
+      "toolchain": "Linux 7.1.3 CachyOS; GCC 16.1.1; CMake 4.3.4; Ninja 1.13.2",
+      "configuration": "clean CPU Release; HIP, Vulkan, WebUI, prebuilt WebUI, OpenSSL OFF; optimized constant-time audit ON",
+      "all_target_build": "pass, 574 targets",
+      "halofpx_passed": 39,
+      "halofpx_failed": 0,
+      "halofpx_seconds": 13.90,
+      "registry_lab_seconds": 13.11,
+      "archive_audit": "pass",
+      "executable_sha256": "ab2415d99a5048703d17646a5eed1244bfcddf9bf5a2e6bd7da53a862831a79e",
+      "product_runs": {"executions": 25, "passes": 25, "failures": 0, "sum_seconds": 151.17, "mean_seconds": 6.05, "min_seconds": 6.03, "max_seconds": 6.08},
+      "raw_node_sha256": "327434448647813a87c4f97b7dc03ea7b3636a2797bd41b6dfcbdd32722a53df",
+      "raw_local": "docs/halofpx/evidence/l05r-quarantine-publication-nimo1-products-raw.tsv",
+      "raw_local_sha256": "327434448647813a87c4f97b7dc03ea7b3636a2797bd41b6dfcbdd32722a53df",
+      "raw_hash_note": "The retained local artifact is byte-identical to the node artifact and intentionally has no synthetic header."
+    },
+    "nimo_2_linux_asan_ubsan": {
+      "qualification_root": "/home/connorb/halofpx-qualification/l05r-quarantine-publication-20260719",
+      "toolchain": "Linux 7.1.3 CachyOS; GCC 16.1.1; CMake 4.3.4; Ninja 1.13.2",
+      "configuration": "clean CPU Debug; ASan plus UBSan; HIP, Vulkan, WebUI, prebuilt WebUI, OpenSSL OFF",
+      "asan_options": "detect_leaks=1:halt_on_error=1",
+      "ubsan_options": "halt_on_error=1:print_stacktrace=1",
+      "all_target_build": "pass, 571 targets",
+      "halofpx_passed": 39,
+      "halofpx_failed": 0,
+      "halofpx_seconds": 121.01,
+      "registry_lab_seconds": 117.67,
+      "archive_audit": "pass",
+      "executable_sha256": "cb230d633b1efe16526e84f586d8d260bdd9ca5095a602a35d578369b3a1e0b4",
+      "product_runs": {"executions": 18, "passes": 18, "failures": 0, "sum_seconds": 1272.87, "mean_seconds": 70.72, "min_seconds": 69.02, "max_seconds": 71.65, "overlapping_concurrent_pairs": 8},
+      "raw_note": "The controller reconnect overlapped two preserved batches for run labels 3 through 10. Timestamps prove 18 distinct successful processes; these are reported as concurrent stress, not 18 sequential trials.",
+      "raw_node_sha256": "217b27b4215e1bcf8068bf8a919f822a5161cfd55425831dd3ff13ebd260fea5",
+      "raw_node_path": "/home/connorb/halofpx-qualification/l05r-quarantine-publication-20260719/nimo2-l05r-products-18-asan.tsv",
+      "raw_local": "docs/halofpx/evidence/l05r-quarantine-publication-nimo2-products-asan-raw.tsv",
+      "raw_local_sha256": "217b27b4215e1bcf8068bf8a919f822a5161cfd55425831dd3ff13ebd260fea5",
+      "raw_hash_note": "The retained local artifact is byte-identical to the node artifact and intentionally has no synthetic header."
+    }
+  },
+  "independent_review": {
+    "final_verdict": "ACCEPT",
+    "remaining_actionable_findings": 0,
+    "reviewed_dimensions": ["correctness", "freshness", "clarity", "provenance", "security", "rollback", "performance", "reusable improvements"]
+  },
+  "service_health_after_qualification": {
+    "nimo_1_llama_server_pid": 3783057,
+    "nimo_1_listen": "0.0.0.0:8081",
+    "nimo_1_health_http": 200,
+    "nimo_2_rpc_pid": 3562775,
+    "nimo_2_rpc_listen": "0.0.0.0:50052",
+    "restarted_or_redeployed": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false
+  },
+  "nonclaims": [
+    "No concrete filesystem provider, persistent server write, cache hit, restore path, inference authority, HIP path, Vulkan path, or distributed protocol is enabled.",
+    "The registry-lab remains STATIC EXCLUDE_FROM_ALL and feature-off remains the compatibility control.",
+    "CPU and sanitizer timings are qualification telemetry, not an inference-performance claim.",
+    "This milestone does not satisfy M63-01 concrete Linux syscall, process-death, and filesystem qualification."
+  ]
+}

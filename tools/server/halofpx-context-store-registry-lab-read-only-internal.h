@@ -48,6 +48,57 @@ constexpr quarantine_reason select_quarantine_reason_for_test(const std::array<b
 }
 bool quarantine_diagnosis_commitment_for_test(uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
     context_store_format_digest & output) noexcept;
+bool quarantine_action_commitment_for_test(uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+    const context_store_format_digest & event_id, const context_store_format_digest & quarantine_content_digest,
+    size_t quarantine_encoded_length, context_store_format_digest & output) noexcept;
+struct quarantine_event_authority_test_audit {
+    size_t issued = 0, consumed = 0, wrong_invocation_rejected = 0, wrong_diagnosis_rejected = 0;
+    size_t replay_rejected = 0, moved_from_rejected = 0;
+    bool nonzero = false, distinct = false, exact_encoding = false;
+    bool invalid_binding_rejected = false, move_source_wiped = false;
+    bool explicit_wipe_verified = false, destructor_clear_path_exercised = false;
+};
+bool quarantine_event_authority_for_test(size_t issuance_count,
+    quarantine_event_authority_test_audit & audit) noexcept;
+struct quarantine_event_concurrency_test_audit {
+    size_t retained = 0;
+    bool all_workers_completed = false, pairwise_distinct = false, exact_encoding = false;
+};
+bool quarantine_event_concurrency_begin_for_test(size_t worker_count, size_t issuances_per_worker) noexcept;
+bool quarantine_event_concurrency_worker_for_test(size_t worker_index) noexcept;
+bool quarantine_event_concurrency_finish_for_test(quarantine_event_concurrency_test_audit & audit) noexcept;
+void quarantine_event_fail_next_issuance_for_test() noexcept;
+struct quarantine_operation_69_issuance_audit { size_t sequence_values_consumed = 0; };
+enum class quarantine_private_fault_for_test : uint8_t {
+    diagnosis_commitment, encoded_byte, encoded_length, content_digest,
+    action_commitment, cleared_event_witness, maximum_logical_authority,
+};
+class quarantine_event_id_witness {
+public:
+    quarantine_event_id_witness() noexcept = default;
+    ~quarantine_event_id_witness() noexcept;
+    quarantine_event_id_witness(const quarantine_event_id_witness &) = delete;
+    quarantine_event_id_witness & operator=(const quarantine_event_id_witness &) = delete;
+    quarantine_event_id_witness(quarantine_event_id_witness &&) noexcept;
+    quarantine_event_id_witness & operator=(quarantine_event_id_witness &&) noexcept;
+    bool consume(uint64_t, const context_store_format_digest &, context_store_format_digest &) noexcept;
+    bool empty() const noexcept;
+    void clear() noexcept;
+private:
+    bool authorize(uint64_t, const context_store_format_digest &, context_store_format_digest &) const noexcept;
+    quarantine_event_id_witness(const context_store_format_digest &, uint64_t,
+        const context_store_format_digest &) noexcept;
+    void move_from(quarantine_event_id_witness &) noexcept;
+    context_store_format_digest event_id_ {}, diagnosis_commitment_ {};
+    uint64_t invocation_id_ = 0;
+    bool owns_ = false;
+    friend struct fake_quarantine_event_authority;
+    friend class fixture;
+};
+struct fake_quarantine_event_authority {
+    static quarantine_event_id_witness acquire(uint64_t,
+        const context_store_format_digest &, bool * = nullptr) noexcept;
+};
 enum class visibility : uint8_t { not_visible, ordinary_result, dead_process_no_result };
 
 struct recovery_precedence_flags {
@@ -259,6 +310,17 @@ struct request_transition_v1 {
     context_store_format_digest predecessor_digest {}, successor_digest {}, expected_current_head_digest {};
 };
 
+struct quarantine_encoding_inputs_test_audit {
+    bool prepared = false, scope_exact = false, value_exact = false;
+    bool transition_present = false, standalone_head_present = false, explicit_wipe_verified = false;
+    quarantine_shape shape = quarantine_shape::none;
+    size_t predecessor_head_size = 0, successor_head_size = 0, prepare_size = 0;
+    context_store_format_digest predecessor_head_digest {}, successor_head_digest {}, prepare_digest {};
+};
+bool quarantine_encoding_inputs_for_test(const fixed_state & snapshot, const preflight_context_v1 & preflight,
+    const credential_owner & credential, uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+    quarantine_encoding_inputs_test_audit & audit) noexcept;
+
 // One extra entry is retained solely so the fake can prove an exact 19-step
 // successor script plus any additional operation rejects before engine entry.
 struct script { std::array<primitive_product, 20> entries {}; size_t size = 5; };
@@ -268,6 +330,8 @@ struct restart_teardown_audit { uint64_t invocation_id = 0; uint8_t process_slot
 struct restart_projection_audit {
     size_t count = 0, ordinal = 0, retained_length = 0;
     bool terminal_name_retained = false;
+    bool quarantine_projection = false, quarantine_staging_retained = false;
+    bool quarantine_final_retained = false, quarantine_exact_bytes = false;
 };
 
 constexpr size_t max_invocations = 64;
@@ -296,6 +360,10 @@ public:
     quarantine_diagnosis_view quarantine_diagnosis(size_t handle) const noexcept;
     size_t scanned_slots(size_t handle) const noexcept;
     size_t kdf_calls(size_t handle) const noexcept;
+    quarantine_operation_69_issuance_audit quarantine_operation_69_issuance(size_t handle) const noexcept;
+    bool inject_quarantine_private_fault_for_test(size_t handle,
+        quarantine_private_fault_for_test fault) noexcept;
+    bool inject_quarantine_retagged_readback_for_test(size_t handle) noexcept;
     bool serialize_restart(restart_image & caller_preallocated) const noexcept;
     size_t restart_projection_count(size_t handle) const noexcept;
     bool project_restart(size_t handle, size_t ordinal, restart_image & caller_preallocated,
@@ -323,6 +391,12 @@ private:
         context_store_format_digest action_attempt {}, action_operation {};
         context_store_format_digest action_predecessor {}, action_successor {};
         bool action_latched = false;
+        context_store_format_digest quarantine_consumed_event_id {}, quarantine_content_digest {}, quarantine_action_commitment {};
+        std::array<uint8_t, 1024> quarantine_scratch {};
+        size_t quarantine_size = 0;
+        quarantine_event_id_witness quarantine_event_authority {};
+        bool quarantine_event_confirmed = false, quarantine_action_latched = false;
+        size_t quarantine_sequence_values_consumed = 0;
         std::array<trace_entry, max_trace> events {};
         size_t event_count = 0;
         result_view pending {};

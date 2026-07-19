@@ -66,6 +66,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [ADR-0024 independent adversarial review](reviews/2026-07-18__adr-0024-sticky-quarantine-publication__review__v01.md)
 - [L05q recovery terminalization milestone review](reviews/2026-07-18__l05q-registry-lab-recovery-terminalization__review__v01.md)
 - [L05q recovery terminalization repeat receipt](evidence/l05q-registry-lab-recovery-terminalization-repeat-receipt.json)
+- [L05r fake sticky-quarantine publication review](reviews/2026-07-18__l05r-quarantine-publication__review__v01.md)
+- [L05r fake sticky-quarantine publication receipt](evidence/l05r-quarantine-publication-receipt.json)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

@@ -115,7 +115,7 @@ target_link_libraries(halofpx-context-store-registry-lab-wire PUBLIC
 target_compile_features(halofpx-context-store-registry-lab-wire PRIVATE cxx_std_17)
 set(HALOFPX_REGISTRY_LAB_WIRE_TARGET halofpx-context-store-registry-lab-wire)
 
-# Internal-only L05Q portable fake-engine recovery terminalization through operation 64.
+# Internal-only L05R portable fake-engine sticky-quarantine publication through operation 76.
 # It has no public header, concrete/persistent mutation, filesystem adapter, or product edge.
 add_library(halofpx-context-store-registry-lab-read-only STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-registry-lab-read-only.cpp

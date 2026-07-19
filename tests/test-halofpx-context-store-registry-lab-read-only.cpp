@@ -13,6 +13,7 @@
 #include <memory>
 #include <new>
 #include <string>
+#include <thread>
 #include <vector>
 #ifdef _MSC_VER
 #include <malloc.h>
@@ -138,7 +139,7 @@ context_store_format_digest hex_digest(const std::string & text) {
 }
 
 struct test_cbor_writer {
-    std::array<uint8_t, 320> bytes {}; size_t size = 0;
+    std::array<uint8_t, 512> bytes {}; size_t size = 0;
     bool raw(const void * data, size_t length) { if (length > bytes.size() - size) return false; std::memcpy(bytes.data() + size, data, length); size += length; return true; }
     bool head(uint8_t major, uint64_t value) {
         if (value < 24) { const uint8_t byte = static_cast<uint8_t>((major << 5) | value); return raw(&byte, 1); }
@@ -178,6 +179,35 @@ context_store_format_digest test_quarantine_diagnosis_commitment(uint64_t invoca
         writer.u64(9) && optional_digest(attributable, diagnosis.operation_commitment) &&
         writer.u64(10) && optional_digest(attributable, diagnosis.previous_record_digest) && writer.u64(11) && optional_digest(head, diagnosis.head_digest));
     constexpr char domain[] = "halofpx.registry-lab-quarantine-diagnosis.v1"; std::array<uint8_t, 384> input {};
+    std::copy_n(reinterpret_cast<const uint8_t *>(domain), sizeof(domain), input.begin());
+    std::copy_n(writer.bytes.data(), writer.size, input.begin() + sizeof(domain));
+    context_store_format_digest output {};
+    assert(context_store_sha256_bounded(input.data(), sizeof(domain) + writer.size, input.size(), output)); return output;
+}
+
+context_store_format_digest test_quarantine_action_commitment(const quarantine_diagnosis_view & diagnosis,
+        const context_store_format_digest & event_id, const context_store_format_digest & quarantine_content_digest,
+        size_t quarantine_encoded_length) {
+    test_cbor_writer writer;
+    const bool attributable = diagnosis.shape == quarantine_shape::prepare || diagnosis.shape == quarantine_shape::successor;
+    const bool head = diagnosis.shape != quarantine_shape::u0;
+    const auto optional_digest = [&](bool present, const context_store_format_digest & digest) {
+        return present ? writer.bstr(digest) : writer.null_value();
+    };
+    assert(writer.head(5, 15) && writer.u64(0) && writer.u64(1) &&
+        writer.u64(1) && writer.bstr(diagnosis.diagnosis_commitment) &&
+        writer.u64(2) && writer.bstr(event_id) && writer.u64(3) && writer.bstr(diagnosis.root_id) &&
+        writer.u64(4) && writer.bstr(diagnosis.path_policy_commitment) &&
+        writer.u64(5) && writer.u64(static_cast<uint8_t>(diagnosis.reason)) &&
+        writer.u64(6) && writer.u64(diagnosis.phase) && writer.u64(7) && writer.u64(static_cast<uint8_t>(diagnosis.shape)) &&
+        writer.u64(8) && optional_digest(attributable, diagnosis.attempt_id) &&
+        writer.u64(9) && (attributable ? writer.u64(diagnosis.slot) : writer.null_value()) &&
+        writer.u64(10) && optional_digest(attributable, diagnosis.operation_commitment) &&
+        writer.u64(11) && optional_digest(attributable, diagnosis.previous_record_digest) &&
+        writer.u64(12) && optional_digest(head, diagnosis.head_digest) &&
+        writer.u64(13) && writer.bstr(quarantine_content_digest) &&
+        writer.u64(14) && writer.u64(quarantine_encoded_length));
+    constexpr char domain[] = "halofpx.registry-lab-quarantine-action.v1"; std::array<uint8_t, 640> input {};
     std::copy_n(reinterpret_cast<const uint8_t *>(domain), sizeof(domain), input.begin());
     std::copy_n(writer.bytes.data(), writer.size, input.begin() + sizeof(domain));
     context_store_format_digest output {};
@@ -248,6 +278,137 @@ void quarantine_diagnosis_commitment_contract() {
     differs(777, [](auto & v) { v.previous_record_digest[0] ^= 1; }); differs(777, [](auto & v) { v.head_digest[0] ^= 1; });
     differs(777, [](auto & v) { v.shape = quarantine_shape::successor; v.phase = 2; });
     assert(sensitivities == 10);
+}
+
+void quarantine_action_commitment_contract() {
+    constexpr uint64_t invocation = 881;
+    constexpr std::array<quarantine_shape, 4> shapes {
+        quarantine_shape::u0, quarantine_shape::uh, quarantine_shape::prepare, quarantine_shape::successor
+    };
+    context_store_format_digest event_id {}; event_id.fill(0x61);
+    context_store_format_digest content_digest {}; content_digest.fill(0x71);
+    size_t admitted = 0, rejected = 0;
+    for (uint8_t reason = 0; reason < 16; ++reason) for (quarantine_shape shape : shapes) {
+        auto plan = test_diagnosis_plan(static_cast<quarantine_reason>(reason), shape);
+        plan.diagnosis_commitment = test_quarantine_diagnosis_commitment(invocation, plan);
+        context_store_format_digest actual {};
+        const bool expected = test_reason_admits_shape(plan.reason, shape);
+        assert(quarantine_action_commitment_for_test(invocation, plan, event_id, content_digest, 321, actual) == expected);
+        if (expected) { assert(actual == test_quarantine_action_commitment(plan, event_id, content_digest, 321)); ++admitted; }
+        else { assert(std::all_of(actual.begin(), actual.end(), [](uint8_t byte) { return byte == 0; })); ++rejected; }
+    }
+    assert(admitted == 25 && rejected == 39);
+
+    auto valid = test_diagnosis_plan(quarantine_reason::layout_or_unexpected, quarantine_shape::prepare);
+    valid.diagnosis_commitment = test_quarantine_diagnosis_commitment(invocation, valid);
+    const auto rejects_plan = [&](auto mutate) {
+        auto plan = valid; mutate(plan);
+        plan.diagnosis_commitment = test_quarantine_diagnosis_commitment(invocation, plan);
+        context_store_format_digest output {}; assert(!quarantine_action_commitment_for_test(
+            invocation, plan, event_id, content_digest, 321, output));
+        assert(std::all_of(output.begin(), output.end(), [](uint8_t byte) { return byte == 0; }));
+    };
+    rejects_plan([](auto & v) { v.valid = false; }); rejects_plan([](auto & v) { v.publishable = false; });
+    rejects_plan([](auto & v) { v.authenticated_initialized_root = false; }); rejects_plan([](auto & v) { v.root_id = {}; });
+    rejects_plan([](auto & v) { v.path_policy_commitment = {}; }); rejects_plan([](auto & v) { v.registry_id = {}; });
+    rejects_plan([](auto & v) { v.registry_epoch = 0; }); rejects_plan([](auto & v) { v.attributable = false; });
+    rejects_plan([](auto & v) { v.has_previous_record = false; }); rejects_plan([](auto & v) { v.has_head = false; });
+    rejects_plan([](auto & v) { v.phase = 0; }); rejects_plan([](auto & v) { v.slot = 512; });
+    rejects_plan([](auto & v) { v.attempt_id = {}; }); rejects_plan([](auto & v) { v.operation_commitment = {}; });
+    rejects_plan([](auto & v) { v.previous_record_digest = {}; }); rejects_plan([](auto & v) { v.head_digest = {}; });
+
+    const auto reject_shape = [&](quarantine_shape shape, auto mutate) {
+        auto plan = test_diagnosis_plan(quarantine_reason::layout_or_unexpected, shape); mutate(plan);
+        plan.diagnosis_commitment = test_quarantine_diagnosis_commitment(invocation, plan);
+        context_store_format_digest output {}; assert(!quarantine_action_commitment_for_test(
+            invocation, plan, event_id, content_digest, 321, output));
+    };
+    reject_shape(quarantine_shape::u0, [](auto & v) { v.head_digest.fill(1); });
+    reject_shape(quarantine_shape::u0, [](auto & v) { v.slot = 1; });
+    reject_shape(quarantine_shape::uh, [](auto & v) { v.head_digest = {}; });
+    reject_shape(quarantine_shape::uh, [](auto & v) { v.attributable = true; });
+    reject_shape(quarantine_shape::prepare, [](auto & v) { v.phase = 2; });
+    reject_shape(quarantine_shape::successor, [](auto & v) { v.phase = 1; });
+
+    const auto rejects_action = [&](uint64_t call_invocation, const quarantine_diagnosis_view & plan,
+            const context_store_format_digest & event, const context_store_format_digest & content, size_t length) {
+        context_store_format_digest output {}; assert(!quarantine_action_commitment_for_test(
+            call_invocation, plan, event, content, length, output));
+        assert(std::all_of(output.begin(), output.end(), [](uint8_t byte) { return byte == 0; }));
+    };
+    rejects_action(0, valid, event_id, content_digest, 321);
+    auto stale = valid; stale.diagnosis_commitment[0] ^= 1; rejects_action(invocation, stale, event_id, content_digest, 321);
+    context_store_format_digest zero {}; rejects_action(invocation, valid, zero, content_digest, 321);
+    rejects_action(invocation, valid, event_id, zero, 321); rejects_action(invocation, valid, event_id, content_digest, 0);
+    rejects_action(invocation, valid, event_id, content_digest, 1025);
+
+    context_store_format_digest baseline {}; assert(quarantine_action_commitment_for_test(
+        invocation, valid, event_id, content_digest, 321, baseline));
+    size_t sensitivities = 0;
+    const auto differs_plan = [&](uint64_t call_invocation, auto mutate) {
+        auto plan = valid; mutate(plan);
+        plan.diagnosis_commitment = test_quarantine_diagnosis_commitment(call_invocation, plan);
+        context_store_format_digest output {}; assert(quarantine_action_commitment_for_test(
+            call_invocation, plan, event_id, content_digest, 321, output));
+        assert(output != baseline); ++sensitivities;
+    };
+    differs_plan(invocation + 1, [](auto &) {}); differs_plan(invocation, [](auto & v) { v.root_id[0] ^= 1; });
+    differs_plan(invocation, [](auto & v) { v.path_policy_commitment[0] ^= 1; });
+    differs_plan(invocation, [](auto & v) { v.reason = quarantine_reason::chain_contradiction; });
+    differs_plan(invocation, [](auto & v) { v.attempt_id[0] ^= 1; }); differs_plan(invocation, [](auto & v) { ++v.slot; });
+    differs_plan(invocation, [](auto & v) { v.operation_commitment[0] ^= 1; });
+    differs_plan(invocation, [](auto & v) { v.previous_record_digest[0] ^= 1; });
+    differs_plan(invocation, [](auto & v) { v.head_digest[0] ^= 1; });
+    differs_plan(invocation, [](auto & v) { v.shape = quarantine_shape::successor; v.phase = 2; });
+    const auto differs_action = [&](const auto & changed_event, const auto & changed_content, size_t length) {
+        context_store_format_digest output {}; assert(quarantine_action_commitment_for_test(
+            invocation, valid, changed_event, changed_content, length, output)); assert(output != baseline); ++sensitivities;
+    };
+    auto changed_event = event_id; changed_event[0] ^= 1; differs_action(changed_event, content_digest, 321);
+    auto changed_content = content_digest; changed_content[0] ^= 1; differs_action(event_id, changed_content, 321);
+    differs_action(event_id, content_digest, 322); assert(sensitivities == 13);
+
+    for (size_t i = 0; i < shapes.size(); ++i) {
+        auto plan = test_diagnosis_plan(quarantine_reason::layout_or_unexpected, shapes[i]);
+        plan.diagnosis_commitment = test_quarantine_diagnosis_commitment(invocation + i, plan);
+        context_store_format_digest output {}; assert(quarantine_action_commitment_for_test(
+            invocation + i, plan, event_id, content_digest, 1 + i * 341, output));
+        constexpr std::array<const char *, 4> golden {
+            "f049302b4e309f45e8591d02a551168563e503279771c88b1c93168d13df1968",
+            "5f60142504bb61ff54525f54c709b0ae4085d31772b444fad742f09d08cdea1f",
+            "6b021681823318f9ca268c1419270d699402ae35180af91fa2a937ff5bc4e14e",
+            "7bbdf63c2760b87fa5ce5b18d04b350afe310495267242f87ac9b87e4ced476e"
+        };
+        assert(output == hex_digest(golden[i]));
+    }
+}
+
+void quarantine_event_authority_contract() {
+    quarantine_event_authority_test_audit audit {};
+    assert(!quarantine_event_authority_for_test(0, audit));
+    assert(!quarantine_event_authority_for_test(65, audit));
+    assert(quarantine_event_authority_for_test(32, audit));
+    assert(audit.issued == 32 && audit.consumed == 32);
+    assert(audit.wrong_invocation_rejected == 32 && audit.wrong_diagnosis_rejected == 32);
+    assert(audit.replay_rejected == 32 && audit.moved_from_rejected == 32);
+    assert(audit.nonzero && audit.distinct && audit.exact_encoding && audit.invalid_binding_rejected);
+    assert(audit.move_source_wiped && audit.explicit_wipe_verified && audit.destructor_clear_path_exercised);
+
+    constexpr size_t workers = 8;
+    assert(quarantine_event_concurrency_begin_for_test(workers, 8));
+    assert(!quarantine_event_concurrency_begin_for_test(workers, 8));
+    std::array<std::thread, workers> threads;
+    std::array<bool, workers> passed {};
+    for (size_t i = 0; i < workers; ++i) threads[i] = std::thread([&, i] {
+        passed[i] = quarantine_event_concurrency_worker_for_test(i);
+    });
+    for (auto & thread : threads) thread.join();
+    for (bool worker_passed : passed) assert(worker_passed);
+    quarantine_event_concurrency_test_audit concurrency {};
+    assert(quarantine_event_concurrency_finish_for_test(concurrency));
+    assert(concurrency.retained == 64 && concurrency.all_workers_completed);
+    assert(concurrency.pairwise_distinct && concurrency.exact_encoding);
+    assert(!quarantine_event_concurrency_finish_for_test(concurrency));
 }
 
 std::vector<uint8_t> golden_fixture(const std::string & json, const char * name) {
@@ -472,6 +633,21 @@ script recovery_script(bool successor, recovery_classification classification) {
     value.entries[i++] = sync_product(operation::terminal_file_sync);
     value.entries[i++] = sync_product(operation::attempts_directory_sync);
     value.size = i; return value;
+}
+
+script quarantine_publication_script() {
+    script value = operation_5_script(recovery_classification::needs_sticky_quarantine);
+    size_t i = 5;
+    value.entries[i++] = product(operation::quarantine_event_id_acquire);
+    value.entries[i++] = product(operation::action_mutation_admission);
+    value.entries[i] = product(operation::quarantine_staging_create); value.entries[i++].effect = storage_effect::complete_live;
+    value.entries[i] = product(operation::quarantine_staging_write); value.entries[i++].effect = storage_effect::complete_live;
+    value.entries[i++] = product(operation::quarantine_staging_readback);
+    value.entries[i++] = sync_product(operation::quarantine_file_sync);
+    value.entries[i] = product(operation::quarantine_publish_rename); value.entries[i++].effect = storage_effect::complete_live;
+    value.entries[i++] = sync_product(operation::quarantine_root_directory_sync);
+    value.entries[i++] = sync_product(operation::quarantine_staging_directory_sync);
+    value.size = i; assert(i == 14); return value;
 }
 
 void finish(fixture & f, size_t handle);
@@ -1117,8 +1293,10 @@ void operation_5_quarantine_diagnosis_contract(const golden_data & g) {
     {
         const auto diagnosis = sticky([&](fixture & f) {
                 install_journal(f.state(), 17, g.prepare); install_successor_head(f.state(), g); f.state().unexpected[0].live_name[0] = 'x';
-            }, quarantine_reason::layout_or_unexpected, quarantine_shape::none, false);
-        assert(diagnosis.authenticated_initialized_root && !diagnosis.attributable && !diagnosis.has_previous_record && !diagnosis.has_head);
+            }, quarantine_reason::layout_or_unexpected, quarantine_shape::successor, true);
+        assert(diagnosis.authenticated_initialized_root && diagnosis.attributable && diagnosis.has_previous_record && diagnosis.has_head &&
+            diagnosis.phase == 2 && diagnosis.slot == 17 && diagnosis.attempt_id == g.request.attempt_id &&
+            diagnosis.operation_commitment == g.request.operation_commitment);
     }
     {
         const auto diagnosis = sticky([&](fixture & f) {
@@ -1134,6 +1312,816 @@ void operation_5_quarantine_diagnosis_contract(const golden_data & g) {
         assert(diagnosis.authenticated_initialized_root && !diagnosis.attributable && !diagnosis.has_previous_record && !diagnosis.has_head);
     }
     assert(diagnosed == 16);
+}
+
+void quarantine_encoding_inputs_contract(const golden_data & g) {
+    const auto run = [&](uint64_t invocation, auto mutate, quarantine_shape shape) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); mutate(f->state());
+        const size_t handle = run_operation_5(*f, g, invocation,
+            recovery_classification::needs_sticky_quarantine, g.request);
+        const auto diagnosis = f->quarantine_diagnosis(handle);
+        assert(diagnosis.publishable && diagnosis.shape == shape);
+        credential_owner c = golden_data::golden_credential(); quarantine_encoding_inputs_test_audit audit;
+        assert(quarantine_encoding_inputs_for_test(f->state(), g.preflight, c, invocation, diagnosis, audit));
+        assert(audit.prepared && audit.scope_exact && audit.value_exact && audit.shape == shape && audit.explicit_wipe_verified);
+        return std::pair<std::unique_ptr<fixture>, quarantine_diagnosis_view> { std::move(f), diagnosis };
+    };
+    const auto u0 = run(20600, [](fixed_state & state) { state.head.live_complete = false; }, quarantine_shape::u0);
+    {
+        credential_owner c = golden_data::golden_credential(); quarantine_encoding_inputs_test_audit audit;
+        assert(quarantine_encoding_inputs_for_test(u0.first->state(), g.preflight, c, 20600, u0.second, audit));
+        assert(!audit.transition_present && !audit.standalone_head_present && audit.predecessor_head_size == 0 &&
+            audit.successor_head_size == 0 && audit.prepare_size == 0);
+    }
+    const auto uh = run(20601, [](fixed_state & state) { state.unexpected[0].live_name[0] = 'x'; }, quarantine_shape::uh);
+    {
+        credential_owner c = golden_data::golden_credential(); quarantine_encoding_inputs_test_audit audit;
+        assert(quarantine_encoding_inputs_for_test(uh.first->state(), g.preflight, c, 20601, uh.second, audit));
+        assert(!audit.transition_present && audit.standalone_head_present && audit.predecessor_head_size == g.head_initial.size() &&
+            audit.successor_head_size == 0 && audit.prepare_size == 0 &&
+            audit.predecessor_head_digest == g.request.expected_current_head_digest);
+    }
+    const auto p = run(20602, [&](fixed_state & state) {
+        install_journal(state, 17, g.prepare); state.unexpected[0].live_name[0] = 'x';
+    }, quarantine_shape::prepare);
+    {
+        credential_owner c = golden_data::golden_credential(); quarantine_encoding_inputs_test_audit audit;
+        assert(quarantine_encoding_inputs_for_test(p.first->state(), g.preflight, c, 20602, p.second, audit));
+        assert(audit.transition_present && !audit.standalone_head_present && audit.predecessor_head_size == g.head_initial.size() &&
+            audit.successor_head_size == 0 && audit.prepare_size == g.prepare.size() &&
+            audit.predecessor_head_digest == p.second.head_digest && audit.prepare_digest == p.second.previous_record_digest);
+    }
+    const auto s = run(20603, [&](fixed_state & state) {
+        install_journal(state, 17, g.prepare); install_successor_head(state, g); state.unexpected[0].live_name[0] = 'x';
+    }, quarantine_shape::successor);
+    {
+        credential_owner c = golden_data::golden_credential(); quarantine_encoding_inputs_test_audit audit;
+        assert(quarantine_encoding_inputs_for_test(s.first->state(), g.preflight, c, 20603, s.second, audit));
+        assert(audit.transition_present && !audit.standalone_head_present && audit.predecessor_head_size == g.head_initial.size() &&
+            audit.successor_head_size == g.head_successor.size() && audit.prepare_size == g.prepare.size() &&
+            audit.predecessor_head_digest == g.request.expected_current_head_digest &&
+            audit.successor_head_digest == s.second.head_digest && audit.prepare_digest == s.second.previous_record_digest);
+    }
+
+    const auto rejects = [&](const fixed_state & state, const preflight_context_v1 & preflight,
+            uint64_t invocation, const quarantine_diagnosis_view & diagnosis) {
+        credential_owner c = golden_data::golden_credential(); quarantine_encoding_inputs_test_audit audit;
+        assert(!quarantine_encoding_inputs_for_test(state, preflight, c, invocation, diagnosis, audit));
+        assert(!audit.prepared);
+    };
+    { auto preflight = g.preflight; ++preflight.registry_epoch; rejects(s.first->state(), preflight, 20603, s.second); }
+    { auto broken = std::make_unique<fixed_state>(s.first->state()); broken->slots[17].prepare.live_bytes[0] ^= 1; rejects(*broken, g.preflight, 20603, s.second); }
+    { auto broken = std::make_unique<fixed_state>(s.first->state()); broken->initial_envelope.object.live_bytes[0] ^= 1; rejects(*broken, g.preflight, 20603, s.second); }
+    {
+        auto fabricated = p.second; fabricated.shape = quarantine_shape::successor; fabricated.phase = 2;
+        fabricated.head_digest = s.second.head_digest;
+        assert(quarantine_diagnosis_commitment_for_test(20602, fabricated, fabricated.diagnosis_commitment));
+        rejects(p.first->state(), g.preflight, 20602, fabricated);
+    }
+}
+
+void quarantine_publication_happy_path_contract(const golden_data & g) {
+    constexpr std::array<uint16_t, 17> expected_trace {
+        1, 2, 3, 4, 5, 69, 6, 70, 71, 72, 73, 74, 75, 76, 90, 91, 92
+    };
+    const auto run = [&](uint64_t invocation, quarantine_shape shape, auto mutate) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); mutate(f->state());
+        script publication = quarantine_publication_script();
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation, 0, std::move(credential), g.preflight, g.request, publication);
+        finish(*f, handle);
+        const auto diagnosis = f->quarantine_diagnosis(handle);
+        assert(diagnosis.valid && diagnosis.publishable && diagnosis.shape == shape &&
+            f->derived_classification(handle) == recovery_classification::needs_sticky_quarantine);
+        assert(f->trace_size(handle) == expected_trace.size());
+        for (size_t i = 0; i < expected_trace.size(); ++i) assert(f->trace(handle, i).event == expected_trace[i]);
+        assert(f->result(handle).state == visibility::ordinary_result &&
+            f->result(handle).ordinary == status::quarantined_or_unavailable && f->ordinary_wipe_audited(handle));
+        const auto & live = f->state().quarantine;
+        assert(live.live_present && live.durable_present && live.live_complete && live.durable_complete &&
+            live.live_length > 0 && live.live_length == live.durable_length &&
+            std::equal(live.live_bytes.begin(), live.live_bytes.begin() + static_cast<std::ptrdiff_t>(live.live_length),
+                live.durable_bytes.begin()));
+        const auto & staging = f->state().quarantine_staging;
+        assert(!staging.live_present && !staging.durable_present && !staging.live_complete &&
+            !staging.durable_complete && !staging.live_length && !staging.durable_length);
+    };
+    run(20700, quarantine_shape::u0, [](fixed_state & state) { state.head.live_complete = false; });
+    run(20701, quarantine_shape::uh, [](fixed_state & state) { state.unexpected[0].live_name[0] = 'x'; });
+    run(20702, quarantine_shape::prepare, [&](fixed_state & state) {
+        install_journal(state, 17, g.prepare); state.unexpected[0].live_name[0] = 'x';
+    });
+    run(20703, quarantine_shape::successor, [&](fixed_state & state) {
+        install_journal(state, 17, g.prepare); install_successor_head(state, g);
+        state.unexpected[0].live_name[0] = 'x';
+    });
+}
+
+void install_durable_unexpected(fixed_state & state) {
+    auto & entry = state.unexpected[0]; entry.live_occupied = entry.durable_occupied = true;
+    entry.live_length = entry.durable_length = 1; entry.live_name[0] = entry.durable_name[0] = 'x';
+}
+
+void quarantine_restart_projection_contract(const golden_data & g) {
+    auto source = std::make_unique<fixture>(); populate_clean(*source, g); install_durable_unexpected(source->state());
+    script publication = quarantine_publication_script(); credential_owner credential = golden_data::golden_credential();
+    const size_t handle = source->begin(20800, 0, std::move(credential), g.preflight, g.request, publication);
+    const auto check_stage = [&](size_t expected_count) {
+        const size_t count = source->restart_projection_count(handle); assert(count == expected_count);
+        for (size_t ordinal = 0; ordinal < count; ++ordinal) {
+            auto image = std::make_unique<restart_image>(); restart_projection_audit audit;
+            assert(source->project_restart(handle, ordinal, *image, audit));
+            assert(audit.quarantine_projection && audit.count == count && audit.ordinal == ordinal &&
+                audit.quarantine_staging_retained == image->quarantine_staging.present &&
+                audit.quarantine_final_retained == image->quarantine.present);
+            assert(std::all_of(image->quarantine_staging.bytes.begin() + static_cast<std::ptrdiff_t>(image->quarantine_staging.length),
+                image->quarantine_staging.bytes.end(), [](uint8_t byte) { return byte == 0; }));
+            assert(std::all_of(image->quarantine.bytes.begin() + static_cast<std::ptrdiff_t>(image->quarantine.length),
+                image->quarantine.bytes.end(), [](uint8_t byte) { return byte == 0; }));
+            auto restored = std::make_unique<fixture>(); assert(restored->restore_restart(*image, 1));
+            const bool blocked = image->quarantine.present || image->quarantine_staging.present;
+            const size_t classified = run_operation_5(*restored, g, 20801 + ordinal,
+                blocked ? recovery_classification::blocked_by_existing_quarantine
+                        : recovery_classification::needs_sticky_quarantine, g.request);
+            assert(restored->result(classified).ordinary == status::quarantined_or_unavailable);
+        }
+    };
+    assert(source->step(handle)); assert(source->step(handle)); assert(source->step(handle)); assert(source->step(handle));
+    check_stage(1); // confirmed 69, before 70: neither namespace can survive.
+    assert(source->step(handle)); check_stage(2); // create: absent or the exact empty prefix.
+    assert(source->step(handle)); const size_t issued_prefix_count = source->restart_projection_count(handle);
+    assert(issued_prefix_count > 2); check_stage(issued_prefix_count); // write: absent or any exact issued prefix.
+    assert(source->step(handle)); check_stage(issued_prefix_count); // authenticated readback changes no restart outcomes.
+    assert(source->step(handle)); check_stage(2); // file sync: absent or complete staging.
+    assert(source->step(handle)); check_stage(4); // rename: neither, staging, final, or both.
+    assert(source->step(handle)); check_stage(2); // root sync: final-only or both.
+    assert(source->step(handle)); check_stage(1); // staging sync: exact final-only.
+
+    auto first = std::make_unique<fixture>(); populate_clean(*first, g); install_durable_unexpected(first->state());
+    credential = golden_data::golden_credential();
+    const size_t first_handle = first->begin(20900, 0, std::move(credential), g.preflight, g.request, publication);
+    assert(first->step(first_handle)); assert(first->step(first_handle)); assert(first->step(first_handle)); assert(first->step(first_handle));
+    auto neither = std::make_unique<restart_image>(); restart_projection_audit neither_audit;
+    assert(first->project_restart(first_handle, 0, *neither, neither_audit));
+    auto retried = std::make_unique<fixture>(); assert(retried->restore_restart(*neither, 1));
+    finish(*first, first_handle); const size_t first_size = first->state().quarantine.live_length;
+    std::array<uint8_t, 1024> first_bytes = first->state().quarantine.live_bytes;
+    credential = golden_data::golden_credential();
+    const size_t retry_handle = retried->begin(20900, 0, std::move(credential), g.preflight, g.request, publication);
+    finish(*retried, retry_handle);
+    assert(retried->result(retry_handle).ordinary == status::quarantined_or_unavailable &&
+        retried->state().quarantine.live_length == first_size &&
+        !std::equal(first_bytes.begin(), first_bytes.begin() + static_cast<std::ptrdiff_t>(first_size),
+            retried->state().quarantine.live_bytes.begin()));
+}
+
+void quarantine_operation_69_failure_contract(const golden_data & g) {
+    const auto run = [&](uint64_t invocation, primitive_code code, completion completed) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[5].code = code;
+        publication.entries[5].completed = completed; credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation, 0, std::move(credential), g.preflight, g.request, publication);
+        finish(*f, handle);
+        if (completed == completion::process_death) {
+            assert(f->invocation_dead(handle) && f->result(handle).state == visibility::dead_process_no_result);
+        } else {
+            assert(f->result(handle).state == visibility::ordinary_result &&
+                f->result(handle).ordinary == status::quarantined_or_unavailable && f->ordinary_wipe_audited(handle));
+        }
+        assert(f->quarantine_operation_69_issuance(handle).sequence_values_consumed == 1);
+        assert(!f->state().quarantine.live_present && !f->state().quarantine_staging.live_present);
+    };
+    run(21000, primitive_code::unsupported, completion::response_confirmed);
+    run(21001, primitive_code::unavailable, completion::response_confirmed);
+    run(21002, primitive_code::io_failure, completion::response_confirmed);
+    run(21003, primitive_code::ok, completion::response_lost);
+    run(21004, primitive_code::ok, completion::process_death);
+    {
+        quarantine_event_fail_next_issuance_for_test();
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(21006, 0, std::move(credential), g.preflight, g.request, publication);
+        finish(*f, handle);
+        assert(f->result(handle).state == visibility::ordinary_result &&
+            f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            f->quarantine_operation_69_issuance(handle).sequence_values_consumed == 0);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(21005, 0, std::move(credential), g.preflight, g.request, publication);
+        assert(f->step(handle)); assert(f->step(handle)); assert(f->step(handle)); assert(f->step(handle));
+        f->state().modeled_available_bytes = registry_minimum_reserve_bytes - 1;
+        finish(*f, handle);
+        assert(f->result(handle).state == visibility::ordinary_result &&
+            f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            !f->state().quarantine.live_present && !f->state().quarantine_staging.live_present);
+    }
+    for (primitive_code scripted : { primitive_code::capacity_exhausted, primitive_code::reserve_exhausted }) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[6].code = scripted;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(21100 + static_cast<uint8_t>(scripted), 0, std::move(credential),
+            g.preflight, g.request, publication);
+        finish(*f, handle);
+        assert(f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            !f->state().quarantine.live_present && !f->state().quarantine_staging.live_present);
+        for (size_t i = 0; i < f->trace_size(handle); ++i)
+            assert(f->trace(handle, i).event != static_cast<uint16_t>(operation::action_mutation_admission));
+    }
+    for (primitive_code scripted : { primitive_code::unsupported, primitive_code::io_failure }) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[6].code = scripted;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(21200 + static_cast<uint8_t>(scripted), 0, std::move(credential),
+            g.preflight, g.request, publication);
+        finish(*f, handle);
+        assert(f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            !f->state().quarantine.live_present && !f->state().quarantine_staging.live_present);
+        bool reached_operation_6 = false;
+        for (size_t i = 0; i < f->trace_size(handle); ++i)
+            reached_operation_6 = reached_operation_6 || f->trace(handle, i).event == static_cast<uint16_t>(operation::action_mutation_admission);
+        assert(reached_operation_6);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        f->state().modeled_available_bytes = registry_minimum_reserve_bytes - 1;
+        script publication = quarantine_publication_script(); publication.entries[6].code = primitive_code::reserve_exhausted;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(21250, 0, std::move(credential), g.preflight, g.request, publication);
+        finish(*f, handle); bool reached_operation_6 = false;
+        for (size_t i = 0; i < f->trace_size(handle); ++i)
+            reached_operation_6 = reached_operation_6 || f->trace(handle, i).event == static_cast<uint16_t>(operation::action_mutation_admission);
+        assert(reached_operation_6 && f->result(handle).ordinary == status::quarantined_or_unavailable);
+    }
+}
+
+template<size_t N> bool exact_modeled_file_state(const modeled_file<N> & a, const modeled_file<N> & b) {
+    return a.live_present == b.live_present && a.durable_present == b.durable_present &&
+        a.live_complete == b.live_complete && a.durable_complete == b.durable_complete &&
+        a.live_length == b.live_length && a.durable_length == b.durable_length &&
+        a.live_bytes == b.live_bytes && a.durable_bytes == b.durable_bytes;
+}
+
+void quarantine_effect_authorization_contract(const golden_data & g) {
+    const auto begin = [&](script publication, uint64_t invocation) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation, 0, std::move(credential), g.preflight, g.request, publication);
+        return std::pair<std::unique_ptr<fixture>, size_t> { std::move(f), handle };
+    };
+    {
+        script publication = quarantine_publication_script(); publication.entries[8].code = primitive_code::unavailable;
+        auto running = begin(publication, 21300); for (size_t i = 0; i < 5; ++i) assert(running.first->step(running.second));
+        auto & staging = running.first->state().quarantine_staging; staging.live_length = 1; staging.live_bytes[0] = 0x5a;
+        const auto before = staging; finish(*running.first, running.second);
+        assert(exact_modeled_file_state(staging, before) &&
+            running.first->result(running.second).ordinary == status::quarantined_or_unavailable);
+    }
+    {
+        script publication = quarantine_publication_script(); publication.entries[11].code = primitive_code::unavailable;
+        publication.entries[11].effect = storage_effect::complete_live;
+        auto running = begin(publication, 21301); for (size_t i = 0; i < 8; ++i) assert(running.first->step(running.second));
+        std::array<uint8_t, 3> distinct { 0xa1, 0xb2, 0xc3 }; publish(running.first->state().quarantine, distinct.data(), distinct.size());
+        const auto final_before = running.first->state().quarantine;
+        const auto staging_before = running.first->state().quarantine_staging;
+        finish(*running.first, running.second);
+        assert(exact_modeled_file_state(running.first->state().quarantine, final_before) &&
+            exact_modeled_file_state(running.first->state().quarantine_staging, staging_before) &&
+            running.first->result(running.second).ordinary == status::quarantined_or_unavailable);
+    }
+    {
+        script publication = quarantine_publication_script(); publication.entries[12].code = primitive_code::unavailable;
+        auto running = begin(publication, 21302); for (size_t i = 0; i < 9; ++i) assert(running.first->step(running.second));
+        auto & final = running.first->state().quarantine; final.live_bytes[0] ^= 1; final.durable_bytes[0] ^= 1;
+        const auto before = final; finish(*running.first, running.second);
+        assert(exact_modeled_file_state(final, before) && !final.durable_present &&
+            running.first->result(running.second).ordinary == status::quarantined_or_unavailable);
+    }
+}
+
+void quarantine_fault_restart_projection_contract(const golden_data & g) {
+    const auto execute = [&](uint64_t invocation, size_t script_index, primitive_code code,
+            storage_effect effect, completion completed) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[script_index].code = code;
+        publication.entries[script_index].effect = effect; publication.entries[script_index].completed = completed;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation, 0, std::move(credential), g.preflight, g.request, publication);
+        finish(*f, handle); return std::pair<std::unique_ptr<fixture>, size_t> { std::move(f), handle };
+    };
+    {
+        auto outcome = execute(21400, 7, primitive_code::unavailable, storage_effect::none, completion::response_confirmed);
+        assert(outcome.first->restart_projection_count(outcome.second) == 1);
+        auto image = std::make_unique<restart_image>(); restart_projection_audit audit;
+        assert(outcome.first->project_restart(outcome.second, 0, *image, audit) &&
+            !image->quarantine.present && !image->quarantine_staging.present);
+    }
+    {
+        auto outcome = execute(21401, 10, primitive_code::ok,
+            storage_effect::bounded_partial_durability_projection, completion::response_lost);
+        const size_t count = outcome.first->restart_projection_count(outcome.second); assert(count > 2);
+        for (size_t ordinal = 0; ordinal < count; ++ordinal) {
+            auto image = std::make_unique<restart_image>(); restart_projection_audit audit;
+            assert(outcome.first->project_restart(outcome.second, ordinal, *image, audit));
+            assert(!image->quarantine.present);
+        }
+    }
+    {
+        auto outcome = execute(21402, 11, primitive_code::ok, storage_effect::none, completion::response_lost);
+        assert(outcome.first->restart_projection_count(outcome.second) == 2);
+        for (size_t ordinal = 0; ordinal < 2; ++ordinal) {
+            auto image = std::make_unique<restart_image>(); restart_projection_audit audit;
+            assert(outcome.first->project_restart(outcome.second, ordinal, *image, audit) && !image->quarantine.present);
+        }
+    }
+    {
+        auto outcome = execute(21403, 13, primitive_code::ok, storage_effect::none, completion::process_death);
+        assert(outcome.first->invocation_dead(outcome.second) && outcome.first->restart_projection_count(outcome.second) == 2);
+        for (size_t ordinal = 0; ordinal < 2; ++ordinal) {
+            auto image = std::make_unique<restart_image>(); restart_projection_audit audit;
+            assert(outcome.first->project_restart(outcome.second, ordinal, *image, audit) && image->quarantine.present);
+            assert((ordinal == 1) == image->quarantine_staging.present);
+        }
+    }
+}
+
+constexpr std::array<operation, 8> l05r_quarantine_operations {
+    operation::quarantine_event_id_acquire, operation::quarantine_staging_create,
+    operation::quarantine_staging_write, operation::quarantine_staging_readback,
+    operation::quarantine_file_sync, operation::quarantine_publish_rename,
+    operation::quarantine_root_directory_sync, operation::quarantine_staging_directory_sync,
+};
+
+size_t l05r_quarantine_script_index(operation op) {
+    const script exact = quarantine_publication_script();
+    for (size_t i = 0; i < exact.size; ++i) if (exact.entries[i].op == op) return i;
+    assert(false); return 0;
+}
+
+size_t l05r_trace_occurrences(const fixture & f, size_t handle, operation op) {
+    size_t count = 0;
+    for (size_t i = 0; i < f.trace_size(handle); ++i)
+        count += f.trace(handle, i).event == static_cast<uint16_t>(op) ? 1U : 0U;
+    return count;
+}
+
+size_t l05r_expected_projection_count(const fixture & f, operation op, storage_effect effect) {
+    const auto & state = f.state();
+    switch (op) {
+        case operation::quarantine_event_id_acquire: return 1;
+        case operation::quarantine_staging_create:
+            return effect == storage_effect::complete_live ? 2 : 1;
+        case operation::quarantine_staging_write:
+        case operation::quarantine_staging_readback:
+            return state.quarantine_staging.live_present ? state.quarantine_staging.live_length + 2 : 1;
+        case operation::quarantine_file_sync:
+            if (effect == storage_effect::none) return state.quarantine_staging.live_length + 2;
+            if (effect == storage_effect::bounded_partial_durability_projection)
+                return state.quarantine_staging.durable_length + 2;
+            return 2;
+        case operation::quarantine_publish_rename:
+            return effect == storage_effect::complete_live ? 4 : 2;
+        case operation::quarantine_root_directory_sync:
+            return effect == storage_effect::complete_durability_projection ? 2 : 4;
+        case operation::quarantine_staging_directory_sync:
+            return effect == storage_effect::complete_durability_projection ? 1 : 2;
+        default: assert(false); return 0;
+    }
+}
+
+void l05r_assert_exact_quarantine_effect(const fixture & f, operation op, storage_effect effect) {
+    const auto & state = f.state();
+    if (op == operation::quarantine_event_id_acquire) {
+        assert(!state.quarantine.live_present && !state.quarantine_staging.live_present); return;
+    }
+    if (op == operation::quarantine_staging_create) {
+        assert(!state.quarantine.live_present);
+        assert(state.quarantine_staging.live_present == (effect == storage_effect::complete_live));
+        if (state.quarantine_staging.live_present)
+            assert(state.quarantine_staging.live_complete && state.quarantine_staging.live_length == 0);
+        return;
+    }
+    if (op == operation::quarantine_staging_write) {
+        assert(!state.quarantine.live_present && state.quarantine_staging.live_present);
+        if (effect == storage_effect::none)
+            assert(state.quarantine_staging.live_complete && state.quarantine_staging.live_length == 0);
+        if (effect == storage_effect::bounded_partial_bytes)
+            assert(!state.quarantine_staging.live_complete && state.quarantine_staging.live_length > 0);
+        if (effect == storage_effect::complete_live)
+            assert(state.quarantine_staging.live_complete && state.quarantine_staging.live_length > 0);
+        return;
+    }
+    if (op == operation::quarantine_staging_readback) {
+        assert(!state.quarantine.live_present && state.quarantine_staging.live_present &&
+            state.quarantine_staging.live_complete && state.quarantine_staging.live_length > 0); return;
+    }
+    if (op == operation::quarantine_file_sync) {
+        assert(!state.quarantine.live_present && state.quarantine_staging.live_present &&
+            state.quarantine_staging.live_complete && !state.quarantine_staging.durable_present);
+        if (effect == storage_effect::none) assert(state.quarantine_staging.durable_length == 0);
+        if (effect == storage_effect::bounded_partial_durability_projection)
+            assert(state.quarantine_staging.durable_length > 0 &&
+                state.quarantine_staging.durable_length < state.quarantine_staging.live_length &&
+                !state.quarantine_staging.durable_complete);
+        if (effect == storage_effect::complete_durability_projection)
+            assert(state.quarantine_staging.durable_complete &&
+                state.quarantine_staging.durable_length == state.quarantine_staging.live_length);
+        return;
+    }
+    if (op == operation::quarantine_publish_rename) {
+        if (effect == storage_effect::complete_live)
+            assert(state.quarantine.live_present && state.quarantine.live_complete &&
+                !state.quarantine_staging.live_present);
+        else
+            assert(!state.quarantine.live_present && state.quarantine_staging.live_present &&
+                state.quarantine_staging.live_complete);
+        return;
+    }
+    assert(state.quarantine.live_present && state.quarantine.live_complete);
+    if (op == operation::quarantine_root_directory_sync)
+        assert(state.quarantine.durable_present ==
+            (effect == storage_effect::complete_durability_projection));
+    if (op == operation::quarantine_staging_directory_sync)
+        assert(state.quarantine.durable_present && !state.quarantine_staging.live_present);
+}
+
+void l05r_validate_projection_frontier(fixture & source, size_t handle, const golden_data & g,
+        operation op, storage_effect effect, uint64_t & invocation) {
+    const size_t expected = l05r_expected_projection_count(source, op, effect);
+    assert(source.restart_projection_count(handle) == expected);
+    auto previous = std::make_unique<restart_image>(); bool have_previous = false;
+    for (size_t ordinal = 0; ordinal < expected; ++ordinal) {
+        auto image = std::make_unique<restart_image>(); auto deterministic = std::make_unique<restart_image>();
+        restart_projection_audit audit, repeated;
+        assert(source.project_restart(handle, ordinal, *image, audit) &&
+            source.project_restart(handle, ordinal, *deterministic, repeated));
+        assert(same_restart(*image, *deterministic) && audit.count == expected &&
+            audit.ordinal == ordinal && audit.count == repeated.count && audit.ordinal == repeated.ordinal);
+        assert(audit.quarantine_projection &&
+            audit.quarantine_final_retained == image->quarantine.present &&
+            audit.quarantine_staging_retained == image->quarantine_staging.present);
+        assert(std::all_of(image->quarantine.bytes.begin() + static_cast<std::ptrdiff_t>(image->quarantine.length),
+            image->quarantine.bytes.end(), [](uint8_t byte) { return byte == 0; }));
+        assert(std::all_of(image->quarantine_staging.bytes.begin() + static_cast<std::ptrdiff_t>(image->quarantine_staging.length),
+            image->quarantine_staging.bytes.end(), [](uint8_t byte) { return byte == 0; }));
+        const auto & state = source.state();
+        const uint8_t * public_bytes = state.quarantine.live_present
+            ? state.quarantine.live_bytes.data() : state.quarantine_staging.live_bytes.data();
+        const size_t public_size = state.quarantine.live_present
+            ? state.quarantine.live_length : state.quarantine_staging.live_length;
+        for (const restart_file_1024 * file : { &image->quarantine, &image->quarantine_staging })
+            if (file->present) {
+                assert(file->length <= public_size);
+                assert(std::equal(file->bytes.begin(), file->bytes.begin() + static_cast<std::ptrdiff_t>(file->length), public_bytes));
+            }
+        if (have_previous) assert(!same_restart(*previous, *image));
+        *previous = *image; have_previous = true;
+
+        auto restored = std::make_unique<fixture>(); assert(restored->restore_restart(*image, 1));
+        script retry = quarantine_publication_script(); credential_owner credential = golden_data::golden_credential();
+        const size_t retried = restored->begin(invocation++, 1, std::move(credential), g.preflight, g.request, retry);
+        finish(*restored, retried);
+        const bool blocked = image->quarantine.present || image->quarantine_staging.present;
+        if (!(restored->result(retried).state == visibility::ordinary_result &&
+              restored->result(retried).ordinary == status::quarantined_or_unavailable &&
+              restored->quarantine_operation_69_issuance(retried).sequence_values_consumed == (blocked ? 0U : 1U)))
+            std::fprintf(stderr, "L05R restore mismatch op=%u effect=%u ordinal=%zu/%zu blocked=%u result=%u/%u issued=%zu derived=%u trace=%zu\n",
+                static_cast<unsigned>(op), static_cast<unsigned>(effect), ordinal, expected, blocked ? 1U : 0U,
+                static_cast<unsigned>(restored->result(retried).state), static_cast<unsigned>(restored->result(retried).ordinary),
+                restored->quarantine_operation_69_issuance(retried).sequence_values_consumed,
+                static_cast<unsigned>(restored->derived_classification(retried)), restored->trace_size(retried));
+        assert(restored->result(retried).state == visibility::ordinary_result &&
+            restored->result(retried).ordinary == status::quarantined_or_unavailable &&
+            restored->quarantine_operation_69_issuance(retried).sequence_values_consumed == (blocked ? 0U : 1U));
+        if (blocked) {
+            assert(restored->derived_classification(retried) == recovery_classification::blocked_by_existing_quarantine);
+            assert(l05r_trace_occurrences(*restored, retried, operation::quarantine_event_id_acquire) == 0);
+        } else {
+            assert(restored->state().quarantine.live_present && restored->state().quarantine.durable_present);
+        }
+    }
+}
+
+void l05r_quarantine_product_execution_and_preentry_rejection(const golden_data & g) {
+    uint64_t invocation = 600000;
+    size_t admitted = 0, reached = 0, rejected = 0, frontiers = 0;
+    std::array<std::array<bool, 5>, 8> frontier_seen {};
+    for (size_t operation_index = 0; operation_index < l05r_quarantine_operations.size(); ++operation_index) {
+        const operation op = l05r_quarantine_operations[operation_index];
+        for (uint8_t effect = 0; effect < 5; ++effect) for (uint8_t completed = 0; completed < 3; ++completed)
+            for (uint8_t code = 0; code < 8; ++code) {
+                const auto selected_effect = static_cast<storage_effect>(effect);
+                const auto selected_completion = static_cast<completion>(completed);
+                const auto selected_code = static_cast<primitive_code>(code);
+                auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+                script publication = quarantine_publication_script();
+                publication.entries[l05r_quarantine_script_index(op)] =
+                    { op, selected_effect, selected_completion, selected_code, recovery_classification::none };
+                credential_owner credential = golden_data::golden_credential();
+                const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+                if (!admitted_product(op, selected_effect, selected_completion, selected_code)) {
+                    assert(f->result(handle).state == visibility::ordinary_result &&
+                        f->result(handle).ordinary == status::invalid_request_no_mutation &&
+                        f->trace_size(handle) == 0 && f->rejection_wipe_audited(handle) &&
+                        f->quarantine_operation_69_issuance(handle).sequence_values_consumed == 0 &&
+                        !f->state().quarantine.live_present && !f->state().quarantine_staging.live_present);
+                    ++rejected; continue;
+                }
+                ++admitted;
+                for (size_t guard = 0; guard < 32 && l05r_trace_occurrences(*f, handle, op) == 0; ++guard)
+                    assert(f->step(handle));
+                assert(l05r_trace_occurrences(*f, handle, op) == 1); ++reached;
+                assert(f->quarantine_operation_69_issuance(handle).sequence_values_consumed == 1);
+                l05r_assert_exact_quarantine_effect(*f, op, selected_effect);
+                const size_t count = f->restart_projection_count(handle);
+                assert(count == l05r_expected_projection_count(*f, op, selected_effect));
+                if (!frontier_seen[operation_index][effect]) {
+                    frontier_seen[operation_index][effect] = true; ++frontiers;
+                    l05r_validate_projection_frontier(*f, handle, g, op, selected_effect, invocation);
+                }
+                if (selected_completion == completion::process_death) {
+                    assert(f->result(handle).state == visibility::dead_process_no_result && f->invocation_dead(handle));
+                    assert(f->teardown_audit_count() == 1);
+                    const auto teardown = f->teardown_audit(0);
+                    assert(teardown.credential_zero && teardown.scratch_zero && teardown.serialized_secret_absent);
+                } else {
+                    finish(*f, handle);
+                    assert(f->result(handle).state == visibility::ordinary_result &&
+                        f->result(handle).ordinary == status::quarantined_or_unavailable && f->ordinary_wipe_audited(handle));
+                }
+                assert(l05r_trace_occurrences(*f, handle, operation::quarantine_event_id_acquire) == 1);
+            }
+    }
+    assert(admitted == 155 && reached == 155 && rejected == 805 && frontiers == 18 &&
+        admitted_algebra_count() == 497);
+}
+
+void l05r_advance_through(fixture & f, size_t handle, operation target) {
+    for (size_t guard = 0; guard < 32 && l05r_trace_occurrences(f, handle, target) == 0; ++guard)
+        assert(f.step(handle));
+    assert(l05r_trace_occurrences(f, handle, target) == 1);
+}
+
+void l05r_quarantine_operation_6_revalidation(const golden_data & g) {
+    uint64_t invocation = 700000; size_t state_axes = 0, private_axes = 0;
+    assert(admitted_logical_budget(registry_logical_budget_bytes - registry_terminal_reservation_bytes));
+    assert(!admitted_logical_budget(registry_logical_budget_bytes - registry_terminal_reservation_bytes + 1));
+    for (size_t axis = 0; axis < 22; ++axis) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[6].code = primitive_code::unavailable;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        l05r_advance_through(*f, handle, operation::quarantine_event_id_acquire);
+        fixed_state & state = f->state();
+        switch (axis) {
+            case 0: state.marker.live_bytes[0] ^= 1; break;
+            case 1: state.lock_file.live_complete = false; break;
+            case 2: state.head.durable_bytes[0] ^= 1; break;
+            case 3: state.quarantine.live_present = true; break;
+            case 4: state.quarantine_staging.live_present = true; break;
+            case 5: state.slots[0].prepare.live_present = true; break;
+            case 6: state.slots[511].close.durable_present = true; break;
+            case 7: state.slots[17].abort_record.live_present = true; break;
+            case 8: state.slots[0].successor_staging.live_present = true; break;
+            case 9: state.slots[511].selector_staging.durable_present = true; break;
+            case 10: state.initial_envelope.live_digest[0] ^= 1; break;
+            case 11: state.initial_envelope.object.live_bytes[0] ^= 1; break;
+            case 12: state.successors[0].live_occupied = true; break;
+            case 13: state.successors[511].durable_digest[0] ^= 1; break;
+            case 14: state.successors[511].object.live_present = true; break;
+            case 15: state.unexpected[31].live_occupied = true; state.unexpected[31].live_length = 1; state.unexpected[31].live_name[0] = 'z'; break;
+            case 16: state.unexpected[0].durable_name[0] ^= 1; break;
+            case 17: state.root_directory.live_projection = !state.root_directory.live_projection; break;
+            case 18: state.attempts_directory.durable_projection = !state.attempts_directory.durable_projection; break;
+            case 19: state.staging_directory.live_projection = !state.staging_directory.live_projection; break;
+            case 20: state.envelopes_directory.durable_projection = !state.envelopes_directory.durable_projection; break;
+            case 21: state.root_directory.durable_projection = !state.root_directory.durable_projection; break;
+            default: assert(false);
+        }
+        finish(*f, handle);
+        assert(f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            l05r_trace_occurrences(*f, handle, operation::action_mutation_admission) == 1 &&
+            l05r_trace_occurrences(*f, handle, operation::quarantine_staging_create) == 0 &&
+            f->quarantine_operation_69_issuance(handle).sequence_values_consumed == 1);
+        ++state_axes;
+    }
+    for (uint8_t raw = 0; raw <= static_cast<uint8_t>(quarantine_private_fault_for_test::cleared_event_witness); ++raw) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[6].code = primitive_code::unavailable;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        l05r_advance_through(*f, handle, operation::quarantine_event_id_acquire);
+        assert(f->inject_quarantine_private_fault_for_test(handle,
+            static_cast<quarantine_private_fault_for_test>(raw)));
+        finish(*f, handle);
+        assert(f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            l05r_trace_occurrences(*f, handle, operation::action_mutation_admission) == 1 &&
+            l05r_trace_occurrences(*f, handle, operation::quarantine_staging_create) == 0);
+        ++private_axes;
+    }
+
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[6].code = primitive_code::capacity_exhausted;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        l05r_advance_through(*f, handle, operation::quarantine_event_id_acquire);
+        assert(f->inject_quarantine_private_fault_for_test(handle,
+            quarantine_private_fault_for_test::maximum_logical_authority));
+        finish(*f, handle);
+        assert(f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            l05r_trace_occurrences(*f, handle, operation::action_mutation_admission) == 1);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        f->state().modeled_available_bytes = registry_minimum_reserve_bytes - 1;
+        script publication = quarantine_publication_script(); publication.entries[6].code = primitive_code::reserve_exhausted;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        finish(*f, handle);
+        assert(f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            l05r_trace_occurrences(*f, handle, operation::action_mutation_admission) == 1);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        assert(f->state().modeled_available_bytes == registry_minimum_reserve_bytes);
+        script publication = quarantine_publication_script(); credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        finish(*f, handle);
+        assert(f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            l05r_trace_occurrences(*f, handle, operation::action_mutation_admission) == 1 &&
+            f->state().quarantine.durable_present);
+    }
+    for (completion completed : { completion::response_lost, completion::process_death }) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[6].completed = completed;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        finish(*f, handle);
+        assert(l05r_trace_occurrences(*f, handle, operation::action_mutation_admission) == 1 &&
+            l05r_trace_occurrences(*f, handle, operation::quarantine_staging_create) == 0);
+        if (completed == completion::process_death)
+            assert(f->result(handle).state == visibility::dead_process_no_result);
+        else
+            assert(f->result(handle).ordinary == status::quarantined_or_unavailable);
+    }
+    for (operation boundary : { operation::quarantine_staging_create, operation::quarantine_staging_write,
+            operation::quarantine_staging_readback, operation::quarantine_file_sync,
+            operation::quarantine_publish_rename, operation::quarantine_root_directory_sync }) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        l05r_advance_through(*f, handle, boundary); f->state().modeled_available_bytes = 0; finish(*f, handle);
+        assert(f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            l05r_trace_occurrences(*f, handle, boundary) == 1);
+    }
+    assert(state_axes == 22 && private_axes == 6);
+}
+
+void l05r_quarantine_hostile_readback(const golden_data & g) {
+    uint64_t invocation = 710000; size_t attacks = 0;
+    for (size_t attack = 0; attack < 4; ++attack) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[9].code = primitive_code::unavailable;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        l05r_advance_through(*f, handle, operation::quarantine_staging_write);
+        auto & staging = f->state().quarantine_staging; assert(staging.live_length > 1);
+        if (attack == 0) --staging.live_length;
+        if (attack == 1) staging.live_bytes[staging.live_length / 2] ^= 1;
+        if (attack == 2) staging.live_complete = false;
+        if (attack == 3) assert(f->inject_quarantine_retagged_readback_for_test(handle));
+        finish(*f, handle);
+        assert(f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            l05r_trace_occurrences(*f, handle, operation::quarantine_staging_readback) == 1 &&
+            l05r_trace_occurrences(*f, handle, operation::quarantine_file_sync) == 0);
+        ++attacks;
+    }
+    assert(attacks == 4);
+}
+
+void l05r_quarantine_no_replace_and_writer_isolation(const golden_data & g) {
+    uint64_t invocation = 720000; size_t blockers = 0;
+    for (bool final_name : { false, true }) for (size_t mode = 0; mode < 3; ++mode) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g);
+        auto & file = final_name ? f->state().quarantine : f->state().quarantine_staging;
+        if (mode == 0) { file.live_present = file.live_complete = true; }
+        if (mode == 1) { file.durable_present = file.durable_complete = true; }
+        if (mode == 2) publish(file, static_cast<const uint8_t *>(nullptr), 0);
+        script publication = quarantine_publication_script(); credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        finish(*f, handle);
+        assert(f->derived_classification(handle) == recovery_classification::blocked_by_existing_quarantine &&
+            f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            f->quarantine_operation_69_issuance(handle).sequence_values_consumed == 0 &&
+            l05r_trace_occurrences(*f, handle, operation::quarantine_event_id_acquire) == 0);
+        ++blockers;
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); publication.entries[11].code = primitive_code::unavailable;
+        publication.entries[11].effect = storage_effect::complete_live;
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        l05r_advance_through(*f, handle, operation::quarantine_file_sync);
+        const std::array<uint8_t, 3> sentinel { 0xa1, 0xb2, 0xc3 };
+        publish(f->state().quarantine, sentinel.data(), sentinel.size());
+        const auto before = f->state().quarantine; finish(*f, handle);
+        assert(exact_modeled_file_state(before, f->state().quarantine) &&
+            f->state().quarantine_staging.live_present &&
+            f->result(handle).ordinary == status::quarantined_or_unavailable &&
+            l05r_trace_occurrences(*f, handle, operation::quarantine_publish_rename) == 1);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script owner_script = quarantine_publication_script(); credential_owner owner_credential = golden_data::golden_credential();
+        const size_t owner = f->begin(invocation++, 0, std::move(owner_credential), g.preflight, g.request, owner_script);
+        assert(f->step(owner)); // writer lock acquired and retained by the owner.
+        script contender_script = quarantine_publication_script(); contender_script.entries[1].code = primitive_code::busy;
+        credential_owner contender_credential = golden_data::golden_credential();
+        const size_t contender = f->begin(invocation++, 1, std::move(contender_credential), g.preflight, g.request, contender_script);
+        finish(*f, contender);
+        assert(f->result(contender).ordinary == status::busy_no_mutation &&
+            f->quarantine_operation_69_issuance(contender).sequence_values_consumed == 0);
+        finish(*f, owner); assert(f->state().quarantine.durable_present);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script dying = quarantine_publication_script(); dying.entries[1].completed = completion::process_death;
+        credential_owner dying_credential = golden_data::golden_credential();
+        const size_t dead = f->begin(invocation++, 0, std::move(dying_credential), g.preflight, g.request, dying);
+        finish(*f, dead);
+        assert(f->result(dead).state == visibility::dead_process_no_result &&
+            f->quarantine_operation_69_issuance(dead).sequence_values_consumed == 0);
+        script retry = quarantine_publication_script(); credential_owner retry_credential = golden_data::golden_credential();
+        const size_t retried = f->begin(invocation++, 1, std::move(retry_credential), g.preflight, g.request, retry);
+        finish(*f, retried);
+        assert(f->result(retried).ordinary == status::quarantined_or_unavailable &&
+            f->quarantine_operation_69_issuance(retried).sequence_values_consumed == 1 &&
+            f->state().quarantine.durable_present);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        script publication = quarantine_publication_script(); credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, publication);
+        l05r_advance_through(*f, handle, operation::quarantine_event_id_acquire);
+        assert(f->step(handle));
+        assert(l05r_trace_occurrences(*f, handle, operation::action_mutation_admission) == 1 &&
+            l05r_trace_occurrences(*f, handle, operation::quarantine_staging_create) == 1);
+        finish(*f, handle);
+    }
+    assert(blockers == 6);
+}
+
+void l05r_quarantine_script_shape_rejection(const golden_data & g) {
+    uint64_t invocation = 730000; size_t rejected = 0;
+    const auto reject = [&](const script & candidate) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+        credential_owner credential = golden_data::golden_credential();
+        const size_t handle = f->begin(invocation++, 0, std::move(credential), g.preflight, g.request, candidate);
+        assert(f->result(handle).state == visibility::ordinary_result &&
+            f->result(handle).ordinary == status::invalid_request_no_mutation &&
+            f->trace_size(handle) == 0 && f->rejection_wipe_audited(handle) &&
+            f->quarantine_operation_69_issuance(handle).sequence_values_consumed == 0 &&
+            !f->state().quarantine.live_present && !f->state().quarantine_staging.live_present);
+        ++rejected;
+    };
+    const script exact = quarantine_publication_script();
+    for (size_t removed = 0; removed < exact.size; ++removed) {
+        script candidate = exact;
+        for (size_t i = removed; i + 1 < candidate.size; ++i) candidate.entries[i] = candidate.entries[i + 1];
+        --candidate.size; reject(candidate);
+    }
+    for (size_t i = 0; i + 1 < exact.size; ++i) {
+        script candidate = exact; std::swap(candidate.entries[i], candidate.entries[i + 1]); reject(candidate);
+    }
+    for (size_t i = 0; i < exact.size; ++i) {
+        script candidate = exact; candidate.entries[i] = exact.entries[(i + 1) % exact.size]; reject(candidate);
+    }
+    for (size_t i = 0; i < exact.size; ++i) {
+        script candidate = exact;
+        candidate.entries[i] = product(i == 0 ? operation::writer_lock_acquire : operation::guard_acquire);
+        reject(candidate);
+    }
+    { script candidate = exact; candidate.entries[candidate.size++] = product(operation::guard_acquire); reject(candidate); }
+    { script candidate = exact; candidate.size = candidate.entries.size() + 1; reject(candidate); }
+    for (operation wrong : { operation::successor_file_sync, operation::terminal_create,
+            operation::root_directory_sync, operation::staging_directory_sync_after_head }) {
+        script candidate = exact; candidate.entries[11] = product(wrong); reject(candidate);
+    }
+    assert(rejected == 61);
+}
+
+void l05r_quarantine_allocation_free_after_construction(const golden_data & g) {
+    auto f = std::make_unique<fixture>(); populate_clean(*f, g); install_durable_unexpected(f->state());
+    script publication = quarantine_publication_script(); credential_owner credential = golden_data::golden_credential();
+    fail_allocations = true;
+    const size_t handle = f->begin(740000, 0, std::move(credential), g.preflight, g.request, publication);
+    finish(*f, handle); fail_allocations = false;
+    assert(f->result(handle).state == visibility::ordinary_result &&
+        f->result(handle).ordinary == status::quarantined_or_unavailable &&
+        f->ordinary_wipe_audited(handle) && f->state().quarantine.durable_present);
 }
 
 void operation_5_recovery_and_request_precedence(const golden_data & g) {
@@ -2180,12 +3168,13 @@ int main(int argc, char ** argv) {
     if (argc == 3) {
         if (std::strcmp(argv[2], "--l05q-products") == 0) { l05q_product_execution_and_preentry_rejection(golden); return 0; }
         if (std::strcmp(argv[2], "--l05q-exhaustive") == 0) { l05q_exhaustive(golden); return 0; }
+        if (std::strcmp(argv[2], "--l05r-products") == 0) { l05r_quarantine_product_execution_and_preentry_rejection(golden); return 0; }
         if (std::strcmp(argv[2], "--l05r-diagnosis") == 0) {
-            quarantine_reason_pairwise_precedence_matrix(); quarantine_diagnosis_commitment_contract(); operation_5_quarantine_diagnosis_contract(golden); return 0;
+            quarantine_reason_pairwise_precedence_matrix(); quarantine_diagnosis_commitment_contract(); quarantine_action_commitment_contract(); quarantine_event_authority_contract(); operation_5_quarantine_diagnosis_contract(golden); quarantine_encoding_inputs_contract(golden); quarantine_publication_happy_path_contract(golden); quarantine_restart_projection_contract(golden); quarantine_operation_69_failure_contract(golden); quarantine_effect_authorization_contract(golden); quarantine_fault_restart_projection_contract(golden); l05r_quarantine_product_execution_and_preentry_rejection(golden); l05r_quarantine_operation_6_revalidation(golden); l05r_quarantine_hostile_readback(golden); l05r_quarantine_no_replace_and_writer_isolation(golden); l05r_quarantine_script_shape_rejection(golden); l05r_quarantine_allocation_free_after_construction(golden); return 0;
         }
         assert(std::strcmp(argv[2], "--repeat-core") == 0);
-        algebra(); operation_5_pairwise_precedence_matrix(); quarantine_reason_pairwise_precedence_matrix(); quarantine_diagnosis_commitment_contract(); operation_5_allocation_free_after_construction(golden);
-        operation_5_core(golden); operation_5_quarantine_diagnosis_contract(golden); operation_5_recovery_and_request_precedence(golden); operation_5_retry_after_abort(golden);
+        algebra(); operation_5_pairwise_precedence_matrix(); quarantine_reason_pairwise_precedence_matrix(); quarantine_diagnosis_commitment_contract(); quarantine_action_commitment_contract(); quarantine_event_authority_contract(); operation_5_allocation_free_after_construction(golden);
+        operation_5_core(golden); operation_5_quarantine_diagnosis_contract(golden); quarantine_encoding_inputs_contract(golden); quarantine_publication_happy_path_contract(golden); quarantine_restart_projection_contract(golden); quarantine_operation_69_failure_contract(golden); quarantine_effect_authorization_contract(golden); quarantine_fault_restart_projection_contract(golden); operation_5_recovery_and_request_precedence(golden); operation_5_retry_after_abort(golden);
         operation_5_journal_topology_faults(golden); operation_5_primitive_products(golden); operation_5_snapshot_is_immutable(golden);
         operation_5_preentry_contract(golden); operation_5_external_binding_and_request_matrix(golden);
         operation_5_projection_and_namespace_matrix(golden); operation_5_key_selection_before_kdf(golden);
@@ -2199,6 +3188,8 @@ int main(int argc, char ** argv) {
     operation_5_pairwise_precedence_matrix();
     quarantine_reason_pairwise_precedence_matrix();
     quarantine_diagnosis_commitment_contract();
+    quarantine_action_commitment_contract();
+    quarantine_event_authority_contract();
     forbidden_products_reject_before_entry();
     admitted_products_execute();
     admission_shape_and_payloads();
@@ -2216,6 +3207,18 @@ int main(int argc, char ** argv) {
     operation_5_allocation_free_after_construction(golden);
     operation_5_core(golden);
     operation_5_quarantine_diagnosis_contract(golden);
+    quarantine_encoding_inputs_contract(golden);
+    quarantine_publication_happy_path_contract(golden);
+    quarantine_restart_projection_contract(golden);
+    quarantine_operation_69_failure_contract(golden);
+    quarantine_effect_authorization_contract(golden);
+    quarantine_fault_restart_projection_contract(golden);
+    l05r_quarantine_product_execution_and_preentry_rejection(golden);
+    l05r_quarantine_operation_6_revalidation(golden);
+    l05r_quarantine_hostile_readback(golden);
+    l05r_quarantine_no_replace_and_writer_isolation(golden);
+    l05r_quarantine_script_shape_rejection(golden);
+    l05r_quarantine_allocation_free_after_construction(golden);
     operation_5_recovery_and_request_precedence(golden);
     operation_5_integrated_precedence_overlaps(golden);
     operation_5_retry_after_abort(golden);

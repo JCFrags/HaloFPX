@@ -1,6 +1,7 @@
 #include "halofpx-context-store-registry-lab-read-only-internal.h"
 
 #include <algorithm>
+#include <atomic>
 #include <climits>
 #include <cstring>
 #include <type_traits>
@@ -642,6 +643,20 @@ bool reason_admits_shape(quarantine_reason reason, quarantine_shape shape) noexc
     }
 }
 
+bool same_quarantine_diagnosis(const quarantine_diagnosis_view & a,
+        const quarantine_diagnosis_view & b) noexcept {
+    return a.valid == b.valid && a.publishable == b.publishable &&
+        a.authenticated_initialized_root == b.authenticated_initialized_root &&
+        a.reason == b.reason && a.shape == b.shape && a.attributable == b.attributable &&
+        a.has_previous_record == b.has_previous_record && a.has_head == b.has_head &&
+        a.phase == b.phase && a.slot == b.slot && a.registry_epoch == b.registry_epoch &&
+        same_id(a.registry_id, b.registry_id) && a.root_id == b.root_id &&
+        a.path_policy_commitment == b.path_policy_commitment && a.attempt_id == b.attempt_id &&
+        a.operation_commitment == b.operation_commitment &&
+        a.previous_record_digest == b.previous_record_digest && a.head_digest == b.head_digest &&
+        a.diagnosis_commitment == b.diagnosis_commitment;
+}
+
 bool derive_quarantine_diagnosis_commitment(uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
         context_store_format_digest & output) noexcept {
     output = {};
@@ -676,6 +691,409 @@ bool derive_quarantine_diagnosis_commitment(uint64_t invocation_id, const quaran
         writer.unsigned_value(11) && optional_digest(head, diagnosis.head_digest);
     const bool ok = written && hash_with_domain("halofpx.registry-lab-quarantine-diagnosis.v1", encoded.data(), writer.size, output);
     wipe(encoded); if (!ok) output = {}; return ok;
+}
+
+bool derive_quarantine_action_commitment(uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+        const context_store_format_digest & event_id, const context_store_format_digest & quarantine_content_digest,
+        size_t quarantine_encoded_length, context_store_format_digest & output) noexcept {
+    output = {};
+    context_store_format_digest recomputed_diagnosis {};
+    const bool diagnosis_valid = derive_quarantine_diagnosis_commitment(invocation_id, diagnosis, recomputed_diagnosis);
+    const bool diagnosis_exact = diagnosis_valid && nonzero(diagnosis.diagnosis_commitment) &&
+        halofpx_registry_lab_constant_time_tag_equal_32(
+            recomputed_diagnosis.data(), diagnosis.diagnosis_commitment.data());
+    wipe(recomputed_diagnosis);
+    if (!diagnosis_exact || !nonzero(event_id) || !nonzero(quarantine_content_digest) ||
+        quarantine_encoded_length < 1 || quarantine_encoded_length > 1024) return false;
+
+    const bool attributable = diagnosis.shape == quarantine_shape::prepare || diagnosis.shape == quarantine_shape::successor;
+    const bool head = diagnosis.shape != quarantine_shape::u0;
+    std::array<uint8_t, 512> encoded {};
+    cbor_writer writer { encoded.data(), encoded.size() };
+    const auto optional_digest = [&](bool present, const context_store_format_digest & digest) noexcept {
+        return present ? writer.bytes(digest.data(), digest.size()) : writer.null_value();
+    };
+    const bool written = writer.map(15) && writer.unsigned_value(0) && writer.unsigned_value(1) &&
+        writer.unsigned_value(1) && writer.bytes(diagnosis.diagnosis_commitment.data(), diagnosis.diagnosis_commitment.size()) &&
+        writer.unsigned_value(2) && writer.bytes(event_id.data(), event_id.size()) &&
+        writer.unsigned_value(3) && writer.bytes(diagnosis.root_id.data(), diagnosis.root_id.size()) &&
+        writer.unsigned_value(4) && writer.bytes(diagnosis.path_policy_commitment.data(), diagnosis.path_policy_commitment.size()) &&
+        writer.unsigned_value(5) && writer.unsigned_value(static_cast<uint8_t>(diagnosis.reason)) &&
+        writer.unsigned_value(6) && writer.unsigned_value(diagnosis.phase) &&
+        writer.unsigned_value(7) && writer.unsigned_value(static_cast<uint8_t>(diagnosis.shape)) &&
+        writer.unsigned_value(8) && optional_digest(attributable, diagnosis.attempt_id) &&
+        writer.unsigned_value(9) && (attributable ? writer.unsigned_value(diagnosis.slot) : writer.null_value()) &&
+        writer.unsigned_value(10) && optional_digest(attributable, diagnosis.operation_commitment) &&
+        writer.unsigned_value(11) && optional_digest(attributable, diagnosis.previous_record_digest) &&
+        writer.unsigned_value(12) && optional_digest(head, diagnosis.head_digest) &&
+        writer.unsigned_value(13) && writer.bytes(quarantine_content_digest.data(), quarantine_content_digest.size()) &&
+        writer.unsigned_value(14) && writer.unsigned_value(quarantine_encoded_length);
+    const bool ok = written && hash_with_domain(
+        "halofpx.registry-lab-quarantine-action.v1", encoded.data(), writer.size, output);
+    wipe(encoded); if (!ok) output = {}; return ok;
+}
+
+using quarantine_event_id = context_store_format_digest;
+
+std::atomic<uint64_t> quarantine_event_issuance_sequence { 0 };
+std::atomic<bool> quarantine_event_fail_next_issuance { false };
+
+bool next_quarantine_event_sequence(uint64_t & output) noexcept {
+    output = 0;
+    uint64_t observed = quarantine_event_issuance_sequence.load(std::memory_order_relaxed);
+    for (;;) {
+        if (observed == UINT64_MAX) return false;
+        const uint64_t desired = observed + 1;
+        if (quarantine_event_issuance_sequence.compare_exchange_weak(
+                observed, desired, std::memory_order_relaxed, std::memory_order_relaxed)) {
+            output = desired;
+            return true;
+        }
+    }
+}
+
+void store_big_endian_u64(uint64_t value, uint8_t * output) noexcept {
+    for (size_t i = 0; i < 8; ++i) output[7 - i] = static_cast<uint8_t>(value >> (i * 8));
+}
+
+uint64_t load_big_endian_u64(const uint8_t * input) noexcept {
+    uint64_t value = 0;
+    for (size_t i = 0; i < 8; ++i) value = (value << 8) | input[i];
+    return value;
+}
+
+bool encode_fake_quarantine_event_id(uint64_t sequence, quarantine_event_id & output) noexcept {
+    output = {};
+    if (!sequence) return false;
+    constexpr char discriminator[] = "HALOFPX-L05R-EV1";
+    static_assert(sizeof(discriminator) - 1 == 16);
+    std::copy_n(reinterpret_cast<const uint8_t *>(discriminator), 16, output.begin());
+    store_big_endian_u64(UINT64_C(0x484650584c303552), output.data() + 16);
+    store_big_endian_u64(sequence, output.data() + 24);
+    return true;
+}
+
+bool exact_fake_quarantine_event_id(const quarantine_event_id & value) noexcept {
+    constexpr char discriminator[] = "HALOFPX-L05R-EV1";
+    return std::equal(value.begin(), value.begin() + 16,
+               reinterpret_cast<const uint8_t *>(discriminator)) &&
+        load_big_endian_u64(value.data() + 16) == UINT64_C(0x484650584c303552) &&
+        load_big_endian_u64(value.data() + 24) != 0;
+}
+
+bool fake_quarantine_event_id_matches_test_oracle(const quarantine_event_id & value) noexcept {
+    constexpr std::array<uint8_t, 24> fixed_bytes {
+        0x48,0x41,0x4c,0x4f,0x46,0x50,0x58,0x2d,0x4c,0x30,0x35,0x52,0x2d,0x45,0x56,0x31,
+        0x48,0x46,0x50,0x58,0x4c,0x30,0x35,0x52
+    };
+    return std::equal(fixed_bytes.begin(), fixed_bytes.end(), value.begin()) &&
+        load_big_endian_u64(value.data() + 24) != 0;
+}
+
+struct quarantine_event_concurrency_test_state {
+    std::atomic_flag lock = ATOMIC_FLAG_INIT;
+    bool active = false;
+    size_t worker_count = 0, issuances_per_worker = 0;
+    std::array<std::atomic<bool>, 8> claimed {};
+    std::array<std::atomic<bool>, 8> completed {};
+    std::array<std::atomic<bool>, 8> succeeded {};
+    std::array<quarantine_event_id, 64> retained_ids {};
+};
+
+quarantine_event_concurrency_test_state quarantine_event_concurrency_state;
+
+void lock_quarantine_event_concurrency_test_state() noexcept {
+    while (quarantine_event_concurrency_state.lock.test_and_set(std::memory_order_acquire)) {}
+}
+
+void unlock_quarantine_event_concurrency_test_state() noexcept {
+    quarantine_event_concurrency_state.lock.clear(std::memory_order_release);
+}
+
+void reset_quarantine_event_concurrency_test_state() noexcept {
+    for (auto & id : quarantine_event_concurrency_state.retained_ids) wipe(id);
+    for (size_t i = 0; i < quarantine_event_concurrency_state.claimed.size(); ++i) {
+        quarantine_event_concurrency_state.claimed[i].store(false, std::memory_order_relaxed);
+        quarantine_event_concurrency_state.completed[i].store(false, std::memory_order_relaxed);
+        quarantine_event_concurrency_state.succeeded[i].store(false, std::memory_order_relaxed);
+    }
+    quarantine_event_concurrency_state.worker_count = 0;
+    quarantine_event_concurrency_state.issuances_per_worker = 0;
+    quarantine_event_concurrency_state.active = false;
+}
+
+template<typename T> void wipe_trivially_copyable_object(T & value) noexcept {
+    static_assert(std::is_trivially_copyable_v<T>);
+    volatile uint8_t * bytes = reinterpret_cast<volatile uint8_t *>(&value);
+    for (size_t i = 0; i < sizeof(T); ++i) bytes[i] = 0;
+}
+
+template<typename T> bool trivially_copyable_object_is_zero(const T & value) noexcept {
+    static_assert(std::is_trivially_copyable_v<T>);
+    const uint8_t * bytes = reinterpret_cast<const uint8_t *>(&value);
+    uint8_t difference = 0;
+    for (size_t i = 0; i < sizeof(T); ++i) difference |= bytes[i];
+    return difference == 0;
+}
+
+struct quarantine_encoding_inputs {
+    context_store_registry_lab_quarantine_value_v1 value {};
+    context_store_registry_lab_prepare_value_v1 transition {};
+    context_store_registry_lab_head_value_v1 standalone_predecessor_head {};
+    std::array<uint8_t, 1024> predecessor_head {}, successor_head {};
+    std::array<uint8_t, 4096> prepare {};
+    size_t predecessor_head_size = 0, successor_head_size = 0, prepare_size = 0;
+    bool transition_present = false, standalone_head_present = false;
+    ~quarantine_encoding_inputs() noexcept { clear(); }
+    void clear() noexcept {
+        wipe_trivially_copyable_object(value);
+        wipe_trivially_copyable_object(transition);
+        wipe_trivially_copyable_object(standalone_predecessor_head);
+        wipe(predecessor_head); wipe(successor_head); wipe(prepare);
+        volatile size_t * predecessor_size = &predecessor_head_size; *predecessor_size = 0;
+        volatile size_t * successor_size = &successor_head_size; *successor_size = 0;
+        volatile size_t * prepare_length = &prepare_size; *prepare_length = 0;
+        volatile bool * transition_flag = &transition_present; *transition_flag = false;
+        volatile bool * standalone_flag = &standalone_head_present; *standalone_flag = false;
+    }
+};
+
+struct scoped_quarantine_wire_credential {
+    explicit scoped_quarantine_wire_credential(const credential_owner & owner) noexcept {
+        value.key_id = owner.key_id; value.generation = owner.generation; value.secret = owner.secret;
+    }
+    ~scoped_quarantine_wire_credential() noexcept {
+        value.key_id = {}; value.generation = 0; wipe(value.secret);
+    }
+    context_store_registry_lab_credential value;
+};
+
+bool quarantine_value_matches_diagnosis(const context_store_registry_lab_quarantine_value_v1 & value,
+        const quarantine_diagnosis_view & diagnosis) noexcept {
+    return value.scope.root_id == diagnosis.root_id &&
+        value.scope.path_policy_commitment == diagnosis.path_policy_commitment &&
+        same_id(value.scope.registry_id, diagnosis.registry_id) && value.scope.registry_epoch == diagnosis.registry_epoch &&
+        value.attempt_id == diagnosis.attempt_id && value.slot == diagnosis.slot &&
+        value.operation_commitment == diagnosis.operation_commitment && value.reason == static_cast<uint64_t>(diagnosis.reason) &&
+        value.phase == diagnosis.phase && value.attributable == diagnosis.attributable &&
+        value.has_previous_record == diagnosis.has_previous_record &&
+        value.previous_record_digest == diagnosis.previous_record_digest && value.has_head == diagnosis.has_head &&
+        value.head_digest == diagnosis.head_digest && all_zero(value.event_id);
+}
+
+bool derive_quarantine_encoding_inputs(const fixed_state & snapshot, const preflight_context_v1 & preflight,
+        const credential_owner & credential, uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+        quarantine_encoding_inputs & output) noexcept {
+    output.clear();
+    context_store_format_digest recomputed_commitment {};
+    if (!derive_quarantine_diagnosis_commitment(invocation_id, diagnosis, recomputed_commitment) ||
+        !halofpx_registry_lab_constant_time_tag_equal_32(
+            recomputed_commitment.data(), diagnosis.diagnosis_commitment.data())) {
+        wipe(recomputed_commitment); return false;
+    }
+    wipe(recomputed_commitment);
+
+    size_t derivations = 0;
+    auto root = decode_record<context_store_registry_lab_kind::root>(
+        snapshot.marker.live_bytes.data(), snapshot.marker.live_length, credential, derivations);
+    if (!exact_published_file(snapshot.marker) || !root.authenticated() || !bind_root(root.body(), preflight, credential) ||
+        root.body().root_state != 1 || root.body().root_id != diagnosis.root_id ||
+        root.body().path_policy != diagnosis.path_policy_commitment ||
+        !same_id(root.body().registry_id, diagnosis.registry_id) || root.body().registry_epoch != diagnosis.registry_epoch)
+        return false;
+
+    if (!snapshot.initial_envelope.live_occupied || !exact_live_file(snapshot.initial_envelope.object)) return false;
+    context_store_format_digest initial_digest {};
+    context_store_authenticated_protected_registry predecessor_carrier;
+    const uint8_t * initial_bytes = snapshot.initial_envelope.object.live_bytes.data();
+    const size_t initial_size = snapshot.initial_envelope.object.live_length;
+    if (!registry_envelope_digest(initial_bytes, initial_size, initial_digest) ||
+        initial_digest != snapshot.initial_envelope.live_digest ||
+        !bind_predecessor(initial_bytes, initial_size, preflight, credential, &predecessor_carrier) ||
+        !predecessor_carrier.body()) return false;
+
+    auto head = decode_record<context_store_registry_lab_kind::head>(
+        snapshot.head.live_bytes.data(), snapshot.head.live_length, credential, derivations);
+    const bool head_bound = exact_live_file(snapshot.head) && head.authenticated() &&
+        same_scope(head.body(), root.body()) && same_id(head.body().registry_id, preflight.registry_id) &&
+        head.body().registry_epoch == preflight.registry_epoch;
+    const uint8_t * selected_bytes = nullptr; size_t selected_size = 0; uint64_t selected_high_water = 0;
+    size_t selected_matches = 0;
+    if (head_bound && head.body().selected_digest == initial_digest) {
+        selected_bytes = initial_bytes; selected_size = initial_size;
+        selected_high_water = predecessor_carrier.body()->last_consumed_sequence; ++selected_matches;
+    }
+    for (const modeled_envelope & envelope : snapshot.successors) {
+        if (!head_bound || !envelope.live_occupied || !exact_live_file(envelope.object)) continue;
+        context_store_format_digest digest {};
+        context_store_authenticated_protected_registry_successor successor_carrier;
+        if (!registry_envelope_digest(envelope.object.live_bytes.data(), envelope.object.live_length, digest) ||
+            digest != envelope.live_digest || digest != head.body().selected_digest ||
+            !bind_successor(envelope.object.live_bytes.data(), envelope.object.live_length, preflight, credential,
+                predecessor_carrier, &successor_carrier) || !successor_carrier.body()) continue;
+        selected_bytes = envelope.object.live_bytes.data(); selected_size = envelope.object.live_length;
+        selected_high_water = successor_carrier.body()->consumed_authorization_high_water; ++selected_matches;
+    }
+    const bool exact_head_evidence = head_bound && selected_matches == 1 && selected_bytes &&
+        selected_size == head.body().selected_length && selected_high_water == head.body().selected_high_water;
+
+    authenticated_record_v1<context_store_registry_lab_kind::prepare> unique_prepare;
+    size_t unique_prepare_slot = 0, valid_prepare_count = 0;
+    for (size_t slot = 0; slot < snapshot.slots.size(); ++slot) {
+        const modeled_file<4096> & file = snapshot.slots[slot].prepare;
+        if (!any_name(file) || !exact_live_file(file)) continue;
+        auto candidate = decode_record<context_store_registry_lab_kind::prepare>(
+            file.live_bytes.data(), file.live_length, credential, derivations);
+        if (!candidate.authenticated() || !same_scope(candidate.body(), root.body()) || candidate.body().slot != slot ||
+            !bind_prepare_body(candidate.body(), root.body(), preflight, credential,
+                initial_bytes, initial_size, initial_digest)) continue;
+        ++valid_prepare_count;
+        if (valid_prepare_count == 1) { unique_prepare = std::move(candidate); unique_prepare_slot = slot; }
+    }
+
+    output.value.scope.root_id = diagnosis.root_id;
+    output.value.scope.path_policy_commitment = diagnosis.path_policy_commitment;
+    output.value.scope.registry_id = diagnosis.registry_id; output.value.scope.registry_epoch = diagnosis.registry_epoch;
+    output.value.attempt_id = diagnosis.attempt_id; output.value.slot = diagnosis.slot;
+    output.value.operation_commitment = diagnosis.operation_commitment;
+    output.value.reason = static_cast<uint64_t>(diagnosis.reason); output.value.phase = diagnosis.phase;
+    output.value.attributable = diagnosis.attributable; output.value.has_previous_record = diagnosis.has_previous_record;
+    output.value.previous_record_digest = diagnosis.previous_record_digest; output.value.has_head = diagnosis.has_head;
+    output.value.head_digest = diagnosis.head_digest;
+
+    if (diagnosis.shape == quarantine_shape::u0) {
+        if (exact_head_evidence || valid_prepare_count == 1) return false;
+    } else if (diagnosis.shape == quarantine_shape::uh) {
+        const bool exact_predecessor = exact_head_evidence && head.content_digest() == root.body().initial_head &&
+            head.body().selected_digest == initial_digest && selected_size == initial_size &&
+            exact_bytes(selected_bytes, initial_bytes, initial_size);
+        if (!exact_predecessor || valid_prepare_count == 1 || diagnosis.head_digest != head.content_digest()) return false;
+        output.standalone_head_present = true;
+        output.standalone_predecessor_head.scope = output.value.scope;
+        output.standalone_predecessor_head.selection = context_store_registry_lab_head_selection_v1::predecessor;
+        output.standalone_predecessor_head.selected_envelope.size = selected_size;
+        std::copy_n(selected_bytes, selected_size, output.standalone_predecessor_head.selected_envelope.bytes.begin());
+        output.standalone_predecessor_head.selected_envelope_digest = head.body().selected_digest;
+        output.standalone_predecessor_head.selected_high_water = head.body().selected_high_water;
+        output.standalone_predecessor_head.selector_generation = head.body().selector_generation;
+        output.standalone_predecessor_head.expected_head_digest = head.content_digest();
+        output.predecessor_head_size = head.exact_size();
+        std::copy_n(head.exact_data(), output.predecessor_head_size, output.predecessor_head.begin());
+    } else {
+        if (valid_prepare_count != 1 || !exact_head_evidence || unique_prepare_slot != diagnosis.slot ||
+            unique_prepare.body().attempt_id != diagnosis.attempt_id ||
+            unique_prepare.body().operation_commitment != diagnosis.operation_commitment ||
+            unique_prepare.content_digest() != diagnosis.previous_record_digest) return false;
+        const decoded_body_v1 & prepare = unique_prepare.body();
+        const bool successor_shape = diagnosis.shape == quarantine_shape::successor;
+        const bool selected_matches_shape = successor_shape
+            ? head.body().selected_digest == prepare.successor_digest && selected_size == prepare.successor_length &&
+                exact_bytes(selected_bytes, prepare.successor.data(), selected_size)
+            : head.body().selected_digest == prepare.predecessor_digest && selected_size == prepare.predecessor_length &&
+                exact_bytes(selected_bytes, prepare.predecessor.data(), selected_size) &&
+                head.content_digest() == prepare.previous_head;
+        if (!selected_matches_shape || diagnosis.head_digest != head.content_digest() ||
+            (successor_shape && head.body().selector_generation < 2)) return false;
+
+        const uint64_t predecessor_generation = successor_shape
+            ? head.body().selector_generation - 1 : head.body().selector_generation;
+        if (!predecessor_generation || predecessor_carrier.body()->last_consumed_sequence == UINT64_MAX) return false;
+        output.transition_present = true;
+        output.transition.scope = output.value.scope; output.transition.attempt_id = prepare.attempt_id;
+        output.transition.operation_commitment = prepare.operation_commitment;
+        output.transition.predecessor_envelope_digest = prepare.predecessor_digest;
+        output.transition.successor_envelope_digest = prepare.successor_digest;
+        output.transition.initial_head_digest = prepare.previous_head; output.transition.slot = prepare.slot;
+        output.transition.predecessor_high_water = predecessor_carrier.body()->last_consumed_sequence;
+        output.transition.predecessor_selector_generation = predecessor_generation;
+        output.transition.successor_selector_generation = predecessor_generation + 1;
+        output.transition.predecessor.size = prepare.predecessor_length;
+        output.transition.successor.size = prepare.successor_length;
+        std::copy_n(prepare.predecessor.data(), prepare.predecessor_length, output.transition.predecessor.bytes.begin());
+        std::copy_n(prepare.successor.data(), prepare.successor_length, output.transition.successor.bytes.begin());
+        output.prepare_size = unique_prepare.exact_size();
+        std::copy_n(unique_prepare.exact_data(), output.prepare_size, output.prepare.begin());
+
+        context_store_registry_lab_head_value_v1 predecessor_head_value;
+        predecessor_head_value.scope = output.value.scope;
+        predecessor_head_value.selection = context_store_registry_lab_head_selection_v1::predecessor;
+        predecessor_head_value.selected_envelope = output.transition.predecessor;
+        predecessor_head_value.selected_envelope_digest = output.transition.predecessor_envelope_digest;
+        predecessor_head_value.selected_high_water = output.transition.predecessor_high_water;
+        predecessor_head_value.selector_generation = output.transition.predecessor_selector_generation;
+        predecessor_head_value.expected_head_digest = output.transition.initial_head_digest;
+        scoped_quarantine_wire_credential wire_credential(credential);
+        context_store_registry_lab_head_witness predecessor_head_witness;
+        if (!context_store_registry_lab_admit_head_v1(
+                predecessor_head_value, wire_credential.value, predecessor_head_witness)) return false;
+        const auto encoded = context_store_registry_lab_encode_head_v1(predecessor_head_value, wire_credential.value,
+            predecessor_head_witness, output.predecessor_head.data(), output.predecessor_head.size(), output.predecessor_head_size);
+        if (!encoded.authenticated() || encoded.content_digest != prepare.previous_head ||
+            (!successor_shape && (output.predecessor_head_size != head.exact_size() ||
+                !exact_bytes(output.predecessor_head.data(), head.exact_data(), head.exact_size())))) return false;
+        if (successor_shape) {
+            output.successor_head_size = head.exact_size();
+            std::copy_n(head.exact_data(), output.successor_head_size, output.successor_head.begin());
+        }
+    }
+    return quarantine_value_matches_diagnosis(output.value, diagnosis);
+}
+
+bool derive_quarantine_artifact(const fixed_state & snapshot, const preflight_context_v1 & preflight,
+        const credential_owner & credential, uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+        const quarantine_event_id & event_id, std::array<uint8_t, 1024> & output, size_t & output_size,
+        context_store_format_digest & content_digest, context_store_format_digest & action_commitment) noexcept {
+    wipe(output); output_size = 0; content_digest = {}; action_commitment = {};
+    if (!exact_fake_quarantine_event_id(event_id)) return false;
+    quarantine_encoding_inputs inputs;
+    if (!derive_quarantine_encoding_inputs(snapshot, preflight, credential, invocation_id, diagnosis, inputs)) return false;
+    inputs.value.event_id = event_id;
+    context_store_registry_lab_quarantine_evidence_v1 evidence;
+    if (inputs.transition_present) evidence.transition = &inputs.transition;
+    if (inputs.predecessor_head_size) {
+        evidence.predecessor_head = inputs.predecessor_head.data();
+        evidence.predecessor_head_size = inputs.predecessor_head_size;
+    }
+    if (inputs.successor_head_size) {
+        evidence.successor_head = inputs.successor_head.data();
+        evidence.successor_head_size = inputs.successor_head_size;
+    }
+    if (inputs.prepare_size) {
+        evidence.prepare = inputs.prepare.data(); evidence.prepare_size = inputs.prepare_size;
+    }
+    if (inputs.standalone_head_present) evidence.standalone_predecessor_head_value = &inputs.standalone_predecessor_head;
+    scoped_quarantine_wire_credential wire_credential(credential);
+    context_store_registry_lab_quarantine_witness witness;
+    if (!context_store_registry_lab_admit_quarantine_v1(inputs.value, wire_credential.value, evidence, witness)) return false;
+    const auto encoded = context_store_registry_lab_encode_quarantine_v1(
+        inputs.value, wire_credential.value, witness, output.data(), output.size(), output_size);
+    context_store_registry_lab_expectation expectation;
+    expectation.root_id = inputs.value.scope.root_id;
+    expectation.path_policy_commitment = inputs.value.scope.path_policy_commitment;
+    expectation.registry_id = inputs.value.scope.registry_id;
+    expectation.registry_epoch = inputs.value.scope.registry_epoch;
+    expectation.quarantine_event_id = inputs.value.event_id;
+    expectation.attempt_id = inputs.value.attempt_id;
+    expectation.slot = inputs.value.slot;
+    expectation.operation_commitment = inputs.value.operation_commitment;
+    expectation.quarantine_previous_record_digest = inputs.value.previous_record_digest;
+    expectation.quarantine_head_digest = inputs.value.head_digest;
+    expectation.quarantine_reason = inputs.value.reason;
+    expectation.quarantine_phase = inputs.value.phase;
+    expectation.quarantine_attributable = inputs.value.attributable;
+    expectation.quarantine_has_previous_record = inputs.value.has_previous_record;
+    expectation.quarantine_has_head = inputs.value.has_head;
+    const auto verified = context_store_registry_lab_verify_v1(context_store_registry_lab_kind::quarantine,
+        output.data(), output_size, wire_credential.value, expectation);
+    const bool self_verified = encoded.authenticated() && verified.authenticated() &&
+        output_size > 0 && output_size <= output.size() &&
+        halofpx_registry_lab_constant_time_tag_equal_32(
+            verified.content_digest.data(), encoded.content_digest.data());
+    if (self_verified) content_digest = encoded.content_digest;
+    const bool committed = self_verified && derive_quarantine_action_commitment(invocation_id, diagnosis,
+        event_id, content_digest, output_size, action_commitment);
+    if (!committed) { wipe(output); output_size = 0; content_digest = {}; action_commitment = {}; }
+    return committed;
 }
 
 recovery_classification classify_operation_5(const fixed_state & snapshot, const preflight_context_v1 & preflight,
@@ -919,6 +1337,21 @@ recovery_classification classify_operation_5(const fixed_state & snapshot, const
                     diagnosis.operation_commitment = attributable_prepare.operation_commitment;
                     diagnosis.previous_record_digest = attributable_prepare_digest;
                     diagnosis.head_digest = head.content_digest();
+                } else {
+                    const bool successor_head = head_evidence_valid &&
+                        head.body().selector_generation >= 2 &&
+                        head.body().selected_digest == attributable_prepare.successor_digest &&
+                        selected_size == attributable_prepare.successor_length &&
+                        exact_bytes(selected_bytes, attributable_prepare.successor.data(), selected_size);
+                    if (successor_head) {
+                        diagnosis.shape = quarantine_shape::successor;
+                        diagnosis.attributable = true; diagnosis.has_previous_record = true; diagnosis.has_head = true;
+                        diagnosis.phase = 2; diagnosis.slot = attributable_prepare.slot;
+                        diagnosis.attempt_id = attributable_prepare.attempt_id;
+                        diagnosis.operation_commitment = attributable_prepare.operation_commitment;
+                        diagnosis.previous_record_digest = attributable_prepare_digest;
+                        diagnosis.head_digest = head.content_digest();
+                    }
                 }
             } else if (predecessor_head_evidence) {
                 diagnosis.shape = quarantine_shape::uh;
@@ -929,8 +1362,19 @@ recovery_classification classify_operation_5(const fixed_state & snapshot, const
         }
         diagnosis.publishable = diagnosis.authenticated_initialized_root && diagnosis.shape != quarantine_shape::none &&
             reason_admits_shape(diagnosis.reason, diagnosis.shape);
-        if (diagnosis.publishable && !derive_quarantine_diagnosis_commitment(invocation_id, diagnosis, diagnosis.diagnosis_commitment))
-            diagnosis.publishable = false;
+        if (diagnosis.publishable) {
+            quarantine_encoding_inputs inputs;
+            if (!derive_quarantine_diagnosis_commitment(invocation_id, diagnosis, diagnosis.diagnosis_commitment) ||
+                !derive_quarantine_encoding_inputs(snapshot, preflight, credential, invocation_id, diagnosis, inputs)) {
+                diagnosis.publishable = false;
+                if (diagnosis.shape == quarantine_shape::successor) {
+                    diagnosis.shape = quarantine_shape::none; diagnosis.attributable = false;
+                    diagnosis.has_previous_record = false; diagnosis.has_head = false; diagnosis.phase = 0;
+                    diagnosis.slot = 0; diagnosis.attempt_id = {}; diagnosis.operation_commitment = {};
+                    diagnosis.previous_record_digest = {}; diagnosis.head_digest = {}; diagnosis.diagnosis_commitment = {};
+                }
+            }
+        }
         recovery_precedence_flags flags; flags.sticky = true; return select_recovery_precedence(flags);
     }
     if (unresolved_count == 1) {
@@ -1118,7 +1562,7 @@ bool derive_recovery_terminal(const fixed_state & snapshot, const preflight_cont
 }
 
 bool valid_script_shape(const script & value) noexcept {
-    if (value.size != 5 && value.size != 11 && value.size != 19) return false;
+    if (value.size != 5 && value.size != 11 && value.size != 14 && value.size != 19) return false;
     constexpr std::array<operation, 5> prefix { operation::guard_acquire, operation::writer_lock_acquire, operation::preflight,
         operation::snapshot_load, operation::recovery_validation };
     for (size_t i = 0; i < prefix.size(); ++i) if (value.entries[i].op != prefix[i]) return false;
@@ -1127,6 +1571,15 @@ bool valid_script_shape(const script & value) noexcept {
         operation::terminal_write, operation::terminal_readback, operation::terminal_file_sync, operation::attempts_directory_sync };
     if (value.size == 11) {
         for (size_t i = 0; i < predecessor.size(); ++i) if (value.entries[5 + i].op != predecessor[i]) return false;
+        return true;
+    }
+    constexpr std::array<operation, 9> quarantine { operation::quarantine_event_id_acquire,
+        operation::action_mutation_admission, operation::quarantine_staging_create,
+        operation::quarantine_staging_write, operation::quarantine_staging_readback,
+        operation::quarantine_file_sync, operation::quarantine_publish_rename,
+        operation::quarantine_root_directory_sync, operation::quarantine_staging_directory_sync };
+    if (value.size == 14) {
+        for (size_t i = 0; i < quarantine.size(); ++i) if (value.entries[5 + i].op != quarantine[i]) return false;
         return true;
     }
     constexpr std::array<operation, 14> successor { operation::action_mutation_admission, operation::successor_file_sync,
@@ -1141,6 +1594,10 @@ bool valid_script_shape(const script & value) noexcept {
 bool script_matches_recovery(const script & value, recovery_classification classification) noexcept {
     return (classification == recovery_classification::needs_predecessor_abort && value.size == 11) ||
         (classification == recovery_classification::needs_successor_close && value.size == 19);
+}
+
+bool script_matches_quarantine(const script & value, recovery_classification classification) noexcept {
+    return classification == recovery_classification::needs_sticky_quarantine && value.size == 14;
 }
 
 template<size_t N> void apply_complete_live(modeled_file<N> & file, const uint8_t * bytes, size_t size) noexcept {
@@ -1214,7 +1671,240 @@ bool quarantine_diagnosis_commitment_for_test(uint64_t invocation_id, const quar
     return derive_quarantine_diagnosis_commitment(invocation_id, diagnosis, output);
 }
 
+bool quarantine_encoding_inputs_for_test(const fixed_state & snapshot, const preflight_context_v1 & preflight,
+        const credential_owner & credential, uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+        quarantine_encoding_inputs_test_audit & audit) noexcept {
+    audit = {};
+    quarantine_encoding_inputs inputs;
+    if (!derive_quarantine_encoding_inputs(snapshot, preflight, credential, invocation_id, diagnosis, inputs)) return false;
+    audit.prepared = true; audit.shape = diagnosis.shape;
+    audit.scope_exact = inputs.value.scope.root_id == diagnosis.root_id &&
+        inputs.value.scope.path_policy_commitment == diagnosis.path_policy_commitment &&
+        same_id(inputs.value.scope.registry_id, diagnosis.registry_id) &&
+        inputs.value.scope.registry_epoch == diagnosis.registry_epoch;
+    audit.value_exact = quarantine_value_matches_diagnosis(inputs.value, diagnosis);
+    audit.transition_present = inputs.transition_present;
+    audit.standalone_head_present = inputs.standalone_head_present;
+    audit.predecessor_head_size = inputs.predecessor_head_size;
+    audit.successor_head_size = inputs.successor_head_size; audit.prepare_size = inputs.prepare_size;
+    if (inputs.predecessor_head_size && !hash_with_domain("halofpx.registry-lab-head.v1",
+            inputs.predecessor_head.data(), inputs.predecessor_head_size, audit.predecessor_head_digest)) return false;
+    if (inputs.successor_head_size && !hash_with_domain("halofpx.registry-lab-head.v1",
+            inputs.successor_head.data(), inputs.successor_head_size, audit.successor_head_digest)) return false;
+    if (inputs.prepare_size && !hash_with_domain("halofpx.registry-lab-prepare.v1",
+            inputs.prepare.data(), inputs.prepare_size, audit.prepare_digest)) return false;
+    inputs.clear();
+    audit.explicit_wipe_verified = trivially_copyable_object_is_zero(inputs.value) &&
+        trivially_copyable_object_is_zero(inputs.transition) &&
+        trivially_copyable_object_is_zero(inputs.standalone_predecessor_head) &&
+        all_zero(inputs.predecessor_head) && all_zero(inputs.successor_head) &&
+        all_zero(inputs.prepare) && !inputs.predecessor_head_size && !inputs.successor_head_size && !inputs.prepare_size &&
+        !inputs.transition_present && !inputs.standalone_head_present;
+    return audit.scope_exact && audit.value_exact && audit.explicit_wipe_verified;
+}
+
+bool quarantine_action_commitment_for_test(uint64_t invocation_id, const quarantine_diagnosis_view & diagnosis,
+        const context_store_format_digest & event_id, const context_store_format_digest & quarantine_content_digest,
+        size_t quarantine_encoded_length, context_store_format_digest & output) noexcept {
+    return derive_quarantine_action_commitment(invocation_id, diagnosis, event_id,
+        quarantine_content_digest, quarantine_encoded_length, output);
+}
+
+bool quarantine_event_authority_for_test(size_t issuance_count,
+        quarantine_event_authority_test_audit & audit) noexcept {
+    audit = {};
+    if (issuance_count < 2 || issuance_count > 64) return false;
+    static_assert(!std::is_copy_constructible_v<quarantine_event_id_witness> &&
+        !std::is_copy_assignable_v<quarantine_event_id_witness> &&
+        std::is_nothrow_move_constructible_v<quarantine_event_id_witness> &&
+        std::is_nothrow_move_assignable_v<quarantine_event_id_witness>);
+    std::array<quarantine_event_id, 64> issued_ids {};
+    context_store_format_digest diagnosis {}; diagnosis.fill(0x51);
+    context_store_format_digest wrong_diagnosis = diagnosis; wrong_diagnosis[0] ^= 1;
+    context_store_format_digest zero_diagnosis {};
+    const auto invalid_invocation = fake_quarantine_event_authority::acquire(0, diagnosis);
+    const auto invalid_diagnosis = fake_quarantine_event_authority::acquire(7000, zero_diagnosis);
+    audit.invalid_binding_rejected = invalid_invocation.empty() && invalid_diagnosis.empty();
+    audit.nonzero = audit.distinct = audit.exact_encoding = audit.move_source_wiped = true;
+    for (size_t i = 0; i < issuance_count; ++i) {
+        const uint64_t invocation_id = 7000 + i;
+        auto source = fake_quarantine_event_authority::acquire(invocation_id, diagnosis);
+        quarantine_event_id_witness witness { std::move(source) };
+        audit.move_source_wiped = audit.move_source_wiped && source.empty();
+        quarantine_event_id ignored {};
+        if (!source.consume(invocation_id, diagnosis, ignored)) ++audit.moved_from_rejected;
+        if (!witness.consume(invocation_id + 1, diagnosis, ignored)) ++audit.wrong_invocation_rejected;
+        if (!witness.consume(invocation_id, wrong_diagnosis, ignored)) ++audit.wrong_diagnosis_rejected;
+        quarantine_event_id event_id {};
+        if (!witness.consume(invocation_id, diagnosis, event_id)) {
+            for (auto & issued_id : issued_ids) wipe(issued_id);
+            return false;
+        }
+        ++audit.issued; ++audit.consumed;
+        audit.nonzero = audit.nonzero && nonzero(event_id);
+        audit.exact_encoding = audit.exact_encoding && fake_quarantine_event_id_matches_test_oracle(event_id);
+        for (size_t j = 0; j < i; ++j) audit.distinct = audit.distinct && issued_ids[j] != event_id;
+        issued_ids[i] = event_id;
+        if (!witness.consume(invocation_id, diagnosis, ignored)) ++audit.replay_rejected;
+        wipe(event_id); wipe(ignored);
+    }
+    {
+        auto witness = fake_quarantine_event_authority::acquire(9001, diagnosis);
+        witness.clear();
+        audit.explicit_wipe_verified = witness.empty();
+    }
+    {
+        auto destruction_witness = fake_quarantine_event_authority::acquire(9002, diagnosis);
+        audit.destructor_clear_path_exercised = !destruction_witness.empty();
+    }
+    for (auto & issued_id : issued_ids) wipe(issued_id);
+    wipe(diagnosis); wipe(wrong_diagnosis);
+    return audit.issued == issuance_count && audit.consumed == issuance_count &&
+        audit.wrong_invocation_rejected == issuance_count && audit.wrong_diagnosis_rejected == issuance_count &&
+        audit.replay_rejected == issuance_count && audit.moved_from_rejected == issuance_count &&
+        audit.nonzero && audit.distinct && audit.exact_encoding && audit.invalid_binding_rejected && audit.move_source_wiped &&
+        audit.explicit_wipe_verified && audit.destructor_clear_path_exercised;
+}
+
+bool quarantine_event_concurrency_begin_for_test(size_t worker_count, size_t issuances_per_worker) noexcept {
+    if (!worker_count || worker_count > 8 || !issuances_per_worker || issuances_per_worker > 8 ||
+        worker_count > 64 / issuances_per_worker) return false;
+    lock_quarantine_event_concurrency_test_state();
+    if (quarantine_event_concurrency_state.active) {
+        unlock_quarantine_event_concurrency_test_state();
+        return false;
+    }
+    reset_quarantine_event_concurrency_test_state();
+    quarantine_event_concurrency_state.worker_count = worker_count;
+    quarantine_event_concurrency_state.issuances_per_worker = issuances_per_worker;
+    quarantine_event_concurrency_state.active = true;
+    unlock_quarantine_event_concurrency_test_state();
+    return true;
+}
+
+bool quarantine_event_concurrency_worker_for_test(size_t worker_index) noexcept {
+    lock_quarantine_event_concurrency_test_state();
+    const bool admitted = quarantine_event_concurrency_state.active &&
+        worker_index < quarantine_event_concurrency_state.worker_count &&
+        !quarantine_event_concurrency_state.claimed[worker_index].exchange(true, std::memory_order_relaxed);
+    const size_t count = admitted ? quarantine_event_concurrency_state.issuances_per_worker : 0;
+    unlock_quarantine_event_concurrency_test_state();
+    if (!admitted) return false;
+
+    context_store_format_digest diagnosis {}; diagnosis.fill(static_cast<uint8_t>(0x61 + worker_index));
+    bool succeeded = true;
+    for (size_t i = 0; i < count; ++i) {
+        const uint64_t invocation_id = 10000 + worker_index * 8 + i;
+        auto witness = fake_quarantine_event_authority::acquire(invocation_id, diagnosis);
+        quarantine_event_id event_id {};
+        if (!witness.consume(invocation_id, diagnosis, event_id)) { succeeded = false; break; }
+        quarantine_event_concurrency_state.retained_ids[worker_index * count + i] = event_id;
+        wipe(event_id);
+    }
+    wipe(diagnosis);
+    quarantine_event_concurrency_state.succeeded[worker_index].store(succeeded, std::memory_order_relaxed);
+    quarantine_event_concurrency_state.completed[worker_index].store(true, std::memory_order_release);
+    return succeeded;
+}
+
+bool quarantine_event_concurrency_finish_for_test(quarantine_event_concurrency_test_audit & audit) noexcept {
+    audit = {};
+    lock_quarantine_event_concurrency_test_state();
+    if (!quarantine_event_concurrency_state.active) {
+        unlock_quarantine_event_concurrency_test_state();
+        return false;
+    }
+    audit.all_workers_completed = true;
+    bool all_workers_succeeded = true;
+    for (size_t i = 0; i < quarantine_event_concurrency_state.worker_count; ++i) {
+        audit.all_workers_completed = audit.all_workers_completed &&
+            quarantine_event_concurrency_state.completed[i].load(std::memory_order_acquire);
+        all_workers_succeeded = all_workers_succeeded &&
+            quarantine_event_concurrency_state.succeeded[i].load(std::memory_order_relaxed);
+    }
+    if (!audit.all_workers_completed) {
+        unlock_quarantine_event_concurrency_test_state();
+        return false;
+    }
+    audit.retained = quarantine_event_concurrency_state.worker_count *
+        quarantine_event_concurrency_state.issuances_per_worker;
+    audit.pairwise_distinct = all_workers_succeeded;
+    audit.exact_encoding = all_workers_succeeded;
+    for (size_t i = 0; i < audit.retained; ++i) {
+        audit.exact_encoding = audit.exact_encoding &&
+            fake_quarantine_event_id_matches_test_oracle(quarantine_event_concurrency_state.retained_ids[i]);
+        for (size_t j = 0; j < i; ++j)
+            audit.pairwise_distinct = audit.pairwise_distinct &&
+                quarantine_event_concurrency_state.retained_ids[i] != quarantine_event_concurrency_state.retained_ids[j];
+    }
+    const bool accepted = audit.retained == 64 && audit.all_workers_completed &&
+        audit.pairwise_distinct && audit.exact_encoding;
+    reset_quarantine_event_concurrency_test_state();
+    unlock_quarantine_event_concurrency_test_state();
+    return accepted;
+}
+
 fixture::fixture() noexcept = default;
+quarantine_event_id_witness::~quarantine_event_id_witness() noexcept { clear(); }
+quarantine_event_id_witness::quarantine_event_id_witness(
+        const context_store_format_digest & event_id, uint64_t invocation_id,
+        const context_store_format_digest & diagnosis_commitment) noexcept
+    : event_id_(event_id), diagnosis_commitment_(diagnosis_commitment), invocation_id_(invocation_id),
+      owns_(exact_fake_quarantine_event_id(event_id) && invocation_id != 0 && nonzero(diagnosis_commitment)) {
+    if (!owns_) clear();
+}
+quarantine_event_id_witness::quarantine_event_id_witness(quarantine_event_id_witness && other) noexcept {
+    move_from(other);
+}
+quarantine_event_id_witness & quarantine_event_id_witness::operator=(
+        quarantine_event_id_witness && other) noexcept {
+    if (this != &other) { clear(); move_from(other); }
+    return *this;
+}
+bool quarantine_event_id_witness::consume(uint64_t invocation_id,
+        const context_store_format_digest & diagnosis_commitment,
+        context_store_format_digest & event_id) noexcept {
+    event_id = {};
+    if (!owns_ || invocation_id != invocation_id_ || !invocation_id ||
+        !halofpx_registry_lab_constant_time_tag_equal_32(
+            diagnosis_commitment.data(), diagnosis_commitment_.data())) return false;
+    event_id = event_id_; clear(); return true;
+}
+bool quarantine_event_id_witness::authorize(uint64_t invocation_id,
+        const context_store_format_digest & diagnosis_commitment,
+        context_store_format_digest & event_id) const noexcept {
+    event_id = {};
+    if (!owns_ || invocation_id != invocation_id_ || !invocation_id ||
+        !halofpx_registry_lab_constant_time_tag_equal_32(
+            diagnosis_commitment.data(), diagnosis_commitment_.data())) return false;
+    event_id = event_id_; return true;
+}
+bool quarantine_event_id_witness::empty() const noexcept {
+    return !owns_ && !invocation_id_ && all_zero(event_id_) && all_zero(diagnosis_commitment_);
+}
+void quarantine_event_id_witness::clear() noexcept {
+    wipe(event_id_); wipe(diagnosis_commitment_);
+    volatile uint64_t * invocation = &invocation_id_; *invocation = 0;
+    volatile bool * owns = &owns_; *owns = false;
+}
+void quarantine_event_id_witness::move_from(quarantine_event_id_witness & other) noexcept {
+    event_id_ = other.event_id_; diagnosis_commitment_ = other.diagnosis_commitment_;
+    invocation_id_ = other.invocation_id_; owns_ = other.owns_; other.clear();
+}
+quarantine_event_id_witness fake_quarantine_event_authority::acquire(uint64_t invocation_id,
+        const context_store_format_digest & diagnosis_commitment, bool * sequence_consumed) noexcept {
+    if (sequence_consumed) *sequence_consumed = false;
+    if (!invocation_id || !nonzero(diagnosis_commitment)) return {};
+    if (quarantine_event_fail_next_issuance.exchange(false, std::memory_order_relaxed)) return {};
+    uint64_t sequence = 0; quarantine_event_id event_id {};
+    if (!next_quarantine_event_sequence(sequence) || !encode_fake_quarantine_event_id(sequence, event_id)) return {};
+    if (sequence_consumed) *sequence_consumed = true;
+    quarantine_event_id_witness witness { event_id, invocation_id, diagnosis_commitment };
+    wipe(event_id); return witness;
+}
+void quarantine_event_fail_next_issuance_for_test() noexcept {
+    quarantine_event_fail_next_issuance.store(true, std::memory_order_relaxed);
+}
 void credential_owner::clear() noexcept {
     key_id = {}; generation = 0;
     volatile uint8_t * output = secret.data();
@@ -1267,7 +1957,12 @@ size_t fixture::begin(uint64_t invocation_id, uint8_t process_slot, credential_o
     }
     if (!valid) {
         wipe_credential(current.credential); wipe(current.derived); wipe(current.tag); wipe(current.scratch); wipe(current.witness); wipe(current.terminal_scratch);
-        current.rejection_wipe_verified = credential_zero(current.credential) && all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness) && all_zero(current.terminal_scratch);
+        current.quarantine_event_authority.clear(); wipe(current.quarantine_scratch);
+        wipe(current.quarantine_consumed_event_id); wipe(current.quarantine_content_digest); wipe(current.quarantine_action_commitment);
+        current.quarantine_size = 0; current.quarantine_event_confirmed = false; current.quarantine_action_latched = false;
+        current.rejection_wipe_verified = credential_zero(current.credential) && all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness) && all_zero(current.terminal_scratch) &&
+            current.quarantine_event_authority.empty() && all_zero(current.quarantine_scratch) &&
+            all_zero(current.quarantine_consumed_event_id) && all_zero(current.quarantine_content_digest) && all_zero(current.quarantine_action_commitment);
         current.pending = { visibility::ordinary_result, status::invalid_request_no_mutation };
         current.current = phase::complete;
         return handle;
@@ -1288,10 +1983,15 @@ void fixture::kill_process(uint8_t process, const restart_image * projected_rest
             ? !restart_projection_contains_secret(*projected_restart, current.credential.secret)
             : !durable_projection_contains_secret(state_, current.credential.secret);
         wipe_credential(current.credential); wipe(current.derived); wipe(current.tag); wipe(current.scratch); wipe(current.witness); wipe(current.terminal_scratch);
+        current.quarantine_event_authority.clear(); wipe(current.quarantine_scratch);
+        wipe(current.quarantine_consumed_event_id); wipe(current.quarantine_content_digest); wipe(current.quarantine_action_commitment);
+        current.quarantine_size = 0; current.quarantine_event_confirmed = false; current.quarantine_action_latched = false;
         current.pending.state = visibility::dead_process_no_result;
         current.current = phase::dead;
         current.teardown = { current.id, process, credential_zero(current.credential),
-            all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness) && all_zero(current.terminal_scratch), secret_absent };
+            all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness) && all_zero(current.terminal_scratch) &&
+                current.quarantine_event_authority.empty() && all_zero(current.quarantine_scratch) &&
+                all_zero(current.quarantine_consumed_event_id) && all_zero(current.quarantine_content_digest) && all_zero(current.quarantine_action_commitment), secret_absent };
     }
     if (process < guard_owner_.size()) guard_owner_[process] = 0;
     if (writer_process_ == process) { writer_owner_ = 0; writer_process_ = 0xff; }
@@ -1304,7 +2004,12 @@ bool fixture::step(size_t handle) noexcept {
     if (!current.occupied || current.current == phase::complete || current.current == phase::dead || current.current == phase::free) return false;
     if (current.current == phase::cleanup_wipe) {
         wipe_credential(current.credential); wipe(current.derived); wipe(current.tag); wipe(current.scratch); wipe(current.witness); wipe(current.terminal_scratch);
-        current.ordinary_wipe_verified = credential_zero(current.credential) && all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness) && all_zero(current.terminal_scratch);
+        current.quarantine_event_authority.clear(); wipe(current.quarantine_scratch);
+        wipe(current.quarantine_consumed_event_id); wipe(current.quarantine_content_digest); wipe(current.quarantine_action_commitment);
+        current.quarantine_size = 0; current.quarantine_event_confirmed = false; current.quarantine_action_latched = false;
+        current.ordinary_wipe_verified = credential_zero(current.credential) && all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness) && all_zero(current.terminal_scratch) &&
+            current.quarantine_event_authority.empty() && all_zero(current.quarantine_scratch) &&
+            all_zero(current.quarantine_consumed_event_id) && all_zero(current.quarantine_content_digest) && all_zero(current.quarantine_action_commitment);
         if (!current.ordinary_wipe_verified) return false;
         current.events[current.event_count++] = { 90 }; current.current = phase::cleanup_lock; return true;
     }
@@ -1323,25 +2028,80 @@ bool fixture::step(size_t handle) noexcept {
     if (current.cursor >= current.immutable_script.size) return false;
     const primitive_product product = current.immutable_script.entries[current.cursor];
     if (current.action_latched && state_.modeled_available_bytes < registry_minimum_reserve_bytes) {
-        finish_ordinary(current, status::uncertain_requires_recovery);
+        finish_ordinary(current, current.quarantine_event_confirmed
+            ? status::quarantined_or_unavailable : status::uncertain_requires_recovery);
         return true;
     }
     primitive_code derived = product.code;
+    quarantine_event_id_witness issued_quarantine_authority {};
+    bool quarantine_event_issued = false;
+    bool quarantine_effect_authorized = true;
     if (product.op == operation::guard_acquire) derived = guard_owner_[current.process] == 0 ? primitive_code::ok : primitive_code::busy;
     if (product.op == operation::writer_lock_acquire && product.code != primitive_code::unsupported)
         derived = writer_owner_ == 0 ? primitive_code::ok : primitive_code::busy;
     if (product.op == operation::action_mutation_admission) {
-        if (product.code == primitive_code::unavailable) derived = primitive_code::ok;
-        context_store_format_digest recomputed {}; uint64_t bytes = 0;
-        const bool state_ok = snapshot_owner_ == current.id && same_action_state(state_, snapshot_) &&
-            recovery_action_commitment(current.recovery_action, current.recovery_slot, current.action_attempt, current.prepare_digest,
-                current.current_head_digest, current.action_operation, recomputed) && recomputed == current.action_commitment;
-        if (!state_ok) derived = primitive_code::unavailable;
-        else if (!logical_bytes(state_, bytes) || current.preflight.maximum_logical_authority_bytes != registry_logical_budget_bytes ||
-                 !admitted_logical_budget(bytes)) derived = primitive_code::capacity_exhausted;
-        else if (state_.modeled_available_bytes < registry_minimum_reserve_bytes) derived = primitive_code::reserve_exhausted;
+        const bool primitive_failed = product.code == primitive_code::unsupported || product.code == primitive_code::io_failure;
+        if (!primitive_failed) {
+            derived = primitive_code::ok;
+            uint64_t bytes = 0;
+            if (script_matches_quarantine(current.immutable_script, current.derived_class)) {
+            quarantine_diagnosis_view recomputed_diagnosis; size_t scanned = 0, derivations = 0;
+            const recovery_classification recomputed_class = classify_operation_5(state_, current.preflight,
+                current.request, current.credential, scanned, derivations, current.id, recomputed_diagnosis);
+            current.derivations += derivations;
+            context_store_format_digest event_id {};
+            const bool state_ok = snapshot_owner_ == current.id && same_action_state(state_, snapshot_) &&
+                recomputed_class == recovery_classification::needs_sticky_quarantine &&
+                same_quarantine_diagnosis(recomputed_diagnosis, current.quarantine_plan);
+            const bool budget_ok = logical_bytes(state_, bytes) &&
+                current.preflight.maximum_logical_authority_bytes == registry_logical_budget_bytes &&
+                admitted_logical_budget(bytes);
+            if (!state_ok) {
+                derived = primitive_code::unavailable;
+            } else if (!budget_ok) {
+                derived = primitive_code::capacity_exhausted;
+            } else if (state_.modeled_available_bytes < registry_minimum_reserve_bytes) {
+                derived = primitive_code::reserve_exhausted;
+            } else if (!current.quarantine_event_authority.consume(
+                    current.id, current.quarantine_plan.diagnosis_commitment, event_id)) {
+                derived = primitive_code::unavailable;
+            } else {
+                std::array<uint8_t, 1024> rederived_bytes {}; size_t rederived_size = 0;
+                context_store_format_digest rederived_content {}, rederived_action {};
+                const bool rederived = derive_quarantine_artifact(state_, current.preflight, current.credential,
+                    current.id, current.quarantine_plan, event_id, rederived_bytes, rederived_size,
+                    rederived_content, rederived_action);
+                const bool exact = rederived && rederived_size == current.quarantine_size &&
+                    exact_bytes(rederived_bytes.data(), current.quarantine_scratch.data(), current.quarantine_size) &&
+                    rederived_content == current.quarantine_content_digest &&
+                    rederived_action == current.quarantine_action_commitment;
+                wipe(rederived_bytes); wipe(rederived_content); wipe(rederived_action);
+                if (!exact) derived = primitive_code::unavailable;
+                else current.quarantine_consumed_event_id = event_id;
+            }
+            wipe(event_id);
+            } else {
+                context_store_format_digest recomputed {};
+                const bool state_ok = snapshot_owner_ == current.id && same_action_state(state_, snapshot_) &&
+                    recovery_action_commitment(current.recovery_action, current.recovery_slot, current.action_attempt, current.prepare_digest,
+                        current.current_head_digest, current.action_operation, recomputed) && recomputed == current.action_commitment;
+                if (!state_ok) derived = primitive_code::unavailable;
+                else if (!logical_bytes(state_, bytes) || current.preflight.maximum_logical_authority_bytes != registry_logical_budget_bytes ||
+                         !admitted_logical_budget(bytes)) derived = primitive_code::capacity_exhausted;
+                else if (state_.modeled_available_bytes < registry_minimum_reserve_bytes) derived = primitive_code::reserve_exhausted;
+            }
+        }
     }
-    if (static_cast<uint8_t>(product.op) >= 33 && !current.action_latched) derived = primitive_code::unavailable;
+    if (product.op == operation::quarantine_event_id_acquire) {
+        bool sequence_consumed = false;
+        issued_quarantine_authority = fake_quarantine_event_authority::acquire(
+            current.id, current.quarantine_plan.diagnosis_commitment, &sequence_consumed);
+        current.quarantine_sequence_values_consumed += sequence_consumed ? 1U : 0U;
+        quarantine_event_issued = !issued_quarantine_authority.empty();
+        if (!quarantine_event_issued) derived = primitive_code::unavailable;
+    }
+    if (static_cast<uint8_t>(product.op) >= 33 && product.op != operation::quarantine_event_id_acquire &&
+        !current.action_latched) derived = primitive_code::unavailable;
     modeled_file<1024> * terminal = current.recovery_action == 1 ? &state_.slots[current.recovery_slot].abort_record : &state_.slots[current.recovery_slot].close;
     modeled_envelope * action_successor = nullptr;
     for (modeled_envelope & envelope : state_.successors)
@@ -1401,8 +2161,63 @@ bool fixture::step(size_t handle) noexcept {
         }
         current.derivations += calls; if (!authenticated) derived = primitive_code::unavailable;
     }
+    if (product.op == operation::quarantine_staging_create) {
+        quarantine_effect_authorized = absent_file(state_.quarantine_staging) && absent_file(state_.quarantine);
+        if (!quarantine_effect_authorized) derived = primitive_code::unavailable;
+    }
+    if ((product.op == operation::quarantine_staging_write ||
+            product.op == operation::quarantine_staging_readback ||
+            product.op == operation::quarantine_file_sync) && !state_.quarantine_staging.live_present) {
+        if (product.op != operation::quarantine_staging_readback) quarantine_effect_authorized = false;
+        derived = primitive_code::unavailable;
+    }
+    if (product.op == operation::quarantine_staging_write &&
+        (!state_.quarantine_staging.live_complete || state_.quarantine_staging.live_length != 0 ||
+         state_.quarantine_staging.durable_present || state_.quarantine_staging.durable_length != 0)) {
+        quarantine_effect_authorized = false; derived = primitive_code::unavailable;
+    }
+    if (product.op == operation::quarantine_staging_readback) {
+        std::array<uint8_t, 1024> verified_bytes {}; size_t verified_size = 0;
+        context_store_format_digest verified_digest {}, verified_action {};
+        const bool exact = state_.quarantine_staging.live_complete &&
+            state_.quarantine_staging.live_length == current.quarantine_size &&
+            exact_bytes(state_.quarantine_staging.live_bytes.data(), current.quarantine_scratch.data(), current.quarantine_size) &&
+            derive_quarantine_artifact(state_, current.preflight, current.credential, current.id,
+                current.quarantine_plan, current.quarantine_consumed_event_id, verified_bytes, verified_size,
+                verified_digest, verified_action) && verified_size == current.quarantine_size &&
+            exact_bytes(verified_bytes.data(), current.quarantine_scratch.data(), current.quarantine_size) &&
+            verified_digest == current.quarantine_content_digest && verified_action == current.quarantine_action_commitment;
+        wipe(verified_bytes); wipe(verified_digest); wipe(verified_action);
+        if (!exact) derived = primitive_code::unavailable;
+    }
+    if (product.op == operation::quarantine_file_sync) {
+        quarantine_effect_authorized = state_.quarantine_staging.live_complete &&
+            state_.quarantine_staging.live_length == current.quarantine_size &&
+            exact_bytes(state_.quarantine_staging.live_bytes.data(), current.quarantine_scratch.data(), current.quarantine_size);
+        if (!quarantine_effect_authorized) derived = primitive_code::unavailable;
+    }
+    if (product.op == operation::quarantine_publish_rename) {
+        quarantine_effect_authorized = exact_durable_bytes(state_.quarantine_staging) && absent_file(state_.quarantine) &&
+            state_.quarantine_staging.live_length == current.quarantine_size &&
+            exact_bytes(state_.quarantine_staging.live_bytes.data(), current.quarantine_scratch.data(), current.quarantine_size);
+        if (!quarantine_effect_authorized) derived = primitive_code::unavailable;
+    }
+    if (product.op == operation::quarantine_root_directory_sync) {
+        quarantine_effect_authorized = exact_durable_bytes(state_.quarantine) && state_.root_directory.live_projection &&
+            state_.quarantine.live_length == current.quarantine_size &&
+            exact_bytes(state_.quarantine.live_bytes.data(), current.quarantine_scratch.data(), current.quarantine_size);
+        if (!quarantine_effect_authorized) derived = primitive_code::unavailable;
+    }
+    if (product.op == operation::quarantine_staging_directory_sync) {
+        quarantine_effect_authorized = absent_file(state_.quarantine_staging) && exact_published_file(state_.quarantine) &&
+            state_.staging_directory.live_projection && state_.quarantine.live_length == current.quarantine_size &&
+            exact_bytes(state_.quarantine.live_bytes.data(), current.quarantine_scratch.data(), current.quarantine_size);
+        if (!quarantine_effect_authorized) derived = primitive_code::unavailable;
+    }
     if (derived != product.code) {
-        if (current.action_latched) {
+        if (product.op == operation::quarantine_event_id_acquire || current.quarantine_event_confirmed) {
+            finish_ordinary(current, status::quarantined_or_unavailable);
+        } else if (current.action_latched) {
             const bool authenticated_readback_contradiction = derived == primitive_code::unavailable &&
                 (product.op == operation::head_read || product.op == operation::successor_read || product.op == operation::terminal_readback);
             finish_ordinary(current, authenticated_readback_contradiction ? status::quarantined_or_unavailable : status::uncertain_requires_recovery);
@@ -1414,6 +2229,19 @@ bool fixture::step(size_t handle) noexcept {
 
     current.events[current.event_count++] = { static_cast<uint16_t>(product.op) };
     ++current.cursor;
+    if (product.op == operation::quarantine_event_id_acquire && product.code == primitive_code::ok &&
+        product.completed == completion::response_confirmed && quarantine_event_issued) {
+        current.quarantine_event_authority = std::move(issued_quarantine_authority);
+        current.quarantine_event_confirmed = true;
+        context_store_format_digest authorized_event {};
+        const bool prepared = current.quarantine_event_authority.authorize(
+                current.id, current.quarantine_plan.diagnosis_commitment, authorized_event) &&
+            derive_quarantine_artifact(state_, current.preflight, current.credential, current.id,
+                current.quarantine_plan, authorized_event, current.quarantine_scratch, current.quarantine_size,
+                current.quarantine_content_digest, current.quarantine_action_commitment);
+        wipe(authorized_event);
+        if (!prepared) { finish_ordinary(current, status::quarantined_or_unavailable); return true; }
+    }
     if (product.op == operation::guard_acquire && product.code == primitive_code::ok) guard_owner_[current.process] = current.id;
     if (product.op == operation::writer_lock_acquire && product.code == primitive_code::ok) { writer_owner_ = current.id; writer_process_ = current.process; }
     if (product.op == operation::terminal_create && product.effect == storage_effect::complete_live) apply_complete_live(*terminal, nullptr, 0);
@@ -1444,10 +2272,46 @@ bool fixture::step(size_t handle) noexcept {
         terminal->durable_present = terminal->live_present;
         state_.attempts_directory.durable_projection = true;
     }
+    if (product.op == operation::quarantine_staging_create && quarantine_effect_authorized && product.effect == storage_effect::complete_live)
+        apply_complete_live(state_.quarantine_staging, nullptr, 0);
+    if (product.op == operation::quarantine_staging_write && quarantine_effect_authorized) {
+        if (product.effect == storage_effect::bounded_partial_bytes)
+            apply_partial_live(state_.quarantine_staging, current.quarantine_scratch.data(), current.quarantine_size);
+        if (product.effect == storage_effect::complete_live)
+            apply_complete_live(state_.quarantine_staging, current.quarantine_scratch.data(), current.quarantine_size);
+    }
+    if (product.op == operation::quarantine_file_sync && quarantine_effect_authorized) {
+        if (product.effect == storage_effect::bounded_partial_durability_projection)
+            apply_partial_durable_bytes(state_.quarantine_staging);
+        if (product.effect == storage_effect::complete_durability_projection)
+            apply_complete_durable_bytes(state_.quarantine_staging);
+    }
+    if (product.op == operation::quarantine_publish_rename && quarantine_effect_authorized && product.effect == storage_effect::complete_live) {
+        state_.quarantine = state_.quarantine_staging;
+        state_.quarantine.durable_present = false;
+        state_.quarantine_staging = {};
+    }
+    if (product.op == operation::quarantine_root_directory_sync && quarantine_effect_authorized &&
+        product.effect == storage_effect::complete_durability_projection) {
+        state_.quarantine.durable_present = state_.quarantine.live_present;
+        state_.root_directory.durable_projection = state_.root_directory.live_projection;
+    }
+    if (product.op == operation::quarantine_staging_directory_sync && quarantine_effect_authorized &&
+        product.effect == storage_effect::complete_durability_projection) {
+        state_.quarantine_staging.durable_present = false;
+        state_.staging_directory.durable_projection = state_.staging_directory.live_projection;
+    }
     if (product.completed == completion::process_death) { kill_process(current.process); return true; }
-    if (product.completed == completion::response_lost) { finish_ordinary(current, static_cast<uint8_t>(product.op) >= 6 ? status::uncertain_requires_recovery : status::quarantined_or_unavailable); return true; }
+    if (product.completed == completion::response_lost) {
+        finish_ordinary(current, product.op == operation::quarantine_event_id_acquire || current.quarantine_event_confirmed
+            ? status::quarantined_or_unavailable
+            : static_cast<uint8_t>(product.op) >= 6 ? status::uncertain_requires_recovery : status::quarantined_or_unavailable);
+        return true;
+    }
     if (product.code != primitive_code::ok) {
-        if (product.op == operation::action_mutation_admission)
+        if (product.op == operation::quarantine_event_id_acquire || current.quarantine_event_confirmed)
+            finish_ordinary(current, status::quarantined_or_unavailable);
+        else if (product.op == operation::action_mutation_admission)
             finish_ordinary(current, product.code == primitive_code::unavailable ? status::quarantined_or_unavailable : status::uncertain_requires_recovery);
         else if (current.action_latched)
             finish_ordinary(current, (product.op == operation::head_read || product.op == operation::successor_read || product.op == operation::terminal_readback) &&
@@ -1464,7 +2328,12 @@ bool fixture::step(size_t handle) noexcept {
         if (snapshot_owner_ != current.id) { finish_ordinary(current, status::invalid_request_no_mutation); return true; }
         current.derived_class = classify_operation_5(snapshot_, current.preflight, current.request, current.credential,
             current.scanned, current.derivations, current.id, current.quarantine_plan);
-        if (current.derived_class != product.classification) { finish_ordinary(current, status::invalid_request_no_mutation); return true; }
+        const bool retained_quarantine_retry = current.immutable_script.size == 14 &&
+            product.classification == recovery_classification::needs_sticky_quarantine &&
+            current.derived_class == recovery_classification::blocked_by_existing_quarantine;
+        if (current.derived_class != product.classification && !retained_quarantine_retry) {
+            finish_ordinary(current, status::invalid_request_no_mutation); return true;
+        }
         if (script_matches_recovery(current.immutable_script, current.derived_class)) {
             if (!derive_recovery_terminal(snapshot_, current.preflight, current.request, current.credential, current.derived_class,
                     current.terminal_scratch, current.terminal_size, current.recovery_slot, current.prepare_digest,
@@ -1485,6 +2354,19 @@ bool fixture::step(size_t handle) noexcept {
                 current.action_predecessor = record.body().predecessor_digest; current.action_successor = record.body().successor_digest;
             }
             current.derivations += calls;
+        } else if (script_matches_quarantine(current.immutable_script, current.derived_class)) {
+            if (!current.quarantine_plan.valid || !current.quarantine_plan.publishable ||
+                !nonzero(current.quarantine_plan.diagnosis_commitment)) {
+                snapshot_owner_ = 0; finish_ordinary(current, status::quarantined_or_unavailable); return true;
+            }
+            return step(handle); // ADR-0024: a publishable sticky diagnosis immediately consumes event authority.
+        } else if (current.immutable_script.size == 14 &&
+                   current.derived_class == recovery_classification::blocked_by_existing_quarantine) {
+            // A retained final or staging quarantine wins before event authority even when
+            // the caller supplied the exact publication script.  Restore/retry must remain
+            // fail-closed, nonmutating, and must not consume another issuance sequence.
+            snapshot_owner_ = 0;
+            finish_ordinary(current, status::quarantined_or_unavailable);
         } else if (current.immutable_script.size != 5) {
             snapshot_owner_ = 0; finish_ordinary(current, status::invalid_request_no_mutation);
         } else if (current.derived_class == recovery_classification::continue_to_mutation) {
@@ -1499,11 +2381,17 @@ bool fixture::step(size_t handle) noexcept {
     }
     if (product.op == operation::action_mutation_admission) {
         current.action_latched = true;
+        if (script_matches_quarantine(current.immutable_script, current.derived_class))
+            current.quarantine_action_latched = true;
         return step(handle); // ADR-0023: no injectable definite-state gap before the first action operation.
     }
     if (product.op == operation::attempts_directory_sync) {
         snapshot_owner_ = 0;
         finish_ordinary(current, current.recovery_action == 1 ? status::recovered_not_applied_no_authority : status::modeled_recovered_successor_closed);
+    }
+    if (product.op == operation::quarantine_staging_directory_sync) {
+        snapshot_owner_ = 0;
+        finish_ordinary(current, status::quarantined_or_unavailable);
     }
     return true;
 }
@@ -1551,6 +2439,54 @@ size_t fixture::scanned_slots(size_t handle) const noexcept {
 size_t fixture::kdf_calls(size_t handle) const noexcept {
     return handle < invocations_.size() && invocations_[handle].occupied ? invocations_[handle].derivations : 0;
 }
+quarantine_operation_69_issuance_audit fixture::quarantine_operation_69_issuance(size_t handle) const noexcept {
+    return handle < invocations_.size() && invocations_[handle].occupied
+        ? quarantine_operation_69_issuance_audit { invocations_[handle].quarantine_sequence_values_consumed }
+        : quarantine_operation_69_issuance_audit {};
+}
+
+bool fixture::inject_quarantine_private_fault_for_test(size_t handle,
+        quarantine_private_fault_for_test fault) noexcept {
+    if (handle >= invocations_.size()) return false;
+    invocation & current = invocations_[handle];
+    if (!current.occupied || !current.quarantine_event_confirmed || current.action_latched ||
+        current.quarantine_size == 0 || current.quarantine_size > current.quarantine_scratch.size()) return false;
+    switch (fault) {
+        case quarantine_private_fault_for_test::diagnosis_commitment:
+            current.quarantine_plan.diagnosis_commitment[0] ^= 1; return true;
+        case quarantine_private_fault_for_test::encoded_byte:
+            current.quarantine_scratch[0] ^= 1; return true;
+        case quarantine_private_fault_for_test::encoded_length:
+            --current.quarantine_size; return true;
+        case quarantine_private_fault_for_test::content_digest:
+            current.quarantine_content_digest[0] ^= 1; return true;
+        case quarantine_private_fault_for_test::action_commitment:
+            current.quarantine_action_commitment[0] ^= 1; return true;
+        case quarantine_private_fault_for_test::cleared_event_witness:
+            current.quarantine_event_authority.clear(); return true;
+        case quarantine_private_fault_for_test::maximum_logical_authority:
+            --current.preflight.maximum_logical_authority_bytes; return true;
+    }
+    return false;
+}
+
+bool fixture::inject_quarantine_retagged_readback_for_test(size_t handle) noexcept {
+    if (handle >= invocations_.size()) return false;
+    invocation & current = invocations_[handle];
+    if (!current.occupied || !current.action_latched || !current.quarantine_action_latched ||
+        !state_.quarantine_staging.live_present || current.quarantine_plan.shape != quarantine_shape::uh) return false;
+    quarantine_diagnosis_view altered = current.quarantine_plan;
+    altered.reason = altered.reason == quarantine_reason::layout_or_unexpected
+        ? quarantine_reason::staging_ambiguous : quarantine_reason::layout_or_unexpected;
+    if (!derive_quarantine_diagnosis_commitment(current.id, altered, altered.diagnosis_commitment)) return false;
+    std::array<uint8_t, 1024> encoded {}; size_t encoded_size = 0;
+    context_store_format_digest content {}, action {};
+    const bool derived = derive_quarantine_artifact(snapshot_, current.preflight, current.credential,
+        current.id, altered, current.quarantine_consumed_event_id, encoded, encoded_size, content, action);
+    if (derived) apply_complete_live(state_.quarantine_staging, encoded.data(), encoded_size);
+    wipe(encoded); wipe(content); wipe(action); wipe_trivially_copyable_object(altered);
+    return derived;
+}
 
 bool fixture::serialize_restart(restart_image & image) const noexcept {
     if (!valid_durable_projection(state_)) return false;
@@ -1585,6 +2521,40 @@ bool fixture::serialize_restart(restart_image & image) const noexcept {
 size_t fixture::restart_projection_count(size_t handle) const noexcept {
     if (handle >= invocations_.size()) return 0;
     const invocation & current = invocations_[handle];
+    if (current.occupied && script_matches_quarantine(current.immutable_script, current.derived_class)) {
+        if (current.cursor == 0 || current.cursor > current.immutable_script.size) return 0;
+        const primitive_product & last = current.immutable_script.entries[current.cursor - 1];
+        const size_t staging_live = state_.quarantine_staging.live_present ? state_.quarantine_staging.live_length : 0;
+        const size_t staging_durable = state_.quarantine_staging.durable_length;
+        if (last.op == operation::quarantine_staging_create)
+            return state_.quarantine_staging.live_present ? 2 : 1;
+        if (last.op == operation::quarantine_staging_write || last.op == operation::quarantine_staging_readback)
+            return state_.quarantine_staging.live_present ? staging_live + 2 : 1;
+        if (last.op == operation::quarantine_file_sync) {
+            if (!state_.quarantine_staging.live_present) return 1;
+            if (last.effect == storage_effect::none) return staging_live + 2;
+            return state_.quarantine_staging.durable_complete && staging_durable == staging_live
+                ? 2 : staging_durable + 2;
+        }
+        if (last.op == operation::quarantine_publish_rename) {
+            if (state_.quarantine.live_present && !state_.quarantine_staging.live_present) return 4;
+            if (state_.quarantine_staging.live_present) {
+                return state_.quarantine_staging.durable_complete && staging_durable == staging_live
+                    ? 2 : staging_durable != 0 ? staging_durable + 2 : staging_live + 2;
+            }
+            return 1;
+        }
+        if (last.op == operation::quarantine_root_directory_sync) {
+            if (state_.quarantine.durable_present && state_.quarantine.live_present) return 2;
+            if (state_.quarantine.live_present) return 4;
+            return 1;
+        }
+        if (last.op == operation::quarantine_staging_directory_sync) {
+            if (!state_.quarantine.durable_present) return state_.quarantine.live_present ? 4 : 1;
+            return last.effect == storage_effect::complete_durability_projection ? 1 : 2;
+        }
+        return 1;
+    }
     if (!current.occupied || current.recovery_action == 0 || current.recovery_slot >= state_.slots.size()) return 1;
     const modeled_file<1024> & terminal = current.recovery_action == 1
         ? state_.slots[current.recovery_slot].abort_record : state_.slots[current.recovery_slot].close;
@@ -1603,6 +2573,99 @@ bool fixture::project_restart(size_t handle, size_t ordinal, restart_image & ima
     if (count == 0 || ordinal >= count || !serialize_restart(image)) return false;
     audit.count = count; audit.ordinal = ordinal;
     const invocation & current = invocations_[handle];
+    if (current.occupied && script_matches_quarantine(current.immutable_script, current.derived_class)) {
+        audit.quarantine_projection = true;
+        audit.quarantine_staging_retained = image.quarantine_staging.present;
+        audit.quarantine_final_retained = image.quarantine.present;
+        const auto retain = [&](restart_file_1024 & file, const uint8_t * bytes,
+                size_t retained, bool complete) noexcept {
+            file = {}; file.present = true; file.complete = complete; file.length = retained;
+            if (retained) std::copy_n(bytes, retained, file.bytes.begin());
+        };
+        if (current.cursor == 0 || current.cursor > current.immutable_script.size) return false;
+        const primitive_product & last = current.immutable_script.entries[current.cursor - 1];
+        const auto project_staging_prefixes = [&](size_t maximum, const uint8_t * bytes, size_t exact_size) noexcept {
+            if (ordinal == 0) return valid_restart_projection(image);
+            const size_t retained = ordinal - 1;
+            if (retained > maximum) return false;
+            retain(image.quarantine_staging, bytes, retained, retained == exact_size);
+            audit.quarantine_staging_retained = true; audit.retained_length = retained;
+            audit.quarantine_exact_bytes = retained == exact_size;
+            return valid_restart_projection(image);
+        };
+        if (last.op == operation::quarantine_staging_create) {
+            if (!state_.quarantine_staging.live_present) return count == 1 && valid_restart_projection(image);
+            return project_staging_prefixes(0, state_.quarantine_staging.live_bytes.data(), 0);
+        }
+        if (last.op == operation::quarantine_staging_write || last.op == operation::quarantine_staging_readback) {
+            if (!state_.quarantine_staging.live_present) return count == 1 && valid_restart_projection(image);
+            return project_staging_prefixes(state_.quarantine_staging.live_length,
+                state_.quarantine_staging.live_bytes.data(), state_.quarantine_staging.live_length);
+        }
+        if (last.op == operation::quarantine_file_sync ||
+            (last.op == operation::quarantine_publish_rename && state_.quarantine_staging.live_present)) {
+            if (!state_.quarantine_staging.live_present) return count == 1 && valid_restart_projection(image);
+            const bool no_durable_prefix = state_.quarantine_staging.durable_length == 0 &&
+                !state_.quarantine_staging.durable_complete;
+            if ((last.op == operation::quarantine_file_sync && last.effect == storage_effect::none) ||
+                (last.op == operation::quarantine_publish_rename && no_durable_prefix))
+                return project_staging_prefixes(state_.quarantine_staging.live_length,
+                    state_.quarantine_staging.live_bytes.data(), state_.quarantine_staging.live_length);
+            if (state_.quarantine_staging.durable_complete &&
+                state_.quarantine_staging.durable_length == state_.quarantine_staging.live_length) {
+                if (ordinal == 1) {
+                    retain(image.quarantine_staging, state_.quarantine_staging.durable_bytes.data(),
+                        state_.quarantine_staging.durable_length, true);
+                    audit.quarantine_staging_retained = audit.quarantine_exact_bytes = true;
+                    audit.retained_length = state_.quarantine_staging.durable_length;
+                }
+                return valid_restart_projection(image);
+            }
+            return project_staging_prefixes(state_.quarantine_staging.durable_length,
+                state_.quarantine_staging.durable_bytes.data(), state_.quarantine_staging.live_length);
+        }
+        if (last.op == operation::quarantine_publish_rename && state_.quarantine.live_present &&
+            !state_.quarantine_staging.live_present) {
+            const size_t exact_size = state_.quarantine.live_length;
+            if (ordinal == 1 || ordinal == 3) {
+                retain(image.quarantine_staging, state_.quarantine.live_bytes.data(), exact_size, true);
+                audit.quarantine_staging_retained = true;
+            }
+            if (ordinal == 2 || ordinal == 3) {
+                retain(image.quarantine, state_.quarantine.live_bytes.data(), exact_size, true);
+                audit.quarantine_final_retained = true;
+            }
+            audit.quarantine_exact_bytes = ordinal != 0;
+            audit.retained_length = ordinal == 0 ? 0 : exact_size;
+            return valid_restart_projection(image);
+        }
+        if (last.op == operation::quarantine_root_directory_sync ||
+            last.op == operation::quarantine_staging_directory_sync) {
+            if (!state_.quarantine.live_present) return count == 1 && valid_restart_projection(image);
+            const size_t exact_size = state_.quarantine.live_length;
+            if (count == 4) {
+                if (ordinal == 1 || ordinal == 3) {
+                    retain(image.quarantine_staging, state_.quarantine.live_bytes.data(), exact_size, true);
+                    audit.quarantine_staging_retained = true;
+                }
+                if (ordinal == 2 || ordinal == 3) {
+                    retain(image.quarantine, state_.quarantine.live_bytes.data(), exact_size, true);
+                    audit.quarantine_final_retained = true;
+                }
+            } else if (count == 2 && ordinal == 1) {
+                retain(image.quarantine_staging, state_.quarantine.live_bytes.data(), exact_size, true);
+                audit.quarantine_staging_retained = true;
+            }
+            audit.quarantine_final_retained = image.quarantine.present;
+            audit.quarantine_exact_bytes = audit.quarantine_final_retained || audit.quarantine_staging_retained;
+            audit.retained_length = audit.quarantine_exact_bytes ? exact_size : 0;
+            return valid_restart_projection(image);
+        }
+        audit.quarantine_exact_bytes = image.quarantine.present || image.quarantine_staging.present;
+        audit.retained_length = image.quarantine.present ? image.quarantine.length :
+            image.quarantine_staging.present ? image.quarantine_staging.length : 0;
+        return count == 1 && valid_restart_projection(image);
+    }
     if (current.recovery_action == 0 || current.recovery_slot >= state_.slots.size()) return count == 1;
     const modeled_file<1024> & terminal = current.recovery_action == 1
         ? state_.slots[current.recovery_slot].abort_record : state_.slots[current.recovery_slot].close;
