@@ -82,6 +82,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05v predecessor authentication and launcher-pin matching](l05v-predecessor-authentication.md)
 - [L05v predecessor authentication review](reviews/2026-07-19__l05v-predecessor-authentication__review__v01.md)
 - [L05v predecessor authentication receipt](evidence/l05v-predecessor-authentication-receipt.json)
+- [L05z discard-only predecessor-envelope publication contract](l05z-predecessor-envelope.md)
+- [L05z contract independent adversarial review](reviews/2026-07-19__l05z-predecessor-envelope-contract__review__v01.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)
