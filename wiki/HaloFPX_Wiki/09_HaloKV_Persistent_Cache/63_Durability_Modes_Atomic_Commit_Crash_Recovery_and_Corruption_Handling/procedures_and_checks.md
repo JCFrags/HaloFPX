@@ -2,7 +2,7 @@
 section_id: "63"
 title: "Durability and corruption tests"
 status: "needs-machine-validation"
-last_verified: "2026-07-18"
+last_verified: "2026-07-19"
 applies_to:
   repositories: []
   software_versions: []
@@ -99,6 +99,19 @@ reported as concurrency stress. M63-01 remains open because all mutation is
 still inside the excluded fake authority: no Linux filesystem syscall,
 cross-process lock, process-kill recovery, persistent writer, provider, cache,
 restore, or inference path was exercised.
+
+The accepted `b80ab1d6` L05s slice closes only the nonmutating Linux
+pre-initialization primitive gate [S63-27]. Windows feature-off passed 40/40;
+nimo-1 Release and nimo-2 ASan/UBSan each passed 42/42. Across the two nodes,
+the retained qualification includes 300 accepted fresh processes, 300 accepted
+contention pairs, and 150/150 final-executable attacks split evenly among
+anchored traversal, a real second-Btrfs-mount cross-mount substitution, and
+actual lock-inode replacement. Lifetime probes prove the five-second OFD busy
+deadline remains pinned while a fork-inherited alias lives, releases only after
+that alias dies, and is not retained across exec. Before M63-01 may advance,
+the next initializer contract must separately enumerate every mutation and
+crash boundary. L05s itself creates no registry state, publishes no bytes, and
+has no product, provider, cache, restore, inference, HIP, Vulkan, or RPC edge.
 
 ## M63-01 crash-point matrix
 

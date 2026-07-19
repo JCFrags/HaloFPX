@@ -2,7 +2,7 @@
 section_id: "63"
 title: "Durability Modes, Atomic Commit, Crash Recovery, and Corruption Handling"
 status: "needs-machine-validation"
-last_verified: "2026-07-18"
+last_verified: "2026-07-19"
 applies_to:
   repositories: ["fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"]
   software_versions: []
@@ -32,6 +32,7 @@ The non-negotiable rule is: cache failure causes a miss and recomputation, never
 - **[VERIFIED]** HaloFPX L05p through `849e3c84` executes fake-only operations 1-5 inside the same excluded laboratory target [S63-24]. It admits only bounded authenticated snapshots, binds the exact transition and terminal history, and derives eleven fail-closed recovery/request classes. The final operation-5 candidate passed 84/84 Windows Release tests and 2,218 repeated Windows/Linux processes; it grants no mutation or storage authority.
 - **[VERIFIED]** HaloFPX L05q `cb20cc8a` admits only fake operation 6 and recovered ABORT/CLOSE terminalization [S63-25]. Post-latch reserve loss or invariant disagreement is uncertain, authenticated readback contradiction quarantines, file-data and namespace durability remain distinct, and exhaustive restart projection never invents bytes, names, durability, or terminal attribution. The accepted candidate passed Windows Release 84/84 twice, optimized and ASan/UBSan Linux qualification, and 3,208 repeated processes. The target still has no filesystem primitive, product edge, persistence authority, or durability claim.
 - **[VERIFIED]** HaloFPX L05r `181a7bd8` adds only fake sticky-quarantine publication operations 69-76 to the excluded registry laboratory [S63-26]. Exact operation-6 consumption, immutable no-replace publication, separate data/directory durability, state-only restart projection, hostile authenticated readback rejection, writer isolation, reserve/capacity checks, and allocation-free execution passed 40/40 Windows Release, 39/39 optimized Linux, 39/39 Linux ASan/UBSan, and 43/43 repeated exhaustive Linux product processes. The target still has no concrete filesystem syscall, provider/product edge, persistence authority, cache hit/restore, inference, or durability claim.
+- **[VERIFIED]** HaloFPX L05s `b80ab1d6` adds a Linux-only, default-off, nonmutating pre-initialization seam under ADR-0025 [S63-27]. Exact sealed-memfd credentials, anchored `openat2` traversal, Btrfs mount/filesystem/subvolume identity, empty-root/single-lock layout, reserve/read-only checks, OFD lock lifetime, full final revalidation, and the same-process guard passed 40/40 Windows feature-off tests, 42/42 Linux Release, 42/42 Linux ASan/UBSan, 300 fresh-process admissions, 300 contention pairs, and 150/150 final-binary traversal/cross-mount/inode-replacement attacks across nimo-1 and nimo-2. Every success remains `ok_non_authoritative`; no initializer, mutation, publication, provider, cache restore, inference edge, or persistent write is admitted.
 - **[RECOMMENDATION]** HaloKV needs immutable data files plus a two-phase, checksummed generation manifest and explicit durability modes.
 - **[OPEN]** Power-loss semantics of the selected SSD/filesystem/kernel are unmeasured.
 
