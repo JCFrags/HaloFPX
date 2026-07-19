@@ -8,6 +8,7 @@
 #include <array>
 #include <cassert>
 #include <cerrno>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstdio>
@@ -22,6 +23,7 @@
 #include <linux/close_range.h>
 #include <linux/magic.h>
 #include <linux/memfd.h>
+#include <linux/openat2.h>
 #include <linux/stat.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -35,6 +37,18 @@
 using namespace halofpx::registry_lab::linux_initializer;
 
 namespace {
+
+struct controller_linux_dirent64 {
+    std::uint64_t inode;
+    std::int64_t offset;
+    unsigned short record_length;
+    unsigned char type;
+    char name[1];
+};
+
+constexpr std::uint64_t controller_resolve =
+    RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS |
+    RESOLVE_NO_MAGICLINKS | RESOLVE_NO_XDEV;
 
 std::uint8_t nibble(char value) {
     if (value >= '0' && value <= '9') {
@@ -244,6 +258,151 @@ bool derive_fixture_lock(const char * fixture_path,
     return valid && lock_closed && directory_closed;
 }
 
+int controller_open_contained(int parent_fd, const char * name,
+                              std::uint64_t flags) {
+    struct open_how how {};
+    how.flags = flags;
+    how.resolve = controller_resolve;
+    int fd;
+    do {
+        fd = static_cast<int>(::syscall(
+            SYS_openat2, parent_fd, name, &how, sizeof(how)));
+    } while (fd < 0 && errno == EINTR);
+    return fd;
+}
+
+bool controller_scan_directory(int fd, unsigned expected_mask) {
+    std::array<char, 4096> bytes {};
+    unsigned observed_mask = 0;
+    for (;;) {
+        long count;
+        do {
+            count = ::syscall(SYS_getdents64, fd, bytes.data(), bytes.size());
+        } while (count < 0 && errno == EINTR);
+        if (count < 0) {
+            return false;
+        }
+        if (count == 0) {
+            return observed_mask == expected_mask;
+        }
+        long offset = 0;
+        while (offset < count) {
+            const auto * entry = reinterpret_cast<const controller_linux_dirent64 *>(
+                bytes.data() + offset);
+            if (entry->record_length <
+                    offsetof(controller_linux_dirent64, name) + 1 ||
+                offset + entry->record_length > count) {
+                return false;
+            }
+            const std::size_t capacity = entry->record_length -
+                offsetof(controller_linux_dirent64, name);
+            if (::strnlen(entry->name, capacity) == capacity) {
+                return false;
+            }
+            offset += entry->record_length;
+            if (std::strcmp(entry->name, ".") == 0 ||
+                std::strcmp(entry->name, "..") == 0) {
+                continue;
+            }
+            unsigned bit = 0;
+            if (std::strcmp(entry->name, "writer.lock") == 0) {
+                bit = 1U << 0;
+            } else if (std::strcmp(entry->name, "envelopes") == 0) {
+                bit = 1U << 1;
+            } else if (std::strcmp(entry->name, "attempts") == 0) {
+                bit = 1U << 2;
+            } else if (std::strcmp(entry->name, "staging") == 0) {
+                bit = 1U << 3;
+            } else {
+                return false;
+            }
+            if ((expected_mask & bit) == 0 || (observed_mask & bit) != 0) {
+                return false;
+            }
+            observed_mask |= bit;
+        }
+    }
+}
+
+bool controller_node_mount_matches(int fd, std::uint64_t mount_id) {
+    struct statx extended {};
+    return ::syscall(SYS_statx, fd, "", AT_EMPTY_PATH | AT_STATX_SYNC_AS_STAT,
+                     STATX_BASIC_STATS | STATX_MNT_ID, &extended) == 0 &&
+           (extended.stx_mask & STATX_MNT_ID) != 0 &&
+           extended.stx_mnt_id == mount_id;
+}
+
+bool inspect_final_directory_prefix(
+        const char * root_path, const initialization_request & request) {
+    int root_fd = ::open(
+        root_path, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
+    if (root_fd < 0) {
+        return false;
+    }
+    struct stat root {};
+    bool valid = ::fstat(root_fd, &root) == 0 && S_ISDIR(root.st_mode) &&
+        static_cast<std::uint64_t>(root.st_dev) == request.candidate_root.device &&
+        static_cast<std::uint64_t>(root.st_ino) == request.candidate_root.inode &&
+        static_cast<std::uint64_t>(root.st_uid) == request.candidate_root.owner_uid &&
+        static_cast<std::uint32_t>(root.st_mode & 07777) == 0700 &&
+        controller_node_mount_matches(root_fd, request.candidate_root.mount_id) &&
+        controller_scan_directory(root_fd, 0x0fU);
+    std::array<std::uint64_t, 5> inodes {};
+    inodes[0] = static_cast<std::uint64_t>(root.st_ino);
+
+    int writer_fd = -1;
+    if (valid) {
+        writer_fd = controller_open_contained(
+            root_fd, "writer.lock", O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+        struct stat writer {};
+        valid = writer_fd >= 0 && ::fstat(writer_fd, &writer) == 0 &&
+            S_ISREG(writer.st_mode) && writer.st_nlink == 1 && writer.st_size == 0 &&
+            static_cast<std::uint64_t>(writer.st_dev) == request.candidate_root.device &&
+            static_cast<std::uint64_t>(writer.st_uid) == request.candidate_root.owner_uid &&
+            static_cast<std::uint32_t>(writer.st_mode & 07777) == 0600 &&
+            controller_node_mount_matches(writer_fd, request.candidate_root.mount_id);
+        if (valid) {
+            inodes[1] = static_cast<std::uint64_t>(writer.st_ino);
+        }
+    }
+    if (writer_fd >= 0 && ::close(writer_fd) != 0) {
+        valid = false;
+    }
+
+    constexpr const char * directory_names[] = {
+        "envelopes", "attempts", "staging",
+    };
+    for (std::size_t index = 0; valid && index < 3; ++index) {
+        int directory_fd = controller_open_contained(
+            root_fd, directory_names[index],
+            O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
+        struct stat directory {};
+        valid = directory_fd >= 0 && ::fstat(directory_fd, &directory) == 0 &&
+            S_ISDIR(directory.st_mode) &&
+            static_cast<std::uint64_t>(directory.st_dev) == request.candidate_root.device &&
+            static_cast<std::uint64_t>(directory.st_uid) == request.candidate_root.owner_uid &&
+            static_cast<std::uint32_t>(directory.st_mode & 07777) == 0700 &&
+            controller_node_mount_matches(directory_fd, request.candidate_root.mount_id) &&
+            controller_scan_directory(directory_fd, 0);
+        if (valid) {
+            inodes[index + 2] = static_cast<std::uint64_t>(directory.st_ino);
+        }
+        if (directory_fd >= 0 && ::close(directory_fd) != 0) {
+            valid = false;
+        }
+    }
+    for (std::size_t left = 0; valid && left < inodes.size(); ++left) {
+        valid = inodes[left] != 0;
+        for (std::size_t right = left + 1; valid && right < inodes.size(); ++right) {
+            valid = inodes[left] != inodes[right];
+        }
+    }
+    if (::close(root_fd) != 0) {
+        valid = false;
+    }
+    return valid;
+}
+
 void set_path(initialization_pinned_path_identity & output, const char * value,
               std::uint64_t inode, std::uint32_t mode) {
     const std::size_t size = std::strlen(value);
@@ -271,6 +430,44 @@ initialization_request synthetic_valid_shape() {
     return output;
 }
 
+bool bounded_wait(pid_t child, int & wait_status);
+
+int run_directory_synthetic() {
+    (void) ::close(3);
+    (void) ::close(4);
+    const auto observed = initialize_directory_prefix_once(synthetic_valid_shape());
+    assert(observed.result == initialization_status::invalid_request_no_mutation);
+    assert(observed.sealed_inputs.result == sealed_input_status::invalid_request_no_mutation);
+    assert(observed.sealed_inputs_preceded_root_access);
+    assert(observed.root_guard_acquired);
+    assert(observed.root_guard_released);
+    assert(observed.root_fixture_syscall_count == 0);
+    assert(!observed.discard_required_latched);
+    assert(!observed.writer_lock_created_no_replace);
+    assert(!observed.writer_lock_ofd_acquired);
+    assert(!observed.lock_anchor_qualified);
+    assert(!observed.envelopes_directory_created_no_replace);
+    assert(!observed.envelopes_directory_validated);
+    assert(!observed.envelopes_directory_synchronized);
+    assert(!observed.attempts_directory_created_no_replace);
+    assert(!observed.attempts_directory_validated);
+    assert(!observed.attempts_directory_synchronized);
+    assert(!observed.staging_directory_created_no_replace);
+    assert(!observed.staging_directory_validated);
+    assert(!observed.staging_directory_synchronized);
+    assert(!observed.envelopes_directory_final_revalidation_matched);
+    assert(!observed.attempts_directory_final_revalidation_matched);
+    assert(!observed.staging_directory_final_revalidation_matched);
+    assert(!observed.root_directory_synchronized);
+    assert(!observed.directory_prefix_qualified);
+    assert(observed.sealed_inputs.input_syscall_count != 0);
+    assert(observed.sealed_inputs.secure_storage_wiped);
+    assert(observed.sealed_inputs.secure_storage_unlocked);
+    assert(observed.sealed_inputs.secure_storage_unmapped);
+    assert(observed.sealed_inputs.signal_mask_restored);
+    return 0;
+}
+
 int run_synthetic() {
     (void) ::close(3);
     (void) ::close(4);
@@ -285,20 +482,47 @@ int run_synthetic() {
     assert(!observed.writer_lock_created_no_replace);
     assert(!observed.writer_lock_ofd_acquired);
     assert(!observed.lock_anchor_qualified);
+    assert(!observed.envelopes_directory_created_no_replace);
+    assert(!observed.envelopes_directory_validated);
+    assert(!observed.envelopes_directory_synchronized);
+    assert(!observed.attempts_directory_created_no_replace);
+    assert(!observed.attempts_directory_validated);
+    assert(!observed.attempts_directory_synchronized);
+    assert(!observed.staging_directory_created_no_replace);
+    assert(!observed.staging_directory_validated);
+    assert(!observed.staging_directory_synchronized);
+    assert(!observed.envelopes_directory_final_revalidation_matched);
+    assert(!observed.attempts_directory_final_revalidation_matched);
+    assert(!observed.staging_directory_final_revalidation_matched);
+    assert(!observed.root_directory_synchronized);
+    assert(!observed.directory_prefix_qualified);
     assert(observed.sealed_inputs.input_syscall_count != 0);
     assert(observed.sealed_inputs.secure_storage_wiped);
     assert(observed.sealed_inputs.secure_storage_unlocked);
     assert(observed.sealed_inputs.secure_storage_unmapped);
     assert(observed.sealed_inputs.signal_mask_restored);
-    return 0;
+    const pid_t child = ::fork();
+    if (child < 0) {
+        return 2;
+    }
+    if (child == 0) {
+        ::execl("/proc/self/exe", "halofpx-l05x-synthetic-child",
+                "--synthetic-directory-child", static_cast<char *>(nullptr));
+        _exit(127);
+    }
+    int wait_status = 0;
+    return bounded_wait(child, wait_status) && WIFEXITED(wait_status)
+               ? WEXITSTATUS(wait_status) : 2;
 }
 
-int print_live_audit(const initialization_audit & observed) {
+int print_live_audit(const initialization_audit & observed, bool expect_prefix) {
     std::printf(
         "result=%u sealed_result=%u sealed_before_root=%u latch=%u qualified=%u "
         "root_syscalls=%u reserve=%llu root_id_nonzero=%u store_uuid_nonzero=%u "
         "writer_created=%u writer_synced=%u writer_ofd=%u sole_entry=%u "
-        "writer_released=%u fixture_released=%u guard_released=%u\n",
+        "writer_released=%u fixture_released=%u guard_released=%u "
+        "envelopes=%u/%u/%u attempts=%u/%u/%u staging=%u/%u/%u "
+        "final_dirs=%u/%u/%u root_synced=%u prefix_qualified=%u\n",
         static_cast<unsigned>(observed.result),
         static_cast<unsigned>(observed.sealed_inputs.result),
         static_cast<unsigned>(observed.sealed_inputs_preceded_root_access),
@@ -314,11 +538,98 @@ int print_live_audit(const initialization_audit & observed) {
         static_cast<unsigned>(observed.writer_lock_root_sole_entry),
         static_cast<unsigned>(observed.writer_lock_released),
         static_cast<unsigned>(observed.fixture_lock_released),
-        static_cast<unsigned>(observed.root_guard_released));
+        static_cast<unsigned>(observed.root_guard_released),
+        static_cast<unsigned>(observed.envelopes_directory_created_no_replace),
+        static_cast<unsigned>(observed.envelopes_directory_validated),
+        static_cast<unsigned>(observed.envelopes_directory_synchronized),
+        static_cast<unsigned>(observed.attempts_directory_created_no_replace),
+        static_cast<unsigned>(observed.attempts_directory_validated),
+        static_cast<unsigned>(observed.attempts_directory_synchronized),
+        static_cast<unsigned>(observed.staging_directory_created_no_replace),
+        static_cast<unsigned>(observed.staging_directory_validated),
+        static_cast<unsigned>(observed.staging_directory_synchronized),
+        static_cast<unsigned>(observed.envelopes_directory_final_revalidation_matched),
+        static_cast<unsigned>(observed.attempts_directory_final_revalidation_matched),
+        static_cast<unsigned>(observed.staging_directory_final_revalidation_matched),
+        static_cast<unsigned>(observed.root_directory_synchronized),
+        static_cast<unsigned>(observed.directory_prefix_qualified));
+    const bool prefix_matched = expect_prefix
+        ? observed.envelopes_directory_created_no_replace &&
+              observed.envelopes_directory_validated &&
+              observed.envelopes_directory_synchronized &&
+              observed.attempts_directory_created_no_replace &&
+              observed.attempts_directory_validated &&
+              observed.attempts_directory_synchronized &&
+              observed.staging_directory_created_no_replace &&
+              observed.staging_directory_validated &&
+              observed.staging_directory_synchronized &&
+              observed.envelopes_directory_final_revalidation_matched &&
+              observed.attempts_directory_final_revalidation_matched &&
+              observed.staging_directory_final_revalidation_matched &&
+              observed.root_directory_synchronized &&
+              observed.directory_prefix_qualified
+        : !observed.envelopes_directory_created_no_replace &&
+              !observed.envelopes_directory_validated &&
+              !observed.envelopes_directory_synchronized &&
+              !observed.attempts_directory_created_no_replace &&
+              !observed.attempts_directory_validated &&
+              !observed.attempts_directory_synchronized &&
+              !observed.staging_directory_created_no_replace &&
+              !observed.staging_directory_validated &&
+              !observed.staging_directory_synchronized &&
+              !observed.envelopes_directory_final_revalidation_matched &&
+              !observed.attempts_directory_final_revalidation_matched &&
+              !observed.staging_directory_final_revalidation_matched &&
+              !observed.root_directory_synchronized &&
+              !observed.directory_prefix_qualified;
+    const bool sealed_admitted =
+        observed.sealed_inputs.result ==
+            sealed_input_status::predecessor_authenticated_pins_matched_no_root_access &&
+        observed.sealed_inputs_preceded_root_access &&
+        observed.sealed_inputs.credential_transport_validated &&
+        observed.sealed_inputs.predecessor_transport_validated &&
+        observed.sealed_inputs.descriptor_identities_distinct &&
+        observed.sealed_inputs.descriptor_aliases_absent &&
+        observed.sealed_inputs.expected_key_tuple_matched &&
+        observed.sealed_inputs.predecessor_digest_matched &&
+        observed.sealed_inputs.predecessor_authenticated_under_supplied_credential &&
+        observed.sealed_inputs.launcher_receipt_matched &&
+        observed.sealed_inputs.transport_final_revalidation_matched &&
+        observed.sealed_inputs.descriptors_closed &&
+        observed.sealed_inputs.secure_storage_wiped &&
+        observed.sealed_inputs.secure_storage_unlocked &&
+        observed.sealed_inputs.secure_storage_unmapped &&
+        observed.sealed_inputs.signal_mask_restored;
+    const bool l05w_matched =
+        observed.parent_identity_matched &&
+        observed.candidate_root_identity_matched &&
+        observed.fixture_identity_matched &&
+        observed.fixture_lock_identity_matched &&
+        observed.fixture_lock_acquired &&
+        observed.root_guard_acquired &&
+        observed.empty_root_final_revalidation_matched &&
+        observed.generated_root_id_nonzero &&
+        observed.generated_store_uuid_nonzero &&
+        std::any_of(observed.generated_root_id.begin(),
+                    observed.generated_root_id.end(),
+                    [](std::uint8_t value) { return value != 0; }) &&
+        std::any_of(observed.generated_store_uuid.begin(),
+                    observed.generated_store_uuid.end(),
+                    [](std::uint8_t value) { return value != 0; }) &&
+        observed.generated_identity_scratch_wiped &&
+        observed.discard_required_latched &&
+        observed.writer_lock_created_no_replace &&
+        observed.writer_lock_mode_revalidated &&
+        observed.writer_lock_synchronized &&
+        observed.writer_lock_ofd_acquired &&
+        observed.writer_lock_root_sole_entry &&
+        observed.lock_anchor_qualified &&
+        observed.filesystem_not_reported_read_only &&
+        observed.observed_filesystem_reserve >= initialization_required_filesystem_reserve;
     return observed.result == initialization_status::initialization_discard_required &&
-                   observed.discard_required_latched && observed.lock_anchor_qualified &&
+                   sealed_admitted && l05w_matched &&
                    observed.writer_lock_released && observed.fixture_lock_released &&
-                   observed.root_guard_released
+                   observed.root_guard_released && prefix_matched
                ? 0 : 1;
 }
 
@@ -364,7 +675,7 @@ bool read_live_request_handoff(initialization_request & output) {
     return trailing_count == 0 && ::close(request_fd) == 0;
 }
 
-int run_live_child() {
+int run_live_child(bool directory_prefix) {
     initialization_request request {};
     if (!read_live_request_handoff(request)) {
         std::fprintf(stderr, "invalid bounded live-request handoff\n");
@@ -377,7 +688,15 @@ int run_live_child() {
             return 2;
         }
     }
-    return print_live_audit(initialize_writer_lock_anchor_once(request));
+    if (directory_prefix) {
+        // Force mkdir(0700) to produce mode 0000 and prove the initializer's
+        // fd-bound repair is independent of the launcher's global umask.
+        (void) ::umask(0777);
+    }
+    const auto observed = directory_prefix
+        ? initialize_directory_prefix_once(request)
+        : initialize_writer_lock_anchor_once(request);
+    return print_live_audit(observed, directory_prefix);
 }
 
 std::uint64_t monotonic_nanoseconds() {
@@ -510,7 +829,8 @@ bool release_gate_without_sigpipe(int fd, std::uint8_t value) {
 }
 
 int run_live_controller(const char * golden_path, const char * parent_path,
-                        const char * root_path, const char * fixture_path) {
+                        const char * root_path, const char * fixture_path,
+                        bool directory_prefix) {
     std::string json;
     {
         std::ifstream input(golden_path, std::ios::binary);
@@ -572,7 +892,11 @@ int run_live_controller(const char * golden_path, const char * parent_path,
         if (count != 1 || released != 0xa5) {
             _exit(126);
         }
-        ::execl("/proc/self/exe", "halofpx-l05w-live-child", "--live-child",
+        const char * child_mode = directory_prefix
+            ? "--live-directory-child" : "--live-child";
+        const char * child_name = directory_prefix
+            ? "halofpx-l05x-live-child" : "halofpx-l05w-live-child";
+        ::execl("/proc/self/exe", child_name, child_mode,
                 static_cast<char *>(nullptr));
         _exit(127);
     }
@@ -591,7 +915,15 @@ int run_live_controller(const char * golden_path, const char * parent_path,
         !WIFEXITED(wait_status)) {
         return 2;
     }
-    return WEXITSTATUS(wait_status);
+    const int child_status = WEXITSTATUS(wait_status);
+    if (child_status != 0) {
+        return child_status;
+    }
+    if (directory_prefix && !inspect_final_directory_prefix(root_path, request)) {
+        std::fprintf(stderr, "independent L05x final-layout inspection failed\n");
+        return 2;
+    }
+    return 0;
 }
 
 } // namespace
@@ -601,13 +933,23 @@ int main(int argc, char ** argv) {
         return run_synthetic();
     }
     if (argc == 6 && std::strcmp(argv[1], "--live-controller") == 0) {
-        return run_live_controller(argv[2], argv[3], argv[4], argv[5]);
+        return run_live_controller(argv[2], argv[3], argv[4], argv[5], false);
+    }
+    if (argc == 6 && std::strcmp(argv[1], "--live-directory-controller") == 0) {
+        return run_live_controller(argv[2], argv[3], argv[4], argv[5], true);
     }
     if (argc == 2 && std::strcmp(argv[1], "--live-child") == 0) {
-        return run_live_child();
+        return run_live_child(false);
+    }
+    if (argc == 2 && std::strcmp(argv[1], "--live-directory-child") == 0) {
+        return run_live_child(true);
+    }
+    if (argc == 2 && std::strcmp(argv[1], "--synthetic-directory-child") == 0) {
+        return run_directory_synthetic();
     }
     std::fprintf(stderr,
-        "usage: %s [--live-controller golden.json canonical-parent "
+        "usage: %s [--live-controller|--live-directory-controller "
+        "golden.json canonical-parent "
         "canonical-root canonical-fixture]\n",
         argv[0]);
     return 2;

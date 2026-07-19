@@ -1,0 +1,163 @@
+{
+  "schema": "halofpx.l05x-directory-prefix-anchor.v1",
+  "date": "2026-07-19",
+  "status": "qualified_and_independently_accepted",
+  "parent_commit": "80ab1edc8a66f3a1922f1af620141c24d5881da0",
+  "parent_tree": "43cf4fc8939915d7ead696ed039a9017035deda3",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Linux-only default-off authenticated Btrfs admission and discard-only writer.lock plus fixed empty directory prefix; no completed initialization, adoption, or persistent server write",
+  "source_sha256": {
+    "tools/server/CMakeLists.txt": "405c9a844f23b892e9f3ba0eb6fb915b6771ba58656b6f66d000f52743216a63",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-inputs.cpp": "aa6a6ab6ba362c902a6380cb37f31200affbb18c44489109920d822283f49a2d",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-internal.h": "04e03ba77e85267e917cdeaa91ab29c54095cebd5dc13993e5d523271dcb6165",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-anchor.inc": "463a9e6d60c6b87ebc0190c284f03c8b73208cf8c3b35a21cee3f8df1ba6dea5",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-anchor.cpp": "56d82d5e548d8e3b48673ee3f4f45cd8bcd6c3b5f4cca1d369f66171714743d3",
+    "tests/halofpx-l05x-ptrace-controller.cpp": "647a291844a9194eb922a3c7ab53dd58095b976ff2138d85345b1ebf6530faf7",
+    "tests/halofpx-l05x-return-fault-controller.cpp": "433964c8517beaf26020c4f6ba8b924424e562de749bd000fbab3bc869f401a0",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake": "bf5f829360dd901cad7058c110932c227b6f6a7b70c8e673d3d53d8897b68965",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-archive-audit.cmake": "d5a59bc70eb9f5ffb886899e2e6ae6f647ea31b53c7b18c381f2c30af5737246"
+  },
+  "admitted_contract": {
+    "inherited_control": "initialize_writer_lock_anchor_once preserves the committed L05w extent and leaves every L05x audit fact false",
+    "input_authority": "exact L05v fd3 credential plus authenticated fd4 predecessor and complete launcher pins retained in locked file-private state",
+    "ordering": "fd3 and fd4 close before the first parent, root, or fixture syscall",
+    "pre_latch": "exact pinned Btrfs parent/root/fixture and primitive.lock, empty candidate root, reserve and read-only checks, fixture OFD lock, final revalidation, nonzero generated identities",
+    "writer_anchor": "inherited L05w exclusive writer.lock create, fchmod 0600, exact inode validation, file fsync, whole-file OFD lock, and sole-entry proof",
+    "directory_order": ["envelopes", "attempts", "staging"],
+    "directory_mutation": "SYS_mkdirat no-replace mode 0700 with EINTR-only retry; anchored O_PATH open that can pin a mode-0000 candidate; type, owner, device, mount, canonical-child, nonzero-inode, and umask-subset-mode validation; raw SYS_fchmodat2(path_fd, empty path, 0700, AT_EMPTY_PATH) on that exact pinned inode; keep the O_PATH fd through anchored O_RDONLY reopen and identity comparison; then require exact mode 0700, full Btrfs filesystem/subvolume identity, canonical location, emptiness, and directory fsync",
+    "barriers": "complete accumulated-prefix revalidation after each directory sync, before root fsync, and after root fsync",
+    "final_layout": ["writer.lock", "envelopes/", "attempts/", "staging/"],
+    "result": "every latched invocation is initialization_discard_required; a preexisting nonempty root is preexisting_root_discard_required",
+    "cleanup": "close non-lock fds; wipe, unlock, and unmap sealed state; unlock and close writer then fixture locks; release guard; restore signals",
+    "synchronization": "each created directory fd and then the root fd are fsynced; this is process-crash ordering evidence only, not power-loss or device-flush proof"
+  },
+  "build_and_link_boundaries": {
+    "HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER_default": false,
+    "HALOFPX_REGISTRY_LAB_LINUX_MUTATION_default": false,
+    "initializer_target": "Linux-only STATIC EXCLUDE_FROM_ALL",
+    "initializer_archive_objects": 2,
+    "callable_initializer_definitions": 4,
+    "production_fault_hooks": false,
+    "crash_controller": "separate Linux x86-64 EXCLUDE_FROM_ALL test-only non-CTest target",
+    "returned_fault_controller": "separate Linux x86-64 EXCLUDE_FROM_ALL test-only non-CTest target; exact source independently reviewed",
+    "general_mutation_gate": "fatal",
+    "product_or_install_or_export_edge": false,
+    "webui_enabled": false
+  },
+  "qualification": {
+    "status": "qualified_evidence_bundles_reconciled",
+    "windows_release_feature_off": {"passed": 40, "failed": 0, "initializer_target_absent": true},
+    "linux_feature_off": {
+      "nimo_1_release": {"passed": 39, "failed": 0},
+      "nimo_2_asan_ubsan": {"passed": 39, "failed": 0},
+      "webui": "must remain explicitly OFF",
+      "initializer": "must remain OFF in feature-off controls",
+      "general_mutation": "must remain OFF"
+    },
+    "focused_initializer": {
+      "nimo_1_release": {"passed": 6, "failed": 0},
+      "nimo_2_release": {"passed": 6, "failed": 0},
+      "nimo_2_asan_ubsan": {"passed": 6, "failed": 0},
+      "inherited_l05w_control": "passed in every focused suite; every L05x fact remained false at the L05w stop boundary",
+      "sanitizer_findings": 0
+    },
+    "live_directory_prefix": {
+      "required_release_fresh_roots_per_node": 100,
+      "required_asan_ubsan_fresh_roots_nimo_2": 25,
+      "observed_nimo_1_release": {"passed": 100, "failed": 0},
+      "observed_nimo_2_release": {"passed": 100, "failed": 0},
+      "observed_nimo_2_asan_ubsan": {"passed": 25, "failed": 0},
+      "qualified_final_runs": 225,
+      "preexisting_nonempty_unchanged_controls": "passed in the focused initializer suites"
+    },
+    "ptrace_crash_matrix": {
+      "boundaries": [
+        "mkdirat(envelopes)",
+        "fchmodat2(envelopes)",
+        "fsync(envelopes)",
+        "mkdirat(attempts)",
+        "fchmodat2(attempts)",
+        "fsync(attempts)",
+        "mkdirat(staging)",
+        "fchmodat2(staging)",
+        "fsync(staging)",
+        "fsync(root)"
+      ],
+      "phases": ["entry", "exit"],
+      "required_repetitions_per_boundary_phase_per_node": 25,
+      "required_per_node": 500,
+      "required_total": 1000,
+      "nimo_1": {"passed": 500, "failed": 0},
+      "nimo_2": {"passed": 500, "failed": 0},
+      "total": {"passed": 1000, "failed": 0},
+      "raw_jsonl_events": {"nimo_1": 387700, "nimo_2": 387700, "total": 775400},
+      "index_sha256": {"nimo_1": "f00505306cd5c5e4241888d493ae475c9557b5375831bb5052fb575e27147a90", "nimo_2": "59948d411c0f59d9e0a0d6e1ce857bfc135716d13ba314876462003357ce0be6"},
+      "summary_sha256": "717a41240f2b02dfb6f1f2bb8cdd894bcdb2b293ca28658ecf27e3418dfc6c37",
+      "verified": true
+    },
+    "returned_fault_matrix": {
+      "controller_hash": "433964c8517beaf26020c4f6ba8b924424e562de749bd000fbab3bc869f401a0",
+      "admitted_errno_and_mode_matrix": {"unique_occurrences": 407, "pre_eio_cases": 407, "late_erofs_cases": 407, "total_cases_per_node": 814},
+      "canonical_matrix_sha256": "1948af592523f7ed236ebfcc05075c62b4b44d49e7dda4570ffdf78b9dad8d99",
+      "nimo_1_map_sha256": "3d54336e10fb1c42b03d24f7599c101dbefb937a61efb4ef78cf2e45f160c389",
+      "nimo_2_index_sha256": "d4d69b5e79aa08f2b67451f59e7907027fe6d8a8c27ace3283d3e504ee8fec31",
+      "nimo_2_receipt_manifest_sha256": "15e94a79914f8ea735199ac8369f30dcd740e0ba90c1e391fce286d2aeb83979",
+      "nimo_1": {"passed": 814, "failed": 0, "retained_authority_roots": 814},
+      "nimo_2": {"passed": 814, "failed": 0, "retained_authority_roots": 814, "asan_ubsan_controller": true, "release_exact_production_target": true, "nonempty_sanitizer_stderr": 0},
+      "retry_and_late_completion_results": "exact EINTR retry and mutation controls passed; all pre-EIO and late-EROFS generic cases preserved sticky discard, false prefix qualification, exact retained layout, and lock release",
+      "raw_jsonl_events": {"nimo_1_receipt_lines": 2442, "nimo_2_receipt_lines": 2442, "total_receipt_lines": 4884}
+    },
+    "binaries": {
+      "nimo_1_release_anchor_sha256": "8053ba75917dd4e160bc2067d9cb1c40ea514fe8470eb934d143a4c36f4bb807",
+      "nimo_2_release_anchor_sha256": "9f79b8df987d15e236f3f130d0fe5c24dc54164e4e0b9121978fda9d5d341ef3",
+      "nimo_2_asan_anchor_sha256": "1099d0836febdc930e38728dd4cb7d85a44824b4ee905299961cc34fd7a47aa3",
+      "release_initializer_archive_sha256": "b03f8d2150b8bb6d773bb7fa20488c0fcba014866110d2c170aeaf3e1656c8ea",
+      "nimo_2_asan_initializer_archive_sha256": "4440ff0c44be28ebd7fa750a9848efc37549125dc10290ff5325e363bc553761",
+      "ptrace_controller_sha256": "fe376b926e422bdd0b02d186c92b555b51c784f6e11543836b10843ddb6d9f13",
+      "returned_fault_controller_sha256": {"nimo_1_release": "337d13d2d4a395c8efb2bdae06660b5a2b87495ec3d8dc4ea7cba53650e0c674", "nimo_2_asan_ubsan": "affc0d15ad6e9d81b61c0363b2793b449628b6a1220a62245869cf458c02f750"}
+    },
+    "evidence": {
+      "nimo_1_bundle": {"path": "/var/tmp/halofpx-qualification/halofpx-l05x-nimo1-evidence-20260719.tar.zst", "size_bytes": 7759519, "entries": 10401, "zstd_and_tar_verified": true, "deterministic_reconstruction_match": true, "sha256": "b6e8fe9ee3d359af794be478762a3b09ea3165dce8cc22886c700e147e2fba47"},
+      "nimo_2_bundle": {"path": "/var/tmp/halofpx-qualification/halofpx-l05x-nimo2-evidence-20260719.tar.zst", "size_bytes": 8988115, "entries": 11443, "zstd_and_tar_verified": true, "deterministic_reconstruction_match": true, "sha256": "de64eb0189984b18d8ad5069b5648285d459bef5838e16f437774b6236eed83f"},
+      "local_copy_root": "not copied; deterministic bundles and separately hashed images remain retained on their originating nodes",
+      "nimo_1_image_sha256": {"pre_latch_read_only": "8e885b039abdbd42bc5948b57e9cb86bcde2cdfee1027538f6805d911cd3b6fb", "pre_latch_reserve": "aeb29b2a130ef20af2985ed6e28b634a7f08a8db2e8266be8e37442976651157"},
+      "nimo_2_image_sha256": {"pre_latch_read_only": "c011f2c541cb88c87b35f611588127d954ee19c7c5eb487e3426dbc59458d458", "pre_latch_reserve": "eafe61fb7a2cf0652c36bdec72e731ff0cc31cde4dbb8794d994c07fac32d6c7", "returned_fault_814_case": "7176655488498c2990a959e7991004feb2e2863c9b0ac9d35060c4f8f984a562"},
+      "media_cleanup": "ptrace retained 20 representative whole images per node and discarded 480 whole images per node only after synchronized evidence; all live-run media and the returned-fault image unmounted and loop-detached cleanly; no active qualification mount or loop device remained on either node; no per-entry authority repair or cleanup",
+      "excluded_intake": "initial pre-fchmod umask failure; malformed/partial returned-fault development matrices; fully ASan-target wait4 smoke timeout; and post-summary driver trailing-CR artifact are retained but excluded from promoted pass counts"
+    },
+    "strict_cxx17_wall_wextra_wpedantic_werror": true,
+    "independent_reviews": {"production_source": "ACCEPT", "ptrace_controller": "ACCEPT", "returned_fault_controller": "ACCEPT", "final_promotion_review": "ACCEPT"}
+  },
+  "service_health_after_qualification": {
+    "nimo_1_llama_server_pid": 3783057,
+    "nimo_1_port": 8081,
+    "nimo_1_health": {"status": "ok", "curl_rc": 0},
+    "nimo_2_rpc_pid": 3562775,
+    "nimo_2_rpc_listen": "0.0.0.0:50052",
+    "nimo_2_tcp_probe_rc": 0,
+    "restarted_or_redeployed": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false,
+    "remote_created_or_pushed": false,
+    "final_similarity_and_provenance_review": "ACCEPT: target-native implementation; no donor code, documentation, dependency, or direct cherry-pick admitted"
+  },
+  "nonclaims": [
+    "Root-directory fsync is process-crash ordering evidence, not proof of power-loss durability, device-cache flush, firmware behavior, or post-power-loss recovery.",
+    "L05x does not complete initialization, publish marker or HEAD records, write envelopes or attempts, create publication temporaries, rename or unlink, adopt or repair an existing root, enable server persistence, restore cache state, or admit a cache hit.",
+    "The separate crash and returned-fault controllers are qualification tools; they are absent from the exact production archive and do not establish product behavior until their matrices and hashes are retained and reviewed.",
+    "CPU, sanitizer, controller, and filesystem timings are qualification telemetry, not an inference-performance claim.",
+    "HIP, Vulkan, ROCmFPX, RPC, distributed behavior, WebUI, and L14Q quantized-KV behavior are unchanged and not enabled by this slice."
+  ]
+}

@@ -106,7 +106,8 @@ struct initialization_request {
     std::uint64_t fixture_lock_inode = 0;
 };
 
-// L05w exposes only public comparison, ordering, and generated-identity facts.
+// L05w/L05x expose only public comparison, ordering, generated-identity, and
+// narrow discard-only construction facts.
 // Even a clean anchor qualification is discard-required and returns no fd,
 // absence proof, credential, predecessor, or reusable mutation authority.
 struct initialization_audit {
@@ -130,6 +131,20 @@ struct initialization_audit {
     bool writer_lock_ofd_acquired = false;
     bool writer_lock_root_sole_entry = false;
     bool lock_anchor_qualified = false;
+    bool envelopes_directory_created_no_replace = false;
+    bool envelopes_directory_validated = false;
+    bool envelopes_directory_synchronized = false;
+    bool attempts_directory_created_no_replace = false;
+    bool attempts_directory_validated = false;
+    bool attempts_directory_synchronized = false;
+    bool staging_directory_created_no_replace = false;
+    bool staging_directory_validated = false;
+    bool staging_directory_synchronized = false;
+    bool envelopes_directory_final_revalidation_matched = false;
+    bool attempts_directory_final_revalidation_matched = false;
+    bool staging_directory_final_revalidation_matched = false;
+    bool root_directory_synchronized = false;
+    bool directory_prefix_qualified = false;
     bool writer_lock_released = false;
     bool fixture_lock_released = false;
     bool root_guard_released = false;
@@ -149,6 +164,12 @@ struct initialization_audit {
 // create only writer.lock and always classifies a latched invocation as
 // discard-required.
 initialization_audit initialize_writer_lock_anchor_once(
+    const initialization_request & input) noexcept;
+
+// L05x has the same admission and writer-lock anchor as L05w, then continues
+// only far enough to create, synchronize, and validate the fixed empty directory
+// prefix. Every post-latch outcome remains discard-required.
+initialization_audit initialize_directory_prefix_once(
     const initialization_request & input) noexcept;
 
 } // namespace registry_lab::linux_initializer

@@ -185,9 +185,9 @@ endif()
 
 # L05t opens the default-off initializer linkage and no-I/O predecessor digest
 # seam. L05u/L05v add sealed transport and predecessor authentication; L05w
-# admits only discard-required root/fixture qualification and writer.lock anchor
-# creation. Broader initialization, normal mutation, and product linkage remain
-# absent.
+# admits the discard-required writer.lock anchor, and L05x alone extends that
+# anchor through the fixed empty directory prefix and root sync. Broader
+# initialization, normal mutation, and product linkage remain absent.
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     HALOFPX_REGISTRY_LAB_LINUX_PREINIT AND
     HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER)
@@ -257,6 +257,16 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
             ${CMAKE_SOURCE_DIR}/tests/halofpx-l05w-ptrace-controller.cpp)
         target_compile_features(halofpx-l05w-ptrace-controller PRIVATE cxx_std_17)
         target_compile_definitions(halofpx-l05w-ptrace-controller PRIVATE _GNU_SOURCE)
+
+        add_executable(halofpx-l05x-ptrace-controller EXCLUDE_FROM_ALL
+            ${CMAKE_SOURCE_DIR}/tests/halofpx-l05x-ptrace-controller.cpp)
+        target_compile_features(halofpx-l05x-ptrace-controller PRIVATE cxx_std_17)
+        target_compile_definitions(halofpx-l05x-ptrace-controller PRIVATE _GNU_SOURCE)
+
+        add_executable(halofpx-l05x-return-fault-controller EXCLUDE_FROM_ALL
+            ${CMAKE_SOURCE_DIR}/tests/halofpx-l05x-return-fault-controller.cpp)
+        target_compile_features(halofpx-l05x-return-fault-controller PRIVATE cxx_std_17)
+        target_compile_definitions(halofpx-l05x-return-fault-controller PRIVATE _GNU_SOURCE)
 
         add_test(NAME test-halofpx-context-store-registry-lab-linux-initializer-seam-contract
             COMMAND ${CMAKE_COMMAND}

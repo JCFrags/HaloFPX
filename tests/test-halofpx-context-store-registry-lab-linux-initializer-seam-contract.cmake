@@ -81,6 +81,7 @@ endif()
 file(READ "${ANCHOR}" ANCHOR_TEXT)
 foreach(REQUIRED IN ITEMS
     "initialize_writer_lock_anchor_once"
+    "initialize_directory_prefix_once"
     "authenticate_sealed_inputs_for_session"
     "O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC | O_NOFOLLOW"
     "RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS"
@@ -94,19 +95,42 @@ foreach(REQUIRED IN ITEMS
     "clear_pre_latch_positive_audit"
     "if (!output.discard_required_latched)"
     "discard_required_latched = true"
-    "lock_anchor_qualified = true")
+    "lock_anchor_qualified = true"
+    "initialization_extent::writer_lock_anchor"
+    "initialization_extent::directory_prefix"
+    "SYS_mkdirat"
+    "while (mkdir_result != 0 && errno == EINTR)"
+    "O_PATH | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW"
+    "SYS_fchmodat2, path_fd, \"\", 0700, AT_EMPTY_PATH"
+    "while (chmod_result != 0 && errno == EINTR)"
+    "& ~0700U) != 0"
+    "compare_open_descriptions(path_fd, directory_fd, output)"
+    "inspect_accumulated_prefix_layout"
+    "revalidate_accumulated_prefix"
+    "\"envelopes\""
+    "\"attempts\""
+    "\"staging\""
+    "inspect_empty_directory(directory_fd, output)"
+    "::fsync(directory_fd)"
+    "::fsync(root_fd)"
+    "envelopes_directory_final_revalidation_matched = true"
+    "attempts_directory_final_revalidation_matched = true"
+    "staging_directory_final_revalidation_matched = true"
+    "directory_prefix_qualified = true")
   string(FIND "${ANCHOR_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
-    message(FATAL_ERROR "missing L05w writer-lock anchor contract token: ${REQUIRED}")
+    message(FATAL_ERROR "missing L05w/L05x discard-only initializer contract token: ${REQUIRED}")
   endif()
 endforeach()
 foreach(FORBIDDEN IN ITEMS
-    "qualify_once(" "linux-preinit" "root.marker" "initialize-root.tmp"
-    "mkdir" "rename" "pwrite" "unlink" "fdatasync" "fork(" "exec("
+    "qualify_once(" "linux-preinit" "root.marker" "initialize-root.tmp" "HEAD"
+    "::mkdir(" "::mkdirat(" "::fchmod(directory_fd" "::fchmodat2(" "rename"
+    "::write(" "SYS_write" "pwrite" "SYS_pwrite"
+    "writev" "SYS_writev" "unlink" "fdatasync" "fork(" "exec("
     "llama-ai" "CachyLLama")
   string(FIND "${ANCHOR_TEXT}" "${FORBIDDEN}" HIT)
   if(NOT HIT EQUAL -1)
-    message(FATAL_ERROR "L05w anchor contains forbidden broader-mutation/link token: ${FORBIDDEN}")
+    message(FATAL_ERROR "L05w/L05x slice contains forbidden broader-mutation/link token: ${FORBIDDEN}")
   endif()
 endforeach()
 
@@ -134,7 +158,9 @@ endforeach()
 file(READ "${ROOT}/tools/server/CMakeLists.txt" SERVER_CMAKE)
 foreach(REQUIRED IN ITEMS
     "add_library(halofpx-context-store-registry-lab-linux-initializer STATIC EXCLUDE_FROM_ALL"
-    "target_link_libraries(halofpx-context-store-registry-lab-linux-initializer PRIVATE\n        halofpx-context-store-registry-lab-wire)")
+    "target_link_libraries(halofpx-context-store-registry-lab-linux-initializer PRIVATE\n        halofpx-context-store-registry-lab-wire)"
+    "add_executable(halofpx-l05x-ptrace-controller EXCLUDE_FROM_ALL"
+    "add_executable(halofpx-l05x-return-fault-controller EXCLUDE_FROM_ALL")
   string(FIND "${SERVER_CMAKE}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "missing L05t excluded target boundary: ${REQUIRED}")
@@ -171,4 +197,4 @@ if(NOT PRODUCT_LEAK EQUAL -1)
   message(FATAL_ERROR "L05t initializer seam leaked into product/server linkage")
 endif()
 
-message(STATUS "PASS: L05t seam plus L05u/L05v sealed authenticated-input/default-off contract")
+message(STATUS "PASS: L05t seam through L05x discard-only directory-prefix/default-off contract")

@@ -42,13 +42,14 @@ foreach(LINE IN LISTS DEFINED_LINES)
   endif()
 endforeach()
 list(LENGTH DEFINED_TEXT_SYMBOL_LINES DEFINED_SYMBOL_COUNT)
-if(NOT DEFINED_SYMBOL_COUNT EQUAL 3)
-  message(FATAL_ERROR "initializer archive must define exactly three callable symbols: ${DEFINED}")
+if(NOT DEFINED_SYMBOL_COUNT EQUAL 4)
+  message(FATAL_ERROR "initializer archive must define exactly four callable symbols: ${DEFINED}")
 endif()
 foreach(REQUIRED IN ITEMS
     "halofpx::context_store_registry_lab_linux_initializer_predecessor_digest_v1"
     "halofpx::registry_lab::linux_initializer::inspect_sealed_inputs_once"
-    "halofpx::registry_lab::linux_initializer::initialize_writer_lock_anchor_once")
+    "halofpx::registry_lab::linux_initializer::initialize_writer_lock_anchor_once"
+    "halofpx::registry_lab::linux_initializer::initialize_directory_prefix_once")
   string(FIND "${DEFINED}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "initializer archive is missing admitted definition: ${REQUIRED}")
@@ -97,11 +98,11 @@ if(NOT HALOFPX_IMPORT_COUNT EQUAL 3)
   message(FATAL_ERROR "initializer archive must import only the two-stage digest lineage and facts verifier: ${UNDEFINED}")
 endif()
 foreach(FORBIDDEN IN ITEMS " openat" " write" "pwrite" " rename" "fdatasync"
-    "mkdir" "unlink" "system" "fork" "exec" "socket" "connect")
+    "mkdir" "fchmodat2" "unlink" "system" "fork" "exec" "socket" "connect")
   string(FIND "${UNDEFINED}" "${FORBIDDEN}" HIT)
   if(NOT HIT EQUAL -1)
     message(FATAL_ERROR "forbidden L05t imported symbol: ${FORBIDDEN}")
   endif()
 endforeach()
 
-message(STATUS "PASS: L05t seam and L05u/L05v sealed authenticated-input archive/import isolation")
+message(STATUS "PASS: L05t seam through L05x discard-only directory-prefix archive/import isolation")

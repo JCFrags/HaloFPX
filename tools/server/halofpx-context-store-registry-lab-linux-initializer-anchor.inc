@@ -26,6 +26,14 @@
 #include <time.h>
 #include <unistd.h>
 
+#if !defined(SYS_fchmodat2)
+#if defined(__x86_64__)
+#define SYS_fchmodat2 452
+#else
+#error "HaloFPX L05x requires a target syscall number for fchmodat2"
+#endif
+#endif
+
 namespace halofpx::registry_lab::linux_initializer {
 namespace {
 
@@ -45,6 +53,17 @@ enum class root_layout : std::uint8_t {
     writer_lock_only,
     nonempty,
     io_failure,
+};
+
+enum class initialization_extent : std::uint8_t {
+    writer_lock_anchor,
+    directory_prefix,
+};
+
+struct created_directory_identity {
+    std::uint64_t device = 0;
+    std::uint64_t inode = 0;
+    std::uint64_t mount_id = 0;
 };
 
 bool close_fd(int & fd) noexcept {
@@ -338,6 +357,293 @@ root_layout inspect_root_layout(int fd, bool expect_writer,
         return root_layout::writer_lock_only;
     }
     return root_layout::nonempty;
+}
+
+initialization_status inspect_accumulated_prefix_layout(
+        int fd, unsigned expected_directories,
+        initialization_audit & output) noexcept {
+    if (expected_directories == 0 || expected_directories > 3) {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    std::array<char, 4096> bytes {};
+    std::size_t entries = 0;
+    bool saw_writer = false;
+    bool saw_envelopes = false;
+    bool saw_attempts = false;
+    bool saw_staging = false;
+    for (;;) {
+        ++output.root_fixture_syscall_count;
+        const long count = ::syscall(SYS_getdents64, fd, bytes.data(), bytes.size());
+        if (count < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            return initialization_status::io_failure_no_mutation;
+        }
+        if (count == 0) {
+            break;
+        }
+        long offset = 0;
+        while (offset < count) {
+            const auto * entry = reinterpret_cast<const linux_dirent64 *>(bytes.data() + offset);
+            if (entry->d_reclen < offsetof(linux_dirent64, d_name) + 1 ||
+                offset + entry->d_reclen > count) {
+                return initialization_status::io_failure_no_mutation;
+            }
+            const std::size_t capacity = entry->d_reclen - offsetof(linux_dirent64, d_name);
+            if (::strnlen(entry->d_name, capacity) == capacity) {
+                return initialization_status::io_failure_no_mutation;
+            }
+            offset += entry->d_reclen;
+            if (std::strcmp(entry->d_name, ".") == 0 ||
+                std::strcmp(entry->d_name, "..") == 0) {
+                continue;
+            }
+            if (++entries > expected_directories + 1) {
+                return initialization_status::invalid_request_no_mutation;
+            }
+            bool * seen = nullptr;
+            if (std::strcmp(entry->d_name, "writer.lock") == 0) {
+                seen = &saw_writer;
+            } else if (std::strcmp(entry->d_name, "envelopes") == 0) {
+                seen = &saw_envelopes;
+            } else if (std::strcmp(entry->d_name, "attempts") == 0) {
+                seen = &saw_attempts;
+            } else if (std::strcmp(entry->d_name, "staging") == 0) {
+                seen = &saw_staging;
+            } else {
+                return initialization_status::invalid_request_no_mutation;
+            }
+            if (*seen) {
+                return initialization_status::invalid_request_no_mutation;
+            }
+            *seen = true;
+        }
+    }
+    return entries == expected_directories + 1 && saw_writer && saw_envelopes &&
+                   saw_attempts == (expected_directories >= 2) &&
+                   saw_staging == (expected_directories >= 3)
+               ? initialization_status::initialization_discard_required
+               : initialization_status::invalid_request_no_mutation;
+}
+
+initialization_status inspect_empty_directory(
+        int fd, initialization_audit & output) noexcept {
+    std::array<char, 4096> bytes {};
+    for (;;) {
+        ++output.root_fixture_syscall_count;
+        const long count = ::syscall(SYS_getdents64, fd, bytes.data(), bytes.size());
+        if (count < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            return initialization_status::io_failure_no_mutation;
+        }
+        if (count == 0) {
+            return initialization_status::initialization_discard_required;
+        }
+        long offset = 0;
+        while (offset < count) {
+            const auto * entry = reinterpret_cast<const linux_dirent64 *>(bytes.data() + offset);
+            if (entry->d_reclen < offsetof(linux_dirent64, d_name) + 1 ||
+                offset + entry->d_reclen > count) {
+                return initialization_status::io_failure_no_mutation;
+            }
+            const std::size_t capacity = entry->d_reclen - offsetof(linux_dirent64, d_name);
+            if (::strnlen(entry->d_name, capacity) == capacity) {
+                return initialization_status::io_failure_no_mutation;
+            }
+            offset += entry->d_reclen;
+            if (std::strcmp(entry->d_name, ".") != 0 &&
+                std::strcmp(entry->d_name, "..") != 0) {
+                return initialization_status::invalid_request_no_mutation;
+            }
+        }
+    }
+}
+
+initialization_status inspect_created_directory(
+        int fd, const char * name, const initialization_request & input,
+        created_directory_identity & identity, bool pin,
+        bool require_final_mode_and_btrfs_identity,
+        initialization_audit & output) noexcept {
+    struct stat value {};
+    ++output.root_fixture_syscall_count;
+    if (::fstat(fd, &value) != 0) {
+        return initialization_status::io_failure_no_mutation;
+    }
+    struct statx extended {};
+    ++output.root_fixture_syscall_count;
+    if (::syscall(SYS_statx, fd, "", AT_EMPTY_PATH | AT_STATX_SYNC_AS_STAT,
+                  STATX_BASIC_STATS | STATX_MNT_ID, &extended) != 0) {
+        return errno == ENOSYS || errno == EINVAL
+                   ? initialization_status::unsupported_no_mutation
+                   : initialization_status::io_failure_no_mutation;
+    }
+    if (!S_ISDIR(value.st_mode) ||
+        static_cast<std::uint64_t>(value.st_uid) != input.candidate_root.owner_uid ||
+        static_cast<std::uint64_t>(value.st_dev) != input.candidate_root.device ||
+        (!require_final_mode_and_btrfs_identity &&
+         ((static_cast<std::uint32_t>(value.st_mode) & 07777U) & ~0700U) != 0) ||
+        (require_final_mode_and_btrfs_identity &&
+         static_cast<std::uint32_t>(value.st_mode & 07777) != 0700) ||
+        (extended.stx_mask & STATX_MNT_ID) == 0 ||
+        extended.stx_mnt_id != input.candidate_root.mount_id) {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    struct statfs filesystem {};
+    ++output.root_fixture_syscall_count;
+    if (::fstatfs(fd, &filesystem) != 0) {
+        return initialization_status::io_failure_no_mutation;
+    }
+    if (static_cast<unsigned long>(filesystem.f_type) != BTRFS_SUPER_MAGIC) {
+        return initialization_status::unsupported_no_mutation;
+    }
+    if (require_final_mode_and_btrfs_identity) {
+        struct btrfs_ioctl_fs_info_args filesystem_info {};
+        ++output.root_fixture_syscall_count;
+        if (::ioctl(fd, BTRFS_IOC_FS_INFO, &filesystem_info) != 0) {
+            return errno == ENOTTY || errno == EOPNOTSUPP || errno == EINVAL
+                       ? initialization_status::unsupported_no_mutation
+                       : initialization_status::io_failure_no_mutation;
+        }
+        struct btrfs_ioctl_get_subvol_info_args subvolume_info {};
+        ++output.root_fixture_syscall_count;
+        if (::ioctl(fd, BTRFS_IOC_GET_SUBVOL_INFO, &subvolume_info) != 0) {
+            return errno == ENOTTY || errno == EOPNOTSUPP || errno == EINVAL
+                       ? initialization_status::unsupported_no_mutation
+                       : initialization_status::io_failure_no_mutation;
+        }
+        if (std::memcmp(filesystem_info.fsid,
+                        input.candidate_root.filesystem_uuid, 16) != 0 ||
+            std::memcmp(subvolume_info.uuid,
+                        input.candidate_root.subvolume_uuid, 16) != 0) {
+            return initialization_status::invalid_request_no_mutation;
+        }
+    }
+    const std::size_t name_size = std::strlen(name);
+    if (input.candidate_root.path_length + 1 + name_size >
+        initialization_max_path_bytes) {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    std::array<char, initialization_max_path_bytes + 1> expected_path {};
+    std::memcpy(expected_path.data(), input.candidate_root.canonical_path,
+                input.candidate_root.path_length);
+    expected_path[input.candidate_root.path_length] = '/';
+    std::memcpy(expected_path.data() + input.candidate_root.path_length + 1,
+                name, name_size);
+    const std::size_t expected_size =
+        input.candidate_root.path_length + 1 + name_size;
+    std::array<char, initialization_max_path_bytes + 1> observed_path {};
+    std::array<char, 32> proc_name {};
+    const int proc_size = std::snprintf(proc_name.data(), proc_name.size(),
+                                        "/proc/self/fd/%d", fd);
+    if (proc_size <= 0 || static_cast<std::size_t>(proc_size) >= proc_name.size()) {
+        return initialization_status::io_failure_no_mutation;
+    }
+    ++output.root_fixture_syscall_count;
+    const ssize_t observed_size = ::readlink(
+        proc_name.data(), observed_path.data(), observed_path.size());
+    if (observed_size != static_cast<ssize_t>(expected_size) ||
+        std::memcmp(observed_path.data(), expected_path.data(), expected_size) != 0) {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    if (pin) {
+        identity.device = static_cast<std::uint64_t>(value.st_dev);
+        identity.inode = static_cast<std::uint64_t>(value.st_ino);
+        identity.mount_id = extended.stx_mnt_id;
+        return identity.inode != 0
+                   ? initialization_status::initialization_discard_required
+                   : initialization_status::invalid_request_no_mutation;
+    }
+    return identity.device == static_cast<std::uint64_t>(value.st_dev) &&
+                   identity.inode == static_cast<std::uint64_t>(value.st_ino) &&
+                   identity.mount_id == extended.stx_mnt_id
+               ? initialization_status::initialization_discard_required
+               : initialization_status::invalid_request_no_mutation;
+}
+
+initialization_status compare_open_descriptions(int held, int current,
+                                                initialization_audit & output) noexcept;
+
+initialization_status create_directory_once(
+        int root_fd, const char * name, const initialization_request & input,
+        created_directory_identity & identity,
+        bool & created, bool & validated, bool & synchronized,
+        initialization_audit & output) noexcept {
+    int mkdir_result;
+    do {
+        ++output.root_fixture_syscall_count;
+        mkdir_result = static_cast<int>(::syscall(
+            SYS_mkdirat, root_fd, name, 0700));
+    } while (mkdir_result != 0 && errno == EINTR);
+    if (mkdir_result != 0) {
+        return map_error(errno);
+    }
+    created = true;
+    initialization_status result = initialization_status::io_failure_no_mutation;
+    int path_fd = open_contained(root_fd, name,
+                                 O_PATH | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
+                                 0, output, result);
+    if (path_fd < 0) {
+        return result;
+    }
+    result = inspect_created_directory(path_fd, name, input,
+                                       identity, true, false, output);
+    if (result != initialization_status::initialization_discard_required) {
+        (void) close_fd(path_fd);
+        return result;
+    }
+    // mkdir mode is filtered by the caller's umask. O_PATH pins even a mode-0000
+    // directory; the raw fd-bound repair keeps exactly one mode mutation and
+    // avoids process-global umask or path-based chmod authority.
+    int chmod_result;
+    do {
+        ++output.root_fixture_syscall_count;
+        chmod_result = static_cast<int>(::syscall(
+            SYS_fchmodat2, path_fd, "", 0700, AT_EMPTY_PATH));
+    } while (chmod_result != 0 && errno == EINTR);
+    if (chmod_result != 0) {
+        const int chmod_error = errno;
+        (void) close_fd(path_fd);
+        return chmod_error == ENOSYS || chmod_error == EINVAL ||
+                       chmod_error == EOPNOTSUPP
+                   ? initialization_status::unsupported_no_mutation
+                   : map_error(chmod_error);
+    }
+    int directory_fd = open_contained(root_fd, name,
+                                      O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
+                                      0, output, result);
+    if (directory_fd < 0) {
+        (void) close_fd(path_fd);
+        return result;
+    }
+    result = compare_open_descriptions(path_fd, directory_fd, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_created_directory(directory_fd, name, input,
+                                           identity, false, true, output);
+    }
+    if (!close_fd(path_fd) &&
+        result == initialization_status::initialization_discard_required) {
+        result = initialization_status::io_failure_no_mutation;
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_empty_directory(directory_fd, output);
+    }
+    if (result != initialization_status::initialization_discard_required) {
+        (void) close_fd(directory_fd);
+        return result;
+    }
+    validated = true;
+    ++output.root_fixture_syscall_count;
+    if (::fsync(directory_fd) != 0) {
+        (void) close_fd(directory_fd);
+        return initialization_status::io_failure_no_mutation;
+    }
+    synchronized = true;
+    return close_fd(directory_fd)
+               ? initialization_status::initialization_discard_required
+               : initialization_status::io_failure_no_mutation;
 }
 
 initialization_status inspect_fixture_layout(int fd,
@@ -713,6 +1019,135 @@ initialization_status reopen_directory(
     return result;
 }
 
+initialization_status reopen_created_directory(
+        int root_fd, const char * name, int held_root_fd,
+        const initialization_request & input,
+        created_directory_identity & identity,
+        initialization_audit & output) noexcept {
+    initialization_status result = initialization_status::io_failure_no_mutation;
+    int reopened = open_contained(root_fd, name,
+                                  O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
+                                  0, output, result);
+    if (reopened < 0) {
+        return result;
+    }
+    result = compare_open_descriptions(root_fd, held_root_fd, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_created_directory(reopened, name, input,
+                                           identity, false, true, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_empty_directory(reopened, output);
+    }
+    if (!close_fd(reopened) &&
+        result == initialization_status::initialization_discard_required) {
+        result = initialization_status::io_failure_no_mutation;
+    }
+    return result;
+}
+
+initialization_status revalidate_accumulated_prefix(
+        int parent_fd, int root_fd, int fixture_fd,
+        int fixture_lock_fd, int writer_fd,
+        const initialization_request & input,
+        const struct stat & writer_identity,
+        unsigned expected_directories,
+        created_directory_identity & envelopes_identity,
+        created_directory_identity & attempts_identity,
+        created_directory_identity & staging_identity,
+        bool final_revalidation,
+        initialization_audit & output) noexcept {
+    auto result = revalidate_parent(parent_fd, input.parent, output);
+    int reopened_root = -1;
+    if (result == initialization_status::initialization_discard_required) {
+        result = reopen_directory(parent_fd, input.parent, input.candidate_root,
+                                  root_fd, reopened_root, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = reserve_and_read_only(reopened_root, input.candidate_root, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_accumulated_prefix_layout(
+            reopened_root, expected_directories, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        initialization_status reopen_error = initialization_status::io_failure_no_mutation;
+        int reopened_writer = open_contained(reopened_root, "writer.lock",
+                                             O_RDWR | O_CLOEXEC | O_NOFOLLOW,
+                                             0, output, reopen_error);
+        if (reopened_writer < 0) {
+            result = reopen_error;
+        } else {
+            result = compare_open_descriptions(writer_fd, reopened_writer, output);
+            if (result == initialization_status::initialization_discard_required) {
+                result = inspect_writer_lock(reopened_writer, input,
+                                             writer_identity, output);
+            }
+            if (::close(reopened_writer) != 0 &&
+                result == initialization_status::initialization_discard_required) {
+                result = initialization_status::io_failure_no_mutation;
+            }
+        }
+    }
+    if (result == initialization_status::initialization_discard_required &&
+        expected_directories >= 1) {
+        result = reopen_created_directory(reopened_root, "envelopes", root_fd,
+                                          input, envelopes_identity, output);
+    }
+    if (result == initialization_status::initialization_discard_required &&
+        expected_directories >= 2) {
+        result = reopen_created_directory(reopened_root, "attempts", root_fd,
+                                          input, attempts_identity, output);
+    }
+    if (result == initialization_status::initialization_discard_required &&
+        expected_directories >= 3) {
+        result = reopen_created_directory(reopened_root, "staging", root_fd,
+                                          input, staging_identity, output);
+    }
+    if (!close_fd(reopened_root) &&
+        result == initialization_status::initialization_discard_required) {
+        result = initialization_status::io_failure_no_mutation;
+    }
+    int reopened_fixture = -1;
+    if (result == initialization_status::initialization_discard_required) {
+        result = reopen_directory(parent_fd, input.parent, input.fixture,
+                                  fixture_fd, reopened_fixture, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_fixture_layout(reopened_fixture, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        initialization_status reopen_error = initialization_status::io_failure_no_mutation;
+        int reopened_fixture_lock = open_contained(
+            reopened_fixture, "primitive.lock", O_RDWR | O_CLOEXEC | O_NOFOLLOW,
+            0, output, reopen_error);
+        if (reopened_fixture_lock < 0) {
+            result = reopen_error;
+        } else {
+            result = compare_open_descriptions(
+                fixture_lock_fd, reopened_fixture_lock, output);
+            if (result == initialization_status::initialization_discard_required) {
+                result = inspect_fixture_lock(reopened_fixture_lock, input, output);
+            }
+            if (::close(reopened_fixture_lock) != 0 &&
+                result == initialization_status::initialization_discard_required) {
+                result = initialization_status::io_failure_no_mutation;
+            }
+        }
+    }
+    if (!close_fd(reopened_fixture) &&
+        result == initialization_status::initialization_discard_required) {
+        result = initialization_status::io_failure_no_mutation;
+    }
+    if (result == initialization_status::initialization_discard_required &&
+        final_revalidation) {
+        output.envelopes_directory_final_revalidation_matched = true;
+        output.attempts_directory_final_revalidation_matched = true;
+        output.staging_directory_final_revalidation_matched = true;
+    }
+    return result;
+}
+
 initialization_status generate_identities(initialization_audit & output) noexcept {
     std::array<std::uint8_t, 32> root_id {};
     std::array<std::uint8_t, 16> store_uuid {};
@@ -820,6 +1255,20 @@ void clear_pre_latch_positive_audit(initialization_audit & output) noexcept {
     output.writer_lock_ofd_acquired = false;
     output.writer_lock_root_sole_entry = false;
     output.lock_anchor_qualified = false;
+    output.envelopes_directory_created_no_replace = false;
+    output.envelopes_directory_validated = false;
+    output.envelopes_directory_synchronized = false;
+    output.attempts_directory_created_no_replace = false;
+    output.attempts_directory_validated = false;
+    output.attempts_directory_synchronized = false;
+    output.staging_directory_created_no_replace = false;
+    output.staging_directory_validated = false;
+    output.staging_directory_synchronized = false;
+    output.envelopes_directory_final_revalidation_matched = false;
+    output.attempts_directory_final_revalidation_matched = false;
+    output.staging_directory_final_revalidation_matched = false;
+    output.root_directory_synchronized = false;
+    output.directory_prefix_qualified = false;
     output.filesystem_not_reported_read_only = false;
     output.observed_filesystem_reserve = 0;
 }
@@ -850,6 +1299,7 @@ initialization_audit finish(initialization_audit output, initialization_status r
     }
     if (!close_ok) {
         output.lock_anchor_qualified = false;
+        output.directory_prefix_qualified = false;
     }
     if (!close_ok && !output.discard_required_latched &&
         result != initialization_status::preexisting_root_discard_required) {
@@ -867,8 +1317,11 @@ initialization_audit finish(initialization_audit output, initialization_status r
 
 } // namespace
 
-initialization_audit initialize_writer_lock_anchor_once(
-        const initialization_request & input) noexcept {
+namespace {
+
+initialization_audit initialize_once(
+        const initialization_request & input,
+        initialization_extent extent) noexcept {
     initialization_audit output {};
     int parent_fd = -1;
     int root_fd = -1;
@@ -1183,8 +1636,84 @@ initialization_audit initialize_writer_lock_anchor_once(
         output.writer_lock_root_sole_entry = true;
         output.lock_anchor_qualified = true;
     }
+    if (result != initialization_status::initialization_discard_required ||
+        extent == initialization_extent::writer_lock_anchor) {
+        return finish(output, result, writer_fd, fixture_lock_fd, fixture_fd,
+                      root_fd, parent_fd, guard_owned, input_session);
+    }
+
+    created_directory_identity envelopes_identity {};
+    created_directory_identity attempts_identity {};
+    created_directory_identity staging_identity {};
+    result = create_directory_once(
+        root_fd, "envelopes", input, envelopes_identity,
+        output.envelopes_directory_created_no_replace,
+        output.envelopes_directory_validated,
+        output.envelopes_directory_synchronized, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = revalidate_accumulated_prefix(
+            parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+            input, writer_identity, 1, envelopes_identity, attempts_identity,
+            staging_identity, false, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = create_directory_once(
+            root_fd, "attempts", input, attempts_identity,
+            output.attempts_directory_created_no_replace,
+            output.attempts_directory_validated,
+            output.attempts_directory_synchronized, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = revalidate_accumulated_prefix(
+            parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+            input, writer_identity, 2, envelopes_identity, attempts_identity,
+            staging_identity, false, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = create_directory_once(
+            root_fd, "staging", input, staging_identity,
+            output.staging_directory_created_no_replace,
+            output.staging_directory_validated,
+            output.staging_directory_synchronized, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = revalidate_accumulated_prefix(
+            parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+            input, writer_identity, 3, envelopes_identity, attempts_identity,
+            staging_identity, false, output);
+    }
+    if (result != initialization_status::initialization_discard_required) {
+        return finish(output, result, writer_fd, fixture_lock_fd, fixture_fd,
+                      root_fd, parent_fd, guard_owned, input_session);
+    }
+    ++output.root_fixture_syscall_count;
+    if (::fsync(root_fd) != 0) {
+        return finish(output, initialization_status::io_failure_no_mutation,
+                      writer_fd, fixture_lock_fd, fixture_fd, root_fd, parent_fd,
+                      guard_owned, input_session);
+    }
+    output.root_directory_synchronized = true;
+    result = revalidate_accumulated_prefix(
+        parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+        input, writer_identity, 3, envelopes_identity, attempts_identity,
+        staging_identity, true, output);
+    if (result == initialization_status::initialization_discard_required) {
+        output.directory_prefix_qualified = true;
+    }
     return finish(output, result, writer_fd, fixture_lock_fd, fixture_fd,
                   root_fd, parent_fd, guard_owned, input_session);
+}
+
+} // namespace
+
+initialization_audit initialize_writer_lock_anchor_once(
+        const initialization_request & input) noexcept {
+    return initialize_once(input, initialization_extent::writer_lock_anchor);
+}
+
+initialization_audit initialize_directory_prefix_once(
+        const initialization_request & input) noexcept {
+    return initialize_once(input, initialization_extent::directory_prefix);
 }
 
 } // namespace halofpx::registry_lab::linux_initializer
