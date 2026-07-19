@@ -62,6 +62,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05p operation 5 repeat receipt](evidence/l05p-registry-lab-read-only-operation5-repeat-receipt.json)
 - [ADR-0023 recovery mutation admission and terminalization](decisions/0023-portable-registry-lab-recovery-terminalization.md)
 - [ADR-0023 independent adversarial review](reviews/2026-07-18__adr-0023-recovery-terminalization__review__v01.md)
+- [ADR-0024 sticky-quarantine publication](decisions/0024-portable-registry-lab-sticky-quarantine-publication.md)
+- [ADR-0024 independent adversarial review](reviews/2026-07-18__adr-0024-sticky-quarantine-publication__review__v01.md)
 - [L05q recovery terminalization milestone review](reviews/2026-07-18__l05q-registry-lab-recovery-terminalization__review__v01.md)
 - [L05q recovery terminalization repeat receipt](evidence/l05q-registry-lab-recovery-terminalization-repeat-receipt.json)
 - [L02 contract index](l02-contracts.md)
