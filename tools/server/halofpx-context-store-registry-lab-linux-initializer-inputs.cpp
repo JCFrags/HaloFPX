@@ -1,0 +1,650 @@
+#include "halofpx-context-store-registry-lab-linux-initializer-internal.h"
+
+#if !defined(__linux__)
+#error "The HaloFPX registry-lab initializer input transport is Linux-only"
+#endif
+
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <cerrno>
+#include <climits>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <new>
+
+#include <fcntl.h>
+#include <linux/magic.h>
+#include <linux/memfd.h>
+#include <linux/sched.h>
+#include <signal.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+
+namespace halofpx::registry_lab::linux_initializer {
+namespace {
+
+constexpr int credential_fd = 3;
+constexpr int predecessor_fd = 4;
+constexpr std::size_t credential_capacity = context_store_registry_lab_credential_max_bytes;
+constexpr std::size_t predecessor_capacity = 1024;
+constexpr std::size_t credential_minimum = 16 + 2 + 1 + 8 + 2 + 32;
+constexpr std::size_t max_fd_scan_entries = 4096;
+constexpr std::array<std::uint8_t, 16> credential_magic = {
+    'H', 'a', 'l', 'o', 'F', 'P', 'X', 'R', 'e', 'g', 'K', 'e', 'y', '0', '1', 0,
+};
+constexpr char credential_link[] = "/memfd:halofpx-registry-lab-credential (deleted)";
+constexpr char predecessor_link[] = "/memfd:halofpx-registry-lab-predecessor (deleted)";
+constexpr int exact_seals = F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW | F_SEAL_WRITE;
+
+std::atomic_flag session_consumed = ATOMIC_FLAG_INIT;
+
+struct linux_dirent64 {
+    std::uint64_t d_ino;
+    std::int64_t d_off;
+    unsigned short d_reclen;
+    unsigned char d_type;
+    char d_name[1];
+};
+
+struct descriptor_identity {
+    dev_t device = 0;
+    ino_t inode = 0;
+};
+
+struct alignas(64) secure_inputs {
+    std::array<std::uint8_t, credential_capacity> credential {};
+    std::array<std::uint8_t, predecessor_capacity> predecessor {};
+    std::array<std::uint8_t, 32> secret {};
+};
+
+struct execution_context {
+    sigset_t previous_mask {};
+    bool signal_mask_changed = false;
+    bool fd_table_unshared = false;
+    bool exclusive = false;
+};
+
+void wipe(void * data, std::size_t size) noexcept {
+    auto * bytes = static_cast<volatile std::uint8_t *>(data);
+    while (size-- != 0) {
+        *bytes++ = 0;
+    }
+}
+
+bool all_zero(const void * data, std::size_t size) noexcept {
+    const auto * bytes = static_cast<const std::uint8_t *>(data);
+    std::uint8_t aggregate = 0;
+    for (std::size_t i = 0; i < size; ++i) {
+        aggregate |= bytes[i];
+    }
+    return aggregate == 0;
+}
+
+bool nonzero(const std::uint8_t * data, std::size_t size) noexcept {
+    return !all_zero(data, size);
+}
+
+bool same_digest(const context_store_format_digest & lhs,
+                 const context_store_format_digest & rhs) noexcept {
+    std::uint8_t difference = 0;
+    for (std::size_t i = 0; i < lhs.size(); ++i) {
+        difference |= lhs[i] ^ rhs[i];
+    }
+    return difference == 0;
+}
+
+bool registered_id_valid(const context_store_registered_id & value) noexcept {
+    if (value.size == 0 || value.size > value.bytes.size()) {
+        return false;
+    }
+    for (std::size_t i = 0; i < value.size; ++i) {
+        if (value.bytes[i] < 0x21 || value.bytes[i] > 0x7e) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::uint16_t read_u16_be(const std::uint8_t * value) noexcept {
+    return static_cast<std::uint16_t>((static_cast<std::uint16_t>(value[0]) << 8) |
+                                      static_cast<std::uint16_t>(value[1]));
+}
+
+std::uint64_t read_u64_be(const std::uint8_t * value) noexcept {
+    std::uint64_t result = 0;
+    for (unsigned i = 0; i < 8; ++i) {
+        result = (result << 8) | value[i];
+    }
+    return result;
+}
+
+bool close_owned_descriptor(int fd, sealed_input_audit & output) noexcept {
+    ++output.input_syscall_count;
+    if (::close(fd) == 0 || errno == EBADF) {
+        return true;
+    }
+    return false;
+}
+
+sealed_input_status establish_exclusive_context(
+        execution_context & context, sealed_input_audit & output) noexcept {
+    sigset_t blocked {};
+    if (::sigfillset(&blocked) != 0 ||
+        ::sigprocmask(SIG_SETMASK, &blocked, &context.previous_mask) != 0) {
+        return sealed_input_status::io_failure_no_mutation;
+    }
+    context.signal_mask_changed = true;
+
+    ++output.input_syscall_count;
+    if (::syscall(SYS_unshare, CLONE_FILES) != 0) {
+        return errno == ENOSYS || errno == EPERM
+            ? sealed_input_status::unsupported_no_mutation
+            : sealed_input_status::io_failure_no_mutation;
+    }
+    context.fd_table_unshared = true;
+    output.fd_table_unshared = true;
+
+    ++output.input_syscall_count;
+    int task_fd = ::open("/proc/self/task", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+    if (task_fd < 0) {
+        return sealed_input_status::io_failure_no_mutation;
+    }
+    if (task_fd == credential_fd || task_fd == predecessor_fd) {
+        ++output.input_syscall_count;
+        const int moved = ::fcntl(task_fd, F_DUPFD_CLOEXEC, 5);
+        if (moved < 0) {
+            ::close(task_fd);
+            return sealed_input_status::io_failure_no_mutation;
+        }
+        if (::close(task_fd) != 0) {
+            ::close(moved);
+            return sealed_input_status::io_failure_no_mutation;
+        }
+        task_fd = moved;
+    }
+
+    std::array<char, 4096> bytes {};
+    std::size_t tasks = 0;
+    sealed_input_status result = sealed_input_status::transport_validated_no_root_access;
+    for (;;) {
+        ++output.input_syscall_count;
+        const long count = ::syscall(SYS_getdents64, task_fd, bytes.data(), bytes.size());
+        if (count < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            result = sealed_input_status::io_failure_no_mutation;
+            break;
+        }
+        if (count == 0) {
+            break;
+        }
+        long offset = 0;
+        while (offset < count) {
+            const auto * entry = reinterpret_cast<const linux_dirent64 *>(bytes.data() + offset);
+            if (entry->d_reclen < offsetof(linux_dirent64, d_name) + 1 ||
+                offset + entry->d_reclen > count) {
+                result = sealed_input_status::io_failure_no_mutation;
+                break;
+            }
+            offset += entry->d_reclen;
+            char * end = nullptr;
+            errno = 0;
+            const long task = std::strtol(entry->d_name, &end, 10);
+            if (errno == 0 && end != entry->d_name && *end == '\0' && task > 0) {
+                ++tasks;
+                if (tasks > 1) {
+                    result = sealed_input_status::unsupported_no_mutation;
+                    break;
+                }
+            }
+        }
+        if (result != sealed_input_status::transport_validated_no_root_access) {
+            break;
+        }
+    }
+    if (::close(task_fd) != 0 &&
+        result == sealed_input_status::transport_validated_no_root_access) {
+        result = sealed_input_status::io_failure_no_mutation;
+    }
+    if (result == sealed_input_status::transport_validated_no_root_access && tasks != 1) {
+        result = sealed_input_status::unsupported_no_mutation;
+    }
+    if (result == sealed_input_status::transport_validated_no_root_access) {
+        context.exclusive = true;
+        output.exclusive_execution_context = true;
+    }
+    return result;
+}
+
+sealed_input_status inspect_descriptor(
+        int fd, const char * proc_path, const char * expected_link,
+        std::size_t minimum, std::size_t maximum,
+        descriptor_identity & identity, std::size_t & size,
+        sealed_input_audit & output) noexcept {
+    ++output.input_syscall_count;
+    const int flags = ::fcntl(fd, F_GETFD);
+    if (flags < 0) {
+        return errno == EBADF ? sealed_input_status::invalid_request_no_mutation
+                              : sealed_input_status::io_failure_no_mutation;
+    }
+    if ((flags & FD_CLOEXEC) == 0) {
+        return sealed_input_status::invalid_request_no_mutation;
+    }
+
+    struct stat value {};
+    ++output.input_syscall_count;
+    if (::fstat(fd, &value) != 0) {
+        return sealed_input_status::io_failure_no_mutation;
+    }
+    if (!S_ISREG(value.st_mode) || value.st_nlink != 0 ||
+        value.st_size < static_cast<off_t>(minimum) ||
+        value.st_size > static_cast<off_t>(maximum)) {
+        return sealed_input_status::invalid_request_no_mutation;
+    }
+
+    struct statfs filesystem {};
+    ++output.input_syscall_count;
+    if (::fstatfs(fd, &filesystem) != 0) {
+        return sealed_input_status::io_failure_no_mutation;
+    }
+    if (static_cast<unsigned long>(filesystem.f_type) != TMPFS_MAGIC) {
+        return sealed_input_status::invalid_request_no_mutation;
+    }
+
+    std::array<char, 96> link {};
+    ++output.input_syscall_count;
+    const ssize_t link_size = ::readlink(proc_path, link.data(), link.size());
+    const std::size_t expected_size = std::strlen(expected_link);
+    if (link_size != static_cast<ssize_t>(expected_size) ||
+        std::memcmp(link.data(), expected_link, expected_size) != 0) {
+        return sealed_input_status::invalid_request_no_mutation;
+    }
+
+    ++output.input_syscall_count;
+    const int seals = ::fcntl(fd, F_GET_SEALS);
+    if (seals < 0) {
+        return errno == EINVAL ? sealed_input_status::unsupported_no_mutation
+                               : sealed_input_status::io_failure_no_mutation;
+    }
+    if (seals != exact_seals) {
+        return sealed_input_status::invalid_request_no_mutation;
+    }
+
+    identity.device = value.st_dev;
+    identity.inode = value.st_ino;
+    size = static_cast<std::size_t>(value.st_size);
+    return sealed_input_status::transport_validated_no_root_access;
+}
+
+sealed_input_status scan_aliases(
+        const descriptor_identity & credential,
+        const descriptor_identity & predecessor,
+        sealed_input_audit & output) noexcept {
+    ++output.input_syscall_count;
+    const int directory_fd = ::open("/proc/self/fd", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+    if (directory_fd < 0) {
+        return sealed_input_status::io_failure_no_mutation;
+    }
+
+    sealed_input_status result = sealed_input_status::transport_validated_no_root_access;
+    std::array<char, 4096> bytes {};
+    std::size_t entries = 0;
+    for (;;) {
+        ++output.input_syscall_count;
+        const long count = ::syscall(SYS_getdents64, directory_fd, bytes.data(), bytes.size());
+        if (count < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            result = sealed_input_status::io_failure_no_mutation;
+            break;
+        }
+        if (count == 0) {
+            break;
+        }
+        long offset = 0;
+        while (offset < count) {
+            const auto * entry = reinterpret_cast<const linux_dirent64 *>(bytes.data() + offset);
+            if (entry->d_reclen < offsetof(linux_dirent64, d_name) + 1 ||
+                offset + entry->d_reclen > count) {
+                result = sealed_input_status::io_failure_no_mutation;
+                break;
+            }
+            offset += entry->d_reclen;
+            if (++entries > max_fd_scan_entries) {
+                result = sealed_input_status::invalid_request_no_mutation;
+                break;
+            }
+            char * end = nullptr;
+            errno = 0;
+            const long candidate = std::strtol(entry->d_name, &end, 10);
+            if (errno != 0 || end == entry->d_name || *end != '\0' || candidate < 0 ||
+                candidate > INT_MAX || candidate == credential_fd ||
+                candidate == predecessor_fd || candidate == directory_fd) {
+                continue;
+            }
+            struct stat value {};
+            ++output.input_syscall_count;
+            if (::fstat(static_cast<int>(candidate), &value) != 0) {
+                if (errno == EBADF) {
+                    continue;
+                }
+                result = sealed_input_status::io_failure_no_mutation;
+                break;
+            }
+            const bool credential_alias = value.st_dev == credential.device &&
+                                          value.st_ino == credential.inode;
+            const bool predecessor_alias = value.st_dev == predecessor.device &&
+                                           value.st_ino == predecessor.inode;
+            if (credential_alias || predecessor_alias) {
+                result = sealed_input_status::invalid_request_no_mutation;
+                break;
+            }
+        }
+        if (result != sealed_input_status::transport_validated_no_root_access) {
+            break;
+        }
+    }
+    if (::close(directory_fd) != 0 &&
+        result == sealed_input_status::transport_validated_no_root_access) {
+        result = sealed_input_status::io_failure_no_mutation;
+    }
+    return result;
+}
+
+sealed_input_status read_exact(int fd, std::uint8_t * output_bytes, std::size_t size,
+                               sealed_input_audit & output) noexcept {
+    std::size_t total = 0;
+    while (total < size) {
+        ++output.input_syscall_count;
+        const ssize_t count = ::pread(fd, output_bytes + total, size - total,
+                                      static_cast<off_t>(total));
+        if (count < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            return sealed_input_status::io_failure_no_mutation;
+        }
+        if (count == 0) {
+            return sealed_input_status::io_failure_no_mutation;
+        }
+        total += static_cast<std::size_t>(count);
+    }
+    std::uint8_t trailing = 0;
+    ssize_t count = 0;
+    do {
+        ++output.input_syscall_count;
+        count = ::pread(fd, &trailing, 1, static_cast<off_t>(size));
+    } while (count < 0 && errno == EINTR);
+    if (count < 0) {
+        return sealed_input_status::io_failure_no_mutation;
+    }
+    return count == 0 ? sealed_input_status::transport_validated_no_root_access
+                      : sealed_input_status::invalid_request_no_mutation;
+}
+
+sealed_input_status parse_credential_shape(
+        const sealed_input_request & input, secure_inputs & secure,
+        std::size_t size, sealed_input_audit & output) noexcept {
+    if (std::memcmp(secure.credential.data(), credential_magic.data(),
+                    credential_magic.size()) != 0) {
+        return sealed_input_status::invalid_request_no_mutation;
+    }
+    std::size_t offset = credential_magic.size();
+    const std::size_t key_size = read_u16_be(secure.credential.data() + offset);
+    offset += 2;
+    if (key_size == 0 || key_size > input.expected_key_id.bytes.size() ||
+        size != credential_magic.size() + 2 + key_size + 8 + 2 + secure.secret.size()) {
+        return sealed_input_status::invalid_request_no_mutation;
+    }
+    for (std::size_t i = 0; i < key_size; ++i) {
+        if (secure.credential[offset + i] < 0x21 || secure.credential[offset + i] > 0x7e) {
+            return sealed_input_status::invalid_request_no_mutation;
+        }
+    }
+    const bool key_matches = key_size == input.expected_key_id.size &&
+        std::memcmp(secure.credential.data() + offset,
+                    input.expected_key_id.bytes.data(), key_size) == 0;
+    offset += key_size;
+    const std::uint64_t generation = read_u64_be(secure.credential.data() + offset);
+    offset += 8;
+    if (generation == 0 || read_u16_be(secure.credential.data() + offset) != 32) {
+        return sealed_input_status::invalid_request_no_mutation;
+    }
+    offset += 2;
+    std::copy_n(secure.credential.data() + offset, secure.secret.size(), secure.secret.begin());
+    if (!nonzero(secure.secret.data(), secure.secret.size())) {
+        return sealed_input_status::invalid_request_no_mutation;
+    }
+    output.expected_key_tuple_matched = key_matches &&
+                                        generation == input.expected_key_generation;
+    return output.expected_key_tuple_matched
+        ? sealed_input_status::transport_validated_no_root_access
+        : sealed_input_status::invalid_request_no_mutation;
+}
+
+sealed_input_audit finish(sealed_input_audit output, void * mapping, std::size_t mapping_size,
+                          bool storage_locked, execution_context & context,
+                          sealed_input_status result) noexcept {
+    bool credential_closed = false;
+    bool predecessor_closed = false;
+    if (context.fd_table_unshared) {
+        credential_closed = close_owned_descriptor(credential_fd, output);
+        predecessor_closed = close_owned_descriptor(predecessor_fd, output);
+    }
+    output.descriptors_closed = context.fd_table_unshared &&
+                                credential_closed && predecessor_closed;
+    if (!output.descriptors_closed &&
+        result == sealed_input_status::transport_validated_no_root_access) {
+        result = sealed_input_status::io_failure_no_mutation;
+    }
+
+    if (mapping != MAP_FAILED && mapping != nullptr && mapping_size != 0) {
+        wipe(mapping, mapping_size);
+        output.secure_storage_wiped = all_zero(mapping, mapping_size);
+    } else {
+        output.secure_storage_wiped = true;
+    }
+    if (storage_locked && mapping != MAP_FAILED && mapping != nullptr) {
+        output.secure_storage_unlocked = ::munlock(mapping, mapping_size) == 0;
+    } else {
+        output.secure_storage_unlocked = true;
+    }
+    if ((!output.secure_storage_wiped || !output.secure_storage_unlocked) &&
+        result == sealed_input_status::transport_validated_no_root_access) {
+        result = sealed_input_status::io_failure_no_mutation;
+    }
+    if (mapping != MAP_FAILED && mapping != nullptr && mapping_size != 0) {
+        output.secure_storage_unmapped = ::munmap(mapping, mapping_size) == 0;
+    } else {
+        output.secure_storage_unmapped = true;
+    }
+    if (!output.secure_storage_unmapped &&
+        result == sealed_input_status::transport_validated_no_root_access) {
+        result = sealed_input_status::io_failure_no_mutation;
+    }
+    if (context.signal_mask_changed) {
+        output.signal_mask_restored =
+            ::sigprocmask(SIG_SETMASK, &context.previous_mask, nullptr) == 0;
+    } else {
+        output.signal_mask_restored = true;
+    }
+    if (!output.signal_mask_restored &&
+        result == sealed_input_status::transport_validated_no_root_access) {
+        result = sealed_input_status::io_failure_no_mutation;
+    }
+    output.root_or_fixture_accessed = output.root_or_fixture_syscall_count != 0;
+    if (output.root_or_fixture_accessed) {
+        result = sealed_input_status::io_failure_no_mutation;
+    }
+    output.result = result;
+    return output;
+}
+
+} // namespace
+
+sealed_input_audit inspect_sealed_inputs_once(const sealed_input_request & input) noexcept {
+    sealed_input_audit output;
+    secure_inputs * secure = nullptr;
+    void * mapping = MAP_FAILED;
+    std::size_t mapping_size = 0;
+    bool storage_locked = false;
+    execution_context context {};
+
+    if (session_consumed.test_and_set(std::memory_order_acq_rel)) {
+        output.secure_storage_wiped = true;
+        output.secure_storage_unlocked = true;
+        output.secure_storage_unmapped = true;
+        output.signal_mask_restored = true;
+        return output;
+    }
+
+    auto result = establish_exclusive_context(context, output);
+    if (result != sealed_input_status::transport_validated_no_root_access) {
+        return finish(output, mapping, mapping_size, storage_locked,
+                      context, result);
+    }
+
+    if (!registered_id_valid(input.expected_key_id) ||
+        input.expected_key_generation == 0 ||
+        !nonzero(input.expected_predecessor_digest.data(),
+                 input.expected_predecessor_digest.size())) {
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      sealed_input_status::invalid_request_no_mutation);
+    }
+
+    ++output.input_syscall_count;
+    const long page_size = ::sysconf(_SC_PAGESIZE);
+    if (page_size < 4096 || page_size > 65536 ||
+        (page_size & (page_size - 1)) != 0) {
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      sealed_input_status::unsupported_no_mutation);
+    }
+    mapping_size = (sizeof(secure_inputs) + static_cast<std::size_t>(page_size) - 1) &
+                   ~(static_cast<std::size_t>(page_size) - 1);
+    mapping = ::mmap(nullptr, mapping_size, PROT_READ | PROT_WRITE,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (mapping == MAP_FAILED) {
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      sealed_input_status::unavailable_no_mutation);
+    }
+    secure = ::new (mapping) secure_inputs {};
+    if (::mlock(mapping, mapping_size) != 0) {
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      sealed_input_status::unsupported_no_mutation);
+    }
+    storage_locked = true;
+    output.secure_storage_locked = true;
+
+    descriptor_identity credential_identity {};
+    descriptor_identity predecessor_identity {};
+    std::size_t credential_size = 0;
+    std::size_t predecessor_size = 0;
+
+    result = inspect_descriptor(
+        credential_fd, "/proc/self/fd/3", credential_link,
+        credential_minimum, credential_capacity,
+        credential_identity, credential_size, output);
+    if (result != sealed_input_status::transport_validated_no_root_access) {
+        return finish(output, mapping, mapping_size, storage_locked, context, result);
+    }
+    output.credential_transport_validated = true;
+
+    result = inspect_descriptor(
+        predecessor_fd, "/proc/self/fd/4", predecessor_link,
+        1, predecessor_capacity,
+        predecessor_identity, predecessor_size, output);
+    if (result != sealed_input_status::transport_validated_no_root_access) {
+        return finish(output, mapping, mapping_size, storage_locked, context, result);
+    }
+    output.predecessor_transport_validated = true;
+
+    output.descriptor_identities_distinct =
+        credential_identity.device != predecessor_identity.device ||
+        credential_identity.inode != predecessor_identity.inode;
+    if (!output.descriptor_identities_distinct) {
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      sealed_input_status::invalid_request_no_mutation);
+    }
+
+    result = scan_aliases(credential_identity, predecessor_identity, output);
+    if (result != sealed_input_status::transport_validated_no_root_access) {
+        return finish(output, mapping, mapping_size, storage_locked, context, result);
+    }
+    output.descriptor_aliases_absent = true;
+
+    result = read_exact(credential_fd, secure->credential.data(), credential_size, output);
+    if (result != sealed_input_status::transport_validated_no_root_access) {
+        return finish(output, mapping, mapping_size, storage_locked, context, result);
+    }
+    result = read_exact(predecessor_fd, secure->predecessor.data(), predecessor_size, output);
+    if (result != sealed_input_status::transport_validated_no_root_access) {
+        return finish(output, mapping, mapping_size, storage_locked, context, result);
+    }
+    output.credential_package_size = static_cast<std::uint32_t>(credential_size);
+    output.predecessor_envelope_size = static_cast<std::uint32_t>(predecessor_size);
+
+    result = parse_credential_shape(input, *secure, credential_size, output);
+    if (result != sealed_input_status::transport_validated_no_root_access) {
+        return finish(output, mapping, mapping_size, storage_locked, context, result);
+    }
+
+    context_store_format_digest observed_digest {};
+    if (!context_store_registry_lab_linux_initializer_predecessor_digest_v1(
+            secure->predecessor.data(), predecessor_size, observed_digest)) {
+        wipe(observed_digest.data(), observed_digest.size());
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      sealed_input_status::invalid_request_no_mutation);
+    }
+    output.predecessor_digest_matched =
+        same_digest(observed_digest, input.expected_predecessor_digest);
+    wipe(observed_digest.data(), observed_digest.size());
+    if (!output.predecessor_digest_matched) {
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      sealed_input_status::invalid_request_no_mutation);
+    }
+
+    descriptor_identity final_credential_identity {};
+    descriptor_identity final_predecessor_identity {};
+    std::size_t final_credential_size = 0;
+    std::size_t final_predecessor_size = 0;
+    result = inspect_descriptor(
+        credential_fd, "/proc/self/fd/3", credential_link,
+        credential_minimum, credential_capacity,
+        final_credential_identity, final_credential_size, output);
+    if (result == sealed_input_status::transport_validated_no_root_access) {
+        result = inspect_descriptor(
+            predecessor_fd, "/proc/self/fd/4", predecessor_link,
+            1, predecessor_capacity,
+            final_predecessor_identity, final_predecessor_size, output);
+    }
+    if (result != sealed_input_status::transport_validated_no_root_access ||
+        final_credential_identity.device != credential_identity.device ||
+        final_credential_identity.inode != credential_identity.inode ||
+        final_predecessor_identity.device != predecessor_identity.device ||
+        final_predecessor_identity.inode != predecessor_identity.inode ||
+        final_credential_size != credential_size ||
+        final_predecessor_size != predecessor_size) {
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      result == sealed_input_status::transport_validated_no_root_access
+                          ? sealed_input_status::invalid_request_no_mutation
+                          : result);
+    }
+    result = scan_aliases(final_credential_identity, final_predecessor_identity, output);
+    if (result != sealed_input_status::transport_validated_no_root_access) {
+        return finish(output, mapping, mapping_size, storage_locked, context, result);
+    }
+    output.transport_final_revalidation_matched = true;
+
+    return finish(output, mapping, mapping_size, storage_locked, context,
+                  sealed_input_status::transport_validated_no_root_access);
+}
+
+} // namespace halofpx::registry_lab::linux_initializer

@@ -9,12 +9,55 @@ foreach(F IN ITEMS "${H}" "${C}")
   foreach(FORBIDDEN IN ITEMS
       "open(" "openat" "fopen(" "read(" "write(" "pwrite(" "rename"
       "fsync(" "fdatasync(" "mkdir" "unlink" "std::filesystem" "getenv("
-      "system(" "fork(" "exec" "ptrace" "llama-ai" "CachyLLama")
+      "system(" "fork(" "exec(" "ptrace" "llama-ai" "CachyLLama")
     string(FIND "${TEXT}" "${FORBIDDEN}" HIT)
     if(NOT HIT EQUAL -1)
       message(FATAL_ERROR "L05t initializer seam contains forbidden mutation token ${FORBIDDEN}: ${F}")
     endif()
   endforeach()
+endforeach()
+
+set(INPUTS "${ROOT}/tools/server/halofpx-context-store-registry-lab-linux-initializer-inputs.cpp")
+if(NOT EXISTS "${INPUTS}")
+  message(FATAL_ERROR "missing M63-01b sealed-input source: ${INPUTS}")
+endif()
+file(READ "${INPUTS}" INPUT_TEXT)
+foreach(REQUIRED IN ITEMS
+    "inspect_sealed_inputs_once"
+    "/memfd:halofpx-registry-lab-credential (deleted)"
+    "/memfd:halofpx-registry-lab-predecessor (deleted)"
+    "F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW | F_SEAL_WRITE"
+    "FD_CLOEXEC"
+    "::open(\"/proc/self/task\""
+    "::open(\"/proc/self/fd\""
+    "::sigprocmask(SIG_SETMASK"
+    "::syscall(SYS_unshare, CLONE_FILES)"
+    "::mmap(nullptr, mapping_size"
+    "::new (mapping) secure_inputs {}"
+    "::mlock(mapping, mapping_size)"
+    "::munlock(mapping, mapping_size)"
+    "::munmap(mapping, mapping_size)"
+    "context_store_registry_lab_linux_initializer_predecessor_digest_v1"
+    "root_or_fixture_syscall_count")
+  string(FIND "${INPUT_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing M63-01b sealed-input contract token: ${REQUIRED}")
+  endif()
+endforeach()
+string(REGEX MATCHALL "::open\\(" INPUT_OPEN_CALLS "${INPUT_TEXT}")
+list(LENGTH INPUT_OPEN_CALLS INPUT_OPEN_COUNT)
+if(NOT INPUT_OPEN_COUNT EQUAL 2)
+  message(FATAL_ERROR "sealed-input source may open only /proc/self/task and /proc/self/fd")
+endif()
+foreach(FORBIDDEN IN ITEMS
+    "openat2" "mkdir" "pwrite" "rename" "fsync" "fdatasync"
+    "unlink" "root.marker" "writer.lock" "initialize-root.tmp"
+    "qualify_once(" "context_store_registry_lab_parse_credential_v1("
+    "context_store_verify_protected_registry_v1(")
+  string(FIND "${INPUT_TEXT}" "${FORBIDDEN}" HIT)
+  if(NOT HIT EQUAL -1)
+    message(FATAL_ERROR "M63-01b sealed-input slice contains forbidden root/auth/mutation token: ${FORBIDDEN}")
+  endif()
 endforeach()
 
 file(READ "${ROOT}/CMakeLists.txt" ROOT_CMAKE)
@@ -78,4 +121,4 @@ if(NOT PRODUCT_LEAK EQUAL -1)
   message(FATAL_ERROR "L05t initializer seam leaked into product/server linkage")
 endif()
 
-message(STATUS "PASS: L05t initializer no-I/O/default-off seam contract")
+message(STATUS "PASS: L05t seam plus M63-01b sealed-input/default-off contract")

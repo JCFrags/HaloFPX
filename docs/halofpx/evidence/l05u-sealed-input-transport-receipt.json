@@ -1,0 +1,122 @@
+{
+  "schema": "halofpx.l05u-sealed-initializer-input-transport.v1",
+  "date": "2026-07-19",
+  "parent_commit": "e918d1f8e254d9c17f043f0c896bda80894fdc2f",
+  "parent_tree": "8b31c75bc96f473ef710cbb5f6c96744566d1530",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Linux-only process-one-shot sealed fd3/fd4 input transport into locked target-owned storage; no predecessor authentication, root access, or mutation",
+  "source_sha256": {
+    "tools/server/CMakeLists.txt": "9445d82c1fc0d160f182799a55475e5218d3d3060c4f11e59ceb4ef8e49eaaa7",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-internal.h": "b21a4428cbb3dc58780740949da0018bfa423b18320466d9f34234f3e585256f",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer.cpp": "64b01e4a3167a90aff7ea771cf26d6f4ba3d74c66e4ff13b28d3cee8b1ea836e",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-inputs.cpp": "7ead1f5bd93d3dc141251185f2b7411895f002abe20ce856c6c7531bec032e2c",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-inputs.cpp": "71070fa75fc4e64bf95f0137bcd8060fff2e3ac344f671c40ac12bb198148da3",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake": "6989259043970bc039bcfb8a07e6aaca4cae3327a6de953bdf5a9c081bfd8bcb",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-archive-audit.cmake": "3bfc8238ce015a78b70924da20238e956f9d3aa3bf397548db6a86f1281fef56"
+  },
+  "admitted_contract": {
+    "credential_transport": "fd 3 exact-name zero-link tmpfs memfd, 61..180 bytes, exact seals, FD_CLOEXEC, no alias; bounded package shape and exact launcher-pinned key tuple only",
+    "predecessor_transport": "fd 4 exact-name zero-link tmpfs memfd, 1..1024 bytes, exact seals, FD_CLOEXEC, no alias; exact launcher-pinned envelope digest only",
+    "execution_context": "all blockable signals masked, CLONE_FILES unshared before descriptor inspection, exactly one task required",
+    "sensitive_storage": "page-rounded anonymous mmap, placement construction, mlock required, full-map wipe, munlock and munmap",
+    "cleanup": "private fd 3 and fd 4 copies closed, mapping wiped/unlocked/unmapped, signal mask restored",
+    "success": "transport_validated_no_root_access only",
+    "authority": "no credential authentication, predecessor authentication, reusable authority, root access, or initialization claim"
+  },
+  "build_and_link_boundaries": {
+    "HALOFPX_REGISTRY_LAB_LINUX_PREINIT_default": false,
+    "HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER_default": false,
+    "HALOFPX_REGISTRY_LAB_LINUX_MUTATION_default": false,
+    "target_shape": "Linux-only STATIC EXCLUDE_FROM_ALL",
+    "archive_objects": 2,
+    "callable_definitions": 2,
+    "halofpx_imports": 2,
+    "opened_paths": ["/proc/self/task", "/proc/self/fd"],
+    "root_or_fixture_paths_admitted": false,
+    "persistent_write_syscalls_admitted": false,
+    "product_or_install_or_export_edge": false
+  },
+  "qualification": {
+    "windows_release_feature_off": {
+      "build": "build/halofpx-l05s-feature-off-release-windows",
+      "halofpx_passed": 40,
+      "halofpx_failed": 0,
+      "seconds": 53.63,
+      "log_sha256": "23ccc21be7e417f16465799c2aa30a55bc4b34fe4058a9fdd1ea4cf336494563"
+    },
+    "per_linux_input_invocation": {
+      "named_child_variants": 25,
+      "predecessor_single_bit_children": 1248,
+      "credential_structural_key_tuple_single_bit_children": 352,
+      "fresh_child_cases": 1625,
+      "shared_thread_rejection_cases": 1
+    },
+    "nimo_1_release": {
+      "qualification_root": "/var/tmp/halofpx-qualification/l05t-seam-20260719-nimo1",
+      "focused_tests": "4/4",
+      "failures": 0,
+      "seconds": 0.27,
+      "archive_sha256": "e8719af1e05d9701ef26f99ae3d414baa7cba3602c75f58e263ec8c3b0e0181e",
+      "input_executable_sha256": "306129220a295e485d0ca59b93c55af94451ae0ed895dcf8f19783002b99f076",
+      "raw_ctest_log": "/var/tmp/halofpx-qualification/l05t-seam-20260719-nimo1/l05u-final-release-ctest.txt",
+      "raw_ctest_log_sha256": "f47c6321092995c7611f005a7bc121004b3d86636073ac1961ab2c165a81cb42"
+    },
+    "nimo_2_release": {
+      "qualification_root": "/var/tmp/halofpx-qualification/l05t-seam-20260719-nimo2",
+      "focused_tests": "4/4",
+      "failures": 0,
+      "seconds": 0.28,
+      "archive_sha256": "e8719af1e05d9701ef26f99ae3d414baa7cba3602c75f58e263ec8c3b0e0181e",
+      "input_executable_sha256": "5cea9bf663449dcc1291b298d8f5d4c8c0d77f152c519aa7b47d0d3e898746fb",
+      "raw_ctest_log": "/var/tmp/halofpx-qualification/l05t-seam-20260719-nimo2/l05u-final-release-ctest.txt",
+      "raw_ctest_log_sha256": "83851818781d8517d5e2810fa75b4a6756a788cf5572c1c971132b25031954f1"
+    },
+    "nimo_2_asan_ubsan": {
+      "focused_tests": "4/4",
+      "failures": 0,
+      "seconds": 1.90,
+      "archive_sha256": "0d6ab7ef3c91885dd2f09f0e8e23f8ed0e8a8e93d496df65c02c700c0fb74939",
+      "input_executable_sha256": "48229c6ac1cc1b3cf2ae43b7734fe83c7b5752d73bc330c0f37057a4fc38441d",
+      "raw_ctest_log": "/var/tmp/halofpx-qualification/l05t-seam-20260719-nimo2/l05u-final-asan-ctest.txt",
+      "raw_ctest_log_sha256": "bd436e4ca32bb22ce4956b0e4c99d335c6ca0e30eeec1178db9d29f6089a6ba1",
+      "sanitizer_findings": 0
+    },
+    "linux_total": {
+      "focused_test_invocations": 3,
+      "focused_tests_passed": 12,
+      "focused_tests_failed": 0,
+      "fresh_child_cases": 4875,
+      "shared_thread_rejection_cases": 3
+    },
+    "strict_cxx17_wall_wextra_wpedantic_werror": "pass for implementation and test",
+    "independent_review": "ACCEPT after private fd-table, signal fence, single-task, dedicated locked mapping, placement lifetime, and expanded adversarial test repairs"
+  },
+  "service_health_after_qualification": {
+    "nimo_1_llama_server_pid": 3783057,
+    "nimo_1_health_http": 200,
+    "nimo_1_port": 8081,
+    "nimo_2_rpc_pid": 3562775,
+    "nimo_2_rpc_listen": "0.0.0.0:50052",
+    "restarted_or_redeployed": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false,
+    "remote_created_or_pushed": false
+  },
+  "nonclaims": [
+    "No credential authentication, predecessor authentication, root traversal, writer.lock acquisition, initialization, mutation, publication, persistent write, cache hit, restore, inference, HIP, Vulkan, RPC, WebUI, or distributed behavior is implemented or enabled.",
+    "The CPU and sanitizer contract timings are qualification telemetry, not an inference-performance claim.",
+    "L14Q quantized-KV and FlashAttention work remains parked."
+  ]
+}

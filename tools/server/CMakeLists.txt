@@ -183,18 +183,21 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     endif()
 endif()
 
-# L05t opens only the default-off initializer linkage and no-I/O predecessor
-# digest seam. Concrete filesystem mutation remains outside this submilestone.
+# L05t opens the default-off initializer linkage and no-I/O predecessor digest
+# seam. M63-01b adds only sealed-input transport; root mutation remains absent.
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     HALOFPX_REGISTRY_LAB_LINUX_PREINIT AND
     HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER)
     add_library(halofpx-context-store-registry-lab-linux-initializer STATIC EXCLUDE_FROM_ALL
         halofpx-context-store-registry-lab-linux-initializer.cpp
+        halofpx-context-store-registry-lab-linux-initializer-inputs.cpp
         halofpx-context-store-registry-lab-linux-initializer-internal.h)
     target_link_libraries(halofpx-context-store-registry-lab-linux-initializer PRIVATE
         halofpx-context-store-registry-lab-wire)
     target_compile_features(halofpx-context-store-registry-lab-linux-initializer PRIVATE
         cxx_std_17)
+    target_compile_definitions(halofpx-context-store-registry-lab-linux-initializer PRIVATE
+        _GNU_SOURCE)
 
     if (BUILD_TESTING)
         add_executable(test-halofpx-context-store-registry-lab-linux-initializer-seam EXCLUDE_FROM_ALL
@@ -209,6 +212,22 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
             COMMAND test-halofpx-context-store-registry-lab-linux-initializer-seam
                 ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05o-registry-lab-golden-vector.json)
         set_tests_properties(test-halofpx-context-store-registry-lab-linux-initializer-seam PROPERTIES
+            LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+
+        add_executable(test-halofpx-context-store-registry-lab-linux-initializer-inputs EXCLUDE_FROM_ALL
+            ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-registry-lab-linux-initializer-inputs.cpp)
+        target_include_directories(test-halofpx-context-store-registry-lab-linux-initializer-inputs PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR})
+        target_link_libraries(test-halofpx-context-store-registry-lab-linux-initializer-inputs PRIVATE
+            halofpx-context-store-registry-lab-linux-initializer Threads::Threads)
+        target_compile_features(test-halofpx-context-store-registry-lab-linux-initializer-inputs PRIVATE
+            cxx_std_17)
+        target_compile_definitions(test-halofpx-context-store-registry-lab-linux-initializer-inputs PRIVATE
+            _GNU_SOURCE)
+        add_test(NAME test-halofpx-context-store-registry-lab-linux-initializer-inputs
+            COMMAND test-halofpx-context-store-registry-lab-linux-initializer-inputs
+                ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05o-registry-lab-golden-vector.json)
+        set_tests_properties(test-halofpx-context-store-registry-lab-linux-initializer-inputs PROPERTIES
             LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
 
         add_test(NAME test-halofpx-context-store-registry-lab-linux-initializer-seam-contract
