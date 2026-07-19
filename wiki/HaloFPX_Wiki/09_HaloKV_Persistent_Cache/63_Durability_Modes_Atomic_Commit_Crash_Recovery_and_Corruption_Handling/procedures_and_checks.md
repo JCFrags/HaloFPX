@@ -214,6 +214,67 @@ attempt, staging file, or publication record, complete initialization, enable
 persistence, or add a cache-hit/restore, provider, inference, or performance
 edge.
 
+The accepted `f61778d9` L05y slice closes only ADR-0026 step 3: publication of
+the discard-only initializing root marker [S63-33]. After the complete L05x
+barrier, it derives and self-verifies the path policy and authenticated marker
+before mutation, creates only `staging/initialize-root.tmp`, performs bounded
+offset-zero write and exact EOF/readback authentication, file-syncs and
+read-only revalidates the exact inode, then publishes only through
+`renameat2(RENAME_NOREPLACE)`. Root and staging are synchronized before the
+final authenticated five-entry root-layout proof. The marker binds the pinned
+root/store, registry, key, filesystem, mount, owner, capacity, and writer-lock
+facts, has state `initializing`, and has a null initial-HEAD field. It selects no
+`HEAD`; every invocation that crossed the latch remains
+`initialization_discard_required`, with no per-entry cleanup, adoption, repair,
+completion, or retry authority.
+
+Windows feature-off passed 40/40. Nimo-1 Release passed 520/520 initializer
+build, 48/48 HaloFPX, 6/6 focused, 7/7 inherited, 581/581 feature-off build,
+and 39/39 feature-off HaloFPX tests. Nimo-2 ASan/UBSan passed 517/517,
+48/48, 6/6 focused, 349/349 feature-off build, and 39/39 feature-off HaloFPX
+with zero accepted sanitizer findings. The sole inherited `test-gguf` UBSan
+failure reproduced exactly on the untouched selected base: candidate/base
+source SHA-256 is
+`9c513b99b9052324395c4f3fd73626b155c43f9a867813d15274f31a633eceea`
+and the normalized signature is
+`35fd665ba5f862efd4f3f81101588e34a0d2ba8335c7c55aeba1f99631533ec4`.
+It is retained as a matched-base exception, not an L05y regression.
+
+Live qualification passed 100 Release roots per node plus 25 nimo-2
+ASan/UBSan roots: 225/225 exact five-entry layouts and independent marker
+reconstructions. Exact-production ptrace qualification passed 700/700 across
+seven mutation boundaries, entry/exit, and 25 repetitions per cell per node,
+retaining 1,124,300 JSONL events and 172,821,070 receipt bytes. Five 409-case
+returned-fault lanes passed 2,045/2,045. Authoritative ptrace bundles are
+nimo-1 `20278a3bce90d1f163ed51018b5ea2cd53c923a40856b76bd6499959a25ae8f5`
+and nimo-2
+`3c7847b369cea3492f40f9425baafea60ba28b12b4ab265084a8f844f5b02730`;
+returned-fault bundles are
+`f328e839737381cb348b582c8574dc7063f4aca2bc3868edc5c0e34d351fb312`
+and
+`767d2986ed4381908aa5c63674a7b4e55187d2408f35ab7d09cf7cf3edc9d0d0`.
+The full-regression bundles are
+`ebc3d437b96c6906fedb82ce40209f63e5b5b4bd8be417a7e131c5d594dc6081`
+and
+`206e8e27e15f65460a1dfad72dc8464f2d4584bcee7d0b969deb788267bef75f`.
+
+An ASan-instrumented target under ptrace on nimo-1 reproducibly hung at start
+for local and cross-node binaries, before and after a controlled reboot;
+ASan-only hung and UBSan-only passed. Bounded cleanup left no active residue.
+This is a host/tool limitation and is neither a pass nor a sanitizer-clean
+claim; complete target-plus-controller ASan/UBSan evidence passed on nimo-2.
+After reboot, nimo-1's preserved service recovered at PID 971 on port 8081 with
+HTTP 200 and `NRestarts=0`; nimo-2 RPC remained continuous at PID 3562775 on
+`0.0.0.0:50052`, also with `NRestarts=0`.
+
+Rollback remains source-only; latched roots remain whole-media discard-only.
+The next initialization work is the exact predecessor envelope, initial
+`HEAD`, initialized-marker construction/replacement, completed final-layout
+validation, and only then separately gated normal reopen/recovery. L05y proves
+process-crash ordering for only the initializing marker; it does not prove
+power-loss/device-cache durability, completed initialization, persistence,
+cache hit/restore, provider/inference behavior, or performance.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
