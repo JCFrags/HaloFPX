@@ -72,6 +72,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [ADR-0025 independent adversarial review](reviews/2026-07-19__adr-0025-linux-preinit-primitives__review__v01.md)
 - [L05s Linux pre-initialization primitives review](reviews/2026-07-19__l05s-linux-preinit-primitives__review__v01.md)
 - [L05s Linux pre-initialization primitives receipt](evidence/l05s-linux-preinit-primitives-receipt.json)
+- [ADR-0026 Linux registry-lab initialization with discard-only recovery](decisions/0026-linux-registry-lab-initialization-discard-only.md)
+- [ADR-0026 independent adversarial review](reviews/2026-07-19__adr-0026-linux-initialization-discard-only__review__v01.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

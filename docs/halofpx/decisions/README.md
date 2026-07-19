@@ -29,3 +29,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0023](0023-portable-registry-lab-recovery-terminalization.md): portable registry-lab recovery mutation admission and terminalization
 - [ADR-0024](0024-portable-registry-lab-sticky-quarantine-publication.md): portable registry-lab sticky-quarantine publication
 - [ADR-0025](0025-linux-registry-lab-preinitialization-primitives.md): Linux registry-lab pre-initialization primitives
+- [ADR-0026](0026-linux-registry-lab-initialization-discard-only.md): Linux registry-lab initialization with discard-only recovery

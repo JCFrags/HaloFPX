@@ -19,9 +19,17 @@
 ;   staging/000.successor.tmp .. 511.successor.tmp
 ;   staging/000.head.tmp .. 511.head.tmp
 ;   staging/QUARANTINE.tmp               sole sticky-quarantine staging name
+;   staging/initialize-root.tmp           initializer-only, discard if retained
+;   staging/initialize-envelope.tmp       initializer-only, discard if retained
+;   staging/initialize-head.tmp           initializer-only, discard if retained
+;   staging/initialize-marker.tmp         initializer-only, discard if retained
 ; A slot may have PREPARE and exactly one of CLOSE/ABORT. Staging names confer no
-; authority. The envelope filename is derived only from the authenticated HEAD
-; digest after the selector itself verifies.
+; authority. The four initialize-* names are admitted only by ADR-0026 during a
+; one-shot empty-root initialization; normal reopen rejects any retained name.
+; Normal reopen derives the selected envelope filename only from authenticated
+; HEAD after the selector verifies. ADR-0026 initialization may derive the one
+; initial predecessor filename only from authenticated exact fd-4 bytes after
+; launcher-pinned digest comparison through the registry-lab digest function.
 ;
 ; One credential-derived key authenticates the six envelope types:
 ;   K_lab = HMAC-SHA-256(K_credential,
