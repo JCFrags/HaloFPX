@@ -186,10 +186,11 @@ endif()
 # L05t opens the default-off initializer linkage and no-I/O predecessor digest
 # seam. L05u/L05v add sealed transport and predecessor authentication; L05w
 # admits the discard-required writer.lock anchor, and L05x alone extends that
-# anchor through the fixed empty directory prefix and root sync. L05y alone
-# publishes the authenticated initializing root.marker through the fixed
-# initialize-root.tmp name. Envelope/HEAD publication, broader initialization,
-# normal mutation, and product linkage remain absent.
+# anchor through the fixed empty directory prefix and root sync. L05y publishes
+# the authenticated initializing root.marker; L05z alone extends that exact
+# control by publishing the unreachable authenticated predecessor envelope.
+# HEAD publication, broader initialization, normal mutation, and product
+# linkage remain absent.
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     HALOFPX_REGISTRY_LAB_LINUX_PREINIT AND
     HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER)

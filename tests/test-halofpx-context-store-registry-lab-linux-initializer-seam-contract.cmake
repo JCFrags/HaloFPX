@@ -45,6 +45,7 @@ foreach(REQUIRED IN ITEMS
     "all_zero(session.secure->credential.data(),"
     "std::array<std::uint8_t, 1024> initializing_marker"
     "std::array<std::uint8_t, 1024> initializing_marker_readback"
+    "std::array<std::uint8_t, 1024> predecessor_readback"
     "secure->~secure_inputs()"
     "predecessor_authenticated_pins_matched_no_root_access"
     "predecessor_authenticated_under_supplied_credential"
@@ -55,7 +56,6 @@ foreach(REQUIRED IN ITEMS
     message(FATAL_ERROR "missing M63-01b sealed-input contract token: ${REQUIRED}")
   endif()
 endforeach()
-
 string(FIND "${INPUT_TEXT}" "::mlock(session.mapping, session.mapping_size)" INPUT_MLOCK)
 string(FIND "${INPUT_TEXT}" "output.transport_final_revalidation_matched = true" INPUT_FINAL_PIN)
 string(FIND "${INPUT_TEXT}" "session.wire_credential = ::new (" INPUT_WIRE_CONSTRUCT)
@@ -100,10 +100,73 @@ if(NOT EXISTS "${ANCHOR}")
   message(FATAL_ERROR "missing L05w writer-lock anchor implementation")
 endif()
 file(READ "${ANCHOR}" ANCHOR_TEXT)
+string(FIND "${ANCHOR_TEXT}" "output.initializing_marker_phase_ordinal = 13" L05Y_BARRIER)
+string(FIND "${ANCHOR_TEXT}" "output.initializing_marker_write_descriptor_closed = true" MARKER_WRITABLE_CLOSED)
+string(FIND "${ANCHOR_TEXT}" "envelope_fd = open_contained(" ENVELOPE_CREATE)
+string(FIND "${ANCHOR_TEXT}" "envelope_readonly_fd = open_contained(" ENVELOPE_FINAL_OPEN)
+string(FIND "${ANCHOR_TEXT}" "output.predecessor_envelope_pre_publication_revalidation_matched = true" ENVELOPE_FINAL_FACT)
+string(FIND "${ANCHOR_TEXT}" "::syscall(SYS_renameat2, staging_fd, \"initialize-envelope.tmp\"" ENVELOPE_RENAME)
+string(FIND "${ANCHOR_TEXT}" "if (::fsync(envelopes_fd) != 0" ENVELOPES_FSYNC)
+if(NOT ENVELOPE_RENAME EQUAL -1)
+  string(SUBSTRING "${ANCHOR_TEXT}" ${ENVELOPE_RENAME} -1 ENVELOPE_PUBLICATION_TAIL)
+  string(FIND "${ENVELOPE_PUBLICATION_TAIL}" "if (::fsync(staging_fd) != 0" STAGING_FSYNC_RELATIVE)
+  if(STAGING_FSYNC_RELATIVE EQUAL -1)
+    set(STAGING_FSYNC -1)
+  else()
+    math(EXPR STAGING_FSYNC "${ENVELOPE_RENAME} + ${STAGING_FSYNC_RELATIVE}")
+  endif()
+else()
+  set(STAGING_FSYNC -1)
+endif()
+if(L05Y_BARRIER EQUAL -1 OR MARKER_WRITABLE_CLOSED EQUAL -1 OR
+   ENVELOPE_CREATE EQUAL -1 OR ENVELOPE_FINAL_OPEN EQUAL -1 OR
+   ENVELOPE_FINAL_FACT EQUAL -1 OR ENVELOPE_RENAME EQUAL -1 OR
+   ENVELOPES_FSYNC EQUAL -1 OR STAGING_FSYNC EQUAL -1 OR
+   NOT L05Y_BARRIER LESS MARKER_WRITABLE_CLOSED OR
+   NOT MARKER_WRITABLE_CLOSED LESS ENVELOPE_CREATE OR
+   NOT ENVELOPE_CREATE LESS ENVELOPE_FINAL_OPEN OR
+   NOT ENVELOPE_FINAL_OPEN LESS ENVELOPE_FINAL_FACT OR
+   NOT ENVELOPE_FINAL_FACT LESS ENVELOPE_RENAME OR
+   NOT ENVELOPE_RENAME LESS ENVELOPES_FSYNC OR
+   NOT ENVELOPES_FSYNC LESS STAGING_FSYNC)
+  message(FATAL_ERROR "L05z writable-marker closure and publication order is not exact")
+endif()
+string(REGEX MATCHALL "write_exact_at_zero\\([ \t\r\n]*envelope_fd" L05Z_ENVELOPE_WRITES "${ANCHOR_TEXT}")
+string(REGEX MATCHALL "read_exact_at_zero\\([ \t\r\n]*envelope_fd" L05Z_INITIAL_READS "${ANCHOR_TEXT}")
+string(REGEX MATCHALL "if \\(::fsync\\(envelope_fd\\) != 0" L05Z_FILE_SYNCS "${ANCHOR_TEXT}")
+string(REGEX MATCHALL "SYS_renameat2, staging_fd, \"initialize-envelope.tmp\"" L05Z_RENAMES "${ANCHOR_TEXT}")
+list(LENGTH L05Z_ENVELOPE_WRITES L05Z_ENVELOPE_WRITE_COUNT)
+list(LENGTH L05Z_INITIAL_READS L05Z_INITIAL_READ_COUNT)
+list(LENGTH L05Z_FILE_SYNCS L05Z_FILE_SYNC_COUNT)
+list(LENGTH L05Z_RENAMES L05Z_RENAME_COUNT)
+if(NOT L05Z_ENVELOPE_WRITE_COUNT EQUAL 1 OR
+   NOT L05Z_INITIAL_READ_COUNT EQUAL 1 OR
+   NOT L05Z_FILE_SYNC_COUNT EQUAL 1 OR
+   NOT L05Z_RENAME_COUNT EQUAL 1)
+  message(FATAL_ERROR "L05z envelope publication syscall occurrence counts changed")
+endif()
+string(SUBSTRING "${ANCHOR_TEXT}" ${ENVELOPE_CREATE} -1 L05Z_ENVELOPE_TAIL)
+string(FIND "${L05Z_ENVELOPE_TAIL}" "result = write_exact_at_zero(" L05Z_WRITE)
+string(FIND "${L05Z_ENVELOPE_TAIL}" "result = read_exact_at_zero(" L05Z_READ)
+string(FIND "${L05Z_ENVELOPE_TAIL}" "output.predecessor_envelope_readback_exact = true" L05Z_EOF_EXACT)
+string(FIND "${L05Z_ENVELOPE_TAIL}" "output.predecessor_envelope_readback_authenticated = true" L05Z_AUTH)
+string(FIND "${L05Z_ENVELOPE_TAIL}" "if (::fsync(envelope_fd) != 0" L05Z_FILE_FSYNC)
+if(L05Z_WRITE EQUAL -1 OR L05Z_READ EQUAL -1 OR L05Z_EOF_EXACT EQUAL -1 OR
+   L05Z_AUTH EQUAL -1 OR L05Z_FILE_FSYNC EQUAL -1 OR
+   NOT L05Z_WRITE LESS L05Z_READ OR NOT L05Z_READ LESS L05Z_EOF_EXACT OR
+   NOT L05Z_EOF_EXACT LESS L05Z_AUTH OR NOT L05Z_AUTH LESS L05Z_FILE_FSYNC)
+  message(FATAL_ERROR "L05z exact write/read/EOF/authentication/file-fsync order changed")
+endif()
+string(REGEX MATCHALL "trailing_count = ::pread\\(" EXACT_EOF_READS "${ANCHOR_TEXT}")
+list(LENGTH EXACT_EOF_READS EXACT_EOF_READ_COUNT)
+if(NOT EXACT_EOF_READ_COUNT EQUAL 1)
+  message(FATAL_ERROR "bounded exact-I/O helper must own exactly one EOF pread")
+endif()
 foreach(REQUIRED IN ITEMS
     "initialize_writer_lock_anchor_once"
     "initialize_directory_prefix_once"
     "initialize_initializing_marker_once"
+    "initialize_predecessor_envelope_once"
     "authenticate_sealed_inputs_for_session"
     "O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC | O_NOFOLLOW"
     "RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS"
@@ -140,6 +203,7 @@ foreach(REQUIRED IN ITEMS
     "staging_directory_final_revalidation_matched = true"
     "directory_prefix_qualified = true"
     "initialization_extent::initializing_marker"
+    "initialization_extent::predecessor_envelope"
     "context_store_registry_lab_path_policy_v1"
     "context_store_registry_lab_admit_root_v1"
     "context_store_registry_lab_encode_root_v1"
@@ -157,6 +221,23 @@ foreach(REQUIRED IN ITEMS
   string(FIND "${ANCHOR_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "missing L05w/L05x discard-only initializer contract token: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+    "context_store_verify_protected_registry_facts_v1"
+    "initialize-envelope.tmp"
+    "predecessor_envelope_digest_name_computed = true"
+    "initializing_marker_write_descriptor_closed = true"
+    "predecessor_envelope_pre_mutation_revalidation_matched = true"
+    "predecessor_envelope_readback_authenticated = true"
+    "predecessor_envelope_pre_publication_revalidation_matched = true"
+    "envelopes_synchronized_after_predecessor = true"
+    "staging_synchronized_after_predecessor = true"
+    "predecessor_envelope_final_layout_matched = true"
+    "predecessor_envelope_qualified = true")
+  string(FIND "${ANCHOR_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing L05z predecessor-envelope contract token: ${REQUIRED}")
   endif()
 endforeach()
 string(FIND "${ANCHOR_TEXT}" "// Select and fully authenticate the exact staging inode immediately before" FINAL_SELECTION)
@@ -178,7 +259,7 @@ if(FINAL_OPEN EQUAL -1 OR FINAL_IDENTITY EQUAL -1 OR FINAL_READ EQUAL -1 OR
   message(FATAL_ERROR "marker identity, exact bytes/EOF, and authentication must immediately precede no-replace publication")
 endif()
 foreach(FORBIDDEN IN ITEMS
-    "qualify_once(" "linux-preinit" "initialize-envelope.tmp"
+    "qualify_once(" "linux-preinit"
     "initialize-head.tmp" "initialize-marker.tmp" "HEAD"
     "::mkdir(" "::mkdirat(" "::fchmod(directory_fd" "::fchmodat2("
     "::rename(" "::write(" "SYS_write" "SYS_pwrite"
@@ -255,4 +336,4 @@ if(NOT PRODUCT_LEAK EQUAL -1)
   message(FATAL_ERROR "L05t initializer seam leaked into product/server linkage")
 endif()
 
-message(STATUS "PASS: L05t seam through L05y discard-only initializing-marker/default-off contract")
+message(STATUS "PASS: L05t seam through L05z discard-only predecessor-envelope/default-off contract")

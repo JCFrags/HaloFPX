@@ -64,6 +64,7 @@ struct alignas(64) secure_inputs {
     std::array<std::uint8_t, predecessor_capacity> predecessor {};
     std::array<std::uint8_t, 1024> initializing_marker {};
     std::array<std::uint8_t, 1024> initializing_marker_readback {};
+    std::array<std::uint8_t, 1024> predecessor_readback {};
     // The secret-bearing wire credential is placement-constructed here only
     // after the locked transport has passed authentication and launcher-pin
     // revalidation. The raw storage itself has no credential lifetime.

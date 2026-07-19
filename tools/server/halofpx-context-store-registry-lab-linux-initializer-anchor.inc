@@ -60,6 +60,7 @@ enum class initialization_extent : std::uint8_t {
     writer_lock_anchor,
     directory_prefix,
     initializing_marker,
+    predecessor_envelope,
 };
 
 struct created_directory_identity {
@@ -369,7 +370,7 @@ root_layout inspect_root_layout(int fd, bool expect_writer,
 
 initialization_status inspect_accumulated_prefix_layout(
         int fd, unsigned expected_directories, bool expect_marker,
-        initialization_audit & output) noexcept {
+        initialization_audit & output, bool retry_eintr = true) noexcept {
     if (expected_directories == 0 || expected_directories > 3) {
         return initialization_status::invalid_request_no_mutation;
     }
@@ -384,7 +385,7 @@ initialization_status inspect_accumulated_prefix_layout(
         ++output.root_fixture_syscall_count;
         const long count = ::syscall(SYS_getdents64, fd, bytes.data(), bytes.size());
         if (count < 0) {
-            if (errno == EINTR) {
+            if (errno == EINTR && retry_eintr) {
                 continue;
             }
             return initialization_status::io_failure_no_mutation;
@@ -441,13 +442,14 @@ initialization_status inspect_accumulated_prefix_layout(
 }
 
 initialization_status inspect_empty_directory(
-        int fd, initialization_audit & output) noexcept {
+        int fd, initialization_audit & output,
+        bool retry_eintr = true) noexcept {
     std::array<char, 4096> bytes {};
     for (;;) {
         ++output.root_fixture_syscall_count;
         const long count = ::syscall(SYS_getdents64, fd, bytes.data(), bytes.size());
         if (count < 0) {
-            if (errno == EINTR) {
+            if (errno == EINTR && retry_eintr) {
                 continue;
             }
             return initialization_status::io_failure_no_mutation;
@@ -512,6 +514,55 @@ initialization_status inspect_staging_initializing_marker_temp(
                 return initialization_status::invalid_request_no_mutation;
             }
             saw_temp = true;
+        }
+    }
+}
+
+initialization_status inspect_single_directory_entry(
+        int fd, const char * expected, initialization_audit & output) noexcept {
+    if (!expected || expected[0] == '\0') {
+        return initialization_status::invalid_request_no_mutation;
+    }
+    for (const char * cursor = expected; *cursor != '\0'; ++cursor) {
+        if (*cursor == '/') {
+            return initialization_status::invalid_request_no_mutation;
+        }
+    }
+    std::array<char, 4096> bytes {};
+    bool saw_expected = false;
+    for (;;) {
+        ++output.root_fixture_syscall_count;
+        const long count = ::syscall(SYS_getdents64, fd, bytes.data(), bytes.size());
+        if (count < 0) {
+            return initialization_status::io_failure_no_mutation;
+        }
+        if (count == 0) {
+            return saw_expected
+                       ? initialization_status::initialization_discard_required
+                       : initialization_status::invalid_request_no_mutation;
+        }
+        long offset = 0;
+        while (offset < count) {
+            const auto * entry = reinterpret_cast<const linux_dirent64 *>(
+                bytes.data() + offset);
+            if (entry->d_reclen < offsetof(linux_dirent64, d_name) + 1 ||
+                offset + entry->d_reclen > count) {
+                return initialization_status::io_failure_no_mutation;
+            }
+            const std::size_t capacity =
+                entry->d_reclen - offsetof(linux_dirent64, d_name);
+            if (::strnlen(entry->d_name, capacity) == capacity) {
+                return initialization_status::io_failure_no_mutation;
+            }
+            offset += entry->d_reclen;
+            if (std::strcmp(entry->d_name, ".") == 0 ||
+                std::strcmp(entry->d_name, "..") == 0) {
+                continue;
+            }
+            if (saw_expected || std::strcmp(entry->d_name, expected) != 0) {
+                return initialization_status::invalid_request_no_mutation;
+            }
+            saw_expected = true;
         }
     }
 }
@@ -830,8 +881,73 @@ initialization_status read_exact_at_zero(
                : initialization_status::invalid_request_no_mutation;
 }
 
-initialization_status inspect_fixture_layout(int fd,
-                                             initialization_audit & output) noexcept {
+bool predecessor_facts_match_request(
+        const context_store_protected_registry_facts & facts,
+        const sealed_input_request & input) noexcept {
+    return same_id(facts.body.registry_id, input.expected_registry_id) &&
+           facts.body.registry_epoch == input.expected_registry_epoch &&
+           same_digest(facts.body.authority_base_scope_commitment,
+                       input.expected_authority_base_scope_commitment) &&
+           same_digest(facts.body.policy_commitment,
+                       input.expected_policy_commitment) &&
+           facts.body.last_consumed_sequence ==
+               input.expected_predecessor_high_water &&
+           same_id(facts.key_id, input.expected_key_id) &&
+           facts.key_generation == input.expected_key_generation &&
+           same_digest(facts.key_continuity_commitment,
+                       input.expected_key_continuity_commitment);
+}
+
+bool authenticate_predecessor_bytes(
+        const std::uint8_t * bytes, std::size_t size,
+        const authenticated_input_session & session,
+        const sealed_input_request & input,
+        const context_store_format_digest & expected_digest) noexcept {
+    if (!bytes || size == 0 || size > 1024 || !session.wire_credential) {
+        return false;
+    }
+    context_store_protected_registry_key_record key {};
+    key.disposition = context_store_key_disposition::active;
+    key.key_id = session.wire_credential->key_id;
+    key.generation = session.wire_credential->generation;
+    key.master_key = {
+        session.wire_credential->secret.data(),
+        session.wire_credential->secret.size(),
+    };
+    const auto verified = context_store_verify_protected_registry_facts_v1(
+        bytes, size, key);
+    key.master_key = {};
+    const auto * facts = verified.authenticated_facts();
+    context_store_format_digest digest {};
+    const bool matched = facts && predecessor_facts_match_request(*facts, input) &&
+        context_store_registry_lab_linux_initializer_predecessor_digest_v1(
+            bytes, size, digest) && same_digest(digest, expected_digest);
+    wipe(digest.data(), digest.size());
+    return matched;
+}
+
+bool make_predecessor_envelope_name(
+        const context_store_format_digest & digest,
+        std::array<char, 72> & basename) noexcept {
+    constexpr char alphabet[] = "0123456789abcdef";
+    basename.fill('\0');
+    basename[0] = 'e';
+    basename[1] = '-';
+    for (std::size_t index = 0; index < digest.size(); ++index) {
+        basename[2 + index * 2] = alphabet[digest[index] >> 4];
+        basename[3 + index * 2] = alphabet[digest[index] & 0x0f];
+    }
+    basename[66] = '.';
+    basename[67] = 'c';
+    basename[68] = 'b';
+    basename[69] = 'o';
+    basename[70] = 'r';
+    return basename[71] == '\0' && std::strlen(basename.data()) == 71;
+}
+
+initialization_status inspect_fixture_layout(
+        int fd, initialization_audit & output,
+        bool retry_eintr = true) noexcept {
     std::array<char, 4096> bytes {};
     std::size_t entries = 0;
     bool saw_lock = false;
@@ -839,7 +955,7 @@ initialization_status inspect_fixture_layout(int fd,
         ++output.root_fixture_syscall_count;
         const long count = ::syscall(SYS_getdents64, fd, bytes.data(), bytes.size());
         if (count < 0) {
-            if (errno == EINTR) {
+            if (errno == EINTR && retry_eintr) {
                 continue;
             }
             return initialization_status::io_failure_no_mutation;
@@ -891,7 +1007,8 @@ bool csv_has_ro(const char * begin, const char * end) noexcept {
 }
 
 initialization_status mountinfo_read_only(std::uint64_t mount_id, bool & read_only,
-                                          initialization_audit & output) noexcept {
+                                          initialization_audit & output,
+                                          bool retry_eintr = true) noexcept {
     std::array<char, mountinfo_capacity + 1> bytes {};
     ++output.root_fixture_syscall_count;
     int fd = ::open("/proc/self/mountinfo", O_RDONLY | O_CLOEXEC);
@@ -903,7 +1020,7 @@ initialization_status mountinfo_read_only(std::uint64_t mount_id, bool & read_on
         ++output.root_fixture_syscall_count;
         const ssize_t count = ::read(fd, bytes.data() + total, mountinfo_capacity - total);
         if (count < 0) {
-            if (errno == EINTR) {
+            if (errno == EINTR && retry_eintr) {
                 continue;
             }
             ::close(fd);
@@ -994,7 +1111,7 @@ initialization_status mountinfo_read_only(std::uint64_t mount_id, bool & read_on
 
 initialization_status reserve_and_read_only(
         int root_fd, const initialization_pinned_path_identity & root,
-        initialization_audit & output) noexcept {
+        initialization_audit & output, bool retry_eintr = true) noexcept {
     struct statvfs values {};
     ++output.root_fixture_syscall_count;
     if (::fstatvfs(root_fd, &values) != 0) {
@@ -1007,7 +1124,8 @@ initialization_status reserve_and_read_only(
     output.observed_filesystem_reserve =
         static_cast<std::uint64_t>(values.f_bavail) * values.f_frsize;
     bool mount_read_only = false;
-    const auto result = mountinfo_read_only(root.mount_id, mount_read_only, output);
+    const auto result = mountinfo_read_only(
+        root.mount_id, mount_read_only, output, retry_eintr);
     if (result != initialization_status::initialization_discard_required) {
         return result;
     }
@@ -1208,7 +1326,8 @@ initialization_status reopen_created_directory(
         const initialization_request & input,
         created_directory_identity & identity,
         bool require_empty,
-        initialization_audit & output) noexcept {
+        initialization_audit & output,
+        bool retry_eintr = true) noexcept {
     initialization_status result = initialization_status::io_failure_no_mutation;
     int reopened = open_contained(root_fd, name,
                                   O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
@@ -1222,7 +1341,7 @@ initialization_status reopen_created_directory(
                                            identity, false, true, output);
     }
     if (result == initialization_status::initialization_discard_required && require_empty) {
-        result = inspect_empty_directory(reopened, output);
+        result = inspect_empty_directory(reopened, output, retry_eintr);
     }
     if (!close_fd(reopened) &&
         result == initialization_status::initialization_discard_required) {
@@ -1241,7 +1360,8 @@ initialization_status revalidate_accumulated_prefix(
         created_directory_identity & attempts_identity,
         created_directory_identity & staging_identity,
         bool expect_marker, bool allow_nonempty_staging, bool final_revalidation,
-        initialization_audit & output) noexcept {
+        initialization_audit & output,
+        bool retry_non_io_eintr = true) noexcept {
     auto result = revalidate_parent(parent_fd, input.parent, output);
     int reopened_root = -1;
     if (result == initialization_status::initialization_discard_required) {
@@ -1249,11 +1369,13 @@ initialization_status revalidate_accumulated_prefix(
                                   root_fd, reopened_root, output);
     }
     if (result == initialization_status::initialization_discard_required) {
-        result = reserve_and_read_only(reopened_root, input.candidate_root, output);
+        result = reserve_and_read_only(
+            reopened_root, input.candidate_root, output, retry_non_io_eintr);
     }
     if (result == initialization_status::initialization_discard_required) {
         result = inspect_accumulated_prefix_layout(
-            reopened_root, expected_directories, expect_marker, output);
+            reopened_root, expected_directories, expect_marker, output,
+            retry_non_io_eintr);
     }
     if (result == initialization_status::initialization_discard_required) {
         initialization_status reopen_error = initialization_status::io_failure_no_mutation;
@@ -1277,18 +1399,21 @@ initialization_status revalidate_accumulated_prefix(
     if (result == initialization_status::initialization_discard_required &&
         expected_directories >= 1) {
         result = reopen_created_directory(reopened_root, "envelopes", root_fd,
-                                          input, envelopes_identity, true, output);
+                                          input, envelopes_identity, true, output,
+                                          retry_non_io_eintr);
     }
     if (result == initialization_status::initialization_discard_required &&
         expected_directories >= 2) {
         result = reopen_created_directory(reopened_root, "attempts", root_fd,
-                                          input, attempts_identity, true, output);
+                                          input, attempts_identity, true, output,
+                                          retry_non_io_eintr);
     }
     if (result == initialization_status::initialization_discard_required &&
         expected_directories >= 3) {
         result = reopen_created_directory(reopened_root, "staging", root_fd,
                                           input, staging_identity,
-                                          !allow_nonempty_staging, output);
+                                          !allow_nonempty_staging, output,
+                                          retry_non_io_eintr);
     }
     if (!close_fd(reopened_root) &&
         result == initialization_status::initialization_discard_required) {
@@ -1300,7 +1425,8 @@ initialization_status revalidate_accumulated_prefix(
                                   fixture_fd, reopened_fixture, output);
     }
     if (result == initialization_status::initialization_discard_required) {
-        result = inspect_fixture_layout(reopened_fixture, output);
+        result = inspect_fixture_layout(
+            reopened_fixture, output, retry_non_io_eintr);
     }
     if (result == initialization_status::initialization_discard_required) {
         initialization_status reopen_error = initialization_status::io_failure_no_mutation;
@@ -1330,6 +1456,117 @@ initialization_status revalidate_accumulated_prefix(
         output.envelopes_directory_final_revalidation_matched = true;
         output.attempts_directory_final_revalidation_matched = true;
         output.staging_directory_final_revalidation_matched = true;
+    }
+    return result;
+}
+
+initialization_status revalidate_predecessor_final_layout(
+        int parent_fd, int root_fd, int fixture_fd, int fixture_lock_fd,
+        int writer_fd, const initialization_request & input,
+        const struct stat & writer_identity,
+        created_directory_identity & envelopes_identity,
+        created_directory_identity & attempts_identity,
+        created_directory_identity & staging_identity,
+        const char * envelope_basename,
+        initialization_audit & output) noexcept {
+    auto result = revalidate_parent(parent_fd, input.parent, output);
+    int reopened_root = -1;
+    if (result == initialization_status::initialization_discard_required) {
+        result = reopen_directory(parent_fd, input.parent, input.candidate_root,
+                                  root_fd, reopened_root, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = reserve_and_read_only(
+            reopened_root, input.candidate_root, output, false);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_accumulated_prefix_layout(
+            reopened_root, 3, true, output, false);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        initialization_status reopen_error = initialization_status::io_failure_no_mutation;
+        int reopened_writer = open_contained(
+            reopened_root, "writer.lock", O_RDWR | O_CLOEXEC | O_NOFOLLOW,
+            0, output, reopen_error);
+        if (reopened_writer < 0) {
+            result = reopen_error;
+        } else {
+            result = compare_open_descriptions(writer_fd, reopened_writer, output);
+            if (result == initialization_status::initialization_discard_required) {
+                result = inspect_writer_lock(reopened_writer, input,
+                                             writer_identity, output);
+            }
+            if (::close(reopened_writer) != 0 &&
+                result == initialization_status::initialization_discard_required) {
+                result = initialization_status::io_failure_no_mutation;
+            }
+        }
+    }
+    auto validate_child = [&](const char * name,
+                              created_directory_identity & identity,
+                              bool expected_envelope) noexcept {
+        if (result != initialization_status::initialization_discard_required) {
+            return;
+        }
+        initialization_status open_error = initialization_status::io_failure_no_mutation;
+        int reopened = open_contained(
+            reopened_root, name,
+            O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
+            0, output, open_error);
+        if (reopened < 0) {
+            result = open_error;
+            return;
+        }
+        result = inspect_created_directory(reopened, name, input,
+                                           identity, false, true, output);
+        if (result == initialization_status::initialization_discard_required) {
+            result = expected_envelope
+                         ? inspect_single_directory_entry(
+                               reopened, envelope_basename, output)
+                         : inspect_empty_directory(reopened, output, false);
+        }
+        if (!close_fd(reopened) &&
+            result == initialization_status::initialization_discard_required) {
+            result = initialization_status::io_failure_no_mutation;
+        }
+    };
+    validate_child("envelopes", envelopes_identity, true);
+    validate_child("attempts", attempts_identity, false);
+    validate_child("staging", staging_identity, false);
+    if (!close_fd(reopened_root) &&
+        result == initialization_status::initialization_discard_required) {
+        result = initialization_status::io_failure_no_mutation;
+    }
+    int reopened_fixture = -1;
+    if (result == initialization_status::initialization_discard_required) {
+        result = reopen_directory(parent_fd, input.parent, input.fixture,
+                                  fixture_fd, reopened_fixture, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_fixture_layout(reopened_fixture, output, false);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        initialization_status open_error = initialization_status::io_failure_no_mutation;
+        int reopened_lock = open_contained(
+            reopened_fixture, "primitive.lock", O_RDWR | O_CLOEXEC | O_NOFOLLOW,
+            0, output, open_error);
+        if (reopened_lock < 0) {
+            result = open_error;
+        } else {
+            result = compare_open_descriptions(
+                fixture_lock_fd, reopened_lock, output);
+            if (result == initialization_status::initialization_discard_required) {
+                result = inspect_fixture_lock(reopened_lock, input, output);
+            }
+            if (::close(reopened_lock) != 0 &&
+                result == initialization_status::initialization_discard_required) {
+                result = initialization_status::io_failure_no_mutation;
+            }
+        }
+    }
+    if (!close_fd(reopened_fixture) &&
+        result == initialization_status::initialization_discard_required) {
+        result = initialization_status::io_failure_no_mutation;
     }
     return result;
 }
@@ -1481,6 +1718,36 @@ void clear_pre_latch_positive_audit(initialization_audit & output) noexcept {
     output.initializing_marker_mount_id = 0;
     output.initializing_marker_size = 0;
     output.initializing_marker_phase_ordinal = 0;
+    output.predecessor_envelope_authenticated = false;
+    output.predecessor_envelope_digest_name_computed = false;
+    output.predecessor_envelope_path_admitted = false;
+    output.predecessor_envelope_logical_bound_admitted = false;
+    output.initializing_marker_write_descriptor_closed = false;
+    output.predecessor_envelope_pre_mutation_revalidation_matched = false;
+    output.predecessor_envelope_temp_created_no_replace = false;
+    output.predecessor_envelope_mode_revalidated = false;
+    output.predecessor_envelope_write_completed = false;
+    output.predecessor_envelope_readback_exact = false;
+    output.predecessor_envelope_readback_authenticated = false;
+    output.predecessor_envelope_synchronized = false;
+    output.predecessor_envelope_readonly_reopen_matched = false;
+    output.predecessor_envelope_pre_publication_revalidation_matched = false;
+    output.predecessor_envelope_published_no_replace = false;
+    output.envelopes_synchronized_after_predecessor = false;
+    output.staging_synchronized_after_predecessor = false;
+    output.predecessor_envelope_final_revalidation_matched = false;
+    output.initializing_marker_unchanged_after_predecessor = false;
+    output.predecessor_envelope_final_layout_matched = false;
+    output.predecessor_envelope_qualified = false;
+    wipe(output.predecessor_envelope_digest.data(),
+         output.predecessor_envelope_digest.size());
+    wipe(output.predecessor_envelope_basename.data(),
+         output.predecessor_envelope_basename.size());
+    output.predecessor_envelope_device = 0;
+    output.predecessor_envelope_inode = 0;
+    output.predecessor_envelope_mount_id = 0;
+    output.predecessor_envelope_size = 0;
+    output.predecessor_envelope_phase_ordinal = 0;
     output.filesystem_not_reported_read_only = false;
     output.observed_filesystem_reserve = 0;
 }
@@ -1513,6 +1780,7 @@ initialization_audit finish(initialization_audit output, initialization_status r
         output.lock_anchor_qualified = false;
         output.directory_prefix_qualified = false;
         output.initializing_marker_qualified = false;
+        output.predecessor_envelope_qualified = false;
     }
     if (!close_ok && !output.discard_required_latched &&
         result != initialization_status::preexisting_root_discard_required) {
@@ -2261,7 +2529,506 @@ initialization_audit initialize_once(
     output.staging_empty_after_marker_publication = true;
     output.initializing_marker_qualified = true;
     output.initializing_marker_phase_ordinal = 13;
-    return finish_marker(result);
+    if (extent == initialization_extent::initializing_marker) {
+        return finish_marker(result);
+    }
+
+    // L05z begins only after the complete L05y barrier. Preserve the exact
+    // authenticated fd4 bytes and independently derive their registry-lab
+    // digest name without decoding or re-encoding them.
+    const std::size_t predecessor_size =
+        output.sealed_inputs.predecessor_envelope_size;
+    auto & predecessor_bytes = input_session.secure->predecessor;
+    auto & predecessor_readback = input_session.secure->predecessor_readback;
+    if (predecessor_size == 0 || predecessor_size > predecessor_bytes.size() ||
+        !authenticate_predecessor_bytes(
+            predecessor_bytes.data(), predecessor_size, input_session,
+            input.sealed_inputs, input.sealed_inputs.expected_predecessor_digest)) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.predecessor_envelope_authenticated = true;
+    output.predecessor_envelope_phase_ordinal = 1;
+    if (!context_store_registry_lab_linux_initializer_predecessor_digest_v1(
+            predecessor_bytes.data(), predecessor_size,
+            output.predecessor_envelope_digest) ||
+        !same_digest(output.predecessor_envelope_digest,
+                     input.sealed_inputs.expected_predecessor_digest) ||
+        !make_predecessor_envelope_name(
+            output.predecessor_envelope_digest,
+            output.predecessor_envelope_basename)) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.predecessor_envelope_digest_name_computed = true;
+    output.predecessor_envelope_size =
+        static_cast<std::uint32_t>(predecessor_size);
+    output.predecessor_envelope_phase_ordinal = 2;
+
+    std::array<char, initialization_max_path_bytes + 1> envelope_path {};
+    constexpr char envelope_directory_suffix[] = "/envelopes/";
+    const std::size_t fixed_suffix_size = sizeof(envelope_directory_suffix) - 1;
+    const std::size_t basename_size =
+        std::strlen(output.predecessor_envelope_basename.data());
+    if (basename_size != 71 ||
+        !initialization_predecessor_envelope_path_admitted(
+            input.candidate_root.path_length) ||
+        input.candidate_root.path_length >
+            envelope_path.size() - 1 - fixed_suffix_size - basename_size) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    const std::size_t envelope_path_size = input.candidate_root.path_length +
+        fixed_suffix_size + basename_size;
+    std::memcpy(envelope_path.data(), input.candidate_root.canonical_path,
+                input.candidate_root.path_length);
+    std::memcpy(envelope_path.data() + input.candidate_root.path_length,
+                envelope_directory_suffix, fixed_suffix_size);
+    std::memcpy(envelope_path.data() + input.candidate_root.path_length +
+                    fixed_suffix_size,
+                output.predecessor_envelope_basename.data(), basename_size);
+    if (envelope_path_size > initialization_max_path_bytes ||
+        envelope_path[envelope_path_size] != '\0') {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.predecessor_envelope_path_admitted = true;
+    if (marker_size > initialization_future_logical_authority_bound ||
+        predecessor_size > initialization_future_logical_authority_bound - marker_size) {
+        return finish_marker(initialization_status::invalid_request_no_mutation);
+    }
+    output.predecessor_envelope_logical_bound_admitted = true;
+    output.predecessor_envelope_phase_ordinal = 3;
+
+    result = revalidate_accumulated_prefix(
+        parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+        input, writer_identity, 3, envelopes_identity, attempts_identity,
+        staging_identity, true, false, false, output, false);
+    int marker_after_fd = -1;
+    if (result == initialization_status::initialization_discard_required) {
+        marker_after_fd = open_contained(
+            root_fd, "root.marker", O_RDONLY | O_CLOEXEC | O_NOFOLLOW,
+            0, output, result);
+        if (marker_after_fd < 0) {
+            return finish_marker(result);
+        }
+        result = inspect_marker_file(
+            marker_after_fd, published_marker_suffix, input, marker_identity,
+            false, marker_size, false, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        wipe(readback_bytes.data(), readback_bytes.size());
+        result = read_exact_at_zero(
+            marker_after_fd, readback_bytes.data(), marker_size, output);
+    }
+    if (result != initialization_status::initialization_discard_required ||
+        std::memcmp(marker_bytes.data(), readback_bytes.data(), marker_size) != 0) {
+        (void) close_fd(marker_after_fd);
+        return finish_marker(result == initialization_status::initialization_discard_required
+                                 ? initialization_status::invalid_request_no_mutation
+                                 : result);
+    }
+    const auto verified_marker_before_envelope = context_store_registry_lab_verify_v1(
+        context_store_registry_lab_kind::root, readback_bytes.data(), marker_size,
+        *input_session.wire_credential, marker_expectation);
+    const bool marker_before_envelope_matched =
+        verified_marker_before_envelope.authenticated() &&
+        same_digest(verified_marker_before_envelope.content_digest,
+                    output.initializing_marker_content_digest);
+    const bool marker_after_closed = close_fd(marker_after_fd);
+    if (!marker_before_envelope_matched || !marker_after_closed) {
+        return finish_marker(initialization_status::io_failure_no_mutation);
+    }
+
+    // Close the inherited writable marker open description exactly once before
+    // the first L05z mutation. All subsequent marker access is read-only.
+    if (!close_fd(marker_fd)) {
+        return finish_marker(initialization_status::io_failure_no_mutation);
+    }
+    output.initializing_marker_write_descriptor_closed = true;
+    if (!close_fd(marker_readonly_fd) || !close_fd(published_marker_fd) ||
+        !close_fd(staging_validation_fd) || !close_fd(staging_final_fd)) {
+        return finish_marker(initialization_status::io_failure_no_mutation);
+    }
+    output.predecessor_envelope_pre_mutation_revalidation_matched = true;
+    output.predecessor_envelope_phase_ordinal = 4;
+
+    int envelopes_fd = -1;
+    int envelope_fd = -1;
+    int envelope_staging_validation_fd = -1;
+    int barrier_marker_fd = -1;
+    int envelope_readonly_fd = -1;
+    int published_envelope_fd = -1;
+    int final_envelope_confirmation_fd = -1;
+    int final_marker_fd = -1;
+    int final_marker_confirmation_fd = -1;
+    auto finish_envelope = [&](initialization_status envelope_result) noexcept {
+        bool close_ok = close_fd(final_marker_fd);
+        close_ok = close_fd(final_marker_confirmation_fd) && close_ok;
+        close_ok = close_fd(final_envelope_confirmation_fd) && close_ok;
+        close_ok = close_fd(published_envelope_fd) && close_ok;
+        close_ok = close_fd(envelope_readonly_fd) && close_ok;
+        close_ok = close_fd(barrier_marker_fd) && close_ok;
+        close_ok = close_fd(envelope_staging_validation_fd) && close_ok;
+        close_ok = close_fd(envelope_fd) && close_ok;
+        close_ok = close_fd(envelopes_fd) && close_ok;
+        if (!close_ok) {
+            output.predecessor_envelope_qualified = false;
+            envelope_result = initialization_status::io_failure_no_mutation;
+        }
+        return finish_marker(envelope_result);
+    };
+
+    envelopes_fd = open_contained(
+        root_fd, "envelopes", O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
+        0, output, result);
+    if (envelopes_fd < 0) {
+        return finish_envelope(result);
+    }
+    result = inspect_created_directory(envelopes_fd, "envelopes", input,
+                                       envelopes_identity, false, true, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_empty_directory(envelopes_fd, output, false);
+    }
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_envelope(result);
+    }
+
+    constexpr char staging_envelope_suffix[] =
+        "/staging/initialize-envelope.tmp";
+    std::array<char, initialization_predecessor_envelope_suffix_bytes + 1>
+        published_envelope_suffix {};
+    std::memcpy(published_envelope_suffix.data(), envelope_directory_suffix,
+                fixed_suffix_size);
+    std::memcpy(published_envelope_suffix.data() + fixed_suffix_size,
+                output.predecessor_envelope_basename.data(), basename_size);
+    if (std::strlen(published_envelope_suffix.data()) !=
+            initialization_predecessor_envelope_suffix_bytes ||
+        input.candidate_root.path_length + sizeof(staging_envelope_suffix) - 1 >
+            initialization_max_path_bytes) {
+        return finish_envelope(initialization_status::invalid_request_no_mutation);
+    }
+    envelope_fd = open_contained(
+        staging_fd, "initialize-envelope.tmp",
+        O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC | O_NOFOLLOW,
+        0600, output, result);
+    if (envelope_fd < 0) {
+        return finish_envelope(result);
+    }
+    output.predecessor_envelope_temp_created_no_replace = true;
+    output.predecessor_envelope_phase_ordinal = 5;
+    created_file_identity envelope_identity {};
+    result = inspect_marker_file(
+        envelope_fd, staging_envelope_suffix, input, envelope_identity,
+        true, 0, true, output);
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_envelope(result);
+    }
+    ++output.root_fixture_syscall_count;
+    if (::fchmod(envelope_fd, 0600) != 0) {
+        return finish_envelope(map_error(errno));
+    }
+    result = inspect_marker_file(
+        envelope_fd, staging_envelope_suffix, input, envelope_identity,
+        false, 0, false, output);
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_envelope(result);
+    }
+    output.predecessor_envelope_mode_revalidated = true;
+    output.predecessor_envelope_phase_ordinal = 6;
+
+    result = write_exact_at_zero(
+        envelope_fd, predecessor_bytes.data(), predecessor_size, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_marker_file(
+            envelope_fd, staging_envelope_suffix, input, envelope_identity,
+            false, predecessor_size, false, output);
+    }
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_envelope(result);
+    }
+    output.predecessor_envelope_write_completed = true;
+    output.predecessor_envelope_phase_ordinal = 7;
+    wipe(predecessor_readback.data(), predecessor_readback.size());
+    result = read_exact_at_zero(
+        envelope_fd, predecessor_readback.data(), predecessor_size, output);
+    if (result != initialization_status::initialization_discard_required ||
+        std::memcmp(predecessor_bytes.data(), predecessor_readback.data(),
+                    predecessor_size) != 0) {
+        return finish_envelope(result == initialization_status::initialization_discard_required
+                                   ? initialization_status::invalid_request_no_mutation
+                                   : result);
+    }
+    output.predecessor_envelope_readback_exact = true;
+    if (!authenticate_predecessor_bytes(
+            predecessor_readback.data(), predecessor_size, input_session,
+            input.sealed_inputs, output.predecessor_envelope_digest)) {
+        return finish_envelope(initialization_status::invalid_request_no_mutation);
+    }
+    output.predecessor_envelope_readback_authenticated = true;
+    output.predecessor_envelope_phase_ordinal = 8;
+    ++output.root_fixture_syscall_count;
+    if (::fsync(envelope_fd) != 0) {
+        return finish_envelope(map_error(errno));
+    }
+    output.predecessor_envelope_synchronized = true;
+    output.predecessor_envelope_phase_ordinal = 9;
+
+    result = revalidate_accumulated_prefix(
+        parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+        input, writer_identity, 3, envelopes_identity, attempts_identity,
+        staging_identity, true, true, false, output, false);
+    if (result == initialization_status::initialization_discard_required) {
+        barrier_marker_fd = open_contained(
+            root_fd, "root.marker", O_RDONLY | O_CLOEXEC | O_NOFOLLOW,
+            0, output, result);
+        if (barrier_marker_fd < 0) {
+            return finish_envelope(result);
+        }
+        result = inspect_marker_file(
+            barrier_marker_fd, published_marker_suffix, input, marker_identity,
+            false, marker_size, false, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        wipe(readback_bytes.data(), readback_bytes.size());
+        result = read_exact_at_zero(
+            barrier_marker_fd, readback_bytes.data(), marker_size, output);
+    }
+    if (result == initialization_status::initialization_discard_required &&
+        std::memcmp(marker_bytes.data(), readback_bytes.data(), marker_size) == 0) {
+        const auto verified_barrier_marker = context_store_registry_lab_verify_v1(
+            context_store_registry_lab_kind::root,
+            readback_bytes.data(), marker_size,
+            *input_session.wire_credential, marker_expectation);
+        if (!verified_barrier_marker.authenticated() ||
+            !same_digest(verified_barrier_marker.content_digest,
+                         output.initializing_marker_content_digest)) {
+            result = initialization_status::invalid_request_no_mutation;
+        }
+    } else if (result == initialization_status::initialization_discard_required) {
+        result = initialization_status::invalid_request_no_mutation;
+    }
+    if (!close_fd(barrier_marker_fd) &&
+        result == initialization_status::initialization_discard_required) {
+        result = initialization_status::io_failure_no_mutation;
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        envelope_staging_validation_fd = open_contained(
+            root_fd, "staging",
+            O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW,
+            0, output, result);
+        if (envelope_staging_validation_fd < 0) {
+            return finish_envelope(result);
+        }
+        result = compare_open_descriptions(
+            staging_fd, envelope_staging_validation_fd, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_created_directory(
+            envelope_staging_validation_fd, "staging", input,
+            staging_identity, false, true, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_single_directory_entry(
+            envelope_staging_validation_fd, "initialize-envelope.tmp", output);
+    }
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_envelope(result);
+    }
+
+    // This read-only selection is the final name-based operation before the
+    // sole no-replace publication syscall.
+    envelope_readonly_fd = open_contained(
+        staging_fd, "initialize-envelope.tmp",
+        O_RDONLY | O_CLOEXEC | O_NOFOLLOW, 0, output, result);
+    if (envelope_readonly_fd < 0) {
+        return finish_envelope(result);
+    }
+    result = compare_open_descriptions(
+        envelope_fd, envelope_readonly_fd, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_marker_file(
+            envelope_readonly_fd, staging_envelope_suffix, input,
+            envelope_identity, false, predecessor_size, false, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        wipe(predecessor_readback.data(), predecessor_readback.size());
+        result = read_exact_at_zero(
+            envelope_readonly_fd, predecessor_readback.data(),
+            predecessor_size, output);
+    }
+    if (result != initialization_status::initialization_discard_required ||
+        std::memcmp(predecessor_bytes.data(), predecessor_readback.data(),
+                    predecessor_size) != 0 ||
+        !authenticate_predecessor_bytes(
+            predecessor_readback.data(), predecessor_size, input_session,
+            input.sealed_inputs, output.predecessor_envelope_digest)) {
+        return finish_envelope(result == initialization_status::initialization_discard_required
+                                   ? initialization_status::invalid_request_no_mutation
+                                   : result);
+    }
+    output.predecessor_envelope_readonly_reopen_matched = true;
+    output.predecessor_envelope_pre_publication_revalidation_matched = true;
+    ++output.root_fixture_syscall_count;
+    if (::syscall(SYS_renameat2, staging_fd, "initialize-envelope.tmp",
+                  envelopes_fd, output.predecessor_envelope_basename.data(),
+                  RENAME_NOREPLACE) != 0) {
+        const int rename_error = errno;
+        return finish_envelope(rename_error == ENOSYS || rename_error == EINVAL
+                                   ? initialization_status::unsupported_no_mutation
+                                   : map_error(rename_error));
+    }
+    output.predecessor_envelope_published_no_replace = true;
+    output.predecessor_envelope_phase_ordinal = 10;
+    ++output.root_fixture_syscall_count;
+    if (::fsync(envelopes_fd) != 0) {
+        return finish_envelope(map_error(errno));
+    }
+    output.envelopes_synchronized_after_predecessor = true;
+    output.predecessor_envelope_phase_ordinal = 11;
+    ++output.root_fixture_syscall_count;
+    if (::fsync(staging_fd) != 0) {
+        return finish_envelope(map_error(errno));
+    }
+    output.staging_synchronized_after_predecessor = true;
+    output.predecessor_envelope_phase_ordinal = 12;
+
+    published_envelope_fd = open_contained(
+        envelopes_fd, output.predecessor_envelope_basename.data(),
+        O_RDONLY | O_CLOEXEC | O_NOFOLLOW, 0, output, result);
+    if (published_envelope_fd < 0) {
+        return finish_envelope(result);
+    }
+    result = compare_open_descriptions(
+        envelope_fd, published_envelope_fd, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_marker_file(
+            published_envelope_fd, published_envelope_suffix.data(), input,
+            envelope_identity, false, predecessor_size, false, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        wipe(predecessor_readback.data(), predecessor_readback.size());
+        result = read_exact_at_zero(
+            published_envelope_fd, predecessor_readback.data(),
+            predecessor_size, output);
+    }
+    if (result != initialization_status::initialization_discard_required ||
+        std::memcmp(predecessor_bytes.data(), predecessor_readback.data(),
+                    predecessor_size) != 0 ||
+        !authenticate_predecessor_bytes(
+            predecessor_readback.data(), predecessor_size, input_session,
+            input.sealed_inputs, output.predecessor_envelope_digest)) {
+        return finish_envelope(result == initialization_status::initialization_discard_required
+                                   ? initialization_status::invalid_request_no_mutation
+                                   : result);
+    }
+    output.predecessor_envelope_final_revalidation_matched = true;
+
+    final_marker_fd = open_contained(
+        root_fd, "root.marker", O_RDONLY | O_CLOEXEC | O_NOFOLLOW,
+        0, output, result);
+    if (final_marker_fd < 0) {
+        return finish_envelope(result);
+    }
+    result = inspect_marker_file(
+        final_marker_fd, published_marker_suffix, input, marker_identity,
+        false, marker_size, false, output);
+    if (result == initialization_status::initialization_discard_required) {
+        wipe(readback_bytes.data(), readback_bytes.size());
+        result = read_exact_at_zero(
+            final_marker_fd, readback_bytes.data(), marker_size, output);
+    }
+    const auto final_marker_verification =
+        result == initialization_status::initialization_discard_required
+            ? context_store_registry_lab_verify_v1(
+                  context_store_registry_lab_kind::root,
+                  readback_bytes.data(), marker_size,
+                  *input_session.wire_credential, marker_expectation)
+            : context_store_registry_lab_wire_result {};
+    if (result != initialization_status::initialization_discard_required ||
+        std::memcmp(marker_bytes.data(), readback_bytes.data(), marker_size) != 0 ||
+        !final_marker_verification.authenticated() ||
+        !same_digest(final_marker_verification.content_digest,
+                     output.initializing_marker_content_digest)) {
+        return finish_envelope(result == initialization_status::initialization_discard_required
+                                   ? initialization_status::invalid_request_no_mutation
+                                   : result);
+    }
+    output.initializing_marker_unchanged_after_predecessor = true;
+    result = revalidate_predecessor_final_layout(
+        parent_fd, root_fd, fixture_fd, fixture_lock_fd, writer_fd,
+        input, writer_identity, envelopes_identity, attempts_identity,
+        staging_identity, output.predecessor_envelope_basename.data(), output);
+    if (result != initialization_status::initialization_discard_required) {
+        return finish_envelope(result);
+    }
+    final_envelope_confirmation_fd = open_contained(
+        envelopes_fd, output.predecessor_envelope_basename.data(),
+        O_RDONLY | O_CLOEXEC | O_NOFOLLOW, 0, output, result);
+    if (final_envelope_confirmation_fd < 0) {
+        return finish_envelope(result);
+    }
+    result = compare_open_descriptions(
+        published_envelope_fd, final_envelope_confirmation_fd, output);
+    if (result == initialization_status::initialization_discard_required) {
+        result = inspect_marker_file(
+            final_envelope_confirmation_fd, published_envelope_suffix.data(), input,
+            envelope_identity, false, predecessor_size, false, output);
+    }
+    if (result == initialization_status::initialization_discard_required) {
+        wipe(predecessor_readback.data(), predecessor_readback.size());
+        result = read_exact_at_zero(
+            final_envelope_confirmation_fd, predecessor_readback.data(),
+            predecessor_size, output);
+    }
+    if (result != initialization_status::initialization_discard_required ||
+        std::memcmp(predecessor_bytes.data(), predecessor_readback.data(),
+                    predecessor_size) != 0 ||
+        !authenticate_predecessor_bytes(
+            predecessor_readback.data(), predecessor_size, input_session,
+            input.sealed_inputs, output.predecessor_envelope_digest)) {
+        return finish_envelope(result == initialization_status::initialization_discard_required
+                                   ? initialization_status::invalid_request_no_mutation
+                                   : result);
+    }
+    final_marker_confirmation_fd = open_contained(
+        root_fd, "root.marker", O_RDONLY | O_CLOEXEC | O_NOFOLLOW,
+        0, output, result);
+    if (final_marker_confirmation_fd < 0) {
+        return finish_envelope(result);
+    }
+    result = inspect_marker_file(
+        final_marker_confirmation_fd, published_marker_suffix, input,
+        marker_identity, false, marker_size, false, output);
+    if (result == initialization_status::initialization_discard_required) {
+        wipe(readback_bytes.data(), readback_bytes.size());
+        result = read_exact_at_zero(
+            final_marker_confirmation_fd, readback_bytes.data(),
+            marker_size, output);
+    }
+    const auto confirmed_final_marker =
+        result == initialization_status::initialization_discard_required
+            ? context_store_registry_lab_verify_v1(
+                  context_store_registry_lab_kind::root,
+                  readback_bytes.data(), marker_size,
+                  *input_session.wire_credential, marker_expectation)
+            : context_store_registry_lab_wire_result {};
+    const bool final_marker_confirmed =
+        result == initialization_status::initialization_discard_required &&
+        std::memcmp(marker_bytes.data(), readback_bytes.data(), marker_size) == 0 &&
+        confirmed_final_marker.authenticated() &&
+        same_digest(confirmed_final_marker.content_digest,
+                    output.initializing_marker_content_digest);
+    const bool final_marker_confirmation_closed =
+        close_fd(final_marker_confirmation_fd);
+    if (!final_marker_confirmed || !final_marker_confirmation_closed) {
+        return finish_envelope(
+            result == initialization_status::initialization_discard_required
+                ? initialization_status::invalid_request_no_mutation : result);
+    }
+    output.predecessor_envelope_device = envelope_identity.device;
+    output.predecessor_envelope_inode = envelope_identity.inode;
+    output.predecessor_envelope_mount_id = envelope_identity.mount_id;
+    output.predecessor_envelope_final_layout_matched = true;
+    output.predecessor_envelope_qualified = true;
+    output.predecessor_envelope_phase_ordinal = 13;
+    return finish_envelope(result);
 }
 
 } // namespace
@@ -2279,6 +3046,11 @@ initialization_audit initialize_directory_prefix_once(
 initialization_audit initialize_initializing_marker_once(
         const initialization_request & input) noexcept {
     return initialize_once(input, initialization_extent::initializing_marker);
+}
+
+initialization_audit initialize_predecessor_envelope_once(
+        const initialization_request & input) noexcept {
+    return initialize_once(input, initialization_extent::predecessor_envelope);
 }
 
 } // namespace halofpx::registry_lab::linux_initializer

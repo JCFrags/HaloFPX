@@ -42,15 +42,16 @@ foreach(LINE IN LISTS DEFINED_LINES)
   endif()
 endforeach()
 list(LENGTH DEFINED_TEXT_SYMBOL_LINES DEFINED_SYMBOL_COUNT)
-if(NOT DEFINED_SYMBOL_COUNT EQUAL 5)
-  message(FATAL_ERROR "initializer archive must define exactly five callable symbols: ${DEFINED}")
+if(NOT DEFINED_SYMBOL_COUNT EQUAL 6)
+  message(FATAL_ERROR "initializer archive must define exactly six callable symbols: ${DEFINED}")
 endif()
 foreach(REQUIRED IN ITEMS
     "halofpx::context_store_registry_lab_linux_initializer_predecessor_digest_v1"
     "halofpx::registry_lab::linux_initializer::inspect_sealed_inputs_once"
     "halofpx::registry_lab::linux_initializer::initialize_writer_lock_anchor_once"
     "halofpx::registry_lab::linux_initializer::initialize_directory_prefix_once"
-    "halofpx::registry_lab::linux_initializer::initialize_initializing_marker_once")
+    "halofpx::registry_lab::linux_initializer::initialize_initializing_marker_once"
+    "halofpx::registry_lab::linux_initializer::initialize_predecessor_envelope_once")
   string(FIND "${DEFINED}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "initializer archive is missing admitted definition: ${REQUIRED}")
@@ -108,4 +109,4 @@ foreach(FORBIDDEN IN ITEMS " openat" " write" " rename" "fdatasync"
   endif()
 endforeach()
 
-message(STATUS "PASS: L05t seam through L05y discard-only initializing-marker archive/import isolation")
+message(STATUS "PASS: L05t seam through L05z discard-only predecessor-envelope archive/import isolation")

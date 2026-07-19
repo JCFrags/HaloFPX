@@ -74,6 +74,14 @@ constexpr std::uint64_t initialization_future_logical_authority_bound =
     16ULL * 1024ULL * 1024ULL;
 constexpr std::uint64_t initialization_required_filesystem_reserve =
     256ULL * 1024ULL * 1024ULL;
+constexpr std::size_t initialization_predecessor_envelope_suffix_bytes = 82;
+
+static constexpr bool initialization_predecessor_envelope_path_admitted(
+        std::size_t candidate_root_bytes) noexcept {
+    return candidate_root_bytes <= initialization_max_path_bytes &&
+           candidate_root_bytes <= initialization_max_path_bytes -
+                                      initialization_predecessor_envelope_suffix_bytes;
+}
 
 enum class initialization_status : std::uint8_t {
     initialization_discard_required,
@@ -106,8 +114,8 @@ struct initialization_request {
     std::uint64_t fixture_lock_inode = 0;
 };
 
-// L05w/L05x/L05y expose only public comparison, ordering, generated-identity,
-// and narrow discard-only construction facts.
+// L05w/L05x/L05y/L05z expose only public comparison, ordering,
+// generated-identity, and narrow discard-only construction facts.
 // Even a clean anchor qualification is discard-required and returns no fd,
 // absence proof, credential, predecessor, or reusable mutation authority.
 struct initialization_audit {
@@ -163,6 +171,27 @@ struct initialization_audit {
     bool initializing_marker_final_revalidation_matched = false;
     bool staging_empty_after_marker_publication = false;
     bool initializing_marker_qualified = false;
+    bool predecessor_envelope_authenticated = false;
+    bool predecessor_envelope_digest_name_computed = false;
+    bool predecessor_envelope_path_admitted = false;
+    bool predecessor_envelope_logical_bound_admitted = false;
+    bool initializing_marker_write_descriptor_closed = false;
+    bool predecessor_envelope_pre_mutation_revalidation_matched = false;
+    bool predecessor_envelope_temp_created_no_replace = false;
+    bool predecessor_envelope_mode_revalidated = false;
+    bool predecessor_envelope_write_completed = false;
+    bool predecessor_envelope_readback_exact = false;
+    bool predecessor_envelope_readback_authenticated = false;
+    bool predecessor_envelope_synchronized = false;
+    bool predecessor_envelope_readonly_reopen_matched = false;
+    bool predecessor_envelope_pre_publication_revalidation_matched = false;
+    bool predecessor_envelope_published_no_replace = false;
+    bool envelopes_synchronized_after_predecessor = false;
+    bool staging_synchronized_after_predecessor = false;
+    bool predecessor_envelope_final_revalidation_matched = false;
+    bool initializing_marker_unchanged_after_predecessor = false;
+    bool predecessor_envelope_final_layout_matched = false;
+    bool predecessor_envelope_qualified = false;
     bool writer_lock_released = false;
     bool fixture_lock_released = false;
     bool root_guard_released = false;
@@ -171,11 +200,18 @@ struct initialization_audit {
     std::array<std::uint8_t, 16> generated_store_uuid{};
     context_store_format_digest path_policy_commitment{};
     context_store_format_digest initializing_marker_content_digest{};
+    context_store_format_digest predecessor_envelope_digest{};
+    std::array<char, 72> predecessor_envelope_basename{};
     std::uint64_t initializing_marker_device = 0;
     std::uint64_t initializing_marker_inode = 0;
     std::uint64_t initializing_marker_mount_id = 0;
     std::uint32_t initializing_marker_size = 0;
     std::uint32_t initializing_marker_phase_ordinal = 0;
+    std::uint64_t predecessor_envelope_device = 0;
+    std::uint64_t predecessor_envelope_inode = 0;
+    std::uint64_t predecessor_envelope_mount_id = 0;
+    std::uint32_t predecessor_envelope_size = 0;
+    std::uint32_t predecessor_envelope_phase_ordinal = 0;
     std::uint32_t root_fixture_syscall_count = 0;
     std::uint32_t fixture_ofd_attempt_count = 0;
     std::uint32_t writer_ofd_attempt_count = 0;
@@ -201,6 +237,12 @@ initialization_audit initialize_directory_prefix_once(
 // initializing root.marker through the fixed initialize-root.tmp staging name.
 // It publishes no predecessor envelope or HEAD and remains discard-required.
 initialization_audit initialize_initializing_marker_once(
+    const initialization_request & input) noexcept;
+
+// L05z preserves all earlier extents, then publishes only the exact
+// authenticated predecessor bytes under their registry-lab digest name. It
+// publishes no HEAD, leaves root.marker immutable, and remains discard-required.
+initialization_audit initialize_predecessor_envelope_once(
     const initialization_request & input) noexcept;
 
 } // namespace registry_lab::linux_initializer
