@@ -1,0 +1,16 @@
+Test project /var/tmp/halofpx-qualification/l05t-seam-20260719-nimo2/build-asan
+    Start 96: test-halofpx-context-store-registry-lab-linux-initializer-seam
+1/3 Test #96: test-halofpx-context-store-registry-lab-linux-initializer-seam ............   Passed    0.01 sec
+    Start 97: test-halofpx-context-store-registry-lab-linux-initializer-seam-contract
+2/3 Test #97: test-halofpx-context-store-registry-lab-linux-initializer-seam-contract ...   Passed    0.01 sec
+    Start 99: test-halofpx-context-store-registry-lab-linux-initializer-archive-audit
+3/3 Test #99: test-halofpx-context-store-registry-lab-linux-initializer-archive-audit ...   Passed    0.02 sec
+
+100% tests passed, 0 tests failed out of 3
+
+Label Time Summary:
+halofpx    =   0.03 sec*proc (3 tests)
+linux      =   0.03 sec*proc (3 tests)
+main       =   0.03 sec*proc (3 tests)
+
+Total Test time (real) =   0.03 sec

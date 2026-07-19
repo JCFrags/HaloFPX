@@ -183,6 +183,93 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     endif()
 endif()
 
+# L05t opens only the default-off initializer linkage and no-I/O predecessor
+# digest seam. Concrete filesystem mutation remains outside this submilestone.
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
+    HALOFPX_REGISTRY_LAB_LINUX_PREINIT AND
+    HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER)
+    add_library(halofpx-context-store-registry-lab-linux-initializer STATIC EXCLUDE_FROM_ALL
+        halofpx-context-store-registry-lab-linux-initializer.cpp
+        halofpx-context-store-registry-lab-linux-initializer-internal.h)
+    target_link_libraries(halofpx-context-store-registry-lab-linux-initializer PRIVATE
+        halofpx-context-store-registry-lab-wire)
+    target_compile_features(halofpx-context-store-registry-lab-linux-initializer PRIVATE
+        cxx_std_17)
+
+    if (BUILD_TESTING)
+        add_executable(test-halofpx-context-store-registry-lab-linux-initializer-seam EXCLUDE_FROM_ALL
+            ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-registry-lab-linux-initializer-seam.cpp)
+        target_include_directories(test-halofpx-context-store-registry-lab-linux-initializer-seam PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR})
+        target_link_libraries(test-halofpx-context-store-registry-lab-linux-initializer-seam PRIVATE
+            halofpx-context-store-registry-lab-linux-initializer)
+        target_compile_features(test-halofpx-context-store-registry-lab-linux-initializer-seam PRIVATE
+            cxx_std_17)
+        add_test(NAME test-halofpx-context-store-registry-lab-linux-initializer-seam
+            COMMAND test-halofpx-context-store-registry-lab-linux-initializer-seam
+                ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05o-registry-lab-golden-vector.json)
+        set_tests_properties(test-halofpx-context-store-registry-lab-linux-initializer-seam PROPERTIES
+            LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+
+        add_test(NAME test-halofpx-context-store-registry-lab-linux-initializer-seam-contract
+            COMMAND ${CMAKE_COMMAND}
+                -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+                -P ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake)
+        set_tests_properties(
+            test-halofpx-context-store-registry-lab-linux-initializer-seam-contract PROPERTIES
+            LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+
+        add_test(NAME test-halofpx-context-store-registry-lab-linux-build-gates
+            COMMAND ${CMAKE_COMMAND}
+                -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+                -DBINARY_ROOT=${CMAKE_BINARY_DIR}
+                -DGENERATOR=${CMAKE_GENERATOR}
+                -DMAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+                -P ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-registry-lab-linux-build-gates.cmake)
+        set_tests_properties(
+            test-halofpx-context-store-registry-lab-linux-build-gates PROPERTIES
+            LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+
+        find_program(HALOFPX_L05T_NM_EXECUTABLE NAMES llvm-nm nm REQUIRED)
+        find_program(HALOFPX_L05T_AR_EXECUTABLE NAMES llvm-ar ar REQUIRED)
+        file(GENERATE
+            OUTPUT "${CMAKE_BINARY_DIR}/halofpx-registry-lab-linux-initializer-archive-$<CONFIG>.cmake"
+            CONTENT
+"set(HALOFPX_L05T_ARCHIVE \"$<TARGET_FILE:halofpx-context-store-registry-lab-linux-initializer>\")
+")
+        set(HALOFPX_L05T_SANITIZED_BUILD FALSE)
+        if (LLAMA_SANITIZE_ADDRESS OR
+            LLAMA_SANITIZE_UNDEFINED OR
+            CMAKE_C_FLAGS MATCHES "fsanitize" OR
+            CMAKE_CXX_FLAGS MATCHES "fsanitize" OR
+            CMAKE_EXE_LINKER_FLAGS MATCHES "fsanitize" OR
+            CMAKE_C_FLAGS_DEBUG MATCHES "fsanitize" OR
+            CMAKE_CXX_FLAGS_DEBUG MATCHES "fsanitize" OR
+            CMAKE_EXE_LINKER_FLAGS_DEBUG MATCHES "fsanitize" OR
+            CMAKE_C_FLAGS_RELEASE MATCHES "fsanitize" OR
+            CMAKE_CXX_FLAGS_RELEASE MATCHES "fsanitize" OR
+            CMAKE_EXE_LINKER_FLAGS_RELEASE MATCHES "fsanitize" OR
+            CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "fsanitize" OR
+            CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "fsanitize" OR
+            CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO MATCHES "fsanitize" OR
+            CMAKE_C_FLAGS_MINSIZEREL MATCHES "fsanitize" OR
+            CMAKE_CXX_FLAGS_MINSIZEREL MATCHES "fsanitize" OR
+            CMAKE_EXE_LINKER_FLAGS_MINSIZEREL MATCHES "fsanitize")
+            set(HALOFPX_L05T_SANITIZED_BUILD TRUE)
+        endif()
+        add_test(NAME test-halofpx-context-store-registry-lab-linux-initializer-archive-audit
+            COMMAND ${CMAKE_COMMAND}
+                -DARCHIVE_MANIFEST=${CMAKE_BINARY_DIR}/halofpx-registry-lab-linux-initializer-archive-$<CONFIG>.cmake
+                -DNM_TOOL=${HALOFPX_L05T_NM_EXECUTABLE}
+                -DAR_TOOL=${HALOFPX_L05T_AR_EXECUTABLE}
+                -DSANITIZED_BUILD=${HALOFPX_L05T_SANITIZED_BUILD}
+                -P ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-registry-lab-linux-initializer-archive-audit.cmake)
+        set_tests_properties(
+            test-halofpx-context-store-registry-lab-linux-initializer-archive-audit PROPERTIES
+            LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+    endif()
+endif()
+
 # Offline-only L05a publication coordinator and injected fault seam. No
 # concrete filesystem backend exists and this target is not linked to server.
 add_library(halofpx-context-store-publication STATIC EXCLUDE_FROM_ALL

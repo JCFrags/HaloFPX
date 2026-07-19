@@ -1,0 +1,98 @@
+{
+  "schema": "halofpx.l05t-initializer-no-io-seam.v1",
+  "date": "2026-07-19",
+  "parent_commit": "9da5b32efd1fe5ab726228761063bcca2cab9e35",
+  "parent_tree": "fd02514dacd19c08bea463aaaae6d9cafbb5f8ee",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "bounded no-I/O registry-envelope digest API and Linux-only default-off initializer linkage seam; no filesystem implementation",
+  "build_boundary": {
+    "HALOFPX_REGISTRY_LAB_LINUX_PREINIT_default": false,
+    "HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER_default": false,
+    "HALOFPX_REGISTRY_LAB_LINUX_MUTATION_default": false,
+    "initializer_requires_linux_and_preinit": true,
+    "mutation_on_is_fatal": true,
+    "target_shape": "STATIC EXCLUDE_FROM_ALL",
+    "feature_off_target_absent": true,
+    "feature_off_ctest_absent": true,
+    "product_or_install_or_export_edge": false
+  },
+  "contract": {
+    "digest_domain": "halofpx.registry-lab-registry-envelope.v1 plus terminating NUL",
+    "admitted_input_bytes": "1..1024",
+    "failure_preserves_output": true,
+    "initializer_archive_members": 1,
+    "unsanitized_global_definitions": 1,
+    "unsanitized_imports": 1,
+    "sole_definition": "context_store_registry_lab_linux_initializer_predecessor_digest_v1",
+    "sole_halofpx_import": "context_store_registry_lab_registry_envelope_digest_v1",
+    "sanitizer_only_extra_import_prefixes": ["__asan_", "__ubsan_"],
+    "filesystem_or_process_apis_admitted": false
+  },
+  "qualification": {
+    "windows_release_feature_off": {
+      "passed": 40,
+      "failed": 0,
+      "seconds": 57.01,
+      "initializer_without_preinit_rejected": true,
+      "log_sha256": "d0c60072c40ba02be16ebcf186aa2b035070f8484b296c78775cc6cbf31f9d1a"
+    },
+    "nimo_1_release": {
+      "initializer_tests": "3/3",
+      "gate_matrix": "1/1",
+      "wire_tests": "2/2",
+      "golden_tests": "1/1",
+      "fresh_seam_processes": 1000,
+      "fresh_wire_processes": 200,
+      "failures": 0,
+      "repeat_sha256": "e463c7a7f91bdd511459ebb9cd6818aafa7aba090b6ecfa588f6f1a1e170d833",
+      "seam_executable_sha256": "ef7efe5a247dcc0d23b955004411f3d421f0d646a55aa31aa614560d51394069"
+    },
+    "nimo_2_release": {
+      "initializer_tests": "3/3",
+      "gate_matrix": "1/1",
+      "wire_tests": "2/2",
+      "golden_tests": "1/1",
+      "fresh_seam_processes": 1000,
+      "fresh_wire_processes": 200,
+      "failures": 0,
+      "repeat_sha256": "9962ac56d7f44a7371000ccd78e19a572bddf1bc5ae75579bc6449622f8d820c",
+      "seam_executable_sha256": "800addd43c7f7b203d3f850d9d8285effe230154c1db0e1a90af4603ffd091fe"
+    },
+    "nimo_2_asan_ubsan": {
+      "initializer_tests": "3/3",
+      "gate_matrix": "1/1",
+      "wire_tests": "2/2",
+      "archive_audit_with_canonical_sanitizer_options": "1/1",
+      "sanitizer_findings": 0
+    },
+    "independent_review": "ACCEPT after executable gate, archive isolation, sanitizer awareness, and exact defined-symbol repairs"
+  },
+  "retained_evidence": {
+    "root": "docs/halofpx/evidence/l05t-seam",
+    "nimo_1_source_sha256": "776b750819ac2bec4d3b6aa526e9f616c2777848d052b0fba67d2821e51ef918",
+    "nimo_2_source_sha256": "776b750819ac2bec4d3b6aa526e9f616c2777848d052b0fba67d2821e51ef918",
+    "nimo_1_release_archive_log_sha256": "b471a5a6a9902cb6f909bf6daddbc9fcb78ed56318e16264434d59a2ee852d7c",
+    "nimo_2_release_archive_log_sha256": "6ebefae8bf4c0612eeca131390b0675f8a970e0e74b563ce10a1f49daca31203",
+    "nimo_2_asan_archive_log_sha256": "93f18ad0716114024b75e26916cd0bfd10101b0963f2147c0567da8894d543ff"
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false,
+    "remote_created_or_pushed": false
+  },
+  "nonclaims": [
+    "No filesystem initializer, persistent write, publication, repair, reopen, quarantine, cache hit, restore, inference, HIP, Vulkan, RPC, WebUI, or distributed behavior is implemented or enabled.",
+    "The repeated CPU seam and wire tests are qualification evidence, not an inference-performance claim.",
+    "L14Q quantized-KV and FlashAttention work remains parked."
+  ]
+}

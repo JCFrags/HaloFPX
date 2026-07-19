@@ -1,0 +1,12 @@
+Test project /var/tmp/halofpx-qualification/l05t-seam-20260719-nimo2/build-asan
+    Start 98: test-halofpx-context-store-registry-lab-linux-build-gates
+1/1 Test #98: test-halofpx-context-store-registry-lab-linux-build-gates ...   Passed    0.14 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+halofpx    =   0.14 sec*proc (1 test)
+linux      =   0.14 sec*proc (1 test)
+main       =   0.14 sec*proc (1 test)
+
+Total Test time (real) =   0.15 sec

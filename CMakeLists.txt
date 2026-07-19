@@ -118,20 +118,14 @@ option(LLAMA_TESTS_INSTALL          "llama: install tests"                      
 option(HALOFPX_REGISTRY_LAB_LINUX_PREINIT
        "Build the Linux-only nonmutating registry-lab pre-initialization primitives"
        OFF)
+option(HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER
+       "Build the Linux-only discard-required registry-lab initializer seam"
+       OFF)
 option(HALOFPX_REGISTRY_LAB_LINUX_MUTATION
        "Build Linux registry-lab mutation support (not admitted)"
        OFF)
 
-if (HALOFPX_REGISTRY_LAB_LINUX_MUTATION)
-    message(FATAL_ERROR
-        "HALOFPX_REGISTRY_LAB_LINUX_MUTATION is not admitted by ADR-0025")
-endif()
-
-if (HALOFPX_REGISTRY_LAB_LINUX_PREINIT AND
-    NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    message(FATAL_ERROR
-        "HALOFPX_REGISTRY_LAB_LINUX_PREINIT is available only on Linux")
-endif()
+include(cmake/halofpx-registry-lab-linux-gates.cmake)
 
 # 3rd party libs
 option(LLAMA_OPENSSL    "llama: use openssl to support HTTPS" ON)

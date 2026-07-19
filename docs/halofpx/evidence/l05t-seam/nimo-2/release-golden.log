@@ -1,0 +1,11 @@
+Test project /var/tmp/halofpx-qualification/l05t-seam-20260719-nimo2/build-release
+    Start 30: test-halofpx-context-store-registry-lab-golden
+1/1 Test #30: test-halofpx-context-store-registry-lab-golden ...   Passed    0.07 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+halofpx    =   0.07 sec*proc (1 test)
+main       =   0.07 sec*proc (1 test)
+
+Total Test time (real) =   0.07 sec

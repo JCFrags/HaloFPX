@@ -1,0 +1,89 @@
+Test project C:/Users/britt/Documents/HaloFPX/build/halofpx-l05s-feature-off-release-windows
+      Start  1: test-halofpx-feature-off-contract
+ 1/40 Test  #1: test-halofpx-feature-off-contract ..............................   Passed    0.14 sec
+      Start  2: test-halofpx-l02-contracts
+ 2/40 Test  #2: test-halofpx-l02-contracts .....................................   Passed    0.03 sec
+      Start  3: test-halofpx-context-store
+ 3/40 Test  #3: test-halofpx-context-store .....................................   Passed    0.01 sec
+      Start  4: test-halofpx-context-store-contract
+ 4/40 Test  #4: test-halofpx-context-store-contract ............................   Passed    0.07 sec
+      Start  5: test-halofpx-context-store-format
+ 5/40 Test  #5: test-halofpx-context-store-format ..............................   Passed    0.02 sec
+      Start  6: test-halofpx-context-store-format-contract
+ 6/40 Test  #6: test-halofpx-context-store-format-contract .....................   Passed    0.07 sec
+      Start  7: test-halofpx-context-store-auth
+ 7/40 Test  #7: test-halofpx-context-store-auth ................................   Passed    0.02 sec
+      Start  8: test-halofpx-context-store-auth-contract
+ 8/40 Test  #8: test-halofpx-context-store-auth-contract .......................   Passed    0.07 sec
+      Start  9: test-halofpx-context-store-anchor
+ 9/40 Test  #9: test-halofpx-context-store-anchor ..............................   Passed    0.02 sec
+      Start 10: test-halofpx-context-store-anchor-contract
+10/40 Test #10: test-halofpx-context-store-anchor-contract .....................   Passed    0.02 sec
+      Start 11: test-halofpx-context-store-anchor-golden
+11/40 Test #11: test-halofpx-context-store-anchor-golden .......................   Passed    0.15 sec
+      Start 12: test-halofpx-context-store-authority
+12/40 Test #12: test-halofpx-context-store-authority ...........................   Passed    0.13 sec
+      Start 13: test-halofpx-context-store-authority-contract
+13/40 Test #13: test-halofpx-context-store-authority-contract ..................   Passed    0.02 sec
+      Start 14: test-halofpx-context-store-bootstrap-token
+14/40 Test #14: test-halofpx-context-store-bootstrap-token .....................   Passed    0.01 sec
+      Start 15: test-halofpx-context-store-bootstrap-token-contract
+15/40 Test #15: test-halofpx-context-store-bootstrap-token-contract ............   Passed    0.02 sec
+      Start 16: test-halofpx-context-store-protected-registry
+16/40 Test #16: test-halofpx-context-store-protected-registry ..................   Passed    0.02 sec
+      Start 17: test-halofpx-context-store-protected-registry-contract
+17/40 Test #17: test-halofpx-context-store-protected-registry-contract .........   Passed    0.02 sec
+      Start 18: test-halofpx-context-store-protected-registry-golden
+18/40 Test #18: test-halofpx-context-store-protected-registry-golden ...........   Passed    0.13 sec
+      Start 19: test-halofpx-context-store-registry-successor
+19/40 Test #19: test-halofpx-context-store-registry-successor ..................   Passed    0.02 sec
+      Start 20: test-halofpx-context-store-registry-successor-golden
+20/40 Test #20: test-halofpx-context-store-registry-successor-golden ...........   Passed    0.13 sec
+      Start 21: test-halofpx-context-store-bootstrap-consumption-contract
+21/40 Test #21: test-halofpx-context-store-bootstrap-consumption-contract ......   Passed    0.02 sec
+      Start 22: test-halofpx-context-store-bootstrap-reconciliation-contract
+22/40 Test #22: test-halofpx-context-store-bootstrap-reconciliation-contract ...   Passed    0.02 sec
+      Start 23: test-halofpx-context-store-bootstrap-reconciliation-golden
+23/40 Test #23: test-halofpx-context-store-bootstrap-reconciliation-golden .....   Passed    0.13 sec
+      Start 24: test-halofpx-context-store-bootstrap-material-contract
+24/40 Test #24: test-halofpx-context-store-bootstrap-material-contract .........   Passed    0.02 sec
+      Start 25: test-halofpx-context-store-bootstrap-material-golden
+25/40 Test #25: test-halofpx-context-store-bootstrap-material-golden ...........   Passed    0.12 sec
+      Start 26: test-halofpx-context-store-bootstrap-anchor-contract
+26/40 Test #26: test-halofpx-context-store-bootstrap-anchor-contract ...........   Passed    0.02 sec
+      Start 27: test-halofpx-context-store-bootstrap-anchor-golden
+27/40 Test #27: test-halofpx-context-store-bootstrap-anchor-golden .............   Passed    0.15 sec
+      Start 28: test-halofpx-context-store-registry-lab-wire
+28/40 Test #28: test-halofpx-context-store-registry-lab-wire ...................   Passed    0.09 sec
+      Start 29: test-halofpx-context-store-registry-lab-wire-contract
+29/40 Test #29: test-halofpx-context-store-registry-lab-wire-contract ..........   Passed    0.03 sec
+      Start 30: test-halofpx-context-store-registry-lab-golden
+30/40 Test #30: test-halofpx-context-store-registry-lab-golden .................   Passed    0.19 sec
+      Start 31: test-halofpx-context-store-registry-lab-read-only
+31/40 Test #31: test-halofpx-context-store-registry-lab-read-only ..............   Passed   50.72 sec
+      Start 32: test-halofpx-context-store-registry-lab-read-only-contract
+32/40 Test #32: test-halofpx-context-store-registry-lab-read-only-contract .....   Passed    0.12 sec
+      Start 33: test-halofpx-context-store-bootstrap-token-golden
+33/40 Test #33: test-halofpx-context-store-bootstrap-token-golden ..............   Passed    0.14 sec
+      Start 34: test-halofpx-context-store-object
+34/40 Test #34: test-halofpx-context-store-object ..............................   Passed    0.02 sec
+      Start 35: test-halofpx-context-store-object-contract
+35/40 Test #35: test-halofpx-context-store-object-contract .....................   Passed    0.07 sec
+      Start 36: test-halofpx-context-store-publication
+36/40 Test #36: test-halofpx-context-store-publication .........................   Passed    0.02 sec
+      Start 37: test-halofpx-context-store-publication-contract
+37/40 Test #37: test-halofpx-context-store-publication-contract ................   Passed    0.02 sec
+      Start 38: test-halofpx-context-store-publication-simulator
+38/40 Test #38: test-halofpx-context-store-publication-simulator ...............   Passed    0.02 sec
+      Start 83: test-halofpx-context-store-registry-lab-static-audit
+39/40 Test #83: test-halofpx-context-store-registry-lab-static-audit ...........   Passed    3.25 sec
+      Start 84: test-halofpx-context-store-registry-lab-negative-probes
+40/40 Test #84: test-halofpx-context-store-registry-lab-negative-probes ........   Passed    0.65 sec
+
+100% tests passed, 0 tests failed out of 40
+
+Label Time Summary:
+halofpx    =  56.96 sec*proc (40 tests)
+main       =  56.96 sec*proc (40 tests)
+
+Total Test time (real) =  57.01 sec

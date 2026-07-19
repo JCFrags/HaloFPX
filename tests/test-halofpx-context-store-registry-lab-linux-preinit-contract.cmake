@@ -3,6 +3,7 @@ if(NOT DEFINED SOURCE_ROOT)
 endif()
 
 file(READ "${SOURCE_ROOT}/CMakeLists.txt" TOP_CMAKE)
+file(READ "${SOURCE_ROOT}/cmake/halofpx-registry-lab-linux-gates.cmake" GATE_CMAKE)
 file(READ "${SOURCE_ROOT}/tools/server/CMakeLists.txt" SERVER_CMAKE)
 file(READ "${SOURCE_ROOT}/tools/server/halofpx-context-store-registry-lab-linux-preinit-internal.h" HEADER)
 file(READ "${SOURCE_ROOT}/tools/server/halofpx-context-store-registry-lab-linux-preinit.cpp" SOURCE)
@@ -10,12 +11,18 @@ file(READ "${SOURCE_ROOT}/tests/test-halofpx-context-store-registry-lab-linux-pr
 
 foreach(REQUIRED IN ITEMS
         "option(HALOFPX_REGISTRY_LAB_LINUX_PREINIT"
-        "option(HALOFPX_REGISTRY_LAB_LINUX_MUTATION"
-        "HALOFPX_REGISTRY_LAB_LINUX_MUTATION is not admitted by ADR-0025"
-        "HALOFPX_REGISTRY_LAB_LINUX_PREINIT is available only on Linux")
+        "option(HALOFPX_REGISTRY_LAB_LINUX_MUTATION")
     string(FIND "${TOP_CMAKE}" "${REQUIRED}" POSITION)
     if(POSITION EQUAL -1)
-        message(FATAL_ERROR "missing top-level feature gate: ${REQUIRED}")
+        message(FATAL_ERROR "missing top-level feature option: ${REQUIRED}")
+    endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+        "HALOFPX_REGISTRY_LAB_LINUX_MUTATION is not admitted by ADR-0025"
+        "HALOFPX_REGISTRY_LAB_LINUX_PREINIT is available only on Linux")
+    string(FIND "${GATE_CMAKE}" "${REQUIRED}" POSITION)
+    if(POSITION EQUAL -1)
+        message(FATAL_ERROR "missing executable Linux feature gate: ${REQUIRED}")
     endif()
 endforeach()
 foreach(REQUIRED IN ITEMS

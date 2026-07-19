@@ -1,0 +1,21 @@
+[1/21] Building CXX object common/CMakeFiles/llama-common.dir/jinja/runtime.cpp.o
+[2/21] Building CXX object common/CMakeFiles/llama-common.dir/__/license.cpp.o
+[3/21] Linking CXX static library tools/server/libhalofpx-context-store-registry-successor.a
+[4/21] Building CXX object tools/server/CMakeFiles/halofpx-context-store-registry-lab-wire.dir/halofpx-context-store-registry-lab-wire.cpp.o
+[5/21] Linking CXX static library tools/server/libhalofpx-context-store-registry-lab-wire.a
+[6/21] Building CXX object tools/server/CMakeFiles/halofpx-context-store-registry-lab-linux-initializer.dir/halofpx-context-store-registry-lab-linux-initializer.cpp.o
+[7/21] Building CXX object tests/CMakeFiles/test-halofpx-context-store-registry-lab-wire.dir/test-halofpx-context-store-registry-lab-wire.cpp.o
+[8/21] Linking CXX static library tools/server/libhalofpx-context-store-registry-lab-linux-initializer.a
+[9/21] Building CXX object tools/server/CMakeFiles/test-halofpx-context-store-registry-lab-linux-initializer-seam.dir/__/__/tests/test-halofpx-context-store-registry-lab-linux-initializer-seam.cpp.o
+[10/21] Linking CXX executable bin/test-halofpx-context-store-registry-lab-linux-initializer-seam
+[11/21] Building CXX object common/CMakeFiles/llama-common.dir/regex-partial.cpp.o
+[12/21] Building CXX object common/CMakeFiles/llama-common.dir/jinja/caps.cpp.o
+[13/21] Building CXX object common/CMakeFiles/llama-common.dir/jinja/value.cpp.o
+[14/21] Building CXX object common/CMakeFiles/llama-common.dir/chat.cpp.o
+[15/21] Building CXX object common/CMakeFiles/llama-common.dir/arg.cpp.o
+[16/21] Building CXX object common/CMakeFiles/llama-common.dir/peg-parser.cpp.o
+[17/21] Building CXX object vendor/cpp-httplib/CMakeFiles/cpp-httplib.dir/httplib.cpp.o
+[18/21] Linking CXX static library vendor/cpp-httplib/libcpp-httplib.a
+[19/21] Linking CXX shared library bin/libllama-common.so.0.0.0
+[20/21] Creating library symlink bin/libllama-common.so.0 bin/libllama-common.so
+[21/21] Linking CXX executable bin/test-halofpx-context-store-registry-lab-wire

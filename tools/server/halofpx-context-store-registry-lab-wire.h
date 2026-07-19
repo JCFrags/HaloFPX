@@ -185,6 +185,9 @@ context_store_registry_lab_wire_result context_store_registry_lab_encode_quarant
 bool context_store_registry_lab_parse_credential_v1(
     const uint8_t * data, size_t size, context_store_registry_lab_credential & output) noexcept;
 
+bool context_store_registry_lab_registry_envelope_digest_v1(
+    const uint8_t * data, size_t size, context_store_format_digest & output) noexcept;
+
 bool context_store_registry_lab_path_policy_v1(
     const uint8_t * parent, size_t parent_size,
     const uint8_t * root, size_t root_size,

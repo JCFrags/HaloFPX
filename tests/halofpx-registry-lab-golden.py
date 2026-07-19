@@ -678,6 +678,7 @@ result = {
         "key_continuity_hmac_sha256_hex": INNER_CONTINUITY.hex(),
     },
     "predecessor_registry_envelope_digest_hex": PRED_DIGEST.hex(),
+    "predecessor_registry_envelope_hex": PREDECESSOR.hex(),
     "successor_registry_envelope_digest_hex": SUCC_DIGEST.hex(),
     "operation_commitment_sha256_hex": OPERATION.hex(),
     "mutation_checks": mutation_checks,
