@@ -65,6 +65,29 @@ successor HEAD. M63-01 remains open on the same concrete Linux syscall,
 cross-process, crash/restart, hostile-path, corruption, capacity, and raw-node
 evidence gates; no persistence or durability claim has opened.
 
+The accepted L05p sequence through `849e3c84` closes only portable fake reads
+through operation 5 and exact recovery/request classification [S63-24]. The
+final candidate passed 84/84 Windows Release tests, 7/7 focused matrices on
+Windows Release and Debug plus optimized and ASan/UBSan Linux, and 2,218
+repeated final operation-5 processes. The separately corrected operations 1-4
+credential profile passed another 2,200 exact-candidate repeat processes.
+These results qualify bounded decoding, authentication, precedence, and
+isolation from product linkage; they do not satisfy M63-01 because no real
+filesystem, syscall, cross-process lock, process crash, restart, or node
+mutation was exercised.
+
+The accepted `cb20cc8a` L05q slice closes only fake operation-6 admission,
+recovered terminalization, and restart projection [S63-25]. Each exhaustive
+process covers 3,072 action/slot/history cases, 287 admitted and 1,393 forbidden
+new products, 10,335 restart projections, 712 truncations, 5,696 bit flips, and
+eight authenticated semantic attacks. Windows Release passed 84/84 twice; the
+focused Windows, optimized Linux, and ASan/UBSan Linux gates passed, followed
+by 3,208 repeat processes. M63-01 remains open: the target is still excluded,
+fake-only, and has no filesystem primitive, Linux adapter, process-crash
+harness, durable writer, persistence authority, provider, or inference edge.
+The inherited Debug authority assertion is retained as a separate baseline
+issue and is not evidence against the L05q target.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
