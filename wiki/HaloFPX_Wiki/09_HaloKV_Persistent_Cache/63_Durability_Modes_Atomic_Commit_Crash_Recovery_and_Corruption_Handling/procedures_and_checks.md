@@ -139,6 +139,25 @@ or `writer.lock` access, the next slice must authenticate the credential and
 every launcher-pinned predecessor field inside locked storage and discard it;
 L05u itself grants no reusable authority and performs no registry mutation.
 
+The accepted `c201c8dc` L05v slice closes the predecessor-authentication and
+launcher-pin consistency boundary before root access [S63-30]. The exact fd4
+envelope is structurally parsed and HMAC-authenticated under the locked fd3
+secret; the registry-lab digest, registry ID/epoch, authority scope, policy,
+high water, key tuple, and key continuity must all match the caller receipt.
+The facts-only verifier returns no carrier, secret, descriptor, or private
+authority binding, and every final failure clears the aggregate authentication
+and receipt-match facts. Each Linux input invocation covers 3,303 fresh child
+cases plus a shared-thread rejection; the three qualified Release/sanitizer
+invocations covered 9,909 fresh processes plus three thread-sharing cases.
+
+Treat this result as integrity under a caller-supplied credential, not as
+issuer or origin proof. A fully matched old snapshot may succeed in a fresh
+process; process-local one-shot consumption does not prove latestness,
+revocation, monotonicity, or rollback resistance. Root/fixture admission and
+the discard-only `writer.lock` anchor remain the next separately gated slice.
+L05v itself opens no root, mutates no registry, and admits no persistence,
+provider, cache, restore, or inference edge.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
