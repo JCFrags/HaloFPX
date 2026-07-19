@@ -37,17 +37,20 @@ Project authority is the accepted [v03 implementation plan](../plans/2026-07-17_
 
 | Field | Exact value |
 |---|---|
-| HaloFPX target commit | `80ab1edc8a66f3a1922f1af620141c24d5881da0` |
-| HaloFPX target tree | `43cf4fc8939915d7ead696ed039a9017035deda3` |
+| HaloFPX target commit | `051084fa3ab724cd290f864c093ff67f16e13a90` |
+| HaloFPX target tree | `b2fed43eeb5ccba9286638cf024d39452bf697e0` |
 | ROCmFPX base commit | `61f2f2d7bc4955e9bca821095ef69125837133b5` |
 | ROCmFPX base tree | `0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd` |
 | Target test path | `tests/test-backend-ops.cpp` |
 | Target test blob at base and target | `5e712d7271f23e4ebff14b60bf234f8b7e4d394a` |
 
-HaloFPX `80ab1edc...` descends from the exact base, and the target test blob is
-unchanged between the base and target anchors. This record does not silently
-advance either anchor. A later implementation commit must record its own parent,
-tree, and resulting target blob.
+HaloFPX `051084fa...` descends from both the exact base and the previously
+approved `80ab1edc...` target. The intervening L05x milestone did not change
+`tests/test-backend-ops.cpp`: its blob remains `5e712d7271f23e4ebff14b60bf234f8b7e4d394a`
+at the base, prior target, and refreshed target. This explicit anchor refresh
+does not expand the approved treatment or silently advance the source base. A
+later implementation commit must record its own parent, tree, and resulting
+target blob.
 
 ## Preserved source authority and integrity
 
@@ -216,7 +219,7 @@ provenance and correctness review before reconsideration.
 | Reviewer | **Independent Codex provenance review** — independent of the implementation author |
 | Review date | `2026-07-19` |
 | Decision | **APPROVE for P3**, no findings |
-| Approved target parent | confirmed `80ab1edc8a66f3a1922f1af620141c24d5881da0` |
+| Approved target parent | confirmed `051084fa3ab724cd290f864c093ff67f16e13a90`; descendant of prior approved target `80ab1edc8a66f3a1922f1af620141c24d5881da0`, with the target test blob unchanged |
 | Similarity/no-copy finding | no donor source is admitted; the no-copy boundary is approved and post-change similarity evidence remains an implementation promotion gate |
 | License/notice/SBOM finding | approved exactly as recorded; no notice or SBOM change for this no-copy test-only treatment |
 | Test ownership and qualification acceptance | qualification contract approved; execution evidence remains required before implementation promotion |
