@@ -1,0 +1,45 @@
+{
+  "schema": "halofpx.l05r-wire-standalone-uh.v1",
+  "date": "2026-07-18",
+  "parent_commit": "56a785d2b85bae70977410ab618ec9f62a9950b4",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "scope": "fake-only excluded wire admission seam for an independently authenticated unattributable predecessor HEAD",
+  "source_sha256": {
+    "header": "e65de20a88b4f4d609f39c9d055c095d02cf64165f59a1205e3fff6c3a62121c",
+    "implementation": "0305dba8e08729db66f98ead29c867ba15e35b0d224e46acabacdb03b760d26d",
+    "test": "53c28716e4ebf32c1f5c538152fc48940dc21f888d23a2047e0a1f31d510de7d",
+    "matched_on_windows_nimo_1_nimo_2": true
+  },
+  "qualification": {
+    "windows_debug_focused": { "passes": 2, "failures": 0, "repeat_executions": 50, "executable_sha256": "3cb5ebb1a92470a151b8d38f56f15388c0044edb40781c3de0855eea24a0aa3f" },
+    "windows_release_halofpx": { "passes": 40, "failures": 0, "seconds": 36.31, "repeat_executions": 100, "executable_sha256": "b82046915fd8ccf466aee01a41bc445b3bab530be22f5f5af06c2025ab51892d" },
+    "nimo_1_linux_release_halofpx": { "passes": 39, "failures": 0, "seconds": 5.62, "repeat_executions": 100, "executable_sha256": "6b2823a9d31fc3d912b1a7b39c4f96e69ade93c66ae7e3b63884e0e9fa9bbfcc" },
+    "nimo_2_linux_asan_ubsan_halofpx": { "passes": 39, "failures": 0, "seconds": 25.66, "repeat_executions": 100, "executable_sha256": "ae02db6491fdb09d1c2e51a5186ea77a463c2ff5c866e2e6275eff419acdd9f6" }
+  },
+  "adversarial_coverage": [
+    "exact UH bytes and content digest",
+    "every scope field mismatch",
+    "wrong selection, envelope bytes, envelope digest, high-water, selector generation, and expected HEAD digest",
+    "missing, truncated, corrupt, and wrong-credential raw HEAD",
+    "transition conflict and unexpected successor or PREPARE pointer-size asymmetry",
+    "attribution, previous-record, phase, HEAD-presence, attempt, slot, and operation-commitment shape violations",
+    "unchanged U0, P, S, and quarantine golden output"
+  ],
+  "baseline_repairs_discovered_by_clean_linux_qualification": [
+    "3509854 declares the test bootstrap-token std::copy_n algorithm dependency",
+    "b12f0f0 normalizes carriage returns before the reviewed L02 CDDL content hash",
+    "56a785d prevents a protected-registry test key span from referring to a destroyed temporary"
+  ],
+  "service_health_after_qualification": {
+    "nimo_1_llama_server_pid": 3783057,
+    "nimo_1_health_http": 200,
+    "nimo_2_rpc_pid": 3562775,
+    "nimo_2_rpc_listen": "0.0.0.0:50052"
+  },
+  "gate": "wire encoding unchanged; engine must still prove an authenticated initialized ROOT and enforce the exact ADR-0024 U0/UH/P/S reason matrix before operation 69",
+  "nonclaims": [
+    "No script can reach operations 69-76.",
+    "No Linux filesystem primitive, persistent write, provider, cache hit, restore, inference, or performance behavior is enabled.",
+    "No donor code or format was imported and no P3 record is required."
+  ]
+}

@@ -96,7 +96,7 @@ struct context_store_registry_lab_root_evidence_v1 {const uint8_t*authenticated_
 struct context_store_registry_lab_prepare_evidence_v1 {const uint8_t*predecessor_head=nullptr;size_t predecessor_head_size=0;};
 struct context_store_registry_lab_close_evidence_v1 {context_store_registry_lab_prepare_value_v1 transition;const uint8_t*predecessor_head=nullptr;size_t predecessor_head_size=0;const uint8_t*successor_head=nullptr;size_t successor_head_size=0;const uint8_t*prepare=nullptr;size_t prepare_size=0;};
 struct context_store_registry_lab_abort_evidence_v1 {context_store_registry_lab_prepare_value_v1 transition;const uint8_t*predecessor_head=nullptr;size_t predecessor_head_size=0;const uint8_t*prepare=nullptr;size_t prepare_size=0;const uint8_t*observed_head=nullptr;size_t observed_head_size=0;const uint8_t*observed_resolved=nullptr;size_t observed_resolved_size=0;};
-struct context_store_registry_lab_quarantine_evidence_v1 {const context_store_registry_lab_prepare_value_v1*transition=nullptr;const uint8_t*predecessor_head=nullptr;size_t predecessor_head_size=0;const uint8_t*successor_head=nullptr;size_t successor_head_size=0;const uint8_t*prepare=nullptr;size_t prepare_size=0;};
+struct context_store_registry_lab_quarantine_evidence_v1 {const context_store_registry_lab_prepare_value_v1*transition=nullptr;const uint8_t*predecessor_head=nullptr;size_t predecessor_head_size=0;const uint8_t*successor_head=nullptr;size_t successor_head_size=0;const uint8_t*prepare=nullptr;size_t prepare_size=0;const context_store_registry_lab_head_value_v1*standalone_predecessor_head_value=nullptr;};
 
 class context_store_registry_lab_root_witness;
 class context_store_registry_lab_head_witness;
