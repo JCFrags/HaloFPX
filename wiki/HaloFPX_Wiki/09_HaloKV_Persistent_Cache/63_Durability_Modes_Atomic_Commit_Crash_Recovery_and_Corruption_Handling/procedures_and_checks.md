@@ -158,6 +158,29 @@ the discard-only `writer.lock` anchor remain the next separately gated slice.
 L05v itself opens no root, mutates no registry, and admits no persistence,
 provider, cache, restore, or inference edge.
 
+The accepted `80ab1edc` L05w slice closes only the discard-required
+`writer.lock` anchor prefix [S63-31]. It retains the authenticated fd3/fd4
+state in locked file-private storage, closes both descriptors before the first
+parent/root/fixture syscall, pins exact Btrfs identities and reserve/read-only
+state, holds the fixture OFD lock, and obtains nonzero root/store identifiers
+before latching. After the latch it creates only `writer.lock` through
+contained exclusive `openat2`, applies and verifies mode `0600`, validates and
+file-syncs the inode, holds its exact whole-file OFD lock, and proves it is the
+root's sole entry. Every latched ordinary outcome is
+`initialization_discard_required`; a preexisting nonempty root is discard-only
+without a new mutation.
+
+Qualification retained 227 promoted live anchors and 400/400 exact-binary
+ptrace kills across four writer-lock boundary syscalls and both entry/exit
+phases, with 25 repetitions per group per node and 171,950 raw JSONL events.
+Focused Release and ASan/UBSan suites passed 6/6, while feature-off controls
+remained unchanged. Controllers deactivate the verified loopback medium as
+authority and retain the detached image only as immutable evidence. Rollback
+is source-only because the target remains default-off and excluded; any root
+that crossed the latch must never be adopted or repaired. L05w does not sync
+the root directory, complete initialization, publish state, enable persistent
+writes, or add a provider/cache/restore/inference or performance edge.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
