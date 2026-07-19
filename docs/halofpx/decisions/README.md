@@ -26,3 +26,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0020](0020-portable-registry-lab-read-only-prologue.md): portable registry-lab read-only prologue
 - [ADR-0021](0021-portable-registry-lab-operations-1-4-execution-closure.md): portable registry-lab operations 1-4 execution closure
 - [ADR-0022](0022-portable-registry-lab-operation-5-decoder-classification.md): portable registry-lab operation-5 decoder and classification closure
+- [ADR-0023](0023-portable-registry-lab-recovery-terminalization.md): portable registry-lab recovery mutation admission and terminalization

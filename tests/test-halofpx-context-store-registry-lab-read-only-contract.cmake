@@ -4,7 +4,7 @@ set(C "${ROOT}/tools/server/halofpx-context-store-registry-lab-read-only.cpp")
 set(T "${ROOT}/tests/test-halofpx-context-store-registry-lab-read-only.cpp")
 foreach(F IN ITEMS "${H}" "${C}" "${T}")
   if(NOT EXISTS "${F}")
-    message(FATAL_ERROR "missing L05p read-only operations 1-5 source: ${F}")
+    message(FATAL_ERROR "missing L05Q registry-lab recovery source: ${F}")
   endif()
 endforeach()
 
@@ -21,18 +21,19 @@ foreach(F IN ITEMS "${H}" "${C}")
       "halofpx-context-store-bootstrap-anchor" "llama-ai" "CachyLLama")
     string(FIND "${TEXT}" "${FORBIDDEN}" HIT)
     if(NOT HIT EQUAL -1)
-      message(FATAL_ERROR "L05p read-only operations 1-5 contains forbidden surface ${FORBIDDEN}: ${F}")
+      message(FATAL_ERROR "L05Q fake-only recovery contains forbidden surface ${FORBIDDEN}: ${F}")
     endif()
   endforeach()
 endforeach()
 
 file(READ "${C}" IMPLEMENTATION)
+file(READ "${H}" HEADER_TEXT)
 foreach(UNAVAILABLE IN ITEMS
-    "operation 6" "before_first_mutation" "quarantine reason" "publication"
-    "context_store_registry_lab_admit_" "context_store_registry_lab_encode_")
+    "before_first_mutation" "quarantine reason" "context_store_registry_lab_admit_quarantine"
+    "context_store_registry_lab_encode_quarantine" "modeled_advanced_closed")
   string(FIND "${IMPLEMENTATION}" "${UNAVAILABLE}" HIT)
   if(NOT HIT EQUAL -1)
-    message(FATAL_ERROR "L05p implementation opened unavailable operation-5/mutation surface: ${UNAVAILABLE}")
+    message(FATAL_ERROR "L05Q implementation opened an unavailable mutation surface: ${UNAVAILABLE}")
   endif()
 endforeach()
 
@@ -47,6 +48,37 @@ foreach(REQUIRED IN ITEMS
   string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "L05p focused test is missing required closure marker: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+    "recovery_admitted == 287" "admitted_algebra_count() == 342"
+    "operation_6_recovery_success_and_prior_request_isolation"
+    "operation_6_state_critical_mismatch_is_unavailable" "operation_6_post_admission_faults"
+    "operation_6_unavailable_requires_state_mismatch"
+    "operation_6_allocation_free_after_construction" "operation_6_accounting_boundaries")
+  string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05Q focused test is missing recovery closure marker: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(REQUIRED IN ITEMS
+    "executed == 3072" "expected_projections = 10335"
+    "rejected != 1393" "truncations == 712" "bit_mutations == 5696"
+    "semantic_attacks == 8" "rejected == 91" "--l05q-products" "--l05q-exhaustive"
+    "restart_projection_count" "project_restart" "restore_restart"
+    "l05q_restart_contains_credential_secret" "l05q_restart_file_contains_credential_secret")
+  string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05Q exhaustive test is missing required closure marker: ${REQUIRED}")
+  endif()
+endforeach()
+
+foreach(REQUIRED IN ITEMS
+    "current.action_latched && state_.modeled_available_bytes < registry_minimum_reserve_bytes"
+    "authenticated_readback_contradiction" "product.code == primitive_code::unavailable) derived = primitive_code::ok")
+  string(FIND "${IMPLEMENTATION}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05Q implementation is missing fail-closed post-admission marker: ${REQUIRED}")
   endif()
 endforeach()
 
@@ -96,4 +128,15 @@ foreach(REQUIRED IN ITEMS
   endif()
 endforeach()
 
-message(STATUS "PASS: L05p operations 1-5 internal/read-only contract")
+foreach(REQUIRED IN ITEMS
+    "action_mutation_admission = 6" "staging_directory_sync_after_successor = 36"
+    "staging_directory_sync_after_head = 46" "terminal_create = 60" "attempts_directory_sync = 64"
+    "halofpx.registry-lab-recovery-action.v1" "script_matches_recovery" "derive_recovery_terminal"
+    "context_store_registry_lab_terminal_class_v1::recovered" "return step(handle)")
+  string(FIND "${IMPLEMENTATION}${HEADER_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05Q implementation is missing recovery closure marker: ${REQUIRED}")
+  endif()
+endforeach()
+
+message(STATUS "PASS: L05Q fake-only recovery terminalization contract")

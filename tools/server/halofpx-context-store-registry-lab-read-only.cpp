@@ -52,7 +52,18 @@ template<size_t N> void wipe(std::array<uint8_t, N> & value) noexcept {
 }
 
 template<size_t N> bool valid_durable_file(const modeled_file<N> & source) noexcept {
-    return source.durable_length <= N && (source.durable_present || (!source.durable_complete && source.durable_length == 0));
+    if (source.durable_length > N) return false;
+    for (size_t i = source.durable_length; i < N; ++i) if (source.durable_bytes[i] != 0) return false;
+    // File-data synchronization can advance an inode before its directory name
+    // is durable. Hidden durable bytes are valid modeled state but are omitted
+    // from the canonical durable-only restart image until namespace publication.
+    if (!source.durable_present && (source.durable_complete || source.durable_length != 0)) {
+        if (!source.live_present || source.durable_length > source.live_length || source.live_length > N) return false;
+        for (size_t i = 0; i < source.durable_length; ++i)
+            if (source.durable_bytes[i] != source.live_bytes[i]) return false;
+        if (source.durable_complete && (!source.live_complete || source.durable_length == 0 || source.durable_length != source.live_length)) return false;
+    }
+    return true;
 }
 
 template<size_t N> bool valid_restart_file(bool present, bool complete, size_t length, const std::array<uint8_t, N> & bytes) noexcept {
@@ -63,8 +74,8 @@ template<size_t N> bool valid_restart_file(bool present, bool complete, size_t l
 
 template<size_t N> void save_file(const modeled_file<N> & source, bool & present, bool & complete, size_t & length, std::array<uint8_t, N> & bytes) noexcept {
     present = source.durable_present;
-    complete = source.durable_complete;
-    length = source.durable_length;
+    complete = present && source.durable_complete;
+    length = present ? source.durable_length : 0;
     bytes.fill(0);
     for (size_t i = 0; i < length; ++i) bytes[i] = source.durable_bytes[i];
 }
@@ -133,7 +144,7 @@ bool contains_secret(const uint8_t * bytes, size_t length, const std::array<uint
 }
 
 template<size_t N> bool durable_file_contains_secret(const modeled_file<N> & file, const std::array<uint8_t, 32> & secret) noexcept {
-    return file.durable_present && file.durable_length <= N && contains_secret(file.durable_bytes.data(), file.durable_length, secret);
+    return file.durable_length <= N && contains_secret(file.durable_bytes.data(), file.durable_length, secret);
 }
 
 bool durable_projection_contains_secret(const fixed_state & state, const std::array<uint8_t, 32> & secret) noexcept {
@@ -303,7 +314,9 @@ public:
     size_t exact_size() const noexcept { return length_; }
 
 private:
+public:
     authenticated_record_v1() noexcept = default;
+private:
     std::array<uint8_t, capacity> exact_ {};
     size_t length_ = 0;
     context_store_format_digest content_digest_ {};
@@ -770,6 +783,226 @@ recovery_classification classify_operation_5(const fixed_state & snapshot, const
     return select_recovery_precedence(flags);
 }
 
+template<size_t N> bool same_modeled_file(const modeled_file<N> & a, const modeled_file<N> & b) noexcept {
+    return a.live_present == b.live_present && a.durable_present == b.durable_present &&
+        a.live_complete == b.live_complete && a.durable_complete == b.durable_complete &&
+        a.live_length == b.live_length && a.durable_length == b.durable_length &&
+        a.live_bytes == b.live_bytes && a.durable_bytes == b.durable_bytes;
+}
+
+bool same_action_state(const fixed_state & a, const fixed_state & b) noexcept {
+    if (!same_modeled_file(a.marker, b.marker) || !same_modeled_file(a.lock_file, b.lock_file) || !same_modeled_file(a.head, b.head) ||
+        !same_modeled_file(a.quarantine, b.quarantine) || !same_modeled_file(a.quarantine_staging, b.quarantine_staging) ||
+        a.root_directory.live_projection != b.root_directory.live_projection || a.root_directory.durable_projection != b.root_directory.durable_projection ||
+        a.attempts_directory.live_projection != b.attempts_directory.live_projection || a.attempts_directory.durable_projection != b.attempts_directory.durable_projection ||
+        a.staging_directory.live_projection != b.staging_directory.live_projection || a.staging_directory.durable_projection != b.staging_directory.durable_projection ||
+        a.envelopes_directory.live_projection != b.envelopes_directory.live_projection || a.envelopes_directory.durable_projection != b.envelopes_directory.durable_projection) return false;
+    for (size_t i = 0; i < a.slots.size(); ++i) {
+        const auto & x = a.slots[i]; const auto & y = b.slots[i];
+        if (!same_modeled_file(x.prepare, y.prepare) || !same_modeled_file(x.close, y.close) || !same_modeled_file(x.abort_record, y.abort_record) ||
+            !same_modeled_file(x.successor_staging, y.successor_staging) || !same_modeled_file(x.selector_staging, y.selector_staging)) return false;
+    }
+    const auto same_envelope = [](const modeled_envelope & x, const modeled_envelope & y) noexcept {
+        return x.live_occupied == y.live_occupied && x.durable_occupied == y.durable_occupied && x.live_digest == y.live_digest &&
+            x.durable_digest == y.durable_digest && same_modeled_file(x.object, y.object);
+    };
+    if (!same_envelope(a.initial_envelope, b.initial_envelope)) return false;
+    for (size_t i = 0; i < a.successors.size(); ++i) if (!same_envelope(a.successors[i], b.successors[i])) return false;
+    for (size_t i = 0; i < a.unexpected.size(); ++i) {
+        const auto & x = a.unexpected[i]; const auto & y = b.unexpected[i];
+        if (x.live_occupied != y.live_occupied || x.durable_occupied != y.durable_occupied || x.live_name != y.live_name ||
+            x.durable_name != y.durable_name || x.live_length != y.live_length || x.durable_length != y.durable_length) return false;
+    }
+    // modeled_available_bytes is the dynamic operation-6 observation and is checked separately.
+    return true;
+}
+
+bool logical_bytes(const fixed_state & state, uint64_t & total) noexcept {
+    total = 0;
+    const auto add = [&total](const auto & file) noexcept {
+        if (!file.live_present) return true;
+        if (file.live_length > file.live_bytes.size() || total > UINT64_MAX - file.live_length) return false;
+        total += file.live_length; return true;
+    };
+    if (!add(state.marker) || !add(state.lock_file) || !add(state.head) || !add(state.quarantine) || !add(state.quarantine_staging)) return false;
+    for (const modeled_slot & slot : state.slots)
+        if (!add(slot.prepare) || !add(slot.close) || !add(slot.abort_record) || !add(slot.successor_staging) || !add(slot.selector_staging)) return false;
+    if (!add(state.initial_envelope.object)) return false;
+    for (const modeled_envelope & envelope : state.successors) if (!add(envelope.object)) return false;
+    return true;
+}
+
+bool recovery_action_commitment(uint8_t action, uint64_t slot, const context_store_format_digest & attempt,
+        const context_store_format_digest & prepare, const context_store_format_digest & head,
+        const context_store_format_digest & operation, context_store_format_digest & output) noexcept {
+    if ((action != 1 && action != 2) || slot >= 512) return false;
+    std::array<uint8_t, 137> body {};
+    size_t offset = 0; body[offset++] = action;
+    for (size_t i = 0; i < 8; ++i) body[offset++] = static_cast<uint8_t>(slot >> (56 - 8 * i));
+    for (const auto * digest : { &attempt, &prepare, &head, &operation }) {
+        std::copy(digest->begin(), digest->end(), body.begin() + static_cast<std::ptrdiff_t>(offset)); offset += digest->size();
+    }
+    const bool ok = offset == body.size() && hash_with_domain("halofpx.registry-lab-recovery-action.v1", body.data(), body.size(), output);
+    wipe(body); return ok;
+}
+
+struct scoped_wire_credential {
+    explicit scoped_wire_credential(const credential_owner & owner) noexcept {
+        value.key_id = owner.key_id; value.generation = owner.generation; value.secret = owner.secret;
+    }
+    ~scoped_wire_credential() noexcept {
+        value.key_id = {}; value.generation = 0; volatile uint8_t * bytes = value.secret.data();
+        for (size_t i = 0; i < value.secret.size(); ++i) bytes[i] = 0;
+    }
+    context_store_registry_lab_credential value;
+};
+
+bool derive_recovery_terminal(const fixed_state & snapshot, const preflight_context_v1 & preflight,
+        const request_transition_v1 &, const credential_owner & credential, recovery_classification classification,
+        std::array<uint8_t, 1024> & output, size_t & output_size, uint64_t & slot,
+        context_store_format_digest & prepare_digest, context_store_format_digest & head_digest,
+        context_store_format_digest & action_commitment, size_t & derivations) noexcept {
+    output.fill(0); output_size = 0; slot = 0; prepare_digest = {}; head_digest = {}; action_commitment = {};
+    if (classification != recovery_classification::needs_predecessor_abort && classification != recovery_classification::needs_successor_close) return false;
+    auto root = decode_record<context_store_registry_lab_kind::root>(snapshot.marker.live_bytes.data(), snapshot.marker.live_length, credential, derivations);
+    auto head = decode_record<context_store_registry_lab_kind::head>(snapshot.head.live_bytes.data(), snapshot.head.live_length, credential, derivations);
+    if (!root.authenticated() || !head.authenticated()) return false;
+    authenticated_record_v1<context_store_registry_lab_kind::prepare> prepare;
+    bool found = false;
+    for (size_t i = 0; i < snapshot.slots.size(); ++i) {
+        if (!any_name(snapshot.slots[i].prepare) || any_name(snapshot.slots[i].close) || any_name(snapshot.slots[i].abort_record)) continue;
+        auto candidate = decode_record<context_store_registry_lab_kind::prepare>(snapshot.slots[i].prepare.live_bytes.data(), snapshot.slots[i].prepare.live_length, credential, derivations);
+        if (!candidate.authenticated() || found) return false;
+        prepare = std::move(candidate); slot = i; found = true;
+    }
+    if (!found || prepare.body().slot != slot) return false;
+
+    context_store_authenticated_protected_registry predecessor;
+    if (!bind_predecessor(prepare.body().predecessor.data(), prepare.body().predecessor_length, preflight, credential, &predecessor) || !predecessor.body()) return false;
+    if (head.body().selector_generation == 0) return false;
+    const uint64_t predecessor_generation = classification == recovery_classification::needs_successor_close
+        ? head.body().selector_generation - 1 : head.body().selector_generation;
+    if (predecessor_generation == 0 || predecessor.body()->last_consumed_sequence == UINT64_MAX) return false;
+
+    context_store_registry_lab_prepare_value_v1 transition;
+    transition.scope.root_id = root.body().root_id; transition.scope.path_policy_commitment = root.body().path_policy;
+    transition.scope.registry_id = preflight.registry_id; transition.scope.registry_epoch = preflight.registry_epoch;
+    transition.attempt_id = prepare.body().attempt_id; transition.operation_commitment = prepare.body().operation_commitment;
+    transition.predecessor_envelope_digest = prepare.body().predecessor_digest; transition.successor_envelope_digest = prepare.body().successor_digest;
+    transition.initial_head_digest = prepare.body().previous_head; transition.slot = slot;
+    transition.predecessor_high_water = predecessor.body()->last_consumed_sequence;
+    transition.predecessor_selector_generation = predecessor_generation; transition.successor_selector_generation = predecessor_generation + 1;
+    transition.predecessor.size = prepare.body().predecessor_length; transition.successor.size = prepare.body().successor_length;
+    std::copy_n(prepare.body().predecessor.data(), transition.predecessor.size, transition.predecessor.bytes.begin());
+    std::copy_n(prepare.body().successor.data(), transition.successor.size, transition.successor.bytes.begin());
+    prepare_digest = prepare.content_digest(); head_digest = head.content_digest();
+    scoped_wire_credential wire_owner(credential); const auto & wc = wire_owner.value;
+    std::array<uint8_t, 1024> predecessor_head_bytes {}; size_t predecessor_head_size = 0;
+    context_store_registry_lab_head_value_v1 predecessor_head_value; predecessor_head_value.scope = transition.scope;
+    predecessor_head_value.selection = context_store_registry_lab_head_selection_v1::predecessor;
+    predecessor_head_value.selected_envelope = transition.predecessor; predecessor_head_value.selected_envelope_digest = transition.predecessor_envelope_digest;
+    predecessor_head_value.selected_high_water = transition.predecessor_high_water; predecessor_head_value.selector_generation = transition.predecessor_selector_generation;
+    predecessor_head_value.expected_head_digest = transition.initial_head_digest;
+    context_store_registry_lab_head_witness predecessor_head_witness;
+    if (!context_store_registry_lab_admit_head_v1(predecessor_head_value, wc, predecessor_head_witness)) { wipe(predecessor_head_bytes); return false; }
+    const auto predecessor_head_result = context_store_registry_lab_encode_head_v1(predecessor_head_value, wc, predecessor_head_witness,
+        predecessor_head_bytes.data(), predecessor_head_bytes.size(), predecessor_head_size);
+    if (!predecessor_head_result.authenticated() || predecessor_head_result.content_digest != prepare.body().previous_head) { wipe(predecessor_head_bytes); return false; }
+    context_store_registry_lab_wire_result encoded;
+    if (classification == recovery_classification::needs_predecessor_abort) {
+        context_store_registry_lab_abort_value_v1 value; value.scope = transition.scope; value.terminal_class = context_store_registry_lab_terminal_class_v1::recovered;
+        value.attempt_id = transition.attempt_id; value.operation_commitment = transition.operation_commitment; value.predecessor_envelope_digest = transition.predecessor_envelope_digest;
+        value.successor_envelope_digest = transition.successor_envelope_digest; value.prepare_digest = prepare_digest; value.head_digest = prepare.body().previous_head; value.slot = slot;
+        context_store_registry_lab_abort_evidence_v1 evidence; evidence.transition = transition; evidence.predecessor_head = predecessor_head_bytes.data();
+        evidence.predecessor_head_size = predecessor_head_size; evidence.prepare = prepare.exact_data(); evidence.prepare_size = prepare.exact_size();
+        context_store_registry_lab_abort_witness witness;
+        if (!context_store_registry_lab_admit_abort_v1(value, wc, evidence, witness)) { wipe(predecessor_head_bytes); wipe(output); output_size = 0; return false; }
+        encoded = context_store_registry_lab_encode_abort_v1(value, wc, witness, output.data(), output.size(), output_size);
+    } else {
+        context_store_registry_lab_close_value_v1 value; value.scope = transition.scope; value.terminal_class = context_store_registry_lab_terminal_class_v1::recovered;
+        value.attempt_id = transition.attempt_id; value.operation_commitment = transition.operation_commitment; value.predecessor_envelope_digest = transition.predecessor_envelope_digest;
+        value.successor_envelope_digest = transition.successor_envelope_digest; value.prepare_digest = prepare_digest; value.head_digest = head_digest; value.slot = slot;
+        context_store_registry_lab_close_evidence_v1 evidence; evidence.transition = transition; evidence.predecessor_head = predecessor_head_bytes.data();
+        evidence.predecessor_head_size = predecessor_head_size; evidence.successor_head = head.exact_data(); evidence.successor_head_size = head.exact_size();
+        evidence.prepare = prepare.exact_data(); evidence.prepare_size = prepare.exact_size(); context_store_registry_lab_close_witness witness;
+        if (!context_store_registry_lab_admit_close_v1(value, wc, evidence, witness)) { wipe(predecessor_head_bytes); wipe(output); output_size = 0; return false; }
+        encoded = context_store_registry_lab_encode_close_v1(value, wc, witness, output.data(), output.size(), output_size);
+    }
+    const uint8_t action = classification == recovery_classification::needs_predecessor_abort ? 1 : 2;
+    const bool ok = encoded.authenticated() && output_size > 0 && output_size <= output.size() &&
+        recovery_action_commitment(action, slot, prepare.body().attempt_id, prepare_digest, head_digest, prepare.body().operation_commitment, action_commitment);
+    wipe(predecessor_head_bytes); if (!ok) { wipe(output); output_size = 0; } return ok;
+}
+
+bool valid_script_shape(const script & value) noexcept {
+    if (value.size != 5 && value.size != 11 && value.size != 19) return false;
+    constexpr std::array<operation, 5> prefix { operation::guard_acquire, operation::writer_lock_acquire, operation::preflight,
+        operation::snapshot_load, operation::recovery_validation };
+    for (size_t i = 0; i < prefix.size(); ++i) if (value.entries[i].op != prefix[i]) return false;
+    if (value.size == 5) return true;
+    constexpr std::array<operation, 6> predecessor { operation::action_mutation_admission, operation::terminal_create,
+        operation::terminal_write, operation::terminal_readback, operation::terminal_file_sync, operation::attempts_directory_sync };
+    if (value.size == 11) {
+        for (size_t i = 0; i < predecessor.size(); ++i) if (value.entries[5 + i].op != predecessor[i]) return false;
+        return true;
+    }
+    constexpr std::array<operation, 14> successor { operation::action_mutation_admission, operation::successor_file_sync,
+        operation::envelopes_directory_sync, operation::staging_directory_sync_after_successor, operation::head_file_sync,
+        operation::root_directory_sync, operation::staging_directory_sync_after_head, operation::head_read, operation::successor_read,
+        operation::terminal_create, operation::terminal_write, operation::terminal_readback, operation::terminal_file_sync,
+        operation::attempts_directory_sync };
+    for (size_t i = 0; i < successor.size(); ++i) if (value.entries[5 + i].op != successor[i]) return false;
+    return true;
+}
+
+bool script_matches_recovery(const script & value, recovery_classification classification) noexcept {
+    return (classification == recovery_classification::needs_predecessor_abort && value.size == 11) ||
+        (classification == recovery_classification::needs_successor_close && value.size == 19);
+}
+
+template<size_t N> void apply_complete_live(modeled_file<N> & file, const uint8_t * bytes, size_t size) noexcept {
+    file.live_present = true; file.live_complete = true; file.live_length = size; file.live_bytes.fill(0);
+    if (size && size <= N) std::copy_n(bytes, size, file.live_bytes.begin());
+}
+
+template<size_t N> void apply_partial_live(modeled_file<N> & file, const uint8_t * bytes, size_t size) noexcept {
+    const size_t prefix = size > 1 ? size / 2 : 0;
+    file.live_present = true; file.live_complete = false; file.live_length = prefix; file.live_bytes.fill(0);
+    if (prefix) std::copy_n(bytes, prefix, file.live_bytes.begin());
+}
+
+template<size_t N> void apply_complete_durable(modeled_file<N> & file) noexcept {
+    file.durable_present = file.live_present; file.durable_complete = file.live_complete; file.durable_length = file.live_length;
+    file.durable_bytes.fill(0); if (file.live_length <= N) std::copy_n(file.live_bytes.data(), file.live_length, file.durable_bytes.begin());
+}
+
+template<size_t N> void apply_complete_durable_bytes(modeled_file<N> & file) noexcept {
+    file.durable_complete = file.live_complete; file.durable_length = file.live_length;
+    file.durable_bytes.fill(0); if (file.live_length <= N) std::copy_n(file.live_bytes.data(), file.live_length, file.durable_bytes.begin());
+}
+
+template<size_t N> bool exact_durable_bytes(const modeled_file<N> & file) noexcept {
+    return file.live_present && file.live_complete && file.durable_complete &&
+        file.live_length == file.durable_length && file.live_length <= N &&
+        exact_bytes(file.live_bytes.data(), file.durable_bytes.data(), file.live_length);
+}
+
+template<size_t N> void apply_partial_durable(modeled_file<N> & file) noexcept {
+    const size_t advanced = file.live_length > 1 ? file.live_length / 2 : 0;
+    const size_t prefix = std::max(file.durable_length, advanced);
+    const bool already_complete = file.durable_complete && file.durable_length == file.live_length;
+    file.durable_present = file.durable_present || file.live_present;
+    file.durable_complete = already_complete;
+    file.durable_length = prefix;
+    file.durable_bytes.fill(0); if (prefix <= N) std::copy_n(file.live_bytes.data(), prefix, file.durable_bytes.begin());
+}
+
+template<size_t N> void apply_partial_durable_bytes(modeled_file<N> & file) noexcept {
+    const bool namespace_durable = file.durable_present;
+    apply_partial_durable(file);
+    file.durable_present = namespace_durable;
+}
+
 status map_classification(recovery_classification value) noexcept {
     switch (value) {
         case recovery_classification::needs_successor_close:
@@ -838,16 +1071,15 @@ size_t fixture::begin(uint64_t invocation_id, uint8_t process_slot, credential_o
     bool valid = invocation_id != 0 && process_slot < max_processes && valid_credential(current.credential) &&
         valid_preflight(current.preflight, current.credential) && valid_request(current.request);
     for (const invocation & other : invocations_) if (&other != &current && other.occupied && other.current != phase::complete && other.current != phase::dead && other.id == invocation_id) valid = false;
-    for (size_t i = 0; i < 5; ++i) {
-        valid = valid && immutable_script.entries[i].op == static_cast<operation>(i + 1) && admitted_payload(immutable_script.entries[i]);
-    }
+    valid = valid && immutable_script.size <= immutable_script.entries.size() && valid_script_shape(immutable_script);
+    if (valid) for (size_t i = 0; i < immutable_script.size; ++i) valid = valid && admitted_payload(immutable_script.entries[i]);
     if (valid) {
         const primitive_code derived = guard_owner_[process_slot] == 0 ? primitive_code::ok : primitive_code::busy;
         valid = immutable_script.entries[0].code == derived;
     }
     if (!valid) {
-        wipe_credential(current.credential); wipe(current.derived); wipe(current.tag); wipe(current.scratch); wipe(current.witness);
-        current.rejection_wipe_verified = credential_zero(current.credential) && all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness);
+        wipe_credential(current.credential); wipe(current.derived); wipe(current.tag); wipe(current.scratch); wipe(current.witness); wipe(current.terminal_scratch);
+        current.rejection_wipe_verified = credential_zero(current.credential) && all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness) && all_zero(current.terminal_scratch);
         current.pending = { visibility::ordinary_result, status::invalid_request_no_mutation };
         current.current = phase::complete;
         return handle;
@@ -867,11 +1099,11 @@ void fixture::kill_process(uint8_t process, const restart_image * projected_rest
         const bool secret_absent = projected_restart != nullptr
             ? !restart_projection_contains_secret(*projected_restart, current.credential.secret)
             : !durable_projection_contains_secret(state_, current.credential.secret);
-        wipe_credential(current.credential); wipe(current.derived); wipe(current.tag); wipe(current.scratch); wipe(current.witness);
+        wipe_credential(current.credential); wipe(current.derived); wipe(current.tag); wipe(current.scratch); wipe(current.witness); wipe(current.terminal_scratch);
         current.pending.state = visibility::dead_process_no_result;
         current.current = phase::dead;
         current.teardown = { current.id, process, credential_zero(current.credential),
-            all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness), secret_absent };
+            all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness) && all_zero(current.terminal_scratch), secret_absent };
     }
     if (process < guard_owner_.size()) guard_owner_[process] = 0;
     if (writer_process_ == process) { writer_owner_ = 0; writer_process_ = 0xff; }
@@ -883,8 +1115,8 @@ bool fixture::step(size_t handle) noexcept {
     invocation & current = invocations_[handle];
     if (!current.occupied || current.current == phase::complete || current.current == phase::dead || current.current == phase::free) return false;
     if (current.current == phase::cleanup_wipe) {
-        wipe_credential(current.credential); wipe(current.derived); wipe(current.tag); wipe(current.scratch); wipe(current.witness);
-        current.ordinary_wipe_verified = credential_zero(current.credential) && all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness);
+        wipe_credential(current.credential); wipe(current.derived); wipe(current.tag); wipe(current.scratch); wipe(current.witness); wipe(current.terminal_scratch);
+        current.ordinary_wipe_verified = credential_zero(current.credential) && all_zero(current.derived) && all_zero(current.tag) && all_zero(current.scratch) && all_zero(current.witness) && all_zero(current.terminal_scratch);
         if (!current.ordinary_wipe_verified) return false;
         current.events[current.event_count++] = { 90 }; current.current = phase::cleanup_lock; return true;
     }
@@ -900,14 +1132,95 @@ bool fixture::step(size_t handle) noexcept {
         current.current = phase::complete; return true;
     }
 
-    if (current.cursor >= current.immutable_script.entries.size()) return false;
+    if (current.cursor >= current.immutable_script.size) return false;
     const primitive_product product = current.immutable_script.entries[current.cursor];
+    if (current.action_latched && state_.modeled_available_bytes < registry_minimum_reserve_bytes) {
+        finish_ordinary(current, status::uncertain_requires_recovery);
+        return true;
+    }
     primitive_code derived = product.code;
     if (product.op == operation::guard_acquire) derived = guard_owner_[current.process] == 0 ? primitive_code::ok : primitive_code::busy;
     if (product.op == operation::writer_lock_acquire && product.code != primitive_code::unsupported)
         derived = writer_owner_ == 0 ? primitive_code::ok : primitive_code::busy;
+    if (product.op == operation::action_mutation_admission) {
+        if (product.code == primitive_code::unavailable) derived = primitive_code::ok;
+        context_store_format_digest recomputed {}; uint64_t bytes = 0;
+        const bool state_ok = snapshot_owner_ == current.id && same_action_state(state_, snapshot_) &&
+            recovery_action_commitment(current.recovery_action, current.recovery_slot, current.action_attempt, current.prepare_digest,
+                current.current_head_digest, current.action_operation, recomputed) && recomputed == current.action_commitment;
+        if (!state_ok) derived = primitive_code::unavailable;
+        else if (!logical_bytes(state_, bytes) || current.preflight.maximum_logical_authority_bytes != registry_logical_budget_bytes ||
+                 !admitted_logical_budget(bytes)) derived = primitive_code::capacity_exhausted;
+        else if (state_.modeled_available_bytes < registry_minimum_reserve_bytes) derived = primitive_code::reserve_exhausted;
+    }
+    if (static_cast<uint8_t>(product.op) >= 33 && !current.action_latched) derived = primitive_code::unavailable;
+    modeled_file<1024> * terminal = current.recovery_action == 1 ? &state_.slots[current.recovery_slot].abort_record : &state_.slots[current.recovery_slot].close;
+    modeled_envelope * action_successor = nullptr;
+    for (modeled_envelope & envelope : state_.successors)
+        if (envelope.live_occupied && envelope.live_digest == current.action_successor) {
+            if (action_successor != nullptr) { action_successor = nullptr; break; }
+            action_successor = &envelope;
+        }
+    if (product.op == operation::successor_file_sync || product.op == operation::successor_read) {
+        context_store_format_digest digest {}; context_store_authenticated_protected_registry predecessor;
+        const modeled_envelope * snapshot_successor = nullptr;
+        for (const modeled_envelope & envelope : snapshot_.successors)
+            if (envelope.live_occupied && envelope.live_digest == current.action_successor) snapshot_successor = snapshot_successor == nullptr ? &envelope : nullptr;
+        const bool exact = action_successor != nullptr && snapshot_successor != nullptr &&
+            same_modeled_file(action_successor->object, snapshot_successor->object) &&
+            registry_envelope_digest(action_successor->object.live_bytes.data(), action_successor->object.live_length, digest) && digest == current.action_successor &&
+            bind_predecessor(snapshot_.initial_envelope.object.live_bytes.data(), snapshot_.initial_envelope.object.live_length, current.preflight, current.credential, &predecessor) &&
+            bind_successor(action_successor->object.live_bytes.data(), action_successor->object.live_length, current.preflight, current.credential, predecessor);
+        if (!exact) derived = primitive_code::unavailable;
+    }
+    if (product.op == operation::envelopes_directory_sync && !state_.envelopes_directory.live_projection) derived = primitive_code::unavailable;
+    if ((product.op == operation::staging_directory_sync_after_successor || product.op == operation::staging_directory_sync_after_head) && !state_.staging_directory.live_projection)
+        derived = primitive_code::unavailable;
+    if (product.op == operation::root_directory_sync && !state_.root_directory.live_projection) derived = primitive_code::unavailable;
+    if (product.op == operation::head_file_sync && !exact_published_file(state_.head)) derived = primitive_code::unavailable;
+    if (product.op == operation::head_read) {
+        size_t calls = 0; auto record = decode_record<context_store_registry_lab_kind::head>(state_.head.live_bytes.data(), state_.head.live_length, current.credential, calls);
+        current.derivations += calls;
+        if (!exact_published_file(state_.head) || !same_modeled_file(state_.head, snapshot_.head) || !record.authenticated() || record.content_digest() != current.current_head_digest ||
+            record.body().selected_digest != current.action_successor) derived = primitive_code::unavailable;
+    }
+    if (product.op == operation::terminal_create && !absent_file(*terminal)) derived = primitive_code::unavailable;
+    if ((product.op == operation::terminal_write || product.op == operation::terminal_readback || product.op == operation::terminal_file_sync) && !terminal->live_present)
+        derived = primitive_code::unavailable;
+    if (product.op == operation::terminal_file_sync &&
+        (!terminal->live_complete || terminal->live_length != current.terminal_size ||
+         !exact_bytes(terminal->live_bytes.data(), current.terminal_scratch.data(), current.terminal_size)))
+        derived = primitive_code::unavailable;
+    if (product.op == operation::attempts_directory_sync &&
+        (!exact_durable_bytes(*terminal) || !state_.attempts_directory.live_projection))
+        derived = primitive_code::unavailable;
+    if (product.op == operation::terminal_readback) {
+        size_t calls = 0; bool authenticated = false;
+        if (terminal->live_complete && terminal->live_length == current.terminal_size && exact_bytes(terminal->live_bytes.data(), current.terminal_scratch.data(), current.terminal_size)) {
+            if (current.recovery_action == 1) {
+                auto record = decode_record<context_store_registry_lab_kind::abort_record>(terminal->live_bytes.data(), terminal->live_length, current.credential, calls);
+                authenticated = record.authenticated() && record.body().terminal_class == 1 && record.body().phase == 1 && record.body().slot == current.recovery_slot &&
+                    record.body().attempt_id == current.action_attempt && record.body().operation_commitment == current.action_operation && record.body().prepare_digest == current.prepare_digest &&
+                    record.body().predecessor_digest == current.action_predecessor && record.body().successor_digest == current.action_successor &&
+                    record.body().terminal_head == current.current_head_digest;
+            } else {
+                auto record = decode_record<context_store_registry_lab_kind::close>(terminal->live_bytes.data(), terminal->live_length, current.credential, calls);
+                authenticated = record.authenticated() && record.body().terminal_class == 1 && record.body().phase == 2 && record.body().slot == current.recovery_slot &&
+                    record.body().attempt_id == current.action_attempt && record.body().operation_commitment == current.action_operation && record.body().prepare_digest == current.prepare_digest &&
+                    record.body().predecessor_digest == current.action_predecessor && record.body().successor_digest == current.action_successor &&
+                    record.body().terminal_head == current.current_head_digest;
+            }
+        }
+        current.derivations += calls; if (!authenticated) derived = primitive_code::unavailable;
+    }
     if (derived != product.code) {
-        finish_ordinary(current, status::invalid_request_no_mutation);
+        if (current.action_latched) {
+            const bool authenticated_readback_contradiction = derived == primitive_code::unavailable &&
+                (product.op == operation::head_read || product.op == operation::successor_read || product.op == operation::terminal_readback);
+            finish_ordinary(current, authenticated_readback_contradiction ? status::quarantined_or_unavailable : status::uncertain_requires_recovery);
+        } else {
+            finish_ordinary(current, status::invalid_request_no_mutation);
+        }
         return true;
     }
 
@@ -915,9 +1228,45 @@ bool fixture::step(size_t handle) noexcept {
     ++current.cursor;
     if (product.op == operation::guard_acquire && product.code == primitive_code::ok) guard_owner_[current.process] = current.id;
     if (product.op == operation::writer_lock_acquire && product.code == primitive_code::ok) { writer_owner_ = current.id; writer_process_ = current.process; }
+    if (product.op == operation::terminal_create && product.effect == storage_effect::complete_live) apply_complete_live(*terminal, nullptr, 0);
+    if (product.op == operation::terminal_write) {
+        if (product.effect == storage_effect::bounded_partial_bytes) apply_partial_live(*terminal, current.terminal_scratch.data(), current.terminal_size);
+        if (product.effect == storage_effect::complete_live) apply_complete_live(*terminal, current.terminal_scratch.data(), current.terminal_size);
+    }
+    if (product.op == operation::successor_file_sync && action_successor != nullptr) {
+        if (product.effect == storage_effect::bounded_partial_durability_projection) apply_partial_durable(action_successor->object);
+        if (product.effect == storage_effect::complete_durability_projection) {
+            apply_complete_durable(action_successor->object); action_successor->durable_occupied = action_successor->live_occupied;
+            action_successor->durable_digest = action_successor->live_digest;
+        }
+    }
+    if (product.op == operation::head_file_sync) {
+        if (product.effect == storage_effect::bounded_partial_durability_projection) apply_partial_durable(state_.head);
+        if (product.effect == storage_effect::complete_durability_projection) apply_complete_durable(state_.head);
+    }
+    if (product.op == operation::envelopes_directory_sync && product.effect == storage_effect::complete_durability_projection) state_.envelopes_directory.durable_projection = state_.envelopes_directory.live_projection;
+    if ((product.op == operation::staging_directory_sync_after_successor || product.op == operation::staging_directory_sync_after_head) &&
+        product.effect == storage_effect::complete_durability_projection) state_.staging_directory.durable_projection = state_.staging_directory.live_projection;
+    if (product.op == operation::root_directory_sync && product.effect == storage_effect::complete_durability_projection) state_.root_directory.durable_projection = state_.root_directory.live_projection;
+    if (product.op == operation::terminal_file_sync) {
+        if (product.effect == storage_effect::bounded_partial_durability_projection) apply_partial_durable_bytes(*terminal);
+        if (product.effect == storage_effect::complete_durability_projection) apply_complete_durable_bytes(*terminal);
+    }
+    if (product.op == operation::attempts_directory_sync && product.effect == storage_effect::complete_durability_projection) {
+        terminal->durable_present = terminal->live_present;
+        state_.attempts_directory.durable_projection = true;
+    }
     if (product.completed == completion::process_death) { kill_process(current.process); return true; }
-    if (product.completed == completion::response_lost) { finish_ordinary(current, status::quarantined_or_unavailable); return true; }
-    if (product.code != primitive_code::ok) { finish_ordinary(current, map_confirmed(product.op, product.code)); return true; }
+    if (product.completed == completion::response_lost) { finish_ordinary(current, static_cast<uint8_t>(product.op) >= 6 ? status::uncertain_requires_recovery : status::quarantined_or_unavailable); return true; }
+    if (product.code != primitive_code::ok) {
+        if (product.op == operation::action_mutation_admission)
+            finish_ordinary(current, product.code == primitive_code::unavailable ? status::quarantined_or_unavailable : status::uncertain_requires_recovery);
+        else if (current.action_latched)
+            finish_ordinary(current, (product.op == operation::head_read || product.op == operation::successor_read || product.op == operation::terminal_readback) &&
+                product.code == primitive_code::unavailable ? status::quarantined_or_unavailable : status::uncertain_requires_recovery);
+        else finish_ordinary(current, map_confirmed(product.op, product.code));
+        return true;
+    }
     if (product.op == operation::snapshot_load) {
         if (!bounded_snapshot(state_)) { finish_ordinary(current, status::invalid_request_no_mutation); return true; }
         snapshot_ = state_;
@@ -926,15 +1275,46 @@ bool fixture::step(size_t handle) noexcept {
     if (product.op == operation::recovery_validation) {
         if (snapshot_owner_ != current.id) { finish_ordinary(current, status::invalid_request_no_mutation); return true; }
         current.derived_class = classify_operation_5(snapshot_, current.preflight, current.request, current.credential, current.scanned, current.derivations);
-        snapshot_owner_ = 0;
         if (current.derived_class != product.classification) { finish_ordinary(current, status::invalid_request_no_mutation); return true; }
-        if (current.derived_class == recovery_classification::continue_to_mutation) {
+        if (script_matches_recovery(current.immutable_script, current.derived_class)) {
+            if (!derive_recovery_terminal(snapshot_, current.preflight, current.request, current.credential, current.derived_class,
+                    current.terminal_scratch, current.terminal_size, current.recovery_slot, current.prepare_digest,
+                    current.current_head_digest, current.action_commitment, current.derivations)) {
+                snapshot_owner_ = 0; finish_ordinary(current, status::quarantined_or_unavailable); return true;
+            }
+            current.recovery_action = current.derived_class == recovery_classification::needs_predecessor_abort ? 1 : 2;
+            size_t calls = 0;
+            if (current.recovery_action == 1) {
+                auto record = decode_record<context_store_registry_lab_kind::abort_record>(current.terminal_scratch.data(), current.terminal_size, current.credential, calls);
+                if (!record.authenticated()) { snapshot_owner_ = 0; finish_ordinary(current, status::quarantined_or_unavailable); return true; }
+                current.action_attempt = record.body().attempt_id; current.action_operation = record.body().operation_commitment;
+                current.action_predecessor = record.body().predecessor_digest; current.action_successor = record.body().successor_digest;
+            } else {
+                auto record = decode_record<context_store_registry_lab_kind::close>(current.terminal_scratch.data(), current.terminal_size, current.credential, calls);
+                if (!record.authenticated()) { snapshot_owner_ = 0; finish_ordinary(current, status::quarantined_or_unavailable); return true; }
+                current.action_attempt = record.body().attempt_id; current.action_operation = record.body().operation_commitment;
+                current.action_predecessor = record.body().predecessor_digest; current.action_successor = record.body().successor_digest;
+            }
+            current.derivations += calls;
+        } else if (current.immutable_script.size != 5) {
+            snapshot_owner_ = 0; finish_ordinary(current, status::invalid_request_no_mutation);
+        } else if (current.derived_class == recovery_classification::continue_to_mutation) {
+            snapshot_owner_ = 0;
             current.events[current.event_count++] = { 201 };
             current.boundary = true;
             finish_ordinary(current, status::invalid_request_no_mutation);
         } else {
+            snapshot_owner_ = 0;
             finish_ordinary(current, map_classification(current.derived_class));
         }
+    }
+    if (product.op == operation::action_mutation_admission) {
+        current.action_latched = true;
+        return step(handle); // ADR-0023: no injectable definite-state gap before the first action operation.
+    }
+    if (product.op == operation::attempts_directory_sync) {
+        snapshot_owner_ = 0;
+        finish_ordinary(current, current.recovery_action == 1 ? status::recovered_not_applied_no_authority : status::modeled_recovered_successor_closed);
     }
     return true;
 }
@@ -1006,7 +1386,60 @@ bool fixture::serialize_restart(restart_image & image) const noexcept {
     }
     image.root_directory = state_.root_directory.durable_projection; image.attempts_directory = state_.attempts_directory.durable_projection;
     image.staging_directory = state_.staging_directory.durable_projection; image.envelopes_directory = state_.envelopes_directory.durable_projection;
+    image.modeled_available_bytes = state_.modeled_available_bytes;
     return true;
+}
+
+size_t fixture::restart_projection_count(size_t handle) const noexcept {
+    if (handle >= invocations_.size()) return 0;
+    const invocation & current = invocations_[handle];
+    if (!current.occupied || current.recovery_action == 0 || current.recovery_slot >= state_.slots.size()) return 1;
+    const modeled_file<1024> & terminal = current.recovery_action == 1
+        ? state_.slots[current.recovery_slot].abort_record : state_.slots[current.recovery_slot].close;
+    if (terminal.durable_present || !terminal.live_present) return 1;
+    if (current.cursor == 0 || current.cursor > current.immutable_script.size) return 0;
+    const primitive_product & last = current.immutable_script.entries[current.cursor - 1];
+    if (last.op == operation::attempts_directory_sync ||
+        (last.op == operation::terminal_file_sync && last.effect != storage_effect::none)) return 2;
+    return terminal.live_length <= terminal.live_bytes.size() ? terminal.live_length + 2 : 0;
+}
+
+bool fixture::project_restart(size_t handle, size_t ordinal, restart_image & image,
+        restart_projection_audit & audit) const noexcept {
+    audit = {};
+    const size_t count = restart_projection_count(handle);
+    if (count == 0 || ordinal >= count || !serialize_restart(image)) return false;
+    audit.count = count; audit.ordinal = ordinal;
+    const invocation & current = invocations_[handle];
+    if (current.recovery_action == 0 || current.recovery_slot >= state_.slots.size()) return count == 1;
+    const modeled_file<1024> & terminal = current.recovery_action == 1
+        ? state_.slots[current.recovery_slot].abort_record : state_.slots[current.recovery_slot].close;
+    if (count == 1) {
+        audit.terminal_name_retained = terminal.durable_present;
+        audit.retained_length = terminal.durable_present ? terminal.durable_length : 0;
+        return true;
+    }
+    if (ordinal == 0) return true;
+
+    restart_file_1024 & projected = current.recovery_action == 1
+        ? image.slots[current.recovery_slot].abort_record : image.slots[current.recovery_slot].close;
+    size_t retained = 0;
+    if (count == 2) {
+        retained = terminal.durable_length;
+        if (current.cursor != 0 && current.immutable_script.entries[current.cursor - 1].op == operation::attempts_directory_sync)
+            retained = terminal.live_length;
+    } else {
+        retained = ordinal - 1;
+    }
+    if (retained > terminal.live_length || retained > projected.bytes.size()) return false;
+    projected = {};
+    projected.present = true;
+    projected.complete = terminal.live_complete && retained == terminal.live_length;
+    projected.length = retained;
+    std::copy_n(terminal.live_bytes.data(), retained, projected.bytes.begin());
+    audit.terminal_name_retained = true;
+    audit.retained_length = retained;
+    return valid_restart_projection(image);
 }
 
 bool fixture::restore_restart(const restart_image & image, uint8_t restarted_process_slot) noexcept {
@@ -1038,6 +1471,7 @@ bool fixture::restore_restart(const restart_image & image, uint8_t restarted_pro
     }
     state_.root_directory = { image.root_directory, image.root_directory }; state_.attempts_directory = { image.attempts_directory, image.attempts_directory };
     state_.staging_directory = { image.staging_directory, image.staging_directory }; state_.envelopes_directory = { image.envelopes_directory, image.envelopes_directory };
+    state_.modeled_available_bytes = image.modeled_available_bytes;
     return true;
 }
 

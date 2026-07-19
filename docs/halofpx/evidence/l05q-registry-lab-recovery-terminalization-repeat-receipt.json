@@ -1,0 +1,138 @@
+{
+  "milestone": "L05q portable registry-lab recovery terminalization",
+  "date": "2026-07-18",
+  "source_parent_commit": "849e3c8417c9f9736611352065053586e44fa9a6",
+  "selected_base": {
+    "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+    "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+    "branch": "codex/integration-base-61f2f2d"
+  },
+  "configuration": {
+    "windows": "Visual Studio 18 2026 CPU Release and Debug; HIP/Vulkan OFF; feature-off WebUI contract retained",
+    "linux_optimized": "nimo-2 GCC 16.1.1, CMake 4.3.4, Ninja 1.13.2, Release CPU; HIP/Vulkan and every WebUI switch OFF; optimized archive/comparator audit ON",
+    "linux_sanitizer": "nimo-2 RelWithDebInfo CPU; ASan and UBSan ON; HIP/Vulkan and every WebUI switch OFF; optimized comparator-shape audit deliberately separate",
+    "target": "STATIC EXCLUDE_FROM_ALL; private wire-only edge; fake storage mutation only; no filesystem, product, provider, cache, restore, inference, or persistent-write authority"
+  },
+  "validation": {
+    "cumulative_admitted_algebra": 342,
+    "new_recovery_products_admitted": 287,
+    "new_recovery_products_forbidden_preentry": 1393,
+    "new_product_cross_space": 1680,
+    "slot_action_older_abort_histories": 3072,
+    "malformed_scripts_rejected": 91,
+    "restart_projections_restored_and_reclassified": 10335,
+    "terminal_truncations": 712,
+    "terminal_one_bit_mutations": 5696,
+    "retagged_semantic_attacks": 8,
+    "windows_release_l05q_products": { "passed": 1, "selected": 1, "elapsed_seconds": 195.443 },
+    "windows_release_l05q_exhaustive": { "passed": 1, "selected": 1, "elapsed_seconds": 303.533 },
+    "windows_debug_ordinary": { "passed": 1, "selected": 1, "elapsed_seconds": 116.837 },
+    "windows_release_configured_ctests": { "passed": 84, "selected": 84, "elapsed_seconds": 129.46 },
+    "windows_debug_configured_ctests": { "passed": 83, "selected": 84, "elapsed_seconds": 232.28, "known_inherited_exception": "test-halofpx-context-store-authority" },
+    "windows_release_core_processes": { "passed": 1000, "selected": 1000, "workers": 8, "maximum_worker_elapsed_seconds": 599.738 },
+    "windows_debug_core_processes": { "passed": 200, "selected": 200, "workers": 4, "maximum_worker_elapsed_seconds": 261.260 },
+    "windows_release_full_processes": { "passed": 8, "selected": 8, "workers": 2, "maximum_worker_elapsed_seconds": 222.955 },
+    "linux_optimized_focused_ctests": { "passed": 2, "selected": 2, "elapsed_seconds": 4.87 },
+    "linux_optimized_archive_audit": { "passed": 1, "selected": 1, "elapsed_seconds": 0.20 },
+    "linux_asan_ubsan_focused_ctests": { "passed": 2, "selected": 2, "elapsed_seconds": 17.43 },
+    "linux_optimized_l05q_products": { "passed": 1, "selected": 1, "elapsed_seconds": 75.1 },
+    "linux_optimized_l05q_exhaustive": { "passed": 1, "selected": 1, "elapsed_seconds": 90.0 },
+    "linux_asan_ubsan_l05q_exhaustive": { "passed": 1, "selected": 1, "elapsed_seconds": 283.8 },
+    "linux_optimized_core_processes": { "passed": 1000, "selected": 1000, "workers": 4, "elapsed_seconds": 74.2 },
+    "linux_asan_ubsan_core_processes": { "passed": 1000, "selected": 1000, "workers": 4, "elapsed_seconds": 353.4 },
+    "successful_repeated_candidate_processes": 3208,
+    "allocation_free_noexcept_after_fixture_construction": true,
+    "archive_and_product_linkage_audits": true,
+    "feature_off_contract": true,
+    "reference_repositories_clean": 4,
+    "configured_implementation_remote_count": 0,
+    "adversarial_repairs": [
+      "operation-6 unavailable can only be independently derived from an action-critical state or commitment mismatch",
+      "post-latch invariant mismatch maps to uncertainty except authenticated readback contradiction, which quarantines",
+      "external reserve loss after the operation-6 latch maps to uncertainty",
+      "injectable primitive script entries are distinguished from engine-owned cleanup trace events"
+    ],
+    "controlled_orchestration_exclusions": [
+      "An initial Windows 1000-process Release attempt exceeded its 600-second controller window and wrote no receipt; it is not counted.",
+      "The completed Windows 1000-process rerun wrote eight complete 125/125 worker records, then the inherited L05P runner returned a false final aggregate because Measure-Object produced a blank property sum. Independent explicit integer aggregation validated 1000/1000; the corrected L05Q-local runner was used for later runs."
+    ],
+    "debug_baseline_exception": "The current Debug authority test fails at authority.valid() line 180. The preserved pre-L05Q Debug binary SHA-256 1efe1e8ab986b0a397a85db9d7b4d6f6ed252032865b96182cd34ccc60bdff0e fails at the same authority.valid() assertion at its line 172. Release passes and L05Q neither edits nor links that target.",
+    "rollback_control": "nimo-2 RPC PID 3562775 remained listening on 0.0.0.0:50052 and nimo-1 llama-server PID 3783057 remained healthy on 8081. A real MiniMax M2.7 UD-Q6_K_XL request returned exact L05Q_ROLLBACK_OK. This is an operational smoke signal, not a matched performance baseline."
+  },
+  "raw_evidence": {
+    "windows_release_configured": "build/halofpx-l05p-read-only-dev/evidence/l05q/windows-release-configured-84-final.log",
+    "windows_debug_configured": "build/halofpx-l05p-read-only-dev/evidence/l05q/windows-debug-configured-final.log",
+    "windows_release_core": "build/halofpx-l05p-read-only-dev/evidence/l05q/windows-release-l05q-core-1000-final.json",
+    "windows_release_core_validation": "build/halofpx-l05p-read-only-dev/evidence/l05q/windows-release-l05q-core-1000-validation.json",
+    "windows_debug_core": "build/halofpx-l05p-read-only-dev/evidence/l05q/windows-debug-l05q-core-200-final.json",
+    "windows_release_full": "build/halofpx-l05p-read-only-dev/evidence/l05q/windows-release-l05q-full-8-final.json",
+    "windows_special_runs": "build/halofpx-l05p-read-only-dev/evidence/l05q/windows-special-runs-final.json",
+    "windows_debug_baseline_exception": "build/halofpx-l05p-read-only-dev/evidence/l05q/windows-debug-authority-baseline-exception.json",
+    "linux_optimized_focused": "build/halofpx-l05p-read-only-dev/evidence/l05q/linux-optimized-focused-final.log",
+    "linux_optimized_archive_audit": "build/halofpx-l05p-read-only-dev/evidence/l05q/linux-optimized-archive-audit-final.log",
+    "linux_asan_focused": "build/halofpx-l05p-read-only-dev/evidence/l05q/linux-asan-focused-final.log",
+    "linux_special_runs": "build/halofpx-l05p-read-only-dev/evidence/l05q/linux-special-runs-final.json",
+    "linux_environment": "build/halofpx-l05p-read-only-dev/evidence/l05q/linux-environment-final.txt",
+    "linux_input_hashes": "build/halofpx-l05p-read-only-dev/evidence/l05q/linux-input-hashes-final.sha256",
+    "rollback_control": "build/halofpx-l05p-read-only-dev/evidence/l05q/rollback-control-final.json"
+  },
+  "evidence_sha256": {
+    "windows_release_configured": "bfe8cf19f5dd4ef943fb852f39ef68906930bcbd58a487742acd82ecbcbc5bee",
+    "windows_debug_configured": "9dc2eb2ad62ffbe896b71ba4c6903f5884624414ac0ca38fd1e710d49da3bc85",
+    "windows_release_core": "8ed6b0cf15b0473ec82b06a5696481a7841e00ef0cfd50c5b16b085585c5d60e",
+    "windows_release_core_validation": "ad2b6e8931c35cab413d25ce55729dd381ef34160c390b5b6afc01f674e4af17",
+    "windows_debug_core": "5e464cfd27e7f90457f10fee2aac630418d9f39d1436dad143b249c4c6e481bd",
+    "windows_release_full": "1ec56e8c37f21906951286122f0cb46f069f9af2fcfba53b267e49277d23493e",
+    "windows_special_runs": "01da3a72ac1e8ad1c9277f93001513dcb586d92db08c1709e527a47f844d40c2",
+    "windows_debug_baseline_exception": "dd5e1f3a248d64709de7d5625bb76ec753efa2a1b51981ca53b3bb518aa8917d",
+    "linux_optimized_focused": "1e8e44176143f3b35e6d3e64985cb9f8dcbf1a372557b04c5b1369763308d3bd",
+    "linux_optimized_archive_audit": "c74ed049f7500ab442f7a0c8b17e538cc75c466843f497b42cafb70439bbfc00",
+    "linux_asan_focused": "b3bb492bbaf0d15a59a5426955193e152712b0d5e3993c9ce7e890d6fa9a2373",
+    "linux_special_runs": "3ef567c10da5f9ef121791ef1cf6675ff01ed39e4822d3c10513a541750d2d8d",
+    "linux_environment": "deef68e43b6aa0b4b9bfea97e4c1138f8c5ffc38a721fc7043ce0ccbf1ae58ce",
+    "linux_input_hashes": "585192bc147ec6628ff2cefc844bf4ad7b29f562a46b3180a73212d9117a2038",
+    "rollback_control": "1a555e17d3d8509935b17bdf541a781a2036c20df3963ac6ad3d0cde01b1cda3"
+  },
+  "build_artifact_sha256": {
+    "windows_release_test": "68214ea230e17eceb7b7830d20b4a84093f24d1d87d5c3d9c372d195283394a0",
+    "windows_debug_test": "ded51c4d682b480d634ddaa05f6df0e56a17177cbbd2f0c552264621ad2b8e64",
+    "linux_optimized_test": "b2d54ee18a37d43701a51a6bd44204a3954085be21a65b46bcbf0c0aa1e442b3",
+    "linux_asan_ubsan_test": "bc5f5bad87eeaad8bf31b7a3d10845e4f3430b4a66ac7ebd224a892c25bfc7de",
+    "golden_vector": "aae3849d8bdca5a1e93fc180cfe0a3dffc3fafc92fe22e7e76d937426f78d4e4"
+  },
+  "reviewed_source_sha256": {
+    "tools/server/halofpx-context-store-registry-lab-read-only.cpp": "716dcecf30e474f1608a43c59435e41b3b7035a0c03eb5bd72628b41862747d4",
+    "tools/server/halofpx-context-store-registry-lab-read-only-internal.h": "be72f4b9ecfe551639a6c99b639f08b7801dd6a0506c53e1da53866f6bfee650",
+    "tests/test-halofpx-context-store-registry-lab-read-only.cpp": "1536a41723ca491a34902039ab8b1f421a040d0b5884c81e74e5446875394fa5",
+    "tests/test-halofpx-context-store-registry-lab-read-only-contract.cmake": "4982b85a3b8a61513fa06d8f924e04645754195e55b375dd39f86310a1cd8c17",
+    "tools/server/CMakeLists.txt": "d7fefff056ec5e0dfea9a80b13d661a35b49c3f4546a7b4832d9d41198a8ac02",
+    "docs/halofpx/decisions/0023-portable-registry-lab-recovery-terminalization.md": "0f6ab73c88498a694fb22e50105f3fa5da31784d4e2c319829d6a09a7bd72c17",
+    "docs/halofpx/reviews/2026-07-18__adr-0023-recovery-terminalization__review__v01.md": "46281284595d32ef3074f27471c0e33c4b5c249048d6c83656d4052d827a0478"
+  },
+  "reference_repositories": {
+    "ROCmFPX": { "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true },
+    "llama-ai": { "commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true },
+    "CachyLLama": { "commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true },
+    "llama.cpp": { "commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true }
+  },
+  "provenance": {
+    "target_native_clean_implementation": true,
+    "donor_implementation_code_imported": false,
+    "llama_ai_gpl_code_or_documentation_copied": false,
+    "cachyllama_code_imported": false,
+    "direct_cherry_pick_roster": [],
+    "p3_records_required_for_this_slice": []
+  },
+  "wiki_review": {
+    "canonical_section": "HaloFPX Wiki Section 63",
+    "result": "consistent with corruption-as-miss/quarantine, separate file and directory durability, immutable terminal publication, bounded restart validation, and no durability-mode claim",
+    "still_open": "M63-01 concrete Linux syscall/process/filesystem qualification and all persistence gates"
+  },
+  "promotion_boundary": [
+    "fake-only operation 6 and recovered ABORT/CLOSE terminalization through operation 64",
+    "normal CAS, quarantine publication and operation 69 remain closed",
+    "no Linux filesystem primitives, concrete observation, persistent write, provider, server, cache-hit, restore, or inference authority",
+    "no product linkage and no performance claim; feature-off remains the compatibility control",
+    "the optional L14Q quantized-KV lane remains parked"
+  ]
+}

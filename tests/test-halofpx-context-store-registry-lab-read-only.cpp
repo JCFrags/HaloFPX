@@ -361,6 +361,31 @@ script operation_5_script(recovery_classification classification) {
     value.entries[4].classification = classification; return value;
 }
 
+primitive_product sync_product(operation op) {
+    primitive_product value = product(op); value.effect = storage_effect::complete_durability_projection; return value;
+}
+
+script recovery_script(bool successor, recovery_classification classification) {
+    script value = operation_5_script(classification);
+    size_t i = 5; value.entries[i++] = product(operation::action_mutation_admission);
+    if (successor) {
+        value.entries[i++] = sync_product(operation::successor_file_sync);
+        value.entries[i++] = sync_product(operation::envelopes_directory_sync);
+        value.entries[i++] = sync_product(operation::staging_directory_sync_after_successor);
+        value.entries[i++] = sync_product(operation::head_file_sync);
+        value.entries[i++] = sync_product(operation::root_directory_sync);
+        value.entries[i++] = sync_product(operation::staging_directory_sync_after_head);
+        value.entries[i++] = product(operation::head_read);
+        value.entries[i++] = product(operation::successor_read);
+    }
+    value.entries[i] = product(operation::terminal_create); value.entries[i++].effect = storage_effect::complete_live;
+    value.entries[i] = product(operation::terminal_write); value.entries[i++].effect = storage_effect::complete_live;
+    value.entries[i++] = product(operation::terminal_readback);
+    value.entries[i++] = sync_product(operation::terminal_file_sync);
+    value.entries[i++] = sync_product(operation::attempts_directory_sync);
+    value.size = i; return value;
+}
+
 void finish(fixture & f, size_t handle);
 
 size_t run_operation_5(fixture & f, const golden_data & g, uint64_t id, recovery_classification classification,
@@ -382,7 +407,7 @@ void install_successor_head(fixed_state & state, const golden_data & g) {
 }
 
 void finish(fixture & f, size_t handle) {
-    for (size_t guard = 0; guard < 16 && f.step(handle); ++guard) {}
+    for (size_t guard = 0; guard < 32 && f.step(handle); ++guard) {}
 }
 
 bool credential_is_zero(const credential_owner & value) {
@@ -442,6 +467,33 @@ void algebra() {
             if (op <= 4 && admitted && completed == static_cast<uint8_t>(completion::process_death)) ++deaths;
         }
     assert(admitted_all == 55 && admitted_14 == 43 && forbidden_14 == 437 && losses == 11 && deaths == 16);
+    constexpr std::array<operation, 14> recovery_operations { operation::action_mutation_admission, operation::successor_file_sync,
+        operation::envelopes_directory_sync, operation::staging_directory_sync_after_successor, operation::head_file_sync,
+        operation::root_directory_sync, operation::staging_directory_sync_after_head, operation::head_read, operation::successor_read,
+        operation::terminal_create, operation::terminal_write, operation::terminal_readback, operation::terminal_file_sync,
+        operation::attempts_directory_sync };
+    size_t recovery_admitted = 0;
+    for (operation op : recovery_operations) for (uint8_t effect = 0; effect < 5; ++effect)
+        for (uint8_t completed = 0; completed < 3; ++completed) for (uint8_t code = 0; code < 8; ++code)
+        {
+            const auto e = static_cast<storage_effect>(effect); const auto c = static_cast<completion>(completed); const auto p = static_cast<primitive_code>(code);
+            const bool code3 = p == primitive_code::ok || p == primitive_code::unavailable || p == primitive_code::io_failure;
+            const bool sync = op == operation::successor_file_sync || op == operation::envelopes_directory_sync || op == operation::staging_directory_sync_after_successor ||
+                op == operation::head_file_sync || op == operation::root_directory_sync || op == operation::staging_directory_sync_after_head ||
+                op == operation::terminal_file_sync || op == operation::attempts_directory_sync;
+            const bool read = op == operation::head_read || op == operation::successor_read || op == operation::terminal_readback;
+            bool expected = false;
+            if (op == operation::action_mutation_admission) expected = e == storage_effect::none && p != primitive_code::busy && p != primitive_code::invalid_request;
+            if (sync) expected = code3 && (e == storage_effect::none || e == storage_effect::bounded_partial_durability_projection || e == storage_effect::complete_durability_projection) &&
+                !(c == completion::response_confirmed && p == primitive_code::ok && e != storage_effect::complete_durability_projection);
+            if (read) expected = code3 && e == storage_effect::none;
+            if (op == operation::terminal_create) expected = code3 && (e == storage_effect::none || e == storage_effect::complete_live) &&
+                !(c == completion::response_confirmed && p == primitive_code::ok && e != storage_effect::complete_live);
+            if (op == operation::terminal_write) expected = code3 && (e == storage_effect::none || e == storage_effect::bounded_partial_bytes || e == storage_effect::complete_live) &&
+                !(c == completion::response_confirmed && p == primitive_code::ok && e != storage_effect::complete_live);
+            assert(admitted_product(op, e, c, p) == expected); recovery_admitted += expected;
+        }
+    assert(recovery_admitted == 287 && admitted_algebra_count() == 342);
     primitive_product op5 = product(operation::recovery_validation);
     assert(!admitted_payload(op5)); op5.classification = recovery_classification::continue_to_mutation; assert(admitted_payload(op5));
     op5.completed = completion::response_lost; op5.classification = recovery_classification::none; assert(admitted_payload(op5));
@@ -1472,11 +1524,394 @@ void operation_5_key_selection_before_kdf(const golden_data & g) {
     assert(f->derived_classification(h) == recovery_classification::needs_sticky_quarantine && f->kdf_calls(h) == 0);
 }
 
+void operation_6_recovery_success_and_prior_request_isolation(const golden_data & g) {
+    const auto run = [&](bool successor, uint64_t id) {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g);
+        assert(f->state().modeled_available_bytes == registry_minimum_reserve_bytes);
+        const size_t slot = successor ? 29 : 23;
+        const auto journal = generate_journal(g, slot, id + 7000, false);
+        install_journal(f->state(), slot, journal.prepare);
+        if (successor) install_successor_head(f->state(), g);
+        request_transition_v1 unrelated = g.request;
+        unrelated.attempt_id.fill(0x93); unrelated.operation_commitment.fill(0x94);
+        unrelated.expected_current_head.fill(0); unrelated.expected_current_head[0] = 0x95; unrelated.expected_current_head_length = 1;
+        unrelated.expected_current_head_digest.fill(0x96);
+        const recovery_classification classification = successor ? recovery_classification::needs_successor_close : recovery_classification::needs_predecessor_abort;
+        script s = recovery_script(successor, classification); credential_owner c = golden_data::golden_credential();
+        const size_t h = f->begin(id, 0, std::move(c), g.preflight, unrelated, s); finish(*f, h);
+        assert(f->result(h).state == visibility::ordinary_result);
+        assert(f->result(h).ordinary == (successor ? status::modeled_recovered_successor_closed : status::recovered_not_applied_no_authority));
+        const modeled_file<1024> & terminal = successor ? f->state().slots[slot].close : f->state().slots[slot].abort_record;
+        assert(terminal.live_present && terminal.live_complete && terminal.durable_present && terminal.durable_complete &&
+            terminal.live_length > 0 && terminal.live_length == terminal.durable_length &&
+            std::equal(terminal.live_bytes.begin(), terminal.live_bytes.begin() + terminal.live_length, terminal.durable_bytes.begin()));
+        const std::array<uint16_t, 14> successor_trace { 1,2,3,4,5,6,33,35,36,43,45,46,50,51 };
+        const std::array<uint16_t, 6> predecessor_trace { 1,2,3,4,5,6 };
+        const size_t prefix = successor ? successor_trace.size() : predecessor_trace.size();
+        for (size_t i = 0; i < prefix; ++i) assert(f->trace(h, i).event == (successor ? successor_trace[i] : predecessor_trace[i]));
+        const std::array<uint16_t, 8> suffix { 60,61,62,63,64,90,91,92 };
+        for (size_t i = 0; i < suffix.size(); ++i) assert(f->trace(h, prefix + i).event == suffix[i]);
+        assert(f->trace_size(h) == prefix + suffix.size() && f->ordinary_wipe_audited(h));
+    };
+    run(false, 3101); run(true, 3102);
+}
+
+void operation_6_state_critical_mismatch_is_unavailable(const golden_data & g) {
+    auto f = std::make_unique<fixture>(); populate_clean(*f, g);
+    const auto journal = generate_journal(g, 31, 8101, false); install_journal(f->state(), 31, journal.prepare);
+    script s = recovery_script(false, recovery_classification::needs_predecessor_abort);
+    s.entries[5].code = primitive_code::unavailable;
+    credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(3201, 0, std::move(c), g.preflight, g.request, s);
+    assert(f->step(h) && f->step(h) && f->step(h) && f->step(h)); // operations 2-5
+    f->state().head.live_bytes[0] ^= 1;
+    finish(*f, h);
+    assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::quarantined_or_unavailable);
+    assert(!f->state().slots[31].abort_record.live_present && !f->state().slots[31].close.live_present);
+    const std::array<uint16_t, 9> expected { 1,2,3,4,5,6,90,91,92 };
+    assert(f->trace_size(h) == expected.size()); for (size_t i = 0; i < expected.size(); ++i) assert(f->trace(h, i).event == expected[i]);
+}
+
+void operation_6_unavailable_requires_state_mismatch(const golden_data & g) {
+    auto f = std::make_unique<fixture>(); populate_clean(*f, g);
+    const auto journal = generate_journal(g, 32, 8102, false); install_journal(f->state(), 32, journal.prepare);
+    script s = recovery_script(false, recovery_classification::needs_predecessor_abort);
+    s.entries[5].code = primitive_code::unavailable;
+    credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(3202, 0, std::move(c), g.preflight, g.request, s);
+    finish(*f, h);
+    assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::invalid_request_no_mutation);
+    const std::array<uint16_t, 8> expected { 1,2,3,4,5,90,91,92 };
+    assert(f->trace_size(h) == expected.size()); for (size_t i = 0; i < expected.size(); ++i) assert(f->trace(h, i).event == expected[i]);
+    assert(!f->state().slots[32].abort_record.live_present && !f->state().slots[32].close.live_present);
+}
+
+void operation_6_post_admission_faults(const golden_data & g) {
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); const auto journal = generate_journal(g, 37, 8201, false);
+        install_journal(f->state(), 37, journal.prepare); script s = recovery_script(false, recovery_classification::needs_predecessor_abort);
+        s.entries[8].code = primitive_code::unavailable; // authenticated readback contradiction
+        credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(3301, 0, std::move(c), g.preflight, g.request, s);
+        assert(f->step(h) && f->step(h) && f->step(h) && f->step(h)); // through operation 5
+        assert(f->step(h)); // operation 6 atomically invokes operation 60
+        assert(f->step(h)); // operation 61 exact write
+        assert(f->state().slots[37].abort_record.live_length > 0); f->state().slots[37].abort_record.live_bytes[0] ^= 1;
+        finish(*f, h);
+        assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::quarantined_or_unavailable);
+        assert(!f->state().slots[37].abort_record.durable_present);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); const auto journal = generate_journal(g, 41, 8202, false);
+        install_journal(f->state(), 41, journal.prepare); script s = recovery_script(false, recovery_classification::needs_predecessor_abort);
+        credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(3302, 0, std::move(c), g.preflight, g.request, s);
+        assert(f->step(h) && f->step(h) && f->step(h) && f->step(h));
+        assert(f->step(h)); // operation 6 admitted and operation 60 already invoked
+        f->state().modeled_available_bytes = 0; // post-latch reserve loss is uncertain, never a retroactive definite rejection
+        finish(*f, h);
+        assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::uncertain_requires_recovery);
+        assert(f->state().slots[41].abort_record.live_present && f->state().slots[41].abort_record.live_complete &&
+            f->state().slots[41].abort_record.live_length == 0);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); const auto journal = generate_journal(g, 42, 8204, false);
+        install_journal(f->state(), 42, journal.prepare); script s = recovery_script(false, recovery_classification::needs_predecessor_abort);
+        credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(3304, 0, std::move(c), g.preflight, g.request, s);
+        assert(f->step(h) && f->step(h) && f->step(h) && f->step(h));
+        assert(f->step(h)); // operation 6 admitted and operation 60 already invoked
+        f->state().slots[42].abort_record.live_present = false; // unexpected post-latch invariant violation before operation 61
+        finish(*f, h);
+        assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::uncertain_requires_recovery);
+    }
+    {
+        auto f = std::make_unique<fixture>(); populate_clean(*f, g); const auto journal = generate_journal(g, 43, 8203, false);
+        install_journal(f->state(), 43, journal.prepare); script s = recovery_script(false, recovery_classification::needs_predecessor_abort);
+        s.entries[10].completed = completion::process_death;
+        credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(3303, 0, std::move(c), g.preflight, g.request, s); finish(*f, h);
+        assert(f->result(h).state == visibility::dead_process_no_result && f->state().slots[43].abort_record.durable_present);
+        auto image = std::make_unique<restart_image>(); assert(f->serialize_restart(*image)); auto restored = std::make_unique<fixture>(); assert(restored->restore_restart(*image, 1));
+        assert(restored->state().slots[43].abort_record.live_present && restored->state().slots[43].abort_record.durable_present);
+    }
+}
+
+void operation_6_allocation_free_after_construction(const golden_data & g) {
+    auto f = std::make_unique<fixture>(); populate_clean(*f, g); const auto journal = generate_journal(g, 47, 8301, false);
+    install_journal(f->state(), 47, journal.prepare); script s = recovery_script(false, recovery_classification::needs_predecessor_abort);
+    credential_owner c = golden_data::golden_credential(); fail_allocations = true;
+    const size_t h = f->begin(3401, 0, std::move(c), g.preflight, g.request, s); finish(*f, h);
+    fail_allocations = false;
+    assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::recovered_not_applied_no_authority && f->ordinary_wipe_audited(h));
+}
+
+void operation_6_accounting_boundaries(const golden_data & g) {
+    assert(admitted_logical_budget(0));
+    assert(admitted_logical_budget(registry_logical_budget_bytes - registry_terminal_reservation_bytes));
+    assert(!admitted_logical_budget(registry_logical_budget_bytes - registry_terminal_reservation_bytes + 1));
+    assert(!admitted_logical_budget(UINT64_MAX));
+    auto f = std::make_unique<fixture>(); populate_clean(*f, g); const auto journal = generate_journal(g, 53, 8401, false);
+    install_journal(f->state(), 53, journal.prepare); f->state().modeled_available_bytes = registry_minimum_reserve_bytes - 1;
+    script s = recovery_script(false, recovery_classification::needs_predecessor_abort); s.entries[5].code = primitive_code::reserve_exhausted;
+    credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(3501, 0, std::move(c), g.preflight, g.request, s); finish(*f, h);
+    assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::uncertain_requires_recovery);
+    assert(!f->state().slots[53].abort_record.live_present && !f->state().slots[53].close.live_present);
+}
+
+constexpr std::array<operation, 14> l05q_operations { operation::action_mutation_admission, operation::successor_file_sync,
+    operation::envelopes_directory_sync, operation::staging_directory_sync_after_successor, operation::head_file_sync,
+    operation::root_directory_sync, operation::staging_directory_sync_after_head, operation::head_read, operation::successor_read,
+    operation::terminal_create, operation::terminal_write, operation::terminal_readback, operation::terminal_file_sync,
+    operation::attempts_directory_sync };
+
+bool l05q_successor_only(operation op) {
+    return op == operation::successor_file_sync || op == operation::envelopes_directory_sync ||
+        op == operation::staging_directory_sync_after_successor || op == operation::head_file_sync ||
+        op == operation::root_directory_sync || op == operation::staging_directory_sync_after_head ||
+        op == operation::head_read || op == operation::successor_read;
+}
+
+size_t l05q_script_index(const script & value, operation op) {
+    for (size_t i = 0; i < value.size; ++i) if (value.entries[i].op == op) return i;
+    assert(false); return 0;
+}
+
+bool l05q_trace_contains(const fixture & value, size_t handle, operation op) {
+    for (size_t i = 0; i < value.trace_size(handle); ++i)
+        if (value.trace(handle, i).event == static_cast<uint16_t>(op)) return true;
+    return false;
+}
+
+bool l05q_restart_contains_credential_secret(const restart_image & value) {
+    const auto * bytes = reinterpret_cast<const uint8_t *>(&value);
+    constexpr size_t secret_size = 32;
+    for (size_t i = 0; i + secret_size <= sizeof(value); ++i) {
+        bool equal = true;
+        for (size_t j = 0; j < secret_size; ++j) equal = equal && bytes[i + j] == 0x44;
+        if (equal) return true;
+    }
+    return false;
+}
+
+bool l05q_restart_file_contains_credential_secret(const restart_file_1024 & value) {
+    for (size_t i = 0; i + 32 <= value.bytes.size(); ++i) {
+        bool equal = true;
+        for (size_t j = 0; j < 32; ++j) equal = equal && value.bytes[i + j] == 0x44;
+        if (equal) return true;
+    }
+    return false;
+}
+
+bool l05q_same_restart_file(const restart_file_1024 & left, const restart_file_1024 & right) {
+    return left.present == right.present && left.complete == right.complete && left.length == right.length && left.bytes == right.bytes;
+}
+
+void l05q_install_recovery(fixture & value, const golden_data & g, bool successor, size_t slot, uint64_t identity,
+        size_t older_abort_pairs = 0) {
+    populate_clean(value, g);
+    size_t installed = 0;
+    for (size_t candidate = 0; candidate < 512 && installed < older_abort_pairs; ++candidate) {
+        if (candidate == slot) continue;
+        const auto older = generate_journal(g, candidate, identity + 1000 + installed, false);
+        install_journal(value.state(), candidate, older.prepare, &older.terminal, false);
+        ++installed;
+    }
+    assert(installed == older_abort_pairs);
+    const auto unresolved = generate_journal(g, slot, identity, false);
+    install_journal(value.state(), slot, unresolved.prepare);
+    if (successor) install_successor_head(value.state(), g);
+}
+
+void l05q_every_slot_and_older_abort_history(const golden_data & g) {
+    uint64_t invocation = 200000;
+    size_t executed = 0;
+    for (bool successor : { false, true }) for (size_t older : { size_t(0), size_t(1), size_t(3) })
+        for (size_t slot = 0; slot < 512; ++slot) {
+            auto f = std::make_unique<fixture>(); l05q_install_recovery(*f, g, successor, slot, invocation + 500000, older);
+            script s = recovery_script(successor, successor ? recovery_classification::needs_successor_close : recovery_classification::needs_predecessor_abort);
+            credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(invocation++, 0, std::move(c), g.preflight, g.request, s); finish(*f, h);
+            assert(f->derived_classification(h) == (successor ? recovery_classification::needs_successor_close : recovery_classification::needs_predecessor_abort));
+            assert(f->scanned_slots(h) == 512 && f->result(h).state == visibility::ordinary_result);
+            assert(f->result(h).ordinary == (successor ? status::modeled_recovered_successor_closed : status::recovered_not_applied_no_authority));
+            const auto & terminal = successor ? f->state().slots[slot].close : f->state().slots[slot].abort_record;
+            assert(terminal.live_present && terminal.live_complete && terminal.durable_present && terminal.durable_complete);
+            ++executed;
+        }
+    assert(executed == 3072);
+}
+
+void l05q_product_execution_and_preentry_rejection(const golden_data & g) {
+    uint64_t invocation = 300000; size_t admitted = 0, reached = 0, rejected = 0, projected = 0, classified = 0;
+    for (operation op : l05q_operations) for (uint8_t effect = 0; effect < 5; ++effect)
+        for (uint8_t completed = 0; completed < 3; ++completed) for (uint8_t code = 0; code < 8; ++code) {
+            const auto selected_effect = static_cast<storage_effect>(effect); const auto selected_completion = static_cast<completion>(completed);
+            const auto selected_code = static_cast<primitive_code>(code); const bool successor = l05q_successor_only(op);
+            const uint64_t journal_identity = invocation + 600000;
+            const auto action_journal = generate_journal(g, 257, journal_identity, false);
+            request_transition_v1 action_request = g.request; action_request.attempt_id = action_journal.attempt_id;
+            action_request.operation_commitment = action_journal.operation_commitment; action_request.requested_slot = 257;
+            auto f = std::make_unique<fixture>(); l05q_install_recovery(*f, g, successor, 257, journal_identity);
+            script s = recovery_script(successor, successor ? recovery_classification::needs_successor_close : recovery_classification::needs_predecessor_abort);
+            const size_t target = l05q_script_index(s, op); s.entries[target] = { op, selected_effect, selected_completion, selected_code, recovery_classification::none };
+            if (op == operation::action_mutation_admission && selected_code == primitive_code::reserve_exhausted)
+                f->state().modeled_available_bytes = registry_minimum_reserve_bytes - 1;
+            credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(invocation++, 0, std::move(c), g.preflight, g.request, s);
+            if (op == operation::action_mutation_admission && selected_code == primitive_code::unavailable &&
+                admitted_product(op, selected_effect, selected_completion, selected_code)) {
+                assert(f->step(h) && f->step(h) && f->step(h) && f->step(h)); // through operation 5
+                f->state().head.live_bytes[0] ^= 1; // independently derive reserved operation-6 unavailable
+            }
+            finish(*f, h);
+            if (!admitted_product(op, selected_effect, selected_completion, selected_code)) {
+                assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::invalid_request_no_mutation);
+                assert(f->trace_size(h) == 0 && f->rejection_wipe_audited(h)); ++rejected; continue;
+            }
+            ++admitted;
+            assert(l05q_trace_contains(*f, h, op)); ++reached;
+            const size_t projection_count = f->restart_projection_count(h); assert(projection_count > 0);
+            restart_file_1024 previous_terminal {}; bool have_previous = false;
+            for (size_t ordinal = 0; ordinal < projection_count; ++ordinal) {
+                auto image = std::make_unique<restart_image>(); restart_projection_audit projection_audit;
+                assert(f->project_restart(h, ordinal, *image, projection_audit));
+                assert(projection_audit.count == projection_count && projection_audit.ordinal == ordinal);
+                const restart_file_1024 & projected_terminal = successor ? image->slots[257].close : image->slots[257].abort_record;
+                assert(projection_audit.terminal_name_retained == projected_terminal.present);
+                assert(projection_audit.retained_length == (projected_terminal.present ? projected_terminal.length : 0));
+                assert((ordinal != 0 || !l05q_restart_contains_credential_secret(*image)) &&
+                    !l05q_restart_file_contains_credential_secret(projected_terminal));
+                auto deterministic = std::make_unique<restart_image>(); restart_projection_audit deterministic_audit;
+                assert(f->project_restart(h, ordinal, *deterministic, deterministic_audit));
+                const restart_file_1024 & deterministic_terminal = successor ? deterministic->slots[257].close : deterministic->slots[257].abort_record;
+                assert((ordinal != 0 || std::memcmp(image.get(), deterministic.get(), sizeof(restart_image)) == 0) &&
+                    l05q_same_restart_file(projected_terminal, deterministic_terminal) && projection_audit.count == deterministic_audit.count && projection_audit.ordinal == deterministic_audit.ordinal &&
+                    projection_audit.retained_length == deterministic_audit.retained_length &&
+                    projection_audit.terminal_name_retained == deterministic_audit.terminal_name_retained);
+                if (have_previous) assert(!l05q_same_restart_file(previous_terminal, projected_terminal));
+                previous_terminal = projected_terminal; have_previous = true;
+                auto restored = std::make_unique<fixture>(); assert(restored->restore_restart(*image, 1));
+                recovery_classification expected = recovery_classification::needs_sticky_quarantine;
+                status expected_status = status::quarantined_or_unavailable;
+                if (!projected_terminal.present) {
+                    expected = successor ? recovery_classification::needs_successor_close : recovery_classification::needs_predecessor_abort;
+                    expected_status = status::uncertain_requires_recovery;
+                } else if (projected_terminal.complete && projected_terminal.length > 0) {
+                    expected = recovery_classification::attempt_replayed; expected_status = status::attempt_replayed_no_mutation;
+                }
+                script classify = operation_5_script(expected);
+                credential_owner classify_credential = golden_data::golden_credential();
+                const size_t classified_handle = restored->begin(invocation++, 1, std::move(classify_credential), g.preflight, action_request, classify);
+                finish(*restored, classified_handle);
+                const auto derived = restored->derived_classification(classified_handle);
+                if (derived != expected) std::fprintf(stderr, "projection classification mismatch op=%u effect=%u completion=%u code=%u ordinal=%zu/%zu present=%u complete=%u length=%zu expected=%u derived=%u\n",
+                    static_cast<unsigned>(op), static_cast<unsigned>(selected_effect), static_cast<unsigned>(selected_completion),
+                    static_cast<unsigned>(selected_code), ordinal, projection_count, projected_terminal.present ? 1U : 0U,
+                    projected_terminal.complete ? 1U : 0U, projected_terminal.length, static_cast<unsigned>(expected), static_cast<unsigned>(derived));
+                assert(derived == expected);
+                const auto disposition = restored->result(classified_handle);
+                assert(disposition.state == visibility::ordinary_result && disposition.ordinary == expected_status);
+                ++projected; ++classified;
+            }
+            if (selected_completion == completion::process_death) {
+                assert(f->result(h).state == visibility::dead_process_no_result && f->invocation_dead(h));
+                assert(f->teardown_audit_count() == 1); const auto audit = f->teardown_audit(0);
+                assert(audit.credential_zero && audit.scratch_zero && audit.serialized_secret_absent);
+                auto image = std::make_unique<restart_image>();
+                if (!f->serialize_restart(*image)) std::fprintf(stderr, "restart serialization rejected admitted product op=%u effect=%u code=%u\n",
+                    static_cast<unsigned>(op), static_cast<unsigned>(selected_effect), static_cast<unsigned>(selected_code));
+                assert(f->serialize_restart(*image));
+                auto restored = std::make_unique<fixture>(); assert(restored->restore_restart(*image, 0));
+            } else {
+                assert(f->result(h).state == visibility::ordinary_result && f->ordinary_wipe_audited(h));
+            }
+        }
+    // For the exact 356-byte recovered ABORT: 186 preterminal products,
+    // create=25, write=49+8*(178)+8*(356), readback=17+8*(356),
+    // file-sync=49+8*(356), and attempts-dir-sync=41.
+    constexpr size_t expected_projections = 10335;
+    if (admitted != 287 || reached != 287 || rejected != 1393 || projected != expected_projections || classified != expected_projections)
+        std::fprintf(stderr, "L05Q totals admitted=%zu reached=%zu rejected=%zu projected=%zu classified=%zu\n",
+            admitted, reached, rejected, projected, classified);
+    assert(admitted == 287 && reached == 287 && rejected == 1393 && projected == expected_projections && classified == expected_projections);
+}
+
+void l05q_script_shape_rejection(const golden_data & g) {
+    uint64_t invocation = 400000; size_t rejected = 0;
+    const auto reject = [&](bool successor, const script & s) {
+        auto f = std::make_unique<fixture>(); l05q_install_recovery(*f, g, successor, 301, invocation + 700000);
+        credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(invocation++, 0, std::move(c), g.preflight, g.request, s);
+        assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::invalid_request_no_mutation);
+        assert(f->trace_size(h) == 0 && f->rejection_wipe_audited(h)); ++rejected;
+    };
+    for (bool successor : { false, true }) {
+        const recovery_classification classification = successor ? recovery_classification::needs_successor_close : recovery_classification::needs_predecessor_abort;
+        const script exact = recovery_script(successor, classification);
+        for (size_t removed = 0; removed < exact.size; ++removed) {
+            script s = exact; for (size_t i = removed; i + 1 < s.size; ++i) s.entries[i] = s.entries[i + 1]; --s.size; reject(successor, s);
+        }
+        for (size_t first = 0; first + 1 < exact.size; ++first) { script s = exact; std::swap(s.entries[first], s.entries[first + 1]); reject(successor, s); }
+        for (size_t wrong = 0; wrong < exact.size; ++wrong) {
+            script s = exact; s.entries[wrong] = product(wrong == 0 ? operation::writer_lock_acquire : operation::guard_acquire); reject(successor, s);
+        }
+        script extra = exact; assert(extra.size < extra.entries.size()); extra.entries[extra.size++] = product(operation::guard_acquire); reject(successor, extra);
+    }
+    { script absurd = recovery_script(true, recovery_classification::needs_successor_close); absurd.size = absurd.entries.size() + 999; reject(true, absurd); }
+    assert(rejected == 91);
+}
+
+void l05q_advance_through_terminal_write(fixture & value, size_t handle) {
+    for (size_t guard = 0; guard < 24 && !l05q_trace_contains(value, handle, operation::terminal_write); ++guard) assert(value.step(handle));
+    assert(l05q_trace_contains(value, handle, operation::terminal_write));
+}
+
+void l05q_terminal_attack(const golden_data & g, bool successor, size_t truncate_to, size_t flip_bit,
+        bool recompute_tag, size_t semantic_case, uint64_t invocation) {
+    auto f = std::make_unique<fixture>(); l05q_install_recovery(*f, g, successor, 347, invocation + 800000);
+    script s = recovery_script(successor, successor ? recovery_classification::needs_successor_close : recovery_classification::needs_predecessor_abort);
+    s.entries[l05q_script_index(s, operation::terminal_readback)].code = primitive_code::unavailable;
+    credential_owner c = golden_data::golden_credential(); const size_t h = f->begin(invocation, 0, std::move(c), g.preflight, g.request, s);
+    l05q_advance_through_terminal_write(*f, h);
+    auto & terminal = successor ? f->state().slots[347].close : f->state().slots[347].abort_record;
+    assert(terminal.live_complete && terminal.live_length > 0);
+    if (truncate_to != SIZE_MAX) { assert(truncate_to < terminal.live_length); terminal.live_length = truncate_to; terminal.live_complete = false; }
+    if (flip_bit != SIZE_MAX) { assert(flip_bit < terminal.live_length * 8); terminal.live_bytes[flip_bit / 8] ^= static_cast<uint8_t>(1U << (flip_bit % 8)); }
+    if (recompute_tag) {
+        std::vector<uint8_t> bytes(terminal.live_bytes.begin(), terminal.live_bytes.begin() + terminal.live_length);
+        if (semantic_case == 0) replace_unique_byte(bytes, successor ? std::initializer_list<uint8_t>{ 0x0b,0x02,0x0c,0x01 } : std::initializer_list<uint8_t>{ 0x0b,0x01,0x0c,0x01 }, 1, successor ? 0x01 : 0x02);
+        else if (semantic_case == 1) replace_unique_byte(bytes, successor ? std::initializer_list<uint8_t>{ 0x0b,0x02,0x0c,0x01 } : std::initializer_list<uint8_t>{ 0x0b,0x01,0x0c,0x01 }, 3, 0x00);
+        else if (semantic_case == 2) xor_unique_byte(bytes, { 0x0a,0x58,0x20 }, 0);
+        else xor_unique_byte(bytes, { 0x0d,0x58,0x20 }, 0);
+        retag_record(bytes, successor ? "halofpx.registry-lab-close-auth.v1" : "halofpx.registry-lab-abort-auth.v1");
+        std::copy(bytes.begin(), bytes.end(), terminal.live_bytes.begin());
+    }
+    finish(*f, h);
+    assert(l05q_trace_contains(*f, h, operation::terminal_readback));
+    assert(f->result(h).state == visibility::ordinary_result && f->result(h).ordinary == status::quarantined_or_unavailable && f->ordinary_wipe_audited(h));
+}
+
+void l05q_terminal_truncation_bit_and_retag_attacks(const golden_data & g) {
+    uint64_t invocation = 500000; size_t truncations = 0, bit_mutations = 0, semantic_attacks = 0;
+    for (bool successor : { false, true }) {
+        auto probe = std::make_unique<fixture>(); l05q_install_recovery(*probe, g, successor, 347, invocation + 900000);
+        script s = recovery_script(successor, successor ? recovery_classification::needs_successor_close : recovery_classification::needs_predecessor_abort);
+        credential_owner c = golden_data::golden_credential(); const size_t h = probe->begin(invocation++, 0, std::move(c), g.preflight, g.request, s);
+        l05q_advance_through_terminal_write(*probe, h); const auto & terminal = successor ? probe->state().slots[347].close : probe->state().slots[347].abort_record;
+        const size_t terminal_size = terminal.live_length; assert(terminal_size > 0 && terminal_size <= 1024);
+        for (size_t length = 0; length < terminal_size; ++length) { l05q_terminal_attack(g, successor, length, SIZE_MAX, false, 0, invocation++); ++truncations; }
+        for (size_t bit = 0; bit < terminal_size * 8; ++bit) { l05q_terminal_attack(g, successor, SIZE_MAX, bit, false, 0, invocation++); ++bit_mutations; }
+        for (size_t attack = 0; attack < 4; ++attack) { l05q_terminal_attack(g, successor, SIZE_MAX, SIZE_MAX, true, attack, invocation++); ++semantic_attacks; }
+    }
+    assert(truncations == 712 && bit_mutations == 5696 && semantic_attacks == 8);
+}
+
+void l05q_exhaustive(const golden_data & g) {
+    l05q_every_slot_and_older_abort_history(g);
+    l05q_script_shape_rejection(g);
+    l05q_terminal_truncation_bit_and_retag_attacks(g);
+    l05q_product_execution_and_preentry_rejection(g);
+}
+
 } // namespace
 
 int main(int argc, char ** argv) {
     assert(argc == 2 || argc == 3); const golden_data golden(argv[1]);
     if (argc == 3) {
+        if (std::strcmp(argv[2], "--l05q-products") == 0) { l05q_product_execution_and_preentry_rejection(golden); return 0; }
+        if (std::strcmp(argv[2], "--l05q-exhaustive") == 0) { l05q_exhaustive(golden); return 0; }
         assert(std::strcmp(argv[2], "--repeat-core") == 0);
         algebra(); operation_5_pairwise_precedence_matrix(); operation_5_allocation_free_after_construction(golden);
         operation_5_core(golden); operation_5_recovery_and_request_precedence(golden); operation_5_retry_after_abort(golden);
@@ -1486,6 +1921,7 @@ int main(int argc, char ** argv) {
         operation_5_authenticated_semantic_rejection(golden); operation_5_authenticated_terminal_class_matrix(golden);
         operation_5_authenticated_structural_rejection(golden);
         operation_5_authenticated_one_close_history_rejection(golden);
+        operation_6_recovery_success_and_prior_request_isolation(golden); operation_6_state_critical_mismatch_is_unavailable(golden); operation_6_unavailable_requires_state_mismatch(golden); operation_6_post_admission_faults(golden); operation_6_allocation_free_after_construction(golden); operation_6_accounting_boundaries(golden);
         return 0;
     }
     algebra();
@@ -1523,4 +1959,10 @@ int main(int argc, char ** argv) {
     operation_5_authenticated_structural_rejection(golden);
     operation_5_authenticated_one_close_history_rejection(golden);
     operation_5_hostile_bytes(golden);
+    operation_6_recovery_success_and_prior_request_isolation(golden);
+    operation_6_state_critical_mismatch_is_unavailable(golden);
+    operation_6_unavailable_requires_state_mismatch(golden);
+    operation_6_post_admission_faults(golden);
+    operation_6_allocation_free_after_construction(golden);
+    operation_6_accounting_boundaries(golden);
 }

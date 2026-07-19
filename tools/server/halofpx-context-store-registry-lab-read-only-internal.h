@@ -8,12 +8,20 @@
 
 namespace halofpx::registry_lab_read_only_test {
 
-enum class operation : uint8_t { guard_acquire = 1, writer_lock_acquire = 2, preflight = 3, snapshot_load = 4, recovery_validation = 5 };
+enum class operation : uint8_t {
+    guard_acquire = 1, writer_lock_acquire = 2, preflight = 3, snapshot_load = 4, recovery_validation = 5,
+    action_mutation_admission = 6,
+    successor_file_sync = 33, envelopes_directory_sync = 35, staging_directory_sync_after_successor = 36,
+    head_file_sync = 43, root_directory_sync = 45, staging_directory_sync_after_head = 46,
+    head_read = 50, successor_read = 51,
+    terminal_create = 60, terminal_write = 61, terminal_readback = 62,
+    terminal_file_sync = 63, attempts_directory_sync = 64,
+};
 enum class storage_effect : uint8_t { none, bounded_partial_bytes, complete_live, bounded_partial_durability_projection, complete_durability_projection };
 enum class completion : uint8_t { response_confirmed, response_lost, process_death };
 enum class primitive_code : uint8_t { ok, busy, unsupported, invalid_request, capacity_exhausted, reserve_exhausted, unavailable, io_failure };
 enum class recovery_classification : uint8_t { none, continue_to_mutation, needs_successor_close, needs_predecessor_abort, needs_sticky_quarantine, blocked_by_existing_quarantine, inadmissible_initialization_artifact, attempt_replayed, capacity_exhausted, requested_slot_occupied, invalid_transition, preexisting_unattributed_material };
-enum class status : uint8_t { invalid_request_no_mutation, unsupported_no_mutation, busy_no_mutation, capacity_exhausted_no_mutation, reserve_exhausted_no_mutation, attempt_replayed_no_mutation, slot_occupied_no_mutation, invalid_transition_no_mutation, preexisting_material_no_authority, uncertain_requires_recovery, quarantined_or_unavailable };
+enum class status : uint8_t { invalid_request_no_mutation, unsupported_no_mutation, busy_no_mutation, capacity_exhausted_no_mutation, reserve_exhausted_no_mutation, attempt_replayed_no_mutation, slot_occupied_no_mutation, invalid_transition_no_mutation, preexisting_material_no_authority, uncertain_requires_recovery, quarantined_or_unavailable, recovered_not_applied_no_authority, modeled_recovered_successor_closed };
 enum class visibility : uint8_t { not_visible, ordinary_result, dead_process_no_result };
 
 struct recovery_precedence_flags {
@@ -43,27 +51,60 @@ struct primitive_product {
     recovery_classification classification = recovery_classification::none;
 };
 
-constexpr bool valid_operation(operation value) noexcept { return static_cast<uint8_t>(value) >= 1 && static_cast<uint8_t>(value) <= 5; }
+constexpr bool valid_operation(operation value) noexcept {
+    switch (value) {
+        case operation::guard_acquire: case operation::writer_lock_acquire: case operation::preflight:
+        case operation::snapshot_load: case operation::recovery_validation: case operation::action_mutation_admission:
+        case operation::successor_file_sync: case operation::envelopes_directory_sync: case operation::staging_directory_sync_after_successor:
+        case operation::head_file_sync: case operation::root_directory_sync: case operation::staging_directory_sync_after_head:
+        case operation::head_read: case operation::successor_read: case operation::terminal_create: case operation::terminal_write:
+        case operation::terminal_readback: case operation::terminal_file_sync: case operation::attempts_directory_sync: return true;
+    }
+    return false;
+}
 constexpr bool valid_effect(storage_effect value) noexcept { return static_cast<uint8_t>(value) <= 4; }
 constexpr bool valid_completion(completion value) noexcept { return static_cast<uint8_t>(value) <= 2; }
 constexpr bool valid_code(primitive_code value) noexcept { return static_cast<uint8_t>(value) <= 7; }
 constexpr bool valid_classification(recovery_classification value) noexcept { return static_cast<uint8_t>(value) <= 11; }
 
 constexpr bool admitted_product(operation op, storage_effect effect, completion completed, primitive_code code) noexcept {
-    if (!valid_operation(op) || !valid_effect(effect) || !valid_completion(completed) || !valid_code(code) || effect != storage_effect::none) return false;
+    if (!valid_operation(op) || !valid_effect(effect) || !valid_completion(completed) || !valid_code(code)) return false;
     const bool confirmed = completed == completion::response_confirmed;
     const bool lost = completed == completion::response_lost;
     const bool death = completed == completion::process_death;
     switch (op) {
         case operation::guard_acquire:
-            return (confirmed || death) && (code == primitive_code::ok || code == primitive_code::busy);
+            return effect == storage_effect::none && (confirmed || death) && (code == primitive_code::ok || code == primitive_code::busy);
         case operation::writer_lock_acquire:
-            return (confirmed || death) && (code == primitive_code::ok || code == primitive_code::busy || code == primitive_code::unsupported);
+            return effect == storage_effect::none && (confirmed || death) && (code == primitive_code::ok || code == primitive_code::busy || code == primitive_code::unsupported);
         case operation::preflight:
-            return (confirmed || lost || death) && code != primitive_code::busy;
+            return effect == storage_effect::none && (confirmed || lost || death) && code != primitive_code::busy;
         case operation::snapshot_load:
         case operation::recovery_validation:
-            return (confirmed || lost || death) && (code == primitive_code::ok || code == primitive_code::unsupported || code == primitive_code::unavailable || code == primitive_code::io_failure);
+            return effect == storage_effect::none && (confirmed || lost || death) && (code == primitive_code::ok || code == primitive_code::unsupported || code == primitive_code::unavailable || code == primitive_code::io_failure);
+        case operation::action_mutation_admission:
+            return effect == storage_effect::none && (confirmed || lost || death) &&
+                (code == primitive_code::ok || code == primitive_code::capacity_exhausted || code == primitive_code::reserve_exhausted ||
+                 code == primitive_code::unsupported || code == primitive_code::unavailable || code == primitive_code::io_failure);
+        case operation::successor_file_sync: case operation::envelopes_directory_sync: case operation::staging_directory_sync_after_successor:
+        case operation::head_file_sync: case operation::root_directory_sync: case operation::staging_directory_sync_after_head:
+        case operation::terminal_file_sync: case operation::attempts_directory_sync: {
+            const bool allowed_effect = effect == storage_effect::none || effect == storage_effect::bounded_partial_durability_projection || effect == storage_effect::complete_durability_projection;
+            return allowed_effect && (code == primitive_code::ok || code == primitive_code::unavailable || code == primitive_code::io_failure) &&
+                !(confirmed && code == primitive_code::ok && effect != storage_effect::complete_durability_projection);
+        }
+        case operation::head_read: case operation::successor_read: case operation::terminal_readback:
+            return effect == storage_effect::none && (code == primitive_code::ok || code == primitive_code::unavailable || code == primitive_code::io_failure);
+        case operation::terminal_create: {
+            const bool allowed_effect = effect == storage_effect::none || effect == storage_effect::complete_live;
+            return allowed_effect && (code == primitive_code::ok || code == primitive_code::unavailable || code == primitive_code::io_failure) &&
+                !(confirmed && code == primitive_code::ok && effect != storage_effect::complete_live);
+        }
+        case operation::terminal_write: {
+            const bool allowed_effect = effect == storage_effect::none || effect == storage_effect::bounded_partial_bytes || effect == storage_effect::complete_live;
+            return allowed_effect && (code == primitive_code::ok || code == primitive_code::unavailable || code == primitive_code::io_failure) &&
+                !(confirmed && code == primitive_code::ok && effect != storage_effect::complete_live);
+        }
     }
     return false;
 }
@@ -78,14 +119,29 @@ constexpr bool admitted_payload(const primitive_product & product) noexcept {
 
 constexpr size_t admitted_algebra_count() noexcept {
     size_t count = 0;
-    for (uint8_t op = 1; op <= 5; ++op) for (uint8_t effect = 0; effect < 5; ++effect)
+    constexpr std::array<operation, 19> operations { operation::guard_acquire, operation::writer_lock_acquire, operation::preflight,
+        operation::snapshot_load, operation::recovery_validation, operation::action_mutation_admission, operation::successor_file_sync,
+        operation::envelopes_directory_sync, operation::staging_directory_sync_after_successor, operation::head_file_sync,
+        operation::root_directory_sync, operation::staging_directory_sync_after_head, operation::head_read, operation::successor_read,
+        operation::terminal_create, operation::terminal_write, operation::terminal_readback, operation::terminal_file_sync, operation::attempts_directory_sync };
+    for (operation op : operations) for (uint8_t effect = 0; effect < 5; ++effect)
         for (uint8_t completed = 0; completed < 3; ++completed) for (uint8_t code = 0; code < 8; ++code)
-            count += admitted_product(static_cast<operation>(op), static_cast<storage_effect>(effect), static_cast<completion>(completed), static_cast<primitive_code>(code)) ? 1U : 0U;
+            count += admitted_product(op, static_cast<storage_effect>(effect), static_cast<completion>(completed), static_cast<primitive_code>(code)) ? 1U : 0U;
     return count;
 }
-static_assert(admitted_algebra_count() == 55);
+static_assert(admitted_algebra_count() == 342);
+
+constexpr uint64_t registry_logical_budget_bytes = 16777216;
+constexpr uint64_t registry_terminal_reservation_bytes = 1024;
+constexpr uint64_t registry_minimum_reserve_bytes = 268435456;
+constexpr bool admitted_logical_budget(uint64_t current) noexcept {
+    return current <= UINT64_MAX - registry_terminal_reservation_bytes &&
+        current + registry_terminal_reservation_bytes <= registry_logical_budget_bytes;
+}
 
 template<size_t Capacity> struct modeled_file {
+    // `durable_present` is durable namespace visibility. Durable inode bytes may
+    // advance before it becomes true and remain restart-hidden until dir sync.
     bool live_present = false, durable_present = false, live_complete = false, durable_complete = false;
     size_t live_length = 0, durable_length = 0;
     std::array<uint8_t, Capacity> live_bytes {}, durable_bytes {};
@@ -110,6 +166,7 @@ struct fixed_state {
     std::array<modeled_envelope, 512> successors {};
     std::array<modeled_unexpected_entry, 32> unexpected {};
     modeled_directory root_directory, attempts_directory, staging_directory, envelopes_directory;
+    uint64_t modeled_available_bytes = 268435456;
 };
 
 struct restart_file_1024 { bool present = false, complete = false; size_t length = 0; std::array<uint8_t, 1024> bytes {}; };
@@ -124,6 +181,7 @@ struct restart_image {
     std::array<restart_envelope, 512> successors {};
     std::array<restart_unexpected_entry, 32> unexpected {};
     bool root_directory = false, attempts_directory = false, staging_directory = false, envelopes_directory = false;
+    uint64_t modeled_available_bytes = 268435456;
 };
 
 struct credential_owner {
@@ -163,14 +221,20 @@ struct request_transition_v1 {
     context_store_format_digest predecessor_digest {}, successor_digest {}, expected_current_head_digest {};
 };
 
-struct script { std::array<primitive_product, 5> entries {}; };
+// One extra entry is retained solely so the fake can prove an exact 19-step
+// successor script plus any additional operation rejects before engine entry.
+struct script { std::array<primitive_product, 20> entries {}; size_t size = 5; };
 struct trace_entry { uint16_t event = 0; };
 struct result_view { visibility state = visibility::not_visible; status ordinary = status::invalid_request_no_mutation; };
 struct restart_teardown_audit { uint64_t invocation_id = 0; uint8_t process_slot = 0; bool credential_zero = false, scratch_zero = false, serialized_secret_absent = false; };
+struct restart_projection_audit {
+    size_t count = 0, ordinal = 0, retained_length = 0;
+    bool terminal_name_retained = false;
+};
 
 constexpr size_t max_invocations = 64;
 constexpr size_t max_processes = 4;
-constexpr size_t max_trace = 9;
+constexpr size_t max_trace = 22;
 
 class fixture final {
 public:
@@ -194,6 +258,9 @@ public:
     size_t scanned_slots(size_t handle) const noexcept;
     size_t kdf_calls(size_t handle) const noexcept;
     bool serialize_restart(restart_image & caller_preallocated) const noexcept;
+    size_t restart_projection_count(size_t handle) const noexcept;
+    bool project_restart(size_t handle, size_t ordinal, restart_image & caller_preallocated,
+        restart_projection_audit & audit) const noexcept;
     bool restore_restart(const restart_image & image, uint8_t restarted_process_slot) noexcept;
 
 private:
@@ -209,6 +276,14 @@ private:
         request_transition_v1 request {};
         credential_owner credential {};
         std::array<uint8_t, 64> derived {}, tag {}, scratch {}, witness {};
+        std::array<uint8_t, 1024> terminal_scratch {};
+        size_t terminal_size = 0;
+        uint64_t recovery_slot = 0;
+        uint8_t recovery_action = 0;
+        context_store_format_digest prepare_digest {}, current_head_digest {}, action_commitment {};
+        context_store_format_digest action_attempt {}, action_operation {};
+        context_store_format_digest action_predecessor {}, action_successor {};
+        bool action_latched = false;
         std::array<trace_entry, max_trace> events {};
         size_t event_count = 0;
         result_view pending {};
