@@ -307,7 +307,8 @@ target_include_directories(test-halofpx-context-store-registry-lab-read-only PRI
     ${CMAKE_SOURCE_DIR}/tools/server)
 target_link_libraries(test-halofpx-context-store-registry-lab-read-only PRIVATE
     halofpx-context-store-registry-lab-read-only)
-llama_test(test-halofpx-context-store-registry-lab-read-only)
+llama_test(test-halofpx-context-store-registry-lab-read-only ARGS
+    ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05o-registry-lab-golden-vector.json)
 set_property(TEST test-halofpx-context-store-registry-lab-read-only PROPERTY
     LABELS "main;halofpx")
 

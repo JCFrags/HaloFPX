@@ -1,9 +1,52 @@
 foreach(REQUIRED IN ITEMS BUILD_ROOT CONFIG ARCHIVE_MANIFEST
-        READ_ONLY_ARCHIVE_MANIFEST NM_TOOL AR_TOOL READELF_TOOL)
+        READ_ONLY_ARCHIVE_MANIFEST NM_TOOL AR_TOOL READELF_TOOL OBJDUMP_TOOL
+        REQUIRE_OPTIMIZED_CT_AUDIT)
   if(NOT DEFINED ${REQUIRED})
     message(FATAL_ERROR "Linux archive audit missing ${REQUIRED}")
   endif()
 endforeach()
+
+function(linux_ct_body_admitted BODY OUT_VAR)
+  string(TOLOWER "${BODY}" LOWER_BODY)
+  string(REGEX REPLACE "[ \t]+" " " NORMALIZED_BODY "${LOWER_BODY}")
+  set(ADMITTED TRUE)
+  if(NORMALIZED_BODY MATCHES "(^|\n)[^\n]*(call|jmp) " OR
+     NORMALIZED_BODY MATCHES "(memcmp|bcmp|strcmp)")
+    set(ADMITTED FALSE)
+  endif()
+  if(NOT NORMALIZED_BODY MATCHES "xor " OR
+     NOT NORMALIZED_BODY MATCHES "or " OR
+     NOT NORMALIZED_BODY MATCHES "cmp [^\n]*(0x20|32)" OR
+     NOT NORMALIZED_BODY MATCHES "set(e|z) " OR
+     NOT NORMALIZED_BODY MATCHES "ret( |\n|$)")
+    set(ADMITTED FALSE)
+  endif()
+  string(REPLACE "\n" ";" BODY_LINES "${LOWER_BODY}")
+  set(CONDITIONAL_COUNT 0)
+  set(RET_COUNT 0)
+  set(BACKWARD_COUNT 0)
+  foreach(LINE IN LISTS BODY_LINES)
+    if(LINE MATCHES "^[ \t]*([0-9a-f]+):[ \t]*(ja|jae|jb|jbe|jc|je|jg|jge|jl|jle|jne|jnz|jz)[ \t]+(0x)?([0-9a-f]+)")
+      math(EXPR CONDITIONAL_COUNT "${CONDITIONAL_COUNT} + 1")
+      math(EXPR BRANCH_FROM "0x${CMAKE_MATCH_1}")
+      math(EXPR BRANCH_TO "0x${CMAKE_MATCH_4}")
+      if(BRANCH_TO LESS BRANCH_FROM)
+        math(EXPR BACKWARD_COUNT "${BACKWARD_COUNT} + 1")
+      endif()
+    endif()
+    if(LINE MATCHES "^[ \t]*[0-9a-f]+:[ \t]*ret([ \t]|$)")
+      math(EXPR RET_COUNT "${RET_COUNT} + 1")
+    endif()
+  endforeach()
+  if(NOT CONDITIONAL_COUNT EQUAL 1 OR NOT BACKWARD_COUNT EQUAL 1 OR NOT RET_COUNT EQUAL 1)
+    set(ADMITTED FALSE)
+  endif()
+  if(NOT ADMITTED)
+    message(STATUS "Linux CT body rejected: conditional=${CONDITIONAL_COUNT} backward=${BACKWARD_COUNT} ret=${RET_COUNT}")
+  endif()
+  set(${OUT_VAR} ${ADMITTED} PARENT_SCOPE)
+endfunction()
+
 execute_process(
   COMMAND "${CMAKE_COMMAND}" --build "${BUILD_ROOT}" --config "${CONFIG}"
           --target halofpx-registry-lab-linux-audit-inputs
@@ -36,6 +79,92 @@ list(REMOVE_DUPLICATES ALL_REGISTRY_LAB_ARCHIVES)
 list(LENGTH ALL_REGISTRY_LAB_ARCHIVES ALL_ARCHIVE_COUNT)
 if(NOT ALL_ARCHIVE_COUNT EQUAL 7)
   message(FATAL_ERROR "Linux wire/read-only archive union must contain exactly seven archives")
+endif()
+
+if(REQUIRE_OPTIMIZED_CT_AUDIT)
+  set(CT_SYMBOL "halofpx_registry_lab_constant_time_tag_equal_32")
+  set(CT_SYNTHETIC_GOOD
+"0: movzx eax,BYTE PTR [rdi+rcx]
+4: xor al,BYTE PTR [rsi+rcx]
+7: or dl,al
+a: inc rcx
+d: cmp rcx,0x20
+11: jb 0
+13: test dl,dl
+15: sete al
+18: ret")
+  linux_ct_body_admitted("${CT_SYNTHETIC_GOOD}" CT_GOOD_ADMITTED)
+  if(NOT CT_GOOD_ADMITTED)
+    message(FATAL_ERROR "Linux constant-time detector rejected its positive control")
+  endif()
+  linux_ct_body_admitted("${CT_SYNTHETIC_GOOD}\n19: jne 1f" CT_EXTRA_BRANCH_ADMITTED)
+  if(CT_EXTRA_BRANCH_ADMITTED)
+    message(FATAL_ERROR "Linux constant-time detector admitted an extra conditional branch")
+  endif()
+  string(REPLACE "0x20" "0x1f" CT_WRONG_BOUND "${CT_SYNTHETIC_GOOD}")
+  linux_ct_body_admitted("${CT_WRONG_BOUND}" CT_WRONG_BOUND_ADMITTED)
+  if(CT_WRONG_BOUND_ADMITTED)
+    message(FATAL_ERROR "Linux constant-time detector admitted the wrong loop bound")
+  endif()
+  linux_ct_body_admitted("${CT_SYNTHETIC_GOOD}\n19: call memcmp" CT_CALL_ADMITTED)
+  if(CT_CALL_ADMITTED)
+    message(FATAL_ERROR "Linux constant-time detector admitted a comparison helper")
+  endif()
+
+  list(GET HALOFPX_REGISTRY_LAB_READ_ONLY_ARCHIVES 0 CT_ARCHIVE)
+  execute_process(COMMAND "${NM_TOOL}" --defined-only "${CT_ARCHIVE}"
+    RESULT_VARIABLE CT_NM_RC OUTPUT_VARIABLE CT_NM ERROR_VARIABLE CT_NM_ERR)
+  if(NOT CT_NM_RC EQUAL 0)
+    message(FATAL_ERROR "Linux comparator symbol inventory failed: ${CT_NM_ERR}")
+  endif()
+  string(REPLACE "\r\n" "\n" CT_NM "${CT_NM}")
+  string(REPLACE "\n" ";" CT_NM_LINES "${CT_NM}")
+  set(CT_DEFINED_COUNT 0)
+  foreach(LINE IN LISTS CT_NM_LINES)
+    if(LINE MATCHES "[ \t]${CT_SYMBOL}$")
+      math(EXPR CT_DEFINED_COUNT "${CT_DEFINED_COUNT} + 1")
+    endif()
+  endforeach()
+  if(NOT CT_DEFINED_COUNT EQUAL 1)
+    message(FATAL_ERROR "expected one defined Linux comparator symbol; found ${CT_DEFINED_COUNT}")
+  endif()
+
+  execute_process(COMMAND "${OBJDUMP_TOOL}" --version
+    RESULT_VARIABLE CT_OBJDUMP_VERSION_RC OUTPUT_VARIABLE CT_OBJDUMP_VERSION ERROR_VARIABLE CT_OBJDUMP_VERSION_ERR)
+  if(NOT CT_OBJDUMP_VERSION_RC EQUAL 0)
+    message(FATAL_ERROR "cannot identify Linux objdump: ${CT_OBJDUMP_VERSION_ERR}")
+  endif()
+  if(CT_OBJDUMP_VERSION MATCHES "LLVM")
+    set(CT_OBJDUMP_ARGS -d "--disassemble-symbols=${CT_SYMBOL}" --x86-asm-syntax=intel --no-show-raw-insn)
+  else()
+    set(CT_OBJDUMP_ARGS -d -M intel --no-show-raw-insn "--disassemble=${CT_SYMBOL}")
+  endif()
+  execute_process(COMMAND "${CMAKE_COMMAND}" -E env LC_ALL=C "${OBJDUMP_TOOL}"
+      ${CT_OBJDUMP_ARGS} "${CT_ARCHIVE}"
+    RESULT_VARIABLE CT_DISASM_RC OUTPUT_VARIABLE CT_DISASM ERROR_VARIABLE CT_DISASM_ERR)
+  if(NOT CT_DISASM_RC EQUAL 0)
+    message(FATAL_ERROR "Linux comparator disassembly failed: ${CT_DISASM_ERR}")
+  endif()
+  string(REPLACE "\r\n" "\n" CT_DISASM "${CT_DISASM}")
+  string(FIND "${CT_DISASM}" "<${CT_SYMBOL}>:" CT_HEADER_AT)
+  if(CT_HEADER_AT EQUAL -1)
+    message(FATAL_ERROR "Linux comparator disassembly lacks exact symbol header")
+  endif()
+  string(SUBSTRING "${CT_DISASM}" ${CT_HEADER_AT} -1 CT_FROM_HEADER)
+  string(FIND "${CT_FROM_HEADER}" "\n" CT_FIRST_NEWLINE)
+  math(EXPR CT_BODY_START "${CT_FIRST_NEWLINE} + 1")
+  string(SUBSTRING "${CT_FROM_HEADER}" ${CT_BODY_START} -1 CT_AFTER_HEADER)
+  string(FIND "${CT_AFTER_HEADER}" "\n\n" CT_BODY_END)
+  if(CT_BODY_END EQUAL -1)
+    set(CT_BODY "${CT_AFTER_HEADER}")
+  else()
+    string(SUBSTRING "${CT_AFTER_HEADER}" 0 ${CT_BODY_END} CT_BODY)
+  endif()
+  linux_ct_body_admitted("${CT_BODY}" CT_ACTUAL_ADMITTED)
+  if(NOT CT_ACTUAL_ADMITTED)
+    message(FATAL_ERROR "unreviewed optimized Linux comparator body:\n${CT_BODY}")
+  endif()
+  message(STATUS "PASS: symbol-bound optimized Linux constant-time comparator disassembly")
 endif()
 set(FORBIDDEN_SYMBOLS
   concrete_registry_lab_observation bootstrap_material bootstrap_anchor

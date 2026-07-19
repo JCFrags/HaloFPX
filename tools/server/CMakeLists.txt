@@ -115,8 +115,8 @@ target_link_libraries(halofpx-context-store-registry-lab-wire PUBLIC
 target_compile_features(halofpx-context-store-registry-lab-wire PRIVATE cxx_std_17)
 set(HALOFPX_REGISTRY_LAB_WIRE_TARGET halofpx-context-store-registry-lab-wire)
 
-# Internal-only L05p portable fake-engine prefix through operations 1-4. It has
-# no public header, decoder, mutation path, filesystem adapter, or product edge.
+# Internal-only L05p portable fake-engine prefix through read-only operation 5.
+# It has no public header, mutation path, filesystem adapter, or product edge.
 add_library(halofpx-context-store-registry-lab-read-only STATIC EXCLUDE_FROM_ALL
     halofpx-context-store-registry-lab-read-only.cpp
     halofpx-context-store-registry-lab-read-only-internal.h
@@ -233,6 +233,8 @@ endif()
 # The Linux object/archive audit is independently runnable on the disposable
 # qualification nodes. It makes no claim about Windows COFF or concrete I/O.
 if (BUILD_TESTING AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    option(HALOFPX_REGISTRY_LAB_OPTIMIZED_CT_AUDIT
+        "Require the optimized Linux constant-time comparator disassembly proof" OFF)
     add_custom_target(halofpx-registry-lab-linux-audit-inputs
         DEPENDS
             ${HALOFPX_REGISTRY_LAB_WIRE_TARGET}
@@ -253,8 +255,10 @@ if (BUILD_TESTING AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_program(HALOFPX_NM_EXECUTABLE NAMES llvm-nm nm)
     find_program(HALOFPX_AR_EXECUTABLE NAMES llvm-ar ar)
     find_program(HALOFPX_READELF_EXECUTABLE NAMES llvm-readelf readelf)
+    find_program(HALOFPX_OBJDUMP_EXECUTABLE NAMES llvm-objdump objdump)
     foreach(HALOFPX_LINUX_TOOL IN ITEMS
-            HALOFPX_NM_EXECUTABLE HALOFPX_AR_EXECUTABLE HALOFPX_READELF_EXECUTABLE)
+            HALOFPX_NM_EXECUTABLE HALOFPX_AR_EXECUTABLE HALOFPX_READELF_EXECUTABLE
+            HALOFPX_OBJDUMP_EXECUTABLE)
         if(NOT ${HALOFPX_LINUX_TOOL})
             message(FATAL_ERROR "Linux registry-lab audit requires ${HALOFPX_LINUX_TOOL}")
         endif()
@@ -291,6 +295,8 @@ if (BUILD_TESTING AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
             -DNM_TOOL=${HALOFPX_NM_EXECUTABLE}
             -DAR_TOOL=${HALOFPX_AR_EXECUTABLE}
             -DREADELF_TOOL=${HALOFPX_READELF_EXECUTABLE}
+            -DOBJDUMP_TOOL=${HALOFPX_OBJDUMP_EXECUTABLE}
+            -DREQUIRE_OPTIMIZED_CT_AUDIT=${HALOFPX_REGISTRY_LAB_OPTIMIZED_CT_AUDIT}
             -P ${CMAKE_SOURCE_DIR}/tests/halofpx-registry-lab-linux-archive-audit.cmake)
     set_tests_properties(test-halofpx-context-store-registry-lab-linux-archive-audit PROPERTIES
         LABELS "main;halofpx;linux" RUN_SERIAL TRUE)

@@ -13,8 +13,27 @@ enum class storage_effect : uint8_t { none, bounded_partial_bytes, complete_live
 enum class completion : uint8_t { response_confirmed, response_lost, process_death };
 enum class primitive_code : uint8_t { ok, busy, unsupported, invalid_request, capacity_exhausted, reserve_exhausted, unavailable, io_failure };
 enum class recovery_classification : uint8_t { none, continue_to_mutation, needs_successor_close, needs_predecessor_abort, needs_sticky_quarantine, blocked_by_existing_quarantine, inadmissible_initialization_artifact, attempt_replayed, capacity_exhausted, requested_slot_occupied, invalid_transition, preexisting_unattributed_material };
-enum class status : uint8_t { invalid_request_no_mutation, unsupported_no_mutation, busy_no_mutation, capacity_exhausted_no_mutation, reserve_exhausted_no_mutation, quarantined_or_unavailable };
+enum class status : uint8_t { invalid_request_no_mutation, unsupported_no_mutation, busy_no_mutation, capacity_exhausted_no_mutation, reserve_exhausted_no_mutation, attempt_replayed_no_mutation, slot_occupied_no_mutation, invalid_transition_no_mutation, preexisting_material_no_authority, uncertain_requires_recovery, quarantined_or_unavailable };
 enum class visibility : uint8_t { not_visible, ordinary_result, dead_process_no_result };
+
+struct recovery_precedence_flags {
+    bool blocked = false, initializing = false, sticky = false, successor_close = false, predecessor_abort = false;
+    bool replay = false, capacity = false, slot = false, invalid = false, preexisting = false;
+};
+
+constexpr recovery_classification select_recovery_precedence(const recovery_precedence_flags & value) noexcept {
+    return value.blocked ? recovery_classification::blocked_by_existing_quarantine :
+        value.initializing ? recovery_classification::inadmissible_initialization_artifact :
+        value.sticky ? recovery_classification::needs_sticky_quarantine :
+        value.successor_close ? recovery_classification::needs_successor_close :
+        value.predecessor_abort ? recovery_classification::needs_predecessor_abort :
+        value.replay ? recovery_classification::attempt_replayed :
+        value.capacity ? recovery_classification::capacity_exhausted :
+        value.slot ? recovery_classification::requested_slot_occupied :
+        value.invalid ? recovery_classification::invalid_transition :
+        value.preexisting ? recovery_classification::preexisting_unattributed_material :
+        recovery_classification::continue_to_mutation;
+}
 
 struct primitive_product {
     operation op = operation::guard_acquire;
@@ -120,14 +139,38 @@ struct credential_owner {
     std::array<uint8_t, 32> secret {};
     bool owns = false;
 };
-struct script { std::array<primitive_product, 4> entries {}; };
+
+struct preflight_context_v1 {
+    std::array<uint8_t, 16> store_uuid {}, filesystem_uuid {}, subvolume_uuid {};
+    uint64_t mount_id = 0, st_dev = 0, owner_uid = 0;
+    uint32_t root_mode = 0, authority_file_mode = 0;
+    uint64_t lock_st_dev = 0, lock_st_ino = 0;
+    context_store_format_digest path_policy_commitment {};
+    context_store_registered_id registry_id {};
+    uint64_t registry_epoch = 0;
+    context_store_format_digest authority_base_scope_commitment {}, registry_policy_commitment {};
+    context_store_registered_id credential_key_id {};
+    uint64_t credential_generation = 0;
+    context_store_key_disposition inner_key_disposition = context_store_key_disposition::unknown;
+    uint64_t attempt_capacity = 0, maximum_logical_authority_bytes = 0;
+};
+
+struct request_transition_v1 {
+    context_store_format_digest attempt_id {}, operation_commitment {};
+    uint64_t requested_slot = 0;
+    std::array<uint8_t, 1024> predecessor {}, successor {}, expected_current_head {};
+    size_t predecessor_length = 0, successor_length = 0, expected_current_head_length = 0;
+    context_store_format_digest predecessor_digest {}, successor_digest {}, expected_current_head_digest {};
+};
+
+struct script { std::array<primitive_product, 5> entries {}; };
 struct trace_entry { uint16_t event = 0; };
 struct result_view { visibility state = visibility::not_visible; status ordinary = status::invalid_request_no_mutation; };
 struct restart_teardown_audit { uint64_t invocation_id = 0; uint8_t process_slot = 0; bool credential_zero = false, scratch_zero = false, serialized_secret_absent = false; };
 
 constexpr size_t max_invocations = 64;
 constexpr size_t max_processes = 4;
-constexpr size_t max_trace = 8;
+constexpr size_t max_trace = 9;
 
 class fixture final {
 public:
@@ -136,7 +179,8 @@ public:
     fixture & operator=(const fixture &) = delete;
     fixed_state & state() noexcept;
     const fixed_state & state() const noexcept;
-    size_t begin(uint64_t invocation_id, uint8_t process_slot, credential_owner && credential, const script & immutable_script) noexcept;
+    size_t begin(uint64_t invocation_id, uint8_t process_slot, credential_owner && credential,
+        const preflight_context_v1 &, const request_transition_v1 &, const script & immutable_script) noexcept;
     bool step(size_t handle) noexcept;
     result_view result(size_t handle) const noexcept;
     size_t trace_size(size_t handle) const noexcept;
@@ -146,6 +190,9 @@ public:
     bool ordinary_wipe_audited(size_t handle) const noexcept;
     size_t teardown_audit_count() const noexcept;
     restart_teardown_audit teardown_audit(size_t index) const noexcept;
+    recovery_classification derived_classification(size_t handle) const noexcept;
+    size_t scanned_slots(size_t handle) const noexcept;
+    size_t kdf_calls(size_t handle) const noexcept;
     bool serialize_restart(restart_image & caller_preallocated) const noexcept;
     bool restore_restart(const restart_image & image, uint8_t restarted_process_slot) noexcept;
 
@@ -158,6 +205,8 @@ private:
         phase current = phase::free;
         size_t cursor = 0;
         script immutable_script {};
+        preflight_context_v1 preflight {};
+        request_transition_v1 request {};
         credential_owner credential {};
         std::array<uint8_t, 64> derived {}, tag {}, scratch {}, witness {};
         std::array<trace_entry, max_trace> events {};
@@ -166,9 +215,13 @@ private:
         bool boundary = false;
         bool rejection_wipe_verified = false;
         bool ordinary_wipe_verified = false;
+        recovery_classification derived_class = recovery_classification::none;
+        size_t scanned = 0, derivations = 0;
         restart_teardown_audit teardown {};
     };
     fixed_state state_ {};
+    fixed_state snapshot_ {};
+    uint64_t snapshot_owner_ = 0;
     std::array<invocation, max_invocations> invocations_ {};
     std::array<uint64_t, max_processes> guard_owner_ {};
     uint64_t writer_owner_ = 0;

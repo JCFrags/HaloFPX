@@ -58,6 +58,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05p operations 1-4 repeat receipt](evidence/l05p-registry-lab-read-only-ops14-repeat-receipt.json)
 - [ADR-0022 operation-5 decoder and classification closure](decisions/0022-portable-registry-lab-operation-5-decoder-classification.md)
 - [ADR-0022 independent adversarial review](reviews/2026-07-18__adr-0022-operation-5-decoder-classification__review__v01.md)
+- [L05p operation 5 milestone review](reviews/2026-07-18__l05p-registry-lab-read-only-operation-5__review__v01.md)
+- [L05p operation 5 repeat receipt](evidence/l05p-registry-lab-read-only-operation5-repeat-receipt.json)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

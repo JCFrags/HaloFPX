@@ -4,7 +4,7 @@ set(C "${ROOT}/tools/server/halofpx-context-store-registry-lab-read-only.cpp")
 set(T "${ROOT}/tests/test-halofpx-context-store-registry-lab-read-only.cpp")
 foreach(F IN ITEMS "${H}" "${C}" "${T}")
   if(NOT EXISTS "${F}")
-    message(FATAL_ERROR "missing L05p operations 1-4 source: ${F}")
+    message(FATAL_ERROR "missing L05p read-only operations 1-5 source: ${F}")
   endif()
 endforeach()
 
@@ -21,15 +21,15 @@ foreach(F IN ITEMS "${H}" "${C}")
       "halofpx-context-store-bootstrap-anchor" "llama-ai" "CachyLLama")
     string(FIND "${TEXT}" "${FORBIDDEN}" HIT)
     if(NOT HIT EQUAL -1)
-      message(FATAL_ERROR "L05p operations 1-4 contains forbidden surface ${FORBIDDEN}: ${F}")
+      message(FATAL_ERROR "L05p read-only operations 1-5 contains forbidden surface ${FORBIDDEN}: ${F}")
     endif()
   endforeach()
 endforeach()
 
 file(READ "${C}" IMPLEMENTATION)
 foreach(UNAVAILABLE IN ITEMS
-    "case operation::recovery_validation" "operation 6" "before_first_mutation"
-    "authenticated_record_v1" "decode_" "quarantine reason" "publication")
+    "operation 6" "before_first_mutation" "quarantine reason" "publication"
+    "context_store_registry_lab_admit_" "context_store_registry_lab_encode_")
   string(FIND "${IMPLEMENTATION}" "${UNAVAILABLE}" HIT)
   if(NOT HIT EQUAL -1)
     message(FATAL_ERROR "L05p implementation opened unavailable operation-5/mutation surface: ${UNAVAILABLE}")
@@ -40,7 +40,10 @@ file(READ "${T}" TEST_TEXT)
 foreach(REQUIRED IN ITEMS
     "admitted_all == 55" "admitted_14 == 43" "forbidden_14 == 437"
     "losses == 11" "deaths == 16" "rejected == 437" "executed == 43"
-    "process_wide_death" "restart_round_trip" "allocation_free_after_construction")
+    "process_wide_death" "restart_round_trip" "allocation_free_after_construction"
+    "operation_5_core" "operation_5_hostile_bytes" "operation_5_key_selection_before_kdf"
+    "scanned_slots(h) == 512" "bit_mutations == truncations * 8"
+    "pairwise_precedence_combinations == 55" "replay_positions == 512" "corrupt_positions == 512")
   string(FIND "${TEST_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "L05p focused test is missing required closure marker: ${REQUIRED}")
@@ -83,4 +86,14 @@ foreach(PROBE IN ITEMS "std::filesystem" "concrete_registry_lab_observation" "op
     message(FATAL_ERROR "detector positive control failed for ${PROBE}")
   endif()
 endforeach()
-message(STATUS "PASS: L05p operations 1-4 internal/read-only contract")
+foreach(REQUIRED IN ITEMS
+    "authenticated_record_v1" "decode_record" "difference |= a[i] ^ b[i]"
+    "product.op == operation::recovery_validation" "{ 201 }"
+    "snapshot_owner_" "recovery_classification::continue_to_mutation")
+  string(FIND "${IMPLEMENTATION}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "L05p implementation is missing operation-5 closure marker: ${REQUIRED}")
+  endif()
+endforeach()
+
+message(STATUS "PASS: L05p operations 1-5 internal/read-only contract")

@@ -1,0 +1,121 @@
+{
+  "milestone": "L05p portable registry-lab read-only operation 5",
+  "date": "2026-07-18",
+  "source_parent_commit": "9a19023507e38eacf839e2249863db4a5bf12595",
+  "selected_base": {
+    "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+    "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+    "branch": "codex/integration-base-61f2f2d"
+  },
+  "configuration": {
+    "windows": "Visual Studio 18 2026 CPU Release and Debug; HIP/Vulkan OFF; LLAMA_BUILD_WEBUI and LLAMA_USE_PREBUILT_WEBUI OFF",
+    "linux_sanitizer": "nimo-2 Ninja RelWithDebInfo CPU; ASan and UBSan ON; HIP/Vulkan OFF; WebUI OFF; optimized comparator audit deliberately OFF because sanitizer instrumentation changes control flow",
+    "linux_optimized": "nimo-2 GCC 16.1.1 Ninja Release CPU; ASan/UBSan OFF; HIP/Vulkan OFF; WebUI OFF; optimized symbol-bound comparator audit ON",
+    "target": "STATIC EXCLUDE_FROM_ALL; no public/install/export/product edge; no filesystem or persistent mutation"
+  },
+  "validation": {
+    "operation5_classifications": 11,
+    "operation5_admitted_primitive_products": 12,
+    "confirmed_non_ok_and_loss_death_products_executed": 11,
+    "pure_pairwise_precedence_combinations": 55,
+    "integrated_precedence_overlaps": 11,
+    "replay_positions": 512,
+    "late_corruption_positions": 512,
+    "staging_projection_positions": 2048,
+    "immutable_envelope_positions": 1536,
+    "hostile_record_truncations_per_full_process": 2085,
+    "hostile_record_one_bit_mutations_per_full_process": 16680,
+    "preentry_rejections": 30,
+    "external_binding_faults": 11,
+    "request_faults": 7,
+    "projection_and_namespace_faults": 178,
+    "journal_topology_faults": 7,
+    "authenticated_semantic_rejections_with_recomputed_tag": 16,
+    "authenticated_structural_rejections_with_recomputed_tag": 35,
+    "authenticated_dependent_one_close_rejections_with_recomputed_tags": 2,
+    "total_retagged_semantic_structural_and_history_rejections": 53,
+    "authenticated_positive_terminal_class_variants": 2,
+    "windows_release_registry_lab_ctests": { "passed": 7, "selected": 7 },
+    "windows_debug_registry_lab_ctests": { "passed": 7, "selected": 7 },
+    "windows_release_configured_ctests": { "passed": 84, "selected": 84 },
+    "windows_release_core_processes": { "passed": 1000, "selected": 1000, "workers": 8, "elapsed_seconds": 708.873 },
+    "windows_release_full_processes": { "passed": 8, "selected": 8, "workers": 2, "elapsed_seconds": 162.957 },
+    "windows_debug_core_processes": { "passed": 200, "selected": 200, "workers": 4, "elapsed_seconds": 528.991 },
+    "linux_optimized_registry_lab_ctests": { "passed": 6, "selected": 6, "elapsed_seconds": 5.14 },
+    "linux_asan_ubsan_registry_lab_ctests": { "passed": 6, "selected": 6, "elapsed_seconds": 17.65 },
+    "linux_asan_ubsan_core_processes": { "passed": 1000, "selected": 1000, "workers": 4, "elapsed_seconds": 334 },
+    "linux_asan_ubsan_full_processes": { "passed": 10, "selected": 10, "elapsed_seconds": 175 },
+    "allocation_free_after_fixture_construction": true,
+    "archive_and_link_graph_audits": true,
+    "windows_exact_comdat_comparator_audit": true,
+    "linux_symbol_bound_optimized_comparator_audit": true,
+    "feature_off_contract": true,
+    "reference_repositories_clean": 4,
+    "configured_implementation_remote_count": 0,
+    "controlled_orchestration_exclusion": "An earlier eight-worker 40-process Windows full-corpus attempt exceeded its 300-second orchestration window and produced no receipt. No result from it is counted; the final-source lower-contention run completed 8/8.",
+    "rollback_control": "nimo-2 RPC worker PID 3562775 remained listening on 0.0.0.0:50052 and nimo-1 llama-server PID 3783057 remained listening on 0.0.0.0:8081; health returned HTTP 200; a real MiniMax M2.7 UD-Q6_K_XL completion returned exact HALOFPX_ROLLBACK_OK at 18.413 tokens/s. This is an operational smoke signal, not a matched performance baseline."
+  },
+  "raw_evidence": {
+    "windows_release_configured": "build/halofpx-l05p-read-only-dev/evidence/op5/windows-release-configured-ctest-84-terminal-class-final.log",
+    "windows_release_registry_lab": "build/halofpx-l05p-read-only-dev/evidence/op5/windows-release-registry-lab-7-terminal-class-final.log",
+    "windows_debug_registry_lab": "build/halofpx-l05p-read-only-dev/evidence/op5/windows-debug-registry-lab-7-terminal-class-final.log",
+    "windows_release_core": "build/halofpx-l05p-read-only-dev/evidence/op5/windows-release-op5-core-1000-terminal-class-final.json",
+    "windows_release_full": "build/halofpx-l05p-read-only-dev/evidence/op5/windows-release-op5-full-8-terminal-class-final.json",
+    "windows_debug_core": "build/halofpx-l05p-read-only-dev/evidence/op5/windows-debug-op5-core-200-terminal-class-final.json",
+    "linux_evidence_copy": "build/halofpx-l05p-read-only-dev/evidence/op5/nimo-2-final/",
+    "linux_optimized_matrix": "build/halofpx-l05p-read-only-dev/evidence/op5/nimo-2-final/linux-opt-registry-lab-terminal-class-final.log",
+    "linux_asan_matrix": "build/halofpx-l05p-read-only-dev/evidence/op5/nimo-2-final/linux-asan-registry-lab-terminal-class-final.log",
+    "linux_core": "build/halofpx-l05p-read-only-dev/evidence/op5/nimo-2-final/linux-asan-core-repeat-1000-terminal-class-final.log",
+    "linux_full": "build/halofpx-l05p-read-only-dev/evidence/op5/nimo-2-final/linux-asan-full-repeat-10-terminal-class-final.log",
+    "rollback_control": "build/halofpx-l05p-read-only-dev/evidence/op5/rollback-control-final.json"
+  },
+  "evidence_sha256": {
+    "windows_release_configured": "24edf18d82ed768e2ee3dea3483e1d7929f40dc117963498fa7348033d9a27cc",
+    "windows_release_registry_lab": "96cfe01e48a74f2280f6651b8ffa56c27c0106a5bc2a289f72c8b6f9a6174cd8",
+    "windows_debug_registry_lab": "3bd13a98312ddb04d8cd9f4ade340e9bf9b3560e38296acab06740efb546b437",
+    "windows_release_core": "8496b0db5b9a022d823f384d0899805ebe70073d90e28b65da4896ca07df5c4a",
+    "windows_release_full": "ba7b8d2aebfdf8a9db3b8164cc75d219c037cb60ebfb8fc8a32f855525efe72f",
+    "windows_debug_core": "594d70ed9f1483116024f6c327054ced4ab8816cf8c837310fa4ffe0bd6f28e2",
+    "linux_optimized_matrix": "f581b96ef33da37e26c02a163833f2d5de1c665e64affe6e2270273c58eb89dd",
+    "linux_asan_matrix": "1a5cfdf500cdaa73ef9730a96cdb144b0a2dcd6e64d6c4f50c99a4db26bdb47a",
+    "linux_core": "84b196e2d847d48c14f82efbc25e1c1ce98d80892a4332ec208127f99b1a2223",
+    "linux_full": "6a9af3f756040af6dfaf053f628aa93b3d8e1dc5503920db81bd14ec1e032355",
+    "rollback_control": "dddc649453ed2cf7d17b6217c158c260c34a7c64332e63ac7b1991c6de3e5e4c"
+  },
+  "build_artifact_sha256": {
+    "windows_release_test": "b09d1106575fed0c82292065b66919a2ceac83cf62f16a9fac14fffe52f0d01b",
+    "windows_debug_test": "1784712ddd5e4d5ad59347f5bcccae64c454ac98723a4438f09d3f54a92dccfa",
+    "linux_asan_ubsan_test": "1f17690a29b18bcda752b5ecddbb973b5d0cc612e2a858c55278bae990342896",
+    "linux_optimized_test": "65a95f34a1eef2b5f6639cdb0450f3646ea47403632a5e8ea99c9c06a99063c9",
+    "golden_vector": "aae3849d8bdca5a1e93fc180cfe0a3dffc3fafc92fe22e7e76d937426f78d4e4"
+  },
+  "reviewed_source_sha256": {
+    "tools/server/halofpx-context-store-registry-lab-read-only-internal.h": "27914cc931df5b545f4019a896e7bf54acbdb4a9636386e14066a6444f3b6699",
+    "tools/server/halofpx-context-store-registry-lab-read-only.cpp": "85ec11a463f79ccaf50fd708c08ba748a0d3c5b4639163ca1dd3a2f8aa748396",
+    "tests/test-halofpx-context-store-registry-lab-read-only.cpp": "15bf033b03939e9c706acaf443db62c4e5dd0c400700594a262abd6214cd08d4",
+    "tests/test-halofpx-context-store-registry-lab-read-only-contract.cmake": "ea0a5e3fa240025d2ac1d71ff7b171f3aa29c99ae24a273065e0501ae4a9cb70",
+    "tests/halofpx-registry-lab-static-audit.cmake": "01f8c9a8a9b607b684d6af417e5f93994c54d31603dd08eda875482ec581f946",
+    "tests/halofpx-registry-lab-linux-archive-audit.cmake": "f7e4a7c9689a419e577cebdc0c1ad55beb97986e5cf20337b623d62349bc5048",
+    "tests/CMakeLists.txt": "0338d90d116d944b2bc6bb3fd2542dad33b7570bb046a3936b535bd646adb670",
+    "tools/server/CMakeLists.txt": "ce00aa2cb17b9b7b5fcb35bf7e875002cd17a6b3c6d1c44782cc79cbb32fae29"
+  },
+  "reference_repositories": {
+    "ROCmFPX": { "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true },
+    "llama-ai": { "commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true },
+    "CachyLLama": { "commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true },
+    "llama.cpp": { "commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true }
+  },
+  "provenance": {
+    "donor_implementation_code_imported": false,
+    "llama_ai_gpl_code_or_documentation_copied": false,
+    "cachyllama_code_imported": false,
+    "direct_cherry_pick_roster": [],
+    "p3_records_required_for_this_target_native_slice": []
+  },
+  "promotion_boundary": [
+    "read-only operation 5 ends at private event 201",
+    "no operation 6, recovery execution, quarantine creation, mutation, filesystem adapter, provider, server, cache-hit, restore, or inference authority",
+    "no persistent write and no performance claim",
+    "feature-off product behavior remains the compatibility control"
+  ]
+}
