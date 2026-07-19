@@ -1,4 +1,5 @@
 #include "halofpx-context-store-registry-lab-linux-initializer-internal.h"
+#include "halofpx-context-store-protected-registry.h"
 
 #if !defined(__linux__)
 #error "The HaloFPX registry-lab initializer input transport is Linux-only"
@@ -61,6 +62,7 @@ struct alignas(64) secure_inputs {
     std::array<std::uint8_t, credential_capacity> credential {};
     std::array<std::uint8_t, predecessor_capacity> predecessor {};
     std::array<std::uint8_t, 32> secret {};
+    context_store_protected_registry_facts predecessor_facts {};
 };
 
 struct execution_context {
@@ -97,6 +99,23 @@ bool same_digest(const context_store_format_digest & lhs,
         difference |= lhs[i] ^ rhs[i];
     }
     return difference == 0;
+}
+
+bool same_id(const context_store_registered_id & lhs,
+             const context_store_registered_id & rhs) noexcept {
+    if (lhs.size != rhs.size) {
+        return false;
+    }
+    std::uint8_t difference = 0;
+    for (std::size_t i = 0; i < lhs.size; ++i) {
+        difference |= static_cast<std::uint8_t>(lhs.bytes[i] ^ rhs.bytes[i]);
+    }
+    return difference == 0;
+}
+
+bool successful(sealed_input_status value) noexcept {
+    return value == sealed_input_status::transport_validated_no_root_access ||
+           value == sealed_input_status::predecessor_authenticated_pins_matched_no_root_access;
 }
 
 bool registered_id_valid(const context_store_registered_id & value) noexcept {
@@ -441,8 +460,7 @@ sealed_input_audit finish(sealed_input_audit output, void * mapping, std::size_t
     }
     output.descriptors_closed = context.fd_table_unshared &&
                                 credential_closed && predecessor_closed;
-    if (!output.descriptors_closed &&
-        result == sealed_input_status::transport_validated_no_root_access) {
+    if (!output.descriptors_closed && successful(result)) {
         result = sealed_input_status::io_failure_no_mutation;
     }
 
@@ -458,7 +476,7 @@ sealed_input_audit finish(sealed_input_audit output, void * mapping, std::size_t
         output.secure_storage_unlocked = true;
     }
     if ((!output.secure_storage_wiped || !output.secure_storage_unlocked) &&
-        result == sealed_input_status::transport_validated_no_root_access) {
+        successful(result)) {
         result = sealed_input_status::io_failure_no_mutation;
     }
     if (mapping != MAP_FAILED && mapping != nullptr && mapping_size != 0) {
@@ -466,8 +484,7 @@ sealed_input_audit finish(sealed_input_audit output, void * mapping, std::size_t
     } else {
         output.secure_storage_unmapped = true;
     }
-    if (!output.secure_storage_unmapped &&
-        result == sealed_input_status::transport_validated_no_root_access) {
+    if (!output.secure_storage_unmapped && successful(result)) {
         result = sealed_input_status::io_failure_no_mutation;
     }
     if (context.signal_mask_changed) {
@@ -476,13 +493,17 @@ sealed_input_audit finish(sealed_input_audit output, void * mapping, std::size_t
     } else {
         output.signal_mask_restored = true;
     }
-    if (!output.signal_mask_restored &&
-        result == sealed_input_status::transport_validated_no_root_access) {
+    if (!output.signal_mask_restored && successful(result)) {
         result = sealed_input_status::io_failure_no_mutation;
     }
     output.root_or_fixture_accessed = output.root_or_fixture_syscall_count != 0;
     if (output.root_or_fixture_accessed) {
         result = sealed_input_status::io_failure_no_mutation;
+    }
+    if (result !=
+        sealed_input_status::predecessor_authenticated_pins_matched_no_root_access) {
+        output.predecessor_authenticated_under_supplied_credential = false;
+        output.launcher_receipt_matched = false;
     }
     output.result = result;
     return output;
@@ -515,7 +536,16 @@ sealed_input_audit inspect_sealed_inputs_once(const sealed_input_request & input
     if (!registered_id_valid(input.expected_key_id) ||
         input.expected_key_generation == 0 ||
         !nonzero(input.expected_predecessor_digest.data(),
-                 input.expected_predecessor_digest.size())) {
+                 input.expected_predecessor_digest.size()) ||
+        !registered_id_valid(input.expected_registry_id) ||
+        input.expected_registry_epoch == 0 ||
+        !nonzero(input.expected_authority_base_scope_commitment.data(),
+                 input.expected_authority_base_scope_commitment.size()) ||
+        !nonzero(input.expected_policy_commitment.data(),
+                 input.expected_policy_commitment.size()) ||
+        input.expected_predecessor_high_water == UINT64_MAX ||
+        !nonzero(input.expected_key_continuity_commitment.data(),
+                 input.expected_key_continuity_commitment.size())) {
         return finish(output, mapping, mapping_size, storage_locked, context,
                       sealed_input_status::invalid_request_no_mutation);
     }
@@ -611,6 +641,54 @@ sealed_input_audit inspect_sealed_inputs_once(const sealed_input_request & input
                       sealed_input_status::invalid_request_no_mutation);
     }
 
+    context_store_protected_registry_key_record authentication_key;
+    authentication_key.disposition = context_store_key_disposition::active;
+    authentication_key.key_id = input.expected_key_id;
+    authentication_key.generation = input.expected_key_generation;
+    authentication_key.master_key = { secure->secret.data(), secure->secret.size() };
+    const auto authentication_result =
+        context_store_verify_protected_registry_facts_v1(
+            secure->predecessor.data(), predecessor_size,
+            authentication_key);
+    authentication_key.master_key = {};
+    const auto * authenticated_facts = authentication_result.authenticated_facts();
+    if (!authenticated_facts) {
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      sealed_input_status::invalid_request_no_mutation);
+    }
+    secure->predecessor_facts = *authenticated_facts;
+    const bool registry_identity_matched =
+        same_id(secure->predecessor_facts.body.registry_id,
+                input.expected_registry_id) &&
+        secure->predecessor_facts.body.registry_epoch ==
+            input.expected_registry_epoch;
+    const bool authority_scope_matched =
+        same_digest(secure->predecessor_facts.body.authority_base_scope_commitment,
+                    input.expected_authority_base_scope_commitment);
+    const bool policy_matched =
+        same_digest(secure->predecessor_facts.body.policy_commitment,
+                    input.expected_policy_commitment);
+    const bool predecessor_high_water_matched =
+        secure->predecessor_facts.body.last_consumed_sequence ==
+            input.expected_predecessor_high_water;
+    const bool key_continuity_matched =
+        same_digest(secure->predecessor_facts.key_continuity_commitment,
+                    input.expected_key_continuity_commitment);
+    const bool launcher_receipt_matched =
+        registry_identity_matched && authority_scope_matched &&
+        policy_matched && predecessor_high_water_matched &&
+        key_continuity_matched &&
+        output.expected_key_tuple_matched && output.predecessor_digest_matched &&
+        same_id(secure->predecessor_facts.key_id, input.expected_key_id) &&
+        secure->predecessor_facts.key_generation ==
+            input.expected_key_generation;
+    if (!launcher_receipt_matched) {
+        return finish(output, mapping, mapping_size, storage_locked, context,
+                      sealed_input_status::invalid_request_no_mutation);
+    }
+    output.predecessor_authenticated_under_supplied_credential = true;
+    output.launcher_receipt_matched = true;
+
     descriptor_identity final_credential_identity {};
     descriptor_identity final_predecessor_identity {};
     std::size_t final_credential_size = 0;
@@ -644,7 +722,7 @@ sealed_input_audit inspect_sealed_inputs_once(const sealed_input_request & input
     output.transport_final_revalidation_matched = true;
 
     return finish(output, mapping, mapping_size, storage_locked, context,
-                  sealed_input_status::transport_validated_no_root_access);
+                  sealed_input_status::predecessor_authenticated_pins_matched_no_root_access);
 }
 
 } // namespace halofpx::registry_lab::linux_initializer

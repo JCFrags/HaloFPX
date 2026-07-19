@@ -25,6 +25,15 @@ void retag(std::array<uint8_t,context_store_protected_registry_max_bytes>&bytes,
     message.insert(message.end(),bytes.begin()+2,bytes.begin()+size-35);assert(context_store_hmac_sha256(derived.data(),derived.size(),message.data(),message.size(),tag));
     std::copy(tag.begin(),tag.end(),bytes.begin()+size-32);
 }
+bool same_id(const context_store_registered_id&a,const context_store_registered_id&b){return a.size==b.size&&std::equal(a.bytes.begin(),a.bytes.begin()+a.size,b.bytes.begin());}
+void assert_facts_equivalent(const uint8_t*data,size_t size,const context_store_protected_registry_key_record&key){
+    const auto carrier_result=context_store_verify_protected_registry_v1(data,size,key);
+    const auto facts_result=context_store_verify_protected_registry_facts_v1(data,size,key);
+    assert(carrier_result.status==facts_result.status);
+    const auto*carrier=carrier_result.authenticated_carrier();const auto*facts=facts_result.authenticated_facts();
+    assert((carrier!=nullptr)==(facts!=nullptr));
+    if(facts){assert(carrier&&carrier->body()&&same_id(carrier->body()->registry_id,facts->body.registry_id)&&carrier->body()->registry_epoch==facts->body.registry_epoch&&carrier->body()->authority_base_scope_commitment==facts->body.authority_base_scope_commitment&&carrier->body()->policy_commitment==facts->body.policy_commitment&&carrier->body()->last_consumed_sequence==facts->body.last_consumed_sequence&&carrier->key_id()&&same_id(*carrier->key_id(),facts->key_id)&&carrier->key_generation()==facts->key_generation&&carrier->key_continuity_commitment()&&*carrier->key_continuity_commitment()==facts->key_continuity_commitment);}
+}
 }
 int main(){
     static_assert(context_store_protected_registry_max_bytes==1024);
@@ -39,23 +48,37 @@ int main(){
     assert(c&&c->body()&&c->body()->last_consumed_sequence==40&&c->envelope_digest()&&c->authority_binding());
     assert(*c->envelope_digest()==hex("a7b731bccfdea83a4595d5257ffa34ef9248bb61499b40a37874895cff6bc1ec"));
     assert(*c->authority_binding()==hex("f88b0080d50222b31e66879ecd4c14789279b9d15b786f6b22f32240d2ea5f7a"));
+    context_store_protected_registry_facts_result forged_facts;forged_facts.status=context_store_protected_registry_status::authenticated_unadmitted;assert(forged_facts.authenticated_facts()==nullptr);
+    const auto facts_result=context_store_verify_protected_registry_facts_v1(bytes.data(),encoded.encoded_size,f.key);const auto*facts=facts_result.authenticated_facts();
+    assert(facts_result.status==context_store_protected_registry_status::authenticated_unadmitted&&facts);
+    assert(facts->body.registry_id.size==11&&facts->body.registry_epoch==9&&facts->body.last_consumed_sequence==40);
+    assert(facts->body.authority_base_scope_commitment==body().authority_base_scope_commitment);
+    assert(facts->body.policy_commitment==body().policy_commitment);
+    assert(facts->key_id.size==f.key.key_id.size&&facts->key_generation==f.key.generation);
+    assert(facts->key_continuity_commitment==hex("3390a19271852403712dac091321cebfac9abb640422d81ae4136cc7a7cc7386"));
+    auto wrong_secret=f.key;std::array<uint8_t,32>wrong_secret_bytes{};wrong_secret.master_key={wrong_secret_bytes.data(),wrong_secret_bytes.size()};
+    assert_facts_equivalent(bytes.data(),encoded.encoded_size,wrong_secret);
+    const auto rejected_facts=context_store_verify_protected_registry_facts_v1(bytes.data(),encoded.encoded_size,wrong_secret);
+    assert(rejected_facts.status==context_store_protected_registry_status::authentication_failed&&rejected_facts.authenticated_facts()==nullptr);
     const auto owned_body=*c->body();const auto owned_digest=*c->envelope_digest();const auto owned_binding=*c->authority_binding();
     auto exact=bytes;bytes.fill(0);f.secret.fill(0);assert(c->body()->registry_id.size==owned_body.registry_id.size&&std::equal(c->body()->registry_id.bytes.begin(),c->body()->registry_id.bytes.begin()+c->body()->registry_id.size,owned_body.registry_id.bytes.begin())&&*c->envelope_digest()==owned_digest&&*c->authority_binding()==owned_binding);
     f.reset();bytes=exact;
     assert(context_store_encode_protected_registry_v1(body(),f.key,bytes.data(),1).status==context_store_protected_registry_status::output_too_small);
-    for(size_t n=0;n<encoded.encoded_size;++n)assert(context_store_verify_protected_registry_v1(bytes.data(),n,f.key).status!=context_store_protected_registry_status::authenticated_unadmitted);
-    for(size_t i=0;i<encoded.encoded_size;++i){auto corrupt=bytes;corrupt[i]^=1;assert(context_store_verify_protected_registry_v1(corrupt.data(),encoded.encoded_size,f.key).status!=context_store_protected_registry_status::authenticated_unadmitted);}
-    auto extra=bytes;extra[encoded.encoded_size]=0;assert(context_store_verify_protected_registry_v1(extra.data(),encoded.encoded_size+1,f.key).status==context_store_protected_registry_status::structural_rejection);
-    auto malformed=bytes;malformed[0]=0xa3;assert(context_store_verify_protected_registry_v1(malformed.data(),encoded.encoded_size,f.key).status==context_store_protected_registry_status::structural_rejection);
-    malformed=bytes;malformed[0]=0xa5;assert(context_store_verify_protected_registry_v1(malformed.data(),encoded.encoded_size,f.key).status==context_store_protected_registry_status::structural_rejection);
-    malformed=bytes;malformed[4]=0xa9;assert(context_store_verify_protected_registry_v1(malformed.data(),encoded.encoded_size,f.key).status==context_store_protected_registry_status::structural_rejection); // unexpected body field/count
-    malformed=bytes;malformed[7]=0;assert(context_store_verify_protected_registry_v1(malformed.data(),encoded.encoded_size,f.key).status==context_store_protected_registry_status::structural_rejection); // duplicate body key zero
+    assert_facts_equivalent(nullptr,0,f.key);
+    for(size_t n=0;n<encoded.encoded_size;++n){assert_facts_equivalent(bytes.data(),n,f.key);assert(context_store_verify_protected_registry_v1(bytes.data(),n,f.key).status!=context_store_protected_registry_status::authenticated_unadmitted);}
+    for(size_t i=0;i<encoded.encoded_size;++i){auto corrupt=bytes;corrupt[i]^=1;assert_facts_equivalent(corrupt.data(),encoded.encoded_size,f.key);assert(context_store_verify_protected_registry_v1(corrupt.data(),encoded.encoded_size,f.key).status!=context_store_protected_registry_status::authenticated_unadmitted);}
+    auto extra=bytes;extra[encoded.encoded_size]=0;assert_facts_equivalent(extra.data(),encoded.encoded_size+1,f.key);assert(context_store_verify_protected_registry_v1(extra.data(),encoded.encoded_size+1,f.key).status==context_store_protected_registry_status::structural_rejection);
+    auto malformed=bytes;malformed[0]=0xa3;assert_facts_equivalent(malformed.data(),encoded.encoded_size,f.key);assert(context_store_verify_protected_registry_v1(malformed.data(),encoded.encoded_size,f.key).status==context_store_protected_registry_status::structural_rejection);
+    malformed=bytes;malformed[0]=0xa5;assert_facts_equivalent(malformed.data(),encoded.encoded_size,f.key);assert(context_store_verify_protected_registry_v1(malformed.data(),encoded.encoded_size,f.key).status==context_store_protected_registry_status::structural_rejection);
+    malformed=bytes;malformed[4]=0xa9;assert_facts_equivalent(malformed.data(),encoded.encoded_size,f.key);assert(context_store_verify_protected_registry_v1(malformed.data(),encoded.encoded_size,f.key).status==context_store_protected_registry_status::structural_rejection); // unexpected body field/count
+    malformed=bytes;malformed[7]=0;assert_facts_equivalent(malformed.data(),encoded.encoded_size,f.key);assert(context_store_verify_protected_registry_v1(malformed.data(),encoded.encoded_size,f.key).status==context_store_protected_registry_status::structural_rejection); // duplicate body key zero
     for(size_t version_offset:{size_t(6),size_t(8),size_t(10)}){malformed=bytes;malformed[version_offset]=2;assert(context_store_verify_protected_registry_v1(malformed.data(),encoded.encoded_size,f.key).status==context_store_protected_registry_status::structural_rejection);}
     std::vector<uint8_t>noncanonical(encoded.encoded_size+1);noncanonical[0]=0xb8;noncanonical[1]=2;std::copy_n(bytes.begin()+1,encoded.encoded_size-1,noncanonical.begin()+2);assert(context_store_verify_protected_registry_v1(noncanonical.data(),noncanonical.size(),f.key).status==context_store_protected_registry_status::structural_rejection);
-    auto other=f.key;other.key_id=id("other");assert(context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,other).status==context_store_protected_registry_status::unknown_key);
-    other=f.key;++other.generation;assert(context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,other).status==context_store_protected_registry_status::key_generation_mismatch);
-    other=f.key;other.disposition=context_store_key_disposition::revoked;assert(context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,other).status==context_store_protected_registry_status::revoked_key);
-    other=f.key;other.disposition=context_store_key_disposition::read_disabled;assert(context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,other).status==context_store_protected_registry_status::read_disabled_key);
+    auto other=f.key;other.key_id=id("other");assert_facts_equivalent(bytes.data(),encoded.encoded_size,other);assert(context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,other).status==context_store_protected_registry_status::unknown_key);
+    other=f.key;++other.generation;assert_facts_equivalent(bytes.data(),encoded.encoded_size,other);assert(context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,other).status==context_store_protected_registry_status::key_generation_mismatch);
+    other=f.key;other.disposition=context_store_key_disposition::revoked;assert_facts_equivalent(bytes.data(),encoded.encoded_size,other);assert(context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,other).status==context_store_protected_registry_status::revoked_key);
+    other=f.key;other.disposition=context_store_key_disposition::read_disabled;assert_facts_equivalent(bytes.data(),encoded.encoded_size,other);assert(context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,other).status==context_store_protected_registry_status::read_disabled_key);
+    other=f.key;other.disposition=context_store_key_disposition::unknown;assert_facts_equivalent(bytes.data(),encoded.encoded_size,other);assert(context_store_verify_protected_registry_v1(bytes.data(),encoded.encoded_size,other).status==context_store_protected_registry_status::invalid_policy);
     auto b=body();b.registry_id={};assert(context_store_encode_protected_registry_v1(b,f.key,bytes.data(),bytes.size()).status==context_store_protected_registry_status::invalid_policy);
     b=body();b.registry_epoch=0;assert(context_store_encode_protected_registry_v1(b,f.key,bytes.data(),bytes.size()).status==context_store_protected_registry_status::invalid_policy);
     b=body();b.authority_base_scope_commitment.fill(0);assert(context_store_encode_protected_registry_v1(b,f.key,bytes.data(),bytes.size()).status==context_store_protected_registry_status::invalid_policy);

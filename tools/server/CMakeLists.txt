@@ -184,7 +184,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
 endif()
 
 # L05t opens the default-off initializer linkage and no-I/O predecessor digest
-# seam. M63-01b adds only sealed-input transport; root mutation remains absent.
+# seam. L05u/L05v add sealed transport and predecessor authentication under the
+# supplied credential; root access and mutation remain absent.
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     HALOFPX_REGISTRY_LAB_LINUX_PREINIT AND
     HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER)

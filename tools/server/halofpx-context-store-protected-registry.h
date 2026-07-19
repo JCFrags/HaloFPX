@@ -25,6 +25,15 @@ struct context_store_protected_registry_body {
     uint64_t last_consumed_sequence = 0;
 };
 
+// Public, nonsecret facts from an authenticated envelope. Unlike the carrier
+// below, this type never owns or copies the envelope bytes.
+struct context_store_protected_registry_facts {
+    context_store_protected_registry_body body;
+    context_store_registered_id key_id;
+    uint64_t key_generation = 0;
+    context_store_format_digest key_continuity_commitment {};
+};
+
 enum class context_store_protected_registry_status : uint8_t {
     authenticated_unadmitted,
     structural_rejection,
@@ -35,6 +44,22 @@ enum class context_store_protected_registry_status : uint8_t {
     read_disabled_key,
     key_generation_mismatch,
     authentication_failed,
+};
+
+struct context_store_protected_registry_facts_result {
+    context_store_protected_registry_status status =
+        context_store_protected_registry_status::structural_rejection;
+    const context_store_protected_registry_facts * authenticated_facts() const noexcept {
+        return status == context_store_protected_registry_status::authenticated_unadmitted && valid_
+            ? &facts_ : nullptr;
+    }
+private:
+    bool valid_ = false;
+    context_store_protected_registry_facts facts_;
+    friend context_store_protected_registry_facts_result
+    context_store_verify_protected_registry_facts_v1(
+        const uint8_t *, size_t,
+        const context_store_protected_registry_key_record &) noexcept;
 };
 
 class context_store_authenticated_protected_registry;
@@ -92,6 +117,12 @@ context_store_protected_registry_result context_store_encode_protected_registry_
     uint8_t * output, size_t capacity) noexcept;
 
 context_store_protected_registry_result context_store_verify_protected_registry_v1(
+    const uint8_t * data, size_t size,
+    const context_store_protected_registry_key_record & key) noexcept;
+
+// Verifies directly from caller-owned bytes and publishes only status-gated,
+// nonsecret facts. Rejected input exposes no facts or envelope copy.
+context_store_protected_registry_facts_result context_store_verify_protected_registry_facts_v1(
     const uint8_t * data, size_t size,
     const context_store_protected_registry_key_record & key) noexcept;
 

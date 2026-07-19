@@ -31,6 +31,8 @@ foreach(LINE IN LISTS DEFINED_LINES)
     # Compiler exception-unwind metadata; not a callable authority edge.
   elseif(SANITIZED_BUILD AND LINE MATCHES "std::.* W ")
     # Debug/sanitizer builds may emit weak std::array/copy template helpers.
+  elseif(SANITIZED_BUILD AND LINE MATCHES "context_store_protected_registry_facts_result::authenticated_facts\\(\\) const W ")
+    # Inline status-gated facts accessor; it carries no bytes or authority.
   elseif(SANITIZED_BUILD AND LINE MATCHES "operator (new\\(unsigned long, void\\*\\)|delete\\(void\\*, void\\*\\)) W ")
     # Inline placement-new lifetime helpers; no allocating operator is admitted.
   elseif(LINE MATCHES "^[^:]+:$" OR LINE STREQUAL "")
@@ -76,21 +78,22 @@ foreach(LINE IN LISTS UNDEFINED_SYMBOL_LINES)
   if(LINE MATCHES "halofpx::")
     math(EXPR HALOFPX_IMPORT_COUNT "${HALOFPX_IMPORT_COUNT} + 1")
     if(NOT LINE MATCHES
-        "context_store_registry_lab_(registry_envelope_digest_v1|linux_initializer_predecessor_digest_v1)")
+        "context_store_registry_lab_(registry_envelope_digest_v1|linux_initializer_predecessor_digest_v1)" AND
+       NOT LINE MATCHES "context_store_verify_protected_registry_facts_v1")
       message(FATAL_ERROR "L05t archive imports an unadmitted HaloFPX symbol: ${LINE}")
     endif()
   elseif(SANITIZED_BUILD AND LINE MATCHES "[ \t]U[ \t]+__(asan|ubsan)_")
     # Compiler sanitizer runtime only; it carries no project or I/O authority.
   elseif(SANITIZED_BUILD AND LINE MATCHES "[ \t]U[ \t]+std::__glibcxx_assert_fail")
     # libstdc++ debug assertion runtime introduced by the sanitizer build type.
-  elseif(LINE MATCHES "[ \t]U[ \t]+(close|__errno_location|fcntl|fstat|fstatfs|__gxx_personality_v0|(__isoc23_)?strtol|memcmp|memmove|memset|mlock|mmap|munlock|munmap|open|pread|readlink|sigfillset|sigprocmask|__stack_chk_fail|strlen|syscall|sysconf)$")
+  elseif(LINE MATCHES "[ \t]U[ \t]+(close|__errno_location|fcntl|fstat|fstatfs|__gxx_personality_v0|(__isoc23_)?strtol|memcmp|memcpy|memmove|memset|mlock|mmap|munlock|munmap|open|pread|readlink|sigfillset|sigprocmask|__stack_chk_fail|strlen|syscall|sysconf)$")
     # Exact POSIX/libc/compiler surface admitted by the sealed-input transport.
   else()
     message(FATAL_ERROR "L05t archive imports an unadmitted symbol: ${LINE}")
   endif()
 endforeach()
-if(NOT HALOFPX_IMPORT_COUNT EQUAL 2)
-  message(FATAL_ERROR "initializer archive must import only the two-stage digest lineage: ${UNDEFINED}")
+if(NOT HALOFPX_IMPORT_COUNT EQUAL 3)
+  message(FATAL_ERROR "initializer archive must import only the two-stage digest lineage and facts verifier: ${UNDEFINED}")
 endif()
 foreach(FORBIDDEN IN ITEMS " openat" " write" "pwrite" " rename" " fsync" "fdatasync"
     "mkdir" "unlink" "system" "fork" "exec" "socket" "connect")
@@ -100,4 +103,4 @@ foreach(FORBIDDEN IN ITEMS " openat" " write" "pwrite" " rename" " fsync" "fdata
   endif()
 endforeach()
 
-message(STATUS "PASS: L05t seam and M63-01b sealed-input archive/import isolation")
+message(STATUS "PASS: L05t seam and L05u/L05v sealed authenticated-input archive/import isolation")

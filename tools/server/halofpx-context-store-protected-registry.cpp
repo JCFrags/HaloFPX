@@ -50,5 +50,91 @@ context_store_protected_registry_result context_store_encode_protected_registry_
 
 context_store_protected_registry_result context_store_verify_protected_registry_v1(const uint8_t*data,size_t size,const context_store_protected_registry_key_record&k)noexcept{context_store_protected_registry_result out;if(!data||!size||size>context_store_protected_registry_max_bytes)return out;if(!valid_key(k)){out.status=context_store_protected_registry_status::invalid_policy;return out;}reader r{data,size};uint64_t n=0,alg=0,gen=0;const uint8_t*idp,*tp;size_t idn=0,tn=0;if(!r.head(5,n)||n!=2||!r.exact(0))return out;size_t ao=r.offset;if(!r.head(5,n)||n!=4||!r.exact(0))return out;context_store_protected_registry_body b;if(!body_parse(r,b)||!r.exact(1)||!r.bytes(3,idp,idn)||!r.exact(2)||!r.u64(alg)||!r.exact(3)||!r.u64(gen)||alg!=algorithm_hmac_sha256)return out;size_t an=r.offset-ao;if(!r.exact(1)||!r.bytes(2,tp,tn)||r.offset!=size||tn!=32)return out;context_store_registered_id id;if(!idn||idn>context_store_registered_id_max_bytes)return out;id.size=uint8_t(idn);std::copy_n(idp,idn,id.bytes.begin());if(!valid_id(id))return out;if(!same_id(id,k.key_id)){out.status=context_store_protected_registry_status::unknown_key;return out;}if(k.disposition==context_store_key_disposition::revoked){out.status=context_store_protected_registry_status::revoked_key;return out;}if(k.disposition==context_store_key_disposition::read_disabled){out.status=context_store_protected_registry_status::read_disabled_key;return out;}if(k.disposition!=context_store_key_disposition::active){out.status=context_store_protected_registry_status::invalid_policy;return out;}if(gen!=k.generation){out.status=context_store_protected_registry_status::key_generation_mismatch;return out;}context_store_format_digest expected{},provided{},d{},a{},c{};std::copy_n(tp,32,provided.begin());if(!tag(k,data+ao,an,expected)||!same_digest(expected,provided)){out.status=context_store_protected_registry_status::authentication_failed;wipe(expected.data(),32);wipe(provided.data(),32);return out;}bool ok=digest(data,size,d)&&binding(k,d,a)&&continuity(k,c);wipe(expected.data(),32);wipe(provided.data(),32);if(!ok){out.status=context_store_protected_registry_status::invalid_policy;return out;}out.encoded_size=size;out.set_authenticated(b,k,d,a,c,data,size);wipe(d.data(),32);wipe(a.data(),32);wipe(c.data(),32);return out;}
 
+context_store_protected_registry_facts_result context_store_verify_protected_registry_facts_v1(
+        const uint8_t * data, size_t size,
+        const context_store_protected_registry_key_record & key) noexcept {
+    context_store_protected_registry_facts_result output;
+    const auto reject = [&output](context_store_protected_registry_status status) noexcept {
+        output.status = status;
+        return output;
+    };
+    if (!data || !size || size > context_store_protected_registry_max_bytes) {
+        return reject(context_store_protected_registry_status::structural_rejection);
+    }
+    if (!valid_key(key)) {
+        return reject(context_store_protected_registry_status::invalid_policy);
+    }
+
+    context_store_protected_registry_facts candidate;
+    reader r { data, size };
+    uint64_t count = 0;
+    uint64_t algorithm = 0;
+    uint64_t generation = 0;
+    const uint8_t * key_id = nullptr;
+    const uint8_t * tag_bytes = nullptr;
+    size_t key_id_size = 0;
+    size_t tag_size = 0;
+    if (!r.head(5, count) || count != 2 || !r.exact(0)) {
+        return reject(context_store_protected_registry_status::structural_rejection);
+    }
+    const size_t authenticated_offset = r.offset;
+    if (!r.head(5, count) || count != 4 || !r.exact(0) ||
+        !body_parse(r, candidate.body) || !r.exact(1) ||
+        !r.bytes(3, key_id, key_id_size) || !r.exact(2) ||
+        !r.u64(algorithm) || !r.exact(3) || !r.u64(generation) ||
+        algorithm != algorithm_hmac_sha256) {
+        return reject(context_store_protected_registry_status::structural_rejection);
+    }
+    const size_t authenticated_size = r.offset - authenticated_offset;
+    if (!r.exact(1) || !r.bytes(2, tag_bytes, tag_size) ||
+        r.offset != size || tag_size != 32 || !key_id_size ||
+        key_id_size > context_store_registered_id_max_bytes) {
+        return reject(context_store_protected_registry_status::structural_rejection);
+    }
+    candidate.key_id.size = static_cast<uint8_t>(key_id_size);
+    std::copy_n(key_id, key_id_size, candidate.key_id.bytes.begin());
+    if (!valid_id(candidate.key_id)) {
+        return reject(context_store_protected_registry_status::structural_rejection);
+    }
+    if (!same_id(candidate.key_id, key.key_id)) {
+        return reject(context_store_protected_registry_status::unknown_key);
+    }
+    if (key.disposition == context_store_key_disposition::revoked) {
+        return reject(context_store_protected_registry_status::revoked_key);
+    }
+    if (key.disposition == context_store_key_disposition::read_disabled) {
+        return reject(context_store_protected_registry_status::read_disabled_key);
+    }
+    if (key.disposition != context_store_key_disposition::active) {
+        return reject(context_store_protected_registry_status::invalid_policy);
+    }
+    if (generation != key.generation) {
+        return reject(context_store_protected_registry_status::key_generation_mismatch);
+    }
+    candidate.key_generation = generation;
+
+    context_store_format_digest expected_tag {};
+    context_store_format_digest provided_tag {};
+    std::copy_n(tag_bytes, provided_tag.size(), provided_tag.begin());
+    if (!tag(key, data + authenticated_offset, authenticated_size, expected_tag) ||
+        !same_digest(expected_tag, provided_tag)) {
+        wipe(expected_tag.data(), expected_tag.size());
+        wipe(provided_tag.data(), provided_tag.size());
+        return reject(context_store_protected_registry_status::authentication_failed);
+    }
+    const bool facts_ready = continuity(key, candidate.key_continuity_commitment);
+    wipe(expected_tag.data(), expected_tag.size());
+    wipe(provided_tag.data(), provided_tag.size());
+    if (!facts_ready) {
+        wipe(candidate.key_continuity_commitment.data(), candidate.key_continuity_commitment.size());
+        return reject(context_store_protected_registry_status::invalid_policy);
+    }
+    output.facts_ = candidate;
+    output.valid_ = true;
+    output.status = context_store_protected_registry_status::authenticated_unadmitted;
+    wipe(candidate.key_continuity_commitment.data(), candidate.key_continuity_commitment.size());
+    return output;
+}
+
 const char*context_store_protected_registry_status_name(context_store_protected_registry_status s)noexcept{switch(s){case context_store_protected_registry_status::authenticated_unadmitted:return "authenticated-unadmitted";case context_store_protected_registry_status::structural_rejection:return "structural-rejection";case context_store_protected_registry_status::output_too_small:return "output-too-small";case context_store_protected_registry_status::invalid_policy:return "invalid-policy";case context_store_protected_registry_status::unknown_key:return "unknown-key";case context_store_protected_registry_status::revoked_key:return "revoked-key";case context_store_protected_registry_status::read_disabled_key:return "read-disabled-key";case context_store_protected_registry_status::key_generation_mismatch:return "key-generation-mismatch";case context_store_protected_registry_status::authentication_failed:return "authentication-failed";}return "unknown";}
 } // namespace halofpx

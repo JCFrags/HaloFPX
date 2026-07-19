@@ -38,6 +38,10 @@ foreach(REQUIRED IN ITEMS
     "::munlock(mapping, mapping_size)"
     "::munmap(mapping, mapping_size)"
     "context_store_registry_lab_linux_initializer_predecessor_digest_v1"
+    "context_store_verify_protected_registry_facts_v1"
+    "predecessor_authenticated_pins_matched_no_root_access"
+    "predecessor_authenticated_under_supplied_credential"
+    "launcher_receipt_matched"
     "root_or_fixture_syscall_count")
   string(FIND "${INPUT_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
@@ -53,7 +57,7 @@ foreach(FORBIDDEN IN ITEMS
     "openat2" "mkdir" "pwrite" "rename" "fsync" "fdatasync"
     "unlink" "root.marker" "writer.lock" "initialize-root.tmp"
     "qualify_once(" "context_store_registry_lab_parse_credential_v1("
-    "context_store_verify_protected_registry_v1(")
+    "context_store_verify_protected_registry_v1(" "authority_binding(")
   string(FIND "${INPUT_TEXT}" "${FORBIDDEN}" HIT)
   if(NOT HIT EQUAL -1)
     message(FATAL_ERROR "M63-01b sealed-input slice contains forbidden root/auth/mutation token: ${FORBIDDEN}")
@@ -121,4 +125,4 @@ if(NOT PRODUCT_LEAK EQUAL -1)
   message(FATAL_ERROR "L05t initializer seam leaked into product/server linkage")
 endif()
 
-message(STATUS "PASS: L05t seam plus M63-01b sealed-input/default-off contract")
+message(STATUS "PASS: L05t seam plus L05u/L05v sealed authenticated-input/default-off contract")

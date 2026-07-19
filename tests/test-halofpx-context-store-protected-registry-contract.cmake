@@ -13,7 +13,7 @@ foreach(FORBIDDEN "filesystem" "fstream" "fopen[ \\t]*\\(" "CreateFile" "rename[
     message(FATAL_ERROR "forbidden registry marker: ${FORBIDDEN}")
   endif()
 endforeach()
-foreach(REQUIRED "context_store_protected_registry_max_bytes = 1024" "authenticated_unadmitted" "halofpx.registry-snapshot-key.v1" "halofpx.registry-snapshot-auth.v1" "halofpx.registry-snapshot.v1" "w.head\\(5,4\\)" "e.head\\(5,2\\)" "tag\\(k,ai.data\\(\\),w.size,t\\)" "tstr" "wipe\\(")
+foreach(REQUIRED "context_store_protected_registry_max_bytes = 1024" "authenticated_unadmitted" "context_store_protected_registry_facts_result" "context_store_verify_protected_registry_facts_v1" "authenticated_facts" "halofpx.registry-snapshot-key.v1" "halofpx.registry-snapshot-auth.v1" "halofpx.registry-snapshot.v1" "w.head\\(5,4\\)" "e.head\\(5,2\\)" "tag\\(k,ai.data\\(\\),w.size,t\\)" "tstr" "wipe\\(")
   if(NOT ALL MATCHES "${REQUIRED}")
     message(FATAL_ERROR "missing registry marker: ${REQUIRED}")
   endif()
