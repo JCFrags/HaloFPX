@@ -5,7 +5,7 @@ generated_on: '2026-07-17'
 registry: ../../research/prompts/section_index.yaml
 schema: manifest.schema.json
 generator: ../../research/prompts/tools/generate_wiki_manifest.py
-input_digest_sha256: 405d3a87d13960dc70468e6b0a1e61dd36a2d230925ca129544d6c693f6b11e5
+input_digest_sha256: 11da80edc7564501517d5f44d4da7817cb53050c8d934160fae4e89d1789928a
 planned_category_count: 12
 planned_section_count: 86
 categories:
@@ -827,7 +827,7 @@ categories:
     metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-18'
-    source_count: 24
+    source_count: 27
     open_question_count: 9
   - section_id: '64'
     title: Eviction, Garbage Collection, Quotas, User Isolation, and Privacy

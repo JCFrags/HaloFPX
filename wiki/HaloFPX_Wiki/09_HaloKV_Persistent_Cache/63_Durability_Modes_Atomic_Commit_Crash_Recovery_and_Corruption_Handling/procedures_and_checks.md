@@ -88,6 +88,18 @@ harness, durable writer, persistence authority, provider, or inference edge.
 The inherited Debug authority assertion is retained as a separate baseline
 issue and is not evidence against the L05q target.
 
+The accepted `181a7bd8` L05r slice closes only fake sticky-quarantine
+publication operations 69-76 [S63-26]. Its exact candidate admits 155 of 960
+operation products, rejects 805, and covers 497 restart projections including
+18 state-only failure/death frontiers. Windows Release passed 40/40 HaloFPX
+tests; clean optimized and ASan/UBSan Linux passed 39/39 each. The retained
+exhaustive layer adds 25/25 optimized and 18/18 sanitizer processes; eight
+sanitizer pairs overlapped after a controller reconnect and are explicitly
+reported as concurrency stress. M63-01 remains open because all mutation is
+still inside the excluded fake authority: no Linux filesystem syscall,
+cross-process lock, process-kill recovery, persistent writer, provider, cache,
+restore, or inference path was exercised.
+
 ## M63-01 crash-point matrix
 
 Terminate only the disposable writer/coordinator after every write, sync, rename, and acknowledgement boundary. Restart and record recovered generation. Repeat for approved process-kill, isolated reboot harness, and controlled power-loss cases. Never use the production store; reboot/power tests require the Section 80 operator-approved hardware procedure.
