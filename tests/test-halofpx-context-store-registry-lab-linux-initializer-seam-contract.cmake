@@ -32,11 +32,11 @@ foreach(REQUIRED IN ITEMS
     "::open(\"/proc/self/fd\""
     "::sigprocmask(SIG_SETMASK"
     "::syscall(SYS_unshare, CLONE_FILES)"
-    "::mmap(nullptr, mapping_size"
-    "::new (mapping) secure_inputs {}"
-    "::mlock(mapping, mapping_size)"
-    "::munlock(mapping, mapping_size)"
-    "::munmap(mapping, mapping_size)"
+    "::mmap(nullptr, session.mapping_size"
+    "::new (session.mapping) secure_inputs {}"
+    "::mlock(session.mapping, session.mapping_size)"
+    "::munlock(session.mapping, session.mapping_size)"
+    "::munmap(session.mapping, session.mapping_size)"
     "context_store_registry_lab_linux_initializer_predecessor_digest_v1"
     "context_store_verify_protected_registry_facts_v1"
     "predecessor_authenticated_pins_matched_no_root_access"
@@ -54,13 +54,59 @@ if(NOT INPUT_OPEN_COUNT EQUAL 2)
   message(FATAL_ERROR "sealed-input source may open only /proc/self/task and /proc/self/fd")
 endif()
 foreach(FORBIDDEN IN ITEMS
-    "openat2" "mkdir" "pwrite" "rename" "fsync" "fdatasync"
-    "unlink" "root.marker" "writer.lock" "initialize-root.tmp"
     "qualify_once(" "context_store_registry_lab_parse_credential_v1("
     "context_store_verify_protected_registry_v1(" "authority_binding(")
   string(FIND "${INPUT_TEXT}" "${FORBIDDEN}" HIT)
   if(NOT HIT EQUAL -1)
     message(FATAL_ERROR "M63-01b sealed-input slice contains forbidden root/auth/mutation token: ${FORBIDDEN}")
+  endif()
+endforeach()
+
+foreach(REQUIRED IN ITEMS
+    "struct authenticated_input_session"
+    "authenticated_input_session(const authenticated_input_session &) = delete"
+    "authenticate_sealed_inputs_for_session(input, session, output)"
+    "cleanup_authenticated_input_storage"
+    "restore_authenticated_input_signal_mask")
+  string(FIND "${INPUT_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing shared file-private authenticated-session contract: ${REQUIRED}")
+  endif()
+endforeach()
+
+set(ANCHOR "${ROOT}/tools/server/halofpx-context-store-registry-lab-linux-initializer-anchor.inc")
+if(NOT EXISTS "${ANCHOR}")
+  message(FATAL_ERROR "missing L05w writer-lock anchor implementation")
+endif()
+file(READ "${ANCHOR}" ANCHOR_TEXT)
+foreach(REQUIRED IN ITEMS
+    "initialize_writer_lock_anchor_once"
+    "authenticate_sealed_inputs_for_session"
+    "O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC | O_NOFOLLOW"
+    "RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS"
+    "RESOLVE_NO_MAGICLINKS | RESOLVE_NO_XDEV"
+    "::fchmod(writer_fd, 0600)"
+    "::fsync(writer_fd)"
+    "SYS_getrandom"
+    "F_OFD_SETLK"
+    "F_UNLCK"
+    "preexisting_root_discard_required"
+    "clear_pre_latch_positive_audit"
+    "if (!output.discard_required_latched)"
+    "discard_required_latched = true"
+    "lock_anchor_qualified = true")
+  string(FIND "${ANCHOR_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing L05w writer-lock anchor contract token: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(FORBIDDEN IN ITEMS
+    "qualify_once(" "linux-preinit" "root.marker" "initialize-root.tmp"
+    "mkdir" "rename" "pwrite" "unlink" "fdatasync" "fork(" "exec("
+    "llama-ai" "CachyLLama")
+  string(FIND "${ANCHOR_TEXT}" "${FORBIDDEN}" HIT)
+  if(NOT HIT EQUAL -1)
+    message(FATAL_ERROR "L05w anchor contains forbidden broader-mutation/link token: ${FORBIDDEN}")
   endif()
 endforeach()
 

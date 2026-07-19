@@ -184,15 +184,21 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
 endif()
 
 # L05t opens the default-off initializer linkage and no-I/O predecessor digest
-# seam. L05u/L05v add sealed transport and predecessor authentication under the
-# supplied credential; root access and mutation remain absent.
+# seam. L05u/L05v add sealed transport and predecessor authentication; L05w
+# admits only discard-required root/fixture qualification and writer.lock anchor
+# creation. Broader initialization, normal mutation, and product linkage remain
+# absent.
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     HALOFPX_REGISTRY_LAB_LINUX_PREINIT AND
     HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER)
     add_library(halofpx-context-store-registry-lab-linux-initializer STATIC EXCLUDE_FROM_ALL
         halofpx-context-store-registry-lab-linux-initializer.cpp
         halofpx-context-store-registry-lab-linux-initializer-inputs.cpp
+        halofpx-context-store-registry-lab-linux-initializer-anchor.inc
         halofpx-context-store-registry-lab-linux-initializer-internal.h)
+    set_source_files_properties(
+        halofpx-context-store-registry-lab-linux-initializer-anchor.inc
+        PROPERTIES HEADER_FILE_ONLY TRUE)
     target_link_libraries(halofpx-context-store-registry-lab-linux-initializer PRIVATE
         halofpx-context-store-registry-lab-wire)
     target_compile_features(halofpx-context-store-registry-lab-linux-initializer PRIVATE
@@ -230,6 +236,27 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
                 ${CMAKE_SOURCE_DIR}/docs/halofpx/evidence/l05o-registry-lab-golden-vector.json)
         set_tests_properties(test-halofpx-context-store-registry-lab-linux-initializer-inputs PROPERTIES
             LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+
+        add_executable(test-halofpx-context-store-registry-lab-linux-initializer-anchor EXCLUDE_FROM_ALL
+            ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-registry-lab-linux-initializer-anchor.cpp)
+        target_include_directories(test-halofpx-context-store-registry-lab-linux-initializer-anchor PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR})
+        target_link_libraries(test-halofpx-context-store-registry-lab-linux-initializer-anchor PRIVATE
+            halofpx-context-store-registry-lab-linux-initializer)
+        target_compile_features(test-halofpx-context-store-registry-lab-linux-initializer-anchor PRIVATE
+            cxx_std_17)
+        add_test(NAME test-halofpx-context-store-registry-lab-linux-initializer-anchor
+            COMMAND test-halofpx-context-store-registry-lab-linux-initializer-anchor)
+        set_tests_properties(test-halofpx-context-store-registry-lab-linux-initializer-anchor PROPERTIES
+            LABELS "main;halofpx;linux" RUN_SERIAL TRUE)
+
+        # External exact-binary crash controller. It deliberately is not a
+        # CTest: each invocation requires a fresh externally prepared disposable
+        # Btrfs root. The driver retains its receipt/tree before whole-media cleanup.
+        add_executable(halofpx-l05w-ptrace-controller EXCLUDE_FROM_ALL
+            ${CMAKE_SOURCE_DIR}/tests/halofpx-l05w-ptrace-controller.cpp)
+        target_compile_features(halofpx-l05w-ptrace-controller PRIVATE cxx_std_17)
+        target_compile_definitions(halofpx-l05w-ptrace-controller PRIVATE _GNU_SOURCE)
 
         add_test(NAME test-halofpx-context-store-registry-lab-linux-initializer-seam-contract
             COMMAND ${CMAKE_COMMAND}

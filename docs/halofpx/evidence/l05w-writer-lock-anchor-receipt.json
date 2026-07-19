@@ -1,0 +1,131 @@
+{
+  "schema": "halofpx.l05w-writer-lock-anchor.v1",
+  "date": "2026-07-19",
+  "parent_commit": "c201c8dc2ab8c9a6ca8d083938f6a7389d575483",
+  "parent_tree": "7d36ca4635839f579740b630c3aa1b3e1ca7c708",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Linux-only default-off authenticated Btrfs admission and discard-only writer.lock anchor; no completed initialization or durable namespace claim",
+  "source_sha256": {
+    "tools/server/CMakeLists.txt": "0d633b1363a0b7d385ebd61bbc0de53d073423aef7ff37fa040b223f0979b091",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-inputs.cpp": "aa6a6ab6ba362c902a6380cb37f31200affbb18c44489109920d822283f49a2d",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-internal.h": "2e30dc780ee19552df6ca3cc058b8f26afc4b10c3a1fd988014b23c4a8be814b",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-anchor.inc": "be6bc7784be6669075c980659ef47f8079c5eef80911d92b5ff0e06db891b581",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-anchor.cpp": "2fd496fa58e2411b4fb105e42ddad4fb2e419483b67636e4c244c57389d2c94d",
+    "tests/halofpx-l05w-ptrace-controller.cpp": "203690fdb383b3fdb4bcbc36361f3f7a6b0eea2e527bbf842b65743ed9726042",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake": "4dd95d1444f385d4e6cf6db8e2ef9efec2da97894f9083cd519fb475ebf3db6c",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-archive-audit.cmake": "02f63536957487e14b48a77087eb41678dedf645857b484dca6fd0a509236d1c"
+  },
+  "admitted_contract": {
+    "input_authority": "exact L05v fd3 credential plus authenticated fd4 predecessor and complete launcher pins retained in locked file-private state",
+    "ordering": "fd3 and fd4 are closed before the first parent, root, or fixture syscall",
+    "pre_latch": "exact pinned Btrfs parent/root/fixture and primitive.lock, empty candidate root, reserve and read-only checks, fixture OFD lock, final revalidation, nonzero getrandom identities",
+    "mutation": "exclusive openat2 writer.lock create mode 0600, fchmod 0600, exact inode validation, fsync file, whole-file OFD lock, final sole-entry proof",
+    "result": "every latched invocation is initialization_discard_required; preexisting nonempty root is preexisting_root_discard_required",
+    "cleanup": "close non-lock fds; wipe, unlock, and unmap sealed state; unlock and close writer then fixture locks; release guard; restore signals",
+    "durability": "writer inode file-sync only; no root-directory sync and no durable namespace visibility claim"
+  },
+  "build_and_link_boundaries": {
+    "HALOFPX_REGISTRY_LAB_LINUX_INITIALIZER_default": false,
+    "HALOFPX_REGISTRY_LAB_LINUX_MUTATION_default": false,
+    "initializer_target": "Linux-only STATIC EXCLUDE_FROM_ALL",
+    "initializer_archive_objects": 2,
+    "callable_initializer_definitions": 3,
+    "ptrace_controller": "Linux x86-64 EXCLUDE_FROM_ALL test-only non-CTest target",
+    "general_mutation_gate": "fatal",
+    "product_or_install_or_export_edge": false,
+    "webui_enabled": false
+  },
+  "qualification": {
+    "windows_release_feature_off": {
+      "build": "build/halofpx-l05s-feature-off-release-windows",
+      "all_tests": "84/84",
+      "halofpx_tests": "40/40",
+      "seconds": 110.22
+    },
+    "linux_feature_off": {
+      "nimo_1_release": "39/39",
+      "nimo_2_asan_ubsan": "39/39",
+      "webui": "explicitly OFF",
+      "initializer": "OFF",
+      "general_mutation": "OFF"
+    },
+    "focused_initializer": {
+      "nimo_1_release": "6/6",
+      "nimo_2_release": "6/6",
+      "nimo_2_asan_ubsan": "6/6",
+      "fresh_l05v_children_total": 9909,
+      "shared_thread_rejections_total": 3,
+      "sanitizer_findings": 0
+    },
+    "inherited_preinit_control": {
+      "nimo_1_release": "3/3",
+      "nimo_2_release": "3/3",
+      "nimo_2_asan_ubsan": "3/3"
+    },
+    "live_anchor": {
+      "release_fresh_roots_per_node": 100,
+      "asan_ubsan_fresh_roots_nimo_2": 25,
+      "syscall_traced_clean_child_canaries": 2,
+      "qualified_final_runs": 227,
+      "preexisting_nonempty_unchanged_controls": 2,
+      "trace_order": "fd3 close line 67, fd4 close line 68, first root open line 69 on both nodes"
+    },
+    "ptrace_crash_matrix": {
+      "boundaries": ["openat2(writer.lock)", "fchmod(writer.lock)", "fsync(writer.lock)", "F_OFD_SETLK(writer.lock)"],
+      "phases": ["entry", "exit"],
+      "repetitions_per_boundary_phase_per_node": 25,
+      "nimo_1": {"passed": 200, "failed": 0, "raw_jsonl_events": 85975},
+      "nimo_2": {"passed": 200, "failed": 0, "raw_jsonl_events": 85975},
+      "total": {"passed": 400, "failed": 0, "raw_jsonl_events": 171950},
+      "verified": "exact exec child and inode, real ptrace entry/exit stop, SIGKILL/WIFSIGNALED, nonzero launcher exit, bounded cleanup, fixture and applicable writer OFD release, synchronized receipt"
+    },
+    "binaries": {
+      "nimo_1_release_anchor_sha256": "8e39823bf1c0b86c6a3d45f8f224fc8d7b02392e11b3334fd12f0b758872248f",
+      "nimo_2_release_anchor_sha256": "5c87be39a16c79b54c92e4de33482c68114057e198123f1479abdcb368c38911",
+      "nimo_2_asan_anchor_sha256": "3c05aa2e2f24bd2aff79207cac8bad014a6f4189130618871312eba75dd2a487",
+      "release_initializer_archive_sha256": "179268876af9b333e8c30983094c08bd046e98af878b376dcc4a9fed8fe896b4",
+      "nimo_2_asan_initializer_archive_sha256": "ae234ed1d104de032a2adfcb68cf3931a463f9d0cc606efa2878daba84c28dc9",
+      "ptrace_controller_sha256": "78f00d37d8efba3b78eef1cc6c29102991d4c4b0b043b49705a15ca7dda9b40a"
+    },
+    "evidence": {
+      "nimo_1_bundle_sha256": "96cd819d1ab76e1445033e74d70fb5e368b09be009d73ced2a8a469eca0bac2c",
+      "nimo_2_bundle_sha256": "663ea87250969e9214aaf389f965c10370a25efd29f46c3656c2ced5ab2e1c97",
+      "local_copy_root": "C:/Users/britt/AppData/Local/Temp/halofpx-l05w-final-20260719",
+      "nimo_1_image_sha256": "dfac4bb6c5a2cb77445c3a6cad1fe871c3cf186342351a2fafdb0dbecc0829b3",
+      "nimo_2_image_sha256": "8825ae510143cee75e51aca3614b2da6109c2e2b9f52872835cb8993df7be2af",
+      "media_cleanup": "both mounts unmounted and loop devices detached; images retained",
+      "excluded_intake": "initial pre-split canaries and nimo-1 ptrace smoke retained but excluded from promoted totals"
+    },
+    "strict_cxx17_wall_wextra_wpedantic_werror": "pass for initializer production, anchor test, and ptrace controller",
+    "independent_reviews": "ACCEPT for engine/anchor, clean-child controller, bounded signal cleanup, and ptrace controller"
+  },
+  "service_health_after_qualification": {
+    "nimo_1_llama_server_pid": 3783057,
+    "nimo_1_port": 8081,
+    "nimo_2_rpc_pid": 3562775,
+    "nimo_2_rpc_listen": "0.0.0.0:50052",
+    "restarted_or_redeployed": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false,
+    "remote_created_or_pushed": false
+  },
+  "nonclaims": [
+    "The generated writer.lock name is not directory-synced, so L05w proves neither durable namespace visibility nor power-loss persistence.",
+    "L05w does not complete initialization, publish marker or HEAD records, create data directories, adopt or repair an existing root, enable server persistence, restore cache state, or admit a cache hit.",
+    "The ptrace matrix covers the four L05w writer-lock boundaries, not future directory, marker, HEAD, publication, or power-loss boundaries.",
+    "CPU, sanitizer, and controller timings are qualification telemetry, not an inference-performance claim.",
+    "HIP, Vulkan, ROCmFPX, RPC, distributed behavior, WebUI, and L14Q quantized-KV behavior are unchanged and not enabled by this slice."
+  ]
+}

@@ -3,6 +3,7 @@
 #include "halofpx-context-store-registry-lab-wire.h"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 
 namespace halofpx {
@@ -67,6 +68,88 @@ struct sealed_input_audit {
 // Consumes descriptors 3 and 4 once. It performs no parent/root/fixture syscall
 // and returns no reusable credential/predecessor authority.
 sealed_input_audit inspect_sealed_inputs_once(const sealed_input_request & input) noexcept;
+
+constexpr std::size_t initialization_max_path_bytes = 4096;
+constexpr std::uint64_t initialization_future_logical_authority_bound =
+    16ULL * 1024ULL * 1024ULL;
+constexpr std::uint64_t initialization_required_filesystem_reserve =
+    256ULL * 1024ULL * 1024ULL;
+
+enum class initialization_status : std::uint8_t {
+    initialization_discard_required,
+    preexisting_root_discard_required,
+    invalid_request_no_mutation,
+    unsupported_no_mutation,
+    busy_no_mutation,
+    unavailable_no_mutation,
+    io_failure_no_mutation,
+};
+
+struct initialization_pinned_path_identity {
+    char canonical_path[initialization_max_path_bytes + 1]{};
+    std::uint32_t path_length = 0;
+    std::uint64_t device = 0;
+    std::uint64_t inode = 0;
+    std::uint64_t mount_id = 0;
+    std::uint64_t owner_uid = 0;
+    std::uint32_t mode = 0;
+    std::uint8_t filesystem_uuid[16]{};
+    std::uint8_t subvolume_uuid[16]{};
+};
+
+struct initialization_request {
+    sealed_input_request sealed_inputs{};
+    initialization_pinned_path_identity parent{};
+    initialization_pinned_path_identity candidate_root{};
+    initialization_pinned_path_identity fixture{};
+    std::uint64_t fixture_lock_device = 0;
+    std::uint64_t fixture_lock_inode = 0;
+};
+
+// L05w exposes only public comparison, ordering, and generated-identity facts.
+// Even a clean anchor qualification is discard-required and returns no fd,
+// absence proof, credential, predecessor, or reusable mutation authority.
+struct initialization_audit {
+    initialization_status result = initialization_status::invalid_request_no_mutation;
+    sealed_input_audit sealed_inputs{};
+    bool sealed_inputs_preceded_root_access = false;
+    bool parent_identity_matched = false;
+    bool candidate_root_identity_matched = false;
+    bool fixture_identity_matched = false;
+    bool fixture_lock_identity_matched = false;
+    bool fixture_lock_acquired = false;
+    bool root_guard_acquired = false;
+    bool empty_root_final_revalidation_matched = false;
+    bool generated_root_id_nonzero = false;
+    bool generated_store_uuid_nonzero = false;
+    bool generated_identity_scratch_wiped = false;
+    bool discard_required_latched = false;
+    bool writer_lock_created_no_replace = false;
+    bool writer_lock_mode_revalidated = false;
+    bool writer_lock_synchronized = false;
+    bool writer_lock_ofd_acquired = false;
+    bool writer_lock_root_sole_entry = false;
+    bool lock_anchor_qualified = false;
+    bool writer_lock_released = false;
+    bool fixture_lock_released = false;
+    bool root_guard_released = false;
+    bool filesystem_not_reported_read_only = false;
+    std::array<std::uint8_t, 32> generated_root_id{};
+    std::array<std::uint8_t, 16> generated_store_uuid{};
+    std::uint32_t root_fixture_syscall_count = 0;
+    std::uint32_t fixture_ofd_attempt_count = 0;
+    std::uint32_t writer_ofd_attempt_count = 0;
+    std::uint64_t observed_filesystem_reserve = 0;
+    std::uint64_t logical_authority_bound =
+        initialization_future_logical_authority_bound;
+};
+
+// Consumes fd 3/fd 4 through the same file-private admission routine used by
+// inspect_sealed_inputs_once(), before any parent/root/fixture syscall. It may
+// create only writer.lock and always classifies a latched invocation as
+// discard-required.
+initialization_audit initialize_writer_lock_anchor_once(
+    const initialization_request & input) noexcept;
 
 } // namespace registry_lab::linux_initializer
 

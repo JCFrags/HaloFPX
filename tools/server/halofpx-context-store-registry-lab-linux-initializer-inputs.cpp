@@ -511,28 +511,50 @@ sealed_input_audit finish(sealed_input_audit output, void * mapping, std::size_t
 
 } // namespace
 
-sealed_input_audit inspect_sealed_inputs_once(const sealed_input_request & input) noexcept {
-    sealed_input_audit output;
+namespace {
+
+// File-private, non-copyable authority for the one initializer invocation.
+// No declaration escapes this translation unit and no general callback seam is
+// admitted. The locked mapping remains live until the root helper finishes.
+struct authenticated_input_session {
     secure_inputs * secure = nullptr;
     void * mapping = MAP_FAILED;
     std::size_t mapping_size = 0;
     bool storage_locked = false;
     execution_context context {};
+    bool authenticated = false;
+
+    authenticated_input_session() = default;
+    authenticated_input_session(const authenticated_input_session &) = delete;
+    authenticated_input_session & operator=(const authenticated_input_session &) = delete;
+};
+
+sealed_input_status authenticate_sealed_inputs_for_session(
+        const sealed_input_request & input, authenticated_input_session & session,
+        sealed_input_audit & output) noexcept {
+    auto fail = [&](sealed_input_status value) noexcept {
+        output = finish(output, session.mapping, session.mapping_size,
+                        session.storage_locked, session.context, value);
+        session.secure = nullptr;
+        session.mapping = MAP_FAILED;
+        session.mapping_size = 0;
+        session.storage_locked = false;
+        session.context.signal_mask_changed = false;
+        return output.result;
+    };
 
     if (session_consumed.test_and_set(std::memory_order_acq_rel)) {
         output.secure_storage_wiped = true;
         output.secure_storage_unlocked = true;
         output.secure_storage_unmapped = true;
         output.signal_mask_restored = true;
-        return output;
+        return output.result;
     }
 
-    auto result = establish_exclusive_context(context, output);
+    auto result = establish_exclusive_context(session.context, output);
     if (result != sealed_input_status::transport_validated_no_root_access) {
-        return finish(output, mapping, mapping_size, storage_locked,
-                      context, result);
+        return fail(result);
     }
-
     if (!registered_id_valid(input.expected_key_id) ||
         input.expected_key_generation == 0 ||
         !nonzero(input.expected_predecessor_digest.data(),
@@ -546,145 +568,125 @@ sealed_input_audit inspect_sealed_inputs_once(const sealed_input_request & input
         input.expected_predecessor_high_water == UINT64_MAX ||
         !nonzero(input.expected_key_continuity_commitment.data(),
                  input.expected_key_continuity_commitment.size())) {
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      sealed_input_status::invalid_request_no_mutation);
+        return fail(sealed_input_status::invalid_request_no_mutation);
     }
 
     ++output.input_syscall_count;
     const long page_size = ::sysconf(_SC_PAGESIZE);
     if (page_size < 4096 || page_size > 65536 ||
         (page_size & (page_size - 1)) != 0) {
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      sealed_input_status::unsupported_no_mutation);
+        return fail(sealed_input_status::unsupported_no_mutation);
     }
-    mapping_size = (sizeof(secure_inputs) + static_cast<std::size_t>(page_size) - 1) &
-                   ~(static_cast<std::size_t>(page_size) - 1);
-    mapping = ::mmap(nullptr, mapping_size, PROT_READ | PROT_WRITE,
-                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (mapping == MAP_FAILED) {
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      sealed_input_status::unavailable_no_mutation);
+    session.mapping_size =
+        (sizeof(secure_inputs) + static_cast<std::size_t>(page_size) - 1) &
+        ~(static_cast<std::size_t>(page_size) - 1);
+    session.mapping = ::mmap(nullptr, session.mapping_size, PROT_READ | PROT_WRITE,
+                             MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (session.mapping == MAP_FAILED) {
+        return fail(sealed_input_status::unavailable_no_mutation);
     }
-    secure = ::new (mapping) secure_inputs {};
-    if (::mlock(mapping, mapping_size) != 0) {
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      sealed_input_status::unsupported_no_mutation);
+    session.secure = ::new (session.mapping) secure_inputs {};
+    if (::mlock(session.mapping, session.mapping_size) != 0) {
+        return fail(sealed_input_status::unsupported_no_mutation);
     }
-    storage_locked = true;
+    session.storage_locked = true;
     output.secure_storage_locked = true;
 
     descriptor_identity credential_identity {};
     descriptor_identity predecessor_identity {};
     std::size_t credential_size = 0;
     std::size_t predecessor_size = 0;
-
     result = inspect_descriptor(
         credential_fd, "/proc/self/fd/3", credential_link,
         credential_minimum, credential_capacity,
         credential_identity, credential_size, output);
     if (result != sealed_input_status::transport_validated_no_root_access) {
-        return finish(output, mapping, mapping_size, storage_locked, context, result);
+        return fail(result);
     }
     output.credential_transport_validated = true;
-
     result = inspect_descriptor(
         predecessor_fd, "/proc/self/fd/4", predecessor_link,
         1, predecessor_capacity,
         predecessor_identity, predecessor_size, output);
     if (result != sealed_input_status::transport_validated_no_root_access) {
-        return finish(output, mapping, mapping_size, storage_locked, context, result);
+        return fail(result);
     }
     output.predecessor_transport_validated = true;
-
     output.descriptor_identities_distinct =
         credential_identity.device != predecessor_identity.device ||
         credential_identity.inode != predecessor_identity.inode;
     if (!output.descriptor_identities_distinct) {
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      sealed_input_status::invalid_request_no_mutation);
+        return fail(sealed_input_status::invalid_request_no_mutation);
     }
-
     result = scan_aliases(credential_identity, predecessor_identity, output);
     if (result != sealed_input_status::transport_validated_no_root_access) {
-        return finish(output, mapping, mapping_size, storage_locked, context, result);
+        return fail(result);
     }
     output.descriptor_aliases_absent = true;
-
-    result = read_exact(credential_fd, secure->credential.data(), credential_size, output);
+    result = read_exact(credential_fd, session.secure->credential.data(),
+                        credential_size, output);
     if (result != sealed_input_status::transport_validated_no_root_access) {
-        return finish(output, mapping, mapping_size, storage_locked, context, result);
+        return fail(result);
     }
-    result = read_exact(predecessor_fd, secure->predecessor.data(), predecessor_size, output);
+    result = read_exact(predecessor_fd, session.secure->predecessor.data(),
+                        predecessor_size, output);
     if (result != sealed_input_status::transport_validated_no_root_access) {
-        return finish(output, mapping, mapping_size, storage_locked, context, result);
+        return fail(result);
     }
     output.credential_package_size = static_cast<std::uint32_t>(credential_size);
     output.predecessor_envelope_size = static_cast<std::uint32_t>(predecessor_size);
-
-    result = parse_credential_shape(input, *secure, credential_size, output);
+    result = parse_credential_shape(input, *session.secure, credential_size, output);
     if (result != sealed_input_status::transport_validated_no_root_access) {
-        return finish(output, mapping, mapping_size, storage_locked, context, result);
+        return fail(result);
     }
 
     context_store_format_digest observed_digest {};
     if (!context_store_registry_lab_linux_initializer_predecessor_digest_v1(
-            secure->predecessor.data(), predecessor_size, observed_digest)) {
+            session.secure->predecessor.data(), predecessor_size, observed_digest)) {
         wipe(observed_digest.data(), observed_digest.size());
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      sealed_input_status::invalid_request_no_mutation);
+        return fail(sealed_input_status::invalid_request_no_mutation);
     }
     output.predecessor_digest_matched =
         same_digest(observed_digest, input.expected_predecessor_digest);
     wipe(observed_digest.data(), observed_digest.size());
     if (!output.predecessor_digest_matched) {
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      sealed_input_status::invalid_request_no_mutation);
+        return fail(sealed_input_status::invalid_request_no_mutation);
     }
 
     context_store_protected_registry_key_record authentication_key;
     authentication_key.disposition = context_store_key_disposition::active;
     authentication_key.key_id = input.expected_key_id;
     authentication_key.generation = input.expected_key_generation;
-    authentication_key.master_key = { secure->secret.data(), secure->secret.size() };
-    const auto authentication_result =
-        context_store_verify_protected_registry_facts_v1(
-            secure->predecessor.data(), predecessor_size,
-            authentication_key);
+    authentication_key.master_key = {
+        session.secure->secret.data(), session.secure->secret.size(),
+    };
+    const auto authentication_result = context_store_verify_protected_registry_facts_v1(
+        session.secure->predecessor.data(), predecessor_size, authentication_key);
     authentication_key.master_key = {};
     const auto * authenticated_facts = authentication_result.authenticated_facts();
     if (!authenticated_facts) {
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      sealed_input_status::invalid_request_no_mutation);
+        return fail(sealed_input_status::invalid_request_no_mutation);
     }
-    secure->predecessor_facts = *authenticated_facts;
-    const bool registry_identity_matched =
-        same_id(secure->predecessor_facts.body.registry_id,
-                input.expected_registry_id) &&
-        secure->predecessor_facts.body.registry_epoch ==
-            input.expected_registry_epoch;
-    const bool authority_scope_matched =
-        same_digest(secure->predecessor_facts.body.authority_base_scope_commitment,
-                    input.expected_authority_base_scope_commitment);
-    const bool policy_matched =
-        same_digest(secure->predecessor_facts.body.policy_commitment,
-                    input.expected_policy_commitment);
-    const bool predecessor_high_water_matched =
-        secure->predecessor_facts.body.last_consumed_sequence ==
-            input.expected_predecessor_high_water;
-    const bool key_continuity_matched =
-        same_digest(secure->predecessor_facts.key_continuity_commitment,
-                    input.expected_key_continuity_commitment);
+    session.secure->predecessor_facts = *authenticated_facts;
     const bool launcher_receipt_matched =
-        registry_identity_matched && authority_scope_matched &&
-        policy_matched && predecessor_high_water_matched &&
-        key_continuity_matched &&
+        same_id(session.secure->predecessor_facts.body.registry_id,
+                input.expected_registry_id) &&
+        session.secure->predecessor_facts.body.registry_epoch ==
+            input.expected_registry_epoch &&
+        same_digest(session.secure->predecessor_facts.body.authority_base_scope_commitment,
+                    input.expected_authority_base_scope_commitment) &&
+        same_digest(session.secure->predecessor_facts.body.policy_commitment,
+                    input.expected_policy_commitment) &&
+        session.secure->predecessor_facts.body.last_consumed_sequence ==
+            input.expected_predecessor_high_water &&
+        same_digest(session.secure->predecessor_facts.key_continuity_commitment,
+                    input.expected_key_continuity_commitment) &&
         output.expected_key_tuple_matched && output.predecessor_digest_matched &&
-        same_id(secure->predecessor_facts.key_id, input.expected_key_id) &&
-        secure->predecessor_facts.key_generation ==
+        same_id(session.secure->predecessor_facts.key_id, input.expected_key_id) &&
+        session.secure->predecessor_facts.key_generation ==
             input.expected_key_generation;
     if (!launcher_receipt_matched) {
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      sealed_input_status::invalid_request_no_mutation);
+        return fail(sealed_input_status::invalid_request_no_mutation);
     }
     output.predecessor_authenticated_under_supplied_credential = true;
     output.launcher_receipt_matched = true;
@@ -710,19 +712,109 @@ sealed_input_audit inspect_sealed_inputs_once(const sealed_input_request & input
         final_predecessor_identity.inode != predecessor_identity.inode ||
         final_credential_size != credential_size ||
         final_predecessor_size != predecessor_size) {
-        return finish(output, mapping, mapping_size, storage_locked, context,
-                      result == sealed_input_status::transport_validated_no_root_access
-                          ? sealed_input_status::invalid_request_no_mutation
-                          : result);
+        return fail(result == sealed_input_status::transport_validated_no_root_access
+                        ? sealed_input_status::invalid_request_no_mutation
+                        : result);
     }
     result = scan_aliases(final_credential_identity, final_predecessor_identity, output);
     if (result != sealed_input_status::transport_validated_no_root_access) {
-        return finish(output, mapping, mapping_size, storage_locked, context, result);
+        return fail(result);
     }
     output.transport_final_revalidation_matched = true;
 
-    return finish(output, mapping, mapping_size, storage_locked, context,
-                  sealed_input_status::predecessor_authenticated_pins_matched_no_root_access);
+    const bool credential_closed = close_owned_descriptor(credential_fd, output);
+    const bool predecessor_closed = close_owned_descriptor(predecessor_fd, output);
+    output.descriptors_closed = credential_closed && predecessor_closed;
+    if (!output.descriptors_closed) {
+        return fail(sealed_input_status::io_failure_no_mutation);
+    }
+    session.authenticated = true;
+    output.result = sealed_input_status::predecessor_authenticated_pins_matched_no_root_access;
+    return output.result;
+}
+
+bool cleanup_authenticated_input_storage(authenticated_input_session & session,
+                                         sealed_input_audit & output) noexcept {
+    bool ok = true;
+    if (session.mapping != MAP_FAILED && session.mapping != nullptr &&
+        session.mapping_size != 0) {
+        wipe(session.mapping, session.mapping_size);
+        output.secure_storage_wiped = all_zero(session.mapping, session.mapping_size);
+        ok = output.secure_storage_wiped;
+    } else {
+        output.secure_storage_wiped = true;
+    }
+    if (session.storage_locked && session.mapping != MAP_FAILED &&
+        session.mapping != nullptr) {
+        output.secure_storage_unlocked =
+            ::munlock(session.mapping, session.mapping_size) == 0;
+        ok = output.secure_storage_unlocked && ok;
+    } else {
+        output.secure_storage_unlocked = true;
+    }
+    if (session.mapping != MAP_FAILED && session.mapping != nullptr &&
+        session.mapping_size != 0) {
+        output.secure_storage_unmapped =
+            ::munmap(session.mapping, session.mapping_size) == 0;
+        ok = output.secure_storage_unmapped && ok;
+    } else {
+        output.secure_storage_unmapped = true;
+    }
+    session.secure = nullptr;
+    session.mapping = MAP_FAILED;
+    session.mapping_size = 0;
+    session.storage_locked = false;
+    session.authenticated = false;
+    return ok;
+}
+
+bool restore_authenticated_input_signal_mask(authenticated_input_session & session,
+                                             sealed_input_audit & output) noexcept {
+    if (session.context.signal_mask_changed) {
+        output.signal_mask_restored =
+            ::sigprocmask(SIG_SETMASK, &session.context.previous_mask, nullptr) == 0;
+        session.context.signal_mask_changed = false;
+    } else {
+        output.signal_mask_restored = true;
+    }
+    return output.signal_mask_restored;
+}
+
+sealed_input_audit destroy_authenticated_input_session(
+        authenticated_input_session & session, sealed_input_audit output) noexcept {
+    const bool storage_ok = cleanup_authenticated_input_storage(session, output);
+    const bool signal_ok = restore_authenticated_input_signal_mask(session, output);
+    auto result = output.result;
+    if ((!storage_ok || !signal_ok) && successful(result)) {
+        result = sealed_input_status::io_failure_no_mutation;
+    }
+    output.root_or_fixture_accessed = output.root_or_fixture_syscall_count != 0;
+    if (output.root_or_fixture_accessed) {
+        result = sealed_input_status::io_failure_no_mutation;
+    }
+    if (result !=
+        sealed_input_status::predecessor_authenticated_pins_matched_no_root_access) {
+        output.predecessor_authenticated_under_supplied_credential = false;
+        output.launcher_receipt_matched = false;
+    }
+    output.result = result;
+    return output;
+}
+
+} // namespace
+
+sealed_input_audit inspect_sealed_inputs_once(const sealed_input_request & input) noexcept {
+    sealed_input_audit output {};
+    authenticated_input_session session {};
+    const auto result = authenticate_sealed_inputs_for_session(input, session, output);
+    if (result ==
+            sealed_input_status::predecessor_authenticated_pins_matched_no_root_access &&
+        session.authenticated) {
+        return destroy_authenticated_input_session(session, output);
+    }
+    return output;
 }
 
 } // namespace halofpx::registry_lab::linux_initializer
+
+#include "halofpx-context-store-registry-lab-linux-initializer-anchor.inc"
