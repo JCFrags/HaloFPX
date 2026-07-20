@@ -37,6 +37,13 @@ public:
     fd_owner(const fd_owner &) = delete;
     fd_owner & operator=(const fd_owner &) = delete;
     fd_owner(fd_owner && other) noexcept : fd_(std::exchange(other.fd_, -1)) {}
+    fd_owner & operator=(fd_owner && other) noexcept {
+        if (this != &other) {
+            if (fd_ >= 0) ::close(fd_);
+            fd_ = std::exchange(other.fd_, -1);
+        }
+        return *this;
+    }
     int get() const noexcept { return fd_; }
 private:
     int fd_;
@@ -353,6 +360,22 @@ context_store_v1_linux_snapshot_materializer::~context_store_v1_linux_snapshot_m
 context_store_v1_linux_publish_status context_store_v1_linux_snapshot_materializer::publish(
         const context_store_v1_publish_attempt_id & attempt_id,
         const context_store_v1_read_only_source & source) noexcept {
+    return publish_internal(attempt_id, source, nullptr);
+}
+
+context_store_v1_linux_publish_status
+context_store_v1_linux_snapshot_materializer::publish_with_held_writer_lock(
+        const context_store_v1_publish_attempt_id & attempt_id,
+        const context_store_v1_read_only_source & source,
+        const held_writer_lock & held_lock) noexcept {
+    return publish_internal(attempt_id, source, &held_lock);
+}
+
+context_store_v1_linux_publish_status
+context_store_v1_linux_snapshot_materializer::publish_internal(
+        const context_store_v1_publish_attempt_id & attempt_id,
+        const context_store_v1_read_only_source & source,
+        const held_writer_lock * held_lock) noexcept {
     if (!implementation_ || !nonzero(attempt_id)) return context_store_v1_linux_publish_status::invalid;
     if (implementation_->writer.test_and_set(std::memory_order_acquire))
         return context_store_v1_linux_publish_status::busy;
@@ -367,28 +390,38 @@ context_store_v1_linux_publish_status context_store_v1_linux_snapshot_materializ
         if (status != context_store_v1_linux_publish_status::materialized_non_authoritative) return status;
         if (!implementation_->root_matches()) return context_store_v1_linux_publish_status::verification;
 
-        fd_owner writer_lock(open_contained(implementation_->root.get(), "writer.lock", O_RDWR));
-        if (writer_lock.get() < 0) return open_failure();
-        file_identity lock_identity;
-        struct stat lock_type {};
-        if (!inspect_fd(writer_lock.get(), lock_identity) || ::fstat(writer_lock.get(), &lock_type) != 0 ||
-            !S_ISREG(lock_type.st_mode) || lock_identity.device != implementation_->expected.device ||
-            lock_identity.mount_id != implementation_->expected.mount_id ||
-            lock_identity.owner_uid != implementation_->expected.owner_uid ||
-            lock_identity.mode != object_mode || lock_identity.links != 1)
-            return context_store_v1_linux_publish_status::verification;
-        struct flock lock {};
-        lock.l_type = F_WRLCK;
-        lock.l_whence = SEEK_SET;
-        lock.l_start = 0;
-        lock.l_len = 0;
-        int lock_result;
-        do lock_result = ::fcntl(writer_lock.get(), F_OFD_SETLK, &lock);
-        while (lock_result != 0 && errno == EINTR);
-        if (lock_result != 0) {
-            if (errno == EAGAIN || errno == EACCES) return context_store_v1_linux_publish_status::busy;
-            if (errno == EINVAL) return context_store_v1_linux_publish_status::unsupported;
-            return context_store_v1_linux_publish_status::storage;
+        fd_owner writer_lock;
+        if (held_lock) {
+            const auto & held = held_lock->identity_;
+            const auto & expected = implementation_->expected;
+            if (held.device != expected.device || held.inode != expected.inode ||
+                held.mount_id != expected.mount_id || held.owner_uid != expected.owner_uid ||
+                held.mode != expected.mode || held.filesystem_type != expected.filesystem_type)
+                return context_store_v1_linux_publish_status::verification;
+        } else {
+            writer_lock = fd_owner(open_contained(implementation_->root.get(), "writer.lock", O_RDWR));
+            if (writer_lock.get() < 0) return open_failure();
+            file_identity lock_identity;
+            struct stat lock_type {};
+            if (!inspect_fd(writer_lock.get(), lock_identity) || ::fstat(writer_lock.get(), &lock_type) != 0 ||
+                !S_ISREG(lock_type.st_mode) || lock_identity.device != implementation_->expected.device ||
+                lock_identity.mount_id != implementation_->expected.mount_id ||
+                lock_identity.owner_uid != implementation_->expected.owner_uid ||
+                lock_identity.mode != object_mode || lock_identity.links != 1)
+                return context_store_v1_linux_publish_status::verification;
+            struct flock lock {};
+            lock.l_type = F_WRLCK;
+            lock.l_whence = SEEK_SET;
+            lock.l_start = 0;
+            lock.l_len = 0;
+            int lock_result;
+            do lock_result = ::fcntl(writer_lock.get(), F_OFD_SETLK, &lock);
+            while (lock_result != 0 && errno == EINTR);
+            if (lock_result != 0) {
+                if (errno == EAGAIN || errno == EACCES) return context_store_v1_linux_publish_status::busy;
+                if (errno == EINVAL) return context_store_v1_linux_publish_status::unsupported;
+                return context_store_v1_linux_publish_status::storage;
+            }
         }
 
         fd_owner staging(open_contained(implementation_->root.get(), "staging", O_RDONLY | O_DIRECTORY));

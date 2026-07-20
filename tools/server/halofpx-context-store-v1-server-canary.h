@@ -26,6 +26,68 @@ enum class context_store_v1_server_canary_status : uint8_t {
     quarantined,
 };
 
+enum class context_store_v1_server_canary_lifecycle_state : uint8_t {
+    unavailable,
+    ready,
+    published,
+    recovered_success,
+    recovered_aborted,
+    interrupted,
+    busy,
+    invalid,
+    unsupported,
+    source_mismatch,
+    conflict,
+    storage,
+    synchronization,
+    quota_exhausted,
+    reserve_exhausted,
+    layout_rejected,
+    accounting_overflow,
+    quarantined,
+};
+
+enum class context_store_v1_server_canary_close_reason : uint8_t {
+    none,
+    published,
+    recovered_success,
+    recovered_aborted,
+    quota_exhausted,
+    reserve_exhausted,
+    layout_rejected,
+    accounting_overflow,
+    storage,
+    synchronization,
+    quarantined,
+};
+
+enum class context_store_v1_server_canary_eviction_state : uint8_t {
+    no_safe_online_eviction,
+    selected_generation_pinned,
+    reconciliation_required,
+    uncertain_material_retained,
+};
+
+// Fixed, cardinality-bounded controller observation. It intentionally carries
+// no root, identity, digest, token, key identifier, or key material.
+struct context_store_v1_server_canary_observation {
+    context_store_v1_server_canary_lifecycle_state lifecycle_state =
+        context_store_v1_server_canary_lifecycle_state::unavailable;
+    context_store_v1_server_canary_close_reason last_close_reason =
+        context_store_v1_server_canary_close_reason::none;
+    context_store_v1_server_canary_eviction_state eviction_state =
+        context_store_v1_server_canary_eviction_state::no_safe_online_eviction;
+    uint64_t logical_bytes = 0;
+    uint64_t allocated_bytes = 0;
+    uint64_t available_bytes = 0;
+    uint64_t projected_peak_logical_bytes = 0;
+    uint64_t quota_bytes = 0;
+    uint64_t reserve_bytes = 0;
+    uint64_t safe_online_eviction_bytes = 0;
+    bool accounting_valid = false;
+    bool writes_closed = false;
+};
+
 struct context_store_v1_server_canary_config {
     const char * data_root_path = nullptr;
     const char * anchor_root_path = nullptr;
@@ -37,6 +99,9 @@ struct context_store_v1_server_canary_config {
     context_store_format_digest rank_ownership_digest {};
     context_store_format_digest rank_placement_digest {};
     uint64_t topology_epoch = 0;
+    uint64_t quota_bytes = 0;
+    uint64_t reserve_bytes = 0;
+    size_t max_entries = 0;
     context_store_v1_transformer_codec_limits limits;
 };
 
@@ -65,6 +130,8 @@ public:
     context_store_v1_server_canary & operator=(const context_store_v1_server_canary &) = delete;
 
     bool available() const noexcept;
+
+    context_store_v1_server_canary_observation observation() const noexcept;
 
     context_store_v1_server_canary_publish_result publish(
         const context_store_transformer_snapshot_v1 & snapshot) noexcept;
@@ -98,5 +165,14 @@ context_store_v1_server_canary_open_result make_context_store_v1_server_canary(
 
 const char * context_store_v1_server_canary_status_name(
     context_store_v1_server_canary_status status) noexcept;
+
+const char * context_store_v1_server_canary_lifecycle_state_name(
+    context_store_v1_server_canary_lifecycle_state state) noexcept;
+
+const char * context_store_v1_server_canary_close_reason_name(
+    context_store_v1_server_canary_close_reason reason) noexcept;
+
+const char * context_store_v1_server_canary_eviction_state_name(
+    context_store_v1_server_canary_eviction_state state) noexcept;
 
 } // namespace halofpx

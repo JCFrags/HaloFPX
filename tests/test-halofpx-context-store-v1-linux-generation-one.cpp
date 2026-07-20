@@ -10,6 +10,7 @@ int halofpx_v1_memory_fixture_test_entry();
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
+#include <sys/statvfs.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -74,6 +75,24 @@ public:
         assert(count == 1);
         assert(::fsync(fd) == 0);
         assert(::close(fd) == 0);
+    }
+
+    uint64_t logical_bytes() const {
+        uint64_t total = 0;
+        for (const auto & entry : std::filesystem::recursive_directory_iterator(base_)) {
+            if (entry.is_regular_file() && entry.path().filename() != "writer.lock")
+                total += entry.file_size();
+        }
+        return total;
+    }
+
+    bool has_anchor() const { return std::filesystem::exists(anchor_path_ / "anchor.v1"); }
+    bool has_pending() const { return std::filesystem::exists(anchor_path_ / "pending.v1"); }
+
+    uint64_t available_bytes() const {
+        struct statvfs value {};
+        assert(::fstatvfs(anchor_fd_, &value) == 0 && value.f_frsize != 0);
+        return static_cast<uint64_t>(value.f_bavail) * static_cast<uint64_t>(value.f_frsize);
     }
 
 private:
@@ -145,6 +164,9 @@ halofpx::context_store_v1_linux_generation_one_config make_config(
     config.admission.object_count = fixture.admission_objects.size();
     config.object_limits = { 4096, 1024 };
     config.max_total_frame_bytes = 8192;
+    config.budget.quota_bytes = 1024 * 1024;
+    config.budget.reserve_bytes = 0;
+    config.budget.max_entries = 1;
     config.anchor_body.store_uuid = fixture.policy.anchor.store_uuid;
     config.anchor_body.namespace_id = fixture.admission_metadata.scope_namespace;
     config.anchor_body.policy_epoch = 1;
@@ -192,9 +214,57 @@ void test_miss_publish_exact_hit() {
     const auto miss = opened.authority->lookup(request_for(fixture));
     assert(!miss.is_hit() && miss.candidate() == nullptr);
     assert(miss.status() == halofpx::context_store_lookup_status::miss_incomplete);
+    const auto published = opened.authority->publish(fixture.source());
+    if (published != halofpx::context_store_v1_linux_generation_one_status::published) {
+        const auto failure = opened.authority->observation();
+        std::cerr << "first publish status: "
+                  << halofpx::context_store_v1_linux_generation_one_status_name(published)
+                  << " logical=" << failure.logical_bytes
+                  << " projected=" << failure.projected_logical_peak_bytes
+                  << " available=" << failure.available_bytes
+                  << " accounting-valid=" << failure.accounting_valid << '\n';
+    }
+    assert(published == halofpx::context_store_v1_linux_generation_one_status::published);
+    assert_exact_hit(*opened.authority, fixture);
+    const auto observed = opened.authority->observation();
+    assert(observed.accounting_valid && observed.writes_closed);
+    assert(observed.logical_bytes == roots.logical_bytes());
+    assert(observed.projected_logical_peak_bytes >= observed.logical_bytes);
+    assert(observed.safe_online_eviction_bytes == 0);
+    assert(observed.eviction_classification ==
+        halofpx::context_store_v1_linux_generation_one_eviction_classification::selected_generation_pinned);
     assert(opened.authority->publish(fixture.source()) ==
         halofpx::context_store_v1_linux_generation_one_status::published);
-    assert_exact_hit(*opened.authority, fixture);
+}
+
+void test_quota_failure_has_no_mutation() {
+    auto fixture = make_generation_one_fixture();
+    generation_one_roots roots;
+    generation_one_keys keys;
+    auto config = make_config(fixture, roots, keys);
+    config.budget.quota_bytes = 1;
+    auto opened = halofpx::make_context_store_v1_linux_generation_one(config);
+    assert(opened.status == halofpx::context_store_v1_linux_generation_one_status::ready);
+    assert(opened.authority->publish(fixture.source()) ==
+        halofpx::context_store_v1_linux_generation_one_status::quota_exhausted);
+    assert(!roots.has_pending() && !roots.has_anchor() && roots.logical_bytes() == 0);
+    const auto observed = opened.authority->observation();
+    assert(observed.writes_closed && observed.accounting_valid);
+    assert(observed.last_close_reason ==
+        halofpx::context_store_v1_linux_generation_one_close_reason::quota_exhausted);
+}
+
+void test_reserve_failure_has_no_mutation() {
+    auto fixture = make_generation_one_fixture();
+    generation_one_roots roots;
+    generation_one_keys keys;
+    auto config = make_config(fixture, roots, keys);
+    config.budget.reserve_bytes = roots.available_bytes();
+    auto opened = halofpx::make_context_store_v1_linux_generation_one(config);
+    assert(opened.status == halofpx::context_store_v1_linux_generation_one_status::ready);
+    assert(opened.authority->publish(fixture.source()) ==
+        halofpx::context_store_v1_linux_generation_one_status::reserve_exhausted);
+    assert(!roots.has_pending() && !roots.has_anchor() && roots.logical_bytes() == 0);
 }
 
 void test_restart_after_anchor_recovers_success() {
@@ -216,6 +286,60 @@ void test_restart_after_anchor_recovers_success() {
         halofpx::context_store_v1_linux_generation_one_status::recovered_success);
     assert(restarted.authority != nullptr);
     assert_exact_hit(*restarted.authority, fixture);
+    assert(restarted.authority->observation().writes_closed);
+    assert(restarted.authority->publish(fixture.source()) ==
+        halofpx::context_store_v1_linux_generation_one_status::recovered_success);
+}
+
+void test_late_reserve_loss_retains_pending_then_aborts_closed() {
+    auto fixture = make_generation_one_fixture();
+    generation_one_roots roots;
+    generation_one_keys keys;
+    {
+        auto opened = halofpx::make_context_store_v1_linux_generation_one(make_config(
+            fixture, roots, keys,
+            halofpx::context_store_v1_linux_generation_one_failpoint::before_anchor_reserve_loss));
+        assert(opened.status == halofpx::context_store_v1_linux_generation_one_status::ready);
+        assert(opened.authority->publish(fixture.source()) ==
+            halofpx::context_store_v1_linux_generation_one_status::reserve_exhausted);
+        assert(roots.has_pending() && !roots.has_anchor());
+        assert(opened.authority->observation().writes_closed);
+    }
+    auto restarted = halofpx::make_context_store_v1_linux_generation_one(
+        make_config(fixture, roots, keys));
+    assert(restarted.status ==
+        halofpx::context_store_v1_linux_generation_one_status::recovered_aborted);
+    assert(restarted.authority && restarted.authority->observation().writes_closed);
+    assert(!roots.has_pending() && !roots.has_anchor());
+}
+
+void test_post_pending_storage_failure_is_closed_and_reconciles() {
+    auto fixture = make_generation_one_fixture();
+    generation_one_roots roots;
+    generation_one_keys keys;
+    {
+        auto opened = halofpx::make_context_store_v1_linux_generation_one(make_config(
+            fixture, roots, keys,
+            halofpx::context_store_v1_linux_generation_one_failpoint::after_pending_storage_failure));
+        assert(opened.status == halofpx::context_store_v1_linux_generation_one_status::ready);
+        assert(opened.authority->publish(fixture.source()) ==
+            halofpx::context_store_v1_linux_generation_one_status::storage);
+        assert(roots.has_pending() && !roots.has_anchor());
+        const auto observed = opened.authority->observation();
+        assert(observed.writes_closed);
+        assert(observed.last_close_reason ==
+            halofpx::context_store_v1_linux_generation_one_close_reason::storage);
+        assert(observed.eviction_classification ==
+            halofpx::context_store_v1_linux_generation_one_eviction_classification::reconciliation_required);
+        assert(opened.authority->publish(fixture.source()) ==
+            halofpx::context_store_v1_linux_generation_one_status::storage);
+    }
+    auto restarted = halofpx::make_context_store_v1_linux_generation_one(
+        make_config(fixture, roots, keys));
+    assert(restarted.status ==
+        halofpx::context_store_v1_linux_generation_one_status::recovered_aborted);
+    assert(restarted.authority && restarted.authority->observation().writes_closed);
+    assert(!roots.has_pending() && !roots.has_anchor());
 }
 
 void test_corrupt_anchor_quarantines_and_misses() {
@@ -255,7 +379,11 @@ void test_mismatched_authority_domain_is_rejected() {
 
 int main() {
     test_miss_publish_exact_hit();
+    test_quota_failure_has_no_mutation();
+    test_reserve_failure_has_no_mutation();
     test_restart_after_anchor_recovers_success();
+    test_late_reserve_loss_retains_pending_then_aborts_closed();
+    test_post_pending_storage_failure_is_closed_and_reconciles();
     test_corrupt_anchor_quarantines_and_misses();
     test_mismatched_authority_domain_is_rejected();
     std::cout << "halofpx Linux generation-one authority tests passed\n";

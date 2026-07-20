@@ -1008,6 +1008,36 @@ private:
     }
 
 #if defined(HALOFPX_CONTEXT_STORE_CANARY)
+    void log_halofpx_full_v1_observation() const {
+#if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
+        if (!halofpx_full_v1_store) {
+            return;
+        }
+        const auto value = halofpx_full_v1_store->observation();
+        SRV_INF("HaloFPX full-v1 observation: lifecycle=%s close_reason=%s "
+                "logical_bytes=%" PRIu64 " allocated_bytes=%" PRIu64
+                " available_bytes=%" PRIu64 " projected_peak_logical_bytes=%" PRIu64
+                " quota_bytes=%" PRIu64 " reserve_bytes=%" PRIu64
+                " accounting_valid=%s writes_closed=%s eviction=%s "
+                "safe_online_eviction_bytes=%" PRIu64 "\n",
+            halofpx::context_store_v1_server_canary_lifecycle_state_name(
+                value.lifecycle_state),
+            halofpx::context_store_v1_server_canary_close_reason_name(
+                value.last_close_reason),
+            value.logical_bytes,
+            value.allocated_bytes,
+            value.available_bytes,
+            value.projected_peak_logical_bytes,
+            value.quota_bytes,
+            value.reserve_bytes,
+            value.accounting_valid ? "true" : "false",
+            value.writes_closed ? "true" : "false",
+            halofpx::context_store_v1_server_canary_eviction_state_name(
+                value.eviction_state),
+            value.safe_online_eviction_bytes);
+#endif
+    }
+
     bool init_halofpx_direct_store() {
         if (params_base.halofpx_context_store_mode == "off") {
             return true;
@@ -1059,6 +1089,10 @@ private:
               params_base.halofpx_context_store_max_entries <= 0 ||
               params_base.halofpx_context_store_max_entries >
                   static_cast<int32_t>(halofpx::context_store_linux_direct_max_entries_limit))) ||
+            (full_v1_mode &&
+             (params_base.halofpx_context_store_quota_mib <= 0 ||
+              params_base.halofpx_context_store_reserve_mib < 0 ||
+              params_base.halofpx_context_store_max_entries != 1)) ||
             !compatibility_valid) {
             SRV_ERR("%s", "invalid HaloFPX direct context-store configuration\n");
             return false;
@@ -1122,6 +1156,12 @@ private:
             config.rank_ownership_digest = halofpx_compatibility_expectation.components[14];
             config.rank_placement_digest = halofpx_compatibility_expectation.components[14];
             config.topology_epoch = 1;
+            config.quota_bytes =
+                static_cast<uint64_t>(params_base.halofpx_context_store_quota_mib) * HALOFPX_MIB;
+            config.reserve_bytes =
+                static_cast<uint64_t>(params_base.halofpx_context_store_reserve_mib) * HALOFPX_MIB;
+            config.max_entries =
+                static_cast<size_t>(params_base.halofpx_context_store_max_entries);
             config.limits.snapshot = {
                 halofpx::context_store_linux_direct_max_state_bytes,
                 halofpx::context_store_linux_direct_max_tokens,
@@ -1138,6 +1178,7 @@ private:
                 return true;
             }
             halofpx_full_v1_store = std::move(opened.canary);
+            log_halofpx_full_v1_observation();
             SRV_INF("%s", "HaloFPX explicit-handle full-v1 canary enabled\n");
             return true;
         }
@@ -2746,6 +2787,7 @@ private:
                                     result->selected_manifest =
                                         halofpx_digest_hex(status.selected_manifest);
                                 }
+                                log_halofpx_full_v1_observation();
                             } else
 #endif
 #if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
@@ -2790,6 +2832,7 @@ private:
                             hit = restored.status ==
                                 halofpx::context_store_v1_server_canary_status::hit;
                             if (hit) snapshot = std::move(restored.snapshot);
+                            log_halofpx_full_v1_observation();
                         } else
 #endif
                         {

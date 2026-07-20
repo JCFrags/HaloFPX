@@ -1484,7 +1484,8 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
 #endif
     add_opt(common_arg(
         {"--halofpx-context-store-quota"}, "N",
-        "committed-byte quota in MiB for the experimental canary (required for direct-rw)",
+        "quota in MiB for the experimental canary (committed-byte for direct/protected; "
+        "logical-byte canary quota for full-v1; required for persistent modes)",
         [](common_params & params, int value) {
             if (value <= 0) {
                 throw std::invalid_argument("HaloFPX context-store quota must be positive");
@@ -1504,7 +1505,8 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
     ).set_examples({LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"--halofpx-context-store-max-entries"}, "N",
-        string_format("maximum direct-session entries (default: %d, maximum: 64)", params.halofpx_context_store_max_entries),
+        string_format("maximum direct-session entries (default: %d, maximum: 64; "
+            "full-v1-rw-canary requires exactly 1)", params.halofpx_context_store_max_entries),
         [](common_params & params, int value) {
             if (value <= 0 || value > 64) {
                 throw std::invalid_argument("HaloFPX context-store max entries must be between 1 and 64");

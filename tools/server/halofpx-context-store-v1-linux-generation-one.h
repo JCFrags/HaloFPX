@@ -12,8 +12,10 @@ namespace halofpx {
 enum class context_store_v1_linux_generation_one_failpoint : uint8_t {
     none,
     after_pending,
+    after_pending_storage_failure,
     after_material,
     after_anchor,
+    before_anchor_reserve_loss,
 };
 
 enum class context_store_v1_linux_generation_one_status : uint8_t {
@@ -30,6 +32,54 @@ enum class context_store_v1_linux_generation_one_status : uint8_t {
     storage,
     synchronization,
     quarantined,
+    quota_exhausted,
+    reserve_exhausted,
+    layout_rejected,
+    accounting_overflow,
+};
+
+enum class context_store_v1_linux_generation_one_lifecycle_state : uint8_t {
+    unavailable, ready, published, recovered_success, recovered_aborted,
+    interrupted, busy, invalid, unsupported, source_mismatch, conflict, storage,
+    synchronization, quota_exhausted, reserve_exhausted, layout_rejected,
+    accounting_overflow, quarantined,
+};
+
+enum class context_store_v1_linux_generation_one_close_reason : uint8_t {
+    none, published, recovered_success, recovered_aborted, quota_exhausted,
+    reserve_exhausted, layout_rejected, accounting_overflow, storage,
+    synchronization, quarantined,
+};
+
+enum class context_store_v1_linux_generation_one_eviction_classification : uint8_t {
+    no_safe_online_eviction,
+    selected_generation_pinned,
+    reconciliation_required,
+    uncertain_material_retained,
+};
+
+struct context_store_v1_linux_generation_one_budget {
+    uint64_t quota_bytes = 0;
+    uint64_t reserve_bytes = 0;
+    uint64_t max_entries = 0;
+};
+
+struct context_store_v1_linux_generation_one_observation {
+    context_store_v1_linux_generation_one_lifecycle_state lifecycle_state =
+        context_store_v1_linux_generation_one_lifecycle_state::unavailable;
+    context_store_v1_linux_generation_one_close_reason last_close_reason =
+        context_store_v1_linux_generation_one_close_reason::none;
+    context_store_v1_linux_generation_one_eviction_classification eviction_classification =
+        context_store_v1_linux_generation_one_eviction_classification::no_safe_online_eviction;
+    uint64_t logical_bytes = 0;
+    uint64_t allocated_bytes = 0;
+    uint64_t projected_logical_peak_bytes = 0;
+    uint64_t available_bytes = 0;
+    uint64_t quota_bytes = 0;
+    uint64_t reserve_bytes = 0;
+    uint64_t safe_online_eviction_bytes = 0;
+    bool writes_closed = true;
+    bool accounting_valid = false;
 };
 
 // All pointers and descriptors are borrowed only during construction. The
@@ -42,6 +92,7 @@ struct context_store_v1_linux_generation_one_config {
     context_store_v1_read_only_admission admission;
     context_store_object_limits object_limits;
     uint64_t max_total_frame_bytes = 0;
+    context_store_v1_linux_generation_one_budget budget;
     context_store_protected_canary_anchor_body anchor_body;
     context_store_protected_canary_anchor_key anchor_key;
     context_store_v1_attempt_key attempt_key;
@@ -66,6 +117,7 @@ public:
 
     context_store_v1_linux_generation_one_status status() const noexcept;
     bool quarantined() const noexcept;
+    context_store_v1_linux_generation_one_observation observation() const noexcept;
 
     context_store_v1_linux_generation_one_status publish(
         const context_store_v1_read_only_source & source) noexcept;

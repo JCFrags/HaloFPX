@@ -8,6 +8,8 @@
 
 namespace halofpx {
 
+class context_store_v1_linux_generation_one;
+
 using context_store_v1_publish_attempt_id = std::array<uint8_t, 32>;
 
 enum class context_store_v1_linux_publish_status : uint8_t {
@@ -53,7 +55,26 @@ public:
         const context_store_v1_publish_attempt_id & attempt_id,
         const context_store_v1_read_only_source & source) noexcept;
 
+    class held_writer_lock {
+    private:
+        explicit held_writer_lock(context_store_linux_root_identity_v1 identity) noexcept
+            : identity_(identity) {}
+        context_store_linux_root_identity_v1 identity_;
+        friend class context_store_v1_linux_generation_one;
+        friend class context_store_v1_linux_snapshot_materializer;
+    };
+
+    context_store_v1_linux_publish_status publish_with_held_writer_lock(
+        const context_store_v1_publish_attempt_id & attempt_id,
+        const context_store_v1_read_only_source & source,
+        const held_writer_lock & held_lock) noexcept;
+
 private:
+    context_store_v1_linux_publish_status publish_internal(
+        const context_store_v1_publish_attempt_id & attempt_id,
+        const context_store_v1_read_only_source & source,
+        const held_writer_lock * held_lock) noexcept;
+
     class implementation;
     explicit context_store_v1_linux_snapshot_materializer(
         std::unique_ptr<implementation> implementation) noexcept;

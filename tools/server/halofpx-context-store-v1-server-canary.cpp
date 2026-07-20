@@ -191,6 +191,99 @@ context_store_v1_server_canary_status lookup_status(context_store_lookup_status 
     }
 }
 
+context_store_v1_server_canary_status authority_status(
+        context_store_v1_linux_generation_one_status status) noexcept {
+    switch (status) {
+        case context_store_v1_linux_generation_one_status::ready:
+            return context_store_v1_server_canary_status::ready;
+        case context_store_v1_linux_generation_one_status::published:
+            return context_store_v1_server_canary_status::published;
+        case context_store_v1_linux_generation_one_status::recovered_success:
+        case context_store_v1_linux_generation_one_status::recovered_aborted:
+            return context_store_v1_server_canary_status::ready;
+        case context_store_v1_linux_generation_one_status::interrupted:
+            return context_store_v1_server_canary_status::source_rejected;
+        case context_store_v1_linux_generation_one_status::busy:
+            return context_store_v1_server_canary_status::busy;
+        case context_store_v1_linux_generation_one_status::invalid:
+        case context_store_v1_linux_generation_one_status::unsupported:
+        case context_store_v1_linux_generation_one_status::source_mismatch:
+        case context_store_v1_linux_generation_one_status::conflict:
+            return context_store_v1_server_canary_status::source_rejected;
+        case context_store_v1_linux_generation_one_status::storage:
+            return context_store_v1_server_canary_status::storage;
+        case context_store_v1_linux_generation_one_status::synchronization:
+        case context_store_v1_linux_generation_one_status::quota_exhausted:
+        case context_store_v1_linux_generation_one_status::reserve_exhausted:
+        case context_store_v1_linux_generation_one_status::layout_rejected:
+        case context_store_v1_linux_generation_one_status::accounting_overflow:
+            return context_store_v1_server_canary_status::storage;
+        case context_store_v1_linux_generation_one_status::quarantined:
+            return context_store_v1_server_canary_status::quarantined;
+    }
+    return context_store_v1_server_canary_status::source_rejected;
+}
+
+context_store_v1_server_canary_lifecycle_state lifecycle_state(
+        context_store_v1_linux_generation_one_lifecycle_state state) noexcept {
+    using source = context_store_v1_linux_generation_one_lifecycle_state;
+    using target = context_store_v1_server_canary_lifecycle_state;
+    switch (state) {
+        case source::unavailable: return target::unavailable;
+        case source::ready: return target::ready;
+        case source::published: return target::published;
+        case source::recovered_success: return target::recovered_success;
+        case source::recovered_aborted: return target::recovered_aborted;
+        case source::interrupted: return target::interrupted;
+        case source::busy: return target::busy;
+        case source::invalid: return target::invalid;
+        case source::unsupported: return target::unsupported;
+        case source::source_mismatch: return target::source_mismatch;
+        case source::conflict: return target::conflict;
+        case source::storage: return target::storage;
+        case source::synchronization: return target::synchronization;
+        case source::quota_exhausted: return target::quota_exhausted;
+        case source::reserve_exhausted: return target::reserve_exhausted;
+        case source::layout_rejected: return target::layout_rejected;
+        case source::accounting_overflow: return target::accounting_overflow;
+        case source::quarantined: return target::quarantined;
+    }
+    return target::unavailable;
+}
+
+context_store_v1_server_canary_close_reason close_reason(
+        context_store_v1_linux_generation_one_close_reason reason) noexcept {
+    using source = context_store_v1_linux_generation_one_close_reason;
+    using target = context_store_v1_server_canary_close_reason;
+    switch (reason) {
+        case source::none: return target::none;
+        case source::published: return target::published;
+        case source::recovered_success: return target::recovered_success;
+        case source::recovered_aborted: return target::recovered_aborted;
+        case source::quota_exhausted: return target::quota_exhausted;
+        case source::reserve_exhausted: return target::reserve_exhausted;
+        case source::layout_rejected: return target::layout_rejected;
+        case source::accounting_overflow: return target::accounting_overflow;
+        case source::storage: return target::storage;
+        case source::synchronization: return target::synchronization;
+        case source::quarantined: return target::quarantined;
+    }
+    return target::none;
+}
+
+context_store_v1_server_canary_eviction_state eviction_state(
+        context_store_v1_linux_generation_one_eviction_classification state) noexcept {
+    using source = context_store_v1_linux_generation_one_eviction_classification;
+    using target = context_store_v1_server_canary_eviction_state;
+    switch (state) {
+        case source::no_safe_online_eviction: return target::no_safe_online_eviction;
+        case source::selected_generation_pinned: return target::selected_generation_pinned;
+        case source::reconciliation_required: return target::reconciliation_required;
+        case source::uncertain_material_retained: return target::uncertain_material_retained;
+    }
+    return target::no_safe_online_eviction;
+}
+
 } // namespace
 
 class context_store_v1_server_canary::implementation {
@@ -209,7 +302,15 @@ public:
           rank_ownership_digest(config.rank_ownership_digest),
           rank_placement_digest(config.rank_placement_digest),
           topology_epoch(config.topology_epoch), limits(config.limits),
-          manifest_key(manifest), anchor_key_material(anchor), attempt_key(attempt) {}
+          budget { config.quota_bytes, config.reserve_bytes,
+                   static_cast<uint64_t>(config.max_entries) },
+          manifest_key(manifest), anchor_key_material(anchor), attempt_key(attempt) {
+        observation_value.lifecycle_state =
+            context_store_v1_server_canary_lifecycle_state::ready;
+        observation_value.quota_bytes = budget.quota_bytes;
+        observation_value.reserve_bytes = budget.reserve_bytes;
+        observation_value.writes_closed = false;
+    }
 
     ~implementation() {
         wipe(manifest_key.data(), manifest_key.size());
@@ -272,6 +373,98 @@ public:
         return result;
     }
 
+    void apply_observation(
+            const context_store_v1_linux_generation_one_observation & source) noexcept {
+        observation_value.lifecycle_state = lifecycle_state(source.lifecycle_state);
+        observation_value.last_close_reason = close_reason(source.last_close_reason);
+        observation_value.eviction_state = eviction_state(source.eviction_classification);
+        observation_value.logical_bytes = source.logical_bytes;
+        observation_value.allocated_bytes = source.allocated_bytes;
+        observation_value.available_bytes = source.available_bytes;
+        observation_value.projected_peak_logical_bytes =
+            source.projected_logical_peak_bytes;
+        observation_value.quota_bytes = source.quota_bytes;
+        observation_value.reserve_bytes = source.reserve_bytes;
+        // Generation one never admits online deletion, even if a future
+        // provider accidentally reports a nonzero candidate value.
+        observation_value.safe_online_eviction_bytes = 0;
+        observation_value.accounting_valid = source.accounting_valid;
+        observation_value.writes_closed = source.writes_closed;
+    }
+
+    void apply_status(context_store_v1_linux_generation_one_status status) noexcept {
+        using source = context_store_v1_linux_generation_one_status;
+        using lifecycle = context_store_v1_server_canary_lifecycle_state;
+        using reason = context_store_v1_server_canary_close_reason;
+        switch (status) {
+            case source::ready: observation_value.lifecycle_state = lifecycle::ready; break;
+            case source::published:
+                observation_value.lifecycle_state = lifecycle::published;
+                observation_value.last_close_reason = reason::published;
+                observation_value.writes_closed = true;
+                break;
+            case source::recovered_success:
+                observation_value.lifecycle_state = lifecycle::recovered_success;
+                observation_value.last_close_reason = reason::recovered_success;
+                observation_value.writes_closed = true;
+                break;
+            case source::recovered_aborted:
+                observation_value.lifecycle_state = lifecycle::recovered_aborted;
+                observation_value.last_close_reason = reason::recovered_aborted;
+                observation_value.writes_closed = true;
+                break;
+            case source::interrupted:
+                observation_value.lifecycle_state = lifecycle::interrupted;
+                break;
+            case source::busy: observation_value.lifecycle_state = lifecycle::busy; break;
+            case source::invalid: observation_value.lifecycle_state = lifecycle::invalid; break;
+            case source::unsupported:
+                observation_value.lifecycle_state = lifecycle::unsupported;
+                break;
+            case source::source_mismatch:
+                observation_value.lifecycle_state = lifecycle::source_mismatch;
+                break;
+            case source::conflict:
+                observation_value.lifecycle_state = lifecycle::conflict;
+                break;
+            case source::storage:
+                observation_value.lifecycle_state = lifecycle::storage;
+                observation_value.last_close_reason = reason::storage;
+                observation_value.writes_closed = true;
+                break;
+            case source::synchronization:
+                observation_value.lifecycle_state = lifecycle::synchronization;
+                observation_value.last_close_reason = reason::synchronization;
+                observation_value.writes_closed = true;
+                break;
+            case source::quota_exhausted:
+                observation_value.lifecycle_state = lifecycle::quota_exhausted;
+                observation_value.last_close_reason = reason::quota_exhausted;
+                observation_value.writes_closed = true;
+                break;
+            case source::reserve_exhausted:
+                observation_value.lifecycle_state = lifecycle::reserve_exhausted;
+                observation_value.last_close_reason = reason::reserve_exhausted;
+                observation_value.writes_closed = true;
+                break;
+            case source::layout_rejected:
+                observation_value.lifecycle_state = lifecycle::layout_rejected;
+                observation_value.last_close_reason = reason::layout_rejected;
+                observation_value.writes_closed = true;
+                break;
+            case source::accounting_overflow:
+                observation_value.lifecycle_state = lifecycle::accounting_overflow;
+                observation_value.last_close_reason = reason::accounting_overflow;
+                observation_value.writes_closed = true;
+                break;
+            case source::quarantined:
+                observation_value.lifecycle_state = lifecycle::quarantined;
+                observation_value.last_close_reason = reason::quarantined;
+                observation_value.writes_closed = true;
+                break;
+        }
+    }
+
     context_store_v1_linux_generation_one_open_result make_authority(
             const context_store_identity & identity,
             const context_store_format_digest & selected,
@@ -288,6 +481,7 @@ public:
         config.object_limits = { limits.max_frame_bytes, limits.snapshot.max_state_bytes };
         config.max_total_frame_bytes = limits.max_frame_bytes > UINT64_MAX / 2
             ? UINT64_MAX : limits.max_frame_bytes * 2;
+        config.budget = budget;
         config.anchor_body = anchor_body(identity, selected);
         config.anchor_key.key_id = registered_id(anchor_key_id);
         config.anchor_key.generation = 1;
@@ -373,6 +567,8 @@ public:
     context_store_format_digest rank_placement_digest {};
     uint64_t topology_epoch = 0;
     context_store_v1_transformer_codec_limits limits;
+    context_store_v1_linux_generation_one_budget budget;
+    context_store_v1_server_canary_observation observation_value;
     context_store_format_digest manifest_key {};
     context_store_format_digest anchor_key_material {};
     context_store_format_digest attempt_key {};
@@ -389,10 +585,16 @@ bool context_store_v1_server_canary::available() const noexcept {
     return implementation_ != nullptr;
 }
 
+context_store_v1_server_canary_observation
+context_store_v1_server_canary::observation() const noexcept {
+    return implementation_ ? implementation_->observation_value
+                           : context_store_v1_server_canary_observation {};
+}
+
 context_store_v1_server_canary_publish_result context_store_v1_server_canary::publish(
         const context_store_transformer_snapshot_v1 & snapshot) noexcept {
     context_store_v1_server_canary_publish_result result;
-    if (!implementation_) return result;
+    if (!implementation_ || implementation_->observation_value.writes_closed) return result;
     try {
         auto encoded = context_store_encode_transformer_snapshot_v1(
             snapshot, implementation_->parameters(snapshot), implementation_->limits);
@@ -423,25 +625,29 @@ context_store_v1_server_canary_publish_result context_store_v1_server_canary::pu
             encoded.encoded.admission_metadata, encoded.encoded.admission_objects.data(),
             encoded.encoded.admission_objects.size());
         if (!opened.authority) {
-            result.status = opened.status == context_store_v1_linux_generation_one_status::busy
-                ? context_store_v1_server_canary_status::busy
-                : context_store_v1_server_canary_status::storage;
+            implementation_->apply_status(opened.status);
+            result.status = authority_status(opened.status);
             return result;
         }
         const auto published = opened.authority->publish(source);
+        implementation_->apply_observation(opened.authority->observation());
+        implementation_->apply_status(published);
+        if (implementation_->observation_value.writes_closed) {
+            // Retain the locked authority so any selected valid generation
+            // remains readable after publication or a fail-closed outcome.
+            implementation_->authority = std::move(opened.authority);
+        } else {
+            implementation_->authority.reset();
+        }
         if (published != context_store_v1_linux_generation_one_status::published) {
-            result.status = published == context_store_v1_linux_generation_one_status::quarantined
-                ? context_store_v1_server_canary_status::quarantined
-                : published == context_store_v1_linux_generation_one_status::busy
-                    ? context_store_v1_server_canary_status::busy
-                    : context_store_v1_server_canary_status::source_rejected;
+            result.status = authority_status(published);
             return result;
         }
-        implementation_->authority = std::move(opened.authority);
         result.selected_manifest = encoded.encoded.manifest_digest;
         result.status = context_store_v1_server_canary_status::published;
         return result;
     } catch (...) {
+        implementation_->apply_status(context_store_v1_linux_generation_one_status::storage);
         result.status = context_store_v1_server_canary_status::storage;
         return result;
     }
@@ -467,12 +673,12 @@ context_store_v1_server_canary_restore_result context_store_v1_server_canary::re
         identity, selected_manifest, loaded.metadata,
         loaded.objects.data(), loaded.object_count);
     if (!opened.authority) {
-        result.status = opened.status == context_store_v1_linux_generation_one_status::busy
-            ? context_store_v1_server_canary_status::busy
-            : context_store_v1_server_canary_status::miss_corrupt;
+        implementation_->apply_status(opened.status);
+        result.status = authority_status(opened.status);
         return result;
     }
     implementation_->authority = std::move(opened.authority);
+    implementation_->apply_observation(implementation_->authority->observation());
     if (implementation_->authority->quarantined()) {
         result.status = context_store_v1_server_canary_status::miss_corrupt;
         return result;
@@ -525,6 +731,7 @@ context_store_v1_server_canary_open_result make_context_store_v1_server_canary(
             !nonzero(config.compatibility.root) || !nonzero(config.producer_identity) ||
             !nonzero(config.global_plan_digest) || !nonzero(config.rank_ownership_digest) ||
             !nonzero(config.rank_placement_digest) || config.topology_epoch == 0 ||
+            config.quota_bytes == 0 || config.max_entries != 1 ||
             config.limits.snapshot.max_state_bytes == 0 ||
             config.limits.snapshot.max_tokens == 0 || config.limits.max_frame_bytes == 0 ||
             config.limits.max_manifest_bytes == 0 ||
@@ -580,7 +787,64 @@ const char * context_store_v1_server_canary_status_name(
         case context_store_v1_server_canary_status::storage: return "storage";
         case context_store_v1_server_canary_status::quarantined: return "quarantined";
     }
-    return "unknown";
+    return "invalid";
+}
+
+const char * context_store_v1_server_canary_lifecycle_state_name(
+        context_store_v1_server_canary_lifecycle_state state) noexcept {
+    using value = context_store_v1_server_canary_lifecycle_state;
+    switch (state) {
+        case value::unavailable: return "unavailable";
+        case value::ready: return "ready";
+        case value::published: return "published";
+        case value::recovered_success: return "recovered-success";
+        case value::recovered_aborted: return "recovered-aborted";
+        case value::interrupted: return "interrupted";
+        case value::busy: return "busy";
+        case value::invalid: return "invalid";
+        case value::unsupported: return "unsupported";
+        case value::source_mismatch: return "source-mismatch";
+        case value::conflict: return "conflict";
+        case value::storage: return "storage";
+        case value::synchronization: return "synchronization";
+        case value::quota_exhausted: return "quota-exhausted";
+        case value::reserve_exhausted: return "reserve-exhausted";
+        case value::layout_rejected: return "layout-rejected";
+        case value::accounting_overflow: return "accounting-overflow";
+        case value::quarantined: return "quarantined";
+    }
+    return "unavailable";
+}
+
+const char * context_store_v1_server_canary_close_reason_name(
+        context_store_v1_server_canary_close_reason reason) noexcept {
+    using value = context_store_v1_server_canary_close_reason;
+    switch (reason) {
+        case value::none: return "none";
+        case value::published: return "published";
+        case value::recovered_success: return "recovered-success";
+        case value::recovered_aborted: return "recovered-aborted";
+        case value::quota_exhausted: return "quota-exhausted";
+        case value::reserve_exhausted: return "reserve-exhausted";
+        case value::layout_rejected: return "layout-rejected";
+        case value::accounting_overflow: return "accounting-overflow";
+        case value::storage: return "storage";
+        case value::synchronization: return "synchronization";
+        case value::quarantined: return "quarantined";
+    }
+    return "none";
+}
+
+const char * context_store_v1_server_canary_eviction_state_name(
+        context_store_v1_server_canary_eviction_state state) noexcept {
+    using value = context_store_v1_server_canary_eviction_state;
+    switch (state) {
+        case value::no_safe_online_eviction: return "no-safe-online-eviction";
+        case value::selected_generation_pinned: return "selected-generation-pinned";
+        case value::reconciliation_required: return "reconciliation-required";
+        case value::uncertain_material_retained: return "uncertain-material-retained";
+    }
+    return "no-safe-online-eviction";
 }
 
 } // namespace halofpx

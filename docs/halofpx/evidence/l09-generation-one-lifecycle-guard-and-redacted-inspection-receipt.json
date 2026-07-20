@@ -1,0 +1,122 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L09",
+  "title": "generation-one lifecycle guard and redacted inspection",
+  "implementation_parent": "8ba77d9d39862ebd6116a10b67d1ae7bef057b31",
+  "implementation_parent_tree": "447087a3da4ded080407e19ce303e0cd5320e2f2",
+  "locked_rocmfpx_base": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "locked_rocmfpx_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "contract": "docs/halofpx/decisions/0036-generation-one-lifecycle-guard-and-redacted-inspection.md",
+  "boundary": {
+    "platform": "Linux only",
+    "compile_gate": "HALOFPX_CONTEXT_STORE_FULL_V1_CANARY plus all three prior canary gates",
+    "runtime_mode": "full-v1-rw-canary",
+    "default_enabled": false,
+    "generation": 1,
+    "max_entries": 1,
+    "private_authenticated_scope": true,
+    "single_controller_thread": true,
+    "one_cooperating_writer": true,
+    "automatic_discovery": false,
+    "shared_scope": false,
+    "online_eviction": false,
+    "admin_http_route": false,
+    "product_admission": false
+  },
+  "qualification": {
+    "target": "nimo-1",
+    "kernel": "7.1.3-1-cachyos",
+    "filesystem": "btrfs",
+    "compiler": "GCC 16.1.1 20260625",
+    "cmake": "4.3.4",
+    "build_type": "Release",
+    "selected_focused_and_inherited_controls": "12/12 passed",
+    "live_process_publish_restart_restore": "passed",
+    "selected_manifest": "1c427401aae475428d9a0ac15588c28806b11c441df85e7b4f9e781885a8e76b",
+    "published_token_count": 5,
+    "logical_bytes": 37043,
+    "allocated_bytes": 53248,
+    "restart_lifecycle": "recovered-success",
+    "restart_writes_closed": true,
+    "reserve_rejection": "passed with no publication mutation",
+    "server_sha256": "7ef354e70ff8a69bf33b9eb4d57c6ef4bc17e06720f99647e074624f8d043851",
+    "focused_test_sha256": "3294c711bdad148bc0bb1626b62f2e05792087c3ec6f2be0c23b04b27e6964dc",
+    "component_tuple_sha256": "cb0fde361fd2b902cdd9bac8892788313cb556024363039b5b6016fb724f4877",
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "known_good_nimo1_service": "active and enabled",
+    "known_good_nimo2_rpc_worker": "active and enabled",
+    "independent_review": "ACCEPT; no remaining P1/P2 blocker"
+  },
+  "demonstrated": [
+    "deterministically ordered lifetime-held dual OFD writer authority",
+    "strict recursive allow-list and duplicate-inode rejection",
+    "separate logical and allocated byte observation",
+    "logical quota and per-distinct-mount reserve admission",
+    "pre-pending and late publication-boundary headroom checks",
+    "post-pending failures close writes and reconcile safely",
+    "process restart recovery to an authenticated exact hit",
+    "budget exhaustion closes writes without publication mutation",
+    "fixed redacted controller observations and coarse request failures",
+    "Btrfs directory-link-count portability"
+  ],
+  "raw_evidence": {
+    "root": "/var/tmp/halofpx-l09-evidence-20260720",
+    "manifest_sha256": "1458ba47400a12fe35062253917d40ab4e69ad7c6c5fe04be9a3849f8223a052",
+    "bundle": "/var/tmp/halofpx-l09-evidence-20260720.tar.zst",
+    "bundle_sha256": "c65d2bbbf2420a702484d16eb54eaea20fbcee981b2edfdee3fa0e70fa2da3ed",
+    "operator_key_retained_in_repository": false,
+    "api_key_retained_in_sanitized_bundle": false
+  },
+  "deferred": [
+    "exhaustive publication-boundary and filesystem fault permutations",
+    "disk-full and read-only-filesystem campaigns",
+    "same-instance concurrency and multi-writer coordination",
+    "generation advancement and multi-generation retention",
+    "online deletion and eviction",
+    "shared scope and administrator HTTP authority",
+    "distributed cache recovery and long-duration soak",
+    "exact-filesystem power-loss durability and production persistence admission"
+  ],
+  "reference_verification": [
+    {
+      "repository": "charlie12345/ROCmFPX",
+      "head": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+      "clean": true
+    },
+    {
+      "repository": "fewtarius/llama-ai",
+      "head": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf",
+      "clean": true
+    },
+    {
+      "repository": "fewtarius/CachyLLama",
+      "head": "6be745998f568e379ea197fcf827baec73ff9940",
+      "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd",
+      "clean": true
+    },
+    {
+      "repository": "ggml-org/llama.cpp",
+      "head": "6bdd77f13cf11b264b4231d320afc404f48d576e",
+      "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6",
+      "clean": true
+    },
+    {
+      "repository": "Nathanw1014/llama.cpp strix-halo-fa-fixes",
+      "head": "a18067a85e986f7798f43d98345ed5b86b55cf88",
+      "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af",
+      "clean": true
+    }
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false,
+    "reference_clone_changed": false
+  }
+}
