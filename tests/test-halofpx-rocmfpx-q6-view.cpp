@@ -120,13 +120,15 @@ int run(ggml_backend_t backend) {
         squared_reference += static_cast<double>(full_values[i]) * full_values[i];
         max_abs_error = std::max(max_abs_error, std::abs(delta));
     }
+    const double reference_l2 = std::sqrt(squared_reference);
     const double nmse = squared_error / std::max(squared_reference, 1.0e-20);
-    std::printf("backend=%s packed_view_offset=%zu nmse=%.9g max_abs_error=%.9g\n",
-        ggml_backend_name(backend), view_expert_begin * weights->nb[2], nmse, max_abs_error);
+    std::printf("backend=%s packed_view_offset=%zu reference_l2=%.9g nmse=%.9g max_abs_error=%.9g\n",
+        ggml_backend_name(backend), view_expert_begin * weights->nb[2], reference_l2, nmse, max_abs_error);
 
     ggml_backend_buffer_free(buffer);
     ggml_free(ctx);
-    return std::isfinite(nmse) && nmse <= 1.0e-6 ? 0 : 1;
+    return std::isfinite(reference_l2) && reference_l2 > 1.0e-6 &&
+           std::isfinite(nmse) && nmse <= 1.0e-6 ? 0 : 1;
 }
 
 } // namespace

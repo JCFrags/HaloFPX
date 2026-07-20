@@ -2,6 +2,13 @@
   "schema": "halofpx.p06f-rocmfpx-q6-expanded-device-view-offset.v1",
   "date": "2026-07-20",
   "status": "focused_direct_hip_and_rpc_backend_correction_qualified_exact_model_rank_local_execution_open",
+  "p06g_correction": {
+    "field_superseded": "defect.generic_rpc_defect",
+    "prior_value": false,
+    "current_finding": true,
+    "reason": "P06f RPC equivalence did not require nonzero reference energy; P06g corrected server-side RPC view reconstruction and qualified the exact-model path",
+    "p06f_direct_hip_finding_remains_valid": true
+  },
   "parent_commit": "244c414f31b7689adf80b45126d2d42bc1ab8276",
   "parent_tree": "4904ec3e26fc083f828d9ec9deacebd1cac37241",
   "defect": {

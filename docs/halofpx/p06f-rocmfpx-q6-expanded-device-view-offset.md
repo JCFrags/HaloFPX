@@ -2,6 +2,12 @@
 
 Status: **focused direct-HIP and RPC backend correction qualified; exact-model rank-local execution remains next**
 
+Correction note (P06g): the P06f RPC comparison did not require nonzero
+reference energy, so it was insufficient to close the generic RPC graph-view
+path. P06g found and corrected a separate server-side view reconstruction
+defect, strengthened the oracle, and completed the exact-model rank-local
+canary. P06f's direct-HIP packed-to-expanded correction remains valid.
+
 P06e proved that full replicated `Q6_0_ROCMFPX` expert tensors with global
 expert IDs execute correctly on local HIP and RPC, but a nonzero expert-axis
 view returned a zero peer contribution. P06f localizes and corrects that

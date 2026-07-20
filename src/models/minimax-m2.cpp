@@ -152,7 +152,7 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
             exclude_tensor_from_lookup(layer.ffn_down_exps_shadow_peer);
             exclude_tensor_from_lookup(layer.ffn_up_exps_shadow_peer);
             if (shadow_compute) {
-                LLAMA_LOG_INFO("HaloFPX P06e: admitted replicated Q6 expert shadow compute for layer %d on peer %s; authoritative output remains the full local MoE result\n",
+                LLAMA_LOG_INFO("HaloFPX P06g: admitted rank-local 96-expert Q6 view shadow compute for layer %d on peer %s; storage remains replicated and authoritative output remains the full local MoE result\n",
                         shadow_layer, ggml_backend_dev_name(shadow_peer));
             } else {
                 LLAMA_LOG_INFO("HaloFPX P06d: admitted placement-only Q6 expert shadow for layer %d on peer %s; authoritative graph unchanged\n",
@@ -377,15 +377,24 @@ llama_model_minimax_m2::graph::graph(const llama_model & model, const llm_graph_
                 throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow compute is missing admitted placement or routing state");
             }
 
-            ggml_tensor * ids_f32 = ggml_cast(ctx0, routing.selected_experts, GGML_TYPE_F32);
-            ggml_tensor * local_mask = ggml_step(ctx0, ggml_scale_bias(ctx0, ids_f32, -1.0f, 95.5f));
+            ggml_tensor * mask_ids_f32 = ggml_cast(ctx0, routing.selected_experts, GGML_TYPE_F32);
+            ggml_tensor * local_mask = ggml_step(ctx0, ggml_scale_bias(ctx0, mask_ids_f32, -1.0f, 95.5f));
             ggml_tensor * peer_mask  = ggml_scale_bias(ctx0, local_mask, -1.0f, 1.0f);
             local_mask = ggml_reshape_3d(ctx0, local_mask, 1, n_expert_used, 1);
             peer_mask  = ggml_reshape_3d(ctx0, peer_mask, 1, n_expert_used, 1);
             ggml_tensor * local_weights = ggml_mul(ctx0, routing.weights, local_mask);
             ggml_tensor * peer_weights  = ggml_mul(ctx0, routing.weights, peer_mask);
+            ggml_tensor * local_ids_f32 = ggml_cast(ctx0, routing.selected_experts, GGML_TYPE_F32);
+            ggml_tensor * peer_ids_f32  = ggml_cast(ctx0, routing.selected_experts, GGML_TYPE_F32);
+            ggml_tensor * local_ids = ggml_cast(
+                    ctx0, ggml_clamp(ctx0, local_ids_f32, 0.0f, 95.0f), GGML_TYPE_I32);
+            ggml_tensor * peer_ids = ggml_cast(
+                    ctx0, ggml_clamp(ctx0, ggml_scale_bias(ctx0, peer_ids_f32, 1.0f, -96.0f), 0.0f, 95.0f),
+                    GGML_TYPE_I32);
             cb(local_weights, "halofpx_shadow_local_weights", il);
             cb(peer_weights, "halofpx_shadow_peer_weights", il);
+            cb(local_ids, "halofpx_shadow_local_ids", il);
+            cb(peer_ids, "halofpx_shadow_peer_ids", il);
 
             auto routed_half = [&](ggml_tensor * up_exps, ggml_tensor * gate_exps, ggml_tensor * down_exps,
                                    ggml_tensor * ids, ggml_tensor * weights, bool peer_branch) {
@@ -408,16 +417,24 @@ llama_model_minimax_m2::graph::graph(const llama_model & model, const llm_graph_
             };
 
             const auto & layer = model.layers[il];
-            ggml_tensor * local_out = routed_half(
-                    layer.ffn_up_exps,
-                    layer.ffn_gate_exps,
-                    layer.ffn_down_exps,
-                    routing.selected_experts, local_weights, false);
+            auto expert_view = [&](ggml_tensor * experts, bool peer_branch) {
+                GGML_ASSERT(experts != nullptr && experts->type == GGML_TYPE_Q6_0_ROCMFPX);
+                GGML_ASSERT(experts->ne[2] == n_expert && n_expert == 192);
+                const size_t offset = peer_branch ? 96 * experts->nb[2] : 0;
+                return ggml_view_3d(ctx0, experts, experts->ne[0], experts->ne[1], 96,
+                        experts->nb[1], experts->nb[2], offset);
+            };
+
             ggml_tensor * peer_out = routed_half(
-                    layer.ffn_up_exps_shadow_peer,
-                    layer.ffn_gate_exps_shadow_peer,
-                    layer.ffn_down_exps_shadow_peer,
-                    routing.selected_experts, peer_weights, true);
+                    expert_view(layer.ffn_up_exps_shadow_peer, true),
+                    expert_view(layer.ffn_gate_exps_shadow_peer, true),
+                    expert_view(layer.ffn_down_exps_shadow_peer, true),
+                    peer_ids, peer_weights, true);
+            ggml_tensor * local_out = routed_half(
+                    expert_view(layer.ffn_up_exps, false),
+                    expert_view(layer.ffn_gate_exps, false),
+                    expert_view(layer.ffn_down_exps, false),
+                    local_ids, local_weights, false);
 
             ggml_tensor * oracle_args[] = { cur, local_out, peer_out, routing.selected_experts };
             cur = ggml_custom_4d(ctx0, GGML_TYPE_F32, cur->ne[0], cur->ne[1], cur->ne[2], cur->ne[3],
