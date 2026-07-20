@@ -1,0 +1,94 @@
+{
+  "schema": "halofpx.l08j-operational-full-v1-canary-harness.v1",
+  "date": "2026-07-20",
+  "status": "current_lifecycle_contract_restored_and_process_canary_requalified",
+  "parent_commit": "2bdde5a700bacf88736064c8937bd850e09a447f",
+  "parent_tree": "430a02491d7b9321cabd724cac8647a83ce002da",
+  "change": {
+    "file": "tools/server/tests/unit/test_halofpx_full_v1_canary.py",
+    "sha256": "d832382a09104976c41cffc0f5bbeb0680dca15c08e20f6257999ad6ab7077b5",
+    "quota_mib_default": 64,
+    "reserve_mib_default": 64,
+    "max_entries": 1,
+    "limits_retained_in_tuple": true,
+    "direct_execution_requires_pytest": false,
+    "server_runtime_changed": false,
+    "feature_default_changed": false
+  },
+  "target": {
+    "node": "nimo-1",
+    "os": "Linux 7.1.3-1-cachyos",
+    "server": "/var/tmp/halofpx-l09-server-wiring.ERvyXG/build/bin/llama-server",
+    "server_sha256": "7ef354e70ff8a69bf33b9eb4d57c6ef4bc17e06720f99647e074624f8d043851",
+    "model": "/var/tmp/halofpx-l08-canary.WgvQr5/build-canary/tinyllamas/stories15M-q4_0.gguf",
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739"
+  },
+  "python_environment": {
+    "isolated_evidence_local_venv": true,
+    "system_python_modified": false,
+    "versions_record": "/var/tmp/halofpx-l08j-operational-2bdde5a-20260720/python-packages.txt",
+    "requests": "2.34.2",
+    "pytest": "9.1.1"
+  },
+  "process_canary": {
+    "passed": true,
+    "selected_manifest": "e1346d196d085386500b75aee04c3f636aca88ae793d198aeef1b8831494b6a1",
+    "restart_hit": true,
+    "corruption_miss": true,
+    "safe_recomputation_equal": true,
+    "cold_content_sha256": "d4befa4c08b0bdd9023bfa965064be3c3a8eda8804174fc74c286b2a66710860",
+    "operator_key_removed": true,
+    "operator_key_sha256_only": "38265ecbe6ec4d365098c9136f8e57384a46f6beeddc7bffc41edec9f85c7c8b"
+  },
+  "focused_tests": {
+    "ctest_passed": 9,
+    "ctest_total": 9,
+    "pytest_collected": 1,
+    "python_syntax_windows": "pass",
+    "python_syntax_nimo_1": "pass"
+  },
+  "evidence": {
+    "root": "/var/tmp/halofpx-l08j-operational-2bdde5a-20260720",
+    "manifest_entries_excluding_venv": 18,
+    "manifest_sha256": "87d00553101950e5cb12d6ee9dfe1ff4ba4c587ee01743d7cf232f54718e2c35",
+    "bundle": "/var/tmp/halofpx-l08j-operational-2bdde5a-20260720-v02.tar.zst",
+    "bundle_size_bytes": 98237,
+    "bundle_sha256": "3f5270e4c3975ec477244b9609fa674463dc82cfa81569d6b732f711e5eb13bc",
+    "bundle_mode": "0600",
+    "manifest_verified": true,
+    "bundle_verified": true
+  },
+  "rollback": {
+    "deployed_binary_replaced": false,
+    "production_service_active": true,
+    "production_service_restarts": 0,
+    "production_health_http": 200,
+    "canary_port_listener_remaining": false
+  },
+  "provenance": {
+    "implementation": "target-native test and operator harness repair",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "engine_dependency_changed": false,
+    "reference_clone_changed": false,
+    "remote_changed": false,
+    "webui_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "independent_review": {
+    "path": "docs/halofpx/reviews/2026-07-20__l08j-operational-full-v1-canary-harness__review__v01.md",
+    "verdict": "accept",
+    "blocking_findings": 0,
+    "reusable_improvement_applied": "admitted evidence bundle mode corrected to 0600"
+  },
+  "deferred": [
+    "automatic or prefix discovery",
+    "automatic writeback",
+    "multi-generation retention and online eviction",
+    "large-state and distributed restore admission",
+    "production persistence",
+    "expanded repetitive fault matrices absent a concrete defect"
+  ]
+}

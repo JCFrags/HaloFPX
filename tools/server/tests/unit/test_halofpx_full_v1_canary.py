@@ -17,21 +17,26 @@ import subprocess
 import tempfile
 import time
 
-import pytest
 import requests
+
+if __name__ != "__main__":
+    import pytest
 
 
 SERVER = os.environ.get("HALOFPX_CANARY_SERVER")
 MODEL = os.environ.get("HALOFPX_CANARY_MODEL")
 PORT = int(os.environ.get("HALOFPX_CANARY_PORT", "18082"))
+QUOTA_MIB = int(os.environ.get("HALOFPX_CANARY_QUOTA_MIB", "64"))
+RESERVE_MIB = int(os.environ.get("HALOFPX_CANARY_RESERVE_MIB", "64"))
 API_KEY = "halofpx-full-v1-principal"
 SESSION = "6f" * 32
 PROMPT = "The quick brown fox crossed the quiet valley because"
 
-pytestmark = pytest.mark.skipif(
-    not SERVER or not MODEL,
-    reason="set HALOFPX_CANARY_SERVER and HALOFPX_CANARY_MODEL",
-)
+if __name__ != "__main__":
+    pytestmark = pytest.mark.skipif(
+        not SERVER or not MODEL,
+        reason="set HALOFPX_CANARY_SERVER and HALOFPX_CANARY_MODEL",
+    )
 
 
 def _sha256(path: str) -> str:
@@ -139,6 +144,9 @@ def _start(data: Path, anchor: Path, key: Path, store_uuid: str,
         "--halofpx-context-store-key-file", str(key),
         "--halofpx-context-store-uuid", store_uuid,
         "--halofpx-context-store-compatibility-component", ",".join(components),
+        "--halofpx-context-store-quota", str(QUOTA_MIB),
+        "--halofpx-context-store-reserve", str(RESERVE_MIB),
+        "--halofpx-context-store-max-entries", "1",
     ]
     output = open(log, "ab", buffering=0)
     process = subprocess.Popen(args, stdout=output, stderr=subprocess.STDOUT)
@@ -181,13 +189,22 @@ def _completion(n_predict: int) -> dict:
 
 def test_full_v1_restart_hit_and_corruption_recomputes() -> None:
     assert SERVER is not None and MODEL is not None
+    assert QUOTA_MIB > 0 and RESERVE_MIB >= 0
     evidence_parent = os.environ.get("HALOFPX_CANARY_EVIDENCE_DIR")
     workspace = Path(tempfile.mkdtemp(prefix="halofpx-full-v1-", dir=evidence_parent))
     data, anchor, key = _prepare_roots(workspace)
     store_uuid = secrets.token_hex(16)
     components, tuple_record = _components(SERVER, MODEL)
     (workspace / "tuple.json").write_text(
-        json.dumps({**tuple_record, "store_uuid": store_uuid}, indent=2) + "\n",
+        json.dumps({
+            **tuple_record,
+            "store_uuid": store_uuid,
+            "lifecycle_limits": {
+                "quota_mib": QUOTA_MIB,
+                "reserve_mib": RESERVE_MIB,
+                "max_entries": 1,
+            },
+        }, indent=2) + "\n",
         encoding="utf-8",
     )
 
