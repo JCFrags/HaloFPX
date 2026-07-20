@@ -179,6 +179,18 @@ target_link_libraries(halofpx-context-store-v1-read-only PUBLIC
     halofpx-context-store-object)
 target_compile_features(halofpx-context-store-v1-read-only PRIVATE cxx_std_17)
 
+# L08g excluded target-native bridge between the admitted L07 world=1/rank=0
+# snapshot and an authenticated two-frame full-v1 memory candidate. No server,
+# filesystem, publication, or live-restore edge is present.
+add_library(halofpx-context-store-v1-transformer-codec STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-v1-transformer-codec.cpp
+    halofpx-context-store-v1-transformer-codec.h
+)
+target_link_libraries(halofpx-context-store-v1-transformer-codec PUBLIC
+    halofpx-context-store-auth
+    halofpx-context-store-state-transformer-v1)
+target_compile_features(halofpx-context-store-v1-transformer-codec PRIVATE cxx_std_17)
+
 # L08e Linux-only exact-anchor filesystem snapshot reader. It remains excluded
 # and cannot publish, enumerate, decode, restore, or link into a server.
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")

@@ -407,6 +407,24 @@ add_test(
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-v1-read-only-contract.cmake)
 set_property(TEST test-halofpx-context-store-v1-read-only-contract PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-context-store-v1-transformer-codec.cpp
+    ${CMAKE_SOURCE_DIR}/tools/server/halofpx-context-store.cpp)
+target_include_directories(test-halofpx-context-store-v1-transformer-codec PRIVATE
+    ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-v1-transformer-codec PRIVATE
+    halofpx-context-store-v1-transformer-codec
+    halofpx-context-store-v1-read-only)
+llama_test(test-halofpx-context-store-v1-transformer-codec)
+set_property(TEST test-halofpx-context-store-v1-transformer-codec PROPERTY LABELS "main;halofpx")
+
+add_test(
+    NAME test-halofpx-context-store-v1-transformer-codec-contract
+    COMMAND ${CMAKE_COMMAND}
+        -DSOURCE_ROOT=${PROJECT_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-v1-transformer-codec-contract.cmake)
+set_property(TEST test-halofpx-context-store-v1-transformer-codec-contract PROPERTY
+    LABELS "main;halofpx")
+
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     llama_build(test-halofpx-context-store-v1-linux-read-only.cpp
         ${CMAKE_SOURCE_DIR}/tools/server/halofpx-context-store.cpp)

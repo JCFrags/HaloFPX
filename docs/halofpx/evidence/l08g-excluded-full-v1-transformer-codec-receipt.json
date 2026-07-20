@@ -1,0 +1,69 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L08g",
+  "title": "excluded full-v1 transformer snapshot codec",
+  "implementation_parent": "000a9476181fcc9f06ca106d61656e2211f22319",
+  "implementation_parent_tree": "6841e380eedeed6c1102c1a0ebf60dec2b9253fe",
+  "locked_rocmfpx_base": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "locked_rocmfpx_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "boundary": {
+    "target": "halofpx-context-store-v1-transformer-codec",
+    "build": "STATIC EXCLUDE_FROM_ALL",
+    "frames": 2,
+    "profile": "halofpx.transformer.world1-rank0.memoryless-greedy.v1",
+    "token_codec": "halofpx.tokens.int32be.v1",
+    "state_codec": "halofpx.llama-state-seq-ext.opaque.v1",
+    "server_link": false,
+    "filesystem_io": false,
+    "publication": false,
+    "live_state_restore": false,
+    "product_admission": false
+  },
+  "qualification": {
+    "windows_release_focused": "5/5 passed",
+    "nimo_1_release_focused": "7/7 passed",
+    "nimo_1_compiler": "GCC 16.1.1",
+    "nimo_1_feature_tuple": "CPU Release; HIP OFF; Vulkan OFF; curl OFF; WebUI OFF",
+    "source_hash_files": 6,
+    "source_hash_mismatches": 0,
+    "known_good_service": "active and enabled",
+    "independent_review": "ACCEPT after two P2 corrections; no remaining P1/P2"
+  },
+  "evidence": {
+    "nimo_1_bundle": "/var/tmp/halofpx-l08e-linux-reader-9907b90-20260720/halofpx-l08g-v1-transformer-codec-nimo1-20260720.tar.zst",
+    "nimo_1_bundle_bytes": 3998,
+    "nimo_1_bundle_sha256": "f4349f510628649d9462128d5c8f425c5a3c10b890692707f77b033986babda2",
+    "nimo_1_test_binary_sha256": "41f8ad0b62a2c7e2c0257a7d04f15a55c73ed0ac1218eac57ceb715d5879a2e2",
+    "nimo_1_feature_off_server_sha256": "f25fb23c47e8480136dd3fc0dffdf5a94adb732145a82a05a66996089d6f8bd7"
+  },
+  "review_corrections": [
+    "exact frame limits now admit before payload or frame allocation",
+    "authentication message allocations now complete before derived-key lifetime",
+    "focused pre-allocation frame-cap regression added"
+  ],
+  "deferred": [
+    "protected publication-material carrier and key custody",
+    "persistent attempt registration and restart reconciliation",
+    "authenticated anchor create and generation advancement",
+    "server linkage and live restore",
+    "payload allocator-remanence hardening",
+    "retention, quota, reserve, eviction, observability, and administration",
+    "crash, exhaustion, recovery, soak, distributed, and zero-regression gates"
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLLama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "ggml-org/llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "Nathanw1014/llama.cpp": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  }
+}
