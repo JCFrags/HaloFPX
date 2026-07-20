@@ -96,6 +96,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05z semantic-authority correction independent review (qualified; not promotion)](reviews/2026-07-19__l05z-semantic-authority-correction__review__v01.md)
 - [L05z mapped-but-closed role-authority receipt (not execution admission or promotion)](evidence/l05z-mapped-role-authority-receipt.json)
 - [L05z mapped-but-closed role-authority independent review (not execution admission or promotion)](reviews/2026-07-19__l05z-mapped-role-authority__review__v01.md)
+- [L05z closed selector-v2 and exact reserve-authority receipt (not mapped-role execution admission or promotion)](evidence/l05z-selector-v2-reserve-authority-receipt.json)
+- [L05z closed selector-v2 and exact reserve-authority independent review (not mapped-role execution admission or promotion)](reviews/2026-07-19__l05z-selector-v2-reserve-authority__review__v01.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

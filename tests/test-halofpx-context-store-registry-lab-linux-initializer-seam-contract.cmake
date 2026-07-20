@@ -374,6 +374,7 @@ file(READ "${L05Z_RETURN}" L05Z_RETURN_TEXT)
 foreach(REQUIRED IN ITEMS
     "#include \"halofpx-l05z-return-hostile-manifest.inc\""
     "#include \"halofpx-l05z-return-role-map-v1.inc\""
+    "#include \"halofpx-l05z-return-selector-v2.inc\""
     "#include \"halofpx-l05z-return-role-authority-manifest.inc\""
     "#include \"halofpx-l05z-return-response-manifest.inc\""
     "manifest_self_check"
@@ -383,8 +384,13 @@ foreach(REQUIRED IN ITEMS
     "completed_exit_returns_errno"
     "--semantic-authority-self-test"
     "--mapped-role-authority-self-test"
+    "--selector-v2-self-test"
+    "--reserve-selector-self-test"
     "mapped_role_boundary_execution_closed"
     "mapped_role_boundary_execution_closed_self_check"
+    "reserve_phase_route_selector"
+    "exact_reserve_rows=003,011,019"
+    "Selection is owned by the explicit"
     "if (mapped_role_boundary_execution_closed(output.point)) return false"
     "stdout-audit-response"
     "suppress-fake-full"
@@ -398,6 +404,52 @@ foreach(REQUIRED IN ITEMS
   string(FIND "${L05Z_RETURN_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "missing L05z returned-fault controller token: ${REQUIRED}")
+  endif()
+endforeach()
+set(L05Z_RETURN_SELECTOR_V2
+  "${ROOT}/tests/halofpx-l05z-return-selector-v2.inc")
+if(NOT EXISTS "${L05Z_RETURN_SELECTOR_V2}")
+  message(FATAL_ERROR "missing L05z closed exact-selector v2 include")
+endif()
+file(READ "${L05Z_RETURN_SELECTOR_V2}" L05Z_RETURN_SELECTOR_V2_TEXT)
+foreach(REQUIRED IN ITEMS
+    "enum class admission"
+    "closed = 0"
+    "executable = 1"
+    "mapped_role_count = 247"
+    "nonretryable_profile_count = 18"
+    "canonical_case_count"
+    "source_parent_commit"
+    "source_parent_tree"
+    "role_map_v1_source_sha256"
+    "role_map_v1_manifest_sha256"
+    "canonical_manifest_sha256"
+    "selector_admission = admission::closed"
+    "contradictory_identity"
+    "resolve_case_id"
+    "resolve_exact_claim"
+    "source_route_helper"
+    "stream_part_class"
+    "expected_residual_oracle"
+    "current_physical_profile"
+    "returned_errno"
+    "live_matching_connected = false"
+    "run_entry_point_present = false"
+    "executable != 0")
+  string(FIND "${L05Z_RETURN_SELECTOR_V2_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing L05z selector-v2 authority token: ${REQUIRED}")
+  endif()
+endforeach()
+foreach(FORBIDDEN IN ITEMS
+    " run("
+    "matches_boundary("
+    "ptrace("
+    "syscall(")
+  string(FIND "${L05Z_RETURN_SELECTOR_V2_TEXT}" "${FORBIDDEN}" HIT)
+  if(NOT HIT EQUAL -1)
+    message(FATAL_ERROR
+      "L05z selector-v2 must not expose execution token: ${FORBIDDEN}")
   endif()
 endforeach()
 set(L05Z_RETURN_ROLE_MAP_V1

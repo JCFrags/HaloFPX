@@ -23,6 +23,7 @@ int halofpx_l05z_imported_crash_controller_main(int, char **);
 #include "halofpx-l05z-return-hostile-manifest.inc"
 #include "halofpx-l05z-return-role-authority-manifest.inc"
 #include "halofpx-l05z-return-role-map-v1.inc"
+#include "halofpx-l05z-return-selector-v2.inc"
 #include "halofpx-l05z-return-response-manifest.inc"
 #include <climits>
 #include <fstream>
@@ -332,6 +333,7 @@ bool retry_window_self_check() {
 }
 
 bool retry_alias_controller_path_self_check();
+bool reserve_phase_route_selector_self_check();
 
 bool manifest_self_check() {
     constexpr unsigned errno_rows = 19;
@@ -382,6 +384,7 @@ bool manifest_self_check() {
         halofpx_l05z_return_role_authority_v1::self_check() &&
         halofpx_l05z_return_response_manifest_v1::self_check() &&
         retry_alias_controller_path_self_check() &&
+        reserve_phase_route_selector_self_check() &&
         response_decoder_self_check() &&
         halofpx_l05z_return_hostile_manifest_v1::manifest().size() ==
             hostile_input_cases && structural_row_subtotal == 8706 &&
@@ -1203,6 +1206,7 @@ bool exact_envelope_child_argv(pid_t pid) {
 
 bool exact_fd(pid_t pid, std::uint64_t raw_fd, const struct stat & expected,
               std::uint64_t expected_mount) {
+    if (raw_fd > static_cast<std::uint64_t>(INT_MAX)) return false;
     struct stat observed {};
     std::uint64_t mount = 0;
 
@@ -1226,11 +1230,250 @@ bool read_tracee_name(pid_t pid, std::uint64_t address, std::string & output) {
     return false;
 }
 
+enum class reserve_route_phase : std::uint8_t {
+    premutation,
+    prepublication,
+    final,
+    invalid,
+};
+
+enum class reserve_route_event : std::uint8_t {
+    other,
+    root_fstatfs,
+    root_fs_info,
+    root_subvolume_info,
+    root_canonical_readlink,
+};
+
+struct reserve_phase_route_selector {
+    enum class step : std::uint8_t {
+        idle,
+        inspect_fstatfs,
+        filesystem_info,
+        subvolume_info,
+        canonical_readlink,
+        reserve_fstatfs,
+        complete,
+        invalid,
+    } next = step::idle;
+    reserve_route_phase phase = reserve_route_phase::invalid;
+    reserve_route_event pending = reserve_route_event::other;
+    bool have_pending = false;
+    unsigned exact_reserve_roles = 0;
+
+    bool enter(reserve_route_phase observed, reserve_route_event event) {
+        if (next == step::invalid || have_pending ||
+            observed == reserve_route_phase::invalid) {
+            next = step::invalid;
+            return false;
+        }
+        if (phase == reserve_route_phase::invalid) {
+            if (observed != reserve_route_phase::premutation) {
+                next = step::invalid;
+                return false;
+            }
+            phase = observed;
+        } else if (observed != phase) {
+            if (next != step::complete ||
+                static_cast<unsigned>(observed) !=
+                    static_cast<unsigned>(phase) + 1U) {
+                next = step::invalid;
+                return false;
+            }
+            phase = observed;
+            next = step::idle;
+        }
+        if (next == step::complete) return false;
+        if (next == step::idle) {
+            if (event != reserve_route_event::root_fstatfs) return false;
+            next = step::inspect_fstatfs;
+        } else {
+            const reserve_route_event expected =
+                next == step::filesystem_info ? reserve_route_event::root_fs_info :
+                next == step::subvolume_info ? reserve_route_event::root_subvolume_info :
+                next == step::canonical_readlink ? reserve_route_event::root_canonical_readlink :
+                next == step::reserve_fstatfs ? reserve_route_event::root_fstatfs :
+                reserve_route_event::other;
+            if (event != expected) {
+                next = step::invalid;
+                return false;
+            }
+        }
+        pending = event;
+        have_pending = true;
+        return next == step::reserve_fstatfs;
+    }
+
+    bool leave(bool exact_success) {
+        if (!have_pending || next == step::invalid) {
+            next = step::invalid;
+            return false;
+        }
+        have_pending = false;
+        pending = reserve_route_event::other;
+        if (!exact_success) {
+            next = step::invalid;
+            return false;
+        }
+        switch (next) {
+            case step::inspect_fstatfs: next = step::filesystem_info; break;
+            case step::filesystem_info: next = step::subvolume_info; break;
+            case step::subvolume_info: next = step::canonical_readlink; break;
+            case step::canonical_readlink: next = step::reserve_fstatfs; break;
+            case step::reserve_fstatfs:
+                ++exact_reserve_roles;
+                next = step::complete;
+                break;
+            default:
+                next = step::invalid;
+                return false;
+        }
+        return true;
+    }
+
+    bool valid() const { return next != step::invalid; }
+};
+
+reserve_route_phase reserve_phase(bool transient_seen, bool published_seen) {
+    if (published_seen && !transient_seen) return reserve_route_phase::invalid;
+    if (published_seen) return reserve_route_phase::final;
+    return transient_seen ? reserve_route_phase::prepublication
+                          : reserve_route_phase::premutation;
+}
+
+bool reserve_phase_route_selector_self_check() {
+    const auto feed_phase = [](reserve_phase_route_selector & selector,
+                               reserve_route_phase phase) {
+        if (selector.enter(phase, reserve_route_event::other)) return false;
+        constexpr reserve_route_event route[] = {
+            reserve_route_event::root_fstatfs,
+            reserve_route_event::root_fs_info,
+            reserve_route_event::root_subvolume_info,
+            reserve_route_event::root_canonical_readlink,
+        };
+        for (const auto event : route) {
+            if (selector.enter(phase, event) || !selector.leave(true)) return false;
+        }
+        return selector.enter(phase, reserve_route_event::root_fstatfs) &&
+            selector.leave(true);
+    };
+    reserve_phase_route_selector exact;
+    if (!feed_phase(exact, reserve_route_phase::premutation) ||
+        exact.exact_reserve_roles != 1 ||
+        !feed_phase(exact, reserve_route_phase::prepublication) ||
+        exact.exact_reserve_roles != 2 ||
+        !feed_phase(exact, reserve_route_phase::final) ||
+        exact.exact_reserve_roles != 3 || !exact.valid()) return false;
+
+    // The old raw root-fstatfs occurrence selector addressed the first three
+    // entries of {002,003,010,011,018,019}; the route cursor addresses only
+    // the reserve calls {003,011,019}.
+    constexpr unsigned legacy_root_rows[] = { 2, 3, 10, 11, 18, 19 };
+    constexpr unsigned exact_reserve_rows[] = { 3, 11, 19 };
+    if (legacy_root_rows[0] != 2 || legacy_root_rows[1] != 3 ||
+        legacy_root_rows[2] != 10 || exact_reserve_rows[0] != 3 ||
+        exact_reserve_rows[1] != 11 || exact_reserve_rows[2] != 19) return false;
+
+    reserve_phase_route_selector wrong_route;
+    if (wrong_route.enter(reserve_route_phase::premutation,
+                          reserve_route_event::root_fstatfs) ||
+        !wrong_route.leave(true) ||
+        wrong_route.enter(reserve_route_phase::premutation,
+                          reserve_route_event::root_subvolume_info) ||
+        wrong_route.valid()) return false;
+    reserve_phase_route_selector skipped_phase;
+    return feed_phase(skipped_phase, reserve_route_phase::premutation) &&
+        !skipped_phase.enter(reserve_route_phase::final,
+                             reserve_route_event::other) &&
+        !skipped_phase.valid() &&
+        reserve_phase(false, false) == reserve_route_phase::premutation &&
+        reserve_phase(true, false) == reserve_route_phase::prepublication &&
+        reserve_phase(true, true) == reserve_route_phase::final &&
+        reserve_phase(false, true) == reserve_route_phase::invalid;
+}
+
 bool read_how(pid_t pid, const tracee_state & state, struct open_how & how,
               std::string & name) {
     return state.nr == SYS_openat2 && state.args[3] == sizeof(how) &&
            read_tracee(pid, state.args[2], &how, sizeof(how)) &&
            read_tracee_name(pid, state.args[1], name);
+}
+
+reserve_route_event classify_reserve_route_entry(
+        pid_t pid, const tracee_state & state, const struct stat & root,
+        std::uint64_t root_mount) {
+    if (state.nr == SYS_fstatfs &&
+        exact_fd(pid, state.args[0], root, root_mount)) {
+        return reserve_route_event::root_fstatfs;
+    }
+    if (state.nr == SYS_ioctl &&
+        exact_fd(pid, state.args[0], root, root_mount)) {
+        if (state.args[1] == BTRFS_IOC_FS_INFO)
+            return reserve_route_event::root_fs_info;
+        if (state.args[1] == BTRFS_IOC_GET_SUBVOL_INFO)
+            return reserve_route_event::root_subvolume_info;
+    }
+    if (state.nr == SYS_readlink && state.args[2] == 4097) {
+        std::string path;
+        constexpr char prefix[] = "/proc/self/fd/";
+        if (!read_tracee_name(pid, state.args[0], path) ||
+            path.rfind(prefix, 0) != 0 || path.size() == sizeof(prefix) - 1) {
+            return reserve_route_event::other;
+        }
+        errno = 0;
+        char * end = nullptr;
+        const char * digits = path.c_str() + sizeof(prefix) - 1;
+        const long fd = std::strtol(digits, &end, 10);
+        if (errno == 0 && end != digits && *end == '\0' && fd >= 0 &&
+            fd <= INT_MAX && exact_fd(pid, static_cast<std::uint64_t>(fd),
+                                      root, root_mount)) {
+            std::array<char, 48> canonical {};
+            const int count = std::snprintf(canonical.data(), canonical.size(),
+                                            "%s%ld", prefix, fd);
+            if (count > 0 && static_cast<std::size_t>(count) == path.size() &&
+                path == canonical.data()) {
+                return reserve_route_event::root_canonical_readlink;
+            }
+        }
+    }
+    return reserve_route_event::other;
+}
+
+bool exact_reserve_route_exit(pid_t pid, const tracee_state & state,
+                              const __ptrace_syscall_info & info,
+                              reserve_route_event event,
+                              int controller_root_fd,
+                              const char * expected_root) {
+    if (info.op != PTRACE_SYSCALL_INFO_EXIT || info.exit.is_error) return false;
+    if (event == reserve_route_event::root_fstatfs) {
+        struct statfs observed {}, expected {};
+        return info.exit.rval == 0 &&
+            read_tracee(pid, state.args[1], &observed, sizeof(observed)) &&
+            ::fstatfs(controller_root_fd, &expected) == 0 &&
+            observed.f_type == expected.f_type &&
+            observed.f_bsize == expected.f_bsize &&
+            observed.f_blocks == expected.f_blocks &&
+            observed.f_bfree == expected.f_bfree &&
+            observed.f_bavail == expected.f_bavail &&
+            observed.f_files == expected.f_files &&
+            observed.f_ffree == expected.f_ffree &&
+            std::memcmp(&observed.f_fsid, &expected.f_fsid,
+                        sizeof(observed.f_fsid)) == 0 &&
+            observed.f_namelen == expected.f_namelen &&
+            observed.f_frsize == expected.f_frsize &&
+            observed.f_flags == expected.f_flags &&
+            std::memcmp(observed.f_spare, expected.f_spare,
+                        sizeof(observed.f_spare)) == 0;
+    }
+    if (event != reserve_route_event::root_canonical_readlink) {
+        return info.exit.rval == 0;
+    }
+    const std::size_t expected_size = std::strlen(expected_root);
+    if (info.exit.rval != static_cast<long long>(expected_size) ||
+        expected_size > 4096) return false;
+    std::array<char, 4096> bytes {};
+    return read_tracee(pid, state.args[1], bytes.data(), expected_size) &&
+        std::memcmp(bytes.data(), expected_root, expected_size) == 0;
 }
 
 bool matches_boundary(pid_t pid, const tracee_state & state,
@@ -1389,8 +1632,10 @@ bool matches_boundary(pid_t pid, const tracee_state & state,
                    lock.l_start == 0 && lock.l_len == 0;
         }
         case boundary::reserve_revalidation:
-            return step4_gate && state.nr == SYS_fstatfs &&
-                   exact_fd(pid, state.args[0], root, root_mount);
+            // SYS_fstatfs alone cannot distinguish inspect_directory from the
+            // glibc fstatvfs reserve call. Selection is owned by the explicit
+            // phase-and-route cursor in run(); this fallback remains closed.
+            return false;
         case boundary::final_validation:
             return marker.published_seen && marker.final_open_seen &&
                    state.nr == SYS_pread64 && state.args[3] == 0 && marker_fd();
@@ -2354,6 +2599,8 @@ int run(const arguments & input) {
     selected.emplace(launcher, false);
     fault_state fault {};
     response_state response {};
+    reserve_phase_route_selector reserve_selector {};
+    std::string reserve_route_trace;
     marker_state marker = golden_envelope, root_marker {};
     pid_t live_child = -1;
     pid_t response_expected_child = -1;
@@ -2665,15 +2912,45 @@ int run(const arguments & input) {
                     break;
                 }
                 bool match = false;
+                bool exact_reserve_boundary = false;
+                if (!response_entry && state.live_child && l05z_core_gate &&
+                    input.point == boundary::reserve_revalidation &&
+                    !fault.pending_replacement) {
+                    const auto observed_phase = reserve_phase(
+                        marker.transient_seen, marker.published_seen);
+                    const auto observed_event = classify_reserve_route_entry(
+                        pid, state, root_identity, root_mount);
+                    if (observed_event != reserve_route_event::other) {
+                        if (!reserve_route_trace.empty()) reserve_route_trace += ',';
+                        reserve_route_trace += std::to_string(
+                            static_cast<unsigned>(observed_phase));
+                        reserve_route_trace += ':';
+                        reserve_route_trace += std::to_string(
+                            static_cast<unsigned>(reserve_selector.next));
+                        reserve_route_trace += ':';
+                        reserve_route_trace += std::to_string(
+                            static_cast<unsigned>(observed_event));
+                    }
+                    exact_reserve_boundary = reserve_selector.enter(
+                        observed_phase, observed_event);
+                    if (!reserve_selector.valid()) {
+                        HALOFPX_CONTROLLER_ERROR();
+                        break;
+                    }
+                }
                 if (!response_entry && state.live_child &&
                     !fault.pending_replacement) {
-                    const bool exact_boundary = matches_boundary(
-                        pid, state, input, root_identity, root_mount,
-                        parent_identity, parent_mount, fixture_identity, fixture_mount,
-                        envelopes, directories[1], staging,
-                        marker, root_marker, step4_gate, l05z_core_gate,
-                        writer_pinned, writer_identity,
-                        fixture_lock_identity);
+                    const bool exact_boundary =
+                        input.point == boundary::reserve_revalidation
+                            ? exact_reserve_boundary
+                            : matches_boundary(
+                                  pid, state, input, root_identity, root_mount,
+                                  parent_identity, parent_mount,
+                                  fixture_identity, fixture_mount,
+                                  envelopes, directories[1], staging,
+                                  marker, root_marker, step4_gate,
+                                  l05z_core_gate, writer_pinned,
+                                  writer_identity, fixture_lock_identity);
                     if (!fault.first_replaced) {
                         if (exact_boundary) {
                             ++fault.matches;
@@ -2750,6 +3027,24 @@ int run(const arguments & input) {
                 }
             } else if (info.op == PTRACE_SYSCALL_INFO_EXIT) {
                 if (state.live_child && state.have_entry) {
+                    if (input.point == boundary::reserve_revalidation &&
+                        reserve_selector.have_pending) {
+                        const auto reserve_event = reserve_selector.pending;
+                        const bool suppressed_selected_reserve =
+                            reserve_selector.next ==
+                                reserve_phase_route_selector::step::reserve_fstatfs &&
+                            selected[pid] && fault.pending_replacement;
+                        const bool reserve_exit_exact = suppressed_selected_reserve
+                            ? info.op == PTRACE_SYSCALL_INFO_EXIT &&
+                                info.exit.is_error && info.exit.rval == -ENOSYS
+                            : exact_reserve_route_exit(
+                                  pid, state, info, reserve_event, root_fd,
+                                  input.root);
+                        if (!reserve_selector.leave(reserve_exit_exact)) {
+                            HALOFPX_CONTROLLER_ERROR();
+                            break;
+                        }
+                    }
                     if (response_mode && response.pending_replacement) {
                         if (!response_exit_shape(
                                 response, pid, state.nr, info.exit.is_error,
@@ -3119,6 +3414,10 @@ int run(const arguments & input) {
         response_mode ? response.transcript : audit, qualified, input, marker);
     const bool response_delivery_exact = !response_mode ||
         (audit_read && response_consumer_shape(audit.size(), audit_eof));
+    const bool reserve_route_exact =
+        input.point != boundary::reserve_revalidation ||
+        (reserve_selector.valid() && !reserve_selector.have_pending &&
+         reserve_selector.exact_reserve_roles == input.occurrence);
     const std::size_t response_transcript_size = response.transcript.size();
     const std::string response_transcript_sha256 = response_mode
         ? halofpx_l05z_return_hostile_manifest_v1::detail::hex(
@@ -3138,6 +3437,7 @@ int run(const arguments & input) {
     const bool pass = !controller_error && !bounded_cleanup && launcher_exec &&
         child_exec && audit_read && audit_closed && audit_eof &&
         response_delivery_exact && !cleanup_syscall_seen &&
+        reserve_route_exact &&
         inherited_marker_publication_attempts == 1 &&
         publication_attempts == expected_publication_attempts &&
         injection && byte_coverage && process &&
@@ -3156,6 +3456,9 @@ int run(const arguments & input) {
          ",\"authority_inventory_exact\":" +
          (authority_inventory ? "true" : "false") +
          ",\"injection_exact\":" + (injection ? "true" : "false") +
+         ",\"reserve_route_exact\":" +
+         (reserve_route_exact ? "true" : "false") +
+         ",\"reserve_route_trace\":\"" + reserve_route_trace + "\"" +
          ",\"audit_exact\":" + (audit_exact ? "true" : "false") +
          ",\"child_status\":" + std::to_string(child_exit) +
          ",\"launcher_status\":" + std::to_string(launcher_exit) +
@@ -3216,6 +3519,33 @@ int run(const arguments & input) {
 } // namespace
 
 int main(int argc, char ** argv) {
+    if (argc == 2 &&
+        std::strcmp(argv[1], "--reserve-selector-self-test") == 0) {
+        const bool ok = envelope_fault::reserve_phase_route_selector_self_check() &&
+            envelope_fault::mapped_role_boundary_execution_closed_self_check();
+        std::printf("selector=phase-route-v1 legacy_root_rows=002,003,010 exact_reserve_rows=003,011,019 aggregate_boundaries_closed=6\n");
+        return ok ? 0 : 1;
+    }
+    if (argc == 2 &&
+        std::strcmp(argv[1], "--selector-v2-self-test") == 0) {
+        const bool ok = halofpx_l05z_return_selector_v2::self_check() &&
+            envelope_fault::mapped_role_boundary_execution_closed_self_check();
+        std::array<std::size_t, 2> states {};
+        for (const auto & selected :
+                halofpx_l05z_return_selector_v2::records()) {
+            ++states[selected.state ==
+                halofpx_l05z_return_selector_v2::admission::closed ? 0 : 1];
+        }
+        std::printf("version=v2 roles=%zu profiles=%zu cases=%zu closed=%zu executable=%zu live_matching=0 run_entry_point=0 source_commit=%s source_tree=%s map_hash=%s manifest_hash=%s\n",
+            halofpx_l05z_return_selector_v2::mapped_role_count,
+            halofpx_l05z_return_selector_v2::nonretryable_profile_count,
+            halofpx_l05z_return_selector_v2::records().size(), states[0],
+            states[1], halofpx_l05z_return_selector_v2::source_parent_commit,
+            halofpx_l05z_return_selector_v2::source_parent_tree,
+            halofpx_l05z_return_selector_v2::role_map_v1_manifest_sha256,
+            halofpx_l05z_return_selector_v2::manifest_hash_hex().c_str());
+        return ok ? 0 : 1;
+    }
     if (argc == 2 &&
         std::strcmp(argv[1], "--mapped-role-authority-self-test") == 0) {
         const bool ok = halofpx_l05z_return_role_map_v1::self_check() &&

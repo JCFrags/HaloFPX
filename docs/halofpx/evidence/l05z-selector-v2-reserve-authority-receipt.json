@@ -1,0 +1,182 @@
+{
+  "schema": "halofpx.l05z-selector-v2-reserve-authority.v1",
+  "date": "2026-07-19",
+  "status": "ACCEPT_CLOSED_SELECTOR_V2_AND_RESERVE_ALIAS_CORRECTION_NOT_ROLE_EXECUTION_ADMISSION_NOT_L05Z_PROMOTION",
+  "authority_parent_commit": "51f073f592d24b0b3244a33b57b8bc14d95b0356",
+  "authority_parent_tree": "4575b7c4709cf6fe6ec9eb55d3a09f6ab869a72d",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Target-native test-only exact-selector-v2 closed authority plus exact phase-route repair of the legacy reserve-revalidation fstatfs selector alias.",
+  "selector_v2": {
+    "mapped_roles": 247,
+    "profiles_per_role": 18,
+    "cases": 4446,
+    "canonical_id": "<role-id>-<PRE|LATE>-<errno>",
+    "admission_state": "closed",
+    "live_matching_connected": false,
+    "run_entry_point_present": false,
+    "map_v1_source_sha256": "383f59126f725047c9aca913bf3d3e2d86540146fc5672e570ce15b70a1a2447",
+    "map_v1_manifest_sha256": "190abec2a90a78ea1b3aebf41adb75d824e9b533f4cfd9ff8ac2f3152994df8b",
+    "canonical_manifest_sha256": "5735bd55d0a4885a796aee6c82d8e2a6cdbf88cfa8a4e148c56bcfe201f245f1",
+    "frozen_v1_lineage": "Every v2 case resolves one-to-one to its existing frozen compatibility case and 64-character v1 dedup key. Frozen v1 data and hashes are unchanged.",
+    "bound_fields": [
+      "case_id",
+      "legacy_dedup_key",
+      "role_id",
+      "source_route",
+      "stream_part",
+      "residual_oracle",
+      "physical_profile",
+      "completion",
+      "errno",
+      "nonretryable",
+      "admission_state"
+    ]
+  },
+  "reserve_alias_correction": {
+    "legacy_behavior": "An occurrence count over root fstatfs calls aliased ordinary root inspection with reserve checks.",
+    "legacy_overlapping_roles": ["L05Z-FSTATFS-002", "L05Z-FSTATFS-003", "L05Z-FSTATFS-010", "L05Z-FSTATFS-011", "L05Z-FSTATFS-018", "L05Z-FSTATFS-019"],
+    "exact_route": [
+      "root-inspection-fstatfs",
+      "BTRFS_IOC_FS_INFO",
+      "BTRFS_IOC_GET_SUBVOL_INFO",
+      "canonical-/proc/self/fd/<decimal-fd>-readlink",
+      "reserve-fstatfs"
+    ],
+    "phase_role_mapping": {
+      "premutation_occurrence_1": "L05Z-FSTATFS-003",
+      "prepublication_occurrence_2": "L05Z-FSTATFS-011",
+      "final_occurrence_3": "L05Z-FSTATFS-019"
+    },
+    "raw_fd_contract": "Reject values above INT_MAX before conversion; require the exact pinned root descriptor.",
+    "pre_contract": "Suppress only the selected reserve syscall, require the artificial -ENOSYS exit, then substitute the requested errno.",
+    "late_contract": "Require native success and fieldwise equality for type, block size, block counts, inode counts, fsid, name length, fragment size, flags, and all f_spare entries before substituting the requested errno.",
+    "failure_contract": "Skipped, duplicated, reordered, malformed, wrong-fd, wrong-path, wrong-phase, wrong-output, or residual pending route state is a controller error. The old fallback never selects."
+  },
+  "source_sha256": {
+    "tests/halofpx-l05z-return-fault-controller.cpp": {"sha256": "c22fb10b2f78d56f35181895c6bf62ff50776302cb4860064857a01cc1a4f76d", "bytes": 180749},
+    "tests/halofpx-l05z-return-selector-v2.inc": {"sha256": "c031ecb60a3a1a703782d203be9c1ba4285a614162e9f1fe5f8886f82e1c8895", "bytes": 17659},
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake": {"sha256": "3d9dd626c06e4e82358b051a7f14c64c773da495899b471b66d81d1944b0249e", "bytes": 28271}
+  },
+  "qualification": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "environment": "Linux Strix Halo; fresh disposable 1 GiB Btrfs filesystem reformatted for every live matrix cell",
+    "evidence_root_each_node": "/var/tmp/halofpx-l05z-selector-v2-51f073f-20260719",
+    "builds": {
+      "project_default_gnu_cpp17": {
+        "compile_and_link_exit_each_node": 0,
+        "object_sha256_both_nodes": "a23c63200212599678c58be21a9707e8f899cc3c766dee5d92c2d8efb179c8be",
+        "binary_sha256_both_nodes": "de95e9c5007c95040e6f3a945ad34dbc91f470a213d5c2ff74d8a938c3c1d44d"
+      },
+      "explicit_iso_cpp17": {
+        "compile_and_link_exit_each_node": 0,
+        "object_sha256_both_nodes": "170bd77fab2e50f5725f14ac9c29bab3be7ef800958e5c60e988b8cf85281d49",
+        "binary_sha256_both_nodes": "224512b827ceee9f07a07fc01af8da6ae4c2398bbf67693af552ba7bb2c474c1"
+      }
+    },
+    "diagnostics": {
+      "commands": 28,
+      "passes": 28,
+      "lanes": ["selector-v2", "reserve-selector", "mapped-authority", "response-decoder", "frozen-role-authority", "semantic-authority", "hostile-HRAW-B0000"],
+      "diagnostics_manifest_sha256_both_nodes": "982d9522203a971e5418b4de9ec4eccf42fed95140475719b9e91156867bfe17",
+      "sizes_manifest_sha256_both_nodes": "141a4437b79e2e2e00dcff536d52eea0454c8b7a5aff7c91cbc63dd12a98fbc0",
+      "build_manifest_sha256_both_nodes": "9eef741884035727d7da241bdb247c945af7eb241835da7e47ab0ad6d2a74e8a"
+    },
+    "live_matrix": {
+      "profiles": 19,
+      "profile_definition": "All 18 PRE/LATE errno profiles plus inherited EINTR-ONCE compatibility",
+      "reserve_occurrences_per_profile": 3,
+      "cases_each_node": 57,
+      "cases_total": 114,
+      "passes_total": 114,
+      "receipt_files_each_node": 57,
+      "receipt_records_each_node": 171,
+      "nimo_1_results_sha256": "c1b351691105ec264fdf420341673bfde5e72160116da9517f414bc48319e0c5",
+      "nimo_2_results_sha256": "4d801380c7a48fc2df3ea2af442cfc581b77894eed380e51fdcbed7af6252493",
+      "nimo_1_artifact_manifest_sha256": "a81336a67c2e643ac03a6a83c227ae3b333bce072153b604487501ba5eb582dd",
+      "nimo_2_artifact_manifest_sha256": "c9a90f2fe7ff4daf1575f098db44e2bea39b74351d72f8327365ef3dcbfb69bf",
+      "required_outcome": "Selected exact role injected; controller audit true; child and launcher nonzero; whole-root discard; locks released; no residual mount, loop, or process."
+    },
+    "inherited_controls": {
+      "static_seam_contract_exit_each_node": 0,
+      "feature_off_contract_exit_each_node": 0,
+      "l02_contract_exit_each_node": 0,
+      "feature_off_limitation": "The current change is a tests-only overlay. Feature-off and L02 controls use the unchanged full accepted product source and known-good server binary; no complete product rebuild is claimed."
+    },
+    "result": "PASS_BOTH_NODES_STRICT_BUILDS_DIAGNOSTICS_AND_114_FRESH_MEDIA_LIVE_CELLS"
+  },
+  "retained_evidence": {
+    "bundle_path_each_node": "/var/tmp/halofpx-l05z-selector-v2-51f073f-20260719-evidence.tar.zst",
+    "nimo_1": {
+      "manifest_sha256": "1ae8548322857ec66c4daefe4971cb5030874d4f17b1badc29ede1c698e04d1b",
+      "manifest_bytes": 64335,
+      "bundle_sha256": "4477cb18ddb963f6dd0ea481ad44a40287b6147cdfd6acc92cd98cfb4797e256",
+      "bundle_bytes": 1298010
+    },
+    "nimo_2": {
+      "manifest_sha256": "559dbe57501edb4a68196fcdac59822ae3966b1cf2f59a616e7d8b6275f56757",
+      "manifest_bytes": 64335,
+      "bundle_sha256": "ee110039c415efdaa8e1c5d2f1e9e9001770fc5ba8a6cd51abfa3912fd702257",
+      "bundle_bytes": 1297527
+    },
+    "node_bundle_difference_expected": "Node environment, timings, result tables, and raw receipts are node-specific."
+  },
+  "discovery_and_cleanup": {
+    "nonacceptance_runs": [
+      "v1 rejected receipt placement before launch",
+      "v2 rejected receipt-parent mode 0755",
+      "v3 and v4 exposed and corrected an erroneous getdents route assumption"
+    ],
+    "residual_process_note": "An early process check matched its own wrapper; the separately retained final check is empty.",
+    "disposable_debug_images_removed_each_node": 7,
+    "removed_images_were_verified_unmounted_and_unlooped": true,
+    "residual_root_mounts_each_node": 0,
+    "residual_loop_devices_each_node": 0,
+    "residual_controller_processes_each_node": 0
+  },
+  "continuity": {
+    "nimo_1": {"llama_server_pid": 971, "http_8081_health": 200, "unchanged": true},
+    "nimo_2": {"rpc_server_pid": 3562775, "port_50052_listening": true, "unchanged": true}
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "wiki_review": {
+    "categories": [
+      "09/HaloKV Persistent Cache/63 Durability Modes, Atomic Commit, Crash Recovery, and Corruption Handling",
+      "11/Verification and Performance/80 Fault Injection: Cable Pulls, Restarts, OOM, Disk Full, and Corruption"
+    ],
+    "result": "consistent_with_exact_boundary_fail_closed_disposable_target_and_retained_evidence_requirements"
+  },
+  "boundaries": {
+    "default_off": true,
+    "test_only": true,
+    "all_4446_v2_cases_closed": true,
+    "mapped_family_execution_admitted": false,
+    "product_linkage_changed": false,
+    "persistent_server_writes_enabled": false,
+    "provider_or_cache_hit_edge_added": false,
+    "l05z_promotion": false,
+    "performance_claim": false
+  },
+  "provenance": {
+    "treatment": "target_native_closed_test_authority_and_selector_correction",
+    "donor_code_copied": false,
+    "gpl_llama_ai_code_copied": false,
+    "new_dependency": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false
+  },
+  "deferred": [
+    "v2-only direct-child lineage tracker",
+    "global mapped-event phase and descriptor-generation shadow authority",
+    "family-specific exact entry and late-success oracles",
+    "first readlink role execution admission and independent review",
+    "complete 4446-case two-node returned-fault matrix",
+    "sanitizer, scale, soak, and L05z promotion",
+    "persistent writes, deployment, durability, inference, and performance claims"
+  ]
+}

@@ -283,6 +283,28 @@ selector alias: the current selector overlaps root rows 002, 003, 010, 011,
 exact fail-closed phase selector distinguishes those roles, all six mapped
 families remain closed.
 
+### Closed selector-v2 and exact reserve authority
+
+Selector v2 now gives the 247 mapped roles 4,446 exact case records across the
+18 PRE/LATE errno profiles. Every record is still closed, has no live matching
+or run entry point, and binds one-to-one to its frozen compatibility case and
+v1 dedup key. Map v1 and the frozen compatibility authority remain unchanged.
+
+The legacy reserve selector alias is corrected independently of mapped-role
+execution. Its phase-route cursor requires root inspection `fstatfs`, Btrfs
+FS_INFO, Btrfs GET_SUBVOL_INFO, canonical `/proc/self/fd/<decimal-fd>`
+`readlink`, and then the reserve `fstatfs`. Occurrences 1, 2, and 3 therefore
+identify only roles 003, 011, and 019 in the premutation, prepublication, and
+final phases. Wrong order, fd, path, output, phase, or residual cursor state is
+a controller error; the legacy fallback cannot select.
+
+Both Linux Strix Halo nodes passed strict GNU and ISO C++17 builds, 28 focused
+diagnostics, feature-off and L02 controls, and 114 fresh-Btrfs live reserve
+cells covering all 18 PRE/LATE profiles plus the inherited EINTR-ONCE profile
+at all three phases. This closes the reserve alias and accepts the closed v2
+scaffold only. It does not admit any mapped role, promote L05z, enable product
+linkage or persistence, or make an inference-performance claim.
+
 ## Provenance, rollback, and nonclaims
 
 L05z is target-native and requires no donor implementation or documentation,
