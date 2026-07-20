@@ -373,6 +373,7 @@ endforeach()
 file(READ "${L05Z_RETURN}" L05Z_RETURN_TEXT)
 foreach(REQUIRED IN ITEMS
     "#include \"halofpx-l05z-return-hostile-manifest.inc\""
+    "#include \"halofpx-l05z-return-role-map-v1.inc\""
     "#include \"halofpx-l05z-return-role-authority-manifest.inc\""
     "#include \"halofpx-l05z-return-response-manifest.inc\""
     "manifest_self_check"
@@ -381,6 +382,10 @@ foreach(REQUIRED IN ITEMS
     "synthetic_exit_returns_errno"
     "completed_exit_returns_errno"
     "--semantic-authority-self-test"
+    "--mapped-role-authority-self-test"
+    "mapped_role_boundary_execution_closed"
+    "mapped_role_boundary_execution_closed_self_check"
+    "if (mapped_role_boundary_execution_closed(output.point)) return false"
     "stdout-audit-response"
     "suppress-fake-full"
     "response_decoder_self_check"
@@ -395,6 +400,67 @@ foreach(REQUIRED IN ITEMS
     message(FATAL_ERROR "missing L05z returned-fault controller token: ${REQUIRED}")
   endif()
 endforeach()
+set(L05Z_RETURN_ROLE_MAP_V1
+  "${ROOT}/tests/halofpx-l05z-return-role-map-v1.inc")
+if(NOT EXISTS "${L05Z_RETURN_ROLE_MAP_V1}")
+  message(FATAL_ERROR "missing L05z mapped-but-closed role authority include")
+endif()
+file(READ "${L05Z_RETURN_ROLE_MAP_V1}" L05Z_RETURN_ROLE_MAP_V1_TEXT)
+foreach(REQUIRED IN ITEMS
+    "mapped_role_count = 247"
+    "mapped_not_executable"
+    "executable"
+    "mapping_source_commit"
+    "mapping_source_tree"
+    "canonical_manifest_sha256"
+    "halofpx-l05z-return-role-map-fstat.inc"
+    "halofpx-l05z-return-role-map-statx.inc"
+    "halofpx-l05z-return-role-map-readlink.inc"
+    "halofpx-l05z-return-role-map-getdents.inc"
+    "halofpx-l05z-return-role-map-facts.inc"
+    "halofpx-l05z-return-role-map-fstatfs.inc"
+    "executable != 0")
+  string(FIND "${L05Z_RETURN_ROLE_MAP_V1_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing L05z mapped role authority token: ${REQUIRED}")
+  endif()
+endforeach()
+function(halofpx_check_l05z_mapped_role_fragment NAME EXPECTED_ROWS EXPECTED_SHA256)
+  set(FRAGMENT "${ROOT}/tests/halofpx-l05z-return-role-map-${NAME}.inc")
+  if(NOT EXISTS "${FRAGMENT}")
+    message(FATAL_ERROR "missing L05z mapped role fragment: ${FRAGMENT}")
+  endif()
+  file(READ "${FRAGMENT}" FRAGMENT_TEXT)
+  string(REGEX MATCHALL "HALOFPX_L05Z_ROLE_MAP_ROW\\(" FRAGMENT_ROWS
+    "${FRAGMENT_TEXT}")
+  list(LENGTH FRAGMENT_ROWS FRAGMENT_ROW_COUNT)
+  if(NOT FRAGMENT_ROW_COUNT EQUAL EXPECTED_ROWS)
+    message(FATAL_ERROR
+      "wrong L05z mapped role row count for ${NAME}: ${FRAGMENT_ROW_COUNT}")
+  endif()
+  file(SHA256 "${FRAGMENT}" FRAGMENT_SHA256)
+  if(NOT FRAGMENT_SHA256 STREQUAL EXPECTED_SHA256)
+    message(FATAL_ERROR
+      "wrong L05z mapped role fragment SHA-256 for ${NAME}: ${FRAGMENT_SHA256}")
+  endif()
+  string(FIND "${FRAGMENT_TEXT}" "#undef HALOFPX_L05Z_ROLE_MAP_ROW" BAD_UNDEF)
+  if(NOT BAD_UNDEF EQUAL -1)
+    message(FATAL_ERROR
+      "L05z mapped role fragment owns consumer macro lifecycle: ${NAME}")
+  endif()
+endfunction()
+halofpx_check_l05z_mapped_role_fragment(fstat 86
+  0805097ec2494f87142a8f01192cd1ba500216a9e57e421e14ef9e3a68273fac)
+halofpx_check_l05z_mapped_role_fragment(statx 36
+  26bffe5496d3bbda7e6eccb80de373beeda3832b417672c5f45bc35be45b3250)
+halofpx_check_l05z_mapped_role_fragment(readlink 30
+  299f4d3128e785e52c5f6ba562b84cbba257b486d8dfee996dc4fa51fb69b958)
+halofpx_check_l05z_mapped_role_fragment(getdents 32
+  8784bc99dc512e29f4a70049c2f2897c0bd71194683115e65ac0e80c5e95a0fc)
+halofpx_check_l05z_mapped_role_fragment(facts 40
+  5a63dfbf62c6b0f39ce7f2eab683b4434a5fd6664cf6dbc358fda36d21a91dc8)
+halofpx_check_l05z_mapped_role_fragment(fstatfs 23
+  233cad281518ee300acb72e7336861087794c5790562c72fcacbb0d97d720a98)
 set(L05Z_RETURN_ROLE_AUTHORITY_MANIFEST
   "${ROOT}/tests/halofpx-l05z-return-role-authority-manifest.inc")
 if(NOT EXISTS "${L05Z_RETURN_ROLE_AUTHORITY_MANIFEST}")

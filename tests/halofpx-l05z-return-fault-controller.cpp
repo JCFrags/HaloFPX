@@ -22,6 +22,7 @@ int halofpx_l05z_imported_crash_controller_main(int, char **);
 #include "halofpx-context-store-registry-lab-linux-initializer-internal.h"
 #include "halofpx-l05z-return-hostile-manifest.inc"
 #include "halofpx-l05z-return-role-authority-manifest.inc"
+#include "halofpx-l05z-return-role-map-v1.inc"
 #include "halofpx-l05z-return-response-manifest.inc"
 #include <climits>
 #include <fstream>
@@ -854,6 +855,31 @@ bool parse_unsigned(const char * value, unsigned maximum, unsigned & output) {
     return true;
 }
 
+bool mapped_role_boundary_execution_closed(boundary value) {
+    switch (value) {
+        case boundary::fstat_call:
+        case boundary::statx_call:
+        case boundary::readlink_call:
+        case boundary::getdents_call:
+        case boundary::facts_call:
+        case boundary::fstatfs_call:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool mapped_role_boundary_execution_closed_self_check() {
+    return mapped_role_boundary_execution_closed(boundary::fstat_call) &&
+        mapped_role_boundary_execution_closed(boundary::statx_call) &&
+        mapped_role_boundary_execution_closed(boundary::readlink_call) &&
+        mapped_role_boundary_execution_closed(boundary::getdents_call) &&
+        mapped_role_boundary_execution_closed(boundary::facts_call) &&
+        mapped_role_boundary_execution_closed(boundary::fstatfs_call) &&
+        !mapped_role_boundary_execution_closed(boundary::step4_open) &&
+        !mapped_role_boundary_execution_closed(boundary::stdout_audit_response);
+}
+
 bool parse_arguments(int argc, char ** argv, arguments & output) {
     for (int index = 1; index < argc; index += 2) {
         if (index + 1 >= argc) return false;
@@ -894,6 +920,11 @@ bool parse_arguments(int argc, char ** argv, arguments & output) {
         !output.fixture || !output.receipt || !output.point_set || !output.mode_set) {
         return false;
     }
+    // The parallel v1 map records source evidence only.  None of its 247 roles
+    // has an exact executable selector, so reject all six aggregate boundaries
+    // before target validation or launch.  A later admission must use a new,
+    // versioned exact-selector authority rather than weakening this gate.
+    if (mapped_role_boundary_execution_closed(output.point)) return false;
     const bool error_mode = output.injection == mode::pre_error ||
         output.injection == mode::late_error || output.injection == mode::eintr_once;
     if (error_mode != output.errno_set) return false;
@@ -3185,6 +3216,24 @@ int run(const arguments & input) {
 } // namespace
 
 int main(int argc, char ** argv) {
+    if (argc == 2 &&
+        std::strcmp(argv[1], "--mapped-role-authority-self-test") == 0) {
+        const bool ok = halofpx_l05z_return_role_map_v1::self_check() &&
+            envelope_fault::mapped_role_boundary_execution_closed_self_check();
+        std::array<std::size_t, 3> states {};
+        for (const auto & role : halofpx_l05z_return_role_map_v1::records()) {
+            ++states[role.state == halofpx_l05z_return_role_map_v1::admission::pending ? 0 :
+                role.state == halofpx_l05z_return_role_map_v1::admission::mapped_not_executable ? 1 : 2];
+        }
+        std::printf("version=v1 roles=%zu pending=%zu mapped_not_executable=%zu executable=%zu cli_closed=6 source_commit=%s source_tree=%s profile=%s manifest_hash=%s\n",
+            halofpx_l05z_return_role_map_v1::records().size(), states[0],
+            states[1], states[2],
+            halofpx_l05z_return_role_map_v1::mapping_source_commit,
+            halofpx_l05z_return_role_map_v1::mapping_source_tree,
+            halofpx_l05z_return_role_map_v1::physical_profile,
+            halofpx_l05z_return_role_map_v1::manifest_hash_hex().c_str());
+        return ok ? 0 : 1;
+    }
     if (argc == 2 &&
         std::strcmp(argv[1], "--response-decoder-self-test") == 0) {
         const bool ok = envelope_fault::response_decoder_self_check() &&

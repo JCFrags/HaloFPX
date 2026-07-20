@@ -266,6 +266,23 @@ controller pipe, so this case proves pre-kernel suppression only for the
 admitted one-`SYS_write` profile and makes no universal output-suppression
 claim.
 
+### Mapped-but-closed aggregate roles
+
+The 247 formerly aggregate-only roles now have a target-owned source-and-trace
+map: 86 `fstat`, 36 `statx`, 30 `readlink`, 32 `getdents64`, 40 Btrfs-facts,
+and 23 `fstatfs` roles. Map v1 is frozen as mapping evidence only. All 247 rows
+are `mapped_not_executable`, all six aggregate CLI boundaries reject before
+target validation or process launch, and the frozen compatibility and semantic
+authorities remain unchanged. No mapped row is an admitted fault cell.
+
+Execution admission requires a new versioned exact-selector manifest and
+independent review; map v1 must not be mutated into executable authority. The
+new version must also close the pre-existing reserve-revalidation `fstatfs`
+selector alias: the current selector overlaps root rows 002, 003, 010, 011,
+018, and 019, while the actual reserve roles are 003, 011, and 019. Until an
+exact fail-closed phase selector distinguishes those roles, all six mapped
+families remain closed.
+
 ## Provenance, rollback, and nonclaims
 
 L05z is target-native and requires no donor implementation or documentation,

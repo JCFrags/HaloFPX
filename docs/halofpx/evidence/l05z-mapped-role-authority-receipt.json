@@ -1,0 +1,161 @@
+{
+  "schema": "halofpx.l05z-mapped-role-authority.v1",
+  "date": "2026-07-19",
+  "status": "ACCEPT_FOR_EXACT_SELECTOR_IMPLEMENTATION_NOT_EXECUTION_ADMISSION_NOT_L05Z_PROMOTION",
+  "authority_parent_commit": "65ef0eba8027ce1738fdc97fab649d4ca5b4e0d3",
+  "authority_parent_tree": "fdc34babba04e1766b852d6d1dcddfbb6314f0a6",
+  "mapping_source_commit": "eba2e36764e1624d6d20bb00657dd7f2fe64a1be",
+  "mapping_source_tree": "32a87f74cadb1853abe190b25910d3cdde0b4d70",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Target-native test-only source-and-trace mapping for 247 L05z returned-fault roles. Mapping evidence does not grant selector or execution authority.",
+  "map_v1_authority": {
+    "roles": 247,
+    "families": {
+      "fstat": 86,
+      "statx": 36,
+      "readlink": 30,
+      "getdents64": 32,
+      "btrfs_facts": 40,
+      "fstatfs": 23
+    },
+    "pending": 0,
+    "mapped_not_executable": 247,
+    "executable": 0,
+    "canonical_manifest_sha256": "190abec2a90a78ea1b3aebf41adb75d824e9b533f4cfd9ff8ac2f3152994df8b",
+    "physical_profile": "nimo-2|Linux-7.1.3|glibc-2.43|x86_64|Btrfs|one-getdents-fragment-plus-EOF",
+    "treatment": "freeze_v1_closed; a later admission requires a new versioned exact-selector manifest"
+  },
+  "source_sha256": {
+    "tests/halofpx-l05z-return-fault-controller.cpp": {"sha256": "9050715bae97c3075d1f12b8ce6e379bb3528d44099137e419f2f8f936554ccb", "bytes": 165206},
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake": {"sha256": "d46b989c4499c67b0d32337180dcc61fc915571371cf73c4fbe1ccf761c3c91d", "bytes": 26580},
+    "tests/halofpx-l05z-return-role-map-v1.inc": {"sha256": "383f59126f725047c9aca913bf3d3e2d86540146fc5672e570ce15b70a1a2447", "bytes": 13032}
+  },
+  "fragment_authority": {
+    "fstat": {"rows": 86, "sha256": "0805097ec2494f87142a8f01192cd1ba500216a9e57e421e14ef9e3a68273fac", "bytes": 19619},
+    "statx": {"rows": 36, "sha256": "26bffe5496d3bbda7e6eccb80de373beeda3832b417672c5f45bc35be45b3250", "bytes": 10522},
+    "readlink": {"rows": 30, "sha256": "299f4d3128e785e52c5f6ba562b84cbba257b486d8dfee996dc4fa51fb69b958", "bytes": 9907},
+    "getdents64": {"rows": 32, "sha256": "8784bc99dc512e29f4a70049c2f2897c0bd71194683115e65ac0e80c5e95a0fc", "bytes": 7615},
+    "btrfs_facts": {"rows": 40, "sha256": "5a63dfbf62c6b0f39ce7f2eab683b4434a5fd6664cf6dbc358fda36d21a91dc8", "bytes": 12416},
+    "fstatfs": {"rows": 23, "sha256": "233cad281518ee300acb72e7336861087794c5790562c72fcacbb0d97d720a98", "bytes": 10193}
+  },
+  "qualification": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "evidence_root_each_node": "/var/tmp/halofpx-l05z-mapped-role-authority-65ef0eb-20260719",
+    "primary_project_default_gnu17": {
+      "compile_exit_both_nodes": 0,
+      "link_exit_both_nodes": 0,
+      "object_sha256_both_nodes": "7ad4188775961d624d4ba6b92932fc94a8a245e1f7dc8933b3fc532918e964ea",
+      "object_bytes_both_nodes": 809104,
+      "binary_sha256_both_nodes": "c1d8f8856495266f1cacba8264498b571afb0c2017f510f6b7294f7b07a24ab9",
+      "binary_bytes_both_nodes": 701328
+    },
+    "explicit_iso_cpp17": {
+      "compile_exit_both_nodes": 0,
+      "link_exit_both_nodes": 0,
+      "object_sha256_both_nodes": "035a37779ce78681746904185b3f439bdec7d9adaf83600ffb99a8bec91ec2f9",
+      "object_bytes_both_nodes": 819888,
+      "binary_sha256_both_nodes": "bff90d61df4c30b6b0894f38b8bd016e35192b5558b162570acb418643b96f8b",
+      "binary_bytes_both_nodes": 710560
+    },
+    "selftests_both_builds": {
+      "mapped_role_authority": {"exit_each_node_each_build": 0, "stdout_sha256": "f21ba801bc290a5c6bc1c7a2dd5d5350f4572f3c1cf9c7f333592b30107226d0", "stdout_bytes": 352},
+      "legacy_role_authority": {"exit_each_node_each_build": 0, "stdout_sha256": "56be54b4d59a9f9953293d8cc310395554b07cdece16a34cd5315b5067b9c197", "stdout_bytes": 844, "byte_identical_to_accepted": true},
+      "response_decoder": {"exit_each_node_each_build": 0, "stdout_sha256": "171d1be9bcd7aa1f7a9b78b2f23b7d53514a3dec25eeb4882aa7c358f717ddf1", "stdout_bytes": 576, "byte_identical_to_accepted": true},
+      "semantic_authority": {"exit_each_node_each_build": 0, "stdout_sha256": "15892cc9a1bf50af5021cf640f9c04c3e7c7c09502e4fc17b77b853316f41a2a", "stdout_bytes": 910, "byte_identical_to_accepted": true},
+      "hostile_HRAW_B0000": {"exit_each_node_each_build": 0, "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_bytes": 0}
+    },
+    "source_and_inherited_controls": {
+      "static_seam_contract": {"exit_both_nodes": 0, "log_sha256_both_nodes": "7b4f124fd96223517deb3d26b2b311eab62bf8511400c33c1ef28669758e06fa", "log_bytes_both_nodes": 87},
+      "feature_off_contract": {"exit_both_nodes": 0, "log_sha256_both_nodes": "9ee971efd4f5a8d5a6a80a0130e41b7dc2c3e194dce5d710839206809a49f323", "log_bytes_both_nodes": 39},
+      "l02_contracts": {"exit_both_nodes": 0, "log_sha256_both_nodes": "db24640b0ee1abcaa98e011d05b7aa28a6267643c2a26c15993cd9391bff9438", "log_bytes_both_nodes": 65},
+      "limitation": "The tests-only mapped-role snapshot did not rebuild a full server. The inherited controls validate the unchanged product and contract surface; no product source changed."
+    },
+    "result": "PASS_BOTH_NODES_PRIMARY_AND_EXPLICIT_ISO_CPP17_MAPPED_CLOSED_AUTHORITY"
+  },
+  "closed_cli_v2": {
+    "families": ["fstat", "statx", "readlink", "getdents64", "facts", "fstatfs"],
+    "result_rc_each_family_each_node": 2,
+    "results_tsv_sha256_both_nodes": "200963e0194537e666360d2b0694a8005786a205c46c35d6e68064890da42dce",
+    "results_tsv_bytes_both_nodes": 56,
+    "receipt_files_created": 0,
+    "stdout_sha256_each_family_each_node": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes_each_family_each_node": 0,
+    "stderr_sha256_each_family_each_node": "3d2bb2579b37bd8176ead3aad97dc9d1bc3a02739e1fdaabc3dacc7b033732d1",
+    "stderr_bytes_each_family_each_node": 851,
+    "strace_clone_calls_each_family_each_node": 0,
+    "strace_fork_calls_each_family_each_node": 0,
+    "strace_vfork_calls_each_family_each_node": 0,
+    "meaning": "Each aggregate boundary rejects at CLI validation before target validation or process launch."
+  },
+  "retained_evidence": {
+    "bundle_path_each_node": "/var/tmp/halofpx-l05z-mapped-role-authority-65ef0eb-20260719-evidence.tar.zst",
+    "nimo_1": {
+      "manifest_sha256": "d77fd44c4d2f083fdf23a06f8f8be18cc23c137ea9f24fdf4c98b7b88a588260",
+      "manifest_bytes": 23682,
+      "bundle_sha256": "811beca496a2809b81a76e53c53c751cc9edc068ff7f3092531bd22cb9dc2af3",
+      "bundle_bytes": 1231132
+    },
+    "nimo_2": {
+      "manifest_sha256": "ee22dc49ba6e6dc720b165972dc53d092da31c29f924630c4a85870a1f4df123",
+      "manifest_bytes": 24487,
+      "bundle_sha256": "0663bf3464c3048b81db8dc3cf3dc8d4fc3551dce612418ae6a06d64ea78388a",
+      "bundle_bytes": 1232123
+    },
+    "node_bundle_difference_expected": "Strace PIDs and node environment evidence are node-specific."
+  },
+  "cleanup_and_continuity": {
+    "residual_controller_processes_each_node": 0,
+    "residual_root_mounts_each_node": 0,
+    "residual_loop_devices_each_node": 0,
+    "nimo_1": {"llama_server_pid": 971, "http_8081_health": 200, "unchanged": true},
+    "nimo_2": {"rpc_server_pid": 3562775, "port_50052_listening": true, "unchanged": true}
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "known_admission_blocker": {
+    "name": "pre-existing reserve-revalidation fstatfs selector alias",
+    "current_selector": "step4_gate plus SYS_fstatfs plus exact root fd",
+    "overlapping_root_rows": [2, 3, 10, 11, 18, 19],
+    "current_occurrence_ceiling_selects": [2, 3, 10],
+    "actual_fstatvfs_reserve_roles": [3, 11, 19],
+    "required_resolution": "A new versioned admission authority must bind reserve selection to the exact three roles or an equivalently exact fail-closed phase state.",
+    "status": "deferred_execution_admission_closed"
+  },
+  "wiki_review": {
+    "categories": [
+      "09/HaloKV Persistent Cache/63 Durability Modes, Atomic Commit, Crash Recovery, and Corruption Handling",
+      "11/Verification and Performance/80 Fault Injection: Cable Pulls, Restarts, OOM, Disk Full, and Corruption"
+    ],
+    "result": "consistent_no_wiki_edit_required",
+    "reason": "The closed map preserves exact fault boundaries, fail-closed behavior, and nonpromotion; no mapped-role execution result is promoted into the Wiki."
+  },
+  "boundaries": {
+    "default_off": true,
+    "test_only": true,
+    "map_v1_execution_closed": true,
+    "product_linkage_changed": false,
+    "persistent_server_writes_enabled": false,
+    "provider_or_cache_hit_edge_added": false,
+    "l05z_promotion": false
+  },
+  "provenance": {
+    "treatment": "target_native_test_mapping_and_closed_controller_authority",
+    "donor_code_copied": false,
+    "gpl_llama_ai_code_copied": false,
+    "new_dependency": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false
+  },
+  "deferred": [
+    "new versioned exact-selector admission manifest and independent review",
+    "reserve-revalidation fstatfs selector alias correction",
+    "execution admission for all 247 mapped roles",
+    "returned-fault scale, sanitizer qualification, and L05z promotion",
+    "persistent writes, deployment, durability, inference, and performance claims"
+  ]
+}
