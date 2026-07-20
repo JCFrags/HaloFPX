@@ -1,0 +1,212 @@
+{
+  "schema": "halofpx.p07-current-head-feature-off-matched-baseline.v1",
+  "matrix_schema": "halofpx.performance-matrix.v1",
+  "date": "2026-07-20",
+  "status": "bounded_matched_baseline_complete_final_zero_regression_open",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "candidate_commit": "ed17a504956e410d381c1c2f8aa741953a3a97db",
+  "candidate_tree": "f7d67ae2ed7315341fda4ebc8521326241c13162",
+  "candidate_source_archive_sha256": "0d7971bb9e832f251d733bd7dec6ada7245ef43b4412218d2b2e955b38ecf45d",
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "qualified_node": "nimo-2"
+  },
+  "build": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "matched_configuration": true,
+    "build_type": "Release",
+    "host_c_compiler": "/usr/bin/cc",
+    "host_cxx_compiler": "/usr/bin/c++",
+    "hip_compiler": "/opt/rocm/lib/llvm/bin/clang++",
+    "hip_compiler_version": "AMD Clang 22.0.0git f58b06dce1f9c15707c5f808fd002e18c2accf7e",
+    "hip_compiler_sha256_both_nodes": "eea67555a6140711b04c60b03beac7cda68799446afd6aa501a7094d959a363e",
+    "backends": ["HIP", "Vulkan", "RPC"],
+    "amdgpu_targets": "gfx1151",
+    "force_mmq": true,
+    "no_vmm": true,
+    "webui": false,
+    "tests": false,
+    "all_context_store_gates": false,
+    "all_registry_lab_gates": false,
+    "hip_quantized_kv_candidate": false,
+    "vulkan_q8_predequant_candidate": false,
+    "candidate_cmake_cache_sha256_both_nodes": "fa84c6bc5accf00f6cc47a51215ef6a04cc27616a2146cd7b0188d52f6ed771f",
+    "control": {
+      "rpc_server_sha256": "3327b1d7165d6084aeff8694163b1a69a1110dd7538a89389794bba9d78d5868",
+      "llama_server_sha256": "d752b7f327b51d50f3a868fda537ffec90f999ae2144ad61416203ccc12d4b4c"
+    },
+    "candidate": {
+      "rpc_server_sha256_both_nodes": "4d50f74f1a0ede892ce0790303bdda637f7f5899e93ad8cd1d4816880606dbcf",
+      "llama_server_sha256_both_nodes": "c630ef90ffac9bd304b364d1edac34a7c5bce022386182a6652600d9982ad0ee"
+    }
+  },
+  "excluded_diagnostics": {
+    "admitted_to_results": false,
+    "root_cause": "system Clang 22.1.6 selected as HIP compiler instead of matched AMD ROCm Clang",
+    "system_clang_sha256": "14938fb6ed97752e7db351659d00a4e8f0fa421030d817b7f4fe1a141ba1e26b",
+    "observed_prompt_tokens_per_second_approximate": 156,
+    "observed_generation_tokens_per_second_approximate": 17.0,
+    "decoded_output_divergence_observed": true,
+    "source_regression_supported": false,
+    "retained_roots": [
+      "excluded-mismatched-control-load-b1",
+      "excluded-system-clang-candidate-b2",
+      "diagnostic-p04-candidate",
+      "diagnostic-p06d",
+      "diagnostic-clean-head",
+      "diagnostic-clean-f51",
+      "build-amd-head-evidence",
+      "build-amd2-head-evidence",
+      "build-amd3-head-evidence"
+    ]
+  },
+  "runtime": {
+    "coordinator": "nimo-2",
+    "rpc_worker": "nimo-1",
+    "rpc_endpoint": "10.44.0.1:50053",
+    "mptcp_wrapper": true,
+    "device_order": "RPC0,ROCm0",
+    "tensor_split": "1,1",
+    "split_mode": "layer",
+    "context": 4096,
+    "parallel": 1,
+    "threads": 16,
+    "threads_batch": 16,
+    "gpu_layers": 999,
+    "flash_attention": true,
+    "kv_k": "q8_0",
+    "kv_v": "q8_0",
+    "batch": 512,
+    "ubatch": 512,
+    "fit": false,
+    "mmap": false,
+    "direct_io": true,
+    "seed": 1234,
+    "temperature": 0,
+    "offline": true,
+    "webui": false,
+    "hsa_enable_sdma": "0"
+  },
+  "workload": {
+    "api": "/completion",
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "request_body_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "execution_order": ["control-b1", "candidate-b2", "candidate-b3", "control-b4"],
+    "blocks_per_variant": 2,
+    "warmups_per_block": 1,
+    "retained_per_block": 5,
+    "retained_per_variant": 10,
+    "retained_total": 20,
+    "retained_http_200_total": 20,
+    "content_decoded_utf8_sha256_all_retained": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f"
+  },
+  "results": {
+    "prompt_tokens_per_second": {
+      "control_mean": 203.71660532800755,
+      "control_sample_sd": 0.12466247691624342,
+      "candidate_mean": 203.66833789287125,
+      "candidate_sample_sd": 0.2404637766567883,
+      "candidate_minus_control": -0.048267435136295944,
+      "candidate_delta_percent": -0.023693422074543082,
+      "approximate_normal_ci95": [-0.2161463963172076, 0.11961152604461572]
+    },
+    "generation_tokens_per_second": {
+      "control_mean": 16.640877497192704,
+      "control_sample_sd": 0.023178708235350683,
+      "candidate_mean": 16.63979451816186,
+      "candidate_sample_sd": 0.03892112763960741,
+      "candidate_minus_control": -0.0010829790308442,
+      "candidate_delta_percent": -0.00650794425370235,
+      "approximate_normal_ci95": [-0.029160324113220344, 0.026994366051531944]
+    },
+    "end_to_end_curl_wall_milliseconds": {
+      "control_mean": 13240.4979,
+      "control_sample_sd": 13.84342364084834,
+      "candidate_mean": 13242.5712,
+      "candidate_sample_sd": 21.659851378376093,
+      "candidate_minus_control": 2.0733000000000175,
+      "candidate_delta_percent": 0.015658776699024417,
+      "approximate_normal_ci95": [-13.85933661866344, 18.005936618663476]
+    },
+    "classification": "no_reproducible_regression_established_adverse_point_estimates_final_noninferiority_open",
+    "formal_zero_regression_gate_closed": false,
+    "speedup_claim": false,
+    "over_30_generation_tokens_per_second": false,
+    "over_30_classification": "owner_stretch_objective_not_pass_fail"
+  },
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-p07-head-ed17a50-20260720",
+      "manifest_entries": 157,
+      "manifest_sha256": "4c7aa04c083f7194cf807bd8bba9b6641fc1a986074361229f8ec8f208ed3c2d",
+      "manifest_verified": true,
+      "bundle_path": "/var/tmp/halofpx-p07-head-ed17a50-nimo1-20260720.tar.zst",
+      "bundle_size_bytes": 55604,
+      "bundle_sha256": "18f0b39125f623409793dfe3a13a8e1c29bb6fbec6ff731e56688fc07ac167c3",
+      "bundle_verified": true
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-p07-head-ed17a50-20260720",
+      "manifest_entries": 383,
+      "manifest_sha256": "52f348f5f5b2bcf09b239a5252f42ad0cd5a028474a3544e67b7f8c0de68f824",
+      "manifest_verified": true,
+      "bundle_path": "/var/tmp/halofpx-p07-head-ed17a50-nimo2-20260720.tar.zst",
+      "bundle_size_bytes": 105779,
+      "bundle_sha256": "e43cd4ac5eab460b5d1e41aba26313b0b3a4e35dd9c4b3df7beee140974eba95",
+      "bundle_verified": true
+    },
+    "authorization_material_detected": false,
+    "private_key_material_detected": false
+  },
+  "rollback": {
+    "nimo_2_rpc_service": "minimax-m27-rpc-worker.service",
+    "nimo_2_rpc_binary_sha256": "cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63",
+    "nimo_2_rpc_active": true,
+    "nimo_2_rpc_restarts": 1,
+    "nimo_1_server_service": "minimax-m27-q6-server.service",
+    "nimo_1_server_binary_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb",
+    "nimo_1_server_active": true,
+    "nimo_1_server_port": 8081,
+    "nimo_1_server_health_http": 200,
+    "nimo_1_server_health": "ok",
+    "nimo_1_server_restarts": 1,
+    "first_load_incident": "nimo-2 RPC worker OOM-killed; nimo-1 coordinator then aborted in ggml_backend_rpc_buffer_set_tensor; both automatically restarted once and the second load reached health",
+    "services_enabled": true
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLLama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama_ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama_cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "Nathanw1014_llama_cpp": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  },
+  "provenance": {
+    "runtime_code_changed_by_p07": false,
+    "donor_code_imported_by_p07": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported_by_p07": false,
+    "reference_clone_changed": false,
+    "model_changed": false,
+    "remote_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "review": {
+    "verdict": "ACCEPT_AFTER_ROLLBACK_INCIDENT_DISCLOSURE_CORRECTION_FINAL_G9_G10_OPEN",
+    "required_correction_closed": "nimo-2 worker OOM kill and downstream nimo-1 RPC abort are explicitly disclosed",
+    "test_expansion_required": false
+  },
+  "deferred": [
+    "final G9/G10 trial volume and block-aware strict non-inferiority analysis",
+    "TTFT and inter-token latency streaming qualification",
+    "exhaustive fault and topology permutations without a concrete defect hypothesis",
+    "physical model sharding",
+    "other-engine comparisons under the exact matched tuple"
+  ]
+}
