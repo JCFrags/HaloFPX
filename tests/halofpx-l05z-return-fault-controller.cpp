@@ -330,6 +330,8 @@ bool retry_window_self_check() {
            phase_reuse.matches == 5 && !phase_reuse.retry_window_open;
 }
 
+bool retry_alias_controller_path_self_check();
+
 bool manifest_self_check() {
     constexpr unsigned errno_rows = 19;
     constexpr unsigned short_rows = 25;
@@ -366,18 +368,24 @@ bool manifest_self_check() {
     constexpr unsigned structural_row_subtotal =
         syscall_seam_base + l05z_syscall_cases + hostile_input_cases;
     static_assert(structural_row_subtotal == 8706);
-    constexpr unsigned canonical_total = canonical_compatibility_cases +
+    constexpr unsigned compatibility_execution_total = canonical_compatibility_cases +
         l05z_syscall_cases + hostile_input_cases;
-    static_assert(canonical_total == 8612);
+    static_assert(compatibility_execution_total == 8612);
+    constexpr unsigned semantic_duplicate_pairs = 17;
+    constexpr unsigned semantic_unique_total =
+        compatibility_execution_total - semantic_duplicate_pairs;
+    static_assert(semantic_unique_total == 8595);
     return syscall_seam_base == 2163 && opens == 703 && closes == 988 &&
         sync_mode_rename == 95 && data_reads == 200 && eof_reads == 152 &&
         halofpx_l05z_return_hostile_manifest_v1::self_check() &&
         halofpx_l05z_return_role_authority_v1::self_check() &&
         halofpx_l05z_return_response_manifest_v1::self_check() &&
+        retry_alias_controller_path_self_check() &&
         response_decoder_self_check() &&
         halofpx_l05z_return_hostile_manifest_v1::manifest().size() ==
             hostile_input_cases && structural_row_subtotal == 8706 &&
-        canonical_total == 8612;
+        compatibility_execution_total == 8612 &&
+        semantic_unique_total == 8595;
 }
 
 halofpx::context_store_registered_id synthetic_registered_id(
@@ -985,11 +993,68 @@ bool eintr_is_retryable(boundary value) {
     return false;
 }
 
+bool selected_entry_is_suppressed(const arguments & input) {
+    return input.injection == mode::pre_error ||
+        input.injection == mode::short_pre ||
+        input.injection == mode::zero_pre ||
+        input.injection == mode::eintr_once;
+}
+
+bool synthetic_exit_returns_errno(const arguments & input) {
+    return input.injection == mode::pre_error ||
+        input.injection == mode::eintr_once;
+}
+
+bool completed_exit_returns_errno(const arguments & input) {
+    return input.injection == mode::late_error;
+}
+
 bool returned_eintr_must_retry(const arguments & input) {
     return input.returned_errno == EINTR && eintr_is_retryable(input.point) &&
-        (input.injection == mode::pre_error ||
-         input.injection == mode::late_error ||
-         input.injection == mode::eintr_once);
+        ((selected_entry_is_suppressed(input) &&
+          synthetic_exit_returns_errno(input)) ||
+         (!selected_entry_is_suppressed(input) &&
+          completed_exit_returns_errno(input)));
+}
+
+bool retry_alias_controller_path_self_check() {
+    constexpr boundary retry_boundaries[] {
+        boundary::envelope_pwrite,
+        boundary::envelope_pread, boundary::envelope_pread_eof,
+        boundary::final_pread, boundary::final_pread_eof,
+        boundary::marker_pread, boundary::marker_pread_eof,
+    };
+    for (const boundary point : retry_boundaries) {
+        arguments pre {};
+        pre.point = point;
+        pre.injection = mode::pre_error;
+        pre.returned_errno = EINTR;
+        arguments once = pre;
+        once.injection = mode::eintr_once;
+        const long long pre_replacement = -static_cast<long long>(pre.returned_errno);
+        const long long once_replacement =
+            -static_cast<long long>(once.returned_errno);
+        if (!returned_eintr_must_retry(pre) ||
+            !returned_eintr_must_retry(once) ||
+            selected_entry_is_suppressed(pre) !=
+                selected_entry_is_suppressed(once) ||
+            !selected_entry_is_suppressed(pre) ||
+            synthetic_exit_returns_errno(pre) !=
+                synthetic_exit_returns_errno(once) ||
+            !synthetic_exit_returns_errno(pre) ||
+            completed_exit_returns_errno(pre) ||
+            completed_exit_returns_errno(once) ||
+            pre_replacement != once_replacement ||
+            pre_replacement != -EINTR) return false;
+    }
+    arguments late {};
+    late.point = boundary::envelope_pwrite;
+    late.injection = mode::late_error;
+    late.returned_errno = EINTR;
+    return returned_eintr_must_retry(late) &&
+        !selected_entry_is_suppressed(late) &&
+        !synthetic_exit_returns_errno(late) &&
+        completed_exit_returns_errno(late);
 }
 
 const char * boundary_name(boundary value) {
@@ -2608,12 +2673,8 @@ int run(const arguments & input) {
                     break;
                 }
                 const bool skip = !response_entry && match &&
-                    ((input.injection == mode::pre_error &&
-                      fault.matches == input.occurrence) ||
-                     input.injection == mode::short_pre ||
-                     input.injection == mode::zero_pre ||
-                     (input.injection == mode::eintr_once &&
-                      fault.matches == input.occurrence));
+                    fault.matches == input.occurrence &&
+                    selected_entry_is_suppressed(input);
                 if (skip) {
                     if (!replace_entry_with_enosys(pid)) { HALOFPX_CONTROLLER_ERROR(); break; }
                     fault.pending_replacement = true;
@@ -2858,8 +2919,7 @@ int run(const arguments & input) {
                     }
                     if (fault.pending_replacement) {
                         long long replacement = 0;
-                        if (input.injection == mode::pre_error ||
-                            input.injection == mode::eintr_once)
+                        if (synthetic_exit_returns_errno(input))
                             replacement = -static_cast<long long>(input.returned_errno);
                         else if (input.injection == mode::short_pre)
                             replacement = input.short_count;
@@ -2869,13 +2929,13 @@ int run(const arguments & input) {
                         fault.first_replaced = true;
                         if (retryable_eintr) fault.retry_window_open = true;
                     } else if (selected[pid] &&
-                               (input.injection == mode::late_error ||
+                               (completed_exit_returns_errno(input) ||
                                 input.injection == mode::short_late ||
                                 input.injection == mode::zero_late) &&
                                fault.matches == input.occurrence) {
                         if (info.exit.is_error) { HALOFPX_CONTROLLER_ERROR(); break; }
                         long long replacement = 0;
-                        if (input.injection == mode::late_error)
+                        if (completed_exit_returns_errno(input))
                             replacement = -static_cast<long long>(input.returned_errno);
 
                         else if (input.injection == mode::short_late)
@@ -3162,11 +3222,37 @@ int main(int argc, char ** argv) {
         for (std::uint32_t shard = 0; shard < 17; ++shard) {
             std::size_t count = 0;
             for (const auto & item :
-                    halofpx_l05z_return_role_authority_v1::canonical_cases()) {
+                    halofpx_l05z_return_role_authority_v1::
+                        compatibility_execution_case_roster()) {
                 if (halofpx_l05z_return_role_authority_v1::case_shard_for(
                         item.case_id, 17) == shard) ++count;
             }
             std::printf(" case_shard%02u=%zu", shard, count);
+        }
+        std::printf("\n");
+        return ok ? 0 : 1;
+    }
+    if (argc == 2 &&
+        std::strcmp(argv[1], "--semantic-authority-self-test") == 0) {
+        const bool ok = envelope_fault::manifest_self_check();
+        std::printf("compatibility_execution_cases=%zu semantic_unique_cases=%zu duplicate_pairs=%zu semantic_id_hash=%s semantic_manifest_hash=%s duplicate_pair_hash=%s semantic_extended_total=%zu semantic_extended_id_hash=%s semantic_extended_manifest_hash=%s",
+            halofpx_l05z_return_role_authority_v1::canonical_total_cases,
+            halofpx_l05z_return_role_authority_v1::semantic_unique_cases().size(),
+            halofpx_l05z_return_role_authority_v1::semantic_duplicate_pairs().size(),
+            halofpx_l05z_return_role_authority_v1::semantic_unique_case_id_hash_hex().c_str(),
+            halofpx_l05z_return_role_authority_v1::semantic_unique_manifest_hash_hex().c_str(),
+            halofpx_l05z_return_role_authority_v1::semantic_duplicate_pair_hash_hex().c_str(),
+            halofpx_l05z_return_response_manifest_v1::semantic_unique_extended_total,
+            halofpx_l05z_return_response_manifest_v1::semantic_unique_extended_id_set_hash_hex().c_str(),
+            halofpx_l05z_return_response_manifest_v1::semantic_unique_extended_manifest_hash_hex().c_str());
+        for (std::uint32_t shard = 0; shard < 17; ++shard) {
+            std::size_t count = 0;
+            for (const auto & item :
+                    halofpx_l05z_return_role_authority_v1::semantic_unique_cases()) {
+                if (halofpx_l05z_return_role_authority_v1::case_shard_for(
+                        item.case_id, 17) == shard) ++count;
+            }
+            std::printf(" semantic_shard%02u=%zu", shard, count);
         }
         std::printf("\n");
         return ok ? 0 : 1;

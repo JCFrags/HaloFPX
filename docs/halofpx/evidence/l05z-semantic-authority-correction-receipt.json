@@ -1,0 +1,179 @@
+{
+  "schema": "halofpx.l05z-semantic-authority-correction.v1",
+  "date": "2026-07-19",
+  "status": "ACCEPT_QUALIFIED_SEMANTIC_CONTRACT_NOT_L05Z_PROMOTION",
+  "head_commit_before_change": "eba2e36764e1624d6d20bb00657dd7f2fe64a1be",
+  "head_tree_before_change": "32a87f74cadb1853abe190b25910d3cdde0b4d70",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Correct the L05z returned-fault semantic authority without changing its frozen compatibility/execution IDs, physical selectors, product behavior, or persistence gates.",
+  "compatibility_authority": {
+    "returned_fault_execution_ids": 8612,
+    "returned_fault_case_id_set_sha256": "467a0a2ff38858a46f7e4fdfbb8e3a2fc6a753c26a059e5be84319465c926a8d",
+    "returned_fault_case_manifest_sha256": "81fa3971f34fdaab711c43918eb8abf0e571764454c86e7305ec6f4b18e3f031",
+    "response_extended_execution_ids": 8613,
+    "response_extended_case_id_set_sha256": "78dbb9b07f7023abf79f3dc745e77be857b32b46455fe937fda84df2084fe2e4",
+    "response_extended_case_manifest_sha256": "0af374c673a292a9c7f4a391a95bb3279d9d2ddd84ce210a54ef4db072b2c9e6",
+    "returned_fault_shards_17": [492, 481, 530, 513, 518, 535, 492, 489, 519, 483, 470, 481, 538, 506, 525, 494, 546],
+    "returned_fault_shards_sum": 8612,
+    "response_extended_shards_17": [492, 481, 530, 513, 518, 535, 492, 490, 519, 483, 470, 481, 538, 506, 525, 494, 546],
+    "response_extended_shards_sum": 8613,
+    "treatment": "frozen_unchanged_for_replay_sharding_and_receipt_compatibility",
+    "unique_semantic_claim": false
+  },
+  "semantic_authority": {
+    "returned_fault_unique_cases": 8595,
+    "returned_fault_unique_case_id_set_sha256": "a1ecb0f816b93912e1ec1431fd5a6af120e53725aee913a8bef77bc5770a1b0d",
+    "returned_fault_unique_case_manifest_sha256": "ed46674b8956860fea2dbbe95e8045c9c4ac6876d2b0307736106edab87dc2ca",
+    "response_extended_unique_cases": 8596,
+    "response_extended_unique_case_id_set_sha256": "3988a34d1db9c9778c4daab8d5260e0d1f3da5ac4e668abea011ba279c646561",
+    "response_extended_unique_case_manifest_sha256": "832f94b26165ec1ca3e5ec183aa8b241612bc950a8377c8ac62d7a9e72761056",
+    "returned_fault_unique_shards_17": [492, 481, 530, 511, 517, 534, 491, 489, 518, 482, 470, 480, 535, 504, 522, 493, 546],
+    "returned_fault_unique_shards_sum": 8595,
+    "response_extended_unique_shards_17": [492, 481, 530, 511, 517, 534, 491, 490, 518, 482, 470, 480, 535, 504, 522, 493, 546],
+    "response_extended_unique_shards_sum": 8596,
+    "alias_pairs": 17,
+    "alias_manifest_sha256": "9a25b012770d3f7ca171f82f5f6702a6e3fff77cb85908450b7cd4cff63de7fd",
+    "representative_profile": "PRE-EINTR",
+    "alias_profile": "EINTR-ONCE",
+    "normalization_reason": "Both profiles suppress the first syscall at entry, return EINTR, perform exactly one same-role retry, and then complete successfully."
+  },
+  "aliases": [
+    {"representative": "COMP-EOF-ENV-001-PRE-EINTR", "alias": "COMP-EOF-ENV-001-EINTR-ONCE"},
+    {"representative": "COMP-EOF-ENV-002-PRE-EINTR", "alias": "COMP-EOF-ENV-002-EINTR-ONCE"},
+    {"representative": "COMP-EOF-ENV-003-PRE-EINTR", "alias": "COMP-EOF-ENV-003-EINTR-ONCE"},
+    {"representative": "COMP-EOF-ENV-004-PRE-EINTR", "alias": "COMP-EOF-ENV-004-EINTR-ONCE"},
+    {"representative": "COMP-EOF-MARKER-001-PRE-EINTR", "alias": "COMP-EOF-MARKER-001-EINTR-ONCE"},
+    {"representative": "COMP-EOF-MARKER-002-PRE-EINTR", "alias": "COMP-EOF-MARKER-002-EINTR-ONCE"},
+    {"representative": "COMP-EOF-MARKER-003-PRE-EINTR", "alias": "COMP-EOF-MARKER-003-EINTR-ONCE"},
+    {"representative": "COMP-EOF-MARKER-004-PRE-EINTR", "alias": "COMP-EOF-MARKER-004-EINTR-ONCE"},
+    {"representative": "COMP-PREAD-ENV-001-PRE-EINTR", "alias": "COMP-PREAD-ENV-001-EINTR-ONCE"},
+    {"representative": "COMP-PREAD-ENV-002-PRE-EINTR", "alias": "COMP-PREAD-ENV-002-EINTR-ONCE"},
+    {"representative": "COMP-PREAD-ENV-003-PRE-EINTR", "alias": "COMP-PREAD-ENV-003-EINTR-ONCE"},
+    {"representative": "COMP-PREAD-ENV-004-PRE-EINTR", "alias": "COMP-PREAD-ENV-004-EINTR-ONCE"},
+    {"representative": "COMP-PREAD-MARKER-001-PRE-EINTR", "alias": "COMP-PREAD-MARKER-001-EINTR-ONCE"},
+    {"representative": "COMP-PREAD-MARKER-002-PRE-EINTR", "alias": "COMP-PREAD-MARKER-002-EINTR-ONCE"},
+    {"representative": "COMP-PREAD-MARKER-003-PRE-EINTR", "alias": "COMP-PREAD-MARKER-003-EINTR-ONCE"},
+    {"representative": "COMP-PREAD-MARKER-004-PRE-EINTR", "alias": "COMP-PREAD-MARKER-004-EINTR-ONCE"},
+    {"representative": "COMP-PWRITE-001-PRE-EINTR", "alias": "COMP-PWRITE-001-EINTR-ONCE"}
+  ],
+  "qualification": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "environment_both_nodes": {
+      "kernel": "Linux 7.1.3-1-cachyos",
+      "architecture": "x86_64",
+      "gcc": "16.1.1",
+      "cmake": "4.3.4",
+      "ninja": "1.13.2"
+    },
+    "evidence_root_each_node": "/var/tmp/halofpx-l05z-semantic-correction-eba2e36-20260719",
+    "final_sources": {
+      "tests/halofpx-l05z-return-fault-controller.cpp": {"sha256": "c672269fe2637ce646790f863ecdf1533cf028c6008bbc02df2116f5b789e29f", "bytes": 162576},
+      "tests/halofpx-l05z-return-role-authority-manifest.inc": {"sha256": "c9c4ceac72529a5abf406f5ef68db19f8d8495f6f83149495d37bfb35e0da4a4", "bytes": 28026},
+      "tests/halofpx-l05z-return-response-manifest.inc": {"sha256": "d9d8a3d94be78beb8940a525d9e4918f87d4a377eaa1107e76c846574989c8bc", "bytes": 9368},
+      "tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake": {"sha256": "079e266294f19046a5c6b34f55a862ca4cea22c665852a4dd7b259235741bb2f", "bytes": 23583}
+    },
+    "primary_strict_build": {
+      "language_mode": "GNU++17 project default from GCC 16.1.1; no explicit -std option",
+      "warning_flags": "-Wall -Wextra -Wpedantic -Werror",
+      "compile_exit_both_nodes": 0,
+      "link_exit_both_nodes": 0,
+      "object_sha256_both_nodes": "c60c9739b37c8d0fa830758042370a51b081d05021747e918582d454af0f7d12",
+      "object_bytes_both_nodes": 629920,
+      "binary_sha256_both_nodes": "c6483b9507227f2392460fa6b5b2afa65c18b7a38fe6a7191a5f73e68d8fa066",
+      "binary_bytes_both_nodes": 591928
+    },
+    "explicit_iso_cpp17_verification": {
+      "language_mode": "explicit -std=c++17",
+      "warning_flags": "-Wall -Wextra -Wpedantic -Werror",
+      "compile_exit_both_nodes": 0,
+      "link_exit_both_nodes": 0,
+      "object_file": "build/controller.verify17.o",
+      "object_sha256_both_nodes": "d94bfe27800e5697f6e772f403a440cc63fdad062b2734a282fc7c4c72270f68",
+      "object_bytes_both_nodes": 635800,
+      "binary_file": "build/controller.verify17",
+      "binary_sha256_both_nodes": "941b5f0d374703e7b7818496a79c55fd2aeb8872b4a610a75cd69696b37e2d67",
+      "binary_bytes_both_nodes": 596856,
+      "role_authority_selftest_exit_both_nodes": 0,
+      "response_decoder_selftest_exit_both_nodes": 0,
+      "semantic_authority_selftest_exit_both_nodes": 0,
+      "hostile_HRAW_B0000_exit_both_nodes": 0,
+      "stdout_hashes_byte_identical_to_primary": true,
+      "static_seam_contract": "same source-level CMake command; independent of controller language-mode binary",
+      "retained_logs": "build/verify17-*.log on both nodes"
+    },
+    "commands": {
+      "role_authority_selftest": {"exit_both_nodes": 0, "stdout_sha256_both_nodes": "56be54b4d59a9f9953293d8cc310395554b07cdece16a34cd5315b5067b9c197", "stdout_bytes_both_nodes": 844, "byte_identical_to_accepted_legacy": true},
+      "response_decoder_selftest": {"exit_both_nodes": 0, "stdout_sha256_both_nodes": "171d1be9bcd7aa1f7a9b78b2f23b7d53514a3dec25eeb4882aa7c358f717ddf1", "stdout_bytes_both_nodes": 576, "byte_identical_to_accepted_legacy": true},
+      "semantic_authority_selftest": {"exit_both_nodes": 0, "stdout_sha256_both_nodes": "15892cc9a1bf50af5021cf640f9c04c3e7c7c09502e4fc17b77b853316f41a2a", "stdout_bytes_both_nodes": 910},
+      "hostile_HRAW_B0000": {"exit_both_nodes": 0, "stdout_sha256_both_nodes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_bytes_both_nodes": 0},
+      "static_seam_contract": {"exit_both_nodes": 0, "stdout_sha256_both_nodes": "7b4f124fd96223517deb3d26b2b311eab62bf8511400c33c1ef28669758e06fa", "stdout_bytes_both_nodes": 87}
+    },
+    "focused_inherited_controls": {
+      "feature_off_contract": {
+        "exit_both_nodes": 0,
+        "log_file": "build/verify-feature-off.log",
+        "log_sha256_both_nodes": "9ee971efd4f5a8d5a6a80a0130e41b7dc2c3e194dce5d710839206809a49f323",
+        "log_bytes_both_nodes": 39
+      },
+      "l02_contracts": {
+        "exit_both_nodes": 0,
+        "log_file": "build/verify-l02-contracts.log",
+        "log_sha256_both_nodes": "db24640b0ee1abcaa98e011d05b7aa28a6267643c2a26c15993cd9391bff9438",
+        "log_bytes_both_nodes": 65
+      },
+      "nimo_1_control_source": "/var/tmp/halofpx-qualification/l05z-checkpoint-regression-20260719-nimo1/source",
+      "nimo_1_server_build": "build-release-final/llama-server",
+      "nimo_2_control_source": "/var/tmp/halofpx-qualification/l05z-role-authority-canary-20260719-nimo2/source",
+      "nimo_2_server_build": "build-normal/llama-server",
+      "scope": "Accepted prior full-source and server controls unchanged by this test-only semantic-authority patch.",
+      "limitation": "Validates the unchanged product and contract surface; it is not a server rebuilt from the semantic-authority evidence snapshot, which intentionally copies only tests. No product source changed."
+    },
+    "result": "PASS_BOTH_NODES_PROJECT_DEFAULT_GNU17_AND_EXPLICIT_ISO_CPP17_VERIFICATION"
+  },
+  "independent_adversarial_review_closure": {
+    "full_compatibility_and_semantic_shard_arrays_and_sums_checked": true,
+    "actual_controller_helper_oracle_checked": true,
+    "oracle_scope": "The self-test exercises the same suppression, synthetic-errno, completed-errno, and returned-EINTR retry helpers used by the live controller path.",
+    "legacy_role_stdout_preserved_byte_for_byte": true,
+    "legacy_response_stdout_preserved_byte_for_byte": true,
+    "result": "all_material_findings_fixed_and_requalified"
+  },
+  "cleanup_and_continuity": {
+    "qualification_media_created": false,
+    "residual_root_mounts_each_node": 0,
+    "residual_loop_devices_each_node": 0,
+    "residual_controller_processes_each_node": 0,
+    "nimo_1": {"llama_server_pid": 971, "http_8081_health": 200, "unchanged": true},
+    "nimo_2": {"rpc_server_pid": 3562775, "unchanged": true}
+  },
+  "wiki_review": {
+    "sections": [
+      "09/HaloKV Persistent Cache/63 Durability Modes, Atomic Commit, Crash Recovery, and Corruption Handling",
+      "11/Verification and Performance/80 Fault Injection: Cable Pulls, Restarts, OOM, Disk Full, and Corruption"
+    ],
+    "result": "consistent_no_wiki_edit_required",
+    "reason": "The Wiki requires exact fault boundaries, retained evidence, fail-closed outcomes, and disposable targets, but it does not assert an L05z returned-fault semantic count."
+  },
+  "boundaries": {
+    "default_off": true,
+    "test_only": true,
+    "product_linkage_changed": false,
+    "persistent_server_writes_enabled": false,
+    "provider_or_cache_hit_edge_added": false,
+    "l05z_promotion": false
+  },
+  "provenance": {
+    "treatment": "target_native_test_authority_and_documentation",
+    "donor_code_copied": false,
+    "gpl_llama_ai_code_copied": false,
+    "new_dependency": false,
+    "direct_cherry_pick_roster_changed": false,
+    "p3_record_required": false
+  },
+  "deferred": [
+    "physical selector admission for the 247 pending returned-fault roles",
+    "full returned-fault, storage-window, sanitizer, and two-node qualification",
+    "L05z promotion, persistence enablement, deployment, and performance claims"
+  ]
+}

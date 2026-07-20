@@ -2,8 +2,9 @@
 #define HALOFPX_L05Z_RETURN_ROLE_AUTHORITY_MANIFEST_INC
 
 // Test-only structural authority for L05z returned-fault roles.  This manifest
-// deliberately distinguishes canonical semantic cases from legacy execution
-// rows and never promotes an aggregate-only role to an executable oracle.
+// deliberately distinguishes the frozen compatibility/execution roster from
+// its semantic-unique view and never promotes an aggregate-only role to an
+// executable oracle.
 
 #include <algorithm>
 #include <array>
@@ -19,10 +20,33 @@
 namespace halofpx_l05z_return_role_authority_v1 {
 
 inline constexpr std::size_t legacy_compatibility_execution_rows = 2163;
-inline constexpr std::size_t canonical_compatibility_cases = 2069;
-inline constexpr std::size_t canonical_l05z_role_cases = 4644;
-inline constexpr std::size_t canonical_hostile_cases = 1899;
-inline constexpr std::size_t canonical_total_cases = 8612;
+// These v1 values and their hashes are the frozen execution/ID compatibility
+// authority.  They intentionally retain the 17 historical PRE-EINTR versus
+// EINTR-ONCE duplicate IDs; callers must not relabel this roster as unique
+// behavioral semantics.
+inline constexpr std::size_t compatibility_execution_cases = 2069;
+inline constexpr std::size_t l05z_role_execution_cases = 4644;
+inline constexpr std::size_t hostile_execution_cases = 1899;
+inline constexpr std::size_t compatibility_execution_total = 8612;
+inline constexpr std::size_t canonical_compatibility_cases =
+    compatibility_execution_cases;
+inline constexpr std::size_t canonical_l05z_role_cases =
+    l05z_role_execution_cases;
+inline constexpr std::size_t canonical_hostile_cases = hostile_execution_cases;
+inline constexpr std::size_t canonical_total_cases =
+    compatibility_execution_total;
+inline constexpr std::size_t semantic_duplicate_pair_count = 17;
+inline constexpr std::size_t semantic_unique_total_cases = 8595;
+inline constexpr char semantic_unique_case_id_set_sha256[] =
+    "a1ecb0f816b93912e1ec1431fd5a6af120e53725aee913a8bef77bc5770a1b0d";
+inline constexpr char semantic_unique_case_manifest_sha256[] =
+    "ed46674b8956860fea2dbbe95e8045c9c4ac6876d2b0307736106edab87dc2ca";
+inline constexpr char semantic_duplicate_alias_manifest_sha256[] =
+    "9a25b012770d3f7ca171f82f5f6702a6e3fff77cb85908450b7cd4cff63de7fd";
+inline constexpr std::array<std::size_t, 17> semantic_unique_case_shard_counts {
+    492, 481, 530, 511, 517, 534, 491, 489, 518, 482, 470, 480, 535, 504,
+    522, 493, 546,
+};
 inline constexpr bool physical_execution_rows_frozen = false;
 inline constexpr std::size_t canonical_cleanup_subset = 324;
 inline constexpr std::size_t legacy_cleanup_execution_subset = 337;
@@ -64,6 +88,17 @@ struct role_record {
 struct case_identity {
     std::string case_id;
     std::string dedup_key;
+};
+
+struct duplicate_pair {
+    std::string duplicate_case_id;
+    std::string representative_case_id;
+    std::string duplicate_execution_dedup_key;
+    std::string representative_execution_dedup_key;
+    // The normalized semantic key deliberately reuses the frozen PRE-EINTR
+    // execution key.  The alias commitment names this normalization; it does
+    // not invent a second dedup domain or silently rewrite either legacy key.
+    std::string normalized_semantic_dedup_key;
 };
 
 namespace detail {
@@ -247,7 +282,7 @@ inline void append_canonical_field(std::string & output, std::string_view value)
     output.append(value.data(), value.size());
 }
 
-inline const std::vector<case_identity> & canonical_cases() {
+inline const std::vector<case_identity> & compatibility_execution_case_roster() {
     static const std::vector<case_identity> value = [] {
         constexpr const char * errno_names[9] {
             "EIO", "ENOSPC", "EDQUOT", "EROFS", "EEXIST", "EXDEV",
@@ -301,6 +336,149 @@ inline const std::vector<case_identity> & canonical_cases() {
     return value;
 }
 
+// Historical API retained for source compatibility with the frozen v1
+// execution roster.  It must not be used as a unique-semantic authority.
+inline const std::vector<case_identity> & canonical_cases() {
+    return compatibility_execution_case_roster();
+}
+
+inline const std::vector<duplicate_pair> & semantic_duplicate_pairs() {
+    static const std::vector<duplicate_pair> value = [] {
+        std::vector<case_identity> execution =
+            compatibility_execution_case_roster();
+        const auto key_for = [&](const std::string & id) {
+            const auto found = std::find_if(execution.begin(), execution.end(),
+                [&](const case_identity & item) { return item.case_id == id; });
+            return found == execution.end() ? std::string() : found->dedup_key;
+        };
+        std::vector<duplicate_pair> output;
+        output.reserve(semantic_duplicate_pair_count);
+        for (const auto & role : roles()) {
+            if (!role.nonretryable) {
+                const std::string duplicate = role.role_id + "-EINTR-ONCE";
+                const std::string representative = role.role_id + "-PRE-EINTR";
+                const std::string duplicate_key = key_for(duplicate);
+                const std::string representative_key = key_for(representative);
+                output.push_back({ duplicate, representative, duplicate_key,
+                                   representative_key, representative_key });
+            }
+        }
+        std::sort(output.begin(), output.end(),
+            [](const duplicate_pair & left, const duplicate_pair & right) {
+                return left.duplicate_case_id < right.duplicate_case_id;
+            });
+        return output;
+    }();
+    return value;
+}
+
+inline const std::vector<case_identity> & semantic_unique_cases() {
+    static const std::vector<case_identity> value = [] {
+        std::set<std::string> duplicates;
+        for (const auto & pair : semantic_duplicate_pairs()) {
+            duplicates.insert(pair.duplicate_case_id);
+        }
+        std::vector<case_identity> output;
+        output.reserve(semantic_unique_total_cases);
+        for (const auto & item : compatibility_execution_case_roster()) {
+            if (duplicates.find(item.case_id) == duplicates.end()) {
+                output.push_back(item);
+            }
+        }
+        return output;
+    }();
+    return value;
+}
+
+inline std::string semantic_unique_case_id_hash_hex() {
+    std::string material("halofpx.l05z.return-semantic-unique-case-ids.v1");
+    material.push_back('\0');
+    for (const auto & item : semantic_unique_cases()) {
+        material += item.case_id;
+        material.push_back('\n');
+    }
+    return halofpx_l05z_return_hostile_manifest_v1::detail::hex(
+        halofpx_l05z_return_hostile_manifest_v1::detail::sha256(material));
+}
+
+inline std::string semantic_unique_manifest_hash_hex() {
+    std::string material("halofpx.l05z.return-semantic-unique-case-manifest.v1");
+    material.push_back('\0');
+    for (const auto & item : semantic_unique_cases()) {
+        append_canonical_field(material, item.case_id);
+        append_canonical_field(material, item.dedup_key);
+        material.push_back('\n');
+    }
+    return halofpx_l05z_return_hostile_manifest_v1::detail::hex(
+        halofpx_l05z_return_hostile_manifest_v1::detail::sha256(material));
+}
+
+inline std::string semantic_duplicate_pair_hash_hex() {
+    std::string material("halofpx.l05z.return-semantic-aliases.v1");
+    material.push_back('\0');
+    for (const auto & pair : semantic_duplicate_pairs()) {
+        append_canonical_field(material, pair.representative_case_id);
+        append_canonical_field(material, pair.duplicate_case_id);
+        append_canonical_field(material, pair.normalized_semantic_dedup_key);
+        material.push_back('\n');
+    }
+    return halofpx_l05z_return_hostile_manifest_v1::detail::hex(
+        halofpx_l05z_return_hostile_manifest_v1::detail::sha256(material));
+}
+
+inline bool retry_duplicate_oracle_self_check() {
+    const std::set<std::string> expected_representatives {
+        "COMP-PWRITE-001-PRE-EINTR",
+        "COMP-PREAD-ENV-001-PRE-EINTR", "COMP-PREAD-ENV-002-PRE-EINTR",
+        "COMP-PREAD-ENV-003-PRE-EINTR", "COMP-PREAD-ENV-004-PRE-EINTR",
+        "COMP-PREAD-MARKER-001-PRE-EINTR", "COMP-PREAD-MARKER-002-PRE-EINTR",
+        "COMP-PREAD-MARKER-003-PRE-EINTR", "COMP-PREAD-MARKER-004-PRE-EINTR",
+        "COMP-EOF-ENV-001-PRE-EINTR", "COMP-EOF-ENV-002-PRE-EINTR",
+        "COMP-EOF-ENV-003-PRE-EINTR", "COMP-EOF-ENV-004-PRE-EINTR",
+        "COMP-EOF-MARKER-001-PRE-EINTR", "COMP-EOF-MARKER-002-PRE-EINTR",
+        "COMP-EOF-MARKER-003-PRE-EINTR", "COMP-EOF-MARKER-004-PRE-EINTR",
+    };
+    std::set<std::string> duplicate_ids, representative_ids;
+    for (const auto & pair : semantic_duplicate_pairs()) {
+        const std::string suffix = "-EINTR-ONCE";
+        if (pair.duplicate_case_id.size() <= suffix.size() ||
+            pair.duplicate_case_id.compare(
+                pair.duplicate_case_id.size() - suffix.size(), suffix.size(),
+                suffix) != 0 ||
+            pair.representative_case_id !=
+                pair.duplicate_case_id.substr(
+                    0, pair.duplicate_case_id.size() - suffix.size()) +
+                    "-PRE-EINTR" ||
+            pair.duplicate_execution_dedup_key.size() != 64 ||
+            pair.representative_execution_dedup_key.size() != 64 ||
+            pair.normalized_semantic_dedup_key.size() != 64 ||
+            pair.duplicate_execution_dedup_key ==
+                pair.representative_execution_dedup_key ||
+            pair.normalized_semantic_dedup_key !=
+                pair.representative_execution_dedup_key ||
+            !duplicate_ids.insert(pair.duplicate_case_id).second ||
+            !representative_ids.insert(pair.representative_case_id).second) {
+            return false;
+        }
+    }
+    std::set<std::string> execution_ids, unique_ids;
+    for (const auto & item : compatibility_execution_case_roster())
+        execution_ids.insert(item.case_id);
+    for (const auto & item : semantic_unique_cases()) unique_ids.insert(item.case_id);
+    for (const auto & pair : semantic_duplicate_pairs()) {
+        if (execution_ids.count(pair.duplicate_case_id) != 1 ||
+            execution_ids.count(pair.representative_case_id) != 1 ||
+            unique_ids.count(pair.duplicate_case_id) != 0 ||
+            unique_ids.count(pair.representative_case_id) != 1) return false;
+    }
+    return representative_ids == expected_representatives &&
+        semantic_duplicate_pairs().size() == semantic_duplicate_pair_count &&
+        semantic_unique_cases().size() == semantic_unique_total_cases &&
+        compatibility_execution_case_roster().size() -
+            semantic_unique_cases().size() ==
+            semantic_duplicate_pair_count;
+}
+
 inline std::uint32_t case_shard_for(std::string_view id,
                                     std::uint32_t shard_count) {
     if (shard_count == 0) return UINT32_MAX;
@@ -319,7 +497,7 @@ inline std::uint32_t case_shard_for(std::string_view id,
 inline std::string canonical_case_id_hash_hex() {
     std::string material("halofpx.l05z.return-canonical-case-ids.v1");
     material.push_back('\0');
-    for (const auto & item : canonical_cases()) {
+    for (const auto & item : compatibility_execution_case_roster()) {
         material += item.case_id;
         material.push_back('\n');
     }
@@ -330,7 +508,7 @@ inline std::string canonical_case_id_hash_hex() {
 inline std::string canonical_case_manifest_hash_hex() {
     std::string material("halofpx.l05z.return-canonical-case-manifest.v1");
     material.push_back('\0');
-    for (const auto & item : canonical_cases()) {
+    for (const auto & item : compatibility_execution_case_roster()) {
         append_canonical_field(material, item.case_id);
         append_canonical_field(material, item.dedup_key);
         material.push_back('\n');
@@ -362,7 +540,8 @@ inline std::string manifest_hash_hex() {
 inline bool self_check() {
     if (roles().size() != 369 || canonical_compatibility_cases != 2069 ||
         canonical_l05z_role_cases != 4644 || canonical_hostile_cases != 1899 ||
-        canonical_total_cases != 8612 || physical_execution_rows_frozen ||
+        canonical_total_cases != 8612 || compatibility_execution_total != 8612 ||
+        semantic_unique_total_cases != 8595 || physical_execution_rows_frozen ||
         canonical_cleanup_subset != 324 || legacy_cleanup_execution_subset != 337)
         return false;
     std::set<std::string> ids;
@@ -378,22 +557,35 @@ inline bool self_check() {
     }
     std::set<std::string> case_ids, dedup_keys;
     std::array<std::size_t, 17> case_shards {};
-    for (const auto & item : canonical_cases()) {
+    for (const auto & item : compatibility_execution_case_roster()) {
         if (item.case_id.empty() || item.dedup_key.size() != 64 ||
             !case_ids.insert(item.case_id).second ||
             !dedup_keys.insert(item.dedup_key).second) return false;
         ++case_shards[case_shard_for(
             item.case_id, static_cast<std::uint32_t>(case_shards.size()))];
     }
+    std::array<std::size_t, 17> semantic_shards {};
+    for (const auto & item : semantic_unique_cases()) {
+        ++semantic_shards[case_shard_for(
+            item.case_id, static_cast<std::uint32_t>(semantic_shards.size()))];
+    }
     return ids.size() == roles().size() && pending == 247 && retryable == 17 &&
         cleanup == 18 && shards == canonical_shard_counts &&
-        canonical_cases().size() == canonical_total_cases &&
+        compatibility_execution_case_roster().size() == canonical_total_cases &&
         case_ids.size() == canonical_total_cases &&
         case_shards == canonical_case_shard_counts &&
         sorted_role_id_hash_hex() == canonical_role_id_set_sha256 &&
         manifest_hash_hex() == canonical_manifest_sha256 &&
         canonical_case_id_hash_hex() == canonical_case_id_set_sha256 &&
         canonical_case_manifest_hash_hex() == canonical_case_manifest_sha256 &&
+        retry_duplicate_oracle_self_check() &&
+        semantic_shards == semantic_unique_case_shard_counts &&
+        semantic_unique_case_id_hash_hex() ==
+            semantic_unique_case_id_set_sha256 &&
+        semantic_unique_manifest_hash_hex() ==
+            semantic_unique_case_manifest_sha256 &&
+        semantic_duplicate_pair_hash_hex() ==
+            semantic_duplicate_alias_manifest_sha256 &&
         halofpx_l05z_return_hostile_manifest_v1::sorted_id_set_hash_hex() ==
             compatible_hostile_id_set_sha256;
 }

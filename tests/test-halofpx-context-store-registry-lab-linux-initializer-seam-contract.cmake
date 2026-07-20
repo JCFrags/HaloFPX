@@ -377,6 +377,10 @@ foreach(REQUIRED IN ITEMS
     "#include \"halofpx-l05z-return-response-manifest.inc\""
     "manifest_self_check"
     "static_assert(syscall_seam_base == 2163)"
+    "selected_entry_is_suppressed"
+    "synthetic_exit_returns_errno"
+    "completed_exit_returns_errno"
+    "--semantic-authority-self-test"
     "stdout-audit-response"
     "suppress-fake-full"
     "response_decoder_self_check"
@@ -391,6 +395,28 @@ foreach(REQUIRED IN ITEMS
     message(FATAL_ERROR "missing L05z returned-fault controller token: ${REQUIRED}")
   endif()
 endforeach()
+set(L05Z_RETURN_ROLE_AUTHORITY_MANIFEST
+  "${ROOT}/tests/halofpx-l05z-return-role-authority-manifest.inc")
+if(NOT EXISTS "${L05Z_RETURN_ROLE_AUTHORITY_MANIFEST}")
+  message(FATAL_ERROR "missing L05z return-role authority manifest include")
+endif()
+file(READ "${L05Z_RETURN_ROLE_AUTHORITY_MANIFEST}"
+  L05Z_RETURN_ROLE_AUTHORITY_MANIFEST_TEXT)
+foreach(REQUIRED IN ITEMS
+    "compatibility_execution_total = 8612"
+    "compatibility_execution_case_roster()"
+    "semantic_duplicate_pair_count = 17"
+    "semantic_unique_total_cases = 8595"
+    "semantic_unique_case_id_set_sha256"
+    "semantic_unique_case_manifest_sha256"
+    "semantic_duplicate_alias_manifest_sha256"
+    "semantic_unique_case_shard_counts"
+    "retry_duplicate_oracle_self_check()")
+  string(FIND "${L05Z_RETURN_ROLE_AUTHORITY_MANIFEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing L05z semantic-unique authority token: ${REQUIRED}")
+  endif()
+endforeach()
 set(L05Z_RETURN_RESPONSE_MANIFEST
   "${ROOT}/tests/halofpx-l05z-return-response-manifest.inc")
 if(NOT EXISTS "${L05Z_RETURN_RESPONSE_MANIFEST}")
@@ -402,6 +428,12 @@ foreach(REQUIRED IN ITEMS
     "canonical_case_count = 1"
     "compatible_authority_cases = 8612"
     "extended_semantic_total = 8613"
+    "semantic_unique_authority_cases = 8595"
+    "semantic_unique_extended_total = 8596"
+    "semantic_unique_extended_case_id_set_sha256"
+    "semantic_unique_extended_case_manifest_sha256"
+    "derived_legacy_extended_shards"
+    "derived_semantic_extended_shards"
     "extended_case_shard_counts"
     "writev_decoder=bounded-not-live-admitted"
     "extended_id_set_hash_hex()"

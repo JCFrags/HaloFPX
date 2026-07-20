@@ -220,13 +220,25 @@ lane not completed is recorded as a limitation, never inferred as a pass.
 ### Admitted response-loss profile
 
 `L05Z-RSP-LOSS-FULL-001` is one test-only semantic case outside the frozen
-8,612-case returned-fault compatibility authority. It raises the extended
-semantic total to 8,613 without changing the compatibility subset. Its identity
-is the qualified L05z stdout-audit transaction being suppressed before its
-admitted kernel write, followed by an exact fake full-success return, zero
-consumer bytes, child and launcher status zero, and external whole-root
-discard. Syscall kind, fragment count, and live response length are physical
-profile metadata, not semantic identity.
+8,612-case returned-fault compatibility/execution authority. That frozen roster
+and its hashes remain unchanged, and adding the response case produces an
+8,613-ID extended compatibility/execution roster. Those counts are not unique
+semantic totals.
+
+Exactly 17 retryable roles historically assigned distinct IDs and execution
+dedup keys to `PRE-EINTR` and `EINTR-ONCE`, although both profiles suppress the
+first syscall at entry, return `EINTR`, perform exactly one same-role retry, and
+then complete successfully. The corrected semantic authority retains
+`PRE-EINTR` as the representative and records each `EINTR-ONCE` ID as an alias.
+It therefore contains 8,595 unique cases, or 8,596 after adding the independent
+response-loss case. Compatibility IDs are not removed or renamed, so old
+shards, receipts, and replay selectors remain reproducible.
+
+The response case identity is the qualified L05z stdout-audit transaction being
+suppressed before its admitted kernel write, followed by an exact fake
+full-success return, zero consumer bytes, child and launcher status zero, and
+external whole-root discard. Syscall kind, fragment count, and live response
+length are physical profile metadata, not semantic identity.
 
 The admitted Linux x86-64 glibc profile is exactly one complete `SYS_write` to
 fd 1. Six discovery runs, three on each node, observed this profile and no
