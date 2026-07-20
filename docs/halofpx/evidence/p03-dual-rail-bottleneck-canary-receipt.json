@@ -1,0 +1,92 @@
+{
+  "schema": "halofpx.p03-dual-rail-bottleneck-canary.v1",
+  "date": "2026-07-20",
+  "status": "two_subflows_verified_no_obvious_generation_signal_single_canary",
+  "candidate": {
+    "commit": "0cc67d1790fe2fee23ea8ffb0dc87ff48bb1be68",
+    "tree": "2bacfc47b152a3b7fdfe0bea76743c3ede8acaff",
+    "rpc_server_sha256": "76c575b5b8463013764253e9a3f8898a0196b3a5fe96174010a2729b6d104dc7",
+    "llama_server_sha256": "6618dc53dc9fbecd492632fedb428af067a61f524313e0d16d2f4a81a148cf9b",
+    "hip_quantized_kv_candidate": false,
+    "vulkan_q8_predequant_candidate": false,
+    "persistent_cache": false,
+    "webui": false
+  },
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "sha256_authority": "inherited from the P01/P02 full-file verification; P03 rechecked path and size only"
+  },
+  "workload": {
+    "request_body_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "warmups": 1,
+    "retained": 1,
+    "content_sha256": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f",
+    "http_status": 200,
+    "http_seconds": 13.231415,
+    "prompt_tokens_per_second": 203.71118841751232,
+    "generation_tokens_per_second": 16.655018996480457,
+    "cache_n": 0
+  },
+  "transport": {
+    "mptcp_subflows_total": 2,
+    "listener_change_only": "10.44.0.1 to 0.0.0.0 on the disposable nimo-1 RPC worker",
+    "nimo_1_rail_deltas": {
+      "thunderbolt0": {"rx_bytes": 16600645, "tx_bytes": 7897210},
+      "thunderbolt1": {"rx_bytes": 23699753, "tx_bytes": 10310910},
+      "total": {"rx_bytes": 40300398, "tx_bytes": 18208120}
+    },
+    "classification": "both_rails_active_total_traffic_similar_no_obvious_generation_signal_without_contemporaneous_single_rail_control"
+  },
+  "evidence": {
+    "nimo_1_root": "/var/tmp/halofpx-p03-dual-rail-canary-20260720",
+    "nimo_1_manifest_sha256": "e40e0e1c9057472b4e491c6edcf9148daba85978a44b9be72d5cc436479d8f7d",
+    "nimo_1_bundle": "/var/tmp/halofpx-p03-dual-rail-canary-nimo1-20260720.tar.zst",
+    "nimo_1_bundle_size_bytes": 7502,
+    "nimo_1_bundle_sha256": "07cac2100b21f50eff07c28ed530b272bdbeee6164f32cda3a06a818f888cf7e",
+    "nimo_2_root": "/var/tmp/halofpx-p03-dual-rail-canary-20260720",
+    "nimo_2_manifest_sha256": "97500cc7d9d70b5d43c19f6676bb751b76b94b8585bfdfe7c409481cfb4dcb0c",
+    "nimo_2_bundle": "/var/tmp/halofpx-p03-dual-rail-canary-nimo2-20260720.tar.zst",
+    "nimo_2_bundle_size_bytes": 11663,
+    "nimo_2_bundle_sha256": "120578d7e6237b65c8391429c1c82d4b899f265ef37fd867d8a5fd6a24b8e12f",
+    "exact_transient_commands_retained_in_journald_exports": true
+  },
+  "rollback": {
+    "experimental_units_stopped": true,
+    "nimo_2_known_good_rpc_restarted": true,
+    "nimo_1_known_good_server_restarted": true,
+    "nimo_1_known_good_health": "HTTP 200 status ok",
+    "nimo_1_known_good_server_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb",
+    "nimo_2_known_good_rpc_sha256": "cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63",
+    "restored_mptcp_subflows_total": 2,
+    "service_restarts": 0,
+    "known_nimo_1_shutdown_sigabrt_reproduced": true,
+    "experimental_worker_stopped_cleanly": true,
+    "experimental_nimo_2_coordinator_sigabrt": true,
+    "experimental_nimo_2_coordinator_core": "584.3 MB compressed core retained by systemd-coredump",
+    "future_teardown_order": "stop coordinator before RPC worker"
+  },
+  "conclusion": {
+    "speedup_claim": false,
+    "transport_promotion": false,
+    "causal_no_benefit_claim": false,
+    "expanded_dual_rail_only_trial_deprioritized": true,
+    "next_gate": "matched current-HEAD versus locked-control feature-off build on proven two-subflow topology"
+  },
+  "provenance": {
+    "runtime_code_changed": false,
+    "experimental_listener_binding_changed": true,
+    "persistent_mptcp_firewall_and_transport_configuration_changed": false,
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "reference_clone_changed": false,
+    "model_changed": false,
+    "remote_changed": false
+  }
+}
