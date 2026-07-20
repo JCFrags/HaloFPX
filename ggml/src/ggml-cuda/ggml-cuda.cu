@@ -799,6 +799,15 @@ static enum ggml_status ggml_backend_cuda_buffer_init_tensor(ggml_backend_buffer
 
     if (tensor->view_src != NULL) {
         assert(tensor->view_src->buffer->buft == buffer->buft);
+        if (GGML_ROCMFP6_EXPANDED_DEVICE && tensor->type == GGML_TYPE_Q6_0_ROCMFPX) {
+            if (tensor->view_src->type != tensor->type ||
+                    tensor->view_offs % ggml_cuda_rocmfpx_fp6_disk_block_size != 0) {
+                GGML_LOG_ERROR("Q6_0_ROCMFPX device view requires matching type and block-aligned packed offset\n");
+                return GGML_STATUS_FAILED;
+            }
+            tensor->data = (char *) tensor->view_src->data +
+                ggml_cuda_tensor_offset(tensor->view_src, tensor->view_offs);
+        }
         return GGML_STATUS_SUCCESS;
     }
 

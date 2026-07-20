@@ -1,0 +1,141 @@
+{
+  "schema": "halofpx.p06f-rocmfpx-q6-expanded-device-view-offset.v1",
+  "date": "2026-07-20",
+  "status": "focused_direct_hip_and_rpc_backend_correction_qualified_exact_model_rank_local_execution_open",
+  "parent_commit": "244c414f31b7689adf80b45126d2d42bc1ab8276",
+  "parent_tree": "4904ec3e26fc083f828d9ec9deacebd1cac37241",
+  "defect": {
+    "type": "Q6_0_ROCMFPX",
+    "backend": "Strix Halo HIP expanded-device storage",
+    "observed_in": "P06e RPC nonzero expert-axis view",
+    "prior_result": "peer contribution exactly zero while full replicated tensor and global IDs passed",
+    "root_cause": "packed logical view_offs was applied directly to expanded device storage",
+    "generic_rpc_defect": false
+  },
+  "change": {
+    "runtime_file": "ggml/src/ggml-cuda/ggml-cuda.cu",
+    "test_file": "tests/test-halofpx-rocmfpx-q6-view.cpp",
+    "cmake_file": "tests/CMakeLists.txt",
+    "conversion": "view_src->data + ggml_cuda_tensor_offset(view_src, view_offs)",
+    "requires_matching_q6_type": true,
+    "requires_block_aligned_packed_offset": true,
+    "generic_rpc_serialization_changed": false,
+    "kernel_changed": false,
+    "persistent_behavior_changed": false,
+    "feature_default_changed": false
+  },
+  "source_sha256": {
+    "ggml/src/ggml-cuda/ggml-cuda.cu": "504eae967676955d504fa2da1839ce7948d747c8ae38e8a24a62810b7f2dc888",
+    "tests/CMakeLists.txt": "a1e231094fc2a0f544950683e2a4d514b37eb4f164dd58b95ff868597f8dae88",
+    "tests/test-halofpx-rocmfpx-q6-view.cpp": "45676ef2cb662569ae67f3e4ae43c102038aa8ce5aaffb990a174b3b516f35de"
+  },
+  "build": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "type": "Release",
+    "gfx_target": "gfx1151",
+    "hip": true,
+    "rpc": true,
+    "vulkan": false,
+    "force_mmq": true,
+    "no_vmm": true,
+    "compiler": "AMD clang 22.0.0git f58b06dce1f9c15707c5f808fd002e18c2accf7e",
+    "focused_test_sha256_both_nodes": "14e715306dc003225a7055b9505f029af80b402d3f55e6728df6c78baa0a6660",
+    "rpc_server_sha256_both_nodes": "61e74a3bcf7fd1e529f98aabacd3228ebb1a75928ca017d26e7e943a77d00f5f",
+    "nimo_1_cmake_cache_sha256": "83dd062ab638d6aaf0494fd85804b4f641bdfa4340a465958edf06ff2f8cfe36",
+    "nimo_2_cmake_cache_sha256": "6e66747d279eb570b457796a15dbceff974731e46d8d7716ca4f7d0cdfcb4738",
+    "nimo_2_backend_ops_sha256": "4fa0eb0b085165f12b1dd0012038752b4c0ab5efd923eeb24235fe9382dc2109"
+  },
+  "focused_oracle": {
+    "weight_type": "Q6_0_ROCMFPX",
+    "geometry": {"k": 256, "m": 128, "experts": 4, "view_experts": 2},
+    "packed_view_offset_bytes": 53248,
+    "full_global_ids": [2, 3],
+    "view_local_ids": [0, 1],
+    "direct_backend": "nimo-2 ROCm0",
+    "direct_nmse": 0.0,
+    "direct_max_abs_error": 0.0,
+    "rpc_backend": "nimo-2 RPC0 to nimo-1 10.44.0.1:50054 ROCm0",
+    "rpc_nmse": 0.0,
+    "rpc_max_abs_error": 0.0,
+    "threshold_nmse": 0.000001,
+    "passed": true
+  },
+  "inherited_smoke": {
+    "command_scope": "ROCm0 MUL_MAT_ID parameter filter q6_0_rocmfpx",
+    "passed": 73,
+    "total": 73,
+    "candidate_warnings": 0,
+    "preexisting_test_backend_ops_deprecated_enum_warnings": 6
+  },
+  "excluded_nonexecution": {
+    "endpoint": "10.44.0.2:50054",
+    "exit_status": 134,
+    "reason": "operator selected nimo-2 self address instead of nimo-1 peer",
+    "connected": false,
+    "backend_created": false,
+    "graph_executed": false,
+    "retained": true
+  },
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-p06f-q6-view-244c414-20260720/evidence",
+      "manifest_entries": 6,
+      "manifest_sha256": "2b85d1eb15dd3ee59e216997afe3587f6e077edb6de2a0f31a704f4a6b5096c4",
+      "bundle": "/var/tmp/halofpx-p06f-q6-view-244c414-nimo1-20260720.tar.zst",
+      "bundle_size_bytes": 6958,
+      "bundle_sha256": "d217bb84cddf3dc43bfa5207c44e88a32f41f1e66533350a39d0ac8db6f924de"
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-p06f-q6-view-244c414-20260720/evidence",
+      "manifest_entries": 10,
+      "manifest_sha256": "e0ac7686e1fec6347bde7ef7a0321bac1d50d6f5308cd3dfae6856db2afa0105",
+      "bundle": "/var/tmp/halofpx-p06f-q6-view-244c414-nimo2-20260720.tar.zst",
+      "bundle_size_bytes": 8469,
+      "bundle_sha256": "abcc396071fba55386bcade4b4f5c2f35f93fed4516fb52c72264b8010342dc7"
+    },
+    "manifests_verified": true,
+    "bundles_verified": true,
+    "authorization_or_private_key_material_detected": false
+  },
+  "rollback": {
+    "stop_order": ["nimo-1 coordinator", "nimo-2 worker"],
+    "restore_order": ["nimo-2 worker", "nimo-1 coordinator"],
+    "disposable_rpc_unit_removed": true,
+    "nimo_2_worker_active": true,
+    "nimo_2_worker_restarts": 0,
+    "nimo_1_server_active": true,
+    "nimo_1_server_restarts": 0,
+    "nimo_1_model_load_seconds": 207,
+    "nimo_1_health_http": 200,
+    "deployed_binaries_replaced": false
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "reference_clone_changed": false,
+    "remote_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLLama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama_ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama_cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "Nathanw1014_llama_cpp": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  },
+  "independent_review": {
+    "path": "docs/halofpx/reviews/2026-07-20__p06f-rocmfpx-q6-expanded-device-view-offset__review__v01.md",
+    "verdict": "accept_for_commit",
+    "blocking_findings": 0
+  },
+  "deferred": [
+    "exact-model 96-expert view and rank-local-ID shadow execution",
+    "authoritative physical expert sharding",
+    "matched performance and final non-inferiority",
+    "unaligned, retyped, and nested-view negative permutations absent a concrete defect"
+  ]
+}

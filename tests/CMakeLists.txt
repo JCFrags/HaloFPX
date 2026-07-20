@@ -645,6 +645,11 @@ endif()
 llama_build_and_test(test-gguf.cpp)
 llama_build_and_test(test-backend-ops.cpp)
 
+if (GGML_HIP AND GGML_RPC)
+    llama_build(test-halofpx-rocmfpx-q6-view.cpp)
+    target_link_libraries(test-halofpx-rocmfpx-q6-view PRIVATE ggml-rpc)
+endif()
+
 if (HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
     target_compile_definitions(test-backend-ops PRIVATE
         HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
