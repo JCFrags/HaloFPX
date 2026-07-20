@@ -476,6 +476,59 @@ static bool ggml_cuda_fattn_turbo_batched_required(const ggml_tensor * dst) {
 }
 #endif // GGML_USE_HIP
 
+#if defined(GGML_USE_HIP) && defined(GGML_HIP_QUANT_KV_FATTN_TILE)
+static bool halofpx_fattn_quantized_kv_tile_eligible(const ggml_tensor * dst, const int cc) {
+    const ggml_tensor * Q = dst->src[0];
+    const ggml_tensor * K = dst->src[1];
+    const ggml_tensor * V = dst->src[2];
+    const ggml_tensor * mask = dst->src[3];
+
+    float max_bias = 0.0f;
+    memcpy(&max_bias, (const float *) dst->op_params + 1, sizeof(float));
+    bool gqa_opt_applies = mask && max_bias == 0.0f && K->ne[1] % FATTN_KQ_STRIDE == 0;
+    for (const ggml_tensor * t : {Q, K, V, mask}) {
+        if (t == nullptr || ggml_is_quantized(t->type)) {
+            continue;
+        }
+        for (size_t i = 1; i < GGML_MAX_DIMS; ++i) {
+            if (t->nb[i] % 16 != 0) {
+                gqa_opt_applies = false;
+                break;
+            }
+        }
+    }
+
+    const bool admitted_type = K->type == V->type &&
+        (K->type == GGML_TYPE_Q8_0 || K->type == GGML_TYPE_Q4_0);
+    const bool admitted_shape = (K->ne[0] == 128 || K->ne[0] == 256) &&
+        Q->ne[0] == K->ne[0] && V->ne[0] == K->ne[0];
+    if (!admitted_type || !admitted_shape || Q->ne[1] != 1 || !gqa_opt_applies || mask->ne[2] != 1) {
+        return false;
+    }
+    if (Q->ne[2] % K->ne[2] != 0 || Q->ne[2] / K->ne[2] != 8) {
+        return false;
+    }
+    if (K->ne[1] != V->ne[1] || K->ne[2] != V->ne[2] || K->ne[3] != V->ne[3]) {
+        return false;
+    }
+
+    const size_t row_size = ggml_row_size(K->type, K->ne[0]);
+    if (K->nb[0] != ggml_type_size(K->type) || V->nb[0] != ggml_type_size(V->type) ||
+            K->nb[1] != row_size || V->nb[1] != row_size) {
+        return false;
+    }
+    for (const ggml_tensor * t : {K, V}) {
+        for (size_t i = 2; i < GGML_MAX_DIMS; ++i) {
+            if (t->nb[i] % 16 != 0) {
+                return false;
+            }
+        }
+    }
+
+    return ggml_cuda_fattn_tile_get_config(K->ne[0], V->ne[0], 8, cc) != 0;
+}
+#endif
+
 static best_fattn_kernel ggml_cuda_get_best_fattn_kernel(const int device, const ggml_tensor * dst) {
 #ifndef FLASH_ATTN_AVAILABLE
     GGML_UNUSED(device); GGML_UNUSED(dst);
@@ -632,6 +685,12 @@ static best_fattn_kernel ggml_cuda_get_best_fattn_kernel(const int device, const
         return BEST_FATTN_KERNEL_VEC;
     }
 
+#ifdef GGML_HIP_QUANT_KV_FATTN_TILE
+    if (halofpx_fattn_quantized_kv_tile_eligible(dst, cc)) {
+        return BEST_FATTN_KERNEL_TILE;
+    }
+#endif
+
     // HIP graph capture cannot tolerate cudaMalloc/cudaFree in the TILE/MMA
     // quantized-KV f16 temp path. Route small decode/speculative batches through
     // VEC, which dequantizes inline and avoids capture-unsafe allocation calls.
@@ -772,6 +831,11 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
     const ggml_tensor * Q = dst->src[0];
     const best_fattn_kernel raw_kernel = ggml_cuda_get_best_fattn_kernel(ggml_cuda_get_device(), dst);
 
+#ifdef GGML_HIP_QUANT_KV_FATTN_TILE
+    const bool quantized_kv_tile_eligible = raw_kernel == BEST_FATTN_KERNEL_TILE &&
+        halofpx_fattn_quantized_kv_tile_eligible(dst, ggml_cuda_info().devices[ggml_cuda_get_device()].cc);
+#endif
+
     if (raw_kernel != BEST_FATTN_KERNEL_NONE && ggml_cuda_fattn_turbo_batched_required(dst)) {
         ggml_cuda_flash_attn_ext_tile(ctx, dst);
         return;
@@ -827,6 +891,12 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
         case BEST_FATTN_KERNEL_NONE:
             GGML_ABORT("fatal error");
         case BEST_FATTN_KERNEL_TILE:
+#if defined(GGML_USE_HIP) && defined(GGML_HIP_QUANT_KV_FATTN_TILE)
+            if (quantized_kv_tile_eligible) {
+                ggml_cuda_flash_attn_ext_tile_quantized(ctx, dst);
+                break;
+            }
+#endif
             ggml_cuda_flash_attn_ext_tile(ctx, dst);
             break;
         case BEST_FATTN_KERNEL_VEC:

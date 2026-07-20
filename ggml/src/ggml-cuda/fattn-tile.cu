@@ -59,3 +59,37 @@ void ggml_cuda_flash_attn_ext_tile(ggml_backend_cuda_context & ctx, ggml_tensor 
         } break;
     }
 }
+
+#if defined(GGML_USE_HIP) && defined(GGML_HIP_QUANT_KV_FATTN_TILE)
+void ggml_cuda_flash_attn_ext_tile_quantized(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+    const ggml_tensor * K = dst->src[1];
+    const ggml_tensor * V = dst->src[2];
+
+    GGML_ASSERT(K->type == V->type);
+    GGML_ASSERT(K->ne[0] == V->ne[0]);
+
+    if (K->ne[0] == 128) {
+        if (K->type == GGML_TYPE_Q8_0) {
+            ggml_cuda_flash_attn_ext_tile_case<128, 128, GGML_TYPE_Q8_0, GGML_TYPE_Q8_0>(ctx, dst);
+            return;
+        }
+        if (K->type == GGML_TYPE_Q4_0) {
+            ggml_cuda_flash_attn_ext_tile_case<128, 128, GGML_TYPE_Q4_0, GGML_TYPE_Q4_0>(ctx, dst);
+            return;
+        }
+    }
+
+    if (K->ne[0] == 256) {
+        if (K->type == GGML_TYPE_Q8_0) {
+            ggml_cuda_flash_attn_ext_tile_case<256, 256, GGML_TYPE_Q8_0, GGML_TYPE_Q8_0>(ctx, dst);
+            return;
+        }
+        if (K->type == GGML_TYPE_Q4_0) {
+            ggml_cuda_flash_attn_ext_tile_case<256, 256, GGML_TYPE_Q4_0, GGML_TYPE_Q4_0>(ctx, dst);
+            return;
+        }
+    }
+
+    GGML_ABORT("unsupported quantized-KV tile dispatch");
+}
+#endif

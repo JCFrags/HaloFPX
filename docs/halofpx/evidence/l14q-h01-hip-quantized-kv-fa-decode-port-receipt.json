@@ -1,0 +1,166 @@
+{
+  "schema": "halofpx.l14q-h01-hip-quantized-kv-fa-decode-port.v1",
+  "date": "2026-07-20",
+  "status": "qualified_default_off_experimental_performance_promotion_open",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "candidate_parent_commit": "ec7a3c7ac87944c843254e775b204427f003ac08",
+  "candidate_parent_tree": "667aff2412088a355966afc3416e19902ee211c6",
+  "scope": "default-off target-native HIP standard Q8_0/Q4_0 FlashAttention tile decode path",
+  "authority": {
+    "preparation_commit": "4f0a2749c2b3c23dc3d45ea25a380ed2a274dfc2",
+    "capability_id": "L14Q-H01",
+    "treatment": "target-native-clean-reimplementation",
+    "runtime_p3_approved": true,
+    "direct_cherry_pick_roster_changed": false
+  },
+  "change": {
+    "option": "GGML_HIP_QUANT_KV_FATTN_TILE",
+    "default": false,
+    "public_cli_or_server_option": false,
+    "implementation_files_modified": 5,
+    "candidate_blobs": {
+      "ggml/src/ggml-cuda/fattn-tile.cu": "81dec5aacb428eadf4167533b8fbe47a8f6f3145",
+      "ggml/src/ggml-cuda/fattn-tile.cuh": "853e6eff09833001130ceba22f6b3d33d9fe9843",
+      "ggml/src/ggml-cuda/fattn.cu": "c2b7c800f5277d67094fdf9a9f6ff39b5589d76d",
+      "ggml/src/ggml-cuda/template-instances/fattn-tile-instance-dkq128-dv128.cu": "c66875dada0db99556c6b2dba24c39ae90767cd4",
+      "ggml/src/ggml-cuda/template-instances/fattn-tile-instance-dkq256-dv256.cu": "c877a3d7e8c88c492fcb891bd0d9683a18ed0e1d"
+    },
+    "eligible_cells": ["D128_Q8_0", "D128_Q4_0", "D256_Q8_0", "D256_Q4_0"],
+    "gqa_ratio": 8,
+    "decode_only": true,
+    "full_cache_f16_temporary_for_eligible_cells": false,
+    "runtime_enabled_by_default": false
+  },
+  "focused_qualification": {
+    "node": "nimo-1",
+    "platform": "Linux AMD Strix Halo gfx1151",
+    "clean_on_build": "passed",
+    "clean_off_build": "passed",
+    "admitted_correctness_cells": "4_of_4_passed",
+    "l14q_t01_on": "20_of_20_passed",
+    "l14q_t01_off": "20_of_20_passed",
+    "inherited_rocm_flash_attn_ext": "2919_of_2919_passed",
+    "d160_negative": "not_supported_as_expected",
+    "rocmfpx_control": "passed",
+    "turbo_control": "passed",
+    "feature_off_and_l02_contracts": "2_of_2_passed",
+    "admitted_traces": [
+      "D128_Q8_0_flash_attn_tile_typed",
+      "D256_Q4_0_flash_attn_tile_typed"
+    ],
+    "fallback_traces": [
+      "D128_Q8_0_wrong_gqa_flash_attn_ext_vec",
+      "D128_Q8_0_prompt_batch_flash_attn_ext_f16"
+    ],
+    "permanent_diagnostic_added": false
+  },
+  "primary_model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "matched_performance": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "execution_order": ["h01_block_1", "control_block_1", "h01_block_2", "control_block_2"],
+    "warmups_per_block": 1,
+    "retained_per_block": 5,
+    "retained_per_variant": 10,
+    "timing_requests_total": 24,
+    "http_200_total": 24,
+    "prompt_tokens_each": 1129,
+    "generated_tokens_each": 128,
+    "cache_n_each": 0,
+    "request_body_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "content_jq_r_lf_sha256_all_responses": "a9c38c7f948adcfa8cfab5468ab84cc089b01a34c3f270f1c487a9a5fa74b555",
+    "build": {
+      "build_type": "Release",
+      "backends": ["HIP", "Vulkan", "RPC"],
+      "amdgpu_targets": "gfx1151",
+      "webui": false,
+      "h01_rpc_server_sha256": "4137bbafc927e5e2191e47e75f9603e91e00fba6900334c9ffb56c017aa513eb",
+      "h01_llama_server_sha256": "eac5f909c715abc1e49568014973dfaeee7e94ce5f6c7217ce1f2ed4483301d9",
+      "control_rpc_server_sha256": "c90e36904effd643d7acb2646cb1ef1b935c18e9e0ad83654eb497c4b9ab0aae",
+      "control_llama_server_sha256": "26d58b4e1fafa1a4f18eaa0c589b14afae18183e7ca8db65b3a4024ee23dff7c"
+    },
+    "prompt_tokens_per_second": {
+      "h01_mean": 207.78595066118405,
+      "h01_sample_sd": 0.11057794817039218,
+      "control_mean": 207.80601410630325,
+      "control_sample_sd": 0.12182845456230965,
+      "h01_minus_control": -0.02006344511920588,
+      "delta_percent": -0.009654891464759252,
+      "approximate_welch_ci95": [-0.12203931800312905, 0.08191242776471729]
+    },
+    "generation_tokens_per_second": {
+      "h01_mean": 16.75229456577034,
+      "h01_sample_sd": 0.028435650961323188,
+      "control_mean": 16.836364952422503,
+      "control_sample_sd": 0.2060648486676995,
+      "h01_minus_control": -0.08407038665216149,
+      "delta_percent": -0.499338110629783,
+      "approximate_welch_ci95": [-0.21300101032426735, 0.04486023701994438]
+    },
+    "classification": "ambiguous_point_estimate_worse_feature_remains_off",
+    "speedup_claim": false,
+    "confirmed_regression": false,
+    "final_zero_regression_gate_closed": false,
+    "over_30_generation_tokens_per_second": false,
+    "over_30_classification": "owner_stretch_objective_not_pass_fail"
+  },
+  "evidence": {
+    "nimo_1_focused_root_retained": "/var/tmp/halofpx-l14q-h01-runtime-ec7a3",
+    "nimo_1_performance_root": "/var/tmp/halofpx-l14q-h01-primary-20260720",
+    "nimo_1_bundle": "/var/tmp/halofpx-l14q-h01-primary-nimo1-20260720.tar.zst",
+    "nimo_1_bundle_size_bytes": 12108,
+    "nimo_1_bundle_sha256": "9bdd957d87cdb84b15aa0c7a36e4009e04b01c36d857da416825f0276e184c32",
+    "nimo_2_performance_root": "/var/tmp/halofpx-l14q-h01-primary-20260720",
+    "nimo_2_bundle": "/var/tmp/halofpx-l14q-h01-primary-nimo2-20260720.tar.zst",
+    "nimo_2_bundle_size_bytes": 20886,
+    "nimo_2_bundle_sha256": "a1d5a1a79b818e429f41f69d6898638484ad5642cc29daf60ef7be9b87685358"
+  },
+  "references": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLLama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "ggml_org_llama_cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "Nathanw1014_llama_cpp": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  },
+  "provenance": {
+    "donor_code_imported": false,
+    "donor_patch_applied": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "new_dependency": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "rollback": {
+    "option_default": "OFF",
+    "coherent_revert_available": true,
+    "transient_experiment_units_stopped": true,
+    "nimo_2_rpc_service": "minimax-m27-rpc-worker.service",
+    "nimo_2_rpc_port": 50052,
+    "nimo_2_rpc_active": true,
+    "nimo_1_server_service": "minimax-m27-q6-server.service",
+    "nimo_1_server_port": 8081,
+    "nimo_1_server_health": 200,
+    "services_enabled": true
+  },
+  "review": {
+    "verdict": "CONDITIONAL_ACCEPT_DEFAULT_OFF_EXPERIMENT",
+    "correctness_blocker": false,
+    "provenance_blocker": false,
+    "open_p2": "generated instance source of truth must be resolved before generator rerun or release",
+    "open_performance_gate": "point estimate must not be worse and confidence interval must support non-regression before promotion"
+  },
+  "deferred": [
+    "final G9/G10 trial volume and block-aware non-inferiority analysis",
+    "D256 model-level performance evidence",
+    "broad TTFT, inter-token, tail, utilization, memory, storage, and per-rail telemetry",
+    "exhaustive selector and fault permutations absent a concrete defect",
+    "generator source-of-truth repair before release or regeneration"
+  ]
+}
