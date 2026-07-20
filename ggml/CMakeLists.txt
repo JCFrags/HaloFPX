@@ -217,6 +217,7 @@ option(GGML_HIP_GRAPHS                      "ggml: use HIP graph"               
 option(GGML_HIP_RCCL                        "ggml: use ROCm Collective Comm. Library"         OFF)
 option(GGML_HIP_NO_VMM                      "ggml: do not try to use HIP VMM"                 ON)
 option(GGML_HIP_ROCWMMA_FATTN               "ggml: enable rocWMMA for FlashAttention"         OFF)
+option(GGML_HIP_QUANT_KV_FATTN_TILE          "ggml: enable experimental quantized-KV HIP tile FlashAttention" OFF)
 option(GGML_HIP_MMQ_MFMA                    "ggml: enable MFMA MMA for CDNA in MMQ"           ON)
 option(GGML_HIP_FORCE_MMQ                   "ggml: use MMQ kernels instead of hipBLAS"        OFF)
 option(GGML_HIP_EXPORT_METRICS              "ggml: enable kernel perf metrics output"         OFF)

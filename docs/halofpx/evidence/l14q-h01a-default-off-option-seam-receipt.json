@@ -1,0 +1,92 @@
+{
+  "schema": "halofpx.l14q-h01a-default-off-option-seam.v1",
+  "date": "2026-07-19",
+  "status": "qualified_independent_review_accepted_inert_seam_only",
+  "parent_commit": "91e9ba63a2281b0be1483ee8b607fce782c16087",
+  "parent_tree": "40998365614797f832b24c3269ec8dfeacb1401e",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "inert compile-time default-off option and HIP-local definition propagation only",
+  "change": {
+    "option": "GGML_HIP_QUANT_KV_FATTN_TILE",
+    "default": false,
+    "public_cli_or_server_option": false,
+    "files_modified": 2,
+    "lines_added": 5,
+    "lines_deleted": 0,
+    "paths": [
+      "ggml/CMakeLists.txt",
+      "ggml/src/ggml-hip/CMakeLists.txt"
+    ],
+    "parent_blobs": [
+      "57f5eebafd2fcf1141640abbead35693dd8916d7",
+      "f4bf89ee71fcd2f98195d228d8db3436fffb50cf"
+    ],
+    "candidate_blobs": [
+      "d5602352a2b39523f5550fefbbf5916864968dcc",
+      "087d3ee2c7952246a4b9f19dda330777a9ed9099"
+    ],
+    "candidate_sha256": [
+      "0c5491b976f17f6fc8cae18ae9720651af755e776287a145e83c390f5569613a",
+      "8de8a752b9e6907c4a200aef070389217aa1a0148cfe908cfb5ca86931fc1fe4"
+    ],
+    "runtime_path_changed": false,
+    "kernel_changed": false,
+    "selector_changed": false,
+    "template_instance_changed": false,
+    "feature_enabled_by_default": false
+  },
+  "authority": {
+    "preparation_commit": "4f0a2749c2b3c23dc3d45ea25a380ed2a274dfc2",
+    "capability_id": "L14Q-H01",
+    "treatment": "target-native-clean-reimplementation",
+    "runtime_p3_approved": true,
+    "direct_cherry_pick_roster_changed": false
+  },
+  "qualification": {
+    "node": "nimo-1",
+    "platform": "Linux AMD Strix Halo gfx1151",
+    "default_configure_value": "OFF",
+    "explicit_off_configure_value": "OFF",
+    "explicit_on_configure_value": "ON",
+    "off_macro_compile_command_count": 0,
+    "on_macro_compile_command_count": 154,
+    "off_ggml_hip_build": "passed_169_steps",
+    "on_ggml_hip_build": "passed_169_steps",
+    "off_libggml_hip_sha256": "b1b6c7366770a6ffd1a3ef1a675e21bf64146dd4f1e25a38687cfbfe43ce53eb",
+    "on_libggml_hip_sha256": "4f26140ad6126e85ed3851429e0023aa8d1da7220d77df99a6105877332a8f01",
+    "source_diff_check": "passed",
+    "runtime_tests_required": false,
+    "performance_gate_required": false,
+    "reason": "the macro is not consumed by runtime or kernel source in H01a"
+  },
+  "evidence": {
+    "checkout_commit": "7e7c224947cc3844b40fef12cf5731aae24a1101",
+    "checkout_tree": "2608ddbbecf157dd010431fb57e43a31ec103f83",
+    "parent_blob_equivalence": "the two qualifying parent blobs are identical at the 7e7c224 evidence checkout and 91e9ba6 milestone parent; intervening commits are documentation-only",
+    "node_root": "/var/tmp/halofpx-l14q-h01a-option-91e9ba6",
+    "bundle_path": "/var/tmp/halofpx-l14q-h01a-option-91e9ba6-evidence.tar.zst",
+    "bundle_size_bytes": 4357,
+    "bundle_sha256": "46f9905f991b6e32d976b42fef66ac758ceb4cd96f862850a925a9190101929b"
+  },
+  "provenance": {
+    "donor_code_imported": false,
+    "donor_patch_applied": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "new_dependency": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "rollback": "revert the five-line option seam; OFF remains the default and current parent behavior",
+  "review": {
+    "verdict": "ACCEPT_FOR_H01A_INERT_SEAM",
+    "kernel_or_runtime_optimization_admitted": false,
+    "h01_gates_remaining_open": ["implementation", "correctness", "similarity", "performance", "promotion"]
+  },
+  "nonclaims": [
+    "No HIP kernel, selector, template instance, runtime, server, RPC, Vulkan, model, persistence, WebUI, or deployment behavior changed.",
+    "No correctness, inference throughput, latency, memory, zero-regression, or speedup claim is made.",
+    "H01a does not admit or promote the planned H01 tile loader."
+  ]
+}
