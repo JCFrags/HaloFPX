@@ -1,0 +1,223 @@
+{
+  "schema": "halofpx.p05-rpc-small-command-coalescing-rejection.v1",
+  "matrix_schema": "halofpx.performance-matrix.v1",
+  "date": "2026-07-20",
+  "status": "mechanism_confirmed_candidate_rejected_source_removed",
+  "build_source_commit": "6c01b9769c3d0c0034acfdd3c1e47c3f632ea670",
+  "build_source_tree": "d0905b9c2d77290d1f0b4dcf898aaeb4c3c60432",
+  "build_source_archive_sha256": "6fed59764da4f3d9c02737382c6fc1da52c92e539a0fe9c487cf0971e8650154",
+  "logical_repository_tip_at_experiment": {
+    "commit": "a179d16be57a0bfe5814a82691f54b5dafcf6de4",
+    "tree": "e4ae43af642ca5ea57012da6ee4ac7599c06473b",
+    "intervening_changes": "P03 and P04 documentation only"
+  },
+  "candidate_patch_sha256": "f59dfe0cf261bbdccccab9bd49203b2308438ada6b97479c72f66e7b5637c182",
+  "candidate_committed": false,
+  "candidate_integrated_in_implementation_repository": false,
+  "candidate_node_local_source_build_evidence_retained": true,
+  "candidate_deployed": false,
+  "candidate_process_running": false,
+  "candidate_evidence_patch_retained": true,
+  "candidate_design": {
+    "option": "GGML_RPC_COALESCE_SMALL_COMMANDS",
+    "default": false,
+    "maximum_payload_bytes": 256,
+    "allocation": "fixed_stack_buffer",
+    "wire_bytes_changed": false,
+    "large_payload_path_changed": false,
+    "negotiated_rdma_eligible": false,
+    "tcp_stream_eligible": true
+  },
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "qualified_node": "nimo-2"
+  },
+  "build": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "fresh_off_and_on_both_nodes": true,
+    "matched_configuration": true,
+    "build_type": "Release",
+    "compiler": "GCC 16.1.1 20260625",
+    "cmake": "4.3.4",
+    "backends": ["HIP", "Vulkan", "RPC"],
+    "amdgpu_targets": "gfx1151",
+    "webui": false,
+    "all_context_store_gates": false,
+    "hip_quantized_kv_candidate": false,
+    "vulkan_q8_predequant_candidate": false,
+    "off": {
+      "rpc_server_sha256_both_nodes": "f2285df6bdddbd04eb9831036da8e87a3202b11b59fcb39c2df818f7dfc1fbec",
+      "llama_server_sha256_both_nodes": "f3057ae963c183fd4c2a43e364c9a9627a22ebe1d81d8396e711fd253a0a9647",
+      "cmake_cache_sha256_both_nodes": "1c2db0462e21f7848ac41baae91db1ddc2b79b3a1da7eff90683d7096738976b"
+    },
+    "on": {
+      "rpc_server_sha256_both_nodes": "2f42b36d4756b68c0237ca82690b4b4f96210de9a285b4fcd06062d61d622e16",
+      "llama_server_sha256_both_nodes": "c5fcc2bb4d613b2ba5d87145a8d5c3e9fdd31be83f668d5bfdd3edd8cc31c71d",
+      "cmake_cache_sha256_both_nodes": "abafc9d6e5219ae376226418d3d8ce26437dea00754723ccb58df0527745572b"
+    }
+  },
+  "runtime": {
+    "coordinator": "nimo-2",
+    "rpc_worker": "nimo-1",
+    "rpc_endpoint": "10.44.0.1:50053",
+    "mptcp_wrapper": true,
+    "mptcp_subflows_each_block": 2,
+    "device_order": "RPC0,ROCm0",
+    "tensor_split": "1,1",
+    "split_mode": "layer",
+    "context": 4096,
+    "parallel": 1,
+    "threads": 16,
+    "threads_batch": 16,
+    "gpu_layers": 999,
+    "flash_attention": true,
+    "kv_k": "q8_0",
+    "kv_v": "q8_0",
+    "batch": 512,
+    "ubatch": 512,
+    "fit": false,
+    "mmap": false,
+    "direct_io": true,
+    "seed": 1234,
+    "temperature": 0,
+    "offline": true,
+    "webui": false,
+    "hsa_enable_sdma": "0"
+  },
+  "workload": {
+    "api": "/completion",
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "request_body_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "execution_order": ["off_block_1", "on_block_1", "on_block_2", "off_block_2"],
+    "warmups_per_block": 1,
+    "retained_per_block": 3,
+    "retained_per_variant": 6,
+    "retained_total": 12,
+    "admitted_requests_total": 16,
+    "admitted_http_200_total": 16,
+    "diagnostic_requests_total": 2,
+    "diagnostic_http_200_total": 2,
+    "content_decoded_utf8_no_terminator_sha256_all_retained_responses": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f"
+  },
+  "mechanism": {
+    "diagnostic": "strace -f -c -e sendto attached to nimo-2 coordinator",
+    "off_sendto_calls": 8509,
+    "on_sendto_calls": 8257,
+    "calls_removed": 252,
+    "calls_removed_percent": 2.961570102244682,
+    "small_commands_consistent_with_removed_calls": 126,
+    "off_diagnostic_wall_seconds": 13.459726,
+    "on_diagnostic_wall_seconds": 13.457454,
+    "diagnostic_excluded_from_performance": true
+  },
+  "results": {
+    "prompt_tokens_per_second": {
+      "off_mean": 203.97332029513768,
+      "off_sample_sd": 0.14672570376613922,
+      "on_mean": 203.87929034971535,
+      "on_sample_sd": 0.13770413298697104,
+      "on_minus_off": -0.094029945422335,
+      "on_delta_percent": -0.04609913947877059,
+      "welch_satterthwaite_degrees_of_freedom": 9.960000003453988,
+      "approximate_welch_ci95": [-0.27716926575623757, 0.08910937491156756]
+    },
+    "generation_tokens_per_second": {
+      "off_mean": 16.65870754875142,
+      "off_sample_sd": 0.03750312220073984,
+      "on_mean": 16.657765321285734,
+      "on_sample_sd": 0.028611641714676544,
+      "on_minus_off": -0.0009422274656856189,
+      "on_delta_percent": -0.005656065831807219,
+      "welch_satterthwaite_degrees_of_freedom": 9.347560436390305,
+      "approximate_welch_ci95": [-0.04426007657192374, 0.0423756216405525]
+    },
+    "end_to_end_curl_wall_milliseconds": {
+      "derivation": "retained curl time_total seconds multiplied by 1000",
+      "off_mean": 13222.394833333332,
+      "off_sample_sd": 17.68075472842305,
+      "on_mean": 13230.2255,
+      "on_sample_sd": 21.074700972967783,
+      "on_minus_off": 7.830666666668549,
+      "on_delta_percent": 0.05922275628109085,
+      "welch_satterthwaite_degrees_of_freedom": 9.706747274476525,
+      "approximate_welch_ci95": [-17.295419698820112, 32.95675303215721]
+    },
+    "classification": "mechanism_proven_all_point_estimates_adverse_candidate_rejected",
+    "statistically_reproducible_regression": false,
+    "promotion_gate_passed": false,
+    "speedup_claim": false,
+    "over_30_generation_tokens_per_second": false,
+    "over_30_classification": "owner_stretch_objective_not_pass_fail"
+  },
+  "traffic_nimo_1": [
+    {"block": "off_1", "rx_bytes_both_rails": 161209557, "tx_bytes_both_rails": 72803484, "both_rails_nonzero": true},
+    {"block": "on_1", "rx_bytes_both_rails": 161144177, "tx_bytes_both_rails": 72949024, "both_rails_nonzero": true},
+    {"block": "on_2", "rx_bytes_both_rails": 161180778, "tx_bytes_both_rails": 73807546, "both_rails_nonzero": true},
+    {"block": "off_2", "rx_bytes_both_rails": 161213144, "tx_bytes_both_rails": 72833554, "both_rails_nonzero": true}
+  ],
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-p05-rpc-coalesce/run",
+      "manifest_entries": 46,
+      "manifest_sha256": "6eaff5899c8d57b9e6d2f1ea77a4fd0388ac833e2ed9033a2a4a14b58a8aad1f",
+      "manifest_verified": true,
+      "bundle_path": "/var/tmp/halofpx-p05-rpc-coalesce-nimo1-20260720.tar.zst",
+      "bundle_size_bytes": 22759,
+      "bundle_sha256": "afd6174dea485ed078e90868a91d52b15aae97537f584fc908d6e40104cae205"
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-p05-rpc-coalesce/run",
+      "manifest_entries": 94,
+      "manifest_sha256": "bf42950071f327b05e2ba32b4e2963b95def0d58f930194abb238b9594921701",
+      "manifest_verified": true,
+      "bundle_path": "/var/tmp/halofpx-p05-rpc-coalesce-nimo2-20260720.tar.zst",
+      "bundle_size_bytes": 32286,
+      "bundle_sha256": "921ee6d0eb92229342a253013eeaeef8666461e377aadc36e6af95b062195cf3"
+    },
+    "authorization_material_detected": false
+  },
+  "rollback": {
+    "experiment_units_total": 8,
+    "experiment_units_stopped_success_status_zero": true,
+    "coordinator_stopped_before_worker_each_block": true,
+    "nimo_2_rpc_binary_sha256": "cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63",
+    "nimo_2_rpc_active": true,
+    "nimo_2_rpc_restarts": 0,
+    "nimo_1_server_binary_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb",
+    "nimo_1_server_health_http": 200,
+    "nimo_1_server_health": "ok",
+    "nimo_1_server_restarts": 0,
+    "restored_mptcp_subflows_total": 2
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLLama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama_ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama_cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "Nathanw1014_llama_cpp": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  },
+  "provenance": {
+    "candidate_integrated_in_implementation_repository": false,
+    "candidate_node_local_source_build_evidence_retained": true,
+    "candidate_deployed": false,
+    "candidate_process_running": false,
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "reference_clone_changed": false,
+    "model_changed": false,
+    "remote_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "review": {
+    "verdict": "ACCEPT",
+    "record": "docs/halofpx/reviews/2026-07-20__p05-rpc-small-command-coalescing-rejection__review__v01.md",
+    "test_expansion_required": false
+  },
+  "next_step": "select a different evidence-backed bottleneck candidate; do not extend this lane without a new mechanism"
+}
