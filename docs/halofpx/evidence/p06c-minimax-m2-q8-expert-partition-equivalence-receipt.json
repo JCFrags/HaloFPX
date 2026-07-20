@@ -1,0 +1,86 @@
+{
+  "schema": "halofpx.p06c-minimax-m2-q8-expert-partition-equivalence.v1",
+  "date": "2026-07-20",
+  "status": "representative_partition_equivalence_qualified_runtime_closed",
+  "parent_commit": "17a82a56f58b7df2c0296335028b2ec5ff949189",
+  "parent_tree": "ed9638bef46bc3a3ed1ee07aaaa74bb876a0e651",
+  "gate": {
+    "name": "HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY",
+    "default": "OFF",
+    "normal_runtime_linked": false,
+    "test_backend_only": true
+  },
+  "graph": {
+    "operation": "MINIMAX_M2_EXPERT_EQUIVALENCE",
+    "weight_type": "Q8_0_ROCMFPX",
+    "weight_shape": [1536, 3072, 192],
+    "selected_global_ids": [0, 1, 94, 95, 96, 97, 190, 191],
+    "world_size": 2,
+    "experts_per_rank": 96,
+    "tokens": 1,
+    "rank_views": "zero-copy expert-axis views of one authoritative tensor",
+    "inactive_input": "all-zero activation with dummy local id 0",
+    "oracle": "max of ROCm internal NMSE and CPU internal NMSE",
+    "max_nmse": 0.000001
+  },
+  "source_sha256": {
+    "tests/CMakeLists.txt": "5304bd7fe1a675da255ea68ae1c1d01d815e81f1b970b6b3fee52c274f3e2f1d",
+    "tests/test-backend-ops.cpp": "355aa135d14bcedae667b017e7522db0bf853b1349f6260bf666a66dc26eae57",
+    "src/halofpx-minimax-m2-expert-partition.cpp": "db8f8c4a231589f9214d8aa349d3d0a5432fbc83550e607e3699396e2c08c0d9",
+    "src/halofpx-minimax-m2-expert-partition.h": "92dd868041a716f257c92378980039ceefe64a1488b36345330d9f0b82528749"
+  },
+  "qualification": {
+    "target": "nimo-1",
+    "device": "AMD Radeon 8060S Graphics",
+    "architecture": "gfx1151",
+    "build_type": "Release",
+    "compiler": "GCC 16.1.1",
+    "cmake": "4.3.4",
+    "equivalence": "1/1 passed at max internal NMSE 1e-6",
+    "inherited_q8_smoke": "4/4 passed before oracle-only tightening",
+    "p06a_contract": "passed",
+    "binary_sha256": "cb905ac2a7b5f67f1c17968e32f4cb37a690ba69b0add2d1891a6b05ec963346",
+    "cmake_cache_sha256": "db0ac059d5afd10bb488aa54837f8f86e202d0fad752c4907715af4de3ac2b1f",
+    "equivalence_csv_sha256": "4382c082c0d4186e1a02b2d3b46484cfdee089487e51646655a4bbebc0218829",
+    "inherited_q8_csv_sha256": "71ec55f861976e1941da55e609edd6bcc7734acf2d188d12855058e41ef59163",
+    "p06a_contract_sha256": "b690b66d2e2a749a77bbf18740c6e87915aef1a469e0eeb34c167a6a2608c823"
+  },
+  "evidence": {
+    "root": "/var/tmp/halofpx-p06a-expert-partition/p06c-evidence",
+    "manifest_sha256": "ba4e16ac9c3359216a1b8fa5664d59310b399e7c0fda914c44bcebd5dbeb34d2",
+    "bundle": "/var/tmp/halofpx-p06a-expert-partition/p06c-evidence.tar.zst",
+    "bundle_size_bytes": 430399,
+    "bundle_sha256": "bbaf4b743447b1a0ebafc7c51222bff608278d40373d70ad47b391bb020dd11a",
+    "manifest_verified": true
+  },
+  "service_restore": {
+    "order": ["nimo-2 worker", "nimo-1 server"],
+    "worker_active": true,
+    "server_active": true,
+    "worker_restarts": 0,
+    "server_restarts": 0,
+    "http_health_at_closeout": "200 ok",
+    "http_health_required_before_promotion": false
+  },
+  "excluded": {
+    "router_and_gate_equivalence": false,
+    "full_moe_layer_equivalence": false,
+    "runtime_expert_placement": false,
+    "rpc_overlap": false,
+    "end_to_end_performance_claim": false,
+    "persistent_write": false
+  },
+  "provenance": {
+    "implementation": "target-native test canary",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false,
+    "model_mutated": false,
+    "reference_clone_changed": false
+  },
+  "next_gate": "P06d default-off exact-model expert-axis runtime canary with matched output",
+  "independent_review": "accepted_no_p1_p2"
+}

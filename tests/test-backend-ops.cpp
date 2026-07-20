@@ -43,6 +43,10 @@
 #include <vector>
 #include <unordered_map>
 
+#if defined(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
+#include "halofpx-minimax-m2-expert-partition.h"
+#endif
+
 #ifdef __EMSCRIPTEN__
 #   define N_THREADS 1
 #else
@@ -4211,6 +4215,144 @@ struct test_mul_mat_id : public test_case {
         init_mul_mat_id_tensors(ctx, n_mats);
     }
 };
+
+#if defined(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
+struct test_minimax_m2_expert_equivalence : public test_case {
+    static constexpr int64_t k = 1536;
+    static constexpr int64_t m = 3072;
+    static constexpr int64_t n_used = halofpx::minimax_m2::selected_count;
+
+    ggml_tensor * weights = nullptr;
+    ggml_tensor * ids_full = nullptr;
+    std::array<ggml_tensor *, halofpx::minimax_m2::world_size> ids_local{};
+    ggml_tensor * activations_full = nullptr;
+    std::array<ggml_tensor *, halofpx::minimax_m2::world_size> activations_local{};
+    halofpx::minimax_m2::partition_plan plan{};
+
+    std::string op_desc(ggml_tensor * t) override {
+        GGML_UNUSED(t);
+        return "MINIMAX_M2_EXPERT_EQUIVALENCE";
+    }
+
+    std::string vars() override {
+        return "type=Q8_0_ROCMFPX,experts=192,used=8,m=3072,n=1,k=1536,world=2";
+    }
+
+    bool run_whole_graph() override { return true; }
+
+    double max_nmse_err() override { return 1e-6; }
+
+    double err(const float * a, const float * b, size_t n) override {
+        GGML_ASSERT(n % 2 == 0);
+        const size_t half = n / 2;
+        // P06b separately qualifies each Q8 kernel against the CPU backend.
+        // This canary's stronger oracle is internal: both backends must make
+        // their own unsplit and two-rank results equivalent.
+        return std::max(
+            nmse(a, a + half, half),
+            nmse(b, b + half, half));
+    }
+
+    ggml_tensor * build_graph(ggml_context * ctx) override {
+        using namespace halofpx::minimax_m2;
+
+        constexpr std::array<std::uint16_t, selected_count> selected = {
+            0, 1, 94, 95, 96, 97, 190, 191,
+        };
+        GGML_ASSERT(build_partition(selected, world_size, plan) == partition_status::ok);
+
+        weights = ggml_new_tensor_3d(ctx, GGML_TYPE_Q8_0_ROCMFPX, k, m, expert_count);
+        ggml_set_name(weights, "minimax_weights_full");
+
+        std::array<ggml_tensor *, world_size> rank_weights{};
+        for (size_t rank = 0; rank < world_size; ++rank) {
+            rank_weights[rank] = ggml_view_3d(
+                ctx, weights, k, m, experts_per_rank,
+                weights->nb[1], weights->nb[2], rank * experts_per_rank * weights->nb[2]);
+            ggml_format_name(rank_weights[rank], "minimax_weights_rank%zu", rank);
+        }
+
+        ids_full = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, selected_count, 1);
+        ggml_set_name(ids_full, "minimax_ids_full");
+        activations_full = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, k, selected_count, 1);
+        ggml_set_name(activations_full, "minimax_activations_full");
+
+        for (size_t rank = 0; rank < world_size; ++rank) {
+            ids_local[rank] = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, selected_count, 1);
+            ggml_format_name(ids_local[rank], "minimax_ids_rank%zu", rank);
+            activations_local[rank] = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, k, selected_count, 1);
+            ggml_format_name(activations_local[rank], "minimax_activations_rank%zu", rank);
+        }
+
+        ggml_tensor * full = ggml_mul_mat_id(ctx, weights, activations_full, ids_full);
+        ggml_set_name(full, "minimax_full");
+
+        std::array<ggml_tensor *, world_size> partials{};
+        for (size_t rank = 0; rank < world_size; ++rank) {
+            partials[rank] = ggml_mul_mat_id(ctx, rank_weights[rank], activations_local[rank], ids_local[rank]);
+            ggml_format_name(partials[rank], "minimax_partial_rank%zu", rank);
+        }
+        ggml_tensor * split = ggml_add(ctx, partials[0], partials[1]);
+        ggml_set_name(split, "minimax_split");
+
+        ggml_tensor * out = ggml_concat(ctx, full, split, 2);
+        ggml_set_name(out, "minimax_full_split");
+        return out;
+    }
+
+    void initialize_tensors(ggml_context * ctx) override {
+        GGML_UNUSED(ctx);
+        using namespace halofpx::minimax_m2;
+
+        const size_t values_per_expert = static_cast<size_t>(k * m);
+        const size_t bytes_per_expert = weights->nb[2];
+        std::vector<float> values(values_per_expert);
+        std::vector<uint8_t> quantized(bytes_per_expert);
+        for (size_t expert = 0; expert < expert_count; ++expert) {
+            for (size_t i = 0; i < values.size(); ++i) {
+                const int value = static_cast<int>((i * 17 + expert * 29) % 255) - 127;
+                values[i] = static_cast<float>(value) / 127.0f;
+            }
+            const size_t written = ggml_quantize_chunk(
+                GGML_TYPE_Q8_0_ROCMFPX, values.data(), quantized.data(), 0, m, k, nullptr);
+            GGML_ASSERT(written == bytes_per_expert);
+            ggml_backend_tensor_set(weights, quantized.data(), expert * bytes_per_expert, bytes_per_expert);
+        }
+
+        std::array<int32_t, selected_count> full_ids{};
+        std::copy(plan.global_ids.begin(), plan.global_ids.end(), full_ids.begin());
+        ggml_backend_tensor_set(ids_full, full_ids.data(), 0, sizeof(full_ids));
+
+        const size_t activation_count = static_cast<size_t>(k * selected_count);
+        std::vector<float> full_activations(activation_count);
+        for (size_t slot = 0; slot < selected_count; ++slot) {
+            for (int64_t i = 0; i < k; ++i) {
+                const int value = static_cast<int>((i * 13 + slot * 31) % 127) - 63;
+                full_activations[slot * k + i] = static_cast<float>(value) / 63.0f;
+            }
+        }
+        ggml_backend_tensor_set(
+            activations_full, full_activations.data(), 0, full_activations.size() * sizeof(float));
+
+        for (size_t rank = 0; rank < world_size; ++rank) {
+            std::array<int32_t, selected_count> local_ids{};
+            std::vector<float> local_activations(activation_count, 0.0f);
+            for (size_t slot = 0; slot < selected_count; ++slot) {
+                local_ids[slot] = plan.ranks[rank].local_ids[slot];
+                if (plan.ranks[rank].active[slot]) {
+                    std::copy_n(
+                        full_activations.data() + slot * k, k,
+                        local_activations.data() + slot * k);
+                }
+            }
+            ggml_backend_tensor_set(ids_local[rank], local_ids.data(), 0, sizeof(local_ids));
+            ggml_backend_tensor_set(
+                activations_local[rank], local_activations.data(), 0,
+                local_activations.size() * sizeof(float));
+        }
+    }
+};
+#endif
 
 // GGML_OP_MUL_MAT_ID + GGML_OP_ADD or GGML_OP_MUL
 struct test_mul_mat_id_fusion : public test_case {
@@ -8527,6 +8669,8 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
     test_cases.emplace_back(new test_mul_mat_id(GGML_TYPE_MXFP4, GGML_TYPE_F32, 32, 2, false, 2880, 32, 2880));
 
 #if defined(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
+    test_cases.emplace_back(new test_minimax_m2_expert_equivalence());
+
     // P06b exact MiniMax-M2 expert projection shapes from the pinned primary
     // workload: 192 experts, top-8, hidden 3072, intermediate 1536. Keep this
     // roster isolated behind the default-off P06 canary gate because each full
