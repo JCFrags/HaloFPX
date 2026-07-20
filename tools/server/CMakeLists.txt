@@ -222,6 +222,19 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         halofpx-context-store-v1-read-only
         halofpx-context-store-v1-linux-read-only)
     target_compile_features(halofpx-context-store-v1-linux-publish PRIVATE cxx_std_17)
+
+    # L08h-b excluded generation-one protected full-v1 authority. It composes
+    # the authenticated attempt wire, snapshot materializer, exact reader, and
+    # protected canary anchor without a server or live-restore edge.
+    add_library(halofpx-context-store-v1-linux-generation-one STATIC EXCLUDE_FROM_ALL
+        halofpx-context-store-v1-linux-generation-one.cpp
+        halofpx-context-store-v1-linux-generation-one.h
+    )
+    target_link_libraries(halofpx-context-store-v1-linux-generation-one PUBLIC
+        halofpx-context-store-v1-linux-publish
+        halofpx-context-store-v1-attempt-wire
+        halofpx-context-store-protected-canary-anchor)
+    target_compile_features(halofpx-context-store-v1-linux-generation-one PRIVATE cxx_std_17)
 endif()
 
 # Permanently synthetic L05m bootstrap-material preparation seam. This target

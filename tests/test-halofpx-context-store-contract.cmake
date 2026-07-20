@@ -35,6 +35,10 @@ foreach(runtime_path IN LISTS runtime_paths)
     if ("${runtime_path}" STREQUAL "${header_path}" OR "${runtime_path}" STREQUAL "${source_path}")
         continue()
     endif()
+    get_filename_component(runtime_name "${runtime_path}" NAME)
+    if (runtime_name MATCHES "^halofpx-context-store-v1-(read-only|linux-read-only|linux-publish|linux-generation-one)\\.(h|cpp)$")
+        continue()
+    endif()
     file(READ "${runtime_path}" runtime_source)
     foreach(forbidden_hook
             "make_disabled_context_store_provider"

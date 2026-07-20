@@ -1,0 +1,55 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L08h-b",
+  "title": "generation-one protected full-v1 publication authority",
+  "implementation_parent": "e62f9295d13955bc86ba846e7db6e3137150d364",
+  "implementation_parent_tree": "30812c33e9b28d03eeed18d76f99d059fa08c1a4",
+  "locked_rocmfpx_base": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "locked_rocmfpx_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "boundary": {
+    "target": "halofpx-context-store-v1-linux-generation-one",
+    "build": "STATIC EXCLUDE_FROM_ALL",
+    "generation": 1,
+    "predecessor": null,
+    "single_controller_thread": true,
+    "server_link": false,
+    "live_restore": false,
+    "product_admission": false
+  },
+  "qualification": {
+    "target": "nimo-1",
+    "kernel": "7.1.3-1-cachyos",
+    "compiler": "GCC 16.1.1 20260625",
+    "cmake": "4.3.4",
+    "build_type": "Release",
+    "focused_and_inherited_controls": "11/11 passed",
+    "post_review_closeout_repairs": "focused lifecycle 1/1 passed",
+    "authority_source_sha256": "1d02f7243f9a963dcd7b7875637fdb6192273ce0ced9df744df379f9892f2dc2",
+    "focused_executable_sha256": "4924353c87253865e3210c1c00acef9db593f6ec93369d20d7ffac1bf740d59c",
+    "known_good_service": "minimax-m27-q6-server.service active and enabled",
+    "independent_review": "ACCEPT after bounded P2 repairs"
+  },
+  "demonstrated": [
+    "miss then authenticated publication then exact hit",
+    "restart after anchor publication recovers authenticated success",
+    "corrupt anchor quarantines and becomes miss_corrupt",
+    "incoherent authority domain is rejected"
+  ],
+  "deferred": [
+    "server edge and live llama-state restore",
+    "in-process serialization and concurrent controller access",
+    "streamed or explicitly wiped aggregate-source commitment storage",
+    "live anchor-corruption classification and observability",
+    "generation advancement and retention",
+    "expanded crash, disk-full, filesystem mutation, distributed recovery, and soak matrices"
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false
+  }
+}

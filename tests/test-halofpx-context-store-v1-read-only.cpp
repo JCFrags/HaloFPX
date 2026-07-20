@@ -118,6 +118,7 @@ bytes make_frame(const std::string & type, const bytes & payload) {
 struct fixture_options {
     std::string profile = "profile.synthetic.full-v1";
     std::array<std::string, 2> codecs = { "codec.tokens.v1", "codec.kv.v1" };
+    uint64_t policy_epoch = 7;
 };
 
 struct signed_two_object_fixture {
@@ -181,7 +182,7 @@ signed_two_object_fixture make_fixture(const fixture_options & options = {}) {
     uint(body, 4); uint(body, 1); uint(body, 5); body.push_back(0xf6);
     uint(body, 6); body.insert(body.end(), compatibility.begin(), compatibility.end());
     uint(body, 7); digest(body, fixture.policy.compatibility.root);
-    uint(body, 8); fill(body, 32, 0x80); uint(body, 9); uint(body, 7);
+    uint(body, 8); fill(body, 32, 0x80); uint(body, 9); uint(body, options.policy_epoch);
     uint(body, 10); map(body, 6);
     uint(body, 0); text(body, "plan.synthetic.v1");
     uint(body, 1); text(body, "pipeline");
@@ -232,7 +233,8 @@ signed_two_object_fixture make_fixture(const fixture_options & options = {}) {
     fixture.policy.key.key_id = registered_id(key_id); fixture.policy.key.generation = 1;
     fixture.policy.anchor.store_uuid.fill(0x02);
     fixture.policy.anchor.checkpoint_lineage_id.fill(0x03);
-    fixture.policy.anchor.namespace_id.fill(0x80); fixture.policy.anchor.policy_epoch = 7;
+    fixture.policy.anchor.namespace_id.fill(0x80);
+    fixture.policy.anchor.policy_epoch = options.policy_epoch;
     fixture.policy.anchor.key_generation = 1; fixture.policy.anchor.generation = 1;
     fixture.policy.anchor.selected_manifest_digest = sha(domain("halofpx.manifest.v1", fixture.manifest));
     fixture.refresh();

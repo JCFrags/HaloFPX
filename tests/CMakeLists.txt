@@ -470,6 +470,16 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     llama_test(test-halofpx-context-store-v1-linux-publish)
     set_property(TEST test-halofpx-context-store-v1-linux-publish PROPERTY
         LABELS "main;halofpx")
+
+    llama_build(test-halofpx-context-store-v1-linux-generation-one.cpp
+        ${CMAKE_SOURCE_DIR}/tools/server/halofpx-context-store.cpp)
+    target_include_directories(test-halofpx-context-store-v1-linux-generation-one PRIVATE
+        ${CMAKE_SOURCE_DIR}/tools/server)
+    target_link_libraries(test-halofpx-context-store-v1-linux-generation-one PRIVATE
+        halofpx-context-store-v1-linux-generation-one)
+    llama_test(test-halofpx-context-store-v1-linux-generation-one)
+    set_property(TEST test-halofpx-context-store-v1-linux-generation-one PROPERTY
+        LABELS "main;halofpx")
 endif()
 
 add_test(
@@ -478,6 +488,14 @@ add_test(
         -DSOURCE_ROOT=${PROJECT_SOURCE_DIR}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-v1-linux-publish-contract.cmake)
 set_property(TEST test-halofpx-context-store-v1-linux-publish-contract PROPERTY
+    LABELS "main;halofpx")
+
+add_test(
+    NAME test-halofpx-context-store-v1-linux-generation-one-contract
+    COMMAND ${CMAKE_COMMAND}
+        -DSOURCE_ROOT=${PROJECT_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-v1-linux-generation-one-contract.cmake)
+set_property(TEST test-halofpx-context-store-v1-linux-generation-one-contract PROPERTY
     LABELS "main;halofpx")
 
 llama_build(test-halofpx-context-store-publication.cpp)

@@ -20,8 +20,14 @@ if(linux_scope_pos EQUAL -1 OR excluded_pos EQUAL -1 OR excluded_pos LESS linux_
 endif()
 string(REGEX MATCHALL "halofpx-context-store-v1-linux-publish" target_mentions "${server_cmake}")
 list(LENGTH target_mentions target_mention_count)
-if(NOT target_mention_count EQUAL 5)
+if(NOT target_mention_count EQUAL 6)
     message(FATAL_ERROR "publisher escaped its isolated target graph: ${target_mention_count} mentions")
+endif()
+string(FIND "${server_cmake}"
+    "target_link_libraries(halofpx-context-store-v1-linux-generation-one PUBLIC\n        halofpx-context-store-v1-linux-publish"
+    authority_consumer_pos)
+if(authority_consumer_pos EQUAL -1)
+    message(FATAL_ERROR "the sole downstream publisher consumer must be the excluded generation-one authority")
 endif()
 string(FIND "${server_cmake}"
     "target_link_libraries(halofpx-context-store-v1-linux-publish PUBLIC\n        halofpx-context-store-v1-read-only\n        halofpx-context-store-v1-linux-read-only)"
