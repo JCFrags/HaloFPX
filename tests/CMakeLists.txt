@@ -124,6 +124,7 @@ if (LLAMA_BUILD_SERVER)
             -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
             -DHALOFPX_CONTEXT_STORE_CANARY=${HALOFPX_CONTEXT_STORE_CANARY}
             -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=${HALOFPX_CONTEXT_STORE_PROTECTED_CANARY}
+            -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=${HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-feature-off-contract.cmake)
     set_property(TEST test-halofpx-feature-off-contract PROPERTY LABELS "main;halofpx")
 endif()
@@ -171,6 +172,14 @@ target_include_directories(test-halofpx-context-store-auth PRIVATE ${CMAKE_SOURC
 target_link_libraries(test-halofpx-context-store-auth PRIVATE halofpx-context-store-auth)
 llama_test(test-halofpx-context-store-auth)
 set_property(TEST test-halofpx-context-store-auth PROPERTY LABELS "main;halofpx")
+
+llama_build(test-halofpx-context-store-compatibility-v1.cpp)
+target_include_directories(test-halofpx-context-store-compatibility-v1 PRIVATE
+    ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-compatibility-v1 PRIVATE
+    halofpx-context-store-compatibility-v1)
+llama_test(test-halofpx-context-store-compatibility-v1)
+set_property(TEST test-halofpx-context-store-compatibility-v1 PROPERTY LABELS "main;halofpx")
 
 llama_build(test-halofpx-context-store-scope.cpp)
 target_include_directories(test-halofpx-context-store-scope PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)

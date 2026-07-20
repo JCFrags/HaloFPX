@@ -1,0 +1,27 @@
+{
+  "schema": "halofpx.context-store-compatibility-v1.golden.v1",
+  "wire": {
+    "domain_hex": "68616c6f6670782e636f6d7061742e763100",
+    "body": "deterministic CBOR map(16), unsigned integer key 0..15, byte-string(32) value",
+    "length_bytes": 579
+  },
+  "components": [
+    {"index": 0, "label": "model_bytes_and_shards", "digest": "0101010101010101010101010101010101010101010101010101010101010101"},
+    {"index": 1, "label": "model_metadata", "digest": "0202020202020202020202020202020202020202020202020202020202020202"},
+    {"index": 2, "label": "tokenizer_bytes_and_policy", "digest": "0303030303030303030303030303030303030303030303030303030303030303"},
+    {"index": 3, "label": "chat_template_bytes_renderer_and_rendered_output", "digest": "0404040404040404040404040404040404040404040404040404040404040404"},
+    {"index": 4, "label": "system_and_tool_context", "digest": "0505050505050505050505050505050505050505050505050505050505050505"},
+    {"index": 5, "label": "adapter_projector_set_and_order", "digest": "0606060606060606060606060606060606060606060606060606060606060606"},
+    {"index": 6, "label": "runtime_abi_and_build", "digest": "0707070707070707070707070707070707070707070707070707070707070707"},
+    {"index": 7, "label": "backend_and_device_abi", "digest": "0808080808080808080808080808080808080808080808080808080808080808"},
+    {"index": 8, "label": "quantization_and_kv_layout", "digest": "0909090909090909090909090909090909090909090909090909090909090909"},
+    {"index": 9, "label": "context_rope_window_and_position", "digest": "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a"},
+    {"index": 10, "label": "sampler_and_logits_processors", "digest": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b"},
+    {"index": 11, "label": "grammar_parser_and_tool_state", "digest": "0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c"},
+    {"index": 12, "label": "rng_state_and_counter", "digest": "0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d"},
+    {"index": 13, "label": "target_draft_mtp_speculative_state", "digest": "0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e"},
+    {"index": 14, "label": "topology_plan_rank_world_placement_epoch", "digest": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"},
+    {"index": 15, "label": "security_domain_and_scope_policy", "digest": "1010101010101010101010101010101010101010101010101010101010101010"}
+  ],
+  "sha256": "25d572e33e6a118a2fd1785ccea2a64164b1d371223b62e7c7fa87088ee35851"
+}

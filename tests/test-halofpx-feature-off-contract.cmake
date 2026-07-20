@@ -48,6 +48,20 @@ elseif (NOT HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
     endforeach()
 endif()
 
+if (NOT HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+    string(FIND "${server_help}"
+        "--halofpx-context-store-compatibility-component" canonical_component_position)
+    if (NOT canonical_component_position EQUAL -1)
+        message(FATAL_ERROR "canonical compatibility feature-off CLI surface is exposed")
+    endif()
+else()
+    string(FIND "${server_help}"
+        "--halofpx-context-store-compatibility-component" canonical_component_position)
+    if (canonical_component_position EQUAL -1)
+        message(FATAL_ERROR "canonical compatibility build lost its explicit component option")
+    endif()
+endif()
+
 file(READ "${HALOFPX_SOURCE_DIR}/common/common.h" common_header)
 string(REGEX MATCH "hostname[ \t]+=[ \t]+\"127\\.0\\.0\\.1\"" loopback_default "${common_header}")
 if (NOT loopback_default)

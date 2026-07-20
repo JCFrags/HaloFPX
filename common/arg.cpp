@@ -1425,11 +1425,35 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
     ).set_examples({LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"--halofpx-context-store-compatibility-root"}, "HEX64",
-        "exact lowercase SHA-256 compatibility root for the restricted canary runtime tuple",
+        "exact lowercase SHA-256 compatibility root for direct-rw"
+#if !defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+        " and the restricted protected-rw-canary runtime tuple",
+#else
+        "; protected-rw-canary instead requires the closed component authority",
+#endif
         [](common_params & params, const std::string & value) {
             params.halofpx_context_store_compatibility_root = value;
         }
     ).set_examples({LLAMA_EXAMPLE_SERVER}));
+#if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+    add_opt(common_arg(
+        {"--halofpx-context-store-compatibility-component"}, "LABEL=HEX64,...",
+        "the closed ordered comma-separated list of 16 exact named compatibility-component "
+        "digests for protected-rw-canary",
+        [](common_params & params, const std::string & value) {
+            if (value.empty()) {
+                throw std::invalid_argument("HaloFPX compatibility component must not be empty");
+            }
+            params.halofpx_context_store_compatibility_components.clear();
+            for (const auto & component : string_split<std::string>(value, ',')) {
+                if (component.empty()) {
+                    throw std::invalid_argument("HaloFPX compatibility component must not be empty");
+                }
+                params.halofpx_context_store_compatibility_components.push_back(component);
+            }
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+#endif
 #if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
     add_opt(common_arg(
         {"--halofpx-context-store-anchor-root"}, "PATH",

@@ -17,6 +17,15 @@ if (HALOFPX_CONTEXT_STORE_PROTECTED_CANARY AND (NOT UNIX OR APPLE))
     message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_PROTECTED_CANARY is supported only on Linux")
 endif()
 
+option(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY
+    "Require the closed 16-component compatibility authority for the protected canary"
+    OFF)
+if (HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY AND
+    NOT HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY requires HALOFPX_CONTEXT_STORE_PROTECTED_CANARY")
+endif()
+
 # Offline-only L04 manifest parser. This target is deliberately not linked into
 # server-context or llama-server.
 add_library(halofpx-context-store-format STATIC EXCLUDE_FROM_ALL
@@ -42,6 +51,16 @@ target_link_libraries(halofpx-context-store-auth
     PUBLIC halofpx-context-store-format
     PRIVATE halofpx-context-store-sha256)
 target_compile_features(halofpx-context-store-auth PRIVATE cxx_std_17)
+
+# L08c closed compatibility-expectation/root builder. It accepts only the
+# exact 16 labeled component digests; it does not add reader or writer I/O.
+add_library(halofpx-context-store-compatibility-v1 STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-compatibility-v1.cpp
+    halofpx-context-store-compatibility-v1.h
+)
+target_link_libraries(halofpx-context-store-compatibility-v1 PUBLIC
+    halofpx-context-store-auth)
+target_compile_features(halofpx-context-store-compatibility-v1 PRIVATE cxx_std_17)
 
 # L06 pure trusted-scope resolver. Runtime linkage remains separately gated by
 # HALOFPX_CONTEXT_STORE_CANARY below.
@@ -638,6 +657,14 @@ if (HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
     target_compile_definitions(llama-common PUBLIC HALOFPX_CONTEXT_STORE_PROTECTED_CANARY=1)
     target_compile_definitions(${TARGET} PUBLIC HALOFPX_CONTEXT_STORE_PROTECTED_CANARY=1)
     target_link_libraries(${TARGET} PRIVATE halofpx-context-store-linux-protected)
+endif()
+
+if (HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+    target_compile_definitions(llama-common PUBLIC
+        HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=1)
+    target_compile_definitions(${TARGET} PUBLIC
+        HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=1)
+    target_link_libraries(${TARGET} PRIVATE halofpx-context-store-compatibility-v1)
 endif()
 
 

@@ -1,0 +1,95 @@
+{
+  "schema": "halofpx.l08c-closed-component-authority.v1",
+  "date": "2026-07-20",
+  "status": "qualified_independent_review_accepted_laboratory_only",
+  "parent_commit": "28eaba944250d3b917fc7006a1ffd07e9aed6ea4",
+  "parent_tree": "82e9f793b56f18911f001469395b79b300063978",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "default-off closed ordered compatibility-component authority for the protected generation-one Linux canary; not full semantic compatibility construction or production promotion",
+  "build": {
+    "node": "nimo-1",
+    "build_type": "Release",
+    "compiler": "GCC 16.1.1",
+    "backend": "CPU",
+    "base_canary_option": "ON",
+    "protected_canary_option": "ON",
+    "component_authority_option": "ON",
+    "webui": false,
+    "hip": false,
+    "vulkan": false,
+    "curl": false,
+    "server_sha256": "cb03575fe8c95774893e523c754756e129a136806593616c4c49579abf69b766",
+    "common_library_sha256": "e66a31921ddde97f25e3532c9a587e16316f950201bed6152b3dc530bfe61c3a"
+  },
+  "qualification": {
+    "focused_contracts": {"passed": 7, "failed": 0},
+    "protected_server_canary": {"passed": 1, "failed": 0, "seconds": 0.75},
+    "all_off_contracts": {"passed": 2, "failed": 0},
+    "all_off_help_matches": 0,
+    "component_count": 16,
+    "golden_wire_bytes": 579,
+    "golden_root": "25d572e33e6a118a2fd1785ccea2a64164b1d371223b62e7c7fa87088ee35851",
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "model_bytes": 19077344,
+    "observed_compatibility_root": "cee5bbb4a7d74c5a50f9e15c72bd7e41b488699ba7ece799639e1d336797b060",
+    "cold_content_sha256": "d4befa4c08b0bdd9023bfa965064be3c3a8eda8804174fc74c286b2a66710860",
+    "restart_hit": true,
+    "wrong_scope_miss": true,
+    "changed_component_miss": true,
+    "corruption_miss": true,
+    "safe_recomputation_equal": true,
+    "unsupported_profile_rejected": true,
+    "startup_store_rejection_continues_cold": true
+  },
+  "evidence": {
+    "node": "nimo-1",
+    "bundle_path": "/var/tmp/halofpx-l08c-closed-component-authority-final-20260720-a3/halofpx-l08c-closed-component-authority-nimo1-20260720.tar.zst",
+    "bundle_size_bytes": 30928,
+    "bundle_sha256": "2e63fcee4bb4023428e64e7d9af579e33d081de3105ac85aeccd88d08f3e856d",
+    "authority_key_in_bundle": false,
+    "direct_object_in_bundle": false,
+    "anchor_object_in_bundle": false,
+    "model_in_bundle": false
+  },
+  "publication_limit": {
+    "component_digests_are_operator_authority": true,
+    "component_preimages_encoded_by_engine": false,
+    "complete_v1_manifest": false,
+    "generation_advancement": false,
+    "l08_promoted": false,
+    "persistent_writes_enabled_by_default": false
+  },
+  "deferred_risk_matrix": [
+    "semantic target-native encoders for each of the 16 component preimages",
+    "exhaustive malformed CLI and component mutation permutations",
+    "exhaustive crash, power-loss, filesystem, disk-full, and reserve permutations",
+    "broad concurrency, stale-lock, upgrade, rollback, and old-binary coexistence",
+    "generation advancement, authority rotation, and two-node recovery"
+  ],
+  "excluded_attempts": [
+    "The first live run correctly disabled persistence because default fit created undeclared placement overrides; the canary now fixes fit off.",
+    "The first active-override predicate treated ROCmFPX parser padding as an override; it now rejects only non-null active entries.",
+    "The current inherited slot-save smoke could not fetch the upstream model preset because TLS setup failed; the identical L08b smoke passed and no slot implementation changed."
+  ],
+  "provenance": {
+    "implementation": "target_native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "new_dependency": false,
+    "direct_cherry_pick_roster_changed": false,
+    "notice_change_required": false,
+    "sbom_dependency_change_required": false
+  },
+  "review": {
+    "verdict": "ACCEPT_DEFAULT_OFF_GENERATION_ONE_LABORATORY_ONLY",
+    "findings": {
+      "p1": 0,
+      "p2": 0,
+      "p3_resolved": "Documentation now says the seam binds trusted operator-supplied digests rather than authenticating component preimages."
+    },
+    "l08_promoted": false,
+    "production_persistence_promoted": false
+  }
+}

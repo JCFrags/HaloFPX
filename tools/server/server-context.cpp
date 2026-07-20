@@ -25,6 +25,9 @@
 #if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
 #include "halofpx-context-store-linux-protected.h"
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+#include "halofpx-context-store-compatibility-v1.h"
+#endif
 #endif
 
 #include <algorithm>
@@ -104,6 +107,41 @@ bool halofpx_parse_lower_hex_digest(
     return true;
 }
 
+#if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+bool halofpx_build_compatibility_expectation(
+        const std::vector<std::string> & specifications,
+        halofpx::context_store_compatibility_expectation & output) {
+    output = {};
+    if (specifications.size() != halofpx::context_store_compatibility_v1_component_count) {
+        return false;
+    }
+    std::array<halofpx::context_store_compatibility_component_digest_v1,
+        halofpx::context_store_compatibility_v1_component_count> components {};
+    for (size_t index = 0; index < specifications.size(); ++index) {
+        const std::string & specification = specifications[index];
+        const size_t separator = specification.find('=');
+        if (separator == std::string::npos || separator == 0 ||
+            separator + 1 >= specification.size() ||
+            specification.find('=', separator + 1) != std::string::npos) {
+            return false;
+        }
+        components[index].label = specification.data();
+        components[index].label_size = separator;
+        if (!halofpx_parse_lower_hex_digest(
+                specification.substr(separator + 1), components[index].digest)) {
+            return false;
+        }
+    }
+    const auto result = halofpx::context_store_build_compatibility_expectation_v1(
+        components.data(), components.size());
+    if (result.status != halofpx::context_store_compatibility_build_status_v1::built) {
+        return false;
+    }
+    output = result.expectation;
+    return true;
+}
+#endif
+
 #if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
 bool halofpx_parse_lower_hex_uuid(
         const std::string & text,
@@ -173,6 +211,30 @@ bool halofpx_read_owner_key(
         halofpx_wipe(key.data(), key.size());
     }
     return valid;
+}
+
+bool halofpx_sampling_is_memoryless_greedy(
+        const common_params_sampling & sampling) noexcept {
+    return sampling.temp == 0.0f && sampling.mirostat == 0 &&
+        sampling.samplers.size() == 1 &&
+        sampling.samplers.front() == COMMON_SAMPLER_TYPE_TEMPERATURE &&
+        !sampling.backend_sampling && !sampling.ignore_eos &&
+        sampling.n_probs == 0 && sampling.grammar.empty() &&
+        !sampling.grammar_lazy && sampling.grammar_triggers.empty() &&
+        sampling.preserved_tokens.empty() && sampling.logit_bias.empty() &&
+        sampling.logit_bias_eog.empty() && sampling.generation_prompt.empty() &&
+        sampling.reasoning_budget_tokens < 0 &&
+        sampling.reasoning_budget_start.empty() &&
+        sampling.reasoning_budget_end.empty() &&
+        sampling.reasoning_budget_forced.empty() &&
+        sampling.reasoning_budget_message.empty();
+}
+
+bool halofpx_has_tensor_buffer_override(
+        const std::vector<llama_model_tensor_buft_override> & overrides) noexcept {
+    return std::any_of(overrides.begin(), overrides.end(), [](const auto & value) {
+        return value.pattern != nullptr || value.buft != nullptr;
+    });
 }
 
 std::string halofpx_authenticated_principal(
@@ -904,6 +966,9 @@ private:
 #endif
     halofpx::context_store_format_digest halofpx_scope_key {};
     halofpx::context_store_format_digest halofpx_compatibility_root {};
+#if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+    halofpx::context_store_compatibility_expectation halofpx_compatibility_expectation {};
+#endif
 #endif
 
     server_metrics metrics;
@@ -947,6 +1012,30 @@ private:
 #else
         const bool protected_mode = false;
 #endif
+        bool compatibility_valid = false;
+#if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+        halofpx_compatibility_expectation = {};
+        if (protected_mode) {
+            compatibility_valid =
+                params_base.halofpx_context_store_compatibility_root.empty() &&
+                halofpx_build_compatibility_expectation(
+                    params_base.halofpx_context_store_compatibility_components,
+                    halofpx_compatibility_expectation);
+            if (compatibility_valid) {
+                halofpx_compatibility_root = halofpx_compatibility_expectation.root;
+            }
+        } else {
+            compatibility_valid =
+                params_base.halofpx_context_store_compatibility_components.empty() &&
+                halofpx_parse_lower_hex_digest(
+                    params_base.halofpx_context_store_compatibility_root,
+                    halofpx_compatibility_root);
+        }
+#else
+        compatibility_valid = halofpx_parse_lower_hex_digest(
+            params_base.halofpx_context_store_compatibility_root,
+            halofpx_compatibility_root);
+#endif
         if ((!direct_mode && !protected_mode) ||
             params_base.api_keys.empty() ||
             params_base.halofpx_context_store_root.empty() ||
@@ -956,9 +1045,7 @@ private:
             params_base.halofpx_context_store_max_entries <= 0 ||
             params_base.halofpx_context_store_max_entries >
                 static_cast<int32_t>(halofpx::context_store_linux_direct_max_entries_limit) ||
-            !halofpx_parse_lower_hex_digest(
-                params_base.halofpx_context_store_compatibility_root,
-                halofpx_compatibility_root)) {
+            !compatibility_valid) {
             SRV_ERR("%s", "invalid HaloFPX direct context-store configuration\n");
             return false;
         }
@@ -973,9 +1060,14 @@ private:
 #endif
 
         if (llama_model_is_recurrent(model_tgt) || llama_model_is_hybrid(model_tgt) ||
-            mctx != nullptr || ctx_dft || spec || !params_base.lora_adapters.empty()) {
+            mctx != nullptr || ctx_dft || spec || !params_base.lora_adapters.empty() ||
+            !params_base.control_vectors.empty() || !params_base.kv_overrides.empty() ||
+            halofpx_has_tensor_buffer_override(params_base.tensor_buft_overrides)) {
             SRV_WRN("%s", "HaloFPX direct context store disabled for an unsupported state profile; inference continues cold\n");
             halofpx_scope_key.fill(0);
+#if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+            halofpx_compatibility_expectation = {};
+#endif
             return true;
         }
 
@@ -1123,15 +1215,7 @@ private:
                 parser.parse_tool_calls || !parser.parser.empty()) {
                 return false;
             }
-            const auto & sampling = slot.task_prev->params.sampling;
-            if (sampling.temp > 0.0f || !sampling.grammar.empty() ||
-                !sampling.logit_bias.empty() || !sampling.logit_bias_eog.empty() ||
-                sampling.mirostat != 0 || sampling.adaptive_target >= 0.0f ||
-                sampling.penalty_repeat != 1.0f || sampling.penalty_freq != 0.0f ||
-                sampling.penalty_present != 0.0f || sampling.dry_multiplier != 0.0f ||
-                !sampling.generation_prompt.empty() ||
-                sampling.reasoning_budget_tokens >= 0 || !sampling.reasoning_budget_start.empty() ||
-                !sampling.reasoning_budget_end.empty() || !sampling.reasoning_budget_forced.empty()) {
+            if (!halofpx_sampling_is_memoryless_greedy(slot.task_prev->params.sampling)) {
                 return false;
             }
         }

@@ -664,6 +664,9 @@ struct common_params {
     std::string halofpx_context_store_anchor_root;
     std::string halofpx_context_store_uuid;
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+    std::vector<std::string> halofpx_context_store_compatibility_components;
+#endif
     int32_t halofpx_context_store_quota_mib = 0;
     int32_t halofpx_context_store_reserve_mib = 65536;
     int32_t halofpx_context_store_max_entries = 8;

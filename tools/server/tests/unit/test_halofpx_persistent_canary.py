@@ -70,6 +70,7 @@ def _start(
     root: Path,
     key_file: Path,
     compatibility: str,
+    compatibility_components: list[str] | None,
     log_file: Path,
     anchor_root: Path | None = None,
     store_uuid: str | None = None,
@@ -82,7 +83,9 @@ def _start(
         "--parallel", "1",
         "--ctx-size", "128",
         "--n-gpu-layers", "0",
+        "--fit", "off",
         "--temp", "0",
+        "--samplers", "temperature",
         "--cache-ram", "0",
         "--no-cache-idle-slots",
         "--no-webui",
@@ -93,11 +96,17 @@ def _start(
         "--halofpx-context-store-mode", MODE,
         "--halofpx-context-store-root", str(root),
         "--halofpx-context-store-key-file", str(key_file),
-        "--halofpx-context-store-compatibility-root", compatibility,
         "--halofpx-context-store-quota", "512",
         "--halofpx-context-store-reserve", os.environ.get("HALOFPX_CANARY_RESERVE_MIB", "1024"),
         "--halofpx-context-store-max-entries", "4",
     ]
+    if compatibility_components is None:
+        args.extend(["--halofpx-context-store-compatibility-root", compatibility])
+    else:
+        args.extend([
+            "--halofpx-context-store-compatibility-component",
+            ",".join(compatibility_components),
+        ])
     if MODE == "protected-rw-canary":
         assert anchor_root is not None and store_uuid is not None
         args.extend([
@@ -188,15 +197,79 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
         "adapters": [],
         "draft_speculative_mtp": False,
     }
-    compatibility = hashlib.sha256(
-        json.dumps(tuple_record, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    ).hexdigest()
+    help_text = subprocess.check_output([SERVER, "--help"], text=True, stderr=subprocess.STDOUT)
+    canonical_compatibility = (
+        MODE == "protected-rw-canary"
+        and "--halofpx-context-store-compatibility-component" in help_text
+    )
+    component_facts = {
+        "model_bytes_and_shards": {
+            "bytes": tuple_record["model_bytes"],
+            "sha256": tuple_record["model_sha256"],
+        },
+        "model_metadata": {"model_sha256": tuple_record["model_sha256"]},
+        "tokenizer_bytes_and_policy": {"model_sha256": tuple_record["model_sha256"]},
+        "chat_template_bytes_renderer_and_rendered_output": {
+            "api": tuple_record["api"], "template": "disabled",
+        },
+        "system_and_tool_context": {"system": "empty", "tools": "disabled"},
+        "adapter_projector_set_and_order": tuple_record["adapters"],
+        "runtime_abi_and_build": tuple_record["runtime_files"],
+        "backend_and_device_abi": {
+            "backend": tuple_record["backend"], "platform": tuple_record["platform"],
+        },
+        "quantization_and_kv_layout": {
+            "kv_k": tuple_record["kv_k"], "kv_v": tuple_record["kv_v"],
+        },
+        "context_rope_window_and_position": {"context": tuple_record["context"]},
+        "sampler_and_logits_processors": tuple_record["sampling"],
+        "grammar_parser_and_tool_state": {"grammar": "disabled", "tools": "disabled"},
+        "rng_state_and_counter": {"rng": "irrelevant-greedy-memoryless"},
+        "target_draft_mtp_speculative_state": tuple_record["draft_speculative_mtp"],
+        "topology_plan_rank_world_placement_epoch": tuple_record["topology"],
+        "security_domain_and_scope_policy": {
+            "scope": "authenticated-private", "issuer": "llama-server-api-key",
+        },
+    }
+    compatibility_components = None
+    component_record = None
+    if canonical_compatibility:
+        digests = []
+        component_record = []
+        for label, fact in component_facts.items():
+            encoded = json.dumps(fact, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            digest = hashlib.sha256(
+                b"halofpx.compat-component.v1\0"
+                + len(label).to_bytes(2, "big")
+                + label.encode("ascii")
+                + encoded
+            ).digest()
+            digests.append(digest)
+            component_record.append({"label": label, "digest": digest.hex(), "fact": fact})
+        compatibility = hashlib.sha256(
+            b"halofpx.compat.v1\0"
+            + b"\xb0"
+            + b"".join(bytes([index, 0x58, 0x20]) + digest for index, digest in enumerate(digests))
+        ).hexdigest()
+        compatibility_components = [
+            f"{entry['label']}={entry['digest']}" for entry in component_record
+        ]
+    else:
+        compatibility = hashlib.sha256(
+            json.dumps(tuple_record, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
     (workspace / "compatibility.json").write_text(
-        json.dumps({**tuple_record, "compatibility_root": compatibility}, indent=2) + "\n",
+        json.dumps({
+            **tuple_record,
+            "compatibility_root": compatibility,
+            "canonical_component_authority": canonical_compatibility,
+            "components": component_record,
+        }, indent=2) + "\n",
         encoding="utf-8",
     )
 
-    process = _start(root, key_file, compatibility, workspace / "server-1.log", anchor_root, store_uuid)
+    process = _start(root, key_file, compatibility, compatibility_components,
+                     workspace / "server-1.log", anchor_root, store_uuid)
     try:
         miss = _request("POST", "/slots/0?action=halofpx-restore", API_KEY_A, {"session": SESSION})
         assert miss.status_code == 200, miss.text
@@ -217,7 +290,26 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
     finally:
         _stop(process)
 
-    process = _start(root, key_file, compatibility, workspace / "server-2.log", anchor_root, store_uuid)
+    changed_component_miss = False
+    if compatibility_components is not None:
+        changed_components = list(compatibility_components)
+        label, digest = changed_components[2].split("=", 1)
+        changed_components[2] = f"{label}={digest[:-1]}{'0' if digest[-1] != '0' else '1'}"
+        process = _start(root, key_file, compatibility, changed_components,
+                         workspace / "server-component-mismatch.log", anchor_root, store_uuid)
+        try:
+            incompatible = _request(
+                "POST", "/slots/0?action=halofpx-restore", API_KEY_A, {"session": SESSION}
+            )
+            assert incompatible.status_code == 200, incompatible.text
+            assert incompatible.json()["hit"] is False
+            assert incompatible.json()["status"] == "miss-not-found"
+            changed_component_miss = True
+        finally:
+            _stop(process)
+
+    process = _start(root, key_file, compatibility, compatibility_components,
+                     workspace / "server-2.log", anchor_root, store_uuid)
     try:
         isolated = _request("POST", "/slots/0?action=halofpx-restore", API_KEY_B, {"session": SESSION})
         assert isolated.status_code == 200, isolated.text
@@ -248,7 +340,8 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
         state.flush()
         os.fsync(state.fileno())
 
-    process = _start(root, key_file, compatibility, workspace / "server-3.log", anchor_root, store_uuid)
+    process = _start(root, key_file, compatibility, compatibility_components,
+                     workspace / "server-3.log", anchor_root, store_uuid)
     try:
         corrupt = _request("POST", "/slots/0?action=halofpx-restore", API_KEY_A, {"session": SESSION})
         assert corrupt.status_code == 200, corrupt.text
@@ -267,7 +360,8 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
     os.fsync(descriptor)
     os.close(descriptor)
 
-    process = _start(root, key_file, compatibility, workspace / "server-4.log", anchor_root, store_uuid)
+    process = _start(root, key_file, compatibility, compatibility_components,
+                     workspace / "server-4.log", anchor_root, store_uuid)
     try:
         unavailable = _request("POST", "/slots/0?action=halofpx-restore", API_KEY_A, {"session": SESSION})
         assert unavailable.status_code != 200, unavailable.text
@@ -287,6 +381,7 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
         "wrong_scope_miss": True,
         "corruption_miss": True,
         "safe_recomputation_equal": True,
+        "changed_component_miss": changed_component_miss,
         "unsupported_profile_rejected": True,
         "startup_store_rejection_continues_cold": True,
     }
