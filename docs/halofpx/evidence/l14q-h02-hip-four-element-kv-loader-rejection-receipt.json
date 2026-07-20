@@ -1,0 +1,153 @@
+{
+  "schema": "halofpx.l14q-h02-rejection.v1",
+  "date": "2026-07-20",
+  "status": "runtime_candidate_rejected_generator_repair_retained",
+  "implementation_parent": "00d753159f8fe8dd2a322f649a4fd85a2fc36e69",
+  "implementation_parent_tree": "1980c9f4158d3574a5299c91586881ea6e130bd6",
+  "locked_rocmfpx_base": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "locked_rocmfpx_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "source": {
+    "archive_sha256": "81f18c7a2500006d4b68b73486a6308e770c13e139dd6fa76cf2f49e7c6f8809",
+    "rejected_candidate_patch_sha256": "efb49425dc3f9ebb95fc9af7547fe6ceecdd2439e1986ce78a7aaa25dbc60b9f",
+    "candidate_fattn_tile_sha256": "16a3defb928e0c5e2df3a41de547297ed77680f104ca3e409ac82350c6ed38ed",
+    "retained_generator_sha256": "1956ed66f84f765386ef92d91b922b9632d970f157959be3e3e0e310ad987999",
+    "runtime_widening_retained_in_repository": false,
+    "node_local_candidate_artifacts_retained_as_evidence": true
+  },
+  "retained_change": {
+    "path": "ggml/src/ggml-cuda/template-instances/generate_cu_files.py",
+    "purpose": "preserve guarded H01 Q8_0/Q4_0 D128/D256 tile instantiations during regeneration",
+    "disposable_regeneration_exit_code": 0,
+    "tracked_cu_files_retained": 132,
+    "generated_files_checked": 130,
+    "generated_file_mismatches": 0,
+    "manual_turboquant_units_retained_byte_identical": true,
+    "manual_turboquant_sha256": {
+      "fattn-vec-instance-turbo3_0-turbo3_0.cu": "1adfd183ea15fd6699dd2f8a8641b177c1bbd4f07fccb8a4e5102b3aab25a463",
+      "fattn-vec-instance-turbo4_0-turbo4_0.cu": "c46d578ca3570cd82e5f5559620ec884d49c3bd181f078c38583d64370e6c22a"
+    },
+    "runtime_behavior_changed": false,
+    "feature_default_changed": false
+  },
+  "focused_qualification": {
+    "target": "nimo-1",
+    "build_type": "Release",
+    "backend": "HIP gfx1151",
+    "admitted_kv257_cells": "4/4 passed",
+    "h01_h02_csv_byte_identical": true,
+    "csv_sha256": "e1769daaa4d17aa4ccc0eb3749b0126993bbd5a13775a2ecccdb322d2fc694b0",
+    "d160": "not supported as expected",
+    "focused_binary_sha256": "d9810a72366566e5b29251a12edf0949215d06603cad08cada598e7e9a645f93"
+  },
+  "builds": {
+    "cross_node_byte_identical": true,
+    "off": {
+      "rpc_server_sha256": "782282b264655b3edd011e556be07f0f2b90e07e8c63697892e4b79695eb1d19",
+      "llama_server_sha256": "3d41302fa84cc09d9a4eaa8fbcd83db5d2cf3778c0a6724a7da3ba9c1816bc3b",
+      "cmake_cache_sha256": "be94552c9a9ec326aa579dbd8be1f3794041b830c495c217722c268a4173e3e0"
+    },
+    "h01": {
+      "rpc_server_sha256": "605c78c4eda9c52ccbaadc41d57faeb8c8619cc0a7643d2391f64bd313061dd9",
+      "llama_server_sha256": "f06804e3f8ef584a81d6f8df2c8895fc81b98945d569e856b7dd474b5a7e25b3",
+      "cmake_cache_sha256": "28638d60f95cef30ec3be8e630e3a8fb0b249ec9654780d5e856716748cfa043"
+    },
+    "h02": {
+      "rpc_server_sha256": "c9b5faa1ff9166520a32d3dbe2841cf31fa11112e1f79c906b07fb897b41c013",
+      "llama_server_sha256": "674065f328a5c8275f492f89dca515d9df1d852c1e17de830a07dbb0cc278d41",
+      "cmake_cache_sha256": "f797a58345ae2c5571e298dccdf14ccc423042c7b4a200d3ec853ee19b60b7b8"
+    }
+  },
+  "primary_model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "matched_screen": {
+    "order": ["off", "h01", "h02", "h02", "h01", "off"],
+    "warmups_per_block": 1,
+    "retained_per_block": 3,
+    "http_200_total": 24,
+    "retained_total": 18,
+    "prompt_tokens_each": 1129,
+    "generated_tokens_each": 128,
+    "cache_n_each": 0,
+    "content_sha256": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f",
+    "mptcp_subflows_each_block": 2,
+    "both_rails_nonzero_each_block": true,
+    "transient_units_result": "all success status 0",
+    "off": {
+      "prompt_mean": 203.844301669827,
+      "prompt_sample_sd": 0.143166015520232,
+      "generation_mean": 16.6742025285896,
+      "generation_sample_sd": 0.0207985500641222,
+      "wall_mean_ms": 13218.9583333333,
+      "wall_sample_sd_ms": 9.12854848629615
+    },
+    "h01": {
+      "prompt_mean": 203.967494226495,
+      "prompt_sample_sd": 0.167706461602488,
+      "generation_mean": 16.6547960994487,
+      "generation_sample_sd": 0.0324535401558388,
+      "wall_mean_ms": 13224.8646666667,
+      "wall_sample_sd_ms": 12.1327867147929
+    },
+    "h02": {
+      "prompt_mean": 203.879229870908,
+      "prompt_sample_sd": 0.114781525173593,
+      "generation_mean": 16.6671111619363,
+      "generation_sample_sd": 0.0251959474434655,
+      "wall_mean_ms": 13221.1636666667,
+      "wall_sample_sd_ms": 9.78889398587334
+    },
+    "h02_minus_off": {
+      "prompt_delta_percent": 0.0171347448983414,
+      "prompt_ci95": [-0.111900321994752, 0.181756724156613],
+      "generation_delta_percent": -0.0425289703725233,
+      "generation_ci95": [-0.033233871001915, 0.0190511376954382],
+      "wall_delta_percent": 0.0166831098012777,
+      "wall_ci95_ms": [-8.50473639420529, 12.9154030608756]
+    },
+    "decision": "reject_without_rescue_trials_due_to_adverse_generation_point_estimate_vs_feature_off",
+    "speedup_claim": false,
+    "confirmed_regression": false,
+    "final_non_inferiority_gate_closed": false
+  },
+  "excluded": {
+    "initial_local_orchestrator_timeout": "model loaded; no benchmark request sent; retained separately"
+  },
+  "evidence": {
+    "nimo1_root": "/var/tmp/halofpx-h02-evidence-nimo1-20260720",
+    "nimo1_manifest_sha256": "63b27b0fa86d009ef55619d9d21c40034a59ecabf176f987185b884227181981",
+    "nimo1_bundle": "/var/tmp/halofpx-h02-evidence-nimo1-20260720.tar.zst",
+    "nimo1_bundle_size_bytes": 38281,
+    "nimo1_bundle_sha256": "275905c9d303bea2ff8e22bc8fe251245ba342ee3533a7fc5952a1ee94853fe1",
+    "nimo2_root": "/var/tmp/halofpx-h02-evidence-nimo2-20260720",
+    "nimo2_manifest_sha256": "9ad5fe88d11ebea40b932654f76187fb1e5fab9304548a1a7357c39e4bd86fe8",
+    "nimo2_bundle": "/var/tmp/halofpx-h02-evidence-nimo2-20260720.tar.zst",
+    "nimo2_bundle_size_bytes": 47474,
+    "nimo2_bundle_sha256": "39ce3541286974fc10ca6bad5cd7224570bc324e49fb83bc1233698d87c7f7e7"
+  },
+  "rollback": {
+    "runtime_candidate_removed": true,
+    "nimo1_server": "active enabled health 200 zero restarts",
+    "nimo1_server_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb",
+    "nimo2_worker": "active enabled zero restarts",
+    "nimo2_worker_sha256": "cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63",
+    "known_good_subflows_total": 2
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "donor_patch": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false,
+    "model_mutated": false,
+    "reference_clone_changed": false
+  },
+  "independent_review": "accepted_after_generator_cleanup_ownership_p2_correction"
+}
