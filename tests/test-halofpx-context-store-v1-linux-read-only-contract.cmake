@@ -17,8 +17,13 @@ if(linux_excluded_pos EQUAL -1)
 endif()
 string(REGEX MATCHALL "halofpx-context-store-v1-linux-read-only" target_mentions "${server_cmake}")
 list(LENGTH target_mentions target_mention_count)
-if(NOT target_mention_count EQUAL 5)
+if(NOT target_mention_count EQUAL 6)
     message(FATAL_ERROR "filesystem reader escaped its isolated target graph: ${target_mention_count} mentions")
+endif()
+string(FIND "${server_cmake}"
+    "target_link_libraries(halofpx-context-store-v1-linux-publish PUBLIC\n        halofpx-context-store-v1-read-only\n        halofpx-context-store-v1-linux-read-only)" materializer_child_pos)
+if(materializer_child_pos EQUAL -1)
+    message(FATAL_ERROR "the sole additional filesystem-reader edge must be the excluded synthetic materializer")
 endif()
 string(FIND "${server_cmake}"
     "target_link_libraries(halofpx-context-store-v1-linux-read-only PUBLIC\n        halofpx-context-store-v1-read-only)"

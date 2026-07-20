@@ -34,3 +34,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0028](0028-generation-one-protected-session-canary.md): generation-one protected direct-session canary
 - [ADR-0029](0029-excluded-full-v1-read-composition.md): excluded authenticated full-v1 read composition
 - [ADR-0030](0030-excluded-linux-full-v1-snapshot-reader.md): excluded Linux full-v1 snapshot reader
+- [ADR-0031](0031-excluded-synthetic-full-v1-materialization-lab.md): excluded synthetic full-v1 materialization lab

@@ -1,0 +1,57 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L08f",
+  "title": "excluded synthetic full-v1 materialization lab",
+  "implementation_parent": "8c39065b35ca1fc132bca9946d747c08c56e5fd8",
+  "implementation_parent_tree": "5bd490c64472e10f8ff2cc68541f68c00ce9967c",
+  "locked_rocmfpx_base": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "locked_rocmfpx_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "boundary": {
+    "target": "halofpx-context-store-v1-linux-publish",
+    "class": "context_store_v1_linux_snapshot_materializer",
+    "build": "Linux-only STATIC EXCLUDE_FROM_ALL",
+    "authority": "synthetic non-authoritative disposable root only",
+    "positive_statuses": [
+      "materialized_non_authoritative",
+      "already_equal_non_authoritative"
+    ],
+    "failure_after_write": "incomplete_or_uncertain_discard_root",
+    "anchor_or_generation_mutation": false,
+    "server_link": false,
+    "live_state_restore": false
+  },
+  "qualification": {
+    "nimo_1_release_focused": "8/8 passed",
+    "nimo_1_compiler": "GCC 16.1.1",
+    "nimo_1_feature_tuple": "CPU Release; HIP OFF; Vulkan OFF; curl OFF; WebUI OFF",
+    "source_hash_files": 8,
+    "source_hash_mismatches": 0,
+    "known_good_service": "active and enabled",
+    "reference_clones": "five locked commit/tree pairs clean and unchanged",
+    "independent_review": "ACCEPT for disposable non-authoritative lab; no P1/P2"
+  },
+  "evidence": {
+    "nimo_1_bundle": "/var/tmp/halofpx-l08e-linux-reader-9907b90-20260720/halofpx-l08f-synthetic-materialization-nimo1-20260720.tar.zst",
+    "nimo_1_bundle_bytes": 1817,
+    "nimo_1_bundle_sha256": "0b3b82471820e891ab3b915cbecbb544fb91843a785985a6b5ca1eb83df5ba44",
+    "nimo_1_test_binary_sha256": "4bcf9c106a721b070644cab11bd64e62ef3c2e4275ef9e5c6a4eec2e9053423a",
+    "nimo_1_feature_off_server_sha256": "5b5403ed31db04fc730266dc2ce30ec960952b30d0b1fde551b8a805516d7d68"
+  },
+  "deferred": [
+    "protected owned material authority",
+    "persistent attempt registry and restart reconciliation",
+    "authenticated generation and anchor compare-and-swap",
+    "retention, quota, reserve, eviction, observability, and administration",
+    "server canary and real codec/live-state admission",
+    "crash, exhaustion, recovery, soak, distributed, and zero-regression gates"
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false
+  }
+}

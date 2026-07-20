@@ -189,6 +189,17 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(halofpx-context-store-v1-linux-read-only PUBLIC
         halofpx-context-store-v1-read-only)
     target_compile_features(halofpx-context-store-v1-linux-read-only PRIVATE cxx_std_17)
+
+    # L08f Linux-only synthetic full-v1 write-mechanics lab. It is explicitly
+    # non-authoritative and remains excluded from every server/runtime target.
+    add_library(halofpx-context-store-v1-linux-publish STATIC EXCLUDE_FROM_ALL
+        halofpx-context-store-v1-linux-publish.cpp
+        halofpx-context-store-v1-linux-publish.h
+    )
+    target_link_libraries(halofpx-context-store-v1-linux-publish PUBLIC
+        halofpx-context-store-v1-read-only
+        halofpx-context-store-v1-linux-read-only)
+    target_compile_features(halofpx-context-store-v1-linux-publish PRIVATE cxx_std_17)
 endif()
 
 # Permanently synthetic L05m bootstrap-material preparation seam. This target
