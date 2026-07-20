@@ -1,0 +1,205 @@
+{
+  "schema": "halofpx.p04-current-head-feature-off-requalification.v1",
+  "matrix_schema": "halofpx.performance-matrix.v1",
+  "date": "2026-07-20",
+  "status": "bounded_requalification_complete_final_zero_regression_open",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "candidate_commit": "6c01b9769c3d0c0034acfdd3c1e47c3f632ea670",
+  "candidate_tree": "d0905b9c2d77290d1f0b4dcf898aaeb4c3c60432",
+  "candidate_source_archive_sha256": "6fed59764da4f3d9c02737382c6fc1da52c92e539a0fe9c487cf0971e8650154",
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "qualified_node": "nimo-2"
+  },
+  "build": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "candidate_fresh_on_both_nodes": true,
+    "control_reused_from_p01_locked_base": true,
+    "matched_configuration": true,
+    "build_type": "Release",
+    "compiler": "GCC 16.1.1 20260625",
+    "cmake": "4.3.4",
+    "backends": ["HIP", "Vulkan", "RPC"],
+    "amdgpu_targets": "gfx1151",
+    "webui": false,
+    "tests": false,
+    "all_context_store_gates": false,
+    "all_registry_lab_gates": false,
+    "hip_quantized_kv_candidate": false,
+    "vulkan_q8_predequant_candidate": false,
+    "candidate_cmake_cache_sha256_both_nodes": "e3f90b563a694372eea08fe44cea9f6ce1fe2cd57279fc9a0723ce5db4a02a94",
+    "control": {
+      "rpc_server_sha256": "3327b1d7165d6084aeff8694163b1a69a1110dd7538a89389794bba9d78d5868",
+      "llama_server_sha256": "d752b7f327b51d50f3a868fda537ffec90f999ae2144ad61416203ccc12d4b4c"
+    },
+    "candidate": {
+      "rpc_server_sha256_both_nodes": "3e8d0d940fb040cf9940cc3d36660428e8cc0dddcc4367cedaa12febb12cd16d",
+      "llama_server_sha256_both_nodes": "8cb6f890930afac6d26fb0cbd81be209bfb085f86600a3d4706e722d24f028e4"
+    }
+  },
+  "runtime": {
+    "coordinator": "nimo-2",
+    "rpc_worker": "nimo-1",
+    "rpc_endpoint": "10.44.0.1:50053",
+    "mptcp_wrapper": true,
+    "mptcp_subflows_each_block": 2,
+    "secondary_subflow": "10.44.0.5:50053 to 10.44.0.6:ephemeral",
+    "device_order": "RPC0,ROCm0",
+    "tensor_split": "1,1",
+    "split_mode": "layer",
+    "context": 4096,
+    "parallel": 1,
+    "threads": 16,
+    "threads_batch": 16,
+    "gpu_layers": 999,
+    "flash_attention": true,
+    "kv_k": "q8_0",
+    "kv_v": "q8_0",
+    "batch": 512,
+    "ubatch": 512,
+    "fit": false,
+    "mmap": false,
+    "direct_io": true,
+    "seed": 1234,
+    "temperature": 0,
+    "offline": true,
+    "webui": false,
+    "hsa_enable_sdma": "0"
+  },
+  "workload": {
+    "api": "/completion",
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "ignore_eos": true,
+    "cache_prompt": false,
+    "request_body_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "execution_order": ["control_block_1", "candidate_block_1", "candidate_block_2", "control_block_2"],
+    "blocks_per_variant": 2,
+    "warmups_per_block": 1,
+    "retained_per_block": 3,
+    "retained_per_variant": 6,
+    "retained_total": 12,
+    "admitted_requests_total": 16,
+    "admitted_http_200_total": 16,
+    "excluded_setup_http_400_total": 4,
+    "excluded_setup_reason": "raw-prompt body mistakenly sent to chat endpoint; no inference; operator note retained",
+    "content_decoded_utf8_no_terminator_sha256_all_admitted_responses": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f",
+    "content_jq_r_with_lf_sha256_all_admitted_responses": "a9c38c7f948adcfa8cfab5468ab84cc089b01a34c3f270f1c487a9a5fa74b555"
+  },
+  "results": {
+    "prompt_tokens_per_second": {
+      "control_mean": 203.8572264756743,
+      "control_sample_sd": 0.09923458286839404,
+      "candidate_mean": 203.78366852037644,
+      "candidate_sample_sd": 0.28473764687590203,
+      "candidate_minus_control": -0.07355795529787201,
+      "candidate_delta_percent": -0.036083074693773226,
+      "welch_satterthwaite_degrees_of_freedom": 6.1969502008222825,
+      "approximate_welch_ci95": [-0.3724696482554456, 0.22535373765970157]
+    },
+    "generation_tokens_per_second": {
+      "control_mean": 16.655490981910074,
+      "control_sample_sd": 0.026281956237553403,
+      "candidate_mean": 16.64994532677917,
+      "candidate_sample_sd": 0.021041788418600774,
+      "candidate_minus_control": -0.005545655130902105,
+      "candidate_delta_percent": -0.0332962572939181,
+      "welch_satterthwaite_degrees_of_freedom": 9.543225147738195,
+      "approximate_welch_ci95": [-0.03637057930337793, 0.025279269041573717]
+    },
+    "end_to_end_curl_wall_milliseconds": {
+      "derivation": "retained curl time_total seconds multiplied by 1000",
+      "control_mean": 13227.2325,
+      "control_sample_sd": 13.541887634300236,
+      "candidate_mean": 13231.448666666667,
+      "candidate_sample_sd": 16.038455058597847,
+      "candidate_minus_control": 4.21616666666705,
+      "candidate_delta_percent": 0.03187489648093091,
+      "welch_satterthwaite_degrees_of_freedom": 9.726760710410895,
+      "approximate_welch_ci95": [-14.950755050366311, 23.38308838370041]
+    },
+    "classification": "no_reproducible_regression_established_adverse_point_estimates_final_noninferiority_open",
+    "formal_zero_regression_gate_closed": false,
+    "speedup_claim": false,
+    "over_30_generation_tokens_per_second": false,
+    "over_30_classification": "owner_stretch_objective_not_pass_fail"
+  },
+  "traffic_nimo_1": [
+    {"block": "control_1", "rx_bytes_both_rails": 161254140, "tx_bytes_both_rails": 73260298, "both_rails_nonzero": true},
+    {"block": "candidate_1", "rx_bytes_both_rails": 161259247, "tx_bytes_both_rails": 72829082, "both_rails_nonzero": true},
+    {"block": "candidate_2", "rx_bytes_both_rails": 161276606, "tx_bytes_both_rails": 72808844, "both_rails_nonzero": true},
+    {"block": "control_2", "rx_bytes_both_rails": 161226001, "tx_bytes_both_rails": 72821476, "both_rails_nonzero": true}
+  ],
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-p04-current-head-20260720",
+      "manifest_entries": 41,
+      "manifest_sha256": "0d07b32761091d36c0856d86f117667c62b7d54e029d94d184dcc9f6d77db6b3",
+      "manifest_verified": true,
+      "bundle_path": "/var/tmp/halofpx-p04-current-head-nimo1-20260720.tar.zst",
+      "bundle_size_bytes": 18821,
+      "bundle_sha256": "3cb58a055ca2ec9e231904c29a3c2bef8526eec24a210b21991a4b513b8a1604"
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-p04-current-head-20260720",
+      "manifest_entries": 83,
+      "manifest_sha256": "250bd0b36a0abe411204307be40a9eef0f9f55f732c32821c3cbf1f597d6b6c0",
+      "manifest_verified": true,
+      "bundle_path": "/var/tmp/halofpx-p04-current-head-nimo2-20260720.tar.zst",
+      "bundle_size_bytes": 27179,
+      "bundle_sha256": "921c7787463fa1fb3578c34eb2539348404e8ea252ffe8be9ce9e9cd8451c48f"
+    },
+    "authorization_material_detected": false
+  },
+  "rollback": {
+    "experiment_units_total": 8,
+    "experiment_units_stopped_success_status_zero": true,
+    "coordinator_stopped_before_worker_each_block": true,
+    "nimo_2_rpc_service": "minimax-m27-rpc-worker.service",
+    "nimo_2_rpc_binary_sha256": "cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63",
+    "nimo_2_rpc_active": true,
+    "nimo_2_rpc_restarts": 0,
+    "nimo_1_server_service": "minimax-m27-q6-server.service",
+    "nimo_1_server_binary_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb",
+    "nimo_1_server_port": 8081,
+    "nimo_1_server_health_http": 200,
+    "nimo_1_server_health": "ok",
+    "nimo_1_server_restarts": 0,
+    "restored_mptcp_subflows_total": 2,
+    "services_enabled": true
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLLama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama_ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama_cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "Nathanw1014_llama_cpp": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  },
+  "provenance": {
+    "runtime_code_changed_by_p04": false,
+    "donor_code_imported_by_p04": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported_by_p04": false,
+    "reference_clone_changed": false,
+    "model_changed": false,
+    "remote_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "review": {
+    "verdict": "ACCEPT_AFTER_END_TO_END_METRIC_CORRECTION_FINAL_G9_G10_OPEN",
+    "required_correction_closed": "end-to-end latency now uses retained curl time_total rather than engine-reported prompt_ms plus predicted_ms",
+    "test_expansion_required": false
+  },
+  "deferred": [
+    "final G9/G10 trial volume and block-aware strict non-inferiority analysis",
+    "TTFT inter-token tail memory power thermal and storage telemetry matrix",
+    "other-engine comparisons that can run the exact artifact under the matched tuple",
+    "larger dual-rail-only matrix absent a new transport or scheduling hypothesis"
+  ]
+}
