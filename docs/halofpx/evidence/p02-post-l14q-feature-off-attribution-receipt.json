@@ -1,0 +1,209 @@
+{
+  "schema": "halofpx.p02-post-l14q-feature-off-attribution.v1",
+  "matrix_schema": "halofpx.performance-matrix.v1",
+  "date": "2026-07-20",
+  "status": "qualified_attribution_final_zero_regression_open",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "candidate_commit": "0cc67d1790fe2fee23ea8ffb0dc87ff48bb1be68",
+  "candidate_tree": "2bacfc47b152a3b7fdfe0bea76743c3ede8acaff",
+  "candidate_source_archive_sha256": "f76990a28a1f60a91d9524879a6780a19436d5438fbff2a0a81dc4e932c53a18",
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "qualified_node": "nimo-2"
+  },
+  "build": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "matched_configuration": true,
+    "build_type": "Release",
+    "backends": ["HIP", "Vulkan", "RPC"],
+    "amdgpu_targets": "gfx1151",
+    "webui": false,
+    "halofpx_context_store_canary": false,
+    "halofpx_context_store_protected_canary": false,
+    "hip_quantized_kv_candidate": false,
+    "vulkan_q8_predequant_candidate": false,
+    "control": {
+      "rpc_server_sha256": "3327b1d7165d6084aeff8694163b1a69a1110dd7538a89389794bba9d78d5868",
+      "llama_server_sha256": "d752b7f327b51d50f3a868fda537ffec90f999ae2144ad61416203ccc12d4b4c"
+    },
+    "candidate": {
+      "rpc_server_sha256": "76c575b5b8463013764253e9a3f8898a0196b3a5fe96174010a2729b6d104dc7",
+      "llama_server_sha256": "6618dc53dc9fbecd492632fedb428af067a61f524313e0d16d2f4a81a148cf9b"
+    }
+  },
+  "runtime": {
+    "coordinator": "nimo-2",
+    "rpc_worker": "nimo-1",
+    "rpc_endpoint": "10.44.0.1:50053",
+    "mptcp_wrapper": true,
+    "device_order": "RPC0,ROCm0",
+    "tensor_split": "1,1",
+    "split_mode": "layer",
+    "context": 4096,
+    "parallel": 1,
+    "threads": 16,
+    "threads_batch": 16,
+    "gpu_layers": 999,
+    "flash_attention": true,
+    "kv_k": "q8_0",
+    "kv_v": "q8_0",
+    "batch": 512,
+    "ubatch": 512,
+    "fit": false,
+    "mmap": false,
+    "direct_io": true,
+    "seed": 1234,
+    "temperature": 0,
+    "offline": true,
+    "webui": false
+  },
+  "workload": {
+    "api": "/completion",
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "ignore_eos": true,
+    "cache_prompt": false,
+    "request_body_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "execution_order": ["control_block_1", "candidate_block_1", "candidate_block_2", "control_block_2"],
+    "blocks_per_variant": 2,
+    "warmups_per_block": 1,
+    "retained_per_block": 3,
+    "retained_per_variant": 6,
+    "retained_total": 12,
+    "timing_requests_total": 16,
+    "http_200_total": 16,
+    "content_decoded_utf8_no_terminator_sha256_all_responses": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f",
+    "content_jq_r_with_lf_sha256_all_responses": "a9c38c7f948adcfa8cfab5468ab84cc089b01a34c3f270f1c487a9a5fa74b555",
+    "content_hash_method": "jq -j emits the decoded UTF-8 .content bytes with no terminator; jq -r emits the same bytes followed by one LF"
+  },
+  "results": {
+    "prompt_tokens_per_second": {
+      "control_mean": 203.00122784972407,
+      "control_sample_sd": 0.37998101947983554,
+      "candidate_mean": 203.08279014883277,
+      "candidate_sample_sd": 0.09817794342320435,
+      "candidate_minus_control": 0.08156229910869683,
+      "candidate_delta_percent": 0.040178229448481484,
+      "welch_satterthwaite_degrees_of_freedom": 5.664619,
+      "welch_t_critical_95": 2.482462,
+      "approximate_welch_ci95": [-0.316180, 0.479305]
+    },
+    "generation_tokens_per_second": {
+      "control_mean": 16.651501330158972,
+      "control_sample_sd": 0.031510993342202545,
+      "candidate_mean": 16.656690464795588,
+      "candidate_sample_sd": 0.02376390526249146,
+      "candidate_minus_control": 0.005189134636616188,
+      "candidate_delta_percent": 0.031163163811648013,
+      "welch_satterthwaite_degrees_of_freedom": 9.297343,
+      "welch_t_critical_95": 2.251177,
+      "approximate_welch_ci95": [-0.031083, 0.041461]
+    },
+    "classification": "no_observed_point_estimate_regression_final_noninferiority_open",
+    "formal_zero_regression_gate_closed": false,
+    "speedup_claim": false,
+    "over_30_generation_tokens_per_second": false,
+    "over_30_classification": "owner_stretch_objective_not_pass_fail"
+  },
+  "profile": {
+    "classification": "descriptive_low_overhead_attribution_not_matched_speed_claim",
+    "full_request": {
+      "prompt_tokens_per_second": 199.6934,
+      "generation_tokens_per_second": 16.7929307,
+      "nimo_1_gpu_use_samples": 50,
+      "nimo_1_gpu_use_mean_percent": 40.1,
+      "nimo_1_gpu_use_max_percent": 71,
+      "nimo_1_socket_graphics_power_mean_w": 49.09858,
+      "nimo_2_gpu_use_samples": 50,
+      "nimo_2_gpu_use_mean_percent": 39.2,
+      "nimo_2_gpu_use_max_percent": 70,
+      "nimo_2_socket_graphics_power_mean_w": 57.87264,
+      "nimo_1_thunderbolt0_rx_delta_bytes": 40365224,
+      "nimo_1_thunderbolt0_tx_delta_bytes": 18205530,
+      "nimo_1_thunderbolt1_rx_delta_bytes": 0,
+      "nimo_1_thunderbolt1_tx_delta_bytes": 0,
+      "mptcp_subflows_total": 1
+    },
+    "prompt_only_check": {
+      "prompt_tokens": 1129,
+      "generated_tokens": 1,
+      "prompt_tokens_per_second": 202.33413663629625,
+      "nimo_1_thunderbolt0_rx_delta_bytes": 24717292,
+      "nimo_1_thunderbolt0_tx_delta_bytes": 16092082,
+      "nimo_1_thunderbolt1_rx_delta_bytes": 0,
+      "nimo_1_thunderbolt1_tx_delta_bytes": 0
+    },
+    "unprofiled_followup": {
+      "prompt_tokens_per_second": 202.91277787952376,
+      "generation_tokens_per_second": 16.654030854454568,
+      "http_total_seconds": 13.253151
+    },
+    "next_hypothesis": "reproduce the matched launch with two active MPTCP subflows and measure both rail deltas before considering transport replacement"
+  },
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-p02-attribution-20260720",
+      "manifest_entries": 43,
+      "bundle_path": "/var/tmp/halofpx-p02-attribution-nimo1-20260720.tar.zst",
+      "bundle_size_bytes": 18645,
+      "bundle_sha256": "b2223c697fc9de4d2872f955f0555764abf046e9dc396e23ddb6263e5422b5e2"
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-p02-attribution-20260720",
+      "manifest_entries": 84,
+      "bundle_path": "/var/tmp/halofpx-p02-attribution-nimo2-20260720.tar.zst",
+      "bundle_size_bytes": 27790,
+      "bundle_sha256": "c2516aadc78ba46926b02baf51dd30dc62f65cd7b37f3f84b00d315c3202a9bd"
+    },
+    "authorization_material_detected": false
+  },
+  "rollback": {
+    "experiment_processes_stopped": true,
+    "nimo_2_rpc_service": "minimax-m27-rpc-worker.service",
+    "nimo_2_rpc_binary_sha256": "cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63",
+    "nimo_2_rpc_active": true,
+    "nimo_2_rpc_restarts": 0,
+    "nimo_1_server_service": "minimax-m27-q6-server.service",
+    "nimo_1_server_binary_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb",
+    "nimo_1_server_port": 8081,
+    "nimo_1_server_health": "ok",
+    "nimo_1_server_restarts": 0,
+    "restored_mptcp_subflows_total": 2,
+    "services_enabled": true
+  },
+  "operational_findings": [
+    {
+      "id": "P02-STOP-ABORT-01",
+      "classification": "nonblocking_separate_operational_defect",
+      "description": "Stopping the pre-existing nimo-1 server produced SIGABRT and a retained 637.1 MB systemd core for PID 1637898; memory released and the same deployment subsequently passed direct health after reload."
+    }
+  ],
+  "provenance": {
+    "runtime_code_changed": false,
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "reference_clone_changed": false,
+    "model_changed": false,
+    "remote_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "review": {
+    "verdict": "ACCEPT_AFTER_STATISTICS_CORRECTION_FINAL_G9_G10_OPEN",
+    "required_correction_closed": "Welch-Satterthwaite degrees of freedom and critical values are metric-specific; output hash serialization distinguishes jq -j from jq -r plus LF",
+    "test_expansion_required": false
+  },
+  "deferred": [
+    "final G9/G10 zero-regression trial volume and block-aware non-inferiority analysis",
+    "expanded TTFT inter-token tail memory storage and thermal telemetry matrix",
+    "other-engine comparisons that can run the exact artifact under a matched tuple",
+    "transport replacement or tuning until the experimental single-subflow cause is isolated",
+    "separate diagnosis of the known-good server SIGABRT on stop"
+  ]
+}
