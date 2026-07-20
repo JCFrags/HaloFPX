@@ -1,0 +1,53 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L08e",
+  "title": "excluded Linux full-v1 snapshot reader",
+  "implementation_parent": "9907b9045dd71ae82f32269f48ea3d49626d72ae",
+  "implementation_parent_tree": "c9927f2961315ae0b2609ccfaf31ad1b05cd626f",
+  "locked_rocmfpx_base": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "locked_rocmfpx_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "boundary": {
+    "target": "halofpx-context-store-v1-linux-read-only",
+    "build": "Linux-only STATIC EXCLUDE_FROM_ALL",
+    "selection": "exact trusted anchor digest",
+    "root_authority": "borrowed already-open exact identity, duplicated by factory",
+    "publication": "disabled",
+    "product_capabilities": "closed",
+    "server_link": false,
+    "live_state_restore": false
+  },
+  "qualification": {
+    "nimo_1_release_focused": "6/6 passed",
+    "nimo_1_compiler": "GCC 16.1.1",
+    "nimo_1_feature_tuple": "CPU Release; HIP OFF; Vulkan OFF; curl OFF; WebUI OFF",
+    "source_hash_files": 7,
+    "source_hash_mismatches": 0,
+    "known_good_service": "active and enabled",
+    "reference_clones": "five locked commit/tree pairs clean and unchanged",
+    "independent_review": "ACCEPT; no remaining P1/P2"
+  },
+  "evidence": {
+    "nimo_1_bundle": "/var/tmp/halofpx-l08e-linux-reader-9907b90-20260720/halofpx-l08e-linux-reader-nimo1-20260720.tar.zst",
+    "nimo_1_bundle_bytes": 1740,
+    "nimo_1_bundle_sha256": "1dce1907b192b8d083a9e902a9d28986773832170376cba9adfb6497ee1f1dfc",
+    "nimo_1_test_binary_sha256": "20eaa2617fddcc925edb2870ea01ba369023e86bab2e9c1f28f7b24ccc17dbac",
+    "nimo_1_feature_off_server_sha256": "42edac4ec6f5ec93883b986cc0c88d57e070845453d80b7ed01dc48845385274"
+  },
+  "deferred": [
+    "protected root acquisition and key custody",
+    "real state codec and profile admission",
+    "full-v1 writer and generation advancement",
+    "retention, quotas, eviction, observability, and administration",
+    "exhaustive filesystem, race, syscall-fault, crash, and exhaustion matrices",
+    "live restore, distributed recovery, soak, and final zero-regression"
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false
+  }
+}

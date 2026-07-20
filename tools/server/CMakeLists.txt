@@ -179,6 +179,18 @@ target_link_libraries(halofpx-context-store-v1-read-only PUBLIC
     halofpx-context-store-object)
 target_compile_features(halofpx-context-store-v1-read-only PRIVATE cxx_std_17)
 
+# L08e Linux-only exact-anchor filesystem snapshot reader. It remains excluded
+# and cannot publish, enumerate, decode, restore, or link into a server.
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_library(halofpx-context-store-v1-linux-read-only STATIC EXCLUDE_FROM_ALL
+        halofpx-context-store-v1-linux-read-only.cpp
+        halofpx-context-store-v1-linux-read-only.h
+    )
+    target_link_libraries(halofpx-context-store-v1-linux-read-only PUBLIC
+        halofpx-context-store-v1-read-only)
+    target_compile_features(halofpx-context-store-v1-linux-read-only PRIVATE cxx_std_17)
+endif()
+
 # Permanently synthetic L05m bootstrap-material preparation seam. This target
 # owns no filesystem or anchor-storage implementation and remains excluded.
 add_library(halofpx-context-store-bootstrap-material STATIC EXCLUDE_FROM_ALL
