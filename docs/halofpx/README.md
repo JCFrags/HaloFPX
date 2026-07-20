@@ -101,6 +101,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L08a default-off direct-session laboratory canary](l08a-default-off-direct-session-canary.md)
 - [L08a qualification receipt](evidence/l08a-default-off-direct-session-canary-receipt.json)
 - [L08a independent adversarial review](reviews/2026-07-19__l08a-direct-session-canary__review__v01.md)
+- [ADR-0028 generation-one protected-session canary](decisions/0028-generation-one-protected-session-canary.md)
+- [ADR-0028 independent adversarial review](reviews/2026-07-20__adr-0028-generation-one-protected-session-canary__review__v01.md)
 - [P01 pinned primary-model qualification](p01-primary-model-qualification.md)
 - [P01 qualification receipt](evidence/p01-primary-model-qualification-receipt.json)
 - [P01 independent review](reviews/2026-07-19__p01-primary-model-qualification__review__v01.md)
