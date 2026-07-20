@@ -48,6 +48,18 @@ elseif (NOT HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
     endforeach()
 endif()
 
+if (NOT HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
+    string(FIND "${server_help}" "full-v1-rw-canary" full_v1_canary_position)
+    if (NOT full_v1_canary_position EQUAL -1)
+        message(FATAL_ERROR "full-v1 feature-off CLI surface is exposed")
+    endif()
+else()
+    string(FIND "${server_help}" "full-v1-rw-canary" full_v1_canary_position)
+    if (full_v1_canary_position EQUAL -1)
+        message(FATAL_ERROR "full-v1 canary build lost its explicit runtime mode")
+    endif()
+endif()
+
 if (NOT HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
     string(FIND "${server_help}"
         "--halofpx-context-store-compatibility-component" canonical_component_position)

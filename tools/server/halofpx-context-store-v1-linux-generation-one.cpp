@@ -353,15 +353,29 @@ bool object_commitment(const context_store_v1_read_only_admission & admission,
 bool source_commitment(const context_store_v1_read_only_source & source,
                        context_store_format_digest & digest) {
     static constexpr uint8_t domain[] = "halofpx.v1.aggregate-source.v1\0";
-    std::vector<uint8_t> bytes(domain, domain + sizeof(domain));
-    append_u64(bytes, source.manifest_size);
-    append_bytes(bytes, source.manifest_data, source.manifest_size);
-    append_u64(bytes, source.frame_count);
+    struct wiping_buffer {
+        std::vector<uint8_t> bytes;
+        ~wiping_buffer() { wipe(bytes.data(), bytes.size()); }
+    } input;
+    size_t required = sizeof(domain) + sizeof(uint64_t) * 2;
+    if (source.manifest_size > SIZE_MAX - required) return false;
+    required += source.manifest_size;
     for (size_t i = 0; i < source.frame_count; ++i) {
-        append_u64(bytes, source.frames[i].size);
-        append_bytes(bytes, source.frames[i].data, source.frames[i].size);
+        if (required > SIZE_MAX - sizeof(uint64_t) ||
+            source.frames[i].size > SIZE_MAX - required - sizeof(uint64_t)) return false;
+        required += sizeof(uint64_t) + source.frames[i].size;
     }
-    return context_store_sha256(bytes.data(), bytes.size(), digest);
+    input.bytes.reserve(required);
+    append_bytes(input.bytes, domain, sizeof(domain));
+    append_u64(input.bytes, source.manifest_size);
+    append_bytes(input.bytes, source.manifest_data, source.manifest_size);
+    append_u64(input.bytes, source.frame_count);
+    for (size_t i = 0; i < source.frame_count; ++i) {
+        append_u64(input.bytes, source.frames[i].size);
+        append_bytes(input.bytes, source.frames[i].data, source.frames[i].size);
+    }
+    return input.bytes.size() == required &&
+        context_store_sha256(input.bytes.data(), input.bytes.size(), digest);
 }
 
 bool random_attempt(context_store_v1_publish_attempt_id & id) noexcept {

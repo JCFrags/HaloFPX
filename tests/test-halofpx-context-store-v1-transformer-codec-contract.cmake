@@ -16,8 +16,16 @@ if(excluded_pos EQUAL -1)
 endif()
 string(REGEX MATCHALL "halofpx-context-store-v1-transformer-codec" target_mentions "${server_cmake}")
 list(LENGTH target_mentions target_mention_count)
-if(NOT target_mention_count EQUAL 5)
+if(NOT target_mention_count EQUAL 6)
     message(FATAL_ERROR "full-v1 transformer codec escaped its isolated definition graph: ${target_mention_count}")
+endif()
+string(FIND "${server_cmake}"
+    "if (HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)" full_v1_gate_pos)
+string(FIND "${server_cmake}"
+    "target_link_libraries(\${TARGET} PRIVATE halofpx-context-store-v1-server-canary)" full_v1_link_pos)
+if(full_v1_gate_pos EQUAL -1 OR full_v1_link_pos EQUAL -1 OR
+   full_v1_link_pos LESS full_v1_gate_pos)
+    message(FATAL_ERROR "full-v1 codec server edge is not confined to its explicit gate")
 endif()
 string(FIND "${server_cmake}"
     "target_link_libraries(halofpx-context-store-v1-transformer-codec PUBLIC\n    halofpx-context-store-auth\n    halofpx-context-store-state-transformer-v1)" dependency_pos)

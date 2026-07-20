@@ -1,0 +1,586 @@
+#include "halofpx-context-store-v1-server-canary.h"
+
+#if !defined(__linux__)
+#error "The HaloFPX full-v1 server canary is Linux-only"
+#endif
+
+#include <linux/openat2.h>
+#include <linux/stat.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+
+#include <algorithm>
+#include <array>
+#include <cerrno>
+#include <cstring>
+#include <fcntl.h>
+#include <limits>
+#include <new>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace halofpx {
+namespace {
+
+constexpr uint32_t directory_mode = 0700;
+constexpr uint32_t file_mode = 0600;
+constexpr char manifest_key_domain[] = "halofpx.full-v1-canary.manifest-key.v1";
+constexpr char anchor_key_domain[] = "halofpx.full-v1-canary.anchor-key.v1";
+constexpr char attempt_key_domain[] = "halofpx.full-v1-canary.attempt-key.v1";
+constexpr char manifest_key_id[] = "halofpx-full-v1-canary-manifest-v1";
+constexpr char anchor_key_id[] = "halofpx-protected-anchor-v1";
+
+void wipe(void * data, size_t size) noexcept {
+    volatile uint8_t * cursor = static_cast<volatile uint8_t *>(data);
+    while (size-- != 0) *cursor++ = 0;
+}
+
+class fd_owner {
+public:
+    explicit fd_owner(int fd = -1) noexcept : fd_(fd) {}
+    ~fd_owner() { if (fd_ >= 0) ::close(fd_); }
+    fd_owner(const fd_owner &) = delete;
+    fd_owner & operator=(const fd_owner &) = delete;
+    fd_owner(fd_owner && other) noexcept : fd_(std::exchange(other.fd_, -1)) {}
+    int get() const noexcept { return fd_; }
+    int release() noexcept { return std::exchange(fd_, -1); }
+private:
+    int fd_;
+};
+
+bool nonzero(const uint8_t * data, size_t size) noexcept {
+    uint8_t combined = 0;
+    for (size_t i = 0; i < size; ++i) combined |= data[i];
+    return combined != 0;
+}
+
+template <size_t N>
+bool nonzero(const std::array<uint8_t, N> & value) noexcept {
+    return nonzero(value.data(), value.size());
+}
+
+context_store_registered_id registered_id(const char * value) noexcept {
+    context_store_registered_id result;
+    const size_t size = std::strlen(value);
+    if (size == 0 || size > result.bytes.size()) return result;
+    result.size = static_cast<uint8_t>(size);
+    std::copy_n(value, size, result.bytes.begin());
+    return result;
+}
+
+bool derive_key(const context_store_key_view & operator_key,
+                const std::array<uint8_t, 16> & store_uuid,
+                const char * domain, size_t domain_size,
+                context_store_format_digest & output) noexcept {
+    std::array<uint8_t, 128> input {};
+    if (domain_size > input.size() - store_uuid.size()) return false;
+    std::copy_n(reinterpret_cast<const uint8_t *>(domain), domain_size, input.begin());
+    std::copy(store_uuid.begin(), store_uuid.end(), input.begin() + domain_size);
+    const bool result = context_store_hmac_sha256(
+        operator_key.data, operator_key.size, input.data(),
+        domain_size + store_uuid.size(), output);
+    wipe(input.data(), input.size());
+    return result;
+}
+
+bool inspect_root(int fd, context_store_linux_root_identity_v1 & identity) noexcept {
+    identity = {};
+    struct stat value {};
+    struct statx extended {};
+    struct statfs filesystem {};
+    if (::fstat(fd, &value) != 0 || !S_ISDIR(value.st_mode) ||
+        static_cast<uint32_t>(value.st_mode & 07777) != directory_mode ||
+        ::syscall(SYS_statx, fd, "", AT_EMPTY_PATH | AT_STATX_SYNC_AS_STAT,
+                  STATX_BASIC_STATS | STATX_MNT_ID, &extended) != 0 ||
+        (extended.stx_mask & STATX_MNT_ID) == 0 || ::fstatfs(fd, &filesystem) != 0) {
+        return false;
+    }
+    identity.device = static_cast<uint64_t>(value.st_dev);
+    identity.inode = static_cast<uint64_t>(value.st_ino);
+    identity.mount_id = extended.stx_mnt_id;
+    identity.owner_uid = static_cast<uint64_t>(value.st_uid);
+    identity.mode = static_cast<uint32_t>(value.st_mode & 07777);
+    identity.filesystem_type = static_cast<uint64_t>(filesystem.f_type);
+    return identity.device != 0 && identity.inode != 0 && identity.mount_id != 0 &&
+        identity.filesystem_type != 0;
+}
+
+int open_contained(int parent, const char * name, uint64_t flags) noexcept {
+    struct open_how how {};
+    how.flags = flags | O_CLOEXEC | O_NOFOLLOW;
+    how.resolve = RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS |
+                  RESOLVE_NO_MAGICLINKS | RESOLVE_NO_XDEV;
+    const long result = ::syscall(SYS_openat2, parent, name, &how, sizeof(how));
+    return result >= 0 && result <= std::numeric_limits<int>::max()
+        ? static_cast<int>(result) : -1;
+}
+
+bool exact_directory(int fd, const context_store_linux_root_identity_v1 & root) noexcept {
+    context_store_linux_root_identity_v1 actual;
+    return inspect_root(fd, actual) && actual.device == root.device &&
+        actual.mount_id == root.mount_id && actual.owner_uid == root.owner_uid &&
+        actual.mode == directory_mode && actual.filesystem_type == root.filesystem_type;
+}
+
+bool exact_regular(int fd, const context_store_linux_root_identity_v1 & root,
+                   uint64_t maximum, uint64_t & size) noexcept {
+    size = 0;
+    struct stat value {};
+    struct statx extended {};
+    if (::fstat(fd, &value) != 0 || !S_ISREG(value.st_mode) || value.st_nlink != 1 ||
+        value.st_size <= 0 || static_cast<uint64_t>(value.st_size) > maximum ||
+        static_cast<uint64_t>(value.st_dev) != root.device ||
+        static_cast<uint64_t>(value.st_uid) != root.owner_uid ||
+        static_cast<uint32_t>(value.st_mode & 07777) != file_mode ||
+        ::syscall(SYS_statx, fd, "", AT_EMPTY_PATH | AT_STATX_SYNC_AS_STAT,
+                  STATX_BASIC_STATS | STATX_MNT_ID, &extended) != 0 ||
+        (extended.stx_mask & STATX_MNT_ID) == 0 || extended.stx_mnt_id != root.mount_id) {
+        return false;
+    }
+    size = static_cast<uint64_t>(value.st_size);
+    return true;
+}
+
+bool read_exact(int fd, uint8_t * data, size_t size) noexcept {
+    size_t offset = 0;
+    while (offset < size) {
+        const ssize_t count = ::pread(fd, data + offset, size - offset,
+                                      static_cast<off_t>(offset));
+        if (count < 0 && errno == EINTR) continue;
+        if (count <= 0) return false;
+        offset += static_cast<size_t>(count);
+    }
+    uint8_t trailing = 0;
+    ssize_t count;
+    do count = ::pread(fd, &trailing, 1, static_cast<off_t>(size));
+    while (count < 0 && errno == EINTR);
+    return count == 0;
+}
+
+std::string digest_name(const context_store_format_digest & digest) {
+    static constexpr char hex[] = "0123456789abcdef";
+    std::string result = "m-";
+    result.reserve(2 + digest.size() * 2 + 5);
+    for (uint8_t value : digest) {
+        result.push_back(hex[value >> 4]);
+        result.push_back(hex[value & 15]);
+    }
+    result += ".cbor";
+    return result;
+}
+
+context_store_v1_server_canary_status lookup_status(context_store_lookup_status status) noexcept {
+    switch (status) {
+        case context_store_lookup_status::hit:
+            return context_store_v1_server_canary_status::hit;
+        case context_store_lookup_status::miss_not_found:
+        case context_store_lookup_status::miss_incomplete:
+            return context_store_v1_server_canary_status::miss_not_found;
+        case context_store_lookup_status::miss_corrupt:
+        case context_store_lookup_status::miss_storage:
+            return context_store_v1_server_canary_status::miss_corrupt;
+        case context_store_lookup_status::miss_incompatible:
+        case context_store_lookup_status::miss_replay:
+        case context_store_lookup_status::miss_unauthorized:
+            return context_store_v1_server_canary_status::miss_incompatible;
+        default:
+            return context_store_v1_server_canary_status::miss_unsupported;
+    }
+}
+
+} // namespace
+
+class context_store_v1_server_canary::implementation {
+public:
+    implementation(int data_fd, int anchor_fd,
+                   const context_store_linux_root_identity_v1 & data_identity_value,
+                   const context_store_linux_root_identity_v1 & anchor_identity_value,
+                   const context_store_v1_server_canary_config & config,
+                   const context_store_format_digest & manifest,
+                   const context_store_format_digest & anchor,
+                   const context_store_format_digest & attempt)
+        : data_root(data_fd), anchor_root(anchor_fd), data_identity(data_identity_value),
+          anchor_identity(anchor_identity_value), store_uuid(config.store_uuid),
+          compatibility(config.compatibility), producer_identity(config.producer_identity),
+          global_plan_digest(config.global_plan_digest),
+          rank_ownership_digest(config.rank_ownership_digest),
+          rank_placement_digest(config.rank_placement_digest),
+          topology_epoch(config.topology_epoch), limits(config.limits),
+          manifest_key(manifest), anchor_key_material(anchor), attempt_key(attempt) {}
+
+    ~implementation() {
+        wipe(manifest_key.data(), manifest_key.size());
+        wipe(anchor_key_material.data(), anchor_key_material.size());
+        wipe(attempt_key.data(), attempt_key.size());
+    }
+
+    context_store_manifest_verification_policy policy(
+            const context_store_identity & identity,
+            const context_store_format_digest & selected) noexcept {
+        context_store_manifest_verification_policy result;
+        result.key.disposition = context_store_key_disposition::active;
+        result.key.key_id = registered_id(manifest_key_id);
+        result.key.generation = 1;
+        result.key.master_key = { manifest_key.data(), manifest_key.size() };
+        result.anchor.store_uuid = store_uuid;
+        result.anchor.checkpoint_lineage_id = identity.checkpoint_lineage_id;
+        result.anchor.namespace_id = identity.scope_namespace;
+        result.anchor.policy_epoch = identity.policy_epoch;
+        result.anchor.key_generation = 1;
+        result.anchor.generation = 1;
+        result.anchor.selected_manifest_digest = selected;
+        result.compatibility = compatibility;
+        return result;
+    }
+
+    context_store_protected_canary_anchor_body anchor_body(
+            const context_store_identity & identity,
+            const context_store_format_digest & selected) noexcept {
+        context_store_protected_canary_anchor_body result;
+        result.store_uuid = store_uuid;
+        result.namespace_id = identity.scope_namespace;
+        result.policy_epoch = identity.policy_epoch;
+        result.checkpoint_lineage_id = identity.checkpoint_lineage_id;
+        result.manifest_key_generation = 1;
+        result.authority_epoch = 1;
+        result.generation = 1;
+        result.selected_manifest_digest = selected;
+        return result;
+    }
+
+    context_store_v1_transformer_manifest_parameters parameters(
+            const context_store_transformer_snapshot_v1 & snapshot) noexcept {
+        context_store_v1_transformer_manifest_parameters result;
+        result.store_uuid = store_uuid;
+        result.compatibility_components = compatibility.components;
+        result.producer_identity = producer_identity;
+        result.global_plan_digest = global_plan_digest;
+        result.rank_ownership_digest = rank_ownership_digest;
+        result.rank_placement_digest = rank_placement_digest;
+        result.generation = 1;
+        result.topology_epoch = topology_epoch;
+        result.logical_position = snapshot.tokens.size();
+        result.output_boundary = snapshot.tokens.size();
+        result.durability_mode = 0;
+        result.signing_key.disposition = context_store_key_disposition::active;
+        result.signing_key.key_id = registered_id(manifest_key_id);
+        result.signing_key.generation = 1;
+        result.signing_key.master_key = { manifest_key.data(), manifest_key.size() };
+        return result;
+    }
+
+    context_store_v1_linux_generation_one_open_result make_authority(
+            const context_store_identity & identity,
+            const context_store_format_digest & selected,
+            const context_store_authenticated_manifest_metadata & metadata,
+            const context_store_object_reference * objects,
+            size_t object_count) noexcept {
+        context_store_v1_linux_generation_one_config config;
+        config.data_root = { data_root.get(), data_identity };
+        config.anchor_root = { anchor_root.get(), anchor_identity };
+        config.verification_policy = policy(identity, selected);
+        config.admission.manifest = metadata;
+        config.admission.objects = objects;
+        config.admission.object_count = object_count;
+        config.object_limits = { limits.max_frame_bytes, limits.snapshot.max_state_bytes };
+        config.max_total_frame_bytes = limits.max_frame_bytes > UINT64_MAX / 2
+            ? UINT64_MAX : limits.max_frame_bytes * 2;
+        config.anchor_body = anchor_body(identity, selected);
+        config.anchor_key.key_id = registered_id(anchor_key_id);
+        config.anchor_key.generation = 1;
+        config.anchor_key.master_key = {
+            anchor_key_material.data(), anchor_key_material.size() };
+        config.attempt_key.master_key = { attempt_key.data(), attempt_key.size() };
+        return make_context_store_v1_linux_generation_one(config);
+    }
+
+    struct loaded_admission {
+        context_store_v1_server_canary_status status =
+            context_store_v1_server_canary_status::miss_corrupt;
+        context_store_authenticated_manifest_metadata metadata;
+        std::array<context_store_object_reference, context_store_manifest_max_objects> objects {};
+        size_t object_count = 0;
+    };
+
+    loaded_admission load_admission(const context_store_identity & identity,
+                                    const context_store_format_digest & selected) noexcept {
+        loaded_admission result;
+        try {
+            fd_owner manifests(open_contained(data_root.get(), "manifests",
+                                               O_RDONLY | O_DIRECTORY));
+            if (manifests.get() < 0) {
+                result.status = errno == ENOENT
+                    ? context_store_v1_server_canary_status::miss_not_found
+                    : context_store_v1_server_canary_status::miss_corrupt;
+                return result;
+            }
+            if (!exact_directory(manifests.get(), data_identity)) return result;
+            const std::string name = digest_name(selected);
+            fd_owner manifest(open_contained(manifests.get(), name.c_str(), O_RDONLY));
+            if (manifest.get() < 0) {
+                result.status = errno == ENOENT
+                    ? context_store_v1_server_canary_status::miss_not_found
+                    : context_store_v1_server_canary_status::miss_corrupt;
+                return result;
+            }
+            uint64_t size = 0;
+            if (!exact_regular(manifest.get(), data_identity,
+                               context_store_manifest_max_bytes, size)) return result;
+            std::vector<uint8_t> bytes(static_cast<size_t>(size));
+            if (!read_exact(manifest.get(), bytes.data(), bytes.size())) return result;
+            const auto verified = context_store_verify_manifest_v1(
+                bytes.data(), bytes.size(), policy(identity, selected));
+            if (verified.status != context_store_manifest_verify_status::authenticated_unadmitted ||
+                verified.manifest_digest != selected ||
+                verified.authenticated_object_count() == 0 ||
+                verified.authenticated_object_count() > result.objects.size() ||
+                verified.authenticated_manifest_metadata() == nullptr) {
+                result.status = verified.status ==
+                        context_store_manifest_verify_status::compatibility_mismatch
+                    ? context_store_v1_server_canary_status::miss_incompatible
+                    : context_store_v1_server_canary_status::miss_corrupt;
+                return result;
+            }
+            result.metadata = *verified.authenticated_manifest_metadata();
+            result.object_count = verified.authenticated_object_count();
+            for (size_t i = 0; i < result.object_count; ++i) {
+                const auto * object = verified.authenticated_object_reference(i);
+                if (!object) return loaded_admission {};
+                result.objects[i] = *object;
+            }
+            result.status = context_store_v1_server_canary_status::ready;
+            return result;
+        } catch (const std::bad_alloc &) {
+            result.status = context_store_v1_server_canary_status::storage;
+        } catch (...) {
+            result.status = context_store_v1_server_canary_status::miss_corrupt;
+        }
+        return result;
+    }
+
+    fd_owner data_root;
+    fd_owner anchor_root;
+    context_store_linux_root_identity_v1 data_identity;
+    context_store_linux_root_identity_v1 anchor_identity;
+    std::array<uint8_t, 16> store_uuid {};
+    context_store_compatibility_expectation compatibility;
+    context_store_format_digest producer_identity {};
+    context_store_format_digest global_plan_digest {};
+    context_store_format_digest rank_ownership_digest {};
+    context_store_format_digest rank_placement_digest {};
+    uint64_t topology_epoch = 0;
+    context_store_v1_transformer_codec_limits limits;
+    context_store_format_digest manifest_key {};
+    context_store_format_digest anchor_key_material {};
+    context_store_format_digest attempt_key {};
+    std::unique_ptr<context_store_v1_linux_generation_one> authority;
+};
+
+context_store_v1_server_canary::context_store_v1_server_canary(
+        std::unique_ptr<implementation> implementation) noexcept
+    : implementation_(std::move(implementation)) {}
+
+context_store_v1_server_canary::~context_store_v1_server_canary() = default;
+
+bool context_store_v1_server_canary::available() const noexcept {
+    return implementation_ != nullptr;
+}
+
+context_store_v1_server_canary_publish_result context_store_v1_server_canary::publish(
+        const context_store_transformer_snapshot_v1 & snapshot) noexcept {
+    context_store_v1_server_canary_publish_result result;
+    if (!implementation_) return result;
+    try {
+        auto encoded = context_store_encode_transformer_snapshot_v1(
+            snapshot, implementation_->parameters(snapshot), implementation_->limits);
+        if (encoded.status != context_store_v1_transformer_codec_status::encoded) return result;
+        const auto policy = implementation_->policy(
+            snapshot.compatibility_identity, encoded.encoded.manifest_digest);
+        std::array<context_store_v1_frame_view,
+            context_store_v1_transformer_frame_count> frames {};
+        for (size_t i = 0; i < frames.size(); ++i) {
+            frames[i] = { encoded.encoded.frames[i].data(), encoded.encoded.frames[i].size() };
+        }
+        context_store_v1_read_only_source source;
+        source.manifest_data = encoded.encoded.manifest.data();
+        source.manifest_size = encoded.encoded.manifest.size();
+        source.verification_policy = policy;
+        source.admission.manifest = encoded.encoded.admission_metadata;
+        source.admission.objects = encoded.encoded.admission_objects.data();
+        source.admission.object_count = encoded.encoded.admission_objects.size();
+        source.frames = frames.data();
+        source.frame_count = frames.size();
+        source.object_limits = {
+            implementation_->limits.max_frame_bytes,
+            implementation_->limits.snapshot.max_state_bytes };
+        source.max_total_frame_bytes = implementation_->limits.max_frame_bytes > UINT64_MAX / 2
+            ? UINT64_MAX : implementation_->limits.max_frame_bytes * 2;
+        auto opened = implementation_->make_authority(
+            snapshot.compatibility_identity, encoded.encoded.manifest_digest,
+            encoded.encoded.admission_metadata, encoded.encoded.admission_objects.data(),
+            encoded.encoded.admission_objects.size());
+        if (!opened.authority) {
+            result.status = opened.status == context_store_v1_linux_generation_one_status::busy
+                ? context_store_v1_server_canary_status::busy
+                : context_store_v1_server_canary_status::storage;
+            return result;
+        }
+        const auto published = opened.authority->publish(source);
+        if (published != context_store_v1_linux_generation_one_status::published) {
+            result.status = published == context_store_v1_linux_generation_one_status::quarantined
+                ? context_store_v1_server_canary_status::quarantined
+                : published == context_store_v1_linux_generation_one_status::busy
+                    ? context_store_v1_server_canary_status::busy
+                    : context_store_v1_server_canary_status::source_rejected;
+            return result;
+        }
+        implementation_->authority = std::move(opened.authority);
+        result.selected_manifest = encoded.encoded.manifest_digest;
+        result.status = context_store_v1_server_canary_status::published;
+        return result;
+    } catch (...) {
+        result.status = context_store_v1_server_canary_status::storage;
+        return result;
+    }
+}
+
+context_store_v1_server_canary_restore_result context_store_v1_server_canary::restore(
+        const context_store_format_digest & selected_manifest,
+        const llama_token * expected_tokens,
+        size_t expected_token_count,
+        const context_store_identity & identity,
+        const context_store_transformer_profile_v1 & profile) noexcept {
+    context_store_v1_server_canary_restore_result result;
+    if (!implementation_ || !nonzero(selected_manifest) || !expected_tokens ||
+        expected_token_count == 0 ||
+        expected_token_count > implementation_->limits.snapshot.max_tokens) return result;
+    auto loaded = implementation_->load_admission(identity, selected_manifest);
+    if (loaded.status != context_store_v1_server_canary_status::ready) {
+        result.status = loaded.status;
+        return result;
+    }
+    implementation_->authority.reset();
+    auto opened = implementation_->make_authority(
+        identity, selected_manifest, loaded.metadata,
+        loaded.objects.data(), loaded.object_count);
+    if (!opened.authority) {
+        result.status = opened.status == context_store_v1_linux_generation_one_status::busy
+            ? context_store_v1_server_canary_status::busy
+            : context_store_v1_server_canary_status::miss_corrupt;
+        return result;
+    }
+    implementation_->authority = std::move(opened.authority);
+    if (implementation_->authority->quarantined()) {
+        result.status = context_store_v1_server_canary_status::miss_corrupt;
+        return result;
+    }
+    context_store_lookup_request request;
+    request.identity = identity;
+    auto lookup = implementation_->authority->lookup(request);
+    if (!lookup.is_hit()) {
+        result.status = lookup_status(lookup.status());
+        return result;
+    }
+    const auto * candidate = dynamic_cast<const context_store_v1_read_only_candidate *>(
+        lookup.candidate());
+    if (!candidate) return result;
+    context_store_v1_transformer_decode_request decode;
+    decode.candidate = candidate;
+    decode.expected_tokens = expected_tokens;
+    decode.expected_token_count = expected_token_count;
+    decode.compatibility_identity = identity;
+    decode.profile = profile;
+    decode.producer_identity = implementation_->producer_identity;
+    decode.rank_ownership_digest = implementation_->rank_ownership_digest;
+    decode.topology_epoch = implementation_->topology_epoch;
+    decode.logical_position = expected_token_count;
+    decode.output_boundary = expected_token_count;
+    decode.limits = implementation_->limits.snapshot;
+    auto decoded = context_store_decode_transformer_snapshot_v1(decode);
+    if (decoded.status != context_store_v1_transformer_codec_status::decoded) {
+        result.status = decoded.status ==
+                context_store_v1_transformer_codec_status::token_mismatch
+            ? context_store_v1_server_canary_status::miss_incompatible
+            : context_store_v1_server_canary_status::miss_corrupt;
+        return result;
+    }
+    result.snapshot = std::move(decoded.snapshot);
+    result.status = context_store_v1_server_canary_status::hit;
+    return result;
+}
+
+context_store_v1_server_canary_open_result make_context_store_v1_server_canary(
+        const context_store_v1_server_canary_config & config) noexcept {
+    context_store_v1_server_canary_open_result result;
+    context_store_format_digest manifest {};
+    context_store_format_digest anchor {};
+    context_store_format_digest attempt {};
+    try {
+        if (!config.data_root_path || !config.anchor_root_path ||
+            config.operator_key.size != context_store_v1_server_canary_operator_key_bytes ||
+            !config.operator_key.data || !nonzero(config.store_uuid) ||
+            !nonzero(config.compatibility.root) || !nonzero(config.producer_identity) ||
+            !nonzero(config.global_plan_digest) || !nonzero(config.rank_ownership_digest) ||
+            !nonzero(config.rank_placement_digest) || config.topology_epoch == 0 ||
+            config.limits.snapshot.max_state_bytes == 0 ||
+            config.limits.snapshot.max_tokens == 0 || config.limits.max_frame_bytes == 0 ||
+            config.limits.max_manifest_bytes == 0 ||
+            config.limits.max_manifest_bytes > context_store_manifest_max_bytes) return result;
+        for (const auto & component : config.compatibility.components) {
+            if (!nonzero(component)) return result;
+        }
+        fd_owner data(::open(config.data_root_path,
+            O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
+        fd_owner anchor_root(::open(config.anchor_root_path,
+            O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
+        context_store_linux_root_identity_v1 data_identity;
+        context_store_linux_root_identity_v1 anchor_identity;
+        if (data.get() < 0 || anchor_root.get() < 0 ||
+            !inspect_root(data.get(), data_identity) ||
+            !inspect_root(anchor_root.get(), anchor_identity) ||
+            (data_identity.device == anchor_identity.device &&
+             data_identity.inode == anchor_identity.inode)) return result;
+        if (!derive_key(config.operator_key, config.store_uuid,
+                        manifest_key_domain, sizeof(manifest_key_domain), manifest) ||
+            !derive_key(config.operator_key, config.store_uuid,
+                        anchor_key_domain, sizeof(anchor_key_domain), anchor) ||
+            !derive_key(config.operator_key, config.store_uuid,
+                        attempt_key_domain, sizeof(attempt_key_domain), attempt)) return result;
+        auto implementation = std::make_unique<context_store_v1_server_canary::implementation>(
+            data.release(), anchor_root.release(), data_identity, anchor_identity,
+            config, manifest, anchor, attempt);
+        result.canary.reset(new context_store_v1_server_canary(std::move(implementation)));
+        result.status = context_store_v1_server_canary_status::ready;
+    } catch (const std::bad_alloc &) {
+        result.status = context_store_v1_server_canary_status::storage;
+    } catch (...) {
+        result.status = context_store_v1_server_canary_status::storage;
+    }
+    wipe(manifest.data(), manifest.size());
+    wipe(anchor.data(), anchor.size());
+    wipe(attempt.data(), attempt.size());
+    return result;
+}
+
+const char * context_store_v1_server_canary_status_name(
+        context_store_v1_server_canary_status status) noexcept {
+    switch (status) {
+        case context_store_v1_server_canary_status::ready: return "ready";
+        case context_store_v1_server_canary_status::published: return "published";
+        case context_store_v1_server_canary_status::hit: return "hit";
+        case context_store_v1_server_canary_status::miss_not_found: return "miss-not-found";
+        case context_store_v1_server_canary_status::miss_corrupt: return "miss-corrupt";
+        case context_store_v1_server_canary_status::miss_incompatible: return "miss-incompatible";
+        case context_store_v1_server_canary_status::miss_unsupported: return "miss-unsupported";
+        case context_store_v1_server_canary_status::source_rejected: return "source-rejected";
+        case context_store_v1_server_canary_status::busy: return "busy";
+        case context_store_v1_server_canary_status::storage: return "storage";
+        case context_store_v1_server_canary_status::quarantined: return "quarantined";
+    }
+    return "unknown";
+}
+
+} // namespace halofpx

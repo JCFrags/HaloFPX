@@ -38,3 +38,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0032](0032-excluded-full-v1-transformer-codec.md): excluded full-v1 transformer snapshot codec
 - [ADR-0033](0033-generation-one-attempt-wire.md): generation-one publication-attempt wire
 - [ADR-0034](0034-generation-one-protected-full-v1-authority.md): generation-one protected full-v1 publication authority
+- [ADR-0035](0035-default-off-explicit-handle-full-v1-server-canary.md): default-off explicit-handle full-v1 server canary

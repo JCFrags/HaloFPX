@@ -1945,7 +1945,7 @@ json server_task_result_slot_erase::to_json() {
 
 #if defined(HALOFPX_CONTEXT_STORE_CANARY)
 json server_task_result_halofpx_direct::to_json() {
-    return json {
+    json result {
         { "id_slot",   id_slot },
         { "action",    action },
         { "status",    status },
@@ -1958,6 +1958,12 @@ json server_task_result_halofpx_direct::to_json() {
             { "operation_ms", t_ms }
         }},
     };
+#if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
+    if (!selected_manifest.empty()) {
+        result["selected_manifest"] = selected_manifest;
+    }
+#endif
+    return result;
 }
 #endif
 

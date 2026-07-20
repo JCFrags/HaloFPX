@@ -26,6 +26,20 @@ if (HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY AND
         "HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY requires HALOFPX_CONTEXT_STORE_PROTECTED_CANARY")
 endif()
 
+option(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY
+    "Compile the explicit-handle generation-one full-v1 server canary"
+    OFF)
+if (HALOFPX_CONTEXT_STORE_FULL_V1_CANARY AND
+    (NOT HALOFPX_CONTEXT_STORE_CANARY OR
+     NOT HALOFPX_CONTEXT_STORE_PROTECTED_CANARY OR
+     NOT HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY))
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_FULL_V1_CANARY requires all three prior context-store canary gates")
+endif()
+if (HALOFPX_CONTEXT_STORE_FULL_V1_CANARY AND (NOT UNIX OR APPLE))
+    message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_FULL_V1_CANARY is supported only on Linux")
+endif()
+
 # Offline-only L04 manifest parser. This target is deliberately not linked into
 # server-context or llama-server.
 add_library(halofpx-context-store-format STATIC EXCLUDE_FROM_ALL
@@ -235,6 +249,18 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         halofpx-context-store-v1-attempt-wire
         halofpx-context-store-protected-canary-anchor)
     target_compile_features(halofpx-context-store-v1-linux-generation-one PRIVATE cxx_std_17)
+
+    # L08i explicit-handle full-v1 adapter. It remains excluded unless all four
+    # canary gates are explicitly enabled and linked into server-context below.
+    add_library(halofpx-context-store-v1-server-canary STATIC EXCLUDE_FROM_ALL
+        halofpx-context-store-v1-server-canary.cpp
+        halofpx-context-store-v1-server-canary.h
+        halofpx-context-store.cpp
+    )
+    target_link_libraries(halofpx-context-store-v1-server-canary PUBLIC
+        halofpx-context-store-v1-linux-generation-one
+        halofpx-context-store-v1-transformer-codec)
+    target_compile_features(halofpx-context-store-v1-server-canary PRIVATE cxx_std_17)
 endif()
 
 # Permanently synthetic L05m bootstrap-material preparation seam. This target
@@ -734,6 +760,14 @@ if (HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
     target_compile_definitions(${TARGET} PUBLIC
         HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=1)
     target_link_libraries(${TARGET} PRIVATE halofpx-context-store-compatibility-v1)
+endif()
+
+if (HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
+    target_compile_definitions(llama-common PUBLIC
+        HALOFPX_CONTEXT_STORE_FULL_V1_CANARY=1)
+    target_compile_definitions(${TARGET} PUBLIC
+        HALOFPX_CONTEXT_STORE_FULL_V1_CANARY=1)
+    target_link_libraries(${TARGET} PRIVATE halofpx-context-store-v1-server-canary)
 endif()
 
 

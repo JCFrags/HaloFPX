@@ -168,6 +168,10 @@ struct server_task {
         std::array<uint8_t, 32> scope {};
         std::array<uint8_t, 32> session {};
         std::array<uint8_t, 32> compatibility {};
+#if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
+        std::array<uint8_t, 32> selected_manifest {};
+        llama_tokens expected_tokens;
+#endif
 #endif
     };
     slot_action slot_action;
@@ -571,6 +575,9 @@ struct server_task_result_halofpx_direct : server_task_result {
     double t_ms = 0.0;
     bool hit = false;
     bool published = false;
+#if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
+    std::string selected_manifest;
+#endif
 
     virtual json to_json() override;
 };

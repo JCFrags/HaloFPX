@@ -1382,7 +1382,9 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
 #if defined(HALOFPX_CONTEXT_STORE_CANARY)
     add_opt(common_arg(
         {"--halofpx-context-store-mode"},
-#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+#if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
+        "off|direct-rw|protected-rw-canary|full-v1-rw-canary",
+#elif defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
         "off|direct-rw|protected-rw-canary",
 #else
         "off|direct-rw",
@@ -1390,7 +1392,14 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
         "experimental direct-session HaloFPX persistent-cache canary (default: off); "
         "no automatic lookup, prefix matching, shared scope, or anonymous access",
         [](common_params & params, const std::string & value) {
-#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+#if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
+            if (value != "off" && value != "direct-rw" &&
+                value != "protected-rw-canary" && value != "full-v1-rw-canary") {
+                throw std::invalid_argument(
+                    "HaloFPX context-store mode must be off, direct-rw, "
+                    "protected-rw-canary, or full-v1-rw-canary");
+            }
+#elif defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
             if (value != "off" && value != "direct-rw" && value != "protected-rw-canary") {
                 throw std::invalid_argument(
                     "HaloFPX context-store mode must be off, direct-rw, or protected-rw-canary");
@@ -1429,7 +1438,7 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
 #if !defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
         " and the restricted protected-rw-canary runtime tuple",
 #else
-        "; protected-rw-canary instead requires the closed component authority",
+        "; protected-rw-canary and full-v1-rw-canary instead require the closed component authority",
 #endif
         [](common_params & params, const std::string & value) {
             params.halofpx_context_store_compatibility_root = value;
@@ -1439,7 +1448,7 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
     add_opt(common_arg(
         {"--halofpx-context-store-compatibility-component"}, "LABEL=HEX64,...",
         "the closed ordered comma-separated list of 16 exact named compatibility-component "
-        "digests for protected-rw-canary",
+        "digests for protected-rw-canary or full-v1-rw-canary",
         [](common_params & params, const std::string & value) {
             if (value.empty()) {
                 throw std::invalid_argument("HaloFPX compatibility component must not be empty");
@@ -1457,7 +1466,7 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
 #if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
     add_opt(common_arg(
         {"--halofpx-context-store-anchor-root"}, "PATH",
-        "distinct precreated owner-only protected-anchor root for protected-rw-canary",
+        "distinct precreated owner-only protected-anchor root for a protected canary",
         [](common_params & params, const std::string & value) {
             if (value.empty()) {
                 throw std::invalid_argument("HaloFPX protected-anchor root must not be empty");
@@ -1467,7 +1476,7 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
     ).set_examples({LLAMA_EXAMPLE_SERVER}));
     add_opt(common_arg(
         {"--halofpx-context-store-uuid"}, "HEX32",
-        "stable lowercase 128-bit store UUID for protected-rw-canary",
+        "stable lowercase 128-bit store UUID for a protected canary",
         [](common_params & params, const std::string & value) {
             params.halofpx_context_store_uuid = value;
         }
