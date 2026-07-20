@@ -205,6 +205,30 @@ int main() {
     assert(parsed.manifest.authentication_input_size > 0);
     assert(parsed.manifest.authentication_input_offset < valid.size());
     assert(parsed.manifest.state_profile_id.size == std::string("profile.synthetic.v1").size());
+    assert(std::string(parsed.manifest.topology_plan_schema_id.bytes.data(),
+                       parsed.manifest.topology_plan_schema_id.size) == "plan.synthetic.v1");
+    assert(std::string(parsed.manifest.topology_execution_mode.bytes.data(),
+                       parsed.manifest.topology_execution_mode.size) == "single-or-tensor");
+    assert(parsed.manifest.global_plan_digest[0] == 0xa3);
+    assert(parsed.manifest.topology_epoch == 9);
+    assert(parsed.manifest.rank_ownership[0][0] == 0xb0);
+    assert(parsed.manifest.rank_placements[0][0] == 0xc0);
+    assert(parsed.manifest.producer_identity[0] == 0xe3);
+    assert(parsed.manifest.durability_mode == 0);
+
+    const auto & reference = parsed.manifest.object_references[0];
+    assert(reference.object_id[0] == 0xd0);
+    assert(std::string(reference.stream_type.bytes.data(), reference.stream_type.size) == "tokens");
+    assert(std::string(reference.codec_id.bytes.data(), reference.codec_id.size) == "codec.synthetic.v1");
+    assert(reference.codec_schema_major == 1 && reference.codec_schema_minor == 0);
+    assert(reference.required);
+    assert(reference.frame_bytes == 64);
+    assert(reference.token_sequence_digest[0] == 0xd7);
+    assert(reference.logical_position == 16);
+    assert(reference.output_boundary == 8);
+    assert(reference.has_logical_rank && reference.logical_rank == 0);
+    assert(reference.rank_ownership_digest[0] == 0xb0);
+    assert(reference.compatibility_root[0] == 0x70);
 
     assert(halofpx::context_store_parse_manifest_v1(nullptr, 0).status ==
            halofpx::context_store_manifest_parse_status::input_empty);
@@ -285,8 +309,10 @@ int main() {
     options = {};
     options.coordinator_owned = true;
     const auto coordinator = make_fixture(options);
-    assert(halofpx::context_store_parse_manifest_v1(coordinator.data(), coordinator.size()).status ==
-           halofpx::context_store_manifest_parse_status::structural_only);
+    const auto coordinator_result =
+        halofpx::context_store_parse_manifest_v1(coordinator.data(), coordinator.size());
+    assert(coordinator_result.status == halofpx::context_store_manifest_parse_status::structural_only);
+    assert(!coordinator_result.manifest.object_references[0].has_logical_rank);
 
     std::atomic<bool> concurrent_ok { true };
     std::vector<std::thread> threads;

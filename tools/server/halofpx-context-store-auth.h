@@ -68,6 +68,32 @@ struct context_store_manifest_verification_policy {
     context_store_compatibility_expectation compatibility;
 };
 
+// Sanitized, owned copy of authenticated manifest facts. Authentication key
+// identifiers, key material, and authentication tags are deliberately absent.
+// The verifier exposes this carrier only for authenticated_unadmitted results.
+struct context_store_authenticated_manifest_metadata {
+    std::array<uint8_t, 16> store_uuid {};
+    context_store_format_digest checkpoint_lineage_id {};
+    uint64_t generation = 0;
+    bool has_predecessor = false;
+    context_store_format_digest predecessor_manifest_digest {};
+    std::array<context_store_format_digest, context_store_compatibility_component_count> compatibility_components {};
+    context_store_format_digest compatibility_root {};
+    context_store_format_digest scope_namespace {};
+    uint64_t policy_epoch = 0;
+    context_store_registered_id topology_plan_schema_id;
+    context_store_registered_id topology_execution_mode;
+    uint64_t world_size = 0;
+    context_store_format_digest global_plan_digest {};
+    uint64_t topology_epoch = 0;
+    size_t rank_count = 0;
+    std::array<context_store_format_digest, context_store_manifest_max_ranks> rank_ownership {};
+    std::array<context_store_format_digest, context_store_manifest_max_ranks> rank_placements {};
+    context_store_registered_id state_profile_id;
+    context_store_format_digest producer_identity {};
+    uint8_t durability_mode = 0;
+};
+
 struct context_store_manifest_verify_result {
     context_store_manifest_verify_status status = context_store_manifest_verify_status::structural_rejection;
     context_store_manifest_parse_status parse_status = context_store_manifest_parse_status::input_empty;
@@ -85,10 +111,15 @@ struct context_store_manifest_verify_result {
         return has_authenticated_carrier() && index < object_count_ ? &object_references_[index] : nullptr;
     }
 
+    const context_store_authenticated_manifest_metadata * authenticated_manifest_metadata() const noexcept {
+        return has_authenticated_carrier() ? &manifest_metadata_ : nullptr;
+    }
+
 private:
     bool authenticated_carrier_ = false;
     size_t object_count_ = 0;
     std::array<context_store_object_reference, context_store_manifest_max_objects> object_references_ {};
+    context_store_authenticated_manifest_metadata manifest_metadata_ {};
 
     friend context_store_manifest_verify_result context_store_verify_manifest_v1(
         const uint8_t *, size_t, const context_store_manifest_verification_policy &) noexcept;

@@ -372,6 +372,27 @@ context_store_manifest_verify_result context_store_verify_manifest_v1(
     verification.status = context_store_manifest_verify_status::authenticated_unadmitted;
     verification.object_count_ = manifest.object_count;
     verification.object_references_ = manifest.object_references;
+    auto & metadata = verification.manifest_metadata_;
+    metadata.store_uuid = manifest.store_uuid;
+    metadata.checkpoint_lineage_id = manifest.checkpoint_lineage_id;
+    metadata.generation = manifest.generation;
+    metadata.has_predecessor = manifest.has_predecessor;
+    metadata.predecessor_manifest_digest = manifest.predecessor_manifest_digest;
+    metadata.compatibility_components = manifest.compatibility_components;
+    metadata.compatibility_root = manifest.compatibility_root;
+    metadata.scope_namespace = manifest.scope_namespace;
+    metadata.policy_epoch = manifest.policy_epoch;
+    metadata.topology_plan_schema_id = manifest.topology_plan_schema_id;
+    metadata.topology_execution_mode = manifest.topology_execution_mode;
+    metadata.world_size = manifest.world_size;
+    metadata.global_plan_digest = manifest.global_plan_digest;
+    metadata.topology_epoch = manifest.topology_epoch;
+    metadata.rank_count = manifest.rank_count;
+    metadata.rank_ownership = manifest.rank_ownership;
+    metadata.rank_placements = manifest.rank_placements;
+    metadata.state_profile_id = manifest.state_profile_id;
+    metadata.producer_identity = manifest.producer_identity;
+    metadata.durability_mode = manifest.durability_mode;
     verification.authenticated_carrier_ = true;
     return verification;
 }

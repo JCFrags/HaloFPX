@@ -68,7 +68,9 @@ file(GLOB_RECURSE runtime_paths
     "${HALOFPX_SOURCE_DIR}/tools/server/*.h"
     "${HALOFPX_SOURCE_DIR}/tools/server/*.cpp")
 foreach(runtime_path IN LISTS runtime_paths)
-    if (runtime_path STREQUAL object_header OR runtime_path STREQUAL object_source)
+    set(v1_read_only_source "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-v1-read-only.cpp")
+    if (runtime_path STREQUAL object_header OR runtime_path STREQUAL object_source OR
+        runtime_path STREQUAL v1_read_only_source)
         continue()
     endif()
     file(READ "${runtime_path}" runtime_source)

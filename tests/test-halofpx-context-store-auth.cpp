@@ -16,6 +16,9 @@ static_assert(!std::is_aggregate_v<halofpx::context_store_manifest_verify_result
 static_assert(std::is_same_v<
     decltype(std::declval<const halofpx::context_store_manifest_verify_result &>().authenticated_object_reference(0)),
     const halofpx::context_store_object_reference *>);
+static_assert(std::is_same_v<
+    decltype(std::declval<const halofpx::context_store_manifest_verify_result &>().authenticated_manifest_metadata()),
+    const halofpx::context_store_authenticated_manifest_metadata *>);
 
 namespace {
 
@@ -241,6 +244,20 @@ halofpx::context_store_manifest_verify_status verify(signed_fixture & fixture) {
         fixture.manifest.data(), fixture.manifest.size(), fixture.policy).status;
 }
 
+halofpx::context_store_manifest_verify_result verify_result(signed_fixture & fixture) {
+    fixture.bind_key();
+    return halofpx::context_store_verify_manifest_v1(
+        fixture.manifest.data(), fixture.manifest.size(), fixture.policy);
+}
+
+void assert_no_authenticated_carrier(
+        const halofpx::context_store_manifest_verify_result & result) {
+    assert(!result.has_authenticated_carrier());
+    assert(result.authenticated_manifest_metadata() == nullptr);
+    assert(result.authenticated_object_count() == 0);
+    assert(result.authenticated_object_reference(0) == nullptr);
+}
+
 void test_standard_vectors() {
     context_store_format_digest digest {};
     assert(halofpx::context_store_sha256(nullptr, 0, digest));
@@ -296,7 +313,35 @@ void test_authenticated_terminal_miss() {
     assert(reference->object_id[0] == 0xd0);
     assert(reference->stream_type.size == 6);
     assert(std::string(reference->stream_type.bytes.data(), 6) == "tokens");
+    assert(std::string(reference->codec_id.bytes.data(), reference->codec_id.size) == "codec.synthetic.v1");
+    assert(reference->codec_schema_major == 1 && reference->codec_schema_minor == 0);
+    assert(reference->required);
     assert(reference->frame_bytes == 64);
+    assert(reference->token_sequence_digest[0] == 0xd7);
+    assert(reference->logical_position == 16);
+    assert(reference->output_boundary == 8);
+    assert(reference->has_logical_rank && reference->logical_rank == 0);
+    assert(reference->rank_ownership_digest[0] == 0xb0);
+    assert(reference->compatibility_root == fixture.policy.compatibility.root);
+
+    const auto * metadata = result.authenticated_manifest_metadata();
+    assert(metadata != nullptr);
+    assert(metadata->store_uuid[0] == 0x02);
+    assert(metadata->checkpoint_lineage_id[0] == 0x03);
+    assert(metadata->generation == 1 && !metadata->has_predecessor);
+    assert(metadata->compatibility_components == fixture.policy.compatibility.components);
+    assert(metadata->compatibility_root == fixture.policy.compatibility.root);
+    assert(metadata->scope_namespace[0] == 0x80 && metadata->policy_epoch == 7);
+    assert(std::string(metadata->topology_plan_schema_id.bytes.data(),
+                       metadata->topology_plan_schema_id.size) == "plan.synthetic.v1");
+    assert(std::string(metadata->topology_execution_mode.bytes.data(),
+                       metadata->topology_execution_mode.size) == "single");
+    assert(metadata->world_size == 1 && metadata->topology_epoch == 9 && metadata->rank_count == 1);
+    assert(metadata->global_plan_digest[0] == 0xa3);
+    assert(metadata->rank_ownership[0][0] == 0xb0 && metadata->rank_placements[0][0] == 0xc0);
+    assert(std::string(metadata->state_profile_id.bytes.data(), metadata->state_profile_id.size) ==
+           "profile.synthetic.v1");
+    assert(metadata->producer_identity[0] == 0xe3 && metadata->durability_mode == 0);
 
     auto changed_descriptor = make_signed_fixture({ 0, false, "sampler" });
     assert(verify(changed_descriptor) == halofpx::context_store_manifest_verify_status::authenticated_unadmitted);
@@ -320,7 +365,7 @@ void test_authentication_and_key_rejection() {
         const auto result = halofpx::context_store_verify_manifest_v1(
             fixture.manifest.data(), fixture.manifest.size(), fixture.policy);
         assert(result.status == halofpx::context_store_manifest_verify_status::authentication_failed);
-        assert(result.authenticated_object_count() == 0);
+        assert_no_authenticated_carrier(result);
     }
     auto body_flip = make_signed_fixture();
     body_flip.manifest[20] ^= 0x01;
@@ -363,11 +408,15 @@ void test_authentication_and_key_rejection() {
 void test_authority_replay_and_compatibility_rejection() {
     auto authority = make_signed_fixture();
     authority.policy.anchor.namespace_id[0] ^= 0x01;
-    assert(verify(authority) == halofpx::context_store_manifest_verify_status::authority_mismatch);
+    const auto authority_result = verify_result(authority);
+    assert(authority_result.status == halofpx::context_store_manifest_verify_status::authority_mismatch);
+    assert_no_authenticated_carrier(authority_result);
 
     auto replay = make_signed_fixture();
     replay.policy.anchor.selected_manifest_digest[31] ^= 0x01;
-    assert(verify(replay) == halofpx::context_store_manifest_verify_status::replay_mismatch);
+    const auto replay_result = verify_result(replay);
+    assert(replay_result.status == halofpx::context_store_manifest_verify_status::replay_mismatch);
+    assert_no_authenticated_carrier(replay_result);
     auto replay_generation = make_signed_fixture();
     replay_generation.policy.anchor.generation = 2;
     assert(verify(replay_generation) == halofpx::context_store_manifest_verify_status::replay_mismatch);
@@ -379,11 +428,15 @@ void test_authority_replay_and_compatibility_rejection() {
     assert(verify(replay_lineage) == halofpx::context_store_manifest_verify_status::replay_mismatch);
 
     auto corrupt = make_signed_fixture({ 0, true });
-    assert(verify(corrupt) == halofpx::context_store_manifest_verify_status::compatibility_corrupt);
+    const auto corrupt_result = verify_result(corrupt);
+    assert(corrupt_result.status == halofpx::context_store_manifest_verify_status::compatibility_corrupt);
+    assert_no_authenticated_carrier(corrupt_result);
 
     auto expected_mismatch = make_signed_fixture();
     expected_mismatch.policy.compatibility.components[3][4] ^= 0x01;
-    assert(verify(expected_mismatch) == halofpx::context_store_manifest_verify_status::compatibility_mismatch);
+    const auto expected_mismatch_result = verify_result(expected_mismatch);
+    assert(expected_mismatch_result.status == halofpx::context_store_manifest_verify_status::compatibility_mismatch);
+    assert_no_authenticated_carrier(expected_mismatch_result);
 
     for (size_t component = 0; component < halofpx::context_store_compatibility_component_count; ++component) {
         auto mismatch = make_signed_fixture();
@@ -397,7 +450,9 @@ void test_authority_replay_and_compatibility_rejection() {
 
     auto structurally_bad = make_signed_fixture();
     structurally_bad.manifest.pop_back();
-    assert(verify(structurally_bad) == halofpx::context_store_manifest_verify_status::structural_rejection);
+    const auto structurally_bad_result = verify_result(structurally_bad);
+    assert(structurally_bad_result.status == halofpx::context_store_manifest_verify_status::structural_rejection);
+    assert_no_authenticated_carrier(structurally_bad_result);
 }
 
 } // namespace

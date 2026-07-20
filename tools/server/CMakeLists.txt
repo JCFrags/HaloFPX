@@ -168,6 +168,17 @@ add_library(halofpx-context-store-object STATIC EXCLUDE_FROM_ALL
 target_link_libraries(halofpx-context-store-object PUBLIC halofpx-context-store-auth)
 target_compile_features(halofpx-context-store-object PRIVATE cxx_std_17)
 
+# L08d excluded, memory-only composition of the authenticated full-v1 manifest
+# and immutable object verifiers. It has no filesystem, writer, codec, or
+# product edge and cannot restore live inference state.
+add_library(halofpx-context-store-v1-read-only STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-v1-read-only.cpp
+    halofpx-context-store-v1-read-only.h
+)
+target_link_libraries(halofpx-context-store-v1-read-only PUBLIC
+    halofpx-context-store-object)
+target_compile_features(halofpx-context-store-v1-read-only PRIVATE cxx_std_17)
+
 # Permanently synthetic L05m bootstrap-material preparation seam. This target
 # owns no filesystem or anchor-storage implementation and remains excluded.
 add_library(halofpx-context-store-bootstrap-material STATIC EXCLUDE_FROM_ALL

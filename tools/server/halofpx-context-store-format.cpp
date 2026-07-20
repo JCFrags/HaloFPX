@@ -271,16 +271,14 @@ bool parse_compatibility_manifest(
 bool parse_topology_manifest(
         cbor_cursor & cursor,
         context_store_parsed_manifest & manifest) noexcept {
-    context_store_registered_id ignored_id;
-    context_store_format_digest ignored_digest {};
     uint64_t rank_count = 0;
 
     if (!cursor.read_map(6) ||
-        !cursor.read_key(0) || !cursor.read_registered_id(ignored_id) ||
-        !cursor.read_key(1) || !cursor.read_registered_id(ignored_id) ||
+        !cursor.read_key(0) || !cursor.read_registered_id(manifest.topology_plan_schema_id) ||
+        !cursor.read_key(1) || !cursor.read_registered_id(manifest.topology_execution_mode) ||
         !cursor.read_key(2) || !cursor.read_uint(manifest.world_size) ||
         manifest.world_size < 1 || manifest.world_size > context_store_manifest_max_ranks ||
-        !cursor.read_key(3) || !cursor.read_bytes(ignored_digest) ||
+        !cursor.read_key(3) || !cursor.read_bytes(manifest.global_plan_digest) ||
         !cursor.read_key(4) || !cursor.read_uint(manifest.topology_epoch) ||
         !cursor.read_key(5) ||
         !cursor.read_array(1, context_store_manifest_max_ranks, rank_count)) {
@@ -298,7 +296,8 @@ bool parse_topology_manifest(
             !cursor.read_key(0) || !cursor.read_uint(logical_rank) ||
             logical_rank != index || logical_rank >= manifest.world_size || seen[static_cast<size_t>(logical_rank)] ||
             !cursor.read_key(1) || !cursor.read_bytes(ownership_digest) ||
-            !cursor.read_key(2) || !cursor.read_bytes(ignored_digest)) {
+            !cursor.read_key(2) ||
+            !cursor.read_bytes(manifest.rank_placements[static_cast<size_t>(logical_rank)])) {
             return false;
         }
         seen[static_cast<size_t>(logical_rank)] = true;
@@ -312,25 +311,21 @@ bool parse_object_descriptor(
         cbor_cursor & cursor,
         const context_store_parsed_manifest & manifest,
         context_store_object_reference & reference) noexcept {
-    context_store_registered_id ignored_id;
-    context_store_format_digest ignored_digest {};
-    context_store_format_digest object_compatibility {};
-    uint64_t value = 0;
-
     if (!cursor.read_map(13) ||
         !cursor.read_key(0) || !cursor.read_bytes(reference.object_id) ||
         !cursor.read_key(1) || !cursor.read_registered_id(reference.stream_type) ||
-        !cursor.read_key(2) || !cursor.read_registered_id(ignored_id) ||
-        !cursor.read_key(3) || !cursor.read_uint(value) ||
-        !cursor.read_key(4) || !cursor.read_uint(value) ||
+        !cursor.read_key(2) || !cursor.read_registered_id(reference.codec_id) ||
+        !cursor.read_key(3) || !cursor.read_uint(reference.codec_schema_major) ||
+        !cursor.read_key(4) || !cursor.read_uint(reference.codec_schema_minor) ||
         !cursor.read_key(5) || !cursor.read_true() ||
         !cursor.read_key(6) || !cursor.read_uint(reference.frame_bytes) || reference.frame_bytes < 1 ||
-        !cursor.read_key(7) || !cursor.read_bytes(ignored_digest) ||
-        !cursor.read_key(8) || !cursor.read_uint(value) ||
-        !cursor.read_key(9) || !cursor.read_uint(value) ||
+        !cursor.read_key(7) || !cursor.read_bytes(reference.token_sequence_digest) ||
+        !cursor.read_key(8) || !cursor.read_uint(reference.logical_position) ||
+        !cursor.read_key(9) || !cursor.read_uint(reference.output_boundary) ||
         !cursor.read_key(10)) {
         return false;
     }
+    reference.required = true;
 
     bool coordinator_owned = false;
     uint64_t logical_rank = 0;
@@ -338,12 +333,13 @@ bool parse_object_descriptor(
         (!coordinator_owned && logical_rank >= manifest.world_size)) {
         return false;
     }
+    reference.has_logical_rank = !coordinator_owned;
+    reference.logical_rank = logical_rank;
 
-    context_store_format_digest object_ownership {};
-    return cursor.read_key(11) && cursor.read_bytes(object_ownership) &&
-           (coordinator_owned || object_ownership == manifest.rank_ownership[static_cast<size_t>(logical_rank)]) &&
-           cursor.read_key(12) && cursor.read_bytes(object_compatibility) &&
-           object_compatibility == manifest.compatibility_root;
+    return cursor.read_key(11) && cursor.read_bytes(reference.rank_ownership_digest) &&
+           (coordinator_owned || reference.rank_ownership_digest == manifest.rank_ownership[static_cast<size_t>(logical_rank)]) &&
+           cursor.read_key(12) && cursor.read_bytes(reference.compatibility_root) &&
+           reference.compatibility_root == manifest.compatibility_root;
 }
 
 } // namespace
@@ -364,7 +360,6 @@ context_store_manifest_parse_result context_store_parse_manifest_v1(
     result.status = context_store_manifest_parse_status::structural_only;
     cbor_cursor cursor(data, size, result);
     auto & manifest = result.manifest;
-    context_store_format_digest ignored_digest {};
 
     if (!cursor.read_map(2) || !cursor.read_key(0)) {
         return result;

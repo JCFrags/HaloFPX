@@ -1,0 +1,60 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L08d",
+  "title": "excluded authenticated full-v1 read composition",
+  "implementation_parent": "bafaf1c55209b2d3f07a29a44e78b9558d608091",
+  "implementation_parent_tree": "1d725e90d02679f748c58995e78bfb55c56286b7",
+  "locked_rocmfpx_base": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "locked_rocmfpx_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "boundary": {
+    "target": "halofpx-context-store-v1-read-only",
+    "build": "STATIC EXCLUDE_FROM_ALL",
+    "source": "memory-only synthetic full-v1 record",
+    "publication": "disabled",
+    "product_capabilities": "closed",
+    "filesystem": false,
+    "server_link": false,
+    "live_state_restore": false
+  },
+  "golden": {
+    "manifest_sha256": "f724dd615d4a5866a655422682d0781eebd0085a25edd587b169f6b8461e4e4b",
+    "object_0_sha256": "c6a416f1d11eb0e35065f5ddf8912d9270f45e2cd96ba8fa416fd43f1565337c",
+    "object_1_sha256": "e1aa2922082eb9433a3907c131fc4fabd26455da2d48189040c25e0da41fa214"
+  },
+  "qualification": {
+    "windows_release_focused": "8/8 passed",
+    "nimo_1_release_focused": "8/8 passed",
+    "nimo_1_feature_off_l02": "2/2 passed",
+    "nimo_1_compiler": "GCC 16.1.1",
+    "nimo_1_feature_tuple": "CPU Release; HIP OFF; Vulkan OFF; curl OFF; WebUI OFF",
+    "source_hash_files": 14,
+    "source_hash_mismatches": 0,
+    "known_good_service": "active and enabled",
+    "reference_clones": "five locked commit/tree pairs clean and unchanged"
+  },
+  "evidence": {
+    "nimo_1_bundle": "/var/tmp/halofpx-l08d-v1-read-only-bafaf1c-20260720/halofpx-l08d-v1-read-only-nimo1-20260720.tar.zst",
+    "nimo_1_bundle_bytes": 12483,
+    "nimo_1_bundle_sha256": "d688b6c74d5b65fff14efa2fb8cd89535943bcfe46f8d9e67807ded6749925fa",
+    "nimo_1_test_binary_sha256": "1c59dfed5dc0e8bba22c7f99a205cfe106573c63f92bb6da07da57b1da576193",
+    "windows_test_binary_sha256": "118b3bd478db380693486425b9d04cdefc42a9045feef57f584dd4cfdc6a3e6d"
+  },
+  "deferred": [
+    "safe filesystem open, identity, and streaming",
+    "protected key and anchor sourcing plus payload zeroization",
+    "real state codec and profile admission",
+    "semantic construction of all compatibility components",
+    "protected full-v1 writer and generation advancement",
+    "retention, quotas, eviction, and administration",
+    "distributed restore, soak, and zero-regression"
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false
+  }
+}

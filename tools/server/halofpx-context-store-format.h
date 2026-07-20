@@ -39,7 +39,18 @@ struct context_store_registered_id {
 struct context_store_object_reference {
     context_store_format_digest object_id {};
     context_store_registered_id stream_type;
+    context_store_registered_id codec_id;
+    uint64_t codec_schema_major = 0;
+    uint64_t codec_schema_minor = 0;
+    bool required = false;
     uint64_t frame_bytes = 0;
+    context_store_format_digest token_sequence_digest {};
+    uint64_t logical_position = 0;
+    uint64_t output_boundary = 0;
+    bool has_logical_rank = false;
+    uint64_t logical_rank = 0;
+    context_store_format_digest rank_ownership_digest {};
+    context_store_format_digest compatibility_root {};
 };
 
 struct context_store_parsed_manifest {
@@ -55,9 +66,13 @@ struct context_store_parsed_manifest {
     context_store_format_digest scope_namespace {};
     uint64_t policy_epoch = 0;
     uint64_t world_size = 0;
+    context_store_registered_id topology_plan_schema_id;
+    context_store_registered_id topology_execution_mode;
+    context_store_format_digest global_plan_digest {};
     uint64_t topology_epoch = 0;
     size_t rank_count = 0;
     std::array<context_store_format_digest, context_store_manifest_max_ranks> rank_ownership {};
+    std::array<context_store_format_digest, context_store_manifest_max_ranks> rank_placements {};
     size_t object_count = 0;
     std::array<context_store_object_reference, context_store_manifest_max_objects> object_references {};
     context_store_registered_id state_profile_id;
