@@ -104,6 +104,7 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [P01 pinned primary-model qualification](p01-primary-model-qualification.md)
 - [P01 qualification receipt](evidence/p01-primary-model-qualification-receipt.json)
 - [P01 independent review](reviews/2026-07-19__p01-primary-model-qualification__review__v01.md)
+- [L14Q-H01 default-off HIP decode port plan](l14q-h01-hip-quantized-kv-fa-decode-port-plan.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)
