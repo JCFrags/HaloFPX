@@ -863,6 +863,7 @@ int print_live_audit(const initialization_audit & observed, bool expect_prefix,
                      bool expect_envelope = false,
                      const sealed_input_request * expected_sealed = nullptr) {
     std::array<char, 1024> marker_suffix {};
+    std::array<char, 1024> envelope_suffix {};
     if (expect_marker) {
         const auto root_id_hex = lower_hex(observed.generated_root_id);
         const auto store_uuid_hex = lower_hex(observed.generated_store_uuid);
@@ -904,13 +905,54 @@ int print_live_audit(const initialization_audit & observed, bool expect_prefix,
             return 1;
         }
     }
+    if (expect_envelope) {
+        const auto envelope_digest_hex = lower_hex(
+            observed.predecessor_envelope_digest);
+        const int count = std::snprintf(
+            envelope_suffix.data(), envelope_suffix.size(),
+            " envelope=%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u "
+            "envelope_digest=%s envelope_name=%s envelope_dev=%llu "
+            "envelope_inode=%llu envelope_mount=%llu envelope_size=%u envelope_phase=%u",
+            static_cast<unsigned>(observed.predecessor_envelope_authenticated),
+            static_cast<unsigned>(observed.predecessor_envelope_digest_name_computed),
+            static_cast<unsigned>(observed.predecessor_envelope_path_admitted),
+            static_cast<unsigned>(observed.predecessor_envelope_logical_bound_admitted),
+            static_cast<unsigned>(observed.initializing_marker_write_descriptor_closed),
+            static_cast<unsigned>(observed.predecessor_envelope_pre_mutation_revalidation_matched),
+            static_cast<unsigned>(observed.predecessor_envelope_temp_created_no_replace),
+            static_cast<unsigned>(observed.predecessor_envelope_mode_revalidated),
+            static_cast<unsigned>(observed.predecessor_envelope_write_completed),
+            static_cast<unsigned>(observed.predecessor_envelope_readback_exact),
+            static_cast<unsigned>(observed.predecessor_envelope_readback_authenticated),
+            static_cast<unsigned>(observed.predecessor_envelope_synchronized),
+            static_cast<unsigned>(observed.predecessor_envelope_readonly_reopen_matched),
+            static_cast<unsigned>(observed.predecessor_envelope_pre_publication_revalidation_matched),
+            static_cast<unsigned>(observed.predecessor_envelope_published_no_replace),
+            static_cast<unsigned>(observed.envelopes_synchronized_after_predecessor),
+            static_cast<unsigned>(observed.staging_synchronized_after_predecessor),
+            static_cast<unsigned>(observed.predecessor_envelope_final_revalidation_matched),
+            static_cast<unsigned>(observed.initializing_marker_unchanged_after_predecessor),
+            static_cast<unsigned>(observed.predecessor_envelope_final_layout_matched),
+            static_cast<unsigned>(observed.predecessor_envelope_qualified),
+            envelope_digest_hex.data(),
+            observed.predecessor_envelope_basename.data(),
+            static_cast<unsigned long long>(observed.predecessor_envelope_device),
+            static_cast<unsigned long long>(observed.predecessor_envelope_inode),
+            static_cast<unsigned long long>(observed.predecessor_envelope_mount_id),
+            observed.predecessor_envelope_size,
+            observed.predecessor_envelope_phase_ordinal);
+        if (count <= 0 ||
+            static_cast<std::size_t>(count) >= envelope_suffix.size()) {
+            return 1;
+        }
+    }
     std::printf(
         "result=%u sealed_result=%u sealed_before_root=%u latch=%u qualified=%u "
         "root_syscalls=%u reserve=%llu root_id_nonzero=%u store_uuid_nonzero=%u "
         "writer_created=%u writer_synced=%u writer_ofd=%u sole_entry=%u "
         "writer_released=%u fixture_released=%u guard_released=%u "
         "envelopes=%u/%u/%u attempts=%u/%u/%u staging=%u/%u/%u "
-        "final_dirs=%u/%u/%u root_synced=%u prefix_qualified=%u%s\n",
+        "final_dirs=%u/%u/%u root_synced=%u prefix_qualified=%u%s%s\n",
         static_cast<unsigned>(observed.result),
         static_cast<unsigned>(observed.sealed_inputs.result),
         static_cast<unsigned>(observed.sealed_inputs_preceded_root_access),
@@ -941,7 +983,7 @@ int print_live_audit(const initialization_audit & observed, bool expect_prefix,
         static_cast<unsigned>(observed.staging_directory_final_revalidation_matched),
         static_cast<unsigned>(observed.root_directory_synchronized),
         static_cast<unsigned>(observed.directory_prefix_qualified),
-        marker_suffix.data());
+        marker_suffix.data(), envelope_suffix.data());
     const bool prefix_matched = expect_prefix
         ? observed.envelopes_directory_created_no_replace &&
               observed.envelopes_directory_validated &&

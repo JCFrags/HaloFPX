@@ -179,6 +179,10 @@ foreach(REQUIRED IN ITEMS
     "preexisting_root_discard_required"
     "clear_pre_latch_positive_audit"
     "if (!output.discard_required_latched)"
+    "const bool retry_cleanup_unlock_eintr ="
+    "!output.initializing_marker_write_descriptor_closed"
+    "unlock_and_close(writer_fd, output.writer_lock_ofd_acquired,\n                                retry_cleanup_unlock_eintr"
+    "unlock_and_close(fixture_lock_fd, output.fixture_lock_acquired,\n                                retry_cleanup_unlock_eintr"
     "discard_required_latched = true"
     "lock_anchor_qualified = true"
     "initialization_extent::writer_lock_anchor"
@@ -240,6 +244,18 @@ foreach(REQUIRED IN ITEMS
     message(FATAL_ERROR "missing L05z predecessor-envelope contract token: ${REQUIRED}")
   endif()
 endforeach()
+set(ANCHOR_TEST "${ROOT}/tests/test-halofpx-context-store-registry-lab-linux-initializer-anchor.cpp")
+file(READ "${ANCHOR_TEST}" ANCHOR_TEST_TEXT)
+foreach(REQUIRED IN ITEMS
+    "std::array<char, 1024> envelope_suffix {}"
+    "envelope=%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u/%u"
+    "envelope_digest=%s envelope_name=%s envelope_dev=%llu"
+    "envelope_inode=%llu envelope_mount=%llu envelope_size=%u envelope_phase=%u")
+  string(FIND "${ANCHOR_TEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing bounded L05z live-audit oracle token: ${REQUIRED}")
+  endif()
+endforeach()
 string(FIND "${ANCHOR_TEXT}" "// Select and fully authenticate the exact staging inode immediately before" FINAL_SELECTION)
 if(FINAL_SELECTION EQUAL -1)
   message(FATAL_ERROR "missing immediate pre-rename marker selection boundary")
@@ -299,7 +315,10 @@ foreach(REQUIRED IN ITEMS
     "add_executable(halofpx-l05x-ptrace-controller EXCLUDE_FROM_ALL"
     "add_executable(halofpx-l05x-return-fault-controller EXCLUDE_FROM_ALL"
     "add_executable(halofpx-l05y-ptrace-controller EXCLUDE_FROM_ALL"
-    "add_executable(halofpx-l05y-return-fault-controller EXCLUDE_FROM_ALL")
+    "add_executable(halofpx-l05y-return-fault-controller EXCLUDE_FROM_ALL"
+    "if (CMAKE_SYSTEM_PROCESSOR MATCHES \"^(x86_64|amd64|AMD64)$\")"
+    "add_executable(halofpx-l05z-ptrace-controller EXCLUDE_FROM_ALL"
+    "add_executable(halofpx-l05z-return-fault-controller EXCLUDE_FROM_ALL")
   string(FIND "${SERVER_CMAKE}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "missing L05t excluded target boundary: ${REQUIRED}")
@@ -326,14 +345,86 @@ foreach(FORBIDDEN IN ITEMS
   endif()
 endforeach()
 
+set(L05Z_PTRACE "${ROOT}/tests/halofpx-l05z-ptrace-controller.cpp")
+set(L05Z_RETURN "${ROOT}/tests/halofpx-l05z-return-fault-controller.cpp")
+foreach(CONTROLLER IN ITEMS "${L05Z_PTRACE}" "${L05Z_RETURN}")
+  if(NOT EXISTS "${CONTROLLER}")
+    message(FATAL_ERROR "missing excluded L05z qualification controller: ${CONTROLLER}")
+  endif()
+endforeach()
+file(READ "${L05Z_PTRACE}" L05Z_PTRACE_TEXT)
+foreach(REQUIRED IN ITEMS
+    "openat2-initialize-envelope"
+    "fchmod-initialize-envelope"
+    "pwrite-initialize-envelope"
+    "fsync-initialize-envelope"
+    "renameat2-initialize-envelope"
+    "fsync-envelopes-envelope"
+    "fsync-staging-envelope"
+    "derive_golden_predecessor"
+    "golden_authority_unchanged"
+    "envelopes_fsync_succeeded"
+    "--live-envelope-controller")
+  string(FIND "${L05Z_PTRACE_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing L05z ptrace-controller authority token: ${REQUIRED}")
+  endif()
+endforeach()
+file(READ "${L05Z_RETURN}" L05Z_RETURN_TEXT)
+foreach(REQUIRED IN ITEMS
+    "#include \"halofpx-l05z-return-hostile-manifest.inc\""
+    "manifest_self_check"
+    "static_assert(syscall_seam_base == 2087)"
+    "step4_gate"
+    "inherited_marker_publication_attempts"
+    "cleanup_syscall_seen"
+    "envelope_digest"
+    "envelope_phase"
+    "--live-envelope-controller")
+  string(FIND "${L05Z_RETURN_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing L05z returned-fault controller token: ${REQUIRED}")
+  endif()
+endforeach()
+set(L05Z_RETURN_HOSTILE_MANIFEST
+  "${ROOT}/tests/halofpx-l05z-return-hostile-manifest.inc")
+if(NOT EXISTS "${L05Z_RETURN_HOSTILE_MANIFEST}")
+  message(FATAL_ERROR "missing L05z canonical hostile manifest include")
+endif()
+file(READ "${L05Z_RETURN_HOSTILE_MANIFEST}" L05Z_RETURN_HOSTILE_MANIFEST_TEXT)
+foreach(REQUIRED IN ITEMS
+    "canonical_case_count = 1899"
+    "sorted_id_set_hash_hex()"
+    "1028ac1be238cd418e48699c509f27a0dfcded792869c4014a9f5f6d9a8e8698"
+    "canonical_manifest_sha256"
+    "halofpx.l05z.case-shard.v1"
+    "shard_union_self_check"
+    "select_case(std::string_view case_id)")
+  string(FIND "${L05Z_RETURN_HOSTILE_MANIFEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing L05z canonical hostile-manifest token: ${REQUIRED}")
+  endif()
+endforeach()
+string(FIND "${SERVER_CMAKE}"
+  "target_link_libraries(halofpx-l05z-return-fault-controller PRIVATE\n                halofpx-context-store-registry-lab-linux-initializer)"
+  L05Z_RETURN_TEST_LINK)
+if(L05Z_RETURN_TEST_LINK EQUAL -1)
+  message(FATAL_ERROR "missing L05z returned-fault controller's private test-only initializer link")
+endif()
+
 string(FIND "${SERVER_CMAKE}" "set(TARGET server-context)" PRODUCT_MARKER)
 if(PRODUCT_MARKER EQUAL -1)
   message(FATAL_ERROR "server product marker is missing")
 endif()
 string(SUBSTRING "${SERVER_CMAKE}" ${PRODUCT_MARKER} -1 PRODUCT_TAIL)
-string(FIND "${PRODUCT_TAIL}" "halofpx-context-store-registry-lab-linux-initializer" PRODUCT_LEAK)
-if(NOT PRODUCT_LEAK EQUAL -1)
-  message(FATAL_ERROR "L05t initializer seam leaked into product/server linkage")
-endif()
+foreach(FORBIDDEN_PRODUCT_EDGE IN ITEMS
+    "halofpx-context-store-registry-lab-linux-initializer"
+    "halofpx-l05z-ptrace-controller"
+    "halofpx-l05z-return-fault-controller")
+  string(FIND "${PRODUCT_TAIL}" "${FORBIDDEN_PRODUCT_EDGE}" PRODUCT_LEAK)
+  if(NOT PRODUCT_LEAK EQUAL -1)
+    message(FATAL_ERROR "L05z initializer/controller seam leaked into product/server linkage: ${FORBIDDEN_PRODUCT_EDGE}")
+  endif()
+endforeach()
 
 message(STATUS "PASS: L05t seam through L05z discard-only predecessor-envelope/default-off contract")

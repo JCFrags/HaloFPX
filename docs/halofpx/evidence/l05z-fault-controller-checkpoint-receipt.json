@@ -1,0 +1,169 @@
+{
+  "schema": "halofpx.l05z-fault-controller-checkpoint.v1",
+  "date": "2026-07-19",
+  "status": "checkpoint_accepted_for_continuation_not_l05z_promotion",
+  "parent_commit": "6c00a05cd03f5c05819c2791f494e28b6a7d0855",
+  "parent_tree": "e9ac265d7530e5256cff8d59db31f05d8e802c0d",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Frozen L05z test-only fault controllers, accepted two-node exact-production ptrace scale evidence, checkpoint regressions, and closed returned-fault manifest arithmetic; this checkpoint does not promote L05z.",
+  "frozen_source_sha256": {
+    "tests/halofpx-l05z-ptrace-controller.cpp": "26ffe6bc1457c1b6f5255dfe857195b765f2fa4ddf292c32e9f46fac3429e6ee",
+    "tests/halofpx-l05z-return-fault-controller.cpp": "8bf8f48fcdebd86204d7c3faebe9eefbafca7ac8d25b71652ca766baadeaec2d",
+    "tests/halofpx-l05z-return-hostile-manifest.inc": "3c80ec79224e4975239a9bf44ef104e4606b2337efc8a88def220bfcd099de82",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-anchor.cpp": "3977a7eaa76e494533cf7d528600afa9d0f226d25948a9c75c0309a85c24abb8",
+    "tools/server/CMakeLists.txt": "da5839b13efd20cd5febf16c76fbe5b7913456f2f7835b003943a358de6eeb33",
+    "tools/server/halofpx-context-store-registry-lab-linux-initializer-anchor.inc": "a94c08e554ca449e04f1159b1dbd4ff049f00365e3b3cf45feffab8fbb968f82",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake": "fcb9889e367ef23d2a4cd05823ff2afa50d102c9dea8823e17ef09cf652a561e"
+  },
+  "controller_boundary": {
+    "platform": "Linux x86-64 only",
+    "linkage": "test-only EXCLUDE_FROM_ALL targets outside product, install, export, and default CTest graphs",
+    "persistent_server_writes_enabled": false,
+    "production_fault_hook_added": false,
+    "new_runtime_dependency": false
+  },
+  "ptrace_crash_checkpoint": {
+    "matrix_contract": {
+      "mutation_families": 7,
+      "phases": ["entry", "exit"],
+      "repetitions_per_family_phase_per_node": 25,
+      "required_cases_per_node": 350
+    },
+    "nimo_1": {
+      "status": "ACCEPT",
+      "evidence_root": "/var/tmp/halofpx-qualification/l05z-ptrace-scale25-26ffe6-final-20260719-nimo1",
+      "passed": 350,
+      "failed": 0,
+      "unique_run_ids": 350,
+      "unique_btrfs_uuids": 350,
+      "jsonl_events": 801550,
+      "receipt_bytes": 122165668,
+      "controller_binary_sha256": "f4aeae2edfd82df38ef9ebec5b510018884c1340c83af60a382bd37c719e6a79",
+      "target_binary_sha256": "db5a7eeb6b6bd77fcdcabbc31bf833f7259e7035a31a3cb18ce9cc931febb724",
+      "top_ab_bundle": {
+        "sha256": "0d7c52e664d39acd420108aa86db70a612a2cf469ecfb72e8b6a6be58d75f862",
+        "size_bytes": 26870152,
+        "reconstructed_entries": 5756,
+        "reconstruction_mismatches": 0
+      },
+      "post_run_residue": 0,
+      "service_health": {
+        "process": "llama-server",
+        "pid": 971,
+        "port": 8081,
+        "http_health": 200,
+        "reported_restart_count": 0
+      }
+    },
+    "nimo_2": {
+      "status": "ACCEPT",
+      "evidence_root": "/var/tmp/halofpx-qualification/l05z-ptrace-scale25-26ffe6-final2-20260719-nimo2",
+      "passed": 350,
+      "failed": 0,
+      "jsonl_events": 801550,
+      "receipt_bytes": 122917454,
+      "top_ab_bundle": {
+        "sha256": "19f25e64a6b5c8cda3bb74057918867300bc6d21623efbbe654492ddf1d8349d",
+        "size_bytes": 45931231,
+        "reconstructed_entries": 7122,
+        "reconstruction_mismatches": 0
+      },
+      "evidence_seal_sha256": "ddff038eb27801c9e168e03c3fe5266d9f3b88997e50529ec80afb164b4c126e",
+      "post_run_residue": 0,
+      "service_health": {
+        "process": "ggml-rpc-server",
+        "pid": 3562775,
+        "port": 50052,
+        "continuity": "continuous"
+      }
+    },
+    "total": {
+      "required": 700,
+      "passed": 700,
+      "failed": 0,
+      "arithmetic": "2 nodes * 7 mutation families * 2 phases * 25 repetitions = 700"
+    }
+  },
+  "checkpoint_regressions": {
+    "nimo_1": {
+      "clean_build": {"passed": 520, "failed": 0},
+      "full_halofpx": {
+        "passed": 48,
+        "failed": 0,
+        "log_sha256": "97739d7d24819be6567e4c8df75ca1ba5b9756e227b46b1edd635239d8a86b70"
+      },
+      "focused_l05z": {
+        "passed": 6,
+        "failed": 0,
+        "log_sha256": "3c4cb8bc4b71a1001da89dd3b5e5a6e9cd2a91cad9a5c45f2cbab0e41b872133"
+      },
+      "inherited": {
+        "passed": 7,
+        "failed": 0,
+        "log_sha256": "8ee7285db43344d0597aecc31aa0a7f5e0c651c0abffb31626b9583dd2e0863b"
+      },
+      "feature_off_contract": {
+        "passed": 1,
+        "failed": 0,
+        "log_sha256": "fef5acdfad04e4c11dabbf01673a3c77ffafe5e2bc723b959147e3afa40859dc"
+      },
+      "bundle_sha256": "fa7a9b9be8c2a31a9517a34c81f0427b293b46b2805ffcb8fcb23d217abd24d1"
+    },
+    "windows": {
+      "context_store_authority": {
+        "passed": 3,
+        "failed": 0,
+        "log_sha256": "29364a129d14f4e777b0e83a4b8e5c2dae3e02d23c16f57d10c9fc04a7470266",
+        "assertion_stderr_observed": 1,
+        "nonzero_exit_observed": 1,
+        "werfault_ui_observed": 0,
+        "crt_contract": "_set_error_mode(_OUT_TO_STDERR) and _set_abort_behavior preserve assertion stderr and nonzero exit while suppressing abort/ReportFault UI"
+      },
+      "bundle_sha256": "f9bcbc48ad6e57cda6120f2687b5ce75d4ebd28c3567b6914f40aecc12508d12"
+    }
+  },
+  "returned_fault_checkpoint": {
+    "status": "MANIFEST_AND_CONTROLLER_FROZEN_EXECUTION_PENDING",
+    "hostile_manifest_cases": 1899,
+    "sorted_case_id_set_sha256": "1028ac1be238cd418e48699c509f27a0dfcded792869c4014a9f5f6d9a8e8698",
+    "canonical_manifest_sha256": "5c7a84a0bcf7e2bad3ad98e988d88c898137bee97c1c66023e8bea8a1c15d213",
+    "arithmetic": {
+      "inherited_syscall_compatibility_base": 2087,
+      "l05z_syscall_role_profiles": 4482,
+      "hostile_input_cases": 1899,
+      "closed_subtotal": 8468
+    },
+    "nimo_1_execution": "PENDING",
+    "nimo_2_execution": "PENDING",
+    "executed_cases_claimed": 0
+  },
+  "future_required_lanes": [
+    "nimo-1 returned-fault execution for all 8,468 closed cases in admitted Release and sanitizer-compatible lanes",
+    "nimo-2 returned-fault execution for all 8,468 closed cases with complete target-plus-controller ASan/UBSan coverage",
+    "returned-fault storage, response, cleanup, audit, retry, and scale qualification with retained raw evidence on both nodes",
+    "final inherited and feature-off Windows and Linux regression reconciliation against the final frozen source",
+    "final provenance, reference-clone, service-health, evidence-bundle, rollback, and independent promotion review reconciliation",
+    "Wiki promotion only after every L05z acceptance gate closes"
+  ],
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "review": {
+    "result": "ACCEPT_FOR_CHECKPOINT_CONTINUATION_NOT_PROMOTION",
+    "nimo_1_ptrace_evidence_accepted": true,
+    "nimo_2_ptrace_evidence_accepted": true,
+    "two_node_ptrace_total_accepted": 700,
+    "checkpoint_regressions_accepted": true,
+    "returned_fault_execution_accepted": false,
+    "l05z_promoted": false
+  },
+  "nonclaims": [
+    "This receipt makes no returned-fault execution, sanitizer, hostile-matrix execution, final full-regression reconciliation, final-provenance, or L05z promotion claim.",
+    "Frozen manifest generation and controller self-checks do not substitute for execution of the 8,468 returned-fault cases on either node.",
+    "No persistent server write, initialization completion, HEAD publication, cache hit, restore, repair, adoption, provider, WebUI, distributed, inference-performance, or zero-regression behavior is enabled or claimed."
+  ]
+}

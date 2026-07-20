@@ -281,6 +281,20 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
         target_compile_features(halofpx-l05y-return-fault-controller PRIVATE cxx_std_17)
         target_compile_definitions(halofpx-l05y-return-fault-controller PRIVATE _GNU_SOURCE)
 
+        if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
+            add_executable(halofpx-l05z-ptrace-controller EXCLUDE_FROM_ALL
+                ${CMAKE_SOURCE_DIR}/tests/halofpx-l05z-ptrace-controller.cpp)
+            target_compile_features(halofpx-l05z-ptrace-controller PRIVATE cxx_std_17)
+            target_compile_definitions(halofpx-l05z-ptrace-controller PRIVATE _GNU_SOURCE)
+
+            add_executable(halofpx-l05z-return-fault-controller EXCLUDE_FROM_ALL
+                ${CMAKE_SOURCE_DIR}/tests/halofpx-l05z-return-fault-controller.cpp)
+            target_compile_features(halofpx-l05z-return-fault-controller PRIVATE cxx_std_17)
+            target_compile_definitions(halofpx-l05z-return-fault-controller PRIVATE _GNU_SOURCE)
+            target_link_libraries(halofpx-l05z-return-fault-controller PRIVATE
+                halofpx-context-store-registry-lab-linux-initializer)
+        endif()
+
         add_test(NAME test-halofpx-context-store-registry-lab-linux-initializer-seam-contract
             COMMAND ${CMAKE_COMMAND}
                 -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}

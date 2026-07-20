@@ -86,6 +86,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05z contract independent adversarial review](reviews/2026-07-19__l05z-predecessor-envelope-contract__review__v01.md)
 - [L05z predecessor-envelope focused-core receipt](evidence/l05z-predecessor-envelope-core-receipt.json)
 - [L05z predecessor-envelope focused-core independent review](reviews/2026-07-19__l05z-predecessor-envelope-core__review__v01.md)
+- [L05z fault-controller checkpoint receipt (not promotion)](evidence/l05z-fault-controller-checkpoint-receipt.json)
+- [L05z fault-controller checkpoint independent review (not promotion)](reviews/2026-07-19__l05z-fault-controller-checkpoint__review__v01.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

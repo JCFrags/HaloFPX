@@ -1640,7 +1640,8 @@ initialization_status sealed_status(const sealed_input_audit & input) noexcept {
     return initialization_status::invalid_request_no_mutation;
 }
 
-bool unlock_and_close(int & fd, bool acquired, bool & released) noexcept {
+bool unlock_and_close(int & fd, bool acquired, bool retry_eintr,
+                      bool & released) noexcept {
     if (fd < 0) {
         return true;
     }
@@ -1651,10 +1652,10 @@ bool unlock_and_close(int & fd, bool acquired, bool & released) noexcept {
         unlock.l_whence = SEEK_SET;
         unlock.l_start = 0;
         unlock.l_len = 0;
-        int value;
-        do {
+        int value = ::fcntl(fd, F_OFD_SETLK, &unlock);
+        while (retry_eintr && value != 0 && errno == EINTR) {
             value = ::fcntl(fd, F_OFD_SETLK, &unlock);
-        } while (value != 0 && errno == EINTR);
+        }
         released = value == 0;
         ok = released;
     }
@@ -1763,9 +1764,13 @@ initialization_audit finish(initialization_audit output, initialization_status r
         close_ok = cleanup_authenticated_input_storage(input_session,
                                                        output.sealed_inputs) && close_ok;
     }
+    const bool retry_cleanup_unlock_eintr =
+        !output.initializing_marker_write_descriptor_closed;
     close_ok = unlock_and_close(writer_fd, output.writer_lock_ofd_acquired,
+                                retry_cleanup_unlock_eintr,
                                 output.writer_lock_released) && close_ok;
     close_ok = unlock_and_close(fixture_lock_fd, output.fixture_lock_acquired,
+                                retry_cleanup_unlock_eintr,
                                 output.fixture_lock_released) && close_ok;
     if (guard_owned) {
         root_guard_device.store(0, std::memory_order_relaxed);
