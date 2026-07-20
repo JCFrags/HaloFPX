@@ -8526,6 +8526,21 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
     // gpt-oss issue with Vulkan mmq_id
     test_cases.emplace_back(new test_mul_mat_id(GGML_TYPE_MXFP4, GGML_TYPE_F32, 32, 2, false, 2880, 32, 2880));
 
+#if defined(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
+    // P06b exact MiniMax-M2 expert projection shapes from the pinned primary
+    // workload: 192 experts, top-8, hidden 3072, intermediate 1536. Keep this
+    // roster isolated behind the default-off P06 canary gate because each full
+    // Q8_0_ROCMFPX tensor is large.
+    for (int bs : {1, 8}) {
+        test_cases.emplace_back(new test_mul_mat_id(
+                GGML_TYPE_Q8_0_ROCMFPX, GGML_TYPE_F32,
+                192, 8, false, 1536, bs, 3072));
+        test_cases.emplace_back(new test_mul_mat_id(
+                GGML_TYPE_Q8_0_ROCMFPX, GGML_TYPE_F32,
+                192, 8, false, 3072, bs, 1536));
+    }
+#endif
+
     // HY3 exact routed-expert shapes for the native ROCmFPX low-bit kernels:
     // 192 experts, top-8, 4096 hidden, 1536 intermediate. Generic IQ/K types
     // use the standard correctness matrices below; their full tensors take
@@ -9405,6 +9420,17 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_perf() {
             }
         }
     }
+
+#if defined(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
+    for (int bs : {1, 8}) {
+        test_cases.emplace_back(new test_mul_mat_id(
+                GGML_TYPE_Q8_0_ROCMFPX, GGML_TYPE_F32,
+                192, 8, false, 1536, bs, 3072));
+        test_cases.emplace_back(new test_mul_mat_id(
+                GGML_TYPE_Q8_0_ROCMFPX, GGML_TYPE_F32,
+                192, 8, false, 3072, bs, 1536));
+    }
+#endif
 
     // qwen3-30b-a3b
     for (int bs : {1, 4, 8, 32, 64, 128, 256, 512}) {

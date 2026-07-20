@@ -646,6 +646,8 @@ llama_build_and_test(test-gguf.cpp)
 llama_build_and_test(test-backend-ops.cpp)
 
 if (HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
+    target_compile_definitions(test-backend-ops PRIVATE
+        HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
     llama_build(test-halofpx-minimax-m2-expert-partition.cpp)
     target_link_libraries(test-halofpx-minimax-m2-expert-partition PRIVATE
         halofpx-minimax-m2-expert-partition)

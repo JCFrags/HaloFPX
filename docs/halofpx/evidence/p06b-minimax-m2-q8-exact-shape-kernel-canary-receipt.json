@@ -1,0 +1,85 @@
+{
+  "schema": "halofpx.p06b-minimax-m2-q8-exact-shape-kernel.v1",
+  "date": "2026-07-20",
+  "status": "gfx1151_exact_shape_kernel_qualified_partition_equivalence_closed",
+  "parent_commit": "207092f55636209cb3596e911bad9c790c6a6f82",
+  "parent_tree": "07456d25fed83c4aaf7d677525e8c36b3a0a3c80",
+  "gate": {
+    "name": "HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY",
+    "default": "OFF",
+    "normal_runtime_linked": false
+  },
+  "geometry": {
+    "weight_type": "Q8_0_ROCMFPX",
+    "activation_type": "F32",
+    "expert_count": 192,
+    "selected_count": 8,
+    "hidden_size": 3072,
+    "intermediate_size": 1536,
+    "batch_widths": [1, 8]
+  },
+  "source_sha256": {
+    "tests/CMakeLists.txt": "c3993cf5abb41c8012bcf50596f8dc6d1cd45ac2a96576c817fb780eb6decf8f",
+    "tests/test-backend-ops.cpp": "43e5d1025b0ebaca133c71b120a935e3da00afc00a765d85ab8b469e3c0d7b70"
+  },
+  "qualification": {
+    "target": "nimo-1",
+    "device": "AMD Radeon 8060S Graphics",
+    "architecture": "gfx1151",
+    "build_type": "Release",
+    "compiler": "GCC 16.1.1",
+    "cmake": "4.3.4",
+    "hip": true,
+    "rpc": false,
+    "vulkan": false,
+    "support_probe": "4/4 admitted",
+    "correctness": "4/4 ROCm versus CPU passed",
+    "performance_runs": 3,
+    "binary_sha256": "faf382d85555e82a153ab3c8b928db3e15d709deefbaacce341d26992f0ea893",
+    "cmake_cache_sha256": "db0ac059d5afd10bb488aa54837f8f86e202d0fad752c4907715af4de3ac2b1f",
+    "correctness_csv_sha256": "71ec55f861976e1941da55e609edd6bcc7734acf2d188d12855058e41ef59163"
+  },
+  "timing_microkernel_only": [
+    {"m": 1536, "n": 1, "k": 3072, "mean_us": 157.22, "sample_sd_us": 13.20, "mean_gflops": 482.51, "sample_sd_gflops": 41.14},
+    {"m": 3072, "n": 1, "k": 1536, "mean_us": 158.61, "sample_sd_us": 5.33, "mean_gflops": 476.35, "sample_sd_gflops": 15.99},
+    {"m": 1536, "n": 8, "k": 3072, "mean_us": 1411.31, "sample_sd_us": 21.02, "mean_gflops": 428.02, "sample_sd_gflops": 6.39},
+    {"m": 3072, "n": 8, "k": 1536, "mean_us": 1411.71, "sample_sd_us": 20.29, "mean_gflops": 427.89, "sample_sd_gflops": 6.10}
+  ],
+  "evidence": {
+    "root": "/var/tmp/halofpx-p06a-expert-partition/p06b-evidence",
+    "manifest_sha256": "94860a73b149a9a42fb027b00d2832e0afed90da6dfc9ca757c210b5a9ecd76c",
+    "bundle": "/var/tmp/halofpx-p06a-expert-partition/p06b-evidence.tar.zst",
+    "bundle_size_bytes": 89012,
+    "bundle_sha256": "b8afb826631117d630f0101a9a355be6906bcfdbe19ae928cd9f20cabc201a9c",
+    "manifest_verified": true
+  },
+  "service_restore": {
+    "order": ["nimo-2 worker", "nimo-1 server"],
+    "worker_active": true,
+    "server_active": true,
+    "worker_restarts": 0,
+    "server_restarts": 0,
+    "http_health_at_bundle_seal": "503 loading model",
+    "http_health_at_closeout": "200 ok",
+    "http_health_required_before_promotion": false
+  },
+  "excluded": {
+    "partition_equivalence": false,
+    "runtime_expert_placement": false,
+    "end_to_end_performance_claim": false,
+    "persistent_write": false
+  },
+  "provenance": {
+    "implementation": "target-native test roster",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false,
+    "model_mutated": false,
+    "reference_clone_changed": false
+  },
+  "next_gate": "P06c unsplit versus 96-expert-per-rank Q8_0_ROCMFPX output equivalence canary",
+  "independent_review": "accepted_no_p1_p2"
+}
