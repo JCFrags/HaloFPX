@@ -21,6 +21,7 @@ int halofpx_l05z_imported_crash_controller_main(int, char **);
 #include "halofpx-context-store-protected-registry.h"
 #include "halofpx-context-store-registry-lab-linux-initializer-internal.h"
 #include "halofpx-l05z-return-hostile-manifest.inc"
+#include "halofpx-l05z-return-role-authority-manifest.inc"
 #include <fstream>
 #include <sstream>
 #include <sys/statfs.h>
@@ -107,8 +108,21 @@ struct fault_state {
     bool retry_succeeded = false;
     bool retry_window_open = false;
     bool mutation_applied = false;
+    bool selected_signature_valid = false;
+    std::uint64_t selected_nr = 0;
+    std::array<std::uint64_t, 6> selected_args {};
     unsigned matches = 0;
 };
+
+// This is only an exact raw-signature tripwire. Canonical same-role retry
+// authority remains unadmitted for the 247 aggregate-only roles until their
+// object selectors and windows are trace-mapped in the role manifest.
+bool exact_signature_retry_guard(const fault_state & fault,
+                                 const tracee_state & state) {
+    return fault.selected_signature_valid && fault.selected_nr == state.nr &&
+        std::equal(fault.selected_args.begin(), fault.selected_args.end(),
+                   std::begin(state.args));
+}
 
 enum class retry_window_result { outside, closed, selected, excessive };
 
@@ -150,31 +164,48 @@ bool manifest_self_check() {
     constexpr unsigned errno_rows = 19;
     constexpr unsigned short_rows = 25;
     constexpr unsigned opens = 37 * errno_rows;
-    constexpr unsigned closes = 48 * errno_rows;
+    constexpr unsigned closes = 52 * errno_rows;
     constexpr unsigned sync_mode_rename = (1 + 3 + 1) * errno_rows;
     constexpr unsigned writes = short_rows;
     constexpr unsigned data_reads = 8 * short_rows;
     constexpr unsigned eof_reads = 8 * errno_rows;
     constexpr unsigned syscall_seam_base = opens + closes +
         sync_mode_rename + writes + data_reads + eof_reads;
-    static_assert(syscall_seam_base == 2087);
-    constexpr unsigned l05z_syscall_roles = 86 + 36 + 30 + 32 + 40 + 23 + 2;
+    static_assert(syscall_seam_base == 2163);
+    constexpr unsigned cleanup_return_roles = 3;
+    constexpr unsigned mountinfo_semantic_roles = 3 * 2;
+    constexpr unsigned l05z_syscall_roles =
+        86 + 36 + 30 + 32 + 40 + 23 + 2 +
+        cleanup_return_roles + mountinfo_semantic_roles;
     constexpr unsigned deduplicated_nonretryable_profiles = 18;
     constexpr unsigned l05z_syscall_cases =
         l05z_syscall_roles * deduplicated_nonretryable_profiles;
-    static_assert(l05z_syscall_roles == 249);
-    static_assert(l05z_syscall_cases == 4482);
+    static_assert(l05z_syscall_roles == 258);
+    static_assert(l05z_syscall_cases == 4644);
+
+    constexpr unsigned canonical_nonbyte_compatibility_roles = 37 + 52 + 5;
+    constexpr unsigned canonical_compatibility_cases =
+        canonical_nonbyte_compatibility_roles * deduplicated_nonretryable_profiles +
+        (1 + 8) * short_rows + 8 * errno_rows;
+    static_assert(canonical_compatibility_cases == 2069);
 
     constexpr unsigned hostile_input_cases =
         halofpx_l05z_return_hostile_manifest_v1::canonical_case_count;
-    constexpr unsigned closed_subtotal =
+    // Structural row arithmetic intentionally does not claim a physical run
+    // count: each mountinfo stream may contain multiple positive fragments.
+    constexpr unsigned structural_row_subtotal =
         syscall_seam_base + l05z_syscall_cases + hostile_input_cases;
-    static_assert(closed_subtotal == 8468);
-    return syscall_seam_base == 2087 && opens == 703 && closes == 912 &&
+    static_assert(structural_row_subtotal == 8706);
+    constexpr unsigned canonical_total = canonical_compatibility_cases +
+        l05z_syscall_cases + hostile_input_cases;
+    static_assert(canonical_total == 8612);
+    return syscall_seam_base == 2163 && opens == 703 && closes == 988 &&
         sync_mode_rename == 95 && data_reads == 200 && eof_reads == 152 &&
         halofpx_l05z_return_hostile_manifest_v1::self_check() &&
+        halofpx_l05z_return_role_authority_v1::self_check() &&
         halofpx_l05z_return_hostile_manifest_v1::manifest().size() ==
-            hostile_input_cases && closed_subtotal == 8468;
+            hostile_input_cases && structural_row_subtotal == 8706 &&
+        canonical_total == 8612;
 }
 
 halofpx::context_store_registered_id synthetic_registered_id(
@@ -713,13 +744,13 @@ bool parse_arguments(int argc, char ** argv, arguments & output) {
     if (output.point == boundary::final_validation && !mutation_mode) return false;
     const unsigned occurrence_limit =
         output.point == boundary::step4_open ? 37U :
-        output.point == boundary::step4_close ? 48U :
+        output.point == boundary::step4_close ? 52U :
         (output.point == boundary::envelope_pread ||
          output.point == boundary::envelope_pread_eof ||
          output.point == boundary::marker_pread ||
          output.point == boundary::marker_pread_eof) ? 4U :
         output.point == boundary::envelope_close ? 4U :
-        output.point == boundary::staging_close ? 4U :
+        output.point == boundary::staging_close ? 3U :
         (output.point == boundary::final_open ||
          output.point == boundary::final_pread ||
          output.point == boundary::final_pread_eof ||
@@ -1361,15 +1392,16 @@ bool exact_audit(const std::string & audit, bool expect_qualified,
     // occurrences are the exact post-L05y production order.
     const bool envelope_cleanup_fault = !expect_qualified &&
         (point == boundary::envelope_close ||
-         (point == boundary::staging_close && input.occurrence == 3) ||
+         (point == boundary::staging_close && input.occurrence == 2) ||
          (point == boundary::step4_close && input.occurrence >= 40 &&
           input.occurrence <= 46));
     const bool marker_cleanup_fault = !expect_qualified &&
-        ((point == boundary::staging_close && input.occurrence == 4) ||
+        ((point == boundary::staging_close && input.occurrence == 3) ||
          (point == boundary::step4_close && input.occurrence == 47));
     const bool outer_cleanup_fault = !expect_qualified &&
         (point == boundary::writer_unlock || point == boundary::fixture_unlock ||
-         (point == boundary::step4_close && input.occurrence == 48));
+         (point == boundary::step4_close && input.occurrence >= 48 &&
+          input.occurrence <= 52));
     const bool envelope_unqualified =
         envelope_cleanup_fault || outer_cleanup_fault;
     if (!exact("result", "0") || !exact("sealed_result", "0") ||
@@ -2104,6 +2136,12 @@ int run(const arguments & input) {
                 state.have_entry = true;
                 state.nr = info.entry.nr;
                 std::memcpy(state.args, info.entry.args, sizeof(state.args));
+                if (state.live_child && fault.first_replaced &&
+                    fault_expected_to_fail &&
+                    exact_signature_retry_guard(fault, state)) {
+                    HALOFPX_CONTROLLER_ERROR();
+                    break;
+                }
                 if (state.live_child && writer_pinned) {
                         const bool forbidden_cleanup = state.nr == SYS_unlinkat ||
                             state.nr == SYS_unlink || state.nr == SYS_rmdir ||
@@ -2283,6 +2321,12 @@ int run(const arguments & input) {
                         if (exact_boundary) {
                             ++fault.matches;
                             match = fault.matches == input.occurrence;
+                            if (match) {
+                                fault.selected_signature_valid = true;
+                                fault.selected_nr = state.nr;
+                                std::copy(std::begin(state.args), std::end(state.args),
+                                          fault.selected_args.begin());
+                            }
                         }
                     } else if (retryable_eintr) {
                         const retry_window_result observed = observe_retry_window(
@@ -2765,6 +2809,36 @@ int run(const arguments & input) {
 } // namespace
 
 int main(int argc, char ** argv) {
+    if (argc == 2 && std::strcmp(argv[1], "--role-authority-self-test") == 0) {
+        const bool ok = envelope_fault::manifest_self_check();
+        std::printf("roles=%zu canonical_cases=%zu physical_rows_frozen=%u id_hash=%s manifest_hash=%s case_id_hash=%s case_manifest_hash=%s",
+            halofpx_l05z_return_role_authority_v1::roles().size(),
+            halofpx_l05z_return_role_authority_v1::canonical_total_cases,
+            halofpx_l05z_return_role_authority_v1::physical_execution_rows_frozen ? 1U : 0U,
+            halofpx_l05z_return_role_authority_v1::sorted_role_id_hash_hex().c_str(),
+            halofpx_l05z_return_role_authority_v1::manifest_hash_hex().c_str(),
+            halofpx_l05z_return_role_authority_v1::canonical_case_id_hash_hex().c_str(),
+            halofpx_l05z_return_role_authority_v1::canonical_case_manifest_hash_hex().c_str());
+        for (std::uint32_t shard = 0; shard < 17; ++shard) {
+            std::size_t count = 0;
+            for (const auto & role : halofpx_l05z_return_role_authority_v1::roles()) {
+                if (halofpx_l05z_return_role_authority_v1::shard_for(
+                        role.role_id, 17) == shard) ++count;
+            }
+            std::printf(" shard%02u=%zu", shard, count);
+        }
+        for (std::uint32_t shard = 0; shard < 17; ++shard) {
+            std::size_t count = 0;
+            for (const auto & item :
+                    halofpx_l05z_return_role_authority_v1::canonical_cases()) {
+                if (halofpx_l05z_return_role_authority_v1::case_shard_for(
+                        item.case_id, 17) == shard) ++count;
+            }
+            std::printf(" case_shard%02u=%zu", shard, count);
+        }
+        std::printf("\n");
+        return ok ? 0 : 1;
+    }
     if (argc == 3 && std::strcmp(argv[1], "--case-id") == 0) {
         return envelope_fault::hostile_case_self_test(argv[2]);
     }

@@ -1,0 +1,149 @@
+{
+  "schema": "halofpx.l05z-return-role-authority-correction.v1",
+  "date": "2026-07-19",
+  "status": "accepted_authority_correction_not_l05z_promotion",
+  "head_commit": "95ec4f98a1c66ccdf2ec43956036fc21ca413b8b",
+  "head_tree": "6eefceacf927dc0481c94d06e1a57bcc4898ae05",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "Test-only structural authority correction for the L05z returned-fault controller. It does not enable persistence, add a product hook, or promote L05z.",
+  "source_sha256": {
+    "tests/halofpx-l05z-return-fault-controller.cpp": "310d89683a4a4f102122d4dc0100fa40c9f1892046465d33841d317c38d05af6",
+    "tests/halofpx-l05z-return-role-authority-manifest.inc": "95cf09b5e3ca03574e02bba6c5d01db516ad798049018947d6d139d7c0e261fe",
+    "tests/halofpx-l05z-return-hostile-manifest.inc": "3c80ec79224e4975239a9bf44ef104e4606b2337efc8a88def220bfcd099de82"
+  },
+  "correction": {
+    "historical_checkpoint_8468": "superseded_for_returned_fault_authority_only",
+    "legacy_structural_rows": 8706,
+    "legacy_structural_rows_are_physical_execution_count": false,
+    "physical_execution_rows_frozen": false,
+    "canonical_compatibility_cases": 2069,
+    "canonical_l05z_role_cases": 4644,
+    "compatible_hostile_cases": 1899,
+    "canonical_total_cases": 8612,
+    "roles": 369,
+    "exact_source_window_roles": 122,
+    "pending_trace_role_map_roles": 247,
+    "retryable_roles": 17,
+    "cleanup_roles": 18,
+    "open_roles": 37,
+    "close_roles": 52,
+    "canonical_cleanup_subset": 324,
+    "legacy_cleanup_execution_subset": 337
+  },
+  "canonical_hashes": {
+    "role_id_set_sha256": "b19609a8de23f0e4f13cf5c2c3f7bcbf6b0de7b9aed34463f27efac403e7aec0",
+    "role_manifest_sha256": "cdd2b371bac623fb86cb1f13ce82fc10b540255a623cdd301f6c5499fe152b32",
+    "case_id_set_sha256": "467a0a2ff38858a46f7e4fdfbb8e3a2fc6a753c26a059e5be84319465c926a8d",
+    "case_manifest_sha256": "81fa3971f34fdaab711c43918eb8abf0e571764454c86e7305ec6f4b18e3f031",
+    "compatible_hostile_id_set_sha256": "1028ac1be238cd418e48699c509f27a0dfcded792869c4014a9f5f6d9a8e8698",
+    "role_shards_17": [30, 27, 20, 30, 21, 22, 17, 21, 17, 16, 18, 25, 23, 26, 16, 22, 18],
+    "case_shards_17": [492, 481, 530, 513, 518, 535, 492, 489, 519, 483, 470, 481, 538, 506, 525, 494, 546]
+  },
+  "mountinfo_discovery": {
+    "semantic_roles": 6,
+    "definition": "three L05z reserve passes times stream-data and terminal-EOF",
+    "fragment_count_in_case_id": false,
+    "overflow_probe_admitted": false,
+    "nimo_1_retained_profile_sha256": "8a3f1303bf60ac0ada236dcf3be0b0c0467006b2a13999cd5ba444265b5555d4",
+    "nimo_2_retained_profile_sha256": "46566b0820062bd6eabe81e94539a79495ffc0883bfb8850189849e02b3e9199",
+    "nimo_2_fresh_log": "/var/tmp/halofpx-qualification/l05z-mountinfo-observation-20260720T010246Z-nimo-2.proc-mountinfo.log",
+    "nimo_2_fresh_log_sha256": "968d04339cb633a5f28ed784225f4ca63e21c134dea6ffa194fcff188473a661"
+  },
+  "response_discovery": {
+    "status": "observation_admitted_implementation_deferred",
+    "semantic_cases": 1,
+    "observed_transport": "one complete SYS_write per run; no SYS_writev",
+    "runs_per_node": 3,
+    "nimo_1": {
+      "evidence_root": "/var/tmp/halofpx-qualification/l05z-response-discovery-95ec4f9-20260719-nimo1/evidence",
+      "manifest_sha256": "bccee878cdfb67165d09cced3a68bf889fc7fbeb0e120faf41cc9524e126f921"
+    },
+    "nimo_2": {
+      "evidence_root": "/var/tmp/halofpx-qualification/l05z-response-discovery-95ec4f9-20260719-nimo2/evidence",
+      "manifest_sha256": "c5f2d11ccbdcc91639ed3c74ed281f0d708000e3a89ee6c1b2ea9e5a4a514604"
+    }
+  },
+  "build_and_selftest": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "strict_flags": "C++17 -Wall -Wextra -Wpedantic -Werror",
+    "result": "PASS",
+    "linked_binary_sha256_both_nodes": "6a2519ecb5a0ce91ef1015a8d5cdcdcc11c8d101adf8341953a6036664b96bd9",
+    "hostile_representative": "HRAW-B0000 PASS",
+    "parser_contract": "close52 and staging-close3 admitted; close53 and staging-close4 rejected"
+  },
+  "fresh_regression": {
+    "node": "nimo-2",
+    "result": "PASS_4_OF_4",
+    "tests": [
+      "test-halofpx-feature-off-contract",
+      "test-halofpx-context-store-registry-lab-linux-initializer-anchor",
+      "test-halofpx-context-store-registry-lab-linux-initializer-seam-contract",
+      "test-halofpx-context-store-registry-lab-linux-build-gates"
+    ],
+    "log": "/var/tmp/halofpx-l05z-role-authority-build-20260720/focused-ctest-final.log",
+    "log_sha256": "28f234a23314d9d97d817d9b944c80a36efd4587f6ddbd96096733a90c6f7f1f",
+    "server_build_log_sha256": "30371e03bc8d32c3670b76229376b8c43586ae06525f25773e04a754bdc181a1"
+  },
+  "fresh_media_canary": {
+    "node": "nimo-2",
+    "evidence_root": "/var/tmp/halofpx-qualification/l05z-role-authority-canary-20260719-nimo2",
+    "case": "close-step4/pre/EIO/occurrence49",
+    "controller_exit": 0,
+    "child_exit": 1,
+    "launcher_exit": 1,
+    "receipt_sha256": "af5c5f95ca0d6990614ceb163314690f9951a1fc0dbbbe18fb7a0d2c88d0596d",
+    "receipt_bytes": 842,
+    "final_tree_sha256": "7cd102abf8a0c11dcbb7e76c791281210e7a984509d326a93956a12a9615a4fd",
+    "tree_archive_sha256": "82af0dd2d9e05d4bfc46c716cef8be3b6434ad5793e7c2d165cb7488718a807f",
+    "tree_archive_bytes": 20480,
+    "fully_allocated_image_bytes": 1073741824,
+    "fully_allocated_blocks": 2097152,
+    "inventory_exact": true,
+    "locks_released": true,
+    "discard_required": true,
+    "residue": 0,
+    "verdict_sha256": "d4122415c6ccbd9679f4f164689ca4102082ddebe3ac621a7fd25e02e17c441a",
+    "focused_logs": {
+      "root": "/var/tmp/halofpx-qualification/l05z-role-authority-canary-20260719-nimo2/evidence",
+      "role_authority_selftest.log": "56be54b4d59a9f9953293d8cc310395554b07cdece16a34cd5315b5067b9c197",
+      "build.stdout": "bbde54233f0234b59e8825db44389a844d6bd199e07e425eb775b41707daa946",
+      "build.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "controller-strict.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "relink-strict.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "controller.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "evidence_bundle": {
+      "path": "/var/tmp/halofpx-qualification/l05z-role-authority-canary-20260719-nimo2-evidence.tar.zst",
+      "sha256": "7423b4e1738b6279faf6c07e4d7082824ed9d8699922653b1fb2da1a2ca942bb",
+      "bytes": 143126,
+      "tar_members": 45,
+      "file_entries": 44,
+      "artifact_manifest_records": 43
+    }
+  },
+  "nimo_1_fresh_media_canary": {
+    "status": "SKIPPED",
+    "reason": "host /var/tmp free bytes 43394568192 below the fixed 64 GiB reserve",
+    "effect": "authority milestone may continue; L05z promotion remains closed"
+  },
+  "continuity": {
+    "nimo_1": {"llama_server_pid": 971, "http_8081_health": 200},
+    "nimo_2": {"rpc_server_pid": 3562775, "port_50052_listening": true, "reported_restarts": 0},
+    "persistent_server_writes_enabled": false,
+    "product_linkage_changed": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "deferred": [
+    "247 aggregate-only roles require exact trace role maps before execution admission",
+    "physical execution row count remains runtime-profile dependent and unfrozen",
+    "response-loss implementation follows this authority correction",
+    "storage/final-window implementation follows this authority correction",
+    "L05z promotion, persistence enablement, performance claims, and full scale remain closed"
+  ]
+}
