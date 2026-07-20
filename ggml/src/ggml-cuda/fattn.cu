@@ -862,6 +862,13 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
         dst->src[0] = orig_q;
         return;
     }
+
+#ifdef GGML_HIP_QUANT_KV_FATTN_TILE
+    if (quantized_kv_tile_eligible) {
+        ggml_cuda_flash_attn_ext_tile_quantized(ctx, dst);
+        return;
+    }
+#endif
 #endif // GGML_USE_HIP
 
     // Pre-dequantize turbo KV to f16 so standard FA kernels can handle them.
@@ -891,12 +898,6 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
         case BEST_FATTN_KERNEL_NONE:
             GGML_ABORT("fatal error");
         case BEST_FATTN_KERNEL_TILE:
-#if defined(GGML_USE_HIP) && defined(GGML_HIP_QUANT_KV_FATTN_TILE)
-            if (quantized_kv_tile_eligible) {
-                ggml_cuda_flash_attn_ext_tile_quantized(ctx, dst);
-                break;
-            }
-#endif
             ggml_cuda_flash_attn_ext_tile(ctx, dst);
             break;
         case BEST_FATTN_KERNEL_VEC:

@@ -1,0 +1,117 @@
+{
+  "schema": "halofpx.l14q-h03-hip-early-dispatch.v1",
+  "date": "2026-07-20",
+  "status": "qualified_default_off_experiment_performance_promotion_open",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "candidate_parent_commit": "174a59e1dc5ecd52a7ed47ad401c01c33c22eca5",
+  "candidate_parent_tree": "1abc035b05c3e3073586b001066497c94efe73bf",
+  "scope": "default-off early dispatch of already-admitted H01 HIP standard quantized-KV tile decode",
+  "authority": {
+    "existing_capability": "L14Q-H01",
+    "existing_p3_preparation_commit": "4f0a2749c2b3c23dc3d45ea25a380ed2a274dfc2",
+    "treatment": "target-native-performance-refinement",
+    "new_donor_behavior": false,
+    "new_p3_required": false,
+    "direct_cherry_pick_roster_changed": false
+  },
+  "change": {
+    "option": "GGML_HIP_QUANT_KV_FATTN_TILE",
+    "default": false,
+    "public_cli_or_server_option": false,
+    "runtime_file": "ggml/src/ggml-cuda/fattn.cu",
+    "build_harness_file": "scripts/build-halofpx-primary-matched.sh",
+    "feature_off_route_changed": false,
+    "turbo_route_order_changed": false,
+    "rocmfpx_or_rocmfp4_admission_changed": false,
+    "h01_eligibility_changed": false,
+    "kernel_changed": false
+  },
+  "source": {
+    "parent_source_digest_both_nodes": "6daa39e63456f0483d286562ae6016683913b4b4d00b5c872cfaa4cbe00d69a5",
+    "h03_source_digest_both_nodes": "d41c9d4d88229d8b548b6de9b6d8a1d07b86d02b588f43290b5c7021c72de8f2",
+    "h01_fattn_sha256_both_nodes": "30e43a046c46bc6c010cb90e6754ddacb74583d05c00573d008e0f3ea3c9d4d3",
+    "h03_fattn_sha256_both_nodes": "1b1f57766dfb0c01e542f337efce933747f11f01e6cdcd414884b9bf99d967f1"
+  },
+  "build": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "build_type": "Release",
+    "backends": ["HIP", "Vulkan", "RPC"],
+    "gfx_target": "gfx1151",
+    "hip_compiler": "/opt/rocm/lib/llvm/bin/clang++",
+    "force_mmq": true,
+    "no_vmm": true,
+    "webui": false,
+    "variants_byte_identical_across_nodes": true,
+    "off": {"cmake_cache_sha256": "a36b375ef065544b36d895705b66cd988658e74c7f497b74c1740f4b6c762e6a", "rpc_server_sha256": "314007aecaedbc42ce2a13d595a776519838dde6a4231093cc24ade15ae39cb6", "llama_server_sha256": "520cb2922a9cefccd83a1461bcbc437e5fb715f5f92dfe6ad83ddbf266bd31ff"},
+    "h01": {"cmake_cache_sha256": "4b52fda123cd7d554bd960591c1209ca4237630c7a7c0ef15737caf3a8305a67", "rpc_server_sha256": "1afab1bf3bacc8909744156ddac580fbe30fd356b1cdf9cd18aee44779715109", "llama_server_sha256": "1dac0c023ba8f8508c610465f6b3ad363d1f8ff0874b24c3622eda304e5e5f19"},
+    "h03": {"cmake_cache_sha256": "4b7dfdcb036dca3e2aef46cac658adfc8953ba136c2cda63103b150fa9f8b3fc", "rpc_server_sha256": "2e762490be65a60484f3f1db01cd7c9182f8933c6f5248020a867ef0698ae3ac", "llama_server_sha256": "33bdd369b5914700ecc03a3a8fc3ad97f2c2c1af6de6ac55a2a4a68036e68c36"}
+  },
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "workload": {
+    "execution_order": ["off-b1", "h01-b2", "h03-b3", "h03-b4", "h01-b5", "off-b6"],
+    "warmups_per_block": 1,
+    "retained_per_block": 3,
+    "retained_per_variant": 6,
+    "retained_total": 18,
+    "retained_http_200_total": 18,
+    "prompt_tokens_each": 1129,
+    "generated_tokens_each": 128,
+    "request_body_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "content_sha256_all_retained": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f"
+  },
+  "variant_results": {
+    "off": {"prompt_mean": 203.78539173469773, "prompt_sd": 0.15599690335082664, "generation_mean": 16.65588339496002, "generation_sd": 0.0314298777347588, "end_to_end_mean_ms": 13228.913666666667, "end_to_end_sd_ms": 15.612202659031572},
+    "h01": {"prompt_mean": 203.83383929780726, "prompt_sd": 0.13400316463113662, "generation_mean": 16.647392435661477, "generation_sd": 0.026690744123807585, "end_to_end_mean_ms": 13231.564666666667, "end_to_end_sd_ms": 13.624514636003523},
+    "h03": {"prompt_mean": 203.7337193218702, "prompt_sd": 0.19142666834057123, "generation_mean": 16.66448456596736, "generation_sd": 0.01548061012849048, "end_to_end_mean_ms": 13226.419833333333, "end_to_end_sd_ms": 6.062746783981082}
+  },
+  "comparisons": {
+    "h03_minus_off": {"prompt_delta_percent": -0.02535628898011745, "prompt_ci95": [-0.24926530534479807, 0.1459204796897694], "generation_delta_percent": 0.051640437215964535, "generation_ci95": [-0.01943307042225448, 0.036635412436931664], "end_to_end_delta_percent": -0.01885138414364054, "end_to_end_ci95_ms": [-15.895078517375191, 10.9074118507074]},
+    "h03_minus_h01": {"prompt_delta_percent": -0.04911842718655251, "prompt_ci95": [-0.2870938015398108, 0.08685384966571497], "generation_delta_percent": 0.10267151670713981, "generation_ci95": [-0.007597194315692297, 0.0417814549274589], "end_to_end_delta_percent": -0.03888303056323147, "end_to_end_ci95_ms": [-17.07736252729388, 6.787695860626405]},
+    "classification": "retain_default_off_favorable_generation_points_all_intervals_cross_zero_no_speedup_claim",
+    "formal_zero_regression_gate_closed": false,
+    "over_30_generation_tokens_per_second": false
+  },
+  "evidence": {
+    "nimo_1": {"root": "/var/tmp/halofpx-h03-early-dispatch-174a59e-20260720", "manifest_entries": 111, "manifest_sha256": "f42207abc424c45b647da688ffbad2070a3f70ae0c45a76d29f5a0350f12a014", "manifest_verified": true, "bundle": "/var/tmp/halofpx-h03-early-dispatch-174a59e-nimo1-20260720.tar.zst", "bundle_size_bytes": 38246, "bundle_sha256": "a363649e53ff545a999b14d7a782dcd28c90ce7335fb8e5bcfe0b40cf647d207", "bundle_verified": true},
+    "nimo_2": {"root": "/var/tmp/halofpx-h03-early-dispatch-174a59e-20260720", "manifest_entries": 227, "manifest_sha256": "a3a2f0378a6334ddcf2d660f8f35ca7abbac8c66dd53c9e78fd3228f10107784", "manifest_verified": true, "bundle": "/var/tmp/halofpx-h03-early-dispatch-174a59e-nimo2-20260720.tar.zst", "bundle_size_bytes": 66429, "bundle_sha256": "cdaf3993b6b5a3b4e174a424848c747508add9ab587237e4807917be95c8a82a", "bundle_verified": true},
+    "authorization_material_detected": false,
+    "private_key_material_detected": false
+  },
+  "rollback": {
+    "nimo_2_rpc_service_active": true,
+    "nimo_2_rpc_restarts": 0,
+    "nimo_1_server_service_active": true,
+    "nimo_1_server_restarts": 0,
+    "nimo_1_health_http": 200,
+    "services_enabled": true
+  },
+  "provenance": {
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "reference_clones_changed": false,
+    "remote_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "independent_review": {
+    "path": "docs/halofpx/reviews/2026-07-20__l14q-h03-hip-early-dispatch__review__v01.md",
+    "verdict": "accept_default_off_after_documentation_correction",
+    "code_blocker": false,
+    "default_on_authorized": false
+  },
+  "deferred": [
+    "final G9/G10 trial volume and block-aware strict non-inferiority",
+    "TTFT and inter-token streaming qualification",
+    "broader L14Q permutations absent a concrete defect",
+    "default-on promotion",
+    "synchronize canonical preparation Wiki section 33 before final release"
+  ]
+}

@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 3 ]]; then
-    echo "usage: $0 SOURCE_ROOT BUILD_ROOT EVIDENCE_ROOT" >&2
+if [[ $# -lt 3 || $# -gt 4 ]]; then
+    echo "usage: $0 SOURCE_ROOT BUILD_ROOT EVIDENCE_ROOT [HIP_QUANT_KV_TILE_ON_OR_OFF]" >&2
     exit 2
 fi
 
 source_root=$1
 build_root=$2
 evidence_root=$3
+hip_quant_kv_tile=${4:-OFF}
 export HIPCXX=/opt/rocm/lib/llvm/bin/clang++
 export HIP_PATH=/opt/rocm
+
+if [[ ${hip_quant_kv_tile} != ON && ${hip_quant_kv_tile} != OFF ]]; then
+    echo "HIP_QUANT_KV_TILE_ON_OR_OFF must be ON or OFF" >&2
+    exit 2
+fi
 
 if [[ -e ${build_root}/CMakeCache.txt ]]; then
     echo "refusing to reuse configured build root: ${build_root}" >&2
@@ -36,7 +42,7 @@ cmake -S "${source_root}" -B "${build_root}" -G Ninja \
     -DGGML_RPC=ON \
     -DGGML_HIP_FORCE_MMQ=ON \
     -DGGML_HIP_NO_VMM=ON \
-    -DGGML_HIP_QUANT_KV_FATTN_TILE=OFF \
+    -DGGML_HIP_QUANT_KV_FATTN_TILE="${hip_quant_kv_tile}" \
     -DGGML_VULKAN_FA_Q8_0_PREDEQUANT=OFF \
     -DLLAMA_BUILD_SERVER=ON \
     -DLLAMA_BUILD_TESTS=OFF \
