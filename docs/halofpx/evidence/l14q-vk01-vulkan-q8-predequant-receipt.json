@@ -1,0 +1,125 @@
+{
+  "schema": "halofpx.l14q-vk01-vulkan-q8-predequant.v1",
+  "date": "2026-07-20",
+  "status": "qualified_default_off_experimental_performance_promotion_open",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "candidate_parent_commit": "e3f87d872dc86421a64abb529047c5aaa8b195d8",
+  "candidate_parent_tree": "1fa0637114c850825078dad01a911c8133c30ad0",
+  "scope": "default-off target-native Vulkan standard Q8_0 KV pre-dequant for coopmat1 prefill",
+  "authority": {
+    "preparation_commit": "4f0a2749c2b3c23dc3d45ea25a380ed2a274dfc2",
+    "p3_record": "reviews/local-work/2026-07-19__l14q-vulkan-coopmat1-quant-kv-runtime-p3-candidate__review__v01.md",
+    "capability_id": "L14Q-VK-01",
+    "treatment": "target-native-clean-reimplementation",
+    "runtime_p3_approved": true,
+    "direct_cherry_pick_roster_changed": false,
+    "donor_repository": "Nathanw1014/llama.cpp",
+    "donor_author": "Nathan Wilson",
+    "introducing_commits": [
+      "4edaca09fa36acc16e7b95a6544a80ccd0dff657",
+      "4355d03e86083004bd9a084eed039987806ece8a"
+    ],
+    "first_commit_assistance_trailer": "Assisted-by: Claude (Opus 4.8)",
+    "donor_use": "behavioral_evidence_only_no_code_or_expression_copied"
+  },
+  "change": {
+    "option": "GGML_VULKAN_FA_Q8_0_PREDEQUANT",
+    "default": false,
+    "public_cli_or_server_option": false,
+    "standard_q8_only": true,
+    "prefill_query_rows_minimum": 64,
+    "original_path": "FA_COOPMAT1",
+    "effective_path": "FA_COOPMAT1",
+    "candidate_blobs": {
+      "ggml/CMakeLists.txt": "525beda2b536aebe2cf6da93a993a59c6859050c",
+      "ggml/src/ggml-vulkan/CMakeLists.txt": "c629d11993f84481cb5ebe2ad3a34765cd771d31",
+      "ggml/src/ggml-vulkan/ggml-vulkan.cpp": "05203b004a72d53ce45d9553fb75a60a87576d11",
+      "ggml/src/ggml-vulkan/halofpx-vulkan-q8-predequant.h": "5e6029584cdf9cb7ce92d07f72eccd3a7181984e",
+      "ggml/src/ggml-vulkan/vulkan-shaders/CMakeLists.txt": "95b609c28da52c50949bd088e0af524798e8d5b3",
+      "ggml/src/ggml-vulkan/vulkan-shaders/copy_from_quant.comp": "046733d1029923e025663127ed49b2af70ca0c61",
+      "ggml/src/ggml-vulkan/vulkan-shaders/vulkan-shaders-gen.cpp": "d1dda156b426628b4dbe19e09b50fc863ae67176",
+      "tests/CMakeLists.txt": "9dfbe6ce22f5721f6ab369653f8f01277b3f5411",
+      "tests/test-backend-ops.cpp": "65a46584e605053bcd448ac5e4b15dcfa2c273f4",
+      "tests/test-halofpx-vulkan-q8-predequant.cpp": "61048dd49ba02deb19d9bbd38211a00b7022e3a5"
+    }
+  },
+  "focused_qualification": {
+    "node": "nimo-1",
+    "platform": "Linux RADV AMD Strix Halo",
+    "build_type": "Release",
+    "vulkan": true,
+    "hip": false,
+    "rpc": false,
+    "on_build": "passed",
+    "off_build": "passed",
+    "selector_contract_on_off": "passed",
+    "focused_cells_on_off": "5_of_5_passed_each",
+    "focused_csv_sha256": "1e8c4c9a5502406ee7da8b2bff5bb74d89d7a36338c03797645438bbd4fc9591",
+    "inherited_q8_cells_on_off": "2_of_2_passed_each",
+    "inherited_csv_sha256": "e69d34254142310f99f0b217ae65afe19a6ddda75dccbd528d48ff314c55d9c5",
+    "eligible_route_sentinel_exit": 134,
+    "forced_oom_fallback_exit": 0,
+    "qualification_sentinels_in_final_source": false,
+    "existing_q8_to_f32_spv_on_off_sha256": "37860dd90d9b65b49802310cdcd5d4b9a7e9d1e4f24a0a57a1c8af241e71def4",
+    "existing_f32_to_q8_spv_on_off_sha256": "9e1868ecfd30248f37daed21c05dcca969c3ac7d9999c0c39bb5ca1327251392",
+    "new_q8_to_f16_spv_sha256": "c9c0f6b47fd316e473f7f0edd0dc0d20cd3624a03d8b6e23949caf1e43ae34dd"
+  },
+  "binaries": {
+    "on_libggml_vulkan_sha256": "42fcfa9de416efcf2af85632af44dddabc1b37a20fc89af01afe3cce40175bf9",
+    "off_libggml_vulkan_sha256": "15c3e3b575a33935f18b4280b6ebb4229ab98d7c8d5d6a5aec3905ef9d6796b7",
+    "on_test_backend_ops_sha256": "0cdbec9ededb9ff9b8815069d13ee83f7ccde3bb6b2895ffbf3cefe0bd4d155c",
+    "off_test_backend_ops_sha256": "90bbd7cc39e1921382e7e29e35ef3e51830ecec06e65aab96b657f54890ab811"
+  },
+  "evidence": {
+    "source_overlay": "/var/tmp/halofpx-l14q-vk01-e3f87d8",
+    "source_overlay_is_not_commit_checkout": true,
+    "bundle": "/var/tmp/halofpx-l14q-vk01-evidence-20260720.tar.zst",
+    "bundle_size_bytes": 5838,
+    "bundle_sha256": "bbe92125837a2ce4f3adaeeb5db0171ca1e46c393300150986797e0b5978900d"
+  },
+  "primary_model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "node": "nimo-2",
+    "path": "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/dba517197f2854f3d362529e13abddcdcad6c10b/saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "vk01_model_level_performance_run": false,
+    "speedup_claim": false
+  },
+  "references": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "CachyLLama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "ggml_org_llama_cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "Nathanw1014_llama_cpp": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  },
+  "provenance": {
+    "donor_code_imported": false,
+    "donor_patch_applied": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "new_dependency": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "review": {
+    "verdict": "ACCEPT_DEFAULT_OFF_EXPERIMENT",
+    "correctness_blocker": false,
+    "provenance_blocker": false,
+    "performance_gate_closed": false
+  },
+  "rollback": {
+    "option_default": "OFF",
+    "coherent_revert_available": true,
+    "running_services_changed": false
+  },
+  "deferred": [
+    "full Vulkan backend sweep",
+    "exhaustive layout and fault permutations absent a concrete defect",
+    "multi-node qualification",
+    "matched primary-model performance and strict zero-regression"
+  ]
+}

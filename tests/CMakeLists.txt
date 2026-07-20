@@ -135,6 +135,11 @@ add_test(
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-l02-contracts.cmake)
 set_property(TEST test-halofpx-l02-contracts PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-vulkan-q8-predequant.cpp)
+target_include_directories(test-halofpx-vulkan-q8-predequant PRIVATE ${CMAKE_SOURCE_DIR}/ggml/src/ggml-vulkan)
+llama_test(test-halofpx-vulkan-q8-predequant)
+set_property(TEST test-halofpx-vulkan-q8-predequant PROPERTY LABELS "main;halofpx")
+
 llama_build(test-halofpx-context-store.cpp
     ${CMAKE_SOURCE_DIR}/tools/server/halofpx-context-store.cpp)
 target_include_directories(test-halofpx-context-store PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)

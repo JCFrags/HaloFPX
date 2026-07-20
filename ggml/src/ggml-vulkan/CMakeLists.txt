@@ -126,6 +126,11 @@ if (Vulkan_FOUND)
         add_compile_definitions(GGML_VULKAN_RUN_TESTS)
     endif()
 
+    if (GGML_VULKAN_FA_Q8_0_PREDEQUANT)
+        target_compile_definitions(ggml-vulkan PRIVATE GGML_VULKAN_FA_Q8_0_PREDEQUANT)
+        list(APPEND VULKAN_SHADER_GEN_CMAKE_ARGS -DGGML_VULKAN_FA_Q8_0_PREDEQUANT=ON)
+    endif()
+
     # Set up toolchain for host compilation whether cross-compiling or not
     if (CMAKE_CROSSCOMPILING)
         if (GGML_VULKAN_SHADERS_GEN_TOOLCHAIN)

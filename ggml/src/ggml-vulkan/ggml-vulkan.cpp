@@ -1,4 +1,5 @@
 #include "ggml-vulkan.h"
+#include "halofpx-vulkan-q8-predequant.h"
 #include <vulkan/vulkan_core.h>
 #if defined(GGML_VULKAN_RUN_TESTS) || defined(GGML_VULKAN_CHECK_RESULTS)
 #include <chrono>
@@ -58,6 +59,7 @@ typedef struct VkPhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV {
 #include <sstream>
 #include <utility>
 #include <memory>
+#include <new>
 #include <limits>
 #include <map>
 #include <set>
@@ -778,6 +780,9 @@ struct vk_device_struct {
     vk_pipeline pipeline_quantize_q8_1_x4;
 
     vk_pipeline pipeline_dequant[GGML_TYPE_COUNT];
+#if defined(GGML_VULKAN_FA_Q8_0_PREDEQUANT)
+    vk_pipeline pipeline_cpy_q8_0_f16;
+#endif
     vk_pipeline pipeline_dequant_mul_mat_vec_f32_f32[DMMV_WG_SIZE_COUNT][GGML_TYPE_COUNT][mul_mat_vec_max_cols];
     vk_pipeline pipeline_dequant_mul_mat_vec_f16_f32[DMMV_WG_SIZE_COUNT][GGML_TYPE_COUNT][mul_mat_vec_max_cols];
     vk_pipeline pipeline_dequant_mul_mat_vec_id_f32[DMMV_WG_SIZE_COUNT][GGML_TYPE_COUNT];
@@ -4943,6 +4948,9 @@ static void ggml_vk_load_shaders(vk_device& device, vk_pipeline requested) {
     ggml_vk_create_pipeline(device, device->pipeline_dequant[GGML_TYPE_Q5_0], "dequant_q5_0", dequant_q5_0_len, dequant_q5_0_data, "main", 2, 5 * sizeof(uint32_t), {256 * 16, 1, 1}, {}, 1);
     ggml_vk_create_pipeline(device, device->pipeline_dequant[GGML_TYPE_Q5_1], "dequant_q5_1", dequant_q5_1_len, dequant_q5_1_data, "main", 2, 5 * sizeof(uint32_t), {256 * 16, 1, 1}, {}, 1);
     ggml_vk_create_pipeline(device, device->pipeline_dequant[GGML_TYPE_Q8_0], "dequant_q8_0", dequant_q8_0_len, dequant_q8_0_data, "main", 2, 5 * sizeof(uint32_t), {256 * 16, 1, 1}, {}, 1);
+#if defined(GGML_VULKAN_FA_Q8_0_PREDEQUANT)
+    ggml_vk_create_pipeline(device, device->pipeline_cpy_q8_0_f16, "cpy_q8_0_f16", cpy_q8_0_f16_len, cpy_q8_0_f16_data, "main", 2, sizeof(vk_op_unary_push_constants), {(uint32_t)ggml_blck_size(GGML_TYPE_Q8_0), 1, 1}, {}, 1);
+#endif
     ggml_vk_create_pipeline(device, device->pipeline_dequant[GGML_TYPE_Q2_K], "dequant_q2_k", dequant_q2_k_len, dequant_q2_k_data, "main", 2, 5 * sizeof(uint32_t), {256 * 64, 1, 1}, {}, 1);
     ggml_vk_create_pipeline(device, device->pipeline_dequant[GGML_TYPE_Q3_K], "dequant_q3_k", dequant_q3_k_len, dequant_q3_k_data, "main", 2, 5 * sizeof(uint32_t), {256 * 64, 1, 1}, {}, 1);
     ggml_vk_create_pipeline(device, device->pipeline_dequant[GGML_TYPE_Q4_K], "dequant_q4_k", dequant_q4_k_len, dequant_q4_k_data, "main", 2, 5 * sizeof(uint32_t), {256 * 32, 1, 1}, {}, 1);
@@ -7540,6 +7548,66 @@ static void ggml_vk_ctx_begin(vk_device& device, vk_context& subctx) {
     subctx->seqs.push_back({ ggml_vk_begin_submission(device, *subctx->p) });
     subctx->s = subctx->seqs[subctx->seqs.size() - 1].data();
 }
+
+#if defined(GGML_VULKAN_FA_Q8_0_PREDEQUANT)
+static bool ggml_vk_try_prepare_q8_predequant_scratch(
+        ggml_backend_vk_context * ctx,
+        vk_context & subctx,
+        const halofpx_vk_q8_predequant_plan & plan) {
+    const bool replace_x = ctx->prealloc_x == nullptr || ctx->prealloc_x->size < plan.k_f16_bytes;
+    const bool replace_y = ctx->prealloc_y == nullptr || ctx->prealloc_y->size < plan.y_allocation_bytes;
+
+    vk_buffer new_x;
+    vk_buffer new_y;
+    try {
+        if (replace_x) {
+            new_x = ggml_vk_create_buffer_device(ctx->device, plan.k_f16_bytes);
+        }
+        if (replace_y) {
+            new_y = ggml_vk_create_buffer_device(ctx->device, plan.y_allocation_bytes);
+        }
+    } catch (const vk::SystemError & error) {
+        VK_LOG_DEBUG("HaloFPX Vulkan Q8_0 scratch reservation fell back: " << error.what());
+        ggml_vk_destroy_buffer(new_x);
+        ggml_vk_destroy_buffer(new_y);
+        return false;
+    } catch (const std::bad_alloc & error) {
+        VK_LOG_DEBUG("HaloFPX Vulkan Q8_0 host scratch reservation fell back: " << error.what());
+        ggml_vk_destroy_buffer(new_x);
+        ggml_vk_destroy_buffer(new_y);
+        return false;
+    }
+
+    if (replace_x || replace_y) {
+        // Publish neither replacement until both allocations are known-good and
+        // every command that may reference the old reusable buffers has retired.
+        ggml_vk_synchronize(ctx);
+        GGML_ASSERT(ctx->compute_ctx.expired());
+        ggml_vk_ctx_begin(ctx->device, subctx);
+        ctx->compute_ctx = subctx;
+
+        if (replace_x) {
+            vk_buffer old_x = std::move(ctx->prealloc_x);
+            ctx->prealloc_x = std::move(new_x);
+            ggml_vk_destroy_buffer(old_x);
+        }
+        if (replace_y) {
+            vk_buffer old_y = std::move(ctx->prealloc_y);
+            ctx->prealloc_y = std::move(new_y);
+            ggml_vk_destroy_buffer(old_y);
+            ctx->prealloc_y_last_pipeline_used = nullptr;
+            ctx->prealloc_y_last_tensor_used = nullptr;
+            ctx->prealloc_y_last_decode_vector_staging = false;
+        }
+        ctx->prealloc_x_need_sync = false;
+        ctx->prealloc_y_need_sync = false;
+    }
+
+    ctx->prealloc_size_x = std::max(ctx->prealloc_size_x, (size_t)plan.k_f16_bytes);
+    ctx->prealloc_size_y = std::max(ctx->prealloc_size_y, (size_t)plan.y_allocation_bytes);
+    return true;
+}
+#endif
 
 static vk_context ggml_vk_get_compute_ctx(ggml_backend_vk_context * ctx) {
     vk_context result;
@@ -10275,10 +10343,12 @@ static void ggml_vk_flash_attn(ggml_backend_vk_context * ctx, vk_context& subctx
     const bool k_turbo = ggml_vk_is_turbo_type(k->type);
     const bool v_turbo = ggml_vk_is_turbo_type(v->type);
     const bool turbo_fused = ggml_vk_flash_attn_turbo_fused_support(HSK, HSV, k->type, v->type);
-    const bool k_predequant = k_turbo && !turbo_fused;
-    const bool v_predequant = v_turbo && !turbo_fused;
-    const ggml_type k_fa_type = k_predequant ? GGML_TYPE_F16 : k->type;
-    const ggml_type v_fa_type = v_predequant ? GGML_TYPE_F16 : v->type;
+    bool k_predequant = k_turbo && !turbo_fused;
+    bool v_predequant = v_turbo && !turbo_fused;
+    bool standard_q8_predequant = false;
+    ggml_type k_fa_type = k_predequant ? GGML_TYPE_F16 : k->type;
+    ggml_type v_fa_type = v_predequant ? GGML_TYPE_F16 : v->type;
+    halofpx_vk_q8_predequant_plan q8_predequant_plan;
     uint32_t gqa_ratio = 1;
     uint32_t qk_ratio = neq2 / nek2;
     uint32_t workgroups_x = (uint32_t)neq1;
@@ -10304,11 +10374,112 @@ static void ggml_vk_flash_attn(ggml_backend_vk_context * ctx, vk_context& subctx
 
     tuning_params = get_fa_tuning_params(ctx->device, HSK, HSV, N, KV, k_fa_type, v_fa_type, f32acc);
 
+#if defined(GGML_VULKAN_FA_Q8_0_PREDEQUANT)
+    if (!k_turbo && !v_turbo && k->type == GGML_TYPE_Q8_0 && v->type == GGML_TYPE_Q8_0) {
+        const vk_fa_tuning_params f16_tuning = get_fa_tuning_params(
+            ctx->device, HSK, HSV, N, KV, GGML_TYPE_F16, GGML_TYPE_F16, f32acc);
+
+        const bool q8_layout_ok = [](const ggml_tensor * tensor) {
+            const uint64_t type_size = ggml_type_size(tensor->type);
+            const uint64_t block_size = ggml_blck_size(tensor->type);
+            if (tensor->ne[0] <= 0 || (uint64_t)tensor->ne[0] % block_size != 0 ||
+                tensor->nb[0] != type_size || !ggml_is_contiguously_allocated(tensor)) {
+                return false;
+            }
+            for (int i = 0; i < GGML_MAX_DIMS; ++i) {
+                if (tensor->ne[i] <= 0 || (uint64_t)tensor->ne[i] > std::numeric_limits<uint32_t>::max() ||
+                    tensor->nb[i] / type_size > std::numeric_limits<uint32_t>::max()) {
+                    return false;
+                }
+            }
+            return true;
+        }(k) && [](const ggml_tensor * tensor) {
+            const uint64_t type_size = ggml_type_size(tensor->type);
+            const uint64_t block_size = ggml_blck_size(tensor->type);
+            if (tensor->ne[0] <= 0 || (uint64_t)tensor->ne[0] % block_size != 0 ||
+                tensor->nb[0] != type_size || !ggml_is_contiguously_allocated(tensor)) {
+                return false;
+            }
+            for (int i = 0; i < GGML_MAX_DIMS; ++i) {
+                if (tensor->ne[i] <= 0 || (uint64_t)tensor->ne[i] > std::numeric_limits<uint32_t>::max() ||
+                    tensor->nb[i] / type_size > std::numeric_limits<uint32_t>::max()) {
+                    return false;
+                }
+            }
+            return true;
+        }(v);
+
+        const bool candidate_mask_opt = mask && nem1 >= 32 &&
+            (uint64_t)nem0 * nem1 > 32768 && nem0 >= f16_tuning.block_cols * 16;
+        uint64_t candidate_mask_bytes = 0;
+        bool candidate_mask_size_ok = true;
+        if (candidate_mask_opt) {
+            const uint64_t candidate_mask_num_dwords = CEIL_DIV(nem0, 16 * f16_tuning.block_cols);
+            uint64_t candidate_mask_rows = 0;
+            uint64_t candidate_mask_heads = 0;
+            candidate_mask_size_ok =
+                halofpx_vk_checked_mul_u64(candidate_mask_num_dwords, CEIL_DIV(nem1, f16_tuning.block_rows), candidate_mask_rows) &&
+                halofpx_vk_checked_mul_u64(candidate_mask_rows, nem2, candidate_mask_heads) &&
+                halofpx_vk_checked_mul_u64(candidate_mask_heads, nem3, candidate_mask_bytes) &&
+                halofpx_vk_checked_mul_u64(candidate_mask_bytes, sizeof(uint32_t), candidate_mask_bytes);
+        }
+
+        uint64_t candidate_split_row_bytes = 0;
+        uint64_t candidate_split_matrix_bytes = 0;
+        uint64_t candidate_split_per_slice_bytes = 0;
+        uint64_t candidate_split_scratch_upper_bytes = 0;
+        const uint64_t candidate_split_upper = f16_tuning.block_cols != 0 ? CEIL_DIV(KV, f16_tuning.block_cols) : 0;
+        const bool candidate_split_size_ok =
+            f16_tuning.block_cols != 0 &&
+            halofpx_vk_checked_mul_u64(HSV, N, candidate_split_matrix_bytes) &&
+            halofpx_vk_checked_mul_u64(candidate_split_matrix_bytes, sizeof(float), candidate_split_matrix_bytes) &&
+            halofpx_vk_checked_mul_u64(N, 2 * sizeof(float), candidate_split_row_bytes) &&
+            halofpx_vk_checked_add_u64(candidate_split_matrix_bytes, candidate_split_row_bytes, candidate_split_per_slice_bytes) &&
+            halofpx_vk_checked_mul_u64(candidate_split_per_slice_bytes, candidate_split_upper, candidate_split_scratch_upper_bytes) &&
+            halofpx_vk_checked_mul_u64(candidate_split_scratch_upper_bytes, ne2, candidate_split_scratch_upper_bytes) &&
+            halofpx_vk_checked_mul_u64(candidate_split_scratch_upper_bytes, ne3, candidate_split_scratch_upper_bytes);
+
+        const halofpx_vk_q8_predequant_facts q8_facts {
+            true,
+            true,
+            tuning_params.path == FA_COOPMAT1,
+            f16_tuning.path == FA_COOPMAT1,
+            q8_layout_ok,
+            k->nb[0] == ggml_type_size(GGML_TYPE_Q8_0) && v->nb[0] == ggml_type_size(GGML_TYPE_Q8_0),
+            candidate_mask_size_ok && candidate_split_size_ok && ctx->device->pipeline_cpy_q8_0_f16 != nullptr,
+            (uint64_t)neq1,
+            (uint64_t)ggml_nelements(k),
+            (uint64_t)ggml_nelements(v),
+            (uint64_t)ggml_nbytes(k),
+            (uint64_t)ggml_nbytes(v),
+            candidate_mask_bytes,
+            candidate_split_scratch_upper_bytes,
+            (uint64_t)ctx->device->properties.limits.minStorageBufferOffsetAlignment,
+            (uint64_t)ctx->device->properties.limits.maxStorageBufferRange,
+        };
+        q8_predequant_plan = halofpx_vk_select_q8_predequant(q8_facts);
+        VK_LOG_DEBUG("HaloFPX Vulkan Q8_0 pre-dequant facts: rows=" << q8_facts.query_rows
+            << ", original_path=" << tuning_params.path << ", f16_path=" << f16_tuning.path
+            << ", dense=" << q8_facts.dense_layout << ", block=" << q8_facts.dim0_block_contiguous
+            << ", pipeline=" << q8_facts.pipeline_available << ", admitted=" << q8_predequant_plan.admitted);
+        if (q8_predequant_plan.admitted &&
+            ggml_vk_try_prepare_q8_predequant_scratch(ctx, subctx, q8_predequant_plan)) {
+            standard_q8_predequant = true;
+            k_predequant = true;
+            v_predequant = true;
+            k_fa_type = GGML_TYPE_F16;
+            v_fa_type = GGML_TYPE_F16;
+            tuning_params = f16_tuning;
+            VK_LOG_DEBUG("HaloFPX Vulkan Q8_0 coopmat1 pre-dequant admitted");
+        }
+    }
+#endif
+
     // Turbo fallback pre-dequant preserves KV-cache memory order ([head_dim, head, kv])
     // and uses strides here to present the graph's logical [head_dim, kv, head] view to FA.
     const uint32_t q_stride = (uint32_t)(nbq1 / ggml_type_size(q->type));
-    uint32_t k_stride = k_predequant ? HSK * (uint32_t) nek2 : (uint32_t)(nbk1 / ggml_type_size(k->type));
-    uint32_t v_stride = v_predequant ? HSV * (uint32_t) nev2 : (uint32_t)(nbv1 / ggml_type_size(v->type));
+    uint32_t k_stride = standard_q8_predequant ? HSK : (k_predequant ? HSK * (uint32_t) nek2 : (uint32_t)(nbk1 / ggml_type_size(k->type)));
+    uint32_t v_stride = standard_q8_predequant ? HSV : (v_predequant ? HSV * (uint32_t) nev2 : (uint32_t)(nbv1 / ggml_type_size(v->type)));
 
     // For F32, the shader treats it as a block of size 4 (for vec4 loads)
     if (k_fa_type == GGML_TYPE_F32) {
@@ -10414,10 +10585,11 @@ static void ggml_vk_flash_attn(ggml_backend_vk_context * ctx, vk_context& subctx
     const uint64_t v_ne = ggml_nelements(v);
     const uint64_t k_quant_size = k_ne * ggml_type_size(k->type) / ggml_blck_size(k->type);
     const uint64_t v_quant_size = v_ne * ggml_type_size(v->type) / ggml_blck_size(v->type);
-    const uint64_t k_dequant_size = k_predequant ? k_ne * sizeof(ggml_fp16_t) : 0;
-    const uint64_t v_dequant_size = v_predequant ? v_ne * sizeof(ggml_fp16_t) : 0;
-    const uint64_t mask_opt_offset = v_predequant ? ggml_vk_align_size(v_dequant_size, ctx->device->properties.limits.minStorageBufferOffsetAlignment) : 0;
-    uint64_t fa_prealloc_y_size = v_dequant_size;
+    const uint64_t k_dequant_size = standard_q8_predequant ? q8_predequant_plan.k_f16_bytes : (k_predequant ? k_ne * sizeof(ggml_fp16_t) : 0);
+    const uint64_t v_dequant_size = standard_q8_predequant ? q8_predequant_plan.v_f16_bytes : (v_predequant ? v_ne * sizeof(ggml_fp16_t) : 0);
+    const uint64_t mask_opt_offset = standard_q8_predequant ? q8_predequant_plan.mask_offset :
+        (v_predequant ? ggml_vk_align_size(v_dequant_size, ctx->device->properties.limits.minStorageBufferOffsetAlignment) : 0);
+    uint64_t fa_prealloc_y_size = standard_q8_predequant ? q8_predequant_plan.y_allocation_bytes : v_dequant_size;
     if (use_mask_opt) {
         fa_prealloc_y_size = std::max(fa_prealloc_y_size, mask_opt_offset + mask_opt_size);
     }
@@ -10428,8 +10600,20 @@ static void ggml_vk_flash_attn(ggml_backend_vk_context * ctx, vk_context& subctx
         GGML_ABORT("Requested preallocation size is too large");
     }
 
-    vk_pipeline k_to_fp16 = k_predequant ? ggml_vk_get_to_fp16(ctx, k->type) : nullptr;
-    vk_pipeline v_to_fp16 = v_predequant ? ggml_vk_get_to_fp16(ctx, v->type) : nullptr;
+    vk_pipeline k_to_fp16 = k_predequant ?
+#if defined(GGML_VULKAN_FA_Q8_0_PREDEQUANT)
+        (standard_q8_predequant ? ctx->device->pipeline_cpy_q8_0_f16 : ggml_vk_get_to_fp16(ctx, k->type)) :
+#else
+        ggml_vk_get_to_fp16(ctx, k->type) :
+#endif
+        nullptr;
+    vk_pipeline v_to_fp16 = v_predequant ?
+#if defined(GGML_VULKAN_FA_Q8_0_PREDEQUANT)
+        (standard_q8_predequant ? ctx->device->pipeline_cpy_q8_0_f16 : ggml_vk_get_to_fp16(ctx, v->type)) :
+#else
+        ggml_vk_get_to_fp16(ctx, v->type) :
+#endif
+        nullptr;
     GGML_ASSERT(!k_predequant || k_to_fp16 != nullptr);
     GGML_ASSERT(!v_predequant || v_to_fp16 != nullptr);
 
@@ -10487,11 +10671,17 @@ static void ggml_vk_flash_attn(ggml_backend_vk_context * ctx, vk_context& subctx
             ggml_vk_sync_buffers(ctx, subctx);
         }
         k_buf = vk_subbuffer{ ctx->prealloc_x, 0, k_dequant_size };
-        const std::vector<uint32_t> pc_dequant = { HSK, (uint32_t)k_ne, (uint32_t)k_ne, (uint32_t)k_ne, (uint32_t)k_ne };
-        ggml_vk_dispatch_pipeline(ctx, subctx, k_to_fp16,
-                                  { vk_subbuffer{ k_src_buf.buffer, k_src_buf.offset, k_quant_size }, k_buf },
-                                  pc_dequant, { (uint32_t)k_ne, 1, 1 });
-        ggml_vk_sync_buffers(ctx, subctx);
+        if (standard_q8_predequant) {
+            ggml_vk_cpy_to_strided(ctx, subctx, k_to_fp16, k,
+                vk_subbuffer{ k_src_buf.buffer, k_src_buf.offset, k_quant_size }, k_buf,
+                1, HSK, HSK * KV, HSK * KV * (uint32_t)nek2);
+        } else {
+            const std::vector<uint32_t> pc_dequant = { HSK, (uint32_t)k_ne, (uint32_t)k_ne, (uint32_t)k_ne, (uint32_t)k_ne };
+            ggml_vk_dispatch_pipeline(ctx, subctx, k_to_fp16,
+                                      { vk_subbuffer{ k_src_buf.buffer, k_src_buf.offset, k_quant_size }, k_buf },
+                                      pc_dequant, { (uint32_t)k_ne, 1, 1 });
+            ggml_vk_sync_buffers(ctx, subctx);
+        }
     }
 
     if (v_predequant) {
@@ -10499,11 +10689,17 @@ static void ggml_vk_flash_attn(ggml_backend_vk_context * ctx, vk_context& subctx
             ggml_vk_sync_buffers(ctx, subctx);
         }
         v_buf = vk_subbuffer{ ctx->prealloc_y, 0, v_dequant_size };
-        const std::vector<uint32_t> pc_dequant = { HSV, (uint32_t)v_ne, (uint32_t)v_ne, (uint32_t)v_ne, (uint32_t)v_ne };
-        ggml_vk_dispatch_pipeline(ctx, subctx, v_to_fp16,
-                                  { vk_subbuffer{ v_src_buf.buffer, v_src_buf.offset, v_quant_size }, v_buf },
-                                  pc_dequant, { (uint32_t)v_ne, 1, 1 });
-        ggml_vk_sync_buffers(ctx, subctx);
+        if (standard_q8_predequant) {
+            ggml_vk_cpy_to_strided(ctx, subctx, v_to_fp16, v,
+                vk_subbuffer{ v_src_buf.buffer, v_src_buf.offset, v_quant_size }, v_buf,
+                1, HSV, HSV * KV, HSV * KV * (uint32_t)nev2);
+        } else {
+            const std::vector<uint32_t> pc_dequant = { HSV, (uint32_t)v_ne, (uint32_t)v_ne, (uint32_t)v_ne, (uint32_t)v_ne };
+            ggml_vk_dispatch_pipeline(ctx, subctx, v_to_fp16,
+                                      { vk_subbuffer{ v_src_buf.buffer, v_src_buf.offset, v_quant_size }, v_buf },
+                                      pc_dequant, { (uint32_t)v_ne, 1, 1 });
+            ggml_vk_sync_buffers(ctx, subctx);
+        }
         ctx->prealloc_y_last_pipeline_used = nullptr;
         ctx->prealloc_y_last_tensor_used = nullptr;
         ctx->prealloc_y_last_decode_vector_staging = false;
@@ -10535,9 +10731,11 @@ static void ggml_vk_flash_attn(ggml_backend_vk_context * ctx, vk_context& subctx
         ctx->prealloc_y_last_decode_vector_staging = false;
     }
 
-    const uint32_t k_nb2 = k_predequant ? (uint32_t)(HSK * sizeof(ggml_fp16_t)) : (uint32_t)nbk2;
+    const uint32_t k_nb2 = standard_q8_predequant ? (uint32_t)(HSK * KV * sizeof(ggml_fp16_t)) :
+        (k_predequant ? (uint32_t)(HSK * sizeof(ggml_fp16_t)) : (uint32_t)nbk2);
     const uint32_t k_nb3 = k_predequant ? (uint32_t)(HSK * KV * nek2 * sizeof(ggml_fp16_t)) : (uint32_t)nbk3;
-    const uint32_t v_nb2 = v_predequant ? (uint32_t)(HSV * sizeof(ggml_fp16_t)) : (uint32_t)nbv2;
+    const uint32_t v_nb2 = standard_q8_predequant ? (uint32_t)(HSV * KV * sizeof(ggml_fp16_t)) :
+        (v_predequant ? (uint32_t)(HSV * sizeof(ggml_fp16_t)) : (uint32_t)nbv2);
     const uint32_t v_nb3 = v_predequant ? (uint32_t)(HSV * KV * nev2 * sizeof(ggml_fp16_t)) : (uint32_t)nbv3;
 
     const vk_flash_attn_push_constants pc = { N, KV,
@@ -10590,6 +10788,11 @@ static void ggml_vk_flash_attn(ggml_backend_vk_context * ctx, vk_context& subctx
         ggml_vk_dispatch_pipeline(ctx, subctx, pipeline,
                                     {q_buf, k_buf, v_buf, mask_buf, sinks_buf, dst_buf, mask_opt_buf},
                                     pc, { workgroups_x, workgroups_y, workgroups_z });
+    }
+
+    if (standard_q8_predequant) {
+        ctx->prealloc_x_need_sync = true;
+        ctx->prealloc_y_need_sync = true;
     }
 }
 

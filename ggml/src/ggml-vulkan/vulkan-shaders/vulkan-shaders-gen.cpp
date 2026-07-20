@@ -766,6 +766,13 @@ void process_shaders() {
             string_to_spv("dequant_" + tname, "dequant_" + tname + ".comp", merge_maps(base_dict, {{data_a_key, "1"}, {"D_TYPE", "float16_t"}}));
         }
 
+#if defined(GGML_VULKAN_FA_Q8_0_PREDEQUANT)
+        if (tname == "q8_0") {
+            string_to_spv("cpy_q8_0_f16", "copy_from_quant.comp",
+                merge_maps(base_dict, {{data_a_key, "1"}, {"D_TYPE", "float16_t"}}));
+        }
+#endif
+
         shader = (tname == "f32" || tname == "f16" || tname == "bf16") ? "get_rows.comp" : "get_rows_quant.comp";
 
         if (tname == "f16") {

@@ -6462,11 +6462,15 @@ struct test_flash_attn_ext : public test_case {
     const ggml_type type_V;
     std::array<int32_t, 4> permute;
     const int64_t mask_pad;
+    const bool dense_kv;
 
     std::string vars() override {
         std::string result = VARS_TO_STR14(hsk, hsv, nh, nr23, kv, nb, mask, sinks, max_bias, logit_softcap, prec, type_K, type_V, permute);
         if (mask_pad != 0) {
             result += ",mask_pad=" + std::to_string(mask_pad);
+        }
+        if (dense_kv) {
+            result += ",dense_kv=1";
         }
         return result;
     }
@@ -6485,9 +6489,9 @@ struct test_flash_attn_ext : public test_case {
     test_flash_attn_ext(int64_t hsk = 128, int64_t hsv = 128, int64_t nh = 32, std::array<int64_t, 2> nr23 = {1, 1}, int64_t kv = 96, int64_t nb = 8,
                         bool mask = true, bool sinks = false, float max_bias = 0.0f, float logit_softcap = 0.0f, ggml_prec prec = GGML_PREC_F32,
                         ggml_type type_K = GGML_TYPE_F16, ggml_type type_V = GGML_TYPE_F16, std::array<int32_t, 4> permute = {0, 1, 2, 3},
-                        int64_t mask_pad = 0)
+                        int64_t mask_pad = 0, bool dense_kv = false)
         : hsk(hsk), hsv(hsv), nh(nh), nr23(nr23), kv(kv), nb(nb), mask(mask), sinks(sinks), max_bias(max_bias), logit_softcap(logit_softcap), prec(prec),
-          type_K(type_K), type_V(type_V), permute(permute), mask_pad(mask_pad) {}
+          type_K(type_K), type_V(type_V), permute(permute), mask_pad(mask_pad), dense_kv(dense_kv) {}
 
     ggml_tensor * build_graph(ggml_context * ctx) override {
         const int64_t hsk_padded = GGML_PAD(hsk, ggml_blck_size(type_K));
@@ -6515,7 +6519,7 @@ struct test_flash_attn_ext : public test_case {
         ggml_tensor * q = create_permuted(GGML_TYPE_F32, hsk_padded, nb, nh*nr23[0], nr23[1], false);
         ggml_set_name(q, "q");
 
-        ggml_tensor * k = create_permuted(type_K,        hsk_padded, kv, nh,         nr23[1], true); // the K tensor is usually a view of the K cache
+        ggml_tensor * k = create_permuted(type_K,        hsk_padded, kv, nh,         nr23[1], !dense_kv); // the K tensor is usually a view of the K cache
         ggml_set_name(k, "k");
 
         ggml_tensor * v = nullptr;
@@ -6529,7 +6533,7 @@ struct test_flash_attn_ext : public test_case {
             //   - https://github.com/ggml-org/llama.cpp/pull/18986
             v = ggml_view_4d(ctx, k, hsv_padded, kv, nh, nr23[1], k->nb[1], k->nb[2], k->nb[3], 0);
         } else {
-            v = create_permuted(type_V,        hsv_padded, kv, nh,         nr23[1], true); // the V tensor is usually a view of the V cache
+            v = create_permuted(type_V,        hsv_padded, kv, nh,         nr23[1], !dense_kv); // the V tensor is usually a view of the V cache
         }
         ggml_set_name(v, "v");
 
@@ -9061,6 +9065,23 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
         }
     }
 
+    // HaloFPX L14Q-VK-01: one narrow dense-Q8 prefill boundary inventory.
+    test_cases.emplace_back(new test_flash_attn_ext(
+        128, 128, 4, {1, 1}, 256, 63, true, false, 0.0f, 0.0f,
+        GGML_PREC_F32, GGML_TYPE_Q8_0, GGML_TYPE_Q8_0, {0, 1, 2, 3}, 0, true));
+    test_cases.emplace_back(new test_flash_attn_ext(
+        128, 128, 4, {1, 1}, 256, 64, true, false, 0.0f, 0.0f,
+        GGML_PREC_F32, GGML_TYPE_Q8_0, GGML_TYPE_Q8_0, {0, 1, 2, 3}, 0, true));
+    test_cases.emplace_back(new test_flash_attn_ext(
+        256, 256, 4, {1, 1}, 256, 65, true, false, 0.0f, 0.0f,
+        GGML_PREC_F32, GGML_TYPE_Q8_0, GGML_TYPE_Q8_0, {0, 1, 2, 3}, 0, true));
+    test_cases.emplace_back(new test_flash_attn_ext(
+        128, 128, 4, {1, 1}, 256, 64, true, false, 0.0f, 0.0f,
+        GGML_PREC_F32, GGML_TYPE_Q8_0, GGML_TYPE_Q8_0, {0, 2, 1, 3}, 0, true));
+    test_cases.emplace_back(new test_flash_attn_ext(
+        128, 128, 4, {1, 1}, 256, 64, true, false, 0.0f, 0.0f,
+        GGML_PREC_F32, GGML_TYPE_Q4_0, GGML_TYPE_Q4_0, {0, 1, 2, 3}, 0, true));
+
     // The focused qualification contract requires one explicit ROCm rejection
     // rather than treating an unsupported shape as an omitted test.
     test_cases.emplace_back(new test_flash_attn_ext_rocm(
@@ -9239,6 +9260,11 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
 // Test cases for performance evaluation: should be representative of real-world use cases
 static std::vector<std::unique_ptr<test_case>> make_test_cases_perf() {
     std::vector<std::unique_ptr<test_case>> test_cases;
+
+    // HaloFPX L14Q-VK-01: representative dense-Q8 coopmat1 prefill cell.
+    test_cases.emplace_back(new test_flash_attn_ext(
+        128, 128, 4, {1, 1}, 256, 64, true, false, 0.0f, 0.0f,
+        GGML_PREC_F32, GGML_TYPE_Q8_0, GGML_TYPE_Q8_0, {0, 1, 2, 3}, 0, true));
 
     // Conv2d: K=CRS=NPQ=4096 matmul performance
     uint32_t                        iwh_idx  = 0;
