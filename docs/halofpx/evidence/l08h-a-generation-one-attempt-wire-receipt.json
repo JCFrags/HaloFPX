@@ -1,0 +1,40 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L08h-a",
+  "title": "generation-one authenticated publication-attempt wire",
+  "implementation_parent": "7b61a08748ef72adebb8501feeffd256fbc94e42",
+  "implementation_parent_tree": "decfb5016e729a3aeb126dac8630572134077695",
+  "locked_rocmfpx_base": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "locked_rocmfpx_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "boundary": {
+    "target": "halofpx-context-store-v1-attempt-wire",
+    "build": "STATIC EXCLUDE_FROM_ALL",
+    "generation": 1,
+    "predecessor": null,
+    "filesystem_io": false,
+    "publication": false,
+    "server_link": false,
+    "live_restore": false,
+    "product_admission": false
+  },
+  "qualification": {
+    "windows_msvc_release": "2/2 focused runtime and static contract passed",
+    "independent_review": "ACCEPT; no P1/P2"
+  },
+  "deferred": [
+    "durable pending-before-mutation sequencing",
+    "terminal-before-pending-clear sequencing",
+    "Linux restart reconciliation",
+    "server canary and live restore",
+    "generation advancement, retention, distributed recovery, and soak"
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false
+  }
+}

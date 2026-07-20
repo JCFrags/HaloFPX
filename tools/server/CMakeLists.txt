@@ -191,6 +191,16 @@ target_link_libraries(halofpx-context-store-v1-transformer-codec PUBLIC
     halofpx-context-store-state-transformer-v1)
 target_compile_features(halofpx-context-store-v1-transformer-codec PRIVATE cxx_std_17)
 
+# L08h excluded target-native authenticated generation-one attempt wire. It is
+# an allocation-free codec and has no filesystem, publication, or server edge.
+add_library(halofpx-context-store-v1-attempt-wire STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-v1-attempt-wire.cpp
+    halofpx-context-store-v1-attempt-wire.h
+)
+target_link_libraries(halofpx-context-store-v1-attempt-wire PUBLIC
+    halofpx-context-store-auth)
+target_compile_features(halofpx-context-store-v1-attempt-wire PRIVATE cxx_std_17)
+
 # L08e Linux-only exact-anchor filesystem snapshot reader. It remains excluded
 # and cannot publish, enumerate, decode, restore, or link into a server.
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
