@@ -1,0 +1,166 @@
+{
+  "schema": "halofpx.p01-primary-model-qualification.v1",
+  "matrix_schema": "halofpx.performance-matrix.v1",
+  "date": "2026-07-19",
+  "status": "qualified_early_matched_control_final_zero_regression_open",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "candidate_commit": "7e7c224947cc3844b40fef12cf5731aae24a1101",
+  "candidate_tree": "2608ddbbecf157dd010431fb57e43a31ec103f83",
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "qualified_node": "nimo-2",
+    "hash_reverified_after_trials": true
+  },
+  "build": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "matched_configuration": true,
+    "build_type": "Release",
+    "backends": ["HIP", "Vulkan", "RPC"],
+    "amdgpu_targets": "gfx1151",
+    "webui": false,
+    "halofpx_context_store_canary": false,
+    "control": {
+      "rpc_server_sha256": "3327b1d7165d6084aeff8694163b1a69a1110dd7538a89389794bba9d78d5868",
+      "llama_server_sha256": "d752b7f327b51d50f3a868fda537ffec90f999ae2144ad61416203ccc12d4b4c"
+    },
+    "candidate": {
+      "rpc_server_sha256": "c90e36904effd643d7acb2646cb1ef1b935c18e9e0ad83654eb497c4b9ab0aae",
+      "llama_server_sha256": "26d58b4e1fafa1a4f18eaa0c589b14afae18183e7ca8db65b3a4024ee23dff7c"
+    }
+  },
+  "runtime": {
+    "coordinator": "nimo-2",
+    "rpc_worker": "nimo-1",
+    "rpc_endpoint": "10.44.0.1:50053",
+    "mptcp_wrapper": true,
+    "device_order": "RPC0,ROCm0",
+    "tensor_split": "1,1",
+    "split_mode": "layer",
+    "context": 4096,
+    "parallel": 1,
+    "threads": 16,
+    "threads_batch": 16,
+    "gpu_layers": 999,
+    "flash_attention": true,
+    "kv_k": "q8_0",
+    "kv_v": "q8_0",
+    "batch": 512,
+    "ubatch": 512,
+    "fit": false,
+    "mmap": false,
+    "direct_io": true,
+    "seed": 1234,
+    "temperature": 0,
+    "offline": true,
+    "webui": false
+  },
+  "workload": {
+    "api": "/completion",
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "ignore_eos": true,
+    "cache_prompt": false,
+    "request_body_sha256_retained_block2": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "execution_order": ["candidate_block_1", "control_block_1", "candidate_block_2", "control_block_2"],
+    "blocks_per_variant": 2,
+    "warmups_per_block": 1,
+    "retained_per_block": 5,
+    "retained_per_variant": 10,
+    "retained_total": 20,
+    "timing_requests_total": 24,
+    "http_200_total": 24,
+    "content_jq_r_lf_sha256_all_responses": "a9c38c7f948adcfa8cfab5468ab84cc089b01a34c3f270f1c487a9a5fa74b555",
+    "content_json_string_utf8_sha256_all_responses": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f",
+    "content_hash_method": "jq -r .content emits the UTF-8 string followed by one LF; the separate JSON-string digest excludes that LF",
+    "matched_chat_response": "HALOFPX_PRIMARY_OK"
+  },
+  "results": {
+    "prompt_tokens_per_second": {
+      "control_mean": 203.12473751476287,
+      "control_sample_sd": 0.12750083698833456,
+      "candidate_mean": 203.1603902755688,
+      "candidate_sample_sd": 0.12444673944837213,
+      "candidate_minus_control": 0.03565276080593094,
+      "candidate_delta_percent": 0.017552151078270187,
+      "approximate_welch_ci95": [-0.08272037302133235, 0.15402589463319422]
+    },
+    "generation_tokens_per_second": {
+      "control_mean": 16.65795235571421,
+      "control_sample_sd": 0.027625549289520372,
+      "candidate_mean": 16.67100011590682,
+      "candidate_sample_sd": 0.01669540010084089,
+      "candidate_minus_control": 0.013047760192609559,
+      "candidate_delta_percent": 0.0783275153751641,
+      "approximate_welch_ci95": [-0.0087, 0.0348]
+    },
+    "end_to_end_seconds": {
+      "control_mean": 13.2459745,
+      "candidate_mean": 13.2387734,
+      "candidate_delta_percent": -0.0543652,
+      "classification": "descriptive_only"
+    },
+    "classification": "no_observed_point_estimate_regression",
+    "formal_zero_regression_gate_closed": false,
+    "speedup_claim": false,
+    "over_30_generation_tokens_per_second": false,
+    "over_30_classification": "owner_stretch_objective_not_pass_fail"
+  },
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-primary-model-qual-20260719",
+      "bundle_path": "/var/tmp/halofpx-primary-model-qual-nimo1-20260719.tar.zst",
+      "bundle_size_bytes": 6124,
+      "bundle_sha256": "e53b358168afc47da2853dfcdbc853ff625cbaa0f85dd2497d4228050521fcc7",
+      "deterministic_second_reconstruction_match": true
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-primary-model-qual-20260719",
+      "bundle_path": "/var/tmp/halofpx-primary-model-qual-nimo2-20260719.tar.zst",
+      "bundle_size_bytes": 18697,
+      "bundle_sha256": "cbe4888f13f5c03b929f5d6e83b519e8a9ec5d05357ba5c52749c9a38b5f9f90",
+      "deterministic_second_reconstruction_match": true
+    },
+    "authorization_material_detected": false
+  },
+  "rollback": {
+    "experiment_processes_stopped": true,
+    "nimo_2_rpc_service": "minimax-m27-rpc-worker.service",
+    "nimo_2_rpc_port": 50052,
+    "nimo_2_rpc_active": true,
+    "nimo_1_server_service": "minimax-m27-q6-server.service",
+    "nimo_1_server_port": 8081,
+    "nimo_1_server_health": "ok",
+    "services_enabled": true
+  },
+  "excluded_attempts": [
+    "The first candidate block-2 launch used fish-incompatible PID-capture syntax. A duplicate candidate server was identified and stopped while the control still owned the port; no result from that attempt was retained. The candidate was then cleanly launched and qualified."
+  ],
+  "provenance": {
+    "runtime_code_changed": false,
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "reference_clone_changed": false,
+    "model_changed": false,
+    "remote_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false
+  },
+  "review": {
+    "verdict": "ACCEPT_EARLY_MATCHED_CONTROL_FINAL_G9_G10_OPEN",
+    "required_correction_closed": "content digest method now distinguishes raw UTF-8 JSON string bytes from jq -r output with one trailing LF",
+    "nonblocking_next_bundle_hardening": "retain complete exact HIP flag selection and both candidate and control cmdlines in the compact evidence bundle"
+  },
+  "deferred": [
+    "final G9/G10 zero-regression trial volume and block-aware analysis",
+    "TTFT, inter-token, tail, utilization, memory, storage, and per-rail telemetry matrix",
+    "other-engine comparisons that can run this exact artifact under a matched tuple",
+    "representative additional model, backend, context, and API rows",
+    "L14Q default-off HIP and Vulkan runtime candidates"
+  ]
+}
