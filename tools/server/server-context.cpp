@@ -17,7 +17,15 @@
 #include "mtmd.h"
 #include "mtmd-helper.h"
 
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+#include "halofpx-context-store-auth.h"
+#include "halofpx-context-store-linux-direct.h"
+#include "halofpx-context-store-scope.h"
+#include "halofpx-context-store-state-transformer-v1.h"
+#endif
+
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <cstring>
 #include <cstddef>
@@ -28,6 +36,14 @@
 #include <filesystem>
 #include <mutex>
 #include <utility>
+
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+#include <array>
+#include <cerrno>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 // fix problem with std::min and std::max
 #if defined(_WIN32)
@@ -41,6 +57,124 @@
 using json = nlohmann::ordered_json;
 
 constexpr int HTTP_POLLING_SECONDS = 1;
+
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+namespace {
+
+constexpr uint64_t HALOFPX_MIB = 1024ULL * 1024ULL;
+constexpr char HALOFPX_SCOPE_KEY_DOMAIN[] = "halofpx.direct.scope-key.v1";
+constexpr char HALOFPX_STORE_KEY_DOMAIN[] = "halofpx.direct.store-key.v1";
+constexpr char HALOFPX_POLICY_KEY_ID[] = "halofpx-canary-policy-key-v1";
+constexpr char HALOFPX_AUTHENTICATION_ISSUER[] = "llama-server-api-key";
+constexpr char HALOFPX_SECURITY_DOMAIN[] = "halofpx-private-canary";
+
+void halofpx_wipe(void * memory, size_t size) noexcept {
+    volatile uint8_t * bytes = static_cast<volatile uint8_t *>(memory);
+    while (size-- != 0) {
+        *bytes++ = 0;
+    }
+}
+
+bool halofpx_parse_lower_hex_digest(
+        const std::string & text,
+        halofpx::context_store_format_digest & output) noexcept {
+    output.fill(0);
+    if (text.size() != output.size() * 2) {
+        return false;
+    }
+    for (size_t index = 0; index < output.size(); ++index) {
+        const char hi = text[index * 2];
+        const char lo = text[index * 2 + 1];
+        const auto nibble = [](char value) -> int {
+            if (value >= '0' && value <= '9') return value - '0';
+            if (value >= 'a' && value <= 'f') return value - 'a' + 10;
+            return -1;
+        };
+        const int high = nibble(hi);
+        const int low = nibble(lo);
+        if (high < 0 || low < 0) {
+            output.fill(0);
+            return false;
+        }
+        output[index] = static_cast<uint8_t>((high << 4) | low);
+    }
+    return true;
+}
+
+std::string halofpx_digest_hex(const halofpx::context_store_format_digest & value) {
+    static constexpr char hex[] = "0123456789abcdef";
+    std::string result(value.size() * 2, '0');
+    for (size_t index = 0; index < value.size(); ++index) {
+        result[index * 2] = hex[value[index] >> 4];
+        result[index * 2 + 1] = hex[value[index] & 0x0f];
+    }
+    return result;
+}
+
+bool halofpx_read_owner_key(
+        const std::string & path,
+        std::array<uint8_t, halofpx::context_store_linux_direct_master_key_bytes> & key) noexcept {
+    key.fill(0);
+    const int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (fd < 0) {
+        return false;
+    }
+    struct stat st {};
+    bool valid = fstat(fd, &st) == 0 && S_ISREG(st.st_mode) && st.st_uid == geteuid() &&
+        st.st_nlink == 1 && (st.st_mode & 0777) == 0600 &&
+        st.st_size == static_cast<off_t>(key.size());
+    size_t used = 0;
+    while (valid && used < key.size()) {
+        const ssize_t count = read(fd, key.data() + used, key.size() - used);
+        if (count > 0) {
+            used += static_cast<size_t>(count);
+        } else if (count < 0 && errno == EINTR) {
+            continue;
+        } else {
+            valid = false;
+        }
+    }
+    uint8_t extra = 0;
+    if (valid) {
+        const ssize_t count = read(fd, &extra, 1);
+        valid = count == 0;
+    }
+    valid = close(fd) == 0 && valid && used == key.size();
+    if (!valid) {
+        halofpx_wipe(key.data(), key.size());
+    }
+    return valid;
+}
+
+std::string halofpx_authenticated_principal(
+        const server_http_req & req,
+        const std::vector<std::string> & admitted_keys) {
+    std::string supplied;
+    for (const auto & header : req.headers) {
+        std::string name = header.first;
+        std::transform(name.begin(), name.end(), name.begin(), [](unsigned char value) {
+            return static_cast<char>(std::tolower(value));
+        });
+        if (name == "authorization") {
+            supplied = header.second;
+            if (supplied.rfind("Bearer ", 0) == 0) {
+                supplied.erase(0, 7);
+            }
+            break;
+        }
+        if (name == "x-api-key" && supplied.empty()) {
+            supplied = header.second;
+        }
+    }
+    if (supplied.empty() ||
+        std::find(admitted_keys.begin(), admitted_keys.end(), supplied) == admitted_keys.end()) {
+        return {};
+    }
+    return supplied;
+}
+
+} // namespace
+#endif
 
 // state diagram: https://github.com/ggml-org/llama.cpp/pull/9283
 enum slot_state {
@@ -689,6 +823,9 @@ public:
             // we don't call it again here to avoid double free
             destroy();
         }
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+        halofpx_wipe(halofpx_scope_key.data(), halofpx_scope_key.size());
+#endif
     }
 
 private:
@@ -731,6 +868,12 @@ private:
 
     std::unique_ptr<server_prompt_cache> prompt_cache;
 
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+    std::unique_ptr<halofpx::context_store_linux_direct> halofpx_direct_store;
+    halofpx::context_store_format_digest halofpx_scope_key {};
+    halofpx::context_store_format_digest halofpx_compatibility_root {};
+#endif
+
     server_metrics metrics;
 
     json json_webui_settings = json::object();
@@ -759,6 +902,132 @@ private:
 
         llama_batch_free(batch);
     }
+
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+    bool init_halofpx_direct_store() {
+        if (params_base.halofpx_context_store_mode == "off") {
+            return true;
+        }
+        if (params_base.halofpx_context_store_mode != "direct-rw" ||
+            params_base.api_keys.empty() ||
+            params_base.halofpx_context_store_root.empty() ||
+            params_base.halofpx_context_store_key_file.empty() ||
+            params_base.halofpx_context_store_quota_mib <= 0 ||
+            params_base.halofpx_context_store_reserve_mib < 0 ||
+            params_base.halofpx_context_store_max_entries <= 0 ||
+            params_base.halofpx_context_store_max_entries >
+                static_cast<int32_t>(halofpx::context_store_linux_direct_max_entries_limit) ||
+            !halofpx_parse_lower_hex_digest(
+                params_base.halofpx_context_store_compatibility_root,
+                halofpx_compatibility_root)) {
+            SRV_ERR("%s", "invalid HaloFPX direct context-store configuration\n");
+            return false;
+        }
+
+        if (llama_model_is_recurrent(model_tgt) || llama_model_is_hybrid(model_tgt) ||
+            mctx != nullptr || ctx_dft || spec || !params_base.lora_adapters.empty()) {
+            SRV_WRN("%s", "HaloFPX direct context store disabled for an unsupported state profile; inference continues cold\n");
+            halofpx_scope_key.fill(0);
+            return true;
+        }
+
+        if (halofpx_direct_store) {
+            return true;
+        }
+
+        std::array<uint8_t, halofpx::context_store_linux_direct_master_key_bytes> operator_key {};
+        halofpx::context_store_format_digest store_key {};
+        if (!halofpx_read_owner_key(params_base.halofpx_context_store_key_file, operator_key) ||
+            !halofpx::context_store_hmac_sha256(
+                operator_key.data(), operator_key.size(),
+                reinterpret_cast<const uint8_t *>(HALOFPX_SCOPE_KEY_DOMAIN), sizeof(HALOFPX_SCOPE_KEY_DOMAIN),
+                halofpx_scope_key) ||
+            !halofpx::context_store_hmac_sha256(
+                operator_key.data(), operator_key.size(),
+                reinterpret_cast<const uint8_t *>(HALOFPX_STORE_KEY_DOMAIN), sizeof(HALOFPX_STORE_KEY_DOMAIN),
+                store_key)) {
+            halofpx_wipe(operator_key.data(), operator_key.size());
+            halofpx_wipe(store_key.data(), store_key.size());
+            halofpx_scope_key.fill(0);
+            SRV_ERR("%s", "unable to load or derive HaloFPX direct context-store authority\n");
+            return false;
+        }
+        halofpx_wipe(operator_key.data(), operator_key.size());
+
+        halofpx::context_store_linux_direct_root_identity root_identity {};
+        const auto identity_status = halofpx::context_store_linux_direct_inspect_root(
+            params_base.halofpx_context_store_root.c_str(), root_identity);
+        if (identity_status != halofpx::context_store_linux_direct_identity_status::inspected) {
+            halofpx_wipe(store_key.data(), store_key.size());
+            halofpx_scope_key.fill(0);
+            SRV_WRN("%s", "HaloFPX direct context-store root unavailable; inference continues cold\n");
+            return true;
+        }
+
+        auto candidate = std::make_unique<halofpx::context_store_linux_direct>();
+        halofpx::context_store_linux_direct_config config;
+        config.root_path = params_base.halofpx_context_store_root.c_str();
+        config.master_key = store_key.data();
+        config.master_key_size = store_key.size();
+        config.quota_bytes = static_cast<uint64_t>(params_base.halofpx_context_store_quota_mib) * HALOFPX_MIB;
+        config.reserve_bytes = static_cast<uint64_t>(params_base.halofpx_context_store_reserve_mib) * HALOFPX_MIB;
+        config.max_entries = static_cast<size_t>(params_base.halofpx_context_store_max_entries);
+        config.expected_root = root_identity;
+        const auto open_status = halofpx::context_store_linux_direct_open(config, *candidate);
+        halofpx_wipe(store_key.data(), store_key.size());
+        if (open_status != halofpx::context_store_linux_direct_open_status::opened) {
+            halofpx_scope_key.fill(0);
+            SRV_WRN("HaloFPX direct context-store unavailable (%s); inference continues cold\n",
+                halofpx::context_store_linux_direct_open_status_name(open_status));
+            return true;
+        }
+        halofpx_direct_store = std::move(candidate);
+        SRV_INF("HaloFPX direct context store enabled: quota_mib=%d reserve_mib=%d max_entries=%d\n",
+            params_base.halofpx_context_store_quota_mib,
+            params_base.halofpx_context_store_reserve_mib,
+            params_base.halofpx_context_store_max_entries);
+        return true;
+    }
+
+    bool halofpx_profile_for_slot(
+            const server_slot & slot,
+            halofpx::context_store_transformer_profile_v1 & profile,
+            bool require_previous_task) const noexcept {
+        if (require_previous_task) {
+            if (!slot.task_prev ||
+                (slot.task_prev->type != SERVER_TASK_TYPE_COMPLETION &&
+                 slot.task_prev->type != SERVER_TASK_TYPE_INFILL) ||
+                !slot.task_prev->params.lora.empty() ||
+                slot.task_prev->params.res_type != TASK_RESPONSE_TYPE_NONE) {
+                return false;
+            }
+            const auto & parser = slot.task_prev->params.chat_parser_params;
+            if (parser.format != COMMON_CHAT_FORMAT_CONTENT_ONLY ||
+                parser.reasoning_format != COMMON_REASONING_FORMAT_NONE ||
+                parser.reasoning_in_content || !parser.generation_prompt.empty() ||
+                parser.parse_tool_calls || !parser.parser.empty()) {
+                return false;
+            }
+            const auto & sampling = slot.task_prev->params.sampling;
+            if (sampling.temp > 0.0f || !sampling.grammar.empty() ||
+                !sampling.logit_bias.empty() || !sampling.logit_bias_eog.empty() ||
+                sampling.mirostat != 0 || sampling.adaptive_target >= 0.0f ||
+                sampling.penalty_repeat != 1.0f || sampling.penalty_freq != 0.0f ||
+                sampling.penalty_present != 0.0f || sampling.dry_multiplier != 0.0f ||
+                !sampling.generation_prompt.empty() ||
+                sampling.reasoning_budget_tokens >= 0 || !sampling.reasoning_budget_start.empty() ||
+                !sampling.reasoning_budget_end.empty() || !sampling.reasoning_budget_forced.empty()) {
+                return false;
+            }
+        }
+        profile.target_only = true;
+        profile.world_size = 1;
+        profile.rank = 0;
+        profile.architecture = halofpx::context_store_transformer_architecture_v1::transformer;
+        profile.greedy_memoryless_sampling = true;
+        return halofpx::context_store_transformer_profile_v1_is_admitted(profile);
+    }
+#endif
 
     void handle_sleeping_state(bool new_state) {
         GGML_ASSERT(sleeping != new_state);
@@ -1077,6 +1346,12 @@ private:
             SRV_INF("%s", "prompt cache is disabled - use `--cache-ram N` or `--cache-disk PATH` to enable it\n");
         }
         SRV_INF("%s", "for more info see https://github.com/ggml-org/llama.cpp/pull/16391\n");
+
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+        if (!init_halofpx_direct_store()) {
+            return false;
+        }
+#endif
 
         if (!params_base.model_alias.empty()) {
             // backward compat: use first alias as model name
@@ -2119,6 +2394,110 @@ private:
                     }
                     queue_results.send(std::move(res));
                 } break;
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+            case SERVER_TASK_TYPE_HALOFPX_DIRECT_PUBLISH:
+            case SERVER_TASK_TYPE_HALOFPX_DIRECT_RESTORE:
+                {
+                    const bool publish = task.type == SERVER_TASK_TYPE_HALOFPX_DIRECT_PUBLISH;
+                    const int id_slot = task.slot_action.id_slot;
+                    server_slot * slot = get_slot_by_id(id_slot);
+                    if (slot == nullptr) {
+                        send_error(task, "Invalid slot ID", ERROR_TYPE_INVALID_REQUEST);
+                        break;
+                    }
+                    if (!halofpx_direct_store || !halofpx_direct_store->available()) {
+                        send_error(task, "HaloFPX direct context store is unavailable", ERROR_TYPE_NOT_SUPPORTED);
+                        break;
+                    }
+                    if (slot->is_processing()) {
+                        queue_tasks.defer(std::move(task));
+                        break;
+                    }
+                    if ((publish && slot->prompt.tokens.empty()) ||
+                        (!publish && !slot->prompt.tokens.empty())) {
+                        send_error(task,
+                            publish ? "Cannot publish an empty slot" : "Restore requires an empty slot",
+                            ERROR_TYPE_INVALID_REQUEST);
+                        break;
+                    }
+
+                    halofpx::context_store_transformer_profile_v1 profile;
+                    if (!halofpx_profile_for_slot(*slot, profile, publish)) {
+                        send_error(task, "Slot state is outside the admitted HaloFPX canary profile", ERROR_TYPE_NOT_SUPPORTED);
+                        break;
+                    }
+                    halofpx::context_store_identity identity;
+                    identity.compatibility_root = task.slot_action.compatibility;
+                    identity.scope_namespace = task.slot_action.scope;
+                    identity.checkpoint_lineage_id = task.slot_action.session;
+                    identity.policy_epoch = 1;
+                    const halofpx::context_store_transformer_limits_v1 limits {
+                        halofpx::context_store_linux_direct_max_state_bytes,
+                        halofpx::context_store_linux_direct_max_tokens,
+                    };
+                    const int64_t t_start = ggml_time_us();
+                    auto result = std::make_unique<server_task_result_halofpx_direct>();
+                    result->id = task.id;
+                    result->id_slot = id_slot;
+                    result->action = publish ? "publish" : "restore";
+                    result->session = halofpx_digest_hex(task.slot_action.session);
+
+                    if (publish) {
+                        const llama_tokens & tokens = slot->prompt.tokens.get_tokens();
+                        auto capture = halofpx::context_store_capture_transformer_state_v1(
+                            ctx_tgt, slot->id, tokens.data(), tokens.size(), identity, profile, limits);
+                        if (capture.status != halofpx::context_store_transformer_status_v1::captured) {
+                            result->status = halofpx::context_store_transformer_status_v1_name(capture.status);
+                        } else {
+                            result->n_tokens = capture.snapshot.tokens.size();
+                            result->n_bytes = capture.snapshot.state.size();
+                            const auto status = halofpx_direct_store->publish(
+                                task.slot_action.scope,
+                                task.slot_action.session,
+                                task.slot_action.compatibility,
+                                capture.snapshot.tokens.data(), capture.snapshot.tokens.size(),
+                                capture.snapshot.state.data(), capture.snapshot.state.size());
+                            result->status = halofpx::context_store_linux_direct_publish_status_name(status);
+                            result->published = status == halofpx::context_store_linux_direct_publish_status::published;
+                            halofpx_wipe(capture.snapshot.state.data(), capture.snapshot.state.size());
+                        }
+                    } else {
+                        halofpx::context_store_linux_direct_value stored;
+                        const auto lookup = halofpx_direct_store->lookup(
+                            task.slot_action.scope,
+                            task.slot_action.session,
+                            task.slot_action.compatibility,
+                            stored);
+                        result->status = halofpx::context_store_linux_direct_lookup_status_name(lookup);
+                        if (lookup == halofpx::context_store_linux_direct_lookup_status::hit) {
+                            halofpx::context_store_transformer_snapshot_v1 snapshot;
+                            snapshot.compatibility_identity = identity;
+                            snapshot.profile = profile;
+                            snapshot.tokens.assign(stored.tokens.begin(), stored.tokens.end());
+                            snapshot.state = std::move(stored.state);
+                            result->n_tokens = snapshot.tokens.size();
+                            result->n_bytes = snapshot.state.size();
+                            const auto status = halofpx::context_store_restore_transformer_state_v1(
+                                ctx_tgt, slot->id, snapshot,
+                                snapshot.tokens.data(), snapshot.tokens.size(),
+                                identity, profile, limits);
+                            halofpx_wipe(snapshot.state.data(), snapshot.state.size());
+                            if (status == halofpx::context_store_transformer_status_v1::restored) {
+                                slot->prompt.tokens.insert(snapshot.tokens);
+                                result->hit = true;
+                                result->status = "hit";
+                            } else {
+                                // The llama restore boundary may partially mutate on failure.
+                                // Clearing the empty destination makes recomputation authoritative.
+                                slot->prompt_clear(false);
+                                result->status = halofpx::context_store_transformer_status_v1_name(status);
+                            }
+                        }
+                    }
+                    result->t_ms = (ggml_time_us() - t_start) / 1000.0;
+                    queue_results.send(std::move(result));
+                } break;
+#endif
             case SERVER_TASK_TYPE_SLOT_SAVE:
                 {
                     if (!check_no_mtmd(task.id)) {
@@ -4251,6 +4630,28 @@ void server_routes::init_routes() {
 
     this->post_slots = [this](const server_http_req & req) {
         auto res = create_response();
+
+        std::string action = req.get_param("action");
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+        if (action == "halofpx-publish") {
+            std::string id_slot_str = req.get_param("id_slot");
+            try {
+                return handle_halofpx_direct(req, std::stoi(id_slot_str), true);
+            } catch (const std::exception &) {
+                res->error(format_error_response("Invalid slot ID", ERROR_TYPE_INVALID_REQUEST));
+                return res;
+            }
+        }
+        if (action == "halofpx-restore") {
+            std::string id_slot_str = req.get_param("id_slot");
+            try {
+                return handle_halofpx_direct(req, std::stoi(id_slot_str), false);
+            } catch (const std::exception &) {
+                res->error(format_error_response("Invalid slot ID", ERROR_TYPE_INVALID_REQUEST));
+                return res;
+            }
+        }
+#endif
         if (params.slot_save_path.empty()) {
             res->error(format_error_response("This server does not support slots action. Start it with `--slot-save-path`", ERROR_TYPE_NOT_SUPPORTED));
             return res;
@@ -4265,8 +4666,6 @@ void server_routes::init_routes() {
             res->error(format_error_response("Invalid slot ID", ERROR_TYPE_INVALID_REQUEST));
             return res;
         }
-
-        std::string action = req.get_param("action");
 
         if (action == "save") {
             return handle_slots_save(req, id_slot);
@@ -4921,6 +5320,85 @@ std::unique_ptr<server_res_generator> server_routes::handle_slots_erase(const se
     res->ok(result->to_json());
     return res;
 }
+
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+std::unique_ptr<server_res_generator> server_routes::handle_halofpx_direct(
+        const server_http_req & req, int id_slot, bool publish) {
+    auto res = create_response();
+    if (params.halofpx_context_store_mode != "direct-rw" ||
+        !ctx_server.halofpx_direct_store || !ctx_server.halofpx_direct_store->available()) {
+        res->error(format_error_response(
+            "HaloFPX direct context store is not enabled", ERROR_TYPE_NOT_SUPPORTED));
+        return res;
+    }
+
+    halofpx::context_store_format_digest session {};
+    try {
+        const json request_data = json::parse(req.body);
+        if (!request_data.is_object() || request_data.size() != 1 ||
+            !request_data.contains("session") || !request_data.at("session").is_string() ||
+            !halofpx_parse_lower_hex_digest(request_data.at("session").get<std::string>(), session)) {
+            res->error(format_error_response(
+                "Request must contain exactly one lowercase 256-bit session ID",
+                ERROR_TYPE_INVALID_REQUEST));
+            return res;
+        }
+    } catch (const std::exception &) {
+        res->error(format_error_response("Invalid JSON request", ERROR_TYPE_INVALID_REQUEST));
+        return res;
+    }
+
+    std::string principal = halofpx_authenticated_principal(req, params.api_keys);
+    if (principal.empty()) {
+        res->error(format_error_response("Authenticated private scope is required", ERROR_TYPE_AUTHENTICATION));
+        return res;
+    }
+    halofpx::context_store_scope_policy_v1 scope_policy;
+    scope_policy.policy_key = {
+        ctx_server.halofpx_scope_key.data(), ctx_server.halofpx_scope_key.size()};
+    scope_policy.policy_key_id = {
+        reinterpret_cast<const uint8_t *>(HALOFPX_POLICY_KEY_ID), sizeof(HALOFPX_POLICY_KEY_ID) - 1};
+    scope_policy.authentication_issuer = {
+        reinterpret_cast<const uint8_t *>(HALOFPX_AUTHENTICATION_ISSUER), sizeof(HALOFPX_AUTHENTICATION_ISSUER) - 1};
+    scope_policy.authenticated_principal = {
+        reinterpret_cast<const uint8_t *>(principal.data()), principal.size()};
+    scope_policy.security_domain = {
+        reinterpret_cast<const uint8_t *>(HALOFPX_SECURITY_DOMAIN), sizeof(HALOFPX_SECURITY_DOMAIN) - 1};
+    scope_policy.policy_epoch = 1;
+    scope_policy.compatibility_root = ctx_server.halofpx_compatibility_root;
+    const auto scope = halofpx::context_store_resolve_private_scope_v1(scope_policy);
+    halofpx_wipe(principal.data(), principal.size());
+    if (!scope.resolved()) {
+        res->error(format_error_response("Authenticated private scope was rejected", ERROR_TYPE_AUTHENTICATION));
+        return res;
+    }
+
+    auto & rd = res->rd;
+    {
+        server_task task(publish ? SERVER_TASK_TYPE_HALOFPX_DIRECT_PUBLISH :
+                                   SERVER_TASK_TYPE_HALOFPX_DIRECT_RESTORE);
+        task.id = rd.get_new_id();
+        task.slot_action.id_slot = id_slot;
+        task.slot_action.scope = scope.namespace_id;
+        task.slot_action.session = session;
+        task.slot_action.compatibility = ctx_server.halofpx_compatibility_root;
+        rd.post_task(std::move(task));
+    }
+
+    auto result = rd.next(req.should_stop);
+    if (!result) {
+        GGML_ASSERT(req.should_stop());
+        return res;
+    }
+    if (result->is_error()) {
+        res->error(result->to_json());
+        return res;
+    }
+    GGML_ASSERT(dynamic_cast<server_task_result_halofpx_direct *>(result.get()) != nullptr);
+    res->ok(result->to_json());
+    return res;
+}
+#endif
 
 std::unique_ptr<server_res_generator> server_routes::handle_embeddings_impl(const server_http_req & req, task_response_type res_type) {
     auto res = create_response();

@@ -653,6 +653,17 @@ struct common_params {
     // server creates and owns a private per-process directory below this path.
     std::string cache_disk_path;
 
+    // HaloFPX direct-session persistent canary. These fields are inert unless
+    // the server is compiled with HALOFPX_CONTEXT_STORE_CANARY and the explicit
+    // mode is changed from "off".
+    std::string halofpx_context_store_mode = "off";
+    std::string halofpx_context_store_root;
+    std::string halofpx_context_store_key_file;
+    std::string halofpx_context_store_compatibility_root;
+    int32_t halofpx_context_store_quota_mib = 0;
+    int32_t halofpx_context_store_reserve_mib = 65536;
+    int32_t halofpx_context_store_max_entries = 8;
+
     // router server configs
     std::string models_dir    = ""; // directory containing models for the router server
     std::string models_preset = ""; // directory containing model presets for the router server

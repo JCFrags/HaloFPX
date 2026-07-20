@@ -1379,6 +1379,76 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
             params.cache_disk_limit_mib = value;
         }
     ).set_env("LLAMA_ARG_CACHE_DISK_LIMIT").set_examples({LLAMA_EXAMPLE_SERVER}));
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+    add_opt(common_arg(
+        {"--halofpx-context-store-mode"}, "off|direct-rw",
+        "experimental direct-session HaloFPX persistent-cache canary (default: off); "
+        "no automatic lookup, prefix matching, shared scope, or anonymous access",
+        [](common_params & params, const std::string & value) {
+            if (value != "off" && value != "direct-rw") {
+                throw std::invalid_argument("HaloFPX context-store mode must be off or direct-rw");
+            }
+            params.halofpx_context_store_mode = value;
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+    add_opt(common_arg(
+        {"--halofpx-context-store-root"}, "PATH",
+        "precreated owner-only root for the experimental direct-session canary",
+        [](common_params & params, const std::string & value) {
+            if (value.empty()) {
+                throw std::invalid_argument("HaloFPX context-store root must not be empty");
+            }
+            params.halofpx_context_store_root = value;
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+    add_opt(common_arg(
+        {"--halofpx-context-store-key-file"}, "PATH",
+        "owner-only file containing the exact 32-byte canary scope/authentication key",
+        [](common_params & params, const std::string & value) {
+            if (value.empty()) {
+                throw std::invalid_argument("HaloFPX context-store key file must not be empty");
+            }
+            params.halofpx_context_store_key_file = value;
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+    add_opt(common_arg(
+        {"--halofpx-context-store-compatibility-root"}, "HEX64",
+        "exact lowercase SHA-256 compatibility root for the restricted canary runtime tuple",
+        [](common_params & params, const std::string & value) {
+            params.halofpx_context_store_compatibility_root = value;
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+    add_opt(common_arg(
+        {"--halofpx-context-store-quota"}, "N",
+        "committed-byte quota in MiB for the experimental canary (required for direct-rw)",
+        [](common_params & params, int value) {
+            if (value <= 0) {
+                throw std::invalid_argument("HaloFPX context-store quota must be positive");
+            }
+            params.halofpx_context_store_quota_mib = value;
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+    add_opt(common_arg(
+        {"--halofpx-context-store-reserve"}, "N",
+        string_format("minimum filesystem reserve in MiB (default: %d)", params.halofpx_context_store_reserve_mib),
+        [](common_params & params, int value) {
+            if (value < 0) {
+                throw std::invalid_argument("HaloFPX context-store reserve must be non-negative");
+            }
+            params.halofpx_context_store_reserve_mib = value;
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+    add_opt(common_arg(
+        {"--halofpx-context-store-max-entries"}, "N",
+        string_format("maximum direct-session entries (default: %d, maximum: 64)", params.halofpx_context_store_max_entries),
+        [](common_params & params, int value) {
+            if (value <= 0 || value > 64) {
+                throw std::invalid_argument("HaloFPX context-store max entries must be between 1 and 64");
+            }
+            params.halofpx_context_store_max_entries = value;
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+#endif
     add_opt(common_arg(
         {"-kvu", "--kv-unified"},
         {"-no-kvu", "--no-kv-unified"},

@@ -30,3 +30,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0024](0024-portable-registry-lab-sticky-quarantine-publication.md): portable registry-lab sticky-quarantine publication
 - [ADR-0025](0025-linux-registry-lab-preinitialization-primitives.md): Linux registry-lab pre-initialization primitives
 - [ADR-0026](0026-linux-registry-lab-initialization-discard-only.md): Linux registry-lab initialization with discard-only recovery
+- [ADR-0027](0027-default-off-direct-session-canary.md): default-off private direct-session persistent canary

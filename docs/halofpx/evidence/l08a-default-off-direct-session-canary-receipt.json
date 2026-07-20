@@ -1,0 +1,88 @@
+{
+  "schema": "halofpx.l08a-default-off-direct-session-canary.v1",
+  "date": "2026-07-19",
+  "status": "qualified_independent_review_accepted_laboratory_only",
+  "parent_commit": "d0deef150d5406aa3ece6fc071abf295fc992434",
+  "parent_tree": "041ed734314569841ad881a4d3817c7deae6eab",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "default-off Linux authenticated direct-session disposable-root laboratory canary; not L08 or production promotion",
+  "build": {
+    "node": "nimo-1",
+    "build_type": "Release",
+    "backend": "CPU",
+    "canary_option": "ON",
+    "control_option": "OFF",
+    "hip": false,
+    "vulkan": false,
+    "curl": false,
+    "canary_server_sha256": "8cd0afdb4e286d0ecb69b44d399259ed7be5589eb9610eb82e4c4dbf163b4652",
+    "off_server_sha256": "904564af0d482651e35b83d77640ed6db4cc499f8817ae42b14ce7de4d723b7d"
+  },
+  "qualification": {
+    "focused_contracts": {"passed": 5, "failed": 0},
+    "persistent_server_canary": {"passed": 1, "failed": 0, "seconds": 0.62},
+    "inherited_slot_save_restore": {"passed": 1, "failed": 0, "deselected": 1},
+    "feature_off_contract": {"passed": 1, "failed": 0},
+    "off_l02_contract": {"passed": 1, "failed": 0},
+    "off_help_surface_matches": 0,
+    "effective_slot_context": 128,
+    "compatibility_root": "fb420ed96d9fac65e76e8db9c4836a4da0ca529320965409e55d7862635444f3",
+    "cold_content_sha256": "d4befa4c08b0bdd9023bfa965064be3c3a8eda8804174fc74c286b2a66710860",
+    "restart_hit": true,
+    "wrong_scope_miss": true,
+    "corruption_miss": true,
+    "safe_recomputation_equal": true,
+    "unsupported_profile_rejected": true,
+    "startup_store_rejection_continues_cold": true
+  },
+  "evidence": {
+    "node": "nimo-1",
+    "bundle_path": "/var/tmp/halofpx-l08a-canary-evidence-20260719-v3/halofpx-l08a-canary-nimo1-20260719.tar.zst",
+    "bundle_size_bytes": 7507,
+    "bundle_sha256": "fdef5e5e2f61f6975341db18b913b41af23f2305fcb937f0c49dc056f7605409",
+    "authority_key_in_bundle": false,
+    "store_object_in_bundle": false
+  },
+  "publication_limit": {
+    "classification": "laboratory_only",
+    "protected_anchor_integrated": false,
+    "replay_high_water_integrated": false,
+    "l05_reconciliation_integrated": false,
+    "l08_promoted": false,
+    "persistent_writes_enabled_by_default": false
+  },
+  "deferred_risk_matrix": [
+    "exhaustive crash-point and filesystem permutations",
+    "disk-full and reserve-exhaustion permutations beyond provider contract tests",
+    "broad concurrency and stale-lock permutations",
+    "upgrade, rollback, and old-binary coexistence",
+    "multi-tenant shared reuse",
+    "two-node rank-aware restore and recovery"
+  ],
+  "excluded_attempts": [
+    "A pytest invocation inherited the repository-wide fixture and failed before starting HaloFPX; the corrected isolated unit invocation passed.",
+    "An evidence-log rerun selected unbuilt unrelated HaloFPX executables with a broad regex; the exact five-test selection passed and is retained."
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "new_dependency": false,
+    "direct_cherry_pick_roster_changed": false,
+    "notice_change_required": false,
+    "sbom_dependency_change_required": false
+  },
+  "review": {
+    "verdict": "ACCEPT_L08A_LABORATORY_ONLY",
+    "l08_promoted": false,
+    "production_persistence_promoted": false,
+    "mandatory_follow_on": "protected anchor and generation, replay authority, and publication reconciliation"
+  },
+  "nonclaims": [
+    "No L08, production-persistence, durability-under-power-loss, replay-protection, or persistent-write enablement claim is made.",
+    "No inference throughput, latency, memory, zero-regression, HIP, Vulkan, ROCmFPX-weight, or distributed performance claim is made.",
+    "No deployed service, WebUI, reference clone, model file, remote, or release changed."
+  ]
+}

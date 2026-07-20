@@ -3,6 +3,7 @@
 #include "common.h"
 #include "llama.h"
 
+#include <array>
 #include <string>
 #include <unordered_set>
 #include <list>
@@ -24,6 +25,10 @@ enum server_task_type {
     SERVER_TASK_TYPE_SLOT_SAVE,
     SERVER_TASK_TYPE_SLOT_RESTORE,
     SERVER_TASK_TYPE_SLOT_ERASE,
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+    SERVER_TASK_TYPE_HALOFPX_DIRECT_PUBLISH,
+    SERVER_TASK_TYPE_HALOFPX_DIRECT_RESTORE,
+#endif
     SERVER_TASK_TYPE_GET_LORA,
     SERVER_TASK_TYPE_SET_LORA,
 };
@@ -159,6 +164,11 @@ struct server_task {
         int id_slot;
         std::string filename;
         std::string filepath;
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+        std::array<uint8_t, 32> scope {};
+        std::array<uint8_t, 32> session {};
+        std::array<uint8_t, 32> compatibility {};
+#endif
     };
     slot_action slot_action;
 
@@ -549,6 +559,22 @@ struct server_task_result_slot_erase : server_task_result {
 
     virtual json to_json() override;
 };
+
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+struct server_task_result_halofpx_direct : server_task_result {
+    std::string action;
+    std::string status;
+    std::string session;
+    int id_slot = -1;
+    size_t n_tokens = 0;
+    size_t n_bytes = 0;
+    double t_ms = 0.0;
+    bool hit = false;
+    bool published = false;
+
+    virtual json to_json() override;
+};
+#endif
 
 struct server_task_result_get_lora : server_task_result {
     struct lora {

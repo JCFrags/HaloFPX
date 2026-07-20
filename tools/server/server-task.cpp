@@ -1943,6 +1943,24 @@ json server_task_result_slot_erase::to_json() {
     };
 }
 
+#if defined(HALOFPX_CONTEXT_STORE_CANARY)
+json server_task_result_halofpx_direct::to_json() {
+    return json {
+        { "id_slot",   id_slot },
+        { "action",    action },
+        { "status",    status },
+        { "session",   session },
+        { "hit",       hit },
+        { "published", published },
+        { "n_tokens",  n_tokens },
+        { "n_bytes",   n_bytes },
+        { "timings", {
+            { "operation_ms", t_ms }
+        }},
+    };
+}
+#endif
+
 //
 // server_task_result_get_lora
 //

@@ -1,5 +1,12 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
+option(HALOFPX_CONTEXT_STORE_CANARY
+    "Compile the experimental Linux direct-session persistent-cache canary"
+    OFF)
+if (HALOFPX_CONTEXT_STORE_CANARY AND (NOT UNIX OR APPLE))
+    message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_CANARY is supported only on Linux")
+endif()
+
 # Offline-only L04 manifest parser. This target is deliberately not linked into
 # server-context or llama-server.
 add_library(halofpx-context-store-format STATIC EXCLUDE_FROM_ALL
@@ -25,6 +32,33 @@ target_link_libraries(halofpx-context-store-auth
     PUBLIC halofpx-context-store-format
     PRIVATE halofpx-context-store-sha256)
 target_compile_features(halofpx-context-store-auth PRIVATE cxx_std_17)
+
+# L06 pure trusted-scope resolver. Runtime linkage remains separately gated by
+# HALOFPX_CONTEXT_STORE_CANARY below.
+add_library(halofpx-context-store-scope STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-scope.cpp
+    halofpx-context-store-scope.h
+)
+target_link_libraries(halofpx-context-store-scope PUBLIC halofpx-context-store-auth)
+target_compile_features(halofpx-context-store-scope PRIVATE cxx_std_17)
+
+# L07 restricted target-only transformer sequence-state codec. It remains
+# excluded until the direct-session canary is explicitly compiled.
+add_library(halofpx-context-store-state-transformer-v1 STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-state-transformer-v1.cpp
+    halofpx-context-store-state-transformer-v1.h
+)
+target_link_libraries(halofpx-context-store-state-transformer-v1 PUBLIC llama)
+target_compile_features(halofpx-context-store-state-transformer-v1 PRIVATE cxx_std_17)
+
+# L08 bounded Linux direct-ID store. It has no automatic discovery or product
+# edge unless the compile-time canary option is explicitly enabled.
+add_library(halofpx-context-store-linux-direct STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-linux-direct.cpp
+    halofpx-context-store-linux-direct.h
+)
+target_link_libraries(halofpx-context-store-linux-direct PUBLIC halofpx-context-store-auth)
+target_compile_features(halofpx-context-store-linux-direct PRIVATE cxx_std_17)
 
 # Offline-only L05e authenticated protected-anchor codec. It performs no I/O
 # and is not linked into server-context, the publication coordinator, or server.
@@ -559,6 +593,15 @@ target_include_directories(${TARGET} PRIVATE ../mtmd)
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/examples/diffusion)
 target_link_libraries(${TARGET} PUBLIC llama-common mtmd ${CMAKE_THREAD_LIBS_INIT})
+
+if (HALOFPX_CONTEXT_STORE_CANARY)
+    target_compile_definitions(llama-common PUBLIC HALOFPX_CONTEXT_STORE_CANARY=1)
+    target_compile_definitions(${TARGET} PUBLIC HALOFPX_CONTEXT_STORE_CANARY=1)
+    target_link_libraries(${TARGET} PRIVATE
+        halofpx-context-store-scope
+        halofpx-context-store-state-transformer-v1
+        halofpx-context-store-linux-direct)
+endif()
 
 
 # llama-server executable

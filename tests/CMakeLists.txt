@@ -165,6 +165,28 @@ target_link_libraries(test-halofpx-context-store-auth PRIVATE halofpx-context-st
 llama_test(test-halofpx-context-store-auth)
 set_property(TEST test-halofpx-context-store-auth PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-context-store-scope.cpp)
+target_include_directories(test-halofpx-context-store-scope PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-scope PRIVATE halofpx-context-store-scope)
+llama_test(test-halofpx-context-store-scope)
+set_property(TEST test-halofpx-context-store-scope PROPERTY LABELS "main;halofpx")
+
+llama_build(test-halofpx-context-store-state-transformer-v1.cpp)
+target_include_directories(test-halofpx-context-store-state-transformer-v1 PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-state-transformer-v1 PRIVATE
+    halofpx-context-store-state-transformer-v1)
+llama_test(test-halofpx-context-store-state-transformer-v1)
+set_property(TEST test-halofpx-context-store-state-transformer-v1 PROPERTY LABELS "main;halofpx")
+
+if (UNIX AND NOT APPLE)
+    llama_build(test-halofpx-context-store-linux-direct.cpp)
+    target_include_directories(test-halofpx-context-store-linux-direct PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+    target_link_libraries(test-halofpx-context-store-linux-direct PRIVATE
+        halofpx-context-store-linux-direct)
+    llama_test(test-halofpx-context-store-linux-direct)
+    set_property(TEST test-halofpx-context-store-linux-direct PROPERTY LABELS "main;halofpx")
+endif()
+
 add_test(
     NAME test-halofpx-context-store-auth-contract
     COMMAND ${CMAKE_COMMAND}
