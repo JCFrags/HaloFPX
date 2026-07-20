@@ -308,6 +308,11 @@ struct llama_layer {
     struct ggml_tensor * ffn_gate_exps     = nullptr;
     struct ggml_tensor * ffn_down_exps     = nullptr;
     struct ggml_tensor * ffn_up_exps       = nullptr;
+    // HaloFPX P06d: default-off one-layer shadow copies on the RPC peer.
+    // These are placement-only until the MiniMax shadow graph is admitted.
+    struct ggml_tensor * ffn_gate_exps_shadow_peer = nullptr;
+    struct ggml_tensor * ffn_down_exps_shadow_peer = nullptr;
+    struct ggml_tensor * ffn_up_exps_shadow_peer   = nullptr;
     struct ggml_tensor * ffn_gate_up_exps  = nullptr;
     struct ggml_tensor * ffn_gate_inp_b    = nullptr;
     struct ggml_tensor * ffn_gate_exps_b   = nullptr;
@@ -710,6 +715,16 @@ struct llama_model_base : public llama_model {
     virtual ~llama_model_base() = default;
 
     ggml_tensor * create_tensor(llama_model_loader & ml, const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags);
+
+    ggml_tensor * create_tensor_on_device(
+            llama_model_loader & ml,
+            const LLM_TN_IMPL & tn,
+            const std::initializer_list<int64_t> & ne,
+            int flags,
+            ggml_backend_dev_t dev);
+
+    // Keep duplicated implementation-only tensors out of public name lookup.
+    void exclude_tensor_from_lookup(const ggml_tensor * tensor);
 
     // convenience overload of create_tensor that doesn't require llama_model_loader
     ggml_tensor * create_tensor(const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags);

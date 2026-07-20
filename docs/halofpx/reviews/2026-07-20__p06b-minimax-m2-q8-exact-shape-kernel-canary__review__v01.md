@@ -1,5 +1,10 @@
 # P06b MiniMax-M2 Q8 exact-shape kernel canary independent review
 
+Subsequent P06d exact-artifact intake corrected applicability: the pinned
+artifact's expert tensors are Q6_0_ROCMFPX. This review's Q8 result is a
+synthetic backend variant at the pinned geometry, not qualification of the
+artifact's expert tensor type.
+
 Status: **ACCEPT; no P1/P2 correction.**
 
 The review confirmed that the gated roster is absent when

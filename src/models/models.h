@@ -1781,6 +1781,7 @@ struct llama_model_apertus : public llama_model_base {
 
 struct llama_model_minimax_m2 : public llama_model_base {
     llama_model_minimax_m2(const struct llama_model_params & params) : llama_model_base(params) {}
+    int halofpx_expert_shadow_layer = -1;
     void load_arch_hparams(llama_model_loader & ml) override;
     void load_arch_tensors(llama_model_loader & ml) override;
 

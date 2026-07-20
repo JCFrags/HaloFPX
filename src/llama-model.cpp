@@ -977,6 +977,7 @@ struct llama_model::impl {
     std::vector<layer_dev> dev_layer;
 
     bool has_tensor_overrides;
+    std::vector<const ggml_tensor *> tensors_excluded_from_lookup;
 };
 
 llama_model::llama_model(const llama_model_params & params) : params(params), pimpl(std::make_unique<impl>()) {
@@ -1423,6 +1424,10 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
     // populate tensors_by_name
     for (auto & [_, ctx_ptr] : ml.ctx_map) {
         for (auto * cur = ggml_get_first_tensor(ctx_ptr.get()); cur != NULL; cur = ggml_get_next_tensor(ctx_ptr.get(), cur)) {
+            if (std::find(pimpl->tensors_excluded_from_lookup.begin(), pimpl->tensors_excluded_from_lookup.end(), cur) !=
+                    pimpl->tensors_excluded_from_lookup.end()) {
+                continue;
+            }
             tensors_by_name.emplace_back(ggml_get_name(cur), cur);
         }
     }
@@ -1570,6 +1575,45 @@ ggml_tensor * llama_model_base::create_tensor(llama_model_loader & ml, const LLM
     return ml.create_tensor(
         hparams, &pimpl->cpu_buft_list, pimpl->dev_input.buft_list, pimpl->dev_output.buft_list, buft_list_layer,
         tn, ne, flags);
+}
+
+ggml_tensor * llama_model_base::create_tensor_on_device(
+        llama_model_loader & ml,
+        const LLM_TN_IMPL & tn,
+        const std::initializer_list<int64_t> & ne,
+        const int flags,
+        ggml_backend_dev_t dev) {
+    if (pimpl->has_tensor_overrides) {
+        throw std::runtime_error("create_tensor_on_device: tensor buffer overrides are incompatible with strict placement");
+    }
+    const auto it = pimpl->gpu_buft_list.find(dev);
+    if (it == pimpl->gpu_buft_list.end()) {
+        throw std::runtime_error(format(
+                "create_tensor_on_device: device %s is not an admitted model device",
+                dev == nullptr ? "(null)" : ggml_backend_dev_name(dev)));
+    }
+
+    buft_list_t strict_buft_list;
+    for (const auto & [listed_dev, buft] : it->second) {
+        if (listed_dev == dev && ggml_backend_buft_get_device(buft) == dev) {
+            strict_buft_list.emplace_back(listed_dev, buft);
+        }
+    }
+    if (strict_buft_list.empty()) {
+        throw std::runtime_error(format(
+                "create_tensor_on_device: device %s has no strict device-owned buffer type",
+                ggml_backend_dev_name(dev)));
+    }
+    return ml.create_tensor(
+        hparams, &pimpl->cpu_buft_list, pimpl->dev_input.buft_list, pimpl->dev_output.buft_list, &strict_buft_list,
+        tn, ne, flags);
+}
+
+void llama_model_base::exclude_tensor_from_lookup(const ggml_tensor * tensor) {
+    if (tensor == nullptr) {
+        throw std::runtime_error("exclude_tensor_from_lookup: tensor must not be null");
+    }
+    pimpl->tensors_excluded_from_lookup.push_back(tensor);
 }
 
 std::string llama_model::arch_name() const {

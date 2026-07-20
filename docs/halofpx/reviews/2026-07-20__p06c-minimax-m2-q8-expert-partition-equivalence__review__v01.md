@@ -1,5 +1,10 @@
 # P06c MiniMax-M2 Q8 expert-partition equivalence independent review
 
+Subsequent P06d exact-artifact intake corrected applicability: the pinned
+artifact's expert tensors are Q6_0_ROCMFPX. This review covers synthetic Q8
+partition mechanics at the pinned shape; it does not prove primary-artifact
+Q6 partition equivalence.
+
 Status: **ACCEPT; no P1/P2 correction.**
 
 The review confirmed correct full-versus-two-rank graph semantics: contiguous

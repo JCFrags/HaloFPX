@@ -64,12 +64,13 @@ All manifest entries verify.
 ## Boundary and next step
 
 P06a proves only ownership, remapping, masking, fail-closed admission, and
-two-rank partial addition. It does not yet execute Q8_0_ROCMFPX expert kernels,
+two-rank partial addition. It does not yet execute ROCmFPX expert kernels,
 prove local/remote overlap, load the 160 GB model through expert placement, or
-claim a speedup. P06b must add an isolated one-layer `MUL_MAT_ID` graph using
-the pinned model's 3072 x 1536 x 192 expert geometry and compare unsplit versus
-partitioned outputs before any server runtime seam opens. Only then may a
-default-off exact-model two-node canary be attempted.
+claim a speedup. P06b and P06c subsequently exercised a synthetic
+Q8_0_ROCMFPX variant at the model's 3072 x 1536 x 192 geometry. P06d exact
+artifact intake established that the primary model's expert tensors are
+Q6_0_ROCMFPX, so the Q8 milestones are backend and partition-mechanics
+evidence rather than primary-artifact type qualification.
 
 No donor code, GPL llama-ai code, CachyLLama code, dependency, model mutation,
 WebUI, persistent write, remote, deployment, or reference-clone change entered

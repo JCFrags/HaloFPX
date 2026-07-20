@@ -2,6 +2,12 @@
 
 Status: **gfx1151 kernel shapes qualified; partition equivalence remains closed**
 
+Correction from P06d exact-artifact intake: the pinned 160 GB primary model's
+gate, down, and up expert tensors are `Q6_0_ROCMFPX`, not
+`Q8_0_ROCMFPX`. P06b is a synthetic Q8 backend-variant qualification at the
+primary model's exact expert geometry. It does not qualify the primary
+artifact's expert tensor type.
+
 P06b qualifies the inherited ROCm `MUL_MAT_ID` path at the exact expert
 projection geometry needed by the pinned MiniMax-M2.7 primary workload. The
 cases exist only when `HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY=ON`; the
@@ -47,13 +53,14 @@ all manifest entries verify.
 ## Boundary and next step
 
 P06b establishes that the inherited gfx1151 backend supports and correctly
-executes the full 192-expert Q8_0_ROCMFPX projection tensors at the primary
-model's exact shapes. It does not split experts, compare full versus
+executes full 192-expert Q8_0_ROCMFPX projection tensors at the primary
+model's exact shapes. It does not establish that the pinned artifact uses Q8,
+split experts, compare full versus
 rank-partitioned output, prove local/remote overlap, load the pinned 160 GB
 artifact, change KV ownership, or claim server performance. The broader P06a
-next gate was deliberately split: P06b qualified the expensive exact kernels;
-P06c must now prove unsplit-versus-96-expert partition equivalence before a
-default-off two-node runtime canary may open.
+gate was deliberately split: P06b qualified the synthetic Q8 kernels, P06c
+subsequently proved Q8 partition equivalence, and P06d qualified exact-artifact
+Q6 peer-data placement. Q6 partition compute remains closed.
 
 The known-good nimo-2 worker and nimo-1 server were stopped in dependency order
 for the isolated GPU run and restarted worker-first afterward. Both returned

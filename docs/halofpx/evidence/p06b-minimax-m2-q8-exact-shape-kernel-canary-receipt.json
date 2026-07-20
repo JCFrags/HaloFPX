@@ -1,7 +1,7 @@
 {
   "schema": "halofpx.p06b-minimax-m2-q8-exact-shape-kernel.v1",
   "date": "2026-07-20",
-  "status": "gfx1151_exact_shape_kernel_qualified_partition_equivalence_closed",
+  "status": "gfx1151_synthetic_q8_exact_geometry_kernel_qualified_partition_equivalence_closed",
   "parent_commit": "207092f55636209cb3596e911bad9c790c6a6f82",
   "parent_tree": "07456d25fed83c4aaf7d677525e8c36b3a0a3c80",
   "gate": {
@@ -17,6 +17,12 @@
     "hidden_size": 3072,
     "intermediate_size": 1536,
     "batch_widths": [1, 8]
+  },
+  "applicability_correction": {
+    "source": "P06d exact-artifact intake",
+    "primary_artifact_expert_type": "Q6_0_ROCMFPX",
+    "p06b_treatment": "synthetic Q8 backend variant at exact primary geometry",
+    "primary_artifact_type_qualified": false
   },
   "source_sha256": {
     "tests/CMakeLists.txt": "c3993cf5abb41c8012bcf50596f8dc6d1cd45ac2a96576c817fb780eb6decf8f",

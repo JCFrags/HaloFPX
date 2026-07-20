@@ -2,6 +2,11 @@
 
 Status: **representative expert-axis equivalence qualified; runtime remains closed**
 
+Correction from P06d exact-artifact intake: the pinned 160 GB primary model's
+expert tensors are `Q6_0_ROCMFPX`. P06c uses a synthetic Q8 tensor with the
+same shape and therefore proves partition mechanics for that Q8 backend
+variant, not Q6 equivalence for the primary artifact.
+
 P06c proves the first exact-shape computation across the P06a ownership seam.
 It is one evaluation-only graph inside `test-backend-ops`, present only when the
 existing `HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY` option is explicitly
@@ -11,7 +16,7 @@ runtime branch.
 
 ## Representative graph
 
-The canary uses the pinned MiniMax-M2.7 down-projection geometry: one
+The canary uses the pinned MiniMax-M2.7 down-projection shape: one synthetic
 Q8_0_ROCMFPX tensor shaped `[1536, 3072, 192]`, top-8 routing, and one token.
 P06a creates a four/four cross-rank plan for global experts
 `{0, 1, 94, 95, 96, 97, 190, 191}`. The full tensor remains authoritative;
@@ -54,13 +59,15 @@ all manifest entries verify.
 ## Boundary and next step
 
 P06c proves representative down-projection equivalence for two contiguous
-expert shards using the authoritative P06a remap. It does not yet exercise the
+expert shards using the authoritative P06a remap and the synthetic Q8 backend
+variant. It does not prove Q6 partition equivalence for the primary artifact
+and does not yet exercise the
 router, gating weights, up/gate projections, activation, selected-expert
 reduction, RPC transfer, local/remote overlap, model loading, or server token
-generation. It makes no speed claim. The next P06 milestone must be a
-default-off exact-model runtime canary with explicit expert-axis placement,
-unchanged layer-owned attention and Q8 KV state, safe peer-loss behavior, and
-matched output before performance measurement.
+generation. It makes no speed claim. P06d subsequently qualified a default-off
+exact-model Q6 peer-data placement canary with unchanged layer-owned attention,
+KV state, and matched authoritative output. Q6 partition compute and peer-loss
+qualification remain closed before performance measurement.
 
 The known-good nimo-1 coordinator and nimo-2 worker were stopped in dependency
 order for the isolated GPU run and restored worker-first. Both returned active

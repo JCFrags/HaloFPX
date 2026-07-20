@@ -23,6 +23,12 @@
     "oracle": "max of ROCm internal NMSE and CPU internal NMSE",
     "max_nmse": 0.000001
   },
+  "applicability_correction": {
+    "source": "P06d exact-artifact intake",
+    "primary_artifact_expert_type": "Q6_0_ROCMFPX",
+    "p06c_treatment": "synthetic Q8 partition-mechanics evidence at exact primary shape",
+    "primary_artifact_q6_partition_equivalence_qualified": false
+  },
   "source_sha256": {
     "tests/CMakeLists.txt": "5304bd7fe1a675da255ea68ae1c1d01d815e81f1b970b6b3fee52c274f3e2f1d",
     "tests/test-backend-ops.cpp": "355aa135d14bcedae667b017e7522db0bf853b1349f6260bf666a66dc26eae57",

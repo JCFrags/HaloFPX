@@ -1,5 +1,33 @@
 #include "models.h"
 
+#include <charconv>
+#include <cstdlib>
+#include <cstring>
+#include <string_view>
+
+static int halofpx_minimax_m2_shadow_layer_from_env() {
+    const char * raw = std::getenv("HALOFPX_MINIMAX_M2_EXPERT_SHADOW_LAYER");
+    if (raw == nullptr) {
+        return -1;
+    }
+    const std::string_view value(raw);
+    if (value.empty()) {
+        throw std::runtime_error("HALOFPX_MINIMAX_M2_EXPERT_SHADOW_LAYER must be a strict decimal layer index");
+    }
+    int layer = -1;
+    const auto result = std::from_chars(value.data(), value.data() + value.size(), layer);
+    if (result.ec != std::errc() || result.ptr != value.data() + value.size() || layer < 0) {
+        throw std::runtime_error("HALOFPX_MINIMAX_M2_EXPERT_SHADOW_LAYER must be a strict non-negative decimal layer index");
+    }
+    return layer;
+}
+
+static bool halofpx_device_backend_is(ggml_backend_dev_t dev, const char * backend_name) {
+    ggml_backend_reg_t reg = dev == nullptr ? nullptr : ggml_backend_dev_backend_reg(dev);
+    const char * name = reg == nullptr ? nullptr : ggml_backend_reg_name(reg);
+    return name != nullptr && std::strcmp(name, backend_name) == 0;
+}
+
 void llama_model_minimax_m2::load_arch_hparams(llama_model_loader & ml) {
     ml.get_key(LLM_KV_ATTENTION_LAYERNORM_RMS_EPS,  hparams.f_norm_rms_eps);
     ml.get_key(LLM_KV_EXPERT_FEED_FORWARD_LENGTH,   hparams.n_ff_exp);
@@ -11,8 +39,50 @@ void llama_model_minimax_m2::load_arch_hparams(llama_model_loader & ml) {
     }
 }
 
-void llama_model_minimax_m2::load_arch_tensors(llama_model_loader &) {
+void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
     LLAMA_LOAD_LOCALS;
+
+    const int shadow_layer = halofpx_minimax_m2_shadow_layer_from_env();
+    ggml_backend_dev_t shadow_peer = nullptr;
+    if (shadow_layer >= 0) {
+        if (n_layer != 62 || n_embd != 3072 || hparams.n_ff_exp != 1536 || n_ff != 1536 ||
+                n_expert != 192 || n_expert_used != 8) {
+            throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: model tuple is not exactly 62/3072/1536/192/top8");
+        }
+        if (shadow_layer >= n_layer) {
+            throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: layer index is out of range");
+        }
+        if (params.split_mode != LLAMA_SPLIT_MODE_LAYER) {
+            throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: split mode must be layer");
+        }
+        if (devices.size() != 2) {
+            throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: exactly two devices are required");
+        }
+
+        ggml_backend_dev_t local_rocm = nullptr;
+        for (const auto & device : devices) {
+            if (device.is_meta) {
+                throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: meta/tensor devices are forbidden");
+            }
+            if (halofpx_device_backend_is(device.dev, "ROCm")) {
+                if (local_rocm != nullptr) {
+                    throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: multiple ROCm devices are ambiguous");
+                }
+                local_rocm = device.dev;
+            } else if (halofpx_device_backend_is(device.dev, "RPC")) {
+                if (shadow_peer != nullptr) {
+                    throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: multiple RPC devices are ambiguous");
+                }
+                shadow_peer = device.dev;
+            } else {
+                throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: only one ROCm and one RPC device are admitted");
+            }
+        }
+        if (local_rocm == nullptr || shadow_peer == nullptr || dev_layer(shadow_layer) != local_rocm) {
+            throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: designated layer must be owned by the local ROCm device");
+        }
+        halofpx_expert_shadow_layer = shadow_layer;
+    }
 
     tok_embd = create_tensor(tn(LLM_TENSOR_TOKEN_EMBD, "weight"), {n_embd, n_vocab}, 0);
 
@@ -37,6 +107,34 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader &) {
         layer.ffn_down_exps = create_tensor(tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff,   n_embd, n_expert}, 0);
         layer.ffn_up_exps   = create_tensor(tn(LLM_TENSOR_FFN_UP_EXPS,   "weight", i), {n_embd, n_ff,   n_expert}, 0);
         layer.ffn_exp_probs_b = create_tensor(tn(LLM_TENSOR_FFN_EXP_PROBS_B, "bias", i), {n_expert}, 0);
+
+        if (i == shadow_layer) {
+            if (layer.ffn_gate_exps->type != GGML_TYPE_Q6_0_ROCMFPX ||
+                    layer.ffn_down_exps->type != GGML_TYPE_Q6_0_ROCMFPX ||
+                    layer.ffn_up_exps->type != GGML_TYPE_Q6_0_ROCMFPX) {
+                throw std::runtime_error(format(
+                        "HaloFPX MiniMax-M2 expert shadow rejected: expert tensor types are gate=%s down=%s up=%s, expected Q6_0_ROCMFPX",
+                        ggml_type_name(layer.ffn_gate_exps->type),
+                        ggml_type_name(layer.ffn_down_exps->type),
+                        ggml_type_name(layer.ffn_up_exps->type)));
+            }
+            layer.ffn_gate_exps_shadow_peer = create_tensor_on_device(
+                    ml, tn(LLM_TENSOR_FFN_GATE_EXPS, "weight", i), {n_embd, n_ff, n_expert}, TENSOR_DUPLICATED, shadow_peer);
+            layer.ffn_down_exps_shadow_peer = create_tensor_on_device(
+                    ml, tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff, n_embd, n_expert}, TENSOR_DUPLICATED, shadow_peer);
+            layer.ffn_up_exps_shadow_peer = create_tensor_on_device(
+                    ml, tn(LLM_TENSOR_FFN_UP_EXPS, "weight", i), {n_embd, n_ff, n_expert}, TENSOR_DUPLICATED, shadow_peer);
+            if (layer.ffn_gate_exps_shadow_peer->type != GGML_TYPE_Q6_0_ROCMFPX ||
+                    layer.ffn_down_exps_shadow_peer->type != GGML_TYPE_Q6_0_ROCMFPX ||
+                    layer.ffn_up_exps_shadow_peer->type != GGML_TYPE_Q6_0_ROCMFPX) {
+                throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: duplicated peer tensors changed type");
+            }
+            exclude_tensor_from_lookup(layer.ffn_gate_exps_shadow_peer);
+            exclude_tensor_from_lookup(layer.ffn_down_exps_shadow_peer);
+            exclude_tensor_from_lookup(layer.ffn_up_exps_shadow_peer);
+            LLAMA_LOG_INFO("HaloFPX P06d: admitted placement-only Q6 expert shadow for layer %d on peer %s; authoritative graph unchanged\n",
+                    shadow_layer, ggml_backend_dev_name(shadow_peer));
+        }
     }
 }
 
