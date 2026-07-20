@@ -308,8 +308,8 @@ struct llama_layer {
     struct ggml_tensor * ffn_gate_exps     = nullptr;
     struct ggml_tensor * ffn_down_exps     = nullptr;
     struct ggml_tensor * ffn_up_exps       = nullptr;
-    // HaloFPX P06d: default-off one-layer shadow copies on the RPC peer.
-    // These are placement-only until the MiniMax shadow graph is admitted.
+    // HaloFPX P06d/P06e: default-off one-layer shadow copies on the RPC peer.
+    // P06e may consume the replicas in a non-authoritative equivalence graph.
     struct ggml_tensor * ffn_gate_exps_shadow_peer = nullptr;
     struct ggml_tensor * ffn_down_exps_shadow_peer = nullptr;
     struct ggml_tensor * ffn_up_exps_shadow_peer   = nullptr;

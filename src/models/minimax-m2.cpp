@@ -1,6 +1,9 @@
 #include "models.h"
+#include "llama-adapter.h"
 
+#include <algorithm>
 #include <charconv>
+#include <cinttypes>
 #include <cstdlib>
 #include <cstring>
 #include <string_view>
@@ -20,6 +23,17 @@ static int halofpx_minimax_m2_shadow_layer_from_env() {
         throw std::runtime_error("HALOFPX_MINIMAX_M2_EXPERT_SHADOW_LAYER must be a strict non-negative decimal layer index");
     }
     return layer;
+}
+
+static bool halofpx_minimax_m2_shadow_compute_from_env() {
+    const char * raw = std::getenv("HALOFPX_MINIMAX_M2_EXPERT_SHADOW_COMPUTE");
+    if (raw == nullptr) {
+        return false;
+    }
+    if (std::strcmp(raw, "1") != 0) {
+        throw std::runtime_error("HALOFPX_MINIMAX_M2_EXPERT_SHADOW_COMPUTE must be exactly 1 when present");
+    }
+    return true;
 }
 
 static bool halofpx_device_backend_is(ggml_backend_dev_t dev, const char * backend_name) {
@@ -43,6 +57,10 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
     LLAMA_LOAD_LOCALS;
 
     const int shadow_layer = halofpx_minimax_m2_shadow_layer_from_env();
+    const bool shadow_compute = halofpx_minimax_m2_shadow_compute_from_env();
+    if (shadow_compute && shadow_layer < 0) {
+        throw std::runtime_error("HALOFPX MiniMax-M2 expert shadow compute requires HALOFPX_MINIMAX_M2_EXPERT_SHADOW_LAYER");
+    }
     ggml_backend_dev_t shadow_peer = nullptr;
     if (shadow_layer >= 0) {
         if (n_layer != 62 || n_embd != 3072 || hparams.n_ff_exp != 1536 || n_ff != 1536 ||
@@ -82,6 +100,7 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
             throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: designated layer must be owned by the local ROCm device");
         }
         halofpx_expert_shadow_layer = shadow_layer;
+        halofpx_expert_shadow_compute = shadow_compute;
     }
 
     tok_embd = create_tensor(tn(LLM_TENSOR_TOKEN_EMBD, "weight"), {n_embd, n_vocab}, 0);
@@ -132,8 +151,13 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
             exclude_tensor_from_lookup(layer.ffn_gate_exps_shadow_peer);
             exclude_tensor_from_lookup(layer.ffn_down_exps_shadow_peer);
             exclude_tensor_from_lookup(layer.ffn_up_exps_shadow_peer);
-            LLAMA_LOG_INFO("HaloFPX P06d: admitted placement-only Q6 expert shadow for layer %d on peer %s; authoritative graph unchanged\n",
-                    shadow_layer, ggml_backend_dev_name(shadow_peer));
+            if (shadow_compute) {
+                LLAMA_LOG_INFO("HaloFPX P06e: admitted replicated Q6 expert shadow compute for layer %d on peer %s; authoritative output remains the full local MoE result\n",
+                        shadow_layer, ggml_backend_dev_name(shadow_peer));
+            } else {
+                LLAMA_LOG_INFO("HaloFPX P06d: admitted placement-only Q6 expert shadow for layer %d on peer %s; authoritative graph unchanged\n",
+                        shadow_layer, ggml_backend_dev_name(shadow_peer));
+            }
         }
     }
 }
@@ -142,7 +166,106 @@ std::unique_ptr<llm_graph_context> llama_model_minimax_m2::build_arch_graph(cons
     return std::make_unique<graph>(*this, params);
 }
 
+static void halofpx_minimax_m2_shadow_oracle(
+        ggml_tensor * dst, int ith, int nth, void * userdata) {
+    GGML_UNUSED(nth);
+    if (ith != 0) {
+        return;
+    }
+
+    auto * telemetry = static_cast<llama_model_minimax_m2::halofpx_shadow_telemetry *>(userdata);
+    const ggml_tensor * authoritative = dst->src[0];
+    const ggml_tensor * local         = dst->src[1];
+    const ggml_tensor * peer          = dst->src[2];
+    const ggml_tensor * selected      = dst->src[3];
+
+    if (dst->type != GGML_TYPE_F32 || authoritative->type != GGML_TYPE_F32 ||
+            local->type != GGML_TYPE_F32 || peer->type != GGML_TYPE_F32 ||
+            selected->type != GGML_TYPE_I32 ||
+            !ggml_is_contiguous(dst) || !ggml_is_contiguous(authoritative) ||
+            !ggml_is_contiguous(local) || !ggml_is_contiguous(peer) || !ggml_is_contiguous(selected)) {
+        GGML_ABORT("HaloFPX P06e shadow oracle received an unsupported tensor layout");
+    }
+
+    const int64_t n = ggml_nelements(authoritative);
+    if (ggml_nelements(local) != n || ggml_nelements(peer) != n || ggml_nelements(dst) != n) {
+        GGML_ABORT("HaloFPX P06e shadow oracle received mismatched branch shapes");
+    }
+
+    const float * authoritative_data = static_cast<const float *>(authoritative->data);
+    const float * local_data         = static_cast<const float *>(local->data);
+    const float * peer_data          = static_cast<const float *>(peer->data);
+    float * dst_data                 = static_cast<float *>(dst->data);
+
+    double squared_error = 0.0;
+    double squared_reference = 0.0;
+    double local_squared = 0.0;
+    double peer_squared = 0.0;
+    double scaled_max_error = 0.0;
+    bool finite = true;
+    for (int64_t i = 0; i < n; ++i) {
+        const double a = authoritative_data[i];
+        const double l = local_data[i];
+        const double p = peer_data[i];
+        const double s = l + p;
+        finite = finite && std::isfinite(a) && std::isfinite(l) && std::isfinite(p) && std::isfinite(s);
+        const double error = s - a;
+        squared_error += error*error;
+        squared_reference += a*a;
+        local_squared += l*l;
+        peer_squared += p*p;
+        scaled_max_error = std::max(scaled_max_error, std::abs(error)/(1.0 + std::abs(a)));
+    }
+
+    uint64_t local_selected = 0;
+    uint64_t peer_selected = 0;
+    const int32_t * selected_data = static_cast<const int32_t *>(selected->data);
+    for (int64_t i = 0; i < ggml_nelements(selected); ++i) {
+        if (selected_data[i] < 0 || selected_data[i] >= 192) {
+            GGML_ABORT("HaloFPX P06e shadow oracle received an out-of-domain expert id");
+        }
+        if (selected_data[i] < 96) {
+            ++local_selected;
+        } else {
+            ++peer_selected;
+        }
+    }
+
+    const double nmse = squared_error/std::max(squared_reference, 1.0e-30);
+    const double local_l2 = std::sqrt(local_squared);
+    const double peer_l2 = std::sqrt(peer_squared);
+    const bool passed = finite && nmse <= 1.0e-6 && scaled_max_error <= 1.0e-3;
+
+    uint64_t evaluation = 0;
+    {
+        std::lock_guard<std::mutex> lock(telemetry->mutex);
+        evaluation = ++telemetry->evaluations;
+        telemetry->failures += passed ? 0 : 1;
+        telemetry->local_selected += local_selected;
+        telemetry->peer_selected += peer_selected;
+        telemetry->local_l2_sum += local_l2;
+        telemetry->peer_l2_sum += peer_l2;
+    }
+
+    if (!passed) {
+        LLAMA_LOG_ERROR("HaloFPX P06e: shadow oracle FAILED eval=%" PRIu64 " finite=%d nmse=%.9g scaled_max_error=%.9g local_selected=%" PRIu64 " peer_selected=%" PRIu64 " local_l2=%.9g peer_l2=%.9g\n",
+                evaluation, finite, nmse, scaled_max_error, local_selected, peer_selected, local_l2, peer_l2);
+        GGML_ABORT("HaloFPX P06e shadow oracle rejected divergent expert output");
+    }
+
+    std::memcpy(dst_data, authoritative_data, ggml_nbytes(authoritative));
+    if (evaluation <= 4 || (evaluation & (evaluation - 1)) == 0) {
+        LLAMA_LOG_INFO("HaloFPX P06e: shadow oracle passed eval=%" PRIu64 " nmse=%.9g scaled_max_error=%.9g local_selected=%" PRIu64 " peer_selected=%" PRIu64 " local_l2=%.9g peer_l2=%.9g\n",
+                evaluation, nmse, scaled_max_error, local_selected, peer_selected, local_l2, peer_l2);
+    }
+}
+
 llama_model_minimax_m2::graph::graph(const llama_model & model, const llm_graph_params & params) : llm_graph_context(params) {
+    const auto & minimax_model = static_cast<const llama_model_minimax_m2 &>(model);
+    if (minimax_model.halofpx_expert_shadow_compute &&
+            (params.gtype != LLM_GRAPH_TYPE_DEFAULT || params.cparams.embeddings)) {
+        throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow compute admits only the default generation graph");
+    }
     const int64_t n_embd_head = hparams.n_embd_head_v();
 
     GGML_ASSERT(n_embd_head == hparams.n_embd_head_k());
@@ -224,6 +347,8 @@ llama_model_minimax_m2::graph::graph(const llama_model & model, const llm_graph_
                 LLM_NORM_RMS, il);
         cb(cur, "ffn_norm", il);
 
+        ggml_tensor * moe_inp = cur;
+        llm_moe_routing routing;
         cur = build_moe_ffn(cur,
                 model.layers[il].ffn_gate_inp,
                 model.layers[il].ffn_up_exps,
@@ -234,8 +359,73 @@ llama_model_minimax_m2::graph::graph(const llama_model & model, const llm_graph_
                 LLM_FFN_SILU, true,
                 hparams.expert_weights_scale,
                 (llama_expert_gating_func_type) hparams.expert_gating_func,
-                il);
+                il,
+                nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                il == minimax_model.halofpx_expert_shadow_layer && minimax_model.halofpx_expert_shadow_compute ? &routing : nullptr);
         cb(cur, "ffn_moe_out", il);
+
+        if (il == minimax_model.halofpx_expert_shadow_layer && minimax_model.halofpx_expert_shadow_compute &&
+                n_tokens == 1) {
+            if (n_outputs != 1 || ubatch.n_seqs != 1 || ubatch.n_seqs_unq != 1 || loras == nullptr || !loras->empty() ||
+                    (cvec != nullptr && cvec->tensor_for(il) != nullptr)) {
+                throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow compute requires one output, one token, one sequence, and no adapters");
+            }
+            if (routing.selected_experts == nullptr || routing.weights == nullptr ||
+                    model.layers[il].ffn_gate_exps_shadow_peer == nullptr ||
+                    model.layers[il].ffn_down_exps_shadow_peer == nullptr ||
+                    model.layers[il].ffn_up_exps_shadow_peer == nullptr) {
+                throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow compute is missing admitted placement or routing state");
+            }
+
+            ggml_tensor * ids_f32 = ggml_cast(ctx0, routing.selected_experts, GGML_TYPE_F32);
+            ggml_tensor * local_mask = ggml_step(ctx0, ggml_scale_bias(ctx0, ids_f32, -1.0f, 95.5f));
+            ggml_tensor * peer_mask  = ggml_scale_bias(ctx0, local_mask, -1.0f, 1.0f);
+            local_mask = ggml_reshape_3d(ctx0, local_mask, 1, n_expert_used, 1);
+            peer_mask  = ggml_reshape_3d(ctx0, peer_mask, 1, n_expert_used, 1);
+            ggml_tensor * local_weights = ggml_mul(ctx0, routing.weights, local_mask);
+            ggml_tensor * peer_weights  = ggml_mul(ctx0, routing.weights, peer_mask);
+            cb(local_weights, "halofpx_shadow_local_weights", il);
+            cb(peer_weights, "halofpx_shadow_peer_weights", il);
+
+            auto routed_half = [&](ggml_tensor * up_exps, ggml_tensor * gate_exps, ggml_tensor * down_exps,
+                                   ggml_tensor * ids, ggml_tensor * weights, bool peer_branch) {
+                ggml_tensor * branch_in = ggml_reshape_3d(ctx0, moe_inp, n_embd, 1, 1);
+                ggml_tensor * up = build_lora_mm_id(up_exps, branch_in, ids);
+                ggml_tensor * gate = build_lora_mm_id(gate_exps, branch_in, ids);
+                ggml_tensor * activated = ggml_swiglu_split(ctx0, gate, up);
+                ggml_tensor * experts = build_lora_mm_id(down_exps, activated, ids);
+                experts = ggml_mul(ctx0, experts, weights);
+                cb(up, peer_branch ? "halofpx_shadow_peer_up" : "halofpx_shadow_local_up", il);
+                cb(gate, peer_branch ? "halofpx_shadow_peer_gate" : "halofpx_shadow_local_gate", il);
+                cb(activated, peer_branch ? "halofpx_shadow_peer_swiglu" : "halofpx_shadow_local_swiglu", il);
+                cb(experts, peer_branch ? "halofpx_shadow_peer_weighted" : "halofpx_shadow_local_weighted", il);
+                ggml_tensor * out = ggml_view_2d(ctx0, experts, n_embd, 1, experts->nb[2], 0);
+                for (int64_t i = 1; i < n_expert_used; ++i) {
+                    out = ggml_add(ctx0, out, ggml_view_2d(ctx0, experts, n_embd, 1, experts->nb[2], i*experts->nb[1]));
+                }
+                cb(out, peer_branch ? "halofpx_shadow_peer_out" : "halofpx_shadow_local_out", il);
+                return out;
+            };
+
+            const auto & layer = model.layers[il];
+            ggml_tensor * local_out = routed_half(
+                    layer.ffn_up_exps,
+                    layer.ffn_gate_exps,
+                    layer.ffn_down_exps,
+                    routing.selected_experts, local_weights, false);
+            ggml_tensor * peer_out = routed_half(
+                    layer.ffn_up_exps_shadow_peer,
+                    layer.ffn_gate_exps_shadow_peer,
+                    layer.ffn_down_exps_shadow_peer,
+                    routing.selected_experts, peer_weights, true);
+
+            ggml_tensor * oracle_args[] = { cur, local_out, peer_out, routing.selected_experts };
+            cur = ggml_custom_4d(ctx0, GGML_TYPE_F32, cur->ne[0], cur->ne[1], cur->ne[2], cur->ne[3],
+                    oracle_args, 4, halofpx_minimax_m2_shadow_oracle, 1,
+                    &minimax_model.halofpx_expert_shadow_telemetry);
+            ggml_backend_sched_set_tensor_backend(sched, cur, backend_cpu);
+            cb(cur, "halofpx_shadow_oracle", il);
+        }
 
         cur = ggml_add(ctx0, cur, ffn_inp);
 

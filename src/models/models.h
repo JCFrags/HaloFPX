@@ -6,6 +6,8 @@
 
 // note: almost all graphs require at least sqrtf, so include cmath globally
 #include <cmath>
+#include <cstdint>
+#include <mutex>
 
 //
 // base classes
@@ -1780,8 +1782,20 @@ struct llama_model_apertus : public llama_model_base {
 
 
 struct llama_model_minimax_m2 : public llama_model_base {
+    struct halofpx_shadow_telemetry {
+        std::mutex mutex;
+        uint64_t evaluations = 0;
+        uint64_t failures = 0;
+        uint64_t local_selected = 0;
+        uint64_t peer_selected = 0;
+        double local_l2_sum = 0.0;
+        double peer_l2_sum = 0.0;
+    };
+
     llama_model_minimax_m2(const struct llama_model_params & params) : llama_model_base(params) {}
     int halofpx_expert_shadow_layer = -1;
+    bool halofpx_expert_shadow_compute = false;
+    mutable halofpx_shadow_telemetry halofpx_expert_shadow_telemetry;
     void load_arch_hparams(llama_model_loader & ml) override;
     void load_arch_tensors(llama_model_loader & ml) override;
 
