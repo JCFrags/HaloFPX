@@ -22,9 +22,12 @@ int halofpx_l05z_imported_crash_controller_main(int, char **);
 #include "halofpx-context-store-registry-lab-linux-initializer-internal.h"
 #include "halofpx-l05z-return-hostile-manifest.inc"
 #include "halofpx-l05z-return-role-authority-manifest.inc"
+#include "halofpx-l05z-return-response-manifest.inc"
+#include <climits>
 #include <fstream>
 #include <sstream>
 #include <sys/statfs.h>
+#include <sys/uio.h>
 #include <sys/user.h>
 
 namespace {
@@ -60,6 +63,7 @@ enum class boundary {
     getdents_call,
     facts_call,
     fstatfs_call,
+    stdout_audit_response,
 };
 
 enum class mode {
@@ -70,6 +74,7 @@ enum class mode {
     short_late,
     zero_pre,
     zero_late,
+    response_loss_full,
     corrupt,
     truncate,
     append,
@@ -113,6 +118,171 @@ struct fault_state {
     std::array<std::uint64_t, 6> selected_args {};
     unsigned matches = 0;
 };
+
+inline constexpr std::size_t response_max_bytes = 65536;
+
+struct response_span {
+    std::uint64_t address = 0;
+    std::uint64_t length = 0;
+};
+
+struct response_state {
+    bool pending_replacement = false;
+    bool suppressed = false;
+    pid_t pending_pid = -1;
+    std::uint64_t syscall_nr = 0;
+    std::uint64_t requested = 0;
+    unsigned fragments = 0;
+    std::string transcript;
+};
+
+bool response_span_plan(const response_span * spans, std::size_t count,
+                        std::size_t & aggregate) {
+    aggregate = 0;
+    if (spans == nullptr || count == 0 || count > IOV_MAX) return false;
+    for (std::size_t index = 0; index < count; ++index) {
+        const std::uint64_t length = spans[index].length;
+        if ((length != 0 && spans[index].address == 0) ||
+            (length != 0 && spans[index].address >
+                std::numeric_limits<std::uint64_t>::max() - (length - 1)) ||
+            length > response_max_bytes ||
+            aggregate > response_max_bytes - static_cast<std::size_t>(length)) {
+            return false;
+        }
+        aggregate += static_cast<std::size_t>(length);
+    }
+    return aggregate != 0;
+}
+
+bool response_iovec_table_shape(std::uint64_t address, std::uint64_t raw_count,
+                                std::size_t & count, std::size_t & bytes) {
+    count = 0;
+    bytes = 0;
+    if (address == 0 || raw_count == 0 || raw_count > IOV_MAX ||
+        raw_count > std::numeric_limits<std::size_t>::max() /
+            sizeof(struct iovec)) return false;
+    count = static_cast<std::size_t>(raw_count);
+    bytes = count * sizeof(struct iovec);
+    return address <= std::numeric_limits<std::uint64_t>::max() - (bytes - 1);
+}
+
+bool response_selector(pid_t pid, pid_t live_child, pid_t launcher,
+                       std::uint64_t fd, bool exact_pipe,
+                       unsigned prior_fragments) {
+    return pid == live_child && pid != launcher && live_child > 0 && fd == 1 &&
+        exact_pipe && prior_fragments == 0;
+}
+
+bool response_exit_shape(const response_state & response, pid_t pid,
+                         std::uint64_t syscall_nr, bool is_error,
+                         long long result) {
+    return response.pending_replacement && pid == response.pending_pid &&
+        syscall_nr == response.syscall_nr && is_error && result == -ENOSYS &&
+        response.requested != 0 &&
+        response.requested <= static_cast<std::uint64_t>(SSIZE_MAX);
+}
+
+bool response_consumer_shape(std::size_t delivered, bool eof) {
+    return delivered == 0 && eof;
+}
+
+bool response_decoder_self_check() {
+    std::size_t aggregate = 0;
+    std::size_t iovec_count = 0, iovec_bytes = 0;
+    const response_span valid_write[] { { 0x1000, 17 } };
+    const response_span valid_writev[] {
+        { 0x1000, 7 }, { 0, 0 }, { 0x2000, 11 },
+    };
+    const response_span null_nonempty[] { { 0, 1 } };
+    const response_span overrun[] {
+        { 0x1000, response_max_bytes }, { 0x2000, 1 },
+    };
+    const response_span exact_max[] { { 1, response_max_bytes } };
+    const response_span too_large[] { { 1, response_max_bytes + 1 } };
+    const response_span address_wrap[] {
+        { std::numeric_limits<std::uint64_t>::max(), 2 },
+    };
+    const response_span zero[] { { 0, 0 } };
+    response_state exit {};
+    exit.pending_replacement = true;
+    exit.pending_pid = 41;
+    exit.syscall_nr = SYS_write;
+    exit.requested = 17;
+    return response_span_plan(valid_write, 1, aggregate) && aggregate == 17 &&
+        response_span_plan(valid_writev, 3, aggregate) && aggregate == 18 &&
+        response_span_plan(exact_max, 1, aggregate) &&
+        aggregate == response_max_bytes &&
+        !response_span_plan(nullptr, 1, aggregate) &&
+        !response_span_plan(valid_write, 0, aggregate) &&
+        !response_span_plan(valid_write, static_cast<std::size_t>(IOV_MAX) + 1,
+                            aggregate) &&
+        !response_span_plan(null_nonempty, 1, aggregate) &&
+        !response_span_plan(overrun, 2, aggregate) &&
+        !response_span_plan(too_large, 1, aggregate) &&
+        !response_span_plan(address_wrap, 1, aggregate) &&
+        !response_span_plan(zero, 1, aggregate) &&
+        response_iovec_table_shape(0x1000, 2, iovec_count, iovec_bytes) &&
+        iovec_count == 2 && iovec_bytes == 2 * sizeof(struct iovec) &&
+        !response_iovec_table_shape(0, 1, iovec_count, iovec_bytes) &&
+        !response_iovec_table_shape(0x1000, 0, iovec_count, iovec_bytes) &&
+        !response_iovec_table_shape(0x1000,
+            static_cast<std::uint64_t>(IOV_MAX) + 1,
+            iovec_count, iovec_bytes) &&
+        !response_iovec_table_shape(
+            std::numeric_limits<std::uint64_t>::max(), 2,
+            iovec_count, iovec_bytes) &&
+        !response_selector(40, 41, 39, 1, true, 0) &&
+        !response_selector(41, 41, 41, 1, true, 0) &&
+        !response_selector(41, 41, 39, 2, true, 0) &&
+        !response_selector(41, 41, 39, 1, false, 0) &&
+        !response_selector(41, 41, 39, 1, true, 1) &&
+        response_selector(41, 41, 39, 1, true, 0) &&
+        response_exit_shape(exit, 41, SYS_write, true, -ENOSYS) &&
+        !response_exit_shape(exit, 40, SYS_write, true, -ENOSYS) &&
+        !response_exit_shape(exit, 41, SYS_writev, true, -ENOSYS) &&
+        !response_exit_shape(exit, 41, SYS_write, true, -EIO) &&
+        !response_exit_shape(exit, 41, SYS_write, false, 0) &&
+        response_consumer_shape(0, true) &&
+        !response_consumer_shape(1, true) &&
+        !response_consumer_shape(0, false);
+}
+
+bool decode_response_transcript(pid_t pid, const tracee_state & state,
+                                std::string & output) {
+    std::vector<response_span> spans;
+    if (state.nr == SYS_write) {
+        spans.push_back({ state.args[1], state.args[2] });
+    } else if (state.nr == SYS_writev) {
+        std::size_t count = 0, table_bytes = 0;
+        if (!response_iovec_table_shape(
+                state.args[1], state.args[2], count, table_bytes)) return false;
+        std::vector<struct iovec> vectors(count);
+        if (!read_tracee(pid, state.args[1], vectors.data(), table_bytes)) return false;
+        spans.reserve(count);
+        for (const auto & vector : vectors) {
+            spans.push_back({ reinterpret_cast<std::uintptr_t>(vector.iov_base),
+                              vector.iov_len });
+        }
+    } else {
+        return false;
+    }
+    std::size_t aggregate = 0;
+    if (!response_span_plan(spans.data(), spans.size(), aggregate)) return false;
+    output.clear();
+    output.reserve(aggregate);
+    for (const auto & span : spans) {
+        if (span.length == 0) continue;
+        const std::size_t start = output.size();
+        output.resize(start + static_cast<std::size_t>(span.length));
+        if (!read_tracee(pid, span.address, output.data() + start,
+                         static_cast<std::size_t>(span.length))) {
+            std::fill(output.begin(), output.end(), '\0');
+            output.clear();
+            return false;
+        }
+    }
+    return output.size() == aggregate;
+}
 
 // This is only an exact raw-signature tripwire. Canonical same-role retry
 // authority remains unadmitted for the 247 aggregate-only roles until their
@@ -203,6 +373,8 @@ bool manifest_self_check() {
         sync_mode_rename == 95 && data_reads == 200 && eof_reads == 152 &&
         halofpx_l05z_return_hostile_manifest_v1::self_check() &&
         halofpx_l05z_return_role_authority_v1::self_check() &&
+        halofpx_l05z_return_response_manifest_v1::self_check() &&
+        response_decoder_self_check() &&
         halofpx_l05z_return_hostile_manifest_v1::manifest().size() ==
             hostile_input_cases && structural_row_subtotal == 8706 &&
         canonical_total == 8612;
@@ -565,8 +737,9 @@ bool load_golden_envelope(const char * path, marker_state & output) {
         "pread-final|pread-final-eof|pread-marker|pread-marker-eof|close-envelope|close-staging|"
         "unlock-writer|unlock-fixture|"
 
-        "reserve-revalidation|final-validation --mode "
+        "reserve-revalidation|final-validation|stdout-audit-response --mode "
         "pre|late|eintr-once|short-pre|short-late|zero-pre|zero-late|"
+        "suppress-fake-full|"
         "corrupt|truncate|append|unexpected-name|hardlink|symlink|"
         "inode-substitute|temp-inode-substitute|collision|reserve-loss --errno "
         "EIO|ENOSPC|EDQUOT|EROFS|EEXIST|EXDEV|ENOSYS|EINVAL|EINTR "
@@ -609,6 +782,7 @@ bool parse_boundary_name(const char * value, boundary & output) {
         { "getdents", boundary::getdents_call },
         { "facts", boundary::facts_call },
         { "fstatfs", boundary::fstatfs_call },
+        { "stdout-audit-response", boundary::stdout_audit_response },
     };
     for (const auto & row : rows) {
         if (std::strcmp(value, row.name) == 0) {
@@ -626,6 +800,7 @@ bool parse_mode_name(const char * value, mode & output) {
         { "eintr-once", mode::eintr_once },
         { "short-pre", mode::short_pre }, { "short-late", mode::short_late },
         { "zero-pre", mode::zero_pre }, { "zero-late", mode::zero_late },
+        { "suppress-fake-full", mode::response_loss_full },
         { "corrupt", mode::corrupt }, { "truncate", mode::truncate },
         { "append", mode::append },
         { "unexpected-name", mode::unexpected_name },
@@ -726,8 +901,15 @@ bool parse_arguments(int argc, char ** argv, arguments & output) {
     if ((count_mode || output.injection == mode::zero_pre ||
          output.injection == mode::zero_late) && !byte_count_boundary) return false;
     const bool mutation_mode = output.injection >= mode::corrupt;
+    const bool response_mode = output.injection == mode::response_loss_full;
 
-    if (output.injection == mode::reserve_loss) {
+    if (response_mode != (output.point == boundary::stdout_audit_response)) {
+        return false;
+    }
+
+    if (response_mode) {
+        if (output.occurrence != 1 || output.errno_set || output.short_set) return false;
+    } else if (output.injection == mode::reserve_loss) {
         if (output.point != boundary::reserve_revalidation) return false;
 
 
@@ -797,6 +979,7 @@ bool eintr_is_retryable(boundary value) {
         case boundary::getdents_call:
         case boundary::facts_call:
         case boundary::fstatfs_call:
+        case boundary::stdout_audit_response:
             return false;
     }
     return false;
@@ -840,6 +1023,7 @@ const char * boundary_name(boundary value) {
         case boundary::getdents_call: return "getdents";
         case boundary::facts_call: return "facts";
         case boundary::fstatfs_call: return "fstatfs";
+        case boundary::stdout_audit_response: return "stdout-audit-response";
     }
     return "unknown";
 }
@@ -853,6 +1037,7 @@ const char * mode_name(mode value) {
         case mode::short_late: return "short-late";
         case mode::zero_pre: return "zero-pre";
         case mode::zero_late: return "zero-late";
+        case mode::response_loss_full: return "suppress-fake-full";
         case mode::corrupt: return "corrupt";
         case mode::truncate: return "truncate";
         case mode::append: return "append";
@@ -1140,6 +1325,8 @@ bool matches_boundary(pid_t pid, const tracee_state & state,
         case boundary::fstatfs_call:
             return l05z_core_gate && state.nr == SYS_fstatfs &&
                    admitted_fd(state.args[0], false);
+        case boundary::stdout_audit_response:
+            return false;
     }
     return false;
 }
@@ -1961,6 +2148,8 @@ bool open_receipt(const arguments & input, int & parent_fd,
 
 int run(const arguments & input) {
     if (!retry_window_self_check() || !manifest_self_check()) return 2;
+    const bool response_mode_requested =
+        input.injection == mode::response_loss_full;
     if (!canonical_existing_path(input.target) || !canonical_existing_path(input.golden) ||
         !canonical_existing_path(input.parent) || !canonical_existing_path(input.root) ||
         !canonical_existing_path(input.fixture) || !direct_child(input.root, input.parent) ||
@@ -2019,6 +2208,20 @@ int run(const arguments & input) {
 
     int audit_pipe[2] { -1, -1 };
     if (::pipe2(audit_pipe, O_CLOEXEC) != 0) return 2;
+    struct stat response_pipe_identity {}, response_pipe_write_identity {};
+    std::uint64_t response_pipe_mount = 0, response_pipe_write_mount = 0;
+    if (response_mode_requested &&
+        (::fstat(audit_pipe[0], &response_pipe_identity) != 0 ||
+         ::fstat(audit_pipe[1], &response_pipe_write_identity) != 0 ||
+         !S_ISFIFO(response_pipe_identity.st_mode) ||
+         !S_ISFIFO(response_pipe_write_identity.st_mode) ||
+         !same_object(response_pipe_identity, response_pipe_write_identity) ||
+         !fd_mount_id(audit_pipe[0], response_pipe_mount) ||
+         !fd_mount_id(audit_pipe[1], response_pipe_write_mount) ||
+         response_pipe_mount == 0 ||
+         response_pipe_mount != response_pipe_write_mount)) {
+        return 2;
+    }
 
     const pid_t launcher = ::fork();
     if (launcher < 0) return 2;
@@ -2054,8 +2257,10 @@ int run(const arguments & input) {
     tracees.emplace(launcher, tracee_state {});
     selected.emplace(launcher, false);
     fault_state fault {};
+    response_state response {};
     marker_state marker = golden_envelope, root_marker {};
     pid_t live_child = -1;
+    pid_t response_expected_child = -1;
     int launcher_exit = -1, child_exit = -1;
     bool launcher_exec = false, child_exec = false, controller_error = false;
     unsigned controller_error_line = 0;
@@ -2107,12 +2312,31 @@ int run(const arguments & input) {
 
                 tracees[static_cast<pid_t>(child_value)].initial_sigstop_expected = true;
                 selected[static_cast<pid_t>(child_value)] = false;
+                if (response_mode_requested) {
+                    if (event != PTRACE_EVENT_FORK || pid != launcher ||
+                        !launcher_exec || response_expected_child != -1 ||
+                        child_value == 0 || child_value >
+                            static_cast<unsigned long>(
+                                std::numeric_limits<pid_t>::max())) {
+                        HALOFPX_CONTROLLER_ERROR();
+                        break;
+                    }
+                    response_expected_child = static_cast<pid_t>(child_value);
+                }
             } else if (event == PTRACE_EVENT_EXEC && pid == launcher) {
                 launcher_exec = !launcher_exec && same_executable(pid, target_identity);
                 if (!launcher_exec) { HALOFPX_CONTROLLER_ERROR(); break; }
             } else if (event == PTRACE_EVENT_EXEC) {
-                if (live_child != -1 || !same_executable(pid, target_identity) ||
-                    !exact_envelope_child_argv(pid)) { HALOFPX_CONTROLLER_ERROR(); break; }
+                if (live_child != -1 ||
+                    (response_mode_requested && pid != response_expected_child) ||
+                    !same_executable(pid, target_identity) ||
+                    !exact_envelope_child_argv(pid) ||
+                    (response_mode_requested && !exact_fd(
+                        pid, STDOUT_FILENO, response_pipe_identity,
+                        response_pipe_mount))) {
+                    HALOFPX_CONTROLLER_ERROR();
+                    break;
+                }
                 live_child = pid;
 
                 child_exec = true;
@@ -2130,12 +2354,48 @@ int run(const arguments & input) {
             }
             auto & state = tracees[pid];
             const bool retryable_eintr = returned_eintr_must_retry(input);
+            const bool response_mode = response_mode_requested;
             const bool fault_expected_to_fail =
-                !retryable_eintr && input.injection != mode::short_late;
+                !response_mode && !retryable_eintr &&
+                input.injection != mode::short_late;
             if (info.op == PTRACE_SYSCALL_INFO_ENTRY) {
                 state.have_entry = true;
                 state.nr = info.entry.nr;
                 std::memcpy(state.args, info.entry.args, sizeof(state.args));
+                bool response_entry = false;
+                if (response_mode &&
+                    (state.nr == SYS_write || state.nr == SYS_writev) &&
+                    state.args[0] == STDOUT_FILENO) {
+                    const bool exact_pipe = exact_fd(
+                        pid, state.args[0], response_pipe_identity,
+                        response_pipe_mount);
+                    if (!response_selector(pid, live_child, launcher,
+                                           state.args[0], exact_pipe,
+                                           response.fragments)) {
+                        HALOFPX_CONTROLLER_ERROR();
+                        break;
+                    }
+                    std::string fragment;
+                    if (!decode_response_transcript(pid, state, fragment) ||
+                        state.nr != SYS_write || fragment.empty() ||
+                        response.pending_replacement || response.suppressed) {
+                        std::fill(fragment.begin(), fragment.end(), '\0');
+                        HALOFPX_CONTROLLER_ERROR();
+                        break;
+                    }
+                    response.transcript.swap(fragment);
+                    std::fill(fragment.begin(), fragment.end(), '\0');
+                    response.requested = response.transcript.size();
+                    response.syscall_nr = state.nr;
+                    response.pending_pid = pid;
+                    ++response.fragments;
+                    if (!replace_entry_with_enosys(pid)) {
+                        HALOFPX_CONTROLLER_ERROR();
+                        break;
+                    }
+                    response.pending_replacement = true;
+                    response_entry = true;
+                }
                 if (state.live_child && fault.first_replaced &&
                     fault_expected_to_fail &&
                     exact_signature_retry_guard(fault, state)) {
@@ -2309,7 +2569,8 @@ int run(const arguments & input) {
                     break;
                 }
                 bool match = false;
-                if (state.live_child && !fault.pending_replacement) {
+                if (!response_entry && state.live_child &&
+                    !fault.pending_replacement) {
                     const bool exact_boundary = matches_boundary(
                         pid, state, input, root_identity, root_mount,
                         parent_identity, parent_mount, fixture_identity, fixture_mount,
@@ -2339,14 +2600,14 @@ int run(const arguments & input) {
                     }
                 }
                 selected[pid] = match;
-                if (match &&
+                if (!response_entry && match &&
                     (input.injection == mode::short_pre ||
                      input.injection == mode::short_late) &&
                     input.short_count >= state.args[2]) {
                     HALOFPX_CONTROLLER_ERROR();
                     break;
                 }
-                const bool skip = match &&
+                const bool skip = !response_entry && match &&
                     ((input.injection == mode::pre_error &&
                       fault.matches == input.occurrence) ||
                      input.injection == mode::short_pre ||
@@ -2359,7 +2620,8 @@ int run(const arguments & input) {
                 } else if (match && retryable_eintr && fault.first_replaced) {
                     fault.retry_seen = true;
                 }
-                if (match && input.point == boundary::final_validation &&
+                if (!response_entry && match &&
+                    input.point == boundary::final_validation &&
                     !fault.mutation_applied) {
                     if (input.injection == mode::reserve_loss) {
                         HALOFPX_CONTROLLER_ERROR();
@@ -2371,7 +2633,7 @@ int run(const arguments & input) {
                     }
                     fault.mutation_applied = true;
                 }
-                if (match && input.injection == mode::collision &&
+                if (!response_entry && match && input.injection == mode::collision &&
                     !fault.mutation_applied) {
 
                     if (!apply_collision(input, envelopes_fd, staging_fd, marker)) {
@@ -2383,7 +2645,8 @@ int run(const arguments & input) {
                     }
                     fault.mutation_applied = true;
                 }
-                if (match && input.injection == mode::temp_inode_substitute &&
+                if (!response_entry && match &&
+                    input.injection == mode::temp_inode_substitute &&
 
 
                     !fault.mutation_applied) {
@@ -2395,6 +2658,18 @@ int run(const arguments & input) {
                 }
             } else if (info.op == PTRACE_SYSCALL_INFO_EXIT) {
                 if (state.live_child && state.have_entry) {
+                    if (response_mode && response.pending_replacement) {
+                        if (!response_exit_shape(
+                                response, pid, state.nr, info.exit.is_error,
+                                info.exit.rval) ||
+                            !replace_return(pid, static_cast<long long>(
+                                response.requested))) {
+                            HALOFPX_CONTROLLER_ERROR();
+                            break;
+                        }
+                        response.pending_replacement = false;
+                        response.suppressed = true;
+                    }
                     if (state.nr == SYS_renameat2 && !info.exit.is_error &&
                         info.exit.rval == 0) {
                         std::string inherited_old, inherited_new;
@@ -2661,11 +2936,15 @@ int run(const arguments & input) {
     std::string audit;
     std::array<char, 4096> audit_bytes {};
     bool audit_read = true;
+    bool audit_eof = false;
     for (;;) {
         ssize_t audit_count;
         do { audit_count = ::read(audit_pipe[0], audit_bytes.data(), audit_bytes.size()); }
         while (audit_count < 0 && errno == EINTR);
-        if (audit_count == 0) break;
+        if (audit_count == 0) {
+            audit_eof = true;
+            break;
+        }
         if (audit_count < 0 || audit.size() >
                 65536U - static_cast<std::size_t>(audit_count)) {
             audit_read = false;
@@ -2721,11 +3000,17 @@ int run(const arguments & input) {
 
         root_fd, "writer.lock", writer_identity);
     const bool mutation_mode = input.injection >= mode::corrupt;
+    const bool response_mode = input.injection == mode::response_loss_full;
     const bool eintr_success = returned_eintr_must_retry(input);
     const bool short_late_success = input.injection == mode::short_late;
     const bool late_eintr_success = input.injection == mode::late_error &&
         input.returned_errno == EINTR && eintr_is_retryable(input.point);
-    const bool injection = mutation_mode
+    const bool injection = response_mode
+        ? response.suppressed && !response.pending_replacement &&
+            response.fragments == 1 && response.syscall_nr == SYS_write &&
+            response.requested == response.transcript.size() &&
+            response.requested != 0
+        : mutation_mode
         ? fault.mutation_applied &&
             (input.injection != mode::temp_inode_substitute ||
              marker.temp_substitute_open_seen)
@@ -2734,11 +3019,21 @@ int run(const arguments & input) {
                 fault.matches == input.occurrence + 1 &&
                 !fault.retry_window_open
             : fault.first_replaced;
-    const bool qualified = eintr_success || short_late_success || late_eintr_success;
+    const bool qualified = response_mode || eintr_success || short_late_success ||
+        late_eintr_success;
     const bool byte_coverage = exact_byte_coverage(input, marker, qualified);
     const unsigned expected_publication_attempts =
         input.point == boundary::envelope_rename || marker.published_seen ? 1U : 0U;
-    const bool audit_exact = exact_audit(audit, qualified, input, marker);
+    const bool audit_exact = exact_audit(
+        response_mode ? response.transcript : audit, qualified, input, marker);
+    const bool response_delivery_exact = !response_mode ||
+        (audit_read && response_consumer_shape(audit.size(), audit_eof));
+    const std::size_t response_transcript_size = response.transcript.size();
+    const std::string response_transcript_sha256 = response_mode
+        ? halofpx_l05z_return_hostile_manifest_v1::detail::hex(
+              halofpx_l05z_return_hostile_manifest_v1::detail::sha256(
+                  response.transcript))
+        : std::string();
     const bool post_child_final_validation =
         input.point == boundary::final_validation && input.occurrence == 2 &&
         (input.injection == mode::unexpected_name ||
@@ -2750,7 +3045,8 @@ int run(const arguments & input) {
             ? child_exit == 0 && launcher_exit == 2
             : child_exit != 0 && launcher_exit != 0);
     const bool pass = !controller_error && !bounded_cleanup && launcher_exec &&
-        child_exec && audit_read && audit_closed && !cleanup_syscall_seen &&
+        child_exec && audit_read && audit_closed && audit_eof &&
+        response_delivery_exact && !cleanup_syscall_seen &&
         inherited_marker_publication_attempts == 1 &&
         publication_attempts == expected_publication_attempts &&
         injection && byte_coverage && process &&
@@ -2780,6 +3076,23 @@ int run(const arguments & input) {
 
          ",\"fixture_lock_released\":" + (fixture_released ? "true" : "false") +
          ",\"writer_lock_released\":" + (writer_released ? "true" : "false"));
+    if (response_mode) emit(std::string(
+         "\"event\":\"response-loss\",\"selected\":true") +
+         ",\"case_id\":\"" +
+         halofpx_l05z_return_response_manifest_v1::case_id +
+         "\",\"syscall_profile\":\"" +
+         "SYS_write" +
+         "\",\"fragments\":" + std::to_string(response.fragments) +
+         ",\"attempted_bytes\":" +
+         std::to_string(response_transcript_size) +
+         ",\"delivered_bytes\":" + std::to_string(audit.size()) +
+         ",\"consumer_eof\":" + (audit_eof ? "true" : "false") +
+         ",\"transcript_sha256\":\"" + response_transcript_sha256 +
+         "\",\"suppressed_before_kernel\":" +
+         (response.suppressed ? "true" : "false") +
+         ",\"fake_full_success\":" +
+         (response.suppressed && response.requested == response_transcript_size
+              ? "true" : "false"));
     emit(std::string("\"event\":\"summary\",\"pass\":") +
          (pass ? "true" : "false") +
          ",\"initialization_discard_required\":true" +
@@ -2787,6 +3100,9 @@ int run(const arguments & input) {
          ",\"individual_cleanup_performed\":" +
          (cleanup_syscall_seen ? "true" : "false") +
          ",\"marker_qualified\":" + (qualified ? "true" : "false"));
+
+    std::fill(response.transcript.begin(), response.transcript.end(), '\0');
+    response.transcript.clear();
 
     const bool receipt_synced = synchronize_receipt(
         receipt_parent_fd, receipt_parent_identity, receipt_parent_mount, receipt_name);
@@ -2809,6 +3125,22 @@ int run(const arguments & input) {
 } // namespace
 
 int main(int argc, char ** argv) {
+    if (argc == 2 &&
+        std::strcmp(argv[1], "--response-decoder-self-test") == 0) {
+        const bool ok = envelope_fault::response_decoder_self_check() &&
+            halofpx_l05z_return_response_manifest_v1::self_check();
+        std::printf("case_id=%s canonical_cases=%zu extended_total=%zu dedup_key=%s id_hash=%s manifest_hash=%s extended_id_hash=%s extended_manifest_hash=%s profile=%s\n",
+            halofpx_l05z_return_response_manifest_v1::case_id,
+            halofpx_l05z_return_response_manifest_v1::canonical_case_count,
+            halofpx_l05z_return_response_manifest_v1::extended_semantic_total,
+            halofpx_l05z_return_response_manifest_v1::dedup_key,
+            halofpx_l05z_return_response_manifest_v1::id_set_hash_hex().c_str(),
+            halofpx_l05z_return_response_manifest_v1::manifest_hash_hex().c_str(),
+            halofpx_l05z_return_response_manifest_v1::extended_id_set_hash_hex().c_str(),
+            halofpx_l05z_return_response_manifest_v1::extended_manifest_hash_hex().c_str(),
+            halofpx_l05z_return_response_manifest_v1::admitted_physical_profile);
+        return ok ? 0 : 1;
+    }
     if (argc == 2 && std::strcmp(argv[1], "--role-authority-self-test") == 0) {
         const bool ok = envelope_fault::manifest_self_check();
         std::printf("roles=%zu canonical_cases=%zu physical_rows_frozen=%u id_hash=%s manifest_hash=%s case_id_hash=%s case_manifest_hash=%s",
@@ -2840,6 +3172,11 @@ int main(int argc, char ** argv) {
         return ok ? 0 : 1;
     }
     if (argc == 3 && std::strcmp(argv[1], "--case-id") == 0) {
+        if (std::strcmp(argv[2],
+                        halofpx_l05z_return_response_manifest_v1::case_id) == 0) {
+            return halofpx_l05z_return_response_manifest_v1::self_check() &&
+                envelope_fault::response_decoder_self_check() ? 0 : 1;
+        }
         return envelope_fault::hostile_case_self_test(argv[2]);
     }
     envelope_fault::arguments input {};

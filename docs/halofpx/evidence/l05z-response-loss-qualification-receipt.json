@@ -1,0 +1,157 @@
+{
+  "schema": "halofpx.l05z-response-loss-qualification.v1",
+  "date": "2026-07-19",
+  "status": "accepted_narrow_response_loss_milestone_not_l05z_promotion",
+  "head_commit_before_change": "02a3e1e6dd8a13cd7eab1f31aa743d5e0c06ab4d",
+  "head_tree_before_change": "201e74dc6f2777588aaac060820cb312fbcdd640",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "One target-owned, test-only response-loss semantic case for the L05z stdout audit. No product, persistence, storage-window, remote, or promotion change.",
+  "source_sha256": {
+    "tests/halofpx-l05z-return-fault-controller.cpp": "d7a915012d15857a8acf3146ff00d5cc4f31d33dec931c282b4761ece58b7e3e",
+    "tests/halofpx-l05z-return-response-manifest.inc": "8f469d4836782d3237149a9d3a32876dccd6a6c2392efae84bae14f28c18684c",
+    "tests/test-halofpx-context-store-registry-lab-linux-initializer-seam-contract.cmake": "c5d4f3454d0963fd3dbccca80e78de346b4bc7dcb9bda6db44141a3d525cb3b2",
+    "combined_source_manifest_sha256": "98b6a16da8eb526effe895a267216fc9b43265544b7a0caa4c5aceabbc1c718b"
+  },
+  "authority": {
+    "case_id": "L05Z-RSP-LOSS-FULL-001",
+    "semantic_cases": 1,
+    "compatibility_authority_cases_unchanged": 8612,
+    "extended_semantic_total": 8613,
+    "semantic_tuple": "extent=l05z|channel=stdout-audit|transaction=1|suppress-before-kernel|fake-full-success|delivered=0|child=0|launcher=0|discard=whole-root",
+    "dedup_key": "3ee5b6e0d4d4042dbf37b9512582fbb3db20ba355cccdeb35b8656b81dbdc706",
+    "case_id_set_sha256": "e156ba883397da2fa6d8e56236a1be3dd7832ec36bcf99e4049a89005a7ff7a8",
+    "case_manifest_sha256": "5e9b6c8f4dfe31826c66bd1749df106abea4e90ecdacd164bada3506f086194f",
+    "extended_id_set_sha256": "78dbb9b07f7023abf79f3dc745e77be857b32b46455fe937fda84df2084fe2e4",
+    "extended_manifest_sha256": "0af374c673a292a9c7f4a391a95bb3279d9d2ddd84ce210a54ef4db072b2c9e6",
+    "extended_case_shards_17": [492, 481, 530, 513, 518, 535, 492, 490, 519, 483, 470, 481, 538, 506, 525, 494, 546],
+    "response_case_shard_zero_based": 7,
+    "physical_profile_is_identity": false
+  },
+  "discovery": {
+    "runs_per_node": 3,
+    "all_runs": "one complete SYS_write; zero SYS_writev; attempted equals delivered; child and launcher zero",
+    "nimo_1_observed_lengths": [1117, 1117, 1117],
+    "nimo_1_manifest_sha256": "bccee878cdfb67165d09cced3a68bf889fc7fbeb0e120faf41cc9524e126f921",
+    "nimo_2_observed_lengths": [1119, 1119, 1119],
+    "nimo_2_manifest_sha256": "c5f2d11ccbdcc91639ed3c74ed281f0d708000e3a89ee6c1b2ea9e5a4a514604"
+  },
+  "implementation_contract": {
+    "admitted_live_profile": "Linux x86-64 glibc; exactly one complete SYS_write; dynamic length 1..65536",
+    "writev": "bounded decoder ABI only; live use rejects as profile mismatch",
+    "lineage": "sole direct PTRACE_EVENT_FORK child of the exact post-exec launcher; VFORK, CLONE, second child, grandchild, wrong exec, wrong argv, and wrong fd1 reject",
+    "pipe_authority": "FIFO device, inode, and mount pinned before fork and checked at child exec and response entry",
+    "suppression": "capture at entry; substitute harmless ENOSYS; require real -ENOSYS exit; synthesize exact full requested count",
+    "oracle": "captured transcript passes exact qualified phase-13 audit; consumer reads zero bytes then EOF; exact final tree, publication counts, locks, statuses, and whole-root discard remain required",
+    "data_minimization": "receipt stores transcript length and SHA-256 only; the controller overwrites its owned captured-transcript buffer after validation; exact_audit parser temporaries are ordinarily destroyed and are not claimed securely erased",
+    "alternate_output_limitation": "sendfile, splice, vmsplice, tee, copy_file_range, io_uring, and other unadmitted fd1 mechanisms are out of profile and may be detected only after delivery to the private controller pipe"
+  },
+  "strict_build_and_selftest": {
+    "node": "nimo-2",
+    "flags": "C++17 -Wall -Wextra -Wpedantic -Werror",
+    "binary_sha256": "dea9f9284763368ea348f3373b87e796b42b70ce69601a2478aeae692f8672ea",
+    "response_decoder_selftest": "PASS",
+    "role_authority_selftest": "PASS_UNCHANGED_8612",
+    "response_case_selftest": "PASS",
+    "parser_negatives": {
+      "occurrence_2": 2,
+      "response_mode_wrong_boundary": 2,
+      "response_mode_with_errno": 2,
+      "response_mode_with_short_count": 2,
+      "other_mode_on_response_boundary": 2
+    },
+    "decoder_negatives": "zero and excessive iovcnt, null nonempty span, aggregate overrun, 65537-byte span, payload and iovec address wrap, wrong PID, launcher, wrong fd, wrong pipe, second fragment, wrong exit result, and nonzero consumer byte reject",
+    "static_seam_contract": "PASS",
+    "focused_inherited_controls": "PASS_3_OF_3 after building the previously absent llama-server target: feature-off contract, initializer anchor, Linux build gates",
+    "setup_exception": "The first focused feature-off invocation failed before test execution because the old build directory lacked llama-server; building the declared target and rerunning produced 3/3 pass. This is excluded setup evidence, not a product regression."
+  },
+  "nimo_2_fresh_response_canary": {
+    "evidence_root": "/var/tmp/halofpx-qualification/l05z-response-loss-canary-d7a9150-20260719-nimo2",
+    "controller_exit": 0,
+    "child_exit": 0,
+    "launcher_exit": 0,
+    "syscall_profile": "SYS_write",
+    "fragments": 1,
+    "attempted_bytes": 1119,
+    "transcript_sha256": "64db76f5a7a554cbef818e7e62ed0eff2776237a87dc42dd21c389bd1f8e9466",
+    "delivered_bytes": 0,
+    "consumer_eof": true,
+    "suppressed_before_kernel": true,
+    "fake_full_success": true,
+    "exact_audit": true,
+    "exact_inventory": true,
+    "locks_released": true,
+    "whole_root_discard": true,
+    "receipt_sha256": "497896847105ee24a18269d19b8990fd245aff4698654a36009d4dbd279a5ac2",
+    "receipt_bytes": 1240,
+    "final_tree_sha256": "7cd102abf8a0c11dcbb7e76c791281210e7a984509d326a93956a12a9615a4fd",
+    "final_tree_bytes": 420,
+    "tree_archive_sha256": "8c10c713faba8a1ec8b1bfe73d96657344ea34e3266fa14f7f7bfd703f194ef8",
+    "tree_archive_bytes": 20480,
+    "tree_archive_members": 10
+  },
+  "nimo_2_fresh_legacy_compatibility": {
+    "case": "close-step4/pre/EIO/occurrence49",
+    "controller_exit": 0,
+    "child_exit": 1,
+    "launcher_exit": 1,
+    "response_loss_event_present": false,
+    "receipt_sha256": "27b882894cc694794e1a96d965ffd89bdef1debd643fd57e12ff9ef2c310961a",
+    "receipt_bytes": 842,
+    "timestamp_stripped_exact_prior_receipt": true,
+    "equivalence_proof_sha256": "d0294ff87c501eeec57b6ced3e02809709aa0d58a38c9006c7724f8064f65877",
+    "final_tree_sha256": "7cd102abf8a0c11dcbb7e76c791281210e7a984509d326a93956a12a9615a4fd",
+    "tree_archive_sha256": "fc0bfdfa762aafdcab7a80f7ba0d265d9f52d8bc1b0db77e93c0bafa192a3295",
+    "tree_archive_bytes": 20480,
+    "tree_archive_members": 10,
+    "locks_released": true
+  },
+  "media_and_bundle": {
+    "fresh_canaries": 2,
+    "image_bytes_each": 1073741824,
+    "allocated_blocks_512_each_at_every_stage": 2097152,
+    "mount_options": "Btrfs nosuid,nodev,nodiscard",
+    "images_identity_checked_and_removed": true,
+    "mount_loop_process_residue": 0,
+    "bundle_path": "/var/tmp/halofpx-qualification/l05z-response-loss-canary-d7a9150-20260719-nimo2-evidence.tar.zst",
+    "bundle_sha256": "f6302ad6c4468deb571f5180ea7e144f2d6b425077e2c930299a5b9c006a57ec",
+    "bundle_bytes": 154276,
+    "tar_members": 70,
+    "file_entries": 69,
+    "artifact_manifest_records": 68,
+    "unsafe_members": 0,
+    "reconstruction_sha256sum_check": "PASS"
+  },
+  "nimo_1_fresh_suppression_canary": {
+    "status": "SKIPPED",
+    "reason": "host /var/tmp free bytes 43393019904 below fixed 64 GiB reserve 68719476736",
+    "effect": "discovery evidence remains valid; this narrow milestone may continue; two-node response suppression and L05z promotion remain closed"
+  },
+  "continuity": {
+    "nimo_1": {"llama_server_pid": 971, "http_8081_health": 200},
+    "nimo_2": {"rpc_server_pid": 3562775, "port_50052_listening": true, "reported_restarts": 0},
+    "persistent_server_writes_enabled": false,
+    "product_linkage_changed": false,
+    "remote_created": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLlama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama-ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama.cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true}
+  },
+  "provenance": {
+    "treatment": "target-native test infrastructure",
+    "donor_code_copied": false,
+    "gpl_llama_ai_code_copied": false,
+    "new_dependency": false,
+    "direct_cherry_pick_roster_changed": false
+  },
+  "deferred": [
+    "nimo-1 fresh suppression canary while its fixed reserve gate is closed",
+    "live writev admission and every alternate fd1 mechanism",
+    "247 aggregate-only returned-fault roles pending exact trace role maps",
+    "storage/final-window faults, full scale, sanitizer promotion, and L05z promotion",
+    "persistent server writes, cache hits, deployment, and performance claims"
+  ]
+}

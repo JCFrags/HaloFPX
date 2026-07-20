@@ -217,6 +217,43 @@ product reverse-edge checks, service recovery, reference-clone cleanliness,
 retained raw bundles, and an independent final milestone review. A sanitizer
 lane not completed is recorded as a limitation, never inferred as a pass.
 
+### Admitted response-loss profile
+
+`L05Z-RSP-LOSS-FULL-001` is one test-only semantic case outside the frozen
+8,612-case returned-fault compatibility authority. It raises the extended
+semantic total to 8,613 without changing the compatibility subset. Its identity
+is the qualified L05z stdout-audit transaction being suppressed before its
+admitted kernel write, followed by an exact fake full-success return, zero
+consumer bytes, child and launcher status zero, and external whole-root
+discard. Syscall kind, fragment count, and live response length are physical
+profile metadata, not semantic identity.
+
+The admitted Linux x86-64 glibc profile is exactly one complete `SYS_write` to
+fd 1. Six discovery runs, three on each node, observed this profile and no
+`SYS_writev`; response lengths were dynamic and are therefore bounded at
+65,536 bytes rather than frozen to one length. The controller pins the pipe's
+FIFO device, inode, and mount before fork; admits only the launcher's sole
+direct `PTRACE_EVENT_FORK` child after exact executable, argv, and fd-1 checks;
+captures the attempted bytes at syscall entry; substitutes harmless `ENOSYS`;
+requires the real `-ENOSYS` exit; and replaces it with the exact requested
+count. The captured transcript must pass the full qualified phase-13 audit
+oracle, while the private consumer pipe must return zero bytes followed by EOF.
+The receipt retains only length, profile, count, transcript hash, status, and
+boolean proofs. The controller overwrites its owned captured-transcript buffer
+after validation. Ordinary parser temporaries created by `exact_audit` are
+destroyed normally; this milestone does not claim secure erasure of every
+transient allocator copy.
+
+The bounded `writev` decoder is parser infrastructure only and is not a live
+admitted transport profile. A live `writev`, second fragment, wrong lineage,
+wrong fd, rebound pipe, malformed vector, unexpected exit result, or nonzero
+consumer byte fails this qualification. Other fd-1 mechanisms such as
+`sendfile`, `splice`, `vmsplice`, `tee`, `copy_file_range`, or `io_uring` are
+also out of profile. They may be detected only after bytes reach the private
+controller pipe, so this case proves pre-kernel suppression only for the
+admitted one-`SYS_write` profile and makes no universal output-suppression
+claim.
+
 ## Provenance, rollback, and nonclaims
 
 L05z is target-native and requires no donor implementation or documentation,

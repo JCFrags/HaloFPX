@@ -90,6 +90,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [L05z fault-controller checkpoint independent review (not promotion)](reviews/2026-07-19__l05z-fault-controller-checkpoint__review__v01.md)
 - [L05z returned-fault role-authority correction receipt (not promotion)](evidence/l05z-return-role-authority-correction-receipt.json)
 - [L05z returned-fault role-authority correction independent review (not promotion)](reviews/2026-07-19__l05z-return-role-authority-correction__review__v01.md)
+- [L05z response-loss qualification receipt (not promotion)](evidence/l05z-response-loss-qualification-receipt.json)
+- [L05z response-loss qualification independent review (not promotion)](reviews/2026-07-19__l05z-response-loss-qualification__review__v01.md)
 - [L02 contract index](l02-contracts.md)
 - [Machine-readable L02 contract](contracts/context-store-v1.json)
 - [L02 decisions](decisions/README.md)

@@ -373,8 +373,13 @@ endforeach()
 file(READ "${L05Z_RETURN}" L05Z_RETURN_TEXT)
 foreach(REQUIRED IN ITEMS
     "#include \"halofpx-l05z-return-hostile-manifest.inc\""
+    "#include \"halofpx-l05z-return-role-authority-manifest.inc\""
+    "#include \"halofpx-l05z-return-response-manifest.inc\""
     "manifest_self_check"
-    "static_assert(syscall_seam_base == 2087)"
+    "static_assert(syscall_seam_base == 2163)"
+    "stdout-audit-response"
+    "suppress-fake-full"
+    "response_decoder_self_check"
     "step4_gate"
     "inherited_marker_publication_attempts"
     "cleanup_syscall_seen"
@@ -384,6 +389,26 @@ foreach(REQUIRED IN ITEMS
   string(FIND "${L05Z_RETURN_TEXT}" "${REQUIRED}" HIT)
   if(HIT EQUAL -1)
     message(FATAL_ERROR "missing L05z returned-fault controller token: ${REQUIRED}")
+  endif()
+endforeach()
+set(L05Z_RETURN_RESPONSE_MANIFEST
+  "${ROOT}/tests/halofpx-l05z-return-response-manifest.inc")
+if(NOT EXISTS "${L05Z_RETURN_RESPONSE_MANIFEST}")
+  message(FATAL_ERROR "missing L05z response-loss manifest include")
+endif()
+file(READ "${L05Z_RETURN_RESPONSE_MANIFEST}" L05Z_RETURN_RESPONSE_MANIFEST_TEXT)
+foreach(REQUIRED IN ITEMS
+    "L05Z-RSP-LOSS-FULL-001"
+    "canonical_case_count = 1"
+    "compatible_authority_cases = 8612"
+    "extended_semantic_total = 8613"
+    "extended_case_shard_counts"
+    "writev_decoder=bounded-not-live-admitted"
+    "extended_id_set_hash_hex()"
+    "extended_manifest_hash_hex()")
+  string(FIND "${L05Z_RETURN_RESPONSE_MANIFEST_TEXT}" "${REQUIRED}" HIT)
+  if(HIT EQUAL -1)
+    message(FATAL_ERROR "missing L05z response-loss manifest token: ${REQUIRED}")
   endif()
 endforeach()
 set(L05Z_RETURN_HOSTILE_MANIFEST
