@@ -113,6 +113,12 @@ option(LLAMA_USE_PREBUILT_WEBUI     "llama: use prebuilt WebUI from HF Bucket wh
 option(LLAMA_TOOLS_INSTALL          "llama: install tools"                                                                          ${LLAMA_TOOLS_INSTALL_DEFAULT})
 option(LLAMA_TESTS_INSTALL          "llama: install tests"                                                                          ON)
 
+# P06a is a test-only expert-axis contract seam. It does not enable MiniMax
+# tensor mode, alter model placement, or link into the inference runtime.
+option(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY
+       "Build the isolated MiniMax-M2 two-rank expert-partition canary"
+       OFF)
+
 # HaloFPX L05s is a standalone Linux qualification seam. Both controls are
 # deliberately off unless an isolated qualification build selects them.
 option(HALOFPX_REGISTRY_LAB_LINUX_PREINIT

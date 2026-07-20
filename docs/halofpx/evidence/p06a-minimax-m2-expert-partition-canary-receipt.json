@@ -1,0 +1,73 @@
+{
+  "schema": "halofpx.p06a-minimax-m2-expert-partition.v1",
+  "date": "2026-07-20",
+  "status": "expert_axis_contract_qualified_runtime_closed",
+  "parent_commit": "0d9e2fb323a2537e6d4261775464ace69aaba0b6",
+  "parent_tree": "27430590c8bc4c9471b8546ce8d89b0d52156d9b",
+  "gate": {
+    "name": "HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY",
+    "default": "OFF",
+    "normal_runtime_linked": false,
+    "feature_off_target_present": false
+  },
+  "contract": {
+    "hidden_size": 3072,
+    "expert_count": 192,
+    "selected_count": 8,
+    "world_size": 2,
+    "experts_per_rank": 96,
+    "rank0_global_range": [0, 95],
+    "rank1_global_range": [96, 191],
+    "max_canary_tokens": 512,
+    "non_owned_local_id": 0,
+    "non_owned_active_mask": 0
+  },
+  "source_sha256": {
+    "CMakeLists.txt": "28de54590816dfc00ade00f9bbdab5487d50316bae670d38aabe216ddce9a788",
+    "src/CMakeLists.txt": "bb6d7660056cad688d0d457f55996b36ec4bdc056db465e9ac6260ccdb54f187",
+    "tests/CMakeLists.txt": "eafc33de0352c1ad58b5a2e65142018bc56b3a4bddd45f870ece4b29a997efce",
+    "src/halofpx-minimax-m2-expert-partition.cpp": "db8f8c4a231589f9214d8aa349d3d0a5432fbc83550e607e3699396e2c08c0d9",
+    "src/halofpx-minimax-m2-expert-partition.h": "92dd868041a716f257c92378980039ceefe64a1488b36345330d9f0b82528749",
+    "tests/test-halofpx-minimax-m2-expert-partition.cpp": "b80b9eecad1c4ec721d7c5eb2b68a219548389538f19f18e0c76516ffa2787e4"
+  },
+  "qualification": {
+    "target": "nimo-1",
+    "build_type": "Release",
+    "compiler": "GCC 16.1.1",
+    "cmake": "4.3.4",
+    "ctest": "1/1 passed",
+    "direct_exit": 0,
+    "binary_sha256": "8333968b2499650ff764d872f8c4bf0f4c5ddbcf2c8e2c57154a1026aa911099",
+    "cmake_cache_on_sha256": "aece87d1c03aa10b8fc96829e490f8e5fa304554648d6eb8249608420a54f632",
+    "cmake_cache_off_sha256": "896d200a8768e42188ac0e98e2ee0e488254906ec84a5fca7cfe845240b3d79f"
+  },
+  "evidence": {
+    "root": "/var/tmp/halofpx-p06a-expert-partition/evidence",
+    "manifest_sha256": "adc0136dae24592684ba56365691dcb5a012391b1f2b2890f3351619cf61787a",
+    "bundle": "/var/tmp/halofpx-p06a-expert-partition/evidence.tar.zst",
+    "bundle_size_bytes": 10481,
+    "bundle_sha256": "c50908ed8e040b5e8a5af83d3f23eb7efc77e05b9b16b0494045feb63a2ef045",
+    "manifest_verified": true
+  },
+  "excluded": {
+    "generic_tensor_allowlist": "rejected_before_configure_or_build",
+    "unbuilt_node_local_snapshot": "/var/tmp/halofpx-p06-minimax-tensor",
+    "runtime_expert_placement": false,
+    "q8_0_rocmfpx_kernel_execution": false,
+    "performance_claim": false
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "webui": false,
+    "persistent_write": false,
+    "remote": false,
+    "model_mutated": false,
+    "reference_clone_changed": false
+  },
+  "next_gate": "P06b isolated one-layer Q8_0_ROCMFPX MUL_MAT_ID partition equivalence and overlap canary",
+  "independent_review": "accepted_no_p1_p2"
+}
