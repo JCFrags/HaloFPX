@@ -1,0 +1,89 @@
+{
+  "schema": "halofpx.l08b-default-off-protected-session-canary.v1",
+  "date": "2026-07-20",
+  "status": "qualified_independent_review_accepted_laboratory_only",
+  "parent_commit": "d028cbcbb067bdbdb1656b8ef9d1a0fbeba46f38",
+  "parent_tree": "e3954cf375bf7984578a32b743b9bdd122a99bff",
+  "base_commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "base_tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd",
+  "scope": "default-off Linux authenticated generation-one protected-session disposable-root canary; not L08 or production promotion",
+  "build": {
+    "node": "nimo-1",
+    "build_type": "Release",
+    "compiler": "GCC 16.1.1",
+    "backend": "CPU",
+    "base_canary_option": "ON",
+    "protected_canary_option": "ON",
+    "webui": false,
+    "hip": false,
+    "vulkan": false,
+    "curl": false,
+    "server_sha256": "801f9c58c88db8929450932c689006241a72d0238e7f3ffa0ec75a9ec767106f"
+  },
+  "qualification": {
+    "focused_contracts": {"passed": 7, "failed": 0},
+    "persistent_server_canary": {"passed": 1, "failed": 0, "seconds": 0.64},
+    "inherited_slot_save_restore": {"passed": 1, "failed": 0, "deselected": 1},
+    "base_on_protected_off_help_matches": 0,
+    "all_off_help_matches": 0,
+    "excluded_l05_link_symbol_matches": 0,
+    "effective_slot_context": 128,
+    "compatibility_root": "e676c73f4ee112bd39822c08ffbf47e4d8806f385b9d279c9a2d31f99f644f6f",
+    "cold_content_sha256": "d4befa4c08b0bdd9023bfa965064be3c3a8eda8804174fc74c286b2a66710860",
+    "restart_hit": true,
+    "wrong_scope_miss": true,
+    "anchor_corruption_miss": true,
+    "safe_recomputation_equal": true,
+    "unsupported_profile_rejected": true,
+    "startup_store_rejection_continues_cold": true
+  },
+  "evidence": {
+    "node": "nimo-1",
+    "bundle_path": "/var/tmp/halofpx-l08b-protected-evidence-final-20260720/halofpx-l08b-protected-canary-nimo1-20260720.tar.zst",
+    "bundle_size_bytes": 7570,
+    "bundle_sha256": "3925f128d5fa24f76763393edb2ed7d1b03bb05df408763b5a611808e2cfeca1",
+    "authority_key_in_bundle": false,
+    "direct_object_in_bundle": false,
+    "anchor_object_in_bundle": false,
+    "model_in_bundle": false
+  },
+  "publication_limit": {
+    "classification": "generation_one_laboratory_only",
+    "external_protected_anchor_integrated": true,
+    "generation": 1,
+    "generation_advancement": false,
+    "canonical_v1_manifest_encoder": false,
+    "persistent_cas_attempt_fencing": false,
+    "l08_promoted": false,
+    "persistent_writes_enabled_by_default": false
+  },
+  "deferred_risk_matrix": [
+    "exhaustive crash-point, power-loss, and filesystem permutations",
+    "disk-full and reserve-exhaustion permutations beyond focused provider contracts",
+    "broad concurrency, stale-lock, and hostile-root permutations",
+    "upgrade, rollback, and old-binary coexistence",
+    "generation advancement and authority rotation",
+    "two-node rank-aware restore and recovery"
+  ],
+  "excluded_attempts": [
+    "An initial pytest invocation inherited the repository-wide fixture and failed before the protected test; the isolated unit invocation passed.",
+    "An initial server build attempted inherited WebUI provisioning because the temporary build cache had not set LLAMA_BUILD_WEBUI=OFF; the corrected locked configuration built successfully."
+  ],
+  "provenance": {
+    "implementation": "target_native",
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "excluded_l05_backend_linked": false,
+    "new_dependency": false,
+    "direct_cherry_pick_roster_changed": false,
+    "notice_change_required": false,
+    "sbom_dependency_change_required": false
+  },
+  "review": {
+    "verdict": "ACCEPT_L08B_GENERATION_ONE_LABORATORY_ONLY",
+    "resolved_finding": "EEXIST anchor collision now requires fresh exact authenticated direct receipt equality before idempotent success",
+    "l08_promoted": false,
+    "production_persistence_promoted": false
+  }
+}

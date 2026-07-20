@@ -31,6 +31,23 @@ foreach(required_option
     endif()
 endforeach()
 
+if (NOT HALOFPX_CONTEXT_STORE_CANARY)
+    string(FIND "${server_help}" "--halofpx-context-store-" canary_option_position)
+    if (NOT canary_option_position EQUAL -1)
+        message(FATAL_ERROR "feature-off CLI exposes HaloFPX context-store options")
+    endif()
+elseif (NOT HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+    foreach(forbidden_surface
+            "protected-rw-canary"
+            "--halofpx-context-store-anchor-root"
+            "--halofpx-context-store-uuid")
+        string(FIND "${server_help}" "${forbidden_surface}" forbidden_position)
+        if (NOT forbidden_position EQUAL -1)
+            message(FATAL_ERROR "protected feature-off CLI exposes: ${forbidden_surface}")
+        endif()
+    endforeach()
+endif()
+
 file(READ "${HALOFPX_SOURCE_DIR}/common/common.h" common_header)
 string(REGEX MATCH "hostname[ \t]+=[ \t]+\"127\\.0\\.0\\.1\"" loopback_default "${common_header}")
 if (NOT loopback_default)

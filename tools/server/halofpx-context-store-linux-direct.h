@@ -2,6 +2,7 @@
 
 #include "halofpx-context-store-auth.h"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -12,6 +13,7 @@ constexpr size_t context_store_linux_direct_master_key_bytes = 32;
 constexpr size_t context_store_linux_direct_max_entries_limit = 64;
 constexpr size_t context_store_linux_direct_max_tokens = 1024 * 1024;
 constexpr size_t context_store_linux_direct_max_state_bytes = 512ULL * 1024 * 1024;
+constexpr size_t context_store_linux_direct_manifest_bytes = 228;
 
 struct context_store_linux_direct_root_identity {
     uint64_t device = 0;
@@ -77,6 +79,14 @@ struct context_store_linux_direct_value {
     std::vector<uint8_t> state;
 };
 
+struct context_store_linux_direct_receipt {
+    std::array<uint8_t, context_store_linux_direct_manifest_bytes> manifest {};
+    context_store_format_digest selected_digest {};
+    context_store_format_digest scope {};
+    context_store_format_digest session {};
+    context_store_format_digest compatibility {};
+};
+
 class context_store_linux_direct {
 public:
     context_store_linux_direct() noexcept = default;
@@ -89,6 +99,18 @@ public:
     bool available() const noexcept;
     uint64_t accounted_bytes() const noexcept;
     size_t entry_count() const noexcept;
+
+    context_store_linux_direct_lookup_status inspect_manifest(
+        const context_store_format_digest & manifest_authority_key,
+        const context_store_format_digest & scope,
+        const context_store_format_digest & session,
+        const context_store_format_digest & compatibility,
+        context_store_linux_direct_receipt & output) const noexcept;
+
+    context_store_linux_direct_lookup_status authorized_load(
+        const context_store_format_digest & manifest_authority_key,
+        const context_store_linux_direct_receipt & receipt,
+        context_store_linux_direct_value & output) const noexcept;
 
     context_store_linux_direct_lookup_status lookup(
         const context_store_format_digest & scope,
@@ -104,6 +126,17 @@ public:
         size_t token_count,
         const uint8_t * state,
         size_t state_size) noexcept;
+
+    context_store_linux_direct_publish_status publish_with_receipt(
+        const context_store_format_digest & manifest_authority_key,
+        const context_store_format_digest & scope,
+        const context_store_format_digest & session,
+        const context_store_format_digest & compatibility,
+        const int32_t * tokens,
+        size_t token_count,
+        const uint8_t * state,
+        size_t state_size,
+        context_store_linux_direct_receipt & output) noexcept;
 
 private:
     int root_fd_ = -1;

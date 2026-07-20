@@ -7,6 +7,16 @@ if (HALOFPX_CONTEXT_STORE_CANARY AND (NOT UNIX OR APPLE))
     message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_CANARY is supported only on Linux")
 endif()
 
+option(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY
+    "Compile the generation-one protected persistent-cache canary"
+    OFF)
+if (HALOFPX_CONTEXT_STORE_PROTECTED_CANARY AND NOT HALOFPX_CONTEXT_STORE_CANARY)
+    message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_PROTECTED_CANARY requires HALOFPX_CONTEXT_STORE_CANARY")
+endif()
+if (HALOFPX_CONTEXT_STORE_PROTECTED_CANARY AND (NOT UNIX OR APPLE))
+    message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_PROTECTED_CANARY is supported only on Linux")
+endif()
+
 # Offline-only L04 manifest parser. This target is deliberately not linked into
 # server-context or llama-server.
 add_library(halofpx-context-store-format STATIC EXCLUDE_FROM_ALL
@@ -59,6 +69,27 @@ add_library(halofpx-context-store-linux-direct STATIC EXCLUDE_FROM_ALL
 )
 target_link_libraries(halofpx-context-store-linux-direct PUBLIC halofpx-context-store-auth)
 target_compile_features(halofpx-context-store-linux-direct PRIVATE cxx_std_17)
+
+# ADR-0028 target-owned byte-exact generation-one anchor codec. This is a
+# separate product seam and never links the excluded L05 anchor implementation.
+add_library(halofpx-context-store-protected-canary-anchor STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-protected-canary-anchor.cpp
+    halofpx-context-store-protected-canary-anchor.h
+)
+target_link_libraries(halofpx-context-store-protected-canary-anchor PUBLIC
+    halofpx-context-store-auth)
+target_compile_features(halofpx-context-store-protected-canary-anchor PRIVATE cxx_std_17)
+
+# ADR-0028 Linux generation-one wrapper. Product linkage remains behind both
+# compile-time gates below; direct-rw remains the unchanged L08a control.
+add_library(halofpx-context-store-linux-protected STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-linux-protected.cpp
+    halofpx-context-store-linux-protected.h
+)
+target_link_libraries(halofpx-context-store-linux-protected PUBLIC
+    halofpx-context-store-linux-direct
+    halofpx-context-store-protected-canary-anchor)
+target_compile_features(halofpx-context-store-linux-protected PRIVATE cxx_std_17)
 
 # Offline-only L05e authenticated protected-anchor codec. It performs no I/O
 # and is not linked into server-context, the publication coordinator, or server.
@@ -601,6 +632,12 @@ if (HALOFPX_CONTEXT_STORE_CANARY)
         halofpx-context-store-scope
         halofpx-context-store-state-transformer-v1
         halofpx-context-store-linux-direct)
+endif()
+
+if (HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+    target_compile_definitions(llama-common PUBLIC HALOFPX_CONTEXT_STORE_PROTECTED_CANARY=1)
+    target_compile_definitions(${TARGET} PUBLIC HALOFPX_CONTEXT_STORE_PROTECTED_CANARY=1)
+    target_link_libraries(${TARGET} PRIVATE halofpx-context-store-linux-protected)
 endif()
 
 

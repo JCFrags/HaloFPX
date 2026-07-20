@@ -122,6 +122,8 @@ if (LLAMA_BUILD_SERVER)
         COMMAND ${CMAKE_COMMAND}
             -DHALOFPX_SERVER=$<TARGET_FILE:llama-server>
             -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+            -DHALOFPX_CONTEXT_STORE_CANARY=${HALOFPX_CONTEXT_STORE_CANARY}
+            -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=${HALOFPX_CONTEXT_STORE_PROTECTED_CANARY}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-feature-off-contract.cmake)
     set_property(TEST test-halofpx-feature-off-contract PROPERTY LABELS "main;halofpx")
 endif()
@@ -185,7 +187,21 @@ if (UNIX AND NOT APPLE)
         halofpx-context-store-linux-direct)
     llama_test(test-halofpx-context-store-linux-direct)
     set_property(TEST test-halofpx-context-store-linux-direct PROPERTY LABELS "main;halofpx")
+
+    llama_build(test-halofpx-context-store-linux-protected.cpp)
+    target_include_directories(test-halofpx-context-store-linux-protected PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+    target_link_libraries(test-halofpx-context-store-linux-protected PRIVATE
+        halofpx-context-store-linux-protected)
+    llama_test(test-halofpx-context-store-linux-protected)
+    set_property(TEST test-halofpx-context-store-linux-protected PROPERTY LABELS "main;halofpx")
 endif()
+
+llama_build(test-halofpx-context-store-protected-canary-anchor.cpp)
+target_include_directories(test-halofpx-context-store-protected-canary-anchor PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-protected-canary-anchor PRIVATE
+    halofpx-context-store-protected-canary-anchor)
+llama_test(test-halofpx-context-store-protected-canary-anchor)
+set_property(TEST test-halofpx-context-store-protected-canary-anchor PROPERTY LABELS "main;halofpx")
 
 add_test(
     NAME test-halofpx-context-store-auth-contract

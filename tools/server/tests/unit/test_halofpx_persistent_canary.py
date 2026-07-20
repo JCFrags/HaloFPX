@@ -25,6 +25,7 @@ import requests
 SERVER = os.environ.get("HALOFPX_CANARY_SERVER")
 MODEL = os.environ.get("HALOFPX_CANARY_MODEL")
 PORT = int(os.environ.get("HALOFPX_CANARY_PORT", "18081"))
+MODE = os.environ.get("HALOFPX_CANARY_MODE", "direct-rw")
 API_KEY_A = "halofpx-canary-principal-a"
 API_KEY_B = "halofpx-canary-principal-b"
 SESSION = "4f" * 32
@@ -65,7 +66,14 @@ def _request(method: str, path: str, key: str, body: dict | None = None) -> requ
     )
 
 
-def _start(root: Path, key_file: Path, compatibility: str, log_file: Path) -> subprocess.Popen:
+def _start(
+    root: Path,
+    key_file: Path,
+    compatibility: str,
+    log_file: Path,
+    anchor_root: Path | None = None,
+    store_uuid: str | None = None,
+) -> subprocess.Popen:
     args = [
         SERVER,
         "--model", MODEL,
@@ -82,7 +90,7 @@ def _start(root: Path, key_file: Path, compatibility: str, log_file: Path) -> su
         "--reasoning-format", "none",
         "--offline",
         "--api-key", f"{API_KEY_A},{API_KEY_B}",
-        "--halofpx-context-store-mode", "direct-rw",
+        "--halofpx-context-store-mode", MODE,
         "--halofpx-context-store-root", str(root),
         "--halofpx-context-store-key-file", str(key_file),
         "--halofpx-context-store-compatibility-root", compatibility,
@@ -90,6 +98,12 @@ def _start(root: Path, key_file: Path, compatibility: str, log_file: Path) -> su
         "--halofpx-context-store-reserve", os.environ.get("HALOFPX_CANARY_RESERVE_MIB", "1024"),
         "--halofpx-context-store-max-entries", "4",
     ]
+    if MODE == "protected-rw-canary":
+        assert anchor_root is not None and store_uuid is not None
+        args.extend([
+            "--halofpx-context-store-anchor-root", str(anchor_root),
+            "--halofpx-context-store-uuid", store_uuid,
+        ])
     output = open(log_file, "ab", buffering=0)
     process = subprocess.Popen(args, stdout=output, stderr=subprocess.STDOUT)
     process._halofpx_output = output  # type: ignore[attr-defined]
@@ -142,13 +156,18 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
     workspace = Path(tempfile.mkdtemp(prefix="halofpx-canary-", dir=evidence_parent))
     root = workspace / "store"
     root.mkdir(mode=0o700)
+    anchor_root = workspace / "anchors"
+    if MODE == "protected-rw-canary":
+        anchor_root.mkdir(mode=0o700)
+    store_uuid = secrets.token_hex(16)
     key_file = workspace / "authority.key"
     descriptor = os.open(key_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     os.write(descriptor, secrets.token_bytes(32))
     os.close(descriptor)
 
     tuple_record = {
-        "format": "halofpx-direct-canary-v1",
+        "format": "halofpx-protected-canary-v1" if MODE == "protected-rw-canary"
+        else "halofpx-direct-canary-v1",
         "runtime_files": _runtime_hashes(SERVER),
         "model_sha256": _sha256(MODEL),
         "model_bytes": Path(MODEL).stat().st_size,
@@ -177,7 +196,7 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
         encoding="utf-8",
     )
 
-    process = _start(root, key_file, compatibility, workspace / "server-1.log")
+    process = _start(root, key_file, compatibility, workspace / "server-1.log", anchor_root, store_uuid)
     try:
         miss = _request("POST", "/slots/0?action=halofpx-restore", API_KEY_A, {"session": SESSION})
         assert miss.status_code == 200, miss.text
@@ -198,7 +217,7 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
     finally:
         _stop(process)
 
-    process = _start(root, key_file, compatibility, workspace / "server-2.log")
+    process = _start(root, key_file, compatibility, workspace / "server-2.log", anchor_root, store_uuid)
     try:
         isolated = _request("POST", "/slots/0?action=halofpx-restore", API_KEY_B, {"session": SESSION})
         assert isolated.status_code == 200, isolated.text
@@ -216,10 +235,12 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
     finally:
         _stop(process)
 
-    state_files = [path for path in root.rglob("state") if ".staging" not in path.parts]
-    assert len(state_files) == 1
-    state_path = state_files[0]
-    with state_path.open("r+b") as state:
+    if MODE == "protected-rw-canary":
+        corruption_files = [path for path in anchor_root.rglob("*.anchor") if ".staging" not in path.parts]
+    else:
+        corruption_files = [path for path in root.rglob("state") if ".staging" not in path.parts]
+    assert len(corruption_files) == 1
+    with corruption_files[0].open("r+b") as state:
         first = state.read(1)
         assert first
         state.seek(0)
@@ -227,7 +248,7 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
         state.flush()
         os.fsync(state.fileno())
 
-    process = _start(root, key_file, compatibility, workspace / "server-3.log")
+    process = _start(root, key_file, compatibility, workspace / "server-3.log", anchor_root, store_uuid)
     try:
         corrupt = _request("POST", "/slots/0?action=halofpx-restore", API_KEY_A, {"session": SESSION})
         assert corrupt.status_code == 200, corrupt.text
@@ -246,7 +267,7 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
     os.fsync(descriptor)
     os.close(descriptor)
 
-    process = _start(root, key_file, compatibility, workspace / "server-4.log")
+    process = _start(root, key_file, compatibility, workspace / "server-4.log", anchor_root, store_uuid)
     try:
         unavailable = _request("POST", "/slots/0?action=halofpx-restore", API_KEY_A, {"session": SESSION})
         assert unavailable.status_code != 200, unavailable.text
@@ -259,6 +280,8 @@ def test_restart_hit_corruption_recomputes_and_scope_isolation() -> None:
 
     summary = {
         "compatibility_root": compatibility,
+        "mode": MODE,
+        "store_uuid": store_uuid if MODE == "protected-rw-canary" else None,
         "cold_content_sha256": hashlib.sha256(cold["content"].encode()).hexdigest(),
         "restart_hit": True,
         "wrong_scope_miss": True,

@@ -23,6 +23,14 @@ target-native canary-owned encoder/provider cross-checked against the offline
 codec and must not link excluded L05 codec, coordinator, simulator, bootstrap,
 registry, or synthetic backend targets.
 
+A follow-up adversarial recheck accepted the two-stage retained-key amendment.
+The provider retains only UUID-bound, domain-separated scope, direct-root, and
+anchor-root keys; per-namespace direct and anchor keys remain bound to their
+exact key IDs and closed generation one, and are wiped after each request. The
+raw operator key is wiped after initialization. This preserves the original
+domain separation and closed no-rotation authority while avoiding long-lived
+raw-key retention.
+
 ADR-0028 is therefore coherent as a build-time and runtime default-off,
 disposable, generation-one canary. It does not bypass the missing full-v1
 manifest encoder or qualified CAS/attempt-fencing backend, and it does not

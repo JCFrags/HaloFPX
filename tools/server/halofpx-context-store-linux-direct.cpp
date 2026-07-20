@@ -30,6 +30,9 @@ constexpr std::array<uint8_t, 8> manifest_magic = { 'H','F','P','X','L','D','0',
 constexpr uint16_t manifest_version = 1;
 constexpr size_t manifest_auth_bytes = 196;
 constexpr size_t manifest_bytes = manifest_auth_bytes + 32;
+static_assert(manifest_bytes == context_store_linux_direct_manifest_bytes, "direct manifest size drift");
+constexpr uint8_t selected_digest_domain[] = "halofpx.direct-manifest.v1";
+static_assert(sizeof(selected_digest_domain) == 27, "selected digest domain drift");
 constexpr mode_t directory_mode = 0700;
 constexpr mode_t file_mode = 0600;
 constexpr char lock_name[] = ".writer-lock";
@@ -220,6 +223,30 @@ bool build_manifest(
     wipe(tag.data(), tag.size());
     return true;
 }
+
+bool selected_manifest_digest(
+        const std::array<uint8_t, manifest_bytes> & manifest,
+        context_store_format_digest & output) noexcept {
+    std::array<uint8_t, sizeof(selected_digest_domain) + manifest_bytes> preimage {};
+    std::copy(std::begin(selected_digest_domain), std::end(selected_digest_domain), preimage.begin());
+    std::copy(manifest.begin(), manifest.end(), preimage.begin() + sizeof(selected_digest_domain));
+    const bool ok = context_store_sha256_bounded(preimage.data(), preimage.size(), preimage.size(), output);
+    wipe(preimage.data(), preimage.size());
+    return ok;
+}
+
+void wipe_receipt(context_store_linux_direct_receipt & receipt) noexcept {
+    wipe(receipt.manifest.data(), receipt.manifest.size());
+    wipe(receipt.selected_digest.data(), receipt.selected_digest.size());
+    wipe(receipt.scope.data(), receipt.scope.size());
+    wipe(receipt.session.data(), receipt.session.size());
+    wipe(receipt.compatibility.data(), receipt.compatibility.size());
+}
+
+struct receipt_wipe_on_exit {
+    context_store_linux_direct_receipt & value;
+    ~receipt_wipe_on_exit() { wipe_receipt(value); }
+};
 
 bool valid_file(int fd, uint64_t device, uint32_t uid, off_t size) noexcept {
     struct stat value {};
@@ -508,14 +535,15 @@ context_store_linux_direct_open_status context_store_linux_direct_open(
     return context_store_linux_direct_open_status::opened;
 }
 
-context_store_linux_direct_lookup_status context_store_linux_direct::lookup(
+context_store_linux_direct_lookup_status context_store_linux_direct::inspect_manifest(
+        const context_store_format_digest & manifest_authority_key,
         const context_store_format_digest & scope,
         const context_store_format_digest & session,
         const context_store_format_digest & compatibility,
-        context_store_linux_direct_value & output) const noexcept {
-    wipe_vector(output.tokens); wipe_vector(output.state);
+        context_store_linux_direct_receipt & output) const noexcept {
+    wipe_receipt(output);
     if (!available()) return context_store_linux_direct_lookup_status::unavailable;
-    if (!nonzero(scope) || !nonzero(session) || !nonzero(compatibility))
+    if (!nonzero(manifest_authority_key) || !nonzero(scope) || !nonzero(session) || !nonzero(compatibility))
         return context_store_linux_direct_lookup_status::invalid_request;
     const auto scope_name_value = hex_name(scope), session_name_value = hex_name(session);
     const int scope_fd = open_directory_at(root_fd_, scope_name_value.data());
@@ -553,7 +581,8 @@ context_store_linux_direct_lookup_status context_store_linux_direct::lookup(
         retry_close(session_fd); return context_store_linux_direct_lookup_status::miss_corrupt;
     }
     context_store_format_digest tag {};
-    if (!context_store_hmac_sha256(master_key_.data(), master_key_.size(), manifest.data(), manifest_auth_bytes, tag) ||
+    if (!context_store_hmac_sha256(manifest_authority_key.data(), manifest_authority_key.size(),
+            manifest.data(), manifest_auth_bytes, tag) ||
         !constant_equal(tag.data(), manifest.data() + manifest_auth_bytes, tag.size())) {
         wipe(tag.data(), tag.size()); retry_close(session_fd); return context_store_linux_direct_lookup_status::miss_corrupt;
     }
@@ -561,6 +590,78 @@ context_store_linux_direct_lookup_status context_store_linux_direct::lookup(
     if (!constant_equal(manifest.data() + 76, compatibility.data(), 32)) {
         retry_close(session_fd); return context_store_linux_direct_lookup_status::miss_incompatible;
     }
+    retry_close(session_fd);
+    context_store_format_digest selected_digest {};
+    if (!selected_manifest_digest(manifest, selected_digest)) {
+        wipe(selected_digest.data(), selected_digest.size());
+        return context_store_linux_direct_lookup_status::unavailable;
+    }
+    std::copy(manifest.begin(), manifest.end(), output.manifest.begin());
+    std::copy(selected_digest.begin(), selected_digest.end(), output.selected_digest.begin());
+    output.scope = scope;
+    output.session = session;
+    output.compatibility = compatibility;
+    wipe(selected_digest.data(), selected_digest.size());
+    return context_store_linux_direct_lookup_status::hit;
+}
+
+context_store_linux_direct_lookup_status context_store_linux_direct::authorized_load(
+        const context_store_format_digest & manifest_authority_key,
+        const context_store_linux_direct_receipt & receipt,
+        context_store_linux_direct_value & output) const noexcept {
+    wipe_vector(output.tokens); wipe_vector(output.state);
+    if (!available()) return context_store_linux_direct_lookup_status::unavailable;
+    if (!nonzero(manifest_authority_key) || !nonzero(receipt.scope) || !nonzero(receipt.session) ||
+        !nonzero(receipt.compatibility) || !nonzero(receipt.selected_digest))
+        return context_store_linux_direct_lookup_status::invalid_request;
+    context_store_format_digest selected_digest {};
+    if (!selected_manifest_digest(receipt.manifest, selected_digest) ||
+        !constant_equal(selected_digest.data(), receipt.selected_digest.data(), selected_digest.size())) {
+        wipe(selected_digest.data(), selected_digest.size());
+        return context_store_linux_direct_lookup_status::miss_corrupt;
+    }
+    wipe(selected_digest.data(), selected_digest.size());
+    context_store_linux_direct_receipt observed;
+    const auto inspected = inspect_manifest(manifest_authority_key, receipt.scope, receipt.session,
+        receipt.compatibility, observed);
+    if (inspected != context_store_linux_direct_lookup_status::hit) {
+        wipe_receipt(observed);
+        return inspected;
+    }
+    const bool receipt_equal = constant_equal(observed.manifest.data(), receipt.manifest.data(), receipt.manifest.size()) &&
+        constant_equal(observed.selected_digest.data(), receipt.selected_digest.data(), receipt.selected_digest.size()) &&
+        constant_equal(observed.scope.data(), receipt.scope.data(), receipt.scope.size()) &&
+        constant_equal(observed.session.data(), receipt.session.data(), receipt.session.size()) &&
+        constant_equal(observed.compatibility.data(), receipt.compatibility.data(), receipt.compatibility.size());
+    wipe_receipt(observed);
+    if (!receipt_equal) return context_store_linux_direct_lookup_status::miss_corrupt;
+
+    const auto scope_name_value = hex_name(receipt.scope), session_name_value = hex_name(receipt.session);
+    const int scope_fd = open_directory_at(root_fd_, scope_name_value.data());
+    if (scope_fd < 0 || !exact_identity(scope_fd, device_, owner_uid_, directory_mode, true) ||
+        !same_mount(scope_fd, mount_id_)) {
+        retry_close(scope_fd); return context_store_linux_direct_lookup_status::miss_corrupt;
+    }
+    const int session_fd = open_directory_at(scope_fd, session_name_value.data());
+    retry_close(scope_fd);
+    if (session_fd < 0 || !exact_identity(session_fd, device_, owner_uid_, directory_mode, true) ||
+        !same_mount(session_fd, mount_id_) || !session_layout_exact(session_fd)) {
+        retry_close(session_fd); return context_store_linux_direct_lookup_status::miss_corrupt;
+    }
+    std::array<uint8_t, manifest_bytes> reopened_manifest {};
+    const int manifest_fd = open_regular_at(session_fd, manifest_name, O_RDONLY);
+    if (manifest_fd < 0 || !valid_file(manifest_fd, device_, owner_uid_, reopened_manifest.size()) ||
+        !exact_read(manifest_fd, reopened_manifest.data(), reopened_manifest.size()) ||
+        !constant_equal(reopened_manifest.data(), receipt.manifest.data(), reopened_manifest.size())) {
+        retry_close(manifest_fd); retry_close(session_fd);
+        wipe(reopened_manifest.data(), reopened_manifest.size());
+        return context_store_linux_direct_lookup_status::miss_corrupt;
+    }
+    retry_close(manifest_fd);
+    wipe(reopened_manifest.data(), reopened_manifest.size());
+    const uint64_t token_count = get_u64(receipt.manifest.data() + 108);
+    const uint64_t token_size = get_u64(receipt.manifest.data() + 116);
+    const uint64_t state_size = get_u64(receipt.manifest.data() + 124);
     try {
         std::vector<uint8_t> token_bytes(static_cast<size_t>(token_size));
         byte_vector_wipe_on_exit token_bytes_guard { token_bytes };
@@ -579,8 +680,8 @@ context_store_linux_direct_lookup_status context_store_linux_direct::lookup(
                 context_store_linux_direct_max_tokens * 4ULL, token_digest) &&
             context_store_sha256_bounded(output.state.data(), output.state.size(),
                 context_store_linux_direct_max_state_bytes, state_digest) &&
-            constant_equal(token_digest.data(), manifest.data() + 132, 32) &&
-            constant_equal(state_digest.data(), manifest.data() + 164, 32);
+            constant_equal(token_digest.data(), receipt.manifest.data() + 132, 32) &&
+            constant_equal(state_digest.data(), receipt.manifest.data() + 164, 32);
         wipe(token_digest.data(), token_digest.size()); wipe(state_digest.data(), state_digest.size());
         if (!digests_ok) { wipe_vector(output.state); return context_store_linux_direct_lookup_status::miss_corrupt; }
         output.tokens.resize(static_cast<size_t>(token_count));
@@ -598,22 +699,47 @@ context_store_linux_direct_lookup_status context_store_linux_direct::lookup(
     }
 }
 
-context_store_linux_direct_publish_status context_store_linux_direct::publish(
+context_store_linux_direct_lookup_status context_store_linux_direct::lookup(
+        const context_store_format_digest & scope,
+        const context_store_format_digest & session,
+        const context_store_format_digest & compatibility,
+        context_store_linux_direct_value & output) const noexcept {
+    context_store_linux_direct_receipt receipt;
+    const auto status = inspect_manifest(master_key_, scope, session, compatibility, receipt);
+    if (status != context_store_linux_direct_lookup_status::hit) {
+        wipe_receipt(receipt);
+        wipe_vector(output.tokens); wipe_vector(output.state);
+        return status;
+    }
+    const auto loaded = authorized_load(master_key_, receipt, output);
+    wipe_receipt(receipt);
+    return loaded;
+}
+
+context_store_linux_direct_publish_status context_store_linux_direct::publish_with_receipt(
+        const context_store_format_digest & manifest_authority_key,
         const context_store_format_digest & scope,
         const context_store_format_digest & session,
         const context_store_format_digest & compatibility,
         const int32_t * tokens, size_t token_count,
-        const uint8_t * state, size_t state_size) noexcept {
+        const uint8_t * state, size_t state_size,
+        context_store_linux_direct_receipt & output) noexcept {
+    wipe_receipt(output);
     if (!available()) return context_store_linux_direct_publish_status::unavailable;
-    if (!nonzero(scope) || !nonzero(session) || !nonzero(compatibility) ||
+    if (!nonzero(manifest_authority_key) || !nonzero(scope) || !nonzero(session) || !nonzero(compatibility) ||
         (tokens == nullptr && token_count != 0) || (state == nullptr && state_size != 0) ||
         (token_count == 0 && state_size == 0) || token_count > context_store_linux_direct_max_tokens ||
         state_size > context_store_linux_direct_max_state_bytes)
         return context_store_linux_direct_publish_status::invalid_request;
     try {
         const auto classify_existing = [&]() noexcept {
+            context_store_linux_direct_receipt existing_receipt;
+            receipt_wipe_on_exit existing_receipt_guard { existing_receipt };
             context_store_linux_direct_value existing;
-            const auto status = lookup(scope, session, compatibility, existing);
+            auto status = inspect_manifest(manifest_authority_key, scope, session, compatibility, existing_receipt);
+            if (status == context_store_linux_direct_lookup_status::hit) {
+                status = authorized_load(manifest_authority_key, existing_receipt, existing);
+            }
             bool equal = status == context_store_linux_direct_lookup_status::hit &&
                 existing.tokens.size() == token_count && existing.state.size() == state_size;
             for (size_t index = 0; equal && index < token_count; ++index) {
@@ -628,8 +754,9 @@ context_store_linux_direct_publish_status context_store_linux_direct::publish(
                 return context_store_linux_direct_publish_status::published;
             }
             if (status == context_store_linux_direct_lookup_status::hit) {
+                if (equal) output = existing_receipt;
                 return equal ? context_store_linux_direct_publish_status::already_exists :
-                               context_store_linux_direct_publish_status::conflict;
+                    context_store_linux_direct_publish_status::conflict;
             }
             if (status == context_store_linux_direct_lookup_status::miss_incompatible ||
                 status == context_store_linux_direct_lookup_status::miss_corrupt) {
@@ -648,7 +775,15 @@ context_store_linux_direct_publish_status context_store_linux_direct::publish(
             std::array<uint8_t, manifest_bytes> & value;
             ~manifest_wipe_on_exit() { wipe(value.data(), value.size()); }
         } manifest_guard { manifest };
-        if (!build_manifest(master_key_, scope, session, compatibility, token_bytes, state, state_size, manifest))
+        if (!build_manifest(manifest_authority_key, scope, session, compatibility, token_bytes, state, state_size, manifest))
+            return context_store_linux_direct_publish_status::io_error;
+        context_store_linux_direct_receipt proposed_receipt;
+        receipt_wipe_on_exit proposed_receipt_guard { proposed_receipt };
+        std::copy(manifest.begin(), manifest.end(), proposed_receipt.manifest.begin());
+        proposed_receipt.scope = scope;
+        proposed_receipt.session = session;
+        proposed_receipt.compatibility = compatibility;
+        if (!selected_manifest_digest(manifest, proposed_receipt.selected_digest))
             return context_store_linux_direct_publish_status::io_error;
         uint64_t incoming = manifest.size();
         if (!add_bytes(token_bytes.size(), incoming) || !add_bytes(state_size, incoming))
@@ -708,10 +843,24 @@ context_store_linux_direct_publish_status context_store_linux_direct::publish(
         if (::fsync(scope_fd) != 0) { retry_close(scope_fd); return context_store_linux_direct_publish_status::io_error; }
         retry_close(scope_fd);
         accounted_bytes_ += incoming; ++entry_count_;
+        output = proposed_receipt;
         return context_store_linux_direct_publish_status::published;
     } catch (...) {
         return context_store_linux_direct_publish_status::unavailable;
     }
+}
+
+context_store_linux_direct_publish_status context_store_linux_direct::publish(
+        const context_store_format_digest & scope,
+        const context_store_format_digest & session,
+        const context_store_format_digest & compatibility,
+        const int32_t * tokens, size_t token_count,
+        const uint8_t * state, size_t state_size) noexcept {
+    context_store_linux_direct_receipt receipt;
+    const auto status = publish_with_receipt(master_key_, scope, session, compatibility,
+        tokens, token_count, state, state_size, receipt);
+    wipe_receipt(receipt);
+    return status;
 }
 
 const char * context_store_linux_direct_open_status_name(context_store_linux_direct_open_status status) noexcept {
@@ -764,6 +913,17 @@ context_store_linux_direct & context_store_linux_direct::operator=(context_store
 bool context_store_linux_direct::available() const noexcept { return false; }
 uint64_t context_store_linux_direct::accounted_bytes() const noexcept { return 0; }
 size_t context_store_linux_direct::entry_count() const noexcept { return 0; }
+context_store_linux_direct_lookup_status context_store_linux_direct::inspect_manifest(
+    const context_store_format_digest &, const context_store_format_digest &,
+    const context_store_format_digest &, const context_store_format_digest &,
+    context_store_linux_direct_receipt & output) const noexcept {
+    output = {}; return context_store_linux_direct_lookup_status::unavailable;
+}
+context_store_linux_direct_lookup_status context_store_linux_direct::authorized_load(
+    const context_store_format_digest &, const context_store_linux_direct_receipt &,
+    context_store_linux_direct_value & output) const noexcept {
+    output = {}; return context_store_linux_direct_lookup_status::unavailable;
+}
 context_store_linux_direct_lookup_status context_store_linux_direct::lookup(
     const context_store_format_digest &, const context_store_format_digest &,
     const context_store_format_digest &, context_store_linux_direct_value & output) const noexcept {
@@ -773,6 +933,13 @@ context_store_linux_direct_publish_status context_store_linux_direct::publish(
     const context_store_format_digest &, const context_store_format_digest &,
     const context_store_format_digest &, const int32_t *, size_t, const uint8_t *, size_t) noexcept {
     return context_store_linux_direct_publish_status::unavailable;
+}
+context_store_linux_direct_publish_status context_store_linux_direct::publish_with_receipt(
+    const context_store_format_digest &, const context_store_format_digest &,
+    const context_store_format_digest &, const context_store_format_digest &,
+    const int32_t *, size_t, const uint8_t *, size_t,
+    context_store_linux_direct_receipt & output) noexcept {
+    output = {}; return context_store_linux_direct_publish_status::unavailable;
 }
 context_store_linux_direct_open_status context_store_linux_direct_open(
     const context_store_linux_direct_config &, context_store_linux_direct &) noexcept {

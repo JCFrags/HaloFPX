@@ -4,6 +4,7 @@
 
 #include "halofpx-context-store-linux-direct.h"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>
@@ -68,6 +69,14 @@ halofpx::context_store_linux_direct_config config_for(
     config.max_entries = max_entries;
     config.expected_root = identity;
     return config;
+}
+
+bool receipt_equal(
+        const halofpx::context_store_linux_direct_receipt & left,
+        const halofpx::context_store_linux_direct_receipt & right) {
+    return left.manifest == right.manifest && left.selected_digest == right.selected_digest &&
+        left.scope == right.scope && left.session == right.session &&
+        left.compatibility == right.compatibility;
 }
 
 void flip_first_byte(const std::string & path) {
@@ -181,12 +190,107 @@ void direct_store_contract() {
         state.data(), state.size()) == publish_status::reserve_exhausted);
 }
 
+void direct_receipt_contract() {
+    temporary_root root;
+    std::array<uint8_t, 32> configured_key {};
+    for (size_t index = 0; index < configured_key.size(); ++index) {
+        configured_key[index] = static_cast<uint8_t>(0x40 + index);
+    }
+    const auto config = config_for(root, configured_key);
+    const digest manifest_key = id(180);
+    const digest wrong_manifest_key = id(181);
+    const digest scope = id(90), session = id(100), compatibility = id(130);
+    const std::array<int32_t, 4> tokens = { 4, 3, 2, 1 };
+    const std::array<uint8_t, 6> state = { 1, 3, 3, 7, 9, 11 };
+
+    halofpx::context_store_linux_direct store;
+    assert(halofpx::context_store_linux_direct_open(config, store) == open_status::opened);
+    halofpx::context_store_linux_direct_receipt published;
+    assert(store.publish_with_receipt(manifest_key, scope, session, compatibility,
+        tokens.data(), tokens.size(), state.data(), state.size(), published) == publish_status::published);
+    assert(published.scope == scope);
+    assert(published.session == session);
+    assert(published.compatibility == compatibility);
+    assert(std::equal(published.manifest.begin(), published.manifest.begin() + 8, "HFPXLD01"));
+
+    std::array<uint8_t, 27 + halofpx::context_store_linux_direct_manifest_bytes> selected_preimage {};
+    constexpr char selected_domain[] = "halofpx.direct-manifest.v1";
+    static_assert(sizeof(selected_domain) == 27, "selected digest test domain drift");
+    std::copy_n(reinterpret_cast<const uint8_t *>(selected_domain), sizeof(selected_domain), selected_preimage.begin());
+    std::copy(published.manifest.begin(), published.manifest.end(), selected_preimage.begin() + sizeof(selected_domain));
+    digest independently_selected {};
+    assert(halofpx::context_store_sha256(selected_preimage.data(), selected_preimage.size(), independently_selected));
+    assert(independently_selected == published.selected_digest);
+
+    halofpx::context_store_linux_direct_receipt inspected;
+    assert(store.inspect_manifest(manifest_key, scope, session, compatibility, inspected) == lookup_status::hit);
+    assert(inspected.manifest == published.manifest);
+    assert(inspected.selected_digest == published.selected_digest);
+    assert(inspected.scope == published.scope && inspected.session == published.session &&
+        inspected.compatibility == published.compatibility);
+
+    halofpx::context_store_linux_direct_receipt repeated;
+    assert(store.publish_with_receipt(manifest_key, scope, session, compatibility,
+        tokens.data(), tokens.size(), state.data(), state.size(), repeated) == publish_status::already_exists);
+    assert(repeated.manifest == published.manifest);
+    assert(repeated.selected_digest == published.selected_digest);
+
+    halofpx::context_store_linux_direct_value value;
+    assert(store.authorized_load(manifest_key, published, value) == lookup_status::hit);
+    assert(value.tokens == std::vector<int32_t>(tokens.begin(), tokens.end()));
+    assert(value.state == std::vector<uint8_t>(state.begin(), state.end()));
+
+    auto wrong_digest = published;
+    wrong_digest.selected_digest[0] ^= 0x80;
+    value.tokens = { 99 };
+    value.state = { 99 };
+    assert(store.authorized_load(manifest_key, wrong_digest, value) == lookup_status::miss_corrupt);
+    assert(value.tokens.empty() && value.state.empty());
+
+    auto wrong_receipt = published;
+    wrong_receipt.manifest[20] ^= 0x01;
+    std::copy(wrong_receipt.manifest.begin(), wrong_receipt.manifest.end(),
+        selected_preimage.begin() + sizeof(selected_domain));
+    assert(halofpx::context_store_sha256(selected_preimage.data(), selected_preimage.size(),
+        wrong_receipt.selected_digest));
+    value.tokens = { 98 };
+    value.state = { 98 };
+    assert(store.authorized_load(manifest_key, wrong_receipt, value) == lookup_status::miss_corrupt);
+    assert(value.tokens.empty() && value.state.empty());
+
+    halofpx::context_store_linux_direct_receipt rejected;
+    assert(store.inspect_manifest(wrong_manifest_key, scope, session, compatibility, rejected) ==
+        lookup_status::miss_corrupt);
+    assert(receipt_equal(rejected, halofpx::context_store_linux_direct_receipt {}));
+
+    const digest payload_corrupt_session = id(101);
+    halofpx::context_store_linux_direct_receipt payload_receipt;
+    assert(store.publish_with_receipt(manifest_key, scope, payload_corrupt_session, compatibility,
+        tokens.data(), tokens.size(), state.data(), state.size(), payload_receipt) == publish_status::published);
+    flip_first_byte(root.path + "/" + hex(scope) + "/" + hex(payload_corrupt_session) + "/state");
+    halofpx::context_store_linux_direct_receipt payload_inspected;
+    assert(store.inspect_manifest(manifest_key, scope, payload_corrupt_session, compatibility,
+        payload_inspected) == lookup_status::hit);
+    assert(receipt_equal(payload_inspected, payload_receipt));
+    value.tokens = { 97 };
+    value.state = { 97 };
+    assert(store.authorized_load(manifest_key, payload_receipt, value) == lookup_status::miss_corrupt);
+    assert(value.tokens.empty() && value.state.empty());
+
+    flip_first_byte(root.path + "/" + hex(scope) + "/" + hex(session) + "/manifest");
+    value.tokens = { 96 };
+    value.state = { 96 };
+    assert(store.authorized_load(manifest_key, published, value) == lookup_status::miss_corrupt);
+    assert(value.tokens.empty() && value.state.empty());
+}
+
 } // namespace
 #endif
 
 int main() {
 #if defined(__linux__)
     direct_store_contract();
+    direct_receipt_contract();
 #endif
     return 0;
 }

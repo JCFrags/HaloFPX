@@ -56,18 +56,26 @@ NUL. Integer lengths and generations are unsigned big-endian:
 K_scope = HMAC-SHA-256(K_operator,
   "halofpx.protected-canary.scope-key.v1\0" || store_uuid)
 
-K_direct = HMAC-SHA-256(K_operator,
+K_direct_root = HMAC-SHA-256(K_operator,
+  "halofpx.protected-canary.direct-root-key.v1\0" || store_uuid)
+
+K_direct = HMAC-SHA-256(K_direct_root,
   "halofpx.protected-canary.direct-manifest-key.v1\0" ||
-  store_uuid || namespace_id || key_id_len:u16be ||
+  namespace_id || key_id_len:u16be ||
   "halofpx-protected-direct-v1" || key_generation:u64be)
 
-K_anchor_master = HMAC-SHA-256(K_operator,
+K_anchor_root = HMAC-SHA-256(K_operator,
+  "halofpx.protected-canary.anchor-root-key.v1\0" || store_uuid)
+
+K_anchor_master = HMAC-SHA-256(K_anchor_root,
   "halofpx.protected-canary.anchor-master.v1\0" ||
-  store_uuid || namespace_id || key_id_len:u16be ||
+  namespace_id || key_id_len:u16be ||
   "halofpx-protected-anchor-v1" || key_generation:u64be)
 ```
 
-Both closed key generations are exactly one. `K_scope` is then used only by
+Both closed key generations are exactly one. Only `K_scope`, `K_direct_root`,
+and `K_anchor_root` survive provider initialization; the raw operator key and
+per-request namespace keys are wiped. `K_scope` is used only by
 the existing ADR-0002 namespace derivation, whose canonical preimage binds the
 policy key ID, authentication issuer, principal, security domain, policy epoch,
 private scope class, and compatibility root. `K_anchor_master` is supplied to
@@ -89,7 +97,8 @@ generation one. Its anchor body binds:
 
 - the configured store UUID;
 - exact private namespace;
-- fixed nonzero policy, manifest-key, authority, and anchor-key generations;
+- policy epoch, manifest-key generation, authority epoch, and anchor-key
+  generation each fixed to exactly one;
 - checkpoint lineage equal to the exact session ID;
 - generation one with a null predecessor; and
 - the selected digest of the exact authenticated `HFPXLD01` manifest.

@@ -1381,13 +1381,25 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
     ).set_env("LLAMA_ARG_CACHE_DISK_LIMIT").set_examples({LLAMA_EXAMPLE_SERVER}));
 #if defined(HALOFPX_CONTEXT_STORE_CANARY)
     add_opt(common_arg(
-        {"--halofpx-context-store-mode"}, "off|direct-rw",
+        {"--halofpx-context-store-mode"},
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+        "off|direct-rw|protected-rw-canary",
+#else
+        "off|direct-rw",
+#endif
         "experimental direct-session HaloFPX persistent-cache canary (default: off); "
         "no automatic lookup, prefix matching, shared scope, or anonymous access",
         [](common_params & params, const std::string & value) {
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+            if (value != "off" && value != "direct-rw" && value != "protected-rw-canary") {
+                throw std::invalid_argument(
+                    "HaloFPX context-store mode must be off, direct-rw, or protected-rw-canary");
+            }
+#else
             if (value != "off" && value != "direct-rw") {
                 throw std::invalid_argument("HaloFPX context-store mode must be off or direct-rw");
             }
+#endif
             params.halofpx_context_store_mode = value;
         }
     ).set_examples({LLAMA_EXAMPLE_SERVER}));
@@ -1418,6 +1430,25 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
             params.halofpx_context_store_compatibility_root = value;
         }
     ).set_examples({LLAMA_EXAMPLE_SERVER}));
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+    add_opt(common_arg(
+        {"--halofpx-context-store-anchor-root"}, "PATH",
+        "distinct precreated owner-only protected-anchor root for protected-rw-canary",
+        [](common_params & params, const std::string & value) {
+            if (value.empty()) {
+                throw std::invalid_argument("HaloFPX protected-anchor root must not be empty");
+            }
+            params.halofpx_context_store_anchor_root = value;
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+    add_opt(common_arg(
+        {"--halofpx-context-store-uuid"}, "HEX32",
+        "stable lowercase 128-bit store UUID for protected-rw-canary",
+        [](common_params & params, const std::string & value) {
+            params.halofpx_context_store_uuid = value;
+        }
+    ).set_examples({LLAMA_EXAMPLE_SERVER}));
+#endif
     add_opt(common_arg(
         {"--halofpx-context-store-quota"}, "N",
         "committed-byte quota in MiB for the experimental canary (required for direct-rw)",

@@ -22,6 +22,9 @@
 #include "halofpx-context-store-linux-direct.h"
 #include "halofpx-context-store-scope.h"
 #include "halofpx-context-store-state-transformer-v1.h"
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+#include "halofpx-context-store-linux-protected.h"
+#endif
 #endif
 
 #include <algorithm>
@@ -100,6 +103,32 @@ bool halofpx_parse_lower_hex_digest(
     }
     return true;
 }
+
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+bool halofpx_parse_lower_hex_uuid(
+        const std::string & text,
+        std::array<uint8_t, 16> & output) noexcept {
+    output.fill(0);
+    if (text.size() != output.size() * 2) {
+        return false;
+    }
+    for (size_t index = 0; index < output.size(); ++index) {
+        const auto nibble = [](char value) -> int {
+            if (value >= '0' && value <= '9') return value - '0';
+            if (value >= 'a' && value <= 'f') return value - 'a' + 10;
+            return -1;
+        };
+        const int high = nibble(text[index * 2]);
+        const int low = nibble(text[index * 2 + 1]);
+        if (high < 0 || low < 0) {
+            output.fill(0);
+            return false;
+        }
+        output[index] = static_cast<uint8_t>((high << 4) | low);
+    }
+    return true;
+}
+#endif
 
 std::string halofpx_digest_hex(const halofpx::context_store_format_digest & value) {
     static constexpr char hex[] = "0123456789abcdef";
@@ -870,6 +899,9 @@ private:
 
 #if defined(HALOFPX_CONTEXT_STORE_CANARY)
     std::unique_ptr<halofpx::context_store_linux_direct> halofpx_direct_store;
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+    std::unique_ptr<halofpx::context_store_linux_protected> halofpx_protected_store;
+#endif
     halofpx::context_store_format_digest halofpx_scope_key {};
     halofpx::context_store_format_digest halofpx_compatibility_root {};
 #endif
@@ -908,7 +940,14 @@ private:
         if (params_base.halofpx_context_store_mode == "off") {
             return true;
         }
-        if (params_base.halofpx_context_store_mode != "direct-rw" ||
+        const bool direct_mode = params_base.halofpx_context_store_mode == "direct-rw";
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+        const bool protected_mode = params_base.halofpx_context_store_mode == "protected-rw-canary";
+        std::array<uint8_t, 16> protected_store_uuid {};
+#else
+        const bool protected_mode = false;
+#endif
+        if ((!direct_mode && !protected_mode) ||
             params_base.api_keys.empty() ||
             params_base.halofpx_context_store_root.empty() ||
             params_base.halofpx_context_store_key_file.empty() ||
@@ -923,6 +962,15 @@ private:
             SRV_ERR("%s", "invalid HaloFPX direct context-store configuration\n");
             return false;
         }
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+        if (protected_mode &&
+            (params_base.halofpx_context_store_anchor_root.empty() ||
+             !halofpx_parse_lower_hex_uuid(params_base.halofpx_context_store_uuid,
+                 protected_store_uuid))) {
+            SRV_ERR("%s", "invalid HaloFPX protected context-store authority\n");
+            return false;
+        }
+#endif
 
         if (llama_model_is_recurrent(model_tgt) || llama_model_is_hybrid(model_tgt) ||
             mctx != nullptr || ctx_dft || spec || !params_base.lora_adapters.empty()) {
@@ -931,9 +979,76 @@ private:
             return true;
         }
 
-        if (halofpx_direct_store) {
+        if (halofpx_direct_store
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+            || halofpx_protected_store
+#endif
+        ) {
             return true;
         }
+
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+        if (protected_mode) {
+            std::array<uint8_t, halofpx::context_store_linux_protected_operator_key_bytes> operator_key {};
+            halofpx::context_store_linux_protected_root_authority authority;
+            if (!halofpx_read_owner_key(params_base.halofpx_context_store_key_file, operator_key) ||
+                !halofpx::context_store_linux_protected_derive_root_authority(
+                    operator_key.data(), operator_key.size(), protected_store_uuid, authority)) {
+                halofpx_wipe(operator_key.data(), operator_key.size());
+                halofpx_wipe(&authority, sizeof(authority));
+                halofpx_scope_key.fill(0);
+                SRV_ERR("%s", "unable to load or derive HaloFPX protected context-store authority\n");
+                return false;
+            }
+            halofpx_wipe(operator_key.data(), operator_key.size());
+            halofpx_scope_key = authority.scope_key;
+
+            halofpx::context_store_linux_direct_root_identity direct_identity {};
+            halofpx::context_store_linux_direct_root_identity anchor_identity {};
+            const auto direct_identity_status = halofpx::context_store_linux_direct_inspect_root(
+                params_base.halofpx_context_store_root.c_str(), direct_identity);
+            const auto anchor_identity_status = halofpx::context_store_linux_direct_inspect_root(
+                params_base.halofpx_context_store_anchor_root.c_str(), anchor_identity);
+            if (direct_identity_status != halofpx::context_store_linux_direct_identity_status::inspected ||
+                anchor_identity_status != halofpx::context_store_linux_direct_identity_status::inspected) {
+                halofpx_wipe(&authority, sizeof(authority));
+                halofpx_scope_key.fill(0);
+                SRV_WRN("%s", "HaloFPX protected context-store roots unavailable; inference continues cold\n");
+                return true;
+            }
+
+            auto candidate = std::make_unique<halofpx::context_store_linux_protected>();
+            halofpx::context_store_linux_protected_config config;
+            config.direct.root_path = params_base.halofpx_context_store_root.c_str();
+            config.direct.quota_bytes =
+                static_cast<uint64_t>(params_base.halofpx_context_store_quota_mib) * HALOFPX_MIB;
+            config.direct.reserve_bytes =
+                static_cast<uint64_t>(params_base.halofpx_context_store_reserve_mib) * HALOFPX_MIB;
+            config.direct.max_entries = static_cast<size_t>(params_base.halofpx_context_store_max_entries);
+            config.direct.expected_root = direct_identity;
+            config.anchor_root_path = params_base.halofpx_context_store_anchor_root.c_str();
+            config.expected_anchor_root = anchor_identity;
+            config.store_uuid = protected_store_uuid;
+            config.direct_root_key = authority.direct_root_key.data();
+            config.direct_root_key_size = authority.direct_root_key.size();
+            config.anchor_root_key = authority.anchor_root_key.data();
+            config.anchor_root_key_size = authority.anchor_root_key.size();
+            const auto open_status = halofpx::context_store_linux_protected_open(config, *candidate);
+            halofpx_wipe(&authority, sizeof(authority));
+            if (open_status != halofpx::context_store_linux_protected_open_status::opened) {
+                halofpx_scope_key.fill(0);
+                SRV_WRN("HaloFPX protected context store unavailable (%s); inference continues cold\n",
+                    halofpx::context_store_linux_protected_open_status_name(open_status));
+                return true;
+            }
+            halofpx_protected_store = std::move(candidate);
+            SRV_INF("HaloFPX protected context store enabled: quota_mib=%d reserve_mib=%d max_entries=%d\n",
+                params_base.halofpx_context_store_quota_mib,
+                params_base.halofpx_context_store_reserve_mib,
+                params_base.halofpx_context_store_max_entries);
+            return true;
+        }
+#endif
 
         std::array<uint8_t, halofpx::context_store_linux_direct_master_key_bytes> operator_key {};
         halofpx::context_store_format_digest store_key {};
@@ -2405,7 +2520,16 @@ private:
                         send_error(task, "Invalid slot ID", ERROR_TYPE_INVALID_REQUEST);
                         break;
                     }
-                    if (!halofpx_direct_store || !halofpx_direct_store->available()) {
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+                    const bool use_protected =
+                        params_base.halofpx_context_store_mode == "protected-rw-canary";
+                    const bool store_available = use_protected ?
+                        (halofpx_protected_store && halofpx_protected_store->available()) :
+                        (halofpx_direct_store && halofpx_direct_store->available());
+#else
+                    const bool store_available = halofpx_direct_store && halofpx_direct_store->available();
+#endif
+                    if (!store_available) {
                         send_error(task, "HaloFPX direct context store is unavailable", ERROR_TYPE_NOT_SUPPORTED);
                         break;
                     }
@@ -2451,25 +2575,57 @@ private:
                         } else {
                             result->n_tokens = capture.snapshot.tokens.size();
                             result->n_bytes = capture.snapshot.state.size();
-                            const auto status = halofpx_direct_store->publish(
-                                task.slot_action.scope,
-                                task.slot_action.session,
-                                task.slot_action.compatibility,
-                                capture.snapshot.tokens.data(), capture.snapshot.tokens.size(),
-                                capture.snapshot.state.data(), capture.snapshot.state.size());
-                            result->status = halofpx::context_store_linux_direct_publish_status_name(status);
-                            result->published = status == halofpx::context_store_linux_direct_publish_status::published;
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+                            if (use_protected) {
+                                const auto status = halofpx_protected_store->publish(
+                                    task.slot_action.scope,
+                                    task.slot_action.session,
+                                    task.slot_action.compatibility,
+                                    capture.snapshot.tokens.data(), capture.snapshot.tokens.size(),
+                                    capture.snapshot.state.data(), capture.snapshot.state.size());
+                                result->status = halofpx::context_store_linux_protected_publish_status_name(status);
+                                result->published =
+                                    status == halofpx::context_store_linux_protected_publish_status::published ||
+                                    status == halofpx::context_store_linux_protected_publish_status::recovered_durable;
+                            } else
+#endif
+                            {
+                                const auto status = halofpx_direct_store->publish(
+                                    task.slot_action.scope,
+                                    task.slot_action.session,
+                                    task.slot_action.compatibility,
+                                    capture.snapshot.tokens.data(), capture.snapshot.tokens.size(),
+                                    capture.snapshot.state.data(), capture.snapshot.state.size());
+                                result->status = halofpx::context_store_linux_direct_publish_status_name(status);
+                                result->published =
+                                    status == halofpx::context_store_linux_direct_publish_status::published;
+                            }
                             halofpx_wipe(capture.snapshot.state.data(), capture.snapshot.state.size());
                         }
                     } else {
                         halofpx::context_store_linux_direct_value stored;
-                        const auto lookup = halofpx_direct_store->lookup(
-                            task.slot_action.scope,
-                            task.slot_action.session,
-                            task.slot_action.compatibility,
-                            stored);
-                        result->status = halofpx::context_store_linux_direct_lookup_status_name(lookup);
-                        if (lookup == halofpx::context_store_linux_direct_lookup_status::hit) {
+                        bool hit = false;
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+                        if (use_protected) {
+                            const auto lookup = halofpx_protected_store->lookup(
+                                task.slot_action.scope,
+                                task.slot_action.session,
+                                task.slot_action.compatibility,
+                                stored);
+                            result->status = halofpx::context_store_linux_protected_lookup_status_name(lookup);
+                            hit = lookup == halofpx::context_store_linux_protected_lookup_status::hit;
+                        } else
+#endif
+                        {
+                            const auto lookup = halofpx_direct_store->lookup(
+                                task.slot_action.scope,
+                                task.slot_action.session,
+                                task.slot_action.compatibility,
+                                stored);
+                            result->status = halofpx::context_store_linux_direct_lookup_status_name(lookup);
+                            hit = lookup == halofpx::context_store_linux_direct_lookup_status::hit;
+                        }
+                        if (hit) {
                             halofpx::context_store_transformer_snapshot_v1 snapshot;
                             snapshot.compatibility_identity = identity;
                             snapshot.profile = profile;
@@ -5325,8 +5481,15 @@ std::unique_ptr<server_res_generator> server_routes::handle_slots_erase(const se
 std::unique_ptr<server_res_generator> server_routes::handle_halofpx_direct(
         const server_http_req & req, int id_slot, bool publish) {
     auto res = create_response();
-    if (params.halofpx_context_store_mode != "direct-rw" ||
-        !ctx_server.halofpx_direct_store || !ctx_server.halofpx_direct_store->available()) {
+    const bool direct_enabled = params.halofpx_context_store_mode == "direct-rw" &&
+        ctx_server.halofpx_direct_store && ctx_server.halofpx_direct_store->available();
+#if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
+    const bool protected_enabled = params.halofpx_context_store_mode == "protected-rw-canary" &&
+        ctx_server.halofpx_protected_store && ctx_server.halofpx_protected_store->available();
+#else
+    const bool protected_enabled = false;
+#endif
+    if (!direct_enabled && !protected_enabled) {
         res->error(format_error_response(
             "HaloFPX direct context store is not enabled", ERROR_TYPE_NOT_SUPPORTED));
         return res;
