@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 00:47 PDT
+Verified: 2026-07-21 02:12 PDT
 
 ## Overall state
 
@@ -14,14 +14,14 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `78a102ac3212e4987486761983c336438cc3e7c0`
+- Latest verified commit: `51922809e068d78c22deb4711a2964362ccb2e6e`
 - Remote count: zero
 - Worktree state: clean at the committed L10c boundary
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: design and implement the smallest default-off worker-local RPC
-  state protocol, then qualify one disposable two-rank restore canary
+- Current work: worker idle at the accepted L12 boundary; next gate is one
+  bounded 160 GB ROCmFPX primary-model rank-local restore canary
 
 ## Product progress
 
@@ -59,6 +59,16 @@ slower candidates.
   restore for the small fixture. The worker has no rank-local serializer,
   persistent writer, readiness authority, or commit-live participant. The
   reviewed documentation-only blocker is committed cleanly as `78a102ac`.
+- L12 implements the default-off worker-local RPC state protocol and proves it
+  on a disposable two-host small model. Uninterrupted, restart-restored, and
+  cold suffixes were exact. Missing/corrupt objects and plan/topology mismatch
+  rebuilt cold. Capture and restore state windows contained zero legacy
+  GET_TENSOR/SET_TENSOR payload transfers. Independent adversarial review
+  accepted the implementation; commits `6444d1e1` and `51922809` are clean.
+- Live production authority was reverified after L12: nimo-1 is the current
+  coordinator on port 8081 (PID 2053029) and nimo-2 is the RPC worker on port
+  50052 (PID 1186396). Earlier project records using the opposite orientation
+  describe disposable or prior deployments and are not current runtime truth.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -80,10 +90,13 @@ slower candidates.
 
 ## Lead decision
 
-L11 is accepted as a real architecture blocker, not a project stop. A fresh
-primary worker now owns the separately approved protocol phase: add worker-
-local immutable tensor persistence and bounded authenticated readiness/commit
-messages without state payloads on the control plane. The first proof remains a
-small disposable two-host fixture. Any failure must discard the attempt and
-cold-recompute from a clean context. The 160 GB model, eviction, production
-enablement, and broad fault work remain closed until that reviewed canary.
+L12 is accepted and unblocks exactly one primary-model canary. The canary must
+use the pinned 159,873,097,824-byte ROCmFPX MiniMax artifact and the matched
+primary workload, with nimo-2 as disposable coordinator because the artifact
+resides there and nimo-1 as disposable worker. It may stop current production
+only after preserving its exact unit/runtime evidence, and must restore the
+current orientation worker-first (nimo-2:50052, then nimo-1:8081) to HTTP 200
+with zero new restarts. Acceptance requires exact suffix equivalence, local
+objects, zero state-payload GET/SET, bounded negative cold fallbacks, and matched
+feature-off/cold non-regression evidence. This remains a canary, not production
+cache enablement or final G9/G10 acceptance.

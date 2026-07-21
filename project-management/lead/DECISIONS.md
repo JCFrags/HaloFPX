@@ -152,3 +152,29 @@ ownership explicit, bind exact plan/topology/ranks/components, transfer only
 bounded authenticated identifiers/status, validate before mutation, require
 all-rank readiness, and cold-recompute after every failed or partial attempt.
 Primary-model qualification waits for a reviewed small canary.
+
+## 2026-07-21 — accept L12 and authorize one bounded primary-model canary
+
+Decision: accept L12 implementation `6444d1e1` and evidence/docs `51922809`.
+Authorize one disposable canary using the pinned 160 GB Q6_0_ROCMFPX MiniMax
+artifact and exact primary workload. Do not enable the feature in production.
+
+Reason: the small two-host proof now satisfies the architectural precondition
+that blocked L11: the worker writes and stages its own immutable object, control
+messages contain no state pages, all-rank authority is transcript-bound, and
+failed attempts destroy/recreate the disposable context before cold fallback.
+The next uncertainty is scale and exact-model applicability, not another local
+protocol permutation.
+
+Current runtime authority was checked directly: nimo-1 currently coordinates
+the standard 193 GiB UD-Q6 model on 8081 and nimo-2 serves RPC on 50052. The
+ROCmFPX primary artifact previously qualified for matched performance resides on
+nimo-2, so the disposable primary canary may reverse roles temporarily. The
+rollback contract is explicit: preserve current unit/command/PID/health evidence,
+stop coordinator before worker, and restore nimo-2 worker first followed by
+nimo-1 coordinator until HTTP 200 and service restart counters are reconciled.
+
+The bounded canary must measure exact output, capture/restore/local-object bytes,
+state-operation GET/SET count, prompt/generation timing, and a small matched
+feature-off or mode-off cold control. A non-worse point estimate is milestone
+evidence only; final G9/G10 still requires the later full statistical gate.
