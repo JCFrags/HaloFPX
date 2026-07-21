@@ -98,6 +98,9 @@ enum rpc_cmd {
 };
 
 static_assert(RPC_CMD_HELLO == 14, "RPC_CMD_HELLO must be always 14");
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+static_assert(RPC_CMD_HALOFPX_STATE_CAPS == 17, "HaloFPX CAPS command ordinal must be always 17");
+#endif
 
 // Try RPC_CMD_SET_TENSOR_HASH first when data size is larger than this threshold
 const size_t HASH_THRESHOLD = 10 * 1024 * 1024;
