@@ -1610,3 +1610,112 @@ void ggml_cuda_op_mul_mat_vec_q(
 
     GGML_UNUSED_VARS(src1, dst, src1_ddf_i, src1_ncols, src1_padded_row_size);
 }
+
+#if defined(HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY)
+static __global__ void halofpx_minimax_m2_prepare_owned_q6(
+        const int32_t * global_ids, int32_t * compact_ids, int32_t * trace, const int expert_base) {
+    if (threadIdx.x != 0 || blockIdx.x != 0) {
+        return;
+    }
+    int owned = 0;
+    int status = 0;
+    for (int i = 0; i < 8; ++i) {
+        const int id = global_ids[i];
+        if (id < 0 || id >= 192) {
+            status = 1;
+        }
+        for (int j = 0; j < i; ++j) {
+            if (global_ids[j] == id) {
+                status = 2;
+            }
+        }
+        if (id >= expert_base && id < expert_base + 96) {
+            if (owned < 4) {
+                compact_ids[owned] = id - expert_base;
+                trace[owned + 1] = i;
+            }
+            ++owned;
+        }
+    }
+    if (owned != 4 && status == 0) {
+        status = 3;
+    }
+    trace[0] = status;
+}
+
+static __global__ void halofpx_minimax_m2_gather_owned_q6(
+        const float * activations, float * compact, const int32_t * trace, const int k) {
+    const int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= 4*k || trace[0] != 0) {
+        return;
+    }
+    const int compact_col = index / k;
+    const int row = index - compact_col*k;
+    compact[index] = activations[trace[compact_col + 1]*k + row];
+}
+
+static __global__ void halofpx_minimax_m2_scatter_owned_q6(
+        const float * compact, float * scattered, const int32_t * trace, const int m) {
+    const int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= 4*m || trace[0] != 0) {
+        return;
+    }
+    const int compact_col = index / m;
+    const int row = index - compact_col*m;
+    scattered[trace[compact_col + 1]*m + row] = compact[index];
+}
+
+bool ggml_cuda_halofpx_minimax_m2_q6_owned(
+        ggml_backend_cuda_context & ctx, ggml_backend_buffer_type_t expected_buft,
+        const ggml_tensor * weights, const ggml_tensor * global_ids, const ggml_tensor * activations,
+        ggml_tensor * compact_ids, ggml_tensor * compact_activations, ggml_tensor * compact_output,
+        ggml_tensor * scattered_output, ggml_tensor * trace, int expert_base) {
+    const auto cuda_tensor = [expected_buft](const ggml_tensor * tensor) {
+        return tensor != nullptr && tensor->buffer != nullptr && tensor->data != nullptr &&
+            ggml_backend_buffer_get_type(tensor->buffer) == expected_buft && ggml_is_contiguous(tensor);
+    };
+    if (!cuda_tensor(weights) || !cuda_tensor(global_ids) || !cuda_tensor(activations) ||
+            !cuda_tensor(compact_ids) || !cuda_tensor(compact_activations) || !cuda_tensor(compact_output) ||
+            !cuda_tensor(scattered_output) || !cuda_tensor(trace) ||
+            weights->type != GGML_TYPE_Q6_0_ROCMFPX || weights->ne[2] != 96 || weights->ne[3] != 1 ||
+            global_ids->type != GGML_TYPE_I32 || global_ids->ne[0] != 8 || global_ids->ne[1] != 1 || global_ids->ne[2] != 1 || global_ids->ne[3] != 1 ||
+            activations->type != GGML_TYPE_F32 || activations->ne[1] != 8 || activations->ne[2] != 1 || activations->ne[3] != 1 ||
+            compact_ids->type != GGML_TYPE_I32 || compact_ids->ne[0] != 4 || compact_ids->ne[1] != 1 || compact_ids->ne[2] != 1 || compact_ids->ne[3] != 1 ||
+            compact_activations->type != GGML_TYPE_F32 || compact_activations->ne[1] != 4 || compact_activations->ne[2] != 1 || compact_activations->ne[3] != 1 ||
+            compact_output->type != GGML_TYPE_F32 || compact_output->ne[1] != 4 || compact_output->ne[2] != 1 || compact_output->ne[3] != 1 ||
+            scattered_output->type != GGML_TYPE_F32 || scattered_output->ne[1] != 8 || scattered_output->ne[2] != 1 || scattered_output->ne[3] != 1 ||
+            trace->type != GGML_TYPE_I32 || trace->ne[0] != 5 || trace->ne[1] != 1 || trace->ne[2] != 1 || trace->ne[3] != 1 ||
+            (expert_base != 0 && expert_base != 96)) {
+        return false;
+    }
+    const int k = weights->ne[0];
+    const int m = weights->ne[1];
+    if (!((k == 3072 && m == 1536) || (k == 1536 && m == 3072)) ||
+            activations->ne[0] != k || compact_activations->ne[0] != k ||
+            compact_output->ne[0] != m || scattered_output->ne[0] != m) {
+        return false;
+    }
+
+    ggml_cuda_set_device(ctx.device);
+    cudaStream_t stream = ctx.stream();
+    CUDA_CHECK(cudaMemsetAsync(compact_ids->data, 0, ggml_nbytes(compact_ids), stream));
+    CUDA_CHECK(cudaMemsetAsync(compact_activations->data, 0, ggml_nbytes(compact_activations), stream));
+    CUDA_CHECK(cudaMemsetAsync(compact_output->data, 0, ggml_nbytes(compact_output), stream));
+    CUDA_CHECK(cudaMemsetAsync(scattered_output->data, 0, ggml_nbytes(scattered_output), stream));
+    CUDA_CHECK(cudaMemsetAsync(trace->data, 0, ggml_nbytes(trace), stream));
+
+    halofpx_minimax_m2_prepare_owned_q6<<<1, 32, 0, stream>>>(
+        static_cast<const int32_t *>(global_ids->data), static_cast<int32_t *>(compact_ids->data),
+        static_cast<int32_t *>(trace->data), expert_base);
+    constexpr int threads = 256;
+    halofpx_minimax_m2_gather_owned_q6<<<(4*k + threads - 1)/threads, threads, 0, stream>>>(
+        static_cast<const float *>(activations->data), static_cast<float *>(compact_activations->data),
+        static_cast<const int32_t *>(trace->data), k);
+    ggml_cuda_mul_mat_vec_q(ctx, weights, compact_activations, compact_ids, compact_output);
+    halofpx_minimax_m2_scatter_owned_q6<<<(4*m + threads - 1)/threads, threads, 0, stream>>>(
+        static_cast<const float *>(compact_output->data), static_cast<float *>(scattered_output->data),
+        static_cast<const int32_t *>(trace->data), m);
+    CUDA_CHECK(cudaGetLastError());
+    return true;
+}
+#endif

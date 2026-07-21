@@ -6141,6 +6141,21 @@ static ggml_backend_feature * ggml_backend_cuda_get_features(ggml_backend_reg_t 
     GGML_UNUSED(reg);
 }
 
+#if defined(HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY)
+static bool ggml_backend_cuda_halofpx_minimax_m2_q6_owned_private(
+        ggml_backend_t backend,
+        const ggml_tensor * weights, const ggml_tensor * global_ids, const ggml_tensor * activations,
+        ggml_tensor * compact_ids, ggml_tensor * compact_activations, ggml_tensor * compact_output,
+        ggml_tensor * scattered_output, ggml_tensor * trace, int expert_base) {
+    if (backend == nullptr || backend->context == nullptr) {
+        return false;
+    }
+    auto * ctx = static_cast<ggml_backend_cuda_context *>(backend->context);
+    return ggml_cuda_halofpx_minimax_m2_q6_owned(*ctx, ggml_backend_get_default_buffer_type(backend), weights, global_ids, activations,
+        compact_ids, compact_activations, compact_output, scattered_output, trace, expert_base);
+}
+#endif
+
 static void * ggml_backend_cuda_reg_get_proc_address(ggml_backend_reg_t reg, const char * name) {
     GGML_UNUSED(reg);
     if (strcmp(name, "ggml_backend_comm_init") == 0) {
@@ -6164,6 +6179,11 @@ static void * ggml_backend_cuda_reg_get_proc_address(ggml_backend_reg_t reg, con
     if (strcmp(name, "ggml_backend_get_features") == 0) {
         return (void *)ggml_backend_cuda_get_features;
     }
+#if defined(HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY)
+    if (strcmp(name, "halofpx_minimax_m2_q6_owned_private_v1") == 0) {
+        return (void *)ggml_backend_cuda_halofpx_minimax_m2_q6_owned_private;
+    }
+#endif
     return nullptr;
 }
 

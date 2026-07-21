@@ -118,6 +118,12 @@ option(LLAMA_TESTS_INSTALL          "llama: install tests"                      
 option(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY
        "Build the isolated MiniMax-M2 two-rank expert-partition canary"
        OFF)
+option(HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY
+       "Build the private HIP MiniMax-M2 Q6 owned-expert canary"
+       OFF)
+if (HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY AND NOT GGML_HIP)
+    message(FATAL_ERROR "HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY requires GGML_HIP")
+endif()
 
 # HaloFPX L05s is a standalone Linux qualification seam. Both controls are
 # deliberately off unless an isolated qualification build selects them.

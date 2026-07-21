@@ -1,0 +1,60 @@
+{
+  "schema": "halofpx-performance-receipt-v1",
+  "milestone": "P13",
+  "status": "direct HIP canary passed; RPC/model integration closed",
+  "source_parent": {
+    "commit": "45ae40532391ccc2ff121624b865ea366fda1036",
+    "tree": "decc9fc72530172bd821deba06a08bc6615260c5"
+  },
+  "gate": "HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY",
+  "default_off": true,
+  "private_proc": "halofpx_minimax_m2_q6_owned_private_v1",
+  "candidate": {
+    "host": "nimo-2",
+    "backend": "ROCm0 gfx1151",
+    "library_sha256": "9753aabb1dbe89e50873f5d7fab98bf91f82a4c95c2b0513ae901e4a93725b8d",
+    "test_sha256": "d800d0b6d9737858ee26ed0e4ce6f3ffb63619dc520c78dfc1612b831f52da7e",
+    "test_log_sha256": "dda6a906fc3b2f42af045a6a7b767458941407e73570263e1c9062763adcb50e"
+  },
+  "correctness": {
+    "base_0_nmse": 0,
+    "base_96_nmse": 0,
+    "invalid_base_host_rejected": true,
+    "out_of_range_status": 1,
+    "duplicate_status": 2,
+    "wrong_owned_count_status": 3,
+    "all_invalid_partials_zero": true,
+    "oracle_inputs_host_derived": true,
+    "selected_expert_weights_distinguishable": true,
+    "compact_ids_activations_and_slots_compared": true,
+    "fresh_process_runs": 5
+  },
+  "performance_us": {
+    "private": [87.844, 87.949, 87.945, 88.198, 86.695],
+    "padded": [110.536, 109.588, 110.265, 107.346, 109.410],
+    "ratio": [0.794712, 0.802538, 0.797571, 0.821625, 0.792388],
+    "private_mean": 87.7262,
+    "padded_mean": 109.4290,
+    "ratio_of_means": 0.801672317210246,
+    "mean_saving": 21.7028,
+    "optimistic_three_projection_share_of_60ms_percent": 0.108514
+  },
+  "feature_off": {
+    "library_sha256": "2b21d28c24cf7c70173755fec026dd7ffc86743575acf3172abd88ff048c10ea",
+    "private_proc_string_absent": true,
+    "build_log_sha256": "b00c6e08f07127fbd4e168f59bcd661197e4d2691160a38dc67b916ad74f0da3"
+  },
+  "decision": "retain private default-off canary; do not open RPC or model integration",
+  "raw_evidence": {
+    "root": "/var/tmp/halofpx-p13-private-evidence",
+    "bundle": "/var/tmp/halofpx-p13-private-evidence-nimo2-20260720-v2.tar.zst",
+    "bundle_sha256": "9b2b52ef32342e0f8bbe70e67261db8ec46491f5764e9a5f473a294bc486003a"
+  },
+  "nonclaims": [
+    "not RPC integration",
+    "not model-graph integration",
+    "not an exact-model speedup",
+    "not final G9/G10 non-inferiority",
+    "greater than 30 generation tokens per second remains a stretch objective"
+  ]
+}

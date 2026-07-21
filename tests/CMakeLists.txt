@@ -663,6 +663,14 @@ if (HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
         LABELS "halofpx;performance-canary")
 endif()
 
+if (HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY)
+    llama_build(test-halofpx-minimax-m2-q6-private-hip.cpp)
+    target_link_libraries(test-halofpx-minimax-m2-q6-private-hip PRIVATE ggml)
+    llama_test(test-halofpx-minimax-m2-q6-private-hip)
+    set_property(TEST test-halofpx-minimax-m2-q6-private-hip PROPERTY
+        LABELS "halofpx;performance-canary")
+endif()
+
 llama_build_and_test(test-model-load-cancel.cpp LABEL "model")
 llama_build_and_test(test-autorelease.cpp       LABEL "model")
 llama_build_and_test(test-backend-sampler.cpp   LABEL "model")

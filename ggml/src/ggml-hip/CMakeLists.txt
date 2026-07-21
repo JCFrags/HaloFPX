@@ -105,6 +105,10 @@ endif()
 
 add_compile_definitions(GGML_USE_HIP)
 
+if (HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY)
+    add_compile_definitions(HALOFPX_MINIMAX_M2_Q6_PRIVATE_HIP_CANARY)
+endif()
+
 if (GGML_HIP_FORCE_MMQ OR GGML_CUDA_FORCE_MMQ)
     add_compile_definitions(GGML_CUDA_FORCE_MMQ)
 endif()
