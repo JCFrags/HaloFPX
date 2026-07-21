@@ -106,24 +106,31 @@ def start_worker(local_state: bool, unit: str) -> int:
 
 
 def stop_worker(unit: str) -> None:
-    ssh(NIMO1, "systemctl", "--user", "stop", f"{unit}.service")
-    deadline = time.monotonic() + 30
-    last = ""
-    while time.monotonic() < deadline:
+    def stopped() -> tuple[bool, str]:
         show = ssh(
             NIMO1, "systemctl", "--user", "show", f"{unit}.service",
-            "-p", "ActiveState", "-p", "SubState", "-p", "MainPID",
+            "-p", "LoadState", "-p", "ActiveState", "-p", "SubState", "-p", "MainPID",
             check=False,
         ).stdout
         listeners = ssh(NIMO1, "ss", "-H", "-ltnp", check=False).stdout
         props = dict(line.split("=", 1) for line in show.splitlines() if "=" in line)
-        last = repr(props)
-        if (
+        return (
             props.get("ActiveState") == "inactive"
             and props.get("SubState") == "dead"
             and props.get("MainPID") == "0"
-            and listener_pid(listeners, PORT) == 0
-        ):
+            and listener_pid(listeners, PORT) == 0,
+            repr(props),
+        )
+
+    already_stopped, _ = stopped()
+    if already_stopped:
+        return
+    ssh(NIMO1, "systemctl", "--user", "stop", f"{unit}.service")
+    deadline = time.monotonic() + 30
+    last = ""
+    while time.monotonic() < deadline:
+        is_stopped, last = stopped()
+        if is_stopped:
             return
         time.sleep(1)
     raise RetryError(f"disposable worker cleanup not verified for {unit}: {last}")

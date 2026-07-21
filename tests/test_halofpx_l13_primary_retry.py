@@ -62,12 +62,15 @@ class PrimaryRetryTests(unittest.TestCase):
 
     def test_stop_worker_requires_inactive_dead_zero_and_closed_port(self):
         responses = iter((
-            SimpleNamespace(stdout="", stderr="", returncode=0),
-            SimpleNamespace(stdout="ActiveState=inactive\nSubState=dead\nMainPID=0\n", stderr="", returncode=0),
+            SimpleNamespace(stdout="LoadState=not-found\nActiveState=inactive\nSubState=dead\nMainPID=0\n", stderr="", returncode=0),
             SimpleNamespace(stdout="", stderr="", returncode=0),
         ))
-        with mock.patch.object(retry, "ssh", side_effect=lambda *args, **kwargs: next(responses)):
+        calls = []
+        with mock.patch.object(
+            retry, "ssh", side_effect=lambda *args, **kwargs: calls.append(args) or next(responses)
+        ):
             retry.stop_worker("fixture")
+        self.assertFalse(any("stop" in call for call in calls))
 
 
 if __name__ == "__main__":
