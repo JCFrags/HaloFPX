@@ -20,10 +20,10 @@ slower candidates.
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L16 is closed NOT PROMOTED after its capture command attempted a
-  monolithic 159.2 GB RPC0 allocation and failed before prompt decode. Production
-  is restored and directly healthy. L17 is authorized as a no-production-only
-  device-discovery and placement-authority milestone; no primary retry is open.
+- Current work: L17 is dispatched as a no-production-only device-discovery and
+  placement-authority milestone. It must prove explicit `RPC0,ROCm0` selection,
+  balanced layer ownership, and a small two-device load while normal production
+  stays healthy. No primary retry is open.
 
 ## Product progress
 
