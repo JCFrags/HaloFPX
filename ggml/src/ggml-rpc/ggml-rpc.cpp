@@ -221,6 +221,12 @@ static constexpr uint64_t HFX_STATE_MAX_COMPONENT_BYTES = UINT64_C(1) << 30;
 static constexpr uint64_t HFX_STATE_MAX_OBJECT_BYTES = UINT64_C(64) << 30;
 static constexpr uint64_t HFX_STATE_TIMEOUT_MS = 5000;
 static constexpr size_t HFX_STATE_MAX_SEEN_ATTEMPTS = 4096;
+static constexpr uint32_t HFX_STATE_COMMAND_MASK =
+    (UINT32_C(1) << (RPC_CMD_HALOFPX_STATE_CAPS - RPC_CMD_HALOFPX_STATE_CAPS)) |
+    (UINT32_C(1) << (RPC_CMD_HALOFPX_STATE_CAPTURE - RPC_CMD_HALOFPX_STATE_CAPS)) |
+    (UINT32_C(1) << (RPC_CMD_HALOFPX_STATE_STAGE - RPC_CMD_HALOFPX_STATE_CAPS)) |
+    (UINT32_C(1) << (RPC_CMD_HALOFPX_STATE_COMMIT_APPLY - RPC_CMD_HALOFPX_STATE_CAPS)) |
+    (UINT32_C(1) << (RPC_CMD_HALOFPX_STATE_ABORT - RPC_CMD_HALOFPX_STATE_CAPS));
 static constexpr char HFX_STATE_DOMAIN[] = "halofpx.rpc-local-state.v1";
 
 struct hfx_state_identity_wire {
@@ -293,18 +299,26 @@ struct hfx_state_caps_wire {
     uint8_t magic[8];
     uint16_t major;
     uint16_t minor;
+    uint32_t encoded_size;
+    uint32_t command_mask;
     uint32_t max_request;
+    uint32_t max_response;
     uint32_t max_components;
+    uint32_t logical_rank;
+    uint32_t world_size;
+    uint32_t reserved_zero;
     uint64_t max_component_bytes;
     uint64_t max_object_bytes;
     uint64_t timeout_ms;
+    uint64_t key_generation;
+    uint8_t channel_binding[32];
     uint8_t reserved[20];
 };
 
 static_assert(sizeof(hfx_state_component_wire) == 112, "unexpected HaloFPX component wire size");
 static_assert(sizeof(hfx_state_request_header) == 480, "unexpected HaloFPX request header size");
 static_assert(sizeof(hfx_state_response_wire) == 256, "HaloFPX response must be exactly 256 bytes");
-static_assert(sizeof(hfx_state_caps_wire) == 64, "HaloFPX caps must be exactly 64 bytes");
+static_assert(sizeof(hfx_state_caps_wire) == 128, "HaloFPX caps must be exactly 128 bytes");
 #endif
 
 #pragma pack(pop)
@@ -981,10 +995,16 @@ ggml_backend_rpc_halofpx_state_result hfx_client_request(
     }
     hfx_state_caps_wire caps {};
     if (!send_rpc_cmd(sock, RPC_CMD_HALOFPX_STATE_CAPS, nullptr, 0, &caps, sizeof(caps)) ||
-        !hfx_magic(caps.magic, "HFXCAP1\0") || caps.major != HFX_STATE_MAJOR ||
-        caps.minor != HFX_STATE_MINOR || caps.max_request != GGML_RPC_HALOFPX_STATE_MAX_REQUEST ||
+        !hfx_magic(caps.magic, "HFXCAP2\0") || caps.major != HFX_STATE_MAJOR ||
+        caps.minor != HFX_STATE_MINOR || caps.encoded_size != sizeof(caps) ||
+        caps.command_mask != HFX_STATE_COMMAND_MASK ||
+        caps.max_request != GGML_RPC_HALOFPX_STATE_MAX_REQUEST ||
+        caps.max_response != sizeof(hfx_state_response_wire) ||
         caps.max_components != HFX_STATE_MAX_COMPONENTS || caps.max_component_bytes != HFX_STATE_MAX_COMPONENT_BYTES ||
         caps.max_object_bytes != HFX_STATE_MAX_OBJECT_BYTES || caps.timeout_ms != HFX_STATE_TIMEOUT_MS ||
+        caps.logical_rank != public_identity->logical_rank || caps.world_size != public_identity->world_size ||
+        caps.reserved_zero != 0 || caps.key_generation != public_identity->key_generation ||
+        !hfx_equal(caps.channel_binding, public_identity->channel_binding, 32) ||
         !hfx_zero(caps.reserved, sizeof(caps.reserved))) return failed;
     std::vector<uint8_t> input(size, 0);
     auto * header = reinterpret_cast<hfx_state_request_header *>(input.data());
@@ -2870,15 +2890,23 @@ static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
             case RPC_CMD_HALOFPX_STATE_CAPS: {
                 if (!recv_msg(sock, nullptr, 0)) return;
+                if (!hfx_state_config) return;
                 hfx_state_caps_wire response {};
-                hfx_set_magic(response.magic, "HFXCAP1\0");
+                hfx_set_magic(response.magic, "HFXCAP2\0");
                 response.major = HFX_STATE_MAJOR;
                 response.minor = HFX_STATE_MINOR;
+                response.encoded_size = sizeof(response);
+                response.command_mask = HFX_STATE_COMMAND_MASK;
                 response.max_request = GGML_RPC_HALOFPX_STATE_MAX_REQUEST;
+                response.max_response = sizeof(hfx_state_response_wire);
                 response.max_components = HFX_STATE_MAX_COMPONENTS;
+                response.logical_rank = hfx_state_config->logical_rank;
+                response.world_size = hfx_state_config->world_size;
                 response.max_component_bytes = HFX_STATE_MAX_COMPONENT_BYTES;
                 response.max_object_bytes = HFX_STATE_MAX_OBJECT_BYTES;
                 response.timeout_ms = HFX_STATE_TIMEOUT_MS;
+                response.key_generation = hfx_state_config->key_generation;
+                memcpy(response.channel_binding, hfx_state_config->channel_binding.data(), 32);
                 if (!send_msg(sock, &response, sizeof(response))) return;
                 break;
             }

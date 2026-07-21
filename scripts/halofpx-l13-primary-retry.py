@@ -19,6 +19,7 @@ NIMO2 = "nimo-2"
 PORT = 50176
 WORKER_BIN = "/var/tmp/halofpx-l13-retry-src-nimo1/build-primary-bed36/bin/rpc-server"
 CANARY_BIN = "/var/tmp/halofpx-l13-retry-src-nimo2/build-primary-bed36/bin/test-halofpx-distributed-state-canary"
+READINESS_PROBE = "/var/tmp/halofpx-l13-retry-src-nimo2/scripts/halofpx_rpc_readiness.py"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
     "dba517197f2854f3d362529e13abddcdcad6c10b/"
@@ -91,18 +92,37 @@ def start_worker(local_state: bool, unit: str) -> int:
             "--halofpx-state-key-generation", "7",
         ])
     ssh(NIMO1, *command)
-    deadline = time.monotonic() + 120
-    while time.monotonic() < deadline:
-        active = ssh(NIMO1, "systemctl", "--user", "is-active", f"{unit}.service", check=False)
-        listeners = ssh(NIMO1, "ss", "-H", "-ltnp", check=False).stdout
-        if active.stdout.strip() == "active":
-            pid = int(ssh(NIMO1, "systemctl", "--user", "show", f"{unit}.service", "-p", "MainPID", "--value").stdout.strip())
-            if listener_pid(listeners, PORT) != pid:
-                time.sleep(1)
-                continue
-            return pid
-        time.sleep(1)
-    raise RetryError(f"worker {unit} did not become ready")
+    readiness = ssh(
+        NIMO2,
+        "python3", READINESS_PROBE,
+        "--endpoint", f"10.44.0.1:{PORT}",
+        "--logical-rank", "1",
+        "--world-size", "2",
+        "--key-generation", "7",
+        "--expected-channel-key-file", CONTROL,
+        "--timeout-seconds", "120",
+        "--attempt-timeout-seconds", "2",
+        "--initial-backoff-seconds", "0.1",
+        "--maximum-backoff-seconds", "1",
+        timeout=130,
+        check=False,
+    )
+    if readiness.returncode != 0:
+        raise RetryError(f"worker {unit} failed HaloFPX CAPS readiness: {readiness.stdout}{readiness.stderr}")
+    try:
+        readiness_result = json.loads(readiness.stdout)
+    except json.JSONDecodeError as exc:
+        raise RetryError(f"worker {unit} returned malformed readiness evidence") from exc
+    if readiness_result.get("admitted") is not True or readiness_result.get("endpoint") != f"10.44.0.1:{PORT}":
+        raise RetryError(f"worker {unit} returned mismatched readiness evidence")
+    active = ssh(NIMO1, "systemctl", "--user", "is-active", f"{unit}.service", check=False)
+    if active.stdout.strip() != "active":
+        raise RetryError(f"worker {unit} left active state after CAPS readiness")
+    pid = int(ssh(NIMO1, "systemctl", "--user", "show", f"{unit}.service", "-p", "MainPID", "--value").stdout.strip())
+    listeners = ssh(NIMO1, "ss", "-H", "-ltnp", check=False).stdout
+    if listener_pid(listeners, PORT) != pid:
+        raise RetryError(f"worker {unit} listener no longer matches MainPID after CAPS readiness")
+    return pid
 
 
 def stop_worker(unit: str) -> None:
