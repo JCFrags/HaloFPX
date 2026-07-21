@@ -238,12 +238,31 @@ bool receipt_hmac(
     return sha256(outer.data(), outer.size(), result);
 }
 
-bool decode_tokens(llama_context * ctx, const std::vector<llama_token> & tokens, size_t count) {
+struct decode_measurement {
+    size_t n_batch = 0;
+    size_t chunks = 0;
+    size_t max_chunk = 0;
+};
+
+bool decode_tokens(
+        llama_context * ctx,
+        const std::vector<llama_token> & tokens,
+        size_t count,
+        decode_measurement * measurement = nullptr) {
     if (count == 0 || count > tokens.size()) return false;
     const size_t n_batch = llama_n_batch(ctx);
     if (n_batch == 0) return false;
+    if (measurement) {
+        measurement->n_batch = n_batch;
+        measurement->chunks = 0;
+        measurement->max_chunk = 0;
+    }
     for (size_t offset = 0; offset < count; offset += n_batch) {
         const size_t chunk = std::min(n_batch, count - offset);
+        if (measurement) {
+            ++measurement->chunks;
+            measurement->max_chunk = std::max(measurement->max_chunk, chunk);
+        }
         llama_batch batch = llama_batch_get_one(
             const_cast<llama_token *>(tokens.data() + offset), static_cast<int32_t>(chunk));
         if (llama_decode(ctx, batch) != 0) return false;
@@ -408,6 +427,7 @@ int main(int argc, char ** argv) {
     size_t coordinator_local_bytes = 0;
     uint64_t worker_bytes = 0;
     uint32_t worker_components = 0;
+    decode_measurement prompt_decode {};
     const fs::path checkpoint_root = options.root / hex(options.checkpoint.data());
     const fs::path control_path = checkpoint_root / "coordinator-control.bin";
     const fs::path local_path = checkpoint_root / "coordinator-local.bin";
@@ -422,7 +442,7 @@ int main(int argc, char ** argv) {
         prefix = common_tokenize(ctx, params.prompt, true);
         if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens)) return 4;
         const auto prompt_start = std::chrono::steady_clock::now();
-        if (!decode_tokens(ctx, prefix, prefix.size() - 1)) return 4;
+        if (!decode_tokens(ctx, prefix, prefix.size() - 1, &prompt_decode)) return 4;
         prompt_ms = elapsed_ms(prompt_start);
         const auto state_start = std::chrono::steady_clock::now();
         llama_state_seq_storage * storage = llama_state_seq_storage_init();
@@ -458,8 +478,9 @@ int main(int argc, char ** argv) {
         llama_state_seq_storage_free(storage);
         if (generated.size() != static_cast<size_t>(params.n_predict) ||
             !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 8;
-        std::printf("mode=capture object=%s prompt_tokens=%zu saved_boundary=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
-            hex(captured.object_digest).c_str(), prefix.size(), prefix.size() - 1, prompt_ms, state_ms, generation_ms,
+        std::printf("mode=capture object=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+            hex(captured.object_digest).c_str(), prefix.size(), prefix.size() - 1,
+            prompt_decode.n_batch, prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
             coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
         for (auto token : generated) std::printf("%d,", token);
         std::printf("\n");
@@ -475,7 +496,7 @@ int main(int argc, char ** argv) {
         prefix = common_tokenize(ctx, params.prompt, true);
         if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens)) return 9;
         const auto prompt_start = std::chrono::steady_clock::now();
-        if (!decode_tokens(ctx, prefix, prefix.size() - 1)) return 10;
+        if (!decode_tokens(ctx, prefix, prefix.size() - 1, &prompt_decode)) return 10;
         prompt_ms = elapsed_ms(prompt_start);
     } else {
         const auto state_start = std::chrono::steady_clock::now();
@@ -506,7 +527,7 @@ int main(int argc, char ** argv) {
                 return 11;
             }
             const auto prompt_start = std::chrono::steady_clock::now();
-            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1)) {
+            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1, &prompt_decode)) {
                 llama_free(disposable_ctx);
                 return 11;
             }
@@ -554,7 +575,7 @@ int main(int argc, char ** argv) {
                 return 12;
             }
             const auto prompt_start = std::chrono::steady_clock::now();
-            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1)) {
+            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1, &prompt_decode)) {
                 llama_free(disposable_ctx);
                 return 12;
             }
@@ -573,8 +594,9 @@ int main(int argc, char ** argv) {
     if (disposable_ctx) llama_free(disposable_ctx);
     if (generated.size() != static_cast<size_t>(params.n_predict) ||
         !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 13;
-    std::printf("mode=%s prompt_tokens=%zu saved_boundary=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
-        options.mode.c_str(), prefix.size(), prefix.size() - 1, prompt_ms, state_ms, generation_ms,
+    std::printf("mode=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+        options.mode.c_str(), prefix.size(), prefix.size() - 1, llama_n_batch(run_ctx),
+        prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
         coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
     for (auto token : generated) std::printf("%d,", token);
     if (!fallback_reason.empty()) std::printf(" fallback=cold reason=%s", fallback_reason.c_str());
