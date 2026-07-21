@@ -1,0 +1,150 @@
+{
+  "schema": "halofpx.p08-exact-model-critical-path-profile.v1",
+  "date": "2026-07-20",
+  "status": "diagnostic_complete_serialized_rank_phases_selected",
+  "parent_commit": "4ba28db38e2667e8b3b278b02b070130c7cf163f",
+  "parent_tree": "c5d0b7675407908076f6afff834d3c3894abb114",
+  "profiled_runtime_source_authority": "P06h runtime source semantics modulo recorded CRLF-to-LF normalization; P06i changed documentation only; this is not byte-identical source-archive or reproducible-build authority",
+  "runtime_source_eol_reconciliation": {
+    "path": "src/models/minimax-m2.cpp",
+    "node_sha256_crlf": "db3bc908c5363ed5295ec304849e857d1c45ba3bc5039750cded6a470f76cf46",
+    "committed_sha256_lf": "d7043590080f882e35f8428a39b1a9cbe0bcb4acbbbbd1d46d2402f5eec8346f",
+    "extra_cr_bytes": 146,
+    "normalized_content_exact": true
+  },
+  "profiled_binaries": {
+    "llama_server_sha256_both_nodes": "d451de4d870d1cc16e42039aa3a46baaea4d80d6ca53a28e73f3ec1c5fd209b9",
+    "rpc_server_sha256_both_nodes": "e9dfe21d0099883305630fe51a12b18d69c3bbfb5e1c92d0974750ab4fd1aea3"
+  },
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "hash_treatment": "reused previously verified P07/P06 lock; P08 did not reread the full artifact"
+  },
+  "runtime": {
+    "rpc_worker": "nimo-1",
+    "coordinator": "nimo-2",
+    "rpc_endpoint": "10.44.0.1:50053",
+    "device_order": "RPC0,ROCm0",
+    "tensor_split": "1,1",
+    "split_mode": "layer",
+    "mptcp": true,
+    "context": 4096,
+    "parallel": 1,
+    "threads": 16,
+    "threads_batch": 16,
+    "gpu_layers": 999,
+    "flash_attention": true,
+    "kv_k": "q8_0",
+    "kv_v": "q8_0",
+    "batch": 512,
+    "ubatch": 512,
+    "mmap": false,
+    "direct_io": true,
+    "seed": 1234,
+    "temperature": 0,
+    "webui": false,
+    "hsa_enable_sdma": "0",
+    "all_halofpx_experimental_environment_gates_absent": true
+  },
+  "workload": {
+    "request_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "excluded_uninstrumented_warmup": 1,
+    "retained_instrumented_requests": 1,
+    "http_code": 200,
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "decoded_content_sha256_without_lf": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f",
+    "prompt_tokens_per_second": 200.7556877962769,
+    "generation_tokens_per_second": 16.74804953916041,
+    "retained_curl_wall_seconds": 13.299162,
+    "warmup_curl_wall_seconds": 13.279694,
+    "observed_profiler_wall_margin_milliseconds": 19.468,
+    "observed_profiler_wall_margin_percent": 0.1466,
+    "promotion_performance_evidence": false
+  },
+  "profile": {
+    "gpu_busy_mean_percent": {
+      "nimo_1_worker": {"prompt": 42.69090909090909, "generation": 47.648648648648646, "request": 45.53488372093023},
+      "nimo_2_coordinator": {"prompt": 35.14545454545455, "generation": 49.28, "request": 43.3}
+    },
+    "gpu_sampling_interval_milliseconds": 100,
+    "worker_phase_window_uses_coordinator_realtime_with_ntp_uncertainty": true,
+    "recvfrom": {
+      "nimo_1_worker": {"count": 129, "observed_duration_sum_milliseconds": 6260.411, "p50_milliseconds": 28.86, "p95_milliseconds": 29.207, "max_milliseconds": 1088.057},
+      "nimo_2_coordinator": {"count": 128, "observed_duration_sum_milliseconds": 6531.586, "p50_milliseconds": 30.423, "p95_milliseconds": 31.531, "max_milliseconds": 1161.869},
+      "duration_sums_are_not_nonoverlapped_wall_time": true
+    },
+    "process_cpu_monitor_window_mean_percent": {"nimo_1_worker": 65.3, "nimo_2_coordinator": 62.6},
+    "network_monitor_window_bytes": {
+      "nimo_2_thunderbolt0": {"tx": 20484400, "rx": 8644496},
+      "nimo_2_thunderbolt1": {"tx": 19863341, "rx": 9578932},
+      "nimo_1_thunderbolt0": {"tx": 8644496, "rx": 20484400},
+      "nimo_1_thunderbolt1": {"tx": 9578932, "rx": 19863341}
+    },
+    "amdgpu_tracepoint_records": 0,
+    "amdgpu_tracepoint_treatment": "retained and excluded",
+    "conclusion": "balanced roughly half-duty GPUs plus repeated 29-31 ms socket waits and low balanced link payload support serialized rank compute/handoff as the next optimization target",
+    "conclusion_label": "INFERENCE"
+  },
+  "tools": {
+    "tools/halofpx-profile-rank.sh": "644fca6b0f0a11e90e9c256d8511bc4281e9a5fb945d89cc3ec01dbf6a7fa6ec",
+    "tools/halofpx-summarize-rank-profile.py": "d1917bbe2a968204ce9c540f7879af1e5c82e42a50029f97274fb1c9aeab3504"
+  },
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-p08-critical-path-4ba28db-20260720",
+      "manifest_entries": 34,
+      "manifest_sha256": "d426336f6d5b2bb588d262719002f2a25b96a4969fd69cc704a6da8b5bc80b98",
+      "bundle": "/var/tmp/halofpx-p08-critical-path-4ba28db-nimo1-20260720.tar.zst",
+      "bundle_size_bytes": 3437384,
+      "bundle_mode": "0600",
+      "bundle_sha256": "56687c98e09674c3c9d1a74922127eee3c3f16b0dafa11e42a69b672dd722a7e"
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-p08-critical-path-4ba28db-20260720",
+      "manifest_entries": 40,
+      "manifest_sha256": "add6b65a96a644fe9fbb9c1cc1acc221cac958cda1fbe142e5c8d2adb7d5d677",
+      "bundle": "/var/tmp/halofpx-p08-critical-path-4ba28db-nimo2-20260720.tar.zst",
+      "bundle_size_bytes": 3452809,
+      "bundle_mode": "0600",
+      "bundle_sha256": "71cf9b811182b49dc19877425a92011367dc72f2d1d3ab5ced8c504b3b55ec81"
+    },
+    "manifests_verified": true,
+    "sensitive_material_scan_matches": 0
+  },
+  "rollback": {
+    "disposable_services_stopped": true,
+    "restore_order": ["nimo-2 worker", "nimo-1 coordinator"],
+    "nimo_2_worker_binary_sha256": "cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63",
+    "nimo_2_worker_active": true,
+    "nimo_2_worker_restarts": 0,
+    "nimo_2_worker_listener": "0.0.0.0:50052",
+    "nimo_1_server_binary_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb",
+    "nimo_1_server_active": true,
+    "nimo_1_server_restarts": 0,
+    "nimo_1_health_http": 200
+  },
+  "provenance": {
+    "runtime_code_changed": false,
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "persistent_behavior_changed": false,
+    "webui_changed": false,
+    "remote_changed": false
+  },
+  "independent_review": {
+    "path": "docs/halofpx/reviews/2026-07-20__p08-exact-model-critical-path-profile__review__v01.md",
+    "verdict": "accept_after_authority_disclosure_correction",
+    "blocking_findings": 0,
+    "nonblocking_findings": [
+      "profile harness should reject a reused evidence root before future use"
+    ]
+  },
+  "next_direction": "design a compact fused expert-parallel exchange that avoids P06i's inactive-slot work and reduces or overlaps the per-token rank dependency"
+}
