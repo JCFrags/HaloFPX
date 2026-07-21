@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 00:29 PDT
+Verified: 2026-07-21 00:47 PDT
 
 ## Overall state
 
@@ -14,11 +14,14 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `6862ffb99a8056552f62827658f3ffdcc79b9af4`
+- Latest verified commit: `78a102ac3212e4987486761983c336438cc3e7c0`
 - Remote count: zero
 - Worktree state: clean at the committed L10c boundary
-- Current work: two-rank state-ownership/serialization audit and default-off
-  distributed restore canary only if current authority safely supports it
+- Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
+- Prior worker: idle preserved handoff task
+  `019f7377-5d73-7ca1-a83c-a0163f7d4780`
+- Current work: design and implement the smallest default-off worker-local RPC
+  state protocol, then qualify one disposable two-rank restore canary
 
 ## Product progress
 
@@ -50,6 +53,12 @@ slower candidates.
   processed cold without tree mutation. Focused Linux tests passed 8/8,
   independent review accepted the repaired authority, and production remained
   active with zero restarts. Commit `6862ffb9` is clean.
+- L11 proves the current sequence serializer is globally complete only by
+  transferring worker-resident KV pages through RPC: four GET payloads totaling
+  41,472 bytes during capture and four SET payloads totaling 41,472 bytes during
+  restore for the small fixture. The worker has no rank-local serializer,
+  persistent writer, readiness authority, or commit-live participant. The
+  reviewed documentation-only blocker is committed cleanly as `78a102ac`.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -71,14 +80,10 @@ slower candidates.
 
 ## Lead decision
 
-L10d is accepted. The next highest-value dependency is distributed state, not
-eviction: the actual 160 GB primary workload runs across both Strix Halo nodes,
-while L10d remains a target-only laboratory canary. The next milestone must
-first establish what the current RPC/tensor-split context serialization owns
-and whether a coordinator blob is globally complete or merely local. Only if
-that evidence supports safe exact-plan restore may it open a default-off two-
-rank canary. Any missing rank state, topology mismatch, stale readiness, or
-partial restore must remain a full cold recomputation. Online deletion,
-eviction, and production enablement remain closed until a later lifecycle lane.
-The worker has been dispatched with this boundary and must end its turn at a
-reviewed canary commit or a precise architecture blocker.
+L11 is accepted as a real architecture blocker, not a project stop. A fresh
+primary worker now owns the separately approved protocol phase: add worker-
+local immutable tensor persistence and bounded authenticated readiness/commit
+messages without state payloads on the control plane. The first proof remains a
+small disposable two-host fixture. Any failure must discard the attempt and
+cold-recompute from a clean context. The 160 GB model, eviction, production
+enablement, and broad fault work remain closed until that reviewed canary.

@@ -131,3 +131,24 @@ exact plan/rank binding, all-rank readiness before live mutation, full cold
 fallback for any mismatch/failure, exact suffix equivalence, and no state pages
 over the control plane. Keep production, eviction, shared reuse, and final
 primary-model claims closed.
+
+## 2026-07-21 — accept L11 blocker and hand off the new RPC protocol phase
+
+Decision: accept the documentation-only L11 blocker at `78a102ac`; replace the
+multiday primary worker with fresh task `019f83a3-9498-76c3-9398-be80344854ae`
+for the worker-local persistence protocol. Preserve the prior task idle as the
+historical implementation/handoff record.
+
+Reason: L11 measured that current capture and restore move worker KV pages via
+RPC GET/SET. A compatibility wrapper cannot convert this into rank-local SSD
+ownership. The next work is therefore a new wire, storage, readiness, and
+commit-live protocol rather than incremental L10 catalog work. The prior worker
+remained accurate, but this clean architecture boundary benefits from fresh
+context after several days and multiple compactions.
+
+The fresh worker is authorized only for the smallest Linux/default-off protocol
+and small disposable two-host canary. It must keep coordinator-local/sampler
+ownership explicit, bind exact plan/topology/ranks/components, transfer only
+bounded authenticated identifiers/status, validate before mutation, require
+all-rank readiness, and cold-recompute after every failed or partial attempt.
+Primary-model qualification waits for a reviewed small canary.
