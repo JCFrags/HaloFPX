@@ -1,0 +1,73 @@
+{
+  "schema": "halofpx-performance-receipt-v1",
+  "milestone": "P12",
+  "status": "synthetic opportunity gate passed",
+  "source_parent": {
+    "commit": "a0d9299c89cb50291d6359ea680330000e6d5822",
+    "tree": "5beaea53bfbfa316c5afd81804a31792e6f8c515"
+  },
+  "gate": "HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY",
+  "default_off": true,
+  "tuple": {
+    "weight_type": "Q6_0_ROCMFPX",
+    "global_experts": 192,
+    "physical_half_experts": 96,
+    "full_selected": 8,
+    "compact_owned": 4,
+    "hidden": 3072,
+    "intermediate": 1536,
+    "tokens": 1,
+    "backend": "ROCm0 gfx1151",
+    "host": "nimo-2"
+  },
+  "performance_binary_sha256": "6fa571378696c159fc2ebca19e912e584c5933b2b1ba2c68cda7eeabe195a838",
+  "correctness_binary_sha256": "565a4a5a42ad6f7a4833cbbc9b0bdd7fe1eddeedfa714fe689e26d714614478f",
+  "measurements_us": {
+    "gate_up_full_8": 100.74,
+    "gate_up_compact_4": 52.20,
+    "down_full_8": 108.60,
+    "down_compact_4": 56.25,
+    "full_chain_two_gate_plus_down": 310.08,
+    "compact_chain_two_gate_plus_down": 160.65,
+    "compact_over_full_percent": 51.8092105263158,
+    "add_4096_proxy": 2.28,
+    "five_add_proxy": 11.40,
+    "five_add_over_full_percent": 3.67647058823529
+  },
+  "thresholds": {
+    "compact_compute_percent_lt": 60,
+    "join_reduction_percent_lt": 5,
+    "compute_pass": true,
+    "join_reduction_proxy_pass": true
+  },
+  "correctness": {
+    "exact_shape_cases": 4,
+    "passed": 4,
+    "reference": "CPU",
+    "candidate": "ROCm0",
+    "log_sha256": "43c512ea88b71ef702bf658c2c8de5b0d65b4311ce51c4242848c28dc3a728f2"
+  },
+  "admitted_logs": {
+    "performance": {"path": "perf-v2.log", "sha256": "c654b525eb02987e3a4e1902c56222df16826165ab9a4f48b5896ba51793900f"},
+    "join_proxy": {"path": "join-proxy.log", "sha256": "cc0648d43fabd72a3fc53026f5f29c0162328a9c1f8dac3cb4b51680d64193ef"},
+    "correctness": {"path": "correctness-v3.log", "sha256": "43c512ea88b71ef702bf658c2c8de5b0d65b4311ce51c4242848c28dc3a728f2"}
+  },
+  "excluded": [
+    "excluded-invalid-chain-perf.csv",
+    "excluded-invalid-chain-perf.stderr",
+    "excluded-invalid-chain-perf-console.log",
+    "excluded-zero-selected-correctness.log"
+  ],
+  "raw_evidence": {
+    "root": "/var/tmp/halofpx-p12-mmvq-a0d9299",
+    "bundle": "/var/tmp/halofpx-p12-mmvq-nimo2-20260720.tar.zst",
+    "bundle_sha256": "0b908153b5c72ca1dc76a861f08378be9411839c44b1fc013aeaa066e5d2afaa"
+  },
+  "nonclaims": [
+    "not a product implementation",
+    "not RPC overlap proof",
+    "not an exact-model speedup",
+    "not final G9/G10 non-inferiority",
+    "greater than 30 generation tokens per second remains a stretch objective"
+  ]
+}

@@ -8671,6 +8671,17 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
 #if defined(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
     test_cases.emplace_back(new test_minimax_m2_expert_equivalence());
 
+    // P12 exact-shape correctness companions for the compact-owned MMVQ
+    // performance screen.
+    test_cases.emplace_back(new test_mul_mat_id(
+            GGML_TYPE_Q6_0_ROCMFPX, GGML_TYPE_F32, 192, 8, false, 1536, 1, 3072));
+    test_cases.emplace_back(new test_mul_mat_id(
+            GGML_TYPE_Q6_0_ROCMFPX, GGML_TYPE_F32, 96, 4, false, 1536, 1, 3072));
+    test_cases.emplace_back(new test_mul_mat_id(
+            GGML_TYPE_Q6_0_ROCMFPX, GGML_TYPE_F32, 192, 8, false, 3072, 1, 1536));
+    test_cases.emplace_back(new test_mul_mat_id(
+            GGML_TYPE_Q6_0_ROCMFPX, GGML_TYPE_F32, 96, 4, false, 3072, 1, 1536));
+
     // P06b exact MiniMax-M2 expert projection shapes from the pinned primary
     // workload: 192 experts, top-8, hidden 3072, intermediate 1536. Keep this
     // roster isolated behind the default-off P06 canary gate because each full
@@ -9566,6 +9577,19 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_perf() {
     }
 
 #if defined(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
+    // P12 perf-only lower-bound screen for the exact MiniMax-M2 Q6 decode
+    // tuple. The compact four-owned cases do not implement product scatter or
+    // RPC overlap; they only establish whether optimized MMVQ compute has
+    // enough latency margin to justify opening that implementation seam.
+    test_cases.emplace_back(new test_mul_mat_id(
+            GGML_TYPE_Q6_0_ROCMFPX, GGML_TYPE_F32, 192, 8, false, 1536, 1, 3072));
+    test_cases.emplace_back(new test_mul_mat_id(
+            GGML_TYPE_Q6_0_ROCMFPX, GGML_TYPE_F32, 96, 4, false, 1536, 1, 3072));
+    test_cases.emplace_back(new test_mul_mat_id(
+            GGML_TYPE_Q6_0_ROCMFPX, GGML_TYPE_F32, 192, 8, false, 3072, 1, 1536));
+    test_cases.emplace_back(new test_mul_mat_id(
+            GGML_TYPE_Q6_0_ROCMFPX, GGML_TYPE_F32, 96, 4, false, 3072, 1, 1536));
+
     for (int bs : {1, 8}) {
         test_cases.emplace_back(new test_mul_mat_id(
                 GGML_TYPE_Q8_0_ROCMFPX, GGML_TYPE_F32,
