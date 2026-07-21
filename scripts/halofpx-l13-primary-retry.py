@@ -20,6 +20,7 @@ PORT = 50176
 WORKER_BIN = "/var/tmp/halofpx-l13-retry-src-nimo1/build-primary-bed36/bin/rpc-server"
 CANARY_BIN = "/var/tmp/halofpx-l13-retry-src-nimo2/build-primary-bed36/bin/test-halofpx-distributed-state-canary"
 READINESS_PROBE = "/var/tmp/halofpx-l13-retry-src-nimo2/scripts/halofpx_rpc_readiness.py"
+READINESS_PROBE_SHA = "4dec4e8da86a10515751aaca174f8a1e94ffc63b24ee680d9a77cbb0d37b6253"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
     "dba517197f2854f3d362529e13abddcdcad6c10b/"
@@ -78,7 +79,7 @@ def listener_pid(text: str, port: int) -> int:
     return int(match.group(1)) if match else 0
 
 
-def start_worker(local_state: bool, unit: str) -> int:
+def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None) -> tuple[int, dict[str, object]]:
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=90min",
         "--setenv=GGML_RPC_DEBUG=1", WORKER_BIN,
@@ -92,29 +93,39 @@ def start_worker(local_state: bool, unit: str) -> int:
             "--halofpx-state-key-generation", "7",
         ])
     ssh(NIMO1, *command)
-    readiness = ssh(
-        NIMO2,
+    probe_command = [
         "python3", READINESS_PROBE,
         "--endpoint", f"10.44.0.1:{PORT}",
-        "--logical-rank", "1",
-        "--world-size", "2",
-        "--key-generation", "7",
-        "--expected-channel-key-file", CONTROL,
         "--timeout-seconds", "120",
         "--attempt-timeout-seconds", "2",
         "--initial-backoff-seconds", "0.1",
         "--maximum-backoff-seconds", "1",
-        timeout=130,
-        check=False,
-    )
+    ]
+    if local_state:
+        probe_command.extend([
+            "--logical-rank", "1",
+            "--world-size", "2",
+            "--key-generation", "7",
+            "--expected-channel-key-file", CONTROL,
+        ])
+    else:
+        probe_command.append("--expect-feature-off")
+    readiness = ssh(NIMO2, *probe_command, timeout=130, check=False)
     if readiness.returncode != 0:
         raise RetryError(f"worker {unit} failed HaloFPX CAPS readiness: {readiness.stdout}{readiness.stderr}")
     try:
         readiness_result = json.loads(readiness.stdout)
     except json.JSONDecodeError as exc:
         raise RetryError(f"worker {unit} returned malformed readiness evidence") from exc
-    if readiness_result.get("admitted") is not True or readiness_result.get("endpoint") != f"10.44.0.1:{PORT}":
+    expected_result = readiness_result.get("admitted") is True if local_state else (
+        readiness_result.get("admitted") is False and readiness_result.get("feature_off_confirmed") is True
+    )
+    if not expected_result or readiness_result.get("endpoint") != f"10.44.0.1:{PORT}":
         raise RetryError(f"worker {unit} returned mismatched readiness evidence")
+    if evidence_root is not None:
+        (evidence_root / f"{unit}-readiness.json").write_text(
+            json.dumps(readiness_result, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n"
+        )
     active = ssh(NIMO1, "systemctl", "--user", "is-active", f"{unit}.service", check=False)
     if active.stdout.strip() != "active":
         raise RetryError(f"worker {unit} left active state after CAPS readiness")
@@ -122,7 +133,7 @@ def start_worker(local_state: bool, unit: str) -> int:
     listeners = ssh(NIMO1, "ss", "-H", "-ltnp", check=False).stdout
     if listener_pid(listeners, PORT) != pid:
         raise RetryError(f"worker {unit} listener no longer matches MainPID after CAPS readiness")
-    return pid
+    return pid, readiness_result
 
 
 def stop_worker(unit: str) -> None:
@@ -283,6 +294,8 @@ def main() -> int:
             raise RetryError("coordinator canary binary mismatch")
         if ssh(NIMO1, "sha256sum", WORKER_BIN).stdout.split()[0] != WORKER_SHA:
             raise RetryError("worker binary mismatch")
+        if ssh(NIMO2, "sha256sum", READINESS_PROBE).stdout.split()[0] != READINESS_PROBE_SHA:
+            raise RetryError("readiness probe mismatch")
         if ssh(NIMO2, "sha256sum", PROMPT).stdout.split()[0] != PROMPT_SHA:
             raise RetryError("prompt SHA-256 mismatch")
         free_worker = int(ssh(NIMO1, "df", "-B1", "--output=avail", "/var/tmp").stdout.splitlines()[-1])
@@ -301,7 +314,7 @@ def main() -> int:
 
         unit1 = "halofpx-l13r-primary-worker-capture-20260721"
         local_units.append(unit1)
-        pid_capture = start_worker(True, unit1)
+        pid_capture, readiness_capture = start_worker(True, unit1, root)
         capture = canary("capture")
         write_log(root, "capture.log", capture)
         results["capture"] = output_fields(capture.stdout)
@@ -312,7 +325,7 @@ def main() -> int:
 
         unit2 = "halofpx-l13r-primary-worker-restore-20260721"
         local_units.append(unit2)
-        pid_restore = start_worker(True, unit2)
+        pid_restore, readiness_restore = start_worker(True, unit2, root)
 
         cold = canary("cold")
         write_log(root, "cold.log", cold)
@@ -357,7 +370,7 @@ def main() -> int:
 
         unit3 = "halofpx-l13r-primary-worker-runtime-off-20260721"
         local_units.append(unit3)
-        pid_runtime_off = start_worker(False, unit3)
+        pid_runtime_off, readiness_runtime_off = start_worker(False, unit3, root)
         runtime_off = canary("cold")
         write_log(root, "runtime-off-cold.log", runtime_off)
         results["runtime_off"] = output_fields(runtime_off.stdout)
@@ -375,6 +388,11 @@ def main() -> int:
             "model_sha256": MODEL_SHA,
             "model_bytes": MODEL_BYTES,
             "pids": {"capture": pid_capture, "restore": pid_restore, "runtime_off": pid_runtime_off},
+            "readiness": {
+                "capture": readiness_capture,
+                "restore": readiness_restore,
+                "runtime_off": readiness_runtime_off,
+            },
             "results": results,
             "suffix_hashes": {name: {"tokens": value[0], "text": value[1]} for name, value in suffixes.items()},
             "worker_object": {"path": object_path, "bytes": object_bytes, "sha256": object_sha},

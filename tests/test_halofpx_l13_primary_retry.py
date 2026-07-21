@@ -27,17 +27,23 @@ class PrimaryRetryTests(unittest.TestCase):
         with mock.patch.object(
             retry, "ssh", side_effect=lambda *args, **kwargs: calls.append(args) or next(responses)
         ):
-            self.assertEqual(retry.start_worker(True, "fixture"), 42)
+            pid, evidence = retry.start_worker(True, "fixture")
+            self.assertEqual(pid, 42)
+            self.assertTrue(evidence["admitted"])
         self.assertTrue(any(str(value).endswith("halofpx_rpc_readiness.py") for value in calls[1]))
 
-    def test_start_worker_rejects_feature_off_caps_failure(self):
+    def test_start_worker_accepts_only_confirmed_feature_off_protocol(self):
         responses = iter((
             SimpleNamespace(stdout="", stderr="", returncode=0),
-            SimpleNamespace(stdout="readiness failed: readiness-timeout\n", stderr="", returncode=1),
+            SimpleNamespace(stdout='{"admitted": false, "feature_off_confirmed": true, "endpoint": "10.44.0.1:50176"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout="active\n", stderr="", returncode=0),
+            SimpleNamespace(stdout="42\n", stderr="", returncode=0),
+            SimpleNamespace(stdout='LISTEN 0 1 10.44.0.1:50176 0.0.0.0:* users:(("rpc",pid=42,fd=3))\n', stderr="", returncode=0),
         ))
         with mock.patch.object(retry, "ssh", side_effect=lambda *args, **kwargs: next(responses)):
-            with self.assertRaisesRegex(retry.RetryError, "failed HaloFPX CAPS readiness"):
-                retry.start_worker(False, "fixture")
+            pid, evidence = retry.start_worker(False, "fixture")
+            self.assertEqual(pid, 42)
+            self.assertTrue(evidence["feature_off_confirmed"])
 
     def test_listener_pid_requires_exact_port(self):
         text = 'LISTEN 0 1 0.0.0.0:501760 0.0.0.0:* users:(("rpc",pid=12,fd=3))\n'

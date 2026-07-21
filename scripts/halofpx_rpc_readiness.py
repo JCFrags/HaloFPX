@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import socket
+import stat
 import struct
 import time
 from dataclasses import dataclass
@@ -174,6 +176,43 @@ def _exchange(endpoint: tuple[str, int], expected: ExpectedCaps, timeout: float)
         }
 
 
+def _exchange_feature_off(endpoint: tuple[str, int], timeout: float) -> dict[str, object]:
+    try:
+        sock = socket.create_connection(endpoint, timeout=timeout)
+    except (TimeoutError, socket.timeout, ConnectionError, OSError) as exc:
+        raise _TransientProbeError("connect-failed") from exc
+    with sock:
+        sock.settimeout(timeout)
+        try:
+            sock.sendall(struct.pack("<BQ", RPC_CMD_HELLO, 24) + bytes(24))
+        except (TimeoutError, socket.timeout, ConnectionError, OSError) as exc:
+            raise _TransientProbeError("hello-send-failed") from exc
+        hello_size = struct.unpack("<Q", _recv_exact(sock, 8))[0]
+        if hello_size != HELLO_RESPONSE.size:
+            raise _MismatchProbeError("malformed-hello-size")
+        rpc_major, rpc_minor, rpc_patch, padding, connection_caps = HELLO_RESPONSE.unpack(
+            _recv_exact(sock, HELLO_RESPONSE.size)
+        )
+        if (rpc_major, rpc_minor, rpc_patch) != RPC_PROTOCOL or padding != 0:
+            raise _MismatchProbeError("wrong-rpc-version")
+        try:
+            sock.sendall(struct.pack("<BQ", RPC_CMD_HALOFPX_STATE_CAPS, 0))
+            response = sock.recv(1)
+        except socket.timeout as exc:
+            raise _TransientProbeError("caps-rejection-timeout") from exc
+        except (ConnectionError, OSError):
+            response = b""
+        if response:
+            raise _MismatchProbeError("feature-off-worker-returned-caps")
+        return {
+            "rpc_protocol": ".".join(str(value) for value in RPC_PROTOCOL),
+            "connection_caps_sha256": hashlib.sha256(connection_caps).hexdigest(),
+            "caps_rejected": True,
+            "feature_off_confirmed": True,
+            "admitted": False,
+        }
+
+
 def probe_caps(
     endpoint: str,
     expected: ExpectedCaps,
@@ -224,10 +263,74 @@ def probe_caps(
     raise ReadinessError(f"readiness-timeout:attempts={attempts}:last={reasons}")
 
 
+def probe_feature_off(
+    endpoint: str,
+    *,
+    timeout_seconds: float = 120.0,
+    attempt_timeout_seconds: float = 2.0,
+    initial_backoff_seconds: float = 0.1,
+    maximum_backoff_seconds: float = 1.0,
+) -> dict[str, object]:
+    parsed_endpoint = _endpoint(endpoint)
+    if timeout_seconds <= 0 or attempt_timeout_seconds <= 0:
+        raise ValueError("probe timeouts must be positive")
+    if initial_backoff_seconds < 0 or maximum_backoff_seconds < initial_backoff_seconds:
+        raise ValueError("invalid retry backoff")
+    started = time.monotonic()
+    deadline = started + timeout_seconds
+    attempts = 0
+    failures: list[dict[str, object]] = []
+    backoff = initial_backoff_seconds
+    while attempts < MAX_ATTEMPTS:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        attempts += 1
+        try:
+            result = _exchange_feature_off(parsed_endpoint, min(attempt_timeout_seconds, remaining))
+            result.update({
+                "endpoint": endpoint,
+                "attempts": attempts,
+                "elapsed_ms": round((time.monotonic() - started) * 1000, 3),
+                "failures": failures[-16:],
+            })
+            return result
+        except _MismatchProbeError as exc:
+            raise ReadinessError(f"feature-off-mismatch:{exc}") from exc
+        except _TransientProbeError as exc:
+            failures.append({"attempt": attempts, "reason": str(exc)})
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        sleep_for = min(backoff, remaining)
+        if sleep_for > 0:
+            time.sleep(sleep_for)
+        backoff = min(maximum_backoff_seconds, max(backoff * 2, initial_backoff_seconds))
+    reasons = ",".join(str(item["reason"]) for item in failures[-4:]) or "no-attempt"
+    raise ReadinessError(f"feature-off-timeout:attempts={attempts}:last={reasons}")
+
+
 def _channel_from_key_file(path: Path) -> bytes:
-    data = path.read_bytes()
-    if len(data) > 256:
-        raise ValueError("key file is oversized")
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    fd = os.open(path, flags)
+    try:
+        details = os.fstat(fd)
+        if not stat.S_ISREG(details.st_mode) or details.st_size <= 0 or details.st_size > 256:
+            raise ValueError("key file is not an exact bounded regular file")
+        if hasattr(os, "geteuid") and (
+            details.st_uid != os.geteuid() or details.st_mode & 0o077
+        ):
+            raise ValueError("key file owner or mode is not protected")
+        data = bytearray()
+        while len(data) <= 256:
+            part = os.read(fd, 257 - len(data))
+            if not part:
+                break
+            data.extend(part)
+        if len(data) != details.st_size or len(data) > 256:
+            raise ValueError("key file changed or exceeded its bound while reading")
+    finally:
+        os.close(fd)
     lines = data.splitlines()
     if len(lines) != 2 or len(lines[1]) != 64:
         raise ValueError("key file does not contain an exact channel binding")
@@ -243,29 +346,44 @@ def _channel_from_key_file(path: Path) -> bytes:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--endpoint", required=True)
-    parser.add_argument("--logical-rank", required=True, type=int)
-    parser.add_argument("--world-size", required=True, type=int)
-    parser.add_argument("--key-generation", required=True, type=int)
-    parser.add_argument("--expected-channel-key-file", required=True, type=Path)
+    parser.add_argument("--logical-rank", type=int)
+    parser.add_argument("--world-size", type=int)
+    parser.add_argument("--key-generation", type=int)
+    parser.add_argument("--expected-channel-key-file", type=Path)
+    parser.add_argument("--expect-feature-off", action="store_true")
     parser.add_argument("--timeout-seconds", type=float, default=120.0)
     parser.add_argument("--attempt-timeout-seconds", type=float, default=2.0)
     parser.add_argument("--initial-backoff-seconds", type=float, default=0.1)
     parser.add_argument("--maximum-backoff-seconds", type=float, default=1.0)
     args = parser.parse_args()
     try:
-        result = probe_caps(
-            args.endpoint,
-            ExpectedCaps(
-                logical_rank=args.logical_rank,
-                world_size=args.world_size,
-                key_generation=args.key_generation,
-                channel_binding=_channel_from_key_file(args.expected_channel_key_file),
-            ),
-            timeout_seconds=args.timeout_seconds,
-            attempt_timeout_seconds=args.attempt_timeout_seconds,
-            initial_backoff_seconds=args.initial_backoff_seconds,
-            maximum_backoff_seconds=args.maximum_backoff_seconds,
-        )
+        common = {
+            "timeout_seconds": args.timeout_seconds,
+            "attempt_timeout_seconds": args.attempt_timeout_seconds,
+            "initial_backoff_seconds": args.initial_backoff_seconds,
+            "maximum_backoff_seconds": args.maximum_backoff_seconds,
+        }
+        if args.expect_feature_off:
+            if any(value is not None for value in (
+                args.logical_rank, args.world_size, args.key_generation, args.expected_channel_key_file
+            )):
+                raise ValueError("feature-off probe does not accept HaloFPX identity options")
+            result = probe_feature_off(args.endpoint, **common)
+        else:
+            if any(value is None for value in (
+                args.logical_rank, args.world_size, args.key_generation, args.expected_channel_key_file
+            )):
+                raise ValueError("HaloFPX CAPS probe requires rank, world, key generation, and channel file")
+            result = probe_caps(
+                args.endpoint,
+                ExpectedCaps(
+                    logical_rank=args.logical_rank,
+                    world_size=args.world_size,
+                    key_generation=args.key_generation,
+                    channel_binding=_channel_from_key_file(args.expected_channel_key_file),
+                ),
+                **common,
+            )
     except (OSError, ValueError, ReadinessError) as exc:
         print(f"readiness failed: {exc}")
         return 1

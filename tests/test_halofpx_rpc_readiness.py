@@ -167,6 +167,26 @@ class RpcReadinessTests(unittest.TestCase):
         finally:
             fixture.close()
 
+    def test_explicit_feature_off_probe_requires_hello_and_caps_rejection(self):
+        def handler(client, _attempt):
+            hello(client)
+            command, size = struct.unpack("<BQ", recv_exact(client, 9))
+            self.assertEqual((command, size), (readiness.RPC_CMD_HALOFPX_STATE_CAPS, 0))
+
+        fixture = FixtureServer(handler)
+        try:
+            result = readiness.probe_feature_off(
+                fixture.endpoint,
+                timeout_seconds=0.5,
+                attempt_timeout_seconds=0.1,
+                initial_backoff_seconds=0.01,
+                maximum_backoff_seconds=0.03,
+            )
+        finally:
+            fixture.close()
+        self.assertFalse(result["admitted"])
+        self.assertTrue(result["feature_off_confirmed"])
+
     def test_malformed_caps_response_is_terminal(self):
         def handler(client, _attempt):
             hello(client)
