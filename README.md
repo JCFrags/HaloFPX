@@ -17,6 +17,7 @@ The user-directed destination and phase gates are defined in [`PROJECT_GOAL.md`]
 - `references/` - pointers to external canonical references used by this project.
 - `reviews/` - research quality reviews, gaps, contradiction reports, and improvement proposals.
 - `experiments/` - reproducible on-machine experiment records and raw outputs.
+- `project-management/lead/` - project-lead objectives, current status, monitoring policy, decisions, and worker cursor.
 
 Start with `research/prompts/README.md` for the research index, `wiki/HaloFPX_Wiki/README.md` for the canonical research context, `knowledge/README.md` for compact pre-implementation retrieval, and `skills/README.md` for candidate procedures.
 
