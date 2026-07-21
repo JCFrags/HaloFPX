@@ -20,7 +20,7 @@ slower candidates.
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L17 passed. The next bounded lane is L18: a read-only,
+- Current work: L17 passed. L18 is active as a read-only,
   no-production exact-primary allocation preflight tied to the real loader and
   explicit `RPC0,ROCm0` placement. No primary retry is open.
 
