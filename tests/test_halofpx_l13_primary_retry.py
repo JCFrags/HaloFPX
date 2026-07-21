@@ -53,8 +53,13 @@ class PrimaryRetryTests(unittest.TestCase):
         self.assertIn("--unit=halofpx-l16-primary-canary-cold-20260721", command)
         self.assertIn("--wait", command)
         self.assertIn("--collect", command)
+        self.assertEqual(
+            retry.CANARY_BIN,
+            "/var/tmp/halofpx-l17-src-nimo2/build-l17/bin/test-halofpx-distributed-state-canary",
+        )
         expected_pairs = {
             "--hfx-expected-prompt-tokens": "1129",
+            "--device": "RPC0,ROCm0",
             "--split-mode": "layer",
             "--tensor-split": "1,1",
             "--ctx-size": "4096",
@@ -76,6 +81,7 @@ class PrimaryRetryTests(unittest.TestCase):
         responses = iter((
             SimpleNamespace(stdout="", stderr="", returncode=0),
             SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
             SimpleNamespace(stdout="active\n", stderr="", returncode=0),
             SimpleNamespace(stdout="42\n", stderr="", returncode=0),
             SimpleNamespace(stdout="0123456789abcdef0123456789abcdef\n", stderr="", returncode=0),
@@ -90,11 +96,13 @@ class PrimaryRetryTests(unittest.TestCase):
             self.assertEqual(invocation, "0123456789abcdef0123456789abcdef")
             self.assertTrue(evidence["admitted"])
         self.assertTrue(any(str(value).endswith("halofpx_rpc_readiness.py") for value in calls[1]))
+        self.assertIn("RPC0,ROCm0", calls[2])
 
     def test_start_worker_accepts_only_confirmed_feature_off_protocol(self):
         responses = iter((
             SimpleNamespace(stdout="", stderr="", returncode=0),
             SimpleNamespace(stdout='{"admitted": false, "feature_off_confirmed": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
             SimpleNamespace(stdout="active\n", stderr="", returncode=0),
             SimpleNamespace(stdout="42\n", stderr="", returncode=0),
             SimpleNamespace(stdout="0123456789abcdef0123456789abcdef\n", stderr="", returncode=0),
@@ -105,6 +113,30 @@ class PrimaryRetryTests(unittest.TestCase):
             self.assertEqual(pid, 42)
             self.assertEqual(invocation, "0123456789abcdef0123456789abcdef")
             self.assertTrue(evidence["feature_off_confirmed"])
+
+    def test_start_worker_refuses_failed_placement_before_identity_admission(self):
+        responses = iter((
+            SimpleNamespace(stdout="", stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout="", stderr="placement refusal: selected-device-order\n", returncode=3),
+        ))
+        calls = []
+        with mock.patch.object(
+            retry, "ssh", side_effect=lambda *args, **kwargs: calls.append(args) or next(responses)
+        ):
+            with self.assertRaises(retry.CanaryError):
+                retry.start_worker(True, "fixture")
+        self.assertEqual(len(calls), 3)
+
+    def test_start_worker_refuses_malformed_placement_evidence(self):
+        responses = iter((
+            SimpleNamespace(stdout="", stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout="not-json\n", stderr="", returncode=0),
+        ))
+        with mock.patch.object(retry, "ssh", side_effect=lambda *args, **kwargs: next(responses)):
+            with self.assertRaises(retry.CanaryError):
+                retry.start_worker(True, "fixture")
 
     def test_positive_restore_rejects_silent_cold_fallback(self):
         fields = {

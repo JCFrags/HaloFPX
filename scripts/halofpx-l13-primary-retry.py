@@ -18,8 +18,10 @@ NIMO1 = "nimo-1"
 NIMO2 = "nimo-2"
 PORT = 50180
 WORKER_BIN = "/var/tmp/halofpx-l16-src-nimo1/build-l16/bin/rpc-server"
-CANARY_BIN = "/var/tmp/halofpx-l16-src-nimo2/build-l16/bin/test-halofpx-distributed-state-canary"
+CANARY_BIN = "/var/tmp/halofpx-l17-src-nimo2/build-l17/bin/test-halofpx-distributed-state-canary"
 READINESS_PROBE = "/var/tmp/halofpx-l16-src-nimo2/scripts/halofpx_rpc_readiness.py"
+PLACEMENT_PROBE = "/var/tmp/halofpx-l17-src-nimo2/build-l17/bin/test-halofpx-placement-probe"
+PLACEMENT_PROBE_SHA = "f74bdf2bb1b9bc7c3e2f1239c2a48984c9af6a59fc8682a0c3be4e0ec8fa0d6e"
 READINESS_PROBE_SHA = "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -28,7 +30,7 @@ MODEL = (
 )
 MODEL_SHA = "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
 MODEL_BYTES = 159873097824
-CANARY_SHA = "278f61a406bae87b04e2c435f48a1914989c2e992e626800f201b46044d537ec"
+CANARY_SHA = "571d028520364b556e8d4b155231f31cf7826e413042329633bc961f04c34988"
 WORKER_SHA = "07b32f27d17edd34a7a979fefef0bcb09fcb29dfaae8052f16813d1270555d3a"
 PROMPT_SHA = "f20c7c7a4137de98b991f1bfe6de27e194a93c7257d9496944e312085923143f"
 PROMPT = "/var/tmp/halofpx-l13-primary-20260721/prompt.txt"
@@ -144,9 +146,30 @@ def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None
     )
     if not expected_result or readiness_result.get("endpoint") != f"10.44.0.1:{PORT}":
         raise CanaryError(f"worker {unit} returned mismatched readiness evidence")
+    placement = ssh(
+        NIMO2, PLACEMENT_PROBE,
+        "--hfx-expected-rpc-endpoint", f"10.44.0.1:{PORT}",
+        "--rpc", f"10.44.0.1:{PORT}",
+        "--device", "RPC0,ROCm0",
+        "--split-mode", "layer",
+        "--tensor-split", "1,1",
+        "--n-gpu-layers", "999",
+        timeout=30, check=False,
+    )
+    if placement.returncode != 0:
+        raise CanaryError(f"worker {unit} failed pre-allocation placement authority: {placement.stdout}{placement.stderr}")
+    try:
+        placement_result = json.loads(placement.stdout)
+    except json.JSONDecodeError as exc:
+        raise CanaryError(f"worker {unit} returned malformed placement evidence") from exc
+    if placement_result.get("admitted") is not True or placement_result.get("endpoint") != f"10.44.0.1:{PORT}":
+        raise CanaryError(f"worker {unit} returned mismatched placement evidence")
     if evidence_root is not None:
         (evidence_root / f"{unit}-readiness.json").write_text(
             json.dumps(readiness_result, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n"
+        )
+        (evidence_root / f"{unit}-placement.json").write_text(
+            json.dumps(placement_result, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n"
         )
     active = ssh(NIMO1, "systemctl", "--user", "is-active", f"{unit}.service", check=False)
     if active.stdout.strip() != "active":
@@ -209,6 +232,7 @@ def canary(mode: str, unit_label: str, *, plan: str = PLAN):
         "--hfx-expected-prompt-tokens", "1129",
         "--model", MODEL,
         "--rpc", f"10.44.0.1:{PORT}",
+        "--device", "RPC0,ROCm0",
         "--split-mode", "layer",
         "--tensor-split", "1,1",
         "--n-gpu-layers", "999",
@@ -365,6 +389,8 @@ def main() -> int:
             raise CanaryError("worker binary mismatch")
         if ssh(NIMO2, "sha256sum", READINESS_PROBE).stdout.split()[0] != READINESS_PROBE_SHA:
             raise CanaryError("readiness probe mismatch")
+        if ssh(NIMO2, "sha256sum", PLACEMENT_PROBE).stdout.split()[0] != PLACEMENT_PROBE_SHA:
+            raise CanaryError("placement probe mismatch")
         if ssh(NIMO2, "sha256sum", PROMPT).stdout.split()[0] != PROMPT_SHA:
             raise CanaryError("prompt SHA-256 mismatch")
         free_worker = int(ssh(NIMO1, "df", "-B1", "--output=avail", "/var/tmp").stdout.splitlines()[-1])

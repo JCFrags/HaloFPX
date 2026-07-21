@@ -1,4 +1,5 @@
 #include "llama-model.h"
+#include "llama-model-placement.h"
 
 #include "llama-arch.h"
 #include "llama-ext.h"
@@ -1180,6 +1181,30 @@ void llama_model_base::load_vocab(llama_model_loader & ml) {
     vocab.load(ml, kv);
 }
 
+std::vector<int> llama_model_resolve_layer_devices(
+        int                        n_layer,
+        int                        n_gpu_layers,
+        const std::vector<float> & split_points) {
+    const int i_gpu_start = std::max(n_layer + 1 - n_gpu_layers, 0);
+    const int act_gpu_layers = split_points.empty() ? 0 : std::min(n_gpu_layers, n_layer + 1);
+    std::vector<int> result;
+    result.reserve(n_layer + 1);
+    for (int il = 0; il <= n_layer; ++il) {
+        if (il < i_gpu_start || (il - i_gpu_start) >= act_gpu_layers) {
+            result.push_back(-1);
+            continue;
+        }
+        const int device = std::upper_bound(
+            split_points.begin(), split_points.end(),
+            float(il - i_gpu_start) / act_gpu_layers) - split_points.begin();
+        if (device < 0 || static_cast<size_t>(device) >= split_points.size()) {
+            throw std::runtime_error("layer placement resolved outside the selected device set");
+        }
+        result.push_back(device);
+    }
+    return result;
+}
+
 bool llama_model_base::load_tensors(llama_model_loader & ml) {
     const auto & split_mode   = params.split_mode;
     const auto & use_mlock    = params.use_mlock;
@@ -1242,15 +1267,14 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
         splits[i] /= split_sum;
     }
 
-    const int i_gpu_start = std::max(int(hparams.n_layer) + 1 - n_gpu_layers, 0);
-    const int act_gpu_layers = devices.empty() ? 0 : std::min(n_gpu_layers, int(n_layer) + 1);
+    const std::vector<int> layer_devices = llama_model_resolve_layer_devices(n_layer, n_gpu_layers, splits);
     auto get_layer_buft_list = [&](int il) -> llama_model::impl::layer_dev {
         const bool is_swa = il < int(hparams.n_layer) && hparams.is_swa(il);
-        if (il < i_gpu_start || (il - i_gpu_start) >= act_gpu_layers) {
+        const int layer_gpu = layer_devices.at(il);
+        if (layer_gpu < 0) {
             LLAMA_LOG_DEBUG("load_tensors: layer %3d assigned to device %s, is_swa = %d\n", il, ggml_backend_dev_name(cpu_dev), is_swa);
             return {cpu_dev, &pimpl->cpu_buft_list};
         }
-        const int layer_gpu = std::upper_bound(splits.begin(), splits.begin() + n_devices(), float(il - i_gpu_start)/act_gpu_layers) - splits.begin();
         auto * dev = devices.at(layer_gpu).dev;
         LLAMA_LOG_DEBUG("load_tensors: layer %3d assigned to device %s, is_swa = %d\n", il, ggml_backend_dev_name(dev), is_swa);
         return {dev, &pimpl->gpu_buft_list.at(dev)};

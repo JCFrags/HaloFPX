@@ -709,6 +709,13 @@ if (GGML_HIP AND GGML_RPC)
     target_link_libraries(test-halofpx-rocmfpx-q6-view PRIVATE ggml-rpc)
 endif()
 
+if (GGML_RPC)
+    llama_build(test-halofpx-placement-probe.cpp)
+    target_include_directories(test-halofpx-placement-probe PRIVATE ${CMAKE_SOURCE_DIR}/src)
+    llama_test(test-halofpx-placement-probe ARGS --self-test)
+    set_property(TEST test-halofpx-placement-probe PROPERTY LABELS "main;halofpx")
+endif()
+
 if (HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
     target_compile_definitions(test-backend-ops PRIVATE
         HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)

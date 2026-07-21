@@ -31,6 +31,7 @@ add_library(llama
             llama-memory-recurrent.cpp
             llama-mmap.cpp
             llama-model-loader.cpp
+            llama-model-placement.h
             llama-model-saver.cpp
             llama-model.cpp
             llama-quant.cpp

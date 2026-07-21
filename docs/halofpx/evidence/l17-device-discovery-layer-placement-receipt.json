@@ -1,0 +1,107 @@
+{
+  "schema": "halofpx-milestone-receipt-v1",
+  "milestone": "L17-device-discovery-layer-placement-authority",
+  "date": "2026-07-21",
+  "base_commit": "20f19a2d2460bff76f381a43ef8010c0e5f7ff08",
+  "outcome": "pass-no-production-mutation-no-primary-model-access",
+  "contract": {
+    "explicit_device_order": "RPC0,ROCm0",
+    "backend_order": "RPC,ROCm",
+    "split_mode": "layer",
+    "tensor_split": "1,1",
+    "repeating_layers": 62,
+    "repeating_ownership": { "RPC0": 32, "ROCm0": 30 },
+    "output_device": "ROCm0",
+    "total_ownership": { "RPC0": 32, "ROCm0": 31 },
+    "resolver_shared_with_model_loader": true,
+    "preallocation": true
+  },
+  "focused_tests": {
+    "probe_cases": ["correct", "omitted", "wrong-order", "one-device", "all-rpc"],
+    "probe_result": "PASS",
+    "runner_tests_passed": 15,
+    "rocm_rpc_builds": 3
+  },
+  "real_probe": {
+    "worker_host": "nimo-1",
+    "endpoint": "10.44.0.1:50190",
+    "logical_rank": 1,
+    "world_size": 2,
+    "rpc_protocol": "4.0.1",
+    "state_protocol": "1.0",
+    "placement_result": "PASS",
+    "rpc_free_bytes": 19309694976,
+    "rpc_total_bytes": 133143986176,
+    "rocm_free_bytes": 13771419648,
+    "rocm_total_bytes": 133143986176
+  },
+  "small_model": {
+    "path_class": "existing-disposable-tinyllama-fixture",
+    "bytes": 19077344,
+    "sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "successful_exact_runs": 2,
+    "generated_tokens": 24,
+    "seed": 1234,
+    "temperature": 0,
+    "output_bytes": 96,
+    "output_sha256": "d8eacd573d450a766f51b504452260e3363a0a1c3d9abd8f8123765b4afc231d",
+    "exact_output_equal": true,
+    "offloaded_layers": "7/7",
+    "rpc_model_mib": 2.15,
+    "rocm_model_mib": 10.41,
+    "rpc_kv_mib": 2.25,
+    "rocm_kv_mib": 1.12,
+    "rpc_compute_mib": 2.60,
+    "rocm_compute_mib": 15.91,
+    "rpc_allocation_bytes_per_load": [2253824, 2359296, 2722304],
+    "worker_state_files_created": 0
+  },
+  "identities": {
+    "placement_probe_sha256": "f74bdf2bb1b9bc7c3e2f1239c2a48984c9af6a59fc8682a0c3be4e0ec8fa0d6e",
+    "distributed_canary_sha256": "571d028520364b556e8d4b155231f31cf7826e413042329633bc961f04c34988",
+    "completion_binary_sha256": "0f6f5ed4d0a3fb56fe52454d5d370f3b1a55d3c610aa92d59f6943f490fba15b",
+    "rpc_worker_binary_sha256": "77002ecfdf4b967e15f95c1e5511f9309f15f120e1b287785194cf422eb6a562",
+    "loader_source_sha256": "b20d8b111025b7e4f50744c63d48028561987fdfedd994ef796ec1f54492d97d",
+    "resolver_header_sha256": "47f6e57b70e8281da4cbe950d1b526d91243a6b31f6d0a275f7ce49dcdfe3a32",
+    "probe_source_sha256": "fed733709927967996912bb4fb2e29f51425726ba927f61d7ab2bf870e150cc8",
+    "runner_source_sha256": "69339532a6c290edd753647bf141eb8e98b2123bf7d11e29ef9d8991cba1ea11",
+    "probe_and_canary_share_l17_loader_source": true
+  },
+  "production_final": {
+    "nimo1_coordinator_pid": 2144857,
+    "nimo1_port": 8081,
+    "nimo1_http": 200,
+    "nimo1_nrestarts": 0,
+    "nimo2_worker_pid": 1305879,
+    "nimo2_port": 50052,
+    "nimo2_nrestarts": 0,
+    "production_mutated": false
+  },
+  "cleanup": {
+    "disposable_units_not_found": true,
+    "port_50190_closed": true,
+    "keys_absent": true,
+    "state_root_absent": true,
+    "source_and_build_roots_absent": true,
+    "state_files_created": 0
+  },
+  "raw_evidence": {
+    "host": "nimo-2",
+    "path": "/var/tmp/halofpx-l17-device-placement-evidence-20260721-v2.tar.zst",
+    "mode": "0600",
+    "bytes": 18681,
+    "sha256": "e229ee0df08d368087dfee11c19ae24cb3e5249f4ac398f2dfd01b4a6d42ceeb",
+    "manifest_files": 34,
+    "exact_argv_records": true,
+    "negative_self_test_output_retained": true,
+    "manifest": "PASS",
+    "zstd_test": "PASS"
+  },
+  "residual_uncertainty": "No 159.9 GB model allocation or load was attempted; exact primary allocation shapes and capacity fit remain unproven.",
+  "review": {
+    "path": "docs/halofpx/reviews/2026-07-21__l17-device-discovery-layer-placement-authority__review__v01.md",
+    "status": "PASS",
+    "p1_findings_remaining": 0,
+    "p2_findings_remaining": 0
+  }
+}
