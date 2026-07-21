@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 04:44 PDT
+Verified: 2026-07-21 04:58 PDT
 
 ## Overall state
 
@@ -14,16 +14,16 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `09fe45f82dc91be87142d47a27348788a1ac7c03`
+- Latest verified commit: `0db5a56111e1ae610e169511ab6f6353e5a1c0ea`
 - Remote count: zero
-- Worktree state: clean at the reviewed L15 transition-harness boundary
+- Worktree state: clean at the reviewed terminal L15 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: the independently reviewed L15 harness is committed and the
-  single authorized controller-managed primary-model maintenance transition is
-  in progress. The controller owns all mutation and guarded rollback. No
-  steering is presently needed.
+- Current work: L15 is closed NOT PROMOTED after a protected-key preflight
+  failure before connection or model load. Production is restored and directly
+  verified healthy. L16 is authorized only after executable pre-mutation key
+  provisioning and exact protection checks pass focused review.
 
 ## Product progress
 
@@ -94,6 +94,12 @@ slower candidates.
   malformed and wrong-capability cases. A real disposable ROCm worker admitted
   in 1.225 ms with zero state operations while production remained unchanged.
   Implementation `b688680e`, reviewed closeout `a496492c`.
+- L15 consumed one guarded transition but stopped before RPC connection because
+  the nimo-2 expected-channel key was created mode 0644. No model load, state
+  operation, object, or result occurred. Worker-first rollback restored the
+  standard production deployment at nimo-2 worker PID 1291141 and nimo-1
+  coordinator PID 2125672/HTTP 200, both NRestarts=0. The reviewed terminal
+  closeout is `0db5a561`; no primary cache claim is admitted.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -115,11 +121,13 @@ slower candidates.
 
 ## Lead decision
 
-L14 is accepted and resolves the startup-readiness blocker without touching
-production. One L15 primary-model canary is now justified: use the current exact
-source, executable transition controller, long-prompt batching proof, and exact
-CAPS readiness gate. The canary remains bounded to the pinned model/request,
-success-path capture/cold/restart-restore, one corrupt-or-missing object fallback,
-one identity mismatch fallback, and a small runtime-off cold control. Any gate
-failure triggers controller rollback and ends the turn. This is not production
-cache enablement or final G9/G10 acceptance.
+Accept L15 only as a terminal protected preflight failure. A separately named
+L16 attempt is justified because L15 never connected or loaded the model, but it
+may not begin with a one-line chmod patch. First make the controller execute and
+verify secure key provisioning on both hosts before any production shutdown,
+using no shell-composition ambiguity; bind exact owner, regular-file identity,
+mode 0600, size, and equal digest without exposing key bytes. Prove a bad-mode
+fixture refuses before first mutation, exercise the exact remote provisioning
+path while production remains healthy, and obtain independent review. Only then
+may one controller-managed L16 attempt run with the unchanged model/request and
+L15 acceptance scope. Failure ends L16 without automatic repetition.

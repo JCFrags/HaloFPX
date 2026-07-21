@@ -245,3 +245,27 @@ the worker must be CAPS-ready before the coordinator starts. Acceptance remains
 exact suffix equality, rank-local objects, zero state-payload GET/SET, bounded
 cold fallbacks, recorded state I/O/timing, and a small matched runtime-off cold
 screen. Any failure closes L15 without an automatic repeat.
+
+## 2026-07-21 — accept terminal L15 and gate one L16 attempt on key provisioning
+
+Decision: accept reviewed closeout `0db5a561` only as L15 NOT PROMOTED. Authorize
+one separately named L16 primary canary only after a no-production prerequisite
+makes protected channel-key provisioning an executable pre-mutation gate.
+
+Reason: L15 did not exercise the worker protocol or primary model. The local
+readiness probe rejected nimo-2's mode-0644 expected-channel key before opening
+a connection. Source inspection identifies an SSH `bash -c` argument-boundary
+error: redirection escaped the intended `umask 077`. Recovery was correct and
+production is healthy, so this is a bounded harness defect rather than model or
+state evidence. Repeating the same operational shape with a trailing chmod would
+leave key preparation after shutdown and is not sufficient.
+
+The prerequisite must provision identical fresh key bytes to both isolated
+hosts without ambiguous remote shell composition and prove regular-file type,
+expected owner, exact mode 0600, expected size, and equal digest without logging
+the key. The controller must execute or validate this gate before first mutation,
+and a wrong-mode fixture must prove refusal with production unchanged. Exercise
+the exact remote path while production remains HTTP 200, add focused tests, and
+obtain independent review. After those conditions pass, L16 gets one guarded
+transition with the unchanged pinned model, request, result gates, and rollback
+contract. Any L16 failure closes the milestone without automatic repetition.

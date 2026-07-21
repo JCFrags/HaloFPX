@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-21T04:44:00-07:00",
+  "updated_at": "2026-07-21T04:58:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
-  "worker_status": "active_l15_controller_managed_transition",
+  "worker_status": "idle_at_l15_terminal_boundary_l16_authorized_conditionally",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "09fe45f82dc91be87142d47a27348788a1ac7c03",
-  "last_observed_milestone": "L15 reviewed transition harness committed; exact hashes and final production dry-run passed",
-  "last_decision": "allow_single_authorized_l15_controller_transition_to_run_without_interference",
-  "next_check_trigger": "task completion, attention, controller refusal, rollback event, or otherwise allow 60-90 minutes for model load and bounded runtime qualification"
+  "last_verified_head": "0db5a56111e1ae610e169511ab6f6353e5a1c0ea",
+  "last_observed_milestone": "L15 terminal NOT PROMOTED closeout; local protected-key validation failed before connection and production recovered cleanly",
+  "last_decision": "authorize_l16_only_after_pre_mutation_secure_key_provisioning_gate_and_review",
+  "next_check_trigger": "dispatch L16 prerequisite; then completion, attention, attempted mutation before reviewed key gate, or 30-45 minute source/test checkpoint"
 }
