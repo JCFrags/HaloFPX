@@ -4,6 +4,8 @@
 #include "llama.h"
 
 #include <array>
+#include <charconv>
+#include <chrono>
 #include <clocale>
 #include <cerrno>
 #include <cstdint>
@@ -33,6 +35,7 @@ struct canary_options {
     std::array<uint8_t, 32> checkpoint {};
     std::array<uint8_t, 32> control_key {};
     std::array<uint8_t, 32> channel_binding {};
+    size_t expected_prompt_tokens = 0;
 };
 
 #pragma pack(push, 1)
@@ -140,6 +143,13 @@ bool parse_canary_options(int argc, char ** argv, canary_options & options, std:
     std::string placement;
     std::string checkpoint;
     std::string control_file;
+    std::string expected_prompt_tokens;
+    if (take_option(args, "--hfx-expected-prompt-tokens", expected_prompt_tokens)) {
+        const auto * begin = expected_prompt_tokens.data();
+        const auto * end = begin + expected_prompt_tokens.size();
+        const auto parsed = std::from_chars(begin, end, options.expected_prompt_tokens);
+        if (parsed.ec != std::errc() || parsed.ptr != end || options.expected_prompt_tokens == 0) return false;
+    }
     return take_option(args, "--hfx-mode", options.mode) &&
         (options.mode == "capture" || options.mode == "restore" || options.mode == "cold") &&
         take_option(args, "--hfx-artifact-root", root) && !(options.root = root).empty() && options.root.is_absolute() &&
@@ -176,6 +186,13 @@ bool read_vector(const fs::path & path, std::vector<T> & value, uint64_t max_cou
 bool write_receipt(const fs::path & path, const coordinator_receipt & value) {
     std::ofstream output(path, std::ios::binary | std::ios::trunc);
     output.write(reinterpret_cast<const char *>(&value), sizeof(value));
+    output.flush();
+    return output.good();
+}
+
+bool write_text(const fs::path & path, const std::string & value) {
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    output.write(value.data(), value.size());
     output.flush();
     return output.good();
 }
@@ -224,6 +241,10 @@ bool decode_tokens(llama_context * ctx, const std::vector<llama_token> & tokens,
     if (count == 0 || count > tokens.size()) return false;
     llama_batch batch = llama_batch_get_one(const_cast<llama_token *>(tokens.data()), static_cast<int32_t>(count));
     return llama_decode(ctx, batch) == 0;
+}
+
+double elapsed_ms(const std::chrono::steady_clock::time_point & start) {
+    return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
 }
 
 std::vector<llama_token> suffix(
@@ -366,12 +387,19 @@ int main(int argc, char ** argv) {
     params.kv_unified = true;
     common_init();
     if (!common_params_parse(static_cast<int>(cargs.size()), cargs.data(), params, LLAMA_EXAMPLE_COMMON)) return 2;
-    if (params.n_predict <= 0 || params.n_predict > 32) return 2;
+    if (params.n_predict <= 0 || params.n_predict > 512) return 2;
     ggml_backend_load_all();
     auto init = common_init_from_params(params);
     if (!init || !init->model() || !init->context()) return 3;
     llama_context * ctx = init->context();
     std::vector<llama_token> prefix;
+    double prompt_ms = 0.0;
+    double state_ms = 0.0;
+    double generation_ms = 0.0;
+    size_t coordinator_control_bytes = 0;
+    size_t coordinator_local_bytes = 0;
+    uint64_t worker_bytes = 0;
+    uint32_t worker_components = 0;
     const fs::path checkpoint_root = options.root / hex(options.checkpoint.data());
     const fs::path control_path = checkpoint_root / "coordinator-control.bin";
     const fs::path local_path = checkpoint_root / "coordinator-local.bin";
@@ -379,11 +407,16 @@ int main(int argc, char ** argv) {
     const fs::path object_path = checkpoint_root / "worker-object-digest.bin";
     const fs::path receipt_path = checkpoint_root / "coordinator-receipt.bin";
     const fs::path suffix_path = checkpoint_root / (options.mode + "-suffix.bin");
+    const fs::path suffix_text_path = checkpoint_root / (options.mode + "-suffix.txt");
     if (options.mode == "capture") {
         fs::create_directories(checkpoint_root);
         fs::permissions(checkpoint_root, fs::perms::owner_all, fs::perm_options::replace);
         prefix = common_tokenize(ctx, params.prompt, true);
-        if (prefix.size() < 2 || !decode_tokens(ctx, prefix, prefix.size() - 1)) return 4;
+        if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens)) return 4;
+        const auto prompt_start = std::chrono::steady_clock::now();
+        if (!decode_tokens(ctx, prefix, prefix.size() - 1)) return 4;
+        prompt_ms = elapsed_ms(prompt_start);
+        const auto state_start = std::chrono::steady_clock::now();
         llama_state_seq_storage * storage = llama_state_seq_storage_init();
         const size_t control_size = llama_state_seq_get_size_ext(ctx, 0, LLAMA_STATE_SEQ_FLAGS_ON_DEVICE);
         std::vector<uint8_t> control(control_size);
@@ -402,13 +435,24 @@ int main(int argc, char ** argv) {
         std::vector<uint8_t> object(captured.object_digest, captured.object_digest + 32);
         coordinator_receipt receipt {};
         if (!make_receipt(identity, control, local, prefix, object, key, receipt)) return 8;
+        coordinator_control_bytes = control.size();
+        coordinator_local_bytes = local.size();
+        worker_bytes = captured.verified_bytes;
+        worker_components = captured.verified_components;
+        if (!write_vector(control_path, control) || !write_vector(local_path, local) ||
+            !write_vector(tokens_path, prefix) || !write_vector(object_path, object) ||
+            !write_receipt(receipt_path, receipt)) return 8;
+        state_ms = elapsed_ms(state_start);
+        const auto generation_start = std::chrono::steady_clock::now();
         const auto generated = suffix(ctx, prefix, params.n_predict);
+        generation_ms = elapsed_ms(generation_start);
+        const auto decoded = common_detokenize(ctx, generated, false);
         llama_state_seq_storage_free(storage);
         if (generated.size() != static_cast<size_t>(params.n_predict) ||
-            !write_vector(control_path, control) || !write_vector(local_path, local) ||
-            !write_vector(tokens_path, prefix) || !write_vector(object_path, object) ||
-            !write_vector(suffix_path, generated) || !write_receipt(receipt_path, receipt)) return 8;
-        std::printf("mode=capture object=%s tokens=", hex(captured.object_digest).c_str());
+            !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 8;
+        std::printf("mode=capture object=%s prompt_tokens=%zu saved_boundary=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+            hex(captured.object_digest).c_str(), prefix.size(), prefix.size() - 1, prompt_ms, state_ms, generation_ms,
+            coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
         for (auto token : generated) std::printf("%d,", token);
         std::printf("\n");
         return 0;
@@ -421,9 +465,12 @@ int main(int argc, char ** argv) {
     std::string fallback_reason;
     if (options.mode == "cold") {
         prefix = common_tokenize(ctx, params.prompt, true);
-        if (prefix.size() < 2) return 9;
+        if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens)) return 9;
+        const auto prompt_start = std::chrono::steady_clock::now();
         if (!decode_tokens(ctx, prefix, prefix.size() - 1)) return 10;
+        prompt_ms = elapsed_ms(prompt_start);
     } else {
+        const auto state_start = std::chrono::steady_clock::now();
         coordinator_receipt receipt {};
         std::array<uint8_t, 32> attempt {};
         if (!fresh_nonce(attempt)) return 11;
@@ -433,7 +480,8 @@ int main(int argc, char ** argv) {
             read_receipt(receipt_path, receipt);
         std::array<uint8_t, 32> component_manifest {};
         ggml_backend_rpc_halofpx_state_identity identity {};
-        if (artifacts_valid && prefix.size() >= 2) {
+        if (artifacts_valid && prefix.size() >= 2 &&
+            (options.expected_prompt_tokens == 0 || prefix.size() == options.expected_prompt_tokens)) {
             memcpy(component_manifest.data(), receipt.component_manifest_digest, component_manifest.size());
             identity = make_identity(options, prefix, attempt, component_manifest);
             artifacts_valid = validate_receipt(
@@ -445,10 +493,16 @@ int main(int argc, char ** argv) {
             fallback_reason = "coordinator-artifact";
             prefix = common_tokenize(ctx, params.prompt, true);
             disposable_ctx = llama_init_from_model(init->model(), common_context_params_to_llama(params));
-            if (prefix.size() < 2 || !disposable_ctx || !decode_tokens(disposable_ctx, prefix, prefix.size() - 1)) {
+            if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens) || !disposable_ctx) {
                 if (disposable_ctx) llama_free(disposable_ctx);
                 return 11;
             }
+            const auto prompt_start = std::chrono::steady_clock::now();
+            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1)) {
+                llama_free(disposable_ctx);
+                return 11;
+            }
+            prompt_ms = elapsed_ms(prompt_start);
             run_ctx = disposable_ctx;
         } else {
         disposable_ctx = llama_init_from_model(init->model(), common_context_params_to_llama(params));
@@ -466,6 +520,8 @@ int main(int argc, char ** argv) {
             fallback_reason = "worker-stage";
         } else {
             ready_accepted = true;
+            worker_bytes = ready.verified_bytes;
+            worker_components = ready.verified_components;
             ggml_backend_rpc_halofpx_state_result applied {};
             if (!llama_state_seq_storage_halofpx_commit_remote(storage, &identity, object.data(),
                     ready.worker_nonce, key.data(), &applied)) {
@@ -485,18 +541,33 @@ int main(int argc, char ** argv) {
         } else {
             llama_free(disposable_ctx);
             disposable_ctx = llama_init_from_model(init->model(), common_context_params_to_llama(params));
-            if (!disposable_ctx || !decode_tokens(disposable_ctx, prefix, prefix.size() - 1)) {
+            if (!disposable_ctx) {
                 if (disposable_ctx) llama_free(disposable_ctx);
                 return 12;
             }
+            const auto prompt_start = std::chrono::steady_clock::now();
+            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1)) {
+                llama_free(disposable_ctx);
+                return 12;
+            }
+            prompt_ms = elapsed_ms(prompt_start);
             run_ctx = disposable_ctx;
         }
         }
+        coordinator_control_bytes = control.size();
+        coordinator_local_bytes = local.size();
+        state_ms = elapsed_ms(state_start);
     }
+    const auto generation_start = std::chrono::steady_clock::now();
     const auto generated = suffix(run_ctx, prefix, params.n_predict);
+    generation_ms = elapsed_ms(generation_start);
+    const auto decoded = common_detokenize(run_ctx, generated, false);
     if (disposable_ctx) llama_free(disposable_ctx);
-    if (generated.size() != static_cast<size_t>(params.n_predict) || !write_vector(suffix_path, generated)) return 13;
-    std::printf("mode=%s tokens=", options.mode.c_str());
+    if (generated.size() != static_cast<size_t>(params.n_predict) ||
+        !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 13;
+    std::printf("mode=%s prompt_tokens=%zu saved_boundary=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+        options.mode.c_str(), prefix.size(), prefix.size() - 1, prompt_ms, state_ms, generation_ms,
+        coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
     for (auto token : generated) std::printf("%d,", token);
     if (!fallback_reason.empty()) std::printf(" fallback=cold reason=%s", fallback_reason.c_str());
     std::printf("\n");
