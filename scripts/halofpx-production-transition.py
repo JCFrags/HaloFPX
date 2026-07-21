@@ -33,6 +33,20 @@ WORKER_EXEC = "/opt/llm-usb4-cluster/bin/run-minimax-m27-rpc-worker.sh"
 WORKER_PROCESS = "/opt/llm-usb4-cluster/llama/ggml-rpc-server"
 WORKER_PORT = 50052
 
+DISPOSABLE_HOST = "nimo-1"
+DISPOSABLE_PORT = 50179
+DISPOSABLE_WORKER_UNITS = (
+    "halofpx-l15-primary-worker-capture-20260721.service",
+    "halofpx-l15-primary-worker-restore-20260721.service",
+    "halofpx-l15-primary-worker-runtime-off-20260721.service",
+)
+DISPOSABLE_CANARY_HOST = "nimo-2"
+DISPOSABLE_CANARY_BIN = "/var/tmp/halofpx-l15-src-nimo2/build-l15/bin/test-halofpx-distributed-state-canary"
+DISPOSABLE_CANARY_UNITS = tuple(
+    f"halofpx-l15-primary-canary-{name}-20260721.service"
+    for name in ("capture", "cold", "restore", "missing", "mismatch", "runtime-off")
+)
+
 
 class TransitionError(RuntimeError):
     pass
@@ -338,9 +352,75 @@ class Controller:
                 time.sleep(self.wait_seconds)
         raise TransitionError(f"timed out waiting for {spec.role}: {last_error}")
 
+    def cleanup_disposable(self) -> None:
+        for host in (DISPOSABLE_HOST, DISPOSABLE_CANARY_HOST):
+            hostname = self._run(host, ["hostname"]).stdout.strip()
+            if hostname != host:
+                raise TransitionError(
+                    f"disposable host binding mismatch: expected {host!r}, got {hostname!r}"
+                )
+        unit_groups = (
+            (DISPOSABLE_HOST, DISPOSABLE_WORKER_UNITS),
+            (DISPOSABLE_CANARY_HOST, DISPOSABLE_CANARY_UNITS),
+        )
+        for host, units in unit_groups:
+            for unit in units:
+                self._run(
+                    host,
+                    ["systemctl", "--user", "stop", unit],
+                    allow_failure=True,
+                )
+        deadline = time.monotonic() + self.timeout_seconds
+        last = ""
+        while time.monotonic() < deadline:
+            clean = True
+            details = []
+            for host, units in unit_groups:
+                for unit in units:
+                    props = _parse_properties(self._run(
+                        host,
+                        [
+                            "systemctl", "--user", "show", unit,
+                            "-p", "LoadState", "-p", "ActiveState", "-p", "SubState", "-p", "MainPID",
+                        ],
+                        allow_failure=True,
+                    ).stdout)
+                    exact = (
+                        props.get("LoadState") in {"loaded", "not-found"}
+                        and props.get("ActiveState") == "inactive"
+                        and props.get("SubState") == "dead"
+                        and props.get("MainPID") == "0"
+                    )
+                    clean = clean and exact
+                    details.append(f"{host}/{unit}:{props}")
+            listeners = self._run(DISPOSABLE_HOST, ["ss", "-H", "-ltnp"]).stdout
+            port_closed = not any(
+                len(line.split()) >= 4 and line.split()[3].endswith(f":{DISPOSABLE_PORT}")
+                for line in listeners.splitlines()
+            )
+            processes = self._run(
+                DISPOSABLE_CANARY_HOST, ["ps", "-eo", "pid=,args="]
+            ).stdout
+            canary_absent = True
+            for line in processes.splitlines():
+                fields = line.strip().split(maxsplit=1)
+                if len(fields) == 2 and _command_tokens(fields[1])[:1] == [DISPOSABLE_CANARY_BIN]:
+                    canary_absent = False
+                    break
+            if clean and port_closed and canary_absent:
+                return
+            last = "; ".join(details) + (
+                f"; port_closed={port_closed}; canary_absent={canary_absent}"
+            )
+            time.sleep(self.wait_seconds)
+        raise TransitionError(f"disposable L15 cleanup not proven before recovery: {last}")
+
     def recover(self) -> dict[str, RoleSnapshot]:
         if self.snapshot is None:
             raise TransitionError("recovery requires the preserved preflight snapshot")
+        # The maintenance child can be interrupted while a systemd-run unit survives it.
+        # Production recovery is forbidden until every exact L15 unit and port is clean.
+        self.cleanup_disposable()
         self._mutate(WORKER, "start")
         worker = self._wait_active(WORKER, require_http=False)
         self._mutate(COORDINATOR, "start")
@@ -481,9 +561,19 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
         if not maintenance_command:
             raise TransitionError("maintenance requires a command after --")
         controller.shutdown()
-        child = subprocess.run(maintenance_command, check=False)
-        if child.returncode != 0:
-            raise TransitionError(f"maintenance command exited {child.returncode}")
+        child = subprocess.Popen(maintenance_command)
+        try:
+            returncode = child.wait()
+        except BaseException:
+            child.terminate()
+            try:
+                child.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                child.wait()
+            raise
+        if returncode != 0:
+            raise TransitionError(f"maintenance command exited {returncode}")
         final = controller.recover()
         _atomic_json(final_path, _snapshot_dict(final))
         return 0

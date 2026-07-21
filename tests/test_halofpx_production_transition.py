@@ -39,6 +39,11 @@ class FakeRunner:
         self.deactivating_coordinator = False
         self.state_override = {}
         self.mutations = []
+        self.disposable_active = set()
+        self.disposable_port_open = False
+        self.disposable_mutations = []
+        self.ignore_disposable_stop = False
+        self.canary_process_active = False
 
     def run(self, host, argv):
         argv = list(argv)
@@ -65,15 +70,33 @@ class FakeRunner:
                 "ExecMainStartTimestamp=test",
             ))
             return transition.CommandResult(0, text + "\n")
+        if argv[:3] == ["systemctl", "--user", "show"]:
+            unit = argv[3]
+            active = unit in self.disposable_active
+            text = "\n".join((
+                "LoadState=loaded" if active else "LoadState=not-found",
+                "ActiveState=active" if active else "ActiveState=inactive",
+                "SubState=running" if active else "SubState=dead",
+                "MainPID=303" if active else "MainPID=0",
+            ))
+            return transition.CommandResult(0, text + "\n")
         if argv[:2] == ["ps", "-p"]:
             return transition.CommandResult(0, self.commands[host] + "\n")
+        if argv == ["ps", "-eo", "pid=,args="]:
+            if host == transition.DISPOSABLE_CANARY_HOST and self.canary_process_active:
+                return transition.CommandResult(
+                    0, f"404 {transition.DISPOSABLE_CANARY_BIN} --hfx-mode capture\n"
+                )
+            return transition.CommandResult(0, "")
         if argv[:3] == ["ss", "-H", "-ltnp"]:
-            if not self.port_open[host]:
-                return transition.CommandResult(0, "")
-            port = 8081 if host == "nimo-1" else 50052
-            process = "llama-server" if host == "nimo-1" else "ggml-rpc-server"
-            line = f'LISTEN 0 1 0.0.0.0:{port} 0.0.0.0:* users:(("{process}",pid={self.listener_pid[host]},fd=5))\n'
-            return transition.CommandResult(0, line)
+            lines = []
+            if self.port_open[host]:
+                port = 8081 if host == "nimo-1" else 50052
+                process = "llama-server" if host == "nimo-1" else "ggml-rpc-server"
+                lines.append(f'LISTEN 0 1 0.0.0.0:{port} 0.0.0.0:* users:(("{process}",pid={self.listener_pid[host]},fd=5))')
+            if host == transition.DISPOSABLE_HOST and self.disposable_port_open:
+                lines.append(f'LISTEN 0 1 10.44.0.1:{transition.DISPOSABLE_PORT} 0.0.0.0:* users:(("rpc-server",pid=303,fd=7))')
+            return transition.CommandResult(0, "\n".join(lines) + ("\n" if lines else ""))
         if argv and argv[0] == "curl":
             return transition.CommandResult(0, "200")
         if argv[:3] == ["sudo", "-n", "systemctl"]:
@@ -94,6 +117,16 @@ class FakeRunner:
                 self.port_open[host] = True
                 self.pid[host] += 1000
                 self.listener_pid[host] = self.pid[host]
+            return transition.CommandResult(0, "")
+        if argv[:3] == ["systemctl", "--user", "stop"]:
+            unit = argv[3]
+            self.disposable_mutations.append((host, "stop", unit))
+            if not self.ignore_disposable_stop:
+                self.disposable_active.discard(unit)
+                if unit in transition.DISPOSABLE_CANARY_UNITS:
+                    self.canary_process_active = False
+            if not self.disposable_active:
+                self.disposable_port_open = False
             return transition.CommandResult(0, "")
         return transition.CommandResult(99, "", f"unexpected command: {argv}")
 
@@ -209,6 +242,54 @@ class ControllerTests(unittest.TestCase):
             ("nimo-2", "start", transition.WORKER_UNIT),
             ("nimo-1", "start", transition.COORDINATOR_UNIT),
         ])
+
+    def test_recovery_stops_and_verifies_orphaned_l15_unit_first(self):
+        fake = FakeRunner()
+        fake.disposable_active.add(transition.DISPOSABLE_WORKER_UNITS[1])
+        fake.disposable_port_open = True
+        controller = self.controller(fake)
+        controller.preflight()
+        controller.shutdown()
+        controller.recover()
+        self.assertEqual(
+            fake.disposable_mutations,
+            [
+                (host, "stop", unit)
+                for host, units in (
+                    ("nimo-1", transition.DISPOSABLE_WORKER_UNITS),
+                    ("nimo-2", transition.DISPOSABLE_CANARY_UNITS),
+                )
+                for unit in units
+            ],
+        )
+        self.assertEqual(fake.mutations[-2:], [
+            ("nimo-2", "start", transition.WORKER_UNIT),
+            ("nimo-1", "start", transition.COORDINATOR_UNIT),
+        ])
+
+    def test_unstoppable_orphan_blocks_all_production_starts(self):
+        fake = FakeRunner()
+        fake.disposable_active.add(transition.DISPOSABLE_WORKER_UNITS[0])
+        fake.disposable_port_open = True
+        fake.ignore_disposable_stop = True
+        controller = self.controller(fake)
+        controller.preflight()
+        controller.shutdown()
+        with self.assertRaises(transition.TransitionError):
+            controller.recover()
+        self.assertFalse(any(verb == "start" for _, verb, _ in fake.mutations))
+
+    def test_unstoppable_remote_canary_blocks_all_production_starts(self):
+        fake = FakeRunner()
+        fake.disposable_active.add(transition.DISPOSABLE_CANARY_UNITS[0])
+        fake.canary_process_active = True
+        fake.ignore_disposable_stop = True
+        controller = self.controller(fake)
+        controller.preflight()
+        controller.shutdown()
+        with self.assertRaises(transition.TransitionError):
+            controller.recover()
+        self.assertFalse(any(verb == "start" for _, verb, _ in fake.mutations))
 
     def test_deactivating_coordinator_runs_rollback_without_worker_stop(self):
         fake = FakeRunner()
