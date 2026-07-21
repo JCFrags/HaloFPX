@@ -17,8 +17,8 @@ slower candidates.
 - Latest verified commit: `d0694cd5aa4eefbb4e42013fe58b546f161333ff`
 - Remote count: zero
 - Worktree state: clean at the committed L10c boundary
-- Current work: worker paused at the manager gate; next scoped lane is bounded
-  multi-entry exact-key retention without online deletion or shared/prefix reuse
+- Current work: bounded multi-entry exact-key admission and selection without
+  online deletion, eviction, generation replacement, or shared/prefix reuse
 
 ## Product progress
 
@@ -67,9 +67,10 @@ slower candidates.
 
 L10c is accepted. The worker was paused after automatic continuation opened the
 next lane despite the manager stop boundary; no post-L10c changes were made.
-The next scoped milestone should add a bounded authenticated multi-entry exact-
+The worker has now been resumed with a scoped milestone to add a bounded
+authenticated multi-entry exact-
 key catalog/selection path while preserving immutable entries, cold fallback,
 feature-off behavior, and private scope. It must fail closed when capacity is
 full and must not yet add online deletion, eviction, generation replacement,
 prefix matching, or shared reuse. Those lifecycle operations require their own
-authority and recovery milestone.
+authority and recovery milestone. The worker must end its turn at this boundary.
