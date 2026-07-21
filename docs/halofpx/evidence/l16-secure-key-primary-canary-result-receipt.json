@@ -1,0 +1,136 @@
+{
+  "schema": "halofpx-milestone-receipt-v1",
+  "milestone": "L16-secure-key-primary-canary",
+  "date": "2026-07-21",
+  "outcome": "not-promoted-terminal-current-placement-rpc0-allocation-blocker",
+  "attempt_authority": {
+    "production_transition_count": 1,
+    "capture_canary_count": 1,
+    "retry_performed": false,
+    "secure_key_commit": "47cd4cb6ecc03b6a24cc0b0083e8d045515003fb",
+    "binary_pin_commit": "7b443ea37ccdab5e044950e3afb98621ab39870b"
+  },
+  "secure_key_prerequisite": {
+    "result": "PASS",
+    "transport": "binary-stdin-install-argv",
+    "format": "two-lowercase-hex-lines-v1",
+    "type": "regular file",
+    "owner": "connorb",
+    "mode": "0600",
+    "bytes": 130,
+    "identical_digest_on_both_hosts": true,
+    "key_bytes_logged": false,
+    "focused_tests_passed": 50,
+    "independent_review": "PASS; no P1/P2 remains",
+    "production_mutated_during_prerequisite": false
+  },
+  "input": {
+    "model_revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "model_file": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "model_bytes": 159873097824,
+    "model_sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "prompt_sha256": "f20c7c7a4137de98b991f1bfe6de27e194a93c7257d9496944e312085923143f",
+    "prompt_tokens": 1129,
+    "saved_token_boundary": 1128,
+    "generated_tokens_target": 128,
+    "context": 4096,
+    "batch": 512,
+    "ubatch": 512,
+    "cache_type_k": "q8_0",
+    "cache_type_v": "q8_0",
+    "tensor_split": "1,1",
+    "seed": 1234,
+    "temperature": 0
+  },
+  "execution_identity": {
+    "controller_sha256": "0016daf67b56ce3dce0539c7d870e958f2ff36b807d2a36d2ecba91db5cd9acc",
+    "runner_sha256": "8be61b70996528a88a61179b264e973a20b504d2ad5e5bbe482ff2fa745c16b3",
+    "probe_sha256": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
+    "worker_sha256": "07b32f27d17edd34a7a979fefef0bcb09fcb29dfaae8052f16813d1270555d3a",
+    "canary_sha256": "278f61a406bae87b04e2c435f48a1914989c2e992e626800f201b46044d537ec"
+  },
+  "readiness": {
+    "result": "PASS",
+    "attempts": 1,
+    "elapsed_ms": 2.412,
+    "rpc_protocol": "4.0.1",
+    "state_protocol": "1.0",
+    "logical_rank": 1,
+    "world_size": 2,
+    "key_generation": 7,
+    "command_mask": 31,
+    "max_request": 1048576,
+    "max_response": 256,
+    "max_components": 4096,
+    "max_component_bytes": 1073741824,
+    "max_object_bytes": 68719476736
+  },
+  "attempt": {
+    "phase": "capture-model-load",
+    "result": "FAIL_CLOSED",
+    "worker_pid": 2144665,
+    "worker_port": 50180,
+    "requested_rpc0_bytes": 159231007232,
+    "worker_total_bytes": 133143986176,
+    "worker_observed_free_bytes": 131616526336,
+    "over_total_bytes": 26087021056,
+    "over_observed_free_bytes": 27614480896,
+    "failure": "current capture placement attempted one monolithic RPC0 allocation larger than worker total/free capacity",
+    "model_load_completed": false,
+    "prompt_decode_started": false,
+    "state_operation_observed": false,
+    "worker_object_created": false
+  },
+  "unadmitted_gates": [
+    "uninterrupted-capture",
+    "clean-cold",
+    "restart-worker-local-restore",
+    "missing-or-corrupt-object-fallback",
+    "plan-or-topology-mismatch-fallback",
+    "runtime-off-cold-control",
+    "exact-suffix-equivalence",
+    "state-payload-transfer-proof",
+    "capture-and-restore-timing",
+    "object-bytes-and-components",
+    "cold-regression-screen"
+  ],
+  "production_final": {
+    "worker": {
+      "host": "nimo-2",
+      "pid": 1305879,
+      "port": 50052,
+      "nrestarts": 0,
+      "start_timestamp": "Tue 2026-07-21 05:17:07 PDT"
+    },
+    "coordinator": {
+      "host": "nimo-1",
+      "pid": 2144857,
+      "port": 8081,
+      "http_status": 200,
+      "nrestarts": 0,
+      "start_timestamp": "Tue 2026-07-21 05:17:08 PDT",
+      "model": "MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf"
+    }
+  },
+  "cleanup": {
+    "keys_absent": true,
+    "disposable_units_unloaded": true,
+    "disposable_port_50180_closed": true,
+    "canary_process_absent": true,
+    "roots_clones_builds_staging_removed": true,
+    "model_deleted": false
+  },
+  "evidence_bundle": {
+    "host": "nimo-2",
+    "path": "/var/tmp/halofpx-l16-primary-evidence-20260721-v1.tar.zst",
+    "mode": "0600",
+    "bytes": 73948424,
+    "sha256": "7bc366970354d7e0f16f17d217d9c13aa76365b35c73a1faf0472f99fbd75acb",
+    "zstd_test": "PASS",
+    "manifest": "PASS"
+  },
+  "review": {
+    "path": "docs/halofpx/reviews/2026-07-21__l16-secure-key-primary-canary-result__review__v01.md",
+    "verdict": "ACCEPT terminal NOT PROMOTED closeout only"
+  }
+}
