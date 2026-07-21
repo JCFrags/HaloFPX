@@ -20,9 +20,9 @@ slower candidates.
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: worker idle after the L13 safety stop; next gate is a conditional
-  retry only after proving long-prompt batching and an executable host-bound
-  production transition runbook before any service stop
+- Current work: conditional L13 retry; production remains untouched until a
+  long-prompt runtime proof and executable host-bound transition controller both
+  pass independent review
 
 ## Product progress
 
@@ -108,3 +108,5 @@ unit role, PID/listener and coordinator inactivity before it can stop the worker
 then encode worker-first recovery. If either prerequisite fails, production is
 not touched. If both pass independent review, one bounded primary retry may
 proceed with the original L13 acceptance boundary.
+The worker has been dispatched with a one-retry limit and must end its turn at
+the reviewed result.
