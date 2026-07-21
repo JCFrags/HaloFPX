@@ -1,0 +1,113 @@
+{
+  "schema": "halofpx-milestone-receipt-v1",
+  "milestone": "L14-disposable-rpc-application-readiness",
+  "date": "2026-07-21",
+  "outcome": "pass-application-level-caps-readiness",
+  "authorized_base_commit": "aa3c2cf63e44305057a7b4715efb28f492a82d07",
+  "final_implementation_commit": "b688680e8b2027f095a8414c18995009fb433451",
+  "protocol": {
+    "rpc_version": "4.0.1",
+    "state_version": "1.0",
+    "caps_command_ordinal": 17,
+    "caps_magic": "HFXCAP2",
+    "caps_bytes": 128,
+    "command_mask": 31,
+    "commands": ["CAPS", "CAPTURE", "STAGE", "COMMIT_APPLY", "ABORT"],
+    "max_request": 1048576,
+    "max_response": 256,
+    "max_components": 4096,
+    "max_component_bytes": 1073741824,
+    "max_object_bytes": 68719476736,
+    "state_timeout_ms": 5000,
+    "logical_rank": 1,
+    "world_size": 2,
+    "key_generation": 7,
+    "exact_channel_binding_required": true,
+    "reserved_zero_required": true
+  },
+  "probe_bounds": {
+    "total_timeout_seconds": 120,
+    "attempt_timeout_seconds": 2,
+    "initial_backoff_seconds": 0.1,
+    "maximum_backoff_seconds": 1,
+    "maximum_attempts": 256
+  },
+  "focused_tests": {
+    "count": 30,
+    "result": "PASS",
+    "listener_first_delay_seconds": 0.18,
+    "listener_first_minimum_attempts": 2,
+    "listener_first_minimum_elapsed_seconds": 0.17
+  },
+  "identities": {
+    "source_bundle_sha256": "e87636008e9593de7dc446989c76d215c359a7574d38f39074d7fa7c5978bbe7",
+    "rpc_server_sha256": "0dcc836507076fcfeb62c330bb5669e205885f97d7e4ea9cf0cc55e48d719019",
+    "compiled_rpc_test_sha256": "db6db956db834659fb12a8bdbb284b0e501bb257d25fa0c72afdc51395cf44d8",
+    "readiness_probe_sha256": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980"
+  },
+  "pre_fix_incident": {
+    "result": "fail-closed-no-admission",
+    "probe_command_ordinal": 18,
+    "actual_command": "CAPTURE",
+    "empty_capture_shape_rejections": 58,
+    "failed_run_root_inventory_sealed": false,
+    "root_absent_at_preflight": true,
+    "no_object_or_live_mutation_derived_from_rejections_and_source": true,
+    "object_created": false,
+    "live_state_mutated": false,
+    "cleanup_verified": true,
+    "correction_commit": "e6b01a8448306cd60eacc558ac97964b8a999585"
+  },
+  "corrected_real_probe": {
+    "probe_commit": "e6b01a8448306cd60eacc558ac97964b8a999585",
+    "worker_binary_original_build_commit": "95240b54c6de8cc9074c14795f2e14774895635b",
+    "final_same_binary_rebuild_commit": "b688680e8b2027f095a8414c18995009fb433451",
+    "host": "nimo-1",
+    "client_host": "nimo-2",
+    "port": 50178,
+    "pid": 2111756,
+    "attempts": 1,
+    "elapsed_ms": 1.225,
+    "admitted": true,
+    "exact_caps_match": true,
+    "state_operation_count": 0,
+    "worker_root_empty": true,
+    "inference_run": false,
+    "model_loaded": false
+  },
+  "production_unchanged": {
+    "worker": {
+      "host": "nimo-2",
+      "pid": 1275544,
+      "port": 50052,
+      "nrestarts": 0,
+      "start_timestamp": "Tue 2026-07-21 03:42:11 PDT"
+    },
+    "coordinator": {
+      "host": "nimo-1",
+      "pid": 2093167,
+      "port": 8081,
+      "http_status": 200,
+      "nrestarts": 0,
+      "start_timestamp": "Tue 2026-07-21 03:42:12 PDT",
+      "model": "MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf"
+    }
+  },
+  "cleanup": {
+    "transient_units_unloaded": true,
+    "disposable_port_50178_closed": true,
+    "roots_keys_clones_builds_removed": true,
+    "evidence_preserved": true
+  },
+  "evidence_bundle": {
+    "host": "nimo-2",
+    "path": "/var/tmp/halofpx-l14-readiness-evidence-20260721-v2.tar.zst",
+    "bytes": 36931349,
+    "sha256": "0898c392cef58a43073a7827ee3f92e78b8130d8a8c4295b484a39f1c788c45f"
+  },
+  "review": {
+    "path": "docs/halofpx/reviews/2026-07-21__l14-disposable-rpc-application-readiness__review__v01.md",
+    "verdict": "ACCEPT qualified L14; no P1/P2 remains"
+  },
+  "primary_retry_admitted": false
+}
