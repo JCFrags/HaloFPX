@@ -65,6 +65,18 @@ def write_log(root: Path, name: str, result) -> None:
     (root / name).write_text(result.stdout + result.stderr, encoding="utf-8", newline="\n")
 
 
+def listener_pid(text: str, port: int) -> int:
+    matches = []
+    for line in text.splitlines():
+        fields = line.split()
+        if len(fields) >= 4 and fields[3].endswith(f":{port}"):
+            matches.append(line)
+    if len(matches) != 1:
+        return 0
+    match = re.search(r"pid=(\d+)", matches[0])
+    return int(match.group(1)) if match else 0
+
+
 def start_worker(local_state: bool, unit: str) -> int:
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=90min",
@@ -83,15 +95,38 @@ def start_worker(local_state: bool, unit: str) -> int:
     while time.monotonic() < deadline:
         active = ssh(NIMO1, "systemctl", "--user", "is-active", f"{unit}.service", check=False)
         listeners = ssh(NIMO1, "ss", "-H", "-ltnp", check=False).stdout
-        if active.stdout.strip() == "active" and f":{PORT}" in listeners:
+        if active.stdout.strip() == "active":
             pid = int(ssh(NIMO1, "systemctl", "--user", "show", f"{unit}.service", "-p", "MainPID", "--value").stdout.strip())
+            if listener_pid(listeners, PORT) != pid:
+                time.sleep(1)
+                continue
             return pid
         time.sleep(1)
     raise RetryError(f"worker {unit} did not become ready")
 
 
 def stop_worker(unit: str) -> None:
-    ssh(NIMO1, "systemctl", "--user", "stop", f"{unit}.service", check=False)
+    ssh(NIMO1, "systemctl", "--user", "stop", f"{unit}.service")
+    deadline = time.monotonic() + 30
+    last = ""
+    while time.monotonic() < deadline:
+        show = ssh(
+            NIMO1, "systemctl", "--user", "show", f"{unit}.service",
+            "-p", "ActiveState", "-p", "SubState", "-p", "MainPID",
+            check=False,
+        ).stdout
+        listeners = ssh(NIMO1, "ss", "-H", "-ltnp", check=False).stdout
+        props = dict(line.split("=", 1) for line in show.splitlines() if "=" in line)
+        last = repr(props)
+        if (
+            props.get("ActiveState") == "inactive"
+            and props.get("SubState") == "dead"
+            and props.get("MainPID") == "0"
+            and listener_pid(listeners, PORT) == 0
+        ):
+            return
+        time.sleep(1)
+    raise RetryError(f"disposable worker cleanup not verified for {unit}: {last}")
 
 
 def canary(mode: str, *, plan: str = PLAN):
@@ -167,13 +202,29 @@ def worker_journal(unit: str) -> str:
 def state_windows(capture: str, restore: str) -> tuple[list[str], list[str]]:
     capture_lines = capture.splitlines()
     stored = next(i for i, line in enumerate(capture_lines) if "[halofpx-state] stored" in line)
-    capture_window = capture_lines[max(0, stored - 6):stored + 1]
-    restore_window = [
-        line for line in restore.splitlines()
-        if "[halofpx-state] ready" in line or "[halofpx-state] apply" in line
-    ]
-    if len(restore_window) != 2:
-        raise RetryError("restore state window is incomplete")
+    stored_bytes = re.search(r"bytes=(\d+)", capture_lines[stored])
+    if not stored_bytes:
+        raise RetryError("capture state byte count is absent")
+    capture_start = next(
+        i for i in range(stored - 1, -1, -1)
+        if "[alloc_buffer]" in capture_lines[i] and f"size: {stored_bytes.group(1)}" in capture_lines[i]
+    )
+    capture_window = capture_lines[capture_start:stored + 1]
+
+    restore_lines = restore.splitlines()
+    ready = next(i for i, line in enumerate(restore_lines) if "[halofpx-state] ready" in line)
+    applied = next(i for i, line in enumerate(restore_lines[ready + 1:], ready + 1) if "[halofpx-state] apply" in line)
+    ready_bytes = re.search(r"bytes=(\d+)", restore_lines[ready])
+    if not ready_bytes:
+        raise RetryError("restore state byte count is absent")
+    restore_start = next(
+        i for i in range(ready - 1, -1, -1)
+        if "[alloc_buffer]" in restore_lines[i] and f"size: {ready_bytes.group(1)}" in restore_lines[i]
+    )
+    restore_end = next(
+        i for i in range(applied + 1, len(restore_lines)) if "[free_buffer]" in restore_lines[i]
+    )
+    restore_window = restore_lines[restore_start:restore_end + 1]
     combined = "\n".join(capture_window + restore_window).lower()
     if "[get_tensor]" in combined or "[set_tensor]" in combined:
         raise RetryError("state window contains GET_TENSOR/SET_TENSOR")
@@ -314,8 +365,14 @@ def main() -> int:
         print(f"primary retry failed: {exc}", file=sys.stderr)
         return 1
     finally:
+        cleanup_errors = []
         for unit in reversed(local_units):
-            stop_worker(unit)
+            try:
+                stop_worker(unit)
+            except Exception as exc:
+                cleanup_errors.append(f"{unit}: {exc}")
+        if cleanup_errors:
+            raise RetryError("; ".join(cleanup_errors))
 
 
 if __name__ == "__main__":
