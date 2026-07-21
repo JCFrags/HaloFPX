@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 05:33 PDT
+Verified: 2026-07-21 06:06 PDT
 
 ## Overall state
 
@@ -14,16 +14,15 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `20f19a2d2460bff76f381a43ef8010c0e5f7ff08`
+- Latest verified commit: `730e96330ae0585719941a93b65c31a6217a7a54`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L16 closeout
+- Worktree state: clean at the reviewed L17 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L17 is dispatched as a no-production-only device-discovery and
-  placement-authority milestone. It must prove explicit `RPC0,ROCm0` selection,
-  balanced layer ownership, and a small two-device load while normal production
-  stays healthy. No primary retry is open.
+- Current work: L17 passed. The next bounded lane is L18: a read-only,
+  no-production exact-primary allocation preflight tied to the real loader and
+  explicit `RPC0,ROCm0` placement. No primary retry is open.
 
 ## Product progress
 
@@ -107,6 +106,13 @@ slower candidates.
   at nimo-2 PID 1305879 and nimo-1 PID 2144857/HTTP 200, both NRestarts=0.
   Reviewed terminal closeout `20f19a2d` narrowly attributes this to current
   placement, not aggregate capacity or model incompatibility.
+- L17 makes `RPC0,ROCm0` executable pre-allocation authority through a shared
+  loader/probe resolver. Its focused negative matrix, isolated real RPC probe,
+  and two exact-output tiny-model loads passed with nonzero allocations on both
+  devices. Independent re-review found no remaining P1/P2 issue. Production was
+  never mutated and remains healthy at nimo-1 PID 2144857/HTTP 200 and nimo-2
+  PID 1305879, both with `NRestarts=0`. Commit `730e9633` is clean. L17 does not
+  prove the 159.9 GB artifact's allocation shapes or capacity fit.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -128,13 +134,12 @@ slower candidates.
 
 ## Lead decision
 
-Accept L16 only as a terminal current-placement load blocker. Qualified P01/P11
-evidence explicitly used device order `RPC0,ROCm0`; the L16 canary command had
-the same layer split and tensor split but omitted `--device RPC0,ROCm0`. This is
-the leading source-backed explanation for the monolithic RPC allocation, but it
-is not yet a verified cause. Open L17 as no-production only: freeze explicit
-device authority, prove parsed/real discovered order and two-device layer
-assignment on an isolated RPC worker while production remains live, and run a
-small disposable model load/correctness screen. Independent review must accept
-the placement contract. L17 must stop before any primary-model load or production
-mutation; a later primary retry requires a new Project Lead decision.
+Accept L17 as the reviewed placement-authority correction. Do not infer exact
+primary capacity from its tiny-model proof and do not authorize another primary
+maintenance transition yet. Open L18 as read-only/no-production work: derive an
+exact primary tensor and buffer allocation plan through the same loader resolver,
+bind it to the pinned artifact and `RPC0,ROCm0` plan, compare maximum and total
+per-device requests to measured capacity with explicit reserve, and fail closed
+on ambiguity or overcommit. Independent review must accept the calculation and
+its source lineage. Only a later Project Lead decision may open another primary
+attempt.

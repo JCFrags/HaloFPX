@@ -296,3 +296,29 @@ two-device ordering and prove both devices receive bounded buffers and exact
 output. Include focused omission/wrong-order/one-device/refusal tests and one
 independent adversarial review. Commit a clean L17 result and stop. Only a later
 Project Lead decision may authorize another primary maintenance transition.
+
+## 2026-07-21 — accept L17 and require exact-primary allocation preflight
+
+Decision: accept reviewed L17 at `730e9633`. Open L18 only as a read-only,
+no-production exact-primary allocation-planning milestone. Do not authorize a
+primary load or production transition.
+
+Reason: L17 closes the executable-authority gap that caused the L16 command to
+omit explicit `RPC0,ROCm0`. Its common loader/probe resolver, focused refusal
+matrix, real isolated RPC exercise, and two exact-output small-model runs prove
+the intended 32/31 ownership and nonzero allocations on both devices. The
+independent re-review has no remaining P1/P2 issue, and production remained
+unchanged and healthy. However, L17 explicitly does not inspect or allocate the
+159.9 GB primary artifact; it cannot prove actual tensor grouping, maximum
+buffer requests, or per-device capacity margin.
+
+L18 must use the pinned artifact identity and exact metadata, explicit
+`RPC0,ROCm0`, layer split, and `1,1` tensor split. Its planner must share or
+directly exercise the real loader's placement/grouping authority, report every
+material per-device weight allocation group plus the largest and total request,
+state KV/compute/reserve assumptions separately, and refuse unknown devices,
+unaccounted tensors, arithmetic overflow, or insufficient margin. It may read
+the model and query hardware but may not allocate the primary weights, stop or
+restart production, write cache state, or make a performance claim. Retain raw
+evidence and obtain one independent adversarial review. Only a later Project
+Lead decision may authorize a primary maintenance attempt.
