@@ -214,10 +214,45 @@ void test_closed_policy_and_bounds() {
         halofpx::context_store_protected_canary_anchor_status::input_rejected);
 }
 
+void test_authenticated_discovery_decode() {
+    auto fixture = make_canary_fixture();
+    refresh_key(fixture);
+    auto expected = fixture.body;
+    expected.selected_manifest_digest.fill(0);
+    const auto decoded = halofpx::context_store_protected_canary_anchor_decode_v1(
+        fixture.envelope.data(), fixture.size, expected, fixture.key);
+    assert(decoded.authenticated_body() != nullptr);
+    assert(decoded.authenticated_body()->selected_manifest_digest ==
+           fixture.body.selected_manifest_digest);
+
+    auto corrupt = fixture.envelope;
+    corrupt[fixture.size / 2] ^= 1;
+    assert(halofpx::context_store_protected_canary_anchor_decode_v1(
+        corrupt.data(), fixture.size, expected, fixture.key).authenticated_body() == nullptr);
+    assert(halofpx::context_store_protected_canary_anchor_decode_v1(
+        fixture.envelope.data(), fixture.size - 1, expected, fixture.key)
+        .authenticated_body() == nullptr);
+
+    auto wrong_master = fixture.master;
+    wrong_master[0] ^= 1;
+    auto wrong_key = fixture.key;
+    wrong_key.master_key = { wrong_master.data(), wrong_master.size() };
+    assert(halofpx::context_store_protected_canary_anchor_decode_v1(
+        fixture.envelope.data(), fixture.size, expected, wrong_key)
+        .authenticated_body() == nullptr);
+
+    auto wrong_fixed = expected;
+    wrong_fixed.store_uuid[0] ^= 1;
+    assert(halofpx::context_store_protected_canary_anchor_decode_v1(
+        fixture.envelope.data(), fixture.size, wrong_fixed, fixture.key)
+        .authenticated_body() == nullptr);
+}
+
 } // namespace
 
 int main() {
     test_existing_adr0008_cross_golden();
     test_closed_round_trip_and_mutations();
     test_closed_policy_and_bounds();
+    test_authenticated_discovery_decode();
 }

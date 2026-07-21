@@ -555,6 +555,35 @@ public:
         return result;
     }
 
+    context_store_v1_server_canary_status load_selected_anchor(
+            const context_store_identity & identity,
+            context_store_format_digest & selected) noexcept {
+        selected.fill(0);
+        fd_owner anchor(open_contained(anchor_root.get(), "anchor.v1", O_RDONLY));
+        if (anchor.get() < 0) return errno == ENOENT
+            ? context_store_v1_server_canary_status::miss_not_found
+            : context_store_v1_server_canary_status::miss_corrupt;
+        uint64_t size = 0;
+        if (!exact_regular(anchor.get(), anchor_identity,
+                           context_store_protected_canary_anchor_max_bytes, size))
+            return context_store_v1_server_canary_status::miss_corrupt;
+        std::array<uint8_t, context_store_protected_canary_anchor_max_bytes> bytes {};
+        if (!read_exact(anchor.get(), bytes.data(), static_cast<size_t>(size)))
+            return context_store_v1_server_canary_status::miss_corrupt;
+        context_store_format_digest unknown_selected {};
+        auto expected = anchor_body(identity, unknown_selected);
+        context_store_protected_canary_anchor_key key;
+        key.key_id = registered_id(anchor_key_id);
+        key.generation = 1;
+        key.master_key = { anchor_key_material.data(), anchor_key_material.size() };
+        const auto decoded = context_store_protected_canary_anchor_decode_v1(
+            bytes.data(), static_cast<size_t>(size), expected, key);
+        const auto * body = decoded.authenticated_body();
+        if (!body) return context_store_v1_server_canary_status::miss_corrupt;
+        selected = body->selected_manifest_digest;
+        return context_store_v1_server_canary_status::ready;
+    }
+
     fd_owner data_root;
     fd_owner anchor_root;
     context_store_linux_root_identity_v1 data_identity;
@@ -716,6 +745,20 @@ context_store_v1_server_canary_restore_result context_store_v1_server_canary::re
     result.snapshot = std::move(decoded.snapshot);
     result.status = context_store_v1_server_canary_status::hit;
     return result;
+}
+
+context_store_v1_server_canary_restore_result
+context_store_v1_server_canary::restore_selected(
+        const llama_token * expected_tokens,
+        size_t expected_token_count,
+        const context_store_identity & identity,
+        const context_store_transformer_profile_v1 & profile) noexcept {
+    context_store_v1_server_canary_restore_result result;
+    if (!implementation_) return result;
+    context_store_format_digest selected {};
+    result.status = implementation_->load_selected_anchor(identity, selected);
+    if (result.status != context_store_v1_server_canary_status::ready) return result;
+    return restore(selected, expected_tokens, expected_token_count, identity, profile);
 }
 
 context_store_v1_server_canary_open_result make_context_store_v1_server_canary(

@@ -1,0 +1,60 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L10a",
+  "title": "anchor-first generation-one selection",
+  "implementation_parent": "522dd90cb52428db76d38f473e0b956774e75a23",
+  "implementation_parent_tree": "3a93f553c2a6cbcbf45086360260f8a222df8806",
+  "boundary": {
+    "platform": "Linux only",
+    "existing_full_v1_compile_gates_required": true,
+    "default_enabled": false,
+    "normal_server_wiring": false,
+    "automatic_publication": false,
+    "manifest_directory_enumeration": false,
+    "selected_digest_authority": "authenticated fixed anchor.v1",
+    "generation": 1,
+    "max_entries": 1,
+    "production_persistence": false
+  },
+  "qualification": {
+    "target": "nimo-2",
+    "focused_and_inherited": "4/4 passed",
+    "protected_anchor_test_sha256": "74908349047fd31212f876a099f6c67138841930e57155b2afc4f37d1dc7de41",
+    "server_selection_test_sha256": "95972f2320d5b264568cd24a06c51cdfe7165fe3d32f1c5cbd8cf8675aa12026",
+    "generation_one_test_sha256": "1f6ce7fd8bee56a3fd409da14b89590d4a863b3427cabf7fb590d7442e34052b",
+    "anchor_source_sha256": "d25906cc9387d6cb024d0ec3d051cfe810d5dd4763bbe13f50da1b7262f71c3a",
+    "server_adapter_source_sha256": "4566b75b254a7455cf2da201718d4092b785002aeeeb51aec6f4b6d4fd88866b",
+    "server_selection_source_sha256": "44e7a3d2cbcc7ebd44d1e1b9c49351cc1a42f0beff8cd063f7878c09cfad580b",
+    "independent_review": "ACCEPT; no blocker"
+  },
+  "demonstrated": [
+    "complete canonical anchor parse before carrier exposure",
+    "exact MAC and fixed-authority authentication",
+    "publish then close/reopen then anchor-selected exact restore",
+    "restored tokens and state equal the published snapshot",
+    "wrong private scope becomes a miss",
+    "corrupted anchor becomes a miss",
+    "missing anchor becomes a miss"
+  ],
+  "raw_evidence": {
+    "root": "/var/tmp/halofpx-l10a-evidence-20260720",
+    "bundle": "/var/tmp/halofpx-l10a-evidence-20260720.tar.zst",
+    "bundle_sha256": "f7b2fd617e4b2f1ff8c8a10ac0b6dd1143313752f46ee82ab3e5325812fbdbeb"
+  },
+  "deferred": [
+    "exact request-key derivation",
+    "normal completion-path restore and prompt-boundary writeback",
+    "process-level automatic miss/write/restart/hit canary",
+    "multi-entry, prefix, shared, multi-generation, distributed, and production persistence"
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false,
+    "reference_clone_changed": false
+  }
+}

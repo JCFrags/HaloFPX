@@ -481,6 +481,15 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     llama_test(test-halofpx-context-store-v1-linux-generation-one)
     set_property(TEST test-halofpx-context-store-v1-linux-generation-one PROPERTY
         LABELS "main;halofpx")
+
+    llama_build(test-halofpx-context-store-v1-server-canary-selection.cpp)
+    target_include_directories(test-halofpx-context-store-v1-server-canary-selection PRIVATE
+        ${CMAKE_SOURCE_DIR}/tools/server)
+    target_link_libraries(test-halofpx-context-store-v1-server-canary-selection PRIVATE
+        halofpx-context-store-v1-server-canary)
+    llama_test(test-halofpx-context-store-v1-server-canary-selection)
+    set_property(TEST test-halofpx-context-store-v1-server-canary-selection PROPERTY
+        LABELS "main;halofpx")
 endif()
 
 add_test(

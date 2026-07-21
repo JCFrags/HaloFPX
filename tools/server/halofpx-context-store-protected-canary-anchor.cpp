@@ -183,6 +183,95 @@ bool compute_envelope_digest(
         context_store_sha256(input.bytes.data(), input.size, digest);
 }
 
+class cursor {
+public:
+    cursor(const uint8_t * data, size_t size) noexcept : data_(data), size_(size) {}
+    bool map(size_t count) noexcept { uint64_t value; return head(5, value) && value == count; }
+    bool key(uint64_t expected) noexcept { uint64_t value; return number(value) && value == expected; }
+    bool number(uint64_t & value) noexcept { return head(0, value); }
+    template <size_t N> bool bytes(std::array<uint8_t, N> & output) noexcept {
+        uint64_t count;
+        if (!head(2, count) || count != N || !have(N)) return false;
+        std::copy_n(data_ + position_, N, output.begin());
+        position_ += N;
+        return true;
+    }
+    bool text(context_store_registered_id & output) noexcept {
+        uint64_t count;
+        if (!head(3, count) || count == 0 || count > output.bytes.size() ||
+            !have(static_cast<size_t>(count))) return false;
+        output.size = static_cast<uint8_t>(count);
+        std::copy_n(data_ + position_, output.size, output.bytes.begin());
+        position_ += output.size;
+        return valid_registered_id(output);
+    }
+    bool null_value() noexcept {
+        if (!have(1) || data_[position_] != 0xf6) return false;
+        ++position_;
+        return true;
+    }
+    bool end() const noexcept { return position_ == size_; }
+
+private:
+    bool have(size_t count) const noexcept { return count <= size_ - position_; }
+    bool head(uint8_t major, uint64_t & value) noexcept {
+        if (!have(1)) return false;
+        const uint8_t initial = data_[position_++];
+        if ((initial >> 5) != major) return false;
+        const uint8_t additional = initial & 31;
+        if (additional < 24) { value = additional; return true; }
+        if (additional > 27) return false;
+        const size_t count = size_t(1) << (additional - 24);
+        if (!have(count)) return false;
+        value = 0;
+        for (size_t i = 0; i < count; ++i) value = (value << 8) | data_[position_++];
+        const uint64_t minimum = additional == 24 ? 24 : additional == 25 ? 0x100 :
+            additional == 26 ? 0x10000 : 0x100000000ULL;
+        return value >= minimum;
+    }
+    const uint8_t * data_;
+    size_t size_;
+    size_t position_ = 0;
+};
+
+bool parse_complete_envelope(
+        const uint8_t * data, size_t size,
+        context_store_protected_canary_anchor_body & body,
+        context_store_registered_id & key_id, uint64_t & key_generation) noexcept {
+    if (!data || size == 0 || size > context_store_protected_canary_anchor_max_bytes) return false;
+    cursor input(data, size);
+    uint64_t value = 0;
+    context_store_format_digest tag {};
+    return input.map(2) && input.key(0) && input.map(4) && input.key(0) &&
+        input.map(11) && input.key(0) && input.number(value) && value == 1 &&
+        input.key(1) && input.number(value) && value == 0 &&
+        input.key(2) && input.bytes(body.store_uuid) &&
+        input.key(3) && input.bytes(body.namespace_id) &&
+        input.key(4) && input.number(body.policy_epoch) &&
+        input.key(5) && input.bytes(body.checkpoint_lineage_id) &&
+        input.key(6) && input.number(body.manifest_key_generation) &&
+        input.key(7) && input.number(body.authority_epoch) &&
+        input.key(8) && input.number(body.generation) &&
+        input.key(9) && input.bytes(body.selected_manifest_digest) &&
+        input.key(10) && input.null_value() &&
+        input.key(1) && input.text(key_id) &&
+        input.key(2) && input.number(value) && value == 1 &&
+        input.key(3) && input.number(key_generation) &&
+        input.key(1) && input.bytes(tag) && input.end();
+}
+
+bool same_fixed(const context_store_protected_canary_anchor_body & actual,
+                const context_store_protected_canary_anchor_body & expected) noexcept {
+    return actual.store_uuid == expected.store_uuid &&
+        actual.namespace_id == expected.namespace_id &&
+        actual.policy_epoch == expected.policy_epoch &&
+        actual.checkpoint_lineage_id == expected.checkpoint_lineage_id &&
+        actual.manifest_key_generation == expected.manifest_key_generation &&
+        actual.authority_epoch == expected.authority_epoch &&
+        actual.generation == expected.generation && !actual.has_predecessor &&
+        !nonzero(actual.predecessor_manifest_digest.data(), actual.predecessor_manifest_digest.size());
+}
+
 } // namespace
 
 bool protected_canary_anchor_test_only::canonical_wire_v1(
@@ -289,6 +378,54 @@ context_store_protected_canary_anchor_verify_v1(
         return result;
     }
     result.envelope_digest = canonical_digest;
+    result.status = context_store_protected_canary_anchor_status::authenticated_exact;
+    return result;
+}
+
+context_store_protected_canary_anchor_decode_result
+context_store_protected_canary_anchor_decode_v1(
+        const uint8_t * data,
+        size_t size,
+        const context_store_protected_canary_anchor_body & expected_fixed,
+        const context_store_protected_canary_anchor_key & key) noexcept {
+    context_store_protected_canary_anchor_decode_result result;
+    if (!valid_registered_id(key.key_id) || !exact_protected_key_id(key.key_id) ||
+        key.generation != 1 || !key.master_key.data ||
+        key.master_key.size != context_store_protected_canary_anchor_master_key_bytes ||
+        expected_fixed.policy_epoch != 1 || expected_fixed.manifest_key_generation != 1 ||
+        expected_fixed.authority_epoch != 1 || expected_fixed.generation != 1 ||
+        expected_fixed.has_predecessor ||
+        !nonzero(expected_fixed.store_uuid.data(), expected_fixed.store_uuid.size()) ||
+        !nonzero(expected_fixed.namespace_id.data(), expected_fixed.namespace_id.size()) ||
+        !nonzero(expected_fixed.checkpoint_lineage_id.data(),
+                 expected_fixed.checkpoint_lineage_id.size()) ||
+        nonzero(expected_fixed.selected_manifest_digest.data(),
+                expected_fixed.selected_manifest_digest.size()) ||
+        nonzero(expected_fixed.predecessor_manifest_digest.data(),
+                expected_fixed.predecessor_manifest_digest.size())) {
+        result.status = context_store_protected_canary_anchor_status::invalid_policy;
+        return result;
+    }
+    context_store_protected_canary_anchor_body parsed;
+    context_store_registered_id parsed_key_id;
+    uint64_t parsed_key_generation = 0;
+    if (!parse_complete_envelope(data, size, parsed, parsed_key_id, parsed_key_generation)) {
+        result.status = context_store_protected_canary_anchor_status::input_rejected;
+        return result;
+    }
+    if (!same_fixed(parsed, expected_fixed) || !exact_protected_key_id(parsed_key_id) ||
+        parsed_key_generation != key.generation || !valid_closed_policy(parsed, key)) {
+        result.status = context_store_protected_canary_anchor_status::authentication_failed;
+        return result;
+    }
+    const auto verified = context_store_protected_canary_anchor_verify_v1(
+        data, size, parsed, key);
+    if (!verified.authenticated()) {
+        result.status = verified.status;
+        return result;
+    }
+    result.carrier.body_ = parsed;
+    result.carrier.authenticated_ = true;
     result.status = context_store_protected_canary_anchor_status::authenticated_exact;
     return result;
 }

@@ -49,6 +49,37 @@ struct context_store_protected_canary_anchor_result {
     }
 };
 
+struct context_store_protected_canary_anchor_decode_result;
+
+class context_store_authenticated_protected_canary_anchor {
+public:
+    const context_store_protected_canary_anchor_body * body() const noexcept {
+        return authenticated_ ? &body_ : nullptr;
+    }
+    bool authenticated() const noexcept { return authenticated_; }
+
+private:
+    bool authenticated_ = false;
+    context_store_protected_canary_anchor_body body_;
+    friend struct context_store_protected_canary_anchor_decode_result;
+    friend context_store_protected_canary_anchor_decode_result
+    context_store_protected_canary_anchor_decode_v1(
+        const uint8_t *, size_t,
+        const context_store_protected_canary_anchor_body &,
+        const context_store_protected_canary_anchor_key &) noexcept;
+};
+
+struct context_store_protected_canary_anchor_decode_result {
+    context_store_protected_canary_anchor_status status =
+        context_store_protected_canary_anchor_status::input_rejected;
+    context_store_authenticated_protected_canary_anchor carrier;
+
+    const context_store_protected_canary_anchor_body * authenticated_body() const noexcept {
+        return status == context_store_protected_canary_anchor_status::authenticated_exact
+            ? carrier.body() : nullptr;
+    }
+};
+
 namespace protected_canary_anchor_test_only {
 
 // Test-only canonical ADR-0008 wire encoder. It deliberately performs no
@@ -82,6 +113,16 @@ context_store_protected_canary_anchor_verify_v1(
     const uint8_t * data,
     size_t size,
     const context_store_protected_canary_anchor_body & expected,
+    const context_store_protected_canary_anchor_key & key) noexcept;
+
+// Bounded generation-one discovery decoder. expected_fixed must contain the
+// trusted fixed authority fields and a zero selected_manifest_digest. The body
+// is exposed only after complete canonical parsing and exact MAC verification.
+context_store_protected_canary_anchor_decode_result
+context_store_protected_canary_anchor_decode_v1(
+    const uint8_t * data,
+    size_t size,
+    const context_store_protected_canary_anchor_body & expected_fixed,
     const context_store_protected_canary_anchor_key & key) noexcept;
 
 bool context_store_protected_canary_anchor_exact_envelope_equal(

@@ -143,6 +143,12 @@ public:
         const context_store_identity & identity,
         const context_store_transformer_profile_v1 & profile) noexcept;
 
+    context_store_v1_server_canary_restore_result restore_selected(
+        const llama_token * expected_tokens,
+        size_t expected_token_count,
+        const context_store_identity & identity,
+        const context_store_transformer_profile_v1 & profile) noexcept;
+
 private:
     class implementation;
     explicit context_store_v1_server_canary(std::unique_ptr<implementation>) noexcept;
