@@ -623,6 +623,11 @@ context_store_v1_server_canary::observation() const noexcept {
 context_store_v1_server_canary_publish_result context_store_v1_server_canary::publish(
         const context_store_transformer_snapshot_v1 & snapshot) noexcept {
     context_store_v1_server_canary_publish_result result;
+    std::unique_lock<std::mutex> operation(operation_mutex_, std::try_to_lock);
+    if (!operation.owns_lock()) {
+        result.status = context_store_v1_server_canary_status::busy;
+        return result;
+    }
     if (!implementation_ || implementation_->observation_value.writes_closed) return result;
     try {
         auto encoded = context_store_encode_transformer_snapshot_v1(
@@ -683,6 +688,21 @@ context_store_v1_server_canary_publish_result context_store_v1_server_canary::pu
 }
 
 context_store_v1_server_canary_restore_result context_store_v1_server_canary::restore(
+        const context_store_format_digest & selected_manifest,
+        const llama_token * expected_tokens,
+        size_t expected_token_count,
+        const context_store_identity & identity,
+        const context_store_transformer_profile_v1 & profile) noexcept {
+    context_store_v1_server_canary_restore_result result;
+    std::unique_lock<std::mutex> operation(operation_mutex_, std::try_to_lock);
+    if (!operation.owns_lock()) {
+        result.status = context_store_v1_server_canary_status::busy;
+        return result;
+    }
+    return restore_unlocked(selected_manifest, expected_tokens, expected_token_count, identity, profile);
+}
+
+context_store_v1_server_canary_restore_result context_store_v1_server_canary::restore_unlocked(
         const context_store_format_digest & selected_manifest,
         const llama_token * expected_tokens,
         size_t expected_token_count,
@@ -755,10 +775,15 @@ context_store_v1_server_canary::restore_selected(
         const context_store_transformer_profile_v1 & profile) noexcept {
     context_store_v1_server_canary_restore_result result;
     if (!implementation_) return result;
+    std::unique_lock<std::mutex> operation(operation_mutex_, std::try_to_lock);
+    if (!operation.owns_lock()) {
+        result.status = context_store_v1_server_canary_status::busy;
+        return result;
+    }
     context_store_format_digest selected {};
     result.status = implementation_->load_selected_anchor(identity, selected);
     if (result.status != context_store_v1_server_canary_status::ready) return result;
-    return restore(selected, expected_tokens, expected_token_count, identity, profile);
+    return restore_unlocked(selected, expected_tokens, expected_token_count, identity, profile);
 }
 
 context_store_v1_server_canary_open_result make_context_store_v1_server_canary(

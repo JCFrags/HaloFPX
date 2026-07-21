@@ -126,6 +126,7 @@ if (LLAMA_BUILD_SERVER)
             -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=${HALOFPX_CONTEXT_STORE_PROTECTED_CANARY}
             -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=${HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY}
             -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=${HALOFPX_CONTEXT_STORE_FULL_V1_CANARY}
+            -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=${HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-feature-off-contract.cmake)
     set_property(TEST test-halofpx-feature-off-contract PROPERTY LABELS "main;halofpx")
 endif()
@@ -201,8 +202,17 @@ add_test(
     NAME test-halofpx-context-store-exact-session-contract
     COMMAND ${CMAKE_COMMAND}
         -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+        -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=${HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-exact-session-contract.cmake)
 set_property(TEST test-halofpx-context-store-exact-session-contract PROPERTY LABELS "main;halofpx")
+
+add_test(
+    NAME test-halofpx-context-store-exact-key-runtime-contract
+    COMMAND ${CMAKE_COMMAND}
+        -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+        -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=${HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-exact-key-runtime-contract.cmake)
+set_property(TEST test-halofpx-context-store-exact-key-runtime-contract PROPERTY LABELS "main;halofpx")
 
 llama_build(test-halofpx-context-store-state-transformer-v1.cpp)
 target_include_directories(test-halofpx-context-store-state-transformer-v1 PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)

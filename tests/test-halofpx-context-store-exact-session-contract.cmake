@@ -16,19 +16,19 @@ if (runtime_marker EQUAL -1)
 endif()
 string(SUBSTRING "${server_cmake}" ${runtime_marker} -1 runtime_cmake)
 string(FIND "${runtime_cmake}" "halofpx-context-store-exact-session" runtime_link)
-if (NOT runtime_link EQUAL -1)
-    message(FATAL_ERROR "L10b exact-session resolver entered the production CMake graph")
+if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+    if (runtime_link EQUAL -1)
+        message(FATAL_ERROR "L10c opt-in lost its exact-session runtime link")
+    endif()
+else()
+    if (NOT runtime_link EQUAL -1)
+        # The name may occur inside the guarded L10c block. Require that it is
+        # controlled by the exact-key gate rather than rejecting source text.
+        string(FIND "${runtime_cmake}" "if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)" gate)
+        if (gate EQUAL -1 OR runtime_link LESS gate)
+            message(FATAL_ERROR "exact-session resolver has an unguarded production link")
+        endif()
+    endif()
 endif()
 
-foreach(runtime_source
-        "${HALOFPX_SOURCE_DIR}/tools/server/server-context.cpp"
-        "${HALOFPX_SOURCE_DIR}/tools/server/server.cpp"
-        "${HALOFPX_SOURCE_DIR}/common/arg.cpp")
-    file(READ "${runtime_source}" runtime_text)
-    string(FIND "${runtime_text}" "context_store_resolve_exact_session_v1" runtime_hook)
-    if (NOT runtime_hook EQUAL -1)
-        message(FATAL_ERROR "L10b exact-session resolver entered runtime source: ${runtime_source}")
-    endif()
-endforeach()
-
-message(STATUS "HaloFPX L10b exact-session resolver remains product-excluded")
+message(STATUS "HaloFPX exact-session runtime edge remains separately gated")

@@ -147,6 +147,29 @@ struct server_task {
     // note: accessing to elements is invalid after the task is moved to server_slot
     std::vector<server_task> child_tasks;
 
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+    // Opaque operational authority derived by the authenticated HTTP route.
+    // No raw principal, prompt text, filesystem path, or client handle enters
+    // this carrier.
+    struct halofpx_exact_key_carrier {
+        std::array<uint8_t, 32> scope_namespace {};
+        std::array<uint8_t, 32> session_id {};
+        std::array<uint8_t, 32> compatibility_root {};
+        bool active = false;
+        mutable bool publish_on_clean_miss = false;
+        mutable bool publication_attempted = false;
+
+        void clear() noexcept {
+            scope_namespace.fill(0);
+            session_id.fill(0);
+            compatibility_root.fill(0);
+            active = false;
+            publish_on_clean_miss = false;
+            publication_attempted = false;
+        }
+    } halofpx_exact_key;
+#endif
+
     // used by SERVER_TASK_TYPE_INFERENCE
     task_params   params;
     server_tokens tokens;

@@ -1,0 +1,72 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L10c",
+  "title": "default-off exact-key operational canary",
+  "implementation_parent": "d7950c43a3536d177a0dd233e025573ef97de919",
+  "implementation_parent_tree": "546755424205bf7d6a08f6472e1c636d181da70f",
+  "boundary": {
+    "compile_gate": "HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY",
+    "default_enabled": false,
+    "platform": "Linux only",
+    "runtime_mode": "full-v1-exact-key-canary",
+    "route": "native /completion only",
+    "private_authenticated_scope": true,
+    "generation": 1,
+    "max_entries": 1,
+    "prefix_matching": false,
+    "shared_scope": false,
+    "production_persistence": false
+  },
+  "qualification": {
+    "target": "nimo-2",
+    "feature_off_build": "passed",
+    "fully_gated_build": "passed",
+    "off_focused": "7/7 passed",
+    "on_focused": "7/7 passed",
+    "cold_prompt_tokens_processed": 11,
+    "restart_hit_prompt_tokens_processed": 1,
+    "different_key_prompt_tokens_processed": 12,
+    "retained_original_hit_prompt_tokens_processed": 1,
+    "reserve_control_prompt_tokens_processed": [11, 11],
+    "reserve_control_publication_objects": 0,
+    "content_sha256": "d4befa4c08b0bdd9023bfa965064be3c3a8eda8804174fc74c286b2a66710860",
+    "tokens_sha256": "a28fcc7c48016b1b66b98e17c24d72563bfa470ee80452272320139dd87664c0",
+    "disclosure_scan_matches": 0,
+    "independent_review": "ACCEPT; no blocker"
+  },
+  "feature_off_ab": {
+    "warmups_per_binary": 1,
+    "retained_balanced_pairs": 30,
+    "identical_outputs": 60,
+    "function_labels_each": 2310,
+    "instruction_mnemonics_each": 370415,
+    "instruction_stream_equal": true,
+    "paired_prompt_delta_percent": 2.35,
+    "paired_generation_delta_percent": 0.75,
+    "raw_generation_mean_delta_percent": 0.59,
+    "final_g9_g10_noninferiority": false
+  },
+  "raw_evidence": {
+    "process_bundle": "/var/tmp/halofpx-l10c-evidence-20260720-v1.tar.zst",
+    "process_bundle_sha256": "a204d5988f9bd89728ff3e3e2fb257f7735efcfeafbad9374938a9dd57720851",
+    "feature_off_ab_bundle": "/var/tmp/halofpx-l10c-off-ab-review-20260720.tar.zst",
+    "feature_off_ab_bundle_sha256": "5e2b8f35ef12c538ee37c5b4d105378536ae56b9d4508271aef2a01c514bbae3"
+  },
+  "deferred": [
+    "multi-entry and generation advancement",
+    "retention, eviction, and administrator authority",
+    "large-state and long-duration soak",
+    "distributed cache recovery",
+    "final primary-model zero-regression"
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false,
+    "reference_clone_changed": false
+  }
+}

@@ -31,6 +31,9 @@
 #if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
 #include "halofpx-context-store-v1-server-canary.h"
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+#include "halofpx-context-store-exact-session.h"
+#endif
 #endif
 
 #include <algorithm>
@@ -1050,7 +1053,12 @@ private:
         const bool protected_mode = false;
 #endif
 #if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
-        const bool full_v1_mode = params_base.halofpx_context_store_mode == "full-v1-rw-canary";
+        const bool full_v1_mode =
+            params_base.halofpx_context_store_mode == "full-v1-rw-canary"
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+            || params_base.halofpx_context_store_mode == "full-v1-exact-key-canary"
+#endif
+            ;
 #else
         const bool full_v1_mode = false;
 #endif
@@ -1179,7 +1187,9 @@ private:
             }
             halofpx_full_v1_store = std::move(opened.canary);
             log_halofpx_full_v1_observation();
-            SRV_INF("%s", "HaloFPX explicit-handle full-v1 canary enabled\n");
+            SRV_INF("%s", params_base.halofpx_context_store_mode == "full-v1-rw-canary"
+                ? "HaloFPX explicit-handle full-v1 canary enabled\n"
+                : "HaloFPX exact-key full-v1 canary enabled\n");
             return true;
         }
 #endif
@@ -1331,6 +1341,79 @@ private:
         profile.greedy_memoryless_sampling = true;
         return halofpx::context_store_transformer_profile_v1_is_admitted(profile);
     }
+
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+    bool halofpx_exact_key_restore_before_launch(server_slot & slot, server_task & task) noexcept {
+        if (!task.halofpx_exact_key.active || !halofpx_full_v1_store ||
+            !halofpx_full_v1_store->available() || !slot.prompt.tokens.empty()) {
+            return false;
+        }
+
+        halofpx::context_store_transformer_profile_v1 profile;
+        if (!halofpx_profile_for_slot(slot, profile, false)) return false;
+
+        halofpx::context_store_identity identity;
+        identity.compatibility_root = task.halofpx_exact_key.compatibility_root;
+        identity.scope_namespace = task.halofpx_exact_key.scope_namespace;
+        identity.checkpoint_lineage_id = task.halofpx_exact_key.session_id;
+        identity.policy_epoch = 1;
+        const llama_tokens & tokens = task.tokens.get_tokens();
+        auto restored = halofpx_full_v1_store->restore_selected(
+            tokens.data(), tokens.size(), identity, profile);
+        if (restored.status == halofpx::context_store_v1_server_canary_status::miss_not_found) {
+            task.halofpx_exact_key.publish_on_clean_miss = true;
+            return false;
+        }
+        if (restored.status != halofpx::context_store_v1_server_canary_status::hit) {
+            return false;
+        }
+
+        const halofpx::context_store_transformer_limits_v1 limits {
+            halofpx::context_store_linux_direct_max_state_bytes,
+            halofpx::context_store_linux_direct_max_tokens,
+        };
+        const auto status = halofpx::context_store_restore_transformer_state_v1(
+            ctx_tgt, slot.id, restored.snapshot,
+            tokens.data(), tokens.size(), identity, profile, limits);
+        halofpx_wipe(restored.snapshot.state.data(), restored.snapshot.state.size());
+        if (status != halofpx::context_store_transformer_status_v1::restored) {
+            // The destination was empty before restore. A failed live apply may
+            // partially mutate it, so clear it and preserve cold computation.
+            slot.prompt_clear(false);
+            return false;
+        }
+        slot.prompt.tokens.insert(tokens);
+        return true;
+    }
+
+    void halofpx_exact_key_publish_at_prompt_boundary(server_slot & slot) noexcept {
+        if (!slot.task || !slot.task->halofpx_exact_key.active ||
+            !slot.task->halofpx_exact_key.publish_on_clean_miss ||
+            slot.task->halofpx_exact_key.publication_attempted ||
+            !halofpx_full_v1_store || !halofpx_full_v1_store->available()) {
+            return;
+        }
+        slot.task->halofpx_exact_key.publication_attempted = true;
+
+        halofpx::context_store_transformer_profile_v1 profile;
+        if (!halofpx_profile_for_slot(slot, profile, false)) return;
+        halofpx::context_store_identity identity;
+        identity.compatibility_root = slot.task->halofpx_exact_key.compatibility_root;
+        identity.scope_namespace = slot.task->halofpx_exact_key.scope_namespace;
+        identity.checkpoint_lineage_id = slot.task->halofpx_exact_key.session_id;
+        identity.policy_epoch = 1;
+        const llama_tokens & tokens = slot.prompt.tokens.get_tokens();
+        const halofpx::context_store_transformer_limits_v1 limits {
+            halofpx::context_store_linux_direct_max_state_bytes,
+            halofpx::context_store_linux_direct_max_tokens,
+        };
+        auto captured = halofpx::context_store_capture_transformer_state_v1(
+            ctx_tgt, slot.id, tokens.data(), tokens.size(), identity, profile, limits);
+        if (captured.status != halofpx::context_store_transformer_status_v1::captured) return;
+        (void) halofpx_full_v1_store->publish(captured.snapshot);
+        halofpx_wipe(captured.snapshot.state.data(), captured.snapshot.state.size());
+    }
+#endif
 #endif
 
     void handle_sleeping_state(bool new_state) {
@@ -2596,6 +2679,14 @@ private:
                         queue_tasks.defer(std::move(task));
                         break;
                     }
+
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+                    if (task.is_parent() || task.is_child()) {
+                        task.halofpx_exact_key.clear();
+                    } else {
+                        (void) halofpx_exact_key_restore_before_launch(*slot, task);
+                    }
+#endif
 
                     if (task.is_parent()) {
                         // try getting free slots for all child tasks
@@ -4060,6 +4151,12 @@ private:
 
                     GGML_ASSERT(slot.task->need_sampling());
 
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+                    // Prompt decode succeeded and sampling has not begun.
+                    // Publication is best-effort; inference remains authoritative.
+                    halofpx_exact_key_publish_at_prompt_boundary(slot);
+#endif
+
                     // prompt evaluated for next-token prediction
                     slot.state = SLOT_STATE_GENERATING;
 
@@ -4670,6 +4767,82 @@ std::unique_ptr<server_res_generator> server_routes::handle_completions_impl(
             task.params.res_type          = res_type;
             task.params.oaicompat_cmpl_id = completion_id;
             task.params.oaicompat_model   = meta->model_name;
+
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+            task.halofpx_exact_key.clear();
+            const bool exact_key_mode =
+                params.halofpx_context_store_mode == "full-v1-exact-key-canary";
+            const auto & exact_key_parser = task.params.chat_parser_params;
+            const bool exact_key_eligible = exact_key_mode &&
+                type == SERVER_TASK_TYPE_COMPLETION &&
+                res_type == TASK_RESPONSE_TYPE_NONE && files.empty() && inputs.size() == 1 &&
+                !task.cli && task.id_slot == -1 && task.tokens.size() != 0 &&
+                !task.params.stream && task.params.n_cmpl == 1 &&
+                task.params.lora.empty() && task.params.antiprompt.empty() &&
+                task.params.response_fields.empty() &&
+                task.params.speculative.types.size() == 1 &&
+                task.params.speculative.types.front() == COMMON_SPECULATIVE_TYPE_NONE &&
+                halofpx_sampling_is_memoryless_greedy(task.params.sampling) &&
+                exact_key_parser.format == COMMON_CHAT_FORMAT_CONTENT_ONLY &&
+                exact_key_parser.reasoning_format == COMMON_REASONING_FORMAT_NONE &&
+                !exact_key_parser.reasoning_in_content &&
+                exact_key_parser.generation_prompt.empty() &&
+                !exact_key_parser.parse_tool_calls && exact_key_parser.parser.empty() &&
+                ctx_server.halofpx_full_v1_store &&
+                ctx_server.halofpx_full_v1_store->available();
+            if (exact_key_eligible) {
+                std::string principal = halofpx_authenticated_principal(req, params.api_keys);
+                halofpx::context_store_scope_policy_v1 scope_policy;
+                scope_policy.policy_key = {
+                    ctx_server.halofpx_scope_key.data(), ctx_server.halofpx_scope_key.size() };
+                scope_policy.policy_key_id = {
+                    reinterpret_cast<const uint8_t *>(HALOFPX_POLICY_KEY_ID),
+                    sizeof(HALOFPX_POLICY_KEY_ID) - 1 };
+                scope_policy.authentication_issuer = {
+                    reinterpret_cast<const uint8_t *>(HALOFPX_AUTHENTICATION_ISSUER),
+                    sizeof(HALOFPX_AUTHENTICATION_ISSUER) - 1 };
+                scope_policy.authenticated_principal = {
+                    reinterpret_cast<const uint8_t *>(principal.data()), principal.size() };
+                scope_policy.security_domain = {
+                    reinterpret_cast<const uint8_t *>(HALOFPX_SECURITY_DOMAIN),
+                    sizeof(HALOFPX_SECURITY_DOMAIN) - 1 };
+                scope_policy.policy_epoch = 1;
+                scope_policy.compatibility_root = ctx_server.halofpx_compatibility_root;
+                const auto scope = halofpx::context_store_resolve_private_scope_v1(scope_policy);
+                halofpx_wipe(principal.data(), principal.size());
+                if (scope.resolved()) {
+                    const llama_tokens & canonical_tokens = task.tokens.get_tokens();
+                    halofpx::context_store_exact_session_inputs_v1 exact;
+                    exact.derivation_key = {
+                        ctx_server.halofpx_scope_key.data(), ctx_server.halofpx_scope_key.size() };
+                    exact.scope_namespace = scope.namespace_id;
+                    exact.compatibility_root = ctx_server.halofpx_compatibility_root;
+                    exact.tokens = canonical_tokens.data();
+                    exact.token_count = canonical_tokens.size();
+                    exact.logical_boundary = canonical_tokens.size();
+                    exact.output_boundary = canonical_tokens.size();
+                    exact.profile = halofpx::context_store_exact_session_profile_v1::
+                        target_only_greedy_memoryless;
+                    exact.global_plan_digest =
+                        ctx_server.halofpx_compatibility_expectation.components[14];
+                    exact.rank_ownership_digest =
+                        ctx_server.halofpx_compatibility_expectation.components[14];
+                    exact.rank_placement_digest =
+                        ctx_server.halofpx_compatibility_expectation.components[14];
+                    exact.topology_epoch = 1;
+                    exact.world_size = 1;
+                    exact.rank = 0;
+                    const auto resolved = halofpx::context_store_resolve_exact_session_v1(exact);
+                    if (resolved.resolved()) {
+                        task.halofpx_exact_key.scope_namespace = scope.namespace_id;
+                        task.halofpx_exact_key.session_id = resolved.session_id;
+                        task.halofpx_exact_key.compatibility_root =
+                            ctx_server.halofpx_compatibility_root;
+                        task.halofpx_exact_key.active = true;
+                    }
+                }
+            }
+#endif
 
             // prepare child tasks
             if (task.params.n_cmpl > 1) {

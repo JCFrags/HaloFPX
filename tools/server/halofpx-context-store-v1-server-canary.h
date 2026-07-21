@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 
 namespace halofpx {
 
@@ -152,7 +153,14 @@ public:
 private:
     class implementation;
     explicit context_store_v1_server_canary(std::unique_ptr<implementation>) noexcept;
+    context_store_v1_server_canary_restore_result restore_unlocked(
+        const context_store_format_digest & selected_manifest,
+        const llama_token * expected_tokens,
+        size_t expected_token_count,
+        const context_store_identity & identity,
+        const context_store_transformer_profile_v1 & profile) noexcept;
     std::unique_ptr<implementation> implementation_;
+    std::mutex operation_mutex_;
 
     friend struct context_store_v1_server_canary_open_result;
     friend context_store_v1_server_canary_open_result

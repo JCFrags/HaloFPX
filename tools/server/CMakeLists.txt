@@ -36,6 +36,21 @@ if (HALOFPX_CONTEXT_STORE_FULL_V1_CANARY AND
     message(FATAL_ERROR
         "HALOFPX_CONTEXT_STORE_FULL_V1_CANARY requires all three prior context-store canary gates")
 endif()
+
+option(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY
+    "Compile the normal-completion exact-key full-v1 operational canary"
+    OFF)
+if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY AND
+    (NOT HALOFPX_CONTEXT_STORE_CANARY OR
+     NOT HALOFPX_CONTEXT_STORE_PROTECTED_CANARY OR
+     NOT HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY OR
+     NOT HALOFPX_CONTEXT_STORE_FULL_V1_CANARY))
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY requires all four prior full-v1 context-store gates")
+endif()
+if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY AND (NOT UNIX OR APPLE))
+    message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY is supported only on Linux")
+endif()
 if (HALOFPX_CONTEXT_STORE_FULL_V1_CANARY AND (NOT UNIX OR APPLE))
     message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_FULL_V1_CANARY is supported only on Linux")
 endif()
@@ -779,6 +794,14 @@ if (HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
     target_compile_definitions(${TARGET} PUBLIC
         HALOFPX_CONTEXT_STORE_FULL_V1_CANARY=1)
     target_link_libraries(${TARGET} PRIVATE halofpx-context-store-v1-server-canary)
+endif()
+
+if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+    target_compile_definitions(llama-common PUBLIC
+        HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=1)
+    target_compile_definitions(${TARGET} PUBLIC
+        HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=1)
+    target_link_libraries(${TARGET} PRIVATE halofpx-context-store-exact-session)
 endif()
 
 

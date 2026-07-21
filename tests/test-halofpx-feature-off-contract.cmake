@@ -16,6 +16,18 @@ if (NOT server_help_result EQUAL 0)
     message(FATAL_ERROR "llama-server --help failed: ${server_help_error}")
 endif()
 
+if (NOT HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+    string(FIND "${server_help}" "full-v1-exact-key-canary" exact_key_position)
+    if (NOT exact_key_position EQUAL -1)
+        message(FATAL_ERROR "exact-key feature-off CLI surface is exposed")
+    endif()
+else()
+    string(FIND "${server_help}" "full-v1-exact-key-canary" exact_key_position)
+    if (exact_key_position EQUAL -1)
+        message(FATAL_ERROR "exact-key canary build lost its explicit runtime mode")
+    endif()
+endif()
+
 foreach(required_option
         "--host"
         "--port"
