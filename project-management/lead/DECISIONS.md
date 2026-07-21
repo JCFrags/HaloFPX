@@ -57,3 +57,19 @@ milestone, the tree is clean at `975b1550`, and production recovered.
 Trigger to revisit: normal-path writeback occurs before a clean prompt boundary,
 restore mutates live state before full validation, misses fail to recompute cold,
 or feature-off/default behavior changes.
+
+## 2026-07-20 — accept L10b exact-session authority boundary
+
+Decision: no steering; accept L10b and observe the separate L10c server canary.
+
+Reason: L10b keeps request identity target-owned and opaque, derives its lineage
+from authenticated private scope and exact canonical inputs, fails closed on
+profile ambiguity, and remains library-only. Its 3/3 focused Linux tests and
+inherited authentication/scope controls passed; independent review corrected
+two defects before the clean `d7950c43` commit. Ordinary server behavior remains
+unchanged because the runtime edge is deliberately deferred to L10c.
+
+Trigger to revisit: L10c accepts caller-chosen cache identity, publishes before
+a completed cold prompt boundary, mutates live state during validation, fails to
+fall through cold on any cache error, changes feature-off behavior, or touches
+the known-good deployment before its disposable canary passes.

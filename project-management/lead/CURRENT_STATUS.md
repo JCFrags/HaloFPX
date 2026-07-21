@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-20 22:48 PDT
+Verified: 2026-07-20 23:09 PDT
 
 ## Overall state
 
@@ -14,10 +14,12 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `975b1550e81aaf65d3f7b34c00d64d47ab9f2ed5`
+- Latest verified commit: `d7950c43a3536d177a0dd233e025573ef97de919`
 - Remote count: zero
-- Worktree state: clean at the L10a boundary
-- Current work: L10b normal completion-path exact-key restore and prompt-boundary writeback canary
+- Worktree state: L10b committed cleanly; four tracked server files are now
+  modified for the active L10c canary
+- Current work: L10c default-off normal completion-path restore and
+  prompt-boundary publication canary
 
 ## Product progress
 
@@ -30,6 +32,11 @@ slower candidates.
   reopen, automatic selection, exact restore, wrong-scope miss, and
   corrupted-anchor miss passed on nimo-2. Server runtime lookup/writeback is the
   current next gate rather than a completed claim.
+- L10b derives an opaque authenticated checkpoint lineage from private scope,
+  closed compatibility, exact fixed-width canonical tokens, and bounded target
+  topology/profile. Focused and inherited controls passed on nimo-2, and the
+  ordinary server binary contained no exact-session marker. This is committed
+  as `d7950c43`; it still has no normal request/runtime behavior by itself.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -51,8 +58,11 @@ slower candidates.
 
 ## Lead decision
 
-No steering is warranted at this checkpoint. L10a encountered and repaired one
-focused positive-path failure, passed 4/4 focused/inherited tests, received
-independent acceptance, committed cleanly, and restored production to HTTP 200
-with zero restarts. The next turn is correctly limited to normal completion-path
-lookup and writeback under the separate default-off L10b canary.
+No steering is warranted at this checkpoint. L10b corrected two review defects
+(fixed-width token identity and fail-closed profile defaults), passed 3/3
+focused tests plus inherited authentication/scope controls, received independent
+acceptance, and committed its library-only boundary. L10c is correctly isolated
+behind a distinct compile option and runtime mode. The next decisive evidence is
+a real normal-request cold miss, publication only after a clean prompt boundary,
+restart, authenticated hit, and unchanged cold fallback for every unsupported or
+failed cache path.
