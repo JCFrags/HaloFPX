@@ -1,0 +1,93 @@
+{
+  "schema": "halofpx-milestone-receipt-v1",
+  "milestone": "L13",
+  "title": "primary-model worker-local state canary",
+  "date": "2026-07-21",
+  "documentation_base_commit": "51922809e068d78c22deb4711a2964362ccb2e6e",
+  "implementation_commit": "6444d1e173aa7c0d5bea6c2b3539d1fd936f3f65",
+  "harness_commits": [
+    "52f7991b5460d30f294d4152d7b97cfe4b50518a",
+    "bed36b7753f3210945a32fccff99d1ed037dc40d"
+  ],
+  "outcome": "not-promoted-safety-stop-gate",
+  "fixture": {
+    "coordinator": "nimo-2",
+    "worker": "nimo-1",
+    "rpc_endpoint": "10.44.0.1:50176",
+    "model_bytes": 159873097824,
+    "model_sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "request_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "prompt_tokens": 1129,
+    "saved_token_boundary": 1128,
+    "generation_tokens": 128,
+    "plan_sha256": "0268cc6071a8d78983f6351fe45d510e767d8cd26618a8bdffc972b6655f7967",
+    "topology_sha256": "09b71fe40ae05c841a5be563f6e2b27ad2529d893b9420412e5280541ae53e1f",
+    "placement_sha256": "d4aa0d3c14a3bec4ba5de733e00b6447f79f94d5dbeda6e3593be74ce84f917e",
+    "compatibility_root_sha256": "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f",
+    "checkpoint_sha256": "421016c41e1af022aa65feef9c7b9329fdc1b49ff0b1c4df4aaad10cf13bf816"
+  },
+  "attempt_1": {
+    "source_commit": "52f7991b5460d30f294d4152d7b97cfe4b50518a",
+    "source_tree": "7faefec64cf11ea75966cf75d79b07a8e869b994",
+    "coordinator_canary_binary_sha256": "7b0305951c252906ca08e41459e5981f83b2aa4856f6dbe3e228c3eec959deda",
+    "worker_binary_sha256": "c22013f0f60f9361c151e8382672d4a0a2491c8fcea0f19968ff41b173498b6b",
+    "compatibility_root_sha256": "f74e354d60e4f5e0a8a03b32b70991e9bfc0e393f0baba362c223d9b6bf6c921",
+    "result": "asserted-before-capture"
+  },
+  "retry_preflight": {
+    "source_commit": "bed36b7753f3210945a32fccff99d1ed037dc40d",
+    "source_tree": "5281a6d2a3480a62dd34d7d9bb603699ef25c11a",
+    "coordinator_canary_binary_sha256": "3a64f1bc143963edfd56040243b9f9f9114751bb31415a8a55631f5c06375963",
+    "worker_binary_sha256": "c22013f0f60f9361c151e8382672d4a0a2491c8fcea0f19968ff41b173498b6b",
+    "compatibility_root_sha256": "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f",
+    "result": "binary-not-launched-stop-order-gate"
+  },
+  "stop_gates": {
+    "attempt_1": "long-prompt decode exceeded n_batch before capture",
+    "attempt_2": "production worker stopped before coordinator; coordinator aborted after RPC loss",
+    "state_object_published": false,
+    "disposable_retry_started": false
+  },
+  "qualification": {
+    "uninterrupted_suffix": "not-run-to-completion",
+    "clean_cold_control": "not-run",
+    "restart_worker_local_restore": "not-run",
+    "missing_or_corrupt_object": "not-run",
+    "plan_or_topology_mismatch": "not-run",
+    "matched_runtime_off_control": "not-run",
+    "promoted": false
+  },
+  "production_final": {
+    "nimo_1_coordinator_pid": 2068256,
+    "nimo_1_port": 8081,
+    "nimo_1_http_status": 200,
+    "nimo_1_nrestarts": 0,
+    "nimo_2_worker_pid": 1247685,
+    "nimo_2_port": 50052,
+    "nimo_2_nrestarts": 0
+  },
+  "cleanup": {
+    "disposable_services_stopped": true,
+    "disposable_ports_closed": true,
+    "disposable_roots_keys_builds_and_exact_clones_removed": true,
+    "models_deleted": false
+  },
+  "review": {
+    "path": "docs/halofpx/reviews/2026-07-21__l13-primary-model-worker-local-state-canary__review__v01.md",
+    "verdict": "ACCEPT negative safety-stop outcome after P2 receipt corrections; no P1 remains"
+  },
+  "evidence_bundle": {
+    "host": "nimo-2",
+    "path": "/var/tmp/halofpx-l13-primary-evidence-20260721-v3.tar.zst",
+    "sha256": "a2d61fba67cc810f9638ab8e67626cfc957d40ab22bc372fdcb97a05164da437"
+  },
+  "excluded": [
+    "production cache enablement",
+    "eviction",
+    "shared or prefix reuse",
+    "broad fault matrix",
+    "cable faults",
+    "G9 or G10 trial",
+    "final performance claim"
+  ]
+}
