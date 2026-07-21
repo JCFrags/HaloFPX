@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 05:17 PDT
+Verified: 2026-07-21 05:33 PDT
 
 ## Overall state
 
@@ -14,16 +14,16 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `7b443ea37ccdab5e044950e3afb98621ab39870b`
+- Latest verified commit: `20f19a2d2460bff76f381a43ef8010c0e5f7ff08`
 - Remote count: zero
-- Worktree state: clean at the reviewed and pinned L16 transition boundary
+- Worktree state: clean at the reviewed terminal L16 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: the secure key prerequisite is committed at `47cd4cb` and final
-  binaries are pinned at `7b443ea`. All model, prompt, capacity, production,
-  dry-run, review, and remote key gates passed. The single authorized L16
-  controller transition is now in progress; no steering is presently needed.
+- Current work: L16 is closed NOT PROMOTED after its capture command attempted a
+  monolithic 159.2 GB RPC0 allocation and failed before prompt decode. Production
+  is restored and directly healthy. L17 is authorized as a no-production-only
+  device-discovery and placement-authority milestone; no primary retry is open.
 
 ## Product progress
 
@@ -100,6 +100,13 @@ slower candidates.
   standard production deployment at nimo-2 worker PID 1291141 and nimo-1
   coordinator PID 2125672/HTTP 200, both NRestarts=0. The reviewed terminal
   closeout is `0db5a561`; no primary cache claim is admitted.
+- L16 proved the secure binary-stdin key gate and exact HFXCAP2 readiness, then
+  failed during the first model load when current placement requested one
+  159,231,007,232-byte RPC0 buffer from a worker with 133,143,986,176 bytes
+  total. No prompt/state/object result exists. Production recovered worker-first
+  at nimo-2 PID 1305879 and nimo-1 PID 2144857/HTTP 200, both NRestarts=0.
+  Reviewed terminal closeout `20f19a2d` narrowly attributes this to current
+  placement, not aggregate capacity or model incompatibility.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -121,13 +128,13 @@ slower candidates.
 
 ## Lead decision
 
-Accept L15 only as a terminal protected preflight failure. A separately named
-L16 attempt is justified because L15 never connected or loaded the model, but it
-may not begin with a one-line chmod patch. First make the controller execute and
-verify secure key provisioning on both hosts before any production shutdown,
-using no shell-composition ambiguity; bind exact owner, regular-file identity,
-mode 0600, size, and equal digest without exposing key bytes. Prove a bad-mode
-fixture refuses before first mutation, exercise the exact remote provisioning
-path while production remains healthy, and obtain independent review. Only then
-may one controller-managed L16 attempt run with the unchanged model/request and
-L15 acceptance scope. Failure ends L16 without automatic repetition.
+Accept L16 only as a terminal current-placement load blocker. Qualified P01/P11
+evidence explicitly used device order `RPC0,ROCm0`; the L16 canary command had
+the same layer split and tensor split but omitted `--device RPC0,ROCm0`. This is
+the leading source-backed explanation for the monolithic RPC allocation, but it
+is not yet a verified cause. Open L17 as no-production only: freeze explicit
+device authority, prove parsed/real discovered order and two-device layer
+assignment on an isolated RPC worker while production remains live, and run a
+small disposable model load/correctness screen. Independent review must accept
+the placement contract. L17 must stop before any primary-model load or production
+mutation; a later primary retry requires a new Project Lead decision.

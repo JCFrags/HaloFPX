@@ -269,3 +269,30 @@ the exact remote path while production remains HTTP 200, add focused tests, and
 obtain independent review. After those conditions pass, L16 gets one guarded
 transition with the unchanged pinned model, request, result gates, and rollback
 contract. Any L16 failure closes the milestone without automatic repetition.
+
+## 2026-07-21 — accept terminal L16 and isolate placement authority in L17
+
+Decision: accept reviewed closeout `20f19a2d` only as L16 NOT PROMOTED. Open
+L17 as a no-production device-discovery and layer-placement authority milestone.
+Do not load the primary model, stop production, or automatically open another
+primary attempt.
+
+Reason: L16 passed secure key provisioning and exact HELLO/HFXCAP2, then its
+first capture load requested a single 159,231,007,232-byte RPC0 buffer from a
+worker with 133,143,986,176 bytes total. This proves the current placement is
+inadmissible, not that aggregate two-host memory is insufficient. Prior P01 and
+P11 runs loaded the exact model successfully with explicit device order
+`RPC0,ROCm0`, layer split, and tensor split `1,1`. The L16 canary carried both
+split settings but omitted the explicit `--device RPC0,ROCm0` argument. That is
+the leading explanation, not yet a verified conclusion.
+
+L17 must make device order and placement executable authority rather than a
+comment or command-line assumption. Freeze the exact explicit device argument,
+verify parsed and runtime-discovered names/backend types/order/count, and prove
+the intended repeating-layer ownership distribution before allocation. Exercise
+the exact path against an isolated disposable nimo-1 RPC worker while normal
+production remains HTTP 200, then load a small disposable model with the same
+two-device ordering and prove both devices receive bounded buffers and exact
+output. Include focused omission/wrong-order/one-device/refusal tests and one
+independent adversarial review. Commit a clean L17 result and stop. Only a later
+Project Lead decision may authorize another primary maintenance transition.
