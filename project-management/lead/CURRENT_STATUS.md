@@ -17,9 +17,8 @@ slower candidates.
 - Latest verified commit: `6862ffb99a8056552f62827658f3ffdcc79b9af4`
 - Remote count: zero
 - Worktree state: clean at the committed L10c boundary
-- Current work: worker idle at the L10d stop boundary; next scoped lane is a
-  two-rank state-ownership/serialization audit and default-off distributed
-  restore canary only if current authority safely supports it
+- Current work: two-rank state-ownership/serialization audit and default-off
+  distributed restore canary only if current authority safely supports it
 
 ## Product progress
 
@@ -81,3 +80,5 @@ that evidence supports safe exact-plan restore may it open a default-off two-
 rank canary. Any missing rank state, topology mismatch, stale readiness, or
 partial restore must remain a full cold recomputation. Online deletion,
 eviction, and production enablement remain closed until a later lifecycle lane.
+The worker has been dispatched with this boundary and must end its turn at a
+reviewed canary commit or a precise architecture blocker.

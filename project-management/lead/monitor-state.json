@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-21T00:29:00-07:00",
+  "updated_at": "2026-07-21T00:31:00-07:00",
   "worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
-  "worker_status": "idle_at_l10d_boundary",
+  "worker_status": "active_two_rank_state_audit",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
   "last_verified_head": "6862ffb99a8056552f62827658f3ffdcc79b9af4",
   "last_observed_milestone": "L10d bounded authenticated exact-key catalog committed, reviewed, and clean",
   "last_decision": "accept_l10d_prioritize_distributed_state_truth",
-  "next_check_trigger": "dispatch two-rank serialization ownership audit and conditional distributed canary; then worker completion or attention event"
+  "next_check_trigger": "worker completion or attention event at two-rank audit/canary boundary; otherwise one fallback snapshot after 30-45 minutes for source/instrumentation or 60-90 minutes for two-rank runtime qualification"
 }
