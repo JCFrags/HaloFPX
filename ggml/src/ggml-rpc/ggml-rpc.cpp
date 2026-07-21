@@ -1323,10 +1323,23 @@ ggml_tensor * rpc_server::create_node(uint64_t id,
         result->buffer = nullptr;
         result->data = nullptr;
         result->view_offs = tensor->view_offs;
-        if (result->view_src->buffer != nullptr && ggml_backend_view_init(result) != GGML_STATUS_SUCCESS) {
-            GGML_LOG_ERROR("[%s] failed to initialize server-side view for node id %" PRIu64 "\n",
-                           __func__, id);
-            return nullptr;
+        if (result->view_src->buffer != nullptr) {
+            const uintptr_t base = (uintptr_t) ggml_backend_buffer_get_base(result->view_src->buffer);
+            const uintptr_t data = (uintptr_t) result->view_src->data;
+            const size_t buffer_size = ggml_backend_buffer_get_size(result->view_src->buffer);
+            const size_t view_size = ggml_nbytes(result);
+            if (data < base || data - base > buffer_size ||
+                    result->view_offs > buffer_size - (data - base) ||
+                    view_size > buffer_size - (data - base) - result->view_offs) {
+                GGML_LOG_ERROR("[%s] server-side view is out of bounds for node id %" PRIu64 "\n",
+                               __func__, id);
+                return nullptr;
+            }
+            if (ggml_backend_view_init(result) != GGML_STATUS_SUCCESS) {
+                GGML_LOG_ERROR("[%s] failed to initialize server-side view for node id %" PRIu64 "\n",
+                               __func__, id);
+                return nullptr;
+            }
         }
     }
     result->view_offs = tensor->view_offs;

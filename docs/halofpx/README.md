@@ -195,6 +195,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 - [P09 MiniMax-M2 masked-expert decode rejection and RPC compute-view repair](p09-minimax-m2-masked-expert-decode-rejection.md)
 - [P09 rejection and retained-repair receipt](evidence/p09-minimax-m2-masked-expert-decode-rejection-receipt.json)
 - [P09 independent review](reviews/2026-07-20__p09-minimax-m2-masked-expert-decode__review__v01.md)
+- [P10 device-resident fused expert-partial rejection](p10-device-resident-fused-expert-partial-rejection.md)
+- [P10 rejection receipt](evidence/p10-device-resident-fused-expert-partial-rejection-receipt.json)
 - [L14Q-H01 default-off HIP decode port plan](l14q-h01-hip-quantized-kv-fa-decode-port-plan.md)
 - [L14Q-H01a inert option-seam receipt](evidence/l14q-h01a-default-off-option-seam-receipt.json)
 - [L14Q-H01a independent review](reviews/2026-07-19__l14q-h01a-default-off-option-seam__review__v01.md)

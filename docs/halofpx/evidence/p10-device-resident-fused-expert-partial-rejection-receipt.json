@@ -1,0 +1,63 @@
+{
+  "schema": "halofpx.p10-device-resident-fused-expert-partial-rejection.v1",
+  "date": "2026-07-20",
+  "status": "rejected_for_matched_performance_regression",
+  "parent_commit": "7486700c2ebcce4571c4cb86ffc413bfe7b500cb",
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "file": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "request_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+  "correctness": {
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "decoded_content_sha256": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f",
+    "matches_control": true,
+    "direct_base_0_nmse": 0.0,
+    "direct_base_96_nmse": 0.0,
+    "rpc_base_96_nmse": 0.0,
+    "invalid_metadata_nonzero": true,
+    "invalid_id_nonzero": true,
+    "poisoned_zero_overwrite": true
+  },
+  "performance": {
+    "candidate_prompt_tokens_per_second": [194.5291309527379, 195.5392796672403, 195.27226644338634],
+    "candidate_generation_tokens_per_second": [16.24053449629094, 16.231670576216697, 16.260338176923913],
+    "control_prompt_tokens_per_second": [203.9882319207073, 203.7371051465725, 203.68068497327255],
+    "control_generation_tokens_per_second": [16.64879522554175, 16.671726796245057, 16.68120842322832],
+    "candidate_prompt_mean": 195.11355902112152,
+    "candidate_generation_mean": 16.244181083143847,
+    "control_prompt_mean": 203.80200734685081,
+    "control_generation_mean": 16.667243481671708,
+    "prompt_delta_percent": -4.263180936654088,
+    "generation_delta_percent": -2.5382865438612345,
+    "decision": "reject_without_redundant_final_candidate_block"
+  },
+  "retained_change": "overflow-safe server-side RPC view bounds only",
+  "candidate_source_removed": true,
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "persistent_behavior_changed": false,
+    "webui_changed": false,
+    "remote_changed": false
+  },
+  "evidence": {
+    "nimo_1_bundle": "/var/tmp/halofpx-p10-fused-rejection-7486700-nimo1-20260720.tar.zst",
+    "nimo_1_bundle_sha256": "0acab9138ca745b9d797de08daabfebaf49346c13f0ed19f33b6e0cde4d8fb11",
+    "nimo_2_bundle": "/var/tmp/halofpx-p10-fused-rejection-7486700-nimo2-20260720.tar.zst",
+    "nimo_2_bundle_sha256": "1bfd00040dd6ef2e7f9db5e9e9179196f62df497657d28e80fc132faa503bd1f"
+  },
+  "rollback": {
+    "worker_service": "minimax-m27-rpc-worker.service",
+    "coordinator_service": "minimax-m27-q6-server.service",
+    "both_active": true,
+    "both_nrestarts": 0
+  }
+}
