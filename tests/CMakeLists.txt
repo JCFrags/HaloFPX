@@ -484,6 +484,13 @@ add_test(
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-v1-attempt-wire-contract.cmake)
 set_property(TEST test-halofpx-context-store-v1-attempt-wire-contract PROPERTY LABELS "main;halofpx")
 
+if (GGML_RPC_HALOFPX_LOCAL_STATE)
+    llama_build(test-halofpx-rpc-local-state.cpp)
+    target_link_libraries(test-halofpx-rpc-local-state PRIVATE ggml-rpc)
+    llama_build(test-halofpx-distributed-state-canary.cpp)
+    target_link_libraries(test-halofpx-distributed-state-canary PRIVATE ggml-rpc)
+endif()
+
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     llama_build(test-halofpx-context-store-v1-linux-read-only.cpp
         ${CMAKE_SOURCE_DIR}/tools/server/halofpx-context-store.cpp)

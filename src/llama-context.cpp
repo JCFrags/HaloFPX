@@ -4,6 +4,7 @@
 #include "llama-arch.h"
 #include "llama-graph.h"
 #include "llama-impl.h"
+#include "ggml-rpc.h"
 #include "llama-batch.h"
 #include "llama-io.h"
 #include "llama-memory.h"
@@ -13,6 +14,7 @@
 #include "llama.h"
 
 #include <cinttypes>
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -2907,7 +2909,12 @@ private:
 
 class llama_io_read_device : public llama_io_read_i {
 public:
-    llama_io_read_device(const uint8_t * p, size_t len, const llama_memory_buffers & mbufs) : ptr(p), buf_size(len), mbufs(mbufs) {
+    llama_io_read_device(const uint8_t * p, size_t len, const llama_memory_buffers & mbufs) :
+        ptr(p), buf_size(len), source(&mbufs) {
+    }
+
+    llama_io_read_device(const uint8_t * p, size_t len, llama_memory_buffers & mbufs, bool prepare_only) :
+        ptr(p), buf_size(len), destination(&mbufs), prepare_only(prepare_only) {
     }
 
     ~llama_io_read_device() {
@@ -2931,7 +2938,7 @@ public:
 
         for (auto & [buft, mbuf] : mbufs_new) {
             ggml_init_params params = {
-                /*.mem_size   =*/ mbuf.n_tensors*ggml_tensor_overhead(),
+                /*.mem_size   =*/ (prepare_only ? 2 : 1)*mbuf.n_tensors*ggml_tensor_overhead(),
                 /*.mem_buffer =*/ NULL,
                 /*.no_alloc   =*/ true,
             };
@@ -2953,9 +2960,32 @@ public:
             ggml_backend_view_init(mbuf.org.back());
         }
 
+        if (prepare_only && destination != nullptr) {
+            for (auto & [buft, mbuf] : mbufs_new) {
+                mbuf.cpy.reserve(mbuf.org.size());
+                for (auto * org : mbuf.org) {
+                    mbuf.cpy.push_back(ggml_new_tensor_1d(mbuf.ctx.get(), org->type, ggml_nelements(org)));
+                }
+                if (!mbuf.cpy.empty()) {
+                    mbuf.buf.reset(ggml_backend_alloc_ctx_tensors_from_buft(mbuf.ctx.get(), buft));
+                    if (!mbuf.buf) {
+                        valid = false;
+                        return false;
+                    }
+                }
+            }
+            *destination = std::move(mbufs_new);
+            valid = true;
+            return true;
+        }
+
+        if (source == nullptr) {
+            valid = false;
+            return false;
+        }
         for (auto & [buft, mbuf] : mbufs_new) {
-            const auto it = mbufs.find(buft);
-            if (it == mbufs.end()) {
+            const auto it = source->find(buft);
+            if (it == source->end()) {
                 LLAMA_LOG_WARN("%s: device checkpoint restore missing buffer type '%s'; refusing restore\n",
                         __func__, ggml_backend_buft_name(buft));
                 valid = false;
@@ -3020,7 +3050,9 @@ private:
     };
     std::vector<read_info> rinfos;
 
-    const llama_memory_buffers & mbufs;
+    const llama_memory_buffers * source = nullptr;
+    llama_memory_buffers * destination = nullptr;
+    bool prepare_only = false;
 };
 
 size_t llama_context::state_get_size() {
@@ -3142,6 +3174,32 @@ size_t llama_context::state_seq_set_data(llama_seq_id seq_id, const uint8_t * sr
         return n;
     } catch (const std::exception & err) {
         LLAMA_LOG_ERROR("%s: error loading state: %s\n", __func__, err.what());
+        return 0;
+    }
+}
+
+size_t llama_context::state_seq_prepare_data(
+        llama_seq_id seq_id,
+        const uint8_t * src,
+        size_t size,
+        llama_state_seq_flags flags,
+        llama_memory_buffers * storage) {
+    if (src == nullptr || storage == nullptr || !(flags & LLAMA_STATE_SEQ_FLAGS_ON_DEVICE)) {
+        return 0;
+    }
+    try {
+        llama_io_read_device io(src, size, *storage, true);
+        uint32_t magic_read = 0;
+        io.read(&magic_read, sizeof(magic_read));
+        if (io_magic != magic_read) throw std::runtime_error("wrong sequence state magic");
+        llama_seq_id seq_id_read = -1;
+        io.read(&seq_id_read, sizeof(seq_id_read));
+        const size_t n = state_seq_read_data(io, seq_id, flags);
+        if (!io.finalize()) return 0;
+        return n;
+    } catch (const std::exception & err) {
+        LLAMA_LOG_ERROR("%s: error preparing state: %s\n", __func__, err.what());
+        storage->clear();
         return 0;
     }
 }
@@ -4306,6 +4364,312 @@ const llama_state_seq_storage * storage) {
     ctx->synchronize();
 
     return ctx->state_seq_set_data(seq_id, src, size, flags, storage ? &storage->buffers : nullptr);
+}
+
+size_t llama_state_seq_prepare_data_ext_storage(
+        llama_context * ctx,
+        const uint8_t * src,
+        size_t size,
+        llama_seq_id seq_id,
+        llama_state_seq_flags flags,
+        llama_state_seq_storage * storage) {
+    if (!ctx || !storage) return 0;
+    ctx->synchronize();
+    return ctx->state_seq_prepare_data(seq_id, src, size, flags, &storage->buffers);
+}
+
+namespace {
+
+bool llama_hfx_rpc_buft(ggml_backend_buffer_type_t buft) {
+    const char * name = buft ? ggml_backend_buft_name(buft) : nullptr;
+    return name && strncmp(name, "RPC", 3) == 0;
+}
+
+struct llama_hfx_local_header {
+    uint8_t magic[8];
+    uint32_t buffer_count;
+    uint32_t reserved;
+};
+
+struct llama_hfx_local_buffer_header {
+    char name[64];
+    uint32_t tensor_count;
+    uint32_t reserved;
+};
+
+std::vector<std::pair<std::string, const llama_memory_buffer *>> llama_hfx_local_buffers(
+        const llama_state_seq_storage * storage) {
+    std::vector<std::pair<std::string, const llama_memory_buffer *>> result;
+    if (!storage) return result;
+    for (const auto & [buft, mbuf] : storage->buffers) {
+        if (llama_hfx_rpc_buft(buft)) continue;
+        const char * name = ggml_backend_buft_name(buft);
+        if (!name || strlen(name) >= 64) return {};
+        result.emplace_back(name, &mbuf);
+    }
+    std::sort(result.begin(), result.end(), [](const auto & a, const auto & b) { return a.first < b.first; });
+    return result;
+}
+
+bool llama_hfx_add_size(size_t & total, size_t value) {
+    if (value > SIZE_MAX - total) return false;
+    total += value;
+    return true;
+}
+
+bool llama_hfx_components(
+        const llama_state_seq_storage * storage,
+        bool live,
+        std::vector<ggml_backend_rpc_halofpx_state_component> & output) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (!storage) return false;
+    size_t rpc_buffers = 0;
+    for (const auto & [buft, mbuf] : storage->buffers) {
+        if (!llama_hfx_rpc_buft(buft)) continue;
+        ++rpc_buffers;
+        if (mbuf.org.size() != mbuf.cpy.size()) return false;
+        for (size_t i = 0; i < mbuf.cpy.size(); ++i) {
+            const ggml_tensor * semantic = mbuf.org[i]->view_src ? mbuf.org[i]->view_src : mbuf.org[i];
+            const char * name = semantic->name;
+            uint32_t kind = 0;
+            if (strstr(name, "cache_k") != nullptr) kind = GGML_RPC_HALOFPX_COMPONENT_ATTENTION_K;
+            if (strstr(name, "cache_v") != nullptr) kind = GGML_RPC_HALOFPX_COMPONENT_ATTENTION_V;
+            if (kind == 0) return false;
+            struct label_input {
+                uint32_t ordinal;
+                uint32_t kind;
+                uint32_t type;
+                uint32_t reserved;
+                int64_t ne[GGML_MAX_DIMS];
+                size_t nb[GGML_MAX_DIMS];
+                uint64_t view_offs;
+                char name[GGML_MAX_NAME];
+            } label {};
+            label.ordinal = static_cast<uint32_t>(output.size());
+            label.kind = kind;
+            label.type = semantic->type;
+            memcpy(label.ne, semantic->ne, sizeof(label.ne));
+            memcpy(label.nb, semantic->nb, sizeof(label.nb));
+            label.view_offs = mbuf.org[i]->view_offs;
+            snprintf(label.name, sizeof(label.name), "%s", name);
+            ggml_backend_rpc_halofpx_state_component component {};
+            component.tensor = live ? mbuf.org[i] : mbuf.cpy[i];
+            component.ordinal = label.ordinal;
+            component.kind = kind;
+            component.offset = 0;
+            component.size = ggml_nbytes(mbuf.cpy[i]);
+            if (!ggml_backend_rpc_halofpx_state_sha256(&label, sizeof(label), component.label_digest)) return false;
+            output.push_back(component);
+        }
+    }
+    return rpc_buffers == 1 && !output.empty() && output.size() <= GGML_RPC_HALOFPX_STATE_MAX_COMPONENTS;
+#else
+    GGML_UNUSED(storage); GGML_UNUSED(live); GGML_UNUSED(output);
+    return false;
+#endif
+}
+
+bool llama_hfx_manifest_digest(
+        const std::vector<ggml_backend_rpc_halofpx_state_component> & components,
+        uint8_t digest[32]) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+#pragma pack(push, 1)
+    struct manifest_component {
+        uint32_t ordinal;
+        uint32_t kind;
+        uint32_t type;
+        uint32_t reserved;
+        uint64_t offset;
+        uint64_t size;
+        uint32_t ne[GGML_MAX_DIMS];
+        uint32_t nb[GGML_MAX_DIMS];
+        uint8_t label_digest[32];
+    };
+#pragma pack(pop)
+    std::vector<manifest_component> canonical(components.size());
+    for (size_t i = 0; i < components.size(); ++i) {
+        const auto & src = components[i];
+        if (!src.tensor || src.ordinal != i || src.tensor->type >= GGML_TYPE_COUNT) return false;
+        auto & dst = canonical[i];
+        dst.ordinal = src.ordinal;
+        dst.kind = src.kind;
+        dst.type = src.tensor->type;
+        dst.offset = src.offset;
+        dst.size = src.size;
+        for (size_t d = 0; d < GGML_MAX_DIMS; ++d) {
+            if (src.tensor->ne[d] < 0 || uint64_t(src.tensor->ne[d]) > UINT32_MAX ||
+                src.tensor->nb[d] > UINT32_MAX) return false;
+            dst.ne[d] = static_cast<uint32_t>(src.tensor->ne[d]);
+            dst.nb[d] = static_cast<uint32_t>(src.tensor->nb[d]);
+        }
+        memcpy(dst.label_digest, src.label_digest, sizeof(dst.label_digest));
+    }
+    return ggml_backend_rpc_halofpx_state_sha256(canonical.data(),
+            canonical.size() * sizeof(canonical[0]), digest);
+#else
+    GGML_UNUSED(components); GGML_UNUSED(digest);
+    return false;
+#endif
+}
+
+} // namespace
+
+bool llama_state_seq_storage_halofpx_manifest_digest(
+        const llama_state_seq_storage * storage,
+        uint8_t digest[32]) {
+    std::vector<ggml_backend_rpc_halofpx_state_component> components;
+    return digest && llama_hfx_components(storage, false, components) &&
+        llama_hfx_manifest_digest(components, digest);
+}
+
+size_t llama_state_seq_storage_local_size(const llama_state_seq_storage * storage) {
+    const auto buffers = llama_hfx_local_buffers(storage);
+    if (!storage || (buffers.empty() && !storage->buffers.empty())) return 0;
+    size_t total = sizeof(llama_hfx_local_header);
+    for (const auto & entry : buffers) {
+        if (!llama_hfx_add_size(total, sizeof(llama_hfx_local_buffer_header))) return 0;
+        for (auto * tensor : entry.second->cpy) {
+            if (!llama_hfx_add_size(total, sizeof(uint64_t)) ||
+                !llama_hfx_add_size(total, ggml_nbytes(tensor))) return 0;
+        }
+    }
+    return total;
+}
+
+size_t llama_state_seq_storage_get_local(
+        const llama_state_seq_storage * storage, uint8_t * dst, size_t size) {
+    const size_t required = llama_state_seq_storage_local_size(storage);
+    if (required == 0 || !dst || size != required) return 0;
+    const auto buffers = llama_hfx_local_buffers(storage);
+    uint8_t * p = dst;
+    llama_hfx_local_header header {};
+    memcpy(header.magic, "HFXLOC1\0", 8);
+    header.buffer_count = static_cast<uint32_t>(buffers.size());
+    memcpy(p, &header, sizeof(header)); p += sizeof(header);
+    for (const auto & entry : buffers) {
+        llama_hfx_local_buffer_header bh {};
+        snprintf(bh.name, sizeof(bh.name), "%s", entry.first.c_str());
+        bh.tensor_count = static_cast<uint32_t>(entry.second->cpy.size());
+        memcpy(p, &bh, sizeof(bh)); p += sizeof(bh);
+        for (auto * tensor : entry.second->cpy) {
+            const uint64_t n = ggml_nbytes(tensor);
+            memcpy(p, &n, sizeof(n)); p += sizeof(n);
+            ggml_backend_tensor_get(tensor, p, 0, n);
+            p += n;
+        }
+    }
+    return required;
+}
+
+size_t llama_state_seq_storage_set_local(
+        llama_state_seq_storage * storage, const uint8_t * src, size_t size) {
+    if (!storage || !src || size < sizeof(llama_hfx_local_header)) return 0;
+    const auto buffers = llama_hfx_local_buffers(storage);
+    const uint8_t * p = src;
+    size_t remaining = size;
+    llama_hfx_local_header header {};
+    memcpy(&header, p, sizeof(header)); p += sizeof(header); remaining -= sizeof(header);
+    if (memcmp(header.magic, "HFXLOC1\0", 8) != 0 || header.reserved != 0 ||
+        header.buffer_count != buffers.size()) return 0;
+    struct staged_copy { ggml_tensor * tensor; const uint8_t * data; size_t size; };
+    std::vector<staged_copy> copies;
+    for (const auto & entry : buffers) {
+        if (remaining < sizeof(llama_hfx_local_buffer_header)) return 0;
+        llama_hfx_local_buffer_header bh {};
+        memcpy(&bh, p, sizeof(bh)); p += sizeof(bh); remaining -= sizeof(bh);
+        if (bh.reserved != 0 || bh.tensor_count != entry.second->cpy.size() ||
+            strncmp(bh.name, entry.first.c_str(), sizeof(bh.name)) != 0) return 0;
+        for (auto * tensor : entry.second->cpy) {
+            if (remaining < sizeof(uint64_t)) return 0;
+            uint64_t n = 0;
+            memcpy(&n, p, sizeof(n)); p += sizeof(n); remaining -= sizeof(n);
+            if (n != ggml_nbytes(tensor) || n > remaining) return 0;
+            copies.push_back({tensor, p, static_cast<size_t>(n)});
+            p += n; remaining -= n;
+        }
+    }
+    if (remaining != 0) return 0;
+    for (const auto & copy : copies) ggml_backend_tensor_set(copy.tensor, copy.data, 0, copy.size);
+    return size;
+}
+
+bool llama_state_seq_storage_halofpx_capture_remote(
+        const llama_state_seq_storage * storage,
+        const ggml_backend_rpc_halofpx_state_identity * identity,
+        const uint8_t control_key[32],
+        ggml_backend_rpc_halofpx_state_result * result) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    std::vector<ggml_backend_rpc_halofpx_state_component> components;
+    if (!result || !llama_hfx_components(storage, false, components)) return false;
+    uint8_t manifest[32];
+    if (!identity || !llama_hfx_manifest_digest(components, manifest) ||
+        memcmp(manifest, identity->component_manifest_digest, sizeof(manifest)) != 0) return false;
+    *result = ggml_backend_rpc_halofpx_state_capture(identity, components.data(), components.size(), control_key);
+    return result->status == GGML_RPC_HALOFPX_STATE_STORED;
+#else
+    GGML_UNUSED(storage); GGML_UNUSED(identity); GGML_UNUSED(control_key); GGML_UNUSED(result);
+    return false;
+#endif
+}
+
+bool llama_state_seq_storage_halofpx_stage_remote(
+        llama_state_seq_storage * storage,
+        const ggml_backend_rpc_halofpx_state_identity * identity,
+        const uint8_t expected_object_digest[32],
+        const uint8_t control_key[32],
+        ggml_backend_rpc_halofpx_state_result * result) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    std::vector<ggml_backend_rpc_halofpx_state_component> components;
+    if (!result || !llama_hfx_components(storage, false, components)) return false;
+    uint8_t manifest[32];
+    if (!identity || !llama_hfx_manifest_digest(components, manifest) ||
+        memcmp(manifest, identity->component_manifest_digest, sizeof(manifest)) != 0) return false;
+    *result = ggml_backend_rpc_halofpx_state_stage(identity, components.data(), components.size(),
+                                                   expected_object_digest, control_key);
+    return result->status == GGML_RPC_HALOFPX_STATE_READY;
+#else
+    GGML_UNUSED(storage); GGML_UNUSED(identity); GGML_UNUSED(expected_object_digest);
+    GGML_UNUSED(control_key); GGML_UNUSED(result);
+    return false;
+#endif
+}
+
+bool llama_state_seq_storage_halofpx_commit_remote(
+        const llama_state_seq_storage * storage,
+        const ggml_backend_rpc_halofpx_state_identity * identity,
+        const uint8_t expected_object_digest[32],
+        const uint8_t worker_nonce[32],
+        const uint8_t control_key[32],
+        ggml_backend_rpc_halofpx_state_result * result) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    std::vector<ggml_backend_rpc_halofpx_state_component> components;
+    if (!result || !llama_hfx_components(storage, true, components)) return false;
+    uint8_t manifest[32];
+    if (!identity || !llama_hfx_manifest_digest(components, manifest) ||
+        memcmp(manifest, identity->component_manifest_digest, sizeof(manifest)) != 0) return false;
+    *result = ggml_backend_rpc_halofpx_state_commit_apply(identity, components.data(), components.size(),
+                                                          expected_object_digest, worker_nonce, control_key);
+    return result->status == GGML_RPC_HALOFPX_STATE_APPLIED;
+#else
+    GGML_UNUSED(storage); GGML_UNUSED(identity); GGML_UNUSED(expected_object_digest);
+    GGML_UNUSED(worker_nonce); GGML_UNUSED(control_key); GGML_UNUSED(result);
+    return false;
+#endif
+}
+
+bool llama_state_seq_storage_halofpx_abort_remote(
+        const ggml_backend_rpc_halofpx_state_identity * identity,
+        const uint8_t worker_nonce[32],
+        const uint8_t control_key[32],
+        ggml_backend_rpc_halofpx_state_result * result) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (!result) return false;
+    *result = ggml_backend_rpc_halofpx_state_abort(identity, worker_nonce, control_key);
+    return result->status == GGML_RPC_HALOFPX_STATE_ABORTED;
+#else
+    GGML_UNUSED(identity); GGML_UNUSED(worker_nonce); GGML_UNUSED(control_key); GGML_UNUSED(result);
+    return false;
+#endif
 }
 
 size_t llama_state_seq_save_file(llama_context * ctx, const char * filepath, llama_seq_id seq_id, const llama_token * tokens, size_t n_token_count) {

@@ -5,6 +5,7 @@
 #include "transport.h"
 
 #include <array>
+#include <cerrno>
 #include <cinttypes>
 #include <optional>
 #include <string>
@@ -17,6 +18,21 @@
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+#if !defined(__BYTE_ORDER__) || __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#error "GGML_RPC_HALOFPX_LOCAL_STATE requires a little-endian Linux target"
+#endif
+extern "C" {
+#include "sha256/sha256.h"
+}
+#include <chrono>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/random.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
 
 static const char * RPC_DEBUG = std::getenv("GGML_RPC_DEBUG");
 
@@ -71,6 +87,13 @@ enum rpc_cmd {
     RPC_CMD_HELLO,
     RPC_CMD_DEVICE_COUNT,
     RPC_CMD_GRAPH_RECOMPUTE,
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    RPC_CMD_HALOFPX_STATE_CAPS,
+    RPC_CMD_HALOFPX_STATE_CAPTURE,
+    RPC_CMD_HALOFPX_STATE_STAGE,
+    RPC_CMD_HALOFPX_STATE_COMMIT_APPLY,
+    RPC_CMD_HALOFPX_STATE_ABORT,
+#endif
     RPC_CMD_COUNT,
 };
 
@@ -190,6 +213,100 @@ struct rpc_msg_graph_recompute_req {
     uint32_t device;
 };
 
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+static constexpr uint16_t HFX_STATE_MAJOR = 1;
+static constexpr uint16_t HFX_STATE_MINOR = 0;
+static constexpr uint32_t HFX_STATE_MAX_COMPONENTS = GGML_RPC_HALOFPX_STATE_MAX_COMPONENTS;
+static constexpr uint64_t HFX_STATE_MAX_COMPONENT_BYTES = UINT64_C(1) << 30;
+static constexpr uint64_t HFX_STATE_MAX_OBJECT_BYTES = UINT64_C(64) << 30;
+static constexpr uint64_t HFX_STATE_TIMEOUT_MS = 5000;
+static constexpr size_t HFX_STATE_MAX_SEEN_ATTEMPTS = 4096;
+static constexpr char HFX_STATE_DOMAIN[] = "halofpx.rpc-local-state.v1";
+
+struct hfx_state_identity_wire {
+    uint64_t key_generation;
+    uint64_t generation;
+    uint64_t token_count;
+    uint64_t token_boundary;
+    uint32_t world_size;
+    uint32_t logical_rank;
+    uint8_t model_digest[32];
+    uint8_t compatibility_root[32];
+    uint8_t plan_digest[32];
+    uint8_t topology_digest[32];
+    uint8_t placement_digest[32];
+    uint8_t checkpoint_digest[32];
+    uint8_t token_prefix_digest[32];
+    uint8_t component_manifest_digest[32];
+    uint8_t attempt_nonce[32];
+    uint8_t channel_binding[32];
+};
+
+struct hfx_state_component_wire {
+    uint64_t buffer;
+    uint64_t data;
+    uint64_t offset;
+    uint64_t size;
+    uint32_t ordinal;
+    uint32_t kind;
+    uint32_t type;
+    uint32_t reserved;
+    uint32_t ne[GGML_MAX_DIMS];
+    uint32_t nb[GGML_MAX_DIMS];
+    uint8_t label_digest[32];
+};
+
+struct hfx_state_request_header {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint16_t message_type;
+    uint16_t reserved;
+    uint32_t encoded_size;
+    uint32_t component_count;
+    hfx_state_identity_wire identity;
+    uint8_t expected_object_digest[32];
+    uint8_t worker_nonce[32];
+    uint8_t tag[32];
+};
+
+struct hfx_state_response_wire {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint16_t message_type;
+    uint16_t status;
+    uint32_t logical_rank;
+    uint32_t verified_components;
+    uint64_t generation;
+    uint64_t verified_bytes;
+    uint8_t attempt_nonce[32];
+    uint8_t object_digest[32];
+    uint8_t worker_nonce[32];
+    uint8_t channel_binding[32];
+    uint8_t request_digest[32];
+    uint8_t reserved[24];
+    uint8_t tag[32];
+};
+
+struct hfx_state_caps_wire {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t max_request;
+    uint32_t max_components;
+    uint64_t max_component_bytes;
+    uint64_t max_object_bytes;
+    uint64_t timeout_ms;
+    uint8_t reserved[20];
+};
+
+static_assert(sizeof(hfx_state_component_wire) == 112, "unexpected HaloFPX component wire size");
+static_assert(sizeof(hfx_state_request_header) == 480, "unexpected HaloFPX request header size");
+static_assert(sizeof(hfx_state_response_wire) == 256, "HaloFPX response must be exactly 256 bytes");
+static_assert(sizeof(hfx_state_caps_wire) == 64, "HaloFPX caps must be exactly 64 bytes");
+#endif
+
 #pragma pack(pop)
 
 // RPC data structures
@@ -233,6 +350,277 @@ static uint64_t fnv_hash(const uint8_t * data, size_t len) {
     }
     return hash;
 }
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+namespace {
+
+using hfx_digest = std::array<uint8_t, 32>;
+
+void hfx_wipe(void * memory, size_t size) {
+    volatile uint8_t * p = static_cast<volatile uint8_t *>(memory);
+    while (size-- != 0) *p++ = 0;
+}
+
+hfx_digest hfx_sha256(const void * data, size_t size) {
+    hfx_digest result {};
+    sha256_t ctx;
+    sha256_init(&ctx);
+    if (size != 0) sha256_update(&ctx, static_cast<const uint8_t *>(data), size);
+    sha256_final(&ctx, result.data());
+    hfx_wipe(&ctx, sizeof(ctx));
+    return result;
+}
+
+hfx_digest hfx_hmac(const uint8_t key[32], const void * data, size_t size) {
+    std::array<uint8_t, 64> inner {};
+    std::array<uint8_t, 64> outer {};
+    for (size_t i = 0; i < 64; ++i) {
+        const uint8_t b = i < 32 ? key[i] : 0;
+        inner[i] = b ^ 0x36;
+        outer[i] = b ^ 0x5c;
+    }
+    sha256_t ctx;
+    hfx_digest mid {};
+    hfx_digest result {};
+    sha256_init(&ctx);
+    sha256_update(&ctx, inner.data(), inner.size());
+    sha256_update(&ctx, reinterpret_cast<const uint8_t *>(HFX_STATE_DOMAIN), sizeof(HFX_STATE_DOMAIN));
+    if (size != 0) sha256_update(&ctx, static_cast<const uint8_t *>(data), size);
+    sha256_final(&ctx, mid.data());
+    sha256_init(&ctx);
+    sha256_update(&ctx, outer.data(), outer.size());
+    sha256_update(&ctx, mid.data(), mid.size());
+    sha256_final(&ctx, result.data());
+    hfx_wipe(&ctx, sizeof(ctx));
+    hfx_wipe(inner.data(), inner.size());
+    hfx_wipe(outer.data(), outer.size());
+    hfx_wipe(mid.data(), mid.size());
+    return result;
+}
+
+bool hfx_equal(const uint8_t * a, const uint8_t * b, size_t n) {
+    uint8_t diff = 0;
+    for (size_t i = 0; i < n; ++i) diff |= a[i] ^ b[i];
+    return diff == 0;
+}
+
+bool hfx_zero(const uint8_t * p, size_t n) {
+    uint8_t value = 0;
+    for (size_t i = 0; i < n; ++i) value |= p[i];
+    return value == 0;
+}
+
+void hfx_set_magic(uint8_t magic[8], const char value[8]) {
+    memcpy(magic, value, 8);
+}
+
+bool hfx_magic(const uint8_t magic[8], const char value[8]) {
+    return hfx_equal(magic, reinterpret_cast<const uint8_t *>(value), 8);
+}
+
+bool hfx_add(uint64_t a, uint64_t b, uint64_t & result) {
+    if (a > UINT64_MAX - b) return false;
+    result = a + b;
+    return true;
+}
+
+bool hfx_mul(uint64_t a, uint64_t b, uint64_t & result) {
+    if (a != 0 && b > UINT64_MAX / a) return false;
+    result = a * b;
+    return true;
+}
+
+std::string hfx_hex(const uint8_t * bytes, size_t size) {
+    static constexpr char digits[] = "0123456789abcdef";
+    std::string result(size * 2, '0');
+    for (size_t i = 0; i < size; ++i) {
+        result[2*i] = digits[bytes[i] >> 4];
+        result[2*i + 1] = digits[bytes[i] & 15];
+    }
+    return result;
+}
+
+void hfx_identity_from_public(
+        const ggml_backend_rpc_halofpx_state_identity & src,
+        hfx_state_identity_wire & dst) {
+    memset(&dst, 0, sizeof(dst));
+    dst.key_generation = src.key_generation;
+    dst.generation = src.generation;
+    dst.token_count = src.token_count;
+    dst.token_boundary = src.token_boundary;
+    dst.world_size = src.world_size;
+    dst.logical_rank = src.logical_rank;
+#define HFX_COPY_ID(field) memcpy(dst.field, src.field, sizeof(dst.field))
+    HFX_COPY_ID(model_digest);
+    HFX_COPY_ID(compatibility_root);
+    HFX_COPY_ID(plan_digest);
+    HFX_COPY_ID(topology_digest);
+    HFX_COPY_ID(placement_digest);
+    HFX_COPY_ID(checkpoint_digest);
+    HFX_COPY_ID(token_prefix_digest);
+    HFX_COPY_ID(component_manifest_digest);
+    HFX_COPY_ID(attempt_nonce);
+    HFX_COPY_ID(channel_binding);
+#undef HFX_COPY_ID
+}
+
+bool hfx_identity_stable_equal(
+        const hfx_state_identity_wire & a,
+        const hfx_state_identity_wire & b) {
+    hfx_state_identity_wire ca = a;
+    hfx_state_identity_wire cb = b;
+    memset(ca.attempt_nonce, 0, sizeof(ca.attempt_nonce));
+    memset(cb.attempt_nonce, 0, sizeof(cb.attempt_nonce));
+    return hfx_equal(reinterpret_cast<const uint8_t *>(&ca),
+                     reinterpret_cast<const uint8_t *>(&cb), sizeof(ca));
+}
+
+hfx_digest hfx_object_key(
+        const uint8_t key[32],
+        const hfx_state_identity_wire & identity) {
+    hfx_state_identity_wire stable = identity;
+    memset(stable.attempt_nonce, 0, sizeof(stable.attempt_nonce));
+    return hfx_hmac(key, &stable, sizeof(stable));
+}
+
+bool hfx_request_shape(const std::vector<uint8_t> & input,
+                       uint16_t message_type,
+                       const hfx_state_request_header *& header,
+                       const hfx_state_component_wire *& components) {
+    if (input.size() < sizeof(hfx_state_request_header) ||
+        input.size() > GGML_RPC_HALOFPX_STATE_MAX_REQUEST) return false;
+    header = reinterpret_cast<const hfx_state_request_header *>(input.data());
+    if (!hfx_magic(header->magic, "HFXREQ1\0") ||
+        header->major != HFX_STATE_MAJOR || header->minor != HFX_STATE_MINOR ||
+        header->message_type != message_type || header->reserved != 0 ||
+        header->encoded_size != input.size() ||
+        header->component_count > HFX_STATE_MAX_COMPONENTS) return false;
+    const uint64_t expected = sizeof(hfx_state_request_header) +
+        uint64_t(header->component_count) * sizeof(hfx_state_component_wire);
+    if (expected != input.size()) return false;
+    components = reinterpret_cast<const hfx_state_component_wire *>(
+        input.data() + sizeof(hfx_state_request_header));
+    uint64_t total = 0;
+    for (uint32_t i = 0; i < header->component_count; ++i) {
+        const auto & c = components[i];
+        if (c.reserved != 0 || c.ordinal != i ||
+            (c.kind != GGML_RPC_HALOFPX_COMPONENT_ATTENTION_K &&
+             c.kind != GGML_RPC_HALOFPX_COMPONENT_ATTENTION_V) ||
+            c.type >= GGML_TYPE_COUNT || c.size == 0 ||
+            c.size > HFX_STATE_MAX_COMPONENT_BYTES ||
+            !hfx_add(total, c.size, total) || total > HFX_STATE_MAX_OBJECT_BYTES) return false;
+        const auto type = static_cast<ggml_type>(c.type);
+        const uint64_t block = ggml_blck_size(type);
+        const uint64_t type_size = ggml_type_size(type);
+        if (block == 0 || type_size == 0 || c.ne[0] == 0 || c.ne[0] % block != 0 ||
+            c.ne[1] == 0 || c.ne[2] == 0 || c.ne[3] == 0 || c.nb[0] != type_size) return false;
+        uint64_t expected_stride = 0;
+        if (!hfx_mul(type_size, c.ne[0] / block, expected_stride) || c.nb[1] != expected_stride ||
+            !hfx_mul(expected_stride, c.ne[1], expected_stride) || c.nb[2] != expected_stride ||
+            !hfx_mul(expected_stride, c.ne[2], expected_stride) || c.nb[3] != expected_stride ||
+            !hfx_mul(expected_stride, c.ne[3], expected_stride) || expected_stride > HFX_STATE_MAX_COMPONENT_BYTES) return false;
+        uint64_t logical_end = 0;
+        if (!hfx_add(c.offset, c.size, logical_end) || logical_end > expected_stride) return false;
+        uint64_t current_begin = 0;
+        uint64_t current_end = 0;
+        if (!hfx_add(c.data, c.offset, current_begin) ||
+            !hfx_add(current_begin, c.size, current_end)) return false;
+        for (uint32_t j = 0; j < i; ++j) {
+            if (components[j].buffer != c.buffer) continue;
+            uint64_t other_begin = 0;
+            uint64_t other_end = 0;
+            if (!hfx_add(components[j].data, components[j].offset, other_begin) ||
+                !hfx_add(other_begin, components[j].size, other_end)) return false;
+            if (current_begin < other_end && other_begin < current_end) return false;
+        }
+    }
+    return true;
+}
+
+bool hfx_verify_request_auth(
+        const std::vector<uint8_t> & input,
+        const uint8_t key[32]) {
+    std::vector<uint8_t> copy = input;
+    auto * header = reinterpret_cast<hfx_state_request_header *>(copy.data());
+    const hfx_digest supplied = [&]() {
+        hfx_digest d {};
+        memcpy(d.data(), header->tag, d.size());
+        return d;
+    }();
+    memset(header->tag, 0, sizeof(header->tag));
+    const auto expected = hfx_hmac(key, copy.data(), copy.size());
+    return hfx_equal(supplied.data(), expected.data(), supplied.size());
+}
+
+void hfx_sign_response(hfx_state_response_wire & response, const uint8_t key[32]) {
+    memset(response.tag, 0, sizeof(response.tag));
+    const auto tag = hfx_hmac(key, &response, sizeof(response));
+    memcpy(response.tag, tag.data(), tag.size());
+}
+
+void hfx_bind_response(
+        hfx_state_response_wire & response,
+        const std::vector<uint8_t> & request,
+        const uint8_t key[32]) {
+    const auto digest = hfx_sha256(request.data(), request.size());
+    memcpy(response.request_digest, digest.data(), digest.size());
+    hfx_sign_response(response, key);
+}
+
+hfx_state_response_wire hfx_response(
+        uint16_t message_type,
+        ggml_backend_rpc_halofpx_state_status status,
+        const hfx_state_identity_wire & identity,
+        const uint8_t key[32]) {
+    hfx_state_response_wire response {};
+    hfx_set_magic(response.magic, "HFXRSP1\0");
+    response.major = HFX_STATE_MAJOR;
+    response.minor = HFX_STATE_MINOR;
+    response.message_type = message_type;
+    response.status = static_cast<uint16_t>(status);
+    response.logical_rank = identity.logical_rank;
+    response.generation = identity.generation;
+    memcpy(response.attempt_nonce, identity.attempt_nonce, sizeof(response.attempt_nonce));
+    memcpy(response.channel_binding, identity.channel_binding, sizeof(response.channel_binding));
+    hfx_sign_response(response, key);
+    return response;
+}
+
+bool hfx_write_all(int fd, const void * data, size_t size) {
+    const uint8_t * p = static_cast<const uint8_t *>(data);
+    while (size != 0) {
+        const ssize_t n = write(fd, p, size);
+        if (n <= 0) return false;
+        p += n;
+        size -= static_cast<size_t>(n);
+    }
+    return true;
+}
+
+bool hfx_read_all(int fd, void * data, size_t size) {
+    uint8_t * p = static_cast<uint8_t *>(data);
+    while (size != 0) {
+        const ssize_t n = read(fd, p, size);
+        if (n <= 0) return false;
+        p += n;
+        size -= static_cast<size_t>(n);
+    }
+    return true;
+}
+
+bool hfx_random_all(uint8_t * data, size_t size) {
+    while (size != 0) {
+        const ssize_t n = getrandom(data, size, 0);
+        if (n < 0 && errno == EINTR) continue;
+        if (n <= 0) return false;
+        data += static_cast<size_t>(n);
+        size -= static_cast<size_t>(n);
+    }
+    return true;
+}
+
+} // namespace
+#endif
 
 static bool send_msg(socket_ptr sock, const void * msg, size_t msg_size) {
     if (!sock->send_data(&msg_size, sizeof(msg_size))) {
@@ -437,6 +825,209 @@ static rpc_tensor serialize_tensor(const ggml_tensor * tensor) {
     snprintf(result.name, GGML_MAX_NAME, "%s", tensor->name);
     return result;
 }
+
+static bool recv_msg_bounded(socket_ptr sock, std::vector<uint8_t> & input, uint64_t max_size) {
+    uint64_t size;
+    if (!sock->recv_data(&size, sizeof(size)) || size > max_size) {
+        return false;
+    }
+    try {
+        input.resize(static_cast<size_t>(size));
+    } catch (const std::bad_alloc & e) {
+        GGML_LOG_ERROR("Failed to allocate bounded input buffer of size %" PRIu64 "\n", size);
+        return false;
+    }
+    return sock->recv_data(input.data(), input.size());
+}
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+namespace {
+
+std::mutex hfx_client_attempt_mutex;
+std::unordered_map<std::string, std::weak_ptr<socket_t>> hfx_client_attempt_sockets;
+std::mutex hfx_server_seen_attempt_mutex;
+std::unordered_set<std::string> hfx_server_seen_attempts;
+
+bool hfx_accept_attempt_nonce(const uint8_t nonce[32]) {
+    std::lock_guard<std::mutex> lock(hfx_server_seen_attempt_mutex);
+    if (hfx_server_seen_attempts.size() >= HFX_STATE_MAX_SEEN_ATTEMPTS) return false;
+    return hfx_server_seen_attempts.emplace(reinterpret_cast<const char *>(nonce), 32).second;
+}
+
+std::shared_ptr<socket_t> hfx_component_socket(const ggml_backend_rpc_halofpx_state_component & component) {
+    if (!component.tensor || !component.tensor->buffer ||
+        !ggml_backend_buffer_is_rpc(component.tensor->buffer)) return nullptr;
+    auto * ctx = static_cast<ggml_backend_rpc_buffer_context *>(component.tensor->buffer->context);
+    return ctx ? ctx->sock : nullptr;
+}
+
+bool hfx_component_from_public(
+        const ggml_backend_rpc_halofpx_state_component & src,
+        hfx_state_component_wire & dst) {
+    if (!src.tensor || src.ordinal > UINT32_MAX || src.size == 0) return false;
+    const rpc_tensor rpc = serialize_tensor(src.tensor);
+    if (rpc.buffer == 0 || rpc.data == 0) return false;
+    memset(&dst, 0, sizeof(dst));
+    dst.buffer = rpc.buffer;
+    dst.data = rpc.data;
+    dst.offset = src.offset;
+    dst.size = src.size;
+    dst.ordinal = src.ordinal;
+    dst.kind = src.kind;
+    dst.type = rpc.type;
+    memcpy(dst.ne, rpc.ne, sizeof(dst.ne));
+    memcpy(dst.nb, rpc.nb, sizeof(dst.nb));
+    memcpy(dst.label_digest, src.label_digest, sizeof(dst.label_digest));
+    return true;
+}
+
+ggml_backend_rpc_halofpx_state_result hfx_public_result_disabled() {
+    ggml_backend_rpc_halofpx_state_result result {};
+    result.status = GGML_RPC_HALOFPX_STATE_DISABLED;
+    return result;
+}
+
+bool hfx_verify_response(
+        const hfx_state_response_wire & response,
+        uint16_t message_type,
+        const hfx_state_identity_wire & identity,
+        const uint8_t request_digest[32],
+        const uint8_t key[32]) {
+    if (!hfx_magic(response.magic, "HFXRSP1\0") || response.major != HFX_STATE_MAJOR ||
+        response.minor != HFX_STATE_MINOR || response.message_type != message_type ||
+        response.status > GGML_RPC_HALOFPX_STATE_APPLY_ERROR ||
+        response.logical_rank != identity.logical_rank || response.generation != identity.generation ||
+        !hfx_equal(response.attempt_nonce, identity.attempt_nonce, 32) ||
+        !hfx_equal(response.channel_binding, identity.channel_binding, 32) ||
+        !hfx_equal(response.request_digest, request_digest, 32) ||
+        !hfx_zero(response.reserved, sizeof(response.reserved))) return false;
+    hfx_state_response_wire copy = response;
+    memset(copy.tag, 0, sizeof(copy.tag));
+    const auto tag = hfx_hmac(key, &copy, sizeof(copy));
+    return hfx_equal(tag.data(), response.tag, tag.size());
+}
+
+bool hfx_verify_response_semantics(
+        const hfx_state_response_wire & response,
+        uint16_t message_type,
+        uint32_t component_count,
+        uint64_t component_bytes,
+        const uint8_t expected_object_digest[32],
+        const uint8_t worker_nonce[32]) {
+    const auto status = static_cast<ggml_backend_rpc_halofpx_state_status>(response.status);
+    if (status == GGML_RPC_HALOFPX_STATE_STORED) {
+        return message_type == RPC_CMD_HALOFPX_STATE_CAPTURE &&
+            response.verified_components == component_count && response.verified_bytes == component_bytes &&
+            !hfx_zero(response.object_digest, 32) && hfx_zero(response.worker_nonce, 32);
+    }
+    if (status == GGML_RPC_HALOFPX_STATE_READY) {
+        return message_type == RPC_CMD_HALOFPX_STATE_STAGE && expected_object_digest &&
+            response.verified_components == component_count && response.verified_bytes == component_bytes &&
+            hfx_equal(response.object_digest, expected_object_digest, 32) && !hfx_zero(response.worker_nonce, 32);
+    }
+    if (status == GGML_RPC_HALOFPX_STATE_APPLIED) {
+        return message_type == RPC_CMD_HALOFPX_STATE_COMMIT_APPLY && expected_object_digest && worker_nonce &&
+            response.verified_components == component_count && response.verified_bytes == component_bytes &&
+            hfx_equal(response.object_digest, expected_object_digest, 32) &&
+            hfx_equal(response.worker_nonce, worker_nonce, 32);
+    }
+    if (status == GGML_RPC_HALOFPX_STATE_ABORTED) {
+        return message_type == RPC_CMD_HALOFPX_STATE_ABORT && response.verified_components == 0 &&
+            response.verified_bytes == 0 && hfx_zero(response.object_digest, 32) && hfx_zero(response.worker_nonce, 32);
+    }
+    if (status != GGML_RPC_HALOFPX_STATE_MISS && status != GGML_RPC_HALOFPX_STATE_REJECTED &&
+        status != GGML_RPC_HALOFPX_STATE_STORAGE_ERROR && status != GGML_RPC_HALOFPX_STATE_APPLY_ERROR) return false;
+    return response.verified_components == 0 && response.verified_bytes == 0 &&
+        hfx_zero(response.object_digest, 32) && hfx_zero(response.worker_nonce, 32);
+}
+
+ggml_backend_rpc_halofpx_state_result hfx_public_result(const hfx_state_response_wire & response) {
+    ggml_backend_rpc_halofpx_state_result result {};
+    result.status = static_cast<ggml_backend_rpc_halofpx_state_status>(response.status);
+    result.logical_rank = response.logical_rank;
+    result.generation = response.generation;
+    result.verified_bytes = response.verified_bytes;
+    result.verified_components = response.verified_components;
+    memcpy(result.object_digest, response.object_digest, 32);
+    memcpy(result.worker_nonce, response.worker_nonce, 32);
+    return result;
+}
+
+ggml_backend_rpc_halofpx_state_result hfx_client_request(
+        uint16_t message_type,
+        const ggml_backend_rpc_halofpx_state_identity * public_identity,
+        const ggml_backend_rpc_halofpx_state_component * public_components,
+        size_t component_count,
+        const uint8_t expected_object_digest[32],
+        const uint8_t worker_nonce[32],
+        const uint8_t control_key[32]) {
+    auto failed = hfx_public_result_disabled();
+    failed.status = GGML_RPC_HALOFPX_STATE_REJECTED;
+    if (!public_identity || !control_key || component_count > HFX_STATE_MAX_COMPONENTS ||
+        (component_count != 0 && !public_components)) return failed;
+    if (message_type != RPC_CMD_HALOFPX_STATE_ABORT && component_count == 0) return failed;
+    const uint64_t size = sizeof(hfx_state_request_header) + component_count * sizeof(hfx_state_component_wire);
+    if (size > GGML_RPC_HALOFPX_STATE_MAX_REQUEST) return failed;
+    std::shared_ptr<socket_t> sock;
+    if (component_count != 0) {
+        sock = hfx_component_socket(public_components[0]);
+        if (!sock) return failed;
+    } else {
+        std::lock_guard<std::mutex> lock(hfx_client_attempt_mutex);
+        const std::string key(reinterpret_cast<const char *>(public_identity->attempt_nonce), 32);
+        auto it = hfx_client_attempt_sockets.find(key);
+        if (it != hfx_client_attempt_sockets.end()) sock = it->second.lock();
+        if (!sock) return failed;
+    }
+    hfx_state_caps_wire caps {};
+    if (!send_rpc_cmd(sock, RPC_CMD_HALOFPX_STATE_CAPS, nullptr, 0, &caps, sizeof(caps)) ||
+        !hfx_magic(caps.magic, "HFXCAP1\0") || caps.major != HFX_STATE_MAJOR ||
+        caps.minor != HFX_STATE_MINOR || caps.max_request != GGML_RPC_HALOFPX_STATE_MAX_REQUEST ||
+        caps.max_components != HFX_STATE_MAX_COMPONENTS || caps.max_component_bytes != HFX_STATE_MAX_COMPONENT_BYTES ||
+        caps.max_object_bytes != HFX_STATE_MAX_OBJECT_BYTES || caps.timeout_ms != HFX_STATE_TIMEOUT_MS ||
+        !hfx_zero(caps.reserved, sizeof(caps.reserved))) return failed;
+    std::vector<uint8_t> input(size, 0);
+    auto * header = reinterpret_cast<hfx_state_request_header *>(input.data());
+    hfx_set_magic(header->magic, "HFXREQ1\0");
+    header->major = HFX_STATE_MAJOR;
+    header->minor = HFX_STATE_MINOR;
+    header->message_type = message_type;
+    header->encoded_size = static_cast<uint32_t>(size);
+    header->component_count = static_cast<uint32_t>(component_count);
+    hfx_identity_from_public(*public_identity, header->identity);
+    if (expected_object_digest) memcpy(header->expected_object_digest, expected_object_digest, 32);
+    if (worker_nonce) memcpy(header->worker_nonce, worker_nonce, 32);
+    auto * components = reinterpret_cast<hfx_state_component_wire *>(input.data() + sizeof(*header));
+    uint64_t component_bytes = 0;
+    for (size_t i = 0; i < component_count; ++i) {
+        if (public_components[i].ordinal != i ||
+            !hfx_component_from_public(public_components[i], components[i]) ||
+            hfx_component_socket(public_components[i]) != sock ||
+            !hfx_add(component_bytes, public_components[i].size, component_bytes)) return failed;
+    }
+    const auto tag = hfx_hmac(control_key, input.data(), input.size());
+    memcpy(header->tag, tag.data(), tag.size());
+    const auto request_digest = hfx_sha256(input.data(), input.size());
+    hfx_state_response_wire response {};
+    if (!send_rpc_cmd(sock, static_cast<rpc_cmd>(message_type), input.data(), input.size(), &response, sizeof(response)) ||
+        !hfx_verify_response(response, message_type, header->identity, request_digest.data(), control_key) ||
+        !hfx_verify_response_semantics(response, message_type, static_cast<uint32_t>(component_count),
+                                       component_bytes, expected_object_digest, worker_nonce)) return failed;
+    if (message_type == RPC_CMD_HALOFPX_STATE_STAGE && response.status == GGML_RPC_HALOFPX_STATE_READY) {
+        std::lock_guard<std::mutex> lock(hfx_client_attempt_mutex);
+        hfx_client_attempt_sockets[std::string(reinterpret_cast<const char *>(public_identity->attempt_nonce), 32)] = sock;
+    }
+    if ((message_type == RPC_CMD_HALOFPX_STATE_COMMIT_APPLY &&
+         response.status == GGML_RPC_HALOFPX_STATE_APPLIED) ||
+        message_type == RPC_CMD_HALOFPX_STATE_ABORT) {
+        std::lock_guard<std::mutex> lock(hfx_client_attempt_mutex);
+        hfx_client_attempt_sockets.erase(std::string(reinterpret_cast<const char *>(public_identity->attempt_nonce), 32));
+    }
+    return hfx_public_result(response);
+}
+
+} // namespace
+#endif
 
 static enum ggml_status ggml_backend_rpc_buffer_init_tensor(ggml_backend_buffer_t buffer, ggml_tensor * tensor) {
     ggml_backend_rpc_buffer_context * ctx = (ggml_backend_rpc_buffer_context *)buffer->context;
@@ -806,12 +1397,137 @@ void ggml_backend_rpc_get_device_memory(const char * endpoint, uint32_t device, 
     get_device_memory(sock, device, free, total);
 }
 
+ggml_backend_rpc_halofpx_state_result ggml_backend_rpc_halofpx_state_capture(
+        const ggml_backend_rpc_halofpx_state_identity * identity,
+        const ggml_backend_rpc_halofpx_state_component * components,
+        size_t component_count,
+        const uint8_t control_key[GGML_RPC_HALOFPX_STATE_KEY_BYTES]) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    return hfx_client_request(RPC_CMD_HALOFPX_STATE_CAPTURE, identity, components, component_count,
+                              nullptr, nullptr, control_key);
+#else
+    GGML_UNUSED(identity); GGML_UNUSED(components); GGML_UNUSED(component_count); GGML_UNUSED(control_key);
+    ggml_backend_rpc_halofpx_state_result result {};
+    result.status = GGML_RPC_HALOFPX_STATE_DISABLED;
+    return result;
+#endif
+}
+
+ggml_backend_rpc_halofpx_state_result ggml_backend_rpc_halofpx_state_stage(
+        const ggml_backend_rpc_halofpx_state_identity * identity,
+        const ggml_backend_rpc_halofpx_state_component * components,
+        size_t component_count,
+        const uint8_t expected_object_digest[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        const uint8_t control_key[GGML_RPC_HALOFPX_STATE_KEY_BYTES]) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    return hfx_client_request(RPC_CMD_HALOFPX_STATE_STAGE, identity, components, component_count,
+                              expected_object_digest, nullptr, control_key);
+#else
+    GGML_UNUSED(identity); GGML_UNUSED(components); GGML_UNUSED(component_count);
+    GGML_UNUSED(expected_object_digest); GGML_UNUSED(control_key);
+    ggml_backend_rpc_halofpx_state_result result {};
+    result.status = GGML_RPC_HALOFPX_STATE_DISABLED;
+    return result;
+#endif
+}
+
+ggml_backend_rpc_halofpx_state_result ggml_backend_rpc_halofpx_state_commit_apply(
+        const ggml_backend_rpc_halofpx_state_identity * identity,
+        const ggml_backend_rpc_halofpx_state_component * live_components,
+        size_t component_count,
+        const uint8_t expected_object_digest[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        const uint8_t worker_nonce[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        const uint8_t control_key[GGML_RPC_HALOFPX_STATE_KEY_BYTES]) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    return hfx_client_request(RPC_CMD_HALOFPX_STATE_COMMIT_APPLY, identity, live_components, component_count,
+                              expected_object_digest, worker_nonce, control_key);
+#else
+    GGML_UNUSED(identity); GGML_UNUSED(live_components); GGML_UNUSED(component_count);
+    GGML_UNUSED(expected_object_digest); GGML_UNUSED(worker_nonce); GGML_UNUSED(control_key);
+    ggml_backend_rpc_halofpx_state_result result {};
+    result.status = GGML_RPC_HALOFPX_STATE_DISABLED;
+    return result;
+#endif
+}
+
+ggml_backend_rpc_halofpx_state_result ggml_backend_rpc_halofpx_state_abort(
+        const ggml_backend_rpc_halofpx_state_identity * identity,
+        const uint8_t worker_nonce[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        const uint8_t control_key[GGML_RPC_HALOFPX_STATE_KEY_BYTES]) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    return hfx_client_request(RPC_CMD_HALOFPX_STATE_ABORT, identity, nullptr, 0,
+                              nullptr, worker_nonce, control_key);
+#else
+    GGML_UNUSED(identity); GGML_UNUSED(worker_nonce); GGML_UNUSED(control_key);
+    ggml_backend_rpc_halofpx_state_result result {};
+    result.status = GGML_RPC_HALOFPX_STATE_DISABLED;
+    return result;
+#endif
+}
+
+bool ggml_backend_rpc_halofpx_state_sha256(const void * data, size_t size, uint8_t digest[32]) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if ((size != 0 && data == nullptr) || digest == nullptr) return false;
+    const auto value = hfx_sha256(data, size);
+    memcpy(digest, value.data(), value.size());
+    return true;
+#else
+    GGML_UNUSED(data); GGML_UNUSED(size); GGML_UNUSED(digest);
+    return false;
+#endif
+}
+
 // RPC server-side implementation
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+#pragma pack(push, 1)
+struct hfx_state_object_header {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t header_size;
+    uint32_t component_count;
+    uint32_t reserved;
+    uint64_t payload_bytes;
+    hfx_state_identity_wire identity;
+};
+
+struct hfx_state_object_component {
+    hfx_state_component_wire descriptor;
+    uint8_t content_digest[32];
+};
+#pragma pack(pop)
+
+struct hfx_state_server_config_owned {
+    std::string root;
+    uint32_t logical_rank = 0;
+    uint32_t world_size = 0;
+    uint64_t key_generation = 0;
+    std::array<uint8_t, 32> control_key {};
+    std::array<uint8_t, 32> channel_binding {};
+};
+
+struct hfx_state_pending_attempt {
+    hfx_state_identity_wire identity {};
+    std::vector<hfx_state_component_wire> staged;
+    std::array<uint8_t, 32> object_digest {};
+    std::array<uint8_t, 32> worker_nonce {};
+    std::chrono::steady_clock::time_point expires {};
+};
+#endif
 
 class rpc_server {
 public:
-    rpc_server(std::vector<ggml_backend_t> all_backends, const char * cache_dir)
-        : backends(std::move(all_backends)), cache_dir(cache_dir) {
+    rpc_server(std::vector<ggml_backend_t> all_backends, const char * cache_dir
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+            , const hfx_state_server_config_owned * hfx_state_config
+#endif
+            )
+        : backends(std::move(all_backends)), cache_dir(cache_dir)
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        , hfx_state_config(hfx_state_config ? std::optional<hfx_state_server_config_owned>(*hfx_state_config) : std::nullopt)
+#endif
+        {
         stored_graphs.resize(backends.size());
     }
     ~rpc_server();
@@ -832,6 +1548,13 @@ public:
     bool init_tensor(const rpc_msg_init_tensor_req & request);
     bool get_alloc_size(const rpc_msg_get_alloc_size_req & request, rpc_msg_get_alloc_size_rsp & response);
     bool get_device_memory(const rpc_msg_get_device_memory_req & request, rpc_msg_get_device_memory_rsp & response);
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    bool hfx_state_capture(const std::vector<uint8_t> & input, hfx_state_response_wire & response);
+    bool hfx_state_stage(const std::vector<uint8_t> & input, hfx_state_response_wire & response);
+    bool hfx_state_commit_apply(const std::vector<uint8_t> & input, hfx_state_response_wire & response);
+    bool hfx_state_abort(const std::vector<uint8_t> & input, hfx_state_response_wire & response);
+    void hfx_state_discard_for_legacy_mutation();
+#endif
 
     struct stored_graph {
         std::vector<uint8_t>   buffer;
@@ -852,6 +1575,10 @@ private:
     std::unordered_set<ggml_backend_buffer_t> buffers;
     // store the last computed graph for each backend
     std::vector<stored_graph> stored_graphs;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    std::optional<hfx_state_server_config_owned> hfx_state_config;
+    std::optional<hfx_state_pending_attempt> hfx_state_pending;
+#endif
 };
 
 void rpc_server::hello(rpc_msg_hello_rsp & response) {
@@ -1445,6 +2172,422 @@ bool rpc_server::get_device_memory(const rpc_msg_get_device_memory_req & request
     return true;
 }
 
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+namespace {
+
+bool hfx_server_identity_valid(
+        const hfx_state_server_config_owned & config,
+        const hfx_state_identity_wire & identity) {
+    return identity.key_generation == config.key_generation &&
+        identity.logical_rank == config.logical_rank &&
+        identity.world_size == config.world_size &&
+        identity.world_size == 2 && identity.logical_rank == 1 &&
+        hfx_equal(identity.channel_binding, config.channel_binding.data(), 32) &&
+        !hfx_zero(identity.attempt_nonce, 32) &&
+        !hfx_zero(identity.model_digest, 32) &&
+        !hfx_zero(identity.compatibility_root, 32) &&
+        !hfx_zero(identity.plan_digest, 32) &&
+        !hfx_zero(identity.topology_digest, 32) &&
+        !hfx_zero(identity.placement_digest, 32) &&
+        !hfx_zero(identity.checkpoint_digest, 32) &&
+        !hfx_zero(identity.token_prefix_digest, 32) &&
+        !hfx_zero(identity.component_manifest_digest, 32) &&
+        identity.generation != 0 && identity.token_count == identity.token_boundary;
+}
+
+int hfx_open_objects(const hfx_state_server_config_owned & config) {
+    if (config.root.empty() || config.root.front() != '/') return -1;
+    struct stat st {};
+    if (lstat(config.root.c_str(), &st) != 0 || !S_ISDIR(st.st_mode) ||
+        S_ISLNK(st.st_mode) || st.st_uid != geteuid() || (st.st_mode & 0022) != 0) return -1;
+    const int root = open(config.root.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
+    if (root < 0) return -1;
+    if (mkdirat(root, "objects", 0700) != 0 && errno != EEXIST) {
+        close(root);
+        return -1;
+    }
+    const int objects = openat(root, "objects", O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
+    close(root);
+    if (objects < 0) return -1;
+    if (fstat(objects, &st) != 0 || !S_ISDIR(st.st_mode) || st.st_uid != geteuid() ||
+        (st.st_mode & 0022) != 0) {
+        close(objects);
+        return -1;
+    }
+    return objects;
+}
+
+ggml_tensor * hfx_component_tensor(
+        const std::unordered_set<ggml_backend_buffer_t> & buffers,
+        ggml_context * ctx,
+        const hfx_state_component_wire & component) {
+    auto buffer = reinterpret_cast<ggml_backend_buffer_t>(component.buffer);
+    if (buffer == nullptr || buffers.find(buffer) == buffers.end() ||
+        component.type >= GGML_TYPE_COUNT || ggml_blck_size((ggml_type) component.type) == 0) return nullptr;
+    ggml_tensor * tensor = ggml_new_tensor_4d(ctx, (ggml_type) component.type,
+        component.ne[0], component.ne[1], component.ne[2], component.ne[3]);
+    if (!tensor) return nullptr;
+    for (size_t i = 0; i < GGML_MAX_DIMS; ++i) tensor->nb[i] = component.nb[i];
+    tensor->buffer = buffer;
+    tensor->data = reinterpret_cast<void *>(component.data);
+    uint64_t logical_end = 0;
+    if (!hfx_add(component.offset, component.size, logical_end) ||
+        logical_end > ggml_nbytes(tensor)) return nullptr;
+    const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(buffer));
+    const uint64_t buffer_size = ggml_backend_buffer_get_size(buffer);
+    uint64_t begin = 0;
+    uint64_t end = 0;
+    uint64_t buffer_end = 0;
+    if (!hfx_add(component.data, component.offset, begin) ||
+        !hfx_add(begin, component.size, end) ||
+        !hfx_add(base, buffer_size, buffer_end) || begin < base || end > buffer_end) return nullptr;
+    return tensor;
+}
+
+bool hfx_component_semantic_equal(
+        const hfx_state_component_wire & stored,
+        const hfx_state_component_wire & requested) {
+    hfx_state_component_wire a = stored;
+    hfx_state_component_wire b = requested;
+    a.buffer = a.data = 0;
+    b.buffer = b.data = 0;
+    return hfx_equal(reinterpret_cast<const uint8_t *>(&a),
+                     reinterpret_cast<const uint8_t *>(&b), sizeof(a));
+}
+
+bool hfx_hash_fd(int fd, hfx_digest & digest) {
+    if (lseek(fd, 0, SEEK_SET) < 0) return false;
+    sha256_t ctx;
+    sha256_init(&ctx);
+    std::array<uint8_t, 1 << 20> chunk {};
+    for (;;) {
+        const ssize_t n = read(fd, chunk.data(), chunk.size());
+        if (n < 0) return false;
+        if (n == 0) break;
+        sha256_update(&ctx, chunk.data(), static_cast<size_t>(n));
+    }
+    sha256_final(&ctx, digest.data());
+    hfx_wipe(&ctx, sizeof(ctx));
+    return true;
+}
+
+bool hfx_load_object_metadata(
+        int fd,
+        const hfx_state_request_header & request,
+        const hfx_state_component_wire * requested,
+        hfx_state_object_header & object,
+        std::vector<hfx_state_object_component> & components,
+        uint64_t & payload_offset) {
+    struct stat st {};
+    if (fstat(fd, &st) != 0 || !S_ISREG(st.st_mode) || st.st_uid != geteuid() ||
+        (st.st_mode & 0022) != 0 || st.st_size < 0 ||
+        uint64_t(st.st_size) > HFX_STATE_MAX_OBJECT_BYTES + GGML_RPC_HALOFPX_STATE_MAX_REQUEST) return false;
+    if (lseek(fd, 0, SEEK_SET) < 0 || !hfx_read_all(fd, &object, sizeof(object))) return false;
+    if (!hfx_magic(object.magic, "HFXOBJ1\0") || object.major != HFX_STATE_MAJOR ||
+        object.minor != HFX_STATE_MINOR || object.reserved != 0 ||
+        object.component_count != request.component_count ||
+        object.header_size != sizeof(object) + object.component_count * sizeof(hfx_state_object_component) ||
+        !hfx_identity_stable_equal(object.identity, request.identity)) return false;
+    components.resize(object.component_count);
+    if (!components.empty() && !hfx_read_all(fd, components.data(), components.size() * sizeof(components[0]))) return false;
+    uint64_t total = 0;
+    for (uint32_t i = 0; i < object.component_count; ++i) {
+        if (!hfx_component_semantic_equal(components[i].descriptor, requested[i]) ||
+            !hfx_add(total, components[i].descriptor.size, total)) return false;
+    }
+    payload_offset = object.header_size;
+    uint64_t expected_size = 0;
+    if (total != object.payload_bytes || !hfx_add(payload_offset, total, expected_size) ||
+        expected_size != uint64_t(st.st_size)) return false;
+    return true;
+}
+
+} // namespace
+
+bool rpc_server::hfx_state_capture(const std::vector<uint8_t> & input, hfx_state_response_wire & response) {
+    const hfx_state_request_header * request = nullptr;
+    const hfx_state_component_wire * components = nullptr;
+    if (!hfx_state_config) return false;
+    if (!hfx_request_shape(input, RPC_CMD_HALOFPX_STATE_CAPTURE, request, components)) {
+        GGML_LOG_WARN("[halofpx-state] capture rejected: shape\n"); return false;
+    }
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_CAPTURE, GGML_RPC_HALOFPX_STATE_REJECTED,
+                            request->identity, hfx_state_config->control_key.data());
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    if (!hfx_verify_request_auth(input, hfx_state_config->control_key.data())) {
+        GGML_LOG_WARN("[halofpx-state] capture rejected: auth\n"); return true;
+    }
+    if (!hfx_server_identity_valid(*hfx_state_config, request->identity)) {
+        GGML_LOG_WARN("[halofpx-state] capture rejected: identity\n"); return true;
+    }
+    if (request->component_count == 0 ||
+        !hfx_zero(request->expected_object_digest, 32) || !hfx_zero(request->worker_nonce, 32)) {
+        GGML_LOG_WARN("[halofpx-state] capture rejected: unexpected fields\n"); return true;
+    }
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_CAPTURE, GGML_RPC_HALOFPX_STATE_STORAGE_ERROR,
+                            request->identity, hfx_state_config->control_key.data());
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    const int objects = hfx_open_objects(*hfx_state_config);
+    if (objects < 0) return true;
+    const auto key = hfx_object_key(hfx_state_config->control_key.data(), request->identity);
+    const std::string final_name = hfx_hex(key.data(), key.size()) + ".hfx";
+    const std::string temp_name = ".capture-" + hfx_hex(request->identity.attempt_nonce, 32);
+    const int fd = openat(objects, temp_name.c_str(), O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0600);
+    if (fd < 0) { close(objects); return true; }
+    bool ok = true;
+    hfx_state_object_header object {};
+    hfx_set_magic(object.magic, "HFXOBJ1\0");
+    object.major = HFX_STATE_MAJOR;
+    object.minor = HFX_STATE_MINOR;
+    object.header_size = sizeof(object) + request->component_count * sizeof(hfx_state_object_component);
+    object.component_count = request->component_count;
+    object.identity = request->identity;
+    memset(object.identity.attempt_nonce, 0, sizeof(object.identity.attempt_nonce));
+    std::vector<hfx_state_object_component> stored(request->component_count);
+    for (uint32_t i = 0; i < request->component_count; ++i) {
+        stored[i].descriptor = components[i];
+        stored[i].descriptor.buffer = stored[i].descriptor.data = 0;
+        ok = ok && hfx_add(object.payload_bytes, components[i].size, object.payload_bytes);
+    }
+    ok = ok && hfx_write_all(fd, &object, sizeof(object));
+    ok = ok && (stored.empty() || hfx_write_all(fd, stored.data(), stored.size() * sizeof(stored[0])));
+    ggml_init_params params { ggml_tensor_overhead(), nullptr, true };
+    std::array<uint8_t, 1 << 20> chunk {};
+    uint64_t verified = 0;
+    for (uint32_t i = 0; ok && i < request->component_count; ++i) {
+        ggml_context_ptr ctx { ggml_init(params) };
+        ggml_tensor * tensor = ctx ? hfx_component_tensor(buffers, ctx.get(), components[i]) : nullptr;
+        if (!tensor) { ok = false; break; }
+        sha256_t sha;
+        sha256_init(&sha);
+        uint64_t done = 0;
+        while (done < components[i].size) {
+            const size_t n = static_cast<size_t>(std::min<uint64_t>(chunk.size(), components[i].size - done));
+            ggml_backend_tensor_get(tensor, chunk.data(), components[i].offset + done, n);
+            sha256_update(&sha, chunk.data(), n);
+            if (!hfx_write_all(fd, chunk.data(), n)) { ok = false; break; }
+            done += n;
+        }
+        sha256_final(&sha, stored[i].content_digest);
+        hfx_wipe(&sha, sizeof(sha));
+        verified += done;
+    }
+    if (ok) {
+        ok = pwrite(fd, stored.data(), stored.size() * sizeof(stored[0]), sizeof(object)) ==
+             static_cast<ssize_t>(stored.size() * sizeof(stored[0]));
+    }
+    hfx_digest object_digest {};
+    ok = ok && fsync(fd) == 0 && hfx_hash_fd(fd, object_digest);
+    if (ok) {
+        if (linkat(objects, temp_name.c_str(), objects, final_name.c_str(), 0) != 0) ok = false;
+        if (ok) ok = fsync(objects) == 0;
+    }
+    close(fd);
+    unlinkat(objects, temp_name.c_str(), 0);
+    close(objects);
+    if (!ok) return true;
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_CAPTURE, GGML_RPC_HALOFPX_STATE_STORED,
+                            request->identity, hfx_state_config->control_key.data());
+    response.verified_components = request->component_count;
+    response.verified_bytes = verified;
+    memcpy(response.object_digest, object_digest.data(), object_digest.size());
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    GGML_LOG_INFO("[halofpx-state] stored rank=%u generation=%" PRIu64 " components=%u bytes=%" PRIu64 "\n",
+                  response.logical_rank, response.generation, response.verified_components, response.verified_bytes);
+    return true;
+}
+
+bool rpc_server::hfx_state_stage(const std::vector<uint8_t> & input, hfx_state_response_wire & response) {
+    const hfx_state_request_header * request = nullptr;
+    const hfx_state_component_wire * components = nullptr;
+    if (!hfx_state_config) return false;
+    if (!hfx_request_shape(input, RPC_CMD_HALOFPX_STATE_STAGE, request, components)) {
+        GGML_LOG_WARN("[halofpx-state] stage rejected: shape\n"); return false;
+    }
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_STAGE, GGML_RPC_HALOFPX_STATE_REJECTED,
+                            request->identity, hfx_state_config->control_key.data());
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    if (!hfx_verify_request_auth(input, hfx_state_config->control_key.data())) {
+        GGML_LOG_WARN("[halofpx-state] stage rejected: auth\n"); return true;
+    }
+    if (!hfx_server_identity_valid(*hfx_state_config, request->identity)) {
+        GGML_LOG_WARN("[halofpx-state] stage rejected: identity\n"); return true;
+    }
+    if (request->component_count == 0 ||
+        hfx_zero(request->expected_object_digest, 32) || !hfx_zero(request->worker_nonce, 32)) {
+        GGML_LOG_WARN("[halofpx-state] stage rejected: unexpected fields\n"); return true;
+    }
+    if (!hfx_accept_attempt_nonce(request->identity.attempt_nonce)) {
+        hfx_state_pending.reset();
+        GGML_LOG_WARN("[halofpx-state] stage rejected: replay or nonce ledger full\n");
+        return true;
+    }
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_STAGE, GGML_RPC_HALOFPX_STATE_MISS,
+                            request->identity, hfx_state_config->control_key.data());
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    hfx_state_pending.reset();
+    const int objects = hfx_open_objects(*hfx_state_config);
+    if (objects < 0) return true;
+    const auto key = hfx_object_key(hfx_state_config->control_key.data(), request->identity);
+    const std::string name = hfx_hex(key.data(), key.size()) + ".hfx";
+    const int fd = openat(objects, name.c_str(), O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    close(objects);
+    if (fd < 0) return true;
+    hfx_digest actual {};
+    bool ok = hfx_hash_fd(fd, actual) && hfx_equal(actual.data(), request->expected_object_digest, 32);
+    hfx_state_object_header object {};
+    std::vector<hfx_state_object_component> stored;
+    uint64_t payload_offset = 0;
+    ok = ok && hfx_load_object_metadata(fd, *request, components, object, stored, payload_offset);
+    std::array<uint8_t, 1 << 20> chunk {};
+    uint64_t file_offset = payload_offset;
+    for (uint32_t i = 0; ok && i < request->component_count; ++i) {
+        if (lseek(fd, file_offset, SEEK_SET) < 0) { ok = false; break; }
+        sha256_t sha;
+        sha256_init(&sha);
+        uint64_t done = 0;
+        while (done < components[i].size) {
+            const size_t n = static_cast<size_t>(std::min<uint64_t>(chunk.size(), components[i].size - done));
+            if (!hfx_read_all(fd, chunk.data(), n)) { ok = false; break; }
+            sha256_update(&sha, chunk.data(), n);
+            done += n;
+        }
+        hfx_digest digest {};
+        sha256_final(&sha, digest.data());
+        hfx_wipe(&sha, sizeof(sha));
+        if (!hfx_equal(digest.data(), stored[i].content_digest, 32)) ok = false;
+        file_offset += components[i].size;
+    }
+    // A second pass loads only after the complete object and every component
+    // digest have validated. The addressed tensors are disposable staging.
+    uint64_t load_offset = payload_offset;
+    for (uint32_t i = 0; ok && i < request->component_count; ++i) {
+        ggml_init_params params { ggml_tensor_overhead(), nullptr, true };
+        ggml_context_ptr ctx { ggml_init(params) };
+        ggml_tensor * tensor = ctx ? hfx_component_tensor(buffers, ctx.get(), components[i]) : nullptr;
+        if (!tensor || lseek(fd, load_offset, SEEK_SET) < 0) { ok = false; break; }
+        uint64_t done = 0;
+        while (done < components[i].size) {
+            const size_t n = static_cast<size_t>(std::min<uint64_t>(chunk.size(), components[i].size - done));
+            if (!hfx_read_all(fd, chunk.data(), n)) { ok = false; break; }
+            ggml_backend_tensor_set(tensor, chunk.data(), components[i].offset + done, n);
+            done += n;
+        }
+        load_offset += components[i].size;
+    }
+    close(fd);
+    if (!ok) return true;
+    hfx_state_pending_attempt pending;
+    pending.identity = request->identity;
+    pending.staged.assign(components, components + request->component_count);
+    memcpy(pending.object_digest.data(), actual.data(), 32);
+    if (!hfx_random_all(pending.worker_nonce.data(), pending.worker_nonce.size())) return true;
+    pending.expires = std::chrono::steady_clock::now() + std::chrono::milliseconds(HFX_STATE_TIMEOUT_MS);
+    hfx_state_pending = pending;
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_STAGE, GGML_RPC_HALOFPX_STATE_READY,
+                            request->identity, hfx_state_config->control_key.data());
+    response.verified_components = request->component_count;
+    response.verified_bytes = object.payload_bytes;
+    memcpy(response.object_digest, actual.data(), 32);
+    memcpy(response.worker_nonce, pending.worker_nonce.data(), 32);
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    GGML_LOG_INFO("[halofpx-state] ready rank=%u generation=%" PRIu64 " components=%u bytes=%" PRIu64 "\n",
+                  response.logical_rank, response.generation, response.verified_components, response.verified_bytes);
+    return true;
+}
+
+bool rpc_server::hfx_state_commit_apply(const std::vector<uint8_t> & input, hfx_state_response_wire & response) {
+    const hfx_state_request_header * request = nullptr;
+    const hfx_state_component_wire * live = nullptr;
+    if (!hfx_state_config) return false;
+    if (!hfx_request_shape(input, RPC_CMD_HALOFPX_STATE_COMMIT_APPLY, request, live)) {
+        GGML_LOG_WARN("[halofpx-state] commit rejected: shape\n"); return false;
+    }
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_COMMIT_APPLY, GGML_RPC_HALOFPX_STATE_REJECTED,
+                            request->identity, hfx_state_config->control_key.data());
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    if (!hfx_verify_request_auth(input, hfx_state_config->control_key.data())) {
+        GGML_LOG_WARN("[halofpx-state] commit rejected: auth\n"); return true;
+    }
+    if (!hfx_server_identity_valid(*hfx_state_config, request->identity)) {
+        GGML_LOG_WARN("[halofpx-state] commit rejected: identity\n"); return true;
+    }
+    if (request->component_count == 0) return true;
+    if (!hfx_state_pending || std::chrono::steady_clock::now() > hfx_state_pending->expires ||
+        !hfx_equal(request->worker_nonce, hfx_state_pending->worker_nonce.data(), 32) ||
+        !hfx_equal(request->expected_object_digest, hfx_state_pending->object_digest.data(), 32) ||
+        !hfx_equal(reinterpret_cast<const uint8_t *>(&request->identity),
+                   reinterpret_cast<const uint8_t *>(&hfx_state_pending->identity), sizeof(request->identity)) ||
+        request->component_count != hfx_state_pending->staged.size()) {
+        hfx_state_pending.reset();
+        return true;
+    }
+    bool ok = true;
+    uint64_t applied = 0;
+    for (uint32_t i = 0; ok && i < request->component_count; ++i) {
+        if (!hfx_component_semantic_equal(hfx_state_pending->staged[i], live[i])) { ok = false; break; }
+        ggml_init_params params { 4 * ggml_tensor_overhead(), nullptr, true };
+        ggml_context_ptr ctx { ggml_init(params) };
+        ggml_tensor * src = ctx ? hfx_component_tensor(buffers, ctx.get(), hfx_state_pending->staged[i]) : nullptr;
+        ggml_tensor * dst = ctx ? hfx_component_tensor(buffers, ctx.get(), live[i]) : nullptr;
+        if (!src || !dst) { ok = false; break; }
+        const size_t element_size = ggml_element_size(src);
+        if (element_size == 0 || hfx_state_pending->staged[i].size % element_size != 0) { ok = false; break; }
+        const int64_t elements = hfx_state_pending->staged[i].size / element_size;
+        if (elements <= 0) { ok = false; break; }
+        ggml_tensor * src_view = ggml_view_1d(ctx.get(), src, elements, hfx_state_pending->staged[i].offset);
+        ggml_tensor * dst_view = ggml_view_1d(ctx.get(), dst, elements, live[i].offset);
+        ggml_backend_view_init(src_view);
+        ggml_backend_view_init(dst_view);
+        ok = ggml_backend_buffer_copy_tensor(src_view, dst_view);
+        applied += ok ? live[i].size : 0;
+    }
+    hfx_state_pending.reset();
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_COMMIT_APPLY,
+                            ok ? GGML_RPC_HALOFPX_STATE_APPLIED : GGML_RPC_HALOFPX_STATE_APPLY_ERROR,
+                            request->identity, hfx_state_config->control_key.data());
+    response.verified_components = ok ? request->component_count : 0;
+    response.verified_bytes = ok ? applied : 0;
+    if (ok) {
+        memcpy(response.object_digest, request->expected_object_digest, 32);
+        memcpy(response.worker_nonce, request->worker_nonce, 32);
+    }
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    GGML_LOG_INFO("[halofpx-state] apply rank=%u generation=%" PRIu64 " status=%u components=%u bytes=%" PRIu64 "\n",
+                  response.logical_rank, response.generation, response.status,
+                  response.verified_components, response.verified_bytes);
+    return true;
+}
+
+bool rpc_server::hfx_state_abort(const std::vector<uint8_t> & input, hfx_state_response_wire & response) {
+    const hfx_state_request_header * request = nullptr;
+    const hfx_state_component_wire * components = nullptr;
+    if (!hfx_state_config || !hfx_request_shape(input, RPC_CMD_HALOFPX_STATE_ABORT, request, components)) return false;
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_ABORT, GGML_RPC_HALOFPX_STATE_REJECTED,
+                            request->identity, hfx_state_config->control_key.data());
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    if (request->component_count != 0 || !hfx_zero(request->expected_object_digest, 32) ||
+        !hfx_verify_request_auth(input, hfx_state_config->control_key.data()) ||
+        !hfx_server_identity_valid(*hfx_state_config, request->identity)) return true;
+    if (hfx_state_pending &&
+        (!hfx_equal(reinterpret_cast<const uint8_t *>(&request->identity),
+                    reinterpret_cast<const uint8_t *>(&hfx_state_pending->identity), sizeof(request->identity)) ||
+         !hfx_equal(request->worker_nonce, hfx_state_pending->worker_nonce.data(), 32))) {
+        hfx_state_pending.reset();
+        return true;
+    }
+    hfx_state_pending.reset();
+    response = hfx_response(RPC_CMD_HALOFPX_STATE_ABORT, GGML_RPC_HALOFPX_STATE_ABORTED,
+                            request->identity, hfx_state_config->control_key.data());
+    hfx_bind_response(response, input, hfx_state_config->control_key.data());
+    return true;
+}
+
+void rpc_server::hfx_state_discard_for_legacy_mutation() {
+    hfx_state_pending.reset();
+}
+#endif
+
 rpc_server::~rpc_server() {
     for (auto buffer : buffers) {
         ggml_backend_buffer_free(buffer);
@@ -1452,8 +2595,15 @@ rpc_server::~rpc_server() {
 }
 
 static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const char * cache_dir,
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+                             const hfx_state_server_config_owned * hfx_state_config,
+#endif
                              socket_ptr sock) {
-    rpc_server server(backends, cache_dir);
+    rpc_server server(backends, cache_dir
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        , hfx_state_config
+#endif
+    );
     uint8_t cmd;
     if (!sock->recv_data(&cmd, 1)) {
         return;
@@ -1499,6 +2649,13 @@ static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const
             GGML_LOG_ERROR("Unknown command: %d\n", cmd);
             break;
         }
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        if (cmd == RPC_CMD_ALLOC_BUFFER || cmd == RPC_CMD_FREE_BUFFER || cmd == RPC_CMD_BUFFER_CLEAR ||
+            cmd == RPC_CMD_SET_TENSOR || cmd == RPC_CMD_SET_TENSOR_HASH || cmd == RPC_CMD_COPY_TENSOR ||
+            cmd == RPC_CMD_GRAPH_COMPUTE || cmd == RPC_CMD_INIT_TENSOR || cmd == RPC_CMD_GRAPH_RECOMPUTE) {
+            server.hfx_state_discard_for_legacy_mutation();
+        }
+#endif
         switch (cmd) {
             case RPC_CMD_HELLO: {
                 // HELLO command is handled above
@@ -1710,6 +2867,37 @@ static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const
                 }
                 break;
             }
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+            case RPC_CMD_HALOFPX_STATE_CAPS: {
+                if (!recv_msg(sock, nullptr, 0)) return;
+                hfx_state_caps_wire response {};
+                hfx_set_magic(response.magic, "HFXCAP1\0");
+                response.major = HFX_STATE_MAJOR;
+                response.minor = HFX_STATE_MINOR;
+                response.max_request = GGML_RPC_HALOFPX_STATE_MAX_REQUEST;
+                response.max_components = HFX_STATE_MAX_COMPONENTS;
+                response.max_component_bytes = HFX_STATE_MAX_COMPONENT_BYTES;
+                response.max_object_bytes = HFX_STATE_MAX_OBJECT_BYTES;
+                response.timeout_ms = HFX_STATE_TIMEOUT_MS;
+                if (!send_msg(sock, &response, sizeof(response))) return;
+                break;
+            }
+            case RPC_CMD_HALOFPX_STATE_CAPTURE:
+            case RPC_CMD_HALOFPX_STATE_STAGE:
+            case RPC_CMD_HALOFPX_STATE_COMMIT_APPLY:
+            case RPC_CMD_HALOFPX_STATE_ABORT: {
+                std::vector<uint8_t> input;
+                if (!recv_msg_bounded(sock, input, GGML_RPC_HALOFPX_STATE_MAX_REQUEST)) return;
+                hfx_state_response_wire response {};
+                bool handled = false;
+                if (cmd == RPC_CMD_HALOFPX_STATE_CAPTURE) handled = server.hfx_state_capture(input, response);
+                if (cmd == RPC_CMD_HALOFPX_STATE_STAGE) handled = server.hfx_state_stage(input, response);
+                if (cmd == RPC_CMD_HALOFPX_STATE_COMMIT_APPLY) handled = server.hfx_state_commit_apply(input, response);
+                if (cmd == RPC_CMD_HALOFPX_STATE_ABORT) handled = server.hfx_state_abort(input, response);
+                if (!handled || !send_msg(sock, &response, sizeof(response))) return;
+                break;
+            }
+#endif
             default: {
                 GGML_LOG_ERROR("Unknown command: %d\n", cmd);
                 return;
@@ -1718,8 +2906,12 @@ static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const
     }
 }
 
-void ggml_backend_rpc_start_server(const char * endpoint, const char * cache_dir,
-                                   size_t n_threads, size_t n_devices, ggml_backend_dev_t * devices) {
+static void ggml_backend_rpc_start_server_internal(const char * endpoint, const char * cache_dir,
+                                   size_t n_threads, size_t n_devices, ggml_backend_dev_t * devices
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+                                   , const hfx_state_server_config_owned * hfx_state_config
+#endif
+                                   ) {
     if (n_devices == 0 || devices == nullptr) {
         fprintf(stderr, "Invalid arguments to ggml_backend_rpc_start_server\n");
         return;
@@ -1731,6 +2923,9 @@ void ggml_backend_rpc_start_server(const char * endpoint, const char * cache_dir
         RPC_PROTO_PATCH_VERSION);
     printf("  endpoint       : %s\n", endpoint);
     printf("  local cache    : %s\n", cache_dir ? cache_dir : "n/a");
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    printf("  HaloFPX state  : %s\n", hfx_state_config ? "enabled (canary)" : "off");
+#endif
     printf("Devices:\n");
     for (size_t i = 0; i < n_devices; i++) {
         auto dev = devices[i];
@@ -1781,7 +2976,11 @@ void ggml_backend_rpc_start_server(const char * endpoint, const char * cache_dir
         }
         printf("Accepted client connection\n");
         fflush(stdout);
-        rpc_serve_client(backends, cache_dir, client_socket);
+        rpc_serve_client(backends, cache_dir,
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+                         hfx_state_config,
+#endif
+                         client_socket);
         printf("Client connection closed\n");
         fflush(stdout);
     }
@@ -1789,6 +2988,42 @@ void ggml_backend_rpc_start_server(const char * endpoint, const char * cache_dir
     for (auto backend : backends) {
         ggml_backend_free(backend);
     }
+}
+
+void ggml_backend_rpc_start_server(const char * endpoint, const char * cache_dir,
+                                   size_t n_threads, size_t n_devices, ggml_backend_dev_t * devices) {
+    ggml_backend_rpc_start_server_internal(endpoint, cache_dir, n_threads, n_devices, devices
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+                                           , nullptr
+#endif
+    );
+}
+
+void ggml_backend_rpc_start_server_with_halofpx_state(
+        const char * endpoint, const char * cache_dir,
+        size_t n_threads, size_t n_devices, ggml_backend_dev_t * devices,
+        const ggml_backend_rpc_halofpx_state_server_config * state_config) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (!state_config || !state_config->root || state_config->root[0] != '/' ||
+        state_config->logical_rank != 1 || state_config->world_size != 2 ||
+        state_config->key_generation == 0 ||
+        hfx_zero(state_config->control_key, 32) || hfx_zero(state_config->channel_binding, 32)) {
+        fprintf(stderr, "Invalid HaloFPX worker-local state configuration\n");
+        return;
+    }
+    hfx_state_server_config_owned owned;
+    owned.root = state_config->root;
+    owned.logical_rank = state_config->logical_rank;
+    owned.world_size = state_config->world_size;
+    owned.key_generation = state_config->key_generation;
+    memcpy(owned.control_key.data(), state_config->control_key, 32);
+    memcpy(owned.channel_binding.data(), state_config->channel_binding, 32);
+    ggml_backend_rpc_start_server_internal(endpoint, cache_dir, n_threads, n_devices, devices, &owned);
+#else
+    GGML_UNUSED(endpoint); GGML_UNUSED(cache_dir); GGML_UNUSED(n_threads);
+    GGML_UNUSED(n_devices); GGML_UNUSED(devices); GGML_UNUSED(state_config);
+    fprintf(stderr, "HaloFPX worker-local state support is not compiled in\n");
+#endif
 }
 
 // device interface
@@ -1921,6 +3156,9 @@ static void * ggml_backend_rpc_get_proc_address(ggml_backend_reg_t reg, const ch
     }
     if (std::strcmp(name, "ggml_backend_rpc_start_server") == 0) {
         return (void *)ggml_backend_rpc_start_server;
+    }
+    if (std::strcmp(name, "ggml_backend_rpc_start_server_with_halofpx_state") == 0) {
+        return (void *)ggml_backend_rpc_start_server_with_halofpx_state;
     }
     return NULL;
 

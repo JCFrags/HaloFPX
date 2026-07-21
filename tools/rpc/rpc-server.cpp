@@ -7,6 +7,7 @@
 #  include <io.h>
 #else
 #  define DIRECTORY_SEPARATOR '/'
+#  include <fcntl.h>
 #  include <unistd.h>
 #  include <sys/stat.h>
 #endif
@@ -19,6 +20,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <array>
+#include <fstream>
 
 #if defined(__linux__)
 #include <sys/types.h>
@@ -175,6 +178,14 @@ struct rpc_server_params {
     bool                     use_cache   = false;
     int                      n_threads   = std::max(1U, std::thread::hardware_concurrency()/2);
     std::vector<std::string> devices;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    bool                     halofpx_local_state = false;
+    std::string              halofpx_state_root;
+    std::string              halofpx_state_key_file;
+    uint32_t                 halofpx_state_rank = 0;
+    uint32_t                 halofpx_state_world = 0;
+    uint64_t                 halofpx_state_key_generation = 0;
+#endif
 };
 
 static void print_usage(int /*argc*/, char ** argv, rpc_server_params params) {
@@ -186,6 +197,14 @@ static void print_usage(int /*argc*/, char ** argv, rpc_server_params params) {
     fprintf(stderr, "  -H, --host HOST                  host to bind to (default: %s)\n", params.host.c_str());
     fprintf(stderr, "  -p, --port PORT                  port to bind to (default: %d)\n", params.port);
     fprintf(stderr, "  -c, --cache                      enable local file cache\n");
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    fprintf(stderr, "      --halofpx-local-state        enable the default-off worker-local state canary\n");
+    fprintf(stderr, "      --halofpx-state-root PATH    operator-owned absolute local state root\n");
+    fprintf(stderr, "      --halofpx-state-key-file P   protected file: key hex then channel-binding hex\n");
+    fprintf(stderr, "      --halofpx-state-rank N       configured logical rank (canary requires 1)\n");
+    fprintf(stderr, "      --halofpx-state-world N      configured world size (canary requires 2)\n");
+    fprintf(stderr, "      --halofpx-state-key-generation N  nonzero control-key generation\n");
+#endif
     fprintf(stderr, "\n");
 }
 
@@ -233,6 +252,20 @@ static bool rpc_server_params_parse(int argc, char ** argv, rpc_server_params & 
             }
         } else if (arg == "-c" || arg == "--cache") {
             params.use_cache = true;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        } else if (arg == "--halofpx-local-state") {
+            params.halofpx_local_state = true;
+        } else if (arg == "--halofpx-state-root" && ++i < argc) {
+            params.halofpx_state_root = argv[i];
+        } else if (arg == "--halofpx-state-key-file" && ++i < argc) {
+            params.halofpx_state_key_file = argv[i];
+        } else if (arg == "--halofpx-state-rank" && ++i < argc) {
+            params.halofpx_state_rank = static_cast<uint32_t>(std::stoul(argv[i]));
+        } else if (arg == "--halofpx-state-world" && ++i < argc) {
+            params.halofpx_state_world = static_cast<uint32_t>(std::stoul(argv[i]));
+        } else if (arg == "--halofpx-state-key-generation" && ++i < argc) {
+            params.halofpx_state_key_generation = std::stoull(argv[i]);
+#endif
         } else if (arg == "-h" || arg == "--help") {
             print_usage(argc, argv, params);
             exit(0);
@@ -244,6 +277,63 @@ static bool rpc_server_params_parse(int argc, char ** argv, rpc_server_params & 
     }
     return true;
 }
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+static bool parse_hex_32(const std::string & value, uint8_t output[32]) {
+    if (value.size() != 64) return false;
+    auto nibble = [](char c) -> int {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+        return -1;
+    };
+    for (size_t i = 0; i < 32; ++i) {
+        const int high = nibble(value[2*i]);
+        const int low = nibble(value[2*i + 1]);
+        if (high < 0 || low < 0) return false;
+        output[i] = static_cast<uint8_t>((high << 4) | low);
+    }
+    return true;
+}
+
+static bool load_halofpx_state_key_file(
+        const std::string & path,
+        ggml_backend_rpc_halofpx_state_server_config & config) {
+#if defined(__linux__)
+    const int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (fd < 0) return false;
+    struct stat st {};
+    if (fstat(fd, &st) != 0 || !S_ISREG(st.st_mode) || st.st_uid != geteuid() ||
+        (st.st_mode & 0077) != 0 || st.st_size <= 0 || st.st_size > 256) {
+        close(fd);
+        return false;
+    }
+    std::array<char, 257> data {};
+    size_t used = 0;
+    while (used < data.size()) {
+        const ssize_t n = read(fd, data.data() + used, data.size() - used);
+        if (n < 0) { close(fd); return false; }
+        if (n == 0) break;
+        used += static_cast<size_t>(n);
+    }
+    close(fd);
+    if (used == data.size()) return false;
+    const std::string text(data.data(), used);
+    const size_t first = text.find('\n');
+    const size_t second = first == std::string::npos ? first : text.find('\n', first + 1);
+    if (first == std::string::npos || (second != std::string::npos && second + 1 != text.size())) return false;
+    const std::string key = text.substr(0, first);
+    const std::string channel = text.substr(first + 1, second == std::string::npos ? second : second - first - 1);
+#else
+    std::ifstream input(path);
+    std::string key;
+    std::string channel;
+    std::string trailing;
+    if (!std::getline(input, key) || !std::getline(input, channel) || std::getline(input, trailing)) return false;
+#endif
+    return parse_hex_32(key, config.control_key) && parse_hex_32(channel, config.channel_binding);
+}
+#endif
 
 static std::vector<ggml_backend_dev_t> get_devices(const rpc_server_params & params) {
     std::vector<ggml_backend_dev_t> devices;
@@ -331,6 +421,33 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (params.halofpx_local_state) {
+        if (params.halofpx_state_root.empty() || params.halofpx_state_root.front() != '/' ||
+            params.halofpx_state_key_file.empty() || params.halofpx_state_rank != 1 ||
+            params.halofpx_state_world != 2 || params.halofpx_state_key_generation == 0) {
+            fprintf(stderr, "Incomplete HaloFPX worker-local state configuration\n");
+            return 1;
+        }
+        ggml_backend_rpc_halofpx_state_server_config config {};
+        config.root = params.halofpx_state_root.c_str();
+        config.logical_rank = params.halofpx_state_rank;
+        config.world_size = params.halofpx_state_world;
+        config.key_generation = params.halofpx_state_key_generation;
+        if (!load_halofpx_state_key_file(params.halofpx_state_key_file, config)) {
+            fprintf(stderr, "Refusing unprotected or malformed HaloFPX state key file\n");
+            return 1;
+        }
+        using start_state_fn = decltype(ggml_backend_rpc_start_server_with_halofpx_state) *;
+        auto fn = (start_state_fn) ggml_backend_reg_get_proc_address(reg, "ggml_backend_rpc_start_server_with_halofpx_state");
+        if (!fn) {
+            fprintf(stderr, "Failed to obtain HaloFPX RPC state server function\n");
+            return 1;
+        }
+        fn(endpoint.c_str(), cache_dir, params.n_threads, devices.size(), devices.data(), &config);
+        return 0;
+    }
+#endif
     auto start_server_fn = (decltype(ggml_backend_rpc_start_server)*) ggml_backend_reg_get_proc_address(reg, "ggml_backend_rpc_start_server");
     if (!start_server_fn) {
         fprintf(stderr, "Failed to obtain RPC backend start server function\n");

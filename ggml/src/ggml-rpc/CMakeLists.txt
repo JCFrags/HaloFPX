@@ -5,6 +5,14 @@ ggml_add_backend_library(ggml-rpc
                          transport.cpp
                         )
 
+if (GGML_RPC_HALOFPX_LOCAL_STATE)
+    target_sources(ggml-rpc PRIVATE
+        ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps/sha256/sha256.c)
+    target_include_directories(ggml-rpc PRIVATE
+        ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps)
+    target_compile_definitions(ggml-rpc PUBLIC GGML_RPC_HALOFPX_LOCAL_STATE=1)
+endif()
+
 if (WIN32)
     target_link_libraries(ggml-rpc PRIVATE ws2_32)
 endif()

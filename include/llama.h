@@ -962,6 +962,59 @@ extern "C" {
            llama_state_seq_flags   flags,
       const struct llama_state_seq_storage * storage);
 
+    // HaloFPX L11 successor canary: parse a validated ON_DEVICE sequence-state
+    // control blob into a disposable clean context and allocate matching
+    // staging storage without copying any staged tensor live. The context is
+    // disposable and must be recreated if the distributed attempt fails.
+    LLAMA_API size_t llama_state_seq_prepare_data_ext_storage(
+            struct llama_context * ctx,
+              const uint8_t * src,
+                     size_t   size,
+               llama_seq_id   seq_id,
+        llama_state_seq_flags flags,
+    struct llama_state_seq_storage * storage);
+
+    LLAMA_API size_t llama_state_seq_storage_local_size(
+            const struct llama_state_seq_storage * storage);
+    LLAMA_API size_t llama_state_seq_storage_get_local(
+            const struct llama_state_seq_storage * storage,
+            uint8_t * dst,
+            size_t size);
+    LLAMA_API size_t llama_state_seq_storage_set_local(
+            struct llama_state_seq_storage * storage,
+            const uint8_t * src,
+            size_t size);
+    LLAMA_API bool llama_state_seq_storage_halofpx_manifest_digest(
+            const struct llama_state_seq_storage * storage,
+            uint8_t digest[32]);
+
+    struct ggml_backend_rpc_halofpx_state_identity;
+    struct ggml_backend_rpc_halofpx_state_result;
+
+    LLAMA_API bool llama_state_seq_storage_halofpx_capture_remote(
+            const struct llama_state_seq_storage * storage,
+            const struct ggml_backend_rpc_halofpx_state_identity * identity,
+            const uint8_t control_key[32],
+            struct ggml_backend_rpc_halofpx_state_result * result);
+    LLAMA_API bool llama_state_seq_storage_halofpx_stage_remote(
+            struct llama_state_seq_storage * storage,
+            const struct ggml_backend_rpc_halofpx_state_identity * identity,
+            const uint8_t expected_object_digest[32],
+            const uint8_t control_key[32],
+            struct ggml_backend_rpc_halofpx_state_result * result);
+    LLAMA_API bool llama_state_seq_storage_halofpx_commit_remote(
+            const struct llama_state_seq_storage * storage,
+            const struct ggml_backend_rpc_halofpx_state_identity * identity,
+            const uint8_t expected_object_digest[32],
+            const uint8_t worker_nonce[32],
+            const uint8_t control_key[32],
+            struct ggml_backend_rpc_halofpx_state_result * result);
+    LLAMA_API bool llama_state_seq_storage_halofpx_abort_remote(
+            const struct ggml_backend_rpc_halofpx_state_identity * identity,
+            const uint8_t worker_nonce[32],
+            const uint8_t control_key[32],
+            struct ggml_backend_rpc_halofpx_state_result * result);
+
     //
     // Decoding
     //
