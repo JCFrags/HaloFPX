@@ -1,0 +1,46 @@
+{
+  "schema": "halofpx-milestone-receipt-v1",
+  "milestone": "L13R-prerequisites",
+  "date": "2026-07-21",
+  "implementation_commit": "0fd867f118776a7313bc8119ecfb9bb32c781b20",
+  "outcome": "pass-both-prerequisites",
+  "prerequisite_a": {
+    "result": "PASS",
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "n_batch": 512,
+    "prompt_chunks": 3,
+    "max_prompt_chunk": 512,
+    "worker_pid_before_restart": 2069893,
+    "worker_pid_after_restart": 2069926,
+    "worker_state_bytes": 2598912,
+    "worker_components": 4,
+    "worker_object_bytes": 2599880,
+    "worker_object_sha256": "fffeea6de555b6777d6594ea752474c9536e99308e4ceb0ab48afa4622dc5576",
+    "suffix_token_sha256": "8833fa5b4ce8735bd0520e7eb2e969b26ae302b688c5f4f80c2fb58858af703f",
+    "suffix_text_sha256": "a46e483407ed242d4e4301ac39247072f283cf76abb2112a31ffa4a33f3a78c8",
+    "capture_state_window_get_set": 0,
+    "restore_state_window_get_set": 0
+  },
+  "prerequisite_b": {
+    "result": "PASS",
+    "controller": "scripts/halofpx-production-transition.py",
+    "focused_tests": 15,
+    "live_dry_run": "PASS",
+    "coordinator_binding": "nimo-1:minimax-m27-q6-server.service:8081",
+    "worker_binding": "nimo-2:minimax-m27-rpc-worker.service:50052",
+    "create_once_snapshot": true,
+    "worker_stop_requires_exact_coordinator_inactive": true,
+    "worker_first_recovery_trap": true
+  },
+  "review": {
+    "path": "docs/halofpx/reviews/2026-07-21__l13r-executable-retry-prerequisites__review__v01.md",
+    "verdict": "ACCEPT A and B; no P1/P2 remains"
+  },
+  "production_mutated": false,
+  "evidence_bundle": {
+    "host": "nimo-2",
+    "path": "/var/tmp/halofpx-l13-retry-prerequisites-20260721-v1.tar.zst",
+    "sha256": "6427ba13860728934e673dc19b32da5a42e42a086482ab8f0cb1ad38dcca075a"
+  }
+}
