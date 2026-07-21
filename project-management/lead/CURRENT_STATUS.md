@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 04:26 PDT
+Verified: 2026-07-21 04:44 PDT
 
 ## Overall state
 
@@ -14,15 +14,16 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `a496492c590570e88ac83b511f37e66c52197816`
+- Latest verified commit: `09fe45f82dc91be87142d47a27348788a1ac7c03`
 - Remote count: zero
-- Worktree state: clean at the committed L14 boundary
+- Worktree state: clean at the reviewed L15 transition-harness boundary
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L15 was dispatched successfully and the worker is active in
-  preflight/build preparation for the one controller-managed primary-model
-  canary. Production has not yet been touched. No steering is presently needed.
+- Current work: the independently reviewed L15 harness is committed and the
+  single authorized controller-managed primary-model maintenance transition is
+  in progress. The controller owns all mutation and guarded rollback. No
+  steering is presently needed.
 
 ## Product progress
 
