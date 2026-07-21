@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 04:58 PDT
+Verified: 2026-07-21 04:59 PDT
 
 ## Overall state
 
@@ -20,10 +20,10 @@ slower candidates.
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L15 is closed NOT PROMOTED after a protected-key preflight
-  failure before connection or model load. Production is restored and directly
-  verified healthy. L16 is authorized only after executable pre-mutation key
-  provisioning and exact protection checks pass focused review.
+- Current work: L16 is dispatched. The worker must first implement, remotely
+  exercise, and independently review executable pre-mutation secure key
+  provisioning while production stays healthy. Only a passing prerequisite may
+  unlock one unchanged controller-managed primary canary attempt.
 
 ## Product progress
 
