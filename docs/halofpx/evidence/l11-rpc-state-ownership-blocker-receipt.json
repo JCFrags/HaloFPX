@@ -1,0 +1,51 @@
+{
+  "schema": "halofpx-milestone-receipt-v1",
+  "milestone": "L11",
+  "title": "RPC tensor-split state ownership blocker",
+  "date": "2026-07-21",
+  "base_commit": "6862ffb99a8056552f62827658f3ffdcc79b9af4",
+  "outcome": "blocked-no-canary",
+  "fixture": {
+    "coordinator": "nimo-2",
+    "worker": "nimo-1",
+    "rpc_endpoint": "10.44.0.1:50062",
+    "plan": "RPC0 layer split, tensor split 1, n_gpu_layers 3",
+    "plan_fingerprint_sha256": "121cf2ee200f3a2397d306a62a7f8219537d6df17fbf3bc8c3b53974896f084f",
+    "topology_fingerprint_sha256": "9baf437f2f3ca50fc727d57be522fa86d5ce61754f93bd005da2c49d9746e4e2",
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "coordinator_binary_sha256": "0a05e2f56869d9b45b43cb17b6c5fd280604ee523f5dbc3afd6e4c15352d61f4",
+    "worker_binary_sha256": "8fcc2d44e0fd0b42fa2dc6da5f9a8479045cc76048ca320b6e21659c4c0ded08",
+    "sequence_blob_bytes": 124876,
+    "capture_rpc_get_tensor": {"count": 4, "bytes_each": 10368, "payload_bytes": 41472},
+    "restore_rpc_set_tensor": {"count": 4, "bytes_each": 10368, "payload_bytes": 41472},
+    "first_suffix_token_uninterrupted": 10534,
+    "first_suffix_token_restored": 10534,
+    "first_suffix_text": " waiting"
+  },
+  "decision": {
+    "rank_local_serialization_available": false,
+    "state_pages_cross_rpc_control_connection": true,
+    "two_rank_canary_admitted": false,
+    "required_behavior": "cold recomputation"
+  },
+  "production": {
+    "touched": false,
+    "nimo_1_service_active": true,
+    "nimo_1_restarts": 0,
+    "nimo_2_service_active": true,
+    "nimo_2_restarts": 0
+  },
+  "evidence_bundle": {
+    "path": "/var/tmp/halofpx-rpc-state-ownership-evidence-20260721-v1.tar.zst",
+    "sha256": "b0d631ff52be389f581f908c5807b8c3cc6dac84180a81114e3c94b0357cd0ff"
+  },
+  "excluded": [
+    "distributed restore implementation",
+    "160 GB primary model",
+    "production mutation",
+    "eviction",
+    "shared or prefix reuse",
+    "broad fault matrix",
+    "G9 or G10 claims"
+  ]
+}

@@ -41,3 +41,5 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0035](0035-default-off-explicit-handle-full-v1-server-canary.md): default-off explicit-handle full-v1 server canary
 - [ADR-0036](0036-generation-one-lifecycle-guard-and-redacted-inspection.md): generation-one lifecycle guard and redacted inspection
 - [ADR-0037](0037-default-off-exact-key-operational-canary.md): default-off exact-key operational cache canary
+- [ADR-0038](0038-bounded-authenticated-exact-key-catalog.md): bounded authenticated exact-key catalog
+- [ADR-0039](0039-rpc-tensor-split-distributed-restore-blocker.md): current RPC tensor-split distributed restore blocker
