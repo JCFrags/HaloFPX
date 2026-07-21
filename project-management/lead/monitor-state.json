@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-21T04:24:00-07:00",
+  "updated_at": "2026-07-21T04:26:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
-  "worker_status": "idle_at_l14_boundary",
+  "worker_status": "active_l15_preflight_build",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
   "last_verified_head": "a496492c590570e88ac83b511f37e66c52197816",
   "last_observed_milestone": "L14 exact application-level RPC CAPS readiness qualified without production mutation",
-  "last_decision": "accept_l14_authorize_one_l15_primary_canary",
-  "next_check_trigger": "dispatch L15; then completion, attention, controller refusal, rollback risk, or one 60-90 minute model-load/runtime checkpoint"
+  "last_decision": "l15_dispatched_no_steering_needed",
+  "next_check_trigger": "task completion or attention event; otherwise 30-minute heartbeat during preflight/build, then allow 60-90 minutes once model load/runtime begins"
 }
