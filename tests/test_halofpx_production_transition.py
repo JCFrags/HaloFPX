@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 import sys
 import tempfile
@@ -44,11 +45,69 @@ class FakeRunner:
         self.disposable_mutations = []
         self.ignore_disposable_stop = False
         self.canary_process_active = False
+        self.keys = {}
+        self.install_mode = "600"
+        self.install_owner = transition.CHANNEL_KEY_OWNER
+        self.install_type = "regular file"
+        self.drop_key_host = None
+        self.mismatch_key_host = None
+        self.rm_failure_host = None
+        self.stat_transport_failure_host = None
+        self.key_metadata_stat_count = 0
+        self.corrupt_on_metadata_stat = None
+        self.existence_probe_failure_host = None
+        self.stdin_calls = []
+
+    def run_stdin(self, host, argv, stdin):
+        argv = list(argv)
+        self.stdin_calls.append((host, argv))
+        if argv[:4] != ["install", "-m", "600", "/dev/stdin"]:
+            return transition.CommandResult(99, "", f"unexpected stdin command: {argv}")
+        if host != self.drop_key_host:
+            content = stdin + (b"x" if host == self.mismatch_key_host else b"")
+            self.keys[host] = {
+                "path": argv[4],
+                "content": content,
+                "mode": self.install_mode,
+                "owner": self.install_owner,
+                "type": self.install_type,
+            }
+        return transition.CommandResult(0, "")
 
     def run(self, host, argv):
         argv = list(argv)
         if argv == ["hostname"]:
             return transition.CommandResult(0, self.hostname[host] + "\n")
+        if argv[:3] == ["stat", "-c", "%F"]:
+            if host == self.existence_probe_failure_host:
+                self.existence_probe_failure_host = None
+                return transition.CommandResult(255, "", "transport")
+            if host == self.stat_transport_failure_host:
+                return transition.CommandResult(255, "", "transport")
+            key = self.keys.get(host)
+            if key and key["path"] == argv[-1]:
+                return transition.CommandResult(0, key["type"] + "\n")
+            return transition.CommandResult(1, "", "missing")
+        if argv[:3] == ["stat", "-c", "%F:%U:%a:%s"]:
+            self.key_metadata_stat_count += 1
+            if self.key_metadata_stat_count == self.corrupt_on_metadata_stat and host in self.keys:
+                self.keys[host]["mode"] = "644"
+            key = self.keys.get(host)
+            if not key or key["path"] != argv[-1]:
+                return transition.CommandResult(1, "", "missing")
+            value = f'{key["type"]}:{key["owner"]}:{key["mode"]}:{len(key["content"])}\n'
+            return transition.CommandResult(0, value)
+        if argv[:2] == ["sha256sum", "--"]:
+            key = self.keys.get(host)
+            if not key or key["path"] != argv[-1]:
+                return transition.CommandResult(1, "", "missing")
+            digest = hashlib.sha256(key["content"]).hexdigest()
+            return transition.CommandResult(0, f"{digest}  {argv[-1]}\n")
+        if argv[:3] == ["rm", "-f", "--"]:
+            if host == self.rm_failure_host:
+                return transition.CommandResult(1, "", "remove failed")
+            self.keys.pop(host, None)
+            return transition.CommandResult(0, "")
         if argv[:2] == ["systemctl", "show"]:
             if host in self.partial:
                 return transition.CommandResult(0, "Id=broken\n")
@@ -139,6 +198,7 @@ class ControllerTests(unittest.TestCase):
         fake = FakeRunner()
         controller = self.controller(fake)
         controller.preflight()
+        controller.prepare_keys()
         controller.shutdown()
         controller.recover()
         self.assertEqual(fake.mutations, [
@@ -147,6 +207,123 @@ class ControllerTests(unittest.TestCase):
             ("nimo-2", "start", transition.WORKER_UNIT),
             ("nimo-1", "start", transition.COORDINATOR_UNIT),
         ])
+
+    def test_key_provision_is_identical_exact_and_consumable(self):
+        fake = FakeRunner()
+        controller = self.controller(fake)
+        receipt = controller.prepare_keys()
+        self.assertEqual(receipt["bytes"], 130)
+        self.assertEqual(receipt["hosts"]["nimo-1"]["mode"], "600")
+        self.assertEqual(
+            receipt["hosts"]["nimo-1"]["sha256"],
+            receipt["hosts"]["nimo-2"]["sha256"],
+        )
+        self.assertEqual(controller.validate_keys(), receipt["hosts"])
+        self.assertEqual(fake.keys["nimo-1"]["content"], fake.keys["nimo-2"]["content"])
+
+    def test_bad_key_mode_refuses_before_first_mutation(self):
+        fake = FakeRunner()
+        fake.install_mode = "644"
+        controller = self.controller(fake)
+        controller.preflight()
+        with self.assertRaises(transition.TransitionError):
+            controller.prepare_keys()
+        self.assertFalse(controller.first_mutation)
+        self.assertEqual(fake.mutations, [])
+        self.assertEqual(fake.keys, {})
+
+    def test_key_missing_mismatch_and_type_refuse(self):
+        for attribute, value in (
+            ("drop_key_host", "nimo-2"),
+            ("mismatch_key_host", "nimo-2"),
+            ("install_type", "symbolic link"),
+        ):
+            with self.subTest(attribute=attribute):
+                fake = FakeRunner()
+                setattr(fake, attribute, value)
+                controller = self.controller(fake)
+                controller.preflight()
+                with self.assertRaises(transition.TransitionError):
+                    controller.prepare_keys()
+                self.assertFalse(controller.first_mutation)
+                self.assertEqual(fake.mutations, [])
+                self.assertEqual(fake.keys, {})
+
+    def test_key_freshness_transport_failure_installs_nothing(self):
+        fake = FakeRunner()
+        fake.existence_probe_failure_host = "nimo-1"
+        controller = self.controller(fake)
+        controller.preflight()
+        with self.assertRaises(transition.TransitionError):
+            controller.prepare_keys()
+        self.assertEqual(fake.stdin_calls, [])
+        self.assertEqual(fake.keys, {})
+        self.assertFalse(controller.first_mutation)
+        self.assertEqual(fake.mutations, [])
+
+    def test_key_secret_is_not_exposed_by_receipt_or_error(self):
+        fake = FakeRunner()
+        controller = self.controller(fake)
+        receipt = controller.prepare_keys()
+        secret = fake.keys["nimo-1"]["content"]
+        self.assertNotIn(secret.decode("ascii"), json.dumps(receipt))
+        fake.keys["nimo-2"]["mode"] = "644"
+        with self.assertRaises(transition.TransitionError) as raised:
+            controller.validate_keys()
+        self.assertNotIn(secret.decode("ascii"), str(raised.exception))
+
+    def test_changed_key_refuses_at_last_pre_mutation_check(self):
+        fake = FakeRunner()
+        controller = self.controller(fake)
+        controller.preflight()
+        controller.prepare_keys()
+        fake.keys["nimo-2"]["content"] += b"x"
+        with self.assertRaises(transition.TransitionError):
+            controller.shutdown()
+        self.assertFalse(controller.first_mutation)
+        self.assertEqual(fake.mutations, [])
+
+    def test_key_cleanup_refuses_failed_remove(self):
+        fake = FakeRunner()
+        controller = self.controller(fake)
+        controller.prepare_keys()
+        fake.rm_failure_host = "nimo-1"
+        with self.assertRaises(transition.TransitionError):
+            controller.cleanup_keys()
+        self.assertIn("nimo-1", fake.keys)
+
+    def test_key_cleanup_refuses_failed_absence_transport(self):
+        fake = FakeRunner()
+        controller = self.controller(fake)
+        controller.prepare_keys()
+        fake.stat_transport_failure_host = "nimo-2"
+        with self.assertRaises(transition.TransitionError):
+            controller.cleanup_keys()
+
+    def test_key_receipt_failure_cleans_before_mutation(self):
+        fake = FakeRunner()
+        with tempfile.TemporaryDirectory() as directory:
+            evidence = Path(directory).resolve()
+            (evidence / "key-preparation.json").write_text("sentinel", encoding="utf-8")
+            result = transition.main([
+                "--evidence-dir", str(evidence),
+                "maintenance", "--", sys.executable, "-c", "raise SystemExit(0)",
+            ], runner=fake)
+        self.assertEqual(result, 1)
+        self.assertEqual(fake.keys, {})
+        self.assertEqual(fake.mutations, [])
+
+    def test_last_key_revalidation_failure_cleans_before_mutation(self):
+        fake = FakeRunner()
+        fake.corrupt_on_metadata_stat = 3
+        with tempfile.TemporaryDirectory() as directory:
+            result = transition.main([
+                "--evidence-dir", str(Path(directory).resolve()),
+                "maintenance", "--", sys.executable, "-c", "raise SystemExit(0)",
+            ], runner=fake)
+        self.assertEqual(result, 1)
+        self.assertEqual(fake.keys, {})
+        self.assertEqual(fake.mutations, [])
 
     def test_swapped_hostname_refuses_without_mutation(self):
         fake = FakeRunner()
@@ -204,6 +381,7 @@ class ControllerTests(unittest.TestCase):
         fake.keep_coordinator_listener = True
         controller = self.controller(fake)
         controller.preflight()
+        controller.prepare_keys()
         with self.assertRaises(transition.TransitionError):
             controller.shutdown()
         self.assertEqual(fake.mutations, [
@@ -215,6 +393,7 @@ class ControllerTests(unittest.TestCase):
         fake.ignore_coordinator_stop = True
         controller = self.controller(fake)
         controller.preflight()
+        controller.prepare_keys()
         with self.assertRaises(transition.TransitionError):
             controller.shutdown()
         self.assertEqual(fake.mutations, [
@@ -243,12 +422,13 @@ class ControllerTests(unittest.TestCase):
             ("nimo-1", "start", transition.COORDINATOR_UNIT),
         ])
 
-    def test_recovery_stops_and_verifies_orphaned_l15_unit_first(self):
+    def test_recovery_stops_and_verifies_orphaned_l16_unit_first(self):
         fake = FakeRunner()
         fake.disposable_active.add(transition.DISPOSABLE_WORKER_UNITS[1])
         fake.disposable_port_open = True
         controller = self.controller(fake)
         controller.preflight()
+        controller.prepare_keys()
         controller.shutdown()
         controller.recover()
         self.assertEqual(
@@ -274,6 +454,7 @@ class ControllerTests(unittest.TestCase):
         fake.ignore_disposable_stop = True
         controller = self.controller(fake)
         controller.preflight()
+        controller.prepare_keys()
         controller.shutdown()
         with self.assertRaises(transition.TransitionError):
             controller.recover()
@@ -286,6 +467,7 @@ class ControllerTests(unittest.TestCase):
         fake.ignore_disposable_stop = True
         controller = self.controller(fake)
         controller.preflight()
+        controller.prepare_keys()
         controller.shutdown()
         with self.assertRaises(transition.TransitionError):
             controller.recover()

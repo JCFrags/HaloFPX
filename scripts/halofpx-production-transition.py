@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import atexit
+import hashlib
 import json
 import os
+import secrets
 import shlex
 import signal
 import subprocess
@@ -34,18 +36,25 @@ WORKER_PROCESS = "/opt/llm-usb4-cluster/llama/ggml-rpc-server"
 WORKER_PORT = 50052
 
 DISPOSABLE_HOST = "nimo-1"
-DISPOSABLE_PORT = 50179
+DISPOSABLE_PORT = 50180
 DISPOSABLE_WORKER_UNITS = (
-    "halofpx-l15-primary-worker-capture-20260721.service",
-    "halofpx-l15-primary-worker-restore-20260721.service",
-    "halofpx-l15-primary-worker-runtime-off-20260721.service",
+    "halofpx-l16-primary-worker-capture-20260721.service",
+    "halofpx-l16-primary-worker-restore-20260721.service",
+    "halofpx-l16-primary-worker-runtime-off-20260721.service",
 )
 DISPOSABLE_CANARY_HOST = "nimo-2"
-DISPOSABLE_CANARY_BIN = "/var/tmp/halofpx-l15-src-nimo2/build-l15/bin/test-halofpx-distributed-state-canary"
+DISPOSABLE_CANARY_BIN = "/var/tmp/halofpx-l16-src-nimo2/build-l16/bin/test-halofpx-distributed-state-canary"
 DISPOSABLE_CANARY_UNITS = tuple(
-    f"halofpx-l15-primary-canary-{name}-20260721.service"
+    f"halofpx-l16-primary-canary-{name}-20260721.service"
     for name in ("capture", "cold", "restore", "missing", "mismatch", "runtime-off")
 )
+
+CHANNEL_KEY_OWNER = "connorb"
+CHANNEL_KEY_BYTES = 130
+CHANNEL_KEY_PATHS = {
+    "nimo-1": "/var/tmp/halofpx-l16-primary-control.key",
+    "nimo-2": "/var/tmp/halofpx-l16-primary-control.key",
+}
 
 
 class TransitionError(RuntimeError):
@@ -61,6 +70,7 @@ class CommandResult:
 
 class Runner(Protocol):
     def run(self, host: str, argv: Sequence[str]) -> CommandResult: ...
+    def run_stdin(self, host: str, argv: Sequence[str], stdin: bytes) -> CommandResult: ...
 
 
 class SshRunner:
@@ -72,6 +82,19 @@ class SshRunner:
             check=False,
         )
         return CommandResult(result.returncode, result.stdout, result.stderr)
+
+    def run_stdin(self, host: str, argv: Sequence[str], stdin: bytes) -> CommandResult:
+        result = subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", host, *argv],
+            input=stdin,
+            capture_output=True,
+            check=False,
+        )
+        return CommandResult(
+            result.returncode,
+            result.stdout.decode("utf-8", errors="replace"),
+            result.stderr.decode("utf-8", errors="replace"),
+        )
 
 
 @dataclass(frozen=True)
@@ -202,6 +225,7 @@ class Controller:
         self.snapshot: dict[str, RoleSnapshot] | None = None
         self.first_mutation = False
         self.recovery_complete = False
+        self.key_digest: str | None = None
 
     def _run(self, host: str, argv: Sequence[str], *, allow_failure: bool = False) -> CommandResult:
         result = self.runner.run(host, argv)
@@ -212,6 +236,99 @@ class Controller:
                 f"{result.stderr.strip()}"
             )
         return result
+
+    def _run_stdin(self, host: str, argv: Sequence[str], stdin: bytes) -> CommandResult:
+        result = self.runner.run_stdin(host, argv, stdin)
+        if result.returncode != 0:
+            rendered = " ".join(argv)
+            raise TransitionError(
+                f"{host}: stdin command failed ({result.returncode}): {rendered}: "
+                f"{result.stderr.strip()}"
+            )
+        return result
+
+    def _validate_key(self, host: str, path: str, expected_digest: str) -> dict[str, object]:
+        stat = self._run(
+            host, ["stat", "-c", "%F:%U:%a:%s", "--", path], allow_failure=True
+        )
+        if stat.returncode != 0:
+            raise TransitionError(f"{host}: channel key is missing")
+        fields = stat.stdout.strip().split(":")
+        if fields != ["regular file", CHANNEL_KEY_OWNER, "600", str(CHANNEL_KEY_BYTES)]:
+            raise TransitionError(
+                f"{host}: channel key type/owner/mode/size mismatch: {fields!r}"
+            )
+        digest_result = self._run(host, ["sha256sum", "--", path], allow_failure=True)
+        digest = digest_result.stdout.split()[0] if digest_result.returncode == 0 and digest_result.stdout.split() else ""
+        if digest != expected_digest:
+            raise TransitionError(f"{host}: channel key digest mismatch")
+        return {
+            "host": host,
+            "path": path,
+            "type": fields[0],
+            "owner": fields[1],
+            "mode": fields[2],
+            "bytes": int(fields[3]),
+            "sha256": digest,
+        }
+
+    def validate_keys(self) -> dict[str, dict[str, object]]:
+        if self.key_digest is None:
+            raise TransitionError("channel key identity is not prepared")
+        return {
+            host: self._validate_key(host, path, self.key_digest)
+            for host, path in CHANNEL_KEY_PATHS.items()
+        }
+
+    def cleanup_keys(self) -> None:
+        failures = []
+        for host, path in CHANNEL_KEY_PATHS.items():
+            removed = self._run(host, ["rm", "-f", "--", path], allow_failure=True)
+            if removed.returncode != 0:
+                failures.append(f"{host}: remove failed ({removed.returncode})")
+                continue
+            remaining = self._run(
+                host, ["stat", "-c", "%F", "--", path], allow_failure=True
+            )
+            if remaining.returncode == 0:
+                failures.append(f"{host}: path remains")
+            elif remaining.returncode != 1:
+                failures.append(f"{host}: absence check failed ({remaining.returncode})")
+        if failures:
+            raise TransitionError(f"channel key cleanup not proven on {failures}")
+        self.key_digest = None
+
+    def prepare_keys(self) -> dict[str, object]:
+        raw = secrets.token_hex(64)
+        key_bytes = (raw[:64] + "\n" + raw[64:] + "\n").encode("ascii")
+        if len(key_bytes) != CHANNEL_KEY_BYTES:
+            raise TransitionError("internal channel key format mismatch")
+        digest = hashlib.sha256(key_bytes).hexdigest()
+        try:
+            for host, path in CHANNEL_KEY_PATHS.items():
+                existing = self._run(
+                    host, ["stat", "-c", "%F", "--", path], allow_failure=True
+                )
+                if existing.returncode == 0:
+                    raise TransitionError(f"{host}: channel key path already exists")
+                if existing.returncode != 1:
+                    raise TransitionError(
+                        f"{host}: channel key freshness check failed ({existing.returncode})"
+                    )
+                self._run_stdin(host, ["install", "-m", "600", "/dev/stdin", path], key_bytes)
+            self.key_digest = digest
+            hosts = self.validate_keys()
+        except Exception:
+            self.cleanup_keys()
+            self.key_digest = None
+            raise
+        return {
+            "schema": "halofpx.channel-key-preparation.v1",
+            "format": "two-lowercase-hex-lines-v1",
+            "bytes": CHANNEL_KEY_BYTES,
+            "sha256": digest,
+            "hosts": hosts,
+        }
 
     def _listener(self, spec: RoleSpec, required: bool) -> tuple[int, str]:
         result = self._run(spec.host, ["ss", "-H", "-ltnp"])
@@ -333,6 +450,8 @@ class Controller:
     def shutdown(self) -> None:
         if self.snapshot is None:
             raise TransitionError("shutdown requires a complete preflight snapshot")
+        # This is the last executable key check before the first production mutation.
+        self.validate_keys()
         self._mutate(COORDINATOR, "stop")
         self.inspect(COORDINATOR, require_active=False)
         # This second check is the executable authorization to touch the worker.
@@ -413,14 +532,15 @@ class Controller:
                 f"; port_closed={port_closed}; canary_absent={canary_absent}"
             )
             time.sleep(self.wait_seconds)
-        raise TransitionError(f"disposable L15 cleanup not proven before recovery: {last}")
+        raise TransitionError(f"disposable L16 cleanup not proven before recovery: {last}")
 
     def recover(self) -> dict[str, RoleSnapshot]:
         if self.snapshot is None:
             raise TransitionError("recovery requires the preserved preflight snapshot")
         # The maintenance child can be interrupted while a systemd-run unit survives it.
-        # Production recovery is forbidden until every exact L15 unit and port is clean.
+        # Production recovery is forbidden until every exact L16 unit and port is clean.
         self.cleanup_disposable()
+        self.cleanup_keys()
         self._mutate(WORKER, "start")
         worker = self._wait_active(WORKER, require_http=False)
         self._mutate(COORDINATOR, "start")
@@ -500,7 +620,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
     parser.add_argument("--evidence-dir", required=True, type=Path)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--timeout-seconds", type=float, default=300.0)
-    parser.add_argument("command", choices=("preflight", "maintenance", "recover"))
+    parser.add_argument("command", choices=("preflight", "prepare", "maintenance", "recover"))
     parser.add_argument("maintenance_command", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
     if not args.evidence_dir.is_absolute():
@@ -555,13 +675,23 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             _atomic_json(snapshot_path, _snapshot_dict(snapshot))
         if args.command == "preflight" or args.dry_run:
             return 0
+        if args.command == "prepare":
+            prepared = controller.prepare_keys()
+            _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
+            print(json.dumps(prepared, indent=2, sort_keys=True))
+            controller.cleanup_keys()
+            return 0
         maintenance_command = list(args.maintenance_command)
         if maintenance_command and maintenance_command[0] == "--":
             maintenance_command.pop(0)
         if not maintenance_command:
             raise TransitionError("maintenance requires a command after --")
+        prepared = controller.prepare_keys()
+        _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
         controller.shutdown()
-        child = subprocess.Popen(maintenance_command)
+        child_env = os.environ.copy()
+        child_env["HALOFPX_CHANNEL_KEY_SHA256"] = prepared["sha256"]
+        child = subprocess.Popen(maintenance_command, env=child_env)
         try:
             returncode = child.wait()
         except BaseException:
@@ -579,6 +709,11 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
         return 0
     except Exception as exc:
         print(f"transition refused/failed: {exc}", file=sys.stderr)
+        if not controller.first_mutation and controller.key_digest is not None:
+            try:
+                controller.cleanup_keys()
+            except Exception as cleanup_exc:
+                print(f"PRE-MUTATION KEY CLEANUP FAILED: {cleanup_exc}", file=sys.stderr)
         emergency_recover()
         return 1
 

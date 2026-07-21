@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-shot bounded L15 primary canary, intended only as controller child."""
+"""One-shot bounded L16 primary canary, intended only as controller child."""
 
 from __future__ import annotations
 
@@ -16,10 +16,10 @@ from pathlib import Path
 
 NIMO1 = "nimo-1"
 NIMO2 = "nimo-2"
-PORT = 50179
-WORKER_BIN = "/var/tmp/halofpx-l15-src-nimo1/build-l15/bin/rpc-server"
-CANARY_BIN = "/var/tmp/halofpx-l15-src-nimo2/build-l15/bin/test-halofpx-distributed-state-canary"
-READINESS_PROBE = "/var/tmp/halofpx-l15-src-nimo2/scripts/halofpx_rpc_readiness.py"
+PORT = 50180
+WORKER_BIN = "/var/tmp/halofpx-l16-src-nimo1/build-l16/bin/rpc-server"
+CANARY_BIN = "/var/tmp/halofpx-l16-src-nimo2/build-l16/bin/test-halofpx-distributed-state-canary"
+READINESS_PROBE = "/var/tmp/halofpx-l16-src-nimo2/scripts/halofpx_rpc_readiness.py"
 READINESS_PROBE_SHA = "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -32,11 +32,14 @@ CANARY_SHA = "5ecf44d64006e1c00f0a9a86d44395d4a27ad5a3e3648d70ff4d617a91913759"
 WORKER_SHA = "919cb4c6a3144da20d1bb8d8a4b09d5a9bd2d4c9da256495079f187e066339ea"
 PROMPT_SHA = "f20c7c7a4137de98b991f1bfe6de27e194a93c7257d9496944e312085923143f"
 PROMPT = "/var/tmp/halofpx-l13-primary-20260721/prompt.txt"
-REMOTE_EVIDENCE = "/var/tmp/halofpx-l15-primary-20260721"
-COORDINATOR_ROOT = "/var/tmp/halofpx-l15-primary-coordinator-20260721"
-WORKER_ROOT = "/var/tmp/halofpx-l15-primary-worker-20260721"
-CONTROL = REMOTE_EVIDENCE + "/control.key"
-WORKER_CONTROL = "/var/tmp/halofpx-l15-primary-control.key"
+REMOTE_EVIDENCE = "/var/tmp/halofpx-l16-primary-20260721"
+COORDINATOR_ROOT = "/var/tmp/halofpx-l16-primary-coordinator-20260721"
+WORKER_ROOT = "/var/tmp/halofpx-l16-primary-worker-20260721"
+CONTROL = "/var/tmp/halofpx-l16-primary-control.key"
+WORKER_CONTROL = CONTROL
+CHANNEL_KEY_OWNER = "connorb"
+CHANNEL_KEY_BYTES = 130
+CHANNEL_KEY_DIGEST_ENV = "HALOFPX_CHANNEL_KEY_SHA256"
 CHECKPOINT = "421016c41e1af022aa65feef9c7b9329fdc1b49ff0b1c4df4aaad10cf13bf816"
 ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
 
@@ -78,6 +81,24 @@ def listener_pid(text: str, port: int) -> int:
         return 0
     match = re.search(r"pid=(\d+)", matches[0])
     return int(match.group(1)) if match else 0
+
+
+def validate_provisioned_keys() -> str:
+    expected = os.environ.get(CHANNEL_KEY_DIGEST_ENV, "")
+    if not re.fullmatch(r"[0-9a-f]{64}", expected):
+        raise CanaryError("controller channel key identity is absent or malformed")
+    for host, path in ((NIMO1, WORKER_CONTROL), (NIMO2, CONTROL)):
+        stat = ssh(host, "stat", "-c", "%F:%U:%a:%s", "--", path, check=False)
+        if stat.returncode != 0:
+            raise CanaryError(f"{host}: provisioned channel key is missing")
+        fields = stat.stdout.strip().split(":")
+        if fields != ["regular file", CHANNEL_KEY_OWNER, "600", str(CHANNEL_KEY_BYTES)]:
+            raise CanaryError(f"{host}: provisioned channel key type/owner/mode/size mismatch")
+        digest = ssh(host, "sha256sum", "--", path, check=False)
+        actual = digest.stdout.split()[0] if digest.returncode == 0 and digest.stdout.split() else ""
+        if actual != expected:
+            raise CanaryError(f"{host}: provisioned channel key digest mismatch")
+    return expected
 
 
 def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None) -> tuple[int, str, dict[str, object]]:
@@ -208,7 +229,7 @@ def canary(mode: str, unit_label: str, *, plan: str = PLAN):
         "--seed", "1234",
         "--temp", "0",
     ]
-    unit = f"halofpx-l15-primary-canary-{unit_label}-20260721"
+    unit = f"halofpx-l16-primary-canary-{unit_label}-20260721"
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=20min",
         "--wait", "--collect", "--pipe", *canary_command,
@@ -332,6 +353,7 @@ def main() -> int:
             raise CanaryError("production worker is not inactive")
         if f":8081" in ssh(NIMO1, "ss", "-H", "-ltnp").stdout or f":50052" in ssh(NIMO2, "ss", "-H", "-ltnp").stdout:
             raise CanaryError("production listener remains open")
+        channel_key_sha = validate_provisioned_keys()
         model_stat = ssh(NIMO2, "stat", "-c", "%s", MODEL).stdout.strip()
         if int(model_stat) != MODEL_BYTES:
             raise CanaryError("model size mismatch")
@@ -350,16 +372,13 @@ def main() -> int:
             raise CanaryError("worker free space below 2 GB gate")
         ssh(NIMO2, "rm", "-rf", "--", REMOTE_EVIDENCE, COORDINATOR_ROOT)
         ssh(NIMO2, "install", "-d", "-m", "700", REMOTE_EVIDENCE, COORDINATOR_ROOT)
-        ssh(NIMO2, "bash", "-c", f"umask 077; openssl rand -hex 64 | fold -w 64 > {CONTROL}")
         ssh(NIMO1, "rm", "-rf", "--", WORKER_ROOT)
         ssh(NIMO1, "install", "-d", "-m", "700", WORKER_ROOT)
-        run(["scp", f"{NIMO2}:{CONTROL}", f"{NIMO1}:{WORKER_CONTROL}"])
-        ssh(NIMO1, "chmod", "600", WORKER_CONTROL)
 
         (root / "diskstats-nimo1-before.txt").write_text(ssh(NIMO1, "cat", "/proc/diskstats").stdout, encoding="utf-8")
         (root / "diskstats-nimo2-before.txt").write_text(ssh(NIMO2, "cat", "/proc/diskstats").stdout, encoding="utf-8")
 
-        unit1 = "halofpx-l15-primary-worker-capture-20260721"
+        unit1 = "halofpx-l16-primary-worker-capture-20260721"
         local_units.append(unit1)
         pid_capture, invocation_capture, readiness_capture = start_worker(True, unit1, root)
         capture = canary("capture", "capture")
@@ -371,7 +390,7 @@ def main() -> int:
         (root / "worker-capture.log").write_text(capture_journal, encoding="utf-8")
         stop_worker(unit1)
 
-        unit2 = "halofpx-l15-primary-worker-restore-20260721"
+        unit2 = "halofpx-l16-primary-worker-restore-20260721"
         local_units.append(unit2)
         pid_restore, invocation_restore, readiness_restore = start_worker(True, unit2, root)
 
@@ -416,7 +435,7 @@ def main() -> int:
         (root / "restore-state-window.log").write_text("\n".join(restore_window) + "\n", encoding="utf-8")
         stop_worker(unit2)
 
-        unit3 = "halofpx-l15-primary-worker-runtime-off-20260721"
+        unit3 = "halofpx-l16-primary-worker-runtime-off-20260721"
         local_units.append(unit3)
         pid_runtime_off, invocation_runtime_off, readiness_runtime_off = start_worker(False, unit3, root)
         runtime_off = canary("cold", "runtime-off")
@@ -433,7 +452,8 @@ def main() -> int:
             raise CanaryError(f"obvious retained cold slowdown: enabled={cold_ms} off={off_ms}")
 
         summary = {
-            "schema": "halofpx.l15.primary-result.v1",
+            "schema": "halofpx.l16.primary-result.v1",
+            "channel_key_sha256": channel_key_sha,
             "model_sha256": MODEL_SHA,
             "model_bytes": MODEL_BYTES,
             "pids": {"capture": pid_capture, "restore": pid_restore, "runtime_off": pid_runtime_off},
@@ -461,7 +481,7 @@ def main() -> int:
         return 0
     except Exception as exc:
         (root / "failure.txt").write_text(str(exc) + "\n", encoding="utf-8")
-        print(f"L15 primary canary failed: {exc}", file=sys.stderr)
+        print(f"L16 primary canary failed: {exc}", file=sys.stderr)
         return 1
     finally:
         cleanup_errors = []

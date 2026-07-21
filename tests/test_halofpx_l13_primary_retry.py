@@ -15,12 +15,42 @@ SPEC.loader.exec_module(retry)
 
 
 class PrimaryRetryTests(unittest.TestCase):
-    def test_l15_primary_invocation_is_exactly_frozen(self):
+    def test_consumes_preprovisioned_identical_keys_without_secret_argv(self):
+        digest = "a" * 64
+        responses = iter((
+            SimpleNamespace(stdout="regular file:connorb:600:130\n", stderr="", returncode=0),
+            SimpleNamespace(stdout=f"{digest}  key\n", stderr="", returncode=0),
+            SimpleNamespace(stdout="regular file:connorb:600:130\n", stderr="", returncode=0),
+            SimpleNamespace(stdout=f"{digest}  key\n", stderr="", returncode=0),
+        ))
+        calls = []
+        with mock.patch.dict("os.environ", {retry.CHANNEL_KEY_DIGEST_ENV: digest}, clear=False), mock.patch.object(
+            retry, "ssh", side_effect=lambda *args, **kwargs: calls.append(args) or next(responses)
+        ):
+            self.assertEqual(retry.validate_provisioned_keys(), digest)
+        rendered = repr(calls)
+        self.assertNotIn("install", rendered)
+        self.assertNotIn("chmod", rendered)
+        self.assertNotIn("openssl", rendered)
+
+    def test_changed_preprovisioned_key_fails_closed(self):
+        expected = "a" * 64
+        responses = iter((
+            SimpleNamespace(stdout="regular file:connorb:600:130\n", stderr="", returncode=0),
+            SimpleNamespace(stdout=f"{'b' * 64}  key\n", stderr="", returncode=0),
+        ))
+        with mock.patch.dict("os.environ", {retry.CHANNEL_KEY_DIGEST_ENV: expected}, clear=False), mock.patch.object(
+            retry, "ssh", side_effect=lambda *args, **kwargs: next(responses)
+        ):
+            with self.assertRaises(retry.CanaryError):
+                retry.validate_provisioned_keys()
+
+    def test_l16_primary_invocation_is_exactly_frozen(self):
         completed = SimpleNamespace(stdout="mode=cold\n", stderr="", returncode=0)
         with mock.patch.object(retry, "ssh", return_value=completed) as remote:
             retry.canary("cold", "cold")
         command = list(remote.call_args.args[1:])
-        self.assertIn("--unit=halofpx-l15-primary-canary-cold-20260721", command)
+        self.assertIn("--unit=halofpx-l16-primary-canary-cold-20260721", command)
         self.assertIn("--wait", command)
         self.assertIn("--collect", command)
         expected_pairs = {
@@ -40,16 +70,16 @@ class PrimaryRetryTests(unittest.TestCase):
             self.assertEqual(command[command.index(option) + 1], value)
         self.assertEqual(command[command.index("--file") + 1], retry.PROMPT)
         self.assertEqual(command[command.index("--model") + 1], retry.MODEL)
-        self.assertEqual(command[command.index("--rpc") + 1], "10.44.0.1:50179")
+        self.assertEqual(command[command.index("--rpc") + 1], "10.44.0.1:50180")
 
     def test_start_worker_requires_admitted_caps_before_return(self):
         responses = iter((
             SimpleNamespace(stdout="", stderr="", returncode=0),
-            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50179"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
             SimpleNamespace(stdout="active\n", stderr="", returncode=0),
             SimpleNamespace(stdout="42\n", stderr="", returncode=0),
             SimpleNamespace(stdout="0123456789abcdef0123456789abcdef\n", stderr="", returncode=0),
-            SimpleNamespace(stdout='LISTEN 0 1 10.44.0.1:50179 0.0.0.0:* users:(("rpc",pid=42,fd=3))\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='LISTEN 0 1 10.44.0.1:50180 0.0.0.0:* users:(("rpc",pid=42,fd=3))\n', stderr="", returncode=0),
         ))
         calls = []
         with mock.patch.object(
@@ -64,11 +94,11 @@ class PrimaryRetryTests(unittest.TestCase):
     def test_start_worker_accepts_only_confirmed_feature_off_protocol(self):
         responses = iter((
             SimpleNamespace(stdout="", stderr="", returncode=0),
-            SimpleNamespace(stdout='{"admitted": false, "feature_off_confirmed": true, "endpoint": "10.44.0.1:50179"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": false, "feature_off_confirmed": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
             SimpleNamespace(stdout="active\n", stderr="", returncode=0),
             SimpleNamespace(stdout="42\n", stderr="", returncode=0),
             SimpleNamespace(stdout="0123456789abcdef0123456789abcdef\n", stderr="", returncode=0),
-            SimpleNamespace(stdout='LISTEN 0 1 10.44.0.1:50179 0.0.0.0:* users:(("rpc",pid=42,fd=3))\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='LISTEN 0 1 10.44.0.1:50180 0.0.0.0:* users:(("rpc",pid=42,fd=3))\n', stderr="", returncode=0),
         ))
         with mock.patch.object(retry, "ssh", side_effect=lambda *args, **kwargs: next(responses)):
             pid, invocation, evidence = retry.start_worker(False, "fixture")
@@ -115,8 +145,8 @@ class PrimaryRetryTests(unittest.TestCase):
                 retry.worker_journal("fixture", "0123456789abcdef0123456789abcdef", 42)
 
     def test_listener_pid_requires_exact_port(self):
-        text = 'LISTEN 0 1 0.0.0.0:501790 0.0.0.0:* users:(("rpc",pid=12,fd=3))\n'
-        self.assertEqual(retry.listener_pid(text, 50179), 0)
+        text = 'LISTEN 0 1 0.0.0.0:501800 0.0.0.0:* users:(("rpc",pid=12,fd=3))\n'
+        self.assertEqual(retry.listener_pid(text, 50180), 0)
 
     def test_complete_state_windows_include_full_operations(self):
         capture = "\n".join((
