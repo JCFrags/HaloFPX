@@ -1,0 +1,125 @@
+{
+  "schema": "halofpx.p09-minimax-m2-masked-expert-decode-rejection.v1",
+  "date": "2026-07-20",
+  "status": "optimization_rejected_rpc_compute_view_repair_retained",
+  "parent_commit": "788e59654bbe5b642020c25ab1428ef40991c179",
+  "parent_tree": "7dfb78a35f202df2fbb5b22aa87edab9a5554ab1",
+  "retained_change": {
+    "path": "ggml/src/ggml-rpc/ggml-rpc.cpp",
+    "source_sha256_both_nodes": "e788a36793e0a22ef24f31c720eebcf6e2bdcd841a7f80a31aa5af54c493164e",
+    "contract": "preserve an unresolved graph-compute view until its source owns a buffer; continue rebuilding allocated weight views from server-side allocation",
+    "default_behavior_expansion": false
+  },
+  "rejected_candidate": {
+    "name": "MiniMax-M2 masked expert decode",
+    "gate": "HALOFPX_MINIMAX_M2_EXPERT_MASKED_DECODE=1",
+    "gate_default": "off",
+    "source_retained": false,
+    "runtime_retained": false,
+    "raw_patch_sha256": "ea83fca4c32035c189ee9d128438defb403b1a8474ff8419dd698588243101b1",
+    "rejection_reason": "matched C-A-C screen showed clear prompt and generation regression"
+  },
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "workload": {
+    "request_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "excluded_warmups_per_phase": 1,
+    "retained_requests_per_phase": 3,
+    "sequence": ["control_a", "candidate", "control_c"],
+    "all_http_200": true,
+    "decoded_content_unique": 1,
+    "token_sequence_unique": 1
+  },
+  "performance": {
+    "control_prompt_tps": [203.35, 203.62, 203.49, 203.79, 203.64, 203.45],
+    "candidate_prompt_tps": [194.57, 195.12, 195.28],
+    "control_generation_tps": [16.69, 16.64, 16.68, 16.70, 16.64, 16.69],
+    "candidate_generation_tps": [16.15, 16.22, 16.27],
+    "control_prompt_mean_tps": 203.55633937831507,
+    "candidate_prompt_mean_tps": 194.98880171638402,
+    "prompt_delta_percent": -4.208927,
+    "control_generation_mean_tps": 16.67327125428314,
+    "candidate_generation_mean_tps": 16.212985668770468,
+    "generation_delta_percent": -2.760620,
+    "treatment": "reject",
+    "greater_than_30_tps": "stretch_objective_not_pass_fail"
+  },
+  "qualification": {
+    "clean_build_both_linux_nodes": true,
+    "feature_off_and_l02_contracts": "2/2 passed",
+    "direct_rocm_q6_view": {"reference_l2": 24.3547155, "nmse": 0, "max_abs_error": 0},
+    "rpc_q6_view": {"reference_l2": 24.3547155, "nmse": 0, "max_abs_error": 0},
+    "llama_server_sha256_both_nodes": "08dc2418b1c212fdd343a3016fd27527302a27a0659fc3357edb58d22175c7f7",
+    "rpc_server_sha256_both_nodes": "4c064db785e6959bd7ed5a652ee8f70e56b4c4ce1926a5216ece4fb249734293",
+    "libggml_rpc_sha256_both_nodes": "dd114298cfe6324b93414f692d593e8418ae14729e49d40b9446e2eaedf5e95a",
+    "focused_test_sha256_both_nodes": "e5a35264e5df058f088a10b2f8032eb9b155463efcfe33684864ee2e08d94134",
+    "superseded_preclean_hash_record": "final-source-binaries.sha256 retains focused-test 948e11d... and is not retained-build authority",
+    "authoritative_records": ["final-clean-build.log", "final-clean-binary-sha256.txt", "final-clean-all-bin-sha256.txt", "copied clean evidence binaries"]
+  },
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-p09-masked-decode-788e596-20260720",
+      "manifest_entries": 31,
+      "manifest_sha256": "b2844826a60b36ade9882640fa094ae9b60d83e972e6d733cdcda535f5855f26",
+      "bundle": "/var/tmp/halofpx-p09-masked-decode-788e596-20260720-nimo-1-evidence.tar.zst",
+      "bundle_size_bytes": 931408,
+      "bundle_mode": "0600",
+      "bundle_sha256": "3d524577184ba64e9cf04c55f0f7e2d45665ff43fb318a9b164730eba7f9619e"
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-p09-masked-decode-788e596-20260720",
+      "manifest_entries": 55,
+      "manifest_sha256": "ad00e7b5650fd19be3cdbaf62e7fe2f12f88305027640685525566a55daf6a43",
+      "bundle": "/var/tmp/halofpx-p09-masked-decode-788e596-20260720-nimo-2-evidence.tar.zst",
+      "bundle_size_bytes": 937428,
+      "bundle_mode": "0600",
+      "bundle_sha256": "1979da9d10b7a42521f944d4503906b31e53a1172def0cf0892bce664879447a"
+    },
+    "manifests_verified": true,
+    "sensitive_material_scan_matches": 0
+  },
+  "rollback": {
+    "teardown_race": "coordinator and worker were initially stopped in parallel after retained requests; cleanup abort did not affect results",
+    "correct_stop_order": ["coordinator", "worker"],
+    "correct_start_order": ["worker", "coordinator"],
+    "nimo_2_worker_active": true,
+    "nimo_2_worker_restarts": 0,
+    "nimo_2_worker_listener": "0.0.0.0:50052",
+    "nimo_1_server_active": true,
+    "nimo_1_server_restarts": 0,
+    "nimo_1_server_listener": "0.0.0.0:8081",
+    "nimo_1_health": {"status": "ok"},
+    "nimo_1_server_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb"
+  },
+  "reference_clones": {
+    "rocmfpx": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "cachyllama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama_ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama_cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "nathan_quant_kv": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  },
+  "provenance": {
+    "target_native_change": true,
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "persistent_behavior_changed": false,
+    "webui_changed": false,
+    "remote_changed": false
+  },
+  "independent_review": {
+    "path": "docs/halofpx/reviews/2026-07-20__p09-minimax-m2-masked-expert-decode__review__v01.md",
+    "verdict": "accept_for_commit_after_preclean_authority_clarification",
+    "blocking_findings": []
+  },
+  "deferred": "broader malformed-graph and fault permutations require a concrete risk hypothesis",
+  "next_direction": "narrow separately gated L14Q quantized-KV manual-port candidate"
+}

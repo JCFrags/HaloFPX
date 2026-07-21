@@ -1313,15 +1313,17 @@ ggml_tensor * rpc_server::create_node(uint64_t id,
             return nullptr;
         }
 
-        // Reconstruct views from the server-side source allocation. The client
-        // pointer is only an opaque remote address and may not account for a
-        // backend-specific device layout (for example expanded ROCmFPX Q6).
-        // Re-running the buffer initializer also preserves each backend's view
-        // validation instead of trusting a serialized derived pointer.
+        // A graph-compute view has no buffer until the backend allocator
+        // assigns its source. Preserve that unresolved state so allocation can
+        // initialize the view later. Weight views already have an owning
+        // server buffer and must be rebuilt from that allocation because the
+        // client pointer is only an opaque remote address and may not account
+        // for a backend-specific device layout (for example expanded ROCmFPX
+        // Q6).
         result->buffer = nullptr;
         result->data = nullptr;
         result->view_offs = tensor->view_offs;
-        if (ggml_backend_view_init(result) != GGML_STATUS_SUCCESS) {
+        if (result->view_src->buffer != nullptr && ggml_backend_view_init(result) != GGML_STATUS_SUCCESS) {
             GGML_LOG_ERROR("[%s] failed to initialize server-side view for node id %" PRIu64 "\n",
                            __func__, id);
             return nullptr;
