@@ -20,7 +20,7 @@ PORT = 50176
 WORKER_BIN = "/var/tmp/halofpx-l13-retry-src-nimo1/build-primary-bed36/bin/rpc-server"
 CANARY_BIN = "/var/tmp/halofpx-l13-retry-src-nimo2/build-primary-bed36/bin/test-halofpx-distributed-state-canary"
 READINESS_PROBE = "/var/tmp/halofpx-l13-retry-src-nimo2/scripts/halofpx_rpc_readiness.py"
-READINESS_PROBE_SHA = "4dec4e8da86a10515751aaca174f8a1e94ffc63b24ee680d9a77cbb0d37b6253"
+READINESS_PROBE_SHA = "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
     "dba517197f2854f3d362529e13abddcdcad6c10b/"

@@ -99,6 +99,9 @@ class FixtureServer:
 
 
 class RpcReadinessTests(unittest.TestCase):
+    def test_caps_command_matches_rpc_source_authority(self):
+        self.assertEqual(readiness.RPC_CMD_HALOFPX_STATE_CAPS, 17)
+
     def run_probe(self, fixture, **overrides):
         values = {
             "timeout_seconds": 1.0,
