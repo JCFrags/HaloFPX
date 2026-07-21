@@ -20,9 +20,8 @@ slower candidates.
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: worker idle after terminal L13R negative result; next scoped
-  milestone is an application-level disposable RPC readiness gate only, with no
-  production transition or primary-model retry authorized
+- Current work: L14 application-level disposable RPC readiness gate only, with
+  no production transition or primary-model retry authorized
 
 ## Product progress
 
@@ -116,3 +115,4 @@ that it waits through listener-visible/backend-not-ready states, rejects wrong
 version/capabilities, and admits a real disposable worker only after a successful
 RPC request. Production must remain live and no primary-model attempt is
 authorized in this milestone. A later attempt requires a new lead decision.
+The worker has been dispatched and must end its turn at the reviewed L14 result.
