@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 04:59 PDT
+Verified: 2026-07-21 05:17 PDT
 
 ## Overall state
 
@@ -14,16 +14,16 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `0db5a56111e1ae610e169511ab6f6353e5a1c0ea`
+- Latest verified commit: `7b443ea37ccdab5e044950e3afb98621ab39870b`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L15 closeout
+- Worktree state: clean at the reviewed and pinned L16 transition boundary
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L16 is dispatched. The worker must first implement, remotely
-  exercise, and independently review executable pre-mutation secure key
-  provisioning while production stays healthy. Only a passing prerequisite may
-  unlock one unchanged controller-managed primary canary attempt.
+- Current work: the secure key prerequisite is committed at `47cd4cb` and final
+  binaries are pinned at `7b443ea`. All model, prompt, capacity, production,
+  dry-run, review, and remote key gates passed. The single authorized L16
+  controller transition is now in progress; no steering is presently needed.
 
 ## Product progress
 
