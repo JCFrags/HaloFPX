@@ -1,0 +1,140 @@
+{
+  "schema": "halofpx.l14q-vk02-vulkan-exact-model-reachability-rejection.v1",
+  "date": "2026-07-20",
+  "status": "rejected_two_node_vulkan_exact_model_unreachable",
+  "source_commit": "7f0e91c2d89e4081d555ce00f6bcf29353876c0e",
+  "source_tree": "730bdd2ee955df8146831a8e96d5aa7a8e93e07c",
+  "source_archive_sha256": "3a82588b1a610a259455064f2095315eb4645b0b809e0143254fd458b6ca0bce",
+  "source_changed": false,
+  "candidate": {
+    "capability": "L14Q-VK-01",
+    "option": "GGML_VULKAN_FA_Q8_0_PREDEQUANT",
+    "default": false,
+    "p3_governed": true,
+    "route_proven_reached": false,
+    "performance_screen_run": false,
+    "promotion": "closed_for_current_release_lane"
+  },
+  "build": {
+    "node": "nimo-2",
+    "build_type": "Release",
+    "gfx_target": "gfx1151",
+    "hip": true,
+    "vulkan": true,
+    "rpc": true,
+    "force_mmq": true,
+    "no_vmm": true,
+    "tests": true,
+    "webui": false,
+    "off": {
+      "libggml_vulkan_sha256": "8a321cb9188577113b85067eb8bc48e43ac344ad3c6c2c4847c41f73d111a49b",
+      "rpc_server_sha256": "c449d1a8f787462f2766b465b8d82fc535a9f21e7e07f2d1a8bfa60e92507885",
+      "llama_server_sha256": "e780e9bc62acd37f872885fba2df6ee43162ed631f422e3b750f0078cce092fe",
+      "focused_test_sha256": "50533d528b3221e19710cdb64bb94de7386207bbee75ae64458fc259fde11d77",
+      "contracts": "3/3 passed"
+    },
+    "on": {
+      "libggml_vulkan_sha256": "39f2cd062e5b0aa3d8f1bf1cade3fef24df5ee146d33287075ef4ce62263ea66",
+      "rpc_server_sha256": "cdadfe79c4519e55c35661060b0b44bea380e715c47de5b2374966c4da92afb4",
+      "llama_server_sha256": "dde5437b0befdd43bdc8f6737e455ae7ea63e3863d7842692bcba9a2cd74ae97",
+      "focused_test_sha256": "493d9ec2e86ec853264ff96884631f7d6b4709f346ee2be4911cfe4b9d57baae",
+      "contracts": "3/3 passed",
+      "runtime_transfer_sha256": "ae9f40e809f8780050fb986e50be73165688ca9157be01300e9d6f5653bfdaa8"
+    }
+  },
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "filename": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "hash_treatment": "reused previously verified lock"
+  },
+  "runtime": {
+    "worker": "nimo-1 Vulkan0 10.44.0.1:50053",
+    "coordinator": "nimo-2 RPC0,Vulkan0 127.0.0.1:18084",
+    "tensor_split": "1,1",
+    "split_mode": "layer",
+    "kv_k": "q8_0",
+    "kv_v": "q8_0",
+    "context": 4096,
+    "batch": 512,
+    "ubatch": 512,
+    "flash_attention": true,
+    "direct_io": true,
+    "webui": false,
+    "rpc_cache": false,
+    "planned_rpc_vulkan_model_mib": 77200.46,
+    "planned_local_vulkan_model_mib": 83235.56,
+    "health_reached": false,
+    "http_listener_reached": false
+  },
+  "failure": {
+    "elapsed_wall": "approximately 9 minutes",
+    "phase": "startup decode probe common_context_can_seq_rm",
+    "worker_exception": "vk::DeviceLostError",
+    "worker_message": "vk::Queue::submit: ErrorDeviceLost",
+    "worker_stack": ["ggml_vk_submit", "ggml_vk_buffer_read_2d", "ggml_backend_vk_buffer_get_tensor", "rpc_server::get_tensor"],
+    "coordinator_message": "Remote RPC server crashed or returned malformed response",
+    "coordinator_location": "ggml/src/ggml-rpc/ggml-rpc.cpp:491",
+    "coordinator_exit": "SIGABRT core-dump",
+    "worker_exit": "SIGABRT core-dump",
+    "candidate_route_proven_reached": false,
+    "attribution": "current two-node Vulkan/RPC exact-model tuple unreachable; not attributed specifically to VK-01"
+  },
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-vk02-exact-7f0e91c-20260720",
+      "manifest_entries": 9,
+      "manifest_sha256": "799fb7a92abd5fbc6209ab49130d9e9dccb444925e65d04221918ec0c606bd2c",
+      "bundle": "/var/tmp/halofpx-vk02-exact-7f0e91c-nimo-1-20260720-evidence.tar.zst",
+      "bundle_size_bytes": 5840,
+      "bundle_mode": "0600",
+      "bundle_sha256": "2c98a9b6041b3ade94e304c8363e1a3b9160689ddadcb3391189868f31820cf4"
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-vk02-exact-7f0e91c-20260720",
+      "manifest_entries": 23,
+      "manifest_sha256": "e881514deaeb7b1ada8309d2ccee130ffe9769fa9012398fceb847334c70ea26",
+      "bundle": "/var/tmp/halofpx-vk02-exact-7f0e91c-nimo-2-20260720-evidence.tar.zst",
+      "bundle_size_bytes": 26166,
+      "bundle_mode": "0600",
+      "bundle_sha256": "3cb908b6365d4834ad81521a0a1dd8e99f265e75236acd6301770c153df6f3aa"
+    },
+    "manifests_verified": true,
+    "sensitive_material_scan_matches": 0,
+    "core_treatment": "systemd core metadata retained; full core remains system-managed and was not copied or deleted"
+  },
+  "rollback": {
+    "disposable_worker_stopped": true,
+    "disposable_coordinator_failed_closed": true,
+    "restore_order": ["nimo-2 worker", "nimo-1 coordinator"],
+    "nimo_2_worker_active": true,
+    "nimo_2_worker_restarts": 0,
+    "nimo_2_worker_listener": "0.0.0.0:50052",
+    "nimo_1_server_active": true,
+    "nimo_1_server_restarts": 0,
+    "nimo_1_server_listener": "0.0.0.0:8081",
+    "nimo_1_health": {"status": "ok"},
+    "nimo_1_server_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb"
+  },
+  "provenance": {
+    "source_changed": false,
+    "donor_code_imported": false,
+    "gpl_llama_ai_code_imported": false,
+    "cachyllama_code_imported": false,
+    "new_dependency": false,
+    "model_changed": false,
+    "persistence_changed": false,
+    "webui_changed": false,
+    "deployment_binary_changed": false,
+    "remote_changed": false
+  },
+  "independent_review": {
+    "path": "docs/halofpx/reviews/2026-07-20__l14q-vk02-vulkan-exact-model-reachability__review__v01.md",
+    "verdict": "accept",
+    "blocking_findings": []
+  },
+  "decision": "keep VK-01 default-off, close current-release performance promotion, no rescue trials",
+  "next_direction": "default-off exact-shape fused expert-partial layer-32 canary"
+}
