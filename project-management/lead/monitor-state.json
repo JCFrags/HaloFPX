@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-20T22:37:00-07:00",
+  "updated_at": "2026-07-20T22:48:00-07:00",
   "worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_status": "active",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "522dd90cb52428db76d38f473e0b956774e75a23",
-  "last_observed_milestone": "P14 RPC row split rejected and committed; L10 exact-key cache canary opened",
+  "last_verified_head": "975b1550e81aaf65d3f7b34c00d64d47ab9f2ed5",
+  "last_observed_milestone": "L10a authenticated anchor-first selection committed; L10b runtime canary opened",
   "last_decision": "observe_no_steering",
-  "next_check_trigger": "L10 implementation reaches focused-test, server-canary, blocker, or completion boundary"
+  "next_check_trigger": "L10b reaches focused-test, real server miss-write-restart-hit, blocker, or completion boundary"
 }

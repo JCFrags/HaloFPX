@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-20 22:37 PDT
+Verified: 2026-07-20 22:48 PDT
 
 ## Overall state
 
@@ -14,10 +14,10 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `522dd90cb52428db76d38f473e0b956774e75a23`
+- Latest verified commit: `975b1550e81aaf65d3f7b34c00d64d47ab9f2ed5`
 - Remote count: zero
-- Worktree state: L10 ADR draft in progress; no runtime implementation yet observed
-- Current work: L10 default-off authenticated exact-key operational cache canary
+- Worktree state: clean at the L10a boundary
+- Current work: L10b normal completion-path exact-key restore and prompt-boundary writeback canary
 
 ## Product progress
 
@@ -25,6 +25,11 @@ slower candidates.
   restart, authenticated hit, corruption rejection, and equal recomputation.
 - This remains an explicit-handle laboratory path using a small fixture; it is
   not yet production persistence or a 160 GB model cache-state workload.
+- L10a now authenticates the fixed generation-one anchor and automatically
+  derives its selected manifest without trusting directory names. Publish,
+  reopen, automatic selection, exact restore, wrong-scope miss, and
+  corrupted-anchor miss passed on nimo-2. Server runtime lookup/writeback is the
+  current next gate rather than a completed claim.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -46,8 +51,8 @@ slower candidates.
 
 ## Lead decision
 
-No steering is warranted at this checkpoint. The worker closed the exhausted
-low-yield performance lane and selected the highest-value product gap: replacing
-client-supplied manifest handles with private authenticated exact-key discovery
-and writeback under a distinct default-off canary. This directly advances the
-usable persistent-cache objective while retaining bounded generation-one scope.
+No steering is warranted at this checkpoint. L10a encountered and repaired one
+focused positive-path failure, passed 4/4 focused/inherited tests, received
+independent acceptance, committed cleanly, and restored production to HTTP 200
+with zero restarts. The next turn is correctly limited to normal completion-path
+lookup and writeback under the separate default-off L10b canary.

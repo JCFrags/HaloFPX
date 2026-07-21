@@ -42,3 +42,18 @@ generation-one, non-enumerating, non-prefix, and no-overwrite.
 Trigger to revisit: L10 broadens into shared/prefix discovery, permits overwrite,
 weakens authenticated fixed-anchor authority, mutates live state before complete
 validation, or expands testing beyond the bounded canary without a defect.
+
+## 2026-07-20 — accept L10a authenticated selection boundary
+
+Decision: no steering; accept L10a and observe the L10b runtime canary.
+
+Reason: the first attempt exposed a genuine positive-path failure and was held
+open rather than promoted. The repaired seam authenticates and parses the fixed
+anchor before revealing the selected manifest, rejects wrong scope and corrupt
+anchors as misses, performs no directory scan, and has no server runtime edge.
+Focused and inherited nimo-2 tests passed 4/4, independent review accepted the
+milestone, the tree is clean at `975b1550`, and production recovered.
+
+Trigger to revisit: normal-path writeback occurs before a clean prompt boundary,
+restore mutates live state before full validation, misses fail to recompute cold,
+or feature-off/default behavior changes.
