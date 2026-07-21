@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <cstring>
 #include <future>
+#include <limits>
 #include <regex>
 
 static const size_t kiB = 1024;
@@ -1130,8 +1131,13 @@ static ggml_backend_buffer_type_t select_weight_buft(const llama_hparams & hpara
 
 struct ggml_tensor * llama_model_loader::create_tensor(
         const llama_hparams & hparams, const buft_list_t * buft_list_cpu, const buft_list_t * buft_list_input, const buft_list_t * buft_list_output,
-        const buft_list_t * buft_list_layer, const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags) {
+        const buft_list_t * buft_list_layer, const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags,
+        size_t source_slice_begin) {
     const std::string tn_name = tn.str();
+    const bool source_slice = flags & TENSOR_SOURCE_SLICE;
+    if (source_slice && !(flags & TENSOR_DUPLICATED)) {
+        throw std::runtime_error(format("source-slice tensor '%s' must be an implementation-only duplicate", tn_name.c_str()));
+    }
     std::string load_name = tn_name;
     if (!files.empty() && get_tensor_meta(load_name.c_str()) == nullptr) {
         if (load_name.rfind("mtp.", 0) == 0) {
@@ -1323,6 +1329,9 @@ struct ggml_tensor * llama_model_loader::create_tensor(
     };
 
     if (files.empty()) {
+        if (source_slice) {
+            throw std::runtime_error(format("source-slice tensor '%s' requires a concrete GGUF source", tn_name.c_str()));
+        }
         if (flags & TENSOR_SKIP_IF_VIRTUAL) {
             return nullptr;
         }
@@ -1368,7 +1377,7 @@ struct ggml_tensor * llama_model_loader::create_tensor(
     ggml_context * ctx = ctx_for_buft(buft);
 
     // if duplicated, check if the original tensor was allocated in the same buffer type context and avoid creating a new one
-    if (flags & TENSOR_DUPLICATED) {
+    if ((flags & TENSOR_DUPLICATED) && !source_slice) {
         ggml_tensor * t = ggml_get_tensor(ctx, load_name.c_str());
         if (t) {
             return t;
@@ -1376,6 +1385,44 @@ struct ggml_tensor * llama_model_loader::create_tensor(
     }
 
     LLAMA_LOG_DEBUG("%s: loading tensor %s\n", __func__, load_name.c_str());
+    if (source_slice) {
+        if (ne.size() < 3 || ne.size() > GGML_MAX_DIMS) {
+            throw std::runtime_error(format("source-slice tensor '%s' must specify three or four dimensions", tn_name.c_str()));
+        }
+
+        std::array<int64_t, GGML_MAX_DIMS> dims { 1, 1, 1, 1 };
+        std::copy(ne.begin(), ne.end(), dims.begin());
+        if (dims[0] != t_meta->ne[0] || dims[1] != t_meta->ne[1] || dims[3] != t_meta->ne[3] || dims[2] <= 0 ||
+                source_slice_begin > static_cast<size_t>(t_meta->ne[2]) ||
+                static_cast<size_t>(dims[2]) > static_cast<size_t>(t_meta->ne[2]) - source_slice_begin) {
+            throw std::runtime_error(format("source-slice tensor '%s' is not a bounded contiguous axis-2 range", tn_name.c_str()));
+        }
+        if (source_slice_begin > std::numeric_limits<size_t>::max() / t_meta->nb[2] ||
+                static_cast<size_t>(dims[2]) > std::numeric_limits<size_t>::max() / t_meta->nb[2]) {
+            throw std::runtime_error(format("source-slice tensor '%s' range overflows", tn_name.c_str()));
+        }
+        const size_t source_offset = source_slice_begin * t_meta->nb[2];
+        const size_t source_size = static_cast<size_t>(dims[2]) * t_meta->nb[2];
+        const size_t full_size = ggml_nbytes(t_meta);
+        if (source_offset > full_size || source_size > full_size - source_offset) {
+            throw std::runtime_error(format("source-slice tensor '%s' exceeds its GGUF source", tn_name.c_str()));
+        }
+
+        ggml_tensor * tensor = ggml_new_tensor_4d(ctx, t_meta->type, dims[0], dims[1], dims[2], dims[3]);
+        ggml_set_name(tensor, load_name.c_str());
+        if (tensor->nb[1] != t_meta->nb[1] || tensor->nb[2] != t_meta->nb[2] || ggml_nbytes(tensor) != source_size) {
+            throw std::runtime_error(format("source-slice tensor '%s' changed packed row geometry", tn_name.c_str()));
+        }
+        if (!tensor_source_offsets.emplace(tensor, source_offset).second) {
+            throw std::runtime_error(format("source-slice tensor '%s' has duplicate load authority", tn_name.c_str()));
+        }
+        size_data += source_size;
+        LLAMA_LOG_INFO("%s: tensor '%s' loads axis-2 range [%zu, %zu) from packed source bytes [%zu, %zu)\n",
+                __func__, tn_name.c_str(), source_slice_begin, source_slice_begin + static_cast<size_t>(dims[2]),
+                source_offset, source_offset + source_size);
+        return tensor;
+    }
+
     const struct ggml_tensor * cur = check_tensor_dims(load_name, ne, !(flags & TENSOR_NOT_REQUIRED));
 
     if (cur == NULL) {
@@ -1475,6 +1522,11 @@ void llama_model_loader::init_mappings(bool prefetch, llama_mlocks * mlock_mmaps
     }
 }
 
+size_t llama_model_loader::tensor_source_offset(const struct ggml_tensor * tensor) const {
+    const auto it = tensor_source_offsets.find(tensor);
+    return it == tensor_source_offsets.end() ? 0 : it->second;
+}
+
 void llama_model_loader::get_mapping_range(size_t * first, size_t * last, void ** addr, int idx, ggml_context * ctx) const {
     GGML_ASSERT(!mappings.empty());
     const auto & mapping = mappings.at(idx);
@@ -1487,26 +1539,28 @@ void llama_model_loader::get_mapping_range(size_t * first, size_t * last, void *
         if (!weight || weight->idx != idx) {
             continue;
         }
-        *first = std::min(*first, weight->offs);
-        *last  = std::max(*last,  weight->offs + ggml_nbytes(tensor));
+        const size_t source_offset = tensor_source_offset(tensor);
+        *first = std::min(*first, weight->offs + source_offset);
+        *last  = std::max(*last,  weight->offs + source_offset + ggml_nbytes(tensor));
     }
 }
 
 void llama_model_loader::load_data_for(struct ggml_tensor * cur) const {
     const auto & w = require_weight(ggml_get_name(cur));
+    const size_t source_offset = tensor_source_offset(cur);
 
     if (use_mmap) {
         const auto & mapping = mappings.at(w.idx);
         if (cur->data == nullptr) {
-            cur->data = (uint8_t *)mapping->addr() + w.offs;
+            cur->data = (uint8_t *)mapping->addr() + w.offs + source_offset;
         } else {
-            memcpy(cur->data, (uint8_t *)mapping->addr() + w.offs, ggml_nbytes(cur));
+            memcpy(cur->data, (uint8_t *)mapping->addr() + w.offs + source_offset, ggml_nbytes(cur));
         }
     } else {
         GGML_ASSERT(cur->data != nullptr);
         GGML_ASSERT(w.idx < files.size());
         const auto & file = files.at(w.idx);
-        file->seek(w.offs, SEEK_SET);
+        file->seek(w.offs + source_offset, SEEK_SET);
         file->read_raw(cur->data, ggml_nbytes(cur));
     }
 
@@ -1644,6 +1698,12 @@ bool llama_model_loader::load_all_data(
         }
 
         size_t n_size = ggml_nbytes(cur);
+        const size_t source_offset = tensor_source_offset(cur);
+        if (source_offset > ggml_nbytes(weight->tensor) || n_size > ggml_nbytes(weight->tensor) - source_offset ||
+                weight->offs > std::numeric_limits<size_t>::max() - source_offset) {
+            throw std::runtime_error(format("tensor '%s' has an invalid GGUF source range", ggml_get_name(cur)));
+        }
+        const size_t source_file_offset = weight->offs + source_offset;
 
         if (use_mmap) {
             const auto & mapping = mappings.at(weight->idx);
@@ -1651,7 +1711,7 @@ bool llama_model_loader::load_all_data(
             if (bufs.count(weight->idx)) {
                 buf_mmap = bufs.at(weight->idx);
             }
-            uint8_t * data = (uint8_t *) mapping->addr() + weight->offs;
+            uint8_t * data = (uint8_t *) mapping->addr() + source_file_offset;
 
             if (check_tensors) {
                 validation_result.emplace_back(std::async(std::launch::async, [cur, data, n_size] {
@@ -1664,12 +1724,12 @@ bool llama_model_loader::load_all_data(
                 ggml_backend_tensor_alloc(buf_mmap, cur, data);
                 if (lmlocks) {
                     const auto & lmlock = lmlocks->at(weight->idx);
-                    lmlock->grow_to(weight->offs + n_size);
+                    lmlock->grow_to(source_file_offset + n_size);
                 }
 
                 auto & mmap_used = mmaps_used[weight->idx];
-                mmap_used.first  = std::min(mmap_used.first,  weight->offs);
-                mmap_used.second = std::max(mmap_used.second, weight->offs + n_size);
+                mmap_used.first  = std::min(mmap_used.first,  source_file_offset);
+                mmap_used.second = std::max(mmap_used.second, source_file_offset + n_size);
             } else {
                 ggml_backend_tensor_set(cur, data, 0, n_size);
             }
@@ -1677,7 +1737,7 @@ bool llama_model_loader::load_all_data(
             const auto & file = files.at(weight->idx);
 
             if (ggml_backend_buffer_is_host(cur->buffer)) {
-                file->seek(weight->offs, SEEK_SET);
+                file->seek(source_file_offset, SEEK_SET);
                 file->read_raw(cur->data, n_size);
                 if (check_tensors) {
                     validation_result.emplace_back(std::async(std::launch::async, [cur, n_size] {
@@ -1687,7 +1747,7 @@ bool llama_model_loader::load_all_data(
             } else {
                 // If upload_backend is valid load the tensor in chunks to pinned memory and upload the buffers asynchronously to the GPU.
                 if (upload_backend) {
-                    size_t offset = weight->offs;
+                    size_t offset = source_file_offset;
                     alignment = file->read_alignment();
                     size_t aligned_offset = offset & ~(alignment - 1);
                     size_t offset_from_alignment = offset - aligned_offset;
@@ -1740,7 +1800,7 @@ bool llama_model_loader::load_all_data(
                     }
                 } else {
                     read_buf.resize(n_size);
-                    file->seek(weight->offs, SEEK_SET);
+                    file->seek(source_file_offset, SEEK_SET);
                     file->read_raw(read_buf.data(), n_size);
                     ggml_backend_tensor_set(cur, read_buf.data(), 0, n_size);
                     if (check_tensors && !ggml_validate_row_data(cur->type, read_buf.data(), n_size)) {

@@ -67,6 +67,7 @@ struct llama_model_loader {
     static const int TENSOR_DUPLICATED      = 1 << 1;
     static const int TENSOR_SKIP            = 1 << 2;
     static const int TENSOR_SKIP_IF_VIRTUAL = 1 << 3;
+    static const int TENSOR_SOURCE_SLICE    = 1 << 4;
 
     int n_kv      = 0;
     int n_tensors = 0;
@@ -111,6 +112,11 @@ struct llama_model_loader {
     };
 
     std::map<ggml_backend_buffer_type_t, ggml_context_ptr, ggml_backend_buft_comparator> ctx_map;
+
+    // Relative packed-GGUF source offsets for bounded last-dimension slices.
+    // Tensor names are not unique across strict device contexts, so authority
+    // is bound to the exact created tensor pointer.
+    std::unordered_map<const ggml_tensor *, size_t> tensor_source_offsets;
 
     // track tensors that had to be moved for debugging:
     size_t n_tensors_moved = 0;
@@ -180,13 +186,16 @@ struct llama_model_loader {
 
     struct ggml_tensor * create_tensor(
         const llama_hparams & hparams, const buft_list_t * buft_list_cpu, const buft_list_t * buft_list_input, const buft_list_t * buft_list_output,
-        const buft_list_t * buft_list_layer, const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags);
+        const buft_list_t * buft_list_layer, const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags,
+        size_t source_slice_begin = 0);
 
     struct ggml_tensor * create_tensor_as_view(struct ggml_context * ctx, struct ggml_tensor * base, const std::string & name, const std::initializer_list<int64_t> & ne, size_t offset, bool required = true);
 
     void done_getting_tensors(bool partial = false) const;
 
     void init_mappings(bool prefetch = true, llama_mlocks * mlock_mmaps = nullptr);
+
+    size_t tensor_source_offset(const struct ggml_tensor * tensor) const;
 
     void get_mapping_range(size_t * first, size_t * last, void ** addr, int idx, ggml_context * ctx) const;
 

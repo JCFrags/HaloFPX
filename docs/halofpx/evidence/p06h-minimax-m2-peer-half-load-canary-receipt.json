@@ -1,0 +1,181 @@
+{
+  "schema": "halofpx.p06h-minimax-m2-peer-half-load-canary.v1",
+  "date": "2026-07-20",
+  "status": "exact_artifact_physical_peer_half_load_qualified_authoritative_sharding_closed",
+  "parent_commit": "dfe8d5df4e4e6494da293bfbc051604f42fd4094",
+  "parent_tree": "aa5fbcfbe4c1910803ead4163449b04e93acd3ff",
+  "feature_gates": {
+    "placement": "HALOFPX_MINIMAX_M2_EXPERT_SHADOW_LAYER=32",
+    "compute": "HALOFPX_MINIMAX_M2_EXPERT_SHADOW_COMPUTE=1",
+    "peer_half_load": "HALOFPX_MINIMAX_M2_EXPERT_PEER_HALF_LOAD=1",
+    "default_off": true,
+    "authoritative_output_changed": false
+  },
+  "loader_contract": {
+    "source_identity": "exact created tensor pointer",
+    "slice_axis": 2,
+    "source_expert_range": [96, 192],
+    "peer_local_expert_range": [0, 96],
+    "packed_source_range_bytes_per_tensor": [368050176, 736100352],
+    "packed_bytes_per_tensor": 368050176,
+    "packed_bytes_three_peer_tensors": 1104150528,
+    "applies_to": [
+      "mmap mapping range",
+      "mmap tensor data",
+      "host read",
+      "direct and staged asynchronous read",
+      "fallback read",
+      "validation",
+      "load_data_for"
+    ],
+    "strict_target_device": true,
+    "tensor_overrides_rejected": true,
+    "source_bounds_checked": true,
+    "packed_row_geometry_checked": true
+  },
+  "distributed_contract": {
+    "coordinator": "nimo-2",
+    "authoritative_layer_32_owner": "nimo-2 ROCm0 full 192-expert tensor and full MoE result",
+    "experimental_peer_owner": "nimo-1 RPC0 physical experts 96 through 191 only",
+    "peer_failure": "fail model load or graph execution; never accept partial branch output",
+    "single_node_fallback": "not admitted for this 160 GB artifact on one 128 GiB node",
+    "operational_fallback": "fresh known-good default-off dual-node restart or separately admitted smaller model"
+  },
+  "source_sha256": {
+    "src/llama-model-loader.cpp": "922f6e20ee30565f40f901590e8f786ec1e59aa9f8eaaf66dce3ca1c2c865a35",
+    "src/llama-model-loader.h": "5790db00a45716a86bb6800957bd50e2988ebdcacad0039e49927abf3de7e08c",
+    "src/llama-model.cpp": "acd07ca4456f7be252c7b42e3936a828550f5f4201af17cf3dabd60c115c1ccf",
+    "src/llama-model.h": "905bdddcb918a8bc26832695c80b53372c6f9bdff60a4716459afb53035450dd",
+    "src/models/minimax-m2.cpp": "db3bc908c5363ed5295ec304849e857d1c45ba3bc5039750cded6a470f76cf46",
+    "src/models/models.h": "b9a5ab5eb0a468365e934395f13e3c642390bea309cca151c8380b164aa4d4ad"
+  },
+  "build": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "type": "Release",
+    "gfx_target": "gfx1151",
+    "hip": true,
+    "vulkan": true,
+    "rpc": true,
+    "force_mmq": true,
+    "no_vmm": true,
+    "webui": false,
+    "llama_server_sha256_both_nodes": "d451de4d870d1cc16e42039aa3a46baaea4d80d6ca53a28e73f3ec1c5fd209b9",
+    "rpc_server_sha256_both_nodes": "e9dfe21d0099883305630fe51a12b18d69c3bbfb5e1c92d0974750ab4fd1aea3",
+    "focused_test_sha256_both_nodes": "2006c2db191124d7ec09cb80012e47a9435de0daa4324c77176d90f53f986abf"
+  },
+  "tests": {
+    "feature_off_contract": "pass",
+    "l02_contracts": "pass",
+    "contract_total_per_node": 2,
+    "contract_passed_per_node": 2,
+    "direct_q6_view": {
+      "backend": "nimo-2 ROCm0",
+      "packed_view_offset_bytes": 53248,
+      "reference_l2": 24.3547155,
+      "nmse": 0.0,
+      "max_abs_error": 0.0,
+      "passed": true
+    },
+    "rpc_q6_view": {
+      "backend": "nimo-2 RPC0 to nimo-1 10.44.0.1:50053 ROCm0",
+      "packed_view_offset_bytes": 53248,
+      "reference_l2": 24.3547155,
+      "nmse": 0.0,
+      "max_abs_error": 0.0,
+      "passed": true
+    },
+    "expanded_fault_matrix_deferred": true
+  },
+  "exact_model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "file": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "exact_canary": {
+    "request_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "http_code": 200,
+    "response_sha256": "81447bcd1da94e52f2dc1da60cc7acf9f794c833c4d82d7325e29e1dccb2d38c",
+    "content_sha256_with_newline": "a9c38c7f948adcfa8cfab5468ab84cc089b01a34c3f270f1c487a9a5fa74b555",
+    "matches_p06g_control": true,
+    "prompt_tokens_per_second": 202.915695448164,
+    "generation_tokens_per_second": 15.9078201476768,
+    "performance_claim": false,
+    "oracle_failure": false,
+    "observed_oracle_nmse_order": "1e-15",
+    "observed_local_selected_range": [3, 5],
+    "observed_peer_selected_range": [3, 5],
+    "nonzero_local_and_peer_contributions": true,
+    "rpc_model_buffer_mib": 78253.46
+  },
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-p06h-peer-half-dfe8d5d-20260720/evidence-nimo1",
+      "manifest_entries": 17,
+      "manifest_sha256": "db3b99cdc40558a8d4e04044628e65b64c76a2dc648ec0850321fe7d6e2940d1",
+      "bundle": "/var/tmp/halofpx-p06h-peer-half-dfe8d5d-nimo1-20260720.tar.zst",
+      "bundle_size_bytes": 1154949,
+      "bundle_mode": "0600",
+      "bundle_sha256": "fcb33cbc6206dd43a73b2af4070cd788862bc4358c03d2af11355b383f73d36d"
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-p06h-peer-half-dfe8d5d-20260720/evidence-nimo2",
+      "manifest_entries": 24,
+      "manifest_sha256": "1fc8c8b24e403270feb674973fcdd4673f22f18102be331cd839ef5a1f5b571b",
+      "bundle": "/var/tmp/halofpx-p06h-peer-half-dfe8d5d-nimo2-20260720.tar.zst",
+      "bundle_size_bytes": 1161831,
+      "bundle_mode": "0600",
+      "bundle_sha256": "af7fd7fcc4ce66495acb4d2a2a6f18be38d4f8126f1fdba14dea755db92621a1"
+    },
+    "manifests_verified": true,
+    "bundles_created_after_manifest_verification": true
+  },
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "reference_clone_changed": false,
+    "remote_changed": false,
+    "notice_changed": false,
+    "sbom_changed": false,
+    "persistent_behavior_changed": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLLama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama_ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama_cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "Nathanw1014_llama_cpp": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  },
+  "rollback": {
+    "disposable_stop_order": ["nimo-2 coordinator", "nimo-1 worker"],
+    "known_good_restore_order": ["nimo-2 worker", "nimo-1 coordinator"],
+    "deployed_binaries_replaced": false,
+    "nimo_2_worker_binary_sha256": "cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63",
+    "nimo_2_worker_active": true,
+    "nimo_2_worker_restarts": 0,
+    "nimo_2_worker_listener": "0.0.0.0:50052",
+    "nimo_1_server_binary_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb",
+    "nimo_1_server_active": true,
+    "nimo_1_server_restarts": 0,
+    "nimo_1_health_http": 200
+  },
+  "independent_review": {
+    "path": "docs/halofpx/reviews/2026-07-20__p06h-minimax-m2-peer-half-load-canary__review__v01.md",
+    "verdict": "accept_for_commit",
+    "blocking_findings": 0,
+    "deferred_debt": "broader mmap and peer-failure permutations remain deferred until authoritative sharding"
+  },
+  "deferred": [
+    "authoritative physical expert sharding",
+    "batched and prefill rank-local routing",
+    "removal of the synchronous correctness oracle",
+    "matched interleaved performance and final non-inferiority",
+    "broader mmap and fault permutations absent a concrete defect"
+  ]
+}

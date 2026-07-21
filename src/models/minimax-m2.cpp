@@ -36,6 +36,17 @@ static bool halofpx_minimax_m2_shadow_compute_from_env() {
     return true;
 }
 
+static bool halofpx_minimax_m2_peer_half_load_from_env() {
+    const char * raw = std::getenv("HALOFPX_MINIMAX_M2_EXPERT_PEER_HALF_LOAD");
+    if (raw == nullptr) {
+        return false;
+    }
+    if (std::strcmp(raw, "1") != 0) {
+        throw std::runtime_error("HALOFPX_MINIMAX_M2_EXPERT_PEER_HALF_LOAD must be exactly 1 when present");
+    }
+    return true;
+}
+
 static bool halofpx_device_backend_is(ggml_backend_dev_t dev, const char * backend_name) {
     ggml_backend_reg_t reg = dev == nullptr ? nullptr : ggml_backend_dev_backend_reg(dev);
     const char * name = reg == nullptr ? nullptr : ggml_backend_reg_name(reg);
@@ -58,8 +69,12 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
 
     const int shadow_layer = halofpx_minimax_m2_shadow_layer_from_env();
     const bool shadow_compute = halofpx_minimax_m2_shadow_compute_from_env();
+    const bool peer_half_load = halofpx_minimax_m2_peer_half_load_from_env();
     if (shadow_compute && shadow_layer < 0) {
         throw std::runtime_error("HALOFPX MiniMax-M2 expert shadow compute requires HALOFPX_MINIMAX_M2_EXPERT_SHADOW_LAYER");
+    }
+    if (peer_half_load && (!shadow_compute || shadow_layer < 0)) {
+        throw std::runtime_error("HaloFPX MiniMax-M2 peer half-load requires shadow placement and compute");
     }
     ggml_backend_dev_t shadow_peer = nullptr;
     if (shadow_layer >= 0) {
@@ -101,6 +116,7 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
         }
         halofpx_expert_shadow_layer = shadow_layer;
         halofpx_expert_shadow_compute = shadow_compute;
+        halofpx_expert_peer_half_load = peer_half_load;
     }
 
     tok_embd = create_tensor(tn(LLM_TENSOR_TOKEN_EMBD, "weight"), {n_embd, n_vocab}, 0);
@@ -137,12 +153,21 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
                         ggml_type_name(layer.ffn_down_exps->type),
                         ggml_type_name(layer.ffn_up_exps->type)));
             }
-            layer.ffn_gate_exps_shadow_peer = create_tensor_on_device(
-                    ml, tn(LLM_TENSOR_FFN_GATE_EXPS, "weight", i), {n_embd, n_ff, n_expert}, TENSOR_DUPLICATED, shadow_peer);
-            layer.ffn_down_exps_shadow_peer = create_tensor_on_device(
-                    ml, tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff, n_embd, n_expert}, TENSOR_DUPLICATED, shadow_peer);
-            layer.ffn_up_exps_shadow_peer = create_tensor_on_device(
-                    ml, tn(LLM_TENSOR_FFN_UP_EXPS, "weight", i), {n_embd, n_ff, n_expert}, TENSOR_DUPLICATED, shadow_peer);
+            if (peer_half_load) {
+                layer.ffn_gate_exps_shadow_peer = create_tensor_source_slice_on_device(
+                        ml, tn(LLM_TENSOR_FFN_GATE_EXPS, "weight", i), {n_embd, n_ff, 96}, 96, shadow_peer);
+                layer.ffn_down_exps_shadow_peer = create_tensor_source_slice_on_device(
+                        ml, tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff, n_embd, 96}, 96, shadow_peer);
+                layer.ffn_up_exps_shadow_peer = create_tensor_source_slice_on_device(
+                        ml, tn(LLM_TENSOR_FFN_UP_EXPS, "weight", i), {n_embd, n_ff, 96}, 96, shadow_peer);
+            } else {
+                layer.ffn_gate_exps_shadow_peer = create_tensor_on_device(
+                        ml, tn(LLM_TENSOR_FFN_GATE_EXPS, "weight", i), {n_embd, n_ff, n_expert}, TENSOR_DUPLICATED, shadow_peer);
+                layer.ffn_down_exps_shadow_peer = create_tensor_on_device(
+                        ml, tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff, n_embd, n_expert}, TENSOR_DUPLICATED, shadow_peer);
+                layer.ffn_up_exps_shadow_peer = create_tensor_on_device(
+                        ml, tn(LLM_TENSOR_FFN_UP_EXPS, "weight", i), {n_embd, n_ff, n_expert}, TENSOR_DUPLICATED, shadow_peer);
+            }
             if (layer.ffn_gate_exps_shadow_peer->type != GGML_TYPE_Q6_0_ROCMFPX ||
                     layer.ffn_down_exps_shadow_peer->type != GGML_TYPE_Q6_0_ROCMFPX ||
                     layer.ffn_up_exps_shadow_peer->type != GGML_TYPE_Q6_0_ROCMFPX) {
@@ -152,8 +177,9 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
             exclude_tensor_from_lookup(layer.ffn_down_exps_shadow_peer);
             exclude_tensor_from_lookup(layer.ffn_up_exps_shadow_peer);
             if (shadow_compute) {
-                LLAMA_LOG_INFO("HaloFPX P06g: admitted rank-local 96-expert Q6 view shadow compute for layer %d on peer %s; storage remains replicated and authoritative output remains the full local MoE result\n",
-                        shadow_layer, ggml_backend_dev_name(shadow_peer));
+                LLAMA_LOG_INFO("HaloFPX %s: admitted rank-local 96-expert Q6 shadow compute for layer %d on peer %s; peer storage=%s and authoritative output remains the full local MoE result\n",
+                        peer_half_load ? "P06h" : "P06g", shadow_layer, ggml_backend_dev_name(shadow_peer),
+                        peer_half_load ? "physical-upper-half" : "replicated-full-view");
             } else {
                 LLAMA_LOG_INFO("HaloFPX P06d: admitted placement-only Q6 expert shadow for layer %d on peer %s; authoritative graph unchanged\n",
                         shadow_layer, ggml_backend_dev_name(shadow_peer));
@@ -419,6 +445,10 @@ llama_model_minimax_m2::graph::graph(const llama_model & model, const llm_graph_
             const auto & layer = model.layers[il];
             auto expert_view = [&](ggml_tensor * experts, bool peer_branch) {
                 GGML_ASSERT(experts != nullptr && experts->type == GGML_TYPE_Q6_0_ROCMFPX);
+                if (peer_branch && minimax_model.halofpx_expert_peer_half_load) {
+                    GGML_ASSERT(experts->ne[2] == 96 && n_expert == 192);
+                    return experts;
+                }
                 GGML_ASSERT(experts->ne[2] == n_expert && n_expert == 192);
                 const size_t offset = peer_branch ? 96 * experts->nb[2] : 0;
                 return ggml_view_3d(ctx0, experts, experts->ne[0], experts->ne[1], 96,
