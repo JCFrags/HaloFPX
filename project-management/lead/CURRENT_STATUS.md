@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 06:06 PDT
+Verified: 2026-07-21 06:45 PDT
 
 ## Overall state
 
@@ -22,7 +22,10 @@ slower candidates.
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
 - Current work: L17 passed. L18 is active as a read-only,
   no-production exact-primary allocation preflight tied to the real loader and
-  explicit `RPC0,ROCm0` placement. No primary retry is open.
+  explicit `RPC0,ROCm0` placement. At the predicted review boundary, the
+  corrected full-model digest remained active and healthy; its binary hash and
+  self-test were pinned, with metadata construction, zero-allocation context
+  simulation, evidence capture, and cleanup queued. No primary retry is open.
 
 ## Product progress
 
@@ -142,4 +145,5 @@ bind it to the pinned artifact and `RPC0,ROCm0` plan, compare maximum and total
 per-device requests to measured capacity with explicit reserve, and fail closed
 on ambiguity or overcommit. Independent review must accept the calculation and
 its source lineage. Only a later Project Lead decision may open another primary
-attempt.
+attempt. The 06:45 PDT event snapshot showed expected progress and no steering
+threshold. Sleep until task completion/attention or the 07:15 PDT heartbeat.

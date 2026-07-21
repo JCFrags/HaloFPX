@@ -1,14 +1,16 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-21T06:06:00-07:00",
+  "updated_at": "2026-07-21T06:45:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
+  "worker_cursor": "6c773cd2-7e90-4525-a85a-6e2dab519524:613",
   "worker_status": "active_l18_exact_primary_no_allocation_preflight",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
   "last_verified_head": "730e96330ae0585719941a93b65c31a6217a7a54",
   "last_observed_milestone": "L17 PASS; executable RPC0,ROCm0 placement authority and small two-device proof accepted without production mutation",
-  "last_decision": "l18_dispatched_read_only_exact_primary_allocation_preflight",
-  "next_check_trigger": "L18 task completion or attention; 30-minute heartbeat fallback; expect 30-45 minutes for source/design and 60-90 minutes for exact metadata planning and review"
+  "last_decision": "l18_active_healthy_no_steering_at_predicted_review_boundary",
+  "last_progress": "Corrected exact-model full-file digest is running; binary hash and self-test are pinned; metadata construction, zero-allocation context simulation, evidence capture, and cleanup remain queued",
+  "next_check_trigger": "L18 task completion or attention; otherwise one heartbeat snapshot at or after 2026-07-21T07:15:00-07:00; do not poll earlier"
 }
