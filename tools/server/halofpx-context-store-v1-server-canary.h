@@ -92,6 +92,11 @@ struct context_store_v1_server_canary_observation {
 struct context_store_v1_server_canary_config {
     const char * data_root_path = nullptr;
     const char * anchor_root_path = nullptr;
+    // Catalog composition supplies already-contained directory descriptors so
+    // the child authority never re-resolves a mutable pathname. When either
+    // descriptor is nonnegative, both are required and paths are ignored.
+    int data_root_fd = -1;
+    int anchor_root_fd = -1;
     context_store_key_view operator_key;
     std::array<uint8_t, 16> store_uuid {};
     context_store_compatibility_expectation compatibility;

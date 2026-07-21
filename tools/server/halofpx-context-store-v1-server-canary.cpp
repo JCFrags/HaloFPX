@@ -793,7 +793,9 @@ context_store_v1_server_canary_open_result make_context_store_v1_server_canary(
     context_store_format_digest anchor {};
     context_store_format_digest attempt {};
     try {
-        if (!config.data_root_path || !config.anchor_root_path ||
+        const bool descriptor_roots = config.data_root_fd >= 0 || config.anchor_root_fd >= 0;
+        if ((descriptor_roots && (config.data_root_fd < 0 || config.anchor_root_fd < 0)) ||
+            (!descriptor_roots && (!config.data_root_path || !config.anchor_root_path)) ||
             config.operator_key.size != context_store_v1_server_canary_operator_key_bytes ||
             !config.operator_key.data || !nonzero(config.store_uuid) ||
             !nonzero(config.compatibility.root) || !nonzero(config.producer_identity) ||
@@ -807,10 +809,14 @@ context_store_v1_server_canary_open_result make_context_store_v1_server_canary(
         for (const auto & component : config.compatibility.components) {
             if (!nonzero(component)) return result;
         }
-        fd_owner data(::open(config.data_root_path,
-            O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
-        fd_owner anchor_root(::open(config.anchor_root_path,
-            O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
+        fd_owner data(descriptor_roots
+            ? ::fcntl(config.data_root_fd, F_DUPFD_CLOEXEC, 3)
+            : ::open(config.data_root_path,
+                O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
+        fd_owner anchor_root(descriptor_roots
+            ? ::fcntl(config.anchor_root_fd, F_DUPFD_CLOEXEC, 3)
+            : ::open(config.anchor_root_path,
+                O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
         context_store_linux_root_identity_v1 data_identity;
         context_store_linux_root_identity_v1 anchor_identity;
         if (data.get() < 0 || anchor_root.get() < 0 ||

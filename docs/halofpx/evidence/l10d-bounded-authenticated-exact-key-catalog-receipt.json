@@ -1,0 +1,43 @@
+{
+  "schema": "halofpx-milestone-receipt-v1",
+  "milestone": "L10d",
+  "title": "bounded authenticated exact-key catalog",
+  "date": "2026-07-20",
+  "base_commit": "d0694cd5aa4eefbb4e42013fe58b546f161333ff",
+  "target_node": "nimo-2",
+  "runtime_mode": "full-v1-exact-key-catalog-canary",
+  "default_enabled": false,
+  "capacity_tested": 2,
+  "focused_tests": {
+    "on_passed": 8,
+    "on_failed": 0,
+    "off_passed": 1,
+    "off_failed": 0
+  },
+  "process_proof": {
+    "cold_prompt_n": [11, 11],
+    "restart_hit_prompt_n": [1, 1],
+    "capacity_cold_prompt_n": 13,
+    "capacity_tree_unchanged": true,
+    "content_sha256": [
+      "d4befa4c08b0bdd9023bfa965064be3c3a8eda8804174fc74c286b2a66710860",
+      "0125f512102ec7a97821aacb92fe3bec0e2fe2dd347cd6cb20f251f9238cb3b5"
+    ]
+  },
+  "production_deployment_touched": false,
+  "production_persistence_admitted": false,
+  "excluded": [
+    "online deletion",
+    "eviction",
+    "generation replacement",
+    "prefix matching",
+    "shared scope",
+    "distributed restore",
+    "broad soak",
+    "final G9/G10"
+  ],
+  "evidence_bundle": {
+    "path": "/var/tmp/halofpx-l10d-evidence-20260720-v2.tar.zst",
+    "sha256": "a9336a4425b2bf2458573ffad4677adcc6fba9ca810cd9e93e812682e2250303"
+  }
+}

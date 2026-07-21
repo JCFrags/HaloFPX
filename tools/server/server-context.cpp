@@ -34,6 +34,9 @@
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
 #include "halofpx-context-store-exact-session.h"
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+#include "halofpx-context-store-v1-catalog.h"
+#endif
 #endif
 
 #include <algorithm>
@@ -974,6 +977,9 @@ private:
 #if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
     std::unique_ptr<halofpx::context_store_v1_server_canary> halofpx_full_v1_store;
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+    std::unique_ptr<halofpx::context_store_v1_catalog> halofpx_catalog_store;
+#endif
     halofpx::context_store_format_digest halofpx_scope_key {};
     halofpx::context_store_format_digest halofpx_compatibility_root {};
 #if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
@@ -1058,9 +1064,21 @@ private:
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
             || params_base.halofpx_context_store_mode == "full-v1-exact-key-canary"
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+            || params_base.halofpx_context_store_mode == "full-v1-exact-key-catalog-canary"
+#endif
             ;
 #else
         const bool full_v1_mode = false;
+#endif
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+        const bool catalog_mode = params_base.halofpx_context_store_mode ==
+            "full-v1-exact-key-catalog-canary";
+        constexpr int32_t catalog_max_entries = static_cast<int32_t>(
+            halofpx::context_store_v1_catalog_max_slots);
+#else
+        const bool catalog_mode = false;
+        constexpr int32_t catalog_max_entries = 1;
 #endif
         bool compatibility_valid = false;
 #if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
@@ -1100,7 +1118,11 @@ private:
             (full_v1_mode &&
              (params_base.halofpx_context_store_quota_mib <= 0 ||
               params_base.halofpx_context_store_reserve_mib < 0 ||
-              params_base.halofpx_context_store_max_entries != 1)) ||
+              (catalog_mode
+                ? (params_base.halofpx_context_store_max_entries < 2 ||
+                   params_base.halofpx_context_store_max_entries >
+                       catalog_max_entries)
+                : params_base.halofpx_context_store_max_entries != 1))) ||
             !compatibility_valid) {
             SRV_ERR("%s", "invalid HaloFPX direct context-store configuration\n");
             return false;
@@ -1133,6 +1155,9 @@ private:
 #endif
 #if defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
             || halofpx_full_v1_store
+#endif
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+            || halofpx_catalog_store
 #endif
         ) {
             return true;
@@ -1177,6 +1202,41 @@ private:
             config.limits.max_frame_bytes =
                 halofpx::context_store_linux_direct_max_state_bytes + 1024 * 1024;
             config.limits.max_manifest_bytes = halofpx::context_store_manifest_max_bytes;
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+            if (params_base.halofpx_context_store_mode ==
+                    "full-v1-exact-key-catalog-canary") {
+                const size_t count = static_cast<size_t>(
+                    params_base.halofpx_context_store_max_entries);
+                std::vector<std::string> data_paths(count);
+                std::vector<std::string> anchor_paths(count);
+                std::vector<halofpx::context_store_v1_catalog_slot_config> slots(count);
+                for (size_t i = 0; i != count; ++i) {
+                    data_paths[i] = string_format("%s/slot-%02zu",
+                        params_base.halofpx_context_store_root.c_str(), i);
+                    anchor_paths[i] = string_format("%s/slot-%02zu",
+                        params_base.halofpx_context_store_anchor_root.c_str(), i);
+                    slots[i] = { data_paths[i].c_str(), anchor_paths[i].c_str() };
+                }
+                halofpx::context_store_v1_catalog_config catalog_config;
+                catalog_config.catalog_root_path =
+                    params_base.halofpx_context_store_anchor_root.c_str();
+                catalog_config.slots = slots.data();
+                catalog_config.slot_count = slots.size();
+                catalog_config.child = config;
+                catalog_config.child.max_entries = 1;
+                auto opened = halofpx::make_context_store_v1_catalog(catalog_config);
+                halofpx_wipe(operator_key.data(), operator_key.size());
+                if (!opened.catalog) {
+                    halofpx_scope_key.fill(0);
+                    SRV_WRN("HaloFPX exact-key catalog unavailable (%s); inference continues cold\n",
+                        halofpx::context_store_v1_catalog_status_name(opened.status));
+                    return true;
+                }
+                halofpx_catalog_store = std::move(opened.catalog);
+                SRV_INF("HaloFPX exact-key catalog canary enabled: capacity=%zu\n", count);
+                return true;
+            }
+#endif
             auto opened = halofpx::make_context_store_v1_server_canary(config);
             halofpx_wipe(operator_key.data(), operator_key.size());
             if (!opened.canary) {
@@ -1344,8 +1404,16 @@ private:
 
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
     bool halofpx_exact_key_restore_before_launch(server_slot & slot, server_task & task) noexcept {
-        if (!task.halofpx_exact_key.active || !halofpx_full_v1_store ||
-            !halofpx_full_v1_store->available() || !slot.prompt.tokens.empty()) {
+        const bool catalog_mode =
+            params_base.halofpx_context_store_mode == "full-v1-exact-key-catalog-canary";
+        if (!task.halofpx_exact_key.active || !slot.prompt.tokens.empty() ||
+            (catalog_mode
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+                ? !halofpx_catalog_store
+#else
+                ? true
+#endif
+                : (!halofpx_full_v1_store || !halofpx_full_v1_store->available()))) {
             return false;
         }
 
@@ -1358,24 +1426,41 @@ private:
         identity.checkpoint_lineage_id = task.halofpx_exact_key.session_id;
         identity.policy_epoch = 1;
         const llama_tokens & tokens = task.tokens.get_tokens();
-        auto restored = halofpx_full_v1_store->restore_selected(
-            tokens.data(), tokens.size(), identity, profile);
-        if (restored.status == halofpx::context_store_v1_server_canary_status::miss_not_found) {
+        halofpx::context_store_transformer_snapshot_v1 restored_snapshot;
+        bool hit = false;
+        bool clean_miss = false;
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+        if (catalog_mode) {
+            auto restored = halofpx_catalog_store->restore_exact(
+                tokens.data(), tokens.size(), identity, profile);
+            hit = restored.status == halofpx::context_store_v1_catalog_status::hit;
+            clean_miss = restored.status ==
+                halofpx::context_store_v1_catalog_status::miss_not_found;
+            restored_snapshot = std::move(restored.snapshot);
+        } else
+#endif
+        {
+            auto restored = halofpx_full_v1_store->restore_selected(
+                tokens.data(), tokens.size(), identity, profile);
+            hit = restored.status == halofpx::context_store_v1_server_canary_status::hit;
+            clean_miss = restored.status ==
+                halofpx::context_store_v1_server_canary_status::miss_not_found;
+            restored_snapshot = std::move(restored.snapshot);
+        }
+        if (clean_miss) {
             task.halofpx_exact_key.publish_on_clean_miss = true;
             return false;
         }
-        if (restored.status != halofpx::context_store_v1_server_canary_status::hit) {
-            return false;
-        }
+        if (!hit) return false;
 
         const halofpx::context_store_transformer_limits_v1 limits {
             halofpx::context_store_linux_direct_max_state_bytes,
             halofpx::context_store_linux_direct_max_tokens,
         };
         const auto status = halofpx::context_store_restore_transformer_state_v1(
-            ctx_tgt, slot.id, restored.snapshot,
+            ctx_tgt, slot.id, restored_snapshot,
             tokens.data(), tokens.size(), identity, profile, limits);
-        halofpx_wipe(restored.snapshot.state.data(), restored.snapshot.state.size());
+        halofpx_wipe(restored_snapshot.state.data(), restored_snapshot.state.size());
         if (status != halofpx::context_store_transformer_status_v1::restored) {
             // The destination was empty before restore. A failed live apply may
             // partially mutate it, so clear it and preserve cold computation.
@@ -1390,7 +1475,11 @@ private:
         if (!slot.task || !slot.task->halofpx_exact_key.active ||
             !slot.task->halofpx_exact_key.publish_on_clean_miss ||
             slot.task->halofpx_exact_key.publication_attempted ||
-            !halofpx_full_v1_store || !halofpx_full_v1_store->available()) {
+            ((!halofpx_full_v1_store || !halofpx_full_v1_store->available())
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+             && !halofpx_catalog_store
+#endif
+            )) {
             return;
         }
         slot.task->halofpx_exact_key.publication_attempted = true;
@@ -1410,7 +1499,15 @@ private:
         auto captured = halofpx::context_store_capture_transformer_state_v1(
             ctx_tgt, slot.id, tokens.data(), tokens.size(), identity, profile, limits);
         if (captured.status != halofpx::context_store_transformer_status_v1::captured) return;
-        (void) halofpx_full_v1_store->publish(captured.snapshot);
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+        if (params_base.halofpx_context_store_mode ==
+                "full-v1-exact-key-catalog-canary" && halofpx_catalog_store) {
+            (void) halofpx_catalog_store->publish(captured.snapshot);
+        } else
+#endif
+        {
+            (void) halofpx_full_v1_store->publish(captured.snapshot);
+        }
         halofpx_wipe(captured.snapshot.state.data(), captured.snapshot.state.size());
     }
 #endif
@@ -4771,7 +4868,12 @@ std::unique_ptr<server_res_generator> server_routes::handle_completions_impl(
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
             task.halofpx_exact_key.clear();
             const bool exact_key_mode =
-                params.halofpx_context_store_mode == "full-v1-exact-key-canary";
+                params.halofpx_context_store_mode == "full-v1-exact-key-canary"
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+                || params.halofpx_context_store_mode ==
+                    "full-v1-exact-key-catalog-canary"
+#endif
+                ;
             const auto & exact_key_parser = task.params.chat_parser_params;
             const bool exact_key_eligible = exact_key_mode &&
                 type == SERVER_TASK_TYPE_COMPLETION &&
@@ -4788,8 +4890,12 @@ std::unique_ptr<server_res_generator> server_routes::handle_completions_impl(
                 !exact_key_parser.reasoning_in_content &&
                 exact_key_parser.generation_prompt.empty() &&
                 !exact_key_parser.parse_tool_calls && exact_key_parser.parser.empty() &&
-                ctx_server.halofpx_full_v1_store &&
-                ctx_server.halofpx_full_v1_store->available();
+                ((ctx_server.halofpx_full_v1_store &&
+                  ctx_server.halofpx_full_v1_store->available())
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+                 || ctx_server.halofpx_catalog_store
+#endif
+                );
             if (exact_key_eligible) {
                 std::string principal = halofpx_authenticated_principal(req, params.api_keys);
                 halofpx::context_store_scope_policy_v1 scope_policy;

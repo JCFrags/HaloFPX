@@ -127,6 +127,7 @@ if (LLAMA_BUILD_SERVER)
             -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=${HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY}
             -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=${HALOFPX_CONTEXT_STORE_FULL_V1_CANARY}
             -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=${HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY}
+            -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=${HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-feature-off-contract.cmake)
     set_property(TEST test-halofpx-feature-off-contract PROPERTY LABELS "main;halofpx")
 endif()
@@ -222,6 +223,15 @@ llama_test(test-halofpx-context-store-state-transformer-v1)
 set_property(TEST test-halofpx-context-store-state-transformer-v1 PROPERTY LABELS "main;halofpx")
 
 if (UNIX AND NOT APPLE)
+    llama_build(test-halofpx-context-store-v1-catalog.cpp)
+    target_include_directories(test-halofpx-context-store-v1-catalog PRIVATE
+        ${CMAKE_SOURCE_DIR}/tools/server)
+    target_link_libraries(test-halofpx-context-store-v1-catalog PRIVATE
+        halofpx-context-store-v1-catalog)
+    llama_test(test-halofpx-context-store-v1-catalog)
+    set_property(TEST test-halofpx-context-store-v1-catalog PROPERTY
+        LABELS "main;halofpx;linux")
+
     llama_build(test-halofpx-context-store-linux-direct.cpp)
     target_include_directories(test-halofpx-context-store-linux-direct PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
     target_link_libraries(test-halofpx-context-store-linux-direct PRIVATE

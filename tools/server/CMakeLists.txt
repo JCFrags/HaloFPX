@@ -51,6 +51,19 @@ endif()
 if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY AND (NOT UNIX OR APPLE))
     message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY is supported only on Linux")
 endif()
+
+option(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY
+    "Compile the bounded authenticated multi-entry exact-key catalog canary"
+    OFF)
+if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY AND
+    NOT HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY requires the exact-key canary gate")
+endif()
+if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY AND (NOT UNIX OR APPLE))
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY is supported only on Linux")
+endif()
 if (HALOFPX_CONTEXT_STORE_FULL_V1_CANARY AND (NOT UNIX OR APPLE))
     message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_FULL_V1_CANARY is supported only on Linux")
 endif()
@@ -287,6 +300,16 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         halofpx-context-store-v1-linux-generation-one
         halofpx-context-store-v1-transformer-codec)
     target_compile_features(halofpx-context-store-v1-server-canary PRIVATE cxx_std_17)
+
+    # L10d bounded authenticated exact-key catalog. It composes independent
+    # unchanged generation-one authorities and is linked only by its new gate.
+    add_library(halofpx-context-store-v1-catalog STATIC EXCLUDE_FROM_ALL
+        halofpx-context-store-v1-catalog.cpp
+        halofpx-context-store-v1-catalog.h
+    )
+    target_link_libraries(halofpx-context-store-v1-catalog PUBLIC
+        halofpx-context-store-v1-server-canary)
+    target_compile_features(halofpx-context-store-v1-catalog PRIVATE cxx_std_17)
 endif()
 
 # Permanently synthetic L05m bootstrap-material preparation seam. This target
@@ -802,6 +825,14 @@ if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
     target_compile_definitions(${TARGET} PUBLIC
         HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=1)
     target_link_libraries(${TARGET} PRIVATE halofpx-context-store-exact-session)
+endif()
+
+if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+    target_compile_definitions(llama-common PUBLIC
+        HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=1)
+    target_compile_definitions(${TARGET} PUBLIC
+        HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=1)
+    target_link_libraries(${TARGET} PRIVATE halofpx-context-store-v1-catalog)
 endif()
 
 

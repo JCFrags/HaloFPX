@@ -1382,7 +1382,9 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
 #if defined(HALOFPX_CONTEXT_STORE_CANARY)
     add_opt(common_arg(
         {"--halofpx-context-store-mode"},
-#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+        "off|direct-rw|protected-rw-canary|full-v1-rw-canary|full-v1-exact-key-canary|full-v1-exact-key-catalog-canary",
+#elif defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
         "off|direct-rw|protected-rw-canary|full-v1-rw-canary|full-v1-exact-key-canary",
 #elif defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
         "off|direct-rw|protected-rw-canary|full-v1-rw-canary",
@@ -1394,7 +1396,17 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
         "experimental direct-session HaloFPX persistent-cache canary (default: off); "
         "no automatic lookup, prefix matching, shared scope, or anonymous access",
         [](common_params & params, const std::string & value) {
-#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+            if (value != "off" && value != "direct-rw" &&
+                value != "protected-rw-canary" && value != "full-v1-rw-canary" &&
+                value != "full-v1-exact-key-canary" &&
+                value != "full-v1-exact-key-catalog-canary") {
+                throw std::invalid_argument(
+                    "HaloFPX context-store mode must be off, direct-rw, protected-rw-canary, "
+                    "full-v1-rw-canary, full-v1-exact-key-canary, or "
+                    "full-v1-exact-key-catalog-canary");
+            }
+#elif defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
             if (value != "off" && value != "direct-rw" &&
                 value != "protected-rw-canary" && value != "full-v1-rw-canary" &&
                 value != "full-v1-exact-key-canary") {
@@ -1516,7 +1528,8 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
     add_opt(common_arg(
         {"--halofpx-context-store-max-entries"}, "N",
         string_format("maximum direct-session entries (default: %d, maximum: 64; "
-            "full-v1-rw-canary requires exactly 1)", params.halofpx_context_store_max_entries),
+            "full-v1 modes require exactly 1 except the bounded catalog canary)",
+            params.halofpx_context_store_max_entries),
         [](common_params & params, int value) {
             if (value <= 0 || value > 64) {
                 throw std::invalid_argument("HaloFPX context-store max entries must be between 1 and 64");
