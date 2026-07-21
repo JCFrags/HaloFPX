@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 02:12 PDT
+Verified: 2026-07-21 03:01 PDT
 
 ## Overall state
 
@@ -14,14 +14,15 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `51922809e068d78c22deb4711a2964362ccb2e6e`
+- Latest verified commit: `519a440079013446d35f345e932cde65d9851e2f`
 - Remote count: zero
 - Worktree state: clean at the committed L10c boundary
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: bounded L13 160 GB ROCmFPX primary-model rank-local restore
-  canary with explicit production rollback and matched cold control
+- Current work: worker idle after the L13 safety stop; next gate is a conditional
+  retry only after proving long-prompt batching and an executable host-bound
+  production transition runbook before any service stop
 
 ## Product progress
 
@@ -69,6 +70,14 @@ slower candidates.
   coordinator on port 8081 (PID 2053029) and nimo-2 is the RPC worker on port
   50052 (PID 1186396). Earlier project records using the opposite orientation
   describe disposable or prior deployments and are not current runtime truth.
+- L13 did not reach capture. Attempt one asserted because the 1,128-token saved
+  prefix exceeded `n_batch=512`; its chunking correction is committed but
+  runtime-unqualified. Attempt two stopped nimo-2's production worker before
+  nimo-1's coordinator due to a wrong-host command, causing the coordinator to
+  abort. The stop gate fired, no state object was published, and no L13
+  correctness/performance claim is admitted. Production recovered to HTTP 200:
+  nimo-1 coordinator PID 2068256 and nimo-2 worker PID 1247685, both with
+  `NRestarts=0`. The reviewed negative result is commit `519a4400`.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -90,14 +99,12 @@ slower candidates.
 
 ## Lead decision
 
-L12 is accepted and unblocks exactly one primary-model canary. The canary must
-use the pinned 159,873,097,824-byte ROCmFPX MiniMax artifact and the matched
-primary workload, with nimo-2 as disposable coordinator because the artifact
-resides there and nimo-1 as disposable worker. It may stop current production
-only after preserving its exact unit/runtime evidence, and must restore the
-current orientation worker-first (nimo-2:50052, then nimo-1:8081) to HTTP 200
-with zero new restarts. Acceptance requires exact suffix equivalence, local
-objects, zero state-payload GET/SET, bounded negative cold fallbacks, and matched
-feature-off/cold non-regression evidence. This remains a canary, not production
-cache enablement or final G9/G10 acceptance.
-The worker has been dispatched and must end its turn at the reviewed L13 result.
+L13's negative outcome is accepted. The failures are operationally serious but
+contained and correctable; they do not invalidate L12. One guarded retry may be
+authorized only through two executable prerequisites: (1) the exact batching
+fix must successfully process a prompt longer than `n_batch` on a disposable
+small fixture, and (2) a host-bound transition script must verify hostname,
+unit role, PID/listener and coordinator inactivity before it can stop the worker,
+then encode worker-first recovery. If either prerequisite fails, production is
+not touched. If both pass independent review, one bounded primary retry may
+proceed with the original L13 acceptance boundary.

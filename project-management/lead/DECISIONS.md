@@ -178,3 +178,29 @@ The bounded canary must measure exact output, capture/restore/local-object bytes
 state-operation GET/SET count, prompt/generation timing, and a small matched
 feature-off or mode-off cold control. A non-worse point estimate is milestone
 evidence only; final G9/G10 still requires the later full statistical gate.
+
+## 2026-07-21 — accept L13 safety stop and require executable retry guards
+
+Decision: accept L13's negative reviewed closeout at `519a4400`. Do not abandon
+the primary canary, but permit only one conditional retry after two prerequisites
+pass before any production service is stopped.
+
+Reason: the first failure is a harness batching defect, not a model/protocol
+failure; the 1,128-token saved prefix was submitted as one decode against
+`n_batch=512`. The committed chunking correction remains unqualified. The
+second failure was more serious: an operator command targeted the wrong host,
+stopping the production worker while its coordinator was live. The existing
+prose runbook was insufficient. Production recovered and no cache state was
+published, but future transitions must be enforced mechanically.
+
+Prerequisite A: run the exact corrected canary path with `count > n_batch` on a
+disposable small model and prove successful capture/restore/cold equivalence.
+Prerequisite B: add a single host-bound transition controller that validates
+remote hostname and unit role, refuses to stop nimo-2's worker until nimo-1's
+coordinator is inactive and its listener is closed, and restores nimo-2 worker
+and port 50052 before nimo-1 coordinator and HTTP 200. Dry-run and disposable
+failure cases must demonstrate refusal on swapped hosts/roles.
+
+Only after both prerequisites pass focused review may the same task perform one
+primary-model retry. No repeated blind retries, manual ad hoc stop sequence, or
+expanded test matrix is authorized.
