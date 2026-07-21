@@ -21,3 +21,7 @@ Decision: do not intervene in P13.
 Reason: the worker measured the micro-kernel gain, translated it to an estimated
 whole-token contribution of only about 0.1%, and chose to close integration.
 That is aligned with the project objective and prior speed steering.
+
+Outcome: P13 committed cleanly as `ea49690a`. The default-off proof remains;
+product integration is closed because the projected whole-token contribution is
+only about 0.1%. No follow-up steering is required.

@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-20T22:00:00-07:00",
+  "updated_at": "2026-07-20T22:19:00-07:00",
   "worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_status": "active",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "45ae40532391ccc2ff121624b865ea366fda1036",
-  "last_observed_milestone": "P13 private Q6 owned-expert canary closure",
+  "last_verified_head": "ea49690a2b80d2a6c366c8fdc7c306ab41c3f226",
+  "last_observed_milestone": "P13 private Q6 owned-expert canary committed; integration closed",
   "last_decision": "observe_no_steering",
-  "next_check_trigger": "milestone completion or no sooner than 10 minutes during active closure"
+  "next_check_trigger": "worker selects next substantive product or performance lane"
 }

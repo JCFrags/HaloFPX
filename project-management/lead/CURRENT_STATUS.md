@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-20 22:00 PDT
+Verified: 2026-07-20 22:19 PDT
 
 ## Overall state
 
@@ -14,9 +14,10 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `45ae40532391ccc2ff121624b865ea366fda1036`
+- Latest verified commit: `ea49690a2b80d2a6c366c8fdc7c306ab41c3f226`
 - Remote count: zero
-- Current work: P13 private Q6 owned-expert canary and closure record
+- Worktree state: clean
+- Current boundary: P13 private Q6 owned-expert canary committed and integration closed
 
 ## Product progress
 
@@ -35,13 +36,14 @@ slower candidates.
   removed after 0.3–4.3% matched slowdowns.
 - Profiling shows alternating rank work and roughly half-duty GPUs; aggregate
   USB4 bandwidth is not the present limiting resource.
-- The current private MMVQ micro-canary is correct and locally faster, but its
-  estimated full-token contribution is only about 0.1%; the worker is correctly
-  closing integration rather than overstating it.
+- The P13 private MMVQ micro-canary is correct and locally faster, but its
+  estimated full-token contribution is only about 0.1%. It was retained as a
+  default-off exact-shape proof at `ea49690a` and its product integration lane
+  was correctly closed rather than overstated.
 
 ## Lead decision
 
-No steering is warranted at this checkpoint. The worker independently reached
-the correct kill decision, preserved the useful proof, and avoided reopening a
-large RPC/model seam for a negligible projected benefit. Observe through the
-current milestone close, then reassess the next chosen product/performance lane.
+No steering is warranted at this checkpoint. P13 closed cleanly with independent
+review, a clean worktree, healthy production, and no false speedup claim.
+Observe the next chosen product/performance lane and reassess its alignment
+before intervening.
