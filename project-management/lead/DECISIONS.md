@@ -224,3 +224,24 @@ wrong endpoint/version/capabilities or early disconnect, and be proven against
 an artificial listener-first service plus a real disposable ROCm worker while
 production stays HTTP 200. Only an independently reviewed readiness gate may
 justify a later Project Lead decision about another primary canary.
+
+## 2026-07-21 — accept L14 and authorize one L15 primary canary
+
+Decision: accept L14 implementation `b688680e` and reviewed closeout
+`a496492c`. Authorize one controller-managed primary-model canary using the
+exact application-level readiness gate.
+
+Reason: the defect that stopped L13R is now reproduced and closed. Admission no
+longer depends on TCP/listener/systemd state; a worker must complete exact RPC
+HELLO and return the expected runtime-bound CAPS tuple. The delayed-listener
+fixture and real disposable ROCm worker demonstrate the distinction. Combined
+with the previously accepted long-prompt proof and host-bound transition
+controller, the primary workload now has all known operational prerequisites.
+
+L15 must build from the current reviewed source and use the pinned 160 GB
+ROCmFPX artifact/request with no unrelated tuning. It gets one maintenance
+transition and one canary execution. The controller owns shutdown and rollback;
+the worker must be CAPS-ready before the coordinator starts. Acceptance remains
+exact suffix equality, rank-local objects, zero state-payload GET/SET, bounded
+cold fallbacks, recorded state I/O/timing, and a small matched runtime-off cold
+screen. Any failure closes L15 without an automatic repeat.

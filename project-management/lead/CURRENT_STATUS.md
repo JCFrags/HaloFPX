@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 03:58 PDT
+Verified: 2026-07-21 04:24 PDT
 
 ## Overall state
 
@@ -14,14 +14,14 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `aa3c2cf63e44305057a7b4715efb28f492a82d07`
+- Latest verified commit: `a496492c590570e88ac83b511f37e66c52197816`
 - Remote count: zero
 - Worktree state: clean at the committed L10c boundary
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L14 application-level disposable RPC readiness gate only, with
-  no production transition or primary-model retry authorized
+- Current work: worker idle at accepted L14 boundary; one L15 controller-managed
+  primary-model canary is authorized using application-level CAPS readiness
 
 ## Product progress
 
@@ -85,6 +85,13 @@ slower candidates.
   nimo-2 worker PID 1275544 and nimo-1 coordinator PID 2093167/HTTP 200, both
   `NRestarts=0`. No state object or model result exists. Final reviewed closeout
   is `aa3c2cf6`.
+- L14 replaces socket/listener readiness with exact HELLO plus runtime-bound
+  `HFXCAP2` admission. The probe binds RPC/state versions, command mask and
+  ordinal, limits, rank/world, key generation, and channel identity. Thirty
+  focused tests passed, including delayed listener-first, timeout, runtime-off,
+  malformed and wrong-capability cases. A real disposable ROCm worker admitted
+  in 1.225 ms with zero state operations while production remained unchanged.
+  Implementation `b688680e`, reviewed closeout `a496492c`.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -106,13 +113,11 @@ slower candidates.
 
 ## Lead decision
 
-L13R's terminal negative outcome is accepted. Its failure is a new, separately
-testable startup-readiness defect rather than a repeat of batching or stop-order
-errors. TCP listen/MainPID agreement is not sufficient authority for a
-disposable ROCm RPC worker. The next milestone is limited to adding an explicit
-application-level readiness probe using the existing CAPS protocol and proving
-that it waits through listener-visible/backend-not-ready states, rejects wrong
-version/capabilities, and admits a real disposable worker only after a successful
-RPC request. Production must remain live and no primary-model attempt is
-authorized in this milestone. A later attempt requires a new lead decision.
-The worker has been dispatched and must end its turn at the reviewed L14 result.
+L14 is accepted and resolves the startup-readiness blocker without touching
+production. One L15 primary-model canary is now justified: use the current exact
+source, executable transition controller, long-prompt batching proof, and exact
+CAPS readiness gate. The canary remains bounded to the pinned model/request,
+success-path capture/cold/restart-restore, one corrupt-or-missing object fallback,
+one identity mismatch fallback, and a small runtime-off cold control. Any gate
+failure triggers controller rollback and ends the turn. This is not production
+cache enablement or final G9/G10 acceptance.
