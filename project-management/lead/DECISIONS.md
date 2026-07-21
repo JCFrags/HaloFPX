@@ -87,3 +87,24 @@ boundaries typically justify a 30–45 minute expectation, while model loading a
 runtime qualification justify 60–90 minutes or longer. The worker was asked to
 finish its current turn at the L10c boundary rather than immediately opening the
 next milestone.
+
+## 2026-07-20 — accept L10c and separate multi-entry admission from eviction
+
+Decision: accept L10c at `d0694cd5`; open the next scoped lane only for bounded
+authenticated multi-entry exact-key admission and selection. Keep online
+deletion, eviction, generation replacement, prefix matching, and shared scope
+closed.
+
+Reason: L10c proves normal-request miss, prompt-boundary publish, restart, exact
+hit, changed-key cold fallback, no-publication under reserve exhaustion, and
+feature-off preservation. Production is still blocked by the one-entry limit.
+Multi-entry selection is the smallest product-enabling next capability, but
+combining it immediately with deletion or eviction would open separate active-
+reference, reachability, privacy, crash-recovery, and administrator-authority
+risks. A full catalog should reject new writes safely while leaving inference
+cold when capacity is exhausted.
+
+Coordination outcome: automatic goal continuation opened a post-L10c turn
+despite the requested stop boundary. The manager issued an explicit stop while
+the tree was still clean; the worker acknowledged that no post-L10c changes
+were made and is now idle pending the scoped continuation.

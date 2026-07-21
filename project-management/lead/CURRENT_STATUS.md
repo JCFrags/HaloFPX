@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-20 23:09 PDT
+Verified: 2026-07-20 23:44 PDT
 
 ## Overall state
 
@@ -14,19 +14,22 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `d7950c43a3536d177a0dd233e025573ef97de919`
+- Latest verified commit: `d0694cd5aa4eefbb4e42013fe58b546f161333ff`
 - Remote count: zero
-- Worktree state: L10b committed cleanly; four tracked server files are now
-  modified for the active L10c canary
-- Current work: L10c default-off normal completion-path restore and
-  prompt-boundary publication canary
+- Worktree state: clean at the committed L10c boundary
+- Current work: worker paused at the manager gate; next scoped lane is bounded
+  multi-entry exact-key retention without online deletion or shared/prefix reuse
 
 ## Product progress
 
-- A real default-off server canary has demonstrated miss, durable publication,
-  restart, authenticated hit, corruption rejection, and equal recomputation.
-- This remains an explicit-handle laboratory path using a small fixture; it is
-  not yet production persistence or a 160 GB model cache-state workload.
+- L10c is the first normal-completion, client-handle-free default-off server
+  canary to demonstrate authenticated exact-key cold miss, prompt-boundary
+  publication, process restart, and hit. The tiny-model proof reduced prompt
+  processing from 11 tokens cold to 1 restored token with exact continuation.
+- A changed prompt recomputed cold without replacing the original entry;
+  reserve exhaustion published nothing; corrupt/incompatible state remains a
+  cold fallback. This remains a single-entry generation-one laboratory canary,
+  not production persistence or a 160 GB model cache-state workload.
 - L10a now authenticates the fixed generation-one anchor and automatically
   derives its selected manifest without trusting directory names. Publish,
   reopen, automatic selection, exact restore, wrong-scope miss, and
@@ -37,6 +40,10 @@ slower candidates.
   topology/profile. Focused and inherited controls passed on nimo-2, and the
   ordinary server binary contained no exact-session marker. This is committed
   as `d7950c43`; it still has no normal request/runtime behavior by itself.
+- L10c passed 7/7 focused tests in both gate-on and gate-off builds. Thirty
+  balanced tiny-model feature-off pairs had identical outputs and non-worse
+  point estimates (+2.35% prompt, +0.75% paired generation), but the broad
+  confidence intervals mean this is not final G9/G10 evidence.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -58,11 +65,11 @@ slower candidates.
 
 ## Lead decision
 
-No steering is warranted at this checkpoint. L10b corrected two review defects
-(fixed-width token identity and fail-closed profile defaults), passed 3/3
-focused tests plus inherited authentication/scope controls, received independent
-acceptance, and committed its library-only boundary. L10c is correctly isolated
-behind a distinct compile option and runtime mode. The next decisive evidence is
-a real normal-request cold miss, publication only after a clean prompt boundary,
-restart, authenticated hit, and unchanged cold fallback for every unsupported or
-failed cache path.
+L10c is accepted. The worker was paused after automatic continuation opened the
+next lane despite the manager stop boundary; no post-L10c changes were made.
+The next scoped milestone should add a bounded authenticated multi-entry exact-
+key catalog/selection path while preserving immutable entries, cold fallback,
+feature-off behavior, and private scope. It must fail closed when capacity is
+full and must not yet add online deletion, eviction, generation replacement,
+prefix matching, or shared reuse. Those lifecycle operations require their own
+authority and recovery milestone.

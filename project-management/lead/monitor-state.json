@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-20T23:15:00-07:00",
+  "updated_at": "2026-07-20T23:44:00-07:00",
   "worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
-  "worker_status": "active",
+  "worker_status": "idle_at_manager_gate",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "d7950c43a3536d177a0dd233e025573ef97de919",
-  "last_observed_milestone": "L10b exact-session authority committed; L10c normal completion-path canary opened",
-  "last_decision": "event_boundary_with_30_minute_fallback",
-  "next_check_trigger": "worker completion or attention event; otherwise one fallback snapshot after 30-45 minutes during L10c source/build work or 60-90 minutes during runtime qualification"
+  "last_verified_head": "d0694cd5aa4eefbb4e42013fe58b546f161333ff",
+  "last_observed_milestone": "L10c exact-key operational canary committed, reviewed, and clean; no post-L10c changes",
+  "last_decision": "accept_l10c_scope_multi_entry_without_eviction",
+  "next_check_trigger": "issue bounded multi-entry exact-key continuation, then worker completion or attention event; otherwise one fallback snapshot after 30-45 minutes during source/build work"
 }
