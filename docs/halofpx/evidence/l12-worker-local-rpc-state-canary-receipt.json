@@ -1,0 +1,97 @@
+{
+  "schema": "halofpx-milestone-receipt-v1",
+  "milestone": "L12",
+  "title": "worker-local RPC state protocol and two-rank canary",
+  "date": "2026-07-21",
+  "base_commit": "78a102ac3212e4987486761983c336438cc3e7c0",
+  "implementation_commit": "6444d1e173aa7c0d5bea6c2b3539d1fd936f3f65",
+  "outcome": "accepted-small-disposable-canary-only",
+  "protocol": {
+    "wire_version": "1.0",
+    "commands": ["CAPS", "CAPTURE", "STAGE", "COMMIT_APPLY", "ABORT"],
+    "max_request_bytes": 1048576,
+    "max_response_bytes": 256,
+    "identity_header_bytes": 480,
+    "component_descriptor_bytes": 112,
+    "max_components": 4096,
+    "max_component_bytes": 1073741824,
+    "max_rank_object_bytes": 68719476736,
+    "ready_to_commit_timeout_ms": 5000,
+    "nonce_ledger_entries": 4096,
+    "authentication": "HMAC-SHA-256 full request transcript and exact status semantics",
+    "state_payload_on_control_plane": false
+  },
+  "fixture": {
+    "coordinator": "nimo-2",
+    "worker": "nimo-1",
+    "rpc_endpoint": "10.44.0.1:50174",
+    "plan": "RPC layer split, tensor split 1, n_gpu_layers 3, ctx 256, parallel 1, no mmap",
+    "plan_sha256": "121cf2ee200f3a2397d306a62a7f8219537d6df17fbf3bc8c3b53974896f084f",
+    "topology_sha256": "9baf437f2f3ca50fc727d57be522fa86d5ce61754f93bd005da2c49d9746e4e2",
+    "placement_sha256": "44ba572d4fc7bf480693d35fcbef483809d4c6766da890c3fd2097f80c6205a1",
+    "compatibility_root_sha256": "1ac49199f66bc785862ec681ec20b2c66c8ba5e593a3d2c034f7f252936d75d5",
+    "checkpoint_sha256": "a2e9ad2232ea8894b65ba21f2a02a139df539d3cf796de667296fc059ceecaf1",
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "coordinator_canary_binary_sha256": "27c16da78554d64b9d57e84ec6dab7d51ac93d80f1c44a41bd527226689dfa41",
+    "protocol_probe_binary_sha256": "117cd88f1145d3b6df33a5a8ca7de30ade6578b8bd88bccd17e38c8b5c3c3556",
+    "worker_binary_sha256": "3de1b6d152a25b480b09b3b33533a70122022252a5d657455177238e8a4c340a",
+    "worker_component_count": 4,
+    "worker_object_bytes": 11520,
+    "worker_object_sha256": "94fe9f268e8ee86604d0a0d33bb5f1e2ed07a08c624f1696f6cf0cd5a5f0e2fd",
+    "suffix_tokens": [471, 22049, 297, 278, 25013, 29889, 940, 471],
+    "capture_suffix_sha256": "06a0b15c33af689aae89417257e012bc86745d57eeb4b26a4e323f7e60af998c",
+    "restore_suffix_sha256": "06a0b15c33af689aae89417257e012bc86745d57eeb4b26a4e323f7e60af998c",
+    "cold_suffix_sha256": "06a0b15c33af689aae89417257e012bc86745d57eeb4b26a4e323f7e60af998c",
+    "capture_state_window_get_set_count": 0,
+    "restore_state_window_get_set_count": 0
+  },
+  "negative_qualification": {
+    "missing_worker_object": "cold-recompute exact suffix",
+    "corrupt_worker_object": "cold-recompute exact suffix",
+    "plan_mismatch": "cold-recompute exact suffix",
+    "topology_mismatch": "cold-recompute exact suffix",
+    "stage_replay": "authenticated rejected",
+    "commit_replay": "authenticated rejected",
+    "destroy_before_commit": "authenticated rejected",
+    "ready_timeout": "authenticated rejected",
+    "invalid_range": "authenticated rejected",
+    "invalid_shape": "authenticated rejected",
+    "invalid_authentication": "authenticated rejected"
+  },
+  "feature_off": {
+    "rpc_on_local_state_off_build": "pass",
+    "feature_off_help_halofpx_flag_count": 0,
+    "rpc_off_local_state_off_libllama_build": "pass"
+  },
+  "review": {
+    "path": "docs/halofpx/reviews/2026-07-21__l12-worker-local-rpc-state-canary__review__v01.md",
+    "verdict": "ACCEPT - no blocking findings remain"
+  },
+  "production": {
+    "touched": false,
+    "nimo_1_coordinator_pid_before_after": 2053029,
+    "nimo_1_port": 8081,
+    "nimo_2_worker_pid_before_after": 1186396,
+    "nimo_2_port": 50052
+  },
+  "cleanup": {
+    "disposable_services_stopped": true,
+    "disposable_ports_closed": true,
+    "disposable_roots_keys_builds_and_exact_clones_removed": true
+  },
+  "evidence_bundle": {
+    "host": "nimo-2",
+    "path": "/var/tmp/halofpx-worker-local-state-evidence-20260721-v1.tar.zst",
+    "sha256": "d4fe0c86f3b87248cc1e06e6ddfd666940ea204c584ea045e6ba401b73f41196"
+  },
+  "excluded": [
+    "160 GB primary model",
+    "production enablement",
+    "eviction",
+    "shared or prefix reuse",
+    "broad fault matrix",
+    "cable faults",
+    "crash-atomic live mutation claim",
+    "final performance claims"
+  ]
+}
