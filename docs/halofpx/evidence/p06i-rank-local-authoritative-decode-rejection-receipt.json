@@ -1,0 +1,160 @@
+{
+  "schema": "halofpx.p06i-rank-local-authoritative-decode-rejection.v1",
+  "date": "2026-07-20",
+  "status": "rejected_reverted_p06h_remains_accepted_boundary",
+  "parent_commit": "90c54e792ff322aaed5ec96f4111e7bf9af28801",
+  "parent_tree": "c358870d811deb17121f21bff6edf1e9a3b45709",
+  "hypothesis": "routing-only one-token layer-32 decode using the P06h lower/upper rank-local branches can match output without regressing the whole-layer path",
+  "candidate_gate": "HALOFPX_MINIMAX_M2_EXPERT_RANK_LOCAL_DECODE=1",
+  "candidate_default_off": true,
+  "candidate_source_retained": false,
+  "candidate_source_reverted": true,
+  "candidate_source_sha256": {
+    "src/llama-graph.cpp": "2ed312a0636932d530f87934af11a35f5df25b3ca01b9b2064a7640c493f0cbb",
+    "src/llama-graph.h": "88c18925710738a55bc65fcb8be61fb517f8d19cface61526cc03a5fa095955b",
+    "src/models/minimax-m2.cpp": "f988fdef359eea2bbaad750419c03afc27a20b431c6cbe28780d30c50b401815",
+    "src/models/models.h": "3513309204020d412c7d8040e0af124aa83589c54a4ce0401827373f45ccdc02"
+  },
+  "build": {
+    "nodes": ["nimo-1", "nimo-2"],
+    "type": "Release",
+    "gfx_target": "gfx1151",
+    "hip": true,
+    "vulkan": true,
+    "rpc": true,
+    "force_mmq": true,
+    "no_vmm": true,
+    "webui": false,
+    "llama_server_sha256_both_nodes": "bf55dd11731b761f33efcd98e8d21375a16f04d6a9c1e04f06ceaeeb81588cca",
+    "rpc_server_sha256_both_nodes": "078af8f1bdc6ce71a28afd9ef6d321abde6347a1664a5ec2bdae326616a1d5dc",
+    "focused_test_sha256_both_nodes": "c9920b2f561c6efae05a469ea3589601c01036485016b52694d22d763f02e04f"
+  },
+  "focused_tests": {
+    "feature_off_contract_per_node": "pass",
+    "l02_contracts_per_node": "pass",
+    "contract_total_per_node": 2,
+    "direct_q6_view": {"reference_l2": 24.3547155, "nmse": 0.0, "max_abs_error": 0.0, "passed": true},
+    "rpc_q6_view": {"reference_l2": 24.3547155, "nmse": 0.0, "max_abs_error": 0.0, "passed": true}
+  },
+  "exact_model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "file": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size_bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "correctness_canary": {
+    "request_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+    "response_sha256": "a07c1c292b99976b64ec34e51e8d4ae2579f8b8271fc56550ae4c4a1eaf73e1d",
+    "http_code": 200,
+    "prompt_tokens": 1129,
+    "generated_tokens": 128,
+    "content_sha256_with_newline": "a9c38c7f948adcfa8cfab5468ab84cc089b01a34c3f270f1c487a9a5fa74b555",
+    "matches_p06g_p06h_control": true
+  },
+  "matched_screen": {
+    "order": ["control-b1", "candidate-b2", "control-b3"],
+    "warmups_per_block_excluded": 1,
+    "retained_per_block": 3,
+    "control_n": 6,
+    "candidate_n": 3,
+    "all_http_200": true,
+    "all_prompt_tokens": 1129,
+    "all_generated_tokens": 128,
+    "all_decoded_content_equal": true,
+    "prompt_tokens_per_second": {
+      "control_mean": 203.887287298857,
+      "control_sample_sd": 0.0934205892933117,
+      "candidate_mean": 195.243534950127,
+      "candidate_sample_sd": 0.435284400345867,
+      "candidate_minus_control": -8.64375234872998,
+      "candidate_delta_percent": -4.23947587083239,
+      "approximate_normal_ci95": [-9.14196287775552, -8.14554181970443]
+    },
+    "generation_tokens_per_second": {
+      "control_mean": 16.661723033909,
+      "control_sample_sd": 0.0173751574942145,
+      "candidate_mean": 16.1729280441886,
+      "candidate_sample_sd": 0.071979998935435,
+      "candidate_minus_control": -0.4887949897204,
+      "candidate_delta_percent": -2.93364010868292,
+      "approximate_normal_ci95": [-0.571426044344426, -0.406163935096374]
+    },
+    "end_to_end_curl_wall_milliseconds": {
+      "control_mean": 13245.4611666667,
+      "control_sample_sd": 37.9214097333773,
+      "candidate_mean": 13700.7863333333,
+      "candidate_sample_sd": 47.1376017244548,
+      "candidate_minus_control": 455.3251666666,
+      "candidate_delta_percent": 3.43759391188632,
+      "approximate_normal_ci95": [393.957338653308, 516.692994679892]
+    },
+    "classification": "materially_adverse_screen_reject_without_rescue_trials",
+    "planned_second_candidate_block_cut": true,
+    "explicit_per_block_environment_snapshot_retained": false,
+    "environment_evidence_limitation": "archived journals preserve identical commands and the canary log proves the fourth gate is functional, but transient unit metadata did not preserve an explicit per-block environment snapshot; results support conservative rejection and revert, not a causal performance claim about the fourth gate",
+    "performance_claim": false,
+    "over_30_generation_tokens_per_second": false
+  },
+  "evidence": {
+    "nimo_1": {
+      "root": "/var/tmp/halofpx-p06i-rank-local-decode-90c54e7-20260720/evidence-nimo1",
+      "manifest_entries": 12,
+      "manifest_sha256": "fc39dd9cc1d81b8c55aed17a375e64f30b1d0fcc577eea7d55399fc2b65d4085",
+      "bundle": "/var/tmp/halofpx-p06i-rank-local-decode-90c54e7-nimo1-20260720.tar.zst",
+      "bundle_size_bytes": 1136938,
+      "bundle_mode": "0600",
+      "bundle_sha256": "178a3c0469e80c588d5fdf89acdcba03a70a86377b7c9ea90e7222df1a80c36c"
+    },
+    "nimo_2": {
+      "root": "/var/tmp/halofpx-p06i-rank-local-decode-90c54e7-20260720/evidence-nimo2",
+      "manifest_entries": 43,
+      "manifest_sha256": "2ae3e4eb56dd54c28fbec4844576a8e35610e5a2af15dde9d044483f5c537a2d",
+      "bundle": "/var/tmp/halofpx-p06i-rank-local-decode-90c54e7-nimo2-20260720.tar.zst",
+      "bundle_size_bytes": 1148405,
+      "bundle_mode": "0600",
+      "bundle_sha256": "889e825b781154eff6e1ff9e083722b0ba42e31aa4eb5430dc08cdca2ac750ba"
+    },
+    "manifests_verified": true
+  },
+  "rollback": {
+    "candidate_source_reverted": true,
+    "disposable_services_stopped": true,
+    "known_good_restore_order": ["nimo-2 worker", "nimo-1 coordinator"],
+    "nimo_2_worker_binary_sha256": "cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63",
+    "nimo_2_worker_active": true,
+    "nimo_2_worker_restarts": 0,
+    "nimo_2_worker_listener": "0.0.0.0:50052",
+    "nimo_1_server_binary_sha256": "d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb",
+    "nimo_1_server_active": true,
+    "nimo_1_server_restarts": 0,
+    "nimo_1_health_http": 200
+  },
+  "provenance": {
+    "implementation": "target-native rejected experiment",
+    "runtime_code_retained": false,
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_code": false,
+    "new_dependency": false,
+    "persistent_behavior_changed": false,
+    "webui_changed": false,
+    "remote_changed": false
+  },
+  "reference_clones": {
+    "ROCmFPX": {"commit": "61f2f2d7bc4955e9bca821095ef69125837133b5", "tree": "0a35143f33a7b99a81c824fa8ffd8f743f7ae0dd", "clean": true},
+    "CachyLLama": {"commit": "6be745998f568e379ea197fcf827baec73ff9940", "tree": "4757e9b65de723ea190538d8b3d12df3c3cd05dd", "clean": true},
+    "llama_ai": {"commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722", "tree": "3b228912f4206aad3e8fc7bd09e31fe9133a51bf", "clean": true},
+    "llama_cpp": {"commit": "6bdd77f13cf11b264b4231d320afc404f48d576e", "tree": "f926dfb4c3315e288b83bc1c3b167d4f7ca451d6", "clean": true},
+    "Nathanw1014_llama_cpp": {"commit": "a18067a85e986f7798f43d98345ed5b86b55cf88", "tree": "130e9cac828f8d8ef877d87ea9c192e24b07c9af", "clean": true}
+  },
+  "independent_review": {
+    "path": "docs/halofpx/reviews/2026-07-20__p06i-rank-local-authoritative-decode-rejection__review__v01.md",
+    "verdict": "accept_for_commit",
+    "blocking_findings": 0,
+    "nonblocking_findings": [
+      "no explicit per-block environment snapshot; screen is rejection evidence, not a causal performance claim"
+    ]
+  },
+  "next_direction": "retain P06h loader seam; redesign MoE execution to reduce remote dispatch/combine and avoid inactive ownership-slot compute before any new authority candidate"
+}
