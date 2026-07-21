@@ -20,8 +20,8 @@ slower candidates.
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: worker idle at the accepted L12 boundary; next gate is one
-  bounded 160 GB ROCmFPX primary-model rank-local restore canary
+- Current work: bounded L13 160 GB ROCmFPX primary-model rank-local restore
+  canary with explicit production rollback and matched cold control
 
 ## Product progress
 
@@ -100,3 +100,4 @@ with zero new restarts. Acceptance requires exact suffix equivalence, local
 objects, zero state-payload GET/SET, bounded negative cold fallbacks, and matched
 feature-off/cold non-regression evidence. This remains a canary, not production
 cache enablement or final G9/G10 acceptance.
+The worker has been dispatched and must end its turn at the reviewed L13 result.
