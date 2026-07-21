@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 6 || $# -gt 7 ]]; then
-    echo "usage: $0 OUT_ROOT BLOCK SERVER_BINARY REQUEST_BODY RETAINED PORT [TENSOR_SPLIT]" >&2
+if [[ $# -lt 6 || $# -gt 8 ]]; then
+    echo "usage: $0 OUT_ROOT BLOCK SERVER_BINARY REQUEST_BODY RETAINED PORT [TENSOR_SPLIT] [SPLIT_MODE]" >&2
     exit 2
 fi
 
@@ -13,6 +13,7 @@ request_body=$4
 retained=$5
 port=$6
 tensor_split=${7:-1,1}
+split_mode=${8:-layer}
 block_root="${out_root}/${block}"
 server_unit="halofpx-p07-server-${block}"
 model=/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/dba517197f2854f3d362529e13abddcdcad6c10b/saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf
@@ -24,8 +25,9 @@ monitor_pid=
 mkdir -p "${block_root}"
 if [[ ! ${retained} =~ ^[1-9][0-9]*$ || ! ${port} =~ ^[0-9]+$ ||
       ! ${tensor_split} =~ ^[0-9]+([.][0-9]+)?,[0-9]+([.][0-9]+)?$ ||
-      ${tensor_split} =~ ^0+([.]0+)?,0+([.]0+)?$ ]]; then
-    echo "RETAINED must be positive, PORT numeric, and TENSOR_SPLIT a nonnegative nonzero pair" >&2
+      ${tensor_split} =~ ^0+([.]0+)?,0+([.]0+)?$ ||
+      ! ${split_mode} =~ ^(layer|row)$ ]]; then
+    echo "RETAINED must be positive, PORT numeric, TENSOR_SPLIT a nonnegative nonzero pair, and SPLIT_MODE layer or row" >&2
     exit 2
 fi
 actual_request_sha256=$(sha256sum "${request_body}" | awk '{ print $1 }')
@@ -54,6 +56,7 @@ sha256sum "${server_binary}" "${request_body}" >"${block_root}/inputs.sha256"
 stat --printf='%n\nsize=%s\ninode=%i\nmtime=%y\n' "${model}" >"${block_root}/model-stat.txt"
 env | LC_ALL=C sort >"${block_root}/runner-environment.txt"
 printf '%s\n' "${tensor_split}" >"${block_root}/tensor-split.txt"
+printf '%s\n' "${split_mode}" >"${block_root}/split-mode.txt"
 ip -s link show >"${block_root}/links-before.txt"
 ss -Mit >"${block_root}/mptcp-before.txt"
 /opt/rocm/bin/rocm-smi --showuse --showmemuse --showtemp --showpower >"${block_root}/rocm-before.txt" 2>&1 || true
@@ -73,7 +76,7 @@ systemd-run --unit="${server_unit}" --collect \
     --rpc 10.44.0.1:50053 \
     --device RPC0,ROCm0 \
     --tensor-split "${tensor_split}" \
-    --split-mode layer \
+    --split-mode "${split_mode}" \
     --model "${model}" \
     --alias "halofpx-p07-${block}" \
     --host 127.0.0.1 \

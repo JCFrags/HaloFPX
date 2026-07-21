@@ -1,0 +1,69 @@
+{
+  "schema": "halofpx-performance-receipt-v1",
+  "milestone": "P14",
+  "status": "row split rejected",
+  "source_parent": {
+    "commit": "ea49690a2b80d2a6c366c8fdc7c306ab41c3f226",
+    "tree": "64315ed51d140941b730994f53223389ffdff5dc"
+  },
+  "model": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "file": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "request_sha256": "f5b273f95a852d5e34252715bc953fa4eb101273d262b9d778c16138d7c00b7c",
+  "expected_content_sha256": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f",
+  "runtime": {
+    "worker": "nimo-1 RPC0",
+    "coordinator": "nimo-2 ROCm0",
+    "tensor_split": "1,1",
+    "split_mode": "row",
+    "context": 4096,
+    "kv": "q8_0/q8_0",
+    "batch_ubatch": "512/512",
+    "retained": 2,
+    "excluded_warmup": 1,
+    "executed_harness_sha256": "933681f4a6be1569ff746859fe69b1a1295a95214fbf6a5ea75be7561c3cc775"
+  },
+  "samples": {
+    "p11_layer_control": {
+      "prompt_tps": [203.90165546832995, 203.721995443412],
+      "generation_tps": [16.65370149983496, 16.601290439057443],
+      "mean_prompt_tps": 203.81182545587097,
+      "mean_generation_tps": 16.627495969446202
+    },
+    "p14_row_candidate": {
+      "prompt_tps": [203.83093839503266, 203.98145051588878],
+      "generation_tps": [16.556728266319112, 16.66776048844872],
+      "mean_prompt_tps": 203.9061944554607,
+      "mean_generation_tps": 16.612244377383917,
+      "prompt_delta_percent": 0.04630202363316016,
+      "generation_delta_percent": -0.09172512860812221
+    }
+  },
+  "qualification": {
+    "http_200": 2,
+    "prompt_tokens_each": 1129,
+    "generated_tokens_each": 128,
+    "exact_content_matches": 2,
+    "decision": "reject candidate and stop configuration expansion"
+  },
+  "raw_evidence": {
+    "nimo_2_root": "/var/tmp/halofpx-p14-row-split-20260720",
+    "nimo_2_bundle": "/var/tmp/halofpx-p14-row-split-nimo2-20260720.tar.zst",
+    "nimo_2_bundle_sha256": "e0cfc1dec5f06f719a0653f04a45feabed2ba78fc0e281adb3ef16563de4ad78"
+  },
+  "deferred": [
+    "reciprocal placement requiring a second pinned 160 GB artifact",
+    "fine-grained split sweep",
+    "full-volume confidence interval",
+    "broad fault matrix"
+  ],
+  "nonclaims": [
+    "not a speedup",
+    "not final G9/G10 non-inferiority",
+    "greater than 30 generation tokens per second remains a stretch objective"
+  ]
+}
