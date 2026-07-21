@@ -188,6 +188,22 @@ target_link_libraries(test-halofpx-context-store-scope PRIVATE halofpx-context-s
 llama_test(test-halofpx-context-store-scope)
 set_property(TEST test-halofpx-context-store-scope PROPERTY LABELS "main;halofpx")
 
+llama_build(test-halofpx-context-store-exact-session.cpp)
+target_include_directories(test-halofpx-context-store-exact-session PRIVATE
+    ${CMAKE_SOURCE_DIR}/tools/server)
+target_link_libraries(test-halofpx-context-store-exact-session PRIVATE
+    halofpx-context-store-exact-session
+    halofpx-context-store-scope)
+llama_test(test-halofpx-context-store-exact-session)
+set_property(TEST test-halofpx-context-store-exact-session PROPERTY LABELS "main;halofpx")
+
+add_test(
+    NAME test-halofpx-context-store-exact-session-contract
+    COMMAND ${CMAKE_COMMAND}
+        -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-exact-session-contract.cmake)
+set_property(TEST test-halofpx-context-store-exact-session-contract PROPERTY LABELS "main;halofpx")
+
 llama_build(test-halofpx-context-store-state-transformer-v1.cpp)
 target_include_directories(test-halofpx-context-store-state-transformer-v1 PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
 target_link_libraries(test-halofpx-context-store-state-transformer-v1 PRIVATE
@@ -239,6 +255,13 @@ add_test(
 set_property(TEST test-halofpx-context-store-anchor-contract PROPERTY LABELS "main;halofpx")
 
 find_program(HALOFPX_PYTHON_EXECUTABLE NAMES python3 python REQUIRED)
+add_test(
+    NAME test-halofpx-context-store-exact-session-golden
+    COMMAND ${HALOFPX_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/halofpx-exact-session-golden.py
+        --check 90240152fe0449ba92a1746dcdf804d7cca55f0034d7a96d846cc59d87f1a25c)
+set_property(TEST test-halofpx-context-store-exact-session-golden PROPERTY LABELS "main;halofpx")
+
 add_test(
     NAME test-halofpx-context-store-anchor-golden
     COMMAND ${HALOFPX_PYTHON_EXECUTABLE}

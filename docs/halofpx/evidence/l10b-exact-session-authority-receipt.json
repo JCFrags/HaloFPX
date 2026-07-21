@@ -1,0 +1,56 @@
+{
+  "schema": "halofpx.milestone-receipt.v1",
+  "milestone": "L10b",
+  "title": "exact-session authority",
+  "implementation_parent": "975b1550e81aaf65d3f7b34c00d64d47ab9f2ed5",
+  "implementation_parent_tree": "35ed8ba70713174d1a0be1b9f8a24b84156c1a15",
+  "boundary": {
+    "library": "EXCLUDE_FROM_ALL",
+    "server_linked": false,
+    "runtime_option": false,
+    "persistent_io": false,
+    "default_enabled": false,
+    "profile": "target-only greedy-memoryless",
+    "topology": "bounded world size with rank less than world size and nonzero topology epoch",
+    "output_on_rejection": "all-zero session identifier"
+  },
+  "qualification": {
+    "target": "nimo-2",
+    "focused": "3/3 passed",
+    "inherited_auth_scope": "passed",
+    "normal_llama_server_domain_marker": "absent",
+    "golden_session_sha256": "90240152fe0449ba92a1746dcdf804d7cca55f0034d7a96d846cc59d87f1a25c",
+    "test_binary_sha256": "6324c48e4a954473f1538a26f90477c1f090ded608a82dc462f3085fb69f21f3"
+  },
+  "source_sha256": {
+    "implementation": "25364e6a57bb8aa0b3b25dac17bc7bbc903c522a80b08ffcfcdb875f96abd368",
+    "header": "347b61b6e862ae57cdc70ad88e7b6af4320ee85d39818b450ec6d303949838e6",
+    "cpp_test": "15689563b33278f48bc194a5627851d67ee4326df543fed28becbd73b1758d79",
+    "graph_contract": "8643346e2a3ad7584ee3d7f82b389caf77a1e55072d406cd521a1306dcf41812",
+    "python_golden": "d518cf1275f25a5abe5f5ec688a661c352b3e721418ab014ded1f758b3aa834c"
+  },
+  "raw_evidence": {
+    "bundle": "/var/tmp/halofpx-l10b-exact-session-evidence-20260720-v2.tar.zst",
+    "bundle_sha256": "d0f0117f9bafa8fb54e49335b2b52995b0aae203de3065c6c4ce4bf4b9df4574"
+  },
+  "corrected_before_promotion": [
+    "variable-width token representation replaced by fixed four-byte encoding",
+    "profile default changed to explicit fail-closed unset"
+  ],
+  "deferred": [
+    "normal completion task transport",
+    "pre-prompt automatic restore",
+    "decoded-prompt-boundary automatic publication",
+    "process-level miss/write/restart/hit canary"
+  ],
+  "provenance": {
+    "implementation": "target-native",
+    "donor_code": false,
+    "gpl_llama_ai_code": false,
+    "cachyllama_transplant": false,
+    "new_dependency": false,
+    "webui": false,
+    "remote": false,
+    "reference_clone_changed": false
+  }
+}

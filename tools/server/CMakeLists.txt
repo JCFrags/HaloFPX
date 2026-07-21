@@ -85,6 +85,17 @@ add_library(halofpx-context-store-scope STATIC EXCLUDE_FROM_ALL
 target_link_libraries(halofpx-context-store-scope PUBLIC halofpx-context-store-auth)
 target_compile_features(halofpx-context-store-scope PRIVATE cxx_std_17)
 
+# L10b pure exact-session identifier resolver. It is excluded from all product
+# targets and has no server, filesystem, publication, or restore edge.
+add_library(halofpx-context-store-exact-session STATIC EXCLUDE_FROM_ALL
+    halofpx-context-store-exact-session.cpp
+    halofpx-context-store-exact-session.h
+)
+target_link_libraries(halofpx-context-store-exact-session
+    PUBLIC halofpx-context-store-format
+    PRIVATE halofpx-context-store-sha256)
+target_compile_features(halofpx-context-store-exact-session PRIVATE cxx_std_17)
+
 # L07 restricted target-only transformer sequence-state codec. It remains
 # excluded until the direct-session canary is explicitly compiled.
 add_library(halofpx-context-store-state-transformer-v1 STATIC EXCLUDE_FROM_ALL
