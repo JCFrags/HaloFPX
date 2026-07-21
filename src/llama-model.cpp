@@ -965,6 +965,8 @@ struct llama_model::impl {
     // contexts where the model tensors metadata is stored as well as the corresponding buffers:
     std::vector<std::pair<ggml_context_ptr, std::vector<ggml_backend_buffer_ptr>>> ctxs_bufs;
 
+    llama_model_allocation_plan allocation_plan;
+
     buft_list_t cpu_buft_list;
     std::map<ggml_backend_dev_t, buft_list_t> gpu_buft_list;
 
@@ -1445,6 +1447,25 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
 
     ml.done_getting_tensors();
 
+    // Capture source authority before the loader is destroyed. The allocation
+    // groups themselves are populated below from the same contexts used by the
+    // material allocation path.
+    pimpl->allocation_plan = {};
+    if (ml.no_alloc) {
+        pimpl->allocation_plan.no_alloc = true;
+        pimpl->allocation_plan.use_mmap = ml.use_mmap;
+        pimpl->allocation_plan.source_tensor_count = ml.weights_map.size();
+        pimpl->allocation_plan.arithmetic_ok = true;
+        for (const auto & [_, weight] : ml.weights_map) {
+            const uint64_t bytes = ggml_nbytes(weight.tensor);
+            if (pimpl->allocation_plan.source_tensor_bytes > UINT64_MAX - bytes) {
+                pimpl->allocation_plan.arithmetic_ok = false;
+            } else {
+                pimpl->allocation_plan.source_tensor_bytes += bytes;
+            }
+        }
+    }
+
     // populate tensors_by_name
     for (auto & [_, ctx_ptr] : ml.ctx_map) {
         for (auto * cur = ggml_get_first_tensor(ctx_ptr.get()); cur != NULL; cur = ggml_get_next_tensor(ctx_ptr.get(), cur)) {
@@ -1473,6 +1494,47 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
         // skip contexts without tensors
         if (ggml_get_first_tensor(ctx) == nullptr) {
             continue;
+        }
+
+        if (ml.no_alloc) {
+            llama_model_allocation_group plan_group;
+            plan_group.buffer_type = ggml_backend_buft_name(buft);
+            ggml_backend_dev_t plan_dev = ggml_backend_buft_get_device(buft);
+            if (!plan_dev) {
+                plan_dev = ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_CPU);
+            }
+            if (plan_dev) {
+                plan_group.device = ggml_backend_dev_name(plan_dev);
+                if (auto * reg = ggml_backend_dev_backend_reg(plan_dev)) {
+                    plan_group.backend = ggml_backend_reg_name(reg);
+                }
+            }
+            plan_group.request_bytes = ggml_backend_alloc_ctx_tensors_from_buft_size(ctx, buft);
+            for (ggml_tensor * tensor = ggml_get_first_tensor(ctx); tensor != nullptr; tensor = ggml_get_next_tensor(ctx, tensor)) {
+                llama_model_allocation_tensor entry;
+                entry.name = ggml_get_name(tensor);
+                entry.type = ggml_type_name(tensor->type);
+                entry.logical_bytes = ggml_nbytes(tensor);
+                entry.source_offset = ml.tensor_source_offset(tensor);
+                entry.view = tensor->view_src != nullptr;
+                int layer = -1;
+                if (std::sscanf(entry.name.c_str(), "blk.%d.", &layer) == 1) {
+                    entry.layer = layer;
+                }
+                if (const auto * weight = ml.get_weight(entry.name.c_str())) {
+                    entry.source_known = true;
+                    entry.source_bytes = ggml_nbytes(weight->tensor);
+                    if (entry.source_offset > entry.source_bytes ||
+                            entry.logical_bytes > entry.source_bytes - entry.source_offset) {
+                        pimpl->allocation_plan.arithmetic_ok = false;
+                    }
+                } else {
+                    pimpl->allocation_plan.unknown_created_tensors++;
+                }
+                pimpl->allocation_plan.created_tensor_count++;
+                plan_group.tensors.emplace_back(std::move(entry));
+            }
+            pimpl->allocation_plan.groups.emplace_back(std::move(plan_group));
         }
 
         llama_buf_map buf_map;
@@ -1550,6 +1612,26 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
         ctx_buf_maps.emplace_back(ctx, buf_map);
     }
 
+    if (ml.no_alloc) {
+        std::unordered_set<std::string> accounted;
+        for (const auto & group : pimpl->allocation_plan.groups) {
+            for (const auto & tensor : group.tensors) {
+                if (tensor.source_known) accounted.insert(tensor.name);
+            }
+        }
+        for (const auto & [name, _] : ml.weights_map) {
+            if (accounted.find(name) == accounted.end()) {
+                pimpl->allocation_plan.unaccounted_source_tensors++;
+            }
+        }
+        pimpl->allocation_plan.complete =
+            pimpl->allocation_plan.no_alloc && !pimpl->allocation_plan.use_mmap &&
+            pimpl->allocation_plan.arithmetic_ok &&
+            pimpl->allocation_plan.unknown_created_tensors == 0 &&
+            pimpl->allocation_plan.unaccounted_source_tensors == 0 &&
+            !pimpl->allocation_plan.groups.empty();
+    }
+
     if (llama_supports_gpu_offload()) {
         const int n_gpu = std::min(n_gpu_layers, int(hparams.n_layer));
 
@@ -1610,6 +1692,7 @@ ggml_tensor * llama_model_base::create_tensor_on_device(
     if (pimpl->has_tensor_overrides) {
         throw std::runtime_error("create_tensor_on_device: tensor buffer overrides are incompatible with strict placement");
     }
+
     const auto it = pimpl->gpu_buft_list.find(dev);
     if (it == pimpl->gpu_buft_list.end()) {
         throw std::runtime_error(format(
@@ -1729,6 +1812,10 @@ std::map<ggml_backend_buffer_type_t, size_t> llama_model::memory_breakdown() con
         }
     }
     return ret;
+}
+
+llama_model_allocation_plan llama_model::allocation_plan() const {
+    return pimpl->allocation_plan;
 }
 
 uint64_t llama_model::n_elements() const {
@@ -2703,6 +2790,10 @@ ggml_backend_dev_t llama_model_get_device(const struct llama_model * model, int 
         return nullptr;
     }
     return model->devices[i].dev;
+}
+
+llama_model_allocation_plan llama_model_get_allocation_plan(const struct llama_model * model) {
+    return model ? model->allocation_plan() : llama_model_allocation_plan {};
 }
 
 //

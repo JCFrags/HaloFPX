@@ -714,6 +714,16 @@ if (GGML_RPC)
     target_include_directories(test-halofpx-placement-probe PRIVATE ${CMAKE_SOURCE_DIR}/src)
     llama_test(test-halofpx-placement-probe ARGS --self-test)
     set_property(TEST test-halofpx-placement-probe PROPERTY LABELS "main;halofpx")
+
+    llama_build(test-halofpx-primary-allocation-plan.cpp)
+    target_include_directories(test-halofpx-primary-allocation-plan PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps
+        ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps/sha256)
+    target_sources(test-halofpx-primary-allocation-plan PRIVATE
+        ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps/sha256/sha256.c)
+    llama_test(test-halofpx-primary-allocation-plan ARGS --self-test)
+    set_property(TEST test-halofpx-primary-allocation-plan PROPERTY LABELS "main;halofpx")
 endif()
 
 if (HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)

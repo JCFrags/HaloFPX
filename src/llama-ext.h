@@ -8,6 +8,8 @@
 
 #include <cstdint>
 #include <map>
+#include <string>
+#include <vector>
 
 // Process a batch of tokens while temporarily limiting the physical
 // micro-batch size for this call. A value of 0 uses the context default.
@@ -97,6 +99,42 @@ LLAMA_API int32_t llama_model_n_devices(const struct llama_model * model);
 LLAMA_API ggml_backend_dev_t llama_model_get_device(const struct llama_model * model, int i);
 
 LLAMA_API llama_memory_breakdown llama_get_memory_breakdown(const struct llama_context * ctx);
+
+// Exact model-weight allocation plan captured from the architecture loader's
+// real per-buffer-type GGML contexts. Intended for no_alloc diagnostics only.
+struct llama_model_allocation_tensor {
+    std::string name;
+    std::string type;
+    uint64_t logical_bytes = 0;
+    uint64_t source_bytes = 0;
+    uint64_t source_offset = 0;
+    int32_t layer = -1;
+    bool view = false;
+    bool source_known = false;
+};
+
+struct llama_model_allocation_group {
+    std::string buffer_type;
+    std::string device;
+    std::string backend;
+    uint64_t request_bytes = 0;
+    std::vector<llama_model_allocation_tensor> tensors;
+};
+
+struct llama_model_allocation_plan {
+    bool no_alloc = false;
+    bool use_mmap = false;
+    bool complete = false;
+    bool arithmetic_ok = false;
+    uint64_t source_tensor_count = 0;
+    uint64_t source_tensor_bytes = 0;
+    uint64_t created_tensor_count = 0;
+    uint64_t unknown_created_tensors = 0;
+    uint64_t unaccounted_source_tensors = 0;
+    std::vector<llama_model_allocation_group> groups;
+};
+
+LLAMA_API llama_model_allocation_plan llama_model_get_allocation_plan(const struct llama_model * model);
 
 //
 // pre-norm embeddings (hidden state before the final output norm)

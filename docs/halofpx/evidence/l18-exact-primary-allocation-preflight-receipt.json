@@ -1,0 +1,77 @@
+{
+  "schema": "halofpx-l18-exact-primary-allocation-preflight-receipt-v1",
+  "date": "2026-07-21",
+  "base_commit": "730e96330ae0585719941a93b65c31a6217a7a54",
+  "outcome": "pass_allocation_shapes_admissible_no_production_mutation_no_primary_load",
+  "artifact": {
+    "repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "file": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "loader": {
+    "devices": ["RPC0", "ROCm0"],
+    "backends": ["RPC", "ROCm"],
+    "rpc_endpoint": "10.44.0.1:50194",
+    "split_mode": "layer",
+    "tensor_split": [1, 1],
+    "no_alloc": true,
+    "use_mmap": false,
+    "source_tensors": 809,
+    "created_tensors": 809,
+    "unknown": 0,
+    "unaccounted": 0
+  },
+  "groups": [
+    {"device": "RPC0", "backend": "RPC", "layers": "0-31_plus_output.weight", "tensors": 416, "request_bytes": 80950550528},
+    {"device": "ROCm0", "backend": "ROCm", "layers": "32-61_plus_output_norm.weight", "tensors": 392, "request_bytes": 78280456704},
+    {"device": "ROCm0", "backend": "ROCm_host", "layers": "input_embedding_token_embd.weight", "tensors": 1, "request_bytes": 633802752}
+  ],
+  "capacity": {
+    "reported_total_each": 133143986176,
+    "runtime_reserve_each": 17179869184,
+    "fragmentation_basis_points": 1000,
+    "rpc_required": 106643119104,
+    "rpc_margin": 26500867072,
+    "rocm_required": 104737304935,
+    "rocm_margin": 28406681241
+  },
+  "identities": {
+    "planner_sha256": "31686c793c11d93b68aa0e690ee06fd209bd2b264604f3284eb6225cd5275c07",
+    "libllama_sha256": "accb278956f5e8108000df40530f218e1fcbf3a513443eb4c34c0f258ad4e310",
+    "libllama_common_sha256": "b5c79869517f7decf76509a2287c544c6068326a452181406509bcb2112de30a",
+    "libggml_sha256": "e1b505c0c3d45c29ec63840eb0d33c923a8140efa89369fb97518febe5483eef",
+    "libggml_base_sha256": "12241645cbc28ec6e4f98a38df3a0bbdd0335cf88c380eeccf0e2fb19efe4eff",
+    "libggml_cpu_sha256": "342beb861f02bc94e6d16d9d8a65bf8bd8173aca268228609bf43b1488cc4c99",
+    "libggml_hip_sha256": "03b02f16812d079dd554f982682e4e29694a430494e24c406624a938d337d5ab",
+    "libggml_rpc_sha256": "86d43aeb7083bed81c2c4acd4ee6b26c719ab90a8f68a5b9736f5714792335f9",
+    "rpc_server_sha256": "2bd7806f9cec4b2394ee08dbafd1a61c9d2e8ff98f8cb7df183bc31e2eda3084",
+    "plan_sha256": "b78fa995f8360673083d7b882189abf1a4d62fe903cfa45436d99908ea602d9b",
+    "raw_archive_sha256": "8c05b1c31644b919af8bd9a30953022b58ef4e0588ca694d0edf7fd3fc52b8a9"
+  },
+  "production": {
+    "nimo1_coordinator_pid": 2144857,
+    "nimo1_port": 8081,
+    "nimo1_http": 200,
+    "nimo1_nrestarts": 0,
+    "nimo2_worker_pid": 1305879,
+    "nimo2_port": 50052,
+    "nimo2_nrestarts": 0,
+    "mutated": false
+  },
+  "prohibited_actions": {
+    "material_primary_allocation_or_load": false,
+    "inference": false,
+    "cache_state_write": false,
+    "production_stop_or_restart": false,
+    "l19_or_primary_retry": false
+  },
+  "cleanup": {
+    "disposable_unit_loaded": false,
+    "port_50194_listening": false,
+    "nimo1_binary_root_present": false,
+    "nimo2_source_root_present": false,
+    "nimo2_build_root_present": false
+  }
+}
