@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-20 23:44 PDT
+Verified: 2026-07-21 00:29 PDT
 
 ## Overall state
 
@@ -14,11 +14,12 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `d0694cd5aa4eefbb4e42013fe58b546f161333ff`
+- Latest verified commit: `6862ffb99a8056552f62827658f3ffdcc79b9af4`
 - Remote count: zero
 - Worktree state: clean at the committed L10c boundary
-- Current work: bounded multi-entry exact-key admission and selection without
-  online deletion, eviction, generation replacement, or shared/prefix reuse
+- Current work: worker idle at the L10d stop boundary; next scoped lane is a
+  two-rank state-ownership/serialization audit and default-off distributed
+  restore canary only if current authority safely supports it
 
 ## Product progress
 
@@ -44,6 +45,12 @@ slower candidates.
   balanced tiny-model feature-off pairs had identical outputs and non-worse
   point estimates (+2.35% prompt, +0.75% paired generation), but the broad
   confidence intervals mean this is not final G9/G10 evidence.
+- L10d adds a fixed authenticated catalog of two to eight independent immutable
+  generation-one entries while partitioning the existing quota. Two prompts
+  each processed 11 tokens cold and 1 after restart; a third prompt at capacity
+  processed cold without tree mutation. Focused Linux tests passed 8/8,
+  independent review accepted the repaired authority, and production remained
+  active with zero restarts. Commit `6862ffb9` is clean.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -65,12 +72,12 @@ slower candidates.
 
 ## Lead decision
 
-L10c is accepted. The worker was paused after automatic continuation opened the
-next lane despite the manager stop boundary; no post-L10c changes were made.
-The worker has now been resumed with a scoped milestone to add a bounded
-authenticated multi-entry exact-
-key catalog/selection path while preserving immutable entries, cold fallback,
-feature-off behavior, and private scope. It must fail closed when capacity is
-full and must not yet add online deletion, eviction, generation replacement,
-prefix matching, or shared reuse. Those lifecycle operations require their own
-authority and recovery milestone. The worker must end its turn at this boundary.
+L10d is accepted. The next highest-value dependency is distributed state, not
+eviction: the actual 160 GB primary workload runs across both Strix Halo nodes,
+while L10d remains a target-only laboratory canary. The next milestone must
+first establish what the current RPC/tensor-split context serialization owns
+and whether a coordinator blob is globally complete or merely local. Only if
+that evidence supports safe exact-plan restore may it open a default-off two-
+rank canary. Any missing rank state, topology mismatch, stale readiness, or
+partial restore must remain a full cold recomputation. Online deletion,
+eviction, and production enablement remain closed until a later lifecycle lane.

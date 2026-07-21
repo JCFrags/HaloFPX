@@ -108,3 +108,26 @@ Coordination outcome: automatic goal continuation opened a post-L10c turn
 despite the requested stop boundary. The manager issued an explicit stop while
 the tree was still clean; the worker acknowledged that no post-L10c changes
 were made and is now idle pending the scoped continuation.
+
+## 2026-07-21 — accept L10d and prioritize distributed-state truth
+
+Decision: accept L10d at `6862ffb9`. Before opening eviction or deeper local
+cache administration, audit the exact current RPC/tensor-split serialization
+boundary and attempt a separately gated two-rank restore canary only if the
+observed ownership model can be made fail-closed.
+
+Reason: L10d now supplies bounded multi-entry exact-key reuse, safe capacity
+fallback, private authentication, immutable records, and unchanged feature-off
+behavior. The real primary workload is a 160 GB model split across nimo-1 and
+nimo-2, but the existing cache milestone explicitly excludes distributed
+restore. Canonical Wiki section 58 records as open whether the present sequence
+blob is global or rank-local. Solving or precisely blocking that dependency
+advances the actual product more than adding local eviction to a cache that
+cannot yet serve the target topology.
+
+Boundary: first trace code and measure state ownership on a disposable two-rank
+fixture. Do not infer completeness from a successful API call. If safe, require
+exact plan/rank binding, all-rank readiness before live mutation, full cold
+fallback for any mismatch/failure, exact suffix equivalence, and no state pages
+over the control plane. Keep production, eviction, shared reuse, and final
+primary-model claims closed.
