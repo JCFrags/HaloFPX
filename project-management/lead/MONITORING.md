@@ -4,8 +4,14 @@
 
 - Prefer event-driven checks when the worker marks a milestone complete, rejects
   a candidate, reports a blocker, requests authority, or changes production.
-- During an active bounded build/load/benchmark, wait at least 10 minutes before
-  a time-based check unless a safety event appears.
+- Major implementation milestones should end the worker's current task turn.
+  Task completion/attention is the reliable native wake event; commentary alone
+  is progress evidence but does not wake a thread listener.
+- Use the 30-minute heartbeat only as a durable fallback when no event arrives.
+  Take one snapshot per heartbeat rather than opening an internal polling loop.
+- Predict the next useful inspection from the phase and observed pace: roughly
+  30–45 minutes for source/build/focused-test work, 60–90 minutes for model load
+  or bounded runtime qualification, and multi-hour sleep for a stable long run.
 - During ordinary healthy work, check no more frequently than every 30–60
   minutes. During long stable work, prefer multi-hour sleeps.
 - Never poll at 30-second intervals.

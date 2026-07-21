@@ -73,3 +73,17 @@ Trigger to revisit: L10c accepts caller-chosen cache identity, publishes before
 a completed cold prompt boundary, mutates live state during validation, fails to
 fall through cold on any cache error, changes feature-off behavior, or touches
 the known-good deployment before its disposable canary passes.
+
+## 2026-07-20 — use milestone completion events and adaptive fallback timing
+
+Decision: major worker milestones end their task turn, providing a reliable
+completion event. Retain one durable 30-minute heartbeat only as a fallback and
+predict manual review timing from the active phase.
+
+Reason: native task waits wake for completion or attention, not ordinary
+commentary. Repeated ten-minute waits therefore consumed manager activity while
+adding little control value. Recent work indicates source/build/focused-test
+boundaries typically justify a 30–45 minute expectation, while model loading and
+runtime qualification justify 60–90 minutes or longer. The worker was asked to
+finish its current turn at the L10c boundary rather than immediately opening the
+next milestone.
