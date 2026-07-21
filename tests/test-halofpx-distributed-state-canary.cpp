@@ -3,6 +3,7 @@
 #include "ggml-rpc.h"
 #include "llama.h"
 
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <chrono>
@@ -239,8 +240,15 @@ bool receipt_hmac(
 
 bool decode_tokens(llama_context * ctx, const std::vector<llama_token> & tokens, size_t count) {
     if (count == 0 || count > tokens.size()) return false;
-    llama_batch batch = llama_batch_get_one(const_cast<llama_token *>(tokens.data()), static_cast<int32_t>(count));
-    return llama_decode(ctx, batch) == 0;
+    const size_t n_batch = llama_n_batch(ctx);
+    if (n_batch == 0) return false;
+    for (size_t offset = 0; offset < count; offset += n_batch) {
+        const size_t chunk = std::min(n_batch, count - offset);
+        llama_batch batch = llama_batch_get_one(
+            const_cast<llama_token *>(tokens.data() + offset), static_cast<int32_t>(chunk));
+        if (llama_decode(ctx, batch) != 0) return false;
+    }
+    return true;
 }
 
 double elapsed_ms(const std::chrono::steady_clock::time_point & start) {
