@@ -204,3 +204,23 @@ failure cases must demonstrate refusal on swapped hosts/roles.
 Only after both prerequisites pass focused review may the same task perform one
 primary-model retry. No repeated blind retries, manual ad hoc stop sequence, or
 expanded test matrix is authorized.
+
+## 2026-07-21 — accept terminal L13R and isolate application readiness
+
+Decision: accept L13R closeout `aa3c2cf6` as not promoted. Do not authorize a
+new primary run yet. Open one no-production milestone to replace disposable
+worker TCP-listener readiness with an application-level RPC CAPS handshake.
+
+Reason: both prior prerequisites passed, and the controller performed the real
+shutdown/recovery in the correct dependency order. The retry failed 1.356
+seconds after starting the disposable worker: its socket and MainPID were
+visible, but no RPC ready banner, accepted client, model load, or state command
+appeared. The immediate explanation is a listener-visible-before-application-
+ready race. This is new and can be resolved without another maintenance window.
+
+Acceptance for the readiness milestone: a bounded probe must retry until the
+worker answers the exact expected CAPS version/limits, fail closed on timeout,
+wrong endpoint/version/capabilities or early disconnect, and be proven against
+an artificial listener-first service plus a real disposable ROCm worker while
+production stays HTTP 200. Only an independently reviewed readiness gate may
+justify a later Project Lead decision about another primary canary.

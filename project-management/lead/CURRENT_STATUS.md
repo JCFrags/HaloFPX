@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 03:01 PDT
+Verified: 2026-07-21 03:58 PDT
 
 ## Overall state
 
@@ -14,15 +14,15 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `519a440079013446d35f345e932cde65d9851e2f`
+- Latest verified commit: `aa3c2cf63e44305057a7b4715efb28f492a82d07`
 - Remote count: zero
 - Worktree state: clean at the committed L10c boundary
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: conditional L13 retry; production remains untouched until a
-  long-prompt runtime proof and executable host-bound transition controller both
-  pass independent review
+- Current work: worker idle after terminal L13R negative result; next scoped
+  milestone is an application-level disposable RPC readiness gate only, with no
+  production transition or primary-model retry authorized
 
 ## Product progress
 
@@ -78,6 +78,14 @@ slower candidates.
   correctness/performance claim is admitted. Production recovered to HTTP 200:
   nimo-1 coordinator PID 2068256 and nimo-2 worker PID 1247685, both with
   `NRestarts=0`. The reviewed negative result is commit `519a4400`.
+- L13R prerequisites succeeded: the actual canary processed the 1,128-token
+  saved prefix in three chunks at `n_batch=512`, and the host-bound transition
+  controller passed 19 focused tests and independent review. The single retry
+  then failed before model load or state operations because TCP listener
+  visibility preceded RPC application readiness. The enforced rollback restored
+  nimo-2 worker PID 1275544 and nimo-1 coordinator PID 2093167/HTTP 200, both
+  `NRestarts=0`. No state object or model result exists. Final reviewed closeout
+  is `aa3c2cf6`.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -99,14 +107,12 @@ slower candidates.
 
 ## Lead decision
 
-L13's negative outcome is accepted. The failures are operationally serious but
-contained and correctable; they do not invalidate L12. One guarded retry may be
-authorized only through two executable prerequisites: (1) the exact batching
-fix must successfully process a prompt longer than `n_batch` on a disposable
-small fixture, and (2) a host-bound transition script must verify hostname,
-unit role, PID/listener and coordinator inactivity before it can stop the worker,
-then encode worker-first recovery. If either prerequisite fails, production is
-not touched. If both pass independent review, one bounded primary retry may
-proceed with the original L13 acceptance boundary.
-The worker has been dispatched with a one-retry limit and must end its turn at
-the reviewed result.
+L13R's terminal negative outcome is accepted. Its failure is a new, separately
+testable startup-readiness defect rather than a repeat of batching or stop-order
+errors. TCP listen/MainPID agreement is not sufficient authority for a
+disposable ROCm RPC worker. The next milestone is limited to adding an explicit
+application-level readiness probe using the existing CAPS protocol and proving
+that it waits through listener-visible/backend-not-ready states, rejects wrong
+version/capabilities, and admits a real disposable worker only after a successful
+RPC request. Production must remain live and no primary-model attempt is
+authorized in this milestone. A later attempt requires a new lead decision.
