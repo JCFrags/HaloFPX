@@ -1,0 +1,112 @@
+{
+  "schema": "halofpx-milestone-receipt-v1",
+  "milestone": "L15-primary-model-canary",
+  "date": "2026-07-21",
+  "outcome": "not-promoted-terminal-protected-key-preflight-blocker",
+  "attempt_authority": {
+    "production_transition_count": 1,
+    "primary_attempt_count": 1,
+    "retry_performed": false,
+    "guards_commit": "09fe45f82dc91be87142d47a27348788a1ac7c03",
+    "reviewed_source_commit": "a496492c590570e88ac83b511f37e66c52197816",
+    "l14_implementation_commit": "b688680e8b2027f095a8414c18995009fb433451"
+  },
+  "input": {
+    "model_repository": "rcmorano/saricles-MiniMax-M2.7-REAP-172B-A10B-ROCMFPX",
+    "model_revision": "dba517197f2854f3d362529e13abddcdcad6c10b",
+    "model_file": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "model_bytes": 159873097824,
+    "model_sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+    "prompt_sha256": "f20c7c7a4137de98b991f1bfe6de27e194a93c7257d9496944e312085923143f",
+    "prompt_tokens": 1129,
+    "saved_token_boundary": 1128,
+    "generated_tokens_target": 128,
+    "context": 4096,
+    "batch": 512,
+    "ubatch": 512,
+    "cache_type_k": "q8_0",
+    "cache_type_v": "q8_0",
+    "split_mode": "layer",
+    "tensor_split": "1,1",
+    "seed": 1234,
+    "temperature": 0
+  },
+  "execution_identity": {
+    "worker_sha256": "919cb4c6a3144da20d1bb8d8a4b09d5a9bd2d4c9da256495079f187e066339ea",
+    "canary_sha256": "5ecf44d64006e1c00f0a9a86d44395d4a27ad5a3e3648d70ff4d617a91913759",
+    "probe_sha256": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
+    "controller_sha256": "d99c15a745cba082c01c0a7a49ebaab1574e872a2b6d7d07c8c1c82ce783fd59",
+    "runner_sha256": "7a24884d399acfdbde5628cef55ad30642a0b5a5e91807d55be9490c4c1d547fd",
+    "focused_tests_passed": 38,
+    "pre_mutation_review": "PASS; no P1/P2 remains"
+  },
+  "attempt": {
+    "phase": "capture-worker-readiness",
+    "result": "FAIL_CLOSED",
+    "worker_host": "nimo-1",
+    "worker_pid": 2125535,
+    "worker_port": 50179,
+    "expected_channel_key_mode": "0644",
+    "expected_channel_key_owner": "connorb",
+    "expected_channel_key_bytes": 130,
+    "failure": "readiness probe rejected the unprotected expected-channel key before connecting",
+    "rpc_connection_attempted": false,
+    "hello_exchanged": false,
+    "caps_exchanged": false,
+    "canary_unit_started": false,
+    "primary_model_loaded": false,
+    "state_operation_observed": false,
+    "worker_object_created": false
+  },
+  "unadmitted_gates": [
+    "uninterrupted-capture",
+    "clean-cold",
+    "restart-worker-local-restore",
+    "missing-or-corrupt-object-fallback",
+    "plan-or-topology-mismatch-fallback",
+    "runtime-off-cold-control",
+    "exact-suffix-equivalence",
+    "state-payload-transfer-proof",
+    "capture-and-restore-timing",
+    "object-bytes-and-components",
+    "cold-regression-screen"
+  ],
+  "production_final": {
+    "worker": {
+      "host": "nimo-2",
+      "pid": 1291141,
+      "port": 50052,
+      "nrestarts": 0,
+      "start_timestamp": "Tue 2026-07-21 04:44:22 PDT"
+    },
+    "coordinator": {
+      "host": "nimo-1",
+      "pid": 2125672,
+      "port": 8081,
+      "http_status": 200,
+      "nrestarts": 0,
+      "start_timestamp": "Tue 2026-07-21 04:44:23 PDT",
+      "model": "MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf"
+    }
+  },
+  "cleanup": {
+    "disposable_units_unloaded": true,
+    "disposable_port_50179_closed": true,
+    "canary_process_absent": true,
+    "roots_keys_clones_builds_removed": true,
+    "model_deleted": false
+  },
+  "evidence_bundle": {
+    "host": "nimo-2",
+    "path": "/var/tmp/halofpx-l15-primary-evidence-20260721-v1.tar.zst",
+    "mode": "0600",
+    "bytes": 36969818,
+    "sha256": "596d278a992fedd6b61e6897311529ee97644f6276ce547692c3a450b1bf05a3",
+    "zstd_test": "PASS",
+    "manifest": "PASS"
+  },
+  "review": {
+    "path": "docs/halofpx/reviews/2026-07-21__l15-primary-model-canary-result__review__v01.md",
+    "verdict": "ACCEPT terminal NOT PROMOTED closeout; primary canary remains unqualified"
+  }
+}
