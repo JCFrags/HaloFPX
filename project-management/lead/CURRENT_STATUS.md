@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 19:46 PDT
+Verified: 2026-07-21 20:16 PDT
 
 ## Overall state
 
@@ -14,18 +14,17 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `7cb42be0ba3f45863c418fb9befd5d306f5ce893`
+- Latest verified commit: `e2edc4b3277f5385118e759ed9f89c1ea0a7445a`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L19 closeout
+- Worktree state: clean at the reviewed terminal L20 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L19 closed NOT PROMOTED at its pre-mutation review gate. The
-  inherited six-process sequence would have performed six primary material
-  loads, the transition controller remained L16-bound, and failure evidence was
-  captured too late. Production was untouched. L20 was dispatched as a
-  no-production harness prerequisite only; no new primary maintenance attempt
-  is authorized.
+- Current work: L20 measured that the honest complete canary requires three
+  model residencies rather than six, but its candidate controller was rejected
+  for incomplete manifest ownership and fail-open evidence handling. The
+  candidate source was removed and production stayed untouched. L21 is a
+  targeted no-production contract repair only; no primary attempt is authorized.
 
 ## Product progress
 
@@ -135,6 +134,17 @@ slower candidates.
   artifact and current production authority were revalidated, focused tests
   passed 52/52, production stayed at the known-good PIDs with zero restarts,
   and terminal closeout `7cb42be0` is clean.
+- L20 proves on a disposable two-host 15M model that the complete current
+  lifecycle needs three material residencies: capture/uninterrupted plus clean
+  cold; post-worker-restart restore plus corrupt/mismatch cold fallbacks; and a
+  feature-off cold control. All continuation hashes matched, the 1,129-token
+  prompt chunked 512/512/104, and state windows carried zero legacy tensor-page
+  transfers. The controller candidate was not retained because it lacked a
+  real early allocation-refusal evidence case, did not own all disposable
+  paths, could lose InvocationID authority after unit collection, treated some
+  evidence failures as nonfatal, and lacked a production-before snapshot. All
+  disposable resources were removed, production remained unchanged, and the
+  docs-only terminal closeout is clean at `e2edc4b3`.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -156,13 +166,11 @@ slower candidates.
 
 ## Lead decision
 
-Accept L19's terminal pre-mutation stop at `7cb42be0`; it is evidence of a
-correct safety gate, not evidence against the model or cache protocol. Open L20
-only as a no-production execution-contract repair. It must replace six isolated
-material loads with a reviewed minimal lifecycle that proves the smallest
-necessary load count, parameterize and fail-close controller key/child/cleanup
-authority, and capture failure evidence from the start of every child. Qualify
-the exact lifecycle on a small disposable two-host model while production stays
-untouched. L20 may not load the primary artifact, open a maintenance transition,
-or weaken restart/cold-fallback semantics. Only a later lead decision may
-authorize another primary attempt.
+Accept L20's three-residency lifecycle result but reject its controller
+candidate exactly as reviewed. Open L21 only to close the five concrete
+execution-contract defects: complete manifest ownership, real early allocation
+refusal capture, fail-closed journal authority after unit collection, fatal
+evidence-command failures, and a bound production-before snapshot. Reuse the
+already proven three-residency small-model lifecycle; do not expand its semantic
+matrix. L21 must remain no-production and may not read/load the primary artifact.
+Only a later lead decision may authorize a three-residency primary canary.

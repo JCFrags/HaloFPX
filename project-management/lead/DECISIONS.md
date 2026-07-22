@@ -385,3 +385,37 @@ two-host model with production continuously unchanged, run focused tests, obtain
 one independent adversarial review, commit a terminal L20 result, and end the
 task turn. No primary artifact load, production transition, performance claim,
 cache promotion, unrelated tuning, or L21 work is authorized.
+
+## 2026-07-21 — accept L20 lifecycle evidence and target the rejected contract
+
+Decision: accept the measured three-residency lifecycle in terminal L20 commit
+`e2edc4b3277f5385118e759ed9f89c1ea0a7445a`, but do not promote its removed
+controller candidate. Open L21 only as a no-production correction of the five
+review findings. Do not authorize a primary artifact read/load or production
+transition.
+
+Reason: the disposable two-host fixture directly proves that an honest complete
+canary needs three current model residencies rather than six: capture plus clean
+cold; post-worker-restart restore plus corrupt/mismatch fallbacks; and a
+feature-off cold control. Exact suffix hashes matched and state windows carried
+zero legacy tensor-page operations. The independent review nevertheless found
+that the controller had no real early allocation-refusal evidence case, omitted
+source/build/state roots from manifest-owned cleanup, could lose InvocationID
+authority after `systemd-run --collect`, allowed evidence failures to remain
+nonfatal, and lacked a production-before snapshot. The candidate source was
+correctly removed and production remained unchanged.
+
+L21 boundary: retain the already proven three-residency semantics and do not
+repeat or broaden its correctness matrix. Build one closed milestone manifest
+that owns every disposable source, build, state, key, evidence, unit, port,
+process, and child identity. Exercise one real early allocation-refusal child
+through the same evidence collector. Capture InvocationID before collection and
+also retain a journal cursor/time lower bound that fails closed if exact unit /
+PID / invocation authority cannot be reconciled. Every evidence command,
+archive step, and cleanup verification must be mandatory; any failure makes the
+result non-promotable. Bind a fresh production-before snapshot and prove it
+matches the unchanged closeout. Qualify with focused controller tests and the
+minimum small-model/disposable cases needed for those defects, obtain one
+independent adversarial review, commit a terminal result, and end the task turn.
+No primary artifact access, production mutation, performance work, cache
+promotion, unrelated tuning, or L22 work is authorized.
