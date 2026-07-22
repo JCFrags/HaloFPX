@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 19:16 PDT
+Verified: 2026-07-21 19:46 PDT
 
 ## Overall state
 
@@ -14,17 +14,18 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `93c61eadd167285be448ef1e99b80f429fa4299a`
+- Latest verified commit: `7cb42be0ba3f45863c418fb9befd5d306f5ce893`
 - Remote count: zero
-- Worktree state: clean at the reviewed L18 closeout
+- Worktree state: clean at the reviewed terminal L19 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L18 passed. The real loader accounted for every primary-model
-  tensor and found admissible per-device allocation shapes with conservative
-  reserve. L19 was dispatched as one controller-managed primary-model
-  correctness/cache canary; it is not a performance promotion or production
-  enablement.
+- Current work: L19 closed NOT PROMOTED at its pre-mutation review gate. The
+  inherited six-process sequence would have performed six primary material
+  loads, the transition controller remained L16-bound, and failure evidence was
+  captured too late. Production was untouched. L20 was dispatched as a
+  no-production harness prerequisite only; no new primary maintenance attempt
+  is authorized.
 
 ## Product progress
 
@@ -125,6 +126,15 @@ slower candidates.
   resolver-only prediction. No primary weights were allocated, production was
   not mutated, cleanup completed, independent review found no P1/P2 issue, and
   commit `93c61eadd` is clean.
+- L19 correctly stopped before mutation after independent review found two P1
+  execution-contract defects and one P2 evidence defect: six process modes
+  implied six material loads rather than one; controller key/child/cleanup
+  authority remained L16-specific; and allocation-failure evidence would be
+  collected too late. No primary load, inference, cache operation, key
+  provisioning, unit transition, or disposable listener occurred. The exact
+  artifact and current production authority were revalidated, focused tests
+  passed 52/52, production stayed at the known-good PIDs with zero restarts,
+  and terminal closeout `7cb42be0` is clean.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -146,13 +156,13 @@ slower candidates.
 
 ## Lead decision
 
-Accept L18 as the reviewed exact-primary allocation preflight. Its evidence
-closes the known placement/capacity prerequisite but does not prove allocator
-success, inference correctness, cache correctness, throughput, or production
-readiness. Authorize one L19 maintenance transition using the exact pinned
-artifact/request, explicit `RPC0,ROCm0`, the L18 real-loader allocation authority,
-the existing secure-key/CAPS/controller gates, and the established rollback
-order. L19 must close after one attempt, preserve cold fallback, collect exact
-capture/restore/cold evidence, and restore the known-good endpoint before its
-turn ends. No automatic retry, cache promotion, tuning expansion, or performance
-claim is authorized.
+Accept L19's terminal pre-mutation stop at `7cb42be0`; it is evidence of a
+correct safety gate, not evidence against the model or cache protocol. Open L20
+only as a no-production execution-contract repair. It must replace six isolated
+material loads with a reviewed minimal lifecycle that proves the smallest
+necessary load count, parameterize and fail-close controller key/child/cleanup
+authority, and capture failure evidence from the start of every child. Qualify
+the exact lifecycle on a small disposable two-host model while production stays
+untouched. L20 may not load the primary artifact, open a maintenance transition,
+or weaken restart/cold-fallback semantics. Only a later lead decision may
+authorize another primary attempt.

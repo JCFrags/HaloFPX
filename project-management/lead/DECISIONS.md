@@ -354,3 +354,34 @@ cold-recompute or abort and then restore production. No repeated retry,
 unrelated tuning, cache promotion, L20 work, or final performance claim is
 authorized. The worker must commit a reviewed terminal result and end its task
 turn.
+
+## 2026-07-21 — accept terminal L19 and isolate the execution contract in L20
+
+Decision: accept L19 terminal NOT PROMOTED at
+`7cb42be0ba3f45863c418fb9befd5d306f5ce893`. Open L20 only as a no-production
+controller/runner lifecycle prerequisite. Do not authorize another primary
+load or maintenance transition.
+
+Reason: the L19 pre-mutation review found that the inherited six-mode runner
+would start six processes and therefore material-load the 159.9 GB model six
+times, exceeding the literal one-load authority. It also found that the
+transition controller still binds L16 key paths, child identity, and disposable
+cleanup names, and that allocation-failure evidence begins too late. These are
+real execution-contract defects. The stop gate worked: no production unit,
+listener, key, model, inference, or cache state was touched; production remained
+healthy and focused tests passed 52/52.
+
+L20 boundary: first derive and document the minimum material-load lifecycle
+needed to preserve exact uninterrupted, cold, restart-restored, missing-object,
+plan-mismatch, and mode-off controls. Prefer one process and multiple contexts
+within each model residency; if restart semantics inherently require another
+model residency, prove that dependency and freeze the minimum count rather than
+silently weakening the restart test. Parameterize the controller's milestone
+identity, channel-key paths, child binary/unit names, and cleanup allowlist as a
+single closed manifest; reject unknown or inconsistent identities before any
+mutation. Start journal/PID/allocation/disk evidence capture before the child can
+allocate or fail. Prove the lifecycle and abnormal cleanup on a small disposable
+two-host model with production continuously unchanged, run focused tests, obtain
+one independent adversarial review, commit a terminal L20 result, and end the
+task turn. No primary artifact load, production transition, performance claim,
+cache promotion, unrelated tuning, or L21 work is authorized.
