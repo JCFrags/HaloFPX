@@ -1,0 +1,52 @@
+{
+  "schema": "halofpx-l20-no-production-execution-contract-receipt-v1",
+  "date": "2026-07-21",
+  "base_commit": "7cb42be0ba3f45863c418fb9befd5d306f5ce893",
+  "outcome": "not_promoted_evidence_and_manifest_ownership_incomplete",
+  "disposable_lifecycle": {
+    "model": "stories15M-q4_0.gguf",
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "maximum_chunk": 512,
+    "residency_loads": 3,
+    "worker_pids": [2165752, 2165831, 2165909],
+    "suffix_sha256": "8833fa5b4ce8735bd0520e7eb2e969b26ae302b688c5f4f80c2fb58858af703f",
+    "state_window_get_tensor_set_tensor": 0,
+    "corrupt_object_fallback": "cold_exact",
+    "plan_mismatch_fallback": "cold_exact",
+    "mode_off_control": "cold_exact"
+  },
+  "qualification": {
+    "candidate_focused_tests_passed": 54,
+    "independent_review": "reject",
+    "primary_artifact_read_or_loaded": false,
+    "production_mutated": false
+  },
+  "review_blockers": [
+    "no real early allocation-refusal evidence through the candidate collector",
+    "manifest omitted source/build/state cleanup paths",
+    "post-collect canary InvocationID binding was not fail-closed",
+    "evidence collection failures were not uniformly fatal"
+  ],
+  "raw_evidence": {
+    "path": "/var/tmp/halofpx-l20-evidence-20260721-v1.tar.zst",
+    "mode": "0600",
+    "sha256": "c9d50ecc1b92cedbe369812650149b5cf6328f46829a8a5c05e64c4869302ad4"
+  },
+  "production_closeout": {
+    "nimo1_coordinator_pid": 2144857,
+    "nimo1_port": 8081,
+    "nimo1_http": 200,
+    "nimo1_nrestarts": 0,
+    "nimo2_worker_pid": 1305879,
+    "nimo2_port": 50052,
+    "nimo2_nrestarts": 0
+  },
+  "cleanup": {
+    "disposable_port_open": false,
+    "disposable_units_loaded": false,
+    "keys_present": false,
+    "state_roots_present": false,
+    "source_or_build_roots_present": false
+  }
+}

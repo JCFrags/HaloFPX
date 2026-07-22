@@ -47,3 +47,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0041](0041-preallocation-device-placement-authority.md): pre-allocation device and layer-placement authority
 - [ADR-0042](0042-read-only-primary-allocation-authority.md): read-only exact-primary allocation authority
 - [ADR-0043](0043-guarded-primary-correctness-cache-canary.md): guarded exact-primary correctness and cache canary
+- [ADR-0044](0044-no-production-execution-contract.md): no-production primary-canary execution contract
