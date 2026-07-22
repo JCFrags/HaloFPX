@@ -1,0 +1,40 @@
+L19 PRE-MUTATION RAW EVIDENCE
+date=2026-07-21
+base=93c61eadd167285be448ef1e99b80f429fa4299a
+branch=codex/integration-base-61f2f2d
+remote_count=0
+
+artifact_host=nimo-2
+artifact_size=159873097824
+artifact_sha256=96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6
+
+nimo-1_hostname=nimo-1
+nimo-1_var_tmp_available_bytes=26561019904
+nimo-1_production_unit=minimax-m27-q6-server.service
+nimo-1_production_state=active/running
+nimo-1_production_pid=2144857
+nimo-1_production_listener=8081/pid-2144857
+nimo-1_production_http=200
+nimo-1_production_nrestarts=0
+nimo-1_production_model=MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf
+
+nimo-2_hostname=nimo-2
+nimo-2_var_tmp_available_bytes=101340069888
+nimo-2_production_unit=minimax-m27-rpc-worker.service
+nimo-2_production_state=active/running
+nimo-2_production_pid=1305879
+nimo-2_production_listener=50052/pid-1305879
+nimo-2_production_nrestarts=0
+
+controller_dry_run=PASS
+focused_tests=52/52 PASS
+production_mutation=false
+primary_material_load_count=0
+cache_state_operations=0
+
+independent_review=REJECT_PRE_MUTATION
+review_p1_1=controller remains L16-bound for channel-key paths, disposable cleanup identities, and child binary
+review_p1_2=inherited six-mode sequence starts six processes and material-loads the primary model six times, exceeding the one-load authorization
+review_p2_1=failed capture allocation evidence is collected too late for complete failure evidence
+
+terminal_result=NOT_PROMOTED

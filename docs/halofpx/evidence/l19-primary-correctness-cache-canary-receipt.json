@@ -1,0 +1,37 @@
+{
+  "schema": "halofpx-l19-primary-correctness-cache-canary-receipt-v1",
+  "date": "2026-07-21",
+  "base_commit": "93c61eadd167285be448ef1e99b80f429fa4299a",
+  "outcome": "not_promoted_pre_mutation_review_blocker",
+  "artifact": {
+    "file": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "qualification": {
+    "controller_dry_run": "pass",
+    "focused_tests": {"passed": 52, "failed": 0},
+    "independent_review": "reject_before_mutation",
+    "primary_material_loads": 0,
+    "production_mutated": false,
+    "cache_state_operations": 0
+  },
+  "blockers": [
+    "current isolated-process sequence would material-load the primary model six times rather than once",
+    "production controller and proposed L19 child have inconsistent protected-key and disposable cleanup identities",
+    "inherited failure-path allocation evidence is collected after successful capture"
+  ],
+  "production_closeout": {
+    "nimo1_coordinator_pid": 2144857,
+    "nimo1_port": 8081,
+    "nimo1_http": 200,
+    "nimo1_nrestarts": 0,
+    "nimo2_worker_pid": 1305879,
+    "nimo2_port": 50052,
+    "nimo2_nrestarts": 0
+  },
+  "raw_evidence": {
+    "path": "docs/halofpx/evidence/l19-pre-mutation-raw.txt",
+    "sha256": "00e52b24217fdc7bf8f16e27a18b10bfdf849d236c2fba1ab69227c4f250630a"
+  }
+}

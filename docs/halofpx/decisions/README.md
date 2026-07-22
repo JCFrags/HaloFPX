@@ -45,3 +45,5 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0039](0039-rpc-tensor-split-distributed-restore-blocker.md): current RPC tensor-split distributed restore blocker
 - [ADR-0040](0040-worker-local-rpc-state-protocol-canary.md): worker-local RPC state protocol for the disposable two-rank canary
 - [ADR-0041](0041-preallocation-device-placement-authority.md): pre-allocation device and layer-placement authority
+- [ADR-0042](0042-read-only-primary-allocation-authority.md): read-only exact-primary allocation authority
+- [ADR-0043](0043-guarded-primary-correctness-cache-canary.md): guarded exact-primary correctness and cache canary
