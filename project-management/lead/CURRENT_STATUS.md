@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 06:45 PDT
+Verified: 2026-07-21 19:16 PDT
 
 ## Overall state
 
@@ -14,18 +14,17 @@ slower candidates.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `730e96330ae0585719941a93b65c31a6217a7a54`
+- Latest verified commit: `93c61eadd167285be448ef1e99b80f429fa4299a`
 - Remote count: zero
-- Worktree state: clean at the reviewed L17 closeout
+- Worktree state: clean at the reviewed L18 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L17 passed. L18 is active as a read-only,
-  no-production exact-primary allocation preflight tied to the real loader and
-  explicit `RPC0,ROCm0` placement. At the predicted review boundary, the
-  corrected full-model digest remained active and healthy; its binary hash and
-  self-test were pinned, with metadata construction, zero-allocation context
-  simulation, evidence capture, and cleanup queued. No primary retry is open.
+- Current work: L18 passed. The real loader accounted for every primary-model
+  tensor and found admissible per-device allocation shapes with conservative
+  reserve. L19 was dispatched as one controller-managed primary-model
+  correctness/cache canary; it is not a performance promotion or production
+  enablement.
 
 ## Product progress
 
@@ -116,6 +115,16 @@ slower candidates.
   never mutated and remains healthy at nimo-1 PID 2144857/HTTP 200 and nimo-2
   PID 1305879, both with `NRestarts=0`. Commit `730e9633` is clean. L17 does not
   prove the 159.9 GB artifact's allocation shapes or capacity fit.
+- L18 uses the real architecture loader in metadata-only `no_alloc` mode and
+  accounts for all 809/809 source tensors with zero unknown or unaccounted.
+  Planned requests are 80,950,550,528 bytes on RPC0, 78,280,456,704 bytes on
+  ROCm0 device memory, and 633,802,752 bytes in the ROCm host group. With
+  simulated context/compute, a 10% fragmentation assumption, and a fixed 16 GiB
+  reserve, margins remain 26,500,867,072 bytes on RPC0 and 28,406,681,241 bytes
+  on ROCm0. The real loader places `output.weight` on RPC0, overriding L17's
+  resolver-only prediction. No primary weights were allocated, production was
+  not mutated, cleanup completed, independent review found no P1/P2 issue, and
+  commit `93c61eadd` is clean.
 - The exact 160 GB primary model is pinned and repeatedly benchmarked.
 
 ## Performance truth
@@ -137,13 +146,13 @@ slower candidates.
 
 ## Lead decision
 
-Accept L17 as the reviewed placement-authority correction. Do not infer exact
-primary capacity from its tiny-model proof and do not authorize another primary
-maintenance transition yet. Open L18 as read-only/no-production work: derive an
-exact primary tensor and buffer allocation plan through the same loader resolver,
-bind it to the pinned artifact and `RPC0,ROCm0` plan, compare maximum and total
-per-device requests to measured capacity with explicit reserve, and fail closed
-on ambiguity or overcommit. Independent review must accept the calculation and
-its source lineage. Only a later Project Lead decision may open another primary
-attempt. The 06:45 PDT event snapshot showed expected progress and no steering
-threshold. Sleep until task completion/attention or the 07:15 PDT heartbeat.
+Accept L18 as the reviewed exact-primary allocation preflight. Its evidence
+closes the known placement/capacity prerequisite but does not prove allocator
+success, inference correctness, cache correctness, throughput, or production
+readiness. Authorize one L19 maintenance transition using the exact pinned
+artifact/request, explicit `RPC0,ROCm0`, the L18 real-loader allocation authority,
+the existing secure-key/CAPS/controller gates, and the established rollback
+order. L19 must close after one attempt, preserve cold fallback, collect exact
+capture/restore/cold evidence, and restore the known-good endpoint before its
+turn ends. No automatic retry, cache promotion, tuning expansion, or performance
+claim is authorized.

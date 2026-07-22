@@ -322,3 +322,35 @@ the model and query hardware but may not allocate the primary weights, stop or
 restart production, write cache state, or make a performance claim. Retain raw
 evidence and obtain one independent adversarial review. Only a later Project
 Lead decision may authorize a primary maintenance attempt.
+
+## 2026-07-21 — accept L18 and authorize one guarded L19 primary canary
+
+Decision: accept reviewed L18 at `93c61eadd167285be448ef1e99b80f429fa4299a`.
+Authorize one controller-managed L19 maintenance transition for the exact
+primary model and cache correctness canary. L19 is not a production enablement
+or performance promotion.
+
+Reason: L18 binds the pinned artifact hash and exact `RPC0,ROCm0` loader path,
+accounts for 809/809 tensors, and obtains the real loader's three allocation
+groups. The planned weight groups plus simulated context/compute, 10%
+fragmentation assumption, and 16 GiB reserve leave 26.50 GB RPC0 and 28.41 GB
+ROCm0 margins against reported total capacity. It also corrects L17's
+resolver-only output prediction: `output.weight` belongs to RPC0. Independent
+review found no P1/P2 issue, no material primary allocation occurred, production
+was unchanged, and the evidence/cleanup boundary is complete.
+
+L19 boundary: use commit `93c61ead`, the exact 159,873,097,824-byte artifact and
+pinned 1,129-token/128-generation request, explicit `RPC0,ROCm0`, layer split,
+and tensor split `1,1`. Before mutation, the controller must revalidate host/unit
+roles, secure equal channel keys, exact HELLO/HFXCAP2, model identity, current
+known-good service authority, and a recoverable rollback path. Stop the
+coordinator before its worker and restore worker-first, coordinator-second to
+HTTP 200. The canary gets one material load and one capture/restore/cold
+sequence. Record actual per-device allocation evidence, exact uninterrupted /
+restored / cold suffix equality, rank-local object bytes, zero legacy state-page
+GET/SET during capture and restore, state I/O/timing, and a bounded mode-off cold
+control. Any error, mismatch, insufficient margin, or partial readiness must
+cold-recompute or abort and then restore production. No repeated retry,
+unrelated tuning, cache promotion, L20 work, or final performance claim is
+authorized. The worker must commit a reviewed terminal result and end its task
+turn.
