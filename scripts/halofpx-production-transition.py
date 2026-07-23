@@ -37,37 +37,33 @@ WORKER_PROCESS = "/opt/llm-usb4-cluster/llama/ggml-rpc-server"
 WORKER_PORT = 50052
 
 DISPOSABLE_HOST = "nimo-1"
-DISPOSABLE_PORT = 50180
+DISPOSABLE_PORT = 50184
 DISPOSABLE_WORKER_UNITS = (
-    "halofpx-l22-primary-worker-capture.service",
-    "halofpx-l22-primary-worker-restore.service",
-    "halofpx-l22-primary-worker-runtime-off.service",
+    "halofpx-l24-primary-worker-capture.service",
+    "halofpx-l24-primary-worker-restore.service",
 )
 DISPOSABLE_CANARY_HOST = "nimo-2"
-DISPOSABLE_CANARY_BIN = "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-distributed-state-canary"
-DISPOSABLE_CANARY_UNITS = tuple(
-    f"halofpx-l22-primary-canary-{name}.service"
-    for name in ("residency1", "residency2", "residency3")
-)
+DISPOSABLE_CANARY_BIN = "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-distributed-state-canary"
+DISPOSABLE_CANARY_UNITS = ("halofpx-l24-primary-canary-diagnostic.service",)
 
 CHANNEL_KEY_OWNER = "connorb"
 CHANNEL_KEY_BYTES = 130
 CHANNEL_KEY_PATHS = {
-    "nimo-1": "/var/tmp/halofpx-l22-primary-control.key",
-    "nimo-2": "/var/tmp/halofpx-l22-primary-control.key",
+    "nimo-1": "/var/tmp/halofpx-l24-primary-control.key",
+    "nimo-2": "/var/tmp/halofpx-l24-primary-control.key",
 }
 DISPOSABLE_PATHS = {
     "nimo-1": (
-        "/var/tmp/halofpx-l22-source-nimo1.tar",
-        "/var/tmp/halofpx-l22-source-nimo1",
-        "/var/tmp/halofpx-l22-primary-worker",
+        "/var/tmp/halofpx-l24-source-nimo1.tar",
+        "/var/tmp/halofpx-l24-source-nimo1",
+        "/var/tmp/halofpx-l24-primary-worker",
     ),
     "nimo-2": (
-        "/var/tmp/halofpx-l22-source-nimo2.tar",
-        "/var/tmp/halofpx-l22-source-nimo2",
-        "/var/tmp/halofpx-l22-primary-evidence",
-        "/var/tmp/halofpx-l22-primary-coordinator",
-        "/var/tmp/halofpx-l22-primary-rendezvous",
+        "/var/tmp/halofpx-l24-source-nimo2.tar",
+        "/var/tmp/halofpx-l24-source-nimo2",
+        "/var/tmp/halofpx-l24-primary-evidence",
+        "/var/tmp/halofpx-l24-primary-coordinator",
+        "/var/tmp/halofpx-l24-primary-rendezvous",
     ),
 }
 
@@ -223,8 +219,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     if not isinstance(raw, dict) or set(raw) != expected_keys:
         raise TransitionError("L22 manifest field set mismatch")
     if (
-        raw["schema"] != "halofpx.l22.primary-manifest.v1"
-        or raw["milestone"] != "l22-primary"
+        raw["schema"] != "halofpx.l24.primary-manifest.v1"
+        or raw["milestone"] != "l24-primary-diagnostic"
         or raw["worker_host"] != DISPOSABLE_HOST
         or raw["canary_host"] != DISPOSABLE_CANARY_HOST
         or raw["worker_port"] != DISPOSABLE_PORT
@@ -237,10 +233,10 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
     interpreter_path = Path(sys.executable).resolve()
     expected_exec = {
-        "worker": "/var/tmp/halofpx-l22-source-nimo1/build-l22/bin/rpc-server",
+        "worker": "/var/tmp/halofpx-l24-source-nimo1/build-l24/bin/rpc-server",
         "canary": DISPOSABLE_CANARY_BIN,
-        "readiness": "/var/tmp/halofpx-l22-source-nimo2/scripts/halofpx_rpc_readiness.py",
-        "placement": "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-placement-probe",
+        "readiness": "/var/tmp/halofpx-l24-source-nimo2/scripts/halofpx_rpc_readiness.py",
+        "placement": "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-placement-probe",
         "interpreter": str(interpreter_path),
         "child": str(child_path),
     }

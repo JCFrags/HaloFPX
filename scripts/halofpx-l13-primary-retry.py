@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-shot bounded L22 three-residency primary canary; controller child only."""
+"""One-shot L24 primary restored-state discriminator; controller child only."""
 
 from __future__ import annotations
 
@@ -17,12 +17,12 @@ from pathlib import Path
 
 NIMO1 = "nimo-1"
 NIMO2 = "nimo-2"
-PORT = 50180
-WORKER_BIN = "/var/tmp/halofpx-l22-source-nimo1/build-l22/bin/rpc-server"
-CANARY_BIN = "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-distributed-state-canary"
-READINESS_PROBE = "/var/tmp/halofpx-l22-source-nimo2/scripts/halofpx_rpc_readiness.py"
-PLACEMENT_PROBE = "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-placement-probe"
-PLACEMENT_PROBE_SHA = "171d41b9a2cbe6cc25589ed7afed4457e015952130d503b08c8db72b0d438d2a"
+PORT = 50184
+WORKER_BIN = "/var/tmp/halofpx-l24-source-nimo1/build-l24/bin/rpc-server"
+CANARY_BIN = "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-distributed-state-canary"
+READINESS_PROBE = "/var/tmp/halofpx-l24-source-nimo2/scripts/halofpx_rpc_readiness.py"
+PLACEMENT_PROBE = "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-placement-probe"
+PLACEMENT_PROBE_SHA = "0384e69181415835b626bfe586ebdd46698c2690037e5c3d1dc75b70546ecb5d"
 READINESS_PROBE_SHA = "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -31,15 +31,15 @@ MODEL = (
 )
 MODEL_SHA = "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
 MODEL_BYTES = 159873097824
-CANARY_SHA = "9ff1908f1ba402bb9de7ed78ea1705fbb3c9ee33011ccd580e094eebbfcd03e1"
-WORKER_SHA = "83273c7aa7070071d6d0f64dd398e8007a97fc2f8543b2e83af06375e75a944e"
+CANARY_SHA = "bd81d63e115d0a6fd73fe7a044120b71fe3c015f3a94f5bb4a9ae86913b4849a"
+WORKER_SHA = "bfbb0df6deea80047c364129b92c3344579922a6d81ffe9cbe174c626689c058"
 PROMPT_SHA = "f20c7c7a4137de98b991f1bfe6de27e194a93c7257d9496944e312085923143f"
 PROMPT = "/var/tmp/halofpx-l13-primary-20260721/prompt.txt"
-REMOTE_EVIDENCE = "/var/tmp/halofpx-l22-primary-evidence"
-COORDINATOR_ROOT = "/var/tmp/halofpx-l22-primary-coordinator"
-WORKER_ROOT = "/var/tmp/halofpx-l22-primary-worker"
-RENDEZVOUS_ROOT = "/var/tmp/halofpx-l22-primary-rendezvous"
-CONTROL = "/var/tmp/halofpx-l22-primary-control.key"
+REMOTE_EVIDENCE = "/var/tmp/halofpx-l24-primary-evidence"
+COORDINATOR_ROOT = "/var/tmp/halofpx-l24-primary-coordinator"
+WORKER_ROOT = "/var/tmp/halofpx-l24-primary-worker"
+RENDEZVOUS_ROOT = "/var/tmp/halofpx-l24-primary-rendezvous"
+CONTROL = "/var/tmp/halofpx-l24-primary-control.key"
 WORKER_CONTROL = CONTROL
 CHANNEL_KEY_OWNER = "connorb"
 CHANNEL_KEY_BYTES = 130
@@ -50,6 +50,7 @@ CACHE_TYPE_K = "q8_0"
 CACHE_TYPE_V = "q8_0"
 FLASH_ATTN = "on"
 FIXTURE_QUALIFICATION = False
+DIAGNOSTIC_ONLY = True
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -119,7 +120,7 @@ def validate_provisioned_keys() -> str:
 def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None) -> tuple[int, str, dict[str, object]]:
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=90min",
-        "--setenv=GGML_RPC_DEBUG=1", WORKER_BIN,
+        "--setenv=GGML_RPC_DEBUG=1", "--setenv=HALOFPX_STATE_DIAGNOSTICS=1", WORKER_BIN,
         "--host", "10.44.0.1", "--port", str(PORT), "--device", "ROCm0",
     ]
     if local_state:
@@ -265,11 +266,11 @@ def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
         "--threads", "16",
         "--threads-batch", "16",
         "--file", PROMPT,
-        "--n-predict", "128",
+        "--n-predict", "1",
         "--seed", "1234",
         "--temp", "0",
     ]
-    unit = f"halofpx-l22-primary-canary-{unit_label}"
+    unit = f"halofpx-l24-primary-canary-{unit_label}"
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=20min",
         "--wait", "--collect", "--pipe", *canary_command,
@@ -447,6 +448,231 @@ def state_windows(capture: str, restore: str) -> tuple[list[str], list[str]]:
     return capture_window, restore_window
 
 
+def require_diagnostic_agreement(
+    capture_journal: str,
+    restore_journal: str,
+    capture_result: dict[str, str],
+    restore_result: dict[str, str],
+) -> dict[str, object]:
+    pattern = re.compile(
+        r"\[halofpx-state-diag\] phase=(capture|stage|apply) "
+        r"components=(\d+) descriptor_content_sha256=([0-9a-f]{64})"
+    )
+    diagnostic_lines = [
+        line for line in (capture_journal + "\n" + restore_journal).splitlines()
+        if "[halofpx-state-diag]" in line
+    ]
+    records = []
+    for line in diagnostic_lines:
+        match = pattern.search(line)
+        if match is None or line[match.end():].strip():
+            raise CanaryError(f"malformed worker diagnostic line: {line}")
+        records.append(match.groups())
+    by_phase: dict[str, tuple[int, str]] = {}
+    for phase, components, digest in records:
+        if phase in by_phase:
+            raise CanaryError(f"duplicate worker diagnostic phase: {phase}")
+        by_phase[phase] = (int(components), digest)
+    if set(by_phase) != {"capture", "stage", "apply"}:
+        raise CanaryError(f"incomplete worker diagnostic phases: {sorted(by_phase)}")
+    if any(count <= 0 or digest == "0" * 64 for count, digest in by_phase.values()):
+        raise CanaryError("worker diagnostic count/digest is invalid")
+    if len(set(by_phase.values())) != 1:
+        raise CanaryError(f"worker diagnostic mismatch: {by_phase}")
+
+    capture_components = int(capture_result.get("worker_components", "0"))
+    restore_components = int(restore_result.get("worker_components", "0"))
+    capture_bytes = int(capture_result.get("worker_bytes", "0"))
+    restore_bytes = int(restore_result.get("worker_bytes", "0"))
+    if (
+        capture_components != restore_components
+        or capture_components != by_phase["capture"][0]
+        or capture_bytes <= 0
+        or capture_bytes != restore_bytes
+    ):
+        raise CanaryError("worker result bytes/components disagree across capture/restore diagnostics")
+
+    state_patterns = {
+        "stored": re.compile(
+            r"\[halofpx-state\] stored rank=\d+ generation=\d+ "
+            r"components=(\d+) bytes=(\d+)$"),
+        "ready": re.compile(
+            r"\[halofpx-state\] ready rank=\d+ generation=\d+ "
+            r"components=(\d+) bytes=(\d+)$"),
+        "apply": re.compile(
+            r"\[halofpx-state\] apply rank=\d+ generation=\d+ status=3 "
+            r"components=(\d+) bytes=(\d+)$"),
+    }
+    state_metadata: dict[str, tuple[int, int]] = {}
+    combined_lines = (capture_journal + "\n" + restore_journal).splitlines()
+    for phase, state_pattern in state_patterns.items():
+        matches = []
+        marker = f"[halofpx-state] {phase}"
+        for line in combined_lines:
+            if marker not in line:
+                continue
+            match = state_pattern.search(line)
+            if match is None:
+                raise CanaryError(f"malformed worker state metadata: {phase}")
+            matches.append((int(match.group(1)), int(match.group(2))))
+        if len(matches) != 1:
+            raise CanaryError(f"worker state metadata count mismatch: {phase}={len(matches)}")
+        state_metadata[phase] = matches[0]
+    expected_metadata = (capture_components, capture_bytes)
+    if any(value != expected_metadata for value in state_metadata.values()):
+        raise CanaryError(f"worker state metadata mismatch: {state_metadata}")
+
+    coordinator: dict[str, str] = {}
+    for name in ("control_sha256", "local_sha256", "component_manifest_sha256"):
+        captured = capture_result.get(name, "")
+        restored = restore_result.get(name, "")
+        if (
+            not re.fullmatch(r"[0-9a-f]{64}", captured)
+            or captured == "0" * 64
+            or restored != captured
+        ):
+            raise CanaryError(f"coordinator diagnostic mismatch: {name}")
+        coordinator[name] = captured
+    return {
+        "worker_components": capture_components,
+        "worker_bytes": capture_bytes,
+        "worker_descriptor_content_sha256": by_phase["capture"][1],
+        "worker_state_phases": {
+            phase: {"components": value[0], "bytes": value[1]}
+            for phase, value in state_metadata.items()
+        },
+        "coordinator": coordinator,
+    }
+
+
+def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
+    capture_unit = "halofpx-l24-primary-worker-capture"
+    restore_unit = "halofpx-l24-primary-worker-restore"
+    local_units.extend([capture_unit, restore_unit])
+    capture_pid, capture_invocation, capture_readiness = start_worker(True, capture_unit, root)
+
+    canary_command = [
+        CANARY_BIN,
+        "--hfx-mode", "capture",
+        "--hfx-sequence", "diagnostic",
+        "--hfx-rendezvous-root", RENDEZVOUS_ROOT,
+        "--hfx-artifact-root", COORDINATOR_ROOT,
+        "--hfx-model-digest", MODEL_DIGEST,
+        "--hfx-compatibility-root", COMPATIBILITY,
+        "--hfx-plan-digest", PLAN,
+        "--hfx-topology-digest", TOPOLOGY,
+        "--hfx-placement-digest", PLACEMENT,
+        "--hfx-checkpoint-digest", CHECKPOINT,
+        "--hfx-control-file", CONTROL,
+        "--hfx-expected-prompt-tokens", "1129",
+        "--model", MODEL,
+        "--rpc", f"10.44.0.1:{PORT}",
+        "--device", "RPC0,ROCm0",
+        "--split-mode", "layer",
+        "--tensor-split", "1,1",
+        "--n-gpu-layers", "999",
+        "--fit", "off",
+        "--no-mmap",
+        "--direct-io",
+        "--flash-attn", "on",
+        "--ctx-size", "4096",
+        "--batch-size", "512",
+        "--ubatch-size", "512",
+        "--cache-type-k", "q8_0",
+        "--cache-type-v", "q8_0",
+        "--parallel", "1",
+        "--threads", "16",
+        "--threads-batch", "16",
+        "--file", PROMPT,
+        "--n-predict", "1",
+        "--seed", "1234",
+        "--temp", "0",
+    ]
+    canary_unit = "halofpx-l24-primary-canary-diagnostic"
+    command = [
+        "systemd-run", "--user", f"--unit={canary_unit}",
+        "--property=RuntimeMaxSec=30min", "--wait", "--collect", "--pipe",
+        *canary_command,
+    ]
+    process = subprocess.Popen(
+        ["ssh", "-o", "BatchMode=yes", NIMO2,
+         " ".join(shlex.quote(str(value)) for value in command)],
+        text=True, encoding="utf-8", errors="replace",
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+    try:
+        wait_remote_file(f"{RENDEZVOUS_ROOT}/capture-ready", 1800)
+        capture_journal = worker_journal(capture_unit, capture_invocation, capture_pid)
+        (root / "worker-capture.log").write_text(capture_journal, encoding="utf-8")
+        stop_worker(capture_unit)
+        restore_pid, restore_invocation, restore_readiness = start_worker(True, restore_unit, root)
+        ssh(NIMO2, "touch", f"{RENDEZVOUS_ROOT}/worker-restarted")
+        stdout, stderr = process.communicate(timeout=1800)
+    except BaseException:
+        process.terminate()
+        try:
+            process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            process.kill()
+        raise
+    result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+    write_log(root, "diagnostic.log", result)
+    if result.returncode != 0:
+        raise CanaryError(f"diagnostic canary failed: {stdout}{stderr}")
+    parsed = output_sequence(stdout)
+    if set(parsed) != {"capture", "restore"}:
+        raise CanaryError(f"diagnostic result set mismatch: {parsed.keys()}")
+    require_result(parsed["capture"], "capture", require_worker_state=True)
+    require_result(parsed["restore"], "restore", require_worker_state=True)
+    capture_suffix = fetch_suffix(root, "capture", "capture")
+    restore_suffix = fetch_suffix(root, "restore", "restore")
+    if capture_suffix != restore_suffix:
+        raise CanaryError(f"first-token mismatch: capture={capture_suffix} restore={restore_suffix}")
+    capture_tokens = parsed["capture"].get("tokens", "").split(",", 1)[0]
+    restore_tokens = parsed["restore"].get("tokens", "").split(",", 1)[0]
+    if capture_tokens != "21549" or restore_tokens != "21549":
+        raise CanaryError(
+            f"unexpected first token: capture={capture_tokens!r} restore={restore_tokens!r}")
+
+    restore_journal = worker_journal(restore_unit, restore_invocation, restore_pid)
+    (root / "worker-restore.log").write_text(restore_journal, encoding="utf-8")
+    diagnostic_agreement = require_diagnostic_agreement(
+        capture_journal, restore_journal, parsed["capture"], parsed["restore"])
+    capture_window, restore_window = state_windows(capture_journal, restore_journal)
+    (root / "capture-state-window.log").write_text("\n".join(capture_window) + "\n", encoding="utf-8")
+    (root / "restore-state-window.log").write_text("\n".join(restore_window) + "\n", encoding="utf-8")
+    objects = ssh(NIMO1, "find", WORKER_ROOT + "/objects", "-type", "f", "-name", "*.hfx").stdout.splitlines()
+    if len(objects) != 1:
+        raise CanaryError(f"expected one worker object, found {len(objects)}")
+    object_path = objects[0]
+    return {
+        "schema": "halofpx.l24.primary-diagnostic-result.v1",
+        "model_sha256": MODEL_SHA,
+        "model_bytes": MODEL_BYTES,
+        "request": {
+            "prompt_tokens": 1129, "saved_boundary": 1128, "generated_tokens": 1,
+            "ctx": 4096, "batch": 512, "ubatch": 512, "cache_k": "q8_0",
+            "cache_v": "q8_0", "flash_attention": True, "seed": 1234,
+            "temperature": 0, "device_order": ["RPC0", "ROCm0"],
+        },
+        "pids": {"capture": capture_pid, "restore": restore_pid},
+        "invocation_ids": {"capture": capture_invocation, "restore": restore_invocation},
+        "readiness": {"capture": capture_readiness, "restore": restore_readiness},
+        "results": parsed,
+        "suffix_hashes": {
+            "capture": {"tokens": capture_suffix[0], "text": capture_suffix[1]},
+            "restore": {"tokens": restore_suffix[0], "text": restore_suffix[1]},
+        },
+        "worker_object": {
+            "path": object_path,
+            "bytes": int(ssh(NIMO1, "stat", "-c", "%s", object_path).stdout.strip()),
+            "sha256": ssh(NIMO1, "sha256sum", object_path).stdout.split()[0],
+        },
+        "diagnostic_agreement": diagnostic_agreement,
+        "state_window_get_set": 0,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence-dir", required=True, type=Path)
@@ -498,6 +724,17 @@ def main() -> int:
 
         (root / "diskstats-nimo1-before.txt").write_text(ssh(NIMO1, "cat", "/proc/diskstats").stdout, encoding="utf-8")
         (root / "diskstats-nimo2-before.txt").write_text(ssh(NIMO2, "cat", "/proc/diskstats").stdout, encoding="utf-8")
+
+        if DIAGNOSTIC_ONLY:
+            summary = run_diagnostic(root, local_units)
+            summary["channel_key_sha256"] = channel_key_sha
+            (root / "result.json").write_text(
+                json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            (root / "diskstats-nimo1-after.txt").write_text(
+                ssh(NIMO1, "cat", "/proc/diskstats").stdout, encoding="utf-8")
+            (root / "diskstats-nimo2-after.txt").write_text(
+                ssh(NIMO2, "cat", "/proc/diskstats").stdout, encoding="utf-8")
+            return 0
 
         unit1 = "halofpx-l22-primary-worker-capture"
         local_units.append(unit1)

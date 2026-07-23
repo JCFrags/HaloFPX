@@ -9,7 +9,7 @@ from unittest import mock
 
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "halofpx-production-transition.py"
-L22_MANIFEST = Path(__file__).parents[1] / "scripts" / "halofpx-l22-primary-manifest.json"
+L22_MANIFEST = Path(__file__).parents[1] / "scripts" / "halofpx-l24-primary-manifest.json"
 SPEC = importlib.util.spec_from_file_location("halofpx_transition", SCRIPT)
 assert SPEC and SPEC.loader
 transition = importlib.util.module_from_spec(SPEC)

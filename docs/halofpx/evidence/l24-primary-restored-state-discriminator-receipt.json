@@ -1,0 +1,82 @@
+{
+  "schema": "halofpx-l24-primary-restored-state-discriminator-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "cb1913ca233acf8661530622720b411bc0e5d5aa",
+  "outcome": "not_promoted_controller_ssh_handoff_failure",
+  "artifact": {
+    "bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "request": {
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "generated_tokens": 1,
+    "ctx": 4096,
+    "batch": 512,
+    "ubatch": 512,
+    "cache_k": "q8_0",
+    "cache_v": "q8_0",
+    "flash_attention": true,
+    "seed": 1234,
+    "temperature": 0,
+    "device_order": ["RPC0", "ROCm0"],
+    "split_mode": "layer",
+    "tensor_split": "1,1"
+  },
+  "capture": {
+    "completed": true,
+    "worker_components": 64,
+    "worker_bytes": 2454528,
+    "worker_descriptor_content_sha256": "014a1024f13225a3f7bd7bba6be43dce1106a0354d68b5043f284263cce19bc9",
+    "rpc_material_allocation_bytes": 80950550528,
+    "reference_token_authenticated_and_retained": false
+  },
+  "restore": {
+    "attempted": false,
+    "stage_digest": null,
+    "apply_digest": null,
+    "token": null
+  },
+  "failure": {
+    "boundary": "controller_owned_ssh_capture_ready_observation",
+    "child_exit": 4294967295,
+    "first_recovery_probe_also_hung": true,
+    "retry_performed": false
+  },
+  "source_and_binary_identity": {
+    "controller_sha256": "32d43de444e6942858c1346df40ce8c6de6061999a80fb8813d78a05477b19e8",
+    "runner_sha256": "9ff15b0c2ce33f6344168665b37ab21eb38f4c8863d0d8e2d445a86572b7a53f",
+    "manifest_sha256": "562bcc69547fac3141534951832e3f84a42d06d1c9ab458e497109c39c21080c",
+    "rpc_source_sha256": "5302cbb7f52c98da96434601993bb9aba41ec177a71dd02ab2503b91fe13179e",
+    "canary_source_sha256": "b83b769a8141dfb6ab41bdc1170275b17e6f0aa1ecc176f46d7523221ee9c79d",
+    "worker_binary_sha256": "bfbb0df6deea80047c364129b92c3344579922a6d81ffe9cbe174c626689c058",
+    "canary_binary_sha256": "bd81d63e115d0a6fd73fe7a044120b71fe3c015f3a94f5bb4a9ae86913b4849a"
+  },
+  "focused_tests": {
+    "passed": 66,
+    "failed": 0
+  },
+  "production_after": {
+    "worker_pid": 1415055,
+    "worker_port": 50052,
+    "coordinator_pid": 2236922,
+    "coordinator_port": 8081,
+    "http": 200,
+    "nrestarts": [0, 0],
+    "worker_first": true,
+    "commands_and_models_reconciled": true
+  },
+  "cleanup_complete": true,
+  "independent_review": {
+    "verdict": "pass_terminal_not_promoted",
+    "path": "docs/halofpx/reviews/2026-07-23__l24-primary-restored-state-discriminator__review__v01.md"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l24-primary-20260723\\primary-diagnostic-20260723T123200",
+    "files": 17,
+    "bytes": 503091,
+    "tree_sha256": "c333749cb92066ec671bd0f3d6b783250616d13cbf93a74dc6db4cb40af97940"
+  },
+  "promotion": false,
+  "retry_authorized": false
+}

@@ -708,5 +708,12 @@ int main(int argc, char ** argv) {
         return invoke_mode(args, "restore", "plan-mismatch", std::string(64, 'f'));
     }
     if (sequence == "residency3") return invoke_mode(args, "cold", "runtime-off");
+    if (sequence == "diagnostic") {
+        const int capture = invoke_mode(args, "capture", "capture");
+        if (capture != 0) return capture;
+        const fs::path rendezvous_root = option_value(args, "--hfx-rendezvous-root");
+        if (!rendezvous(rendezvous_root, "capture-ready", "worker-restarted")) return 14;
+        return invoke_mode(args, "restore", "restore");
+    }
     return 2;
 }

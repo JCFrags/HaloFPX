@@ -45,17 +45,17 @@ class PrimaryRetryTests(unittest.TestCase):
             with self.assertRaises(retry.CanaryError):
                 retry.validate_provisioned_keys()
 
-    def test_l22_primary_residency_invocation_is_exactly_frozen(self):
+    def test_l24_primary_diagnostic_invocation_is_exactly_frozen(self):
         completed = SimpleNamespace(stdout="mode=cold\n", stderr="", returncode=0)
         with mock.patch.object(retry, "ssh", return_value=completed) as remote:
             retry.canary_sequence("residency3", "residency3")
         command = list(remote.call_args.args[1:])
-        self.assertIn("--unit=halofpx-l22-primary-canary-residency3", command)
+        self.assertIn("--unit=halofpx-l24-primary-canary-residency3", command)
         self.assertIn("--wait", command)
         self.assertIn("--collect", command)
         self.assertEqual(
             retry.CANARY_BIN,
-            "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-distributed-state-canary",
+            "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-distributed-state-canary",
         )
         expected_pairs = {
             "--hfx-expected-prompt-tokens": "1129",
@@ -67,7 +67,7 @@ class PrimaryRetryTests(unittest.TestCase):
             "--ubatch-size": "512",
             "--cache-type-k": "q8_0",
             "--cache-type-v": "q8_0",
-            "--n-predict": "128",
+            "--n-predict": "1",
             "--seed": "1234",
             "--temp": "0",
         }
@@ -76,17 +76,17 @@ class PrimaryRetryTests(unittest.TestCase):
         self.assertEqual(command[command.index("--hfx-sequence") + 1], "residency3")
         self.assertEqual(command[command.index("--file") + 1], retry.PROMPT)
         self.assertEqual(command[command.index("--model") + 1], retry.MODEL)
-        self.assertEqual(command[command.index("--rpc") + 1], "10.44.0.1:50180")
+        self.assertEqual(command[command.index("--rpc") + 1], "10.44.0.1:50184")
 
     def test_start_worker_requires_admitted_caps_before_return(self):
         responses = iter((
             SimpleNamespace(stdout="", stderr="", returncode=0),
-            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
-            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50184"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50184"}\n', stderr="", returncode=0),
             SimpleNamespace(stdout="active\n", stderr="", returncode=0),
             SimpleNamespace(stdout="42\n", stderr="", returncode=0),
             SimpleNamespace(stdout="0123456789abcdef0123456789abcdef\n", stderr="", returncode=0),
-            SimpleNamespace(stdout='LISTEN 0 1 10.44.0.1:50180 0.0.0.0:* users:(("rpc",pid=42,fd=3))\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='LISTEN 0 1 10.44.0.1:50184 0.0.0.0:* users:(("rpc",pid=42,fd=3))\n', stderr="", returncode=0),
         ))
         calls = []
         with mock.patch.object(
@@ -102,12 +102,12 @@ class PrimaryRetryTests(unittest.TestCase):
     def test_start_worker_accepts_only_confirmed_feature_off_protocol(self):
         responses = iter((
             SimpleNamespace(stdout="", stderr="", returncode=0),
-            SimpleNamespace(stdout='{"admitted": false, "feature_off_confirmed": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
-            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": false, "feature_off_confirmed": true, "endpoint": "10.44.0.1:50184"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50184"}\n', stderr="", returncode=0),
             SimpleNamespace(stdout="active\n", stderr="", returncode=0),
             SimpleNamespace(stdout="42\n", stderr="", returncode=0),
             SimpleNamespace(stdout="0123456789abcdef0123456789abcdef\n", stderr="", returncode=0),
-            SimpleNamespace(stdout='LISTEN 0 1 10.44.0.1:50180 0.0.0.0:* users:(("rpc",pid=42,fd=3))\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='LISTEN 0 1 10.44.0.1:50184 0.0.0.0:* users:(("rpc",pid=42,fd=3))\n', stderr="", returncode=0),
         ))
         with mock.patch.object(retry, "ssh", side_effect=lambda *args, **kwargs: next(responses)):
             pid, invocation, evidence = retry.start_worker(False, "fixture")
@@ -118,7 +118,7 @@ class PrimaryRetryTests(unittest.TestCase):
     def test_start_worker_refuses_failed_placement_before_identity_admission(self):
         responses = iter((
             SimpleNamespace(stdout="", stderr="", returncode=0),
-            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50184"}\n', stderr="", returncode=0),
             SimpleNamespace(stdout="", stderr="placement refusal: selected-device-order\n", returncode=3),
         ))
         calls = []
@@ -132,7 +132,7 @@ class PrimaryRetryTests(unittest.TestCase):
     def test_start_worker_refuses_malformed_placement_evidence(self):
         responses = iter((
             SimpleNamespace(stdout="", stderr="", returncode=0),
-            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50180"}\n', stderr="", returncode=0),
+            SimpleNamespace(stdout='{"admitted": true, "endpoint": "10.44.0.1:50184"}\n', stderr="", returncode=0),
             SimpleNamespace(stdout="not-json\n", stderr="", returncode=0),
         ))
         with mock.patch.object(retry, "ssh", side_effect=lambda *args, **kwargs: next(responses)):
@@ -147,6 +147,93 @@ class PrimaryRetryTests(unittest.TestCase):
         }
         with self.assertRaises(retry.CanaryError):
             retry.require_result(fields, "restore", require_worker_state=True)
+
+    def test_diagnostic_agreement_accepts_exact_three_phase_and_receipts(self):
+        digest = "a" * 64
+        capture = (
+            "[halofpx-state-diag] phase=capture components=64 "
+            f"descriptor_content_sha256={digest}\n"
+            "[halofpx-state] stored rank=1 generation=1 components=64 bytes=2454528\n"
+        )
+        restore = (
+            "[halofpx-state-diag] phase=stage components=64 "
+            f"descriptor_content_sha256={digest}\n"
+            "[halofpx-state-diag] phase=apply components=64 "
+            f"descriptor_content_sha256={digest}\n"
+            "[halofpx-state] ready rank=1 generation=1 components=64 bytes=2454528\n"
+            "[halofpx-state] apply rank=1 generation=1 status=3 components=64 bytes=2454528\n"
+        )
+        fields = {
+            "worker_components": "64", "worker_bytes": "2454528",
+            "control_sha256": "b" * 64, "local_sha256": "c" * 64,
+            "component_manifest_sha256": "d" * 64,
+        }
+        result = retry.require_diagnostic_agreement(capture, restore, fields, dict(fields))
+        self.assertEqual(result["worker_descriptor_content_sha256"], digest)
+
+    def test_diagnostic_agreement_refuses_missing_or_malformed_phase(self):
+        fields = {
+            "worker_components": "64", "worker_bytes": "2454528",
+            "control_sha256": "b" * 64, "local_sha256": "c" * 64,
+            "component_manifest_sha256": "d" * 64,
+        }
+        with self.assertRaises(retry.CanaryError):
+            retry.require_diagnostic_agreement(
+                "[halofpx-state-diag] phase=capture components=64 "
+                f"descriptor_content_sha256={'a' * 64}\n",
+                "[halofpx-state-diag] phase=stage components=64 descriptor_content_sha256=bad\n",
+                fields, dict(fields),
+            )
+
+    def test_diagnostic_agreement_refuses_worker_or_coordinator_mismatch(self):
+        capture = (
+            "[halofpx-state-diag] phase=capture components=64 "
+            f"descriptor_content_sha256={'a' * 64}\n"
+            "[halofpx-state] stored rank=1 generation=1 components=64 bytes=2454528\n"
+        )
+        restore = (
+            "[halofpx-state-diag] phase=stage components=64 "
+            f"descriptor_content_sha256={'a' * 64}\n"
+            "[halofpx-state-diag] phase=apply components=64 "
+            f"descriptor_content_sha256={'e' * 64}\n"
+            "[halofpx-state] ready rank=1 generation=1 components=64 bytes=2454528\n"
+            "[halofpx-state] apply rank=1 generation=1 status=3 components=64 bytes=2454528\n"
+        )
+        captured = {
+            "worker_components": "64", "worker_bytes": "2454528",
+            "control_sha256": "b" * 64, "local_sha256": "c" * 64,
+            "component_manifest_sha256": "d" * 64,
+        }
+        with self.assertRaises(retry.CanaryError):
+            retry.require_diagnostic_agreement(capture, restore, captured, dict(captured))
+        restored = dict(captured)
+        restored["control_sha256"] = "f" * 64
+        exact_restore = restore.replace("e" * 64, "a" * 64)
+        with self.assertRaises(retry.CanaryError):
+            retry.require_diagnostic_agreement(capture, exact_restore, captured, restored)
+
+    def test_diagnostic_agreement_refuses_malformed_marker_or_state_metadata(self):
+        digest = "a" * 64
+        fields = {
+            "worker_components": "64", "worker_bytes": "2454528",
+            "control_sha256": "b" * 64, "local_sha256": "c" * 64,
+            "component_manifest_sha256": "d" * 64,
+        }
+        capture = (
+            "[halofpx-state-diag] phase=capture components=64 "
+            f"descriptor_content_sha256={digest} trailing\n"
+            "[halofpx-state] stored rank=1 generation=1 components=64 bytes=2454528\n"
+        )
+        restore = (
+            "[halofpx-state-diag] phase=stage components=64 "
+            f"descriptor_content_sha256={digest}\n"
+            "[halofpx-state-diag] phase=apply components=64 "
+            f"descriptor_content_sha256={digest}\n"
+            "[halofpx-state] ready rank=1 generation=1 components=64 bytes=2454528\n"
+            "[halofpx-state] apply rank=1 generation=1 status=2 components=64 bytes=2454528\n"
+        )
+        with self.assertRaises(retry.CanaryError):
+            retry.require_diagnostic_agreement(capture, restore, fields, dict(fields))
 
     def test_fault_fallbacks_require_exact_reason(self):
         fields = {
