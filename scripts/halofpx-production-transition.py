@@ -8,6 +8,7 @@ import atexit
 import hashlib
 import json
 import os
+import re
 import secrets
 import shlex
 import signal
@@ -38,22 +39,36 @@ WORKER_PORT = 50052
 DISPOSABLE_HOST = "nimo-1"
 DISPOSABLE_PORT = 50180
 DISPOSABLE_WORKER_UNITS = (
-    "halofpx-l16-primary-worker-capture-20260721.service",
-    "halofpx-l16-primary-worker-restore-20260721.service",
-    "halofpx-l16-primary-worker-runtime-off-20260721.service",
+    "halofpx-l22-primary-worker-capture.service",
+    "halofpx-l22-primary-worker-restore.service",
+    "halofpx-l22-primary-worker-runtime-off.service",
 )
 DISPOSABLE_CANARY_HOST = "nimo-2"
-DISPOSABLE_CANARY_BIN = "/var/tmp/halofpx-l16-src-nimo2/build-l16/bin/test-halofpx-distributed-state-canary"
+DISPOSABLE_CANARY_BIN = "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-distributed-state-canary"
 DISPOSABLE_CANARY_UNITS = tuple(
-    f"halofpx-l16-primary-canary-{name}-20260721.service"
-    for name in ("capture", "cold", "restore", "missing", "mismatch", "runtime-off")
+    f"halofpx-l22-primary-canary-{name}.service"
+    for name in ("residency1", "residency2", "residency3")
 )
 
 CHANNEL_KEY_OWNER = "connorb"
 CHANNEL_KEY_BYTES = 130
 CHANNEL_KEY_PATHS = {
-    "nimo-1": "/var/tmp/halofpx-l16-primary-control.key",
-    "nimo-2": "/var/tmp/halofpx-l16-primary-control.key",
+    "nimo-1": "/var/tmp/halofpx-l22-primary-control.key",
+    "nimo-2": "/var/tmp/halofpx-l22-primary-control.key",
+}
+DISPOSABLE_PATHS = {
+    "nimo-1": (
+        "/var/tmp/halofpx-l22-source-nimo1.tar",
+        "/var/tmp/halofpx-l22-source-nimo1",
+        "/var/tmp/halofpx-l22-primary-worker",
+    ),
+    "nimo-2": (
+        "/var/tmp/halofpx-l22-source-nimo2.tar",
+        "/var/tmp/halofpx-l22-source-nimo2",
+        "/var/tmp/halofpx-l22-primary-evidence",
+        "/var/tmp/halofpx-l22-primary-coordinator",
+        "/var/tmp/halofpx-l22-primary-rendezvous",
+    ),
 }
 
 
@@ -195,6 +210,116 @@ def _parse_properties(text: str) -> dict[str, str]:
     return result
 
 
+def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]:
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise TransitionError(f"L22 manifest unreadable: {exc}") from exc
+    expected_keys = {
+        "schema", "milestone", "worker_host", "canary_host", "worker_port",
+        "worker_units", "canary_units", "key_paths", "disposable_paths",
+        "executables", "executable_sha256", "child_argv", "child_evidence_subdir",
+    }
+    if not isinstance(raw, dict) or set(raw) != expected_keys:
+        raise TransitionError("L22 manifest field set mismatch")
+    if (
+        raw["schema"] != "halofpx.l22.primary-manifest.v1"
+        or raw["milestone"] != "l22-primary"
+        or raw["worker_host"] != DISPOSABLE_HOST
+        or raw["canary_host"] != DISPOSABLE_CANARY_HOST
+        or raw["worker_port"] != DISPOSABLE_PORT
+        or tuple(raw["worker_units"]) != DISPOSABLE_WORKER_UNITS
+        or tuple(raw["canary_units"]) != DISPOSABLE_CANARY_UNITS
+        or raw["key_paths"] != CHANNEL_KEY_PATHS
+        or {host: tuple(values) for host, values in raw["disposable_paths"].items()} != DISPOSABLE_PATHS
+    ):
+        raise TransitionError("L22 manifest identity/cleanup authority mismatch")
+    child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
+    interpreter_path = Path(sys.executable).resolve()
+    expected_exec = {
+        "worker": "/var/tmp/halofpx-l22-source-nimo1/build-l22/bin/rpc-server",
+        "canary": DISPOSABLE_CANARY_BIN,
+        "readiness": "/var/tmp/halofpx-l22-source-nimo2/scripts/halofpx_rpc_readiness.py",
+        "placement": "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-placement-probe",
+        "interpreter": str(interpreter_path),
+        "child": str(child_path),
+    }
+    if (
+        raw["executables"] != expected_exec
+        or raw["child_evidence_subdir"] != "child"
+        or raw["child_argv"] != [
+            str(interpreter_path), str(child_path), "--evidence-dir", "{evidence_root}/child",
+        ]
+    ):
+        raise TransitionError("L22 manifest executable/child authority mismatch")
+    hashes = raw["executable_sha256"]
+    if not isinstance(hashes, dict) or set(hashes) != set(expected_exec) or any(
+        not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value)
+        for value in hashes.values()
+    ):
+        raise TransitionError("L22 manifest executable hash set malformed")
+    host_for = {
+        "worker": DISPOSABLE_HOST, "canary": DISPOSABLE_CANARY_HOST,
+        "readiness": DISPOSABLE_CANARY_HOST, "placement": DISPOSABLE_CANARY_HOST,
+    }
+    for name, host in host_for.items():
+        result = runner.run(host, ["sha256sum", "--", expected_exec[name]])
+        actual = result.stdout.split()[0] if result.returncode == 0 and result.stdout.split() else ""
+        if actual != hashes[name]:
+            raise TransitionError(f"L22 manifest {name} executable hash mismatch")
+    for name in ("interpreter", "child"):
+        executable = Path(expected_exec[name])
+        if not executable.is_file() or hashlib.sha256(executable.read_bytes()).hexdigest() != hashes[name]:
+            raise TransitionError(f"L22 manifest {name} hash mismatch")
+    return raw
+
+
+def bind_maintenance_command(
+        manifest: dict[str, object], evidence_root: Path,
+        caller_command: Sequence[str]) -> list[str]:
+    """Return the exact argv admitted for Popen or refuse before mutation."""
+    if not evidence_root.is_absolute():
+        raise TransitionError("controller evidence root is not absolute")
+    if any(part == ".." for part in evidence_root.parts):
+        raise TransitionError("controller evidence root contains parent traversal")
+    resolved_root = evidence_root.resolve()
+    if os.path.normcase(os.path.normpath(str(evidence_root))) != os.path.normcase(str(resolved_root)):
+        raise TransitionError("controller evidence root resolves through a symlink")
+
+    executables = manifest["executables"]
+    assert isinstance(executables, dict)
+    interpreter = Path(str(executables["interpreter"]))
+    child = Path(str(executables["child"]))
+    expected_child_root = resolved_root / str(manifest["child_evidence_subdir"])
+    expected = [str(interpreter), str(child), "--evidence-dir", str(expected_child_root)]
+    actual = list(caller_command)
+    if actual and actual[0] == "--":
+        actual.pop(0)
+    if len(actual) != len(expected) or actual[2:3] != ["--evidence-dir"]:
+        raise TransitionError("maintenance argv shape does not match the closed manifest")
+
+    normalized = list(actual)
+    for index, expected_path in ((0, interpreter), (1, child), (3, expected_child_root)):
+        supplied = Path(actual[index])
+        if not supplied.is_absolute() or any(part == ".." for part in supplied.parts):
+            raise TransitionError("maintenance argv contains a relative or traversing path")
+        if index in (0, 1):
+            try:
+                resolved = supplied.resolve(strict=True)
+            except OSError as exc:
+                raise TransitionError(f"maintenance executable is unavailable: {exc}") from exc
+            if os.path.normcase(os.path.normpath(str(supplied))) != os.path.normcase(str(resolved)):
+                raise TransitionError("maintenance executable resolves through a symlink")
+        else:
+            resolved = supplied.resolve()
+        if os.path.normcase(str(resolved)) != os.path.normcase(str(expected_path)):
+            raise TransitionError("maintenance argv path is outside manifest authority")
+        normalized[index] = str(resolved)
+    if normalized != expected:
+        raise TransitionError("maintenance argv does not exactly match the closed manifest")
+    return normalized
+
+
 def _pid_from_listener(line: str) -> int:
     marker = "pid="
     at = line.find(marker)
@@ -218,7 +343,9 @@ def _command_tokens(command: str) -> list[str]:
 
 
 class Controller:
-    def __init__(self, runner: Runner, wait_seconds: float = 1.0, timeout_seconds: float = 300.0):
+    def __init__(
+            self, runner: Runner, wait_seconds: float = 1.0, timeout_seconds: float = 300.0,
+            disposable_paths: dict[str, tuple[str, ...]] | None = None):
         self.runner = runner
         self.wait_seconds = wait_seconds
         self.timeout_seconds = timeout_seconds
@@ -226,6 +353,7 @@ class Controller:
         self.first_mutation = False
         self.recovery_complete = False
         self.key_digest: str | None = None
+        self.disposable_paths = disposable_paths
 
     def _run(self, host: str, argv: Sequence[str], *, allow_failure: bool = False) -> CommandResult:
         result = self.runner.run(host, argv)
@@ -527,18 +655,28 @@ class Controller:
                     canary_absent = False
                     break
             if clean and port_closed and canary_absent:
-                return
+                break
             last = "; ".join(details) + (
                 f"; port_closed={port_closed}; canary_absent={canary_absent}"
             )
             time.sleep(self.wait_seconds)
-        raise TransitionError(f"disposable L16 cleanup not proven before recovery: {last}")
+        else:
+            raise TransitionError(f"disposable L22 cleanup not proven before recovery: {last}")
+        path_errors = []
+        for host, paths in (self.disposable_paths or {}).items():
+            for path in paths:
+                removed = self._run(host, ["rm", "-rf", "--", path], allow_failure=True)
+                absent = self._run(host, ["stat", "-c", "%F", "--", path], allow_failure=True)
+                if removed.returncode != 0 or absent.returncode != 1:
+                    path_errors.append(f"{host}:{path}")
+        if path_errors:
+            raise TransitionError(f"disposable L22 path cleanup failed: {path_errors}")
 
     def recover(self) -> dict[str, RoleSnapshot]:
         if self.snapshot is None:
             raise TransitionError("recovery requires the preserved preflight snapshot")
         # The maintenance child can be interrupted while a systemd-run unit survives it.
-        # Production recovery is forbidden until every exact L16 unit and port is clean.
+        # Production recovery is forbidden until every exact L22 unit, port, and path is clean.
         self.cleanup_disposable()
         self.cleanup_keys()
         self._mutate(WORKER, "start")
@@ -619,6 +757,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence-dir", required=True, type=Path)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--milestone-manifest", type=Path)
     parser.add_argument("--timeout-seconds", type=float, default=300.0)
     parser.add_argument("command", choices=("preflight", "prepare", "maintenance", "recover"))
     parser.add_argument("maintenance_command", nargs=argparse.REMAINDER)
@@ -626,7 +765,22 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
     if not args.evidence_dir.is_absolute():
         parser.error("--evidence-dir must be absolute")
 
-    controller = Controller(runner or SshRunner(), timeout_seconds=args.timeout_seconds)
+    selected_runner = runner or SshRunner()
+    manifest = None
+    maintenance_command = list(args.maintenance_command)
+    if args.milestone_manifest is None:
+        if runner is None:
+            parser.error("--milestone-manifest is required for real execution")
+    else:
+        manifest = validate_milestone_manifest(args.milestone_manifest, selected_runner)
+        if args.command == "maintenance":
+            maintenance_command = bind_maintenance_command(
+                manifest, args.evidence_dir, maintenance_command,
+            )
+    controller = Controller(
+        selected_runner, timeout_seconds=args.timeout_seconds,
+        disposable_paths=DISPOSABLE_PATHS if args.milestone_manifest is not None else None,
+    )
     snapshot_path = args.evidence_dir / "production-preflight.json"
     final_path = args.evidence_dir / "production-final.json"
     recovery_running = False
@@ -681,8 +835,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             print(json.dumps(prepared, indent=2, sort_keys=True))
             controller.cleanup_keys()
             return 0
-        maintenance_command = list(args.maintenance_command)
-        if maintenance_command and maintenance_command[0] == "--":
+        if manifest is None and maintenance_command and maintenance_command[0] == "--":
             maintenance_command.pop(0)
         if not maintenance_command:
             raise TransitionError("maintenance requires a command after --")

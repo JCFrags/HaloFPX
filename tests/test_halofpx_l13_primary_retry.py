@@ -45,17 +45,17 @@ class PrimaryRetryTests(unittest.TestCase):
             with self.assertRaises(retry.CanaryError):
                 retry.validate_provisioned_keys()
 
-    def test_l16_primary_invocation_is_exactly_frozen(self):
+    def test_l22_primary_residency_invocation_is_exactly_frozen(self):
         completed = SimpleNamespace(stdout="mode=cold\n", stderr="", returncode=0)
         with mock.patch.object(retry, "ssh", return_value=completed) as remote:
-            retry.canary("cold", "cold")
+            retry.canary_sequence("residency3", "residency3")
         command = list(remote.call_args.args[1:])
-        self.assertIn("--unit=halofpx-l16-primary-canary-cold-20260721", command)
+        self.assertIn("--unit=halofpx-l22-primary-canary-residency3", command)
         self.assertIn("--wait", command)
         self.assertIn("--collect", command)
         self.assertEqual(
             retry.CANARY_BIN,
-            "/var/tmp/halofpx-l17-src-nimo2/build-l17/bin/test-halofpx-distributed-state-canary",
+            "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-distributed-state-canary",
         )
         expected_pairs = {
             "--hfx-expected-prompt-tokens": "1129",
@@ -73,6 +73,7 @@ class PrimaryRetryTests(unittest.TestCase):
         }
         for option, value in expected_pairs.items():
             self.assertEqual(command[command.index(option) + 1], value)
+        self.assertEqual(command[command.index("--hfx-sequence") + 1], "residency3")
         self.assertEqual(command[command.index("--file") + 1], retry.PROMPT)
         self.assertEqual(command[command.index("--model") + 1], retry.MODEL)
         self.assertEqual(command[command.index("--rpc") + 1], "10.44.0.1:50180")

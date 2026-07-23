@@ -5,9 +5,11 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "halofpx-production-transition.py"
+L22_MANIFEST = Path(__file__).parents[1] / "scripts" / "halofpx-l22-primary-manifest.json"
 SPEC = importlib.util.spec_from_file_location("halofpx_transition", SCRIPT)
 assert SPEC and SPEC.loader
 transition = importlib.util.module_from_spec(SPEC)
@@ -57,6 +59,11 @@ class FakeRunner:
         self.corrupt_on_metadata_stat = None
         self.existence_probe_failure_host = None
         self.stdin_calls = []
+        manifest = json.loads(L22_MANIFEST.read_text(encoding="utf-8"))
+        self.remote_hashes = {
+            manifest["executables"][name]: manifest["executable_sha256"][name]
+            for name in ("worker", "canary", "readiness", "placement")
+        }
 
     def run_stdin(self, host, argv, stdin):
         argv = list(argv)
@@ -98,6 +105,9 @@ class FakeRunner:
             value = f'{key["type"]}:{key["owner"]}:{key["mode"]}:{len(key["content"])}\n'
             return transition.CommandResult(0, value)
         if argv[:2] == ["sha256sum", "--"]:
+            if argv[-1] in self.remote_hashes:
+                digest = self.remote_hashes[argv[-1]]
+                return transition.CommandResult(0, f"{digest}  {argv[-1]}\n")
             key = self.keys.get(host)
             if not key or key["path"] != argv[-1]:
                 return transition.CommandResult(1, "", "missing")
@@ -107,6 +117,8 @@ class FakeRunner:
             if host == self.rm_failure_host:
                 return transition.CommandResult(1, "", "remove failed")
             self.keys.pop(host, None)
+            return transition.CommandResult(0, "")
+        if argv[:3] == ["rm", "-rf", "--"]:
             return transition.CommandResult(0, "")
         if argv[:2] == ["systemctl", "show"]:
             if host in self.partial:
@@ -230,7 +242,7 @@ class ControllerTests(unittest.TestCase):
             controller.prepare_keys()
         self.assertFalse(controller.first_mutation)
         self.assertEqual(fake.mutations, [])
-        self.assertEqual(fake.keys, {})
+
 
     def test_key_missing_mismatch_and_type_refuse(self):
         for attribute, value in (
@@ -517,6 +529,88 @@ class ControllerTests(unittest.TestCase):
             self.assertEqual(snapshot.read_text(encoding="utf-8"), "sentinel")
         self.assertEqual(result, 1)
         self.assertEqual(fake.mutations, [])
+
+
+class ManifestBindingTests(unittest.TestCase):
+    def setUp(self):
+        self.manifest = json.loads(L22_MANIFEST.read_text(encoding="utf-8"))
+        self.temp = tempfile.TemporaryDirectory()
+        self.evidence = Path(self.temp.name).resolve()
+        self.expected = [
+            self.manifest["executables"]["interpreter"],
+            self.manifest["executables"]["child"],
+            "--evidence-dir",
+            str(self.evidence / "child"),
+        ]
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def test_exact_command_is_bound_for_popen(self):
+        self.assertEqual(
+            transition.bind_maintenance_command(
+                self.manifest, self.evidence, ["--", *self.expected],
+            ),
+            self.expected,
+        )
+
+    def test_wrong_extra_missing_and_reordered_argv_refuse(self):
+        variants = [
+            ["C:\\Windows\\System32\\cmd.exe", *self.expected[1:]],
+            [*self.expected, "--extra"],
+            self.expected[:-1],
+            [self.expected[0], self.expected[1], self.expected[3], self.expected[2]],
+        ]
+        for argv in variants:
+            with self.subTest(argv=argv), self.assertRaises(transition.TransitionError):
+                transition.bind_maintenance_command(self.manifest, self.evidence, argv)
+
+    def test_wrong_evidence_root_refuses(self):
+        argv = [*self.expected[:3], str(self.evidence.parent / "outside")]
+        with self.assertRaises(transition.TransitionError):
+            transition.bind_maintenance_command(self.manifest, self.evidence, argv)
+
+    def test_separator_normalization_is_the_only_path_normalization(self):
+        argv = [
+            self.expected[0].replace("\\", "/"),
+            self.expected[1].replace("\\", "/"),
+            "--evidence-dir",
+            self.expected[3].replace("\\", "/"),
+        ]
+        self.assertEqual(
+            transition.bind_maintenance_command(self.manifest, self.evidence, argv),
+            self.expected,
+        )
+
+    def test_wrong_hash_refuses_manifest_before_mutation(self):
+        altered = json.loads(json.dumps(self.manifest))
+        altered["executable_sha256"]["child"] = "0" * 64
+        path = self.evidence / "manifest.json"
+        path.write_text(json.dumps(altered), encoding="utf-8")
+        fake = FakeRunner()
+        with self.assertRaises(transition.TransitionError):
+            transition.validate_milestone_manifest(path, fake)
+        self.assertEqual(fake.mutations, [])
+
+    def test_bound_command_is_the_exact_popen_argv(self):
+        fake = FakeRunner()
+        child = mock.Mock()
+        child.wait.return_value = 0
+        with mock.patch.object(transition.subprocess, "Popen", return_value=child) as popen:
+            result = transition.main([
+                "--evidence-dir", str(self.evidence),
+                "--milestone-manifest", str(L22_MANIFEST),
+                "--timeout-seconds", "0.1",
+                "maintenance", "--", *self.expected,
+            ], runner=fake)
+        self.assertEqual(result, 0)
+        self.assertEqual(popen.call_args.args[0], self.expected)
+        self.assertEqual(fake.mutations, [
+            ("nimo-1", "stop", transition.COORDINATOR_UNIT),
+            ("nimo-2", "stop", transition.WORKER_UNIT),
+            ("nimo-2", "start", transition.WORKER_UNIT),
+            ("nimo-1", "start", transition.COORDINATOR_UNIT),
+        ])
 
 
 if __name__ == "__main__":

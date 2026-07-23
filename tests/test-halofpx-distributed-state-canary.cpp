@@ -27,6 +27,7 @@ namespace {
 
 struct canary_options {
     std::string mode;
+    std::string result_label;
     fs::path root;
     std::array<uint8_t, 32> model {};
     std::array<uint8_t, 32> compatibility {};
@@ -145,13 +146,16 @@ bool parse_canary_options(int argc, char ** argv, canary_options & options, std:
     std::string checkpoint;
     std::string control_file;
     std::string expected_prompt_tokens;
+    std::string rendezvous_root;
+    take_option(args, "--hfx-result-label", options.result_label);
+    take_option(args, "--hfx-rendezvous-root", rendezvous_root);
     if (take_option(args, "--hfx-expected-prompt-tokens", expected_prompt_tokens)) {
         const auto * begin = expected_prompt_tokens.data();
         const auto * end = begin + expected_prompt_tokens.size();
         const auto parsed = std::from_chars(begin, end, options.expected_prompt_tokens);
         if (parsed.ec != std::errc() || parsed.ptr != end || options.expected_prompt_tokens == 0) return false;
     }
-    return take_option(args, "--hfx-mode", options.mode) &&
+    const bool valid = take_option(args, "--hfx-mode", options.mode) &&
         (options.mode == "capture" || options.mode == "restore" || options.mode == "cold") &&
         take_option(args, "--hfx-artifact-root", root) && !(options.root = root).empty() && options.root.is_absolute() &&
         take_option(args, "--hfx-model-digest", model) && parse_hex(model, options.model) &&
@@ -161,6 +165,11 @@ bool parse_canary_options(int argc, char ** argv, canary_options & options, std:
         take_option(args, "--hfx-placement-digest", placement) && parse_hex(placement, options.placement) &&
         take_option(args, "--hfx-checkpoint-digest", checkpoint) && parse_hex(checkpoint, options.checkpoint) &&
         take_option(args, "--hfx-control-file", control_file) && load_control_file(control_file, options);
+    if (options.result_label.empty()) options.result_label = options.mode;
+    return valid && !options.result_label.empty() &&
+        std::all_of(options.result_label.begin(), options.result_label.end(), [](unsigned char c) {
+            return (c >= 'a' && c <= 'z') || c == '-';
+        });
 }
 
 template<class T>
@@ -401,7 +410,7 @@ bool validate_receipt(
 
 } // namespace
 
-int main(int argc, char ** argv) {
+static int run_canary(int argc, char ** argv) {
     std::setlocale(LC_NUMERIC, "C");
     canary_options options;
     std::vector<std::string> args;
@@ -416,9 +425,20 @@ int main(int argc, char ** argv) {
     if (!common_params_parse(static_cast<int>(cargs.size()), cargs.data(), params, LLAMA_EXAMPLE_COMMON)) return 2;
     if (params.n_predict <= 0 || params.n_predict > 512) return 2;
     ggml_backend_load_all();
-    auto init = common_init_from_params(params);
-    if (!init || !init->model() || !init->context()) return 3;
-    llama_context * ctx = init->context();
+    static common_init_result_ptr resident_init;
+    static bool resident_context_taken = false;
+    if (!resident_init) resident_init = common_init_from_params(params);
+    if (!resident_init || !resident_init->model() || !resident_init->context()) return 3;
+    llama_context * ctx = nullptr;
+    bool owns_ctx = false;
+    if (!resident_context_taken) {
+        ctx = resident_init->context();
+        resident_context_taken = true;
+    } else {
+        ctx = llama_init_from_model(resident_init->model(), common_context_params_to_llama(params));
+        owns_ctx = true;
+    }
+    if (!ctx) return 3;
     std::vector<llama_token> prefix;
     double prompt_ms = 0.0;
     double state_ms = 0.0;
@@ -434,8 +454,8 @@ int main(int argc, char ** argv) {
     const fs::path tokens_path = checkpoint_root / "tokens.bin";
     const fs::path object_path = checkpoint_root / "worker-object-digest.bin";
     const fs::path receipt_path = checkpoint_root / "coordinator-receipt.bin";
-    const fs::path suffix_path = checkpoint_root / (options.mode + "-suffix.bin");
-    const fs::path suffix_text_path = checkpoint_root / (options.mode + "-suffix.txt");
+    const fs::path suffix_path = checkpoint_root / (options.result_label + "-suffix.bin");
+    const fs::path suffix_text_path = checkpoint_root / (options.result_label + "-suffix.txt");
     if (options.mode == "capture") {
         fs::create_directories(checkpoint_root);
         fs::permissions(checkpoint_root, fs::perms::owner_all, fs::perm_options::replace);
@@ -478,12 +498,13 @@ int main(int argc, char ** argv) {
         llama_state_seq_storage_free(storage);
         if (generated.size() != static_cast<size_t>(params.n_predict) ||
             !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 8;
-        std::printf("mode=capture object=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
-            hex(captured.object_digest).c_str(), prefix.size(), prefix.size() - 1,
+        std::printf("mode=capture label=%s object=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+            options.result_label.c_str(), hex(captured.object_digest).c_str(), prefix.size(), prefix.size() - 1,
             prompt_decode.n_batch, prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
             coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
         for (auto token : generated) std::printf("%d,", token);
         std::printf("\n");
+        if (owns_ctx) llama_free(ctx);
         return 0;
     }
     std::vector<uint8_t> control;
@@ -521,7 +542,7 @@ int main(int argc, char ** argv) {
         if (!artifacts_valid) {
             fallback_reason = "coordinator-artifact";
             prefix = common_tokenize(ctx, params.prompt, true);
-            disposable_ctx = llama_init_from_model(init->model(), common_context_params_to_llama(params));
+            disposable_ctx = llama_init_from_model(resident_init->model(), common_context_params_to_llama(params));
             if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens) || !disposable_ctx) {
                 if (disposable_ctx) llama_free(disposable_ctx);
                 return 11;
@@ -534,7 +555,7 @@ int main(int argc, char ** argv) {
             prompt_ms = elapsed_ms(prompt_start);
             run_ctx = disposable_ctx;
         } else {
-        disposable_ctx = llama_init_from_model(init->model(), common_context_params_to_llama(params));
+        disposable_ctx = llama_init_from_model(resident_init->model(), common_context_params_to_llama(params));
         if (!disposable_ctx) return 11;
         llama_state_seq_storage * storage = llama_state_seq_storage_init();
         bool ready_accepted = false;
@@ -569,7 +590,7 @@ int main(int argc, char ** argv) {
             run_ctx = disposable_ctx;
         } else {
             llama_free(disposable_ctx);
-            disposable_ctx = llama_init_from_model(init->model(), common_context_params_to_llama(params));
+            disposable_ctx = llama_init_from_model(resident_init->model(), common_context_params_to_llama(params));
             if (!disposable_ctx) {
                 if (disposable_ctx) llama_free(disposable_ctx);
                 return 12;
@@ -594,12 +615,83 @@ int main(int argc, char ** argv) {
     if (disposable_ctx) llama_free(disposable_ctx);
     if (generated.size() != static_cast<size_t>(params.n_predict) ||
         !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 13;
-    std::printf("mode=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
-        options.mode.c_str(), prefix.size(), prefix.size() - 1, llama_n_batch(run_ctx),
+    std::printf("mode=%s label=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+        options.mode.c_str(), options.result_label.c_str(), prefix.size(), prefix.size() - 1,
+        static_cast<size_t>(llama_n_batch(run_ctx)),
         prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
         coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
     for (auto token : generated) std::printf("%d,", token);
     if (!fallback_reason.empty()) std::printf(" fallback=cold reason=%s", fallback_reason.c_str());
     std::printf("\n");
+    if (owns_ctx) llama_free(ctx);
     return 0;
+}
+
+static std::string option_value(const std::vector<std::string> & args, const std::string & name) {
+    for (size_t i = 1; i + 1 < args.size(); ++i) {
+        if (args[i] == name) return args[i + 1];
+    }
+    return {};
+}
+
+static int invoke_mode(
+        const std::vector<std::string> & original,
+        const std::string & mode,
+        const std::string & label,
+        const std::string & plan_override = {}) {
+    std::vector<std::string> args = original;
+    for (size_t i = 1; i + 1 < args.size();) {
+        if (args[i] == "--hfx-sequence") {
+            args.erase(args.begin() + i, args.begin() + i + 2);
+            continue;
+        }
+        if (args[i] == "--hfx-mode") args[i + 1] = mode;
+        if (args[i] == "--hfx-plan-digest" && !plan_override.empty()) args[i + 1] = plan_override;
+        ++i;
+    }
+    args.push_back("--hfx-result-label");
+    args.push_back(label);
+    std::vector<char *> cargs;
+    for (auto & arg : args) cargs.push_back(arg.data());
+    return run_canary(static_cast<int>(cargs.size()), cargs.data());
+}
+
+static bool rendezvous(const fs::path & root, const std::string & ready, const std::string & proceed) {
+    if (root.empty() || !root.is_absolute()) return false;
+    fs::create_directories(root);
+    fs::permissions(root, fs::perms::owner_all, fs::perm_options::replace);
+    if (!write_text(root / ready, "ready\n")) return false;
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(120);
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (fs::exists(root / proceed)) {
+            std::error_code ec;
+            fs::remove(root / ready, ec);
+            fs::remove(root / proceed, ec);
+            return !ec;
+        }
+        usleep(100000);
+    }
+    return false;
+}
+
+int main(int argc, char ** argv) {
+    std::vector<std::string> args(argv, argv + argc);
+    const std::string sequence = option_value(args, "--hfx-sequence");
+    if (sequence.empty()) return run_canary(argc, argv);
+    if (sequence == "residency1") {
+        const int capture = invoke_mode(args, "capture", "capture");
+        return capture == 0 ? invoke_mode(args, "cold", "cold") : capture;
+    }
+    if (sequence == "residency2") {
+        const int restore = invoke_mode(args, "restore", "restore");
+        if (restore != 0) return restore;
+        const fs::path rendezvous_root = option_value(args, "--hfx-rendezvous-root");
+        if (!rendezvous(rendezvous_root, "restore-ready", "worker-object-missing")) return 14;
+        const int missing_result = invoke_mode(args, "restore", "missing");
+        if (missing_result != 0) return missing_result;
+        if (!rendezvous(rendezvous_root, "missing-done", "worker-object-restored")) return 14;
+        return invoke_mode(args, "restore", "plan-mismatch", std::string(64, 'f'));
+    }
+    if (sequence == "residency3") return invoke_mode(args, "cold", "runtime-off");
+    return 2;
 }

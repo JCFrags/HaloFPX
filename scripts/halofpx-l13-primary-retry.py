@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-shot bounded L16 primary canary, intended only as controller child."""
+"""One-shot bounded L22 three-residency primary canary; controller child only."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import time
@@ -17,11 +18,11 @@ from pathlib import Path
 NIMO1 = "nimo-1"
 NIMO2 = "nimo-2"
 PORT = 50180
-WORKER_BIN = "/var/tmp/halofpx-l16-src-nimo1/build-l16/bin/rpc-server"
-CANARY_BIN = "/var/tmp/halofpx-l17-src-nimo2/build-l17/bin/test-halofpx-distributed-state-canary"
-READINESS_PROBE = "/var/tmp/halofpx-l16-src-nimo2/scripts/halofpx_rpc_readiness.py"
-PLACEMENT_PROBE = "/var/tmp/halofpx-l17-src-nimo2/build-l17/bin/test-halofpx-placement-probe"
-PLACEMENT_PROBE_SHA = "f74bdf2bb1b9bc7c3e2f1239c2a48984c9af6a59fc8682a0c3be4e0ec8fa0d6e"
+WORKER_BIN = "/var/tmp/halofpx-l22-source-nimo1/build-l22/bin/rpc-server"
+CANARY_BIN = "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-distributed-state-canary"
+READINESS_PROBE = "/var/tmp/halofpx-l22-source-nimo2/scripts/halofpx_rpc_readiness.py"
+PLACEMENT_PROBE = "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-placement-probe"
+PLACEMENT_PROBE_SHA = "171d41b9a2cbe6cc25589ed7afed4457e015952130d503b08c8db72b0d438d2a"
 READINESS_PROBE_SHA = "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -30,20 +31,25 @@ MODEL = (
 )
 MODEL_SHA = "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
 MODEL_BYTES = 159873097824
-CANARY_SHA = "571d028520364b556e8d4b155231f31cf7826e413042329633bc961f04c34988"
-WORKER_SHA = "07b32f27d17edd34a7a979fefef0bcb09fcb29dfaae8052f16813d1270555d3a"
+CANARY_SHA = "9ff1908f1ba402bb9de7ed78ea1705fbb3c9ee33011ccd580e094eebbfcd03e1"
+WORKER_SHA = "83273c7aa7070071d6d0f64dd398e8007a97fc2f8543b2e83af06375e75a944e"
 PROMPT_SHA = "f20c7c7a4137de98b991f1bfe6de27e194a93c7257d9496944e312085923143f"
 PROMPT = "/var/tmp/halofpx-l13-primary-20260721/prompt.txt"
-REMOTE_EVIDENCE = "/var/tmp/halofpx-l16-primary-20260721"
-COORDINATOR_ROOT = "/var/tmp/halofpx-l16-primary-coordinator-20260721"
-WORKER_ROOT = "/var/tmp/halofpx-l16-primary-worker-20260721"
-CONTROL = "/var/tmp/halofpx-l16-primary-control.key"
+REMOTE_EVIDENCE = "/var/tmp/halofpx-l22-primary-evidence"
+COORDINATOR_ROOT = "/var/tmp/halofpx-l22-primary-coordinator"
+WORKER_ROOT = "/var/tmp/halofpx-l22-primary-worker"
+RENDEZVOUS_ROOT = "/var/tmp/halofpx-l22-primary-rendezvous"
+CONTROL = "/var/tmp/halofpx-l22-primary-control.key"
 WORKER_CONTROL = CONTROL
 CHANNEL_KEY_OWNER = "connorb"
 CHANNEL_KEY_BYTES = 130
 CHANNEL_KEY_DIGEST_ENV = "HALOFPX_CHANNEL_KEY_SHA256"
 CHECKPOINT = "421016c41e1af022aa65feef9c7b9329fdc1b49ff0b1c4df4aaad10cf13bf816"
 ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
+CACHE_TYPE_K = "q8_0"
+CACHE_TYPE_V = "q8_0"
+FLASH_ATTN = "on"
+FIXTURE_QUALIFICATION = False
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -57,7 +63,10 @@ class CanaryError(RuntimeError):
 
 
 def run(argv, *, timeout=900, check=True):
-    result = subprocess.run(argv, text=True, capture_output=True, timeout=timeout, check=False)
+    result = subprocess.run(
+        argv, text=True, encoding="utf-8", errors="replace",
+        capture_output=True, timeout=timeout, check=False,
+    )
     if check and result.returncode != 0:
         raise CanaryError(
             f"command failed ({result.returncode}): {argv!r}\n{result.stdout}\n{result.stderr}"
@@ -66,7 +75,11 @@ def run(argv, *, timeout=900, check=True):
 
 
 def ssh(host, *argv, timeout=900, check=True):
-    return run(["ssh", "-o", "BatchMode=yes", host, *argv], timeout=timeout, check=check)
+    remote_command = " ".join(shlex.quote(str(value)) for value in argv)
+    return run(
+        ["ssh", "-o", "BatchMode=yes", host, remote_command],
+        timeout=timeout, check=check,
+    )
 
 
 def write_log(root: Path, name: str, result) -> None:
@@ -206,7 +219,8 @@ def stop_worker(unit: str) -> None:
     already_stopped, _ = stopped()
     if already_stopped:
         return
-    ssh(NIMO1, "systemctl", "--user", "stop", f"{unit}.service")
+    ssh(NIMO1, "systemctl", "--user", "stop", f"{unit}.service", check=False)
+    ssh(NIMO1, "systemctl", "--user", "reset-failed", f"{unit}.service", check=False)
     deadline = time.monotonic() + 30
     last = ""
     while time.monotonic() < deadline:
@@ -217,14 +231,16 @@ def stop_worker(unit: str) -> None:
     raise CanaryError(f"disposable worker cleanup not verified for {unit}: {last}")
 
 
-def canary(mode: str, unit_label: str, *, plan: str = PLAN):
+def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
     canary_command = [
         CANARY_BIN,
-        "--hfx-mode", mode,
+        "--hfx-mode", "capture",
+        "--hfx-sequence", sequence,
+        "--hfx-rendezvous-root", RENDEZVOUS_ROOT,
         "--hfx-artifact-root", COORDINATOR_ROOT,
         "--hfx-model-digest", MODEL_DIGEST,
         "--hfx-compatibility-root", COMPATIBILITY,
-        "--hfx-plan-digest", plan,
+        "--hfx-plan-digest", PLAN,
         "--hfx-topology-digest", TOPOLOGY,
         "--hfx-placement-digest", PLACEMENT,
         "--hfx-checkpoint-digest", CHECKPOINT,
@@ -239,12 +255,12 @@ def canary(mode: str, unit_label: str, *, plan: str = PLAN):
         "--fit", "off",
         "--no-mmap",
         "--direct-io",
-        "--flash-attn", "on",
+        "--flash-attn", FLASH_ATTN,
         "--ctx-size", "4096",
         "--batch-size", "512",
         "--ubatch-size", "512",
-        "--cache-type-k", "q8_0",
-        "--cache-type-v", "q8_0",
+        "--cache-type-k", CACHE_TYPE_K,
+        "--cache-type-v", CACHE_TYPE_V,
         "--parallel", "1",
         "--threads", "16",
         "--threads-batch", "16",
@@ -253,17 +269,63 @@ def canary(mode: str, unit_label: str, *, plan: str = PLAN):
         "--seed", "1234",
         "--temp", "0",
     ]
-    unit = f"halofpx-l16-primary-canary-{unit_label}-20260721"
+    unit = f"halofpx-l22-primary-canary-{unit_label}"
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=20min",
         "--wait", "--collect", "--pipe", *canary_command,
     ]
     invocation = "invocation=" + " ".join(canary_command) + "\ntransient_unit=" + unit + "\n"
-    result = ssh(NIMO2, *command, timeout=900, check=False)
+    if not rendezvous:
+        result = ssh(NIMO2, *command, timeout=1800, check=False)
+    else:
+        process = subprocess.Popen(
+            [
+                "ssh", "-o", "BatchMode=yes", NIMO2,
+                " ".join(shlex.quote(str(value)) for value in command),
+            ],
+            text=True, encoding="utf-8", errors="replace",
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        object_path = ""
+        missing_path = ""
+        try:
+            wait_remote_file(f"{RENDEZVOUS_ROOT}/restore-ready", 1200)
+            objects = ssh(NIMO1, "find", WORKER_ROOT + "/objects", "-type", "f", "-name", "*.hfx").stdout.splitlines()
+            if len(objects) != 1:
+                raise CanaryError(f"expected one worker object at restore rendezvous, found {len(objects)}")
+            object_path = objects[0]
+            missing_path = object_path + ".missing"
+            ssh(NIMO1, "mv", "--", object_path, missing_path)
+            ssh(NIMO2, "touch", f"{RENDEZVOUS_ROOT}/worker-object-missing")
+            wait_remote_file(f"{RENDEZVOUS_ROOT}/missing-done", 1200)
+            ssh(NIMO1, "mv", "--", missing_path, object_path)
+            missing_path = ""
+            ssh(NIMO2, "touch", f"{RENDEZVOUS_ROOT}/worker-object-restored")
+            stdout, stderr = process.communicate(timeout=1800)
+        except BaseException:
+            if missing_path:
+                ssh(NIMO1, "mv", "--", missing_path, object_path, check=False)
+            process.terminate()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+            raise
+        result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
     result.stdout = invocation + result.stdout
     if result.returncode != 0:
         raise CanaryError(result.stdout + result.stderr)
     return result
+
+
+def wait_remote_file(path: str, timeout_seconds: float) -> None:
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        if ssh(NIMO2, "test", "-f", path, check=False).returncode == 0:
+            return
+        time.sleep(1)
+    raise CanaryError(f"timed out waiting for residency rendezvous {path}")
 
 
 def output_fields(text: str) -> dict[str, str]:
@@ -274,6 +336,21 @@ def output_fields(text: str) -> dict[str, str]:
     for match in re.finditer(r"(?:^| )([a-z_]+)=([^ ]+)", line):
         fields[match.group(1)] = match.group(2)
     return fields
+
+
+def output_sequence(text: str) -> dict[str, dict[str, str]]:
+    result = {}
+    for line in text.splitlines():
+        if not line.startswith("mode="):
+            continue
+        fields = {}
+        for match in re.finditer(r"(?:^| )([a-z_]+)=([^ ]+)", line):
+            fields[match.group(1)] = match.group(2)
+        label = fields.get("label", "")
+        if not label or label in result:
+            raise CanaryError("sequence result labels are absent or duplicate")
+        result[label] = fields
+    return result
 
 
 def fetch_suffix(root: Path, remote_name: str, local_name: str) -> tuple[str, str]:
@@ -330,14 +407,22 @@ def require_result(
 
 
 def state_windows(capture: str, restore: str) -> tuple[list[str], list[str]]:
+    def is_state_allocation(line: str, payload_bytes: int) -> bool:
+        match = re.search(r"\[alloc_buffer\].* size: (\d+)", line)
+        if not match:
+            return False
+        allocated = int(match.group(1))
+        return payload_bytes <= allocated < payload_bytes + 65536
+
     capture_lines = capture.splitlines()
     stored = next(i for i, line in enumerate(capture_lines) if "[halofpx-state] stored" in line)
     stored_bytes = re.search(r"bytes=(\d+)", capture_lines[stored])
     if not stored_bytes:
         raise CanaryError("capture state byte count is absent")
+    capture_payload_bytes = int(stored_bytes.group(1))
     capture_start = next(
         i for i in range(stored - 1, -1, -1)
-        if "[alloc_buffer]" in capture_lines[i] and f"size: {stored_bytes.group(1)}" in capture_lines[i]
+        if is_state_allocation(capture_lines[i], capture_payload_bytes)
     )
     capture_window = capture_lines[capture_start:stored + 1]
 
@@ -347,9 +432,10 @@ def state_windows(capture: str, restore: str) -> tuple[list[str], list[str]]:
     ready_bytes = re.search(r"bytes=(\d+)", restore_lines[ready])
     if not ready_bytes:
         raise CanaryError("restore state byte count is absent")
+    restore_payload_bytes = int(ready_bytes.group(1))
     restore_start = next(
         i for i in range(ready - 1, -1, -1)
-        if "[alloc_buffer]" in restore_lines[i] and f"size: {ready_bytes.group(1)}" in restore_lines[i]
+        if is_state_allocation(restore_lines[i], restore_payload_bytes)
     )
     restore_end = next(
         i for i in range(applied + 1, len(restore_lines)) if "[free_buffer]" in restore_lines[i]
@@ -371,12 +457,21 @@ def main() -> int:
     results = {}
     suffixes = {}
     try:
-        if ssh(NIMO1, "systemctl", "is-active", "minimax-m27-q6-server.service", check=False).stdout.strip() != "inactive":
-            raise CanaryError("production coordinator is not inactive")
-        if ssh(NIMO2, "systemctl", "is-active", "minimax-m27-rpc-worker.service", check=False).stdout.strip() != "inactive":
-            raise CanaryError("production worker is not inactive")
-        if f":8081" in ssh(NIMO1, "ss", "-H", "-ltnp").stdout or f":50052" in ssh(NIMO2, "ss", "-H", "-ltnp").stdout:
-            raise CanaryError("production listener remains open")
+        if FIXTURE_QUALIFICATION:
+            if ssh(NIMO1, "systemctl", "is-active", "minimax-m27-q6-server.service", check=False).stdout.strip() != "active":
+                raise CanaryError("fixture qualification requires the production coordinator to remain active")
+            if ssh(NIMO2, "systemctl", "is-active", "minimax-m27-rpc-worker.service", check=False).stdout.strip() != "active":
+                raise CanaryError("fixture qualification requires the production worker to remain active")
+            health = ssh(NIMO1, "curl", "-fsS", "-o", "/dev/null", "-w", "%{http_code}", "http://127.0.0.1:8081/health")
+            if health.stdout.strip() != "200":
+                raise CanaryError("fixture qualification requires production HTTP 200")
+        else:
+            if ssh(NIMO1, "systemctl", "is-active", "minimax-m27-q6-server.service", check=False).stdout.strip() != "inactive":
+                raise CanaryError("production coordinator is not inactive")
+            if ssh(NIMO2, "systemctl", "is-active", "minimax-m27-rpc-worker.service", check=False).stdout.strip() != "inactive":
+                raise CanaryError("production worker is not inactive")
+            if f":8081" in ssh(NIMO1, "ss", "-H", "-ltnp").stdout or f":50052" in ssh(NIMO2, "ss", "-H", "-ltnp").stdout:
+                raise CanaryError("production listener remains open")
         channel_key_sha = validate_provisioned_keys()
         model_stat = ssh(NIMO2, "stat", "-c", "%s", MODEL).stdout.strip()
         if int(model_stat) != MODEL_BYTES:
@@ -396,62 +491,55 @@ def main() -> int:
         free_worker = int(ssh(NIMO1, "df", "-B1", "--output=avail", "/var/tmp").stdout.splitlines()[-1])
         if free_worker < 2_000_000_000:
             raise CanaryError("worker free space below 2 GB gate")
-        ssh(NIMO2, "rm", "-rf", "--", REMOTE_EVIDENCE, COORDINATOR_ROOT)
-        ssh(NIMO2, "install", "-d", "-m", "700", REMOTE_EVIDENCE, COORDINATOR_ROOT)
+        ssh(NIMO2, "rm", "-rf", "--", REMOTE_EVIDENCE, COORDINATOR_ROOT, RENDEZVOUS_ROOT)
+        ssh(NIMO2, "install", "-d", "-m", "700", REMOTE_EVIDENCE, COORDINATOR_ROOT, RENDEZVOUS_ROOT)
         ssh(NIMO1, "rm", "-rf", "--", WORKER_ROOT)
         ssh(NIMO1, "install", "-d", "-m", "700", WORKER_ROOT)
 
         (root / "diskstats-nimo1-before.txt").write_text(ssh(NIMO1, "cat", "/proc/diskstats").stdout, encoding="utf-8")
         (root / "diskstats-nimo2-before.txt").write_text(ssh(NIMO2, "cat", "/proc/diskstats").stdout, encoding="utf-8")
 
-        unit1 = "halofpx-l16-primary-worker-capture-20260721"
+        unit1 = "halofpx-l22-primary-worker-capture"
         local_units.append(unit1)
         pid_capture, invocation_capture, readiness_capture = start_worker(True, unit1, root)
-        capture = canary("capture", "capture")
-        write_log(root, "capture.log", capture)
-        results["capture"] = output_fields(capture.stdout)
+        residency1 = canary_sequence("residency1", "residency1")
+        write_log(root, "residency1.log", residency1)
+        residency1_results = output_sequence(residency1.stdout)
+        if set(residency1_results) != {"capture", "cold"}:
+            raise CanaryError(f"residency1 result set mismatch: {residency1_results.keys()}")
+        results.update(residency1_results)
         require_result(results["capture"], "capture", require_worker_state=True)
+        require_result(results["cold"], "cold")
         suffixes["capture"] = fetch_suffix(root, "capture", "capture")
+        suffixes["cold"] = fetch_suffix(root, "cold", "cold")
         capture_journal = worker_journal(unit1, invocation_capture, pid_capture)
         (root / "worker-capture.log").write_text(capture_journal, encoding="utf-8")
         stop_worker(unit1)
 
-        unit2 = "halofpx-l16-primary-worker-restore-20260721"
+        unit2 = "halofpx-l22-primary-worker-restore"
         local_units.append(unit2)
         pid_restore, invocation_restore, readiness_restore = start_worker(True, unit2, root)
 
-        cold = canary("cold", "cold")
-        write_log(root, "cold.log", cold)
-        results["cold"] = output_fields(cold.stdout)
-        require_result(results["cold"], "cold")
-        suffixes["cold"] = fetch_suffix(root, "cold", "cold")
-
-        restore = canary("restore", "restore")
-        write_log(root, "restore.log", restore)
-        results["restore"] = output_fields(restore.stdout)
-        require_result(results["restore"], "restore", require_worker_state=True)
-        suffixes["restore"] = fetch_suffix(root, "restore", "restore")
-
         objects = ssh(NIMO1, "find", WORKER_ROOT + "/objects", "-type", "f", "-name", "*.hfx").stdout.splitlines()
         if len(objects) != 1:
-            raise CanaryError(f"expected one worker object, found {len(objects)}")
+            raise CanaryError(f"expected one worker object after capture, found {len(objects)}")
         object_path = objects[0]
         object_bytes = int(ssh(NIMO1, "stat", "-c", "%s", object_path).stdout.strip())
         object_sha = ssh(NIMO1, "sha256sum", object_path).stdout.split()[0]
-        ssh(NIMO1, "mv", "--", object_path, object_path + ".missing")
-        try:
-            missing = canary("restore", "missing")
-        finally:
-            ssh(NIMO1, "mv", "--", object_path + ".missing", object_path, check=False)
-        write_log(root, "missing-object.log", missing)
-        results["missing_object"] = output_fields(missing.stdout)
-        suffixes["missing_object"] = fetch_suffix(root, "restore", "missing-object")
-        require_result(results["missing_object"], "restore", fallback_reason="worker-stage")
 
-        mismatch = canary("restore", "mismatch", plan="f" * 64)
-        write_log(root, "plan-mismatch.log", mismatch)
-        results["plan_mismatch"] = output_fields(mismatch.stdout)
-        suffixes["plan_mismatch"] = fetch_suffix(root, "restore", "plan-mismatch")
+        residency2 = canary_sequence("residency2", "residency2", rendezvous=True)
+        write_log(root, "residency2.log", residency2)
+        residency2_results = output_sequence(residency2.stdout)
+        if set(residency2_results) != {"restore", "missing", "plan-mismatch"}:
+            raise CanaryError(f"residency2 result set mismatch: {residency2_results.keys()}")
+        results["restore"] = residency2_results["restore"]
+        results["missing_object"] = residency2_results["missing"]
+        results["plan_mismatch"] = residency2_results["plan-mismatch"]
+        require_result(results["restore"], "restore", require_worker_state=True)
+        suffixes["restore"] = fetch_suffix(root, "restore", "restore")
+        suffixes["missing_object"] = fetch_suffix(root, "missing", "missing-object")
+        require_result(results["missing_object"], "restore", fallback_reason="worker-stage")
+        suffixes["plan_mismatch"] = fetch_suffix(root, "plan-mismatch", "plan-mismatch")
         require_result(results["plan_mismatch"], "restore", fallback_reason="coordinator-artifact")
 
         restore_journal = worker_journal(unit2, invocation_restore, pid_restore)
@@ -461,14 +549,17 @@ def main() -> int:
         (root / "restore-state-window.log").write_text("\n".join(restore_window) + "\n", encoding="utf-8")
         stop_worker(unit2)
 
-        unit3 = "halofpx-l16-primary-worker-runtime-off-20260721"
+        unit3 = "halofpx-l22-primary-worker-runtime-off"
         local_units.append(unit3)
         pid_runtime_off, invocation_runtime_off, readiness_runtime_off = start_worker(False, unit3, root)
-        runtime_off = canary("cold", "runtime-off")
-        write_log(root, "runtime-off-cold.log", runtime_off)
-        results["runtime_off"] = output_fields(runtime_off.stdout)
+        residency3 = canary_sequence("residency3", "residency3")
+        write_log(root, "residency3.log", residency3)
+        residency3_results = output_sequence(residency3.stdout)
+        if set(residency3_results) != {"runtime-off"}:
+            raise CanaryError(f"residency3 result set mismatch: {residency3_results.keys()}")
+        results["runtime_off"] = residency3_results["runtime-off"]
         require_result(results["runtime_off"], "cold")
-        suffixes["runtime_off"] = fetch_suffix(root, "cold", "runtime-off-cold")
+        suffixes["runtime_off"] = fetch_suffix(root, "runtime-off", "runtime-off-cold")
 
         if len(set(suffixes.values())) != 1:
             raise CanaryError(f"suffix mismatch: {suffixes}")
@@ -478,7 +569,9 @@ def main() -> int:
             raise CanaryError(f"obvious retained cold slowdown: enabled={cold_ms} off={off_ms}")
 
         summary = {
-            "schema": "halofpx.l16.primary-result.v1",
+            "schema": "halofpx.l22.primary-result.v1",
+            "fixture_qualification": FIXTURE_QUALIFICATION,
+            "fixture_nonrepresentative_primary_kv_kernel": FIXTURE_QUALIFICATION,
             "channel_key_sha256": channel_key_sha,
             "model_sha256": MODEL_SHA,
             "model_bytes": MODEL_BYTES,
@@ -507,7 +600,7 @@ def main() -> int:
         return 0
     except Exception as exc:
         (root / "failure.txt").write_text(str(exc) + "\n", encoding="utf-8")
-        print(f"L16 primary canary failed: {exc}", file=sys.stderr)
+        print(f"L22 primary canary failed: {exc}", file=sys.stderr)
         return 1
     finally:
         cleanup_errors = []

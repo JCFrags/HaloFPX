@@ -1,0 +1,93 @@
+{
+  "schema": "halofpx-l22-guarded-primary-cache-correctness-canary-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "851dc6f1af55c856532a5908516ebed9a5679891",
+  "outcome": "not_promoted_restart_restore_correctness_failure",
+  "artifact": {
+    "file": "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "size": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "request": {
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "generated_tokens": 128,
+    "ctx": 4096,
+    "batch": 512,
+    "ubatch": 512,
+    "cache_k": "q8_0",
+    "cache_v": "q8_0",
+    "seed": 1234,
+    "temperature": 0,
+    "device_order": ["RPC0", "ROCm0"],
+    "split_mode": "layer",
+    "tensor_split": "1,1"
+  },
+  "continuation_sha256": {
+    "expected_tokens": "d8c8822f2ad7951dc363056b4c165e6696ad6066a41d68b1a99097526012b6d9",
+    "expected_text": "3c9bcc5624f4a1d6558c51be89e2443ffba4b2206d10b632c89b7ef64fdd026f",
+    "restore_tokens": "d32acac3fc1d2ac80ee33ad8cf66192112200b7b93ed88e520c7c56660a71470",
+    "restore_text": "b51fb7b571004d81d625dd392a2d97c8ff97b7bfce8f7926bd162cd793eedf1e",
+    "capture_cold_fallbacks_and_mode_off_equal": true,
+    "restore_equal": false
+  },
+  "state": {
+    "coordinator_control_bytes": 15048,
+    "coordinator_local_bytes": 2301688,
+    "worker_bytes": 2454528,
+    "worker_components": 64,
+    "state_window_get_tensor_set_tensor": 0,
+    "missing_object_fallback": "cold_worker_stage",
+    "plan_mismatch_fallback": "cold_coordinator_artifact"
+  },
+  "allocation": {
+    "placement_rpc_repeating_layers": 32,
+    "placement_rocm_repeating_layers": 30,
+    "placement_rocm_total_groups": 31,
+    "rpc_max_request_bytes": 80950550528,
+    "rpc_capture_aggregate_allocations_bytes": 81712377856,
+    "local_rocm_actual_total_retained": false
+  },
+  "focused_tests": {
+    "passed": 62,
+    "failed": 0
+  },
+  "source_and_binary_identity": {
+    "transition_controller_sha256": "e7bc0224c8bf701e749b40dab8a8f5ecaf5a4a8fc0e1f1542215e6f68b298814",
+    "primary_runner_sha256": "fb6f9140afb0d033c363c56db57c320e2e6803d3ed18c42c55b95eb6d1fa8bbb",
+    "manifest_sha256": "8a3c8822a701f0938c4ddb465994975f36d625fed2e33e989a3f0902de47d84d",
+    "canary_source_sha256": "0111ab35d243ab852538b2c10a8f01cb61c775d7e14283072fb401900c910b12",
+    "worker_binary_sha256": "83273c7aa7070071d6d0f64dd398e8007a97fc2f8543b2e83af06375e75a944e",
+    "canary_binary_sha256": "9ff1908f1ba402bb9de7ed78ea1705fbb3c9ee33011ccd580e094eebbfcd03e1",
+    "readiness_probe_sha256": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
+    "placement_probe_sha256": "171d41b9a2cbe6cc25589ed7afed4457e015952130d503b08c8db72b0d438d2a"
+  },
+  "independent_review": {
+    "verdict": "not_promoted",
+    "path": "docs/halofpx/reviews/2026-07-23__l22-guarded-primary-cache-correctness-canary__review__v01.md"
+  },
+  "production": {
+    "before": {
+      "nimo1_coordinator_pid": 2144857,
+      "nimo2_worker_pid": 1305879,
+      "nrestarts": [0, 0],
+      "http": 200
+    },
+    "after": {
+      "nimo1_coordinator_pid": 2213675,
+      "nimo2_worker_pid": 1396163,
+      "nrestarts": [0, 0],
+      "http": 200
+    },
+    "commands_and_models_reconciled": true,
+    "cleanup_complete": true
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l22-primary-20260723\\primary-run-20260723T113115",
+    "files": 31,
+    "bytes": 2892349,
+    "tree_sha256": "b56d3bd617e3eb43f58354d74f299833204e270cc246ce813686178411735e5c"
+  },
+  "promotion": false,
+  "retry_authorized": false
+}

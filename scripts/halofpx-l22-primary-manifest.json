@@ -1,0 +1,58 @@
+{
+  "schema": "halofpx.l22.primary-manifest.v1",
+  "milestone": "l22-primary",
+  "worker_host": "nimo-1",
+  "canary_host": "nimo-2",
+  "worker_port": 50180,
+  "worker_units": [
+    "halofpx-l22-primary-worker-capture.service",
+    "halofpx-l22-primary-worker-restore.service",
+    "halofpx-l22-primary-worker-runtime-off.service"
+  ],
+  "canary_units": [
+    "halofpx-l22-primary-canary-residency1.service",
+    "halofpx-l22-primary-canary-residency2.service",
+    "halofpx-l22-primary-canary-residency3.service"
+  ],
+  "key_paths": {
+    "nimo-1": "/var/tmp/halofpx-l22-primary-control.key",
+    "nimo-2": "/var/tmp/halofpx-l22-primary-control.key"
+  },
+  "disposable_paths": {
+    "nimo-1": [
+      "/var/tmp/halofpx-l22-source-nimo1.tar",
+      "/var/tmp/halofpx-l22-source-nimo1",
+      "/var/tmp/halofpx-l22-primary-worker"
+    ],
+    "nimo-2": [
+      "/var/tmp/halofpx-l22-source-nimo2.tar",
+      "/var/tmp/halofpx-l22-source-nimo2",
+      "/var/tmp/halofpx-l22-primary-evidence",
+      "/var/tmp/halofpx-l22-primary-coordinator",
+      "/var/tmp/halofpx-l22-primary-rendezvous"
+    ]
+  },
+  "executables": {
+    "worker": "/var/tmp/halofpx-l22-source-nimo1/build-l22/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l22-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l22-source-nimo2/build-l22/bin/test-halofpx-placement-probe",
+    "interpreter": "C:\\Python314\\python.exe",
+    "child": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py"
+  },
+  "executable_sha256": {
+    "worker": "83273c7aa7070071d6d0f64dd398e8007a97fc2f8543b2e83af06375e75a944e",
+    "canary": "9ff1908f1ba402bb9de7ed78ea1705fbb3c9ee33011ccd580e094eebbfcd03e1",
+    "readiness": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
+    "placement": "171d41b9a2cbe6cc25589ed7afed4457e015952130d503b08c8db72b0d438d2a",
+    "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
+    "child": "fb6f9140afb0d033c363c56db57c320e2e6803d3ed18c42c55b95eb6d1fa8bbb"
+  },
+  "child_evidence_subdir": "child",
+  "child_argv": [
+    "C:\\Python314\\python.exe",
+    "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py",
+    "--evidence-dir",
+    "{evidence_root}/child"
+  ]
+}
