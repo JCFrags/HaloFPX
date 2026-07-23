@@ -620,7 +620,8 @@ def require_diagnostic_agreement(
 ) -> dict[str, object]:
     pattern = re.compile(
         r"\[halofpx-state-diag\] phase=(capture|stage|apply) "
-        r"components=(\d+) descriptor_content_sha256=([0-9a-f]{64})"
+        r"components=(\d+) bytes=(\d+) descriptor_content_sha256=([0-9a-f]{64}) "
+        r"merkle_sha256=([0-9a-f]{64}) auth_tag=([0-9a-f]{64})"
     )
     diagnostic_lines = [
         line for line in (capture_journal + "\n" + restore_journal).splitlines()
@@ -632,16 +633,19 @@ def require_diagnostic_agreement(
         if match is None or line[match.end():].strip():
             raise CanaryError(f"malformed worker diagnostic line: {line}")
         records.append(match.groups())
-    by_phase: dict[str, tuple[int, str]] = {}
-    for phase, components, digest in records:
+    by_phase: dict[str, tuple[int, int, str, str, str]] = {}
+    for phase, components, byte_count, digest, merkle, tag in records:
         if phase in by_phase:
             raise CanaryError(f"duplicate worker diagnostic phase: {phase}")
-        by_phase[phase] = (int(components), digest)
+        by_phase[phase] = (int(components), int(byte_count), digest, merkle, tag)
     if set(by_phase) != {"capture", "stage", "apply"}:
         raise CanaryError(f"incomplete worker diagnostic phases: {sorted(by_phase)}")
-    if any(count <= 0 or digest == "0" * 64 for count, digest in by_phase.values()):
+    if any(
+        count <= 0 or byte_count <= 0 or any(value == "0" * 64 for value in (digest, merkle, tag))
+        for count, byte_count, digest, merkle, tag in by_phase.values()
+    ):
         raise CanaryError("worker diagnostic count/digest is invalid")
-    if len(set(by_phase.values())) != 1:
+    if len({(value[0], value[1], value[2]) for value in by_phase.values()}) != 1:
         raise CanaryError(f"worker diagnostic mismatch: {by_phase}")
 
     capture_components = int(capture_result.get("worker_components", "0"))
@@ -653,6 +657,7 @@ def require_diagnostic_agreement(
         or capture_components != by_phase["capture"][0]
         or capture_bytes <= 0
         or capture_bytes != restore_bytes
+        or capture_bytes != by_phase["capture"][1]
     ):
         raise CanaryError("worker result bytes/components disagree across capture/restore diagnostics")
 
@@ -700,7 +705,11 @@ def require_diagnostic_agreement(
     return {
         "worker_components": capture_components,
         "worker_bytes": capture_bytes,
-        "worker_descriptor_content_sha256": by_phase["capture"][1],
+        "worker_descriptor_content_sha256": by_phase["capture"][2],
+        "worker_diagnostic_roots": {
+            phase: {"merkle_sha256": value[3], "auth_tag": value[4]}
+            for phase, value in by_phase.items()
+        },
         "worker_state_phases": {
             phase: {"components": value[0], "bytes": value[1]}
             for phase, value in state_metadata.items()

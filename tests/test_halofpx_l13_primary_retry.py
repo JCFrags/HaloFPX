@@ -14,6 +14,13 @@ retry = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = retry
 SPEC.loader.exec_module(retry)
 
+def diagnostic_line(phase, digest, *, components=64, byte_count=2454528):
+    return (
+        f"[halofpx-state-diag] phase={phase} components={components} bytes={byte_count} "
+        f"descriptor_content_sha256={digest} merkle_sha256={'b' * 64} "
+        f"auth_tag={'c' * 64}\n"
+    )
+
 
 class PrimaryRetryTests(unittest.TestCase):
     def test_child_ssh_routes_through_closed_operation_classes(self):
@@ -200,15 +207,12 @@ class PrimaryRetryTests(unittest.TestCase):
     def test_diagnostic_agreement_accepts_exact_three_phase_and_receipts(self):
         digest = "a" * 64
         capture = (
-            "[halofpx-state-diag] phase=capture components=64 "
-            f"descriptor_content_sha256={digest}\n"
+            diagnostic_line("capture", digest) +
             "[halofpx-state] stored rank=1 generation=1 components=64 bytes=2454528\n"
         )
         restore = (
-            "[halofpx-state-diag] phase=stage components=64 "
-            f"descriptor_content_sha256={digest}\n"
-            "[halofpx-state-diag] phase=apply components=64 "
-            f"descriptor_content_sha256={digest}\n"
+            diagnostic_line("stage", digest) +
+            diagnostic_line("apply", digest) +
             "[halofpx-state] ready rank=1 generation=1 components=64 bytes=2454528\n"
             "[halofpx-state] apply rank=1 generation=1 status=3 components=64 bytes=2454528\n"
         )
@@ -228,23 +232,19 @@ class PrimaryRetryTests(unittest.TestCase):
         }
         with self.assertRaises(retry.CanaryError):
             retry.require_diagnostic_agreement(
-                "[halofpx-state-diag] phase=capture components=64 "
-                f"descriptor_content_sha256={'a' * 64}\n",
+                diagnostic_line("capture", "a" * 64),
                 "[halofpx-state-diag] phase=stage components=64 descriptor_content_sha256=bad\n",
                 fields, dict(fields),
             )
 
     def test_diagnostic_agreement_refuses_worker_or_coordinator_mismatch(self):
         capture = (
-            "[halofpx-state-diag] phase=capture components=64 "
-            f"descriptor_content_sha256={'a' * 64}\n"
+            diagnostic_line("capture", "a" * 64) +
             "[halofpx-state] stored rank=1 generation=1 components=64 bytes=2454528\n"
         )
         restore = (
-            "[halofpx-state-diag] phase=stage components=64 "
-            f"descriptor_content_sha256={'a' * 64}\n"
-            "[halofpx-state-diag] phase=apply components=64 "
-            f"descriptor_content_sha256={'e' * 64}\n"
+            diagnostic_line("stage", "a" * 64) +
+            diagnostic_line("apply", "e" * 64) +
             "[halofpx-state] ready rank=1 generation=1 components=64 bytes=2454528\n"
             "[halofpx-state] apply rank=1 generation=1 status=3 components=64 bytes=2454528\n"
         )
@@ -269,15 +269,12 @@ class PrimaryRetryTests(unittest.TestCase):
             "component_manifest_sha256": "d" * 64,
         }
         capture = (
-            "[halofpx-state-diag] phase=capture components=64 "
-            f"descriptor_content_sha256={digest} trailing\n"
+            diagnostic_line("capture", digest).rstrip() + " trailing\n"
             "[halofpx-state] stored rank=1 generation=1 components=64 bytes=2454528\n"
         )
         restore = (
-            "[halofpx-state-diag] phase=stage components=64 "
-            f"descriptor_content_sha256={digest}\n"
-            "[halofpx-state-diag] phase=apply components=64 "
-            f"descriptor_content_sha256={digest}\n"
+            diagnostic_line("stage", digest) +
+            diagnostic_line("apply", digest) +
             "[halofpx-state] ready rank=1 generation=1 components=64 bytes=2454528\n"
             "[halofpx-state] apply rank=1 generation=1 status=2 components=64 bytes=2454528\n"
         )

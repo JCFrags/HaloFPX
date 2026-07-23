@@ -49,3 +49,6 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0043](0043-guarded-primary-correctness-cache-canary.md): guarded exact-primary correctness and cache canary
 - [ADR-0044](0044-no-production-execution-contract.md): no-production primary-canary execution contract
 - [ADR-0045](0045-closed-disposable-execution-evidence-contract.md): closed disposable execution and evidence contract
+- [ADR-0045b](0045-rpc-worker-epoch-model-residency.md): RPC worker epoch and model-residency authority
+- [ADR-0046](0046-fresh-rpc-residency-restore-authority.md): fresh RPC model residency precedes restore staging
+- [ADR-0047](0047-quantized-state-apply-block-geometry.md): quantized state application uses scalar block geometry

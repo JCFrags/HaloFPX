@@ -3,6 +3,7 @@
 #include "ggml.h"
 
 #include <array>
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <cstdint>
@@ -12,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 #include <chrono>
 #include <sys/random.h>
 
@@ -75,14 +77,14 @@ struct fixture {
     ggml_tensor * staged = nullptr;
     ggml_tensor * live = nullptr;
 
-    explicit fixture(const char * endpoint) {
+    explicit fixture(const char * endpoint, ggml_type type = GGML_TYPE_F32, int64_t elements = 16) {
         backend.reset(ggml_backend_rpc_init(endpoint, 0));
         assert(backend);
         ggml_init_params params { 2 * ggml_tensor_overhead(), nullptr, true };
         ctx.reset(ggml_init(params));
         assert(ctx);
-        staged = ggml_new_tensor_1d(ctx.get(), GGML_TYPE_F32, 16);
-        live = ggml_new_tensor_1d(ctx.get(), GGML_TYPE_F32, 16);
+        staged = ggml_new_tensor_1d(ctx.get(), type, elements);
+        live = ggml_new_tensor_1d(ctx.get(), type, elements);
         auto buft = ggml_backend_get_default_buffer_type(backend.get());
         buffer.reset(ggml_backend_alloc_ctx_tensors_from_buft(ctx.get(), buft));
         assert(buffer);
@@ -114,18 +116,25 @@ bool fresh_nonce(uint8_t nonce[32]) {
 
 int main(int argc, char ** argv) {
     if (argc < 3) {
-        std::fprintf(stderr, "usage: %s capture|restore|replay|stage-replay|destroy|timeout|range|shape|auth|mismatch|missing|corrupt ENDPOINT [OBJECT_DIGEST]\n", argv[0]);
+        std::fprintf(stderr, "usage: %s capture|capture-q8|capture-view|restore|restore-q8|restore-view|replay|stage-replay|destroy|timeout|range|shape|auth|mismatch|missing|corrupt ENDPOINT [OBJECT_DIGEST]\n", argv[0]);
         return 2;
     }
     const std::string mode = argv[1];
-    fixture f(argv[2]);
-    std::array<float, 16> expected {};
-    for (size_t i = 0; i < expected.size(); ++i) expected[i] = float(i) + 0.25f;
+    const bool q8 = mode == "capture-q8" || mode == "restore-q8";
+    const bool view = mode == "capture-view" || mode == "restore-view";
+    fixture f(argv[2], q8 ? GGML_TYPE_Q8_0 : GGML_TYPE_F32, q8 ? 1024 : 16);
+    std::vector<uint8_t> expected(ggml_nbytes(f.staged));
+    for (size_t i = 0; i < expected.size(); ++i) expected[i] = static_cast<uint8_t>((i * 37 + 11) & 0xff);
     std::array<uint8_t, 32> key {};
     key.fill(0x11);
     auto staged = component(f.staged);
-    if (mode == "capture" || mode == "range" || mode == "shape") {
-        ggml_backend_tensor_set(f.staged, expected.data(), 0, sizeof(expected));
+    if (view) {
+        staged.offset = 16;
+        staged.size = 32;
+    }
+    if (mode == "capture" || mode == "capture-q8" || mode == "capture-view" ||
+        mode == "range" || mode == "shape") {
+        ggml_backend_tensor_set(f.staged, expected.data(), 0, expected.size());
         const auto id = identity(0x51, false);
         if (mode == "range") staged.size += 1;
         if (mode == "shape") f.staged->nb[1] += 1;
@@ -140,7 +149,7 @@ int main(int argc, char ** argv) {
             std::fflush(nullptr);
             std::_Exit(result.status == GGML_RPC_HALOFPX_STATE_REJECTED ? 0 : 12);
         }
-        if (result.status != GGML_RPC_HALOFPX_STATE_STORED || result.verified_bytes != sizeof(expected)) return 3;
+        if (result.status != GGML_RPC_HALOFPX_STATE_STORED || result.verified_bytes != staged.size) return 3;
         std::printf("status=stored object=%s bytes=%llu components=%u\n",
             hex(result.object_digest).c_str(), (unsigned long long) result.verified_bytes,
             result.verified_components);
@@ -152,7 +161,8 @@ int main(int argc, char ** argv) {
     const bool mismatch = mode == "mismatch";
     const bool expected_miss = mismatch || mode == "missing" || mode == "corrupt";
     const bool auth = mode == "auth";
-    if (mode != "restore" && mode != "replay" && mode != "stage-replay" && mode != "destroy" &&
+    if (mode != "restore" && mode != "restore-q8" && mode != "restore-view" &&
+        mode != "replay" && mode != "stage-replay" && mode != "destroy" &&
         mode != "timeout" && !auth && !expected_miss) return 2;
     auto id = identity(0x52, mismatch);
     if (!fresh_nonce(id.attempt_nonce)) return 2;
@@ -191,6 +201,10 @@ int main(int argc, char ** argv) {
     }
     if (mode == "timeout") std::this_thread::sleep_for(std::chrono::milliseconds(5200));
     auto live = component(f.live);
+    if (view) {
+        live.offset = staged.offset;
+        live.size = staged.size;
+    }
     const auto applied = ggml_backend_rpc_halofpx_state_commit_apply(
         &id, &live, 1, object.data(), ready.worker_nonce, key.data());
     if (mode == "timeout") {
@@ -198,9 +212,15 @@ int main(int argc, char ** argv) {
         return applied.status == GGML_RPC_HALOFPX_STATE_REJECTED ? 0 : 10;
     }
     if (applied.status != GGML_RPC_HALOFPX_STATE_APPLIED) return 6;
-    std::array<float, 16> actual {};
-    ggml_backend_tensor_get(f.live, actual.data(), 0, sizeof(actual));
-    if (actual != expected) return 7;
+    std::vector<uint8_t> actual(expected.size());
+    ggml_backend_tensor_get(f.live, actual.data(), 0, actual.size());
+    if (view) {
+        if (!std::equal(
+                expected.begin() + staged.offset, expected.begin() + staged.offset + staged.size,
+                actual.begin() + live.offset)) return 7;
+    } else if (actual != expected) {
+        return 7;
+    }
     if (mode == "replay") {
         const auto replayed = ggml_backend_rpc_halofpx_state_commit_apply(
             &id, &live, 1, object.data(), ready.worker_nonce, key.data());

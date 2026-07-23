@@ -1,0 +1,96 @@
+{
+  "schema": "halofpx-l30-stage-live-apply-correctness-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "8b54091efe456c8222528ec455316afbca8c8562",
+  "outcome": "pass_source_backed_q8_0_apply_correction",
+  "finding": {
+    "location": "ggml/src/ggml-rpc/ggml-rpc.cpp rpc_server::hfx_state_commit_apply",
+    "old_q8_0_component_bytes": 1088,
+    "old_scalar_elements": 32,
+    "old_view_bytes": 34,
+    "corrected_scalar_elements": 1024,
+    "corrected_view_bytes": 1088,
+    "correction": "(component_bytes / type_size) * block_size",
+    "checked_fail_closed": true
+  },
+  "diagnostics": {
+    "runtime_default_off": true,
+    "state_bytes_logged": false,
+    "authenticated_component_identity": true,
+    "content_digest": true,
+    "normalized_buffer_ranges": true,
+    "merkle_root": true,
+    "authenticated_summary": true,
+    "authenticated_mismatch_report": true
+  },
+  "q8_0_rpc_fixture": {
+    "components": 1,
+    "bytes": 1088,
+    "capture_stage_apply_sha256": "bbd3d3305a5c3d7fd108de4c5b033a11ba0183ce364a9bed3331ef11a432cfea",
+    "content_sha256": "9a401342a93b10cf363fe10a4fbcb58df4fa7bbd5b70b48f50cc0a0af4ce155b",
+    "exact_bytes_equal": true,
+    "authenticated_mismatches": []
+  },
+  "view_rpc_fixture": {
+    "components": 1,
+    "bytes": 32,
+    "view_offset": 16,
+    "capture_stage_apply_sha256": "8dcb3ef01d2d6036d7b62ed6b308d095b9956bbebccba13f9abe64bf87861024",
+    "exact_bytes_equal": true,
+    "authenticated_mismatches": []
+  },
+  "disposable_model_fixture": {
+    "model_bytes": 19077344,
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "material_model_residencies": 2,
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "max_prompt_chunk": 512,
+    "worker_components": 1156,
+    "worker_bytes": 5197824,
+    "capture_stage_apply_sha256": "ed62ec5b04cc53ce870ddd6df1d8eefc10a0e4f44e2a699deb879ebf4462fdbc",
+    "capture_token": 4245,
+    "restore_token": 4245,
+    "exact_suffix_equal": true,
+    "legacy_get_tensor": 0,
+    "legacy_set_tensor": 0
+  },
+  "source_identity": {
+    "ggml_rpc_cpp_sha256": "4935c3fa01d4e620d6e8eed95be168ac8f6e8e16507b13191bf2297cd6c4d7d4",
+    "analyzer_sha256": "0b03069aaf3ae296f8a6af8d20e23861cf563bd2c10165a4970e22224426274c",
+    "runner_sha256": "409a6d5a30d906e074d944043c13fd52c260ea06a96a254119e2ac5f920e8267",
+    "cpp_fixture_sha256": "c803aa1fccd763963d32ebf6542d888ec7947059cd8ae0191b7ef11e0bd88f4f",
+    "analyzer_tests_sha256": "f2b4ec3c65c2f1d517aebfe6d8a7ce46d24f532b0bee1a2c732321ff3c6d38f1",
+    "rocm_rpc_server_sha256": "6d829adbbc30d8b12b02fae9e7af6f1fec609eebf0d312f84a27c55325e8e554",
+    "rocm_cpp_fixture_sha256": "20ed15acc23e686db918a91bb712ba2e01a226ce2d96670cb8a004aac50e762b",
+    "qualification_source_archive_sha256": "82f988215464e9216aaa5f4ed9c2f8a12ea6fb854d4ba0edc0c7fe859b270a6d"
+  },
+  "focused_tests": {
+    "passed": 84,
+    "failed": 0
+  },
+  "production": {
+    "mutated": false,
+    "worker_pid": 1454894,
+    "worker_port": 50052,
+    "coordinator_pid": 2283857,
+    "coordinator_port": 8081,
+    "http": 200,
+    "nrestarts": [0, 0]
+  },
+  "cleanup_complete": true,
+  "primary_artifact_accessed": false,
+  "independent_review": {
+    "verdict": "pass",
+    "path": "docs/halofpx/reviews/2026-07-23__l30-stage-live-apply-correctness__review__v01.md"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l30-stage-live-apply-20260723",
+    "files": 33,
+    "bytes": 3954831,
+    "tree_sha256": "b1378ea711d2186e8ebdfa49e4f7ef290ee4504a7dac64871550bd3094347a1b"
+  },
+  "promotion": false,
+  "primary_correction_proven": false,
+  "l31_opened": false
+}

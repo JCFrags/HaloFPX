@@ -1526,15 +1526,102 @@ static bool hfx_state_diagnostics_enabled() {
     return value && std::strcmp(value, "1") == 0;
 }
 
-static void hfx_state_log_component_digest(
+struct hfx_state_diag_component {
+    hfx_state_object_component object {};
+    uint32_t buffer_group = 0;
+    uint32_t reserved = 0;
+    uint64_t range_begin = 0;
+    uint64_t range_end = 0;
+};
+
+struct hfx_state_diag_summary {
+    uint8_t phase[8] {};
+    uint32_t component_count = 0;
+    uint32_t reserved = 0;
+    uint64_t component_bytes = 0;
+    uint8_t aggregate[32] {};
+    uint8_t merkle_root[32] {};
+};
+
+static hfx_digest hfx_state_diag_merkle(std::vector<hfx_digest> level) {
+    if (level.empty()) return hfx_sha256(nullptr, 0);
+    while (level.size() > 1) {
+        std::vector<hfx_digest> next;
+        next.reserve((level.size() + 1) / 2);
+        for (size_t i = 0; i < level.size(); i += 2) {
+            std::array<uint8_t, 64> pair {};
+            memcpy(pair.data(), level[i].data(), 32);
+            memcpy(pair.data() + 32, level[std::min(i + 1, level.size() - 1)].data(), 32);
+            next.push_back(hfx_sha256(pair.data(), pair.size()));
+        }
+        level = std::move(next);
+    }
+    return level[0];
+}
+
+static bool hfx_state_log_component_digest(
         const char * phase,
-        const std::vector<hfx_state_object_component> & components) {
-    if (!hfx_state_diagnostics_enabled()) return;
-    const auto digest = hfx_sha256(
+        const std::vector<hfx_state_object_component> & components,
+        const hfx_state_component_wire * addressed,
+        const std::unordered_set<ggml_backend_buffer_t> & buffers,
+        const uint8_t control_key[32]) {
+    if (!hfx_state_diagnostics_enabled()) return true;
+    if (!phase || !addressed || !control_key || components.size() > HFX_STATE_MAX_COMPONENTS) return false;
+    const auto aggregate = hfx_sha256(
         components.data(), components.size() * sizeof(components[0]));
+    std::unordered_map<uint64_t, uint32_t> groups;
+    std::vector<hfx_digest> leaves;
+    leaves.reserve(components.size());
+    uint64_t total = 0;
+    for (size_t i = 0; i < components.size(); ++i) {
+        const auto buffer_value = addressed[i].buffer;
+        auto inserted = groups.emplace(buffer_value, static_cast<uint32_t>(groups.size()));
+        auto buffer = reinterpret_cast<ggml_backend_buffer_t>(buffer_value);
+        if (buffer == nullptr || buffers.find(buffer) == buffers.end()) return false;
+        const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(buffer));
+        uint64_t begin = 0;
+        uint64_t end = 0;
+        if (addressed[i].data < base ||
+            !hfx_add(addressed[i].data - base, addressed[i].offset, begin) ||
+            !hfx_add(begin, addressed[i].size, end) ||
+            end > ggml_backend_buffer_get_size(buffer) ||
+            !hfx_add(total, addressed[i].size, total)) return false;
+        hfx_state_diag_component diagnostic {};
+        diagnostic.object = components[i];
+        diagnostic.buffer_group = inserted.first->second;
+        diagnostic.range_begin = begin;
+        diagnostic.range_end = end;
+        const auto leaf = hfx_sha256(&diagnostic, sizeof(diagnostic));
+        leaves.push_back(leaf);
+        GGML_LOG_INFO(
+            "[halofpx-state-diag-component] phase=%s ordinal=%u kind=%u type=%u "
+            "ne=%u,%u,%u,%u nb=%u,%u,%u,%u view_offset=%" PRIu64 " size=%" PRIu64 " "
+            "label_sha256=%s content_sha256=%s buffer_group=%u range=%" PRIu64 ":%" PRIu64 " leaf_sha256=%s\n",
+            phase, diagnostic.object.descriptor.ordinal, diagnostic.object.descriptor.kind,
+            diagnostic.object.descriptor.type,
+            diagnostic.object.descriptor.ne[0], diagnostic.object.descriptor.ne[1],
+            diagnostic.object.descriptor.ne[2], diagnostic.object.descriptor.ne[3],
+            diagnostic.object.descriptor.nb[0], diagnostic.object.descriptor.nb[1],
+            diagnostic.object.descriptor.nb[2], diagnostic.object.descriptor.nb[3],
+            diagnostic.object.descriptor.offset, diagnostic.object.descriptor.size,
+            hfx_hex(diagnostic.object.descriptor.label_digest, 32).c_str(),
+            hfx_hex(diagnostic.object.content_digest, 32).c_str(), diagnostic.buffer_group,
+            diagnostic.range_begin, diagnostic.range_end, hfx_hex(leaf.data(), leaf.size()).c_str());
+    }
+    const auto merkle = hfx_state_diag_merkle(leaves);
+    hfx_state_diag_summary summary {};
+    snprintf(reinterpret_cast<char *>(summary.phase), sizeof(summary.phase), "%s", phase);
+    summary.component_count = static_cast<uint32_t>(components.size());
+    summary.component_bytes = total;
+    memcpy(summary.aggregate, aggregate.data(), aggregate.size());
+    memcpy(summary.merkle_root, merkle.data(), merkle.size());
+    const auto tag = hfx_hmac(control_key, &summary, sizeof(summary));
     GGML_LOG_INFO(
-        "[halofpx-state-diag] phase=%s components=%zu descriptor_content_sha256=%s\n",
-        phase, components.size(), hfx_hex(digest.data(), digest.size()).c_str());
+        "[halofpx-state-diag] phase=%s components=%zu bytes=%" PRIu64
+        " descriptor_content_sha256=%s merkle_sha256=%s auth_tag=%s\n",
+        phase, components.size(), total, hfx_hex(aggregate.data(), aggregate.size()).c_str(),
+        hfx_hex(merkle.data(), merkle.size()).c_str(), hfx_hex(tag.data(), tag.size()).c_str());
+    return true;
 }
 
 struct hfx_state_server_config_owned {
@@ -2445,7 +2532,8 @@ bool rpc_server::hfx_state_capture(const std::vector<uint8_t> & input, hfx_state
         ok = pwrite(fd, stored.data(), stored.size() * sizeof(stored[0]), sizeof(object)) ==
              static_cast<ssize_t>(stored.size() * sizeof(stored[0]));
     }
-    if (ok) hfx_state_log_component_digest("capture", stored);
+    if (ok) ok = hfx_state_log_component_digest(
+        "capture", stored, components, buffers, hfx_state_config->control_key.data());
     hfx_digest object_digest {};
     ok = ok && fsync(fd) == 0 && hfx_hash_fd(fd, object_digest);
     if (ok) {
@@ -2528,7 +2616,8 @@ bool rpc_server::hfx_state_stage(const std::vector<uint8_t> & input, hfx_state_r
         if (!hfx_equal(digest.data(), stored[i].content_digest, 32)) ok = false;
         file_offset += components[i].size;
     }
-    if (ok) hfx_state_log_component_digest("stage", stored);
+    if (ok) ok = hfx_state_log_component_digest(
+        "stage", stored, components, buffers, hfx_state_config->control_key.data());
     // A second pass loads only after the complete object and every component
     // digest have validated. The addressed tensors are disposable staging.
     uint64_t load_offset = payload_offset;
@@ -2602,10 +2691,14 @@ bool rpc_server::hfx_state_commit_apply(const std::vector<uint8_t> & input, hfx_
         ggml_tensor * src = ctx ? hfx_component_tensor(buffers, ctx.get(), hfx_state_pending->staged[i]) : nullptr;
         ggml_tensor * dst = ctx ? hfx_component_tensor(buffers, ctx.get(), live[i]) : nullptr;
         if (!src || !dst) { ok = false; break; }
-        const size_t element_size = ggml_element_size(src);
-        if (element_size == 0 || hfx_state_pending->staged[i].size % element_size != 0) { ok = false; break; }
-        const int64_t elements = hfx_state_pending->staged[i].size / element_size;
-        if (elements <= 0) { ok = false; break; }
+        const uint64_t type_size = ggml_type_size(src->type);
+        const uint64_t block_size = ggml_blck_size(src->type);
+        uint64_t elements_u64 = 0;
+        if (type_size == 0 || block_size == 0 ||
+            hfx_state_pending->staged[i].size % type_size != 0 ||
+            !hfx_mul(hfx_state_pending->staged[i].size / type_size, block_size, elements_u64) ||
+            elements_u64 == 0 || elements_u64 > INT64_MAX) { ok = false; break; }
+        const int64_t elements = static_cast<int64_t>(elements_u64);
         ggml_tensor * src_view = ggml_view_1d(ctx.get(), src, elements, hfx_state_pending->staged[i].offset);
         ggml_tensor * dst_view = ggml_view_1d(ctx.get(), dst, elements, live[i].offset);
         ggml_backend_view_init(src_view);
@@ -2617,7 +2710,8 @@ bool rpc_server::hfx_state_commit_apply(const std::vector<uint8_t> & input, hfx_
         std::vector<hfx_state_object_component> applied_components;
         ok = hfx_live_component_digests(
             buffers, live, request->component_count, applied_components);
-        if (ok) hfx_state_log_component_digest("apply", applied_components);
+        if (ok) ok = hfx_state_log_component_digest(
+            "apply", applied_components, live, buffers, hfx_state_config->control_key.data());
     }
     hfx_state_pending.reset();
     response = hfx_response(RPC_CMD_HALOFPX_STATE_COMMIT_APPLY,
