@@ -1,0 +1,111 @@
+{
+  "schema": "halofpx-l31-corrected-primary-restore-confirmation-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "b630c4f52c849af8cd8ebd30451a8c1268979ce3",
+  "outcome": "not_promoted_first_token_mismatch",
+  "artifact": {
+    "bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "capture": {
+    "coordinator_pid": 1467191,
+    "worker_pid": 2303983,
+    "worker_invocation_id": "499a5d74b87e4958b7294ea98c288623",
+    "object_sha256": "9e05567910ab88509cdde28a39d469543841de0339ed54b4c133a03af9c33b10",
+    "token": 21549,
+    "token_sha256": "7d44cce76babad0e2459d2295ac8704af317509458dd9ea8bbfe2e6cc151e051",
+    "text_sha256": "c7d2216ad33210a1234c043b4074ff70c9a1b127590f612f813d904c597a9746"
+  },
+  "restore": {
+    "coordinator_pid": 1467285,
+    "coordinator_invocation_id": "bf6db1e065324ff89b3fdf5d186bd565",
+    "worker_pid": 2304106,
+    "worker_invocation_id": "763a8c4836f04bb9883c91508b39af54",
+    "token": 9283,
+    "token_sha256": "1d99e63f856e6c2a2903c515234d94ce863b30512beabe1a06e26cef831f9382",
+    "text_sha256": "0f6b1949b093e35266991fbea7a832212d428e874cc0666634faf37f51d4c63b"
+  },
+  "components": {
+    "phases": ["capture", "stage", "apply"],
+    "count_each": 64,
+    "bytes_each": 2454528,
+    "type_8_count_each": 64,
+    "kind_1_count_each": 32,
+    "kind_2_count_each": 32,
+    "bytes_per_component": 38352,
+    "identity_content_mismatch_count": 0,
+    "identity_content_mismatch_ordinals": [],
+    "aggregate_sha256_all": "014a1024f13225a3f7bd7bba6be43dce1106a0354d68b5043f284263cce19bc9",
+    "capture_merkle_sha256": "0fc1f297514f5b7a38f9db179e80df0bb9b5ac6ae3865858d518669ef8a79884",
+    "stage_merkle_sha256": "0fc1f297514f5b7a38f9db179e80df0bb9b5ac6ae3865858d518669ef8a79884",
+    "apply_merkle_sha256": "aac062cc10c560807b80d06bcf49ea79deb563f89d6924b7d933d278a66fe429",
+    "stage_apply_range_difference_count": 63,
+    "stage_apply_range_difference_ordinals": "1-63",
+    "capture_stage_topology_sha256": "cc8fa3afa7634b563265ebcd96b0ba29b967d8e226b6ee90f6abe308c6346024",
+    "apply_topology_sha256": "18710186bc677ad618e79429990274ee8fc34fbaa1f40a67d3d24d185ae14f5c",
+    "overlap_count_each": 0,
+    "buffer_groups_each": 1,
+    "authenticated_report_tag": "b15e5922ebb0c6a0e1670acec358dd2e0fea31bfbfd1f947021f7d57b7a82e31"
+  },
+  "coordinator_receipts": {
+    "capture_restore_equal": true,
+    "control_bytes": 15048,
+    "control_sha256": "2d614e8634f7f9defc4ed59f59b900490e021e382045c566109588bd288a0cbb",
+    "local_bytes": 2301688,
+    "local_sha256": "7117319f7dc2b848d3ce3b35469aee3c62bc93a8262f88cb53949e7bbc5ceaca",
+    "component_manifest_sha256": "7ad364fb0a047ca8db745c439bf8ad3f6fe6b92ae56f7b9f632caa88e47c69b3"
+  },
+  "allocation": {
+    "worker_material_bytes_each_residency": 80950550528
+  },
+  "state_windows": {
+    "capture_get_tensor": 0,
+    "capture_set_tensor": 0,
+    "restore_get_tensor": 0,
+    "restore_set_tensor": 0
+  },
+  "transport": {
+    "controller_records": 625,
+    "child_records": 229,
+    "timeouts": 0
+  },
+  "source_identity": {
+    "source_archive_sha256": "5ffac290e168e8abea724d612a0ed715c5671cf6d5f362c25cfb77b8b3b9d92b",
+    "ggml_rpc_cpp_sha256": "919b2723561d7a8e6c7b60619ed4f99ac78ba7d63e9450996f2f6b9e6afb1eaf",
+    "controller_sha256": "b5b5166f5b4927b2b448acdeaca543da72472905b1bfdf66adb2607eb1af5663",
+    "runner_sha256": "bcd6919b1b5ee523b35282e079a51034a5d35ea92c0d3dac83e07a47f64c24a6",
+    "manifest_sha256": "22fd1e43cb5fdbcfeaed357f1a2fb2ad4e41d02b1153ba361da363d63f509a72",
+    "worker_binary_sha256": "31f1a7c834909eb47992d58e5f3acc155424fafaee9d167778f774f79674b8ac",
+    "canary_binary_sha256": "4bf1933b2bf66af05bfd24a75591a5c307348ca6f43994690e0da03a4403bd4f",
+    "component_analyzer_sha256": "12521ff8f80bdd81b84331f22631a04fcfe7432ce7bae7116d1a5710a6d7f49f"
+  },
+  "focused_tests": {
+    "passed": 88,
+    "failed": 0
+  },
+  "production_after": {
+    "worker_pid": 1468887,
+    "worker_port": 50052,
+    "worker_system_unit_active": true,
+    "coordinator_pid": 2304428,
+    "coordinator_port": 8081,
+    "coordinator_system_unit_active": true,
+    "http": 200,
+    "nrestarts": [0, 0],
+    "worker_first": true
+  },
+  "cleanup_complete": true,
+  "independent_review": {
+    "verdict": "pass_terminal_not_promoted",
+    "path": "docs/halofpx/reviews/2026-07-23__l31-corrected-primary-restore-confirmation__review__v01.md"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l31-primary-20260723",
+    "files": 41,
+    "bytes": 2002777,
+    "tree_sha256": "f8cbc28dace26dbbf25747b38316ba02b77679e49db808c9014aa2215f223de8"
+  },
+  "promotion": false,
+  "retry_performed": false,
+  "l32_opened": false
+}

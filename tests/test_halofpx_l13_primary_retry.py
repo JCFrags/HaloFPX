@@ -1,6 +1,7 @@
 import importlib.util
 import inspect
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -23,6 +24,94 @@ def diagnostic_line(phase, digest, *, components=64, byte_count=2454528):
 
 
 class PrimaryRetryTests(unittest.TestCase):
+    def test_authenticated_component_analyzer_is_wired_and_retained(self):
+        report = {
+            "schema": "halofpx.state-component-diagnostic.v1",
+            "phases": {"capture": {}, "stage": {}, "apply": {}},
+            "mismatches": [],
+            "report_auth_tag": "a" * 64,
+        }
+
+        class Transport:
+            def run(self, host, argv, *, operation="command"):
+                return SimpleNamespace(
+                    returncode=0,
+                    stdout="d" * 64 + "  /analyzer\n",
+                    stderr="")
+
+            def run_stdin(self, host, argv, stdin, *, operation="command"):
+                self.stdin = stdin
+                return SimpleNamespace(
+                    returncode=0, stdout=json.dumps(report), stderr="")
+
+        import json
+        original = (
+            retry.SSH_TRANSPORT, retry.COMPONENT_DIAGNOSTICS,
+            retry.COMPONENT_DIAGNOSTICS_SHA, retry.CONTROL,
+        )
+        try:
+            transport = Transport()
+            retry.SSH_TRANSPORT = transport
+            retry.COMPONENT_DIAGNOSTICS = "/analyzer"
+            retry.COMPONENT_DIAGNOSTICS_SHA = "d" * 64
+            retry.CONTROL = "/protected.key"
+            with tempfile.TemporaryDirectory() as directory:
+                result = retry.require_authenticated_component_diagnostics(
+                    "capture-component", "restore-component", Path(directory))
+                self.assertEqual(result, report)
+                self.assertIn(b"capture-component", transport.stdin)
+                self.assertTrue(
+                    (Path(directory) / "authenticated-component-report.json").is_file())
+        finally:
+            (
+                retry.SSH_TRANSPORT, retry.COMPONENT_DIAGNOSTICS,
+                retry.COMPONENT_DIAGNOSTICS_SHA, retry.CONTROL,
+            ) = original
+
+    def test_authenticated_component_analyzer_refusal_is_fatal(self):
+        class Transport:
+            def run(self, host, argv, *, operation="command"):
+                return SimpleNamespace(
+                    returncode=0, stdout="d" * 64 + "  /analyzer\n", stderr="")
+
+            def run_stdin(self, host, argv, stdin, *, operation="command"):
+                return SimpleNamespace(
+                    returncode=1, stdout="", stderr="overlapping ranges")
+
+        original = (
+            retry.SSH_TRANSPORT, retry.COMPONENT_DIAGNOSTICS,
+            retry.COMPONENT_DIAGNOSTICS_SHA, retry.CONTROL,
+        )
+        try:
+            retry.SSH_TRANSPORT = Transport()
+            retry.COMPONENT_DIAGNOSTICS = "/analyzer"
+            retry.COMPONENT_DIAGNOSTICS_SHA = "d" * 64
+            retry.CONTROL = "/protected.key"
+            with tempfile.TemporaryDirectory() as directory:
+                with self.assertRaisesRegex(retry.CanaryError, "overlapping ranges"):
+                    retry.require_authenticated_component_diagnostics(
+                        "capture", "restore", Path(directory))
+        finally:
+            (
+                retry.SSH_TRANSPORT, retry.COMPONENT_DIAGNOSTICS,
+                retry.COMPONENT_DIAGNOSTICS_SHA, retry.CONTROL,
+            ) = original
+
+    def test_l31_selected_fresh_residency_path_enforces_component_analyzer(self):
+        fresh_source = inspect.getsource(retry.run_diagnostic)
+        legacy_source = inspect.getsource(retry.run_legacy_same_residency_diagnostic)
+        self.assertIn(
+            "require_authenticated_component_diagnostics(", fresh_source)
+        self.assertIn(
+            '"authenticated_component_diagnostics": component_diagnostics',
+            fresh_source)
+        self.assertNotIn(
+            "require_authenticated_component_diagnostics(", legacy_source)
+        self.assertLess(
+            fresh_source.index("require_authenticated_component_diagnostics("),
+            fresh_source.index("if capture_suffix != restore_suffix:"),
+        )
+
     def test_child_ssh_routes_through_closed_operation_classes(self):
         calls = []
 
@@ -447,6 +536,29 @@ class PrimaryRetryTests(unittest.TestCase):
             self.assertEqual(retry.CONTROL, "/var/tmp/halofpx-l29-control.key")
             self.assertIn("/build-l29/bin/rpc-server", retry.WORKER_BIN)
             self.assertIn("/build-l29/bin/test-halofpx", retry.CANARY_BIN)
+            self.assertFalse(retry.FIXTURE_QUALIFICATION)
+            self.assertEqual(retry.CACHE_TYPE_K, "q8_0")
+            self.assertEqual(retry.CACHE_TYPE_V, "q8_0")
+            self.assertEqual(retry.FLASH_ATTN, "on")
+        finally:
+            for name, value in original.items():
+                setattr(retry, name, value)
+
+    def test_l31_primary_configuration_is_exact_and_not_fixture(self):
+        original = {
+            name: getattr(retry, name)
+            for name in (
+                "PORT", "WORKER_BIN", "CANARY_BIN", "CONTROL",
+                "UNIT_PREFIX", "FIXTURE_QUALIFICATION",
+            )
+        }
+        try:
+            retry.configure_l31_primary()
+            self.assertEqual(retry.PORT, 50191)
+            self.assertEqual(retry.UNIT_PREFIX, "halofpx-l31-primary")
+            self.assertEqual(retry.CONTROL, "/var/tmp/halofpx-l31-control.key")
+            self.assertIn("/build-l31/bin/rpc-server", retry.WORKER_BIN)
+            self.assertIn("/build-l31/bin/test-halofpx", retry.CANARY_BIN)
             self.assertFalse(retry.FIXTURE_QUALIFICATION)
             self.assertEqual(retry.CACHE_TYPE_K, "q8_0")
             self.assertEqual(retry.CACHE_TYPE_V, "q8_0")

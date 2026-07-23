@@ -46,7 +46,7 @@
     "placement": "0e62523358f967a2e015bd03e88d9a8edb23ede4cbc6e747c4c06de67c75099a",
     "epoch_receipt": "6ec5f17be6d3dd7ab5aba7d986434539ed4529c4219f4c112c834169f0671527",
     "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
-    "child": "409a6d5a30d906e074d944043c13fd52c260ea06a96a254119e2ac5f920e8267"
+    "child": "bcd6919b1b5ee523b35282e079a51034a5d35ea92c0d3dac83e07a47f64c24a6"
   },
   "child_evidence_subdir": "child",
   "child_argv": [

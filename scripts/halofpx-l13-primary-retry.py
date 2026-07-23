@@ -27,8 +27,10 @@ CANARY_BIN = "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-distr
 READINESS_PROBE = "/var/tmp/halofpx-l24-source-nimo2/scripts/halofpx_rpc_readiness.py"
 PLACEMENT_PROBE = "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-placement-probe"
 EPOCH_RECEIPT = "/var/tmp/halofpx-l24-source-nimo2/scripts/halofpx_epoch_receipt.py"
+COMPONENT_DIAGNOSTICS = ""
 PLACEMENT_PROBE_SHA = "8f4796e3f0912afa614ec35ecdc48322228a4b355e32544aa5a36c3cfbd6267e"
 EPOCH_RECEIPT_SHA = ""
+COMPONENT_DIAGNOSTICS_SHA = ""
 READINESS_PROBE_SHA = "54b546c38ea8d0a4ec273ae33b961090589756788acc1b173f22f1dba3e070da"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -152,6 +154,39 @@ def configure_l29_primary() -> None:
     READINESS_PROBE_SHA = os.environ.get("HALOFPX_L28_READINESS_SHA256", "")
     PLACEMENT_PROBE_SHA = os.environ.get("HALOFPX_L28_PLACEMENT_SHA256", "")
     EPOCH_RECEIPT_SHA = os.environ.get("HALOFPX_L28_EPOCH_RECEIPT_SHA256", "")
+
+
+def configure_l31_primary() -> None:
+    configure_l29_primary()
+    global PORT, WORKER_BIN, CANARY_BIN, READINESS_PROBE, PLACEMENT_PROBE
+    global EPOCH_RECEIPT, REMOTE_EVIDENCE, COORDINATOR_ROOT, WORKER_ROOT
+    global RENDEZVOUS_ROOT, CONTROL, WORKER_CONTROL, ARTIFACT_DIR, UNIT_PREFIX
+    global COMPONENT_DIAGNOSTICS, COMPONENT_DIAGNOSTICS_SHA
+    PORT = 50191
+    WORKER_BIN = "/var/tmp/halofpx-l31-source-nimo1/build-l31/bin/rpc-server"
+    CANARY_BIN = (
+        "/var/tmp/halofpx-l31-source-nimo2/build-l31/bin/"
+        "test-halofpx-distributed-state-canary")
+    READINESS_PROBE = (
+        "/var/tmp/halofpx-l31-source-nimo2/scripts/halofpx_rpc_readiness.py")
+    PLACEMENT_PROBE = (
+        "/var/tmp/halofpx-l31-source-nimo2/build-l31/bin/"
+        "test-halofpx-placement-probe")
+    EPOCH_RECEIPT = (
+        "/var/tmp/halofpx-l31-source-nimo2/scripts/halofpx_epoch_receipt.py")
+    COMPONENT_DIAGNOSTICS = (
+        "/var/tmp/halofpx-l31-source-nimo1/scripts/"
+        "halofpx_state_component_diagnostics.py")
+    COMPONENT_DIAGNOSTICS_SHA = os.environ.get(
+        "HALOFPX_L31_COMPONENT_DIAGNOSTICS_SHA256", "")
+    REMOTE_EVIDENCE = "/var/tmp/halofpx-l31-evidence"
+    COORDINATOR_ROOT = "/var/tmp/halofpx-l31-coordinator"
+    WORKER_ROOT = "/var/tmp/halofpx-l31-worker"
+    RENDEZVOUS_ROOT = "/var/tmp/halofpx-l31-rendezvous"
+    CONTROL = "/var/tmp/halofpx-l31-control.key"
+    WORKER_CONTROL = CONTROL
+    ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
+    UNIT_PREFIX = "halofpx-l31-primary"
 
 
 def run(argv, *, timeout=900, check=True):
@@ -718,6 +753,43 @@ def require_diagnostic_agreement(
     }
 
 
+def require_authenticated_component_diagnostics(
+        capture_journal: str, restore_journal: str, root: Path) -> dict[str, object]:
+    if not COMPONENT_DIAGNOSTICS or not COMPONENT_DIAGNOSTICS_SHA:
+        raise CanaryError("component diagnostic analyzer authority is unavailable")
+    if SSH_TRANSPORT is None:
+        raise CanaryError("bounded SSH transport is unavailable")
+    actual = ssh(NIMO1, "sha256sum", COMPONENT_DIAGNOSTICS).stdout.split()[0]
+    if actual != COMPONENT_DIAGNOSTICS_SHA:
+        raise CanaryError("component diagnostic analyzer hash mismatch")
+    combined = (capture_journal + "\n" + restore_journal).encode("utf-8")
+    result = SSH_TRANSPORT.run_stdin(
+        NIMO1,
+        ["python3", COMPONENT_DIAGNOSTICS, "--log", "/dev/stdin", "--key-file", CONTROL],
+        combined,
+        operation="evidence",
+    )
+    if result.returncode != 0:
+        raise CanaryError(
+            "authenticated component diagnostics refused: "
+            + (result.stderr.strip() or "unknown analyzer failure"))
+    try:
+        report = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise CanaryError("component diagnostic report is malformed") from exc
+    if (
+        not isinstance(report, dict)
+        or report.get("schema") != "halofpx.state-component-diagnostic.v1"
+        or report.get("mismatches") != []
+        or not re.fullmatch(r"[0-9a-f]{64}", str(report.get("report_auth_tag", "")))
+        or set(report.get("phases", {})) != {"capture", "stage", "apply"}
+    ):
+        raise CanaryError("component diagnostic report did not prove exact agreement")
+    path = root / "authenticated-component-report.json"
+    path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return report
+
+
 def require_flushed_capture_evidence(text: str) -> dict[str, str]:
     if not text.endswith("\n"):
         raise CanaryError("capture evidence line is not durably delimited")
@@ -908,13 +980,12 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     if int(restore_fields.get("coordinator_pid", "0")) != restore_coordinator_pid:
         raise CanaryError("restore result PID does not match admitted model residency")
     restore_suffix = fetch_suffix(root, "restore", "restore")
-    if capture_suffix != restore_suffix:
-        raise CanaryError(
-            f"fresh-residency suffix mismatch: capture={capture_suffix} restore={restore_suffix}")
 
     restore_journal = worker_journal(
         restore_unit, restore_invocation, restore_worker_pid)
     (root / "worker-restore.log").write_text(restore_journal, encoding="utf-8")
+    component_diagnostics = require_authenticated_component_diagnostics(
+        capture_journal, restore_journal, root)
     agreement = require_diagnostic_agreement(
         capture_journal, restore_journal, capture_fields, restore_fields)
     capture_window, restore_window = state_windows(capture_journal, restore_journal)
@@ -922,6 +993,9 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         "\n".join(capture_window) + "\n", encoding="utf-8")
     (root / "restore-state-window.log").write_text(
         "\n".join(restore_window) + "\n", encoding="utf-8")
+    if capture_suffix != restore_suffix:
+        raise CanaryError(
+            f"fresh-residency suffix mismatch: capture={capture_suffix} restore={restore_suffix}")
     return {
         "schema": "halofpx.l28.fresh-residency-diagnostic-result.v1",
         "material_model_residencies": 2,
@@ -948,6 +1022,7 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
             "restore": {"tokens": restore_suffix[0], "text": restore_suffix[1]},
         },
         "diagnostic_agreement": agreement,
+        "authenticated_component_diagnostics": component_diagnostics,
         "state_window_get_set": 0,
     }
 
@@ -1156,13 +1231,16 @@ def main() -> int:
     parser.add_argument("--evidence-dir", required=True, type=Path)
     parser.add_argument("--l28-fixture", action="store_true")
     parser.add_argument("--l29-primary", action="store_true")
+    parser.add_argument("--l31-primary", action="store_true")
     args = parser.parse_args()
-    if args.l28_fixture and args.l29_primary:
+    if sum((args.l28_fixture, args.l29_primary, args.l31_primary)) > 1:
         parser.error("fixture and primary modes are mutually exclusive")
     if args.l28_fixture:
         configure_l28_fixture()
     if args.l29_primary:
         configure_l29_primary()
+    if args.l31_primary:
+        configure_l31_primary()
     root = args.evidence_dir.resolve()
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     initialize_ssh_transport(root)
