@@ -1,18 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-23T10:48:46-07:00",
+  "updated_at": "2026-07-23T11:00:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l21_resumed_after_interrupted_fail_closed_refusal_attempt",
+  "worker_status": "l21_complete_pass_l22_authorized",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "e2edc4b3277f5385118e759ed9f89c1ea0a7445a",
-  "last_observed_milestone": "L20 NOT PROMOTED; three residencies were proven sufficient and necessary, but the candidate manifest/evidence contract failed five focused review findings and was removed",
-  "last_decision": "replace_periodic_heartbeat_with_worker_reported_event_boundaries_without_changing_l21_scope",
-  "last_progress": "L21's first real refusal attempt failed closed because an opaque journal cursor was exposed to remote fish without safe argv quoting; cleanup completed, the failed archive was retained, and the interrupted worker was resumed for the narrow quoting/cursor repair",
+  "last_verified_head": "851dc6f1af55c856532a5908516ebed9a5679891",
+  "last_observed_milestone": "L21 PASS; closed execution/evidence contract accepted after 13 focused tests, real allocation refusal, immutable v9 evidence, and independent review",
+  "last_decision": "accept_l21_and_authorize_one_guarded_l22_primary_cache_correctness_canary",
+  "last_progress": "L21 completed cleanly without primary access or production mutation; production remained unchanged and all disposable resources were removed",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
-  "next_check_trigger": "native L21 task completion or attention event, or explicit user request; no periodic polling"
+  "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
+  "next_check_trigger": "direct worker message to the manager task on L22 completion/attention, or explicit user request; no periodic polling"
 }

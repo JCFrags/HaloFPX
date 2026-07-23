@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 10:48 PDT
+Verified: 2026-07-23 11:00 PDT
 
 ## Overall state
 
@@ -9,31 +9,27 @@ suitable as the primary implementation owner. Earlier excessive test expansion
 has been corrected by steering; recent work uses bounded kill gates and removes
 slower candidates.
 
-Project-lead monitoring is now event-driven only. The 30-minute heartbeat was
-deleted. The primary worker has explicit completion, blocker, safety, regression,
-scope, context, and no-progress reporting thresholds and will end its task turn
-at those boundaries. No periodic manager polling remains.
+Project-lead monitoring is event-driven only. The 30-minute heartbeat was
+deleted. Because a worker final response does not itself inject an event into
+the manager task, workers must now send their boundary report directly to the
+Project Lead task before ending their own turn. No periodic polling remains.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `e2edc4b3277f5385118e759ed9f89c1ea0a7445a`
+- Latest verified commit: `851dc6f1af55c856532a5908516ebed9a5679891`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L20 closeout
+- Worktree state: clean at the reviewed terminal L21 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
-- Current work: L20 measured that the honest complete canary requires three
-  model residencies rather than six, but its candidate controller was rejected
-  for incomplete manifest ownership and fail-open evidence handling. The
-  candidate source was removed and production stayed untouched. L21 was
-  dispatched as a targeted no-production contract repair only; no primary
-  attempt is authorized. Its first real refusal exercise failed closed before
-  evidence acceptance because a journal cursor was not safely quoted for the
-  remote fish shell. Cleanup completed and the immutable failed evidence was
-  retained. The interrupted task has been resumed to finish that narrow repair.
+- Current work: L21 passed. Its closed manifest/evidence controller survived a
+  real early-allocation refusal, retained mandatory PID/InvocationID/cursor,
+  journal, disk, archive, production-equality, and cleanup evidence, passed 13
+  focused tests, and was independently accepted. Production remained unchanged.
+  The exact primary-model cache canary is now unblocked for one guarded attempt.
 
 ## Product progress
 

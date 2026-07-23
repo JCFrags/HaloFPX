@@ -16,6 +16,10 @@
   only on worker completion/attention events or an explicit user request.
 - Every event report must state exact HEAD and worktree status, result evidence,
   production health if touched, and the precise next decision or action needed.
+- Ending a worker task is not sufficient notification. Before ending its turn,
+  the worker must send the same event report directly to Project Lead task
+  `019f6ece-b364-79c2-8c40-e9c025d9499d` using the Codex task-messaging tool.
+  Its own final response remains the durable worker-side record.
 
 ## State check before steering
 

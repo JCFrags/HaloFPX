@@ -1,5 +1,28 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L21 and authorize one guarded L22 primary canary
+
+Decision: accept L21 commit
+`851dc6f1af55c856532a5908516ebed9a5679891`. Authorize one L22
+controller-managed maintenance transition for the pinned 160 GB ROCmFPX model
+and exact cache correctness canary. This is not production enablement or final
+performance promotion.
+
+Reason: L21 closes every execution/evidence defect that rejected the L20
+controller. The accepted v9 archive binds the real refusal to exact process and
+journal authority, makes all evidence and cleanup mandatory, proves unchanged
+production, and passed independent review. The already measured three-residency
+lifecycle is the minimum honest cache canary and must not be broadened.
+
+L22 must use the closed manifest/controller, exact model hash and primary
+request, explicit `RPC0,ROCm0` placement, the accepted three-residency sequence,
+and one maintenance transition. It must prove exact uninterrupted/restored/cold
+suffix equality, rank-local immutable objects, zero legacy state-page GET/SET
+during capture/restore, bounded corruption/missing/plan-mismatch cold fallback,
+actual allocation and timing evidence, and full worker-first production
+restoration. Any failure closes L22 without an automatic retry. No unrelated
+tuning, cache promotion, broad matrix, or L23 work is authorized.
+
 ## 2026-07-23 — replace periodic monitoring with worker-reported events
 
 Decision: delete the 30-minute project-lead heartbeat and use native worker
