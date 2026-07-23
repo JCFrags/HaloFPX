@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 14:33 PDT
+Verified: 2026-07-23 15:01 PDT
 
 ## Overall state
 
@@ -103,6 +103,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   model-B readiness and current epoch revalidation before restore authorization.
   The disposable capture/restore was exact. L29 is authorized for one primary
   transition using only this two-residency, one-token discriminator.
+- L29 completed the single two-residency primary transition and reached output
+  comparison. Capture and restored token/text hashes differ, so the run failed
+  closed and will not be repeated. Production recovered worker-first and is
+  healthy at nimo-2 PID 1454894/50052 and nimo-1 PID 2283857/8081/HTTP 200,
+  both `NRestarts=0`. Final boundary localization awaits the committed
+  capture/stage/apply worker and coordinator digest closeout.
 
 ## Product progress
 

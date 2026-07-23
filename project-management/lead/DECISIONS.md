@@ -1,5 +1,17 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — close L29 after fresh-residency output mismatch
+
+Decision: direct L29 to close NOT PROMOTED after immutable evidence, cleanup,
+and independent review. Do not retry, implement a correction, or open L30.
+
+Reason: the single authorized primary transition completed both valid fresh
+worker/model residencies and reached exact one-token comparison, but capture
+and restore token/text hashes differed. The runner failed closed and restored
+production worker-first. The next lane depends on the final authenticated
+capture/stage/apply worker aggregates and coordinator receipt digests, so no
+causal interpretation is admitted before reviewed closeout.
+
 ## 2026-07-23 — accept L28 and authorize one L29 primary discriminator
 
 Decision: accept reviewed L28 PASS commit
