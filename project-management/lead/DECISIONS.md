@@ -1,5 +1,23 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept terminal L22 and open no-production L23 diagnosis
+
+Decision: accept L22 NOT PROMOTED commit
+`4d2821b3a318d2d38f93a30aa2f3a2263cc4d01d`. Open L23 only to identify the
+earliest restored-state divergence using retained evidence, source tracing,
+offline instrumentation, focused tests, and the accepted disposable fixture.
+Do not load the primary artifact, mutate production, retry L22, or tune.
+
+Reason: the rank-local persistence mechanism captured and restored the expected
+byte/component counts without state-page GET/SET, and every cold path remained
+exact, but the true restart-restored continuation differed. This is a hard
+correctness failure. L23 must distinguish component completeness/order,
+sequence/KV metadata, allocation/layout authority, Q8_0 behavior, flash
+attention, architecture-specific state, and rank ownership through evidence,
+not speculation. It may deliver a reviewed narrow default-off correction or a
+precise smallest discriminating primary experiment; the latter needs a new
+Project Lead decision.
+
 ## 2026-07-23 — require manifest-to-process argv binding before L22 mutation
 
 Decision: retain the accepted fixture evidence and uncommitted L22 work, but

@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 11:24 PDT
+Verified: 2026-07-23 11:52 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `851dc6f1af55c856532a5908516ebed9a5679891`
+- Latest verified commit: `4d2821b3a318d2d38f93a30aa2f3a2263cc4d01d`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L21 closeout
+- Worktree state: clean at the reviewed terminal L22 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -44,6 +44,13 @@ Project Lead task before ending their own turn. No periodic polling remains.
   `Popen` before shutdown. Production remained untouched. A narrow
   no-production exact-argv/evidence-path binding repair and re-review is now
   authorized.
+- L22 is terminal NOT PROMOTED. The single exact 160 GB attempt proved exact
+  capture, cold, missing-object fallback, plan-mismatch fallback, and mode-off
+  continuations, with rank-local worker state and zero legacy state-page
+  GET/SET. True worker-restart restore produced a different continuation and
+  failed closed. Production recovered worker-first and is healthy. L23 is open
+  only for offline/source/disposable diagnosis of the earliest restored-state
+  divergence; it authorizes no primary load or production mutation.
 
 ## Product progress
 
