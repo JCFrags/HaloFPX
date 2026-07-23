@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 16:11 PDT
+Verified: 2026-07-23 16:21 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `b630c4f52c849af8cd8ebd30451a8c1268979ce3`
+- Latest verified commit: `60f4272c4a9f0ecb9e365e0c32e697513668d043`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L30 closeout
+- Worktree state: clean at the reviewed terminal L31 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -134,6 +134,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   1468887/50052 and nimo-1 PID 2304428/8081/HTTP 200, both `NRestarts=0`.
   The next decision is intentionally deferred until independent review freezes
   the authenticated component-level capture/stage/apply comparison.
+- L31 is reviewed and committed NOT PROMOTED. All 64 worker components now have
+  identical authenticated identity/content after live apply and coordinator
+  input receipts match, yet the first token differs. L32 is open only to
+  recapture the restored live coordinator/context state before generation and
+  compare it canonically with the original capture, including control metadata,
+  local components, sequence/KV cell state, and architecture-exposed memory.
 
 ## Product progress
 

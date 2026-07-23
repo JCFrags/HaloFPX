@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L31 and diagnose live coordinator state
+
+Decision: accept reviewed L31 NOT PROMOTED commit
+`60f4272c4a9f0ecb9e365e0c32e697513668d043`. Open L32 only for default-off
+post-apply live-state recapture, source audit, focused tests, and disposable
+qualification. No primary load or production transition is authorized.
+
+Reason: worker capture/stage/live-apply identity and content are now exact, and
+saved coordinator input receipts match, but the restored token remains wrong.
+Input-blob equality does not prove that live coordinator control/local state was
+applied completely or remained intact before generation. L32 must compare an
+independent post-apply recapture with the original capture and inspect sequence,
+KV-cell, local tensor, recurrent, and architecture-specific memory authority.
+
 ## 2026-07-23 — close L31 after corrected primary token mismatch
 
 Decision: direct L31 to close NOT PROMOTED after immutable component evidence,
