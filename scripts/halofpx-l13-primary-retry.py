@@ -615,7 +615,42 @@ def require_flushed_capture_evidence(text: str) -> dict[str, str]:
     return capture
 
 
+def require_fresh_rpc_model_residency(
+        capture_worker_invocation: str,
+        restore_worker_invocation: str,
+        capture_coordinator_pid: int,
+        restore_coordinator_pid: int,
+        restore_model_loaded_after_worker: bool) -> None:
+    """Refuse restore unless both sides have fresh post-restart lifetime authority."""
+    invocation = re.compile(r"[0-9a-f]{32}")
+    if (
+        not invocation.fullmatch(capture_worker_invocation)
+        or not invocation.fullmatch(restore_worker_invocation)
+        or capture_worker_invocation == restore_worker_invocation
+    ):
+        raise CanaryError("restore requires an exact changed worker InvocationID")
+    if (
+        capture_coordinator_pid <= 0
+        or restore_coordinator_pid <= 0
+        or capture_coordinator_pid == restore_coordinator_pid
+    ):
+        raise CanaryError("restore requires a fresh coordinator process/model residency")
+    if not restore_model_loaded_after_worker:
+        raise CanaryError("restore model residency must load after the restarted worker")
+
+
 def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
+    # The legacy diagnostic sequence retains resident_init across capture and
+    # restore. A worker restart invalidates every RPC model/buffer allocation
+    # in that residency, so it is forbidden before any model load. A valid
+    # diagnostic must use a second coordinator process which calls
+    # require_fresh_rpc_model_residency() before state staging.
+    raise CanaryError(
+        "same-residency RPC restart continuation is forbidden; "
+        "start a fresh coordinator/model residency after worker restart")
+
+
+def run_legacy_same_residency_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     capture_unit = "halofpx-l24-primary-worker-capture"
     restore_unit = "halofpx-l24-primary-worker-restore"
     local_units.extend([capture_unit, restore_unit])

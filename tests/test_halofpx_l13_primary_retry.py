@@ -387,6 +387,32 @@ class PrimaryRetryTests(unittest.TestCase):
             retry.stop_worker("fixture")
         self.assertFalse(any("stop" in call for call in calls))
 
+    def test_same_residency_diagnostic_refuses_before_worker_or_model_start(self):
+        with mock.patch.object(retry, "start_worker") as start:
+            with self.assertRaisesRegex(
+                    retry.CanaryError, "same-residency RPC restart continuation is forbidden"):
+                retry.run_diagnostic(Path("evidence"), [])
+        start.assert_not_called()
+
+    def test_fresh_rpc_residency_accepts_changed_worker_and_coordinator(self):
+        retry.require_fresh_rpc_model_residency(
+            "1" * 32, "2" * 32, 101, 202, True)
+
+    def test_fresh_rpc_residency_rejects_unchanged_worker_epoch(self):
+        with self.assertRaisesRegex(retry.CanaryError, "changed worker InvocationID"):
+            retry.require_fresh_rpc_model_residency(
+                "1" * 32, "1" * 32, 101, 202, True)
+
+    def test_fresh_rpc_residency_rejects_same_coordinator_process(self):
+        with self.assertRaisesRegex(retry.CanaryError, "fresh coordinator"):
+            retry.require_fresh_rpc_model_residency(
+                "1" * 32, "2" * 32, 101, 101, True)
+
+    def test_fresh_rpc_residency_rejects_load_before_worker_restart(self):
+        with self.assertRaisesRegex(retry.CanaryError, "load after"):
+            retry.require_fresh_rpc_model_residency(
+                "1" * 32, "2" * 32, 101, 202, False)
+
 
 if __name__ == "__main__":
     unittest.main()

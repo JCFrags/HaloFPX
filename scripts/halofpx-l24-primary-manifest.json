@@ -43,7 +43,7 @@
     "readiness": "54b546c38ea8d0a4ec273ae33b961090589756788acc1b173f22f1dba3e070da",
     "placement": "8f4796e3f0912afa614ec35ecdc48322228a4b355e32544aa5a36c3cfbd6267e",
     "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
-    "child": "4646a1a0ecf40cb3fc0be412cb28b77e5daba61d42fd4bb8ce6ceccaa0ae0cca"
+    "child": "0017e5e52d2043dbc32e177c8421473192c7f2dad1ca57c745e3ccf5a464ba8c"
   },
   "child_evidence_subdir": "child",
   "child_argv": [

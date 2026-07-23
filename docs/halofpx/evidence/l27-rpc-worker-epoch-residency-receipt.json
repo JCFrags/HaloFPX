@@ -1,0 +1,68 @@
+{
+  "schema": "halofpx-l27-rpc-worker-epoch-residency-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "9b45bb9c844ec224fbd6fc3b39bdfe23eec11ee3",
+  "outcome": "pass_source_backed_epoch_residency_authority",
+  "fixture": {
+    "bytes": 19077344,
+    "sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "port": 50187,
+    "cache_k": "f16",
+    "cache_v": "f16",
+    "flash_attention": false
+  },
+  "capture": {
+    "token": 4245,
+    "worker_components": 1156,
+    "worker_bytes": 5197824,
+    "worker_aggregate_sha256": "ed62ec5b04cc53ce870ddd6df1d8eefc10a0e4f44e2a699deb879ebf4462fdbc",
+    "worker_pid": 2257439,
+    "worker_invocation_id": "8654d450c95b43dba81f7474405d8ce1"
+  },
+  "restart": {
+    "worker_pid": 2257496,
+    "worker_invocation_id": "a09e1eafe62143e1b3a9489105cbb6af"
+  },
+  "same_coordinator_residency": {
+    "result": "sigabrt",
+    "boundary": "post_restart_context_rpc_buffer_allocation",
+    "message": "Remote RPC server crashed or returned malformed response"
+  },
+  "fresh_coordinator_residency": {
+    "result": "exact_restore",
+    "token": 4245,
+    "worker_components": 1156,
+    "worker_bytes": 5197824,
+    "control_sha256": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+    "local_sha256": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee",
+    "manifest_sha256": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1"
+  },
+  "guard": {
+    "runner_sha256": "0017e5e52d2043dbc32e177c8421473192c7f2dad1ca57c745e3ccf5a464ba8c",
+    "manifest_sha256": "468b4fede1a7e37b8fb75787f951b711252ccae35e4ec89993ba55e3d70a1d52",
+    "focused_tests_passed": 71,
+    "focused_tests_failed": 0,
+    "integration": "standalone_validator_not_yet_consumed_by_a_fresh_residency_runner"
+  },
+  "production": {
+    "mutated": false,
+    "coordinator_pid": 2248156,
+    "coordinator_http": 200,
+    "worker_pid": 1422619,
+    "nrestarts": [0, 0]
+  },
+  "cleanup_complete": true,
+  "independent_review": {
+    "verdict": "pass",
+    "material_findings_remaining": 0,
+    "review": "docs/halofpx/reviews/2026-07-23__l27-rpc-worker-epoch-residency__review__v01.md"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l27-rpc-epoch-20260723",
+    "files": 10,
+    "bytes": 375439,
+    "tree_sha256": "f1bdacfb0ad216eb4bfdc05e9c8e15f170127bbf07b47d615c39642b0e168588"
+  },
+  "primary_artifact_accessed": false,
+  "promotion": false
+}
