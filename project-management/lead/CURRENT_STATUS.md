@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 12:11 PDT
+Verified: 2026-07-23 12:41 PDT
 
 ## Overall state
 
@@ -58,6 +58,13 @@ Project Lead task before ending their own turn. No periodic polling remains.
   primary-model load and only capture plus true worker-restart restore with
   minimum deterministic output. It is diagnostic, not a cache retry or
   promotion.
+- L24 capture completed, but a controller-owned SSH readiness probe hung.
+  Terminating the disposable child triggered emergency recovery, whose first
+  SSH probe also hung. Both production services were temporarily inactive.
+  The bounded stuck subprocess was cleared and the existing controller restored
+  nimo-2 worker first (PID 1415055/50052), then nimo-1 coordinator (PID
+  2236922/8081/HTTP 200), both `NRestarts=0`. No retry is authorized. L24 is
+  closing NOT PROMOTED with the diagnostic and recovery evidence preserved.
 
 ## Product progress
 

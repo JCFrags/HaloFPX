@@ -1,5 +1,18 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — close L24 after recovered controller SSH hang
+
+Decision: accept the completed worker-first/coordinator-second emergency
+recovery and direct L24 to close NOT PROMOTED after immutable evidence,
+cleanup reconciliation, and independent review. Do not retry or open L25.
+
+Reason: the single authorized transition captured primary state but hung in a
+controller-owned SSH readiness probe; recovery initially hung in another SSH
+probe while both production services were inactive. Clearing only the stuck
+subprocess allowed the same recovery trap to restore exact production
+authority to HTTP 200 with zero service restarts. The SSH hang and recovery
+behavior are material controller-reliability evidence and must be retained.
+
 ## 2026-07-23 — accept L23 and authorize one L24 primary discriminator
 
 Decision: accept reviewed L23 commit
