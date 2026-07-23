@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-22 21:24 PDT
+Verified: 2026-07-23 09:53 PDT
 
 ## Overall state
 
@@ -25,7 +25,10 @@ slower candidates.
   for incomplete manifest ownership and fail-open evidence handling. The
   candidate source was removed and production stayed untouched. L21 was
   dispatched as a targeted no-production contract repair only; no primary
-  attempt is authorized.
+  attempt is authorized. Its first real refusal exercise failed closed before
+  evidence acceptance because a journal cursor was not safely quoted for the
+  remote fish shell. Cleanup completed and the immutable failed evidence was
+  retained. The interrupted task has been resumed to finish that narrow repair.
 
 ## Product progress
 
