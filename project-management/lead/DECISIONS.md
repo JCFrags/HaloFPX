@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L28 and authorize one L29 primary discriminator
+
+Decision: accept reviewed L28 PASS commit
+`09123048522281025afb532715f20457ac4b9918`. Authorize one primary transition
+with exactly two material model residencies and one capture/restored token.
+No additional case, retry, correction, tuning, promotion, or L30 is authorized.
+
+Reason: L28 wires the proven RPC epoch rule into the actual pre-staging path.
+Capture model A terminates before worker A, worker B is distinct and current,
+fresh model B loads entirely against B, and authenticated capture
+object/epoch-A lineage plus target epoch B are validated before staging. The
+disposable result is exact. This is now the smallest valid primary experiment
+that can compare capture/stage/apply worker bytes without stale RPC handles.
+
 ## 2026-07-23 — accept L27 and wire a fresh-residency restore runner
 
 Decision: accept reviewed L27 PASS commit

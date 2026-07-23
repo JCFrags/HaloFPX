@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 13:56 PDT
+Verified: 2026-07-23 14:33 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `5616abb2c19c1611c3852575270ad41b43085921`
+- Latest verified commit: `09123048522281025afb532715f20457ac4b9918`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L27 closeout
+- Worktree state: clean at the reviewed terminal L28 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -97,6 +97,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   is open only to wire worker epoch and model-allocation epoch authority into
   the real fresh-residency runner and qualify that two-residency lifecycle on
   the disposable model.
+- L28 passed 78 focused tests and independent review. The executable runner now
+  enforces two fresh model residencies, authenticated capture-object/epoch-A
+  lineage, coordinator-A-before-worker-A shutdown, distinct worker B, complete
+  model-B readiness and current epoch revalidation before restore authorization.
+  The disposable capture/restore was exact. L29 is authorized for one primary
+  transition using only this two-residency, one-token discriminator.
 
 ## Product progress
 

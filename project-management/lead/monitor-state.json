@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-23T13:56:06-07:00",
+  "updated_at": "2026-07-23T14:33:26-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l28_no_production_fresh_residency_runner_and_epoch_guard_integration",
+  "worker_status": "active_l29_single_primary_two_fresh_residency_one_token_discriminator",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "5616abb2c19c1611c3852575270ad41b43085921",
-  "last_observed_milestone": "L27 PASS; same-residency use after worker restart reproduced RPC failure, while a fresh coordinator/model residency against the new worker restored the disposable model exactly",
-  "last_decision": "accept_l27_and_open_l28_no_production_fresh_residency_runner_with_wired_epoch_authority",
-  "last_progress": "L27 proved worker-process restart invalidates remote model/buffer/graph handles and that honest restart restore requires two material model residencies",
+  "last_verified_head": "09123048522281025afb532715f20457ac4b9918",
+  "last_observed_milestone": "L28 PASS; wired two-residency epoch guard and authenticated capture lineage produced exact disposable restore with zero legacy state-page transfer",
+  "last_decision": "accept_l28_and_authorize_one_l29_primary_two_fresh_residency_one_token_discriminator",
+  "last_progress": "L28 made the valid worker-A/model-A to worker-B/model-B lifecycle executable and fail-closed before staging",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct worker message to the manager task on L28 completion/attention, or explicit user request; no periodic polling"
+  "next_check_trigger": "direct worker message to the manager task on L29 completion/attention, or explicit user request; no periodic polling"
 }
