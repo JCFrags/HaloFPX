@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-21 20:16 PDT
+Verified: 2026-07-22 21:24 PDT
 
 ## Overall state
 
@@ -23,8 +23,9 @@ slower candidates.
 - Current work: L20 measured that the honest complete canary requires three
   model residencies rather than six, but its candidate controller was rejected
   for incomplete manifest ownership and fail-open evidence handling. The
-  candidate source was removed and production stayed untouched. L21 is a
-  targeted no-production contract repair only; no primary attempt is authorized.
+  candidate source was removed and production stayed untouched. L21 was
+  dispatched as a targeted no-production contract repair only; no primary
+  attempt is authorized.
 
 ## Product progress
 

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-21T20:16:59-07:00",
+  "updated_at": "2026-07-22T21:24:08-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
-  "worker_cursor": "d4ebde3f-c8e6-4eca-9322-8c81a47e736a:2",
-  "worker_status": "l20_terminal_not_promoted_l21_authorized_dispatch_unconfirmed",
+  "worker_cursor": "53091f7f-fd07-4f70-b556-c284fdc76234:1",
+  "worker_status": "active_l21_targeted_no_production_contract_repair",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
   "last_verified_head": "e2edc4b3277f5385118e759ed9f89c1ea0a7445a",
   "last_observed_milestone": "L20 NOT PROMOTED; three residencies were proven sufficient and necessary, but the candidate manifest/evidence contract failed five focused review findings and was removed",
   "last_decision": "accept_l20_lifecycle_evidence_and_open_l21_targeted_no_production_contract_repair",
-  "last_progress": "L20 preserved exact small-model cache semantics and production safety; an L21 follow-up send was attempted but the task coordination call timed out before confirming delivery",
-  "next_check_trigger": "At the next heartbeat take one task snapshot: if L21 is active, do not resend; if the worker remains idle at e2edc4b, retry the exact authorized L21 follow-up once"
+  "last_progress": "The first L21 follow-up was not delivered; the next task snapshot confirmed the worker idle at e2edc4b, and the exact authorized L21 prompt was then delivered successfully",
+  "next_check_trigger": "L21 task completion or attention; otherwise one fallback heartbeat snapshot after a 30-45 minute source/build/focused-test expectation"
 }
