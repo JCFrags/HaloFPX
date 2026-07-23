@@ -1,5 +1,17 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — close L31 after corrected primary token mismatch
+
+Decision: direct L31 to close NOT PROMOTED after immutable component evidence,
+cleanup, and independent review. Do not retry, change semantics, or open L32.
+
+Reason: the one authorized corrected primary restore still produced a different
+first token. Production recovered exactly. The authenticated per-component
+evidence was retained before token rejection, so the next diagnosis must be
+chosen only after reviewed capture/stage/apply mismatch localization rather
+than assuming whether the Q8 correction was insufficient or another boundary
+is responsible.
+
 ## 2026-07-23 — accept L30 and authorize one corrected L31 primary restore
 
 Decision: accept reviewed L30 PASS commit

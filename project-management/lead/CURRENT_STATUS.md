@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 15:35 PDT
+Verified: 2026-07-23 16:11 PDT
 
 ## Overall state
 
@@ -128,6 +128,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   full block geometry and passed exact Q8 RPC, view, and disposable
   two-residency tests plus independent review. L31 is authorized for one
   corrected primary two-residency, one-token confirmation.
+- L31 consumed the single corrected primary transition but the first restored
+  token still differed from capture, so it is terminal NOT PROMOTED with no
+  retry. Production recovered worker-first and is healthy at nimo-2 PID
+  1468887/50052 and nimo-1 PID 2304428/8081/HTTP 200, both `NRestarts=0`.
+  The next decision is intentionally deferred until independent review freezes
+  the authenticated component-level capture/stage/apply comparison.
 
 ## Product progress
 
