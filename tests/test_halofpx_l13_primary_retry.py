@@ -15,6 +15,54 @@ SPEC.loader.exec_module(retry)
 
 
 class PrimaryRetryTests(unittest.TestCase):
+    def test_child_ssh_routes_through_closed_operation_classes(self):
+        calls = []
+
+        class Transport:
+            def run(self, host, argv, *, operation):
+                calls.append((host, argv, operation))
+                return SimpleNamespace(returncode=0, stdout="ok\n", stderr="")
+
+        prior = retry.SSH_TRANSPORT
+        retry.SSH_TRANSPORT = Transport()
+        try:
+            retry.ssh("nimo-1", "hostname")
+            retry.ssh("nimo-2", "systemd-run", "--user", "--unit=x")
+        finally:
+            retry.SSH_TRANSPORT = prior
+        self.assertEqual(calls[0][2], "command")
+        self.assertEqual(calls[1][2], "model-session")
+
+    def test_child_session_setup_failure_uses_shared_cleanup_and_evidence(self):
+        process = SimpleNamespace(pid=77, returncode=-9)
+        records = []
+
+        class Shared:
+            @staticmethod
+            def _create_windows_job(_process):
+                raise OSError("job refused")
+
+            @staticmethod
+            def _cleanup_setup_failure(_process):
+                return True, True, "taskkill_rc=0"
+
+        module = SimpleNamespace(
+            SshRunner=Shared,
+            SSH_OPERATION_DEADLINES={"model-session": 1800.0},
+        )
+        transport = SimpleNamespace(_record=lambda value: records.append(value))
+        prior_module, prior_transport = retry.SSH_TRANSPORT_MODULE, retry.SSH_TRANSPORT
+        retry.SSH_TRANSPORT_MODULE, retry.SSH_TRANSPORT = module, transport
+        try:
+            with mock.patch.object(retry.subprocess, "Popen", return_value=process):
+                with self.assertRaises(retry.CanaryError):
+                    retry.start_bounded_ssh_session("nimo-2", "systemd-run x")
+        finally:
+            retry.SSH_TRANSPORT_MODULE, retry.SSH_TRANSPORT = prior_module, prior_transport
+        self.assertEqual(records[0]["failure_class"], "process-group-setup")
+        self.assertTrue(records[0]["term_sent"])
+        self.assertTrue(records[0]["kill_sent"])
+
     def test_consumes_preprovisioned_identical_keys_without_secret_argv(self):
         digest = "a" * 64
         responses = iter((
@@ -234,6 +282,24 @@ class PrimaryRetryTests(unittest.TestCase):
         )
         with self.assertRaises(retry.CanaryError):
             retry.require_diagnostic_agreement(capture, restore, fields, dict(fields))
+
+    def test_flushed_capture_evidence_requires_authenticated_complete_line(self):
+        line = (
+            "mode=capture label=capture "
+            f"control_sha256={'a' * 64} local_sha256={'b' * 64} "
+            f"component_manifest_sha256={'c' * 64} "
+            "prompt_tokens=1129 saved_boundary=1128 n_batch=512 "
+            "worker_bytes=2454528 worker_components=64 tokens=21549,\n"
+        )
+        fields = retry.require_flushed_capture_evidence(line)
+        self.assertEqual(fields["tokens"], "21549,")
+        for partial in (
+            line.replace("control_sha256=" + "a" * 64, "control_sha256=bad"),
+            line.replace("tokens=21549,", "tokens=9283,"),
+            line[:-1],
+        ):
+            with self.assertRaises(retry.CanaryError):
+                retry.require_flushed_capture_evidence(partial)
 
     def test_fault_fallbacks_require_exact_reason(self):
         fields = {

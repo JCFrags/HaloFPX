@@ -512,6 +512,7 @@ static int run_canary(int argc, char ** argv) {
             coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
         for (auto token : generated) std::printf("%d,", token);
         std::printf("\n");
+        std::fflush(stdout);
         if (owns_ctx) llama_free(ctx);
         return 0;
     }
@@ -638,6 +639,7 @@ static int run_canary(int argc, char ** argv) {
     for (auto token : generated) std::printf("%d,", token);
     if (!fallback_reason.empty()) std::printf(" fallback=cold reason=%s", fallback_reason.c_str());
     std::printf("\n");
+    std::fflush(stdout);
     if (owns_ctx) llama_free(ctx);
     return 0;
 }

@@ -1,8 +1,11 @@
 import importlib.util
 import hashlib
 import json
+import os
+import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -65,7 +68,7 @@ class FakeRunner:
             for name in ("worker", "canary", "readiness", "placement")
         }
 
-    def run_stdin(self, host, argv, stdin):
+    def run_stdin(self, host, argv, stdin, *, operation="command"):
         argv = list(argv)
         self.stdin_calls.append((host, argv))
         if argv[:4] != ["install", "-m", "600", "/dev/stdin"]:
@@ -81,7 +84,7 @@ class FakeRunner:
             }
         return transition.CommandResult(0, "")
 
-    def run(self, host, argv):
+    def run(self, host, argv, *, operation="command"):
         argv = list(argv)
         if argv == ["hostname"]:
             return transition.CommandResult(0, self.hostname[host] + "\n")
@@ -200,6 +203,44 @@ class FakeRunner:
                 self.disposable_port_open = False
             return transition.CommandResult(0, "")
         return transition.CommandResult(99, "", f"unexpected command: {argv}")
+
+
+class NeverReturningProcess:
+    next_pid = 9000
+
+    def __init__(self, *, stdout=b"", stderr=b"", ignore_term=False):
+        self.pid = NeverReturningProcess.next_pid
+        NeverReturningProcess.next_pid += 1
+        self.returncode = None
+        self.stdout_prefix = stdout
+        self.stderr_prefix = stderr
+        self.ignore_term = ignore_term
+        self.terminated = False
+        self.wait_calls = 0
+
+    def communicate(self, input=None, timeout=None):
+        if timeout is not None:
+            raise transition.subprocess.TimeoutExpired(
+                ["ssh"], timeout, output=self.stdout_prefix, stderr=self.stderr_prefix)
+        self.returncode = -9 if self.ignore_term else -15
+        return b"", b""
+
+    def poll(self):
+        return self.returncode
+
+    def terminate(self):
+        self.terminated = True
+        if not self.ignore_term:
+            self.returncode = -15
+
+    def wait(self, timeout=None):
+        self.wait_calls += 1
+        if self.returncode is not None:
+            return self.returncode
+        if self.ignore_term and self.wait_calls == 1:
+            raise transition.subprocess.TimeoutExpired(["ssh"], timeout)
+        self.returncode = -9
+        return self.returncode
 
 
 class ControllerTests(unittest.TestCase):
@@ -605,9 +646,190 @@ class ManifestBindingTests(unittest.TestCase):
             ], runner=fake)
         self.assertEqual(result, 0)
         self.assertEqual(popen.call_args.args[0], self.expected)
+
+
+class BoundedSshRunnerTests(unittest.TestCase):
+    def make_runner(self, root, process):
+        deadlines = dict(transition.SSH_OPERATION_DEADLINES)
+        deadlines["command"] = 0.01
+        deadlines["recovery-probe"] = 0.01
+        return transition.SshRunner(
+            Path(root), deadlines=deadlines,
+            popen_factory=lambda *args, **kwargs: process,
+        )
+
+    def test_never_returning_ssh_is_typed_reaped_and_evidenced(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            process = NeverReturningProcess()
+            runner = self.make_runner(tmp, process)
+            with self.assertRaises(transition.SshTimeoutError) as caught:
+                runner.run("nimo-1", ["hostname"], operation="command")
+            self.assertEqual(caught.exception.operation, "command")
+            self.assertIsNotNone(process.poll())
+            record = json.loads((Path(tmp) / "ssh-operations.jsonl").read_text())
+            self.assertTrue(record["timed_out"])
+            self.assertTrue(record["term_sent"])
+            self.assertFalse(record["kill_sent"])
+            self.assertEqual(record["host"], "nimo-1")
+            self.assertEqual(record["argv"], ["hostname"])
+
+    def test_output_then_hang_retains_bounded_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            process = NeverReturningProcess(stdout=b"ready\n", stderr=b"partial\n")
+            runner = self.make_runner(tmp, process)
+            with self.assertRaises(transition.SshTimeoutError):
+                runner.run("nimo-2", ["test", "-f", "/x"], operation="command")
+            record = json.loads((Path(tmp) / "ssh-operations.jsonl").read_text())
+            self.assertIn("ready", record["stdout"])
+            self.assertIn("partial", record["stderr"])
+            self.assertLessEqual(len(record["stdout"]), transition.SSH_EVIDENCE_LIMIT)
+
+    def test_term_ignoring_process_escalates_and_is_reaped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            process = NeverReturningProcess(ignore_term=True)
+            runner = self.make_runner(tmp, process)
+            with self.assertRaises(transition.SshTimeoutError):
+                runner.run("nimo-1", ["hostname"], operation="command")
+            self.assertIsNotNone(process.poll())
+            record = json.loads((Path(tmp) / "ssh-operations.jsonl").read_text())
+            self.assertTrue(record["kill_sent"])
+
+    @unittest.skipUnless(os.name == "nt", "Windows job-object qualification")
+    def test_real_timeout_job_leaves_no_descendant(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            child_pid_path = Path(tmp) / "child.pid"
+            child_code = "import time; time.sleep(30)"
+            parent_code = (
+                "import pathlib,subprocess,sys,time;"
+                f"p=subprocess.Popen([sys.executable,'-c',{child_code!r}]);"
+                f"pathlib.Path({str(child_pid_path)!r}).write_text(str(p.pid));"
+                "time.sleep(30)"
+            )
+
+            def factory(_command, **kwargs):
+                return subprocess.Popen([sys.executable, "-c", parent_code], **kwargs)
+
+            deadlines = dict(transition.SSH_OPERATION_DEADLINES)
+            deadlines["command"] = 1.0
+            runner = transition.SshRunner(
+                Path(tmp), deadlines=deadlines, popen_factory=factory)
+            with self.assertRaises(transition.SshTimeoutError):
+                runner.run("nimo-1", ["hostname"], operation="command")
+            child_pid = int(child_pid_path.read_text())
+            time.sleep(0.1)
+            query = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {child_pid}", "/FO", "CSV", "/NH"],
+                text=True, capture_output=True, check=False, timeout=5)
+            self.assertNotIn(f'"{child_pid}"', query.stdout)
+
+    def test_unknown_operation_class_is_refused_before_spawn(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            process = NeverReturningProcess()
+            runner = self.make_runner(tmp, process)
+            with self.assertRaises(ValueError):
+                runner.run("nimo-1", ["hostname"], operation="not-authorized")
+            self.assertIsNone(process.poll())
+
+    def test_process_group_setup_failure_reaps_and_is_evidenced(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            process = NeverReturningProcess()
+            runner = self.make_runner(tmp, process)
+            with mock.patch.object(
+                runner, "_create_windows_job", side_effect=OSError("job refused")
+            ):
+                with self.assertRaises(transition.SshSetupError):
+                    runner.run("nimo-1", ["hostname"], operation="command")
+            self.assertIsNotNone(process.poll())
+            record = json.loads((Path(tmp) / "ssh-operations.jsonl").read_text())
+            self.assertEqual(record["failure_class"], "process-group-setup")
+            self.assertTrue(record["term_sent"])
+
+    @unittest.skipUnless(os.name == "nt", "Windows taskkill-timeout qualification")
+    def test_setup_failure_taskkill_timeout_still_reaps_and_records_fatal_gap(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            process = NeverReturningProcess()
+            runner = self.make_runner(tmp, process)
+            with mock.patch.object(
+                runner, "_create_windows_job", side_effect=OSError("job refused")
+            ), mock.patch.object(
+                transition.subprocess, "run",
+                side_effect=transition.subprocess.TimeoutExpired(["taskkill"], 5),
+            ):
+                with self.assertRaises(transition.SshSetupError):
+                    runner.run("nimo-1", ["hostname"], operation="command")
+            self.assertIsNotNone(process.poll())
+            record = json.loads((Path(tmp) / "ssh-operations.jsonl").read_text())
+            self.assertEqual(record["failure_class"], "process-group-setup")
+            self.assertIn("taskkill_error=TimeoutExpired", record["stderr"])
+            self.assertIn("descendant_cleanup_unproven", record["stderr"])
+
+    @unittest.skipUnless(os.name == "nt", "Windows setup-failure tree qualification")
+    def test_real_setup_failure_tree_kill_leaves_no_descendant(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            child_pid_path = Path(tmp) / "setup-child.pid"
+            child_code = "import time; time.sleep(30)"
+            parent_code = (
+                "import pathlib,subprocess,sys,time;"
+                f"p=subprocess.Popen([sys.executable,'-c',{child_code!r}]);"
+                f"pathlib.Path({str(child_pid_path)!r}).write_text(str(p.pid));"
+                "time.sleep(30)"
+            )
+
+            def factory(_command, **kwargs):
+                process = subprocess.Popen([sys.executable, "-c", parent_code], **kwargs)
+                deadline = time.monotonic() + 2
+                while not child_pid_path.exists() and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                return process
+
+            runner = transition.SshRunner(Path(tmp), popen_factory=factory)
+            with mock.patch.object(
+                runner, "_create_windows_job", side_effect=OSError("forced setup failure")
+            ):
+                with self.assertRaises(transition.SshSetupError):
+                    runner.run("nimo-1", ["hostname"], operation="command")
+            child_pid = int(child_pid_path.read_text())
+            query = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {child_pid}", "/FO", "CSV", "/NH"],
+                text=True, capture_output=True, check=False, timeout=5)
+            self.assertNotIn(f'"{child_pid}"', query.stdout)
+            record = json.loads((Path(tmp) / "ssh-operations.jsonl").read_text())
+            self.assertTrue(record["kill_sent"])
+
+    def test_transport_failure_classes_remain_distinguishable(self):
+        cases = {
+            "Host key verification failed.": "host-key",
+            "ssh: connect to host x port 22: Connection timed out": "connect",
+            "Permission denied (publickey).": "authentication",
+            "remote command failed": "command",
+        }
+        for stderr, expected in cases.items():
+            with self.subTest(stderr=stderr):
+                self.assertEqual(transition.SshRunner._classify_failure(stderr), expected)
+
+    def test_recovery_probe_timeout_is_distinguishable_and_recoverable(self):
+        class TimeoutOnceRunner(FakeRunner):
+            def __init__(self):
+                super().__init__()
+                self.timed_out = False
+
+            def run(self, host, argv, *, operation="command"):
+                if operation == "recovery-probe" and not self.timed_out:
+                    self.timed_out = True
+                    raise transition.SshTimeoutError(host, operation, 0.01)
+                return super().run(host, argv, operation=operation)
+
+        fake = TimeoutOnceRunner()
+        controller = transition.Controller(fake, wait_seconds=0, timeout_seconds=1)
+        controller.snapshot = controller.preflight()
+        controller.first_mutation = True
+        with self.assertRaises(transition.TransitionError) as caught:
+            controller.recover()
+        self.assertIn("typed SSH timeout operation=recovery-probe", str(caught.exception))
+        final = controller.recover()
+        self.assertEqual(final["worker"].main_pid, fake.pid["nimo-2"])
+        self.assertTrue(controller.recovery_complete)
         self.assertEqual(fake.mutations, [
-            ("nimo-1", "stop", transition.COORDINATOR_UNIT),
-            ("nimo-2", "stop", transition.WORKER_UNIT),
             ("nimo-2", "start", transition.WORKER_UNIT),
             ("nimo-1", "start", transition.COORDINATOR_UNIT),
         ])

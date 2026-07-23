@@ -1,0 +1,61 @@
+{
+  "schema": "halofpx-l25-controller-transport-reliability-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "46461c888b79e5496c4999c38bae749377dc1966",
+  "outcome": "pass",
+  "source": {
+    "controller_sha256": "fbf200c8b71c516047c8f574ac6db8aa21d0d8cda5b47c6e49a429c756f65c8e",
+    "runner_sha256": "456674d1d29d7b544b528aa14b9a9d91059f0c5bb99e35a818e76c598df5357b",
+    "manifest_sha256": "1ab62a0123a52497bea18539c4e5a588c41c106e90f1b6fa8fff208d6f1e503f",
+    "canary_source_sha256": "3515ba2e57ca0e2a5fbf04bda66bd313079452a7f910d12dabbe61cd2688a8f3"
+  },
+  "transport": {
+    "local_deadline_enforced": true,
+    "closed_operation_classes": [
+      "host-key", "connect", "authentication", "command",
+      "service-mutation", "service-readiness", "recovery-probe",
+      "recovery-mutation", "cleanup", "hash", "evidence", "model-session"
+    ],
+    "terminate_grace_seconds": 2,
+    "windows_job_kill_on_close": true,
+    "posix_killpg": true,
+    "typed_fsynced_evidence": true,
+    "silent_mutation_retry": false,
+    "all_recovery_ssh_bounded": true,
+    "all_child_ssh_bounded": true
+  },
+  "capture_evidence": {
+    "explicit_stdout_flush": true,
+    "file_flush_and_fsync_before_publication": true,
+    "authenticated_before_restart": true,
+    "partial_output_accepted": false
+  },
+  "tests": {
+    "passed": 79,
+    "failed": 0,
+    "final_transcript_sha256": "deca73a9d0e9bcc19e76058a1ecca89d8087f04f8ef91d93dcb8d98cd1f9a3cc"
+  },
+  "production": {
+    "mutated": false,
+    "primary_artifact_accessed": false,
+    "worker_pid": 1415055,
+    "worker_port": 50052,
+    "coordinator_pid": 2236922,
+    "coordinator_port": 8081,
+    "http": 200,
+    "nrestarts": [0, 0],
+    "final_ssh_jsonl_sha256": "b81d4da0dd607ea92727f967ab668633c04486f83904b92fbfc50ee36e311831"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l25-controller-reliability-20260723",
+    "files": 11,
+    "bytes": 31614,
+    "tree_sha256": "86818ce3a0219894443590ff510800e8066ad5b9928432c58b2d1f6a88958a7d"
+  },
+  "independent_review": {
+    "verdict": "pass",
+    "path": "docs/halofpx/reviews/2026-07-23__l25-controller-transport-reliability__review__v01.md"
+  },
+  "primary_retry_authorized": false,
+  "production_cache_enabled": false
+}

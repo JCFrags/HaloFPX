@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import atexit
+import ctypes
 import hashlib
 import json
 import os
@@ -14,7 +15,9 @@ import shlex
 import signal
 import subprocess
 import sys
+import threading
 import time
+from datetime import datetime, timezone
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Protocol, Sequence
@@ -80,32 +83,350 @@ class CommandResult:
 
 
 class Runner(Protocol):
-    def run(self, host: str, argv: Sequence[str]) -> CommandResult: ...
-    def run_stdin(self, host: str, argv: Sequence[str], stdin: bytes) -> CommandResult: ...
+    def run(self, host: str, argv: Sequence[str], *, operation: str = "command") -> CommandResult: ...
+    def run_stdin(
+        self, host: str, argv: Sequence[str], stdin: bytes, *, operation: str = "command"
+    ) -> CommandResult: ...
+
+
+SSH_OPERATION_DEADLINES = {
+    "host-key": 10.0,
+    "connect": 15.0,
+    "authentication": 15.0,
+    "command": 30.0,
+    "service-mutation": 45.0,
+    "service-readiness": 30.0,
+    "recovery-probe": 30.0,
+    "recovery-mutation": 45.0,
+    "cleanup": 60.0,
+    "hash": 120.0,
+    "evidence": 60.0,
+    "model-session": 1800.0,
+}
+SSH_TERMINATE_GRACE_SECONDS = 2.0
+SSH_EVIDENCE_LIMIT = 65536
+
+
+class SshTimeoutError(RuntimeError):
+    def __init__(self, host: str, operation: str, timeout: float):
+        super().__init__(f"{host}: SSH {operation} timed out after {timeout:.3f}s")
+        self.host = host
+        self.operation = operation
+        self.timeout = timeout
+
+
+class SshSetupError(RuntimeError):
+    def __init__(self, host: str, operation: str, detail: str):
+        super().__init__(f"{host}: SSH {operation} process-group setup failed: {detail}")
+        self.host = host
+        self.operation = operation
 
 
 class SshRunner:
-    def run(self, host: str, argv: Sequence[str]) -> CommandResult:
-        result = subprocess.run(
-            ["ssh", "-o", "BatchMode=yes", host, *argv],
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        return CommandResult(result.returncode, result.stdout, result.stderr)
+    def __init__(
+        self,
+        evidence_root: Path,
+        *,
+        deadlines: dict[str, float] | None = None,
+        popen_factory=subprocess.Popen,
+    ):
+        if not evidence_root.is_absolute():
+            raise ValueError("SSH evidence root must be absolute")
+        self.evidence_path = evidence_root / "ssh-operations.jsonl"
+        self.deadlines = dict(SSH_OPERATION_DEADLINES if deadlines is None else deadlines)
+        if set(self.deadlines) != set(SSH_OPERATION_DEADLINES):
+            raise ValueError("SSH deadline operation classes are not closed")
+        if any(value <= 0 for value in self.deadlines.values()):
+            raise ValueError("SSH deadlines must be positive")
+        self.popen_factory = popen_factory
+        self._lock = threading.Lock()
+        self._sequence = 0
 
-    def run_stdin(self, host: str, argv: Sequence[str], stdin: bytes) -> CommandResult:
-        result = subprocess.run(
-            ["ssh", "-o", "BatchMode=yes", host, *argv],
-            input=stdin,
-            capture_output=True,
-            check=False,
+    @staticmethod
+    def _classify_failure(stderr: str) -> str:
+        lowered = stderr.lower()
+        if "host key verification failed" in lowered:
+            return "host-key"
+        if "connection timed out" in lowered or "connection refused" in lowered:
+            return "connect"
+        if "permission denied" in lowered or "authentication" in lowered:
+            return "authentication"
+        return "command"
+
+    def _record(self, value: dict[str, object]) -> None:
+        self.evidence_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        with self._lock:
+            with self.evidence_path.open("a", encoding="utf-8", newline="\n") as output:
+                output.write(json.dumps(value, sort_keys=True) + "\n")
+                output.flush()
+                os.fsync(output.fileno())
+
+    @staticmethod
+    def _create_windows_job(process: subprocess.Popen[bytes]) -> int | None:
+        if os.name != "nt" or not hasattr(process, "_handle"):
+            return None
+
+        class IO_COUNTERS(ctypes.Structure):
+            _fields_ = [
+                ("ReadOperationCount", ctypes.c_ulonglong),
+                ("WriteOperationCount", ctypes.c_ulonglong),
+                ("OtherOperationCount", ctypes.c_ulonglong),
+                ("ReadTransferCount", ctypes.c_ulonglong),
+                ("WriteTransferCount", ctypes.c_ulonglong),
+                ("OtherTransferCount", ctypes.c_ulonglong),
+            ]
+
+        class BASIC_LIMIT(ctypes.Structure):
+            _fields_ = [
+                ("PerProcessUserTimeLimit", ctypes.c_longlong),
+                ("PerJobUserTimeLimit", ctypes.c_longlong),
+                ("LimitFlags", ctypes.c_uint32),
+                ("MinimumWorkingSetSize", ctypes.c_size_t),
+                ("MaximumWorkingSetSize", ctypes.c_size_t),
+                ("ActiveProcessLimit", ctypes.c_uint32),
+                ("Affinity", ctypes.c_size_t),
+                ("PriorityClass", ctypes.c_uint32),
+                ("SchedulingClass", ctypes.c_uint32),
+            ]
+
+        class EXTENDED_LIMIT(ctypes.Structure):
+            _fields_ = [
+                ("BasicLimitInformation", BASIC_LIMIT),
+                ("IoInfo", IO_COUNTERS),
+                ("ProcessMemoryLimit", ctypes.c_size_t),
+                ("JobMemoryLimit", ctypes.c_size_t),
+                ("PeakProcessMemoryUsed", ctypes.c_size_t),
+                ("PeakJobMemoryUsed", ctypes.c_size_t),
+            ]
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p]
+        kernel32.CreateJobObjectW.restype = ctypes.c_void_p
+        kernel32.SetInformationJobObject.argtypes = [
+            ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p, ctypes.c_uint32]
+        kernel32.SetInformationJobObject.restype = ctypes.c_int
+        kernel32.AssignProcessToJobObject.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+        kernel32.AssignProcessToJobObject.restype = ctypes.c_int
+        kernel32.CloseHandle.argtypes = [ctypes.c_void_p]
+        kernel32.CloseHandle.restype = ctypes.c_int
+        job = kernel32.CreateJobObjectW(None, None)
+        if not job:
+            raise OSError(ctypes.get_last_error(), "CreateJobObjectW failed")
+        info = EXTENDED_LIMIT()
+        info.BasicLimitInformation.LimitFlags = 0x00002000  # KILL_ON_JOB_CLOSE
+        if not kernel32.SetInformationJobObject(
+            job, 9, ctypes.byref(info), ctypes.sizeof(info)
+        ):
+            error = ctypes.get_last_error()
+            kernel32.CloseHandle(job)
+            raise OSError(error, "SetInformationJobObject failed")
+        if not kernel32.AssignProcessToJobObject(
+            ctypes.c_void_p(job), ctypes.c_void_p(int(process._handle))
+        ):
+            error = ctypes.get_last_error()
+            kernel32.CloseHandle(job)
+            raise OSError(error, "AssignProcessToJobObject failed")
+        return int(job)
+
+    @staticmethod
+    def _close_windows_job(job_handle: int | None) -> None:
+        if job_handle is not None:
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            kernel32.CloseHandle.argtypes = [ctypes.c_void_p]
+            kernel32.CloseHandle.restype = ctypes.c_int
+            kernel32.CloseHandle(ctypes.c_void_p(job_handle))
+
+    @staticmethod
+    def _terminate_group(
+        process: subprocess.Popen[bytes], job_handle: int | None
+    ) -> tuple[bool, bool]:
+        terminated = False
+        killed = False
+        if process.poll() is not None:
+            SshRunner._close_windows_job(job_handle)
+            return terminated, killed
+        if os.name == "nt":
+            try:
+                os.kill(process.pid, signal.CTRL_BREAK_EVENT)
+            except OSError:
+                process.terminate()
+        else:
+            os.killpg(process.pid, signal.SIGTERM)
+        terminated = True
+        try:
+            process.wait(timeout=SSH_TERMINATE_GRACE_SECONDS)
+        except subprocess.TimeoutExpired:
+            if os.name == "nt":
+                SshRunner._close_windows_job(job_handle)
+                job_handle = None
+            else:
+                os.killpg(process.pid, signal.SIGKILL)
+            killed = True
+            process.wait()
+        if os.name == "nt" and job_handle is not None:
+            # Even if ssh itself honored CTRL_BREAK, kill-on-close guarantees
+            # no descendant assigned to its job can survive the timeout.
+            SshRunner._close_windows_job(job_handle)
+            killed = True
+        return terminated, killed
+
+    @staticmethod
+    def _cleanup_setup_failure(
+        process: subprocess.Popen[bytes],
+    ) -> tuple[bool, bool, str]:
+        terminated = False
+        killed = False
+        cleanup_detail = ""
+        if os.name == "nt":
+            try:
+                tree_kill = subprocess.run(
+                    ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    check=False, timeout=5,
+                )
+                killed = tree_kill.returncode == 0
+                cleanup_detail = (
+                    f"taskkill_rc={tree_kill.returncode} "
+                    f"taskkill_stderr="
+                    f"{tree_kill.stderr.decode('utf-8', errors='replace')!r}"
+                )
+            except Exception as cleanup_exc:
+                cleanup_detail = (
+                    f"taskkill_error={type(cleanup_exc).__name__}:{cleanup_exc}"
+                )
+            finally:
+                if process.poll() is None:
+                    process.terminate()
+                    terminated = True
+                try:
+                    process.wait(timeout=SSH_TERMINATE_GRACE_SECONDS)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+            if not killed:
+                cleanup_detail += " descendant_cleanup_unproven"
+        else:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
+            killed = True
+        return terminated, killed, cleanup_detail
+
+    def _execute(
+        self,
+        host: str,
+        argv: Sequence[str],
+        *,
+        operation: str,
+        stdin: bytes | None,
+    ) -> CommandResult:
+        if operation not in self.deadlines:
+            raise ValueError(f"unknown SSH operation class: {operation}")
+        timeout = self.deadlines[operation]
+        command = [
+            "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+            "-o", "ConnectionAttempts=1", host, *argv,
+        ]
+        started_wall = datetime.now(timezone.utc).isoformat()
+        started_mono = time.monotonic()
+        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
+        process = self.popen_factory(
+            command,
+            stdin=subprocess.PIPE if stdin is not None else subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=os.name != "nt",
+            creationflags=creationflags,
         )
-        return CommandResult(
-            result.returncode,
-            result.stdout.decode("utf-8", errors="replace"),
-            result.stderr.decode("utf-8", errors="replace"),
-        )
+        try:
+            job_handle = self._create_windows_job(process)
+        except Exception as exc:
+            terminated, killed, cleanup_detail = self._cleanup_setup_failure(process)
+            stdout, stderr = process.communicate()
+            ended_mono = time.monotonic()
+            record = {
+                "schema": "halofpx.ssh-operation.v1",
+                "sequence": self._sequence + 1,
+                "host": host,
+                "operation": operation,
+                "argv": list(argv),
+                "started_at": started_wall,
+                "ended_at": datetime.now(timezone.utc).isoformat(),
+                "duration_seconds": round(ended_mono - started_mono, 6),
+                "deadline_seconds": timeout,
+                "pid": process.pid,
+                "returncode": process.returncode,
+                "timed_out": False,
+                "term_sent": terminated,
+                "kill_sent": killed,
+                "failure_class": "process-group-setup",
+                "stdout": stdout.decode("utf-8", errors="replace")[-SSH_EVIDENCE_LIMIT:],
+                "stderr": (
+                    stderr.decode("utf-8", errors="replace") +
+                    f"\n{type(exc).__name__}: {exc}; {cleanup_detail}"
+                )[-SSH_EVIDENCE_LIMIT:],
+            }
+            self._sequence += 1
+            self._record(record)
+            raise SshSetupError(host, operation, str(exc)) from exc
+        timed_out = False
+        terminated = False
+        killed = False
+        stdout = b""
+        stderr = b""
+        try:
+            stdout, stderr = process.communicate(input=stdin, timeout=timeout)
+        except subprocess.TimeoutExpired as exc:
+            timed_out = True
+            stdout = (exc.output or b"")[-SSH_EVIDENCE_LIMIT:]
+            stderr = (exc.stderr or b"")[-SSH_EVIDENCE_LIMIT:]
+            terminated, killed = self._terminate_group(process, job_handle)
+            job_handle = None
+            remaining_out, remaining_err = process.communicate()
+            stdout = (stdout + remaining_out)[-SSH_EVIDENCE_LIMIT:]
+            stderr = (stderr + remaining_err)[-SSH_EVIDENCE_LIMIT:]
+        ended_mono = time.monotonic()
+        if job_handle is not None:
+            self._close_windows_job(job_handle)
+        ended_wall = datetime.now(timezone.utc).isoformat()
+        decoded_out = stdout.decode("utf-8", errors="replace")
+        decoded_err = stderr.decode("utf-8", errors="replace")
+        self._sequence += 1
+        record = {
+            "schema": "halofpx.ssh-operation.v1",
+            "sequence": self._sequence,
+            "host": host,
+            "operation": operation,
+            "argv": list(argv),
+            "started_at": started_wall,
+            "ended_at": ended_wall,
+            "duration_seconds": round(ended_mono - started_mono, 6),
+            "deadline_seconds": timeout,
+            "pid": process.pid,
+            "returncode": process.returncode,
+            "timed_out": timed_out,
+            "term_sent": terminated,
+            "kill_sent": killed,
+            "failure_class": (
+                "timeout" if timed_out else
+                None if process.returncode == 0 else self._classify_failure(decoded_err)
+            ),
+            "stdout": decoded_out[-SSH_EVIDENCE_LIMIT:],
+            "stderr": decoded_err[-SSH_EVIDENCE_LIMIT:],
+        }
+        self._record(record)
+        if timed_out:
+            raise SshTimeoutError(host, operation, timeout)
+        return CommandResult(process.returncode, decoded_out, decoded_err)
+
+    def run(
+        self, host: str, argv: Sequence[str], *, operation: str = "command"
+    ) -> CommandResult:
+        return self._execute(host, argv, operation=operation, stdin=None)
+
+    def run_stdin(
+        self, host: str, argv: Sequence[str], stdin: bytes, *, operation: str = "command"
+    ) -> CommandResult:
+        return self._execute(host, argv, operation=operation, stdin=stdin)
 
 
 @dataclass(frozen=True)
@@ -259,7 +580,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "readiness": DISPOSABLE_CANARY_HOST, "placement": DISPOSABLE_CANARY_HOST,
     }
     for name, host in host_for.items():
-        result = runner.run(host, ["sha256sum", "--", expected_exec[name]])
+        result = runner.run(
+            host, ["sha256sum", "--", expected_exec[name]], operation="hash")
         actual = result.stdout.split()[0] if result.returncode == 0 and result.stdout.split() else ""
         if actual != hashes[name]:
             raise TransitionError(f"L22 manifest {name} executable hash mismatch")
@@ -350,9 +672,31 @@ class Controller:
         self.recovery_complete = False
         self.key_digest: str | None = None
         self.disposable_paths = disposable_paths
+        self.in_recovery = False
+
+    def _operation(self, argv: Sequence[str]) -> str:
+        if self.in_recovery:
+            return "recovery-mutation" if list(argv[:3]) == ["sudo", "-n", "systemctl"] else "recovery-probe"
+        if argv and argv[0] in {"rm", "stat"}:
+            return "cleanup"
+        if argv and argv[0] == "sha256sum":
+            return "hash"
+        if list(argv[:3]) == ["sudo", "-n", "systemctl"]:
+            return "service-mutation"
+        if argv and argv[0] in {"systemctl", "ss", "ps", "curl"}:
+            return "service-readiness"
+        if argv and argv[0] == "hostname":
+            return "connect"
+        return "command"
 
     def _run(self, host: str, argv: Sequence[str], *, allow_failure: bool = False) -> CommandResult:
-        result = self.runner.run(host, argv)
+        operation = self._operation(argv)
+        try:
+            result = self.runner.run(host, argv, operation=operation)
+        except SshTimeoutError as exc:
+            raise TransitionError(
+                f"{host}: typed SSH timeout operation={operation} deadline={exc.timeout:.3f}s"
+            ) from exc
         if result.returncode != 0 and not allow_failure:
             rendered = " ".join(argv)
             raise TransitionError(
@@ -362,7 +706,12 @@ class Controller:
         return result
 
     def _run_stdin(self, host: str, argv: Sequence[str], stdin: bytes) -> CommandResult:
-        result = self.runner.run_stdin(host, argv, stdin)
+        try:
+            result = self.runner.run_stdin(host, argv, stdin, operation="command")
+        except SshTimeoutError as exc:
+            raise TransitionError(
+                f"{host}: typed SSH timeout operation=command deadline={exc.timeout:.3f}s"
+            ) from exc
         if result.returncode != 0:
             rendered = " ".join(argv)
             raise TransitionError(
@@ -673,6 +1022,7 @@ class Controller:
             raise TransitionError("recovery requires the preserved preflight snapshot")
         # The maintenance child can be interrupted while a systemd-run unit survives it.
         # Production recovery is forbidden until every exact L22 unit, port, and path is clean.
+        self.in_recovery = True
         self.cleanup_disposable()
         self.cleanup_keys()
         self._mutate(WORKER, "start")
@@ -761,7 +1111,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
     if not args.evidence_dir.is_absolute():
         parser.error("--evidence-dir must be absolute")
 
-    selected_runner = runner or SshRunner()
+    selected_runner = runner or SshRunner(args.evidence_dir)
     manifest = None
     maintenance_command = list(args.maintenance_command)
     if args.milestone_manifest is None:

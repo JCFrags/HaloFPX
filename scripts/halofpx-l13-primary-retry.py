@@ -5,13 +5,17 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
 import shlex
+import signal
 import subprocess
 import sys
+import threading
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -57,6 +61,8 @@ COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36
 PLAN = "0268cc6071a8d78983f6351fe45d510e767d8cd26618a8bdffc972b6655f7967"
 TOPOLOGY = "09b71fe40ae05c841a5be563f6e2b27ad2529d893b9420412e5280541ae53e1f"
 PLACEMENT = "d4aa0d3c14a3bec4ba5de733e00b6447f79f94d5dbeda6e3593be74ce84f917e"
+SSH_TRANSPORT = None
+SSH_TRANSPORT_MODULE = None
 
 
 class CanaryError(RuntimeError):
@@ -76,11 +82,90 @@ def run(argv, *, timeout=900, check=True):
 
 
 def ssh(host, *argv, timeout=900, check=True):
+    if SSH_TRANSPORT is None:
+        raise CanaryError("bounded SSH transport is not initialized")
     remote_command = " ".join(shlex.quote(str(value)) for value in argv)
-    return run(
-        ["ssh", "-o", "BatchMode=yes", host, remote_command],
-        timeout=timeout, check=check,
+    operation = "model-session" if argv and argv[0] == "systemd-run" else (
+        "hash" if argv and argv[0] == "sha256sum" else (
+        "service-readiness" if argv and argv[0] in {"systemctl", "ss", "ps", "curl"} else
+        "cleanup" if argv and argv[0] in {"rm", "stat", "find"} else
+        "command"
+    ))
+    try:
+        result = SSH_TRANSPORT.run(host, [remote_command], operation=operation)
+    except Exception as exc:
+        raise CanaryError(f"bounded SSH {operation} failure on {host}: {exc}") from exc
+    completed = subprocess.CompletedProcess(
+        ["ssh", host, remote_command], result.returncode, result.stdout, result.stderr)
+    if check and completed.returncode != 0:
+        raise CanaryError(
+            f"command failed ({completed.returncode}): {argv!r}\n"
+            f"{completed.stdout}\n{completed.stderr}")
+    return completed
+
+
+def initialize_ssh_transport(evidence_root: Path) -> None:
+    global SSH_TRANSPORT, SSH_TRANSPORT_MODULE
+    module_path = Path(__file__).with_name("halofpx-production-transition.py")
+    spec = importlib.util.spec_from_file_location("halofpx_l25_transport", module_path)
+    if spec is None or spec.loader is None:
+        raise CanaryError("bounded SSH transport module is unavailable")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    SSH_TRANSPORT_MODULE = module
+    SSH_TRANSPORT = module.SshRunner(evidence_root)
+
+
+def start_bounded_ssh_session(host: str, remote_command: str):
+    if SSH_TRANSPORT_MODULE is None:
+        raise CanaryError("bounded SSH transport is not initialized")
+    creationflags = (
+        subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0)
+    started_at = datetime.now(timezone.utc).isoformat()
+    started_mono = time.monotonic()
+    process = subprocess.Popen(
+        [
+            "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+            "-o", "ConnectionAttempts=1", host, remote_command,
+        ],
+        text=True, encoding="utf-8", errors="replace",
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        start_new_session=os.name != "nt",
+        creationflags=creationflags,
     )
+    try:
+        job_handle = SSH_TRANSPORT_MODULE.SshRunner._create_windows_job(process)
+    except Exception as exc:
+        terminated, killed, detail = (
+            SSH_TRANSPORT_MODULE.SshRunner._cleanup_setup_failure(process))
+        SSH_TRANSPORT._record({
+            "schema": "halofpx.ssh-operation.v1",
+            "sequence": "model-session-setup",
+            "host": host,
+            "operation": "model-session",
+            "argv": [remote_command],
+            "started_at": started_at,
+            "ended_at": datetime.now(timezone.utc).isoformat(),
+            "duration_seconds": round(time.monotonic() - started_mono, 6),
+            "deadline_seconds": SSH_TRANSPORT_MODULE.SSH_OPERATION_DEADLINES["model-session"],
+            "pid": process.pid,
+            "returncode": process.returncode,
+            "timed_out": False,
+            "term_sent": terminated,
+            "kill_sent": killed,
+            "failure_class": "process-group-setup",
+            "stdout": "",
+            "stderr": f"{type(exc).__name__}: {exc}; {detail}",
+        })
+        raise CanaryError(f"SSH session process-group setup failed: {exc}") from exc
+    return process, job_handle
+
+
+def terminate_bounded_ssh_session(process, job_handle) -> None:
+    if SSH_TRANSPORT_MODULE is None:
+        raise CanaryError("bounded SSH transport is not initialized")
+    return SSH_TRANSPORT_MODULE.SshRunner._terminate_group(process, job_handle)
 
 
 def write_log(root: Path, name: str, result) -> None:
@@ -276,44 +361,9 @@ def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
         "--wait", "--collect", "--pipe", *canary_command,
     ]
     invocation = "invocation=" + " ".join(canary_command) + "\ntransient_unit=" + unit + "\n"
-    if not rendezvous:
-        result = ssh(NIMO2, *command, timeout=1800, check=False)
-    else:
-        process = subprocess.Popen(
-            [
-                "ssh", "-o", "BatchMode=yes", NIMO2,
-                " ".join(shlex.quote(str(value)) for value in command),
-            ],
-            text=True, encoding="utf-8", errors="replace",
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        )
-        object_path = ""
-        missing_path = ""
-        try:
-            wait_remote_file(f"{RENDEZVOUS_ROOT}/restore-ready", 1200)
-            objects = ssh(NIMO1, "find", WORKER_ROOT + "/objects", "-type", "f", "-name", "*.hfx").stdout.splitlines()
-            if len(objects) != 1:
-                raise CanaryError(f"expected one worker object at restore rendezvous, found {len(objects)}")
-            object_path = objects[0]
-            missing_path = object_path + ".missing"
-            ssh(NIMO1, "mv", "--", object_path, missing_path)
-            ssh(NIMO2, "touch", f"{RENDEZVOUS_ROOT}/worker-object-missing")
-            wait_remote_file(f"{RENDEZVOUS_ROOT}/missing-done", 1200)
-            ssh(NIMO1, "mv", "--", missing_path, object_path)
-            missing_path = ""
-            ssh(NIMO2, "touch", f"{RENDEZVOUS_ROOT}/worker-object-restored")
-            stdout, stderr = process.communicate(timeout=1800)
-        except BaseException:
-            if missing_path:
-                ssh(NIMO1, "mv", "--", missing_path, object_path, check=False)
-            process.terminate()
-            try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait()
-            raise
-        result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+    if rendezvous:
+        raise CanaryError("legacy multi-case rendezvous is outside the closed L25 authority")
+    result = ssh(NIMO2, *command, timeout=1800, check=False)
     result.stdout = invocation + result.stdout
     if result.returncode != 0:
         raise CanaryError(result.stdout + result.stderr)
@@ -334,7 +384,7 @@ def output_fields(text: str) -> dict[str, str]:
     if not line:
         raise CanaryError("canary output has no result line")
     fields = {}
-    for match in re.finditer(r"(?:^| )([a-z_]+)=([^ ]+)", line):
+    for match in re.finditer(r"(?:^| )([a-z0-9_]+)=([^ ]+)", line):
         fields[match.group(1)] = match.group(2)
     return fields
 
@@ -345,7 +395,7 @@ def output_sequence(text: str) -> dict[str, dict[str, str]]:
         if not line.startswith("mode="):
             continue
         fields = {}
-        for match in re.finditer(r"(?:^| )([a-z_]+)=([^ ]+)", line):
+        for match in re.finditer(r"(?:^| )([a-z0-9_]+)=([^ ]+)", line):
             fields[match.group(1)] = match.group(2)
         label = fields.get("label", "")
         if not label or label in result:
@@ -545,6 +595,26 @@ def require_diagnostic_agreement(
     }
 
 
+def require_flushed_capture_evidence(text: str) -> dict[str, str]:
+    if not text.endswith("\n"):
+        raise CanaryError("capture evidence line is not durably delimited")
+    parsed = output_sequence(text)
+    capture = parsed.get("capture")
+    if capture is None:
+        raise CanaryError("capture-ready preceded flushed authenticated capture evidence")
+    require_result(capture, "capture", require_worker_state=True)
+    for digest_name in (
+        "control_sha256", "local_sha256", "component_manifest_sha256",
+    ):
+        digest = capture.get(digest_name, "")
+        if not re.fullmatch(r"[0-9a-f]{64}", digest) or digest == "0" * 64:
+            raise CanaryError(f"capture evidence lacks authenticated {digest_name}")
+    first_token = capture.get("tokens", "").split(",", 1)[0]
+    if first_token != "21549":
+        raise CanaryError(f"unexpected flushed reference token: {first_token!r}")
+    return capture
+
+
 def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     capture_unit = "halofpx-l24-primary-worker-capture"
     restore_unit = "halofpx-l24-primary-worker-restore"
@@ -594,27 +664,92 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         "--property=RuntimeMaxSec=30min", "--wait", "--collect", "--pipe",
         *canary_command,
     ]
-    process = subprocess.Popen(
-        ["ssh", "-o", "BatchMode=yes", NIMO2,
-         " ".join(shlex.quote(str(value)) for value in command)],
-        text=True, encoding="utf-8", errors="replace",
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-    )
+    session_started_wall = datetime.now(timezone.utc).isoformat()
+    session_started_mono = time.monotonic()
+    session_timed_out = False
+    session_terminated = False
+    session_killed = False
+    process, session_job = start_bounded_ssh_session(
+        NIMO2, " ".join(shlex.quote(str(value)) for value in command))
+    stream_lines: list[str] = []
+    stream_errors: list[str] = []
+    stream_lock = threading.Lock()
+    stream_path = root / "diagnostic-stream.log"
+    stream_error_path = root / "diagnostic-stream.stderr.log"
+
+    def drain(pipe, destination: Path, lines: list[str]) -> None:
+        assert pipe is not None
+        with destination.open("x", encoding="utf-8", newline="\n") as output:
+            for line in pipe:
+                output.write(line)
+                output.flush()
+                os.fsync(output.fileno())
+                # Publish only after the controller-owned evidence file is
+                # durable, so capture-ready can never outrun the receipt.
+                with stream_lock:
+                    lines.append(line)
+
+    stdout_thread = threading.Thread(
+        target=drain, args=(process.stdout, stream_path, stream_lines), daemon=False)
+    stderr_thread = threading.Thread(
+        target=drain, args=(process.stderr, stream_error_path, stream_errors), daemon=False)
+    stdout_thread.start()
+    stderr_thread.start()
     try:
         wait_remote_file(f"{RENDEZVOUS_ROOT}/capture-ready", 1800)
+        capture_deadline = time.monotonic() + 30
+        capture_fields = None
+        while time.monotonic() < capture_deadline:
+            try:
+                with stream_lock:
+                    durable_text = "".join(stream_lines)
+                capture_fields = require_flushed_capture_evidence(durable_text)
+                break
+            except CanaryError:
+                pass
+            time.sleep(0.05)
+        if capture_fields is None:
+            raise CanaryError("capture-ready preceded flushed authenticated capture evidence")
+        reference_suffix = fetch_suffix(root, "capture", "capture-pre-restart")
         capture_journal = worker_journal(capture_unit, capture_invocation, capture_pid)
         (root / "worker-capture.log").write_text(capture_journal, encoding="utf-8")
         stop_worker(capture_unit)
         restore_pid, restore_invocation, restore_readiness = start_worker(True, restore_unit, root)
         ssh(NIMO2, "touch", f"{RENDEZVOUS_ROOT}/worker-restarted")
-        stdout, stderr = process.communicate(timeout=1800)
-    except BaseException:
-        process.terminate()
-        try:
-            process.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            process.kill()
+        process.wait(timeout=SSH_TRANSPORT_MODULE.SSH_OPERATION_DEADLINES["model-session"])
+    except BaseException as exc:
+        session_timed_out = isinstance(exc, subprocess.TimeoutExpired)
+        session_terminated, session_killed = terminate_bounded_ssh_session(
+            process, session_job)
         raise
+    finally:
+        stdout_thread.join(timeout=10)
+        stderr_thread.join(timeout=10)
+        if stdout_thread.is_alive() or stderr_thread.is_alive():
+            raise CanaryError("diagnostic evidence drain thread did not terminate")
+        SSH_TRANSPORT._record({
+            "schema": "halofpx.ssh-operation.v1",
+            "sequence": "model-session",
+            "host": NIMO2,
+            "operation": "model-session",
+            "argv": command,
+            "started_at": session_started_wall,
+            "ended_at": datetime.now(timezone.utc).isoformat(),
+            "duration_seconds": round(time.monotonic() - session_started_mono, 6),
+            "deadline_seconds": SSH_TRANSPORT_MODULE.SSH_OPERATION_DEADLINES["model-session"],
+            "pid": process.pid,
+            "returncode": process.returncode,
+            "timed_out": session_timed_out,
+            "term_sent": session_terminated,
+            "kill_sent": session_killed,
+            "failure_class": "timeout" if session_timed_out else (
+                None if process.returncode == 0 else "command"),
+            "stdout": "".join(stream_lines)[-SSH_TRANSPORT_MODULE.SSH_EVIDENCE_LIMIT:],
+            "stderr": "".join(stream_errors)[-SSH_TRANSPORT_MODULE.SSH_EVIDENCE_LIMIT:],
+        })
+    SSH_TRANSPORT_MODULE.SshRunner._close_windows_job(session_job)
+    stdout = "".join(stream_lines)
+    stderr = "".join(stream_errors)
     result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
     write_log(root, "diagnostic.log", result)
     if result.returncode != 0:
@@ -663,6 +798,12 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
             "capture": {"tokens": capture_suffix[0], "text": capture_suffix[1]},
             "restore": {"tokens": restore_suffix[0], "text": restore_suffix[1]},
         },
+        "pre_restart_reference": {
+            "first_token": 21549,
+            "tokens_sha256": reference_suffix[0],
+            "text_sha256": reference_suffix[1],
+            "stream_path": str(stream_path),
+        },
         "worker_object": {
             "path": object_path,
             "bytes": int(ssh(NIMO1, "stat", "-c", "%s", object_path).stdout.strip()),
@@ -679,6 +820,7 @@ def main() -> int:
     args = parser.parse_args()
     root = args.evidence_dir.resolve()
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
+    initialize_ssh_transport(root)
     local_units = []
     results = {}
     suffixes = {}
