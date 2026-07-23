@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 16:21 PDT
+Verified: 2026-07-23 16:45 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `60f4272c4a9f0ecb9e365e0c32e697513668d043`
+- Latest verified commit: `601479a9cf7c18f81a37187663decece47f5fb05`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L31 closeout
+- Worktree state: clean at the reviewed terminal L32 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -140,6 +140,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   recapture the restored live coordinator/context state before generation and
   compare it canonically with the original capture, including control metadata,
   local components, sequence/KV cell state, and architecture-exposed memory.
+- L32 passed 96 focused tests and independent review. It added authenticated
+  live post-apply coordinator and worker recapture immediately before
+  generation. The disposable two-residency lifecycle is exact across all live
+  phases. No source-backed coordinator defect is proven without the primary
+  workload. Work is intentionally stopped at this clean boundary pending
+  explicit user approval; no L33 task has been sent.
 
 ## Product progress
 

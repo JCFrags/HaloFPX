@@ -1,5 +1,16 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — stop cleanly after L32 pending user approval
+
+Decision: record reviewed L32 PASS commit
+`601479a9cf7c18f81a37187663decece47f5fb05` and send no new worker task. Await
+explicit user approval before any primary discriminator or L33 work.
+
+Reason: L32 qualified authenticated live coordinator/worker recapture on the
+disposable two-residency lifecycle without touching production. The remaining
+discriminator requires another primary transition. The user requested a
+natural stopping point so the computer can be shut down.
+
 ## 2026-07-23 — accept L31 and diagnose live coordinator state
 
 Decision: accept reviewed L31 NOT PROMOTED commit
