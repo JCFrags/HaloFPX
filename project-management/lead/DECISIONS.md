@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — close L26 after post-restart RPC/context failure
+
+Decision: direct L26 to close NOT PROMOTED after immutable evidence, disposable
+cleanup, and independent review. Do not retry or open L27.
+
+Reason: the one authorized run captured primary state and restarted the
+disposable worker, but the coordinator aborted during post-restart context/KV
+allocation after RPC reported a crashed or malformed response. This prevented
+stage/apply/token discrimination and is terminal under the one-run contract.
+The bounded controller recovered exact production worker-first and
+coordinator-second to HTTP 200. A transient mid-load observation was reconciled
+against final exact named-unit, cgroup, PID, command, listener, and restart
+authority.
+
 ## 2026-07-23 — accept L25 and authorize one L26 primary discriminator
 
 Decision: accept reviewed L25 PASS commit

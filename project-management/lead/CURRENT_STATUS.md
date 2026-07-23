@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 13:15 PDT
+Verified: 2026-07-23 13:35 PDT
 
 ## Overall state
 
@@ -77,6 +77,13 @@ Project Lead task before ending their own turn. No periodic polling remains.
   recovery continuation. Capture output is flushed, authenticated, and durable
   before restart. L26 is authorized for one primary load and only the
   capture/restart/restore one-token discriminator that L24 could not complete.
+- L26 is terminal after the single authorized run. Capture and the disposable
+  worker restart occurred, but the coordinator aborted while creating its
+  post-restart context after RPC reported a crashed or malformed remote
+  response. No retry occurred. Recovery restored nimo-2 worker first (PID
+  1422619/50052), then nimo-1 coordinator (PID 2248156/8081/HTTP 200), with
+  exact unit/cgroup/command ownership and `NRestarts=0`. The worker is closing
+  L26 NOT PROMOTED with evidence and independent review.
 
 ## Product progress
 
