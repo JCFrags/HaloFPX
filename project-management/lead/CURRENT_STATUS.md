@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 11:14 PDT
+Verified: 2026-07-23 11:24 PDT
 
 ## Overall state
 
@@ -36,6 +36,14 @@ Project Lead task before ending their own turn. No periodic polling remains.
   remained untouched. One narrow no-production compatible-fixture
   qualification is authorized; kernel debugging and broad fixture exploration
   are not.
+- The authorized fallback fixture then passed the single-residency smoke and
+  exact three-residency lifecycle with F16 KV and flash attention off, explicitly
+  without representing primary-model kernel performance. Independent review
+  nevertheless blocked production: the controller validated manifest
+  `child_argv` but did not bind the actual `maintenance_command` passed to
+  `Popen` before shutdown. Production remained untouched. A narrow
+  no-production exact-argv/evidence-path binding repair and re-review is now
+  authorized.
 
 ## Product progress
 

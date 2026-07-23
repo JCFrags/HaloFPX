@@ -1,5 +1,21 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — require manifest-to-process argv binding before L22 mutation
+
+Decision: retain the accepted fixture evidence and uncommitted L22 work, but
+block all production mutation until the actual normalized command passed to
+`subprocess.Popen` is bound exactly to the accepted closed manifest before
+prepare or shutdown. Authorize only focused argv/evidence-root refusal tests,
+hash refresh, disposable dry-run/cleanup evidence, and independent re-review.
+
+Reason: the fallback fixture passed the required lifecycle, but independent
+review found a shared controller defect: manifest `child_argv` could describe
+one child while caller-controlled `maintenance_command` executed another after
+production shutdown. This is a real authority gap, not a fixture issue. The
+repair must eliminate interpreter, argument, ordering, separator, path, and
+evidence-directory ambiguity. The original single primary-attempt authority
+survives only after accepted re-review.
+
 ## 2026-07-23 — keep L22 open for one compatible-fixture qualification
 
 Decision: preserve the uncommitted L22 controller work and authorize one narrow
