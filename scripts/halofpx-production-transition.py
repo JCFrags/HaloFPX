@@ -69,6 +69,17 @@ DISPOSABLE_PATHS = {
         "/var/tmp/halofpx-l24-primary-rendezvous",
     ),
 }
+L28_KEY_PATHS = {
+    "nimo-1": "/var/tmp/halofpx-l28-control.key",
+    "nimo-2": "/var/tmp/halofpx-l28-control.key",
+}
+L28_EXECUTABLES = {
+    "worker": "/var/tmp/halofpx-l28-source-nimo1/build-l28/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l28-source-nimo2/build-l28/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l28-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l28-source-nimo2/build-l28/bin/test-halofpx-placement-probe",
+    "epoch_receipt": "/var/tmp/halofpx-l28-source-nimo2/scripts/halofpx_epoch_receipt.py",
+}
 
 
 class TransitionError(RuntimeError):
@@ -539,7 +550,53 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     }
     if not isinstance(raw, dict) or set(raw) != expected_keys:
         raise TransitionError("L22 manifest field set mismatch")
-    if (
+    l28 = raw.get("schema") == "halofpx.l28.fixture-manifest.v1"
+    if l28:
+        child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
+        interpreter_path = Path(sys.executable).resolve()
+        expected_exec = {
+            **L28_EXECUTABLES,
+            "interpreter": str(interpreter_path),
+            "child": str(child_path),
+        }
+        expected_child_argv = [
+            str(interpreter_path), str(child_path), "--evidence-dir",
+            "{evidence_root}/child", "--l28-fixture",
+        ]
+        if (
+            raw["milestone"] != "l28-fresh-residency-fixture"
+            or raw["worker_host"] != "nimo-1"
+            or raw["canary_host"] != "nimo-2"
+            or raw["worker_port"] != 50188
+            or tuple(raw["worker_units"]) != (
+                "halofpx-l28-worker-capture.service",
+                "halofpx-l28-worker-restore.service",
+            )
+            or tuple(raw["canary_units"]) != (
+                "halofpx-l28-canary-capture.service",
+                "halofpx-l28-canary-restore.service",
+            )
+            or raw["key_paths"] != L28_KEY_PATHS
+            or raw["disposable_paths"] != {
+                "nimo-1": [
+                    "/var/tmp/halofpx-l28-source-nimo1.tar",
+                    "/var/tmp/halofpx-l28-source-nimo1",
+                    "/var/tmp/halofpx-l28-worker",
+                ],
+                "nimo-2": [
+                    "/var/tmp/halofpx-l28-source-nimo2.tar",
+                    "/var/tmp/halofpx-l28-source-nimo2",
+                    "/var/tmp/halofpx-l28-evidence",
+                    "/var/tmp/halofpx-l28-coordinator",
+                    "/var/tmp/halofpx-l28-rendezvous",
+                ],
+            }
+            or raw["executables"] != expected_exec
+            or raw["child_evidence_subdir"] != "child"
+            or raw["child_argv"] != expected_child_argv
+        ):
+            raise TransitionError("L28 manifest identity/executable authority mismatch")
+    elif (
         raw["schema"] != "halofpx.l24.primary-manifest.v1"
         or raw["milestone"] != "l24-primary-diagnostic"
         or raw["worker_host"] != DISPOSABLE_HOST
@@ -551,24 +608,25 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         or {host: tuple(values) for host, values in raw["disposable_paths"].items()} != DISPOSABLE_PATHS
     ):
         raise TransitionError("L22 manifest identity/cleanup authority mismatch")
-    child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
-    interpreter_path = Path(sys.executable).resolve()
-    expected_exec = {
-        "worker": "/var/tmp/halofpx-l24-source-nimo1/build-l24/bin/rpc-server",
-        "canary": DISPOSABLE_CANARY_BIN,
-        "readiness": "/var/tmp/halofpx-l24-source-nimo2/scripts/halofpx_rpc_readiness.py",
-        "placement": "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-placement-probe",
-        "interpreter": str(interpreter_path),
-        "child": str(child_path),
-    }
-    if (
-        raw["executables"] != expected_exec
-        or raw["child_evidence_subdir"] != "child"
-        or raw["child_argv"] != [
-            str(interpreter_path), str(child_path), "--evidence-dir", "{evidence_root}/child",
-        ]
-    ):
-        raise TransitionError("L22 manifest executable/child authority mismatch")
+    if not l28:
+        child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
+        interpreter_path = Path(sys.executable).resolve()
+        expected_exec = {
+            "worker": "/var/tmp/halofpx-l24-source-nimo1/build-l24/bin/rpc-server",
+            "canary": DISPOSABLE_CANARY_BIN,
+            "readiness": "/var/tmp/halofpx-l24-source-nimo2/scripts/halofpx_rpc_readiness.py",
+            "placement": "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-placement-probe",
+            "interpreter": str(interpreter_path),
+            "child": str(child_path),
+        }
+        if (
+            raw["executables"] != expected_exec
+            or raw["child_evidence_subdir"] != "child"
+            or raw["child_argv"] != [
+                str(interpreter_path), str(child_path), "--evidence-dir", "{evidence_root}/child",
+            ]
+        ):
+            raise TransitionError("L22 manifest executable/child authority mismatch")
     hashes = raw["executable_sha256"]
     if not isinstance(hashes, dict) or set(hashes) != set(expected_exec) or any(
         not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value)
@@ -579,6 +637,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "worker": DISPOSABLE_HOST, "canary": DISPOSABLE_CANARY_HOST,
         "readiness": DISPOSABLE_CANARY_HOST, "placement": DISPOSABLE_CANARY_HOST,
     }
+    if l28:
+        host_for["epoch_receipt"] = DISPOSABLE_CANARY_HOST
     for name, host in host_for.items():
         result = runner.run(
             host, ["sha256sum", "--", expected_exec[name]], operation="hash")
@@ -609,7 +669,11 @@ def bind_maintenance_command(
     interpreter = Path(str(executables["interpreter"]))
     child = Path(str(executables["child"]))
     expected_child_root = resolved_root / str(manifest["child_evidence_subdir"])
-    expected = [str(interpreter), str(child), "--evidence-dir", str(expected_child_root)]
+    template = list(manifest["child_argv"])
+    expected = [
+        str(expected_child_root) if value == "{evidence_root}/child" else str(value)
+        for value in template
+    ]
     actual = list(caller_command)
     if actual and actual[0] == "--":
         actual.pop(0)
@@ -663,7 +727,8 @@ def _command_tokens(command: str) -> list[str]:
 class Controller:
     def __init__(
             self, runner: Runner, wait_seconds: float = 1.0, timeout_seconds: float = 300.0,
-            disposable_paths: dict[str, tuple[str, ...]] | None = None):
+            disposable_paths: dict[str, tuple[str, ...]] | None = None,
+            key_paths: dict[str, str] | None = None):
         self.runner = runner
         self.wait_seconds = wait_seconds
         self.timeout_seconds = timeout_seconds
@@ -672,6 +737,7 @@ class Controller:
         self.recovery_complete = False
         self.key_digest: str | None = None
         self.disposable_paths = disposable_paths
+        self.key_paths = key_paths or CHANNEL_KEY_PATHS
         self.in_recovery = False
 
     def _operation(self, argv: Sequence[str]) -> str:
@@ -750,12 +816,12 @@ class Controller:
             raise TransitionError("channel key identity is not prepared")
         return {
             host: self._validate_key(host, path, self.key_digest)
-            for host, path in CHANNEL_KEY_PATHS.items()
+            for host, path in self.key_paths.items()
         }
 
     def cleanup_keys(self) -> None:
         failures = []
-        for host, path in CHANNEL_KEY_PATHS.items():
+        for host, path in self.key_paths.items():
             removed = self._run(host, ["rm", "-f", "--", path], allow_failure=True)
             if removed.returncode != 0:
                 failures.append(f"{host}: remove failed ({removed.returncode})")
@@ -778,7 +844,7 @@ class Controller:
             raise TransitionError("internal channel key format mismatch")
         digest = hashlib.sha256(key_bytes).hexdigest()
         try:
-            for host, path in CHANNEL_KEY_PATHS.items():
+            for host, path in self.key_paths.items():
                 existing = self._run(
                     host, ["stat", "-c", "%F", "--", path], allow_failure=True
                 )
@@ -1105,7 +1171,8 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--milestone-manifest", type=Path)
     parser.add_argument("--timeout-seconds", type=float, default=300.0)
-    parser.add_argument("command", choices=("preflight", "prepare", "maintenance", "recover"))
+    parser.add_argument(
+        "command", choices=("preflight", "prepare", "disposable", "maintenance", "recover"))
     parser.add_argument("maintenance_command", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
     if not args.evidence_dir.is_absolute():
@@ -1119,13 +1186,16 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             parser.error("--milestone-manifest is required for real execution")
     else:
         manifest = validate_milestone_manifest(args.milestone_manifest, selected_runner)
-        if args.command == "maintenance":
+        if args.command in {"maintenance", "disposable"}:
             maintenance_command = bind_maintenance_command(
                 manifest, args.evidence_dir, maintenance_command,
             )
     controller = Controller(
         selected_runner, timeout_seconds=args.timeout_seconds,
-        disposable_paths=DISPOSABLE_PATHS if args.milestone_manifest is not None else None,
+        disposable_paths=(
+            {host: tuple(paths) for host, paths in manifest["disposable_paths"].items()}
+            if manifest is not None else None),
+        key_paths=(dict(manifest["key_paths"]) if manifest is not None else None),
     )
     snapshot_path = args.evidence_dir / "production-preflight.json"
     final_path = args.evidence_dir / "production-final.json"
@@ -1180,6 +1250,42 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
             print(json.dumps(prepared, indent=2, sort_keys=True))
             controller.cleanup_keys()
+            return 0
+        if args.command == "disposable":
+            if manifest is None:
+                raise TransitionError("disposable execution requires a closed manifest")
+            prepared = controller.prepare_keys()
+            _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
+            child_env = os.environ.copy()
+            child_env["HALOFPX_CHANNEL_KEY_SHA256"] = prepared["sha256"]
+            hashes = manifest["executable_sha256"]
+            child_env["HALOFPX_L28_WORKER_SHA256"] = str(hashes["worker"])
+            child_env["HALOFPX_L28_CANARY_SHA256"] = str(hashes["canary"])
+            child_env["HALOFPX_L28_READINESS_SHA256"] = str(hashes["readiness"])
+            child_env["HALOFPX_L28_PLACEMENT_SHA256"] = str(hashes["placement"])
+            child_env["HALOFPX_L28_EPOCH_RECEIPT_SHA256"] = str(hashes["epoch_receipt"])
+            child = subprocess.Popen(maintenance_command, env=child_env)
+            returncode = child.wait()
+            cleanup_failures = []
+            try:
+                controller.cleanup_keys()
+            except Exception as exc:
+                cleanup_failures.append(f"keys: {exc}")
+            for host, paths in controller.disposable_paths.items():
+                for path in paths:
+                    removed = controller._run(
+                        host, ["rm", "-rf", "--", path], allow_failure=True)
+                    absent = controller._run(
+                        host, ["stat", "-c", "%F", "--", path], allow_failure=True)
+                    if removed.returncode != 0 or absent.returncode != 1:
+                        cleanup_failures.append(f"{host}:{path}")
+            final = controller.preflight()
+            if final != snapshot:
+                cleanup_failures.append("production snapshot changed during disposable execution")
+            _atomic_json(args.evidence_dir / "production-final.json", _snapshot_dict(final))
+            if returncode != 0 or cleanup_failures:
+                raise TransitionError(
+                    f"disposable child={returncode} cleanup={cleanup_failures}")
             return 0
         if manifest is None and maintenance_command and maintenance_command[0] == "--":
             maintenance_command.pop(0)

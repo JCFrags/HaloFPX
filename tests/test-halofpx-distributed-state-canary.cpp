@@ -38,6 +38,7 @@ struct canary_options {
     std::array<uint8_t, 32> control_key {};
     std::array<uint8_t, 32> channel_binding {};
     size_t expected_prompt_tokens = 0;
+    fs::path restore_gate_root;
 };
 
 #pragma pack(push, 1)
@@ -147,8 +148,14 @@ bool parse_canary_options(int argc, char ** argv, canary_options & options, std:
     std::string control_file;
     std::string expected_prompt_tokens;
     std::string rendezvous_root;
+    std::string restore_gate_root;
     take_option(args, "--hfx-result-label", options.result_label);
     take_option(args, "--hfx-rendezvous-root", rendezvous_root);
+    take_option(args, "--hfx-restore-gate-root", restore_gate_root);
+    if (!restore_gate_root.empty()) {
+        options.restore_gate_root = restore_gate_root;
+        if (!options.restore_gate_root.is_absolute()) return false;
+    }
     if (take_option(args, "--hfx-expected-prompt-tokens", expected_prompt_tokens)) {
         const auto * begin = expected_prompt_tokens.data();
         const auto * end = begin + expected_prompt_tokens.size();
@@ -410,6 +417,8 @@ bool validate_receipt(
 
 } // namespace
 
+static bool rendezvous(const fs::path & root, const std::string & ready, const std::string & proceed);
+
 static int run_canary(int argc, char ** argv) {
     std::setlocale(LC_NUMERIC, "C");
     canary_options options;
@@ -439,6 +448,11 @@ static int run_canary(int argc, char ** argv) {
         owns_ctx = true;
     }
     if (!ctx) return 3;
+    if (options.mode == "restore" && !options.restore_gate_root.empty() &&
+        !rendezvous(options.restore_gate_root, "model-ready", "restore-authorized")) {
+        if (owns_ctx) llama_free(ctx);
+        return 15;
+    }
     std::vector<llama_token> prefix;
     double prompt_ms = 0.0;
     double state_ms = 0.0;
@@ -504,8 +518,8 @@ static int run_canary(int argc, char ** argv) {
         llama_state_seq_storage_free(storage);
         if (generated.size() != static_cast<size_t>(params.n_predict) ||
             !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 8;
-        std::printf("mode=capture label=%s object=%s control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
-            options.result_label.c_str(), hex(captured.object_digest).c_str(),
+        std::printf("mode=capture label=%s coordinator_pid=%ld object=%s control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+            options.result_label.c_str(), static_cast<long>(getpid()), hex(captured.object_digest).c_str(),
             hex(control_diagnostic.data()).c_str(), hex(local_diagnostic.data()).c_str(),
             hex(manifest_diagnostic.data()).c_str(), prefix.size(), prefix.size() - 1,
             prompt_decode.n_batch, prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
@@ -629,8 +643,8 @@ static int run_canary(int argc, char ** argv) {
     if (disposable_ctx) llama_free(disposable_ctx);
     if (generated.size() != static_cast<size_t>(params.n_predict) ||
         !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 13;
-    std::printf("mode=%s label=%s control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
-        options.mode.c_str(), options.result_label.c_str(),
+    std::printf("mode=%s label=%s coordinator_pid=%ld control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+        options.mode.c_str(), options.result_label.c_str(), static_cast<long>(getpid()),
         hex(control_diagnostic.data()).c_str(), hex(local_diagnostic.data()).c_str(),
         hex(manifest_diagnostic.data()).c_str(), prefix.size(), prefix.size() - 1,
         static_cast<size_t>(llama_n_batch(run_ctx)),
@@ -710,6 +724,8 @@ int main(int argc, char ** argv) {
         return invoke_mode(args, "restore", "plan-mismatch", std::string(64, 'f'));
     }
     if (sequence == "residency3") return invoke_mode(args, "cold", "runtime-off");
+    if (sequence == "capture-only") return invoke_mode(args, "capture", "capture");
+    if (sequence == "restore-guarded") return invoke_mode(args, "restore", "restore");
     if (sequence == "diagnostic") {
         const int capture = invoke_mode(args, "capture", "capture");
         if (capture != 0) return capture;

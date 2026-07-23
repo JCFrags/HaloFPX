@@ -1,4 +1,5 @@
 import importlib.util
+import inspect
 import sys
 import unittest
 from pathlib import Path
@@ -387,12 +388,11 @@ class PrimaryRetryTests(unittest.TestCase):
             retry.stop_worker("fixture")
         self.assertFalse(any("stop" in call for call in calls))
 
-    def test_same_residency_diagnostic_refuses_before_worker_or_model_start(self):
-        with mock.patch.object(retry, "start_worker") as start:
-            with self.assertRaisesRegex(
-                    retry.CanaryError, "same-residency RPC restart continuation is forbidden"):
-                retry.run_diagnostic(Path("evidence"), [])
-        start.assert_not_called()
+    def test_fresh_residency_runner_wires_validator_before_authorization(self):
+        source = inspect.getsource(retry.run_diagnostic)
+        self.assertLess(
+            source.index("require_fresh_rpc_model_residency("),
+            source.index('ssh(NIMO2, "touch", f"{RENDEZVOUS_ROOT}/restore-authorized")'))
 
     def test_fresh_rpc_residency_accepts_changed_worker_and_coordinator(self):
         retry.require_fresh_rpc_model_residency(
@@ -412,6 +412,28 @@ class PrimaryRetryTests(unittest.TestCase):
         with self.assertRaisesRegex(retry.CanaryError, "load after"):
             retry.require_fresh_rpc_model_residency(
                 "1" * 32, "2" * 32, 101, 202, False)
+
+    def test_fresh_rpc_residency_rejects_wrong_stop_order(self):
+        with self.assertRaisesRegex(retry.CanaryError, "coordinator must terminate"):
+            retry.require_fresh_rpc_model_residency(
+                "1" * 32, "2" * 32, 101, 202, True,
+                capture_coordinator_stopped_before_worker=False)
+        with self.assertRaisesRegex(retry.CanaryError, "worker A must stop"):
+            retry.require_fresh_rpc_model_residency(
+                "1" * 32, "2" * 32, 101, 202, True,
+                capture_worker_stopped_before_restore=False)
+
+    def test_fresh_rpc_residency_rejects_worker_change_after_model_load(self):
+        with self.assertRaisesRegex(retry.CanaryError, "changed after restore model load"):
+            retry.require_fresh_rpc_model_residency(
+                "1" * 32, "2" * 32, 101, 202, True,
+                restore_worker_pid=303, current_worker_pid=404,
+                current_worker_invocation="2" * 32)
+        with self.assertRaisesRegex(retry.CanaryError, "changed after restore model load"):
+            retry.require_fresh_rpc_model_residency(
+                "1" * 32, "2" * 32, 101, 202, True,
+                restore_worker_pid=303, current_worker_pid=303,
+                current_worker_invocation="3" * 32)
 
 
 if __name__ == "__main__":

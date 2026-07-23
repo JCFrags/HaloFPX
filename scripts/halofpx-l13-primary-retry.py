@@ -26,7 +26,9 @@ WORKER_BIN = "/var/tmp/halofpx-l24-source-nimo1/build-l24/bin/rpc-server"
 CANARY_BIN = "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-distributed-state-canary"
 READINESS_PROBE = "/var/tmp/halofpx-l24-source-nimo2/scripts/halofpx_rpc_readiness.py"
 PLACEMENT_PROBE = "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-placement-probe"
+EPOCH_RECEIPT = "/var/tmp/halofpx-l24-source-nimo2/scripts/halofpx_epoch_receipt.py"
 PLACEMENT_PROBE_SHA = "8f4796e3f0912afa614ec35ecdc48322228a4b355e32544aa5a36c3cfbd6267e"
+EPOCH_RECEIPT_SHA = ""
 READINESS_PROBE_SHA = "54b546c38ea8d0a4ec273ae33b961090589756788acc1b173f22f1dba3e070da"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -67,6 +69,53 @@ SSH_TRANSPORT_MODULE = None
 
 class CanaryError(RuntimeError):
     pass
+
+
+def configure_l28_fixture() -> None:
+    global PORT, WORKER_BIN, CANARY_BIN, READINESS_PROBE, PLACEMENT_PROBE
+    global EPOCH_RECEIPT, EPOCH_RECEIPT_SHA
+    global MODEL, MODEL_SHA, MODEL_BYTES, PROMPT, PROMPT_SHA
+    global REMOTE_EVIDENCE, COORDINATOR_ROOT, WORKER_ROOT, RENDEZVOUS_ROOT
+    global CONTROL, WORKER_CONTROL, CACHE_TYPE_K, CACHE_TYPE_V, FLASH_ATTN
+    global FIXTURE_QUALIFICATION, CANARY_SHA, WORKER_SHA, READINESS_PROBE_SHA
+    global PLACEMENT_PROBE_SHA, MODEL_DIGEST, ARTIFACT_DIR
+    PORT = 50188
+    WORKER_BIN = "/var/tmp/halofpx-l28-source-nimo1/build-l28/bin/rpc-server"
+    CANARY_BIN = (
+        "/var/tmp/halofpx-l28-source-nimo2/build-l28/bin/"
+        "test-halofpx-distributed-state-canary")
+    READINESS_PROBE = (
+        "/var/tmp/halofpx-l28-source-nimo2/scripts/halofpx_rpc_readiness.py")
+    PLACEMENT_PROBE = (
+        "/var/tmp/halofpx-l28-source-nimo2/build-l28/bin/"
+        "test-halofpx-placement-probe")
+    EPOCH_RECEIPT = (
+        "/var/tmp/halofpx-l28-source-nimo2/scripts/halofpx_epoch_receipt.py")
+    MODEL = (
+        "/var/tmp/halofpx-qualification/l14q-t01-20260719-nimo2/"
+        "build-cpu/tinyllamas/stories15M-q4_0.gguf")
+    MODEL_SHA = "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739"
+    MODEL_BYTES = 19077344
+    MODEL_DIGEST = MODEL_SHA
+    PROMPT = "/var/tmp/halofpx-l13-retry-a2-20260721/prompt-1129.txt"
+    PROMPT_SHA = "326cb4971a99fe8588fffc8635f57144173a16295a2375c3e1eb28240182f81d"
+    REMOTE_EVIDENCE = "/var/tmp/halofpx-l28-evidence"
+    COORDINATOR_ROOT = "/var/tmp/halofpx-l28-coordinator"
+    WORKER_ROOT = "/var/tmp/halofpx-l28-worker"
+    RENDEZVOUS_ROOT = "/var/tmp/halofpx-l28-rendezvous"
+    CONTROL = "/var/tmp/halofpx-l28-control.key"
+    ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
+    WORKER_CONTROL = CONTROL
+    CACHE_TYPE_K = "f16"
+    CACHE_TYPE_V = "f16"
+    FLASH_ATTN = "off"
+    FIXTURE_QUALIFICATION = True
+    # Frozen after the exact L28 source is built on both hosts.
+    CANARY_SHA = os.environ.get("HALOFPX_L28_CANARY_SHA256", "")
+    WORKER_SHA = os.environ.get("HALOFPX_L28_WORKER_SHA256", "")
+    READINESS_PROBE_SHA = os.environ.get("HALOFPX_L28_READINESS_SHA256", "")
+    PLACEMENT_PROBE_SHA = os.environ.get("HALOFPX_L28_PLACEMENT_SHA256", "")
+    EPOCH_RECEIPT_SHA = os.environ.get("HALOFPX_L28_EPOCH_RECEIPT_SHA256", "")
 
 
 def run(argv, *, timeout=900, check=True):
@@ -286,7 +335,7 @@ def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None
 
 
 def stop_worker(unit: str) -> None:
-    def stopped() -> tuple[bool, str]:
+    def stopped(require_port_closed: bool) -> tuple[bool, str]:
         show = ssh(
             NIMO1, "systemctl", "--user", "show", f"{unit}.service",
             "-p", "LoadState", "-p", "ActiveState", "-p", "SubState", "-p", "MainPID",
@@ -298,11 +347,13 @@ def stop_worker(unit: str) -> None:
             props.get("ActiveState") == "inactive"
             and props.get("SubState") == "dead"
             and props.get("MainPID") == "0"
-            and listener_pid(listeners, PORT) == 0,
+            and (not require_port_closed or listener_pid(listeners, PORT) == 0),
             repr(props),
         )
 
-    already_stopped, _ = stopped()
+    # An already-absent epoch must not claim the listener owned by the other
+    # admitted epoch. If this call performs the stop, it must close the port.
+    already_stopped, _ = stopped(require_port_closed=False)
     if already_stopped:
         return
     ssh(NIMO1, "systemctl", "--user", "stop", f"{unit}.service", check=False)
@@ -310,14 +361,34 @@ def stop_worker(unit: str) -> None:
     deadline = time.monotonic() + 30
     last = ""
     while time.monotonic() < deadline:
-        is_stopped, last = stopped()
+        is_stopped, last = stopped(require_port_closed=True)
         if is_stopped:
             return
         time.sleep(1)
     raise CanaryError(f"disposable worker cleanup not verified for {unit}: {last}")
 
 
-def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
+def stop_canary(unit: str) -> None:
+    ssh(NIMO2, "systemctl", "--user", "stop", f"{unit}.service", check=False)
+    ssh(NIMO2, "systemctl", "--user", "reset-failed", f"{unit}.service", check=False)
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        show = ssh(
+            NIMO2, "systemctl", "--user", "show", f"{unit}.service",
+            "-p", "ActiveState", "-p", "SubState", "-p", "MainPID",
+            check=False).stdout
+        props = dict(line.split("=", 1) for line in show.splitlines() if "=" in line)
+        if (
+            props.get("ActiveState") == "inactive"
+            and props.get("SubState") == "dead"
+            and props.get("MainPID") == "0"
+        ):
+            return
+        time.sleep(1)
+    raise CanaryError(f"disposable coordinator cleanup not verified for {unit}")
+
+
+def canary_argv(sequence: str, *, restore_gate: bool = False) -> list[str]:
     canary_command = [
         CANARY_BIN,
         "--hfx-mode", "capture",
@@ -355,7 +426,16 @@ def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
         "--seed", "1234",
         "--temp", "0",
     ]
-    unit = f"halofpx-l24-primary-canary-{unit_label}"
+    if restore_gate:
+        canary_command.extend(["--hfx-restore-gate-root", RENDEZVOUS_ROOT])
+    return canary_command
+
+
+def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
+    canary_command = canary_argv(sequence)
+    unit = (
+        f"halofpx-l28-canary-{unit_label}" if FIXTURE_QUALIFICATION
+        else f"halofpx-l24-primary-canary-{unit_label}")
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=20min",
         "--wait", "--collect", "--pipe", *canary_command,
@@ -620,7 +700,12 @@ def require_fresh_rpc_model_residency(
         restore_worker_invocation: str,
         capture_coordinator_pid: int,
         restore_coordinator_pid: int,
-        restore_model_loaded_after_worker: bool) -> None:
+        restore_model_loaded_after_worker: bool,
+        capture_coordinator_stopped_before_worker: bool = True,
+        capture_worker_stopped_before_restore: bool = True,
+        restore_worker_pid: int = 1,
+        current_worker_pid: int = 1,
+        current_worker_invocation: str | None = None) -> None:
     """Refuse restore unless both sides have fresh post-restart lifetime authority."""
     invocation = re.compile(r"[0-9a-f]{32}")
     if (
@@ -637,17 +722,191 @@ def require_fresh_rpc_model_residency(
         raise CanaryError("restore requires a fresh coordinator process/model residency")
     if not restore_model_loaded_after_worker:
         raise CanaryError("restore model residency must load after the restarted worker")
+    if not capture_coordinator_stopped_before_worker:
+        raise CanaryError("capture coordinator must terminate before worker A")
+    if not capture_worker_stopped_before_restore:
+        raise CanaryError("worker A must stop before worker B/model residency B")
+    if current_worker_invocation is None:
+        current_worker_invocation = restore_worker_invocation
+    if (
+        restore_worker_pid <= 0
+        or current_worker_pid <= 0
+        or restore_worker_pid != current_worker_pid
+        or current_worker_invocation != restore_worker_invocation
+    ):
+        raise CanaryError("worker epoch changed after restore model load")
 
 
 def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
-    # The legacy diagnostic sequence retains resident_init across capture and
-    # restore. A worker restart invalidates every RPC model/buffer allocation
-    # in that residency, so it is forbidden before any model load. A valid
-    # diagnostic must use a second coordinator process which calls
-    # require_fresh_rpc_model_residency() before state staging.
-    raise CanaryError(
-        "same-residency RPC restart continuation is forbidden; "
-        "start a fresh coordinator/model residency after worker restart")
+    capture_unit = "halofpx-l28-worker-capture"
+    restore_unit = "halofpx-l28-worker-restore"
+    restore_canary_unit = "halofpx-l28-canary-restore"
+    # Reversed cleanup order stops capture first if capture fails before the
+    # explicit A->B transition, avoiding attribution of A's listener to B.
+    local_units.extend([restore_unit, capture_unit])
+
+    capture_worker_pid, capture_invocation, capture_readiness = start_worker(
+        True, capture_unit, root)
+    capture_result = canary_sequence("capture-only", "capture")
+    write_log(root, "capture.log", capture_result)
+    capture_fields = output_fields(capture_result.stdout)
+    require_result(capture_fields, "capture", require_worker_state=True)
+    capture_coordinator_pid = int(capture_fields.get("coordinator_pid", "0"))
+    if capture_coordinator_pid <= 0:
+        raise CanaryError("capture coordinator PID evidence is absent")
+    if ssh(NIMO2, "kill", "-0", str(capture_coordinator_pid), check=False).returncode == 0:
+        raise CanaryError("capture coordinator A survived capture completion")
+    capture_suffix = fetch_suffix(root, "capture", "capture")
+    capture_journal = worker_journal(
+        capture_unit, capture_invocation, capture_worker_pid)
+    (root / "worker-capture.log").write_text(capture_journal, encoding="utf-8")
+
+    capture_epoch = {
+        "schema": "halofpx.l28.capture-epoch-audit.v1",
+        "worker_pid": capture_worker_pid,
+        "worker_invocation_id": capture_invocation,
+        "coordinator_pid": capture_coordinator_pid,
+        "coordinator_terminated_before_worker_stop": True,
+    }
+    capture_epoch_path = root / "capture-epoch-audit.json"
+    with capture_epoch_path.open("x", encoding="utf-8", newline="\n") as output:
+        json.dump(capture_epoch, output, indent=2, sort_keys=True)
+        output.write("\n")
+        output.flush()
+        os.fsync(output.fileno())
+    capture_epoch_sha = hashlib.sha256(capture_epoch_path.read_bytes()).hexdigest()
+    object_digest = capture_fields.get("object", "")
+    epoch_receipt_remote = f"{ARTIFACT_DIR}/capture-epoch-auth.json"
+    epoch_args = [
+        "--key", CONTROL,
+        "--receipt", epoch_receipt_remote,
+        "--object-digest", object_digest,
+        "--worker-pid", str(capture_worker_pid),
+        "--worker-invocation-id", capture_invocation,
+        "--coordinator-pid", str(capture_coordinator_pid),
+    ]
+    ssh(NIMO2, "python3", EPOCH_RECEIPT, "create", *epoch_args)
+    epoch_receipt_local = root / "capture-epoch-auth.json"
+    run(["scp", f"{NIMO2}:{epoch_receipt_remote}", str(epoch_receipt_local)])
+    epoch_receipt_sha = hashlib.sha256(epoch_receipt_local.read_bytes()).hexdigest()
+
+    stop_worker(capture_unit)
+    restore_worker_pid, restore_invocation, restore_readiness = start_worker(
+        True, restore_unit, root)
+    if (
+        restore_worker_pid == capture_worker_pid
+        or restore_invocation == capture_invocation
+    ):
+        raise CanaryError("worker B reused worker A PID or InvocationID")
+
+    restore_command = canary_argv("restore-guarded", restore_gate=True)
+    ssh(
+        NIMO2, "systemd-run", "--user", f"--unit={restore_canary_unit}",
+        "--property=RuntimeMaxSec=20min", *restore_command)
+    wait_remote_file(f"{RENDEZVOUS_ROOT}/model-ready", 1200)
+    restore_show = ssh(
+        NIMO2, "systemctl", "--user", "show", f"{restore_canary_unit}.service",
+        "-p", "ActiveState", "-p", "SubState", "-p", "MainPID",
+        "-p", "InvocationID").stdout
+    restore_props = dict(
+        line.split("=", 1) for line in restore_show.splitlines() if "=" in line)
+    if (
+        restore_props.get("ActiveState") != "active"
+        or restore_props.get("SubState") != "running"
+    ):
+        raise CanaryError("restore coordinator is not active at model-ready")
+    restore_coordinator_pid = int(restore_props.get("MainPID", "0"))
+    restore_coordinator_invocation = restore_props.get("InvocationID", "").lower()
+    if not re.fullmatch(r"[0-9a-f]{32}", restore_coordinator_invocation):
+        raise CanaryError("restore coordinator InvocationID is absent or malformed")
+
+    current_worker_pid = int(ssh(
+        NIMO1, "systemctl", "--user", "show", f"{restore_unit}.service",
+        "-p", "MainPID", "--value").stdout.strip())
+    current_worker_invocation = ssh(
+        NIMO1, "systemctl", "--user", "show", f"{restore_unit}.service",
+        "-p", "InvocationID", "--value").stdout.strip().lower()
+    # This authenticated object/epoch binding is checked after model B is
+    # ready and immediately before the only staging authorization.
+    ssh(NIMO2, "python3", EPOCH_RECEIPT, "verify", *epoch_args)
+    require_fresh_rpc_model_residency(
+        capture_invocation, restore_invocation,
+        capture_coordinator_pid, restore_coordinator_pid, True,
+        capture_coordinator_stopped_before_worker=True,
+        capture_worker_stopped_before_restore=True,
+        restore_worker_pid=restore_worker_pid,
+        current_worker_pid=current_worker_pid,
+        current_worker_invocation=current_worker_invocation)
+    ssh(NIMO2, "touch", f"{RENDEZVOUS_ROOT}/restore-authorized")
+
+    deadline = time.monotonic() + 1200
+    restore_status = None
+    while time.monotonic() < deadline:
+        show = ssh(
+            NIMO2, "systemctl", "--user", "show", f"{restore_canary_unit}.service",
+            "-p", "ActiveState", "-p", "SubState", "-p", "ExecMainStatus",
+            check=False).stdout
+        props = dict(line.split("=", 1) for line in show.splitlines() if "=" in line)
+        if props.get("ActiveState") in {"inactive", "failed"}:
+            restore_status = int(props.get("ExecMainStatus", "-1"))
+            break
+        time.sleep(1)
+    if restore_status is None:
+        raise CanaryError("timed out waiting for guarded restore coordinator")
+    restore_log = ssh(
+        NIMO2, "journalctl", "--user", "-u", f"{restore_canary_unit}.service",
+        f"_SYSTEMD_INVOCATION_ID={restore_coordinator_invocation}",
+        "--no-pager", "-o", "cat").stdout
+    (root / "restore.log").write_text(restore_log, encoding="utf-8")
+    if restore_status != 0:
+        raise CanaryError(f"guarded restore failed with {restore_status}: {restore_log}")
+    restore_fields = output_fields(restore_log)
+    require_result(restore_fields, "restore", require_worker_state=True)
+    if int(restore_fields.get("coordinator_pid", "0")) != restore_coordinator_pid:
+        raise CanaryError("restore result PID does not match admitted model residency")
+    restore_suffix = fetch_suffix(root, "restore", "restore")
+    if capture_suffix != restore_suffix:
+        raise CanaryError(
+            f"fresh-residency suffix mismatch: capture={capture_suffix} restore={restore_suffix}")
+
+    restore_journal = worker_journal(
+        restore_unit, restore_invocation, restore_worker_pid)
+    (root / "worker-restore.log").write_text(restore_journal, encoding="utf-8")
+    agreement = require_diagnostic_agreement(
+        capture_journal, restore_journal, capture_fields, restore_fields)
+    capture_window, restore_window = state_windows(capture_journal, restore_journal)
+    (root / "capture-state-window.log").write_text(
+        "\n".join(capture_window) + "\n", encoding="utf-8")
+    (root / "restore-state-window.log").write_text(
+        "\n".join(restore_window) + "\n", encoding="utf-8")
+    return {
+        "schema": "halofpx.l28.fresh-residency-diagnostic-result.v1",
+        "material_model_residencies": 2,
+        "capture_epoch_audit": {
+            **capture_epoch,
+            "sha256": capture_epoch_sha,
+            "authenticated_object_receipt_sha256": epoch_receipt_sha,
+            "object_sha256": object_digest,
+        },
+        "restore_epoch": {
+            "worker_pid": restore_worker_pid,
+            "worker_invocation_id": restore_invocation,
+            "coordinator_pid": restore_coordinator_pid,
+            "coordinator_invocation_id": restore_coordinator_invocation,
+            "model_ready_before_restore_authorization": True,
+        },
+        "readiness": {
+            "capture": capture_readiness,
+            "restore": restore_readiness,
+        },
+        "results": {"capture": capture_fields, "restore": restore_fields},
+        "suffix_hashes": {
+            "capture": {"tokens": capture_suffix[0], "text": capture_suffix[1]},
+            "restore": {"tokens": restore_suffix[0], "text": restore_suffix[1]},
+        },
+        "diagnostic_agreement": agreement,
+        "state_window_get_set": 0,
+    }
 
 
 def run_legacy_same_residency_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
@@ -852,7 +1111,10 @@ def run_legacy_same_residency_diagnostic(root: Path, local_units: list[str]) -> 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence-dir", required=True, type=Path)
+    parser.add_argument("--l28-fixture", action="store_true")
     args = parser.parse_args()
+    if args.l28_fixture:
+        configure_l28_fixture()
     root = args.evidence_dir.resolve()
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     initialize_ssh_transport(root)
@@ -889,6 +1151,8 @@ def main() -> int:
             raise CanaryError("readiness probe mismatch")
         if ssh(NIMO2, "sha256sum", PLACEMENT_PROBE).stdout.split()[0] != PLACEMENT_PROBE_SHA:
             raise CanaryError("placement probe mismatch")
+        if ssh(NIMO2, "sha256sum", EPOCH_RECEIPT).stdout.split()[0] != EPOCH_RECEIPT_SHA:
+            raise CanaryError("epoch receipt helper mismatch")
         if ssh(NIMO2, "sha256sum", PROMPT).stdout.split()[0] != PROMPT_SHA:
             raise CanaryError("prompt SHA-256 mismatch")
         free_worker = int(ssh(NIMO1, "df", "-B1", "--output=avail", "/var/tmp").stdout.splitlines()[-1])
@@ -1023,6 +1287,11 @@ def main() -> int:
                 stop_worker(unit)
             except Exception as exc:
                 cleanup_errors.append(f"{unit}: {exc}")
+        if DIAGNOSTIC_ONLY:
+            try:
+                stop_canary("halofpx-l28-canary-restore")
+            except Exception as exc:
+                cleanup_errors.append(f"halofpx-l28-canary-restore: {exc}")
         if cleanup_errors:
             raise CanaryError("; ".join(cleanup_errors))
 

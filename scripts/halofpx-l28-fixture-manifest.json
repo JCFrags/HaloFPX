@@ -1,0 +1,59 @@
+{
+  "schema": "halofpx.l28.fixture-manifest.v1",
+  "milestone": "l28-fresh-residency-fixture",
+  "worker_host": "nimo-1",
+  "canary_host": "nimo-2",
+  "worker_port": 50188,
+  "worker_units": [
+    "halofpx-l28-worker-capture.service",
+    "halofpx-l28-worker-restore.service"
+  ],
+  "canary_units": [
+    "halofpx-l28-canary-capture.service",
+    "halofpx-l28-canary-restore.service"
+  ],
+  "key_paths": {
+    "nimo-1": "/var/tmp/halofpx-l28-control.key",
+    "nimo-2": "/var/tmp/halofpx-l28-control.key"
+  },
+  "disposable_paths": {
+    "nimo-1": [
+      "/var/tmp/halofpx-l28-source-nimo1.tar",
+      "/var/tmp/halofpx-l28-source-nimo1",
+      "/var/tmp/halofpx-l28-worker"
+    ],
+    "nimo-2": [
+      "/var/tmp/halofpx-l28-source-nimo2.tar",
+      "/var/tmp/halofpx-l28-source-nimo2",
+      "/var/tmp/halofpx-l28-evidence",
+      "/var/tmp/halofpx-l28-coordinator",
+      "/var/tmp/halofpx-l28-rendezvous"
+    ]
+  },
+  "executables": {
+    "worker": "/var/tmp/halofpx-l28-source-nimo1/build-l28/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l28-source-nimo2/build-l28/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l28-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l28-source-nimo2/build-l28/bin/test-halofpx-placement-probe",
+    "epoch_receipt": "/var/tmp/halofpx-l28-source-nimo2/scripts/halofpx_epoch_receipt.py",
+    "interpreter": "C:\\Python314\\python.exe",
+    "child": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py"
+  },
+  "executable_sha256": {
+    "worker": "2e9f9a8895c62f2dff6efa6bb431bbc8cfe95c360e8c31ecd820112598d6ad83",
+    "canary": "98f8dd1944849a563cc995286c3532778234ea2753aba77cad14145a0876c5b2",
+    "readiness": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
+    "placement": "327a2be2d5d6a21717dcdcf9b38f142450c3acdbdad5100fca00562c4246458d",
+    "epoch_receipt": "6ec5f17be6d3dd7ab5aba7d986434539ed4529c4219f4c112c834169f0671527",
+    "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
+    "child": "d57dcd5bca4c41aa574cfbdf1129784531b9281e8107213e3f2fb2f06e35a709"
+  },
+  "child_evidence_subdir": "child",
+  "child_argv": [
+    "C:\\Python314\\python.exe",
+    "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py",
+    "--evidence-dir",
+    "{evidence_root}/child",
+    "--l28-fixture"
+  ]
+}
