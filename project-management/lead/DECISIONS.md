@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L24 and open no-production controller reliability work
+
+Decision: accept reviewed L24 NOT PROMOTED commit
+`46461c888b79e5496c4999c38bae749377dc1966`. Open L25 only to implement and
+qualify bounded local deadlines for every controller-owned SSH process group,
+typed timeout evidence, orphan-free recovery continuation, and authenticated
+capture-output flushing. No production transition or primary load is allowed.
+
+Reason: L24 captured valid primary worker state but could not authoritatively
+observe its own capture-ready marker because its SSH subprocess hung. The first
+recovery SSH probe hung identically while production was down. Manual
+termination of only that subprocess allowed registered recovery to succeed.
+This is a controller-liveness defect that must be closed independently before
+any further primary discrimination.
+
 ## 2026-07-23 — close L24 after recovered controller SSH hang
 
 Decision: accept the completed worker-first/coordinator-second emergency

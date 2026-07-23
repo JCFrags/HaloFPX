@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 12:41 PDT
+Verified: 2026-07-23 12:48 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `cb1913ca233acf8661530622720b411bc0e5d5aa`
+- Latest verified commit: `46461c888b79e5496c4999c38bae749377dc1966`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L23 diagnosis
+- Worktree state: clean at the reviewed terminal L24 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -65,6 +65,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   nimo-2 worker first (PID 1415055/50052), then nimo-1 coordinator (PID
   2236922/8081/HTTP 200), both `NRestarts=0`. No retry is authorized. L24 is
   closing NOT PROMOTED with the diagnostic and recovery evidence preserved.
+- L24 is now reviewed and committed NOT PROMOTED. Capture retained the primary
+  worker aggregate, but no authenticated reference token, stage, apply, or
+  restore result exists. L25 is open only to give every controller-owned SSH
+  subprocess a local process-group deadline, preserve typed timeout evidence,
+  keep recovery live without orphan processes, and flush/authenticate capture
+  evidence before handoff. Production must remain continuously unchanged.
 
 ## Product progress
 
