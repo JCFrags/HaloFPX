@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 12:48 PDT
+Verified: 2026-07-23 13:15 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `46461c888b79e5496c4999c38bae749377dc1966`
+- Latest verified commit: `36b026d29454adc9cdd61baf387303c3e8d9f200`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L24 closeout
+- Worktree state: clean at the reviewed terminal L25 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -71,6 +71,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   subprocess a local process-group deadline, preserve typed timeout evidence,
   keep recovery live without orphan processes, and flush/authenticate capture
   evidence before handoff. Production must remain continuously unchanged.
+- L25 passed 79 focused tests and independent review. All controller and child
+  SSH now use locally enforced process-group deadlines with typed fsynced
+  evidence, bounded escalation/reaping, no ambiguous mutation retry, and
+  recovery continuation. Capture output is flushed, authenticated, and durable
+  before restart. L26 is authorized for one primary load and only the
+  capture/restart/restore one-token discriminator that L24 could not complete.
 
 ## Product progress
 

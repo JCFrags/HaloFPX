@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L25 and authorize one L26 primary discriminator
+
+Decision: accept reviewed L25 PASS commit
+`36b026d29454adc9cdd61baf387303c3e8d9f200`. Authorize one primary model load
+for capture, true disposable-worker restart, restore, and one-token diagnostic
+comparison under the repaired bounded transport. No other case, retry,
+semantic correction, tuning, promotion, or L27 is authorized.
+
+Reason: L25 closes the exact transport and evidence-durability defects that
+invalidated L24. Every SSH process tree now has a local deadline, typed fsynced
+evidence, bounded termination/reaping, and recovery continuation; capture
+evidence is authenticated before restart. The unfinished primary discriminator
+is again the smallest experiment capable of separating worker byte
+transport/application from coordinator or model-specific state semantics.
+
 ## 2026-07-23 — accept L24 and open no-production controller reliability work
 
 Decision: accept reviewed L24 NOT PROMOTED commit
