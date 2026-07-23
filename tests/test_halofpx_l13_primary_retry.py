@@ -97,6 +97,62 @@ class PrimaryRetryTests(unittest.TestCase):
                 retry.COMPONENT_DIAGNOSTICS_SHA, retry.CONTROL,
             ) = original
 
+    def test_l32_live_recapture_analyzer_and_coordinator_receipt_are_mandatory(self):
+        import json
+
+        report = {
+            "schema": "halofpx.state-component-live-recapture-diagnostic.v1",
+            "phases": {
+                "capture": {}, "stage": {}, "apply": {}, "recapture": {},
+            },
+            "coordinator": {"token_boundary": 1128},
+            "mismatches": [],
+            "report_auth_tag": "a" * 64,
+        }
+
+        class Transport:
+            def run_stdin(self, host, argv, stdin, *, operation="command"):
+                self.argv = argv
+                return SimpleNamespace(
+                    returncode=0, stdout=json.dumps(report), stderr="")
+
+        original = {
+            name: getattr(retry, name)
+            for name in (
+                "SSH_TRANSPORT", "COMPONENT_DIAGNOSTICS",
+                "COMPONENT_DIAGNOSTICS_SHA", "CONTROL",
+                "LIVE_RECAPTURE_DIAGNOSTICS", "ARTIFACT_DIR",
+                "WORKER_ROOT",
+            )
+        }
+        try:
+            transport = Transport()
+            retry.SSH_TRANSPORT = transport
+            retry.COMPONENT_DIAGNOSTICS = "/analyzer"
+            retry.COMPONENT_DIAGNOSTICS_SHA = "d" * 64
+            retry.CONTROL = "/protected.key"
+            retry.LIVE_RECAPTURE_DIAGNOSTICS = True
+            retry.ARTIFACT_DIR = "/coordinator/checkpoint"
+            retry.WORKER_ROOT = "/worker"
+            with tempfile.TemporaryDirectory() as directory, \
+                    mock.patch.object(retry, "run", return_value=SimpleNamespace(returncode=0)), \
+                    mock.patch.object(
+                        retry, "ssh",
+                        return_value=SimpleNamespace(
+                            returncode=0,
+                            stdout="d" * 64 + "  /analyzer\n",
+                            stderr="",
+                        ),
+                    ):
+                result = retry.require_authenticated_component_diagnostics(
+                    "capture", "restore", Path(directory))
+                self.assertEqual(result, report)
+                self.assertIn("--require-recapture", transport.argv)
+                self.assertIn("--coordinator-receipt", transport.argv)
+        finally:
+            for name, value in original.items():
+                setattr(retry, name, value)
+
     def test_l31_selected_fresh_residency_path_enforces_component_analyzer(self):
         fresh_source = inspect.getsource(retry.run_diagnostic)
         legacy_source = inspect.getsource(retry.run_legacy_same_residency_diagnostic)
@@ -563,6 +619,31 @@ class PrimaryRetryTests(unittest.TestCase):
             self.assertEqual(retry.CACHE_TYPE_K, "q8_0")
             self.assertEqual(retry.CACHE_TYPE_V, "q8_0")
             self.assertEqual(retry.FLASH_ATTN, "on")
+        finally:
+            for name, value in original.items():
+                setattr(retry, name, value)
+
+    def test_l32_configuration_is_disposable_and_requires_live_recapture(self):
+        original = {
+            name: getattr(retry, name)
+            for name in (
+                "PORT", "WORKER_BIN", "CANARY_BIN", "CONTROL",
+                "UNIT_PREFIX", "FIXTURE_QUALIFICATION",
+                "LIVE_RECAPTURE_DIAGNOSTICS",
+            )
+        }
+        try:
+            retry.configure_l32_fixture()
+            self.assertEqual(retry.PORT, 50232)
+            self.assertEqual(retry.UNIT_PREFIX, "halofpx-l32")
+            self.assertEqual(retry.CONTROL, "/var/tmp/halofpx-l32-control.key")
+            self.assertIn("halofpx-l32-build/bin/rpc-server", retry.WORKER_BIN)
+            self.assertIn("halofpx-l32-build/bin/test-halofpx", retry.CANARY_BIN)
+            self.assertTrue(retry.FIXTURE_QUALIFICATION)
+            self.assertTrue(retry.LIVE_RECAPTURE_DIAGNOSTICS)
+            self.assertEqual(retry.CACHE_TYPE_K, "f16")
+            self.assertEqual(retry.CACHE_TYPE_V, "f16")
+            self.assertEqual(retry.FLASH_ATTN, "off")
         finally:
             for name, value in original.items():
                 setattr(retry, name, value)

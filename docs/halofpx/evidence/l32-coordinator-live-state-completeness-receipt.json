@@ -1,0 +1,97 @@
+{
+  "schema": "halofpx-l32-coordinator-live-state-completeness-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "60f4272c4a9f0ecb9e365e0c32e697513668d043",
+  "outcome": "pass_live_recapture_instrumentation_primary_discriminator_required",
+  "default_off": true,
+  "primary_artifact_accessed": false,
+  "production_mutated": false,
+  "diagnostics": {
+    "fresh_storage": true,
+    "post_apply_pre_generation": true,
+    "independent_worker_recapture_object": true,
+    "authenticated_metadata_only": true,
+    "phases": [
+      "original_capture",
+      "restore_input",
+      "live_post_apply_recapture",
+      "pre_generation"
+    ],
+    "coordinator_receipt_bytes": 504
+  },
+  "fixture": {
+    "model_bytes": 19077344,
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "material_model_residencies": 2,
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "max_prompt_chunk": 512,
+    "cache_k": "f16",
+    "cache_v": "f16",
+    "flash_attention": false,
+    "capture_token": 4245,
+    "restore_token": 4245,
+    "token_sha256": "105dcfac89ff7ef4efb5b9253b18b4609ac2a44933a031a2e73020d41d6f6188",
+    "text_sha256": "6393507a33556ff939295d9a31b1e21b53c391f7c64eefa95226110c39dc56df"
+  },
+  "coordinator_live": {
+    "token_boundary": 1128,
+    "control_bytes": 13704,
+    "control_sha256_all_phases": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+    "local_bytes": 2603624,
+    "local_sha256_all_phases": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee",
+    "manifest_sha256_all_phases": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1",
+    "recapture_object_sha256": "b5b4bec7b58ac0293db33db3457c89c090918437c313f12e6cab4e05e2aba2fb",
+    "auth_tag": "96342aba14a2364ac7f0838de8099a4936f7c7178620cd782825ca7275fb3dde"
+  },
+  "worker": {
+    "components_each_phase": 1156,
+    "bytes_each_phase": 5197824,
+    "aggregate_sha256_all_phases": "ed62ec5b04cc53ce870ddd6df1d8eefc10a0e4f44e2a699deb879ebf4462fdbc",
+    "capture_stage_recapture_merkle_sha256": "b61a834dcb4859ba48196616614bd92b80bed44b33b58518b62b9c2ccabd02e0",
+    "apply_merkle_sha256": "d88a74bbc23b8a9d067a44d35215b43602f7a1d0ac0465e91dde61282f0af7b0",
+    "identity_content_mismatches": [],
+    "report_auth_tag": "7449be3972f24042aeba274dd7dc0477f06d44b6f25e2e817cb4b133024d2799"
+  },
+  "state_windows": {
+    "legacy_get_tensor": 0,
+    "legacy_set_tensor": 0
+  },
+  "focused_tests": {
+    "passed": 96,
+    "failed": 0
+  },
+  "source_identity": {
+    "qualification_source_archive_sha256": "576fe08683528a82f01c41c9122930d16c76a41e071995e95f7209b4b085ffe7",
+    "qualification_analyzer_sha256": "aa8eeaba48d80ae09b6c667c2c3cebc5c37ca16e4be43d9645ce6c3b21560dfb",
+    "final_implementation_archive_sha256": "1e85ab1331fbfb6ded0ba3c5464ca4a64f007baf7bc354e18b20a60109494c56",
+    "canary_cpp_sha256": "91fd115e6121989be095975b1f61d39697b1b39c92d230a27507073a9ef21d51",
+    "analyzer_sha256": "eeb7645ee1d7fe396bf528efbb892d6fdfefd76dc027de7e5b268baa7eb159d0",
+    "runner_sha256": "41005d36b38bbf00880a75a2e5b624db2e948fd256cd922381ed72de6ca78958",
+    "worker_binary_sha256": "6f620e003774246680e75e45658258c667b2e236b67f93cadc50e830d9f642da",
+    "canary_binary_sha256": "e3475d7e6abce0e3c0463dfdd63fb2e8d3f2ae77a83bc2992de300d1ef92c3ef"
+  },
+  "production_after": {
+    "worker_pid": 1468887,
+    "worker_port": 50052,
+    "worker_nrestarts": 0,
+    "coordinator_pid": 2304428,
+    "coordinator_port": 8081,
+    "coordinator_http": 200,
+    "coordinator_nrestarts": 0
+  },
+  "cleanup_complete": true,
+  "independent_review": {
+    "verdict": "pass",
+    "path": "docs/halofpx/reviews/2026-07-23__l32-coordinator-live-state-completeness__review__v01.md"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l32-live-recapture-20260723",
+    "files": 65,
+    "bytes": 9387356,
+    "tree_sha256": "829c72814a801c2324205fcfdd21f57dadaa310b189d01ef2fea0d7068992839"
+  },
+  "semantic_correction_implemented": false,
+  "primary_discriminator_authorized": false,
+  "l33_opened": false
+}

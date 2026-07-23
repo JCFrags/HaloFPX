@@ -1,5 +1,6 @@
 import hashlib
 import importlib.util
+import struct
 import sys
 import tempfile
 import threading
@@ -85,6 +86,37 @@ def log(capture, stage, apply) -> str:
         + phase_lines("stage", stage)
         + phase_lines("apply", apply)
     ) + "\n"
+
+
+def live_recapture_log(capture, stage, apply, recapture) -> str:
+    return "\n".join(
+        phase_lines("capture", capture)
+        + phase_lines("stage", stage)
+        + phase_lines("apply", apply)
+        + phase_lines("capture", recapture)
+    ) + "\n"
+
+
+def live_receipt(*, changed_family: str | None = None) -> bytes:
+    header = diagnostics.LIVE_HEADER.pack(
+        b"HFXLIV1\0", 1, 0x0F, 1128, 15048, 2301688, 2454528, 64, 0
+    )
+    digests = {
+        family: hashlib.sha256(family.encode()).digest()
+        for family in ("control", "local", "manifest")
+    }
+    body = bytearray(header)
+    for family in ("control", "local", "manifest"):
+        for phase in ("original", "restore_input", "live", "pregeneration"):
+            value = digests[family]
+            if changed_family == family and phase == "live":
+                value = hashlib.sha256(b"changed").digest()
+            body.extend(value)
+    body.extend(hashlib.sha256(b"object").digest())
+    body.extend(bytes(32))
+    tag = diagnostics.domain_hmac(KEY, diagnostics.LIVE_DOMAIN, bytes(body))
+    body[-32:] = tag
+    return bytes(body)
 
 
 class ComponentDiagnosticTests(unittest.TestCase):
@@ -186,6 +218,101 @@ class ComponentDiagnosticTests(unittest.TestCase):
                 diagnostics.DiagnosticError, "malformed or ambiguous"
             ):
                 diagnostics.parse(malformed, KEY)
+
+    def test_authenticated_live_recapture_is_independent_fourth_phase(self):
+        content = hashlib.sha256(b"same").hexdigest()
+        records = [component(0, content), component(1, content)]
+        phases = diagnostics.parse(
+            live_recapture_log(records, records, records, records),
+            KEY,
+            require_recapture=True,
+        )
+        report = diagnostics.compare(phases, KEY)
+        self.assertEqual(
+            report["schema"],
+            "halofpx.state-component-live-recapture-diagnostic.v1",
+        )
+        self.assertEqual(list(report["phases"]), ["capture", "stage", "apply", "recapture"])
+        self.assertEqual(report["mismatches"], [])
+
+    def test_missing_duplicate_or_changed_live_recapture_refuses_or_localizes(self):
+        exact = hashlib.sha256(b"same").hexdigest()
+        changed = hashlib.sha256(b"changed").hexdigest()
+        records = [component(0, exact)]
+        with self.assertRaisesRegex(diagnostics.DiagnosticError, "incomplete phases"):
+            diagnostics.parse(log(records, records, records), KEY, require_recapture=True)
+        with self.assertRaisesRegex(
+            diagnostics.DiagnosticError, "duplicate summary|out-of-order"
+        ):
+            diagnostics.parse(
+                live_recapture_log(records, records, records, records)
+                + "\n".join(phase_lines("capture", records))
+                + "\n",
+                KEY,
+                require_recapture=True,
+            )
+        report = diagnostics.compare(
+            diagnostics.parse(
+                live_recapture_log(records, records, records, [component(0, changed)]),
+                KEY,
+                require_recapture=True,
+            ),
+            KEY,
+        )
+        self.assertEqual(
+            report["mismatches"][0],
+            {
+                "boundary": "apply_to_recapture",
+                "ordinal": 0,
+                "reason": "content",
+                "kind": 1,
+                "type": 0,
+                "size": 64,
+                "label_sha256": records[0]["label_sha256"],
+                "left_content_sha256": exact,
+                "right_content_sha256": changed,
+            },
+        )
+
+    def test_live_recapture_phase_reordering_refuses(self):
+        content = hashlib.sha256(b"same").hexdigest()
+        records = [component(0, content)]
+        reordered = "\n".join(
+            phase_lines("capture", records)
+            + phase_lines("apply", records)
+            + phase_lines("stage", records)
+            + phase_lines("capture", records)
+        ) + "\n"
+        with self.assertRaisesRegex(diagnostics.DiagnosticError, "out-of-order"):
+            diagnostics.parse(reordered, KEY, require_recapture=True)
+
+    def test_authenticated_coordinator_live_receipt_is_exact_and_complete(self):
+        report = diagnostics.parse_live_receipt(live_receipt(), KEY)
+        self.assertEqual(report["token_boundary"], 1128)
+        self.assertEqual(report["worker_components"], 64)
+        self.assertEqual(report["original_control_sha256"], report["live_control_sha256"])
+
+    def test_coordinator_live_receipt_corruption_incomplete_or_phase_change_refuses(self):
+        exact = live_receipt()
+        cases = [
+            exact[:-1],
+            exact[:-1] + bytes([exact[-1] ^ 1]),
+            live_receipt(changed_family="control"),
+            live_receipt(changed_family="local"),
+            live_receipt(changed_family="manifest"),
+        ]
+        for encoded in cases:
+            with self.assertRaises(diagnostics.DiagnosticError):
+                diagnostics.parse_live_receipt(encoded, KEY)
+
+    def test_coordinator_live_receipt_wrong_phase_mask_or_zero_boundary_refuses(self):
+        exact = bytearray(live_receipt())
+        struct.pack_into("<I", exact, 12, 0x07)
+        exact[-32:] = diagnostics.domain_hmac(
+            KEY, diagnostics.LIVE_DOMAIN, bytes(exact[:-32]) + bytes(32)
+        )
+        with self.assertRaisesRegex(diagnostics.DiagnosticError, "authority"):
+            diagnostics.parse_live_receipt(bytes(exact), KEY)
 
 
 if __name__ == "__main__":

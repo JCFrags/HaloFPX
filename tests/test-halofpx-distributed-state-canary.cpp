@@ -11,6 +11,7 @@
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fcntl.h>
@@ -67,9 +68,36 @@ struct coordinator_receipt {
     uint8_t worker_object_digest[32];
     uint8_t tag[32];
 };
+
+struct coordinator_live_diagnostic {
+    uint8_t magic[8];
+    uint32_t version;
+    uint32_t phase_mask;
+    uint64_t token_boundary;
+    uint64_t control_bytes;
+    uint64_t local_bytes;
+    uint64_t worker_bytes;
+    uint32_t worker_components;
+    uint32_t reserved;
+    uint8_t original_control_digest[32];
+    uint8_t restore_input_control_digest[32];
+    uint8_t live_control_digest[32];
+    uint8_t pregeneration_control_digest[32];
+    uint8_t original_local_digest[32];
+    uint8_t restore_input_local_digest[32];
+    uint8_t live_local_digest[32];
+    uint8_t pregeneration_local_digest[32];
+    uint8_t original_manifest_digest[32];
+    uint8_t restore_input_manifest_digest[32];
+    uint8_t live_manifest_digest[32];
+    uint8_t pregeneration_manifest_digest[32];
+    uint8_t recapture_object_digest[32];
+    uint8_t tag[32];
+};
 #pragma pack(pop)
 
 static_assert(sizeof(coordinator_receipt) == 504, "unexpected coordinator receipt size");
+static_assert(sizeof(coordinator_live_diagnostic) == 504, "unexpected live diagnostic size");
 
 bool parse_hex(const std::string & text, std::array<uint8_t, 32> & output) {
     if (text.size() != 64) return false;
@@ -207,6 +235,13 @@ bool write_receipt(const fs::path & path, const coordinator_receipt & value) {
     return output.good();
 }
 
+bool write_live_diagnostic(const fs::path & path, const coordinator_live_diagnostic & value) {
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    output.write(reinterpret_cast<const char *>(&value), sizeof(value));
+    output.flush();
+    return output.good();
+}
+
 bool write_text(const fs::path & path, const std::string & value) {
     std::ofstream output(path, std::ios::binary | std::ios::trunc);
     output.write(value.data(), value.size());
@@ -247,6 +282,29 @@ bool receipt_hmac(
     inner.insert(inner.end(), domain, domain + sizeof(domain));
     const auto * receipt_bytes = reinterpret_cast<const uint8_t *>(&receipt);
     inner.insert(inner.end(), receipt_bytes, receipt_bytes + sizeof(receipt));
+    std::array<uint8_t, 32> mid {};
+    if (!sha256(inner.data(), inner.size(), mid)) return false;
+    std::vector<uint8_t> outer(opad.begin(), opad.end());
+    outer.insert(outer.end(), mid.begin(), mid.end());
+    return sha256(outer.data(), outer.size(), result);
+}
+
+bool live_diagnostic_hmac(
+        const std::array<uint8_t, 32> & key,
+        const coordinator_live_diagnostic & diagnostic,
+        std::array<uint8_t, 32> & result) {
+    static constexpr char domain[] = "halofpx.coordinator-live-diagnostic.v1";
+    std::array<uint8_t, 64> ipad {};
+    std::array<uint8_t, 64> opad {};
+    for (size_t i = 0; i < ipad.size(); ++i) {
+        const uint8_t b = i < key.size() ? key[i] : 0;
+        ipad[i] = b ^ 0x36;
+        opad[i] = b ^ 0x5c;
+    }
+    std::vector<uint8_t> inner(ipad.begin(), ipad.end());
+    inner.insert(inner.end(), domain, domain + sizeof(domain));
+    const auto * bytes = reinterpret_cast<const uint8_t *>(&diagnostic);
+    inner.insert(inner.end(), bytes, bytes + sizeof(diagnostic));
     std::array<uint8_t, 32> mid {};
     if (!sha256(inner.data(), inner.size(), mid)) return false;
     std::vector<uint8_t> outer(opad.begin(), opad.end());
@@ -471,6 +529,7 @@ static int run_canary(int argc, char ** argv) {
     const fs::path tokens_path = checkpoint_root / "tokens.bin";
     const fs::path object_path = checkpoint_root / "worker-object-digest.bin";
     const fs::path receipt_path = checkpoint_root / "coordinator-receipt.bin";
+    const fs::path live_diagnostic_path = checkpoint_root / "live-recapture-receipt.bin";
     const fs::path suffix_path = checkpoint_root / (options.result_label + "-suffix.bin");
     const fs::path suffix_text_path = checkpoint_root / (options.result_label + "-suffix.txt");
     if (options.mode == "capture") {
@@ -533,6 +592,7 @@ static int run_canary(int argc, char ** argv) {
     std::vector<uint8_t> control;
     std::vector<uint8_t> local;
     std::vector<uint8_t> object;
+    coordinator_receipt restore_input_receipt {};
     llama_context * run_ctx = ctx;
     llama_context * disposable_ctx = nullptr;
     std::string fallback_reason;
@@ -544,25 +604,24 @@ static int run_canary(int argc, char ** argv) {
         prompt_ms = elapsed_ms(prompt_start);
     } else {
         const auto state_start = std::chrono::steady_clock::now();
-        coordinator_receipt receipt {};
         std::array<uint8_t, 32> attempt {};
         if (!fresh_nonce(attempt)) return 11;
         bool artifacts_valid = read_vector(control_path, control, UINT64_C(1) << 20) &&
             read_vector(local_path, local, UINT64_C(1) << 30) &&
             read_vector(tokens_path, prefix, 4096) && read_vector(object_path, object, 32) && object.size() == 32 &&
-            read_receipt(receipt_path, receipt);
+            read_receipt(receipt_path, restore_input_receipt);
         std::array<uint8_t, 32> component_manifest {};
         ggml_backend_rpc_halofpx_state_identity identity {};
         if (artifacts_valid && prefix.size() >= 2 &&
             (options.expected_prompt_tokens == 0 || prefix.size() == options.expected_prompt_tokens)) {
-            memcpy(component_manifest.data(), receipt.component_manifest_digest, component_manifest.size());
+            memcpy(component_manifest.data(), restore_input_receipt.component_manifest_digest, component_manifest.size());
             identity = make_identity(options, prefix, attempt, component_manifest);
             artifacts_valid = validate_receipt(
-                receipt, identity, control, local, prefix, object, options.control_key);
+                restore_input_receipt, identity, control, local, prefix, object, options.control_key);
             if (artifacts_valid) {
-                memcpy(control_diagnostic.data(), receipt.control_digest, control_diagnostic.size());
-                memcpy(local_diagnostic.data(), receipt.local_digest, local_diagnostic.size());
-                memcpy(manifest_diagnostic.data(), receipt.component_manifest_digest, manifest_diagnostic.size());
+                memcpy(control_diagnostic.data(), restore_input_receipt.control_digest, control_diagnostic.size());
+                memcpy(local_diagnostic.data(), restore_input_receipt.local_digest, local_diagnostic.size());
+                memcpy(manifest_diagnostic.data(), restore_input_receipt.component_manifest_digest, manifest_diagnostic.size());
             }
         } else {
             artifacts_valid = false;
@@ -616,6 +675,95 @@ static int run_canary(int argc, char ** argv) {
         llama_state_seq_storage_free(storage);
         if (fallback_reason.empty()) {
             run_ctx = disposable_ctx;
+            const char * diagnostics = std::getenv("HALOFPX_STATE_DIAGNOSTICS");
+            if (diagnostics && strcmp(diagnostics, "1") == 0) {
+                llama_state_seq_storage * recapture = llama_state_seq_storage_init();
+                const size_t live_control_size = llama_state_seq_get_size_ext(
+                    disposable_ctx, 0, LLAMA_STATE_SEQ_FLAGS_ON_DEVICE);
+                std::vector<uint8_t> live_control(live_control_size);
+                bool recapture_valid = recapture && live_control_size == control.size() &&
+                    llama_state_seq_get_data_ext_storage(disposable_ctx, live_control.data(), live_control.size(), 0,
+                        LLAMA_STATE_SEQ_FLAGS_ON_DEVICE, recapture) == live_control.size();
+                std::vector<uint8_t> live_local;
+                std::array<uint8_t, 32> live_manifest {};
+                std::array<uint8_t, 32> live_control_digest {};
+                std::array<uint8_t, 32> live_local_digest {};
+                ggml_backend_rpc_halofpx_state_result live_worker {};
+                if (recapture_valid) {
+                    live_local.resize(llama_state_seq_storage_local_size(recapture));
+                    recapture_valid = !live_local.empty() &&
+                        llama_state_seq_storage_get_local(recapture, live_local.data(), live_local.size()) == live_local.size() &&
+                        llama_state_seq_storage_halofpx_manifest_digest(recapture, live_manifest.data()) &&
+                        sha256(live_control.data(), live_control.size(), live_control_digest) &&
+                        sha256(live_local.data(), live_local.size(), live_local_digest);
+                }
+                auto live_identity = identity;
+                std::array<uint8_t, 32> live_attempt {};
+                std::array<uint8_t, 64> live_checkpoint_input {};
+                std::array<uint8_t, 32> live_checkpoint_digest {};
+                memcpy(live_checkpoint_input.data(), identity.checkpoint_digest, 32);
+                memcpy(live_checkpoint_input.data() + 32, "halofpx.live-recapture.v1", 26);
+                recapture_valid = recapture_valid && fresh_nonce(live_attempt) &&
+                    sha256(live_checkpoint_input.data(), live_checkpoint_input.size(),
+                        live_checkpoint_digest);
+                live_identity.generation = identity.generation + 1;
+                memcpy(live_identity.checkpoint_digest, live_checkpoint_digest.data(), live_checkpoint_digest.size());
+                memcpy(live_identity.attempt_nonce, live_attempt.data(), live_attempt.size());
+                memcpy(live_identity.component_manifest_digest, live_manifest.data(), live_manifest.size());
+                if (recapture_valid) {
+                    recapture_valid = llama_state_seq_storage_halofpx_capture_remote(
+                        recapture, &live_identity, options.control_key.data(), &live_worker);
+                }
+                coordinator_live_diagnostic report {};
+                memcpy(report.magic, "HFXLIV1\0", 8);
+                report.version = 1;
+                report.phase_mask = 0x0f;
+                report.token_boundary = identity.token_boundary;
+                report.control_bytes = live_control.size();
+                report.local_bytes = live_local.size();
+                report.worker_bytes = live_worker.verified_bytes;
+                report.worker_components = live_worker.verified_components;
+#define COPY_LIVE_DIGEST(field, value) memcpy(report.field, value, sizeof(report.field))
+                COPY_LIVE_DIGEST(original_control_digest, restore_input_receipt.control_digest);
+                COPY_LIVE_DIGEST(restore_input_control_digest, restore_input_receipt.control_digest);
+                COPY_LIVE_DIGEST(live_control_digest, live_control_digest.data());
+                COPY_LIVE_DIGEST(pregeneration_control_digest, live_control_digest.data());
+                COPY_LIVE_DIGEST(original_local_digest, restore_input_receipt.local_digest);
+                COPY_LIVE_DIGEST(restore_input_local_digest, restore_input_receipt.local_digest);
+                COPY_LIVE_DIGEST(live_local_digest, live_local_digest.data());
+                COPY_LIVE_DIGEST(pregeneration_local_digest, live_local_digest.data());
+                COPY_LIVE_DIGEST(original_manifest_digest, restore_input_receipt.component_manifest_digest);
+                COPY_LIVE_DIGEST(restore_input_manifest_digest, restore_input_receipt.component_manifest_digest);
+                COPY_LIVE_DIGEST(live_manifest_digest, live_manifest.data());
+                COPY_LIVE_DIGEST(pregeneration_manifest_digest, live_manifest.data());
+                COPY_LIVE_DIGEST(recapture_object_digest, live_worker.object_digest);
+#undef COPY_LIVE_DIGEST
+                std::array<uint8_t, 32> tag {};
+                recapture_valid = recapture_valid &&
+                    equal_32(report.original_control_digest, report.live_control_digest) &&
+                    equal_32(report.original_local_digest, report.live_local_digest) &&
+                    equal_32(report.original_manifest_digest, report.live_manifest_digest);
+                if (recapture_valid) {
+                    coordinator_live_diagnostic unsigned_report = report;
+                    memset(unsigned_report.tag, 0, sizeof(unsigned_report.tag));
+                    recapture_valid = live_diagnostic_hmac(options.control_key, unsigned_report, tag);
+                    memcpy(report.tag, tag.data(), tag.size());
+                }
+                if (recapture_valid) {
+                    recapture_valid = write_live_diagnostic(live_diagnostic_path, report);
+                }
+                llama_state_seq_storage_free(recapture);
+                if (!recapture_valid) return 16;
+                std::printf("[halofpx-coordinator-live-diag] phases=original-capture,restore-input,live-post-apply-recapture,pre-generation token_boundary=%llu control_bytes=%llu local_bytes=%llu worker_components=%u worker_bytes=%llu control_sha256=%s local_sha256=%s component_manifest_sha256=%s recapture_object_sha256=%s auth_tag=%s\n",
+                    static_cast<unsigned long long>(report.token_boundary),
+                    static_cast<unsigned long long>(report.control_bytes),
+                    static_cast<unsigned long long>(report.local_bytes),
+                    report.worker_components, static_cast<unsigned long long>(report.worker_bytes),
+                    hex(report.live_control_digest).c_str(), hex(report.live_local_digest).c_str(),
+                    hex(report.live_manifest_digest).c_str(), hex(report.recapture_object_digest).c_str(),
+                    hex(report.tag).c_str());
+                std::fflush(stdout);
+            }
         } else {
             llama_free(disposable_ctx);
             disposable_ctx = llama_init_from_model(resident_init->model(), common_context_params_to_llama(params));
