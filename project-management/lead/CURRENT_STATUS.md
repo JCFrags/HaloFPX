@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 15:04 PDT
+Verified: 2026-07-23 15:11 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `09123048522281025afb532715f20457ac4b9918`
+- Latest verified commit: `8b54091efe456c8222528ec455316afbca8c8562`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L28 closeout
+- Worktree state: clean at the reviewed terminal L29 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -115,6 +115,13 @@ Project Lead task before ending their own turn. No periodic polling remains.
   loaded active/running with the PIDs above, correct commands/listeners,
   HTTP 200, and `NRestarts=0`. L29 closeout must retain this wrong-scope
   evidence and bind future production probes explicitly to system scope.
+- L29 is reviewed and committed NOT PROMOTED. Capture and validated stage agree
+  exactly on all 64 components and 2,454,528 bytes, while the live post-apply
+  aggregate differs; coordinator control/local/manifest digests are identical.
+  This localizes the first retained defect to stage-to-live worker application
+  or restart layout. L30 is open only for component-level digest/range,
+  alias/view/stride/order, RPC-offset, and synchronization diagnosis using no
+  primary model and no production mutation.
 
 ## Product progress
 

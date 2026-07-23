@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-23T15:04:06-07:00",
+  "updated_at": "2026-07-23T15:11:30-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l29_terminal_not_promoted_closeout_after_fresh_residency_output_mismatch",
+  "worker_status": "active_l30_no_production_stage_to_live_component_application_diagnosis",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "09123048522281025afb532715f20457ac4b9918",
-  "last_observed_milestone": "L28 PASS; wired two-residency epoch guard and authenticated capture lineage produced exact disposable restore with zero legacy state-page transfer",
-  "last_decision": "close_l29_not_promoted_after_two_fresh_residency_primary_output_mismatch",
-  "last_progress": "L29 completed capture and restore under two valid fresh primary model residencies, but exact output hashes differed; a closeout inactive-unit alarm was proven to be a user-vs-system manager probe error, and exact system units remain active with HTTP200",
+  "last_verified_head": "8b54091efe456c8222528ec455316afbca8c8562",
+  "last_observed_milestone": "L29 NOT PROMOTED; two fresh primary residencies reached restore, capture equaled stage, but live post-apply worker aggregate and first token differed while coordinator receipts matched",
+  "last_decision": "accept_l29_and_open_l30_no_production_component_level_stage_to_live_application_diagnosis",
+  "last_progress": "L29 localizes the retained correctness defect to stage-to-live worker application or restart layout; production and cleanup are exact and evidence is independently accepted",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct worker message to the manager task on L29 completion/attention, or explicit user request; no periodic polling"
+  "next_check_trigger": "direct worker message to the manager task on L30 completion/attention, or explicit user request; no periodic polling"
 }

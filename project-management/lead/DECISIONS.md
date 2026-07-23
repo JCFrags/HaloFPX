@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L29 and localize stage-to-live application
+
+Decision: accept reviewed L29 NOT PROMOTED commit
+`8b54091efe456c8222528ec455316afbca8c8562`. Open L30 only for bounded
+component-level instrumentation, source analysis, synthetic apply tests, and
+optional disposable qualification of the stage-to-live boundary. No primary
+load or production transition is authorized.
+
+Reason: capture and validated staging have identical worker aggregates, while
+the live post-apply aggregate differs and coordinator receipts remain equal.
+The output mismatch therefore has a retained worker-side boundary before
+generation. L30 must identify exact divergent components and test alias/view
+ranges, strides, offsets, Q8 geometry, apply order, RPC addressing, and backend
+synchronization without assuming which mechanism is responsible.
+
 ## 2026-07-23 — resolve L29 unit alarm as wrong systemd scope
 
 Decision: do not invoke recovery or start duplicate services. Require L29
