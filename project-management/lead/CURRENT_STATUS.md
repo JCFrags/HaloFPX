@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 11:00 PDT
+Verified: 2026-07-23 11:14 PDT
 
 ## Overall state
 
@@ -29,7 +29,13 @@ Project Lead task before ending their own turn. No periodic polling remains.
   real early-allocation refusal, retained mandatory PID/InvocationID/cursor,
   journal, disk, archive, production-equality, and cleanup evidence, passed 13
   focused tests, and was independently accepted. Production remained unchanged.
-  The exact primary-model cache canary is now unblocked for one guarded attempt.
+  L22 preflight verified the exact primary artifact and production authority,
+  but two disposable 15M-fixture configurations failed before production
+  mutation: Q8_0 KV is structurally incompatible with its 48-wide heads, and
+  F16 KV reached a flash-attention abort. Production and the primary artifact
+  remained untouched. One narrow no-production compatible-fixture
+  qualification is authorized; kernel debugging and broad fixture exploration
+  are not.
 
 ## Product progress
 

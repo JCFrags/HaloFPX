@@ -1,5 +1,22 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — keep L22 open for one compatible-fixture qualification
+
+Decision: preserve the uncommitted L22 controller work and authorize one narrow
+no-production fixture correction. Prefer an already-local, previously accepted
+small model whose head dimensions support Q8_0 KV and the normal RPC path.
+Qualify one RPC graph evaluation and then only the minimum three-residency
+lifecycle. If no such fixture exists, permit F16 KV with flash attention off
+solely as a non-representative controller/lifecycle qualification.
+
+Reason: both failures occurred before production mutation and are specific to
+the disposable 15M fixture configuration. Its 48-wide heads cannot represent
+Q8_0 KV blocks, while the F16 substitution reached a flash-attention abort.
+Neither result is evidence against the pinned primary model or the persistence
+contract. L22 must not expand into kernel work or broad model testing. The
+primary configuration remains unchanged and the original one-attempt authority
+survives only after the narrow fixture gate passes and is reviewed.
+
 ## 2026-07-23 — accept L21 and authorize one guarded L22 primary canary
 
 Decision: accept L21 commit
