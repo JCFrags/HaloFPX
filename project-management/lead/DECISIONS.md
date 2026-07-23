@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L23 and authorize one L24 primary discriminator
+
+Decision: accept reviewed L23 commit
+`cb1913ca233acf8661530622720b411bc0e5d5aa`. Authorize one controlled primary
+model load containing only capture, disposable worker restart, restore, and
+minimum deterministic token comparison with diagnostics enabled. No cold or
+fault matrix, retry, tuning, correction, promotion, or L25 is authorized.
+
+Reason: the default-off diagnostics prove equal capture/stage/live-apply worker
+aggregates on the disposable fixture, but only the pinned primary tuple can
+discriminate the L22 failure. L24 must retain all three worker aggregates and
+authenticated coordinator receipt digests. A worker digest mismatch localizes
+the defective boundary; equal worker digests with first-token divergence
+narrows the remaining fault without overclaiming a root cause.
+
 ## 2026-07-23 — accept terminal L22 and open no-production L23 diagnosis
 
 Decision: accept L22 NOT PROMOTED commit

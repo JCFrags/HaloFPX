@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 11:52 PDT
+Verified: 2026-07-23 12:11 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `4d2821b3a318d2d38f93a30aa2f3a2263cc4d01d`
+- Latest verified commit: `cb1913ca233acf8661530622720b411bc0e5d5aa`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L22 closeout
+- Worktree state: clean at the reviewed terminal L23 diagnosis
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -51,6 +51,13 @@ Project Lead task before ending their own turn. No periodic polling remains.
   failed closed. Production recovered worker-first and is healthy. L23 is open
   only for offline/source/disposable diagnosis of the earliest restored-state
   divergence; it authorizes no primary load or production mutation.
+- L23 added default-off authenticated capture/stage/live-apply worker digests.
+  The disposable lifecycle remained exact with equal worker aggregates, but
+  retained L22 evidence cannot distinguish worker application from
+  coordinator/model-specific incompleteness. L24 is authorized for one
+  primary-model load and only capture plus true worker-restart restore with
+  minimum deterministic output. It is diagnostic, not a cache retry or
+  promotion.
 
 ## Product progress
 
