@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 13:35 PDT
+Verified: 2026-07-23 13:40 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `36b026d29454adc9cdd61baf387303c3e8d9f200`
+- Latest verified commit: `9b45bb9c844ec224fbd6fc3b39bdfe23eec11ee3`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L25 closeout
+- Worktree state: clean at the reviewed terminal L26 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -84,6 +84,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   1422619/50052), then nimo-1 coordinator (PID 2248156/8081/HTTP 200), with
   exact unit/cgroup/command ownership and `NRestarts=0`. The worker is closing
   L26 NOT PROMOTED with evidence and independent review.
+- L26 is reviewed and committed NOT PROMOTED. Its capture evidence is valid,
+  but no stage/apply result exists. L27 is open only to test whether restarting
+  an RPC worker invalidates the server-side model/buffer allocations held by a
+  still-resident coordinator model. It will compare same-residency failure
+  against a fresh coordinator/model residency using a disposable small model,
+  with production continuously unchanged.
 
 ## Product progress
 

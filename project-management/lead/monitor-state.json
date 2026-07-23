@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-23T13:35:33-07:00",
+  "updated_at": "2026-07-23T13:40:46-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l26_terminal_not_promoted_closeout_after_recovered_post_restart_rpc_failure",
+  "worker_status": "active_l27_no_production_rpc_worker_epoch_and_model_residency_diagnosis",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "36b026d29454adc9cdd61baf387303c3e8d9f200",
-  "last_observed_milestone": "L25 PASS; bounded orphan-free SSH transport, typed fsynced timeout evidence, recovery continuation, and authenticated capture flushing passed 79 focused tests and independent review",
-  "last_decision": "close_l26_not_promoted_after_post_restart_rpc_context_creation_failure_and_successful_recovery",
-  "last_progress": "L26 capture and true worker restart occurred, but the coordinator aborted during post-restart context creation on an RPC malformed/crashed response; production recovered worker-first to exact units and HTTP200 with NRestarts0",
+  "last_verified_head": "9b45bb9c844ec224fbd6fc3b39bdfe23eec11ee3",
+  "last_observed_milestone": "L26 NOT PROMOTED; authenticated primary capture succeeded, then post-worker-restart context creation failed before state staging, with bounded transport and complete recovery",
+  "last_decision": "accept_l26_and_open_l27_no_production_rpc_worker_epoch_and_model_residency_authority_diagnosis",
+  "last_progress": "L26 proves the failure precedes state restore and occurs at RPC buffer allocation after worker restart; whether a resident coordinator can survive that epoch change remains open",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct worker message to the manager task on L26 completion/attention, or explicit user request; no periodic polling"
+  "next_check_trigger": "direct worker message to the manager task on L27 completion/attention, or explicit user request; no periodic polling"
 }

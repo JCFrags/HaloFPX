@@ -1,5 +1,21 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L26 and diagnose RPC restart residency authority
+
+Decision: accept reviewed L26 NOT PROMOTED commit
+`9b45bb9c844ec224fbd6fc3b39bdfe23eec11ee3`. Open L27 only for source tracing
+and a disposable small-model comparison of same-coordinator-residency behavior
+after worker restart versus a fresh coordinator/model residency. No production
+transition or primary load is authorized.
+
+Reason: L26 retained a valid authenticated capture, then failed before state
+staging while a still-resident coordinator created a context against the
+restarted RPC worker. A fresh CAPS handshake does not necessarily reconstitute
+server-side weight buffers or remote allocation handles. Earlier accepted
+restart cases may have used a new coordinator process/model residency. L27 must
+prove or reject this lifecycle distinction and, if proven, add only fail-closed
+epoch authority rather than attempting transparent weight rehydration.
+
 ## 2026-07-23 — close L26 after post-restart RPC/context failure
 
 Decision: direct L26 to close NOT PROMOTED after immutable evidence, disposable
