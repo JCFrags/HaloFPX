@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 13:40 PDT
+Verified: 2026-07-23 13:56 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `9b45bb9c844ec224fbd6fc3b39bdfe23eec11ee3`
+- Latest verified commit: `5616abb2c19c1611c3852575270ad41b43085921`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L26 closeout
+- Worktree state: clean at the reviewed terminal L27 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -90,6 +90,13 @@ Project Lead task before ending their own turn. No periodic polling remains.
   still-resident coordinator model. It will compare same-residency failure
   against a fresh coordinator/model residency using a disposable small model,
   with production continuously unchanged.
+- L27 passed and proved the lifecycle boundary: a worker restart destroys
+  process-local RPC buffer/tensor/graph authority, so an old coordinator model
+  residency cannot continue even after fresh CAPS. A new coordinator/model
+  residency against the new worker restored the disposable state exactly. L28
+  is open only to wire worker epoch and model-allocation epoch authority into
+  the real fresh-residency runner and qualify that two-residency lifecycle on
+  the disposable model.
 
 ## Product progress
 

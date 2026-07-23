@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-23T13:40:46-07:00",
+  "updated_at": "2026-07-23T13:56:06-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l27_no_production_rpc_worker_epoch_and_model_residency_diagnosis",
+  "worker_status": "active_l28_no_production_fresh_residency_runner_and_epoch_guard_integration",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "9b45bb9c844ec224fbd6fc3b39bdfe23eec11ee3",
-  "last_observed_milestone": "L26 NOT PROMOTED; authenticated primary capture succeeded, then post-worker-restart context creation failed before state staging, with bounded transport and complete recovery",
-  "last_decision": "accept_l26_and_open_l27_no_production_rpc_worker_epoch_and_model_residency_authority_diagnosis",
-  "last_progress": "L26 proves the failure precedes state restore and occurs at RPC buffer allocation after worker restart; whether a resident coordinator can survive that epoch change remains open",
+  "last_verified_head": "5616abb2c19c1611c3852575270ad41b43085921",
+  "last_observed_milestone": "L27 PASS; same-residency use after worker restart reproduced RPC failure, while a fresh coordinator/model residency against the new worker restored the disposable model exactly",
+  "last_decision": "accept_l27_and_open_l28_no_production_fresh_residency_runner_with_wired_epoch_authority",
+  "last_progress": "L27 proved worker-process restart invalidates remote model/buffer/graph handles and that honest restart restore requires two material model residencies",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct worker message to the manager task on L27 completion/attention, or explicit user request; no periodic polling"
+  "next_check_trigger": "direct worker message to the manager task on L28 completion/attention, or explicit user request; no periodic polling"
 }

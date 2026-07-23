@@ -1,5 +1,21 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L27 and wire a fresh-residency restore runner
+
+Decision: accept reviewed L27 PASS commit
+`5616abb2c19c1611c3852575270ad41b43085921`. Open L28 only to wire the worker
+epoch/model-allocation epoch validator into a runnable two-residency
+capture/restart/restore path and qualify it on the disposable model. No
+production transition or primary load is authorized.
+
+Reason: L27 reproduced the L26 failure with a same-process coordinator after
+worker restart and proved exact restore with a fresh coordinator/model
+residency. RPC remote buffers and graph handles are worker-process-local; CAPS
+alone cannot refresh stale model allocations. The valid lifecycle is capture
+under worker/model epoch A, terminate coordinator A before worker A, start
+worker B, load fresh coordinator/model residency B, then stage/apply state
+only after B's allocation epoch matches B's worker authority.
+
 ## 2026-07-23 — accept L26 and diagnose RPC restart residency authority
 
 Decision: accept reviewed L26 NOT PROMOTED commit
