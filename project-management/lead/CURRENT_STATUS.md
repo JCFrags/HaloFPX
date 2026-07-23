@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 09:53 PDT
+Verified: 2026-07-23 10:48 PDT
 
 ## Overall state
 
@@ -8,6 +8,11 @@ The project is active and materially progressing. The current worker remains
 suitable as the primary implementation owner. Earlier excessive test expansion
 has been corrected by steering; recent work uses bounded kill gates and removes
 slower candidates.
+
+Project-lead monitoring is now event-driven only. The 30-minute heartbeat was
+deleted. The primary worker has explicit completion, blocker, safety, regression,
+scope, context, and no-progress reporting thresholds and will end its task turn
+at those boundaries. No periodic manager polling remains.
 
 ## Repository
 

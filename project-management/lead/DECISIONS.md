@@ -1,5 +1,18 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — replace periodic monitoring with worker-reported events
+
+Decision: delete the 30-minute project-lead heartbeat and use native worker
+completion/attention events exclusively. Keep L21 scope and acceptance criteria
+unchanged.
+
+Reason: a worker can reliably report the boundaries that require management
+attention without periodic snapshots. The primary worker was instructed to end
+its task turn on milestone completion, required authority, unsafe or uncertain
+production state, regression, scope expansion, authoritative-context loss, two
+materially different failed approaches to one blocker, or defined no-progress
+windows. Ordinary healthy progress requires no management activity.
+
 ## 2026-07-20 — retain the current primary worker
 
 Decision: retain the existing multiday HaloFPX task as primary implementation

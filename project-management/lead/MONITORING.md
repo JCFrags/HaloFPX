@@ -1,20 +1,21 @@
 # Monitoring and Intervention Policy
 
-## Cadence
+## Event-driven cadence
 
-- Prefer event-driven checks when the worker marks a milestone complete, rejects
-  a candidate, reports a blocker, requests authority, or changes production.
-- Major implementation milestones should end the worker's current task turn.
-  Task completion/attention is the reliable native wake event; commentary alone
-  is progress evidence but does not wake a thread listener.
-- Use the 30-minute heartbeat only as a durable fallback when no event arrives.
-  Take one snapshot per heartbeat rather than opening an internal polling loop.
-- Predict the next useful inspection from the phase and observed pace: roughly
-  30–45 minutes for source/build/focused-test work, 60–90 minutes for model load
-  or bounded runtime qualification, and multi-hour sleep for a stable long run.
-- During ordinary healthy work, check no more frequently than every 30–60
-  minutes. During long stable work, prefer multi-hour sleeps.
-- Never poll at 30-second intervals.
+- Do not run a periodic project-lead heartbeat or poll active workers.
+- A worker must end its current task turn and report when its assigned milestone
+  completes, whether the result is promoted or rejected.
+- A worker must also report immediately when it needs authority or a material
+  decision; production health or rollback is uncertain; a correctness, safety,
+  or performance regression appears; scope must expand; or authoritative state
+  becomes uncertain after context loss.
+- Treat two materially different failed approaches to the same blocker as a
+  stuck event. Treat 60 minutes without material progress in source/design/build
+  work, or 120 minutes in bounded model/runtime work, as a no-progress event.
+- Ordinary healthy progress needs no management check-in. The project lead acts
+  only on worker completion/attention events or an explicit user request.
+- Every event report must state exact HEAD and worktree status, result evidence,
+  production health if touched, and the precise next decision or action needed.
 
 ## State check before steering
 
@@ -35,7 +36,7 @@ Intervene only when one or more are evidenced:
 - a performance candidate is being retained despite a matched slowdown;
 - the worker expands repetitive tests or archaeology after the decision is
   already supported and no concrete defect justifies expansion;
-- the same blocker recurs across three management checks without a new approach;
+- the same blocker survives two materially different attempted approaches;
 - work materially leaves the ordered objectives or duplicates a completed lane;
 - a required human authority/decision is missing;
 - an active task becomes context-polluted enough to contradict current evidence,
