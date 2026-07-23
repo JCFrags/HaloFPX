@@ -1,0 +1,75 @@
+{
+  "schema": "halofpx-l21-closed-execution-evidence-contract-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "e2edc4b3277f5385118e759ed9f89c1ea0a7445a",
+  "outcome": "pass_targeted_contract_repair_accepted",
+  "accepted_lifecycle": {
+    "residencies": 3,
+    "repeated_in_l21": false
+  },
+  "focused_tests": {
+    "passed": 13,
+    "failed": 0
+  },
+  "real_allocation_refusal": {
+    "worker_host": "nimo-1",
+    "worker_port": 50198,
+    "worker_pid": 2205432,
+    "child_host": "nimo-2",
+    "child_pid": 1386078,
+    "child_invocation_id": "a6f3eefb3e39434fa5b380d30eac09d1",
+    "child_exit_status": 23,
+    "requested_bytes": 133143990272,
+    "reported_total_bytes": 133143986176
+  },
+  "source_sha256": {
+    "scripts/halofpx_l21_contract.py": "a95ea7b3688cd3a2a242bddafab6caca5a3c018433eddea380fb5ab8a3b91e91",
+    "scripts/halofpx-l21-refusal.py": "ab95a130e3e0e1703a3b9c303c04318fbf7a137390a71d4acc6d08c45086ab1a",
+    "scripts/halofpx-l21-small-manifest.json": "67dfb1549c232c773bde8b3e4551c837e01835a4a8f2275956e474d1f63e200b",
+    "tests/test-halofpx-rpc-allocation-refusal.cpp": "d582f5d16702de84cd64f44fa785f6f7085ee46562744c4c46dd91452065fd17",
+    "tests/test_halofpx_l21_contract.py": "271904958e1462ff6a7d5c9268297a4c013f3d6abbaaef2482bc07f051790a9b"
+  },
+  "binary_sha256": {
+    "nimo1_rpc_server": "5cf7f735d0631e01ff9994497c6a0f1954c97144b2bd9dc970d62c7ac75ccbc9",
+    "nimo2_refusal_child": "6674b1e9442e79583b2aab527647b4fed5be91c356d09b2693d212b5d2be9744",
+    "readiness_probe": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980"
+  },
+  "raw_evidence_sha256": {
+    "failed_v1": "42714399ca9659111aafa482e301a2ae02fa85da22c8e9e724fc4df69e11f17f",
+    "failed_v2": "f45137a1fda53ba4f764adcba035b62984d3e2f5c69ccdb082f5f30a0fce6690",
+    "failed_v3": "dde37577bcd22f312d859a36e4379efa315cfcc1af69471aa1e0365240f1c436",
+    "failed_v4": "7b4b3d2253481fda4ee82319ff8702f7b591838cf078eec62866bb803adcc351",
+    "failed_v5": "a9347cd693aea057250b9e867e2f66718db26a565a8baba7bc0f02f7665845cf",
+    "review_rejected_v6": "f704f131c7ba6a25848b040a0c641a362b289806f002e4811f66606c0d7799b8",
+    "failed_v7": "31f2d0e2436a2115559486532c58cd3879824cbd77024eaf67c9937f6a654d24",
+    "review_rejected_v8": "c4824657411045351648d4857efb6ca078b8e58b638872471a4142da243ea867",
+    "accepted_v9": "b807e10a24813b9cc5178962aa4dfefbc513737482e86843e67d4b0273ab7f13"
+  },
+  "finalization": {
+    "archive_mode": "0600",
+    "runtime_cleanup_errors": [],
+    "units_inactive": true,
+    "port_closed": true,
+    "runtime_paths_absent": true,
+    "evidence_root_absent": true,
+    "packaging_intermediates_absent": true
+  },
+  "production_closeout": {
+    "equal_before_after": true,
+    "nimo1_coordinator_pid": 2144857,
+    "nimo1_port": 8081,
+    "nimo1_http": 200,
+    "nimo1_nrestarts": 0,
+    "nimo2_worker_pid": 1305879,
+    "nimo2_port": 50052,
+    "nimo2_nrestarts": 0
+  },
+  "boundaries": {
+    "primary_artifact_accessed": false,
+    "production_mutated": false,
+    "production_key_provisioned": false,
+    "performance_claim": false,
+    "cache_promoted": false,
+    "l22_opened": false
+  }
+}

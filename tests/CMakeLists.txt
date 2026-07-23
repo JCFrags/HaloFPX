@@ -724,6 +724,9 @@ if (GGML_RPC)
         ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps/sha256/sha256.c)
     llama_test(test-halofpx-primary-allocation-plan ARGS --self-test)
     set_property(TEST test-halofpx-primary-allocation-plan PROPERTY LABELS "main;halofpx")
+
+    llama_build(test-halofpx-rpc-allocation-refusal.cpp)
+    target_link_libraries(test-halofpx-rpc-allocation-refusal PRIVATE ggml-rpc)
 endif()
 
 if (HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)

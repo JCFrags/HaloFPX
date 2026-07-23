@@ -48,3 +48,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0042](0042-read-only-primary-allocation-authority.md): read-only exact-primary allocation authority
 - [ADR-0043](0043-guarded-primary-correctness-cache-canary.md): guarded exact-primary correctness and cache canary
 - [ADR-0044](0044-no-production-execution-contract.md): no-production primary-canary execution contract
+- [ADR-0045](0045-closed-disposable-execution-evidence-contract.md): closed disposable execution and evidence contract

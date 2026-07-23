@@ -1,0 +1,82 @@
+{
+  "schema": "halofpx.l21.manifest.v1",
+  "milestone": "l21-small",
+  "worker_host": "nimo-1",
+  "canary_host": "nimo-2",
+  "worker_port": 50198,
+  "worker_units": [
+    "halofpx-l21-small-worker-refusal.service"
+  ],
+  "canary_units": [
+    "halofpx-l21-small-canary-refusal.service"
+  ],
+  "executables": {
+    "worker": "/var/tmp/halofpx-l21-small-build-nimo1/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l21-small-build-nimo2/bin/test-halofpx-rpc-allocation-refusal",
+    "readiness": "/var/tmp/halofpx-l21-small-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "child": "scripts/halofpx-l21-refusal.py"
+  },
+  "executable_sha256": {
+    "worker": "5cf7f735d0631e01ff9994497c6a0f1954c97144b2bd9dc970d62c7ac75ccbc9",
+    "canary": "6674b1e9442e79583b2aab527647b4fed5be91c356d09b2693d212b5d2be9744",
+    "readiness": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
+    "child": "ab95a130e3e0e1703a3b9c303c04318fbf7a137390a71d4acc6d08c45086ab1a"
+  },
+  "child_argv": [
+    "python",
+    "scripts/halofpx-l21-refusal.py",
+    "--manifest",
+    "scripts/halofpx-l21-small-manifest.json"
+  ],
+  "paths": {
+    "nimo-1": {
+      "source_archive": "/var/tmp/halofpx-l21-small-source-nimo1.tar",
+      "source_root": "/var/tmp/halofpx-l21-small-source-nimo1",
+      "build_root": "/var/tmp/halofpx-l21-small-build-nimo1",
+      "state_root": "/var/tmp/halofpx-l21-small-state-nimo1",
+      "key": "/var/tmp/halofpx-l21-small-key-nimo1"
+    },
+    "nimo-2": {
+      "source_archive": "/var/tmp/halofpx-l21-small-source-nimo2.tar",
+      "source_root": "/var/tmp/halofpx-l21-small-source-nimo2",
+      "build_root": "/var/tmp/halofpx-l21-small-build-nimo2",
+      "state_root": "/var/tmp/halofpx-l21-small-state-nimo2",
+      "key": "/var/tmp/halofpx-l21-small-key-nimo2",
+      "evidence_root": "/var/tmp/halofpx-l21-small-evidence-nimo2",
+      "archive_stage": "/var/tmp/halofpx-l21-small-archive-stage-nimo2.tar",
+      "cleanup_receipt": "/var/tmp/halofpx-l21-small-cleanup-receipt-nimo2.json",
+      "model": "/var/tmp/halofpx-qualification/l14q-t01-20260719-nimo2/build-cpu/tinyllamas/stories15M-q4_0.gguf",
+      "prompt": "/var/tmp/halofpx-l13-retry-a2-20260721/prompt-1129.txt"
+    }
+  },
+  "cleanup_paths": {
+    "nimo-1": [
+      "/var/tmp/halofpx-l21-small-source-nimo1.tar",
+      "/var/tmp/halofpx-l21-small-source-nimo1",
+      "/var/tmp/halofpx-l21-small-build-nimo1",
+      "/var/tmp/halofpx-l21-small-state-nimo1",
+      "/var/tmp/halofpx-l21-small-key-nimo1"
+    ],
+    "nimo-2": [
+      "/var/tmp/halofpx-l21-small-source-nimo2.tar",
+      "/var/tmp/halofpx-l21-small-source-nimo2",
+      "/var/tmp/halofpx-l21-small-build-nimo2",
+      "/var/tmp/halofpx-l21-small-state-nimo2",
+      "/var/tmp/halofpx-l21-small-key-nimo2",
+      "/var/tmp/halofpx-l21-small-evidence-nimo2",
+      "/var/tmp/halofpx-l21-small-archive-stage-nimo2.tar",
+      "/var/tmp/halofpx-l21-small-cleanup-receipt-nimo2.json"
+    ]
+  },
+  "prior_archives": [
+    "/var/tmp/halofpx-l21-small-evidence-failed-v1.tar.zst",
+    "/var/tmp/halofpx-l21-small-evidence-failed-v2.tar.zst",
+    "/var/tmp/halofpx-l21-small-evidence-failed-v3.tar.zst",
+    "/var/tmp/halofpx-l21-small-evidence-failed-v4.tar.zst",
+    "/var/tmp/halofpx-l21-small-evidence-failed-v5.tar.zst",
+    "/var/tmp/halofpx-l21-small-evidence-review-rejected-v6.tar.zst",
+    "/var/tmp/halofpx-l21-small-evidence-failed-v7.tar.zst",
+    "/var/tmp/halofpx-l21-small-evidence-review-rejected-v8.tar.zst"
+  ],
+  "retained_archive": "/var/tmp/halofpx-l21-small-evidence-v9.tar.zst"
+}
