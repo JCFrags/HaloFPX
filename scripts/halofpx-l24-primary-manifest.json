@@ -38,12 +38,12 @@
     "child": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py"
   },
   "executable_sha256": {
-    "worker": "bfbb0df6deea80047c364129b92c3344579922a6d81ffe9cbe174c626689c058",
-    "canary": "bd81d63e115d0a6fd73fe7a044120b71fe3c015f3a94f5bb4a9ae86913b4849a",
-    "readiness": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
-    "placement": "0384e69181415835b626bfe586ebdd46698c2690037e5c3d1dc75b70546ecb5d",
+    "worker": "74323c3f5d6cf1682320da8e9e4889bedd955a21c59e85f13da47370e14461cd",
+    "canary": "acdcbd664cab4c7dacf076448c162b32c8854f23143520921713b16a714e6e11",
+    "readiness": "54b546c38ea8d0a4ec273ae33b961090589756788acc1b173f22f1dba3e070da",
+    "placement": "8f4796e3f0912afa614ec35ecdc48322228a4b355e32544aa5a36c3cfbd6267e",
     "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
-    "child": "456674d1d29d7b544b528aa14b9a9d91059f0c5bb99e35a818e76c598df5357b"
+    "child": "4646a1a0ecf40cb3fc0be412cb28b77e5daba61d42fd4bb8ce6ceccaa0ae0cca"
   },
   "child_evidence_subdir": "child",
   "child_argv": [

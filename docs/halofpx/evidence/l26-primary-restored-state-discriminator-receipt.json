@@ -1,0 +1,69 @@
+{
+  "schema": "halofpx-l26-primary-restored-state-discriminator-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "36b026d29454adc9cdd61baf387303c3e8d9f200",
+  "outcome": "not_promoted_post_restart_context_creation_rpc_failure",
+  "artifact": {
+    "bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "capture": {
+    "authenticated": true,
+    "token": 21549,
+    "worker_components": 64,
+    "worker_bytes": 2454528,
+    "worker_descriptor_content_sha256": "014a1024f13225a3f7bd7bba6be43dce1106a0354d68b5043f284263cce19bc9",
+    "control_sha256": "2d614e8634f7f9defc4ed59f59b900490e021e382045c566109588bd288a0cbb",
+    "local_sha256": "7117319f7dc2b848d3ce3b35469aee3c62bc93a8262f88cb53949e7bbc5ceaca",
+    "component_manifest_sha256": "7ad364fb0a047ca8db745c439bf8ad3f6fe6b92ae56f7b9f632caa88e47c69b3"
+  },
+  "restart": {"capture_pid": 2247768, "restore_pid": 2247899, "caps_admitted": true},
+  "failure": {
+    "boundary": "post_restart_context_creation_before_stage_apply_restore",
+    "message": "Remote RPC server crashed or returned malformed response",
+    "stage_digest": null,
+    "apply_digest": null,
+    "restored_token": null,
+    "retry_performed": false
+  },
+  "transport": {
+    "records": 849,
+    "timeouts": 0,
+    "model_session_seconds": 202.632601,
+    "model_session_deadline_seconds": 1800,
+    "failure_class": "command"
+  },
+  "source_and_binary_identity": {
+    "controller_sha256": "fbf200c8b71c516047c8f574ac6db8aa21d0d8cda5b47c6e49a429c756f65c8",
+    "runner_sha256": "4646a1a0ecf40cb3fc0be412cb28b77e5daba61d42fd4bb8ce6ceccaa0ae0cca",
+    "manifest_sha256": "dbd546002b5added9db5c025fbf9ade07fa0eb3f65eac8e2c5f18d1906d99e25",
+    "worker_binary_sha256": "74323c3f5d6cf1682320da8e9e4889bedd955a21c59e85f13da47370e14461cd",
+    "canary_binary_sha256": "acdcbd664cab4c7dacf076448c162b32c8854f23143520921713b16a714e6e11",
+    "readiness_sha256": "54b546c38ea8d0a4ec273ae33b961090589756788acc1b173f22f1dba3e070da",
+    "placement_sha256": "8f4796e3f0912afa614ec35ecdc48322228a4b355e32544aa5a36c3cfbd6267e"
+  },
+  "focused_tests": {"passed": 66, "failed": 0},
+  "production_after": {
+    "worker_pid": 1422619,
+    "worker_port": 50052,
+    "coordinator_pid": 2248156,
+    "coordinator_port": 8081,
+    "http": 200,
+    "nrestarts": [0, 0],
+    "worker_first": true,
+    "unit_cgroup_command_model_reconciled": true
+  },
+  "cleanup_complete": true,
+  "independent_review": {
+    "verdict": "pass_terminal_not_promoted",
+    "path": "docs/halofpx/reviews/2026-07-23__l26-primary-restored-state-discriminator__review__v01.md"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l26-primary-20260723\\primary-diagnostic-20260723T_current",
+    "files": 25,
+    "bytes": 1162756,
+    "tree_sha256": "8a60129fbd69934bfaf989bf64076d7abf0c555dd742a1680ea077e8a3c14d43"
+  },
+  "promotion": false,
+  "retry_authorized": false
+}

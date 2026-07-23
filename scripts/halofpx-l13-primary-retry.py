@@ -26,8 +26,8 @@ WORKER_BIN = "/var/tmp/halofpx-l24-source-nimo1/build-l24/bin/rpc-server"
 CANARY_BIN = "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-distributed-state-canary"
 READINESS_PROBE = "/var/tmp/halofpx-l24-source-nimo2/scripts/halofpx_rpc_readiness.py"
 PLACEMENT_PROBE = "/var/tmp/halofpx-l24-source-nimo2/build-l24/bin/test-halofpx-placement-probe"
-PLACEMENT_PROBE_SHA = "0384e69181415835b626bfe586ebdd46698c2690037e5c3d1dc75b70546ecb5d"
-READINESS_PROBE_SHA = "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980"
+PLACEMENT_PROBE_SHA = "8f4796e3f0912afa614ec35ecdc48322228a4b355e32544aa5a36c3cfbd6267e"
+READINESS_PROBE_SHA = "54b546c38ea8d0a4ec273ae33b961090589756788acc1b173f22f1dba3e070da"
 MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
     "dba517197f2854f3d362529e13abddcdcad6c10b/"
@@ -35,8 +35,8 @@ MODEL = (
 )
 MODEL_SHA = "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
 MODEL_BYTES = 159873097824
-CANARY_SHA = "bd81d63e115d0a6fd73fe7a044120b71fe3c015f3a94f5bb4a9ae86913b4849a"
-WORKER_SHA = "bfbb0df6deea80047c364129b92c3344579922a6d81ffe9cbe174c626689c058"
+CANARY_SHA = "acdcbd664cab4c7dacf076448c162b32c8854f23143520921713b16a714e6e11"
+WORKER_SHA = "74323c3f5d6cf1682320da8e9e4889bedd955a21c59e85f13da47370e14461cd"
 PROMPT_SHA = "f20c7c7a4137de98b991f1bfe6de27e194a93c7257d9496944e312085923143f"
 PROMPT = "/var/tmp/halofpx-l13-primary-20260721/prompt.txt"
 REMOTE_EVIDENCE = "/var/tmp/halofpx-l24-primary-evidence"
