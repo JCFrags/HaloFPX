@@ -1,0 +1,75 @@
+{
+  "schema": "halofpx.l29.primary-manifest.v1",
+  "milestone": "l29-primary-fresh-residency-discriminator",
+  "worker_host": "nimo-1",
+  "canary_host": "nimo-2",
+  "worker_port": 50189,
+  "worker_units": [
+    "halofpx-l29-primary-worker-capture.service",
+    "halofpx-l29-primary-worker-restore.service"
+  ],
+  "canary_units": [
+    "halofpx-l29-primary-canary-capture.service",
+    "halofpx-l29-primary-canary-restore.service"
+  ],
+  "key_paths": {
+    "nimo-1": "/var/tmp/halofpx-l29-control.key",
+    "nimo-2": "/var/tmp/halofpx-l29-control.key"
+  },
+  "disposable_paths": {
+    "nimo-1": [
+      "/var/tmp/halofpx-l29-source-nimo1.tar",
+      "/var/tmp/halofpx-l29-source-nimo1",
+      "/var/tmp/halofpx-l29-worker"
+    ],
+    "nimo-2": [
+      "/var/tmp/halofpx-l29-source-nimo2.tar",
+      "/var/tmp/halofpx-l29-source-nimo2",
+      "/var/tmp/halofpx-l29-evidence",
+      "/var/tmp/halofpx-l29-coordinator",
+      "/var/tmp/halofpx-l29-rendezvous"
+    ]
+  },
+  "executables": {
+    "worker": "/var/tmp/halofpx-l29-source-nimo1/build-l29/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l29-source-nimo2/build-l29/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l29-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l29-source-nimo2/build-l29/bin/test-halofpx-placement-probe",
+    "epoch_receipt": "/var/tmp/halofpx-l29-source-nimo2/scripts/halofpx_epoch_receipt.py",
+    "interpreter": "C:\\Python314\\python.exe",
+    "child": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py"
+  },
+  "executable_sha256": {
+    "worker": "6cc63541e77ac884bb8e34c497b61b0343eac94302efd48c30d7dfeda6dc64a7",
+    "canary": "75748c9973e9aa2010afa59a74131e2e7f49ea076c1d9a550e080f9f44da64c0",
+    "readiness": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
+    "placement": "0e62523358f967a2e015bd03e88d9a8edb23ede4cbc6e747c4c06de67c75099a",
+    "epoch_receipt": "6ec5f17be6d3dd7ab5aba7d986434539ed4529c4219f4c112c834169f0671527",
+    "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
+    "child": "f4b4bc847797c439f265ec89470608760002c8ccaf2a28d18a76ba2584ee4e68"
+  },
+  "child_evidence_subdir": "child",
+  "child_argv": [
+    "C:\\Python314\\python.exe",
+    "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py",
+    "--evidence-dir",
+    "{evidence_root}/child",
+    "--l29-primary"
+  ],
+  "artifact": {
+    "host": "nimo-2",
+    "path": "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/dba517197f2854f3d362529e13abddcdcad6c10b/saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "allocation_plan": {
+    "rpc_request_bytes": 80950550528,
+    "rocm_device_request_bytes": 78280456704,
+    "rocm_host_request_bytes": 633802752,
+    "rpc_required_bytes": 106643119104,
+    "rocm_required_bytes": 104737304935,
+    "reported_total_each_bytes": 133143986176,
+    "minimum_rpc_margin_bytes": 26500867072,
+    "minimum_rocm_margin_bytes": 28406681241
+  }
+}

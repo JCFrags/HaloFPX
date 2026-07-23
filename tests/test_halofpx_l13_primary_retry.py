@@ -435,6 +435,29 @@ class PrimaryRetryTests(unittest.TestCase):
                 restore_worker_pid=303, current_worker_pid=303,
                 current_worker_invocation="3" * 32)
 
+    def test_l29_primary_configuration_is_exact_and_not_fixture(self):
+        original = {
+            name: getattr(retry, name)
+            for name in (
+                "PORT", "WORKER_BIN", "CANARY_BIN", "CONTROL",
+                "UNIT_PREFIX", "FIXTURE_QUALIFICATION",
+            )
+        }
+        try:
+            retry.configure_l29_primary()
+            self.assertEqual(retry.PORT, 50189)
+            self.assertEqual(retry.UNIT_PREFIX, "halofpx-l29-primary")
+            self.assertEqual(retry.CONTROL, "/var/tmp/halofpx-l29-control.key")
+            self.assertIn("/build-l29/bin/rpc-server", retry.WORKER_BIN)
+            self.assertIn("/build-l29/bin/test-halofpx", retry.CANARY_BIN)
+            self.assertFalse(retry.FIXTURE_QUALIFICATION)
+            self.assertEqual(retry.CACHE_TYPE_K, "q8_0")
+            self.assertEqual(retry.CACHE_TYPE_V, "q8_0")
+            self.assertEqual(retry.FLASH_ATTN, "on")
+        finally:
+            for name, value in original.items():
+                setattr(retry, name, value)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -62,6 +62,7 @@ class FakeRunner:
         self.corrupt_on_metadata_stat = None
         self.existence_probe_failure_host = None
         self.stdin_calls = []
+        self.calls = []
         manifest = json.loads(L22_MANIFEST.read_text(encoding="utf-8"))
         self.remote_hashes = {
             manifest["executables"][name]: manifest["executable_sha256"][name]
@@ -86,6 +87,7 @@ class FakeRunner:
 
     def run(self, host, argv, *, operation="command"):
         argv = list(argv)
+        self.calls.append((host, argv))
         if argv == ["hostname"]:
             return transition.CommandResult(0, self.hostname[host] + "\n")
         if argv[:3] == ["stat", "-c", "%F"]:
@@ -123,7 +125,7 @@ class FakeRunner:
             return transition.CommandResult(0, "")
         if argv[:3] == ["rm", "-rf", "--"]:
             return transition.CommandResult(0, "")
-        if argv[:2] == ["systemctl", "show"]:
+        if argv[:3] == ["systemctl", "--system", "show"]:
             if host in self.partial:
                 return transition.CommandResult(0, "Id=broken\n")
             active = self.active[host]
@@ -173,8 +175,8 @@ class FakeRunner:
             return transition.CommandResult(0, "\n".join(lines) + ("\n" if lines else ""))
         if argv and argv[0] == "curl":
             return transition.CommandResult(0, "200")
-        if argv[:3] == ["sudo", "-n", "systemctl"]:
-            verb, unit = argv[3], argv[4]
+        if argv[:4] == ["sudo", "-n", "systemctl", "--system"]:
+            verb, unit = argv[4], argv[5]
             self.mutations.append((host, verb, unit))
             if verb == "stop":
                 if host == "nimo-1" and self.deactivating_coordinator:
@@ -260,6 +262,22 @@ class ControllerTests(unittest.TestCase):
             ("nimo-2", "start", transition.WORKER_UNIT),
             ("nimo-1", "start", transition.COORDINATOR_UNIT),
         ])
+
+    def test_production_authority_is_explicitly_system_scoped(self):
+        fake = FakeRunner()
+        controller = self.controller(fake)
+        controller.preflight()
+        production_shows = [
+            argv for _, argv in fake.calls
+            if len(argv) >= 4 and argv[-1] != ""
+            and argv[:3] == ["systemctl", "--system", "show"]
+        ]
+        self.assertEqual(len(production_shows), 2)
+        self.assertFalse(any(
+            argv[:3] == ["systemctl", "--user", "show"]
+            and argv[3] in {transition.COORDINATOR_UNIT, transition.WORKER_UNIT}
+            for _, argv in fake.calls
+        ))
 
     def test_key_provision_is_identical_exact_and_consumable(self):
         fake = FakeRunner()
@@ -637,7 +655,18 @@ class ManifestBindingTests(unittest.TestCase):
         fake = FakeRunner()
         child = mock.Mock()
         child.wait.return_value = 0
-        with mock.patch.object(transition.subprocess, "Popen", return_value=child) as popen:
+        real_child_environment = transition.child_environment
+
+        def environment_before_mutation(prepared, manifest):
+            self.assertEqual(fake.mutations, [])
+            return real_child_environment(prepared, manifest)
+
+        with (
+            mock.patch.object(
+                transition, "child_environment",
+                side_effect=environment_before_mutation) as environment,
+            mock.patch.object(transition.subprocess, "Popen", return_value=child) as popen,
+        ):
             result = transition.main([
                 "--evidence-dir", str(self.evidence),
                 "--milestone-manifest", str(L22_MANIFEST),
@@ -646,6 +675,43 @@ class ManifestBindingTests(unittest.TestCase):
             ], runner=fake)
         self.assertEqual(result, 0)
         self.assertEqual(popen.call_args.args[0], self.expected)
+        environment.assert_called_once()
+        child_env = popen.call_args.kwargs["env"]
+        for name, variable in (
+            ("worker", "HALOFPX_L28_WORKER_SHA256"),
+            ("canary", "HALOFPX_L28_CANARY_SHA256"),
+            ("readiness", "HALOFPX_L28_READINESS_SHA256"),
+            ("placement", "HALOFPX_L28_PLACEMENT_SHA256"),
+        ):
+            self.assertEqual(
+                child_env[variable], self.manifest["executable_sha256"][name])
+
+    def test_l29_capacity_preflight_accepts_margin_and_refuses_low_disk(self):
+        manifest_path = Path(__file__).parents[1] / "scripts" / "halofpx-l29-primary-manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+        class CapacityRunner:
+            low_disk = False
+
+            def run(self, host, argv, *, operation="command"):
+                if argv[0] == "grep":
+                    return transition.CommandResult(0, "MemTotal:       130491708 kB\n")
+                if argv[0] == "df":
+                    available = 1024 if self.low_disk else 20 * 1024**3
+                    return transition.CommandResult(
+                        0, f"Avail Inodes IFree\n{available} 0 0\n")
+                raise AssertionError(argv)
+
+        with tempfile.TemporaryDirectory() as directory:
+            runner = CapacityRunner()
+            result = transition.l29_capacity_preflight(
+                manifest, runner, Path(directory).resolve())
+            self.assertGreater(
+                result["hosts"]["nimo-1"]["allocation_margin_bytes"], 0)
+            runner.low_disk = True
+            with self.assertRaisesRegex(transition.TransitionError, "disk capacity"):
+                transition.l29_capacity_preflight(
+                    manifest, runner, Path(directory).resolve())
 
 
 class BoundedSshRunnerTests(unittest.TestCase):

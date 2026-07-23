@@ -1,0 +1,95 @@
+{
+  "schema": "halofpx-l29-primary-fresh-residency-discriminator-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "09123048522281025afb532715f20457ac4b9918",
+  "outcome": "not_promoted_live_apply_boundary_and_token_mismatch",
+  "artifact": {
+    "bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "capture": {
+    "worker_pid": 2283443,
+    "worker_invocation_id": "58edc48d8f424a7b9886f7504b99d2c7",
+    "coordinator_pid": 1453207,
+    "token": 21549,
+    "token_sha256": "7d44cce76babad0e2459d2295ac8704af317509458dd9ea8bbfe2e6cc151e051",
+    "text_sha256": "c7d2216ad33210a1234c043b4074ff70c9a1b127590f612f813d904c597a9746",
+    "worker_components": 64,
+    "worker_bytes": 2454528,
+    "worker_aggregate_sha256": "014a1024f13225a3f7bd7bba6be43dce1106a0354d68b5043f284263cce19bc9",
+    "object_sha256": "19f6335d78631ce7bf2a1b8320c405e8b959fff59c7086711a8b752288ec63e2"
+  },
+  "restore": {
+    "worker_pid": 2283566,
+    "worker_invocation_id": "3439676f5ee14422b2beff2c98f772c5",
+    "coordinator_pid": 1453302,
+    "coordinator_invocation_id": "30f90c1e1eea44049579c6a16777fb43",
+    "token": 9283,
+    "token_sha256": "1d99e63f856e6c2a2903c515234d94ce863b30512beabe1a06e26cef831f9382",
+    "text_sha256": "0f6b1949b093e35266991fbea7a832212d428e874cc0666634faf37f51d4c63b",
+    "worker_components": 64,
+    "worker_bytes": 2454528,
+    "stage_aggregate_sha256": "014a1024f13225a3f7bd7bba6be43dce1106a0354d68b5043f284263cce19bc9",
+    "live_apply_aggregate_sha256": "6e9418798c60dc8b6a51ec8c155148ef465a9bc51c7c458295e3666c2141b9a6"
+  },
+  "coordinator_receipts": {
+    "capture_restore_equal": true,
+    "control_bytes": 15048,
+    "local_bytes": 2301688,
+    "control_sha256": "2d614e8634f7f9defc4ed59f59b900490e021e382045c566109588bd288a0cbb",
+    "local_sha256": "7117319f7dc2b848d3ce3b35469aee3c62bc93a8262f88cb53949e7bbc5ceaca",
+    "component_manifest_sha256": "7ad364fb0a047ca8db745c439bf8ad3f6fe6b92ae56f7b9f632caa88e47c69b3"
+  },
+  "interpretation": {
+    "capture_equals_stage": true,
+    "stage_equals_live_apply": false,
+    "tokens_equal": false,
+    "localized_boundary": "stage_to_live_apply_or_restart_layout",
+    "root_cause_claimed": false
+  },
+  "allocation": {
+    "worker_material_bytes_each_residency": 80950550528,
+    "placement_admitted_both_residencies": true
+  },
+  "state_windows": {
+    "legacy_get_tensor": 0,
+    "legacy_set_tensor": 0
+  },
+  "transport": {
+    "controller_records": 609,
+    "child_records": 224,
+    "timeouts": 0
+  },
+  "source_identity": {
+    "controller_sha256": "9eb4da34ebae088e7e4cd68ce60a6bd5a6c52507b51abc359559fe306ccd5070",
+    "runner_sha256": "f4b4bc847797c439f265ec89470608760002c8ccaf2a28d18a76ba2584ee4e68",
+    "manifest_sha256": "8113a77ef35f3c6a50f83af14afeccd356bf35fc4c84ce2187b34697873b9c58"
+  },
+  "focused_tests": {"passed": 76, "failed": 0},
+  "production_after": {
+    "worker_pid": 1454894,
+    "worker_port": 50052,
+    "worker_invocation_id": "3d44e51fa2324b19b162051d2b6a719e",
+    "coordinator_pid": 2283857,
+    "coordinator_port": 8081,
+    "coordinator_invocation_id": "2c9b35e6b405453e810054a1501d625a",
+    "http": 200,
+    "nrestarts": [0, 0],
+    "worker_first": true,
+    "system_unit_cgroup_command_model_reconciled": true
+  },
+  "cleanup_complete": true,
+  "independent_review": {
+    "verdict": "pass_terminal_not_promoted",
+    "path": "docs/halofpx/reviews/2026-07-23__l29-primary-fresh-residency-discriminator__review__v01.md"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l29-primary-20260723",
+    "files": 25,
+    "bytes": 1135907,
+    "tree_sha256": "8c82cec295e5e5d07160abe93ebcbdf6068c2372ec87b1aaa3be471610234cf8"
+  },
+  "promotion": false,
+  "retry_performed": false,
+  "l30_opened": false
+}

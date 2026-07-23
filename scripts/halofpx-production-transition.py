@@ -12,6 +12,7 @@ import os
 import re
 import secrets
 import shlex
+import shutil
 import signal
 import subprocess
 import sys
@@ -80,6 +81,24 @@ L28_EXECUTABLES = {
     "placement": "/var/tmp/halofpx-l28-source-nimo2/build-l28/bin/test-halofpx-placement-probe",
     "epoch_receipt": "/var/tmp/halofpx-l28-source-nimo2/scripts/halofpx_epoch_receipt.py",
 }
+L29_KEY_PATHS = {
+    "nimo-1": "/var/tmp/halofpx-l29-control.key",
+    "nimo-2": "/var/tmp/halofpx-l29-control.key",
+}
+L29_EXECUTABLES = {
+    "worker": "/var/tmp/halofpx-l29-source-nimo1/build-l29/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l29-source-nimo2/build-l29/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l29-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l29-source-nimo2/build-l29/bin/test-halofpx-placement-probe",
+    "epoch_receipt": "/var/tmp/halofpx-l29-source-nimo2/scripts/halofpx_epoch_receipt.py",
+}
+L29_MODEL = (
+    "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
+    "dba517197f2854f3d362529e13abddcdcad6c10b/"
+    "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf"
+)
+L29_MODEL_BYTES = 159873097824
+L29_MODEL_SHA256 = "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
 
 
 class TransitionError(RuntimeError):
@@ -548,47 +567,56 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "worker_units", "canary_units", "key_paths", "disposable_paths",
         "executables", "executable_sha256", "child_argv", "child_evidence_subdir",
     }
+    l29 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l29.primary-manifest.v1"
+    if l29:
+        expected_keys |= {"artifact", "allocation_plan"}
     if not isinstance(raw, dict) or set(raw) != expected_keys:
         raise TransitionError("L22 manifest field set mismatch")
     l28 = raw.get("schema") == "halofpx.l28.fixture-manifest.v1"
-    if l28:
+    if l28 or l29:
         child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
         interpreter_path = Path(sys.executable).resolve()
         expected_exec = {
-            **L28_EXECUTABLES,
+            **(L29_EXECUTABLES if l29 else L28_EXECUTABLES),
             "interpreter": str(interpreter_path),
             "child": str(child_path),
         }
         expected_child_argv = [
             str(interpreter_path), str(child_path), "--evidence-dir",
-            "{evidence_root}/child", "--l28-fixture",
+            "{evidence_root}/child", "--l29-primary" if l29 else "--l28-fixture",
         ]
+        prefix = "halofpx-l29-primary" if l29 else "halofpx-l28"
+        port = 50189 if l29 else 50188
+        key_paths = L29_KEY_PATHS if l29 else L28_KEY_PATHS
+        source_tag = "l29" if l29 else "l28"
         if (
-            raw["milestone"] != "l28-fresh-residency-fixture"
+            raw["milestone"] != (
+                "l29-primary-fresh-residency-discriminator"
+                if l29 else "l28-fresh-residency-fixture")
             or raw["worker_host"] != "nimo-1"
             or raw["canary_host"] != "nimo-2"
-            or raw["worker_port"] != 50188
+            or raw["worker_port"] != port
             or tuple(raw["worker_units"]) != (
-                "halofpx-l28-worker-capture.service",
-                "halofpx-l28-worker-restore.service",
+                f"{prefix}-worker-capture.service",
+                f"{prefix}-worker-restore.service",
             )
             or tuple(raw["canary_units"]) != (
-                "halofpx-l28-canary-capture.service",
-                "halofpx-l28-canary-restore.service",
+                f"{prefix}-canary-capture.service",
+                f"{prefix}-canary-restore.service",
             )
-            or raw["key_paths"] != L28_KEY_PATHS
+            or raw["key_paths"] != key_paths
             or raw["disposable_paths"] != {
                 "nimo-1": [
-                    "/var/tmp/halofpx-l28-source-nimo1.tar",
-                    "/var/tmp/halofpx-l28-source-nimo1",
-                    "/var/tmp/halofpx-l28-worker",
+                    f"/var/tmp/halofpx-{source_tag}-source-nimo1.tar",
+                    f"/var/tmp/halofpx-{source_tag}-source-nimo1",
+                    f"/var/tmp/halofpx-{source_tag}-worker",
                 ],
                 "nimo-2": [
-                    "/var/tmp/halofpx-l28-source-nimo2.tar",
-                    "/var/tmp/halofpx-l28-source-nimo2",
-                    "/var/tmp/halofpx-l28-evidence",
-                    "/var/tmp/halofpx-l28-coordinator",
-                    "/var/tmp/halofpx-l28-rendezvous",
+                    f"/var/tmp/halofpx-{source_tag}-source-nimo2.tar",
+                    f"/var/tmp/halofpx-{source_tag}-source-nimo2",
+                    f"/var/tmp/halofpx-{source_tag}-evidence",
+                    f"/var/tmp/halofpx-{source_tag}-coordinator",
+                    f"/var/tmp/halofpx-{source_tag}-rendezvous",
                 ],
             }
             or raw["executables"] != expected_exec
@@ -596,6 +624,21 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             or raw["child_argv"] != expected_child_argv
         ):
             raise TransitionError("L28 manifest identity/executable authority mismatch")
+        if l29:
+            if raw["artifact"] != {
+                "host": "nimo-2", "path": L29_MODEL,
+                "bytes": L29_MODEL_BYTES, "sha256": L29_MODEL_SHA256,
+            } or raw["allocation_plan"] != {
+                "rpc_request_bytes": 80950550528,
+                "rocm_device_request_bytes": 78280456704,
+                "rocm_host_request_bytes": 633802752,
+                "rpc_required_bytes": 106643119104,
+                "rocm_required_bytes": 104737304935,
+                "reported_total_each_bytes": 133143986176,
+                "minimum_rpc_margin_bytes": 26500867072,
+                "minimum_rocm_margin_bytes": 28406681241,
+            }:
+                raise TransitionError("L29 artifact/allocation authority mismatch")
     elif (
         raw["schema"] != "halofpx.l24.primary-manifest.v1"
         or raw["milestone"] != "l24-primary-diagnostic"
@@ -608,7 +651,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         or {host: tuple(values) for host, values in raw["disposable_paths"].items()} != DISPOSABLE_PATHS
     ):
         raise TransitionError("L22 manifest identity/cleanup authority mismatch")
-    if not l28:
+    if not (l28 or l29):
         child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
         interpreter_path = Path(sys.executable).resolve()
         expected_exec = {
@@ -637,7 +680,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "worker": DISPOSABLE_HOST, "canary": DISPOSABLE_CANARY_HOST,
         "readiness": DISPOSABLE_CANARY_HOST, "placement": DISPOSABLE_CANARY_HOST,
     }
-    if l28:
+    if l28 or l29:
         host_for["epoch_receipt"] = DISPOSABLE_CANARY_HOST
     for name, host in host_for.items():
         result = runner.run(
@@ -649,6 +692,19 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         executable = Path(expected_exec[name])
         if not executable.is_file() or hashlib.sha256(executable.read_bytes()).hexdigest() != hashes[name]:
             raise TransitionError(f"L22 manifest {name} hash mismatch")
+    if l29:
+        artifact = raw["artifact"]
+        size_result = runner.run(
+            artifact["host"], ["stat", "-c", "%s", "--", artifact["path"]],
+            operation="hash")
+        if size_result.returncode != 0 or size_result.stdout.strip() != str(L29_MODEL_BYTES):
+            raise TransitionError("L29 primary artifact size mismatch")
+        hash_result = runner.run(
+            artifact["host"], ["sha256sum", "--", artifact["path"]],
+            operation="hash")
+        actual = hash_result.stdout.split()[0] if hash_result.returncode == 0 and hash_result.stdout.split() else ""
+        if actual != L29_MODEL_SHA256:
+            raise TransitionError("L29 primary artifact hash mismatch")
     return raw
 
 
@@ -728,7 +784,8 @@ class Controller:
     def __init__(
             self, runner: Runner, wait_seconds: float = 1.0, timeout_seconds: float = 300.0,
             disposable_paths: dict[str, tuple[str, ...]] | None = None,
-            key_paths: dict[str, str] | None = None):
+            key_paths: dict[str, str] | None = None,
+            disposable_authority: dict[str, object] | None = None):
         self.runner = runner
         self.wait_seconds = wait_seconds
         self.timeout_seconds = timeout_seconds
@@ -738,6 +795,14 @@ class Controller:
         self.key_digest: str | None = None
         self.disposable_paths = disposable_paths
         self.key_paths = key_paths or CHANNEL_KEY_PATHS
+        self.disposable_authority = disposable_authority or {
+            "worker_host": DISPOSABLE_HOST,
+            "canary_host": DISPOSABLE_CANARY_HOST,
+            "worker_port": DISPOSABLE_PORT,
+            "worker_units": DISPOSABLE_WORKER_UNITS,
+            "canary_units": DISPOSABLE_CANARY_UNITS,
+            "canary_bin": DISPOSABLE_CANARY_BIN,
+        }
         self.in_recovery = False
 
     def _operation(self, argv: Sequence[str]) -> str:
@@ -893,7 +958,7 @@ class Controller:
                 f"host binding mismatch: SSH target {spec.host!r} reports {hostname!r}"
             )
         props = _parse_properties(self._run(spec.host, [
-            "systemctl", "show", spec.unit,
+            "systemctl", "--system", "show", spec.unit,
             "-p", "Id", "-p", "LoadState", "-p", "ActiveState", "-p", "SubState",
             "-p", "MainPID", "-p", "ExecStart", "-p", "FragmentPath",
             "-p", "NRestarts", "-p", "ExecMainStartTimestamp",
@@ -984,7 +1049,7 @@ class Controller:
 
     def _mutate(self, spec: RoleSpec, verb: str) -> None:
         self.first_mutation = True
-        self._run(spec.host, ["sudo", "-n", "systemctl", verb, spec.unit])
+        self._run(spec.host, ["sudo", "-n", "systemctl", "--system", verb, spec.unit])
 
     def shutdown(self) -> None:
         if self.snapshot is None:
@@ -1011,15 +1076,21 @@ class Controller:
         raise TransitionError(f"timed out waiting for {spec.role}: {last_error}")
 
     def cleanup_disposable(self) -> None:
-        for host in (DISPOSABLE_HOST, DISPOSABLE_CANARY_HOST):
+        worker_host = str(self.disposable_authority["worker_host"])
+        canary_host = str(self.disposable_authority["canary_host"])
+        worker_port = int(self.disposable_authority["worker_port"])
+        worker_units = tuple(self.disposable_authority["worker_units"])
+        canary_units = tuple(self.disposable_authority["canary_units"])
+        canary_bin = str(self.disposable_authority["canary_bin"])
+        for host in (worker_host, canary_host):
             hostname = self._run(host, ["hostname"]).stdout.strip()
             if hostname != host:
                 raise TransitionError(
                     f"disposable host binding mismatch: expected {host!r}, got {hostname!r}"
                 )
         unit_groups = (
-            (DISPOSABLE_HOST, DISPOSABLE_WORKER_UNITS),
-            (DISPOSABLE_CANARY_HOST, DISPOSABLE_CANARY_UNITS),
+            (worker_host, worker_units),
+            (canary_host, canary_units),
         )
         for host, units in unit_groups:
             for unit in units:
@@ -1051,18 +1122,18 @@ class Controller:
                     )
                     clean = clean and exact
                     details.append(f"{host}/{unit}:{props}")
-            listeners = self._run(DISPOSABLE_HOST, ["ss", "-H", "-ltnp"]).stdout
+            listeners = self._run(worker_host, ["ss", "-H", "-ltnp"]).stdout
             port_closed = not any(
-                len(line.split()) >= 4 and line.split()[3].endswith(f":{DISPOSABLE_PORT}")
+                len(line.split()) >= 4 and line.split()[3].endswith(f":{worker_port}")
                 for line in listeners.splitlines()
             )
             processes = self._run(
-                DISPOSABLE_CANARY_HOST, ["ps", "-eo", "pid=,args="]
+                canary_host, ["ps", "-eo", "pid=,args="]
             ).stdout
             canary_absent = True
             for line in processes.splitlines():
                 fields = line.strip().split(maxsplit=1)
-                if len(fields) == 2 and _command_tokens(fields[1])[:1] == [DISPOSABLE_CANARY_BIN]:
+                if len(fields) == 2 and _command_tokens(fields[1])[:1] == [canary_bin]:
                     canary_absent = False
                     break
             if clean and port_closed and canary_absent:
@@ -1127,6 +1198,82 @@ def _snapshot_dict(snapshot: dict[str, RoleSnapshot]) -> dict[str, object]:
     return {
         "schema": "halofpx.production-transition.snapshot.v1",
         "roles": {role: asdict(value) for role, value in snapshot.items()},
+    }
+
+
+def child_environment(
+        prepared: dict[str, object], manifest: dict[str, object]) -> dict[str, str]:
+    hashes = manifest["executable_sha256"]
+    if not isinstance(hashes, dict):
+        raise TransitionError("validated manifest executable hashes are unavailable")
+    required = ("worker", "canary", "readiness", "placement", "epoch_receipt")
+    if manifest.get("schema") == "halofpx.l24.primary-manifest.v1":
+        required = required[:-1]
+    if any(not re.fullmatch(r"[0-9a-f]{64}", str(hashes.get(name, ""))) for name in required):
+        raise TransitionError("validated manifest child hash authority is incomplete")
+    environment = os.environ.copy()
+    environment["HALOFPX_CHANNEL_KEY_SHA256"] = str(prepared["sha256"])
+    environment["HALOFPX_L28_WORKER_SHA256"] = str(hashes["worker"])
+    environment["HALOFPX_L28_CANARY_SHA256"] = str(hashes["canary"])
+    environment["HALOFPX_L28_READINESS_SHA256"] = str(hashes["readiness"])
+    environment["HALOFPX_L28_PLACEMENT_SHA256"] = str(hashes["placement"])
+    if "epoch_receipt" in required:
+        environment["HALOFPX_L28_EPOCH_RECEIPT_SHA256"] = str(hashes["epoch_receipt"])
+    return environment
+
+
+def l29_capacity_preflight(
+        manifest: dict[str, object], runner: Runner, evidence_root: Path) -> dict[str, object]:
+    if manifest.get("schema") != "halofpx.l29.primary-manifest.v1":
+        raise TransitionError("L29 capacity preflight requires exact manifest authority")
+    plan = manifest["allocation_plan"]
+    total = int(plan["reported_total_each_bytes"])
+    rpc_required = int(plan["rpc_required_bytes"])
+    rocm_required = int(plan["rocm_required_bytes"])
+    rpc_margin = int(plan["minimum_rpc_margin_bytes"])
+    rocm_margin = int(plan["minimum_rocm_margin_bytes"])
+    if rpc_required + rpc_margin != total or rocm_required + rocm_margin != total:
+        raise TransitionError("L29 allocation margin arithmetic mismatch")
+
+    hosts: dict[str, object] = {}
+    for host, required in (("nimo-1", rpc_required), ("nimo-2", rocm_required)):
+        memory = runner.run(
+            host, ["grep", "^MemTotal:", "/proc/meminfo"], operation="service-readiness")
+        match = re.fullmatch(r"MemTotal:\s+(\d+)\s+kB\s*", memory.stdout)
+        if memory.returncode != 0 or match is None:
+            raise TransitionError(f"{host}: current memory capacity is unavailable")
+        memory_bytes = int(match.group(1)) * 1024
+        if memory_bytes < total or required > memory_bytes - (
+                rpc_margin if host == "nimo-1" else rocm_margin):
+            raise TransitionError(f"{host}: current memory lacks frozen allocation margin")
+        disk = runner.run(
+            host, ["df", "-B1", "--output=avail,itotal,iavail", "/var/tmp"],
+            operation="service-readiness")
+        fields = disk.stdout.splitlines()[-1].split() if disk.returncode == 0 else []
+        if len(fields) != 3:
+            raise TransitionError(f"{host}: disk/inode capacity is unavailable")
+        available, inode_total, inode_free = map(int, fields)
+        if available < 8 * 1024**3:
+            raise TransitionError(f"{host}: disposable disk capacity below 8 GiB")
+        if inode_total > 0 and inode_free < 1000:
+            raise TransitionError(f"{host}: disposable inode capacity below 1000")
+        hosts[host] = {
+            "mem_total_bytes": memory_bytes,
+            "allocation_required_bytes": required,
+            "allocation_margin_bytes": memory_bytes - required,
+            "var_tmp_available_bytes": available,
+            "inode_total": inode_total,
+            "inode_free": inode_free,
+            "inode_accounting": "fixed_pool" if inode_total > 0 else "not_reported_by_filesystem",
+        }
+    local = shutil.disk_usage(evidence_root.parent)
+    if local.free < 2 * 1024**3:
+        raise TransitionError("local evidence capacity below 2 GiB")
+    return {
+        "schema": "halofpx.l29.capacity-preflight.v1",
+        "frozen_plan": plan,
+        "hosts": hosts,
+        "local_evidence_free_bytes": local.free,
     }
 
 
@@ -1196,10 +1343,22 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             {host: tuple(paths) for host, paths in manifest["disposable_paths"].items()}
             if manifest is not None else None),
         key_paths=(dict(manifest["key_paths"]) if manifest is not None else None),
+        disposable_authority=({
+            "worker_host": manifest["worker_host"],
+            "canary_host": manifest["canary_host"],
+            "worker_port": manifest["worker_port"],
+            "worker_units": tuple(manifest["worker_units"]),
+            "canary_units": tuple(manifest["canary_units"]),
+            "canary_bin": manifest["executables"]["canary"],
+        } if manifest is not None else None),
     )
     snapshot_path = args.evidence_dir / "production-preflight.json"
     final_path = args.evidence_dir / "production-final.json"
     recovery_running = False
+
+    if manifest is not None and manifest.get("schema") == "halofpx.l29.primary-manifest.v1":
+        capacity = l29_capacity_preflight(manifest, selected_runner, args.evidence_dir)
+        _atomic_json(args.evidence_dir / "capacity-preflight.json", capacity)
 
     def emergency_recover() -> None:
         nonlocal recovery_running
@@ -1256,14 +1415,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
                 raise TransitionError("disposable execution requires a closed manifest")
             prepared = controller.prepare_keys()
             _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
-            child_env = os.environ.copy()
-            child_env["HALOFPX_CHANNEL_KEY_SHA256"] = prepared["sha256"]
-            hashes = manifest["executable_sha256"]
-            child_env["HALOFPX_L28_WORKER_SHA256"] = str(hashes["worker"])
-            child_env["HALOFPX_L28_CANARY_SHA256"] = str(hashes["canary"])
-            child_env["HALOFPX_L28_READINESS_SHA256"] = str(hashes["readiness"])
-            child_env["HALOFPX_L28_PLACEMENT_SHA256"] = str(hashes["placement"])
-            child_env["HALOFPX_L28_EPOCH_RECEIPT_SHA256"] = str(hashes["epoch_receipt"])
+            child_env = child_environment(prepared, manifest)
             child = subprocess.Popen(maintenance_command, env=child_env)
             returncode = child.wait()
             cleanup_failures = []
@@ -1293,9 +1445,14 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             raise TransitionError("maintenance requires a command after --")
         prepared = controller.prepare_keys()
         _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
+        # Bind the exact child environment from the already validated manifest
+        # before shutdown/first production mutation.
+        if manifest is not None:
+            child_env = child_environment(prepared, manifest)
+        else:
+            child_env = os.environ.copy()
+            child_env["HALOFPX_CHANNEL_KEY_SHA256"] = str(prepared["sha256"])
         controller.shutdown()
-        child_env = os.environ.copy()
-        child_env["HALOFPX_CHANNEL_KEY_SHA256"] = prepared["sha256"]
         child = subprocess.Popen(maintenance_command, env=child_env)
         try:
             returncode = child.wait()

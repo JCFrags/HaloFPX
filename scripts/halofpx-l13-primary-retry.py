@@ -57,6 +57,7 @@ CACHE_TYPE_V = "q8_0"
 FLASH_ATTN = "on"
 FIXTURE_QUALIFICATION = False
 DIAGNOSTIC_ONLY = True
+UNIT_PREFIX = "halofpx-l24-primary"
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -79,6 +80,7 @@ def configure_l28_fixture() -> None:
     global CONTROL, WORKER_CONTROL, CACHE_TYPE_K, CACHE_TYPE_V, FLASH_ATTN
     global FIXTURE_QUALIFICATION, CANARY_SHA, WORKER_SHA, READINESS_PROBE_SHA
     global PLACEMENT_PROBE_SHA, MODEL_DIGEST, ARTIFACT_DIR
+    global UNIT_PREFIX
     PORT = 50188
     WORKER_BIN = "/var/tmp/halofpx-l28-source-nimo1/build-l28/bin/rpc-server"
     CANARY_BIN = (
@@ -110,7 +112,41 @@ def configure_l28_fixture() -> None:
     CACHE_TYPE_V = "f16"
     FLASH_ATTN = "off"
     FIXTURE_QUALIFICATION = True
+    UNIT_PREFIX = "halofpx-l28"
     # Frozen after the exact L28 source is built on both hosts.
+    CANARY_SHA = os.environ.get("HALOFPX_L28_CANARY_SHA256", "")
+    WORKER_SHA = os.environ.get("HALOFPX_L28_WORKER_SHA256", "")
+    READINESS_PROBE_SHA = os.environ.get("HALOFPX_L28_READINESS_SHA256", "")
+    PLACEMENT_PROBE_SHA = os.environ.get("HALOFPX_L28_PLACEMENT_SHA256", "")
+    EPOCH_RECEIPT_SHA = os.environ.get("HALOFPX_L28_EPOCH_RECEIPT_SHA256", "")
+
+
+def configure_l29_primary() -> None:
+    global PORT, WORKER_BIN, CANARY_BIN, READINESS_PROBE, PLACEMENT_PROBE
+    global EPOCH_RECEIPT, EPOCH_RECEIPT_SHA, REMOTE_EVIDENCE
+    global COORDINATOR_ROOT, WORKER_ROOT, RENDEZVOUS_ROOT, CONTROL
+    global WORKER_CONTROL, ARTIFACT_DIR, CANARY_SHA, WORKER_SHA
+    global READINESS_PROBE_SHA, PLACEMENT_PROBE_SHA, UNIT_PREFIX
+    PORT = 50189
+    WORKER_BIN = "/var/tmp/halofpx-l29-source-nimo1/build-l29/bin/rpc-server"
+    CANARY_BIN = (
+        "/var/tmp/halofpx-l29-source-nimo2/build-l29/bin/"
+        "test-halofpx-distributed-state-canary")
+    READINESS_PROBE = (
+        "/var/tmp/halofpx-l29-source-nimo2/scripts/halofpx_rpc_readiness.py")
+    PLACEMENT_PROBE = (
+        "/var/tmp/halofpx-l29-source-nimo2/build-l29/bin/"
+        "test-halofpx-placement-probe")
+    EPOCH_RECEIPT = (
+        "/var/tmp/halofpx-l29-source-nimo2/scripts/halofpx_epoch_receipt.py")
+    REMOTE_EVIDENCE = "/var/tmp/halofpx-l29-evidence"
+    COORDINATOR_ROOT = "/var/tmp/halofpx-l29-coordinator"
+    WORKER_ROOT = "/var/tmp/halofpx-l29-worker"
+    RENDEZVOUS_ROOT = "/var/tmp/halofpx-l29-rendezvous"
+    CONTROL = "/var/tmp/halofpx-l29-control.key"
+    WORKER_CONTROL = CONTROL
+    ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
+    UNIT_PREFIX = "halofpx-l29-primary"
     CANARY_SHA = os.environ.get("HALOFPX_L28_CANARY_SHA256", "")
     WORKER_SHA = os.environ.get("HALOFPX_L28_WORKER_SHA256", "")
     READINESS_PROBE_SHA = os.environ.get("HALOFPX_L28_READINESS_SHA256", "")
@@ -433,9 +469,7 @@ def canary_argv(sequence: str, *, restore_gate: bool = False) -> list[str]:
 
 def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
     canary_command = canary_argv(sequence)
-    unit = (
-        f"halofpx-l28-canary-{unit_label}" if FIXTURE_QUALIFICATION
-        else f"halofpx-l24-primary-canary-{unit_label}")
+    unit = f"{UNIT_PREFIX}-canary-{unit_label}"
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=20min",
         "--wait", "--collect", "--pipe", *canary_command,
@@ -738,9 +772,9 @@ def require_fresh_rpc_model_residency(
 
 
 def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
-    capture_unit = "halofpx-l28-worker-capture"
-    restore_unit = "halofpx-l28-worker-restore"
-    restore_canary_unit = "halofpx-l28-canary-restore"
+    capture_unit = f"{UNIT_PREFIX}-worker-capture"
+    restore_unit = f"{UNIT_PREFIX}-worker-restore"
+    restore_canary_unit = f"{UNIT_PREFIX}-canary-restore"
     # Reversed cleanup order stops capture first if capture fails before the
     # explicit A->B transition, avoiding attribution of A's listener to B.
     local_units.extend([restore_unit, capture_unit])
@@ -1112,9 +1146,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence-dir", required=True, type=Path)
     parser.add_argument("--l28-fixture", action="store_true")
+    parser.add_argument("--l29-primary", action="store_true")
     args = parser.parse_args()
+    if args.l28_fixture and args.l29_primary:
+        parser.error("fixture and primary modes are mutually exclusive")
     if args.l28_fixture:
         configure_l28_fixture()
+    if args.l29_primary:
+        configure_l29_primary()
     root = args.evidence_dir.resolve()
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     initialize_ssh_transport(root)
@@ -1289,7 +1328,7 @@ def main() -> int:
                 cleanup_errors.append(f"{unit}: {exc}")
         if DIAGNOSTIC_ONLY:
             try:
-                stop_canary("halofpx-l28-canary-restore")
+                stop_canary(f"{UNIT_PREFIX}-canary-restore")
             except Exception as exc:
                 cleanup_errors.append(f"halofpx-l28-canary-restore: {exc}")
         if cleanup_errors:
