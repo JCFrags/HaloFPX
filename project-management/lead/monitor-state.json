@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-23T15:11:30-07:00",
+  "updated_at": "2026-07-23T15:35:57-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l30_no_production_stage_to_live_component_application_diagnosis",
+  "worker_status": "active_l31_single_corrected_primary_two_residency_one_token_restore_confirmation",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "8b54091efe456c8222528ec455316afbca8c8562",
-  "last_observed_milestone": "L29 NOT PROMOTED; two fresh primary residencies reached restore, capture equaled stage, but live post-apply worker aggregate and first token differed while coordinator receipts matched",
-  "last_decision": "accept_l29_and_open_l30_no_production_component_level_stage_to_live_application_diagnosis",
-  "last_progress": "L29 localizes the retained correctness defect to stage-to-live worker application or restart layout; production and cleanup are exact and evidence is independently accepted",
+  "last_verified_head": "b630c4f52c849af8cd8ebd30451a8c1268979ce3",
+  "last_observed_milestone": "L30 PASS; source-backed Q8_0 block-geometry apply defect corrected with exact Q8 RPC, view, and disposable two-residency validation",
+  "last_decision": "accept_l30_and_authorize_one_l31_corrected_primary_two_fresh_residency_one_token_restore_confirmation",
+  "last_progress": "L30 proves the old live apply restored only a fraction of each Q8_0 block component and the guarded default-off correction restores exact bytes on bounded fixtures",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct worker message to the manager task on L30 completion/attention, or explicit user request; no periodic polling"
+  "next_check_trigger": "direct worker message to the manager task on L31 completion/attention, or explicit user request; no periodic polling"
 }

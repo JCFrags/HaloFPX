@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 15:11 PDT
+Verified: 2026-07-23 15:35 PDT
 
 ## Overall state
 
@@ -19,9 +19,9 @@ Project Lead task before ending their own turn. No periodic polling remains.
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `8b54091efe456c8222528ec455316afbca8c8562`
+- Latest verified commit: `b630c4f52c849af8cd8ebd30451a8c1268979ce3`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L29 closeout
+- Worktree state: clean at the reviewed terminal L30 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
@@ -122,6 +122,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   or restart layout. L30 is open only for component-level digest/range,
   alias/view/stride/order, RPC-offset, and synchronization diagnosis using no
   primary model and no production mutation.
+- L30 passed and identified the source-backed defect: live apply converted Q8_0
+  storage bytes to scalar elements without multiplying by the block size, so a
+  1,088-byte component restored only 34 bytes. The guarded correction restores
+  full block geometry and passed exact Q8 RPC, view, and disposable
+  two-residency tests plus independent review. L31 is authorized for one
+  corrected primary two-residency, one-token confirmation.
 
 ## Product progress
 

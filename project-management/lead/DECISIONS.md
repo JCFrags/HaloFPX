@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — accept L30 and authorize one corrected L31 primary restore
+
+Decision: accept reviewed L30 PASS commit
+`b630c4f52c849af8cd8ebd30451a8c1268979ce3`. Authorize one primary transition
+with two fresh residencies and one reference/restored token under the corrected
+Q8_0 apply path. No additional case, retry, tuning, promotion, or L32 is
+authorized.
+
+Reason: L30 proves that live apply treated quantized storage blocks as scalar
+elements, restoring only 34 of 1,088 bytes in the representative Q8_0
+component. The corrected checked block geometry produces exact
+capture/stage/apply bytes on isolated Q8 RPC and view fixtures and preserves
+exact disposable two-residency output. One primary confirmation is now the
+smallest proportional correctness gate.
+
 ## 2026-07-23 — accept L29 and localize stage-to-live application
 
 Decision: accept reviewed L29 NOT PROMOTED commit
