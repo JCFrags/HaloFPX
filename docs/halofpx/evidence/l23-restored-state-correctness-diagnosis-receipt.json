@@ -1,0 +1,65 @@
+{
+  "schema": "halofpx-l23-restored-state-correctness-diagnosis-receipt-v1",
+  "date": "2026-07-23",
+  "base_commit": "4d2821b3a318d2d38f93a30aa2f3a2263cc4d01d",
+  "outcome": "blocked_primary_specific_discriminating_evidence_required",
+  "l22_earliest_divergence": {
+    "boundary": "first_generated_token_after_restore",
+    "expected_first_token": 21549,
+    "restore_first_token": 9283,
+    "expected_suffix_sha256": "d8c8822f2ad7951dc363056b4c165e6696ad6066a41d68b1a99097526012b6d9",
+    "restore_suffix_sha256": "d32acac3fc1d2ac80ee33ad8cf66192112200b7b93ed88e520c7c56660a71470"
+  },
+  "diagnostics": {
+    "default_off": true,
+    "enable_environment": "HALOFPX_STATE_DIAGNOSTICS=1",
+    "worker_phases": ["capture", "stage", "apply"],
+    "state_payload_over_control_plane": false,
+    "rpc_source_sha256": "5302cbb7f52c98da96434601993bb9aba41ec177a71dd02ab2503b91fe13179e",
+    "canary_source_sha256": "7b1284ffb758bd1df02b593b90984ecdaeb4a8cfefcf3b98927627d9b2c6f288",
+    "fixture_built_canary_source_sha256": "42982a662b00c28b4b9a3d2c0f94bb207d12941f972c2effbe8ad817641d5740",
+    "worker_binary_sha256": "17021fe799c3ce59c3f99d18dffcf842a1662a9d3c50339feddec134df065071",
+    "canary_binary_sha256": "377a5f49324f0d813a08c24cf6e6984acfc6667598a527866a08342572dcd1b5",
+    "readiness_binary_sha256": "54b546c38ea8d0a4ec273ae33b961090589756788acc1b173f22f1dba3e070da",
+    "placement_binary_sha256": "42d0faaec155f85ba270367db165b5a4526d9dd7454f2f772b26e78b09275a74"
+  },
+  "fixture": {
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "representative_of_primary_kv_kernel": false,
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "first_token": 4245,
+    "suffix_tokens_sha256": "1c337bc56fc5eeba46dd328c79c2c6240fd9bcb8d9d1d9aa5b30cd63e04dc6ce",
+    "suffix_text_sha256": "2819884398780985d79d86a20376e87238f0864a0b2825c58d5fc6631554bcf5",
+    "worker_components": 1156,
+    "worker_bytes": 5197824,
+    "capture_stage_apply_digest": "ed62ec5b04cc53ce870ddd6df1d8eefc10a0e4f44e2a699deb879ebf4462fdbc",
+    "control_sha256": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+    "coordinator_local_sha256": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee",
+    "component_manifest_sha256": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1",
+    "legacy_state_get_set_count": 0,
+    "exact_lifecycle_equal": true
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l23-restored-state-20260723\\fixture-diagnostics-v1",
+    "files": 31,
+    "bytes": 1190842,
+    "tree_sha256": "d9f4d4c642bb9c8803028e40b652a8ac709eb9df66c9a51f57b1ae0857b6d0f0"
+  },
+  "production": {
+    "mutated": false,
+    "nimo1_coordinator_pid": 2213675,
+    "nimo2_worker_pid": 1396163,
+    "ports": [8081, 50052],
+    "http": 200,
+    "nrestarts": [0, 0],
+    "cleanup_complete": true
+  },
+  "root_cause_proven": false,
+  "independent_review": {
+    "verdict": "pass",
+    "path": "docs/halofpx/reviews/2026-07-23__l23-restored-state-correctness-diagnosis__review__v01.md"
+  },
+  "primary_experiment_authorized": false,
+  "promotion": false
+}

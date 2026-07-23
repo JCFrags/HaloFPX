@@ -447,6 +447,9 @@ static int run_canary(int argc, char ** argv) {
     size_t coordinator_local_bytes = 0;
     uint64_t worker_bytes = 0;
     uint32_t worker_components = 0;
+    std::array<uint8_t, 32> control_diagnostic {};
+    std::array<uint8_t, 32> local_diagnostic {};
+    std::array<uint8_t, 32> manifest_diagnostic {};
     decode_measurement prompt_decode {};
     const fs::path checkpoint_root = options.root / hex(options.checkpoint.data());
     const fs::path control_path = checkpoint_root / "coordinator-control.bin";
@@ -483,6 +486,9 @@ static int run_canary(int argc, char ** argv) {
         std::vector<uint8_t> object(captured.object_digest, captured.object_digest + 32);
         coordinator_receipt receipt {};
         if (!make_receipt(identity, control, local, prefix, object, key, receipt)) return 8;
+        memcpy(control_diagnostic.data(), receipt.control_digest, control_diagnostic.size());
+        memcpy(local_diagnostic.data(), receipt.local_digest, local_diagnostic.size());
+        memcpy(manifest_diagnostic.data(), receipt.component_manifest_digest, manifest_diagnostic.size());
         coordinator_control_bytes = control.size();
         coordinator_local_bytes = local.size();
         worker_bytes = captured.verified_bytes;
@@ -498,8 +504,10 @@ static int run_canary(int argc, char ** argv) {
         llama_state_seq_storage_free(storage);
         if (generated.size() != static_cast<size_t>(params.n_predict) ||
             !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 8;
-        std::printf("mode=capture label=%s object=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
-            options.result_label.c_str(), hex(captured.object_digest).c_str(), prefix.size(), prefix.size() - 1,
+        std::printf("mode=capture label=%s object=%s control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+            options.result_label.c_str(), hex(captured.object_digest).c_str(),
+            hex(control_diagnostic.data()).c_str(), hex(local_diagnostic.data()).c_str(),
+            hex(manifest_diagnostic.data()).c_str(), prefix.size(), prefix.size() - 1,
             prompt_decode.n_batch, prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
             coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
         for (auto token : generated) std::printf("%d,", token);
@@ -536,6 +544,11 @@ static int run_canary(int argc, char ** argv) {
             identity = make_identity(options, prefix, attempt, component_manifest);
             artifacts_valid = validate_receipt(
                 receipt, identity, control, local, prefix, object, options.control_key);
+            if (artifacts_valid) {
+                memcpy(control_diagnostic.data(), receipt.control_digest, control_diagnostic.size());
+                memcpy(local_diagnostic.data(), receipt.local_digest, local_diagnostic.size());
+                memcpy(manifest_diagnostic.data(), receipt.component_manifest_digest, manifest_diagnostic.size());
+            }
         } else {
             artifacts_valid = false;
         }
@@ -615,8 +628,10 @@ static int run_canary(int argc, char ** argv) {
     if (disposable_ctx) llama_free(disposable_ctx);
     if (generated.size() != static_cast<size_t>(params.n_predict) ||
         !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 13;
-    std::printf("mode=%s label=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
-        options.mode.c_str(), options.result_label.c_str(), prefix.size(), prefix.size() - 1,
+    std::printf("mode=%s label=%s control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+        options.mode.c_str(), options.result_label.c_str(),
+        hex(control_diagnostic.data()).c_str(), hex(local_diagnostic.data()).c_str(),
+        hex(manifest_diagnostic.data()).c_str(), prefix.size(), prefix.size() - 1,
         static_cast<size_t>(llama_n_batch(run_ctx)),
         prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
         coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);

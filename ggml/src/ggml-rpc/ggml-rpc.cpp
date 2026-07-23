@@ -1521,6 +1521,22 @@ struct hfx_state_object_component {
 };
 #pragma pack(pop)
 
+static bool hfx_state_diagnostics_enabled() {
+    const char * value = std::getenv("HALOFPX_STATE_DIAGNOSTICS");
+    return value && std::strcmp(value, "1") == 0;
+}
+
+static void hfx_state_log_component_digest(
+        const char * phase,
+        const std::vector<hfx_state_object_component> & components) {
+    if (!hfx_state_diagnostics_enabled()) return;
+    const auto digest = hfx_sha256(
+        components.data(), components.size() * sizeof(components[0]));
+    GGML_LOG_INFO(
+        "[halofpx-state-diag] phase=%s components=%zu descriptor_content_sha256=%s\n",
+        phase, components.size(), hfx_hex(digest.data(), digest.size()).c_str());
+}
+
 struct hfx_state_server_config_owned {
     std::string root;
     uint32_t logical_rank = 0;
@@ -2267,6 +2283,36 @@ ggml_tensor * hfx_component_tensor(
     return tensor;
 }
 
+static bool hfx_live_component_digests(
+        const std::unordered_set<ggml_backend_buffer_t> & buffers,
+        const hfx_state_component_wire * components,
+        uint32_t component_count,
+        std::vector<hfx_state_object_component> & output) {
+    output.assign(component_count, {});
+    std::array<uint8_t, 1 << 20> chunk {};
+    for (uint32_t i = 0; i < component_count; ++i) {
+        ggml_init_params params { ggml_tensor_overhead(), nullptr, true };
+        ggml_context_ptr ctx { ggml_init(params) };
+        ggml_tensor * tensor = ctx ? hfx_component_tensor(buffers, ctx.get(), components[i]) : nullptr;
+        if (!tensor) return false;
+        output[i].descriptor = components[i];
+        output[i].descriptor.buffer = output[i].descriptor.data = 0;
+        sha256_t sha;
+        sha256_init(&sha);
+        uint64_t done = 0;
+        while (done < components[i].size) {
+            const size_t n = static_cast<size_t>(
+                std::min<uint64_t>(chunk.size(), components[i].size - done));
+            ggml_backend_tensor_get(tensor, chunk.data(), components[i].offset + done, n);
+            sha256_update(&sha, chunk.data(), n);
+            done += n;
+        }
+        sha256_final(&sha, output[i].content_digest);
+        hfx_wipe(&sha, sizeof(sha));
+    }
+    return true;
+}
+
 bool hfx_component_semantic_equal(
         const hfx_state_component_wire & stored,
         const hfx_state_component_wire & requested) {
@@ -2399,6 +2445,7 @@ bool rpc_server::hfx_state_capture(const std::vector<uint8_t> & input, hfx_state
         ok = pwrite(fd, stored.data(), stored.size() * sizeof(stored[0]), sizeof(object)) ==
              static_cast<ssize_t>(stored.size() * sizeof(stored[0]));
     }
+    if (ok) hfx_state_log_component_digest("capture", stored);
     hfx_digest object_digest {};
     ok = ok && fsync(fd) == 0 && hfx_hash_fd(fd, object_digest);
     if (ok) {
@@ -2481,6 +2528,7 @@ bool rpc_server::hfx_state_stage(const std::vector<uint8_t> & input, hfx_state_r
         if (!hfx_equal(digest.data(), stored[i].content_digest, 32)) ok = false;
         file_offset += components[i].size;
     }
+    if (ok) hfx_state_log_component_digest("stage", stored);
     // A second pass loads only after the complete object and every component
     // digest have validated. The addressed tensors are disposable staging.
     uint64_t load_offset = payload_offset;
@@ -2564,6 +2612,12 @@ bool rpc_server::hfx_state_commit_apply(const std::vector<uint8_t> & input, hfx_
         ggml_backend_view_init(dst_view);
         ok = ggml_backend_buffer_copy_tensor(src_view, dst_view);
         applied += ok ? live[i].size : 0;
+    }
+    if (ok && hfx_state_diagnostics_enabled()) {
+        std::vector<hfx_state_object_component> applied_components;
+        ok = hfx_live_component_digests(
+            buffers, live, request->component_count, applied_components);
+        if (ok) hfx_state_log_component_digest("apply", applied_components);
     }
     hfx_state_pending.reset();
     response = hfx_response(RPC_CMD_HALOFPX_STATE_COMMIT_APPLY,
