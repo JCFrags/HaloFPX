@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-23T15:01:53-07:00",
+  "updated_at": "2026-07-23T15:04:06-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
@@ -11,7 +11,7 @@
   "last_verified_head": "09123048522281025afb532715f20457ac4b9918",
   "last_observed_milestone": "L28 PASS; wired two-residency epoch guard and authenticated capture lineage produced exact disposable restore with zero legacy state-page transfer",
   "last_decision": "close_l29_not_promoted_after_two_fresh_residency_primary_output_mismatch",
-  "last_progress": "L29 completed capture and restore under two valid fresh primary model residencies, but exact output hashes differed; production recovered worker-first to HTTP200 and final digest localization is under review",
+  "last_progress": "L29 completed capture and restore under two valid fresh primary model residencies, but exact output hashes differed; a closeout inactive-unit alarm was proven to be a user-vs-system manager probe error, and exact system units remain active with HTTP200",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",

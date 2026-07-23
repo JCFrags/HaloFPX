@@ -1,5 +1,17 @@
 # Project-Lead Decisions
 
+## 2026-07-23 — resolve L29 unit alarm as wrong systemd scope
+
+Decision: do not invoke recovery or start duplicate services. Require L29
+closeout and future production probes to query the system manager explicitly
+and retain cgroup ownership evidence.
+
+Reason: the listeners, commands, and HTTP endpoint were healthy while a
+`systemctl --user` query reported the system units not found/inactive. Exact
+`/proc/<pid>/cgroup` paths and system-scope properties prove both named units
+are loaded active/running with correct MainPIDs and zero restarts. The alarm
+was a probe-scope defect, not a production outage.
+
 ## 2026-07-23 — close L29 after fresh-residency output mismatch
 
 Decision: direct L29 to close NOT PROMOTED after immutable evidence, cleanup,

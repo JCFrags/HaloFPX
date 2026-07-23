@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 15:01 PDT
+Verified: 2026-07-23 15:04 PDT
 
 ## Overall state
 
@@ -109,6 +109,12 @@ Project Lead task before ending their own turn. No periodic polling remains.
   healthy at nimo-2 PID 1454894/50052 and nimo-1 PID 2283857/8081/HTTP 200,
   both `NRestarts=0`. Final boundary localization awaits the committed
   capture/stage/apply worker and coordinator digest closeout.
+- A closeout alarm that both units were inactive was resolved without mutation:
+  the probe queried the user systemd manager for system units. `/proc` cgroups
+  and explicit system-manager queries prove both exact production units are
+  loaded active/running with the PIDs above, correct commands/listeners,
+  HTTP 200, and `NRestarts=0`. L29 closeout must retain this wrong-scope
+  evidence and bind future production probes explicitly to system scope.
 
 ## Product progress
 
