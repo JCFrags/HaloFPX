@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 05:01 PDT
+Verified: 2026-07-25 05:38 PDT
 
 ## Overall state
 
@@ -72,15 +72,22 @@ independent read-only specialists are auditing graph-input coverage and
   L43 is active only for closed structural mutable-input classification,
   SET/SET_HASH server-applied authority, and a complete execution census bound
   to the accepted L40/L42 layers.
+- L43 closed NOT PROMOTED at
+  `aba0f78d07c824c3bcdbcb5ffbdc26e174cda3bf`. The candidate demonstrated real
+  SET/SET_HASH and mutable-census behavior, but review rejected process-global
+  pointer registration without admitted-session isolation and missing
+  real-handler negative injection. Candidate code was removed; L40 and L42
+  remain unchanged. Per user direction, implementation is paused for OS
+  migration and no L44 is open.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `d0d74ff55d8b063ab73911ae95516512177c824d`
+- Latest verified commit: `aba0f78d07c824c3bcdbcb5ffbdc26e174cda3bf`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L42 closeout
+- Worktree state: clean at the reviewed terminal L43 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

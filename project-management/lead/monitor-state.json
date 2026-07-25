@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-25T05:01:00-07:00",
+  "updated_at": "2026-07-25T05:38:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l43_no_production_mutable_input_set_hash_execution_census_authority",
+  "worker_status": "paused_after_l43_for_os_migration",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "d0d74ff55d8b063ab73911ae95516512177c824d",
-  "last_observed_milestone": "L42 PASS; accepted authenticated scheduler split, ordinary copy, and expert-partial execution authority with reconstructable evidence",
-  "last_decision": "accept_l42_scheduler_foundation_and_open_l43_mutable_input_set_hash_census_authority_only",
-  "last_progress": "L43 is implementing structural mutable-input roles, real SET/SET_HASH server-applied receipts, and a complete census bound to L40/L42 identity",
+  "last_verified_head": "aba0f78d07c824c3bcdbcb5ffbdc26e174cda3bf",
+  "last_observed_milestone": "L43 NOT PROMOTED; candidate removed after review found missing admitted-session isolation and real-handler negative injection",
+  "last_decision": "accept_l43_rejection_and_pause_all_implementation_for_os_migration_backup",
+  "last_progress": "Implementation paused; L20-L43 report, zero-context manager handoff, and verified Desktop/server backups are being created",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L43 worker report or explicit user request; no periodic polling"
+  "next_check_trigger": "new OS restoration and explicit user authorization to resume L44"
 }

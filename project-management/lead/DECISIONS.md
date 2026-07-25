@@ -1,5 +1,18 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — accept L43 rejection and pause for OS migration
+
+Decision: accept L43 NOT PROMOTED commit
+`aba0f78d07c824c3bcdbcb5ffbdc26e174cda3bf`. Keep its rejected candidate
+removed and preserve L40/L42. Open no L44. Pause implementation, write the
+L20–L43 report and zero-context project-manager handoff, and create verified
+local/server migration backups.
+
+Reason: the user is replacing the manager OS. L43 ended cleanly with two exact
+remaining blockers: admitted-session isolation and real-handler negative
+injection. A durable, verified migration boundary is now higher priority than
+starting new implementation.
+
 ## 2026-07-25 — accept L42 scheduler foundation and close mutable-input authority
 
 Decision: accept L42 PASS commit
