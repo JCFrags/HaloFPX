@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-25T01:55:05-07:00",
+  "updated_at": "2026-07-25T02:13:43-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l38_no_production_replay_exec_v2_and_q8_fa_poison_span_discriminator",
+  "worker_status": "active_l39_no_production_direct_scheduler_copy_and_rpc_execution_authority",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "a1bee312ca79f3087cd5bfcd327e9f11b2be72d2",
-  "last_observed_milestone": "L37 PASS; lifetime-safe authenticated result authority and closed mutable graph-input diagnostics qualified with explicit RPC/copy/workspace gaps",
-  "last_decision": "accept_l37_and_open_l38_no_production_numerical_input_scheduler_copy_rpc_graph_and_q8_fa_readset_authority",
-  "last_progress": "Two specialist audits converged on numerical input bindings and FA read-set extent; L38 received one bounded replay-exec-v2 contract and synthetic poison-span discriminator",
+  "last_verified_head": "169d81ad84167fcd5449b5dc99126bd861446087",
+  "last_observed_milestone": "L38 NOT PROMOTED; candidate removed after review found it missed real scheduler/RPC execution seams, while bounded poison test demoted out-of-span FA reads",
+  "last_decision": "accept_l38_rejection_and_open_l39_direct_scheduler_copy_rpc_graph_serialization_and_server_reconstruction_authority",
+  "last_progress": "L39 is instrumenting actual scheduler and RPC execution paths with one combined synthetic qualification; an independent hook-design audit is active",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L38 worker report or explicit user request; no periodic polling"
+  "next_check_trigger": "direct L39 worker report, specialist hook-design completion, or explicit user request; no periodic polling"
 }

@@ -1,5 +1,21 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — accept L38 rejection and instrument scheduler/RPC directly
+
+Decision: accept L38 NOT PROMOTED commit
+`169d81ad84167fcd5449b5dc99126bd861446087`. Keep its rejected replay-exec-v2
+candidate removed. Open L39 only for runtime-default-off instrumentation inside
+the actual scheduler split/copy loop and RPC client serialization/server
+reconstruction paths, with one combined synthetic qualification. No primary
+run or L40 is authorized.
+
+Reason: L38's synthetic poison test demotes out-of-selected-span FA reads for
+that bounded graph, but independent review found the proposed contract did not
+bind exact scheduler split/copy execution, RPC IDs and graph equality, mutable
+SET_TENSOR ordering/content, recompute UID, non-contiguous hashing, or complete
+view/source authority. These must be captured at their real execution seams,
+not reconstructed afterward.
+
 ## 2026-07-25 — accept L37 and authenticate numerical replay inputs
 
 Decision: accept reviewed L37 PASS commit

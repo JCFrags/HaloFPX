@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 01:55 PDT
+Verified: 2026-07-25 02:13 PDT
 
 ## Overall state
 
@@ -31,6 +31,15 @@ independent read-only specialists are auditing graph-input coverage and
   scheduler copies, RPC graph reconstruction, and FA read-set extent. L38 is
   active as a no-primary/no-production replay-exec-v2 contract plus one
   synthetic Q8_0 FA poison-span discriminator.
+- L38 closed NOT PROMOTED at
+  `169d81ad84167fcd5449b5dc99126bd861446087`. Independent review rejected and
+  removed the candidate because it did not instrument the real scheduler copy
+  loop or RPC client/server execution authority. Its isolated Q8_0 FA poison
+  test produced equal output despite different bytes outside selected spans,
+  narrowly demoting that hypothesis. L39 is active as direct default-off
+  instrumentation in scheduler split/copy execution and RPC
+  serialization/reconstruction, qualified by one combined synthetic graph.
+  No primary run or production mutation is authorized.
 
 ## Repository
 
