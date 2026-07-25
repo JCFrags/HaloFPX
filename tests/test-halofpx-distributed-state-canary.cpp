@@ -330,6 +330,7 @@ struct semantic_provenance {
     llama_token argmax_token = LLAMA_TOKEN_NULL;
     llama_token sampled_token = LLAMA_TOKEN_NULL;
     bool logits_invalidated = false;
+    std::string replay_authority;
 };
 
 int semantic_replay_count() {
@@ -391,6 +392,14 @@ std::vector<llama_token> suffix(
         provenance->replay_token = replay;
         provenance->position_before = llama_memory_seq_pos_max(llama_get_memory(ctx), 0);
     }
+    const char * graph_reset = std::getenv("HALOFPX_REPLAY_CANONICAL_GRAPH_RESET");
+    if (graph_reset != nullptr) {
+        if (strcmp(graph_reset, "1") != 0 || !provenance || !provenance->enabled) {
+            llama_sampler_free(sampler);
+            return {};
+        }
+        llama_halofpx_graph_reset(ctx);
+    }
     llama_batch batch {};
     for (int i = 0; i < replay_count; ++i) {
         batch = llama_batch_get_one(&replay, 1);
@@ -403,6 +412,20 @@ std::vector<llama_token> suffix(
         provenance->replay_count = static_cast<uint32_t>(replay_count);
         provenance->position_after = llama_memory_seq_pos_max(llama_get_memory(ctx), 0);
         llama_synchronize(ctx);
+        const size_t replay_authority_size =
+            llama_halofpx_replay_diagnostic(ctx, nullptr, 0);
+        if (replay_authority_size == 0 || replay_authority_size > 65536) {
+            llama_sampler_free(sampler);
+            return {};
+        }
+        std::vector<char> replay_authority(replay_authority_size);
+        if (llama_halofpx_replay_diagnostic(
+                ctx, replay_authority.data(), replay_authority.size()) !=
+            replay_authority_size) {
+            llama_sampler_free(sampler);
+            return {};
+        }
+        provenance->replay_authority.assign(replay_authority.data());
         const float * logits = llama_get_logits_ith(ctx, -1);
         const llama_vocab * vocab = llama_model_get_vocab(llama_get_model(ctx));
         const int32_t n_vocab = llama_vocab_n_tokens(vocab);
@@ -493,6 +516,35 @@ void print_semantic_provenance(
     outer.insert(outer.end(), mid.begin(), mid.end());
     if (!sha256(outer.data(), outer.size(), tag)) return;
     std::printf("[halofpx-semantic-provenance] %s auth_tag=%s\n",
+        canonical.c_str(), hex(tag.data()).c_str());
+    std::fflush(stdout);
+}
+
+void print_replay_authority(
+        const char * phase,
+        const semantic_provenance & provenance,
+        const std::array<uint8_t, 32> & key) {
+    if (!provenance.enabled || provenance.replay_authority.empty()) return;
+    const std::string canonical =
+        std::string("phase=") + phase + "|" + provenance.replay_authority;
+    static constexpr char domain[] = "halofpx.replay-authority.v1";
+    std::array<uint8_t, 64> ipad {};
+    std::array<uint8_t, 64> opad {};
+    for (size_t i = 0; i < ipad.size(); ++i) {
+        const uint8_t b = i < key.size() ? key[i] : 0;
+        ipad[i] = b ^ 0x36;
+        opad[i] = b ^ 0x5c;
+    }
+    std::vector<uint8_t> inner(ipad.begin(), ipad.end());
+    inner.insert(inner.end(), domain, domain + strlen(domain));
+    inner.insert(inner.end(), canonical.begin(), canonical.end());
+    std::array<uint8_t, 32> mid {};
+    std::array<uint8_t, 32> tag {};
+    if (!sha256(inner.data(), inner.size(), mid)) return;
+    std::vector<uint8_t> outer(opad.begin(), opad.end());
+    outer.insert(outer.end(), mid.begin(), mid.end());
+    if (!sha256(outer.data(), outer.size(), tag)) return;
+    std::printf("[halofpx-replay-authority] %s|auth_tag=%s\n",
         canonical.c_str(), hex(tag.data()).c_str());
     std::fflush(stdout);
 }
@@ -700,6 +752,7 @@ static int run_canary(int argc, char ** argv) {
         const auto generated = suffix(ctx, prefix, params.n_predict, "capture", &provenance);
         generation_ms = elapsed_ms(generation_start);
         print_semantic_provenance("capture", provenance, key);
+        print_replay_authority("capture", provenance, key);
         const auto decoded = common_detokenize(ctx, generated, false);
         llama_state_seq_storage_free(storage);
         if (generated.size() != static_cast<size_t>(params.n_predict) ||
@@ -918,6 +971,8 @@ static int run_canary(int argc, char ** argv) {
         run_ctx, prefix, params.n_predict, options.mode.c_str(), &provenance);
     generation_ms = elapsed_ms(generation_start);
     print_semantic_provenance(
+        options.mode.c_str(), provenance, options.control_key);
+    print_replay_authority(
         options.mode.c_str(), provenance, options.control_key);
     const auto decoded = common_detokenize(run_ctx, generated, false);
     if (disposable_ctx) llama_free(disposable_ctx);

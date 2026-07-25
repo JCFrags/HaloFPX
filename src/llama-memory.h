@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <functional>
+#include <string>
 
 struct llama_ubatch;
 
@@ -113,6 +114,10 @@ struct llama_memory_i {
     virtual llama_pos seq_pos_max(llama_seq_id seq_id) const = 0;
 
     virtual std::map<ggml_backend_buffer_type_t, size_t> memory_breakdown() const = 0;
+
+    // Default-off HaloFPX diagnostic metadata. Implementations that do not
+    // expose a standard KV cache leave this empty.
+    virtual std::string halofpx_replay_diagnostic() const { return {}; }
 
     //
     // state write/read

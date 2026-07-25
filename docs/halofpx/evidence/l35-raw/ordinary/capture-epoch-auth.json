@@ -1,0 +1,10 @@
+{
+  "payload": {
+    "coordinator_pid": 1511790,
+    "object_sha256": "b78b61f9b52cfa47cef584d6cb85b1caa4a7a02e97c33e13672444800158a7db",
+    "schema": "halofpx.l28.capture-epoch-auth.v1",
+    "worker_invocation_id": "6542815ee6914843ad4b5872ff9ba9d2",
+    "worker_pid": 2339231
+  },
+  "tag": "3310f5cd25aa4f5ec4752db9a5fb18b25fe950c609a6f904e5840104222412bb"
+}

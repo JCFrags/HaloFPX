@@ -138,6 +138,7 @@ public:
     llama_pos seq_pos_max(llama_seq_id seq_id) const override;
 
     std::map<ggml_backend_buffer_type_t, size_t> memory_breakdown() const override;
+    std::string halofpx_replay_diagnostic() const override;
 
     // state write/load
 
@@ -210,6 +211,8 @@ public:
     void set_input_v_rot(ggml_tensor * dst) const;
 
 private:
+    friend class llama_kv_cache_context;
+
     const llama_model & model;
     const llama_hparams & hparams;
 
@@ -260,6 +263,14 @@ private:
     // the current index from where we start searching for a free slot in the ring buffer of KV cells (see find_slot())
     // note: this is not part of the KV state and it's only used to speed-up the find_slot() method
     std::vector<uint32_t> v_heads;
+    slot_info diagnostic_prepare_slot;
+    slot_info diagnostic_apply_slot;
+    std::vector<uint32_t> diagnostic_heads_before;
+    std::vector<uint32_t> diagnostic_heads_after;
+    std::vector<llama_pos> diagnostic_positions;
+    std::vector<llama_seq_id> diagnostic_sequence_ids;
+    mutable std::vector<std::string> diagnostic_attention_views;
+    uint32_t diagnostic_n_kv = 0;
 
     std::vector<llama_kv_cells> v_cells;
 

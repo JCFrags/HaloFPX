@@ -71,6 +71,8 @@ SEMANTIC_PATTERN = re.compile(
     r"auth_tag=([0-9a-f]{64})$")
 SEMANTIC_VERIFIER = ""
 SEMANTIC_VERIFIER_SHA = ""
+REPLAY_AUTHORITY_VERIFIER = ""
+REPLAY_AUTHORITY_VERIFIER_SHA = ""
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -316,10 +318,58 @@ def configure_l34_fixture() -> None:
     SEMANTIC_DIAGNOSTICS_ONLY = True
 
 
+def configure_l35_fixture() -> None:
+    configure_l34_fixture()
+    global PORT, WORKER_BIN, CANARY_BIN, READINESS_PROBE, PLACEMENT_PROBE
+    global EPOCH_RECEIPT, REMOTE_EVIDENCE, COORDINATOR_ROOT, WORKER_ROOT
+    global RENDEZVOUS_ROOT, CONTROL, WORKER_CONTROL, ARTIFACT_DIR, UNIT_PREFIX
+    global COMPONENT_DIAGNOSTICS, COMPONENT_DIAGNOSTICS_SHA
+    global SEMANTIC_VERIFIER, SEMANTIC_VERIFIER_SHA
+    global REPLAY_AUTHORITY_VERIFIER, REPLAY_AUTHORITY_VERIFIER_SHA
+    PORT = 50235
+    WORKER_BIN = "/var/tmp/halofpx-l35-build/build/bin/rpc-server"
+    CANARY_BIN = (
+        "/var/tmp/halofpx-l35-build/build/bin/"
+        "test-halofpx-distributed-state-canary")
+    READINESS_PROBE = (
+        "/var/tmp/halofpx-l35-build/scripts/halofpx_rpc_readiness.py")
+    PLACEMENT_PROBE = (
+        "/var/tmp/halofpx-l35-build/build/bin/"
+        "test-halofpx-placement-probe")
+    EPOCH_RECEIPT = (
+        "/var/tmp/halofpx-l35-build/scripts/halofpx_epoch_receipt.py")
+    COMPONENT_DIAGNOSTICS = (
+        "/var/tmp/halofpx-l35-build/scripts/"
+        "halofpx_state_component_diagnostics.py")
+    COMPONENT_DIAGNOSTICS_SHA = os.environ.get(
+        "HALOFPX_L35_COMPONENT_DIAGNOSTICS_SHA256", "")
+    SEMANTIC_VERIFIER = (
+        "/var/tmp/halofpx-l35-build/scripts/"
+        "halofpx_semantic_provenance.py")
+    SEMANTIC_VERIFIER_SHA = os.environ.get(
+        "HALOFPX_L35_SEMANTIC_VERIFIER_SHA256", "")
+    REPLAY_AUTHORITY_VERIFIER = (
+        "/var/tmp/halofpx-l35-build/scripts/"
+        "halofpx_replay_authority.py")
+    REPLAY_AUTHORITY_VERIFIER_SHA = os.environ.get(
+        "HALOFPX_L35_REPLAY_AUTHORITY_VERIFIER_SHA256", "")
+    REMOTE_EVIDENCE = "/var/tmp/halofpx-l35-evidence"
+    COORDINATOR_ROOT = "/var/tmp/halofpx-l35-coordinator"
+    WORKER_ROOT = "/var/tmp/halofpx-l35-worker"
+    RENDEZVOUS_ROOT = "/var/tmp/halofpx-l35-rendezvous"
+    CONTROL = "/var/tmp/halofpx-l35-control.key"
+    WORKER_CONTROL = CONTROL
+    ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
+    UNIT_PREFIX = "halofpx-l35"
+
+
 def semantic_env_args() -> list[str]:
     if os.environ.get("HALOFPX_SEMANTIC_DIAGNOSTICS") != "1":
         return []
-    result = ["--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1"]
+    result = [
+        "--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1",
+        "--setenv=HALOFPX_REPLAY_AUTHORITY_DIAGNOSTICS=1",
+    ]
     replay = os.environ.get("HALOFPX_SEMANTIC_REPLAY_COUNT")
     if replay is not None:
         if replay not in {"0", "1", "2"}:
@@ -331,6 +381,11 @@ def semantic_env_args() -> list[str]:
             raise CanaryError(
                 "semantic logits invalidation is admitted only for restore")
         result.append("--setenv=HALOFPX_SEMANTIC_INVALIDATE_LOGITS=restore")
+    graph_reset = os.environ.get("HALOFPX_REPLAY_CANONICAL_GRAPH_RESET")
+    if graph_reset is not None:
+        if graph_reset != "1":
+            raise CanaryError("canonical replay graph reset must be exactly 1")
+        result.append("--setenv=HALOFPX_REPLAY_CANONICAL_GRAPH_RESET=1")
     return result
 
 
@@ -383,6 +438,50 @@ def require_authenticated_semantic_provenance(
             "logits_invalidated": match.group(11) == "1",
             "auth_tag": auth_tag,
         }
+    return result
+
+
+def require_authenticated_replay_authority(
+        capture_log: str, restore_log: str) -> dict[str, dict[str, object]]:
+    if SSH_TRANSPORT is None:
+        raise CanaryError("bounded SSH transport is unavailable")
+    if not REPLAY_AUTHORITY_VERIFIER or not REPLAY_AUTHORITY_VERIFIER_SHA:
+        raise CanaryError("replay-authority verifier is unavailable")
+    actual = ssh(
+        NIMO2, "sha256sum", REPLAY_AUTHORITY_VERIFIER).stdout.split()[0]
+    if actual != REPLAY_AUTHORITY_VERIFIER_SHA:
+        raise CanaryError("replay-authority verifier hash mismatch")
+    result: dict[str, dict[str, object]] = {}
+    prefix = "[halofpx-replay-authority] "
+    for expected_phase, text_value in (
+            ("capture", capture_log), ("restore", restore_log)):
+        records = [
+            line for line in text_value.splitlines() if line.startswith(prefix)
+        ]
+        if len(records) != 1:
+            raise CanaryError(
+                f"{expected_phase}: replay authority is missing or ambiguous")
+        verified = SSH_TRANSPORT.run_stdin(
+            NIMO2,
+            [
+                "python3", REPLAY_AUTHORITY_VERIFIER,
+                "--key-file", CONTROL,
+            ],
+            records[0].encode("utf-8"),
+            operation="evidence",
+        )
+        if verified.returncode != 0:
+            raise CanaryError(
+                f"{expected_phase}: replay authority verification failed")
+        try:
+            fields = json.loads(verified.stdout)
+        except json.JSONDecodeError as exc:
+            raise CanaryError(
+                f"{expected_phase}: replay verifier output malformed") from exc
+        if fields.get("phase") != expected_phase:
+            raise CanaryError(
+                f"{expected_phase}: replay verifier phase mismatch")
+        result[expected_phase] = fields
     return result
 
 
@@ -786,7 +885,9 @@ def require_result(
         "mode": mode,
         "prompt_tokens": "1129",
         "saved_boundary": "1128",
-        "n_batch": "512",
+        "n_batch": (
+            "0" if SEMANTIC_DIAGNOSTICS_ONLY and mode == "restore" else "512"
+        ),
     }
     for name, expected in exact.items():
         if fields.get(name) != expected:
@@ -1205,6 +1306,7 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         restore_unit, restore_invocation, restore_worker_pid)
     (root / "worker-restore.log").write_text(restore_journal, encoding="utf-8")
     semantic_provenance = None
+    replay_authority = None
     if SEMANTIC_DIAGNOSTICS_ONLY:
         semantic_provenance = require_authenticated_semantic_provenance(
             capture_result.stdout, restore_log)
@@ -1225,6 +1327,8 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
             or restore_semantic["logits_invalidated"]
         ):
             raise CanaryError("normal semantic provenance did not prove exact agreement")
+        replay_authority = require_authenticated_replay_authority(
+            capture_result.stdout, restore_log)
     component_diagnostics = None
     if not SEMANTIC_DIAGNOSTICS_ONLY:
         component_diagnostics = require_authenticated_component_diagnostics(
@@ -1279,6 +1383,7 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         "diagnostic_agreement": agreement,
         "authenticated_component_diagnostics": component_diagnostics,
         "authenticated_semantic_provenance": semantic_provenance,
+        "authenticated_replay_authority": replay_authority,
         "state_window_get_set": 0,
     }
 
@@ -1491,10 +1596,11 @@ def main() -> int:
     parser.add_argument("--l32-fixture", action="store_true")
     parser.add_argument("--l33-primary", action="store_true")
     parser.add_argument("--l34-fixture", action="store_true")
+    parser.add_argument("--l35-fixture", action="store_true")
     args = parser.parse_args()
     if sum((
         args.l28_fixture, args.l29_primary, args.l31_primary,
-        args.l32_fixture, args.l33_primary, args.l34_fixture,
+        args.l32_fixture, args.l33_primary, args.l34_fixture, args.l35_fixture,
     )) > 1:
         parser.error("fixture and primary modes are mutually exclusive")
     if args.l28_fixture:
@@ -1509,6 +1615,8 @@ def main() -> int:
         configure_l33_primary()
     if args.l34_fixture:
         configure_l34_fixture()
+    if args.l35_fixture:
+        configure_l35_fixture()
     root = args.evidence_dir.resolve()
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     initialize_ssh_transport(root)

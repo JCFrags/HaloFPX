@@ -1101,6 +1101,15 @@ extern "C" {
     // and is not necessary to call it explicitly in most cases
     LLAMA_API void llama_synchronize(struct llama_context * ctx);
 
+    // Default-off HaloFPX diagnostic authority. These APIs do not alter
+    // sequence memory. The reset clears only reusable graph/scheduler/output
+    // history and forces the next decode to rebuild its graph.
+    LLAMA_API void llama_halofpx_graph_reset(struct llama_context * ctx);
+    LLAMA_API size_t llama_halofpx_replay_diagnostic(
+            const struct llama_context * ctx,
+            char * dst,
+            size_t capacity);
+
     // Token logits obtained from the last call to llama_decode()
     // The logits for which llama_batch.logits[i] != 0 are stored contiguously
     // in the order they have appeared in the batch.

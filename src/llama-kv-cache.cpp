@@ -12,6 +12,7 @@
 #include <cstring>
 #include <limits>
 #include <map>
+#include <sstream>
 #include <stdexcept>
 
 static bool ggml_is_power_of_2(int n) {
@@ -698,6 +699,82 @@ std::map<ggml_backend_buffer_type_t, size_t> llama_kv_cache::memory_breakdown() 
     return ret;
 }
 
+static bool halofpx_replay_authority_enabled() {
+    const char * value = getenv("HALOFPX_REPLAY_AUTHORITY_DIAGNOSTICS");
+    return value != nullptr && strcmp(value, "1") == 0;
+}
+
+std::string llama_kv_cache::halofpx_replay_diagnostic() const {
+    if (!halofpx_replay_authority_enabled()) {
+        return {};
+    }
+    auto append_u32s = [](std::ostringstream & out, const std::vector<uint32_t> & values) {
+        for (size_t i = 0; i < values.size(); ++i) {
+            if (i) {
+                out << ",";
+            }
+            out << values[i];
+        }
+    };
+    auto append_slot = [&](std::ostringstream & out, const slot_info & slot) {
+        for (size_t s = 0; s < slot.idxs.size(); ++s) {
+            if (s) {
+                out << ";";
+            }
+            out << slot.strm[s] << ":";
+            append_u32s(out, slot.idxs[s]);
+        }
+    };
+
+    std::ostringstream out;
+    out << "kv_type_k=" << ggml_type_name(type_k())
+        << "|kv_type_v=" << ggml_type_name(type_v())
+        << "|kv_v_trans=" << (v_trans ? 1 : 0)
+        << "|kv_n_stream=" << n_stream
+        << "|kv_prepare_slots=";
+    append_slot(out, diagnostic_prepare_slot);
+    out << "|kv_apply_slots=";
+    append_slot(out, diagnostic_apply_slot);
+    out << "|kv_heads_before=";
+    append_u32s(out, diagnostic_heads_before);
+    out << "|kv_heads_after=";
+    append_u32s(out, diagnostic_heads_after);
+    out << "|kv_n=" << diagnostic_n_kv << "|kv_positions=";
+    for (size_t i = 0; i < diagnostic_positions.size(); ++i) {
+        if (i) out << ",";
+        out << diagnostic_positions[i];
+    }
+    out << "|kv_sequence_ids=";
+    for (size_t i = 0; i < diagnostic_sequence_ids.size(); ++i) {
+        if (i) out << ",";
+        out << diagnostic_sequence_ids[i];
+    }
+    for (const auto & view : diagnostic_attention_views) {
+        out << "|attention_view=" << view;
+    }
+
+    for (const auto & layer : layers) {
+        const ggml_tensor * tensors[2] = { layer.k, layer.v };
+        const char * kinds[2] = { "k", "v" };
+        for (int i = 0; i < 2; ++i) {
+            const auto * tensor = tensors[i];
+            if (!tensor) {
+                continue;
+            }
+            const auto * base = static_cast<const uint8_t *>(ggml_backend_buffer_get_base(tensor->buffer));
+            const auto * data = static_cast<const uint8_t *>(tensor->data);
+            const uint64_t offset = base && data && data >= base ? static_cast<uint64_t>(data - base) : UINT64_MAX;
+            out << "|kv_tensor=" << layer.il << "," << kinds[i]
+                << "," << ggml_type_name(tensor->type)
+                << "," << tensor->ne[0] << "," << tensor->ne[1] << "," << tensor->ne[2] << "," << tensor->ne[3]
+                << "," << tensor->nb[0] << "," << tensor->nb[1] << "," << tensor->nb[2] << "," << tensor->nb[3]
+                << "," << offset << "," << ggml_nbytes(tensor)
+                << "," << (tensor->buffer ? ggml_backend_buffer_name(tensor->buffer) : "none");
+        }
+    }
+    return out.str();
+}
+
 llama_memory_context_ptr llama_kv_cache::init_batch(
             llama_batch_allocr & balloc,
             uint32_t n_ubatch,
@@ -763,6 +840,10 @@ llama_kv_cache::slot_info_vec_t llama_kv_cache::prepare(const std::vector<llama_
 
     bool success = true;
 
+    const bool diagnostics = halofpx_replay_authority_enabled();
+    if (diagnostics) {
+        diagnostic_prepare_slot.clear();
+    }
     for (const auto & ubatch : ubatches) {
         // only find a suitable slot for the ubatch. don't modify the cells yet
         const auto sinfo_new = find_slot(ubatch, false);
@@ -773,6 +854,9 @@ llama_kv_cache::slot_info_vec_t llama_kv_cache::prepare(const std::vector<llama_
 
         // remember the position that we found
         res.push_back(sinfo_new);
+        if (diagnostics && diagnostic_prepare_slot.empty()) {
+            diagnostic_prepare_slot = sinfo_new;
+        }
 
         // store the old state of the cells in the recovery stack
         {
@@ -1228,12 +1312,20 @@ ggml_tensor * llama_kv_cache::get_k(ggml_context * ctx, int32_t il, uint32_t n_k
 
     const uint32_t ns = sinfo.s1 - sinfo.s0 + 1;
 
-    return ggml_view_4d(ctx, k,
+    auto * view = ggml_view_4d(ctx, k,
             hparams.n_embd_head_k(il), hparams.n_head_kv(il), n_kv, ns,
             ggml_row_size(k->type, hparams.n_embd_head_k(il)),
             ggml_row_size(k->type, n_embd_k_gqa),
             ggml_row_size(k->type, n_embd_k_gqa*kv_size),
             ggml_row_size(k->type, n_embd_k_gqa*kv_size)*sinfo.s0);
+    if (halofpx_replay_authority_enabled()) {
+        std::ostringstream record;
+        record << il << ",k," << view->view_offs;
+        for (int i = 0; i < 4; ++i) record << "," << view->ne[i];
+        for (int i = 0; i < 4; ++i) record << "," << view->nb[i];
+        diagnostic_attention_views.push_back(record.str());
+    }
+    return view;
 }
 
 ggml_tensor * llama_kv_cache::get_v(ggml_context * ctx, int32_t il, uint32_t n_kv, const slot_info & sinfo) const {
@@ -1251,21 +1343,37 @@ ggml_tensor * llama_kv_cache::get_v(ggml_context * ctx, int32_t il, uint32_t n_k
 
     if (!v_trans) {
         // note: v->nb[1] <= v->nb[2]
-        return ggml_view_4d(ctx, v,
+        auto * view = ggml_view_4d(ctx, v,
                 hparams.n_embd_head_v(il), hparams.n_head_kv(il), n_kv, ns,
                 ggml_row_size(v->type, hparams.n_embd_head_v(il)),          // v->nb[1]
                 ggml_row_size(v->type, n_embd_v_gqa),                   // v->nb[2]
                 ggml_row_size(v->type, n_embd_v_gqa*kv_size),           // v->nb[3]
                 ggml_row_size(v->type, n_embd_v_gqa*kv_size)*sinfo.s0);
+        if (halofpx_replay_authority_enabled()) {
+            std::ostringstream record;
+            record << il << ",v," << view->view_offs;
+            for (int i = 0; i < 4; ++i) record << "," << view->ne[i];
+            for (int i = 0; i < 4; ++i) record << "," << view->nb[i];
+            diagnostic_attention_views.push_back(record.str());
+        }
+        return view;
     }
 
     // note: v->nb[1] > v->nb[2]
-    return ggml_view_4d(ctx, v,
+    auto * view = ggml_view_4d(ctx, v,
             n_kv, hparams.n_head_kv(il), hparams.n_embd_head_v(il), ns,
             ggml_row_size(v->type, kv_size*hparams.n_embd_head_v(il)),  // v->nb[1]
             ggml_row_size(v->type, kv_size),                        // v->nb[2]
             ggml_row_size(v->type, kv_size*n_embd_v_gqa),           // v->nb[3]
             ggml_row_size(v->type, kv_size*n_embd_v_gqa)*sinfo.s0);
+    if (halofpx_replay_authority_enabled()) {
+        std::ostringstream record;
+        record << il << ",v," << view->view_offs;
+        for (int i = 0; i < 4; ++i) record << "," << view->ne[i];
+        for (int i = 0; i < 4; ++i) record << "," << view->nb[i];
+        diagnostic_attention_views.push_back(record.str());
+    }
+    return view;
 }
 
 ggml_tensor * llama_kv_cache::cpy_k(ggml_context * ctx, ggml_tensor * k_cur, ggml_tensor * k_idxs, int32_t il, const slot_info & sinfo) const {
@@ -2499,8 +2607,26 @@ bool llama_kv_cache_context::apply() {
         return true;
     }
 
+    const bool diagnostics = halofpx_replay_authority_enabled();
+    if (diagnostics) {
+        kv->diagnostic_apply_slot = sinfos[i_cur];
+        kv->diagnostic_heads_before = kv->v_heads;
+        kv->diagnostic_positions.assign(
+            ubatches[i_cur].pos, ubatches[i_cur].pos + ubatches[i_cur].n_tokens);
+        kv->diagnostic_sequence_ids.clear();
+        for (uint32_t i = 0; i < ubatches[i_cur].n_tokens; ++i) {
+            kv->diagnostic_sequence_ids.push_back(ubatches[i_cur].seq_id[i][0]);
+        }
+        kv->diagnostic_attention_views.clear();
+    }
     kv->apply_ubatch(sinfos[i_cur], ubatches[i_cur]);
+    if (diagnostics) {
+        kv->diagnostic_heads_after = kv->v_heads;
+    }
     n_kv = kv->get_n_kv(sinfos[i_cur]);
+    if (diagnostics) {
+        kv->diagnostic_n_kv = n_kv;
+    }
 
     return true;
 }

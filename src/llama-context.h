@@ -56,6 +56,8 @@ struct llama_context {
     void sched_reserve();
 
     void synchronize();
+    void halofpx_graph_reset();
+    std::string halofpx_replay_diagnostic() const;
 
     const llama_model   & get_model()   const;
     const llama_cparams & get_cparams() const;
@@ -372,6 +374,12 @@ private:
 
     llm_graph_result_ptr gf_res_prev;
     llm_graph_result_ptr gf_res_reserve;
+
+    bool halofpx_last_graph_reused = false;
+    bool halofpx_last_sched_reset = false;
+    uint32_t halofpx_last_graph_nodes = 0;
+    int32_t halofpx_last_output_row = -1;
+    std::string halofpx_last_logits_backend;
 
     // host buffer for the model output (logits and embeddings)
     ggml_backend_buffer_ptr buf_output;

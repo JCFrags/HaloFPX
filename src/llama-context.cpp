@@ -18,6 +18,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 
 //
@@ -33,6 +34,11 @@ static llm_graph_type ctx_type_to_graph_type(llama_context_type ctx_type) {
 }
 
 namespace {
+bool halofpx_replay_authority_enabled() {
+    const char * value = std::getenv("HALOFPX_REPLAY_AUTHORITY_DIAGNOSTICS");
+    return value != nullptr && std::strcmp(value, "1") == 0;
+}
+
 struct src_mctx_reset_on_exit {
     llama_memory_context_ptr * slot;
     ~src_mctx_reset_on_exit() { if (slot) slot->reset(); }
@@ -1382,6 +1388,10 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
     const auto gparams = graph_params(res, ubatch, mctx, gtype);
 
     if (!graph_reuse_disable && res->can_reuse(gparams)) {
+        if (halofpx_replay_authority_enabled()) {
+            halofpx_last_graph_reused = true;
+            halofpx_last_sched_reset = false;
+        }
         //LLAMA_LOG_DEBUG("%s: reusing previous graph\n", __func__);
 
         // with pipeline parallelism, the previous graph_compute_async may still be running
@@ -1393,6 +1403,10 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
 
         n_reused++;
     } else {
+        if (halofpx_replay_authority_enabled()) {
+            halofpx_last_graph_reused = false;
+            halofpx_last_sched_reset = true;
+        }
         const int64_t t_rebuild_start_us = graph_build_timing ? ggml_time_us() : 0;
 
         res->reset();
@@ -1424,6 +1438,10 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             ret = GGML_STATUS_ALLOC_FAILED;
             return nullptr;
         }
+    }
+    if (halofpx_replay_authority_enabled()) {
+        halofpx_last_graph_nodes =
+            gf ? static_cast<uint32_t>(ggml_graph_n_nodes(gf)) : 0;
     }
 
     // set the input data for the input tensors
@@ -1994,6 +2012,9 @@ int llama_context::decode(const llama_batch & batch_inp, uint32_t n_ubatch_overr
             ggml_backend_t backend_res = ggml_backend_sched_get_tensor_backend(sched.get(), t_logits);
             GGML_ASSERT(backend_res != nullptr);
             GGML_ASSERT(logits.data != nullptr);
+            if (halofpx_replay_authority_enabled()) {
+                halofpx_last_logits_backend = ggml_backend_name(backend_res);
+            }
 
             float * logits_out = logits.data + n_outputs_prev*n_vocab;
 
@@ -2119,6 +2140,10 @@ int llama_context::decode(const llama_batch & batch_inp, uint32_t n_ubatch_overr
                 sorted_output = false;
             }
         }
+        if (halofpx_replay_authority_enabled()) {
+            halofpx_last_output_row =
+                out_ids.empty() ? -1 : output_ids[out_ids.back()];
+        }
 
         // make the outputs have the same order they had in the user-provided batch
         // note: this is mostly relevant for recurrent models atm
@@ -2155,6 +2180,50 @@ int llama_context::decode(const llama_batch & batch_inp, uint32_t n_ubatch_overr
     //synchronize();
 
     return 0;
+}
+
+void llama_context::halofpx_graph_reset() {
+    if (!halofpx_replay_authority_enabled()) {
+        return;
+    }
+    synchronize();
+    gf_res_prev->reset();
+    ggml_backend_sched_reset(sched.get());
+    output_swaps.clear();
+    std::fill(output_ids.begin(), output_ids.end(), -1);
+    n_outputs = 0;
+    halofpx_last_graph_reused = false;
+    halofpx_last_sched_reset = true;
+    halofpx_last_graph_nodes = 0;
+    halofpx_last_output_row = -1;
+    halofpx_last_logits_backend.clear();
+}
+
+std::string llama_context::halofpx_replay_diagnostic() const {
+    if (!halofpx_replay_authority_enabled()) {
+        return {};
+    }
+    std::ostringstream out;
+    out << "version=1"
+        << "|graph_reused=" << (halofpx_last_graph_reused ? 1 : 0)
+        << "|scheduler_reset=" << (halofpx_last_sched_reset ? 1 : 0)
+        << "|graph_nodes=" << halofpx_last_graph_nodes
+        << "|output_count=" << n_outputs
+        << "|output_row=" << halofpx_last_output_row
+        << "|output_swaps=" << output_swaps.size()
+        << "|logits_backend=" << halofpx_last_logits_backend
+        << "|flash_attention=" << (cparams.flash_attn ? 1 : 0)
+        << "|backend_count=" << backend_ptrs.size();
+    for (size_t i = 0; i < backend_ptrs.size(); ++i) {
+        out << "|backend=" << i << "," << ggml_backend_name(backend_ptrs[i]);
+    }
+    if (memory) {
+        const std::string memory_diag = memory->halofpx_replay_diagnostic();
+        if (!memory_diag.empty()) {
+            out << "|" << memory_diag;
+        }
+    }
+    return out.str();
 }
 
 //
@@ -3896,6 +3965,19 @@ void llama_set_warmup(llama_context * ctx, bool warmup) {
 
 void llama_synchronize(llama_context * ctx) {
     ctx->synchronize();
+}
+
+void llama_halofpx_graph_reset(llama_context * ctx) {
+    ctx->halofpx_graph_reset();
+}
+
+size_t llama_halofpx_replay_diagnostic(const llama_context * ctx, char * dst, size_t capacity) {
+    const std::string value = ctx->halofpx_replay_diagnostic();
+    const size_t required = value.size() + 1;
+    if (dst && capacity >= required) {
+        std::memcpy(dst, value.c_str(), required);
+    }
+    return required;
 }
 
 float * llama_get_logits(llama_context * ctx) {

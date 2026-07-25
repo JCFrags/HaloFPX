@@ -1,0 +1,203 @@
+{
+  "authenticated_component_diagnostics": null,
+  "authenticated_semantic_provenance": {
+    "capture": {
+      "argmax_token": 4245,
+      "auth_tag": "3f1194b789deb29340e9294de8aa456ec6f1d4e80107a52d0f4ba910739fe99e",
+      "logits_count": 32000,
+      "logits_invalidated": false,
+      "logits_sha256": "f6d0fa35238815d19f10cb97a0af1c75349080fa431064a25a4969f8d9b177b1",
+      "position_after": 1128,
+      "position_before": 1127,
+      "replay_count": 1,
+      "replay_token": 29871,
+      "sampled_token": 4245
+    },
+    "restore": {
+      "argmax_token": 4245,
+      "auth_tag": "0f867597c7ae09937bbc8c391407650063147fe86ef0f5e9ba9acd0d0f809978",
+      "logits_count": 32000,
+      "logits_invalidated": false,
+      "logits_sha256": "f6d0fa35238815d19f10cb97a0af1c75349080fa431064a25a4969f8d9b177b1",
+      "position_after": 1128,
+      "position_before": 1127,
+      "replay_count": 1,
+      "replay_token": 29871,
+      "sampled_token": 4245
+    }
+  },
+  "capture_epoch_audit": {
+    "authenticated_object_receipt_sha256": "fef1d3a4dc5694c68450123ac8130729307af6935330bd8841d20958d8d36241",
+    "coordinator_pid": 1512555,
+    "coordinator_terminated_before_worker_stop": true,
+    "object_sha256": "b78b61f9b52cfa47cef584d6cb85b1caa4a7a02e97c33e13672444800158a7db",
+    "schema": "halofpx.l28.capture-epoch-audit.v1",
+    "sha256": "92716cb44f17844c334e9c36b8443645029a9a3caee8eac870261c99daec931c",
+    "worker_invocation_id": "e6c623d9ea394af8acb101fd95fd1fbe",
+    "worker_pid": 2339949
+  },
+  "channel_key_sha256": "a3d6a9ebf793a26ed6cb02239404301ac3c10bc221591dd4a5fe9298ec1aaa7c",
+  "diagnostic_agreement": {
+    "coordinator": {
+      "component_manifest_sha256": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1",
+      "control_sha256": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+      "local_sha256": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee"
+    },
+    "worker_bytes": 5197824,
+    "worker_components": 1156,
+    "worker_descriptor_content_sha256": "ed62ec5b04cc53ce870ddd6df1d8eefc10a0e4f44e2a699deb879ebf4462fdbc",
+    "worker_diagnostic_roots": {
+      "apply": {
+        "auth_tag": "e1616f480cd68d7a61ac6277e9d1669ac997c6b993ab348a4a0bbe41bb57f6d9",
+        "merkle_sha256": "d88a74bbc23b8a9d067a44d35215b43602f7a1d0ac0465e91dde61282f0af7b0"
+      },
+      "capture": {
+        "auth_tag": "764ba61076ec367dc3d696047d5a769967f64ab737d144979557225ce4429e41",
+        "merkle_sha256": "b61a834dcb4859ba48196616614bd92b80bed44b33b58518b62b9c2ccabd02e0"
+      },
+      "stage": {
+        "auth_tag": "2315819e5e46e351c08ec151a82bfca1547ccf0d040294be37fa7ca13349cb50",
+        "merkle_sha256": "b61a834dcb4859ba48196616614bd92b80bed44b33b58518b62b9c2ccabd02e0"
+      }
+    },
+    "worker_state_phases": {
+      "apply": {
+        "bytes": 5197824,
+        "components": 1156
+      },
+      "ready": {
+        "bytes": 5197824,
+        "components": 1156
+      },
+      "stored": {
+        "bytes": 5197824,
+        "components": 1156
+      }
+    }
+  },
+  "material_model_residencies": 2,
+  "readiness": {
+    "capture": {
+      "admitted": true,
+      "attempts": 1,
+      "caps_bytes": 128,
+      "channel_binding_sha256": "81a1ba650a90815d5419c3954cde4bcf06ef273e6fc7c56867586954c28a5a56",
+      "command_mask": 31,
+      "commands": [
+        "CAPS",
+        "CAPTURE",
+        "STAGE",
+        "COMMIT_APPLY",
+        "ABORT"
+      ],
+      "connection_caps_sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0",
+      "elapsed_ms": 1.195,
+      "endpoint": "10.44.0.1:50235",
+      "failures": [],
+      "key_generation": 7,
+      "logical_rank": 1,
+      "max_component_bytes": 1073741824,
+      "max_components": 4096,
+      "max_object_bytes": 68719476736,
+      "max_request": 1048576,
+      "max_response": 256,
+      "rpc_protocol": "4.0.1",
+      "state_protocol": "1.0",
+      "state_timeout_ms": 5000,
+      "world_size": 2
+    },
+    "restore": {
+      "admitted": true,
+      "attempts": 1,
+      "caps_bytes": 128,
+      "channel_binding_sha256": "81a1ba650a90815d5419c3954cde4bcf06ef273e6fc7c56867586954c28a5a56",
+      "command_mask": 31,
+      "commands": [
+        "CAPS",
+        "CAPTURE",
+        "STAGE",
+        "COMMIT_APPLY",
+        "ABORT"
+      ],
+      "connection_caps_sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0",
+      "elapsed_ms": 1.145,
+      "endpoint": "10.44.0.1:50235",
+      "failures": [],
+      "key_generation": 7,
+      "logical_rank": 1,
+      "max_component_bytes": 1073741824,
+      "max_components": 4096,
+      "max_object_bytes": 68719476736,
+      "max_request": 1048576,
+      "max_response": 256,
+      "rpc_protocol": "4.0.1",
+      "state_protocol": "1.0",
+      "state_timeout_ms": 5000,
+      "world_size": 2
+    }
+  },
+  "restore_epoch": {
+    "coordinator_invocation_id": "3e65fd17ce9c4cb99821e1e0f4d17dc3",
+    "coordinator_pid": 1512645,
+    "model_ready_before_restore_authorization": true,
+    "worker_invocation_id": "2de16a3476254204adc8c557fc2d6758",
+    "worker_pid": 2340065
+  },
+  "results": {
+    "capture": {
+      "component_manifest_sha256": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1",
+      "control_sha256": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+      "coordinator_control_bytes": "13704",
+      "coordinator_local_bytes": "2603624",
+      "coordinator_pid": "1512555",
+      "generation_ms": "3.845",
+      "label": "capture",
+      "local_sha256": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee",
+      "max_prompt_chunk": "512",
+      "mode": "capture",
+      "n_batch": "512",
+      "object": "b78b61f9b52cfa47cef584d6cb85b1caa4a7a02e97c33e13672444800158a7db",
+      "prompt_chunks": "3",
+      "prompt_ms": "67.551",
+      "prompt_tokens": "1129",
+      "saved_boundary": "1128",
+      "state_ms": "102.710",
+      "tokens": "4245,",
+      "worker_bytes": "5197824",
+      "worker_components": "1156"
+    },
+    "restore": {
+      "component_manifest_sha256": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1",
+      "control_sha256": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+      "coordinator_control_bytes": "13704",
+      "coordinator_local_bytes": "2603624",
+      "coordinator_pid": "1512645",
+      "generation_ms": "2.156",
+      "label": "restore",
+      "local_sha256": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee",
+      "max_prompt_chunk": "0",
+      "mode": "restore",
+      "n_batch": "0",
+      "prompt_chunks": "0",
+      "prompt_ms": "0.000",
+      "prompt_tokens": "1129",
+      "saved_boundary": "1128",
+      "state_ms": "147.495",
+      "tokens": "4245,",
+      "worker_bytes": "5197824",
+      "worker_components": "1156"
+    }
+  },
+  "schema": "halofpx.l28.fresh-residency-diagnostic-result.v1",
+  "state_window_get_set": 0,
+  "suffix_hashes": {
+    "capture": {
+      "text": "6393507a33556ff939295d9a31b1e21b53c391f7c64eefa95226110c39dc56df",
+      "tokens": "105dcfac89ff7ef4efb5b9253b18b4609ac2a44933a031a2e73020d41d6f6188"
+    },
+    "restore": {
+      "text": "6393507a33556ff939295d9a31b1e21b53c391f7c64eefa95226110c39dc56df",
+      "tokens": "105dcfac89ff7ef4efb5b9253b18b4609ac2a44933a031a2e73020d41d6f6188"
+    }
+  }
+}

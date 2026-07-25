@@ -1,0 +1,71 @@
+{
+  "schema": "halofpx.l35.graph-kv-authority.receipt.v1",
+  "date": "2026-07-25",
+  "baseline_commit": "fc8517ffc473220d74ee27b6eb111d4be7fefd82",
+  "scope": "no-production no-primary-load",
+  "result": "PASS_DIAGNOSTIC_CONTRACT",
+  "root_cause_claim": false,
+  "source_identities": {
+    "include_llama_git_blob": "ddcaa7aacb76baabbe9de266ec76d27f01d65794",
+    "llama_context_git_blob": "1481efe66eb139de32af6c544653f0aecd023514",
+    "llama_kv_cache_git_blob": "b6b1d5353d56dd7c63a957df5341869640f81cdb",
+    "canary_git_blob": "671223504cd0b82076b6b7f50c7bd3eb84d55c56",
+    "runner_git_blob": "30cdb77fd26a59456e8444a984744f09a1d4b9fb",
+    "verifier_git_blob": "955f67221fe8dd0260d75910a7f4afc264759039"
+  },
+  "final_compile": {
+    "rpc_local_state": true,
+    "canary_sha256": "c4fa2569c2f1ba566856ab5e5249579ddf92214774863326aabd62e00860916d",
+    "rpc_server_sha256": "8a75cb31b7a18e9ae9612b2899bf9ca27dcd99be575123c28347c381563b1665",
+    "replay_verifier_sha256": "eb7960a60e96c4afba02aae2add01b24ed68b68a01dcd6fddf9b326beb90d6b2"
+  },
+  "combined_fixture": {
+    "model": "stories15M",
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "ordinary_result_sha256": "bc6b925ca0c31f8f2445d27841e083e58de09a8944a5fc8c1ccc3ecf72d7a280",
+    "canonical_result_sha256": "1791e82f85790775ca4770d79fa44e6d8afd479c6e1439a075e53ebf29244cfc",
+    "worker_components": 1156,
+    "worker_bytes": 5197824,
+    "prepare_slots": "0:1128",
+    "apply_slots": "0:1128",
+    "kv_n": 1280,
+    "attention_views": 12,
+    "kv_tensors": 12,
+    "graph_reused": false,
+    "scheduler_reset": true,
+    "graph_nodes": 222,
+    "capture_restore_logits_sha256": "f6d0fa35238815d19f10cb97a0af1c75349080fa431064a25a4969f8d9b177b1",
+    "capture_restore_token": 4245,
+    "legacy_state_get_set": 0
+  },
+  "preserved_failed_attempt": {
+    "path": "docs/halofpx/evidence/l35-raw/ordinary",
+    "failure": "restore result n_batch mismatch: '0'",
+    "classification": "controller assertion defect after successful restore"
+  },
+  "raw_evidence": {
+    "path": "docs/halofpx/evidence/l35-raw",
+    "sha256sums_sha256": "2636bd492235f55e3bdb11de794c8a63bb60caac149ebbba89954e764667beae",
+    "closeout_sha256": "54374c28e5798b7499693fbda3ab48ad75d2fc9d4de8e4d5ddd68c01b7393b80"
+  },
+  "production_closeout": {
+    "nimo1_coordinator_active": true,
+    "nimo1_main_pid": 2320476,
+    "nimo1_http": 200,
+    "nimo1_nrestarts": 0,
+    "nimo2_worker_active": true,
+    "nimo2_main_pid": 1485678,
+    "nimo2_nrestarts": 0,
+    "production_mutated": false
+  },
+  "cleanup": {
+    "disposable_units": 0,
+    "port_50235_listeners": 0,
+    "roots_keys_builds_remaining": 0
+  },
+  "review": {
+    "verdict": "PASS",
+    "path": "docs/halofpx/reviews/2026-07-25__l35-graph-history-kv-authority__review__v01.md"
+  }
+}
