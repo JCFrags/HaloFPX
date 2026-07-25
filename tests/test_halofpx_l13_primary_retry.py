@@ -343,11 +343,58 @@ class PrimaryRetryTests(unittest.TestCase):
     def test_positive_restore_rejects_silent_cold_fallback(self):
         fields = {
             "mode": "restore", "prompt_tokens": "1129", "saved_boundary": "1128",
-            "n_batch": "512", "worker_bytes": "100", "worker_components": "1",
+            "n_batch": "0", "worker_bytes": "100", "worker_components": "1",
             "fallback": "cold", "reason": "coordinator-apply",
         }
         with self.assertRaises(retry.CanaryError):
             retry.require_result(fields, "restore", require_worker_state=True)
+
+    def test_fresh_residency_n_batch_is_lifecycle_bound_across_diagnostics(self):
+        capture = {
+            "mode": "capture", "prompt_tokens": "1129", "saved_boundary": "1128",
+            "n_batch": "512", "worker_bytes": "100", "worker_components": "1",
+        }
+        restore = {
+            "mode": "restore", "prompt_tokens": "1129", "saved_boundary": "1128",
+            "n_batch": "0", "worker_bytes": "100", "worker_components": "1",
+        }
+        combinations = (
+            (False, False, False),
+            (True, False, False),
+            (False, True, False),
+            (False, False, True),
+            (True, True, True),
+        )
+        for semantic_only, component, live_recapture in combinations:
+            with (
+                self.subTest(
+                    semantic_only=semantic_only,
+                    component=component,
+                    live_recapture=live_recapture,
+                ),
+                mock.patch.object(
+                    retry, "SEMANTIC_DIAGNOSTICS_ONLY", semantic_only),
+                mock.patch.object(
+                    retry, "LIVE_RECAPTURE_DIAGNOSTICS", live_recapture),
+            ):
+                retry.require_result(
+                    capture, "capture", require_worker_state=component)
+                retry.require_result(
+                    restore, "restore", require_worker_state=component)
+
+    def test_fresh_residency_n_batch_refuses_swapped_lifecycle_values(self):
+        capture = {
+            "mode": "capture", "prompt_tokens": "1129", "saved_boundary": "1128",
+            "n_batch": "0",
+        }
+        restore = {
+            "mode": "restore", "prompt_tokens": "1129", "saved_boundary": "1128",
+            "n_batch": "512",
+        }
+        with self.assertRaisesRegex(retry.CanaryError, "capture result n_batch"):
+            retry.require_result(capture, "capture")
+        with self.assertRaisesRegex(retry.CanaryError, "restore result n_batch"):
+            retry.require_result(restore, "restore")
 
     def test_diagnostic_agreement_accepts_exact_three_phase_and_receipts(self):
         digest = "a" * 64
@@ -673,6 +720,32 @@ class PrimaryRetryTests(unittest.TestCase):
             for name, value in original.items():
                 setattr(retry, name, value)
 
+    def test_l36_configuration_is_exact_primary_with_replay_authority(self):
+        original = {
+            name: getattr(retry, name)
+            for name in (
+                "PORT", "WORKER_BIN", "CANARY_BIN", "CONTROL",
+                "UNIT_PREFIX", "FIXTURE_QUALIFICATION",
+                "LIVE_RECAPTURE_DIAGNOSTICS", "SEMANTIC_DIAGNOSTICS_ONLY",
+            )
+        }
+        try:
+            retry.configure_l36_primary()
+            self.assertEqual(retry.PORT, 50236)
+            self.assertEqual(retry.UNIT_PREFIX, "halofpx-l36-primary")
+            self.assertEqual(retry.CONTROL, "/var/tmp/halofpx-l36-control.key")
+            self.assertIn("/build-l36/bin/rpc-server", retry.WORKER_BIN)
+            self.assertIn("/build-l36/bin/test-halofpx", retry.CANARY_BIN)
+            self.assertFalse(retry.FIXTURE_QUALIFICATION)
+            self.assertTrue(retry.LIVE_RECAPTURE_DIAGNOSTICS)
+            self.assertFalse(retry.SEMANTIC_DIAGNOSTICS_ONLY)
+            self.assertEqual(retry.CACHE_TYPE_K, "q8_0")
+            self.assertEqual(retry.CACHE_TYPE_V, "q8_0")
+            self.assertEqual(retry.FLASH_ATTN, "on")
+        finally:
+            for name, value in original.items():
+                setattr(retry, name, value)
+
     def test_l34_configuration_is_isolated_disposable_fixture(self):
         original = {
             name: getattr(retry, name)
@@ -708,7 +781,10 @@ class PrimaryRetryTests(unittest.TestCase):
                 clear=True):
             self.assertEqual(
                 retry.semantic_env_args(),
-                ["--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1"])
+                [
+                    "--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1",
+                    "--setenv=HALOFPX_REPLAY_AUTHORITY_DIAGNOSTICS=1",
+                ])
         for value in ("0", "1", "2"):
             with self.subTest(value=value), mock.patch.dict(
                     retry.os.environ,
@@ -721,6 +797,7 @@ class PrimaryRetryTests(unittest.TestCase):
                     retry.semantic_env_args(),
                     [
                         "--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1",
+                        "--setenv=HALOFPX_REPLAY_AUTHORITY_DIAGNOSTICS=1",
                         f"--setenv=HALOFPX_SEMANTIC_REPLAY_COUNT={value}",
                     ])
         with mock.patch.dict(
@@ -743,6 +820,7 @@ class PrimaryRetryTests(unittest.TestCase):
                 retry.semantic_env_args(),
                 [
                     "--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1",
+                    "--setenv=HALOFPX_REPLAY_AUTHORITY_DIAGNOSTICS=1",
                     "--setenv=HALOFPX_SEMANTIC_INVALIDATE_LOGITS=restore",
                 ])
         with mock.patch.dict(

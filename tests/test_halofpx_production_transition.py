@@ -656,6 +656,14 @@ class ManifestBindingTests(unittest.TestCase):
         child = mock.Mock()
         child.wait.return_value = 0
         real_child_environment = transition.child_environment
+        current_manifest = json.loads(json.dumps(self.manifest))
+        for name in ("interpreter", "child"):
+            current_manifest["executable_sha256"][name] = hashlib.sha256(
+                Path(current_manifest["executables"][name]).read_bytes()
+            ).hexdigest()
+        current_manifest_path = self.evidence / "current-manifest.json"
+        current_manifest_path.write_text(
+            json.dumps(current_manifest), encoding="utf-8")
 
         def environment_before_mutation(prepared, manifest):
             self.assertEqual(fake.mutations, [])
@@ -669,7 +677,7 @@ class ManifestBindingTests(unittest.TestCase):
         ):
             result = transition.main([
                 "--evidence-dir", str(self.evidence),
-                "--milestone-manifest", str(L22_MANIFEST),
+                "--milestone-manifest", str(current_manifest_path),
                 "--timeout-seconds", "0.1",
                 "maintenance", "--", *self.expected,
             ], runner=fake)

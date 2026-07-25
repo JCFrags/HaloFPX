@@ -1,0 +1,81 @@
+{
+  "schema": "halofpx.l36.primary-manifest.v1",
+  "milestone": "l36-primary-replay-authority-discriminator",
+  "worker_host": "nimo-1",
+  "canary_host": "nimo-2",
+  "worker_port": 50236,
+  "worker_units": [
+    "halofpx-l36-primary-worker-capture.service",
+    "halofpx-l36-primary-worker-restore.service"
+  ],
+  "canary_units": [
+    "halofpx-l36-primary-canary-capture.service",
+    "halofpx-l36-primary-canary-restore.service"
+  ],
+  "key_paths": {
+    "nimo-1": "/var/tmp/halofpx-l36-control.key",
+    "nimo-2": "/var/tmp/halofpx-l36-control.key"
+  },
+  "disposable_paths": {
+    "nimo-1": [
+      "/var/tmp/halofpx-l36-source-nimo1.tar",
+      "/var/tmp/halofpx-l36-source-nimo1",
+      "/var/tmp/halofpx-l36-worker"
+    ],
+    "nimo-2": [
+      "/var/tmp/halofpx-l36-source-nimo2.tar",
+      "/var/tmp/halofpx-l36-source-nimo2",
+      "/var/tmp/halofpx-l36-evidence",
+      "/var/tmp/halofpx-l36-coordinator",
+      "/var/tmp/halofpx-l36-rendezvous"
+    ]
+  },
+  "executables": {
+    "worker": "/var/tmp/halofpx-l36-source-nimo1/build-l36/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l36-source-nimo2/build-l36/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l36-source-nimo2/build-l36/bin/test-halofpx-placement-probe",
+    "epoch_receipt": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_epoch_receipt.py",
+    "component_diagnostics": "/var/tmp/halofpx-l36-source-nimo1/scripts/halofpx_state_component_diagnostics.py",
+    "semantic_verifier": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_semantic_provenance.py",
+    "replay_authority_verifier": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_replay_authority.py",
+    "interpreter": "C:\\Python314\\python.exe",
+    "child": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py"
+  },
+  "executable_sha256": {
+    "worker": "fa818d9d5227a7f46ca8f0e151fedfb042282356f4b7764af779f2d515224dee",
+    "canary": "b2b5812780e66a9ef713011d3c5e412a48e29637ed15ad22d68ae0d60edfe506",
+    "readiness": "54b546c38ea8d0a4ec273ae33b961090589756788acc1b173f22f1dba3e070da",
+    "placement": "80e3cdabeff89831c5f923a93647a892a313aac8071813904fa3dd3d185c3ef0",
+    "epoch_receipt": "a968b9e7d49cd9882b09badd8b48b22093f609b65cc740b6bc7a1c0ea33be389",
+    "component_diagnostics": "b1586b47e499b8b467591e79cc6c6e405e422a6b8e762051363e4b7420f7c87f",
+    "semantic_verifier": "565e2aaf8d7197d9b32d8653ef1c177131602992fe641587397f4d346006a440",
+    "replay_authority_verifier": "de203266fa48db497f6ecdfd1ab038004d937185e77bba1232b0c03c7bef2bce",
+    "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
+    "child": "cfdd63650a73ffc0e5aa01de63dc98dc255a9087b20363270abd6e33c61e5130"
+  },
+  "child_evidence_subdir": "child",
+  "child_argv": [
+    "C:\\Python314\\python.exe",
+    "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py",
+    "--evidence-dir",
+    "{evidence_root}/child",
+    "--l36-primary"
+  ],
+  "artifact": {
+    "host": "nimo-2",
+    "path": "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/dba517197f2854f3d362529e13abddcdcad6c10b/saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf",
+    "bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "allocation_plan": {
+    "rpc_request_bytes": 80950550528,
+    "rocm_device_request_bytes": 78280456704,
+    "rocm_host_request_bytes": 633802752,
+    "rpc_required_bytes": 106643119104,
+    "rocm_required_bytes": 104737304935,
+    "reported_total_each_bytes": 133143986176,
+    "minimum_rpc_margin_bytes": 26500867072,
+    "minimum_rocm_margin_bytes": 28406681241
+  }
+}

@@ -116,6 +116,20 @@ L33_EXECUTABLES = {
     "epoch_receipt": "/var/tmp/halofpx-l33-source-nimo2/scripts/halofpx_epoch_receipt.py",
     "component_diagnostics": "/var/tmp/halofpx-l33-source-nimo1/scripts/halofpx_state_component_diagnostics.py",
 }
+L36_KEY_PATHS = {
+    "nimo-1": "/var/tmp/halofpx-l36-control.key",
+    "nimo-2": "/var/tmp/halofpx-l36-control.key",
+}
+L36_EXECUTABLES = {
+    "worker": "/var/tmp/halofpx-l36-source-nimo1/build-l36/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l36-source-nimo2/build-l36/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l36-source-nimo2/build-l36/bin/test-halofpx-placement-probe",
+    "epoch_receipt": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_epoch_receipt.py",
+    "component_diagnostics": "/var/tmp/halofpx-l36-source-nimo1/scripts/halofpx_state_component_diagnostics.py",
+    "semantic_verifier": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_semantic_provenance.py",
+    "replay_authority_verifier": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_replay_authority.py",
+}
 L29_MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
     "dba517197f2854f3d362529e13abddcdcad6c10b/"
@@ -594,7 +608,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     l29 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l29.primary-manifest.v1"
     l31 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l31.primary-manifest.v1"
     l33 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l33.primary-manifest.v1"
-    primary = l29 or l31 or l33
+    l36 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l36.primary-manifest.v1"
+    primary = l29 or l31 or l33 or l36
     if primary:
         expected_keys |= {"artifact", "allocation_plan"}
     if not isinstance(raw, dict) or set(raw) != expected_keys:
@@ -604,22 +619,23 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
         interpreter_path = Path(sys.executable).resolve()
         expected_exec = {
-            **(L33_EXECUTABLES if l33 else L31_EXECUTABLES if l31 else L29_EXECUTABLES if l29 else L28_EXECUTABLES),
+            **(L36_EXECUTABLES if l36 else L33_EXECUTABLES if l33 else L31_EXECUTABLES if l31 else L29_EXECUTABLES if l29 else L28_EXECUTABLES),
             "interpreter": str(interpreter_path),
             "child": str(child_path),
         }
         expected_child_argv = [
             str(interpreter_path), str(child_path), "--evidence-dir",
             "{evidence_root}/child",
-            "--l33-primary" if l33 else "--l31-primary" if l31 else "--l29-primary" if l29 else "--l28-fixture",
+            "--l36-primary" if l36 else "--l33-primary" if l33 else "--l31-primary" if l31 else "--l29-primary" if l29 else "--l28-fixture",
         ]
-        prefix = "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
-        port = 50233 if l33 else 50191 if l31 else 50189 if l29 else 50188
-        key_paths = L33_KEY_PATHS if l33 else L31_KEY_PATHS if l31 else L29_KEY_PATHS if l29 else L28_KEY_PATHS
-        source_tag = "l33" if l33 else "l31" if l31 else "l29" if l29 else "l28"
+        prefix = "halofpx-l36-primary" if l36 else "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
+        port = 50236 if l36 else 50233 if l33 else 50191 if l31 else 50189 if l29 else 50188
+        key_paths = L36_KEY_PATHS if l36 else L33_KEY_PATHS if l33 else L31_KEY_PATHS if l31 else L29_KEY_PATHS if l29 else L28_KEY_PATHS
+        source_tag = "l36" if l36 else "l33" if l33 else "l31" if l31 else "l29" if l29 else "l28"
         if (
             raw["milestone"] != (
-                "l33-primary-live-state-discriminator"
+                "l36-primary-replay-authority-discriminator"
+                if l36 else "l33-primary-live-state-discriminator"
                 if l33 else "l31-primary-corrected-restore-confirmation"
                 if l31 else "l29-primary-fresh-residency-discriminator"
                 if l29 else "l28-fresh-residency-fixture")
@@ -712,8 +728,11 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     }
     if l28 or primary:
         host_for["epoch_receipt"] = DISPOSABLE_CANARY_HOST
-    if l31 or l33:
+    if l31 or l33 or l36:
         host_for["component_diagnostics"] = DISPOSABLE_HOST
+    if l36:
+        host_for["semantic_verifier"] = DISPOSABLE_CANARY_HOST
+        host_for["replay_authority_verifier"] = DISPOSABLE_CANARY_HOST
     for name, host in host_for.items():
         result = runner.run(
             host, ["sha256sum", "--", expected_exec[name]], operation="hash")
@@ -1243,8 +1262,11 @@ def child_environment(
         required = required[:-1]
     if manifest.get("schema") in {
         "halofpx.l31.primary-manifest.v1", "halofpx.l33.primary-manifest.v1",
+        "halofpx.l36.primary-manifest.v1",
     }:
         required += ("component_diagnostics",)
+    if manifest.get("schema") == "halofpx.l36.primary-manifest.v1":
+        required += ("semantic_verifier", "replay_authority_verifier")
     if any(not re.fullmatch(r"[0-9a-f]{64}", str(hashes.get(name, ""))) for name in required):
         raise TransitionError("validated manifest child hash authority is incomplete")
     environment = os.environ.copy()
@@ -1257,10 +1279,18 @@ def child_environment(
         environment["HALOFPX_L28_EPOCH_RECEIPT_SHA256"] = str(hashes["epoch_receipt"])
     if "component_diagnostics" in required:
         environment[
-            "HALOFPX_L33_COMPONENT_DIAGNOSTICS_SHA256"
+            "HALOFPX_L36_COMPONENT_DIAGNOSTICS_SHA256"
+            if manifest.get("schema") == "halofpx.l36.primary-manifest.v1"
+            else "HALOFPX_L33_COMPONENT_DIAGNOSTICS_SHA256"
             if manifest.get("schema") == "halofpx.l33.primary-manifest.v1"
             else "HALOFPX_L31_COMPONENT_DIAGNOSTICS_SHA256"
         ] = str(hashes["component_diagnostics"])
+    if "semantic_verifier" in required:
+        environment["HALOFPX_L36_SEMANTIC_VERIFIER_SHA256"] = str(
+            hashes["semantic_verifier"])
+        environment["HALOFPX_L36_REPLAY_AUTHORITY_VERIFIER_SHA256"] = str(
+            hashes["replay_authority_verifier"])
+        environment["HALOFPX_SEMANTIC_DIAGNOSTICS"] = "1"
     return environment
 
 
@@ -1268,7 +1298,7 @@ def l29_capacity_preflight(
         manifest: dict[str, object], runner: Runner, evidence_root: Path) -> dict[str, object]:
     if manifest.get("schema") not in {
         "halofpx.l29.primary-manifest.v1", "halofpx.l31.primary-manifest.v1",
-        "halofpx.l33.primary-manifest.v1",
+        "halofpx.l33.primary-manifest.v1", "halofpx.l36.primary-manifest.v1",
     }:
         raise TransitionError("primary capacity preflight requires exact manifest authority")
     plan = manifest["allocation_plan"]
@@ -1403,7 +1433,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
 
     if manifest is not None and manifest.get("schema") in {
         "halofpx.l29.primary-manifest.v1", "halofpx.l31.primary-manifest.v1",
-        "halofpx.l33.primary-manifest.v1",
+        "halofpx.l33.primary-manifest.v1", "halofpx.l36.primary-manifest.v1",
     }:
         capacity = l29_capacity_preflight(manifest, selected_runner, args.evidence_dir)
         _atomic_json(args.evidence_dir / "capacity-preflight.json", capacity)

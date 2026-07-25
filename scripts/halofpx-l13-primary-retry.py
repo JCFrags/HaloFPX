@@ -363,6 +363,52 @@ def configure_l35_fixture() -> None:
     UNIT_PREFIX = "halofpx-l35"
 
 
+def configure_l36_primary() -> None:
+    configure_l33_primary()
+    global PORT, WORKER_BIN, CANARY_BIN, READINESS_PROBE, PLACEMENT_PROBE
+    global EPOCH_RECEIPT, REMOTE_EVIDENCE, COORDINATOR_ROOT, WORKER_ROOT
+    global RENDEZVOUS_ROOT, CONTROL, WORKER_CONTROL, ARTIFACT_DIR, UNIT_PREFIX
+    global COMPONENT_DIAGNOSTICS, COMPONENT_DIAGNOSTICS_SHA
+    global SEMANTIC_DIAGNOSTICS_ONLY, SEMANTIC_VERIFIER, SEMANTIC_VERIFIER_SHA
+    global REPLAY_AUTHORITY_VERIFIER, REPLAY_AUTHORITY_VERIFIER_SHA
+    PORT = 50236
+    WORKER_BIN = "/var/tmp/halofpx-l36-source-nimo1/build-l36/bin/rpc-server"
+    CANARY_BIN = (
+        "/var/tmp/halofpx-l36-source-nimo2/build-l36/bin/"
+        "test-halofpx-distributed-state-canary")
+    READINESS_PROBE = (
+        "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_rpc_readiness.py")
+    PLACEMENT_PROBE = (
+        "/var/tmp/halofpx-l36-source-nimo2/build-l36/bin/"
+        "test-halofpx-placement-probe")
+    EPOCH_RECEIPT = (
+        "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_epoch_receipt.py")
+    COMPONENT_DIAGNOSTICS = (
+        "/var/tmp/halofpx-l36-source-nimo1/scripts/"
+        "halofpx_state_component_diagnostics.py")
+    SEMANTIC_VERIFIER = (
+        "/var/tmp/halofpx-l36-source-nimo2/scripts/"
+        "halofpx_semantic_provenance.py")
+    REPLAY_AUTHORITY_VERIFIER = (
+        "/var/tmp/halofpx-l36-source-nimo2/scripts/"
+        "halofpx_replay_authority.py")
+    COMPONENT_DIAGNOSTICS_SHA = os.environ.get(
+        "HALOFPX_L36_COMPONENT_DIAGNOSTICS_SHA256", "")
+    SEMANTIC_VERIFIER_SHA = os.environ.get(
+        "HALOFPX_L36_SEMANTIC_VERIFIER_SHA256", "")
+    REPLAY_AUTHORITY_VERIFIER_SHA = os.environ.get(
+        "HALOFPX_L36_REPLAY_AUTHORITY_VERIFIER_SHA256", "")
+    REMOTE_EVIDENCE = "/var/tmp/halofpx-l36-evidence"
+    COORDINATOR_ROOT = "/var/tmp/halofpx-l36-coordinator"
+    WORKER_ROOT = "/var/tmp/halofpx-l36-worker"
+    RENDEZVOUS_ROOT = "/var/tmp/halofpx-l36-rendezvous"
+    CONTROL = "/var/tmp/halofpx-l36-control.key"
+    WORKER_CONTROL = CONTROL
+    ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
+    UNIT_PREFIX = "halofpx-l36-primary"
+    SEMANTIC_DIAGNOSTICS_ONLY = False
+
+
 def semantic_env_args() -> list[str]:
     if os.environ.get("HALOFPX_SEMANTIC_DIAGNOSTICS") != "1":
         return []
@@ -885,9 +931,7 @@ def require_result(
         "mode": mode,
         "prompt_tokens": "1129",
         "saved_boundary": "1128",
-        "n_batch": (
-            "0" if SEMANTIC_DIAGNOSTICS_ONLY and mode == "restore" else "512"
-        ),
+        "n_batch": "0" if mode == "restore" else "512",
     }
     for name, expected in exact.items():
         if fields.get(name) != expected:
@@ -1307,12 +1351,12 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     (root / "worker-restore.log").write_text(restore_journal, encoding="utf-8")
     semantic_provenance = None
     replay_authority = None
-    if SEMANTIC_DIAGNOSTICS_ONLY:
+    if os.environ.get("HALOFPX_SEMANTIC_DIAGNOSTICS") == "1":
         semantic_provenance = require_authenticated_semantic_provenance(
             capture_result.stdout, restore_log)
         capture_semantic = semantic_provenance["capture"]
         restore_semantic = semantic_provenance["restore"]
-        if (
+        if SEMANTIC_DIAGNOSTICS_ONLY and (
             capture_semantic["replay_count"] != 1
             or restore_semantic["replay_count"] != 1
             or capture_semantic["replay_token"] != restore_semantic["replay_token"]
@@ -1597,10 +1641,12 @@ def main() -> int:
     parser.add_argument("--l33-primary", action="store_true")
     parser.add_argument("--l34-fixture", action="store_true")
     parser.add_argument("--l35-fixture", action="store_true")
+    parser.add_argument("--l36-primary", action="store_true")
     args = parser.parse_args()
     if sum((
         args.l28_fixture, args.l29_primary, args.l31_primary,
         args.l32_fixture, args.l33_primary, args.l34_fixture, args.l35_fixture,
+        args.l36_primary,
     )) > 1:
         parser.error("fixture and primary modes are mutually exclusive")
     if args.l28_fixture:
@@ -1617,6 +1663,8 @@ def main() -> int:
         configure_l34_fixture()
     if args.l35_fixture:
         configure_l35_fixture()
+    if args.l36_primary:
+        configure_l36_primary()
     root = args.evidence_dir.resolve()
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     initialize_ssh_transport(root)
