@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — accept L41 rejection and close only its four review gaps
+
+Decision: accept L41 NOT PROMOTED commit
+`ba0cbd51634cd58496d35cf615dfdae32a367269`. Open L42 only for a caller-owned
+authenticated scheduler event export, complete destination/allocation/view
+authority, the specifically missing refusal fixtures, and exact deterministic
+ordinary/expert output qualification. No broader architecture or primary work
+is authorized.
+
+Reason: L41 proved the selected real execution seams are reachable, including
+ordinary and expert-partial copies, but its internal counters and incomplete
+destination evidence cannot support promotion. The four independent-review
+findings are concrete and bounded, so one targeted correction is warranted
+without reopening the overall design.
+
 ## 2026-07-25 — accept L40 RPC foundation and add scheduler authority separately
 
 Decision: accept L40 PASS commit

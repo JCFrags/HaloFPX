@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 03:42 PDT
+Verified: 2026-07-25 04:18 PDT
 
 ## Overall state
 
@@ -57,15 +57,23 @@ independent read-only specialists are auditing graph-input coverage and
   L41 is active only for the next independent layer, the real scheduler
   split/copy execution authority. Mutable-input census, primary testing, and
   production mutation remain unauthorized.
+- L41 closed NOT PROMOTED at
+  `ba0cbd51634cd58496d35cf615dfdae32a367269`. It reached the real ordinary and
+  expert-partial scheduler copy seams, but review rejected the evidence
+  contract: no inspectable authenticated event stream, incomplete
+  destination/view authority, missing focused refusal cases, and insufficient
+  exact-output assertions. The candidate was removed. L42 is authorized only
+  to close those four findings with exact exported evidence and targeted
+  qualification.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `53f414dfc5a8f9873ad9961f541eb41cf6dc2aae`
+- Latest verified commit: `ba0cbd51634cd58496d35cf615dfdae32a367269`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L40 closeout
+- Worktree state: clean at the reviewed terminal L41 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-25T03:42:00-07:00",
+  "updated_at": "2026-07-25T04:18:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l41_no_production_scheduler_split_copy_execution_authority",
+  "worker_status": "active_l42_no_production_scheduler_authority_review_gap_correction",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "53f414dfc5a8f9873ad9961f541eb41cf6dc2aae",
-  "last_observed_milestone": "L40 PASS; accepted negotiated authenticated RPC graph reconstruction and compute/recompute lineage foundation",
-  "last_decision": "accept_l40_rpc_foundation_and_open_l41_scheduler_split_copy_execution_authority_only",
-  "last_progress": "L41 is implementing the separate real scheduler split/copy construction and execution authority layer without mutable-census expansion",
+  "last_verified_head": "ba0cbd51634cd58496d35cf615dfdae32a367269",
+  "last_observed_milestone": "L41 NOT PROMOTED; real ordinary and expert-partial seams were exercised but review rejected incomplete exported destination/view authority and qualification",
+  "last_decision": "accept_l41_rejection_and_open_l42_only_for_four_documented_scheduler_authority_review_gaps",
+  "last_progress": "L42 is adding inspectable authenticated scheduler events, complete destination/view authority, focused refusal fixtures, and exact ordinary/expert output evidence",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L41 worker report or explicit user request; no periodic polling"
+  "next_check_trigger": "direct L42 worker report or explicit user request; no periodic polling"
 }
