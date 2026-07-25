@@ -1,0 +1,97 @@
+{
+  "schema": "halofpx-l34-semantic-state-completeness-receipt-v1",
+  "date": "2026-07-24",
+  "base_commit": "83ce2b5a449fa68d7864d8e0d31bf85c8edfc0ed",
+  "outcome": "pass_replay_logits_provenance_primary_discriminator_required",
+  "default_off": true,
+  "primary_artifact_accessed": false,
+  "production_mutated": false,
+  "source_finding": {
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "saved_token_indices": "0..1127",
+    "final_prompt_token_index": 1128,
+    "normal_capture_replay_count": 1,
+    "normal_restore_replay_count": 1,
+    "logits_serialized": false
+  },
+  "fixture": {
+    "model_bytes": 19077344,
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "cache_k": "f16",
+    "cache_v": "f16",
+    "flash_attention": false,
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "normal": {
+      "replay_token": 29871,
+      "position_before": 1127,
+      "position_after": 1128,
+      "logits_count": 32000,
+      "logits_sha256_capture_restore": "f6d0fa35238815d19f10cb97a0af1c75349080fa431064a25a4969f8d9b177b1",
+      "argmax_capture_restore": 4245,
+      "sampled_capture_restore": 4245,
+      "capture_auth_tag": "806350f926a8a2f8914ecb244fa9e249ed86da258b65c9ae40df131468c29acd",
+      "restore_auth_tag": "7a295faf99bbdad941e6adb4b27148572ca54457031624c4e4d3a0f63ba3ce4c",
+      "token_sha256": "105dcfac89ff7ef4efb5b9253b18b4609ac2a44933a031a2e73020d41d6f6188",
+      "text_sha256": "6393507a33556ff939295d9a31b1e21b53c391f7c64eefa95226110c39dc56df"
+    },
+    "zero_replay": {
+      "position_before": 1127,
+      "position_after": 1127,
+      "capture_logits_count": 32000,
+      "restore_logits_count": 0,
+      "restore_refusal": "corrupt output buffer; n_outputs=0"
+    },
+    "two_replays": {
+      "position_before": 1127,
+      "position_after": 1129,
+      "logits_sha256_capture_restore": "9185b11060d6f65279c4936529967f44a027b684fe9f2cfdf9e45bb06d9ab88c",
+      "sampled_capture_restore": 4245
+    },
+    "restore_logits_invalidation": {
+      "pre_invalidation_logits_sha256": "f6d0fa35238815d19f10cb97a0af1c75349080fa431064a25a4969f8d9b177b1",
+      "expected_argmax": 4245,
+      "observed_sample": 0,
+      "fail_closed": true
+    },
+    "legacy_get_tensor": 0,
+    "legacy_set_tensor": 0
+  },
+  "focused_tests": {
+    "passed": 42,
+    "failed": 0
+  },
+  "source_identity": {
+    "final_source_archive_sha256": "ab9a1becb1ca55fdcc94af6c0bee6c87e8c7971ffbdc13ce35708ba6b68b752b",
+    "runner_sha256": "251a5142bef177ec45f74fb582a6ca7ad32cdac75dc613568726b1a097921146",
+    "semantic_verifier_sha256": "f85a36b06e708f5858b6b97642f61597ae9500c5588b25d5cc599e627bd2621a",
+    "canary_cpp_sha256": "57a59ef2d81f1619060cea89d230564a9baf36f2801bfa74d8b7b1cde5ac52ac",
+    "python_tests_sha256": "4d0d7a149c128819bbf9894cf54296fc34d58069da7640ef813774430ce4ea87",
+    "worker_binary_sha256": "69bf8103455b202960e7391c81ee60e9a2b70374ed95d82c7c1d96805ba88fcf",
+    "canary_binary_sha256": "77010df2ea38acc8ca1af6d075156a7c064d0941cb1d4b7a04ba3bf124b1a0f7"
+  },
+  "production_after": {
+    "worker_pid": 1485678,
+    "worker_port": 50052,
+    "worker_nrestarts": 0,
+    "coordinator_pid": 2320476,
+    "coordinator_port": 8081,
+    "coordinator_http": 200,
+    "coordinator_nrestarts": 0
+  },
+  "cleanup_complete": true,
+  "independent_review": {
+    "verdict": "pass",
+    "path": "docs/halofpx/reviews/2026-07-24__l34-semantic-state-completeness__review__v01.md"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l34-semantic-state-20260724",
+    "files": 283,
+    "bytes": 33457287,
+    "tree_sha256": "fe3b62535d4d4083addea2cfa65a9f2a26e9118079b909841f4f8e7821bb7e1b"
+  },
+  "semantic_correction_implemented": false,
+  "primary_discriminator_authorized": false,
+  "l35_opened": false
+}

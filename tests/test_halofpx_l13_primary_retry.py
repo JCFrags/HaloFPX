@@ -673,6 +673,184 @@ class PrimaryRetryTests(unittest.TestCase):
             for name, value in original.items():
                 setattr(retry, name, value)
 
+    def test_l34_configuration_is_isolated_disposable_fixture(self):
+        original = {
+            name: getattr(retry, name)
+            for name in (
+                "PORT", "WORKER_BIN", "CANARY_BIN", "CONTROL",
+                "UNIT_PREFIX", "FIXTURE_QUALIFICATION",
+                "CACHE_TYPE_K", "CACHE_TYPE_V", "FLASH_ATTN",
+            )
+        }
+        try:
+            retry.configure_l34_fixture()
+            self.assertEqual(retry.PORT, 50234)
+            self.assertEqual(retry.UNIT_PREFIX, "halofpx-l34")
+            self.assertEqual(retry.CONTROL, "/var/tmp/halofpx-l34-control.key")
+            self.assertIn("/halofpx-l34-final-build/bin/rpc-server", retry.WORKER_BIN)
+            self.assertIn(
+                "/halofpx-l34-final-build/bin/test-halofpx",
+                retry.CANARY_BIN)
+            self.assertTrue(retry.FIXTURE_QUALIFICATION)
+            self.assertEqual(retry.CACHE_TYPE_K, "f16")
+            self.assertEqual(retry.CACHE_TYPE_V, "f16")
+            self.assertEqual(retry.FLASH_ATTN, "off")
+        finally:
+            for name, value in original.items():
+                setattr(retry, name, value)
+
+    def test_semantic_diagnostic_environment_is_closed(self):
+        with mock.patch.dict(retry.os.environ, {}, clear=True):
+            self.assertEqual(retry.semantic_env_args(), [])
+        with mock.patch.dict(
+                retry.os.environ,
+                {"HALOFPX_SEMANTIC_DIAGNOSTICS": "1"},
+                clear=True):
+            self.assertEqual(
+                retry.semantic_env_args(),
+                ["--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1"])
+        for value in ("0", "1", "2"):
+            with self.subTest(value=value), mock.patch.dict(
+                    retry.os.environ,
+                    {
+                        "HALOFPX_SEMANTIC_DIAGNOSTICS": "1",
+                        "HALOFPX_SEMANTIC_REPLAY_COUNT": value,
+                    },
+                    clear=True):
+                self.assertEqual(
+                    retry.semantic_env_args(),
+                    [
+                        "--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1",
+                        f"--setenv=HALOFPX_SEMANTIC_REPLAY_COUNT={value}",
+                    ])
+        with mock.patch.dict(
+                retry.os.environ,
+                {
+                    "HALOFPX_SEMANTIC_DIAGNOSTICS": "1",
+                    "HALOFPX_SEMANTIC_REPLAY_COUNT": "3",
+                },
+                clear=True):
+            with self.assertRaisesRegex(retry.CanaryError, "exactly 0, 1, or 2"):
+                retry.semantic_env_args()
+        with mock.patch.dict(
+                retry.os.environ,
+                {
+                    "HALOFPX_SEMANTIC_DIAGNOSTICS": "1",
+                    "HALOFPX_SEMANTIC_INVALIDATE_LOGITS": "restore",
+                },
+                clear=True):
+            self.assertEqual(
+                retry.semantic_env_args(),
+                [
+                    "--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1",
+                    "--setenv=HALOFPX_SEMANTIC_INVALIDATE_LOGITS=restore",
+                ])
+        with mock.patch.dict(
+                retry.os.environ,
+                {
+                    "HALOFPX_SEMANTIC_DIAGNOSTICS": "1",
+                    "HALOFPX_SEMANTIC_INVALIDATE_LOGITS": "capture",
+                },
+                clear=True):
+            with self.assertRaisesRegex(retry.CanaryError, "only for restore"):
+                retry.semantic_env_args()
+
+    def test_canary_binary_closes_semantic_invalidation_authority(self):
+        source = (
+            Path(__file__).parents[1]
+            / "tests"
+            / "test-halofpx-distributed-state-canary.cpp"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            'strcmp(invalidate, "restore") != 0',
+            source,
+        )
+        self.assertIn(
+            'strcmp(phase, "restore") == 0',
+            source,
+        )
+
+    def test_semantic_provenance_is_unique_authenticated_and_parsed(self):
+        tag = "a" * 64
+
+        class Transport:
+            def run_stdin(self, host, argv, stdin, *, operation):
+                self.calls = getattr(self, "calls", [])
+                self.calls.append((host, argv, stdin, operation))
+                return SimpleNamespace(returncode=0, stdout=tag + "\n", stderr="")
+
+        def line(phase):
+            return (
+                "[halofpx-semantic-provenance] "
+                f"phase={phase} replay_count=1 replay_token=29871 "
+                "position_before=1127 position_after=1128 logits_count=32000 "
+                f"logits_sha256={'b' * 64} argmax_token=4245 "
+                f"sampled_token=4245 logits_invalidated=0 auth_tag={tag}\n"
+            )
+
+        prior = (
+            retry.SSH_TRANSPORT, retry.SEMANTIC_VERIFIER,
+            retry.SEMANTIC_VERIFIER_SHA,
+        )
+        transport = Transport()
+        retry.SSH_TRANSPORT = transport
+        retry.SEMANTIC_VERIFIER = "/verifier"
+        retry.SEMANTIC_VERIFIER_SHA = "d" * 64
+        try:
+            with mock.patch.object(
+                    retry, "ssh",
+                    return_value=SimpleNamespace(
+                        returncode=0, stdout="d" * 64 + "  /verifier\n",
+                        stderr="")):
+                result = retry.require_authenticated_semantic_provenance(
+                    line("capture"), line("restore"))
+        finally:
+            (
+                retry.SSH_TRANSPORT, retry.SEMANTIC_VERIFIER,
+                retry.SEMANTIC_VERIFIER_SHA,
+            ) = prior
+        self.assertEqual(result["capture"]["sampled_token"], 4245)
+        self.assertEqual(result["restore"]["position_after"], 1128)
+        self.assertEqual(len(transport.calls), 2)
+        self.assertTrue(all(call[3] == "evidence" for call in transport.calls))
+
+    def test_semantic_provenance_refuses_duplicate_or_bad_authentication(self):
+        tag = "a" * 64
+        line = (
+            "[halofpx-semantic-provenance] "
+            "phase=capture replay_count=1 replay_token=1 position_before=0 "
+            f"position_after=1 logits_count=2 logits_sha256={'b' * 64} "
+            f"argmax_token=1 sampled_token=1 logits_invalidated=0 auth_tag={tag}\n"
+        )
+        class Transport:
+            def run_stdin(self, host, argv, stdin, *, operation):
+                return SimpleNamespace(returncode=0, stdout="c" * 64 + "\n", stderr="")
+
+        prior = (
+            retry.SSH_TRANSPORT, retry.SEMANTIC_VERIFIER,
+            retry.SEMANTIC_VERIFIER_SHA,
+        )
+        retry.SSH_TRANSPORT = Transport()
+        retry.SEMANTIC_VERIFIER = "/verifier"
+        retry.SEMANTIC_VERIFIER_SHA = "d" * 64
+        try:
+            with mock.patch.object(
+                    retry, "ssh",
+                    return_value=SimpleNamespace(
+                        returncode=0, stdout="d" * 64 + "  /verifier\n",
+                        stderr="")):
+                with self.assertRaisesRegex(retry.CanaryError, "missing or ambiguous"):
+                    retry.require_authenticated_semantic_provenance(
+                        line + line, line.replace("phase=capture", "phase=restore"))
+                with self.assertRaisesRegex(retry.CanaryError, "authentication failed"):
+                    retry.require_authenticated_semantic_provenance(
+                        line, line.replace("phase=capture", "phase=restore"))
+        finally:
+            (
+                retry.SSH_TRANSPORT, retry.SEMANTIC_VERIFIER,
+                retry.SEMANTIC_VERIFIER_SHA,
+            ) = prior
+
 
 if __name__ == "__main__":
     unittest.main()
