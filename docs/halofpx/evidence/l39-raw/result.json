@@ -1,0 +1,66 @@
+{
+  "schema": "halofpx.l39.result.v1",
+  "milestone": "L39",
+  "result": "NOT_PROMOTED",
+  "base_commit": "169d81ad84167fcd5449b5dc99126bd861446087",
+  "primary_artifact_accessed": false,
+  "production_mutated": false,
+  "candidate": {
+    "diff_sha256": "998b629e267f708c5ca5ecb379d2315cd0e5f1bb66c6dd132b9edac6c4e5db6d",
+    "test_binary_sha256": "a8e6661d8ba6a0129ecd8f10f7d546029ae675885e681686cf7f631ccab84926",
+    "linux_rocm_build": "PASS",
+    "first_run": {
+      "output_equal": false,
+      "first0": 0.711914062,
+      "second0": 0.87890625,
+      "max_delta": 0.166992188
+    },
+    "corrected_fixture_run": {
+      "splits": 2,
+      "leaves": 6,
+      "nodes": 6,
+      "copy_maps": 4,
+      "verified_copies": 8,
+      "output_equal": true,
+      "max_delta": 0,
+      "trace_sha256": "014bab491b1212d8be15d209cc2c3f04987b93667c363ed8db7ba4d077ad7909",
+      "server_graph_sha256": "85016b8ed87d2549179723d41c0e27c9e2496ebfab058600559e2cc4595cecdc"
+    },
+    "retained_in_source": false
+  },
+  "material_review_findings": [
+    "no negotiated authenticated server reconstruction receipt",
+    "unknown unflagged mutable inputs can be silently omitted",
+    "server allocation comparison partly reuses client wire authority",
+    "scheduler records are not bounded versioned HMAC events",
+    "nested non-contiguous and expert partial logical hashing unqualified",
+    "SET_TENSOR_HASH and Q8_0 flash-attention paths unqualified",
+    "required tamper and refusal cases absent",
+    "recompute identity and encoding do not meet the frozen contract"
+  ],
+  "production_closeout": {
+    "nimo_2_worker": {
+      "scope": "system",
+      "active": true,
+      "pid": 1535639,
+      "port_50052": "LISTEN",
+      "nrestarts": 0
+    },
+    "nimo_1_coordinator": {
+      "scope": "system",
+      "active": true,
+      "pid": 2356329,
+      "port_8081": "LISTEN",
+      "http": 200,
+      "nrestarts": 0
+    }
+  },
+  "cleanup": {
+    "halofpx_l39_rpc_user_unit": "absent",
+    "port_50239": "closed",
+    "nimo_1_binary_root": "absent",
+    "nimo_2_build_root": "absent"
+  },
+  "independent_review": "REJECT"
+}
+
