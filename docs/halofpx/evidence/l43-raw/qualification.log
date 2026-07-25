@@ -1,0 +1,21 @@
+[halofpx-mutable] census role=12 ordinal=0 allocation=0 relative=128 bytes=320
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] bound graph uid=2 exec=1 semantic=46e4261de8ee051e245120b53f59fda97b08e8a67f78e7d0fd5c591647010714 transcript=169c607c92352813779224f34b16a948f613d4b6a909b80dd05c38decb2f4626
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=1 uid=2 digest=6d5a61eb45e4fbcbf575b4f51063ccfa8395a2f387073ae9118cc5419f827f0e
+[halofpx-rpc-graph-auth] client executed sequence=1 uid=2 digest=6d5a61eb45e4fbcbf575b4f51063ccfa8395a2f387073ae9118cc5419f827f0e
+[halofpx-mutable] census role=12 ordinal=10 allocation=1 relative=128 bytes=12582912
+[halofpx-mutable] census role=1 ordinal=10 allocation=1 relative=0 bytes=128
+[halofpx-mutable] bound graph uid=3 exec=2 semantic=42d24234805c0b09ac07fabf32a2606dd334e277072b4a446381c6d69a8c6934 transcript=091c5b564c44c9af6e103dc0b0bc160ff0588561681633e755a3ef71f71d0cc0
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=2 uid=3 digest=509ada9924ca4bf2248cb77b28a1f249cf33c2cc750d180b5600026f8e5d0a25
+[halofpx-rpc-graph-auth] client executed sequence=2 uid=3 digest=509ada9924ca4bf2248cb77b28a1f249cf33c2cc750d180b5600026f8e5d0a25
+[halofpx-mutable] census role=12 ordinal=10 allocation=1 relative=128 bytes=12582912
+[halofpx-mutable] census role=1 ordinal=10 allocation=1 relative=0 bytes=128
+[halofpx-mutable] bound graph uid=3 exec=3 semantic=42d24234805c0b09ac07fabf32a2606dd334e277072b4a446381c6d69a8c6934 transcript=091c5b564c44c9af6e103dc0b0bc160ff0588561681633e755a3ef71f71d0cc0
+[halofpx-rpc-graph-auth] client prepared mode=recompute sequence=3 uid=3 digest=509ada9924ca4bf2248cb77b28a1f249cf33c2cc750d180b5600026f8e5d0a25
+[halofpx-rpc-graph-auth] client executed sequence=3 uid=3 digest=509ada9924ca4bf2248cb77b28a1f249cf33c2cc750d180b5600026f8e5d0a25
+[halofpx-mutable] census role=12 ordinal=10 allocation=1 relative=128 bytes=12582912
+[halofpx-mutable] census role=1 ordinal=10 allocation=1 relative=0 bytes=128
+[halofpx-mutable] bound graph uid=4 exec=4 semantic=9774517a5f529be78bc365956152cd80a40f0984449353d1461ffea7c3ae8cb0 transcript=99039ec1b9839ad39eee0b02da92758ce7372bb642e6484eeeb6311881f8c432
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=4 uid=4 digest=509ada9924ca4bf2248cb77b28a1f249cf33c2cc750d180b5600026f8e5d0a25
+[halofpx-rpc-graph-auth] client executed sequence=4 uid=4 digest=509ada9924ca4bf2248cb77b28a1f249cf33c2cc750d180b5600026f8e5d0a25
+self_tests=18 compute_recompute_exact=1 expected=1 authority=1 identical_authority=1 mutation_sensitive=1 unknown_refused=1 mutations=2/2 census=2/2

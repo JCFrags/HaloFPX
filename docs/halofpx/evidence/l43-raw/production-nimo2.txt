@@ -1,0 +1,9 @@
+nimo-2
+LoadState=loaded
+ActiveState=active
+SubState=running
+MainPID=1535639
+NRestarts=0
+ExecStart={ path=/opt/llm-usb4-cluster/bin/run-minimax-m27-rpc-worker.sh ; argv[]=/opt/llm-usb4-cluster/bin/run-minimax-m27-rpc-worker.sh ; ignore_errors=no ; start_time=[Sat 2026-07-25 01:00:42 PDT] ; stop_time=[n/a] ; pid=1535639 ; code=(null) ; status=0/0 }
+0::/system.slice/minimax-m27-rpc-worker.service
+LISTEN 0      1            0.0.0.0:50052      0.0.0.0:*    users:(("ggml-rpc-server",pid=1535639,fd=5))

@@ -1,0 +1,8 @@
+nimo-2
+active
+MainPID=1535639
+NRestarts=0
+ControlGroup=/system.slice/minimax-m27-rpc-worker.service
+0::/system.slice/minimax-m27-rpc-worker.service
+/opt/llm-usb4-cluster/llama/ggml-rpc-server --host 0.0.0.0 --port 50052 
+LISTEN 0      1            0.0.0.0:50052      0.0.0.0:*    users:(("ggml-rpc-server",pid=1535639,fd=5))

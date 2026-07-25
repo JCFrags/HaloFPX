@@ -1,0 +1,21 @@
+[  3%] Built target ggml-base
+[  3%] Building CXX object ggml/src/ggml-rpc/CMakeFiles/ggml-rpc.dir/ggml-rpc.cpp.o
+[ 12%] Built target ggml-cpu
+[ 12%] Linking CXX shared library ../../../bin/libggml-rpc.so
+[ 12%] Built target ggml-rpc
+[ 12%] Building CXX object ggml/src/CMakeFiles/ggml.dir/ggml-backend-reg.cpp.o
+[ 16%] Linking CXX shared library ../../bin/libggml.so
+[ 16%] Built target ggml
+[ 16%] Building CXX object src/CMakeFiles/llama.dir/llama-context.cpp.o
+[ 19%] Linking CXX shared library ../bin/libllama.so
+[ 96%] Built target llama
+[100%] Building CXX object tests/CMakeFiles/test-halofpx-rpc-mutable-authority.dir/test-halofpx-rpc-mutable-authority.cpp.o
+[100%] Linking CXX executable ../bin/test-halofpx-rpc-mutable-authority
+[100%] Built target test-halofpx-rpc-mutable-authority
+[ 20%] Built target ggml-base
+[ 20%] Built target ggml-rpc
+[ 80%] Built target ggml-cpu
+[100%] Built target ggml
+[100%] Building CXX object tools/rpc/CMakeFiles/rpc-server.dir/rpc-server.cpp.o
+[100%] Linking CXX executable ../../bin/rpc-server
+[100%] Built target rpc-server

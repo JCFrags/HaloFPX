@@ -1,0 +1,15 @@
+{
+  "milestone": "L43",
+  "result": "NOT_PROMOTED",
+  "base_commit": "d0d74ff55d8b063ab73911ae95516512177c824d",
+  "candidate_retained": false,
+  "primary_artifact_accessed": false,
+  "production_mutated": false,
+  "review_verdict": "NOT_PASS",
+  "blocking_findings": [
+    "registration API lacks admitted-session identity and reusable concurrent isolation",
+    "real server-handler refusal qualification is incomplete"
+  ],
+  "raw_evidence": "docs/halofpx/evidence/l43-raw",
+  "scope": "no-primary,no-production"
+}

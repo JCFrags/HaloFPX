@@ -1,0 +1,42 @@
+-- The C compiler identification is GNU 16.1.1
+-- The CXX compiler identification is GNU 16.1.1
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Git: /usr/bin/git (found version "2.55.0")
+-- The ASM compiler identification is GNU
+-- Found assembler: /usr/bin/cc
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Warning: ccache not found - consider installing it for faster compilation or disable this warning with GGML_CCACHE=OFF
+-- CMAKE_SYSTEM_PROCESSOR: x86_64
+-- GGML_SYSTEM_ARCH: x86
+-- Including CPU backend
+-- Found OpenMP_C: -fopenmp (found version "5.2")
+-- Found OpenMP_CXX: -fopenmp (found version "5.2")
+-- Found OpenMP: TRUE (found version "5.2")
+-- x86 detected
+-- Adding CPU backend variant ggml-cpu: -march=native 
+-- Using RPC backend
+--   RDMA transport disabled
+-- Including RPC backend
+-- ggml version: 0.11.1
+-- ggml commit:  unknown
+-- Found OpenSSL: /usr/lib/libcrypto.so (found version "3.6.3")
+-- Performing Test OPENSSL_VERSION_SUPPORTED
+-- Performing Test OPENSSL_VERSION_SUPPORTED - Success
+-- OpenSSL found: 3.6.3
+-- WebUI: using LLAMA_BUILD_NUMBER=b0
+-- WebUI: embedded with source: provisioned
+-- Generating embedded license file for target: llama-common
+-- Configuring done (0.5s)
+-- Generating done (0.1s)
+-- Build files have been written to: /var/tmp/halofpx-l43-build/build-off

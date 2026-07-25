@@ -6,6 +6,9 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 
 - [Clean baseline manifest](baseline-manifest.json)
 - [Feature-off baseline](feature-off-baseline.md)
+- [L43 RPC mutable/update authority — NOT PROMOTED](l43-rpc-mutable-update-authority.md)
+- [L43 receipt](evidence/l43-rpc-mutable-update-authority-receipt.json)
+- [L43 independent review](reviews/2026-07-25__l43-rpc-mutable-update-authority__review__v01.md)
 - [L01 milestone review](reviews/2026-07-17__l01-feature-off-contract__review__v01.md)
 - [L02 milestone review](reviews/2026-07-17__l02-persistence-contracts__review__v01.md)
 - [L03a inert provider seam](l03a-provider-seam.md)

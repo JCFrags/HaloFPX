@@ -1,0 +1,3 @@
+686633439fbd69d36e71680b0e44c7f150901370ad9a8335874075c943a00d58  ggml/include/ggml-rpc.h
+fa9293cc70ece4f4da01c5ac15d4f74a1efb492e039013e941af7ee5a7e78ac4  ggml/src/ggml-rpc/ggml-rpc.cpp
+34b5fe5a0f4ce60d00001067a14881cf47578668ba176644c09039e095837ecc  tests/test-halofpx-rpc-mutable-authority.cpp

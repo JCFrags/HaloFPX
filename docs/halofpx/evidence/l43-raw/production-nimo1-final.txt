@@ -1,0 +1,6 @@
+active
+MainPID=2356329
+NRestarts=0
+ControlGroup=/system.slice/minimax-m27-q6-server.service
+LISTEN 0      512          0.0.0.0:8081      0.0.0.0:*    users:(("llama-server",pid=2356329,fd=5))
+HTTP 200
