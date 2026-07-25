@@ -250,6 +250,27 @@ bool write_text(const fs::path & path, const std::string & value) {
     return output.good();
 }
 
+bool write_text_fsync(const fs::path & path, const std::string & value) {
+    const int fd = open(
+        path.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC | O_NOFOLLOW,
+        S_IRUSR | S_IWUSR);
+    if (fd < 0) return false;
+    size_t offset = 0;
+    while (offset < value.size()) {
+        const ssize_t written = write(
+            fd, value.data() + offset, value.size() - offset);
+        if (written < 0 && errno == EINTR) continue;
+        if (written <= 0) {
+            close(fd);
+            return false;
+        }
+        offset += static_cast<size_t>(written);
+    }
+    const bool durable = fsync(fd) == 0;
+    const bool closed = close(fd) == 0;
+    return durable && closed;
+}
+
 bool read_receipt(const fs::path & path, coordinator_receipt & value) {
     std::ifstream input(path, std::ios::binary);
     input.read(reinterpret_cast<char *>(&value), sizeof(value));
@@ -549,6 +570,28 @@ void print_replay_authority(
     std::fflush(stdout);
 }
 
+bool hmac_text(
+        const char * domain,
+        const std::string & canonical,
+        const std::array<uint8_t, 32> & key,
+        std::array<uint8_t, 32> & tag) {
+    std::array<uint8_t, 64> ipad {};
+    std::array<uint8_t, 64> opad {};
+    for (size_t i = 0; i < ipad.size(); ++i) {
+        const uint8_t b = i < key.size() ? key[i] : 0;
+        ipad[i] = b ^ 0x36;
+        opad[i] = b ^ 0x5c;
+    }
+    std::vector<uint8_t> inner(ipad.begin(), ipad.end());
+    inner.insert(inner.end(), domain, domain + strlen(domain));
+    inner.insert(inner.end(), canonical.begin(), canonical.end());
+    std::array<uint8_t, 32> mid {};
+    if (!sha256(inner.data(), inner.size(), mid)) return false;
+    std::vector<uint8_t> outer(opad.begin(), opad.end());
+    outer.insert(outer.end(), mid.begin(), mid.end());
+    return sha256(outer.data(), outer.size(), tag);
+}
+
 ggml_backend_rpc_halofpx_state_identity make_identity(
         const canary_options & options,
         const std::vector<llama_token> & prefix,
@@ -754,18 +797,47 @@ static int run_canary(int argc, char ** argv) {
         print_semantic_provenance("capture", provenance, key);
         print_replay_authority("capture", provenance, key);
         const auto decoded = common_detokenize(ctx, generated, false);
-        llama_state_seq_storage_free(storage);
-        if (generated.size() != static_cast<size_t>(params.n_predict) ||
-            !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 8;
-        std::printf("mode=capture label=%s coordinator_pid=%ld object=%s control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+        const size_t result_n_batch = llama_n_batch(ctx);
+        std::string result_tokens;
+        for (auto token : generated) {
+            result_tokens += std::to_string(token);
+            result_tokens += ",";
+        }
+        std::array<char, 4096> result_buffer {};
+        const int result_size = std::snprintf(
+            result_buffer.data(), result_buffer.size(),
+            "mode=capture label=%s coordinator_pid=%ld object=%s control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=%s",
             options.result_label.c_str(), static_cast<long>(getpid()), hex(captured.object_digest).c_str(),
             hex(control_diagnostic.data()).c_str(), hex(local_diagnostic.data()).c_str(),
             hex(manifest_diagnostic.data()).c_str(), prefix.size(), prefix.size() - 1,
-            prompt_decode.n_batch, prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
-            coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
-        for (auto token : generated) std::printf("%d,", token);
-        std::printf("\n");
-        std::fflush(stdout);
+            result_n_batch, prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
+            coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes),
+            worker_components, result_tokens.c_str());
+        std::array<uint8_t, 32> result_tag {};
+        const bool result_valid =
+            generated.size() == static_cast<size_t>(params.n_predict) &&
+            result_size > 0 &&
+            static_cast<size_t>(result_size) < result_buffer.size();
+        const std::string result_canonical = result_valid
+            ? std::string(result_buffer.data(), static_cast<size_t>(result_size))
+            : std::string();
+        static constexpr char result_domain[] = "halofpx.result-authority.v1";
+        const fs::path result_path = fs::path(suffix_path.string() + ".result");
+        const bool result_written =
+            result_valid &&
+            hmac_text(result_domain, result_canonical, key, result_tag) &&
+            write_vector(suffix_path, generated) &&
+            write_text(suffix_text_path, decoded) &&
+            write_text_fsync(
+                result_path,
+                result_canonical + " result_auth_tag=" + hex(result_tag.data()) + "\n");
+        const bool result_emitted =
+            result_written &&
+            std::printf("%s result_auth_tag=%s\n",
+                result_canonical.c_str(), hex(result_tag.data()).c_str()) > 0 &&
+            std::fflush(stdout) == 0;
+        llama_state_seq_storage_free(storage);
+        if (!result_emitted) return 8;
         if (owns_ctx) llama_free(ctx);
         return 0;
     }
@@ -975,20 +1047,55 @@ static int run_canary(int argc, char ** argv) {
     print_replay_authority(
         options.mode.c_str(), provenance, options.control_key);
     const auto decoded = common_detokenize(run_ctx, generated, false);
-    if (disposable_ctx) llama_free(disposable_ctx);
-    if (generated.size() != static_cast<size_t>(params.n_predict) ||
-        !write_vector(suffix_path, generated) || !write_text(suffix_text_path, decoded)) return 13;
-    std::printf("mode=%s label=%s coordinator_pid=%ld control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=",
+    const size_t result_n_batch = llama_n_batch(run_ctx);
+    std::string result_tokens;
+    for (auto token : generated) {
+        result_tokens += std::to_string(token);
+        result_tokens += ",";
+    }
+    std::array<char, 4096> result_buffer {};
+    const int result_size = std::snprintf(
+        result_buffer.data(), result_buffer.size(),
+        "mode=%s label=%s coordinator_pid=%ld control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=%s%s%s",
         options.mode.c_str(), options.result_label.c_str(), static_cast<long>(getpid()),
         hex(control_diagnostic.data()).c_str(), hex(local_diagnostic.data()).c_str(),
         hex(manifest_diagnostic.data()).c_str(), prefix.size(), prefix.size() - 1,
-        static_cast<size_t>(llama_n_batch(run_ctx)),
+        result_n_batch,
         prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
-        coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes), worker_components);
-    for (auto token : generated) std::printf("%d,", token);
-    if (!fallback_reason.empty()) std::printf(" fallback=cold reason=%s", fallback_reason.c_str());
-    std::printf("\n");
-    std::fflush(stdout);
+        coordinator_control_bytes, coordinator_local_bytes,
+        static_cast<unsigned long long>(worker_bytes), worker_components,
+        result_tokens.c_str(),
+        fallback_reason.empty() ? "" : " fallback=cold reason=",
+        fallback_reason.c_str());
+    std::array<uint8_t, 32> result_tag {};
+    const bool result_valid =
+        generated.size() == static_cast<size_t>(params.n_predict) &&
+        result_size > 0 &&
+        static_cast<size_t>(result_size) < result_buffer.size();
+    const std::string result_canonical = result_valid
+        ? std::string(result_buffer.data(), static_cast<size_t>(result_size))
+        : std::string();
+    static constexpr char result_domain[] = "halofpx.result-authority.v1";
+    const fs::path result_path = fs::path(suffix_path.string() + ".result");
+    const bool result_written =
+        result_valid &&
+        hmac_text(result_domain, result_canonical, options.control_key, result_tag) &&
+        write_vector(suffix_path, generated) &&
+        write_text(suffix_text_path, decoded) &&
+        write_text_fsync(
+            result_path,
+            result_canonical + " result_auth_tag=" + hex(result_tag.data()) + "\n");
+    const bool result_emitted =
+        result_written &&
+        std::printf("%s result_auth_tag=%s\n",
+            result_canonical.c_str(), hex(result_tag.data()).c_str()) > 0 &&
+        std::fflush(stdout) == 0;
+    if (disposable_ctx) {
+        llama_free(disposable_ctx);
+        disposable_ctx = nullptr;
+        run_ctx = nullptr;
+    }
+    if (!result_emitted) return 13;
     if (owns_ctx) llama_free(ctx);
     return 0;
 }

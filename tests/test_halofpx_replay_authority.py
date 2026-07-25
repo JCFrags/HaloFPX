@@ -82,6 +82,73 @@ class ReplayAuthorityTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate attention"):
             AUTHORITY.parse_record(self.record(duplicate), self.key)
 
+    def test_v2_graph_input_and_assignment_authority_is_closed(self):
+        graph = [
+            "graph_input=inp_tokens,i32,4,1,1,1,1,4,4,4,4,ROCm0," + "a" * 64,
+            "graph_input_count=1", "graph_input_bytes=4",
+            "inactive_graph_input_count=1",
+            "node_assignment_count=42", "cross_backend_edges=3",
+            "node_assignment_sha256=" + "b" * 64,
+            "inactive_graph_input=inp_embd,token-path",
+        ]
+        parts = [
+            "version=2" if item == "version=1" else item
+            for item in self.parts
+        ] + graph
+        parsed = AUTHORITY.parse_record(self.record(parts), self.key)
+        self.assertEqual(parsed["graph_input_count"], "1")
+        for replacement in (
+            "graph_input=unknown,i32",
+            "graph_input=inp_tokens,i32,5",
+            "node_assignment_sha256=bad",
+        ):
+            with self.subTest(replacement=replacement):
+                altered = [
+                    replacement + item[item.find(",", item.find(",") + 1):]
+                    if replacement.startswith("graph_input=") and
+                    item.startswith("graph_input=")
+                    else replacement if item.startswith(
+                        replacement.split("=", 1)[0] + "=")
+                    else item
+                    for item in parts
+                ]
+                with self.assertRaises(ValueError):
+                    AUTHORITY.parse_record(self.record(altered), self.key)
+
+    def test_v2_mutable_input_class_sentinels_change_authenticated_authority(self):
+        names = (
+            "inp_tokens", "inp_pos", "inp_out_ids", "inp_k_idxs",
+            "inp_v_idxs", "attn_inp_kq_mask", "attn_inp_k_rot",
+            "attn_inp_v_rot", "attn_scale",
+        )
+        records = []
+        for ordinal, name in enumerate(names):
+            digest = hashlib.sha256(f"{name}:sentinel:{ordinal}".encode()).hexdigest()
+            records.append(
+                f"graph_input={name},i32,4,1,1,1,1,4,4,4,4,CPU,{digest}")
+        graph = records + [
+            f"graph_input_count={len(records)}",
+            f"graph_input_bytes={len(records) * 4}",
+            "inactive_graph_input_count=1",
+            "node_assignment_count=42", "cross_backend_edges=3",
+            "node_assignment_sha256=" + "b" * 64,
+            "inactive_graph_input=inp_embd,token-path",
+        ]
+        parts = [
+            "version=2" if item == "version=1" else item
+            for item in self.parts
+        ] + graph
+        baseline = AUTHORITY.parse_record(self.record(parts), self.key)
+        self.assertEqual(len(baseline["graph_input"]), len(names))
+        for index, name in enumerate(names):
+            with self.subTest(name=name):
+                changed = list(parts)
+                record_index = len(self.parts) + index
+                changed[record_index] = changed[record_index][:-64] + "c" * 64
+                parsed = AUTHORITY.parse_record(self.record(changed), self.key)
+                self.assertNotEqual(
+                    baseline["graph_input"][index], parsed["graph_input"][index])
+
 
 if __name__ == "__main__":
     unittest.main()

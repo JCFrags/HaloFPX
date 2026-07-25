@@ -62,6 +62,7 @@ DIAGNOSTIC_ONLY = True
 UNIT_PREFIX = "halofpx-l24-primary"
 LIVE_RECAPTURE_DIAGNOSTICS = False
 SEMANTIC_DIAGNOSTICS_ONLY = False
+GRAPH_INPUT_DIAGNOSTICS = False
 SEMANTIC_PATTERN = re.compile(
     r"^\[halofpx-semantic-provenance\] "
     r"(phase=(capture|restore) replay_count=([012]) replay_token=(-?\d+) "
@@ -73,6 +74,8 @@ SEMANTIC_VERIFIER = ""
 SEMANTIC_VERIFIER_SHA = ""
 REPLAY_AUTHORITY_VERIFIER = ""
 REPLAY_AUTHORITY_VERIFIER_SHA = ""
+RESULT_AUTHORITY_VERIFIER = ""
+RESULT_AUTHORITY_VERIFIER_SHA = ""
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -409,13 +412,72 @@ def configure_l36_primary() -> None:
     SEMANTIC_DIAGNOSTICS_ONLY = False
 
 
+def configure_l37_fixture() -> None:
+    configure_l35_fixture()
+    global PORT, WORKER_BIN, CANARY_BIN, READINESS_PROBE, PLACEMENT_PROBE
+    global EPOCH_RECEIPT, REMOTE_EVIDENCE, COORDINATOR_ROOT, WORKER_ROOT
+    global RENDEZVOUS_ROOT, CONTROL, WORKER_CONTROL, ARTIFACT_DIR, UNIT_PREFIX
+    global COMPONENT_DIAGNOSTICS, COMPONENT_DIAGNOSTICS_SHA
+    global SEMANTIC_VERIFIER, SEMANTIC_VERIFIER_SHA
+    global REPLAY_AUTHORITY_VERIFIER, REPLAY_AUTHORITY_VERIFIER_SHA
+    global RESULT_AUTHORITY_VERIFIER, RESULT_AUTHORITY_VERIFIER_SHA
+    global GRAPH_INPUT_DIAGNOSTICS, SEMANTIC_DIAGNOSTICS_ONLY
+    global LIVE_RECAPTURE_DIAGNOSTICS
+    PORT = 50237
+    WORKER_BIN = "/var/tmp/halofpx-l37-build/build/bin/rpc-server"
+    CANARY_BIN = (
+        "/var/tmp/halofpx-l37-build/build/bin/"
+        "test-halofpx-distributed-state-canary")
+    READINESS_PROBE = (
+        "/var/tmp/halofpx-l37-build/scripts/halofpx_rpc_readiness.py")
+    PLACEMENT_PROBE = (
+        "/var/tmp/halofpx-l37-build/build/bin/"
+        "test-halofpx-placement-probe")
+    EPOCH_RECEIPT = (
+        "/var/tmp/halofpx-l37-build/scripts/halofpx_epoch_receipt.py")
+    COMPONENT_DIAGNOSTICS = (
+        "/var/tmp/halofpx-l37-build/scripts/"
+        "halofpx_state_component_diagnostics.py")
+    SEMANTIC_VERIFIER = (
+        "/var/tmp/halofpx-l37-build/scripts/"
+        "halofpx_semantic_provenance.py")
+    REPLAY_AUTHORITY_VERIFIER = (
+        "/var/tmp/halofpx-l37-build/scripts/"
+        "halofpx_replay_authority.py")
+    RESULT_AUTHORITY_VERIFIER = (
+        "/var/tmp/halofpx-l37-build/scripts/"
+        "halofpx_result_authority.py")
+    COMPONENT_DIAGNOSTICS_SHA = os.environ.get(
+        "HALOFPX_L37_COMPONENT_DIAGNOSTICS_SHA256", "")
+    SEMANTIC_VERIFIER_SHA = os.environ.get(
+        "HALOFPX_L37_SEMANTIC_VERIFIER_SHA256", "")
+    REPLAY_AUTHORITY_VERIFIER_SHA = os.environ.get(
+        "HALOFPX_L37_REPLAY_AUTHORITY_VERIFIER_SHA256", "")
+    RESULT_AUTHORITY_VERIFIER_SHA = os.environ.get(
+        "HALOFPX_L37_RESULT_AUTHORITY_VERIFIER_SHA256", "")
+    REMOTE_EVIDENCE = "/var/tmp/halofpx-l37-evidence"
+    COORDINATOR_ROOT = "/var/tmp/halofpx-l37-coordinator"
+    WORKER_ROOT = "/var/tmp/halofpx-l37-worker"
+    RENDEZVOUS_ROOT = "/var/tmp/halofpx-l37-rendezvous"
+    CONTROL = "/var/tmp/halofpx-l37-control.key"
+    WORKER_CONTROL = CONTROL
+    ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
+    UNIT_PREFIX = "halofpx-l37"
+    GRAPH_INPUT_DIAGNOSTICS = True
+    SEMANTIC_DIAGNOSTICS_ONLY = False
+    LIVE_RECAPTURE_DIAGNOSTICS = True
+
+
 def semantic_env_args() -> list[str]:
-    if os.environ.get("HALOFPX_SEMANTIC_DIAGNOSTICS") != "1":
+    if (os.environ.get("HALOFPX_SEMANTIC_DIAGNOSTICS") != "1" and
+            not GRAPH_INPUT_DIAGNOSTICS):
         return []
     result = [
         "--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1",
         "--setenv=HALOFPX_REPLAY_AUTHORITY_DIAGNOSTICS=1",
     ]
+    if GRAPH_INPUT_DIAGNOSTICS:
+        result.append("--setenv=HALOFPX_GRAPH_INPUT_AUTHORITY_DIAGNOSTICS=1")
     replay = os.environ.get("HALOFPX_SEMANTIC_REPLAY_COUNT")
     if replay is not None:
         if replay not in {"0", "1", "2"}:
@@ -529,6 +591,33 @@ def require_authenticated_replay_authority(
                 f"{expected_phase}: replay verifier phase mismatch")
         result[expected_phase] = fields
     return result
+
+
+def require_authenticated_result(
+        label: str, log: str) -> dict[str, str]:
+    if not RESULT_AUTHORITY_VERIFIER or not RESULT_AUTHORITY_VERIFIER_SHA:
+        raise CanaryError("result-authority verifier is unavailable")
+    actual = ssh(
+        NIMO2, "sha256sum", RESULT_AUTHORITY_VERIFIER).stdout.split()[0]
+    if actual != RESULT_AUTHORITY_VERIFIER_SHA:
+        raise CanaryError("result-authority verifier hash mismatch")
+    record = f"{ARTIFACT_DIR}/{label}-suffix.bin.result"
+    verified = ssh(
+        NIMO2, "python3", RESULT_AUTHORITY_VERIFIER,
+        "--record", record, "--key-file", CONTROL,
+    )
+    try:
+        fields = json.loads(verified.stdout)
+    except json.JSONDecodeError as exc:
+        raise CanaryError("result-authority verifier output malformed") from exc
+    if not isinstance(fields, dict) or any(
+            not isinstance(name, str) or not isinstance(value, str)
+            for name, value in fields.items()):
+        raise CanaryError("result-authority verifier contract malformed")
+    logged = output_fields(log)
+    if fields != logged:
+        raise CanaryError("durable and emitted result authority differ")
+    return fields
 
 
 def run(argv, *, timeout=900, check=True):
@@ -931,11 +1020,13 @@ def require_result(
         "mode": mode,
         "prompt_tokens": "1129",
         "saved_boundary": "1128",
-        "n_batch": "0" if mode == "restore" else "512",
+        "n_batch": "512",
     }
     for name, expected in exact.items():
         if fields.get(name) != expected:
             raise CanaryError(f"{mode} result {name} mismatch: {fields.get(name)!r}")
+    if re.fullmatch(r"[0-9a-f]{64}", fields.get("result_auth_tag", "")) is None:
+        raise CanaryError(f"{mode} result authentication is missing or malformed")
     if fallback_reason is None:
         if "fallback" in fields or "reason" in fields:
             raise CanaryError(f"{mode} unexpectedly cold-fell back: {fields}")
@@ -1226,7 +1317,10 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         True, capture_unit, root)
     capture_result = canary_sequence("capture-only", "capture")
     write_log(root, "capture.log", capture_result)
-    capture_fields = output_fields(capture_result.stdout)
+    capture_fields = (
+        require_authenticated_result("capture", capture_result.stdout)
+        if RESULT_AUTHORITY_VERIFIER else output_fields(capture_result.stdout)
+    )
     require_result(capture_fields, "capture", require_worker_state=True)
     capture_coordinator_pid = int(capture_fields.get("coordinator_pid", "0"))
     if capture_coordinator_pid <= 0:
@@ -1340,7 +1434,10 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     (root / "restore.log").write_text(restore_log, encoding="utf-8")
     if restore_status != 0:
         raise CanaryError(f"guarded restore failed with {restore_status}: {restore_log}")
-    restore_fields = output_fields(restore_log)
+    restore_fields = (
+        require_authenticated_result("restore", restore_log)
+        if RESULT_AUTHORITY_VERIFIER else output_fields(restore_log)
+    )
     require_result(restore_fields, "restore", require_worker_state=True)
     if int(restore_fields.get("coordinator_pid", "0")) != restore_coordinator_pid:
         raise CanaryError("restore result PID does not match admitted model residency")
@@ -1642,11 +1739,13 @@ def main() -> int:
     parser.add_argument("--l34-fixture", action="store_true")
     parser.add_argument("--l35-fixture", action="store_true")
     parser.add_argument("--l36-primary", action="store_true")
+    parser.add_argument("--l37-fixture", action="store_true")
     args = parser.parse_args()
     if sum((
         args.l28_fixture, args.l29_primary, args.l31_primary,
         args.l32_fixture, args.l33_primary, args.l34_fixture, args.l35_fixture,
         args.l36_primary,
+        args.l37_fixture,
     )) > 1:
         parser.error("fixture and primary modes are mutually exclusive")
     if args.l28_fixture:
@@ -1665,6 +1764,8 @@ def main() -> int:
         configure_l35_fixture()
     if args.l36_primary:
         configure_l36_primary()
+    if args.l37_fixture:
+        configure_l37_fixture()
     root = args.evidence_dir.resolve()
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     initialize_ssh_transport(root)

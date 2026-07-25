@@ -349,14 +349,16 @@ class PrimaryRetryTests(unittest.TestCase):
         with self.assertRaises(retry.CanaryError):
             retry.require_result(fields, "restore", require_worker_state=True)
 
-    def test_fresh_residency_n_batch_is_lifecycle_bound_across_diagnostics(self):
+    def test_live_context_n_batch_is_stable_across_diagnostics(self):
         capture = {
             "mode": "capture", "prompt_tokens": "1129", "saved_boundary": "1128",
             "n_batch": "512", "worker_bytes": "100", "worker_components": "1",
+            "result_auth_tag": "a" * 64,
         }
         restore = {
             "mode": "restore", "prompt_tokens": "1129", "saved_boundary": "1128",
-            "n_batch": "0", "worker_bytes": "100", "worker_components": "1",
+            "n_batch": "512", "worker_bytes": "100", "worker_components": "1",
+            "result_auth_tag": "b" * 64,
         }
         combinations = (
             (False, False, False),
@@ -382,14 +384,14 @@ class PrimaryRetryTests(unittest.TestCase):
                 retry.require_result(
                     restore, "restore", require_worker_state=component)
 
-    def test_fresh_residency_n_batch_refuses_swapped_lifecycle_values(self):
+    def test_live_context_n_batch_refuses_zero_and_malformed_values(self):
         capture = {
             "mode": "capture", "prompt_tokens": "1129", "saved_boundary": "1128",
-            "n_batch": "0",
+            "n_batch": "0", "result_auth_tag": "a" * 64,
         }
         restore = {
             "mode": "restore", "prompt_tokens": "1129", "saved_boundary": "1128",
-            "n_batch": "512",
+            "n_batch": "3386108400", "result_auth_tag": "b" * 64,
         }
         with self.assertRaisesRegex(retry.CanaryError, "capture result n_batch"):
             retry.require_result(capture, "capture")
@@ -479,7 +481,8 @@ class PrimaryRetryTests(unittest.TestCase):
             f"control_sha256={'a' * 64} local_sha256={'b' * 64} "
             f"component_manifest_sha256={'c' * 64} "
             "prompt_tokens=1129 saved_boundary=1128 n_batch=512 "
-            "worker_bytes=2454528 worker_components=64 tokens=21549,\n"
+            "worker_bytes=2454528 worker_components=64 tokens=21549, "
+            f"result_auth_tag={'d' * 64}\n"
         )
         fields = retry.require_flushed_capture_evidence(line)
         self.assertEqual(fields["tokens"], "21549,")
@@ -768,6 +771,33 @@ class PrimaryRetryTests(unittest.TestCase):
             self.assertEqual(retry.CACHE_TYPE_K, "f16")
             self.assertEqual(retry.CACHE_TYPE_V, "f16")
             self.assertEqual(retry.FLASH_ATTN, "off")
+        finally:
+            for name, value in original.items():
+                setattr(retry, name, value)
+
+    def test_l37_configuration_forces_closed_graph_diagnostics(self):
+        original = {
+            name: getattr(retry, name)
+            for name in (
+                "PORT", "UNIT_PREFIX", "GRAPH_INPUT_DIAGNOSTICS",
+                "SEMANTIC_DIAGNOSTICS_ONLY", "LIVE_RECAPTURE_DIAGNOSTICS",
+            )
+        }
+        try:
+            retry.configure_l37_fixture()
+            self.assertEqual(retry.PORT, 50237)
+            self.assertEqual(retry.UNIT_PREFIX, "halofpx-l37")
+            self.assertTrue(retry.GRAPH_INPUT_DIAGNOSTICS)
+            self.assertFalse(retry.SEMANTIC_DIAGNOSTICS_ONLY)
+            self.assertTrue(retry.LIVE_RECAPTURE_DIAGNOSTICS)
+            with mock.patch.dict(retry.os.environ, {}, clear=True):
+                self.assertEqual(
+                    retry.semantic_env_args(),
+                    [
+                        "--setenv=HALOFPX_SEMANTIC_DIAGNOSTICS=1",
+                        "--setenv=HALOFPX_REPLAY_AUTHORITY_DIAGNOSTICS=1",
+                        "--setenv=HALOFPX_GRAPH_INPUT_AUTHORITY_DIAGNOSTICS=1",
+                    ])
         finally:
             for name, value in original.items():
                 setattr(retry, name, value)

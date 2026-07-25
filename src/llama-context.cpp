@@ -18,6 +18,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 
@@ -39,10 +40,202 @@ bool halofpx_replay_authority_enabled() {
     return value != nullptr && std::strcmp(value, "1") == 0;
 }
 
+bool halofpx_graph_input_authority_enabled() {
+    const char * value = std::getenv("HALOFPX_GRAPH_INPUT_AUTHORITY_DIAGNOSTICS");
+    return value != nullptr && std::strcmp(value, "1") == 0;
+}
+
+bool halofpx_admitted_graph_input(const char * name) {
+    static const std::set<std::string> admitted {
+        "attn_inp_kq_mask", "attn_inp_k_rot", "attn_inp_v_rot",
+        "attn_scale", "inp_embd", "inp_k_idxs", "inp_out_ids", "inp_pos",
+        "inp_tokens", "inp_v_idxs",
+    };
+    return name != nullptr && admitted.count(name) == 1;
+}
+
+void halofpx_collect_input_tensors(
+        ggml_tensor * tensor,
+        std::set<ggml_tensor *> & visited,
+        std::vector<ggml_tensor *> & inputs) {
+    if (tensor == nullptr || !visited.insert(tensor).second) return;
+    if ((tensor->flags & GGML_TENSOR_FLAG_INPUT) != 0) {
+        inputs.push_back(tensor);
+    }
+    for (ggml_tensor * source : tensor->src) {
+        halofpx_collect_input_tensors(source, visited, inputs);
+    }
+    halofpx_collect_input_tensors(tensor->view_src, visited, inputs);
+}
+
+bool halofpx_capture_graph_input_authority(
+        ggml_backend_sched_t sched,
+        ggml_cgraph * graph,
+        std::string & output) {
+    static constexpr size_t max_inputs = 32;
+    static constexpr size_t max_input_bytes = 16U * 1024U * 1024U;
+    static constexpr size_t max_total_bytes = 64U * 1024U * 1024U;
+    static constexpr size_t max_assignment_bytes = 2U * 1024U * 1024U;
+    std::set<ggml_tensor *> visited;
+    std::vector<ggml_tensor *> inputs;
+    const int nodes = graph ? ggml_graph_n_nodes(graph) : 0;
+    for (int i = 0; i < nodes; ++i) {
+        halofpx_collect_input_tensors(
+            ggml_graph_node(graph, i), visited, inputs);
+    }
+    if (inputs.empty() || inputs.size() > max_inputs) {
+        LLAMA_LOG_ERROR(
+            "halofpx graph input count refused: inputs=%zu nodes=%d\n",
+            inputs.size(), nodes);
+        return false;
+    }
+    std::sort(inputs.begin(), inputs.end(), [](const auto * a, const auto * b) {
+        return std::strcmp(a->name, b->name) < 0;
+    });
+    const bool token_path = std::any_of(inputs.begin(), inputs.end(), [](const auto * input) {
+        return std::strcmp(input->name, "inp_tokens") == 0;
+    });
+    size_t total_bytes = 0;
+    size_t inactive_inputs = 0;
+    std::ostringstream records;
+    for (const ggml_tensor * input : inputs) {
+        // build_inp_embd deliberately materializes both SELECT branches. The
+        // caller supplies exactly one of token IDs or embeddings; the other
+        // flagged input is not read by the selected graph path.
+        if (token_path && std::strcmp(input->name, "inp_embd") == 0) {
+            ++inactive_inputs;
+            continue;
+        }
+        const size_t bytes = ggml_nbytes(input);
+        if (!halofpx_admitted_graph_input(input->name) ||
+            input->buffer == nullptr || bytes == 0 || bytes > max_input_bytes ||
+            total_bytes > max_total_bytes - bytes) {
+            LLAMA_LOG_ERROR(
+                "halofpx graph input refused: name=%s admitted=%d buffer=%d bytes=%zu total=%zu\n",
+                input->name, halofpx_admitted_graph_input(input->name) ? 1 : 0,
+                input->buffer != nullptr ? 1 : 0, bytes, total_bytes);
+            return false;
+        }
+        total_bytes += bytes;
+        std::vector<uint8_t> content(bytes);
+        ggml_backend_tensor_get(input, content.data(), 0, bytes);
+        uint8_t digest[32] {};
+        if (!llama_halofpx_graph_input_content_digest(
+                input->name, content.data(), content.size(), digest)) {
+            LLAMA_LOG_ERROR("halofpx graph input digest failed: name=%s\n", input->name);
+            return false;
+        }
+        ggml_backend_t backend =
+            ggml_backend_sched_get_tensor_backend(sched, const_cast<ggml_tensor *>(input));
+        if (backend == nullptr) {
+            LLAMA_LOG_ERROR("halofpx graph input has no backend: name=%s\n", input->name);
+            return false;
+        }
+        records << "|graph_input=" << input->name
+            << "," << ggml_type_name(input->type)
+            << "," << bytes
+            << "," << input->ne[0] << "," << input->ne[1]
+            << "," << input->ne[2] << "," << input->ne[3]
+            << "," << input->nb[0] << "," << input->nb[1]
+            << "," << input->nb[2] << "," << input->nb[3]
+            << "," << ggml_backend_name(backend) << ",";
+        static constexpr char digits[] = "0123456789abcdef";
+        for (uint8_t byte : digest) {
+            records << digits[byte >> 4] << digits[byte & 15];
+        }
+    }
+    std::ostringstream assignments;
+    size_t cross_backend_edges = 0;
+    for (int i = 0; i < nodes; ++i) {
+        ggml_tensor * node = ggml_graph_node(graph, i);
+        ggml_backend_t node_backend =
+            ggml_backend_sched_get_tensor_backend(sched, node);
+        if (node_backend == nullptr) {
+            LLAMA_LOG_ERROR("halofpx graph node has no backend: ordinal=%d\n", i);
+            return false;
+        }
+        assignments << i << "," << ggml_op_name(node->op)
+            << "," << ggml_type_name(node->type)
+            << "," << ggml_backend_name(node_backend)
+            << "," << node->view_offs;
+        for (ggml_tensor * source : node->src) {
+            if (source == nullptr) {
+                assignments << ",-";
+                continue;
+            }
+            ggml_backend_t source_backend =
+                ggml_backend_sched_get_tensor_backend(sched, source);
+            const char * source_name = nullptr;
+            if (source_backend != nullptr) {
+                source_name = ggml_backend_name(source_backend);
+            } else if (source->buffer != nullptr) {
+                source_name = ggml_backend_buft_name(
+                    ggml_backend_buffer_get_type(source->buffer));
+            } else {
+                LLAMA_LOG_ERROR(
+                    "halofpx graph source has no backend or buffer: node=%d source=%s\n",
+                    i, source->name);
+                return false;
+            }
+            assignments << "," << source_name;
+            if (std::strcmp(source_name, ggml_backend_name(node_backend)) != 0) {
+                ++cross_backend_edges;
+            }
+        }
+        assignments << "\n";
+        if (static_cast<size_t>(assignments.tellp()) > max_assignment_bytes) {
+            LLAMA_LOG_ERROR("halofpx graph assignment authority exceeds bound\n");
+            return false;
+        }
+    }
+    const std::string assignment_bytes = assignments.str();
+    uint8_t assignment_digest[32] {};
+    if (!ggml_backend_rpc_halofpx_state_sha256(
+            assignment_bytes.data(), assignment_bytes.size(), assignment_digest)) {
+        LLAMA_LOG_ERROR("halofpx graph assignment digest failed\n");
+        return false;
+    }
+    records << "|graph_input_count=" << (inputs.size() - inactive_inputs)
+        << "|graph_input_bytes=" << total_bytes
+        << "|inactive_graph_input_count=" << inactive_inputs
+        << "|node_assignment_count=" << nodes
+        << "|cross_backend_edges=" << cross_backend_edges
+        << "|node_assignment_sha256=";
+    static constexpr char digits[] = "0123456789abcdef";
+    for (uint8_t byte : assignment_digest) {
+        records << digits[byte >> 4] << digits[byte & 15];
+    }
+    if (inactive_inputs == 1) {
+        records << "|inactive_graph_input=inp_embd,token-path";
+    }
+    output = records.str();
+    return true;
+}
+
+bool halofpx_graph_input_content_digest_impl(
+        const char * name,
+        const void * data,
+        size_t size,
+        uint8_t digest[32]) {
+    static constexpr size_t max_input_bytes = 16U * 1024U * 1024U;
+    return halofpx_admitted_graph_input(name) &&
+        data != nullptr && size > 0 && size <= max_input_bytes &&
+        digest != nullptr &&
+        ggml_backend_rpc_halofpx_state_sha256(data, size, digest);
+}
+
 struct src_mctx_reset_on_exit {
     llama_memory_context_ptr * slot;
     ~src_mctx_reset_on_exit() { if (slot) slot->reset(); }
 };
+}
+
+bool llama_halofpx_graph_input_content_digest(
+        const char * name,
+        const void * data,
+        size_t size,
+        uint8_t digest[32]) {
+    return halofpx_graph_input_content_digest_impl(name, data, size, digest);
 }
 
 llama_context::llama_context(
@@ -1453,6 +1646,17 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
 
         //LLAMA_LOG_INFO("graph set inputs time: %.3f ms\n", (ggml_time_us() - t_start_us)/1000.0);
     }
+    if (halofpx_graph_input_authority_enabled()) {
+        ggml_backend_sched_synchronize(sched.get());
+        if (!halofpx_capture_graph_input_authority(
+                sched.get(), gf, halofpx_last_graph_input_authority)) {
+            LLAMA_LOG_ERROR("%s: graph input authority is incomplete or unadmitted\n", __func__);
+            ret = GGML_STATUS_FAILED;
+            return nullptr;
+        }
+    } else {
+        halofpx_last_graph_input_authority.clear();
+    }
 
     const auto status = graph_compute(res->get_gf(), ubatch.n_tokens > 1);
     if (status != GGML_STATUS_SUCCESS) {
@@ -2204,7 +2408,7 @@ std::string llama_context::halofpx_replay_diagnostic() const {
         return {};
     }
     std::ostringstream out;
-    out << "version=1"
+    out << "version=" << (halofpx_graph_input_authority_enabled() ? 2 : 1)
         << "|graph_reused=" << (halofpx_last_graph_reused ? 1 : 0)
         << "|scheduler_reset=" << (halofpx_last_sched_reset ? 1 : 0)
         << "|graph_nodes=" << halofpx_last_graph_nodes
@@ -2222,6 +2426,12 @@ std::string llama_context::halofpx_replay_diagnostic() const {
         if (!memory_diag.empty()) {
             out << "|" << memory_diag;
         }
+    }
+    if (halofpx_graph_input_authority_enabled()) {
+        if (halofpx_last_graph_input_authority.empty()) {
+            return {};
+        }
+        out << halofpx_last_graph_input_authority;
     }
     return out.str();
 }

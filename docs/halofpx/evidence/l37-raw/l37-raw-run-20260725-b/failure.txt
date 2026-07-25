@@ -1,0 +1,17 @@
+command failed (1): ('python3', '/var/tmp/halofpx-l37-build/scripts/halofpx_result_authority.py', '--record', '/var/tmp/halofpx-l37-coordinator/421016c41e1af022aa65feef9c7b9329fdc1b49ff0b1c4df4aaad10cf13bf816/capture-suffix.bin.result', '--key-file', '/var/tmp/halofpx-l37-control.key')
+
+Traceback (most recent call last):
+  File "/var/tmp/halofpx-l37-build/scripts/halofpx_result_authority.py", line 54, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/var/tmp/halofpx-l37-build/scripts/halofpx_result_authority.py", line 48, in main
+    fields = verify(args.record.read_text(encoding="utf-8"), key)
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 787, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 771, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/var/tmp/halofpx-l37-coordinator/421016c41e1af022aa65feef9c7b9329fdc1b49ff0b1c4df4aaad10cf13bf816/capture-suffix.bin.result'
+

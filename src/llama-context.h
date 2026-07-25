@@ -380,6 +380,7 @@ private:
     uint32_t halofpx_last_graph_nodes = 0;
     int32_t halofpx_last_output_row = -1;
     std::string halofpx_last_logits_backend;
+    std::string halofpx_last_graph_input_authority;
 
     // host buffer for the model output (logits and embeddings)
     ggml_backend_buffer_ptr buf_output;
@@ -412,3 +413,11 @@ private:
     mutable int32_t n_reused = 0; // number of times the previous graph was reused
     mutable int32_t n_graph_builds = 0; // number of graph rebuilds after reuse misses
 };
+
+// Internal diagnostic test seam. This is the exact closed admission and
+// domain-independent content digest path used by the graph-input collector.
+bool llama_halofpx_graph_input_content_digest(
+        const char * name,
+        const void * data,
+        size_t size,
+        uint8_t digest[32]);

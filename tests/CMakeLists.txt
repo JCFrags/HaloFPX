@@ -489,6 +489,10 @@ if (GGML_RPC_HALOFPX_LOCAL_STATE)
     target_link_libraries(test-halofpx-rpc-local-state PRIVATE ggml-rpc)
     llama_build(test-halofpx-distributed-state-canary.cpp)
     target_link_libraries(test-halofpx-distributed-state-canary PRIVATE ggml-rpc)
+    llama_build(test-halofpx-graph-input-authority.cpp)
+    target_include_directories(test-halofpx-graph-input-authority PRIVATE
+        ${CMAKE_SOURCE_DIR}/src)
+    target_link_libraries(test-halofpx-graph-input-authority PRIVATE ggml-rpc)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")

@@ -21,6 +21,11 @@ REQUIRED = {
     "kv_heads_before", "kv_heads_after", "kv_n", "kv_positions",
     "kv_sequence_ids", "auth_tag",
 }
+GRAPH_REQUIRED = {
+    "graph_input_count", "graph_input_bytes", "node_assignment_count",
+    "inactive_graph_input_count", "node_assignment_sha256",
+    "cross_backend_edges",
+}
 
 
 def parse_record(line: str, key: bytes) -> dict[str, object]:
@@ -31,6 +36,8 @@ def parse_record(line: str, key: bytes) -> dict[str, object]:
     tensors: list[str] = []
     backends: list[str] = []
     views: list[str] = []
+    graph_inputs: list[str] = []
+    inactive_graph_inputs: list[str] = []
     canonical_parts: list[str] = []
     for part in body.split("|"):
         if "=" not in part:
@@ -48,19 +55,25 @@ def parse_record(line: str, key: bytes) -> dict[str, object]:
             backends.append(value)
         elif name == "attention_view":
             views.append(value)
+        elif name == "graph_input":
+            graph_inputs.append(value)
+        elif name == "inactive_graph_input":
+            inactive_graph_inputs.append(value)
         elif name in fields:
             raise ValueError(f"duplicate field: {name}")
         else:
             fields[name] = value
-    missing = REQUIRED - fields.keys()
-    unknown = set(fields) - REQUIRED
+    version = fields.get("version")
+    required = REQUIRED | (GRAPH_REQUIRED if version == "2" else set())
+    missing = required - fields.keys()
+    unknown = set(fields) - required
     if missing or unknown:
         raise ValueError(f"field contract mismatch missing={sorted(missing)} unknown={sorted(unknown)}")
     canonical = "|".join(canonical_parts).encode()
     expected = hmac.new(key, DOMAIN + canonical, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(str(fields["auth_tag"]), expected):
         raise ValueError("authentication failure")
-    if fields["version"] != "1":
+    if fields["version"] not in {"1", "2"}:
         raise ValueError("wrong version")
     if fields["kv_prepare_slots"] != fields["kv_apply_slots"]:
         raise ValueError("prepare/apply slot mismatch")
@@ -129,6 +142,47 @@ def parse_record(line: str, key: bytes) -> dict[str, object]:
         view_keys.add(key_value)
     if tensor_keys != view_keys:
         raise ValueError("tensor/view identity mismatch")
+    if fields["version"] == "2":
+        admitted = {
+            "attn_inp_kq_mask", "attn_inp_k_rot", "attn_inp_v_rot",
+            "attn_scale", "inp_embd", "inp_k_idxs", "inp_out_ids", "inp_pos",
+            "inp_tokens", "inp_v_idxs",
+        }
+        if not graph_inputs or int(str(fields["graph_input_count"])) != len(graph_inputs):
+            raise ValueError("graph input count mismatch")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(fields["node_assignment_sha256"])):
+            raise ValueError("malformed node assignment digest")
+        if any(not str(fields[name]).isdigit() for name in (
+                "graph_input_bytes", "inactive_graph_input_count",
+                "node_assignment_count",
+                "cross_backend_edges")):
+            raise ValueError("malformed graph authority count")
+        inactive = int(str(fields["inactive_graph_input_count"]))
+        if inactive not in {0, 1} or len(inactive_graph_inputs) != inactive:
+            raise ValueError("inactive graph input count mismatch")
+        if inactive_graph_inputs and inactive_graph_inputs != ["inp_embd,token-path"]:
+            raise ValueError("unknown inactive graph input")
+        graph_names = set()
+        total_bytes = 0
+        for value in graph_inputs:
+            parts = value.split(",")
+            if len(parts) != 13 or parts[0] not in admitted:
+                raise ValueError("unknown or malformed graph input")
+            if parts[0] in graph_names:
+                raise ValueError("duplicate graph input")
+            graph_names.add(parts[0])
+            if parts[1] not in {"i32", "i64", "f16", "f32"}:
+                raise ValueError("unsupported graph input type")
+            if any(not item.isdigit() for item in parts[2:11]):
+                raise ValueError("malformed graph input geometry")
+            if int(parts[2]) <= 0 or not parts[11] or not re.fullmatch(
+                    r"[0-9a-f]{64}", parts[12]):
+                raise ValueError("malformed graph input content authority")
+            total_bytes += int(parts[2])
+        if total_bytes != int(str(fields["graph_input_bytes"])):
+            raise ValueError("graph input byte total mismatch")
+        fields["graph_input"] = graph_inputs
+        fields["inactive_graph_input"] = inactive_graph_inputs
     fields["kv_tensor"] = tensors
     fields["backend"] = backends
     fields["attention_view"] = views

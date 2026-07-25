@@ -1,0 +1,20 @@
+invocation=/var/tmp/halofpx-l37-build/build/bin/test-halofpx-distributed-state-canary --hfx-mode capture --hfx-sequence capture-only --hfx-rendezvous-root /var/tmp/halofpx-l37-rendezvous --hfx-artifact-root /var/tmp/halofpx-l37-coordinator --hfx-model-digest 66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739 --hfx-compatibility-root a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f --hfx-plan-digest 0268cc6071a8d78983f6351fe45d510e767d8cd26618a8bdffc972b6655f7967 --hfx-topology-digest 09b71fe40ae05c841a5be563f6e2b27ad2529d893b9420412e5280541ae53e1f --hfx-placement-digest d4aa0d3c14a3bec4ba5de733e00b6447f79f94d5dbeda6e3593be74ce84f917e --hfx-checkpoint-digest 421016c41e1af022aa65feef9c7b9329fdc1b49ff0b1c4df4aaad10cf13bf816 --hfx-control-file /var/tmp/halofpx-l37-control.key --hfx-expected-prompt-tokens 1129 --model /var/tmp/halofpx-qualification/l14q-t01-20260719-nimo2/build-cpu/tinyllamas/stories15M-q4_0.gguf --rpc 10.44.0.1:50237 --device RPC0,ROCm0 --split-mode layer --tensor-split 1,1 --n-gpu-layers 999 --fit off --no-mmap --direct-io --flash-attn off --ctx-size 4096 --batch-size 512 --ubatch-size 512 --cache-type-k f16 --cache-type-v f16 --parallel 1 --threads 16 --threads-batch 16 --file /var/tmp/halofpx-l13-retry-a2-20260721/prompt-1129.txt --n-predict 1 --seed 1234 --temp 0
+transient_unit=halofpx-l37-canary-capture
+Running as unit: halofpx-l37-canary-capture.service
+0.00.029.837 W load: empty token at index 30143
+0.00.029.965 W load: bad special token: 'tokenizer.ggml.seperator_token_id' = 4294967295, using default id -1
+0.00.029.966 W load: bad special token: 'tokenizer.ggml.padding_token_id' = 4294967295, using default id -1
+0.00.119.707 W llama_context: n_ctx_seq (4096) > n_ctx_train (128) -- possible training context overflow
+0.00.128.242 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+0.00.128.729 E process_ubatch: graph input authority is incomplete or unadmitted
+0.00.128.731 W decode: removing memory module entries for seq_id = 0, pos = [0, +inf)
+0.00.128.735 E llama_decode: failed to decode, ret = -3
+0.00.130.514 E process_ubatch: graph input authority is incomplete or unadmitted
+0.00.130.516 W decode: removing memory module entries for seq_id = 0, pos = [0, +inf)
+0.00.130.547 E llama_decode: failed to decode, ret = -3
+          Finished with result: exit-code
+Main processes terminated with: code=exited, status=4/NOPERMISSION
+               Service runtime: 185ms
+             CPU time consumed: 121ms
+                   Memory peak: 359.4M (swap: 0B)
+

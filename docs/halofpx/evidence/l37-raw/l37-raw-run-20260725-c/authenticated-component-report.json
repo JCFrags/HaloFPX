@@ -1,0 +1,56 @@
+{
+  "coordinator": {
+    "auth_tag": "fe5b71ccba5408809129258b5102eab8d6f7deb6ab52c5403fab6338b47cbb9f",
+    "control_bytes": 13704,
+    "live_control_sha256": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+    "live_local_sha256": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee",
+    "live_manifest_sha256": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1",
+    "local_bytes": 2603624,
+    "original_control_sha256": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+    "original_local_sha256": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee",
+    "original_manifest_sha256": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1",
+    "pregeneration_control_sha256": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+    "pregeneration_local_sha256": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee",
+    "pregeneration_manifest_sha256": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1",
+    "recapture_object_sha256": "21d9d49ef3896b92c38ae3718c72d2b2a47f2e63404cbaf4293cb51ca2c2b7fc",
+    "restore_input_control_sha256": "74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4",
+    "restore_input_local_sha256": "dd773b55782dff7623889a9df752e389b5bee09f76d9b423a716db8aecb3b9ee",
+    "restore_input_manifest_sha256": "317230332505f5039715f6ed2219eecab6ffd78d5fc0332030c0f6e997fd30d1",
+    "token_boundary": 1128,
+    "worker_bytes": 5197824,
+    "worker_components": 1156
+  },
+  "mismatches": [],
+  "phases": {
+    "apply": {
+      "aggregate_sha256": "ed62ec5b04cc53ce870ddd6df1d8eefc10a0e4f44e2a699deb879ebf4462fdbc",
+      "auth_tag": "85dbc5265cb88659ee97792a13bf1162a113b8c2c16e11ec6de92946693524dd",
+      "bytes": 5197824,
+      "components": 1156,
+      "merkle_sha256": "d88a74bbc23b8a9d067a44d35215b43602f7a1d0ac0465e91dde61282f0af7b0"
+    },
+    "capture": {
+      "aggregate_sha256": "ed62ec5b04cc53ce870ddd6df1d8eefc10a0e4f44e2a699deb879ebf4462fdbc",
+      "auth_tag": "8df1317971ef6b1edc6fbbc7265592e0827063ff89e89ae977188f770e393bbc",
+      "bytes": 5197824,
+      "components": 1156,
+      "merkle_sha256": "b61a834dcb4859ba48196616614bd92b80bed44b33b58518b62b9c2ccabd02e0"
+    },
+    "recapture": {
+      "aggregate_sha256": "ed62ec5b04cc53ce870ddd6df1d8eefc10a0e4f44e2a699deb879ebf4462fdbc",
+      "auth_tag": "8df1317971ef6b1edc6fbbc7265592e0827063ff89e89ae977188f770e393bbc",
+      "bytes": 5197824,
+      "components": 1156,
+      "merkle_sha256": "b61a834dcb4859ba48196616614bd92b80bed44b33b58518b62b9c2ccabd02e0"
+    },
+    "stage": {
+      "aggregate_sha256": "ed62ec5b04cc53ce870ddd6df1d8eefc10a0e4f44e2a699deb879ebf4462fdbc",
+      "auth_tag": "fbc36257e31623afa801cb0cfc4f19d597432606b80e8767a7a34cde0178053a",
+      "bytes": 5197824,
+      "components": 1156,
+      "merkle_sha256": "b61a834dcb4859ba48196616614bd92b80bed44b33b58518b62b9c2ccabd02e0"
+    }
+  },
+  "report_auth_tag": "22170d472685d656884c5db53d14abefc3968151bb0f349bdb4ca1d4e6092cee",
+  "schema": "halofpx.state-component-live-recapture-diagnostic.v1"
+}

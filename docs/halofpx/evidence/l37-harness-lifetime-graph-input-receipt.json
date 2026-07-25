@@ -1,0 +1,71 @@
+{
+  "schema": "halofpx.l37.harness-lifetime-graph-input.receipt.v1",
+  "date": "2026-07-25",
+  "baseline_commit": "0b4c00c5f90cf245ceee769619886f295bf4e5d2",
+  "scope": "no-production no-primary-load",
+  "result": "PASS_DIAGNOSTIC_CONTRACT",
+  "source_identities": {
+    "canary_git_blob": "44a47bb74679c6a962b8dc2d12eec9b7b37d62ff",
+    "llama_context_git_blob": "b0a4d948d56bea0521cd97376a34215a26e7b4e2",
+    "llama_context_header_git_blob": "44b190e1a85f2d5e3610a4919e5474e55c3656e8",
+    "collector_test_git_blob": "2564277ff8d8fd614724b4c27772d71ab36bcf30",
+    "runner_git_blob": "60db6775cb89f06e615b9fe961fbea3072fe4d46",
+    "replay_verifier_git_blob": "863046182f5882308a56cb9987b84cdf43e0877d",
+    "result_verifier_git_blob": "f554cd247935406e5d136c3d62ef70ae7a2f52fc"
+  },
+  "binary_identities": {
+    "canary_sha256": "0a8b4fd9105e3424fd231651d8af089e9e4865ec4b7a10b2ce58d1d4b287e703",
+    "libllama_sha256": "a27c093b71dee5c6b9b301a9b8f4b39a87e452861bf10c4d82c99e91ed4ba028",
+    "rpc_server_sha256": "7967351c1dfca9c14f76eb99cef1691dac443e326e661312041ea6210a7d5a90",
+    "placement_probe_sha256": "3b6445fc7d6c4c5af478654dc40bf4081999dc7b8e3514afd475ff997e4c221e",
+    "replay_verifier_sha256": "11a0ce5e7878dfff30402948b183542dc589cdd72634ec40f29a65a7e915252b",
+    "result_verifier_sha256": "53175585e11d9faf5f49026ad8764c724bfe370da25ee8e4fd1479388c223b99"
+  },
+  "focused_tests": {
+    "pytest": "56 passed, 49 subtests passed",
+    "release_collector_test": "PASS",
+    "deterministic_source_lifetime_test": true,
+    "post_free_context_read": false,
+    "durable_authenticated_result": true
+  },
+  "combined_fixture": {
+    "accepted_attempt": "l37-raw-run-20260725-h",
+    "result_json_sha256": "856c50a45165730f5f0f8b931ef27aeb27d32f9a95c19bbd989310382e308007",
+    "model_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "capture_n_batch": 512,
+    "restore_n_batch": 512,
+    "replay_token": 29871,
+    "graph_nodes": 222,
+    "node_assignment_sha256": "fc4f4d3b9025bc7fe255dbda7ce484b2f4f3f07dd44816c983ae441d6c94e1cd",
+    "logits_sha256": "f6d0fa35238815d19f10cb97a0af1c75349080fa431064a25a4969f8d9b177b1",
+    "sampled_token": 4245,
+    "worker_components": 1156,
+    "worker_bytes": 5197824,
+    "legacy_state_get_set": 0
+  },
+  "raw_evidence": {
+    "path": "docs/halofpx/evidence/l37-raw",
+    "sha256sums_sha256": "a20ba36b13b6bd5c94a3eb362f8d398c87e343e3f892231270ec55d8939b12da"
+  },
+  "production_closeout": {
+    "production_mutated": false,
+    "nimo1_coordinator_pid": 2356329,
+    "nimo1_http": 200,
+    "nimo1_nrestarts": 0,
+    "nimo2_worker_pid": 1535639,
+    "nimo2_nrestarts": 0
+  },
+  "cleanup": {
+    "disposable_units": 0,
+    "port_50237_listeners": 0,
+    "roots_keys_builds_archives_remaining": 0
+  },
+  "review": {
+    "verdict": "PASS",
+    "path": "docs/halofpx/reviews/2026-07-25__l37-harness-lifetime-graph-input__review__v01.md"
+  },
+  "root_cause_claim": false,
+  "primary_authorized": false
+}
