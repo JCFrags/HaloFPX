@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — permit one corrected L36 after admission-only failure
+
+Decision: preserve the first L36 run as rejected admission evidence and
+authorize one corrected execution after a focused reviewed gate repair. Honest
+fresh restore must require `n_batch=0` independently of the enabled compatible
+diagnostic layers; capture remains frozen at `n_batch=512`. No other gate,
+matrix, alternate mode, or further repeat is authorized.
+
+Reason: both primary residencies completed, but the runner rejected the restore
+before replay-authority interpretation because `require_result` coupled the
+known lifecycle value to `SEMANTIC_DIAGNOSTICS_ONLY`. Source inspection confirms
+that the combined diagnostics path incorrectly expected 512. This run did not
+test the intended L36 discriminator, so one narrowly reviewed correction is
+proportionate. Production recovered exactly before authorization.
+
 ## 2026-07-25 — accept L35 and authorize one L36 primary authority record
 
 Decision: accept reviewed L35 PASS commit

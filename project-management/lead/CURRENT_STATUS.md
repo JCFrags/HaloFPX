@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 00:16 PDT
+Verified: 2026-07-25 00:44 PDT
 
 ## Overall state
 
@@ -175,6 +175,13 @@ Project Lead task before ending their own turn. No periodic polling remains.
   logits and token. L36 is active as exactly one ordinary primary replay-
   authority discriminator. No canonical-reset variant, matrix, retry, tuning,
   or speculative correction is authorized.
+- The first L36 transition was rejected by a narrow harness admission defect
+  after both residencies: honest fresh restore reports `n_batch=0`, but the
+  combined diagnostics path incorrectly expected 512 because the invariant was
+  coupled to `SEMANTIC_DIAGNOSTICS_ONLY`. No replay-authority interpretation
+  was admitted. Production recovered exactly to HTTP 200. One corrected L36
+  execution is authorized only after focused lifecycle-gate tests, hash refresh,
+  and independent review; the failed run must remain separately preserved.
 
 ## Product progress
 
