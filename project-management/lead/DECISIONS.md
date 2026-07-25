@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — accept L35 and authorize one L36 primary authority record
+
+Decision: accept reviewed L35 PASS commit
+`93c3ae313b86aa0bfddd2c5a1a8745223cb256ac`. Authorize one ordinary exact-
+primary, two-residency, one-token run with the authenticated L35 replay-
+authority and logits record. Do not run a canonical-reset variant, matrix,
+retry, correction, promotion, or L37.
+
+Reason: L35 disproves graph-history reuse and KV prepare/apply divergence on the
+disposable lifecycle while qualifying a concrete primary discriminator for
+graph, scheduler, KV physical authority, attention views, output mapping, and
+synchronized logits. This one new record can localize the primary mismatch
+without repeating broad correctness testing.
+
 ## 2026-07-24 — accept L34 and require a disposable graph/KV discriminator
 
 Decision: accept reviewed L34 PASS commit

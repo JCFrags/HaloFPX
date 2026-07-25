@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-24 23:41 PDT
+Verified: 2026-07-25 00:16 PDT
 
 ## Overall state
 
@@ -168,6 +168,13 @@ Project Lead task before ending their own turn. No periodic polling remains.
   strongest remaining uncovered inputs. L35 is active as one combined
   disposable discriminator and mutable-state coverage census; no primary run
   is authorized.
+- L35 passed at `93c3ae313b86aa0bfddd2c5a1a8745223cb256ac`.
+  Authenticated disposable evidence shows capture and restore both rebuilt the
+  graph, selected identical KV prepare/apply cells and heads, used identical
+  attention views/backends/output mapping, and produced identical synchronized
+  logits and token. L36 is active as exactly one ordinary primary replay-
+  authority discriminator. No canonical-reset variant, matrix, retry, tuning,
+  or speculative correction is authorized.
 
 ## Product progress
 
