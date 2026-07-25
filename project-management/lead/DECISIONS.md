@@ -1,5 +1,22 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — accept L36 closeout and fix result lifetime before graph coverage
+
+Decision: accept L36 NOT PROMOTED commit
+`0b4c00c5f90cf245ceee769619886f295bf4e5d2` only as a harness result-authority
+failure. Open L37 for no-production correction of the post-free context read,
+source-derived graph-input coverage, focused disposable/synthetic
+qualification, and independent specialist review. No primary run or L38 is
+authorized.
+
+Reason: both L36 attempts read `llama_n_batch(run_ctx)` after freeing the
+aliased context, producing 0 and then 3386108400. Neither is valid admission
+evidence. Pre-free records directionally show equal recorded graph/KV authority
+but different logits, so the next proportional work is to make result emission
+lifetime-safe and authenticate currently uncovered masks, indices, mutable
+graph leaves, scheduler assignments/copies, RPC bindings, and derived FA/Q8
+inputs before any further primary transition.
+
 ## 2026-07-25 — permit one corrected L36 after admission-only failure
 
 Decision: preserve the first L36 run as rejected admission evidence and

@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 00:44 PDT
+Verified: 2026-07-25 01:10 PDT
 
 ## Overall state
 
@@ -14,14 +14,23 @@ deleted. Because a worker final response does not itself inject an event into
 the manager task, workers must now send their boundary report directly to the
 Project Lead task before ending their own turn. No periodic polling remains.
 
+L36 closed NOT PROMOTED at
+`0b4c00c5f90cf245ceee769619886f295bf4e5d2`. Both attempts were invalidated by
+a proven post-free `llama_n_batch(run_ctx)` result read; no model
+interpretation is admitted and no further primary repeat is authorized. L37
+is active as no-production work to correct result lifetime authority and
+authenticate remaining mutable graph inputs between replay and logits. Two
+independent read-only specialists are auditing graph-input coverage and
+RPC/ROCm determinism.
+
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `601479a9cf7c18f81a37187663decece47f5fb05`
+- Latest verified commit: `0b4c00c5f90cf245ceee769619886f295bf4e5d2`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L32 closeout
+- Worktree state: clean at the reviewed terminal L36 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
