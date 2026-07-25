@@ -1,0 +1,106 @@
+{
+  "schema": "halofpx-l33-primary-live-state-discriminator-receipt-v1",
+  "date": "2026-07-24",
+  "base_commit": "601479a9cf7c18f81a37187663decece47f5fb05",
+  "outcome": "not_promoted_first_token_mismatch",
+  "artifact": {
+    "bytes": 159873097824,
+    "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+  },
+  "capture": {
+    "coordinator_pid": 1483859,
+    "worker_pid": 2320013,
+    "worker_invocation_id": "a7bf992b624c46339daa77041293fbbd",
+    "object_sha256": "52316b626e06d38cf105408eb71354f35432a12aad0ec5220f76b796a2a66a60",
+    "token": 21549,
+    "token_sha256": "7d44cce76babad0e2459d2295ac8704af317509458dd9ea8bbfe2e6cc151e051",
+    "text_sha256": "c7d2216ad33210a1234c043b4074ff70c9a1b127590f612f813d904c597a9746"
+  },
+  "restore": {
+    "coordinator_pid": 1484007,
+    "coordinator_invocation_id": "c5f1ad4d213d4c70ab72c00c2643cac2",
+    "worker_pid": 2320138,
+    "worker_invocation_id": "0d172a18447840d69be8a0f313eb3c9c",
+    "token": 9283,
+    "token_sha256": "1d99e63f856e6c2a2903c515234d94ce863b30512beabe1a06e26cef831f9382",
+    "text_sha256": "0f6b1949b093e35266991fbea7a832212d428e874cc0666634faf37f51d4c63b"
+  },
+  "coordinator_four_phase": {
+    "original_restore_input_equal": true,
+    "restore_input_live_recapture_equal": true,
+    "live_recapture_pregeneration_equal": true,
+    "control_bytes": 15048,
+    "control_sha256": "2d614e8634f7f9defc4ed59f59b900490e021e382045c566109588bd288a0cbb",
+    "local_bytes": 2301688,
+    "local_sha256": "7117319f7dc2b848d3ce3b35469aee3c62bc93a8262f88cb53949e7bbc5ceaca",
+    "manifest_sha256": "7ad364fb0a047ca8db745c439bf8ad3f6fe6b92ae56f7b9f632caa88e47c69b3",
+    "recapture_object_sha256": "871212c95de4318e6c2148e8e62490d043dce686a6cde12c0891588d990b8662",
+    "auth_tag": "119e59fbb5351651ca66e17847c5d83eedfec0af9b7a257c1120c77c824462db"
+  },
+  "worker_four_phase": {
+    "phases": ["capture", "stage", "apply", "recapture"],
+    "count_each": 64,
+    "bytes_each": 2454528,
+    "identity_content_mismatch_count": 0,
+    "aggregate_sha256_all": "014a1024f13225a3f7bd7bba6be43dce1106a0354d68b5043f284263cce19bc9",
+    "capture_merkle_sha256": "0fc1f297514f5b7a38f9db179e80df0bb9b5ac6ae3865858d518669ef8a79884",
+    "stage_merkle_sha256": "0fc1f297514f5b7a38f9db179e80df0bb9b5ac6ae3865858d518669ef8a79884",
+    "apply_merkle_sha256": "aac062cc10c560807b80d06bcf49ea79deb563f89d6924b7d933d278a66fe429",
+    "recapture_merkle_sha256": "0fc1f297514f5b7a38f9db179e80df0bb9b5ac6ae3865858d518669ef8a79884",
+    "range_topology_divergence_only": true,
+    "report_auth_tag": "19e3460087d62ce9bdf4b58ac427cf13bec8cf769fccb54e64febfe60403c1ea"
+  },
+  "allocation": {
+    "worker_material_bytes_each_residency": 80950550528
+  },
+  "state_windows": {
+    "capture_get_tensor": 0,
+    "capture_set_tensor": 0,
+    "restore_get_tensor": 0,
+    "restore_set_tensor": 0
+  },
+  "transport": {
+    "controller_records": 620,
+    "child_records": 233,
+    "timeouts": 0
+  },
+  "source_identity": {
+    "source_archive_sha256": "771ea82f29c6e62f92fc9e07946d376f8b99a437d0fca306d039d09732ba7aaf",
+    "controller_sha256": "3eb4295dc53e375825f30ec6f2a80e1361a5358a0f7cffd0bbb2a9e386ecf607",
+    "runner_sha256": "3f1b07af4fe1ec9fa7334b475ad9aab5bdf8fee21bdf635252f72da06197e91d",
+    "manifest_sha256": "f4f4826b74a8e48ef2b45025338c4c4ee17b85c953fff4c3828c33c60704f2b8",
+    "worker_binary_sha256": "fa8105c0c8432776f60f7396d93e36caf158bac202d0fc38d9ef9bb9a9255c90",
+    "canary_binary_sha256": "2c826a9d9cdaf3c0a1377345bbe23f33aec15cea1f200f99132d9c1ed2a1acca",
+    "component_analyzer_sha256": "eeb7645ee1d7fe396bf528efbb892d6fdfefd76dc027de7e5b268baa7eb159d0"
+  },
+  "focused_tests": {
+    "passed": 97,
+    "failed": 0
+  },
+  "production_after": {
+    "worker_pid": 1485678,
+    "worker_port": 50052,
+    "worker_system_unit_active": true,
+    "coordinator_pid": 2320476,
+    "coordinator_port": 8081,
+    "coordinator_system_unit_active": true,
+    "http": 200,
+    "nrestarts": [0, 0],
+    "worker_first": true
+  },
+  "cleanup_complete": true,
+  "independent_review": {
+    "verdict": "pass_terminal_not_promoted",
+    "path": "docs/halofpx/reviews/2026-07-24__l33-primary-live-state-discriminator__review__v01.md"
+  },
+  "raw_evidence": {
+    "path": "C:\\Users\\britt\\Documents\\Custom_Inference_Project\\sources\\halofpx\\l33-primary-20260724",
+    "files": 35,
+    "bytes": 2013575,
+    "tree_sha256": "94eb2fe872f5c457d8a56510428bd0f73578d7f8f6fb81dfa616f255503a7696",
+    "tree_manifest": "evidence-tree-manifest.json"
+  },
+  "promotion": false,
+  "retry_performed": false,
+  "l34_opened": false
+}

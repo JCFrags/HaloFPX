@@ -648,6 +648,31 @@ class PrimaryRetryTests(unittest.TestCase):
             for name, value in original.items():
                 setattr(retry, name, value)
 
+    def test_l33_configuration_is_exact_primary_with_live_recapture(self):
+        original = {
+            name: getattr(retry, name)
+            for name in (
+                "PORT", "WORKER_BIN", "CANARY_BIN", "CONTROL",
+                "UNIT_PREFIX", "FIXTURE_QUALIFICATION",
+                "LIVE_RECAPTURE_DIAGNOSTICS",
+            )
+        }
+        try:
+            retry.configure_l33_primary()
+            self.assertEqual(retry.PORT, 50233)
+            self.assertEqual(retry.UNIT_PREFIX, "halofpx-l33-primary")
+            self.assertEqual(retry.CONTROL, "/var/tmp/halofpx-l33-control.key")
+            self.assertIn("/build-l33/bin/rpc-server", retry.WORKER_BIN)
+            self.assertIn("/build-l33/bin/test-halofpx", retry.CANARY_BIN)
+            self.assertFalse(retry.FIXTURE_QUALIFICATION)
+            self.assertTrue(retry.LIVE_RECAPTURE_DIAGNOSTICS)
+            self.assertEqual(retry.CACHE_TYPE_K, "q8_0")
+            self.assertEqual(retry.CACHE_TYPE_V, "q8_0")
+            self.assertEqual(retry.FLASH_ATTN, "on")
+        finally:
+            for name, value in original.items():
+                setattr(retry, name, value)
+
 
 if __name__ == "__main__":
     unittest.main()

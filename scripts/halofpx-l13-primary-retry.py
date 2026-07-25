@@ -130,6 +130,7 @@ def configure_l29_primary() -> None:
     global COORDINATOR_ROOT, WORKER_ROOT, RENDEZVOUS_ROOT, CONTROL
     global WORKER_CONTROL, ARTIFACT_DIR, CANARY_SHA, WORKER_SHA
     global READINESS_PROBE_SHA, PLACEMENT_PROBE_SHA, UNIT_PREFIX
+    global CACHE_TYPE_K, CACHE_TYPE_V, FLASH_ATTN, FIXTURE_QUALIFICATION
     PORT = 50189
     WORKER_BIN = "/var/tmp/halofpx-l29-source-nimo1/build-l29/bin/rpc-server"
     CANARY_BIN = (
@@ -150,6 +151,10 @@ def configure_l29_primary() -> None:
     WORKER_CONTROL = CONTROL
     ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
     UNIT_PREFIX = "halofpx-l29-primary"
+    CACHE_TYPE_K = "q8_0"
+    CACHE_TYPE_V = "q8_0"
+    FLASH_ATTN = "on"
+    FIXTURE_QUALIFICATION = False
     CANARY_SHA = os.environ.get("HALOFPX_L28_CANARY_SHA256", "")
     WORKER_SHA = os.environ.get("HALOFPX_L28_WORKER_SHA256", "")
     READINESS_PROBE_SHA = os.environ.get("HALOFPX_L28_READINESS_SHA256", "")
@@ -222,6 +227,41 @@ def configure_l32_fixture() -> None:
     WORKER_CONTROL = CONTROL
     ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
     UNIT_PREFIX = "halofpx-l32"
+    LIVE_RECAPTURE_DIAGNOSTICS = True
+
+
+def configure_l33_primary() -> None:
+    configure_l31_primary()
+    global PORT, WORKER_BIN, CANARY_BIN, READINESS_PROBE, PLACEMENT_PROBE
+    global EPOCH_RECEIPT, REMOTE_EVIDENCE, COORDINATOR_ROOT, WORKER_ROOT
+    global RENDEZVOUS_ROOT, CONTROL, WORKER_CONTROL, ARTIFACT_DIR, UNIT_PREFIX
+    global COMPONENT_DIAGNOSTICS, COMPONENT_DIAGNOSTICS_SHA
+    global LIVE_RECAPTURE_DIAGNOSTICS
+    PORT = 50233
+    WORKER_BIN = "/var/tmp/halofpx-l33-source-nimo1/build-l33/bin/rpc-server"
+    CANARY_BIN = (
+        "/var/tmp/halofpx-l33-source-nimo2/build-l33/bin/"
+        "test-halofpx-distributed-state-canary")
+    READINESS_PROBE = (
+        "/var/tmp/halofpx-l33-source-nimo2/scripts/halofpx_rpc_readiness.py")
+    PLACEMENT_PROBE = (
+        "/var/tmp/halofpx-l33-source-nimo2/build-l33/bin/"
+        "test-halofpx-placement-probe")
+    EPOCH_RECEIPT = (
+        "/var/tmp/halofpx-l33-source-nimo2/scripts/halofpx_epoch_receipt.py")
+    COMPONENT_DIAGNOSTICS = (
+        "/var/tmp/halofpx-l33-source-nimo1/scripts/"
+        "halofpx_state_component_diagnostics.py")
+    COMPONENT_DIAGNOSTICS_SHA = os.environ.get(
+        "HALOFPX_L33_COMPONENT_DIAGNOSTICS_SHA256", "")
+    REMOTE_EVIDENCE = "/var/tmp/halofpx-l33-evidence"
+    COORDINATOR_ROOT = "/var/tmp/halofpx-l33-coordinator"
+    WORKER_ROOT = "/var/tmp/halofpx-l33-worker"
+    RENDEZVOUS_ROOT = "/var/tmp/halofpx-l33-rendezvous"
+    CONTROL = "/var/tmp/halofpx-l33-control.key"
+    WORKER_CONTROL = CONTROL
+    ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
+    UNIT_PREFIX = "halofpx-l33-primary"
     LIVE_RECAPTURE_DIAGNOSTICS = True
 
 
@@ -1302,8 +1342,12 @@ def main() -> int:
     parser.add_argument("--l29-primary", action="store_true")
     parser.add_argument("--l31-primary", action="store_true")
     parser.add_argument("--l32-fixture", action="store_true")
+    parser.add_argument("--l33-primary", action="store_true")
     args = parser.parse_args()
-    if sum((args.l28_fixture, args.l29_primary, args.l31_primary, args.l32_fixture)) > 1:
+    if sum((
+        args.l28_fixture, args.l29_primary, args.l31_primary,
+        args.l32_fixture, args.l33_primary,
+    )) > 1:
         parser.error("fixture and primary modes are mutually exclusive")
     if args.l28_fixture:
         configure_l28_fixture()
@@ -1313,6 +1357,8 @@ def main() -> int:
         configure_l31_primary()
     if args.l32_fixture:
         configure_l32_fixture()
+    if args.l33_primary:
+        configure_l33_primary()
     root = args.evidence_dir.resolve()
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     initialize_ssh_transport(root)

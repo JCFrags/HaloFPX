@@ -104,6 +104,18 @@ L31_EXECUTABLES = {
     "epoch_receipt": "/var/tmp/halofpx-l31-source-nimo2/scripts/halofpx_epoch_receipt.py",
     "component_diagnostics": "/var/tmp/halofpx-l31-source-nimo1/scripts/halofpx_state_component_diagnostics.py",
 }
+L33_KEY_PATHS = {
+    "nimo-1": "/var/tmp/halofpx-l33-control.key",
+    "nimo-2": "/var/tmp/halofpx-l33-control.key",
+}
+L33_EXECUTABLES = {
+    "worker": "/var/tmp/halofpx-l33-source-nimo1/build-l33/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l33-source-nimo2/build-l33/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l33-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l33-source-nimo2/build-l33/bin/test-halofpx-placement-probe",
+    "epoch_receipt": "/var/tmp/halofpx-l33-source-nimo2/scripts/halofpx_epoch_receipt.py",
+    "component_diagnostics": "/var/tmp/halofpx-l33-source-nimo1/scripts/halofpx_state_component_diagnostics.py",
+}
 L29_MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
     "dba517197f2854f3d362529e13abddcdcad6c10b/"
@@ -581,7 +593,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     }
     l29 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l29.primary-manifest.v1"
     l31 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l31.primary-manifest.v1"
-    primary = l29 or l31
+    l33 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l33.primary-manifest.v1"
+    primary = l29 or l31 or l33
     if primary:
         expected_keys |= {"artifact", "allocation_plan"}
     if not isinstance(raw, dict) or set(raw) != expected_keys:
@@ -591,22 +604,23 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
         interpreter_path = Path(sys.executable).resolve()
         expected_exec = {
-            **(L31_EXECUTABLES if l31 else L29_EXECUTABLES if l29 else L28_EXECUTABLES),
+            **(L33_EXECUTABLES if l33 else L31_EXECUTABLES if l31 else L29_EXECUTABLES if l29 else L28_EXECUTABLES),
             "interpreter": str(interpreter_path),
             "child": str(child_path),
         }
         expected_child_argv = [
             str(interpreter_path), str(child_path), "--evidence-dir",
             "{evidence_root}/child",
-            "--l31-primary" if l31 else "--l29-primary" if l29 else "--l28-fixture",
+            "--l33-primary" if l33 else "--l31-primary" if l31 else "--l29-primary" if l29 else "--l28-fixture",
         ]
-        prefix = "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
-        port = 50191 if l31 else 50189 if l29 else 50188
-        key_paths = L31_KEY_PATHS if l31 else L29_KEY_PATHS if l29 else L28_KEY_PATHS
-        source_tag = "l31" if l31 else "l29" if l29 else "l28"
+        prefix = "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
+        port = 50233 if l33 else 50191 if l31 else 50189 if l29 else 50188
+        key_paths = L33_KEY_PATHS if l33 else L31_KEY_PATHS if l31 else L29_KEY_PATHS if l29 else L28_KEY_PATHS
+        source_tag = "l33" if l33 else "l31" if l31 else "l29" if l29 else "l28"
         if (
             raw["milestone"] != (
-                "l31-primary-corrected-restore-confirmation"
+                "l33-primary-live-state-discriminator"
+                if l33 else "l31-primary-corrected-restore-confirmation"
                 if l31 else "l29-primary-fresh-residency-discriminator"
                 if l29 else "l28-fresh-residency-fixture")
             or raw["worker_host"] != "nimo-1"
@@ -698,7 +712,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     }
     if l28 or primary:
         host_for["epoch_receipt"] = DISPOSABLE_CANARY_HOST
-    if l31:
+    if l31 or l33:
         host_for["component_diagnostics"] = DISPOSABLE_HOST
     for name, host in host_for.items():
         result = runner.run(
@@ -1227,7 +1241,9 @@ def child_environment(
     required = ("worker", "canary", "readiness", "placement", "epoch_receipt")
     if manifest.get("schema") == "halofpx.l24.primary-manifest.v1":
         required = required[:-1]
-    if manifest.get("schema") == "halofpx.l31.primary-manifest.v1":
+    if manifest.get("schema") in {
+        "halofpx.l31.primary-manifest.v1", "halofpx.l33.primary-manifest.v1",
+    }:
         required += ("component_diagnostics",)
     if any(not re.fullmatch(r"[0-9a-f]{64}", str(hashes.get(name, ""))) for name in required):
         raise TransitionError("validated manifest child hash authority is incomplete")
@@ -1240,8 +1256,11 @@ def child_environment(
     if "epoch_receipt" in required:
         environment["HALOFPX_L28_EPOCH_RECEIPT_SHA256"] = str(hashes["epoch_receipt"])
     if "component_diagnostics" in required:
-        environment["HALOFPX_L31_COMPONENT_DIAGNOSTICS_SHA256"] = str(
-            hashes["component_diagnostics"])
+        environment[
+            "HALOFPX_L33_COMPONENT_DIAGNOSTICS_SHA256"
+            if manifest.get("schema") == "halofpx.l33.primary-manifest.v1"
+            else "HALOFPX_L31_COMPONENT_DIAGNOSTICS_SHA256"
+        ] = str(hashes["component_diagnostics"])
     return environment
 
 
@@ -1249,6 +1268,7 @@ def l29_capacity_preflight(
         manifest: dict[str, object], runner: Runner, evidence_root: Path) -> dict[str, object]:
     if manifest.get("schema") not in {
         "halofpx.l29.primary-manifest.v1", "halofpx.l31.primary-manifest.v1",
+        "halofpx.l33.primary-manifest.v1",
     }:
         raise TransitionError("primary capacity preflight requires exact manifest authority")
     plan = manifest["allocation_plan"]
@@ -1383,6 +1403,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
 
     if manifest is not None and manifest.get("schema") in {
         "halofpx.l29.primary-manifest.v1", "halofpx.l31.primary-manifest.v1",
+        "halofpx.l33.primary-manifest.v1",
     }:
         capacity = l29_capacity_preflight(manifest, selected_runner, args.evidence_dir)
         _atomic_json(args.evidence_dir / "capacity-preflight.json", capacity)
