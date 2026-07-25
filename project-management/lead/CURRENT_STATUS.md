@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-23 16:45 PDT
+Verified: 2026-07-24 22:29 PDT
 
 ## Overall state
 
@@ -146,6 +146,10 @@ Project Lead task before ending their own turn. No periodic polling remains.
   phases. No source-backed coordinator defect is proven without the primary
   workload. Work is intentionally stopped at this clean boundary pending
   explicit user approval; no L33 task has been sent.
+- User approval to resume was received. L33 is now active as one exact-primary,
+  two-residency, one-token live-state discriminator using the already qualified
+  L32 instrumentation. No broad smoke-test matrix, automatic retry, tuning,
+  speculative fix, or production-cache promotion is authorized.
 
 ## Product progress
 

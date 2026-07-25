@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-24 — resume with one L33 primary live-state discriminator
+
+Decision: resume from reviewed L32 commit
+`601479a9cf7c18f81a37187663decece47f5fb05` and authorize exactly one primary
+two-residency, one-token run with authenticated original, restore-input, live
+recapture, and pre-generation state comparison. No matrix, retry, tuning,
+promotion, speculative correction, or L34 is authorized.
+
+Reason: L32 qualified the missing live coordinator/worker recapture boundary on
+the disposable lifecycle. One primary run is now the smallest test that can
+distinguish live-state application/mutation from semantic state omitted by the
+current serializer contract. The user explicitly approved continuation while
+requiring a high-quality production path and avoidance of repetitive testing.
+
 ## 2026-07-23 — stop cleanly after L32 pending user approval
 
 Decision: record reviewed L32 PASS commit
