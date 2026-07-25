@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — accept L42 scheduler foundation and close mutable-input authority
+
+Decision: accept L42 PASS commit
+`d0d74ff55d8b063ab73911ae95516512177c824d` as the reusable authenticated
+scheduler execution-authority layer. Open L43 only for structural mutable-input
+classification, real RPC SET/SET_HASH server-applied receipts, and a complete
+active mutable-input census bound to L40/L42 execution identity. No primary,
+production, cache-semantic, tuning, or L44 work is authorized.
+
+Reason: L42 closes all four L41 review findings and independently verifies
+ordinary and expert-partial execution with exact authenticated evidence. The
+remaining pre-primary observability gap is the content and completeness of
+mutable execution inputs, which should be built as one separate reusable layer.
+
 ## 2026-07-25 — accept L41 rejection and close only its four review gaps
 
 Decision: accept L41 NOT PROMOTED commit

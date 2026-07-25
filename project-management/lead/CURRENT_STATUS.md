@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 04:18 PDT
+Verified: 2026-07-25 05:01 PDT
 
 ## Overall state
 
@@ -65,15 +65,22 @@ independent read-only specialists are auditing graph-input coverage and
   exact-output assertions. The candidate was removed. L42 is authorized only
   to close those four findings with exact exported evidence and targeted
   qualification.
+- L42 passed at `d0d74ff55d8b063ab73911ae95516512177c824d`.
+  The accepted scheduler layer now authenticates exact split, copy-map,
+  ordinary-copy, and expert-partial execution authority with externally
+  reconstructable transcripts and exact destination/view/range evidence.
+  L43 is active only for closed structural mutable-input classification,
+  SET/SET_HASH server-applied authority, and a complete execution census bound
+  to the accepted L40/L42 layers.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `ba0cbd51634cd58496d35cf615dfdae32a367269`
+- Latest verified commit: `d0d74ff55d8b063ab73911ae95516512177c824d`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L41 closeout
+- Worktree state: clean at the reviewed terminal L42 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
