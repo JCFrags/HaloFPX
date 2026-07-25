@@ -1,5 +1,23 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — accept L37 and authenticate numerical replay inputs
+
+Decision: accept reviewed L37 PASS commit
+`a1bee312ca79f3087cd5bfcd327e9f11b2be72d2`. Open L38 only for a bounded
+default-off replay-exec-v2 contract covering mutable graph-input content,
+canonical graph/scheduler assignment, inserted cross-backend copies, RPC graph
+serialization/reconstruction, selected KV/attention read inputs, and output
+provenance. Include one synthetic Q8_0 flash-attention poison-span
+discriminator. No primary run or L39 is authorized.
+
+Reason: L37 closes the post-free result-authority defect and qualifies admitted
+mutable graph classes on the disposable path. Independent audits agree that the
+remaining gap is numerical-input and execution binding rather than replay
+control flow: actual masks/indices/KV slices, scheduler copy endpoints, RPC
+tensor reconstruction, and whether FA reads beyond authenticated spans. A
+single synthetic one-layer poison test plus bounded instrumentation is the
+highest-value step before another primary transition.
+
 ## 2026-07-25 — accept L36 closeout and fix result lifetime before graph coverage
 
 Decision: accept L36 NOT PROMOTED commit

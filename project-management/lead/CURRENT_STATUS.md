@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 01:10 PDT
+Verified: 2026-07-25 01:55 PDT
 
 ## Overall state
 
@@ -21,7 +21,16 @@ interpretation is admitted and no further primary repeat is authorized. L37
 is active as no-production work to correct result lifetime authority and
 authenticate remaining mutable graph inputs between replay and logits. Two
 independent read-only specialists are auditing graph-input coverage and
-RPC/ROCm determinism.
+  RPC/ROCm determinism.
+- L37 passed at `a1bee312ca79f3087cd5bfcd327e9f11b2be72d2`.
+  Result emission is now lifetime-safe, authenticated, durable, and verified
+  before context destruction; focused tests reject the prior invalid values.
+  Closed graph-input diagnostics cover admitted mutable classes, while RPC
+  internal tensor/copy authority and opaque execution state remain explicit
+  gaps. Two independent audits converged on numerical input bytes/bindings,
+  scheduler copies, RPC graph reconstruction, and FA read-set extent. L38 is
+  active as a no-primary/no-production replay-exec-v2 contract plus one
+  synthetic Q8_0 FA poison-span discriminator.
 
 ## Repository
 
