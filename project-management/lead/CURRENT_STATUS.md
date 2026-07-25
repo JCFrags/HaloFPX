@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 03:02 PDT
+Verified: 2026-07-25 03:42 PDT
 
 ## Overall state
 
@@ -50,15 +50,22 @@ independent read-only specialists are auditing graph-input coverage and
   L38. L40 is active as a narrower RPC-only foundation: negotiated capability,
   authenticated client/server graph equality, and bound recompute lineage.
   Scheduler-copy and mutable-census work are deliberately deferred.
+- L40 passed at `53f414dfc5a8f9873ad9961f541eb41cf6dc2aae`.
+  It establishes the accepted RPC trust boundary: negotiated default-off
+  capability, canonical client/server graph authority, authenticated
+  server-owned reconstruction receipts, and bound compute/recompute lineage.
+  L41 is active only for the next independent layer, the real scheduler
+  split/copy execution authority. Mutable-input census, primary testing, and
+  production mutation remain unauthorized.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `0658a272d25ee660055143904aa47a2d76dc2d19`
+- Latest verified commit: `53f414dfc5a8f9873ad9961f541eb41cf6dc2aae`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L39 closeout
+- Worktree state: clean at the reviewed terminal L40 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

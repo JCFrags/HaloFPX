@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — accept L40 RPC foundation and add scheduler authority separately
+
+Decision: accept L40 PASS commit
+`53f414dfc5a8f9873ad9961f541eb41cf6dc2aae` as the reusable authenticated RPC
+graph-authority foundation. Open L41 only for bounded default-off authority at
+the actual scheduler split/copy construction and execution seams. Defer
+mutable-input census, SET_TENSOR roles, primary testing, production mutation,
+and L42.
+
+Reason: L40 passed independent review after closing negotiation, canonical
+encoding, server-owned reconstruction, receipt, lineage, replay, and
+feature-off requirements. Building scheduler execution authority as a separate
+layer preserves that accepted boundary and avoids another oversized candidate.
+
 ## 2026-07-25 — accept L39 rejection and split the authority stack
 
 Decision: accept L39 NOT PROMOTED commit
