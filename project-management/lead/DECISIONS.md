@@ -1,5 +1,22 @@
 # Project-Lead Decisions
 
+## 2026-07-25 — accept L39 rejection and split the authority stack
+
+Decision: accept L39 NOT PROMOTED commit
+`0658a272d25ee660055143904aa47a2d76dc2d19`. Keep the rejected combined
+candidate removed. Open L40 only for the RPC foundation: explicit diagnostic
+capability negotiation, bounded authenticated canonical client/server graph
+records, a server-owned reconstruction receipt, and compute/recompute lineage.
+Defer scheduler-copy authority, mutable census, SET_TENSOR role coverage,
+expert/Q8/FA cases, any primary run, and L41.
+
+Reason: L38 and L39 both showed that implementing the entire scheduler/RPC
+authority contract in one candidate produces partial guarantees that cannot be
+accepted. L39's corrected fixture was deterministic, but review found material
+protocol and authority gaps. Establishing the RPC trust boundary as a reusable
+accepted layer is the smallest durable forward step and prevents a third broad
+approximation.
+
 ## 2026-07-25 — accept L38 rejection and instrument scheduler/RPC directly
 
 Decision: accept L38 NOT PROMOTED commit

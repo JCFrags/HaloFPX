@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-25T02:13:43-07:00",
+  "updated_at": "2026-07-25T03:02:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l39_no_production_direct_scheduler_copy_and_rpc_execution_authority",
+  "worker_status": "active_l40_no_production_rpc_authenticated_graph_authority_foundation",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "169d81ad84167fcd5449b5dc99126bd861446087",
-  "last_observed_milestone": "L38 NOT PROMOTED; candidate removed after review found it missed real scheduler/RPC execution seams, while bounded poison test demoted out-of-span FA reads",
-  "last_decision": "accept_l38_rejection_and_open_l39_direct_scheduler_copy_rpc_graph_serialization_and_server_reconstruction_authority",
-  "last_progress": "L39 is instrumenting actual scheduler and RPC execution paths with one combined synthetic qualification; an independent hook-design audit is active",
+  "last_verified_head": "0658a272d25ee660055143904aa47a2d76dc2d19",
+  "last_observed_milestone": "L39 NOT PROMOTED; corrected compute/recompute fixture was deterministic but independent review rejected incomplete RPC authentication and authority coverage, and the candidate was removed",
+  "last_decision": "accept_l39_rejection_and_split_stack_opening_l40_rpc_authenticated_graph_foundation_only",
+  "last_progress": "L40 is implementing negotiated authenticated client/server graph equality and compute/recompute lineage without scheduler-copy or mutable-census expansion",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L39 worker report, specialist hook-design completion, or explicit user request; no periodic polling"
+  "next_check_trigger": "direct L40 worker report or explicit user request; no periodic polling"
 }

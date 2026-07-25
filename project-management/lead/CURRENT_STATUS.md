@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 02:13 PDT
+Verified: 2026-07-25 03:02 PDT
 
 ## Overall state
 
@@ -40,15 +40,25 @@ independent read-only specialists are auditing graph-input coverage and
   instrumentation in scheduler split/copy execution and RPC
   serialization/reconstruction, qualified by one combined synthetic graph.
   No primary run or production mutation is authorized.
+- L39 closed NOT PROMOTED at
+  `0658a272d25ee660055143904aa47a2d76dc2d19`. The combined fixture proved
+  deterministic compute/recompute only after replaying identical mutable
+  inputs, but independent review rejected the implementation because core RPC
+  authentication, server-owned reconstruction authority, canonical records,
+  mutable-census closure, and required negative coverage were incomplete. The
+  candidate was removed, leaving accepted runtime source byte-identical to
+  L38. L40 is active as a narrower RPC-only foundation: negotiated capability,
+  authenticated client/server graph equality, and bound recompute lineage.
+  Scheduler-copy and mutable-census work are deliberately deferred.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `0b4c00c5f90cf245ceee769619886f295bf4e5d2`
+- Latest verified commit: `0658a272d25ee660055143904aa47a2d76dc2d19`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L36 closeout
+- Worktree state: clean at the reviewed terminal L39 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
