@@ -1,0 +1,53 @@
+{
+  "schema": "halofpx.l38.result.v1",
+  "milestone": "L38",
+  "result": "NOT_PROMOTED",
+  "base_commit": "a1bee312ca79f3087cd5bfcd327e9f11b2be72d2",
+  "primary_artifact_accessed": false,
+  "production_mutated": false,
+  "source_qualification": {
+    "linux_release_build": "PASS",
+    "cpp_graph_input_sentinels": "PASS",
+    "python_contract_tests": {
+      "result": "PASS",
+      "tests": 54
+    }
+  },
+  "synthetic_discriminator": {
+    "topology": "nimo-1 isolated RPC worker 10.44.0.1:50238; nimo-2 ROCm0",
+    "graph": "one Q8_0 K/V flash-attention operation, d=64, n_kv=8",
+    "active_span_digest_equal": true,
+    "poisoned_backing_digest_different": true,
+    "output_equal": true,
+    "output_count": 64,
+    "interpretation": "poison outside the selected K/V views was output-invariant in this bounded graph"
+  },
+  "rejected_candidate_authority": [
+    "separate halofpx.replay-exec-v2 HMAC domain and version 3 verifier",
+    "closed mutable-input allowlist and synchronized logical-content hashes",
+    "leaf plus node canonical op/type/shape/stride/op-parameter/source/backend authority",
+    "view-chain depth, base role, base-relative offset and bounded range",
+    "scheduler split and copy counts"
+  ],
+  "candidate_retained_in_source": false,
+  "uncovered_authority": [
+    "per-copy pre-source and synchronized post-destination content equality",
+    "scheduler split ranges and inserted source-to-copy slot mapping",
+    "RPC pointer-ID-to-graph-index normalization",
+    "client serialized and server reconstructed canonical graph equality",
+    "ordered mutable SET_TENSOR role/offset/size/content records",
+    "RPC recompute UID generation"
+  ],
+  "production_closeout": {
+    "nimo_1_coordinator_system_unit": "active",
+    "nimo_1_http_8081": 200,
+    "nimo_2_worker_system_unit": "active",
+    "nimo_2_port_50052": "LISTEN"
+  },
+  "cleanup": {
+    "isolated_port_50238": "closed",
+    "disposable_unit": "stopped",
+    "remote_builds": "removed"
+  },
+  "independent_review": "REJECT"
+}
