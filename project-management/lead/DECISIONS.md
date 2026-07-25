@@ -1,5 +1,21 @@
 # Project-Lead Decisions
 
+## 2026-07-24 — accept L34 and require a disposable graph/KV discriminator
+
+Decision: accept reviewed L34 PASS commit
+`fc8517ffc473220d74ee27b6eb111d4be7fefd82`. Open L35 only for a source-derived
+mutable-state coverage census and one combined disposable test of graph history,
+scheduler rebuild/reuse, KV prepare/apply physical targets, allocator authority,
+attention inputs, and synchronized replay logits. No primary run or L36 is
+authorized.
+
+Reason: L34 proves exact once-only final-token replay and fresh logits behavior
+on the accepted fixture. Independent source audits agree that the strongest
+unmeasured differences are capture-versus-restore graph/scheduler history and
+single-sequence KV physical allocation/cursor behavior. Resolving these on a
+disposable path before another primary transition avoids repetitive expensive
+testing and produces a concrete discriminator.
+
 ## 2026-07-24 — accept L33 and open semantic-state source diagnosis
 
 Decision: accept reviewed L33 NOT PROMOTED commit

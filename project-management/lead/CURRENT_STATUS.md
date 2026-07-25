@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-24 23:01 PDT
+Verified: 2026-07-24 23:41 PDT
 
 ## Overall state
 
@@ -159,6 +159,15 @@ Project Lead task before ending their own turn. No periodic polling remains.
   and architecture-specific runtime state. Two independent read-only
   specialist audits are running in parallel; no primary load or production
   mutation is authorized.
+- L34 passed at `fc8517ffc473220d74ee27b6eb111d4be7fefd82`.
+  Source and focused diagnostics prove both paths replay the final prompt token
+  exactly once and freshly generate synchronized logits; generic replay-count,
+  stale-logit, sampler-history, recurrent-memory, and state-write synchronization
+  explanations are unsupported. Two independent source audits identify
+  graph/scheduler history and KV physical-cell/allocator authority as the
+  strongest remaining uncovered inputs. L35 is active as one combined
+  disposable discriminator and mutable-state coverage census; no primary run
+  is authorized.
 
 ## Product progress
 
