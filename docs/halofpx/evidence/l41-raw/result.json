@@ -1,0 +1,50 @@
+{
+  "milestone": "L41",
+  "result": "NOT_PROMOTED",
+  "base_commit": "53f414dfc5a8f9873ad9961f541eb41cf6dc2aae",
+  "date": "2026-07-25",
+  "scope": "no-primary, no-production scheduler execution-authority foundation",
+  "candidate": {
+    "retained_in_source": false,
+    "reason": "independent review found material authority and qualification gaps",
+    "build_host": "nimo-2",
+    "disposable_endpoint": "127.0.0.1:50241",
+    "test_output_sha256": "449acb736b01401c0404cd6424043db3d85206fe48ef50121ebeb2e16d71e1db",
+    "server_log_sha256": "4df438a0bc8873fd0e15f21767a331dd5cc69098d9bbd534a9561f5d8107bdc2",
+    "test_binary_sha256": "b4f8d33bdec78dc2891c7bd538a312fbe997f21419d363f1d8198bb1ed328228",
+    "rpc_server_sha256": "7c467c75a517c025446cd809327fabff6f8406c81c62430460fce22a5740b8fe",
+    "observed": {
+      "feature_off_preserved": true,
+      "ordinary_forced_split_count": 2,
+      "ordinary_copy_maps": 1,
+      "ordinary_verified_copies": 1,
+      "expert_verified_partial_ranges": 2
+    }
+  },
+  "review": {
+    "verdict": "NOT_PASS",
+    "material_findings": 4
+  },
+  "cleanup": {
+    "disposable_port_50241_closed": true,
+    "candidate_source_removed": true
+  },
+  "production_closeout": {
+    "touched": false,
+    "nimo_2_worker": {
+      "unit_scope": "system",
+      "active": true,
+      "main_pid": 1535639,
+      "port": 50052,
+      "nrestarts": 0
+    },
+    "nimo_1_coordinator": {
+      "unit_scope": "system",
+      "active": true,
+      "main_pid": 2356329,
+      "port": 8081,
+      "http_status": 200,
+      "nrestarts": 0
+    }
+  }
+}
