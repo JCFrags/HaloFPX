@@ -1,5 +1,21 @@
 # Project-Lead Decisions
 
+## 2026-07-24 — accept L33 and open semantic-state source diagnosis
+
+Decision: accept reviewed L33 NOT PROMOTED commit
+`83ce2b5a449fa68d7864d8e0d31bf85c8edfc0ed`. Open L34 only for source tracing,
+focused disposable/synthetic discriminators, and independent audits of semantic
+inputs to the first sampled token outside the proven-equal state contract. No
+primary run, production mutation, broad matrix, or L35 is authorized.
+
+Reason: original, restore-input, live-recapture, and pre-generation coordinator
+state are equal, as are all worker components, but output differs. More byte
+integrity testing is not useful. The next highest-value questions are whether
+the final prompt token is replayed exactly once, whether logits are valid and
+from the same decode, and whether positions, sampler input, or primary-specific
+runtime state lies outside sequence serialization. Two independent read-only
+specialists were assigned to challenge the main diagnosis.
+
 ## 2026-07-24 — resume with one L33 primary live-state discriminator
 
 Decision: resume from reviewed L32 commit
