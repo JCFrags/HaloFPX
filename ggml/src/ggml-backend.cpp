@@ -12,6 +12,9 @@
 #include "ggml-backend-impl.h"
 #include "ggml-alloc.h"
 #include "ggml-impl.h"
+extern "C" {
+#include "sha256/sha256.h"
+}
 
 #include <assert.h>
 #include <limits.h>
@@ -20,6 +23,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
+#include <array>
+#include <functional>
+#include <new>
+#include <unordered_map>
+#include <unordered_set>
+#include <type_traits>
 #include <vector>
 
 #ifdef __APPLE__
@@ -761,11 +770,423 @@ static bool ggml_is_view_op(enum ggml_op op) {
 #define GGML_SCHED_MAX_COPIES 4
 #endif
 
+namespace {
+
+static constexpr uint16_t SCHED_AUTH_MAJOR = 1;
+static constexpr uint16_t SCHED_AUTH_MINOR = 0;
+static constexpr uint32_t SCHED_AUTH_MAX_EVENTS = 1000000;
+static constexpr uint64_t SCHED_AUTH_MAX_TRANSFER = UINT64_C(1) << 30;
+static constexpr char SCHED_AUTH_DOMAIN[] = "halofpx.scheduler-execution-authority.v2";
+static constexpr uint32_t SCHED_AUTH_MAGIC = 0x32534148; // "HAS2" in canonical LE
+static constexpr uint32_t SCHED_AUTH_MAX_EXPORT = UINT32_C(16) << 20;
+
+enum sched_auth_event : uint16_t {
+    SCHED_AUTH_GRAPH_TENSOR = 1,
+    SCHED_AUTH_NODE_BACKEND = 2,
+    SCHED_AUTH_COPY_MAP = 3,
+    SCHED_AUTH_SPLIT = 4,
+    SCHED_AUTH_COPY_BEFORE = 5,
+    SCHED_AUTH_COPY_AFTER = 6,
+    SCHED_AUTH_PARTIAL_BEFORE = 7,
+    SCHED_AUTH_PARTIAL_AFTER = 8,
+    SCHED_AUTH_TRAILER = 0xffff,
+};
+
+using sched_digest = std::array<uint8_t, 32>;
+
+struct sched_auth_state {
+    struct copy_range {
+        uint32_t source_id;
+        uint32_t destination_backend;
+        uint32_t copy_slot;
+        uint64_t generation;
+        uint64_t offset;
+        uint64_t size;
+        bool partial;
+        bool pending;
+    };
+    ggml_backend_sched_authority_config config {};
+    struct ggml_backend_sched_authority_result result {};
+    std::unordered_map<const ggml_tensor *, uint32_t> ids;
+    std::unordered_map<ggml_backend_buffer_t, uint32_t> buffer_ordinals;
+    std::vector<const ggml_tensor *> ordered;
+    sched_digest chain {};
+    std::vector<copy_range> copy_ranges;
+    uint64_t generation = 0;
+    uint32_t exported_size = 0;
+    bool finalized = false;
+    bool failed = false;
+};
+
+bool sched_auth_add_u64(uint64_t a, uint64_t b, uint64_t & out) {
+    if (UINT64_MAX - a < b) return false;
+    out = a + b;
+    return true;
+}
+
+bool sched_auth_mul_u64(uint64_t a, uint64_t b, uint64_t & out) {
+    if (a != 0 && b > UINT64_MAX / a) return false;
+    out = a * b;
+    return true;
+}
+
+bool sched_auth_ranges_overlap(uint64_t a_offset, uint64_t a_size, uint64_t b_offset, uint64_t b_size) {
+    uint64_t a_end = 0, b_end = 0;
+    if (!sched_auth_add_u64(a_offset, a_size, a_end) ||
+        !sched_auth_add_u64(b_offset, b_size, b_end)) return true;
+    return a_offset < b_end && b_offset < a_end;
+}
+
+template<typename T>
+void sched_auth_le(std::vector<uint8_t> & out, T value) {
+    using U = typename std::make_unsigned<T>::type;
+    const U v = static_cast<U>(value);
+    for (size_t i = 0; i < sizeof(T); ++i) out.push_back(static_cast<uint8_t>(v >> (8*i)));
+}
+
+void sched_auth_bytes(std::vector<uint8_t> & out, const void * data, size_t size) {
+    const auto * p = static_cast<const uint8_t *>(data);
+    out.insert(out.end(), p, p + size);
+}
+
+sched_digest sched_auth_sha(const void * data, size_t size) {
+    sched_digest result {};
+    sha256_t ctx;
+    sha256_init(&ctx);
+    if (size != 0) sha256_update(&ctx, static_cast<const uint8_t *>(data), size);
+    sha256_final(&ctx, result.data());
+    memset(&ctx, 0, sizeof(ctx));
+    return result;
+}
+
+sched_digest sched_auth_hmac(const uint8_t key[32], const void * data, size_t size) {
+    std::array<uint8_t, 64> inner {};
+    std::array<uint8_t, 64> outer {};
+    for (size_t i = 0; i < inner.size(); ++i) {
+        const uint8_t byte = i < 32 ? key[i] : 0;
+        inner[i] = byte ^ 0x36;
+        outer[i] = byte ^ 0x5c;
+    }
+    sched_digest middle {};
+    sched_digest result {};
+    sha256_t ctx;
+    sha256_init(&ctx);
+    sha256_update(&ctx, inner.data(), inner.size());
+    sha256_update(&ctx, reinterpret_cast<const uint8_t *>(SCHED_AUTH_DOMAIN), sizeof(SCHED_AUTH_DOMAIN) - 1);
+    if (size != 0) sha256_update(&ctx, static_cast<const uint8_t *>(data), size);
+    sha256_final(&ctx, middle.data());
+    sha256_init(&ctx);
+    sha256_update(&ctx, outer.data(), outer.size());
+    sha256_update(&ctx, middle.data(), middle.size());
+    sha256_final(&ctx, result.data());
+    memset(&ctx, 0, sizeof(ctx));
+    std::fill(inner.begin(), inner.end(), 0);
+    std::fill(outer.begin(), outer.end(), 0);
+    std::fill(middle.begin(), middle.end(), 0);
+    return result;
+}
+
+bool sched_auth_equal(const uint8_t * a, const uint8_t * b, size_t size) {
+    uint8_t difference = 0;
+    for (size_t i = 0; i < size; ++i) difference |= a[i] ^ b[i];
+    return difference == 0;
+}
+
+bool sched_auth_zero(const uint8_t * data, size_t size) {
+    uint8_t value = 0;
+    for (size_t i = 0; i < size; ++i) value |= data[i];
+    return value == 0;
+}
+
+bool sched_auth_event_record(sched_auth_state * state, sched_auth_event type, const std::vector<uint8_t> & body) {
+    if (state == nullptr) return true;
+    if (state->failed || body.size() > (UINT32_C(1) << 20) ||
+        state->result.event_count >= state->config.max_events) {
+        state->failed = true;
+        state->result.status = 2;
+        return false;
+    }
+    std::vector<uint8_t> record;
+    record.reserve(4 + 2 + 2 + 4 + 8 + 4 + 32 + body.size() + 32);
+    sched_auth_le<uint32_t>(record, SCHED_AUTH_MAGIC);
+    sched_auth_le<uint16_t>(record, SCHED_AUTH_MAJOR);
+    sched_auth_le<uint16_t>(record, static_cast<uint16_t>(type));
+    sched_auth_le<uint32_t>(record, static_cast<uint32_t>(body.size()));
+    sched_auth_le<uint64_t>(record, state->config.execution_sequence);
+    sched_auth_le<uint32_t>(record, state->result.event_count);
+    sched_auth_bytes(record, state->chain.data(), state->chain.size());
+    sched_auth_bytes(record, body.data(), body.size());
+    const auto next = sched_auth_hmac(state->config.key, record.data(), record.size());
+    sched_auth_bytes(record, next.data(), next.size());
+    if (state->exported_size > state->config.event_buffer_size ||
+        record.size() > state->config.event_buffer_size - state->exported_size) {
+        state->failed = true;
+        state->result.status = 2;
+        return false;
+    }
+    memcpy(state->config.event_buffer + state->exported_size, record.data(), record.size());
+    state->exported_size += static_cast<uint32_t>(record.size());
+    state->chain = next;
+    state->result.event_count++;
+    return true;
+}
+
+void sched_auth_layout(std::vector<uint8_t> & body, const ggml_tensor * tensor, uint32_t canonical_id) {
+    sched_auth_le<uint32_t>(body, canonical_id);
+    sched_auth_le<uint32_t>(body, tensor->type);
+    for (uint32_t d = 0; d < GGML_MAX_DIMS; ++d) sched_auth_le<int64_t>(body, tensor->ne[d]);
+    for (uint32_t d = 0; d < GGML_MAX_DIMS; ++d) sched_auth_le<uint64_t>(body, tensor->nb[d]);
+}
+
+bool sched_auth_view_chain(
+        const sched_auth_state * state,
+        const ggml_tensor * tensor,
+        std::vector<uint8_t> & body) {
+    std::vector<std::pair<uint32_t, uint64_t>> chain;
+    std::unordered_set<const ggml_tensor *> seen;
+    for (const ggml_tensor * current = tensor; current != nullptr && current->view_src != nullptr; current = current->view_src) {
+        if (!seen.insert(current).second || chain.size() >= 64) return false;
+        const auto found = state->ids.find(current->view_src);
+        if (found == state->ids.end()) return false;
+        chain.emplace_back(found->second, current->view_offs);
+    }
+    sched_auth_le<uint32_t>(body, static_cast<uint32_t>(chain.size()));
+    for (const auto & edge : chain) {
+        sched_auth_le<uint32_t>(body, edge.first);
+        sched_auth_le<uint64_t>(body, edge.second);
+    }
+    return true;
+}
+
+bool sched_auth_allocation(
+        sched_auth_state * state,
+        ggml_backend_t backend,
+        const ggml_tensor * tensor,
+        uint32_t backend_ordinal,
+        std::vector<uint8_t> & body) {
+    if (backend == nullptr || tensor == nullptr || tensor->buffer == nullptr || tensor->data == nullptr) return false;
+    ggml_backend_buffer_t buffer = tensor->buffer;
+    const uintptr_t base = reinterpret_cast<uintptr_t>(ggml_backend_buffer_get_base(buffer));
+    const uintptr_t data = reinterpret_cast<uintptr_t>(tensor->data);
+    const uint64_t buffer_size = ggml_backend_buffer_get_size(buffer);
+    const uint64_t tensor_size = ggml_nbytes(tensor);
+    if (base == 0 || data < base || static_cast<uint64_t>(data - base) > buffer_size ||
+        tensor_size > buffer_size - static_cast<uint64_t>(data - base)) return false;
+    auto [it, inserted] = state->buffer_ordinals.emplace(buffer, static_cast<uint32_t>(state->buffer_ordinals.size()));
+    GGML_UNUSED(inserted);
+    sched_auth_le<uint32_t>(body, backend_ordinal);
+    sched_auth_le<uint32_t>(body, it->second);
+    sched_auth_le<uint64_t>(body, static_cast<uint64_t>(data - base));
+    sched_auth_le<uint64_t>(body, tensor_size);
+    sched_auth_le<uint64_t>(body, buffer_size);
+    sched_auth_le<uint32_t>(body, ggml_backend_buffer_is_host(buffer) ? 1 : 0);
+    sched_auth_le<uint32_t>(body, ggml_backend_buffer_get_usage(buffer));
+    return true;
+}
+
+bool sched_auth_assign_graph(sched_auth_state * state, const ggml_cgraph * graph) {
+    state->ids.clear();
+    state->ordered.clear();
+    if (graph->n_nodes <= 0) return false;
+    for (int i = 0; i < graph->n_nodes; ++i) {
+        if (graph->nodes[i] == nullptr ||
+            !state->ids.emplace(graph->nodes[i], static_cast<uint32_t>(state->ordered.size())).second) return false;
+        state->ordered.push_back(graph->nodes[i]);
+    }
+    std::unordered_set<const ggml_tensor *> visiting;
+    std::function<bool(const ggml_tensor *)> visit = [&](const ggml_tensor * tensor) {
+        if (tensor == nullptr || state->ids.find(tensor) != state->ids.end()) return true;
+        if (!visiting.insert(tensor).second) return false;
+        for (uint32_t s = 0; s < GGML_MAX_SRC; ++s) {
+            if (!visit(tensor->src[s])) return false;
+        }
+        if (!visit(tensor->view_src)) return false;
+        visiting.erase(tensor);
+        if (!state->ids.emplace(tensor, static_cast<uint32_t>(state->ordered.size())).second) return false;
+        state->ordered.push_back(tensor);
+        return true;
+    };
+    for (int i = 0; i < graph->n_nodes; ++i) {
+        const ggml_tensor * node = graph->nodes[i];
+        for (uint32_t s = 0; s < GGML_MAX_SRC; ++s) if (!visit(node->src[s])) return false;
+        if (!visit(node->view_src)) return false;
+    }
+    for (uint32_t id = 0; id < state->ordered.size(); ++id) {
+        const ggml_tensor * tensor = state->ordered[id];
+        std::vector<uint8_t> body;
+        sched_auth_layout(body, tensor, id);
+        sched_auth_le<uint32_t>(body, tensor->op);
+        sched_auth_le<int32_t>(body, tensor->flags);
+        for (uint32_t p = 0; p < GGML_MAX_OP_PARAMS / sizeof(int32_t); ++p) {
+            sched_auth_le<int32_t>(body, tensor->op_params[p]);
+        }
+        uint32_t null_bitmap = 0;
+        for (uint32_t s = 0; s < GGML_MAX_SRC; ++s) {
+            if (tensor->src[s] == nullptr) {
+                null_bitmap |= UINT32_C(1) << s;
+                sched_auth_le<uint32_t>(body, UINT32_MAX);
+            } else {
+                const auto found = state->ids.find(tensor->src[s]);
+                if (found == state->ids.end()) return false;
+                sched_auth_le<uint32_t>(body, found->second);
+            }
+        }
+        sched_auth_le<uint32_t>(body, null_bitmap);
+        if (tensor->view_src == nullptr) {
+            sched_auth_le<uint32_t>(body, UINT32_MAX);
+            sched_auth_le<uint64_t>(body, 0);
+        } else {
+            const auto found = state->ids.find(tensor->view_src);
+            if (found == state->ids.end()) return false;
+            sched_auth_le<uint32_t>(body, found->second);
+            sched_auth_le<uint64_t>(body, tensor->view_offs);
+        }
+        if (!sched_auth_event_record(state, SCHED_AUTH_GRAPH_TENSOR, body)) return false;
+    }
+    return true;
+}
+
+bool sched_auth_tensor_hash(
+        ggml_backend_t backend,
+        const ggml_tensor * tensor,
+        size_t offset,
+        size_t size,
+        sched_digest & physical,
+        sched_digest & logical,
+        uint64_t & logical_bytes,
+        uint64_t & padding_bytes) {
+    if (tensor == nullptr || tensor->buffer == nullptr || backend == nullptr ||
+        size == 0 || size > SCHED_AUTH_MAX_TRANSFER || offset > ggml_nbytes(tensor) ||
+        size > ggml_nbytes(tensor) - offset) return false;
+    std::vector<uint8_t> bytes(size);
+    ggml_backend_tensor_get(tensor, bytes.data(), offset, size);
+    physical = sched_auth_sha(bytes.data(), bytes.size());
+
+    const uint64_t block = ggml_blck_size(tensor->type);
+    const uint64_t type_size = ggml_type_size(tensor->type);
+    if (block == 0 || type_size == 0 || tensor->ne[0] <= 0 ||
+        static_cast<uint64_t>(tensor->ne[0]) % block != 0) return false;
+    uint64_t row_bytes = 0;
+    if (!sched_auth_mul_u64(type_size, static_cast<uint64_t>(tensor->ne[0]) / block, row_bytes)) return false;
+    if (row_bytes == 0 || tensor->nb[0] != type_size) return false;
+    uint64_t requested_end = 0;
+    if (!sched_auth_add_u64(offset, size, requested_end)) return false;
+
+    sha256_t logical_ctx;
+    sha256_init(&logical_ctx);
+    logical_bytes = 0;
+    for (int64_t i3 = 0; i3 < tensor->ne[3]; ++i3) {
+        for (int64_t i2 = 0; i2 < tensor->ne[2]; ++i2) {
+            for (int64_t i1 = 0; i1 < tensor->ne[1]; ++i1) {
+                uint64_t term3 = 0, term2 = 0, term1 = 0, row_offset = 0, row_end = 0;
+                if (!sched_auth_mul_u64(static_cast<uint64_t>(i3), tensor->nb[3], term3) ||
+                    !sched_auth_mul_u64(static_cast<uint64_t>(i2), tensor->nb[2], term2) ||
+                    !sched_auth_mul_u64(static_cast<uint64_t>(i1), tensor->nb[1], term1) ||
+                    !sched_auth_add_u64(term3, term2, row_offset) ||
+                    !sched_auth_add_u64(row_offset, term1, row_offset) ||
+                    !sched_auth_add_u64(row_offset, row_bytes, row_end) ||
+                    row_end > ggml_nbytes(tensor)) return false;
+                const uint64_t begin = std::max<uint64_t>(row_offset, offset);
+                const uint64_t end = std::min<uint64_t>(row_end, requested_end);
+                if (begin < end) {
+                    sha256_update(&logical_ctx, bytes.data() + (begin - offset), end - begin);
+                    if (UINT64_MAX - logical_bytes < end - begin) return false;
+                    logical_bytes += end - begin;
+                }
+            }
+        }
+    }
+    sha256_final(&logical_ctx, logical.data());
+    memset(&logical_ctx, 0, sizeof(logical_ctx));
+    if (logical_bytes > size) return false;
+    padding_bytes = size - logical_bytes;
+    return true;
+}
+
+bool sched_auth_copy_hash_event(
+        sched_auth_state * state,
+        sched_auth_event type,
+        ggml_backend_t backend,
+        uint32_t tensor_backend_ordinal,
+        const ggml_tensor * tensor,
+        uint32_t source_id,
+        uint32_t destination_backend,
+        uint32_t copy_slot,
+        uint64_t generation,
+        size_t offset,
+        size_t size,
+        size_t transferred_padding,
+        sched_digest & physical,
+        sched_digest & logical) {
+    const bool before = type == SCHED_AUTH_COPY_BEFORE || type == SCHED_AUTH_PARTIAL_BEFORE;
+    const bool partial = type == SCHED_AUTH_PARTIAL_BEFORE || type == SCHED_AUTH_PARTIAL_AFTER;
+    if (!before && type != SCHED_AUTH_COPY_AFTER && type != SCHED_AUTH_PARTIAL_AFTER) return false;
+    uint64_t end = 0;
+    if (!sched_auth_add_u64(offset, size, end)) return false;
+    if (before) {
+        for (const auto & range : state->copy_ranges) {
+            if (range.source_id == source_id &&
+                range.destination_backend == destination_backend &&
+                range.copy_slot == copy_slot &&
+                range.generation == generation &&
+                sched_auth_ranges_overlap(offset, size, range.offset, range.size)) return false;
+        }
+        state->copy_ranges.push_back({
+            source_id, destination_backend, copy_slot, generation, offset, size, partial, true
+        });
+    } else {
+        auto match = std::find_if(state->copy_ranges.begin(), state->copy_ranges.end(), [&](const sched_auth_state::copy_range & range) {
+            return range.pending && range.source_id == source_id &&
+                range.destination_backend == destination_backend &&
+                range.copy_slot == copy_slot && range.generation == generation &&
+                range.offset == offset && range.size == size && range.partial == partial;
+        });
+        if (match == state->copy_ranges.end()) return false;
+        match->pending = false;
+    }
+    const size_t type_size = ggml_type_size(tensor->type);
+    if (transferred_padding >= size || type_size == 0 ||
+        offset % type_size != 0 || (size - transferred_padding) % type_size != 0 ||
+        transferred_padding % type_size != 0) return false;
+    uint64_t ignored_logical_bytes = 0, ignored_padding_bytes = 0;
+    sched_digest ignored_logical {};
+    if (!sched_auth_tensor_hash(backend, tensor, offset, size, physical, ignored_logical,
+                                ignored_logical_bytes, ignored_padding_bytes)) return false;
+    sched_digest ignored_physical {};
+    uint64_t logical_bytes = 0, structural_padding = 0;
+    if (!sched_auth_tensor_hash(backend, tensor, offset, size - transferred_padding,
+                                ignored_physical, logical, logical_bytes, structural_padding)) return false;
+    uint64_t padding_bytes = 0;
+    if (!sched_auth_add_u64(structural_padding, transferred_padding, padding_bytes)) return false;
+    std::vector<uint8_t> body;
+    sched_auth_le<uint32_t>(body, before ? 0 : 1);
+    sched_auth_layout(body, tensor, source_id);
+    sched_auth_le<uint32_t>(body, destination_backend);
+    sched_auth_le<uint32_t>(body, copy_slot);
+    sched_auth_le<uint64_t>(body, generation);
+    sched_auth_le<uint64_t>(body, offset);
+    sched_auth_le<uint64_t>(body, size);
+    sched_auth_le<uint64_t>(body, logical_bytes);
+    sched_auth_le<uint64_t>(body, padding_bytes);
+    if (!sched_auth_allocation(state, backend, tensor, tensor_backend_ordinal, body)) return false;
+    if (before) {
+        if (!sched_auth_view_chain(state, tensor, body)) return false;
+    } else {
+        sched_auth_le<uint32_t>(body, 0);
+    }
+    sched_auth_bytes(body, physical.data(), physical.size());
+    sched_auth_bytes(body, logical.data(), logical.size());
+    return sched_auth_event_record(state, type, body);
+}
+
+}
+
 struct ggml_backend_sched_split {
     int backend_id;
     int i_start;
     int i_end;
     struct ggml_tensor * inputs[GGML_SCHED_MAX_SPLIT_INPUTS];
+    uint32_t input_canonical_ids[GGML_SCHED_MAX_SPLIT_INPUTS];
     int n_inputs;
     // graph view of this split
     struct ggml_cgraph graph;
@@ -812,6 +1233,7 @@ struct ggml_backend_sched {
 
     ggml_backend_sched_eval_callback callback_eval;
     void * callback_eval_user_data;
+    sched_auth_state * authority;
 
     char * context_buffer;
     size_t context_buffer_size;
@@ -1016,6 +1438,15 @@ void ggml_backend_sched_split_graph(ggml_backend_sched_t sched, struct ggml_cgra
     sched->n_splits = 0;
     sched->n_graph_inputs = 0;
     sched->is_reset = false;
+    if (sched->authority != nullptr) {
+        sched->authority->generation++;
+        if (sched->authority->generation != 1 ||
+            !sched_auth_assign_graph(sched->authority, graph)) {
+            sched->authority->failed = true;
+            sched->authority->result.status = 2;
+            return;
+        }
+    }
 
     struct ggml_init_params params = {
         /* .mem_size =   */ sched->context_buffer_size,
@@ -1243,6 +1674,21 @@ void ggml_backend_sched_split_graph(ggml_backend_sched_t sched, struct ggml_cgra
     }
 
     // pass 5: split graph, find tensors that need to be copied
+    if (sched->authority != nullptr) {
+        for (int i = 0; i < graph->n_nodes; ++i) {
+            const auto found = sched->authority->ids.find(graph->nodes[i]);
+            if (found == sched->authority->ids.end()) {
+                sched->authority->failed = true;
+                return;
+            }
+            std::vector<uint8_t> body;
+            sched_auth_le<uint32_t>(body, found->second);
+            sched_auth_le<uint32_t>(body, tensor_backend_id(graph->nodes[i]));
+            if (!sched_auth_event_record(sched->authority, SCHED_AUTH_NODE_BACKEND, body)) return;
+        }
+    }
+
+    // pass 5: split graph, find tensors that need to be copied
     {
         int i_split = 0;
         struct ggml_backend_sched_split * split = &sched->splits[0];
@@ -1351,7 +1797,9 @@ void ggml_backend_sched_split_graph(ggml_backend_sched_t sched, struct ggml_cgra
 
                 if (src_backend_id != cur_backend_id && !ggml_backend_sched_buffer_supported(sched, src, cur_backend_id)) {
                     // create a copy of the input in the split's backend
+                    bool inserted_copy = false;
                     if (tensor_id_copy(src_id, cur_backend_id, 0) == NULL) {
+                        inserted_copy = true;
                         ggml_backend_t backend = sched->backends[cur_backend_id];
                         for (int c = 0; c < sched->n_copies; c++) {
                             struct ggml_tensor * tensor_copy = ggml_dup_tensor_layout(sched->ctx, src);
@@ -1366,6 +1814,47 @@ void ggml_backend_sched_split_graph(ggml_backend_sched_t sched, struct ggml_cgra
                         int n_inputs = split->n_inputs++;
                         GGML_ASSERT(n_inputs < GGML_SCHED_MAX_SPLIT_INPUTS);
                         split->inputs[n_inputs] = src;
+                        if (sched->authority != nullptr) {
+                            const auto source = sched->authority->ids.find(src);
+                            if (source == sched->authority->ids.end()) {
+                                sched->authority->failed = true;
+                                return;
+                            }
+                            split->input_canonical_ids[n_inputs] = source->second;
+                        }
+                    }
+                    if (sched->authority != nullptr) {
+                        const auto source = sched->authority->ids.find(src);
+                        const auto consumer = sched->authority->ids.find(node);
+                        if (source == sched->authority->ids.end() ||
+                            consumer == sched->authority->ids.end()) {
+                            sched->authority->failed = true;
+                            return;
+                        }
+                        for (int c = 0; c < sched->n_copies; ++c) {
+                            std::vector<uint8_t> body;
+                            sched_auth_le<uint32_t>(body, source->second);
+                            sched_auth_le<uint32_t>(body, cur_backend_id);
+                            sched_auth_le<uint32_t>(body, c);
+                            sched_auth_le<uint64_t>(body, sched->authority->generation);
+                            sched_auth_le<uint32_t>(body, consumer->second);
+                            sched_auth_le<uint32_t>(body, j);
+                            sched_auth_le<uint32_t>(body, inserted_copy ? 1 : 0);
+                            sched_auth_layout(body, src, source->second);
+                            if (!sched_auth_view_chain(sched->authority, src, body)) {
+                                sched->authority->failed = true;
+                                return;
+                            }
+                            const ggml_tensor * destination = tensor_id_copy(src_id, cur_backend_id, c);
+                            if (destination == nullptr) {
+                                sched->authority->failed = true;
+                                return;
+                            }
+                            sched_auth_layout(body, destination, source->second);
+                            sched_auth_le<uint32_t>(body, 0); // generated copy has no graph view chain
+                            if (!sched_auth_event_record(sched->authority, SCHED_AUTH_COPY_MAP, body)) return;
+                            sched->authority->result.copy_map_count++;
+                        }
                     }
                     node->src[j] = tensor_id_copy(src_id, cur_backend_id, sched->cur_copy);
                 }
@@ -1373,6 +1862,23 @@ void ggml_backend_sched_split_graph(ggml_backend_sched_t sched, struct ggml_cgra
         }
         split->i_end = graph->n_nodes;
         sched->n_splits = i_split + 1;
+    }
+
+    if (sched->authority != nullptr) {
+        for (int i = 0; i < sched->n_splits; ++i) {
+            const auto & split = sched->splits[i];
+            std::vector<uint8_t> body;
+            sched_auth_le<uint32_t>(body, i);
+            sched_auth_le<uint32_t>(body, split.backend_id);
+            sched_auth_le<uint32_t>(body, split.i_start);
+            sched_auth_le<uint32_t>(body, split.i_end);
+            sched_auth_le<uint32_t>(body, split.n_inputs);
+            for (int j = 0; j < split.n_inputs; ++j) {
+                sched_auth_le<uint32_t>(body, split.input_canonical_ids[j]);
+            }
+            if (!sched_auth_event_record(sched->authority, SCHED_AUTH_SPLIT, body)) return;
+            sched->authority->result.split_count++;
+        }
     }
 
     if (sched->debug) {
@@ -1540,6 +2046,11 @@ static bool ggml_backend_sched_alloc_splits(ggml_backend_sched_t sched) {
 
 static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {
     GGML_ASSERT(sched);
+    if (sched->authority != nullptr && sched->authority->result.status != 0) {
+        sched->authority->failed = true;
+        sched->authority->result.status = 2;
+        return GGML_STATUS_ABORTED;
+    }
     struct ggml_backend_sched_split * splits = sched->splits;
 
     ggml_tensor * prev_ids_tensor = nullptr;
@@ -1554,8 +2065,15 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
         // copy the input tensors to the split backend
         for (int input_id = 0; input_id < split->n_inputs; input_id++) {
             ggml_backend_t input_backend = ggml_backend_sched_get_tensor_backend(sched, split->inputs[input_id]);
+            const int input_backend_id = ggml_backend_sched_backend_id(sched, input_backend);
+            if (sched->authority != nullptr && input_backend_id < 0) {
+                sched->authority->failed = true;
+                return GGML_STATUS_ABORTED;
+            }
             struct ggml_tensor * input = split->inputs[input_id];
             struct ggml_tensor * input_cpy = tensor_copy(input, split_backend_id, sched->cur_copy);
+            sched_digest source_physical {};
+            sched_digest source_logical {};
 
             if (input->flags & GGML_TENSOR_FLAG_INPUT) {
                 // inputs from the user must be copied immediately to prevent the user overwriting the data before the copy is done
@@ -1564,7 +2082,36 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
                 } else {
                     ggml_backend_synchronize(split_backend);
                 }
+                if (sched->authority != nullptr) {
+                    ggml_backend_synchronize(input_backend);
+                    if (!sched_auth_copy_hash_event(
+                            sched->authority, SCHED_AUTH_COPY_BEFORE, input_backend, input_backend_id, input,
+                            split->input_canonical_ids[input_id], split_backend_id, sched->cur_copy,
+                            sched->authority->generation, 0, ggml_nbytes(input),
+                            0,
+                            source_physical, source_logical)) {
+                        sched->authority->failed = true;
+                        return GGML_STATUS_ABORTED;
+                    }
+                }
                 ggml_backend_tensor_copy(input, input_cpy);
+                if (sched->authority != nullptr) {
+                    ggml_backend_synchronize(split_backend);
+                    sched_digest destination_physical {};
+                    sched_digest destination_logical {};
+                    if (!sched_auth_copy_hash_event(
+                            sched->authority, SCHED_AUTH_COPY_AFTER, split_backend, split_backend_id, input_cpy,
+                            split->input_canonical_ids[input_id], split_backend_id, sched->cur_copy,
+                            sched->authority->generation, 0, ggml_nbytes(input_cpy),
+                            0,
+                            destination_physical, destination_logical) ||
+                        !sched_auth_equal(source_physical.data(), destination_physical.data(), 32) ||
+                        !sched_auth_equal(source_logical.data(), destination_logical.data(), 32)) {
+                        sched->authority->failed = true;
+                        return GGML_STATUS_ABORTED;
+                    }
+                    sched->authority->result.verified_copy_count++;
+                }
             } else {
                 // wait for the split backend to finish using the input before overwriting it
                 if (sched->events[split_backend_id][sched->cur_copy] != NULL) {
@@ -1621,11 +2168,25 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
                     }
 
                     // group consecutive experts and copy them together
+                    bool authority_copy_ok = true;
                     auto copy_experts = [&](int32_t first_id, int32_t last_id) {
                         const size_t expert_offset = first_id * expert_size;
                         const size_t expert_size_copy =  (last_id - first_id + 1) * expert_size;
                         const size_t padding = std::min<size_t>(expert_size, 512);
                         const size_t padding_end = last_id < n_expert - 1 ? padding : 0;
+                        sched_digest partial_source_physical {};
+                        sched_digest partial_source_logical {};
+                        if (sched->authority != nullptr &&
+                            !sched_auth_copy_hash_event(
+                                sched->authority, SCHED_AUTH_PARTIAL_BEFORE, input_backend, input_backend_id, input,
+                                split->input_canonical_ids[input_id], split_backend_id, sched->cur_copy,
+                                sched->authority->generation, expert_offset,
+                                expert_size_copy + padding_end,
+                                padding_end,
+                                partial_source_physical, partial_source_logical)) {
+                            authority_copy_ok = false;
+                            return;
+                        }
 
                         ggml_backend_tensor_set_async(split_backend,
                             input_cpy,
@@ -1633,6 +2194,24 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
                             // copy a bit extra at the to ensure there are no NaNs in the padding of the last expert
                             // this is necessary for MMQ in the CUDA backend
                             expert_size_copy + padding_end);
+                        if (sched->authority != nullptr) {
+                            ggml_backend_synchronize(split_backend);
+                            sched_digest partial_destination_physical {};
+                            sched_digest partial_destination_logical {};
+                            if (!sched_auth_copy_hash_event(
+                                    sched->authority, SCHED_AUTH_PARTIAL_AFTER, split_backend, split_backend_id, input_cpy,
+                                    split->input_canonical_ids[input_id], split_backend_id, sched->cur_copy,
+                                    sched->authority->generation, expert_offset,
+                                    expert_size_copy + padding_end,
+                                    padding_end,
+                                    partial_destination_physical, partial_destination_logical) ||
+                                !sched_auth_equal(partial_source_physical.data(), partial_destination_physical.data(), 32) ||
+                                !sched_auth_equal(partial_source_logical.data(), partial_destination_logical.data(), 32)) {
+                                authority_copy_ok = false;
+                                return;
+                            }
+                            sched->authority->result.verified_partial_count++;
+                        }
                     };
 
                     int id = 0;
@@ -1658,17 +2237,54 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
                         last_id = id;
                     }
                     copy_experts(first_id, last_id);
+                    if (!authority_copy_ok) {
+                        sched->authority->failed = true;
+                        return GGML_STATUS_ABORTED;
+                    }
                 } else {
                     // try async copy, but if not possible, we can still use a sync copy without synchronizing the dst backend, since we handle the synchronization here with multiple copies and events
                     // TODO: add public function to facilitate this, since applications do not have direct access to the backend interface
-                    if (!split_backend->iface.cpy_tensor_async || !split_backend->iface.cpy_tensor_async(input_backend, split_backend, input, input_cpy)) {
+                    if (sched->authority != nullptr) {
                         ggml_backend_synchronize(input_backend);
-                        if (sched->events[split_backend_id][sched->cur_copy] != NULL) {
-                            ggml_backend_event_synchronize(sched->events[split_backend_id][sched->cur_copy]);
-                        } else {
-                            ggml_backend_synchronize(split_backend);
+                        ggml_backend_synchronize(split_backend);
+                        if (!sched_auth_copy_hash_event(
+                                sched->authority, SCHED_AUTH_COPY_BEFORE, input_backend, input_backend_id, input,
+                                split->input_canonical_ids[input_id], split_backend_id, sched->cur_copy,
+                                sched->authority->generation, 0, ggml_nbytes(input),
+                                0,
+                                source_physical, source_logical)) {
+                            sched->authority->failed = true;
+                            return GGML_STATUS_ABORTED;
                         }
-                        ggml_backend_tensor_copy(input, input_cpy);
+                        if (!split_backend->iface.cpy_tensor_async ||
+                            !split_backend->iface.cpy_tensor_async(input_backend, split_backend, input, input_cpy)) {
+                            ggml_backend_tensor_copy(input, input_cpy);
+                        }
+                        ggml_backend_synchronize(split_backend);
+                        sched_digest destination_physical {};
+                        sched_digest destination_logical {};
+                        if (!sched_auth_copy_hash_event(
+                                sched->authority, SCHED_AUTH_COPY_AFTER, split_backend, split_backend_id, input_cpy,
+                                split->input_canonical_ids[input_id], split_backend_id, sched->cur_copy,
+                                sched->authority->generation, 0, ggml_nbytes(input_cpy),
+                                0,
+                                destination_physical, destination_logical) ||
+                            !sched_auth_equal(source_physical.data(), destination_physical.data(), 32) ||
+                            !sched_auth_equal(source_logical.data(), destination_logical.data(), 32)) {
+                            sched->authority->failed = true;
+                            return GGML_STATUS_ABORTED;
+                        }
+                        sched->authority->result.verified_copy_count++;
+                    } else {
+                        if (!split_backend->iface.cpy_tensor_async || !split_backend->iface.cpy_tensor_async(input_backend, split_backend, input, input_cpy)) {
+                            ggml_backend_synchronize(input_backend);
+                            if (sched->events[split_backend_id][sched->cur_copy] != NULL) {
+                                ggml_backend_event_synchronize(sched->events[split_backend_id][sched->cur_copy]);
+                            } else {
+                                ggml_backend_synchronize(split_backend);
+                            }
+                            ggml_backend_tensor_copy(input, input_cpy);
+                        }
                     }
                 }
             }
@@ -1721,6 +2337,10 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
         }
     }
 
+    if (sched->authority != nullptr) {
+        if (sched->authority->failed) return GGML_STATUS_ABORTED;
+        sched->authority->result.status = 1;
+    }
     return GGML_STATUS_SUCCESS;
 }
 
@@ -1815,7 +2435,203 @@ void ggml_backend_sched_free(ggml_backend_sched_t sched) {
     free(sched->context_buffer);
     free(sched->graph.nodes);
     free(sched->graph.leafs);
+    if (sched->authority != nullptr) {
+        memset(&sched->authority->config, 0, sizeof(sched->authority->config));
+        memset(sched->authority->chain.data(), 0, sched->authority->chain.size());
+        delete sched->authority;
+    }
     free(sched);
+}
+
+bool ggml_backend_sched_authority_enable(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_config * config) {
+    if (sched == nullptr || config == nullptr || sched->authority != nullptr ||
+        config->major != SCHED_AUTH_MAJOR || config->minor != SCHED_AUTH_MINOR ||
+        config->encoded_size != sizeof(*config) || config->execution_sequence == 0 ||
+        config->max_events == 0 || config->max_events > SCHED_AUTH_MAX_EVENTS ||
+        config->event_buffer == nullptr || config->event_buffer_size < 256 ||
+        config->event_buffer_size > SCHED_AUTH_MAX_EXPORT ||
+        sched_auth_zero(config->attempt_nonce, sizeof(config->attempt_nonce)) ||
+        sched_auth_zero(config->key, sizeof(config->key))) return false;
+    sched->authority = new (std::nothrow) sched_auth_state();
+    if (sched->authority == nullptr) return false;
+    sched->authority->config = *config;
+    sched->authority->result.major = SCHED_AUTH_MAJOR;
+    sched->authority->result.minor = SCHED_AUTH_MINOR;
+    sched->authority->result.encoded_size = sizeof(sched->authority->result);
+    sched->authority->result.execution_sequence = config->execution_sequence;
+    memcpy(sched->authority->result.attempt_nonce, config->attempt_nonce, 32);
+    memset(config->event_buffer, 0, config->event_buffer_size);
+    std::vector<uint8_t> seed;
+    sched_auth_bytes(seed, SCHED_AUTH_DOMAIN, sizeof(SCHED_AUTH_DOMAIN) - 1);
+    sched_auth_bytes(seed, config->attempt_nonce, 32);
+    sched_auth_le<uint64_t>(seed, config->execution_sequence);
+    sched->authority->chain = sched_auth_hmac(config->key, seed.data(), seed.size());
+    return true;
+}
+
+bool ggml_backend_sched_authority_result(
+        ggml_backend_sched_t sched,
+        struct ggml_backend_sched_authority_result * result) {
+    if (sched == nullptr || result == nullptr || sched->authority == nullptr) return false;
+    auto & state = *sched->authority;
+    if (std::any_of(state.copy_ranges.begin(), state.copy_ranges.end(),
+                    [](const sched_auth_state::copy_range & range) { return range.pending; })) {
+        state.failed = true;
+        state.result.status = 2;
+    }
+    if (!state.finalized && !state.failed && state.result.status == 1) {
+        std::vector<uint8_t> trailer;
+        sched_auth_le<uint32_t>(trailer, state.result.split_count);
+        sched_auth_le<uint32_t>(trailer, state.result.copy_map_count);
+        sched_auth_le<uint32_t>(trailer, state.result.verified_copy_count);
+        sched_auth_le<uint32_t>(trailer, state.result.verified_partial_count);
+        sched_auth_le<uint32_t>(trailer, state.result.event_count);
+        sched_auth_bytes(trailer, state.chain.data(), state.chain.size());
+        state.result.trailer_offset = state.exported_size;
+        if (!sched_auth_event_record(&state, SCHED_AUTH_TRAILER, trailer)) {
+            state.failed = true;
+            state.result.status = 2;
+        } else {
+            state.finalized = true;
+        }
+    }
+    state.result.exported_size = state.exported_size;
+    memcpy(state.result.chain_root, state.chain.data(), state.chain.size());
+    memset(state.result.tag, 0, sizeof(state.result.tag));
+    std::vector<uint8_t> canonical;
+    canonical.reserve(sizeof(state.result));
+    sched_auth_le<uint16_t>(canonical, state.result.major);
+    sched_auth_le<uint16_t>(canonical, state.result.minor);
+    sched_auth_le<uint32_t>(canonical, state.result.encoded_size);
+    sched_auth_le<uint32_t>(canonical, state.result.status);
+    sched_auth_le<uint32_t>(canonical, state.result.event_count);
+    sched_auth_le<uint32_t>(canonical, state.result.split_count);
+    sched_auth_le<uint32_t>(canonical, state.result.copy_map_count);
+    sched_auth_le<uint32_t>(canonical, state.result.verified_copy_count);
+    sched_auth_le<uint32_t>(canonical, state.result.verified_partial_count);
+    sched_auth_le<uint32_t>(canonical, state.result.exported_size);
+    sched_auth_le<uint32_t>(canonical, state.result.trailer_offset);
+    sched_auth_le<uint64_t>(canonical, state.result.execution_sequence);
+    sched_auth_bytes(canonical, state.result.attempt_nonce, 32);
+    sched_auth_bytes(canonical, state.result.chain_root, 32);
+    canonical.resize(canonical.size() + 32, 0);
+    const auto tag = sched_auth_hmac(state.config.key, canonical.data(), canonical.size());
+    memcpy(state.result.tag, tag.data(), tag.size());
+    *result = state.result;
+    return !state.failed && state.result.status == 1;
+}
+
+uint32_t ggml_backend_sched_authority_self_test(void) {
+    uint32_t passed = 0;
+    uint64_t value = 0;
+    if (sched_auth_add_u64(1, 2, value) && value == 3) passed |= 1u << 0;
+    if (!sched_auth_add_u64(UINT64_MAX, 1, value)) passed |= 1u << 1;
+    if (sched_auth_mul_u64(7, 9, value) && value == 63) passed |= 1u << 2;
+    if (!sched_auth_mul_u64(UINT64_MAX, 2, value)) passed |= 1u << 3;
+
+    std::array<uint8_t, 32> key {};
+    std::array<uint8_t, 32> nonce {};
+    for (uint32_t i = 0; i < 32; ++i) {
+        key[i] = static_cast<uint8_t>(i + 1);
+        nonce[i] = static_cast<uint8_t>(0xa0 + i);
+    }
+    const std::array<uint8_t, 4> message {{ 1, 2, 3, 4 }};
+    const auto first = sched_auth_hmac(key.data(), message.data(), message.size());
+    auto changed = message;
+    changed[3] ^= 1;
+    const auto second = sched_auth_hmac(key.data(), changed.data(), changed.size());
+    if (!sched_auth_equal(first.data(), second.data(), first.size())) passed |= 1u << 4;
+    if (sched_auth_equal(first.data(), first.data(), first.size())) passed |= 1u << 5;
+    if (!sched_auth_zero(key.data(), key.size()) && !sched_auth_zero(nonce.data(), nonce.size())) passed |= 1u << 6;
+
+    sched_auth_state state {};
+    state.config.major = SCHED_AUTH_MAJOR;
+    state.config.minor = SCHED_AUTH_MINOR;
+    state.config.encoded_size = sizeof(state.config);
+    state.config.max_events = 1;
+    std::array<uint8_t, 512> export_buffer {};
+    state.config.event_buffer = export_buffer.data();
+    state.config.event_buffer_size = export_buffer.size();
+    state.config.execution_sequence = 9;
+    memcpy(state.config.key, key.data(), key.size());
+    memcpy(state.config.attempt_nonce, nonce.data(), nonce.size());
+    state.chain = first;
+    std::vector<uint8_t> body;
+    sched_auth_le<uint32_t>(body, 0x12345678);
+    if (sched_auth_event_record(&state, SCHED_AUTH_SPLIT, body) && state.result.event_count == 1) passed |= 1u << 7;
+    if (!sched_auth_event_record(&state, SCHED_AUTH_SPLIT, body) && state.failed && state.result.status == 2) passed |= 1u << 8;
+
+    std::vector<uint8_t> little;
+    sched_auth_le<uint32_t>(little, 0x12345678);
+    if (little == std::vector<uint8_t>({ 0x78, 0x56, 0x34, 0x12 })) passed |= 1u << 9;
+    if (sched_auth_ranges_overlap(8, 8, 12, 4) &&
+        !sched_auth_ranges_overlap(8, 4, 12, 4)) passed |= 1u << 10;
+    if (sched_auth_ranges_overlap(UINT64_MAX - 1, 4, 0, 1)) passed |= 1u << 11;
+    ggml_tensor base {};
+    ggml_tensor first_view {};
+    ggml_tensor nested_view {};
+    first_view.view_src = &base;
+    first_view.view_offs = 64;
+    nested_view.view_src = &first_view;
+    nested_view.view_offs = 32;
+    sched_auth_state view_state {};
+    view_state.ids.emplace(&base, 7);
+    view_state.ids.emplace(&first_view, 8);
+    std::vector<uint8_t> view_body;
+    if (sched_auth_view_chain(&view_state, &nested_view, view_body) &&
+        view_body.size() == 28 && view_body[0] == 2 &&
+        view_body[1] == 0 && view_body[2] == 0 && view_body[3] == 0) passed |= 1u << 12;
+    sched_auth_state missing_view_state {};
+    std::vector<uint8_t> missing_body;
+    if (!sched_auth_view_chain(&missing_view_state, &nested_view, missing_body)) passed |= 1u << 13;
+    base.view_src = &nested_view;
+    view_state.ids.emplace(&nested_view, 9);
+    std::vector<uint8_t> cycle_body;
+    if (!sched_auth_view_chain(&view_state, &nested_view, cycle_body)) passed |= 1u << 14;
+    const size_t q8_size = ggml_type_size(GGML_TYPE_Q8_0);
+    if (ggml_blck_size(GGML_TYPE_Q8_0) == 32 && q8_size != 0 &&
+        (q8_size * 2) % q8_size == 0 && (q8_size + 1) % q8_size != 0) passed |= 1u << 15;
+    ggml_tensor strided {};
+    strided.type = GGML_TYPE_F32;
+    strided.ne[0] = 4; strided.ne[1] = 2; strided.ne[2] = 1; strided.ne[3] = 1;
+    strided.nb[0] = 4; strided.nb[1] = 32; strided.nb[2] = 64; strided.nb[3] = 64;
+    std::vector<uint8_t> strided_body;
+    sched_auth_layout(strided_body, &strided, 11);
+    if (strided_body.size() == 72 && strided_body[0] == 11 &&
+        strided_body[48] == 32) passed |= 1u << 16;
+    memset(state.config.key, 0, sizeof(state.config.key));
+    memset(state.config.attempt_nonce, 0, sizeof(state.config.attempt_nonce));
+    std::fill(key.begin(), key.end(), 0);
+    std::fill(nonce.begin(), nonce.end(), 0);
+    return passed;
+}
+
+bool ggml_backend_sched_authority_hash_probe(
+        ggml_backend_t backend,
+        const struct ggml_tensor * tensor,
+        size_t offset,
+        size_t size,
+        size_t transferred_padding,
+        struct ggml_backend_sched_authority_hash_probe * result) {
+    if (result == nullptr || tensor == nullptr || transferred_padding >= size) return false;
+    memset(result, 0, sizeof(*result));
+    const size_t type_size = ggml_type_size(tensor->type);
+    if (type_size == 0 || offset % type_size != 0 ||
+        (size - transferred_padding) % type_size != 0 ||
+        transferred_padding % type_size != 0) return false;
+    sched_digest physical {}, ignored_logical {}, ignored_physical {}, logical {};
+    uint64_t ignored_logical_bytes = 0, ignored_padding_bytes = 0;
+    if (!sched_auth_tensor_hash(backend, tensor, offset, size, physical, ignored_logical,
+                                ignored_logical_bytes, ignored_padding_bytes)) return false;
+    uint64_t structural_padding = 0;
+    if (!sched_auth_tensor_hash(backend, tensor, offset, size - transferred_padding,
+                                ignored_physical, logical, result->logical_bytes, structural_padding) ||
+        !sched_auth_add_u64(structural_padding, transferred_padding, result->padding_bytes)) return false;
+    memcpy(result->physical_digest, physical.data(), physical.size());
+    memcpy(result->logical_digest, logical.data(), logical.size());
+    return true;
 }
 
 void ggml_backend_sched_reset(ggml_backend_sched_t sched) {
@@ -1840,6 +2656,7 @@ void ggml_backend_sched_reserve_size(ggml_backend_sched_t sched, struct ggml_cgr
     ggml_backend_sched_synchronize(sched);
 
     ggml_backend_sched_split_graph(sched, measure_graph);
+    if (sched->authority != nullptr && sched->authority->failed) return;
 
     ggml_gallocr_reserve_n_size(sched->galloc, &sched->graph, sched->node_backend_ids, sched->leaf_backend_ids, sizes);
 }
@@ -1851,6 +2668,7 @@ bool ggml_backend_sched_reserve(ggml_backend_sched_t sched, struct ggml_cgraph *
     ggml_backend_sched_synchronize(sched);
 
     ggml_backend_sched_split_graph(sched, measure_graph);
+    if (sched->authority != nullptr && sched->authority->failed) return false;
 
     if (!ggml_gallocr_reserve_n(sched->galloc, &sched->graph, sched->node_backend_ids, sched->leaf_backend_ids)) {
         return false;
@@ -1870,6 +2688,7 @@ bool ggml_backend_sched_alloc_graph(ggml_backend_sched_t sched, struct ggml_cgra
     sched->next_copy = (sched->next_copy + 1) % sched->n_copies;
 
     ggml_backend_sched_split_graph(sched, graph);
+    if (sched->authority != nullptr && sched->authority->failed) return false;
 
     if (!ggml_backend_sched_alloc_splits(sched)) {
         return false;

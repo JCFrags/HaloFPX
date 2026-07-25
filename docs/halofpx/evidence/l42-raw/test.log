@@ -1,0 +1,3 @@
+ggml_rocm_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+self_tests=17 feature_off=1 split_exact=1 hash_fixtures=1 evidence_written=1 authority=1 ordinary_transcript=1 expert_fixture=1 expert_transcript=1 tamper_refused=1 order_refused=1 duplicate_refused=1 unknown_refused=1 overlap_refused=1 bounds_refused=1 malformed_refused=1 events=16 splits=2 maps=1 copies=1 expert_status=1 expert_events=12 expert_maps=1 expert_copies=0 partial=2

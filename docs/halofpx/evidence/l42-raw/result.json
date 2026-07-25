@@ -1,0 +1,57 @@
+{
+  "milestone": "L42",
+  "result": "PASS",
+  "base_commit": "ba0cbd51634cd58496d35cf615dfdae32a367269",
+  "date": "2026-07-25",
+  "scope": "no-primary, no-production scheduler execution-authority foundation",
+  "domain": "halofpx.scheduler-execution-authority.v2",
+  "qualification": {
+    "feature_off_inert": true,
+    "self_test_count": 17,
+    "hash_fixtures": true,
+    "ordinary": {
+      "execution_sequence": 41,
+      "events": 16,
+      "splits": 2,
+      "copy_maps": 1,
+      "verified_copies": 1,
+      "transcript_verified": true,
+      "deterministic_output": true
+    },
+    "expert": {
+      "execution_sequence": 42,
+      "events": 12,
+      "copy_maps": 1,
+      "verified_partial_ranges": 2,
+      "transcript_verified": true,
+      "deterministic_output": true
+    },
+    "refusals": [
+      "malformed",
+      "tampered",
+      "duplicate",
+      "out_of_order",
+      "unknown_type",
+      "overlap",
+      "out_of_bounds",
+      "q8_misalignment"
+    ]
+  },
+  "binary_sha256": {
+    "test": "f571a1f8c8137f9b4e98d31f1a0827c66725505a10e497e6918f6153be1bc16e",
+    "rpc_server": "7c467c75a517c025446cd809327fabff6f8406c81c62430460fce22a5740b8fe"
+  },
+  "review": "PASS",
+  "cleanup": {
+    "disposable_port_50242_closed": true
+  },
+  "production": {
+    "touched": false,
+    "worker_main_pid": 1535639,
+    "worker_port": 50052,
+    "coordinator_main_pid": 2356329,
+    "coordinator_port": 8081,
+    "http_status": 200,
+    "nrestarts": [0, 0]
+  }
+}

@@ -204,6 +204,7 @@ add_library(ggml-base
             ggml-opt.cpp
             ggml-threading.cpp
             ggml-threading.h
+            ../../examples/gguf-hash/deps/sha256/sha256.c
             ggml-quants.c
             ggml-quants.h
             ../rocmfp4/rocmfp4.c
@@ -218,6 +219,7 @@ set_target_properties(ggml-base PROPERTIES
 )
 
 target_include_directories(ggml-base PRIVATE .)
+target_include_directories(ggml-base PRIVATE ../../examples/gguf-hash/deps)
 if (GGML_BACKEND_DL)
     target_compile_definitions(ggml-base PUBLIC GGML_BACKEND_DL)
 endif()

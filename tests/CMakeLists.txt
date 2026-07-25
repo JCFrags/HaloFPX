@@ -814,6 +814,8 @@ target_include_directories(test-alloc PRIVATE ${PROJECT_SOURCE_DIR}/ggml/src)
 if (GGML_RPC_HALOFPX_LOCAL_STATE)
     add_executable(test-halofpx-rpc-graph-authority test-halofpx-rpc-graph-authority.cpp)
     target_link_libraries(test-halofpx-rpc-graph-authority PRIVATE llama ggml-rpc)
+    add_executable(test-halofpx-scheduler-authority test-halofpx-scheduler-authority.cpp)
+    target_link_libraries(test-halofpx-scheduler-authority PRIVATE llama ggml-rpc)
 endif()
 
 llama_build(export-graph-ops.cpp)

@@ -313,6 +313,46 @@ extern "C" {
     //
     typedef bool (*ggml_backend_sched_eval_callback)(struct ggml_tensor * t, bool ask, void * user_data);
 
+    // Runtime-default-off authenticated scheduler execution authority.
+    // Enabling this contract adds synchronous diagnostic readback and must only
+    // be used by bounded qualification runs.
+    struct ggml_backend_sched_authority_config {
+        uint16_t major;
+        uint16_t minor;
+        uint32_t encoded_size;
+        uint32_t max_events;
+        uint32_t event_buffer_size;
+        uint64_t execution_sequence;
+        uint8_t attempt_nonce[32];
+        uint8_t key[32];
+        uint8_t * event_buffer;
+    };
+
+    struct ggml_backend_sched_authority_result {
+        uint16_t major;
+        uint16_t minor;
+        uint32_t encoded_size;
+        uint32_t status;
+        uint32_t event_count;
+        uint32_t split_count;
+        uint32_t copy_map_count;
+        uint32_t verified_copy_count;
+        uint32_t verified_partial_count;
+        uint32_t exported_size;
+        uint32_t trailer_offset;
+        uint64_t execution_sequence;
+        uint8_t attempt_nonce[32];
+        uint8_t chain_root[32];
+        uint8_t tag[32];
+    };
+
+    struct ggml_backend_sched_authority_hash_probe {
+        uint64_t logical_bytes;
+        uint64_t padding_bytes;
+        uint8_t physical_digest[32];
+        uint8_t logical_digest[32];
+    };
+
     // Initialize a backend scheduler, backends with low index are given priority over backends with high index
     GGML_API ggml_backend_sched_t ggml_backend_sched_new(ggml_backend_t * backends, ggml_backend_buffer_type_t * bufts, int n_backends, size_t graph_size, bool parallel, bool op_offload);
     GGML_API void                 ggml_backend_sched_free(ggml_backend_sched_t sched);
@@ -350,6 +390,16 @@ extern "C" {
 
     // Set a callback to be called for each resulting node during graph compute
     GGML_API void                 ggml_backend_sched_set_eval_callback(ggml_backend_sched_t sched, ggml_backend_sched_eval_callback callback, void * user_data);
+    GGML_API bool                 ggml_backend_sched_authority_enable(ggml_backend_sched_t sched, const struct ggml_backend_sched_authority_config * config);
+    GGML_API bool                 ggml_backend_sched_authority_result(ggml_backend_sched_t sched, struct ggml_backend_sched_authority_result * result);
+    GGML_API uint32_t             ggml_backend_sched_authority_self_test(void);
+    GGML_API bool                 ggml_backend_sched_authority_hash_probe(
+        ggml_backend_t backend,
+        const struct ggml_tensor * tensor,
+        size_t offset,
+        size_t size,
+        size_t transferred_padding,
+        struct ggml_backend_sched_authority_hash_probe * result);
 
     //
     // Meta backend
