@@ -1,0 +1,80 @@
+{
+  "schema": "halofpx.l40.result.v1",
+  "milestone": "L40",
+  "result": "PASS",
+  "base_commit": "0658a272d25ee660055143904aa47a2d76dc2d19",
+  "primary_artifact_accessed": false,
+  "production_mutated": false,
+  "scope": "RPC authenticated graph authority foundation only",
+  "protocol": {
+    "domain": "halofpx.rpc-graph-authority.v1",
+    "major": 1,
+    "minor": 0,
+    "max_graph_bytes": 67108864,
+    "max_tensors": 65536,
+    "max_nodes": 65536,
+    "wire_encoding": "canonical little-endian",
+    "execution": "authenticated prepare receipt before separate authenticated execute",
+    "feature_default": "off"
+  },
+  "qualification": {
+    "feature_on_release_build": "PASS",
+    "feature_compiled_out_release_build": "PASS",
+    "focused_protocol_tests": 18,
+    "real_rpc_compute_recompute": {
+      "result": "PASS",
+      "worker": "nimo-1:50240",
+      "client": "nimo-2",
+      "graph_uid": 2,
+      "sequences": [1, 2],
+      "graph_digest": "ef2fecddf9713b2b63e02391de1fbc351f6538e46eacb3e268bc08fbfe0a041d",
+      "output_exact": true,
+      "first0": 0.938476562,
+      "second0": 0.938476562
+    },
+    "runtime_feature_off": {
+      "result": "PASS",
+      "output_exact": true,
+      "auth_records_before": 14,
+      "auth_records_after": 14
+    },
+    "feature_disagreement": "REFUSED",
+    "wrong_key": "REFUSED"
+  },
+  "identities": {
+    "rpc_source_sha256": "aacd2f2cc7aa4e348e834169120084af1a5eccd1faf663e844a725d7409374b9",
+    "test_source_sha256": "98e56fe98b3bd77016cebe49145c4c493812bb60035583267aa1e6b52addcf83",
+    "rpc_server_sha256": "c7a1677dfd88b976eb6fe1582c1ddb2d556a23c410f22657448368cdcc8fcb66",
+    "test_binary_sha256": "0a83f86c37e1c3031b354c2d88b385a9e09704e090c1f8c8caa2f73489f2197b"
+  },
+  "excluded": [
+    "scheduler copy authority",
+    "mutable input census",
+    "SET_TENSOR role authority",
+    "expert, Q8, and flash-attention coverage",
+    "primary model",
+    "production cache enablement"
+  ],
+  "production_closeout": {
+    "nimo_2_worker": {
+      "scope": "system",
+      "cgroup": "/system.slice/minimax-m27-rpc-worker.service",
+      "pid": 1535639,
+      "port": 50052,
+      "active": true,
+      "nrestarts": 0
+    },
+    "nimo_1_coordinator": {
+      "scope": "system",
+      "cgroup": "/system.slice/minimax-m27-q6-server.service",
+      "pid": 2356329,
+      "port": 8081,
+      "http": 200,
+      "active": true,
+      "nrestarts": 0
+    }
+  },
+  "cleanup": "PASS",
+  "independent_review": "PASS"
+}
+

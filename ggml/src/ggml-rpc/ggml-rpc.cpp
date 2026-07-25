@@ -18,6 +18,8 @@
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
+#include <functional>
+#include <type_traits>
 
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
 #if !defined(__BYTE_ORDER__) || __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
@@ -93,6 +95,10 @@ enum rpc_cmd {
     RPC_CMD_HALOFPX_STATE_STAGE,
     RPC_CMD_HALOFPX_STATE_COMMIT_APPLY,
     RPC_CMD_HALOFPX_STATE_ABORT,
+    RPC_CMD_HALOFPX_GRAPH_AUTH_CAPS,
+    RPC_CMD_HALOFPX_GRAPH_AUTH_COMPUTE,
+    RPC_CMD_HALOFPX_GRAPH_AUTH_RECOMPUTE,
+    RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE,
 #endif
     RPC_CMD_COUNT,
 };
@@ -100,6 +106,10 @@ enum rpc_cmd {
 static_assert(RPC_CMD_HELLO == 14, "RPC_CMD_HELLO must be always 14");
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
 static_assert(RPC_CMD_HALOFPX_STATE_CAPS == 17, "HaloFPX CAPS command ordinal must be always 17");
+static_assert(RPC_CMD_HALOFPX_GRAPH_AUTH_CAPS == 22, "HaloFPX graph auth CAPS ordinal must be always 22");
+static_assert(RPC_CMD_HALOFPX_GRAPH_AUTH_COMPUTE == 23, "HaloFPX graph auth COMPUTE ordinal must be always 23");
+static_assert(RPC_CMD_HALOFPX_GRAPH_AUTH_RECOMPUTE == 24, "HaloFPX graph auth RECOMPUTE ordinal must be always 24");
+static_assert(RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE == 25, "HaloFPX graph auth EXECUTE ordinal must be always 25");
 #endif
 
 // Try RPC_CMD_SET_TENSOR_HASH first when data size is larger than this threshold
@@ -217,6 +227,75 @@ struct rpc_msg_graph_recompute_req {
 };
 
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+extern "C" uint32_t ggml_backend_rpc_halofpx_graph_auth_self_test(void);
+
+static constexpr uint16_t HFX_GRAPH_AUTH_MAJOR = 1;
+static constexpr uint16_t HFX_GRAPH_AUTH_MINOR = 0;
+static constexpr uint32_t HFX_GRAPH_AUTH_MAX_TENSORS = 65536;
+static constexpr uint32_t HFX_GRAPH_AUTH_MAX_NODES = 65536;
+static constexpr uint32_t HFX_GRAPH_AUTH_MAX_GRAPH_BYTES = 64U << 20;
+static constexpr char HFX_GRAPH_AUTH_DOMAIN[] = "halofpx.rpc-graph-authority.v1";
+
+struct hfx_graph_auth_caps_req {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t encoded_size;
+    uint8_t attempt_nonce[32];
+    uint8_t tag[32];
+};
+
+struct hfx_graph_auth_caps_rsp {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t encoded_size;
+    uint32_t status;
+    uint32_t max_graph_bytes;
+    uint32_t max_tensors;
+    uint32_t max_nodes;
+    uint8_t attempt_nonce[32];
+    uint8_t server_nonce[32];
+    uint8_t tag[32];
+};
+
+struct hfx_graph_auth_header {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t encoded_size;
+    uint32_t graph_size;
+    uint32_t device;
+    uint64_t graph_uid;
+    uint64_t exec_sequence;
+    uint8_t attempt_nonce[32];
+    uint8_t server_nonce[32];
+    uint8_t graph_digest[32];
+    uint8_t transcript_root[32];
+    uint8_t tag[32];
+};
+
+struct hfx_graph_auth_receipt {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t encoded_size;
+    uint32_t status;
+    uint32_t device;
+    uint64_t graph_uid;
+    uint64_t exec_sequence;
+    uint8_t attempt_nonce[32];
+    uint8_t server_nonce[32];
+    uint8_t graph_digest[32];
+    uint8_t transcript_root[32];
+    uint8_t tag[32];
+};
+
+static_assert(sizeof(hfx_graph_auth_caps_req) == 80, "graph auth caps request size");
+static_assert(sizeof(hfx_graph_auth_caps_rsp) == 128, "graph auth caps response size");
+static_assert(sizeof(hfx_graph_auth_header) == 200, "graph auth header size");
+static_assert(sizeof(hfx_graph_auth_receipt) == 200, "graph auth receipt size");
+
 static constexpr uint16_t HFX_STATE_MAJOR = 1;
 static constexpr uint16_t HFX_STATE_MINOR = 0;
 static constexpr uint32_t HFX_STATE_MAX_COMPONENTS = GGML_RPC_HALOFPX_STATE_MAX_COMPONENTS;
@@ -346,12 +425,24 @@ struct ggml_backend_rpc_context {
     uint32_t    device;
     std::string name;
     uint64_t    last_graph_uid;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    bool graph_auth_negotiated;
+    uint64_t graph_auth_sequence;
+    std::array<uint8_t, 32> graph_auth_key;
+    std::array<uint8_t, 32> graph_auth_attempt_nonce;
+    std::array<uint8_t, 32> graph_auth_server_nonce;
+    std::array<uint8_t, 32> graph_auth_last_digest;
+    std::array<uint8_t, 32> graph_auth_transcript_root;
+#endif
 };
 
 struct ggml_backend_rpc_buffer_context {
     std::shared_ptr<socket_t> sock;
     void * base_ptr;
     uint64_t remote_ptr;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    uint32_t allocation_ordinal;
+#endif
 };
 
 // RPC helper functions
@@ -413,6 +504,231 @@ hfx_digest hfx_hmac(const uint8_t key[32], const void * data, size_t size) {
     hfx_wipe(outer.data(), outer.size());
     hfx_wipe(mid.data(), mid.size());
     return result;
+}
+
+hfx_digest hfx_graph_hmac(const uint8_t key[32], const void * data, size_t size) {
+    std::array<uint8_t, 64> inner {};
+    std::array<uint8_t, 64> outer {};
+    for (size_t i = 0; i < 64; ++i) {
+        const uint8_t b = i < 32 ? key[i] : 0;
+        inner[i] = b ^ 0x36;
+        outer[i] = b ^ 0x5c;
+    }
+    sha256_t ctx;
+    hfx_digest mid {};
+    hfx_digest result {};
+    sha256_init(&ctx);
+    sha256_update(&ctx, inner.data(), inner.size());
+    sha256_update(&ctx, reinterpret_cast<const uint8_t *>(HFX_GRAPH_AUTH_DOMAIN), sizeof(HFX_GRAPH_AUTH_DOMAIN) - 1);
+    if (size != 0) sha256_update(&ctx, static_cast<const uint8_t *>(data), size);
+    sha256_final(&ctx, mid.data());
+    sha256_init(&ctx);
+    sha256_update(&ctx, outer.data(), outer.size());
+    sha256_update(&ctx, mid.data(), mid.size());
+    sha256_final(&ctx, result.data());
+    hfx_wipe(&ctx, sizeof(ctx));
+    hfx_wipe(inner.data(), inner.size());
+    hfx_wipe(outer.data(), outer.size());
+    hfx_wipe(mid.data(), mid.size());
+    return result;
+}
+
+bool hfx_graph_key(std::array<uint8_t, 32> & key) {
+    const char * value = std::getenv("HALOFPX_RPC_GRAPH_AUTH_KEY_HEX");
+    if (value == nullptr || strlen(value) != 64) return false;
+    auto hex = [](char c) -> int {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+        return -1;
+    };
+    for (size_t i = 0; i < key.size(); ++i) {
+        const int hi = hex(value[2*i]);
+        const int lo = hex(value[2*i + 1]);
+        if (hi < 0 || lo < 0) {
+            hfx_wipe(key.data(), key.size());
+            return false;
+        }
+        key[i] = static_cast<uint8_t>((hi << 4) | lo);
+    }
+    uint8_t nonzero = 0;
+    for (uint8_t byte : key) nonzero |= byte;
+    return nonzero != 0;
+}
+
+bool hfx_graph_requested() {
+    const char * value = std::getenv("HALOFPX_RPC_GRAPH_AUTH");
+    return value != nullptr && strcmp(value, "1") == 0;
+}
+
+template<typename T>
+void hfx_le(std::vector<uint8_t> & out, T value) {
+    static_assert(std::is_integral<T>::value, "LE values must be integral");
+    using U = typename std::make_unsigned<T>::type;
+    const U v = static_cast<U>(value);
+    for (size_t i = 0; i < sizeof(T); ++i) out.push_back(static_cast<uint8_t>(v >> (8*i)));
+}
+
+void hfx_bytes(std::vector<uint8_t> & out, const void * data, size_t size) {
+    const auto * begin = static_cast<const uint8_t *>(data);
+    out.insert(out.end(), begin, begin + size);
+}
+
+struct hfx_le_reader {
+    const uint8_t * data;
+    size_t size;
+    size_t offset = 0;
+
+    bool bytes(void * output, size_t count) {
+        if (count > size - offset) return false;
+        memcpy(output, data + offset, count);
+        offset += count;
+        return true;
+    }
+
+    template<typename T>
+    bool integer(T & output) {
+        static_assert(std::is_integral<T>::value, "LE values must be integral");
+        using U = typename std::make_unsigned<T>::type;
+        if (sizeof(T) > size - offset) return false;
+        U value = 0;
+        for (size_t i = 0; i < sizeof(T); ++i) value |= static_cast<U>(data[offset + i]) << (8*i);
+        offset += sizeof(T);
+        output = static_cast<T>(value);
+        return true;
+    }
+};
+
+std::vector<uint8_t> hfx_graph_encode(const hfx_graph_auth_caps_req & value, bool include_tag = true) {
+    std::vector<uint8_t> out;
+    out.reserve(sizeof(value));
+    hfx_bytes(out, value.magic, 8);
+    hfx_le<uint16_t>(out, value.major);
+    hfx_le<uint16_t>(out, value.minor);
+    hfx_le<uint32_t>(out, value.encoded_size);
+    hfx_bytes(out, value.attempt_nonce, 32);
+    if (include_tag) hfx_bytes(out, value.tag, 32); else out.resize(out.size() + 32, 0);
+    return out;
+}
+
+std::vector<uint8_t> hfx_graph_encode(const hfx_graph_auth_caps_rsp & value, bool include_tag = true) {
+    std::vector<uint8_t> out;
+    out.reserve(sizeof(value));
+    hfx_bytes(out, value.magic, 8);
+    hfx_le<uint16_t>(out, value.major);
+    hfx_le<uint16_t>(out, value.minor);
+    hfx_le<uint32_t>(out, value.encoded_size);
+    hfx_le<uint32_t>(out, value.status);
+    hfx_le<uint32_t>(out, value.max_graph_bytes);
+    hfx_le<uint32_t>(out, value.max_tensors);
+    hfx_le<uint32_t>(out, value.max_nodes);
+    hfx_bytes(out, value.attempt_nonce, 32);
+    hfx_bytes(out, value.server_nonce, 32);
+    if (include_tag) hfx_bytes(out, value.tag, 32); else out.resize(out.size() + 32, 0);
+    return out;
+}
+
+template<typename T>
+std::vector<uint8_t> hfx_graph_encode_exec(const T & value, bool include_tag = true) {
+    std::vector<uint8_t> out;
+    out.reserve(sizeof(value));
+    hfx_bytes(out, value.magic, 8);
+    hfx_le<uint16_t>(out, value.major);
+    hfx_le<uint16_t>(out, value.minor);
+    hfx_le<uint32_t>(out, value.encoded_size);
+    hfx_le<uint32_t>(out, value.graph_size);
+    hfx_le<uint32_t>(out, value.device);
+    hfx_le<uint64_t>(out, value.graph_uid);
+    hfx_le<uint64_t>(out, value.exec_sequence);
+    hfx_bytes(out, value.attempt_nonce, 32);
+    hfx_bytes(out, value.server_nonce, 32);
+    hfx_bytes(out, value.graph_digest, 32);
+    hfx_bytes(out, value.transcript_root, 32);
+    if (include_tag) hfx_bytes(out, value.tag, 32); else out.resize(out.size() + 32, 0);
+    return out;
+}
+
+std::vector<uint8_t> hfx_graph_encode(const hfx_graph_auth_header & value, bool include_tag = true) {
+    return hfx_graph_encode_exec(value, include_tag);
+}
+
+std::vector<uint8_t> hfx_graph_encode(const hfx_graph_auth_receipt & value, bool include_tag = true) {
+    std::vector<uint8_t> out;
+    out.reserve(sizeof(value));
+    hfx_bytes(out, value.magic, 8);
+    hfx_le<uint16_t>(out, value.major);
+    hfx_le<uint16_t>(out, value.minor);
+    hfx_le<uint32_t>(out, value.encoded_size);
+    hfx_le<uint32_t>(out, value.status);
+    hfx_le<uint32_t>(out, value.device);
+    hfx_le<uint64_t>(out, value.graph_uid);
+    hfx_le<uint64_t>(out, value.exec_sequence);
+    hfx_bytes(out, value.attempt_nonce, 32);
+    hfx_bytes(out, value.server_nonce, 32);
+    hfx_bytes(out, value.graph_digest, 32);
+    hfx_bytes(out, value.transcript_root, 32);
+    if (include_tag) hfx_bytes(out, value.tag, 32); else out.resize(out.size() + 32, 0);
+    return out;
+}
+
+bool hfx_graph_decode(const uint8_t * data, size_t size, hfx_graph_auth_caps_req & value) {
+    if (size != sizeof(value)) return false;
+    hfx_le_reader in { data, size };
+    return in.bytes(value.magic, 8) && in.integer(value.major) && in.integer(value.minor) &&
+        in.integer(value.encoded_size) && in.bytes(value.attempt_nonce, 32) &&
+        in.bytes(value.tag, 32) && in.offset == size;
+}
+
+bool hfx_graph_decode(const uint8_t * data, size_t size, hfx_graph_auth_caps_rsp & value) {
+    if (size != sizeof(value)) return false;
+    hfx_le_reader in { data, size };
+    return in.bytes(value.magic, 8) && in.integer(value.major) && in.integer(value.minor) &&
+        in.integer(value.encoded_size) && in.integer(value.status) &&
+        in.integer(value.max_graph_bytes) && in.integer(value.max_tensors) &&
+        in.integer(value.max_nodes) && in.bytes(value.attempt_nonce, 32) &&
+        in.bytes(value.server_nonce, 32) && in.bytes(value.tag, 32) && in.offset == size;
+}
+
+bool hfx_graph_decode(const uint8_t * data, size_t size, hfx_graph_auth_header & value) {
+    if (size != sizeof(value)) return false;
+    hfx_le_reader in { data, size };
+    return in.bytes(value.magic, 8) && in.integer(value.major) && in.integer(value.minor) &&
+        in.integer(value.encoded_size) && in.integer(value.graph_size) &&
+        in.integer(value.device) && in.integer(value.graph_uid) &&
+        in.integer(value.exec_sequence) && in.bytes(value.attempt_nonce, 32) &&
+        in.bytes(value.server_nonce, 32) && in.bytes(value.graph_digest, 32) &&
+        in.bytes(value.transcript_root, 32) && in.bytes(value.tag, 32) && in.offset == size;
+}
+
+bool hfx_graph_decode(const uint8_t * data, size_t size, hfx_graph_auth_receipt & value) {
+    if (size != sizeof(value)) return false;
+    hfx_le_reader in { data, size };
+    return in.bytes(value.magic, 8) && in.integer(value.major) && in.integer(value.minor) &&
+        in.integer(value.encoded_size) && in.integer(value.status) &&
+        in.integer(value.device) && in.integer(value.graph_uid) &&
+        in.integer(value.exec_sequence) && in.bytes(value.attempt_nonce, 32) &&
+        in.bytes(value.server_nonce, 32) && in.bytes(value.graph_digest, 32) &&
+        in.bytes(value.transcript_root, 32) && in.bytes(value.tag, 32) && in.offset == size;
+}
+
+template<typename T>
+bool hfx_graph_sign_record(T & value, const uint8_t key[32]) {
+    memset(value.tag, 0, sizeof(value.tag));
+    const auto encoded = hfx_graph_encode(value, false);
+    if (encoded.size() != sizeof(value)) return false;
+    const auto tag = hfx_graph_hmac(key, encoded.data(), encoded.size());
+    memcpy(value.tag, tag.data(), tag.size());
+    return true;
+}
+
+template<typename T>
+bool hfx_graph_verify_record(const T & value, const uint8_t key[32]) {
+    const auto encoded = hfx_graph_encode(value, false);
+    if (encoded.size() != sizeof(value)) return false;
+    const auto expected = hfx_graph_hmac(key, encoded.data(), encoded.size());
+    uint8_t difference = 0;
+    for (size_t i = 0; i < expected.size(); ++i) difference |= value.tag[i] ^ expected[i];
+    return difference == 0;
 }
 
 bool hfx_equal(const uint8_t * a, const uint8_t * b, size_t n) {
@@ -1153,6 +1469,26 @@ static const char * ggml_backend_rpc_buffer_type_name(ggml_backend_buffer_type_t
     return buft_ctx->name.c_str();
 }
 
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+static uint32_t rpc_client_next_allocation_ordinal(const socket_ptr & sock) {
+    struct sequence {
+        std::weak_ptr<socket_t> owner;
+        uint32_t next = 0;
+    };
+    static std::mutex mutex;
+    static std::unordered_map<const socket_t *, sequence> sequences;
+    std::lock_guard<std::mutex> lock(mutex);
+    sequence & value = sequences[sock.get()];
+    const auto owner = value.owner.lock();
+    if (owner.get() != sock.get()) {
+        value.owner = sock;
+        value.next = 0;
+    }
+    RPC_STATUS_ASSERT(value.next != UINT32_MAX);
+    return value.next++;
+}
+#endif
+
 static ggml_backend_buffer_t ggml_backend_rpc_buffer_type_alloc_buffer(ggml_backend_buffer_type_t buft, size_t size) {
     ggml_backend_rpc_buffer_type_context * buft_ctx = (ggml_backend_rpc_buffer_type_context *)buft->context;
     rpc_msg_alloc_buffer_req request = {buft_ctx->device, size};
@@ -1163,7 +1499,12 @@ static ggml_backend_buffer_t ggml_backend_rpc_buffer_type_alloc_buffer(ggml_back
     if (response.remote_ptr != 0) {
         ggml_backend_buffer_t buffer = ggml_backend_buffer_init(buft,
             ggml_backend_rpc_buffer_interface,
-            new ggml_backend_rpc_buffer_context{sock, nullptr, response.remote_ptr},
+            new ggml_backend_rpc_buffer_context{
+                sock, nullptr, response.remote_ptr
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+                , hfx_graph_requested() ? rpc_client_next_allocation_ordinal(sock) : UINT32_MAX
+#endif
+            },
             response.remote_size);
         return buffer;
     } else {
@@ -1276,7 +1617,94 @@ static void add_tensor(ggml_tensor * tensor, std::vector<rpc_tensor> & tensors, 
     tensors.push_back(serialize_tensor(tensor));
 }
 
-static void serialize_graph(uint32_t device, const ggml_cgraph * cgraph, std::vector<uint8_t> & output) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+using hfx_graph_storage_resolver = std::function<bool(uint64_t, uint32_t &, uint64_t &)>;
+
+static bool hfx_graph_canonical_digest(
+        uint32_t device,
+        const uint64_t * nodes,
+        uint32_t n_nodes,
+        const rpc_tensor * tensors,
+        uint32_t n_tensors,
+        const hfx_graph_storage_resolver & storage,
+        hfx_digest & digest) {
+    if (n_nodes == 0 || n_nodes > HFX_GRAPH_AUTH_MAX_NODES ||
+        n_tensors == 0 || n_tensors > HFX_GRAPH_AUTH_MAX_TENSORS) return false;
+    std::unordered_map<uint64_t, uint32_t> ids;
+    ids.reserve(n_tensors);
+    for (uint32_t i = 0; i < n_tensors; ++i) {
+        if (tensors[i].id == 0 || !ids.emplace(tensors[i].id, i).second) return false;
+    }
+    std::vector<uint8_t> canonical;
+    canonical.reserve(static_cast<size_t>(n_tensors) * 320);
+    hfx_bytes(canonical, HFX_GRAPH_AUTH_DOMAIN, sizeof(HFX_GRAPH_AUTH_DOMAIN) - 1);
+    hfx_le<uint16_t>(canonical, HFX_GRAPH_AUTH_MAJOR);
+    hfx_le<uint16_t>(canonical, HFX_GRAPH_AUTH_MINOR);
+    hfx_le<uint32_t>(canonical, device);
+    hfx_le<uint32_t>(canonical, n_nodes);
+    hfx_le<uint32_t>(canonical, n_tensors);
+    for (uint32_t i = 0; i < n_nodes; ++i) {
+        const auto it = ids.find(nodes[i]);
+        if (it == ids.end()) return false;
+        hfx_le<uint32_t>(canonical, it->second);
+    }
+    for (uint32_t i = 0; i < n_tensors; ++i) {
+        const auto & tensor = tensors[i];
+        hfx_le<uint32_t>(canonical, i);
+        hfx_le<uint32_t>(canonical, tensor.type);
+        hfx_le<uint32_t>(canonical, tensor.op);
+        hfx_le<int32_t>(canonical, tensor.flags);
+        for (uint32_t d = 0; d < GGML_MAX_DIMS; ++d) hfx_le<uint32_t>(canonical, tensor.ne[d]);
+        for (uint32_t d = 0; d < GGML_MAX_DIMS; ++d) hfx_le<uint32_t>(canonical, tensor.nb[d]);
+        for (uint32_t p = 0; p < GGML_MAX_OP_PARAMS / sizeof(int32_t); ++p) {
+            hfx_le<int32_t>(canonical, tensor.op_params[p]);
+        }
+        uint32_t null_bitmap = 0;
+        for (uint32_t s = 0; s < GGML_MAX_SRC; ++s) {
+            if (tensor.src[s] == 0) {
+                null_bitmap |= UINT32_C(1) << s;
+                hfx_le<uint32_t>(canonical, UINT32_MAX);
+            } else {
+                const auto it = ids.find(tensor.src[s]);
+                if (it == ids.end()) return false;
+                hfx_le<uint32_t>(canonical, it->second);
+            }
+        }
+        hfx_le<uint32_t>(canonical, null_bitmap);
+        if (tensor.view_src == 0) {
+            hfx_le<uint32_t>(canonical, UINT32_MAX);
+            hfx_le<uint64_t>(canonical, 0);
+        } else {
+            const auto it = ids.find(tensor.view_src);
+            if (it == ids.end()) return false;
+            hfx_le<uint32_t>(canonical, it->second);
+            hfx_le<uint64_t>(canonical, tensor.view_offs);
+        }
+        uint64_t relative = 0;
+        uint32_t allocation_ordinal = UINT32_MAX;
+        if (tensor.buffer != 0 || tensor.data != 0) {
+            if (tensor.buffer == 0 || tensor.data == 0 ||
+                !storage(tensor.id, allocation_ordinal, relative) ||
+                allocation_ordinal == UINT32_MAX) return false;
+        }
+        hfx_le<uint32_t>(canonical, allocation_ordinal);
+        hfx_le<uint64_t>(canonical, relative);
+    }
+    if (canonical.size() > HFX_GRAPH_AUTH_MAX_GRAPH_BYTES) return false;
+    digest = hfx_sha256(canonical.data(), canonical.size());
+    return true;
+}
+#endif
+
+static bool serialize_graph(
+        uint32_t device,
+        const ggml_cgraph * cgraph,
+        std::vector<uint8_t> & output
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        , hfx_digest * authority_digest
+#endif
+        ) {
+    if (cgraph->n_nodes <= 0 || static_cast<uint64_t>(cgraph->n_nodes) > UINT32_MAX) return false;
     uint32_t n_nodes = cgraph->n_nodes;
     std::vector<rpc_tensor> tensors;
     std::unordered_set<ggml_tensor*> visited;
@@ -1285,8 +1713,13 @@ static void serialize_graph(uint32_t device, const ggml_cgraph * cgraph, std::ve
     }
     // serialization format:
     // | device (4 bytes) | n_nodes (4 bytes) | nodes (n_nodes * sizeof(uint64_t) | n_tensors (4 bytes) | tensors (n_tensors * sizeof(rpc_tensor)) |
-    uint32_t n_tensors = tensors.size();
-    int output_size = 2*sizeof(uint32_t) + n_nodes * sizeof(uint64_t) + sizeof(uint32_t) + n_tensors * sizeof(rpc_tensor);
+    if (tensors.empty() || tensors.size() > UINT32_MAX) return false;
+    uint32_t n_tensors = static_cast<uint32_t>(tensors.size());
+    const uint64_t output_size_u64 = 2*sizeof(uint32_t) +
+        static_cast<uint64_t>(n_nodes) * sizeof(uint64_t) + sizeof(uint32_t) +
+        static_cast<uint64_t>(n_tensors) * sizeof(rpc_tensor);
+    if (output_size_u64 > SIZE_MAX) return false;
+    const size_t output_size = static_cast<size_t>(output_size_u64);
     output.resize(output_size, 0);
     uint8_t * dest = output.data();
     memcpy(dest, &device, sizeof(device));
@@ -1301,13 +1734,181 @@ static void serialize_graph(uint32_t device, const ggml_cgraph * cgraph, std::ve
     dest += sizeof(n_tensors);
     rpc_tensor * out_tensors = (rpc_tensor *)dest;
     memcpy(out_tensors, tensors.data(), n_tensors * sizeof(rpc_tensor));
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (authority_digest != nullptr) {
+        std::vector<uint64_t> node_ids(n_nodes);
+        for (uint32_t i = 0; i < n_nodes; ++i) node_ids[i] = reinterpret_cast<uint64_t>(cgraph->nodes[i]);
+        const auto resolver = [](uint64_t id, uint32_t & ordinal, uint64_t & relative) {
+            const auto * tensor = reinterpret_cast<const ggml_tensor *>(id);
+            if (tensor == nullptr || tensor->buffer == nullptr || !ggml_backend_buffer_is_rpc(tensor->buffer)) return false;
+            const auto * context = static_cast<const ggml_backend_rpc_buffer_context *>(tensor->buffer->context);
+            if (context == nullptr || context->remote_ptr == 0) return false;
+            const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(tensor->buffer));
+            const uint64_t data = reinterpret_cast<uint64_t>(tensor->data);
+            if (base == 0 || data < base) return false;
+            ordinal = context->allocation_ordinal;
+            relative = data - base;
+            return true;
+        };
+        if (!hfx_graph_canonical_digest(device, node_ids.data(), n_nodes,
+                                        tensors.data(), n_tensors, resolver, *authority_digest)) {
+            authority_digest->fill(0);
+            return false;
+        }
+    }
+#endif
+    return true;
 }
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+static bool hfx_graph_negotiate(ggml_backend_rpc_context * ctx, socket_ptr sock) {
+    if (ctx->graph_auth_negotiated) return true;
+    if (!hfx_graph_requested() || !hfx_graph_key(ctx->graph_auth_key)) return false;
+    hfx_graph_auth_caps_req request {};
+    hfx_set_magic(request.magic, "HFXGAQ1\0");
+    request.major = HFX_GRAPH_AUTH_MAJOR;
+    request.minor = HFX_GRAPH_AUTH_MINOR;
+    request.encoded_size = sizeof(request);
+    if (!hfx_random_all(request.attempt_nonce, sizeof(request.attempt_nonce))) return false;
+    memcpy(ctx->graph_auth_attempt_nonce.data(), request.attempt_nonce, sizeof(request.attempt_nonce));
+    hfx_graph_sign_record(request, ctx->graph_auth_key.data());
+    hfx_graph_auth_caps_rsp response {};
+    const auto request_wire = hfx_graph_encode(request);
+    std::array<uint8_t, sizeof(response)> response_wire {};
+    if (!send_rpc_cmd(sock, RPC_CMD_HALOFPX_GRAPH_AUTH_CAPS,
+                      request_wire.data(), request_wire.size(), response_wire.data(), response_wire.size()) ||
+        !hfx_graph_decode(response_wire.data(), response_wire.size(), response) ||
+        !hfx_magic(response.magic, "HFXGAC1\0") ||
+        response.major != HFX_GRAPH_AUTH_MAJOR || response.minor != HFX_GRAPH_AUTH_MINOR ||
+        response.encoded_size != sizeof(response) || response.status != 1 ||
+        response.max_graph_bytes != HFX_GRAPH_AUTH_MAX_GRAPH_BYTES ||
+        response.max_tensors != HFX_GRAPH_AUTH_MAX_TENSORS ||
+        response.max_nodes != HFX_GRAPH_AUTH_MAX_NODES ||
+        !hfx_equal(response.attempt_nonce, request.attempt_nonce, sizeof(request.attempt_nonce)) ||
+        hfx_zero(response.server_nonce, sizeof(response.server_nonce)) ||
+        !hfx_graph_verify_record(response, ctx->graph_auth_key.data())) {
+        return false;
+    }
+    memcpy(ctx->graph_auth_server_nonce.data(), response.server_nonce, sizeof(response.server_nonce));
+    ctx->graph_auth_sequence = 0;
+    ctx->graph_auth_transcript_root = hfx_sha256(HFX_GRAPH_AUTH_DOMAIN, sizeof(HFX_GRAPH_AUTH_DOMAIN) - 1);
+    ctx->graph_auth_negotiated = true;
+    return true;
+}
+
+static bool hfx_graph_receipt_valid(
+        const hfx_graph_auth_receipt & response,
+        const hfx_graph_auth_header & request,
+        const uint8_t key[32],
+        uint32_t expected_status = 1) {
+    return hfx_magic(response.magic, "HFXGAR1\0") &&
+        response.major == HFX_GRAPH_AUTH_MAJOR && response.minor == HFX_GRAPH_AUTH_MINOR &&
+        response.encoded_size == sizeof(response) && response.status == expected_status &&
+        response.device == request.device && response.graph_uid == request.graph_uid &&
+        response.exec_sequence == request.exec_sequence &&
+        hfx_equal(response.attempt_nonce, request.attempt_nonce, 32) &&
+        hfx_equal(response.server_nonce, request.server_nonce, 32) &&
+        hfx_equal(response.graph_digest, request.graph_digest, 32) &&
+        hfx_equal(response.transcript_root, request.transcript_root, 32) &&
+        hfx_graph_verify_record(response, key);
+}
+
+static void hfx_graph_make_header(
+        hfx_graph_auth_header & header,
+        const ggml_backend_rpc_context * ctx,
+        uint32_t graph_size,
+        uint64_t graph_uid,
+        const uint8_t graph_digest[32]) {
+    memset(&header, 0, sizeof(header));
+    hfx_set_magic(header.magic, "HFXGAX1\0");
+    header.major = HFX_GRAPH_AUTH_MAJOR;
+    header.minor = HFX_GRAPH_AUTH_MINOR;
+    header.encoded_size = sizeof(header);
+    header.graph_size = graph_size;
+    header.device = ctx->device;
+    header.graph_uid = graph_uid;
+    header.exec_sequence = ctx->graph_auth_sequence;
+    memcpy(header.attempt_nonce, ctx->graph_auth_attempt_nonce.data(), 32);
+    memcpy(header.server_nonce, ctx->graph_auth_server_nonce.data(), 32);
+    memcpy(header.graph_digest, graph_digest, 32);
+    memcpy(header.transcript_root, ctx->graph_auth_transcript_root.data(), 32);
+    hfx_graph_sign_record(header, ctx->graph_auth_key.data());
+}
+#endif
 
 static enum ggml_status ggml_backend_rpc_graph_compute(ggml_backend_t backend, ggml_cgraph * cgraph) {
     ggml_backend_rpc_context * rpc_ctx = (ggml_backend_rpc_context *)backend->context;
 
     GGML_ASSERT(cgraph->n_nodes > 0);
     bool reuse = cgraph->uid != 0 && rpc_ctx->last_graph_uid == cgraph->uid;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (hfx_graph_requested()) {
+        auto sock = get_socket(rpc_ctx->endpoint);
+        if (sock == nullptr || !hfx_graph_negotiate(rpc_ctx, sock)) return GGML_STATUS_FAILED;
+        rpc_ctx->graph_auth_sequence++;
+        hfx_graph_auth_header request {};
+        hfx_graph_auth_receipt response {};
+        if (reuse) {
+            hfx_graph_make_header(request, rpc_ctx, 0, cgraph->uid, rpc_ctx->graph_auth_last_digest.data());
+            hfx_set_magic(request.magic, "HFXGRX1\0");
+            hfx_graph_sign_record(request, rpc_ctx->graph_auth_key.data());
+            const auto request_wire = hfx_graph_encode(request);
+            std::array<uint8_t, sizeof(response)> response_wire {};
+            if (!send_rpc_cmd(sock, RPC_CMD_HALOFPX_GRAPH_AUTH_RECOMPUTE,
+                              request_wire.data(), request_wire.size(), response_wire.data(), response_wire.size()) ||
+                !hfx_graph_decode(response_wire.data(), response_wire.size(), response) ||
+                !hfx_graph_receipt_valid(response, request, rpc_ctx->graph_auth_key.data())) {
+                return GGML_STATUS_FAILED;
+            }
+            GGML_LOG_INFO("[halofpx-rpc-graph-auth] client prepared mode=recompute sequence=%" PRIu64
+                          " uid=%" PRIu64 " digest=%s\n",
+                          request.exec_sequence, request.graph_uid,
+                          hfx_hex(request.graph_digest, 32).c_str());
+        } else {
+            std::vector<uint8_t> graph;
+            hfx_digest digest {};
+            if (!serialize_graph(rpc_ctx->device, cgraph, graph, &digest) ||
+                graph.empty() || graph.size() > HFX_GRAPH_AUTH_MAX_GRAPH_BYTES || hfx_zero(digest.data(), digest.size())) {
+                return GGML_STATUS_FAILED;
+            }
+            rpc_ctx->last_graph_uid = cgraph->uid;
+            rpc_ctx->graph_auth_last_digest = digest;
+            hfx_graph_make_header(request, rpc_ctx, static_cast<uint32_t>(graph.size()), cgraph->uid, digest.data());
+            const auto header_wire = hfx_graph_encode(request);
+            std::vector<uint8_t> envelope(header_wire.size() + graph.size());
+            memcpy(envelope.data(), header_wire.data(), header_wire.size());
+            memcpy(envelope.data() + header_wire.size(), graph.data(), graph.size());
+            std::array<uint8_t, sizeof(response)> response_wire {};
+            if (!send_rpc_cmd(sock, RPC_CMD_HALOFPX_GRAPH_AUTH_COMPUTE,
+                              envelope.data(), envelope.size(), response_wire.data(), response_wire.size()) ||
+                !hfx_graph_decode(response_wire.data(), response_wire.size(), response) ||
+                !hfx_graph_receipt_valid(response, request, rpc_ctx->graph_auth_key.data())) {
+                return GGML_STATUS_FAILED;
+            }
+            GGML_LOG_INFO("[halofpx-rpc-graph-auth] client prepared mode=compute sequence=%" PRIu64
+                          " uid=%" PRIu64 " digest=%s\n",
+                          request.exec_sequence, request.graph_uid,
+                          hfx_hex(request.graph_digest, 32).c_str());
+        }
+        hfx_set_magic(request.magic, "HFXGEX1\0");
+        request.graph_size = 0;
+        hfx_graph_sign_record(request, rpc_ctx->graph_auth_key.data());
+        const auto execute_wire = hfx_graph_encode(request);
+        std::array<uint8_t, sizeof(response)> execute_response_wire {};
+        if (!send_rpc_cmd(sock, RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE,
+                          execute_wire.data(), execute_wire.size(),
+                          execute_response_wire.data(), execute_response_wire.size()) ||
+            !hfx_graph_decode(execute_response_wire.data(), execute_response_wire.size(), response) ||
+            !hfx_graph_receipt_valid(response, request, rpc_ctx->graph_auth_key.data(), 2)) {
+            return GGML_STATUS_FAILED;
+        }
+        GGML_LOG_INFO("[halofpx-rpc-graph-auth] client executed sequence=%" PRIu64
+                      " uid=%" PRIu64 " digest=%s\n",
+                      request.exec_sequence, request.graph_uid,
+                      hfx_hex(request.graph_digest, 32).c_str());
+        return GGML_STATUS_SUCCESS;
+    }
+#endif
     if (reuse) {
         rpc_msg_graph_recompute_req request;
         request.device = rpc_ctx->device;
@@ -1317,7 +1918,12 @@ static enum ggml_status ggml_backend_rpc_graph_compute(ggml_backend_t backend, g
     } else {
         rpc_ctx->last_graph_uid = cgraph->uid;
         std::vector<uint8_t> input;
-        serialize_graph(rpc_ctx->device, cgraph, input);
+        bool serialized = serialize_graph(rpc_ctx->device, cgraph, input
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+                        , nullptr
+#endif
+        );
+        RPC_STATUS_ASSERT(serialized);
         auto sock = get_socket(rpc_ctx->endpoint);
         bool status = send_rpc_cmd(sock, RPC_CMD_GRAPH_COMPUTE, input.data(), input.size());
         RPC_STATUS_ASSERT(status);
@@ -1385,6 +1991,15 @@ ggml_backend_t ggml_backend_rpc_init(const char * endpoint, uint32_t device) {
         /* .device         = */ device,
         /* .name           = */ dev_name,
         /* .last_graph_uid = */ 0,
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        /* .graph_auth_negotiated     = */ false,
+        /* .graph_auth_sequence       = */ 0,
+        /* .graph_auth_key            = */ {},
+        /* .graph_auth_attempt_nonce  = */ {},
+        /* .graph_auth_server_nonce   = */ {},
+        /* .graph_auth_last_digest    = */ {},
+        /* .graph_auth_transcript_root= */ {},
+#endif
     };
     auto reg = ggml_backend_rpc_add_server(endpoint);
     ggml_backend_t backend = new ggml_backend {
@@ -1669,8 +2284,23 @@ public:
     bool set_tensor_hash(const rpc_msg_set_tensor_hash_req & request, rpc_msg_set_tensor_hash_rsp & response);
     bool get_tensor(const rpc_msg_get_tensor_req & request, std::vector<uint8_t> & response);
     bool copy_tensor(const rpc_msg_copy_tensor_req & request, rpc_msg_copy_tensor_rsp & response);
-    bool graph_compute(const std::vector<uint8_t> & input);
+    bool graph_compute(const std::vector<uint8_t> & input
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+                       , hfx_digest * reconstructed_digest = nullptr,
+                       const uint8_t * expected_digest = nullptr,
+                       bool execute = true
+#endif
+                       );
     bool graph_recompute(const rpc_msg_graph_recompute_req & request);
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    bool hfx_graph_caps(const hfx_graph_auth_caps_req & request, hfx_graph_auth_caps_rsp & response);
+    bool hfx_graph_compute(const std::vector<uint8_t> & input, hfx_graph_auth_receipt & response);
+    bool hfx_graph_recompute(const hfx_graph_auth_header & request, hfx_graph_auth_receipt & response);
+    bool hfx_graph_execute(const hfx_graph_auth_header & request, hfx_graph_auth_receipt & response);
+    void hfx_graph_invalidate();
+    void hfx_graph_invalidate_prepared();
+    void hfx_graph_discard_lineage();
+#endif
     bool init_tensor(const rpc_msg_init_tensor_req & request);
     bool get_alloc_size(const rpc_msg_get_alloc_size_req & request, rpc_msg_get_alloc_size_rsp & response);
     bool get_device_memory(const rpc_msg_get_device_memory_req & request, rpc_msg_get_device_memory_rsp & response);
@@ -1685,6 +2315,12 @@ public:
     struct stored_graph {
         std::vector<uint8_t>   buffer;
         ggml_cgraph          * graph;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        uint64_t auth_uid = 0;
+        hfx_digest auth_digest {};
+        hfx_digest auth_transcript {};
+        bool auth_prepared = false;
+#endif
     };
 
 private:
@@ -1699,11 +2335,20 @@ private:
     std::vector<ggml_backend_t> backends;
     const char * cache_dir;
     std::unordered_set<ggml_backend_buffer_t> buffers;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    std::unordered_map<ggml_backend_buffer_t, uint32_t> buffer_allocation_ordinals;
+    uint32_t next_buffer_allocation_ordinal = 0;
+#endif
     // store the last computed graph for each backend
     std::vector<stored_graph> stored_graphs;
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
     std::optional<hfx_state_server_config_owned> hfx_state_config;
     std::optional<hfx_state_pending_attempt> hfx_state_pending;
+    bool hfx_graph_negotiated = false;
+    uint64_t hfx_graph_sequence = 0;
+    std::array<uint8_t, 32> hfx_graph_key_value {};
+    hfx_digest hfx_graph_attempt_nonce {};
+    hfx_digest hfx_graph_server_nonce {};
 #endif
 };
 
@@ -1769,6 +2414,17 @@ bool rpc_server::alloc_buffer(const rpc_msg_alloc_buffer_req & request, rpc_msg_
         LOG_DBG("[%s] device: %d, size: %" PRIu64 " -> remote_ptr: %" PRIx64 ", remote_size: %" PRIu64 "\n",
             __func__, dev_id, request.size, response.remote_ptr, response.remote_size);
         buffers.insert(buffer);
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        if (hfx_graph_requested()) {
+            if (next_buffer_allocation_ordinal == UINT32_MAX ||
+                !buffer_allocation_ordinals.emplace(buffer, next_buffer_allocation_ordinal++).second) {
+                ggml_backend_buffer_free(buffer);
+                buffers.erase(buffer);
+                response = {};
+                return false;
+            }
+        }
+#endif
     } else {
         LOG_DBG("[%s] device: %d, size: %" PRIu64 " -> failed\n", __func__, dev_id, request.size);
     }
@@ -1820,6 +2476,9 @@ bool rpc_server::free_buffer(const rpc_msg_free_buffer_req & request) {
     }
     ggml_backend_buffer_free(buffer);
     buffers.erase(buffer);
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    buffer_allocation_ordinals.erase(buffer);
+#endif
     return true;
 }
 
@@ -2199,7 +2858,13 @@ ggml_tensor * rpc_server::create_node(uint64_t id,
     return result;
 }
 
-bool rpc_server::graph_compute(const std::vector<uint8_t> & input) {
+bool rpc_server::graph_compute(const std::vector<uint8_t> & input
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        , hfx_digest * reconstructed_digest,
+        const uint8_t * expected_digest,
+        bool execute
+#endif
+        ) {
     // serialization format:
     // | device (4 bytes) | n_nodes (4 bytes) | nodes (n_nodes * sizeof(uint64_t) | n_tensors (4 bytes) | tensors (n_tensors * sizeof(rpc_tensor)) |
     if (input.size() < 2*sizeof(uint32_t)) {
@@ -2215,6 +2880,9 @@ bool rpc_server::graph_compute(const std::vector<uint8_t> & input) {
     uint32_t n_nodes;
     memcpy(&n_nodes, src, sizeof(n_nodes));
     src += sizeof(n_nodes);
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (reconstructed_digest != nullptr && (n_nodes == 0 || n_nodes > HFX_GRAPH_AUTH_MAX_NODES)) return false;
+#endif
     if (input.size() < 2*sizeof(uint32_t) + n_nodes*sizeof(uint64_t) + sizeof(uint32_t)) {
         return false;
     }
@@ -2223,9 +2891,16 @@ bool rpc_server::graph_compute(const std::vector<uint8_t> & input) {
     uint32_t n_tensors;
     memcpy(&n_tensors, src, sizeof(n_tensors));
     src += sizeof(n_tensors);
-    if (input.size() < 2*sizeof(uint32_t) + n_nodes*sizeof(uint64_t) + sizeof(uint32_t) + n_tensors*sizeof(rpc_tensor)) {
-        return false;
-    }
+    const uint64_t expected_size = 2*sizeof(uint32_t) +
+        static_cast<uint64_t>(n_nodes)*sizeof(uint64_t) + sizeof(uint32_t) +
+        static_cast<uint64_t>(n_tensors)*sizeof(rpc_tensor);
+    if (input.size() < expected_size) return false;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (reconstructed_digest != nullptr && expected_size != input.size()) return false;
+#endif
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (reconstructed_digest != nullptr && (n_tensors == 0 || n_tensors > HFX_GRAPH_AUTH_MAX_TENSORS)) return false;
+#endif
     const rpc_tensor * tensors = (const rpc_tensor *)src;
     LOG_DBG("[%s] device: %u, n_nodes: %u, n_tensors: %u\n", __func__, device, n_nodes, n_tensors);
 
@@ -2263,9 +2938,96 @@ bool rpc_server::graph_compute(const std::vector<uint8_t> & input) {
             return false;
         }
     }
-    ggml_status status = ggml_backend_graph_compute(backends[device], graph);
-    GGML_ASSERT(status == GGML_STATUS_SUCCESS && "Unsuccessful graph computations are not supported with RPC");
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (reconstructed_digest != nullptr) {
+        std::unordered_map<const ggml_tensor *, uint64_t> reverse;
+        reverse.reserve(tensor_map.size());
+        for (const auto & entry : tensor_map) {
+            if (!reverse.emplace(entry.second, entry.first).second) return false;
+        }
+        std::vector<const ggml_tensor *> derived_order;
+        std::unordered_set<const ggml_tensor *> derived_seen;
+        std::function<bool(const ggml_tensor *)> visit = [&](const ggml_tensor * tensor) {
+            if (tensor == nullptr || derived_seen.find(tensor) != derived_seen.end()) return true;
+            derived_seen.insert(tensor);
+            for (uint32_t s = 0; s < GGML_MAX_SRC; ++s) {
+                if (!visit(tensor->src[s])) return false;
+            }
+            if (!visit(tensor->view_src)) return false;
+            if (reverse.find(tensor) == reverse.end()) return false;
+            derived_order.push_back(tensor);
+            return true;
+        };
+        std::vector<uint64_t> derived_nodes;
+        derived_nodes.reserve(n_nodes);
+        for (uint32_t i = 0; i < n_nodes; ++i) {
+            if (graph->nodes[i] == nullptr || !visit(graph->nodes[i])) return false;
+            const auto node_id = reverse.find(graph->nodes[i]);
+            if (node_id == reverse.end()) return false;
+            derived_nodes.push_back(node_id->second);
+        }
+        if (derived_order.size() != n_tensors || tensor_map.size() != n_tensors) return false;
+        std::vector<rpc_tensor> reconstructed;
+        reconstructed.reserve(n_tensors);
+        for (uint32_t i = 0; i < n_tensors; ++i) {
+            const ggml_tensor * actual = derived_order[i];
+            const auto actual_id = reverse.find(actual);
+            if (actual_id == reverse.end() || actual_id->second != tensors[i].id) return false;
+            rpc_tensor record {};
+            record.id = actual_id->second;
+            record.type = actual->type;
+            record.buffer = reinterpret_cast<uint64_t>(actual->buffer);
+            for (uint32_t d = 0; d < GGML_MAX_DIMS; ++d) {
+                record.ne[d] = actual->ne[d];
+                record.nb[d] = actual->nb[d];
+            }
+            record.op = actual->op;
+            memcpy(record.op_params, actual->op_params, sizeof(record.op_params));
+            record.flags = actual->flags;
+            for (uint32_t s = 0; s < GGML_MAX_SRC; ++s) {
+                if (actual->src[s] != nullptr) {
+                    const auto source = reverse.find(actual->src[s]);
+                    if (source == reverse.end()) return false;
+                    record.src[s] = source->second;
+                }
+            }
+            if (actual->view_src != nullptr) {
+                const auto view = reverse.find(actual->view_src);
+                if (view == reverse.end()) return false;
+                record.view_src = view->second;
+                record.view_offs = actual->view_offs;
+            }
+            record.data = reinterpret_cast<uint64_t>(actual->data);
+            reconstructed.push_back(record);
+        }
+        const auto resolver = [this, &tensor_map](uint64_t id, uint32_t & ordinal, uint64_t & relative) {
+            const auto found = tensor_map.find(id);
+            if (found == tensor_map.end() || found->second == nullptr ||
+                found->second->buffer == nullptr || found->second->data == nullptr) return false;
+            const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(found->second->buffer));
+            const uint64_t data = reinterpret_cast<uint64_t>(found->second->data);
+            if (base == 0 || data < base) return false;
+            const auto allocation = buffer_allocation_ordinals.find(found->second->buffer);
+            if (allocation == buffer_allocation_ordinals.end()) return false;
+            ordinal = allocation->second;
+            relative = data - base;
+            return true;
+        };
+        if (!hfx_graph_canonical_digest(device, derived_nodes.data(), n_nodes, reconstructed.data(), n_tensors,
+                                        resolver, *reconstructed_digest)) return false;
+        if (expected_digest != nullptr &&
+            !hfx_equal(reconstructed_digest->data(), expected_digest, reconstructed_digest->size())) return false;
+    }
+#endif
     stored_graphs[device].graph = graph;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (execute) {
+#endif
+        ggml_status status = ggml_backend_graph_compute(backends[device], graph);
+        GGML_ASSERT(status == GGML_STATUS_SUCCESS && "Unsuccessful graph computations are not supported with RPC");
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    }
+#endif
     return true;
 }
 
@@ -2283,6 +3045,278 @@ bool rpc_server::graph_recompute(const rpc_msg_graph_recompute_req & request) {
     GGML_ASSERT(status == GGML_STATUS_SUCCESS && "Unsuccessful graph computations are not supported with RPC");
     return true;
 }
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+bool rpc_server::hfx_graph_caps(
+        const hfx_graph_auth_caps_req & request,
+        hfx_graph_auth_caps_rsp & response) {
+    hfx_graph_invalidate();
+    if (!hfx_graph_requested() || !hfx_graph_key(hfx_graph_key_value) ||
+        !hfx_magic(request.magic, "HFXGAQ1\0") ||
+        request.major != HFX_GRAPH_AUTH_MAJOR || request.minor != HFX_GRAPH_AUTH_MINOR ||
+        request.encoded_size != sizeof(request) ||
+        hfx_zero(request.attempt_nonce, sizeof(request.attempt_nonce)) ||
+        !hfx_graph_verify_record(request, hfx_graph_key_value.data())) return false;
+    memset(&response, 0, sizeof(response));
+    hfx_set_magic(response.magic, "HFXGAC1\0");
+    response.major = HFX_GRAPH_AUTH_MAJOR;
+    response.minor = HFX_GRAPH_AUTH_MINOR;
+    response.encoded_size = sizeof(response);
+    response.status = 1;
+    response.max_graph_bytes = HFX_GRAPH_AUTH_MAX_GRAPH_BYTES;
+    response.max_tensors = HFX_GRAPH_AUTH_MAX_TENSORS;
+    response.max_nodes = HFX_GRAPH_AUTH_MAX_NODES;
+    memcpy(response.attempt_nonce, request.attempt_nonce, 32);
+    if (!hfx_random_all(response.server_nonce, sizeof(response.server_nonce))) return false;
+    memcpy(hfx_graph_attempt_nonce.data(), request.attempt_nonce, 32);
+    memcpy(hfx_graph_server_nonce.data(), response.server_nonce, 32);
+    hfx_graph_sequence = 0;
+    hfx_graph_negotiated = true;
+    return hfx_graph_sign_record(response, hfx_graph_key_value.data());
+}
+
+static bool hfx_graph_server_header_valid(
+        const hfx_graph_auth_header & request,
+        const std::array<uint8_t, 32> & key,
+        const hfx_digest & attempt_nonce,
+        const hfx_digest & server_nonce,
+        uint64_t expected_sequence,
+        const char expected_magic[8]) {
+    return hfx_magic(request.magic, expected_magic) &&
+        request.major == HFX_GRAPH_AUTH_MAJOR && request.minor == HFX_GRAPH_AUTH_MINOR &&
+        request.encoded_size == sizeof(request) &&
+        request.graph_uid != 0 &&
+        request.exec_sequence != 0 && request.exec_sequence == expected_sequence &&
+        hfx_equal(request.attempt_nonce, attempt_nonce.data(), 32) &&
+        hfx_equal(request.server_nonce, server_nonce.data(), 32) &&
+        !hfx_zero(request.graph_digest, 32) &&
+        !hfx_zero(request.transcript_root, 32) &&
+        hfx_graph_verify_record(request, key.data());
+}
+
+static bool hfx_graph_server_receipt(
+        hfx_graph_auth_receipt & response,
+        const hfx_graph_auth_header & request,
+        const uint8_t key[32]) {
+    memset(&response, 0, sizeof(response));
+    hfx_set_magic(response.magic, "HFXGAR1\0");
+    response.major = HFX_GRAPH_AUTH_MAJOR;
+    response.minor = HFX_GRAPH_AUTH_MINOR;
+    response.encoded_size = sizeof(response);
+    response.status = 1;
+    response.device = request.device;
+    response.graph_uid = request.graph_uid;
+    response.exec_sequence = request.exec_sequence;
+    memcpy(response.attempt_nonce, request.attempt_nonce, 32);
+    memcpy(response.server_nonce, request.server_nonce, 32);
+    memcpy(response.graph_digest, request.graph_digest, 32);
+    memcpy(response.transcript_root, request.transcript_root, 32);
+    return hfx_graph_sign_record(response, key);
+}
+
+bool rpc_server::hfx_graph_compute(
+        const std::vector<uint8_t> & input,
+        hfx_graph_auth_receipt & response) {
+    if (!hfx_graph_negotiated || input.size() < sizeof(hfx_graph_auth_header)) return false;
+    hfx_graph_auth_header request {};
+    if (!hfx_graph_decode(input.data(), sizeof(request), request)) return false;
+    if (request.graph_size == 0 || request.graph_size > HFX_GRAPH_AUTH_MAX_GRAPH_BYTES ||
+        input.size() != sizeof(request) + request.graph_size ||
+        !hfx_graph_server_header_valid(request, hfx_graph_key_value,
+                                       hfx_graph_attempt_nonce, hfx_graph_server_nonce,
+                                       hfx_graph_sequence + 1, "HFXGAX1\0")) return false;
+    std::vector<uint8_t> graph(input.begin() + sizeof(request), input.end());
+    if (graph.size() < sizeof(uint32_t)) return false;
+    uint32_t wire_device = UINT32_MAX;
+    memcpy(&wire_device, graph.data(), sizeof(wire_device));
+    if (wire_device != request.device || wire_device >= stored_graphs.size()) return false;
+    hfx_digest reconstructed {};
+    if (!graph_compute(graph, &reconstructed, request.graph_digest, false) ||
+        !hfx_equal(reconstructed.data(), request.graph_digest, reconstructed.size())) return false;
+    auto & stored = stored_graphs[wire_device];
+    stored.auth_uid = request.graph_uid;
+    stored.auth_digest = reconstructed;
+    memcpy(stored.auth_transcript.data(), request.transcript_root, 32);
+    stored.auth_prepared = true;
+    hfx_graph_sequence = request.exec_sequence;
+    GGML_LOG_INFO("[halofpx-rpc-graph-auth] server prepared mode=compute sequence=%" PRIu64
+                  " uid=%" PRIu64 " digest=%s\n",
+                  request.exec_sequence, request.graph_uid,
+                  hfx_hex(reconstructed.data(), reconstructed.size()).c_str());
+    return hfx_graph_server_receipt(response, request, hfx_graph_key_value.data());
+}
+
+bool rpc_server::hfx_graph_recompute(
+        const hfx_graph_auth_header & request,
+        hfx_graph_auth_receipt & response) {
+    if (!hfx_graph_negotiated || request.graph_size != 0 ||
+        request.device >= stored_graphs.size() ||
+        !hfx_graph_server_header_valid(request, hfx_graph_key_value,
+                                       hfx_graph_attempt_nonce, hfx_graph_server_nonce,
+                                       hfx_graph_sequence + 1, "HFXGRX1\0")) return false;
+    const auto & stored = stored_graphs[request.device];
+    if (stored.graph == nullptr || request.graph_uid == 0 ||
+        request.graph_uid != stored.auth_uid ||
+        !hfx_equal(request.graph_digest, stored.auth_digest.data(), 32) ||
+        !hfx_equal(request.transcript_root, stored.auth_transcript.data(), 32)) return false;
+    stored_graphs[request.device].auth_prepared = true;
+    hfx_graph_sequence = request.exec_sequence;
+    GGML_LOG_INFO("[halofpx-rpc-graph-auth] server prepared mode=recompute sequence=%" PRIu64
+                  " uid=%" PRIu64 " digest=%s\n",
+                  request.exec_sequence, request.graph_uid,
+                  hfx_hex(request.graph_digest, 32).c_str());
+    return hfx_graph_server_receipt(response, request, hfx_graph_key_value.data());
+}
+
+bool rpc_server::hfx_graph_execute(
+        const hfx_graph_auth_header & request,
+        hfx_graph_auth_receipt & response) {
+    if (!hfx_graph_negotiated || request.graph_size != 0 ||
+        request.device >= stored_graphs.size() ||
+        !hfx_graph_server_header_valid(request, hfx_graph_key_value,
+                                       hfx_graph_attempt_nonce, hfx_graph_server_nonce,
+                                       hfx_graph_sequence, "HFXGEX1\0")) return false;
+    auto & stored = stored_graphs[request.device];
+    if (!stored.auth_prepared || stored.graph == nullptr ||
+        request.graph_uid != stored.auth_uid ||
+        !hfx_equal(request.graph_digest, stored.auth_digest.data(), 32) ||
+        !hfx_equal(request.transcript_root, stored.auth_transcript.data(), 32)) return false;
+    stored.auth_prepared = false;
+    ggml_status status = ggml_backend_graph_compute(backends[request.device], stored.graph);
+    if (status != GGML_STATUS_SUCCESS) return false;
+    GGML_LOG_INFO("[halofpx-rpc-graph-auth] server executed sequence=%" PRIu64
+                  " uid=%" PRIu64 " digest=%s\n",
+                  request.exec_sequence, request.graph_uid,
+                  hfx_hex(request.graph_digest, 32).c_str());
+    if (!hfx_graph_server_receipt(response, request, hfx_graph_key_value.data())) return false;
+    response.status = 2;
+    return hfx_graph_sign_record(response, hfx_graph_key_value.data());
+}
+
+void rpc_server::hfx_graph_invalidate() {
+    hfx_graph_negotiated = false;
+    hfx_graph_sequence = 0;
+    hfx_graph_attempt_nonce.fill(0);
+    hfx_graph_server_nonce.fill(0);
+    hfx_graph_discard_lineage();
+}
+
+void rpc_server::hfx_graph_discard_lineage() {
+    for (auto & stored : stored_graphs) {
+        stored.auth_uid = 0;
+        stored.auth_digest.fill(0);
+        stored.auth_transcript.fill(0);
+        stored.auth_prepared = false;
+    }
+}
+
+void rpc_server::hfx_graph_invalidate_prepared() {
+    for (auto & stored : stored_graphs) stored.auth_prepared = false;
+}
+
+extern "C" uint32_t ggml_backend_rpc_halofpx_graph_auth_self_test(void) {
+    uint32_t passed = 0;
+    std::array<uint8_t, 32> key {};
+    for (size_t i = 0; i < key.size(); ++i) key[i] = static_cast<uint8_t>(i + 1);
+    hfx_graph_auth_caps_req caps {};
+    hfx_set_magic(caps.magic, "HFXGAQ1\0");
+    caps.major = HFX_GRAPH_AUTH_MAJOR;
+    caps.minor = HFX_GRAPH_AUTH_MINOR;
+    caps.encoded_size = sizeof(caps);
+    memset(caps.attempt_nonce, 0x5a, sizeof(caps.attempt_nonce));
+    hfx_graph_sign_record(caps, key.data());
+    if (hfx_graph_verify_record(caps, key.data())) passed |= 1U << 0;
+    caps.attempt_nonce[0] ^= 1;
+    if (!hfx_graph_verify_record(caps, key.data())) passed |= 1U << 1;
+
+    hfx_graph_auth_header header {};
+    hfx_set_magic(header.magic, "HFXGAX1\0");
+    header.major = HFX_GRAPH_AUTH_MAJOR;
+    header.minor = HFX_GRAPH_AUTH_MINOR;
+    header.encoded_size = sizeof(header);
+    header.graph_size = 64;
+    header.device = 0;
+    header.graph_uid = 7;
+    header.exec_sequence = 3;
+    memset(header.attempt_nonce, 1, 32);
+    memset(header.server_nonce, 2, 32);
+    memset(header.graph_digest, 3, 32);
+    memset(header.transcript_root, 4, 32);
+    hfx_graph_sign_record(header, key.data());
+    hfx_digest attempt {};
+    hfx_digest server {};
+    memcpy(attempt.data(), header.attempt_nonce, 32);
+    memcpy(server.data(), header.server_nonce, 32);
+    if (hfx_graph_server_header_valid(header, key, attempt, server, 3, "HFXGAX1\0")) passed |= 1U << 2;
+    if (!hfx_graph_server_header_valid(header, key, attempt, server, 2, "HFXGAX1\0")) passed |= 1U << 3;
+    header.graph_uid ^= 1;
+    if (!hfx_graph_server_header_valid(header, key, attempt, server, 3, "HFXGAX1\0")) passed |= 1U << 4;
+
+    rpc_tensor tensor {};
+    tensor.id = 1;
+    tensor.type = GGML_TYPE_F32;
+    tensor.ne[0] = tensor.ne[1] = tensor.ne[2] = tensor.ne[3] = 1;
+    tensor.nb[0] = 4;
+    tensor.nb[1] = tensor.nb[2] = tensor.nb[3] = 4;
+    const uint64_t node = 1;
+    hfx_digest digest {};
+    const auto no_storage = [](uint64_t, uint32_t &, uint64_t &) { return false; };
+    if (hfx_graph_canonical_digest(0, &node, 1, &tensor, 1, no_storage, digest)) passed |= 1U << 5;
+    tensor.src[0] = 99;
+    if (!hfx_graph_canonical_digest(0, &node, 1, &tensor, 1, no_storage, digest)) passed |= 1U << 6;
+    tensor.src[0] = 0;
+    rpc_tensor duplicate[2] { tensor, tensor };
+    if (!hfx_graph_canonical_digest(0, &node, 1, duplicate, 2, no_storage, digest)) passed |= 1U << 7;
+    const uint64_t unknown_node = 77;
+    if (!hfx_graph_canonical_digest(0, &unknown_node, 1, &tensor, 1, no_storage, digest)) passed |= 1U << 8;
+    if (!hfx_graph_canonical_digest(0, &node, HFX_GRAPH_AUTH_MAX_NODES + 1,
+                                    &tensor, 1, no_storage, digest)) passed |= 1U << 9;
+    hfx_graph_auth_receipt receipt {};
+    header.graph_uid ^= 1;
+    hfx_graph_sign_record(header, key.data());
+    if (hfx_graph_server_receipt(receipt, header, key.data()) &&
+        hfx_graph_receipt_valid(receipt, header, key.data())) passed |= 1U << 10;
+    receipt.graph_digest[0] ^= 1;
+    if (!hfx_graph_receipt_valid(receipt, header, key.data())) passed |= 1U << 11;
+    const auto caps_wire = hfx_graph_encode(caps);
+    hfx_graph_auth_caps_req caps_roundtrip {};
+    if (hfx_graph_decode(caps_wire.data(), caps_wire.size(), caps_roundtrip) &&
+        memcmp(&caps, &caps_roundtrip, sizeof(caps)) == 0) passed |= 1U << 12;
+    std::vector<uint8_t> trailing = caps_wire;
+    trailing.push_back(0);
+    if (!hfx_graph_decode(trailing.data(), trailing.size(), caps_roundtrip)) passed |= 1U << 13;
+    header.major = HFX_GRAPH_AUTH_MAJOR + 1;
+    hfx_graph_sign_record(header, key.data());
+    if (!hfx_graph_server_header_valid(header, key, attempt, server, 3, "HFXGAX1\0")) passed |= 1U << 14;
+    tensor.buffer = 1;
+    tensor.data = 1;
+    const auto storage_one = [](uint64_t, uint32_t & ordinal, uint64_t & relative) {
+        ordinal = 1;
+        relative = 0;
+        return true;
+    };
+    const auto storage_two = [](uint64_t, uint32_t & ordinal, uint64_t & relative) {
+        ordinal = 2;
+        relative = 0;
+        return true;
+    };
+    hfx_digest digest_one {};
+    hfx_digest digest_two {};
+    if (hfx_graph_canonical_digest(0, &node, 1, &tensor, 1, storage_one, digest_one) &&
+        hfx_graph_canonical_digest(0, &node, 1, &tensor, 1, storage_two, digest_two) &&
+        !hfx_equal(digest_one.data(), digest_two.data(), digest_one.size())) passed |= 1U << 15;
+    header.major = HFX_GRAPH_AUTH_MAJOR;
+    header.graph_uid = 7;
+    header.exec_sequence = 0;
+    hfx_graph_sign_record(header, key.data());
+    if (!hfx_graph_server_header_valid(header, key, attempt, server, 0, "HFXGAX1\0")) passed |= 1U << 16;
+    header.exec_sequence = 1;
+    header.graph_uid = 0;
+    hfx_graph_sign_record(header, key.data());
+    if (!hfx_graph_server_header_valid(header, key, attempt, server, 1, "HFXGAX1\0")) passed |= 1U << 17;
+    return passed;
+}
+#endif
 
 bool rpc_server::get_device_memory(const rpc_msg_get_device_memory_req & request, rpc_msg_get_device_memory_rsp & response) {
     uint32_t dev_id = request.device;
@@ -2821,9 +3855,18 @@ static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const
             break;
         }
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+        if (cmd == RPC_CMD_ALLOC_BUFFER || cmd == RPC_CMD_FREE_BUFFER ||
+            cmd == RPC_CMD_GRAPH_COMPUTE || cmd == RPC_CMD_INIT_TENSOR || cmd == RPC_CMD_GRAPH_RECOMPUTE) {
+            server.hfx_graph_discard_lineage();
+        } else if (cmd == RPC_CMD_BUFFER_CLEAR || cmd == RPC_CMD_SET_TENSOR ||
+                   cmd == RPC_CMD_SET_TENSOR_HASH || cmd == RPC_CMD_COPY_TENSOR) {
+            server.hfx_graph_invalidate_prepared();
+        }
         if (cmd == RPC_CMD_ALLOC_BUFFER || cmd == RPC_CMD_FREE_BUFFER || cmd == RPC_CMD_BUFFER_CLEAR ||
             cmd == RPC_CMD_SET_TENSOR || cmd == RPC_CMD_SET_TENSOR_HASH || cmd == RPC_CMD_COPY_TENSOR ||
-            cmd == RPC_CMD_GRAPH_COMPUTE || cmd == RPC_CMD_INIT_TENSOR || cmd == RPC_CMD_GRAPH_RECOMPUTE) {
+            cmd == RPC_CMD_GRAPH_COMPUTE || cmd == RPC_CMD_INIT_TENSOR || cmd == RPC_CMD_GRAPH_RECOMPUTE ||
+            cmd == RPC_CMD_HALOFPX_GRAPH_AUTH_COMPUTE || cmd == RPC_CMD_HALOFPX_GRAPH_AUTH_RECOMPUTE ||
+            cmd == RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE) {
             server.hfx_state_discard_for_legacy_mutation();
         }
 #endif
@@ -3024,6 +4067,51 @@ static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const
                 }
                 break;
             }
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+            case RPC_CMD_HALOFPX_GRAPH_AUTH_CAPS: {
+                hfx_graph_auth_caps_req request {};
+                hfx_graph_auth_caps_rsp response {};
+                std::vector<uint8_t> request_wire;
+                if (!recv_msg_bounded(sock, request_wire, sizeof(request)) ||
+                    !hfx_graph_decode(request_wire.data(), request_wire.size(), request) ||
+                    !server.hfx_graph_caps(request, response)) return;
+                const auto response_wire = hfx_graph_encode(response);
+                if (!send_msg(sock, response_wire.data(), response_wire.size())) return;
+                break;
+            }
+            case RPC_CMD_HALOFPX_GRAPH_AUTH_COMPUTE: {
+                std::vector<uint8_t> input;
+                hfx_graph_auth_receipt response {};
+                if (!recv_msg_bounded(sock, input,
+                                      sizeof(hfx_graph_auth_header) + HFX_GRAPH_AUTH_MAX_GRAPH_BYTES) ||
+                    !server.hfx_graph_compute(input, response)) return;
+                const auto response_wire = hfx_graph_encode(response);
+                if (!send_msg(sock, response_wire.data(), response_wire.size())) return;
+                break;
+            }
+            case RPC_CMD_HALOFPX_GRAPH_AUTH_RECOMPUTE: {
+                hfx_graph_auth_header request {};
+                hfx_graph_auth_receipt response {};
+                std::vector<uint8_t> request_wire;
+                if (!recv_msg_bounded(sock, request_wire, sizeof(request)) ||
+                    !hfx_graph_decode(request_wire.data(), request_wire.size(), request) ||
+                    !server.hfx_graph_recompute(request, response)) return;
+                const auto response_wire = hfx_graph_encode(response);
+                if (!send_msg(sock, response_wire.data(), response_wire.size())) return;
+                break;
+            }
+            case RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE: {
+                hfx_graph_auth_header request {};
+                hfx_graph_auth_receipt response {};
+                std::vector<uint8_t> request_wire;
+                if (!recv_msg_bounded(sock, request_wire, sizeof(request)) ||
+                    !hfx_graph_decode(request_wire.data(), request_wire.size(), request) ||
+                    !server.hfx_graph_execute(request, response)) return;
+                const auto response_wire = hfx_graph_encode(response);
+                if (!send_msg(sock, response_wire.data(), response_wire.size())) return;
+                break;
+            }
+#endif
             case RPC_CMD_GET_DEVICE_MEMORY: {
                 rpc_msg_get_device_memory_req request;
                 if (!recv_msg(sock, &request, sizeof(request))) {
