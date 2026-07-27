@@ -1,0 +1,44 @@
+L50 terminal result: NOT PROMOTED
+Base: e606f62cb19063ceb7bfdbe9dff979ea0544abf0
+
+Recovered L49 cause:
+- unit: halofpx-l48-worker-capture.service
+- invocation: 50c47e1d94d34eafbc4997d96c05a9b6
+- PID: 2399711
+- exit: 2026-07-27 09:23:44 PDT, status 1
+- stderr: unknown device ROCm0; no devices found; CPU only
+- exact nimo-1 configure: GGML_HIP=OFF
+
+Corrected candidate:
+- GGML_HIP=ON
+- AMDGPU_TARGETS=gfx1151
+- worker SHA256: 7a8fb0496486cc12746ec31f7ed3eb32ba6d9b450948bb2fc39dd7014e194b10
+- tests: 54 passed
+- pre-runtime independent verdict: GO
+- device gate: real HELLO/HFXCAP2 plus authenticated ROCm0/gfx1151 PASS
+
+Sole stories runtime:
+- runtime device gate invocation: c1ae540d167540cdb7a93a7a8c0434e0
+- capture worker invocation/PID: a35a9642694244dca62c3886977131be / 2407701
+- worker CAPS and placement: PASS
+- canary: status 4 during warmup
+- retained errors: graph_compute async -1; process_ubatch -1; llama_decode -3
+- composed result/token: absent
+- retry: none
+- immediate evidence gate: failed because launch output lacked InvocationID
+- recovered canary authority: invocation a1b165d2401b4483946c0e4857da545b,
+  ExecMainPID1673926, ExecMainCode1, ExecMainStatus4, Result exit-code
+- invocation-filtered journal: empty; bounded model-session stderr retained
+- first recovery journal command: fish cursor-quoting failure retained;
+  not the runtime cause
+
+Closeout:
+- production before/final SHA256:
+  511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded
+- nimo-1 coordinator: PID2356329 / 8081 / HTTP200 / NRestarts0
+- nimo-2 worker: PID1535639 / 50052 / NRestarts0
+- all disposable units: not-found/inactive/dead/MainPID0
+- ports50248/50249, keys, roots, processes: absent
+- primary artifact: not accessed
+- production mutation: none
+- rejected candidate: removed

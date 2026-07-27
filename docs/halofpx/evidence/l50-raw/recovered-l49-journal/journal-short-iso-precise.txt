@@ -1,0 +1,9 @@
+2026-07-27T09:23:44.128481-07:00 nimo-1 rpc-server[2399711]: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+2026-07-27T09:23:44.128481-07:00 nimo-1 rpc-server[2399711]: WARNING: Host ('10.44.0.1') is != '127.0.0.1'
+2026-07-27T09:23:44.128481-07:00 nimo-1 rpc-server[2399711]:          Never expose the RPC server to an open network!
+2026-07-27T09:23:44.128481-07:00 nimo-1 rpc-server[2399711]:          This is an experimental feature and is not secure!
+2026-07-27T09:23:44.128481-07:00 nimo-1 rpc-server[2399711]: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+2026-07-27T09:23:44.128481-07:00 nimo-1 rpc-server[2399711]: error: unknown device: ROCm0
+2026-07-27T09:23:44.128481-07:00 nimo-1 rpc-server[2399711]: available devices:
+2026-07-27T09:23:44.128481-07:00 nimo-1 rpc-server[2399711]: No devices found
+2026-07-27T09:23:44.128695-07:00 nimo-1 rpc-server[2399711]:   CPU: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S (127433 MiB, 127433 MiB free)
