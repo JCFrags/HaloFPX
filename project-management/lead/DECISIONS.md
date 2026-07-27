@@ -1,5 +1,21 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — accept L50 and isolate unarmed warmup lifecycle
+
+Decision: accept L50 NOT PROMOTED commit
+`8fa511036ef9fc633b00fe1148ae0b032457f495`. Preserve its proven ROCm0/gfx1151
+build and device gate. Open L51 only to identify and correct the unarmed
+diagnostic warmup failure, and to repair InvocationID/journal/exit authority
+lost by the current `systemd-run --wait --pipe` collection and fish cursor
+quoting. Permit one stories15M requalification after reviewed preflight. No
+primary, production, tuning, matrix, or L52 is authorized.
+
+Reason: the ROCm build defect is closed and readiness succeeds. The current
+failure occurs before any prompt, capture, restore, or composed result, so it is
+not cache evidence. Warmup must be honestly feature-off until an execution is
+armed, while the armed path remains fail-closed. Complete unit evidence is also
+mandatory before another controller result can be accepted.
+
 ## 2026-07-27 — recover L49 exit cause and require real ROCm device admission
 
 Decision: accept L49 NOT PROMOTED commit

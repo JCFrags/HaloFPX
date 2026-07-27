@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 09:31 PDT
+Verified: 2026-07-27 10:18 PDT
 
 ## Overall state
 
@@ -134,15 +134,23 @@ independent read-only specialists are auditing graph-input coverage and
   only. L50 is active only to correct the proven ROCm build/device admission,
   make early-exit journal authority mandatory, and requalify the same controller
   shape once.
+- L50 closed NOT PROMOTED at
+  `8fa511036ef9fc633b00fe1148ae0b032457f495`. It proved and corrected the
+  exact `GGML_HIP=OFF` cause, froze an ROCm/gfx1151 build, and passed the real
+  device/HFXCAP2 gate. The sole stories run then failed during diagnostic
+  warmup before prompt execution, and its unit collection exposed InvocationID
+  and journal-cursor evidence defects. L51 is active only to source-localize and
+  correct unarmed warmup lifecycle plus exact user-unit exit/journal evidence,
+  then requalify once.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `e606f62cb19063ceb7bfdbe9dff979ea0544abf0`
+- Latest verified commit: `8fa511036ef9fc633b00fe1148ae0b032457f495`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L49 closeout
+- Worktree state: clean at the reviewed terminal L50 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
