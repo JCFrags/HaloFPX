@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 07:48 PDT
+Verified: 2026-07-27 08:42 PDT
 
 ## Overall state
 
@@ -118,15 +118,23 @@ independent read-only specialists are auditing graph-input coverage and
   L48 is active only for the protected-key, argv-safe runner/controller binding,
   explicit warmup/unarmed lifecycle, verifier, and reconstruction of the
   already-qualified composition.
+- L48 closed NOT PROMOTED at
+  `591603ff0982fe684fd67c45f40898f4332fac88`. Its runner/controller, protected
+  key, manifest, verifier, builds, 50 focused tests, and pre-runtime review all
+  passed. The sole stories15M session was killed at 30 seconds because the real
+  120-second HFXCAP2 readiness operation was incorrectly assigned to the
+  generic command transport class. No model result or production mutation was
+  admitted. L49 is active only to add a closed readiness transport class with
+  correctly nested deadlines and requalify the accepted L48 shape once.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `d9aabb66822660b393cc8f14501ea5552471c6d9`
+- Latest verified commit: `591603ff0982fe684fd67c45f40898f4332fac88`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L47 closeout
+- Worktree state: clean at the reviewed terminal L48 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

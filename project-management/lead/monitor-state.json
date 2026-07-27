@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-27T07:48:00-07:00",
+  "updated_at": "2026-07-27T08:42:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l48_no_primary_closed_runner_controller_composed_result_binding",
+  "worker_status": "active_l49_no_primary_hfxcap2_readiness_transport_class_correction_and_requalification",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "d9aabb66822660b393cc8f14501ea5552471c6d9",
-  "last_observed_milestone": "L47 NOT PROMOTED; disposable real multi-chunk composition worked exactly but primary runner/controller binding and clean warmup authority were absent",
-  "last_decision": "accept_l47_runtime_proof_and_open_l48_protected_key_closed_runner_controller_binding_first",
-  "last_progress": "L48 is building the manifest/key/result verifier and warmup lifecycle before reconstructing the qualified ADR-0048 composition",
+  "last_verified_head": "591603ff0982fe684fd67c45f40898f4332fac88",
+  "last_observed_milestone": "L48 NOT PROMOTED; pre-runtime controller candidate passed but real HFXCAP2 readiness was killed by incompatible generic 30-second outer deadline",
+  "last_decision": "accept_l48_timeout_and_open_l49_only_for_closed_readiness_transport_class_and_one_requalification",
+  "last_progress": "L49 is correcting nested readiness deadline authority and requalifying the exact L48 controller shape once on stories15M",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L48 blocker or terminal report; no periodic polling"
+  "next_check_trigger": "direct L49 blocker or terminal report; no periodic polling"
 }

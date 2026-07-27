@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — accept L48 timeout and correct only readiness transport class
+
+Decision: accept L48 NOT PROMOTED commit
+`591603ff0982fe684fd67c45f40898f4332fac88`. Open L49 only to reconstruct the
+pre-runtime-accepted L48 candidate, add a closed HFXCAP2 readiness transport
+class whose outer deadline exceeds its frozen 120-second application budget,
+and run one stories15M controller qualification. No primary, production,
+redesign, tuning, matrix, or L50 is authorized.
+
+Reason: all L48 design, binding, key, verifier, build, and pre-runtime gates
+passed. The sole execution failed before qualification because nested deadline
+authority was inconsistent: generic command killed the readiness process at 30
+seconds. This is one precise transport classification defect and does not
+justify another architecture iteration.
+
 ## 2026-07-27 — accept L47 runtime proof and close the controller binding
 
 Decision: accept L47 NOT PROMOTED commit
