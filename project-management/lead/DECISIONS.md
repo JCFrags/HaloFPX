@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — accept corrected chronology and trace first armed chunk
+
+Decision: accept L54 NOT PROMOTED commit
+`0578c9ce3e58ef832af734ab4a9c0e0ddae94f26`. Open L55 only for embedded
+source/binary provenance and bounded authenticated status transitions through
+common warmup and exactly the first armed 512-token prompt chunk. Stop after
+that chunk; no semantic fix, later prompt, capture/restore, primary,
+production, or L56.
+
+Reason: L54 correctly avoided an incapable warmup-only run. Retained chronology
+now proves warmup succeeds and the first armed prompt fails only after remote
+graph execution. The next decisive boundary is the exact client receipt,
+scheduler copy/finalize, L42/L44 result, or caller status branch.
+
 ## 2026-07-27 — accept L53 contradiction and run one lineage discriminator
 
 Decision: accept L53 NOT PROMOTED commit

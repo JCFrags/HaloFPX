@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 11:52 PDT
+Verified: 2026-07-27 11:57 PDT
 
 ## Overall state
 
@@ -166,15 +166,23 @@ independent read-only specialists are auditing graph-input coverage and
   from an uncovered arm transition. L54 is active only as one warmup-only
   discriminator binding exact source/binary provenance and recording the
   pending/arm/scheduler/RPC refusal transitions. No semantic fix is authorized.
+- L54 closed NOT PROMOTED at
+  `0578c9ce3e58ef832af734ab4a9c0e0ddae94f26` without consuming runtime. It
+  corrected the retained chronology: common warmup succeeded on the ordinary
+  RPC graph; authenticated sequence `1`/UID `27` was the first armed 512-token
+  prompt chunk, whose remote graph executed before the coordinator returned
+  `-3`. A warmup-only run could not reach that failure. L55 is active only to
+  record exact provenance and the client/scheduler/L42/L44 status path through
+  that first chunk, then stop.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `20af537f0d36d9de3877af860e4f24d89d7e2641`
+- Latest verified commit: `0578c9ce3e58ef832af734ab4a9c0e0ddae94f26`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L53 closeout
+- Worktree state: clean at the reviewed terminal L54 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-27T11:52:00-07:00",
+  "updated_at": "2026-07-27T11:57:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l54_no_primary_warmup_source_binary_lineage_and_arm_state_discriminator",
+  "worker_status": "active_l55_no_primary_first_armed_prompt_chunk_lineage_and_status_discriminator",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "20af537f0d36d9de3877af860e4f24d89d7e2641",
-  "last_observed_milestone": "L53 NOT PROMOTED; reconstructed source says warmup unarmed while retained runtime authenticated an execution, leaving lineage mismatch versus uncovered arm transition unresolved",
-  "last_decision": "accept_l53_contradiction_and_open_l54_single_warmup_source_binary_lineage_arm_state_discriminator",
-  "last_progress": "L54 is binding exact candidate provenance and recording observational pending/arm/split/RPC/status transitions in one warmup-only run",
+  "last_verified_head": "0578c9ce3e58ef832af734ab4a9c0e0ddae94f26",
+  "last_observed_milestone": "L54 NOT PROMOTED without runtime; chronology corrected to warmup success followed by failure in first armed prompt chunk after successful remote execution",
+  "last_decision": "accept_l54_chronology_and_open_l55_single_first_armed_prompt_chunk_provenance_status_discriminator",
+  "last_progress": "L55 is tracing exact client/scheduler/L42/L44 status through one first armed 512-token chunk and stopping immediately",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L54 blocker or terminal report; no periodic polling"
+  "next_check_trigger": "direct L55 blocker or terminal report; no periodic polling"
 }
