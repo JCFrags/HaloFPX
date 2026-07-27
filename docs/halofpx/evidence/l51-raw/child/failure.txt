@@ -1,0 +1,5 @@
+command failed (1): ['scp', 'C:\\Users\\britt\\Documents\\HaloFPX-L51-runtime-01\\child\\device-admission.json', 'nimo-2:/var/tmp/halofpx-l48-evidence/device-admission.json']
+
+scp: dest open "/var/tmp/halofpx-l48-evidence/device-admission.json": No such file or directory
+scp: failed to upload file C:/Users/britt/Documents/HaloFPX-L51-runtime-01/child/device-admission.json to /var/tmp/halofpx-l48-evidence/device-admission.json
+
