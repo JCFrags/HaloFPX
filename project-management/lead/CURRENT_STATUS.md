@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 16:10 PDT
+Verified: 2026-07-27 17:00 PDT
 
 ## Overall state
 
@@ -227,15 +227,23 @@ independent read-only specialists are auditing graph-input coverage and
   transient device-gate unit name from the earlier failure. L60 is active only
   to enforce pre/post-launch not-found unit authority and then execute the
   deferred first-chunk response discriminator once.
+- L60 closed NOT PROMOTED at
+  `ade0bc86a9f7659a67239865641d9a1211f8744f`. Its transient-unit
+  absence/reconciliation guard passed and is retained. The sole model run
+  reached the first armed graph, but response evidence remained unavailable:
+  the worker harvester was invoked through a nimo-2-only source path from
+  nimo-1, while the client stream was absent. L61 is active only to bind and
+  exercise exact host-local harvesters and both stream-creation paths before
+  one deferred first-chunk discriminator.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `d80b792747a43a9ee2f6faacad6a9b5dfe17d331`
+- Latest verified commit: `ade0bc86a9f7659a67239865641d9a1211f8744f`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L59 closeout
+- Worktree state: clean at the reviewed terminal L60 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

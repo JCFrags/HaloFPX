@@ -1226,3 +1226,26 @@ stories chunk with the L58 instrumentation. It must stop at the diagnosis and
 request separate authority for any semantic correction. No primary artifact,
 production mutation, cache capture/restore matrix, or performance work is
 authorized.
+
+## 2026-07-27 — accept L60 unit guard and bind harvesters per host
+
+Decision: accept terminal L60 NOT PROMOTED at
+`ade0bc86a9f7659a67239865641d9a1211f8744f` and retain its reviewed
+transient-unit guard. Open L61 only to bind and prove response harvester
+execution and stream creation on each owning host, then run one first-chunk
+discriminator.
+
+Reason: L60 successfully closes stale fixed-unit reuse and its sole model run
+again reaches the target graph failure. It still cannot classify the response
+because nimo-1 was instructed to hash a harvester path staged only on nimo-2,
+and the client stream was absent. This is host-path/runtime-admission evidence,
+not a cache or inference conclusion.
+
+L61 must freeze host-to-harvester path/hash/interpreter/input/output authority,
+run a real two-host no-model fixture that creates and harvests both streams,
+prove wrong-host and one-side-missing behavior, and verify a harmless client
+prefix in the exact runtime environment before model launch. Only after
+independent review may it consume one stories15M first armed chunk. Once model
+runtime starts there is no retry, and any semantic correction remains a
+separate decision. No cache matrix, primary artifact, production mutation, or
+performance work is authorized.

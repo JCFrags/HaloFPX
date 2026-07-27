@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-27T16:10:00-07:00",
+  "updated_at": "2026-07-27T17:00:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l60_transient_unit_absence_guard_and_deferred_rpc_discriminator",
+  "worker_status": "active_l61_host_bound_harvesters_and_deferred_rpc_discriminator",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "d80b792747a43a9ee2f6faacad6a9b5dfe17d331",
-  "last_observed_milestone": "L59 terminal NOT PROMOTED; durable failure harvesting accepted, replacement stopped pre-model on stale loaded transient unit name",
-  "last_decision": "accept_l59_harvesting_and_open_l60_transient_unit_absence_guard_plus_discriminator",
-  "last_progress": "L60 is enforcing fixed-unit not-found authority and then running one deferred first-chunk RPC response discriminator",
+  "last_verified_head": "ade0bc86a9f7659a67239865641d9a1211f8744f",
+  "last_observed_milestone": "L60 terminal NOT PROMOTED; unit guard accepted, runtime response evidence failed due cross-host harvester path and absent client stream",
+  "last_decision": "accept_l60_guard_and_open_l61_host_bound_harvester_admission_plus_discriminator",
+  "last_progress": "L61 is proving both host-local harvesters and client/worker stream creation end-to-end before one first-chunk response run",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L60 blocker or terminal report; no periodic polling"
+  "next_check_trigger": "direct L61 blocker or terminal report; no periodic polling"
 }
