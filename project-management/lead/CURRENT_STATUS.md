@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 08:42 PDT
+Verified: 2026-07-27 09:31 PDT
 
 ## Overall state
 
@@ -126,15 +126,23 @@ independent read-only specialists are auditing graph-input coverage and
   generic command transport class. No model result or production mutation was
   admitted. L49 is active only to add a closed readiness transport class with
   correctly nested deadlines and requalify the accepted L48 shape once.
+- L49 closed NOT PROMOTED at
+  `e606f62cb19063ceb7bfdbe9dff979ea0544abf0`. The readiness class behaved
+  correctly, but its exact disposable worker exited before opening the port.
+  A Project Lead read-only journal recovery identified the retained cause
+  without reproduction: `unknown device: ROCm0`, no accelerator devices, CPU
+  only. L50 is active only to correct the proven ROCm build/device admission,
+  make early-exit journal authority mandatory, and requalify the same controller
+  shape once.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `591603ff0982fe684fd67c45f40898f4332fac88`
+- Latest verified commit: `e606f62cb19063ceb7bfdbe9dff979ea0544abf0`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L48 closeout
+- Worktree state: clean at the reviewed terminal L49 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

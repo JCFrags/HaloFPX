@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — recover L49 exit cause and require real ROCm device admission
+
+Decision: accept L49 NOT PROMOTED commit
+`e606f62cb19063ceb7bfdbe9dff979ea0544abf0`. Use the still-retained nimo-1
+journal as exact evidence that the candidate worker exited with unknown
+`ROCm0` and no accelerator devices. Open L50 only to correct the proven build
+or runtime device-admission defect, add a real no-model ROCm0/HFXCAP2 gate plus
+mandatory early-exit evidence, and run one stories15M qualification. No
+primary, production, redesign, tuning, matrix, or L51 is authorized.
+
+Reason: the L49 transport correction passed. Reproducing the failure would add
+no information because its journal remains available. A successful compile is
+not device authority; the exact candidate binary must prove ROCm0 and protocol
+readiness before the controller may start a model workflow.
+
 ## 2026-07-27 — accept L48 timeout and correct only readiness transport class
 
 Decision: accept L48 NOT PROMOTED commit
