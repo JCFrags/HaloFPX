@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 10:18 PDT
+Verified: 2026-07-27 10:59 PDT
 
 ## Overall state
 
@@ -142,15 +142,23 @@ independent read-only specialists are auditing graph-input coverage and
   and journal-cursor evidence defects. L51 is active only to source-localize and
   correct unarmed warmup lifecycle plus exact user-unit exit/journal evidence,
   then requalify once.
+- L51 closed NOT PROMOTED at
+  `1746c15c9688cb068751ab40619bb0637cff1b3a`. Source audit and focused
+  qualification closed the global-env warmup defect with explicit
+  per-execution arm/disarm, and repaired InvocationID/journal/exit evidence.
+  The sole controller session stopped before model runtime because it copied
+  the device receipt before creating the remote evidence directory. L52 is
+  active only to correct that closed evidence-path ordering and perform the
+  deferred stories15M qualification once.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `8fa511036ef9fc633b00fe1148ae0b032457f495`
+- Latest verified commit: `1746c15c9688cb068751ab40619bb0637cff1b3a`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L50 closeout
+- Worktree state: clean at the reviewed terminal L51 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

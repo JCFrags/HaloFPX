@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — accept L51 and correct evidence-directory ordering only
+
+Decision: accept L51 NOT PROMOTED commit
+`1746c15c9688cb068751ab40619bb0637cff1b3a`. Preserve its focused-qualified
+arm/disarm warmup and unit-evidence corrections. Open L52 only to create and
+verify manifest-owned evidence directories before atomic device-receipt
+publication, then run the deferred stories15M qualification once. No primary,
+production, architecture, tuning, matrix, or L53 is authorized.
+
+Reason: L51's model workflow did not begin. The exact failure is a controller
+state-machine ordering error—copy preceded directory creation—not a warmup,
+composition, cache, model, or device failure. It is bounded and should be
+corrected without reopening qualified runtime foundations.
+
 ## 2026-07-27 — accept L50 and isolate unarmed warmup lifecycle
 
 Decision: accept L50 NOT PROMOTED commit
