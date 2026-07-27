@@ -147,6 +147,7 @@ L48_EXECUTABLES = {
     "composed_result_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l48_composed_result.py",
     "device_receipt": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_l50_device_receipt.py",
     "status_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l55_status.py",
+    "response_boundary_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_boundary.py",
 }
 L29_MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -161,6 +162,8 @@ L48_SOURCE_FILES = (
     "ggml/include/ggml-rpc.h",
     "ggml/src/ggml-backend.cpp",
     "ggml/src/ggml-rpc/ggml-rpc.cpp",
+    "ggml/src/ggml-rpc/transport.cpp",
+    "ggml/src/ggml-rpc/transport.h",
     "include/llama.h",
     "src/llama-context.cpp",
     "src/llama-context.h",
@@ -169,11 +172,13 @@ L48_SOURCE_FILES = (
     "tests/test-halofpx-distributed-state-canary.cpp",
     "tests/test-halofpx-rpc-mutable-authority.cpp",
     "tests/test-halofpx-scheduler-authority.cpp",
+    "tests/test_halofpx_rpc_response_boundary.py",
     "tools/rpc/rpc-server.cpp",
     "scripts/halofpx-l13-primary-retry.py",
     "scripts/halofpx_l48_composed_result.py",
     "scripts/halofpx_l50_device_receipt.py",
     "scripts/halofpx_l55_status.py",
+    "scripts/halofpx_rpc_response_boundary.py",
 )
 
 
@@ -715,6 +720,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     l48_provenance = l48 and raw.get("milestone") in {
         "l55-first-armed-prompt-discriminator",
         "l57-parent-split-identity-qualification",
+        "l58-rpc-response-boundary-discriminator",
     }
     primary = l29 or l31 or l33 or l36
     if l48:
@@ -740,7 +746,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             "--l48-fixture" if l48 else "--l36-primary" if l36 else "--l33-primary" if l33 else "--l31-primary" if l31 else "--l29-primary" if l29 else "--l28-fixture",
         ]
         if l48:
-            if raw["milestone"] == "l55-first-armed-prompt-discriminator":
+            if raw["milestone"] in {
+                    "l55-first-armed-prompt-discriminator",
+                    "l58-rpc-response-boundary-discriminator"}:
                 expected_child_argv += ["--l55-first-chunk"]
             expected_child_argv += ["--authority-key-file", L48_KEY_PATHS["nimo-2"]]
         prefix = "halofpx-l48" if l48 else "halofpx-l36-primary" if l36 else "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
@@ -752,6 +760,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 "l50-rocm-device-admission",
                 "l55-first-armed-prompt-discriminator",
                 "l57-parent-split-identity-qualification",
+                "l58-rpc-response-boundary-discriminator",
             }
             else "l36-primary-replay-authority-discriminator" if l36
             else "l33-primary-live-state-discriminator" if l33
@@ -799,6 +808,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             "features": {
                 "rpc_graph": 1, "scheduler": 2, "mutable_session": 1,
                 "composition": 1,
+                **({"response_boundary": 1}
+                   if raw["milestone"] == "l58-rpc-response-boundary-discriminator"
+                   else {}),
             },
             **({
                 "provenance": {
@@ -1013,6 +1025,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         host_for["result_authority_verifier"] = DISPOSABLE_CANARY_HOST
         host_for["composed_result_verifier"] = DISPOSABLE_CANARY_HOST
         host_for["device_receipt"] = DISPOSABLE_HOST
+        host_for["status_verifier"] = DISPOSABLE_CANARY_HOST
+        host_for["response_boundary_verifier"] = DISPOSABLE_CANARY_HOST
     for name, host in host_for.items():
         result = runner.run(
             host, ["sha256sum", "--", expected_exec[name]], operation="hash")
@@ -1655,6 +1669,11 @@ def child_environment(
             hashes["replay_authority_verifier"])
         environment["HALOFPX_SEMANTIC_DIAGNOSTICS"] = "1"
     if l48:
+        provenance = manifest["authority_contract"]["provenance"]
+        environment["HALOFPX_PROVENANCE_SOURCE_ROOT"] = str(
+            provenance["source_root"])
+        environment["HALOFPX_PROVENANCE_BUILD_ID"] = str(
+            provenance["build_id"])
         environment["HALOFPX_L37_COMPONENT_DIAGNOSTICS_SHA256"] = str(
             hashes["component_diagnostics"])
         environment["HALOFPX_L37_RESULT_AUTHORITY_VERIFIER_SHA256"] = str(
@@ -1662,6 +1681,8 @@ def child_environment(
         environment["HALOFPX_COMPOSED_AUTHORITY"] = "1"
         environment["HALOFPX_RPC_GRAPH_AUTH"] = "1"
         environment["HALOFPX_RPC_MUTABLE_AUTH"] = "1"
+        if manifest.get("milestone") == "l58-rpc-response-boundary-discriminator":
+            environment["HALOFPX_RPC_RESPONSE_DIAGNOSTICS"] = "1"
         environment["HALOFPX_L50_DEVICE_RECEIPT_SHA256"] = str(
             hashes["device_receipt"])
     return environment

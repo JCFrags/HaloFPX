@@ -116,8 +116,8 @@ static_assert(sizeof(rdma_caps) == RPC_CONN_CAPS_SIZE, "rdma_caps must match con
 struct socket_t::impl {
     impl(sockfd_t fd) : use_rdma(false), fd(fd) {}
     ~impl();
-    bool send_data(const void * data, size_t size);
-    bool recv_data(void * data, size_t size);
+    bool send_data(const void * data, size_t size, rpc_transport_io_result * result = nullptr);
+    bool recv_data(void * data, size_t size, rpc_transport_io_result * result = nullptr);
     void get_caps(uint8_t * local_caps);
     void update_caps(const uint8_t * remote_caps);
 
@@ -459,10 +459,16 @@ bool socket_t::impl::rdma_recv(void * data, size_t size) {
 
 #endif // GGML_RPC_RDMA
 
-bool socket_t::impl::send_data(const void * data, size_t size) {
+bool socket_t::impl::send_data(const void * data, size_t size, rpc_transport_io_result * result) {
+    if (result != nullptr) {
+        *result = {};
+        result->requested = size;
+    }
 #ifdef GGML_RPC_RDMA
     if (use_rdma) {
-        return rdma_send(data, size);
+        const bool ok = rdma_send(data, size);
+        if (result != nullptr && ok) result->transferred = size;
+        return ok;
     }
 #endif
     size_t bytes_sent = 0;
@@ -470,19 +476,30 @@ bool socket_t::impl::send_data(const void * data, size_t size) {
         size_t size_to_send = std::min(size - bytes_sent, MAX_CHUNK_SIZE);
         ssize_t n = send(fd, (const char *)data + bytes_sent, size_to_send, 0);
         if (n < 0) {
+            if (result != nullptr) {
+                result->transferred = bytes_sent;
+                result->error_number = errno;
+            }
             GGML_LOG_ERROR("send failed (bytes_sent=%zu, size_to_send=%zu)\n",
                            bytes_sent, size_to_send);
             return false;
         }
         bytes_sent += (size_t)n;
+        if (result != nullptr) result->transferred = bytes_sent;
     }
     return true;
 }
 
-bool socket_t::impl::recv_data(void * data, size_t size) {
+bool socket_t::impl::recv_data(void * data, size_t size, rpc_transport_io_result * result) {
+    if (result != nullptr) {
+        *result = {};
+        result->requested = size;
+    }
 #ifdef GGML_RPC_RDMA
     if (use_rdma) {
-        return rdma_recv(data, size);
+        const bool ok = rdma_recv(data, size);
+        if (result != nullptr && ok) result->transferred = size;
+        return ok;
     }
 #endif
     size_t bytes_recv = 0;
@@ -490,15 +507,24 @@ bool socket_t::impl::recv_data(void * data, size_t size) {
         size_t size_to_recv = std::min(size - bytes_recv, MAX_CHUNK_SIZE);
         ssize_t n = recv(fd, (char *)data + bytes_recv, size_to_recv, 0);
         if (n < 0) {
+            if (result != nullptr) {
+                result->transferred = bytes_recv;
+                result->error_number = errno;
+            }
             GGML_LOG_ERROR("recv failed (bytes_recv=%zu, size_to_recv=%zu)\n",
                            bytes_recv, size_to_recv);
             return false;
         }
         if (n == 0) {
+            if (result != nullptr) {
+                result->transferred = bytes_recv;
+                result->eof = true;
+            }
             LOG_DBG("recv returned 0 (peer closed?)\n");
             return false;
         }
         bytes_recv += (size_t)n;
+        if (result != nullptr) result->transferred = bytes_recv;
     }
     return true;
 }
@@ -554,6 +580,14 @@ bool socket_t::send_data(const void * data, size_t size) {
 
 bool socket_t::recv_data(void * data, size_t size) {
     return pimpl->recv_data(data, size);
+}
+
+bool socket_t::send_data_observed(const void * data, size_t size, rpc_transport_io_result & result) {
+    return pimpl->send_data(data, size, &result);
+}
+
+bool socket_t::recv_data_observed(void * data, size_t size, rpc_transport_io_result & result) {
+    return pimpl->recv_data(data, size, &result);
 }
 
 void socket_t::get_caps(uint8_t * local_caps) {

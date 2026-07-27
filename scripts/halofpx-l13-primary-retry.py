@@ -800,7 +800,7 @@ def semantic_env_args() -> list[str]:
     return result
 
 
-def composed_env_args() -> list[str]:
+def composed_env_args(response_side: str | None = None) -> list[str]:
     value = os.environ.get("HALOFPX_COMPOSED_AUTHORITY")
     if value is None:
         return []
@@ -810,13 +810,27 @@ def composed_env_args() -> list[str]:
         or re.fullmatch(r"[0-9a-f]{64}", key_digest) is None
     ):
         raise CanaryError("composed authority environment is outside L48 authority")
-    return [
+    result = [
         "--setenv=HALOFPX_COMPOSED_AUTHORITY=1",
         "--setenv=HALOFPX_RPC_GRAPH_AUTH=1",
         "--setenv=HALOFPX_RPC_MUTABLE_AUTH=1",
         f"--setenv=HALOFPX_RPC_GRAPH_AUTH_KEY_FILE={CONTROL}",
         f"--setenv=HALOFPX_RPC_GRAPH_AUTH_KEY_SHA256={key_digest}",
     ]
+    if os.environ.get("HALOFPX_RPC_RESPONSE_DIAGNOSTICS") == "1":
+        if response_side == "disabled":
+            return result
+        response_paths = {
+            "worker": "/var/tmp/halofpx-l48-worker/rpc-response-worker.jsonl",
+            "client": "/var/tmp/halofpx-l48-evidence/rpc-response-client.jsonl",
+        }
+        if response_side not in response_paths:
+            raise CanaryError("RPC response diagnostics require a closed worker/client side")
+        result.extend([
+            "--setenv=HALOFPX_RPC_RESPONSE_DIAGNOSTICS=1",
+            f"--setenv=HALOFPX_RPC_RESPONSE_DIAGNOSTICS_PATH={response_paths[response_side]}",
+        ])
+    return result
 
 
 def require_authenticated_semantic_provenance(
@@ -1148,7 +1162,7 @@ def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=90min",
         "--property=RemainAfterExit=yes",
         "--setenv=GGML_RPC_DEBUG=1", "--setenv=HALOFPX_STATE_DIAGNOSTICS=1",
-        *composed_env_args(), WORKER_BIN,
+        *composed_env_args("worker"), WORKER_BIN,
         "--host", "10.44.0.1", "--port", str(PORT), "--device", "ROCm0",
     ]
     if local_state:
@@ -1506,7 +1520,7 @@ def run_l50_device_admission(root: Path, local_units: list[str]) -> dict[str, ob
         "systemd-run", "--user", f"--unit={unit}",
         "--property=RuntimeMaxSec=5min", "--property=RemainAfterExit=yes",
         "--setenv=GGML_RPC_DEBUG=1",
-        *composed_env_args(), WORKER_BIN,
+        *composed_env_args("disabled"), WORKER_BIN,
         "--host", "127.0.0.1", "--port", "50249", "--device", "ROCm0",
         "--halofpx-local-state", "--halofpx-state-root",
         "/var/tmp/halofpx-l50-device-gate",
@@ -1609,7 +1623,7 @@ def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=20min",
         "--property=RemainAfterExit=yes",
-        *semantic_env_args(), *composed_env_args(),
+        *semantic_env_args(), *composed_env_args("client"),
         *canary_command,
     ]
     invocation = "invocation=" + " ".join(canary_command) + "\ntransient_unit=" + unit + "\n"
@@ -2028,6 +2042,40 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         capture_journal = worker_journal(
             capture_unit, capture_invocation, capture_worker_pid)
         (root / "worker-first-chunk.log").write_text(capture_journal, encoding="utf-8")
+        if os.environ.get("HALOFPX_RPC_RESPONSE_DIAGNOSTICS") == "1":
+            for host, remote, name in (
+                (NIMO1, f"{WORKER_ROOT}/rpc-response-worker.jsonl",
+                 "rpc-response-worker.jsonl"),
+                (NIMO2, f"{REMOTE_EVIDENCE}/rpc-response-client.jsonl",
+                 "rpc-response-client.jsonl"),
+            ):
+                present = ssh(host, "test", "-f", remote, check=False)
+                if present.returncode != 0:
+                    raise CanaryError(f"{host}: RPC response evidence is missing")
+                run(["scp", f"{host}:{remote}", str(root / name)])
+                if not (root / name).is_file() or (root / name).stat().st_size == 0:
+                    raise CanaryError(f"{host}: RPC response evidence is empty")
+            verifier = (
+                "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+                "halofpx_rpc_response_boundary.py")
+            worker_remote = f"{REMOTE_EVIDENCE}/rpc-response-worker.jsonl"
+            installed = SSH_TRANSPORT.run_stdin(
+                NIMO2, ["install", "-m", "600", "/dev/stdin", worker_remote],
+                (root / "rpc-response-worker.jsonl").read_bytes(),
+                operation="evidence")
+            if installed.returncode != 0:
+                raise CanaryError("RPC response worker evidence publication failed")
+            verified = ssh(
+                NIMO2, "python3", verifier, "--key-file", CONTROL,
+                "--record-file", worker_remote,
+                "--record-file", f"{REMOTE_EVIDENCE}/rpc-response-client.jsonl",
+                check=False)
+            if verified.returncode != 0:
+                raise CanaryError(
+                    "RPC response evidence verification failed: " + verified.stderr)
+            write_private_json(
+                root / "rpc-response-boundary-verified.json",
+                json.loads(verified.stdout))
         stop_worker(capture_unit)
         status_lines = [
             line for line in capture_result.stdout.splitlines()
@@ -2118,7 +2166,7 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         "--property=RuntimeMaxSec=20min",
         *(["--setenv=HALOFPX_STATE_DIAGNOSTICS=1"] if LIVE_RECAPTURE_DIAGNOSTICS else []),
         *semantic_env_args(),
-        *composed_env_args(),
+        *composed_env_args("client"),
         *restore_command)
     restore_launch_invocation = re.search(
         r"invocation ID: ([0-9a-fA-F]{32})", restore_launch.stdout)
@@ -2573,12 +2621,14 @@ def main() -> int:
                 NIMO1: (
                     WORKER_BIN,
                     "schema=halofpx.l57.binary-provenance.v1"
-                    f"|source_root={L55_SOURCE_ROOT}|build_id={L55_BUILD_ID}"
+                    f"|source_root={os.environ.get('HALOFPX_PROVENANCE_SOURCE_ROOT', L55_SOURCE_ROOT)}"
+                    f"|build_id={os.environ.get('HALOFPX_PROVENANCE_BUILD_ID', L55_BUILD_ID)}"
                     "|binary=rpc-server"),
                 NIMO2: (
                     CANARY_BIN,
                     "schema=halofpx.l57.binary-provenance.v1"
-                    f"|source_root={L55_SOURCE_ROOT}|build_id={L55_BUILD_ID}"
+                    f"|source_root={os.environ.get('HALOFPX_PROVENANCE_SOURCE_ROOT', L55_SOURCE_ROOT)}"
+                    f"|build_id={os.environ.get('HALOFPX_PROVENANCE_BUILD_ID', L55_BUILD_ID)}"
                     "|binary=canary"),
             }
             for host, (binary, value) in expected.items():

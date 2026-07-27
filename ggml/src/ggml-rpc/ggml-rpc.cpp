@@ -247,6 +247,8 @@ static constexpr uint32_t HFX_GRAPH_AUTH_MAX_TENSORS = 65536;
 static constexpr uint32_t HFX_GRAPH_AUTH_MAX_NODES = 65536;
 static constexpr uint32_t HFX_GRAPH_AUTH_MAX_GRAPH_BYTES = 64U << 20;
 static constexpr char HFX_GRAPH_AUTH_DOMAIN[] = "halofpx.rpc-graph-authority.v1";
+static constexpr char HFX_RPC_RESPONSE_DOMAIN[] = "halofpx.rpc-response-boundary.v1";
+static constexpr uint32_t HFX_RPC_RESPONSE_MAX_EVENTS = 64;
 
 struct hfx_graph_auth_caps_req {
     uint8_t magic[8];
@@ -816,6 +818,34 @@ hfx_digest hfx_graph_hmac(const uint8_t key[32], const void * data, size_t size)
     return result;
 }
 
+hfx_digest hfx_rpc_response_hmac(const uint8_t key[32], const void * data, size_t size) {
+    std::array<uint8_t, 64> inner {};
+    std::array<uint8_t, 64> outer {};
+    for (size_t i = 0; i < 64; ++i) {
+        const uint8_t b = i < 32 ? key[i] : 0;
+        inner[i] = b ^ 0x36;
+        outer[i] = b ^ 0x5c;
+    }
+    sha256_t ctx;
+    hfx_digest mid {};
+    hfx_digest result {};
+    sha256_init(&ctx);
+    sha256_update(&ctx, inner.data(), inner.size());
+    sha256_update(&ctx, reinterpret_cast<const uint8_t *>(HFX_RPC_RESPONSE_DOMAIN),
+                  sizeof(HFX_RPC_RESPONSE_DOMAIN) - 1);
+    if (size != 0) sha256_update(&ctx, static_cast<const uint8_t *>(data), size);
+    sha256_final(&ctx, mid.data());
+    sha256_init(&ctx);
+    sha256_update(&ctx, outer.data(), outer.size());
+    sha256_update(&ctx, mid.data(), mid.size());
+    sha256_final(&ctx, result.data());
+    hfx_wipe(&ctx, sizeof(ctx));
+    hfx_wipe(inner.data(), inner.size());
+    hfx_wipe(outer.data(), outer.size());
+    hfx_wipe(mid.data(), mid.size());
+    return result;
+}
+
 bool hfx_graph_key(std::array<uint8_t, 32> & key) {
     auto hex = [](char c) -> int {
         if (c >= '0' && c <= '9') return c - '0';
@@ -1293,6 +1323,72 @@ std::string hfx_hex(const uint8_t * bytes, size_t size) {
     return result;
 }
 
+bool hfx_write_all(int fd, const void * data, size_t size);
+
+bool hfx_rpc_response_diagnostics_requested() {
+    const char * enabled = std::getenv("HALOFPX_RPC_RESPONSE_DIAGNOSTICS");
+    return enabled != nullptr && std::strcmp(enabled, "1") == 0;
+}
+
+bool hfx_rpc_response_event(
+        const uint8_t key[32],
+        const char * side,
+        const char * phase,
+        uint8_t opcode,
+        uint64_t parent_uid,
+        uint64_t split_uid,
+        uint64_t exec_sequence,
+        uint32_t backend_ordinal,
+        const uint8_t attempt_nonce[32],
+        const uint8_t connection_epoch[32],
+        uint64_t expected,
+        uint64_t actual,
+        int rc,
+        int error_number,
+        bool eof,
+        uint32_t status) {
+    if (!hfx_rpc_response_diagnostics_requested()) return true;
+    static std::atomic<uint32_t> event_sequence { 0 };
+    const uint32_t sequence = event_sequence.fetch_add(1) + 1;
+    if (sequence == 0 || sequence > HFX_RPC_RESPONSE_MAX_EVENTS) return false;
+    const char * path = std::getenv("HALOFPX_RPC_RESPONSE_DIAGNOSTICS_PATH");
+    if (path == nullptr || path[0] != '/' || std::strstr(path, "..") != nullptr ||
+        side == nullptr || phase == nullptr) return false;
+    const auto wall = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    const auto mono = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    std::string canonical =
+        std::string("domain=") + HFX_RPC_RESPONSE_DOMAIN +
+        "|version=1|event=" + std::to_string(sequence) +
+        "|side=" + side + "|phase=" + phase +
+        "|opcode=" + std::to_string(opcode) +
+        "|parent_uid=" + std::to_string(parent_uid) +
+        "|split_uid=" + std::to_string(split_uid) +
+        "|exec_sequence=" + std::to_string(exec_sequence) +
+        "|backend_ordinal=" + std::to_string(backend_ordinal) +
+        "|attempt=" + hfx_hex(attempt_nonce, 32) +
+        "|connection_epoch=" + hfx_hex(connection_epoch, 32) +
+        "|expected=" + std::to_string(expected) +
+        "|actual=" + std::to_string(actual) +
+        "|rc=" + std::to_string(rc) +
+        "|errno=" + std::to_string(error_number) +
+        "|eof=" + std::to_string(eof ? 1 : 0) +
+        "|status=" + std::to_string(status) +
+        "|wall_ns=" + std::to_string(wall) +
+        "|mono_ns=" + std::to_string(mono);
+    const auto tag = hfx_rpc_response_hmac(key, canonical.data(), canonical.size());
+    const std::string record = canonical + "|tag=" + hfx_hex(tag.data(), tag.size()) + "\n";
+    const int fd = open(path, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC | O_NOFOLLOW, 0600);
+    if (fd < 0) return false;
+    struct stat st {};
+    const bool valid = fstat(fd, &st) == 0 && S_ISREG(st.st_mode) &&
+        (st.st_mode & 0777) == 0600 && st.st_uid == geteuid() &&
+        hfx_write_all(fd, record.data(), record.size()) && fsync(fd) == 0;
+    close(fd);
+    return valid;
+}
+
 void hfx_identity_from_public(
         const ggml_backend_rpc_halofpx_state_identity & src,
         hfx_state_identity_wire & dst) {
@@ -1555,6 +1651,56 @@ static bool send_rpc_cmd(socket_ptr sock, enum rpc_cmd cmd, const void * input, 
     }
     return true;
 }
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+struct hfx_rpc_response_context {
+    uint64_t parent_uid;
+    uint64_t split_uid;
+    uint64_t exec_sequence;
+    uint32_t backend_ordinal;
+    const uint8_t * attempt_nonce;
+    const uint8_t * connection_epoch;
+    const uint8_t * key;
+};
+
+static bool send_rpc_cmd_observed(
+        socket_ptr sock,
+        enum rpc_cmd cmd,
+        const void * input,
+        size_t input_size,
+        void * output,
+        size_t output_size,
+        const hfx_rpc_response_context & ctx) {
+    const auto event = [&](const char * phase, uint64_t expected, const rpc_transport_io_result & io,
+                           bool ok, uint32_t status) {
+        return hfx_rpc_response_event(
+            ctx.key, "client", phase, static_cast<uint8_t>(cmd), ctx.parent_uid, ctx.split_uid,
+            ctx.exec_sequence, ctx.backend_ordinal, ctx.attempt_nonce, ctx.connection_epoch,
+            expected, io.transferred, ok ? 1 : 0, io.error_number, io.eof, status);
+    };
+    rpc_transport_io_result io {};
+    const uint8_t cmd_byte = cmd;
+    bool ok = sock->send_data_observed(&cmd_byte, sizeof(cmd_byte), io);
+    if (!event("request_opcode", sizeof(cmd_byte), io, ok, 0) || !ok) return false;
+    ok = sock->send_data_observed(&input_size, sizeof(input_size), io);
+    if (!event("request_header", sizeof(input_size), io, ok, 0) || !ok) return false;
+    ok = sock->send_data_observed(input, input_size, io);
+    if (!event("request_body", input_size, io, ok, 0) || !ok) return false;
+    uint64_t out_size = 0;
+    ok = sock->recv_data_observed(&out_size, sizeof(out_size), io);
+    if (!event("response_header", sizeof(out_size), io, ok, 0) || !ok) return false;
+    if (out_size != output_size) {
+        rpc_transport_io_result mismatch {};
+        mismatch.requested = output_size;
+        mismatch.transferred = out_size;
+        event("response_size_mismatch", output_size, mismatch, false, 1);
+        return false;
+    }
+    ok = sock->recv_data_observed(output, output_size, io);
+    if (!event("response_body", output_size, io, ok, 0) || !ok) return false;
+    return true;
+}
+#endif
 
 // RPC client-side implementation
 
@@ -2708,13 +2854,52 @@ static enum ggml_status ggml_backend_rpc_graph_compute(ggml_backend_t backend, g
         hfx_graph_sign_record(request, rpc_ctx->graph_auth_key.data());
         const auto execute_wire = hfx_graph_encode(request);
         std::array<uint8_t, sizeof(response)> execute_response_wire {};
-        if (!send_rpc_cmd(sock, RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE,
-                          execute_wire.data(), execute_wire.size(),
-                          execute_response_wire.data(), execute_response_wire.size()) ||
-            !hfx_graph_decode(execute_response_wire.data(), execute_response_wire.size(), response) ||
-            !hfx_graph_receipt_valid(response, request, rpc_ctx->graph_auth_key.data(), 2)) {
+        const hfx_rpc_response_context response_context {
+            rpc_ctx->execution_parent_graph_uid,
+            request.graph_uid,
+            request.exec_sequence,
+            expected_split->backend_ordinal,
+            request.attempt_nonce,
+            request.server_nonce,
+            rpc_ctx->graph_auth_key.data(),
+        };
+        const bool response_observed = hfx_rpc_response_diagnostics_requested();
+        const bool response_received = response_observed
+            ? send_rpc_cmd_observed(sock, RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE,
+                                    execute_wire.data(), execute_wire.size(),
+                                    execute_response_wire.data(), execute_response_wire.size(),
+                                    response_context)
+            : send_rpc_cmd(sock, RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE,
+                           execute_wire.data(), execute_wire.size(),
+                           execute_response_wire.data(), execute_response_wire.size());
+        if (!response_received) {
             return GGML_STATUS_FAILED;
         }
+        const bool decoded = hfx_graph_decode(
+            execute_response_wire.data(), execute_response_wire.size(), response);
+        if (response_observed &&
+            !hfx_rpc_response_event(
+                rpc_ctx->graph_auth_key.data(), "client", "client_decode",
+                static_cast<uint8_t>(RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE),
+                rpc_ctx->execution_parent_graph_uid, request.graph_uid, request.exec_sequence,
+                expected_split->backend_ordinal, request.attempt_nonce, request.server_nonce,
+                0, 0, decoded ? 1 : 0, 0, false, decoded ? 1U : 0U)) {
+            return GGML_STATUS_FAILED;
+        }
+        if (!decoded) return GGML_STATUS_FAILED;
+        const bool receipt_valid = hfx_graph_receipt_valid(
+            response, request, rpc_ctx->graph_auth_key.data(), 2);
+        if (response_observed &&
+            !hfx_rpc_response_event(
+                rpc_ctx->graph_auth_key.data(), "client", "client_receipt_validation",
+                static_cast<uint8_t>(RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE),
+                rpc_ctx->execution_parent_graph_uid, request.graph_uid, request.exec_sequence,
+                expected_split->backend_ordinal, request.attempt_nonce, request.server_nonce,
+                0, 0, receipt_valid ? 1 : 0, 0, false,
+                receipt_valid ? response.status : 0U)) {
+            return GGML_STATUS_FAILED;
+        }
+        if (!receipt_valid) return GGML_STATUS_FAILED;
         GGML_LOG_INFO("[halofpx-rpc-graph-auth] client executed sequence=%" PRIu64
                       " uid=%" PRIu64 " digest=%s\n",
                       request.exec_sequence, request.graph_uid,
@@ -3882,6 +4067,9 @@ public:
     bool hfx_graph_compute(const std::vector<uint8_t> & input, hfx_graph_auth_receipt & response);
     bool hfx_graph_recompute(const hfx_graph_auth_header & request, hfx_graph_auth_receipt & response);
     bool hfx_graph_execute(const hfx_graph_auth_header & request, hfx_graph_auth_receipt & response);
+    bool hfx_graph_response_event(const hfx_graph_auth_header & request, const char * phase,
+                                  uint64_t expected, const rpc_transport_io_result & io,
+                                  bool ok, uint32_t status);
     void hfx_graph_invalidate();
     void hfx_graph_invalidate_prepared();
     void hfx_graph_discard_lineage();
@@ -4792,26 +4980,59 @@ bool rpc_server::hfx_graph_recompute(
 bool rpc_server::hfx_graph_execute(
         const hfx_graph_auth_header & request,
         hfx_graph_auth_receipt & response) {
-    if (!hfx_graph_negotiated || request.graph_size != 0 ||
-        request.device >= stored_graphs.size() ||
-        !hfx_graph_server_header_valid(request, hfx_graph_key_value,
-                                       hfx_graph_attempt_nonce, hfx_graph_server_nonce,
-                                       hfx_graph_sequence, "HFXGEX1\0")) return false;
+    rpc_transport_io_result no_io {};
+    if (!hfx_graph_response_event(request, "handler_entry", 0, no_io, true, 0)) return false;
+    const bool header_valid = hfx_graph_negotiated && request.graph_size == 0 &&
+        request.device < stored_graphs.size() &&
+        hfx_graph_server_header_valid(request, hfx_graph_key_value,
+                                      hfx_graph_attempt_nonce, hfx_graph_server_nonce,
+                                      hfx_graph_sequence, "HFXGEX1\0");
+    const bool handler_valid = header_valid &&
+        stored_graphs[request.device].auth_prepared &&
+        stored_graphs[request.device].graph != nullptr &&
+        request.graph_uid == stored_graphs[request.device].auth_uid &&
+        hfx_equal(request.graph_digest, stored_graphs[request.device].auth_digest.data(), 32) &&
+        hfx_equal(request.transcript_root, stored_graphs[request.device].auth_transcript.data(), 32);
+    if (!hfx_graph_response_event(request, "handler_validation", 0, no_io,
+                                  handler_valid, handler_valid ? 1U : 0U)) return false;
+    if (!handler_valid) return false;
     auto & stored = stored_graphs[request.device];
-    if (!stored.auth_prepared || stored.graph == nullptr ||
-        request.graph_uid != stored.auth_uid ||
-        !hfx_equal(request.graph_digest, stored.auth_digest.data(), 32) ||
-        !hfx_equal(request.transcript_root, stored.auth_transcript.data(), 32)) return false;
     stored.auth_prepared = false;
     ggml_status status = ggml_backend_graph_compute(backends[request.device], stored.graph);
+    if (!hfx_graph_response_event(request, "backend_complete", 0, no_io,
+                                  status == GGML_STATUS_SUCCESS, static_cast<uint32_t>(status))) return false;
     if (status != GGML_STATUS_SUCCESS) return false;
     GGML_LOG_INFO("[halofpx-rpc-graph-auth] server executed sequence=%" PRIu64
                   " uid=%" PRIu64 " digest=%s\n",
                   request.exec_sequence, request.graph_uid,
                   hfx_hex(request.graph_digest, 32).c_str());
-    if (!hfx_graph_server_receipt(response, request, hfx_graph_key_value.data())) return false;
-    response.status = 2;
-    return hfx_graph_sign_record(response, hfx_graph_key_value.data());
+    bool signed_receipt = hfx_graph_server_receipt(
+        response, request, hfx_graph_key_value.data());
+    if (signed_receipt) {
+        response.status = 2;
+        signed_receipt = hfx_graph_sign_record(response, hfx_graph_key_value.data());
+    }
+    if (!hfx_graph_response_event(request, "receipt_construction", 0, no_io,
+                                  signed_receipt, signed_receipt ? 1U : 0U)) return false;
+    if (!signed_receipt) return false;
+    if (!hfx_graph_response_event(request, "handler_exit", 0, no_io,
+                                  signed_receipt, signed_receipt ? 2U : 1U)) return false;
+    return signed_receipt;
+}
+
+bool rpc_server::hfx_graph_response_event(
+        const hfx_graph_auth_header & request,
+        const char * phase,
+        uint64_t expected,
+        const rpc_transport_io_result & io,
+        bool ok,
+        uint32_t status) {
+    return hfx_rpc_response_event(
+        hfx_graph_key_value.data(), "server", phase,
+        static_cast<uint8_t>(RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE),
+        0, request.graph_uid, request.exec_sequence, request.device,
+        request.attempt_nonce, request.server_nonce, expected, io.transferred,
+        ok ? 1 : 0, io.error_number, io.eof, status);
 }
 
 void rpc_server::hfx_graph_invalidate() {
@@ -6209,7 +6430,14 @@ static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const
                     !hfx_graph_decode(request_wire.data(), request_wire.size(), request) ||
                     !server.hfx_graph_execute(request, response)) return;
                 const auto response_wire = hfx_graph_encode(response);
-                if (!send_msg(sock, response_wire.data(), response_wire.size())) return;
+                rpc_transport_io_result io {};
+                const uint64_t response_size = response_wire.size();
+                bool sent = sock->send_data_observed(&response_size, sizeof(response_size), io);
+                if (!server.hfx_graph_response_event(request, "response_header_publish",
+                                                     sizeof(response_size), io, sent, 0) || !sent) return;
+                sent = sock->send_data_observed(response_wire.data(), response_wire.size(), io);
+                if (!server.hfx_graph_response_event(request, "response_body_publish",
+                                                     response_wire.size(), io, sent, 0) || !sent) return;
                 break;
             }
             case RPC_CMD_HALOFPX_MUTABLE_CAPS: {

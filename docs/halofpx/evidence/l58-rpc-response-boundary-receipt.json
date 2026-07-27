@@ -1,0 +1,67 @@
+{
+  "schema": "halofpx.l58.rpc-response-boundary-receipt.v1",
+  "status": "NOT_PROMOTED",
+  "classification": "AMBIGUOUS_RESPONSE_BOUNDARY",
+  "date": "2026-07-27",
+  "base_commit": "0026d5243c6108659fa53ce9185af9de0d6ec857",
+  "qualification": {
+    "python_tests": "59 passed, 11 subtests passed",
+    "small_rpc_graph": "PASS_ORDINARY_COMPUTE_RECOMPUTE",
+    "pre_runtime_review": "GO",
+    "feature_off_inert": true
+  },
+  "provenance": {
+    "schema": "halofpx.l57.binary-provenance.v1",
+    "source_root": "115c4e6b779299135bc9e80c1f688c4ab9733e118b48e4cd56bf83b8357a0d56",
+    "build_id": "b5f3e029c33d185042570bdb073f449b44ad96650ff27355382df20d350ad754",
+    "worker_sha256": "d8a342f3ebc8833b07982a5191744027912d50c879ef47dc21349572387e8cf9",
+    "canary_sha256": "3346af254e0a38d0277b68746b56ef16a7c88c819a542a0e840aa74f6927c641"
+  },
+  "rejected_preflight": {
+    "runtime_started": false,
+    "reason": "stale runner provenance constants",
+    "path": "docs/halofpx/evidence/l58-raw",
+    "file_count": 7,
+    "tree_sha256": "803718b821b961fafcd5cb185e75955780cdc94c9c57e9f9ebf7be2e9b7fb821"
+  },
+  "runtime": {
+    "attempts": 1,
+    "primary_accessed": false,
+    "production_mutated": false,
+    "worker_invocation_id": "9f7304f4e77b4636abb84d5d2f230f87",
+    "worker_pid": 2513812,
+    "canary_invocation_id": "91a232f71c2640fc9e4c3389171c5291",
+    "canary_pid": 1770973,
+    "worker_graph_nodes": 144,
+    "worker_graph_tensors": 193,
+    "execution_sequence": 1,
+    "scheduler_status": -1,
+    "llama_decode_status": -3,
+    "canary_result": "core-dump",
+    "canary_exec_main_code": 3,
+    "canary_exec_main_status": 6,
+    "client_response_stream_retained": false,
+    "server_response_stream_retained": false,
+    "authenticated_boundary_classification": null
+  },
+  "production": {
+    "snapshots_equal": true,
+    "snapshot_sha256": "511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded",
+    "worker_pid": 1535639,
+    "worker_port": 50052,
+    "worker_nrestarts": 0,
+    "coordinator_pid": 2356329,
+    "coordinator_port": 8081,
+    "coordinator_http": 200,
+    "coordinator_nrestarts": 0
+  },
+  "cleanup": "PASS",
+  "raw_evidence": {
+    "path": "docs/halofpx/evidence/l58-raw-run2",
+    "file_count": 19,
+    "tree_sha256": "245ebcb240af6cb36fc6a4261d6d5d67e9c298a5dde0d5a10e1d8fa0471f32c5"
+  },
+  "independent_review": "PASS_TERMINAL_NOT_PROMOTED",
+  "promotion": false,
+  "retry_authorized": false
+}
