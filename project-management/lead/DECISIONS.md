@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-26 — accept L45 pre-mutation blocker and wire the real caller
+
+Decision: close L45 NOT PROMOTED without a transition, then open L46 only to
+wire accepted L42/L44 authority into the real distributed-state canary and
+runner using structural source-call-site registration and closed evidence. No
+primary access, production mutation, cache promotion, tuning, matrix, or L47 is
+authorized.
+
+Reason: preflight proved the accepted diagnostic APIs are not invoked by the
+primary caller. Running with L44 enabled would refuse compute; running with it
+disabled would violate the discriminator contract. This is a material but
+bounded integration prerequisite, not a justification to weaken the gate or
+repeat a primary attempt.
+
 ## 2026-07-26 — accept L44 and run one complete primary discriminator
 
 Decision: accept L44 PASS commit

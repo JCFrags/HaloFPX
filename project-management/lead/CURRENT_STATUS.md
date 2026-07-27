@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-26 23:35 PDT
+Verified: 2026-07-26 23:38 PDT
 
 ## Overall state
 
@@ -93,6 +93,13 @@ independent read-only specialists are auditing graph-input coverage and
   branches through actual RPC handlers. L45 is active as the single exact
   primary two-fresh-residency one-token discriminator combining L40, L42, and
   L44 authority. No retry or performance work is authorized.
+- L45 stopped before mutation because the real distributed-state canary and
+  runner do not yet call the accepted L42/L44 admission APIs. Enabling L44
+  without a committed session would fail compute; leaving it off would make the
+  intended discriminator incomplete. No model or production state was touched.
+  L46 is authorized as the no-primary integration prerequisite connecting
+  structural source-owned registration, scheduler/session lifetime, and closed
+  result evidence to the real replay path.
 
 ## Repository
 
