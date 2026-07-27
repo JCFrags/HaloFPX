@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 17:00 PDT
+Verified: 2026-07-27 18:00 PDT
 
 ## Overall state
 
@@ -235,15 +235,24 @@ independent read-only specialists are auditing graph-input coverage and
   nimo-1, while the client stream was absent. L61 is active only to bind and
   exercise exact host-local harvesters and both stream-creation paths before
   one deferred first-chunk discriminator.
+- L61 closed NOT PROMOTED at
+  `b74170ec208f17001d12e8bb5278f67f75bb38ba`. Its host-bound two-stream
+  harvesting and runtime client prelaunch probe passed and are retained. The
+  sole stories run proves the armed first-chunk failure occurs before
+  `RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE`; the earlier worker graph was ordinary
+  warmup and the later malformed-response text came from teardown. L62 is
+  active only to authenticate the preceding L40/L42/L44 admission and
+  graph-compute/recompute client decision, then run one first-chunk
+  discriminator.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `ade0bc86a9f7659a67239865641d9a1211f8744f`
+- Latest verified commit: `b74170ec208f17001d12e8bb5278f67f75bb38ba`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L60 closeout
+- Worktree state: clean at the reviewed terminal L61 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

@@ -192,6 +192,30 @@ be repeated before one replacement first-chunk run. No semantic RPC/cache
 change, capture/restore matrix, primary access, production mutation, or
 performance work is authorized.
 
+## 2026-07-27 — accept L61 harvesting and move before authenticated execute
+
+Decision: accept terminal L61 NOT PROMOTED at
+`b74170ec208f17001d12e8bb5278f67f75bb38ba` and retain its reviewed
+host-bound response harvesting. Open L62 only to instrument the immediately
+preceding L40/L42/L44 admission and graph-compute/recompute client decision,
+then run one first-chunk discriminator.
+
+Reason: L61 proves both owning-host harvesters and both stream paths work.
+During the sole stories run, both streams were truthfully absent because
+`RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE` was never entered. Chronology establishes
+that the worker's ordinary 144-node graph was common warmup, while the armed
+first chunk failed locally before authenticated execution. The later RPC
+malformed/crashed text came from buffer teardown and is not causal evidence.
+
+L62 must emit a closed authenticated reason for every reachable pre-execute
+decision: armed/pending/sequence, L40 prepare/compute/recompute, L44 mutable
+session lifecycle/refusal, L42 prepared/final state, chosen opcode and
+send/no-send result, parent/split identity, and exact local return status.
+Focused disposable accepted/refusal paths and L61 harvesting must pass before
+one stories first chunk. Once model runtime starts there is no retry; a proven
+semantic correction requires a later decision. No cache matrix, primary
+artifact, production mutation, or performance work is authorized.
+
 Reason: preflight proved the accepted diagnostic APIs are not invoked by the
 primary caller. Running with L44 enabled would refuse compute; running with it
 disabled would violate the discriminator contract. This is a material but
