@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 14:10 PDT
+Verified: 2026-07-27 15:05 PDT
 
 ## Overall state
 
@@ -200,15 +200,27 @@ independent read-only specialists are auditing graph-input coverage and
   L58 is active only as a no-primary/no-production authenticated discriminator
   at that exact request/response boundary. It may run one small RPC fixture and
   one first armed stories chunk, but no cache/restore matrix or semantic fix.
+- L58 closed NOT PROMOTED at
+  `e561b56ffb0edc4ffbc38b1c5426722146d32b37`. Its default-off RPC
+  response-boundary instrumentation, verifier, focused tests, and pre-runtime
+  review passed, but the sole stories run remained ambiguous because the
+  success-only harvester skipped both diagnostic streams after the canary
+  failed and controller cleanup then deleted the remote roots. The worker again
+  logged graph execution and the coordinator again reported a malformed or
+  crashed response, but no causal classification is admitted. L59 is active
+  only to make failure-path stream harvesting durable before cleanup, qualify
+  that ordering with injected failures, and then consume one deferred
+  first-chunk discriminator. No cache matrix or semantic correction is
+  authorized.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `0026d5243c6108659fa53ce9185af9de0d6ec857`
+- Latest verified commit: `e561b56ffb0edc4ffbc38b1c5426722146d32b37`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L57 closeout
+- Worktree state: clean at the reviewed terminal L58 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

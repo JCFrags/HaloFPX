@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-27T14:10:00-07:00",
+  "updated_at": "2026-07-27T15:05:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l58_no_primary_rpc_response_boundary_discriminator",
+  "worker_status": "active_l59_failure_path_evidence_lifetime_and_deferred_rpc_discriminator",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "0026d5243c6108659fa53ce9185af9de0d6ec857",
-  "last_observed_milestone": "L57 terminal NOT PROMOTED; parent/split correction retained, first armed graph now fails at RPC response boundary after worker graph execution",
-  "last_decision": "accept_l57_identity_correction_and_open_l58_rpc_response_boundary_discriminator",
-  "last_progress": "L58 is classifying server handler versus response framing/socket/client validation failure with one focused fixture and at most one first-chunk stories run",
+  "last_verified_head": "e561b56ffb0edc4ffbc38b1c5426722146d32b37",
+  "last_observed_milestone": "L58 terminal NOT PROMOTED; response instrumentation qualified but failure streams were skipped by success-only harvesting and deleted during cleanup",
+  "last_decision": "accept_l58_ambiguous_result_and_open_l59_failure_evidence_lifetime_correction",
+  "last_progress": "L59 is making both response streams durable on every failure, qualifying injected failure ordering, then running one deferred first-chunk discriminator",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L58 blocker or terminal report; no periodic polling"
+  "next_check_trigger": "direct L59 blocker or terminal report; no periodic polling"
 }

@@ -1151,3 +1151,32 @@ stop at classification: no cache capture/restore matrix, primary artifact,
 production mutation, performance work, or combined semantic correction is
 authorized. If a narrow fix becomes obvious, report it for a separate Lead
 decision.
+
+## 2026-07-27 — accept ambiguous L58 and repair failure evidence lifetime
+
+Decision: accept terminal L58 NOT PROMOTED at
+`e561b56ffb0edc4ffbc38b1c5426722146d32b37`. Open L59 only to make the
+response-boundary evidence survive every child failure before cleanup, qualify
+that contract with injected failures, and then run the deferred stories15M
+first-chunk discriminator once.
+
+Reason: L58's response-boundary instrumentation and strict verifier passed
+focused qualification and independent pre-runtime review, and the runtime
+again reached the target failure. The result is nevertheless ambiguous because
+the runner harvested diagnostic streams only on success. The unit-exit
+exception bypassed both copies and controller cleanup deleted the remote roots.
+Neither client nor worker response record survived, so the evidence cannot
+distinguish handler failure, missing response publication, truncation/framing,
+socket EOF/error, or client validation refusal. This is a controller
+evidence-lifetime defect; it is not evidence of a new cache or model defect.
+
+L59 must place collection in a finally/registered cleanup path before worker
+stop and path/key removal. It must independently validate, copy, fsync, hash,
+and retain present/missing/error status for both streams, authenticating every
+available closed prefix. Focused injected failures must prove partial-stream,
+one-side-missing, tamper, copy-error, and cleanup-order behavior without model
+runtime. Only after independent acceptance may L59 consume one first armed
+stories chunk with the L58 instrumentation. It must stop at the diagnosis and
+request separate authority for any semantic correction. No primary artifact,
+production mutation, cache capture/restore matrix, or performance work is
+authorized.
