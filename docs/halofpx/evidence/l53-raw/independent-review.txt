@@ -1,0 +1,24 @@
+Independent adversarial review
+Date: 2026-07-27
+Scope: read-only L53 source/evidence localization
+
+Verdict: ACCEPT terminal NOT PROMOTED.
+
+The requested "unarmed warmup enters L42/L44" defect is not supported by the
+reconstructed source. common_init_from_params invokes llama_decode before the
+canary obtains its context, and the canary's only explicit authority arm is in
+authorized_decode after initialization. process_ubatch gates L42/L44 on
+halofpx_execution_pending, initialized false and set only by that explicit arm.
+RPC graph authority is likewise gated on execution_armed.
+
+The retained runtime journal nevertheless contains an authenticated graph
+during the source-defined common warmup. The worker reconstructed and executed
+it successfully, after which the coordinator surfaced GGML_STATUS_FAILED as
+llama_decode -3. The retained evidence has no exact client refusal or arm-state
+transition. This contradiction can mean a binary/source-lineage mismatch or an
+uncovered arm transition; it cannot support a semantic correction.
+
+The reviewer recommends the smallest future no-primary discriminator bind
+exact source/binary identity and record context pending state, RPC arm/disarm
+transitions, per-split armed state, and the exact client failure branch.
+No remote access or worktree changes were made by the reviewer.

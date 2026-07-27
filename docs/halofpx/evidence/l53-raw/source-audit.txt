@@ -1,0 +1,44 @@
+L53 retained-source audit
+Date: 2026-07-27
+Base: d236e74d2b2c3df96d88ef4cce5269d1baf3f24a
+Reconstructed source archive: C:\Users\britt\Documents\HaloFPX-L52-source.tar
+
+Retained L52 chronology:
+- 11:36:56.484404: common_init_from_params announces ordinary model warmup.
+- 11:36:56.483287: worker begins the first ordinary RPC graph_compute.
+- 11:36:56.628724: worker begins a second RPC graph_compute.
+- 11:36:56.629136: the second graph is authenticated as execution sequence 1,
+  uid 27, digest 0717a7531b1dfc48d63cce84b1ec0caba7c3b5351278e389297036298b59f0da.
+- 11:36:56.666945: the worker records successful execution of that same
+  authenticated graph.
+- 11:36:56.747556: coordinator decode cleanup removes memory entries.
+- 11:36:56.747607: llama_decode reports -3.
+
+Source authority:
+- common/common.cpp common_init_from_params calls llama_decode directly for
+  warmup and does not arm composed execution authority.
+- tests/test-halofpx-distributed-state-canary.cpp authorized_decode is the only
+  canary caller of llama_halofpx_execution_authority_arm; prompt chunk
+  execution sequence starts at 1.
+- src/llama-context.cpp process_ubatch snapshots
+  halofpx_execution_pending. Only an explicitly pending execution arms L42,
+  begins L44 sessions, and arms RPC execution authority.
+- ggml/src/ggml-rpc/ggml-rpc.cpp sends authenticated graph authority only when
+  both the feature is requested and rpc_ctx->execution_armed is true.
+- src/llama-context.cpp maps GGML_STATUS_FAILED to llama_decode -3.
+
+Conclusion:
+The memory-clear record follows common_init_from_params' warmup decode, so the
+authenticated sequence-1 graph occurred inside the source-defined unarmed
+warmup. That runtime observation contradicts the reconstructed source guard:
+the canary cannot call authorized_decode until common_init_from_params returns,
+and RPC graph authentication requires explicit execution_armed state.
+
+The worker-side authenticated graph executed successfully. The retained
+coordinator journal has no arm/disarm transition record and no branch-specific
+record capable of distinguishing later mutable-session commit, scheduler
+finalization, graph-result reconciliation, or disarm paths, all of which can
+collapse to GGML_STATUS_FAILED/-3. The evidence therefore cannot distinguish
+runtime binary/lineage divergence from an uncovered arm-state transition and
+does not prove the lifecycle/status defect L53 is authorized to correct.
+Changing scheduler or composed semantics would be speculative.
