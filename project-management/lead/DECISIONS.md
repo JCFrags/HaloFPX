@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-26 — accept L44 and run one complete primary discriminator
+
+Decision: accept L44 PASS commit
+`5f69d5cdaf8eb51283dd750c1fd8ca869fcf4d66`. Authorize L45 as exactly one
+controller-managed primary two-fresh-residency, one-token correctness run
+combining the accepted L40 RPC graph, L42 scheduler execution, and L44 mutable
+session/update authorities. No retry, cache promotion, production enablement,
+performance tuning, model matrix, or L46 is authorized.
+
+Reason: L44 closes the last known execution-input observability gaps with
+reviewed real-handler evidence and admitted-session isolation. Another
+small-model diagnostic would add delay without addressing the remaining
+question. The next useful evidence is whether the exact primary restore now
+matches or which authenticated boundary diverges first.
+
 ## 2026-07-26 — verify migration restoration and resume exact L44 lane
 
 Decision: accept the restored repositories at management commit

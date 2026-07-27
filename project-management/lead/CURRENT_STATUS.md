@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-26 22:58 PDT
+Verified: 2026-07-26 23:35 PDT
 
 ## Overall state
 
@@ -86,15 +86,22 @@ independent read-only specialists are auditing graph-input coverage and
   port `50052`, `NRestarts=0`; nimo-1 PID `2356329`, port `8081`, HTTP `200`,
   `NRestarts=0`. L44 is now active only for admitted-session mutable authority
   and real-handler refusal injection.
+- L44 passed at `5f69d5cdaf8eb51283dd750c1fd8ca869fcf4d66`.
+  It replaces process-global mutable registration with admitted session handles,
+  proves concurrent/foreign/stale/closed isolation, authenticates real
+  SET/SET_HASH server-applied material, and exercises the required refusal
+  branches through actual RPC handlers. L45 is active as the single exact
+  primary two-fresh-residency one-token discriminator combining L40, L42, and
+  L44 authority. No retry or performance work is authorized.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `aba0f78d07c824c3bcdbcb5ffbdc26e174cda3bf`
+- Latest verified commit: `5f69d5cdaf8eb51283dd750c1fd8ca869fcf4d66`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L43 closeout
+- Worktree state: clean at the reviewed terminal L44 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
