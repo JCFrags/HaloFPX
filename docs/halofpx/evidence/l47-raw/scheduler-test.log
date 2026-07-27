@@ -1,0 +1,2 @@
+ggml_backend_sched_authority_prepare: refusing unclassified graph leaf canonical_id=2 type=0 view=0
+self_tests=17 feature_off=1 split_exact=1 composed=1 composed_refusals=1 hash_fixtures=1 evidence_written=1 authority=1 ordinary_transcript=1 expert_fixture=1 expert_transcript=1 tamper_refused=1 order_refused=1 duplicate_refused=1 unknown_refused=1 overlap_refused=1 bounds_refused=1 malformed_refused=1 events=16 splits=2 maps=1 copies=1 expert_status=1 expert_events=12 expert_maps=1 expert_copies=0 partial=2

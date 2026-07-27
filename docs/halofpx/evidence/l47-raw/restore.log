@@ -1,0 +1,12 @@
+0.00.026.408 W load: empty token at index 30143
+0.00.026.538 W load: bad special token: 'tokenizer.ggml.seperator_token_id' = 4294967295, using default id -1
+0.00.026.540 W load: bad special token: 'tokenizer.ggml.padding_token_id' = 4294967295, using default id -1
+0.00.079.883 W llama_context: n_ctx_seq (2048) > n_ctx_train (128) -- possible training context overflow
+0.00.084.688 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+0.00.086.604 E graph_compute: ggml_backend_sched_graph_compute_async failed with error -1
+0.00.086.607 E process_ubatch: failed to compute graph, compute status: -1
+0.00.086.609 W decode: removing memory module entries for seq_id = 0, pos = [0, +inf)
+0.00.086.612 E llama_decode: failed to decode, ret = -3
+0.11.303.176 W llama_context: n_ctx_seq (2048) > n_ctx_train (128) -- possible training context overflow
+[halofpx-composed-authority] phase=restore|replay=version=1|execution_sequence=1|graph_uid=225|prepared_root=955732d97847c2ad5a525f196d46160d903621b25a9732654952fc2135ba6f32|scheduler_root=60d12fd8aa36f4ac217b94e72e1d73e68a6cbd0ead5f33db4649db0581abc916|scheduler_tag=70871f34fea0e5c2cb0b836848bc87dcce472a88daf4fb57b142f9efefa1a86d|graph_entries=297|splits=3|copies=15|local=53|rpc=36|rpc_backend=0,mutations=7,census=29,set=7,set_hash_hit=0,set_hash_miss=0,mutation_root=e485ee7c5016cd1dd7c79052fe6ee6d3de69cdcf2976b996b9ec4918ee71d221,semantic_root=3fe626a042d27fcc559837c86c712968118749409d7ed4006c633274c9097e45,census_root=c93b96cc86c7144f9a36b85c4cfcb2a9920f62791ae8f701caff421d16be0d67,receipt_tag=a3611525dbb54a36c96bd6205063a62305c1aa14546f479329872854d78cc103|auth_tag=d40ca94b0bd38b8153e155acc906fb6cfa26ae3a6eb95adddd531cf40923faa3
+mode=restore label=restore coordinator_pid=1648082 control_sha256=74994f73a5b5e972d9a57cf897a8869871fe83844b35909d51f57ae07de196e4 local_sha256=9916ba346c6dd489ee7294dde4b742d479fcc93ba8aab9f437e24946716659c9 component_manifest_sha256=bbbb48e17bd687679cf83c5d77dc6e72dd5895eb1040ea9dfe79d6934b7e9504 prompt_tokens=1129 saved_boundary=1128 n_batch=512 prompt_chunks=0 max_prompt_chunk=0 prompt_ms=0.000 state_ms=48.663 generation_ms=21.408 coordinator_control_bytes=13704 coordinator_local_bytes=5207160 worker_bytes=2598912 worker_components=578 tokens=4245, result_auth_tag=7ebc8ecc1d8e39fd79cd773b000d09cdee822e0a41ec02c212843bb719ea18ee

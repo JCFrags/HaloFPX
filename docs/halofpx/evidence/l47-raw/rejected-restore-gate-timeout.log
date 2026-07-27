@@ -1,0 +1,9 @@
+0.00.026.580 W load: empty token at index 30143
+0.00.026.705 W load: bad special token: 'tokenizer.ggml.seperator_token_id' = 4294967295, using default id -1
+0.00.026.706 W load: bad special token: 'tokenizer.ggml.padding_token_id' = 4294967295, using default id -1
+0.00.090.330 W llama_context: n_ctx_seq (2048) > n_ctx_train (128) -- possible training context overflow
+0.00.095.174 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+0.00.096.781 E graph_compute: ggml_backend_sched_graph_compute_async failed with error -1
+0.00.096.783 E process_ubatch: failed to compute graph, compute status: -1
+0.00.096.784 W decode: removing memory module entries for seq_id = 0, pos = [0, +inf)
+0.00.096.787 E llama_decode: failed to decode, ret = -3

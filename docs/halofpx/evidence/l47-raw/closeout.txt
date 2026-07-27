@@ -1,0 +1,37 @@
+L47 boundary: no primary artifact access; no production mutation.
+The only model opened by the disposable qualification was:
+/var/tmp/halofpx-qualification/l14q-t01-20260719-nimo2/build-cpu/tinyllamas/stories15M-q4_0.gguf
+
+Production before (Project Lead read-only migration handoff authority):
+nimo-2 minimax-m27-rpc-worker.service PID=1535639 port=50052 NRestarts=0
+nimo-1 minimax-m27-q6-server.service PID=2356329 port=8081 HTTP=200 NRestarts=0
+
+Production after:
+nimo-2
+LoadState=loaded
+ActiveState=active
+SubState=running
+MainPID=1535639
+NRestarts=0
+ExecMainStartTimestamp=Sat 2026-07-25 01:00:42 PDT
+command=/opt/llm-usb4-cluster/llama/ggml-rpc-server --host 0.0.0.0 --port 50052
+cgroup=0::/system.slice/minimax-m27-rpc-worker.service
+listener=0.0.0.0:50052 pid=1535639
+
+nimo-1
+LoadState=loaded
+ActiveState=active
+SubState=running
+MainPID=2356329
+NRestarts=0
+ExecMainStartTimestamp=Sat 2026-07-25 01:00:43 PDT
+command=/opt/llm-usb4-cluster/llama/llama-server --model /opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf --alias minimax-m2.7-ud-q6-k-xl --rpc 10.44.0.2:50052 --split-mode layer --tensor-split 1,1 --fit off --no-mmap --direct-io --n-gpu-layers 99 --flash-attn on --ctx-size 131072 --batch-size 4096 --ubatch-size 4096 --cache-type-k q8_0 --cache-type-v q8_0 --parallel 2 --threads 16 --threads-batch 16 --poll 100 --prio 2 --prio-batch 2 --cache-prompt --cache-reuse 256 --cache-ram 12288 --cache-idle-slots --ctx-checkpoints 256 --checkpoint-min-step 512 --temp 1.0 --top-p 0.95 --top-k 40 --host 0.0.0.0 --port 8081 --jinja --metrics
+cgroup=0::/system.slice/minimax-m27-q6-server.service
+listener=0.0.0.0:8081 pid=2356329
+http=200
+
+Cleanup after:
+nimo-1 ports 50147 and 50148 closed.
+nimo-1 /tmp/halofpx-l47* paths absent.
+nimo-2 /tmp/halofpx-l47* paths absent.
+No disposable L47 process remained on either host.
