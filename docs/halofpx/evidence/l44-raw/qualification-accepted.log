@@ -1,0 +1,30 @@
+[halofpx-mutable] census role=12 ordinal=0 allocation=0 relative=128 bytes=320
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] bound graph uid=2 exec=1 semantic=4fa78b29ccb95a2995bb39c2447ceb385654c68e75e41c44440065630a7d91ba transcript=f7dc6e02787f201cba66520e1c74c8491d87ff19da509c5d92a75d45c21b90e7
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=1 uid=2 digest=6d5a61eb45e4fbcbf575b4f51063ccfa8395a2f387073ae9118cc5419f827f0e
+[halofpx-rpc-graph-auth] client executed sequence=1 uid=2 digest=6d5a61eb45e4fbcbf575b4f51063ccfa8395a2f387073ae9118cc5419f827f0e
+[halofpx-mutable] census role=12 ordinal=10 allocation=1 relative=128 bytes=12582912
+[halofpx-mutable] census role=1 ordinal=10 allocation=1 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=1 relative=12583040 bytes=128
+[halofpx-mutable] bound graph uid=3 exec=2 semantic=3b61a25916148906e89db300589618daee9d7532e831c1e3a213fcccc924993b transcript=5c0213ad37eacde863f5f4bdd34ff0f0f05782f86468fa56e4991b77dbf48260
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=2 uid=3 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-rpc-graph-auth] client executed sequence=2 uid=3 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-mutable] census role=12 ordinal=10 allocation=1 relative=128 bytes=12582912
+[halofpx-mutable] census role=1 ordinal=10 allocation=1 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=1 relative=12583040 bytes=128
+[halofpx-mutable] bound graph uid=3 exec=3 semantic=3b61a25916148906e89db300589618daee9d7532e831c1e3a213fcccc924993b transcript=5c0213ad37eacde863f5f4bdd34ff0f0f05782f86468fa56e4991b77dbf48260
+[halofpx-rpc-graph-auth] client prepared mode=recompute sequence=3 uid=3 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-rpc-graph-auth] client executed sequence=3 uid=3 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-mutable] census role=12 ordinal=10 allocation=1 relative=128 bytes=12582912
+[halofpx-mutable] census role=1 ordinal=10 allocation=1 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=1 relative=12583040 bytes=128
+[halofpx-mutable] bound graph uid=4 exec=4 semantic=5d314803dc9926999d5eefc49ea0d325d4a0d48d3e4bc67e27d836614f400174 transcript=46010bd438b2dbf8abea9977c2fd5ee3392ff44ab3fd61e43e106e4cb98d0991
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=4 uid=4 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-rpc-graph-auth] client executed sequence=4 uid=4 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-mutable] bound graph uid=3 exec=5 semantic=3b61a25916148906e89db300589618daee9d7532e831c1e3a213fcccc924993b transcript=5c0213ad37eacde863f5f4bdd34ff0f0f05782f86468fa56e4991b77dbf48260
+handler_case_1_status=0 authenticated=1
+handler_case_2_status=0 authenticated=1
+handler_case_3_status=0 authenticated=1
+handler_case_4_status=0 authenticated=1
+handler_case_5_status=0 authenticated=1
+self_tests=18 handler_refusals=6 compute_recompute_exact=1 expected=1 authority=1 identical_authority=1 mutation_sensitive=1 unknown_refused=1 omitted_leaf_refused=1 mutations=2/2 census=2/3 hash_miss=1/0 hash_hit=0/1

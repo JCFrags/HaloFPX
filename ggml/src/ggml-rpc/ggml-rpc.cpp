@@ -5,6 +5,7 @@
 #include "transport.h"
 
 #include <array>
+#include <atomic>
 #include <cerrno>
 #include <cinttypes>
 #include <optional>
@@ -19,6 +20,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <functional>
+#include <tuple>
 #include <type_traits>
 
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
@@ -99,6 +101,11 @@ enum rpc_cmd {
     RPC_CMD_HALOFPX_GRAPH_AUTH_COMPUTE,
     RPC_CMD_HALOFPX_GRAPH_AUTH_RECOMPUTE,
     RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE,
+    RPC_CMD_HALOFPX_MUTABLE_CAPS,
+    RPC_CMD_HALOFPX_MUTABLE_SET,
+    RPC_CMD_HALOFPX_MUTABLE_SET_HASH,
+    RPC_CMD_HALOFPX_MUTABLE_COMMIT,
+    RPC_CMD_HALOFPX_MUTABLE_BIND,
 #endif
     RPC_CMD_COUNT,
 };
@@ -110,6 +117,11 @@ static_assert(RPC_CMD_HALOFPX_GRAPH_AUTH_CAPS == 22, "HaloFPX graph auth CAPS or
 static_assert(RPC_CMD_HALOFPX_GRAPH_AUTH_COMPUTE == 23, "HaloFPX graph auth COMPUTE ordinal must be always 23");
 static_assert(RPC_CMD_HALOFPX_GRAPH_AUTH_RECOMPUTE == 24, "HaloFPX graph auth RECOMPUTE ordinal must be always 24");
 static_assert(RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE == 25, "HaloFPX graph auth EXECUTE ordinal must be always 25");
+static_assert(RPC_CMD_HALOFPX_MUTABLE_CAPS == 26, "HaloFPX mutable CAPS ordinal must be always 26");
+static_assert(RPC_CMD_HALOFPX_MUTABLE_SET == 27, "HaloFPX mutable SET ordinal must be always 27");
+static_assert(RPC_CMD_HALOFPX_MUTABLE_SET_HASH == 28, "HaloFPX mutable SET_HASH ordinal must be always 28");
+static_assert(RPC_CMD_HALOFPX_MUTABLE_COMMIT == 29, "HaloFPX mutable COMMIT ordinal must be always 29");
+static_assert(RPC_CMD_HALOFPX_MUTABLE_BIND == 30, "HaloFPX mutable BIND ordinal must be always 30");
 #endif
 
 // Try RPC_CMD_SET_TENSOR_HASH first when data size is larger than this threshold
@@ -296,6 +308,118 @@ static_assert(sizeof(hfx_graph_auth_caps_rsp) == 128, "graph auth caps response 
 static_assert(sizeof(hfx_graph_auth_header) == 200, "graph auth header size");
 static_assert(sizeof(hfx_graph_auth_receipt) == 200, "graph auth receipt size");
 
+static constexpr uint16_t HFX_MUTABLE_MAJOR = 1;
+static constexpr uint16_t HFX_MUTABLE_MINOR = 0;
+static constexpr uint32_t HFX_MUTABLE_MAX_MUTATIONS = 4096;
+static constexpr uint32_t HFX_MUTABLE_MAX_CENSUS = 4096;
+static constexpr uint64_t HFX_MUTABLE_MAX_BYTES = UINT64_C(64) << 20;
+static constexpr char HFX_MUTABLE_DOMAIN[] = "halofpx.rpc-mutable-authority.v1";
+
+struct hfx_mutable_caps {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t encoded_size;
+    uint32_t status;
+    uint32_t max_mutations;
+    uint32_t max_census;
+    uint32_t reserved;
+    uint64_t graph_uid;
+    uint64_t exec_sequence;
+    uint64_t scheduler_sequence;
+    uint8_t attempt_nonce[32];
+    uint8_t scheduler_nonce[32];
+    uint8_t scheduler_root[32];
+    uint8_t server_nonce[32];
+    uint8_t tag[32];
+};
+static rpc_tensor serialize_tensor(const ggml_tensor * tensor);
+
+struct hfx_mutable_update_header {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t encoded_size;
+    uint32_t role;
+    uint32_t role_ordinal;
+    uint32_t allocation_ordinal;
+    uint32_t type;
+    uint64_t graph_uid;
+    uint64_t exec_sequence;
+    uint64_t mutation_sequence;
+    uint64_t tensor_relative;
+    uint64_t logical_offset;
+    uint64_t logical_size;
+    uint64_t cache_hash;
+    uint32_t ne[GGML_MAX_DIMS];
+    uint32_t nb[GGML_MAX_DIMS];
+    uint8_t attempt_nonce[32];
+    uint8_t server_nonce[32];
+    uint8_t content_digest[32];
+    uint8_t view_digest[32];
+    uint8_t prior_root[32];
+    uint8_t tag[32];
+};
+
+struct hfx_mutable_receipt {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t encoded_size;
+    uint32_t status;
+    uint32_t role;
+    uint32_t role_ordinal;
+    uint32_t allocation_ordinal;
+    uint64_t graph_uid;
+    uint64_t exec_sequence;
+    uint64_t mutation_sequence;
+    uint64_t tensor_relative;
+    uint64_t logical_offset;
+    uint64_t logical_size;
+    uint8_t attempt_nonce[32];
+    uint8_t server_nonce[32];
+    uint8_t content_digest[32];
+    uint8_t view_digest[32];
+    uint8_t mutation_root[32];
+    uint8_t tag[32];
+};
+
+struct hfx_mutable_census_entry {
+    uint32_t role;
+    uint32_t role_ordinal;
+    uint32_t allocation_ordinal;
+    uint32_t type;
+    uint64_t tensor_relative;
+    uint64_t logical_size;
+    uint32_t ne[GGML_MAX_DIMS];
+    uint32_t nb[GGML_MAX_DIMS];
+    uint8_t view_digest[32];
+};
+
+struct hfx_mutable_commit_header {
+    uint8_t magic[8];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t encoded_size;
+    uint32_t census_count;
+    uint32_t mutation_count;
+    uint64_t graph_uid;
+    uint64_t exec_sequence;
+    uint8_t attempt_nonce[32];
+    uint8_t server_nonce[32];
+    uint8_t scheduler_nonce[32];
+    uint8_t scheduler_root[32];
+    uint8_t mutation_root[32];
+    uint8_t census_root[32];
+    uint8_t tag[32];
+};
+
+static_assert(sizeof(hfx_mutable_caps) == 216, "mutable caps size");
+static_assert(sizeof(hfx_mutable_update_header) == 312, "mutable update size");
+static_assert(sizeof(hfx_mutable_receipt) == 272, "mutable receipt size");
+static_assert(sizeof(hfx_mutable_census_entry) == 96, "mutable census entry size");
+static_assert(sizeof(hfx_mutable_commit_header) == 264, "mutable commit size");
+
 static constexpr uint16_t HFX_STATE_MAJOR = 1;
 static constexpr uint16_t HFX_STATE_MINOR = 0;
 static constexpr uint32_t HFX_STATE_MAX_COMPONENTS = GGML_RPC_HALOFPX_STATE_MAX_COMPONENTS;
@@ -444,6 +568,102 @@ struct ggml_backend_rpc_buffer_context {
     uint32_t allocation_ordinal;
 #endif
 };
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+struct hfx_mutable_registration {
+    uint32_t role = 0;
+    uint32_t role_ordinal = 0;
+};
+
+struct hfx_mutable_client_session {
+    uint64_t session_id = 0;
+    uint64_t generation = 0;
+    uint64_t connection_epoch = 0;
+    uint64_t bound_graph_uid = 0;
+    std::string endpoint;
+    socket_ptr sock;
+    ggml_backend_rpc_halofpx_mutable_attempt attempt {};
+    std::array<uint8_t, 32> key {};
+    std::array<uint8_t, 32> server_nonce {};
+    std::array<uint8_t, 32> mutation_root {};
+    std::array<uint8_t, 32> semantic_root {};
+    uint64_t mutation_sequence = 0;
+    uint32_t census_count = 0;
+    uint32_t set_count = 0;
+    uint32_t set_hash_hit_count = 0;
+    uint32_t set_hash_miss_count = 0;
+    bool negotiated = false;
+    bool committed = false;
+    bool failed = false;
+    std::unordered_map<const ggml_tensor *, hfx_mutable_registration> roles;
+    std::unordered_map<const ggml_tensor *, hfx_mutable_registration> exclusions;
+    std::vector<hfx_mutable_census_entry> mutations;
+};
+
+static std::mutex hfx_mutable_mutex;
+static std::unordered_map<uint64_t, hfx_mutable_client_session> hfx_mutable_sessions;
+static std::unordered_map<const socket_t *, uint64_t> hfx_mutable_active_sockets;
+static std::atomic<uint64_t> hfx_mutable_next_session { 1 };
+
+static void hfx_mutable_close_session_locked(uint64_t session_id) {
+    auto it = hfx_mutable_sessions.find(session_id);
+    if (it == hfx_mutable_sessions.end()) return;
+    auto active = hfx_mutable_active_sockets.find(it->second.sock.get());
+    if (active != hfx_mutable_active_sockets.end() && active->second == session_id) {
+        hfx_mutable_active_sockets.erase(active);
+    }
+    std::fill(it->second.key.begin(), it->second.key.end(), 0);
+    std::fill(it->second.server_nonce.begin(), it->second.server_nonce.end(), 0);
+    it->second.roles.clear();
+    it->second.exclusions.clear();
+    hfx_mutable_sessions.erase(it);
+}
+
+static bool hfx_mutable_requested() {
+    const char * value = std::getenv("HALOFPX_RPC_MUTABLE_AUTH");
+    return value != nullptr && strcmp(value, "1") == 0;
+}
+
+static bool hfx_mutable_session_active(const socket_t * sock) {
+    std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+    return hfx_mutable_active_sockets.find(sock) != hfx_mutable_active_sockets.end();
+}
+
+static hfx_mutable_client_session * hfx_mutable_lookup_locked(
+        const ggml_backend_rpc_halofpx_mutable_session * handle,
+        bool allow_failed = false) {
+    if (handle == nullptr || handle->version != HFX_MUTABLE_MAJOR || handle->reserved != 0 ||
+        handle->session_id == 0 || handle->generation == 0 || handle->connection_epoch == 0 ||
+        handle->graph_uid == 0 || handle->execution_sequence == 0 ||
+        std::all_of(std::begin(handle->attempt_nonce), std::end(handle->attempt_nonce),
+                    [](uint8_t value) { return value == 0; })) return nullptr;
+    auto it = hfx_mutable_sessions.find(handle->session_id);
+    if (it == hfx_mutable_sessions.end()) return nullptr;
+    auto & session = it->second;
+    if ((!allow_failed && session.failed) || !session.negotiated ||
+        session.session_id != handle->session_id ||
+        session.generation != handle->generation ||
+        session.connection_epoch != handle->connection_epoch ||
+        session.attempt.graph_uid != handle->graph_uid ||
+        session.attempt.execution_sequence != handle->execution_sequence ||
+        memcmp(session.attempt.attempt_nonce, handle->attempt_nonce, 32) != 0) return nullptr;
+    auto active = hfx_mutable_active_sockets.find(session.sock.get());
+    return active != hfx_mutable_active_sockets.end() && active->second == session.session_id
+        ? &session : nullptr;
+}
+
+static bool hfx_mutable_role_valid(uint32_t role) {
+    return role >= GGML_RPC_HALOFPX_MUTABLE_TOKEN &&
+           role <= GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT;
+}
+
+static constexpr uint32_t HFX_MUTABLE_EXCLUSION_BASE = UINT32_C(0x80000000);
+static bool hfx_mutable_census_role_valid(uint32_t role) {
+    return hfx_mutable_role_valid(role) ||
+        role == HFX_MUTABLE_EXCLUSION_BASE + GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT ||
+        role == HFX_MUTABLE_EXCLUSION_BASE + GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD;
+}
+#endif
 
 // RPC helper functions
 
@@ -709,6 +929,193 @@ bool hfx_graph_decode(const uint8_t * data, size_t size, hfx_graph_auth_receipt 
         in.integer(value.exec_sequence) && in.bytes(value.attempt_nonce, 32) &&
         in.bytes(value.server_nonce, 32) && in.bytes(value.graph_digest, 32) &&
         in.bytes(value.transcript_root, 32) && in.bytes(value.tag, 32) && in.offset == size;
+}
+
+hfx_digest hfx_mutable_hmac(const uint8_t key[32], const void * data, size_t size) {
+    std::array<uint8_t, 64> inner {};
+    std::array<uint8_t, 64> outer {};
+    for (size_t i = 0; i < 64; ++i) {
+        const uint8_t b = i < 32 ? key[i] : 0;
+        inner[i] = b ^ 0x36;
+        outer[i] = b ^ 0x5c;
+    }
+    sha256_t ctx;
+    hfx_digest mid {};
+    hfx_digest result {};
+    sha256_init(&ctx);
+    sha256_update(&ctx, inner.data(), inner.size());
+    sha256_update(&ctx, reinterpret_cast<const uint8_t *>(HFX_MUTABLE_DOMAIN), sizeof(HFX_MUTABLE_DOMAIN) - 1);
+    if (size != 0) sha256_update(&ctx, static_cast<const uint8_t *>(data), size);
+    sha256_final(&ctx, mid.data());
+    sha256_init(&ctx);
+    sha256_update(&ctx, outer.data(), outer.size());
+    sha256_update(&ctx, mid.data(), mid.size());
+    sha256_final(&ctx, result.data());
+    hfx_wipe(&ctx, sizeof(ctx));
+    hfx_wipe(inner.data(), inner.size());
+    hfx_wipe(outer.data(), outer.size());
+    hfx_wipe(mid.data(), mid.size());
+    return result;
+}
+
+template<typename T>
+void hfx_mutable_common(std::vector<uint8_t> & out, const T & v) {
+    hfx_bytes(out, v.magic, 8);
+    hfx_le<uint16_t>(out, v.major);
+    hfx_le<uint16_t>(out, v.minor);
+    hfx_le<uint32_t>(out, v.encoded_size);
+}
+
+std::vector<uint8_t> hfx_mutable_encode(const hfx_mutable_caps & v, bool tag = true) {
+    std::vector<uint8_t> out; out.reserve(sizeof(v)); hfx_mutable_common(out, v);
+    hfx_le<uint32_t>(out, v.status); hfx_le<uint32_t>(out, v.max_mutations);
+    hfx_le<uint32_t>(out, v.max_census); hfx_le<uint32_t>(out, v.reserved);
+    hfx_le<uint64_t>(out, v.graph_uid); hfx_le<uint64_t>(out, v.exec_sequence);
+    hfx_le<uint64_t>(out, v.scheduler_sequence);
+    hfx_bytes(out, v.attempt_nonce, 32); hfx_bytes(out, v.scheduler_nonce, 32);
+    hfx_bytes(out, v.scheduler_root, 32); hfx_bytes(out, v.server_nonce, 32);
+    if (tag) hfx_bytes(out, v.tag, 32); else out.resize(out.size() + 32, 0);
+    return out;
+}
+
+std::vector<uint8_t> hfx_mutable_encode(const hfx_mutable_update_header & v, bool tag = true) {
+    std::vector<uint8_t> out; out.reserve(sizeof(v)); hfx_mutable_common(out, v);
+    hfx_le<uint32_t>(out, v.role); hfx_le<uint32_t>(out, v.role_ordinal);
+    hfx_le<uint32_t>(out, v.allocation_ordinal); hfx_le<uint32_t>(out, v.type);
+    hfx_le<uint64_t>(out, v.graph_uid); hfx_le<uint64_t>(out, v.exec_sequence);
+    hfx_le<uint64_t>(out, v.mutation_sequence); hfx_le<uint64_t>(out, v.tensor_relative);
+    hfx_le<uint64_t>(out, v.logical_offset); hfx_le<uint64_t>(out, v.logical_size);
+    hfx_le<uint64_t>(out, v.cache_hash);
+    for (uint32_t x : v.ne) hfx_le<uint32_t>(out, x);
+    for (uint32_t x : v.nb) hfx_le<uint32_t>(out, x);
+    hfx_bytes(out, v.attempt_nonce, 32); hfx_bytes(out, v.server_nonce, 32);
+    hfx_bytes(out, v.content_digest, 32); hfx_bytes(out, v.view_digest, 32);
+    hfx_bytes(out, v.prior_root, 32);
+    if (tag) hfx_bytes(out, v.tag, 32); else out.resize(out.size() + 32, 0);
+    return out;
+}
+
+std::vector<uint8_t> hfx_mutable_encode(const hfx_mutable_receipt & v, bool tag = true) {
+    std::vector<uint8_t> out; out.reserve(sizeof(v)); hfx_mutable_common(out, v);
+    hfx_le<uint32_t>(out, v.status); hfx_le<uint32_t>(out, v.role);
+    hfx_le<uint32_t>(out, v.role_ordinal); hfx_le<uint32_t>(out, v.allocation_ordinal);
+    hfx_le<uint64_t>(out, v.graph_uid); hfx_le<uint64_t>(out, v.exec_sequence);
+    hfx_le<uint64_t>(out, v.mutation_sequence); hfx_le<uint64_t>(out, v.tensor_relative);
+    hfx_le<uint64_t>(out, v.logical_offset); hfx_le<uint64_t>(out, v.logical_size);
+    hfx_bytes(out, v.attempt_nonce, 32); hfx_bytes(out, v.server_nonce, 32);
+    hfx_bytes(out, v.content_digest, 32); hfx_bytes(out, v.view_digest, 32);
+    hfx_bytes(out, v.mutation_root, 32);
+    if (tag) hfx_bytes(out, v.tag, 32); else out.resize(out.size() + 32, 0);
+    return out;
+}
+
+std::vector<uint8_t> hfx_mutable_encode(const hfx_mutable_census_entry & v) {
+    std::vector<uint8_t> out; out.reserve(sizeof(v));
+    hfx_le<uint32_t>(out, v.role); hfx_le<uint32_t>(out, v.role_ordinal);
+    hfx_le<uint32_t>(out, v.allocation_ordinal); hfx_le<uint32_t>(out, v.type);
+    hfx_le<uint64_t>(out, v.tensor_relative); hfx_le<uint64_t>(out, v.logical_size);
+    for (uint32_t x : v.ne) hfx_le<uint32_t>(out, x);
+    for (uint32_t x : v.nb) hfx_le<uint32_t>(out, x);
+    hfx_bytes(out, v.view_digest, 32);
+    return out;
+}
+
+std::vector<uint8_t> hfx_mutable_encode(const hfx_mutable_commit_header & v, bool tag = true) {
+    std::vector<uint8_t> out; out.reserve(sizeof(v)); hfx_mutable_common(out, v);
+    hfx_le<uint32_t>(out, v.census_count); hfx_le<uint32_t>(out, v.mutation_count);
+    hfx_le<uint64_t>(out, v.graph_uid); hfx_le<uint64_t>(out, v.exec_sequence);
+    hfx_bytes(out, v.attempt_nonce, 32); hfx_bytes(out, v.server_nonce, 32);
+    hfx_bytes(out, v.scheduler_nonce, 32); hfx_bytes(out, v.scheduler_root, 32);
+    hfx_bytes(out, v.mutation_root, 32); hfx_bytes(out, v.census_root, 32);
+    if (tag) hfx_bytes(out, v.tag, 32); else out.resize(out.size() + 32, 0);
+    return out;
+}
+
+template<typename T>
+bool hfx_mutable_sign(T & v, const uint8_t key[32]) {
+    memset(v.tag, 0, 32);
+    const auto wire = hfx_mutable_encode(v, false);
+    if (wire.size() != sizeof(v)) return false;
+    const auto mac = hfx_mutable_hmac(key, wire.data(), wire.size());
+    memcpy(v.tag, mac.data(), 32);
+    return true;
+}
+
+bool hfx_equal(const uint8_t * a, const uint8_t * b, size_t n);
+
+template<typename T>
+bool hfx_mutable_verify(const T & v, const uint8_t key[32]) {
+    const auto wire = hfx_mutable_encode(v, false);
+    if (wire.size() != sizeof(v)) return false;
+    const auto mac = hfx_mutable_hmac(key, wire.data(), wire.size());
+    return hfx_equal(mac.data(), v.tag, 32);
+}
+
+bool hfx_mutable_decode(const uint8_t * data, size_t size, hfx_mutable_caps & v) {
+    if (size != sizeof(v)) return false;
+    hfx_le_reader in { data, size };
+    return in.bytes(v.magic, 8) && in.integer(v.major) && in.integer(v.minor) &&
+        in.integer(v.encoded_size) && in.integer(v.status) && in.integer(v.max_mutations) &&
+        in.integer(v.max_census) && in.integer(v.reserved) && in.integer(v.graph_uid) &&
+        in.integer(v.exec_sequence) && in.integer(v.scheduler_sequence) &&
+        in.bytes(v.attempt_nonce, 32) && in.bytes(v.scheduler_nonce, 32) &&
+        in.bytes(v.scheduler_root, 32) && in.bytes(v.server_nonce, 32) &&
+        in.bytes(v.tag, 32) && in.offset == size;
+}
+
+bool hfx_mutable_decode(const uint8_t * data, size_t size, hfx_mutable_update_header & v) {
+    if (size != sizeof(v)) return false;
+    hfx_le_reader in { data, size };
+    if (!(in.bytes(v.magic, 8) && in.integer(v.major) && in.integer(v.minor) &&
+          in.integer(v.encoded_size) && in.integer(v.role) && in.integer(v.role_ordinal) &&
+          in.integer(v.allocation_ordinal) && in.integer(v.type) && in.integer(v.graph_uid) &&
+          in.integer(v.exec_sequence) && in.integer(v.mutation_sequence) &&
+          in.integer(v.tensor_relative) && in.integer(v.logical_offset) &&
+          in.integer(v.logical_size) && in.integer(v.cache_hash))) return false;
+    for (uint32_t & x : v.ne) if (!in.integer(x)) return false;
+    for (uint32_t & x : v.nb) if (!in.integer(x)) return false;
+    return in.bytes(v.attempt_nonce, 32) && in.bytes(v.server_nonce, 32) &&
+        in.bytes(v.content_digest, 32) && in.bytes(v.view_digest, 32) &&
+        in.bytes(v.prior_root, 32) &&
+        in.bytes(v.tag, 32) && in.offset == size;
+}
+
+bool hfx_mutable_decode(const uint8_t * data, size_t size, hfx_mutable_receipt & v) {
+    if (size != sizeof(v)) return false;
+    hfx_le_reader in { data, size };
+    return in.bytes(v.magic, 8) && in.integer(v.major) && in.integer(v.minor) &&
+        in.integer(v.encoded_size) && in.integer(v.status) && in.integer(v.role) &&
+        in.integer(v.role_ordinal) && in.integer(v.allocation_ordinal) &&
+        in.integer(v.graph_uid) && in.integer(v.exec_sequence) &&
+        in.integer(v.mutation_sequence) && in.integer(v.tensor_relative) &&
+        in.integer(v.logical_offset) && in.integer(v.logical_size) &&
+        in.bytes(v.attempt_nonce, 32) && in.bytes(v.server_nonce, 32) &&
+        in.bytes(v.content_digest, 32) && in.bytes(v.view_digest, 32) &&
+        in.bytes(v.mutation_root, 32) &&
+        in.bytes(v.tag, 32) && in.offset == size;
+}
+
+bool hfx_mutable_decode(const uint8_t * data, size_t size, hfx_mutable_census_entry & v) {
+    if (size != sizeof(v)) return false;
+    hfx_le_reader in { data, size };
+    if (!(in.integer(v.role) && in.integer(v.role_ordinal) &&
+          in.integer(v.allocation_ordinal) && in.integer(v.type) &&
+          in.integer(v.tensor_relative) && in.integer(v.logical_size))) return false;
+    for (uint32_t & x : v.ne) if (!in.integer(x)) return false;
+    for (uint32_t & x : v.nb) if (!in.integer(x)) return false;
+    return in.bytes(v.view_digest, 32) && in.offset == size;
+}
+
+bool hfx_mutable_decode(const uint8_t * data, size_t size, hfx_mutable_commit_header & v) {
+    if (size != sizeof(v)) return false;
+    hfx_le_reader in { data, size };
+    return in.bytes(v.magic, 8) && in.integer(v.major) && in.integer(v.minor) &&
+        in.integer(v.encoded_size) && in.integer(v.census_count) &&
+        in.integer(v.mutation_count) && in.integer(v.graph_uid) &&
+        in.integer(v.exec_sequence) && in.bytes(v.attempt_nonce, 32) &&
+        in.bytes(v.server_nonce, 32) && in.bytes(v.scheduler_nonce, 32) &&
+        in.bytes(v.scheduler_root, 32) && in.bytes(v.mutation_root, 32) &&
+        in.bytes(v.census_root, 32) && in.bytes(v.tag, 32) && in.offset == size;
 }
 
 template<typename T>
@@ -1093,8 +1500,215 @@ static std::shared_ptr<socket_t> get_socket(const std::string & endpoint) {
     return sock;
 }
 
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+static hfx_digest hfx_mutable_chain(
+        const hfx_digest & prior,
+        const hfx_mutable_update_header & update) {
+    const auto wire = hfx_mutable_encode(update, false);
+    std::vector<uint8_t> input;
+    input.reserve(prior.size() + wire.size());
+    input.insert(input.end(), prior.begin(), prior.end());
+    input.insert(input.end(), wire.begin(), wire.end());
+    return hfx_sha256(input.data(), input.size());
+}
+
+static hfx_digest hfx_mutable_semantic_chain(
+        const hfx_digest & prior,
+        hfx_mutable_update_header update) {
+    hfx_set_magic(update.magic, "HFXMUV1\0");
+    update.exec_sequence = 0;
+    update.mutation_sequence = 0;
+    update.cache_hash = 0;
+    memset(update.attempt_nonce, 0, 32);
+    memset(update.server_nonce, 0, 32);
+    memset(update.prior_root, 0, 32);
+    memset(update.tag, 0, 32);
+    const auto wire = hfx_mutable_encode(update, false);
+    std::vector<uint8_t> input;
+    input.insert(input.end(), prior.begin(), prior.end());
+    input.insert(input.end(), wire.begin(), wire.end());
+    return hfx_sha256(input.data(), input.size());
+}
+
+static bool hfx_mutable_client_receipt_valid(
+        const hfx_mutable_receipt & receipt,
+        const hfx_mutable_update_header & request,
+        const hfx_digest & expected_root,
+        const uint8_t key[32]) {
+    return hfx_magic(receipt.magic, "HFXMUR1\0") &&
+        receipt.major == HFX_MUTABLE_MAJOR && receipt.minor == HFX_MUTABLE_MINOR &&
+        receipt.encoded_size == sizeof(receipt) && receipt.status == 1 &&
+        receipt.role == request.role && receipt.role_ordinal == request.role_ordinal &&
+        receipt.allocation_ordinal == request.allocation_ordinal &&
+        receipt.graph_uid == request.graph_uid &&
+        receipt.exec_sequence == request.exec_sequence &&
+        receipt.mutation_sequence == request.mutation_sequence &&
+        receipt.tensor_relative == request.tensor_relative &&
+        receipt.logical_offset == request.logical_offset &&
+        receipt.logical_size == request.logical_size &&
+        hfx_equal(receipt.attempt_nonce, request.attempt_nonce, 32) &&
+        hfx_equal(receipt.server_nonce, request.server_nonce, 32) &&
+        hfx_equal(receipt.content_digest, request.content_digest, 32) &&
+        hfx_equal(receipt.view_digest, request.view_digest, 32) &&
+        hfx_equal(receipt.mutation_root, expected_root.data(), 32) &&
+        hfx_mutable_verify(receipt, key);
+}
+
+static bool hfx_mutable_client_update(
+        ggml_backend_rpc_buffer_context * buffer_ctx,
+        ggml_tensor * tensor,
+        const void * data,
+        size_t offset,
+        size_t size,
+        bool hash_only,
+        uint64_t cache_hash,
+    bool * applied = nullptr) {
+    std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+    auto active = hfx_mutable_active_sockets.find(buffer_ctx->sock.get());
+    if (active == hfx_mutable_active_sockets.end()) return false;
+    auto sit = hfx_mutable_sessions.find(active->second);
+    if (sit == hfx_mutable_sessions.end()) return false;
+    auto & session = sit->second;
+    auto rit = session.roles.find(tensor);
+    if (rit == session.roles.end()) return false;
+    if (!session.negotiated || session.failed ||
+        buffer_ctx->sock.get() != session.sock.get() ||
+        session.mutation_sequence >= session.attempt.max_mutations ||
+        size == 0 || size > HFX_MUTABLE_MAX_BYTES ||
+        tensor->buffer == nullptr || tensor->data == nullptr ||
+        !hfx_mutable_role_valid(rit->second.role)) {
+        session.failed = true;
+        return false;
+    }
+    const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(tensor->buffer));
+    const uint64_t address = reinterpret_cast<uint64_t>(tensor->data);
+    uint64_t logical_end = 0;
+    if (address < base || !hfx_add(offset, size, logical_end) ||
+        logical_end > ggml_nbytes(tensor) || address - base > UINT64_MAX - offset) {
+        session.failed = true;
+        return false;
+    }
+    hfx_mutable_update_header request {};
+    hfx_set_magic(request.magic, hash_only ? "HFXMUH1\0" : "HFXMUS1\0");
+    request.major = HFX_MUTABLE_MAJOR;
+    request.minor = HFX_MUTABLE_MINOR;
+    request.encoded_size = sizeof(request);
+    request.role = rit->second.role;
+    request.role_ordinal = rit->second.role_ordinal;
+    request.allocation_ordinal = buffer_ctx->allocation_ordinal;
+    request.type = tensor->type;
+    request.graph_uid = session.attempt.graph_uid;
+    request.exec_sequence = session.attempt.execution_sequence;
+    request.mutation_sequence = ++session.mutation_sequence;
+    request.tensor_relative = address - base;
+    request.logical_offset = offset;
+    request.logical_size = size;
+    request.cache_hash = hash_only ? cache_hash : 0;
+    for (size_t i = 0; i < GGML_MAX_DIMS; ++i) {
+        if (tensor->ne[i] <= 0 || uint64_t(tensor->ne[i]) > UINT32_MAX || tensor->nb[i] > UINT32_MAX) {
+            session.failed = true;
+            return false;
+        }
+        request.ne[i] = static_cast<uint32_t>(tensor->ne[i]);
+        request.nb[i] = static_cast<uint32_t>(tensor->nb[i]);
+    }
+    memcpy(request.attempt_nonce, session.attempt.attempt_nonce, 32);
+    memcpy(request.server_nonce, session.server_nonce.data(), 32);
+    const auto digest = hfx_sha256(data, size);
+    memcpy(request.content_digest, digest.data(), 32);
+    std::vector<uint8_t> view_chain;
+    for (const ggml_tensor * v = tensor; v; v = v->view_src) {
+        hfx_le<uint64_t>(view_chain, v->view_offs);
+        if (view_chain.size() > 8 * GGML_MAX_SRC) {
+            session.failed = true;
+            return false;
+        }
+    }
+    const auto view_digest = hfx_sha256(view_chain.data(), view_chain.size());
+    memcpy(request.view_digest, view_digest.data(), 32);
+    memcpy(request.prior_root, session.mutation_root.data(), 32);
+    if (!hfx_mutable_sign(request, session.key.data())) {
+        session.failed = true;
+        return false;
+    }
+    const auto root = hfx_mutable_chain(session.mutation_root, request);
+    const auto semantic = hfx_mutable_semantic_chain(session.semantic_root, request);
+    const auto header = hfx_mutable_encode(request);
+    const rpc_tensor wire_tensor = serialize_tensor(tensor);
+    std::vector<uint8_t> wire;
+    wire.reserve(header.size() + sizeof(wire_tensor) + (hash_only ? 0 : size));
+    wire.insert(wire.end(), header.begin(), header.end());
+    const uint8_t * tensor_bytes = reinterpret_cast<const uint8_t *>(&wire_tensor);
+    wire.insert(wire.end(), tensor_bytes, tensor_bytes + sizeof(wire_tensor));
+    if (!hash_only) {
+        const uint8_t * bytes = static_cast<const uint8_t *>(data);
+        wire.insert(wire.end(), bytes, bytes + size);
+    }
+    std::array<uint8_t, sizeof(hfx_mutable_receipt)> response_wire {};
+    hfx_mutable_receipt receipt {};
+    const rpc_cmd command = hash_only ? RPC_CMD_HALOFPX_MUTABLE_SET_HASH : RPC_CMD_HALOFPX_MUTABLE_SET;
+    if (!send_rpc_cmd(buffer_ctx->sock, command, wire.data(), wire.size(),
+                      response_wire.data(), response_wire.size()) ||
+        !hfx_mutable_decode(response_wire.data(), response_wire.size(), receipt)) {
+        session.failed = true;
+        return false;
+    }
+    if (hash_only && receipt.status == 2) {
+        session.set_hash_miss_count++;
+        session.mutation_sequence--;
+        if (applied) *applied = false;
+        return hfx_magic(receipt.magic, "HFXMUR1\0") &&
+            receipt.major == HFX_MUTABLE_MAJOR && receipt.minor == HFX_MUTABLE_MINOR &&
+            receipt.encoded_size == sizeof(receipt) &&
+            receipt.graph_uid == request.graph_uid &&
+            receipt.exec_sequence == request.exec_sequence &&
+            receipt.mutation_sequence == request.mutation_sequence &&
+            receipt.role == request.role &&
+            receipt.role_ordinal == request.role_ordinal &&
+            receipt.allocation_ordinal == request.allocation_ordinal &&
+            receipt.tensor_relative == request.tensor_relative &&
+            receipt.logical_offset == request.logical_offset &&
+            receipt.logical_size == request.logical_size &&
+            hfx_equal(receipt.attempt_nonce, request.attempt_nonce, 32) &&
+            hfx_equal(receipt.server_nonce, request.server_nonce, 32) &&
+            hfx_equal(receipt.content_digest, request.content_digest, 32) &&
+            hfx_equal(receipt.view_digest, request.view_digest, 32) &&
+            hfx_mutable_verify(receipt, session.key.data());
+    }
+    if (!hfx_mutable_client_receipt_valid(receipt, request, root, session.key.data())) {
+        session.failed = true;
+        return false;
+    }
+    if (applied) *applied = true;
+    if (hash_only) session.set_hash_hit_count++;
+    else session.set_count++;
+    session.mutation_root = root;
+    session.semantic_root = semantic;
+    hfx_mutable_census_entry entry {};
+    entry.role = request.role;
+    entry.role_ordinal = request.role_ordinal;
+    entry.allocation_ordinal = request.allocation_ordinal;
+    entry.type = request.type;
+    entry.tensor_relative = request.tensor_relative;
+    entry.logical_size = ggml_nbytes(tensor);
+    memcpy(entry.ne, request.ne, sizeof(entry.ne));
+    memcpy(entry.nb, request.nb, sizeof(entry.nb));
+    memcpy(entry.view_digest, request.view_digest, 32);
+    session.mutations.push_back(entry);
+    return true;
+}
+static bool hfx_mutable_client_bind(hfx_mutable_client_session & session, uint64_t graph_uid);
+#endif
+
 static void ggml_backend_rpc_buffer_free_buffer(ggml_backend_buffer_t buffer) {
     ggml_backend_rpc_buffer_context * ctx = (ggml_backend_rpc_buffer_context *)buffer->context;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    {
+        std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+        auto active = hfx_mutable_active_sockets.find(ctx->sock.get());
+        if (active != hfx_mutable_active_sockets.end()) hfx_mutable_close_session_locked(active->second);
+    }
+#endif
     rpc_msg_free_buffer_req request = {ctx->remote_ptr};
     bool status = send_rpc_cmd(ctx->sock, RPC_CMD_FREE_BUFFER, &request, sizeof(request), nullptr, 0);
     RPC_STATUS_ASSERT(status);
@@ -1387,6 +2001,20 @@ static enum ggml_status ggml_backend_rpc_buffer_init_tensor(ggml_backend_buffer_
 
 static void ggml_backend_rpc_buffer_set_tensor(ggml_backend_buffer_t buffer, ggml_tensor * tensor, const void * data, size_t offset, size_t size) {
     ggml_backend_rpc_buffer_context * ctx = (ggml_backend_rpc_buffer_context *)buffer->context;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    if (hfx_mutable_requested() && hfx_mutable_session_active(ctx->sock.get())) {
+        if (size > HASH_THRESHOLD) {
+            bool applied = false;
+            const uint64_t hash = fnv_hash(static_cast<const uint8_t *>(data), size);
+            const bool valid = hfx_mutable_client_update(ctx, tensor, data, offset, size, true, hash, &applied);
+            RPC_STATUS_ASSERT(valid);
+            if (applied) return;
+        }
+        const bool valid = hfx_mutable_client_update(ctx, tensor, data, offset, size, false, 0);
+        RPC_STATUS_ASSERT(valid);
+        return;
+    }
+#endif
     rpc_tensor rpc_tensor = serialize_tensor(tensor);
     if (size > HASH_THRESHOLD) {
         rpc_msg_set_tensor_hash_req request;
@@ -1593,6 +2221,16 @@ static const char * ggml_backend_rpc_name(ggml_backend_t backend) {
 
 static void ggml_backend_rpc_free(ggml_backend_t backend) {
     ggml_backend_rpc_context * rpc_ctx = (ggml_backend_rpc_context *)backend->context;
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    {
+        std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+        std::vector<uint64_t> closing;
+        for (const auto & item : hfx_mutable_sessions) {
+            if (item.second.endpoint == rpc_ctx->endpoint) closing.push_back(item.first);
+        }
+        for (uint64_t session_id : closing) hfx_mutable_close_session_locked(session_id);
+    }
+#endif
     delete rpc_ctx;
     delete backend;
 }
@@ -1845,6 +2483,27 @@ static enum ggml_status ggml_backend_rpc_graph_compute(ggml_backend_t backend, g
     if (hfx_graph_requested()) {
         auto sock = get_socket(rpc_ctx->endpoint);
         if (sock == nullptr || !hfx_graph_negotiate(rpc_ctx, sock)) return GGML_STATUS_FAILED;
+        if (hfx_mutable_requested()) {
+            std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+            auto active = hfx_mutable_active_sockets.find(sock.get());
+            if (active == hfx_mutable_active_sockets.end()) return GGML_STATUS_FAILED;
+            auto it = hfx_mutable_sessions.find(active->second);
+            if (it == hfx_mutable_sessions.end() || it->second.failed || !it->second.committed ||
+                it->second.attempt.execution_sequence != rpc_ctx->graph_auth_sequence + 1) {
+                return GGML_STATUS_FAILED;
+            }
+            if (it->second.bound_graph_uid != cgraph->uid &&
+                !hfx_mutable_client_bind(it->second, cgraph->uid)) return GGML_STATUS_FAILED;
+            std::vector<uint8_t> binding;
+            hfx_bytes(binding, it->second.semantic_root.data(), 32);
+            hfx_bytes(binding, it->second.attempt.scheduler_attempt_nonce, 32);
+            rpc_ctx->graph_auth_transcript_root = hfx_sha256(binding.data(), binding.size());
+            GGML_LOG_INFO("[halofpx-mutable] bound graph uid=%" PRIu64 " exec=%" PRIu64
+                          " semantic=%s transcript=%s\n",
+                          cgraph->uid, it->second.attempt.execution_sequence,
+                          hfx_hex(it->second.semantic_root.data(), 32).c_str(),
+                          hfx_hex(rpc_ctx->graph_auth_transcript_root.data(), 32).c_str());
+        }
         rpc_ctx->graph_auth_sequence++;
         hfx_graph_auth_header request {};
         hfx_graph_auth_receipt response {};
@@ -2014,6 +2673,490 @@ ggml_backend_t ggml_backend_rpc_init(const char * endpoint, uint32_t device) {
 bool ggml_backend_is_rpc(ggml_backend_t backend) {
     return backend != NULL && ggml_guid_matches(backend->guid, ggml_backend_rpc_guid());
 }
+
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+uint64_t ggml_backend_rpc_halofpx_mutable_graph_uid(ggml_cgraph * graph) {
+    if (graph && graph->uid == 0) graph->uid = ggml_graph_next_uid();
+    return graph ? graph->uid : 0;
+}
+
+bool ggml_backend_rpc_halofpx_mutable_begin(
+        ggml_backend_t backend,
+        ggml_backend_sched_t scheduler,
+        const ggml_backend_rpc_halofpx_mutable_attempt * attempt,
+        ggml_backend_rpc_halofpx_mutable_session * handle) {
+    if (!hfx_mutable_requested() || !ggml_backend_is_rpc(backend) || attempt == nullptr ||
+        handle == nullptr ||
+        attempt->version != HFX_MUTABLE_MAJOR || attempt->reserved != 0 ||
+        attempt->graph_uid == 0 || attempt->execution_sequence == 0 ||
+        attempt->max_mutations == 0 || attempt->max_mutations > HFX_MUTABLE_MAX_MUTATIONS ||
+        attempt->max_census_entries == 0 || attempt->max_census_entries > HFX_MUTABLE_MAX_CENSUS ||
+        hfx_zero(attempt->attempt_nonce, 32)) {
+        return false;
+    }
+    struct ggml_backend_sched_authority_admission admission {};
+    if (!ggml_backend_sched_authority_admission(scheduler, &admission) ||
+        admission.major != 1 || admission.minor != 0 ||
+        admission.encoded_size != sizeof(admission) ||
+        admission.execution_sequence == 0 ||
+        hfx_zero(admission.attempt_nonce, 32) ||
+        hfx_zero(admission.admission_root, 32)) {
+        return false;
+    }
+    ggml_backend_rpc_halofpx_mutable_attempt admitted = *attempt;
+    admitted.scheduler_execution_sequence = admission.execution_sequence;
+    memcpy(admitted.scheduler_attempt_nonce, admission.attempt_nonce, 32);
+    memcpy(admitted.scheduler_transcript_root, admission.admission_root, 32);
+    auto * ctx = static_cast<ggml_backend_rpc_context *>(backend->context);
+    auto sock = get_socket(ctx->endpoint);
+    hfx_digest key {};
+    if (!sock || !hfx_graph_key(key)) {
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+        if (hfx_mutable_active_sockets.find(sock.get()) != hfx_mutable_active_sockets.end()) {
+            return false;
+        }
+    }
+    hfx_mutable_caps request {};
+    hfx_set_magic(request.magic, "HFXMCQ1\0");
+    request.major = HFX_MUTABLE_MAJOR; request.minor = HFX_MUTABLE_MINOR;
+    request.encoded_size = sizeof(request);
+    request.max_mutations = admitted.max_mutations;
+    request.max_census = admitted.max_census_entries;
+    request.graph_uid = admitted.graph_uid;
+    request.exec_sequence = admitted.execution_sequence;
+    request.scheduler_sequence = admitted.scheduler_execution_sequence;
+    memcpy(request.attempt_nonce, admitted.attempt_nonce, 32);
+    memcpy(request.scheduler_nonce, admitted.scheduler_attempt_nonce, 32);
+    memcpy(request.scheduler_root, admitted.scheduler_transcript_root, 32);
+    if (!hfx_mutable_sign(request, key.data())) {
+        return false;
+    }
+    const auto wire = hfx_mutable_encode(request);
+    std::array<uint8_t, sizeof(hfx_mutable_caps)> response_wire {};
+    hfx_mutable_caps response {};
+    if (!send_rpc_cmd(sock, RPC_CMD_HALOFPX_MUTABLE_CAPS, wire.data(), wire.size(),
+                      response_wire.data(), response_wire.size()) ||
+        !hfx_mutable_decode(response_wire.data(), response_wire.size(), response) ||
+        !hfx_magic(response.magic, "HFXMCA1\0") ||
+        response.major != HFX_MUTABLE_MAJOR || response.minor != HFX_MUTABLE_MINOR ||
+        response.encoded_size != sizeof(response) || response.status != 1 ||
+        response.max_mutations != admitted.max_mutations ||
+        response.max_census != admitted.max_census_entries ||
+        response.graph_uid != admitted.graph_uid ||
+        response.exec_sequence != admitted.execution_sequence ||
+        response.scheduler_sequence != admitted.scheduler_execution_sequence ||
+        !hfx_equal(response.attempt_nonce, admitted.attempt_nonce, 32) ||
+        !hfx_equal(response.scheduler_nonce, admitted.scheduler_attempt_nonce, 32) ||
+        !hfx_equal(response.scheduler_root, admitted.scheduler_transcript_root, 32) ||
+        hfx_zero(response.server_nonce, 32) ||
+        !hfx_mutable_verify(response, key.data())) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+    if (hfx_mutable_active_sockets.find(sock.get()) != hfx_mutable_active_sockets.end()) {
+        return false;
+    }
+    hfx_mutable_client_session session {};
+    session.session_id = hfx_mutable_next_session.fetch_add(1, std::memory_order_relaxed);
+    if (session.session_id == 0) session.session_id = hfx_mutable_next_session.fetch_add(1, std::memory_order_relaxed);
+    session.generation = session.session_id;
+    memcpy(&session.connection_epoch, response.server_nonce, sizeof(session.connection_epoch));
+    if (session.connection_epoch == 0) session.connection_epoch = session.session_id;
+    session.sock = sock;
+    session.endpoint = ctx->endpoint;
+    session.attempt = admitted;
+    session.key = key;
+    memcpy(session.server_nonce.data(), response.server_nonce, 32);
+    session.mutation_root = hfx_sha256(HFX_MUTABLE_DOMAIN, sizeof(HFX_MUTABLE_DOMAIN) - 1);
+    session.semantic_root = session.mutation_root;
+    session.negotiated = true;
+    const uint64_t session_id = session.session_id;
+    hfx_mutable_sessions.emplace(session_id, std::move(session));
+    hfx_mutable_active_sockets.emplace(sock.get(), session_id);
+    memset(handle, 0, sizeof(*handle));
+    handle->version = HFX_MUTABLE_MAJOR;
+    handle->session_id = session_id;
+    handle->generation = session_id;
+    handle->connection_epoch = hfx_mutable_sessions.at(session_id).connection_epoch;
+    handle->graph_uid = admitted.graph_uid;
+    handle->execution_sequence = admitted.execution_sequence;
+    memcpy(handle->attempt_nonce, admitted.attempt_nonce, 32);
+    return true;
+}
+
+bool ggml_backend_rpc_halofpx_mutable_register(
+        const ggml_backend_rpc_halofpx_mutable_session * handle,
+        ggml_tensor * tensor,
+        ggml_backend_rpc_halofpx_mutable_role role,
+        uint32_t role_ordinal) {
+    if (!hfx_mutable_requested()) return false;
+    if (tensor == nullptr || !hfx_mutable_role_valid(role)) return false;
+    std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+    auto * session = hfx_mutable_lookup_locked(handle);
+    if (session == nullptr || session->exclusions.find(tensor) != session->exclusions.end()) return false;
+    ggml_tensor * storage = tensor;
+    while (storage->buffer == nullptr && storage->view_src != nullptr) storage = storage->view_src;
+    if (storage->buffer == nullptr || !ggml_backend_buffer_is_rpc(storage->buffer)) return false;
+    auto * bctx = static_cast<ggml_backend_rpc_buffer_context *>(storage->buffer->context);
+    if (bctx->sock.get() != session->sock.get()) return false;
+    const hfx_mutable_registration value { static_cast<uint32_t>(role), role_ordinal };
+    auto [it, inserted] = session->roles.emplace(tensor, value);
+    return inserted || (it->second.role == value.role && it->second.role_ordinal == value.role_ordinal);
+}
+
+bool ggml_backend_rpc_halofpx_mutable_exclude(
+        const ggml_backend_rpc_halofpx_mutable_session * handle,
+        ggml_tensor * tensor,
+        ggml_backend_rpc_halofpx_exclusion exclusion,
+        uint32_t exclusion_ordinal) {
+    if (!hfx_mutable_requested()) return false;
+    if (tensor == nullptr ||
+        (exclusion != GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT &&
+         exclusion != GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD)) return false;
+    std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+    auto * session = hfx_mutable_lookup_locked(handle);
+    if (session == nullptr || session->roles.find(tensor) != session->roles.end()) return false;
+    ggml_tensor * storage = tensor;
+    while (storage->buffer == nullptr && storage->view_src != nullptr) storage = storage->view_src;
+    if (storage->buffer == nullptr || !ggml_backend_buffer_is_rpc(storage->buffer)) return false;
+    auto * bctx = static_cast<ggml_backend_rpc_buffer_context *>(storage->buffer->context);
+    if (bctx->sock.get() != session->sock.get()) return false;
+    const hfx_mutable_registration value {
+        HFX_MUTABLE_EXCLUSION_BASE + static_cast<uint32_t>(exclusion), exclusion_ordinal
+    };
+    auto [it, inserted] = session->exclusions.emplace(tensor, value);
+    return inserted || (it->second.role == value.role && it->second.role_ordinal == value.role_ordinal);
+}
+
+static void hfx_mutable_collect_graph(
+        ggml_tensor * tensor,
+        std::unordered_set<ggml_tensor *> & seen,
+        std::vector<ggml_tensor *> & leaves) {
+    if (tensor == nullptr || !seen.insert(tensor).second) return;
+    if (tensor->view_src) hfx_mutable_collect_graph(tensor->view_src, seen, leaves);
+    bool has_src = false;
+    for (ggml_tensor * src : tensor->src) {
+        if (src) { has_src = true; hfx_mutable_collect_graph(src, seen, leaves); }
+    }
+    if (!has_src) leaves.push_back(tensor);
+}
+
+static bool hfx_mutable_client_bind(
+        hfx_mutable_client_session & session,
+        uint64_t graph_uid) {
+    if (!session.committed || graph_uid == 0) return false;
+    hfx_mutable_commit_header request {};
+    hfx_set_magic(request.magic, "HFXMCB1\0");
+    request.major = HFX_MUTABLE_MAJOR; request.minor = HFX_MUTABLE_MINOR;
+    request.encoded_size = sizeof(request);
+    request.census_count = session.census_count;
+    request.mutation_count = session.mutation_sequence;
+    request.graph_uid = graph_uid;
+    request.exec_sequence = session.attempt.execution_sequence;
+    memcpy(request.attempt_nonce, session.attempt.attempt_nonce, 32);
+    memcpy(request.server_nonce, session.server_nonce.data(), 32);
+    memcpy(request.scheduler_nonce, session.attempt.scheduler_attempt_nonce, 32);
+    memcpy(request.scheduler_root, session.attempt.scheduler_transcript_root, 32);
+    memcpy(request.mutation_root, session.mutation_root.data(), 32);
+    if (!hfx_mutable_sign(request, session.key.data())) return false;
+    const auto wire = hfx_mutable_encode(request);
+    std::array<uint8_t, sizeof(hfx_mutable_commit_header)> response_wire {};
+    hfx_mutable_commit_header response {};
+    if (!send_rpc_cmd(session.sock, RPC_CMD_HALOFPX_MUTABLE_BIND,
+                      wire.data(), wire.size(), response_wire.data(), response_wire.size()) ||
+        !hfx_mutable_decode(response_wire.data(), response_wire.size(), response) ||
+        !hfx_magic(response.magic, "HFXMBR1\0") ||
+        response.graph_uid != graph_uid || response.exec_sequence != request.exec_sequence ||
+        !hfx_equal(response.mutation_root, request.mutation_root, 32) ||
+        !hfx_mutable_verify(response, session.key.data())) return false;
+    session.bound_graph_uid = graph_uid;
+    return true;
+}
+
+bool ggml_backend_rpc_halofpx_mutable_commit(
+        const ggml_backend_rpc_halofpx_mutable_session * handle,
+        ggml_cgraph * graph,
+        ggml_backend_rpc_halofpx_mutable_result * result) {
+    if (!hfx_mutable_requested() || graph == nullptr || result == nullptr) return false;
+    std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+    auto * session_ptr = hfx_mutable_lookup_locked(handle);
+    if (session_ptr == nullptr) return false;
+    auto & session = *session_ptr;
+    auto sock = session.sock;
+    std::unordered_set<ggml_tensor *> seen;
+    std::vector<ggml_tensor *> leaves;
+    for (int i = 0; i < graph->n_nodes; ++i) hfx_mutable_collect_graph(graph->nodes[i], seen, leaves);
+    std::vector<hfx_mutable_census_entry> census;
+    std::unordered_set<uint64_t> role_keys;
+    for (ggml_tensor * tensor : leaves) {
+        auto rit = session.roles.find(tensor);
+        hfx_mutable_registration authority {};
+        if (rit != session.roles.end()) {
+            if (session.exclusions.find(tensor) != session.exclusions.end()) {
+                session.failed = true; return false;
+            }
+            authority = rit->second;
+        } else {
+            auto eit = session.exclusions.find(tensor);
+            if (eit == session.exclusions.end()) { session.failed = true; return false; }
+            authority = eit->second;
+        }
+        ggml_tensor * storage = tensor;
+        uint64_t inherited_offset = 0;
+        while (storage->buffer == nullptr && storage->view_src != nullptr) {
+            if (!hfx_add(inherited_offset, storage->view_offs, inherited_offset)) {
+                session.failed = true; return false;
+            }
+            storage = storage->view_src;
+        }
+        if (storage->buffer == nullptr || !ggml_backend_buffer_is_rpc(storage->buffer)) continue;
+        auto * bctx = static_cast<ggml_backend_rpc_buffer_context *>(storage->buffer->context);
+        if (bctx->sock.get() != sock.get()) { session.failed = true; return false; }
+        const uint64_t key = (uint64_t(authority.role) << 32) | authority.role_ordinal;
+        if (!role_keys.insert(key).second || census.size() >= session.attempt.max_census_entries) {
+            session.failed = true; return false;
+        }
+        hfx_mutable_census_entry entry {};
+        entry.role = authority.role; entry.role_ordinal = authority.role_ordinal;
+        entry.allocation_ordinal = bctx->allocation_ordinal; entry.type = tensor->type;
+        const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(storage->buffer));
+        uint64_t address = reinterpret_cast<uint64_t>(tensor->data);
+        if (address == 0) {
+            const uint64_t storage_address = reinterpret_cast<uint64_t>(storage->data);
+            if (!hfx_add(storage_address, inherited_offset, address)) {
+                session.failed = true; return false;
+            }
+        }
+        if (address < base) { session.failed = true; return false; }
+        entry.tensor_relative = address - base; entry.logical_size = ggml_nbytes(tensor);
+        for (size_t i = 0; i < GGML_MAX_DIMS; ++i) {
+            if (tensor->ne[i] <= 0 || uint64_t(tensor->ne[i]) > UINT32_MAX || tensor->nb[i] > UINT32_MAX) {
+                session.failed = true; return false;
+            }
+            entry.ne[i] = tensor->ne[i]; entry.nb[i] = tensor->nb[i];
+        }
+        std::vector<uint8_t> view;
+        for (const ggml_tensor * v = tensor; v; v = v->view_src) {
+            hfx_le<uint64_t>(view, v->view_offs);
+            if (view.size() > 8 * GGML_MAX_SRC) { session.failed = true; return false; }
+        }
+        const auto vd = hfx_sha256(view.data(), view.size());
+        memcpy(entry.view_digest, vd.data(), 32);
+        census.push_back(entry);
+        GGML_LOG_INFO("[halofpx-mutable] census role=%u ordinal=%u allocation=%u relative=%" PRIu64
+                      " bytes=%" PRIu64 "\n",
+                      entry.role, entry.role_ordinal, entry.allocation_ordinal,
+                      entry.tensor_relative, entry.logical_size);
+    }
+    std::sort(census.begin(), census.end(), [](const auto & a, const auto & b) {
+        return std::tie(a.role, a.role_ordinal) < std::tie(b.role, b.role_ordinal);
+    });
+    if (census.empty()) { session.failed = true; return false; }
+    std::vector<uint8_t> census_wire;
+    for (const auto & entry : census) {
+        const auto encoded = hfx_mutable_encode(entry);
+        census_wire.insert(census_wire.end(), encoded.begin(), encoded.end());
+    }
+    const auto census_root = hfx_sha256(census_wire.data(), census_wire.size());
+    hfx_mutable_commit_header request {};
+    hfx_set_magic(request.magic, "HFXMCC1\0");
+    request.major = HFX_MUTABLE_MAJOR; request.minor = HFX_MUTABLE_MINOR;
+    request.encoded_size = sizeof(request) + census_wire.size();
+    request.census_count = census.size();
+    request.mutation_count = session.mutation_sequence;
+    request.graph_uid = session.attempt.graph_uid;
+    request.exec_sequence = session.attempt.execution_sequence;
+    memcpy(request.attempt_nonce, session.attempt.attempt_nonce, 32);
+    memcpy(request.server_nonce, session.server_nonce.data(), 32);
+    memcpy(request.scheduler_nonce, session.attempt.scheduler_attempt_nonce, 32);
+    memcpy(request.scheduler_root, session.attempt.scheduler_transcript_root, 32);
+    memcpy(request.mutation_root, session.mutation_root.data(), 32);
+    memcpy(request.census_root, census_root.data(), 32);
+    if (!hfx_mutable_sign(request, session.key.data())) return false;
+    const auto header_wire = hfx_mutable_encode(request);
+    std::vector<uint8_t> wire = header_wire;
+    wire.insert(wire.end(), census_wire.begin(), census_wire.end());
+    std::array<uint8_t, sizeof(hfx_mutable_commit_header)> response_wire {};
+    hfx_mutable_commit_header response {};
+    if (!send_rpc_cmd(sock, RPC_CMD_HALOFPX_MUTABLE_COMMIT, wire.data(), wire.size(),
+                      response_wire.data(), response_wire.size()) ||
+        !hfx_mutable_decode(response_wire.data(), response_wire.size(), response) ||
+        !hfx_magic(response.magic, "HFXMCR1\0") || response.encoded_size != sizeof(response) ||
+        response.census_count != request.census_count || response.mutation_count != request.mutation_count ||
+        response.graph_uid != request.graph_uid || response.exec_sequence != request.exec_sequence ||
+        !hfx_equal(response.mutation_root, request.mutation_root, 32) ||
+        !hfx_equal(response.census_root, request.census_root, 32) ||
+        !hfx_mutable_verify(response, session.key.data())) {
+        session.failed = true; return false;
+    }
+    memset(result, 0, sizeof(*result));
+    result->version = HFX_MUTABLE_MAJOR; result->status = 1;
+    result->mutation_count = request.mutation_count; result->census_count = request.census_count;
+    result->set_count = session.set_count;
+    result->set_hash_hit_count = session.set_hash_hit_count;
+    result->set_hash_miss_count = session.set_hash_miss_count;
+    result->graph_uid = request.graph_uid; result->execution_sequence = request.exec_sequence;
+    memcpy(result->mutation_root, request.mutation_root, 32);
+    memcpy(result->semantic_root, session.semantic_root.data(), 32);
+    memcpy(result->census_root, request.census_root, 32);
+    memcpy(result->receipt_tag, response.tag, 32);
+    session.committed = true;
+    session.census_count = request.census_count;
+    return true;
+}
+
+bool ggml_backend_rpc_halofpx_mutable_abort(ggml_backend_rpc_halofpx_mutable_session * handle) {
+    if (handle == nullptr) return false;
+    std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+    auto * session = hfx_mutable_lookup_locked(handle, true);
+    if (session == nullptr) return false;
+    const uint64_t session_id = session->session_id;
+    hfx_mutable_close_session_locked(session_id);
+    memset(handle, 0, sizeof(*handle));
+    return true;
+}
+
+bool ggml_backend_rpc_halofpx_mutable_test_inject(
+        const ggml_backend_rpc_halofpx_mutable_session * handle,
+        ggml_tensor * tensor,
+        ggml_backend_rpc_halofpx_mutable_test_case test_case,
+        uint32_t * exact_handler_status) {
+    const char * enabled = std::getenv("HALOFPX_RPC_MUTABLE_AUTH_TEST");
+    if (enabled == nullptr || strcmp(enabled, "1") != 0 || tensor == nullptr ||
+        exact_handler_status == nullptr ||
+        test_case < GGML_RPC_HALOFPX_MUTABLE_TEST_MALFORMED ||
+        test_case > GGML_RPC_HALOFPX_MUTABLE_TEST_WRONG_VIEW) return false;
+    std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+    auto * session = hfx_mutable_lookup_locked(handle);
+    if (session == nullptr || session->mutation_sequence != 0) return false;
+    auto role = session->roles.find(tensor);
+    if (role == session->roles.end() || tensor->buffer == nullptr || tensor->data == nullptr ||
+        !ggml_backend_buffer_is_rpc(tensor->buffer)) return false;
+    auto * bctx = static_cast<ggml_backend_rpc_buffer_context *>(tensor->buffer->context);
+    if (bctx->sock.get() != session->sock.get()) return false;
+    const size_t size = ggml_nbytes(tensor);
+    if (size == 0 || size > HFX_MUTABLE_MAX_BYTES) return false;
+    std::vector<uint8_t> payload(size);
+    ggml_backend_tensor_get(tensor, payload.data(), 0, size);
+    hfx_mutable_update_header request {};
+    hfx_set_magic(request.magic, "HFXMUS1\0");
+    request.major = HFX_MUTABLE_MAJOR; request.minor = HFX_MUTABLE_MINOR;
+    request.encoded_size = sizeof(request);
+    request.role = role->second.role; request.role_ordinal = role->second.role_ordinal;
+    request.allocation_ordinal = bctx->allocation_ordinal; request.type = tensor->type;
+    request.graph_uid = session->attempt.graph_uid;
+    request.exec_sequence = session->attempt.execution_sequence;
+    request.mutation_sequence = 1;
+    const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(tensor->buffer));
+    const uint64_t address = reinterpret_cast<uint64_t>(tensor->data);
+    if (address < base) return false;
+    request.tensor_relative = address - base; request.logical_size = size;
+    for (size_t i = 0; i < GGML_MAX_DIMS; ++i) {
+        if (tensor->ne[i] <= 0 || uint64_t(tensor->ne[i]) > UINT32_MAX || tensor->nb[i] > UINT32_MAX) return false;
+        request.ne[i] = tensor->ne[i]; request.nb[i] = tensor->nb[i];
+    }
+    memcpy(request.attempt_nonce, session->attempt.attempt_nonce, 32);
+    memcpy(request.server_nonce, session->server_nonce.data(), 32);
+    const auto content = hfx_sha256(payload.data(), payload.size());
+    memcpy(request.content_digest, content.data(), 32);
+    std::vector<uint8_t> view;
+    for (const ggml_tensor * item = tensor; item; item = item->view_src) hfx_le<uint64_t>(view, item->view_offs);
+    const auto view_digest = hfx_sha256(view.data(), view.size());
+    memcpy(request.view_digest, view_digest.data(), 32);
+    memcpy(request.prior_root, session->mutation_root.data(), 32);
+    if (!hfx_mutable_sign(request, session->key.data())) return false;
+    switch (test_case) {
+        case GGML_RPC_HALOFPX_MUTABLE_TEST_MALFORMED: request.encoded_size--; break;
+        case GGML_RPC_HALOFPX_MUTABLE_TEST_TAMPERED: request.tag[0] ^= 1; break;
+        case GGML_RPC_HALOFPX_MUTABLE_TEST_DUPLICATE_SEQUENCE: request.mutation_sequence = 0; break;
+        case GGML_RPC_HALOFPX_MUTABLE_TEST_OUT_OF_BOUNDS: request.logical_offset = size; break;
+        case GGML_RPC_HALOFPX_MUTABLE_TEST_WRONG_VIEW: request.view_digest[0] ^= 1; break;
+    }
+    if (test_case != GGML_RPC_HALOFPX_MUTABLE_TEST_TAMPERED &&
+        !hfx_mutable_sign(request, session->key.data())) return false;
+    const auto header = hfx_mutable_encode(request);
+    const rpc_tensor wire_tensor = serialize_tensor(tensor);
+    std::vector<uint8_t> wire(header.begin(), header.end());
+    const auto * tensor_wire = reinterpret_cast<const uint8_t *>(&wire_tensor);
+    wire.insert(wire.end(), tensor_wire, tensor_wire + sizeof(wire_tensor));
+    wire.insert(wire.end(), payload.begin(), payload.end());
+    std::array<uint8_t, sizeof(hfx_mutable_receipt)> response_wire {};
+    hfx_mutable_receipt response {};
+    if (!send_rpc_cmd(session->sock, RPC_CMD_HALOFPX_MUTABLE_SET, wire.data(), wire.size(),
+                      response_wire.data(), response_wire.size()) ||
+        !hfx_mutable_decode(response_wire.data(), response_wire.size(), response)) return false;
+    *exact_handler_status = response.status;
+    return hfx_magic(response.magic, "HFXMUR1\0") &&
+        response.major == HFX_MUTABLE_MAJOR && response.minor == HFX_MUTABLE_MINOR &&
+        response.encoded_size == sizeof(response) && response.status == 0 &&
+        response.graph_uid == request.graph_uid &&
+        response.exec_sequence == request.exec_sequence &&
+        response.mutation_sequence == request.mutation_sequence &&
+        hfx_equal(response.attempt_nonce, request.attempt_nonce, 32) &&
+        hfx_equal(response.server_nonce, request.server_nonce, 32) &&
+        hfx_mutable_verify(response, session->key.data());
+}
+
+bool ggml_backend_rpc_halofpx_mutable_test_commit_omit_unmutated_leaf(
+        const ggml_backend_rpc_halofpx_mutable_session * handle) {
+    const char * enabled = std::getenv("HALOFPX_RPC_MUTABLE_AUTH_TEST");
+    if (enabled == nullptr || strcmp(enabled, "1") != 0) return false;
+    std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+    auto * session = hfx_mutable_lookup_locked(handle);
+    if (session == nullptr || session->committed || session->mutations.empty() ||
+        session->mutations.size() >= session->roles.size() + session->exclusions.size()) return false;
+    std::vector<hfx_mutable_census_entry> census = session->mutations;
+    std::sort(census.begin(), census.end(), [](const auto & a, const auto & b) {
+        return std::tie(a.role, a.role_ordinal) < std::tie(b.role, b.role_ordinal);
+    });
+    std::vector<uint8_t> census_wire;
+    for (const auto & entry : census) {
+        const auto encoded = hfx_mutable_encode(entry);
+        census_wire.insert(census_wire.end(), encoded.begin(), encoded.end());
+    }
+    const auto census_root = hfx_sha256(census_wire.data(), census_wire.size());
+    hfx_mutable_commit_header request {};
+    hfx_set_magic(request.magic, "HFXMCC1\0");
+    request.major = HFX_MUTABLE_MAJOR; request.minor = HFX_MUTABLE_MINOR;
+    request.encoded_size = sizeof(request) + census_wire.size();
+    request.census_count = census.size(); request.mutation_count = session->mutation_sequence;
+    request.graph_uid = session->attempt.graph_uid;
+    request.exec_sequence = session->attempt.execution_sequence;
+    memcpy(request.attempt_nonce, session->attempt.attempt_nonce, 32);
+    memcpy(request.server_nonce, session->server_nonce.data(), 32);
+    memcpy(request.scheduler_nonce, session->attempt.scheduler_attempt_nonce, 32);
+    memcpy(request.scheduler_root, session->attempt.scheduler_transcript_root, 32);
+    memcpy(request.mutation_root, session->mutation_root.data(), 32);
+    memcpy(request.census_root, census_root.data(), 32);
+    if (!hfx_mutable_sign(request, session->key.data())) return false;
+    const auto header = hfx_mutable_encode(request);
+    std::vector<uint8_t> wire(header.begin(), header.end());
+    wire.insert(wire.end(), census_wire.begin(), census_wire.end());
+    std::array<uint8_t, sizeof(hfx_mutable_commit_header)> response_wire {};
+    hfx_mutable_commit_header response {};
+    if (!send_rpc_cmd(session->sock, RPC_CMD_HALOFPX_MUTABLE_COMMIT,
+                      wire.data(), wire.size(), response_wire.data(), response_wire.size()) ||
+        !hfx_mutable_decode(response_wire.data(), response_wire.size(), response) ||
+        !hfx_magic(response.magic, "HFXMCR1\0") ||
+        !hfx_equal(response.census_root, request.census_root, 32) ||
+        !hfx_mutable_verify(response, session->key.data())) return false;
+    session->committed = true;
+    session->census_count = request.census_count;
+    return true;
+}
+#else
+uint64_t ggml_backend_rpc_halofpx_mutable_graph_uid(ggml_cgraph *) { return 0; }
+bool ggml_backend_rpc_halofpx_mutable_begin(ggml_backend_t, ggml_backend_sched_t, const ggml_backend_rpc_halofpx_mutable_attempt *, ggml_backend_rpc_halofpx_mutable_session *) { return false; }
+bool ggml_backend_rpc_halofpx_mutable_register(const ggml_backend_rpc_halofpx_mutable_session *, ggml_tensor *, ggml_backend_rpc_halofpx_mutable_role, uint32_t) { return false; }
+bool ggml_backend_rpc_halofpx_mutable_exclude(const ggml_backend_rpc_halofpx_mutable_session *, ggml_tensor *, ggml_backend_rpc_halofpx_exclusion, uint32_t) { return false; }
+bool ggml_backend_rpc_halofpx_mutable_commit(const ggml_backend_rpc_halofpx_mutable_session *, ggml_cgraph *, ggml_backend_rpc_halofpx_mutable_result *) { return false; }
+bool ggml_backend_rpc_halofpx_mutable_abort(ggml_backend_rpc_halofpx_mutable_session *) { return false; }
+bool ggml_backend_rpc_halofpx_mutable_test_inject(const ggml_backend_rpc_halofpx_mutable_session *, ggml_tensor *, ggml_backend_rpc_halofpx_mutable_test_case, uint32_t *) { return false; }
+bool ggml_backend_rpc_halofpx_mutable_test_commit_omit_unmutated_leaf(const ggml_backend_rpc_halofpx_mutable_session *) { return false; }
+#endif
 
 static void get_device_memory(const std::shared_ptr<socket_t> & sock, uint32_t device, size_t * free, size_t * total) {
     rpc_msg_get_device_memory_req request;
@@ -2255,6 +3398,18 @@ struct hfx_state_pending_attempt {
     std::array<uint8_t, 32> worker_nonce {};
     std::chrono::steady_clock::time_point expires {};
 };
+
+struct hfx_mutable_server_session {
+    hfx_mutable_caps caps {};
+    hfx_digest mutation_root {};
+    hfx_digest semantic_root {};
+    uint64_t mutation_sequence = 0;
+    uint32_t census_count = 0;
+    std::vector<hfx_mutable_census_entry> mutations;
+    std::vector<hfx_mutable_census_entry> census;
+    bool admitted = false;
+    bool committed = false;
+};
 #endif
 
 class rpc_server {
@@ -2300,6 +3455,12 @@ public:
     void hfx_graph_invalidate();
     void hfx_graph_invalidate_prepared();
     void hfx_graph_discard_lineage();
+    bool hfx_mutable_caps(const hfx_mutable_caps & request, hfx_mutable_caps & response);
+    bool hfx_mutable_set(const std::vector<uint8_t> & input, bool hash_only, hfx_mutable_receipt & response);
+    bool hfx_mutable_refusal(const std::vector<uint8_t> & input, hfx_mutable_receipt & response);
+    bool hfx_mutable_commit(const std::vector<uint8_t> & input, hfx_mutable_commit_header & response);
+    bool hfx_mutable_bind(const hfx_mutable_commit_header & request, hfx_mutable_commit_header & response);
+    bool hfx_mutable_graph_census_valid(const ggml_cgraph * graph) const;
 #endif
     bool init_tensor(const rpc_msg_init_tensor_req & request);
     bool get_alloc_size(const rpc_msg_get_alloc_size_req & request, rpc_msg_get_alloc_size_rsp & response);
@@ -2337,6 +3498,7 @@ private:
     std::unordered_set<ggml_backend_buffer_t> buffers;
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
     std::unordered_map<ggml_backend_buffer_t, uint32_t> buffer_allocation_ordinals;
+    std::unordered_map<ggml_backend_buffer_t, uint32_t> buffer_device_ordinals;
     uint32_t next_buffer_allocation_ordinal = 0;
 #endif
     // store the last computed graph for each backend
@@ -2349,6 +3511,7 @@ private:
     std::array<uint8_t, 32> hfx_graph_key_value {};
     hfx_digest hfx_graph_attempt_nonce {};
     hfx_digest hfx_graph_server_nonce {};
+    hfx_mutable_server_session hfx_mutable_session {};
 #endif
 };
 
@@ -2423,6 +3586,7 @@ bool rpc_server::alloc_buffer(const rpc_msg_alloc_buffer_req & request, rpc_msg_
                 response = {};
                 return false;
             }
+            buffer_device_ordinals.emplace(buffer, dev_id);
         }
 #endif
     } else {
@@ -2478,6 +3642,7 @@ bool rpc_server::free_buffer(const rpc_msg_free_buffer_req & request) {
     buffers.erase(buffer);
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
     buffer_allocation_ordinals.erase(buffer);
+    buffer_device_ordinals.erase(buffer);
 #endif
     return true;
 }
@@ -3125,6 +4290,16 @@ bool rpc_server::hfx_graph_compute(
         !hfx_graph_server_header_valid(request, hfx_graph_key_value,
                                        hfx_graph_attempt_nonce, hfx_graph_server_nonce,
                                        hfx_graph_sequence + 1, "HFXGAX1\0")) return false;
+    if (hfx_mutable_requested()) {
+        if (!hfx_mutable_session.admitted || !hfx_mutable_session.committed ||
+            hfx_mutable_session.caps.graph_uid != request.graph_uid ||
+            hfx_mutable_session.caps.exec_sequence != request.exec_sequence) return false;
+        std::vector<uint8_t> binding;
+        hfx_bytes(binding, hfx_mutable_session.semantic_root.data(), 32);
+        hfx_bytes(binding, hfx_mutable_session.caps.scheduler_nonce, 32);
+        const auto expected = hfx_sha256(binding.data(), binding.size());
+        if (!hfx_equal(expected.data(), request.transcript_root, 32)) return false;
+    }
     std::vector<uint8_t> graph(input.begin() + sizeof(request), input.end());
     if (graph.size() < sizeof(uint32_t)) return false;
     uint32_t wire_device = UINT32_MAX;
@@ -3133,6 +4308,11 @@ bool rpc_server::hfx_graph_compute(
     hfx_digest reconstructed {};
     if (!graph_compute(graph, &reconstructed, request.graph_digest, false) ||
         !hfx_equal(reconstructed.data(), request.graph_digest, reconstructed.size())) return false;
+    if (hfx_mutable_requested() && !hfx_mutable_graph_census_valid(stored_graphs[wire_device].graph)) {
+        if (!hfx_graph_server_receipt(response, request, hfx_graph_key_value.data())) return false;
+        response.status = 3;
+        return hfx_graph_sign_record(response, hfx_graph_key_value.data());
+    }
     auto & stored = stored_graphs[wire_device];
     stored.auth_uid = request.graph_uid;
     stored.auth_digest = reconstructed;
@@ -3154,11 +4334,22 @@ bool rpc_server::hfx_graph_recompute(
         !hfx_graph_server_header_valid(request, hfx_graph_key_value,
                                        hfx_graph_attempt_nonce, hfx_graph_server_nonce,
                                        hfx_graph_sequence + 1, "HFXGRX1\0")) return false;
+    if (hfx_mutable_requested()) {
+        if (!hfx_mutable_session.admitted || !hfx_mutable_session.committed ||
+            hfx_mutable_session.caps.graph_uid != request.graph_uid ||
+            hfx_mutable_session.caps.exec_sequence != request.exec_sequence) return false;
+        std::vector<uint8_t> binding;
+        hfx_bytes(binding, hfx_mutable_session.semantic_root.data(), 32);
+        hfx_bytes(binding, hfx_mutable_session.caps.scheduler_nonce, 32);
+        const auto expected = hfx_sha256(binding.data(), binding.size());
+        if (!hfx_equal(expected.data(), request.transcript_root, 32)) return false;
+    }
     const auto & stored = stored_graphs[request.device];
     if (stored.graph == nullptr || request.graph_uid == 0 ||
         request.graph_uid != stored.auth_uid ||
         !hfx_equal(request.graph_digest, stored.auth_digest.data(), 32) ||
-        !hfx_equal(request.transcript_root, stored.auth_transcript.data(), 32)) return false;
+        !hfx_equal(request.transcript_root, stored.auth_transcript.data(), 32) ||
+        (hfx_mutable_requested() && !hfx_mutable_graph_census_valid(stored.graph))) return false;
     stored_graphs[request.device].auth_prepared = true;
     hfx_graph_sequence = request.exec_sequence;
     GGML_LOG_INFO("[halofpx-rpc-graph-auth] server prepared mode=recompute sequence=%" PRIu64
@@ -3212,6 +4403,345 @@ void rpc_server::hfx_graph_discard_lineage() {
 
 void rpc_server::hfx_graph_invalidate_prepared() {
     for (auto & stored : stored_graphs) stored.auth_prepared = false;
+}
+
+bool rpc_server::hfx_mutable_caps(
+        const ::hfx_mutable_caps & request,
+        ::hfx_mutable_caps & response) {
+    hfx_mutable_session = {};
+    if (!hfx_mutable_requested() || !hfx_graph_key(hfx_graph_key_value) ||
+        !hfx_magic(request.magic, "HFXMCQ1\0") ||
+        request.major != HFX_MUTABLE_MAJOR || request.minor != HFX_MUTABLE_MINOR ||
+        request.encoded_size != sizeof(request) || request.status != 0 || request.reserved != 0 ||
+        request.max_mutations == 0 || request.max_mutations > HFX_MUTABLE_MAX_MUTATIONS ||
+        request.max_census == 0 || request.max_census > HFX_MUTABLE_MAX_CENSUS ||
+        request.graph_uid == 0 || request.exec_sequence == 0 || request.scheduler_sequence == 0 ||
+        hfx_zero(request.attempt_nonce, 32) || hfx_zero(request.scheduler_nonce, 32) ||
+        hfx_zero(request.scheduler_root, 32) || !hfx_zero(request.server_nonce, 32) ||
+        !hfx_mutable_verify(request, hfx_graph_key_value.data())) return false;
+    response = request;
+    hfx_set_magic(response.magic, "HFXMCA1\0");
+    response.status = 1;
+    if (!hfx_random_all(response.server_nonce, 32)) return false;
+    if (!hfx_mutable_sign(response, hfx_graph_key_value.data())) return false;
+    hfx_mutable_session.caps = response;
+    hfx_mutable_session.mutation_root = hfx_sha256(HFX_MUTABLE_DOMAIN, sizeof(HFX_MUTABLE_DOMAIN) - 1);
+    hfx_mutable_session.semantic_root = hfx_mutable_session.mutation_root;
+    hfx_mutable_session.admitted = true;
+    return true;
+}
+
+bool rpc_server::hfx_mutable_set(
+        const std::vector<uint8_t> & input,
+        bool hash_only,
+        hfx_mutable_receipt & response) {
+    const size_t fixed = sizeof(hfx_mutable_update_header) + sizeof(rpc_tensor);
+    if (!hfx_mutable_session.admitted || hfx_mutable_session.committed ||
+        input.size() < fixed || (hash_only ? input.size() != fixed : input.size() <= fixed)) {
+        GGML_LOG_ERROR("[halofpx-mutable] set shape/session refusal\n"); return false;
+    }
+    hfx_mutable_update_header request {};
+    if (!hfx_mutable_decode(input.data(), sizeof(request), request) ||
+        !hfx_magic(request.magic, hash_only ? "HFXMUH1\0" : "HFXMUS1\0") ||
+        request.major != HFX_MUTABLE_MAJOR || request.minor != HFX_MUTABLE_MINOR ||
+        request.encoded_size != sizeof(request) || !hfx_mutable_role_valid(request.role) ||
+        request.type >= GGML_TYPE_COUNT || request.graph_uid != hfx_mutable_session.caps.graph_uid ||
+        request.exec_sequence != hfx_mutable_session.caps.exec_sequence ||
+        request.mutation_sequence != hfx_mutable_session.mutation_sequence + 1 ||
+        request.mutation_sequence > hfx_mutable_session.caps.max_mutations ||
+        request.logical_size == 0 || request.logical_size > HFX_MUTABLE_MAX_BYTES ||
+        hfx_zero(request.content_digest, 32) ||
+        !hfx_equal(request.attempt_nonce, hfx_mutable_session.caps.attempt_nonce, 32) ||
+        !hfx_equal(request.server_nonce, hfx_mutable_session.caps.server_nonce, 32) ||
+        !hfx_equal(request.prior_root, hfx_mutable_session.mutation_root.data(), 32) ||
+        !hfx_mutable_verify(request, hfx_graph_key_value.data())) {
+        GGML_LOG_ERROR("[halofpx-mutable] set header refusal seq=%" PRIu64 "\n", request.mutation_sequence); return false;
+    }
+    rpc_tensor wire_tensor {};
+    memcpy(&wire_tensor, input.data() + sizeof(request), sizeof(wire_tensor));
+    ggml_init_params params { ggml_tensor_overhead(), nullptr, true };
+    ggml_context_ptr context { ggml_init(params) };
+    if (!context) return false;
+    ggml_tensor * tensor = deserialize_tensor(context.get(), &wire_tensor);
+    if (!tensor || !tensor->buffer || buffers.find(tensor->buffer) == buffers.end()) {
+        GGML_LOG_ERROR("[halofpx-mutable] set tensor refusal\n"); return false;
+    }
+    const auto oit = buffer_allocation_ordinals.find(tensor->buffer);
+    if (oit == buffer_allocation_ordinals.end() || oit->second != request.allocation_ordinal ||
+        tensor->type != request.type) {
+        GGML_LOG_ERROR("[halofpx-mutable] set allocation refusal expected=%u actual=%u\n",
+                       request.allocation_ordinal, oit == buffer_allocation_ordinals.end() ? UINT32_MAX : oit->second);
+        return false;
+    }
+    for (size_t i = 0; i < GGML_MAX_DIMS; ++i) {
+        if (tensor->ne[i] != request.ne[i] || tensor->nb[i] != request.nb[i]) {
+            GGML_LOG_ERROR("[halofpx-mutable] set layout refusal dim=%zu\n", i); return false;
+        }
+    }
+    std::vector<uint8_t> server_view_chain;
+    for (const ggml_tensor * v = tensor; v; v = v->view_src) {
+        hfx_le<uint64_t>(server_view_chain, v->view_offs);
+        if (server_view_chain.size() > 8 * GGML_MAX_SRC) return false;
+    }
+    const auto server_view_digest = hfx_sha256(server_view_chain.data(), server_view_chain.size());
+    if (!hfx_equal(server_view_digest.data(), request.view_digest, 32)) {
+        GGML_LOG_ERROR("[halofpx-mutable] set view refusal\n"); return false;
+    }
+    const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(tensor->buffer));
+    const uint64_t address = reinterpret_cast<uint64_t>(tensor->data);
+    uint64_t end = 0;
+    if (address < base || address - base != request.tensor_relative ||
+        !hfx_add(request.logical_offset, request.logical_size, end) ||
+        end > ggml_nbytes(tensor)) {
+        GGML_LOG_ERROR("[halofpx-mutable] set range refusal rel=%" PRIu64 " expected=%" PRIu64 "\n",
+                       address - base, request.tensor_relative); return false;
+    }
+    const uint8_t * material = nullptr;
+    std::vector<uint8_t> cached;
+    if (hash_only) {
+        if (!get_cached_file(request.cache_hash, cached)) {
+            memset(&response, 0, sizeof(response));
+            hfx_set_magic(response.magic, "HFXMUR1\0");
+            response.major = HFX_MUTABLE_MAJOR; response.minor = HFX_MUTABLE_MINOR;
+            response.encoded_size = sizeof(response); response.status = 2;
+            response.role = request.role; response.role_ordinal = request.role_ordinal;
+            response.allocation_ordinal = request.allocation_ordinal;
+            response.graph_uid = request.graph_uid; response.exec_sequence = request.exec_sequence;
+            response.mutation_sequence = request.mutation_sequence;
+            response.tensor_relative = request.tensor_relative;
+            response.logical_offset = request.logical_offset;
+            response.logical_size = request.logical_size;
+            memcpy(response.attempt_nonce, request.attempt_nonce, 32);
+            memcpy(response.server_nonce, request.server_nonce, 32);
+            memcpy(response.content_digest, request.content_digest, 32);
+            memcpy(response.view_digest, request.view_digest, 32);
+            return hfx_mutable_sign(response, hfx_graph_key_value.data());
+        }
+        if (cached.size() != request.logical_size) return false;
+        material = cached.data();
+    } else {
+        if (input.size() != fixed + request.logical_size) return false;
+        material = input.data() + fixed;
+    }
+    const auto supplied = hfx_sha256(material, request.logical_size);
+    if (!hfx_equal(supplied.data(), request.content_digest, 32)) {
+        GGML_LOG_ERROR("[halofpx-mutable] set supplied digest refusal\n"); return false;
+    }
+    ggml_backend_tensor_set(tensor, material, request.logical_offset, request.logical_size);
+    const auto dit = buffer_device_ordinals.find(tensor->buffer);
+    if (dit == buffer_device_ordinals.end() || dit->second >= backends.size()) {
+        GGML_LOG_ERROR("[halofpx-mutable] set owner refusal\n"); return false;
+    }
+    ggml_backend_t owner = backends[dit->second];
+    ggml_backend_synchronize(owner);
+    std::vector<uint8_t> applied(request.logical_size);
+    ggml_backend_tensor_get(tensor, applied.data(), request.logical_offset, request.logical_size);
+    const auto applied_digest = hfx_sha256(applied.data(), applied.size());
+    if (!hfx_equal(applied_digest.data(), request.content_digest, 32)) {
+        GGML_LOG_ERROR("[halofpx-mutable] set applied digest refusal\n"); return false;
+    }
+    if (!hash_only && cache_dir && request.logical_size > HASH_THRESHOLD) {
+        char hash_str[17];
+        snprintf(hash_str, sizeof(hash_str), "%016" PRIx64, fnv_hash(material, request.logical_size));
+        std::ofstream ofs(fs::path(cache_dir) / hash_str, std::ios::binary);
+        ofs.write(reinterpret_cast<const char *>(material), request.logical_size);
+        if (!ofs) return false;
+    }
+    const auto root = hfx_mutable_chain(hfx_mutable_session.mutation_root, request);
+    const auto semantic = hfx_mutable_semantic_chain(hfx_mutable_session.semantic_root, request);
+    memset(&response, 0, sizeof(response));
+    hfx_set_magic(response.magic, "HFXMUR1\0");
+    response.major = HFX_MUTABLE_MAJOR; response.minor = HFX_MUTABLE_MINOR;
+    response.encoded_size = sizeof(response); response.status = 1;
+    response.role = request.role; response.role_ordinal = request.role_ordinal;
+    response.allocation_ordinal = request.allocation_ordinal;
+    response.graph_uid = request.graph_uid; response.exec_sequence = request.exec_sequence;
+    response.mutation_sequence = request.mutation_sequence;
+    response.tensor_relative = request.tensor_relative;
+    response.logical_offset = request.logical_offset; response.logical_size = request.logical_size;
+    memcpy(response.attempt_nonce, request.attempt_nonce, 32);
+    memcpy(response.server_nonce, request.server_nonce, 32);
+    memcpy(response.content_digest, applied_digest.data(), 32);
+    memcpy(response.view_digest, server_view_digest.data(), 32);
+    memcpy(response.mutation_root, root.data(), 32);
+    if (!hfx_mutable_sign(response, hfx_graph_key_value.data())) return false;
+    hfx_mutable_session.mutation_root = root;
+    hfx_mutable_session.semantic_root = semantic;
+    hfx_mutable_session.mutation_sequence = request.mutation_sequence;
+    hfx_mutable_census_entry entry {};
+    entry.role = request.role; entry.role_ordinal = request.role_ordinal;
+    entry.allocation_ordinal = request.allocation_ordinal; entry.type = request.type;
+    entry.tensor_relative = request.tensor_relative; entry.logical_size = ggml_nbytes(tensor);
+    memcpy(entry.ne, request.ne, sizeof(entry.ne)); memcpy(entry.nb, request.nb, sizeof(entry.nb));
+    memcpy(entry.view_digest, server_view_digest.data(), 32);
+    hfx_mutable_session.mutations.push_back(entry);
+    return true;
+}
+
+bool rpc_server::hfx_mutable_refusal(
+        const std::vector<uint8_t> & input,
+        hfx_mutable_receipt & response) {
+    if (!hfx_mutable_session.admitted ||
+        input.size() < sizeof(hfx_mutable_update_header) + sizeof(rpc_tensor)) return false;
+    hfx_mutable_update_header request {};
+    if (!hfx_mutable_decode(input.data(), sizeof(request), request) ||
+        !hfx_equal(request.attempt_nonce, hfx_mutable_session.caps.attempt_nonce, 32) ||
+        !hfx_equal(request.server_nonce, hfx_mutable_session.caps.server_nonce, 32)) return false;
+    memset(&response, 0, sizeof(response));
+    hfx_set_magic(response.magic, "HFXMUR1\0");
+    response.major = HFX_MUTABLE_MAJOR;
+    response.minor = HFX_MUTABLE_MINOR;
+    response.encoded_size = sizeof(response);
+    response.status = 0;
+    response.role = request.role;
+    response.role_ordinal = request.role_ordinal;
+    response.allocation_ordinal = request.allocation_ordinal;
+    response.graph_uid = request.graph_uid;
+    response.exec_sequence = request.exec_sequence;
+    response.mutation_sequence = request.mutation_sequence;
+    response.tensor_relative = request.tensor_relative;
+    response.logical_offset = request.logical_offset;
+    response.logical_size = request.logical_size;
+    memcpy(response.attempt_nonce, request.attempt_nonce, 32);
+    memcpy(response.server_nonce, request.server_nonce, 32);
+    memcpy(response.content_digest, request.content_digest, 32);
+    memcpy(response.view_digest, request.view_digest, 32);
+    memcpy(response.mutation_root, hfx_mutable_session.mutation_root.data(), 32);
+    return hfx_mutable_sign(response, hfx_graph_key_value.data());
+}
+
+bool rpc_server::hfx_mutable_commit(
+        const std::vector<uint8_t> & input,
+        hfx_mutable_commit_header & response) {
+    if (!hfx_mutable_session.admitted || hfx_mutable_session.committed ||
+        input.size() < sizeof(hfx_mutable_commit_header)) return false;
+    hfx_mutable_commit_header request {};
+    if (!hfx_mutable_decode(input.data(), sizeof(request), request) ||
+        !hfx_magic(request.magic, "HFXMCC1\0") ||
+        request.major != HFX_MUTABLE_MAJOR || request.minor != HFX_MUTABLE_MINOR ||
+        request.encoded_size != input.size() ||
+        request.census_count == 0 || request.census_count > hfx_mutable_session.caps.max_census ||
+        request.mutation_count != hfx_mutable_session.mutation_sequence ||
+        request.graph_uid != hfx_mutable_session.caps.graph_uid ||
+        request.exec_sequence != hfx_mutable_session.caps.exec_sequence ||
+        !hfx_equal(request.attempt_nonce, hfx_mutable_session.caps.attempt_nonce, 32) ||
+        !hfx_equal(request.server_nonce, hfx_mutable_session.caps.server_nonce, 32) ||
+        !hfx_equal(request.scheduler_nonce, hfx_mutable_session.caps.scheduler_nonce, 32) ||
+        !hfx_equal(request.scheduler_root, hfx_mutable_session.caps.scheduler_root, 32) ||
+        !hfx_equal(request.mutation_root, hfx_mutable_session.mutation_root.data(), 32) ||
+        !hfx_mutable_verify(request, hfx_graph_key_value.data()) ||
+        input.size() != sizeof(request) + size_t(request.census_count) * sizeof(hfx_mutable_census_entry)) return false;
+    std::vector<hfx_mutable_census_entry> census(request.census_count);
+    for (uint32_t i = 0; i < request.census_count; ++i) {
+        const uint8_t * p = input.data() + sizeof(request) + i * sizeof(hfx_mutable_census_entry);
+        if (!hfx_mutable_decode(p, sizeof(hfx_mutable_census_entry), census[i]) ||
+            !hfx_mutable_census_role_valid(census[i].role)) return false;
+        if (i && std::tie(census[i-1].role, census[i-1].role_ordinal) >=
+                 std::tie(census[i].role, census[i].role_ordinal)) return false;
+    }
+    std::vector<uint8_t> census_wire(input.begin() + sizeof(request), input.end());
+    const auto root = hfx_sha256(census_wire.data(), census_wire.size());
+    if (!hfx_equal(root.data(), request.census_root, 32)) return false;
+    for (const auto & mutation : hfx_mutable_session.mutations) {
+        const auto found = std::find_if(census.begin(), census.end(), [&](const auto & entry) {
+            return entry.role == mutation.role && entry.role_ordinal == mutation.role_ordinal &&
+                entry.allocation_ordinal == mutation.allocation_ordinal &&
+                entry.type == mutation.type && entry.tensor_relative == mutation.tensor_relative &&
+                entry.logical_size == mutation.logical_size &&
+                hfx_equal(entry.view_digest, mutation.view_digest, 32) &&
+                memcmp(entry.ne, mutation.ne, sizeof(entry.ne)) == 0 &&
+                memcmp(entry.nb, mutation.nb, sizeof(entry.nb)) == 0;
+        });
+        if (found == census.end()) return false;
+    }
+    response = request;
+    hfx_set_magic(response.magic, "HFXMCR1\0");
+    response.encoded_size = sizeof(response);
+    if (!hfx_mutable_sign(response, hfx_graph_key_value.data())) return false;
+    hfx_mutable_session.committed = true;
+    hfx_mutable_session.census_count = request.census_count;
+    hfx_mutable_session.census = census;
+    return true;
+}
+
+bool rpc_server::hfx_mutable_bind(
+        const hfx_mutable_commit_header & request,
+        hfx_mutable_commit_header & response) {
+    if (!hfx_mutable_session.admitted || !hfx_mutable_session.committed ||
+        !hfx_magic(request.magic, "HFXMCB1\0") ||
+        request.major != HFX_MUTABLE_MAJOR || request.minor != HFX_MUTABLE_MINOR ||
+        request.encoded_size != sizeof(request) || request.graph_uid == 0 ||
+        request.exec_sequence != hfx_mutable_session.caps.exec_sequence ||
+        request.mutation_count != hfx_mutable_session.mutation_sequence ||
+        request.census_count != hfx_mutable_session.census_count ||
+        !hfx_equal(request.attempt_nonce, hfx_mutable_session.caps.attempt_nonce, 32) ||
+        !hfx_equal(request.server_nonce, hfx_mutable_session.caps.server_nonce, 32) ||
+        !hfx_equal(request.scheduler_nonce, hfx_mutable_session.caps.scheduler_nonce, 32) ||
+        !hfx_equal(request.scheduler_root, hfx_mutable_session.caps.scheduler_root, 32) ||
+        !hfx_equal(request.mutation_root, hfx_mutable_session.mutation_root.data(), 32) ||
+        !hfx_mutable_verify(request, hfx_graph_key_value.data())) return false;
+    hfx_mutable_session.caps.graph_uid = request.graph_uid;
+    response = request;
+    hfx_set_magic(response.magic, "HFXMBR1\0");
+    return hfx_mutable_sign(response, hfx_graph_key_value.data());
+}
+
+bool rpc_server::hfx_mutable_graph_census_valid(const ggml_cgraph * graph) const {
+    if (!hfx_mutable_session.committed || graph == nullptr ||
+        hfx_mutable_session.census.size() != hfx_mutable_session.census_count) return false;
+    std::unordered_set<const ggml_tensor *> seen;
+    std::vector<const ggml_tensor *> tensors;
+    std::function<void(const ggml_tensor *)> collect = [&](const ggml_tensor * tensor) {
+        if (tensor == nullptr || !seen.insert(tensor).second) return;
+        if (tensor->view_src) collect(tensor->view_src);
+        bool has_src = false;
+        for (const ggml_tensor * src : tensor->src) {
+            if (src) {
+                has_src = true;
+                collect(src);
+            }
+        }
+        if (!has_src) tensors.push_back(tensor);
+    };
+    for (int i = 0; i < graph->n_nodes; ++i) collect(graph->nodes[i]);
+    if (tensors.size() != hfx_mutable_session.census.size()) return false;
+    std::unordered_set<const ggml_tensor *> matched_tensors;
+    for (const auto & entry : hfx_mutable_session.census) {
+        const ggml_tensor * matched = nullptr;
+        for (const ggml_tensor * tensor : tensors) {
+            if (matched_tensors.count(tensor) != 0) continue;
+            const ggml_tensor * storage = tensor;
+            uint64_t inherited = 0;
+            while (storage->buffer == nullptr && storage->view_src != nullptr) {
+                if (!hfx_add(inherited, storage->view_offs, inherited)) return false;
+                storage = storage->view_src;
+            }
+            if (storage->buffer == nullptr) continue;
+            const auto ordinal = buffer_allocation_ordinals.find(storage->buffer);
+            if (ordinal == buffer_allocation_ordinals.end() || ordinal->second != entry.allocation_ordinal ||
+                tensor->type != entry.type || ggml_nbytes(tensor) != entry.logical_size) continue;
+            const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(storage->buffer));
+            uint64_t address = reinterpret_cast<uint64_t>(tensor->data);
+            if (address == 0) {
+                if (!hfx_add(reinterpret_cast<uint64_t>(storage->data), inherited, address)) return false;
+            }
+            if (address < base || address - base != entry.tensor_relative) continue;
+            bool layout = true;
+            for (size_t i = 0; i < GGML_MAX_DIMS; ++i) {
+                layout = layout && tensor->ne[i] == entry.ne[i] && tensor->nb[i] == entry.nb[i];
+            }
+            if (!layout) continue;
+            std::vector<uint8_t> view;
+            for (const ggml_tensor * v = tensor; v; v = v->view_src) {
+                hfx_le<uint64_t>(view, v->view_offs);
+                if (view.size() > 8 * GGML_MAX_SRC) return false;
+            }
+            const auto digest = hfx_sha256(view.data(), view.size());
+            if (hfx_equal(digest.data(), entry.view_digest, 32)) { matched = tensor; break; }
+        }
+        if (!matched || !matched_tensors.insert(matched).second) return false;
+    }
+    return matched_tensors.size() == tensors.size();
 }
 
 extern "C" uint32_t ggml_backend_rpc_halofpx_graph_auth_self_test(void) {
@@ -3316,6 +4846,110 @@ extern "C" uint32_t ggml_backend_rpc_halofpx_graph_auth_self_test(void) {
     if (!hfx_graph_server_header_valid(header, key, attempt, server, 1, "HFXGAX1\0")) passed |= 1U << 17;
     return passed;
 }
+
+extern "C" uint32_t ggml_backend_rpc_halofpx_mutable_auth_self_test(void) {
+    uint32_t passed = 0;
+    hfx_digest key {};
+    for (size_t i = 0; i < key.size(); ++i) key[i] = static_cast<uint8_t>(i + 3);
+    hfx_mutable_caps caps {};
+    hfx_set_magic(caps.magic, "HFXMCQ1\0");
+    caps.major = HFX_MUTABLE_MAJOR; caps.minor = HFX_MUTABLE_MINOR;
+    caps.encoded_size = sizeof(caps); caps.max_mutations = 8; caps.max_census = 8;
+    caps.graph_uid = 9; caps.exec_sequence = 1; caps.scheduler_sequence = 4;
+    memset(caps.attempt_nonce, 1, 32); memset(caps.scheduler_nonce, 2, 32);
+    memset(caps.scheduler_root, 3, 32);
+    if (hfx_mutable_sign(caps, key.data()) && hfx_mutable_verify(caps, key.data())) passed |= 1U << 0;
+    auto wire = hfx_mutable_encode(caps);
+    hfx_mutable_caps decoded {};
+    if (hfx_mutable_decode(wire.data(), wire.size(), decoded) &&
+        memcmp(&caps, &decoded, sizeof(caps)) == 0) passed |= 1U << 1;
+    wire.push_back(0);
+    if (!hfx_mutable_decode(wire.data(), wire.size(), decoded)) passed |= 1U << 2;
+    caps.graph_uid ^= 1;
+    if (!hfx_mutable_verify(caps, key.data())) passed |= 1U << 3;
+    caps.graph_uid ^= 1;
+    hfx_mutable_update_header update {};
+    hfx_set_magic(update.magic, "HFXMUS1\0");
+    update.major = HFX_MUTABLE_MAJOR; update.minor = HFX_MUTABLE_MINOR;
+    update.encoded_size = sizeof(update); update.role = GGML_RPC_HALOFPX_MUTABLE_TOKEN;
+    update.allocation_ordinal = 2; update.type = GGML_TYPE_I32;
+    update.graph_uid = 9; update.exec_sequence = 1; update.mutation_sequence = 1;
+    update.logical_size = 4; update.ne[0] = update.ne[1] = update.ne[2] = update.ne[3] = 1;
+    update.nb[0] = update.nb[1] = update.nb[2] = update.nb[3] = 4;
+    memset(update.attempt_nonce, 1, 32); memset(update.server_nonce, 4, 32);
+    memset(update.content_digest, 5, 32); memset(update.prior_root, 6, 32);
+    if (hfx_mutable_sign(update, key.data()) && hfx_mutable_verify(update, key.data())) passed |= 1U << 4;
+    const auto root1 = hfx_mutable_chain(hfx_sha256(HFX_MUTABLE_DOMAIN, sizeof(HFX_MUTABLE_DOMAIN) - 1), update);
+    update.mutation_sequence = 2; hfx_mutable_sign(update, key.data());
+    const auto root2 = hfx_mutable_chain(root1, update);
+    if (!hfx_equal(root1.data(), root2.data(), 32)) passed |= 1U << 5;
+    update.role = 0; hfx_mutable_sign(update, key.data());
+    if (!hfx_mutable_role_valid(update.role)) passed |= 1U << 6;
+    update.role = GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT + 1;
+    if (!hfx_mutable_role_valid(update.role)) passed |= 1U << 7;
+    hfx_mutable_census_entry a {};
+    a.role = GGML_RPC_HALOFPX_MUTABLE_TOKEN; a.role_ordinal = 0;
+    hfx_mutable_census_entry b = a;
+    if (std::tie(a.role, a.role_ordinal) >= std::tie(b.role, b.role_ordinal)) passed |= 1U << 8;
+    uint64_t end = 0;
+    if (!hfx_add(UINT64_MAX, 1, end)) passed |= 1U << 9;
+    hfx_mutable_receipt receipt {};
+    hfx_set_magic(receipt.magic, "HFXMUR1\0");
+    receipt.major = HFX_MUTABLE_MAJOR; receipt.minor = HFX_MUTABLE_MINOR;
+    receipt.encoded_size = sizeof(receipt); receipt.status = 1;
+    receipt.role = GGML_RPC_HALOFPX_MUTABLE_TOKEN; receipt.allocation_ordinal = 2;
+    receipt.graph_uid = 9; receipt.exec_sequence = 1; receipt.mutation_sequence = 1;
+    receipt.logical_size = 4; memset(receipt.attempt_nonce, 1, 32);
+    memset(receipt.server_nonce, 4, 32); memset(receipt.content_digest, 5, 32);
+    memcpy(receipt.mutation_root, root1.data(), 32);
+    if (hfx_mutable_sign(receipt, key.data()) && hfx_mutable_verify(receipt, key.data())) passed |= 1U << 10;
+    receipt.content_digest[0] ^= 1;
+    if (!hfx_mutable_verify(receipt, key.data())) passed |= 1U << 11;
+    hfx_mutable_update_header semantic_a {};
+    hfx_set_magic(semantic_a.magic, "HFXMUS1\0");
+    semantic_a.major = HFX_MUTABLE_MAJOR; semantic_a.minor = HFX_MUTABLE_MINOR;
+    semantic_a.encoded_size = sizeof(semantic_a);
+    semantic_a.role = GGML_RPC_HALOFPX_MUTABLE_CAUSAL_MASK;
+    semantic_a.type = GGML_TYPE_F32; semantic_a.graph_uid = 11;
+    semantic_a.exec_sequence = 1; semantic_a.mutation_sequence = 1;
+    semantic_a.logical_size = 16; semantic_a.ne[0] = 4;
+    semantic_a.ne[1] = semantic_a.ne[2] = semantic_a.ne[3] = 1;
+    semantic_a.nb[0] = 4; semantic_a.nb[1] = semantic_a.nb[2] = semantic_a.nb[3] = 16;
+    memset(semantic_a.content_digest, 7, 32);
+    const auto seed = hfx_sha256(HFX_MUTABLE_DOMAIN, sizeof(HFX_MUTABLE_DOMAIN) - 1);
+    const auto semantic_set = hfx_mutable_semantic_chain(seed, semantic_a);
+    auto semantic_hash = semantic_a;
+    hfx_set_magic(semantic_hash.magic, "HFXMUH1\0");
+    semantic_hash.cache_hash = 99;
+    semantic_hash.exec_sequence = 2;
+    semantic_hash.mutation_sequence = 4;
+    if (hfx_equal(semantic_set.data(),
+                  hfx_mutable_semantic_chain(seed, semantic_hash).data(), 32)) passed |= 1U << 12;
+    semantic_hash.content_digest[0] ^= 1;
+    if (!hfx_equal(semantic_set.data(),
+                   hfx_mutable_semantic_chain(seed, semantic_hash).data(), 32)) passed |= 1U << 13;
+    hfx_mutable_census_entry census {};
+    census.role = GGML_RPC_HALOFPX_MUTABLE_SELECTED_KV; census.role_ordinal = 3;
+    census.allocation_ordinal = 4; census.type = GGML_TYPE_Q8_0;
+    census.tensor_relative = 64; census.logical_size = 1088;
+    census.ne[0] = 32; census.ne[1] = census.ne[2] = census.ne[3] = 1;
+    census.nb[0] = 34; census.nb[1] = census.nb[2] = census.nb[3] = 34;
+    memset(census.view_digest, 8, 32);
+    auto census_wire = hfx_mutable_encode(census);
+    hfx_mutable_census_entry census_roundtrip {};
+    if (hfx_mutable_decode(census_wire.data(), census_wire.size(), census_roundtrip) &&
+        memcmp(&census, &census_roundtrip, sizeof(census)) == 0) passed |= 1U << 14;
+    census_wire.push_back(0);
+    if (!hfx_mutable_decode(census_wire.data(), census_wire.size(), census_roundtrip)) passed |= 1U << 15;
+    std::unordered_set<uint64_t> roles;
+    const uint64_t role_key = (uint64_t(census.role) << 32) | census.role_ordinal;
+    roles.insert(role_key);
+    if (!roles.insert(role_key).second) passed |= 1U << 16;
+    uint64_t bounded = 0;
+    if (hfx_add(HFX_MUTABLE_MAX_BYTES - 1, 1, bounded) && bounded == HFX_MUTABLE_MAX_BYTES) passed |= 1U << 17;
+    return passed;
+}
+static bool hfx_mutable_client_bind(hfx_mutable_client_session & session, uint64_t graph_uid);
 #endif
 
 bool rpc_server::get_device_memory(const rpc_msg_get_device_memory_req & request, rpc_msg_get_device_memory_rsp & response) {
@@ -4109,6 +5743,52 @@ static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const
                     !server.hfx_graph_execute(request, response)) return;
                 const auto response_wire = hfx_graph_encode(response);
                 if (!send_msg(sock, response_wire.data(), response_wire.size())) return;
+                break;
+            }
+            case RPC_CMD_HALOFPX_MUTABLE_CAPS: {
+                std::vector<uint8_t> wire;
+                hfx_mutable_caps request {};
+                hfx_mutable_caps response {};
+                if (!recv_msg_bounded(sock, wire, sizeof(request)) ||
+                    !hfx_mutable_decode(wire.data(), wire.size(), request) ||
+                    !server.hfx_mutable_caps(request, response)) return;
+                const auto output = hfx_mutable_encode(response);
+                if (!send_msg(sock, output.data(), output.size())) return;
+                break;
+            }
+            case RPC_CMD_HALOFPX_MUTABLE_SET:
+            case RPC_CMD_HALOFPX_MUTABLE_SET_HASH: {
+                std::vector<uint8_t> wire;
+                hfx_mutable_receipt response {};
+                const size_t limit = sizeof(hfx_mutable_update_header) + sizeof(rpc_tensor) +
+                    (cmd == RPC_CMD_HALOFPX_MUTABLE_SET ? HFX_MUTABLE_MAX_BYTES : 0);
+                if (!recv_msg_bounded(sock, wire, limit)) return;
+                if (!server.hfx_mutable_set(wire, cmd == RPC_CMD_HALOFPX_MUTABLE_SET_HASH, response) &&
+                    !server.hfx_mutable_refusal(wire, response)) return;
+                const auto output = hfx_mutable_encode(response);
+                if (!send_msg(sock, output.data(), output.size())) return;
+                break;
+            }
+            case RPC_CMD_HALOFPX_MUTABLE_COMMIT: {
+                std::vector<uint8_t> wire;
+                hfx_mutable_commit_header response {};
+                const size_t limit = sizeof(hfx_mutable_commit_header) +
+                    size_t(HFX_MUTABLE_MAX_CENSUS) * sizeof(hfx_mutable_census_entry);
+                if (!recv_msg_bounded(sock, wire, limit) ||
+                    !server.hfx_mutable_commit(wire, response)) return;
+                const auto output = hfx_mutable_encode(response);
+                if (!send_msg(sock, output.data(), output.size())) return;
+                break;
+            }
+            case RPC_CMD_HALOFPX_MUTABLE_BIND: {
+                std::vector<uint8_t> wire;
+                hfx_mutable_commit_header request {};
+                hfx_mutable_commit_header response {};
+                if (!recv_msg_bounded(sock, wire, sizeof(request)) ||
+                    !hfx_mutable_decode(wire.data(), wire.size(), request) ||
+                    !server.hfx_mutable_bind(request, response)) return;
+                const auto output = hfx_mutable_encode(response);
+                if (!send_msg(sock, output.data(), output.size())) return;
                 break;
             }
 #endif

@@ -353,6 +353,15 @@ extern "C" {
         uint8_t logical_digest[32];
     };
 
+    struct ggml_backend_sched_authority_admission {
+        uint16_t major;
+        uint16_t minor;
+        uint32_t encoded_size;
+        uint64_t execution_sequence;
+        uint8_t attempt_nonce[32];
+        uint8_t admission_root[32];
+    };
+
     // Initialize a backend scheduler, backends with low index are given priority over backends with high index
     GGML_API ggml_backend_sched_t ggml_backend_sched_new(ggml_backend_t * backends, ggml_backend_buffer_type_t * bufts, int n_backends, size_t graph_size, bool parallel, bool op_offload);
     GGML_API void                 ggml_backend_sched_free(ggml_backend_sched_t sched);
@@ -392,6 +401,7 @@ extern "C" {
     GGML_API void                 ggml_backend_sched_set_eval_callback(ggml_backend_sched_t sched, ggml_backend_sched_eval_callback callback, void * user_data);
     GGML_API bool                 ggml_backend_sched_authority_enable(ggml_backend_sched_t sched, const struct ggml_backend_sched_authority_config * config);
     GGML_API bool                 ggml_backend_sched_authority_result(ggml_backend_sched_t sched, struct ggml_backend_sched_authority_result * result);
+    GGML_API bool                 ggml_backend_sched_authority_admission(ggml_backend_sched_t sched, struct ggml_backend_sched_authority_admission * admission);
     GGML_API uint32_t             ggml_backend_sched_authority_self_test(void);
     GGML_API bool                 ggml_backend_sched_authority_hash_probe(
         ggml_backend_t backend,

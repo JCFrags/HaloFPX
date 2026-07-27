@@ -1,0 +1,24 @@
+{
+  "milestone": "L44",
+  "result": "PASS",
+  "base_commit": "aba0f78d07c824c3bcdbcb5ffbdc26e174cda3bf",
+  "primary_artifact_accessed": false,
+  "production_mutated": false,
+  "feature_default_off": true,
+  "real_handler_refusals": 6,
+  "concurrent_sessions": 2,
+  "compute_recompute_exact": true,
+  "controlled_mutation_sensitive": true,
+  "set_hash_miss_fallback": true,
+  "set_hash_hit": true,
+  "feature_off_inert": true,
+  "production_http": 200,
+  "production_nrestarts": {
+    "nimo-1": 0,
+    "nimo-2": 0
+  },
+  "cleanup_complete": true,
+  "raw_evidence": "docs/halofpx/evidence/l44-raw",
+  "review_verdict": "PASS",
+  "scope": "no-primary,no-production"
+}

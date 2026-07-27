@@ -2523,6 +2523,23 @@ bool ggml_backend_sched_authority_result(
     return !state.failed && state.result.status == 1;
 }
 
+bool ggml_backend_sched_authority_admission(
+        ggml_backend_sched_t sched,
+        struct ggml_backend_sched_authority_admission * admission) {
+    if (sched == nullptr || admission == nullptr || sched->authority == nullptr ||
+        sched->authority->failed) return false;
+    memset(admission, 0, sizeof(*admission));
+    admission->major = SCHED_AUTH_MAJOR;
+    admission->minor = SCHED_AUTH_MINOR;
+    admission->encoded_size = sizeof(*admission);
+    admission->execution_sequence = sched->authority->config.execution_sequence;
+    memcpy(admission->attempt_nonce, sched->authority->config.attempt_nonce, 32);
+    memcpy(admission->admission_root, sched->authority->chain.data(), 32);
+    return admission->execution_sequence != 0 &&
+        !sched_auth_zero(admission->attempt_nonce, 32) &&
+        !sched_auth_zero(admission->admission_root, 32);
+}
+
 uint32_t ggml_backend_sched_authority_self_test(void) {
     uint32_t passed = 0;
     uint64_t value = 0;

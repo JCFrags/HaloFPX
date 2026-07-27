@@ -1,0 +1,18 @@
+Starting RPC server v4.0.1
+  endpoint       : 127.0.0.1:51149
+  local cache    : /var/tmp/halofpx-l44-home-accepted-b/.cache/llama.cpp/rpc/
+  HaloFPX state  : off
+Devices:
+  CPU: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S (127433 MiB, 127433 MiB free)
+  transport      : TCP
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+[halofpx-mutable] set header refusal seq=1
+[halofpx-mutable] set header refusal seq=1
+[halofpx-mutable] set header refusal seq=0
+[halofpx-mutable] set range refusal rel=0 expected=0
+[halofpx-mutable] set view refusal
+Client connection closed

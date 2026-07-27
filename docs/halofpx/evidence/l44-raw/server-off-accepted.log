@@ -1,0 +1,11 @@
+Starting RPC server v4.0.1
+  endpoint       : 127.0.0.1:51150
+  local cache    : n/a
+  HaloFPX state  : off
+Devices:
+  CPU: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S (127433 MiB, 127433 MiB free)
+  transport      : TCP
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed

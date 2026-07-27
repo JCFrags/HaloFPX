@@ -816,6 +816,8 @@ if (GGML_RPC_HALOFPX_LOCAL_STATE)
     target_link_libraries(test-halofpx-rpc-graph-authority PRIVATE llama ggml-rpc)
     add_executable(test-halofpx-scheduler-authority test-halofpx-scheduler-authority.cpp)
     target_link_libraries(test-halofpx-scheduler-authority PRIVATE llama ggml-rpc)
+    add_executable(test-halofpx-rpc-mutable-authority test-halofpx-rpc-mutable-authority.cpp)
+    target_link_libraries(test-halofpx-rpc-mutable-authority PRIVATE llama ggml-rpc)
 endif()
 
 llama_build(export-graph-ops.cpp)

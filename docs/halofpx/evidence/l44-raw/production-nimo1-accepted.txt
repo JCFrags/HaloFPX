@@ -1,0 +1,10 @@
+Id=minimax-m27-q6-server.service
+LoadState=loaded
+ActiveState=active
+SubState=running
+MainPID=2356329
+NRestarts=0
+ExecMainStartTimestamp=Sat 2026-07-25 01:00:43 PDT
+ExecStart={ path=/opt/llm-usb4-cluster/bin/run-minimax-m27-q6-server.sh ; argv[]=/opt/llm-usb4-cluster/bin/run-minimax-m27-q6-server.sh ; ignore_errors=no ; start_time=[Sat 2026-07-25 01:00:43 PDT] ; stop_time=[n/a] ; pid=2356329 ; code=(null) ; status=0/0 }
+LISTEN 0      512          0.0.0.0:8081      0.0.0.0:*    users:(("llama-server",pid=2356329,fd=5))
+HTTP 200

@@ -1,0 +1,21 @@
+Starting RPC server v4.0.1
+  endpoint       : 127.0.0.1:51148
+  local cache    : /var/tmp/halofpx-l44-home-accepted-a/.cache/llama.cpp/rpc/
+  HaloFPX state  : off
+Devices:
+  CPU: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S (127433 MiB, 127433 MiB free)
+  transport      : TCP
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+[halofpx-rpc-graph-auth] server prepared mode=compute sequence=1 uid=2 digest=6d5a61eb45e4fbcbf575b4f51063ccfa8395a2f387073ae9118cc5419f827f0e
+[halofpx-rpc-graph-auth] server executed sequence=1 uid=2 digest=6d5a61eb45e4fbcbf575b4f51063ccfa8395a2f387073ae9118cc5419f827f0e
+[halofpx-rpc-graph-auth] server prepared mode=compute sequence=2 uid=3 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-rpc-graph-auth] server executed sequence=2 uid=3 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-rpc-graph-auth] server prepared mode=recompute sequence=3 uid=3 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-rpc-graph-auth] server executed sequence=3 uid=3 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-rpc-graph-auth] server prepared mode=compute sequence=4 uid=4 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+[halofpx-rpc-graph-auth] server executed sequence=4 uid=4 digest=62db2e5443efa3328b44abdf8481d971d5a8e9ef5e836036dd588c6011b85950
+Client connection closed
