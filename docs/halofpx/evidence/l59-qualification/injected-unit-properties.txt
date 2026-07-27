@@ -1,0 +1,8 @@
+ActiveState=failed
+SubState=failed
+InvocationID=685a294d8d084c6cbc5d91f7d0d5bb94
+MainPID=0
+Result=exit-code
+ExecMainPID=2514260
+ExecMainCode=1
+ExecMainStatus=19

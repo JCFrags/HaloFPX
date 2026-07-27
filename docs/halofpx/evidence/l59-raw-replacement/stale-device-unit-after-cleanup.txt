@@ -1,0 +1,4 @@
+LoadState=not-found
+ActiveState=inactive
+SubState=dead
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess

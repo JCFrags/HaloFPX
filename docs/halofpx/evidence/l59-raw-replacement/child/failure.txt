@@ -1,0 +1,4 @@
+command failed (1): ('systemd-run', '--user', '--unit=halofpx-l50-device-gate', '--property=RuntimeMaxSec=5min', '--property=RemainAfterExit=yes', '--setenv=GGML_RPC_DEBUG=1', '--setenv=HALOFPX_COMPOSED_AUTHORITY=1', '--setenv=HALOFPX_RPC_GRAPH_AUTH=1', '--setenv=HALOFPX_RPC_MUTABLE_AUTH=1', '--setenv=HALOFPX_RPC_GRAPH_AUTH_KEY_FILE=/var/tmp/halofpx-l48-control.key', '--setenv=HALOFPX_RPC_GRAPH_AUTH_KEY_SHA256=c304bfc76b66c8e6e0d8801be7ba70054ba9be3792742829dc3e936a71ea04d2', '/var/tmp/halofpx-l48-source-nimo1/build-l48/bin/rpc-server', '--host', '127.0.0.1', '--port', '50249', '--device', 'ROCm0', '--halofpx-local-state', '--halofpx-state-root', '/var/tmp/halofpx-l50-device-gate', '--halofpx-state-key-file', '/var/tmp/halofpx-l48-control.key', '--halofpx-state-rank', '1', '--halofpx-state-world', '2', '--halofpx-state-key-generation', '7')
+
+Failed to start transient service unit: Unit halofpx-l50-device-gate.service was already loaded or has a fragment file.
+

@@ -95,10 +95,15 @@ def parse_record(line: str, key: bytes) -> dict[str, object]:
     }
 
 
-def validate_stream(records: list[dict[str, object]], side: str) -> None:
+def validate_stream(
+        records: list[dict[str, object]], side: str, *, allow_prefix: bool = False) -> None:
     phases = [str(record["phase"]) for record in records]
     if side == "client":
         required = ["request_opcode", "request_header", "request_body", "response_header"]
+        if allow_prefix and len(records) < len(required):
+            if phases != required[:len(records)] or any(record["rc"] != 1 for record in records):
+                raise ValueError("client incomplete prefix is not canonical")
+            return
         if phases[:len(required)] != required:
             raise ValueError("client request/response-header lifecycle mismatch")
         if records[3]["rc"] == 0:
@@ -135,6 +140,10 @@ def validate_stream(records: list[dict[str, object]], side: str) -> None:
                 raise ValueError("client transport byte authority is inconsistent")
     else:
         required = ["handler_entry", "handler_validation"]
+        if allow_prefix and len(records) == 1:
+            if phases != ["handler_entry"] or records[0]["rc"] != 1:
+                raise ValueError("server incomplete prefix is not canonical")
+            return
         if phases[:2] != required:
             raise ValueError("server handler lifecycle mismatch")
         if records[1]["rc"] == 0:
@@ -178,6 +187,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--key-file", required=True)
     parser.add_argument("--record-file", action="append", required=True)
+    parser.add_argument("--allow-prefix", action="store_true")
     args = parser.parse_args()
     key = load_key(Path(args.key_file))
     output: dict[str, list[dict[str, object]]] = {}
@@ -197,23 +207,24 @@ def main() -> int:
         side = next(iter(sides))
         if side in output:
             raise SystemExit("duplicate side record file")
-        validate_stream(records, side)
+        validate_stream(records, side, allow_prefix=args.allow_prefix)
         output[side] = records
-    if set(output) != SIDES:
+    if not args.allow_prefix and set(output) != SIDES:
         raise SystemExit("exactly one client and one server stream are required")
-    client = output["client"]
-    server = output["server"]
-    for field in (
-            "split_uid", "exec_sequence", "backend_ordinal", "attempt",
-            "connection_epoch", "opcode"):
-        values = {
-            str(record[field]) for record in client + server
-        }
-        if len(values) != 1:
-            raise SystemExit(f"cross-side {field} authority mismatch")
-    if any(record["parent_uid"] != 0 for record in server):
+    client = output.get("client", [])
+    server = output.get("server", [])
+    if client and server:
+        for field in (
+                "split_uid", "exec_sequence", "backend_ordinal", "attempt",
+                "connection_epoch", "opcode"):
+            values = {str(record[field]) for record in client + server}
+            if len(values) != 1:
+                raise SystemExit(f"cross-side {field} authority mismatch")
+    if server and any(record["parent_uid"] != 0 for record in server):
         raise SystemExit("server-local parent UID must be canonical zero")
-    if len({str(record["parent_uid"]) for record in client}) != 1 or client[0]["parent_uid"] == 0:
+    if client and (
+            len({str(record["parent_uid"]) for record in client}) != 1
+            or client[0]["parent_uid"] == 0):
         raise SystemExit("client parent UID authority is missing or inconsistent")
     print(json.dumps(output, sort_keys=True, separators=(",", ":")))
     return 0

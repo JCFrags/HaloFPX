@@ -148,6 +148,7 @@ L48_EXECUTABLES = {
     "device_receipt": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_l50_device_receipt.py",
     "status_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l55_status.py",
     "response_boundary_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_boundary.py",
+    "response_harvester": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_harvest.py",
 }
 L29_MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -179,6 +180,7 @@ L48_SOURCE_FILES = (
     "scripts/halofpx_l50_device_receipt.py",
     "scripts/halofpx_l55_status.py",
     "scripts/halofpx_rpc_response_boundary.py",
+    "scripts/halofpx_rpc_response_harvest.py",
 )
 
 
@@ -603,6 +605,128 @@ class SshRunner:
     ) -> CommandResult:
         return self._execute(host, argv, operation=operation, stdin=stdin)
 
+    def receive_file(
+        self,
+        host: str,
+        remote_path: str,
+        local_path: Path,
+        *,
+        expected_size: int,
+        operation: str = "evidence",
+    ) -> CommandResult:
+        """Copy bounded evidence without placing its bytes in transport logs."""
+        if operation not in self.deadlines:
+            raise ValueError(f"unknown SSH operation class: {operation}")
+        if not remote_path.startswith("/") or expected_size < 1 or expected_size > 65536:
+            raise ValueError("invalid bounded evidence transfer authority")
+        if os.path.lexists(local_path):
+            raise FileExistsError(local_path)
+        timeout = self.deadlines[operation]
+        argv = ["cat", "--", remote_path]
+        remote_command = " ".join(shlex.quote(value) for value in argv)
+        command = [
+            "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+            "-o", "ConnectionAttempts=1", host, remote_command,
+        ]
+        started_wall = datetime.now(timezone.utc).isoformat()
+        started_mono = time.monotonic()
+        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        output_fd = os.open(local_path, flags, 0o600)
+        process: subprocess.Popen[bytes] | None = None
+        job_handle: int | None = None
+        timed_out = False
+        terminated = False
+        killed = False
+        stderr = b""
+        setup_error: Exception | None = None
+        sink_error: Exception | None = None
+        try:
+            with os.fdopen(output_fd, "wb", closefd=True) as output:
+                output_fd = -1
+                try:
+                    process = self.popen_factory(
+                        command,
+                        stdin=subprocess.DEVNULL,
+                        stdout=output,
+                        stderr=subprocess.PIPE,
+                        start_new_session=os.name != "nt",
+                        creationflags=creationflags,
+                    )
+                except Exception as exc:
+                    setup_error = exc
+                if process is not None:
+                    try:
+                        job_handle = self._create_windows_job(process)
+                    except Exception as exc:
+                        setup_error = exc
+                        terminated, killed, _ = self._cleanup_setup_failure(process)
+                    if setup_error is None:
+                        try:
+                            _, stderr = process.communicate(timeout=timeout)
+                        except subprocess.TimeoutExpired as exc:
+                            timed_out = True
+                            stderr = (exc.stderr or b"")[-SSH_EVIDENCE_LIMIT:]
+                            terminated, killed = self._terminate_group(process, job_handle)
+                            job_handle = None
+                            _, remaining_err = process.communicate()
+                            stderr = (stderr + remaining_err)[-SSH_EVIDENCE_LIMIT:]
+                try:
+                    output.flush()
+                    os.fsync(output.fileno())
+                except Exception as exc:
+                    sink_error = exc
+                    if process is not None and process.poll() is None:
+                        terminated, killed = self._terminate_group(process, job_handle)
+                        job_handle = None
+                        process.communicate()
+        finally:
+            if output_fd >= 0:
+                os.close(output_fd)
+            if job_handle is not None:
+                self._close_windows_job(job_handle)
+        ended_mono = time.monotonic()
+        actual_size = local_path.stat().st_size if local_path.exists() else 0
+        self._sequence += 1
+        record = {
+            "schema": "halofpx.ssh-operation.v1",
+            "sequence": self._sequence,
+            "host": host,
+            "operation": operation,
+            "argv": argv,
+            "started_at": started_wall,
+            "ended_at": datetime.now(timezone.utc).isoformat(),
+            "duration_seconds": round(ended_mono - started_mono, 6),
+            "deadline_seconds": timeout,
+            "pid": process.pid if process is not None else 0,
+            "returncode": process.returncode if process is not None else None,
+            "timed_out": timed_out,
+            "term_sent": terminated,
+            "kill_sent": killed,
+            "failure_class": (
+                "process-setup" if setup_error is not None else
+                "local-evidence-sink" if sink_error is not None else
+                "timeout" if timed_out else
+                None if process is not None and process.returncode == 0 else
+                self._classify_failure(stderr.decode("utf-8", errors="replace"))
+            ),
+            "stdout": "",
+            "stdout_bytes": actual_size,
+            "stderr": stderr.decode("utf-8", errors="replace")[-SSH_EVIDENCE_LIMIT:],
+        }
+        self._record(record)
+        if setup_error is not None:
+            raise SshSetupError(host, operation, str(setup_error))
+        if sink_error is not None:
+            raise OSError(f"local evidence sink failed: {sink_error}") from sink_error
+        if timed_out:
+            raise SshTimeoutError(host, operation, timeout)
+        if process is None:
+            raise RuntimeError("bounded evidence transfer process was not created")
+        return CommandResult(process.returncode, "", record["stderr"])
+
 
 @dataclass(frozen=True)
 class RoleSpec:
@@ -721,6 +845,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "l55-first-armed-prompt-discriminator",
         "l57-parent-split-identity-qualification",
         "l58-rpc-response-boundary-discriminator",
+        "l59-rpc-response-evidence-lifetime",
     }
     primary = l29 or l31 or l33 or l36
     if l48:
@@ -740,6 +865,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         }
         if l48:
             expected_exec["controller"] = str(Path(__file__).resolve())
+            if raw["milestone"] != "l59-rpc-response-evidence-lifetime":
+                expected_exec.pop("response_harvester")
         expected_child_argv = [
             str(interpreter_path), str(child_path), "--evidence-dir",
             "{evidence_root}/child",
@@ -748,7 +875,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         if l48:
             if raw["milestone"] in {
                     "l55-first-armed-prompt-discriminator",
-                    "l58-rpc-response-boundary-discriminator"}:
+                    "l58-rpc-response-boundary-discriminator",
+                    "l59-rpc-response-evidence-lifetime"}:
                 expected_child_argv += ["--l55-first-chunk"]
             expected_child_argv += ["--authority-key-file", L48_KEY_PATHS["nimo-2"]]
         prefix = "halofpx-l48" if l48 else "halofpx-l36-primary" if l36 else "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
@@ -761,6 +889,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 "l55-first-armed-prompt-discriminator",
                 "l57-parent-split-identity-qualification",
                 "l58-rpc-response-boundary-discriminator",
+                "l59-rpc-response-evidence-lifetime",
             }
             else "l36-primary-replay-authority-discriminator" if l36
             else "l33-primary-live-state-discriminator" if l33
@@ -809,7 +938,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 "rpc_graph": 1, "scheduler": 2, "mutable_session": 1,
                 "composition": 1,
                 **({"response_boundary": 1}
-                   if raw["milestone"] == "l58-rpc-response-boundary-discriminator"
+                   if raw["milestone"] in {
+                       "l58-rpc-response-boundary-discriminator",
+                       "l59-rpc-response-evidence-lifetime"}
                    else {}),
             },
             **({
@@ -1027,6 +1158,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         host_for["device_receipt"] = DISPOSABLE_HOST
         host_for["status_verifier"] = DISPOSABLE_CANARY_HOST
         host_for["response_boundary_verifier"] = DISPOSABLE_CANARY_HOST
+        if raw["milestone"] == "l59-rpc-response-evidence-lifetime":
+            host_for["response_harvester"] = DISPOSABLE_CANARY_HOST
     for name, host in host_for.items():
         result = runner.run(
             host, ["sha256sum", "--", expected_exec[name]], operation="hash")
@@ -1644,6 +1777,8 @@ def child_environment(
         required += (
             "result_authority_verifier", "composed_result_verifier",
             "device_receipt")
+        if manifest.get("milestone") == "l59-rpc-response-evidence-lifetime":
+            required += ("response_harvester",)
     if any(not re.fullmatch(r"[0-9a-f]{64}", str(hashes.get(name, ""))) for name in required):
         raise TransitionError("validated manifest child hash authority is incomplete")
     environment = os.environ.copy()
@@ -1683,6 +1818,10 @@ def child_environment(
         environment["HALOFPX_RPC_MUTABLE_AUTH"] = "1"
         if manifest.get("milestone") == "l58-rpc-response-boundary-discriminator":
             environment["HALOFPX_RPC_RESPONSE_DIAGNOSTICS"] = "1"
+        if manifest.get("milestone") == "l59-rpc-response-evidence-lifetime":
+            environment["HALOFPX_RPC_RESPONSE_DIAGNOSTICS"] = "1"
+            environment["HALOFPX_RPC_RESPONSE_HARVESTER_SHA256"] = str(
+                hashes["response_harvester"])
         environment["HALOFPX_L50_DEVICE_RECEIPT_SHA256"] = str(
             hashes["device_receipt"])
     return environment

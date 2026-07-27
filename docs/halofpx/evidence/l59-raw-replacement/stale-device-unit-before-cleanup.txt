@@ -1,0 +1,12 @@
+Id=halofpx-l50-device-gate.service
+LoadState=not-found
+ActiveState=inactive
+SubState=dead
+FragmentPath=
+InvocationID=
+MainPID=0
+Result=success
+ExecMainPID=0
+ExecMainCode=0
+ExecMainStatus=0
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess

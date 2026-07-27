@@ -1,0 +1,66 @@
+{
+  "schema": "halofpx.l59.rpc-response-evidence-lifetime-receipt.v1",
+  "status": "NOT_PROMOTED",
+  "classification": "HARNESS_ADMISSION_STALE_TRANSIENT_UNIT_CLEANUP_AUTHORITY",
+  "date": "2026-07-27",
+  "base_commit": "e561b56ffb0edc4ffbc38b1c5426722146d32b37",
+  "qualification": {
+    "focused_tests": "63 passed, 1 Windows-skipped POSIX assertion, 11 subtests passed",
+    "injected_unit": "PASS_AUTHENTICATED_PARTIAL_PREFIX",
+    "injected_unit_invocation_id": "685a294d8d084c6cbc5d91f7d0d5bb94",
+    "injected_unit_pid": 2514260,
+    "injected_unit_exit_status": 19,
+    "partial_prefix_bytes": 455,
+    "partial_prefix_sha256": "3b151b37d39368d212e5996cdcb249c5e345b644e454f7fafeaacae1fb28509f",
+    "pre_runtime_review": "GO",
+    "durability_review": "GO"
+  },
+  "source": {
+    "source_root": "00907017f73bd39921a1c17e1c2cae28181d51b16c5239c1383053c01b8836fb",
+    "build_id": "61956f09805bb4fac317f444da1e30b3795249f9a03dad08e771b26f0e37e100",
+    "worker_sha256": "fa0bbced06dc7eab294ab03a8d038607e442aa6a7395d41cbbd5a39eaeda6f97",
+    "canary_sha256": "fa8ae058e71de760f424c1b20fa77e8ef4758a7118e7143aeb21d00ec5caf0cf",
+    "feature_default_off": true
+  },
+  "attempts": {
+    "rejected_admission": {
+      "path": "docs/halofpx/evidence/l59-raw",
+      "stories_model_loaded": false,
+      "first_chunk_executed": false,
+      "reason": "WINDOWS_DIRECTORY_FD_PERMISSION_ERROR",
+      "file_count": 10,
+      "tree_sha256": "62e2c35a9d1bff23ee30a7e4fe122d1119183032d49d52a5d31509326dd20c38"
+    },
+    "authorized_replacement": {
+      "path": "docs/halofpx/evidence/l59-raw-replacement",
+      "stories_model_loaded": false,
+      "first_chunk_executed": false,
+      "reason": "TRANSIENT_DEVICE_GATE_UNIT_NAME_STILL_LOADED_AT_ADMISSION",
+      "file_count": 10,
+      "tree_sha256": "05245f84c2eecfc0f84ddeb6426f0cfefa949993b50eaacc6b51b25ffcff0e5c"
+    }
+  },
+  "qualification_evidence": {
+    "path": "docs/halofpx/evidence/l59-qualification",
+    "file_count": 13,
+    "tree_sha256": "b5a03330f79b75f0b42053014e124a9b2f50d7c840d90aaf834172654ba94516"
+  },
+  "rpc_discriminator": {
+    "executed": false,
+    "classification": null
+  },
+  "production": {
+    "mutated": false,
+    "snapshots_equal": true,
+    "worker_pid": 1535639,
+    "worker_port": 50052,
+    "worker_nrestarts": 0,
+    "coordinator_pid": 2356329,
+    "coordinator_port": 8081,
+    "coordinator_http": 200,
+    "coordinator_nrestarts": 0
+  },
+  "cleanup": "PASS",
+  "promotion": false,
+  "retry_authorized": false
+}

@@ -84,6 +84,8 @@ RESULT_AUTHORITY_VERIFIER_SHA = ""
 L55_FIRST_CHUNK_ONLY = False
 L55_SOURCE_ROOT = "38b9ccf435ecc79240f0dbf7121a088dfac83b70bcc9b65928c73782b53ab060"
 L55_BUILD_ID = "d88a6c525fb96e9f4023d3d4fcf8d7e61ccb1d2b16d37ab06ad1314ed988e086"
+RESPONSE_HARVESTER = ""
+RESPONSE_HARVESTER_SHA = ""
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -94,6 +96,7 @@ SSH_TRANSPORT = None
 SSH_TRANSPORT_MODULE = None
 LOCAL_EVIDENCE_ROOT: Path | None = None
 DISPOSABLE_UNIT_AUTHORITY: dict[tuple[str, str], dict[str, object]] = {}
+DISPOSABLE_UNIT_FINAL_AUTHORITY: dict[tuple[str, str], dict[str, object]] = {}
 
 
 class CanaryError(RuntimeError):
@@ -483,6 +486,7 @@ def configure_l48_fixture() -> None:
     global EPOCH_RECEIPT, COMPONENT_DIAGNOSTICS, SEMANTIC_VERIFIER
     global REPLAY_AUTHORITY_VERIFIER, RESULT_AUTHORITY_VERIFIER
     global DEVICE_RECEIPT, DEVICE_RECEIPT_SHA
+    global RESPONSE_HARVESTER, RESPONSE_HARVESTER_SHA
     global REMOTE_EVIDENCE, COORDINATOR_ROOT, WORKER_ROOT, RENDEZVOUS_ROOT
     global CONTROL, WORKER_CONTROL, ARTIFACT_DIR
     configure_l37_fixture()
@@ -513,6 +517,11 @@ def configure_l48_fixture() -> None:
         "/var/tmp/halofpx-l48-source-nimo1/scripts/"
         "halofpx_l50_device_receipt.py")
     DEVICE_RECEIPT_SHA = os.environ.get("HALOFPX_L50_DEVICE_RECEIPT_SHA256", "")
+    RESPONSE_HARVESTER = (
+        "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+        "halofpx_rpc_response_harvest.py")
+    RESPONSE_HARVESTER_SHA = os.environ.get(
+        "HALOFPX_RPC_RESPONSE_HARVESTER_SHA256", "")
     REMOTE_EVIDENCE = "/var/tmp/halofpx-l48-evidence"
     COORDINATOR_ROOT = "/var/tmp/halofpx-l48-coordinator"
     WORKER_ROOT = "/var/tmp/halofpx-l48-worker"
@@ -1091,7 +1100,10 @@ def exact_journal_cursor(text: str) -> str:
 
 def write_private_json(path: Path, value: object) -> None:
     encoded = (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    fd = os.open(
+        path,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0),
+        0o600)
     try:
         used = 0
         while used < len(encoded):
@@ -1102,6 +1114,78 @@ def write_private_json(path: Path, value: object) -> None:
         os.fsync(fd)
     finally:
         os.close(fd)
+    _durably_reopen_and_validate(
+        path, expected_size=len(encoded),
+        expected_sha256=hashlib.sha256(encoded).hexdigest())
+
+
+def _durability_mechanism() -> str:
+    return (
+        "windows_file_fsync_atomic_noreplace_reopen_revalidate"
+        if os.name == "nt"
+        else "posix_file_fsync_directory_fsync")
+
+
+def _durably_reopen_and_validate(
+        path: Path, *, expected_size: int, expected_sha256: str) -> dict[str, object]:
+    try:
+        metadata = os.lstat(path)
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or stat.S_ISLNK(metadata.st_mode)
+            or metadata.st_size != expected_size
+        ):
+            raise OSError("published evidence type or size mismatch")
+        flags = (
+            os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+            | getattr(os, "O_BINARY", 0))
+        fd = os.open(path, flags)
+        try:
+            digest = hashlib.sha256()
+            remaining = expected_size
+            while remaining:
+                chunk = os.read(fd, min(remaining, 65536))
+                if not chunk:
+                    raise OSError("published evidence is short")
+                digest.update(chunk)
+                remaining -= len(chunk)
+            if os.read(fd, 1) or digest.hexdigest() != expected_sha256:
+                raise OSError("published evidence digest mismatch")
+        finally:
+            os.close(fd)
+        if os.name != "nt":
+            directory_fd = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+    except OSError as exc:
+        raise CanaryError(
+            f"evidence durability validation failed ({_durability_mechanism()}): "
+            f"{path}: {exc}") from exc
+    return {
+        "mechanism": _durability_mechanism(),
+        "status": "success",
+        "bytes": expected_size,
+        "sha256": expected_sha256,
+    }
+
+
+def _publish_local_evidence_noreplace(
+        pending: Path, final: Path, *, expected_size: int,
+        expected_sha256: str) -> dict[str, object]:
+    if os.path.lexists(final):
+        raise CanaryError(f"evidence publication collision: {final}")
+    try:
+        # Same-volume hard-link creation is atomic and refuses an existing final
+        # name on both supported platforms. The pending name is removed only
+        # after the final name exists.
+        os.link(pending, final, follow_symlinks=False)
+        os.unlink(pending)
+    except OSError as exc:
+        raise CanaryError(f"atomic no-replace evidence publication failed: {exc}") from exc
+    return _durably_reopen_and_validate(
+        final, expected_size=expected_size, expected_sha256=expected_sha256)
 
 
 def capture_disposable_unit_authority(
@@ -1124,11 +1208,15 @@ def capture_disposable_unit_authority(
                     "invocation_id": invocation,
                     "launch_properties": last_props,
                 }
-                DISPOSABLE_UNIT_AUTHORITY[(host, unit)] = authority
                 main_pid = last_props.get("MainPID", "")
                 exec_pid = last_props.get("ExecMainPID", "")
                 if ((main_pid.isdecimal() and int(main_pid) > 0) or
                         (exec_pid.isdecimal() and int(exec_pid) > 0)):
+                    selected_pid = (
+                        int(exec_pid) if exec_pid.isdecimal() and int(exec_pid) > 0
+                        else int(main_pid))
+                    authority["pid"] = selected_pid
+                    DISPOSABLE_UNIT_AUTHORITY[(host, unit)] = authority
                     return authority
         time.sleep(0.1)
     if (host, unit) in DISPOSABLE_UNIT_AUTHORITY:
@@ -1360,6 +1448,12 @@ def collect_disposable_unit_evidence(host: str, unit: str) -> str:
     required = {"ExecMainCode", "ExecMainStatus", "Result", "ActiveState", "SubState"}
     if not required.issubset(props) or any(props[name] == "" for name in required):
         raise CanaryError(f"{unit} exit status authority is incomplete")
+    if (
+        not str(props.get("ExecMainPID", "")).isdecimal()
+        or int(props["ExecMainPID"]) != int(authority["pid"])
+        or str(authority["pid"]) not in pids
+    ):
+        raise CanaryError(f"{unit} final PID authority does not match launch/journal")
     if LOCAL_EVIDENCE_ROOT is None:
         raise CanaryError("local evidence root is unavailable")
     record = {
@@ -1375,6 +1469,11 @@ def collect_disposable_unit_evidence(host: str, unit: str) -> str:
         output.write(journal.stdout)
         output.flush()
         os.fsync(output.fileno())
+    DISPOSABLE_UNIT_FINAL_AUTHORITY[(host, unit)] = {
+        **authority,
+        "final_properties": props,
+        "journal_pids": pids,
+    }
     DISPOSABLE_UNIT_AUTHORITY.pop((host, unit), None)
     return journal.stdout
 
@@ -1669,6 +1768,216 @@ def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
         command, int(exit_props.get("ExecMainStatus", "1")),
         invocation + payload, "")
     return result
+
+
+def _fsync_local_file_and_directory(path: Path) -> None:
+    with path.open("r+b") as stream:
+        os.fsync(stream.fileno())
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    _durably_reopen_and_validate(
+        path, expected_size=path.stat().st_size, expected_sha256=digest)
+
+
+def harvest_response_boundary_evidence(
+        root: Path,
+        *,
+        worker_unit: str,
+        worker_invocation: str,
+        worker_pid: int,
+        canary_unit: str) -> dict[str, object]:
+    if not RESPONSE_HARVESTER or not RESPONSE_HARVESTER_SHA:
+        raise CanaryError("RPC response harvester authority is unavailable")
+    canary_authority = (
+        DISPOSABLE_UNIT_FINAL_AUTHORITY.get((NIMO2, canary_unit))
+        or DISPOSABLE_UNIT_AUTHORITY.get((NIMO2, canary_unit)))
+    quiesced = (NIMO2, canary_unit) in DISPOSABLE_UNIT_FINAL_AUTHORITY
+    harvest_error = not bool(canary_authority) or not quiesced
+    if not canary_authority:
+        canary_authority = {
+            "invocation_id": "",
+            "pid": 0,
+            "final_properties": None,
+        }
+    records = (
+        ("worker", NIMO1, f"{WORKER_ROOT}/rpc-response-worker.jsonl",
+         f"{WORKER_ROOT}/.rpc-response-worker.harvest"),
+        ("client", NIMO2, f"{REMOTE_EVIDENCE}/rpc-response-client.jsonl",
+         f"{REMOTE_EVIDENCE}/.rpc-response-client.harvest"),
+    )
+    report: dict[str, object] = {
+        "schema": "halofpx.l59.rpc-response-harvest-receipt.v1",
+        "ordering": "before_worker_stop_remote_root_key_controller_cleanup",
+        "source_root": os.environ.get("HALOFPX_PROVENANCE_SOURCE_ROOT", ""),
+        "build_id": os.environ.get("HALOFPX_PROVENANCE_BUILD_ID", ""),
+        "worker": {
+            "unit": worker_unit,
+            "invocation_id": worker_invocation,
+            "pid": worker_pid,
+            "binary_sha256": WORKER_SHA,
+        },
+        "canary": {
+            "unit": canary_unit,
+            "invocation_id": canary_authority["invocation_id"],
+            "pid": canary_authority["pid"],
+            "binary_sha256": CANARY_SHA,
+            "final_properties": canary_authority.get("final_properties"),
+            "authority_status": (
+                "final" if quiesced
+                else "live" if (NIMO2, canary_unit) in DISPOSABLE_UNIT_AUTHORITY
+                else "missing"),
+        },
+        "streams": {},
+    }
+    present_remote: list[str] = []
+    for side, host, source, staging in records:
+        try:
+            helper_result = ssh(
+                host, "sha256sum", RESPONSE_HARVESTER, check=False)
+            actual_helper = helper_result.stdout.split()
+        except Exception:
+            actual_helper = []
+        if not actual_helper or actual_helper[0] != RESPONSE_HARVESTER_SHA:
+            metadata = {"status": "error", "reason": "harvester_hash"}
+            harvest_error = True
+        else:
+            try:
+                result = ssh(
+                    host, "python3", RESPONSE_HARVESTER,
+                    "--source", source, "--staging", staging,
+                    "--expected-owner", CHANNEL_KEY_OWNER, check=False)
+                metadata = json.loads(result.stdout)
+                if not isinstance(metadata, dict):
+                    raise ValueError("harvester output is not an object")
+            except Exception:
+                result = None
+                metadata = {"status": "error", "reason": "harvester_output"}
+            if result is None or result.returncode != 0 or metadata.get("status") == "error":
+                harvest_error = True
+        report["streams"][side] = metadata
+        if metadata.get("status") != "present":
+            if not metadata.get("copyable"):
+                continue
+            harvest_error = True
+        if not metadata.get("copyable"):
+            continue
+        local = root / f"rpc-response-{side}.jsonl"
+        pending = root / f".rpc-response-{side}.pending"
+        if os.path.lexists(pending) or os.path.lexists(local):
+            report["streams"][side] = {
+                **metadata, "status": "error", "reason": "controller_collision"}
+            harvest_error = True
+            continue
+        try:
+            transfer = SSH_TRANSPORT.receive_file(
+                host, staging, pending,
+                expected_size=int(metadata.get("bytes", 0)),
+                operation="evidence")
+            if transfer.returncode != 0:
+                raise CanaryError("bounded evidence transfer failed")
+        except Exception:
+            report["streams"][side] = {
+                **metadata, "status": "error", "reason": "controller_copy"}
+            harvest_error = True
+            continue
+        try:
+            pending_stat = os.lstat(pending)
+            copied = (
+                stat.S_ISREG(pending_stat.st_mode)
+                and not stat.S_ISLNK(pending_stat.st_mode)
+                and pending.stat().st_size == metadata.get("bytes")
+                and hashlib.sha256(pending.read_bytes()).hexdigest() ==
+                    metadata.get("sha256")
+            )
+        except OSError:
+            copied = False
+        if not copied:
+            report["streams"][side] = {
+                **metadata, "status": "error", "reason": "controller_copy_mismatch"}
+            harvest_error = True
+            continue
+        try:
+            os.chmod(pending, 0o600)
+            durability = _publish_local_evidence_noreplace(
+                pending, local, expected_size=int(metadata["bytes"]),
+                expected_sha256=str(metadata["sha256"]))
+            local_stat = os.lstat(local)
+            if (
+                not stat.S_ISREG(local_stat.st_mode)
+                or stat.S_ISLNK(local_stat.st_mode)
+                or (hasattr(os, "getuid") and local_stat.st_uid != os.getuid())
+                or (os.name != "nt" and stat.S_IMODE(local_stat.st_mode) != 0o600)
+            ):
+                raise OSError("local evidence authority mismatch")
+        except (OSError, CanaryError):
+            report["streams"][side] = {
+                **metadata, "status": "error", "reason": "controller_commit"}
+            harvest_error = True
+            continue
+        report["streams"][side]["local_path"] = local.name
+        report["streams"][side]["durability"] = durability
+        if host == NIMO1:
+            published = f"{REMOTE_EVIDENCE}/.rpc-response-worker.harvest"
+            try:
+                installed = SSH_TRANSPORT.run_stdin(
+                    NIMO2, ["install", "-m", "600", "/dev/stdin", published],
+                    local.read_bytes(), operation="evidence")
+            except Exception:
+                installed = None
+            if installed is None or installed.returncode != 0:
+                report["streams"][side] = {
+                    **metadata, "status": "error", "reason": "verification_publication"}
+                harvest_error = True
+                continue
+            present_remote.append(published)
+        else:
+            present_remote.append(staging)
+    verification: dict[str, object]
+    if present_remote:
+        verifier = (
+            "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+            "halofpx_rpc_response_boundary.py")
+        try:
+            verified = ssh(
+                NIMO2, "python3", verifier, "--allow-prefix", "--key-file", CONTROL,
+                *sum((["--record-file", path] for path in present_remote), []),
+                check=False)
+        except Exception as exc:
+            verification = {
+                "status": "error",
+                "reason": f"verification_transport:{type(exc).__name__}",
+            }
+            harvest_error = True
+            verified = None
+        if verified is not None and verified.returncode == 0:
+            try:
+                decoded = json.loads(verified.stdout)
+                if not isinstance(decoded, dict):
+                    raise ValueError("verification output is not an object")
+            except (json.JSONDecodeError, ValueError):
+                verification = {
+                    "status": "error",
+                    "reason": "verification_output",
+                }
+                harvest_error = True
+            else:
+                verification = {
+                    "status": "authenticated" if quiesced else "unstable_refused",
+                    "records": decoded,
+                }
+        elif verified is not None:
+            verification = {
+                "status": "refused",
+                "reason": verified.stderr.strip()[:512],
+            }
+            harvest_error = True
+    else:
+        verification = {"status": "no_stream_present"}
+        harvest_error = True
+    report["verification"] = verification
+    write_private_json(root / "rpc-response-harvest.json", report)
+    if harvest_error:
+        raise CanaryError("RPC response evidence harvest or authentication failed")
+    return report
 
 
 def wait_remote_file(path: str, timeout_seconds: float) -> None:
@@ -2037,45 +2346,45 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     capture_worker_pid, capture_invocation, capture_readiness = start_worker(
         True, capture_unit, root)
     if L55_FIRST_CHUNK_ONLY:
-        capture_result = canary_sequence("l55-first-chunk", "first-chunk")
+        canary_unit = f"{UNIT_PREFIX}-canary-first-chunk"
+        capture_result = None
+        sequence_error: Exception | None = None
+        try:
+            capture_result = canary_sequence("l55-first-chunk", "first-chunk")
+        except Exception as exc:
+            sequence_error = exc
+        finally:
+            if os.environ.get("HALOFPX_RPC_RESPONSE_DIAGNOSTICS") == "1":
+                if (NIMO2, canary_unit) in DISPOSABLE_UNIT_AUTHORITY:
+                    try:
+                        stop_canary(canary_unit)
+                    except Exception as quiesce_exc:
+                        if sequence_error is None:
+                            sequence_error = quiesce_exc
+                        else:
+                            sequence_error = CanaryError(
+                                f"{sequence_error}; canary quiesce: {quiesce_exc}")
+                try:
+                    harvest_response_boundary_evidence(
+                        root,
+                        worker_unit=capture_unit,
+                        worker_invocation=capture_invocation,
+                        worker_pid=capture_worker_pid,
+                        canary_unit=canary_unit,
+                    )
+                except Exception as harvest_exc:
+                    if sequence_error is None:
+                        sequence_error = harvest_exc
+                    else:
+                        sequence_error = CanaryError(
+                            f"{sequence_error}; response harvest: {harvest_exc}")
+        if sequence_error is not None:
+            raise sequence_error
+        assert capture_result is not None
         write_log(root, "first-chunk.log", capture_result)
         capture_journal = worker_journal(
             capture_unit, capture_invocation, capture_worker_pid)
         (root / "worker-first-chunk.log").write_text(capture_journal, encoding="utf-8")
-        if os.environ.get("HALOFPX_RPC_RESPONSE_DIAGNOSTICS") == "1":
-            for host, remote, name in (
-                (NIMO1, f"{WORKER_ROOT}/rpc-response-worker.jsonl",
-                 "rpc-response-worker.jsonl"),
-                (NIMO2, f"{REMOTE_EVIDENCE}/rpc-response-client.jsonl",
-                 "rpc-response-client.jsonl"),
-            ):
-                present = ssh(host, "test", "-f", remote, check=False)
-                if present.returncode != 0:
-                    raise CanaryError(f"{host}: RPC response evidence is missing")
-                run(["scp", f"{host}:{remote}", str(root / name)])
-                if not (root / name).is_file() or (root / name).stat().st_size == 0:
-                    raise CanaryError(f"{host}: RPC response evidence is empty")
-            verifier = (
-                "/var/tmp/halofpx-l48-source-nimo2/scripts/"
-                "halofpx_rpc_response_boundary.py")
-            worker_remote = f"{REMOTE_EVIDENCE}/rpc-response-worker.jsonl"
-            installed = SSH_TRANSPORT.run_stdin(
-                NIMO2, ["install", "-m", "600", "/dev/stdin", worker_remote],
-                (root / "rpc-response-worker.jsonl").read_bytes(),
-                operation="evidence")
-            if installed.returncode != 0:
-                raise CanaryError("RPC response worker evidence publication failed")
-            verified = ssh(
-                NIMO2, "python3", verifier, "--key-file", CONTROL,
-                "--record-file", worker_remote,
-                "--record-file", f"{REMOTE_EVIDENCE}/rpc-response-client.jsonl",
-                check=False)
-            if verified.returncode != 0:
-                raise CanaryError(
-                    "RPC response evidence verification failed: " + verified.stderr)
-            write_private_json(
-                root / "rpc-response-boundary-verified.json",
-                json.loads(verified.stdout))
         stop_worker(capture_unit)
         status_lines = [
             line for line in capture_result.stdout.splitlines()

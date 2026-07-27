@@ -11,6 +11,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts" / "halofpx_rpc_response_boundary.py"
+HARVESTER = ROOT / "scripts" / "halofpx_rpc_response_harvest.py"
 DOMAIN = b"halofpx.rpc-response-boundary.v1"
 
 
@@ -51,7 +52,9 @@ def streams(key: bytes) -> tuple[str, str]:
     return client, server
 
 
-def invoke(tmp_path: Path, contents: tuple[str, ...]) -> subprocess.CompletedProcess[str]:
+def invoke(
+        tmp_path: Path, contents: tuple[str, ...], *,
+        allow_prefix: bool = False) -> subprocess.CompletedProcess[str]:
     key = bytes(range(32))
     key_path = tmp_path / "key"
     key_path.write_bytes(
@@ -63,8 +66,11 @@ def invoke(tmp_path: Path, contents: tuple[str, ...]) -> subprocess.CompletedPro
         paths.append(evidence)
     if os.name != "nt":
         key_path.chmod(0o600)
+    command = [sys.executable, str(VERIFIER), "--key-file", str(key_path.resolve())]
+    if allow_prefix:
+        command.append("--allow-prefix")
     return subprocess.run(
-        [sys.executable, str(VERIFIER), "--key-file", str(key_path.resolve()),
+        [*command,
          *sum((["--record-file", str(path.resolve())] for path in paths), [])],
         text=True, capture_output=True, check=False)
 
@@ -111,3 +117,47 @@ def test_accepts_terminal_receipt_construction_failure(tmp_path: Path) -> None:
     parsed = json.loads(result.stdout)
     assert parsed["server"][-1]["phase"] == "receipt_construction"
     assert parsed["server"][-1]["rc"] == 0
+
+
+def test_accepts_single_authenticated_crash_prefix_and_rejects_tamper(
+        tmp_path: Path) -> None:
+    key = bytes(range(32))
+    prefix = "".join([
+        record(key, 1, side="server", phase="handler_entry", expected=0, actual=0),
+        record(key, 2, side="server", phase="handler_validation", expected=0, actual=0),
+    ])
+    accepted = invoke(tmp_path, (prefix,), allow_prefix=True)
+    assert accepted.returncode == 0, accepted.stderr
+    assert set(json.loads(accepted.stdout)) == {"server"}
+    refused = invoke(
+        tmp_path, (prefix.replace("actual=0", "actual=1", 1),), allow_prefix=True)
+    assert refused.returncode != 0
+
+
+def test_harvester_missing_and_present_contract(tmp_path: Path) -> None:
+    if os.name == "nt":
+        return
+    import getpass
+
+    staging_root = tmp_path / "stage"
+    staging_root.mkdir(mode=0o700)
+    missing = subprocess.run(
+        [sys.executable, str(HARVESTER), "--source", str((tmp_path / "missing").resolve()),
+         "--staging", str((staging_root / "missing-copy").resolve()),
+         "--expected-owner", getpass.getuser()],
+        text=True, capture_output=True, check=False)
+    assert missing.returncode == 0
+    assert json.loads(missing.stdout)["status"] == "missing"
+
+    source = tmp_path / "source"
+    source.write_text("authenticated-prefix\n", encoding="ascii")
+    source.chmod(0o600)
+    present = subprocess.run(
+        [sys.executable, str(HARVESTER), "--source", str(source.resolve()),
+         "--staging", str((staging_root / "copy").resolve()),
+         "--expected-owner", getpass.getuser()],
+        text=True, capture_output=True, check=False)
+    assert present.returncode == 0, present.stderr
+    metadata = json.loads(present.stdout)
+    assert metadata["status"] == "present"
+    assert (staging_root / "copy").read_bytes() == source.read_bytes()

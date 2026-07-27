@@ -1,0 +1,1 @@
+[Errno 13] Permission denied: 'C:\\Users\\britt\\Documents\\HaloFPX\\docs\\halofpx\\evidence\\l59-raw\\child'

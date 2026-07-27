@@ -1,0 +1,13 @@
+ActiveState=active
+SubState=running
+MainPID=2356329
+NRestarts=0
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+LISTEN 0      512          0.0.0.0:8081      0.0.0.0:*    users:(("llama-server",pid=2356329,fd=5))
+200
+ActiveState=active
+SubState=running
+MainPID=1535639
+NRestarts=0
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess
+LISTEN 0      1            0.0.0.0:50052      0.0.0.0:*    users:(("ggml-rpc-server",pid=1535639,fd=5))
