@@ -1,0 +1,39 @@
+L48 terminal boundary: NOT PROMOTED.
+No primary artifact access. No production mutation.
+
+Single runtime failure:
+child/ssh-operations.jsonl sequence=24
+host=nimo-2
+operation=command
+readiness endpoint=10.44.0.1:50248
+application readiness budget=120 seconds
+local process deadline=30 seconds
+duration=30.010296 seconds
+timed_out=true term_sent=true kill_sent=true
+stdout="" stderr=""
+No authenticated composed result was produced.
+
+Production before and after are byte-identical in:
+runtime-20260727-01/production-preflight.json
+runtime-20260727-01/production-final.json
+
+nimo-2 system worker:
+LoadState=loaded ActiveState=active SubState=running
+MainPID=1535639 NRestarts=0
+command=/opt/llm-usb4-cluster/llama/ggml-rpc-server --host 0.0.0.0 --port 50052
+listener=0.0.0.0:50052 pid=1535639
+
+nimo-1 system coordinator:
+LoadState=loaded ActiveState=active SubState=running
+MainPID=2356329 NRestarts=0
+listener=0.0.0.0:8081 pid=2356329
+HTTP=200
+
+Cleanup:
+halofpx-l48-worker-capture.service inactive
+halofpx-l48-worker-restore.service inactive
+halofpx-l48-canary-capture.service inactive
+halofpx-l48-canary-restore.service inactive
+nimo-1 port 50248 closed
+all manifest-owned L48 source, build, state, evidence, rendezvous, and key paths absent
+no disposable L48 process remains
