@@ -1,0 +1,31 @@
+L49 terminal result: NOT PROMOTED
+Base: 591603ff0982fe684fd67c45f40898f4332fac88
+
+Pre-runtime:
+- affected tests: 54 passed
+- final independent verdict: GO
+- controller: 57b612380da7f428883121671a791b5cd9b4c16ddbc8a97a63f7cbe44d2eb032
+- runner: f0e084faa7932561eb04cee8100ee2ab46ce24e516538dd41b589915a603c823
+- source root: 1bd88144d65583da285ad3aa7ded2c57bc31037775e18e859501a491de034e7f
+
+Sole runtime:
+- worker invocation: 50c47e1d94d34eafbc4997d96c05a9b6
+- unit after launch: failed, MainPID=0
+- port 50248: absent
+- readiness: inner=120s outer=150s duration=120.198851s rc=1
+- attempts: 123, all connect-failed
+- local timeout/TERM/KILL: false/false/false
+- HELLO/HFXCAP2: absent
+- composed result: absent
+- retry: none
+- worker-exit cause: unknown; journal/exit status/unit stderr not retained
+
+Closeout:
+- production preflight/final SHA-256:
+  511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded
+- nimo-2 worker: PID1535639, port50052, NRestarts0
+- nimo-1 coordinator: PID2356329, port8081, HTTP200, NRestarts0
+- disposable units/listener/key/paths: absent
+- primary artifact: not accessed
+- production mutation: none
+- rejected runtime candidate: removed

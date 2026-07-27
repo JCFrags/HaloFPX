@@ -1,0 +1,2 @@
+worker halofpx-l48-worker-capture failed HaloFPX CAPS readiness: readiness failed: readiness-timeout:attempts=123:last=connect-failed,connect-failed,connect-failed,connect-failed
+
