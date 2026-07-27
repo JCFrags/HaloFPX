@@ -343,6 +343,30 @@ source-derived graph-input coverage, focused disposable/synthetic
 qualification, and independent specialist review. No primary run or L38 is
 authorized.
 
+## 2026-07-27 — accept L59 harvesting and require transient-unit absence
+
+Decision: accept terminal L59 NOT PROMOTED at
+`d80b792747a43a9ee2f6faacad6a9b5dfe17d331` and retain its reviewed
+failure-harvesting and cross-platform durability foundation. Open L60 only for
+a fixed transient-unit pre/post-launch absence guard followed by the deferred
+stories15M first-chunk discriminator.
+
+Reason: L59 now proves that authenticated partial response streams survive
+failure before worker/key/root cleanup. Its authorized replacement never
+launched the model because systemd still had the fixed device-gate unit fragment
+loaded from the prior admission failure. The controller lacked a pre-launch
+proof that fixed transient names were fully unloaded. This is an operational
+lifecycle defect, not inference evidence.
+
+L60 must require correct-manager `not-found/inactive/dead/MainPID0` authority,
+no cgroup/process/listener/fragment, and bounded reconciliation for safely
+inactive stale units before launch; uncertainty or active ownership refuses.
+Focused lifecycle tests and one no-model stale-unit exercise precede one
+first-armed stories chunk. Unambiguous pre-model controller mechanics may be
+corrected within L60 after focused review to avoid repetitive milestone churn.
+Once model runtime starts, no retry is authorized. No cache matrix, primary
+artifact, production mutation, or performance work is allowed.
+
 Reason: both L36 attempts read `llama_n_batch(run_ctx)` after freeing the
 aliased context, producing 0 and then 3386108400. Neither is valid admission
 evidence. Pre-free records directionally show equal recorded graph/KV authority

@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 15:35 PDT
+Verified: 2026-07-27 16:10 PDT
 
 ## Overall state
 
@@ -219,15 +219,23 @@ independent read-only specialists are auditing graph-input coverage and
   to a Windows evidence directory and raised `PermissionError`. One narrow
   cross-platform durability correction and one replacement discriminator
   attempt are authorized; the admission failure remains immutable evidence.
+- L59 closed NOT PROMOTED at
+  `d80b792747a43a9ee2f6faacad6a9b5dfe17d331`. The accepted foundation now
+  durably harvests authenticated client/worker response prefixes on failure
+  before cleanup and records truthful Windows/POSIX durability. The replacement
+  attempt still stopped before model launch because systemd retained the fixed
+  transient device-gate unit name from the earlier failure. L60 is active only
+  to enforce pre/post-launch not-found unit authority and then execute the
+  deferred first-chunk response discriminator once.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `e561b56ffb0edc4ffbc38b1c5426722146d32b37`
+- Latest verified commit: `d80b792747a43a9ee2f6faacad6a9b5dfe17d331`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L58 closeout
+- Worktree state: clean at the reviewed terminal L59 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
