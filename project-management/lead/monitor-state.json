@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-26T23:38:00-07:00",
+  "updated_at": "2026-07-26T23:46:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l46_no_primary_real_replay_caller_l42_l44_integration_prerequisite",
+  "worker_status": "active_l47_no_primary_foundation_composition_mixed_rpc_census_precompute_bridge_execution_lifecycle",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "5f69d5cdaf8eb51283dd750c1fd8ca869fcf4d66",
-  "last_observed_milestone": "L44 PASS; accepted admitted-session mutable census and real SET/SET_HASH server-handler authority with concurrency and refusal coverage",
-  "last_decision": "accept_l45_pre_mutation_blocker_and_open_l46_real_caller_structural_authority_integration",
-  "last_progress": "L46 is wiring accepted scheduler and mutable-session authority into the real canary/runner with one disposable qualification and no primary access",
+  "last_verified_head": "0d655b54d77929dafc2a7efe05f25a94d6c6ca0d",
+  "last_observed_milestone": "L46 NOT PROMOTED; source audit proved mixed-leaf API contradiction, missing scheduler-to-RPC prepared bridge, and precompute/final-transcript ordering cycle",
+  "last_decision": "accept_l46_composition_blocker_and_open_l47_adr_first_mixed_rpc_precompute_per_execution_foundation_correction",
+  "last_progress": "L47 is correcting mixed local/RPC census semantics, scheduler-derived prepared admission, and per-execution L42/L44 lifecycle before any primary run",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L46 blocker or terminal report; no periodic polling"
+  "next_check_trigger": "direct L47 ADR blocker or terminal report; no periodic polling"
 }

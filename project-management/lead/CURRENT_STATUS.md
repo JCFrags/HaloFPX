@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-26 23:38 PDT
+Verified: 2026-07-26 23:46 PDT
 
 ## Overall state
 
@@ -100,15 +100,23 @@ independent read-only specialists are auditing graph-input coverage and
   L46 is authorized as the no-primary integration prerequisite connecting
   structural source-owned registration, scheduler/session lifetime, and closed
   result evidence to the real replay path.
+- L46 closed NOT PROMOTED at
+  `0d655b54d77929dafc2a7efe05f25a94d6c6ca0d`. Source audit proved L42/L44
+  cannot currently compose for the real mixed local/RPC graph: L44 requires
+  authority for leaves its API rejects, the scheduler exposes no precompute RPC
+  split/copy bridge, and L44 needs admission before L42's transcript exists.
+  L47 is active as an ADR-first correction for mixed ownership, prepared
+  scheduler admission, and bounded per-execution arm/finalize/abort lifecycle.
+  No primary or production action is authorized.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `5f69d5cdaf8eb51283dd750c1fd8ca869fcf4d66`
+- Latest verified commit: `0d655b54d77929dafc2a7efe05f25a94d6c6ca0d`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L44 closeout
+- Worktree state: clean at the reviewed terminal L46 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

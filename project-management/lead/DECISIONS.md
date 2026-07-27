@@ -1,5 +1,21 @@
 # Project-Lead Decisions
 
+## 2026-07-26 — accept L46 blocker and correct foundation composition
+
+Decision: accept L46 NOT PROMOTED commit
+`0d655b54d77929dafc2a7efe05f25a94d6c6ca0d`. Open L47 as an ADR-first,
+no-primary/no-production correction for mixed local/RPC census semantics, an
+actual scheduler-derived precompute RPC split/copy admission bridge, and
+per-execution L42 arm/prepare/finalize/abort with adjacent L44 result binding.
+No L48 or product/performance work is authorized.
+
+Reason: L46 proves the accepted L42 and L44 layers are individually useful but
+their public boundaries are mutually incompatible for the real workload.
+Another runner patch cannot solve the leaf-locality contradiction or ordering
+cycle. The smallest honest path is to correct their composition contract and
+qualify it through the real disposable multi-execution canary before returning
+to the primary model.
+
 ## 2026-07-26 — accept L45 pre-mutation blocker and wire the real caller
 
 Decision: close L45 NOT PROMOTED without a transition, then open L46 only to
