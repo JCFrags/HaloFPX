@@ -1,0 +1,56 @@
+{
+  "schema": "halofpx.l52.cleanup-reconciliation.v1",
+  "observed_at": "2026-07-27T11:40:35.5171306-07:00",
+  "port": 50248,
+  "port_listener_absent": {
+    "nimo-1": true,
+    "nimo-2": true
+  },
+  "units": [
+    {
+      "host": "nimo-1",
+      "unit": "halofpx-l50-device-gate.service",
+      "load_state": "not-found",
+      "active_state": "inactive",
+      "sub_state": "dead",
+      "main_pid": 0,
+      "invocation_id": ""
+    },
+    {
+      "host": "nimo-1",
+      "unit": "halofpx-l48-worker-capture.service",
+      "load_state": "not-found",
+      "active_state": "inactive",
+      "sub_state": "dead",
+      "main_pid": 0,
+      "invocation_id": ""
+    },
+    {
+      "host": "nimo-1",
+      "unit": "halofpx-l48-worker-restore.service",
+      "load_state": "not-found",
+      "active_state": "inactive",
+      "sub_state": "dead",
+      "main_pid": 0,
+      "invocation_id": ""
+    },
+    {
+      "host": "nimo-2",
+      "unit": "halofpx-l48-canary-capture.service",
+      "load_state": "not-found",
+      "active_state": "inactive",
+      "sub_state": "dead",
+      "main_pid": 0,
+      "invocation_id": ""
+    },
+    {
+      "host": "nimo-2",
+      "unit": "halofpx-l48-canary-restore.service",
+      "load_state": "not-found",
+      "active_state": "inactive",
+      "sub_state": "dead",
+      "main_pid": 0,
+      "invocation_id": ""
+    }
+  ]
+}

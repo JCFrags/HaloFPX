@@ -1,0 +1,7 @@
+2026-07-27T11:36:56.370871-07:00 nimo-2 test-halofpx-distributed-state-canary[1697527]: 0.00.029.059 W load: empty token at index 30143
+2026-07-27T11:36:56.371772-07:00 nimo-2 test-halofpx-distributed-state-canary[1697527]: 0.00.029.190 W load: bad special token: 'tokenizer.ggml.seperator_token_id' = 4294967295, using default id -1
+2026-07-27T11:36:56.371772-07:00 nimo-2 test-halofpx-distributed-state-canary[1697527]: 0.00.029.192 W load: bad special token: 'tokenizer.ggml.padding_token_id' = 4294967295, using default id -1
+2026-07-27T11:36:56.475533-07:00 nimo-2 test-halofpx-distributed-state-canary[1697527]: 0.00.133.734 W llama_context: n_ctx_seq (4096) > n_ctx_train (128) -- possible training context overflow
+2026-07-27T11:36:56.484404-07:00 nimo-2 test-halofpx-distributed-state-canary[1697527]: 0.00.142.606 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+2026-07-27T11:36:56.747556-07:00 nimo-2 test-halofpx-distributed-state-canary[1697527]: 0.00.405.732 W decode: removing memory module entries for seq_id = 0, pos = [0, +inf)
+2026-07-27T11:36:56.747607-07:00 nimo-2 test-halofpx-distributed-state-canary[1697527]: 0.00.405.778 E llama_decode: failed to decode, ret = -3
