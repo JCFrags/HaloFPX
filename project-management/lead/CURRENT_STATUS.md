@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 15:05 PDT
+Verified: 2026-07-27 15:35 PDT
 
 ## Overall state
 
@@ -212,6 +212,13 @@ independent read-only specialists are auditing graph-input coverage and
   that ordering with injected failures, and then consume one deferred
   first-chunk discriminator. No cache matrix or semantic correction is
   authorized.
+- L59 failure-path harvesting passed focused qualification and a real injected
+  unit failure, including retention of an authenticated partial worker stream
+  with explicit missing-client status. Its first controller attempt stopped
+  before stories/model runtime because POSIX directory-fd `fsync` was applied
+  to a Windows evidence directory and raised `PermissionError`. One narrow
+  cross-platform durability correction and one replacement discriminator
+  attempt are authorized; the admission failure remains immutable evidence.
 
 ## Repository
 

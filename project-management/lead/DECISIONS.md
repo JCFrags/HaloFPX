@@ -170,6 +170,28 @@ runner using structural source-call-site registration and closed evidence. No
 primary access, production mutation, cache promotion, tuning, matrix, or L47 is
 authorized.
 
+## 2026-07-27 — allow one L59 replacement after Windows durability admission failure
+
+Decision: preserve the first L59 controller attempt as a pre-runtime admission
+failure and authorize one mechanical cross-platform directory-durability
+correction followed by one replacement stories15M first-chunk discriminator.
+
+Reason: L59's failure harvester passed focused tests, independent pre-runtime
+review, and a real injected Linux unit failure that retained an authenticated
+partial worker stream while explicitly recording the missing client stream.
+The controller attempt then stopped before any stories model or RPC
+discriminator because its new unconditional POSIX directory-fd `fsync` raised
+`PermissionError` on the local Windows evidence directory. The intended runtime
+authority was therefore not consumed.
+
+The correction must retain file fsync and atomic publication, preserve POSIX
+directory fsync on POSIX, use and record the strongest supported Windows
+directory/publication durability mechanism, reopen/revalidate the published
+file, and fail visibly on durability errors. Only affected tests and review may
+be repeated before one replacement first-chunk run. No semantic RPC/cache
+change, capture/restore matrix, primary access, production mutation, or
+performance work is authorized.
+
 Reason: preflight proved the accepted diagnostic APIs are not invoked by the
 primary caller. Running with L44 enabled would refuse compute; running with it
 disabled would violate the discriminator contract. This is a material but
