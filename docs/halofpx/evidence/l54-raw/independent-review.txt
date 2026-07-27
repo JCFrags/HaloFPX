@@ -1,0 +1,23 @@
+Independent adversarial review
+Date: 2026-07-27
+Mode: read-only; no remote access or worktree edits
+
+Verdict: ACCEPT terminal L54 NOT PROMOTED.
+
+The reviewer confirms that llama-context's "removing memory module entries"
+record is decode-failure cleanup, not common_init_from_params' explicit warmup
+clear. The retained worker chronology is consistent with a successful
+ordinary unarmed warmup followed by authenticated execution sequence 1 for
+the first armed 512-token prompt chunk.
+
+The exact L52 manifest/evidence independently verifies staged selected-source
+hashes, worker/canary/helper binary hashes, CMakeCache, toolchain, dependencies,
+and inventory. It does not cryptographically prove that admitted binaries were
+derived from the staged source because no compile-time source-root tuple is
+embedded. There is no observed mismatch.
+
+A warmup-only run cannot reproduce or localize the armed prompt failure.
+Required future evidence must cover the first armed prompt execution and
+record source/binary lineage, context pending state, RPC arm transitions,
+scheduler split status, L42/L44 lifecycle results, RPC receipt status, and the
+exact client return branch. No semantic correction is justified here.

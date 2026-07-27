@@ -1,0 +1,68 @@
+L54 lineage and scope audit
+Date: 2026-07-27
+Base: 20af537f0d36d9de3877af860e4f24d89d7e2641
+
+Preserved archive:
+- path: C:\Users\britt\Documents\HaloFPX-L52-source.tar
+- bytes: 194418176
+- SHA-256: e4ad1ff9929a94a56bd7dbab104b5ff9560b603cbf6a8cc1cf7b7e650521e557
+- canonical full-tree root: 4bd4bc49cebdf543f39213c2f90e26a422f074d9c9b39c766367af82c6cb1d0d
+- canonical algorithm: SHA-256 over sorted regular-file records
+  path NUL decimal-size NUL file-SHA256 LF
+- regular files: 4562
+
+Retained L52 selected-source root:
+- c2a468278d07a94aee63d09c8c7e55413e0548e8a254d7c00ccd73729c58e02d
+
+Retained L52 build identities:
+- worker CMakeCache SHA-256:
+  adca9151785db6dcc0c15d42ac7d82e6b9a8d3c050ef4009a31074480194884d
+- worker rpc-server SHA-256:
+  7a8fb0496486cc12746ec31f7ed3eb32ba6d9b450948bb2fc39dd7014e194b10
+- coordinator canary SHA-256:
+  44dd238b76ae4b0173223217818661723a28c8c7b43703b51ac308f08c675b5d
+- ldd SHA-256:
+  74413384b81b793117f7c9ab3b598d5923502a0366f6ff4f6d526e64e00f606f
+- compiler SHA-256:
+  8daef837093117e0f45079e49809f4a8631f4272338b79b0296a51fae7dd3f26
+- hipcc SHA-256:
+  bb10c1b9668aae27dc7e95b0495db2603a05b171ed2be009e0b292c66b2c1455
+- configure authority:
+  cmake -S . -B build-l48 -DGGML_RPC=ON
+  -DGGML_RPC_HALOFPX_LOCAL_STATE=ON -DLLAMA_BUILD_TESTS=ON -DGGML_HIP=ON
+  -DAMDGPU_TARGETS=gfx1151 -DCMAKE_BUILD_TYPE=Release
+
+Chronology correction:
+- worker journal line 365: ordinary graph_compute at 11:36:56.483.
+- worker journal lines 366-377: ordinary output reads through 11:36:56.623.
+- worker journal lines 378-380: next graph at 11:36:56.628 is authenticated
+  execution sequence 1, uid 27, digest
+  0717a7531b1dfc48d63cce84b1ec0caba7c3b5351278e389297036298b59f0da
+  and executes successfully.
+- canary journal line 6 is llama-context decode-failure cleanup at
+  src/llama-context.cpp:2456, not common/common.cpp's explicit warmup
+  llama_memory_clear.
+- canary journal line 7 reports llama_decode -3.
+
+Source order:
+- common_init_from_params performs one direct, unarmed warmup llama_decode and
+  returns before the canary obtains ctx.
+- capture then invokes decode_tokens/authorized_decode; its first prompt chunk
+  explicitly arms execution sequence 1.
+
+Classification:
+The ordinary graph is consistent with completed unarmed warmup. The
+authenticated graph is the first armed prompt chunk. Therefore L52 contains no
+observed unarmed warmup failure or unexpected warmup arm transition.
+
+The L52 hashes prove admitted selected source identities and admitted binary
+identities separately. They do not cryptographically prove build derivation
+because the binaries contain no embedded source-root/build tuple. This is a
+lineage-coverage gap, not evidence of an admitted mismatch.
+
+L54 forbids prompt execution. Its sole authorized warmup-only run cannot reach
+the first armed prompt failure and cannot distinguish the postcompute failure
+branches. The precise missing discriminator is an authenticated run of the
+first armed prompt chunk carrying exact source/binary provenance and
+branch-specific client status. Implementing instrumentation and consuming the
+sole warmup-only run would not meet L54's decisive-classification criterion.
