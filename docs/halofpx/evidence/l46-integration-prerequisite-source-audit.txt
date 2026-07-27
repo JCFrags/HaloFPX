@@ -1,0 +1,52 @@
+L46 source audit
+Date: 2026-07-26
+Base: fd1abb9ac79c0ef94308d874e24c758ecce0f0d4
+
+No primary artifact access. No production mutation.
+
+Finding 1: real MiniMax replay inputs are scheduler inputs, not direct RPC
+allocations.
+- src/models/minimax-m2.cpp:303-306 builds embedding, position, standard KV
+  attention and output-ID inputs through llm_graph_context.
+- src/llama-graph.cpp:1951-1963 creates token/embedding inputs structurally.
+- src/llama-context.cpp:1629 allocates the graph through the scheduler, then
+  src/llama-context.cpp:1644 sets input material.
+- ggml/src/ggml-backend.cpp:1702-1768 creates backend-local scheduler copies
+  only while splitting the graph and rewrites consumer sources to those
+  internal copies.
+
+Finding 2: accepted L44 registration cannot express that source-to-copy
+authority.
+- ggml/src/ggml-rpc/ggml-rpc.cpp:2790-2805 rejects registration unless the
+  supplied tensor already has RPC storage on the admitted socket.
+- ggml/src/ggml-rpc/ggml-rpc.cpp:2885-2906 requires every recursively
+  collected graph leaf to have an explicit role or exclusion before it checks
+  whether that leaf is RPC-resident.
+- The public L44 API exposes register/exclude by ggml_tensor only; it exposes
+  neither the scheduler source-to-copy map nor a canonical copy identity.
+- The commit walk requires authority for every discovered leaf before its RPC
+  filter. Both register and exclude reject non-RPC storage, so a mixed
+  RPC0/ROCm0 graph is inadmissible through the accepted API.
+- Recursive collection can expose both a dynamically created view and its
+  backing leaf. Loader-time immutable-weight classification cannot authorize
+  later graph views without new structural plumbing.
+
+Finding 3: accepted L42 admission is single-split-lifetime authority and cannot
+be armed for only the real replay through the current llama execution API.
+- ggml/src/ggml-backend.cpp:2446-2471 permits enable only once per scheduler.
+- ggml/src/ggml-backend.cpp:1436-1449 increments generation at scheduler split
+  and fails unless it is the first split after enable.
+- The frozen replay workload performs prompt chunks before the replay, while
+  src/llama-context.cpp:1569-1668 owns graph reuse/rebuild, scheduler split,
+  input materialization, and compute without an admitted per-execution hook.
+- L44 begin snapshots the L42 admission root before split/copy execution, but
+  the final L42 transcript is available only after execution; L44 must commit
+  before RPC compute. The accepted APIs therefore cannot bind the final
+  scheduler result into the pre-compute mutable session.
+
+Conclusion:
+The accepted L42/L44 public contracts cannot be wired honestly into the real
+canary caller without revising mixed-leaf census semantics and view authority,
+extending scheduler authority lifecycle, and exposing a pre-compute RPC split
+or source-to-copy admission bridge. Such changes redesign accepted foundation
+boundaries and exceed L46 authority. No candidate source was retained.

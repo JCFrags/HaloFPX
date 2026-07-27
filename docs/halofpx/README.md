@@ -6,6 +6,9 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 
 - [Clean baseline manifest](baseline-manifest.json)
 - [Feature-off baseline](feature-off-baseline.md)
+- [L46 real replay authority integration — NOT PROMOTED](l46-real-replay-authority-integration.md)
+- [L46 receipt](evidence/l46-real-replay-authority-integration-receipt.json)
+- [L46 independent review](reviews/2026-07-26__l46-real-replay-authority-integration__review__v01.md)
 - [L45 primary correctness discriminator — NOT PROMOTED](l45-primary-correctness-discriminator-result.md)
 - [L45 receipt](evidence/l45-primary-correctness-discriminator-receipt.json)
 - [L44 RPC mutable session/handler authority — PASS](l44-rpc-mutable-session-handler-authority.md)

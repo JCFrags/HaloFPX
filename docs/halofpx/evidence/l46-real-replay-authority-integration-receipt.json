@@ -1,0 +1,29 @@
+{
+  "milestone": "L46",
+  "result": "NOT_PROMOTED",
+  "base_commit": "fd1abb9ac79c0ef94308d874e24c758ecce0f0d4",
+  "primary_artifact_accessed": false,
+  "production_mutated": false,
+  "candidate_source_retained": false,
+  "disposable_lifecycle_run": false,
+  "blocking_findings": [
+    "L44 requires authority for mixed local/RPC graph leaves while register and exclude accept only RPC storage",
+    "L44 exposes no structural scheduler source-to-copy or dynamic-view registration authority",
+    "L42 is single-enable/single-split authority and its final transcript cannot be bound to the pre-compute L44 commit"
+  ],
+  "required_next_authority": [
+    "reviewed mixed-leaf and nested-view L44 census correction",
+    "reviewed scheduler-copy or pre-compute RPC-split admission bridge",
+    "reviewed bounded L42 per-execution re-arm/finalize/abort lifecycle and final-result binding"
+  ],
+  "production_closeout": {
+    "nimo-2-worker-pid": 1535639,
+    "nimo-2-port": 50052,
+    "nimo-1-coordinator-pid": 2356329,
+    "nimo-1-port": 8081,
+    "http_status": 200,
+    "nrestarts": 0
+  },
+  "source_audit_sha256": "03503ec4102943e0651d2d32afd41ff908b59a74a32ed50da8dc8085e7b3e365",
+  "review_verdict": "PASS_NOT_PROMOTED"
+}
