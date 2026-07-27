@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 11:44 PDT
+Verified: 2026-07-27 11:52 PDT
 
 ## Overall state
 
@@ -158,15 +158,23 @@ independent read-only specialists are auditing graph-input coverage and
   the failure to the coordinator scheduler/composition status path. L53 is
   active only to localize and correct that explicit unarmed scheduler lifecycle
   and perform the deferred stories run once.
+- L53 closed NOT PROMOTED at
+  `20af537f0d36d9de3877af860e4f24d89d7e2641`. Source audit found a genuine
+  contradiction: source says common warmup is unarmed and L42/L44-gated, while
+  retained runtime shows an authenticated RPC execution before the canary can
+  arm. Existing evidence cannot distinguish binary/source lineage mismatch
+  from an uncovered arm transition. L54 is active only as one warmup-only
+  discriminator binding exact source/binary provenance and recording the
+  pending/arm/scheduler/RPC refusal transitions. No semantic fix is authorized.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `d236e74d2b2c3df96d88ef4cce5269d1baf3f24a`
+- Latest verified commit: `20af537f0d36d9de3877af860e4f24d89d7e2641`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L52 closeout
+- Worktree state: clean at the reviewed terminal L53 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

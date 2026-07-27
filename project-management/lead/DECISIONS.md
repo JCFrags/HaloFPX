@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — accept L53 contradiction and run one lineage discriminator
+
+Decision: accept L53 NOT PROMOTED commit
+`20af537f0d36d9de3877af860e4f24d89d7e2641`. Open L54 only for exact
+source/binary provenance and bounded pending/arm/split/RPC-client/status
+transition evidence during one disposable common-warmup-only run. Do not patch
+semantics, execute prompt/capture/restore, access primary, mutate production,
+or open L55.
+
+Reason: retained runtime and reconstructed source disagree about whether the
+warmup execution was armed. Neither a scheduler correction nor a controller
+retry is justified until the exact binary lineage and first arm/refusal/status
+transition are observed together. One warmup-only discriminator is the
+smallest decisive step.
+
 ## 2026-07-27 — accept L52 and localize coordinator warmup status
 
 Decision: accept L52 NOT PROMOTED commit
