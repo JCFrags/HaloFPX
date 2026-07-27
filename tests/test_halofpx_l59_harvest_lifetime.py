@@ -37,8 +37,26 @@ class Transport:
 
 def configure(monkeypatch, transport: Transport, *, final: bool) -> str:
     canary_unit = "halofpx-l59-canary.service"
-    monkeypatch.setattr(retry, "RESPONSE_HARVESTER", "/absolute/harvester.py")
-    monkeypatch.setattr(retry, "RESPONSE_HARVESTER_SHA", "a" * 64)
+    monkeypatch.setattr(retry, "RESPONSE_HARVESTER_AUTHORITY", {
+        "worker": {
+            "host": retry.NIMO1,
+            "path": "/var/tmp/halofpx-l48-source-nimo1/scripts/"
+                    "halofpx_rpc_response_harvest.py",
+            "sha256": "a" * 64,
+            "interpreter": "python3",
+            "source": f"{retry.WORKER_ROOT}/rpc-response-worker.jsonl",
+            "staging": f"{retry.WORKER_ROOT}/.rpc-response-worker.harvest",
+        },
+        "client": {
+            "host": retry.NIMO2,
+            "path": "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+                    "halofpx_rpc_response_harvest.py",
+            "sha256": "a" * 64,
+            "interpreter": "python3",
+            "source": f"{retry.REMOTE_EVIDENCE}/rpc-response-client.jsonl",
+            "staging": f"{retry.REMOTE_EVIDENCE}/.rpc-response-client.harvest",
+        },
+    })
     monkeypatch.setattr(retry, "WORKER_SHA", "b" * 64)
     monkeypatch.setattr(retry, "CANARY_SHA", "c" * 64)
     monkeypatch.setattr(retry, "SSH_TRANSPORT", transport)
@@ -64,7 +82,7 @@ def helper_ssh(metadata_by_host):
     def invoke(host, *argv, **_kwargs):
         if argv[0] == "sha256sum":
             return SimpleNamespace(
-                returncode=0, stdout=f"{'a' * 64}  /absolute/harvester.py\n",
+                returncode=0, stdout=f"{'a' * 64}  {argv[-1]}\n",
                 stderr="")
         if argv[0] == "python3":
             metadata = metadata_by_host[host]

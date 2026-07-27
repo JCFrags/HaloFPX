@@ -1389,6 +1389,26 @@ bool hfx_rpc_response_event(
     return valid;
 }
 
+bool hfx_rpc_response_evidence_probe(bool server_side) {
+    std::array<uint8_t, 32> key {};
+    std::array<uint8_t, 32> attempt {};
+    std::array<uint8_t, 32> connection {};
+    if (!hfx_rpc_response_diagnostics_requested() || !hfx_graph_key(key)) {
+        return false;
+    }
+    attempt[0] = 0xa1;
+    connection[0] = 0xc1;
+    const bool written = hfx_rpc_response_event(
+        key.data(), server_side ? "server" : "client",
+        server_side ? "handler_entry" : "request_opcode",
+        static_cast<uint8_t>(RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE),
+        server_side ? 0 : 1, 2, 1, 0,
+        attempt.data(), connection.data(), server_side ? 0 : 1,
+        server_side ? 0 : 1, 1, 0, false, 0);
+    hfx_wipe(key.data(), key.size());
+    return written;
+}
+
 void hfx_identity_from_public(
         const ggml_backend_rpc_halofpx_state_identity & src,
         hfx_state_identity_wire & dst) {
@@ -1570,6 +1590,15 @@ bool hfx_random_all(uint8_t * data, size_t size) {
 
 } // namespace
 #endif
+
+extern "C" bool ggml_backend_rpc_halofpx_response_evidence_probe(bool server_side) {
+#ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+    return hfx_rpc_response_evidence_probe(server_side);
+#else
+    GGML_UNUSED(server_side);
+    return false;
+#endif
+}
 
 static bool send_msg(socket_ptr sock, const void * msg, size_t msg_size) {
     if (!sock->send_data(&msg_size, sizeof(msg_size))) {

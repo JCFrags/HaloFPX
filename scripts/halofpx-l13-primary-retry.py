@@ -84,8 +84,7 @@ RESULT_AUTHORITY_VERIFIER_SHA = ""
 L55_FIRST_CHUNK_ONLY = False
 L55_SOURCE_ROOT = "38b9ccf435ecc79240f0dbf7121a088dfac83b70bcc9b65928c73782b53ab060"
 L55_BUILD_ID = "d88a6c525fb96e9f4023d3d4fcf8d7e61ccb1d2b16d37ab06ad1314ed988e086"
-RESPONSE_HARVESTER = ""
-RESPONSE_HARVESTER_SHA = ""
+RESPONSE_HARVESTER_AUTHORITY: dict[str, dict[str, str]] = {}
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -488,7 +487,7 @@ def configure_l48_fixture() -> None:
     global EPOCH_RECEIPT, COMPONENT_DIAGNOSTICS, SEMANTIC_VERIFIER
     global REPLAY_AUTHORITY_VERIFIER, RESULT_AUTHORITY_VERIFIER
     global DEVICE_RECEIPT, DEVICE_RECEIPT_SHA
-    global RESPONSE_HARVESTER, RESPONSE_HARVESTER_SHA
+    global RESPONSE_HARVESTER_AUTHORITY
     global REMOTE_EVIDENCE, COORDINATOR_ROOT, WORKER_ROOT, RENDEZVOUS_ROOT
     global CONTROL, WORKER_CONTROL, ARTIFACT_DIR
     configure_l37_fixture()
@@ -519,11 +518,28 @@ def configure_l48_fixture() -> None:
         "/var/tmp/halofpx-l48-source-nimo1/scripts/"
         "halofpx_l50_device_receipt.py")
     DEVICE_RECEIPT_SHA = os.environ.get("HALOFPX_L50_DEVICE_RECEIPT_SHA256", "")
-    RESPONSE_HARVESTER = (
-        "/var/tmp/halofpx-l48-source-nimo2/scripts/"
-        "halofpx_rpc_response_harvest.py")
-    RESPONSE_HARVESTER_SHA = os.environ.get(
-        "HALOFPX_RPC_RESPONSE_HARVESTER_SHA256", "")
+    RESPONSE_HARVESTER_AUTHORITY = {
+        "worker": {
+            "host": NIMO1,
+            "path": os.environ.get(
+                "HALOFPX_RPC_RESPONSE_HARVESTER_WORKER_PATH", ""),
+            "sha256": os.environ.get(
+                "HALOFPX_RPC_RESPONSE_HARVESTER_WORKER_SHA256", ""),
+            "interpreter": "python3",
+            "source": "/var/tmp/halofpx-l48-worker/rpc-response-worker.jsonl",
+            "staging": "/var/tmp/halofpx-l48-worker/.rpc-response-worker.harvest",
+        },
+        "client": {
+            "host": NIMO2,
+            "path": os.environ.get(
+                "HALOFPX_RPC_RESPONSE_HARVESTER_CLIENT_PATH", ""),
+            "sha256": os.environ.get(
+                "HALOFPX_RPC_RESPONSE_HARVESTER_CLIENT_SHA256", ""),
+            "interpreter": "python3",
+            "source": "/var/tmp/halofpx-l48-evidence/rpc-response-client.jsonl",
+            "staging": "/var/tmp/halofpx-l48-evidence/.rpc-response-client.harvest",
+        },
+    }
     REMOTE_EVIDENCE = "/var/tmp/halofpx-l48-evidence"
     COORDINATOR_ROOT = "/var/tmp/halofpx-l48-coordinator"
     WORKER_ROOT = "/var/tmp/halofpx-l48-worker"
@@ -1983,8 +1999,33 @@ def harvest_response_boundary_evidence(
         worker_invocation: str,
         worker_pid: int,
         canary_unit: str) -> dict[str, object]:
-    if not RESPONSE_HARVESTER or not RESPONSE_HARVESTER_SHA:
+    expected_authority = {
+        "worker": {
+            "host": NIMO1,
+            "path": "/var/tmp/halofpx-l48-source-nimo1/scripts/"
+                    "halofpx_rpc_response_harvest.py",
+            "interpreter": "python3",
+            "source": f"{WORKER_ROOT}/rpc-response-worker.jsonl",
+            "staging": f"{WORKER_ROOT}/.rpc-response-worker.harvest",
+        },
+        "client": {
+            "host": NIMO2,
+            "path": "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+                    "halofpx_rpc_response_harvest.py",
+            "interpreter": "python3",
+            "source": f"{REMOTE_EVIDENCE}/rpc-response-client.jsonl",
+            "staging": f"{REMOTE_EVIDENCE}/.rpc-response-client.harvest",
+        },
+    }
+    if set(RESPONSE_HARVESTER_AUTHORITY) != set(expected_authority):
         raise CanaryError("RPC response harvester authority is unavailable")
+    for side, expected in expected_authority.items():
+        admitted = RESPONSE_HARVESTER_AUTHORITY[side]
+        if (
+            {name: admitted.get(name) for name in expected} != expected
+            or re.fullmatch(r"[0-9a-f]{64}", admitted.get("sha256", "")) is None
+        ):
+            raise CanaryError(f"RPC response {side} harvester authority mismatch")
     canary_authority = (
         DISPOSABLE_UNIT_FINAL_AUTHORITY.get((NIMO2, canary_unit))
         or DISPOSABLE_UNIT_AUTHORITY.get((NIMO2, canary_unit)))
@@ -1996,12 +2037,6 @@ def harvest_response_boundary_evidence(
             "pid": 0,
             "final_properties": None,
         }
-    records = (
-        ("worker", NIMO1, f"{WORKER_ROOT}/rpc-response-worker.jsonl",
-         f"{WORKER_ROOT}/.rpc-response-worker.harvest"),
-        ("client", NIMO2, f"{REMOTE_EVIDENCE}/rpc-response-client.jsonl",
-         f"{REMOTE_EVIDENCE}/.rpc-response-client.harvest"),
-    )
     report: dict[str, object] = {
         "schema": "halofpx.l59.rpc-response-harvest-receipt.v1",
         "ordering": "before_worker_stop_remote_root_key_controller_cleanup",
@@ -2027,20 +2062,26 @@ def harvest_response_boundary_evidence(
         "streams": {},
     }
     present_remote: list[str] = []
-    for side, host, source, staging in records:
+    for side in ("worker", "client"):
+        authority = RESPONSE_HARVESTER_AUTHORITY[side]
+        host = authority["host"]
+        source = authority["source"]
+        staging = authority["staging"]
+        harvester = authority["path"]
+        expected_harvester_sha = authority["sha256"]
         try:
             helper_result = ssh(
-                host, "sha256sum", RESPONSE_HARVESTER, check=False)
+                host, "sha256sum", "--", harvester, check=False)
             actual_helper = helper_result.stdout.split()
         except Exception:
             actual_helper = []
-        if not actual_helper or actual_helper[0] != RESPONSE_HARVESTER_SHA:
+        if not actual_helper or actual_helper[0] != expected_harvester_sha:
             metadata = {"status": "error", "reason": "harvester_hash"}
             harvest_error = True
         else:
             try:
                 result = ssh(
-                    host, "python3", RESPONSE_HARVESTER,
+                    host, authority["interpreter"], harvester,
                     "--source", source, "--staging", staging,
                     "--expected-owner", CHANNEL_KEY_OWNER, check=False)
                 metadata = json.loads(result.stdout)
@@ -2176,6 +2217,88 @@ def harvest_response_boundary_evidence(
     if harvest_error:
         raise CanaryError("RPC response evidence harvest or authentication failed")
     return report
+
+
+def run_l61_client_evidence_probe(root: Path, channel_key_sha: str) -> dict[str, object]:
+    authority = RESPONSE_HARVESTER_AUTHORITY.get("client", {})
+    expected_path = f"{REMOTE_EVIDENCE}/rpc-response-client-preflight.jsonl"
+    expected_staging = f"{REMOTE_EVIDENCE}/.rpc-response-client-preflight.harvest"
+    if (
+        authority.get("host") != NIMO2
+        or authority.get("path") !=
+            "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+            "halofpx_rpc_response_harvest.py"
+        or authority.get("interpreter") != "python3"
+        or re.fullmatch(r"[0-9a-f]{64}", authority.get("sha256", "")) is None
+    ):
+        raise CanaryError("L61 client evidence probe authority mismatch")
+    for path in (expected_path, expected_staging):
+        if ssh(NIMO2, "test", "!", "-e", path, check=False).returncode != 0:
+            raise CanaryError("L61 client evidence probe path collision")
+    command = [
+        "env",
+        "HALOFPX_RPC_RESPONSE_DIAGNOSTICS=1",
+        f"HALOFPX_RPC_RESPONSE_DIAGNOSTICS_PATH={expected_path}",
+        "HALOFPX_RPC_GRAPH_AUTH=1",
+        f"HALOFPX_RPC_GRAPH_AUTH_KEY_FILE={CONTROL}",
+        f"HALOFPX_RPC_GRAPH_AUTH_KEY_SHA256={channel_key_sha}",
+        CANARY_BIN,
+        "--halofpx-response-client-probe",
+    ]
+    probe = ssh(NIMO2, *command, check=False)
+    metadata: dict[str, object] = {
+        "schema": "halofpx.l61.client-evidence-probe.v1",
+        "host": NIMO2,
+        "binary": CANARY_BIN,
+        "source": expected_path,
+        "staging": expected_staging,
+        "probe_returncode": probe.returncode,
+    }
+    try:
+        if probe.returncode != 0:
+            raise CanaryError("L61 client instrumentation probe failed")
+        helper_hash = ssh(
+            NIMO2, "sha256sum", "--", authority["path"], check=False)
+        if (
+            helper_hash.returncode != 0 or not helper_hash.stdout.split()
+            or helper_hash.stdout.split()[0] != authority["sha256"]
+        ):
+            raise CanaryError("L61 client harvester hash mismatch")
+        harvested = ssh(
+            NIMO2, authority["interpreter"], authority["path"],
+            "--source", expected_path, "--staging", expected_staging,
+            "--expected-owner", CHANNEL_KEY_OWNER, check=False)
+        try:
+            harvest_record = json.loads(harvested.stdout)
+        except json.JSONDecodeError as exc:
+            raise CanaryError("L61 client harvester output malformed") from exc
+        if harvested.returncode != 0 or harvest_record.get("status") != "present":
+            raise CanaryError("L61 client preflight prefix was not harvested")
+        verified = ssh(
+            NIMO2, "python3",
+            "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+            "halofpx_rpc_response_boundary.py",
+            "--allow-prefix", "--key-file", CONTROL,
+            "--record-file", expected_staging, check=False)
+        if verified.returncode != 0:
+            raise CanaryError("L61 client preflight prefix authentication failed")
+        metadata.update({
+            "status": "pass",
+            "bytes": harvest_record["bytes"],
+            "sha256": harvest_record["sha256"],
+            "authentication": "accepted_prefix",
+        })
+        write_private_json(root / "l61-client-evidence-probe.json", metadata)
+        return metadata
+    finally:
+        removed = ssh(
+            NIMO2, "rm", "-f", "--", expected_path, expected_staging,
+            check=False)
+        absent = all(
+            ssh(NIMO2, "test", "!", "-e", path, check=False).returncode == 0
+            for path in (expected_path, expected_staging))
+        if removed.returncode != 0 or not absent:
+            raise CanaryError("L61 client evidence probe cleanup failed")
 
 
 def wait_remote_file(path: str, timeout_seconds: float) -> None:
@@ -3169,6 +3292,8 @@ def main() -> int:
             raise CanaryError("worker free space below 2 GB gate")
         if args.l48_fixture:
             validate_prepared_evidence_directory(NIMO2, REMOTE_EVIDENCE)
+            if os.environ.get("HALOFPX_L61_HOST_BOUND_HARVEST") == "1":
+                run_l61_client_evidence_probe(root, channel_key_sha)
         device_admission = (
             run_l50_device_admission(root, local_units) if args.l48_fixture else None)
         ssh(NIMO2, "rm", "-rf", "--", COORDINATOR_ROOT, RENDEZVOUS_ROOT)

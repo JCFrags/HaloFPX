@@ -1,0 +1,81 @@
+{
+  "cleanup": {
+    "client": "LoadState=not-found\nActiveState=inactive\nSubState=dead\nMainPID=0",
+    "worker": "LoadState=not-found\nActiveState=inactive\nSubState=dead\nMainPID=0"
+  },
+  "schema": "halofpx.l61.two-host-prefix-fixture.final.v1",
+  "streams": {
+    "client": {
+      "binary_sha256": "7eb560b9fcf3cfd4e584082abe4fefe8ea3eec94f7f4aa0c8e4084e0a65dbeb2",
+      "bytes": 485,
+      "harvester_sha256": "e717a71431d582b9266312b46863759529c9009a0aff9dda05d057f4776dd705",
+      "host": "nimo-2",
+      "invocation_id": "f83a0e4896e24835bb101022d3fe5dd2",
+      "pid": 1818749,
+      "sha256": "4a3214263291ca5587d6105289be86856eabf912201a534757e92e0e00d1ccb9",
+      "unit": "halofpx-l61-final-client.service"
+    },
+    "worker": {
+      "binary_sha256": "08dde52b41beabed0c91d1632d3aaf5a845fbb89f8a221532022e0e2c7ffecf0",
+      "bytes": 483,
+      "harvester_sha256": "e717a71431d582b9266312b46863759529c9009a0aff9dda05d057f4776dd705",
+      "host": "nimo-1",
+      "invocation_id": "26df46987fea4bf08b684106a17f02c1",
+      "pid": 2562072,
+      "sha256": "51c168d15c271f680f2f9e7009342f732f8df1bf9e9ef5c1507bbcbc5ddd2f3e",
+      "unit": "halofpx-l61-final-worker.service"
+    }
+  },
+  "verification": {
+    "client": [
+      {
+        "actual": 1,
+        "attempt": "a100000000000000000000000000000000000000000000000000000000000000",
+        "backend_ordinal": 0,
+        "connection_epoch": "c100000000000000000000000000000000000000000000000000000000000000",
+        "domain": "halofpx.rpc-response-boundary.v1",
+        "eof": 0,
+        "errno": 0,
+        "event": 1,
+        "exec_sequence": 1,
+        "expected": 1,
+        "mono_ns": 1380062400873691,
+        "opcode": 25,
+        "parent_uid": 1,
+        "phase": "request_opcode",
+        "rc": 1,
+        "side": "client",
+        "split_uid": 2,
+        "status": 0,
+        "tag": "2bad33377baf256a76bf4734248fb79dc75ce0fac5309bcfcb741712e43c4bd1",
+        "version": "1",
+        "wall_ns": 1785195637771600898
+      }
+    ],
+    "server": [
+      {
+        "actual": 0,
+        "attempt": "a100000000000000000000000000000000000000000000000000000000000000",
+        "backend_ordinal": 0,
+        "connection_epoch": "c100000000000000000000000000000000000000000000000000000000000000",
+        "domain": "halofpx.rpc-response-boundary.v1",
+        "eof": 0,
+        "errno": 0,
+        "event": 1,
+        "exec_sequence": 1,
+        "expected": 0,
+        "mono_ns": 702504889395535,
+        "opcode": 25,
+        "parent_uid": 0,
+        "phase": "handler_entry",
+        "rc": 1,
+        "side": "server",
+        "split_uid": 2,
+        "status": 0,
+        "tag": "08f08b7f703946f74f350e50c2ced6841799db929e35248cc8fdf2e2aacea9ea",
+        "version": "1",
+        "wall_ns": 1785195635678943218
+      }
+    ]
+  }
+}

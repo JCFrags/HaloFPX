@@ -1287,6 +1287,12 @@ static bool rendezvous(const fs::path & root, const std::string & ready, const s
 }
 
 int main(int argc, char ** argv) {
+    if (argc == 2 &&
+        (std::strcmp(argv[1], "--halofpx-response-client-probe") == 0 ||
+         std::strcmp(argv[1], "--halofpx-response-server-probe") == 0)) {
+        return ggml_backend_rpc_halofpx_response_evidence_probe(
+            std::strcmp(argv[1], "--halofpx-response-server-probe") == 0) ? 0 : 1;
+    }
 #if defined(HALOFPX_PROVENANCE_SOURCE_ROOT) && defined(HALOFPX_PROVENANCE_BUILD_ID)
     if (argc == 2 && std::strcmp(argv[1], "--halofpx-provenance") == 0) {
         std::printf("schema=%s|source_root=%s|build_id=%s|binary=canary\n",

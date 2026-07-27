@@ -148,7 +148,8 @@ L48_EXECUTABLES = {
     "device_receipt": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_l50_device_receipt.py",
     "status_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l55_status.py",
     "response_boundary_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_boundary.py",
-    "response_harvester": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_harvest.py",
+    "response_harvester_worker": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_rpc_response_harvest.py",
+    "response_harvester_client": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_harvest.py",
 }
 L29_MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -174,6 +175,7 @@ L48_SOURCE_FILES = (
     "tests/test-halofpx-rpc-mutable-authority.cpp",
     "tests/test-halofpx-scheduler-authority.cpp",
     "tests/test_halofpx_rpc_response_boundary.py",
+    "tests/test_halofpx_l61_host_bound_harvest.py",
     "tools/rpc/rpc-server.cpp",
     "scripts/halofpx-l13-primary-retry.py",
     "scripts/halofpx_l48_composed_result.py",
@@ -847,6 +849,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "l58-rpc-response-boundary-discriminator",
         "l59-rpc-response-evidence-lifetime",
         "l60-transient-unit-response-discriminator",
+        "l61-host-bound-response-discriminator",
     }
     primary = l29 or l31 or l33 or l36
     if l48:
@@ -868,8 +871,10 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             expected_exec["controller"] = str(Path(__file__).resolve())
             if raw["milestone"] not in {
                     "l59-rpc-response-evidence-lifetime",
-                    "l60-transient-unit-response-discriminator"}:
-                expected_exec.pop("response_harvester")
+                    "l60-transient-unit-response-discriminator",
+                    "l61-host-bound-response-discriminator"}:
+                expected_exec.pop("response_harvester_worker")
+                expected_exec.pop("response_harvester_client")
         expected_child_argv = [
             str(interpreter_path), str(child_path), "--evidence-dir",
             "{evidence_root}/child",
@@ -880,7 +885,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                     "l55-first-armed-prompt-discriminator",
                     "l58-rpc-response-boundary-discriminator",
                     "l59-rpc-response-evidence-lifetime",
-                    "l60-transient-unit-response-discriminator"}:
+                    "l60-transient-unit-response-discriminator",
+                    "l61-host-bound-response-discriminator"}:
                 expected_child_argv += ["--l55-first-chunk"]
             expected_child_argv += ["--authority-key-file", L48_KEY_PATHS["nimo-2"]]
         prefix = "halofpx-l48" if l48 else "halofpx-l36-primary" if l36 else "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
@@ -895,6 +901,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 "l58-rpc-response-boundary-discriminator",
                 "l59-rpc-response-evidence-lifetime",
                 "l60-transient-unit-response-discriminator",
+                "l61-host-bound-response-discriminator",
             }
             else "l36-primary-replay-authority-discriminator" if l36
             else "l33-primary-live-state-discriminator" if l33
@@ -916,8 +923,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 f"{prefix}-canary-capture.service",
                 f"{prefix}-canary-restore.service",
                 *((f"{prefix}-canary-first-chunk.service",)
-                  if l48 and raw["milestone"] ==
-                     "l60-transient-unit-response-discriminator" else ()),
+                  if l48 and raw["milestone"] in {
+                      "l60-transient-unit-response-discriminator",
+                      "l61-host-bound-response-discriminator"} else ()),
             )
             or raw["key_paths"] != key_paths
             or raw["disposable_paths"] != {
@@ -949,7 +957,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                    if raw["milestone"] in {
                        "l58-rpc-response-boundary-discriminator",
                        "l59-rpc-response-evidence-lifetime",
-                       "l60-transient-unit-response-discriminator"}
+                       "l60-transient-unit-response-discriminator",
+                       "l61-host-bound-response-discriminator"}
                    else {}),
             },
             **({
@@ -973,6 +982,35 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 "outer_deadline_seconds": 150,
                 "teardown_evidence_margin_seconds": 30,
             },
+            **({
+                "response_harvest": {
+                    "worker": {
+                        "host": "nimo-1",
+                        "source_path": L48_EXECUTABLES[
+                            "response_harvester_worker"],
+                        "sha256": raw["executable_sha256"][
+                            "response_harvester_worker"],
+                        "interpreter": "python3",
+                        "input_stream_path":
+                            "/var/tmp/halofpx-l48-worker/rpc-response-worker.jsonl",
+                        "output_staging_path":
+                            "/var/tmp/halofpx-l48-worker/.rpc-response-worker.harvest",
+                    },
+                    "client": {
+                        "host": "nimo-2",
+                        "source_path": L48_EXECUTABLES[
+                            "response_harvester_client"],
+                        "sha256": raw["executable_sha256"][
+                            "response_harvester_client"],
+                        "interpreter": "python3",
+                        "input_stream_path":
+                            "/var/tmp/halofpx-l48-evidence/rpc-response-client.jsonl",
+                        "output_staging_path":
+                            "/var/tmp/halofpx-l48-evidence/.rpc-response-client.harvest",
+                    },
+                },
+            } if raw["milestone"] == "l61-host-bound-response-discriminator"
+               else {}),
             "evidence_publication": {
                 "host": "nimo-2",
                 "directory": "/var/tmp/halofpx-l48-evidence",
@@ -1169,8 +1207,10 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         host_for["response_boundary_verifier"] = DISPOSABLE_CANARY_HOST
         if raw["milestone"] in {
                 "l59-rpc-response-evidence-lifetime",
-                "l60-transient-unit-response-discriminator"}:
-            host_for["response_harvester"] = DISPOSABLE_CANARY_HOST
+                "l60-transient-unit-response-discriminator",
+                "l61-host-bound-response-discriminator"}:
+            host_for["response_harvester_worker"] = DISPOSABLE_HOST
+            host_for["response_harvester_client"] = DISPOSABLE_CANARY_HOST
     for name, host in host_for.items():
         result = runner.run(
             host, ["sha256sum", "--", expected_exec[name]], operation="hash")
@@ -1790,8 +1830,10 @@ def child_environment(
             "device_receipt")
         if manifest.get("milestone") in {
                 "l59-rpc-response-evidence-lifetime",
-                "l60-transient-unit-response-discriminator"}:
-            required += ("response_harvester",)
+                "l60-transient-unit-response-discriminator",
+                "l61-host-bound-response-discriminator"}:
+            required += (
+                "response_harvester_worker", "response_harvester_client")
     if any(not re.fullmatch(r"[0-9a-f]{64}", str(hashes.get(name, ""))) for name in required):
         raise TransitionError("validated manifest child hash authority is incomplete")
     environment = os.environ.copy()
@@ -1833,10 +1875,19 @@ def child_environment(
             environment["HALOFPX_RPC_RESPONSE_DIAGNOSTICS"] = "1"
         if manifest.get("milestone") in {
                 "l59-rpc-response-evidence-lifetime",
-                "l60-transient-unit-response-discriminator"}:
+                "l60-transient-unit-response-discriminator",
+                "l61-host-bound-response-discriminator"}:
             environment["HALOFPX_RPC_RESPONSE_DIAGNOSTICS"] = "1"
-            environment["HALOFPX_RPC_RESPONSE_HARVESTER_SHA256"] = str(
-                hashes["response_harvester"])
+            environment["HALOFPX_RPC_RESPONSE_HARVESTER_WORKER_PATH"] = str(
+                manifest["executables"]["response_harvester_worker"])
+            environment["HALOFPX_RPC_RESPONSE_HARVESTER_WORKER_SHA256"] = str(
+                hashes["response_harvester_worker"])
+            environment["HALOFPX_RPC_RESPONSE_HARVESTER_CLIENT_PATH"] = str(
+                manifest["executables"]["response_harvester_client"])
+            environment["HALOFPX_RPC_RESPONSE_HARVESTER_CLIENT_SHA256"] = str(
+                hashes["response_harvester_client"])
+            if manifest.get("milestone") == "l61-host-bound-response-discriminator":
+                environment["HALOFPX_L61_HOST_BOUND_HARVEST"] = "1"
         environment["HALOFPX_L50_DEVICE_RECEIPT_SHA256"] = str(
             hashes["device_receipt"])
     return environment
