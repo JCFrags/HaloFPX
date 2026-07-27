@@ -1119,3 +1119,35 @@ minimum small-model/disposable cases needed for those defects, obtain one
 independent adversarial review, commit a terminal result, and end the task turn.
 No primary artifact access, production mutation, performance work, cache
 promotion, unrelated tuning, or L22 work is authorized.
+
+## 2026-07-27 — accept L57 identity correction and isolate RPC response boundary
+
+Decision: accept terminal L57 NOT PROMOTED at
+`0026d5243c6108659fa53ce9185af9de0d6ec857` and retain its independently
+reviewed parent/split graph-identity correction. Open L58 only as a
+no-primary/no-production discriminator at the real RPC graph-compute
+request/response boundary.
+
+Reason: L57 closes the proven parent UID 26 versus RPC split UID 27
+reconciliation defect with an authenticated two-level identity mapping and
+passes focused tests, real RPC fixtures, exact ROCm builds, controller dry-run,
+and pre-runtime review. Its sole stories15M run then reached a different
+boundary: the worker logged an ordinary 144-node/193-tensor graph execution,
+while the coordinator received no usable graph-compute response and reported
+`Remote RPC server crashed or returned malformed response`. The retained
+evidence does not show whether the server handler crashed or exited, omitted or
+truncated its response, emitted the wrong framing/size/opcode, or whether the
+client hit EOF/socket/decode validation. The later abort in RPC buffer cleanup
+is secondary and cannot supply that missing classification.
+
+L58 must instrument only the immediate real server handler and client
+request/response seam with bounded authenticated metadata: exact protocol and
+binary identities, connection/attempt/parent/split/sequence identity, opcode,
+expected and actual byte counts, send/receive status and EOF/error, handler
+entry/exit/status, and response publication. It must first pass focused
+protocol/refusal tests and one small disposable RPC graph, then may consume one
+stories15M first-armed-chunk run after independent pre-runtime review. It must
+stop at classification: no cache capture/restore matrix, primary artifact,
+production mutation, performance work, or combined semantic correction is
+authorized. If a narrow fix becomes obvious, report it for a separate Lead
+decision.

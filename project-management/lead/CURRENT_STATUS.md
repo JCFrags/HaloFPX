@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 13:06 PDT
+Verified: 2026-07-27 14:10 PDT
 
 ## Overall state
 
@@ -188,15 +188,27 @@ independent read-only specialists are auditing graph-input coverage and
   `0`, sequence `1`. L57 is active only to bind explicit parent/split UID
   mapping, retain fail-closed lineage, and perform one complete stories15M
   controller qualification.
+- L57 closed NOT PROMOTED at
+  `0026d5243c6108659fa53ce9185af9de0d6ec857`. Its independently reviewed
+  parent/split identity correction is retained and focused qualification
+  passed. In the sole stories15M run, the first armed graph reached the RPC
+  worker, which logged ordinary graph execution, but the coordinator received
+  no usable response and failed with `Remote RPC server crashed or returned
+  malformed response`; cleanup then aborted while freeing the RPC buffer.
+  Existing evidence cannot distinguish worker failure, missing/truncated
+  response, framing/size mismatch, socket EOF, or client validation refusal.
+  L58 is active only as a no-primary/no-production authenticated discriminator
+  at that exact request/response boundary. It may run one small RPC fixture and
+  one first armed stories chunk, but no cache/restore matrix or semantic fix.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `8af226d675d9ae287d5d2bddd849f9920507d9ba`
+- Latest verified commit: `0026d5243c6108659fa53ce9185af9de0d6ec857`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L56 diagnostic closeout
+- Worktree state: clean at the reviewed terminal L57 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
