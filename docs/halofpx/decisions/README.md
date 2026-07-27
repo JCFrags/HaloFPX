@@ -52,3 +52,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0045b](0045-rpc-worker-epoch-model-residency.md): RPC worker epoch and model-residency authority
 - [ADR-0046](0046-fresh-rpc-residency-restore-authority.md): fresh RPC model residency precedes restore staging
 - [ADR-0047](0047-quantized-state-apply-block-geometry.md): quantized state application uses scalar block geometry
+- [ADR-0048](0048-composed-scheduler-rpc-execution-authority.md): composed scheduler and RPC execution authority

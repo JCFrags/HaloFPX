@@ -6,6 +6,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 
 - [Clean baseline manifest](baseline-manifest.json)
 - [Feature-off baseline](feature-off-baseline.md)
+- [ADR-0048 composed scheduler and RPC execution authority](decisions/0048-composed-scheduler-rpc-execution-authority.md)
+- [ADR-0048 independent review](reviews/2026-07-26__adr-0048-composed-scheduler-rpc-authority__review__v01.md)
 - [L46 real replay authority integration — NOT PROMOTED](l46-real-replay-authority-integration.md)
 - [L46 receipt](evidence/l46-real-replay-authority-integration-receipt.json)
 - [L46 independent review](reviews/2026-07-26__l46-real-replay-authority-integration__review__v01.md)
