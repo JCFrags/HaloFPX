@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 10:59 PDT
+Verified: 2026-07-27 11:44 PDT
 
 ## Overall state
 
@@ -150,15 +150,23 @@ independent read-only specialists are auditing graph-input coverage and
   the device receipt before creating the remote evidence directory. L52 is
   active only to correct that closed evidence-path ordering and perform the
   deferred stories15M qualification once.
+- L52 closed NOT PROMOTED at
+  `d236e74d2b2c3df96d88ef4cce5269d1baf3f24a`. Evidence directory admission
+  and atomic receipt publication passed, followed by device, readiness, and
+  placement gates. Warmup still returned decode `-3`. The retained worker
+  journal proves L40 server graph preparation/execution succeeded, narrowing
+  the failure to the coordinator scheduler/composition status path. L53 is
+  active only to localize and correct that explicit unarmed scheduler lifecycle
+  and perform the deferred stories run once.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `1746c15c9688cb068751ab40619bb0637cff1b3a`
+- Latest verified commit: `d236e74d2b2c3df96d88ef4cce5269d1baf3f24a`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L51 closeout
+- Worktree state: clean at the reviewed terminal L52 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

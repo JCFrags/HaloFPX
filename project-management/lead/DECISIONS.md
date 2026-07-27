@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — accept L52 and localize coordinator warmup status
+
+Decision: accept L52 NOT PROMOTED commit
+`d236e74d2b2c3df96d88ef4cce5269d1baf3f24a`. Open L53 only to identify and
+correct the coordinator scheduler/composition branch returning decode `-3`
+during an unarmed common warmup, then run one stories15M qualification. No
+primary, production, cache, tuning, matrix, or L54 is authorized.
+
+Reason: L52 closes evidence publication and passes device, readiness, and
+placement. The worker journal independently shows the L40 RPC graph prepared
+and executed successfully, so revisiting those gates would be waste. The next
+source boundary is coordinator scheduler completion and explicit armed/unarmed
+state propagation.
+
 ## 2026-07-27 — accept L51 and correct evidence-directory ordering only
 
 Decision: accept L51 NOT PROMOTED commit
