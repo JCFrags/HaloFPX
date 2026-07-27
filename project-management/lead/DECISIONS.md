@@ -1,5 +1,19 @@
 # Project-Lead Decisions
 
+## 2026-07-26 — verify migration restoration and resume exact L44 lane
+
+Decision: accept the restored repositories at management commit
+`a22632696fd04d752224f4a99822b11cdd12c4b5` and clean HaloFPX commit
+`aba0f78d07c824c3bcdbcb5ffbdc26e174cda3bf`. Resume L44 only for the two L43
+blockers: admitted-session isolation and negative injection through real RPC
+handlers. No primary artifact, production mutation, cache semantics, tuning,
+model matrix, or L45 is authorized.
+
+Reason: repository identities and live production authority match the migration
+handoff exactly. L40 and L42 remain the accepted foundations, and the smallest
+path to a decisive primary discriminator is to close L43's two concrete
+reusable-layer defects without reopening broader instrumentation.
+
 ## 2026-07-25 — accept L43 rejection and pause for OS migration
 
 Decision: accept L43 NOT PROMOTED commit

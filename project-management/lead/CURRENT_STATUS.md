@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-25 05:38 PDT
+Verified: 2026-07-26 22:58 PDT
 
 ## Overall state
 
@@ -79,6 +79,13 @@ independent read-only specialists are auditing graph-input coverage and
   real-handler negative injection. Candidate code was removed; L40 and L42
   remain unchanged. Per user direction, implementation is paused for OS
   migration and no L44 is open.
+- OS-migration restoration verification passed on 2026-07-26. Both repository
+  identities match the handoff, HaloFPX is clean, and the intentionally
+  retained project evidence remains preserved. Production was reconciled
+  read-only at the exact unchanged system services: nimo-2 PID `1535639`,
+  port `50052`, `NRestarts=0`; nimo-1 PID `2356329`, port `8081`, HTTP `200`,
+  `NRestarts=0`. L44 is now active only for admitted-session mutable authority
+  and real-handler refusal injection.
 
 ## Repository
 
