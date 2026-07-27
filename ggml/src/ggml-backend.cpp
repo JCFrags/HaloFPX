@@ -23,6 +23,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
+#include <atomic>
 #include <array>
 #include <functional>
 #include <new>
@@ -795,6 +796,27 @@ enum sched_auth_event : uint16_t {
 using sched_digest = std::array<uint8_t, 32>;
 
 struct sched_auth_state {
+    struct root_authority {
+        uint32_t root_class;
+        uint32_t role;
+        uint32_t role_ordinal;
+    };
+    struct admitted_copy {
+        uint32_t source_id;
+        uint32_t destination_backend;
+        uint32_t copy_slot;
+        uint32_t root_class;
+        uint32_t role;
+        uint32_t role_ordinal;
+        uint64_t generation;
+        ggml_tensor * tensor;
+    };
+    struct admitted_root {
+        uint32_t canonical_id;
+        uint32_t backend;
+        root_authority authority;
+        ggml_tensor * tensor;
+    };
     struct copy_range {
         uint32_t source_id;
         uint32_t destination_backend;
@@ -808,15 +830,36 @@ struct sched_auth_state {
     ggml_backend_sched_authority_config config {};
     struct ggml_backend_sched_authority_result result {};
     std::unordered_map<const ggml_tensor *, uint32_t> ids;
+    std::unordered_map<const ggml_tensor *, root_authority> roots;
+    std::unordered_set<uint32_t> rpc_backends;
     std::unordered_map<ggml_backend_buffer_t, uint32_t> buffer_ordinals;
     std::vector<const ggml_tensor *> ordered;
+    std::vector<const ggml_tensor *> original_leaves;
     sched_digest chain {};
     std::vector<copy_range> copy_ranges;
+    std::vector<admitted_copy> admitted_copies;
+    std::vector<admitted_root> admitted_roots;
+    sched_digest prepared_root {};
+    uint64_t session_id = 0;
     uint64_t generation = 0;
     uint32_t exported_size = 0;
     bool finalized = false;
+    bool prepared = false;
+    bool computing = false;
     bool failed = false;
 };
+
+static std::atomic<uint64_t> sched_auth_next_session { 1 };
+
+static const sched_auth_state::root_authority * sched_auth_root_for(
+        const sched_auth_state * state,
+        const ggml_tensor * tensor) {
+    for (const ggml_tensor * cur = tensor; cur != nullptr; cur = cur->view_src) {
+        const auto found = state->roots.find(cur);
+        if (found != state->roots.end()) return &found->second;
+    }
+    return nullptr;
+}
 
 bool sched_auth_add_u64(uint64_t a, uint64_t b, uint64_t & out) {
     if (UINT64_MAX - a < b) return false;
@@ -987,6 +1030,7 @@ bool sched_auth_allocation(
 bool sched_auth_assign_graph(sched_auth_state * state, const ggml_cgraph * graph) {
     state->ids.clear();
     state->ordered.clear();
+    state->original_leaves.clear();
     if (graph->n_nodes <= 0) return false;
     for (int i = 0; i < graph->n_nodes; ++i) {
         if (graph->nodes[i] == nullptr ||
@@ -1013,6 +1057,9 @@ bool sched_auth_assign_graph(sched_auth_state * state, const ggml_cgraph * graph
     }
     for (uint32_t id = 0; id < state->ordered.size(); ++id) {
         const ggml_tensor * tensor = state->ordered[id];
+        bool has_src = false;
+        for (const ggml_tensor * src : tensor->src) has_src = has_src || src != nullptr;
+        if (!has_src) state->original_leaves.push_back(tensor);
         std::vector<uint8_t> body;
         sched_auth_layout(body, tensor, id);
         sched_auth_le<uint32_t>(body, tensor->op);
@@ -1854,6 +1901,17 @@ void ggml_backend_sched_split_graph(ggml_backend_sched_t sched, struct ggml_cgra
                             sched_auth_le<uint32_t>(body, 0); // generated copy has no graph view chain
                             if (!sched_auth_event_record(sched->authority, SCHED_AUTH_COPY_MAP, body)) return;
                             sched->authority->result.copy_map_count++;
+                            const auto * root = sched_auth_root_for(sched->authority, src);
+                            sched->authority->admitted_copies.push_back({
+                                source->second,
+                                static_cast<uint32_t>(cur_backend_id),
+                                static_cast<uint32_t>(c),
+                                root ? root->root_class : 0,
+                                root ? root->role : 0,
+                                root ? root->role_ordinal : source->second,
+                                sched->authority->generation,
+                                const_cast<ggml_tensor *>(destination),
+                            });
                         }
                     }
                     node->src[j] = tensor_id_copy(src_id, cur_backend_id, sched->cur_copy);
@@ -2471,6 +2529,246 @@ bool ggml_backend_sched_authority_enable(
     return true;
 }
 
+static bool sched_auth_handle_matches(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle) {
+    return sched != nullptr && handle != nullptr && sched->authority != nullptr &&
+        handle->major == SCHED_AUTH_MAJOR && handle->minor == SCHED_AUTH_MINOR &&
+        handle->encoded_size == sizeof(*handle) &&
+        handle->session_id != 0 && handle->session_id == sched->authority->session_id &&
+        handle->generation == 1 &&
+        handle->execution_sequence == sched->authority->config.execution_sequence &&
+        sched_auth_equal(handle->attempt_nonce, sched->authority->config.attempt_nonce, 32);
+}
+
+bool ggml_backend_sched_authority_arm(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_config * config,
+        ggml_backend_sched_authority_handle * handle) {
+    if (sched == nullptr || config == nullptr || handle == nullptr || sched->authority != nullptr ||
+        !ggml_backend_sched_authority_enable(sched, config)) return false;
+    auto & state = *sched->authority;
+    state.session_id = sched_auth_next_session.fetch_add(1, std::memory_order_relaxed);
+    if (state.session_id == 0) {
+        state.session_id = sched_auth_next_session.fetch_add(1, std::memory_order_relaxed);
+    }
+    memset(handle, 0, sizeof(*handle));
+    handle->major = SCHED_AUTH_MAJOR;
+    handle->minor = SCHED_AUTH_MINOR;
+    handle->encoded_size = sizeof(*handle);
+    handle->session_id = state.session_id;
+    handle->generation = 1;
+    handle->execution_sequence = config->execution_sequence;
+    memcpy(handle->attempt_nonce, config->attempt_nonce, 32);
+    return true;
+}
+
+bool ggml_backend_sched_authority_register_root(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        ggml_tensor * tensor,
+        ggml_backend_sched_authority_root_class root_class,
+        uint32_t role,
+        uint32_t role_ordinal) {
+    if (!sched_auth_handle_matches(sched, handle) || tensor == nullptr ||
+        sched->authority->prepared || sched->authority->computing ||
+        root_class < GGML_BACKEND_SCHED_AUTH_MUTABLE ||
+        root_class > GGML_BACKEND_SCHED_AUTH_STATE_PAYLOAD ||
+        role == 0) return false;
+    const sched_auth_state::root_authority value {
+        static_cast<uint32_t>(root_class), role, role_ordinal
+    };
+    auto [it, inserted] = sched->authority->roots.emplace(tensor, value);
+    return inserted ||
+        (it->second.root_class == value.root_class &&
+         it->second.role == value.role &&
+         it->second.role_ordinal == value.role_ordinal);
+}
+
+bool ggml_backend_sched_authority_mark_rpc_backend(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        uint32_t backend_ordinal) {
+    if (!sched_auth_handle_matches(sched, handle) || sched->authority->prepared ||
+        backend_ordinal >= static_cast<uint32_t>(sched->n_backends)) return false;
+    return sched->authority->rpc_backends.insert(backend_ordinal).second;
+}
+
+bool ggml_backend_sched_authority_prepare(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        ggml_cgraph * graph,
+        ggml_backend_sched_authority_prepared * prepared) {
+    if (!sched_auth_handle_matches(sched, handle) || graph == nullptr || prepared == nullptr ||
+        sched->authority->prepared || sched->authority->failed ||
+        sched->authority->generation != 1 || !sched->is_alloc) return false;
+    auto & state = *sched->authority;
+    uint32_t local_count = 0;
+    uint32_t rpc_count = 0;
+    std::vector<uint8_t> census;
+    state.admitted_roots.clear();
+    for (const ggml_tensor * leaf : state.original_leaves) {
+        const auto * root = sched_auth_root_for(&state, leaf);
+        if (root == nullptr) {
+            GGML_LOG_ERROR(
+                "%s: refusing unclassified graph leaf canonical_id=%u type=%d "
+                "view=%u\n",
+                __func__,
+                state.ids.count(leaf) ? state.ids.at(leaf) : UINT32_MAX,
+                static_cast<int>(leaf->type),
+                leaf->view_src != nullptr ? 1u : 0u);
+            state.failed = true;
+            state.result.status = 2;
+            return false;
+        }
+        const int backend = tensor_backend_id(const_cast<ggml_tensor *>(leaf));
+        if (backend < 0) {
+            state.failed = true;
+            state.result.status = 2;
+            return false;
+        }
+        const bool rpc = state.rpc_backends.count(static_cast<uint32_t>(backend)) != 0;
+        rpc ? ++rpc_count : ++local_count;
+        const auto id = state.ids.find(leaf);
+        if (id == state.ids.end()) {
+            state.failed = true;
+            state.result.status = 2;
+            return false;
+        }
+        state.admitted_roots.push_back({
+            id->second,
+            static_cast<uint32_t>(backend),
+            *root,
+            const_cast<ggml_tensor *>(leaf),
+        });
+        sched_auth_le<uint32_t>(census, id->second);
+        sched_auth_le<uint32_t>(census, root->root_class);
+        sched_auth_le<uint32_t>(census, root->role);
+        sched_auth_le<uint32_t>(census, root->role_ordinal);
+    }
+    for (const auto & copy : state.admitted_copies) {
+        if (state.rpc_backends.count(copy.destination_backend) != 0) ++rpc_count;
+    }
+    const auto census_root = sched_auth_hmac(state.config.key, census.data(), census.size());
+    std::vector<uint8_t> canonical;
+    sched_auth_le<uint64_t>(canonical, graph->uid);
+    sched_auth_le<uint64_t>(canonical, state.config.execution_sequence);
+    sched_auth_le<uint32_t>(canonical, state.ordered.size());
+    sched_auth_le<uint32_t>(canonical, state.result.split_count);
+    sched_auth_le<uint32_t>(canonical, state.result.copy_map_count);
+    sched_auth_le<uint32_t>(canonical, local_count);
+    sched_auth_le<uint32_t>(canonical, rpc_count);
+    sched_auth_bytes(canonical, state.chain.data(), state.chain.size());
+    sched_auth_bytes(canonical, census_root.data(), census_root.size());
+    const auto root = sched_auth_hmac(state.config.key, canonical.data(), canonical.size());
+    state.prepared_root = root;
+    memset(prepared, 0, sizeof(*prepared));
+    prepared->major = SCHED_AUTH_MAJOR;
+    prepared->minor = SCHED_AUTH_MINOR;
+    prepared->encoded_size = sizeof(*prepared);
+    prepared->status = 1;
+    prepared->graph_entry_count = state.ordered.size();
+    prepared->split_count = state.result.split_count;
+    prepared->copy_count = state.admitted_copies.size();
+    prepared->local_count = local_count;
+    prepared->rpc_count = rpc_count;
+    prepared->graph_uid = graph->uid;
+    prepared->execution_sequence = state.config.execution_sequence;
+    memcpy(prepared->attempt_nonce, state.config.attempt_nonce, 32);
+    memcpy(prepared->prepared_root, root.data(), 32);
+    std::vector<uint8_t> tagged(
+        reinterpret_cast<const uint8_t *>(prepared),
+        reinterpret_cast<const uint8_t *>(prepared) + offsetof(ggml_backend_sched_authority_prepared, tag));
+    const auto tag = sched_auth_hmac(state.config.key, tagged.data(), tagged.size());
+    memcpy(prepared->tag, tag.data(), 32);
+    state.prepared = true;
+    return true;
+}
+
+size_t ggml_backend_sched_authority_copy_count(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle) {
+    return sched_auth_handle_matches(sched, handle) && sched->authority->prepared ?
+        sched->authority->admitted_copies.size() : 0;
+}
+
+bool ggml_backend_sched_authority_copy_at(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        size_t index,
+        ggml_backend_sched_authority_copy * copy) {
+    if (!sched_auth_handle_matches(sched, handle) || copy == nullptr ||
+        !sched->authority->prepared || index >= sched->authority->admitted_copies.size()) return false;
+    const auto & value = sched->authority->admitted_copies[index];
+    memset(copy, 0, sizeof(*copy));
+    copy->source_canonical_id = value.source_id;
+    copy->destination_backend_ordinal = value.destination_backend;
+    copy->copy_slot = value.copy_slot;
+    copy->root_class = value.root_class;
+    copy->role = value.role;
+    copy->role_ordinal = value.role_ordinal;
+    copy->copy_generation = value.generation;
+    copy->runtime_tensor = value.tensor;
+    return true;
+}
+
+size_t ggml_backend_sched_authority_root_count(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle) {
+    return sched_auth_handle_matches(sched, handle) && sched->authority->prepared ?
+        sched->authority->admitted_roots.size() : 0;
+}
+
+bool ggml_backend_sched_authority_root_at(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        size_t index,
+        ggml_backend_sched_authority_root * root) {
+    if (!sched_auth_handle_matches(sched, handle) || root == nullptr ||
+        !sched->authority->prepared || index >= sched->authority->admitted_roots.size()) return false;
+    const auto & value = sched->authority->admitted_roots[index];
+    memset(root, 0, sizeof(*root));
+    root->canonical_id = value.canonical_id;
+    root->backend_ordinal = value.backend;
+    root->root_class = value.authority.root_class;
+    root->role = value.authority.role;
+    root->role_ordinal = value.authority.role_ordinal;
+    root->runtime_tensor = value.tensor;
+    return true;
+}
+
+bool ggml_backend_sched_authority_finalize_execution(
+        ggml_backend_sched_t sched,
+        ggml_backend_sched_authority_handle * handle,
+        struct ggml_backend_sched_authority_result * result) {
+    if (!sched_auth_handle_matches(sched, handle) || result == nullptr ||
+        !sched->authority->prepared) return false;
+    sched->authority->computing = true;
+    ggml_backend_sched_synchronize(sched);
+    const bool ok = ggml_backend_sched_authority_result(sched, result);
+    if (!ok) return false;
+    memset(&sched->authority->config, 0, sizeof(sched->authority->config));
+    memset(sched->authority->chain.data(), 0, sched->authority->chain.size());
+    memset(sched->authority->prepared_root.data(), 0, sched->authority->prepared_root.size());
+    delete sched->authority;
+    sched->authority = nullptr;
+    memset(handle, 0, sizeof(*handle));
+    return true;
+}
+
+bool ggml_backend_sched_authority_abort_execution(
+        ggml_backend_sched_t sched,
+        ggml_backend_sched_authority_handle * handle) {
+    if (!sched_auth_handle_matches(sched, handle)) return false;
+    memset(&sched->authority->config, 0, sizeof(sched->authority->config));
+    memset(sched->authority->chain.data(), 0, sched->authority->chain.size());
+    memset(sched->authority->prepared_root.data(), 0, sched->authority->prepared_root.size());
+    delete sched->authority;
+    sched->authority = nullptr;
+    memset(handle, 0, sizeof(*handle));
+    return true;
+}
+
 bool ggml_backend_sched_authority_result(
         ggml_backend_sched_t sched,
         struct ggml_backend_sched_authority_result * result) {
@@ -2534,7 +2832,11 @@ bool ggml_backend_sched_authority_admission(
     admission->encoded_size = sizeof(*admission);
     admission->execution_sequence = sched->authority->config.execution_sequence;
     memcpy(admission->attempt_nonce, sched->authority->config.attempt_nonce, 32);
-    memcpy(admission->admission_root, sched->authority->chain.data(), 32);
+    memcpy(admission->admission_root,
+        sched->authority->prepared ?
+            sched->authority->prepared_root.data() :
+            sched->authority->chain.data(),
+        32);
     return admission->execution_sequence != 0 &&
         !sched_auth_zero(admission->attempt_nonce, 32) &&
         !sched_auth_zero(admission->admission_root, 32);

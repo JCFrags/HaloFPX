@@ -1,0 +1,55 @@
+{
+  "schema": "halofpx.l55.first-armed-prompt-lineage-receipt.v1",
+  "status": "PASS_DIAGNOSTIC_ONLY",
+  "date": "2026-07-27",
+  "base_commit": "0578c9ce3e58ef832af734ab4a9c0e0ddae94f26",
+  "provenance": {
+    "schema": "halofpx.l55.binary-provenance.v1",
+    "source_root": "82334ab4f3f5559d8d926a10d343f154afcbe88c7c983a5ffcbf32b382500803",
+    "build_id": "59aebad3ec8d9843af603632ee49386a5f5b07b5b4947357f5b0420009511377",
+    "worker_sha256": "fe7de2d0904ae6e2008f897fa67590776b83b0f7e8399741b6754fa00056bbda",
+    "canary_sha256": "2d55de5fb5c90ad0be860fe6d021a20e7a0cbf284300d22314ec1d19ee81018a"
+  },
+  "execution": {
+    "prompt_chunk_tokens": 512,
+    "execution_sequence": 1,
+    "graph_uid": 27,
+    "worker_graph_digest": "0717a7531b1dfc48d63cce84b1ec0caba7c3b5351278e389297036298b59f0da",
+    "worker_graph_prepared": true,
+    "worker_graph_executed": true,
+    "decode_status": -3,
+    "ggml_status": -1,
+    "authenticated_branch": "l40_graph_result_reconcile",
+    "status_hmac_sha256": "9baa968c97e70b5feb21fd7d718010b196c707af3da93db74bb1180b39357488",
+    "second_chunk": false,
+    "capture": false,
+    "restore": false,
+    "token_generation": false
+  },
+  "classification": {
+    "earliest_boundary": "coordinator L40 graph-result receipt reconciliation after successful server execution",
+    "residual_ambiguity": "receipt absence versus UID/sequence mismatch",
+    "controller_result": "terminal non-success because the abbreviated L55 child intentionally emitted no full L48 composed-result record"
+  },
+  "production": {
+    "changed": false,
+    "worker_pid": 1535639,
+    "worker_port": 50052,
+    "worker_nrestarts": 0,
+    "coordinator_pid": 2356329,
+    "coordinator_port": 8081,
+    "coordinator_http": 200,
+    "coordinator_nrestarts": 0
+  },
+  "cleanup": "PASS",
+  "focused_tests": "14 passed",
+  "raw_evidence": {
+    "path": "docs/halofpx/evidence/l55-raw",
+    "file_count": 28,
+    "tree_sha256": "b2075402ba2cbe0eaf28ead3aaa7cd202ef198c22200347ed2dd008b4d7ecac5"
+  },
+  "independent_review": {
+    "verdict": "PASS_DIAGNOSTIC_ONLY",
+    "scope": "provenance, chronology, authenticated source seam, classification, production equality, and cleanup"
+  }
+}

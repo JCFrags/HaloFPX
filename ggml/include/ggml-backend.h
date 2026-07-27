@@ -362,6 +362,62 @@ extern "C" {
         uint8_t admission_root[32];
     };
 
+    enum ggml_backend_sched_authority_root_class {
+        GGML_BACKEND_SCHED_AUTH_MUTABLE = 1,
+        GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT,
+        GGML_BACKEND_SCHED_AUTH_STATE_PAYLOAD,
+    };
+
+    // Pointer-free value handle for one serialized scheduler execution.
+    struct ggml_backend_sched_authority_handle {
+        uint16_t major;
+        uint16_t minor;
+        uint32_t encoded_size;
+        uint64_t session_id;
+        uint64_t generation;
+        uint64_t execution_sequence;
+        uint8_t attempt_nonce[32];
+    };
+
+    struct ggml_backend_sched_authority_prepared {
+        uint16_t major;
+        uint16_t minor;
+        uint32_t encoded_size;
+        uint32_t status;
+        uint32_t graph_entry_count;
+        uint32_t split_count;
+        uint32_t copy_count;
+        uint32_t local_count;
+        uint32_t rpc_count;
+        uint32_t reserved;
+        uint64_t graph_uid;
+        uint64_t execution_sequence;
+        uint8_t attempt_nonce[32];
+        uint8_t prepared_root[32];
+        uint8_t tag[32];
+    };
+
+    struct ggml_backend_sched_authority_copy {
+        uint32_t source_canonical_id;
+        uint32_t destination_backend_ordinal;
+        uint32_t copy_slot;
+        uint32_t root_class;
+        uint32_t role;
+        uint32_t role_ordinal;
+        uint64_t copy_generation;
+        struct ggml_tensor * runtime_tensor;
+    };
+
+    struct ggml_backend_sched_authority_root {
+        uint32_t canonical_id;
+        uint32_t backend_ordinal;
+        uint32_t root_class;
+        uint32_t role;
+        uint32_t role_ordinal;
+        uint32_t reserved;
+        struct ggml_tensor * runtime_tensor;
+    };
+
     // Initialize a backend scheduler, backends with low index are given priority over backends with high index
     GGML_API ggml_backend_sched_t ggml_backend_sched_new(ggml_backend_t * backends, ggml_backend_buffer_type_t * bufts, int n_backends, size_t graph_size, bool parallel, bool op_offload);
     GGML_API void                 ggml_backend_sched_free(ggml_backend_sched_t sched);
@@ -410,6 +466,49 @@ extern "C" {
         size_t size,
         size_t transferred_padding,
         struct ggml_backend_sched_authority_hash_probe * result);
+    GGML_API bool                 ggml_backend_sched_authority_arm(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_config * config,
+        struct ggml_backend_sched_authority_handle * handle);
+    GGML_API bool                 ggml_backend_sched_authority_register_root(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        struct ggml_tensor * tensor,
+        enum ggml_backend_sched_authority_root_class root_class,
+        uint32_t role,
+        uint32_t role_ordinal);
+    GGML_API bool                 ggml_backend_sched_authority_mark_rpc_backend(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        uint32_t backend_ordinal);
+    GGML_API bool                 ggml_backend_sched_authority_prepare(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        struct ggml_cgraph * graph,
+        struct ggml_backend_sched_authority_prepared * prepared);
+    GGML_API size_t               ggml_backend_sched_authority_copy_count(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle);
+    GGML_API bool                 ggml_backend_sched_authority_copy_at(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        size_t index,
+        struct ggml_backend_sched_authority_copy * copy);
+    GGML_API size_t               ggml_backend_sched_authority_root_count(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle);
+    GGML_API bool                 ggml_backend_sched_authority_root_at(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        size_t index,
+        struct ggml_backend_sched_authority_root * root);
+    GGML_API bool                 ggml_backend_sched_authority_finalize_execution(
+        ggml_backend_sched_t sched,
+        struct ggml_backend_sched_authority_handle * handle,
+        struct ggml_backend_sched_authority_result * result);
+    GGML_API bool                 ggml_backend_sched_authority_abort_execution(
+        ggml_backend_sched_t sched,
+        struct ggml_backend_sched_authority_handle * handle);
 
     //
     // Meta backend

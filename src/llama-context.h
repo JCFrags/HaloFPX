@@ -10,8 +10,10 @@
 
 #include "ggml-cpp.h"
 #include "ggml-opt.h"
+#include "ggml-rpc.h"
 
 #include <map>
+#include <array>
 #include <vector>
 
 struct llama_model;
@@ -58,6 +60,12 @@ struct llama_context {
     void synchronize();
     void halofpx_graph_reset();
     std::string halofpx_replay_diagnostic() const;
+    bool halofpx_execution_authority_arm(
+        const uint8_t key[32],
+        const uint8_t attempt_nonce[32],
+        uint64_t execution_sequence);
+    bool halofpx_execution_authority_abort();
+    std::string halofpx_execution_authority_result() const;
 
     const llama_model   & get_model()   const;
     const llama_cparams & get_cparams() const;
@@ -381,6 +389,18 @@ private:
     int32_t halofpx_last_output_row = -1;
     std::string halofpx_last_logits_backend;
     std::string halofpx_last_graph_input_authority;
+    bool halofpx_execution_pending = false;
+    uint64_t halofpx_execution_sequence = 0;
+    std::array<uint8_t, 32> halofpx_execution_key {};
+    std::array<uint8_t, 32> halofpx_execution_nonce {};
+    std::vector<uint8_t> halofpx_execution_events;
+    ggml_backend_sched_authority_handle halofpx_execution_handle {};
+    ggml_backend_sched_authority_prepared halofpx_execution_prepared {};
+    struct ggml_backend_sched_authority_result halofpx_execution_final {};
+    std::vector<ggml_backend_rpc_halofpx_mutable_session> halofpx_mutable_sessions;
+    std::vector<ggml_backend_rpc_halofpx_mutable_result> halofpx_mutable_results;
+    std::vector<uint32_t> halofpx_mutable_backend_ordinals;
+    std::string halofpx_execution_result_text;
 
     // host buffer for the model output (logits and embeddings)
     ggml_backend_buffer_ptr buf_output;

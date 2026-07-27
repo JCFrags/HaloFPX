@@ -1579,8 +1579,49 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
     // the new graph parameters
     // in order to correctly reuse a graph, it's full topology has to be uniquely determined by these parameters
     const auto gparams = graph_params(res, ubatch, mctx, gtype);
+    const bool composed_authority = halofpx_execution_pending;
+    auto record_composed_failure = [&](const std::string & branch, ggml_status status) {
+        if (!composed_authority) {
+            return;
+        }
+        std::ostringstream out;
+        out << "version=1|status=failed|branch=" << branch
+            << "|execution_sequence=" << halofpx_execution_sequence
+            << "|pending=1|ggml_status=" << static_cast<int>(status);
+        halofpx_execution_result_text = out.str();
+    };
+    auto abort_composed = [&]() {
+        halofpx_execution_authority_abort();
+    };
+    if (composed_authority) {
+        ggml_backend_sched_authority_config config {};
+        config.major = 1;
+        config.minor = 0;
+        config.encoded_size = sizeof(config);
+        config.max_events = 65536;
+        config.event_buffer_size = halofpx_execution_events.size();
+        config.execution_sequence = halofpx_execution_sequence;
+        memcpy(config.attempt_nonce, halofpx_execution_nonce.data(), 32);
+        memcpy(config.key, halofpx_execution_key.data(), 32);
+        config.event_buffer = halofpx_execution_events.data();
+        if (!ggml_backend_sched_authority_arm(sched.get(), &config, &halofpx_execution_handle)) {
+            abort_composed();
+            ret = GGML_STATUS_FAILED;
+            return nullptr;
+        }
+        memset(config.key, 0, sizeof(config.key));
+        for (uint32_t i = 0; i < backend_ptrs.size(); ++i) {
+            if (ggml_backend_is_rpc(backend_ptrs[i]) &&
+                !ggml_backend_sched_authority_mark_rpc_backend(
+                    sched.get(), &halofpx_execution_handle, i)) {
+                abort_composed();
+                ret = GGML_STATUS_FAILED;
+                return nullptr;
+            }
+        }
+    }
 
-    if (!graph_reuse_disable && res->can_reuse(gparams)) {
+    if (!composed_authority && !graph_reuse_disable && res->can_reuse(gparams)) {
         if (halofpx_replay_authority_enabled()) {
             halofpx_last_graph_reused = true;
             halofpx_last_sched_reset = false;
@@ -1622,14 +1663,142 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
 
         if (!gf) {
             LLAMA_LOG_ERROR("%s: failed to initialize graph\n", __func__);
+            if (composed_authority) abort_composed();
             ret = GGML_STATUS_FAILED;
             return nullptr;
         }
 
+        if (composed_authority) {
+            uint32_t weight_ordinal = 0;
+            for (const auto & entry : model.tensors_by_name) {
+                if (entry.second &&
+                    !ggml_backend_sched_authority_register_root(
+                        sched.get(), &halofpx_execution_handle, entry.second,
+                        GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT, 1, weight_ordinal++)) {
+                    abort_composed();
+                    ret = GGML_STATUS_FAILED;
+                    return nullptr;
+                }
+            }
+            for (const auto & root : res->halofpx_authority_roots()) {
+                const auto root_class = root.state_payload ?
+                    GGML_BACKEND_SCHED_AUTH_STATE_PAYLOAD :
+                    GGML_BACKEND_SCHED_AUTH_MUTABLE;
+                uint32_t role = 0;
+                switch (root.role) {
+                    case LLM_GRAPH_AUTH_TOKEN:             role = GGML_RPC_HALOFPX_MUTABLE_TOKEN; break;
+                    case LLM_GRAPH_AUTH_INPUT_EMBEDDING:   role = GGML_RPC_HALOFPX_MUTABLE_INPUT_EMBEDDING; break;
+                    case LLM_GRAPH_AUTH_ABSOLUTE_POSITION: role = GGML_RPC_HALOFPX_MUTABLE_ABSOLUTE_POSITION; break;
+                    case LLM_GRAPH_AUTH_SEQUENCE_ID:       role = GGML_RPC_HALOFPX_MUTABLE_SEQUENCE_ID; break;
+                    case LLM_GRAPH_AUTH_KV_WRITE_INDEX:    role = GGML_RPC_HALOFPX_MUTABLE_KV_WRITE_INDEX; break;
+                    case LLM_GRAPH_AUTH_KV_CELL:           role = GGML_RPC_HALOFPX_MUTABLE_KV_CELL; break;
+                    case LLM_GRAPH_AUTH_CAUSAL_MASK:       role = GGML_RPC_HALOFPX_MUTABLE_CAUSAL_MASK; break;
+                    case LLM_GRAPH_AUTH_OUTPUT_ID:         role = GGML_RPC_HALOFPX_MUTABLE_OUTPUT_ID; break;
+                    case LLM_GRAPH_AUTH_OUTPUT_MAP:        role = GGML_RPC_HALOFPX_MUTABLE_OUTPUT_MAP; break;
+                    case LLM_GRAPH_AUTH_SELECTED_KV:       role = GGML_RPC_HALOFPX_MUTABLE_SELECTED_KV; break;
+                }
+                ggml_tensor * structural_root = root.tensor;
+                while (structural_root->view_src != nullptr) {
+                    structural_root = structural_root->view_src;
+                }
+                if (role == 0 || !ggml_backend_sched_authority_register_root(
+                        sched.get(), &halofpx_execution_handle, structural_root,
+                        root_class, role, root.ordinal)) {
+                    abort_composed();
+                    ret = GGML_STATUS_FAILED;
+                    return nullptr;
+                }
+            }
+        }
+
         if (!ggml_backend_sched_alloc_graph(sched.get(), gf)) {
             LLAMA_LOG_ERROR("%s: failed to allocate graph\n", __func__);
+            if (composed_authority) abort_composed();
             ret = GGML_STATUS_ALLOC_FAILED;
             return nullptr;
+        }
+        if (composed_authority && !ggml_backend_sched_authority_prepare(
+                sched.get(), &halofpx_execution_handle, gf, &halofpx_execution_prepared)) {
+            abort_composed();
+            ret = GGML_STATUS_FAILED;
+            return nullptr;
+        }
+        if (composed_authority) {
+            for (uint32_t backend_ordinal = 0; backend_ordinal < backend_ptrs.size(); ++backend_ordinal) {
+                if (!ggml_backend_is_rpc(backend_ptrs[backend_ordinal])) continue;
+                ggml_backend_rpc_halofpx_mutable_attempt attempt {};
+                attempt.version = 1;
+                attempt.max_mutations = 4096;
+                attempt.max_census_entries = 4096;
+                attempt.graph_uid = halofpx_execution_prepared.graph_uid;
+                attempt.execution_sequence = halofpx_execution_sequence;
+                memcpy(attempt.attempt_nonce, halofpx_execution_nonce.data(), 32);
+                ggml_backend_rpc_halofpx_mutable_session session {};
+                if (!ggml_backend_rpc_halofpx_mutable_begin(
+                        backend_ptrs[backend_ordinal], sched.get(), &attempt, &session)) {
+                    abort_composed();
+                    ret = GGML_STATUS_FAILED;
+                    return nullptr;
+                }
+                halofpx_mutable_sessions.push_back(session);
+                halofpx_mutable_backend_ordinals.push_back(backend_ordinal);
+            }
+            for (size_t s = 0; s < halofpx_mutable_sessions.size(); ++s) {
+                const uint32_t backend_ordinal = halofpx_mutable_backend_ordinals[s];
+                auto & session = halofpx_mutable_sessions[s];
+                const size_t n_roots = ggml_backend_sched_authority_root_count(
+                    sched.get(), &halofpx_execution_handle);
+                for (size_t i = 0; i < n_roots; ++i) {
+                    ggml_backend_sched_authority_root root {};
+                    if (!ggml_backend_sched_authority_root_at(
+                            sched.get(), &halofpx_execution_handle, i, &root)) {
+                        abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                    }
+                    if (root.backend_ordinal != backend_ordinal) continue;
+                    const bool admitted = root.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
+                        ggml_backend_rpc_halofpx_mutable_register(
+                            &session, root.runtime_tensor,
+                            static_cast<ggml_backend_rpc_halofpx_mutable_role>(root.role),
+                            root.role_ordinal) :
+                        ggml_backend_rpc_halofpx_mutable_exclude(
+                            &session, root.runtime_tensor,
+                            root.root_class == GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT ?
+                                GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT :
+                                GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD,
+                            root.role_ordinal);
+                    if (!admitted) {
+                        abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                    }
+                }
+                const size_t n_copies = ggml_backend_sched_authority_copy_count(
+                    sched.get(), &halofpx_execution_handle);
+                for (size_t i = 0; i < n_copies; ++i) {
+                    ggml_backend_sched_authority_copy copy {};
+                    if (!ggml_backend_sched_authority_copy_at(
+                            sched.get(), &halofpx_execution_handle, i, &copy)) {
+                        abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                    }
+                    if (copy.destination_backend_ordinal != backend_ordinal) continue;
+                    const bool admitted =
+                        (copy.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ||
+                         copy.root_class == 0) ?
+                        ggml_backend_rpc_halofpx_mutable_register(
+                            &session, copy.runtime_tensor,
+                            copy.root_class == 0 ?
+                                GGML_RPC_HALOFPX_MUTABLE_SCHEDULER_COPY :
+                                static_cast<ggml_backend_rpc_halofpx_mutable_role>(copy.role),
+                            copy.role_ordinal) :
+                        ggml_backend_rpc_halofpx_mutable_exclude(
+                            &session, copy.runtime_tensor,
+                            copy.root_class == GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT ?
+                                GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT :
+                                GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD,
+                            copy.role_ordinal);
+                    if (!admitted) {
+                        abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                    }
+                }
+            }
         }
     }
     if (halofpx_replay_authority_enabled()) {
@@ -1646,11 +1815,23 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
 
         //LLAMA_LOG_INFO("graph set inputs time: %.3f ms\n", (ggml_time_us() - t_start_us)/1000.0);
     }
-    if (halofpx_graph_input_authority_enabled()) {
+    if (composed_authority) {
+        halofpx_mutable_results.resize(halofpx_mutable_sessions.size());
+        for (size_t i = 0; i < halofpx_mutable_sessions.size(); ++i) {
+            if (!ggml_backend_rpc_halofpx_mutable_prepare(
+                    &halofpx_mutable_sessions[i], gf, &halofpx_mutable_results[i])) {
+                abort_composed();
+                ret = GGML_STATUS_FAILED;
+                return nullptr;
+            }
+        }
+    }
+    if (composed_authority && halofpx_graph_input_authority_enabled()) {
         ggml_backend_sched_synchronize(sched.get());
         if (!halofpx_capture_graph_input_authority(
                 sched.get(), gf, halofpx_last_graph_input_authority)) {
             LLAMA_LOG_ERROR("%s: graph input authority is incomplete or unadmitted\n", __func__);
+            abort_composed();
             ret = GGML_STATUS_FAILED;
             return nullptr;
         }
@@ -1661,8 +1842,126 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
     const auto status = graph_compute(res->get_gf(), ubatch.n_tokens > 1);
     if (status != GGML_STATUS_SUCCESS) {
         LLAMA_LOG_ERROR("%s: failed to compute graph, compute status: %d\n", __func__, status);
+        if (composed_authority) {
+            struct ggml_backend_sched_authority_result scheduler_result {};
+            const bool have_scheduler_result =
+                ggml_backend_sched_authority_result(sched.get(), &scheduler_result);
+            const char * status_name =
+                status == GGML_STATUS_FAILED ? "failed" :
+                status == GGML_STATUS_ABORTED ? "aborted" :
+                status == GGML_STATUS_ALLOC_FAILED ? "alloc_failed" : "unknown";
+            record_composed_failure(
+                "scheduler_graph_compute_" + std::string(status_name) +
+                    "_authority_" +
+                    std::to_string(have_scheduler_result ? scheduler_result.status : 0),
+                status);
+            abort_composed();
+        }
         ret = status;
         return nullptr;
+    }
+
+    if (composed_authority) {
+        for (size_t i = 0; i < halofpx_mutable_sessions.size(); ++i) {
+            if (!ggml_backend_rpc_halofpx_mutable_commit(
+                    &halofpx_mutable_sessions[i], gf, &halofpx_mutable_results[i])) {
+                record_composed_failure(
+                    "l44_mutable_commit_" +
+                        std::to_string(halofpx_mutable_results[i].status),
+                    GGML_STATUS_FAILED);
+                abort_composed();
+                ret = GGML_STATUS_FAILED;
+                return nullptr;
+            }
+        }
+        if (!ggml_backend_sched_authority_finalize_execution(
+                sched.get(), &halofpx_execution_handle, &halofpx_execution_final)) {
+            record_composed_failure("l42_scheduler_finalize", GGML_STATUS_FAILED);
+            abort_composed();
+            ret = GGML_STATUS_FAILED;
+            return nullptr;
+        }
+        auto digest_hex = [](const uint8_t digest[32]) {
+            static constexpr char digits[] = "0123456789abcdef";
+            std::string out(64, '0');
+            for (size_t i = 0; i < 32; ++i) {
+                out[2*i] = digits[digest[i] >> 4];
+                out[2*i + 1] = digits[digest[i] & 15];
+            }
+            return out;
+        };
+        std::ostringstream authority;
+        authority << "version=1"
+            << "|execution_sequence=" << halofpx_execution_sequence
+            << "|graph_uid=" << halofpx_execution_prepared.graph_uid
+            << "|prepared_status=" << halofpx_execution_prepared.status
+            << "|prepared_root=" << digest_hex(halofpx_execution_prepared.prepared_root)
+            << "|final_status=" << halofpx_execution_final.status
+            << "|scheduler_root=" << digest_hex(halofpx_execution_final.chain_root)
+            << "|scheduler_tag=" << digest_hex(halofpx_execution_final.tag)
+            << "|graph_entries=" << halofpx_execution_prepared.graph_entry_count
+            << "|splits=" << halofpx_execution_prepared.split_count
+            << "|copies=" << halofpx_execution_prepared.copy_count
+            << "|local=" << halofpx_execution_prepared.local_count
+            << "|rpc=" << halofpx_execution_prepared.rpc_count;
+        for (size_t i = 0; i < halofpx_mutable_results.size(); ++i) {
+            ggml_backend_rpc_halofpx_graph_result graph_result {};
+            if (halofpx_mutable_backend_ordinals[i] >= backend_ptrs.size() ||
+                !ggml_backend_rpc_halofpx_graph_result_get(
+                    backend_ptrs[halofpx_mutable_backend_ordinals[i]], &graph_result) ||
+                graph_result.graph_uid != halofpx_execution_prepared.graph_uid ||
+                graph_result.execution_sequence != halofpx_execution_sequence) {
+                record_composed_failure("l40_graph_result_reconcile", GGML_STATUS_FAILED);
+                abort_composed();
+                ret = GGML_STATUS_FAILED;
+                return nullptr;
+            }
+            authority << "|rpc_backend=" << halofpx_mutable_backend_ordinals[i]
+                << ",mutable_status=" << halofpx_mutable_results[i].status
+                << ",mutations=" << halofpx_mutable_results[i].mutation_count
+                << ",census=" << halofpx_mutable_results[i].census_count
+                << ",set=" << halofpx_mutable_results[i].set_count
+                << ",set_hash_hit=" << halofpx_mutable_results[i].set_hash_hit_count
+                << ",set_hash_miss=" << halofpx_mutable_results[i].set_hash_miss_count
+                << ",mutation_root=" << digest_hex(halofpx_mutable_results[i].mutation_root)
+                << ",semantic_root=" << digest_hex(halofpx_mutable_results[i].semantic_root)
+                << ",census_root=" << digest_hex(halofpx_mutable_results[i].census_root)
+                << ",receipt_tag=" << digest_hex(halofpx_mutable_results[i].receipt_tag)
+                << ",graph_status=" << graph_result.status
+                << ",graph_sequence=" << graph_result.execution_sequence
+                << ",graph_digest=" << digest_hex(graph_result.graph_digest)
+                << ",graph_transcript_root=" << digest_hex(graph_result.transcript_root)
+                << ",graph_receipt_tag=" << digest_hex(graph_result.receipt_tag);
+        }
+        halofpx_execution_result_text = authority.str();
+        for (auto & session : halofpx_mutable_sessions) {
+            if (!ggml_backend_rpc_halofpx_mutable_abort(&session)) {
+                record_composed_failure("l44_session_finalize", GGML_STATUS_FAILED);
+                abort_composed();
+                ret = GGML_STATUS_FAILED;
+                return nullptr;
+            }
+        }
+        halofpx_mutable_sessions.clear();
+        bool disarmed = true;
+        for (ggml_backend_t backend : backend_ptrs) {
+            if (ggml_backend_is_rpc(backend) &&
+                !ggml_backend_rpc_halofpx_execution_disarm(
+                    backend, halofpx_execution_nonce.data(), halofpx_execution_sequence)) {
+                disarmed = false;
+            }
+        }
+        halofpx_execution_pending = false;
+        halofpx_execution_sequence = 0;
+        std::fill(halofpx_execution_key.begin(), halofpx_execution_key.end(), 0);
+        std::fill(halofpx_execution_nonce.begin(), halofpx_execution_nonce.end(), 0);
+        if (!disarmed) {
+            halofpx_execution_result_text =
+                "version=1|status=failed|branch=rpc_execution_disarm"
+                "|execution_sequence=0|pending=0|ggml_status=1";
+            ret = GGML_STATUS_FAILED;
+            return nullptr;
+        }
     }
 
     ret = GGML_STATUS_SUCCESS;
@@ -2434,6 +2733,79 @@ std::string llama_context::halofpx_replay_diagnostic() const {
         out << halofpx_last_graph_input_authority;
     }
     return out.str();
+}
+
+bool llama_context::halofpx_execution_authority_arm(
+        const uint8_t key[32],
+        const uint8_t attempt_nonce[32],
+        uint64_t execution_sequence) {
+    if (key == nullptr || attempt_nonce == nullptr || execution_sequence == 0 ||
+        halofpx_execution_pending || halofpx_execution_handle.session_id != 0) return false;
+    uint8_t key_or = 0;
+    uint8_t nonce_or = 0;
+    for (size_t i = 0; i < 32; ++i) {
+        key_or |= key[i];
+        nonce_or |= attempt_nonce[i];
+    }
+    if (key_or == 0 || nonce_or == 0) return false;
+    halofpx_execution_key = {};
+    halofpx_execution_nonce = {};
+    memcpy(halofpx_execution_key.data(), key, 32);
+    memcpy(halofpx_execution_nonce.data(), attempt_nonce, 32);
+    halofpx_execution_sequence = execution_sequence;
+    std::vector<ggml_backend_t> armed;
+    for (ggml_backend_t backend : backend_ptrs) {
+        if (!ggml_backend_is_rpc(backend)) continue;
+        if (!ggml_backend_rpc_halofpx_execution_arm(
+                backend, attempt_nonce, execution_sequence)) {
+            for (ggml_backend_t admitted : armed) {
+                ggml_backend_rpc_halofpx_execution_disarm(
+                    admitted, attempt_nonce, execution_sequence);
+            }
+            std::fill(halofpx_execution_key.begin(), halofpx_execution_key.end(), 0);
+            std::fill(halofpx_execution_nonce.begin(), halofpx_execution_nonce.end(), 0);
+            halofpx_execution_sequence = 0;
+            return false;
+        }
+        armed.push_back(backend);
+    }
+    halofpx_execution_events.assign(8u << 20, 0);
+    halofpx_execution_result_text.clear();
+    halofpx_execution_pending = true;
+    return true;
+}
+
+bool llama_context::halofpx_execution_authority_abort() {
+    const std::string retained_result = halofpx_execution_result_text;
+    bool clean = true;
+    for (auto & session : halofpx_mutable_sessions) {
+        if (session.session_id != 0 &&
+            !ggml_backend_rpc_halofpx_mutable_abort(&session)) clean = false;
+    }
+    halofpx_mutable_sessions.clear();
+    halofpx_mutable_results.clear();
+    halofpx_mutable_backend_ordinals.clear();
+    if (halofpx_execution_handle.session_id != 0 &&
+        !ggml_backend_sched_authority_abort_execution(
+            sched.get(), &halofpx_execution_handle)) clean = false;
+    for (ggml_backend_t backend : backend_ptrs) {
+        if (ggml_backend_is_rpc(backend) &&
+            !ggml_backend_rpc_halofpx_execution_disarm(
+                backend, halofpx_execution_nonce.data(), halofpx_execution_sequence)) {
+            clean = false;
+        }
+    }
+    halofpx_execution_pending = false;
+    halofpx_execution_sequence = 0;
+    std::fill(halofpx_execution_key.begin(), halofpx_execution_key.end(), 0);
+    std::fill(halofpx_execution_nonce.begin(), halofpx_execution_nonce.end(), 0);
+    halofpx_execution_events.clear();
+    halofpx_execution_result_text = retained_result;
+    return clean;
+}
+
+std::string llama_context::halofpx_execution_authority_result() const {
+    return halofpx_execution_result_text;
 }
 
 //
@@ -4187,6 +4559,28 @@ size_t llama_halofpx_replay_diagnostic(const llama_context * ctx, char * dst, si
     if (dst && capacity >= required) {
         std::memcpy(dst, value.c_str(), required);
     }
+    return required;
+}
+
+bool llama_halofpx_execution_authority_arm(
+        llama_context * ctx,
+        const uint8_t key[32],
+        const uint8_t attempt_nonce[32],
+        uint64_t execution_sequence) {
+    return ctx && ctx->halofpx_execution_authority_arm(key, attempt_nonce, execution_sequence);
+}
+
+bool llama_halofpx_execution_authority_abort(llama_context * ctx) {
+    return ctx && ctx->halofpx_execution_authority_abort();
+}
+
+size_t llama_halofpx_execution_authority_result(
+        const llama_context * ctx,
+        char * dst,
+        size_t capacity) {
+    const std::string value = ctx ? ctx->halofpx_execution_authority_result() : std::string();
+    const size_t required = value.size() + 1;
+    if (dst && capacity >= required) memcpy(dst, value.c_str(), required);
     return required;
 }
 

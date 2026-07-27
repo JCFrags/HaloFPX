@@ -130,6 +130,24 @@ L36_EXECUTABLES = {
     "semantic_verifier": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_semantic_provenance.py",
     "replay_authority_verifier": "/var/tmp/halofpx-l36-source-nimo2/scripts/halofpx_replay_authority.py",
 }
+L48_KEY_PATHS = {
+    "nimo-1": "/var/tmp/halofpx-l48-control.key",
+    "nimo-2": "/var/tmp/halofpx-l48-control.key",
+}
+L48_EXECUTABLES = {
+    "worker": "/var/tmp/halofpx-l48-source-nimo1/build-l48/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-placement-probe",
+    "epoch_receipt": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_epoch_receipt.py",
+    "component_diagnostics": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_state_component_diagnostics.py",
+    "semantic_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_semantic_provenance.py",
+    "replay_authority_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_replay_authority.py",
+    "result_authority_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_result_authority.py",
+    "composed_result_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l48_composed_result.py",
+    "device_receipt": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_l50_device_receipt.py",
+    "status_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l55_status.py",
+}
 L29_MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
     "dba517197f2854f3d362529e13abddcdcad6c10b/"
@@ -137,6 +155,26 @@ L29_MODEL = (
 )
 L29_MODEL_BYTES = 159873097824
 L29_MODEL_SHA256 = "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+L48_SOURCE_FILES = (
+    "CMakeLists.txt",
+    "ggml/include/ggml-backend.h",
+    "ggml/include/ggml-rpc.h",
+    "ggml/src/ggml-backend.cpp",
+    "ggml/src/ggml-rpc/ggml-rpc.cpp",
+    "include/llama.h",
+    "src/llama-context.cpp",
+    "src/llama-context.h",
+    "src/llama-graph.cpp",
+    "src/llama-graph.h",
+    "tests/test-halofpx-distributed-state-canary.cpp",
+    "tests/test-halofpx-rpc-mutable-authority.cpp",
+    "tests/test-halofpx-scheduler-authority.cpp",
+    "tools/rpc/rpc-server.cpp",
+    "scripts/halofpx-l13-primary-retry.py",
+    "scripts/halofpx_l48_composed_result.py",
+    "scripts/halofpx_l50_device_receipt.py",
+    "scripts/halofpx_l55_status.py",
+)
 
 
 class TransitionError(RuntimeError):
@@ -164,6 +202,7 @@ SSH_OPERATION_DEADLINES = {
     "command": 30.0,
     "service-mutation": 45.0,
     "service-readiness": 30.0,
+    "hfxcap2-readiness": 150.0,
     "recovery-probe": 30.0,
     "recovery-mutation": 45.0,
     "cleanup": 60.0,
@@ -171,6 +210,34 @@ SSH_OPERATION_DEADLINES = {
     "evidence": 60.0,
     "model-session": 1800.0,
 }
+HFXCAP2_READINESS_INNER_SECONDS = 120.0
+HFXCAP2_READINESS_TEARDOWN_MARGIN_SECONDS = 30.0
+HFXCAP2_READINESS_ARGV = (
+    "python3", L48_EXECUTABLES["readiness"],
+    "--endpoint", "10.44.0.1:50248",
+    "--timeout-seconds", "120",
+    "--attempt-timeout-seconds", "2",
+    "--initial-backoff-seconds", "0.1",
+    "--maximum-backoff-seconds", "1",
+)
+HFXCAP2_READINESS_FEATURE_ON_ARGV = HFXCAP2_READINESS_ARGV + (
+    "--logical-rank", "1", "--world-size", "2", "--key-generation", "7",
+    "--expected-channel-key-file", "/var/tmp/halofpx-l48-control.key",
+)
+HFXCAP2_READINESS_FEATURE_OFF_ARGV = HFXCAP2_READINESS_ARGV + (
+    "--expect-feature-off",
+)
+HFXCAP2_DEVICE_GATE_ARGV = (
+    "python3",
+    "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_rpc_readiness.py",
+    "--endpoint", "127.0.0.1:50249",
+    "--timeout-seconds", "120",
+    "--attempt-timeout-seconds", "2",
+    "--initial-backoff-seconds", "0.1",
+    "--maximum-backoff-seconds", "1",
+    "--logical-rank", "1", "--world-size", "2", "--key-generation", "7",
+    "--expected-channel-key-file", "/var/tmp/halofpx-l48-control.key",
+)
 SSH_TERMINATE_GRACE_SECONDS = 2.0
 SSH_EVIDENCE_LIMIT = 65536
 
@@ -220,6 +287,37 @@ class SshRunner:
         if "permission denied" in lowered or "authentication" in lowered:
             return "authentication"
         return "command"
+
+    def _validate_operation_authority(
+        self, argv: Sequence[str], operation: str
+    ) -> float | None:
+        try:
+            remote = shlex.split(argv[0]) if len(argv) == 1 else list(argv)
+        except ValueError as exc:
+            raise ValueError("malformed SSH remote argv") from exc
+        is_readiness = (
+            len(remote) >= 2 and remote[0] == "python3"
+            and Path(remote[1]).name == "halofpx_rpc_readiness.py")
+        if operation != "hfxcap2-readiness":
+            if is_readiness:
+                raise ValueError(
+                    "HFXCAP2 readiness command requires hfxcap2-readiness operation class")
+            return None
+        if tuple(remote) not in {
+            HFXCAP2_READINESS_FEATURE_ON_ARGV,
+            HFXCAP2_READINESS_FEATURE_OFF_ARGV,
+            HFXCAP2_DEVICE_GATE_ARGV,
+        }:
+            raise ValueError("HFXCAP2 readiness argv is outside closed authority")
+        outer = self.deadlines[operation]
+        if (
+            outer != 150.0
+            or HFXCAP2_READINESS_INNER_SECONDS >= outer
+            or outer - HFXCAP2_READINESS_INNER_SECONDS !=
+                HFXCAP2_READINESS_TEARDOWN_MARGIN_SECONDS
+        ):
+            raise ValueError("HFXCAP2 readiness deadline nesting mismatch")
+        return HFXCAP2_READINESS_INNER_SECONDS
 
     def _record(self, value: dict[str, object]) -> None:
         self.evidence_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -389,10 +487,12 @@ class SshRunner:
     ) -> CommandResult:
         if operation not in self.deadlines:
             raise ValueError(f"unknown SSH operation class: {operation}")
+        inner_budget = self._validate_operation_authority(argv, operation)
         timeout = self.deadlines[operation]
+        remote_command = " ".join(shlex.quote(str(value)) for value in argv)
         command = [
             "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
-            "-o", "ConnectionAttempts=1", host, *argv,
+            "-o", "ConnectionAttempts=1", host, remote_command,
         ]
         started_wall = datetime.now(timezone.utc).isoformat()
         started_mono = time.monotonic()
@@ -481,6 +581,8 @@ class SshRunner:
             "stdout": decoded_out[-SSH_EVIDENCE_LIMIT:],
             "stderr": decoded_err[-SSH_EVIDENCE_LIMIT:],
         }
+        if inner_budget is not None:
+            record["inner_budget_seconds"] = inner_budget
         self._record(record)
         if timed_out:
             raise SshTimeoutError(host, operation, timeout)
@@ -609,40 +711,56 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     l31 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l31.primary-manifest.v1"
     l33 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l33.primary-manifest.v1"
     l36 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l36.primary-manifest.v1"
+    l48 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l48.fixture-manifest.v1"
     primary = l29 or l31 or l33 or l36
+    if l48:
+        expected_keys |= {"authority_contract", "source_identity", "build_authority"}
     if primary:
         expected_keys |= {"artifact", "allocation_plan"}
     if not isinstance(raw, dict) or set(raw) != expected_keys:
         raise TransitionError("L22 manifest field set mismatch")
     l28 = raw.get("schema") == "halofpx.l28.fixture-manifest.v1"
-    if l28 or primary:
+    if l28 or l48 or primary:
         child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
         interpreter_path = Path(sys.executable).resolve()
         expected_exec = {
-            **(L36_EXECUTABLES if l36 else L33_EXECUTABLES if l33 else L31_EXECUTABLES if l31 else L29_EXECUTABLES if l29 else L28_EXECUTABLES),
+            **(L48_EXECUTABLES if l48 else L36_EXECUTABLES if l36 else L33_EXECUTABLES if l33 else L31_EXECUTABLES if l31 else L29_EXECUTABLES if l29 else L28_EXECUTABLES),
             "interpreter": str(interpreter_path),
             "child": str(child_path),
         }
+        if l48:
+            expected_exec["controller"] = str(Path(__file__).resolve())
         expected_child_argv = [
             str(interpreter_path), str(child_path), "--evidence-dir",
             "{evidence_root}/child",
-            "--l36-primary" if l36 else "--l33-primary" if l33 else "--l31-primary" if l31 else "--l29-primary" if l29 else "--l28-fixture",
+            "--l48-fixture" if l48 else "--l36-primary" if l36 else "--l33-primary" if l33 else "--l31-primary" if l31 else "--l29-primary" if l29 else "--l28-fixture",
         ]
-        prefix = "halofpx-l36-primary" if l36 else "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
-        port = 50236 if l36 else 50233 if l33 else 50191 if l31 else 50189 if l29 else 50188
-        key_paths = L36_KEY_PATHS if l36 else L33_KEY_PATHS if l33 else L31_KEY_PATHS if l31 else L29_KEY_PATHS if l29 else L28_KEY_PATHS
-        source_tag = "l36" if l36 else "l33" if l33 else "l31" if l31 else "l29" if l29 else "l28"
+        if l48:
+            if raw["milestone"] == "l55-first-armed-prompt-discriminator":
+                expected_child_argv += ["--l55-first-chunk"]
+            expected_child_argv += ["--authority-key-file", L48_KEY_PATHS["nimo-2"]]
+        prefix = "halofpx-l48" if l48 else "halofpx-l36-primary" if l36 else "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
+        port = 50248 if l48 else 50236 if l36 else 50233 if l33 else 50191 if l31 else 50189 if l29 else 50188
+        key_paths = L48_KEY_PATHS if l48 else L36_KEY_PATHS if l36 else L33_KEY_PATHS if l33 else L31_KEY_PATHS if l31 else L29_KEY_PATHS if l29 else L28_KEY_PATHS
+        source_tag = "l48" if l48 else "l36" if l36 else "l33" if l33 else "l31" if l31 else "l29" if l29 else "l28"
+        expected_milestone = (
+            raw["milestone"] if l48 and raw["milestone"] in {
+                "l50-rocm-device-admission",
+                "l55-first-armed-prompt-discriminator",
+            }
+            else "l36-primary-replay-authority-discriminator" if l36
+            else "l33-primary-live-state-discriminator" if l33
+            else "l31-primary-corrected-restore-confirmation" if l31
+            else "l29-primary-fresh-residency-discriminator" if l29
+            else "l28-fresh-residency-fixture"
+        )
         if (
-            raw["milestone"] != (
-                "l36-primary-replay-authority-discriminator"
-                if l36 else "l33-primary-live-state-discriminator"
-                if l33 else "l31-primary-corrected-restore-confirmation"
-                if l31 else "l29-primary-fresh-residency-discriminator"
-                if l29 else "l28-fresh-residency-fixture")
+            raw["milestone"] != expected_milestone
             or raw["worker_host"] != "nimo-1"
             or raw["canary_host"] != "nimo-2"
             or raw["worker_port"] != port
             or tuple(raw["worker_units"]) != (
+                *(("halofpx-l50-device-gate.service",) if l48 else ()),
                 f"{prefix}-worker-capture.service",
                 f"{prefix}-worker-restore.service",
             )
@@ -656,6 +774,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                     f"/var/tmp/halofpx-{source_tag}-source-nimo1.tar",
                     f"/var/tmp/halofpx-{source_tag}-source-nimo1",
                     f"/var/tmp/halofpx-{source_tag}-worker",
+                    *(["/var/tmp/halofpx-l50-device-gate"] if l48 else []),
                 ],
                 "nimo-2": [
                     f"/var/tmp/halofpx-{source_tag}-source-nimo2.tar",
@@ -663,6 +782,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                     f"/var/tmp/halofpx-{source_tag}-evidence",
                     f"/var/tmp/halofpx-{source_tag}-coordinator",
                     f"/var/tmp/halofpx-{source_tag}-rendezvous",
+                    *(["/var/tmp/halofpx-l50-device-gate-verify"] if l48 else []),
                 ],
             }
             or raw["executables"] != expected_exec
@@ -670,6 +790,157 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             or raw["child_argv"] != expected_child_argv
         ):
             raise TransitionError("L28 manifest identity/executable authority mismatch")
+        if l48 and raw["authority_contract"] != {
+            "features": {
+                "rpc_graph": 1, "scheduler": 2, "mutable_session": 1,
+                "composition": 1,
+            },
+            **({
+                "provenance": {
+                    "schema": "halofpx.l55.binary-provenance.v1",
+                    "source_root": raw["authority_contract"].get(
+                        "provenance", {}).get("source_root"),
+                    "build_id": raw["authority_contract"].get(
+                        "provenance", {}).get("build_id"),
+                },
+            } if raw["milestone"] == "l55-first-armed-prompt-discriminator" else {}),
+            "result_schema": "halofpx.l48.composed-result.v1",
+            "result_path": "/var/tmp/halofpx-l48-evidence/l48-composed-result.json",
+            "expected_capture_executions": 4,
+            "expected_restore_executions": 1,
+            "expected_prompt_chunks": [512, 512, 104],
+            "expected_replay_count": 1,
+            "transport": {
+                "hfxcap2_readiness_operation": "hfxcap2-readiness",
+                "inner_budget_seconds": 120,
+                "outer_deadline_seconds": 150,
+                "teardown_evidence_margin_seconds": 30,
+            },
+            "evidence_publication": {
+                "host": "nimo-2",
+                "directory": "/var/tmp/halofpx-l48-evidence",
+                "owner": "connorb",
+                "directory_mode": "0700",
+                "temporary_name": ".device-admission.pending",
+                "final_name": "device-admission.json",
+                "file_mode": "0600",
+            },
+        }:
+            raise TransitionError("L48 authority contract mismatch")
+        if l48 and raw["milestone"] == "l55-first-armed-prompt-discriminator":
+            provenance = raw["authority_contract"]["provenance"]
+            if (
+                provenance["schema"] != "halofpx.l55.binary-provenance.v1"
+                or re.fullmatch(r"[0-9a-f]{64}", provenance["source_root"]) is None
+                or re.fullmatch(r"[0-9a-f]{64}", provenance["build_id"]) is None
+            ):
+                raise TransitionError("L55 binary provenance contract mismatch")
+        if l48:
+            source_identity = raw["source_identity"]
+            if (
+                not isinstance(source_identity, dict)
+                or set(source_identity) != {"schema", "files", "root_sha256"}
+                or source_identity["schema"] != "halofpx.l48.source-identity.v1"
+                or not isinstance(source_identity["files"], dict)
+                or tuple(sorted(source_identity["files"])) != tuple(sorted(L48_SOURCE_FILES))
+                or any(
+                    not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None
+                    for value in source_identity["files"].values())
+            ):
+                raise TransitionError("L48 source identity is malformed")
+            source_root = Path(__file__).parents[1]
+            canonical = bytearray()
+            for relative in sorted(L48_SOURCE_FILES):
+                local = source_root / relative
+                if (
+                    not local.is_file()
+                    or hashlib.sha256(local.read_bytes()).hexdigest() !=
+                        source_identity["files"][relative]
+                ):
+                    raise TransitionError(f"L48 source hash mismatch: {relative}")
+                canonical.extend(relative.encode("utf-8") + b"\0")
+                canonical.extend(source_identity["files"][relative].encode("ascii") + b"\0")
+                for host, remote_root in (
+                    ("nimo-1", "/var/tmp/halofpx-l48-source-nimo1"),
+                    ("nimo-2", "/var/tmp/halofpx-l48-source-nimo2"),
+                ):
+                    remote = runner.run(
+                        host, ["sha256sum", "--", f"{remote_root}/{relative}"],
+                        operation="hash")
+                    remote_hash = (
+                        remote.stdout.split()[0]
+                        if remote.returncode == 0 and remote.stdout.split() else "")
+                    if remote_hash != source_identity["files"][relative]:
+                        raise TransitionError(
+                            f"L48 staged source hash mismatch: {host}:{relative}")
+            if (
+                re.fullmatch(r"[0-9a-f]{64}", str(source_identity["root_sha256"])) is None
+                or hashlib.sha256(canonical).hexdigest() != source_identity["root_sha256"]
+            ):
+                raise TransitionError("L48 source identity root mismatch")
+            build = raw["build_authority"]
+            required_build = {
+                "schema", "worker_configure_argv", "cmake_cache_sha256",
+                "worker_binary_sha256", "ldd_sha256", "device_inventory_sha256",
+                "compiler_sha256", "hipcc_sha256", "backend", "device", "gfx",
+            }
+            if (
+                not isinstance(build, dict) or set(build) != required_build
+                or build["schema"] != "halofpx.l50.rocm-build-authority.v1"
+                or build["worker_configure_argv"] != [
+                    "cmake", "-S", ".", "-B", "build-l48", "-DGGML_RPC=ON",
+                    "-DGGML_RPC_HALOFPX_LOCAL_STATE=ON", "-DLLAMA_BUILD_TESTS=ON",
+                    "-DGGML_HIP=ON", "-DAMDGPU_TARGETS=gfx1151",
+                    "-DCMAKE_BUILD_TYPE=Release",
+                    *([
+                        "-DHALOFPX_PROVENANCE_SOURCE_ROOT=" +
+                            raw["authority_contract"]["provenance"]["source_root"],
+                        "-DHALOFPX_PROVENANCE_BUILD_ID=" +
+                            raw["authority_contract"]["provenance"]["build_id"],
+                    ] if raw["milestone"] == "l55-first-armed-prompt-discriminator"
+                    else []),
+                ]
+                or (build["backend"], build["device"], build["gfx"]) !=
+                    ("ROCm", "ROCm0", "gfx1151")
+                or any(
+                    re.fullmatch(r"[0-9a-f]{64}", str(build[name])) is None
+                    for name in (
+                        "cmake_cache_sha256", "worker_binary_sha256", "ldd_sha256",
+                        "device_inventory_sha256", "compiler_sha256", "hipcc_sha256"))
+            ):
+                raise TransitionError("L50 ROCm build authority is malformed")
+            checks = (
+                ("cmake_cache_sha256", ["sha256sum", "--",
+                    "/var/tmp/halofpx-l48-source-nimo1/build-l48/CMakeCache.txt"], True),
+                ("worker_binary_sha256", ["sha256sum", "--", L48_EXECUTABLES["worker"]], True),
+                ("ldd_sha256", ["ldd", L48_EXECUTABLES["worker"]], False),
+                ("device_inventory_sha256", [L48_EXECUTABLES["worker"], "--help"], False),
+                ("compiler_sha256", ["c++", "--version"], False),
+                ("hipcc_sha256", ["/opt/rocm/bin/hipcc", "--version"], False),
+            )
+            for name, command, take_first in checks:
+                result = runner.run("nimo-1", command, operation="hash")
+                if result.returncode != 0:
+                    raise TransitionError(f"L50 {name} command failed")
+                actual = (
+                    result.stdout.split()[0] if take_first else
+                    hashlib.sha256((
+                        re.sub(
+                            r"\(0x[0-9a-fA-F]+\)", "(0xADDR)", result.stdout)
+                        if name == "ldd_sha256" else result.stdout + result.stderr
+                    ).encode()).hexdigest()
+                )
+                if actual != build[name]:
+                    raise TransitionError(f"L50 {name} mismatch")
+            inventory = runner.run(
+                "nimo-1", [L48_EXECUTABLES["worker"], "--help"],
+                operation="hash")
+            if (
+                "found 1 ROCm devices" not in inventory.stdout + inventory.stderr
+                or "Device 0:" not in inventory.stdout + inventory.stderr
+                or "gfx1151" not in inventory.stdout + inventory.stderr
+            ):
+                raise TransitionError("L50 exact ROCm device-0/gfx1151 inventory is absent")
         if primary:
             if raw["artifact"] != {
                 "host": "nimo-2", "path": L29_MODEL,
@@ -697,7 +968,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         or {host: tuple(values) for host, values in raw["disposable_paths"].items()} != DISPOSABLE_PATHS
     ):
         raise TransitionError("L22 manifest identity/cleanup authority mismatch")
-    if not (l28 or primary):
+    if not (l28 or l48 or primary):
         child_path = (Path(__file__).parent / "halofpx-l13-primary-retry.py").resolve()
         interpreter_path = Path(sys.executable).resolve()
         expected_exec = {
@@ -726,20 +997,24 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "worker": DISPOSABLE_HOST, "canary": DISPOSABLE_CANARY_HOST,
         "readiness": DISPOSABLE_CANARY_HOST, "placement": DISPOSABLE_CANARY_HOST,
     }
-    if l28 or primary:
+    if l28 or l48 or primary:
         host_for["epoch_receipt"] = DISPOSABLE_CANARY_HOST
-    if l31 or l33 or l36:
+    if l31 or l33 or l36 or l48:
         host_for["component_diagnostics"] = DISPOSABLE_HOST
-    if l36:
+    if l36 or l48:
         host_for["semantic_verifier"] = DISPOSABLE_CANARY_HOST
         host_for["replay_authority_verifier"] = DISPOSABLE_CANARY_HOST
+    if l48:
+        host_for["result_authority_verifier"] = DISPOSABLE_CANARY_HOST
+        host_for["composed_result_verifier"] = DISPOSABLE_CANARY_HOST
+        host_for["device_receipt"] = DISPOSABLE_HOST
     for name, host in host_for.items():
         result = runner.run(
             host, ["sha256sum", "--", expected_exec[name]], operation="hash")
         actual = result.stdout.split()[0] if result.returncode == 0 and result.stdout.split() else ""
         if actual != hashes[name]:
             raise TransitionError(f"L22 manifest {name} executable hash mismatch")
-    for name in ("interpreter", "child"):
+    for name in ("interpreter", "child", *(("controller",) if l48 else ())):
         executable = Path(expected_exec[name])
         if not executable.is_file() or hashlib.sha256(executable.read_bytes()).hexdigest() != hashes[name]:
             raise TransitionError(f"L22 manifest {name} hash mismatch")
@@ -807,6 +1082,84 @@ def bind_maintenance_command(
     if normalized != expected:
         raise TransitionError("maintenance argv does not exactly match the closed manifest")
     return normalized
+
+
+def prepare_l52_evidence_directories(
+        manifest: dict[str, object], evidence_root: Path,
+        runner: Runner) -> dict[str, object]:
+    """Create the closed evidence namespace before the disposable child runs."""
+    if manifest.get("schema") != "halofpx.l48.fixture-manifest.v1":
+        return {}
+    resolved_root = evidence_root.resolve()
+    child = resolved_root / str(manifest["child_evidence_subdir"])
+    if child.exists() or child.is_symlink():
+        raise TransitionError("L52 child evidence directory already exists")
+    child.mkdir(mode=0o700, parents=False, exist_ok=False)
+    os.chmod(child, 0o700)
+    if child.is_symlink() or not child.is_dir() or any(child.iterdir()):
+        raise TransitionError("L52 local evidence directory admission failed")
+    if os.name != "nt" and (child.stat().st_mode & 0o777) != 0o700:
+        raise TransitionError("L52 local evidence directory mode mismatch")
+
+    contract = manifest["authority_contract"]
+    assert isinstance(contract, dict)
+    evidence = contract.get("evidence_publication")
+    expected = {
+        "host": "nimo-2",
+        "directory": "/var/tmp/halofpx-l48-evidence",
+        "owner": "connorb",
+        "directory_mode": "0700",
+        "temporary_name": ".device-admission.pending",
+        "final_name": "device-admission.json",
+        "file_mode": "0600",
+    }
+    if evidence != expected:
+        raise TransitionError("L52 evidence publication authority mismatch")
+    remote_dir = str(expected["directory"])
+    disposable = manifest["disposable_paths"]
+    if remote_dir not in disposable.get("nimo-2", []):
+        raise TransitionError("L52 remote evidence directory is outside cleanup authority")
+    created = False
+    try:
+        absent = runner.run(
+            "nimo-2", ["stat", "-c", "%F", "--", remote_dir], operation="command")
+        if absent.returncode != 1:
+            raise TransitionError("L52 remote evidence directory is preexisting")
+        made = runner.run(
+            "nimo-2", ["install", "-d", "-m", "0700", "--", remote_dir],
+            operation="command")
+        if made.returncode != 0:
+            raise TransitionError("L52 remote evidence directory creation failed")
+        created = True
+        authority = runner.run(
+            "nimo-2", ["stat", "-c", "%F|%U|%a", "--", remote_dir],
+            operation="command")
+        if authority.returncode != 0 or authority.stdout.strip() != "directory|connorb|700":
+            raise TransitionError("L52 remote evidence directory authority mismatch")
+        contents = runner.run(
+            "nimo-2", ["find", remote_dir, "-mindepth", "1", "-maxdepth", "1",
+                       "-print", "-quit"], operation="command")
+        if contents.returncode != 0 or contents.stdout.strip():
+            raise TransitionError("L52 remote evidence directory is not empty")
+    except BaseException:
+        if created:
+            runner.run(
+                "nimo-2", ["rm", "-rf", "--", remote_dir], operation="cleanup")
+        try:
+            child.rmdir()
+        except OSError:
+            pass
+        raise
+    record = {
+        "schema": "halofpx.l52.evidence-directory-admission.v1",
+        "local": {"path": str(child), "type": "directory", "mode": "0700",
+                  "empty": True, "cleanup_owned": True},
+        "remote": {"host": "nimo-2", "path": remote_dir, "owner": "connorb",
+                   "type": "directory", "mode": "0700", "empty": True,
+                   "cleanup_owned": True},
+    }
+    _atomic_json(resolved_root / "evidence-directory-admission.json", record)
+    return record
 
 
 def _pid_from_listener(line: str) -> int:
@@ -1260,13 +1613,18 @@ def child_environment(
     required = ("worker", "canary", "readiness", "placement", "epoch_receipt")
     if manifest.get("schema") == "halofpx.l24.primary-manifest.v1":
         required = required[:-1]
+    l48 = manifest.get("schema") == "halofpx.l48.fixture-manifest.v1"
     if manifest.get("schema") in {
         "halofpx.l31.primary-manifest.v1", "halofpx.l33.primary-manifest.v1",
         "halofpx.l36.primary-manifest.v1",
-    }:
+    } or l48:
         required += ("component_diagnostics",)
-    if manifest.get("schema") == "halofpx.l36.primary-manifest.v1":
+    if manifest.get("schema") == "halofpx.l36.primary-manifest.v1" or l48:
         required += ("semantic_verifier", "replay_authority_verifier")
+    if l48:
+        required += (
+            "result_authority_verifier", "composed_result_verifier",
+            "device_receipt")
     if any(not re.fullmatch(r"[0-9a-f]{64}", str(hashes.get(name, ""))) for name in required):
         raise TransitionError("validated manifest child hash authority is incomplete")
     environment = os.environ.copy()
@@ -1286,12 +1644,88 @@ def child_environment(
             else "HALOFPX_L31_COMPONENT_DIAGNOSTICS_SHA256"
         ] = str(hashes["component_diagnostics"])
     if "semantic_verifier" in required:
-        environment["HALOFPX_L36_SEMANTIC_VERIFIER_SHA256"] = str(
-            hashes["semantic_verifier"])
-        environment["HALOFPX_L36_REPLAY_AUTHORITY_VERIFIER_SHA256"] = str(
+        prefix = "HALOFPX_L37" if l48 else "HALOFPX_L36"
+        environment[f"{prefix}_SEMANTIC_VERIFIER_SHA256"] = str(hashes["semantic_verifier"])
+        environment[f"{prefix}_REPLAY_AUTHORITY_VERIFIER_SHA256"] = str(
             hashes["replay_authority_verifier"])
         environment["HALOFPX_SEMANTIC_DIAGNOSTICS"] = "1"
+    if l48:
+        environment["HALOFPX_L37_COMPONENT_DIAGNOSTICS_SHA256"] = str(
+            hashes["component_diagnostics"])
+        environment["HALOFPX_L37_RESULT_AUTHORITY_VERIFIER_SHA256"] = str(
+            hashes["result_authority_verifier"])
+        environment["HALOFPX_COMPOSED_AUTHORITY"] = "1"
+        environment["HALOFPX_RPC_GRAPH_AUTH"] = "1"
+        environment["HALOFPX_RPC_MUTABLE_AUTH"] = "1"
+        environment["HALOFPX_L50_DEVICE_RECEIPT_SHA256"] = str(
+            hashes["device_receipt"])
     return environment
+
+
+def verify_l48_child_result(
+        manifest: dict[str, object], prepared: dict[str, object],
+        runner: Runner) -> dict[str, object]:
+    if manifest.get("schema") != "halofpx.l48.fixture-manifest.v1":
+        return {}
+    authority = manifest["authority_contract"]
+    executables = manifest["executables"]
+    result = runner.run(
+        str(manifest["canary_host"]),
+        [
+            "python3", str(executables["composed_result_verifier"]), "verify",
+            "--key-file", str(manifest["key_paths"]["nimo-2"]),
+            "--record", str(authority["result_path"]),
+            "--expected-key-sha256", str(prepared["sha256"]),
+            "--expected-owner", CHANNEL_KEY_OWNER,
+        ],
+        operation="evidence",
+    )
+    if result.returncode != 0:
+        raise TransitionError("L48 child result verification failed")
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise TransitionError("L48 child result verifier output malformed") from exc
+    if (
+        not isinstance(payload, dict)
+        or payload.get("schema") != authority["result_schema"]
+        or len(payload.get("capture", [])) != authority["expected_capture_executions"]
+        or len(payload.get("restore", [])) != authority["expected_restore_executions"]
+        or payload.get("prompt_chunks") != authority["expected_prompt_chunks"]
+        or payload.get("replay_count") != authority["expected_replay_count"]
+    ):
+        raise TransitionError("L48 child result contract mismatch")
+    publication = authority["evidence_publication"]
+    published = f"{publication['directory']}/{publication['final_name']}"
+    temporary = f"{publication['directory']}/{publication['temporary_name']}"
+    published_stat = runner.run(
+        str(publication["host"]),
+        ["stat", "-c", "%F|%U|%a|%s", "--", published],
+        operation="evidence")
+    temporary_stat = runner.run(
+        str(publication["host"]),
+        ["stat", "-c", "%F", "--", temporary],
+        operation="evidence")
+    published_hash = runner.run(
+        str(publication["host"]), ["sha256sum", "--", published],
+        operation="evidence")
+    if (
+        published_stat.returncode != 0
+        or not published_stat.stdout.startswith(
+            f"regular file|{publication['owner']}|600|")
+        or temporary_stat.returncode != 1
+        or published_hash.returncode != 0
+        or not published_hash.stdout.split()
+    ):
+        raise TransitionError("L52 device receipt publication authority mismatch")
+    payload["controller_device_publication"] = {
+        "schema": "halofpx.l52.controller-publication-verification.v1",
+        "host": publication["host"], "path": published,
+        "stat": published_stat.stdout.strip(),
+        "sha256": published_hash.stdout.split()[0],
+        "temporary_absent": True,
+    }
+    return payload
 
 
 def l29_capacity_preflight(
@@ -1491,31 +1925,66 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
         if args.command == "disposable":
             if manifest is None:
                 raise TransitionError("disposable execution requires a closed manifest")
-            prepared = controller.prepare_keys()
-            _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
-            child_env = child_environment(prepared, manifest)
-            child = subprocess.Popen(maintenance_command, env=child_env)
-            returncode = child.wait()
             cleanup_failures = []
+            returncode = -1
+            execution_failure = None
+            child = None
+            prepared = None
             try:
-                controller.cleanup_keys()
-            except Exception as exc:
-                cleanup_failures.append(f"keys: {exc}")
-            for host, paths in controller.disposable_paths.items():
-                for path in paths:
-                    removed = controller._run(
-                        host, ["rm", "-rf", "--", path], allow_failure=True)
-                    absent = controller._run(
-                        host, ["stat", "-c", "%F", "--", path], allow_failure=True)
-                    if removed.returncode != 0 or absent.returncode != 1:
-                        cleanup_failures.append(f"{host}:{path}")
-            final = controller.preflight()
-            if final != snapshot:
-                cleanup_failures.append("production snapshot changed during disposable execution")
-            _atomic_json(args.evidence_dir / "production-final.json", _snapshot_dict(final))
-            if returncode != 0 or cleanup_failures:
+                prepare_l52_evidence_directories(
+                    manifest, args.evidence_dir, selected_runner)
+                prepared = controller.prepare_keys()
+                _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
+                child_env = child_environment(prepared, manifest)
+                child = subprocess.Popen(maintenance_command, env=child_env)
+                returncode = child.wait()
+                if returncode == 0:
+                    verified_child = verify_l48_child_result(
+                        manifest, prepared, selected_runner)
+                    if verified_child:
+                        _atomic_json(
+                            args.evidence_dir / "verified-child-result.json",
+                            verified_child)
+            except BaseException as exc:
+                execution_failure = exc
+            finally:
+                if child is not None and child.poll() is None:
+                    child.terminate()
+                    try:
+                        child.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        child.kill()
+                        child.wait()
+                if controller.key_digest is not None:
+                    try:
+                        controller.cleanup_keys()
+                    except Exception as exc:
+                        cleanup_failures.append(f"keys: {exc}")
+                for host, paths in controller.disposable_paths.items():
+                    for path in paths:
+                        try:
+                            removed = controller._run(
+                                host, ["rm", "-rf", "--", path], allow_failure=True)
+                            absent = controller._run(
+                                host, ["stat", "-c", "%F", "--", path], allow_failure=True)
+                            if removed.returncode != 0 or absent.returncode != 1:
+                                cleanup_failures.append(f"{host}:{path}")
+                        except Exception as exc:
+                            cleanup_failures.append(f"{host}:{path}: {exc}")
+                try:
+                    final = controller.preflight()
+                    if final != snapshot:
+                        cleanup_failures.append(
+                            "production snapshot changed during disposable execution")
+                    _atomic_json(
+                        args.evidence_dir / "production-final.json",
+                        _snapshot_dict(final))
+                except Exception as exc:
+                    cleanup_failures.append(f"production-final: {exc}")
+            if returncode != 0 or execution_failure is not None or cleanup_failures:
                 raise TransitionError(
-                    f"disposable child={returncode} cleanup={cleanup_failures}")
+                    f"disposable child={returncode} execution={execution_failure} "
+                    f"cleanup={cleanup_failures}")
             return 0
         if manifest is None and maintenance_command and maintenance_command[0] == "--":
             maintenance_command.pop(0)

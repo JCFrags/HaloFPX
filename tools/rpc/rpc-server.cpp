@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #endif
+#include <cstring>
 
 // NOTE: this is copied from common.cpp to avoid linking with libcommon
 #ifdef _WIN32
@@ -379,6 +380,15 @@ static std::vector<ggml_backend_dev_t> get_devices(const rpc_server_params & par
 
 int main(int argc, char * argv[]) {
     std::setlocale(LC_NUMERIC, "C");
+
+#if defined(HALOFPX_PROVENANCE_SOURCE_ROOT) && defined(HALOFPX_PROVENANCE_BUILD_ID)
+    if (argc == 2 && std::strcmp(argv[1], "--halofpx-provenance") == 0) {
+        std::printf("schema=%s|source_root=%s|build_id=%s|binary=rpc-server\n",
+            HALOFPX_PROVENANCE_SCHEMA, HALOFPX_PROVENANCE_SOURCE_ROOT,
+            HALOFPX_PROVENANCE_BUILD_ID);
+        return 0;
+    }
+#endif
 
     ggml_backend_load_all();
 

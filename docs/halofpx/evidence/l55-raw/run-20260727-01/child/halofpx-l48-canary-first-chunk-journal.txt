@@ -1,0 +1,8 @@
+2026-07-27T12:38:33.329297-07:00 nimo-2 test-halofpx-distributed-state-canary[1709419]: 0.00.026.584 W load: empty token at index 30143
+2026-07-27T12:38:33.329596-07:00 nimo-2 test-halofpx-distributed-state-canary[1709419]: 0.00.026.712 W load: bad special token: 'tokenizer.ggml.seperator_token_id' = 4294967295, using default id -1
+2026-07-27T12:38:33.329596-07:00 nimo-2 test-halofpx-distributed-state-canary[1709419]: 0.00.026.714 W load: bad special token: 'tokenizer.ggml.padding_token_id' = 4294967295, using default id -1
+2026-07-27T12:38:33.432118-07:00 nimo-2 test-halofpx-distributed-state-canary[1709419]: 0.00.129.433 W llama_context: n_ctx_seq (4096) > n_ctx_train (128) -- possible training context overflow
+2026-07-27T12:38:33.440990-07:00 nimo-2 test-halofpx-distributed-state-canary[1709419]: 0.00.138.285 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+2026-07-27T12:38:33.688688-07:00 nimo-2 test-halofpx-distributed-state-canary[1709419]: 0.00.385.984 W decode: removing memory module entries for seq_id = 0, pos = [0, +inf)
+2026-07-27T12:38:33.688744-07:00 nimo-2 test-halofpx-distributed-state-canary[1709419]: 0.00.386.031 E llama_decode: failed to decode, ret = -3
+2026-07-27T12:38:33.688744-07:00 nimo-2 test-halofpx-distributed-state-canary[1709419]: [halofpx-l55-status] phase=capture-chunk|decode_status=-3|authority=version=1|status=failed|branch=l40_graph_result_reconcile|execution_sequence=1|pending=1|ggml_status=-1|auth_tag=9baa968c97e70b5feb21fd7d718010b196c707af3da93db74bb1180b39357488

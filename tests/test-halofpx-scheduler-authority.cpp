@@ -312,9 +312,9 @@ static bool verify_transcript(
                 if (read_u64(event.body + 12 + d * 8) != expected_ne[d] ||
                     read_u64(event.body + 44 + d * 8) != expected_nb[d]) return false;
             }
-            const uint64_t expected_relative = expert ? (role == 0 ? 0u : 256u) : (role == 0 ? 64u : 0u);
+            const uint64_t expected_relative = expert ? (role == 0 ? 0u : 96u) : (role == 0 ? 64u : 0u);
             const uint64_t expected_allocation_range = expert ? 1024u : 32u;
-            const uint64_t expected_buffer_size = expert ? (role == 0 ? 1024u : 1408u) : (role == 0 ? 512u : 32u);
+            const uint64_t expected_buffer_size = expert ? (role == 0 ? 1024u : 1184u) : (role == 0 ? 512u : 32u);
             if (hash_offset + 64 != event.body_size || logical + padding != range_size ||
                 source_id != (expert ? 1u : 2u) || destination_backend != (expert ? 0u : 1u) ||
                 copy_slot != 0 || generation != 1 ||
@@ -361,7 +361,7 @@ static bool verify_transcript(
         ranges[3] == ranges[2] && hashes[2] == hashes[3];
 }
 
-static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_result & result) {
+static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_result & result, bool composed = false) {
     std::vector<uint8_t> metadata(ggml_tensor_overhead() * 12 + ggml_graph_overhead());
     ggml_init_params params {
         /* .mem_size   = */ metadata.size(),
@@ -397,6 +397,8 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
     ggml_backend_sched_set_tensor_backend(sched, nested, rpc);
     ggml_backend_sched_set_tensor_backend(sched, out, cpu);
 
+    ggml_backend_sched_authority_handle composed_handle {};
+    ggml_backend_sched_authority_prepared composed_prepared {};
     if (enable) {
         ggml_backend_sched_authority_config config {};
         config.major = 1;
@@ -410,7 +412,21 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
             config.key[i] = static_cast<uint8_t>(0x80 + i);
         }
         config.event_buffer = result.transcript.data();
-        if (!ggml_backend_sched_authority_enable(sched, &config)) {
+        const bool enabled = composed ?
+            ggml_backend_sched_authority_arm(sched, &config, &composed_handle) :
+            ggml_backend_sched_authority_enable(sched, &config);
+        if (!enabled) {
+            ggml_backend_sched_free(sched);
+            ggml_free(ctx);
+            return false;
+        }
+        if (composed &&
+            (!ggml_backend_sched_authority_mark_rpc_backend(sched, &composed_handle, 0) ||
+             !ggml_backend_sched_authority_register_root(
+                sched, &composed_handle, a, GGML_BACKEND_SCHED_AUTH_MUTABLE, 1, 0) ||
+             !ggml_backend_sched_authority_register_root(
+                sched, &composed_handle, b, GGML_BACKEND_SCHED_AUTH_MUTABLE, 1, 1))) {
+            ggml_backend_sched_authority_abort_execution(sched, &composed_handle);
             ggml_backend_sched_free(sched);
             ggml_free(ctx);
             return false;
@@ -421,6 +437,14 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
     ggml_cgraph * graph = ggml_new_graph(ctx);
     ggml_build_forward_expand(graph, out);
     bool ok = ggml_backend_sched_alloc_graph(sched, graph);
+    if (ok && composed) {
+        ok = ggml_backend_sched_authority_prepare(
+            sched, &composed_handle, graph, &composed_prepared) &&
+            composed_prepared.status == 1 &&
+            composed_prepared.execution_sequence == 41 &&
+            composed_prepared.rpc_count == 2 &&
+            composed_prepared.local_count == 0;
+    }
     std::array<float, 64> av {};
     std::array<float, 64> bv {};
     for (size_t i = 0; i < av.size(); ++i) {
@@ -439,7 +463,67 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
             ok = ok && std::isfinite(result.values[i]) && std::abs(result.values[i] - want) <= 1e-6f;
         }
     }
-    result.authority_available = ggml_backend_sched_authority_result(sched, &result.authority);
+    result.authority_available = composed ?
+        ggml_backend_sched_authority_finalize_execution(sched, &composed_handle, &result.authority) :
+        ggml_backend_sched_authority_result(sched, &result.authority);
+    ggml_backend_sched_free(sched);
+    ggml_free(ctx);
+    return ok;
+}
+
+static bool run_composed_refusals(ggml_backend_t rpc, ggml_backend_t cpu) {
+    std::vector<uint8_t> metadata(ggml_tensor_overhead() * 8 + ggml_graph_overhead());
+    ggml_init_params params { metadata.size(), metadata.data(), true };
+    ggml_context * ctx = ggml_init(params);
+    if (ctx == nullptr) return false;
+    ggml_tensor * a = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 8);
+    ggml_tensor * b = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 8);
+    ggml_tensor * out = ggml_add(ctx, a, b);
+    ggml_cgraph * graph = ggml_new_graph(ctx);
+    ggml_build_forward_expand(graph, out);
+    ggml_backend_t backends[] = { rpc, cpu };
+    ggml_backend_buffer_type_t bufts[] = {
+        ggml_backend_get_default_buffer_type(rpc),
+        ggml_backend_get_default_buffer_type(cpu),
+    };
+    ggml_backend_sched_t sched = ggml_backend_sched_new(backends, bufts, 2, 32, false, false);
+    if (sched == nullptr) {
+        ggml_free(ctx);
+        return false;
+    }
+    ggml_backend_sched_set_tensor_backend(sched, a, rpc);
+    ggml_backend_sched_set_tensor_backend(sched, b, rpc);
+    ggml_backend_sched_set_tensor_backend(sched, out, rpc);
+    std::array<uint8_t, 4096> transcript {};
+    ggml_backend_sched_authority_config config {};
+    config.major = 1;
+    config.minor = 0;
+    config.encoded_size = sizeof(config);
+    config.max_events = 64;
+    config.event_buffer = transcript.data();
+    config.event_buffer_size = transcript.size();
+    config.execution_sequence = 77;
+    for (uint32_t i = 0; i < 32; ++i) {
+        config.attempt_nonce[i] = static_cast<uint8_t>(0x20 + i);
+        config.key[i] = static_cast<uint8_t>(0x60 + i);
+    }
+    ggml_backend_sched_authority_handle handle {};
+    bool ok = ggml_backend_sched_authority_arm(sched, &config, &handle);
+    ggml_backend_sched_authority_handle stale = handle;
+    ++stale.execution_sequence;
+    ok = ok &&
+        !ggml_backend_sched_authority_mark_rpc_backend(sched, &stale, 0) &&
+        ggml_backend_sched_authority_mark_rpc_backend(sched, &handle, 0) &&
+        ggml_backend_sched_authority_register_root(
+            sched, &handle, a, GGML_BACKEND_SCHED_AUTH_MUTABLE, 1, 0) &&
+        ggml_backend_sched_alloc_graph(sched, graph);
+    ggml_backend_sched_authority_prepared prepared {};
+    ok = ok && !ggml_backend_sched_authority_prepare(sched, &handle, graph, &prepared);
+    ok = ok && ggml_backend_sched_authority_abort_execution(sched, &handle);
+    ok = ok &&
+        !ggml_backend_sched_authority_abort_execution(sched, &handle) &&
+        !ggml_backend_sched_authority_finalize_execution(sched, &handle, nullptr);
+    std::memset(config.key, 0, sizeof(config.key));
     ggml_backend_sched_free(sched);
     ggml_free(ctx);
     return ok;
@@ -605,9 +689,12 @@ int main(int argc, char ** argv) {
 
     run_result off {};
     run_result on {};
+    run_result composed {};
     run_result expert {};
     const bool off_ok = run_graph(rpc, cpu, false, off);
     const bool on_ok = run_graph(rpc, cpu, true, on);
+    const bool composed_ok = run_graph(rpc, cpu, true, composed, true);
+    const bool composed_refusals = run_composed_refusals(rpc, cpu);
     const bool expert_ok = run_expert_partial(rpc, cpu, expert);
     const bool hash_fixtures = run_hash_fixtures(cpu);
     const bool feature_off = off_ok && !off.authority_available;
@@ -668,9 +755,11 @@ int main(int argc, char ** argv) {
         write_evidence(evidence_directory, "ordinary", on) &&
         write_evidence(evidence_directory, "expert", expert);
     std::printf(
-        "self_tests=17 feature_off=%d split_exact=%d hash_fixtures=%d evidence_written=%d authority=%d ordinary_transcript=%d expert_fixture=%d expert_transcript=%d tamper_refused=%d order_refused=%d duplicate_refused=%d unknown_refused=%d overlap_refused=%d bounds_refused=%d malformed_refused=%d events=%u splits=%u maps=%u copies=%u expert_status=%u expert_events=%u expert_maps=%u expert_copies=%u partial=%u\n",
+        "self_tests=17 feature_off=%d split_exact=%d composed=%d composed_refusals=%d hash_fixtures=%d evidence_written=%d authority=%d ordinary_transcript=%d expert_fixture=%d expert_transcript=%d tamper_refused=%d order_refused=%d duplicate_refused=%d unknown_refused=%d overlap_refused=%d bounds_refused=%d malformed_refused=%d events=%u splits=%u maps=%u copies=%u expert_status=%u expert_events=%u expert_maps=%u expert_copies=%u partial=%u\n",
         feature_off ? 1 : 0,
         exact ? 1 : 0,
+        composed_ok ? 1 : 0,
+        composed_refusals ? 1 : 0,
         hash_fixtures ? 1 : 0,
         evidence_written ? 1 : 0,
         contract ? 1 : 0,
@@ -696,7 +785,7 @@ int main(int argc, char ** argv) {
 
     ggml_backend_free(rpc);
     ggml_backend_free(cpu);
-    return feature_off && exact && hash_fixtures && evidence_written && contract && expert_ok && ordinary_transcript &&
+    return feature_off && exact && composed_ok && composed_refusals && hash_fixtures && evidence_written && contract && expert_ok && ordinary_transcript &&
         expert_transcript && tamper_refused && order_refused && duplicate_refused &&
         unknown_refused && overlap_refused && bounds_refused && malformed_refused ? 0 : 1;
 }

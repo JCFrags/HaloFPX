@@ -121,6 +121,12 @@ bool llm_graph_input_embd::can_reuse(const llm_graph_params & params) {
     return res;
 }
 
+void llm_graph_input_embd::halofpx_authority_roots(
+        std::vector<llm_graph_authority_root> & roots) const {
+    if (tokens) roots.push_back({ tokens, LLM_GRAPH_AUTH_TOKEN, 0, false });
+    if (embd) roots.push_back({ embd, LLM_GRAPH_AUTH_INPUT_EMBEDDING, 0, false });
+}
+
 void llm_graph_input_embd_h::set_input(const llama_ubatch * ubatch) {
     const int64_t n_tokens = ubatch->n_tokens;
 
@@ -148,6 +154,13 @@ bool llm_graph_input_embd_h::can_reuse(const llm_graph_params & params) {
     res &= (!params.ubatch.embd)  || (h      && h->ne[1]      == params.ubatch.n_tokens);
 
     return res;
+}
+
+void llm_graph_input_embd_h::halofpx_authority_roots(
+        std::vector<llm_graph_authority_root> & roots) const {
+    if (tokens) roots.push_back({ tokens, LLM_GRAPH_AUTH_TOKEN, 0, false });
+    if (embd) roots.push_back({ embd, LLM_GRAPH_AUTH_INPUT_EMBEDDING, 0, false });
+    if (h) roots.push_back({ h, LLM_GRAPH_AUTH_INPUT_EMBEDDING, 1, false });
 }
 
 void llm_graph_input_pos::set_input(const llama_ubatch * ubatch) {
@@ -178,6 +191,11 @@ bool llm_graph_input_pos::can_reuse(const llm_graph_params & params) {
     res &= pos->ne[0] == params.ubatch.n_tokens*n_pos_per_embd;
 
     return res;
+}
+
+void llm_graph_input_pos::halofpx_authority_roots(
+        std::vector<llm_graph_authority_root> & roots) const {
+    if (pos) roots.push_back({ pos, LLM_GRAPH_AUTH_ABSOLUTE_POSITION, 0, false });
 }
 
 void llm_graph_input_attn_temp::set_input(const llama_ubatch * ubatch) {
@@ -255,6 +273,11 @@ bool llm_graph_input_out_ids::can_reuse(const llm_graph_params & params) {
     res &= n_outputs == params.n_outputs;
 
     return res;
+}
+
+void llm_graph_input_out_ids::halofpx_authority_roots(
+        std::vector<llm_graph_authority_root> & roots) const {
+    if (out_ids) roots.push_back({ out_ids, LLM_GRAPH_AUTH_OUTPUT_ID, 0, false });
 }
 
 void llm_graph_input_mean::set_input(const llama_ubatch * ubatch) {
@@ -527,6 +550,18 @@ bool llm_graph_input_attn_kv::can_reuse(const llm_graph_params & params) {
     res &= can_reuse_kq_mask(self_kq_mask, mctx, params.ubatch, params.cparams);
 
     return res;
+}
+
+void llm_graph_input_attn_kv::halofpx_authority_roots(
+        std::vector<llm_graph_authority_root> & roots) const {
+    if (self_k_idxs) roots.push_back({ self_k_idxs, LLM_GRAPH_AUTH_KV_WRITE_INDEX, 0, false });
+    if (self_v_idxs) roots.push_back({ self_v_idxs, LLM_GRAPH_AUTH_KV_WRITE_INDEX, 1, false });
+    if (self_kq_mask) roots.push_back({ self_kq_mask, LLM_GRAPH_AUTH_CAUSAL_MASK, 0, false });
+    if (self_kq_mask_cnv && self_kq_mask_cnv != self_kq_mask) {
+        roots.push_back({ self_kq_mask_cnv, LLM_GRAPH_AUTH_CAUSAL_MASK, 1, false });
+    }
+    if (self_k_rot) roots.push_back({ self_k_rot, LLM_GRAPH_AUTH_KV_CELL, 0, false });
+    if (self_v_rot) roots.push_back({ self_v_rot, LLM_GRAPH_AUTH_KV_CELL, 1, false });
 }
 
 void llm_graph_input_attn_k::set_input(const llama_ubatch * ubatch) {
@@ -957,6 +992,7 @@ void llm_graph_result::reset() {
     params = {};
 
     inputs.clear();
+    halofpx_extra_authority_roots.clear();
 
     buf_compute_meta.resize(ggml_tensor_overhead()*max_nodes + ggml_graph_overhead_custom(max_nodes, false));
 
@@ -1056,6 +1092,17 @@ bool llm_graph_result::can_reuse(const llm_graph_params & params) {
 llm_graph_input_i * llm_graph_result::add_input(llm_graph_input_ptr input) {
     inputs.emplace_back(std::move(input));
     return inputs.back().get();
+}
+
+void llm_graph_result::add_halofpx_authority_root(llm_graph_authority_root root) {
+    if (root.tensor) halofpx_extra_authority_roots.push_back(root);
+}
+
+std::vector<llm_graph_authority_root> llm_graph_result::halofpx_authority_roots() const {
+    std::vector<llm_graph_authority_root> roots;
+    for (const auto & input : inputs) input->halofpx_authority_roots(roots);
+    roots.insert(roots.end(), halofpx_extra_authority_roots.begin(), halofpx_extra_authority_roots.end());
+    return roots;
 }
 
 void llm_graph_result::set_params(const llm_graph_params & params) {
@@ -2467,6 +2514,12 @@ ggml_tensor * llm_graph_context::build_attn(
     ggml_tensor * q = q_cur;
     ggml_tensor * k = mctx_cur->get_k(ctx0, il);
     ggml_tensor * v = mctx_cur->get_v(ctx0, il);
+    res->add_halofpx_authority_root({
+        k, LLM_GRAPH_AUTH_SELECTED_KV, static_cast<uint32_t>(2*il), false
+    });
+    res->add_halofpx_authority_root({
+        v, LLM_GRAPH_AUTH_SELECTED_KV, static_cast<uint32_t>(2*il + 1), false
+    });
 
     ggml_tensor * cur = build_attn_mha(q, k, v, kq_b, kq_mask, sinks, v_mla, kq_scale, il);
     cb(cur, "kqv_out", il);

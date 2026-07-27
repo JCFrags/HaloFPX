@@ -1,0 +1,98 @@
+{
+  "canary_returncode": 4,
+  "channel_key_sha256": "4c68257c09bd537eaf826cd0ada82a1009948d2599075c394dc68d97edc94c8c",
+  "device_admission": {
+    "caps": {
+      "admitted": true,
+      "attempts": 1,
+      "caps_bytes": 128,
+      "channel_binding_sha256": "f52eda09c2372434506a01f8c12d5f01cc15fb794039c8406408f7d2316e1f37",
+      "command_mask": 31,
+      "commands": [
+        "CAPS",
+        "CAPTURE",
+        "STAGE",
+        "COMMIT_APPLY",
+        "ABORT"
+      ],
+      "connection_caps_sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0",
+      "elapsed_ms": 0.743,
+      "endpoint": "127.0.0.1:50249",
+      "failures": [],
+      "key_generation": 7,
+      "logical_rank": 1,
+      "max_component_bytes": 1073741824,
+      "max_components": 4096,
+      "max_object_bytes": 68719476736,
+      "max_request": 1048576,
+      "max_response": 256,
+      "rpc_protocol": "4.0.1",
+      "state_protocol": "1.0",
+      "state_timeout_ms": 5000,
+      "world_size": 2
+    },
+    "invocation_id": {
+      "cursor": "s=4e2fa91ab7f94bb28bcbe361afa7567e;i=23c8f2;b=fbf76f5d91f3408580c1cbca4636a606;m=a02e6792ae;t=6579cdd91c55a;x=d1126bc5dc4563b9",
+      "invocation_id": "4c768d1ed50a417f91bf78675b017a24",
+      "launch_properties": {
+        "ActiveState": "active",
+        "ExecMainCode": "0",
+        "ExecMainPID": "2455656",
+        "ExecMainStatus": "0",
+        "InvocationID": "4c768d1ed50a417f91bf78675b017a24",
+        "MainPID": "2455656",
+        "Result": "success",
+        "SubState": "running"
+      }
+    },
+    "receipt": {
+      "backend": "ROCm",
+      "binary_sha256": "fe7de2d0904ae6e2008f897fa67590776b83b0f7e8399741b6754fa00056bbda",
+      "device": "ROCm0",
+      "gfx": "gfx1151",
+      "hmac_sha256": "ea1e3770f46a8fca0723ee5e2f1c016049c5206f9f43895c4e33105ae9b65ad8",
+      "inventory_lines": [
+        "ggml_rocm_init: found 1 ROCm devices (Total VRAM: 126976 MiB):",
+        "Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB",
+        "-t, --threads N                  number of threads for the CPU device (default: 16)"
+      ],
+      "inventory_sha256": "27c70d2186271e068e42ea720b1f78d76d1ba805605676abd3e0df51a1243951",
+      "schema": "halofpx.l50.device-admission.v1"
+    },
+    "unit": "halofpx-l50-device-gate.service"
+  },
+  "readiness": {
+    "admitted": true,
+    "attempts": 1,
+    "caps_bytes": 128,
+    "channel_binding_sha256": "f52eda09c2372434506a01f8c12d5f01cc15fb794039c8406408f7d2316e1f37",
+    "command_mask": 31,
+    "commands": [
+      "CAPS",
+      "CAPTURE",
+      "STAGE",
+      "COMMIT_APPLY",
+      "ABORT"
+    ],
+    "connection_caps_sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0",
+    "elapsed_ms": 4.916,
+    "endpoint": "10.44.0.1:50248",
+    "failures": [],
+    "key_generation": 7,
+    "logical_rank": 1,
+    "max_component_bytes": 1073741824,
+    "max_components": 4096,
+    "max_object_bytes": 68719476736,
+    "max_request": 1048576,
+    "max_response": 256,
+    "rpc_protocol": "4.0.1",
+    "state_protocol": "1.0",
+    "state_timeout_ms": 5000,
+    "world_size": 2
+  },
+  "schema": "halofpx.l55.first-chunk-result.v1",
+  "status_record": "[halofpx-l55-status] phase=capture-chunk|decode_status=-3|authority=version=1|status=failed|branch=l40_graph_result_reconcile|execution_sequence=1|pending=1|ggml_status=-1|auth_tag=9baa968c97e70b5feb21fd7d718010b196c707af3da93db74bb1180b39357488",
+  "verified_canonical": "phase=capture-chunk|decode_status=-3|authority=version=1|status=failed|branch=l40_graph_result_reconcile|execution_sequence=1|pending=1|ggml_status=-1",
+  "worker_invocation_id": "ceab3ad54d3f4fa5b5761589b7ac2c46",
+  "worker_pid": 2455836
+}

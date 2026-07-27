@@ -1,5 +1,22 @@
 cmake_minimum_required(VERSION 3.14...3.28) # for add_link_options and implicit target directories.
 project("llama.cpp" C CXX)
+
+set(HALOFPX_PROVENANCE_SOURCE_ROOT "" CACHE STRING "Canonical HaloFPX source root")
+set(HALOFPX_PROVENANCE_BUILD_ID "" CACHE STRING "Immutable HaloFPX diagnostic build identity")
+if (HALOFPX_PROVENANCE_SOURCE_ROOT OR HALOFPX_PROVENANCE_BUILD_ID)
+    string(LENGTH "${HALOFPX_PROVENANCE_SOURCE_ROOT}" HALOFPX_PROVENANCE_SOURCE_ROOT_LENGTH)
+    string(LENGTH "${HALOFPX_PROVENANCE_BUILD_ID}" HALOFPX_PROVENANCE_BUILD_ID_LENGTH)
+    if (NOT HALOFPX_PROVENANCE_SOURCE_ROOT_LENGTH EQUAL 64 OR
+        NOT HALOFPX_PROVENANCE_BUILD_ID_LENGTH EQUAL 64 OR
+        NOT HALOFPX_PROVENANCE_SOURCE_ROOT MATCHES "^[0-9a-f]+$" OR
+        NOT HALOFPX_PROVENANCE_BUILD_ID MATCHES "^[0-9a-f]+$")
+        message(FATAL_ERROR "HaloFPX provenance values must be exact lowercase SHA-256")
+    endif()
+    add_compile_definitions(
+        HALOFPX_PROVENANCE_SOURCE_ROOT="${HALOFPX_PROVENANCE_SOURCE_ROOT}"
+        HALOFPX_PROVENANCE_BUILD_ID="${HALOFPX_PROVENANCE_BUILD_ID}"
+        HALOFPX_PROVENANCE_SCHEMA="halofpx.l55.binary-provenance.v1")
+endif()
 include(CheckIncludeFileCXX)
 
 #set(CMAKE_WARN_DEPRECATED YES)

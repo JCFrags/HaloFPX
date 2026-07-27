@@ -190,11 +190,14 @@ int main(int argc, char ** argv) {
     ggml_backend_tensor_set(token, av.data(), 0, sizeof(av));
     ggml_backend_tensor_set(storage, bv.data(), 0, ggml_nbytes(storage));
     ggml_backend_rpc_halofpx_mutable_result first_authority {};
-    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, graph, &first_authority)) {
-        std::fprintf(stderr, "commit1 failed\n"); return 1;
+    if (!ggml_backend_rpc_halofpx_mutable_prepare(&session, graph, &first_authority)) {
+        std::fprintf(stderr, "prepare1 failed\n"); return 1;
     }
     if (ggml_backend_sched_graph_compute(sched, graph) != GGML_STATUS_SUCCESS) {
         std::fprintf(stderr, "compute1 failed\n"); return 1;
+    }
+    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, graph, &first_authority)) {
+        std::fprintf(stderr, "commit1 failed\n"); return 1;
     }
     std::array<float, 32> first {};
     ggml_backend_tensor_get(out, first.data(), 0, sizeof(first));
@@ -239,11 +242,14 @@ int main(int argc, char ** argv) {
     ggml_backend_tensor_set(da, av.data(), 0, sizeof(av));
     ggml_backend_tensor_set(db_storage, bv.data(), 0, bv.size() * sizeof(float));
     ggml_backend_rpc_halofpx_mutable_result second_authority {};
-    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, direct_graph, &second_authority)) {
-        std::fprintf(stderr, "commit2 failed\n"); return 1;
+    if (!ggml_backend_rpc_halofpx_mutable_prepare(&session, direct_graph, &second_authority)) {
+        std::fprintf(stderr, "prepare2 failed\n"); return 1;
     }
     if (ggml_backend_graph_compute(rpc, direct_graph) != GGML_STATUS_SUCCESS) {
         std::fprintf(stderr, "compute2 failed\n"); return 1;
+    }
+    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, direct_graph, &second_authority)) {
+        std::fprintf(stderr, "commit2 failed\n"); return 1;
     }
     std::array<float, 32> direct_first {};
     ggml_backend_tensor_get(direct_out, direct_first.data(), 0, sizeof(direct_first));
@@ -260,11 +266,14 @@ int main(int argc, char ** argv) {
     ggml_backend_tensor_set(da, av.data(), 0, sizeof(av));
     ggml_backend_tensor_set(db_storage, bv.data(), 0, bv.size() * sizeof(float));
     ggml_backend_rpc_halofpx_mutable_result third_authority {};
-    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, direct_graph, &third_authority)) {
-        std::fprintf(stderr, "commit3 failed\n"); return 1;
+    if (!ggml_backend_rpc_halofpx_mutable_prepare(&session, direct_graph, &third_authority)) {
+        std::fprintf(stderr, "prepare3 failed\n"); return 1;
     }
     if (ggml_backend_graph_compute(rpc, direct_graph) != GGML_STATUS_SUCCESS) {
         std::fprintf(stderr, "recompute failed\n"); return 1;
+    }
+    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, direct_graph, &third_authority)) {
+        std::fprintf(stderr, "commit3 failed\n"); return 1;
     }
     std::array<float, 32> second {};
     ggml_backend_tensor_get(direct_out, second.data(), 0, sizeof(second));
@@ -289,8 +298,9 @@ int main(int argc, char ** argv) {
     ggml_backend_tensor_set(da, changed.data(), 0, sizeof(changed));
     ggml_backend_tensor_set(db_storage, bv.data(), 0, bv.size() * sizeof(float));
     ggml_backend_rpc_halofpx_mutable_result changed_authority {};
-    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, changed_graph, &changed_authority) ||
-        ggml_backend_graph_compute(rpc, changed_graph) != GGML_STATUS_SUCCESS) return 1;
+    if (!ggml_backend_rpc_halofpx_mutable_prepare(&session, changed_graph, &changed_authority) ||
+        ggml_backend_graph_compute(rpc, changed_graph) != GGML_STATUS_SUCCESS ||
+        !ggml_backend_rpc_halofpx_mutable_commit(&session, changed_graph, &changed_authority)) return 1;
     std::array<float, 32> changed_output {};
     ggml_backend_tensor_get(direct_out, changed_output.data(), 0, sizeof(changed_output));
     const bool mutation_sensitive =
@@ -334,7 +344,7 @@ int main(int argc, char ** argv) {
     ggml_backend_rpc_halofpx_mutable_result unknown_result {};
     const bool unknown_refused = unknown_buffer && unknown_uid != 0 &&
         ggml_backend_rpc_halofpx_mutable_begin(rpc, sched, &attempt, &session) &&
-        !ggml_backend_rpc_halofpx_mutable_commit(&session, unknown_graph, &unknown_result);
+        !ggml_backend_rpc_halofpx_mutable_prepare(&session, unknown_graph, &unknown_result);
     const bool roots = first_authority.mutation_count == 2 &&
         second_authority.mutation_count == 2 &&
         third_authority.mutation_count == 2 &&

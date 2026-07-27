@@ -1,0 +1,163 @@
+[  0%] Built target llama-common-base
+[  4%] Built target ggml-base
+[  4%] Built target cpp-httplib
+[  6%] Built target ggml-rpc
+[ 10%] Built target ggml-cpu
+[ 48%] Built target ggml-hip
+[ 48%] Built target ggml
+[ 48%] Building CXX object src/CMakeFiles/llama.dir/models/jina-bert-v2.cpp.o
+[ 48%] Building CXX object src/CMakeFiles/llama.dir/models/kimi-linear.cpp.o
+[ 48%] Building CXX object src/CMakeFiles/llama.dir/models/lfm2moe.cpp.o
+[ 48%] Building CXX object src/CMakeFiles/llama.dir/models/jina-bert-v3.cpp.o
+[ 48%] Building CXX object src/CMakeFiles/llama.dir/models/lfm2.cpp.o
+[ 48%] Building CXX object src/CMakeFiles/llama.dir/models/llada-moe.cpp.o
+[ 51%] Building CXX object src/CMakeFiles/llama.dir/models/llada.cpp.o
+[ 51%] Building CXX object src/CMakeFiles/llama.dir/models/llama-embed.cpp.o
+[ 51%] Building CXX object src/CMakeFiles/llama.dir/models/llama.cpp.o
+[ 51%] Building CXX object src/CMakeFiles/llama.dir/models/llama4.cpp.o
+[ 51%] Building CXX object src/CMakeFiles/llama.dir/models/maincoder.cpp.o
+[ 51%] Building CXX object src/CMakeFiles/llama.dir/models/mamba-base.cpp.o
+[ 51%] Building CXX object src/CMakeFiles/llama.dir/models/mamba.cpp.o
+[ 51%] Building CXX object src/CMakeFiles/llama.dir/models/mamba2.cpp.o
+[ 53%] Building CXX object src/CMakeFiles/llama.dir/models/mimo2.cpp.o
+[ 53%] Building CXX object src/CMakeFiles/llama.dir/models/minicpm.cpp.o
+[ 53%] Building CXX object src/CMakeFiles/llama.dir/models/minimax-m2.cpp.o
+[ 53%] Building CXX object src/CMakeFiles/llama.dir/models/minicpm3.cpp.o
+[ 53%] Building CXX object src/CMakeFiles/llama.dir/models/minimax-m3.cpp.o
+[ 53%] Building CXX object src/CMakeFiles/llama.dir/models/mistral3.cpp.o
+[ 53%] Building CXX object src/CMakeFiles/llama.dir/models/mistral4.cpp.o
+[ 53%] Building CXX object src/CMakeFiles/llama.dir/models/modern-bert.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/llama.dir/models/mpt.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/llama.dir/models/nemotron-h-moe.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/llama.dir/models/nemotron-h.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/llama.dir/models/neo-bert.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/llama.dir/models/nemotron.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/llama.dir/models/nomic-bert-moe.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/llama.dir/models/nomic-bert.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/llama.dir/models/olmo.cpp.o
+[ 55%] Building CXX object src/CMakeFiles/llama.dir/models/olmo2.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/llama.dir/models/olmoe.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/llama.dir/models/orion.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/llama.dir/models/openelm.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/llama.dir/models/openai-moe.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/llama.dir/models/paddleocr.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/llama.dir/models/pangu-embed.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/llama.dir/models/phi2.cpp.o
+[ 57%] Building CXX object src/CMakeFiles/llama.dir/models/phi3.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/llama.dir/models/phimoe.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/llama.dir/models/plamo3.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/llama.dir/models/qwen.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/llama.dir/models/plamo2.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/llama.dir/models/plm.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/llama.dir/models/qwen2moe.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/llama.dir/models/plamo.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/llama.dir/models/qwen2.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/llama.dir/models/qwen2vl.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/llama.dir/models/qwen35.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/llama.dir/models/qwen3.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/llama.dir/models/qwen35moe.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/llama.dir/models/qwen3moe.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/llama.dir/models/qwen3vl.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/llama.dir/models/qwen3next.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/llama.dir/models/qwen3vlmoe.cpp.o
+[ 61%] Building CXX object src/CMakeFiles/llama.dir/models/refact.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/llama.dir/models/rwkv6.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/llama.dir/models/rwkv6-base.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/llama.dir/models/rwkv6qwen2.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/llama.dir/models/rnd1.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/llama.dir/models/rwkv7-base.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/llama.dir/models/rwkv7.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/llama.dir/models/seed-oss.cpp.o
+[ 63%] Building CXX object src/CMakeFiles/llama.dir/models/smallthinker.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/llama.dir/models/stablelm.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/llama.dir/models/starcoder.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/llama.dir/models/starcoder2.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/llama.dir/models/smollm3.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/llama.dir/models/step35.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/llama.dir/models/t5.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/llama.dir/models/t5encoder.cpp.o
+[ 65%] Building CXX object src/CMakeFiles/llama.dir/models/wavtokenizer-dec.cpp.o
+[ 68%] Building CXX object src/CMakeFiles/llama.dir/models/xverse.cpp.o
+[ 68%] Linking CXX shared library ../bin/libllama.so
+[ 91%] Built target llama
+[ 91%] Building CXX object common/CMakeFiles/llama-common.dir/arg.cpp.o
+[ 91%] Building CXX object common/CMakeFiles/llama-common.dir/chat-peg-parser.cpp.o
+[ 91%] Building CXX object common/CMakeFiles/llama-common.dir/chat-auto-parser-helpers.cpp.o
+[ 91%] Building CXX object common/CMakeFiles/llama-common.dir/chat-auto-parser-generator.cpp.o
+[ 91%] Building CXX object common/CMakeFiles/llama-common.dir/chat.cpp.o
+[ 91%] Building CXX object common/CMakeFiles/llama-common.dir/chat-diff-analyzer.cpp.o
+[ 93%] Building CXX object common/CMakeFiles/llama-common.dir/console.cpp.o
+[ 93%] Building CXX object common/CMakeFiles/llama-common.dir/common.cpp.o
+[ 93%] Building CXX object common/CMakeFiles/llama-common.dir/debug.cpp.o
+[ 93%] Building CXX object common/CMakeFiles/llama-common.dir/download.cpp.o
+[ 93%] Building CXX object common/CMakeFiles/llama-common.dir/fit.cpp.o
+[ 93%] Building CXX object common/CMakeFiles/llama-common.dir/hf-cache.cpp.o
+[ 93%] Building CXX object common/CMakeFiles/llama-common.dir/json-partial.cpp.o
+[ 93%] Building CXX object common/CMakeFiles/llama-common.dir/json-schema-to-grammar.cpp.o
+[ 93%] Building CXX object common/CMakeFiles/llama-common.dir/llguidance.cpp.o
+[ 95%] Building CXX object common/CMakeFiles/llama-common.dir/log.cpp.o
+[ 95%] Building CXX object common/CMakeFiles/llama-common.dir/ngram-cache.cpp.o
+[ 95%] Building CXX object common/CMakeFiles/llama-common.dir/ngram-map.cpp.o
+[ 95%] Building CXX object common/CMakeFiles/llama-common.dir/ngram-mod.cpp.o
+[ 95%] Building CXX object common/CMakeFiles/llama-common.dir/peg-parser.cpp.o
+[ 95%] Building CXX object common/CMakeFiles/llama-common.dir/preset.cpp.o
+[ 95%] Building CXX object common/CMakeFiles/llama-common.dir/regex-partial.cpp.o
+[ 95%] Building CXX object common/CMakeFiles/llama-common.dir/reasoning-budget.cpp.o
+[ 95%] Building CXX object common/CMakeFiles/llama-common.dir/sampling.cpp.o
+[ 97%] Building CXX object common/CMakeFiles/llama-common.dir/speculative.cpp.o
+[ 97%] Building CXX object common/CMakeFiles/llama-common.dir/unicode.cpp.o
+[ 97%] Building CXX object common/CMakeFiles/llama-common.dir/jinja/lexer.cpp.o
+[ 97%] Building CXX object common/CMakeFiles/llama-common.dir/jinja/parser.cpp.o
+[ 97%] Building CXX object common/CMakeFiles/llama-common.dir/jinja/runtime.cpp.o
+[ 97%] Building CXX object common/CMakeFiles/llama-common.dir/jinja/value.cpp.o
+[ 97%] Building CXX object common/CMakeFiles/llama-common.dir/jinja/string.cpp.o
+[ 97%] Building CXX object common/CMakeFiles/llama-common.dir/jinja/caps.cpp.o
+[100%] Building CXX object common/CMakeFiles/llama-common.dir/__/license.cpp.o
+[100%] Linking CXX shared library ../bin/libllama-common.so
+[100%] Built target llama-common
+[100%] Building CXX object tests/CMakeFiles/test-halofpx-distributed-state-canary.dir/test-halofpx-distributed-state-canary.cpp.o
+/var/tmp/halofpx-l48-source-nimo2/tests/test-halofpx-distributed-state-canary.cpp: In function ‘int run_canary(int, char**)’:
+/var/tmp/halofpx-l48-source-nimo2/tests/test-halofpx-distributed-state-canary.cpp:867:21: error: no matching function for call to ‘min(uint32_t, std::vector<int>::size_type)’
+  867 |             std::min(llama_n_batch(ctx), prefix.size() - 1) : prefix.size() - 1;
+      |             ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  • there are 4 candidates
+In file included from /usr/include/c++/16/bits/stl_uninitialized.h:63,
+                 from /usr/include/c++/16/memory:71,
+                 from /var/tmp/halofpx-l48-source-nimo2/src/../include/llama-cpp.h:7,
+                 from /var/tmp/halofpx-l48-source-nimo2/common/./common.h:5,
+                 from /var/tmp/halofpx-l48-source-nimo2/common/./arg.h:3,
+                 from /var/tmp/halofpx-l48-source-nimo2/tests/test-halofpx-distributed-state-canary.cpp:1:
+    • candidate 1: ‘template<class _Tp> constexpr const _Tp& std::min(const _Tp&, const _Tp&)’
+      /usr/include/c++/16/bits/stl_algobase.h:232:5:
+        232 |     min(const _Tp& __a, const _Tp& __b)
+            |     ^~~
+      • template argument deduction/substitution failed:
+        •   deduced conflicting types for parameter ‘const _Tp’ (‘unsigned int’ and ‘std::vector<int>::size_type’ {aka ‘long unsigned int’})
+          /var/tmp/halofpx-l48-source-nimo2/tests/test-halofpx-distributed-state-canary.cpp:867:21:
+            867 |             std::min(llama_n_batch(ctx), prefix.size() - 1) : prefix.size() - 1;
+                |             ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    • candidate 2: ‘template<class _Tp, class _Compare> constexpr const _Tp& std::min(const _Tp&, const _Tp&, _Compare)’
+      /usr/include/c++/16/bits/stl_algobase.h:280:5:
+        280 |     min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+            |     ^~~
+      • candidate expects 3 arguments, 2 provided
+In file included from /usr/include/c++/16/algorithm:63,
+                 from /var/tmp/halofpx-l48-source-nimo2/common/./common.h:16:
+    • candidate 3: ‘template<class _Tp> constexpr _Tp std::min(initializer_list<_Tp>)’
+      /usr/include/c++/16/bits/stl_algo.h:5727:5:
+       5727 |     min(initializer_list<_Tp> __l)
+            |     ^~~
+      • candidate expects 1 argument, 2 provided
+    • candidate 4: ‘template<class _Tp, class _Compare> constexpr _Tp std::min(initializer_list<_Tp>, _Compare)’
+      /usr/include/c++/16/bits/stl_algo.h:5737:5:
+       5737 |     min(initializer_list<_Tp> __l, _Compare __comp)
+            |     ^~~
+      • template argument deduction/substitution failed:
+        •   mismatched types ‘std::initializer_list<_Tp>’ and ‘unsigned int’
+          /var/tmp/halofpx-l48-source-nimo2/tests/test-halofpx-distributed-state-canary.cpp:867:21:
+            867 |             std::min(llama_n_batch(ctx), prefix.size() - 1) : prefix.size() - 1;
+                |             ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+make[3]: *** [tests/CMakeFiles/test-halofpx-distributed-state-canary.dir/build.make:79: tests/CMakeFiles/test-halofpx-distributed-state-canary.dir/test-halofpx-distributed-state-canary.cpp.o] Error 1
+make[2]: *** [CMakeFiles/Makefile2:3920: tests/CMakeFiles/test-halofpx-distributed-state-canary.dir/all] Error 2
+make[1]: *** [CMakeFiles/Makefile2:3927: tests/CMakeFiles/test-halofpx-distributed-state-canary.dir/rule] Error 2
+make: *** [Makefile:972: test-halofpx-distributed-state-canary] Error 2

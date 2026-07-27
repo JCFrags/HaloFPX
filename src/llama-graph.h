@@ -77,6 +77,26 @@ struct llama_cross {
 
 struct llm_graph_params;
 
+enum llm_graph_authority_role : uint32_t {
+    LLM_GRAPH_AUTH_TOKEN = 1,
+    LLM_GRAPH_AUTH_INPUT_EMBEDDING,
+    LLM_GRAPH_AUTH_ABSOLUTE_POSITION,
+    LLM_GRAPH_AUTH_SEQUENCE_ID,
+    LLM_GRAPH_AUTH_KV_WRITE_INDEX,
+    LLM_GRAPH_AUTH_KV_CELL,
+    LLM_GRAPH_AUTH_CAUSAL_MASK,
+    LLM_GRAPH_AUTH_OUTPUT_ID,
+    LLM_GRAPH_AUTH_OUTPUT_MAP,
+    LLM_GRAPH_AUTH_SELECTED_KV,
+};
+
+struct llm_graph_authority_root {
+    ggml_tensor * tensor;
+    llm_graph_authority_role role;
+    uint32_t ordinal;
+    bool state_payload;
+};
+
 //
 // llm_graph_input
 //
@@ -91,6 +111,9 @@ public:
     virtual ~llm_graph_input_i() = default;
 
     virtual void set_input(const llama_ubatch * ubatch) = 0;
+    virtual void halofpx_authority_roots(std::vector<llm_graph_authority_root> & roots) const {
+        GGML_UNUSED(roots);
+    }
 
     // return true if the resulting input tensors using the provided graph parameters would be
     //   the same as the previous input tensors that we have currently stored in the object
@@ -133,6 +156,7 @@ public:
     void set_input(const llama_ubatch * ubatch) override;
 
     bool can_reuse(const llm_graph_params & params) override;
+    void halofpx_authority_roots(std::vector<llm_graph_authority_root> & roots) const override;
 
     ggml_tensor * tokens = nullptr; // I32 [n_batch]
     ggml_tensor * embd   = nullptr; // F32 [n_embd, n_batch]
@@ -149,6 +173,7 @@ public:
     void set_input(const llama_ubatch * ubatch) override;
 
     bool can_reuse(const llm_graph_params & params) override;
+    void halofpx_authority_roots(std::vector<llm_graph_authority_root> & roots) const override;
 
     ggml_tensor * tokens = nullptr; // I32 [n_batch]
     ggml_tensor * embd   = nullptr; // F32 [n_embd, n_batch]
@@ -165,6 +190,7 @@ public:
     void set_input(const llama_ubatch * ubatch) override;
 
     bool can_reuse(const llm_graph_params & params) override;
+    void halofpx_authority_roots(std::vector<llm_graph_authority_root> & roots) const override;
 
     ggml_tensor * pos = nullptr; // I32 [n_batch]
 
@@ -226,6 +252,7 @@ public:
     void set_input(const llama_ubatch * ubatch) override;
 
     bool can_reuse(const llm_graph_params & params) override;
+    void halofpx_authority_roots(std::vector<llm_graph_authority_root> & roots) const override;
 
     ggml_tensor * out_ids; // I32 [n_outputs]
 
@@ -334,6 +361,7 @@ public:
     void set_input(const llama_ubatch * ubatch) override;
 
     bool can_reuse(const llm_graph_params & params) override;
+    void halofpx_authority_roots(std::vector<llm_graph_authority_root> & roots) const override;
 
     ggml_tensor * get_k_idxs() const { return self_k_idxs; }
     ggml_tensor * get_v_idxs() const { return self_v_idxs; }
@@ -784,6 +812,8 @@ public:
     bool can_reuse(const llm_graph_params & params);
 
     llm_graph_input_i * add_input(llm_graph_input_ptr input);
+    void add_halofpx_authority_root(llm_graph_authority_root root);
+    std::vector<llm_graph_authority_root> halofpx_authority_roots() const;
 
     void set_params(const llm_graph_params & params);
 
@@ -803,6 +833,7 @@ public:
     std::map<llama_seq_id, ggml_tensor *> t_sampled_probs;
 
     std::vector<llm_graph_input_ptr> inputs;
+    std::vector<llm_graph_authority_root> halofpx_extra_authority_roots;
 
     ggml_context_ptr ctx_compute;
 

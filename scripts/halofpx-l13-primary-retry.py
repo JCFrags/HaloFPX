@@ -8,9 +8,11 @@ import hashlib
 import importlib.util
 import json
 import os
+import posixpath
 import re
 import shlex
 import signal
+import stat
 import subprocess
 import sys
 import threading
@@ -75,7 +77,13 @@ SEMANTIC_VERIFIER_SHA = ""
 REPLAY_AUTHORITY_VERIFIER = ""
 REPLAY_AUTHORITY_VERIFIER_SHA = ""
 RESULT_AUTHORITY_VERIFIER = ""
+DEVICE_RECEIPT = ""
+DEVICE_RECEIPT_SHA = ""
+L55_STATUS_VERIFIER_SHA = "6e4d53de8e3f63266de66da84f504de071b208ebc2010c2c01026cdd0813d0b3"
 RESULT_AUTHORITY_VERIFIER_SHA = ""
+L55_FIRST_CHUNK_ONLY = False
+L55_SOURCE_ROOT = "82334ab4f3f5559d8d926a10d343f154afcbe88c7c983a5ffcbf32b382500803"
+L55_BUILD_ID = "59aebad3ec8d9843af603632ee49386a5f5b07b5b4947357f5b0420009511377"
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -84,6 +92,8 @@ TOPOLOGY = "09b71fe40ae05c841a5be563f6e2b27ad2529d893b9420412e5280541ae53e1f"
 PLACEMENT = "d4aa0d3c14a3bec4ba5de733e00b6447f79f94d5dbeda6e3593be74ce84f917e"
 SSH_TRANSPORT = None
 SSH_TRANSPORT_MODULE = None
+LOCAL_EVIDENCE_ROOT: Path | None = None
+DISPOSABLE_UNIT_AUTHORITY: dict[tuple[str, str], dict[str, object]] = {}
 
 
 class CanaryError(RuntimeError):
@@ -468,6 +478,246 @@ def configure_l37_fixture() -> None:
     LIVE_RECAPTURE_DIAGNOSTICS = True
 
 
+def configure_l48_fixture() -> None:
+    global PORT, UNIT_PREFIX, WORKER_BIN, CANARY_BIN, READINESS_PROBE, PLACEMENT_PROBE
+    global EPOCH_RECEIPT, COMPONENT_DIAGNOSTICS, SEMANTIC_VERIFIER
+    global REPLAY_AUTHORITY_VERIFIER, RESULT_AUTHORITY_VERIFIER
+    global DEVICE_RECEIPT, DEVICE_RECEIPT_SHA
+    global REMOTE_EVIDENCE, COORDINATOR_ROOT, WORKER_ROOT, RENDEZVOUS_ROOT
+    global CONTROL, WORKER_CONTROL, ARTIFACT_DIR
+    configure_l37_fixture()
+    PORT = 50248
+    UNIT_PREFIX = "halofpx-l48"
+    WORKER_BIN = "/var/tmp/halofpx-l48-source-nimo1/build-l48/bin/rpc-server"
+    CANARY_BIN = (
+        "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/"
+        "test-halofpx-distributed-state-canary")
+    READINESS_PROBE = "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_readiness.py"
+    PLACEMENT_PROBE = (
+        "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/"
+        "test-halofpx-placement-probe")
+    EPOCH_RECEIPT = "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_epoch_receipt.py"
+    COMPONENT_DIAGNOSTICS = (
+        "/var/tmp/halofpx-l48-source-nimo1/scripts/"
+        "halofpx_state_component_diagnostics.py")
+    SEMANTIC_VERIFIER = (
+        "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+        "halofpx_semantic_provenance.py")
+    REPLAY_AUTHORITY_VERIFIER = (
+        "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+        "halofpx_replay_authority.py")
+    RESULT_AUTHORITY_VERIFIER = (
+        "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+        "halofpx_result_authority.py")
+    DEVICE_RECEIPT = (
+        "/var/tmp/halofpx-l48-source-nimo1/scripts/"
+        "halofpx_l50_device_receipt.py")
+    DEVICE_RECEIPT_SHA = os.environ.get("HALOFPX_L50_DEVICE_RECEIPT_SHA256", "")
+    REMOTE_EVIDENCE = "/var/tmp/halofpx-l48-evidence"
+    COORDINATOR_ROOT = "/var/tmp/halofpx-l48-coordinator"
+    WORKER_ROOT = "/var/tmp/halofpx-l48-worker"
+    RENDEZVOUS_ROOT = "/var/tmp/halofpx-l48-rendezvous"
+    CONTROL = "/var/tmp/halofpx-l48-control.key"
+    WORKER_CONTROL = CONTROL
+    ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
+
+
+def _composed_execution(text: str, phase: str, ordinal: int) -> dict[str, object]:
+    fields: dict[str, str] = {}
+    for item in text.split("|"):
+        if "=" not in item:
+            raise CanaryError("composed execution field is malformed")
+        name, value = item.split("=", 1)
+        if not name or name in fields:
+            raise CanaryError("composed execution field is duplicate")
+        fields[name] = value
+    required = {
+        "version", "execution_sequence", "graph_uid", "prepared_root",
+        "prepared_status", "final_status", "scheduler_root", "scheduler_tag",
+        "graph_entries", "splits", "copies", "local", "rpc", "rpc_backend",
+    }
+    if set(fields) != required or fields["version"] != "1":
+        raise CanaryError("composed execution scheduler authority is incomplete")
+    rpc_fields = [item for item in text.split("|") if item.startswith("rpc_backend=")]
+    if len(rpc_fields) != 1:
+        raise CanaryError("composed execution RPC authority is ambiguous")
+    mutable: dict[str, str] = {}
+    for item in rpc_fields[0].split(","):
+        name, value = item.split("=", 1)
+        mutable[name] = value
+    mutable_required = {
+        "rpc_backend", "mutations", "census", "set", "set_hash_hit",
+        "set_hash_miss", "mutable_status", "mutation_root", "semantic_root",
+        "census_root", "receipt_tag", "graph_status", "graph_sequence",
+        "graph_digest", "graph_transcript_root", "graph_receipt_tag",
+    }
+    if set(mutable) != mutable_required:
+        raise CanaryError("composed execution mutable authority is incomplete")
+    return {
+        "phase": phase,
+        "ordinal": ordinal,
+        "execution_sequence": int(fields["execution_sequence"]),
+        "graph_uid": int(fields["graph_uid"]),
+        "prepared_status": int(fields["prepared_status"]),
+        "final_status": int(fields["final_status"]),
+        "prepared_root": fields["prepared_root"],
+        "scheduler_root": fields["scheduler_root"],
+        "scheduler_tag": fields["scheduler_tag"],
+        "graph_entries": int(fields["graph_entries"]),
+        "splits": int(fields["splits"]),
+        "copies": int(fields["copies"]),
+        "local": int(fields["local"]),
+        "rpc": int(fields["rpc"]),
+        "mutable_sessions": 1,
+        "mutable_status": int(mutable["mutable_status"]),
+        "mutable_census": int(mutable["census"]),
+        "set": int(mutable["set"]),
+        "set_hash_hit": int(mutable["set_hash_hit"]),
+        "set_hash_miss": int(mutable["set_hash_miss"]),
+        "mutation_root": mutable["mutation_root"],
+        "semantic_root": mutable["semantic_root"],
+        "census_root": mutable["census_root"],
+        "receipt_tag": mutable["receipt_tag"],
+        "graph_status": int(mutable["graph_status"]),
+        "graph_sequence": int(mutable["graph_sequence"]),
+        "graph_digest": mutable["graph_digest"],
+        "graph_transcript_root": mutable["graph_transcript_root"],
+        "graph_receipt_tag": mutable["graph_receipt_tag"],
+    }
+
+
+def _composed_phase(
+        log: str, phase: str, key_file: str, key_digest: str) -> list[dict[str, object]]:
+    prefix = f"[halofpx-composed-authority] phase={phase}|"
+    records = [line[len(prefix):] for line in log.splitlines() if line.startswith(prefix)]
+    if len(records) != 1:
+        raise CanaryError(f"{phase}: composed result is missing or ambiguous")
+    unsigned = records[0].rsplit("|auth_tag=", 1)
+    if len(unsigned) != 2 or re.fullmatch(r"[0-9a-f]{64}", unsigned[1]) is None:
+        raise CanaryError(f"{phase}: composed result tag is malformed")
+    canonical = f"phase={phase}|{unsigned[0]}".encode("ascii")
+    verifier = "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l48_composed_result.py"
+    verified = SSH_TRANSPORT.run_stdin(
+        NIMO2,
+        [
+            "python3", verifier, "verify-inner", "--key-file", key_file,
+            "--expected-tag", unsigned[1],
+            "--expected-key-sha256", key_digest,
+            "--expected-owner", CHANNEL_KEY_OWNER,
+        ],
+        canonical, operation="evidence")
+    if verified.returncode != 0 or verified.stdout.strip() != unsigned[1]:
+        raise CanaryError(f"{phase}: composed result authentication failed")
+    body = unsigned[0]
+    markers = list(re.finditer(r"(?:^|\|)(prompt_[0-9]+|replay)=", body))
+    if not markers:
+        raise CanaryError(f"{phase}: composed execution list is empty")
+    result = []
+    for ordinal, marker in enumerate(markers):
+        start = marker.end()
+        end = markers[ordinal + 1].start() if ordinal + 1 < len(markers) else len(body)
+        value = body[start:end].strip("|")
+        result.append(_composed_execution(value, phase, ordinal))
+    expected = ["prompt_0", "prompt_1", "prompt_2", "replay"] if phase == "capture" else ["replay"]
+    if [marker.group(1) for marker in markers] != expected:
+        raise CanaryError(f"{phase}: composed execution structure mismatch")
+    return result
+
+
+def write_l48_composed_result(
+        root: Path, summary: dict[str, object], key_file: str) -> dict[str, object]:
+    capture_log = (root / "capture.log").read_text(encoding="utf-8")
+    restore_log = (root / "restore.log").read_text(encoding="utf-8")
+    semantic = summary.get("authenticated_semantic_provenance")
+    results = summary.get("results")
+    if not isinstance(semantic, dict) or not isinstance(results, dict):
+        raise CanaryError("L48 semantic/result authority is unavailable")
+    capture_semantic = semantic.get("capture")
+    restore_semantic = semantic.get("restore")
+    if not isinstance(capture_semantic, dict) or not isinstance(restore_semantic, dict):
+        raise CanaryError("L48 semantic phase authority is unavailable")
+    capture_token = int(results["capture"]["tokens"].split(",", 1)[0])
+    restore_token = int(results["restore"]["tokens"].split(",", 1)[0])
+    attempt = hashlib.sha256(
+        (summary["capture_epoch_audit"]["worker_invocation_id"] + "|" +
+         summary["restore_epoch"]["worker_invocation_id"]).encode("ascii")).hexdigest()
+    key_digest = os.environ.get(CHANNEL_KEY_DIGEST_ENV, "")
+    if not re.fullmatch(r"[0-9a-f]{64}", key_digest):
+        raise CanaryError("L48 key digest authority is unavailable")
+    capture_fields = results["capture"]
+    if (
+        capture_fields.get("prompt_chunk_sizes") != "512,512,104,"
+        or capture_fields.get("prompt_chunks") != "3"
+        or capture_fields.get("max_prompt_chunk") != "512"
+    ):
+        raise CanaryError("L48 authenticated prompt chunk authority mismatch")
+    payload = {
+        "schema": "halofpx.l48.composed-result.v1",
+        "attempt": attempt,
+        "lineage": {
+            "capture_worker_invocation":
+                summary["capture_epoch_audit"]["worker_invocation_id"],
+            "restore_worker_invocation":
+                summary["restore_epoch"]["worker_invocation_id"],
+        },
+        "features": {
+            "rpc_graph": 1, "scheduler": 2, "mutable_session": 1, "composition": 1,
+        },
+        "feature_off": False,
+        "capture": _composed_phase(capture_log, "capture", key_file, key_digest),
+        "restore": _composed_phase(restore_log, "restore", key_file, key_digest),
+        "prompt_chunks": [
+            int(value) for value in capture_fields["prompt_chunk_sizes"].split(",")
+            if value
+        ],
+        "replay_count": 1,
+        "tokens": {"capture": capture_token, "restore": restore_token},
+        "logits": {
+            "capture": capture_semantic["logits_sha256"],
+            "restore": restore_semantic["logits_sha256"],
+        },
+        "legacy_state_get_set": summary["state_window_get_set"],
+    }
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("ascii")
+    verifier = "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l48_composed_result.py"
+    signed = SSH_TRANSPORT.run_stdin(
+        NIMO2, [
+            "python3", verifier, "sign", "--key-file", key_file,
+            "--expected-key-sha256", key_digest,
+            "--expected-owner", CHANNEL_KEY_OWNER,
+        ],
+        canonical, operation="evidence")
+    if signed.returncode != 0 or re.fullmatch(r"[0-9a-f]{64}", signed.stdout.strip()) is None:
+        raise CanaryError("L48 composed result signing failed")
+    envelope = {"payload": payload, "auth_tag": signed.stdout.strip()}
+    encoded = (json.dumps(envelope, sort_keys=True, separators=(",", ":")) + "\n").encode("ascii")
+    local = root / "l48-composed-result.json"
+    fd = os.open(local, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        offset = 0
+        while offset < len(encoded):
+            written = os.write(fd, encoded[offset:])
+            if written <= 0:
+                raise CanaryError("L48 composed result durable write was incomplete")
+            offset += written
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+    remote = f"{REMOTE_EVIDENCE}/l48-composed-result.json"
+    installed = SSH_TRANSPORT.run_stdin(
+        NIMO2, ["install", "-m", "600", "/dev/stdin", remote],
+        encoded, operation="evidence")
+    if installed.returncode != 0:
+        raise CanaryError("L48 composed result remote installation failed")
+    verified = ssh(
+        NIMO2, "python3", verifier, "verify", "--key-file", key_file,
+        "--record", remote, "--expected-key-sha256", key_digest,
+        "--expected-owner", CHANNEL_KEY_OWNER)
+    if json.loads(verified.stdout) != payload:
+        raise CanaryError("L48 composed result verification differs")
+    return {"path": remote, "sha256": hashlib.sha256(encoded).hexdigest(), "attempt": attempt}
+
+
 def semantic_env_args() -> list[str]:
     if (os.environ.get("HALOFPX_SEMANTIC_DIAGNOSTICS") != "1" and
             not GRAPH_INPUT_DIAGNOSTICS):
@@ -495,6 +745,25 @@ def semantic_env_args() -> list[str]:
             raise CanaryError("canonical replay graph reset must be exactly 1")
         result.append("--setenv=HALOFPX_REPLAY_CANONICAL_GRAPH_RESET=1")
     return result
+
+
+def composed_env_args() -> list[str]:
+    value = os.environ.get("HALOFPX_COMPOSED_AUTHORITY")
+    if value is None:
+        return []
+    key_digest = os.environ.get(CHANNEL_KEY_DIGEST_ENV, "")
+    if (
+        value != "1" or CONTROL != "/var/tmp/halofpx-l48-control.key"
+        or re.fullmatch(r"[0-9a-f]{64}", key_digest) is None
+    ):
+        raise CanaryError("composed authority environment is outside L48 authority")
+    return [
+        "--setenv=HALOFPX_COMPOSED_AUTHORITY=1",
+        "--setenv=HALOFPX_RPC_GRAPH_AUTH=1",
+        "--setenv=HALOFPX_RPC_MUTABLE_AUTH=1",
+        f"--setenv=HALOFPX_RPC_GRAPH_AUTH_KEY_FILE={CONTROL}",
+        f"--setenv=HALOFPX_RPC_GRAPH_AUTH_KEY_SHA256={key_digest}",
+    ]
 
 
 def require_authenticated_semantic_provenance(
@@ -635,19 +904,26 @@ def run(argv, *, timeout=900, check=True):
 def ssh(host, *argv, timeout=900, check=True):
     if SSH_TRANSPORT is None:
         raise CanaryError("bounded SSH transport is not initialized")
-    remote_command = " ".join(shlex.quote(str(value)) for value in argv)
-    operation = "model-session" if argv and argv[0] == "systemd-run" else (
+    structured_argv = [str(value) for value in argv]
+    is_readiness = (
+        len(argv) >= 2 and argv[0] == "python3"
+        and Path(str(argv[1])).name == "halofpx_rpc_readiness.py")
+    if is_readiness and timeout != 150:
+        raise CanaryError("HFXCAP2 readiness requires exact 150-second transport authority")
+    operation = "hfxcap2-readiness" if is_readiness else (
+        "model-session" if argv and argv[0] == "systemd-run" else (
         "hash" if argv and argv[0] == "sha256sum" else (
         "service-readiness" if argv and argv[0] in {"systemctl", "ss", "ps", "curl"} else
         "cleanup" if argv and argv[0] in {"rm", "stat", "find"} else
         "command"
-    ))
+    )))
     try:
-        result = SSH_TRANSPORT.run(host, [remote_command], operation=operation)
+        result = SSH_TRANSPORT.run(host, structured_argv, operation=operation)
     except Exception as exc:
         raise CanaryError(f"bounded SSH {operation} failure on {host}: {exc}") from exc
     completed = subprocess.CompletedProcess(
-        ["ssh", host, remote_command], result.returncode, result.stdout, result.stderr)
+        ["ssh", host, *structured_argv],
+        result.returncode, result.stdout, result.stderr)
     if check and completed.returncode != 0:
         raise CanaryError(
             f"command failed ({completed.returncode}): {argv!r}\n"
@@ -735,6 +1011,64 @@ def listener_pid(text: str, port: int) -> int:
     return int(match.group(1)) if match else 0
 
 
+def exact_journal_cursor(text: str) -> str:
+    matches = [
+        line.removeprefix("-- cursor: ")
+        for line in text.splitlines()
+        if line.startswith("-- cursor: ")
+    ]
+    if len(matches) != 1 or not matches[0] or any(c.isspace() for c in matches[0]):
+        raise CanaryError("journal cursor is missing, malformed, or ambiguous")
+    return matches[0]
+
+
+def write_private_json(path: Path, value: object) -> None:
+    encoded = (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        used = 0
+        while used < len(encoded):
+            count = os.write(fd, encoded[used:])
+            if count <= 0:
+                raise CanaryError(f"durable evidence write failed: {path}")
+            used += count
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def capture_disposable_unit_authority(
+        host: str, unit: str, cursor: str) -> dict[str, object]:
+    deadline = time.monotonic() + 5
+    last_props: dict[str, str] = {}
+    while time.monotonic() < deadline:
+        show = ssh(
+            host, "systemctl", "--user", "show", f"{unit}.service",
+            "-p", "InvocationID", "-p", "MainPID", "-p", "ExecMainPID",
+            "-p", "ExecMainCode", "-p", "ExecMainStatus", "-p", "Result",
+            "-p", "ActiveState", "-p", "SubState", check=False)
+        if show.returncode == 0:
+            last_props = dict(
+                line.split("=", 1) for line in show.stdout.splitlines() if "=" in line)
+            invocation = last_props.get("InvocationID", "").lower()
+            if re.fullmatch(r"[0-9a-f]{32}", invocation):
+                authority = {
+                    "cursor": cursor,
+                    "invocation_id": invocation,
+                    "launch_properties": last_props,
+                }
+                DISPOSABLE_UNIT_AUTHORITY[(host, unit)] = authority
+                main_pid = last_props.get("MainPID", "")
+                exec_pid = last_props.get("ExecMainPID", "")
+                if ((main_pid.isdecimal() and int(main_pid) > 0) or
+                        (exec_pid.isdecimal() and int(exec_pid) > 0)):
+                    return authority
+        time.sleep(0.1)
+    if (host, unit) in DISPOSABLE_UNIT_AUTHORITY:
+        raise CanaryError(f"{unit} launch PID authority is unavailable: {last_props!r}")
+    raise CanaryError(f"{unit} launch InvocationID is unavailable: {last_props!r}")
+
+
 def validate_provisioned_keys() -> str:
     expected = os.environ.get(CHANNEL_KEY_DIGEST_ENV, "")
     if not re.fullmatch(r"[0-9a-f]{64}", expected):
@@ -754,9 +1088,14 @@ def validate_provisioned_keys() -> str:
 
 
 def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None) -> tuple[int, str, dict[str, object]]:
+    cursor = exact_journal_cursor(ssh(
+        NIMO1, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
+        check=False).stdout)
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=90min",
-        "--setenv=GGML_RPC_DEBUG=1", "--setenv=HALOFPX_STATE_DIAGNOSTICS=1", WORKER_BIN,
+        "--property=RemainAfterExit=yes",
+        "--setenv=GGML_RPC_DEBUG=1", "--setenv=HALOFPX_STATE_DIAGNOSTICS=1",
+        *composed_env_args(), WORKER_BIN,
         "--host", "10.44.0.1", "--port", str(PORT), "--device", "ROCm0",
     ]
     if local_state:
@@ -767,6 +1106,7 @@ def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None
             "--halofpx-state-key-generation", "7",
         ])
     ssh(NIMO1, *command)
+    authority = capture_disposable_unit_authority(NIMO1, unit, cursor)
     probe_command = [
         "python3", READINESS_PROBE,
         "--endpoint", f"10.44.0.1:{PORT}",
@@ -784,7 +1124,7 @@ def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None
         ])
     else:
         probe_command.append("--expect-feature-off")
-    readiness = ssh(NIMO2, *probe_command, timeout=130, check=False)
+    readiness = ssh(NIMO2, *probe_command, timeout=150, check=False)
     if readiness.returncode != 0:
         raise CanaryError(f"worker {unit} failed HaloFPX CAPS readiness: {readiness.stdout}{readiness.stderr}")
     try:
@@ -833,10 +1173,12 @@ def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None
     listeners = ssh(NIMO1, "ss", "-H", "-ltnp", check=False).stdout
     if listener_pid(listeners, PORT) != pid:
         raise CanaryError(f"worker {unit} listener no longer matches MainPID after CAPS readiness")
+    if invocation_id.lower() != authority["invocation_id"]:
+        raise CanaryError(f"worker {unit} InvocationID changed after readiness")
     return pid, invocation_id.lower(), readiness_result
 
 
-def stop_worker(unit: str) -> None:
+def stop_worker(unit: str, port: int = PORT) -> None:
     def stopped(require_port_closed: bool) -> tuple[bool, str]:
         show = ssh(
             NIMO1, "systemctl", "--user", "show", f"{unit}.service",
@@ -849,7 +1191,7 @@ def stop_worker(unit: str) -> None:
             props.get("ActiveState") == "inactive"
             and props.get("SubState") == "dead"
             and props.get("MainPID") == "0"
-            and (not require_port_closed or listener_pid(listeners, PORT) == 0),
+            and (not require_port_closed or listener_pid(listeners, port) == 0),
             repr(props),
         )
 
@@ -858,6 +1200,22 @@ def stop_worker(unit: str) -> None:
     already_stopped, _ = stopped(require_port_closed=False)
     if already_stopped:
         return
+    ssh(
+        NIMO1, "systemctl", "--user", "kill", "--kill-whom=main",
+        "--signal=TERM", f"{unit}.service", check=False)
+    exit_deadline = time.monotonic() + 30
+    while time.monotonic() < exit_deadline:
+        show = ssh(
+            NIMO1, "systemctl", "--user", "show", f"{unit}.service",
+            "-p", "MainPID", "-p", "SubState", check=False).stdout
+        props = dict(line.split("=", 1) for line in show.splitlines() if "=" in line)
+        if props.get("MainPID") == "0" and props.get("SubState") in {
+                "exited", "failed", "dead"}:
+            break
+        time.sleep(0.1)
+    else:
+        raise CanaryError(f"disposable worker {unit} did not exit after TERM")
+    collect_disposable_unit_evidence(NIMO1, unit)
     ssh(NIMO1, "systemctl", "--user", "stop", f"{unit}.service", check=False)
     ssh(NIMO1, "systemctl", "--user", "reset-failed", f"{unit}.service", check=False)
     deadline = time.monotonic() + 30
@@ -871,6 +1229,22 @@ def stop_worker(unit: str) -> None:
 
 
 def stop_canary(unit: str) -> None:
+    ssh(
+        NIMO2, "systemctl", "--user", "kill", "--kill-whom=main",
+        "--signal=TERM", f"{unit}.service", check=False)
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        show = ssh(
+            NIMO2, "systemctl", "--user", "show", f"{unit}.service",
+            "-p", "MainPID", "-p", "SubState", check=False).stdout
+        props = dict(line.split("=", 1) for line in show.splitlines() if "=" in line)
+        if props.get("MainPID") == "0" and props.get("SubState") in {
+                "exited", "failed", "dead"}:
+            break
+        time.sleep(0.1)
+    else:
+        raise CanaryError(f"disposable coordinator {unit} did not exit after TERM")
+    collect_disposable_unit_evidence(NIMO2, unit)
     ssh(NIMO2, "systemctl", "--user", "stop", f"{unit}.service", check=False)
     ssh(NIMO2, "systemctl", "--user", "reset-failed", f"{unit}.service", check=False)
     deadline = time.monotonic() + 30
@@ -888,6 +1262,246 @@ def stop_canary(unit: str) -> None:
             return
         time.sleep(1)
     raise CanaryError(f"disposable coordinator cleanup not verified for {unit}")
+
+
+def collect_disposable_unit_evidence(host: str, unit: str) -> str:
+    authority = DISPOSABLE_UNIT_AUTHORITY.get((host, unit))
+    if authority is None:
+        # An unlaunched allowlisted unit has no execution evidence to collect.
+        return ""
+    invocation = str(authority["invocation_id"])
+    cursor = str(authority["cursor"])
+    show = ssh(
+        host, "systemctl", "--user", "show", f"{unit}.service",
+        "-p", "InvocationID", "-p", "MainPID", "-p", "ExecMainPID",
+        "-p", "ExecMainCode", "-p", "ExecMainStatus", "-p", "Result",
+        "-p", "ActiveState", "-p", "SubState", check=False)
+    if show.returncode != 0:
+        raise CanaryError(f"{unit} exit authority is unavailable")
+    props = dict(line.split("=", 1) for line in show.stdout.splitlines() if "=" in line)
+    if props.get("InvocationID", "").lower() != invocation:
+        raise CanaryError(f"{unit} InvocationID changed before evidence collection")
+    journal = ssh(
+        host, "journalctl", "--user", "-u", f"{unit}.service",
+        f"_SYSTEMD_INVOCATION_ID={invocation}", "--after-cursor", cursor,
+        "--no-pager", "-o", "short-iso-precise", check=False)
+    if journal.returncode != 0 or not journal.stdout.strip():
+        raise CanaryError(f"{unit} journal evidence is unavailable")
+    pids = sorted(set(re.findall(r"\[(\d+)\]:", journal.stdout)))
+    if not pids:
+        raise CanaryError(f"{unit} journal PID authority is unavailable")
+    required = {"ExecMainCode", "ExecMainStatus", "Result", "ActiveState", "SubState"}
+    if not required.issubset(props) or any(props[name] == "" for name in required):
+        raise CanaryError(f"{unit} exit status authority is incomplete")
+    if LOCAL_EVIDENCE_ROOT is None:
+        raise CanaryError("local evidence root is unavailable")
+    record = {
+        "schema": "halofpx.l51.disposable-unit-exit.v1",
+        "host": host, "unit": f"{unit}.service", "invocation_id": invocation,
+        "journal_cursor_lower_bound": cursor, "journal_pids": pids,
+        "launch_properties": authority["launch_properties"],
+        "properties": props,
+    }
+    write_private_json(LOCAL_EVIDENCE_ROOT / f"{unit}-exit.json", record)
+    journal_path = LOCAL_EVIDENCE_ROOT / f"{unit}-journal.txt"
+    with journal_path.open("x", encoding="utf-8", newline="\n") as output:
+        output.write(journal.stdout)
+        output.flush()
+        os.fsync(output.fileno())
+    DISPOSABLE_UNIT_AUTHORITY.pop((host, unit), None)
+    return journal.stdout
+
+
+def validate_prepared_evidence_directory(host: str, path: str) -> None:
+    if not path.startswith("/var/tmp/") or posixpath.normpath(path) != path:
+        raise CanaryError("remote evidence directory is outside closed authority")
+    authority = ssh(host, "stat", "-c", "%F|%U|%a", "--", path, check=False)
+    symlink = ssh(host, "test", "-L", path, check=False)
+    contents = ssh(
+        host, "find", path, "-mindepth", "1", "-maxdepth", "1",
+        "-print", "-quit", check=False)
+    if (
+        authority.returncode != 0
+        or authority.stdout.strip() != "directory|connorb|700"
+        or symlink.returncode == 0
+        or contents.returncode != 0
+        or contents.stdout.strip()
+    ):
+        raise CanaryError(f"remote evidence directory admission failed: {host}:{path}")
+
+
+def publish_device_receipt(root: Path, local_receipt: Path) -> str:
+    final_name = "device-admission.json"
+    temporary_name = ".device-admission.pending"
+    final_path = f"{REMOTE_EVIDENCE}/{final_name}"
+    temporary_path = f"{REMOTE_EVIDENCE}/{temporary_name}"
+    digest = hashlib.sha256(local_receipt.read_bytes()).hexdigest()
+    size = local_receipt.stat().st_size
+    if local_receipt.is_symlink() or not local_receipt.is_file():
+        raise CanaryError("local device receipt is not a regular file")
+    if any(
+        ssh(NIMO2, "test", "-e", path, check=False).returncode == 0
+        or ssh(NIMO2, "test", "-L", path, check=False).returncode == 0
+        for path in (temporary_path, final_path)
+    ):
+        raise CanaryError("device receipt publication collision")
+    run(["scp", str(local_receipt), f"{NIMO2}:{temporary_path}"])
+    ssh(NIMO2, "chmod", "600", "--", temporary_path)
+    publish_script = """
+import ctypes, errno, hashlib, json, os, stat, sys
+temporary, final, directory, expected_size, expected_digest = sys.argv[1:]
+fd = os.open(temporary, os.O_RDONLY | os.O_NOFOLLOW)
+try:
+    before = os.fstat(fd)
+    if not stat.S_ISREG(before.st_mode) or stat.S_IMODE(before.st_mode) != 0o600:
+        raise SystemExit("temporary type/mode mismatch")
+    if before.st_size != int(expected_size):
+        raise SystemExit("temporary size mismatch")
+    digest = hashlib.sha256()
+    while True:
+        block = os.read(fd, 1 << 20)
+        if not block:
+            break
+        digest.update(block)
+    if digest.hexdigest() != expected_digest:
+        raise SystemExit("temporary digest mismatch")
+    current = os.lstat(temporary)
+    if (current.st_dev, current.st_ino) != (before.st_dev, before.st_ino):
+        raise SystemExit("temporary identity changed")
+    os.fsync(fd)
+    libc = ctypes.CDLL(None, use_errno=True)
+    renameat2 = libc.renameat2
+    renameat2.argtypes = [
+        ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p,
+        ctypes.c_uint,
+    ]
+    if renameat2(-100, os.fsencode(temporary), -100, os.fsencode(final), 1) != 0:
+        code = ctypes.get_errno()
+        raise SystemExit("no-replace publish failed errno=" + str(code))
+finally:
+    os.close(fd)
+directory_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+try:
+    os.fsync(directory_fd)
+finally:
+    os.close(directory_fd)
+final_fd = os.open(final, os.O_RDONLY | os.O_NOFOLLOW)
+try:
+    after = os.fstat(final_fd)
+    digest = hashlib.sha256()
+    while True:
+        block = os.read(final_fd, 1 << 20)
+        if not block:
+            break
+        digest.update(block)
+    if (
+        not stat.S_ISREG(after.st_mode)
+        or stat.S_IMODE(after.st_mode) != 0o600
+        or after.st_size != int(expected_size)
+        or digest.hexdigest() != expected_digest
+    ):
+        raise SystemExit("published receipt revalidation failed")
+finally:
+    os.close(final_fd)
+print(json.dumps({"bytes": int(expected_size), "sha256": expected_digest,
+                  "no_replace": True, "directory_fsynced": True},
+                 sort_keys=True, separators=(",", ":")))
+"""
+    published = ssh(
+        NIMO2, "python3", "-c", publish_script, temporary_path, final_path,
+        REMOTE_EVIDENCE, str(size), digest, check=False)
+    if published.returncode != 0:
+        raise CanaryError(
+            "device receipt atomic publication failed: " + published.stderr.strip())
+    try:
+        publication_authority = json.loads(published.stdout)
+    except json.JSONDecodeError as exc:
+        raise CanaryError("device receipt publication evidence is malformed") from exc
+    if publication_authority != {
+        "bytes": size, "sha256": digest,
+        "no_replace": True, "directory_fsynced": True,
+    }:
+        raise CanaryError("device receipt publication evidence mismatch")
+    final = ssh(NIMO2, "stat", "-c", "%F|%U|%a|%s", "--", final_path, check=False)
+    final_digest = ssh(NIMO2, "sha256sum", "--", final_path, check=False)
+    if (
+        final.returncode != 0
+        or final.stdout.strip() != f"regular file|connorb|600|{size}"
+        or final_digest.returncode != 0
+        or final_digest.stdout.split()[0] != digest
+        or ssh(NIMO2, "test", "-e", temporary_path, check=False).returncode == 0
+        or ssh(NIMO2, "test", "-L", temporary_path, check=False).returncode == 0
+    ):
+        raise CanaryError("device receipt atomic publication verification failed")
+    write_private_json(root / "device-publication.json", {
+        "schema": "halofpx.l52.device-publication.v1",
+        "host": NIMO2, "directory": REMOTE_EVIDENCE,
+        "temporary_name": temporary_name, "final_name": final_name,
+        "bytes": size, "sha256": digest, "mode": "0600",
+        "atomic_publish": True, "no_replace": True, "directory_fsynced": True,
+    })
+    return final_path
+
+
+def run_l50_device_admission(root: Path, local_units: list[str]) -> dict[str, object]:
+    unit = "halofpx-l50-device-gate"
+    local_units.append(unit)
+    cursor = exact_journal_cursor(ssh(
+        NIMO1, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
+        check=False).stdout)
+    command = [
+        "systemd-run", "--user", f"--unit={unit}",
+        "--property=RuntimeMaxSec=5min", "--property=RemainAfterExit=yes",
+        "--setenv=GGML_RPC_DEBUG=1",
+        *composed_env_args(), WORKER_BIN,
+        "--host", "127.0.0.1", "--port", "50249", "--device", "ROCm0",
+        "--halofpx-local-state", "--halofpx-state-root",
+        "/var/tmp/halofpx-l50-device-gate",
+        "--halofpx-state-key-file", WORKER_CONTROL,
+        "--halofpx-state-rank", "1", "--halofpx-state-world", "2",
+        "--halofpx-state-key-generation", "7",
+    ]
+    ssh(NIMO1, *command)
+    invocation = capture_disposable_unit_authority(NIMO1, unit, cursor)
+    probe = ssh(
+        NIMO1, "python3",
+        "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_rpc_readiness.py",
+        "--endpoint", "127.0.0.1:50249", "--timeout-seconds", "120",
+        "--attempt-timeout-seconds", "2", "--initial-backoff-seconds", "0.1",
+        "--maximum-backoff-seconds", "1", "--logical-rank", "1",
+        "--world-size", "2", "--key-generation", "7",
+        "--expected-channel-key-file", WORKER_CONTROL,
+        timeout=150)
+    caps = json.loads(probe.stdout)
+    if caps.get("admitted") is not True or caps.get("endpoint") != "127.0.0.1:50249":
+        raise CanaryError("device gate CAPS authority mismatch")
+    receipt_remote = "/var/tmp/halofpx-l50-device-gate/device-receipt.json"
+    receipt = ssh(
+        NIMO1, "python3", DEVICE_RECEIPT, "--binary", WORKER_BIN,
+        "--key-file", WORKER_CONTROL, "--output", receipt_remote)
+    receipt_value = json.loads(receipt.stdout)
+    if (
+        receipt_value.get("device") != "ROCm0"
+        or receipt_value.get("backend") != "ROCm"
+        or receipt_value.get("gfx") != "gfx1151"
+    ):
+        raise CanaryError("device gate authenticated tuple mismatch")
+    local_receipt = root / "device-admission.json"
+    run(["scp", f"{NIMO1}:{receipt_remote}", str(local_receipt)])
+    remote_copy = publish_device_receipt(root, local_receipt)
+    verified = ssh(
+        NIMO2, "python3",
+        "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l50_device_receipt.py",
+        "--binary",
+        "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-distributed-state-canary",
+        "--key-file", CONTROL, "--output", remote_copy, "--verify")
+    if json.loads(verified.stdout) != receipt_value:
+        raise CanaryError("device gate cross-host receipt verification mismatch")
+    stop_worker(unit, 50249)
+    return {
+        "unit": f"{unit}.service", "invocation_id": invocation,
+        "caps": caps, "receipt": receipt_value,
+    }
 
 
 def canary_argv(sequence: str, *, restore_gate: bool = False) -> list[str]:
@@ -936,17 +1550,57 @@ def canary_argv(sequence: str, *, restore_gate: bool = False) -> list[str]:
 def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
     canary_command = canary_argv(sequence)
     unit = f"{UNIT_PREFIX}-canary-{unit_label}"
+    cursor = exact_journal_cursor(ssh(
+        NIMO2, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
+        check=False).stdout)
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=20min",
-        *semantic_env_args(), "--wait", "--collect", "--pipe", *canary_command,
+        "--property=RemainAfterExit=yes",
+        *semantic_env_args(), *composed_env_args(),
+        *canary_command,
     ]
     invocation = "invocation=" + " ".join(canary_command) + "\ntransient_unit=" + unit + "\n"
     if rendezvous:
         raise CanaryError("legacy multi-case rendezvous is outside the closed L25 authority")
-    result = ssh(NIMO2, *command, timeout=1800, check=False)
-    result.stdout = invocation + result.stdout
-    if result.returncode != 0:
-        raise CanaryError(result.stdout + result.stderr)
+    launch = ssh(NIMO2, *command, check=False)
+    if launch.returncode != 0:
+        raise CanaryError(f"canary {unit} launch failed: {launch.stderr}")
+    capture_disposable_unit_authority(NIMO2, unit, cursor)
+    deadline = time.monotonic() + 1200
+    exit_props: dict[str, str] = {}
+    while time.monotonic() < deadline:
+        show = ssh(
+            NIMO2, "systemctl", "--user", "show", f"{unit}.service",
+            "-p", "MainPID", "-p", "SubState", "-p", "ExecMainCode",
+            "-p", "ExecMainStatus", "-p", "Result", check=False)
+        props = dict(line.split("=", 1) for line in show.stdout.splitlines() if "=" in line)
+        if props.get("MainPID") == "0" and props.get("SubState") in {"exited", "failed", "dead"}:
+            exit_props = props
+            break
+        time.sleep(1)
+    else:
+        raise CanaryError(f"canary {unit} timed out")
+    journal = collect_disposable_unit_evidence(NIMO2, unit)
+    ssh(NIMO2, "systemctl", "--user", "reset-failed", f"{unit}.service", check=False)
+    accepted_l55_exit = sequence == "l55-first-chunk" and (
+        exit_props.get("ExecMainCode") == "1" and (
+            (exit_props.get("ExecMainStatus"), exit_props.get("Result")) ==
+                ("0", "success") or
+            (exit_props.get("ExecMainStatus"), exit_props.get("Result")) ==
+                ("4", "exit-code")
+        )
+    )
+    expected_exit = {
+        "ExecMainCode": "1", "ExecMainStatus": "0", "Result": "success"}
+    if not accepted_l55_exit and any(
+            exit_props.get(key) != value for key, value in expected_exit.items()):
+        raise CanaryError(f"canary {unit} exit authority mismatch: {exit_props}")
+    payload = "\n".join(
+        re.sub(r"^.*\[\d+\]: ", "", line) for line in journal.splitlines()
+    ) + "\n"
+    result = subprocess.CompletedProcess(
+        command, int(exit_props.get("ExecMainStatus", "1")),
+        invocation + payload, "")
     return result
 
 
@@ -1315,6 +1969,36 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
 
     capture_worker_pid, capture_invocation, capture_readiness = start_worker(
         True, capture_unit, root)
+    if L55_FIRST_CHUNK_ONLY:
+        capture_result = canary_sequence("l55-first-chunk", "first-chunk")
+        write_log(root, "first-chunk.log", capture_result)
+        capture_journal = worker_journal(
+            capture_unit, capture_invocation, capture_worker_pid)
+        (root / "worker-first-chunk.log").write_text(capture_journal, encoding="utf-8")
+        stop_worker(capture_unit)
+        status_lines = [
+            line for line in capture_result.stdout.splitlines()
+            if line.startswith("[halofpx-l55-status] ")
+        ]
+        if len(status_lines) != 1:
+            raise CanaryError("L55 exact status evidence is missing or ambiguous")
+        canonical = status_lines[0].removeprefix(
+            "[halofpx-l55-status] ").rsplit("|auth_tag=", 1)[0]
+        verified = ssh(
+            NIMO2, "python3",
+            "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l55_status.py",
+            "--key-file", CONTROL, "--record", status_lines[0])
+        if verified.returncode != 0 or verified.stdout.strip() != canonical:
+            raise CanaryError("L55 exact status authentication failed")
+        return {
+            "schema": "halofpx.l55.first-chunk-result.v1",
+            "canary_returncode": capture_result.returncode,
+            "status_record": status_lines[0],
+            "verified_canonical": verified.stdout.strip(),
+            "worker_pid": capture_worker_pid,
+            "worker_invocation_id": capture_invocation,
+            "readiness": capture_readiness,
+        }
     capture_result = canary_sequence("capture-only", "capture")
     write_log(root, "capture.log", capture_result)
     capture_fields = (
@@ -1371,12 +2055,26 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         raise CanaryError("worker B reused worker A PID or InvocationID")
 
     restore_command = canary_argv("restore-guarded", restore_gate=True)
-    ssh(
+    restore_cursor = ssh(
+        NIMO2, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
+        check=False).stdout.strip()
+    if not restore_cursor.startswith("-- cursor: "):
+        raise CanaryError("restore canary journal lower bound is unavailable")
+    restore_launch = ssh(
         NIMO2, "systemd-run", "--user", f"--unit={restore_canary_unit}",
         "--property=RuntimeMaxSec=20min",
         *(["--setenv=HALOFPX_STATE_DIAGNOSTICS=1"] if LIVE_RECAPTURE_DIAGNOSTICS else []),
         *semantic_env_args(),
+        *composed_env_args(),
         *restore_command)
+    restore_launch_invocation = re.search(
+        r"invocation ID: ([0-9a-fA-F]{32})", restore_launch.stdout)
+    if restore_launch_invocation is None:
+        raise CanaryError("restore canary launch InvocationID is unavailable")
+    DISPOSABLE_UNIT_AUTHORITY[(NIMO2, restore_canary_unit)] = {
+        "cursor": restore_cursor.removeprefix("-- cursor: "),
+        "invocation_id": restore_launch_invocation.group(1).lower(),
+    }
     wait_remote_file(f"{RENDEZVOUS_ROOT}/model-ready", 1200)
     restore_show = ssh(
         NIMO2, "systemctl", "--user", "show", f"{restore_canary_unit}.service",
@@ -1729,6 +2427,7 @@ def run_legacy_same_residency_diagnostic(root: Path, local_units: list[str]) -> 
 
 
 def main() -> int:
+    global LOCAL_EVIDENCE_ROOT
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence-dir", required=True, type=Path)
     parser.add_argument("--l28-fixture", action="store_true")
@@ -1740,12 +2439,16 @@ def main() -> int:
     parser.add_argument("--l35-fixture", action="store_true")
     parser.add_argument("--l36-primary", action="store_true")
     parser.add_argument("--l37-fixture", action="store_true")
+    parser.add_argument("--l48-fixture", action="store_true")
+    parser.add_argument("--l55-first-chunk", action="store_true")
+    parser.add_argument("--authority-key-file")
     args = parser.parse_args()
     if sum((
         args.l28_fixture, args.l29_primary, args.l31_primary,
         args.l32_fixture, args.l33_primary, args.l34_fixture, args.l35_fixture,
         args.l36_primary,
         args.l37_fixture,
+        args.l48_fixture,
     )) > 1:
         parser.error("fixture and primary modes are mutually exclusive")
     if args.l28_fixture:
@@ -1766,8 +2469,22 @@ def main() -> int:
         configure_l36_primary()
     if args.l37_fixture:
         configure_l37_fixture()
+    if args.l48_fixture:
+        configure_l48_fixture()
+        global L55_FIRST_CHUNK_ONLY
+        L55_FIRST_CHUNK_ONLY = args.l55_first_chunk
+        if args.authority_key_file != "/var/tmp/halofpx-l48-control.key":
+            parser.error("L48 requires the exact manifest-owned authority key file")
+    elif args.authority_key_file is not None:
+        parser.error("--authority-key-file is admitted only for L48")
     root = args.evidence_dir.resolve()
-    root.mkdir(mode=0o700, parents=True, exist_ok=False)
+    LOCAL_EVIDENCE_ROOT = root
+    if (
+        not root.is_dir() or root.is_symlink()
+        or (os.name != "nt" and stat.S_IMODE(root.stat().st_mode) != 0o700)
+        or any(root.iterdir())
+    ):
+        raise CanaryError("controller-owned local evidence directory was not admitted")
     initialize_ssh_transport(root)
     local_units = []
     results = {}
@@ -1798,19 +2515,54 @@ def main() -> int:
             raise CanaryError("coordinator canary binary mismatch")
         if ssh(NIMO1, "sha256sum", WORKER_BIN).stdout.split()[0] != WORKER_SHA:
             raise CanaryError("worker binary mismatch")
+        if L55_FIRST_CHUNK_ONLY:
+            expected = {
+                NIMO1: (
+                    WORKER_BIN,
+                    "schema=halofpx.l55.binary-provenance.v1"
+                    f"|source_root={L55_SOURCE_ROOT}|build_id={L55_BUILD_ID}"
+                    "|binary=rpc-server"),
+                NIMO2: (
+                    CANARY_BIN,
+                    "schema=halofpx.l55.binary-provenance.v1"
+                    f"|source_root={L55_SOURCE_ROOT}|build_id={L55_BUILD_ID}"
+                    "|binary=canary"),
+            }
+            for host, (binary, value) in expected.items():
+                observed = ssh(host, binary, "--halofpx-provenance").stdout.strip()
+                if observed != value:
+                    raise CanaryError(f"L55 binary provenance mismatch: {host}")
         if ssh(NIMO2, "sha256sum", READINESS_PROBE).stdout.split()[0] != READINESS_PROBE_SHA:
             raise CanaryError("readiness probe mismatch")
         if ssh(NIMO2, "sha256sum", PLACEMENT_PROBE).stdout.split()[0] != PLACEMENT_PROBE_SHA:
             raise CanaryError("placement probe mismatch")
         if ssh(NIMO2, "sha256sum", EPOCH_RECEIPT).stdout.split()[0] != EPOCH_RECEIPT_SHA:
             raise CanaryError("epoch receipt helper mismatch")
+        if args.l48_fixture:
+            for host, helper in (
+                (NIMO1, DEVICE_RECEIPT),
+                (NIMO2, "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+                        "halofpx_l50_device_receipt.py"),
+            ):
+                if ssh(host, "sha256sum", helper).stdout.split()[0] != DEVICE_RECEIPT_SHA:
+                    raise CanaryError("device receipt helper mismatch")
+            if L55_FIRST_CHUNK_ONLY:
+                helper = (
+                    "/var/tmp/halofpx-l48-source-nimo2/scripts/"
+                    "halofpx_l55_status.py")
+                if ssh(NIMO2, "sha256sum", helper).stdout.split()[0] != L55_STATUS_VERIFIER_SHA:
+                    raise CanaryError("L55 status verifier mismatch")
         if ssh(NIMO2, "sha256sum", PROMPT).stdout.split()[0] != PROMPT_SHA:
             raise CanaryError("prompt SHA-256 mismatch")
         free_worker = int(ssh(NIMO1, "df", "-B1", "--output=avail", "/var/tmp").stdout.splitlines()[-1])
         if free_worker < 2_000_000_000:
             raise CanaryError("worker free space below 2 GB gate")
-        ssh(NIMO2, "rm", "-rf", "--", REMOTE_EVIDENCE, COORDINATOR_ROOT, RENDEZVOUS_ROOT)
-        ssh(NIMO2, "install", "-d", "-m", "700", REMOTE_EVIDENCE, COORDINATOR_ROOT, RENDEZVOUS_ROOT)
+        if args.l48_fixture:
+            validate_prepared_evidence_directory(NIMO2, REMOTE_EVIDENCE)
+        device_admission = (
+            run_l50_device_admission(root, local_units) if args.l48_fixture else None)
+        ssh(NIMO2, "rm", "-rf", "--", COORDINATOR_ROOT, RENDEZVOUS_ROOT)
+        ssh(NIMO2, "install", "-d", "-m", "700", COORDINATOR_ROOT, RENDEZVOUS_ROOT)
         ssh(NIMO1, "rm", "-rf", "--", WORKER_ROOT)
         ssh(NIMO1, "install", "-d", "-m", "700", WORKER_ROOT)
 
@@ -1820,6 +2572,11 @@ def main() -> int:
         if DIAGNOSTIC_ONLY:
             summary = run_diagnostic(root, local_units)
             summary["channel_key_sha256"] = channel_key_sha
+            if device_admission is not None:
+                summary["device_admission"] = device_admission
+            if args.l48_fixture and not L55_FIRST_CHUNK_ONLY:
+                summary["l48_composed_result"] = write_l48_composed_result(
+                    root, summary, args.authority_key_file)
             (root / "result.json").write_text(
                 json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
             (root / "diskstats-nimo1-after.txt").write_text(

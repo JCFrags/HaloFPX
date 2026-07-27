@@ -1106,9 +1106,20 @@ extern "C" {
     // history and forces the next decode to rebuild its graph.
     LLAMA_API void llama_halofpx_graph_reset(struct llama_context * ctx);
     LLAMA_API size_t llama_halofpx_replay_diagnostic(
-            const struct llama_context * ctx,
-            char * dst,
-            size_t capacity);
+             const struct llama_context * ctx,
+             char * dst,
+             size_t capacity);
+    LLAMA_API bool llama_halofpx_execution_authority_arm(
+             struct llama_context * ctx,
+             const uint8_t key[32],
+             const uint8_t attempt_nonce[32],
+             uint64_t execution_sequence);
+    LLAMA_API bool llama_halofpx_execution_authority_abort(
+             struct llama_context * ctx);
+    LLAMA_API size_t llama_halofpx_execution_authority_result(
+             const struct llama_context * ctx,
+             char * dst,
+             size_t capacity);
 
     // Token logits obtained from the last call to llama_decode()
     // The logits for which llama_batch.logits[i] != 0 are stored contiguously

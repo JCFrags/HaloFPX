@@ -40,6 +40,7 @@ struct canary_options {
     std::array<uint8_t, 32> control_key {};
     std::array<uint8_t, 32> channel_binding {};
     size_t expected_prompt_tokens = 0;
+    bool first_chunk_only = false;
     fs::path restore_gate_root;
 };
 
@@ -178,6 +179,13 @@ bool parse_canary_options(int argc, char ** argv, canary_options & options, std:
     std::string expected_prompt_tokens;
     std::string rendezvous_root;
     std::string restore_gate_root;
+    for (size_t i = 1; i < args.size(); ++i) {
+        if (args[i] == "--hfx-first-chunk-only") {
+            options.first_chunk_only = true;
+            args.erase(args.begin() + i);
+            break;
+        }
+    }
     take_option(args, "--hfx-result-label", options.result_label);
     take_option(args, "--hfx-rendezvous-root", rendezvous_root);
     take_option(args, "--hfx-restore-gate-root", restore_gate_root);
@@ -338,6 +346,8 @@ struct decode_measurement {
     size_t n_batch = 0;
     size_t chunks = 0;
     size_t max_chunk = 0;
+    std::vector<size_t> chunk_sizes;
+    std::vector<std::string> execution_authority;
 };
 
 struct semantic_provenance {
@@ -352,7 +362,64 @@ struct semantic_provenance {
     llama_token sampled_token = LLAMA_TOKEN_NULL;
     bool logits_invalidated = false;
     std::string replay_authority;
+    std::string execution_authority;
 };
+
+bool hmac_text(
+        const char * domain,
+        const std::string & text,
+        const std::array<uint8_t, 32> & key,
+        std::array<uint8_t, 32> & tag);
+
+bool composed_authority_enabled() {
+    const char * value = std::getenv("HALOFPX_COMPOSED_AUTHORITY");
+    return value != nullptr && strcmp(value, "1") == 0;
+}
+
+bool authorized_decode(
+        llama_context * ctx,
+        llama_batch batch,
+        const std::array<uint8_t, 32> * key,
+        uint64_t execution_sequence,
+        const std::string & label,
+        std::string * authority) {
+    if (!composed_authority_enabled()) return llama_decode(ctx, batch) == 0;
+    if (key == nullptr || authority == nullptr || execution_sequence == 0) return false;
+    std::array<uint8_t, 32> nonce {};
+    if (!hmac_text(
+            "halofpx.composed-attempt.v1",
+            label + "|" + std::to_string(execution_sequence),
+            *key, nonce) ||
+        !llama_halofpx_execution_authority_arm(
+            ctx, key->data(), nonce.data(), execution_sequence)) return false;
+    const int decode_status = llama_decode(ctx, batch);
+    if (decode_status != 0) {
+        const size_t required = llama_halofpx_execution_authority_result(ctx, nullptr, 0);
+        if (required > 1 && required <= 65536) {
+            std::vector<char> text(required);
+            if (llama_halofpx_execution_authority_result(ctx, text.data(), text.size()) == required) {
+                std::array<uint8_t, 32> tag {};
+                const std::string canonical =
+                    "phase=" + label + "|decode_status=" + std::to_string(decode_status) +
+                    "|authority=" + std::string(text.data());
+                if (hmac_text("halofpx.l55.first-chunk.v1", canonical, *key, tag)) {
+                    std::printf("[halofpx-l55-status] %s|auth_tag=%s\n",
+                        canonical.c_str(), hex(tag.data()).c_str());
+                    std::fflush(stdout);
+                    fsync(STDOUT_FILENO);
+                }
+            }
+        }
+        llama_halofpx_execution_authority_abort(ctx);
+        return false;
+    }
+    const size_t required = llama_halofpx_execution_authority_result(ctx, nullptr, 0);
+    if (required <= 1 || required > 65536) return false;
+    std::vector<char> text(required);
+    if (llama_halofpx_execution_authority_result(ctx, text.data(), text.size()) != required) return false;
+    authority->assign(text.data());
+    return !authority->empty();
+}
 
 int semantic_replay_count() {
     const char * diagnostics = std::getenv("HALOFPX_SEMANTIC_DIAGNOSTICS");
@@ -369,7 +436,9 @@ bool decode_tokens(
         llama_context * ctx,
         const std::vector<llama_token> & tokens,
         size_t count,
-        decode_measurement * measurement = nullptr) {
+        decode_measurement * measurement = nullptr,
+        const std::array<uint8_t, 32> * authority_key = nullptr,
+        const char * authority_phase = "prompt") {
     if (count == 0 || count > tokens.size()) return false;
     const size_t n_batch = llama_n_batch(ctx);
     if (n_batch == 0) return false;
@@ -377,16 +446,24 @@ bool decode_tokens(
         measurement->n_batch = n_batch;
         measurement->chunks = 0;
         measurement->max_chunk = 0;
+        measurement->chunk_sizes.clear();
     }
     for (size_t offset = 0; offset < count; offset += n_batch) {
         const size_t chunk = std::min(n_batch, count - offset);
         if (measurement) {
             ++measurement->chunks;
             measurement->max_chunk = std::max(measurement->max_chunk, chunk);
+            measurement->chunk_sizes.push_back(chunk);
         }
         llama_batch batch = llama_batch_get_one(
             const_cast<llama_token *>(tokens.data() + offset), static_cast<int32_t>(chunk));
-        if (llama_decode(ctx, batch) != 0) return false;
+        std::string authority;
+        const uint64_t sequence =
+            measurement ? measurement->chunks : offset/n_batch + 1;
+        if (!authorized_decode(
+                ctx, batch, authority_key, sequence,
+                std::string(authority_phase) + "-chunk", &authority)) return false;
+        if (measurement && !authority.empty()) measurement->execution_authority.push_back(authority);
     }
     return true;
 }
@@ -400,7 +477,9 @@ std::vector<llama_token> suffix(
         const std::vector<llama_token> & prefix,
         int n_predict,
         const char * phase,
-        semantic_provenance * provenance = nullptr) {
+        semantic_provenance * provenance = nullptr,
+        const std::array<uint8_t, 32> * authority_key = nullptr,
+        uint64_t authority_sequence = 1) {
     std::vector<llama_token> result;
     llama_sampler * sampler = llama_sampler_init_greedy();
     llama_token replay = prefix.back();
@@ -424,9 +503,16 @@ std::vector<llama_token> suffix(
     llama_batch batch {};
     for (int i = 0; i < replay_count; ++i) {
         batch = llama_batch_get_one(&replay, 1);
-        if (llama_decode(ctx, batch) != 0) {
+        std::string execution_authority;
+        const uint64_t sequence = authority_sequence + static_cast<uint64_t>(i);
+        if (!authorized_decode(
+                ctx, batch, authority_key, sequence,
+                std::string(phase) + "-replay", &execution_authority)) {
             llama_sampler_free(sampler);
             return {};
+        }
+        if (provenance && !execution_authority.empty()) {
+            provenance->execution_authority = execution_authority;
         }
     }
     if (provenance && provenance->enabled) {
@@ -566,6 +652,26 @@ void print_replay_authority(
     outer.insert(outer.end(), mid.begin(), mid.end());
     if (!sha256(outer.data(), outer.size(), tag)) return;
     std::printf("[halofpx-replay-authority] %s|auth_tag=%s\n",
+        canonical.c_str(), hex(tag.data()).c_str());
+    std::fflush(stdout);
+}
+
+void print_execution_authority(
+        const char * phase,
+        const decode_measurement & prompt,
+        const semantic_provenance & provenance,
+        const std::array<uint8_t, 32> & key) {
+    if (!composed_authority_enabled()) return;
+    std::string canonical = std::string("phase=") + phase;
+    for (size_t i = 0; i < prompt.execution_authority.size(); ++i) {
+        canonical += "|prompt_" + std::to_string(i) + "=" + prompt.execution_authority[i];
+    }
+    canonical += "|replay=" + provenance.execution_authority;
+    std::array<uint8_t, 32> tag {};
+    if (provenance.execution_authority.empty() ||
+        (strcmp(phase, "restore") != 0 && prompt.execution_authority.empty()) ||
+        !hmac_text("halofpx.composed-result.v1", canonical, key, tag)) return;
+    std::printf("[halofpx-composed-authority] %s|auth_tag=%s\n",
         canonical.c_str(), hex(tag.data()).c_str());
     std::fflush(stdout);
 }
@@ -757,7 +863,24 @@ static int run_canary(int argc, char ** argv) {
         prefix = common_tokenize(ctx, params.prompt, true);
         if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens)) return 4;
         const auto prompt_start = std::chrono::steady_clock::now();
-        if (!decode_tokens(ctx, prefix, prefix.size() - 1, &prompt_decode)) return 4;
+        const size_t decode_count = options.first_chunk_only ?
+            std::min<size_t>(static_cast<size_t>(llama_n_batch(ctx)), prefix.size() - 1) : prefix.size() - 1;
+        if (!decode_tokens(ctx, prefix, decode_count, &prompt_decode, &options.control_key, "capture")) return 4;
+        if (options.first_chunk_only) {
+            const std::string canonical =
+                "phase=first-chunk|decode_status=0|chunks=1|n_tokens=" +
+                std::to_string(decode_count);
+            std::array<uint8_t, 32> tag {};
+            if (!hmac_text("halofpx.l55.first-chunk.v1", canonical, options.control_key, tag)) {
+                return 4;
+            }
+            std::printf("[halofpx-l55-status] %s|auth_tag=%s\n",
+                canonical.c_str(), hex(tag.data()).c_str());
+            std::fflush(stdout);
+            fsync(STDOUT_FILENO);
+            if (owns_ctx) llama_free(ctx);
+            return 0;
+        }
         prompt_ms = elapsed_ms(prompt_start);
         const auto state_start = std::chrono::steady_clock::now();
         llama_state_seq_storage * storage = llama_state_seq_storage_init();
@@ -792,10 +915,13 @@ static int run_canary(int argc, char ** argv) {
         const auto generation_start = std::chrono::steady_clock::now();
         semantic_provenance provenance;
         provenance.enabled = semantic_diagnostics_enabled();
-        const auto generated = suffix(ctx, prefix, params.n_predict, "capture", &provenance);
+        const auto generated = suffix(
+            ctx, prefix, params.n_predict, "capture", &provenance, &key,
+            prompt_decode.chunks + 1);
         generation_ms = elapsed_ms(generation_start);
         print_semantic_provenance("capture", provenance, key);
         print_replay_authority("capture", provenance, key);
+        print_execution_authority("capture", prompt_decode, provenance, key);
         const auto decoded = common_detokenize(ctx, generated, false);
         const size_t result_n_batch = llama_n_batch(ctx);
         std::string result_tokens;
@@ -803,14 +929,19 @@ static int run_canary(int argc, char ** argv) {
             result_tokens += std::to_string(token);
             result_tokens += ",";
         }
+        std::string result_chunk_sizes;
+        for (const size_t chunk : prompt_decode.chunk_sizes) {
+            result_chunk_sizes += std::to_string(chunk) + ",";
+        }
         std::array<char, 4096> result_buffer {};
         const int result_size = std::snprintf(
             result_buffer.data(), result_buffer.size(),
-            "mode=capture label=%s coordinator_pid=%ld object=%s control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=%s",
+            "mode=capture label=%s coordinator_pid=%ld object=%s control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_chunk_sizes=%s prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=%s",
             options.result_label.c_str(), static_cast<long>(getpid()), hex(captured.object_digest).c_str(),
             hex(control_diagnostic.data()).c_str(), hex(local_diagnostic.data()).c_str(),
             hex(manifest_diagnostic.data()).c_str(), prefix.size(), prefix.size() - 1,
-            result_n_batch, prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
+            result_n_batch, prompt_decode.chunks, prompt_decode.max_chunk,
+            result_chunk_sizes.c_str(), prompt_ms, state_ms, generation_ms,
             coordinator_control_bytes, coordinator_local_bytes, static_cast<unsigned long long>(worker_bytes),
             worker_components, result_tokens.c_str());
         std::array<uint8_t, 32> result_tag {};
@@ -852,7 +983,7 @@ static int run_canary(int argc, char ** argv) {
         prefix = common_tokenize(ctx, params.prompt, true);
         if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens)) return 9;
         const auto prompt_start = std::chrono::steady_clock::now();
-        if (!decode_tokens(ctx, prefix, prefix.size() - 1, &prompt_decode)) return 10;
+        if (!decode_tokens(ctx, prefix, prefix.size() - 1, &prompt_decode, &options.control_key, "cold")) return 10;
         prompt_ms = elapsed_ms(prompt_start);
     } else {
         const auto state_start = std::chrono::steady_clock::now();
@@ -887,7 +1018,7 @@ static int run_canary(int argc, char ** argv) {
                 return 11;
             }
             const auto prompt_start = std::chrono::steady_clock::now();
-            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1, &prompt_decode)) {
+            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1, &prompt_decode, &options.control_key, "fallback")) {
                 llama_free(disposable_ctx);
                 return 11;
             }
@@ -1024,7 +1155,7 @@ static int run_canary(int argc, char ** argv) {
                 return 12;
             }
             const auto prompt_start = std::chrono::steady_clock::now();
-            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1, &prompt_decode)) {
+            if (!decode_tokens(disposable_ctx, prefix, prefix.size() - 1, &prompt_decode, &options.control_key, "fallback")) {
                 llama_free(disposable_ctx);
                 return 12;
             }
@@ -1040,12 +1171,15 @@ static int run_canary(int argc, char ** argv) {
     semantic_provenance provenance;
     provenance.enabled = semantic_diagnostics_enabled();
     const auto generated = suffix(
-        run_ctx, prefix, params.n_predict, options.mode.c_str(), &provenance);
+        run_ctx, prefix, params.n_predict, options.mode.c_str(), &provenance, &options.control_key,
+        prompt_decode.chunks + 1);
     generation_ms = elapsed_ms(generation_start);
     print_semantic_provenance(
         options.mode.c_str(), provenance, options.control_key);
     print_replay_authority(
         options.mode.c_str(), provenance, options.control_key);
+    print_execution_authority(
+        options.mode.c_str(), prompt_decode, provenance, options.control_key);
     const auto decoded = common_detokenize(run_ctx, generated, false);
     const size_t result_n_batch = llama_n_batch(run_ctx);
     std::string result_tokens;
@@ -1053,15 +1187,20 @@ static int run_canary(int argc, char ** argv) {
         result_tokens += std::to_string(token);
         result_tokens += ",";
     }
+    std::string result_chunk_sizes;
+    for (const size_t chunk : prompt_decode.chunk_sizes) {
+        result_chunk_sizes += std::to_string(chunk) + ",";
+    }
     std::array<char, 4096> result_buffer {};
     const int result_size = std::snprintf(
         result_buffer.data(), result_buffer.size(),
-        "mode=%s label=%s coordinator_pid=%ld control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=%s%s%s",
+        "mode=%s label=%s coordinator_pid=%ld control_sha256=%s local_sha256=%s component_manifest_sha256=%s prompt_tokens=%zu saved_boundary=%zu n_batch=%zu prompt_chunks=%zu max_prompt_chunk=%zu prompt_chunk_sizes=%s prompt_ms=%.3f state_ms=%.3f generation_ms=%.3f coordinator_control_bytes=%zu coordinator_local_bytes=%zu worker_bytes=%llu worker_components=%u tokens=%s%s%s",
         options.mode.c_str(), options.result_label.c_str(), static_cast<long>(getpid()),
         hex(control_diagnostic.data()).c_str(), hex(local_diagnostic.data()).c_str(),
         hex(manifest_diagnostic.data()).c_str(), prefix.size(), prefix.size() - 1,
         result_n_batch,
-        prompt_decode.chunks, prompt_decode.max_chunk, prompt_ms, state_ms, generation_ms,
+        prompt_decode.chunks, prompt_decode.max_chunk, result_chunk_sizes.c_str(),
+        prompt_ms, state_ms, generation_ms,
         coordinator_control_bytes, coordinator_local_bytes,
         static_cast<unsigned long long>(worker_bytes), worker_components,
         result_tokens.c_str(),
@@ -1148,6 +1287,14 @@ static bool rendezvous(const fs::path & root, const std::string & ready, const s
 }
 
 int main(int argc, char ** argv) {
+#if defined(HALOFPX_PROVENANCE_SOURCE_ROOT) && defined(HALOFPX_PROVENANCE_BUILD_ID)
+    if (argc == 2 && std::strcmp(argv[1], "--halofpx-provenance") == 0) {
+        std::printf("schema=%s|source_root=%s|build_id=%s|binary=canary\n",
+            HALOFPX_PROVENANCE_SCHEMA, HALOFPX_PROVENANCE_SOURCE_ROOT,
+            HALOFPX_PROVENANCE_BUILD_ID);
+        return 0;
+    }
+#endif
     std::vector<std::string> args(argv, argv + argc);
     const std::string sequence = option_value(args, "--hfx-sequence");
     if (sequence.empty()) return run_canary(argc, argv);
@@ -1167,6 +1314,11 @@ int main(int argc, char ** argv) {
     }
     if (sequence == "residency3") return invoke_mode(args, "cold", "runtime-off");
     if (sequence == "capture-only") return invoke_mode(args, "capture", "capture");
+    if (sequence == "l55-first-chunk") {
+        std::vector<std::string> one = args;
+        one.push_back("--hfx-first-chunk-only");
+        return invoke_mode(one, "capture", "first-chunk");
+    }
     if (sequence == "restore-guarded") return invoke_mode(args, "restore", "restore");
     if (sequence == "diagnostic") {
         const int capture = invoke_mode(args, "capture", "capture");
