@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — accept L55 localization and discriminate L40 receipt refusal
+
+Decision: accept L55 diagnostic PASS commit
+`51e87b0c011eb3c7dc5b170bd8f64048bccd0853`. Open L56 only to instrument the
+closed refusal conditions inside coordinator-side L40 graph-result
+reconciliation and, if source alone is insufficient, repeat exactly the first
+armed chunk once. No semantic fix, later execution, primary, production, or
+L57.
+
+Reason: L55 decisively clears server graph execution and localizes the first
+non-success to one client reconciliation branch. The remaining ambiguity is
+small: receipt absence versus an exact identity, digest, authentication,
+consumption, or status mismatch. Broad scheduler or cache work is no longer
+justified.
+
 ## 2026-07-27 — accept corrected chronology and trace first armed chunk
 
 Decision: accept L54 NOT PROMOTED commit
