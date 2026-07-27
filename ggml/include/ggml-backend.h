@@ -394,7 +394,17 @@ extern "C" {
         uint64_t execution_sequence;
         uint8_t attempt_nonce[32];
         uint8_t prepared_root[32];
+        uint8_t split_mapping_root[32];
         uint8_t tag[32];
+    };
+
+    struct ggml_backend_sched_authority_split {
+        uint64_t parent_graph_uid;
+        uint64_t execution_sequence;
+        uint64_t split_graph_uid;
+        uint32_t split_ordinal;
+        uint32_t backend_ordinal;
+        uint8_t mapping_root[32];
     };
 
     struct ggml_backend_sched_authority_copy {
@@ -486,6 +496,14 @@ extern "C" {
         const struct ggml_backend_sched_authority_handle * handle,
         struct ggml_cgraph * graph,
         struct ggml_backend_sched_authority_prepared * prepared);
+    GGML_API size_t               ggml_backend_sched_authority_split_count(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle);
+    GGML_API bool                 ggml_backend_sched_authority_split_at(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        size_t index,
+        struct ggml_backend_sched_authority_split * split);
     GGML_API size_t               ggml_backend_sched_authority_copy_count(
         ggml_backend_sched_t sched,
         const struct ggml_backend_sched_authority_handle * handle);

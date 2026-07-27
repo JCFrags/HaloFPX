@@ -1,0 +1,37 @@
+2026-07-27T13:46:43.942298-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: 0.00.029.424 W load: empty token at index 30143
+2026-07-27T13:46:43.942801-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: 0.00.029.555 W load: bad special token: 'tokenizer.ggml.seperator_token_id' = 4294967295, using default id -1
+2026-07-27T13:46:43.942801-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: 0.00.029.556 W load: bad special token: 'tokenizer.ggml.padding_token_id' = 4294967295, using default id -1
+2026-07-27T13:46:44.042669-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: 0.00.129.827 W llama_context: n_ctx_seq (4096) > n_ctx_train (128) -- possible training context overflow
+2026-07-27T13:46:44.051950-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: 0.00.139.092 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+2026-07-27T13:46:44.199764-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: 0.00.286.870 E graph_compute: ggml_backend_sched_graph_compute_async failed with error -1
+2026-07-27T13:46:44.199764-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: 0.00.286.874 E process_ubatch: failed to compute graph, compute status: -1
+2026-07-27T13:46:44.199764-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: 0.00.286.910 W decode: removing memory module entries for seq_id = 0, pos = [0, +inf)
+2026-07-27T13:46:44.199870-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: 0.00.286.958 E llama_decode: failed to decode, ret = -3
+2026-07-27T13:46:44.199870-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: [halofpx-l55-status] phase=capture-chunk|decode_status=-3|authority=version=1|status=failed|branch=scheduler_graph_compute_failed_authority_0|execution_sequence=1|pending=1|ggml_status=-1|auth_tag=9c4b220f01ed3f08cf31fa6a9be0951c8fe86d25b65c22d1c901ff577446071d
+2026-07-27T13:46:44.201797-07:00 nimo-2 test-halofpx-distributed-state-canary[1736662]: /var/tmp/halofpx-l48-source-nimo2/ggml/src/ggml-rpc/ggml-rpc.cpp:1851: Remote RPC server crashed or returned malformed response
+2026-07-27T13:46:44.274460-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: ⚠️ warning: The current terminal doesn't support styling.  Styled output might not appear as expected.
+2026-07-27T13:46:44.274702-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: [New LWP 1736669]
+2026-07-27T13:46:44.274702-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: [New LWP 1736668]
+2026-07-27T13:46:44.274702-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: [New LWP 1736667]
+2026-07-27T13:46:44.373882-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: [Thread debugging using libthread_db enabled]
+2026-07-27T13:46:44.373882-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: Using host libthread_db library "/usr/lib/libthread_db.so.1".
+2026-07-27T13:46:44.373882-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: 0x00007efe19ab52d2 in ?? () from /usr/lib/libc.so.6
+2026-07-27T13:46:44.374102-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #0  0x00007efe19ab52d2 in ?? () from /usr/lib/libc.so.6
+2026-07-27T13:46:44.374102-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #1  0x00007efe19aa837f in ?? () from /usr/lib/libc.so.6
+2026-07-27T13:46:44.374133-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #2  0x00007efe19b2d4cb in wait4 () from /usr/lib/libc.so.6
+2026-07-27T13:46:44.374150-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #3  0x00007efe1ef5da7b in ggml_print_backtrace () from /var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0
+2026-07-27T13:46:44.374162-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #4  0x00007efe1ef5dc0e in ggml_abort () from /var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0
+2026-07-27T13:46:44.374173-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #5  0x00007efe1f5b3472 in ggml_backend_rpc_buffer_free_buffer(ggml_backend_buffer*) () from /var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0
+2026-07-27T13:46:44.374186-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #6  0x00007efe1ef77458 in ggml_backend_buffer_free () from /var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0
+2026-07-27T13:46:44.374201-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #7  0x00007efe1ef7431c in ggml_gallocr_free () from /var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0
+2026-07-27T13:46:44.374214-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #8  0x00007efe1ef7a15e in ggml_backend_sched_free () from /var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0
+2026-07-27T13:46:44.374235-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #9  0x00007efe1f2e98d9 in llama_context::~llama_context() () from /var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0
+2026-07-27T13:46:44.374247-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #10 0x00007efe1f2ea213 in llama_free () from /var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0
+2026-07-27T13:46:44.374268-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #11 0x00007efe1f82a150 in common_init_result::~common_init_result() () from /var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama-common.so.0
+2026-07-27T13:46:44.374287-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #12 0x000055d0ebeba026 in std::unique_ptr<common_init_result, std::default_delete<common_init_result> >::~unique_ptr() ()
+2026-07-27T13:46:44.374302-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #13 0x00007efe19a47320 in ?? () from /usr/lib/libc.so.6
+2026-07-27T13:46:44.374316-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #14 0x00007efe19a47410 in exit () from /usr/lib/libc.so.6
+2026-07-27T13:46:44.374331-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #15 0x00007efe19a27c55 in ?? () from /usr/lib/libc.so.6
+2026-07-27T13:46:44.374348-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #16 0x00007efe19a27d8b in __libc_start_main () from /usr/lib/libc.so.6
+2026-07-27T13:46:44.374367-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: #17 0x000055d0ebeab195 in _start ()
+2026-07-27T13:46:44.426803-07:00 nimo-2 test-halofpx-distributed-state-canary[1736686]: [Inferior 1 (process 1736662) detached]

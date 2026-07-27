@@ -1,0 +1,30 @@
+2026-07-27 L57 terminal reconciliation
+
+nimo-1 disposable units:
+halofpx-l50-device-gate.service: LoadState=not-found ActiveState=inactive SubState=dead
+halofpx-l48-worker-capture.service: LoadState=not-found ActiveState=inactive SubState=dead
+halofpx-l48-worker-restore.service: LoadState=not-found ActiveState=inactive SubState=dead
+
+nimo-2 disposable units:
+halofpx-l48-canary-capture.service: LoadState=not-found ActiveState=inactive SubState=dead
+halofpx-l48-canary-restore.service: LoadState=not-found ActiveState=inactive SubState=dead
+
+Disposable ports 50248 and 50249 were absent on both hosts. Every manifest-owned
+source archive/tree, worker/coordinator/rendezvous/evidence root, device-gate
+root, and protected key path was absent after controller cleanup.
+
+nimo-2 production worker:
+LoadState=loaded ActiveState=active SubState=running MainPID=1535639 NRestarts=0
+cgroup=0::/system.slice/minimax-m27-rpc-worker.service
+command=/opt/llm-usb4-cluster/llama/ggml-rpc-server --host 0.0.0.0 --port 50052
+listener=0.0.0.0:50052 pid=1535639
+
+nimo-1 production coordinator:
+LoadState=loaded ActiveState=active SubState=running MainPID=2356329 NRestarts=0
+cgroup=0::/system.slice/minimax-m27-q6-server.service
+command begins=/opt/llm-usb4-cluster/llama/llama-server --model /opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf
+listener=0.0.0.0:8081 pid=2356329
+health=HTTP 200
+
+production-preflight.json and production-final.json are byte-identical:
+sha256=511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded

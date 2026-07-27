@@ -7,11 +7,13 @@ extern "C" {
 
 #include <array>
 #include <cmath>
+#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 static constexpr char AUTH_DOMAIN[] = "halofpx.scheduler-execution-authority.v2";
@@ -437,6 +439,8 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
     ggml_cgraph * graph = ggml_new_graph(ctx);
     ggml_build_forward_expand(graph, out);
     bool ok = ggml_backend_sched_alloc_graph(sched, graph);
+    size_t composed_split_count = 0;
+    ggml_backend_sched_authority_split first_split {};
     if (ok && composed) {
         ok = ggml_backend_sched_authority_prepare(
             sched, &composed_handle, graph, &composed_prepared) &&
@@ -444,6 +448,30 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
             composed_prepared.execution_sequence == 41 &&
             composed_prepared.rpc_count == 2 &&
             composed_prepared.local_count == 0;
+        composed_split_count =
+            ggml_backend_sched_authority_split_count(sched, &composed_handle);
+        std::unordered_set<uint64_t> split_uids;
+        for (size_t i = 0; ok && i < composed_split_count; ++i) {
+            ggml_backend_sched_authority_split split {};
+            ok = ggml_backend_sched_authority_split_at(
+                    sched, &composed_handle, i, &split) &&
+                split.parent_graph_uid == composed_prepared.graph_uid &&
+                split.execution_sequence == 41 &&
+                split.split_ordinal == i &&
+                split.split_graph_uid != 0 &&
+                split_uids.insert(split.split_graph_uid).second &&
+                std::memcmp(
+                    split.mapping_root, composed_prepared.split_mapping_root, 32) == 0;
+            if (i == 0) first_split = split;
+        }
+        ggml_backend_sched_authority_handle stale = composed_handle;
+        ++stale.execution_sequence;
+        ggml_backend_sched_authority_split refused {};
+        ok = ok && composed_split_count == composed_prepared.split_count &&
+            composed_split_count > 0 &&
+            !ggml_backend_sched_authority_split_at(sched, &stale, 0, &refused) &&
+            !ggml_backend_sched_authority_split_at(
+                sched, &composed_handle, composed_split_count, &refused);
     }
     std::array<float, 64> av {};
     std::array<float, 64> bv {};
@@ -466,6 +494,14 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
     result.authority_available = composed ?
         ggml_backend_sched_authority_finalize_execution(sched, &composed_handle, &result.authority) :
         ggml_backend_sched_authority_result(sched, &result.authority);
+    if (composed && result.authority_available) {
+        ggml_backend_sched_authority_split refused {};
+        ok = ok &&
+            ggml_backend_sched_authority_split_count(sched, &composed_handle) == 0 &&
+            !ggml_backend_sched_authority_split_at(
+                sched, &composed_handle, 0, &refused) &&
+            first_split.split_graph_uid != 0;
+    }
     ggml_backend_sched_free(sched);
     ggml_free(ctx);
     return ok;
@@ -475,7 +511,10 @@ static bool run_composed_refusals(ggml_backend_t rpc, ggml_backend_t cpu) {
     std::vector<uint8_t> metadata(ggml_tensor_overhead() * 8 + ggml_graph_overhead());
     ggml_init_params params { metadata.size(), metadata.data(), true };
     ggml_context * ctx = ggml_init(params);
-    if (ctx == nullptr) return false;
+    if (ctx == nullptr) {
+        std::fprintf(stderr, "single split mapping context allocation failed\n");
+        return false;
+    }
     ggml_tensor * a = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 8);
     ggml_tensor * b = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 8);
     ggml_tensor * out = ggml_add(ctx, a, b);
@@ -488,6 +527,7 @@ static bool run_composed_refusals(ggml_backend_t rpc, ggml_backend_t cpu) {
     };
     ggml_backend_sched_t sched = ggml_backend_sched_new(backends, bufts, 2, 32, false, false);
     if (sched == nullptr) {
+        std::fprintf(stderr, "single split mapping scheduler allocation failed\n");
         ggml_free(ctx);
         return false;
     }
@@ -523,6 +563,93 @@ static bool run_composed_refusals(ggml_backend_t rpc, ggml_backend_t cpu) {
     ok = ok &&
         !ggml_backend_sched_authority_abort_execution(sched, &handle) &&
         !ggml_backend_sched_authority_finalize_execution(sched, &handle, nullptr);
+    std::memset(config.key, 0, sizeof(config.key));
+    ggml_backend_sched_free(sched);
+    ggml_free(ctx);
+    return ok;
+}
+
+static bool run_single_split_mapping(ggml_backend_t rpc, ggml_backend_t cpu) {
+    std::vector<uint8_t> metadata(ggml_tensor_overhead() * 8 + ggml_graph_overhead());
+    ggml_init_params params { metadata.size(), metadata.data(), true };
+    ggml_context * ctx = ggml_init(params);
+    if (ctx == nullptr) return false;
+    ggml_tensor * a = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 8);
+    ggml_tensor * b = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 8);
+    ggml_tensor * out = ggml_add(ctx, a, b);
+    ggml_cgraph * graph = ggml_new_graph(ctx);
+    ggml_build_forward_expand(graph, out);
+    ggml_backend_t backends[] = { rpc, cpu };
+    ggml_backend_buffer_type_t bufts[] = {
+        ggml_backend_get_default_buffer_type(rpc),
+        ggml_backend_get_default_buffer_type(cpu),
+    };
+    ggml_backend_sched_t sched = ggml_backend_sched_new(backends, bufts, 2, 32, false, false);
+    if (sched == nullptr) {
+        ggml_free(ctx);
+        return false;
+    }
+    for (ggml_tensor * tensor : { a, b, out }) {
+        ggml_backend_sched_set_tensor_backend(sched, tensor, rpc);
+    }
+    std::array<uint8_t, 4096> transcript {};
+    ggml_backend_sched_authority_config config {};
+    config.major = 1;
+    config.minor = 0;
+    config.encoded_size = sizeof(config);
+    config.max_events = 64;
+    config.event_buffer = transcript.data();
+    config.event_buffer_size = transcript.size();
+    config.execution_sequence = 78;
+    for (uint32_t i = 0; i < 32; ++i) {
+        config.attempt_nonce[i] = static_cast<uint8_t>(0x30 + i);
+        config.key[i] = static_cast<uint8_t>(0x70 + i);
+    }
+    ggml_backend_sched_authority_handle handle {};
+    bool ok = ggml_backend_sched_authority_arm(sched, &config, &handle) &&
+        ggml_backend_sched_authority_mark_rpc_backend(sched, &handle, 0) &&
+        ggml_backend_sched_authority_register_root(
+            sched, &handle, a, GGML_BACKEND_SCHED_AUTH_MUTABLE, 1, 0) &&
+        ggml_backend_sched_authority_register_root(
+            sched, &handle, b, GGML_BACKEND_SCHED_AUTH_MUTABLE, 1, 1) &&
+        ggml_backend_sched_alloc_graph(sched, graph);
+    ggml_backend_sched_authority_prepared prepared {};
+    ggml_backend_sched_authority_split split {};
+    const bool prepared_ok =
+        ok && ggml_backend_sched_authority_prepare(sched, &handle, graph, &prepared);
+    const size_t split_count =
+        prepared_ok ? ggml_backend_sched_authority_split_count(sched, &handle) : 0;
+    const bool split_ok =
+        prepared_ok && ggml_backend_sched_authority_split_at(sched, &handle, 0, &split);
+    ok = prepared_ok &&
+        prepared.split_count == 1 &&
+        split_count == 1 && split_ok &&
+        split.parent_graph_uid == prepared.graph_uid &&
+        split.execution_sequence == 78 &&
+        split.split_ordinal == 0 && split.backend_ordinal == 0 &&
+        split.split_graph_uid != 0 &&
+        std::memcmp(split.mapping_root, prepared.split_mapping_root, 32) == 0;
+    if (!ok) {
+        std::fprintf(stderr,
+            "single split mapping failed prepared=%d reported=%u exported=%zu split_at=%d"
+            " parent=%" PRIu64 " graph=%" PRIu64 " ordinal=%u backend=%u\n",
+            prepared_ok ? 1 : 0, prepared.split_count, split_count, split_ok ? 1 : 0,
+            split.parent_graph_uid, prepared.graph_uid,
+            split.split_ordinal, split.backend_ordinal);
+    }
+    std::array<float, 8> av {};
+    std::array<float, 8> bv {};
+    for (size_t i = 0; i < av.size(); ++i) {
+        av[i] = static_cast<float>(i);
+        bv[i] = static_cast<float>(2 * i);
+    }
+    if (ok) {
+        ggml_backend_tensor_set(a, av.data(), 0, sizeof(av));
+        ggml_backend_tensor_set(b, bv.data(), 0, sizeof(bv));
+        ok = ggml_backend_sched_graph_compute(sched, graph) == GGML_STATUS_SUCCESS;
+    }
+    struct ggml_backend_sched_authority_result result {};
+    ok = ok && ggml_backend_sched_authority_finalize_execution(sched, &handle, &result);
     std::memset(config.key, 0, sizeof(config.key));
     ggml_backend_sched_free(sched);
     ggml_free(ctx);
@@ -695,6 +822,7 @@ int main(int argc, char ** argv) {
     const bool on_ok = run_graph(rpc, cpu, true, on);
     const bool composed_ok = run_graph(rpc, cpu, true, composed, true);
     const bool composed_refusals = run_composed_refusals(rpc, cpu);
+    const bool single_split = run_single_split_mapping(rpc, cpu);
     const bool expert_ok = run_expert_partial(rpc, cpu, expert);
     const bool hash_fixtures = run_hash_fixtures(cpu);
     const bool feature_off = off_ok && !off.authority_available;
@@ -755,11 +883,12 @@ int main(int argc, char ** argv) {
         write_evidence(evidence_directory, "ordinary", on) &&
         write_evidence(evidence_directory, "expert", expert);
     std::printf(
-        "self_tests=17 feature_off=%d split_exact=%d composed=%d composed_refusals=%d hash_fixtures=%d evidence_written=%d authority=%d ordinary_transcript=%d expert_fixture=%d expert_transcript=%d tamper_refused=%d order_refused=%d duplicate_refused=%d unknown_refused=%d overlap_refused=%d bounds_refused=%d malformed_refused=%d events=%u splits=%u maps=%u copies=%u expert_status=%u expert_events=%u expert_maps=%u expert_copies=%u partial=%u\n",
+        "self_tests=17 feature_off=%d split_exact=%d composed=%d composed_refusals=%d single_split=%d hash_fixtures=%d evidence_written=%d authority=%d ordinary_transcript=%d expert_fixture=%d expert_transcript=%d tamper_refused=%d order_refused=%d duplicate_refused=%d unknown_refused=%d overlap_refused=%d bounds_refused=%d malformed_refused=%d events=%u splits=%u maps=%u copies=%u expert_status=%u expert_events=%u expert_maps=%u expert_copies=%u partial=%u\n",
         feature_off ? 1 : 0,
         exact ? 1 : 0,
         composed_ok ? 1 : 0,
         composed_refusals ? 1 : 0,
+        single_split ? 1 : 0,
         hash_fixtures ? 1 : 0,
         evidence_written ? 1 : 0,
         contract ? 1 : 0,
@@ -785,7 +914,7 @@ int main(int argc, char ** argv) {
 
     ggml_backend_free(rpc);
     ggml_backend_free(cpu);
-    return feature_off && exact && composed_ok && composed_refusals && hash_fixtures && evidence_written && contract && expert_ok && ordinary_transcript &&
+    return feature_off && exact && composed_ok && composed_refusals && single_split && hash_fixtures && evidence_written && contract && expert_ok && ordinary_transcript &&
         expert_transcript && tamper_refused && order_refused && duplicate_refused &&
         unknown_refused && overlap_refused && bounds_refused && malformed_refused ? 0 : 1;
 }

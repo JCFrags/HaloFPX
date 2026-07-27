@@ -29,10 +29,12 @@ def execution(phase: str, ordinal: int, sequence: int) -> dict[str, object]:
         "prepared_status": 1,
         "final_status": 1,
         "prepared_root": digest,
+        "split_mapping_root": digest,
         "scheduler_root": digest,
         "scheduler_tag": digest,
         "graph_entries": 4,
         "splits": 2,
+        "rpc_split_count": 1,
         "copies": 1,
         "local": 2,
         "rpc": 2,
@@ -51,6 +53,22 @@ def execution(phase: str, ordinal: int, sequence: int) -> dict[str, object]:
         "graph_digest": digest,
         "graph_transcript_root": digest,
         "graph_receipt_tag": digest,
+        "parent_uid": ordinal + 1,
+        "split_ordinal": 0,
+        "split_uid": ordinal + 101,
+        "reconcile_status": 1,
+        "rpc_splits": [{
+            "backend_ordinal": 0,
+            "parent_uid": ordinal + 1,
+            "split_ordinal": 0,
+            "split_uid": ordinal + 101,
+            "reconcile_status": 1,
+            "graph_status": 2,
+            "graph_sequence": sequence,
+            "graph_digest": digest,
+            "graph_transcript_root": digest,
+            "graph_receipt_tag": digest,
+        }],
     }
 
 
@@ -106,6 +124,39 @@ class L48ResultTests(unittest.TestCase):
 
     def test_exact_result_is_accepted(self):
         self.assertEqual(result_authority.validate(payload()), payload())
+
+    def test_multiple_split_receipts_are_ordered_and_closed(self):
+        value = payload()
+        record = value["capture"][0]
+        second = dict(record["rpc_splits"][0])
+        second["split_ordinal"] = 2
+        second["split_uid"] += 100
+        second["graph_digest"] = hashlib.sha256(b"second split").hexdigest()
+        record["rpc_splits"].append(second)
+        record["rpc_split_count"] = 2
+        self.assertEqual(result_authority.validate(value), value)
+        record["rpc_splits"].reverse()
+        with self.assertRaises(result_authority.ResultError):
+            result_authority.validate(value)
+
+    def test_missing_untyped_and_phase_divergent_split_refuse(self):
+        missing = payload()
+        missing["capture"][0]["rpc_split_count"] = 2
+        with self.assertRaises(result_authority.ResultError):
+            result_authority.validate(missing)
+        untyped = payload()
+        untyped["capture"][0]["rpc_splits"][0]["backend_ordinal"] = "0"
+        with self.assertRaises(result_authority.ResultError):
+            result_authority.validate(untyped)
+        boolean = payload()
+        boolean["capture"][0]["rpc_splits"][0]["backend_ordinal"] = True
+        with self.assertRaises(result_authority.ResultError):
+            result_authority.validate(boolean)
+        divergent = payload()
+        divergent["restore"][0]["rpc_splits"][0]["graph_digest"] = "ab" * 32
+        divergent["restore"][0]["graph_digest"] = "ab" * 32
+        with self.assertRaises(result_authority.ResultError):
+            result_authority.validate(divergent)
 
     def test_wrong_mode_key_refuses(self):
         os.chmod(self.key, 0o644)

@@ -817,6 +817,13 @@ struct sched_auth_state {
         root_authority authority;
         ggml_tensor * tensor;
     };
+    struct admitted_split {
+        uint64_t parent_uid;
+        uint64_t execution_sequence;
+        uint64_t split_uid;
+        uint32_t split_ordinal;
+        uint32_t backend_ordinal;
+    };
     struct copy_range {
         uint32_t source_id;
         uint32_t destination_backend;
@@ -839,7 +846,9 @@ struct sched_auth_state {
     std::vector<copy_range> copy_ranges;
     std::vector<admitted_copy> admitted_copies;
     std::vector<admitted_root> admitted_roots;
+    std::vector<admitted_split> admitted_splits;
     sched_digest prepared_root {};
+    sched_digest split_mapping_root {};
     uint64_t session_id = 0;
     uint64_t generation = 0;
     uint32_t exported_size = 0;
@@ -2649,6 +2658,43 @@ bool ggml_backend_sched_authority_prepare(
     for (const auto & copy : state.admitted_copies) {
         if (state.rpc_backends.count(copy.destination_backend) != 0) ++rpc_count;
     }
+    if (graph->uid == 0 || sched->n_splits <= 0 ||
+        static_cast<uint32_t>(sched->n_splits) != state.result.split_count) {
+        state.failed = true;
+        state.result.status = 2;
+        return false;
+    }
+    state.admitted_splits.clear();
+    std::unordered_set<uint64_t> split_uids;
+    std::vector<uint8_t> split_mapping;
+    sched_auth_le<uint64_t>(split_mapping, graph->uid);
+    sched_auth_le<uint64_t>(split_mapping, state.config.execution_sequence);
+    sched_auth_le<uint32_t>(split_mapping, static_cast<uint32_t>(sched->n_splits));
+    for (int i = 0; i < sched->n_splits; ++i) {
+        const auto & split = sched->splits[i];
+        if (split.graph.uid == 0 || split.backend_id < 0 ||
+            split.backend_id >= sched->n_backends ||
+            !split_uids.insert(split.graph.uid).second) {
+            state.failed = true;
+            state.result.status = 2;
+            return false;
+        }
+        const sched_auth_state::admitted_split value {
+            graph->uid,
+            state.config.execution_sequence,
+            split.graph.uid,
+            static_cast<uint32_t>(i),
+            static_cast<uint32_t>(split.backend_id),
+        };
+        state.admitted_splits.push_back(value);
+        sched_auth_le<uint64_t>(split_mapping, value.parent_uid);
+        sched_auth_le<uint64_t>(split_mapping, value.execution_sequence);
+        sched_auth_le<uint32_t>(split_mapping, value.split_ordinal);
+        sched_auth_le<uint32_t>(split_mapping, value.backend_ordinal);
+        sched_auth_le<uint64_t>(split_mapping, value.split_uid);
+    }
+    state.split_mapping_root =
+        sched_auth_hmac(state.config.key, split_mapping.data(), split_mapping.size());
     const auto census_root = sched_auth_hmac(state.config.key, census.data(), census.size());
     std::vector<uint8_t> canonical;
     sched_auth_le<uint64_t>(canonical, graph->uid);
@@ -2660,6 +2706,7 @@ bool ggml_backend_sched_authority_prepare(
     sched_auth_le<uint32_t>(canonical, rpc_count);
     sched_auth_bytes(canonical, state.chain.data(), state.chain.size());
     sched_auth_bytes(canonical, census_root.data(), census_root.size());
+    sched_auth_bytes(canonical, state.split_mapping_root.data(), state.split_mapping_root.size());
     const auto root = sched_auth_hmac(state.config.key, canonical.data(), canonical.size());
     state.prepared_root = root;
     memset(prepared, 0, sizeof(*prepared));
@@ -2676,12 +2723,39 @@ bool ggml_backend_sched_authority_prepare(
     prepared->execution_sequence = state.config.execution_sequence;
     memcpy(prepared->attempt_nonce, state.config.attempt_nonce, 32);
     memcpy(prepared->prepared_root, root.data(), 32);
+    memcpy(prepared->split_mapping_root, state.split_mapping_root.data(), 32);
     std::vector<uint8_t> tagged(
         reinterpret_cast<const uint8_t *>(prepared),
         reinterpret_cast<const uint8_t *>(prepared) + offsetof(ggml_backend_sched_authority_prepared, tag));
     const auto tag = sched_auth_hmac(state.config.key, tagged.data(), tagged.size());
     memcpy(prepared->tag, tag.data(), 32);
     state.prepared = true;
+    return true;
+}
+
+size_t ggml_backend_sched_authority_split_count(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle) {
+    return sched_auth_handle_matches(sched, handle) && sched->authority->prepared ?
+        sched->authority->admitted_splits.size() : 0;
+}
+
+bool ggml_backend_sched_authority_split_at(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        size_t index,
+        ggml_backend_sched_authority_split * split) {
+    if (!sched_auth_handle_matches(sched, handle) || split == nullptr ||
+        !sched->authority->prepared ||
+        index >= sched->authority->admitted_splits.size()) return false;
+    const auto & value = sched->authority->admitted_splits[index];
+    memset(split, 0, sizeof(*split));
+    split->parent_graph_uid = value.parent_uid;
+    split->execution_sequence = value.execution_sequence;
+    split->split_graph_uid = value.split_uid;
+    split->split_ordinal = value.split_ordinal;
+    split->backend_ordinal = value.backend_ordinal;
+    memcpy(split->mapping_root, sched->authority->split_mapping_root.data(), 32);
     return true;
 }
 
@@ -2750,6 +2824,7 @@ bool ggml_backend_sched_authority_finalize_execution(
     memset(&sched->authority->config, 0, sizeof(sched->authority->config));
     memset(sched->authority->chain.data(), 0, sched->authority->chain.size());
     memset(sched->authority->prepared_root.data(), 0, sched->authority->prepared_root.size());
+    memset(sched->authority->split_mapping_root.data(), 0, sched->authority->split_mapping_root.size());
     delete sched->authority;
     sched->authority = nullptr;
     memset(handle, 0, sizeof(*handle));
@@ -2763,6 +2838,7 @@ bool ggml_backend_sched_authority_abort_execution(
     memset(&sched->authority->config, 0, sizeof(sched->authority->config));
     memset(sched->authority->chain.data(), 0, sched->authority->chain.size());
     memset(sched->authority->prepared_root.data(), 0, sched->authority->prepared_root.size());
+    memset(sched->authority->split_mapping_root.data(), 0, sched->authority->split_mapping_root.size());
     delete sched->authority;
     sched->authority = nullptr;
     memset(handle, 0, sizeof(*handle));

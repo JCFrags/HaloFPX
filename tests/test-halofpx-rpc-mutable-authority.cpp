@@ -31,7 +31,78 @@ static void fill_attempt(
     }
 }
 
+static bool split_identity_refusals(ggml_backend_t rpc) {
+    std::array<uint8_t, 32> nonce {};
+    std::array<uint8_t, 32> root {};
+    for (size_t i = 0; i < nonce.size(); ++i) {
+        nonce[i] = static_cast<uint8_t>(0x31 + i);
+        root[i] = static_cast<uint8_t>(0xa1 + i);
+    }
+    const ggml_backend_rpc_halofpx_split_identity exact[] = {
+        { 1001, 0, 0 },
+        { 1002, 2, 0 },
+    };
+    const ggml_backend_rpc_halofpx_split_identity duplicate[] = {
+        { 1001, 0, 0 },
+        { 1001, 2, 0 },
+    };
+    const ggml_backend_rpc_halofpx_split_identity reordered[] = {
+        { 1001, 2, 0 },
+        { 1002, 0, 0 },
+    };
+    const ggml_backend_rpc_halofpx_split_identity wrong_backend[] = {
+        { 1001, 0, 1 },
+    };
+    std::array<uint8_t, 32> zero {};
+    ggml_backend_rpc_halofpx_graph_result result {};
+    ggml_backend_rpc_halofpx_graph_result_reason reason =
+        GGML_RPC_HALOFPX_GRAPH_RESULT_OK;
+    bool ok = ggml_backend_rpc_halofpx_execution_arm(rpc, nonce.data(), 900) &&
+        !ggml_backend_rpc_halofpx_execution_bind_splits(
+            rpc, nonce.data(), 900, 0, root.data(), 0, exact, 2) &&
+        !ggml_backend_rpc_halofpx_execution_bind_splits(
+            rpc, nonce.data(), 900, 999, zero.data(), 0, exact, 2) &&
+        !ggml_backend_rpc_halofpx_execution_bind_splits(
+            rpc, nonce.data(), 900, 999, root.data(), 0, duplicate, 2) &&
+        !ggml_backend_rpc_halofpx_execution_bind_splits(
+            rpc, nonce.data(), 900, 999, root.data(), 0, reordered, 2) &&
+        !ggml_backend_rpc_halofpx_execution_bind_splits(
+            rpc, nonce.data(), 900, 999, root.data(), 0, wrong_backend, 1) &&
+        ggml_backend_rpc_halofpx_execution_bind_splits(
+            rpc, nonce.data(), 900, 999, root.data(), 0, exact, 2) &&
+        !ggml_backend_rpc_halofpx_execution_bind_splits(
+            rpc, nonce.data(), 900, 999, root.data(), 0, exact, 2) &&
+        !ggml_backend_rpc_halofpx_graph_result_for_split(
+            rpc, 998, root.data(), 1001, 0, 0, 900, &result, &reason) &&
+        reason == GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED &&
+        !ggml_backend_rpc_halofpx_graph_result_for_split(
+            rpc, 999, root.data(), 1001, 0, 1, 900, &result, &reason) &&
+        reason == GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED &&
+        !ggml_backend_rpc_halofpx_graph_result_for_split(
+            rpc, 999, root.data(), 1001, 0, 0, 899, &result, &reason) &&
+        reason == GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED &&
+        !ggml_backend_rpc_halofpx_graph_result_for_split(
+            rpc, 999, root.data(), 1001, 0, 0, 900, &result, &reason) &&
+        reason == GGML_RPC_HALOFPX_GRAPH_RESULT_GRAPH_UID_ZERO &&
+        !ggml_backend_rpc_halofpx_execution_disarm(rpc, nonce.data(), 899);
+    // A mismatched disarm closes the authority fail-closed; it cannot be reused.
+    ok = ok &&
+        !ggml_backend_rpc_halofpx_execution_bind_splits(
+            rpc, nonce.data(), 900, 999, root.data(), 0, exact, 2) &&
+        ggml_backend_rpc_halofpx_execution_arm(rpc, nonce.data(), 901) &&
+        ggml_backend_rpc_halofpx_execution_disarm(rpc, nonce.data(), 901);
+    return ok;
+}
+
 int main(int argc, char ** argv) {
+    if (argc == 3 && std::strcmp(argv[1], "--split-refusals") == 0) {
+        ggml_backend_load_all();
+        ggml_backend_t backend = ggml_backend_rpc_init(argv[2], 0);
+        const bool ok = backend != nullptr && split_identity_refusals(backend);
+        ggml_backend_free(backend);
+        std::printf("split_identity_refusals=%d\n", ok ? 1 : 0);
+        return ok ? 0 : 1;
+    }
     if (argc == 3 && std::strcmp(argv[1], "--feature-off") == 0) {
         ggml_backend_load_all();
         ggml_backend_t backend = ggml_backend_rpc_init(argv[2], 0);
@@ -66,6 +137,10 @@ int main(int argc, char ** argv) {
     ggml_backend_t rpc2 = ggml_backend_rpc_init(argv[2], 0);
     ggml_backend_t cpu = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU, nullptr);
     if (!rpc || !rpc2 || !cpu) return 2;
+    if (!split_identity_refusals(rpc2)) {
+        std::fprintf(stderr, "split identity refusal contract failed\n");
+        return 1;
+    }
     std::vector<uint8_t> metadata(ggml_tensor_overhead() * 10 + ggml_graph_overhead());
     ggml_init_params params { metadata.size(), metadata.data(), true };
     ggml_context * ctx = ggml_init(params);

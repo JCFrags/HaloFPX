@@ -712,6 +712,10 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     l33 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l33.primary-manifest.v1"
     l36 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l36.primary-manifest.v1"
     l48 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l48.fixture-manifest.v1"
+    l48_provenance = l48 and raw.get("milestone") in {
+        "l55-first-armed-prompt-discriminator",
+        "l57-parent-split-identity-qualification",
+    }
     primary = l29 or l31 or l33 or l36
     if l48:
         expected_keys |= {"authority_contract", "source_identity", "build_authority"}
@@ -747,6 +751,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             raw["milestone"] if l48 and raw["milestone"] in {
                 "l50-rocm-device-admission",
                 "l55-first-armed-prompt-discriminator",
+                "l57-parent-split-identity-qualification",
             }
             else "l36-primary-replay-authority-discriminator" if l36
             else "l33-primary-live-state-discriminator" if l33
@@ -797,13 +802,13 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             },
             **({
                 "provenance": {
-                    "schema": "halofpx.l56.binary-provenance.v1",
+                    "schema": "halofpx.l57.binary-provenance.v1",
                     "source_root": raw["authority_contract"].get(
                         "provenance", {}).get("source_root"),
                     "build_id": raw["authority_contract"].get(
                         "provenance", {}).get("build_id"),
                 },
-            } if raw["milestone"] == "l55-first-armed-prompt-discriminator" else {}),
+            } if l48_provenance else {}),
             "result_schema": "halofpx.l48.composed-result.v1",
             "result_path": "/var/tmp/halofpx-l48-evidence/l48-composed-result.json",
             "expected_capture_executions": 4,
@@ -827,14 +832,14 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             },
         }:
             raise TransitionError("L48 authority contract mismatch")
-        if l48 and raw["milestone"] == "l55-first-armed-prompt-discriminator":
+        if l48_provenance:
             provenance = raw["authority_contract"]["provenance"]
             if (
-                provenance["schema"] != "halofpx.l56.binary-provenance.v1"
+                provenance["schema"] != "halofpx.l57.binary-provenance.v1"
                 or re.fullmatch(r"[0-9a-f]{64}", provenance["source_root"]) is None
                 or re.fullmatch(r"[0-9a-f]{64}", provenance["build_id"]) is None
             ):
-                raise TransitionError("L55 binary provenance contract mismatch")
+                raise TransitionError("L55/L57 binary provenance contract mismatch")
         if l48:
             source_identity = raw["source_identity"]
             if (
@@ -897,7 +902,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                             raw["authority_contract"]["provenance"]["source_root"],
                         "-DHALOFPX_PROVENANCE_BUILD_ID=" +
                             raw["authority_contract"]["provenance"]["build_id"],
-                    ] if raw["milestone"] == "l55-first-armed-prompt-discriminator"
+                    ] if l48_provenance
                     else []),
                 ]
                 or (build["backend"], build["device"], build["gfx"]) !=

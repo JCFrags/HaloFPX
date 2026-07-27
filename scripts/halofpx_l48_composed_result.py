@@ -21,12 +21,15 @@ MAX_RECORD_BYTES = 262144
 HEX64 = re.compile(r"[0-9a-f]{64}")
 EXECUTION_REQUIRED = {
     "phase", "ordinal", "execution_sequence", "graph_uid", "prepared_root",
+    "split_mapping_root",
     "prepared_status", "final_status", "scheduler_root", "scheduler_tag",
-    "graph_entries", "splits", "copies", "local", "rpc", "mutable_sessions",
+    "graph_entries", "splits", "rpc_split_count", "copies", "local", "rpc", "mutable_sessions",
     "mutable_status", "mutable_census", "set",
     "set_hash_hit", "set_hash_miss", "mutation_root", "semantic_root",
     "census_root", "receipt_tag", "graph_status", "graph_sequence",
     "graph_digest", "graph_transcript_root", "graph_receipt_tag",
+    "parent_uid", "split_ordinal", "split_uid", "reconcile_status",
+    "rpc_splits",
 }
 
 
@@ -65,18 +68,19 @@ def _execution(record: object, expected_phase: str, ordinal: int) -> None:
         raise ResultError("execution field set mismatch")
     if record["phase"] != expected_phase or record["ordinal"] != ordinal:
         raise ResultError("execution phase/order mismatch")
-    if not isinstance(record["execution_sequence"], int) or record["execution_sequence"] <= 0:
+    if type(record["execution_sequence"]) is not int or record["execution_sequence"] <= 0:
         raise ResultError("execution sequence malformed")
     for name in (
-        "graph_uid", "graph_entries", "splits", "copies", "local", "rpc",
+        "graph_uid", "graph_entries", "splits", "rpc_split_count", "copies", "local", "rpc",
         "mutable_sessions", "mutable_census", "set", "set_hash_hit", "set_hash_miss",
         "prepared_status", "final_status", "mutable_status", "graph_status",
-        "graph_sequence",
+        "graph_sequence", "parent_uid", "split_ordinal", "split_uid",
+        "reconcile_status",
     ):
-        if not isinstance(record[name], int) or record[name] < 0:
+        if type(record[name]) is not int or record[name] < 0:
             raise ResultError(f"{name} malformed")
     for name in (
-        "prepared_root", "scheduler_root", "scheduler_tag", "mutation_root",
+        "prepared_root", "split_mapping_root", "scheduler_root", "scheduler_tag", "mutation_root",
         "semantic_root", "census_root", "receipt_tag",
         "graph_digest", "graph_transcript_root", "graph_receipt_tag",
     ):
@@ -89,8 +93,60 @@ def _execution(record: object, expected_phase: str, ordinal: int) -> None:
         or record["prepared_status"] != 1 or record["final_status"] != 1
         or record["mutable_status"] != 1 or record["graph_status"] != 2
         or record["graph_sequence"] != record["execution_sequence"]
+        or record["parent_uid"] != record["graph_uid"]
+        or record["split_uid"] <= 0 or record["reconcile_status"] != 1
     ):
         raise ResultError("RPC mutable authority is incomplete")
+    rpc_splits = record["rpc_splits"]
+    if (
+        not isinstance(rpc_splits, list) or not rpc_splits
+        or len(rpc_splits) != record["rpc_split_count"]
+        or record["rpc_split_count"] > record["splits"]
+    ):
+        raise ResultError("RPC split authority is missing")
+    expected_split_fields = {
+        "backend_ordinal", "parent_uid", "split_ordinal", "split_uid",
+        "reconcile_status", "graph_status", "graph_sequence", "graph_digest",
+        "graph_transcript_root", "graph_receipt_tag",
+    }
+    ordinals: list[int] = []
+    uids: set[int] = set()
+    for split in rpc_splits:
+        if not isinstance(split, dict) or set(split) != expected_split_fields:
+            raise ResultError("RPC split authority field set mismatch")
+        if (
+            split["parent_uid"] != record["graph_uid"]
+            or split["graph_sequence"] != record["execution_sequence"]
+            or split["reconcile_status"] != 1 or split["graph_status"] != 2
+            or type(split["backend_ordinal"]) is not int
+            or split["backend_ordinal"] < 0 or split["backend_ordinal"] >= 64
+            or type(split["split_uid"]) is not int or split["split_uid"] <= 0
+            or type(split["split_ordinal"]) is not int or split["split_ordinal"] < 0
+        ):
+            raise ResultError("RPC split authority mismatch")
+        for name in ("graph_digest", "graph_transcript_root", "graph_receipt_tag"):
+            if not isinstance(split[name], str) or HEX64.fullmatch(split[name]) is None:
+                raise ResultError("RPC split digest malformed")
+        ordinals.append(split["split_ordinal"])
+        if split["split_uid"] in uids:
+            raise ResultError("RPC split UID is duplicate")
+        uids.add(split["split_uid"])
+    if ordinals != sorted(ordinals) or len(set(ordinals)) != len(ordinals):
+        raise ResultError("RPC split order is invalid")
+    first = rpc_splits[0]
+    for scalar, split_name in (
+        ("parent_uid", "parent_uid"),
+        ("split_ordinal", "split_ordinal"),
+        ("split_uid", "split_uid"),
+        ("reconcile_status", "reconcile_status"),
+        ("graph_status", "graph_status"),
+        ("graph_sequence", "graph_sequence"),
+        ("graph_digest", "graph_digest"),
+        ("graph_transcript_root", "graph_transcript_root"),
+        ("graph_receipt_tag", "graph_receipt_tag"),
+    ):
+        if record[scalar] != first[split_name]:
+            raise ResultError("RPC split compatibility authority differs")
 
 
 def validate(payload: object) -> dict[str, object]:
@@ -136,12 +192,19 @@ def validate(payload: object) -> dict[str, object]:
     capture_replay = capture[-1]
     restore_replay = restore[0]
     phase_neutral = (
-        "graph_entries", "splits", "copies", "local", "rpc",
+        "graph_entries", "splits", "rpc_split_count", "copies", "local", "rpc",
         "mutable_sessions", "mutable_census", "set", "set_hash_hit",
         "set_hash_miss", "semantic_root", "census_root", "graph_digest",
     )
     if any(capture_replay[name] != restore_replay[name] for name in phase_neutral):
         raise ResultError("capture/restore phase-neutral authority differs")
+    split_phase_neutral = ("backend_ordinal", "split_ordinal", "graph_digest")
+    if any(
+            left[name] != right[name]
+            for left, right in zip(
+                capture_replay["rpc_splits"], restore_replay["rpc_splits"])
+            for name in split_phase_neutral):
+        raise ResultError("capture/restore RPC split authority differs")
     if payload["tokens"] != {"capture": 4245, "restore": 4245}:
         raise ResultError("token authority mismatch")
     logits = payload["logits"]

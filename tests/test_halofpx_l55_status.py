@@ -60,7 +60,7 @@ def test_exact_l40_subreason_record(tmp_path):
     canonical = (
         "phase=capture-chunk|decode_status=-3|authority=version=1|status=failed"
         "|branch=l40_graph_result_reconcile|subreason=graph_uid_mismatch"
-        "|expected_graph_uid=26|actual_graph_uid=27"
+        "|expected_parent_uid=26|expected_split_uid=27|actual_receipt_uid=28"
         "|expected_execution_sequence=1|actual_execution_sequence=1"
         "|backend_ordinal=0|receipt_reason=0"
         "|execution_sequence=1|pending=1|ggml_status=-1"
@@ -86,10 +86,10 @@ def test_unknown_or_incomplete_l40_subreason_refuses(tmp_path):
     key_path.write_bytes(key.hex().encode() + b"\n" + bytes(reversed(key)).hex().encode() + b"\n")
     os.chmod(key_path, 0o600)
     for detail in (
-        "|subreason=other|expected_graph_uid=26|actual_graph_uid=27"
+        "|subreason=other|expected_parent_uid=26|expected_split_uid=27|actual_receipt_uid=28"
         "|expected_execution_sequence=1|actual_execution_sequence=1"
         "|backend_ordinal=0|receipt_reason=0",
-        "|subreason=graph_uid_mismatch|expected_graph_uid=26|actual_graph_uid=27",
+        "|subreason=graph_uid_mismatch|expected_parent_uid=26|expected_split_uid=27|actual_receipt_uid=28",
     ):
         canonical = (
             "phase=capture-chunk|decode_status=-3|authority=version=1|status=failed"
@@ -112,7 +112,7 @@ def test_unknown_or_incomplete_l40_subreason_refuses(tmp_path):
     wrong_branch = (
         "phase=capture-chunk|decode_status=-3|authority=version=1|status=failed"
         "|branch=l42_scheduler_finalize|subreason=graph_uid_mismatch"
-        "|expected_graph_uid=26|actual_graph_uid=27"
+        "|expected_parent_uid=26|expected_split_uid=27|actual_receipt_uid=28"
         "|expected_execution_sequence=1|actual_execution_sequence=1"
         "|backend_ordinal=0|receipt_reason=0"
         "|execution_sequence=1|pending=1|ggml_status=-1"

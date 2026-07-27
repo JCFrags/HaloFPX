@@ -79,11 +79,11 @@ REPLAY_AUTHORITY_VERIFIER_SHA = ""
 RESULT_AUTHORITY_VERIFIER = ""
 DEVICE_RECEIPT = ""
 DEVICE_RECEIPT_SHA = ""
-L55_STATUS_VERIFIER_SHA = "6b3b996bb96c8288bf20662c2bb4b388d91e4905c1b4689317ae51b59e398799"
+L55_STATUS_VERIFIER_SHA = "d1c04a799a800651340461688d8c2cd19cbdbb031cf4ecc64a6238992c9cdd93"
 RESULT_AUTHORITY_VERIFIER_SHA = ""
 L55_FIRST_CHUNK_ONLY = False
-L55_SOURCE_ROOT = "6678087c0f10b67f04d10d4d2cd8cbc6a94b033163a0cc26229cd65a00b9dd66"
-L55_BUILD_ID = "3f8a7005ad338413eb65c39b7524c5339db8e0279d40e1dfa662c1977ce25cc0"
+L55_SOURCE_ROOT = "38b9ccf435ecc79240f0dbf7121a088dfac83b70bcc9b65928c73782b53ab060"
+L55_BUILD_ID = "d88a6c525fb96e9f4023d3d4fcf8d7e61ccb1d2b16d37ab06ad1314ed988e086"
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -524,35 +524,67 @@ def configure_l48_fixture() -> None:
 
 def _composed_execution(text: str, phase: str, ordinal: int) -> dict[str, object]:
     fields: dict[str, str] = {}
+    rpc_fields: list[str] = []
     for item in text.split("|"):
         if "=" not in item:
             raise CanaryError("composed execution field is malformed")
         name, value = item.split("=", 1)
+        if name == "rpc_backend":
+            rpc_fields.append(item)
+            continue
         if not name or name in fields:
             raise CanaryError("composed execution field is duplicate")
         fields[name] = value
     required = {
         "version", "execution_sequence", "graph_uid", "prepared_root",
+        "split_mapping_root",
         "prepared_status", "final_status", "scheduler_root", "scheduler_tag",
-        "graph_entries", "splits", "copies", "local", "rpc", "rpc_backend",
+        "graph_entries", "splits", "rpc_split_count", "copies", "local", "rpc",
     }
     if set(fields) != required or fields["version"] != "1":
         raise CanaryError("composed execution scheduler authority is incomplete")
-    rpc_fields = [item for item in text.split("|") if item.startswith("rpc_backend=")]
-    if len(rpc_fields) != 1:
-        raise CanaryError("composed execution RPC authority is ambiguous")
-    mutable: dict[str, str] = {}
-    for item in rpc_fields[0].split(","):
-        name, value = item.split("=", 1)
-        mutable[name] = value
+    if not rpc_fields:
+        raise CanaryError("composed execution RPC authority is missing")
+    if int(fields["rpc_split_count"]) != len(rpc_fields):
+        raise CanaryError("composed execution RPC split count mismatch")
     mutable_required = {
         "rpc_backend", "mutations", "census", "set", "set_hash_hit",
         "set_hash_miss", "mutable_status", "mutation_root", "semantic_root",
         "census_root", "receipt_tag", "graph_status", "graph_sequence",
         "graph_digest", "graph_transcript_root", "graph_receipt_tag",
+        "parent_uid", "split_ordinal", "split_uid", "reconcile_status",
     }
-    if set(mutable) != mutable_required:
-        raise CanaryError("composed execution mutable authority is incomplete")
+    mutable_records: list[dict[str, str]] = []
+    for rpc_field in rpc_fields:
+        mutable: dict[str, str] = {}
+        for item in rpc_field.split(","):
+            if "=" not in item:
+                raise CanaryError("composed execution RPC field is malformed")
+            name, value = item.split("=", 1)
+            if not name or name in mutable:
+                raise CanaryError("composed execution RPC field is duplicate")
+            mutable[name] = value
+        if set(mutable) != mutable_required:
+            raise CanaryError("composed execution mutable authority is incomplete")
+        mutable_records.append(mutable)
+    mutable = mutable_records[0]
+    common_names = mutable_required - {
+        "split_ordinal", "split_uid", "graph_status", "graph_sequence",
+        "graph_digest", "graph_transcript_root", "graph_receipt_tag",
+    }
+    if any(
+            record["rpc_backend"] != mutable["rpc_backend"] or
+            any(record[name] != mutable[name] for name in common_names)
+            for record in mutable_records[1:]):
+        raise CanaryError("composed execution RPC session authority is inconsistent")
+    split_ordinals = [int(record["split_ordinal"]) for record in mutable_records]
+    split_uids = [int(record["split_uid"]) for record in mutable_records]
+    if (
+        split_ordinals != sorted(split_ordinals)
+        or len(set(split_ordinals)) != len(split_ordinals)
+        or len(set(split_uids)) != len(split_uids)
+    ):
+        raise CanaryError("composed execution split authority is ambiguous")
     return {
         "phase": phase,
         "ordinal": ordinal,
@@ -561,10 +593,12 @@ def _composed_execution(text: str, phase: str, ordinal: int) -> dict[str, object
         "prepared_status": int(fields["prepared_status"]),
         "final_status": int(fields["final_status"]),
         "prepared_root": fields["prepared_root"],
+        "split_mapping_root": fields["split_mapping_root"],
         "scheduler_root": fields["scheduler_root"],
         "scheduler_tag": fields["scheduler_tag"],
         "graph_entries": int(fields["graph_entries"]),
         "splits": int(fields["splits"]),
+        "rpc_split_count": int(fields["rpc_split_count"]),
         "copies": int(fields["copies"]),
         "local": int(fields["local"]),
         "rpc": int(fields["rpc"]),
@@ -583,6 +617,25 @@ def _composed_execution(text: str, phase: str, ordinal: int) -> dict[str, object
         "graph_digest": mutable["graph_digest"],
         "graph_transcript_root": mutable["graph_transcript_root"],
         "graph_receipt_tag": mutable["graph_receipt_tag"],
+        "parent_uid": int(mutable["parent_uid"]),
+        "split_ordinal": int(mutable["split_ordinal"]),
+        "split_uid": int(mutable["split_uid"]),
+        "reconcile_status": int(mutable["reconcile_status"]),
+        "rpc_splits": [
+            {
+                "backend_ordinal": int(record["rpc_backend"]),
+                "parent_uid": int(record["parent_uid"]),
+                "split_ordinal": int(record["split_ordinal"]),
+                "split_uid": int(record["split_uid"]),
+                "reconcile_status": int(record["reconcile_status"]),
+                "graph_status": int(record["graph_status"]),
+                "graph_sequence": int(record["graph_sequence"]),
+                "graph_digest": record["graph_digest"],
+                "graph_transcript_root": record["graph_transcript_root"],
+                "graph_receipt_tag": record["graph_receipt_tag"],
+            }
+            for record in mutable_records
+        ],
     }
 
 
@@ -2515,23 +2568,23 @@ def main() -> int:
             raise CanaryError("coordinator canary binary mismatch")
         if ssh(NIMO1, "sha256sum", WORKER_BIN).stdout.split()[0] != WORKER_SHA:
             raise CanaryError("worker binary mismatch")
-        if L55_FIRST_CHUNK_ONLY:
+        if args.l48_fixture:
             expected = {
                 NIMO1: (
                     WORKER_BIN,
-                    "schema=halofpx.l56.binary-provenance.v1"
+                    "schema=halofpx.l57.binary-provenance.v1"
                     f"|source_root={L55_SOURCE_ROOT}|build_id={L55_BUILD_ID}"
                     "|binary=rpc-server"),
                 NIMO2: (
                     CANARY_BIN,
-                    "schema=halofpx.l56.binary-provenance.v1"
+                    "schema=halofpx.l57.binary-provenance.v1"
                     f"|source_root={L55_SOURCE_ROOT}|build_id={L55_BUILD_ID}"
                     "|binary=canary"),
             }
             for host, (binary, value) in expected.items():
                 observed = ssh(host, binary, "--halofpx-provenance").stdout.strip()
                 if observed != value:
-                    raise CanaryError(f"L55 binary provenance mismatch: {host}")
+                    raise CanaryError(f"L57 binary provenance mismatch: {host}")
         if ssh(NIMO2, "sha256sum", READINESS_PROBE).stdout.split()[0] != READINESS_PROBE_SHA:
             raise CanaryError("readiness probe mismatch")
         if ssh(NIMO2, "sha256sum", PLACEMENT_PROBE).stdout.split()[0] != PLACEMENT_PROBE_SHA:

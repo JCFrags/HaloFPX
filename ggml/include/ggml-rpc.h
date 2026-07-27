@@ -173,6 +173,12 @@ typedef enum ggml_backend_rpc_halofpx_graph_result_reason {
     GGML_RPC_HALOFPX_GRAPH_RESULT_EXECUTION_SEQUENCE_ZERO = 6,
 } ggml_backend_rpc_halofpx_graph_result_reason;
 
+typedef struct ggml_backend_rpc_halofpx_split_identity {
+    uint64_t split_graph_uid;
+    uint32_t split_ordinal;
+    uint32_t backend_ordinal;
+} ggml_backend_rpc_halofpx_split_identity;
+
 typedef enum ggml_backend_rpc_halofpx_mutable_test_case {
     GGML_RPC_HALOFPX_MUTABLE_TEST_MALFORMED = 1,
     GGML_RPC_HALOFPX_MUTABLE_TEST_TAMPERED,
@@ -192,6 +198,15 @@ GGML_BACKEND_API bool ggml_backend_rpc_halofpx_execution_disarm(
         ggml_backend_t backend,
         const uint8_t attempt_nonce[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
         uint64_t execution_sequence);
+GGML_BACKEND_API bool ggml_backend_rpc_halofpx_execution_bind_splits(
+        ggml_backend_t backend,
+        const uint8_t attempt_nonce[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        uint64_t execution_sequence,
+        uint64_t parent_graph_uid,
+        const uint8_t split_mapping_root[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        uint32_t backend_ordinal,
+        const ggml_backend_rpc_halofpx_split_identity * splits,
+        size_t split_count);
 
 GGML_BACKEND_API ggml_backend_buffer_type_t ggml_backend_rpc_buffer_type(const char * endpoint, uint32_t device);
 
@@ -235,6 +250,16 @@ GGML_BACKEND_API bool ggml_backend_rpc_halofpx_graph_result_get(
         ggml_backend_rpc_halofpx_graph_result * result);
 GGML_BACKEND_API bool ggml_backend_rpc_halofpx_graph_result_inspect(
         ggml_backend_t backend,
+        ggml_backend_rpc_halofpx_graph_result * result,
+        ggml_backend_rpc_halofpx_graph_result_reason * reason);
+GGML_BACKEND_API bool ggml_backend_rpc_halofpx_graph_result_for_split(
+        ggml_backend_t backend,
+        uint64_t parent_graph_uid,
+        const uint8_t split_mapping_root[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        uint64_t split_graph_uid,
+        uint32_t split_ordinal,
+        uint32_t backend_ordinal,
+        uint64_t execution_sequence,
         ggml_backend_rpc_halofpx_graph_result * result,
         ggml_backend_rpc_halofpx_graph_result_reason * reason);
 // Qualification-only negative injection. Requires

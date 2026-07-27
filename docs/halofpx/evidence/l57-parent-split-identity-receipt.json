@@ -1,0 +1,63 @@
+{
+  "schema": "halofpx.l57.parent-split-identity-receipt.v1",
+  "status": "NOT_PROMOTED",
+  "date": "2026-07-27",
+  "base_commit": "8af226d675d9ae287d5d2bddd849f9920507d9ba",
+  "source_correction": {
+    "parent_split_identity": "PASS_FOCUSED",
+    "feature_off_inert": true,
+    "pre_runtime_review": "GO",
+    "python_tests": "56 passed, 11 subtests passed",
+    "linux_scheduler_one_and_multiple_split": "PASS",
+    "rpc_split_refusals": "PASS",
+    "controller_dry_run": "PASS"
+  },
+  "provenance": {
+    "schema": "halofpx.l57.binary-provenance.v1",
+    "source_root": "38b9ccf435ecc79240f0dbf7121a088dfac83b70bcc9b65928c73782b53ab060",
+    "build_id": "d88a6c525fb96e9f4023d3d4fcf8d7e61ccb1d2b16d37ab06ad1314ed988e086",
+    "source_identity_root": "9736e0de557d011c539ace878c82951c2faf073f5f2791ad31a1edf7ff195c54",
+    "worker_sha256": "5bc7d6f74ee26830977b369b5a470a68778fccb598bc7ab02e6ce02a77f229a0",
+    "canary_sha256": "6d750a62e1233a8f46f3a02098de126317cdfb5fb21ab3df14c9cf7af446fce7"
+  },
+  "runtime": {
+    "attempts": 1,
+    "model": "stories15M-q4_0.gguf",
+    "primary_accessed": false,
+    "production_mutated": false,
+    "device_gate": "PASS",
+    "readiness": "PASS",
+    "placement": "PASS",
+    "capture_unit": "halofpx-l48-canary-capture.service",
+    "capture_invocation_id": "13c8604cb3c242008d1a94c738fcced2",
+    "capture_pid": 1736662,
+    "terminal_result": "core-dump",
+    "exec_main_code": 3,
+    "exec_main_status": 6,
+    "earliest_retained_status": "scheduler_graph_compute_failed_authority_0",
+    "execution_sequence": 1,
+    "ggml_status": -1,
+    "completed_composed_result": false,
+    "token_equality": null,
+    "legacy_state_get_set": null
+  },
+  "production": {
+    "snapshots_equal": true,
+    "snapshot_sha256": "511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded",
+    "worker_pid": 1535639,
+    "worker_port": 50052,
+    "worker_nrestarts": 0,
+    "coordinator_pid": 2356329,
+    "coordinator_port": 8081,
+    "coordinator_http": 200,
+    "coordinator_nrestarts": 0
+  },
+  "cleanup": "PASS",
+  "raw_evidence": {
+    "path": "docs/halofpx/evidence/l57-raw",
+    "file_count": 21,
+    "tree_sha256": "2867f6c8b402e3030855541b9686e9ba785ccff8dfc5661aa1140435ef8d4c14"
+  },
+  "promotion": false,
+  "retry_authorized": false
+}

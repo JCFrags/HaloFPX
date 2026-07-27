@@ -1580,6 +1580,7 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
     // in order to correctly reuse a graph, it's full topology has to be uniquely determined by these parameters
     const auto gparams = graph_params(res, ubatch, mctx, gtype);
     const bool composed_authority = halofpx_execution_pending;
+    std::vector<ggml_backend_sched_authority_split> halofpx_execution_splits;
     auto record_composed_failure = [&](
             const std::string & branch, ggml_status status,
             const std::string & detail = std::string()) {
@@ -1724,6 +1725,48 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             abort_composed();
             ret = GGML_STATUS_FAILED;
             return nullptr;
+        }
+        if (composed_authority) {
+            const size_t split_count = ggml_backend_sched_authority_split_count(
+                sched.get(), &halofpx_execution_handle);
+            if (split_count == 0 || split_count != halofpx_execution_prepared.split_count) {
+                abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+            }
+            halofpx_execution_splits.resize(split_count);
+            for (size_t i = 0; i < split_count; ++i) {
+                auto & split = halofpx_execution_splits[i];
+                if (!ggml_backend_sched_authority_split_at(
+                        sched.get(), &halofpx_execution_handle, i, &split) ||
+                    split.parent_graph_uid != halofpx_execution_prepared.graph_uid ||
+                    split.execution_sequence != halofpx_execution_sequence ||
+                    split.split_ordinal != i || split.split_graph_uid == 0) {
+                    abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                }
+            }
+            for (uint32_t backend_ordinal = 0;
+                    backend_ordinal < backend_ptrs.size(); ++backend_ordinal) {
+                if (!ggml_backend_is_rpc(backend_ptrs[backend_ordinal])) continue;
+                std::vector<ggml_backend_rpc_halofpx_split_identity> rpc_splits;
+                for (const auto & split : halofpx_execution_splits) {
+                    if (split.backend_ordinal != backend_ordinal) continue;
+                    rpc_splits.push_back({
+                        split.split_graph_uid,
+                        split.split_ordinal,
+                        split.backend_ordinal,
+                    });
+                }
+                if (rpc_splits.empty() ||
+                    !ggml_backend_rpc_halofpx_execution_bind_splits(
+                        backend_ptrs[backend_ordinal],
+                        halofpx_execution_nonce.data(),
+                        halofpx_execution_sequence,
+                        halofpx_execution_prepared.graph_uid,
+                        halofpx_execution_prepared.split_mapping_root,
+                        backend_ordinal,
+                        rpc_splits.data(), rpc_splits.size())) {
+                    abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                }
+            }
         }
         if (composed_authority) {
             for (uint32_t backend_ordinal = 0; backend_ordinal < backend_ptrs.size(); ++backend_ordinal) {
@@ -1893,68 +1936,103 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             return out;
         };
         std::ostringstream authority;
+        const size_t rpc_split_count = std::count_if(
+            halofpx_execution_splits.begin(), halofpx_execution_splits.end(),
+            [this](const ggml_backend_sched_authority_split & split) {
+                return split.backend_ordinal < backend_ptrs.size() &&
+                    ggml_backend_is_rpc(backend_ptrs[split.backend_ordinal]);
+            });
         authority << "version=1"
             << "|execution_sequence=" << halofpx_execution_sequence
             << "|graph_uid=" << halofpx_execution_prepared.graph_uid
             << "|prepared_status=" << halofpx_execution_prepared.status
             << "|prepared_root=" << digest_hex(halofpx_execution_prepared.prepared_root)
+            << "|split_mapping_root=" << digest_hex(halofpx_execution_prepared.split_mapping_root)
             << "|final_status=" << halofpx_execution_final.status
             << "|scheduler_root=" << digest_hex(halofpx_execution_final.chain_root)
             << "|scheduler_tag=" << digest_hex(halofpx_execution_final.tag)
             << "|graph_entries=" << halofpx_execution_prepared.graph_entry_count
             << "|splits=" << halofpx_execution_prepared.split_count
+            << "|rpc_split_count=" << rpc_split_count
             << "|copies=" << halofpx_execution_prepared.copy_count
             << "|local=" << halofpx_execution_prepared.local_count
             << "|rpc=" << halofpx_execution_prepared.rpc_count;
         for (size_t i = 0; i < halofpx_mutable_results.size(); ++i) {
-            ggml_backend_rpc_halofpx_graph_result graph_result {};
-            ggml_backend_rpc_halofpx_graph_result_reason receipt_reason =
-                GGML_RPC_HALOFPX_GRAPH_RESULT_OK;
             const uint32_t backend_ordinal = halofpx_mutable_backend_ordinals[i];
             const bool backend_in_range = backend_ordinal < backend_ptrs.size();
-            const bool receipt_available = backend_in_range &&
-                ggml_backend_rpc_halofpx_graph_result_inspect(
-                    backend_ptrs[backend_ordinal], &graph_result, &receipt_reason);
-            const char * subreason =
-                !backend_in_range ? "backend_ordinal_out_of_range" :
-                !receipt_available &&
-                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_INVALID_ARGUMENT ?
-                    "receipt_invalid_argument" :
-                !receipt_available &&
-                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_NOT_RPC ?
-                    "receipt_backend_not_rpc" :
-                !receipt_available &&
-                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_CONTEXT_MISSING ?
-                    "receipt_context_missing" :
-                !receipt_available &&
-                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED ?
-                    "receipt_status_not_executed" :
-                !receipt_available &&
-                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_GRAPH_UID_ZERO ?
-                    "receipt_graph_uid_zero" :
-                !receipt_available &&
-                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_EXECUTION_SEQUENCE_ZERO ?
-                    "receipt_execution_sequence_zero" :
-                graph_result.graph_uid != halofpx_execution_prepared.graph_uid ?
-                    "graph_uid_mismatch" :
-                graph_result.execution_sequence != halofpx_execution_sequence ?
-                    "execution_sequence_mismatch" : nullptr;
-            if (subreason != nullptr) {
+            std::vector<ggml_backend_sched_authority_split> expected_splits;
+            for (const auto & split : halofpx_execution_splits) {
+                if (split.backend_ordinal == backend_ordinal) expected_splits.push_back(split);
+            }
+            if (!backend_in_range || expected_splits.empty()) {
                 std::ostringstream detail;
-                detail << "|subreason=" << subreason
-                    << "|expected_graph_uid=" << halofpx_execution_prepared.graph_uid
-                    << "|actual_graph_uid=" << graph_result.graph_uid
+                detail << "|subreason=" <<
+                        (!backend_in_range ? "backend_ordinal_out_of_range" : "split_mapping_missing")
+                    << "|expected_parent_uid=" << halofpx_execution_prepared.graph_uid
+                    << "|expected_split_uid=0|actual_receipt_uid=0"
                     << "|expected_execution_sequence=" << halofpx_execution_sequence
-                    << "|actual_execution_sequence=" << graph_result.execution_sequence
+                    << "|actual_execution_sequence=0"
                     << "|backend_ordinal=" << backend_ordinal
-                    << "|receipt_reason=" << static_cast<uint32_t>(receipt_reason);
+                    << "|receipt_reason=" <<
+                        static_cast<uint32_t>(GGML_RPC_HALOFPX_GRAPH_RESULT_INVALID_ARGUMENT);
                 record_composed_failure(
                     "l40_graph_result_reconcile", GGML_STATUS_FAILED, detail.str());
-                abort_composed();
-                ret = GGML_STATUS_FAILED;
-                return nullptr;
+                abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
             }
-            authority << "|rpc_backend=" << halofpx_mutable_backend_ordinals[i]
+            for (const auto & split : expected_splits) {
+                ggml_backend_rpc_halofpx_graph_result graph_result {};
+                ggml_backend_rpc_halofpx_graph_result_reason receipt_reason =
+                    GGML_RPC_HALOFPX_GRAPH_RESULT_OK;
+                const bool receipt_available =
+                    ggml_backend_rpc_halofpx_graph_result_for_split(
+                        backend_ptrs[backend_ordinal],
+                        halofpx_execution_prepared.graph_uid,
+                        halofpx_execution_prepared.split_mapping_root,
+                        split.split_graph_uid,
+                        split.split_ordinal,
+                        backend_ordinal,
+                        halofpx_execution_sequence,
+                        &graph_result, &receipt_reason);
+                const char * receipt_subreason =
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_INVALID_ARGUMENT ?
+                        "receipt_invalid_argument" :
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_NOT_RPC ?
+                        "receipt_backend_not_rpc" :
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_CONTEXT_MISSING ?
+                        "receipt_context_missing" :
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED ?
+                        "receipt_status_not_executed" :
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_GRAPH_UID_ZERO ?
+                        "receipt_graph_uid_zero" :
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_EXECUTION_SEQUENCE_ZERO ?
+                        "receipt_execution_sequence_zero" :
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_OK ?
+                        nullptr : "receipt_reason_out_of_range";
+                const char * subreason =
+                    !receipt_available ? receipt_subreason :
+                    graph_result.graph_uid != split.split_graph_uid ?
+                        "graph_uid_mismatch" :
+                    graph_result.execution_sequence != halofpx_execution_sequence ?
+                        "execution_sequence_mismatch" : nullptr;
+                if (subreason != nullptr) {
+                    std::ostringstream detail;
+                    detail << "|subreason=" << subreason
+                        << "|expected_parent_uid=" << halofpx_execution_prepared.graph_uid
+                        << "|expected_split_uid=" << split.split_graph_uid
+                        << "|actual_receipt_uid=" << graph_result.graph_uid
+                        << "|expected_execution_sequence=" << halofpx_execution_sequence
+                        << "|actual_execution_sequence=" << graph_result.execution_sequence
+                        << "|backend_ordinal=" << backend_ordinal
+                        << "|receipt_reason=" << static_cast<uint32_t>(receipt_reason);
+                    record_composed_failure(
+                        "l40_graph_result_reconcile", GGML_STATUS_FAILED, detail.str());
+                    abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                }
+                authority << "|rpc_backend=" << backend_ordinal
+                    << ",parent_uid=" << halofpx_execution_prepared.graph_uid
+                    << ",split_ordinal=" << split.split_ordinal
+                    << ",split_uid=" << split.split_graph_uid
+                    << ",reconcile_status=1"
                 << ",mutable_status=" << halofpx_mutable_results[i].status
                 << ",mutations=" << halofpx_mutable_results[i].mutation_count
                 << ",census=" << halofpx_mutable_results[i].census_count
@@ -1969,7 +2047,8 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 << ",graph_sequence=" << graph_result.execution_sequence
                 << ",graph_digest=" << digest_hex(graph_result.graph_digest)
                 << ",graph_transcript_root=" << digest_hex(graph_result.transcript_root)
-                << ",graph_receipt_tag=" << digest_hex(graph_result.receipt_tag);
+                    << ",graph_receipt_tag=" << digest_hex(graph_result.receipt_tag);
+            }
         }
         halofpx_execution_result_text = authority.str();
         for (auto & session : halofpx_mutable_sessions) {

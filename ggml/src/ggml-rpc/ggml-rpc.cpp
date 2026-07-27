@@ -558,9 +558,16 @@ struct ggml_backend_rpc_context {
     std::array<uint8_t, 32> graph_auth_last_digest;
     std::array<uint8_t, 32> graph_auth_transcript_root;
     ggml_backend_rpc_halofpx_graph_result graph_auth_result;
+    std::vector<ggml_backend_rpc_halofpx_graph_result> graph_auth_results;
     bool execution_armed;
+    bool execution_splits_bound;
     uint64_t execution_sequence;
     uint64_t last_execution_sequence;
+    uint64_t execution_parent_graph_uid;
+    uint32_t execution_backend_ordinal;
+    std::array<uint8_t, 32> execution_split_mapping_root;
+    std::vector<ggml_backend_rpc_halofpx_split_identity> execution_splits;
+    std::unordered_set<uint64_t> execution_consumed_split_uids;
     std::array<uint8_t, 32> execution_attempt_nonce;
 #endif
 };
@@ -2611,6 +2618,17 @@ static enum ggml_status ggml_backend_rpc_graph_compute(ggml_backend_t backend, g
     bool reuse = cgraph->uid != 0 && rpc_ctx->last_graph_uid == cgraph->uid;
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
     if (hfx_graph_requested() && rpc_ctx->execution_armed) {
+        if (!rpc_ctx->execution_splits_bound ||
+            rpc_ctx->execution_parent_graph_uid == 0 ||
+            hfx_zero(rpc_ctx->execution_split_mapping_root.data(), 32)) {
+            return GGML_STATUS_FAILED;
+        }
+        const auto expected_split = std::find_if(
+            rpc_ctx->execution_splits.begin(), rpc_ctx->execution_splits.end(),
+            [cgraph](const ggml_backend_rpc_halofpx_split_identity & value) {
+                return value.split_graph_uid == cgraph->uid;
+            });
+        if (expected_split == rpc_ctx->execution_splits.end()) return GGML_STATUS_FAILED;
         auto sock = get_socket(rpc_ctx->endpoint);
         if (sock == nullptr || !hfx_graph_negotiate(rpc_ctx, sock)) return GGML_STATUS_FAILED;
         if (hfx_mutable_requested()) {
@@ -2627,6 +2645,12 @@ static enum ggml_status ggml_backend_rpc_graph_compute(ggml_backend_t backend, g
             std::vector<uint8_t> binding;
             hfx_bytes(binding, it->second.semantic_root.data(), 32);
             hfx_bytes(binding, it->second.attempt.scheduler_attempt_nonce, 32);
+            hfx_le<uint64_t>(binding, rpc_ctx->execution_parent_graph_uid);
+            hfx_le<uint64_t>(binding, rpc_ctx->execution_sequence);
+            hfx_le<uint32_t>(binding, expected_split->split_ordinal);
+            hfx_le<uint32_t>(binding, expected_split->backend_ordinal);
+            hfx_le<uint64_t>(binding, expected_split->split_graph_uid);
+            hfx_bytes(binding, rpc_ctx->execution_split_mapping_root.data(), 32);
             rpc_ctx->graph_auth_transcript_root = hfx_sha256(binding.data(), binding.size());
             GGML_LOG_INFO("[halofpx-mutable] bound graph uid=%" PRIu64 " exec=%" PRIu64
                           " semantic=%s transcript=%s\n",
@@ -2703,6 +2727,14 @@ static enum ggml_status ggml_backend_rpc_graph_compute(ggml_backend_t backend, g
         memcpy(rpc_ctx->graph_auth_result.graph_digest, response.graph_digest, 32);
         memcpy(rpc_ctx->graph_auth_result.transcript_root, response.transcript_root, 32);
         memcpy(rpc_ctx->graph_auth_result.receipt_tag, response.tag, 32);
+        if (std::any_of(
+                rpc_ctx->graph_auth_results.begin(), rpc_ctx->graph_auth_results.end(),
+                [&response](const ggml_backend_rpc_halofpx_graph_result & value) {
+                    return value.graph_uid == response.graph_uid;
+                })) {
+            return GGML_STATUS_FAILED;
+        }
+        rpc_ctx->graph_auth_results.push_back(rpc_ctx->graph_auth_result);
         return GGML_STATUS_SUCCESS;
     }
 #endif
@@ -2797,9 +2829,16 @@ ggml_backend_t ggml_backend_rpc_init(const char * endpoint, uint32_t device) {
         /* .graph_auth_last_digest    = */ {},
         /* .graph_auth_transcript_root= */ {},
         /* .graph_auth_result         = */ {},
+        /* .graph_auth_results        = */ {},
         /* .execution_armed           = */ false,
+        /* .execution_splits_bound    = */ false,
         /* .execution_sequence        = */ 0,
         /* .last_execution_sequence   = */ 0,
+        /* .execution_parent_graph_uid= */ 0,
+        /* .execution_backend_ordinal = */ UINT32_MAX,
+        /* .execution_split_mapping_root= */ {},
+        /* .execution_splits          = */ {},
+        /* .execution_consumed_split_uids= */ {},
         /* .execution_attempt_nonce   = */ {},
 #endif
     };
@@ -2832,6 +2871,48 @@ bool ggml_backend_rpc_halofpx_execution_arm(
     ctx->last_execution_sequence = execution_sequence;
     memcpy(ctx->execution_attempt_nonce.data(), attempt_nonce, 32);
     ctx->graph_auth_result = {};
+    ctx->graph_auth_results.clear();
+    ctx->execution_splits_bound = false;
+    ctx->execution_parent_graph_uid = 0;
+    ctx->execution_backend_ordinal = UINT32_MAX;
+    ctx->execution_split_mapping_root.fill(0);
+    ctx->execution_splits.clear();
+    ctx->execution_consumed_split_uids.clear();
+    return true;
+}
+
+bool ggml_backend_rpc_halofpx_execution_bind_splits(
+        ggml_backend_t backend,
+        const uint8_t attempt_nonce[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        uint64_t execution_sequence,
+        uint64_t parent_graph_uid,
+        const uint8_t split_mapping_root[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        uint32_t backend_ordinal,
+        const ggml_backend_rpc_halofpx_split_identity * splits,
+        size_t split_count) {
+    if (!ggml_backend_is_rpc(backend) || attempt_nonce == nullptr ||
+        split_mapping_root == nullptr || splits == nullptr || split_count == 0 ||
+        split_count > 64 || parent_graph_uid == 0 || backend_ordinal == UINT32_MAX ||
+        hfx_zero(split_mapping_root, 32)) return false;
+    auto * ctx = static_cast<ggml_backend_rpc_context *>(backend->context);
+    if (!ctx->execution_armed || ctx->execution_splits_bound ||
+        ctx->execution_sequence != execution_sequence ||
+        !hfx_equal(ctx->execution_attempt_nonce.data(), attempt_nonce, 32)) return false;
+    std::unordered_set<uint64_t> uids;
+    uint32_t prior_ordinal = 0;
+    for (size_t i = 0; i < split_count; ++i) {
+        if (splits[i].split_graph_uid == 0 ||
+            splits[i].backend_ordinal != backend_ordinal ||
+            (i > 0 && splits[i].split_ordinal <= prior_ordinal) ||
+            !uids.insert(splits[i].split_graph_uid).second) return false;
+        prior_ordinal = splits[i].split_ordinal;
+    }
+    ctx->execution_parent_graph_uid = parent_graph_uid;
+    ctx->execution_backend_ordinal = backend_ordinal;
+    memcpy(ctx->execution_split_mapping_root.data(), split_mapping_root, 32);
+    ctx->execution_splits.assign(splits, splits + split_count);
+    ctx->execution_consumed_split_uids.clear();
+    ctx->execution_splits_bound = true;
     return true;
 }
 
@@ -2845,7 +2926,14 @@ bool ggml_backend_rpc_halofpx_execution_disarm(
         ctx->execution_sequence == execution_sequence &&
         hfx_equal(ctx->execution_attempt_nonce.data(), attempt_nonce, 32);
     ctx->execution_armed = false;
+    ctx->execution_splits_bound = false;
     ctx->execution_sequence = 0;
+    ctx->execution_parent_graph_uid = 0;
+    ctx->execution_backend_ordinal = UINT32_MAX;
+    ctx->execution_split_mapping_root.fill(0);
+    ctx->execution_splits.clear();
+    ctx->execution_consumed_split_uids.clear();
+    ctx->graph_auth_results.clear();
     ctx->execution_attempt_nonce.fill(0);
     return matched;
 }
@@ -3283,6 +3371,63 @@ bool ggml_backend_rpc_halofpx_graph_result_inspect(
     return true;
 }
 
+bool ggml_backend_rpc_halofpx_graph_result_for_split(
+        ggml_backend_t backend,
+        uint64_t parent_graph_uid,
+        const uint8_t split_mapping_root[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES],
+        uint64_t split_graph_uid,
+        uint32_t split_ordinal,
+        uint32_t backend_ordinal,
+        uint64_t execution_sequence,
+        ggml_backend_rpc_halofpx_graph_result * result,
+        ggml_backend_rpc_halofpx_graph_result_reason * reason) {
+    if (reason == nullptr) return false;
+    *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_INVALID_ARGUMENT;
+    if (!ggml_backend_is_rpc(backend) || split_mapping_root == nullptr ||
+        result == nullptr || parent_graph_uid == 0 || split_graph_uid == 0 ||
+        backend_ordinal == UINT32_MAX ||
+        execution_sequence == 0) return false;
+    auto * ctx = static_cast<ggml_backend_rpc_context *>(backend->context);
+    if (ctx == nullptr) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_CONTEXT_MISSING;
+        return false;
+    }
+    if (!ctx->execution_armed || !ctx->execution_splits_bound ||
+        ctx->execution_parent_graph_uid != parent_graph_uid ||
+        ctx->execution_backend_ordinal != backend_ordinal ||
+        ctx->execution_sequence != execution_sequence ||
+        !hfx_equal(ctx->execution_split_mapping_root.data(), split_mapping_root, 32)) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED;
+        return false;
+    }
+    if (ctx->execution_consumed_split_uids.count(split_graph_uid) != 0) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED;
+        return false;
+    }
+    const auto found = std::find_if(
+        ctx->graph_auth_results.begin(), ctx->graph_auth_results.end(),
+        [&ctx, split_graph_uid, split_ordinal, backend_ordinal](
+                const ggml_backend_rpc_halofpx_graph_result & value) {
+            if (value.graph_uid != split_graph_uid) return false;
+            return std::any_of(
+                ctx->execution_splits.begin(), ctx->execution_splits.end(),
+                [split_graph_uid, split_ordinal, backend_ordinal](
+                        const ggml_backend_rpc_halofpx_split_identity & split) {
+                    return split.split_graph_uid == split_graph_uid &&
+                        split.split_ordinal == split_ordinal &&
+                        split.backend_ordinal == backend_ordinal;
+                });
+        });
+    if (found == ctx->graph_auth_results.end()) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_GRAPH_UID_ZERO;
+        return false;
+    }
+    *result = *found;
+    ctx->execution_consumed_split_uids.insert(split_graph_uid);
+    *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_OK;
+    return true;
+}
+
 bool ggml_backend_rpc_halofpx_mutable_test_inject(
         const ggml_backend_rpc_halofpx_mutable_session * handle,
         ggml_tensor * tensor,
@@ -3414,6 +3559,9 @@ bool ggml_backend_rpc_halofpx_mutable_test_commit_omit_unmutated_leaf(
 #else
 bool ggml_backend_rpc_halofpx_execution_arm(ggml_backend_t, const uint8_t *, uint64_t) { return false; }
 bool ggml_backend_rpc_halofpx_execution_disarm(ggml_backend_t, const uint8_t *, uint64_t) { return false; }
+bool ggml_backend_rpc_halofpx_execution_bind_splits(
+        ggml_backend_t, const uint8_t *, uint64_t, uint64_t, const uint8_t *,
+        uint32_t, const ggml_backend_rpc_halofpx_split_identity *, size_t) { return false; }
 uint64_t ggml_backend_rpc_halofpx_mutable_graph_uid(ggml_cgraph *) { return 0; }
 bool ggml_backend_rpc_halofpx_mutable_begin(ggml_backend_t, ggml_backend_sched_t, const ggml_backend_rpc_halofpx_mutable_attempt *, ggml_backend_rpc_halofpx_mutable_session *) { return false; }
 bool ggml_backend_rpc_halofpx_mutable_register(const ggml_backend_rpc_halofpx_mutable_session *, ggml_tensor *, ggml_backend_rpc_halofpx_mutable_role, uint32_t) { return false; }
@@ -3424,6 +3572,13 @@ bool ggml_backend_rpc_halofpx_mutable_abort(ggml_backend_rpc_halofpx_mutable_ses
 bool ggml_backend_rpc_halofpx_graph_result_get(ggml_backend_t, ggml_backend_rpc_halofpx_graph_result *) { return false; }
 bool ggml_backend_rpc_halofpx_graph_result_inspect(
         ggml_backend_t, ggml_backend_rpc_halofpx_graph_result *,
+        ggml_backend_rpc_halofpx_graph_result_reason * reason) {
+    if (reason != nullptr) *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_NOT_RPC;
+    return false;
+}
+bool ggml_backend_rpc_halofpx_graph_result_for_split(
+        ggml_backend_t, uint64_t, const uint8_t *, uint64_t, uint32_t, uint32_t, uint64_t,
+        ggml_backend_rpc_halofpx_graph_result *,
         ggml_backend_rpc_halofpx_graph_result_reason * reason) {
     if (reason != nullptr) *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_NOT_RPC;
     return false;
