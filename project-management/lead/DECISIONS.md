@@ -1,5 +1,20 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — accept L47 runtime proof and close the controller binding
+
+Decision: accept L47 NOT PROMOTED commit
+`d9aabb66822660b393cc8f14501ea5552471c6d9`. Open L48 only for a closed
+argv-safe runner/controller result binding with protected key-file authority,
+explicit unarmed warmup lifecycle, mandatory composed-result verification, and
+reconstruction of the already-qualified ADR-0048 composition. No primary,
+production, tuning, matrix, or L49 is authorized.
+
+Reason: L47 proved the difficult runtime mechanics on the real disposable
+multi-execution canary, but manual logs cannot authorize a primary transition.
+The remaining blocker is operational and bounded. Building the verifier and
+controller contract before reconstructing the candidate prevents another
+successful manual run that the primary controller cannot accept.
+
 ## 2026-07-26 — accept L46 blocker and correct foundation composition
 
 Decision: accept L46 NOT PROMOTED commit

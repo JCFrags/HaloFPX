@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-26 23:46 PDT
+Verified: 2026-07-27 07:48 PDT
 
 ## Overall state
 
@@ -108,15 +108,25 @@ independent read-only specialists are auditing graph-input coverage and
   L47 is active as an ADR-first correction for mixed ownership, prepared
   scheduler admission, and bounded per-execution arm/finalize/abort lifecycle.
   No primary or production action is authorized.
+- L47 closed NOT PROMOTED at
+  `d9aabb66822660b393cc8f14501ea5552471c6d9`. Its ADR-0048 composition
+  successfully qualified the real disposable multi-chunk capture/restore path,
+  including exact token `4245`, composed per-execution evidence, and zero
+  legacy state transfer. Review rejected promotion because the closed primary
+  runner/controller could not securely enable, verify, retain, or require that
+  result, and warmup diagnostics were not clean. Candidate source was removed.
+  L48 is active only for the protected-key, argv-safe runner/controller binding,
+  explicit warmup/unarmed lifecycle, verifier, and reconstruction of the
+  already-qualified composition.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `0d655b54d77929dafc2a7efe05f25a94d6c6ca0d`
+- Latest verified commit: `d9aabb66822660b393cc8f14501ea5552471c6d9`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L46 closeout
+- Worktree state: clean at the reviewed terminal L47 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
