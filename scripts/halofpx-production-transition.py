@@ -846,6 +846,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "l57-parent-split-identity-qualification",
         "l58-rpc-response-boundary-discriminator",
         "l59-rpc-response-evidence-lifetime",
+        "l60-transient-unit-response-discriminator",
     }
     primary = l29 or l31 or l33 or l36
     if l48:
@@ -865,7 +866,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         }
         if l48:
             expected_exec["controller"] = str(Path(__file__).resolve())
-            if raw["milestone"] != "l59-rpc-response-evidence-lifetime":
+            if raw["milestone"] not in {
+                    "l59-rpc-response-evidence-lifetime",
+                    "l60-transient-unit-response-discriminator"}:
                 expected_exec.pop("response_harvester")
         expected_child_argv = [
             str(interpreter_path), str(child_path), "--evidence-dir",
@@ -876,7 +879,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             if raw["milestone"] in {
                     "l55-first-armed-prompt-discriminator",
                     "l58-rpc-response-boundary-discriminator",
-                    "l59-rpc-response-evidence-lifetime"}:
+                    "l59-rpc-response-evidence-lifetime",
+                    "l60-transient-unit-response-discriminator"}:
                 expected_child_argv += ["--l55-first-chunk"]
             expected_child_argv += ["--authority-key-file", L48_KEY_PATHS["nimo-2"]]
         prefix = "halofpx-l48" if l48 else "halofpx-l36-primary" if l36 else "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
@@ -890,6 +894,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 "l57-parent-split-identity-qualification",
                 "l58-rpc-response-boundary-discriminator",
                 "l59-rpc-response-evidence-lifetime",
+                "l60-transient-unit-response-discriminator",
             }
             else "l36-primary-replay-authority-discriminator" if l36
             else "l33-primary-live-state-discriminator" if l33
@@ -910,6 +915,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             or tuple(raw["canary_units"]) != (
                 f"{prefix}-canary-capture.service",
                 f"{prefix}-canary-restore.service",
+                *((f"{prefix}-canary-first-chunk.service",)
+                  if l48 and raw["milestone"] ==
+                     "l60-transient-unit-response-discriminator" else ()),
             )
             or raw["key_paths"] != key_paths
             or raw["disposable_paths"] != {
@@ -940,7 +948,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 **({"response_boundary": 1}
                    if raw["milestone"] in {
                        "l58-rpc-response-boundary-discriminator",
-                       "l59-rpc-response-evidence-lifetime"}
+                       "l59-rpc-response-evidence-lifetime",
+                       "l60-transient-unit-response-discriminator"}
                    else {}),
             },
             **({
@@ -1158,7 +1167,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         host_for["device_receipt"] = DISPOSABLE_HOST
         host_for["status_verifier"] = DISPOSABLE_CANARY_HOST
         host_for["response_boundary_verifier"] = DISPOSABLE_CANARY_HOST
-        if raw["milestone"] == "l59-rpc-response-evidence-lifetime":
+        if raw["milestone"] in {
+                "l59-rpc-response-evidence-lifetime",
+                "l60-transient-unit-response-discriminator"}:
             host_for["response_harvester"] = DISPOSABLE_CANARY_HOST
     for name, host in host_for.items():
         result = runner.run(
@@ -1777,7 +1788,9 @@ def child_environment(
         required += (
             "result_authority_verifier", "composed_result_verifier",
             "device_receipt")
-        if manifest.get("milestone") == "l59-rpc-response-evidence-lifetime":
+        if manifest.get("milestone") in {
+                "l59-rpc-response-evidence-lifetime",
+                "l60-transient-unit-response-discriminator"}:
             required += ("response_harvester",)
     if any(not re.fullmatch(r"[0-9a-f]{64}", str(hashes.get(name, ""))) for name in required):
         raise TransitionError("validated manifest child hash authority is incomplete")
@@ -1818,7 +1831,9 @@ def child_environment(
         environment["HALOFPX_RPC_MUTABLE_AUTH"] = "1"
         if manifest.get("milestone") == "l58-rpc-response-boundary-discriminator":
             environment["HALOFPX_RPC_RESPONSE_DIAGNOSTICS"] = "1"
-        if manifest.get("milestone") == "l59-rpc-response-evidence-lifetime":
+        if manifest.get("milestone") in {
+                "l59-rpc-response-evidence-lifetime",
+                "l60-transient-unit-response-discriminator"}:
             environment["HALOFPX_RPC_RESPONSE_DIAGNOSTICS"] = "1"
             environment["HALOFPX_RPC_RESPONSE_HARVESTER_SHA256"] = str(
                 hashes["response_harvester"])

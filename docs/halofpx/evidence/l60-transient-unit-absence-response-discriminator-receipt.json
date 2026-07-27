@@ -1,0 +1,79 @@
+{
+  "schema": "halofpx.l60.transient-unit-absence-response-discriminator-receipt.v1",
+  "status": "NOT_PROMOTED",
+  "classification": "RESPONSE_BOUNDARY_EVIDENCE_HARVEST_PATH_AUTHORITY_FAILURE",
+  "date": "2026-07-27",
+  "base_commit": "d80b792747a43a9ee2f6faacad6a9b5dfe17d331",
+  "unit_guard": {
+    "scope": "closed L60 manifest-owned ssh/systemd-run path",
+    "pre_runtime_focused_tests": "26 passed",
+    "closeout_tests": "76 passed, 1 Windows-skipped POSIX assertion, 11 subtests passed",
+    "pre_runtime_review": "GO",
+    "real_stale_unit_reconciled": true,
+    "manager_scope": "user",
+    "qualification_path": "docs/halofpx/evidence/l60-unit-guard-qualification2",
+    "qualification_files": 5,
+    "qualification_bytes": 20113,
+    "qualification_tree_sha256": "cbbee78bf04642b868c470063e0609d584a8ec5b5a9b87f701f79904430bd7b1"
+  },
+  "attempts": {
+    "rejected_admission": {
+      "path": "docs/halofpx/evidence/l60-raw",
+      "stories_model_loaded": false,
+      "reason": "ABSENT_UNIT_LIST_UNIT_FILES_RC1_AND_DEVICE_PORT_BINDING",
+      "files": 9,
+      "bytes": 122384,
+      "tree_sha256": "9347589cafa3e61290d79303151ea778611a7d9e54d2e8e73b40b4d6b4034d6a"
+    },
+    "sole_runtime": {
+      "path": "docs/halofpx/evidence/l60-raw-runtime",
+      "stories_model_loaded": true,
+      "first_armed_chunk_entered": true,
+      "prompt_chunk_size": 512,
+      "worker_graph_nodes": 144,
+      "worker_graph_tensors": 193,
+      "scheduler_status": -1,
+      "llama_decode_status": -3,
+      "canary_invocation_id": "b990f5c81616432e97de6f572f666fd9",
+      "canary_pid": 1807459,
+      "canary_result": "core-dump",
+      "canary_exec_main_status": 6,
+      "worker_invocation_id": "cfd11ca8432b44f2af6e65b8bed7ee29",
+      "worker_pid": 2550390,
+      "client_response_stream": "missing",
+      "worker_response_stream": "error: harvester_hash",
+      "files": 28,
+      "bytes": 402461,
+      "tree_sha256": "6668a36217572ab45690d15c3e3df0fbbadf13dace3bfab3c1b0ebe1a6f01c3c"
+    }
+  },
+  "source": {
+    "source_root": "223e1589fa043bc755f25cfc61625e09e023bfb422bb195778447a5c066fbbe8",
+    "build_id": "750bbc9219d1ee498822c6ccd5bd8ab7caf99429808bfdf3558de0cce3fe6874",
+    "worker_sha256": "398db28dd8d8e3d4ec5a8febb1e14b09d6b928699df3fb827af124908e67912e",
+    "canary_sha256": "5378f8fd533e99aaf60d123dceb68f298bf9afd08a256d2e43969567c0f0a769",
+    "controller_sha256": "837e2231857434564436fff472c03368ff99e07a99c86c2d968603f04f7a2012",
+    "feature_default_off": true
+  },
+  "response_boundary": {
+    "classified": false,
+    "reason": "mandatory authenticated client/worker streams unavailable",
+    "smallest_remaining_prerequisite": "host-bound harvester executable authority and client prefix durability before teardown"
+  },
+  "production": {
+    "mutated": false,
+    "snapshots_equal": true,
+    "snapshot_sha256": "511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded",
+    "worker_pid": 1535639,
+    "worker_port": 50052,
+    "worker_nrestarts": 0,
+    "coordinator_pid": 2356329,
+    "coordinator_port": 8081,
+    "coordinator_http": 200,
+    "coordinator_nrestarts": 0
+  },
+  "cleanup": "PASS",
+  "independent_review": "ACCEPT_TRANSIENT_UNIT_GUARD_AND_REQUIRE_TERMINAL_NOT_PROMOTED",
+  "promotion": false,
+  "retry_authorized": false
+}

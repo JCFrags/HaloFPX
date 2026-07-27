@@ -1,0 +1,6 @@
+LoadState=loaded
+ActiveState=failed
+SubState=failed
+FragmentPath=/run/user/1000/systemd/transient/halofpx-l50-device-gate.service
+MainPID=0
+Result=exit-code

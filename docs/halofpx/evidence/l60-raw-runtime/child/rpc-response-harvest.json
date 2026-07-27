@@ -1,0 +1,45 @@
+{
+  "build_id": "750bbc9219d1ee498822c6ccd5bd8ab7caf99429808bfdf3558de0cce3fe6874",
+  "canary": {
+    "authority_status": "final",
+    "binary_sha256": "5378f8fd533e99aaf60d123dceb68f298bf9afd08a256d2e43969567c0f0a769",
+    "final_properties": {
+      "ActiveState": "failed",
+      "ExecMainCode": "3",
+      "ExecMainPID": "1807459",
+      "ExecMainStatus": "6",
+      "InvocationID": "b990f5c81616432e97de6f572f666fd9",
+      "MainPID": "0",
+      "Result": "core-dump",
+      "SubState": "failed"
+    },
+    "invocation_id": "b990f5c81616432e97de6f572f666fd9",
+    "pid": 1807459,
+    "unit": "halofpx-l48-canary-first-chunk"
+  },
+  "ordering": "before_worker_stop_remote_root_key_controller_cleanup",
+  "schema": "halofpx.l59.rpc-response-harvest-receipt.v1",
+  "source_root": "223e1589fa043bc755f25cfc61625e09e023bfb422bb195778447a5c066fbbe8",
+  "streams": {
+    "client": {
+      "reason": "source_absent",
+      "schema": "halofpx.rpc-response-harvest.v1",
+      "source": "/var/tmp/halofpx-l48-evidence/rpc-response-client.jsonl",
+      "staging": "/var/tmp/halofpx-l48-evidence/.rpc-response-client.harvest",
+      "status": "missing"
+    },
+    "worker": {
+      "reason": "harvester_hash",
+      "status": "error"
+    }
+  },
+  "verification": {
+    "status": "no_stream_present"
+  },
+  "worker": {
+    "binary_sha256": "398db28dd8d8e3d4ec5a8febb1e14b09d6b928699df3fb827af124908e67912e",
+    "invocation_id": "cfd11ca8432b44f2af6e65b8bed7ee29",
+    "pid": 2550390,
+    "unit": "halofpx-l48-worker-capture"
+  }
+}

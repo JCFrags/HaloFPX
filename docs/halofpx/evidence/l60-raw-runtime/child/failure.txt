@@ -1,0 +1,1 @@
+canary halofpx-l48-canary-first-chunk exit authority mismatch: {'SubState': 'failed', 'MainPID': '0', 'Result': 'core-dump', 'ExecMainCode': '3', 'ExecMainStatus': '6'}; response harvest: RPC response evidence harvest or authentication failed

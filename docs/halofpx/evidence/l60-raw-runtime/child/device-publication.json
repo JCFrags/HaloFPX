@@ -1,0 +1,13 @@
+{
+  "atomic_publish": true,
+  "bytes": 631,
+  "directory": "/var/tmp/halofpx-l48-evidence",
+  "directory_fsynced": true,
+  "final_name": "device-admission.json",
+  "host": "nimo-2",
+  "mode": "0600",
+  "no_replace": true,
+  "schema": "halofpx.l52.device-publication.v1",
+  "sha256": "f549741be492ac74849f700f5bae7116fe1b1538e494cb7ab4f1385b090fef08",
+  "temporary_name": ".device-admission.pending"
+}

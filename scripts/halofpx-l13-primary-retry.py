@@ -94,6 +94,8 @@ TOPOLOGY = "09b71fe40ae05c841a5be563f6e2b27ad2529d893b9420412e5280541ae53e1f"
 PLACEMENT = "d4aa0d3c14a3bec4ba5de733e00b6447f79f94d5dbeda6e3593be74ce84f917e"
 SSH_TRANSPORT = None
 SSH_TRANSPORT_MODULE = None
+UNIT_GUARD_EVIDENCE_ROOT: Path | None = None
+UNIT_GUARD_SEQUENCE = 0
 LOCAL_EVIDENCE_ROOT: Path | None = None
 DISPOSABLE_UNIT_AUTHORITY: dict[tuple[str, str], dict[str, object]] = {}
 DISPOSABLE_UNIT_FINAL_AUTHORITY: dict[tuple[str, str], dict[str, object]] = {}
@@ -981,6 +983,20 @@ def ssh(host, *argv, timeout=900, check=True):
     if SSH_TRANSPORT is None:
         raise CanaryError("bounded SSH transport is not initialized")
     structured_argv = [str(value) for value in argv]
+    if structured_argv and structured_argv[0] == "systemd-run":
+        unit_values = [
+            value.removeprefix("--unit=") for value in structured_argv
+            if value.startswith("--unit=")]
+        if len(unit_values) != 1:
+            raise CanaryError("systemd-run unit authority is missing or ambiguous")
+        port_values = [
+            int(structured_argv[index + 1])
+            for index, value in enumerate(structured_argv[:-1])
+            if value == "--port" and structured_argv[index + 1].isdecimal()]
+        ensure_transient_unit_absent(
+            host, unit_values[0],
+            port=port_values[-1] if port_values else None,
+            phase="prelaunch")
     is_readiness = (
         len(argv) >= 2 and argv[0] == "python3"
         and Path(str(argv[1])).name == "halofpx_rpc_readiness.py")
@@ -1008,7 +1024,7 @@ def ssh(host, *argv, timeout=900, check=True):
 
 
 def initialize_ssh_transport(evidence_root: Path) -> None:
-    global SSH_TRANSPORT, SSH_TRANSPORT_MODULE
+    global SSH_TRANSPORT, SSH_TRANSPORT_MODULE, UNIT_GUARD_EVIDENCE_ROOT
     module_path = Path(__file__).with_name("halofpx-production-transition.py")
     spec = importlib.util.spec_from_file_location("halofpx_l25_transport", module_path)
     if spec is None or spec.loader is None:
@@ -1018,6 +1034,182 @@ def initialize_ssh_transport(evidence_root: Path) -> None:
     spec.loader.exec_module(module)
     SSH_TRANSPORT_MODULE = module
     SSH_TRANSPORT = module.SshRunner(evidence_root)
+    UNIT_GUARD_EVIDENCE_ROOT = evidence_root
+
+
+def _unit_guard_snapshot(host: str, unit: str, port: int | None) -> dict[str, object]:
+    service = f"{unit}.service"
+    show = ssh(
+        host, "systemctl", "--user", "show", service,
+        "-p", "LoadState", "-p", "ActiveState", "-p", "SubState",
+        "-p", "MainPID", "-p", "FragmentPath", "-p", "UnitFileState",
+        "-p", "ControlGroup", check=False)
+    props = dict(
+        line.split("=", 1) for line in show.stdout.splitlines() if "=" in line)
+    process_query = ssh(
+        host, "ps", "-eo", "pid=,cgroup=", check=False)
+    process_rows = process_query.stdout.splitlines()
+    cgroup_pids = []
+    marker = f"/{service}"
+    for row in process_rows:
+        fields = row.strip().split(None, 1)
+        if len(fields) == 2 and marker in fields[1] and fields[0].isdecimal():
+            cgroup_pids.append(int(fields[0]))
+    registration = ssh(
+        host, "systemctl", "--user", "list-unit-files", service,
+        "--no-legend", "--no-pager", check=False)
+    listener = 0
+    listener_returncode = 0
+    if port is not None:
+        listener_query = ssh(host, "ss", "-H", "-ltnp", check=False)
+        listener_returncode = listener_query.returncode
+        listener = listener_pid(
+            listener_query.stdout, port)
+    return {
+        "show_returncode": show.returncode,
+        "process_returncode": process_query.returncode,
+        "registration_returncode": registration.returncode,
+        "listener_returncode": listener_returncode,
+        "properties": props,
+        "cgroup_pids": sorted(cgroup_pids),
+        "unit_file_registration": registration.stdout.strip(),
+        "listener_port": port,
+        "listener_pid": listener,
+    }
+
+
+def _unit_guard_absent(snapshot: dict[str, object]) -> bool:
+    props = snapshot["properties"]
+    assert isinstance(props, dict)
+    return (
+        snapshot["show_returncode"] == 0
+        and snapshot["process_returncode"] == 0
+        and _unit_guard_registration_query_valid(snapshot)
+        and snapshot["listener_returncode"] == 0
+        and props.get("LoadState") == "not-found"
+        and props.get("ActiveState") == "inactive"
+        and props.get("SubState") == "dead"
+        and props.get("MainPID") == "0"
+        and not props.get("FragmentPath")
+        and not props.get("ControlGroup")
+        and not snapshot["cgroup_pids"]
+        and not snapshot["unit_file_registration"]
+        and snapshot["listener_pid"] == 0
+    )
+
+
+def _unit_guard_registration_query_valid(snapshot: dict[str, object]) -> bool:
+    props = snapshot["properties"]
+    assert isinstance(props, dict)
+    return (
+        snapshot["registration_returncode"] == 0
+        or (
+            snapshot["registration_returncode"] == 1
+            and not snapshot["unit_file_registration"]
+            and props.get("LoadState") == "not-found"
+        )
+    )
+
+
+def ensure_transient_unit_absent(
+        host: str, unit: str, *, port: int | None,
+        phase: str) -> dict[str, object]:
+    global UNIT_GUARD_SEQUENCE
+    allowed = {
+        ("nimo-1", "halofpx-l50-device-gate", 50249),
+        ("nimo-1", f"{UNIT_PREFIX}-worker-capture", PORT),
+        ("nimo-1", f"{UNIT_PREFIX}-worker-restore", PORT),
+        ("nimo-2", f"{UNIT_PREFIX}-canary-capture", None),
+        ("nimo-2", f"{UNIT_PREFIX}-canary-restore", None),
+        ("nimo-2", f"{UNIT_PREFIX}-canary-first-chunk", None),
+    }
+    if (host, unit, port) not in allowed or phase not in {"prelaunch", "postcleanup"}:
+        raise CanaryError("transient unit guard authority is outside the closed manifest")
+    before = _unit_guard_snapshot(host, unit, port)
+    actions: list[dict[str, object]] = []
+    if (
+        any(
+            before[name] != 0 for name in (
+                "show_returncode", "process_returncode", "listener_returncode"))
+        or not _unit_guard_registration_query_valid(before)
+    ):
+        result = {
+            "schema": "halofpx.l60.transient-unit-absence.v1",
+            "host": host, "manager_scope": "user", "unit": f"{unit}.service",
+            "phase": phase, "before": before, "actions": actions,
+            "after": before, "status": "refused_query_failure",
+        }
+        _write_unit_guard_evidence(result)
+        raise CanaryError(f"transient unit {unit} authority query failed")
+    if not _unit_guard_absent(before):
+        props = before["properties"]
+        assert isinstance(props, dict)
+        main_pid = str(props.get("MainPID", ""))
+        if (
+            props.get("ActiveState") not in {"inactive", "failed"}
+            or main_pid != "0"
+            or before["cgroup_pids"]
+            or before["listener_pid"] != 0
+        ):
+            result = {
+                "schema": "halofpx.l60.transient-unit-absence.v1",
+                "host": host, "manager_scope": "user", "unit": f"{unit}.service",
+                "phase": phase, "before": before, "actions": actions,
+                "after": before, "status": "refused_active_or_owned",
+            }
+            _write_unit_guard_evidence(result)
+            raise CanaryError(f"transient unit {unit} is active or still owns resources")
+        for command in (
+            ["systemctl", "--user", "stop", f"{unit}.service"],
+            ["systemctl", "--user", "reset-failed", f"{unit}.service"],
+        ):
+            response = ssh(host, *command, check=False)
+            actions.append({
+                "argv": command, "returncode": response.returncode,
+                "stdout": response.stdout[-512:], "stderr": response.stderr[-512:]})
+            if response.returncode != 0 and "not loaded" not in response.stderr.lower():
+                result = {
+                    "schema": "halofpx.l60.transient-unit-absence.v1",
+                    "host": host, "manager_scope": "user",
+                    "unit": f"{unit}.service", "phase": phase,
+                    "before": before, "actions": actions, "after": before,
+                    "status": "reconciliation_command_failed",
+                }
+                _write_unit_guard_evidence(result)
+                raise CanaryError(f"transient unit {unit} reconciliation command failed")
+    deadline = time.monotonic() + 30
+    after = before
+    while time.monotonic() < deadline:
+        after = _unit_guard_snapshot(host, unit, port)
+        if _unit_guard_absent(after):
+            result = {
+                "schema": "halofpx.l60.transient-unit-absence.v1",
+                "host": host, "manager_scope": "user", "unit": f"{unit}.service",
+                "phase": phase, "before": before, "actions": actions,
+                "after": after, "status": "absent",
+            }
+            _write_unit_guard_evidence(result)
+            return result
+        time.sleep(0.2)
+    result = {
+        "schema": "halofpx.l60.transient-unit-absence.v1",
+        "host": host, "manager_scope": "user", "unit": f"{unit}.service",
+        "phase": phase, "before": before, "actions": actions,
+        "after": after, "status": "timeout",
+    }
+    _write_unit_guard_evidence(result)
+    raise CanaryError(f"transient unit {unit} absence timed out")
+
+
+def _write_unit_guard_evidence(value: dict[str, object]) -> None:
+    global UNIT_GUARD_SEQUENCE
+    if UNIT_GUARD_EVIDENCE_ROOT is None:
+        raise CanaryError("transient unit guard evidence root is unavailable")
+    UNIT_GUARD_SEQUENCE += 1
+    write_private_json(
+        UNIT_GUARD_EVIDENCE_ROOT
+        / f"transient-unit-guard-{UNIT_GUARD_SEQUENCE:03d}.json",
+        value)
 
 
 def start_bounded_ssh_session(host: str, remote_command: str):
@@ -1354,6 +1546,8 @@ def stop_worker(unit: str, port: int = PORT) -> None:
     # admitted epoch. If this call performs the stop, it must close the port.
     already_stopped, _ = stopped(require_port_closed=False)
     if already_stopped:
+        ensure_transient_unit_absent(
+            NIMO1, unit, port=port, phase="postcleanup")
         return
     ssh(
         NIMO1, "systemctl", "--user", "kill", "--kill-whom=main",
@@ -1378,6 +1572,8 @@ def stop_worker(unit: str, port: int = PORT) -> None:
     while time.monotonic() < deadline:
         is_stopped, last = stopped(require_port_closed=True)
         if is_stopped:
+            ensure_transient_unit_absent(
+                NIMO1, unit, port=port, phase="postcleanup")
             return
         time.sleep(1)
     raise CanaryError(f"disposable worker cleanup not verified for {unit}: {last}")
@@ -1414,6 +1610,8 @@ def stop_canary(unit: str) -> None:
             and props.get("SubState") == "dead"
             and props.get("MainPID") == "0"
         ):
+            ensure_transient_unit_absent(
+                NIMO2, unit, port=None, phase="postcleanup")
             return
         time.sleep(1)
     raise CanaryError(f"disposable coordinator cleanup not verified for {unit}")
@@ -3104,7 +3302,8 @@ def main() -> int:
         cleanup_errors = []
         for unit in reversed(local_units):
             try:
-                stop_worker(unit)
+                stop_worker(
+                    unit, 50249 if unit == "halofpx-l50-device-gate" else PORT)
             except Exception as exc:
                 cleanup_errors.append(f"{unit}: {exc}")
         if DIAGNOSTIC_ONLY:

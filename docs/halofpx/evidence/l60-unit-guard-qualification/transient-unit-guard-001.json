@@ -1,0 +1,41 @@
+{
+  "actions": [],
+  "after": {
+    "cgroup_pids": [],
+    "listener_pid": 0,
+    "listener_port": 50249,
+    "properties": {
+      "ActiveState": "failed",
+      "ControlGroup": "",
+      "FragmentPath": "/run/user/1000/systemd/transient/halofpx-l50-device-gate.service",
+      "LoadState": "loaded",
+      "MainPID": "0",
+      "SubState": "failed",
+      "UnitFileState": "transient"
+    },
+    "show_returncode": 0,
+    "unit_file_registration": "halofpx-l50-device-gate.service transient -"
+  },
+  "before": {
+    "cgroup_pids": [],
+    "listener_pid": 0,
+    "listener_port": 50249,
+    "properties": {
+      "ActiveState": "failed",
+      "ControlGroup": "",
+      "FragmentPath": "/run/user/1000/systemd/transient/halofpx-l50-device-gate.service",
+      "LoadState": "loaded",
+      "MainPID": "0",
+      "SubState": "failed",
+      "UnitFileState": "transient"
+    },
+    "show_returncode": 0,
+    "unit_file_registration": "halofpx-l50-device-gate.service transient -"
+  },
+  "host": "nimo-1",
+  "manager_scope": "user",
+  "phase": "prelaunch",
+  "schema": "halofpx.l60.transient-unit-absence.v1",
+  "status": "refused_active_or_owned",
+  "unit": "halofpx-l50-device-gate.service"
+}
