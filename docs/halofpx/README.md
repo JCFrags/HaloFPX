@@ -6,6 +6,8 @@ remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
 
 - [Clean baseline manifest](baseline-manifest.json)
 - [Feature-off baseline](feature-off-baseline.md)
+- [L45 primary correctness discriminator — NOT PROMOTED](l45-primary-correctness-discriminator-result.md)
+- [L45 receipt](evidence/l45-primary-correctness-discriminator-receipt.json)
 - [L44 RPC mutable session/handler authority — PASS](l44-rpc-mutable-session-handler-authority.md)
 - [L44 receipt](evidence/l44-rpc-mutable-session-handler-authority-receipt.json)
 - [L43 RPC mutable/update authority — NOT PROMOTED](l43-rpc-mutable-update-authority.md)

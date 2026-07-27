@@ -1,0 +1,17 @@
+{
+  "milestone": "L45",
+  "result": "NOT_PROMOTED",
+  "base_commit": "5f69d5cdaf8eb51283dd750c1fd8ca869fcf4d66",
+  "primary_artifact_accessed": false,
+  "production_mutated": false,
+  "blocking_finding": "accepted L44 mutable-session authority is not wired into the real distributed-state canary/replay caller",
+  "production_closeout": {
+    "nimo-2-worker-pid": 1535639,
+    "nimo-2-port": 50052,
+    "nimo-1-coordinator-pid": 2356329,
+    "nimo-1-port": 8081,
+    "http_status": 200,
+    "nrestarts": 0
+  },
+  "review_verdict": "PASS"
+}
