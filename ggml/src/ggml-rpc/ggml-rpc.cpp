@@ -3243,11 +3243,42 @@ bool ggml_backend_rpc_halofpx_mutable_abort(ggml_backend_rpc_halofpx_mutable_ses
 bool ggml_backend_rpc_halofpx_graph_result_get(
         ggml_backend_t backend,
         ggml_backend_rpc_halofpx_graph_result * result) {
-    if (backend == nullptr || result == nullptr || !ggml_backend_is_rpc(backend)) return false;
+    ggml_backend_rpc_halofpx_graph_result_reason reason =
+        GGML_RPC_HALOFPX_GRAPH_RESULT_OK;
+    return ggml_backend_rpc_halofpx_graph_result_inspect(backend, result, &reason);
+}
+
+bool ggml_backend_rpc_halofpx_graph_result_inspect(
+        ggml_backend_t backend,
+        ggml_backend_rpc_halofpx_graph_result * result,
+        ggml_backend_rpc_halofpx_graph_result_reason * reason) {
+    if (reason == nullptr) return false;
+    *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_OK;
+    if (backend == nullptr || result == nullptr) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_INVALID_ARGUMENT;
+        return false;
+    }
+    if (!ggml_backend_is_rpc(backend)) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_NOT_RPC;
+        return false;
+    }
     const auto * context = static_cast<const ggml_backend_rpc_context *>(backend->context);
-    if (context == nullptr || context->graph_auth_result.status != 2 ||
-        context->graph_auth_result.graph_uid == 0 ||
-        context->graph_auth_result.execution_sequence == 0) return false;
+    if (context == nullptr) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_CONTEXT_MISSING;
+        return false;
+    }
+    if (context->graph_auth_result.status != 2) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED;
+        return false;
+    }
+    if (context->graph_auth_result.graph_uid == 0) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_GRAPH_UID_ZERO;
+        return false;
+    }
+    if (context->graph_auth_result.execution_sequence == 0) {
+        *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_EXECUTION_SEQUENCE_ZERO;
+        return false;
+    }
     *result = context->graph_auth_result;
     return true;
 }
@@ -3391,6 +3422,12 @@ bool ggml_backend_rpc_halofpx_mutable_prepare(const ggml_backend_rpc_halofpx_mut
 bool ggml_backend_rpc_halofpx_mutable_commit(const ggml_backend_rpc_halofpx_mutable_session *, ggml_cgraph *, ggml_backend_rpc_halofpx_mutable_result *) { return false; }
 bool ggml_backend_rpc_halofpx_mutable_abort(ggml_backend_rpc_halofpx_mutable_session *) { return false; }
 bool ggml_backend_rpc_halofpx_graph_result_get(ggml_backend_t, ggml_backend_rpc_halofpx_graph_result *) { return false; }
+bool ggml_backend_rpc_halofpx_graph_result_inspect(
+        ggml_backend_t, ggml_backend_rpc_halofpx_graph_result *,
+        ggml_backend_rpc_halofpx_graph_result_reason * reason) {
+    if (reason != nullptr) *reason = GGML_RPC_HALOFPX_GRAPH_RESULT_NOT_RPC;
+    return false;
+}
 bool ggml_backend_rpc_halofpx_mutable_test_inject(const ggml_backend_rpc_halofpx_mutable_session *, ggml_tensor *, ggml_backend_rpc_halofpx_mutable_test_case, uint32_t *) { return false; }
 bool ggml_backend_rpc_halofpx_mutable_test_commit_omit_unmutated_leaf(const ggml_backend_rpc_halofpx_mutable_session *) { return false; }
 #endif

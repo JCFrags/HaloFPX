@@ -797,7 +797,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             },
             **({
                 "provenance": {
-                    "schema": "halofpx.l55.binary-provenance.v1",
+                    "schema": "halofpx.l56.binary-provenance.v1",
                     "source_root": raw["authority_contract"].get(
                         "provenance", {}).get("source_root"),
                     "build_id": raw["authority_contract"].get(
@@ -830,7 +830,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         if l48 and raw["milestone"] == "l55-first-armed-prompt-discriminator":
             provenance = raw["authority_contract"]["provenance"]
             if (
-                provenance["schema"] != "halofpx.l55.binary-provenance.v1"
+                provenance["schema"] != "halofpx.l56.binary-provenance.v1"
                 or re.fullmatch(r"[0-9a-f]{64}", provenance["source_root"]) is None
                 or re.fullmatch(r"[0-9a-f]{64}", provenance["build_id"]) is None
             ):

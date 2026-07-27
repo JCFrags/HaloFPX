@@ -1,0 +1,54 @@
+{
+  "schema": "halofpx.l56.l40-receipt-reconciliation-receipt.v1",
+  "status": "PASS_DIAGNOSTIC_ONLY",
+  "date": "2026-07-27",
+  "base_commit": "51e87b0c011eb3c7dc5b170bd8f64048bccd0853",
+  "classification": {
+    "branch": "l40_graph_result_reconcile",
+    "subreason": "graph_uid_mismatch",
+    "expected_graph_uid": 26,
+    "actual_graph_uid": 27,
+    "expected_execution_sequence": 1,
+    "actual_execution_sequence": 1,
+    "backend_ordinal": 0,
+    "receipt_reason": 0
+  },
+  "retained_server_authority": {
+    "prepared": true,
+    "executed": true,
+    "graph_uid": 27,
+    "execution_sequence": 1,
+    "graph_digest": "0717a7531b1dfc48d63cce84b1ec0caba7c3b5351278e389297036298b59f0da"
+  },
+  "provenance": {
+    "schema": "halofpx.l56.binary-provenance.v1",
+    "source_root": "6678087c0f10b67f04d10d4d2cd8cbc6a94b033163a0cc26229cd65a00b9dd66",
+    "build_id": "3f8a7005ad338413eb65c39b7524c5339db8e0279d40e1dfa662c1977ce25cc0",
+    "worker_sha256": "5ff5150f51860a031b405b97d4a25ab4506d4309b4f7184f0baeac48bb31cff4",
+    "canary_sha256": "a2b287c1d9cbe32ab72e84578ce21aba9fafaa70550d7afeeb6bd261a0922c8c",
+    "source_archive_sha256": "914f5d4323dbd6c33529f36b0cbb17ae8fd7f2b578f111bb985a9c84f21fd464"
+  },
+  "qualification": {
+    "focused_tests": "16 passed",
+    "worker_build": "PASS",
+    "canary_build": "PASS",
+    "runtime_performed": false
+  },
+  "raw_evidence": {
+    "path": "docs/halofpx/evidence/l56-raw",
+    "file_count": 4,
+    "tree_sha256": "fac6e14e5684d0dc064c0a4fa608de2544b53716afa3aff111c0051e0fa33383"
+  },
+  "production": {
+    "changed": false,
+    "worker_pid": 1535639,
+    "worker_port": 50052,
+    "worker_nrestarts": 0,
+    "coordinator_pid": 2356329,
+    "coordinator_port": 8081,
+    "coordinator_http": 200,
+    "coordinator_nrestarts": 0
+  },
+  "cleanup": "PASS",
+  "correction_implemented": false
+}

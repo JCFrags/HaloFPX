@@ -1580,12 +1580,14 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
     // in order to correctly reuse a graph, it's full topology has to be uniquely determined by these parameters
     const auto gparams = graph_params(res, ubatch, mctx, gtype);
     const bool composed_authority = halofpx_execution_pending;
-    auto record_composed_failure = [&](const std::string & branch, ggml_status status) {
+    auto record_composed_failure = [&](
+            const std::string & branch, ggml_status status,
+            const std::string & detail = std::string()) {
         if (!composed_authority) {
             return;
         }
         std::ostringstream out;
-        out << "version=1|status=failed|branch=" << branch
+        out << "version=1|status=failed|branch=" << branch << detail
             << "|execution_sequence=" << halofpx_execution_sequence
             << "|pending=1|ggml_status=" << static_cast<int>(status);
         halofpx_execution_result_text = out.str();
@@ -1906,12 +1908,48 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             << "|rpc=" << halofpx_execution_prepared.rpc_count;
         for (size_t i = 0; i < halofpx_mutable_results.size(); ++i) {
             ggml_backend_rpc_halofpx_graph_result graph_result {};
-            if (halofpx_mutable_backend_ordinals[i] >= backend_ptrs.size() ||
-                !ggml_backend_rpc_halofpx_graph_result_get(
-                    backend_ptrs[halofpx_mutable_backend_ordinals[i]], &graph_result) ||
-                graph_result.graph_uid != halofpx_execution_prepared.graph_uid ||
-                graph_result.execution_sequence != halofpx_execution_sequence) {
-                record_composed_failure("l40_graph_result_reconcile", GGML_STATUS_FAILED);
+            ggml_backend_rpc_halofpx_graph_result_reason receipt_reason =
+                GGML_RPC_HALOFPX_GRAPH_RESULT_OK;
+            const uint32_t backend_ordinal = halofpx_mutable_backend_ordinals[i];
+            const bool backend_in_range = backend_ordinal < backend_ptrs.size();
+            const bool receipt_available = backend_in_range &&
+                ggml_backend_rpc_halofpx_graph_result_inspect(
+                    backend_ptrs[backend_ordinal], &graph_result, &receipt_reason);
+            const char * subreason =
+                !backend_in_range ? "backend_ordinal_out_of_range" :
+                !receipt_available &&
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_INVALID_ARGUMENT ?
+                    "receipt_invalid_argument" :
+                !receipt_available &&
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_NOT_RPC ?
+                    "receipt_backend_not_rpc" :
+                !receipt_available &&
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_CONTEXT_MISSING ?
+                    "receipt_context_missing" :
+                !receipt_available &&
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED ?
+                    "receipt_status_not_executed" :
+                !receipt_available &&
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_GRAPH_UID_ZERO ?
+                    "receipt_graph_uid_zero" :
+                !receipt_available &&
+                    receipt_reason == GGML_RPC_HALOFPX_GRAPH_RESULT_EXECUTION_SEQUENCE_ZERO ?
+                    "receipt_execution_sequence_zero" :
+                graph_result.graph_uid != halofpx_execution_prepared.graph_uid ?
+                    "graph_uid_mismatch" :
+                graph_result.execution_sequence != halofpx_execution_sequence ?
+                    "execution_sequence_mismatch" : nullptr;
+            if (subreason != nullptr) {
+                std::ostringstream detail;
+                detail << "|subreason=" << subreason
+                    << "|expected_graph_uid=" << halofpx_execution_prepared.graph_uid
+                    << "|actual_graph_uid=" << graph_result.graph_uid
+                    << "|expected_execution_sequence=" << halofpx_execution_sequence
+                    << "|actual_execution_sequence=" << graph_result.execution_sequence
+                    << "|backend_ordinal=" << backend_ordinal
+                    << "|receipt_reason=" << static_cast<uint32_t>(receipt_reason);
+                record_composed_failure(
+                    "l40_graph_result_reconcile", GGML_STATUS_FAILED, detail.str());
                 abort_composed();
                 ret = GGML_STATUS_FAILED;
                 return nullptr;

@@ -163,6 +163,16 @@ typedef struct ggml_backend_rpc_halofpx_graph_result {
     uint8_t receipt_tag[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES];
 } ggml_backend_rpc_halofpx_graph_result;
 
+typedef enum ggml_backend_rpc_halofpx_graph_result_reason {
+    GGML_RPC_HALOFPX_GRAPH_RESULT_OK = 0,
+    GGML_RPC_HALOFPX_GRAPH_RESULT_INVALID_ARGUMENT = 1,
+    GGML_RPC_HALOFPX_GRAPH_RESULT_NOT_RPC = 2,
+    GGML_RPC_HALOFPX_GRAPH_RESULT_CONTEXT_MISSING = 3,
+    GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED = 4,
+    GGML_RPC_HALOFPX_GRAPH_RESULT_GRAPH_UID_ZERO = 5,
+    GGML_RPC_HALOFPX_GRAPH_RESULT_EXECUTION_SEQUENCE_ZERO = 6,
+} ggml_backend_rpc_halofpx_graph_result_reason;
+
 typedef enum ggml_backend_rpc_halofpx_mutable_test_case {
     GGML_RPC_HALOFPX_MUTABLE_TEST_MALFORMED = 1,
     GGML_RPC_HALOFPX_MUTABLE_TEST_TAMPERED,
@@ -223,6 +233,10 @@ GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_abort(
 GGML_BACKEND_API bool ggml_backend_rpc_halofpx_graph_result_get(
         ggml_backend_t backend,
         ggml_backend_rpc_halofpx_graph_result * result);
+GGML_BACKEND_API bool ggml_backend_rpc_halofpx_graph_result_inspect(
+        ggml_backend_t backend,
+        ggml_backend_rpc_halofpx_graph_result * result,
+        ggml_backend_rpc_halofpx_graph_result_reason * reason);
 // Qualification-only negative injection. Requires
 // HALOFPX_RPC_MUTABLE_AUTH_TEST=1 and drives the real server SET handler.
 GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_test_inject(

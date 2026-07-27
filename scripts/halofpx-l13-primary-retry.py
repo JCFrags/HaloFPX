@@ -79,11 +79,11 @@ REPLAY_AUTHORITY_VERIFIER_SHA = ""
 RESULT_AUTHORITY_VERIFIER = ""
 DEVICE_RECEIPT = ""
 DEVICE_RECEIPT_SHA = ""
-L55_STATUS_VERIFIER_SHA = "6e4d53de8e3f63266de66da84f504de071b208ebc2010c2c01026cdd0813d0b3"
+L55_STATUS_VERIFIER_SHA = "6b3b996bb96c8288bf20662c2bb4b388d91e4905c1b4689317ae51b59e398799"
 RESULT_AUTHORITY_VERIFIER_SHA = ""
 L55_FIRST_CHUNK_ONLY = False
-L55_SOURCE_ROOT = "82334ab4f3f5559d8d926a10d343f154afcbe88c7c983a5ffcbf32b382500803"
-L55_BUILD_ID = "59aebad3ec8d9843af603632ee49386a5f5b07b5b4947357f5b0420009511377"
+L55_SOURCE_ROOT = "6678087c0f10b67f04d10d4d2cd8cbc6a94b033163a0cc26229cd65a00b9dd66"
+L55_BUILD_ID = "3f8a7005ad338413eb65c39b7524c5339db8e0279d40e1dfa662c1977ce25cc0"
 
 MODEL_DIGEST = MODEL_SHA
 COMPATIBILITY = "a8f921ae8742823eac2942004094d1d11f47962bae0607c4b2fce6ce5a81c36f"
@@ -2519,12 +2519,12 @@ def main() -> int:
             expected = {
                 NIMO1: (
                     WORKER_BIN,
-                    "schema=halofpx.l55.binary-provenance.v1"
+                    "schema=halofpx.l56.binary-provenance.v1"
                     f"|source_root={L55_SOURCE_ROOT}|build_id={L55_BUILD_ID}"
                     "|binary=rpc-server"),
                 NIMO2: (
                     CANARY_BIN,
-                    "schema=halofpx.l55.binary-provenance.v1"
+                    "schema=halofpx.l56.binary-provenance.v1"
                     f"|source_root={L55_SOURCE_ROOT}|build_id={L55_BUILD_ID}"
                     "|binary=canary"),
             }

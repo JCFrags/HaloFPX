@@ -15,7 +15,7 @@ if (HALOFPX_PROVENANCE_SOURCE_ROOT OR HALOFPX_PROVENANCE_BUILD_ID)
     add_compile_definitions(
         HALOFPX_PROVENANCE_SOURCE_ROOT="${HALOFPX_PROVENANCE_SOURCE_ROOT}"
         HALOFPX_PROVENANCE_BUILD_ID="${HALOFPX_PROVENANCE_BUILD_ID}"
-        HALOFPX_PROVENANCE_SCHEMA="halofpx.l55.binary-provenance.v1")
+        HALOFPX_PROVENANCE_SCHEMA="halofpx.l56.binary-provenance.v1")
 endif()
 include(CheckIncludeFileCXX)
 

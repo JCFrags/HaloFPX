@@ -16,7 +16,11 @@ DOMAIN = b"halofpx.l55.first-chunk.v1"
 RECORD = re.compile(
     r"^\[halofpx-l55-status\] "
     r"(?P<canonical>phase=(?:capture-chunk|first-chunk)\|decode_status=-?\d+"
-    r"(?:\|authority=version=1\|status=failed\|branch=[a-z0-9_]+"
+    r"(?:\|authority=version=1\|status=failed\|branch=(?P<branch>[a-z0-9_]+)"
+    r"(?:\|subreason=(?P<subreason>backend_ordinal_out_of_range|receipt_invalid_argument|receipt_backend_not_rpc|receipt_context_missing|receipt_status_not_executed|receipt_graph_uid_zero|receipt_execution_sequence_zero|graph_uid_mismatch|execution_sequence_mismatch)"
+    r"\|expected_graph_uid=\d+\|actual_graph_uid=\d+"
+    r"\|expected_execution_sequence=\d+\|actual_execution_sequence=\d+"
+    r"\|backend_ordinal=\d+\|receipt_reason=\d+)?"
     r"\|execution_sequence=1\|pending=1\|ggml_status=-?\d+"
     r"|\|chunks=1\|n_tokens=512))"
     r"\|auth_tag=(?P<tag>[0-9a-f]{64})$")
@@ -41,6 +45,11 @@ def main() -> int:
     match = RECORD.fullmatch(args.record)
     if match is None:
         raise SystemExit("L55 status grammar mismatch")
+    if (
+        (match["branch"] == "l40_graph_result_reconcile") !=
+        (match["subreason"] is not None)
+    ):
+        raise SystemExit("L56 reconciliation subreason authority mismatch")
     lines = key_path.read_text(encoding="ascii").splitlines()
     if len(lines) != 2 or any(re.fullmatch(r"[0-9a-f]{64}", line) is None for line in lines):
         raise SystemExit("L55 key format mismatch")
