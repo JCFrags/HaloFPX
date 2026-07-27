@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 12:43 PDT
+Verified: 2026-07-27 13:06 PDT
 
 ## Overall state
 
@@ -181,15 +181,22 @@ independent read-only specialists are auditing graph-input coverage and
   `l40_graph_result_reconcile`. No later execution occurred. L56 is active only
   to distinguish the exact L40 receipt condition—absence, identity/digest/tag,
   replay/consumption, or backend-status mismatch—without changing behavior.
+- L56 passed as a bounded diagnostic at
+  `8af226d675d9ae287d5d2bddd849f9920507d9ba`. Source and retained evidence
+  decisively identify `graph_uid_mismatch`: reconciliation compared parent
+  scheduler graph UID `26` to the valid RPC split UID `27` for backend ordinal
+  `0`, sequence `1`. L57 is active only to bind explicit parent/split UID
+  mapping, retain fail-closed lineage, and perform one complete stories15M
+  controller qualification.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `51e87b0c011eb3c7dc5b170bd8f64048bccd0853`
+- Latest verified commit: `8af226d675d9ae287d5d2bddd849f9920507d9ba`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L55 diagnostic closeout
+- Worktree state: clean at the reviewed terminal L56 diagnostic closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

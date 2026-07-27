@@ -1,5 +1,18 @@
 # Project-Lead Decisions
 
+## 2026-07-27 — accept L56 root cause and bind parent/split graph identity
+
+Decision: accept L56 diagnostic PASS commit
+`8af226d675d9ae287d5d2bddd849f9920507d9ba`. Open L57 only to correct L40
+reconciliation using scheduler-owned parent-to-split UID mapping for the exact
+backend/execution and run one complete stories15M controller qualification. No
+primary, production, cache expansion, tuning, matrix, or L58.
+
+Reason: the exact defect is proven without another runtime. Parent UID `26` and
+RPC split UID `27` are different valid identity levels; comparing them directly
+caused the first armed prompt failure. The correction must bind both rather
+than accept arbitrary UIDs or assume numeric adjacency.
+
 ## 2026-07-27 — accept L55 localization and discriminate L40 receipt refusal
 
 Decision: accept L55 diagnostic PASS commit

@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-27T12:43:00-07:00",
+  "updated_at": "2026-07-27T13:06:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l56_no_primary_l40_client_graph_receipt_reconciliation_subreason_discriminator",
+  "worker_status": "active_l57_no_primary_parent_split_uid_reconciliation_correction_and_stories_qualification",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "51e87b0c011eb3c7dc5b170bd8f64048bccd0853",
-  "last_observed_milestone": "L55 diagnostic PASS; exact first failure localized to coordinator L40 graph-result reconciliation after successful authenticated server execution",
-  "last_decision": "accept_l55_localization_and_open_l56_exact_l40_client_receipt_reconciliation_subreason_discriminator",
-  "last_progress": "L56 is distinguishing receipt absence, identity/digest/tag, replay/consumption, and backend-status refusal inside one client branch",
+  "last_verified_head": "8af226d675d9ae287d5d2bddd849f9920507d9ba",
+  "last_observed_milestone": "L56 diagnostic PASS; exact graph UID mismatch proven between parent scheduler UID26 and valid RPC split UID27",
+  "last_decision": "accept_l56_root_cause_and_open_l57_explicit_parent_split_uid_mapping_correction",
+  "last_progress": "L57 is correcting two-level graph identity reconciliation and running one full stories qualification",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L56 blocker or terminal report; no periodic polling"
+  "next_check_trigger": "direct L57 blocker or terminal report; no periodic polling"
 }
