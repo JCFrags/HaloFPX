@@ -1767,3 +1767,35 @@ absent. Production preflight and terminal evidence independently hash to the
 same SHA-256
 `511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded`;
 no production or model mutation occurred.
+
+## 2026-07-28 — open L77 exact-primary distributed-state correctness gate
+
+Decision: open L77 at accepted base
+`6c8dc28a66b0fc3fb2525713dd505cc4320a4c27` for exactly one
+controller-managed primary-model correctness discriminator. Reuse the accepted
+distributed-state canary, controller, lifecycle authority, and evidence
+custody. Compare one deterministic reference token from residency A with one
+restored token after worker-first creation of a genuinely fresh residency B.
+
+Reason: current source retains two separate capabilities: private
+generation-one exact-key llama-server canaries and worker-local RPC
+capture/stage/commit used only by the distributed-state test path. They are not
+composed, so no admissible end-user two-node persistent cache exists. Earlier
+primary attempts failed exact first-token equality, while L40-L76 subsequently
+closed the missing scheduler/RPC execution and terminal evidence authority.
+One current-head primary discriminator is the shortest honest gate before
+building the server composition.
+
+Use the pinned 159,873,097,824-byte artifact with SHA-256
+`96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6`,
+the frozen deterministic request, balanced `RPC0,ROCm0`, and tensor split
+`1,1`. Acceptance requires exact token equality, represented state equality,
+zero legacy GET/SET state-page transfer, and accepted client/server terminal
+custody. Reuse accepted allocation, controller, transport, graph, census, and
+custody evidence rather than repeating their matrices.
+
+Only one runtime attempt is authorized. Production transition must stop the
+coordinator before the worker, recover worker before coordinator, and finish
+with exact system-unit/listener/restart and HTTP 200 reconciliation. No
+production cache enablement, server composition, performance claim, tuning,
+extra attempt, semantic correction, or automatic follow-on is authorized.

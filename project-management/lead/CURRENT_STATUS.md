@@ -20,7 +20,17 @@ authority file, remained non-promotable, and still completed cleanup.
 Independent review found no P1/P2. Production preflight and terminal snapshots
 are byte-identical at SHA-256
 `511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded`.
-No next milestone is automatically open.
+No next milestone was automatically opened by the L76 acceptance.
+
+L77 is now active as one exact-primary distributed-state correctness
+discriminator. The accepted code exposes laboratory exact-key server canaries
+and a separate worker-local capture/stage/commit protocol, but they are not
+composed into an end-user two-node persistent cache. L77 therefore reuses the
+accepted distributed-state canary and L40-L76 authority to compare one
+reference token from residency A with one restored token from a genuinely fresh
+residency B on the pinned 159,873,097,824-byte model. It is one bounded
+controller-managed transition with exact production recovery, not cache
+promotion or a performance trial.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
