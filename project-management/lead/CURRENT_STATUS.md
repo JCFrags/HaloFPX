@@ -316,6 +316,17 @@ independent read-only specialists are auditing graph-input coverage and
   feature-on Stories15M run. The accepted L68 feature-off control is reused and
   will not be repeated.
 - L69 closed NOT PROMOTED at
+  `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The expected-census ordering
+  correction and focused review passed. Its sole replacement run proved the
+  sealed whole-graph census expected 28 register and 38 exclude entries, while
+  the real stream stopped at 11 and 36 before prepare. This is now classified
+  as an earlier registration/exclusion refusal; partial-census grammar is not
+  the primary defect and no retry is authorized.
+- L70 is active as read-only/offline diagnosis of the first unadmitted ordered
+  census entry and its exact tensor/view/buffer/backend ownership and refusal
+  condition. It authorizes no source change, instrumentation, build expansion,
+  model run, grammar change, production action, or implementation follow-on.
+- L69 closed NOT PROMOTED at
   `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The ordering correction,
   focused `2/1` pre-prepare abort, wrong-count refusal, preserved
   pre-registration abort, focused compile, and independent review all passed.
@@ -334,7 +345,7 @@ independent read-only specialists are auditing graph-input coverage and
 - Latest verified commit: `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`
 - Remote count: zero
 - Worktree state: clean at terminal L69 closeout
-- Primary worker: L69 task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Primary worker: L70 diagnostic task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record

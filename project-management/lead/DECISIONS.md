@@ -1481,3 +1481,28 @@ instead of inferring expectations from observation. Canary exit status was 42
 and `llama_decode` returned `-3`. No retry was attempted. Production remained
 byte-identical across preflight/final snapshots and all disposable resources
 were removed.
+
+## 2026-07-28 — classify L69 mismatch as an earlier registration refusal
+
+Decision: accept L69 terminal NOT PROMOTED at
+`09fa1f4313c81ca9e629af6772f2108fb7ab8bf7` and retain its reviewed
+expected-census ordering correction. Do not weaken grammar, add a partial-census
+terminal, retry Stories15M, or open another foundation layer. Open L70 only as
+read-only/offline diagnosis of the first unadmitted ordered census entry.
+
+Reason: the authenticated whole-graph plan expected 28 register and 38 exclude
+events, but the real stream stopped at 11 and 36. Exact source order processes
+scheduler roots first and scheduler copies afterward, so the completed 11/36
+prefix is evidence that a later registration/exclusion call refused before
+prepare. The partial terminal is a consequence; accepting it would hide the
+earlier semantic mismatch.
+
+L70 must reconstruct the ordered root-plus-copy plan for the identical graph,
+map the observed prefix to the first failing entry, and identify its tensor,
+view/buffer ownership, backend, role/class/ordinal, and exact refusal condition.
+It must decide whether the sealed logical census wrongly includes an entry that
+cannot exist on the RPC session or runtime registration resolves the wrong
+tensor/connection. No code change, new instrumentation unless evidence is
+literally insufficient, model run, production action, grammar change, retry, or
+follow-on implementation is authorized. Project-management files remain
+Lead-owned.
