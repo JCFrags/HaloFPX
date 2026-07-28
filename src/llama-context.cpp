@@ -1791,7 +1791,15 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 ggml_backend_rpc_halofpx_mutable_preflight preflight {};
                 if (!ggml_backend_rpc_halofpx_mutable_negotiate_preflight(
                         backend_ptrs[backend_ordinal], 1, &preflight)) {
-                    abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                    fail_composed(
+                        llama_halofpx_preprepare_failure_branch(
+                            llama_halofpx_preprepare_failure::mutable_preflight),
+                        GGML_STATUS_FAILED,
+                        "|backend_ordinal=" + std::to_string(backend_ordinal) +
+                            "|admitted_backend_count=" +
+                            std::to_string(halofpx_mutable_sessions.size()));
+                    ret = GGML_STATUS_FAILED;
+                    return nullptr;
                 }
                 ggml_backend_sched_authority_admission_expectation expectation {};
                 expectation.major = 1;
@@ -1812,14 +1820,42 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 struct ggml_backend_sched_authority_prepared_admission scheduler_admission {};
                 if (!ggml_backend_sched_authority_expected_prepared_admission(
                         sched.get(), &halofpx_execution_handle, &expectation,
-                        &expected_admission) ||
-                    !ggml_backend_sched_authority_prepared_admission(
+                        &expected_admission)) {
+                    fail_composed(
+                        llama_halofpx_preprepare_failure_branch(
+                            llama_halofpx_preprepare_failure::expected_admission),
+                        GGML_STATUS_FAILED,
+                        "|backend_ordinal=" + std::to_string(backend_ordinal) +
+                            "|admitted_backend_count=" +
+                            std::to_string(halofpx_mutable_sessions.size()));
+                    ret = GGML_STATUS_FAILED;
+                    return nullptr;
+                }
+                if (!ggml_backend_sched_authority_prepared_admission(
                         sched.get(), &halofpx_execution_handle, &expectation,
-                        &scheduler_admission) ||
-                    !ggml_backend_sched_authority_verify_prepared_admission(
+                        &scheduler_admission)) {
+                    fail_composed(
+                        llama_halofpx_preprepare_failure_branch(
+                            llama_halofpx_preprepare_failure::prepared_admission),
+                        GGML_STATUS_FAILED,
+                        "|backend_ordinal=" + std::to_string(backend_ordinal) +
+                            "|admitted_backend_count=" +
+                            std::to_string(halofpx_mutable_sessions.size()));
+                    ret = GGML_STATUS_FAILED;
+                    return nullptr;
+                }
+                if (!ggml_backend_sched_authority_verify_prepared_admission(
                         &scheduler_admission, halofpx_execution_key.data(),
                         &expected_admission)) {
-                    abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                    fail_composed(
+                        llama_halofpx_preprepare_failure_branch(
+                            llama_halofpx_preprepare_failure::admission_verify),
+                        GGML_STATUS_FAILED,
+                        "|backend_ordinal=" + std::to_string(backend_ordinal) +
+                            "|admitted_backend_count=" +
+                            std::to_string(halofpx_mutable_sessions.size()));
+                    ret = GGML_STATUS_FAILED;
+                    return nullptr;
                 }
                 ggml_backend_rpc_halofpx_mutable_attempt attempt {};
                 attempt.version = 3;
@@ -1832,7 +1868,13 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 if (!ggml_backend_rpc_halofpx_mutable_begin(
                         backend_ptrs[backend_ordinal], &scheduler_admission,
                         &expected_admission, &attempt, &session)) {
-                    abort_composed();
+                    fail_composed(
+                        llama_halofpx_preprepare_failure_branch(
+                            llama_halofpx_preprepare_failure::mutable_begin),
+                        GGML_STATUS_FAILED,
+                        "|backend_ordinal=" + std::to_string(backend_ordinal) +
+                            "|admitted_backend_count=" +
+                            std::to_string(halofpx_mutable_sessions.size()));
                     ret = GGML_STATUS_FAILED;
                     return nullptr;
                 }
@@ -1851,24 +1893,58 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                     if (!ggml_backend_sched_authority_census_at(
                             sched.get(), &halofpx_execution_handle,
                             backend_ordinal, i, &entry)) {
-                        abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                        fail_composed(
+                            llama_halofpx_preprepare_failure_branch(
+                                llama_halofpx_preprepare_failure::
+                                    scheduler_census_lookup),
+                            GGML_STATUS_FAILED,
+                            "|backend_ordinal=" + std::to_string(backend_ordinal) +
+                                "|census_index=" + std::to_string(i));
+                        ret = GGML_STATUS_FAILED;
+                        return nullptr;
                     }
-                    const bool admitted =
-                        entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
+                    if (entry.disposition != GGML_BACKEND_SCHED_CENSUS_REGISTER &&
+                        entry.disposition != GGML_BACKEND_SCHED_CENSUS_EXCLUDE) {
+                        fail_composed(
+                            llama_halofpx_preprepare_failure_branch(
+                                llama_halofpx_preprepare_failure::
+                                    scheduler_census_disposition),
+                            GGML_STATUS_FAILED,
+                            "|backend_ordinal=" + std::to_string(backend_ordinal) +
+                                "|census_index=" + std::to_string(i) +
+                                "|disposition=" + std::to_string(entry.disposition) +
+                                "|role=" + std::to_string(entry.role) +
+                                "|role_ordinal=" + std::to_string(entry.role_ordinal));
+                        ret = GGML_STATUS_FAILED;
+                        return nullptr;
+                    }
+                    const bool is_register =
+                        entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER;
+                    const bool admitted = is_register ?
                         ggml_backend_rpc_halofpx_mutable_register(
                             &session, entry.runtime_tensor,
                             static_cast<ggml_backend_rpc_halofpx_mutable_role>(
                                 entry.role),
                             entry.role_ordinal) :
-                        entry.disposition == GGML_BACKEND_SCHED_CENSUS_EXCLUDE ?
                         ggml_backend_rpc_halofpx_mutable_exclude(
                             &session, entry.runtime_tensor,
                             static_cast<ggml_backend_rpc_halofpx_exclusion>(
                                 entry.role),
-                            entry.role_ordinal) :
-                        false;
+                            entry.role_ordinal);
                     if (!admitted) {
-                        abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                        fail_composed(
+                            llama_halofpx_preprepare_failure_branch(
+                                is_register ?
+                                    llama_halofpx_preprepare_failure::mutable_register :
+                                    llama_halofpx_preprepare_failure::mutable_exclude),
+                            GGML_STATUS_FAILED,
+                            "|backend_ordinal=" + std::to_string(backend_ordinal) +
+                                "|census_index=" + std::to_string(i) +
+                                "|disposition=" + std::to_string(entry.disposition) +
+                                "|role=" + std::to_string(entry.role) +
+                                "|role_ordinal=" + std::to_string(entry.role_ordinal));
+                        ret = GGML_STATUS_FAILED;
+                        return nullptr;
                     }
                 }
             }
@@ -1893,7 +1969,22 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         for (size_t i = 0; i < halofpx_mutable_sessions.size(); ++i) {
             if (!ggml_backend_rpc_halofpx_mutable_prepare(
                     &halofpx_mutable_sessions[i], gf, &halofpx_mutable_results[i])) {
-                abort_composed();
+                const auto & result = halofpx_mutable_results[i];
+                fail_composed(
+                    llama_halofpx_preprepare_failure_branch(
+                        llama_halofpx_preprepare_failure::mutable_prepare),
+                    GGML_STATUS_FAILED,
+                    "|backend_ordinal=" +
+                        std::to_string(halofpx_mutable_backend_ordinals[i]) +
+                        "|session_index=" + std::to_string(i) +
+                        "|result_status=" + std::to_string(result.status) +
+                        "|mutation_count=" + std::to_string(result.mutation_count) +
+                        "|census_count=" + std::to_string(result.census_count) +
+                        "|set_count=" + std::to_string(result.set_count) +
+                        "|set_hash_hit_count=" +
+                            std::to_string(result.set_hash_hit_count) +
+                        "|set_hash_miss_count=" +
+                            std::to_string(result.set_hash_miss_count));
                 ret = GGML_STATUS_FAILED;
                 return nullptr;
             }
@@ -1904,7 +1995,10 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         if (!halofpx_capture_graph_input_authority(
                 sched.get(), gf, halofpx_last_graph_input_authority)) {
             LLAMA_LOG_ERROR("%s: graph input authority is incomplete or unadmitted\n", __func__);
-            abort_composed();
+            fail_composed(
+                llama_halofpx_preprepare_failure_branch(
+                    llama_halofpx_preprepare_failure::graph_input_authority),
+                GGML_STATUS_FAILED);
             ret = GGML_STATUS_FAILED;
             return nullptr;
         }
@@ -1913,10 +2007,17 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
     }
 
     if (composed_authority) {
-        for (const auto & admission : halofpx_mutable_admissions) {
+        for (size_t i = 0; i < halofpx_mutable_admissions.size(); ++i) {
+            const auto & admission = halofpx_mutable_admissions[i];
             if (!ggml_backend_sched_authority_consume_prepared_admission(
                     sched.get(), &halofpx_execution_handle, &admission)) {
-                abort_composed();
+                fail_composed(
+                    llama_halofpx_preprepare_failure_branch(
+                        llama_halofpx_preprepare_failure::admission_consume),
+                    GGML_STATUS_FAILED,
+                    "|backend_ordinal=" +
+                        std::to_string(halofpx_mutable_backend_ordinals[i]) +
+                        "|admission_index=" + std::to_string(i));
                 ret = GGML_STATUS_FAILED;
                 return nullptr;
             }
@@ -4733,9 +4834,7 @@ size_t llama_halofpx_execution_authority_result(
         char * dst,
         size_t capacity) {
     const std::string value = ctx ? ctx->halofpx_execution_authority_result() : std::string();
-    const size_t required = value.size() + 1;
-    if (dst && capacity >= required) memcpy(dst, value.c_str(), required);
-    return required;
+    return llama_halofpx_copy_composed_failure_result(value, dst, capacity);
 }
 
 float * llama_get_logits(llama_context * ctx) {
