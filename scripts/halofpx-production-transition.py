@@ -135,6 +135,10 @@ L48_KEY_PATHS = {
     "nimo-1": "/var/tmp/halofpx-l48-control.key",
     "nimo-2": "/var/tmp/halofpx-l48-control.key",
 }
+COMPOSED_MANIFEST_SCHEMAS = frozenset({
+    "halofpx.l48.fixture-manifest.v1",
+    "halofpx.l77.primary-manifest.v1",
+})
 L48_EXECUTABLES = {
     "worker": "/var/tmp/halofpx-l48-source-nimo1/build-l48/bin/rpc-server",
     "canary": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-distributed-state-canary",
@@ -844,8 +848,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     l33 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l33.primary-manifest.v1"
     l36 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l36.primary-manifest.v1"
     l77 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l77.primary-manifest.v1"
-    l48 = isinstance(raw, dict) and raw.get("schema") in {
-        "halofpx.l48.fixture-manifest.v1", "halofpx.l77.primary-manifest.v1"}
+    l48 = isinstance(raw, dict) and raw.get("schema") in COMPOSED_MANIFEST_SCHEMAS
     l48_provenance = l48 and raw.get("milestone") in {
         "l55-first-armed-prompt-discriminator",
         "l57-parent-split-identity-qualification",
@@ -1331,10 +1334,7 @@ def prepare_l52_evidence_directories(
         manifest: dict[str, object], evidence_root: Path,
         runner: Runner) -> dict[str, object]:
     """Create the closed evidence namespace before the disposable child runs."""
-    if manifest.get("schema") not in {
-        "halofpx.l48.fixture-manifest.v1",
-        "halofpx.l77.primary-manifest.v1",
-    }:
+    if manifest.get("schema") not in COMPOSED_MANIFEST_SCHEMAS:
         raise TransitionError("L52 evidence directory schema is not admitted")
     resolved_root = evidence_root.resolve()
     child = resolved_root / str(manifest["child_evidence_subdir"])
@@ -1859,7 +1859,7 @@ def child_environment(
     required = ("worker", "canary", "readiness", "placement", "epoch_receipt")
     if manifest.get("schema") == "halofpx.l24.primary-manifest.v1":
         required = required[:-1]
-    l48 = manifest.get("schema") == "halofpx.l48.fixture-manifest.v1"
+    l48 = manifest.get("schema") in COMPOSED_MANIFEST_SCHEMAS
     if manifest.get("schema") in {
         "halofpx.l31.primary-manifest.v1", "halofpx.l33.primary-manifest.v1",
         "halofpx.l36.primary-manifest.v1",
@@ -1943,9 +1943,7 @@ def child_environment(
 def verify_l48_child_result(
         manifest: dict[str, object], prepared: dict[str, object],
         runner: Runner) -> dict[str, object]:
-    if manifest.get("schema") not in {
-            "halofpx.l48.fixture-manifest.v1",
-            "halofpx.l77.primary-manifest.v1"}:
+    if manifest.get("schema") not in COMPOSED_MANIFEST_SCHEMAS:
         return {}
     if manifest.get("milestone") in {
         "l68-stories15m-vertical-slice",
@@ -2457,10 +2455,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             child = None
             prepared = None
             try:
-                if manifest.get("schema") in {
-                    "halofpx.l48.fixture-manifest.v1",
-                    "halofpx.l77.primary-manifest.v1",
-                }:
+                if manifest.get("schema") in COMPOSED_MANIFEST_SCHEMAS:
                     prepare_l52_evidence_directories(
                         manifest, args.evidence_dir, selected_runner)
                 prepared = controller.prepare_keys()
