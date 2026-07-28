@@ -1,0 +1,51 @@
+{
+  "schema": "halofpx.l67.focused-evidence.v1",
+  "base_commit": "755ba5f2ebd943e8a1204f31be4a80516dc06182",
+  "scope": "Focused ADR-0049 foundation correction; no stories, model, cache, performance, or production mutation",
+  "cases": [
+    {"id": "real_success", "status": "pass", "receipt": "real_composed=1 recompute=1 concurrent=1 exact=1 uids=2/5/1 allocation_epochs=2/4/2"},
+    {"id": "admission_refusals", "status": "pass", "receipt": "partial/self-comparison/reuse/cross-side receipt/expired/aborted refused"},
+    {"id": "lifecycle_refusal", "status": "pass", "receipt": "branch=2 immutable_publication=1"},
+    {"id": "transport_refusal", "status": "pass", "receipt": "send_error:1 transport_failure_refused=1 branch=3"},
+    {"id": "publication_collision", "status": "pass", "receipt": "two OS processes; exactly one immutable publish; loser errno=17"},
+    {"id": "feature_off", "status": "pass", "receipt": "feature_off_inert=1"},
+    {"id": "compile_off", "status": "pass", "receipt": "rpc-server target GGML_RPC_HALOFPX_LOCAL_STATE=OFF"},
+    {"id": "structural_negatives", "status": "pass", "receipt": "unterminated/extra/missing/reordered/unknown/post-terminal refused"},
+    {"id": "reused_l65_handlers", "status": "accepted_prior_evidence", "receipt": "l65-corrected-adr0049-foundation-receipt.json"},
+    {"id": "reused_l66_handlers", "status": "accepted_prior_evidence", "receipt": "l66-adr0049-foundation-receipt.json"}
+  ],
+  "artifacts": [
+    {"case": "real_success", "path": "docs/halofpx/evidence/l67-focused/32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-9667267257002757.authority", "sha256": "49b5a674fb4b06bcc9e5805e3603f3f18d21bd13a63f27677e64257845bc07f9", "bytes": 17052},
+    {"case": "real_success", "path": "docs/halofpx/evidence/l67-focused/32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-2-9667267257240168.authority", "sha256": "d5785375ba93540c296093d1a3f47012dace8337ea41373de22cd31f839aa224", "bytes": 17052},
+    {"case": "real_success", "path": "docs/halofpx/evidence/l67-focused/333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152-3-9667267257002757.authority", "sha256": "671b8d7a7f6e98eb2a4e3afcf55c010f3fac5369d8d19f183f3760449e986296", "bytes": 17052},
+    {"case": "lifecycle_refusal", "path": "docs/halofpx/evidence/l67-focused/6768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f80818283848586-103-103.authority", "sha256": "42e28338db5ec43cb15cc3184f172a74efdf4284c5d186c4f06860017386e5bc", "bytes": 2352},
+    {"case": "transport_refusal", "path": "docs/halofpx/evidence/l67-focused/32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-9667334851918773.authority", "sha256": "220f1c56952f4d34c5839df9a3ecff06c6481bafe859c6616b7d27805bf203c1", "bytes": 5880},
+    {"case": "reused_l65_handlers", "path": "docs/halofpx/evidence/l65-corrected-adr0049-foundation-receipt.json", "sha256": "6ce2182f8daf40f90477cbeb038177aee352a7e8bc2e605a4815e411ec8a55b2", "bytes": 2261},
+    {"case": "reused_l66_handlers", "path": "docs/halofpx/evidence/l66-adr0049-foundation-receipt.json", "sha256": "203fe8018b5bad2efc6e6e3c99d735dcdd3f7cef7d3dae2d06cf4a8628306b1f", "bytes": 1766},
+    {"case": "compile_off", "path": "docs/halofpx/evidence/l67-binary-receipt.json", "sha256": "be435eacf5829b9038b8f90b9f4a3a6d3b17b136a6d91ad6350dcca9c129c985", "bytes": 547}
+  ],
+  "provenance": {
+    "source_diff_sha1": "a742da17ce5fbb9cf4c3d5833013dd5b3f25f594",
+    "binary_sha256": {
+      "test-halofpx-rpc-mutable-authority": "7aea5449f830d6574db38cbd5d079ae68f902d0381ca8d8ce7dd066afaed05b6",
+      "rpc-server": "054c1d1623f108a07afcf14e6a5e7d023faa3e78a9a421073e92c724925ab6d8",
+      "libggml-rpc.so.0.11.1": "2a0026e7a3334356757b861b95e06ac2088a14f9a18657f6fc227f4342740338"
+    },
+    "protocol": {"scheduler_admission": "3.0", "mutable": "3.0", "preexecute_grammar": "1.0", "manifest": "1.0"},
+    "key_generation": 1,
+    "host": "nimo-1",
+    "kernel": "Linux 7.1.3-1-cachyos x86_64 GNU/Linux",
+    "processes": {
+      "server_a": {"pid": 2584715, "invocation_id": "f2b57b992f364b84a073810d86e4ccfe"},
+      "server_b": {"pid": 2584717, "invocation_id": "c159a833db9641bfbe6b49c4e7a2bcc4"},
+      "publication_winner": {"pid": 2584736, "invocation_id": "7d8d07cddc6c418f853e939443581d1d"},
+      "publication_collision": {"pid": 2584738, "invocation_id": "85aa5f6c32294b16bbe643f1a5677be1"}
+    },
+    "fixture": {"identity": "real per-execution two-host no-model composed fixture", "key_file_sha256": "cdfd600b6b3fb3a968e5ca9911d341610e933d43f27794693030c722e3aae0a6"},
+    "receipt_hashes": {
+      "l65-corrected-adr0049-foundation-receipt.json": "6ce2182f8daf40f90477cbeb038177aee352a7e8bc2e605a4815e411ec8a55b2",
+      "l66-adr0049-foundation-receipt.json": "203fe8018b5bad2efc6e6e3c99d735dcdd3f7cef7d3dae2d06cf4a8628306b1f",
+      "l67-binary-receipt.json": "be435eacf5829b9038b8f90b9f4a3a6d3b17b136a6d91ad6350dcca9c129c985"
+    }
+  }
+}

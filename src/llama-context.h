@@ -400,6 +400,7 @@ private:
     std::vector<ggml_backend_rpc_halofpx_mutable_session> halofpx_mutable_sessions;
     std::vector<ggml_backend_rpc_halofpx_mutable_result> halofpx_mutable_results;
     std::vector<uint32_t> halofpx_mutable_backend_ordinals;
+    std::vector<struct ggml_backend_sched_authority_prepared_admission> halofpx_mutable_admissions;
     std::string halofpx_execution_result_text;
 
     // host buffer for the model output (logits and embeddings)

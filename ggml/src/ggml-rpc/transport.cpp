@@ -17,7 +17,12 @@
 #  include <netdb.h>
 #  include <unistd.h>
 #endif
+#include <atomic>
+#include <cerrno>
+#include <chrono>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <mutex>
 #include <optional>
 
@@ -570,7 +575,10 @@ void socket_t::impl::update_caps(const uint8_t * remote_caps) {
 
 /////////////////////////////////////////////////////////////////////////////
 
-socket_t::socket_t(std::unique_ptr<impl> p) : pimpl(std::move(p)) {}
+static std::atomic<uint64_t> rpc_socket_authority_epoch { 1 };
+
+socket_t::socket_t(std::unique_ptr<impl> p)
+    : pimpl(std::move(p)) {}
 
 socket_t::~socket_t() = default;
 
@@ -583,11 +591,72 @@ bool socket_t::recv_data(void * data, size_t size) {
 }
 
 bool socket_t::send_data_observed(const void * data, size_t size, rpc_transport_io_result & result) {
-    return pimpl->send_data(data, size, &result);
+    const uint64_t call = observed_send_calls.fetch_add(1, std::memory_order_relaxed) + 1;
+    const char * enabled = std::getenv("HALOFPX_PREEXECUTE_AUTHORITY");
+    const char * injection = std::getenv("HALOFPX_RPC_TRANSPORT_INJECT");
+    if (enabled && std::strcmp(enabled, "1") == 0 && injection) {
+        unsigned long long selected = 0;
+        size_t partial = 0;
+        if (std::sscanf(injection, "send_error:%llu", &selected) == 1 &&
+            selected == call) {
+            result = {}; result.requested = size; result.error_number = EIO;
+            observed_failure.store(true, std::memory_order_release);
+            return false;
+        }
+        if (std::sscanf(injection, "send_partial:%llu:%zu", &selected, &partial) == 2 &&
+            selected == call && partial > 0 && partial < size) {
+            rpc_transport_io_result observed {};
+            const bool sent = pimpl->send_data(data, partial, &observed);
+            result = observed; result.requested = size;
+            if (sent) {
+                result.transferred = partial; result.error_number = EIO;
+#ifdef _WIN32
+                shutdown(pimpl->fd, SD_SEND);
+#else
+                shutdown(pimpl->fd, SHUT_WR);
+#endif
+            }
+            observed_failure.store(true, std::memory_order_release);
+            return false;
+        }
+    }
+    const bool ok = pimpl->send_data(data, size, &result);
+    if (!ok) observed_failure.store(true, std::memory_order_release);
+    return ok;
 }
 
 bool socket_t::recv_data_observed(void * data, size_t size, rpc_transport_io_result & result) {
-    return pimpl->recv_data(data, size, &result);
+    const uint64_t call = observed_recv_calls.fetch_add(1, std::memory_order_relaxed) + 1;
+    const char * enabled = std::getenv("HALOFPX_PREEXECUTE_AUTHORITY");
+    const char * injection = std::getenv("HALOFPX_RPC_TRANSPORT_INJECT");
+    if (enabled && std::strcmp(enabled, "1") == 0 && injection) {
+        unsigned long long selected = 0;
+        size_t partial = 0;
+        if (std::sscanf(injection, "recv_error:%llu", &selected) == 1 &&
+            selected == call) {
+            result = {}; result.requested = size; result.error_number = EIO;
+            observed_failure.store(true, std::memory_order_release);
+            return false;
+        }
+        if (std::sscanf(injection, "recv_eof:%llu", &selected) == 1 &&
+            selected == call) {
+            result = {}; result.requested = size; result.eof = true;
+            observed_failure.store(true, std::memory_order_release);
+            return false;
+        }
+        if (std::sscanf(injection, "recv_partial_eof:%llu:%zu", &selected, &partial) == 2 &&
+            selected == call && partial > 0 && partial < size) {
+            rpc_transport_io_result observed {};
+            const bool received = pimpl->recv_data(data, partial, &observed);
+            result = observed; result.requested = size;
+            if (received) { result.transferred = partial; result.eof = true; }
+            observed_failure.store(true, std::memory_order_release);
+            return false;
+        }
+    }
+    const bool ok = pimpl->recv_data(data, size, &result);
+    if (!ok) observed_failure.store(true, std::memory_order_release);
+    return ok;
 }
 
 void socket_t::get_caps(uint8_t * local_caps) {
@@ -596,6 +665,38 @@ void socket_t::get_caps(uint8_t * local_caps) {
 
 void socket_t::update_caps(const uint8_t * remote_caps) {
     return pimpl->update_caps(remote_caps);
+}
+
+uint64_t socket_t::authority_epoch() const {
+    uint64_t value = epoch.load(std::memory_order_acquire);
+    if (value != 0) return value;
+    const uint64_t process_id =
+#ifdef _WIN32
+        static_cast<uint64_t>(GetCurrentProcessId());
+#else
+        static_cast<uint64_t>(getpid());
+#endif
+    uint64_t assigned =
+        rpc_socket_authority_epoch.fetch_add(1, std::memory_order_relaxed) ^
+        (static_cast<uint64_t>(
+            std::chrono::steady_clock::now().time_since_epoch().count()) << 1) ^
+        (process_id << 32);
+    if (assigned == 0) {
+        assigned = rpc_socket_authority_epoch.fetch_add(1, std::memory_order_relaxed);
+    }
+    if (!epoch.compare_exchange_strong(
+            value, assigned, std::memory_order_release, std::memory_order_acquire)) {
+        return value;
+    }
+    return assigned;
+}
+
+bool socket_t::observed_transport_failed() const {
+    return observed_failure.load(std::memory_order_acquire);
+}
+
+void socket_t::mark_transport_failed() {
+    observed_failure.store(true, std::memory_order_release);
 }
 
 static bool is_valid_fd(sockfd_t sockfd) {

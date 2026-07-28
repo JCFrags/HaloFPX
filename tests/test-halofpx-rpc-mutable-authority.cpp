@@ -1,454 +1,472 @@
 #include "ggml.h"
-#include "ggml-backend.h"
 #include "ggml-alloc.h"
+#include "ggml-backend.h"
 #include "ggml-rpc.h"
 
 #include <array>
+#include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <string>
+#include <thread>
 #include <vector>
 
 extern "C" uint32_t ggml_backend_rpc_halofpx_mutable_auth_self_test(void);
 
-static void fill_attempt(
-        ggml_backend_rpc_halofpx_mutable_attempt & attempt,
-        uint64_t graph_uid,
+struct fixture {
+    ggml_backend_t rpc = nullptr;
+    ggml_backend_t cpu = nullptr;
+    ggml_backend_sched_t sched = nullptr;
+    ggml_context * ctx = nullptr;
+    ggml_tensor * input = nullptr;
+    ggml_tensor * bias = nullptr;
+    ggml_tensor * output = nullptr;
+    ggml_cgraph * graph = nullptr;
+    ggml_backend_buffer_t buffer = nullptr;
+    std::vector<uint8_t> metadata;
+};
+
+static void nonce_for(uint64_t sequence, uint8_t nonce[32]) {
+    for (size_t i = 0; i < 32; ++i) {
+        nonce[i] = static_cast<uint8_t>(0x31 + sequence + i);
+    }
+}
+
+static bool graph_key(std::array<uint8_t, 32> & key) {
+    const char * path = std::getenv("HALOFPX_RPC_GRAPH_AUTH_KEY_FILE");
+    if (path == nullptr) return false;
+    std::ifstream input(path, std::ios::binary);
+    std::string line;
+    if (!input || !std::getline(input, line) || line.size() != 64) return false;
+    auto digit = [](char value) {
+        if (value >= '0' && value <= '9') return value - '0';
+        if (value >= 'a' && value <= 'f') return value - 'a' + 10;
+        if (value >= 'A' && value <= 'F') return value - 'A' + 10;
+        return -1;
+    };
+    for (size_t i = 0; i < key.size(); ++i) {
+        const int high = digit(line[2*i]);
+        const int low = digit(line[2*i + 1]);
+        if (high < 0 || low < 0) return false;
+        key[i] = static_cast<uint8_t>((high << 4) | low);
+    }
+    return true;
+}
+
+static bool make_fixture(const char * endpoint, fixture & f) {
+    f.rpc = ggml_backend_rpc_init(endpoint, 0);
+    f.cpu = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU, nullptr);
+    if (!f.rpc || !f.cpu) return false;
+    f.metadata.resize(ggml_tensor_overhead() * 8 + 2 * ggml_graph_overhead());
+    ggml_init_params params { f.metadata.size(), f.metadata.data(), true };
+    f.ctx = ggml_init(params);
+    if (!f.ctx) return false;
+    f.input = ggml_new_tensor_1d(f.ctx, GGML_TYPE_F32, 32);
+    f.bias = ggml_new_tensor_1d(f.ctx, GGML_TYPE_F32, 32);
+    f.output = ggml_sqr(f.ctx, ggml_add(f.ctx, f.input, f.bias));
+    ggml_set_input(f.input);
+    ggml_set_output(f.output);
+    f.graph = ggml_new_graph(f.ctx);
+    ggml_build_forward_expand(f.graph, f.output);
+    ggml_backend_t backends[] = { f.rpc, f.cpu };
+    ggml_backend_buffer_type_t bufts[] = {
+        ggml_backend_get_default_buffer_type(f.rpc),
+        ggml_backend_get_default_buffer_type(f.cpu),
+    };
+    f.sched = ggml_backend_sched_new(backends, bufts, 2, 64, false, false);
+    if (!f.sched) return false;
+    for (ggml_tensor * tensor : { f.input, f.bias, f.output }) {
+        ggml_backend_sched_set_tensor_backend(f.sched, tensor, f.rpc);
+    }
+    return true;
+}
+
+static void free_fixture(fixture & f) {
+    if (f.sched) ggml_backend_sched_free(f.sched);
+    if (f.buffer) ggml_backend_buffer_free(f.buffer);
+    if (f.ctx) ggml_free(f.ctx);
+    if (f.rpc) ggml_backend_free(f.rpc);
+    if (f.cpu) ggml_backend_free(f.cpu);
+    f = {};
+}
+
+static bool execute_once(
+        fixture & f,
         uint64_t sequence,
-        const uint8_t scheduler_nonce[32]) {
-    attempt = {};
-    attempt.version = 1;
+        bool new_graph,
+        std::array<float, 32> & result,
+        uint64_t & graph_uid,
+        uint64_t & connection_epoch,
+        uint64_t & allocation_epoch,
+        std::atomic<uint32_t> * overlap = nullptr,
+        ggml_tensor * foreign_tensor = nullptr,
+        int admission_refusal_case = 0) {
+    if (new_graph) {
+        f.graph = ggml_new_graph(f.ctx);
+        ggml_build_forward_expand(f.graph, f.output);
+    }
+    std::array<uint8_t, 32> nonce {};
+    nonce_for(sequence, nonce.data());
+    std::array<uint8_t, 65536> events {};
+    ggml_backend_sched_authority_config config {};
+    config.major = 1;
+    config.minor = 0;
+    config.encoded_size = sizeof(config);
+    config.max_events = 256;
+    config.event_buffer = events.data();
+    config.event_buffer_size = events.size();
+    config.execution_sequence = sequence;
+    memcpy(config.attempt_nonce, nonce.data(), 32);
+    std::array<uint8_t, 32> scheduler_key {};
+    if (!graph_key(scheduler_key)) {
+        std::fprintf(stderr, "fixture: key load failed\n");
+        return false;
+    }
+    memcpy(config.key, scheduler_key.data(), scheduler_key.size());
+    ggml_backend_sched_authority_handle sched_handle {};
+    if (!ggml_backend_sched_authority_arm(f.sched, &config, &sched_handle)) {
+        std::fprintf(stderr, "fixture: scheduler arm failed sequence=%llu\n",
+            static_cast<unsigned long long>(sequence));
+        return false;
+    }
+    memset(config.key, 0, sizeof(config.key));
+    if (!ggml_backend_sched_authority_register_root(
+            f.sched, &sched_handle, f.input, GGML_BACKEND_SCHED_AUTH_MUTABLE,
+            GGML_RPC_HALOFPX_MUTABLE_TOKEN, 0) ||
+        !ggml_backend_sched_authority_register_root(
+            f.sched, &sched_handle, f.bias, GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT,
+            1, 0) ||
+        !ggml_backend_sched_authority_mark_rpc_backend(f.sched, &sched_handle, 0) ||
+        !ggml_backend_sched_alloc_graph(f.sched, f.graph)) {
+        std::fprintf(stderr, "fixture: scheduler arm/register/alloc failed sequence=%llu\n",
+            static_cast<unsigned long long>(sequence));
+        ggml_backend_sched_authority_abort_execution(f.sched, &sched_handle);
+        return false;
+    }
+    graph_uid = ggml_backend_rpc_halofpx_mutable_graph_uid(f.graph);
+    ggml_backend_sched_authority_prepared prepared {};
+    struct ggml_backend_sched_authority_prepared_admission admission {};
+    if (graph_uid == 0 ||
+        !ggml_backend_sched_authority_prepare(
+            f.sched, &sched_handle, f.graph, &prepared)) {
+        std::fprintf(stderr, "fixture: scheduler prepare failed sequence=%llu graph=%llu\n",
+            static_cast<unsigned long long>(sequence),
+            static_cast<unsigned long long>(graph_uid));
+        ggml_backend_sched_authority_abort_execution(f.sched, &sched_handle);
+        return false;
+    }
+    const size_t split_count =
+        ggml_backend_sched_authority_split_count(f.sched, &sched_handle);
+    if (split_count != 1) {
+        std::fprintf(stderr, "fixture: split_count=%zu\n", split_count);
+        return false;
+    }
+    ggml_backend_sched_authority_split split {};
+    if (!ggml_backend_sched_authority_split_at(
+            f.sched, &sched_handle, 0, &split) ||
+        split.parent_graph_uid != graph_uid ||
+        split.execution_sequence != sequence ||
+        split.backend_ordinal != 0) {
+        std::fprintf(stderr, "fixture: split mismatch parent=%llu graph=%llu exec=%llu want=%llu backend=%u\n",
+            static_cast<unsigned long long>(split.parent_graph_uid),
+            static_cast<unsigned long long>(graph_uid),
+            static_cast<unsigned long long>(split.execution_sequence),
+            static_cast<unsigned long long>(sequence), split.backend_ordinal);
+        return false;
+    }
+    ggml_backend_rpc_halofpx_split_identity split_identity {
+        split.split_graph_uid, split.split_ordinal, split.backend_ordinal
+    };
+    const bool rpc_armed =
+        ggml_backend_rpc_halofpx_execution_arm(f.rpc, nonce.data(), sequence);
+    const bool rpc_bound = rpc_armed &&
+        ggml_backend_rpc_halofpx_execution_bind_splits(
+            f.rpc, nonce.data(), sequence, graph_uid, split.mapping_root, 0,
+            &split_identity, 1);
+    if (!rpc_armed || !rpc_bound) {
+        std::fprintf(stderr, "fixture: rpc arm/bind failed sequence=%llu arm=%d bind=%d\n",
+            static_cast<unsigned long long>(sequence), rpc_armed ? 1 : 0, rpc_bound ? 1 : 0);
+        return false;
+    }
+    ggml_backend_rpc_halofpx_mutable_preflight preflight {};
+    ggml_backend_sched_authority_admission_expectation expectation {};
+    expectation.major = 1;
+    expectation.encoded_size = sizeof(expectation);
+    expectation.allowed_operation =
+        GGML_BACKEND_SCHED_OPERATION_AUTHENTICATED_EXECUTE;
+    expectation.backend_ordinal = 0;
+    if (!ggml_backend_rpc_halofpx_mutable_negotiate_preflight(f.rpc, 1, &preflight)) {
+        std::fprintf(stderr, "fixture: preflight failed sequence=%llu\n",
+            static_cast<unsigned long long>(sequence));
+        return false;
+    }
+    expectation.key_generation = preflight.key_generation;
+    expectation.client_connection_epoch = preflight.client_connection_epoch;
+    expectation.server_connection_epoch = preflight.server_connection_epoch;
+    expectation.allocation_topology_epoch = preflight.allocation_topology_epoch;
+    expectation.issued_unix_ns =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    expectation.expires_unix_ns =
+        expectation.issued_unix_ns + UINT64_C(30000000000);
+    if (admission_refusal_case == 1) {
+        expectation.issued_unix_ns -= UINT64_C(31000000000);
+        expectation.expires_unix_ns -= UINT64_C(31000000000);
+    }
+    struct ggml_backend_sched_authority_prepared_admission expected_admission {};
+    struct ggml_backend_sched_authority_prepared_admission mismatched_admission {};
+    if (!ggml_backend_sched_authority_expected_prepared_admission(
+            f.sched, &sched_handle, &expectation, &expected_admission) ||
+        !ggml_backend_sched_authority_prepared_admission(
+            f.sched, &sched_handle, &expectation, &admission) ||
+        (admission_refusal_case != 1 &&
+         !ggml_backend_sched_authority_verify_prepared_admission(
+            &admission, scheduler_key.data(), &expected_admission))) {
+        std::fprintf(stderr, "fixture: admission failed sequence=%llu epochs=%llu/%llu/%llu\n",
+            static_cast<unsigned long long>(sequence),
+            static_cast<unsigned long long>(preflight.client_connection_epoch),
+            static_cast<unsigned long long>(preflight.server_connection_epoch),
+            static_cast<unsigned long long>(preflight.allocation_topology_epoch));
+        return false;
+    }
+    if (admission_refusal_case != 0) {
+        const bool refused = admission_refusal_case == 1 ?
+            (!ggml_backend_sched_authority_verify_prepared_admission(
+                 &admission, scheduler_key.data(), &expected_admission) &&
+             !ggml_backend_sched_authority_consume_prepared_admission(
+                 f.sched, &sched_handle, &admission)) :
+            (ggml_backend_sched_authority_abort_prepared_admission(
+                 f.sched, &sched_handle) &&
+             !ggml_backend_sched_authority_consume_prepared_admission(
+                 f.sched, &sched_handle, &admission));
+        ggml_backend_sched_authority_abort_execution(f.sched, &sched_handle);
+        ggml_backend_rpc_halofpx_execution_disarm(f.rpc, nonce.data(), sequence);
+        ggml_backend_sched_reset(f.sched);
+        return refused;
+    }
+    mismatched_admission = expected_admission;
+    mismatched_admission.logical_expected_mutable_count ^= 1;
+    if (ggml_backend_sched_authority_verify_prepared_admission(
+            &admission, scheduler_key.data(), &mismatched_admission) ||
+        ggml_backend_sched_authority_verify_prepared_admission(
+            &admission, scheduler_key.data(), &admission)) {
+        std::fprintf(stderr, "fixture: independent admission comparison accepted invalid state\n");
+        return false;
+    }
+
+    ggml_backend_rpc_halofpx_mutable_attempt attempt {};
+    attempt.version = 3;
     attempt.max_mutations = 16;
     attempt.max_census_entries = 16;
     attempt.graph_uid = graph_uid;
     attempt.execution_sequence = sequence;
-    attempt.scheduler_execution_sequence = sequence;
-    for (size_t i = 0; i < 32; ++i) {
-        attempt.attempt_nonce[i] = static_cast<uint8_t>(0x20 + sequence + i);
-        attempt.scheduler_attempt_nonce[i] = scheduler_nonce[i];
-        attempt.scheduler_transcript_root[i] = static_cast<uint8_t>(0xa0 + i);
+    memcpy(attempt.attempt_nonce, nonce.data(), 32);
+    std::array<float, 32> input {};
+    std::array<float, 32> bias {};
+    for (size_t i = 0; i < input.size(); ++i) {
+        input[i] = static_cast<float>(i) / 32.0f;
+        bias[i] = 0.25f;
     }
-}
-
-static bool split_identity_refusals(ggml_backend_t rpc) {
-    std::array<uint8_t, 32> nonce {};
-    std::array<uint8_t, 32> root {};
-    for (size_t i = 0; i < nonce.size(); ++i) {
-        nonce[i] = static_cast<uint8_t>(0x31 + i);
-        root[i] = static_cast<uint8_t>(0xa1 + i);
+    ggml_backend_tensor_set(f.bias, bias.data(), 0, sizeof(bias));
+    ggml_backend_rpc_halofpx_mutable_session session {};
+    if (!ggml_backend_rpc_halofpx_mutable_begin(
+            f.rpc, &admission, &expected_admission, &attempt, &session)) {
+        std::fprintf(stderr, "fixture: mutable begin failed sequence=%llu\n",
+            static_cast<unsigned long long>(sequence));
+        ggml_backend_rpc_halofpx_execution_disarm(
+            f.rpc, nonce.data(), sequence);
+        return false;
     }
-    const ggml_backend_rpc_halofpx_split_identity exact[] = {
-        { 1001, 0, 0 },
-        { 1002, 2, 0 },
-    };
-    const ggml_backend_rpc_halofpx_split_identity duplicate[] = {
-        { 1001, 0, 0 },
-        { 1001, 2, 0 },
-    };
-    const ggml_backend_rpc_halofpx_split_identity reordered[] = {
-        { 1001, 2, 0 },
-        { 1002, 0, 0 },
-    };
-    const ggml_backend_rpc_halofpx_split_identity wrong_backend[] = {
-        { 1001, 0, 1 },
-    };
-    std::array<uint8_t, 32> zero {};
-    ggml_backend_rpc_halofpx_graph_result result {};
-    ggml_backend_rpc_halofpx_graph_result_reason reason =
-        GGML_RPC_HALOFPX_GRAPH_RESULT_OK;
-    bool ok = ggml_backend_rpc_halofpx_execution_arm(rpc, nonce.data(), 900) &&
-        !ggml_backend_rpc_halofpx_execution_bind_splits(
-            rpc, nonce.data(), 900, 0, root.data(), 0, exact, 2) &&
-        !ggml_backend_rpc_halofpx_execution_bind_splits(
-            rpc, nonce.data(), 900, 999, zero.data(), 0, exact, 2) &&
-        !ggml_backend_rpc_halofpx_execution_bind_splits(
-            rpc, nonce.data(), 900, 999, root.data(), 0, duplicate, 2) &&
-        !ggml_backend_rpc_halofpx_execution_bind_splits(
-            rpc, nonce.data(), 900, 999, root.data(), 0, reordered, 2) &&
-        !ggml_backend_rpc_halofpx_execution_bind_splits(
-            rpc, nonce.data(), 900, 999, root.data(), 0, wrong_backend, 1) &&
-        ggml_backend_rpc_halofpx_execution_bind_splits(
-            rpc, nonce.data(), 900, 999, root.data(), 0, exact, 2) &&
-        !ggml_backend_rpc_halofpx_execution_bind_splits(
-            rpc, nonce.data(), 900, 999, root.data(), 0, exact, 2) &&
-        !ggml_backend_rpc_halofpx_graph_result_for_split(
-            rpc, 998, root.data(), 1001, 0, 0, 900, &result, &reason) &&
-        reason == GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED &&
-        !ggml_backend_rpc_halofpx_graph_result_for_split(
-            rpc, 999, root.data(), 1001, 0, 1, 900, &result, &reason) &&
-        reason == GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED &&
-        !ggml_backend_rpc_halofpx_graph_result_for_split(
-            rpc, 999, root.data(), 1001, 0, 0, 899, &result, &reason) &&
-        reason == GGML_RPC_HALOFPX_GRAPH_RESULT_STATUS_NOT_EXECUTED &&
-        !ggml_backend_rpc_halofpx_graph_result_for_split(
-            rpc, 999, root.data(), 1001, 0, 0, 900, &result, &reason) &&
-        reason == GGML_RPC_HALOFPX_GRAPH_RESULT_GRAPH_UID_ZERO &&
-        !ggml_backend_rpc_halofpx_execution_disarm(rpc, nonce.data(), 899);
-    // A mismatched disarm closes the authority fail-closed; it cannot be reused.
-    ok = ok &&
-        !ggml_backend_rpc_halofpx_execution_bind_splits(
-            rpc, nonce.data(), 900, 999, root.data(), 0, exact, 2) &&
-        ggml_backend_rpc_halofpx_execution_arm(rpc, nonce.data(), 901) &&
-        ggml_backend_rpc_halofpx_execution_disarm(rpc, nonce.data(), 901);
-    return ok;
+    if (overlap != nullptr) {
+        overlap->fetch_add(1, std::memory_order_acq_rel);
+        const auto deadline = std::chrono::steady_clock::now() +
+            std::chrono::seconds(10);
+        while (overlap->load(std::memory_order_acquire) < 2) {
+            if (std::chrono::steady_clock::now() > deadline) {
+                ggml_backend_rpc_halofpx_mutable_abort(&session);
+                ggml_backend_rpc_halofpx_execution_disarm(
+                    f.rpc, nonce.data(), sequence);
+                return false;
+            }
+            std::this_thread::yield();
+        }
+    }
+    GGML_UNUSED(foreign_tensor);
+    if (!ggml_backend_rpc_halofpx_mutable_register(
+            &session, f.input, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 0) ||
+        !ggml_backend_rpc_halofpx_mutable_exclude(
+            &session, f.bias, GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT, 0)) {
+        std::fprintf(stderr, "fixture: mutable begin/register failed sequence=%llu\n",
+            static_cast<unsigned long long>(sequence));
+        ggml_backend_rpc_halofpx_mutable_abort(&session);
+        ggml_backend_rpc_halofpx_execution_disarm(
+            f.rpc, nonce.data(), sequence);
+        return false;
+    }
+    connection_epoch = session.connection_epoch;
+    allocation_epoch = session.allocation_epoch;
+    ggml_backend_tensor_set(f.input, input.data(), 0, sizeof(input));
+    ggml_backend_rpc_halofpx_mutable_result mutable_result {};
+    if (!ggml_backend_rpc_halofpx_mutable_prepare(
+            &session, f.graph, &mutable_result) ||
+        !ggml_backend_sched_authority_consume_prepared_admission(
+            f.sched, &sched_handle, &admission) ||
+        ggml_backend_sched_graph_compute(f.sched, f.graph) != GGML_STATUS_SUCCESS ||
+        !ggml_backend_rpc_halofpx_mutable_commit(
+            &session, f.graph, &mutable_result)) {
+        std::fprintf(stderr, "fixture: prepare/compute/commit failed sequence=%llu\n",
+            static_cast<unsigned long long>(sequence));
+        ggml_backend_rpc_halofpx_mutable_abort(&session);
+        ggml_backend_rpc_halofpx_execution_disarm(
+            f.rpc, nonce.data(), sequence);
+        return false;
+    }
+    ggml_backend_tensor_get(f.output, result.data(), 0, sizeof(result));
+    struct ggml_backend_sched_authority_result sched_result {};
+    const bool finalized = ggml_backend_sched_authority_finalize_execution(
+        f.sched, &sched_handle, &sched_result);
+    const auto stale_session = session;
+    const bool closed = ggml_backend_rpc_halofpx_mutable_abort(&session) &&
+        ggml_backend_rpc_halofpx_execution_disarm(f.rpc, nonce.data(), sequence);
+    const bool post_abort_refused =
+        !ggml_backend_rpc_halofpx_mutable_register(
+            &stale_session, f.input, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 0);
+    if (!finalized || !closed || !post_abort_refused || mutable_result.status != 1 ||
+        mutable_result.census_count != 2 || mutable_result.mutation_count != 1 ||
+        ggml_backend_sched_authority_consume_prepared_admission(
+            f.sched, &sched_handle, &admission)) {
+        return false;
+    }
+    for (size_t i = 0; i < result.size(); ++i) {
+        const float want = (input[i] + bias[i]) * (input[i] + bias[i]);
+        if (!std::isfinite(result[i]) || std::abs(result[i] - want) > 1e-6f) return false;
+    }
+    ggml_backend_sched_reset(f.sched);
+    return true;
 }
 
 int main(int argc, char ** argv) {
-    if (argc == 3 && std::strcmp(argv[1], "--split-refusals") == 0) {
-        ggml_backend_load_all();
-        ggml_backend_t backend = ggml_backend_rpc_init(argv[2], 0);
-        const bool ok = backend != nullptr && split_identity_refusals(backend);
-        ggml_backend_free(backend);
-        std::printf("split_identity_refusals=%d\n", ok ? 1 : 0);
-        return ok ? 0 : 1;
+    if (argc == 2 && std::strcmp(argv[1], "--publication-self-test") == 0) {
+        const bool published =
+            ggml_backend_rpc_halofpx_preexecute_publication_self_test();
+        std::printf("immutable_publication=%d\n", published ? 1 : 0);
+        return published ? 0 : 1;
     }
     if (argc == 3 && std::strcmp(argv[1], "--feature-off") == 0) {
         ggml_backend_load_all();
-        ggml_backend_t backend = ggml_backend_rpc_init(argv[2], 0);
-        size_t free = 0;
-        size_t total = 0;
-        ggml_backend_rpc_get_device_memory(argv[2], 0, &free, &total);
+        ggml_backend_t rpc = ggml_backend_rpc_init(argv[2], 0);
         ggml_backend_rpc_halofpx_mutable_attempt attempt {};
         ggml_backend_rpc_halofpx_mutable_session session {};
-        attempt.version = 1;
+        attempt.version = 3;
         attempt.graph_uid = 1;
         attempt.execution_sequence = 1;
         attempt.max_mutations = 1;
         attempt.max_census_entries = 1;
         attempt.attempt_nonce[0] = 1;
-        const bool inert = backend && free > 0 && total >= free &&
-            !ggml_backend_rpc_halofpx_mutable_begin(backend, nullptr, &attempt, &session) &&
+        const bool inert = rpc != nullptr &&
+            !ggml_backend_rpc_halofpx_mutable_begin(
+                rpc, nullptr, nullptr, &attempt, &session) &&
             !ggml_backend_rpc_halofpx_mutable_abort(&session);
-        ggml_backend_free(backend);
-        std::printf("feature_off_inert=%d free=%zu total=%zu\n", inert, free, total);
+        ggml_backend_free(rpc);
+        std::printf("feature_off_inert=%d\n", inert ? 1 : 0);
         return inert ? 0 : 1;
+    }
+    if (argc == 3 && std::strcmp(argv[1], "--expect-transport-failure") == 0) {
+        ggml_backend_load_all();
+        fixture failed {};
+        if (!make_fixture(argv[2], failed)) return 2;
+        std::array<float, 32> output {};
+        uint64_t uid = 0, connection = 0, allocation = 0;
+        const bool refused = !execute_once(
+            failed, 1, false, output, uid, connection, allocation);
+        free_fixture(failed);
+        std::printf("transport_failure_refused=%d\n", refused ? 1 : 0);
+        return refused ? 0 : 1;
+    }
+    if (argc == 3 && std::strcmp(argv[1], "--admission-refusals") == 0) {
+        ggml_backend_load_all();
+        fixture state {};
+        if (!make_fixture(argv[2], state)) return 2;
+        std::array<float, 32> output {};
+        uint64_t uid = 0, connection = 0, allocation = 0;
+        const bool expired = execute_once(
+            state, 10, false, output, uid, connection, allocation,
+            nullptr, nullptr, 1);
+        const bool aborted = execute_once(
+            state, 11, false, output, uid, connection, allocation,
+            nullptr, nullptr, 2);
+        free_fixture(state);
+        std::printf("expired_refused=%d aborted_refused=%d\n",
+                    expired ? 1 : 0, aborted ? 1 : 0);
+        return expired && aborted ? 0 : 1;
     }
     if (argc != 3) {
         std::fprintf(stderr, "usage: %s HOST:PORT SECOND_HOST:PORT\n", argv[0]);
         return 2;
     }
-    if (ggml_backend_rpc_halofpx_mutable_auth_self_test() != 0x3ffffU) {
-        std::fprintf(stderr, "mutable authority refusal self-test failed\n");
+    const uint32_t mutable_self_test = ggml_backend_rpc_halofpx_mutable_auth_self_test();
+    if (mutable_self_test != 0x3ffffU) {
+        std::fprintf(stderr, "mutable authority self-test failed: 0x%x\n", mutable_self_test);
         return 1;
     }
     ggml_backend_load_all();
-    ggml_backend_t rpc = ggml_backend_rpc_init(argv[1], 0);
-    ggml_backend_t rpc2 = ggml_backend_rpc_init(argv[2], 0);
-    ggml_backend_t cpu = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU, nullptr);
-    if (!rpc || !rpc2 || !cpu) return 2;
-    if (!split_identity_refusals(rpc2)) {
-        std::fprintf(stderr, "split identity refusal contract failed\n");
-        return 1;
-    }
-    std::vector<uint8_t> metadata(ggml_tensor_overhead() * 10 + ggml_graph_overhead());
-    ggml_init_params params { metadata.size(), metadata.data(), true };
-    ggml_context * ctx = ggml_init(params);
-    if (!ctx) return 2;
-    ggml_tensor * token = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 32);
-    ggml_tensor * storage = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, 40, 2);
-    ggml_tensor * strided = ggml_view_2d(ctx, storage, 32, 1, storage->nb[1], 4 * sizeof(float));
-    ggml_tensor * nested = ggml_view_1d(ctx, strided, 32, 0);
-    ggml_set_input(token);
-    // Deliberately unflagged: structural registration, not INPUT, is authority.
-    ggml_tensor * sum = ggml_add(ctx, token, nested);
-    ggml_tensor * out = ggml_sqr(ctx, sum);
-    ggml_set_output(out);
-    ggml_backend_t backends[] = { rpc, cpu };
-    ggml_backend_buffer_type_t bufts[] = {
-        ggml_backend_get_default_buffer_type(rpc),
-        ggml_backend_get_default_buffer_type(cpu),
-    };
-    ggml_backend_sched_t sched = ggml_backend_sched_new(backends, bufts, 2, 64, false, false);
-    if (!sched) return 2;
-    for (ggml_tensor * tensor : { token, storage, strided, nested, sum, out }) {
-        ggml_backend_sched_set_tensor_backend(sched, tensor, rpc);
-    }
-    std::array<uint8_t, 65536> scheduler_events {};
-    std::array<uint8_t, 32> scheduler_nonce {};
-    ggml_backend_sched_authority_config scheduler_config {};
-    scheduler_config.major = 1;
-    scheduler_config.minor = 0;
-    scheduler_config.encoded_size = sizeof(scheduler_config);
-    scheduler_config.max_events = 256;
-    scheduler_config.event_buffer_size = scheduler_events.size();
-    scheduler_config.execution_sequence = 1;
-    for (size_t i = 0; i < 32; ++i) {
-        scheduler_nonce[i] = static_cast<uint8_t>(0x60 + i);
-        scheduler_config.attempt_nonce[i] = scheduler_nonce[i];
-        scheduler_config.key[i] = static_cast<uint8_t>(0xc0 + i);
-    }
-    scheduler_config.event_buffer = scheduler_events.data();
-    if (!ggml_backend_sched_authority_enable(sched, &scheduler_config)) return 2;
-    std::memset(scheduler_config.key, 0, sizeof(scheduler_config.key));
-    ggml_cgraph * graph = ggml_new_graph(ctx);
-    ggml_build_forward_expand(graph, out);
-    if (!ggml_backend_sched_alloc_graph(sched, graph)) return 2;
-    const uint64_t graph_uid = ggml_backend_rpc_halofpx_mutable_graph_uid(graph);
-    if (graph_uid == 0) return 2;
-    ggml_backend_rpc_halofpx_mutable_attempt attempt {};
-    ggml_backend_rpc_halofpx_mutable_session session {};
-    fill_attempt(attempt, graph_uid, 1, scheduler_nonce.data());
-    struct ggml_backend_sched_authority_admission admission_probe {};
-    if (!ggml_backend_sched_authority_admission(sched, &admission_probe)) {
-        std::fprintf(stderr, "scheduler admission unavailable\n"); return 1;
-    }
-    if (!ggml_backend_rpc_halofpx_mutable_begin(rpc, sched, &attempt, &session) ||
-        !ggml_backend_rpc_halofpx_mutable_register(
-            &session, token, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 0) ||
-        !ggml_backend_rpc_halofpx_mutable_register(
-            &session, storage, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 0) ||
-        !ggml_backend_rpc_halofpx_mutable_register(
-            &session, nested, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 1)) {
-        std::fprintf(stderr, "begin1 failed\n"); return 1;
-    }
-    std::vector<uint8_t> other_metadata(ggml_tensor_overhead() * 2);
-    ggml_init_params other_params { other_metadata.size(), other_metadata.data(), true };
-    ggml_context * other_ctx = ggml_init(other_params);
-    ggml_tensor * other = other_ctx ? ggml_new_tensor_1d(other_ctx, GGML_TYPE_F32, 8) : nullptr;
-    ggml_backend_buffer_t other_buffer = other_ctx ? ggml_backend_alloc_ctx_tensors(other_ctx, rpc2) : nullptr;
-    ggml_backend_rpc_halofpx_mutable_attempt other_attempt {};
-    fill_attempt(other_attempt, graph_uid + 1000, 101, scheduler_nonce.data());
-    other_attempt.scheduler_execution_sequence = 1;
-    ggml_backend_rpc_halofpx_mutable_session other_session {};
-    if (!other_buffer ||
-        !ggml_backend_rpc_halofpx_mutable_begin(rpc2, sched, &other_attempt, &other_session) ||
-        !ggml_backend_rpc_halofpx_mutable_register(
-            &other_session, other, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 77) ||
-        ggml_backend_rpc_halofpx_mutable_register(
-            &session, other, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 77) ||
-        ggml_backend_rpc_halofpx_mutable_register(
-            &other_session, token, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 78)) {
-        std::fprintf(stderr, "concurrent session isolation failed\n"); return 1;
-    }
-    auto stale_session = other_session;
-    if (!ggml_backend_rpc_halofpx_mutable_abort(&other_session) ||
-        ggml_backend_rpc_halofpx_mutable_register(
-            &stale_session, other, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 77) ||
-        ggml_backend_rpc_halofpx_mutable_abort(&stale_session)) {
-        std::fprintf(stderr, "stale session refusal failed\n"); return 1;
-    }
-    for (uint32_t test_case = GGML_RPC_HALOFPX_MUTABLE_TEST_MALFORMED;
-         test_case <= GGML_RPC_HALOFPX_MUTABLE_TEST_WRONG_VIEW; ++test_case) {
-        fill_attempt(other_attempt, graph_uid + 1000 + test_case, 101 + test_case, scheduler_nonce.data());
-        other_attempt.scheduler_execution_sequence = 1;
-        uint32_t handler_status = UINT32_MAX;
-        if (!ggml_backend_rpc_halofpx_mutable_begin(rpc2, sched, &other_attempt, &other_session) ||
-            !ggml_backend_rpc_halofpx_mutable_register(
-                &other_session, other, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 77) ||
-            !ggml_backend_rpc_halofpx_mutable_test_inject(
-                &other_session, other,
-                static_cast<ggml_backend_rpc_halofpx_mutable_test_case>(test_case),
-                &handler_status) ||
-            handler_status != 0 ||
-            !ggml_backend_rpc_halofpx_mutable_abort(&other_session)) {
-            std::fprintf(stderr, "real handler refusal case %u failed status=%u\n", test_case, handler_status);
-            return 1;
-        }
-        std::printf("handler_case_%u_status=%u authenticated=1\n", test_case, handler_status);
-    }
-    fill_attempt(other_attempt, graph_uid + 2000, 200, scheduler_nonce.data());
-    other_attempt.scheduler_execution_sequence = 1;
-    if (!ggml_backend_rpc_halofpx_mutable_begin(rpc2, sched, &other_attempt, &other_session) ||
-        !ggml_backend_rpc_halofpx_mutable_register(
-            &other_session, other, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 88)) return 1;
-    auto freed_buffer_session = other_session;
-    ggml_backend_buffer_free(other_buffer);
-    if (ggml_backend_rpc_halofpx_mutable_abort(&freed_buffer_session)) {
-        std::fprintf(stderr, "buffer teardown left session authority\n"); return 1;
-    }
-    ggml_free(other_ctx);
-    std::array<float, 32> av {};
-    std::vector<float> bv(3 * 1024 * 1024);
-    for (size_t i = 0; i < av.size(); ++i) av[i] = static_cast<float>(i) / 16.0f;
-    for (size_t i = 0; i < bv.size(); ++i) bv[i] = static_cast<float>((i % 19) + 3) / 64.0f;
-    ggml_backend_tensor_set(token, av.data(), 0, sizeof(av));
-    ggml_backend_tensor_set(storage, bv.data(), 0, ggml_nbytes(storage));
-    ggml_backend_rpc_halofpx_mutable_result first_authority {};
-    if (!ggml_backend_rpc_halofpx_mutable_prepare(&session, graph, &first_authority)) {
-        std::fprintf(stderr, "prepare1 failed\n"); return 1;
-    }
-    if (ggml_backend_sched_graph_compute(sched, graph) != GGML_STATUS_SUCCESS) {
-        std::fprintf(stderr, "compute1 failed\n"); return 1;
-    }
-    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, graph, &first_authority)) {
-        std::fprintf(stderr, "commit1 failed\n"); return 1;
-    }
-    std::array<float, 32> first {};
-    ggml_backend_tensor_get(out, first.data(), 0, sizeof(first));
-    struct ggml_backend_sched_authority_result scheduler_result {};
-    if (!ggml_backend_sched_authority_result(sched, &scheduler_result) ||
-        scheduler_result.execution_sequence != 1 ||
-        std::memcmp(scheduler_result.attempt_nonce, scheduler_nonce.data(), 32) != 0) {
-        std::fprintf(stderr, "scheduler result1 failed\n"); return 1;
-    }
-    if (!ggml_backend_rpc_halofpx_mutable_abort(&session)) return 1;
-
-    // A direct RPC graph exercises real compute+recompute while remaining
-    // bound to the scheduler attempt authenticated above.
-    std::vector<uint8_t> direct_metadata(ggml_tensor_overhead() * 8 + 2 * ggml_graph_overhead());
-    ggml_init_params direct_params { direct_metadata.size(), direct_metadata.data(), true };
-    ggml_context * direct_ctx = ggml_init(direct_params);
-    if (!direct_ctx) return 2;
-    ggml_tensor * da = ggml_new_tensor_1d(direct_ctx, GGML_TYPE_F32, 32);
-    ggml_tensor * db_storage = ggml_new_tensor_1d(direct_ctx, GGML_TYPE_F32, bv.size());
-    ggml_tensor * db = ggml_view_1d(direct_ctx, db_storage, 32, 4 * sizeof(float));
-    ggml_tensor * bias = ggml_new_tensor_1d(direct_ctx, GGML_TYPE_F32, 32);
-    ggml_tensor * direct_out = ggml_sqr(direct_ctx, ggml_add(direct_ctx, ggml_add(direct_ctx, da, db), bias));
-    ggml_set_input(da);
-    ggml_set_output(direct_out);
-    ggml_cgraph * direct_graph = ggml_new_graph(direct_ctx);
-    ggml_build_forward_expand(direct_graph, direct_out);
-    ggml_backend_buffer_t direct_buffer = ggml_backend_alloc_ctx_tensors(direct_ctx, rpc);
-    if (!direct_buffer) return 2;
-    std::array<float, 32> zeros {};
-    ggml_backend_tensor_set(bias, zeros.data(), 0, sizeof(zeros));
-    const uint64_t direct_uid = ggml_backend_rpc_halofpx_mutable_graph_uid(direct_graph);
-    if (direct_uid == 0) return 1;
-    fill_attempt(attempt, direct_uid, 2, scheduler_nonce.data());
-    attempt.scheduler_execution_sequence = 1;
-    if (!ggml_backend_rpc_halofpx_mutable_begin(rpc, sched, &attempt, &session) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, da, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 10) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, db_storage, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 10) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, db, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 11) ||
-        !ggml_backend_rpc_halofpx_mutable_exclude(&session, bias, GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT, 0)) {
-        std::fprintf(stderr, "begin2 failed\n"); return 1;
-    }
-    ggml_backend_tensor_set(da, av.data(), 0, sizeof(av));
-    ggml_backend_tensor_set(db_storage, bv.data(), 0, bv.size() * sizeof(float));
-    ggml_backend_rpc_halofpx_mutable_result second_authority {};
-    if (!ggml_backend_rpc_halofpx_mutable_prepare(&session, direct_graph, &second_authority)) {
-        std::fprintf(stderr, "prepare2 failed\n"); return 1;
-    }
-    if (ggml_backend_graph_compute(rpc, direct_graph) != GGML_STATUS_SUCCESS) {
-        std::fprintf(stderr, "compute2 failed\n"); return 1;
-    }
-    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, direct_graph, &second_authority)) {
-        std::fprintf(stderr, "commit2 failed\n"); return 1;
-    }
-    std::array<float, 32> direct_first {};
-    ggml_backend_tensor_get(direct_out, direct_first.data(), 0, sizeof(direct_first));
-    if (!ggml_backend_rpc_halofpx_mutable_abort(&session)) return 1;
-    fill_attempt(attempt, direct_uid, 3, scheduler_nonce.data());
-    attempt.scheduler_execution_sequence = 1;
-    if (!ggml_backend_rpc_halofpx_mutable_begin(rpc, sched, &attempt, &session) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, da, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 10) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, db_storage, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 10) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, db, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 11) ||
-        !ggml_backend_rpc_halofpx_mutable_exclude(&session, bias, GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT, 0)) {
-        std::fprintf(stderr, "begin3 failed\n"); return 1;
-    }
-    ggml_backend_tensor_set(da, av.data(), 0, sizeof(av));
-    ggml_backend_tensor_set(db_storage, bv.data(), 0, bv.size() * sizeof(float));
-    ggml_backend_rpc_halofpx_mutable_result third_authority {};
-    if (!ggml_backend_rpc_halofpx_mutable_prepare(&session, direct_graph, &third_authority)) {
-        std::fprintf(stderr, "prepare3 failed\n"); return 1;
-    }
-    if (ggml_backend_graph_compute(rpc, direct_graph) != GGML_STATUS_SUCCESS) {
-        std::fprintf(stderr, "recompute failed\n"); return 1;
-    }
-    if (!ggml_backend_rpc_halofpx_mutable_commit(&session, direct_graph, &third_authority)) {
-        std::fprintf(stderr, "commit3 failed\n"); return 1;
-    }
-    std::array<float, 32> second {};
-    ggml_backend_tensor_get(direct_out, second.data(), 0, sizeof(second));
-    if (!ggml_backend_rpc_halofpx_mutable_abort(&session)) return 1;
-    const bool exact = std::memcmp(direct_first.data(), second.data(), sizeof(second)) == 0;
-    const bool identical_authority =
-        std::memcmp(second_authority.semantic_root, third_authority.semantic_root, 32) == 0 &&
-        std::memcmp(second_authority.census_root, third_authority.census_root, 32) == 0;
-
-    ggml_cgraph * changed_graph = ggml_new_graph(direct_ctx);
-    ggml_build_forward_expand(changed_graph, direct_out);
-    const uint64_t changed_uid = ggml_backend_rpc_halofpx_mutable_graph_uid(changed_graph);
-    fill_attempt(attempt, changed_uid, 4, scheduler_nonce.data());
-    attempt.scheduler_execution_sequence = 1;
-    if (!ggml_backend_rpc_halofpx_mutable_begin(rpc, sched, &attempt, &session) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, da, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 10) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, db_storage, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 10) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, db, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 11) ||
-        !ggml_backend_rpc_halofpx_mutable_exclude(&session, bias, GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT, 0)) return 1;
-    auto changed = av;
-    changed[0] += 1.0f;
-    ggml_backend_tensor_set(da, changed.data(), 0, sizeof(changed));
-    ggml_backend_tensor_set(db_storage, bv.data(), 0, bv.size() * sizeof(float));
-    ggml_backend_rpc_halofpx_mutable_result changed_authority {};
-    if (!ggml_backend_rpc_halofpx_mutable_prepare(&session, changed_graph, &changed_authority) ||
-        ggml_backend_graph_compute(rpc, changed_graph) != GGML_STATUS_SUCCESS ||
-        !ggml_backend_rpc_halofpx_mutable_commit(&session, changed_graph, &changed_authority)) return 1;
-    std::array<float, 32> changed_output {};
-    ggml_backend_tensor_get(direct_out, changed_output.data(), 0, sizeof(changed_output));
-    const bool mutation_sensitive =
-        std::memcmp(third_authority.semantic_root, changed_authority.semantic_root, 32) != 0 &&
-        std::memcmp(second.data(), changed_output.data(), sizeof(second)) != 0;
-    if (!ggml_backend_rpc_halofpx_mutable_abort(&session)) return 1;
-
-    std::array<float, 32> sentinel {};
-    sentinel.fill(-777.0f);
-    ggml_backend_tensor_set(direct_out, sentinel.data(), 0, sizeof(sentinel));
-    fill_attempt(attempt, direct_uid, 5, scheduler_nonce.data());
-    attempt.scheduler_execution_sequence = 1;
-    if (!ggml_backend_rpc_halofpx_mutable_begin(rpc, sched, &attempt, &session) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, da, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 10) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, db_storage, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 10) ||
-        !ggml_backend_rpc_halofpx_mutable_register(&session, db, GGML_RPC_HALOFPX_MUTABLE_ARCHITECTURE_INPUT, 11) ||
-        !ggml_backend_rpc_halofpx_mutable_exclude(&session, bias, GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT, 0)) return 1;
-    ggml_backend_tensor_set(da, av.data(), 0, sizeof(av));
-    ggml_backend_tensor_set(db_storage, bv.data(), 0, bv.size() * sizeof(float));
-    const bool omitted_leaf_refused =
-        ggml_backend_rpc_halofpx_mutable_test_commit_omit_unmutated_leaf(&session) &&
-        ggml_backend_graph_compute(rpc, direct_graph) != GGML_STATUS_SUCCESS;
-    std::array<float, 32> after_refusal {};
-    ggml_backend_tensor_get(direct_out, after_refusal.data(), 0, sizeof(after_refusal));
-    if (!omitted_leaf_refused ||
-        std::memcmp(sentinel.data(), after_refusal.data(), sizeof(sentinel)) != 0 ||
-        !ggml_backend_rpc_halofpx_mutable_abort(&session)) {
-        std::fprintf(stderr, "omitted reconstructed leaf handler refusal failed\n"); return 1;
-    }
-    std::vector<uint8_t> unknown_metadata(ggml_tensor_overhead() * 4 + ggml_graph_overhead());
-    ggml_init_params unknown_params { unknown_metadata.size(), unknown_metadata.data(), true };
-    ggml_context * unknown_ctx = ggml_init(unknown_params);
-    ggml_tensor * unknown = ggml_new_tensor_1d(unknown_ctx, GGML_TYPE_F32, 8);
-    ggml_tensor * unknown_out = ggml_sqr(unknown_ctx, unknown);
-    ggml_cgraph * unknown_graph = ggml_new_graph(unknown_ctx);
-    ggml_build_forward_expand(unknown_graph, unknown_out);
-    ggml_backend_buffer_t unknown_buffer = ggml_backend_alloc_ctx_tensors(unknown_ctx, rpc);
-    const uint64_t unknown_uid = ggml_backend_rpc_halofpx_mutable_graph_uid(unknown_graph);
-    fill_attempt(attempt, unknown_uid, 6, scheduler_nonce.data());
-    attempt.scheduler_execution_sequence = 1;
-    ggml_backend_rpc_halofpx_mutable_result unknown_result {};
-    const bool unknown_refused = unknown_buffer && unknown_uid != 0 &&
-        ggml_backend_rpc_halofpx_mutable_begin(rpc, sched, &attempt, &session) &&
-        !ggml_backend_rpc_halofpx_mutable_prepare(&session, unknown_graph, &unknown_result);
-    const bool roots = first_authority.mutation_count == 2 &&
-        second_authority.mutation_count == 2 &&
-        third_authority.mutation_count == 2 &&
-        first_authority.census_count == 2 &&
-        second_authority.census_count == 3 &&
-        third_authority.census_count == 3;
-    bool expected = true;
-    for (size_t i = 0; i < first.size(); ++i) {
-        const float want = (av[i] + bv[4 + i]) * (av[i] + bv[4 + i]);
-        expected = expected && std::isfinite(direct_first[i]) && std::abs(direct_first[i] - want) <= 1e-6f;
-    }
-    std::printf("self_tests=18 handler_refusals=6 compute_recompute_exact=%d expected=%d authority=%d identical_authority=%d mutation_sensitive=%d unknown_refused=%d omitted_leaf_refused=%d mutations=%u/%u census=%u/%u hash_miss=%u/%u hash_hit=%u/%u\n",
-                exact, expected, roots, identical_authority, mutation_sensitive, unknown_refused, omitted_leaf_refused,
-                first_authority.mutation_count, second_authority.mutation_count,
-                first_authority.census_count, second_authority.census_count,
-                second_authority.set_hash_miss_count, third_authority.set_hash_miss_count,
-                second_authority.set_hash_hit_count, third_authority.set_hash_hit_count);
-    if (!ggml_backend_rpc_halofpx_mutable_abort(&session)) {
-        std::fprintf(stderr, "failed-session teardown failed\n"); return 1;
-    }
-    ggml_backend_buffer_free(unknown_buffer);
-    ggml_free(unknown_ctx);
-    ggml_backend_buffer_free(direct_buffer);
-    ggml_free(direct_ctx);
-    ggml_backend_sched_free(sched);
-    ggml_free(ctx);
-    ggml_backend_free(rpc);
-    ggml_backend_free(rpc2);
-    ggml_backend_free(cpu);
-    return exact && expected && roots && identical_authority && mutation_sensitive &&
-        unknown_refused && omitted_leaf_refused ? 0 : 1;
+    fixture first {};
+    fixture second {};
+    if (!make_fixture(argv[1], first) || !make_fixture(argv[2], second)) return 2;
+    std::array<float, 32> first_output {};
+    std::array<float, 32> recompute_output {};
+    std::array<float, 32> second_output {};
+    uint64_t uid1 = 0, uid2 = 0, uid3 = 0;
+    uint64_t conn1 = 0, conn2 = 0, conn3 = 0;
+    uint64_t alloc1 = 0, alloc2 = 0, alloc3 = 0;
+    std::atomic<uint32_t> overlap { 0 };
+    bool first_ok = false;
+    bool concurrent_ok = false;
+    std::thread primary([&] {
+        first_ok = execute_once(
+            first, 1, false, first_output, uid1, conn1, alloc1, &overlap,
+            second.input);
+    });
+    std::thread other([&] {
+        concurrent_ok = execute_once(
+            second, 1, true, second_output, uid3, conn3, alloc3, &overlap,
+            first.input);
+    });
+    primary.join();
+    other.join();
+    ggml_backend_buffer_t rollover = ggml_backend_alloc_buffer(first.rpc, 64);
+    const bool rollover_ok = rollover != nullptr;
+    ggml_backend_buffer_free(rollover);
+    const bool recompute_ok = first_ok && execute_once(
+        first, 2, false, recompute_output, uid2, conn2, alloc2);
+    const bool exact =
+        std::memcmp(first_output.data(), recompute_output.data(), sizeof(first_output)) == 0 &&
+        std::memcmp(first_output.data(), second_output.data(), sizeof(first_output)) == 0;
+    const bool authority =
+        uid1 != 0 && uid2 != 0 && uid3 != 0 &&
+        uid1 != uid2 && uid1 != uid3 && uid2 != uid3 &&
+        conn1 != 0 && conn1 == conn2 && conn3 != 0 &&
+        alloc1 != 0 && alloc2 > alloc1 && alloc3 != 0 && rollover_ok;
+    std::printf(
+        "real_composed=%d recompute=%d concurrent=%d exact=%d "
+        "uids=%llu/%llu/%llu connection_epochs=%llu/%llu/%llu "
+        "allocation_epochs=%llu/%llu/%llu\n",
+        first_ok ? 1 : 0, recompute_ok ? 1 : 0, concurrent_ok ? 1 : 0,
+        exact ? 1 : 0,
+        static_cast<unsigned long long>(uid1),
+        static_cast<unsigned long long>(uid2),
+        static_cast<unsigned long long>(uid3),
+        static_cast<unsigned long long>(conn1),
+        static_cast<unsigned long long>(conn2),
+        static_cast<unsigned long long>(conn3),
+        static_cast<unsigned long long>(alloc1),
+        static_cast<unsigned long long>(alloc2),
+        static_cast<unsigned long long>(alloc3));
+    free_fixture(first);
+    free_fixture(second);
+    return first_ok && recompute_ok && concurrent_ok && exact && authority ? 0 : 1;
 }

@@ -1,0 +1,43 @@
+{
+  "milestone": "L67",
+  "result": "PASS",
+  "base_commit": "755ba5f2ebd943e8a1204f31be4a80516dc06182",
+  "scope": "Bounded default-off ADR-0049 foundation; no stories, model, cache, performance, or production mutation",
+  "source_diff_sha1": "a742da17ce5fbb9cf4c3d5833013dd5b3f25f594",
+  "focused_compile": {
+    "host": "nimo-1",
+    "targets": ["test-halofpx-rpc-mutable-authority", "rpc-server"],
+    "compile_off_rpc_server": "pass"
+  },
+  "focused_real_fixture": {
+    "status": "pass",
+    "summary": "real_composed=1 recompute=1 concurrent=1 exact=1 uids=2/5/1 connection_epochs=9667245781902967/9667245781902967/9667220012308901 allocation_epochs=2/4/2",
+    "authority_verifier": "attempts=3 terminal_attempts=3 records=87 transport_commands=6"
+  },
+  "focused_refusals": {
+    "independent_binding": "partial/self/reuse/cross-side refused",
+    "lifetime": "expired_refused=1 aborted_refused=1",
+    "transport": "send_error:1 transport_failure_refused=1 branch=3",
+    "structural": ["unterminated", "extra", "missing", "reordered", "unknown", "post_terminal"]
+  },
+  "publication": {
+    "separate_processes": true,
+    "winner_invocation_id": "7d8d07cddc6c418f853e939443581d1d",
+    "collision_invocation_id": "85aa5f6c32294b16bbe643f1a5677be1",
+    "collision_status": "EEXIST refusal",
+    "final_mode": "0400",
+    "byte_exact_reopen": true
+  },
+  "feature_off": "feature_off_inert=1",
+  "manifest": {
+    "path": "docs/halofpx/evidence/l67-focused-manifest.json",
+    "verification": "artifacts=8 cases=10 status=pass"
+  },
+  "review": {
+    "independent": true,
+    "task": "l67_adversarial_review",
+    "verdict": "PASS",
+    "p1_p2_remaining": 0,
+    "recommendation": "promotable and retainable"
+  }
+}

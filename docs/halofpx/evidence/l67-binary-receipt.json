@@ -1,0 +1,12 @@
+{
+  "schema": "halofpx.l67.binary-receipt.v1",
+  "source_diff_sha1": "a742da17ce5fbb9cf4c3d5833013dd5b3f25f594",
+  "host": "nimo-1",
+  "key_generation": 1,
+  "binaries": {
+    "test-halofpx-rpc-mutable-authority": "7aea5449f830d6574db38cbd5d079ae68f902d0381ca8d8ce7dd066afaed05b6",
+    "rpc-server": "054c1d1623f108a07afcf14e6a5e7d023faa3e78a9a421073e92c724925ab6d8",
+    "libggml-rpc.so.0.11.1": "2a0026e7a3334356757b861b95e06ac2088a14f9a18657f6fc227f4342740338"
+  },
+  "tag": "41a85e9390437a59b172a69dcb540799d0a156582cabb4b8c18da0011bdf1e6c"
+}

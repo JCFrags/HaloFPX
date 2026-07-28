@@ -398,6 +398,68 @@ extern "C" {
         uint8_t tag[32];
     };
 
+    struct ggml_backend_sched_authority_prepared_admission {
+        uint16_t major;
+        uint16_t minor;
+        uint32_t encoded_size;
+        uint64_t capabilities;
+        uint32_t state;
+        uint32_t allowed_operation;
+        uint64_t key_generation;
+        uint64_t scheduler_session_id;
+        uint64_t scheduler_generation;
+        uint64_t execution_sequence;
+        uint64_t parent_graph_uid;
+        uint64_t client_connection_epoch;
+        uint64_t server_connection_epoch;
+        uint64_t allocation_topology_epoch;
+        uint32_t split_count;
+        uint32_t backend_ordinal;
+        uint32_t logical_expected_mutable_count;
+        uint32_t logical_expected_exclusion_count;
+        uint64_t issued_unix_ns;
+        uint64_t expires_unix_ns;
+        uint8_t attempt_nonce[32];
+        uint8_t object_id[32];
+        uint8_t prepared_graph_digest[32];
+        uint8_t prepared_root[32];
+        uint8_t split_mapping_root[32];
+        uint8_t scheduler_chain_root[32];
+        uint8_t logical_expected_census_root[32];
+        struct {
+            uint64_t split_graph_uid;
+            uint32_t split_ordinal;
+            uint32_t backend_ordinal;
+        } ordered_splits[64];
+        uint8_t tag[32];
+    };
+
+    enum ggml_backend_sched_authority_admission_state {
+        GGML_BACKEND_SCHED_ADMISSION_PREPARED = 1,
+        GGML_BACKEND_SCHED_ADMISSION_CONSUMED,
+        GGML_BACKEND_SCHED_ADMISSION_ABORTED,
+        GGML_BACKEND_SCHED_ADMISSION_EXPIRED,
+    };
+
+    enum ggml_backend_sched_authority_allowed_operation {
+        GGML_BACKEND_SCHED_OPERATION_AUTHENTICATED_EXECUTE = 1,
+        GGML_BACKEND_SCHED_OPERATION_AUTHENTICATED_RECOMPUTE,
+    };
+
+    struct ggml_backend_sched_authority_admission_expectation {
+        uint16_t major;
+        uint16_t minor;
+        uint32_t encoded_size;
+        uint32_t allowed_operation;
+        uint32_t backend_ordinal;
+        uint64_t key_generation;
+        uint64_t client_connection_epoch;
+        uint64_t server_connection_epoch;
+        uint64_t allocation_topology_epoch;
+        uint64_t issued_unix_ns;
+        uint64_t expires_unix_ns;
+    };
+
     struct ggml_backend_sched_authority_split {
         uint64_t parent_graph_uid;
         uint64_t execution_sequence;
@@ -496,6 +558,27 @@ extern "C" {
         const struct ggml_backend_sched_authority_handle * handle,
         struct ggml_cgraph * graph,
         struct ggml_backend_sched_authority_prepared * prepared);
+    GGML_API bool                 ggml_backend_sched_authority_prepared_admission(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        const struct ggml_backend_sched_authority_admission_expectation * expectation,
+        struct ggml_backend_sched_authority_prepared_admission * admission);
+    GGML_API bool                 ggml_backend_sched_authority_expected_prepared_admission(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        const struct ggml_backend_sched_authority_admission_expectation * expectation,
+        struct ggml_backend_sched_authority_prepared_admission * expected);
+    GGML_API bool                 ggml_backend_sched_authority_verify_prepared_admission(
+        const struct ggml_backend_sched_authority_prepared_admission * admission,
+        const uint8_t key[32],
+        const struct ggml_backend_sched_authority_prepared_admission * expected);
+    GGML_API bool                 ggml_backend_sched_authority_consume_prepared_admission(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        const struct ggml_backend_sched_authority_prepared_admission * admission);
+    GGML_API bool                 ggml_backend_sched_authority_abort_prepared_admission(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle);
     GGML_API size_t               ggml_backend_sched_authority_split_count(
         ggml_backend_sched_t sched,
         const struct ggml_backend_sched_authority_handle * handle);

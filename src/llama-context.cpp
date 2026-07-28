@@ -15,6 +15,7 @@
 
 #include <cinttypes>
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -1771,8 +1772,41 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         if (composed_authority) {
             for (uint32_t backend_ordinal = 0; backend_ordinal < backend_ptrs.size(); ++backend_ordinal) {
                 if (!ggml_backend_is_rpc(backend_ptrs[backend_ordinal])) continue;
+                ggml_backend_rpc_halofpx_mutable_preflight preflight {};
+                if (!ggml_backend_rpc_halofpx_mutable_negotiate_preflight(
+                        backend_ptrs[backend_ordinal], 1, &preflight)) {
+                    abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                }
+                ggml_backend_sched_authority_admission_expectation expectation {};
+                expectation.major = 1;
+                expectation.encoded_size = sizeof(expectation);
+                expectation.allowed_operation =
+                    GGML_BACKEND_SCHED_OPERATION_AUTHENTICATED_EXECUTE;
+                expectation.backend_ordinal = backend_ordinal;
+                expectation.key_generation = preflight.key_generation;
+                expectation.client_connection_epoch = preflight.client_connection_epoch;
+                expectation.server_connection_epoch = preflight.server_connection_epoch;
+                expectation.allocation_topology_epoch = preflight.allocation_topology_epoch;
+                expectation.issued_unix_ns =
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        std::chrono::system_clock::now().time_since_epoch()).count();
+                expectation.expires_unix_ns =
+                    expectation.issued_unix_ns + UINT64_C(30000000000);
+                struct ggml_backend_sched_authority_prepared_admission expected_admission {};
+                struct ggml_backend_sched_authority_prepared_admission scheduler_admission {};
+                if (!ggml_backend_sched_authority_expected_prepared_admission(
+                        sched.get(), &halofpx_execution_handle, &expectation,
+                        &expected_admission) ||
+                    !ggml_backend_sched_authority_prepared_admission(
+                        sched.get(), &halofpx_execution_handle, &expectation,
+                        &scheduler_admission) ||
+                    !ggml_backend_sched_authority_verify_prepared_admission(
+                        &scheduler_admission, halofpx_execution_key.data(),
+                        &expected_admission)) {
+                    abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                }
                 ggml_backend_rpc_halofpx_mutable_attempt attempt {};
-                attempt.version = 1;
+                attempt.version = 3;
                 attempt.max_mutations = 4096;
                 attempt.max_census_entries = 4096;
                 attempt.graph_uid = halofpx_execution_prepared.graph_uid;
@@ -1780,13 +1814,15 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 memcpy(attempt.attempt_nonce, halofpx_execution_nonce.data(), 32);
                 ggml_backend_rpc_halofpx_mutable_session session {};
                 if (!ggml_backend_rpc_halofpx_mutable_begin(
-                        backend_ptrs[backend_ordinal], sched.get(), &attempt, &session)) {
+                        backend_ptrs[backend_ordinal], &scheduler_admission,
+                        &expected_admission, &attempt, &session)) {
                     abort_composed();
                     ret = GGML_STATUS_FAILED;
                     return nullptr;
                 }
                 halofpx_mutable_sessions.push_back(session);
                 halofpx_mutable_backend_ordinals.push_back(backend_ordinal);
+                halofpx_mutable_admissions.push_back(scheduler_admission);
             }
             for (size_t s = 0; s < halofpx_mutable_sessions.size(); ++s) {
                 const uint32_t backend_ordinal = halofpx_mutable_backend_ordinals[s];
@@ -1884,6 +1920,16 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         halofpx_last_graph_input_authority.clear();
     }
 
+    if (composed_authority) {
+        for (const auto & admission : halofpx_mutable_admissions) {
+            if (!ggml_backend_sched_authority_consume_prepared_admission(
+                    sched.get(), &halofpx_execution_handle, &admission)) {
+                abort_composed();
+                ret = GGML_STATUS_FAILED;
+                return nullptr;
+            }
+        }
+    }
     const auto status = graph_compute(res->get_gf(), ubatch.n_tokens > 1);
     if (status != GGML_STATUS_SUCCESS) {
         LLAMA_LOG_ERROR("%s: failed to compute graph, compute status: %d\n", __func__, status);
@@ -2060,6 +2106,7 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             }
         }
         halofpx_mutable_sessions.clear();
+        halofpx_mutable_admissions.clear();
         bool disarmed = true;
         for (ggml_backend_t backend : backend_ptrs) {
             if (ggml_backend_is_rpc(backend) &&
@@ -2902,6 +2949,7 @@ bool llama_context::halofpx_execution_authority_abort() {
     halofpx_mutable_sessions.clear();
     halofpx_mutable_results.clear();
     halofpx_mutable_backend_ordinals.clear();
+    halofpx_mutable_admissions.clear();
     if (halofpx_execution_handle.session_id != 0 &&
         !ggml_backend_sched_authority_abort_execution(
             sched.get(), &halofpx_execution_handle)) clean = false;

@@ -23,6 +23,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
+#include <chrono>
 #include <atomic>
 #include <array>
 #include <functional>
@@ -30,6 +31,7 @@ extern "C" {
 #include <unordered_map>
 #include <unordered_set>
 #include <type_traits>
+#include <mutex>
 #include <vector>
 
 #ifdef __APPLE__
@@ -849,6 +851,12 @@ struct sched_auth_state {
     std::vector<admitted_split> admitted_splits;
     sched_digest prepared_root {};
     sched_digest split_mapping_root {};
+    struct admission_lifecycle {
+        sched_digest object_id {};
+        uint32_t state = GGML_BACKEND_SCHED_ADMISSION_PREPARED;
+    };
+    std::mutex admission_mutex;
+    std::unordered_map<uint32_t, admission_lifecycle> admissions;
     uint64_t session_id = 0;
     uint64_t generation = 0;
     uint32_t exported_size = 0;
@@ -2731,6 +2739,254 @@ bool ggml_backend_sched_authority_prepare(
     memcpy(prepared->tag, tag.data(), 32);
     state.prepared = true;
     return true;
+}
+
+static bool sched_auth_build_prepared_admission(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        const ggml_backend_sched_authority_admission_expectation * expectation,
+        struct ggml_backend_sched_authority_prepared_admission * admission,
+        bool seal_and_register) {
+    if (!sched_auth_handle_matches(sched, handle) || expectation == nullptr ||
+        admission == nullptr ||
+        !sched->authority->prepared || sched->authority->failed ||
+        sched->authority->admitted_splits.empty() ||
+        expectation->major != 1 || expectation->minor != 0 ||
+        expectation->encoded_size != sizeof(*expectation) ||
+        expectation->allowed_operation <
+            GGML_BACKEND_SCHED_OPERATION_AUTHENTICATED_EXECUTE ||
+        expectation->allowed_operation >
+            GGML_BACKEND_SCHED_OPERATION_AUTHENTICATED_RECOMPUTE ||
+        expectation->backend_ordinal == UINT32_MAX ||
+        expectation->key_generation == 0 ||
+        expectation->client_connection_epoch == 0 ||
+        expectation->server_connection_epoch == 0 ||
+        expectation->allocation_topology_epoch == 0 ||
+        expectation->issued_unix_ns == 0 ||
+        expectation->expires_unix_ns <= expectation->issued_unix_ns ||
+        expectation->expires_unix_ns - expectation->issued_unix_ns !=
+            UINT64_C(30000000000)) {
+        return false;
+    }
+    auto & state = *sched->authority;
+    const uint64_t parent_uid = state.admitted_splits.front().parent_uid;
+    if (parent_uid == 0 ||
+        std::any_of(state.admitted_splits.begin(), state.admitted_splits.end(),
+                    [parent_uid, &state](const auto & split) {
+                        return split.parent_uid != parent_uid ||
+                            split.execution_sequence != state.config.execution_sequence;
+                    })) {
+        return false;
+    }
+    memset(admission, 0, sizeof(*admission));
+    admission->major = 3;
+    admission->minor = 0;
+    admission->encoded_size = sizeof(*admission);
+    admission->capabilities = UINT64_C(0x3ff);
+    admission->state = GGML_BACKEND_SCHED_ADMISSION_PREPARED;
+    admission->allowed_operation = expectation->allowed_operation;
+    admission->key_generation = expectation->key_generation;
+    admission->scheduler_session_id = handle->session_id;
+    admission->scheduler_generation = handle->generation;
+    admission->execution_sequence = state.config.execution_sequence;
+    admission->parent_graph_uid = parent_uid;
+    admission->client_connection_epoch = expectation->client_connection_epoch;
+    admission->server_connection_epoch = expectation->server_connection_epoch;
+    admission->allocation_topology_epoch = expectation->allocation_topology_epoch;
+    admission->split_count = static_cast<uint32_t>(state.admitted_splits.size());
+    admission->backend_ordinal = expectation->backend_ordinal;
+    if (admission->split_count > 64) return false;
+    for (size_t i = 0; i < state.admitted_splits.size(); ++i) {
+        const auto & split = state.admitted_splits[i];
+        admission->ordered_splits[i].split_graph_uid = split.split_uid;
+        admission->ordered_splits[i].split_ordinal = split.split_ordinal;
+        admission->ordered_splits[i].backend_ordinal = split.backend_ordinal;
+    }
+    std::vector<std::pair<uint32_t, uint32_t>> logical_mutable;
+    std::vector<std::pair<uint32_t, uint32_t>> logical_excluded;
+    for (const auto & root : state.admitted_roots) {
+        if (root.backend != expectation->backend_ordinal) continue;
+        const auto value = std::make_pair(
+            root.authority.role, root.authority.role_ordinal);
+        if (root.authority.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE) {
+            logical_mutable.push_back(value);
+        } else {
+            logical_excluded.emplace_back(
+                UINT32_C(0x80000000) + root.authority.role,
+                root.authority.role_ordinal);
+        }
+    }
+    for (const auto & copy : state.admitted_copies) {
+        if (copy.destination_backend != expectation->backend_ordinal) continue;
+        const auto value = std::make_pair(copy.role, copy.role_ordinal);
+        if (copy.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE) {
+            logical_mutable.push_back(value);
+        } else {
+            logical_excluded.emplace_back(
+                UINT32_C(0x80000000) + copy.role,
+                copy.role_ordinal);
+        }
+    }
+    std::sort(logical_mutable.begin(), logical_mutable.end());
+    std::sort(logical_excluded.begin(), logical_excluded.end());
+    std::vector<uint8_t> logical_plan;
+    sched_auth_le<uint32_t>(logical_plan, logical_mutable.size());
+    sched_auth_le<uint32_t>(logical_plan, logical_excluded.size());
+    for (const auto & value : logical_mutable) {
+        sched_auth_le<uint32_t>(logical_plan, value.first);
+        sched_auth_le<uint32_t>(logical_plan, value.second);
+    }
+    for (const auto & value : logical_excluded) {
+        sched_auth_le<uint32_t>(logical_plan, value.first);
+        sched_auth_le<uint32_t>(logical_plan, value.second);
+    }
+    const auto logical_root = sched_auth_sha(
+        logical_plan.data(), logical_plan.size());
+    admission->logical_expected_mutable_count = logical_mutable.size();
+    admission->logical_expected_exclusion_count = logical_excluded.size();
+    admission->issued_unix_ns = expectation->issued_unix_ns;
+    admission->expires_unix_ns = expectation->expires_unix_ns;
+    memcpy(admission->attempt_nonce, state.config.attempt_nonce, 32);
+    memcpy(admission->prepared_graph_digest, state.prepared_root.data(), 32);
+    memcpy(admission->prepared_root, state.prepared_root.data(), 32);
+    memcpy(admission->split_mapping_root, state.split_mapping_root.data(), 32);
+    memcpy(admission->scheduler_chain_root, state.chain.data(), 32);
+    memcpy(admission->logical_expected_census_root, logical_root.data(), 32);
+    std::vector<uint8_t> object_material;
+    sched_auth_le<uint64_t>(object_material, admission->scheduler_session_id);
+    sched_auth_le<uint64_t>(object_material, admission->scheduler_generation);
+    sched_auth_le<uint64_t>(object_material, admission->execution_sequence);
+    sched_auth_le<uint32_t>(object_material, admission->backend_ordinal);
+    sched_auth_bytes(object_material, admission->attempt_nonce, 32);
+    sched_auth_bytes(object_material, admission->prepared_root, 32);
+    const auto object_id = sched_auth_hmac(
+        state.config.key, object_material.data(), object_material.size());
+    memcpy(admission->object_id, object_id.data(), 32);
+    std::vector<uint8_t> canonical(
+        reinterpret_cast<const uint8_t *>(admission),
+        reinterpret_cast<const uint8_t *>(admission) +
+            offsetof(struct ggml_backend_sched_authority_prepared_admission, tag));
+    if (seal_and_register) {
+        const auto tag = sched_auth_hmac(state.config.key, canonical.data(), canonical.size());
+        memcpy(admission->tag, tag.data(), tag.size());
+        std::lock_guard<std::mutex> lock(state.admission_mutex);
+        auto [it, inserted] = state.admissions.emplace(
+            expectation->backend_ordinal,
+            sched_auth_state::admission_lifecycle { object_id,
+                GGML_BACKEND_SCHED_ADMISSION_PREPARED });
+        if (!inserted) return false;
+    }
+    return true;
+}
+
+bool ggml_backend_sched_authority_expected_prepared_admission(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        const ggml_backend_sched_authority_admission_expectation * expectation,
+        struct ggml_backend_sched_authority_prepared_admission * expected) {
+    return sched_auth_build_prepared_admission(
+        sched, handle, expectation, expected, false);
+}
+
+bool ggml_backend_sched_authority_prepared_admission(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        const ggml_backend_sched_authority_admission_expectation * expectation,
+        struct ggml_backend_sched_authority_prepared_admission * admission) {
+    return sched_auth_build_prepared_admission(
+        sched, handle, expectation, admission, true);
+}
+
+bool ggml_backend_sched_authority_verify_prepared_admission(
+        const struct ggml_backend_sched_authority_prepared_admission * admission,
+        const uint8_t key[32],
+        const struct ggml_backend_sched_authority_prepared_admission * expected) {
+    if (admission == nullptr || key == nullptr || expected == nullptr ||
+        !sched_auth_zero(expected->tag, sizeof(expected->tag)) ||
+        admission->major != 3 || admission->minor != 0 ||
+        admission->encoded_size != sizeof(*admission) ||
+        admission->capabilities != UINT64_C(0x3ff) ||
+        admission->state != GGML_BACKEND_SCHED_ADMISSION_PREPARED ||
+        admission->allowed_operation <
+            GGML_BACKEND_SCHED_OPERATION_AUTHENTICATED_EXECUTE ||
+        admission->allowed_operation >
+            GGML_BACKEND_SCHED_OPERATION_AUTHENTICATED_RECOMPUTE ||
+        admission->key_generation == 0 ||
+        admission->scheduler_session_id == 0 ||
+        admission->scheduler_generation == 0 ||
+        admission->execution_sequence == 0 ||
+        admission->parent_graph_uid == 0 ||
+        admission->client_connection_epoch == 0 ||
+        admission->server_connection_epoch == 0 ||
+        admission->allocation_topology_epoch == 0 ||
+        admission->split_count == 0 || admission->split_count > 64 ||
+        admission->backend_ordinal == UINT32_MAX ||
+        admission->issued_unix_ns == 0 ||
+        admission->expires_unix_ns <= admission->issued_unix_ns ||
+        admission->expires_unix_ns - admission->issued_unix_ns != UINT64_C(30000000000) ||
+        sched_auth_zero(admission->attempt_nonce, 32) ||
+        sched_auth_zero(admission->object_id, 32) ||
+        sched_auth_zero(admission->prepared_graph_digest, 32) ||
+        sched_auth_zero(admission->prepared_root, 32) ||
+        sched_auth_zero(admission->split_mapping_root, 32) ||
+        sched_auth_zero(admission->scheduler_chain_root, 32) ||
+        sched_auth_zero(admission->logical_expected_census_root, 32)) {
+        return false;
+    }
+    const uint64_t now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    constexpr uint64_t max_clock_skew_ns = UINT64_C(5000000000);
+    if (admission->issued_unix_ns > now_ns + max_clock_skew_ns ||
+        now_ns > admission->expires_unix_ns) return false;
+    std::vector<uint8_t> canonical(
+        reinterpret_cast<const uint8_t *>(admission),
+        reinterpret_cast<const uint8_t *>(admission) +
+            offsetof(struct ggml_backend_sched_authority_prepared_admission, tag));
+    const auto tag = sched_auth_hmac(key, canonical.data(), canonical.size());
+    return memcmp(admission->tag, tag.data(), tag.size()) == 0 &&
+        memcmp(admission, expected, offsetof(
+            struct ggml_backend_sched_authority_prepared_admission, tag)) == 0;
+}
+
+bool ggml_backend_sched_authority_consume_prepared_admission(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        const struct ggml_backend_sched_authority_prepared_admission * admission) {
+    if (!sched_auth_handle_matches(sched, handle) || admission == nullptr) return false;
+    auto & state = *sched->authority;
+    std::lock_guard<std::mutex> lock(state.admission_mutex);
+    auto found = state.admissions.find(admission->backend_ordinal);
+    const uint64_t now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    if (found == state.admissions.end() ||
+        memcmp(found->second.object_id.data(), admission->object_id, 32) != 0 ||
+        found->second.state != GGML_BACKEND_SCHED_ADMISSION_PREPARED) return false;
+    if (now_ns > admission->expires_unix_ns) {
+        found->second.state = GGML_BACKEND_SCHED_ADMISSION_EXPIRED;
+        return false;
+    }
+    const auto expected_tag = sched_auth_hmac(
+        state.config.key, admission,
+        offsetof(struct ggml_backend_sched_authority_prepared_admission, tag));
+    if (memcmp(expected_tag.data(), admission->tag, 32) != 0) return false;
+    found->second.state = GGML_BACKEND_SCHED_ADMISSION_CONSUMED;
+    return true;
+}
+
+bool ggml_backend_sched_authority_abort_prepared_admission(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle) {
+    if (!sched_auth_handle_matches(sched, handle)) return false;
+    auto & state = *sched->authority;
+    std::lock_guard<std::mutex> lock(state.admission_mutex);
+    bool changed = false;
+    for (auto & item : state.admissions) {
+        if (item.second.state == GGML_BACKEND_SCHED_ADMISSION_PREPARED) {
+            item.second.state = GGML_BACKEND_SCHED_ADMISSION_ABORTED;
+            changed = true;
+        }
+    }
+    return changed;
 }
 
 size_t ggml_backend_sched_authority_split_count(

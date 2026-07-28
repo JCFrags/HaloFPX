@@ -122,6 +122,20 @@ typedef struct ggml_backend_rpc_halofpx_mutable_attempt {
     uint8_t scheduler_transcript_root[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES];
 } ggml_backend_rpc_halofpx_mutable_attempt;
 
+typedef struct ggml_backend_rpc_halofpx_mutable_preflight {
+    uint16_t major;
+    uint16_t minor;
+    uint32_t encoded_size;
+    uint64_t capabilities;
+    uint64_t key_generation;
+    uint64_t client_connection_epoch;
+    uint64_t server_connection_epoch;
+    uint64_t allocation_topology_epoch;
+    uint8_t client_nonce[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES];
+    uint8_t server_nonce[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES];
+    uint8_t receipt_tag[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES];
+} ggml_backend_rpc_halofpx_mutable_preflight;
+
 typedef struct ggml_backend_rpc_halofpx_mutable_result {
     uint32_t version;
     uint32_t mutation_count;
@@ -148,6 +162,7 @@ typedef struct ggml_backend_rpc_halofpx_mutable_session {
     uint64_t session_id;
     uint64_t generation;
     uint64_t connection_epoch;
+    uint64_t allocation_epoch;
     uint64_t graph_uid;
     uint64_t execution_sequence;
     uint8_t attempt_nonce[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES];
@@ -214,9 +229,14 @@ GGML_BACKEND_API void ggml_backend_rpc_get_device_memory(const char * endpoint, 
 
 GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_begin(
         ggml_backend_t backend,
-        ggml_backend_sched_t scheduler,
+        const struct ggml_backend_sched_authority_prepared_admission * scheduler_admission,
+        const struct ggml_backend_sched_authority_prepared_admission * expected_admission,
         const ggml_backend_rpc_halofpx_mutable_attempt * attempt,
         ggml_backend_rpc_halofpx_mutable_session * session);
+GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_negotiate_preflight(
+        ggml_backend_t backend,
+        uint64_t key_generation,
+        ggml_backend_rpc_halofpx_mutable_preflight * preflight);
 
 GGML_BACKEND_API uint64_t ggml_backend_rpc_halofpx_mutable_graph_uid(
         struct ggml_cgraph * graph);
@@ -272,6 +292,7 @@ GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_test_inject(
 GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_test_commit_omit_unmutated_leaf(
         const ggml_backend_rpc_halofpx_mutable_session * session);
 GGML_BACKEND_API uint32_t ggml_backend_rpc_halofpx_mutable_auth_self_test(void);
+GGML_BACKEND_API bool ggml_backend_rpc_halofpx_preexecute_publication_self_test(void);
 // Pre-runtime admission probe for the bounded response-boundary evidence sink.
 // It emits one authenticated, payload-free prefix record only when the
 // diagnostics feature and key authority are explicitly enabled.

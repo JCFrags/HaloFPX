@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <atomic>
 #include <memory>
 
 struct socket_t;
@@ -29,6 +30,9 @@ struct socket_t {
 
     void get_caps(uint8_t * local_caps);
     void update_caps(const uint8_t * remote_caps);
+    uint64_t authority_epoch() const;
+    bool observed_transport_failed() const;
+    void mark_transport_failed();
 
     static socket_ptr create_server(const char * host, int port);
     static socket_ptr connect(const char * host, int port);
@@ -37,6 +41,10 @@ private:
     struct impl;
     explicit socket_t(std::unique_ptr<impl> p);
     std::unique_ptr<impl> pimpl;
+    mutable std::atomic<uint64_t> epoch { 0 };
+    std::atomic<uint64_t> observed_send_calls { 0 };
+    std::atomic<uint64_t> observed_recv_calls { 0 };
+    std::atomic<bool> observed_failure { false };
 };
 
 bool rpc_transport_init();
