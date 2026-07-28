@@ -1647,3 +1647,30 @@ and one independent review are sufficient. Reuse existing harvest machinery.
 No model/Stories run, response acknowledgment redesign, protocol/grammar
 redesign, cache/primary/performance work, production access/mutation, or
 automatic follow-on is authorized.
+
+## 2026-07-28 — retain L75 and run the missing real Linux custody proof
+
+Decision: accept L75 terminal NOT PROMOTED at
+`2902b4b6e3266c591dbaabbd7de3802866275bc4` and retain its independently
+reviewed default-off source. Open L76 only for the missing real Linux no-model
+server-handler publication/harvest qualification.
+
+Reason: L75 explicitly journals post-response server publication
+present/error state and makes controller harvest owner/mode/type/size/HMAC,
+server-grammar, cross-binding, atomic no-replace, fsync/reopen/hash, and
+cleanup-order authoritative. Focused suites and a Linux authenticated helper
+harvest passed with no review P1/P2. The local host cannot build feature-on
+Linux code, and L75 prohibited target-host access, so the actual handler seam
+remains unqualified.
+
+L76 may use one Linux target host with isolated disposable user units, paths,
+keys, and ports while named production services remain continuously untouched.
+Run exactly one real-handler publication success and one injected publication
+failure. Success must quiesce, authenticate, and retain the exact server
+authority before cleanup. Failure must produce explicit bound error evidence,
+non-promotable harvest status, and complete cleanup. Reuse accepted L75/L61
+machinery; do not repeat tamper/copy cases unless review requires one.
+
+No model/Stories run, cache or primary work, protocol/grammar change,
+performance work, production mutation, broad tests, extra retry, or automatic
+follow-on is authorized.

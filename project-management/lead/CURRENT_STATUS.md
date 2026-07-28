@@ -388,6 +388,16 @@ independent read-only specialists are auditing graph-input coverage and
   the expected immutable server authority before cleanup. L74/Stories will not
   be rerun. No protocol/grammar redesign, model/cache/primary/performance work,
   production action, or automatic follow-on is authorized.
+- L75 closed NOT PROMOTED at
+  `2902b4b6e3266c591dbaabbd7de3802866275bc4`. Its reviewed source now journals
+  explicit server publication outcome and makes controller harvest
+  authenticated, atomic, durable, and cleanup-safe. Focused suites and a Linux
+  helper harvest passed with no review P1/P2. Promotion remains open only
+  because no real Linux server-handler publication/harvest case ran.
+- L76 is active only for that missing real Linux no-model qualification: one
+  isolated handler success and one injected publication failure on disposable
+  units/paths/ports, with production services continuously untouched. No model,
+  cache, protocol/grammar, performance, or production mutation is authorized.
 - L69 closed NOT PROMOTED at
   `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The ordering correction,
   focused `2/1` pre-prepare abort, wrong-count refusal, preserved
@@ -404,10 +414,10 @@ independent read-only specialists are auditing graph-input coverage and
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `2c6c39c5b9e01baa945bc81151b0a51211817ed3`
+- Latest verified commit: `2902b4b6e3266c591dbaabbd7de3802866275bc4`
 - Remote count: zero
-- Worktree state: clean at reviewed terminal L74 closeout when L75 opened
-- Primary worker: L75 publication-harvest task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Worktree state: clean at reviewed terminal L75 closeout when L76 opened
+- Primary worker: L76 real-Linux-custody task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record
