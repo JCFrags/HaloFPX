@@ -29,10 +29,18 @@ evidence-directory preparer admitted only the L48 schema even though the rest
 of the controller already validates L77. Recovery and cleanup passed; no
 token, cache, or performance conclusion exists.
 
-L78 is active only to admit the exact L77 schema through that existing
-directory-preparation contract and run one replacement primary discriminator.
-No protocol, grammar, cache, model, or production semantics change is
-authorized.
+L78 closed NOT PROMOTED at terminal evidence commit
+`ee6a7039996e8cb265268f2dd6c657544669098f`. Its directory correction passed,
+but the sole replacement again refused before worker, canary, model, or RPC
+launch because `child_environment()` treated only L48 as the composed family
+and omitted all L77 provenance/composition environment. Recovery and cleanup
+passed; no cache conclusion exists.
+
+L79 is active as one consolidated exact L48/L77 composed-family correction.
+It must statically audit every controller schema gate and pass a no-production
+closed-path L77 validation through child preflight before one replacement
+primary transition is permitted. This prevents further restart-by-restart
+discovery of mechanical schema omissions.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

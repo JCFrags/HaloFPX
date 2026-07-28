@@ -1825,3 +1825,33 @@ accepted foundation evidence; do not repeat broad matrices.
 No protocol, grammar, cache, model, or production semantic change; production
 cache enablement; server composition; performance work; tuning; extra attempt;
 or automatic follow-on is authorized.
+
+## 2026-07-28 — accept L78 refusal and consolidate L79 controller integration
+
+Decision: accept L78 terminal NOT PROMOTED at
+`ee6a7039996e8cb265268f2dd6c657544669098f`. Open L79 to define and apply one
+exact composed-schema family for only L48 and L77 across existing controller
+selection paths, then qualify the complete L77 controller-to-child preflight
+without production access before authorizing one replacement transition.
+
+Reason: the L78 evidence-directory correction passed, but
+`child_environment()` retained an independent L48-only Boolean governing
+provenance, component, semantic, replay, result, composition, graph/mutable,
+response, host-bound harvest, and device-receipt environment. The child
+correctly refused before host or model work. Exact source shows several paired
+L48/L77 checks alongside this isolated L48-only family selection. Correcting
+one branch and immediately restarting production would risk another mechanical
+omission.
+
+L79 must exhaustively scan controller schema comparisons and exercise the exact
+L77 manifest through validation, executable/hash binding, evidence-directory
+preparation, full environment construction, and child preflight up to but not
+including SSH or host mutation. It must assert all required environment values
+and reject unknown/near-match schemas. One focused independent review is
+sufficient. Milestone-specific behavior and exact refusals remain unchanged.
+
+After that offline closure only, L79 may consume one replacement of the same
+primary discriminator under the existing production transition and correctness
+gates. No arbitrary schema admission, controller redesign, protocol/grammar/
+cache/model semantic change, production cache enablement, server composition,
+performance work, tuning, extra attempt, or automatic follow-on is authorized.
