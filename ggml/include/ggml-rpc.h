@@ -109,6 +109,29 @@ typedef enum ggml_backend_rpc_halofpx_exclusion {
     GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD = 2,
 } ggml_backend_rpc_halofpx_exclusion;
 
+typedef enum ggml_backend_rpc_halofpx_mutable_admit_result {
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS = 0,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT = 1,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_SESSION_MISSING = 2,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_ALREADY_REGISTERED = 3,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_ABSENT = 4,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_NOT_RPC = 5,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET = 6,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_EXACT_DUPLICATE = 7,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_CONFLICTING_DUPLICATE = 8,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE = 9,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_VIEW_CYCLE = 10,
+} ggml_backend_rpc_halofpx_mutable_admit_result;
+
+typedef struct ggml_backend_rpc_halofpx_storage_identity {
+    uint32_t version;
+    uint32_t device;
+    uint64_t connection_epoch;
+    uint8_t endpoint_identity[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES];
+    uint8_t storage_identity[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES];
+    uint8_t runtime_semantic_identity[GGML_RPC_HALOFPX_STATE_DIGEST_BYTES];
+} ggml_backend_rpc_halofpx_storage_identity;
+
 typedef struct ggml_backend_rpc_halofpx_mutable_attempt {
     uint32_t version;
     uint32_t max_mutations;
@@ -246,12 +269,31 @@ GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_register(
         struct ggml_tensor * tensor,
         ggml_backend_rpc_halofpx_mutable_role role,
         uint32_t role_ordinal);
+GGML_BACKEND_API ggml_backend_rpc_halofpx_mutable_admit_result
+ggml_backend_rpc_halofpx_mutable_register_typed(
+        const ggml_backend_rpc_halofpx_mutable_session * session,
+        struct ggml_tensor * tensor,
+        ggml_backend_rpc_halofpx_mutable_role role,
+        uint32_t role_ordinal,
+        const struct ggml_backend_sched_authority_census_entry * projection);
 
 GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_exclude(
         const ggml_backend_rpc_halofpx_mutable_session * session,
         struct ggml_tensor * tensor,
         ggml_backend_rpc_halofpx_exclusion exclusion,
         uint32_t exclusion_ordinal);
+GGML_BACKEND_API ggml_backend_rpc_halofpx_mutable_admit_result
+ggml_backend_rpc_halofpx_mutable_exclude_typed(
+        const ggml_backend_rpc_halofpx_mutable_session * session,
+        struct ggml_tensor * tensor,
+        ggml_backend_rpc_halofpx_exclusion exclusion,
+        uint32_t exclusion_ordinal,
+        const struct ggml_backend_sched_authority_census_entry * projection);
+GGML_BACKEND_API ggml_backend_rpc_halofpx_mutable_admit_result
+ggml_backend_rpc_halofpx_resolve_storage_identity(
+        ggml_backend_t destination_backend,
+        struct ggml_tensor * tensor,
+        ggml_backend_rpc_halofpx_storage_identity * identity);
 
 GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_prepare(
         const ggml_backend_rpc_halofpx_mutable_session * session,

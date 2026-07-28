@@ -34,6 +34,7 @@ extern "C" {
 #include <type_traits>
 #include <tuple>
 #include <mutex>
+#include <set>
 #include <vector>
 
 #ifdef __APPLE__
@@ -864,6 +865,7 @@ struct sched_auth_state {
     uint32_t exported_size = 0;
     bool finalized = false;
     bool prepared = false;
+    bool census_resolved = false;
     bool computing = false;
     bool failed = false;
 };
@@ -2854,6 +2856,118 @@ bool ggml_backend_sched_authority_prepare(
     return true;
 }
 
+enum sched_auth_resolved_insert {
+    SCHED_AUTH_RESOLVED_INSERTED,
+    SCHED_AUTH_RESOLVED_ALIAS,
+    SCHED_AUTH_RESOLVED_CONFLICT,
+};
+
+static sched_auth_resolved_insert sched_auth_insert_resolved_census(
+        std::vector<ggml_backend_sched_authority_census_entry> & resolved,
+        const ggml_backend_sched_authority_census_entry & entry) {
+    const auto same_storage = [&entry](const auto & prior) {
+        return prior.destination_backend_ordinal ==
+                   entry.destination_backend_ordinal &&
+            memcmp(prior.storage_tensor_identity,
+                   entry.storage_tensor_identity, 32) == 0;
+    };
+    const auto same_semantics = [&entry](const auto & prior) {
+        return prior.disposition == entry.disposition &&
+            prior.root_class == entry.root_class &&
+            prior.role == entry.role &&
+            prior.role_ordinal == entry.role_ordinal &&
+            prior.rpc_connection_epoch == entry.rpc_connection_epoch &&
+            prior.rpc_device == entry.rpc_device &&
+            memcmp(prior.runtime_semantic_identity,
+                   entry.runtime_semantic_identity, 32) == 0 &&
+            memcmp(prior.rpc_endpoint_identity,
+                   entry.rpc_endpoint_identity, 32) == 0;
+    };
+    const auto existing = std::find_if(
+        resolved.begin(), resolved.end(), same_storage);
+    if (existing == resolved.end()) {
+        resolved.push_back(entry);
+        return SCHED_AUTH_RESOLVED_INSERTED;
+    }
+    return same_semantics(*existing) ?
+        SCHED_AUTH_RESOLVED_ALIAS : SCHED_AUTH_RESOLVED_CONFLICT;
+}
+
+bool ggml_backend_sched_authority_resolve_census(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        ggml_backend_sched_authority_storage_resolver resolver,
+        void * user_data) {
+    if (!sched_auth_handle_matches(sched, handle) ||
+        !sched->authority->prepared || sched->authority->failed ||
+        sched->authority->census_resolved ||
+        !sched->authority->admissions.empty() ||
+        resolver == nullptr) {
+        return false;
+    }
+    auto & state = *sched->authority;
+    std::vector<ggml_backend_sched_authority_census_entry> resolved;
+    resolved.reserve(state.canonical_census.size());
+    for (auto entry : state.canonical_census) {
+        if (entry.destination_backend_ordinal >=
+                static_cast<uint32_t>(sched->n_backends) ||
+            state.rpc_backends.count(entry.destination_backend_ordinal) == 0) {
+            state.failed = true;
+            return false;
+        }
+        ggml_backend_sched_authority_storage_resolution storage {};
+        if (!resolver(
+                user_data, entry.destination_backend_ordinal,
+                entry.runtime_tensor, &storage) ||
+            storage.connection_epoch == 0 ||
+            sched_auth_zero(storage.endpoint_identity, 32) ||
+            sched_auth_zero(storage.storage_identity, 32) ||
+            sched_auth_zero(storage.runtime_semantic_identity, 32)) {
+            state.failed = true;
+            return false;
+        }
+        std::vector<uint8_t> logical;
+        sched_auth_le<uint32_t>(logical, entry.destination_backend_ordinal);
+        sched_auth_le<uint32_t>(logical, entry.stable_tensor_id);
+        sched_auth_le<uint32_t>(logical, entry.provenance);
+        sched_auth_le<uint32_t>(logical, entry.copy_slot);
+        sched_auth_le<uint64_t>(logical, entry.copy_generation);
+        const auto logical_digest =
+            sched_auth_sha(logical.data(), logical.size());
+        memcpy(entry.logical_tensor_identity, logical_digest.data(), 32);
+        memcpy(entry.storage_tensor_identity, storage.storage_identity, 32);
+        memcpy(
+            entry.runtime_semantic_identity,
+            storage.runtime_semantic_identity, 32);
+        memcpy(entry.rpc_endpoint_identity, storage.endpoint_identity, 32);
+        entry.rpc_connection_epoch = storage.connection_epoch;
+        entry.rpc_device = storage.device;
+        entry.resolved = 1;
+
+        const auto inserted =
+            sched_auth_insert_resolved_census(resolved, entry);
+        if (inserted == SCHED_AUTH_RESOLVED_CONFLICT) {
+            state.failed = true;
+            state.canonical_census.clear();
+            return false;
+        }
+    }
+    std::set<std::pair<uint32_t, uint32_t>> role_keys;
+    for (const auto & entry : resolved) {
+        const uint32_t encoded_role =
+            entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
+                entry.role : UINT32_C(0x80000000) + entry.role;
+        if (!role_keys.emplace(encoded_role, entry.role_ordinal).second) {
+            state.failed = true;
+            state.canonical_census.clear();
+            return false;
+        }
+    }
+    state.canonical_census = std::move(resolved);
+    state.census_resolved = true;
+    return true;
+}
+
 static bool sched_auth_build_prepared_admission(
         ggml_backend_sched_t sched,
         const ggml_backend_sched_authority_handle * handle,
@@ -2863,7 +2977,12 @@ static bool sched_auth_build_prepared_admission(
     if (!sched_auth_handle_matches(sched, handle) || expectation == nullptr ||
         admission == nullptr ||
         !sched->authority->prepared || sched->authority->failed ||
+        !sched->authority->census_resolved ||
         sched->authority->admitted_splits.empty() ||
+        std::any_of(
+            sched->authority->canonical_census.begin(),
+            sched->authority->canonical_census.end(),
+            [](const auto & entry) { return entry.resolved != 1; }) ||
         expectation->major != 1 || expectation->minor != 0 ||
         expectation->encoded_size != sizeof(*expectation) ||
         expectation->allowed_operation <
@@ -2895,7 +3014,7 @@ static bool sched_auth_build_prepared_admission(
     admission->major = 3;
     admission->minor = 0;
     admission->encoded_size = sizeof(*admission);
-    admission->capabilities = UINT64_C(0x3ff);
+    admission->capabilities = UINT64_C(0x7ff);
     admission->state = GGML_BACKEND_SCHED_ADMISSION_PREPARED;
     admission->allowed_operation = expectation->allowed_operation;
     admission->key_generation = expectation->key_generation;
@@ -2928,8 +3047,11 @@ static bool sched_auth_build_prepared_admission(
         [](uint32_t backend, const auto & entry) {
             return backend < entry.destination_backend_ordinal;
         });
-    for (auto it = first; it != last; ++it) {
-        const auto & entry = *it;
+    std::vector<const ggml_backend_sched_authority_census_entry *>
+        logical_projection;
+    for (auto it = first; it != last; ++it) logical_projection.push_back(&*it);
+    for (const auto * entry_ptr : logical_projection) {
+        const auto & entry = *entry_ptr;
         auto & target =
             entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
                 logical_mutable : logical_excluded;
@@ -2950,6 +3072,20 @@ static bool sched_auth_build_prepared_admission(
     for (const auto & value : logical_excluded) {
         sched_auth_le<uint32_t>(logical_plan, value.first);
         sched_auth_le<uint32_t>(logical_plan, value.second);
+    }
+    for (const auto * entry_ptr : logical_projection) {
+        const auto & entry = *entry_ptr;
+        sched_auth_bytes(logical_plan, entry.logical_tensor_identity, 32);
+        sched_auth_bytes(logical_plan, entry.storage_tensor_identity, 32);
+        sched_auth_bytes(logical_plan, entry.runtime_semantic_identity, 32);
+        sched_auth_le<uint32_t>(logical_plan, entry.disposition);
+        sched_auth_le<uint32_t>(logical_plan, entry.role);
+        sched_auth_le<uint32_t>(logical_plan, entry.role_ordinal);
+        sched_auth_le<uint32_t>(
+            logical_plan, entry.destination_backend_ordinal);
+        sched_auth_bytes(logical_plan, entry.rpc_endpoint_identity, 32);
+        sched_auth_le<uint32_t>(logical_plan, entry.rpc_device);
+        sched_auth_le<uint64_t>(logical_plan, entry.rpc_connection_epoch);
     }
     const auto logical_root = sched_auth_sha(
         logical_plan.data(), logical_plan.size());
@@ -3016,7 +3152,7 @@ bool ggml_backend_sched_authority_verify_prepared_admission(
         !sched_auth_zero(expected->tag, sizeof(expected->tag)) ||
         admission->major != 3 || admission->minor != 0 ||
         admission->encoded_size != sizeof(*admission) ||
-        admission->capabilities != UINT64_C(0x3ff) ||
+        admission->capabilities != UINT64_C(0x7ff) ||
         admission->state != GGML_BACKEND_SCHED_ADMISSION_PREPARED ||
         admission->allowed_operation <
             GGML_BACKEND_SCHED_OPERATION_AUTHENTICATED_EXECUTE ||
@@ -3442,6 +3578,35 @@ uint32_t ggml_backend_sched_authority_self_test(void) {
         interleaved_state.canonical_census[1].disposition ==
             GGML_BACKEND_SCHED_CENSUS_EXCLUDE) {
         passed |= 1u << 19;
+    }
+    ggml_backend_sched_authority_census_entry resolved_base {};
+    resolved_base.destination_backend_ordinal = 0;
+    resolved_base.disposition = GGML_BACKEND_SCHED_CENSUS_REGISTER;
+    resolved_base.root_class = GGML_BACKEND_SCHED_AUTH_MUTABLE;
+    resolved_base.role = GGML_RPC_HALOFPX_MUTABLE_TOKEN;
+    resolved_base.role_ordinal = 3;
+    resolved_base.rpc_connection_epoch = 9;
+    resolved_base.rpc_device = 0;
+    memset(resolved_base.storage_tensor_identity, 0x51, 32);
+    memset(resolved_base.rpc_endpoint_identity, 0x61, 32);
+    std::vector<ggml_backend_sched_authority_census_entry> resolved_entries;
+    const auto base_insert =
+        sched_auth_insert_resolved_census(resolved_entries, resolved_base);
+    auto resolved_alias = resolved_base;
+    memset(resolved_alias.logical_tensor_identity, 0x71, 32);
+    const auto alias_insert =
+        sched_auth_insert_resolved_census(resolved_entries, resolved_alias);
+    auto resolved_conflict = resolved_base;
+    resolved_conflict.disposition = GGML_BACKEND_SCHED_CENSUS_EXCLUDE;
+    resolved_conflict.root_class = GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT;
+    resolved_conflict.role = GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT;
+    const auto conflict_insert =
+        sched_auth_insert_resolved_census(resolved_entries, resolved_conflict);
+    if (base_insert == SCHED_AUTH_RESOLVED_INSERTED &&
+        alias_insert == SCHED_AUTH_RESOLVED_ALIAS &&
+        conflict_insert == SCHED_AUTH_RESOLVED_CONFLICT &&
+        resolved_entries.size() == 1) {
+        passed |= 1u << 20;
     }
     memset(state.config.key, 0, sizeof(state.config.key));
     memset(state.config.attempt_nonce, 0, sizeof(state.config.attempt_nonce));

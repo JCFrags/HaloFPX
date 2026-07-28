@@ -805,7 +805,7 @@ int main(int argc, char ** argv) {
         return 2;
     }
     const uint32_t self_tests = ggml_backend_sched_authority_self_test();
-    if (self_tests != 0xfffffU) {
+    if (self_tests != 0x1fffffU) {
         std::fprintf(stderr, "focused scheduler authority refusal self-test failed: 0x%x\n", self_tests);
         return 1;
     }

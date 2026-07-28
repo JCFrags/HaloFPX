@@ -28,6 +28,8 @@ int main() {
         {llama_halofpx_preprepare_failure::mutable_begin,
          "l44_mutable_begin_refused",
          "|backend_ordinal=1|admitted_backend_count=1"},
+        {llama_halofpx_preprepare_failure::resolved_census,
+         "l42_resolved_census_refused", ""},
         {llama_halofpx_preprepare_failure::scheduler_census_lookup,
          "l42_scheduler_census_lookup_refused",
          "|backend_ordinal=1|census_index=7"},

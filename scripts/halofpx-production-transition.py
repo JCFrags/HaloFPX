@@ -899,7 +899,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                     "l58-rpc-response-boundary-discriminator",
                     "l59-rpc-response-evidence-lifetime",
                     "l60-transient-unit-response-discriminator",
-                    "l61-host-bound-response-discriminator"}:
+                    "l61-host-bound-response-discriminator",
+                    "l77-primary-distributed-state-correctness"}:
                 expected_child_argv += ["--l55-first-chunk"]
             if raw["milestone"] == "l68-stories15m-vertical-slice":
                 expected_child_argv += ["--l68-vertical-slice"]

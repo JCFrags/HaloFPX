@@ -1743,6 +1743,55 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             ret = GGML_STATUS_FAILED;
             return nullptr;
         }
+        uint32_t halofpx_census_resolution_reason =
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS;
+        std::pair<std::vector<ggml_backend_t> *, uint32_t *>
+            halofpx_census_resolution_context {
+                &backend_ptrs, &halofpx_census_resolution_reason
+            };
+        if (composed_authority &&
+            !ggml_backend_sched_authority_resolve_census(
+                sched.get(), &halofpx_execution_handle,
+                [](void * user_data, uint32_t backend_ordinal,
+                   ggml_tensor * tensor,
+                   ggml_backend_sched_authority_storage_resolution * out) {
+                    auto * context = static_cast<std::pair<
+                        std::vector<ggml_backend_t> *, uint32_t *> *>(user_data);
+                    if (context == nullptr || context->first == nullptr ||
+                        context->second == nullptr || out == nullptr ||
+                        backend_ordinal >= context->first->size()) {
+                        return false;
+                    }
+                    ggml_backend_rpc_halofpx_storage_identity identity {};
+                    const auto reason =
+                        ggml_backend_rpc_halofpx_resolve_storage_identity(
+                            (*context->first)[backend_ordinal], tensor, &identity);
+                    *context->second = static_cast<uint32_t>(reason);
+                    if (reason != GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS) {
+                        return false;
+                    }
+                    out->device = identity.device;
+                    out->connection_epoch = identity.connection_epoch;
+                    memcpy(
+                        out->endpoint_identity, identity.endpoint_identity, 32);
+                    memcpy(
+                        out->storage_identity, identity.storage_identity, 32);
+                    memcpy(
+                        out->runtime_semantic_identity,
+                        identity.runtime_semantic_identity, 32);
+                    return true;
+                },
+                &halofpx_census_resolution_context)) {
+            fail_composed(
+                llama_halofpx_preprepare_failure_branch(
+                    llama_halofpx_preprepare_failure::resolved_census),
+                GGML_STATUS_FAILED,
+                "|typed_reason=" +
+                    std::to_string(halofpx_census_resolution_reason));
+            abort_composed();
+            ret = GGML_STATUS_FAILED;
+            return nullptr;
+        }
         if (composed_authority) {
             const size_t split_count = ggml_backend_sched_authority_split_count(
                 sched.get(), &halofpx_execution_handle);
@@ -1920,18 +1969,33 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                     }
                     const bool is_register =
                         entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER;
-                    const bool admitted = is_register ?
-                        ggml_backend_rpc_halofpx_mutable_register(
+                    const auto admit_reason = is_register ?
+                        ggml_backend_rpc_halofpx_mutable_register_typed(
                             &session, entry.runtime_tensor,
                             static_cast<ggml_backend_rpc_halofpx_mutable_role>(
                                 entry.role),
-                            entry.role_ordinal) :
-                        ggml_backend_rpc_halofpx_mutable_exclude(
+                            entry.role_ordinal, &entry) :
+                        ggml_backend_rpc_halofpx_mutable_exclude_typed(
                             &session, entry.runtime_tensor,
                             static_cast<ggml_backend_rpc_halofpx_exclusion>(
                                 entry.role),
-                            entry.role_ordinal);
+                            entry.role_ordinal, &entry);
+                    const bool admitted =
+                        admit_reason ==
+                            GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS ||
+                        (!is_register &&
+                         admit_reason ==
+                            GGML_RPC_HALOFPX_MUTABLE_ADMIT_EXACT_DUPLICATE);
                     if (!admitted) {
+                        const auto census_digest_hex = [](const uint8_t digest[32]) {
+                            static constexpr char digits[] = "0123456789abcdef";
+                            std::string out(64, '0');
+                            for (size_t j = 0; j < 32; ++j) {
+                                out[2*j] = digits[digest[j] >> 4];
+                                out[2*j + 1] = digits[digest[j] & 15];
+                            }
+                            return out;
+                        };
                         fail_composed(
                             llama_halofpx_preprepare_failure_branch(
                                 is_register ?
@@ -1942,7 +2006,24 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                                 "|census_index=" + std::to_string(i) +
                                 "|disposition=" + std::to_string(entry.disposition) +
                                 "|role=" + std::to_string(entry.role) +
-                                "|role_ordinal=" + std::to_string(entry.role_ordinal));
+                                "|role_ordinal=" + std::to_string(entry.role_ordinal) +
+                                "|provenance=" + std::to_string(entry.provenance) +
+                                "|stable_tensor_id=" + std::to_string(entry.stable_tensor_id) +
+                                "|copy_slot=" + std::to_string(entry.copy_slot) +
+                                "|copy_generation=" + std::to_string(entry.copy_generation) +
+                                "|logical_identity=" +
+                                    census_digest_hex(entry.logical_tensor_identity) +
+                                "|storage_identity=" +
+                                    census_digest_hex(entry.storage_tensor_identity) +
+                                "|runtime_semantic_identity=" +
+                                    census_digest_hex(entry.runtime_semantic_identity) +
+                                "|rpc_endpoint_identity=" +
+                                    census_digest_hex(entry.rpc_endpoint_identity) +
+                                "|rpc_device=" + std::to_string(entry.rpc_device) +
+                                "|rpc_connection_epoch=" +
+                                    std::to_string(entry.rpc_connection_epoch) +
+                                "|typed_reason=" + std::to_string(
+                                    static_cast<uint32_t>(admit_reason)));
                         ret = GGML_STATUS_FAILED;
                         return nullptr;
                     }

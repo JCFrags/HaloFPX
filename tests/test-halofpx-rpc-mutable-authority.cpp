@@ -107,6 +107,79 @@ static void free_fixture(fixture & f) {
     f = {};
 }
 
+static bool storage_identity_fixture(
+        const char * first_endpoint, const char * second_endpoint) {
+    fixture first {};
+    fixture second {};
+    if (!make_fixture(first_endpoint, first) ||
+        !make_fixture(second_endpoint, second) ||
+        !ggml_backend_sched_alloc_graph(first.sched, first.graph) ||
+        !ggml_backend_sched_alloc_graph(second.sched, second.graph)) {
+        free_fixture(first);
+        free_fixture(second);
+        return false;
+    }
+    ggml_backend_rpc_halofpx_storage_identity direct {};
+    ggml_backend_rpc_halofpx_storage_identity nested {};
+    ggml_backend_rpc_halofpx_storage_identity shifted {};
+    ggml_tensor first_view = *first.input;
+    ggml_tensor nested_view = *first.input;
+    first_view.view_src = first.input;
+    first_view.buffer = first.input->buffer;
+    first_view.data = first.input->data;
+    nested_view.view_src = &first_view;
+    nested_view.buffer = first.input->buffer;
+    nested_view.data = first.input->data;
+    ggml_tensor shifted_view = *first.input;
+    shifted_view.view_src = first.input;
+    shifted_view.view_offs = sizeof(float);
+    shifted_view.data =
+        static_cast<uint8_t *>(first.input->data) + sizeof(float);
+    shifted_view.ne[0] -= 1;
+    ggml_tensor cycle_a {};
+    ggml_tensor cycle_b {};
+    cycle_a.view_src = &cycle_b;
+    cycle_b.view_src = &cycle_a;
+    ggml_backend_buffer_t cpu_buffer =
+        ggml_backend_alloc_buffer(first.cpu, 64);
+    ggml_tensor cpu_tensor {};
+    cpu_tensor.buffer = cpu_buffer;
+    cpu_tensor.data =
+        cpu_buffer ? ggml_backend_buffer_get_base(cpu_buffer) : nullptr;
+    ggml_backend_rpc_halofpx_storage_identity ignored {};
+    const bool ok =
+        ggml_backend_rpc_halofpx_resolve_storage_identity(
+            first.rpc, first.input, &direct) ==
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS &&
+        ggml_backend_rpc_halofpx_resolve_storage_identity(
+            first.rpc, &nested_view, &nested) ==
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS &&
+        ggml_backend_rpc_halofpx_resolve_storage_identity(
+            first.rpc, &shifted_view, &shifted) ==
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS &&
+        memcmp(direct.storage_identity, nested.storage_identity, 32) == 0 &&
+        memcmp(
+            direct.runtime_semantic_identity,
+            nested.runtime_semantic_identity, 32) == 0 &&
+        memcmp(direct.storage_identity, shifted.storage_identity, 32) == 0 &&
+        memcmp(
+            direct.runtime_semantic_identity,
+            shifted.runtime_semantic_identity, 32) != 0 &&
+        ggml_backend_rpc_halofpx_resolve_storage_identity(
+            first.rpc, &cycle_a, &ignored) ==
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_VIEW_CYCLE &&
+        ggml_backend_rpc_halofpx_resolve_storage_identity(
+            first.rpc, &cpu_tensor, &ignored) ==
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_NOT_RPC &&
+        ggml_backend_rpc_halofpx_resolve_storage_identity(
+            first.rpc, second.input, &ignored) ==
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET;
+    if (cpu_buffer) ggml_backend_buffer_free(cpu_buffer);
+    free_fixture(first);
+    free_fixture(second);
+    return ok;
+}
+
 static bool execute_once(
         fixture & f,
         uint64_t sequence,
@@ -165,7 +238,29 @@ static bool execute_once(
     struct ggml_backend_sched_authority_prepared_admission admission {};
     if (graph_uid == 0 ||
         !ggml_backend_sched_authority_prepare(
-            f.sched, &sched_handle, f.graph, &prepared)) {
+            f.sched, &sched_handle, f.graph, &prepared) ||
+        !ggml_backend_sched_authority_resolve_census(
+            f.sched, &sched_handle,
+            [](void * user_data, uint32_t backend_ordinal,
+               ggml_tensor * tensor,
+               ggml_backend_sched_authority_storage_resolution * out) {
+                auto * fixture_value = static_cast<fixture *>(user_data);
+                if (fixture_value == nullptr || out == nullptr ||
+                    backend_ordinal != 0) return false;
+                ggml_backend_rpc_halofpx_storage_identity identity {};
+                if (ggml_backend_rpc_halofpx_resolve_storage_identity(
+                        fixture_value->rpc, tensor, &identity) !=
+                        GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS) return false;
+                out->device = identity.device;
+                out->connection_epoch = identity.connection_epoch;
+                memcpy(out->endpoint_identity, identity.endpoint_identity, 32);
+                memcpy(out->storage_identity, identity.storage_identity, 32);
+                memcpy(
+                    out->runtime_semantic_identity,
+                    identity.runtime_semantic_identity, 32);
+                return true;
+            },
+            &f)) {
         std::fprintf(stderr, "fixture: scheduler prepare failed sequence=%llu graph=%llu\n",
             static_cast<unsigned long long>(sequence),
             static_cast<unsigned long long>(graph_uid));
@@ -312,6 +407,28 @@ static bool execute_once(
         census_le<uint32_t>(canonical_plan, value.first);
         census_le<uint32_t>(canonical_plan, value.second);
     }
+    for (const auto & entry : canonical_census) {
+        canonical_plan.insert(
+            canonical_plan.end(), entry.logical_tensor_identity,
+            entry.logical_tensor_identity + 32);
+        canonical_plan.insert(
+            canonical_plan.end(), entry.storage_tensor_identity,
+            entry.storage_tensor_identity + 32);
+        canonical_plan.insert(
+            canonical_plan.end(), entry.runtime_semantic_identity,
+            entry.runtime_semantic_identity + 32);
+        census_le<uint32_t>(canonical_plan, entry.disposition);
+        census_le<uint32_t>(canonical_plan, entry.role);
+        census_le<uint32_t>(canonical_plan, entry.role_ordinal);
+        census_le<uint32_t>(
+            canonical_plan, entry.destination_backend_ordinal);
+        canonical_plan.insert(
+            canonical_plan.end(), entry.rpc_endpoint_identity,
+            entry.rpc_endpoint_identity + 32);
+        census_le<uint32_t>(canonical_plan, entry.rpc_device);
+        census_le<uint64_t>(
+            canonical_plan, entry.rpc_connection_epoch);
+    }
     std::array<uint8_t, 32> canonical_root {};
     sha256_t canonical_sha;
     sha256_init(&canonical_sha);
@@ -367,18 +484,21 @@ static bool execute_once(
     }
     GGML_UNUSED(foreign_tensor);
     for (const auto & entry : canonical_census) {
-        const bool admitted =
+        const auto admit_result =
             entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
-            ggml_backend_rpc_halofpx_mutable_register(
+            ggml_backend_rpc_halofpx_mutable_register_typed(
                 &session, entry.runtime_tensor,
                 static_cast<ggml_backend_rpc_halofpx_mutable_role>(entry.role),
-                entry.role_ordinal) :
+                entry.role_ordinal, &entry) :
             entry.disposition == GGML_BACKEND_SCHED_CENSUS_EXCLUDE ?
-            ggml_backend_rpc_halofpx_mutable_exclude(
+            ggml_backend_rpc_halofpx_mutable_exclude_typed(
                 &session, entry.runtime_tensor,
                 static_cast<ggml_backend_rpc_halofpx_exclusion>(entry.role),
-                entry.role_ordinal) :
-            false;
+                entry.role_ordinal, &entry) :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+        const bool admitted =
+            admit_result == GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS ||
+            admit_result == GGML_RPC_HALOFPX_MUTABLE_ADMIT_EXACT_DUPLICATE;
         if (!admitted) {
             std::fprintf(stderr,
                 "fixture: canonical census iteration failed sequence=%llu index=%zu\n",
@@ -394,15 +514,27 @@ static bool execute_once(
     allocation_epoch = session.allocation_epoch;
     ggml_backend_tensor_set(f.input, input.data(), 0, sizeof(input));
     ggml_backend_rpc_halofpx_mutable_result mutable_result {};
-    if (!ggml_backend_rpc_halofpx_mutable_prepare(
-            &session, f.graph, &mutable_result) ||
-        !ggml_backend_sched_authority_consume_prepared_admission(
-            f.sched, &sched_handle, &admission) ||
-        ggml_backend_sched_graph_compute(f.sched, f.graph) != GGML_STATUS_SUCCESS ||
-        !ggml_backend_rpc_halofpx_mutable_commit(
-            &session, f.graph, &mutable_result)) {
-        std::fprintf(stderr, "fixture: prepare/compute/commit failed sequence=%llu\n",
-            static_cast<unsigned long long>(sequence));
+    const bool mutable_prepared =
+        ggml_backend_rpc_halofpx_mutable_prepare(
+            &session, f.graph, &mutable_result);
+    const bool admission_consumed = mutable_prepared &&
+        ggml_backend_sched_authority_consume_prepared_admission(
+            f.sched, &sched_handle, &admission);
+    const ggml_status compute_status = admission_consumed ?
+        ggml_backend_sched_graph_compute(f.sched, f.graph) :
+        GGML_STATUS_FAILED;
+    const bool mutable_committed =
+        compute_status == GGML_STATUS_SUCCESS &&
+        ggml_backend_rpc_halofpx_mutable_commit(
+            &session, f.graph, &mutable_result);
+    if (!mutable_prepared || !admission_consumed ||
+        compute_status != GGML_STATUS_SUCCESS || !mutable_committed) {
+        std::fprintf(stderr,
+            "fixture: prepare/compute/commit failed sequence=%llu "
+            "prepare=%u consume=%u compute=%d commit=%u\n",
+            static_cast<unsigned long long>(sequence),
+            mutable_prepared ? 1u : 0u, admission_consumed ? 1u : 0u,
+            static_cast<int>(compute_status), mutable_committed ? 1u : 0u);
         ggml_backend_rpc_halofpx_mutable_abort(&session);
         ggml_backend_rpc_halofpx_execution_disarm(
             f.rpc, nonce.data(), sequence);
@@ -433,6 +565,14 @@ static bool execute_once(
 }
 
 int main(int argc, char ** argv) {
+    if (argc == 4 && std::strcmp(argv[1], "--storage-identity") == 0) {
+        ggml_backend_load_all();
+        const bool ok =
+            ggml_backend_sched_authority_self_test() == 0x1fffffU &&
+            storage_identity_fixture(argv[2], argv[3]);
+        std::printf("resolved_storage_identity=%d\n", ok ? 1 : 0);
+        return ok ? 0 : 1;
+    }
     if (argc == 2 && std::strcmp(argv[1], "--publication-self-test") == 0) {
         const bool published =
             ggml_backend_rpc_halofpx_preexecute_publication_self_test();

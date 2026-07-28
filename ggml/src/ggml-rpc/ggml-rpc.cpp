@@ -319,8 +319,9 @@ static_assert(sizeof(hfx_graph_auth_header) == 264, "graph auth header size");
 static_assert(sizeof(hfx_graph_auth_receipt) == 264, "graph auth receipt size");
 
 static constexpr uint16_t HFX_MUTABLE_MAJOR = 3;
-static constexpr uint16_t HFX_MUTABLE_MINOR = 0;
-static constexpr uint64_t HFX_MUTABLE_CAPABILITIES = UINT64_C(0x3ff);
+static constexpr uint16_t HFX_MUTABLE_MINOR = 1;
+// L85 resolved-storage census projection on every L44 census wire record.
+static constexpr uint64_t HFX_MUTABLE_CAPABILITIES = UINT64_C(0x7ff);
 static constexpr uint32_t HFX_MUTABLE_MAX_MUTATIONS = 4096;
 static constexpr uint32_t HFX_MUTABLE_MAX_CENSUS = 4096;
 static constexpr uint64_t HFX_MUTABLE_MAX_BYTES = UINT64_C(64) << 20;
@@ -417,6 +418,13 @@ struct hfx_mutable_census_entry {
     uint32_t ne[GGML_MAX_DIMS];
     uint32_t nb[GGML_MAX_DIMS];
     uint8_t view_digest[32];
+    uint8_t logical_tensor_identity[32];
+    uint8_t storage_tensor_identity[32];
+    uint8_t runtime_semantic_identity[32];
+    uint8_t rpc_endpoint_identity[32];
+    uint64_t rpc_connection_epoch;
+    uint32_t destination_backend_ordinal;
+    uint32_t rpc_device;
 };
 
 struct hfx_mutable_commit_header {
@@ -461,7 +469,7 @@ struct hfx_mutable_preflight_wire {
 static_assert(sizeof(hfx_mutable_preflight_wire) == 160, "mutable preflight size");
 static_assert(sizeof(hfx_mutable_update_header) == 312, "mutable update size");
 static_assert(sizeof(hfx_mutable_receipt) == 272, "mutable receipt size");
-static_assert(sizeof(hfx_mutable_census_entry) == 96, "mutable census entry size");
+static_assert(sizeof(hfx_mutable_census_entry) == 240, "mutable census entry size");
 static_assert(sizeof(hfx_mutable_commit_header) == 312, "mutable commit size");
 
 static constexpr uint16_t HFX_STATE_MAJOR = 1;
@@ -682,6 +690,7 @@ struct ggml_backend_rpc_buffer_context {
     std::shared_ptr<socket_t> sock;
     void * base_ptr;
     uint64_t remote_ptr;
+    uint32_t device;
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
     uint32_t allocation_ordinal;
 #endif
@@ -691,6 +700,13 @@ struct ggml_backend_rpc_buffer_context {
 struct hfx_mutable_registration {
     uint32_t role = 0;
     uint32_t role_ordinal = 0;
+    std::array<uint8_t, 32> logical_tensor_identity {};
+    std::array<uint8_t, 32> storage_tensor_identity {};
+    std::array<uint8_t, 32> runtime_semantic_identity {};
+    std::array<uint8_t, 32> rpc_endpoint_identity {};
+    uint64_t rpc_connection_epoch = 0;
+    uint32_t destination_backend_ordinal = UINT32_MAX;
+    uint32_t rpc_device = UINT32_MAX;
 };
 
 struct hfx_mutable_client_session {
@@ -725,6 +741,8 @@ struct hfx_mutable_client_session {
     bool failed = false;
     std::unordered_map<const ggml_tensor *, hfx_mutable_registration> roles;
     std::unordered_map<const ggml_tensor *, hfx_mutable_registration> exclusions;
+    std::vector<std::pair<const ggml_tensor *, hfx_mutable_registration>>
+        projected_census;
     std::vector<hfx_mutable_census_entry> mutations;
     std::shared_ptr<hfx_preexecute_recorder> recorder;
 };
@@ -775,6 +793,7 @@ static bool hfx_mutable_same_tensor_authority(
     auto * lctx = static_cast<ggml_backend_rpc_buffer_context *>(left->buffer->context);
     auto * rctx = static_cast<ggml_backend_rpc_buffer_context *>(right->buffer->context);
     if (lctx->sock.get() != rctx->sock.get() ||
+        lctx->device != rctx->device ||
         lctx->allocation_ordinal != rctx->allocation_ordinal) return false;
     const uint64_t lbase = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(left->buffer));
     const uint64_t rbase = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(right->buffer));
@@ -784,16 +803,21 @@ static bool hfx_mutable_same_tensor_authority(
     for (size_t i = 0; i < GGML_MAX_DIMS; ++i) {
         if (left->ne[i] != right->ne[i] || left->nb[i] != right->nb[i]) return false;
     }
-    const ggml_tensor * lv = left;
-    const ggml_tensor * rv = right;
-    for (size_t depth = 0; depth <= GGML_MAX_SRC; ++depth) {
-        if ((lv == nullptr) != (rv == nullptr)) return false;
-        if (lv == nullptr) return true;
-        if (lv->view_offs != rv->view_offs) return false;
-        lv = lv->view_src;
-        rv = rv->view_src;
-    }
-    return false;
+    return ggml_nbytes(left) == ggml_nbytes(right);
+}
+
+static bool hfx_mutable_registration_equal(
+        const hfx_mutable_registration & left,
+        const hfx_mutable_registration & right) {
+    return left.role == right.role &&
+        left.role_ordinal == right.role_ordinal &&
+        left.logical_tensor_identity == right.logical_tensor_identity &&
+        left.storage_tensor_identity == right.storage_tensor_identity &&
+        left.runtime_semantic_identity == right.runtime_semantic_identity &&
+        left.rpc_endpoint_identity == right.rpc_endpoint_identity &&
+        left.rpc_connection_epoch == right.rpc_connection_epoch &&
+        left.destination_backend_ordinal == right.destination_backend_ordinal &&
+        left.rpc_device == right.rpc_device;
 }
 
 static const hfx_mutable_registration * hfx_mutable_find_registration(
@@ -1334,6 +1358,13 @@ std::vector<uint8_t> hfx_mutable_encode(const hfx_mutable_census_entry & v) {
     for (uint32_t x : v.ne) hfx_le<uint32_t>(out, x);
     for (uint32_t x : v.nb) hfx_le<uint32_t>(out, x);
     hfx_bytes(out, v.view_digest, 32);
+    hfx_bytes(out, v.logical_tensor_identity, 32);
+    hfx_bytes(out, v.storage_tensor_identity, 32);
+    hfx_bytes(out, v.runtime_semantic_identity, 32);
+    hfx_bytes(out, v.rpc_endpoint_identity, 32);
+    hfx_le<uint64_t>(out, v.rpc_connection_epoch);
+    hfx_le<uint32_t>(out, v.destination_backend_ordinal);
+    hfx_le<uint32_t>(out, v.rpc_device);
     return out;
 }
 
@@ -1488,7 +1519,14 @@ bool hfx_mutable_decode(const uint8_t * data, size_t size, hfx_mutable_census_en
           in.integer(v.tensor_relative) && in.integer(v.logical_size))) return false;
     for (uint32_t & x : v.ne) if (!in.integer(x)) return false;
     for (uint32_t & x : v.nb) if (!in.integer(x)) return false;
-    return in.bytes(v.view_digest, 32) && in.offset == size;
+    return in.bytes(v.view_digest, 32) &&
+        in.bytes(v.logical_tensor_identity, 32) &&
+        in.bytes(v.storage_tensor_identity, 32) &&
+        in.bytes(v.runtime_semantic_identity, 32) &&
+        in.bytes(v.rpc_endpoint_identity, 32) &&
+        in.integer(v.rpc_connection_epoch) &&
+        in.integer(v.destination_backend_ordinal) &&
+        in.integer(v.rpc_device) && in.offset == size;
 }
 
 bool hfx_mutable_decode(const uint8_t * data, size_t size, hfx_mutable_commit_header & v) {
@@ -1622,6 +1660,23 @@ static hfx_digest hfx_mutable_logical_expected_census(
     for (const auto & value : excluded_roles) {
         hfx_le<uint32_t>(canonical, value.first);
         hfx_le<uint32_t>(canonical, value.second);
+    }
+    for (const auto & entry : census) {
+        const bool excluded = entry.role >= HFX_MUTABLE_EXCLUSION_BASE;
+        hfx_bytes(canonical, entry.logical_tensor_identity, 32);
+        hfx_bytes(canonical, entry.storage_tensor_identity, 32);
+        hfx_bytes(canonical, entry.runtime_semantic_identity, 32);
+        hfx_le<uint32_t>(
+            canonical, excluded ? GGML_BACKEND_SCHED_CENSUS_EXCLUDE :
+                                  GGML_BACKEND_SCHED_CENSUS_REGISTER);
+        hfx_le<uint32_t>(
+            canonical, excluded ? entry.role - HFX_MUTABLE_EXCLUSION_BASE :
+                                  entry.role);
+        hfx_le<uint32_t>(canonical, entry.role_ordinal);
+        hfx_le<uint32_t>(canonical, entry.destination_backend_ordinal);
+        hfx_bytes(canonical, entry.rpc_endpoint_identity, 32);
+        hfx_le<uint32_t>(canonical, entry.rpc_device);
+        hfx_le<uint64_t>(canonical, entry.rpc_connection_epoch);
     }
     return hfx_sha256(canonical.data(), canonical.size());
 }
@@ -3528,7 +3583,7 @@ static ggml_backend_buffer_t ggml_backend_rpc_buffer_type_alloc_buffer(ggml_back
         ggml_backend_buffer_t buffer = ggml_backend_buffer_init(buft,
             ggml_backend_rpc_buffer_interface,
             new ggml_backend_rpc_buffer_context{
-                sock, nullptr, response.remote_ptr
+                sock, nullptr, response.remote_ptr, buft_ctx->device
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
                 , hfx_graph_requested() ? rpc_client_next_allocation_ordinal(sock) : UINT32_MAX
 #endif
@@ -4568,6 +4623,7 @@ bool ggml_backend_rpc_halofpx_mutable_begin(
     session->connection_epoch = response.server_connection_epoch;
     session->client_connection_epoch = response.client_connection_epoch;
     session->allocation_epoch = response.allocation_epoch;
+    session->bound_backend_ordinal = scheduler_admission->backend_ordinal;
     session->sock = sock;
     session->endpoint = ctx->endpoint;
     session->attempt = admitted;
@@ -4686,46 +4742,309 @@ bool ggml_backend_rpc_halofpx_mutable_negotiate_preflight(
     return true;
 }
 
-bool ggml_backend_rpc_halofpx_mutable_register(
+ggml_backend_rpc_halofpx_mutable_admit_result
+ggml_backend_rpc_halofpx_mutable_register_typed(
         const ggml_backend_rpc_halofpx_mutable_session * handle,
         ggml_tensor * tensor,
         ggml_backend_rpc_halofpx_mutable_role role,
-        uint32_t role_ordinal) {
-    if (!hfx_mutable_requested()) return false;
+        uint32_t role_ordinal,
+        const ggml_backend_sched_authority_census_entry * projection) {
+    if (!hfx_mutable_requested() || tensor == nullptr ||
+        !hfx_mutable_role_valid(role)) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+    }
     std::shared_ptr<hfx_mutable_client_session> session;
     {
         std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
         session = hfx_mutable_lookup_locked(handle);
     }
-    if (session == nullptr) return false;
+    if (session == nullptr) return GGML_RPC_HALOFPX_MUTABLE_ADMIT_SESSION_MISSING;
     std::lock_guard<std::mutex> session_lock(session->mutex);
-    if (tensor == nullptr || !hfx_mutable_role_valid(role)) {
-        hfx_preexecute_emit(session->recorder, HFX_PREEXEC_L44_REGISTER,
-                            HFX_PREEXEC_UNKNOWN_ROLE);
-        return false;
-    }
     if (session->exclusions.find(tensor) != session->exclusions.end()) {
-        hfx_preexecute_emit(session->recorder, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_DUPLICATE_ROLE);
-        return false;
+        return hfx_preexecute_emit(
+            session->recorder, HFX_PREEXEC_L44_REGISTER,
+            HFX_PREEXEC_DUPLICATE_ROLE) ?
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_ALREADY_REGISTERED :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
     }
     ggml_tensor * storage = tensor;
-    while (storage->buffer == nullptr && storage->view_src != nullptr) storage = storage->view_src;
-    if (storage->buffer == nullptr || !ggml_backend_buffer_is_rpc(storage->buffer)) {
-        hfx_preexecute_emit(session->recorder, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_WRONG_CONNECTION);
-        return false;
+    std::unordered_set<const ggml_tensor *> ancestry;
+    while (storage->buffer == nullptr && storage->view_src != nullptr) {
+        if (!ancestry.insert(storage).second) {
+            return GGML_RPC_HALOFPX_MUTABLE_ADMIT_VIEW_CYCLE;
+        }
+        storage = storage->view_src;
+    }
+    if (storage->buffer == nullptr) {
+        return hfx_preexecute_emit(
+            session->recorder, HFX_PREEXEC_L44_REGISTER,
+            HFX_PREEXEC_WRONG_CONNECTION) ?
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_ABSENT :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
+    }
+    if (!ggml_backend_buffer_is_rpc(storage->buffer)) {
+        return hfx_preexecute_emit(
+            session->recorder, HFX_PREEXEC_L44_REGISTER,
+            HFX_PREEXEC_WRONG_CONNECTION) ?
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_NOT_RPC :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
     }
     auto * bctx = static_cast<ggml_backend_rpc_buffer_context *>(storage->buffer->context);
     if (bctx->sock.get() != session->sock.get()) {
-        hfx_preexecute_emit(session->recorder, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_WRONG_CONNECTION);
-        return false;
+        return hfx_preexecute_emit(
+            session->recorder, HFX_PREEXEC_L44_REGISTER,
+            HFX_PREEXEC_WRONG_CONNECTION) ?
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
     }
-    const hfx_mutable_registration value { static_cast<uint32_t>(role), role_ordinal };
+    if (projection != nullptr &&
+        (projection->resolved != 1 || projection->runtime_tensor != tensor ||
+         projection->disposition != GGML_BACKEND_SCHED_CENSUS_REGISTER ||
+         projection->role != static_cast<uint32_t>(role) ||
+         projection->role_ordinal != role_ordinal ||
+         projection->destination_backend_ordinal != session->bound_backend_ordinal ||
+         projection->rpc_connection_epoch != session->client_connection_epoch ||
+         projection->rpc_device == UINT32_MAX ||
+         hfx_zero(projection->logical_tensor_identity, 32) ||
+         hfx_zero(projection->storage_tensor_identity, 32) ||
+         hfx_zero(projection->runtime_semantic_identity, 32) ||
+         hfx_zero(projection->rpc_endpoint_identity, 32))) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_CONFLICTING_DUPLICATE;
+    }
+    hfx_mutable_registration value {};
+    value.role = static_cast<uint32_t>(role);
+    value.role_ordinal = role_ordinal;
+    if (projection != nullptr) {
+        memcpy(value.logical_tensor_identity.data(), projection->logical_tensor_identity, 32);
+        memcpy(value.storage_tensor_identity.data(), projection->storage_tensor_identity, 32);
+        memcpy(value.runtime_semantic_identity.data(), projection->runtime_semantic_identity, 32);
+        memcpy(value.rpc_endpoint_identity.data(), projection->rpc_endpoint_identity, 32);
+        value.rpc_connection_epoch = projection->rpc_connection_epoch;
+        value.destination_backend_ordinal = projection->destination_backend_ordinal;
+        value.rpc_device = projection->rpc_device;
+    }
     auto [it, inserted] = session->roles.emplace(tensor, value);
-    const bool ok = inserted;
+    if (!inserted) {
+        return hfx_preexecute_emit(
+            session->recorder, HFX_PREEXEC_L44_REGISTER,
+            HFX_PREEXEC_DUPLICATE_ROLE) ?
+            (hfx_mutable_registration_equal(it->second, value) ?
+                GGML_RPC_HALOFPX_MUTABLE_ADMIT_EXACT_DUPLICATE :
+                GGML_RPC_HALOFPX_MUTABLE_ADMIT_CONFLICTING_DUPLICATE) :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
+    }
+    session->projected_census.emplace_back(tensor, value);
     return hfx_preexecute_emit(
         session->recorder, HFX_PREEXEC_L44_REGISTER,
-        ok ? HFX_PREEXEC_OK : HFX_PREEXEC_DUPLICATE_ROLE,
-        HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX, role_ordinal, role_ordinal) && ok;
+        HFX_PREEXEC_OK, HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX,
+        role_ordinal, role_ordinal) ?
+        GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS :
+        GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
+}
+
+bool ggml_backend_rpc_halofpx_mutable_register(
+        const ggml_backend_rpc_halofpx_mutable_session * handle,
+        ggml_tensor * tensor,
+        ggml_backend_rpc_halofpx_mutable_role role,
+        uint32_t role_ordinal) {
+    return ggml_backend_rpc_halofpx_mutable_register_typed(
+        handle, tensor, role, role_ordinal, nullptr) ==
+        GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS;
+}
+
+ggml_backend_rpc_halofpx_mutable_admit_result
+ggml_backend_rpc_halofpx_resolve_storage_identity(
+        ggml_backend_t destination_backend,
+        ggml_tensor * tensor,
+        ggml_backend_rpc_halofpx_storage_identity * identity) {
+    if (!hfx_mutable_requested() || !ggml_backend_is_rpc(destination_backend) ||
+        tensor == nullptr || identity == nullptr) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+    }
+    std::unordered_set<const ggml_tensor *> ancestry;
+    ggml_tensor * storage = nullptr;
+    for (ggml_tensor * current = tensor; current != nullptr;
+            current = current->view_src) {
+        if (!ancestry.insert(current).second) {
+            return GGML_RPC_HALOFPX_MUTABLE_ADMIT_VIEW_CYCLE;
+        }
+        if (current->buffer != nullptr) storage = current;
+    }
+    if (storage == nullptr || storage->buffer == nullptr) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_ABSENT;
+    }
+    if (!ggml_backend_buffer_is_rpc(storage->buffer)) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_NOT_RPC;
+    }
+    auto * backend_ctx =
+        static_cast<ggml_backend_rpc_context *>(destination_backend->context);
+    auto * buffer_ctx =
+        static_cast<ggml_backend_rpc_buffer_context *>(storage->buffer->context);
+    auto destination_socket = get_socket(backend_ctx->endpoint);
+    if (destination_socket == nullptr || buffer_ctx == nullptr ||
+        buffer_ctx->sock.get() != destination_socket.get() ||
+        buffer_ctx->device != backend_ctx->device) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET;
+    }
+    memset(identity, 0, sizeof(*identity));
+    identity->version = 1;
+    identity->device = buffer_ctx->device;
+    identity->connection_epoch = destination_socket->authority_epoch();
+    std::vector<uint8_t> endpoint_material;
+    hfx_le<uint32_t>(endpoint_material, backend_ctx->device);
+    endpoint_material.insert(
+        endpoint_material.end(), backend_ctx->endpoint.begin(),
+        backend_ctx->endpoint.end());
+    const auto endpoint_digest = hfx_sha256(
+        endpoint_material.data(), endpoint_material.size());
+    memcpy(identity->endpoint_identity, endpoint_digest.data(), 32);
+    std::vector<uint8_t> storage_material;
+    hfx_bytes(storage_material, identity->endpoint_identity, 32);
+    hfx_le<uint64_t>(storage_material, identity->connection_epoch);
+    hfx_le<uint64_t>(storage_material, buffer_ctx->remote_ptr);
+    const uintptr_t base = reinterpret_cast<uintptr_t>(
+        ggml_backend_buffer_get_base(storage->buffer));
+    const uintptr_t data = reinterpret_cast<uintptr_t>(storage->data);
+    if (data < base) return GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_ABSENT;
+    hfx_le<uint64_t>(storage_material, static_cast<uint64_t>(data - base));
+    const auto storage_digest = hfx_sha256(
+        storage_material.data(), storage_material.size());
+    memcpy(identity->storage_identity, storage_digest.data(), 32);
+    uint64_t logical_address = reinterpret_cast<uint64_t>(tensor->data);
+    if (logical_address == 0) {
+        uint64_t view_offset = 0;
+        for (const ggml_tensor * current = tensor;
+                current != storage && current != nullptr;
+                current = current->view_src) {
+            if (!hfx_add(view_offset, current->view_offs, view_offset)) {
+                return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+            }
+        }
+        if (!hfx_add(
+                reinterpret_cast<uint64_t>(storage->data),
+                view_offset, logical_address)) {
+            return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+        }
+    }
+    if (logical_address < base) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+    }
+    std::vector<uint8_t> semantic_material;
+    hfx_bytes(semantic_material, identity->storage_identity, 32);
+    hfx_le<uint64_t>(semantic_material, logical_address - base);
+    hfx_le<uint32_t>(semantic_material, static_cast<uint32_t>(tensor->type));
+    hfx_le<uint64_t>(semantic_material, ggml_nbytes(tensor));
+    for (size_t i = 0; i < GGML_MAX_DIMS; ++i) {
+        if (tensor->ne[i] <= 0) {
+            return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+        }
+        hfx_le<uint64_t>(semantic_material, static_cast<uint64_t>(tensor->ne[i]));
+        hfx_le<uint64_t>(semantic_material, static_cast<uint64_t>(tensor->nb[i]));
+    }
+    const auto semantic_digest = hfx_sha256(
+        semantic_material.data(), semantic_material.size());
+    memcpy(identity->runtime_semantic_identity, semantic_digest.data(), 32);
+    return GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS;
+}
+
+ggml_backend_rpc_halofpx_mutable_admit_result
+ggml_backend_rpc_halofpx_mutable_exclude_typed(
+        const ggml_backend_rpc_halofpx_mutable_session * handle,
+        ggml_tensor * tensor,
+        ggml_backend_rpc_halofpx_exclusion exclusion,
+        uint32_t exclusion_ordinal,
+        const ggml_backend_sched_authority_census_entry * projection) {
+    if (!hfx_mutable_requested()) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+    }
+    if (tensor == nullptr ||
+        (exclusion != GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT &&
+         exclusion != GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD)) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+    }
+    std::shared_ptr<hfx_mutable_client_session> session;
+    {
+        std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
+        session = hfx_mutable_lookup_locked(handle);
+    }
+    if (session == nullptr) return GGML_RPC_HALOFPX_MUTABLE_ADMIT_SESSION_MISSING;
+    std::lock_guard<std::mutex> session_lock(session->mutex);
+    if (session->roles.find(tensor) != session->roles.end()) {
+        return hfx_preexecute_emit(
+            session->recorder, HFX_PREEXEC_L44_EXCLUDE,
+            HFX_PREEXEC_DUPLICATE_ROLE) ?
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_ALREADY_REGISTERED :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
+    }
+    ggml_tensor * storage = tensor;
+    std::unordered_set<const ggml_tensor *> ancestry;
+    while (storage->buffer == nullptr && storage->view_src != nullptr) {
+        if (!ancestry.insert(storage).second) {
+            return GGML_RPC_HALOFPX_MUTABLE_ADMIT_VIEW_CYCLE;
+        }
+        storage = storage->view_src;
+    }
+    if (storage->buffer == nullptr) {
+        return hfx_preexecute_emit(
+            session->recorder, HFX_PREEXEC_L44_EXCLUDE,
+            HFX_PREEXEC_WRONG_CONNECTION) ?
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_ABSENT :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
+    }
+    if (!ggml_backend_buffer_is_rpc(storage->buffer)) {
+        return hfx_preexecute_emit(
+            session->recorder, HFX_PREEXEC_L44_EXCLUDE,
+            HFX_PREEXEC_WRONG_CONNECTION) ?
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_NOT_RPC :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
+    }
+    auto * bctx = static_cast<ggml_backend_rpc_buffer_context *>(storage->buffer->context);
+    if (bctx->sock.get() != session->sock.get()) {
+        return hfx_preexecute_emit(
+            session->recorder, HFX_PREEXEC_L44_EXCLUDE,
+            HFX_PREEXEC_WRONG_CONNECTION) ?
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET :
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
+    }
+    if (projection != nullptr &&
+        (projection->resolved != 1 || projection->runtime_tensor != tensor ||
+         projection->disposition != GGML_BACKEND_SCHED_CENSUS_EXCLUDE ||
+         projection->role != static_cast<uint32_t>(exclusion) ||
+         projection->role_ordinal != exclusion_ordinal ||
+         projection->destination_backend_ordinal != session->bound_backend_ordinal ||
+         projection->rpc_connection_epoch != session->client_connection_epoch ||
+         projection->rpc_device == UINT32_MAX ||
+         hfx_zero(projection->logical_tensor_identity, 32) ||
+         hfx_zero(projection->storage_tensor_identity, 32) ||
+         hfx_zero(projection->runtime_semantic_identity, 32) ||
+         hfx_zero(projection->rpc_endpoint_identity, 32))) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_CONFLICTING_DUPLICATE;
+    }
+    hfx_mutable_registration value {};
+    value.role = HFX_MUTABLE_EXCLUSION_BASE + static_cast<uint32_t>(exclusion);
+    value.role_ordinal = exclusion_ordinal;
+    if (projection != nullptr) {
+        memcpy(value.logical_tensor_identity.data(), projection->logical_tensor_identity, 32);
+        memcpy(value.storage_tensor_identity.data(), projection->storage_tensor_identity, 32);
+        memcpy(value.runtime_semantic_identity.data(), projection->runtime_semantic_identity, 32);
+        memcpy(value.rpc_endpoint_identity.data(), projection->rpc_endpoint_identity, 32);
+        value.rpc_connection_epoch = projection->rpc_connection_epoch;
+        value.destination_backend_ordinal = projection->destination_backend_ordinal;
+        value.rpc_device = projection->rpc_device;
+    }
+    auto [it, inserted] = session->exclusions.emplace(tensor, value);
+    const bool exact =
+        !inserted && hfx_mutable_registration_equal(it->second, value);
+    const auto result = inserted ? GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS :
+        exact ? GGML_RPC_HALOFPX_MUTABLE_ADMIT_EXACT_DUPLICATE :
+                GGML_RPC_HALOFPX_MUTABLE_ADMIT_CONFLICTING_DUPLICATE;
+    if (inserted) session->projected_census.emplace_back(tensor, value);
+    return hfx_preexecute_emit(
+        session->recorder, HFX_PREEXEC_L44_EXCLUDE,
+        inserted || exact ? HFX_PREEXEC_OK : HFX_PREEXEC_DUPLICATE_ROLE,
+        HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX,
+        exclusion_ordinal, exclusion_ordinal) ? result :
+        GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE;
 }
 
 bool ggml_backend_rpc_halofpx_mutable_exclude(
@@ -4733,43 +5052,10 @@ bool ggml_backend_rpc_halofpx_mutable_exclude(
         ggml_tensor * tensor,
         ggml_backend_rpc_halofpx_exclusion exclusion,
         uint32_t exclusion_ordinal) {
-    if (!hfx_mutable_requested()) return false;
-    if (tensor == nullptr ||
-        (exclusion != GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT &&
-         exclusion != GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD)) return false;
-    std::shared_ptr<hfx_mutable_client_session> session;
-    {
-        std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
-        session = hfx_mutable_lookup_locked(handle);
-    }
-    if (session == nullptr) return false;
-    std::lock_guard<std::mutex> session_lock(session->mutex);
-    if (session->roles.find(tensor) != session->roles.end()) {
-        hfx_preexecute_emit(session->recorder, HFX_PREEXEC_L44_EXCLUDE, HFX_PREEXEC_DUPLICATE_ROLE);
-        return false;
-    }
-    ggml_tensor * storage = tensor;
-    while (storage->buffer == nullptr && storage->view_src != nullptr) storage = storage->view_src;
-    if (storage->buffer == nullptr || !ggml_backend_buffer_is_rpc(storage->buffer)) {
-        hfx_preexecute_emit(session->recorder, HFX_PREEXEC_L44_EXCLUDE, HFX_PREEXEC_WRONG_CONNECTION);
-        return false;
-    }
-    auto * bctx = static_cast<ggml_backend_rpc_buffer_context *>(storage->buffer->context);
-    if (bctx->sock.get() != session->sock.get()) {
-        hfx_preexecute_emit(session->recorder, HFX_PREEXEC_L44_EXCLUDE, HFX_PREEXEC_WRONG_CONNECTION);
-        return false;
-    }
-    const hfx_mutable_registration value {
-        HFX_MUTABLE_EXCLUSION_BASE + static_cast<uint32_t>(exclusion), exclusion_ordinal
-    };
-    auto [it, inserted] = session->exclusions.emplace(tensor, value);
-    const bool ok = inserted ||
-        (it->second.role == value.role && it->second.role_ordinal == value.role_ordinal);
-    return hfx_preexecute_emit(
-        session->recorder, HFX_PREEXEC_L44_EXCLUDE,
-        ok ? HFX_PREEXEC_OK : HFX_PREEXEC_DUPLICATE_ROLE,
-        HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX,
-        exclusion_ordinal, exclusion_ordinal) && ok;
+    const auto result = ggml_backend_rpc_halofpx_mutable_exclude_typed(
+        handle, tensor, exclusion, exclusion_ordinal, nullptr);
+    return result == GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS ||
+        result == GGML_RPC_HALOFPX_MUTABLE_ADMIT_EXACT_DUPLICATE;
 }
 
 static void hfx_mutable_collect_graph(
@@ -4851,36 +5137,35 @@ static bool hfx_mutable_client_finish(
     std::lock_guard<std::mutex> session_lock(session_ptr->mutex);
     auto & session = *session_ptr;
     auto sock = session.sock;
-    std::unordered_set<ggml_tensor *> seen;
-    std::vector<ggml_tensor *> leaves;
-    for (int i = 0; i < graph->n_nodes; ++i) hfx_mutable_collect_graph(graph->nodes[i], seen, leaves);
     std::vector<hfx_mutable_census_entry> census;
     std::unordered_set<uint64_t> role_keys;
-    for (ggml_tensor * tensor : leaves) {
+    if (session.projected_census.size() !=
+            session.roles.size() + session.exclusions.size()) {
+        session.failed = true;
+        return false;
+    }
+    for (const auto & projection : session.projected_census) {
+        ggml_tensor * tensor = const_cast<ggml_tensor *>(projection.first);
+        const auto & authority = projection.second;
         ggml_tensor * storage = tensor;
         uint64_t inherited_offset = 0;
+        std::unordered_set<const ggml_tensor *> ancestry;
         while (storage->buffer == nullptr && storage->view_src != nullptr) {
+            if (!ancestry.insert(storage).second) {
+                session.failed = true; return false;
+            }
             if (!hfx_add(inherited_offset, storage->view_offs, inherited_offset)) {
                 session.failed = true; return false;
             }
             storage = storage->view_src;
         }
-        // Local-only leaves are authenticated by the prepared scheduler
-        // census. L44 owns only leaves materialized on this admitted socket.
-        if (storage->buffer == nullptr || !ggml_backend_buffer_is_rpc(storage->buffer)) continue;
+        if (storage->buffer == nullptr ||
+            !ggml_backend_buffer_is_rpc(storage->buffer)) {
+            session.failed = true; return false;
+        }
         auto * bctx = static_cast<ggml_backend_rpc_buffer_context *>(storage->buffer->context);
-        if (bctx->sock.get() != sock.get()) continue;
-        hfx_mutable_registration authority {};
-        const auto * mutable_registration = hfx_mutable_find_registration(session.roles, tensor);
-        const auto * exclusion = hfx_mutable_find_registration(session.exclusions, tensor);
-        if (mutable_registration != nullptr) {
-            if (exclusion != nullptr) {
-                session.failed = true; return false;
-            }
-            authority = *mutable_registration;
-        } else {
-            if (exclusion == nullptr) { session.failed = true; return false; }
-            authority = *exclusion;
+        if (bctx->sock.get() != sock.get()) {
+            session.failed = true; return false;
         }
         const uint64_t key = (uint64_t(authority.role) << 32) | authority.role_ordinal;
         if (!role_keys.insert(key).second || census.size() >= session.attempt.max_census_entries) {
@@ -4888,6 +5173,13 @@ static bool hfx_mutable_client_finish(
         }
         hfx_mutable_census_entry entry {};
         entry.role = authority.role; entry.role_ordinal = authority.role_ordinal;
+        memcpy(entry.logical_tensor_identity, authority.logical_tensor_identity.data(), 32);
+        memcpy(entry.storage_tensor_identity, authority.storage_tensor_identity.data(), 32);
+        memcpy(entry.runtime_semantic_identity, authority.runtime_semantic_identity.data(), 32);
+        memcpy(entry.rpc_endpoint_identity, authority.rpc_endpoint_identity.data(), 32);
+        entry.rpc_connection_epoch = authority.rpc_connection_epoch;
+        entry.destination_backend_ordinal = authority.destination_backend_ordinal;
+        entry.rpc_device = authority.rpc_device;
         entry.allocation_ordinal = bctx->allocation_ordinal; entry.type = tensor->type;
         const uint64_t base = reinterpret_cast<uint64_t>(ggml_backend_buffer_get_base(storage->buffer));
         uint64_t address = reinterpret_cast<uint64_t>(tensor->data);
@@ -4918,9 +5210,6 @@ static bool hfx_mutable_client_finish(
                       entry.role, entry.role_ordinal, entry.allocation_ordinal,
                       entry.tensor_relative, entry.logical_size);
     }
-    std::sort(census.begin(), census.end(), [](const auto & a, const auto & b) {
-        return std::tie(a.role, a.role_ordinal) < std::tie(b.role, b.role_ordinal);
-    });
     if (census.empty()) { session.failed = true; return false; }
     uint32_t logical_mutable_count = 0;
     uint32_t logical_exclusion_count = 0;
@@ -5297,8 +5586,11 @@ bool ggml_backend_rpc_halofpx_execution_bind_splits(
         uint32_t, const ggml_backend_rpc_halofpx_split_identity *, size_t) { return false; }
 uint64_t ggml_backend_rpc_halofpx_mutable_graph_uid(ggml_cgraph *) { return 0; }
 bool ggml_backend_rpc_halofpx_mutable_begin(ggml_backend_t, const struct ggml_backend_sched_authority_prepared_admission *, const struct ggml_backend_sched_authority_prepared_admission *, const ggml_backend_rpc_halofpx_mutable_attempt *, ggml_backend_rpc_halofpx_mutable_session *) { return false; }
+ggml_backend_rpc_halofpx_mutable_admit_result ggml_backend_rpc_halofpx_mutable_register_typed(const ggml_backend_rpc_halofpx_mutable_session *, ggml_tensor *, ggml_backend_rpc_halofpx_mutable_role, uint32_t, const ggml_backend_sched_authority_census_entry *) { return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT; }
 bool ggml_backend_rpc_halofpx_mutable_register(const ggml_backend_rpc_halofpx_mutable_session *, ggml_tensor *, ggml_backend_rpc_halofpx_mutable_role, uint32_t) { return false; }
+ggml_backend_rpc_halofpx_mutable_admit_result ggml_backend_rpc_halofpx_mutable_exclude_typed(const ggml_backend_rpc_halofpx_mutable_session *, ggml_tensor *, ggml_backend_rpc_halofpx_exclusion, uint32_t, const ggml_backend_sched_authority_census_entry *) { return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT; }
 bool ggml_backend_rpc_halofpx_mutable_exclude(const ggml_backend_rpc_halofpx_mutable_session *, ggml_tensor *, ggml_backend_rpc_halofpx_exclusion, uint32_t) { return false; }
+ggml_backend_rpc_halofpx_mutable_admit_result ggml_backend_rpc_halofpx_resolve_storage_identity(ggml_backend_t, ggml_tensor *, ggml_backend_rpc_halofpx_storage_identity *) { return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT; }
 bool ggml_backend_rpc_halofpx_mutable_prepare(const ggml_backend_rpc_halofpx_mutable_session *, ggml_cgraph *, ggml_backend_rpc_halofpx_mutable_result *) { return false; }
 bool ggml_backend_rpc_halofpx_mutable_commit(const ggml_backend_rpc_halofpx_mutable_session *, ggml_cgraph *, ggml_backend_rpc_halofpx_mutable_result *) { return false; }
 bool ggml_backend_rpc_halofpx_mutable_abort(ggml_backend_rpc_halofpx_mutable_session *) { return false; }
@@ -7193,12 +7485,22 @@ bool rpc_server::hfx_mutable_commit(
         return false;
     }
     std::vector<hfx_mutable_census_entry> census(request.census_count);
+    const auto & sealed = hfx_mutable_session.caps.scheduler_admission;
+    std::unordered_set<uint64_t> census_role_keys;
     for (uint32_t i = 0; i < request.census_count; ++i) {
         const uint8_t * p = input.data() + sizeof(request) + i * sizeof(hfx_mutable_census_entry);
         if (!hfx_mutable_decode(p, sizeof(hfx_mutable_census_entry), census[i]) ||
-            !hfx_mutable_census_role_valid(census[i].role)) return false;
-        if (i && std::tie(census[i-1].role, census[i-1].role_ordinal) >=
-                 std::tie(census[i].role, census[i].role_ordinal)) return false;
+            !hfx_mutable_census_role_valid(census[i].role) ||
+            hfx_zero(census[i].logical_tensor_identity, 32) ||
+            hfx_zero(census[i].storage_tensor_identity, 32) ||
+            hfx_zero(census[i].runtime_semantic_identity, 32) ||
+            hfx_zero(census[i].rpc_endpoint_identity, 32) ||
+            census[i].rpc_connection_epoch != sealed.client_connection_epoch ||
+            census[i].destination_backend_ordinal != sealed.backend_ordinal ||
+            census[i].rpc_device == UINT32_MAX) return false;
+        const uint64_t role_key =
+            (uint64_t(census[i].role) << 32) | census[i].role_ordinal;
+        if (!census_role_keys.insert(role_key).second) return false;
     }
     std::vector<uint8_t> census_wire(input.begin() + sizeof(request), input.end());
     const auto root = hfx_sha256(census_wire.data(), census_wire.size());
@@ -7207,7 +7509,6 @@ bool rpc_server::hfx_mutable_commit(
     uint32_t logical_exclusion_count = 0;
     const auto logical_expected_census = hfx_mutable_logical_expected_census(
         census, logical_mutable_count, logical_exclusion_count);
-    const auto & sealed = hfx_mutable_session.caps.scheduler_admission;
     if (logical_mutable_count != sealed.logical_expected_mutable_count ||
         logical_exclusion_count != sealed.logical_expected_exclusion_count ||
         !hfx_equal(logical_expected_census.data(),

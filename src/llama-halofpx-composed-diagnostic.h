@@ -12,6 +12,7 @@ enum class llama_halofpx_preprepare_failure {
     prepared_admission,
     admission_verify,
     mutable_begin,
+    resolved_census,
     scheduler_census_lookup,
     scheduler_census_disposition,
     mutable_register,
@@ -34,6 +35,8 @@ static inline const char * llama_halofpx_preprepare_failure_branch(
             return "l42_admission_verify_refused";
         case llama_halofpx_preprepare_failure::mutable_begin:
             return "l44_mutable_begin_refused";
+        case llama_halofpx_preprepare_failure::resolved_census:
+            return "l42_resolved_census_refused";
         case llama_halofpx_preprepare_failure::scheduler_census_lookup:
             return "l42_scheduler_census_lookup_refused";
         case llama_halofpx_preprepare_failure::scheduler_census_disposition:

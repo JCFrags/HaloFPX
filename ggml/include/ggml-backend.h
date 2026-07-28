@@ -516,7 +516,29 @@ extern "C" {
         uint32_t copy_slot;
         uint64_t copy_generation;
         struct ggml_tensor * runtime_tensor;
+        uint8_t logical_tensor_identity[32];
+        uint8_t storage_tensor_identity[32];
+        uint8_t runtime_semantic_identity[32];
+        uint8_t rpc_endpoint_identity[32];
+        uint64_t rpc_connection_epoch;
+        uint32_t rpc_device;
+        uint32_t resolved;
     };
+
+    struct ggml_backend_sched_authority_storage_resolution {
+        uint32_t device;
+        uint32_t reserved;
+        uint64_t connection_epoch;
+        uint8_t endpoint_identity[32];
+        uint8_t storage_identity[32];
+        uint8_t runtime_semantic_identity[32];
+    };
+
+    typedef bool (*ggml_backend_sched_authority_storage_resolver)(
+        void * user_data,
+        uint32_t destination_backend_ordinal,
+        struct ggml_tensor * runtime_tensor,
+        struct ggml_backend_sched_authority_storage_resolution * resolution);
 
     // Initialize a backend scheduler, backends with low index are given priority over backends with high index
     GGML_API ggml_backend_sched_t ggml_backend_sched_new(ggml_backend_t * backends, ggml_backend_buffer_type_t * bufts, int n_backends, size_t graph_size, bool parallel, bool op_offload);
@@ -586,6 +608,11 @@ extern "C" {
         const struct ggml_backend_sched_authority_handle * handle,
         struct ggml_cgraph * graph,
         struct ggml_backend_sched_authority_prepared * prepared);
+    GGML_API bool                 ggml_backend_sched_authority_resolve_census(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        ggml_backend_sched_authority_storage_resolver resolver,
+        void * user_data);
     GGML_API bool                 ggml_backend_sched_authority_prepared_admission(
         ggml_backend_sched_t sched,
         const struct ggml_backend_sched_authority_handle * handle,
