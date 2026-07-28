@@ -29,9 +29,10 @@ controller = load("l52_controller", "scripts/halofpx-production-transition.py")
 runner_module = load("l52_runner", "scripts/halofpx-l13-primary-retry.py")
 
 
-def manifest() -> dict[str, object]:
+def manifest(
+        schema: str = "halofpx.l48.fixture-manifest.v1") -> dict[str, object]:
     return {
-        "schema": "halofpx.l48.fixture-manifest.v1",
+        "schema": schema,
         "child_evidence_subdir": "child",
         "disposable_paths": {
             "nimo-1": [],
@@ -80,6 +81,30 @@ class DirectoryRunner:
 
 
 class EvidenceDirectoryTests(unittest.TestCase):
+    def test_exact_l48_and_l77_schemas_are_admitted(self):
+        for schema in (
+                "halofpx.l48.fixture-manifest.v1",
+                "halofpx.l77.primary-manifest.v1"):
+            with self.subTest(schema=schema), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                record = controller.prepare_l52_evidence_directories(
+                    manifest(schema), root, DirectoryRunner())
+                self.assertEqual(record["local"]["path"], str(root / "child"))
+
+    def test_unknown_and_near_match_schemas_refuse(self):
+        for schema in (
+                "halofpx.l78.primary-manifest.v1",
+                "halofpx.l77.primary-manifest.v0",
+                "halofpx.l77.primary-manifest.v1.extra",
+                "halofpx.l48.fixture-manifest.v1 "):
+            with self.subTest(schema=schema), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                with self.assertRaisesRegex(
+                        controller.TransitionError, "schema is not admitted"):
+                    controller.prepare_l52_evidence_directories(
+                        manifest(schema), root, DirectoryRunner())
+                self.assertFalse((root / "child").exists())
+
     def test_create_precedes_publish_and_records_authority(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

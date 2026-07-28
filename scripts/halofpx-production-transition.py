@@ -1331,8 +1331,11 @@ def prepare_l52_evidence_directories(
         manifest: dict[str, object], evidence_root: Path,
         runner: Runner) -> dict[str, object]:
     """Create the closed evidence namespace before the disposable child runs."""
-    if manifest.get("schema") != "halofpx.l48.fixture-manifest.v1":
-        return {}
+    if manifest.get("schema") not in {
+        "halofpx.l48.fixture-manifest.v1",
+        "halofpx.l77.primary-manifest.v1",
+    }:
+        raise TransitionError("L52 evidence directory schema is not admitted")
     resolved_root = evidence_root.resolve()
     child = resolved_root / str(manifest["child_evidence_subdir"])
     if child.exists() or child.is_symlink():
@@ -2523,6 +2526,12 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             maintenance_command.pop(0)
         if not maintenance_command:
             raise TransitionError("maintenance requires a command after --")
+        if (
+            manifest is not None
+            and manifest.get("schema") == "halofpx.l77.primary-manifest.v1"
+        ):
+            prepare_l52_evidence_directories(
+                manifest, args.evidence_dir, selected_runner)
         prepared = controller.prepare_keys()
         _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
         # Bind the exact child environment from the already validated manifest
