@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-l13-primary-retry.py", line 3575, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-l13-primary-retry.py", line 3344, in main
+    raise CanaryError("controller-owned local evidence directory was not admitted")
+CanaryError: controller-owned local evidence directory was not admitted
+transition refused/failed: server-authority:publication_journal_missing
