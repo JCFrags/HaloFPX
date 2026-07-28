@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 03:18 PDT
+Verified: 2026-07-28 15:06 PDT
 
 ## Overall state
 
@@ -133,10 +133,31 @@ cache conclusion exists.
 Production recovered to nimo-1 coordinator PID `2838185`, `NRestarts=0`, port
 8081/HTTP 200; nimo-2 worker PID `2035972`, `NRestarts=0`, port 50052.
 
-L88 is active to replace the 256-event cap with a finite bound derived from
-the admitted census maxima and exact lifecycle/transport grammar. After
-boundary tests, no-model proof, and review, one primary attempt may continue
-directly to correctness on warmup success.
+L88 closed NOT PROMOTED at
+`a546ca48c6d997f145ff42be3adcd34adf658d1d`. Its independently reviewed
+recorder-capacity correction is retained: the finite maximum is now 8,219
+events, derived from two 4,096-entry census blocks plus the largest fixed
+grammar expansion. Boundary, feature-on/off, and real no-model gates passed.
+The sole primary attempt crossed the former capacity seam, completed
+authenticated server prepare/execute/response, and returned the first
+512-token chunk with `decode_status=0`. It then stopped before capture/restore
+because the response verifier rejected the authenticated two-event client
+stream (`client_decode`, `client_receipt_validation`) as a noncanonical
+incomplete prefix. No cache-correctness conclusion exists.
+
+Production recovered healthy and unique: nimo-1 coordinator PID `2853771`,
+InvocationID `aa2676e5efc043f1915ffdfb4e905b7c`, `NRestarts=0`, port 8081/
+HTTP 200; nimo-2 worker PID `2052134`, InvocationID
+`9c4635752e024bb7a7c8eef893e0f4ef`, `NRestarts=0`, port 50052.
+
+L89 is active as a narrow response-boundary authority correction. It must
+first prove event ownership from exact source. Only a source-proven late client
+production may pair the exact two client events with a complete authenticated
+seven-stage server success and closed cross-bindings; generic suffix/prefix
+acceptance is forbidden. After focused offline/no-model qualification and
+independent review, one primary attempt may continue to the existing
+two-residency one-token correctness discriminator. No retry or broader product,
+performance, or production-cache work is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

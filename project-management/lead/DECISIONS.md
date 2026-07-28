@@ -2201,3 +2201,44 @@ discriminator. No retry, server-abort change, production cache enablement,
 server composition, performance work, tuning, or automatic follow-on is
 authorized. Preserve evidence; only exact reproducible L87 archives may be
 removed after validation.
+
+## 2026-07-28 — accept L88 and open L89 paired response authority
+
+Decision: accept L88 terminal NOT PROMOTED at
+`a546ca48c6d997f145ff42be3adcd34adf658d1d` and retain its independently
+reviewed finite recorder-capacity correction. Open L89 only for a source-proven
+exact response-boundary production pairing the observed late client semantic
+events with complete authenticated server success.
+
+Reason: L88 is the first primary attempt to cross the former recorder seam and
+complete a 512-token composed decode with authenticated server
+prepare/execute/response. The controller then rejected the client stream
+because it contained only `client_decode` followed by
+`client_receipt_validation`, whereas the current verifier accepts only a full
+client transport production or its true prefix. This is now the narrowest
+product-path boundary; capture and restore did not run.
+
+Before changing semantics, L89 must prove from exact source and retained
+L61/L73/L74/L88 evidence why graph-auth client ownership begins at decode and
+where the request/response transport events are owned. If that late-attached
+production is not source-proven, stop before runtime. A generic prefix, suffix,
+or two-event exception is forbidden.
+
+If proven, accept the two client events only when paired in the same verifier
+decision with the complete seven-stage server success. Cross-bind all shared
+authenticated identities, including attempt nonce, parent/split UID, execution
+sequence, backend ordinal, opcode, connection identity, and receipt identity
+where each is legitimately common. Refuse client-only input, incomplete or
+refused server authority, missing/reordered/extra events, mismatches, failure
+statuses, replay, and wrong opcode. Existing full client productions and
+failure prefixes remain unchanged.
+
+Qualification is bounded to focused offline positives/negatives, replay of the
+retained L88 stream, feature-off inertness, a real no-model paired
+success/refusal fixture, and one independent review. After those gates, exactly
+one primary attempt may run. Warmup success continues in that same attempt to
+residency-A reference/capture and fresh-residency-B one-token restore.
+Acceptance requires exact token/state equality, zero legacy state-page GET/SET,
+accepted client/server custody, cleanup, and production recovery. No retry,
+server-abort protocol change, production cache enablement, server composition,
+performance work, tuning, or automatic follow-on is authorized.
