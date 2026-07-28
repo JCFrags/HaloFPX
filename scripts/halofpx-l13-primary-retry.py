@@ -552,6 +552,25 @@ def configure_l48_fixture() -> None:
     ARTIFACT_DIR = f"{COORDINATOR_ROOT}/{CHECKPOINT}"
 
 
+def configure_l77_primary() -> None:
+    configure_l48_fixture()
+    global MODEL, MODEL_SHA, MODEL_BYTES, MODEL_DIGEST, PROMPT, PROMPT_SHA
+    global CACHE_TYPE_K, CACHE_TYPE_V, FLASH_ATTN, FIXTURE_QUALIFICATION
+    MODEL = (
+        "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
+        "dba517197f2854f3d362529e13abddcdcad6c10b/"
+        "saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf")
+    MODEL_SHA = "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6"
+    MODEL_BYTES = 159873097824
+    MODEL_DIGEST = MODEL_SHA
+    PROMPT = "/var/tmp/halofpx-l13-primary-20260721/prompt.txt"
+    PROMPT_SHA = "f20c7c7a4137de98b991f1bfe6de27e194a93c7257d9496944e312085923143f"
+    CACHE_TYPE_K = "q8_0"
+    CACHE_TYPE_V = "q8_0"
+    FLASH_ATTN = "on"
+    FIXTURE_QUALIFICATION = False
+
+
 def _composed_execution(text: str, phase: str, ordinal: int) -> dict[str, object]:
     fields: dict[str, str] = {}
     rpc_fields: list[str] = []
@@ -2956,6 +2975,16 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     restore_journal = worker_journal(
         restore_unit, restore_invocation, restore_worker_pid)
     (root / "worker-restore.log").write_text(restore_journal, encoding="utf-8")
+    response_harvest = None
+    if os.environ.get("HALOFPX_RPC_RESPONSE_DIAGNOSTICS") == "1":
+        stop_canary(restore_canary_unit)
+        response_harvest = harvest_response_boundary_evidence(
+            root,
+            worker_unit=restore_unit,
+            worker_invocation=restore_invocation,
+            worker_pid=restore_worker_pid,
+            canary_unit=restore_canary_unit,
+        )
     semantic_provenance = None
     replay_authority = None
     if os.environ.get("HALOFPX_SEMANTIC_DIAGNOSTICS") == "1":
@@ -3035,6 +3064,7 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         "authenticated_component_diagnostics": component_diagnostics,
         "authenticated_semantic_provenance": semantic_provenance,
         "authenticated_replay_authority": replay_authority,
+        "rpc_response_harvest": response_harvest,
         "state_window_get_set": 0,
     }
 
@@ -3252,6 +3282,7 @@ def main() -> int:
     parser.add_argument("--l36-primary", action="store_true")
     parser.add_argument("--l37-fixture", action="store_true")
     parser.add_argument("--l48-fixture", action="store_true")
+    parser.add_argument("--l77-primary", action="store_true")
     parser.add_argument("--l55-first-chunk", action="store_true")
     parser.add_argument("--l68-vertical-slice", action="store_true")
     parser.add_argument("--l69-feature-on-replacement", action="store_true")
@@ -3263,6 +3294,7 @@ def main() -> int:
         args.l36_primary,
         args.l37_fixture,
         args.l48_fixture,
+        args.l77_primary,
     )) > 1:
         parser.error("fixture and primary modes are mutually exclusive")
     if args.l28_fixture:
@@ -3285,6 +3317,9 @@ def main() -> int:
         configure_l37_fixture()
     if args.l48_fixture:
         configure_l48_fixture()
+    if args.l77_primary:
+        configure_l77_primary()
+    if args.l48_fixture or args.l77_primary:
         global L55_FIRST_CHUNK_ONLY
         L55_FIRST_CHUNK_ONLY = args.l55_first_chunk
         global L68_VERTICAL_SLICE, L69_FEATURE_ON_REPLACEMENT
@@ -3296,7 +3331,7 @@ def main() -> int:
         if L55_FIRST_CHUNK_ONLY and L68_VERTICAL_SLICE:
             parser.error("L55 and L68 diagnostic modes are mutually exclusive")
         if args.authority_key_file != "/var/tmp/halofpx-l48-control.key":
-            parser.error("L48 requires the exact manifest-owned authority key file")
+            parser.error("composed execution requires the exact manifest-owned authority key file")
     elif args.authority_key_file is not None:
         parser.error("--authority-key-file is admitted only for L48")
     root = args.evidence_dir.resolve()
@@ -3337,7 +3372,7 @@ def main() -> int:
             raise CanaryError("coordinator canary binary mismatch")
         if ssh(NIMO1, "sha256sum", WORKER_BIN).stdout.split()[0] != WORKER_SHA:
             raise CanaryError("worker binary mismatch")
-        if args.l48_fixture:
+        if args.l48_fixture or args.l77_primary:
             expected = {
                 NIMO1: (
                     WORKER_BIN,
@@ -3362,7 +3397,7 @@ def main() -> int:
             raise CanaryError("placement probe mismatch")
         if ssh(NIMO2, "sha256sum", EPOCH_RECEIPT).stdout.split()[0] != EPOCH_RECEIPT_SHA:
             raise CanaryError("epoch receipt helper mismatch")
-        if args.l48_fixture:
+        if args.l48_fixture or args.l77_primary:
             for host, helper in (
                 (NIMO1, DEVICE_RECEIPT),
                 (NIMO2, "/var/tmp/halofpx-l48-source-nimo2/scripts/"
@@ -3381,12 +3416,13 @@ def main() -> int:
         free_worker = int(ssh(NIMO1, "df", "-B1", "--output=avail", "/var/tmp").stdout.splitlines()[-1])
         if free_worker < 2_000_000_000:
             raise CanaryError("worker free space below 2 GB gate")
-        if args.l48_fixture:
+        if args.l48_fixture or args.l77_primary:
             validate_prepared_evidence_directory(NIMO2, REMOTE_EVIDENCE)
             if os.environ.get("HALOFPX_L61_HOST_BOUND_HARVEST") == "1":
                 run_l61_client_evidence_probe(root, channel_key_sha)
         device_admission = (
-            run_l50_device_admission(root, local_units) if args.l48_fixture else None)
+            run_l50_device_admission(root, local_units)
+            if args.l48_fixture or args.l77_primary else None)
         ssh(NIMO2, "rm", "-rf", "--", COORDINATOR_ROOT, RENDEZVOUS_ROOT)
         ssh(NIMO2, "install", "-d", "-m", "700", COORDINATOR_ROOT, RENDEZVOUS_ROOT)
         ssh(NIMO1, "rm", "-rf", "--", WORKER_ROOT)
@@ -3401,7 +3437,7 @@ def main() -> int:
             if device_admission is not None:
                 summary["device_admission"] = device_admission
             if (
-                args.l48_fixture
+                (args.l48_fixture or args.l77_primary)
                 and not L55_FIRST_CHUNK_ONLY
                 and not L68_VERTICAL_SLICE
             ):

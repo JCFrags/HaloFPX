@@ -843,7 +843,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
     l31 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l31.primary-manifest.v1"
     l33 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l33.primary-manifest.v1"
     l36 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l36.primary-manifest.v1"
-    l48 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l48.fixture-manifest.v1"
+    l77 = isinstance(raw, dict) and raw.get("schema") == "halofpx.l77.primary-manifest.v1"
+    l48 = isinstance(raw, dict) and raw.get("schema") in {
+        "halofpx.l48.fixture-manifest.v1", "halofpx.l77.primary-manifest.v1"}
     l48_provenance = l48 and raw.get("milestone") in {
         "l55-first-armed-prompt-discriminator",
         "l57-parent-split-identity-qualification",
@@ -854,8 +856,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "l68-stories15m-vertical-slice",
         "l69-stories15m-feature-on-replacement",
         "l75-server-authority-harvest",
+        "l77-primary-distributed-state-correctness",
     }
-    primary = l29 or l31 or l33 or l36
+    primary = l29 or l31 or l33 or l36 or l77
     if l48:
         expected_keys |= {"authority_contract", "source_identity", "build_authority"}
     if primary:
@@ -876,13 +879,14 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
             if raw["milestone"] not in {
                     "l59-rpc-response-evidence-lifetime",
                     "l60-transient-unit-response-discriminator",
-                    "l61-host-bound-response-discriminator"}:
+                    "l61-host-bound-response-discriminator",
+                    "l77-primary-distributed-state-correctness"}:
                 expected_exec.pop("response_harvester_worker")
                 expected_exec.pop("response_harvester_client")
         expected_child_argv = [
             str(interpreter_path), str(child_path), "--evidence-dir",
             "{evidence_root}/child",
-            "--l48-fixture" if l48 else "--l36-primary" if l36 else "--l33-primary" if l33 else "--l31-primary" if l31 else "--l29-primary" if l29 else "--l28-fixture",
+            "--l77-primary" if l77 else "--l48-fixture" if l48 else "--l36-primary" if l36 else "--l33-primary" if l33 else "--l31-primary" if l31 else "--l29-primary" if l29 else "--l28-fixture",
         ]
         if l48:
             if raw["milestone"] in {
@@ -913,6 +917,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 "l68-stories15m-vertical-slice",
                 "l69-stories15m-feature-on-replacement",
                 "l75-server-authority-harvest",
+                "l77-primary-distributed-state-correctness",
             }
             else "l36-primary-replay-authority-discriminator" if l36
             else "l33-primary-live-state-discriminator" if l33
@@ -989,7 +994,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                        "l58-rpc-response-boundary-discriminator",
                        "l59-rpc-response-evidence-lifetime",
                        "l60-transient-unit-response-discriminator",
-                       "l61-host-bound-response-discriminator"}
+                       "l61-host-bound-response-discriminator",
+                       "l77-primary-distributed-state-correctness"}
                    else {}),
             },
             **({
@@ -1040,7 +1046,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                             "/var/tmp/halofpx-l48-evidence/.rpc-response-client.harvest",
                     },
                 },
-            } if raw["milestone"] == "l61-host-bound-response-discriminator"
+            } if raw["milestone"] in {
+                   "l61-host-bound-response-discriminator",
+                   "l77-primary-distributed-state-correctness"}
                else {}),
             "evidence_publication": {
                 "host": "nimo-2",
@@ -1239,7 +1247,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         if raw["milestone"] in {
                 "l59-rpc-response-evidence-lifetime",
                 "l60-transient-unit-response-discriminator",
-                "l61-host-bound-response-discriminator"}:
+                "l61-host-bound-response-discriminator",
+                "l77-primary-distributed-state-correctness"}:
             host_for["response_harvester_worker"] = DISPOSABLE_HOST
             host_for["response_harvester_client"] = DISPOSABLE_CANARY_HOST
     for name, host in host_for.items():
@@ -1862,7 +1871,8 @@ def child_environment(
         if manifest.get("milestone") in {
                 "l59-rpc-response-evidence-lifetime",
                 "l60-transient-unit-response-discriminator",
-                "l61-host-bound-response-discriminator"}:
+                "l61-host-bound-response-discriminator",
+                "l77-primary-distributed-state-correctness"}:
             required += (
                 "response_harvester_worker", "response_harvester_client")
     if any(not re.fullmatch(r"[0-9a-f]{64}", str(hashes.get(name, ""))) for name in required):
@@ -1907,7 +1917,8 @@ def child_environment(
         if manifest.get("milestone") in {
                 "l59-rpc-response-evidence-lifetime",
                 "l60-transient-unit-response-discriminator",
-                "l61-host-bound-response-discriminator"}:
+                "l61-host-bound-response-discriminator",
+                "l77-primary-distributed-state-correctness"}:
             environment["HALOFPX_RPC_RESPONSE_DIAGNOSTICS"] = "1"
             environment["HALOFPX_RPC_RESPONSE_HARVESTER_WORKER_PATH"] = str(
                 manifest["executables"]["response_harvester_worker"])
@@ -1917,7 +1928,9 @@ def child_environment(
                 manifest["executables"]["response_harvester_client"])
             environment["HALOFPX_RPC_RESPONSE_HARVESTER_CLIENT_SHA256"] = str(
                 hashes["response_harvester_client"])
-            if manifest.get("milestone") == "l61-host-bound-response-discriminator":
+            if manifest.get("milestone") in {
+                    "l61-host-bound-response-discriminator",
+                    "l77-primary-distributed-state-correctness"}:
                 environment["HALOFPX_L61_HOST_BOUND_HARVEST"] = "1"
         environment["HALOFPX_L50_DEVICE_RECEIPT_SHA256"] = str(
             hashes["device_receipt"])
@@ -1927,7 +1940,9 @@ def child_environment(
 def verify_l48_child_result(
         manifest: dict[str, object], prepared: dict[str, object],
         runner: Runner) -> dict[str, object]:
-    if manifest.get("schema") != "halofpx.l48.fixture-manifest.v1":
+    if manifest.get("schema") not in {
+            "halofpx.l48.fixture-manifest.v1",
+            "halofpx.l77.primary-manifest.v1"}:
         return {}
     if manifest.get("milestone") in {
         "l68-stories15m-vertical-slice",
@@ -2238,6 +2253,7 @@ def l29_capacity_preflight(
     if manifest.get("schema") not in {
         "halofpx.l29.primary-manifest.v1", "halofpx.l31.primary-manifest.v1",
         "halofpx.l33.primary-manifest.v1", "halofpx.l36.primary-manifest.v1",
+        "halofpx.l77.primary-manifest.v1",
     }:
         raise TransitionError("primary capacity preflight requires exact manifest authority")
     plan = manifest["allocation_plan"]
@@ -2373,6 +2389,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
     if manifest is not None and manifest.get("schema") in {
         "halofpx.l29.primary-manifest.v1", "halofpx.l31.primary-manifest.v1",
         "halofpx.l33.primary-manifest.v1", "halofpx.l36.primary-manifest.v1",
+        "halofpx.l77.primary-manifest.v1",
     }:
         capacity = l29_capacity_preflight(manifest, selected_runner, args.evidence_dir)
         _atomic_json(args.evidence_dir / "capacity-preflight.json", capacity)
@@ -2462,7 +2479,10 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
                         child.wait()
                 if (
                     prepared is not None
-                    and manifest.get("milestone") == "l75-server-authority-harvest"
+                    and manifest.get("milestone") in {
+                        "l75-server-authority-harvest",
+                        "l77-primary-distributed-state-correctness",
+                    }
                 ):
                     failure = server_authority_cleanup_boundary(
                         manifest, prepared, args.evidence_dir, selected_runner)

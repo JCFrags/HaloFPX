@@ -24,6 +24,27 @@ def diagnostic_line(phase, digest, *, components=64, byte_count=2454528):
 
 
 class PrimaryRetryTests(unittest.TestCase):
+    def test_l77_primary_reuses_composed_runner_with_exact_primary_tuple(self):
+        retry.configure_l77_primary()
+        self.assertEqual(retry.PORT, 50248)
+        self.assertEqual(retry.UNIT_PREFIX, "halofpx-l48")
+        self.assertFalse(retry.FIXTURE_QUALIFICATION)
+        self.assertEqual(retry.MODEL_BYTES, 159873097824)
+        self.assertEqual(
+            retry.MODEL_SHA,
+            "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6")
+        self.assertEqual(retry.CACHE_TYPE_K, "q8_0")
+        self.assertEqual(retry.CACHE_TYPE_V, "q8_0")
+        self.assertEqual(retry.FLASH_ATTN, "on")
+
+    def test_l77_normal_path_harvests_after_canary_quiescence(self):
+        source = inspect.getsource(retry.run_diagnostic)
+        quiesce = source.index("stop_canary(restore_canary_unit)")
+        harvest = source.index("harvest_response_boundary_evidence(", quiesce)
+        retained = source.index('"rpc_response_harvest": response_harvest', harvest)
+        self.assertLess(quiesce, harvest)
+        self.assertLess(harvest, retained)
+
     def test_authenticated_component_analyzer_is_wired_and_retained(self):
         report = {
             "schema": "halofpx.state-component-diagnostic.v1",
