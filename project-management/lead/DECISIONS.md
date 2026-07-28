@@ -1506,3 +1506,33 @@ tensor/connection. No code change, new instrumentation unless evidence is
 literally insufficient, model run, production action, grammar change, retry, or
 follow-on implementation is authorized. Project-management files remain
 Lead-owned.
+
+## 2026-07-28 — accept L70 diagnosis and unify the census authority list
+
+Decision: accept L70 as a complete evidence-insufficiency diagnosis. Do not run
+another model extraction merely to name the first tensor. Open L71 only to build
+one immutable canonical per-RPC-backend census entry list that is used both to
+seal the expected census and to drive runtime L44 registration/exclusion.
+
+Reason: source proves the admission builder collects and sorts root/copy
+metadata separately, while runtime independently re-walks roots in leaf order
+and copies in scheduler insertion order. Scheduler copy planning can append an
+entry even when a destination copy was already inserted, so repeated plan
+entries may name the same runtime tensor. The sealed counts can therefore
+describe a stream that `mutable_register` correctly refuses as a duplicate.
+This source-level authority mismatch exists independently of the exact missing
+L69 tensor identity.
+
+The canonical list must bind backend, stable source-authoritative runtime tensor
+identity, root/copy provenance, role/class/ordinal, and register/exclude
+disposition. Collapse only semantically identical repeats for the same backend
+and tensor; conflicting duplicates fail plan construction. Counts/root and
+runtime iteration must consume this exact list. Do not weaken duplicate
+refusals or use pointer-order hashing as stable authority.
+
+L71 qualification is limited to a synthetic repeated-copy case, conflicting
+duplicate refusal, sealed-list/count/root agreement, exact-once iteration,
+feature-off inertness, required builds, and focused independent source review.
+No Stories/model run, offline extraction, RPC transport qualification, grammar
+change, cache or primary work, performance work, production action, or
+automatic follow-on is authorized.

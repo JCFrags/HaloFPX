@@ -326,6 +326,18 @@ independent read-only specialists are auditing graph-input coverage and
   census entry and its exact tensor/view/buffer/backend ownership and refusal
   condition. It authorizes no source change, instrumentation, build expansion,
   model run, grammar change, production action, or implementation follow-on.
+- L70 closed as an evidence-insufficiency diagnosis. Source proves the sealed
+  census sorts and counts roots/copies separately while runtime re-walks them in
+  different original orders, and scheduler copy planning can append repeated
+  destination tensor identities when insertion is reused. Retained L69 evidence
+  cannot name the exact first tensor because the rejected terminal record never
+  published its pending per-entry detail.
+- L71 is active only to create one immutable canonical per-RPC-backend census
+  entry list used identically for sealing and runtime registration. Identical
+  repeated tensor entries may collapse; conflicting duplicates must refuse.
+  Qualification is synthetic/source-focused only. No Stories/model run,
+  transport qualification, grammar change, production action, or automatic
+  follow-on is authorized.
 - L69 closed NOT PROMOTED at
   `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The ordering correction,
   focused `2/1` pre-prepare abort, wrong-count refusal, preserved
@@ -345,7 +357,7 @@ independent read-only specialists are auditing graph-input coverage and
 - Latest verified commit: `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`
 - Remote count: zero
 - Worktree state: clean at terminal L69 closeout
-- Primary worker: L70 diagnostic task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Primary worker: L71 canonical-census task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record

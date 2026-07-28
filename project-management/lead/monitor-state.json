@@ -6,16 +6,16 @@
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l70_offline_first_unadmitted_census_entry_diagnosis",
+  "worker_status": "active_l71_canonical_single_source_census_entry_list",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
   "last_verified_head": "09fa1f4313c81ca9e629af6772f2108fb7ab8bf7",
   "last_observed_milestone": "L69 terminal NOT PROMOTED; ordering fix passed and real stream proved an earlier 11/36-of-28/38 registration refusal",
-  "last_decision": "accept_l69_and_diagnose_first_unadmitted_ordered_census_entry_without_retry_or_grammar_change",
-  "last_progress": "L70 is reconstructing the ordered root-plus-copy plan and exact ownership/refusal condition for the first entry after the accepted 11-register/36-exclude prefix",
+  "last_decision": "accept_l70_diagnosis_and_unify_sealed_census_with_runtime_iteration_through_one_canonical_entry_list",
+  "last_progress": "L71 is canonicalizing per-backend census entries, collapsing only identical repeated tensor entries, refusing conflicts, and using the same immutable list for sealing and runtime iteration",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "direct L70 diagnosis or genuine authority/unsafe uncertainty report to current manager task; no periodic polling"
+  "next_check_trigger": "direct L71 blocker, unsafe uncertainty, or terminal reviewed report to current manager task; no periodic polling"
 }
