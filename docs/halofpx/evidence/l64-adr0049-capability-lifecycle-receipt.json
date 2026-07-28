@@ -1,0 +1,41 @@
+{
+  "milestone": "L64",
+  "result": "NOT_PROMOTED",
+  "base_commit": "7628b7cd2ada0fc4d0262f94eaee59f3768a13b0",
+  "scope": "Rejected ADR-0049 capability/lifecycle candidate; no stories15M, primary artifact, or production mutation",
+  "candidate_removed": true,
+  "candidate_build": {
+    "configuration": "GGML_RPC=ON; GGML_RPC_HALOFPX_LOCAL_STATE=ON; LLAMA_BUILD_TESTS=ON; GGML_HIP=OFF; Release",
+    "rpc_server_sha256": "0a7b1bfeacffde2138f4fe9b7e25f0d83da61debed363b7dac154c41af975040",
+    "fixture_sha256": "d96212c545fa9b1b722a935915132b72f563ae58bc24ebc277ea9681fac63075",
+    "summary": "real_composed=1 recompute=1 concurrent=1 exact=1 uids=1/3/5 connection_epochs=13/13/12 allocation_epochs=2/2/2",
+    "feature_off_observation": "feature_off_inert=1"
+  },
+  "raw_evidence": {
+    "client-final.jsonl": "12656cbdc58066192461c72fe5daa25605172ff31a3fa4ac33c1648f1d50c575",
+    "server1.jsonl": "6020d95d4206ae70f839f9ab49b61a22a4d4ecafac3835ac083a3913e0c65fc6",
+    "server2.jsonl": "d11a83d89612c98f80961bb993591268a6abce7429fba62cc5292ac75ac3c22d"
+  },
+  "review": {
+    "verdict": "FAIL_NO_GO",
+    "material_findings": [
+      "no explicit negotiated protocol revision for expanded wire records",
+      "prepared admission not independently authenticated/non-consuming",
+      "incomplete exact real-seam refusal evidence",
+      "server begin refusals unobservable",
+      "tautological rather than closed event cardinality",
+      "abort/disarm can lose evidence",
+      "incomplete decode and transport failure classification",
+      "concurrency/isolation and failure-harvesting qualification incomplete",
+      "shared append sink lacks whole-record concurrent publication authority"
+    ]
+  },
+  "cleanup": {
+    "halofpx-l64-rpc1.service": "not-found/inactive/MainPID=0",
+    "halofpx-l64-rpc2.service": "not-found/inactive/MainPID=0"
+  },
+  "production_after": {
+    "nimo_2_worker": "system unit active/running MainPID=1535639 NRestarts=0 port=50052",
+    "nimo_1_coordinator": "system unit active/running MainPID=2356329 NRestarts=0 port=8081 HTTP=200"
+  }
+}
