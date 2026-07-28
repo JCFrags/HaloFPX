@@ -1982,3 +1982,30 @@ later protocol decision after the forward refusal is known.
 No server-abort protocol change, semantic correction, cache correctness run,
 production cache enablement, server composition, performance work, tuning,
 extra attempt, or automatic follow-on is authorized.
+
+## 2026-07-28 — stop at L83 production uncertainty and reconcile read-only
+
+Decision: classify L83 as terminal NOT PROMOTED for model/cache purposes. Its
+warmup discriminator is accepted evidence of
+`l44_mutable_exclude_refused` at backend 0, census index 253, disposition 2,
+role 1, ordinal 579. Stop all implementation and model work. Authorize only one
+bounded read-only production reconciliation; do not restart or mutate the
+currently healthy services.
+
+Reason: the warmup kill gate held and authenticated server authority was
+retained, so L83 names the exact next semantic boundary without a cache result.
+During recovery the coordinator initially returned HTTP 503 and both named
+production units advanced `NRestarts` from 0 to 1. The controller correctly
+withheld final authority. A later snapshot shows exact services active/running,
+unique expected listeners, and coordinator HTTP 200, but changed restart
+counters require attribution before accepting a new baseline.
+
+The read-only reconciliation must bind exact system-unit state, PIDs,
+InvocationIDs, ExecStart/argv/cgroups, executable identities, listener
+ownership, HTTP health, and journals spanning recovery. If both restarts are
+fully attributable to the authorized recovery window with no continuing fault,
+the Lead may accept the healthy state as a new observed baseline. Otherwise a
+separate mutation decision is required.
+
+No counter reset, service restart, configuration change, implementation work,
+model access, retry, or automatic follow-on is authorized.

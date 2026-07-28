@@ -70,12 +70,18 @@ the client had already returned `-3`. The server's
 left live by client-local abort, not the forward refusal. No epoch exemption or
 reordering is safe or authorized.
 
-L83 is active as a narrow durable discriminator across the silent client paths
-after admission and before graph compute: census lookup/disposition,
-register/exclude, mutable prepare, and graph-input authority. After offline
-branch proof and review, one warmup-only primary attempt may name the exact
-forward refusal. The separate authenticated server-abort protocol gap is
-documented but not changed in L83.
+L83 reached its exact warmup discriminator:
+`l44_mutable_exclude_refused`, backend 0, census index 253, disposition 2,
+role 1, role ordinal 579. The kill gate prevented workload, capture, and
+restore. Authenticated server authority was retained. L83 is NOT PROMOTED and
+no cache conclusion exists.
+
+Production closeout is temporarily unresolved. The latest read-only snapshot
+shows the exact coordinator active on port 8081 with HTTP 200 and the exact
+worker active on port 50052, but both `NRestarts` counters changed from 0 to 1
+during recovery and the controller correctly withheld final authority.
+All project/model work is stopped while a bounded read-only reconciliation
+attributes those restart events. No further mutation is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
