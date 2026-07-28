@@ -361,6 +361,21 @@ independent read-only specialists are auditing graph-input coverage and
   (REGISTER before EXCLUDE) while the shared list, grammar, duplicate/conflict
   semantics, and feature-off behavior remain unchanged. The retained L68
   control is reused; no additional retry or semantic expansion is authorized.
+- L73 closed NOT PROMOTED at
+  `8ee9ba84ded5f96094762108da63fcac9524ae4f`. The feature-on Stories15M
+  request completed with exact retained-control token `29916` / output `x`,
+  accepted client authority, authenticated mutable receipt, and matching server
+  prepare/execute/consume/return. Promotion was rejected only because the
+  separate server-local recorder reused the client grammar without owning or
+  recording its L42/census/transport facts, then emitted a contradictory
+  teardown refusal.
+- L74 is active as one narrow server-recorder ownership correction plus one
+  final feature-on qualification. Client grammar remains unchanged. A separate
+  exact server grammar will contain only server-owned admission, prepare,
+  atomic consume, execute, response publication, and terminal facts, all bound
+  to the same admission and execution receipt. No broader protocol work,
+  control rerun, cache/primary/performance work, production mutation, retry, or
+  automatic follow-on is authorized.
 - L69 closed NOT PROMOTED at
   `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The ordering correction,
   focused `2/1` pre-prepare abort, wrong-count refusal, preserved
@@ -377,10 +392,10 @@ independent read-only specialists are auditing graph-input coverage and
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `11f4b50fc48cdb52570d55d4d054c5470d95f13e`
+- Latest verified commit: `8ee9ba84ded5f96094762108da63fcac9524ae4f`
 - Remote count: zero
-- Worktree state: clean at reviewed terminal L72 closeout when L73 opened
-- Primary worker: L73 ordering-and-replacement task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Worktree state: clean at reviewed terminal L73 closeout when L74 opened
+- Primary worker: L74 server-recorder task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record

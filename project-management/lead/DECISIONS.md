@@ -1587,3 +1587,35 @@ token `29916` / output `x` and accepted client/server terminal authority.
 Failure retains its next exact boundary and stops. No grammar change,
 foundation redesign, broad matrix, cache/primary/performance work, production
 mutation, retry, or automatic follow-on is authorized.
+
+## 2026-07-28 — accept L73 model success and correct server recorder ownership
+
+Decision: accept L73 terminal NOT PROMOTED at
+`8ee9ba84ded5f96094762108da63fcac9524ae4f` and retain its exact model-success
+evidence and canonical-order correction. Do not rerun L73. Open L74 as one
+narrow server-recorder ownership correction plus one final feature-on
+qualification.
+
+Reason: L73 completed the real feature-on request with exact retained-control
+token `29916` / output `x`, accepted client authority and mutable receipt, and
+matching authenticated server prepare, consume, execute, and return. The only
+promotion blocker is contradictory server-local evidence: that recorder uses
+the full client grammar but never owns or records client L42, census, or
+transport events, so teardown necessarily refuses.
+
+L74 must keep the client grammar unchanged and define an explicit exact
+server-owned grammar over real server seams only: authenticated admission,
+physical prepare/reconcile, atomic execute-intent consumption, backend result,
+authenticated response/receipt publication, and terminal close/refusal. Every
+server record binds the same admission object, expected digest, sequence, split
+and backend, graph digest, epochs, and signed consume/execute receipt. Do not
+fabricate/import client facts, suppress server publication, or treat conflicts
+as advisory.
+
+Focused server success/refusal and structural-negative fixtures, cross-binding,
+feature-off, required builds, and independent source review precede one
+identical feature-on qualification against the retained L68 control. Success
+requires accepted client and server terminals plus exact output. Failure stops
+at its precise boundary. No broader redesign, client grammar change, broad
+matrix, cache/primary/performance work, production mutation, retry, or
+automatic follow-on is authorized.
