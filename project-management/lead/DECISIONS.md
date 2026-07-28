@@ -1949,3 +1949,36 @@ Only after those gates may one primary attempt run with the existing warmup
 kill gate and, on warmup success, continue to the one-token fresh-residency
 correctness discriminator. No production cache enablement, server composition,
 performance work, tuning, extra attempt, or automatic follow-on is authorized.
+
+## 2026-07-28 — correct L82 causality and open L83 pre-prepare discriminator
+
+Decision: accept L82's blocker before implementation/runtime and revoke the
+allocation-epoch correction path. Open L83 only to durably identify the silent
+client refusal after accepted admission and before graph compute. Permit one
+warmup-only primary attempt after focused offline branch proof and review.
+
+Reason: exact timestamps and source ordering prove the persistent model and two
+scheduler/gallocr buffers were allocated before admission. The first free
+occurred only after `llama_decode -3`, followed by scheduler and persistent
+model teardown. `free_buffer()` then incremented the epoch and terminalized the
+still-admitted server session as `WRONG_ALLOCATION_EPOCH`. Client
+`mutable_abort()` closes only local state and sends no server abort. Thus the
+L81 server record is a secondary teardown event, not the forward cause.
+Exempting allocation/free would weaken persistent-topology protection.
+
+L83 must add bounded nonsecret branches for every silent interval path:
+scheduler census lookup, invalid disposition, register/exclude refusal with
+safe role/ordinal/index identity, mutable prepare refusal with safe status, and
+graph-input-authority refusal. Existing semantics and epoch behavior remain
+unchanged. Offline fixtures must force each branch, match the in-memory result,
+and preserve L81 postcompute diagnostics. One independent review is sufficient.
+
+One primary attempt may run only as a warmup discriminator. Failure retains the
+exact client branch plus authenticated server custody and stops before workload
+or state operations; unexpected warmup success also stops and reports. The
+local-only client abort/server-session terminalization gap is recorded for a
+later protocol decision after the forward refusal is known.
+
+No server-abort protocol change, semantic correction, cache correctness run,
+production cache enablement, server composition, performance work, tuning,
+extra attempt, or automatic follow-on is authorized.

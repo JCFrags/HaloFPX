@@ -63,10 +63,19 @@ prepare or execute. The allocation epoch advanced when buffer allocation/free
 occurred while the mutable session was admitted. No workload, capture, restore,
 or cache conclusion exists; custody and recovery passed.
 
-L82 is active to classify those post-admission allocations as execution-local
-or protected persistent topology and implement the smallest correction that
-preserves fail-closed epoch invalidation. One primary attempt is permitted only
-after a real no-model composed success/refusal fixture and independent review.
+L82 stopped before edits or runtime after exact ordering disproved the proposed
+cause. All L81 allocations preceded admission; buffer frees occurred only after
+the client had already returned `-3`. The server's
+`WRONG_ALLOCATION_EPOCH` authority was teardown terminalization of a session
+left live by client-local abort, not the forward refusal. No epoch exemption or
+reordering is safe or authorized.
+
+L83 is active as a narrow durable discriminator across the silent client paths
+after admission and before graph compute: census lookup/disposition,
+register/exclude, mutable prepare, and graph-input authority. After offline
+branch proof and review, one warmup-only primary attempt may name the exact
+forward refusal. The separate authenticated server-abort protocol gap is
+documented but not changed in L83.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
