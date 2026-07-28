@@ -2099,3 +2099,36 @@ entry and typed result. Any rejection/failure stops; warmup success also stops.
 No workload, capture, restore, server-abort protocol change, production cache
 enablement, server composition, performance work, tuning, extra attempt, or
 automatic follow-on is authorized.
+
+## 2026-07-28 — retain L85 source and open L86 typed projection export
+
+Decision: accept L85 terminal NOT PROMOTED at
+`6f1f962ae0cb5670e727d4b2bfdbbcc462649f91` and retain its independently
+reviewed default-off source. Accept the recovered `NRestarts=0` production
+authority recorded in current status. Open L86 only to preserve the exact typed
+projection failure and bounded candidate through scheduler census rollback,
+then run one warmup-only primary discriminator.
+
+Reason: L85 correctly failed before admission, but its scheduler conflict path
+cleared the census and lost the required entry/reason. The durable result
+`l42_resolved_census_refused|typed_reason=0` cannot identify the primary
+conflict. This is an evidence-completeness blocker, not a cache or model
+correctness result.
+
+L86 must distinguish cycle, unresolved/non-RPC storage, wrong destination
+backend/endpoint/device/socket, logical/stable identity conflict, resolved
+storage disposition or role conflict, overflow, and invalid input. It must
+export backend, candidate index, root/copy provenance, disposition/role/
+ordinal, and pointer-independent logical/storage identities without secrets or
+raw pointers. Failure must survive rollback; success exports no failure.
+
+Offline fixtures must force each reason and retain reproducible outputs,
+including the L85 storage and feature-off gates. One independent focused review
+is sufficient. One primary warmup-only attempt follows; any refusal or success
+stops before workload/state operations. No semantic correction, server-abort
+change, cache correctness run, production cache enablement, server composition,
+performance work, tuning, extra attempt, or automatic follow-on is authorized.
+
+Preserve all L83/L85 evidence directories. Exact reproducible local L85 source
+archive and build directories may be removed only after workspace/reference
+validation; no other deletion is authorized.

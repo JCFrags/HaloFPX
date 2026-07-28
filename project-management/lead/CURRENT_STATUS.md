@@ -97,11 +97,21 @@ binds logical/runtime tensor identity but not the view-resolved storage and RPC
 socket later required by mutable exclusion. It can therefore seal a
 destination entry whose live storage authority is incompatible.
 
-L85 is active to bind resolved storage/backend/endpoint/device/socket identity
-into the immutable canonical census, add typed refusal evidence, and qualify
-base/view/wrong-storage cases across two RPC sessions. One warmup-only primary
-discriminator may run after review; it cannot proceed to workload or cache
-correctness.
+L85 closed NOT PROMOTED at
+`6f1f962ae0cb5670e727d4b2bfdbbcc462649f91`. Its reviewed default-off
+resolved-storage census source is retained. The primary warmup refused before
+admission with `l42_resolved_census_refused`, but scheduler conflict cleanup
+discarded the failing entry and returned `typed_reason=0`. No workload,
+server admission, or cache conclusion exists.
+
+Production recovered cleanly to a new observed baseline: nimo-1 coordinator
+PID `2808706`, InvocationID `4e67ea30ddaf4037a70435a9ff2ff022`,
+`NRestarts=0`, port 8081/HTTP 200; nimo-2 worker PID `2000412`, InvocationID
+`bf3ec63660b5451892cd346124fec158`, `NRestarts=0`, port 50052.
+
+L86 is active only to preserve a bounded typed scheduler projection failure
+through census rollback and run one warmup-only discriminator. No semantic
+correction or cache correctness run is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

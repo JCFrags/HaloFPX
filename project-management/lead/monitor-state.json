@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-28T11:11:38-07:00",
+  "updated_at": "2026-07-28T12:35:58-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l85_resolved_storage_census_authority",
+  "worker_status": "active_l86_typed_projection_failure_export",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "934ac807a6ea965cc59bf9d46ec58ada39041bd5",
-  "last_observed_milestone": "L84 narrowed L83 exclusion to resolved storage absent/non-RPC versus wrong RPC socket and proved canonical census omits the resolved storage/socket authority later required by L44",
-  "last_decision": "open_l85_resolved_storage_rpc_destination_census_authority_plus_one_warmup_only_primary_discriminator",
-  "last_progress": "L85 is binding logical/storage/backend/endpoint/device/socket identity, adding typed refusal evidence, and qualifying two-session alias cases before any primary warmup",
+  "last_verified_head": "6f1f962ae0cb5670e727d4b2bfdbbcc462649f91",
+  "last_observed_milestone": "L85 NOT PROMOTED; resolved-storage source retained, primary refused pre-admission, but scheduler rollback lost the candidate and emitted typed_reason=0",
+  "last_decision": "open_l86_preserved_typed_projection_candidate_export_plus_one_warmup_only_discriminator",
+  "last_progress": "L86 is making exact projection failure identity survive census rollback, retaining reproducible offline receipts, then running one warmup-only discriminator",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "direct L85 semantic blocker, unsafe production uncertainty, or terminal reviewed report to current manager task; no periodic polling"
+  "next_check_trigger": "direct L86 semantic blocker, unsafe production uncertainty, or terminal reviewed report to current manager task; no periodic polling"
 }
