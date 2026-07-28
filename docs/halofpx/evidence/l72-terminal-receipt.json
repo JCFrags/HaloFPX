@@ -1,0 +1,60 @@
+{
+  "schema": "halofpx.l72.terminal-receipt.v1",
+  "milestone": "L72",
+  "result": "NOT_PROMOTED",
+  "source_head": "3f22338f0582640496c4f7033ea1c67132f6ba8d",
+  "runs_consumed": 1,
+  "retry": false,
+  "retained_feature_off": {
+    "milestone": "L68",
+    "rerun": false,
+    "token": 29916,
+    "output": "x",
+    "output_hex": "78",
+    "authority": ""
+  },
+  "build": {
+    "source_root": "89557f18139a0fd1c80fac1cd548773f020e016d12b7c584612fb049b76f377f",
+    "build_id": "d69162cc80a071d267e0e885857b0736d496d111a2aec64938fbea5b6e6eca16",
+    "worker_sha256": "4349e322022ca8125c952f6425f2c83a5c66ceb4e7984d9984ca1e1c367de3cd",
+    "canary_sha256": "ab0a8be58143a586875714a6f93204b8ab6587eaa73db43815f3a2b6023b4222",
+    "manifest_sha256": "5fcd267f3bef31b32f07aaaec775e9b6db3777e0185642406e97a800dc2dd5fc"
+  },
+  "runtime": {
+    "canary_exit_status": 42,
+    "llama_decode_status": -3,
+    "expected_register": 13,
+    "observed_register": 13,
+    "expected_exclude": 36,
+    "observed_exclude": 36,
+    "transport_events": 20,
+    "server_prepared": true,
+    "server_executed": true,
+    "execution_sequence": 1,
+    "graph_uid": 27,
+    "graph_digest": "03630ca6d2e58012dea774437b6733a373e3a18344ae074e1f80c24e68659f86",
+    "client_terminal_authority_accepted": false,
+    "output_produced": false,
+    "semantic_boundary": "canonical census disposition interleaving refused by contiguous register-then-exclude grammar"
+  },
+  "evidence": {
+    "runtime_root": "docs/halofpx/evidence/l72-runtime",
+    "client_journal_sha256": "4b960249625fdf1ebc5306338cb5187dd47854c6776ca7e29f156d0a320a9e84",
+    "worker_journal_sha256": "91d17ae2b19d6f895ceb25b923ab30380b94cdd6d28e2e4e4c88e8991915279a",
+    "independent_review": "PASS_EVIDENCE_COMPLETE_NOT_PROMOTED"
+  },
+  "cleanup": {
+    "bounded": true,
+    "transient_units_absent": true,
+    "disposable_paths_absent": true,
+    "source_build_roots_absent": true
+  },
+  "production": {
+    "mutated": false,
+    "preflight_final_sha256": "511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded",
+    "coordinator_pid": 2356329,
+    "coordinator_http": 200,
+    "worker_pid": 1535639,
+    "nrestarts": 0
+  }
+}

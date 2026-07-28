@@ -1,0 +1,13 @@
+2026-07-28T01:53:00.365205-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.029.331 W load: empty token at index 30143
+2026-07-28T01:53:00.365403-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.029.463 W load: bad special token: 'tokenizer.ggml.seperator_token_id' = 4294967295, using default id -1
+2026-07-28T01:53:00.365403-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.029.464 W load: bad special token: 'tokenizer.ggml.padding_token_id' = 4294967295, using default id -1
+2026-07-28T01:53:00.467348-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.131.476 W llama_context: n_ctx_seq (4096) > n_ctx_train (128) -- possible training context overflow
+2026-07-28T01:53:00.476349-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.140.460 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+2026-07-28T01:53:00.605696-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.269.789 E [halofpx-preexecute] terminal production refusal begin=1 l42=1 l44=1 register=13/13 exclude=36/36 prepare=1 commit=1 decision=1 transport=20 abort=0 end=1
+2026-07-28T01:53:00.605696-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.269.796 [halofpx-l55-status] phase=capture-chunk|decode_status=-3|authority=version=1|status=failed|branch=rpc_execution_disarm|execution_sequence=0|pending=0|ggml_status=1|auth_tag=0bba53ac6154c78ea9baac3f7b3f109c34a7fd00d10bba29c24d968201cdb894
+2026-07-28T01:53:00.605696-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: W decode: removing memory module entries for seq_id = 0, pos = [0, +inf)
+2026-07-28T01:53:00.605696-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.269.804 E llama_decode: failed to decode, ret = -3
+2026-07-28T01:53:00.605696-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.269.842 E [halofpx-preexecute] terminal production refusal begin=1 l42=1 l44=1 register=13/13 exclude=36/36 prepare=1 commit=1 decision=1 transport=20 abort=1 end=0
+2026-07-28T01:53:00.610421-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.274.537 E [halofpx-rpc] buffer teardown request refused after connection failure
+2026-07-28T01:53:00.610742-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.274.861 E [halofpx-rpc] buffer teardown request refused after connection failure
+2026-07-28T01:53:00.610980-07:00 nimo-2 test-halofpx-distributed-state-canary[1910125]: 0.00.275.098 E [halofpx-rpc] buffer teardown request refused after connection failure
