@@ -7,6 +7,7 @@ import struct
 import base64
 import json
 import sys
+import stat
 from pathlib import Path
 
 
@@ -101,6 +102,20 @@ def test_source_absence_is_proven_only_at_initial_open(tmp_path: Path) -> None:
         assert not isinstance(exc, MODULE.SourceAbsent)
     else:
         raise AssertionError("missing key unexpectedly opened")
+
+
+def test_key_mode_accepts_only_controller_canonical_0600(tmp_path: Path) -> None:
+    key = tmp_path / "control.key"
+    key.write_bytes(b"k" * 130)
+    uid = key.stat().st_uid
+    observed = list(key.stat())
+    def metadata(mode: int):
+        values = list(observed)
+        values[0] = stat.S_IFREG | mode
+        return MODULE.os.stat_result(values)
+    assert MODULE._key_authority_valid(metadata(0o600), uid)
+    assert not MODULE._key_authority_valid(metadata(0o400), uid)
+    assert not MODULE._key_authority_valid(metadata(0o644), uid)
 
 
 def test_missing_reordered_duplicate_and_post_terminal_refuse() -> None:

@@ -44,6 +44,14 @@ def _open_source(path: Path) -> int:
         raise SourceAbsent(str(path)) from exc
 
 
+def _key_authority_valid(metadata: os.stat_result, expected_uid: int) -> bool:
+    return (
+        stat.S_ISREG(metadata.st_mode)
+        and metadata.st_uid == expected_uid
+        and stat.S_IMODE(metadata.st_mode) == 0o600
+    )
+
+
 def _decode(raw: bytes) -> dict[str, object]:
     if len(raw) != RECORD_SIZE:
         raise ValueError("record_size")
@@ -184,11 +192,7 @@ def harvest(
             key_file, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
         try:
             key_metadata = os.fstat(key_fd)
-            if (
-                not stat.S_ISREG(key_metadata.st_mode)
-                or key_metadata.st_uid != owner.pw_uid
-                or stat.S_IMODE(key_metadata.st_mode) != 0o400
-            ):
+            if not _key_authority_valid(key_metadata, owner.pw_uid):
                 raise ValueError("key_authority")
             key = b""
             while len(key) < key_metadata.st_size:
