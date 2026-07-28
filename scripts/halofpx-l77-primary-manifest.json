@@ -55,8 +55,8 @@
     "controller": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-production-transition.py"
   },
   "executable_sha256": {
-    "worker": "cd63d1a13d10782e49783071df838ae29d4924f017f0c25331e9c6e7c794ee33",
-    "canary": "fee85fc95f3454101c6c34c11f23e85b8aa5afb0b097a9da217a726b9dc8fa51",
+    "worker": "903175f6ad33ca87ae6f990f8bb2fe09cc271631dbc20b7fc2476f5ce6b8f32d",
+    "canary": "bc0f92e8c620d1561f2990707fc320b980044d1a8d06b564947dd0a9d93fa13d",
     "readiness": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
     "placement": "d0f1a8ea3e84dea199ab5af56ed7cfdb96371d74eb77bbc4081cef2db3060872",
     "epoch_receipt": "6ec5f17be6d3dd7ab5aba7d986434539ed4529c4219f4c112c834169f0671527",
@@ -95,8 +95,8 @@
     },
     "provenance": {
       "schema": "halofpx.l57.binary-provenance.v1",
-      "source_root": "227c74061b5caef6ed30837825454547ca55cf994d5ef494ac085b27f441a96d",
-      "build_id": "a16669d19ab54350a27837865e559819e67cf4cc6f9c4d727574e1bb7df5bf54"
+      "source_root": "c95fbab8e2733e8b4c220918b6777e44fcd0cda57f27758f812d73b9cb5383a2",
+      "build_id": "516cd03abb0a5c8d3acbbe0e70adcf8ad31cb9d357ba32bbe34041b0be30498e"
     },
     "result_schema": "halofpx.l48.composed-result.v1",
     "result_path": "/var/tmp/halofpx-l48-evidence/l48-composed-result.json",
@@ -148,11 +148,11 @@
       "-DGGML_HIP=ON",
       "-DAMDGPU_TARGETS=gfx1151",
       "-DCMAKE_BUILD_TYPE=Release",
-      "-DHALOFPX_PROVENANCE_SOURCE_ROOT=227c74061b5caef6ed30837825454547ca55cf994d5ef494ac085b27f441a96d",
-      "-DHALOFPX_PROVENANCE_BUILD_ID=a16669d19ab54350a27837865e559819e67cf4cc6f9c4d727574e1bb7df5bf54"
+      "-DHALOFPX_PROVENANCE_SOURCE_ROOT=c95fbab8e2733e8b4c220918b6777e44fcd0cda57f27758f812d73b9cb5383a2",
+      "-DHALOFPX_PROVENANCE_BUILD_ID=516cd03abb0a5c8d3acbbe0e70adcf8ad31cb9d357ba32bbe34041b0be30498e"
     ],
-    "cmake_cache_sha256": "0dd9366c7ae53aef26105dd21397859b95069fc81978c1e45e03aec4aeb11f4f",
-    "worker_binary_sha256": "cd63d1a13d10782e49783071df838ae29d4924f017f0c25331e9c6e7c794ee33",
+    "cmake_cache_sha256": "a6093ee37328cb8dc2fb9408aa22304a697b45f414b64e669f471bfbc3e2939c",
+    "worker_binary_sha256": "903175f6ad33ca87ae6f990f8bb2fe09cc271631dbc20b7fc2476f5ce6b8f32d",
     "ldd_sha256": "74413384b81b793117f7c9ab3b598d5923502a0366f6ff4f6d526e64e00f606f",
     "device_inventory_sha256": "27c70d2186271e068e42ea720b1f78d76d1ba805605676abd3e0df51a1243951",
     "compiler_sha256": "8daef837093117e0f45079e49809f4a8631f4272338b79b0296a51fae7dd3f26",
@@ -178,9 +178,9 @@
       "scripts/halofpx_l55_status.py": "d1c04a799a800651340461688d8c2cd19cbdbb031cf4ecc64a6238992c9cdd93",
       "scripts/halofpx_rpc_response_boundary.py": "477d80e4ecf309fa6a48de9bf296b76729ede0b7609d44d730c11ee12c7b02d9",
       "scripts/halofpx_rpc_response_harvest.py": "e717a71431d582b9266312b46863759529c9009a0aff9dda05d057f4776dd705",
-      "src/llama-context.cpp": "9efa0a732f16ff6c7475db9192f534a28c165efb7c58eedce93cfc5991f09cea",
+      "src/llama-context.cpp": "3ceba451ef6662b38adca00237738b3c9dbc4b4fbfb26594b906af59743a90c4",
       "src/llama-context.h": "7da0c7b7f5d76f7faf5a6f453d026be8385e3cf232bc3bd572eecddce8faffb0",
-      "src/llama-halofpx-composed-diagnostic.h": "fd00104ab3720e965fc5d4ed4b37a240f6d63bf4aa64b93b83656674dffbe940",
+      "src/llama-halofpx-composed-diagnostic.h": "73ff7c0cabda3203dcdf8ec3390f10918372a98c4d80a7ca888b9b6b7d6a266f",
       "src/llama-graph.cpp": "033d910e22c7d8b195961936758a4b28625b6532a85e28019e2e3559ffa1e14a",
       "src/llama-graph.h": "443c6d78c4e9a9f91c111cbbaaef1035c436d1e721444bd942f9df50898d1eb2",
       "tests/test-halofpx-distributed-state-canary.cpp": "e90189548c3aaa5e7512ceeef5a34ca7308b1ca0c67c87d8240917a5a2aeb5c5",
@@ -190,7 +190,7 @@
       "tests/test_halofpx_rpc_response_boundary.py": "07af34486f957808a0e686f74a0ddf85b8ef1a22a7268a220d9f1b59d41014bf",
       "tools/rpc/rpc-server.cpp": "e458fcf6902c0d00ece61cac357e77fbde464d0492170624aad2e7f6f83c0fd9"
     },
-    "root_sha256": "227c74061b5caef6ed30837825454547ca55cf994d5ef494ac085b27f441a96d"
+    "root_sha256": "c95fbab8e2733e8b4c220918b6777e44fcd0cda57f27758f812d73b9cb5383a2"
   },
   "artifact": {
     "host": "nimo-2",
