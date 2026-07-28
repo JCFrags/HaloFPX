@@ -1855,3 +1855,30 @@ primary discriminator under the existing production transition and correctness
 gates. No arbitrary schema admission, controller redesign, protocol/grammar/
 cache/model semantic change, production cache enablement, server composition,
 performance work, tuning, extra attempt, or automatic follow-on is authorized.
+
+## 2026-07-28 — accept L79 boundary and diagnose before any further runtime
+
+Decision: accept L79 terminal NOT PROMOTED at
+`64ef3034f232be980a2ee388e39c1bc43691e5cb`. Accept its consolidated
+controller-integration closure, but admit no model or cache conclusion. Open
+L80 as read-only/offline diagnosis of the warmup decode failure and the
+independent server-authority helper identity mismatch. No runtime replacement
+is authorized.
+
+Reason: L79 reached the pinned primary model and one authenticated composed
+server prepare/execute/publication sequence, then the client returned generic
+`GGML_STATUS_FAILED` before any workload token or state capture. Retained
+evidence does not presently distinguish local backend failure, composed
+reconciliation/finalization, or another decode sub-boundary. Separately, the
+server publication journal cannot substitute for immutable authority because
+the staged harvester failed exact source identity.
+
+L80 must exhaust retained client, worker, controller, recorder, and response
+evidence against every reachable failure branch in current source and compare
+the sequence with accepted L73/L74 model success. It must independently trace
+the local, packaged, staged, manifest-bound, and remote helper hashes. The two
+findings remain separate. If exact localization is impossible, L80 may specify
+one minimal future discriminator but may not implement it.
+
+No source edit, build, host or production access, model load, retry, cache
+promotion, performance work, or automatic follow-on is authorized.

@@ -36,11 +36,18 @@ launch because `child_environment()` treated only L48 as the composed family
 and omitted all L77 provenance/composition environment. Recovery and cleanup
 passed; no cache conclusion exists.
 
-L79 is active as one consolidated exact L48/L77 composed-family correction.
-It must statically audit every controller schema gate and pass a no-production
-closed-path L77 validation through child preflight before one replacement
-primary transition is permitted. This prevents further restart-by-restart
-discovery of mechanical schema omissions.
+L79 closed NOT PROMOTED at terminal evidence commit
+`64ef3034f232be980a2ee388e39c1bc43691e5cb`. Its consolidated controller
+closure passed, and the exact primary model loaded. Warmup then completed one
+authenticated server prepare/execute/publication sequence before the client
+returned generic `GGML_STATUS_FAILED` (`-3`). No workload token, capture,
+restore, or state comparison occurred, so no cache conclusion exists. A
+separate helper source-identity mismatch prevented L76 authority custody.
+Recovery and cleanup passed.
+
+L80 is active as read-only/offline diagnosis of those two independent P2
+boundaries. It may inspect retained evidence and exact source only; no edits,
+build, host/model access, or runtime retry is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
