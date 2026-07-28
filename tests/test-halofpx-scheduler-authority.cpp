@@ -393,7 +393,10 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
         return false;
     }
     ggml_backend_sched_set_tensor_backend(sched, a, rpc);
-    ggml_backend_sched_set_tensor_backend(sched, b, rpc);
+    // The composed fixture deliberately retains one local mutable input. Its
+    // local root must stay in graph execution while only the scheduler copy
+    // whose destination is RPC enters the RPC admission census.
+    ggml_backend_sched_set_tensor_backend(sched, b, composed ? cpu : rpc);
     ggml_backend_sched_set_tensor_backend(sched, sum, rpc);
     ggml_backend_sched_set_tensor_backend(sched, strided, rpc);
     ggml_backend_sched_set_tensor_backend(sched, nested, rpc);
@@ -427,7 +430,23 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
              !ggml_backend_sched_authority_register_root(
                 sched, &composed_handle, a, GGML_BACKEND_SCHED_AUTH_MUTABLE, 1, 0) ||
              !ggml_backend_sched_authority_register_root(
-                sched, &composed_handle, b, GGML_BACKEND_SCHED_AUTH_MUTABLE, 1, 1))) {
+                sched, &composed_handle, b, GGML_BACKEND_SCHED_AUTH_MUTABLE, 1, 1) ||
+             !ggml_backend_sched_authority_register_root(
+                sched, &composed_handle, sum,
+                GGML_BACKEND_SCHED_AUTH_MUTABLE,
+                GGML_RPC_HALOFPX_MUTABLE_SELECTED_KV, 2) ||
+             !ggml_backend_sched_authority_register_root(
+                sched, &composed_handle, strided,
+                GGML_BACKEND_SCHED_AUTH_MUTABLE,
+                GGML_RPC_HALOFPX_MUTABLE_SELECTED_KV, 3) ||
+             !ggml_backend_sched_authority_register_root(
+                sched, &composed_handle, nested,
+                GGML_BACKEND_SCHED_AUTH_MUTABLE,
+                GGML_RPC_HALOFPX_MUTABLE_SELECTED_KV, 4) ||
+             !ggml_backend_sched_authority_register_root(
+                sched, &composed_handle, out,
+                GGML_BACKEND_SCHED_AUTH_MUTABLE,
+                GGML_RPC_HALOFPX_MUTABLE_SELECTED_KV, 5))) {
             ggml_backend_sched_authority_abort_execution(sched, &composed_handle);
             ggml_backend_sched_free(sched);
             ggml_free(ctx);
@@ -442,12 +461,34 @@ static bool run_graph(ggml_backend_t rpc, ggml_backend_t cpu, bool enable, run_r
     size_t composed_split_count = 0;
     ggml_backend_sched_authority_split first_split {};
     if (ok && composed) {
-        ok = ggml_backend_sched_authority_prepare(
-            sched, &composed_handle, graph, &composed_prepared) &&
+        const bool prepared_ok = ggml_backend_sched_authority_prepare(
+            sched, &composed_handle, graph, &composed_prepared);
+        const size_t rpc_census_count =
+            ggml_backend_sched_authority_census_count(
+                sched, &composed_handle, 0);
+        ok = prepared_ok &&
             composed_prepared.status == 1 &&
             composed_prepared.execution_sequence == 41 &&
             composed_prepared.rpc_count == 2 &&
-            composed_prepared.local_count == 0;
+            composed_prepared.local_count == 1 &&
+            rpc_census_count == 2;
+        if (!ok) {
+            std::fprintf(
+                stderr,
+                "mixed composed prepare mismatch prepared=%u status=%u "
+                "rpc=%u local=%u census=%zu\n",
+                prepared_ok ? 1u : 0u, composed_prepared.status,
+                composed_prepared.rpc_count, composed_prepared.local_count,
+                rpc_census_count);
+        }
+        for (size_t i = 0; ok && i < 2; ++i) {
+            ggml_backend_sched_authority_census_entry entry {};
+            ok = ggml_backend_sched_authority_census_at(
+                    sched, &composed_handle, 0, i, &entry) &&
+                entry.destination_backend_ordinal == 0 &&
+                (entry.provenance == GGML_BACKEND_SCHED_CENSUS_ROOT ||
+                 entry.provenance == GGML_BACKEND_SCHED_CENSUS_COPY);
+        }
         composed_split_count =
             ggml_backend_sched_authority_split_count(sched, &composed_handle);
         std::unordered_set<uint64_t> split_uids;
@@ -805,7 +846,7 @@ int main(int argc, char ** argv) {
         return 2;
     }
     const uint32_t self_tests = ggml_backend_sched_authority_self_test();
-    if (self_tests != 0x3fffffU) {
+    if (self_tests != 0x7fffffU) {
         std::fprintf(stderr, "focused scheduler authority refusal self-test failed: 0x%x\n", self_tests);
         return 1;
     }
@@ -883,7 +924,7 @@ int main(int argc, char ** argv) {
         write_evidence(evidence_directory, "ordinary", on) &&
         write_evidence(evidence_directory, "expert", expert);
     std::printf(
-        "self_tests=18 projection_failures=%u feature_off=%d split_exact=%d composed=%d composed_refusals=%d single_split=%d hash_fixtures=%d evidence_written=%d authority=%d ordinary_transcript=%d expert_fixture=%d expert_transcript=%d tamper_refused=%d order_refused=%d duplicate_refused=%d unknown_refused=%d overlap_refused=%d bounds_refused=%d malformed_refused=%d events=%u splits=%u maps=%u copies=%u expert_status=%u expert_events=%u expert_maps=%u expert_copies=%u partial=%u\n",
+        "self_tests=19 projection_failures=%u rpc_census_filter=1 feature_off=%d split_exact=%d composed=%d composed_refusals=%d single_split=%d hash_fixtures=%d evidence_written=%d authority=%d ordinary_transcript=%d expert_fixture=%d expert_transcript=%d tamper_refused=%d order_refused=%d duplicate_refused=%d unknown_refused=%d overlap_refused=%d bounds_refused=%d malformed_refused=%d events=%u splits=%u maps=%u copies=%u expert_status=%u expert_events=%u expert_maps=%u expert_copies=%u partial=%u\n",
         (self_tests & (1u << 21)) != 0 ? 11U : 0U,
         feature_off ? 1 : 0,
         exact ? 1 : 0,

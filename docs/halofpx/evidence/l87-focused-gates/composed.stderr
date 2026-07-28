@@ -1,0 +1,21 @@
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-mutable] bound graph uid=2 exec=1 semantic=d63b0379e20c9acadfb306d98871e23c3cf04851209a2fc629283a966a218734 transcript=c4264421b977ee3d363ea5d40dc4ff2122bb36ce6d2e7ce60538912c40cb6c78
+[halofpx-mutable] bound graph uid=4 exec=1 semantic=185e78e8fdc53e91a0da615eed34c3ae60b25e9e1ce2be7eaa1b7894144e2c3c transcript=24a25c992381a8e222babcbd5e0fcadc84e54efb3cbed97e19e07097c06bd32c
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=1 uid=2 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=1 uid=4 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-rpc-graph-auth] client executed sequence=1 uid=2 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-rpc-graph-auth] client executed sequence=1 uid=4 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-mutable] bound graph uid=6 exec=2 semantic=0c6163678396d6f810e1864091af5d690e9d8b49395343474c8a18e7661dbbf2 transcript=abb3ee1ca6d795842ab4088ef8e0449f82c22125517bb607706ebf7c3002f6d3
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=2 uid=6 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-rpc-graph-auth] client executed sequence=2 uid=6 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128

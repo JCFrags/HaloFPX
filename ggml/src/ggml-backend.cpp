@@ -887,6 +887,10 @@ static bool sched_auth_build_canonical_census(sched_auth_state & state) {
     std::vector<ggml_backend_sched_authority_census_entry> candidates;
     candidates.reserve(state.admitted_roots.size() + state.admitted_copies.size());
     for (const auto & root : state.admitted_roots) {
+        // The canonical census is the RPC admission/L44 authority object.
+        // Legitimate local scheduler roots remain part of graph execution, but
+        // they are outside this RPC-scoped projection.
+        if (state.rpc_backends.count(root.backend) == 0) continue;
         candidates.push_back({
             root.backend,
             root.canonical_id,
@@ -910,6 +914,11 @@ static bool sched_auth_build_canonical_census(sched_auth_state & state) {
         });
     }
     for (const auto & copy : state.admitted_copies) {
+        // Filter by the scheduler-authoritative destination classification,
+        // never by the later storage resolver. A candidate that claims an RPC
+        // destination remains included and must pass every strict resolver
+        // check (including non-RPC storage and wrong socket).
+        if (state.rpc_backends.count(copy.destination_backend) == 0) continue;
         const bool scheduler_copy = copy.root_class == 0;
         candidates.push_back({
             copy.destination_backend,
@@ -3673,6 +3682,7 @@ uint32_t ggml_backend_sched_authority_self_test(void) {
         strided_body[48] == 32) passed |= 1u << 16;
     ggml_tensor repeated_copy_tensor {};
     sched_auth_state repeated_copy_state {};
+    repeated_copy_state.rpc_backends.insert(0);
     repeated_copy_state.admitted_copies.push_back({
         21, 0, 0, 0, 0, 21, 1, &repeated_copy_tensor
     });
@@ -3687,6 +3697,7 @@ uint32_t ggml_backend_sched_authority_self_test(void) {
         passed |= 1u << 17;
     }
     sched_auth_state conflicting_copy_state {};
+    conflicting_copy_state.rpc_backends.insert(0);
     conflicting_copy_state.admitted_copies =
         repeated_copy_state.admitted_copies;
     conflicting_copy_state.admitted_copies[1].role_ordinal = 22;
@@ -3697,6 +3708,7 @@ uint32_t ggml_backend_sched_authority_self_test(void) {
     ggml_tensor interleaved_register {};
     ggml_tensor interleaved_exclude {};
     sched_auth_state interleaved_state {};
+    interleaved_state.rpc_backends.insert(0);
     interleaved_state.admitted_roots.push_back({
         1, 0,
         { GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT, 1, 1 },
@@ -3714,6 +3726,47 @@ uint32_t ggml_backend_sched_authority_self_test(void) {
         interleaved_state.canonical_census[1].disposition ==
             GGML_BACKEND_SCHED_CENSUS_EXCLUDE) {
         passed |= 1u << 19;
+    }
+    ggml_tensor rpc_root_tensor {};
+    ggml_tensor local_root_tensor {};
+    ggml_tensor rpc_copy_tensor {};
+    ggml_tensor local_copy_tensor {};
+    sched_auth_state mixed_destination_state {};
+    mixed_destination_state.rpc_backends.insert(0);
+    mixed_destination_state.admitted_roots.push_back({
+        31, 0,
+        { GGML_BACKEND_SCHED_AUTH_MUTABLE,
+          GGML_RPC_HALOFPX_MUTABLE_TOKEN, 4 },
+        &rpc_root_tensor,
+    });
+    mixed_destination_state.admitted_roots.push_back({
+        32, 1,
+        { GGML_BACKEND_SCHED_AUTH_MUTABLE,
+          GGML_RPC_HALOFPX_MUTABLE_SELECTED_KV, 5 },
+        &local_root_tensor,
+    });
+    mixed_destination_state.admitted_copies.push_back({
+        31, 0, 0, 0, 0, 31, 4, &rpc_copy_tensor,
+    });
+    mixed_destination_state.admitted_copies.push_back({
+        32, 1, 1, 0, 0, 32, 5, &local_copy_tensor,
+    });
+    if (sched_auth_build_canonical_census(mixed_destination_state) &&
+        mixed_destination_state.canonical_census.size() == 2 &&
+        std::all_of(
+            mixed_destination_state.canonical_census.begin(),
+            mixed_destination_state.canonical_census.end(),
+            [](const auto & entry) {
+                return entry.destination_backend_ordinal == 0;
+            }) &&
+        std::none_of(
+            mixed_destination_state.canonical_census.begin(),
+            mixed_destination_state.canonical_census.end(),
+            [&](const auto & entry) {
+                return entry.runtime_tensor == &local_root_tensor ||
+                    entry.runtime_tensor == &local_copy_tensor;
+            })) {
+        passed |= 1u << 22;
     }
     ggml_backend_sched_authority_census_entry resolved_base {};
     resolved_base.destination_backend_ordinal = 0;

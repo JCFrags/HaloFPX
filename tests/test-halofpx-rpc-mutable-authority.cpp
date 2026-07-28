@@ -107,6 +107,102 @@ static void free_fixture(fixture & f) {
     f = {};
 }
 
+static bool false_rpc_destination_refusal(fixture & f) {
+    std::vector<uint8_t> metadata(
+        ggml_tensor_overhead() * 4 + ggml_graph_overhead());
+    ggml_init_params params { metadata.size(), metadata.data(), true };
+    ggml_context * ctx = ggml_init(params);
+    if (ctx == nullptr) return false;
+    ggml_tensor * input = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 16);
+    ggml_set_input(input);
+    ggml_tensor * output = ggml_sqr(ctx, input);
+    ggml_set_output(output);
+    ggml_backend_t backends[] = { f.rpc, f.cpu };
+    ggml_backend_buffer_type_t bufts[] = {
+        ggml_backend_get_default_buffer_type(f.rpc),
+        ggml_backend_get_default_buffer_type(f.cpu),
+    };
+    ggml_backend_sched_t sched =
+        ggml_backend_sched_new(backends, bufts, 2, 16, false, false);
+    if (sched == nullptr) {
+        ggml_free(ctx);
+        return false;
+    }
+    ggml_backend_sched_set_tensor_backend(sched, input, f.cpu);
+    ggml_backend_sched_set_tensor_backend(sched, output, f.cpu);
+    ggml_backend_sched_authority_config config {};
+    config.major = 1;
+    config.minor = 0;
+    config.encoded_size = sizeof(config);
+    config.max_events = 64;
+    config.execution_sequence = 73;
+    config.attempt_nonce[0] = 0x73;
+    config.key[0] = 0xa5;
+    std::array<uint8_t, 16384> events {};
+    config.event_buffer = events.data();
+    config.event_buffer_size = events.size();
+    ggml_backend_sched_authority_handle handle {};
+    bool ok =
+        ggml_backend_sched_authority_arm(sched, &config, &handle) &&
+        // This deliberately false scheduler claim keeps backend 1 in the RPC
+        // census; it must fail storage validation rather than be filtered.
+        ggml_backend_sched_authority_mark_rpc_backend(sched, &handle, 1) &&
+        ggml_backend_sched_authority_register_root(
+            sched, &handle, input, GGML_BACKEND_SCHED_AUTH_MUTABLE,
+            GGML_RPC_HALOFPX_MUTABLE_TOKEN, 0);
+    std::memset(config.key, 0, sizeof(config.key));
+    ggml_cgraph * graph = ggml_new_graph(ctx);
+    ggml_build_forward_expand(graph, output);
+    ggml_backend_sched_authority_prepared prepared {};
+    ggml_backend_sched_authority_projection_failure failure {};
+    const bool allocated = ok && ggml_backend_sched_alloc_graph(sched, graph);
+    const bool prepared_ok = allocated &&
+        ggml_backend_sched_authority_prepare(
+            sched, &handle, graph, &prepared);
+    const bool refused = prepared_ok &&
+        !ggml_backend_sched_authority_resolve_census_typed(
+            sched, &handle,
+            [](void * user_data, uint32_t, ggml_tensor * tensor,
+               ggml_backend_sched_authority_storage_resolution * out) {
+                auto * fixture_value = static_cast<fixture *>(user_data);
+                if (fixture_value == nullptr || out == nullptr) return false;
+                ggml_backend_rpc_halofpx_storage_identity identity {};
+                const auto result =
+                    ggml_backend_rpc_halofpx_resolve_storage_identity(
+                        fixture_value->rpc, tensor, &identity);
+                if (result != GGML_RPC_HALOFPX_MUTABLE_ADMIT_SUCCESS) {
+                    out->failure_reason =
+                        result ==
+                            GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_NOT_RPC ?
+                        GGML_BACKEND_SCHED_PROJECTION_NON_RPC_STORAGE :
+                        GGML_BACKEND_SCHED_PROJECTION_OVERFLOW_INVALID;
+                    return false;
+                }
+                return true;
+            },
+            &f, &failure);
+    const size_t remaining =
+        ggml_backend_sched_authority_census_count(sched, &handle, 1);
+    ok = ok && allocated && prepared_ok && refused &&
+        failure.reason == GGML_BACKEND_SCHED_PROJECTION_NON_RPC_STORAGE &&
+        failure.backend_ordinal == 1 &&
+        failure.candidate_index == 0 &&
+        remaining == 0;
+    if (!ok) {
+        std::fprintf(
+            stderr,
+            "false RPC destination mismatch alloc=%u prepare=%u refused=%u "
+            "reason=%u backend=%u candidate=%u remaining=%zu\n",
+            allocated ? 1u : 0u, prepared_ok ? 1u : 0u,
+            refused ? 1u : 0u, failure.reason, failure.backend_ordinal,
+            failure.candidate_index, remaining);
+    }
+    ggml_backend_sched_authority_abort_execution(sched, &handle);
+    ggml_backend_sched_free(sched);
+    ggml_free(ctx);
+    return ok;
+}
+
 static bool storage_identity_fixture(
         const char * first_endpoint, const char * second_endpoint) {
     fixture first {};
@@ -173,7 +269,8 @@ static bool storage_identity_fixture(
             GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_NOT_RPC &&
         ggml_backend_rpc_halofpx_resolve_storage_identity(
             first.rpc, second.input, &ignored) ==
-            GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET;
+            GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET &&
+        false_rpc_destination_refusal(first);
     if (cpu_buffer) ggml_backend_buffer_free(cpu_buffer);
     free_fixture(first);
     free_fixture(second);
@@ -577,9 +674,11 @@ int main(int argc, char ** argv) {
     if (argc == 4 && std::strcmp(argv[1], "--storage-identity") == 0) {
         ggml_backend_load_all();
         const bool ok =
-            ggml_backend_sched_authority_self_test() == 0x3fffffU &&
+            ggml_backend_sched_authority_self_test() == 0x7fffffU &&
             storage_identity_fixture(argv[2], argv[3]);
-        std::printf("resolved_storage_identity=%d\n", ok ? 1 : 0);
+        std::printf(
+            "resolved_storage_identity=%d false_rpc_destination_refused=%d\n",
+            ok ? 1 : 0, ok ? 1 : 0);
         return ok ? 0 : 1;
     }
     if (argc == 2 && std::strcmp(argv[1], "--publication-self-test") == 0) {
