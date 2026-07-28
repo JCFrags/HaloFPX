@@ -1,0 +1,16 @@
+{
+  "harvest": {
+    "attempts": [],
+    "cleanup_order": [
+      "quiesce_server",
+      "derive_expected_identity",
+      "authenticate_remote",
+      "retain_local",
+      "cleanup_key_and_paths"
+    ],
+    "reason": "server authority harvester source identity mismatch",
+    "schema": "halofpx.l75.server-authority-finally.v1",
+    "status": "error"
+  },
+  "invocation_id": "c0c9b52584584fc18b8896dc29780359"
+}

@@ -1,0 +1,16 @@
+2026-07-28T03:35:15.254365-07:00 nimo-1 rpc-server[2686425]: Starting RPC server v4.0.1
+2026-07-28T03:35:15.254365-07:00 nimo-1 rpc-server[2686425]:   endpoint       : 127.0.0.1:50377
+2026-07-28T03:35:15.254365-07:00 nimo-1 rpc-server[2686425]:   local cache    : n/a
+2026-07-28T03:35:15.254365-07:00 nimo-1 rpc-server[2686425]:   HaloFPX state  : enabled (canary)
+2026-07-28T03:35:15.254365-07:00 nimo-1 rpc-server[2686425]: Devices:
+2026-07-28T03:35:15.254365-07:00 nimo-1 rpc-server[2686425]:   CPU: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S (127433 MiB, 127433 MiB free)
+2026-07-28T03:35:15.254365-07:00 nimo-1 rpc-server[2686425]:   transport      : TCP
+2026-07-28T03:35:15.254365-07:00 nimo-1 rpc-server[2686425]: Accepted client connection
+2026-07-28T03:35:15.254586-07:00 nimo-1 rpc-server[2686425]: Client connection closed
+2026-07-28T03:35:15.254586-07:00 nimo-1 rpc-server[2686425]: Accepted client connection
+2026-07-28T03:35:15.254586-07:00 nimo-1 rpc-server[2686425]: Client connection closed
+2026-07-28T03:35:15.254700-07:00 nimo-1 rpc-server[2686425]: Accepted client connection
+2026-07-28T03:35:15.255233-07:00 nimo-1 rpc-server[2686425]: [halofpx-rpc-graph-auth] server prepared mode=compute sequence=1 uid=2 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+2026-07-28T03:35:15.255660-07:00 nimo-1 rpc-server[2686425]: [halofpx-rpc-graph-auth] server executed sequence=1 uid=2 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+2026-07-28T03:35:15.255732-07:00 nimo-1 rpc-server[2686425]: [halofpx-preexecute-server-publication] status=error attempt=32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051 admission=d75abe4db71c910c505e17233923dec66c5c7ee00dadb81119d55b59f1d09f58 sequence=1 split_uid=2 split_ordinal=0 backend=0 path=/var/tmp/halofpx-l48-worker/32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-12869475692520351-server.authority sha256=9bceba953c1ce7d0b8055ca6ca7600b1e0190fe9fa72b71a6ee04664fd78526e errno=5
+2026-07-28T03:35:15.255732-07:00 nimo-1 rpc-server[2686425]: Client connection closed

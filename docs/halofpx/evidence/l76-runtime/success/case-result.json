@@ -1,0 +1,18 @@
+{
+  "client_returncode": 0,
+  "client_stdout": "single_success=1 uid=1 connection=12863531597229499 allocation=2\n",
+  "harvest": {
+    "attempts": [],
+    "cleanup_order": [
+      "quiesce_server",
+      "derive_expected_identity",
+      "authenticate_remote",
+      "retain_local",
+      "cleanup_key_and_paths"
+    ],
+    "reason": "publication_journal_missing",
+    "schema": "halofpx.l75.server-authority-finally.v1",
+    "status": "missing"
+  },
+  "key_sha256": "22b045778f146d70b401c9b0f5a7a75765f22522f92b47c4a44f65065e05ef58"
+}

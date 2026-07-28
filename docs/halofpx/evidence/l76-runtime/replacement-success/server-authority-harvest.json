@@ -1,0 +1,37 @@
+{
+  "attempts": [
+    {
+      "journal": {
+        "admission": "a3c1be6cb0b18a30843627069534f2098f0285a24513c84c21b915e5c82568f7",
+        "attempt": "32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051",
+        "backend": "0",
+        "errno": "0",
+        "path": "/var/tmp/halofpx-l48-worker/32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-12863883673301659-server.authority",
+        "sequence": "1",
+        "sha256": "02aeb96b45cd3c8110c60d8d870e6d7d5762625a08d2249a6d9a039134ea8cb5",
+        "split_ordinal": "0",
+        "split_uid": "2",
+        "status": "present"
+      },
+      "reason": "line_1:hmac",
+      "remote_capture": {
+        "reason": "line_1:hmac",
+        "schema": "halofpx.server-authority-harvest.v1",
+        "source": "/var/tmp/halofpx-l48-worker/32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-12863883673301659-server.authority",
+        "staging": "/var/tmp/halofpx-l48-worker/.32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-12863883673301659-server.authority.harvest",
+        "status": "error"
+      },
+      "status": "error"
+    }
+  ],
+  "cleanup_order": [
+    "quiesce_server",
+    "derive_expected_identity",
+    "authenticate_remote",
+    "retain_local",
+    "cleanup_key_and_paths"
+  ],
+  "reason": "attempt_harvest_failure",
+  "schema": "halofpx.l75.server-authority-finally.v1",
+  "status": "error"
+}

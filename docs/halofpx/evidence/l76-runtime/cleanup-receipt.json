@@ -1,0 +1,27 @@
+{
+  "paths_absent": {
+    "/var/tmp/halofpx-l48-worker": true,
+    "/var/tmp/halofpx-l76-build": true,
+    "/var/tmp/halofpx-l76-control.key": true,
+    "/var/tmp/halofpx-l76-failure": true,
+    "/var/tmp/halofpx-l76-source": true,
+    "/var/tmp/halofpx-l76-source.tar": true,
+    "/var/tmp/halofpx-l76-success": true
+  },
+  "production_byte_equivalent": true,
+  "schema": "halofpx.l76.cleanup.v1",
+  "units": {
+    "halofpx-l76-server-failure.service": {
+      "ActiveState": "inactive",
+      "LoadState": "not-found",
+      "MainPID": "0",
+      "SubState": "dead"
+    },
+    "halofpx-l76-server-final-success.service": {
+      "ActiveState": "inactive",
+      "LoadState": "not-found",
+      "MainPID": "0",
+      "SubState": "dead"
+    }
+  }
+}

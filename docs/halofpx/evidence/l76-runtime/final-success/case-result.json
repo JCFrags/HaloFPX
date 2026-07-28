@@ -1,0 +1,56 @@
+{
+  "client_returncode": 0,
+  "client_stdout": "single_success=1 uid=1 connection=12868727044109137 allocation=2",
+  "harvest": {
+    "attempts": [
+      {
+        "bytes": 4200,
+        "journal": {
+          "admission": "ac57ee45490deb667cecf97dcd5e0412ebfb91c56c2ea9699d57d3685ac5fd68",
+          "attempt": "32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051",
+          "backend": "0",
+          "errno": "0",
+          "path": "/var/tmp/halofpx-l48-worker/32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-12869190900736501-server.authority",
+          "sequence": "1",
+          "sha256": "04ea9584d338d3772fa7a031daa20b12818ad7c93c074d1197d1a942e2cd9c8f",
+          "split_ordinal": "0",
+          "split_uid": "2",
+          "status": "present"
+        },
+        "reason": "authenticated_and_retained",
+        "remote_capture": {
+          "bytes": 4200,
+          "execute_receipt": "b57262ebd635004019cfbfd1615ac3cf40e05d8cc27ec86dabda854c416386a1",
+          "expected_admission_digest": "4005da758406605f68bfb8e7f7a585a1622528723a492289a2864ff45cca8d11",
+          "graph_digest": "88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e",
+          "owner": "connorb",
+          "reason": "authenticated",
+          "records": 6,
+          "schema": "halofpx.server-authority-harvest.v1",
+          "sha256": "04ea9584d338d3772fa7a031daa20b12818ad7c93c074d1197d1a942e2cd9c8f",
+          "source": "/var/tmp/halofpx-l48-worker/32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-12869190900736501-server.authority",
+          "source_mode": "0400",
+          "staging": "/var/tmp/halofpx-l48-worker/.32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-12869190900736501-server.authority.harvest",
+          "staging_mode": "0600",
+          "status": "present",
+          "terminal_branch": 1
+        },
+        "retained_path": "C:\\Users\\britt\\Documents\\HaloFPX\\docs\\halofpx\\evidence\\l76-runtime\\final-success\\server-authority\\32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-12869190900736501-server.authority",
+        "retained_sha256": "04ea9584d338d3772fa7a031daa20b12818ad7c93c074d1197d1a942e2cd9c8f",
+        "status": "present"
+      }
+    ],
+    "cleanup_order": [
+      "quiesce_server",
+      "derive_expected_identity",
+      "authenticate_remote",
+      "retain_local",
+      "cleanup_key_and_paths"
+    ],
+    "reason": "all_authenticated_and_retained",
+    "schema": "halofpx.l75.server-authority-finally.v1",
+    "status": "present"
+  },
+  "invocation_id": "1ca90547338a47c9aefb1fa897cc7c5c",
+  "key_sha256": "debc347f9e7bd62a6a82f1f7614a6ed76446fd589541df69aa6a3e3115aebd86"
+}

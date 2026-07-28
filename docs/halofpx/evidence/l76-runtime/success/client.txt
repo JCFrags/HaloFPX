@@ -1,0 +1,10 @@
+single_success=1 uid=1 connection=12863531597229499 allocation=2
+
+STDERR
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-mutable] bound graph uid=2 exec=1 semantic=8fe9322f26fcec3b238944109d7409740ef2398440fdcb04275df670f6734d1e transcript=792e01001cfb5fc2a00eacab593239795a43cd95672310b755dafbbb3a595d45
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=1 uid=2 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-rpc-graph-auth] client executed sequence=1 uid=2 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128

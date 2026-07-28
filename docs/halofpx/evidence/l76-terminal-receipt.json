@@ -1,0 +1,55 @@
+{
+  "schema": "halofpx.l76.terminal-receipt.v1",
+  "milestone": "L76",
+  "result": "PASS",
+  "source_head": "52cda98fd3e6f871096089db623ddcc2c2f10705",
+  "source_archive_sha256": "46c86cafbd64cf7ea7eea32f0d4104a1ae3f8837f9c317875432622abfabeb09",
+  "source_files": {
+    "scripts/halofpx-production-transition.py": "d34cefae745c16f9b98bfb4ba95ad23a9cb2737641f0349210acb7abc5878c42",
+    "scripts/halofpx_server_authority_harvest.py": "fae2dcbc0a01fb85d505971e05cc7c25c8568480b6f7d38a2f67d42d5d7b9e49",
+    "tests/test-halofpx-rpc-mutable-authority.cpp": "cd5387f95df39c2358ed17e8b4cf0686dd0dae0c9e2966cc5b309d5579b59a2a",
+    "tests/test_halofpx_l75_server_authority_harvest.py": "aa0f91b7cb8c18fa4c6f3efd93e379449cbfc3b7e554114c4b45aaafa3baeb5d"
+  },
+  "binaries": {
+    "rpc_server_sha256": "6cc1aba525ad38144b0c6c8eb7ec8c279b6a63383c8e9ba43a5c21512b9037f4",
+    "focused_client_sha256": "980efd445de7be90986895f08d37479f4a6ab6af10be3287244c0c4d57ff1c89",
+    "helper_sha256": "fae2dcbc0a01fb85d505971e05cc7c25c8568480b6f7d38a2f67d42d5d7b9e49"
+  },
+  "focused_tests": {
+    "passed": 58,
+    "controller_subtests_passed": 11,
+    "failed": 0
+  },
+  "success": {
+    "invocation_id": "1ca90547338a47c9aefb1fa897cc7c5c",
+    "client_result": "single_success=1",
+    "terminal_branch": 1,
+    "records": 6,
+    "authority_bytes": 4200,
+    "authority_sha256": "04ea9584d338d3772fa7a031daa20b12818ad7c93c074d1197d1a942e2cd9c8f",
+    "source_mode": "0400",
+    "retained_mode": "0600",
+    "harvest_status": "present"
+  },
+  "publication_failure": {
+    "invocation_id": "9dd2aa65376e494faef372622edb8e0c",
+    "journal_status": "error",
+    "errno": 5,
+    "server_authority_files": 0,
+    "harvest_status": "error",
+    "classification": "publication_failed"
+  },
+  "cleanup": {
+    "all_disposable_paths_absent": true,
+    "all_disposable_units_absent": true,
+    "production_byte_equivalent": true
+  },
+  "model_run": false,
+  "production_mutation": false,
+  "independent_review": {
+    "source_verdict": "PASS",
+    "terminal_verdict": "PASS_PROMOTE",
+    "p1": 0,
+    "p2": 0
+  }
+}

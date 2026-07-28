@@ -1,0 +1,37 @@
+{
+  "client_returncode": 141,
+  "client_stdout": "",
+  "harvest": {
+    "attempts": [
+      {
+        "journal": {
+          "admission": "d75abe4db71c910c505e17233923dec66c5c7ee00dadb81119d55b59f1d09f58",
+          "attempt": "32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051",
+          "backend": "0",
+          "errno": "5",
+          "path": "/var/tmp/halofpx-l48-worker/32333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f5051-1-12869475692520351-server.authority",
+          "sequence": "1",
+          "sha256": "9bceba953c1ce7d0b8055ca6ca7600b1e0190fe9fa72b71a6ee04664fd78526e",
+          "split_ordinal": "0",
+          "split_uid": "2",
+          "status": "error"
+        },
+        "reason": "publication_failed",
+        "status": "missing"
+      }
+    ],
+    "cleanup_order": [
+      "quiesce_server",
+      "derive_expected_identity",
+      "authenticate_remote",
+      "retain_local",
+      "cleanup_key_and_paths"
+    ],
+    "reason": "attempt_harvest_failure",
+    "schema": "halofpx.l75.server-authority-finally.v1",
+    "status": "error"
+  },
+  "invocation_id": "9dd2aa65376e494faef372622edb8e0c",
+  "key_sha256": "77b9615b2cd94516032fa9e7a51bdd0a6e9a6bd1adaca82699bb17bfcc1f3a9b",
+  "server_authority_files": []
+}
