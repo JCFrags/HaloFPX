@@ -1,4 +1,5 @@
 #include "llama-context.h"
+#include "llama-halofpx-composed-diagnostic.h"
 
 #include "ggml.h"
 #include "llama-arch.h"
@@ -1588,14 +1589,29 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         if (!composed_authority) {
             return;
         }
-        std::ostringstream out;
-        out << "version=1|status=failed|branch=" << branch << detail
-            << "|execution_sequence=" << halofpx_execution_sequence
-            << "|pending=1|ggml_status=" << static_cast<int>(status);
-        halofpx_execution_result_text = out.str();
+        llama_halofpx_record_composed_failure(
+            branch, detail, halofpx_execution_sequence,
+            halofpx_execution_pending, status, halofpx_execution_result_text,
+            [](const std::string & diagnostic) {
+                // Warmup failures can precede caller-owned result harvesting.
+                LLAMA_LOG_ERROR("[halofpx-composed-failure] %s\n",
+                    diagnostic.c_str());
+            });
     };
     auto abort_composed = [&]() {
         halofpx_execution_authority_abort();
+    };
+    auto fail_composed = [&](
+            const std::string & branch, ggml_status status,
+            const std::string & detail = std::string()) {
+        llama_halofpx_record_composed_failure_and_abort(
+            branch, detail, halofpx_execution_sequence,
+            halofpx_execution_pending, status, halofpx_execution_result_text,
+            [](const std::string & diagnostic) {
+                LLAMA_LOG_ERROR("[halofpx-composed-failure] %s\n",
+                    diagnostic.c_str());
+            },
+            [&]() { return halofpx_execution_authority_abort(); });
     };
     if (composed_authority) {
         ggml_backend_sched_authority_config config {};
@@ -1932,19 +1948,17 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         for (size_t i = 0; i < halofpx_mutable_sessions.size(); ++i) {
             if (!ggml_backend_rpc_halofpx_mutable_commit(
                     &halofpx_mutable_sessions[i], gf, &halofpx_mutable_results[i])) {
-                record_composed_failure(
+                fail_composed(
                     "l44_mutable_commit_" +
                         std::to_string(halofpx_mutable_results[i].status),
                     GGML_STATUS_FAILED);
-                abort_composed();
                 ret = GGML_STATUS_FAILED;
                 return nullptr;
             }
         }
         if (!ggml_backend_sched_authority_finalize_execution(
                 sched.get(), &halofpx_execution_handle, &halofpx_execution_final)) {
-            record_composed_failure("l42_scheduler_finalize", GGML_STATUS_FAILED);
-            abort_composed();
+            fail_composed("l42_scheduler_finalize", GGML_STATUS_FAILED);
             ret = GGML_STATUS_FAILED;
             return nullptr;
         }
@@ -1997,9 +2011,9 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                     << "|backend_ordinal=" << backend_ordinal
                     << "|receipt_reason=" <<
                         static_cast<uint32_t>(GGML_RPC_HALOFPX_GRAPH_RESULT_INVALID_ARGUMENT);
-                record_composed_failure(
+                fail_composed(
                     "l40_graph_result_reconcile", GGML_STATUS_FAILED, detail.str());
-                abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                ret = GGML_STATUS_FAILED; return nullptr;
             }
             for (const auto & split : expected_splits) {
                 ggml_backend_rpc_halofpx_graph_result graph_result {};
@@ -2046,9 +2060,9 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                         << "|actual_execution_sequence=" << graph_result.execution_sequence
                         << "|backend_ordinal=" << backend_ordinal
                         << "|receipt_reason=" << static_cast<uint32_t>(receipt_reason);
-                    record_composed_failure(
+                    fail_composed(
                         "l40_graph_result_reconcile", GGML_STATUS_FAILED, detail.str());
-                    abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
+                    ret = GGML_STATUS_FAILED; return nullptr;
                 }
                 authority << "|rpc_backend=" << backend_ordinal
                     << ",parent_uid=" << halofpx_execution_prepared.graph_uid
@@ -2075,8 +2089,7 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         halofpx_execution_result_text = authority.str();
         for (auto & session : halofpx_mutable_sessions) {
             if (!ggml_backend_rpc_halofpx_mutable_abort(&session)) {
-                record_composed_failure("l44_session_finalize", GGML_STATUS_FAILED);
-                abort_composed();
+                fail_composed("l44_session_finalize", GGML_STATUS_FAILED);
                 ret = GGML_STATUS_FAILED;
                 return nullptr;
             }
@@ -2096,9 +2109,8 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         std::fill(halofpx_execution_key.begin(), halofpx_execution_key.end(), 0);
         std::fill(halofpx_execution_nonce.begin(), halofpx_execution_nonce.end(), 0);
         if (!disarmed) {
-            halofpx_execution_result_text =
-                "version=1|status=failed|branch=rpc_execution_disarm"
-                "|execution_sequence=0|pending=0|ggml_status=1";
+            fail_composed(
+                "rpc_execution_disarm", GGML_STATUS_FAILED);
             ret = GGML_STATUS_FAILED;
             return nullptr;
         }
@@ -2946,7 +2958,8 @@ bool llama_context::halofpx_execution_authority_abort() {
 }
 
 std::string llama_context::halofpx_execution_authority_result() const {
-    return halofpx_execution_result_text;
+    return llama_halofpx_composed_failure_result(
+        halofpx_execution_result_text);
 }
 
 //

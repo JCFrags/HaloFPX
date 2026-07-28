@@ -10,6 +10,8 @@ import sys
 import stat
 from pathlib import Path
 
+import pytest
+
 
 ROOT = Path(__file__).parents[1]
 SPEC = importlib.util.spec_from_file_location(
@@ -224,6 +226,21 @@ class FakeRunner:
         raise AssertionError("unexpected stdin")
 
 
+class BadHelperRunner(FakeRunner):
+    def __init__(self, data: bytes, missing: bool):
+        super().__init__(data)
+        self.missing = missing
+
+    def run(self, host: str, argv: list[str], *, operation: str = "command"):
+        if argv[0] == "sha256sum":
+            self.calls.append(list(argv))
+            return CONTROLLER.CommandResult(
+                1 if self.missing else 0,
+                "" if self.missing else f"{'0' * 64}  {argv[-1]}\n",
+            )
+        return super().run(host, argv, operation=operation)
+
+
 def journal_line(expected: dict[str, object], status: str = "present") -> str:
     return (
         "[halofpx-preexecute-server-publication] "
@@ -245,7 +262,17 @@ def test_controller_harvest_precedes_remote_cleanup(tmp_path: Path) -> None:
     runner = FakeRunner(data)
     manifest = {
         "worker_host": "nimo-1", "worker_units": ["worker.service"],
-        "executables": {"readiness": "/source/scripts/readiness.py"},
+        "executables": {
+            "server_authority_harvester":
+                "/var/tmp/halofpx-l48-source-nimo1/scripts/"
+                "halofpx_server_authority_harvest.py",
+        },
+        "executable_sha256": {
+            "server_authority_harvester": hashlib.sha256(
+                (ROOT / "scripts" /
+                 "halofpx_server_authority_harvest.py").read_bytes()
+            ).hexdigest(),
+        },
         "key_paths": {"nimo-1": "/var/tmp/key"},
     }
     result = CONTROLLER.harvest_server_authority_finally(
@@ -265,6 +292,34 @@ def test_controller_harvest_precedes_remote_cleanup(tmp_path: Path) -> None:
     )["status"] == "present"
 
 
+@pytest.mark.parametrize("missing", [True, False])
+def test_remote_helper_missing_or_hash_mismatch_refuses(
+        tmp_path: Path, missing: bool) -> None:
+    data, expected = authority()
+    child = tmp_path / "child"
+    child.mkdir()
+    (child / "worker-journal.txt").write_text(journal_line(expected))
+    manifest = {
+        "worker_host": "nimo-1", "worker_units": [],
+        "executables": {
+            "server_authority_harvester":
+                "/var/tmp/halofpx-l48-source-nimo1/scripts/"
+                "halofpx_server_authority_harvest.py",
+        },
+        "executable_sha256": {
+            "server_authority_harvester": hashlib.sha256(
+                (ROOT / "scripts" /
+                 "halofpx_server_authority_harvest.py").read_bytes()
+            ).hexdigest(),
+        },
+        "key_paths": {"nimo-1": "/var/tmp/key"},
+    }
+    result = CONTROLLER.harvest_server_authority_finally(
+        manifest, {}, tmp_path, BadHelperRunner(data, missing))
+    assert result["status"] == "error"
+    assert "source identity mismatch" in result["reason"]
+
+
 def test_publication_failure_is_durable_and_cleanup_can_continue(tmp_path: Path) -> None:
     data, expected = authority()
     child = tmp_path / "child"
@@ -273,7 +328,17 @@ def test_publication_failure_is_durable_and_cleanup_can_continue(tmp_path: Path)
     runner = FakeRunner(data)
     manifest = {
         "worker_host": "nimo-1", "worker_units": ["worker.service"],
-        "executables": {"readiness": "/source/scripts/readiness.py"},
+        "executables": {
+            "server_authority_harvester":
+                "/var/tmp/halofpx-l48-source-nimo1/scripts/"
+                "halofpx_server_authority_harvest.py",
+        },
+        "executable_sha256": {
+            "server_authority_harvester": hashlib.sha256(
+                (ROOT / "scripts" /
+                 "halofpx_server_authority_harvest.py").read_bytes()
+            ).hexdigest(),
+        },
         "key_paths": {"nimo-1": "/var/tmp/key"},
     }
     result = CONTROLLER.harvest_server_authority_finally(
@@ -294,7 +359,17 @@ def test_retained_copy_race_refuses_without_overwrite(
     runner = FakeRunner(data)
     manifest = {
         "worker_host": "nimo-1", "worker_units": ["worker.service"],
-        "executables": {"readiness": "/source/scripts/readiness.py"},
+        "executables": {
+            "server_authority_harvester":
+                "/var/tmp/halofpx-l48-source-nimo1/scripts/"
+                "halofpx_server_authority_harvest.py",
+        },
+        "executable_sha256": {
+            "server_authority_harvester": hashlib.sha256(
+                (ROOT / "scripts" /
+                 "halofpx_server_authority_harvest.py").read_bytes()
+            ).hexdigest(),
+        },
         "key_paths": {"nimo-1": "/var/tmp/key"},
     }
     original_link = CONTROLLER.os.link

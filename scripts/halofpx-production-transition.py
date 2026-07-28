@@ -155,6 +155,7 @@ L48_EXECUTABLES = {
     "response_boundary_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_boundary.py",
     "response_harvester_worker": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_rpc_response_harvest.py",
     "response_harvester_client": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_harvest.py",
+    "server_authority_harvester": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_server_authority_harvest.py",
 }
 L29_MODEL = (
     "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
@@ -174,6 +175,7 @@ L48_SOURCE_FILES = (
     "include/llama.h",
     "src/llama-context.cpp",
     "src/llama-context.h",
+    "src/llama-halofpx-composed-diagnostic.h",
     "src/llama-graph.cpp",
     "src/llama-graph.h",
     "tests/test-halofpx-distributed-state-canary.cpp",
@@ -2082,6 +2084,19 @@ def harvest_server_authority_finally(
                 "ActiveState": "inactive", "SubState": "dead", "MainPID": "0",
             }:
                 raise TransitionError(f"server not quiesced before harvest: {unit}")
+        helper = str(manifest["executables"]["server_authority_harvester"])
+        local_helper = Path(__file__).with_name(
+            "halofpx_server_authority_harvest.py")
+        expected_helper_hash = hashlib.sha256(local_helper.read_bytes()).hexdigest()
+        if (
+            helper !=
+            "/var/tmp/halofpx-l48-source-nimo1/scripts/"
+            "halofpx_server_authority_harvest.py"
+            or manifest["executable_sha256"]["server_authority_harvester"] !=
+            expected_helper_hash
+        ):
+            raise TransitionError(
+                "server authority harvester manifest identity mismatch")
         publications = _server_publications(evidence_root)
         if not publications:
             result["status"] = "missing"
@@ -2093,11 +2108,6 @@ def harvest_server_authority_finally(
         if os.name == "posix":
             retained_dir.chmod(0o700)
         attempts: list[dict[str, object]] = []
-        helper = str(manifest["executables"]["readiness"]).rsplit("/", 1)[0] + \
-            "/halofpx_server_authority_harvest.py"
-        local_helper = Path(__file__).with_name(
-            "halofpx_server_authority_harvest.py")
-        expected_helper_hash = hashlib.sha256(local_helper.read_bytes()).hexdigest()
         remote_helper_hash = runner.run(
             host, ["sha256sum", "--", helper], operation="hash")
         if (
