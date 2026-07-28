@@ -1,0 +1,42 @@
+{
+  "milestone": "L66",
+  "result": "NOT_PROMOTED",
+  "base_commit": "a1c3af9d2f6dd40d696515758480ece66b3653f0",
+  "candidate_diff_sha1": "5883df3dddb22c650c13ca4c3c18c276d2ca9e87",
+  "candidate_removed": true,
+  "scope": "Design-B ADR-0049 foundation only; no stories, model, production mutation, cache matrix, or performance work",
+  "focused_compile": {
+    "targets": [
+      "test-halofpx-rpc-mutable-authority",
+      "rpc-server"
+    ],
+    "status": "pass",
+    "host": "nimo-1"
+  },
+  "focused_real_fixture": {
+    "status": "directionally_passed_before_review",
+    "summary": "real_composed=1 recompute=1 concurrent=1 exact=1 uids=1/5/2 connection_epochs=9648305431948195/9648305431948195/9648314021650075 allocation_epochs=2/4/2",
+    "ephemeral_key_contract": "130 bytes; two 64-hex lines; mode 0600; owner UID 1000; pinned sha256",
+    "ephemeral_key_sha256": "57f5f5000b01ee7c180cdb541a8e20cf290139c3475e5ca91e7f7a752ef9789b"
+  },
+  "review": {
+    "verdict": "FAIL",
+    "independent": true,
+    "blockers": [
+      "complete expected binding remained self-comparing and cross-side consumption was not one authenticated contract",
+      "branch grammar remained range-based and accepted unterminated streams",
+      "publication remained shared append under a process-local mutex",
+      "complete machine-validated real refusal and provenance manifest was absent"
+    ]
+  },
+  "cleanup": {
+    "candidate_source_removed": true,
+    "candidate_verifier_removed": true,
+    "l66_named_units": "inactive",
+    "nimo1_l66_transient_paths_absent": true
+  },
+  "production_after": {
+    "nimo1_coordinator": "active/running MainPID=2356329 NRestarts=0 port=8081 HTTP=200",
+    "nimo2_worker": "active/running MainPID=1535639 NRestarts=0 port=50052"
+  }
+}
