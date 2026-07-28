@@ -1696,3 +1696,27 @@ Focused `0600` acceptance and wrong-mode refusal are sufficient before the
 rebuild. No additional runtime cases, model/Stories work, cache/primary work,
 protocol or grammar changes, performance work, production mutation, or
 automatic follow-on are authorized.
+
+## 2026-07-28 — correct L76 remote POSIX path handling and replace success once
+
+Decision: keep L76 open. Correct only the controller's interpretation of remote
+authority paths by using `posixpath` or `PurePosixPath` for remote basename
+validation, parent/basename staging construction, and basename extraction
+before local retention. Keep local retained-path operations on host
+`pathlib.Path`. After focused Windows-host path checks and one corrected Linux
+rebuild, authorize exactly one replacement success request and the original
+still-unconsumed injected publication-failure case. No further retry is
+authorized.
+
+Reason: the first success request is consumed and valid evidence of
+authenticated handler execution and authority publication, but it cannot
+qualify custody. Windows `Path` emitted a backslash-delimited staging path for a
+Linux target, and the helper correctly refused `path_authority`; cleanup then
+removed the unharvested remote source. Exact source also uses host `Path` for
+the remote basename check and local-name derivation, so all remote parsing must
+be corrected together without changing the local retention implementation.
+
+Preserve the first success/publication and failed-custody evidence. Do not
+weaken the exact remote root, traversal, identity, collision, or atomic
+no-replace checks. No protocol/grammar/model/cache/primary/performance change,
+production mutation, extra runtime case, or automatic follow-on is authorized.

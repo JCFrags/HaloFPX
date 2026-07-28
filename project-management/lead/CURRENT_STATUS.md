@@ -10,14 +10,15 @@ has been corrected by steering; recent work uses bounded kill gates and removes
 slower candidates.
 
 L76 remains active at implementation HEAD
-`b1b4e83511734f1addcc1b999ad54cc1dbd703f3`. Its stopped Linux preflight
-consumed neither authorized runtime case. Exact source proves a mechanical
-key-mode mismatch: the production-transition controller provisions and
-validates the channel key at mode `0600`, while the L75 harvest helper alone
-requires `0400`. The Lead authorized changing only that helper check to the
-controller's established `0600` authority, rebuilding the corrected source,
-and then running the same one disposable success and one injected publication
-failure case. Production and model work remain unauthorized.
+`71938770cd861cc396cd6cfc8667a344a40ebe6e`. The key-mode correction and its
+focused negatives passed. One real handler success request authenticated,
+executed, and durably journaled authority publication, but custody failed
+because Windows `pathlib.Path` converted the remote POSIX staging path to
+backslashes; the Linux helper correctly refused it. Cleanup and production
+reconciliation passed, and the failure-injection case remains unconsumed. The
+Lead authorized a remote-path-only correction plus exactly one replacement
+success and the original failure case. Production and model work remain
+unauthorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
