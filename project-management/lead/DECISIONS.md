@@ -1348,3 +1348,29 @@ independent review may it consume one stories15M first armed chunk. Once model
 runtime starts there is no retry, and any semantic correction remains a
 separate decision. No cache matrix, primary artifact, production mutation, or
 performance work is authorized.
+
+## 2026-07-27 — resolve L66 admission-order circularity with two-phase L44
+
+Decision: split L44 into a strictly non-mutating negotiated preflight/plan and
+an authenticated activation. The immutable prepared admission binds the
+scheduler-logical expected mutable census, not a server-physical census that
+does not yet exist. The later physical server census is a distinct authenticated
+observation and must reconcile exactly with the sealed logical expectation
+before commit or execution.
+
+Reason: exact source order proves the server allocation-topology epoch is first
+learned during current L44 CAPS and the physical census is produced after the
+current begin call. Requiring both inside an admission sealed before current
+begin is circular. Preflight may authenticate capabilities, connection and
+allocation epochs, server identity, and key generation, but may not consume the
+admission, mutate tensor/model state, authorize SET/SET_HASH or compute, or
+publish successful execution authority. After sealing, activation independently
+verifies the complete admission and live identities before mutation. Atomic
+single-use consumption remains immediately before authenticated execution.
+Mismatch between logical expectation and physical observation aborts without
+execution.
+
+This is an in-scope L66 semantic correction, not a new milestone. Use explicit
+logical-expected and physical-observed census types/names, focused lifecycle and
+refusal checks, and the already-required real two-host fixture. No stories,
+model, production, cache-matrix, or performance work is authorized.
