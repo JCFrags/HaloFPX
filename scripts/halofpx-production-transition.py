@@ -2534,16 +2534,30 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             child_env["HALOFPX_CHANNEL_KEY_SHA256"] = str(prepared["sha256"])
         controller.shutdown()
         child = subprocess.Popen(maintenance_command, env=child_env)
+        wait_failure: BaseException | None = None
         try:
             returncode = child.wait()
-        except BaseException:
+        except BaseException as exc:
             child.terminate()
             try:
                 child.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 child.kill()
                 child.wait()
-            raise
+            wait_failure = exc
+            returncode = -1
+        server_authority_failure = None
+        if (
+            manifest is not None
+            and manifest.get("milestone") ==
+                "l77-primary-distributed-state-correctness"
+        ):
+            server_authority_failure = server_authority_cleanup_boundary(
+                manifest, prepared, args.evidence_dir, selected_runner)
+        if wait_failure is not None:
+            raise wait_failure
+        if server_authority_failure is not None:
+            raise TransitionError(server_authority_failure)
         if returncode != 0:
             raise TransitionError(f"maintenance command exited {returncode}")
         final = controller.recover()
