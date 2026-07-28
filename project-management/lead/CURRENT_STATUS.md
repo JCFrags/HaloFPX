@@ -54,11 +54,19 @@ caller-owned harvesting path could retain it. Separately, custody failed
 because the controller derived a nimo-2 helper path and executed it on nimo-1;
 this was a wrong-host path, not stale bytes.
 
-L81 is active to durably expose the existing bounded postcompute branch result
-and explicitly bind the harvester to the worker source/hash. After offline
-branch/custody fixtures and review, one primary attempt may run: warmup failure
-stops with the exact branch, while warmup success continues directly into the
-one-token correctness discriminator.
+L81 closed NOT PROMOTED at terminal evidence commit
+`d41441864e1fc3ab2b32713c93be341de96cc2bb`. Its durable discriminator and
+worker-side custody correction passed focused and independent review. The sole
+primary attempt stopped at warmup with authenticated server terminal branch 3:
+`ADMISSION_ACCEPTED -> ABORT`, reason `WRONG_ALLOCATION_EPOCH`, before physical
+prepare or execute. The allocation epoch advanced when buffer allocation/free
+occurred while the mutable session was admitted. No workload, capture, restore,
+or cache conclusion exists; custody and recovery passed.
+
+L82 is active to classify those post-admission allocations as execution-local
+or protected persistent topology and implement the smallest correction that
+preserves fail-closed epoch invalidation. One primary attempt is permitted only
+after a real no-model composed success/refusal fixture and independent review.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

@@ -1914,3 +1914,38 @@ branch; warmup success proceeds in the same attempt to the existing one-token
 fresh-residency correctness discriminator. No production cache enablement,
 server composition, performance work, tuning, semantic correction, extra
 attempt, or automatic follow-on is authorized.
+
+## 2026-07-28 — accept L81 exact refusal and open L82 allocation-epoch semantics
+
+Decision: accept L81 terminal NOT PROMOTED at
+`d41441864e1fc3ab2b32713c93be341de96cc2bb`. Retain its reviewed durable
+failure discriminator and corrected server-authority custody mechanics. Open
+L82 to classify and correct the exact admitted-session allocation-topology
+epoch rollover. Permit one primary attempt only after focused and real
+no-model lifecycle qualification.
+
+Reason: authenticated server authority proves
+`ADMISSION_ACCEPTED -> ABORT` with reason `WRONG_ALLOCATION_EPOCH`, zero
+execute receipt, and no physical prepare or backend execution. Exact source
+increments `allocation_topology_epoch` and aborts an admitted session on buffer
+allocation/free. The real primary lifecycle performs such an operation after
+admission. This is the first exact semantic boundary; L81 supports no cache
+correctness conclusion.
+
+L82 must prove which post-admission operations are scheduler execution-local
+versus persistent model/state topology. Its correction may reorder sealing
+after protected allocation or separate proven execution-local identity from
+the protected epoch, but immutable accepted admission and exact epoch checks at
+prepare/execute must remain. It may not suppress epoch increments broadly,
+make refusal advisory, or tolerate unexpected persistent allocation/free.
+
+Focused persistent/transient, free, wrong-epoch, overflow, duplicate/conflict,
+and cross-session checks plus one real two-process Linux no-model composed
+success and unexpected-topology refusal are sufficient. Feature-off inertness,
+required builds, L81/L76 evidence behavior, and one independent review are
+required. Do not repeat broad authority matrices.
+
+Only after those gates may one primary attempt run with the existing warmup
+kill gate and, on warmup success, continue to the one-token fresh-residency
+correctness discriminator. No production cache enablement, server composition,
+performance work, tuning, extra attempt, or automatic follow-on is authorized.
