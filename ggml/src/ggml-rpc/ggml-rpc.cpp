@@ -1905,36 +1905,66 @@ static bool hfx_preexecute_requested() {
     return value != nullptr && std::strcmp(value, "1") == 0;
 }
 
-static bool hfx_preexecute_publish(
-        const hfx_preexecute_recorder & recorder,
-        const std::vector<std::string> & records) {
-    const char * path = std::getenv("HALOFPX_PREEXECUTE_AUTHORITY_PATH");
-    if (path == nullptr || path[0] != '/' || std::strstr(path, "..") != nullptr ||
-        records.empty()) return false;
-    const int directory = open(path, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
-    if (directory < 0) return false;
-    struct stat directory_stat {};
-    if (fstat(directory, &directory_stat) != 0 || !S_ISDIR(directory_stat.st_mode) ||
-        directory_stat.st_uid != geteuid() || (directory_stat.st_mode & 0022) != 0) {
-        close(directory);
-        return false;
-    }
-    const std::string identity =
-        hfx_hex(recorder.attempt_nonce.data(), recorder.attempt_nonce.size()) + "-" +
+struct hfx_preexecute_publication {
+    std::string final_path;
+    hfx_digest payload_sha256 {};
+    int error_number = 0;
+};
+
+static std::string hfx_preexecute_authority_identity(
+        const hfx_preexecute_recorder & recorder) {
+    return hfx_hex(recorder.attempt_nonce.data(), recorder.attempt_nonce.size()) + "-" +
         std::to_string(recorder.generation) + "-" +
         std::to_string(recorder.client_connection_epoch) +
         (recorder.role == hfx_preexecute_recorder::SERVER ? "-server" : "");
+}
+
+static bool hfx_preexecute_publish(
+        const hfx_preexecute_recorder & recorder,
+        const std::vector<std::string> & records,
+        hfx_preexecute_publication * publication = nullptr) {
+    const char * path = std::getenv("HALOFPX_PREEXECUTE_AUTHORITY_PATH");
+    std::string payload;
+    for (const auto & record : records) payload += record;
+    const std::string identity = hfx_preexecute_authority_identity(recorder);
     const std::string final_name = identity + ".authority";
+    if (publication != nullptr) {
+        publication->final_path =
+            path != nullptr ? std::string(path) + "/" + final_name : std::string();
+        publication->payload_sha256 = hfx_sha256(payload.data(), payload.size());
+        publication->error_number = 0;
+    }
+    const auto fail = [&](int error_number) {
+        if (publication != nullptr) {
+            publication->error_number = error_number != 0 ? error_number : EIO;
+        }
+        return false;
+    };
+    const char * injection = std::getenv("HALOFPX_PREEXECUTE_PUBLISH_INJECT");
+    if (recorder.role == hfx_preexecute_recorder::SERVER &&
+        injection != nullptr && std::strcmp(injection, "server") == 0) {
+        return fail(EIO);
+    }
+    if (path == nullptr || path[0] != '/' || std::strstr(path, "..") != nullptr ||
+        records.empty()) return fail(EINVAL);
+    const int directory = open(path, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
+    if (directory < 0) return fail(errno);
+    struct stat directory_stat {};
+    if (fstat(directory, &directory_stat) != 0 || !S_ISDIR(directory_stat.st_mode) ||
+        directory_stat.st_uid != geteuid() || (directory_stat.st_mode & 0022) != 0) {
+        const int error_number = errno != 0 ? errno : EPERM;
+        close(directory);
+        return fail(error_number);
+    }
     const std::string temporary_name =
         "." + identity + "." + std::to_string(static_cast<uint64_t>(getpid())) + ".tmp";
     const int fd = openat(directory, temporary_name.c_str(),
         O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0600);
     if (fd < 0) {
+        const int error_number = errno;
         close(directory);
-        return false;
+        return fail(error_number);
     }
-    std::string payload;
-    for (const auto & record : records) payload += record;
     const uint64_t expected_size = payload.size();
     bool valid = hfx_write_all(fd, payload.data(), payload.size());
     struct stat written {};
@@ -1994,8 +2024,9 @@ static bool hfx_preexecute_publish(
         unlinkat(directory, temporary_name.c_str(), 0);
         fsync(directory);
     }
+    const int error_number = valid ? 0 : (errno != 0 ? errno : EIO);
     close(directory);
-    return valid;
+    return valid ? true : fail(error_number);
 }
 
 enum hfx_server_event_type : uint32_t {
@@ -2118,7 +2149,22 @@ static bool hfx_server_emit(
                 "|tag=" + hfx_hex(tag.data(), tag.size()) + "\n");
             chain = tag;
         }
-        if (!hfx_preexecute_publish(*recorder, pending)) return false;
+        hfx_preexecute_publication publication {};
+        const bool published =
+            hfx_preexecute_publish(*recorder, pending, &publication);
+        GGML_LOG_INFO(
+            "[halofpx-preexecute-server-publication] status=%s attempt=%s admission=%s "
+            "sequence=%" PRIu64 " split_uid=%" PRIu64 " split_ordinal=%u backend=%u "
+            "path=%s sha256=%s errno=%d\n",
+            published ? "present" : "error",
+            hfx_hex(recorder->attempt_nonce.data(), 32).c_str(),
+            hfx_hex(recorder->admission_object_id.data(), 32).c_str(),
+            recorder->execution_sequence, recorder->split_uid,
+            recorder->split_ordinal, recorder->backend_ordinal,
+            publication.final_path.c_str(),
+            hfx_hex(publication.payload_sha256.data(), 32).c_str(),
+            publication.error_number);
+        if (!published) return false;
     }
     recorder->event_sequence = events.size();
     recorder->chain = chain;

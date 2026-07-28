@@ -1,0 +1,49 @@
+{
+  "schema": "halofpx.l75.terminal-receipt.v1",
+  "milestone": "L75",
+  "result": "NOT_PROMOTED",
+  "base_head": "2c6c39c5b9e01baa945bc81151b0a51211817ed3",
+  "source_retained": true,
+  "source_sha256": {
+    "ggml/src/ggml-rpc/ggml-rpc.cpp": "d1bbc663cb43d83af38c543f6ee7dc54693844d47bebd79d14beccf7116fa48e",
+    "scripts/halofpx-production-transition.py": "2cc8cd30a32256201fbcf5e8d33b478db1bd45dccb10e328b5d8e18e4218666c",
+    "scripts/halofpx_server_authority_harvest.py": "a3b3b6f851a1a261a6473c679bad3b54da5dbcafe323ef91f4aa2b27ae7e0a3d",
+    "tests/test_halofpx_l75_server_authority_harvest.py": "2a3c3beaa3882e4ea4c65ca79f0861943af567dde9fd25ea9df6eba00eaf0dbc"
+  },
+  "focused_tests": {
+    "l75_server_authority_harvest": {
+      "passed": 8,
+      "failed": 0
+    },
+    "production_transition": {
+      "passed": 46,
+      "subtests_passed": 11,
+      "failed": 0
+    }
+  },
+  "linux_helper_success": {
+    "status": "present",
+    "records": 6,
+    "terminal_branch": 1,
+    "bytes": 4200,
+    "sha256": "4e0c941ef90c282f3ab9a991aabf62a9e6b1302b8b0dc49aecca2bd62fce64ce",
+    "source_mode": "0400",
+    "staging_mode": "0600"
+  },
+  "feature_off_build": {
+    "target": "rpc-server",
+    "status": "pass",
+    "sha256": "193bd2af5e16ca66dc802de971c2047f93331dfebf276ecc3b5c94f156076aa6"
+  },
+  "independent_review": {
+    "verdict": "PASS",
+    "p1": 0,
+    "p2": 0
+  },
+  "promotion_gap": "No new real Linux server-handler publication/harvest fixture: local feature-on toolchain unavailable and production access prohibited.",
+  "production": {
+    "accessed": false,
+    "mutated": false
+  },
+  "stories_or_model_run": false
+}

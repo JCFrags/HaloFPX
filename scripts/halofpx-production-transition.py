@@ -852,6 +852,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "l61-host-bound-response-discriminator",
         "l68-stories15m-vertical-slice",
         "l69-stories15m-feature-on-replacement",
+        "l75-server-authority-harvest",
     }
     primary = l29 or l31 or l33 or l36
     if l48:
@@ -910,6 +911,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 "l61-host-bound-response-discriminator",
                 "l68-stories15m-vertical-slice",
                 "l69-stories15m-feature-on-replacement",
+                "l75-server-authority-harvest",
             }
             else "l36-primary-replay-authority-discriminator" if l36
             else "l33-primary-live-state-discriminator" if l33
@@ -1992,6 +1994,242 @@ def verify_l48_child_result(
     return payload
 
 
+SERVER_PUBLICATION_PREFIX = "[halofpx-preexecute-server-publication] "
+SERVER_PUBLICATION_FIELDS = {
+    "status", "attempt", "admission", "sequence", "split_uid",
+    "split_ordinal", "backend", "path", "sha256", "errno",
+}
+
+
+def _server_publications(evidence_root: Path) -> list[dict[str, str]]:
+    publications: list[dict[str, str]] = []
+    for journal in sorted((evidence_root / "child").glob("*-journal.txt")):
+        for line in journal.read_text(encoding="utf-8").splitlines():
+            marker = line.find(SERVER_PUBLICATION_PREFIX)
+            if marker < 0:
+                continue
+            fields = dict(
+                token.split("=", 1)
+                for token in line[marker + len(SERVER_PUBLICATION_PREFIX):].split()
+            )
+            if set(fields) != SERVER_PUBLICATION_FIELDS:
+                raise TransitionError("server publication journal field set mismatch")
+            if (
+                fields["status"] not in {"present", "error"}
+                or re.fullmatch(r"[0-9a-f]{64}", fields["attempt"]) is None
+                or re.fullmatch(r"[0-9a-f]{64}", fields["admission"]) is None
+                or re.fullmatch(r"[0-9a-f]{64}", fields["sha256"]) is None
+                or not all(fields[name].isdecimal() for name in (
+                    "sequence", "split_uid", "split_ordinal", "backend", "errno"))
+                or not fields["path"].startswith("/var/tmp/halofpx-l48-worker/")
+                or ".." in fields["path"]
+                or re.fullmatch(
+                    re.escape(fields["attempt"]) +
+                    r"-[0-9]+-[0-9]+-server\.authority",
+                    Path(fields["path"]).name,
+                ) is None
+            ):
+                raise TransitionError("server publication journal identity mismatch")
+            publications.append(fields)
+    return publications
+
+
+def harvest_server_authority_finally(
+    manifest: dict[str, object],
+    prepared: dict[str, object],
+    evidence_root: Path,
+    runner: Runner,
+) -> dict[str, object]:
+    """Quiesce, authenticate and retain server authority before key/path cleanup."""
+    result: dict[str, object] = {
+        "schema": "halofpx.l75.server-authority-finally.v1",
+        "status": "error",
+        "cleanup_order": [
+            "quiesce_server", "derive_expected_identity",
+            "authenticate_remote", "retain_local", "cleanup_key_and_paths",
+        ],
+        "attempts": [],
+    }
+    status_path = evidence_root / "server-authority-harvest.json"
+    try:
+        host = str(manifest["worker_host"])
+        for unit in manifest["worker_units"]:
+            observed = runner.run(
+                host,
+                ["systemctl", "--user", "show", str(unit),
+                 "-p", "ActiveState", "-p", "SubState", "-p", "MainPID"],
+                operation="evidence",
+            )
+            props = _parse_properties(observed.stdout)
+            if observed.returncode != 0 or props != {
+                "ActiveState": "inactive", "SubState": "dead", "MainPID": "0",
+            }:
+                raise TransitionError(f"server not quiesced before harvest: {unit}")
+        publications = _server_publications(evidence_root)
+        if not publications:
+            result["status"] = "missing"
+            result["reason"] = "publication_journal_missing"
+            _atomic_json(status_path, result)
+            return result
+        retained_dir = evidence_root / "server-authority"
+        retained_dir.mkdir()
+        if os.name == "posix":
+            retained_dir.chmod(0o700)
+        attempts: list[dict[str, object]] = []
+        helper = str(manifest["executables"]["readiness"]).rsplit("/", 1)[0] + \
+            "/halofpx_server_authority_harvest.py"
+        local_helper = Path(__file__).with_name(
+            "halofpx_server_authority_harvest.py")
+        expected_helper_hash = hashlib.sha256(local_helper.read_bytes()).hexdigest()
+        remote_helper_hash = runner.run(
+            host, ["sha256sum", "--", helper], operation="hash")
+        if (
+            remote_helper_hash.returncode != 0
+            or not remote_helper_hash.stdout.split()
+            or remote_helper_hash.stdout.split()[0] != expected_helper_hash
+        ):
+            raise TransitionError("server authority harvester source identity mismatch")
+        key_file = str(manifest["key_paths"][host])
+        for fields in publications:
+            attempt: dict[str, object] = {"journal": fields}
+            if fields["status"] != "present":
+                attempt.update(status="missing", reason="publication_failed")
+                attempts.append(attempt)
+                continue
+            staging = str(Path(fields["path"]).parent / (
+                "." + Path(fields["path"]).name + ".harvest"))
+            command = [
+                "python3", helper, "--source", fields["path"],
+                "--staging", staging, "--key-file", key_file,
+                "--expected-owner", CHANNEL_KEY_OWNER,
+                "--expected-attempt", fields["attempt"],
+                "--expected-admission", fields["admission"],
+                "--expected-sequence", fields["sequence"],
+                "--expected-split-uid", fields["split_uid"],
+                "--expected-split-ordinal", fields["split_ordinal"],
+                "--expected-backend", fields["backend"],
+                "--expected-sha256", fields["sha256"],
+                "--expected-key-sha256", str(prepared["sha256"]),
+            ]
+            captured = runner.run(host, command, operation="evidence")
+            try:
+                capture = json.loads(captured.stdout)
+            except json.JSONDecodeError as exc:
+                raise TransitionError("server authority harvester output malformed") from exc
+            attempt["remote_capture"] = capture
+            if captured.returncode != 0 or capture.get("status") != "present":
+                attempt.update(
+                    status=str(capture.get("status", "error")),
+                    reason=str(capture.get("reason", "capture_failed")),
+                )
+                attempts.append(attempt)
+                continue
+            encoded = runner.run(
+                host, ["base64", "-w", "0", "--", staging], operation="evidence")
+            if encoded.returncode != 0:
+                attempt.update(status="error", reason="retained_copy_read")
+                attempts.append(attempt)
+                continue
+            try:
+                import base64
+                data = base64.b64decode(encoded.stdout, validate=True)
+            except ValueError:
+                attempt.update(status="error", reason="retained_copy_decode")
+                attempts.append(attempt)
+                continue
+            if hashlib.sha256(data).hexdigest() != fields["sha256"]:
+                attempt.update(status="error", reason="retained_copy_hash")
+                attempts.append(attempt)
+                continue
+            local = retained_dir / Path(fields["path"]).name
+            if local.exists():
+                attempt.update(status="error", reason="retained_collision")
+                attempts.append(attempt)
+                continue
+            temporary = retained_dir / ("." + local.name + ".pending")
+            fd = os.open(
+                temporary,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                getattr(os, "O_BINARY", 0),
+                0o600,
+            )
+            try:
+                offset = 0
+                while offset < len(data):
+                    written = os.write(fd, data[offset:])
+                    if written <= 0:
+                        raise OSError("short retained write")
+                    offset += written
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+            try:
+                os.link(temporary, local)
+            except FileExistsError:
+                temporary.unlink(missing_ok=True)
+                attempt.update(status="error", reason="retained_collision")
+                attempts.append(attempt)
+                continue
+            temporary.unlink()
+            if os.name == "posix":
+                directory_fd = os.open(retained_dir, os.O_RDONLY)
+                try:
+                    os.fsync(directory_fd)
+                finally:
+                    os.close(directory_fd)
+            reopened = local.read_bytes()
+            if reopened != data:
+                attempt.update(
+                    status="error", reason="retained_reopen",
+                    retained_bytes=len(reopened), expected_bytes=len(data),
+                    retained_sha256=hashlib.sha256(reopened).hexdigest(),
+                )
+                attempts.append(attempt)
+                continue
+            removed = runner.run(
+                host, ["rm", "--", fields["path"], staging], operation="cleanup")
+            if removed.returncode != 0:
+                attempt.update(status="error", reason="verified_original_cleanup")
+                attempts.append(attempt)
+                continue
+            attempt.update(
+                status="present", reason="authenticated_and_retained",
+                retained_path=str(local), retained_sha256=fields["sha256"],
+                bytes=len(data),
+            )
+            attempts.append(attempt)
+        result["attempts"] = attempts
+        result["status"] = (
+            "present" if attempts and
+            all(item["status"] == "present" for item in attempts) else "error")
+        result["reason"] = (
+            "all_authenticated_and_retained"
+            if result["status"] == "present" else "attempt_harvest_failure")
+    except Exception as exc:
+        result["status"] = "error"
+        result["reason"] = str(exc)
+    _atomic_json(status_path, result)
+    return result
+
+
+def server_authority_cleanup_boundary(
+    manifest: dict[str, object],
+    prepared: dict[str, object],
+    evidence_root: Path,
+    runner: Runner,
+) -> str | None:
+    """Convert every harvest/durability failure into cleanup evidence."""
+    try:
+        harvest = harvest_server_authority_finally(
+            manifest, prepared, evidence_root, runner)
+        return (
+            None if harvest["status"] == "present"
+            else f"server-authority:{harvest.get('reason')}"
+        )
+    except Exception as exc:
+        return f"server-authority-record:{exc}"
+
+
 def l29_capacity_preflight(
         manifest: dict[str, object], runner: Runner, evidence_root: Path) -> dict[str, object]:
     if manifest.get("schema") not in {
@@ -2219,6 +2457,14 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
                     except subprocess.TimeoutExpired:
                         child.kill()
                         child.wait()
+                if (
+                    prepared is not None
+                    and manifest.get("milestone") == "l75-server-authority-harvest"
+                ):
+                    failure = server_authority_cleanup_boundary(
+                        manifest, prepared, args.evidence_dir, selected_runner)
+                    if failure is not None:
+                        cleanup_failures.append(failure)
                 if controller.key_digest is not None:
                     try:
                         controller.cleanup_keys()
