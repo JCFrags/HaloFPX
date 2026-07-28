@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-28T12:35:58-07:00",
+  "updated_at": "2026-07-28T13:37:42-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l86_typed_projection_failure_export",
+  "worker_status": "active_l87_rpc_census_local_destination_filter",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "6f1f962ae0cb5670e727d4b2bfdbbcc462649f91",
-  "last_observed_milestone": "L85 NOT PROMOTED; resolved-storage source retained, primary refused pre-admission, but scheduler rollback lost the candidate and emitted typed_reason=0",
-  "last_decision": "open_l86_preserved_typed_projection_candidate_export_plus_one_warmup_only_discriminator",
-  "last_progress": "L86 is making exact projection failure identity survive census rollback, retaining reproducible offline receipts, then running one warmup-only discriminator",
+  "last_verified_head": "4c77d7af13ae03b425ccf32377af7e8bc1024aa8",
+  "last_observed_milestone": "L86 NOT PROMOTED; exact typed failure is legitimate local backend1 selected-KV root included in RPC census and rejected WRONG_DESTINATION_BACKEND before admission",
+  "last_decision": "open_l87_filter_non_rpc_destinations_from_rpc_census_then_one_gated_primary_correctness_attempt",
+  "last_progress": "L87 is preserving local graph entries outside RPC census and keeping strict storage/socket checks for RPC entries before no-model review and one primary attempt",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "direct L86 semantic blocker, unsafe production uncertainty, or terminal reviewed report to current manager task; no periodic polling"
+  "next_check_trigger": "direct L87 semantic blocker, unsafe production uncertainty, or terminal reviewed report to current manager task; no periodic polling"
 }

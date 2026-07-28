@@ -2132,3 +2132,38 @@ performance work, tuning, extra attempt, or automatic follow-on is authorized.
 Preserve all L83/L85 evidence directories. Exact reproducible local L85 source
 archive and build directories may be removed only after workspace/reference
 validation; no other deletion is authorized.
+
+## 2026-07-28 — accept L86 exact local candidate and open L87 RPC filtering
+
+Decision: accept L86 terminal NOT PROMOTED at
+`4c77d7af13ae03b425ccf32377af7e8bc1024aa8` and retain its reviewed typed
+diagnostic source. Accept the recovered production authority recorded in
+current status. Open L87 to exclude legitimate non-RPC destination candidates
+from the RPC admission/L44 census, then run one gated primary attempt that may
+continue to correctness on warmup success.
+
+Reason: L86 identifies backend 1 candidate 487 as a local mutable root,
+selected-KV role 11/ordinal 64, rejected as
+`WRONG_DESTINATION_BACKEND` before storage resolution. The canonical census is
+consumed only for RPC admission and L44 iteration, but its builder currently
+includes roots/copies for local backends. The resolver then correctly rejects
+the local destination because it is not in the authenticated RPC backend set.
+
+L87 must filter only candidates whose declared destination is non-RPC before
+RPC census sealing. Local graph execution remains unchanged. Candidates that
+claim an RPC destination may not be dropped and must retain strict resolved
+storage/backend/endpoint/device/socket and conflict checks. Mixed local/RPC,
+root/copy, falsely RPC-targeted storage, root/count equality, two-session,
+feature-on/off, real no-model success/refusal, and one independent review are
+sufficient.
+
+After those gates, one primary attempt may run. Warmup failure stops with exact
+typed evidence. Warmup success continues in the same attempt to residency-A
+reference/capture and fresh-residency-B one-token restore. Acceptance requires
+exact token/state equality, zero legacy state-page GET/SET, accepted client/
+server custody, cleanup, and recovery. No retry, runtime correction,
+server-abort change, production cache enablement, server composition,
+performance work, tuning, or automatic follow-on is authorized.
+
+Preserve evidence directories. Only the two exact reproducible L86 source
+archives may be removed after validation.
