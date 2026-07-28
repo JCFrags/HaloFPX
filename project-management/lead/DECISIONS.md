@@ -1437,3 +1437,28 @@ retry, or production mutation is authorized. A source-proven mechanical
 integration correction may remain inside L68 after focused checks; a semantic
 correctness/security defect or ambiguous runtime result must stop for a
 separate decision.
+
+## 2026-07-28 — accept L68 refusal and correct expected-census ordering once
+
+Decision: accept L68 terminal NOT PROMOTED at
+`91e9761b09ca39786b5d1394f308412bab45041d`. Open L69 only to install the
+sealed admission's authenticated expected census counts before registration
+begins, then run one deferred feature-on Stories15M replacement.
+
+Reason: L68's feature-off control completed deterministically with token
+`29916` (`x`) and empty authority. Feature-on reached real L42/L44 setup and
+registered 11 roots plus 36 exclusions, but failed before authenticated
+execute. Both sides then refused terminal publication because expected counts
+were still `0/0`; source installs them only after prepare succeeds. This is a
+proven ordering defect that erased the primary refusal, not a reason to reopen
+the whole foundation.
+
+L69 must source expected counts from the sealed admission before the first
+registration/exclusion event, never infer them from observed counts, and keep
+the exact grammar unchanged. One focused no-model abort after complete
+registration but before prepare plus a wrong-expectation refusal and focused
+source review qualify the correction. Reuse the accepted L68 feature-off
+control. Exactly one identical feature-on replacement is authorized. If it
+fails after retaining terminal evidence, stop at the newly classified cause.
+No broad abort matrix, feature-off repeat, cache work, primary model, tuning,
+performance claim, repeated retry, or production mutation is authorized.

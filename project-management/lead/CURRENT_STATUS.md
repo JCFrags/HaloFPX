@@ -302,16 +302,29 @@ independent read-only specialists are auditing graph-input coverage and
   path. It reuses accepted evidence and prohibits cache capture/restore, primary
   model work, broad matrices, tuning, performance claims, and production
   mutation.
+- L68 closed NOT PROMOTED at
+  `91e9761b09ca39786b5d1394f308412bab45041d`. Its feature-off Stories15M
+  control was deterministic and inert (token `29916`, output `x`), while the
+  feature-on path reached real L42/L44 setup and the complete logical census but
+  failed before authenticated execute. Exact evidence proves the abort recorder
+  still held expected census counts `0/0` because they were installed only
+  after prepare; terminal publication therefore refused and the primary cause
+  remained ambiguous. Production was unchanged.
+- L69 is active only to install the sealed admission's authenticated expected
+  census counts before registration begins, prove the pre-prepare abort
+  terminalizes without weakening grammar, and consume one replacement
+  feature-on Stories15M run. The accepted L68 feature-off control is reused and
+  will not be repeated.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `38c7d4ad7802116daac83e3927a1e1ea42fec8c9`
+- Latest verified commit: `91e9761b09ca39786b5d1394f308412bab45041d`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L67 closeout when L68 opened
-- Primary worker: L68 task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Worktree state: clean at the reviewed terminal L68 closeout when L69 opened
+- Primary worker: L69 task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record

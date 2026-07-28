@@ -6,16 +6,16 @@
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l68_stories15m_product_path_vertical_slice",
+  "worker_status": "active_l69_expected_census_ordering_and_one_feature_on_replacement",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "38c7d4ad7802116daac83e3927a1e1ea42fec8c9",
-  "last_observed_milestone": "L67 PASS; retained default-off ADR-0049 foundation accepted with no remaining review P1/P2",
-  "last_decision": "accept_l67_and_open_one_matched_stories15m_real_model_vertical_slice",
-  "last_progress": "L68 is qualifying one matched feature-off control and one feature-on disposable Stories15M request through authenticated execute and return",
+  "last_verified_head": "91e9761b09ca39786b5d1394f308412bab45041d",
+  "last_observed_milestone": "L68 terminal NOT PROMOTED; feature-off passed, feature-on refusal remained ambiguous because abort expected census counts were installed too late",
+  "last_decision": "accept_l68_and_open_one_expected_census_ordering_correction_with_feature_on_replacement",
+  "last_progress": "L69 is moving authenticated expected census installation before registration, qualifying one pre-prepare abort, and reusing the L68 off control for one feature-on replacement",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "direct L68 blocker, unsafe or production uncertainty, requested decision, or terminal report to current manager task; no periodic polling"
+  "next_check_trigger": "direct L69 blocker, unsafe or production uncertainty, requested decision, or terminal report to current manager task; no periodic polling"
 }
