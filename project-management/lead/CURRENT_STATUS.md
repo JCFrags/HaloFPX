@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 15:06 PDT
+Verified: 2026-07-28 16:04 PDT
 
 ## Overall state
 
@@ -150,14 +150,28 @@ InvocationID `aa2676e5efc043f1915ffdfb4e905b7c`, `NRestarts=0`, port 8081/
 HTTP 200; nimo-2 worker PID `2052134`, InvocationID
 `9c4635752e024bb7a7c8eef893e0f4ef`, `NRestarts=0`, port 50052.
 
-L89 is active as a narrow response-boundary authority correction. It must
-first prove event ownership from exact source. Only a source-proven late client
-production may pair the exact two client events with a complete authenticated
-seven-stage server success and closed cross-bindings; generic suffix/prefix
-acceptance is forbidden. After focused offline/no-model qualification and
-independent review, one primary attempt may continue to the existing
-two-residency one-token correctness discriminator. No retry or broader product,
-performance, or production-cache work is authorized.
+L89 closed NOT PROMOTED at
+`8c71aab90e8fdec124bbd593eb53c08ec54b2861`. Its independently reviewed
+response-boundary correction is retained. Exact source proves the late client
+stream owns `client_decode -> client_receipt_validation`; acceptance now
+requires a simultaneous complete authenticated seven-stage server success and
+exact shared-identity binding. Focused, feature-on/off, and real two-host
+no-model gates passed. The sole primary transition stopped before model launch
+because a stale disposable L48 unit was loaded `active/exited` with MainPID 0.
+No model, token, capture, restore, or cache conclusion exists. Cleanup removed
+the stale unit and all L48/L89 disposable state.
+
+Production recovered healthy and unique: nimo-1 coordinator PID `2870733`,
+InvocationID `1c2ffb21b93d47ae86e416e5582e575c`, `NRestarts=0`, port 8081/
+HTTP 200; nimo-2 worker PID `2065665`, InvocationID
+`2d2d446beb3f433e8cf3ae92f0db16e7`, `NRestarts=0`, port 50052.
+
+L90 is active. Its only prerequisite is an exact disposable-unit/path
+reconciliation before production shutdown: safely unload a proven inert
+expected disposable or refuse any active/unknown/ambiguous ownership. After
+focused ordering tests and review, exactly one replacement primary
+correctness attempt is authorized using the retained L89 response semantics.
+No retry or broader product/performance work is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

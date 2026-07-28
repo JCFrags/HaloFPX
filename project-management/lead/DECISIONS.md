@@ -2165,6 +2165,37 @@ server custody, cleanup, and recovery. No retry, runtime correction,
 server-abort change, production cache enablement, server composition,
 performance work, tuning, or automatic follow-on is authorized.
 
+## 2026-07-28 — accept L89 and open L90 pre-mutation disposable reconciliation
+
+Decision: accept L89 terminal NOT PROMOTED at
+`8c71aab90e8fdec124bbd593eb53c08ec54b2861` and retain its independently
+reviewed paired response-boundary correction. Open L90 for one replacement
+primary correctness attempt after a single controller-mechanics prerequisite.
+
+Reason: L89 proved and qualified the exact response ownership contract, but
+its transition stopped before model launch because a stale disposable L48 unit
+was loaded `active/exited` with no process. The guard behaved safely; cleanup
+subsequently proved the unit and all disposable state absent. This consumed no
+model/cache evidence and does not justify reopening response semantics.
+
+Before production shutdown or transition consumption, L90 must reconcile the
+closed disposable L48/L89/L90 unit/path set. It may unload only an exact,
+expected inactive/exited disposable with no PID, process, listener, live
+reference, or ownership ambiguity, then must re-prove absence. Active,
+unknown, near-name, referenced, or ambiguous state refuses before mutation.
+Focused tests must prove stale-unit cleanup, genuine-active refusal, unknown
+refusal, idempotent absence, and ordering before production shutdown; one
+independent review is sufficient.
+
+After those gates, exactly one primary attempt may run using the accepted L89
+response contract. Warmup success continues to residency-A reference/capture
+and fresh-residency-B one-token restore. Acceptance requires exact token/state
+equality, zero legacy state-page GET/SET, complete client/server authority and
+custody, bounded cleanup, worker-first/coordinator-second recovery, and exact
+final production reconciliation. No retry, broad matrix, server-abort change,
+production cache enablement, server composition, performance work, tuning, or
+automatic follow-on is authorized.
+
 Preserve evidence directories. Only the two exact reproducible L86 source
 archives may be removed after validation.
 

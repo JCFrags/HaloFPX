@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-28T15:06:48-07:00",
+  "updated_at": "2026-07-28T16:04:09-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l89_paired_response_boundary_authority",
+  "worker_status": "active_l90_pre_mutation_disposable_reconciliation_then_primary_correctness",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "a546ca48c6d997f145ff42be3adcd34adf658d1d",
-  "last_observed_milestone": "L88 NOT PROMOTED; reviewed capacity correction retained, first 512-token primary decode and full server success passed, then verifier rejected the authenticated two-event late client stream before capture/restore",
-  "last_decision": "open_l89_source_proven_exact_late_client_full_server_paired_response_authority_then_one_correctness_attempt",
-  "last_progress": "L89 is proving response-event ownership and qualifying an exact paired late-client plus complete-server success production before any single primary correctness attempt",
+  "last_verified_head": "8c71aab90e8fdec124bbd593eb53c08ec54b2861",
+  "last_observed_milestone": "L89 NOT PROMOTED; paired response authority passed review and no-model qualification, but a stale active/exited disposable L48 unit stopped the sole transition before model launch",
+  "last_decision": "open_l90_pre_mutation_exact_disposable_reconciliation_then_one_replacement_primary_correctness_attempt",
+  "last_progress": "L90 is qualifying exact stale-disposable reconciliation before production shutdown, then may run one primary capture/restore correctness attempt",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "direct L89 semantic blocker, unsafe production uncertainty, or terminal reviewed report to current manager task; no periodic polling"
+  "next_check_trigger": "direct L90 semantic blocker, unsafe production uncertainty, or terminal reviewed report to current manager task; no periodic polling"
 }
