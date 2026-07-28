@@ -1,0 +1,56 @@
+{
+  "milestone": "L65",
+  "result": "NOT_PROMOTED",
+  "base_commit": "54910a78fae5de586d918cb1252e5867749513b2",
+  "scope": "Rejected corrected ADR-0049 capability/lifecycle candidate; no stories15M, primary artifact, production mutation, cache matrix, or performance claim",
+  "candidate_removed": true,
+  "qualification_observation": {
+    "summary": "real_composed=1 recompute=1 concurrent=1 exact=1 uids=2/5/1 connection_epochs=9674925099687785/9674925099687785/5072607122197918 allocation_epochs=2/4/2",
+    "client_verifier": {
+      "status": "pass",
+      "records": 98,
+      "attempts": 3,
+      "terminal_attempts": 3,
+      "aborted_attempts": 0,
+      "transport_commands": 6
+    },
+    "feature_off": "feature_off_inert=1",
+    "compile_off": "rpc-server target built with GGML_RPC_HALOFPX_LOCAL_STATE=OFF"
+  },
+  "host_bound_harvest": {
+    "client": {
+      "bytes": 57624,
+      "sha256": "9eda4d3e74c7980c201252dd152d88a6a688f37184927294b42324cead51337c",
+      "owner": "connorb",
+      "mode": "0600"
+    },
+    "server_nimo2": {
+      "bytes": 1764,
+      "sha256": "a5bf6920293908e28ac9179310fa8a0adba090da8ed4b1e451b7a11260d86733",
+      "owner": "connorb",
+      "mode": "0600"
+    }
+  },
+  "review": {
+    "verdict": "FAIL",
+    "blockers": [
+      "unsupported version/capability refusal not retained as real qualification evidence",
+      "epoch invalidation refusal coverage incomplete",
+      "L42 verifier not independently bound to full handle/backend/split expectations and begin consumed before authentication",
+      "terminal grammar permissive and verifier accepted unterminated streams",
+      "transport matrix not retained with complete command and exit provenance",
+      "shared append publication lacked interprocess or unique-path collision authority",
+      "full refusal, inert-mode, harvesting, and evidence-set provenance package incomplete"
+    ]
+  },
+  "cleanup": {
+    "nimo1_named_units": "inactive",
+    "nimo2_named_units": "inactive",
+    "nimo1_l65_paths_absent": true,
+    "nimo2_l65_paths_absent": true
+  },
+  "production_after": {
+    "nimo1_coordinator": "active/running MainPID=2356329 NRestarts=0 port=8081 HTTP=200",
+    "nimo2_worker": "active/running MainPID=1535639 NRestarts=0 port=50052"
+  }
+}
