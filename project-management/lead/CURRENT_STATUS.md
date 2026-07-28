@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 18:00 PDT
+Verified: 2026-07-27 19:00 PDT
 
 ## Overall state
 
@@ -244,15 +244,24 @@ independent read-only specialists are auditing graph-input coverage and
   active only to authenticate the preceding L40/L42/L44 admission and
   graph-compute/recompute client decision, then run one first-chunk
   discriminator.
+- L62 closed NOT PROMOTED at
+  `76bae384139dbc083cea7a8fa4e26479a1219c2b` without consuming stories
+  runtime. Its proposed pre-execute diagnostic was removed after real
+  no-model composition failed at L44 mutable begin and review found synthetic
+  evidence, dishonest send-state semantics, an aliased connection epoch,
+  missing real L44 refusal authority, and process-global cardinality. L63 is
+  active as a source-native, attempt-scoped L40/L42/L44 lifecycle and honest
+  transport authority redesign. Stories runtime is conditional on a real
+  composed two-host fixture and independent review.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `b74170ec208f17001d12e8bb5278f67f75bb38ba`
+- Latest verified commit: `76bae384139dbc083cea7a8fa4e26479a1219c2b`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L61 closeout
+- Worktree state: clean at the reviewed terminal L62 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`

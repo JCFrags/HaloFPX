@@ -192,6 +192,30 @@ be repeated before one replacement first-chunk run. No semantic RPC/cache
 change, capture/restore matrix, primary access, production mutation, or
 performance work is authorized.
 
+## 2026-07-27 — reject L62 candidate and require real lifecycle authority
+
+Decision: accept terminal L62 NOT PROMOTED at
+`76bae384139dbc083cea7a8fa4e26479a1219c2b` with its candidate removed.
+Open L63 as a source-native, attempt-scoped redesign of real L44 lifecycle,
+L40/L42 pre-execute admission, and honest transport staging. Stories runtime
+is conditional on a real composed no-model fixture and independent review.
+
+Reason: L62 correctly stopped before model runtime. Its no-model fixture failed
+at mutable begin, while review established that the verifier relied on
+synthetic records, send failures were mislabeled as sent requests, connection
+epoch reused a graph/server nonce, actual L44 lifecycle refusals were absent,
+and process-global event cardinality could mix attempts. That evidence contract
+could not safely classify the real failure.
+
+L63 must emit records at the actual lifecycle and graph-compute seams, bind a
+real connection/allocation epoch and attempt identity, represent transport as
+explicit byte-progress/EOF/error stages, and enforce bounded per-attempt
+cardinality and concurrency isolation. A real two-host composed success plus
+material refusal and transport-failure paths must pass using L61 harvesting;
+synthetic record tests are supplementary only. One stories first chunk is
+authorized only after review accepts that foundation. No cache matrix, primary
+artifact, production mutation, or performance work is allowed.
+
 ## 2026-07-27 — accept L61 harvesting and move before authenticated execute
 
 Decision: accept terminal L61 NOT PROMOTED at

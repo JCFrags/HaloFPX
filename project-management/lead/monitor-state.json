@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-27T18:00:00-07:00",
+  "updated_at": "2026-07-27T19:00:00-07:00",
   "worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "prior_worker_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": "3fabb316-ad8a-45fc-856d-7cc903ae2bee:2",
-  "worker_status": "active_l62_pre_execute_admission_discriminator",
+  "worker_status": "active_l63_real_lifecycle_pre_execute_authority_redesign",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "b74170ec208f17001d12e8bb5278f67f75bb38ba",
-  "last_observed_milestone": "L61 terminal NOT PROMOTED; harvesting accepted and armed first-chunk failure proven to occur before authenticated RPC execute",
-  "last_decision": "accept_l61_and_open_l62_pre_execute_l40_l42_l44_admission_discriminator",
-  "last_progress": "L62 is authenticating the exact pre-execute admission/opcode/refusal decision and then running one first-chunk discriminator",
+  "last_verified_head": "76bae384139dbc083cea7a8fa4e26479a1219c2b",
+  "last_observed_milestone": "L62 terminal NOT PROMOTED pre-runtime; candidate removed after real fixture and review exposed non-reusable evidence semantics",
+  "last_decision": "accept_l62_rejection_and_open_l63_source_native_attempt_scoped_lifecycle_redesign",
+  "last_progress": "L63 is implementing real L44/graph-compute lifecycle events, honest transport stages, and a real composed two-host qualification before any stories run",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
-  "next_check_trigger": "direct L62 blocker or terminal report; no periodic polling"
+  "next_check_trigger": "direct L63 blocker or terminal report; no periodic polling"
 }
