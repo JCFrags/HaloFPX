@@ -86,10 +86,16 @@ InvocationID `037044282f2445d5814e44562858cec0`, port 8081, HTTP 200,
 units, commands, executable hashes, cgroups, and unique listeners reconcile
 with no continuing fault.
 
-One cleanup-only transition is active for four exact inert L83 staging
-artifacts under `/var/tmp`. It may not touch either production service or any
-other path. Project/model work remains stopped until exact absence and final
-health are confirmed.
+The four exact inert L83 staging artifacts were revalidated and removed.
+Exact absence passed, no other path or service was touched, and production
+remains byte-for-byte on the accepted authority above.
+
+L84 is active as read-only/offline diagnosis of the exact
+`l44_mutable_exclude_refused` census entry. It is tracing whether immutable
+weight ordinal 579 was already registered, projected through an alias/view,
+bound to the wrong RPC socket, or duplicated/conflicted by canonical census
+construction. No build, host/model access, source edit, or runtime attempt is
+authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

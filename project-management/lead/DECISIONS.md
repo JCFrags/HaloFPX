@@ -2038,3 +2038,28 @@ before removal. No glob or parent deletion is allowed.
 
 No service restart, counter reset, unit/configuration change, implementation
 work, model access, retry, or automatic follow-on is authorized.
+
+## 2026-07-28 — accept exact cleanup and open L84 exclusion diagnosis
+
+Decision: accept PASS for removal of the four exact L83 staging artifacts and
+final production reconciliation. Close the production safety hold. Open L84 as
+read-only/offline diagnosis of the exact backend-0 census-index-253 immutable
+weight exclusion refusal; no new primary attempt is authorized.
+
+Reason: every cleanup target was re-resolved and matched expected path, type,
+owner, mode, size, non-mount status, and absence of live references before
+literal deletion. Exact absence and depth-one scans passed. Production remains
+on the accepted PID/InvocationID/`NRestarts=1` baseline with unique listeners
+and HTTP 200.
+
+L84 must distinguish every `mutable_exclude()` refusal condition and reconstruct
+the canonical census entries that can share the entry's runtime tensor or
+stable identity. It must trace root/copy provenance, disposition, role/ordinal,
+view/storage ancestry, backend/socket selection, and L71 deduplication
+semantics using retained evidence and exact source. The local-only client
+abort/server teardown gap remains separate.
+
+If exact evidence is insufficient, L84 may specify one minimal offline
+metadata/census extraction or no-model discriminator. No source edit, build,
+host/model access, production mutation, runtime attempt, or automatic follow-on
+is authorized.
