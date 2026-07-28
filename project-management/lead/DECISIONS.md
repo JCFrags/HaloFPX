@@ -216,6 +216,30 @@ synthetic record tests are supplementary only. One stories first chunk is
 authorized only after review accepts that foundation. No cache matrix, primary
 artifact, production mutation, or performance work is allowed.
 
+## 2026-07-27 — accept ADR-0049 and implement the lifecycle foundation
+
+Decision: accept terminal L63 NOT PROMOTED at corrected exact HEAD
+`7628b7cd2ada0fc4d0262f94eaee59f3768a13b0` and accept ADR-0049 as the
+frozen design authority. Open L64 to implement and qualify the complete
+capability/lifecycle revision. Do not run stories15M in L64.
+
+Reason: source review proves the requested evidence cannot be safely layered on
+the accepted APIs. Connection identity currently aliases a server nonce; there
+is no distinct allocation-topology epoch; L42 admission is not handle-bound;
+L44 refusal recording begins after begin succeeds; scheduler authority can be
+reused across unrelated executions; and global locking/cardinality spans
+network and attempt boundaries. A partial patch would preserve ambiguity.
+
+L64 must negotiate distinct connection and allocation epochs, bind immutable
+prepared admission to an attempt handle, create refusal authority before L44
+begin, isolate locks/cardinality per attempt without holding locks across I/O,
+record honest staged AUTH transport, and clear all authority on
+finalize/abort/disarm/reconnect/reallocation. Focused protocol, concurrency,
+epoch, refusal, cleanup, and feature-off tests plus a real multi-execution
+two-host no-model composed fixture and independent adversarial review are
+mandatory. Candidate source is retained only on PASS. No stories model, primary
+artifact, production mutation, cache matrix, or performance work is authorized.
+
 ## 2026-07-27 — accept L61 harvesting and move before authenticated execute
 
 Decision: accept terminal L61 NOT PROMOTED at

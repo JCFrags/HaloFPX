@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 19:00 PDT
+Verified: 2026-07-27 20:00 PDT
 
 ## Overall state
 
@@ -253,15 +253,24 @@ independent read-only specialists are auditing graph-input coverage and
   active as a source-native, attempt-scoped L40/L42/L44 lifecycle and honest
   transport authority redesign. Stories runtime is conditional on a real
   composed two-host fixture and independent review.
+- L63 closed NOT PROMOTED at corrected exact HEAD
+  `7628b7cd2ada0fc4d0262f94eaee59f3768a13b0`. Source review proved the
+  accepted APIs cannot supply trustworthy observational evidence: connection
+  and allocation epochs are conflated, admission is not handle-bound, refusal
+  recording begins too late, global locks/cardinality cross network and attempt
+  boundaries, and transport semantics are incomplete. Candidate code was
+  removed. ADR-0049 freezes the required capability/lifecycle revision. L64 is
+  active to implement and qualify that reusable foundation with a real
+  two-host no-model composition; stories runtime is not authorized.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `76bae384139dbc083cea7a8fa4e26479a1219c2b`
+- Latest verified commit: `7628b7cd2ada0fc4d0262f94eaee59f3768a13b0`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L62 closeout
+- Worktree state: clean at the reviewed terminal L63 closeout
 - Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
 - Prior worker: idle preserved handoff task
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
