@@ -850,6 +850,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
         "l59-rpc-response-evidence-lifetime",
         "l60-transient-unit-response-discriminator",
         "l61-host-bound-response-discriminator",
+        "l68-stories15m-vertical-slice",
     }
     primary = l29 or l31 or l33 or l36
     if l48:
@@ -888,6 +889,8 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                     "l60-transient-unit-response-discriminator",
                     "l61-host-bound-response-discriminator"}:
                 expected_child_argv += ["--l55-first-chunk"]
+            if raw["milestone"] == "l68-stories15m-vertical-slice":
+                expected_child_argv += ["--l68-vertical-slice"]
             expected_child_argv += ["--authority-key-file", L48_KEY_PATHS["nimo-2"]]
         prefix = "halofpx-l48" if l48 else "halofpx-l36-primary" if l36 else "halofpx-l33-primary" if l33 else "halofpx-l31-primary" if l31 else "halofpx-l29-primary" if l29 else "halofpx-l28"
         port = 50248 if l48 else 50236 if l36 else 50233 if l33 else 50191 if l31 else 50189 if l29 else 50188
@@ -902,6 +905,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 "l59-rpc-response-evidence-lifetime",
                 "l60-transient-unit-response-discriminator",
                 "l61-host-bound-response-discriminator",
+                "l68-stories15m-vertical-slice",
             }
             else "l36-primary-replay-authority-discriminator" if l36
             else "l33-primary-live-state-discriminator" if l33
@@ -918,6 +922,10 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 *(("halofpx-l50-device-gate.service",) if l48 else ()),
                 f"{prefix}-worker-capture.service",
                 f"{prefix}-worker-restore.service",
+                *((f"{prefix}-worker-l68-off.service",
+                   f"{prefix}-worker-l68-on.service")
+                  if l48 and raw["milestone"] == "l68-stories15m-vertical-slice"
+                  else ()),
             )
             or tuple(raw["canary_units"]) != (
                 f"{prefix}-canary-capture.service",
@@ -926,18 +934,24 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                   if l48 and raw["milestone"] in {
                       "l60-transient-unit-response-discriminator",
                       "l61-host-bound-response-discriminator"} else ()),
+                *((f"{prefix}-canary-l68-off.service",
+                   f"{prefix}-canary-l68-on.service")
+                  if l48 and raw["milestone"] == "l68-stories15m-vertical-slice"
+                  else ()),
             )
             or raw["key_paths"] != key_paths
             or raw["disposable_paths"] != {
                 "nimo-1": [
-                    f"/var/tmp/halofpx-{source_tag}-source-nimo1.tar",
-                    f"/var/tmp/halofpx-{source_tag}-source-nimo1",
+                    *([] if l48 and raw["milestone"] == "l68-stories15m-vertical-slice"
+                      else [f"/var/tmp/halofpx-{source_tag}-source-nimo1.tar",
+                            f"/var/tmp/halofpx-{source_tag}-source-nimo1"]),
                     f"/var/tmp/halofpx-{source_tag}-worker",
                     *(["/var/tmp/halofpx-l50-device-gate"] if l48 else []),
                 ],
                 "nimo-2": [
-                    f"/var/tmp/halofpx-{source_tag}-source-nimo2.tar",
-                    f"/var/tmp/halofpx-{source_tag}-source-nimo2",
+                    *([] if l48 and raw["milestone"] == "l68-stories15m-vertical-slice"
+                      else [f"/var/tmp/halofpx-{source_tag}-source-nimo2.tar",
+                            f"/var/tmp/halofpx-{source_tag}-source-nimo2"]),
                     f"/var/tmp/halofpx-{source_tag}-evidence",
                     f"/var/tmp/halofpx-{source_tag}-coordinator",
                     f"/var/tmp/halofpx-{source_tag}-rendezvous",
@@ -1897,6 +1911,8 @@ def verify_l48_child_result(
         manifest: dict[str, object], prepared: dict[str, object],
         runner: Runner) -> dict[str, object]:
     if manifest.get("schema") != "halofpx.l48.fixture-manifest.v1":
+        return {}
+    if manifest.get("milestone") == "l68-stories15m-vertical-slice":
         return {}
     authority = manifest["authority_contract"]
     executables = manifest["executables"]

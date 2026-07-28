@@ -1,0 +1,371 @@
+2026-07-28T00:28:53.258462-07:00 nimo-1 rpc-server[2638072]: ggml_rocm_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+2026-07-28T00:28:53.258462-07:00 nimo-1 rpc-server[2638072]:   Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+2026-07-28T00:28:53.259881-07:00 nimo-1 rpc-server[2638072]: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+2026-07-28T00:28:53.259881-07:00 nimo-1 rpc-server[2638072]: WARNING: Host ('10.44.0.1') is != '127.0.0.1'
+2026-07-28T00:28:53.259881-07:00 nimo-1 rpc-server[2638072]:          Never expose the RPC server to an open network!
+2026-07-28T00:28:53.259881-07:00 nimo-1 rpc-server[2638072]:          This is an experimental feature and is not secure!
+2026-07-28T00:28:53.259881-07:00 nimo-1 rpc-server[2638072]: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+2026-07-28T00:28:53.259959-07:00 nimo-1 rpc-server[2638072]: ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 18805832
+2026-07-28T00:28:53.658200-07:00 nimo-1 rpc-server[2638072]: Starting RPC server v4.0.1
+2026-07-28T00:28:53.658200-07:00 nimo-1 rpc-server[2638072]:   endpoint       : 10.44.0.1:50248
+2026-07-28T00:28:53.658200-07:00 nimo-1 rpc-server[2638072]:   local cache    : n/a
+2026-07-28T00:28:53.658200-07:00 nimo-1 rpc-server[2638072]:   HaloFPX state  : enabled (canary)
+2026-07-28T00:28:53.658200-07:00 nimo-1 rpc-server[2638072]: Devices:
+2026-07-28T00:28:53.658200-07:00 nimo-1 rpc-server[2638072]:   ROCm0: AMD Radeon 8060S Graphics (126976 MiB, 18365 MiB free)
+2026-07-28T00:28:53.658200-07:00 nimo-1 rpc-server[2638072]:   transport      : TCP
+2026-07-28T00:28:53.658200-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:53.658200-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:53.658458-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:53.658458-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:53.658458-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:53.870428-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:53.870428-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:53.870690-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:53.870690-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:53.870690-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:53.871465-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:53.871465-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:53.871769-07:00 nimo-1 rpc-server[2638072]: ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 18805072
+2026-07-28T00:28:53.871769-07:00 nimo-1 rpc-server[2638072]: [get_device_memory] device: 0, free_mem: 19256393728, total_mem: 133143986176
+2026-07-28T00:28:53.871905-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:53.871905-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:53.871905-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.048942-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.049197-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.049197-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.049197-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.049197-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.057983-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.057983-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.058080-07:00 nimo-1 rpc-server[2638072]: ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 18799572
+2026-07-28T00:28:56.058080-07:00 nimo-1 rpc-server[2638072]: [get_device_memory] device: 0, free_mem: 19250761728, total_mem: 133143986176
+2026-07-28T00:28:56.058122-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.058122-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.058122-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.068045-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.068045-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.068275-07:00 nimo-1 rpc-server[2638072]: [get_alignment] device: 0, alignment: 128
+2026-07-28T00:28:56.068305-07:00 nimo-1 rpc-server[2638072]: [get_max_size] device: 0, max_size: 18446744073709551615
+2026-07-28T00:28:56.068346-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.068346-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.068346-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.083635-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.083635-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.083880-07:00 nimo-1 rpc-server[2638072]: ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 18799572
+2026-07-28T00:28:56.083880-07:00 nimo-1 rpc-server[2638072]: [get_device_memory] device: 0, free_mem: 19250761728, total_mem: 133143986176
+2026-07-28T00:28:56.083914-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.083914-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.083914-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.084110-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.084110-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.084214-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.084320-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.084320-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.084320-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.084514-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.084514-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.084582-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.084685-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.084685-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.084685-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.084897-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.084897-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.084955-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.084988-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.084988-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.084988-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.085144-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.085144-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.085197-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.085250-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.085250-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.085250-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.085403-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.085403-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.085452-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.085487-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.085487-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.085487-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.085671-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.085671-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.085720-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.085761-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.085761-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.085761-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.085910-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.085910-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.085965-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.086002-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.086002-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.086002-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.086176-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.086176-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.086224-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.086261-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.086261-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.086261-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.086426-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.086432-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.086477-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.086505-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.086505-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.086505-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.086690-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.086690-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.086739-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.086802-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.086802-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.086802-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.086933-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.086940-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.086969-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.086991-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.086991-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.086991-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.087187-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.087187-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.087220-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.087242-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.087242-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.087242-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.087448-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.087453-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.087482-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.087504-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.087504-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.087504-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.087711-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.087711-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.087743-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.087765-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.087765-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.087765-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.087971-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.087971-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.088004-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.088027-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.088027-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.088027-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.088232-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.088232-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.088264-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.088286-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.088286-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.088286-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.088492-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.088492-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.088528-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.088553-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.088553-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.088553-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.088780-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.088800-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.089055-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.089079-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.089079-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.089079-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.089322-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.089322-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.089626-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.089660-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.089660-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.089660-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.089893-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.089893-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.090196-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.090229-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.090229-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.090229-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.090463-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.090463-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.090766-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.090798-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.090798-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.090798-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.091034-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.091034-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.091336-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.091368-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.091368-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.091368-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.091653-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.091653-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.091844-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.091886-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.091886-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.091886-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.092296-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.092296-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.092598-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.092631-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.092631-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.092631-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.092856-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.092856-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.093126-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.093294-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.093294-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.093294-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.093560-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.093560-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.093593-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.093613-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.093613-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.093613-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.093820-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.093820-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.093851-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.093873-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.093873-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.093873-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.094077-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.094085-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.094114-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.094135-07:00 nimo-1 rpc-server[2638072]: recv returned 0 (peer closed?)
+2026-07-28T00:28:56.094135-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.094135-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6
+2026-07-28T00:28:56.094337-07:00 nimo-1 rpc-server[2638072]: Accepted client connection
+2026-07-28T00:28:56.094346-07:00 nimo-1 rpc-server[2638072]: [hello] version: 4.0.1
+2026-07-28T00:28:56.094617-07:00 nimo-1 rpc-server[2638072]: [alloc_buffer] device: 0, size: 2253824 -> remote_ptr: 5581f7025980, remote_size: 2253824
+2026-07-28T00:28:56.094749-07:00 nimo-1 rpc-server[2638072]: [buffer_get_base] remote_ptr: 5581f7025980
+2026-07-28T00:28:56.095011-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.095041-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.095071-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e57200480
+2026-07-28T00:28:56.111747-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.111776-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.111813-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e5720bb80
+2026-07-28T00:28:56.111929-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.111951-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.111993-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e57217280
+2026-07-28T00:28:56.112256-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.112285-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.112313-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e57222980
+2026-07-28T00:28:56.112435-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.112459-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.112488-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e5722e500
+2026-07-28T00:28:56.112779-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.112819-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.112851-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e5724cb80
+2026-07-28T00:28:56.112913-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.112950-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.112979-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e5726b280
+2026-07-28T00:28:56.113042-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113073-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113104-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e57289d80
+2026-07-28T00:28:56.113172-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113203-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113233-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e57295480
+2026-07-28T00:28:56.113302-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113334-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113364-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e572a0b80
+2026-07-28T00:28:56.113432-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113465-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113494-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e572ac280
+2026-07-28T00:28:56.113562-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113595-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113626-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e572b7e00
+2026-07-28T00:28:56.113693-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113724-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113755-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e572d6480
+2026-07-28T00:28:56.113819-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113850-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113876-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e572f4b80
+2026-07-28T00:28:56.113944-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113970-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.113995-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e57313680
+2026-07-28T00:28:56.114069-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114096-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114122-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e5731ed80
+2026-07-28T00:28:56.114197-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114223-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114249-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e5732a480
+2026-07-28T00:28:56.114323-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114351-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114376-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e57335b80
+2026-07-28T00:28:56.114419-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114445-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114470-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e57341700
+2026-07-28T00:28:56.114506-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114535-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114564-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e5735fd80
+2026-07-28T00:28:56.114636-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114666-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114692-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e5737e480
+2026-07-28T00:28:56.114758-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114784-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114808-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e5739cf80
+2026-07-28T00:28:56.114844-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114871-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.114896-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e573a8680
+2026-07-28T00:28:56.114975-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115002-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115027-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e573b3d80
+2026-07-28T00:28:56.115101-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115128-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115153-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e573bf480
+2026-07-28T00:28:56.115228-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115255-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115279-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e573cb000
+2026-07-28T00:28:56.115325-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115351-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115374-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e573e9680
+2026-07-28T00:28:56.115409-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115434-07:00 nimo-1 rpc-server[2638072]: [get_alloc_size] device: 0, buffer: (nil), data: (nil)
+2026-07-28T00:28:56.115458-07:00 nimo-1 rpc-server[2638072]: [init_tensor] buffer: 0x5581f7025980, data: 0x7f6e57407d80
+2026-07-28T00:28:56.144285-07:00 nimo-1 rpc-server[2638072]: ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 18603512
+2026-07-28T00:28:56.144285-07:00 nimo-1 rpc-server[2638072]: [get_device_memory] device: 0, free_mem: 19049996288, total_mem: 133143986176
+2026-07-28T00:28:56.144940-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57200000, offset: 0, size: 1152
+2026-07-28T00:28:56.149227-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57200480, offset: 0, size: 46656
+2026-07-28T00:28:56.150373-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5720bb80, offset: 0, size: 46656
+2026-07-28T00:28:56.150394-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57217280, offset: 0, size: 46656
+2026-07-28T00:28:56.150394-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57222980, offset: 0, size: 46656
+2026-07-28T00:28:56.150416-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5722e080, offset: 0, size: 1152
+2026-07-28T00:28:56.150539-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5722e500, offset: 0, size: 124416
+2026-07-28T00:28:56.150710-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5724cb80, offset: 0, size: 124416
+2026-07-28T00:28:56.150863-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5726b280, offset: 0, size: 124416
+2026-07-28T00:28:56.150895-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57289900, offset: 0, size: 1152
+2026-07-28T00:28:56.150928-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57289d80, offset: 0, size: 46656
+2026-07-28T00:28:56.150939-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57295480, offset: 0, size: 46656
+2026-07-28T00:28:56.150987-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e572a0b80, offset: 0, size: 46656
+2026-07-28T00:28:56.151011-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e572ac280, offset: 0, size: 46656
+2026-07-28T00:28:56.151114-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e572b7980, offset: 0, size: 1152
+2026-07-28T00:28:56.151685-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e572b7e00, offset: 0, size: 124416
+2026-07-28T00:28:56.152035-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e572d6480, offset: 0, size: 124416
+2026-07-28T00:28:56.152461-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e572f4b80, offset: 0, size: 124416
+2026-07-28T00:28:56.152600-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57313200, offset: 0, size: 1152
+2026-07-28T00:28:56.152936-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57313680, offset: 0, size: 46656
+2026-07-28T00:28:56.153215-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5731ed80, offset: 0, size: 46656
+2026-07-28T00:28:56.153492-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5732a480, offset: 0, size: 46656
+2026-07-28T00:28:56.153806-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57335b80, offset: 0, size: 46656
+2026-07-28T00:28:56.154196-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57341280, offset: 0, size: 1152
+2026-07-28T00:28:56.154626-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57341700, offset: 0, size: 124416
+2026-07-28T00:28:56.154967-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5735fd80, offset: 0, size: 124416
+2026-07-28T00:28:56.155309-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5737e480, offset: 0, size: 124416
+2026-07-28T00:28:56.155452-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5739cb00, offset: 0, size: 1152
+2026-07-28T00:28:56.155815-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e5739cf80, offset: 0, size: 46656
+2026-07-28T00:28:56.156086-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e573a8680, offset: 0, size: 46656
+2026-07-28T00:28:56.156477-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e573b3d80, offset: 0, size: 46656
+2026-07-28T00:28:56.156848-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e573bf480, offset: 0, size: 46656
+2026-07-28T00:28:56.157154-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e573cab80, offset: 0, size: 1152
+2026-07-28T00:28:56.157540-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e573cb000, offset: 0, size: 124416
+2026-07-28T00:28:56.157929-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e573e9680, offset: 0, size: 124416
+2026-07-28T00:28:56.158261-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f7025980, data: 0x7f6e57407d80, offset: 0, size: 124416
+2026-07-28T00:28:56.160432-07:00 nimo-1 rpc-server[2638072]: [alloc_buffer] device: 0, size: 18874368 -> remote_ptr: 5581f707fd80, remote_size: 18874368
+2026-07-28T00:28:56.160523-07:00 nimo-1 rpc-server[2638072]: [buffer_get_base] remote_ptr: 5581f707fd80
+2026-07-28T00:28:56.160559-07:00 nimo-1 rpc-server[2638072]: [buffer_clear] remote_ptr: 5581f707fd80, value: 0
+2026-07-28T00:28:56.160982-07:00 nimo-1 rpc-server[2638072]: ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 18543220
+2026-07-28T00:28:56.160982-07:00 nimo-1 rpc-server[2638072]: [get_device_memory] device: 0, free_mem: 18988257280, total_mem: 133143986176
+2026-07-28T00:28:56.164450-07:00 nimo-1 rpc-server[2638072]: [alloc_buffer] device: 0, size: 62265344 -> remote_ptr: 5581f70724d0, remote_size: 62265344
+2026-07-28T00:28:56.167639-07:00 nimo-1 rpc-server[2638072]: [buffer_get_base] remote_ptr: 5581f70724d0
+2026-07-28T00:28:56.167938-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f70724d0, data: 0x7f6d3c400000, offset: 0, size: 2304
+2026-07-28T00:28:56.168019-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f70724d0, data: 0x7f6d3c490000, offset: 0, size: 8
+2026-07-28T00:28:56.168060-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f70724d0, data: 0x7f6d3c490800, offset: 0, size: 16
+2026-07-28T00:28:56.168091-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f70724d0, data: 0x7f6d3c491800, offset: 0, size: 4608
+2026-07-28T00:28:56.168119-07:00 nimo-1 rpc-server[2638072]: [set_tensor] buffer: 0x5581f70724d0, data: 0x7f6d3c5b1800, offset: 0, size: 2048
+2026-07-28T00:28:56.168197-07:00 nimo-1 rpc-server[2638072]: [graph_compute] device: 0, n_nodes: 144, n_tensors: 193
+2026-07-28T00:28:56.204763-07:00 nimo-1 rpc-server[2638072]: [get_tensor] buffer: 0x5581f70724d0, data: 0x7f6d3c400000, offset: 0, size: 2304
+2026-07-28T00:28:56.238918-07:00 nimo-1 rpc-server[2638072]: [buffer_clear] remote_ptr: 5581f707fd80, value: 0
+2026-07-28T00:28:56.242426-07:00 nimo-1 rpc-server[2638072]: [free_buffer] remote_ptr: 5581f70724d0
+2026-07-28T00:28:56.242793-07:00 nimo-1 rpc-server[2638072]: [halofpx-preexecute] terminal production refusal begin=1 l42=0 l44=1 register=0/0 exclude=0/0 prepare=0 commit=0 decision=0 transport=0 abort=1 end=0
+2026-07-28T00:28:56.243377-07:00 nimo-1 rpc-server[2638072]: Client connection closed
+2026-07-28T00:28:56.243377-07:00 nimo-1 rpc-server[2638072]: [~impl] closing socket 6

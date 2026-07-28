@@ -1,0 +1,13 @@
+2026-07-28T00:28:56.061212-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.026.580 W load: empty token at index 30143
+2026-07-28T00:28:56.061502-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.026.716 W load: bad special token: 'tokenizer.ggml.seperator_token_id' = 4294967295, using default id -1
+2026-07-28T00:28:56.061502-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.026.717 W load: bad special token: 'tokenizer.ggml.padding_token_id' = 4294967295, using default id -1
+2026-07-28T00:28:56.159307-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.124.723 W llama_context: n_ctx_seq (4096) > n_ctx_train (128) -- possible training context overflow
+2026-07-28T00:28:56.168195-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.133.596 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+2026-07-28T00:28:56.242509-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.207.902 E [halofpx-preexecute] terminal production refusal begin=1 l42=1 l44=1 register=11/0 exclude=36/0 prepare=0 commit=0 decision=0 transport=0 abort=1 end=0
+2026-07-28T00:28:56.242509-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.207.915 E [halofpx-preexecute] terminal production refusal begin=1 l42=1 l44=1 register=11/0 exclude=36/0 prepare=0 commit=0 decision=0 transport=0 abort=1 end=0
+2026-07-28T00:28:56.242509-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.207.916 W decode: removing memory module entries for seq_id = 0, pos = [0, +inf)
+2026-07-28T00:28:56.242509-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.207.920 E llama_decode: failed to decode, ret = -3
+2026-07-28T00:28:56.242509-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.207.925 E [halofpx-preexecute] terminal production refusal begin=1 l42=1 l44=1 register=11/0 exclude=36/0 prepare=0 commit=0 decision=0 transport=0 abort=1 end=0
+2026-07-28T00:28:56.244267-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.209.678 E [halofpx-rpc] buffer teardown request refused after connection failure
+2026-07-28T00:28:56.244564-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.209.980 E [halofpx-rpc] buffer teardown request refused after connection failure
+2026-07-28T00:28:56.244800-07:00 nimo-2 test-halofpx-distributed-state-canary[1885087]: 0.00.210.215 E [halofpx-rpc] buffer teardown request refused after connection failure

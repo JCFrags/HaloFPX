@@ -82,6 +82,8 @@ DEVICE_RECEIPT_SHA = ""
 L55_STATUS_VERIFIER_SHA = "d1c04a799a800651340461688d8c2cd19cbdbb031cf4ecc64a6238992c9cdd93"
 RESULT_AUTHORITY_VERIFIER_SHA = ""
 L55_FIRST_CHUNK_ONLY = False
+L68_VERTICAL_SLICE = False
+L68_FEATURE_ON: bool | None = None
 L55_SOURCE_ROOT = "38b9ccf435ecc79240f0dbf7121a088dfac83b70bcc9b65928c73782b53ab060"
 L55_BUILD_ID = "d88a6c525fb96e9f4023d3d4fcf8d7e61ccb1d2b16d37ab06ad1314ed988e086"
 RESPONSE_HARVESTER_AUTHORITY: dict[str, dict[str, str]] = {}
@@ -828,6 +830,8 @@ def semantic_env_args() -> list[str]:
 
 
 def composed_env_args(response_side: str | None = None) -> list[str]:
+    if L68_VERTICAL_SLICE and L68_FEATURE_ON is False:
+        return []
     value = os.environ.get("HALOFPX_COMPOSED_AUTHORITY")
     if value is None:
         return []
@@ -843,6 +847,9 @@ def composed_env_args(response_side: str | None = None) -> list[str]:
         "--setenv=HALOFPX_RPC_MUTABLE_AUTH=1",
         f"--setenv=HALOFPX_RPC_GRAPH_AUTH_KEY_FILE={CONTROL}",
         f"--setenv=HALOFPX_RPC_GRAPH_AUTH_KEY_SHA256={key_digest}",
+        "--setenv=HALOFPX_PREEXECUTE_AUTHORITY=1",
+        "--setenv=HALOFPX_PREEXECUTE_AUTHORITY_PATH=" + (
+            WORKER_ROOT if response_side == "worker" else REMOTE_EVIDENCE),
     ]
     if os.environ.get("HALOFPX_RPC_RESPONSE_DIAGNOSTICS") == "1":
         if response_side == "disabled":
@@ -1138,6 +1145,10 @@ def ensure_transient_unit_absent(
         ("nimo-2", f"{UNIT_PREFIX}-canary-capture", None),
         ("nimo-2", f"{UNIT_PREFIX}-canary-restore", None),
         ("nimo-2", f"{UNIT_PREFIX}-canary-first-chunk", None),
+        ("nimo-1", f"{UNIT_PREFIX}-worker-l68-off", PORT),
+        ("nimo-1", f"{UNIT_PREFIX}-worker-l68-on", PORT),
+        ("nimo-2", f"{UNIT_PREFIX}-canary-l68-off", None),
+        ("nimo-2", f"{UNIT_PREFIX}-canary-l68-on", None),
     }
     if (host, unit, port) not in allowed or phase not in {"prelaunch", "postcleanup"}:
         raise CanaryError("transient unit guard authority is outside the closed manifest")
@@ -1898,7 +1909,7 @@ def canary_argv(sequence: str, *, restore_gate: bool = False) -> list[str]:
         "--hfx-placement-digest", PLACEMENT,
         "--hfx-checkpoint-digest", CHECKPOINT,
         "--hfx-control-file", CONTROL,
-        "--hfx-expected-prompt-tokens", "1129",
+        "--hfx-expected-prompt-tokens", "6" if L68_VERTICAL_SLICE else "1129",
         "--model", MODEL,
         "--rpc", f"10.44.0.1:{PORT}",
         "--device", "RPC0,ROCm0",
@@ -1917,11 +1928,12 @@ def canary_argv(sequence: str, *, restore_gate: bool = False) -> list[str]:
         "--parallel", "1",
         "--threads", "16",
         "--threads-batch", "16",
-        "--file", PROMPT,
         "--n-predict", "1",
         "--seed", "1234",
         "--temp", "0",
     ]
+    if not L68_VERTICAL_SLICE:
+        canary_command.extend(["--file", PROMPT])
     if restore_gate:
         canary_command.extend(["--hfx-restore-gate-root", RENDEZVOUS_ROOT])
     return canary_command
@@ -2664,6 +2676,54 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     # explicit A->B transition, avoiding attribution of A's listener to B.
     local_units.extend([restore_unit, capture_unit])
 
+    if L68_VERTICAL_SLICE:
+        global L68_FEATURE_ON
+        records: dict[str, dict[str, object]] = {}
+        for feature_on in (False, True):
+            label = "on" if feature_on else "off"
+            L68_FEATURE_ON = feature_on
+            worker_unit = f"{UNIT_PREFIX}-worker-l68-{label}"
+            canary_unit = f"{UNIT_PREFIX}-canary-l68-{label}"
+            local_units.append(worker_unit)
+            worker_pid, invocation, readiness = start_worker(
+                feature_on, worker_unit, root)
+            result = canary_sequence("l68-vertical", f"l68-{label}")
+            write_log(root, f"l68-{label}.log", result)
+            stop_canary(canary_unit)
+            stop_worker(worker_unit, PORT)
+            lines = [
+                line for line in result.stdout.splitlines()
+                if line.startswith("[halofpx-l68-result] ")
+            ]
+            if len(lines) != 1:
+                raise CanaryError(f"L68 feature-{label} result is missing or ambiguous")
+            fields = dict(
+                item.split("=", 1)
+                for item in lines[0].removeprefix("[halofpx-l68-result] ").split("|")
+                if "=" in item)
+            if fields.get("feature") != label or not fields.get("tokens") or not fields.get("output_hex"):
+                raise CanaryError(f"L68 feature-{label} result identity mismatch")
+            authority = fields.get("authority", "")
+            if feature_on != bool(authority):
+                raise CanaryError(f"L68 feature-{label} authority presence mismatch")
+            records[label] = {
+                "record": lines[0], "fields": fields, "worker_pid": worker_pid,
+                "worker_invocation_id": invocation, "readiness": readiness,
+                "canary_unit": f"{canary_unit}.service",
+            }
+        L68_FEATURE_ON = None
+        if (
+            records["off"]["fields"]["tokens"] != records["on"]["fields"]["tokens"]
+            or records["off"]["fields"]["output_hex"] != records["on"]["fields"]["output_hex"]
+        ):
+            raise CanaryError("L68 feature-off/on deterministic output mismatch")
+        return {
+            "schema": "halofpx.l68.vertical-slice-result.v1",
+            "feature_off": records["off"],
+            "feature_on": records["on"],
+            "deterministic_output_agreement": True,
+        }
+
     capture_worker_pid, capture_invocation, capture_readiness = start_worker(
         True, capture_unit, root)
     if L55_FIRST_CHUNK_ONLY:
@@ -3172,6 +3232,7 @@ def main() -> int:
     parser.add_argument("--l37-fixture", action="store_true")
     parser.add_argument("--l48-fixture", action="store_true")
     parser.add_argument("--l55-first-chunk", action="store_true")
+    parser.add_argument("--l68-vertical-slice", action="store_true")
     parser.add_argument("--authority-key-file")
     args = parser.parse_args()
     if sum((
@@ -3204,6 +3265,10 @@ def main() -> int:
         configure_l48_fixture()
         global L55_FIRST_CHUNK_ONLY
         L55_FIRST_CHUNK_ONLY = args.l55_first_chunk
+        global L68_VERTICAL_SLICE
+        L68_VERTICAL_SLICE = args.l68_vertical_slice
+        if L55_FIRST_CHUNK_ONLY and L68_VERTICAL_SLICE:
+            parser.error("L55 and L68 diagnostic modes are mutually exclusive")
         if args.authority_key_file != "/var/tmp/halofpx-l48-control.key":
             parser.error("L48 requires the exact manifest-owned authority key file")
     elif args.authority_key_file is not None:

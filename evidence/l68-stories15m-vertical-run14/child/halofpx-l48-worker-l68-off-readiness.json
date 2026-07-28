@@ -1,0 +1,11 @@
+{
+  "admitted": false,
+  "attempts": 1,
+  "caps_rejected": true,
+  "connection_caps_sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0",
+  "elapsed_ms": 1.179,
+  "endpoint": "10.44.0.1:50248",
+  "failures": [],
+  "feature_off_confirmed": true,
+  "rpc_protocol": "4.0.1"
+}

@@ -41,6 +41,7 @@ struct canary_options {
     std::array<uint8_t, 32> channel_binding {};
     size_t expected_prompt_tokens = 0;
     bool first_chunk_only = false;
+    bool vertical_slice = false;
     fs::path restore_gate_root;
 };
 
@@ -127,6 +128,16 @@ std::string hex(const uint8_t value[32]) {
     return result;
 }
 
+std::string hex_bytes(const uint8_t * value, size_t size) {
+    static constexpr char digits[] = "0123456789abcdef";
+    std::string result(size * 2, '0');
+    for (size_t i = 0; i < size; ++i) {
+        result[2*i] = digits[value[i] >> 4];
+        result[2*i + 1] = digits[value[i] & 15];
+    }
+    return result;
+}
+
 bool take_option(std::vector<std::string> & args, const std::string & name, std::string & value) {
     for (size_t i = 1; i + 1 < args.size(); ++i) {
         if (args[i] == name) {
@@ -182,6 +193,11 @@ bool parse_canary_options(int argc, char ** argv, canary_options & options, std:
     for (size_t i = 1; i < args.size(); ++i) {
         if (args[i] == "--hfx-first-chunk-only") {
             options.first_chunk_only = true;
+            args.erase(args.begin() + i);
+            break;
+        }
+        if (args[i] == "--hfx-vertical-slice") {
+            options.vertical_slice = true;
             args.erase(args.begin() + i);
             break;
         }
@@ -861,11 +877,53 @@ static int run_canary(int argc, char ** argv) {
         fs::create_directories(checkpoint_root);
         fs::permissions(checkpoint_root, fs::perms::owner_all, fs::perm_options::replace);
         prefix = common_tokenize(ctx, params.prompt, true);
-        if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens)) return 4;
+        if (prefix.size() < 2 || (options.expected_prompt_tokens != 0 && prefix.size() != options.expected_prompt_tokens)) {
+            return options.vertical_slice ? 41 : 4;
+        }
         const auto prompt_start = std::chrono::steady_clock::now();
         const size_t decode_count = options.first_chunk_only ?
             std::min<size_t>(static_cast<size_t>(llama_n_batch(ctx)), prefix.size() - 1) : prefix.size() - 1;
-        if (!decode_tokens(ctx, prefix, decode_count, &prompt_decode, &options.control_key, "capture")) return 4;
+        if (!decode_tokens(ctx, prefix, decode_count, &prompt_decode, &options.control_key, "capture")) {
+            return options.vertical_slice ? 42 : 4;
+        }
+        if (options.vertical_slice) {
+            const auto generation_start = std::chrono::steady_clock::now();
+            llama_sampler * sampler = llama_sampler_init_greedy();
+            const llama_token sampled = llama_sampler_sample(sampler, ctx, -1);
+            llama_sampler_free(sampler);
+            const std::vector<llama_token> generated { sampled };
+            generation_ms = elapsed_ms(generation_start);
+            const std::string decoded = common_detokenize(ctx, generated, false);
+            std::string token_ids;
+            for (llama_token token : generated) {
+                if (!token_ids.empty()) token_ids += ",";
+                token_ids += std::to_string(token);
+            }
+            std::string authority;
+            for (size_t i = 0; i < prompt_decode.execution_authority.size(); ++i) {
+                if (i != 0) authority += ";";
+                authority += prompt_decode.execution_authority[i];
+            }
+            const std::string canonical =
+                "mode=l68-vertical|feature=" +
+                std::string(composed_authority_enabled() ? "on" : "off") +
+                "|prompt_tokens=" + std::to_string(decode_count) +
+                "|tokens=" + token_ids +
+                "|output_hex=" + hex_bytes(
+                    reinterpret_cast<const uint8_t *>(decoded.data()), decoded.size()) +
+                "|authority=" + authority;
+            std::array<uint8_t, 32> tag {};
+            if (!hmac_text("halofpx.l68.vertical-slice.v1", canonical,
+                           options.control_key, tag)) return 43;
+            std::printf("[halofpx-l68-result] %s|auth_tag=%s\n",
+                        canonical.c_str(), hex(tag.data()).c_str());
+            std::printf("[halofpx-l68-timing] prompt_ms=%.3f|generation_ms=%.3f\n",
+                        elapsed_ms(prompt_start), generation_ms);
+            std::fflush(stdout);
+            fsync(STDOUT_FILENO);
+            if (owns_ctx) llama_free(ctx);
+            return 0;
+        }
         if (options.first_chunk_only) {
             const std::string canonical =
                 "phase=first-chunk|decode_status=0|chunks=1|n_tokens=" +
@@ -1324,6 +1382,11 @@ int main(int argc, char ** argv) {
         std::vector<std::string> one = args;
         one.push_back("--hfx-first-chunk-only");
         return invoke_mode(one, "capture", "first-chunk");
+    }
+    if (sequence == "l68-vertical") {
+        std::vector<std::string> one = args;
+        one.push_back("--hfx-vertical-slice");
+        return invoke_mode(one, "capture", "vertical");
     }
     if (sequence == "restore-guarded") return invoke_mode(args, "restore", "restore");
     if (sequence == "diagnostic") {
