@@ -1674,3 +1674,25 @@ machinery; do not repeat tamper/copy cases unless review requires one.
 No model/Stories run, cache or primary work, protocol/grammar change,
 performance work, production mutation, broad tests, extra retry, or automatic
 follow-on is authorized.
+
+## 2026-07-28 — correct the L76 helper key mode within the same milestone
+
+Decision: keep L76 open and authorize the smallest mechanical correction:
+change only `halofpx_server_authority_harvest.py` channel-key mode validation
+from `0400` to the production-transition controller's established exact `0600`
+contract. Keep the server-authority source-file requirement at `0400`, retain
+all other custody and grammar semantics, rebuild the corrected feature-on
+Linux source, and resume exactly the previously authorized success and injected
+publication-failure cases. The stopped preflight consumed neither case.
+
+Reason: exact source proves the controller provisions and requires the channel
+key as an owner-only regular file at mode `0600`; the helper's isolated `0400`
+check makes the real controller harvest path fail deterministically. Changing
+the disposable key to `0400` would instead falsify controller qualification.
+This is an unambiguous internal contract mismatch, not a protocol decision or a
+reason to discard independently reviewed L75 source.
+
+Focused `0600` acceptance and wrong-mode refusal are sufficient before the
+rebuild. No additional runtime cases, model/Stories work, cache/primary work,
+protocol or grammar changes, performance work, production mutation, or
+automatic follow-on are authorized.
