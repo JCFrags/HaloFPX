@@ -1537,6 +1537,41 @@ No Stories/model run, offline extraction, RPC transport qualification, grammar
 change, cache or primary work, performance work, production action, or
 automatic follow-on is authorized.
 
+## 2026-07-28 — accept L90 and open L91 consolidated child authority
+
+Decision: accept L90 terminal NOT PROMOTED at
+`6e8d2b2b834af3a0e739efd11dbef271a362ddc6` and retain its independently
+reviewed pre-mutation disposable reconciliation. Open L91 to consolidate the
+child transient-unit guard onto validated manifest authority, followed by one
+full primary correctness attempt.
+
+Reason: L90 proved the pre-mutation closed set absent and completed
+authenticated primary warmup with exact L89 paired response custody. It then
+stopped before workload/capture/restore because the child uses a separate
+hard-coded transient-unit allowlist rather than the controller's validated
+manifest-owned set. This is duplicated controller authority, not a runtime,
+cache, response-protocol, or model defect.
+
+L91 must derive child launch and cleanup guard tuples from the validated
+manifest, canonicalizing the service name exactly once. Wrong host/port,
+near-name, missing entry, active ownership, and ambiguity remain refusals.
+Every reachable L77 primary `systemd-run` branch and cleanup call must be
+checked against the same canonical set, with a focused static/call-path scan,
+no-host tests, and one independent review. Unambiguous mechanical pre-runtime
+corrections found by that consolidated scan may remain within L91 after
+focused qualification rather than opening another milestone.
+
+After those gates, exactly one primary transition may run in the full
+correctness mode, not first-chunk-only diagnostic mode. Warmup success must
+continue to residency-A reference/capture, worker restart, fresh-residency-B
+authenticated stage/commit, and one deterministic restored token. Acceptance
+requires exact reference/restored token and state/component equality, zero
+legacy state-page GET/SET, complete L44/L76/L89 client/server authority and
+custody, bounded cleanup, worker-first/coordinator-second recovery, and exact
+final production reconciliation. No retry, runtime semantic correction,
+server-abort change, production cache enablement, server composition,
+performance work, tuning, or automatic follow-on is authorized.
+
 ## 2026-07-28 — accept L71 and consume one canonical-census replacement run
 
 Decision: accept L71 PASS at

@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 16:04 PDT
+Verified: 2026-07-28 16:53 PDT
 
 ## Overall state
 
@@ -166,12 +166,28 @@ InvocationID `1c2ffb21b93d47ae86e416e5582e575c`, `NRestarts=0`, port 8081/
 HTTP 200; nimo-2 worker PID `2065665`, InvocationID
 `2d2d446beb3f433e8cf3ae92f0db16e7`, `NRestarts=0`, port 50052.
 
-L90 is active. Its only prerequisite is an exact disposable-unit/path
-reconciliation before production shutdown: safely unload a proven inert
-expected disposable or refuse any active/unknown/ambiguous ownership. After
-focused ordering tests and review, exactly one replacement primary
-correctness attempt is authorized using the retained L89 response semantics.
-No retry or broader product/performance work is authorized.
+L90 closed NOT PROMOTED at
+`6e8d2b2b834af3a0e739efd11dbef271a362ddc6`. Its reviewed pre-mutation
+disposable reconciliation is retained. The prerequisite proved the closed set
+absent before production mutation. Primary warmup then completed one 512-token
+chunk with `decode_status=0`, exact L89 paired response custody, and accepted
+server authority. The child stopped before workload/capture/restore because
+its separate hard-coded transient-unit allowlist rejected the successfully
+completed first-chunk unit as outside the closed manifest. No cache-correctness
+conclusion exists.
+
+Production recovered healthy and unique: nimo-1 coordinator PID `2882360`,
+InvocationID `e7977bbefee74bf3b33787390f390811`, `NRestarts=0`, port 8081/
+HTTP 200; nimo-2 worker PID `2074808`, InvocationID
+`1f45a635e7154eeca44fe081b24ac6b9`, `NRestarts=0`, port 50052.
+
+L91 is active as a consolidated controller closure plus one full correctness
+attempt. The child must derive its exact host/unit/port authority from the
+already validated manifest instead of a duplicate allowlist, with an exhaustive
+reachable-branch scan and focused review. Its one runtime must use the full
+residency-A capture/fresh-residency-B restore path rather than stopping in
+first-chunk diagnostic mode. No retry or broader protocol/performance work is
+authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
