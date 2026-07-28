@@ -2388,6 +2388,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
     snapshot_path = args.evidence_dir / "production-preflight.json"
     final_path = args.evidence_dir / "production-final.json"
     recovery_running = False
+    l52_directories_prepared = False
 
     if manifest is not None and manifest.get("schema") in {
         "halofpx.l29.primary-manifest.v1", "halofpx.l31.primary-manifest.v1",
@@ -2456,8 +2457,12 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             child = None
             prepared = None
             try:
-                prepare_l52_evidence_directories(
-                    manifest, args.evidence_dir, selected_runner)
+                if manifest.get("schema") in {
+                    "halofpx.l48.fixture-manifest.v1",
+                    "halofpx.l77.primary-manifest.v1",
+                }:
+                    prepare_l52_evidence_directories(
+                        manifest, args.evidence_dir, selected_runner)
                 prepared = controller.prepare_keys()
                 _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
                 child_env = child_environment(prepared, manifest)
@@ -2532,6 +2537,7 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
         ):
             prepare_l52_evidence_directories(
                 manifest, args.evidence_dir, selected_runner)
+            l52_directories_prepared = True
         prepared = controller.prepare_keys()
         _atomic_json(args.evidence_dir / "key-preparation.json", prepared)
         # Bind the exact child environment from the already validated manifest
@@ -2574,11 +2580,25 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
         return 0
     except Exception as exc:
         print(f"transition refused/failed: {exc}", file=sys.stderr)
-        if not controller.first_mutation and controller.key_digest is not None:
-            try:
-                controller.cleanup_keys()
-            except Exception as cleanup_exc:
-                print(f"PRE-MUTATION KEY CLEANUP FAILED: {cleanup_exc}", file=sys.stderr)
+        if not controller.first_mutation:
+            if l52_directories_prepared:
+                try:
+                    controller.cleanup_disposable()
+                    child = (
+                        args.evidence_dir /
+                        str(manifest["child_evidence_subdir"]))
+                    child.rmdir()
+                except Exception as cleanup_exc:
+                    print(
+                        f"PRE-MUTATION DIRECTORY CLEANUP FAILED: {cleanup_exc}",
+                        file=sys.stderr)
+            if controller.key_digest is not None:
+                try:
+                    controller.cleanup_keys()
+                except Exception as cleanup_exc:
+                    print(
+                        f"PRE-MUTATION KEY CLEANUP FAILED: {cleanup_exc}",
+                        file=sys.stderr)
         emergency_recover()
         return 1
 

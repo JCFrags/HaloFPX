@@ -71,7 +71,7 @@
     "response_harvester_client": "e717a71431d582b9266312b46863759529c9009a0aff9dda05d057f4776dd705",
     "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
     "child": "905048a5c7f8752783cfcf0db6ee13790e39acd0f0f3994a4f37062cd616da8f",
-    "controller": "5d01a09430bf48ceb16e1b2a7ee09a86ba93d51c154842a8c10c6ecc71c0aba0"
+    "controller": "bf7033196b4de4119cfba2c67e69f5c66f1ba7b707ed3d5a2a7a6f5b0b7e288c"
   },
   "child_evidence_subdir": "child",
   "child_argv": [
