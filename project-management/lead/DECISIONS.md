@@ -2063,3 +2063,39 @@ If exact evidence is insufficient, L84 may specify one minimal offline
 metadata/census extraction or no-model discriminator. No source edit, build,
 host/model access, production mutation, runtime attempt, or automatic follow-on
 is authorized.
+
+## 2026-07-28 — accept L84 projection diagnosis and open L85 storage authority
+
+Decision: accept L84 read-only diagnosis. Open L85 to make resolved storage and
+RPC destination identity part of the immutable canonical census, add typed
+register/exclude refusal evidence, qualify the design offline across two RPC
+sessions, and then run one warmup-only primary discriminator. No cache
+correctness run is authorized.
+
+Reason: exact source eliminates invalid input, pointer-level register/exclude
+conflict, exact duplicate, conflicting duplicate, and session bookkeeping.
+The remaining causes are resolved storage absent/non-RPC or an RPC buffer on a
+different admitted socket; both currently collapse to `WRONG_CONNECTION`.
+Canonical construction binds stable source and runtime tensor pointer but not
+the recursively resolved storage tensor/buffer/socket later required by L44.
+Distinct base/view tensors sharing storage can evade its conflict check.
+
+L85 must resolve full view/storage ancestry after graph allocation, reject
+cycles/unresolved/non-RPC/wrong-destination storage, bind logical and storage
+stable identities plus backend/endpoint/device/socket identity, and derive
+sealing and iteration from the same projection. Exact semantic aliases alone
+may deduplicate. Existing wrong-connection and duplicate refusals remain
+strict; mismatches may not be dropped silently.
+
+Typed result evidence must distinguish invalid role/input, missing session,
+already registered, absent/non-RPC storage, wrong socket, exact duplicate,
+conflicting duplicate, recorder failure, and success without exposing pointers
+or data. Offline base/view/nested-view/cycle/two-session fixtures, root/count
+equality, feature-on/off builds, inertness, and one independent review are
+sufficient.
+
+After those gates, one primary attempt may export the exact bounded canonical
+entry and typed result. Any rejection/failure stops; warmup success also stops.
+No workload, capture, restore, server-abort protocol change, production cache
+enablement, server composition, performance work, tuning, extra attempt, or
+automatic follow-on is authorized.

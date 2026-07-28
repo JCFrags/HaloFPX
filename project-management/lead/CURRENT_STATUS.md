@@ -90,12 +90,18 @@ The four exact inert L83 staging artifacts were revalidated and removed.
 Exact absence passed, no other path or service was touched, and production
 remains byte-for-byte on the accepted authority above.
 
-L84 is active as read-only/offline diagnosis of the exact
-`l44_mutable_exclude_refused` census entry. It is tracing whether immutable
-weight ordinal 579 was already registered, projected through an alias/view,
-bound to the wrong RPC socket, or duplicated/conflicted by canonical census
-construction. No build, host/model access, source edit, or runtime attempt is
-authorized.
+L84 completed read-only diagnosis. The refusal can only be resolved
+storage absent/non-RPC or resolved RPC storage bound to a different socket;
+current evidence collapses both as `WRONG_CONNECTION`. L71 canonical authority
+binds logical/runtime tensor identity but not the view-resolved storage and RPC
+socket later required by mutable exclusion. It can therefore seal a
+destination entry whose live storage authority is incompatible.
+
+L85 is active to bind resolved storage/backend/endpoint/device/socket identity
+into the immutable canonical census, add typed refusal evidence, and qualify
+base/view/wrong-storage cases across two RPC sessions. One warmup-only primary
+discriminator may run after review; it cannot proceed to workload or cache
+correctness.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

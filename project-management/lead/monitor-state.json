@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-28T11:07:06-07:00",
+  "updated_at": "2026-07-28T11:11:38-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l84_read_only_exact_exclusion_diagnosis",
+  "worker_status": "active_l85_resolved_storage_census_authority",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
   "last_verified_head": "934ac807a6ea965cc59bf9d46ec58ada39041bd5",
-  "last_observed_milestone": "Exact L83 staging cleanup PASS; four literal targets removed, absence proven, and accepted NRestarts=1 production authority remains unchanged and healthy",
-  "last_decision": "close_production_hold_and_open_l84_read_only_exact_mutable_exclude_refusal_diagnosis",
-  "last_progress": "L84 is reconstructing backend0 census253 immutable-weight ordinal579 identity, aliasing, prior registration, socket, and canonical deduplication from source/evidence only",
+  "last_observed_milestone": "L84 narrowed L83 exclusion to resolved storage absent/non-RPC versus wrong RPC socket and proved canonical census omits the resolved storage/socket authority later required by L44",
+  "last_decision": "open_l85_resolved_storage_rpc_destination_census_authority_plus_one_warmup_only_primary_discriminator",
+  "last_progress": "L85 is binding logical/storage/backend/endpoint/device/socket identity, adding typed refusal evidence, and qualifying two-session alias cases before any primary warmup",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "direct L84 exact diagnosis, evidence insufficiency, or terminal report to current manager task; no periodic polling"
+  "next_check_trigger": "direct L85 semantic blocker, unsafe production uncertainty, or terminal reviewed report to current manager task; no periodic polling"
 }
