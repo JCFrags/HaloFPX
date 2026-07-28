@@ -458,6 +458,22 @@ int main(int argc, char ** argv) {
         std::printf("feature_off_inert=%d\n", inert ? 1 : 0);
         return inert ? 0 : 1;
     }
+    if (argc == 3 && std::strcmp(argv[1], "--single-success") == 0) {
+        ggml_backend_load_all();
+        fixture state {};
+        if (!make_fixture(argv[2], state)) return 2;
+        std::array<float, 32> output {};
+        uint64_t uid = 0, connection = 0, allocation = 0;
+        const bool succeeded = execute_once(
+            state, 1, false, output, uid, connection, allocation);
+        free_fixture(state);
+        std::printf(
+            "single_success=%d uid=%llu connection=%llu allocation=%llu\n",
+            succeeded ? 1 : 0, static_cast<unsigned long long>(uid),
+            static_cast<unsigned long long>(connection),
+            static_cast<unsigned long long>(allocation));
+        return succeeded ? 0 : 1;
+    }
     if (argc == 3 && std::strcmp(argv[1], "--expect-transport-failure") == 0) {
         ggml_backend_load_all();
         fixture failed {};
