@@ -122,10 +122,21 @@ InvocationID `d77a2401d9954b208bb49b32ffd493b0`, `NRestarts=0`, port 8081/
 HTTP 200; nimo-2 worker PID `2023878`, InvocationID
 `b1ba9535181d46f8a3446d21b0652b01`, `NRestarts=0`, port 50052.
 
-L87 is active to restrict the RPC canonical census to authenticated RPC
-destination backends while preserving local graph execution and strict
-validation for every included RPC entry. After no-model proof and review, one
-primary attempt may continue directly to correctness if warmup succeeds.
+L87 closed NOT PROMOTED at
+`eb92a66da1a21ef230597f25dd5002c9890a7af3`. Its reviewed local-vs-RPC census
+correction is retained. The primary reached L44 exclusion, but the first
+EXCLUDE event failed with typed `RECORDER_FAILURE`. Exact source proves the
+recorder already contained BEGIN + L42 + L44_BEGIN + 253 REGISTER events =
+256, equal to its unrelated hard-coded maximum. No graph compute, workload, or
+cache conclusion exists.
+
+Production recovered to nimo-1 coordinator PID `2838185`, `NRestarts=0`, port
+8081/HTTP 200; nimo-2 worker PID `2035972`, `NRestarts=0`, port 50052.
+
+L88 is active to replace the 256-event cap with a finite bound derived from
+the admitted census maxima and exact lifecycle/transport grammar. After
+boundary tests, no-model proof, and review, one primary attempt may continue
+directly to correctness on warmup success.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

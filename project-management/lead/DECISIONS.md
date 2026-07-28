@@ -2167,3 +2167,37 @@ performance work, tuning, or automatic follow-on is authorized.
 
 Preserve evidence directories. Only the two exact reproducible L86 source
 archives may be removed after validation.
+
+## 2026-07-28 — accept L87 and open L88 derived recorder capacity
+
+Decision: accept L87 terminal NOT PROMOTED at
+`eb92a66da1a21ef230597f25dd5002c9890a7af3` and retain its reviewed
+local-vs-RPC census correction. Accept the recovered production authority
+recorded in current status. Open L88 to derive recorder capacity from admitted
+census and grammar maxima, then run one gated primary correctness attempt.
+
+Reason: L87's first EXCLUDE is otherwise admissible but returns typed
+`RECORDER_FAILURE`. At that point the recorder contains BEGIN, L42, L44_BEGIN,
+and 253 REGISTER events—exactly 256. `HFX_PREEXECUTE_MAX_EVENTS` is hard-coded
+to 256 and emission refuses when the current sequence is at least that value.
+This is a source-proven bounded-capacity defect, not a storage, socket, census,
+or model semantic failure.
+
+L88 must compute a finite maximum covering the maximum admitted register and
+exclude cardinalities plus the largest fixed lifecycle, decision, transport,
+and terminal expansion among all exact productions. Checked arithmetic/static
+assertions and admission-time expanded-stream fit are required. Grammar,
+cardinality equality, HMAC chaining, immutable publication, and transport
+rules remain unchanged.
+
+Tests must cover 255/256/257, the exact 253-register transition into EXCLUDE,
+maximum register/exclude/combined cardinalities, one-over-limit refusal,
+success and every abort/transport production, bounded memory, feature-on/off,
+and real no-model success/refusal. One independent review is sufficient.
+
+After those gates, one primary attempt may run. Warmup failure stops with exact
+evidence; warmup success continues to the one-token fresh-residency correctness
+discriminator. No retry, server-abort change, production cache enablement,
+server composition, performance work, tuning, or automatic follow-on is
+authorized. Preserve evidence; only exact reproducible L87 archives may be
+removed after validation.
