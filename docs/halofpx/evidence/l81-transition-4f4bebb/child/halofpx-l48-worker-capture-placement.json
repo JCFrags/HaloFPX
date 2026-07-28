@@ -1,0 +1,28 @@
+{
+  "admitted": true,
+  "devices": [
+    {
+      "backend": "RPC",
+      "free": 131375669248,
+      "name": "RPC0",
+      "total": 133143986176
+    },
+    {
+      "backend": "ROCm",
+      "free": 131613933568,
+      "name": "ROCm0",
+      "total": 133143986176
+    }
+  ],
+  "endpoint": "10.44.0.1:50248",
+  "output_device": "ROCm0",
+  "ownership": {
+    "repeating_rocm": 30,
+    "repeating_rpc": 32,
+    "total_rocm": 31,
+    "total_rpc": 32
+  },
+  "repeating_layers": 62,
+  "split_mode": "layer",
+  "tensor_split": "1,1"
+}

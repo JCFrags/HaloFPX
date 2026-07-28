@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2612, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2407, in main
+    _atomic_json(args.evidence_dir / "capacity-preflight.json", capacity)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 1836, in _atomic_json
+    raise TransitionError(f"refusing to overwrite preserved evidence: {path}")
+TransitionError: refusing to overwrite preserved evidence: C:\Users\britt\Documents\HaloFPX\docs\halofpx\evidence\l81-transition-4f4bebb\capacity-preflight.json

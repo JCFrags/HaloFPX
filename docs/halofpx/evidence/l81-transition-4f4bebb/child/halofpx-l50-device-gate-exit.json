@@ -1,0 +1,30 @@
+{
+  "host": "nimo-1",
+  "invocation_id": "6df3fa5147d441388a4bbdb93f8c1a71",
+  "journal_cursor_lower_bound": "s=4e2fa91ab7f94bb28bcbe361afa7567e;i=255f0a;b=fbf76f5d91f3408580c1cbca4636a606;m=b1df4b194a;t=657ae8e754bf7;x=6074d8f325fd256e",
+  "journal_pids": [
+    "2743023"
+  ],
+  "launch_properties": {
+    "ActiveState": "active",
+    "ExecMainCode": "0",
+    "ExecMainPID": "2743023",
+    "ExecMainStatus": "0",
+    "InvocationID": "6df3fa5147d441388a4bbdb93f8c1a71",
+    "MainPID": "2743023",
+    "Result": "success",
+    "SubState": "running"
+  },
+  "properties": {
+    "ActiveState": "active",
+    "ExecMainCode": "2",
+    "ExecMainPID": "2743023",
+    "ExecMainStatus": "15",
+    "InvocationID": "6df3fa5147d441388a4bbdb93f8c1a71",
+    "MainPID": "0",
+    "Result": "success",
+    "SubState": "exited"
+  },
+  "schema": "halofpx.l51.disposable-unit-exit.v1",
+  "unit": "halofpx-l50-device-gate.service"
+}
