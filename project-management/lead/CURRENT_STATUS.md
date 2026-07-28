@@ -76,12 +76,20 @@ role 1, role ordinal 579. The kill gate prevented workload, capture, and
 restore. Authenticated server authority was retained. L83 is NOT PROMOTED and
 no cache conclusion exists.
 
-Production closeout is temporarily unresolved. The latest read-only snapshot
-shows the exact coordinator active on port 8081 with HTTP 200 and the exact
-worker active on port 50052, but both `NRestarts` counters changed from 0 to 1
-during recovery and the controller correctly withheld final authority.
-All project/model work is stopped while a bounded read-only reconciliation
-attributes those restart events. No further mutation is authorized.
+Production reconciliation is accepted with a new observed baseline. The first
+recovered worker was killed by a kernel global OOM; the coordinator then
+aborted after losing RPC. Existing `Restart=on-failure` policies restarted each
+unit exactly once. Current authority is nimo-1 coordinator PID `2791438`,
+InvocationID `037044282f2445d5814e44562858cec0`, port 8081, HTTP 200,
+`NRestarts=1`; nimo-2 worker PID `1980935`, InvocationID
+`fdb16161c9474e7c9fc33b43f29f45c7`, port 50052, `NRestarts=1`. Both exact
+units, commands, executable hashes, cgroups, and unique listeners reconcile
+with no continuing fault.
+
+One cleanup-only transition is active for four exact inert L83 staging
+artifacts under `/var/tmp`. It may not touch either production service or any
+other path. Project/model work remains stopped until exact absence and final
+health are confirmed.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

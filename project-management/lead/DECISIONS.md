@@ -2009,3 +2009,32 @@ separate mutation decision is required.
 
 No counter reset, service restart, configuration change, implementation work,
 model access, retry, or automatic follow-on is authorized.
+
+## 2026-07-28 — accept attributed restart baseline and remove exact L83 staging
+
+Decision: accept the current healthy production state as the new observed
+baseline: nimo-1 coordinator PID `2791438`, InvocationID
+`037044282f2445d5814e44562858cec0`, `NRestarts=1`, port 8081/HTTP 200; nimo-2
+worker PID `1980935`, InvocationID `fdb16161c9474e7c9fc33b43f29f45c7`,
+`NRestarts=1`, port 50052. Authorize deletion only of four verified inert L83
+staging artifacts, followed by exact absence and read-only health
+reconciliation.
+
+Reason: the controller issued one authorized start per unit. A kernel global
+OOM later killed the recovered worker; its existing on-failure policy restarted
+it once. The coordinator aborted shortly after RPC loss and its existing policy
+also restarted it once. Journals exclude a second controller start, dependency
+activation, or unexplained event. Both current services are exact, unique,
+healthy, and stable with matching installed unit/argv/cgroup/executable
+authority.
+
+Cleanup scope is limited to nimo-1
+`/var/tmp/halofpx-l83-source`,
+`/var/tmp/halofpx-l83-source.tar`,
+`/var/tmp/halofpx-l83-bin.tar`, and nimo-2
+`/var/tmp/halofpx-l83-bin.tar`. Each literal target must be revalidated under
+`/var/tmp`, not mounted or process-referenced, and match expected type/owner
+before removal. No glob or parent deletion is allowed.
+
+No service restart, counter reset, unit/configuration change, implementation
+work, model access, retry, or automatic follow-on is authorized.
