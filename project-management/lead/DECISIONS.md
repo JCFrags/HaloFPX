@@ -1561,3 +1561,29 @@ exact output matching the retained control. Failure must retain the precise
 terminal semantic boundary and stop. No feature-off repeat, foundation
 expansion, broad tests, cache or primary work, tuning, performance claim,
 production mutation, retry, or automatic follow-on is authorized.
+
+## 2026-07-28 — accept L72 execution and align canonical order with grammar
+
+Decision: accept L72 terminal NOT PROMOTED at
+`11f4b50fc48cdb52570d55d4d054c5470d95f13e`. Open L73 as one combined
+mechanical canonical-order correction plus one feature-on Stories15M
+replacement; do not split another source-only milestone.
+
+Reason: L72 proves the canonical census cardinalities match exactly and the
+server authenticated, prepared, and executed sequence 1 / UID 27. The client
+recorded prepare, decision, complete transport, commit, and end, then refused
+only because the L71 comparator can interleave register/exclude dispositions
+while exact grammar v1 requires a contiguous register block followed by a
+contiguous exclude block. This is a deterministic comparator defect, not a
+reason to change grammar or reopen authority design.
+
+L73 makes disposition the primary canonical key within each backend, REGISTER
+before EXCLUDE, followed by the existing pointer-independent keys. The same
+immutable list remains sole authority for sealing and runtime iteration.
+Focused interleaving, duplicate/conflict, projection, exact-once iteration,
+feature-off, required build, and source-review gates precede one identical
+feature-on replacement. Reuse the L68 control without rerun. Success requires
+token `29916` / output `x` and accepted client/server terminal authority.
+Failure retains its next exact boundary and stops. No grammar change,
+foundation redesign, broad matrix, cache/primary/performance work, production
+mutation, retry, or automatic follow-on is authorized.

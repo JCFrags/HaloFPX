@@ -350,6 +350,17 @@ independent read-only specialists are auditing graph-input coverage and
   precise terminal semantic refusal and stop. No control rerun, foundation
   expansion, cache work, primary model, tuning, performance claim, production
   mutation, or automatic follow-on is authorized.
+- L72 closed NOT PROMOTED at
+  `11f4b50fc48cdb52570d55d4d054c5470d95f13e`. Canonical census cardinality
+  matched exactly at 13 register / 36 exclude, and the server authenticated,
+  prepared, and executed sequence 1 / UID 27. The client rejected its otherwise
+  complete terminal stream because canonical sorting interleaved dispositions
+  while grammar v1 requires a contiguous register block then exclude block.
+- L73 is active as one combined mechanical ordering correction and one
+  feature-on replacement. Disposition becomes the primary canonical key
+  (REGISTER before EXCLUDE) while the shared list, grammar, duplicate/conflict
+  semantics, and feature-off behavior remain unchanged. The retained L68
+  control is reused; no additional retry or semantic expansion is authorized.
 - L69 closed NOT PROMOTED at
   `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The ordering correction,
   focused `2/1` pre-prepare abort, wrong-count refusal, preserved
@@ -366,10 +377,10 @@ independent read-only specialists are auditing graph-input coverage and
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `3f22338f0582640496c4f7033ea1c67132f6ba8d`
+- Latest verified commit: `11f4b50fc48cdb52570d55d4d054c5470d95f13e`
 - Remote count: zero
-- Worktree state: clean at reviewed terminal L71 closeout when L72 opened
-- Primary worker: L72 replacement-run task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Worktree state: clean at reviewed terminal L72 closeout when L73 opened
+- Primary worker: L73 ordering-and-replacement task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record
