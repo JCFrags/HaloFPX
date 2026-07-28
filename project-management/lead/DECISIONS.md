@@ -1619,3 +1619,31 @@ requires accepted client and server terminals plus exact output. Failure stops
 at its precise boundary. No broader redesign, client grammar change, broad
 matrix, cache/primary/performance work, production mutation, retry, or
 automatic follow-on is authorized.
+
+## 2026-07-28 — accept L74 exact output and close server evidence custody
+
+Decision: accept L74 terminal NOT PROMOTED at
+`2c6c39c5b9e01baa945bc81151b0a51211817ed3` and retain its reviewed
+server-owned grammar and exact model-success evidence. Do not rerun L74 or
+Stories15M. Open L75 only to make server terminal publication outcome explicit
+and harvest the immutable server authority before cleanup.
+
+Reason: L74 again returned exact token `29916` / output `x` with accepted client
+terminal, authenticated mutable/graph receipts, and matching server
+prepare/consume/execute/return. Source review found no correctness/security
+P1/P2. Promotion is blocked solely because the exact model attempt's
+`*-server.authority` file was not retained. The response reaches the client
+before later server terminal publication; absence of a refusal cannot prove
+durable publication.
+
+L75 must journal server publication success/failure with nonsecret exact
+identity/path/hash, then make the controller quiesce and authenticate/copy/fsync
+the expected server authority in its evidence-finally path before any cleanup.
+Missing, invalid, tampered, or failed copies are durably recorded and
+non-promotable while cleanup/recovery continues. Focused no-model success,
+publication-failure, copy/tamper, and cleanup-order cases plus required builds
+and one independent review are sufficient. Reuse existing harvest machinery.
+
+No model/Stories run, response acknowledgment redesign, protocol/grammar
+redesign, cache/primary/performance work, production access/mutation, or
+automatic follow-on is authorized.

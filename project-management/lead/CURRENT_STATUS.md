@@ -376,6 +376,18 @@ independent read-only specialists are auditing graph-input coverage and
   to the same admission and execution receipt. No broader protocol work,
   control rerun, cache/primary/performance work, production mutation, retry, or
   automatic follow-on is authorized.
+- L74 closed NOT PROMOTED at
+  `2c6c39c5b9e01baa945bc81151b0a51211817ed3`. Its server-owned grammar passed
+  source review, and one feature-on request again returned exact token `29916`
+  / output `x` with accepted client authority and matching server
+  prepare/consume/execute/return. Promotion was rejected only because the
+  immutable server authority file was not harvested before disposable cleanup;
+  client response success does not prove later server publication durability.
+- L75 is active as no-model publication-observability and harvest-custody work.
+  It must explicitly journal server publication outcome and authenticate/copy
+  the expected immutable server authority before cleanup. L74/Stories will not
+  be rerun. No protocol/grammar redesign, model/cache/primary/performance work,
+  production action, or automatic follow-on is authorized.
 - L69 closed NOT PROMOTED at
   `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The ordering correction,
   focused `2/1` pre-prepare abort, wrong-count refusal, preserved
@@ -392,10 +404,10 @@ independent read-only specialists are auditing graph-input coverage and
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `8ee9ba84ded5f96094762108da63fcac9524ae4f`
+- Latest verified commit: `2c6c39c5b9e01baa945bc81151b0a51211817ed3`
 - Remote count: zero
-- Worktree state: clean at reviewed terminal L73 closeout when L74 opened
-- Primary worker: L74 server-recorder task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Worktree state: clean at reviewed terminal L74 closeout when L75 opened
+- Primary worker: L75 publication-harvest task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record
