@@ -121,6 +121,9 @@ typedef enum ggml_backend_rpc_halofpx_mutable_admit_result {
     GGML_RPC_HALOFPX_MUTABLE_ADMIT_CONFLICTING_DUPLICATE = 8,
     GGML_RPC_HALOFPX_MUTABLE_ADMIT_RECORDER_FAILURE = 9,
     GGML_RPC_HALOFPX_MUTABLE_ADMIT_VIEW_CYCLE = 10,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_ENDPOINT = 11,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_DEVICE = 12,
+    GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_DESTINATION_BACKEND = 13,
 } ggml_backend_rpc_halofpx_mutable_admit_result;
 
 typedef struct ggml_backend_rpc_halofpx_storage_identity {

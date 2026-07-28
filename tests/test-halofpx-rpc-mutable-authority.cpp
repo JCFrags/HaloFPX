@@ -267,6 +267,15 @@ static bool execute_once(
         ggml_backend_sched_authority_abort_execution(f.sched, &sched_handle);
         return false;
     }
+    struct ggml_backend_sched_authority_projection_failure unexpected_failure {};
+    if (ggml_backend_sched_authority_get_projection_failure(
+            f.sched, &sched_handle, &unexpected_failure)) {
+        std::fprintf(stderr,
+            "fixture: successful census exported projection failure reason=%u\n",
+            unexpected_failure.reason);
+        ggml_backend_sched_authority_abort_execution(f.sched, &sched_handle);
+        return false;
+    }
     const size_t split_count =
         ggml_backend_sched_authority_split_count(f.sched, &sched_handle);
     if (split_count != 1) {
@@ -568,7 +577,7 @@ int main(int argc, char ** argv) {
     if (argc == 4 && std::strcmp(argv[1], "--storage-identity") == 0) {
         ggml_backend_load_all();
         const bool ok =
-            ggml_backend_sched_authority_self_test() == 0x1fffffU &&
+            ggml_backend_sched_authority_self_test() == 0x3fffffU &&
             storage_identity_fixture(argv[2], argv[3]);
         std::printf("resolved_storage_identity=%d\n", ok ? 1 : 0);
         return ok ? 0 : 1;

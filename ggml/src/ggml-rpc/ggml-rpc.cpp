@@ -4857,9 +4857,11 @@ ggml_backend_rpc_halofpx_resolve_storage_identity(
         ggml_backend_t destination_backend,
         ggml_tensor * tensor,
         ggml_backend_rpc_halofpx_storage_identity * identity) {
-    if (!hfx_mutable_requested() || !ggml_backend_is_rpc(destination_backend) ||
-        tensor == nullptr || identity == nullptr) {
+    if (!hfx_mutable_requested() || tensor == nullptr || identity == nullptr) {
         return GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT;
+    }
+    if (!ggml_backend_is_rpc(destination_backend)) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_DESTINATION_BACKEND;
     }
     std::unordered_set<const ggml_tensor *> ancestry;
     ggml_tensor * storage = nullptr;
@@ -4881,10 +4883,15 @@ ggml_backend_rpc_halofpx_resolve_storage_identity(
     auto * buffer_ctx =
         static_cast<ggml_backend_rpc_buffer_context *>(storage->buffer->context);
     auto destination_socket = get_socket(backend_ctx->endpoint);
-    if (destination_socket == nullptr || buffer_ctx == nullptr ||
-        buffer_ctx->sock.get() != destination_socket.get() ||
-        buffer_ctx->device != backend_ctx->device) {
+    if (destination_socket == nullptr) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_ENDPOINT;
+    }
+    if (buffer_ctx == nullptr ||
+        buffer_ctx->sock.get() != destination_socket.get()) {
         return GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET;
+    }
+    if (buffer_ctx->device != backend_ctx->device) {
+        return GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_DEVICE;
     }
     memset(identity, 0, sizeof(*identity));
     identity->version = 1;

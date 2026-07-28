@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2613, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2379, in main
+    maintenance_command = bind_maintenance_command(
+        manifest, args.evidence_dir, maintenance_command,
+    )
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 1312, in bind_maintenance_command
+    raise TransitionError("maintenance argv shape does not match the closed manifest")
+TransitionError: maintenance argv shape does not match the closed manifest

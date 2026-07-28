@@ -527,11 +527,47 @@ extern "C" {
 
     struct ggml_backend_sched_authority_storage_resolution {
         uint32_t device;
-        uint32_t reserved;
+        uint32_t failure_reason;
         uint64_t connection_epoch;
         uint8_t endpoint_identity[32];
         uint8_t storage_identity[32];
         uint8_t runtime_semantic_identity[32];
+    };
+
+    enum ggml_backend_sched_authority_projection_failure_reason {
+        GGML_BACKEND_SCHED_PROJECTION_SUCCESS = 0,
+        GGML_BACKEND_SCHED_PROJECTION_CYCLE,
+        GGML_BACKEND_SCHED_PROJECTION_UNRESOLVED_STORAGE,
+        GGML_BACKEND_SCHED_PROJECTION_NON_RPC_STORAGE,
+        GGML_BACKEND_SCHED_PROJECTION_WRONG_DESTINATION_BACKEND,
+        GGML_BACKEND_SCHED_PROJECTION_WRONG_ENDPOINT,
+        GGML_BACKEND_SCHED_PROJECTION_WRONG_DEVICE,
+        GGML_BACKEND_SCHED_PROJECTION_WRONG_SOCKET,
+        GGML_BACKEND_SCHED_PROJECTION_STABLE_LOGICAL_IDENTITY_CONFLICT,
+        GGML_BACKEND_SCHED_PROJECTION_RESOLVED_STORAGE_DISPOSITION_CONFLICT,
+        GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT,
+        GGML_BACKEND_SCHED_PROJECTION_OVERFLOW_INVALID,
+    };
+
+    // Bounded, pointer-free projection failure retained even when the census is
+    // cleared during rollback.
+    struct ggml_backend_sched_authority_projection_failure {
+        uint32_t version;
+        uint32_t reason;
+        uint32_t backend_ordinal;
+        uint32_t candidate_index;
+        uint32_t provenance;
+        uint32_t disposition;
+        uint32_t root_class;
+        uint32_t role;
+        uint32_t role_ordinal;
+        uint32_t stable_tensor_id;
+        uint32_t copy_slot;
+        uint32_t rpc_device;
+        uint64_t copy_generation;
+        uint64_t rpc_connection_epoch;
+        uint8_t logical_tensor_identity[32];
+        uint8_t storage_tensor_identity[32];
     };
 
     typedef bool (*ggml_backend_sched_authority_storage_resolver)(
@@ -613,6 +649,16 @@ extern "C" {
         const struct ggml_backend_sched_authority_handle * handle,
         ggml_backend_sched_authority_storage_resolver resolver,
         void * user_data);
+    GGML_API bool                 ggml_backend_sched_authority_resolve_census_typed(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        ggml_backend_sched_authority_storage_resolver resolver,
+        void * user_data,
+        struct ggml_backend_sched_authority_projection_failure * failure);
+    GGML_API bool                 ggml_backend_sched_authority_get_projection_failure(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        struct ggml_backend_sched_authority_projection_failure * failure);
     GGML_API bool                 ggml_backend_sched_authority_prepared_admission(
         ggml_backend_sched_t sched,
         const struct ggml_backend_sched_authority_handle * handle,

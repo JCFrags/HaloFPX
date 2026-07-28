@@ -5,6 +5,30 @@
 #include <string>
 
 #include "ggml.h"
+#include "ggml-backend.h"
+#include "ggml-rpc.h"
+
+static inline uint32_t llama_halofpx_projection_reason_from_mutable(
+        uint32_t reason) {
+    switch (reason) {
+        case GGML_RPC_HALOFPX_MUTABLE_ADMIT_VIEW_CYCLE:
+            return GGML_BACKEND_SCHED_PROJECTION_CYCLE;
+        case GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_ABSENT:
+            return GGML_BACKEND_SCHED_PROJECTION_UNRESOLVED_STORAGE;
+        case GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_NOT_RPC:
+            return GGML_BACKEND_SCHED_PROJECTION_NON_RPC_STORAGE;
+        case GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_DESTINATION_BACKEND:
+            return GGML_BACKEND_SCHED_PROJECTION_WRONG_DESTINATION_BACKEND;
+        case GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_ENDPOINT:
+            return GGML_BACKEND_SCHED_PROJECTION_WRONG_ENDPOINT;
+        case GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_DEVICE:
+            return GGML_BACKEND_SCHED_PROJECTION_WRONG_DEVICE;
+        case GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET:
+            return GGML_BACKEND_SCHED_PROJECTION_WRONG_SOCKET;
+        default:
+            return GGML_BACKEND_SCHED_PROJECTION_OVERFLOW_INVALID;
+    }
+}
 
 enum class llama_halofpx_preprepare_failure {
     mutable_preflight,

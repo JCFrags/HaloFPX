@@ -805,7 +805,7 @@ int main(int argc, char ** argv) {
         return 2;
     }
     const uint32_t self_tests = ggml_backend_sched_authority_self_test();
-    if (self_tests != 0x1fffffU) {
+    if (self_tests != 0x3fffffU) {
         std::fprintf(stderr, "focused scheduler authority refusal self-test failed: 0x%x\n", self_tests);
         return 1;
     }
@@ -883,7 +883,8 @@ int main(int argc, char ** argv) {
         write_evidence(evidence_directory, "ordinary", on) &&
         write_evidence(evidence_directory, "expert", expert);
     std::printf(
-        "self_tests=17 feature_off=%d split_exact=%d composed=%d composed_refusals=%d single_split=%d hash_fixtures=%d evidence_written=%d authority=%d ordinary_transcript=%d expert_fixture=%d expert_transcript=%d tamper_refused=%d order_refused=%d duplicate_refused=%d unknown_refused=%d overlap_refused=%d bounds_refused=%d malformed_refused=%d events=%u splits=%u maps=%u copies=%u expert_status=%u expert_events=%u expert_maps=%u expert_copies=%u partial=%u\n",
+        "self_tests=18 projection_failures=%u feature_off=%d split_exact=%d composed=%d composed_refusals=%d single_split=%d hash_fixtures=%d evidence_written=%d authority=%d ordinary_transcript=%d expert_fixture=%d expert_transcript=%d tamper_refused=%d order_refused=%d duplicate_refused=%d unknown_refused=%d overlap_refused=%d bounds_refused=%d malformed_refused=%d events=%u splits=%u maps=%u copies=%u expert_status=%u expert_events=%u expert_maps=%u expert_copies=%u partial=%u\n",
+        (self_tests & (1u << 21)) != 0 ? 11U : 0U,
         feature_off ? 1 : 0,
         exact ? 1 : 0,
         composed_ok ? 1 : 0,

@@ -866,6 +866,7 @@ struct sched_auth_state {
     bool finalized = false;
     bool prepared = false;
     bool census_resolved = false;
+    struct ggml_backend_sched_authority_projection_failure projection_failure {};
     bool computing = false;
     bool failed = false;
 };
@@ -2859,12 +2860,20 @@ bool ggml_backend_sched_authority_prepare(
 enum sched_auth_resolved_insert {
     SCHED_AUTH_RESOLVED_INSERTED,
     SCHED_AUTH_RESOLVED_ALIAS,
-    SCHED_AUTH_RESOLVED_CONFLICT,
+    SCHED_AUTH_RESOLVED_LOGICAL_CONFLICT,
+    SCHED_AUTH_RESOLVED_DISPOSITION_CONFLICT,
+    SCHED_AUTH_RESOLVED_ROLE_CONFLICT,
 };
 
 static sched_auth_resolved_insert sched_auth_insert_resolved_census(
         std::vector<ggml_backend_sched_authority_census_entry> & resolved,
         const ggml_backend_sched_authority_census_entry & entry) {
+    const auto same_logical = [&entry](const auto & prior) {
+        return prior.destination_backend_ordinal ==
+                   entry.destination_backend_ordinal &&
+            memcmp(prior.logical_tensor_identity,
+                   entry.logical_tensor_identity, 32) == 0;
+    };
     const auto same_storage = [&entry](const auto & prior) {
         return prior.destination_backend_ordinal ==
                    entry.destination_backend_ordinal &&
@@ -2883,49 +2892,97 @@ static sched_auth_resolved_insert sched_auth_insert_resolved_census(
             memcmp(prior.rpc_endpoint_identity,
                    entry.rpc_endpoint_identity, 32) == 0;
     };
+    const auto logical = std::find_if(
+        resolved.begin(), resolved.end(), same_logical);
+    if (logical != resolved.end() && !same_storage(*logical)) {
+        return SCHED_AUTH_RESOLVED_LOGICAL_CONFLICT;
+    }
     const auto existing = std::find_if(
         resolved.begin(), resolved.end(), same_storage);
     if (existing == resolved.end()) {
         resolved.push_back(entry);
         return SCHED_AUTH_RESOLVED_INSERTED;
     }
-    return same_semantics(*existing) ?
-        SCHED_AUTH_RESOLVED_ALIAS : SCHED_AUTH_RESOLVED_CONFLICT;
+    if (same_semantics(*existing)) {
+        return SCHED_AUTH_RESOLVED_ALIAS;
+    }
+    if (existing->disposition != entry.disposition) {
+        return SCHED_AUTH_RESOLVED_DISPOSITION_CONFLICT;
+    }
+    if (existing->root_class != entry.root_class ||
+        existing->role != entry.role ||
+        existing->role_ordinal != entry.role_ordinal) {
+        return SCHED_AUTH_RESOLVED_ROLE_CONFLICT;
+    }
+    return SCHED_AUTH_RESOLVED_LOGICAL_CONFLICT;
 }
 
-bool ggml_backend_sched_authority_resolve_census(
+static void sched_auth_projection_failure_set(
+        sched_auth_state & state,
+        uint32_t reason,
+        uint32_t candidate_index,
+        const ggml_backend_sched_authority_census_entry * entry) {
+    memset(&state.projection_failure, 0, sizeof(state.projection_failure));
+    state.projection_failure.version = 1;
+    state.projection_failure.reason = reason;
+    state.projection_failure.candidate_index = candidate_index;
+    if (entry == nullptr) {
+        state.projection_failure.backend_ordinal = UINT32_MAX;
+        state.projection_failure.candidate_index = UINT32_MAX;
+        state.projection_failure.copy_slot = UINT32_MAX;
+        return;
+    }
+    state.projection_failure.backend_ordinal =
+        entry->destination_backend_ordinal;
+    state.projection_failure.provenance = entry->provenance;
+    state.projection_failure.disposition = entry->disposition;
+    state.projection_failure.root_class = entry->root_class;
+    state.projection_failure.role = entry->role;
+    state.projection_failure.role_ordinal = entry->role_ordinal;
+    state.projection_failure.stable_tensor_id = entry->stable_tensor_id;
+    state.projection_failure.copy_slot = entry->copy_slot;
+    state.projection_failure.rpc_device = entry->rpc_device;
+    state.projection_failure.copy_generation = entry->copy_generation;
+    state.projection_failure.rpc_connection_epoch =
+        entry->rpc_connection_epoch;
+    memcpy(
+        state.projection_failure.logical_tensor_identity,
+        entry->logical_tensor_identity, 32);
+    memcpy(
+        state.projection_failure.storage_tensor_identity,
+        entry->storage_tensor_identity, 32);
+}
+
+bool ggml_backend_sched_authority_resolve_census_typed(
         ggml_backend_sched_t sched,
         const ggml_backend_sched_authority_handle * handle,
         ggml_backend_sched_authority_storage_resolver resolver,
-        void * user_data) {
+        void * user_data,
+        struct ggml_backend_sched_authority_projection_failure * failure) {
     if (!sched_auth_handle_matches(sched, handle) ||
         !sched->authority->prepared || sched->authority->failed ||
         sched->authority->census_resolved ||
         !sched->authority->admissions.empty() ||
         resolver == nullptr) {
+        if (failure != nullptr) {
+            memset(failure, 0, sizeof(*failure));
+            failure->version = 1;
+            failure->reason =
+                GGML_BACKEND_SCHED_PROJECTION_OVERFLOW_INVALID;
+            failure->backend_ordinal = UINT32_MAX;
+            failure->candidate_index = UINT32_MAX;
+            failure->copy_slot = UINT32_MAX;
+        }
         return false;
     }
     auto & state = *sched->authority;
+    memset(&state.projection_failure, 0, sizeof(state.projection_failure));
     std::vector<ggml_backend_sched_authority_census_entry> resolved;
     resolved.reserve(state.canonical_census.size());
-    for (auto entry : state.canonical_census) {
-        if (entry.destination_backend_ordinal >=
-                static_cast<uint32_t>(sched->n_backends) ||
-            state.rpc_backends.count(entry.destination_backend_ordinal) == 0) {
-            state.failed = true;
-            return false;
-        }
-        ggml_backend_sched_authority_storage_resolution storage {};
-        if (!resolver(
-                user_data, entry.destination_backend_ordinal,
-                entry.runtime_tensor, &storage) ||
-            storage.connection_epoch == 0 ||
-            sched_auth_zero(storage.endpoint_identity, 32) ||
-            sched_auth_zero(storage.storage_identity, 32) ||
-            sched_auth_zero(storage.runtime_semantic_identity, 32)) {
-            state.failed = true;
-            return false;
-        }
+    for (size_t candidate_index = 0;
+            candidate_index < state.canonical_census.size();
+            ++candidate_index) {
+        auto entry = state.canonical_census[candidate_index];
         std::vector<uint8_t> logical;
         sched_auth_le<uint32_t>(logical, entry.destination_backend_ordinal);
         sched_auth_le<uint32_t>(logical, entry.stable_tensor_id);
@@ -2935,6 +2992,45 @@ bool ggml_backend_sched_authority_resolve_census(
         const auto logical_digest =
             sched_auth_sha(logical.data(), logical.size());
         memcpy(entry.logical_tensor_identity, logical_digest.data(), 32);
+        if (entry.destination_backend_ordinal >=
+                static_cast<uint32_t>(sched->n_backends) ||
+            state.rpc_backends.count(entry.destination_backend_ordinal) == 0) {
+            sched_auth_projection_failure_set(
+                state,
+                GGML_BACKEND_SCHED_PROJECTION_WRONG_DESTINATION_BACKEND,
+                static_cast<uint32_t>(candidate_index), &entry);
+            state.failed = true;
+            state.canonical_census.clear();
+            if (failure != nullptr) *failure = state.projection_failure;
+            return false;
+        }
+        ggml_backend_sched_authority_storage_resolution storage {};
+        const bool storage_ok = resolver(
+                user_data, entry.destination_backend_ordinal,
+                entry.runtime_tensor, &storage);
+        if (!storage_ok ||
+            storage.connection_epoch == 0 ||
+            sched_auth_zero(storage.endpoint_identity, 32) ||
+            sched_auth_zero(storage.storage_identity, 32) ||
+            sched_auth_zero(storage.runtime_semantic_identity, 32)) {
+            entry.rpc_device = storage.device;
+            entry.rpc_connection_epoch = storage.connection_epoch;
+            memcpy(
+                entry.storage_tensor_identity, storage.storage_identity, 32);
+            const uint32_t reason =
+                storage.failure_reason >= GGML_BACKEND_SCHED_PROJECTION_CYCLE &&
+                storage.failure_reason <=
+                    GGML_BACKEND_SCHED_PROJECTION_OVERFLOW_INVALID ?
+                storage.failure_reason :
+                static_cast<uint32_t>(
+                    GGML_BACKEND_SCHED_PROJECTION_UNRESOLVED_STORAGE);
+            sched_auth_projection_failure_set(
+                state, reason, static_cast<uint32_t>(candidate_index), &entry);
+            state.failed = true;
+            state.canonical_census.clear();
+            if (failure != nullptr) *failure = state.projection_failure;
+            return false;
+        }
         memcpy(entry.storage_tensor_identity, storage.storage_identity, 32);
         memcpy(
             entry.runtime_semantic_identity,
@@ -2946,9 +3042,19 @@ bool ggml_backend_sched_authority_resolve_census(
 
         const auto inserted =
             sched_auth_insert_resolved_census(resolved, entry);
-        if (inserted == SCHED_AUTH_RESOLVED_CONFLICT) {
+        if (inserted != SCHED_AUTH_RESOLVED_INSERTED &&
+            inserted != SCHED_AUTH_RESOLVED_ALIAS) {
+            const uint32_t reason =
+                inserted == SCHED_AUTH_RESOLVED_DISPOSITION_CONFLICT ?
+                    GGML_BACKEND_SCHED_PROJECTION_RESOLVED_STORAGE_DISPOSITION_CONFLICT :
+                inserted == SCHED_AUTH_RESOLVED_ROLE_CONFLICT ?
+                    GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT :
+                    GGML_BACKEND_SCHED_PROJECTION_STABLE_LOGICAL_IDENTITY_CONFLICT;
+            sched_auth_projection_failure_set(
+                state, reason, static_cast<uint32_t>(candidate_index), &entry);
             state.failed = true;
             state.canonical_census.clear();
+            if (failure != nullptr) *failure = state.projection_failure;
             return false;
         }
     }
@@ -2958,13 +3064,43 @@ bool ggml_backend_sched_authority_resolve_census(
             entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
                 entry.role : UINT32_C(0x80000000) + entry.role;
         if (!role_keys.emplace(encoded_role, entry.role_ordinal).second) {
+            const auto index = static_cast<uint32_t>(
+                &entry - resolved.data());
+            sched_auth_projection_failure_set(
+                state, GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT,
+                index, &entry);
             state.failed = true;
             state.canonical_census.clear();
+            if (failure != nullptr) *failure = state.projection_failure;
             return false;
         }
     }
     state.canonical_census = std::move(resolved);
     state.census_resolved = true;
+    if (failure != nullptr) memset(failure, 0, sizeof(*failure));
+    return true;
+}
+
+bool ggml_backend_sched_authority_resolve_census(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        ggml_backend_sched_authority_storage_resolver resolver,
+        void * user_data) {
+    return ggml_backend_sched_authority_resolve_census_typed(
+        sched, handle, resolver, user_data, nullptr);
+}
+
+bool ggml_backend_sched_authority_get_projection_failure(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        struct ggml_backend_sched_authority_projection_failure * failure) {
+    if (!sched_auth_handle_matches(sched, handle) || failure == nullptr ||
+        sched->authority->projection_failure.version != 1 ||
+        sched->authority->projection_failure.reason ==
+            GGML_BACKEND_SCHED_PROJECTION_SUCCESS) {
+        return false;
+    }
+    *failure = sched->authority->projection_failure;
     return true;
 }
 
@@ -3604,10 +3740,186 @@ uint32_t ggml_backend_sched_authority_self_test(void) {
         sched_auth_insert_resolved_census(resolved_entries, resolved_conflict);
     if (base_insert == SCHED_AUTH_RESOLVED_INSERTED &&
         alias_insert == SCHED_AUTH_RESOLVED_ALIAS &&
-        conflict_insert == SCHED_AUTH_RESOLVED_CONFLICT &&
+        conflict_insert == SCHED_AUTH_RESOLVED_DISPOSITION_CONFLICT &&
         resolved_entries.size() == 1) {
         passed |= 1u << 20;
     }
+    struct projection_test_context {
+        uint32_t reason;
+        uint32_t call_count;
+    };
+    const auto projection_resolver = [](
+            void * user_data, uint32_t,
+            ggml_tensor *,
+            ggml_backend_sched_authority_storage_resolution * out) {
+        auto * context = static_cast<projection_test_context *>(user_data);
+        if (context == nullptr || out == nullptr) return false;
+        ++context->call_count;
+        if (context->reason !=
+                GGML_BACKEND_SCHED_PROJECTION_STABLE_LOGICAL_IDENTITY_CONFLICT &&
+            context->reason !=
+                GGML_BACKEND_SCHED_PROJECTION_RESOLVED_STORAGE_DISPOSITION_CONFLICT &&
+            context->reason !=
+                GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT) {
+            out->failure_reason = context->reason;
+            return false;
+        }
+        out->device = 0;
+        out->connection_epoch = 9;
+        memset(out->endpoint_identity, 0x31, 32);
+        memset(out->storage_identity, 0x41, 32);
+        memset(out->runtime_semantic_identity, 0x51, 32);
+        if (context->reason ==
+                GGML_BACKEND_SCHED_PROJECTION_STABLE_LOGICAL_IDENTITY_CONFLICT &&
+            context->call_count == 2) {
+            memset(out->storage_identity, 0x42, 32);
+        }
+        return true;
+    };
+    bool projection_failures_exact = true;
+    for (uint32_t reason = GGML_BACKEND_SCHED_PROJECTION_CYCLE;
+            reason <= GGML_BACKEND_SCHED_PROJECTION_OVERFLOW_INVALID;
+            ++reason) {
+        sched_auth_state failure_state {};
+        auto failure_entry = resolved_base;
+        failure_entry.destination_backend_ordinal = 0;
+        failure_entry.stable_tensor_id = 91;
+        failure_entry.provenance = GGML_BACKEND_SCHED_CENSUS_COPY;
+        failure_entry.copy_slot = 7;
+        failure_entry.copy_generation = 13;
+        failure_entry.rpc_connection_epoch = 0;
+        failure_entry.rpc_device = 0;
+        failure_entry.resolved = 0;
+        memset(failure_entry.logical_tensor_identity, 0, 32);
+        memset(failure_entry.storage_tensor_identity, 0, 32);
+        memset(failure_entry.runtime_semantic_identity, 0, 32);
+        memset(failure_entry.rpc_endpoint_identity, 0, 32);
+        ggml_tensor first_failure_tensor {};
+        ggml_tensor second_failure_tensor {};
+        failure_entry.runtime_tensor = &first_failure_tensor;
+        failure_state.canonical_census.push_back(failure_entry);
+        if (reason ==
+                GGML_BACKEND_SCHED_PROJECTION_STABLE_LOGICAL_IDENTITY_CONFLICT ||
+            reason ==
+                GGML_BACKEND_SCHED_PROJECTION_RESOLVED_STORAGE_DISPOSITION_CONFLICT ||
+            reason ==
+                GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT) {
+            auto second_entry = failure_entry;
+            second_entry.runtime_tensor = &second_failure_tensor;
+            if (reason ==
+                    GGML_BACKEND_SCHED_PROJECTION_RESOLVED_STORAGE_DISPOSITION_CONFLICT) {
+                second_entry.disposition =
+                    GGML_BACKEND_SCHED_CENSUS_EXCLUDE;
+            } else if (reason ==
+                    GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT) {
+                second_entry.role += 1;
+            }
+            failure_state.canonical_census.push_back(second_entry);
+        }
+        failure_state.prepared = true;
+        failure_state.rpc_backends.insert(0);
+        failure_state.session_id = 77;
+        failure_state.config.execution_sequence = 9;
+        failure_state.config.attempt_nonce[0] = 0xa5;
+        ggml_backend_sched fake_sched {};
+        fake_sched.n_backends = 1;
+        fake_sched.authority = &failure_state;
+        ggml_backend_sched_authority_handle fake_handle {};
+        fake_handle.major = SCHED_AUTH_MAJOR;
+        fake_handle.minor = SCHED_AUTH_MINOR;
+        fake_handle.encoded_size = sizeof(fake_handle);
+        fake_handle.session_id = failure_state.session_id;
+        fake_handle.generation = 1;
+        fake_handle.execution_sequence =
+            failure_state.config.execution_sequence;
+        memcpy(
+            fake_handle.attempt_nonce,
+            failure_state.config.attempt_nonce, 32);
+        if (reason ==
+                GGML_BACKEND_SCHED_PROJECTION_WRONG_DESTINATION_BACKEND) {
+            failure_state.canonical_census[0].destination_backend_ordinal = 1;
+        }
+        projection_test_context context { reason, 0 };
+        ggml_backend_sched_authority_projection_failure exported {};
+        ggml_backend_sched_authority_projection_failure retained {};
+        const bool refused =
+            !ggml_backend_sched_authority_resolve_census_typed(
+                &fake_sched, &fake_handle, projection_resolver,
+                &context, &exported);
+        const bool retained_ok =
+            ggml_backend_sched_authority_get_projection_failure(
+                &fake_sched, &fake_handle, &retained);
+        projection_failures_exact =
+            projection_failures_exact &&
+            refused && retained_ok &&
+            exported.version == 1 &&
+            exported.reason == reason &&
+            exported.backend_ordinal ==
+                (reason ==
+                    GGML_BACKEND_SCHED_PROJECTION_WRONG_DESTINATION_BACKEND ?
+                    1U : 0U) &&
+            exported.candidate_index ==
+                (reason >=
+                    GGML_BACKEND_SCHED_PROJECTION_STABLE_LOGICAL_IDENTITY_CONFLICT &&
+                 reason <=
+                    GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT ?
+                    1U : 0U) &&
+            exported.provenance ==
+                GGML_BACKEND_SCHED_CENSUS_COPY &&
+            exported.disposition ==
+                (reason ==
+                    GGML_BACKEND_SCHED_PROJECTION_RESOLVED_STORAGE_DISPOSITION_CONFLICT ?
+                    static_cast<uint32_t>(
+                        GGML_BACKEND_SCHED_CENSUS_EXCLUDE) :
+                    static_cast<uint32_t>(
+                        GGML_BACKEND_SCHED_CENSUS_REGISTER)) &&
+            exported.root_class ==
+                GGML_BACKEND_SCHED_AUTH_MUTABLE &&
+            exported.role ==
+                (reason ==
+                    GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT ?
+                    resolved_base.role + 1 : resolved_base.role) &&
+            exported.role_ordinal == resolved_base.role_ordinal &&
+            exported.stable_tensor_id == 91 &&
+            exported.copy_slot == 7 &&
+            exported.copy_generation == 13 &&
+            exported.rpc_device == 0 &&
+            exported.rpc_connection_epoch ==
+                (reason >=
+                    GGML_BACKEND_SCHED_PROJECTION_STABLE_LOGICAL_IDENTITY_CONFLICT &&
+                 reason <=
+                    GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT ?
+                    9U : 0U) &&
+            !sched_auth_zero(exported.logical_tensor_identity, 32) &&
+            (reason >=
+                    GGML_BACKEND_SCHED_PROJECTION_STABLE_LOGICAL_IDENTITY_CONFLICT &&
+                 reason <=
+                    GGML_BACKEND_SCHED_PROJECTION_ROLE_ORDINAL_CONFLICT ?
+                !sched_auth_zero(exported.storage_tensor_identity, 32) :
+                sched_auth_zero(exported.storage_tensor_identity, 32)) &&
+            retained.reason == exported.reason &&
+            retained.backend_ordinal == exported.backend_ordinal &&
+            retained.candidate_index == exported.candidate_index &&
+            retained.provenance == exported.provenance &&
+            retained.disposition == exported.disposition &&
+            retained.root_class == exported.root_class &&
+            retained.role == exported.role &&
+            retained.role_ordinal == exported.role_ordinal &&
+            retained.stable_tensor_id == exported.stable_tensor_id &&
+            retained.copy_slot == exported.copy_slot &&
+            retained.rpc_device == exported.rpc_device &&
+            retained.copy_generation == exported.copy_generation &&
+            retained.rpc_connection_epoch ==
+                exported.rpc_connection_epoch &&
+            memcmp(
+                retained.logical_tensor_identity,
+                exported.logical_tensor_identity, 32) == 0 &&
+            memcmp(
+                retained.storage_tensor_identity,
+                exported.storage_tensor_identity, 32) == 0 &&
+            failure_state.canonical_census.empty();
+    }
+    if (projection_failures_exact) passed |= 1u << 21;
     memset(state.config.key, 0, sizeof(state.config.key));
     memset(state.config.attempt_nonce, 0, sizeof(state.config.attempt_nonce));
     std::fill(key.begin(), key.end(), 0);

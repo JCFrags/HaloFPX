@@ -1,0 +1,13 @@
+version=1|status=failed|branch=l44_mutable_preflight_refused|backend_ordinal=1|admitted_backend_count=1|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l42_expected_admission_refused|backend_ordinal=1|admitted_backend_count=1|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l42_prepared_admission_refused|backend_ordinal=1|admitted_backend_count=1|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l42_admission_verify_refused|backend_ordinal=1|admitted_backend_count=1|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l44_mutable_begin_refused|backend_ordinal=1|admitted_backend_count=1|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l42_resolved_census_refused|typed_reason=9|backend_ordinal=0|candidate_index=253|provenance=2|disposition=2|root_class=1|role=1|role_ordinal=579|stable_tensor_id=901|copy_slot=3|copy_generation=7|logical_identity=1111111111111111111111111111111111111111111111111111111111111111|storage_identity=2222222222222222222222222222222222222222222222222222222222222222|rpc_device=0|rpc_connection_epoch=17|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l42_scheduler_census_lookup_refused|backend_ordinal=1|census_index=7|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l42_scheduler_census_disposition_refused|backend_ordinal=1|census_index=7|disposition=9|role=4|role_ordinal=12|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l44_mutable_register_refused|backend_ordinal=1|census_index=7|disposition=1|role=4|role_ordinal=12|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l44_mutable_exclude_refused|backend_ordinal=1|census_index=7|disposition=2|role=4|role_ordinal=12|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l44_mutable_prepare_refused|backend_ordinal=1|session_index=0|result_status=101|mutation_count=3|census_count=8|set_count=2|set_hash_hit_count=1|set_hash_miss_count=1|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l40_graph_input_authority_refused|execution_sequence=41|pending=1|ggml_status=-1
+version=1|status=failed|branch=l42_admission_consume_refused|backend_ordinal=1|admission_index=0|execution_sequence=41|pending=1|ggml_status=-1

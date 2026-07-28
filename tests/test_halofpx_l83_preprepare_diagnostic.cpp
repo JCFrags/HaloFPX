@@ -12,6 +12,31 @@ struct test_case {
 };
 
 int main() {
+    const std::vector<std::pair<uint32_t, uint32_t>> reason_cases = {
+        {GGML_RPC_HALOFPX_MUTABLE_ADMIT_VIEW_CYCLE,
+         GGML_BACKEND_SCHED_PROJECTION_CYCLE},
+        {GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_ABSENT,
+         GGML_BACKEND_SCHED_PROJECTION_UNRESOLVED_STORAGE},
+        {GGML_RPC_HALOFPX_MUTABLE_ADMIT_STORAGE_NOT_RPC,
+         GGML_BACKEND_SCHED_PROJECTION_NON_RPC_STORAGE},
+        {GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_DESTINATION_BACKEND,
+         GGML_BACKEND_SCHED_PROJECTION_WRONG_DESTINATION_BACKEND},
+        {GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_ENDPOINT,
+         GGML_BACKEND_SCHED_PROJECTION_WRONG_ENDPOINT},
+        {GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_DEVICE,
+         GGML_BACKEND_SCHED_PROJECTION_WRONG_DEVICE},
+        {GGML_RPC_HALOFPX_MUTABLE_ADMIT_WRONG_SOCKET,
+         GGML_BACKEND_SCHED_PROJECTION_WRONG_SOCKET},
+        {GGML_RPC_HALOFPX_MUTABLE_ADMIT_INVALID_ARGUMENT,
+         GGML_BACKEND_SCHED_PROJECTION_OVERFLOW_INVALID},
+    };
+    for (const auto & item : reason_cases) {
+        if (llama_halofpx_projection_reason_from_mutable(item.first) !=
+                item.second) {
+            return 3;
+        }
+    }
+    std::printf("projection_reason_mappings=%zu\n", reason_cases.size());
     const std::vector<test_case> cases = {
         {llama_halofpx_preprepare_failure::mutable_preflight,
          "l44_mutable_preflight_refused",
@@ -29,7 +54,14 @@ int main() {
          "l44_mutable_begin_refused",
          "|backend_ordinal=1|admitted_backend_count=1"},
         {llama_halofpx_preprepare_failure::resolved_census,
-         "l42_resolved_census_refused", ""},
+         "l42_resolved_census_refused",
+         "|typed_reason=9|backend_ordinal=0|candidate_index=253"
+         "|provenance=2|disposition=2|root_class=1|role=1"
+         "|role_ordinal=579|stable_tensor_id=901|copy_slot=3"
+         "|copy_generation=7"
+         "|logical_identity=1111111111111111111111111111111111111111111111111111111111111111"
+         "|storage_identity=2222222222222222222222222222222222222222222222222222222222222222"
+         "|rpc_device=0|rpc_connection_epoch=17"},
         {llama_halofpx_preprepare_failure::scheduler_census_lookup,
          "l42_scheduler_census_lookup_refused",
          "|backend_ordinal=1|census_index=7"},
