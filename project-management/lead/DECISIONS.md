@@ -1882,3 +1882,35 @@ one minimal future discriminator but may not implement it.
 
 No source edit, build, host or production access, model load, retry, cache
 promotion, performance work, or automatic follow-on is authorized.
+
+## 2026-07-28 — accept L80 diagnosis and open L81 decisive postcompute gate
+
+Decision: accept L80 read-only diagnosis. Open L81 to make the already-existing
+postcompute failure result durable at its source, explicitly bind the
+server-authority harvester to the worker-side path and exact hash, qualify both
+offline, and then consume one primary attempt with an early warmup kill gate.
+
+Reason: absence of the unconditional graph-compute failure log, combined with
+the authenticated server prepare/execute/publication, proves graph compute
+succeeded. The only reachable `GGML_STATUS_FAILED` families are L44 mutable
+commit, L42 scheduler finalize, L40 result reconciliation, L44 session
+finalization, and RPC execution disarm. Each already writes a bounded branch
+string in memory, but context warmup fails before the canary's decode wrapper
+can harvest it. The exact branch is not recoverable from L79 evidence.
+
+The independent custody defect is exact: the controller derives the helper from
+nimo-2 readiness, then invokes that path on worker host nimo-1. The correct
+helper exists under the worker source root. L81 must add a closed worker-side
+executable/hash binding and preserve all L76 source, key, path, authentication,
+atomic-retention, and cleanup checks.
+
+Offline qualification must force all five postcompute failure families and
+prove durable output equals the in-memory result without exposing secrets. It
+must prove correct worker-helper success and wrong-host, missing, stale, and
+hash-mismatch refusal. One independent focused review is sufficient.
+
+Exactly one primary attempt follows. A warmup failure terminates with its exact
+branch; warmup success proceeds in the same attempt to the existing one-token
+fresh-residency correctness discriminator. No production cache enablement,
+server composition, performance work, tuning, semantic correction, extra
+attempt, or automatic follow-on is authorized.

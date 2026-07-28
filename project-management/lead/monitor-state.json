@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-28T08:50:39-07:00",
+  "updated_at": "2026-07-28T08:55:07-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l80_read_only_warmup_and_custody_diagnosis",
+  "worker_status": "active_l81_postcompute_discriminator_and_custody_correction",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
   "last_verified_head": "64ef3034f232be980a2ee388e39c1bc43691e5cb",
-  "last_observed_milestone": "L79 NOT PROMOTED; controller closure passed and primary loaded, but warmup returned generic decode -3 after server publication; helper identity also blocked authority custody",
-  "last_decision": "open_l80_read_only_offline_decode_branch_and_helper_identity_diagnosis_before_any_retry",
-  "last_progress": "L80 is reconstructing the exact warmup failure branch and independently tracing helper packaging/staging identity from retained evidence only",
+  "last_observed_milestone": "L80 localized L79 to five client postcompute authority families after successful graph/server execution and proved custody used a nimo-2 helper path on nimo-1",
+  "last_decision": "open_l81_durable_postcompute_branch_plus_worker_helper_binding_then_one_primary_kill_gate_attempt",
+  "last_progress": "L81 is adding bounded durable branch evidence and exact worker harvester binding, qualifying both offline, then running one attempt that stops at warmup branch or continues to correctness",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "direct L80 evidence insufficiency, source-proven diagnosis, or terminal report to current manager task; no periodic polling"
+  "next_check_trigger": "direct L81 semantic blocker, unsafe production uncertainty, or terminal reviewed report to current manager task; no periodic polling"
 }

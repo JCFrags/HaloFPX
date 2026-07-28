@@ -45,9 +45,20 @@ restore, or state comparison occurred, so no cache conclusion exists. A
 separate helper source-identity mismatch prevented L76 authority custody.
 Recovery and cleanup passed.
 
-L80 is active as read-only/offline diagnosis of those two independent P2
-boundaries. It may inspect retained evidence and exact source only; no edits,
-build, host/model access, or runtime retry is authorized.
+L80 completed read-only diagnosis. High-confidence retained evidence proves
+graph compute and authenticated server execution/return succeeded; the `-3`
+arose in one of five silent client postcompute authority families: L44 commit,
+L42 finalize, L40 reconcile, L44 session finalize, or RPC disarm. Existing
+branch text remained in memory but model/context warmup failed before the
+caller-owned harvesting path could retain it. Separately, custody failed
+because the controller derived a nimo-2 helper path and executed it on nimo-1;
+this was a wrong-host path, not stale bytes.
+
+L81 is active to durably expose the existing bounded postcompute branch result
+and explicitly bind the harvester to the worker source/hash. After offline
+branch/custody fixtures and review, one primary attempt may run: warmup failure
+stops with the exact branch, while warmup success continues directly into the
+one-token correctness discriminator.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
