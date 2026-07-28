@@ -240,6 +240,33 @@ two-host no-model composed fixture and independent adversarial review are
 mandatory. Candidate source is retained only on PASS. No stories model, primary
 artifact, production mutation, cache matrix, or performance work is authorized.
 
+## 2026-07-27 — reject L64 candidate and move L65 to a fresh implementation task
+
+Decision: accept terminal L64 NOT PROMOTED at
+`54910a78fae5de586d918cb1252e5867749513b2`; its rejected candidate remains
+removed. Assign L65 to fresh task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+from the exact clean L64 base. The prior implementation task becomes an idle
+preserved record.
+
+Reason: L64's real composed observation was promising but not reusable.
+Independent review found seven material foundation defects: no explicit mutual
+wire capability negotiation; consuming/unverified L42 admission; incomplete
+real refusal coverage; tautological event cardinality; abort/disarm evidence
+loss; incomplete transport failure/harvesting coverage; and no truly
+overlapping concurrency or atomic multi-writer publication authority. The
+long-running worker has accumulated extensive diagnostic context, so a fresh
+implementation owner is preferable for a protocol redesign.
+
+L65 must close every review finding with explicit negotiated versions,
+independently authenticated handle-bound admission, pre-begin per-attempt
+recording, non-tautological terminal grammars, honest real transport failure
+injection, evidence-preserving cleanup, atomic per-attempt publication, and
+genuinely overlapping attempts. The real two-host no-model composed fixture
+must cover execute/recompute, epoch rollover, refusals, concurrency, exact
+output, feature-off, and L61 harvesting. Candidate source is retained only
+after independent PASS. No stories model, primary artifact, production
+mutation, cache matrix, or performance work is authorized.
+
 ## 2026-07-27 — accept L61 harvesting and move before authenticated execute
 
 Decision: accept terminal L61 NOT PROMOTED at

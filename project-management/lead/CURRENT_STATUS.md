@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-27 20:00 PDT
+Verified: 2026-07-27 21:00 PDT
 
 ## Overall state
 
@@ -262,17 +262,28 @@ independent read-only specialists are auditing graph-input coverage and
   removed. ADR-0049 freezes the required capability/lifecycle revision. L64 is
   active to implement and qualify that reusable foundation with a real
   two-host no-model composition; stories runtime is not authorized.
+- L64 closed NOT PROMOTED at
+  `54910a78fae5de586d918cb1252e5867749513b2`; its candidate was removed
+  after review found seven material gaps in negotiation, admission
+  authentication/lifetime, real refusal coverage, event grammar,
+  evidence-preserving aborts, transport injection/harvesting, and genuine
+  concurrency/atomic publication. A fresh-context implementation task now owns
+  L65, starting from ADR-0049 plus the exact L64 review. L65 is foundation-only:
+  it must close all findings in a real two-host no-model composition and retain
+  source only on independent PASS. No stories or production work is authorized.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `7628b7cd2ada0fc4d0262f94eaee59f3768a13b0`
+- Latest verified commit: `54910a78fae5de586d918cb1252e5867749513b2`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L63 closeout
-- Primary worker: fresh task `019f83a3-9498-76c3-9398-be80344854ae`
-- Prior worker: idle preserved handoff task
+- Worktree state: clean at the reviewed terminal L64 closeout
+- Primary worker: fresh L65 task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Prior implementation worker: idle preserved engineering record
+  `019f83a3-9498-76c3-9398-be80344854ae`
+- Original handoff worker: idle preserved record
   `019f7377-5d73-7ca1-a83c-a0163f7d4780`
 - Current work: L21 passed. Its closed manifest/evidence controller survived a
   real early-allocation refusal, retained mandatory PID/InvocationID/cursor,
