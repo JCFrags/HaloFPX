@@ -193,6 +193,11 @@ def test_controller_harvest_precedes_remote_cleanup(tmp_path: Path) -> None:
     assert result["status"] == "present", repr(result)
     commands = [call[0] for call in runner.calls]
     assert commands == ["systemctl", "sha256sum", "python3", "base64", "rm"]
+    helper_argv = next(call for call in runner.calls if call[0] == "python3")
+    staging = helper_argv[helper_argv.index("--staging") + 1]
+    assert staging.startswith("/var/tmp/halofpx-l48-worker/.")
+    assert staging.endswith("-server.authority.harvest")
+    assert "\\" not in staging
     retained = next((tmp_path / "server-authority").iterdir())
     assert retained.read_bytes() == data
     assert json.loads(
@@ -255,3 +260,24 @@ def test_status_publication_failure_is_converted_for_cleanup(monkeypatch) -> Non
     failure = CONTROLLER.server_authority_cleanup_boundary(
         {}, {}, Path("unused"), FakeRunner(b""))
     assert failure == "server-authority-record:injected evidence fsync failure"
+
+
+def test_remote_publication_path_refuses_traversal_and_non_posix(
+        tmp_path: Path) -> None:
+    _, expected = authority(b"k" * 130)
+    valid = journal_line(expected)
+    marker = "/var/tmp/halofpx-l48-worker/"
+    malformed = (
+        valid.replace(marker, marker + "../"),
+        valid.replace(marker, r"\var\tmp\halofpx-l48-worker\\"),
+        valid.replace("-server.authority", "/nested-server.authority"),
+    )
+    for index, line in enumerate(malformed):
+        root = tmp_path / str(index) / "child"
+        root.mkdir(parents=True)
+        (root / "worker-journal.txt").write_text(line)
+        try:
+            CONTROLLER._server_publications(root.parent)
+        except CONTROLLER.TransitionError:
+            continue
+        raise AssertionError(f"malformed remote path accepted: {line}")

@@ -9,6 +9,7 @@ import ctypes
 import hashlib
 import json
 import os
+import posixpath
 import re
 import secrets
 import shlex
@@ -2026,7 +2027,7 @@ def _server_publications(evidence_root: Path) -> list[dict[str, str]]:
                 or re.fullmatch(
                     re.escape(fields["attempt"]) +
                     r"-[0-9]+-[0-9]+-server\.authority",
-                    Path(fields["path"]).name,
+                    posixpath.basename(fields["path"]),
                 ) is None
             ):
                 raise TransitionError("server publication journal identity mismatch")
@@ -2096,8 +2097,10 @@ def harvest_server_authority_finally(
                 attempt.update(status="missing", reason="publication_failed")
                 attempts.append(attempt)
                 continue
-            staging = str(Path(fields["path"]).parent / (
-                "." + Path(fields["path"]).name + ".harvest"))
+            remote_parent = posixpath.dirname(fields["path"])
+            remote_basename = posixpath.basename(fields["path"])
+            staging = posixpath.join(
+                remote_parent, "." + remote_basename + ".harvest")
             command = [
                 "python3", helper, "--source", fields["path"],
                 "--staging", staging, "--key-file", key_file,
@@ -2141,7 +2144,7 @@ def harvest_server_authority_finally(
                 attempt.update(status="error", reason="retained_copy_hash")
                 attempts.append(attempt)
                 continue
-            local = retained_dir / Path(fields["path"]).name
+            local = retained_dir / remote_basename
             if local.exists():
                 attempt.update(status="error", reason="retained_collision")
                 attempts.append(attempt)
