@@ -338,6 +338,18 @@ independent read-only specialists are auditing graph-input coverage and
   Qualification is synthetic/source-focused only. No Stories/model run,
   transport qualification, grammar change, production action, or automatic
   follow-on is authorized.
+- L71 passed and is retained at
+  `3f22338f0582640496c4f7033ea1c67132f6ba8d`. One immutable canonical
+  per-backend list now owns sealing and runtime iteration; exact duplicates
+  collapse and semantic conflicts refuse. Focused synthetic gates and
+  independent review passed with no correctness/security P1/P2. No model or
+  production action occurred.
+- L72 is active for exactly one feature-on Stories15M replacement using the
+  identical L69 tuple and retained L68 feature-off token/output. It must either
+  complete authenticated prepare/execute/return with exact output or retain the
+  precise terminal semantic refusal and stop. No control rerun, foundation
+  expansion, cache work, primary model, tuning, performance claim, production
+  mutation, or automatic follow-on is authorized.
 - L69 closed NOT PROMOTED at
   `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The ordering correction,
   focused `2/1` pre-prepare abort, wrong-count refusal, preserved
@@ -354,10 +366,10 @@ independent read-only specialists are auditing graph-input coverage and
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`
+- Latest verified commit: `3f22338f0582640496c4f7033ea1c67132f6ba8d`
 - Remote count: zero
-- Worktree state: clean at terminal L69 closeout
-- Primary worker: L71 canonical-census task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Worktree state: clean at reviewed terminal L71 closeout when L72 opened
+- Primary worker: L72 replacement-run task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record

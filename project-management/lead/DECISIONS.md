@@ -1536,3 +1536,28 @@ feature-off inertness, required builds, and focused independent source review.
 No Stories/model run, offline extraction, RPC transport qualification, grammar
 change, cache or primary work, performance work, production action, or
 automatic follow-on is authorized.
+
+## 2026-07-28 — accept L71 and consume one canonical-census replacement run
+
+Decision: accept L71 PASS at
+`3f22338f0582640496c4f7033ea1c67132f6ba8d` and retain its canonical census
+correction. Open L72 for exactly one feature-on Stories15M replacement using
+the identical L69 model/request/topology/runtime tuple. Reuse the accepted L68
+feature-off token `29916` / output `x` without rerun.
+
+Reason: L71 makes one immutable per-RPC-backend list the sole authority for
+sealed counts/root and runtime registration/exclusion. It collapses only exact
+semantic duplicates and fails conflicting stable/runtime tensor identities.
+Focused repeated-copy, conflict, projection, exact-once iteration,
+compile-off, and independent source review gates passed with no
+correctness/security P1/P2. The pre-existing Windows feature-off final-link
+symbol issue is outside the L71 diff and does not block the Linux feature-on
+disposable path.
+
+L72 must build only required Linux feature-on binaries, bind exact identities,
+and consume one request. Success requires canonical-list/count/root agreement,
+authenticated prepare and execute/consume, RPC return, terminal authority, and
+exact output matching the retained control. Failure must retain the precise
+terminal semantic boundary and stop. No feature-off repeat, foundation
+expansion, broad tests, cache or primary work, tuning, performance claim,
+production mutation, retry, or automatic follow-on is authorized.
