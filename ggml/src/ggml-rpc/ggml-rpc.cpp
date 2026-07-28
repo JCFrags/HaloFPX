@@ -593,15 +593,20 @@ static constexpr size_t HFX_PREEXEC_REGISTER_EVENT_INDEX = 4;
 static constexpr size_t HFX_PREEXEC_EXCLUDE_EVENT_INDEX = 5;
 
 struct hfx_preexecute_recorder {
+    enum role_type : uint32_t { CLIENT = 1, SERVER = 2 };
     std::mutex mutex;
+    role_type role = CLIENT;
     uint64_t generation = 0;
     uint64_t event_sequence = 0;
     uint64_t execution_sequence = 0;
     uint64_t parent_uid = 0;
+    uint64_t split_uid = 0;
     uint64_t client_connection_epoch = 0;
     uint64_t server_connection_epoch = 0;
     uint64_t allocation_epoch = 0;
     uint32_t backend_ordinal = UINT32_MAX;
+    uint32_t split_ordinal = UINT32_MAX;
+    uint32_t execute_receipt_state = 0;
     uint32_t terminal_branch = 0;
     uint32_t expected_register = 0;
     uint32_t expected_exclude = 0;
@@ -610,9 +615,15 @@ struct hfx_preexecute_recorder {
     std::array<uint32_t, 256> transport_phase {};
     std::array<uint8_t, 32> attempt_nonce {};
     std::array<uint8_t, 32> chain {};
+    std::array<uint8_t, 32> admission_object_id {};
+    std::array<uint8_t, 32> expected_admission_digest {};
+    std::array<uint8_t, 32> graph_digest {};
+    std::array<uint8_t, 32> execute_receipt {};
     std::vector<std::string> pending_records;
     std::vector<uint32_t> observed_events;
     std::vector<uint32_t> observed_transport_states;
+    std::vector<uint32_t> server_events;
+    std::vector<uint32_t> server_reasons;
     bool terminal = false;
 };
 
@@ -1911,7 +1922,8 @@ static bool hfx_preexecute_publish(
     const std::string identity =
         hfx_hex(recorder.attempt_nonce.data(), recorder.attempt_nonce.size()) + "-" +
         std::to_string(recorder.generation) + "-" +
-        std::to_string(recorder.client_connection_epoch);
+        std::to_string(recorder.client_connection_epoch) +
+        (recorder.role == hfx_preexecute_recorder::SERVER ? "-server" : "");
     const std::string final_name = identity + ".authority";
     const std::string temporary_name =
         "." + identity + "." + std::to_string(static_cast<uint64_t>(getpid())) + ".tmp";
@@ -1986,6 +1998,138 @@ static bool hfx_preexecute_publish(
     return valid;
 }
 
+enum hfx_server_event_type : uint32_t {
+    HFX_SERVER_ADMISSION_ACCEPTED = 1,
+    HFX_SERVER_ADMISSION_REFUSED,
+    HFX_SERVER_PHYSICAL_PREPARED,
+    HFX_SERVER_EXECUTE_INTENT_CONSUMED,
+    HFX_SERVER_BACKEND_EXECUTED,
+    HFX_SERVER_RECEIPT_PUBLISHED,
+    HFX_SERVER_CLOSE,
+    HFX_SERVER_ABORT,
+};
+
+static const std::array<std::vector<uint32_t>, 5> HFX_SERVER_PRODUCTIONS {{
+    { HFX_SERVER_ADMISSION_ACCEPTED, HFX_SERVER_PHYSICAL_PREPARED,
+      HFX_SERVER_EXECUTE_INTENT_CONSUMED, HFX_SERVER_BACKEND_EXECUTED,
+      HFX_SERVER_RECEIPT_PUBLISHED, HFX_SERVER_CLOSE },
+    { HFX_SERVER_ADMISSION_REFUSED, HFX_SERVER_ABORT },
+    { HFX_SERVER_ADMISSION_ACCEPTED, HFX_SERVER_ABORT },
+    { HFX_SERVER_ADMISSION_ACCEPTED, HFX_SERVER_PHYSICAL_PREPARED,
+      HFX_SERVER_ABORT },
+    { HFX_SERVER_ADMISSION_ACCEPTED, HFX_SERVER_PHYSICAL_PREPARED,
+      HFX_SERVER_EXECUTE_INTENT_CONSUMED, HFX_SERVER_ABORT },
+}};
+
+static bool hfx_server_sequence_valid(
+        const std::vector<uint32_t> & events, bool terminal) {
+    size_t matches = 0;
+    for (const auto & production : HFX_SERVER_PRODUCTIONS) {
+        const bool match = terminal ? events == production :
+            (events.size() < production.size() &&
+             std::equal(events.begin(), events.end(), production.begin()));
+        matches += match ? 1 : 0;
+    }
+    return terminal ? matches == 1 : matches >= 1;
+}
+
+static bool hfx_server_emit(
+        const std::shared_ptr<hfx_preexecute_recorder> & recorder,
+        uint32_t type,
+        uint32_t reason,
+        bool terminal = false) {
+    if (!hfx_preexecute_requested()) return true;
+    if (!recorder) return false;
+    std::lock_guard<std::mutex> lock(recorder->mutex);
+    if (recorder->role != hfx_preexecute_recorder::SERVER ||
+        recorder->terminal || recorder->generation == 0 ||
+        recorder->execution_sequence == 0 ||
+        hfx_zero(recorder->attempt_nonce.data(), 32) ||
+        type < HFX_SERVER_ADMISSION_ACCEPTED || type > HFX_SERVER_ABORT) {
+        return false;
+    }
+    auto events = recorder->server_events;
+    events.push_back(type);
+    auto reasons = recorder->server_reasons;
+    reasons.push_back(reason);
+    uint32_t terminal_branch = 0;
+    if (terminal) {
+        for (size_t i = 0; i < HFX_SERVER_PRODUCTIONS.size(); ++i) {
+            if (events == HFX_SERVER_PRODUCTIONS[i]) {
+                if (terminal_branch != 0) return false;
+                terminal_branch = static_cast<uint32_t>(i + 1);
+            }
+        }
+        if (terminal_branch == 0 || !hfx_server_sequence_valid(events, true)) {
+            GGML_LOG_ERROR(
+                "[halofpx-preexecute-server] terminal production refusal events=%zu last=%u\n",
+                events.size(), type);
+            return false;
+        }
+    } else {
+        if (!hfx_server_sequence_valid(events, false)) return false;
+    }
+    if (terminal && (hfx_zero(recorder->admission_object_id.data(), 32) ||
+                     hfx_zero(recorder->expected_admission_digest.data(), 32) ||
+                     hfx_zero(recorder->graph_digest.data(), 32) ||
+                     recorder->execute_receipt_state > 1 ||
+                     (terminal_branch == 1 &&
+                      (recorder->execute_receipt_state != 1 ||
+                       hfx_zero(recorder->execute_receipt.data(), 32))) ||
+                     (recorder->execute_receipt_state == 0 &&
+                      !hfx_zero(recorder->execute_receipt.data(), 32)))) {
+        return false;
+    }
+    std::vector<std::string> pending;
+    std::array<uint8_t, 32> chain {};
+    if (terminal) {
+        std::array<uint8_t, 32> key {};
+        if (!hfx_graph_key(key)) return false;
+        for (size_t i = 0; i < events.size(); ++i) {
+            std::vector<uint8_t> canonical;
+            hfx_le<uint16_t>(canonical, 1);
+            hfx_le<uint16_t>(canonical, 0);
+            hfx_le<uint32_t>(canonical, hfx_preexecute_recorder::SERVER);
+            hfx_le<uint32_t>(canonical, events[i]);
+            hfx_le<uint32_t>(canonical, reasons[i]);
+            hfx_le<uint32_t>(canonical, terminal_branch);
+            hfx_le<uint64_t>(canonical, i + 1);
+            hfx_le<uint64_t>(canonical, recorder->generation);
+            hfx_le<uint64_t>(canonical, recorder->execution_sequence);
+            hfx_le<uint64_t>(canonical, recorder->parent_uid);
+            hfx_le<uint64_t>(canonical, recorder->split_uid);
+            hfx_le<uint64_t>(canonical, recorder->server_connection_epoch);
+            hfx_le<uint64_t>(canonical, recorder->allocation_epoch);
+            hfx_le<uint32_t>(canonical, recorder->backend_ordinal);
+            hfx_le<uint32_t>(canonical, recorder->split_ordinal);
+            hfx_le<uint32_t>(canonical, recorder->execute_receipt_state);
+            hfx_bytes(canonical, recorder->attempt_nonce.data(), 32);
+            hfx_bytes(canonical, recorder->admission_object_id.data(), 32);
+            hfx_bytes(canonical, recorder->expected_admission_digest.data(), 32);
+            hfx_bytes(canonical, recorder->graph_digest.data(), 32);
+            hfx_bytes(canonical, recorder->execute_receipt.data(), 32);
+            hfx_bytes(canonical, chain.data(), 32);
+            const auto tag =
+                hfx_preexecute_hmac(key.data(), canonical.data(), canonical.size());
+            pending.push_back(
+                std::string("domain=") + HFX_PREEXECUTE_DOMAIN +
+                "|role=server|grammar=1.0|record=" +
+                hfx_hex(canonical.data(), canonical.size()) +
+                "|tag=" + hfx_hex(tag.data(), tag.size()) + "\n");
+            chain = tag;
+        }
+        if (!hfx_preexecute_publish(*recorder, pending)) return false;
+    }
+    recorder->event_sequence = events.size();
+    recorder->chain = chain;
+    recorder->pending_records = std::move(pending);
+    recorder->server_events = std::move(events);
+    recorder->server_reasons = std::move(reasons);
+    recorder->terminal_branch = terminal_branch;
+    recorder->terminal = terminal;
+    return true;
+}
+
 static bool hfx_preexecute_emit(
         const std::shared_ptr<hfx_preexecute_recorder> & recorder,
         uint32_t type,
@@ -1999,7 +2143,7 @@ static bool hfx_preexecute_emit(
         int error_number = 0,
         bool terminal = false) {
     if (!hfx_preexecute_requested()) return true;
-    if (recorder == nullptr) return false;
+    if (recorder == nullptr || recorder->role != hfx_preexecute_recorder::CLIENT) return false;
     std::lock_guard<std::mutex> lock(recorder->mutex);
     if (recorder->terminal || recorder->event_sequence >= HFX_PREEXECUTE_MAX_EVENTS ||
         recorder->generation == 0 || recorder->execution_sequence == 0 ||
@@ -5431,6 +5575,7 @@ public:
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
     bool hfx_graph_caps(const hfx_graph_auth_caps_req & request, hfx_graph_auth_caps_rsp & response);
     bool hfx_graph_compute(const std::vector<uint8_t> & input, hfx_graph_auth_receipt & response);
+    bool hfx_graph_response_published();
     bool hfx_graph_recompute(const hfx_graph_auth_header & request, hfx_graph_auth_receipt & response);
     bool hfx_graph_execute(const hfx_graph_auth_header & request, hfx_graph_auth_receipt & response);
     bool hfx_graph_response_event(const hfx_graph_auth_header & request, const char * phase,
@@ -5590,12 +5735,9 @@ bool rpc_server::alloc_buffer(const rpc_msg_alloc_buffer_req & request, rpc_msg_
             ++allocation_topology_epoch;
             if (hfx_mutable_session.admitted) {
                 if (preexecute_recorder && !preexecute_recorder->terminal) {
-                    if (!hfx_preexecute_emit(
-                        preexecute_recorder, HFX_PREEXEC_L44_ABORT,
-                        HFX_PREEXEC_WRONG_ALLOCATION_EPOCH,
-                        HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX,
-                        hfx_mutable_session.caps.allocation_epoch,
-                        allocation_topology_epoch, 0, true)) return false;
+                    if (!hfx_server_emit(
+                        preexecute_recorder, HFX_SERVER_ABORT,
+                        HFX_PREEXEC_WRONG_ALLOCATION_EPOCH, true)) return false;
                 }
                 hfx_mutable_session = {};
             }
@@ -5659,12 +5801,9 @@ bool rpc_server::free_buffer(const rpc_msg_free_buffer_req & request) {
     ++allocation_topology_epoch;
     if (hfx_mutable_session.admitted) {
         if (preexecute_recorder && !preexecute_recorder->terminal) {
-            if (!hfx_preexecute_emit(
-                preexecute_recorder, HFX_PREEXEC_L44_ABORT,
-                HFX_PREEXEC_WRONG_ALLOCATION_EPOCH,
-                HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX,
-                hfx_mutable_session.caps.allocation_epoch,
-                allocation_topology_epoch, 0, true)) return false;
+            if (!hfx_server_emit(
+                preexecute_recorder, HFX_SERVER_ABORT,
+                HFX_PREEXEC_WRONG_ALLOCATION_EPOCH, true)) return false;
         }
         hfx_mutable_session = {};
     }
@@ -6448,18 +6587,48 @@ bool rpc_server::hfx_graph_execute(
         hfx_equal(request.transcript_root, stored_graphs[request.device].auth_transcript.data(), 32);
     if (!hfx_graph_response_event(request, "handler_validation", 0, no_io,
                                   handler_valid, handler_valid ? 1U : 0U)) return false;
-    if (!handler_valid) return false;
+    if (!handler_valid) {
+        if (preexecute_recorder && !preexecute_recorder->terminal) {
+            hfx_server_emit(preexecute_recorder, HFX_SERVER_ABORT,
+                            HFX_PREEXEC_BIND_REFUSED, true);
+        }
+        return false;
+    }
+    if (hfx_mutable_requested()) {
+        memcpy(preexecute_recorder->execute_receipt.data(), request.tag, 32);
+        memcpy(preexecute_recorder->graph_digest.data(), request.graph_digest, 32);
+        preexecute_recorder->execute_receipt_state = 1;
+    }
     auto & stored = stored_graphs[request.device];
     // The connection-local server owns this state and dispatches commands
     // serially. This transition is therefore atomic with respect to every
     // authenticated request on the connection and occurs immediately before
     // the only mutating backend execution call.
-    if (hfx_mutable_requested()) hfx_mutable_session.consumed = true;
+    if (hfx_mutable_requested()) {
+        if (!hfx_server_emit(preexecute_recorder,
+                             HFX_SERVER_EXECUTE_INTENT_CONSUMED,
+                             HFX_PREEXEC_OK)) {
+            return false;
+        }
+        hfx_mutable_session.consumed = true;
+    }
     stored.auth_prepared = false;
     ggml_status status = ggml_backend_graph_compute(backends[request.device], stored.graph);
     if (!hfx_graph_response_event(request, "backend_complete", 0, no_io,
                                   status == GGML_STATUS_SUCCESS, static_cast<uint32_t>(status))) return false;
-    if (status != GGML_STATUS_SUCCESS) return false;
+    if (status != GGML_STATUS_SUCCESS) {
+        if (preexecute_recorder && !preexecute_recorder->terminal) {
+            hfx_server_emit(preexecute_recorder, HFX_SERVER_ABORT,
+                            HFX_PREEXEC_RECEIPT_REFUSED, true);
+        }
+        return false;
+    }
+    if (hfx_mutable_requested() &&
+        !hfx_server_emit(preexecute_recorder,
+                         HFX_SERVER_BACKEND_EXECUTED,
+                         HFX_PREEXEC_OK)) {
+        return false;
+    }
     GGML_LOG_INFO("[halofpx-rpc-graph-auth] server executed sequence=%" PRIu64
                   " uid=%" PRIu64 " digest=%s\n",
                   request.exec_sequence, request.graph_uid,
@@ -6472,10 +6641,26 @@ bool rpc_server::hfx_graph_execute(
     }
     if (!hfx_graph_response_event(request, "receipt_construction", 0, no_io,
                                   signed_receipt, signed_receipt ? 1U : 0U)) return false;
-    if (!signed_receipt) return false;
+    if (!signed_receipt) {
+        if (preexecute_recorder && !preexecute_recorder->terminal) {
+            hfx_server_emit(preexecute_recorder, HFX_SERVER_ABORT,
+                            HFX_PREEXEC_RECEIPT_REFUSED, true);
+        }
+        return false;
+    }
     if (!hfx_graph_response_event(request, "handler_exit", 0, no_io,
                                   signed_receipt, signed_receipt ? 2U : 1U)) return false;
     return signed_receipt;
+}
+
+bool rpc_server::hfx_graph_response_published() {
+    return !hfx_mutable_requested() ||
+        (hfx_server_emit(preexecute_recorder,
+                         HFX_SERVER_RECEIPT_PUBLISHED,
+                         HFX_PREEXEC_OK) &&
+         hfx_server_emit(preexecute_recorder,
+                         HFX_SERVER_CLOSE,
+                         HFX_PREEXEC_OK, true));
 }
 
 bool rpc_server::hfx_graph_response_event(
@@ -6578,6 +6763,7 @@ bool rpc_server::hfx_mutable_caps(
     if (hfx_preexecute_requested() && request.exec_sequence != 0 &&
         !hfx_zero(request.attempt_nonce, 32)) {
         preexecute_recorder = std::make_shared<hfx_preexecute_recorder>();
+        preexecute_recorder->role = hfx_preexecute_recorder::SERVER;
         preexecute_recorder->generation =
             hfx_preexecute_next_generation.fetch_add(1, std::memory_order_relaxed);
         if (preexecute_recorder->generation == 0) {
@@ -6589,11 +6775,24 @@ bool rpc_server::hfx_mutable_caps(
         preexecute_recorder->client_connection_epoch = request.client_connection_epoch;
         preexecute_recorder->server_connection_epoch = connection_epoch;
         preexecute_recorder->allocation_epoch = allocation_topology_epoch;
-        memcpy(preexecute_recorder->attempt_nonce.data(), request.attempt_nonce, 32);
-        if (!hfx_preexecute_emit(
-                preexecute_recorder, HFX_PREEXEC_BEGIN, HFX_PREEXEC_OK)) {
-            return false;
+        preexecute_recorder->backend_ordinal =
+            request.scheduler_admission.backend_ordinal;
+        for (uint32_t i = 0;
+             i < request.scheduler_admission.split_count && i < 64; ++i) {
+            const auto & split = request.scheduler_admission.ordered_splits[i];
+            if (split.backend_ordinal == preexecute_recorder->backend_ordinal) {
+                preexecute_recorder->split_uid = split.split_graph_uid;
+                preexecute_recorder->split_ordinal = split.split_ordinal;
+                break;
+            }
         }
+        memcpy(preexecute_recorder->attempt_nonce.data(), request.attempt_nonce, 32);
+        memcpy(preexecute_recorder->admission_object_id.data(),
+               request.scheduler_admission.object_id, 32);
+        memcpy(preexecute_recorder->expected_admission_digest.data(),
+               request.expected_admission_digest, 32);
+        memcpy(preexecute_recorder->graph_digest.data(),
+               request.scheduler_admission.prepared_graph_digest, 32);
     }
     const bool key_loaded = hfx_graph_key(hfx_graph_key_value);
     const auto independently_expected_digest = hfx_sha256(
@@ -6637,26 +6836,22 @@ bool rpc_server::hfx_mutable_caps(
         !hfx_mutable_verify(request, hfx_graph_key_value.data());
     if (rejected) {
         if (preexecute_recorder) {
-            hfx_preexecute_emit(
-                preexecute_recorder, HFX_PREEXEC_L44_BEGIN,
-                HFX_PREEXEC_CAPS_REFUSED);
-            hfx_preexecute_emit(
-                preexecute_recorder, HFX_PREEXEC_L44_ABORT,
-                HFX_PREEXEC_CAPS_REFUSED, HFX_TRANSPORT_NOT_ATTEMPTED,
-                0, 0, UINT32_MAX, 0, 0, 0, true);
+            hfx_server_emit(preexecute_recorder,
+                            HFX_SERVER_ADMISSION_REFUSED,
+                            HFX_PREEXEC_CAPS_REFUSED);
+            hfx_server_emit(preexecute_recorder, HFX_SERVER_ABORT,
+                            HFX_PREEXEC_CAPS_REFUSED, true);
         }
         return false;
     }
     if (preexecute_recorder &&
         !hfx_preexecute_install_expected_census(
             preexecute_recorder, request.scheduler_admission)) {
-        hfx_preexecute_emit(
-            preexecute_recorder, HFX_PREEXEC_L44_BEGIN,
-            HFX_PREEXEC_PREPARED_MISMATCH);
-        hfx_preexecute_emit(
-            preexecute_recorder, HFX_PREEXEC_L44_ABORT,
-            HFX_PREEXEC_PREPARED_MISMATCH, HFX_TRANSPORT_NOT_ATTEMPTED,
-            0, 0, UINT32_MAX, 0, 0, 0, true);
+        hfx_server_emit(preexecute_recorder,
+                        HFX_SERVER_ADMISSION_REFUSED,
+                        HFX_PREEXEC_PREPARED_MISMATCH);
+        hfx_server_emit(preexecute_recorder, HFX_SERVER_ABORT,
+                        HFX_PREEXEC_PREPARED_MISMATCH, true);
         return false;
     }
     response = request;
@@ -6673,10 +6868,9 @@ bool rpc_server::hfx_mutable_caps(
     if (preexecute_recorder) {
         preexecute_recorder->server_connection_epoch = response.server_connection_epoch;
         preexecute_recorder->allocation_epoch = response.allocation_epoch;
-        if (!hfx_preexecute_emit(
-                preexecute_recorder, HFX_PREEXEC_L44_BEGIN, HFX_PREEXEC_OK,
-                HFX_TRANSPORT_NOT_ATTEMPTED,
-                static_cast<uint8_t>(RPC_CMD_HALOFPX_MUTABLE_CAPS))) {
+        if (!hfx_server_emit(preexecute_recorder,
+                             HFX_SERVER_ADMISSION_ACCEPTED,
+                             HFX_PREEXEC_OK)) {
             hfx_mutable_session = {};
             preexecute_recorder.reset();
             return false;
@@ -6999,6 +7193,12 @@ bool rpc_server::hfx_mutable_commit(
     hfx_mutable_session.committed = !prepare;
     hfx_mutable_session.census_count = request.census_count;
     hfx_mutable_session.census = census;
+    if (prepare && preexecute_recorder &&
+        !hfx_server_emit(preexecute_recorder,
+                         HFX_SERVER_PHYSICAL_PREPARED,
+                         HFX_PREEXEC_OK)) {
+        return false;
+    }
     return true;
 }
 
@@ -7037,6 +7237,11 @@ bool rpc_server::hfx_mutable_bind(
     hfx_mutable_session.bound_parent_graph_uid = request.parent_graph_uid;
     hfx_mutable_session.bound_split_ordinal = request.split_ordinal;
     hfx_mutable_session.bound_backend_ordinal = request.backend_ordinal;
+    if (preexecute_recorder) {
+        preexecute_recorder->split_uid = request.graph_uid;
+        preexecute_recorder->split_ordinal = request.split_ordinal;
+        preexecute_recorder->backend_ordinal = request.backend_ordinal;
+    }
     memcpy(hfx_mutable_session.split_mapping_root.data(), request.split_mapping_root, 32);
     response = request;
     hfx_set_magic(response.magic, "HFXMBR1\0");
@@ -7364,7 +7569,35 @@ extern "C" bool ggml_backend_rpc_halofpx_preexecute_publication_self_test(void) 
                             HFX_PREEXEC_POST_ABORT,
                             HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX,
                             0, 0, 0, true);
-    return complete_abort && wrong_counts_refused && pre_registration_abort;
+    const std::vector<uint32_t> server_success {
+        HFX_SERVER_ADMISSION_ACCEPTED, HFX_SERVER_PHYSICAL_PREPARED,
+        HFX_SERVER_EXECUTE_INTENT_CONSUMED, HFX_SERVER_BACKEND_EXECUTED,
+        HFX_SERVER_RECEIPT_PUBLISHED, HFX_SERVER_CLOSE,
+    };
+    const std::vector<uint32_t> server_refusal {
+        HFX_SERVER_ADMISSION_REFUSED, HFX_SERVER_ABORT,
+    };
+    auto missing = server_success;
+    missing.erase(missing.begin() + 2);
+    auto reordered = server_success;
+    std::swap(reordered[1], reordered[2]);
+    auto duplicate = server_success;
+    duplicate.insert(duplicate.begin() + 2, HFX_SERVER_PHYSICAL_PREPARED);
+    auto post_terminal = server_success;
+    post_terminal.push_back(HFX_SERVER_ABORT);
+    const std::vector<uint32_t> unknown {
+        HFX_SERVER_ADMISSION_ACCEPTED, UINT32_MAX,
+    };
+    const bool server_grammar =
+        hfx_server_sequence_valid(server_success, true) &&
+        hfx_server_sequence_valid(server_refusal, true) &&
+        !hfx_server_sequence_valid(missing, true) &&
+        !hfx_server_sequence_valid(reordered, true) &&
+        !hfx_server_sequence_valid(duplicate, true) &&
+        !hfx_server_sequence_valid(post_terminal, true) &&
+        !hfx_server_sequence_valid(unknown, false);
+    return complete_abort && wrong_counts_refused &&
+        pre_registration_abort && server_grammar;
 }
 #endif
 
@@ -8165,7 +8398,8 @@ static void rpc_serve_client(const std::vector<ggml_backend_t> & backends, const
                                                      sizeof(response_size), io, sent, 0) || !sent) return;
                 sent = sock->send_data_observed(response_wire.data(), response_wire.size(), io);
                 if (!server.hfx_graph_response_event(request, "response_body_publish",
-                                                     response_wire.size(), io, sent, 0) || !sent) return;
+                                                     response_wire.size(), io, sent, 0) ||
+                    !sent || !server.hfx_graph_response_published()) return;
                 break;
             }
             case RPC_CMD_HALOFPX_MUTABLE_CAPS: {

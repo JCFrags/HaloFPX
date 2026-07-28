@@ -1,0 +1,176 @@
+{
+  "schema": "halofpx.l48.fixture-manifest.v1",
+  "milestone": "l69-stories15m-feature-on-replacement",
+  "worker_host": "nimo-1",
+  "canary_host": "nimo-2",
+  "worker_port": 50248,
+  "worker_units": [
+    "halofpx-l50-device-gate.service",
+    "halofpx-l48-worker-capture.service",
+    "halofpx-l48-worker-restore.service",
+    "halofpx-l48-worker-l68-on.service"
+  ],
+  "canary_units": [
+    "halofpx-l48-canary-capture.service",
+    "halofpx-l48-canary-restore.service",
+    "halofpx-l48-canary-l68-on.service"
+  ],
+  "key_paths": {
+    "nimo-1": "/var/tmp/halofpx-l48-control.key",
+    "nimo-2": "/var/tmp/halofpx-l48-control.key"
+  },
+  "disposable_paths": {
+    "nimo-1": [
+      "/var/tmp/halofpx-l48-worker",
+      "/var/tmp/halofpx-l50-device-gate"
+    ],
+    "nimo-2": [
+      "/var/tmp/halofpx-l48-evidence",
+      "/var/tmp/halofpx-l48-coordinator",
+      "/var/tmp/halofpx-l48-rendezvous",
+      "/var/tmp/halofpx-l50-device-gate-verify"
+    ]
+  },
+  "executables": {
+    "worker": "/var/tmp/halofpx-l48-source-nimo1/build-l48/bin/rpc-server",
+    "canary": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-distributed-state-canary",
+    "readiness": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_readiness.py",
+    "placement": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-placement-probe",
+    "epoch_receipt": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_epoch_receipt.py",
+    "component_diagnostics": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_state_component_diagnostics.py",
+    "semantic_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_semantic_provenance.py",
+    "replay_authority_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_replay_authority.py",
+    "result_authority_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_result_authority.py",
+    "composed_result_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l48_composed_result.py",
+    "device_receipt": "/var/tmp/halofpx-l48-source-nimo1/scripts/halofpx_l50_device_receipt.py",
+    "status_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_l55_status.py",
+    "response_boundary_verifier": "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_boundary.py",
+    "interpreter": "C:\\Python314\\python.exe",
+    "child": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py",
+    "controller": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-production-transition.py"
+  },
+  "executable_sha256": {
+    "worker": "390ffd854606371adbaa008861c5b7cf6ebb9a357b306fd98f9680327fa93880",
+    "canary": "f83dcfcf7b0d454588a01c839476abc9c3424b18471c5d88f7cee17ec73a4555",
+    "readiness": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
+    "placement": "d0f1a8ea3e84dea199ab5af56ed7cfdb96371d74eb77bbc4081cef2db3060872",
+    "epoch_receipt": "6ec5f17be6d3dd7ab5aba7d986434539ed4529c4219f4c112c834169f0671527",
+    "component_diagnostics": "eeb7645ee1d7fe396bf528efbb892d6fdfefd76dc027de7e5b268baa7eb159d0",
+    "semantic_verifier": "f85a36b06e708f5858b6b97642f61597ae9500c5588b25d5cc599e627bd2621a",
+    "replay_authority_verifier": "8ace91cfe652b0535830721b6eb90d566ca2399878c8bf8866cf64a604d5e35a",
+    "result_authority_verifier": "53175585e11d9faf5f49026ad8764c724bfe370da25ee8e4fd1479388c223b99",
+    "composed_result_verifier": "d7f4934db05055544d86e04e25f6c2d9db78a99a9cf6d85a10a88254d3f0ba68",
+    "device_receipt": "533420ccbc2744909e0de444ce0ef793c490ade7716ada658c1fd367346b1952",
+    "status_verifier": "d1c04a799a800651340461688d8c2cd19cbdbb031cf4ecc64a6238992c9cdd93",
+    "response_boundary_verifier": "477d80e4ecf309fa6a48de9bf296b76729ede0b7609d44d730c11ee12c7b02d9",
+    "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
+    "child": "883717efdb4ef3c5fc72710b4657ac3ef2ddf8d7dfd348bfa4fcbc5b72ba3bbf",
+    "controller": "a2e4bdd0146022244bf154c86e1e5f838c933c925e0b254bc1ea21d1dcbff995"
+  },
+  "child_evidence_subdir": "child",
+  "child_argv": [
+    "C:\\Python314\\python.exe",
+    "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-l13-primary-retry.py",
+    "--evidence-dir",
+    "{evidence_root}/child",
+    "--l48-fixture",
+    "--l69-feature-on-replacement",
+    "--authority-key-file",
+    "/var/tmp/halofpx-l48-control.key"
+  ],
+  "authority_contract": {
+    "features": {
+      "rpc_graph": 1,
+      "scheduler": 2,
+      "mutable_session": 1,
+      "composition": 1
+    },
+    "provenance": {
+      "schema": "halofpx.l57.binary-provenance.v1",
+      "source_root": "c895f70de194be7e236b5f0bfb911be7a6b496e8a18c16fdc41b3e79845894ce",
+      "build_id": "30f9693e8634154f2a55ac8ba9ca93f18f3411fef2f4568733786d10f0cc5d72"
+    },
+    "result_schema": "halofpx.l48.composed-result.v1",
+    "result_path": "/var/tmp/halofpx-l48-evidence/l48-composed-result.json",
+    "expected_capture_executions": 4,
+    "expected_restore_executions": 1,
+    "expected_prompt_chunks": [
+      512,
+      512,
+      104
+    ],
+    "expected_replay_count": 1,
+    "transport": {
+      "hfxcap2_readiness_operation": "hfxcap2-readiness",
+      "inner_budget_seconds": 120,
+      "outer_deadline_seconds": 150,
+      "teardown_evidence_margin_seconds": 30
+    },
+    "evidence_publication": {
+      "host": "nimo-2",
+      "directory": "/var/tmp/halofpx-l48-evidence",
+      "owner": "connorb",
+      "directory_mode": "0700",
+      "temporary_name": ".device-admission.pending",
+      "final_name": "device-admission.json",
+      "file_mode": "0600"
+    }
+  },
+  "build_authority": {
+    "schema": "halofpx.l50.rocm-build-authority.v1",
+    "worker_configure_argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build-l48",
+      "-DGGML_RPC=ON",
+      "-DGGML_RPC_HALOFPX_LOCAL_STATE=ON",
+      "-DLLAMA_BUILD_TESTS=ON",
+      "-DGGML_HIP=ON",
+      "-DAMDGPU_TARGETS=gfx1151",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DHALOFPX_PROVENANCE_SOURCE_ROOT=c895f70de194be7e236b5f0bfb911be7a6b496e8a18c16fdc41b3e79845894ce",
+      "-DHALOFPX_PROVENANCE_BUILD_ID=30f9693e8634154f2a55ac8ba9ca93f18f3411fef2f4568733786d10f0cc5d72"
+    ],
+    "cmake_cache_sha256": "4ce152f938a8e044e848d7c9c4ffbc22d844fca4b84ffdd9ea6e9bc362cec00a",
+    "worker_binary_sha256": "390ffd854606371adbaa008861c5b7cf6ebb9a357b306fd98f9680327fa93880",
+    "ldd_sha256": "74413384b81b793117f7c9ab3b598d5923502a0366f6ff4f6d526e64e00f606f",
+    "device_inventory_sha256": "27c70d2186271e068e42ea720b1f78d76d1ba805605676abd3e0df51a1243951",
+    "compiler_sha256": "8daef837093117e0f45079e49809f4a8631f4272338b79b0296a51fae7dd3f26",
+    "hipcc_sha256": "bb10c1b9668aae27dc7e95b0495db2603a05b171ed2be009e0b292c66b2c1455",
+    "backend": "ROCm",
+    "device": "ROCm0",
+    "gfx": "gfx1151"
+  },
+  "source_identity": {
+    "schema": "halofpx.l48.source-identity.v1",
+    "files": {
+      "CMakeLists.txt": "63c626756a0e4698986a96a4aac908584112de39e513148ae5d11bd4504b2007",
+      "ggml/include/ggml-backend.h": "a94e3f932a40d028e9c5b747c10439795495baf9f749bbc49aca833482109568",
+      "ggml/include/ggml-rpc.h": "7f812d271b7002f435829adf5fc9c3cad03023286f4a7db21db32738b131e4a8",
+      "ggml/src/ggml-backend.cpp": "99659c8c6e68ef68c04a658443b01f311ed6e476f9fe7caa480b3e23e5993bf3",
+      "ggml/src/ggml-rpc/ggml-rpc.cpp": "0a4fe48734285bd00b29efe755bf57b8e29a9ee5f7844da915d835e056c2c3ca",
+      "ggml/src/ggml-rpc/transport.cpp": "e695cf4d033098dc584bb1097d94d221f63125a54917c3dbc7862e3ee2d550f1",
+      "ggml/src/ggml-rpc/transport.h": "2053342b741f656136d40c125a2fa8b9be238ecbc0ae0dbd579215b7e439f62b",
+      "include/llama.h": "5c05dd8f43e2829454cb115cfc703f8e04fa025640e32e8f69c51b8277335a72",
+      "scripts/halofpx-l13-primary-retry.py": "883717efdb4ef3c5fc72710b4657ac3ef2ddf8d7dfd348bfa4fcbc5b72ba3bbf",
+      "scripts/halofpx_l48_composed_result.py": "d7f4934db05055544d86e04e25f6c2d9db78a99a9cf6d85a10a88254d3f0ba68",
+      "scripts/halofpx_l50_device_receipt.py": "533420ccbc2744909e0de444ce0ef793c490ade7716ada658c1fd367346b1952",
+      "scripts/halofpx_l55_status.py": "d1c04a799a800651340461688d8c2cd19cbdbb031cf4ecc64a6238992c9cdd93",
+      "scripts/halofpx_rpc_response_boundary.py": "477d80e4ecf309fa6a48de9bf296b76729ede0b7609d44d730c11ee12c7b02d9",
+      "scripts/halofpx_rpc_response_harvest.py": "e717a71431d582b9266312b46863759529c9009a0aff9dda05d057f4776dd705",
+      "src/llama-context.cpp": "1b6f5149864e8408b59d1dbc8314a50b833946c5cc16eb7a444afed5e3300b38",
+      "src/llama-context.h": "7da0c7b7f5d76f7faf5a6f453d026be8385e3cf232bc3bd572eecddce8faffb0",
+      "src/llama-graph.cpp": "033d910e22c7d8b195961936758a4b28625b6532a85e28019e2e3559ffa1e14a",
+      "src/llama-graph.h": "443c6d78c4e9a9f91c111cbbaaef1035c436d1e721444bd942f9df50898d1eb2",
+      "tests/test-halofpx-distributed-state-canary.cpp": "e90189548c3aaa5e7512ceeef5a34ca7308b1ca0c67c87d8240917a5a2aeb5c5",
+      "tests/test-halofpx-rpc-mutable-authority.cpp": "01a4ccab8b8ce14130bf05393086989e6cb3bd0bc11665034c21007e177412cb",
+      "tests/test-halofpx-scheduler-authority.cpp": "2e7f883a9bcd7efc43c492c9201fbe0f8936b09fdc961bb1ed5f601b298b8617",
+      "tests/test_halofpx_l61_host_bound_harvest.py": "0c02d7141f3a1a2daca1887449aac8fb1e5947f5c537c50b1006348991ee1c23",
+      "tests/test_halofpx_rpc_response_boundary.py": "07af34486f957808a0e686f74a0ddf85b8ef1a22a7268a220d9f1b59d41014bf",
+      "tools/rpc/rpc-server.cpp": "e458fcf6902c0d00ece61cac357e77fbde464d0492170624aad2e7f6f83c0fd9"
+    },
+    "root_sha256": "c895f70de194be7e236b5f0bfb911be7a6b496e8a18c16fdc41b3e79845894ce"
+  }
+}

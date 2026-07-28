@@ -1,0 +1,30 @@
+{
+  "host": "nimo-2",
+  "invocation_id": "7f74802c53874a50938c380210b0cdf3",
+  "journal_cursor_lower_bound": "s=366c77678d0e420e926e015e6692f00b;i=134b14;b=4511b107942944c28e81c6b7a54c376b;m=149c350eab8;t=657a8b107e6a0;x=d40f358a78f1b7b0",
+  "journal_pids": [
+    "1924554"
+  ],
+  "launch_properties": {
+    "ActiveState": "active",
+    "ExecMainCode": "0",
+    "ExecMainPID": "1924554",
+    "ExecMainStatus": "0",
+    "InvocationID": "7f74802c53874a50938c380210b0cdf3",
+    "MainPID": "1924554",
+    "Result": "success",
+    "SubState": "running"
+  },
+  "properties": {
+    "ActiveState": "active",
+    "ExecMainCode": "1",
+    "ExecMainPID": "1924554",
+    "ExecMainStatus": "0",
+    "InvocationID": "7f74802c53874a50938c380210b0cdf3",
+    "MainPID": "0",
+    "Result": "success",
+    "SubState": "exited"
+  },
+  "schema": "halofpx.l51.disposable-unit-exit.v1",
+  "unit": "halofpx-l48-canary-l68-on.service"
+}

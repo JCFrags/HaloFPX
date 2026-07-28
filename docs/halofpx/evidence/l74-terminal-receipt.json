@@ -1,0 +1,64 @@
+{
+  "schema": "halofpx.l74.terminal-receipt.v1",
+  "milestone": "L74",
+  "result": "NOT_PROMOTED",
+  "source_head": "8ee9ba84ded5f96094762108da63fcac9524ae4f",
+  "model_runs_consumed": 1,
+  "retry": false,
+  "retained_feature_off": {
+    "milestone": "L68",
+    "rerun": false,
+    "token": 29916,
+    "output": "x",
+    "output_hex": "78",
+    "authority": ""
+  },
+  "build": {
+    "source_root": "c895f70de194be7e236b5f0bfb911be7a6b496e8a18c16fdc41b3e79845894ce",
+    "build_id": "30f9693e8634154f2a55ac8ba9ca93f18f3411fef2f4568733786d10f0cc5d72",
+    "worker_sha256": "390ffd854606371adbaa008861c5b7cf6ebb9a357b306fd98f9680327fa93880",
+    "canary_sha256": "f83dcfcf7b0d454588a01c839476abc9c3424b18471c5d88f7cee17ec73a4555",
+    "manifest_sha256": "2ae91ec9145cd7454e3ccaa8b3104d46062acc08b972b87569b779d3d31aecb1"
+  },
+  "runtime": {
+    "token": 29916,
+    "output": "x",
+    "output_hex": "78",
+    "client_terminal_authority_accepted": true,
+    "mutable_reconcile_status": 1,
+    "mutable_status": 1,
+    "mutable_census": 49,
+    "mutable_receipt_tag": "d141b57762bd09280046e42c35d53d87c65d2ddd15a1b992ee9a50de5184c209",
+    "graph_status": 2,
+    "execution_sequence": 1,
+    "split_uid": 27,
+    "graph_digest": "03630ca6d2e58012dea774437b6733a373e3a18344ae074e1f80c24e68659f86",
+    "graph_receipt_tag": "1c1012e20e51e2eb266178b9d3347f14b21932e40dde9a9639f7a29cbd3a6b10",
+    "server_prepared": true,
+    "server_executed": true,
+    "server_terminal_retained": false,
+    "semantic_boundary": "exact model attempt server terminal file not harvested before cleanup"
+  },
+  "evidence": {
+    "runtime_root": "docs/halofpx/evidence/l74-runtime",
+    "result_sha256": "81e451e121aa3fd163eb68c987547bdd63fdf0dc08f4a3274dfecd5df0bf9018",
+    "canary_journal_sha256": "4658a482e5e66ad99a65164805e3c01ff3c5e0ba067ff7836cb7f2ecafb07f49",
+    "worker_journal_sha256": "f06ae217a43c0be453ada0931261a6aa659e7978996af3b26f82e214795105a7",
+    "independent_source_review": "PASS_NO_P1_P2",
+    "independent_terminal_review": "REJECT_ONE_EVIDENCE_P2_NO_SOURCE_P1_P2"
+  },
+  "cleanup": {
+    "bounded": true,
+    "transient_units_absent": true,
+    "disposable_paths_absent": true,
+    "source_build_roots_absent": true
+  },
+  "production": {
+    "mutated": false,
+    "preflight_final_sha256": "511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded",
+    "coordinator_pid": 2356329,
+    "coordinator_http": 200,
+    "worker_pid": 1535639,
+    "nrestarts": 0
+  }
+}
