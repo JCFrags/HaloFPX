@@ -1,0 +1,4 @@
+2026-07-28T16:42:01.703872-07:00 nimo-2 test-halofpx-distributed-state-canary[2072863]: 0.00.139.546 W load: special_eos_id is not in special_eog_ids - the tokenizer config may be incorrect
+2026-07-28T16:45:15.675343-07:00 nimo-2 test-halofpx-distributed-state-canary[2072863]: 3.14.110.997 W llama_context: n_ctx_seq (4096) < n_ctx_train (196608) -- the full capacity of the model will not be utilized
+2026-07-28T16:45:15.772673-07:00 nimo-2 test-halofpx-distributed-state-canary[2072863]: 3.14.208.283 W common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+2026-07-28T16:45:20.051489-07:00 nimo-2 test-halofpx-distributed-state-canary[2072863]: [halofpx-l55-status] phase=first-chunk|decode_status=0|chunks=1|n_tokens=512|auth_tag=ca9667cd7138b7db86f9a0ef1632fa90a473749337a57478adc0396852d351c2

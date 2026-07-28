@@ -1,0 +1,50 @@
+{
+  "attempts": [
+    {
+      "bytes": 4200,
+      "journal": {
+        "admission": "c2ed787cad558187726083a5c25dab8776158d6e204910f5fec34cedd3335a3b",
+        "attempt": "388442e0cb3787efa34b90511ef3367840a7e9f5bc1f259b03a00eef8db65dc2",
+        "backend": "0",
+        "errno": "0",
+        "path": "/var/tmp/halofpx-l48-worker/388442e0cb3787efa34b90511ef3367840a7e9f5bc1f259b03a00eef8db65dc2-1-6134054745836655-server.authority",
+        "sequence": "1",
+        "sha256": "39d70d4054c43d511ec099da76b7a8ca627354b3cf74f23c5650c0f59212a6bd",
+        "split_ordinal": "1",
+        "split_uid": "27",
+        "status": "present"
+      },
+      "reason": "authenticated_and_retained",
+      "remote_capture": {
+        "bytes": 4200,
+        "execute_receipt": "42468e631203d4f291c4b4d02344c3703b7991523d9a92c17a37a2948e165177",
+        "expected_admission_digest": "e4dede7ae3c7fd6f9df41a7891392c2efb2ffc8680dc261c3fd4c4b375d0f601",
+        "graph_digest": "ff367d025764ae70506673b91a0843e57dcd63cda2b6ff05ed8e0540ddffde7f",
+        "owner": "connorb",
+        "reason": "authenticated",
+        "records": 6,
+        "schema": "halofpx.server-authority-harvest.v1",
+        "sha256": "39d70d4054c43d511ec099da76b7a8ca627354b3cf74f23c5650c0f59212a6bd",
+        "source": "/var/tmp/halofpx-l48-worker/388442e0cb3787efa34b90511ef3367840a7e9f5bc1f259b03a00eef8db65dc2-1-6134054745836655-server.authority",
+        "source_mode": "0400",
+        "staging": "/var/tmp/halofpx-l48-worker/.388442e0cb3787efa34b90511ef3367840a7e9f5bc1f259b03a00eef8db65dc2-1-6134054745836655-server.authority.harvest",
+        "staging_mode": "0600",
+        "status": "present",
+        "terminal_branch": 1
+      },
+      "retained_path": "C:\\Users\\britt\\Documents\\HaloFPX\\docs\\halofpx\\evidence\\l90-transition\\server-authority\\388442e0cb3787efa34b90511ef3367840a7e9f5bc1f259b03a00eef8db65dc2-1-6134054745836655-server.authority",
+      "retained_sha256": "39d70d4054c43d511ec099da76b7a8ca627354b3cf74f23c5650c0f59212a6bd",
+      "status": "present"
+    }
+  ],
+  "cleanup_order": [
+    "quiesce_server",
+    "derive_expected_identity",
+    "authenticate_remote",
+    "retain_local",
+    "cleanup_key_and_paths"
+  ],
+  "reason": "all_authenticated_and_retained",
+  "schema": "halofpx.l75.server-authority-finally.v1",
+  "status": "present"
+}

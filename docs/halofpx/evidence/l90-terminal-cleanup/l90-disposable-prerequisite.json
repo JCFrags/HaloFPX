@@ -1,0 +1,175 @@
+{
+  "production_mutation_started": false,
+  "records": [
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "halofpx-l50-device-gate.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "halofpx-l48-worker-capture.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "halofpx-l48-worker-restore.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "halofpx-l48-worker-l68-off.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "halofpx-l48-worker-l68-on.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "halofpx-l48-canary-capture.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "halofpx-l48-canary-restore.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "stop_unload",
+      "host": "nimo-2",
+      "identity": "halofpx-l48-canary-first-chunk.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "halofpx-l48-canary-l68-off.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "halofpx-l48-canary-l68-on.service",
+      "kind": "unit",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "/var/tmp/halofpx-l48-worker",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "/var/tmp/halofpx-l50-device-gate",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "/var/tmp/halofpx-l89-source",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "/var/tmp/halofpx-l89-source.tar",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "/var/tmp/halofpx-l90-source",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-1",
+      "identity": "/var/tmp/halofpx-l90-source.tar",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "/var/tmp/halofpx-l48-evidence",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "/var/tmp/halofpx-l48-coordinator",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "/var/tmp/halofpx-l48-rendezvous",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "/var/tmp/halofpx-l50-device-gate-verify",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "/var/tmp/halofpx-l89-source",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "/var/tmp/halofpx-l89-source.tar",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "/var/tmp/halofpx-l90-source",
+      "kind": "path",
+      "status": "absent"
+    },
+    {
+      "action": "none",
+      "host": "nimo-2",
+      "identity": "/var/tmp/halofpx-l90-source.tar",
+      "kind": "path",
+      "status": "absent"
+    }
+  ],
+  "schema": "halofpx.l90.disposable-prerequisite.v1",
+  "status": "absent"
+}

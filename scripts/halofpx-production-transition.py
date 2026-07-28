@@ -135,6 +135,42 @@ L48_KEY_PATHS = {
     "nimo-1": "/var/tmp/halofpx-l48-control.key",
     "nimo-2": "/var/tmp/halofpx-l48-control.key",
 }
+L90_PREREQUISITE_UNITS = {
+    "nimo-1": (
+        "halofpx-l50-device-gate.service",
+        "halofpx-l48-worker-capture.service",
+        "halofpx-l48-worker-restore.service",
+        "halofpx-l48-worker-l68-off.service",
+        "halofpx-l48-worker-l68-on.service",
+    ),
+    "nimo-2": (
+        "halofpx-l48-canary-capture.service",
+        "halofpx-l48-canary-restore.service",
+        "halofpx-l48-canary-first-chunk.service",
+        "halofpx-l48-canary-l68-off.service",
+        "halofpx-l48-canary-l68-on.service",
+    ),
+}
+L90_PREREQUISITE_PATHS = {
+    "nimo-1": (
+        "/var/tmp/halofpx-l48-worker",
+        "/var/tmp/halofpx-l50-device-gate",
+        "/var/tmp/halofpx-l89-source",
+        "/var/tmp/halofpx-l89-source.tar",
+        "/var/tmp/halofpx-l90-source",
+        "/var/tmp/halofpx-l90-source.tar",
+    ),
+    "nimo-2": (
+        "/var/tmp/halofpx-l48-evidence",
+        "/var/tmp/halofpx-l48-coordinator",
+        "/var/tmp/halofpx-l48-rendezvous",
+        "/var/tmp/halofpx-l50-device-gate-verify",
+        "/var/tmp/halofpx-l89-source",
+        "/var/tmp/halofpx-l89-source.tar",
+        "/var/tmp/halofpx-l90-source",
+        "/var/tmp/halofpx-l90-source.tar",
+    ),
+}
 COMPOSED_MANIFEST_SCHEMAS = frozenset({
     "halofpx.l48.fixture-manifest.v1",
     "halofpx.l77.primary-manifest.v1",
@@ -1458,6 +1494,169 @@ class Controller:
         }
         self.in_recovery = False
 
+    def reconcile_l90_prerequisite(self, evidence_root: Path) -> dict[str, object]:
+        """Reconcile only the closed disposable set before production shutdown."""
+        if self.first_mutation:
+            raise TransitionError("L90 prerequisite must precede production mutation")
+        records: list[dict[str, object]] = []
+        for host, units in L90_PREREQUISITE_UNITS.items():
+            for unit in units:
+                query = self._run(
+                    host,
+                    ["systemctl", "--user", "show", unit, "-p", "Id",
+                     "-p", "LoadState", "-p", "ActiveState", "-p", "SubState",
+                     "-p", "MainPID", "-p", "FragmentPath", "-p", "UnitFileState",
+                     "-p", "ControlGroup"],
+                    allow_failure=True,
+                )
+                props = _parse_properties(query.stdout)
+                process_query = self._run(
+                    host, ["ps", "-eo", "pid=,args="], allow_failure=True)
+                listener_query = self._run(
+                    host, ["ss", "-H", "-ltnp"], allow_failure=True)
+                if query.returncode != 0 or process_query.returncode != 0 or listener_query.returncode != 0:
+                    raise TransitionError(f"{host}/{unit}: prerequisite query failed")
+                referenced = [
+                    line for line in process_query.stdout.splitlines()
+                    if unit in line
+                ]
+                expected_port = (
+                    50249 if unit == "halofpx-l50-device-gate.service"
+                    else 50248 if "-worker-" in unit else None)
+                listener_owned = bool(expected_port is not None and any(
+                    len(line.split()) >= 4
+                    and line.split()[3].endswith(f":{expected_port}")
+                    for line in listener_query.stdout.splitlines()))
+                main_pid = props.get("MainPID", "")
+                absent = (
+                    props.get("Id") in {"", unit}
+                    and props.get("LoadState") == "not-found"
+                    and props.get("ActiveState") == "inactive"
+                    and props.get("SubState") == "dead"
+                    and main_pid == "0"
+                    and not props.get("FragmentPath")
+                    and not props.get("ControlGroup")
+                    and not referenced
+                    and not listener_owned
+                )
+                action = "none"
+                if not absent:
+                    fragment = props.get("FragmentPath", "")
+                    exact_identity = (
+                        props.get("Id") == unit
+                        and props.get("LoadState") == "loaded"
+                        and props.get("ActiveState") in {"active", "inactive", "failed"}
+                        and props.get("SubState") in {"exited", "dead", "failed"}
+                        and main_pid == "0"
+                        and props.get("UnitFileState") == "transient"
+                        and re.fullmatch(
+                            r"/run/user/[0-9]+/systemd/transient/" +
+                            re.escape(unit), fragment or "") is not None
+                        and not props.get("ControlGroup")
+                        and not referenced
+                        and not listener_owned
+                    )
+                    if not exact_identity:
+                        raise TransitionError(
+                            f"{host}/{unit}: active, owned, or unknown disposable identity")
+                    stopped = self._run(
+                        host, ["systemctl", "--user", "stop", unit],
+                        allow_failure=True)
+                    if stopped.returncode != 0:
+                        raise TransitionError(
+                            f"{host}/{unit}: bounded unload failed")
+                    action = "stop_unload"
+                    after_query = self._run(
+                        host,
+                        ["systemctl", "--user", "show", unit, "-p", "Id",
+                         "-p", "LoadState", "-p", "ActiveState", "-p", "SubState",
+                         "-p", "MainPID", "-p", "FragmentPath", "-p", "ControlGroup"],
+                        allow_failure=True,
+                    )
+                    after = _parse_properties(after_query.stdout)
+                    if not (
+                        after_query.returncode == 0
+                        and after.get("LoadState") == "not-found"
+                        and after.get("ActiveState") == "inactive"
+                        and after.get("SubState") == "dead"
+                        and after.get("MainPID") == "0"
+                        and not after.get("FragmentPath")
+                        and not after.get("ControlGroup")
+                    ):
+                        raise TransitionError(f"{host}/{unit}: absence not proven")
+                records.append({
+                    "kind": "unit", "host": host, "identity": unit,
+                    "action": action, "status": "absent",
+                })
+        for host, paths in L90_PREREQUISITE_PATHS.items():
+            processes = self._run(
+                host, ["ps", "-eo", "pid=,args="], allow_failure=True)
+            if processes.returncode != 0:
+                raise TransitionError(f"{host}: path-reference query failed")
+            for path in paths:
+                stat = self._run(
+                    host, ["stat", "-c", "%F|%U|%a", "--", path],
+                    allow_failure=True)
+                if stat.returncode != 0:
+                    no_entry = self._run(
+                        host, ["test", "!", "-e", path], allow_failure=True)
+                    no_link = self._run(
+                        host, ["test", "!", "-L", path], allow_failure=True)
+                    if no_entry.returncode != 0 or no_link.returncode != 0:
+                        raise TransitionError(
+                            f"{host}:{path}: ambiguous path query failure")
+                    records.append({
+                        "kind": "path", "host": host, "identity": path,
+                        "action": "none", "status": "absent",
+                    })
+                    continue
+                resolved = self._run(
+                    host, ["readlink", "-f", "--", path],
+                    allow_failure=True)
+                mounted = self._run(
+                    host, ["findmnt", "-rn", "-M", path],
+                    allow_failure=True)
+                references = [
+                    line for line in processes.stdout.splitlines()
+                    if path in line
+                ]
+                fields = stat.stdout.strip().split("|")
+                expected_type = (
+                    "regular file" if path.endswith(".tar") else "directory")
+                expected_mode = "644" if path.endswith(".tar") else "700"
+                if (
+                    resolved.returncode != 0
+                    or resolved.stdout.strip() != path
+                    or mounted.returncode not in {0, 1}
+                    or mounted.returncode == 0
+                    or references
+                    or len(fields) != 3
+                    or fields[0] != expected_type
+                    or fields[1] != CHANNEL_KEY_OWNER
+                    or fields[2] != expected_mode
+                ):
+                    raise TransitionError(
+                        f"{host}:{path}: unsafe disposable path identity")
+                removed = self._run(
+                    host, ["rm", "-rf", "--", path], allow_failure=True)
+                after = self._run(
+                    host, ["stat", "-c", "%F", "--", path],
+                    allow_failure=True)
+                if removed.returncode != 0 or after.returncode != 1:
+                    raise TransitionError(f"{host}:{path}: removal not proven")
+                records.append({
+                    "kind": "path", "host": host, "identity": path,
+                    "action": "remove", "status": "absent",
+                })
+        result = {
+            "schema": "halofpx.l90.disposable-prerequisite.v1",
+            "production_mutation_started": self.first_mutation,
+            "records": records,
+            "status": "absent",
+        }
+        _atomic_json(evidence_root / "l90-disposable-prerequisite.json", result)
+        return result
+
     def _operation(self, argv: Sequence[str]) -> str:
         if self.in_recovery:
             return "recovery-mutation" if list(argv[:3]) == ["sudo", "-n", "systemctl"] else "recovery-probe"
@@ -2537,6 +2736,14 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
             maintenance_command.pop(0)
         if not maintenance_command:
             raise TransitionError("maintenance requires a command after --")
+        if (
+            manifest is not None
+            and manifest.get("milestone") ==
+                "l77-primary-distributed-state-correctness"
+        ):
+            # This bounded disposable-only gate must complete before directory
+            # staging, key preparation, or the first production service stop.
+            controller.reconcile_l90_prerequisite(args.evidence_dir)
         if (
             manifest is not None
             and manifest.get("schema") == "halofpx.l77.primary-manifest.v1"

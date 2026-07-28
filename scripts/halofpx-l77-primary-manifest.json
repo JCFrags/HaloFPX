@@ -73,7 +73,7 @@
     "server_authority_harvester": "fae2dcbc0a01fb85d505971e05cc7c25c8568480b6f7d38a2f67d42d5d7b9e49",
     "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
     "child": "905048a5c7f8752783cfcf0db6ee13790e39acd0f0f3994a4f37062cd616da8f",
-    "controller": "6b252138d8cc5f6b75d689a6a402be2f4c7d8cccab32763d8ce4e48ccc512232"
+    "controller": "89254efe4872a426f7b6193b1bd453f7b2b442446bd886d9a559beb9336ef742"
   },
   "child_evidence_subdir": "child",
   "child_argv": [
