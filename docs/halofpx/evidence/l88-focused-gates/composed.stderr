@@ -1,0 +1,24 @@
+Running as unit: halofpx-l88-a.service; invocation ID: bd3a5edc281246a99687a349d44f0e5e
+Running as unit: halofpx-l88-b.service; invocation ID: cac892327b9b42829578c2c6ad45e126
+Running as unit: halofpx-l88-off.service; invocation ID: a5fe8e57692240db997eb4a835573172
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-mutable] bound graph uid=3 exec=1 semantic=d63b0379e20c9acadfb306d98871e23c3cf04851209a2fc629283a966a218734 transcript=6ac03ac7d3f37aa7126f07a1e7f4625f8b01fa2647481a535ba7628ada00bb56
+[halofpx-mutable] bound graph uid=4 exec=1 semantic=c70701c6d20c313f7b2d0a69be10def46a7e36a0fe53d8b31b1ad7f2e8c4e759 transcript=d714c496c0c40e776208c56437029f4f73a9043eac58603e759eeeeb50663084
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=1 uid=3 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=1 uid=4 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-rpc-graph-auth] client executed sequence=1 uid=3 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-rpc-graph-auth] client executed sequence=1 uid=4 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128
+[halofpx-mutable] bound graph uid=6 exec=2 semantic=0c6163678396d6f810e1864091af5d690e9d8b49395343474c8a18e7661dbbf2 transcript=3cff907772703a00f681175fc05766065922bf62cbb7c0d56dd9a5ef02bf7ca8
+[halofpx-rpc-graph-auth] client prepared mode=compute sequence=2 uid=6 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-rpc-graph-auth] client executed sequence=2 uid=6 digest=88759db407049f461399b301d8f37895a797a7cf8de71442bca663fcc10cbf1e
+[halofpx-mutable] census role=1 ordinal=0 allocation=0 relative=0 bytes=128
+[halofpx-mutable] census role=2147483649 ordinal=0 allocation=0 relative=128 bytes=128

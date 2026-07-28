@@ -1,0 +1,29 @@
+{
+  "admitted": true,
+  "attempts": 1,
+  "caps_bytes": 128,
+  "channel_binding_sha256": "c57b5f1a4d4d8c8128492f49d9d4946041ef7af8e93e5a74bd7ae6281b03437a",
+  "command_mask": 31,
+  "commands": [
+    "CAPS",
+    "CAPTURE",
+    "STAGE",
+    "COMMIT_APPLY",
+    "ABORT"
+  ],
+  "connection_caps_sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0",
+  "elapsed_ms": 5.129,
+  "endpoint": "10.44.0.1:50248",
+  "failures": [],
+  "key_generation": 7,
+  "logical_rank": 1,
+  "max_component_bytes": 1073741824,
+  "max_components": 4096,
+  "max_object_bytes": 68719476736,
+  "max_request": 1048576,
+  "max_response": 256,
+  "rpc_protocol": "4.0.1",
+  "state_protocol": "1.0",
+  "state_timeout_ms": 5000,
+  "world_size": 2
+}

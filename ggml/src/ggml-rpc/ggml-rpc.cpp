@@ -251,7 +251,6 @@ static constexpr uint32_t HFX_GRAPH_AUTH_MAX_GRAPH_BYTES = 64U << 20;
 static constexpr char HFX_GRAPH_AUTH_DOMAIN[] = "halofpx.rpc-graph-authority.v1";
 static constexpr char HFX_RPC_RESPONSE_DOMAIN[] = "halofpx.rpc-response-boundary.v1";
 static constexpr char HFX_PREEXECUTE_DOMAIN[] = "halofpx.preexecute-authority.v1";
-static constexpr uint32_t HFX_PREEXECUTE_MAX_EVENTS = 256;
 static constexpr uint32_t HFX_RPC_RESPONSE_MAX_EVENTS = 64;
 
 struct hfx_graph_auth_caps_req {
@@ -637,23 +636,7 @@ struct hfx_preexecute_recorder {
 
 static bool hfx_preexecute_install_expected_census(
         const std::shared_ptr<hfx_preexecute_recorder> & recorder,
-        const struct ggml_backend_sched_authority_prepared_admission & admission) {
-    if (!recorder ||
-        admission.logical_expected_mutable_count > HFX_MUTABLE_MAX_CENSUS ||
-        admission.logical_expected_exclusion_count > HFX_MUTABLE_MAX_CENSUS) {
-        return false;
-    }
-    std::lock_guard<std::mutex> lock(recorder->mutex);
-    if (recorder->terminal || recorder->expected_census_installed ||
-        recorder->event_counts[HFX_PREEXEC_REGISTER_EVENT_INDEX] != 0 ||
-        recorder->event_counts[HFX_PREEXEC_EXCLUDE_EVENT_INDEX] != 0) {
-        return false;
-    }
-    recorder->expected_register = admission.logical_expected_mutable_count;
-    recorder->expected_exclude = admission.logical_expected_exclusion_count;
-    recorder->expected_census_installed = true;
-    return true;
-}
+        const struct ggml_backend_sched_authority_prepared_admission & admission);
 #endif
 
 struct ggml_backend_rpc_context {
@@ -1835,7 +1818,7 @@ struct hfx_preexecute_production {
 // Exact, finite, versioned terminal productions. REGISTER_PLAN and
 // EXCLUDE_PLAN consume exactly the scheduler-sealed cardinalities. Transport
 // tokens consume exactly 10 complete stages or the named exact failing count.
-static const std::array<hfx_preexecute_production, 14> HFX_PREEXECUTE_PRODUCTIONS {{
+static constexpr std::array<hfx_preexecute_production, 14> HFX_PREEXECUTE_PRODUCTIONS {{
     HFX_PRODUCTION(1, HFX_GRAMMAR_BEGIN, HFX_GRAMMAR_L42, HFX_GRAMMAR_L44_BEGIN,
         HFX_GRAMMAR_REGISTER_PLAN, HFX_GRAMMAR_EXCLUDE_PLAN, HFX_GRAMMAR_PREPARE,
         HFX_GRAMMAR_GRAPH_DECISION, HFX_GRAMMAR_TRANSPORT_COMPLETE,
@@ -1880,6 +1863,91 @@ static const std::array<hfx_preexecute_production, 14> HFX_PREEXECUTE_PRODUCTION
         HFX_GRAMMAR_GRAPH_DECISION, HFX_GRAMMAR_TRANSPORT_FAIL_18, HFX_GRAMMAR_ABORT),
 }};
 #undef HFX_PRODUCTION
+
+static constexpr uint32_t hfx_preexecute_token_fixed_events(
+        hfx_preexecute_grammar_token token) {
+    switch (token) {
+        case HFX_GRAMMAR_REGISTER_PLAN:
+        case HFX_GRAMMAR_EXCLUDE_PLAN:
+            return 0;
+        case HFX_GRAMMAR_TRANSPORT_COMPLETE:
+            return 10;
+        case HFX_GRAMMAR_TRANSPORT_FAIL_2:
+        case HFX_GRAMMAR_TRANSPORT_FAIL_4:
+        case HFX_GRAMMAR_TRANSPORT_FAIL_6:
+        case HFX_GRAMMAR_TRANSPORT_FAIL_8:
+        case HFX_GRAMMAR_TRANSPORT_FAIL_10:
+        case HFX_GRAMMAR_TRANSPORT_FAIL_12:
+        case HFX_GRAMMAR_TRANSPORT_FAIL_14:
+        case HFX_GRAMMAR_TRANSPORT_FAIL_16:
+        case HFX_GRAMMAR_TRANSPORT_FAIL_18:
+            return 2U * (static_cast<uint32_t>(token) -
+                         static_cast<uint32_t>(HFX_GRAMMAR_TRANSPORT_FAIL_2) + 1U);
+        default:
+            return 1;
+    }
+}
+
+static constexpr uint32_t hfx_preexecute_production_fixed_events(
+        const hfx_preexecute_production & production) {
+    uint32_t result = 0;
+    for (uint8_t i = 0; i < production.token_count; ++i) {
+        result += hfx_preexecute_token_fixed_events(production.tokens[i]);
+    }
+    return result;
+}
+
+static constexpr uint32_t hfx_preexecute_max_fixed_events() {
+    uint32_t result = 0;
+    for (const auto & production : HFX_PREEXECUTE_PRODUCTIONS) {
+        const uint32_t fixed = hfx_preexecute_production_fixed_events(production);
+        if (fixed > result) result = fixed;
+    }
+    return result;
+}
+
+static constexpr uint32_t HFX_PREEXECUTE_MAX_FIXED_EVENTS =
+    hfx_preexecute_max_fixed_events();
+static_assert(HFX_PREEXECUTE_MAX_FIXED_EVENTS == 27,
+              "grammar-v1 maximum fixed event count changed");
+static_assert(HFX_MUTABLE_MAX_CENSUS <=
+                  (UINT32_MAX - HFX_PREEXECUTE_MAX_FIXED_EVENTS) / 2U,
+              "preexecute recorder event bound overflows uint32_t");
+static constexpr uint32_t HFX_PREEXECUTE_MAX_EVENTS =
+    2U * HFX_MUTABLE_MAX_CENSUS + HFX_PREEXECUTE_MAX_FIXED_EVENTS;
+static_assert(HFX_PREEXECUTE_MAX_EVENTS == 8219,
+              "preexecute recorder bound must cover both admitted census classes");
+
+static constexpr bool hfx_preexecute_stream_fits(
+        uint32_t expected_register, uint32_t expected_exclude) {
+    return expected_register <= HFX_MUTABLE_MAX_CENSUS &&
+        expected_exclude <= HFX_MUTABLE_MAX_CENSUS &&
+        expected_register <=
+            UINT32_MAX - expected_exclude - HFX_PREEXECUTE_MAX_FIXED_EVENTS &&
+        expected_register + expected_exclude + HFX_PREEXECUTE_MAX_FIXED_EVENTS <=
+            HFX_PREEXECUTE_MAX_EVENTS;
+}
+
+static bool hfx_preexecute_install_expected_census_impl(
+        const std::shared_ptr<hfx_preexecute_recorder> & recorder,
+        const struct ggml_backend_sched_authority_prepared_admission & admission) {
+    if (!recorder ||
+        !hfx_preexecute_stream_fits(
+            admission.logical_expected_mutable_count,
+            admission.logical_expected_exclusion_count)) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(recorder->mutex);
+    if (recorder->terminal || recorder->expected_census_installed ||
+        recorder->event_counts[HFX_PREEXEC_REGISTER_EVENT_INDEX] != 0 ||
+        recorder->event_counts[HFX_PREEXEC_EXCLUDE_EVENT_INDEX] != 0) {
+        return false;
+    }
+    recorder->expected_register = admission.logical_expected_mutable_count;
+    recorder->expected_exclude = admission.logical_expected_exclusion_count;
+    recorder->expected_census_installed = true;
+    return true;
+}
 
 static bool hfx_preexecute_production_matches(
         const hfx_preexecute_production & production,
@@ -2621,6 +2689,12 @@ bool hfx_random_all(uint8_t * data, size_t size) {
 }
 
 } // namespace
+
+static bool hfx_preexecute_install_expected_census(
+        const std::shared_ptr<hfx_preexecute_recorder> & recorder,
+        const struct ggml_backend_sched_authority_prepared_admission & admission) {
+    return hfx_preexecute_install_expected_census_impl(recorder, admission);
+}
 #endif
 
 extern "C" bool ggml_backend_rpc_halofpx_response_evidence_probe(bool server_side) {
@@ -7952,6 +8026,181 @@ extern "C" bool ggml_backend_rpc_halofpx_preexecute_publication_self_test(void) 
         !hfx_server_sequence_valid(unknown, false);
     return complete_abort && wrong_counts_refused &&
         pre_registration_abort && server_grammar;
+}
+
+extern "C" bool ggml_backend_rpc_halofpx_preexecute_capacity_self_test(void) {
+    static_assert(HFX_PREEXECUTE_PRODUCTIONS.size() == 14,
+                  "capacity proof covers every grammar-v1 production");
+    const auto append = [](std::vector<uint32_t> & output,
+                           uint32_t value, uint32_t count) {
+        if (count > HFX_PREEXECUTE_MAX_EVENTS - output.size()) return false;
+        output.insert(output.end(), count, value);
+        return true;
+    };
+    const auto append_transport = [&](std::vector<uint32_t> & events,
+                                      std::vector<uint32_t> & states,
+                                      hfx_preexecute_grammar_token token) {
+        static constexpr std::array<uint32_t, 10> complete {
+            2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+        };
+        static constexpr std::array<std::array<uint32_t, 18>, 9> failures {{
+            {{ 2, 13 }},
+            {{ 2, 3, 4, 13 }},
+            {{ 2, 3, 4, 5, 6, 13 }},
+            {{ 2, 3, 4, 5, 6, 7, 8, 13 }},
+            {{ 2, 3, 4, 5, 6, 7, 8, 9, 10, 13 }},
+            {{ 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 2, 13 }},
+            {{ 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 2, 3, 4, 13 }},
+            {{ 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 2, 3, 4, 5, 6, 13 }},
+            {{ 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 2, 3, 4, 5, 6, 7, 8, 13 }},
+        }};
+        const uint32_t count = hfx_preexecute_token_fixed_events(token);
+        if (!append(events, HFX_PREEXEC_TRANSPORT, count)) return false;
+        if (token == HFX_GRAMMAR_TRANSPORT_COMPLETE) {
+            states.insert(states.end(), complete.begin(), complete.end());
+        } else {
+            const size_t index =
+                static_cast<size_t>(token - HFX_GRAMMAR_TRANSPORT_FAIL_2);
+            states.insert(states.end(), failures[index].begin(),
+                          failures[index].begin() + count);
+        }
+        return true;
+    };
+    const auto materialize = [&](const hfx_preexecute_production & production,
+                                 uint32_t registers, uint32_t excludes,
+                                 std::vector<uint32_t> & events,
+                                 std::vector<uint32_t> & states) {
+        events.clear();
+        states.clear();
+        events.reserve(HFX_PREEXECUTE_MAX_EVENTS);
+        for (uint8_t i = 0; i < production.token_count; ++i) {
+            const auto token = production.tokens[i];
+            uint32_t event = 0;
+            uint32_t count = 1;
+            switch (token) {
+                case HFX_GRAMMAR_BEGIN:          event = HFX_PREEXEC_BEGIN; break;
+                case HFX_GRAMMAR_L42:            event = HFX_PREEXEC_L42_PREPARED; break;
+                case HFX_GRAMMAR_L44_BEGIN:      event = HFX_PREEXEC_L44_BEGIN; break;
+                case HFX_GRAMMAR_REGISTER_PLAN:  event = HFX_PREEXEC_L44_REGISTER; count = registers; break;
+                case HFX_GRAMMAR_EXCLUDE_PLAN:   event = HFX_PREEXEC_L44_EXCLUDE; count = excludes; break;
+                case HFX_GRAMMAR_PREPARE:        event = HFX_PREEXEC_L44_PREPARE; break;
+                case HFX_GRAMMAR_COMMIT:         event = HFX_PREEXEC_L44_COMMIT; break;
+                case HFX_GRAMMAR_GRAPH_DECISION: event = HFX_PREEXEC_GRAPH_DECISION; break;
+                case HFX_GRAMMAR_ABORT:          event = HFX_PREEXEC_L44_ABORT; break;
+                case HFX_GRAMMAR_END:            event = HFX_PREEXEC_END; break;
+                default:
+                    if (!append_transport(events, states, token)) return false;
+                    continue;
+            }
+            if (!append(events, event, count)) return false;
+        }
+        return true;
+    };
+
+    if (HFX_PREEXECUTE_MAX_EVENTS != 8219 ||
+        !hfx_preexecute_stream_fits(255, 0) ||
+        !hfx_preexecute_stream_fits(256, 0) ||
+        !hfx_preexecute_stream_fits(257, 0) ||
+        !hfx_preexecute_stream_fits(HFX_MUTABLE_MAX_CENSUS, 0) ||
+        !hfx_preexecute_stream_fits(0, HFX_MUTABLE_MAX_CENSUS) ||
+        !hfx_preexecute_stream_fits(
+            HFX_MUTABLE_MAX_CENSUS, HFX_MUTABLE_MAX_CENSUS) ||
+        hfx_preexecute_stream_fits(HFX_MUTABLE_MAX_CENSUS + 1U, 0) ||
+        hfx_preexecute_stream_fits(0, HFX_MUTABLE_MAX_CENSUS + 1U) ||
+        3U + 253U + 1U > HFX_PREEXECUTE_MAX_EVENTS) {
+        return false;
+    }
+
+    const auto make_recorder = [](uint64_t generation) {
+        auto recorder = std::make_shared<hfx_preexecute_recorder>();
+        recorder->generation = generation;
+        recorder->execution_sequence = 1;
+        recorder->client_connection_epoch = UINT64_C(0x88);
+        for (size_t i = 0; i < recorder->attempt_nonce.size(); ++i) {
+            recorder->attempt_nonce[i] =
+                static_cast<uint8_t>(generation + i);
+        }
+        return recorder;
+    };
+    auto primary = make_recorder(UINT64_C(0x88));
+    struct ggml_backend_sched_authority_prepared_admission primary_admission {};
+    primary_admission.logical_expected_mutable_count = 253;
+    primary_admission.logical_expected_exclusion_count = 1;
+    if (!hfx_preexecute_emit(primary, HFX_PREEXEC_BEGIN, HFX_PREEXEC_OK) ||
+        !hfx_preexecute_emit(primary, HFX_PREEXEC_L42_PREPARED, HFX_PREEXEC_OK) ||
+        !hfx_preexecute_install_expected_census(primary, primary_admission) ||
+        !hfx_preexecute_emit(primary, HFX_PREEXEC_L44_BEGIN, HFX_PREEXEC_OK)) {
+        return false;
+    }
+    std::array<uint8_t, 32> chain_254 {};
+    std::array<uint8_t, 32> chain_255 {};
+    std::array<uint8_t, 32> chain_256 {};
+    for (uint32_t i = 0; i < 253; ++i) {
+        if (!hfx_preexecute_emit(
+                primary, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_OK)) {
+            return false;
+        }
+        if (primary->event_sequence == 254) chain_254 = primary->chain;
+        if (primary->event_sequence == 255) chain_255 = primary->chain;
+        if (primary->event_sequence == 256) chain_256 = primary->chain;
+    }
+    if (primary->event_sequence != 256 ||
+        primary->event_counts[HFX_PREEXEC_REGISTER_EVENT_INDEX] != 253 ||
+        primary->pending_records.size() != 256 ||
+        hfx_zero(chain_254.data(), chain_254.size()) ||
+        hfx_zero(chain_255.data(), chain_255.size()) ||
+        hfx_zero(chain_256.data(), chain_256.size()) ||
+        hfx_equal(chain_254.data(), chain_255.data(), chain_254.size()) ||
+        hfx_equal(chain_255.data(), chain_256.data(), chain_255.size()) ||
+        !hfx_preexecute_emit(
+            primary, HFX_PREEXEC_L44_EXCLUDE, HFX_PREEXEC_OK) ||
+        primary->event_sequence != 257 ||
+        primary->event_counts[HFX_PREEXEC_EXCLUDE_EVENT_INDEX] != 1 ||
+        primary->pending_records.size() != 257 ||
+        hfx_equal(chain_256.data(), primary->chain.data(), chain_256.size())) {
+        return false;
+    }
+
+    auto limit = make_recorder(UINT64_C(0x89));
+    limit->event_sequence = HFX_PREEXECUTE_MAX_EVENTS - 1;
+    if (!hfx_preexecute_emit(
+            limit, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_OK) ||
+        limit->event_sequence != HFX_PREEXECUTE_MAX_EVENTS ||
+        limit->pending_records.size() != 1 ||
+        hfx_zero(limit->chain.data(), limit->chain.size())) {
+        return false;
+    }
+    const auto limit_chain = limit->chain;
+    if (hfx_preexecute_emit(
+            limit, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_OK) ||
+        limit->event_sequence != HFX_PREEXECUTE_MAX_EVENTS ||
+        limit->pending_records.size() != 1 ||
+        !hfx_equal(limit_chain.data(), limit->chain.data(), limit_chain.size())) {
+        return false;
+    }
+
+    std::vector<uint32_t> events;
+    std::vector<uint32_t> states;
+    for (const auto & production : HFX_PREEXECUTE_PRODUCTIONS) {
+        if (!materialize(production, HFX_MUTABLE_MAX_CENSUS,
+                         HFX_MUTABLE_MAX_CENSUS, events, states) ||
+            events.size() > HFX_PREEXECUTE_MAX_EVENTS ||
+            !hfx_preexecute_production_matches(
+                production, events, states,
+                HFX_MUTABLE_MAX_CENSUS, HFX_MUTABLE_MAX_CENSUS)) {
+            return false;
+        }
+    }
+    const auto & success = HFX_PREEXECUTE_PRODUCTIONS.front();
+    if (!materialize(success, HFX_MUTABLE_MAX_CENSUS,
+                     HFX_MUTABLE_MAX_CENSUS, events, states) ||
+        events.size() != HFX_PREEXECUTE_MAX_EVENTS) {
+        return false;
+    }
+    events.push_back(HFX_PREEXEC_END);
+    return !hfx_preexecute_production_matches(
+        success, events, states,
+        HFX_MUTABLE_MAX_CENSUS, HFX_MUTABLE_MAX_CENSUS);
 }
 #endif
 

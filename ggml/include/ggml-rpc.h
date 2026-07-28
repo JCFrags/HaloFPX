@@ -338,6 +338,7 @@ GGML_BACKEND_API bool ggml_backend_rpc_halofpx_mutable_test_commit_omit_unmutate
         const ggml_backend_rpc_halofpx_mutable_session * session);
 GGML_BACKEND_API uint32_t ggml_backend_rpc_halofpx_mutable_auth_self_test(void);
 GGML_BACKEND_API bool ggml_backend_rpc_halofpx_preexecute_publication_self_test(void);
+GGML_BACKEND_API bool ggml_backend_rpc_halofpx_preexecute_capacity_self_test(void);
 // Pre-runtime admission probe for the bounded response-boundary evidence sink.
 // It emits one authenticated, payload-free prefix record only when the
 // diagnostics feature and key authority are explicitly enabled.

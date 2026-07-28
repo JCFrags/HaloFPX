@@ -1,0 +1,73 @@
+{
+  "build_id": "384c1453048543c15e7ba8d5b5f8a0ba553eee95d4ebaf8b454b9f0b72e8225a",
+  "canary": {
+    "authority_status": "final",
+    "binary_sha256": "c8fc47662e8015bc6594b3c8ae4f9f389b796d511de874aadc42d97ce32a3ed4",
+    "final_properties": {
+      "ActiveState": "active",
+      "ExecMainCode": "1",
+      "ExecMainPID": "2050171",
+      "ExecMainStatus": "0",
+      "InvocationID": "5ede6faf992743c99ac600d192ca9de6",
+      "MainPID": "0",
+      "Result": "success",
+      "SubState": "exited"
+    },
+    "invocation_id": "5ede6faf992743c99ac600d192ca9de6",
+    "pid": 2050171,
+    "unit": "halofpx-l48-canary-first-chunk"
+  },
+  "ordering": "before_worker_stop_remote_root_key_controller_cleanup",
+  "schema": "halofpx.l59.rpc-response-harvest-receipt.v1",
+  "source_root": "9f420b2e1fcb0e1f4623337d4c0d8d3e6dbe4cc17385fdd46728638c8c8dba79",
+  "streams": {
+    "client": {
+      "bytes": 984,
+      "copyable": true,
+      "durability": {
+        "bytes": 984,
+        "mechanism": "windows_file_fsync_atomic_noreplace_reopen_revalidate",
+        "sha256": "9fd875d62a1f38a2e1b802f8ab2f6cd1c0982aa8a7a683bb9664cdaf8e23b219",
+        "status": "success"
+      },
+      "local_path": "rpc-response-client.jsonl",
+      "mode": "0600",
+      "owner": "connorb",
+      "reason": "captured",
+      "schema": "halofpx.rpc-response-harvest.v1",
+      "sha256": "9fd875d62a1f38a2e1b802f8ab2f6cd1c0982aa8a7a683bb9664cdaf8e23b219",
+      "source": "/var/tmp/halofpx-l48-evidence/rpc-response-client.jsonl",
+      "staging": "/var/tmp/halofpx-l48-evidence/.rpc-response-client.harvest",
+      "status": "present"
+    },
+    "worker": {
+      "bytes": 3424,
+      "copyable": true,
+      "durability": {
+        "bytes": 3424,
+        "mechanism": "windows_file_fsync_atomic_noreplace_reopen_revalidate",
+        "sha256": "8c33954ccb2b71401d4cb4a51c940b2b6ec5c00ac67e059474091d71c7013d42",
+        "status": "success"
+      },
+      "local_path": "rpc-response-worker.jsonl",
+      "mode": "0600",
+      "owner": "connorb",
+      "reason": "captured",
+      "schema": "halofpx.rpc-response-harvest.v1",
+      "sha256": "8c33954ccb2b71401d4cb4a51c940b2b6ec5c00ac67e059474091d71c7013d42",
+      "source": "/var/tmp/halofpx-l48-worker/rpc-response-worker.jsonl",
+      "staging": "/var/tmp/halofpx-l48-worker/.rpc-response-worker.harvest",
+      "status": "present"
+    }
+  },
+  "verification": {
+    "reason": "Traceback (most recent call last):\n  File \"/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_boundary.py\", line 234, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_boundary.py\", line 210, in main\n    validate_stream(records, side, allow_prefix=args.allow_prefix)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_rpc_response_bound",
+    "status": "refused"
+  },
+  "worker": {
+    "binary_sha256": "a5da0846cfb20fa4c4b346ddd9ff7f120edb5572acc863707655f689013e8247",
+    "invocation_id": "77a00537f8c3467e801e37ae94faa72a",
+    "pid": 2853091,
+    "unit": "halofpx-l48-worker-capture"
+  }
+}

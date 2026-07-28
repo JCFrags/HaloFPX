@@ -684,8 +684,11 @@ int main(int argc, char ** argv) {
     if (argc == 2 && std::strcmp(argv[1], "--publication-self-test") == 0) {
         const bool published =
             ggml_backend_rpc_halofpx_preexecute_publication_self_test();
-        std::printf("immutable_publication=%d\n", published ? 1 : 0);
-        return published ? 0 : 1;
+        const bool capacity =
+            ggml_backend_rpc_halofpx_preexecute_capacity_self_test();
+        std::printf("immutable_publication=%d recorder_capacity=%d\n",
+                    published ? 1 : 0, capacity ? 1 : 0);
+        return published && capacity ? 0 : 1;
     }
     if (argc == 3 && std::strcmp(argv[1], "--feature-off") == 0) {
         ggml_backend_load_all();
