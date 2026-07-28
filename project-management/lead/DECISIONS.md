@@ -1406,3 +1406,34 @@ but no longer requires deleting safe reusable source. Any accepted invalid
 state, unauthenticated consumption, unsafe publication, correctness/security
 defect, or feature-off regression still requires correction or removal. No
 stories, model, cache, performance, or production work is authorized.
+
+## 2026-07-27 — accept retained L67 and open one Stories15M vertical slice
+
+Decision: accept L67 PASS at
+`38c7d4ad7802116daac83e3927a1e1ea42fec8c9` as the retained default-off
+ADR-0049 foundation. Open L68 for one disposable Stories15M real-model
+vertical-slice qualification through the composed L40/L42/L44 path.
+
+Reason: L67 closes all four L65/L66 review blockers with independently built
+complete expectations and a signed cross-side execute/consume receipt, an exact
+13-production grammar, immutable atomic no-replace per-attempt publication, and
+a compact validated evidence manifest. Focused build, compile-off, runtime-off,
+structural refusals, separate-process collision, transport refusal, and the real
+two-host no-model composed fixture passed. Independent final review reported no
+remaining correctness, security, or manifest P1/P2. This establishes reusable
+authority but does not prove the actual model path now completes.
+
+L68 gets one matched feature-off control and one feature-on composed run using
+the already-qualified disposable Stories15M topology and the smallest
+deterministic request that exercises authenticated RPC execute and return.
+Acceptance is exact output agreement, feature-off inertness, a complete
+feature-on execute/consume/terminal record, exact source/binary/runtime
+identity, bounded cleanup, and continuously unchanged production. Timing is
+diagnostic only. Reuse accepted controller and harvester evidence; do not repeat
+broad refusal matrices.
+
+No cache capture/restore, primary model, tuning, performance claim, repeated
+retry, or production mutation is authorized. A source-proven mechanical
+integration correction may remain inside L68 after focused checks; a semantic
+correctness/security defect or ambiguous runtime result must stop for a
+separate decision.

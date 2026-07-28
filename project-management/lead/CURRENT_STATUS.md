@@ -279,7 +279,7 @@ independent read-only specialists are auditing graph-input coverage and
   review rejected complete expected binding, exact terminal grammar,
   interprocess publication, and retained refusal provenance. Candidate source
   was removed after each run.
-- L67 is active as the final bounded ADR-0049 foundation correction. It narrows
+- L67 was opened as the final bounded ADR-0049 foundation correction. It narrowed
   qualification to decisive tests for independent full binding and authenticated
   cross-side consumption, exact enumerated grammar, immutable no-replace
   per-attempt publication, and a compact machine-validated evidence manifest.
@@ -288,16 +288,30 @@ independent read-only specialists are auditing graph-input coverage and
   source, while correctness, security, invalid-state acceptance, feature-off
   regression, or unsafe publication remain removal blockers. No stories, model,
   cache, performance, or production work is authorized.
+- L67 passed and is retained at
+  `38c7d4ad7802116daac83e3927a1e1ea42fec8c9`. Independent review accepted
+  complete expected binding and signed cross-side consumption, exact finite
+  terminal grammar, immutable atomic no-replace per-attempt publication, and
+  the validated focused manifest with no remaining P1/P2. Compile-off and
+  runtime-off passed, and the real two-host no-model fixture remained exact and
+  overlapping. This is a default-off foundation result, not cache-product or
+  performance promotion.
+- L68 is active as one disposable Stories15M product-path vertical slice. It
+  compares one matched feature-off control with one feature-on composed request
+  and must prove exact output plus a complete authenticated RPC execute/return
+  path. It reuses accepted evidence and prohibits cache capture/restore, primary
+  model work, broad matrices, tuning, performance claims, and production
+  mutation.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `755ba5f2ebd943e8a1204f31be4a80516dc06182`
+- Latest verified commit: `38c7d4ad7802116daac83e3927a1e1ea42fec8c9`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L66 closeout when L67 opened
-- Primary worker: L67 task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Worktree state: clean at the reviewed terminal L67 closeout when L68 opened
+- Primary worker: L68 task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record
