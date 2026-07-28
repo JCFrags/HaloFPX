@@ -1743,3 +1743,27 @@ zero first-line key, full-file HMAC, and second-line HMAC while retaining the
 full-file digest requirement. Do not expose key material. No protocol, grammar,
 model, cache, primary, performance, or production change; extra runtime case;
 or automatic follow-on is authorized.
+
+## 2026-07-28 — accept and promote L76 real server-authority custody
+
+Decision: accept L76 PASS/PROMOTE at terminal evidence commit
+`6c8dc28a66b0fc3fb2525713dd505cc4320a4c27` and retain exact corrected source
+commit `52cda98fd3e6f871096089db623ddcc2c2f10705`. Close the L75/L76
+server-authority custody qualification lane. Do not automatically open another
+foundation, model, cache, production, or performance milestone.
+
+Reason: the final real Linux handler success authenticated and retained the
+immutable six-record server authority after server quiescence and before remote
+cleanup. The retained 4,200-byte artifact independently hashes to
+`04ea9584d338d3772fa7a031daa20b12818ad7c93c074d1197d1a942e2cd9c8f` and
+cross-binds the expected admission, sequence, split/backend, and execute
+receipt. The independent failure case recorded bound publication `errno=5`,
+created no authority file, was classified non-promotable, and still completed
+cleanup.
+
+Focused qualification passed 58 tests plus 11 C++ subtests. Independent final
+review returned PASS/PROMOTE with no P1/P2. All disposable units and paths are
+absent. Production preflight and terminal evidence independently hash to the
+same SHA-256
+`511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded`;
+no production or model mutation occurred.

@@ -9,17 +9,18 @@ suitable as the primary implementation owner. Earlier excessive test expansion
 has been corrected by steering; recent work uses bounded kill gates and removes
 slower candidates.
 
-L76 remains active at implementation HEAD
-`511499186e4df26005faf76c14c79d888d11d9c5`. The key-mode and remote POSIX
-path corrections passed focused checks. Two real handler requests have now
-authenticated, executed, and durably journaled authority publication. The
-replacement reached the correct staging path but custody failed closed because
-the helper used the full 130-byte two-line key file as HMAC material; C++ binds
-that full file by digest but decodes only its first 64-hex line as the graph
-key. Cleanup and production reconciliation passed, and failure injection is
-still unconsumed. The Lead authorized that exact helper-format correction, one
-final replacement success, and the original failure case. No further L76
-success retry, production work, or model work is authorized.
+L76 passed and is promoted at terminal evidence commit
+`6c8dc28a66b0fc3fb2525713dd505cc4320a4c27`, retaining exact corrected source
+`52cda98fd3e6f871096089db623ddcc2c2f10705`. A real Linux no-model handler
+success authenticated and retained the immutable 4,200-byte server authority
+before cleanup; its independent SHA-256 is
+`04ea9584d338d3772fa7a031daa20b12818ad7c93c074d1197d1a942e2cd9c8f`.
+The real injected publication failure recorded bound `errno=5`, produced no
+authority file, remained non-promotable, and still completed cleanup.
+Independent review found no P1/P2. Production preflight and terminal snapshots
+are byte-identical at SHA-256
+`511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded`.
+No next milestone is automatically open.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

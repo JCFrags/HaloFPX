@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-28T03:29:51-07:00",
+  "updated_at": "2026-07-28T03:40:36-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l76_real_linux_no_model_server_authority_custody",
+  "worker_status": "idle_after_l76_pass_promote",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "511499186e4df26005faf76c14c79d888d11d9c5",
-  "last_observed_milestone": "L76 replacement success executed and published authority; correct POSIX staging reached, but helper HMAC used the full 130-byte key file instead of decoded first-line graph key; failure case unconsumed",
-  "last_decision": "align_helper_to_exact_two_line_key_format_and_first_line_graph_hmac_then_allow_one_final_success_plus_failure_case",
-  "last_progress": "L76 exact helper key-format correction authorized; preserve two prior failed-custody successes, rebuild, run one final success harvest and one injected publication failure with production untouched",
+  "last_verified_head": "6c8dc28a66b0fc3fb2525713dd505cc4320a4c27",
+  "last_observed_milestone": "L76 PASS/PROMOTE; real Linux server authority authenticated and retained before cleanup, injected publication failure remained bound and recoverable, no review P1/P2",
+  "last_decision": "accept_and_promote_l76_at_6c8dc28_and_close_server_authority_custody_lane",
+  "last_progress": "L76 custody gate is accepted; exact source 52cda98f and terminal evidence 6c8dc28 retained, production unchanged, no automatic follow-on open",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "direct L76 unsafe uncertainty or terminal reviewed report to current manager task; no periodic polling"
+  "next_check_trigger": "explicit next milestone authorization or genuine new project event to current manager task; no periodic polling"
 }
