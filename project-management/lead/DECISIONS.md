@@ -1799,3 +1799,29 @@ coordinator before the worker, recover worker before coordinator, and finish
 with exact system-unit/listener/restart and HTTP 200 reconciliation. No
 production cache enablement, server composition, performance claim, tuning,
 extra attempt, semantic correction, or automatic follow-on is authorized.
+
+## 2026-07-28 — accept L77 refusal and open one mechanical L78 replacement
+
+Decision: accept L77 terminal NOT PROMOTED at
+`72ac37f80e5b721bfe5824f702d50ed4d7cce7a4`. Open L78 only to admit the exact
+`halofpx.l77.primary-manifest.v1` schema through the existing L52
+controller-owned evidence-directory preparation and then run one replacement
+of the primary correctness discriminator.
+
+Reason: L77 passed exact preflight and independent pre-review but refused
+before SSH, model load, RPC handling, capture, or restore. Exact source shows
+that the controller validates L48 and L77 schemas elsewhere, while
+`prepare_l52_evidence_directories()` alone returns unless the schema is L48.
+The child correctly refused the missing directory. The missing server journal
+is a secondary consequence. L77 supports no cache or model conclusion.
+
+The correction must accept exactly L48 and L77, reject unknown and near-match
+schemas, and preserve all directory ownership, permission, collision, symlink,
+nonempty, and controller/child binding rules. After focused checks and one
+independent exact-diff review, L78 may consume one replacement transition with
+the same L77 workload and acceptance gates. Reuse unchanged preflight/build and
+accepted foundation evidence; do not repeat broad matrices.
+
+No protocol, grammar, cache, model, or production semantic change; production
+cache enablement; server composition; performance work; tuning; extra attempt;
+or automatic follow-on is authorized.

@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-28T07:23:43-07:00",
+  "updated_at": "2026-07-28T08:08:49-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l77_exact_primary_distributed_state_correctness",
+  "worker_status": "active_l78_l77_schema_admission_and_primary_replacement",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "6c8dc28a66b0fc3fb2525713dd505cc4320a4c27",
-  "last_observed_milestone": "Post-L76 product-gap audit found no composed end-user two-node persistent cache; current primary distributed-state correctness remains unqualified",
-  "last_decision": "open_l77_one_exact_primary_distributed_state_correctness_discriminator",
-  "last_progress": "L77 is preparing one bounded primary residency-A reference versus fresh-residency-B restore with reused L40-L76 authority and exact production recovery",
+  "last_verified_head": "72ac37f80e5b721bfe5824f702d50ed4d7cce7a4",
+  "last_observed_milestone": "L77 NOT PROMOTED; sole transition refused before SSH/model/RPC because L52 evidence-directory preparation admitted only L48 schema; recovery clean and no cache conclusion",
+  "last_decision": "open_l78_exact_l77_schema_directory_admission_plus_one_primary_replacement",
+  "last_progress": "L78 is applying the narrow exact-schema admission correction, focused review, then one replacement primary correctness transition",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "direct L77 unsafe uncertainty, genuine semantic blocker, or terminal reviewed report to current manager task; no periodic polling"
+  "next_check_trigger": "direct L78 unsafe uncertainty, genuine semantic blocker, or terminal reviewed report to current manager task; no periodic polling"
 }
