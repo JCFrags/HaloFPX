@@ -1,0 +1,55 @@
+{
+  "schema": "halofpx.l69.terminal-receipt.v1",
+  "milestone": "L69",
+  "result": "NOT_PROMOTED",
+  "base_commit": "91e9761b09ca39786b5d1394f308412bab45041d",
+  "scope": "Expected-census installation-order correction plus one feature-on Stories15M replacement",
+  "focused_gate": {
+    "compile": "pass",
+    "test_binary_sha256": "ac17e86bb858380ea80d5a1640f9f23c01f7900d7612af25bd789ea40f7269c6",
+    "rpc_server_sha256": "6cfae1b9e922989ce21a7d831d4d5a9fa8d017a6eb16e15f18fb43ecceb11329",
+    "publication_self_test": "pass",
+    "verified_attempts": 2,
+    "verified_records": 11,
+    "wrong_expected_counts_refused": true,
+    "pre_registration_abort_preserved": true
+  },
+  "review": {
+    "independent": true,
+    "verdict": "PASS",
+    "correctness_security_p1_p2": 0
+  },
+  "retained_feature_off": {
+    "milestone": "L68",
+    "rerun": false,
+    "token": 29916,
+    "output": "x",
+    "output_hex": "78",
+    "authority": ""
+  },
+  "feature_on": {
+    "runs_consumed": 1,
+    "worker_binary_sha256": "f4f6584e9b96f45f5f2a0451674f9b31fb3c4fbea25e264c29560c2dbab6fc60",
+    "canary_binary_sha256": "e0b930ebbc25b376a11b92efe72ea977015ce769921ba2ed2b5c6d0fb3a36fbb",
+    "source_identity_root": "f06002d07c98ced6fd2bf242d8739687f5a41c09a62d3548ecf9da81b79a54e5",
+    "build_id": "e5465ccca642bc9552973ae6095f280b7b06c4a030c166a756ccc20ba741d817",
+    "canary_exit_status": 42,
+    "llama_decode_status": -3,
+    "observed_register": 11,
+    "expected_register": 28,
+    "observed_exclude": 36,
+    "expected_exclude": 38,
+    "authenticated_execute": false,
+    "output_produced": false,
+    "retry": false
+  },
+  "production": {
+    "mutated": false,
+    "preflight_final_sha256": "511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded",
+    "coordinator_pid": 2356329,
+    "coordinator_http": 200,
+    "worker_pid": 1535639,
+    "nrestarts": 0
+  },
+  "evidence_root": "docs/halofpx/evidence/l69-run2"
+}

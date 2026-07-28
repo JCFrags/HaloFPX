@@ -84,6 +84,7 @@ RESULT_AUTHORITY_VERIFIER_SHA = ""
 L55_FIRST_CHUNK_ONLY = False
 L68_VERTICAL_SLICE = False
 L68_FEATURE_ON: bool | None = None
+L69_FEATURE_ON_REPLACEMENT = False
 L55_SOURCE_ROOT = "38b9ccf435ecc79240f0dbf7121a088dfac83b70bcc9b65928c73782b53ab060"
 L55_BUILD_ID = "d88a6c525fb96e9f4023d3d4fcf8d7e61ccb1d2b16d37ab06ad1314ed988e086"
 RESPONSE_HARVESTER_AUTHORITY: dict[str, dict[str, str]] = {}
@@ -2679,7 +2680,8 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     if L68_VERTICAL_SLICE:
         global L68_FEATURE_ON
         records: dict[str, dict[str, object]] = {}
-        for feature_on in (False, True):
+        feature_modes = (True,) if L69_FEATURE_ON_REPLACEMENT else (False, True)
+        for feature_on in feature_modes:
             label = "on" if feature_on else "off"
             L68_FEATURE_ON = feature_on
             worker_unit = f"{UNIT_PREFIX}-worker-l68-{label}"
@@ -2712,6 +2714,25 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
                 "canary_unit": f"{canary_unit}.service",
             }
         L68_FEATURE_ON = None
+        if L69_FEATURE_ON_REPLACEMENT:
+            on_fields = records["on"]["fields"]
+            if (
+                on_fields["tokens"] != "29916"
+                or on_fields["output_hex"] != "78"
+            ):
+                raise CanaryError(
+                    "L69 feature-on output differs from retained L68 feature-off control")
+            return {
+                "schema": "halofpx.l69.feature-on-replacement-result.v1",
+                "retained_feature_off": {
+                    "milestone": "L68",
+                    "tokens": "29916",
+                    "output_hex": "78",
+                    "authority": "",
+                },
+                "feature_on": records["on"],
+                "deterministic_output_agreement": True,
+            }
         if (
             records["off"]["fields"]["tokens"] != records["on"]["fields"]["tokens"]
             or records["off"]["fields"]["output_hex"] != records["on"]["fields"]["output_hex"]
@@ -3233,6 +3254,7 @@ def main() -> int:
     parser.add_argument("--l48-fixture", action="store_true")
     parser.add_argument("--l55-first-chunk", action="store_true")
     parser.add_argument("--l68-vertical-slice", action="store_true")
+    parser.add_argument("--l69-feature-on-replacement", action="store_true")
     parser.add_argument("--authority-key-file")
     args = parser.parse_args()
     if sum((
@@ -3265,8 +3287,12 @@ def main() -> int:
         configure_l48_fixture()
         global L55_FIRST_CHUNK_ONLY
         L55_FIRST_CHUNK_ONLY = args.l55_first_chunk
-        global L68_VERTICAL_SLICE
-        L68_VERTICAL_SLICE = args.l68_vertical_slice
+        global L68_VERTICAL_SLICE, L69_FEATURE_ON_REPLACEMENT
+        L69_FEATURE_ON_REPLACEMENT = args.l69_feature_on_replacement
+        L68_VERTICAL_SLICE = (
+            args.l68_vertical_slice or L69_FEATURE_ON_REPLACEMENT)
+        if args.l68_vertical_slice and L69_FEATURE_ON_REPLACEMENT:
+            parser.error("L68 paired mode and L69 replacement mode are mutually exclusive")
         if L55_FIRST_CHUNK_ONLY and L68_VERTICAL_SLICE:
             parser.error("L55 and L68 diagnostic modes are mutually exclusive")
         if args.authority_key_file != "/var/tmp/halofpx-l48-control.key":
@@ -3374,7 +3400,11 @@ def main() -> int:
             summary["channel_key_sha256"] = channel_key_sha
             if device_admission is not None:
                 summary["device_admission"] = device_admission
-            if args.l48_fixture and not L55_FIRST_CHUNK_ONLY:
+            if (
+                args.l48_fixture
+                and not L55_FIRST_CHUNK_ONLY
+                and not L68_VERTICAL_SLICE
+            ):
                 summary["l48_composed_result"] = write_l48_composed_result(
                     root, summary, args.authority_key_file)
             (root / "result.json").write_text(

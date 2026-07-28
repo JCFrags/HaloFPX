@@ -78,6 +78,7 @@ PRODUCTIONS = (
     (1, ("BEGIN", "L42", "L44", "REGISTER_PLAN", "EXCLUDE_PLAN", "PREPARE",
          "DECISION", "TRANSPORT_COMPLETE", "TRANSPORT_COMPLETE", "COMMIT", "END")),
     (2, ("BEGIN", "L42", "L44", "ABORT")),
+    (5, ("BEGIN", "L42", "L44", "REGISTER_PLAN", "EXCLUDE_PLAN", "ABORT")),
     (4, ("BEGIN", "L42", "L44", "REGISTER_PLAN", "EXCLUDE_PLAN",
          "PREPARE", "ABORT")),
     (4, ("BEGIN", "L42", "L44", "REGISTER_PLAN", "EXCLUDE_PLAN", "PREPARE", "COMMIT", "ABORT")),
@@ -140,15 +141,15 @@ def terminal_valid(records: list[dict[str, object]]) -> bool:
     branch = last["terminal_branch"]
     registers = last["expected_register"]
     excludes = last["expected_exclude"]
-    prepare_index = next(
-        (index for index, record in enumerate(records) if record["event"] == 6),
+    l44_index = next(
+        (index for index, record in enumerate(records) if record["event"] == 3),
         len(records),
     )
     if any(record["expected_register"] != 0 or record["expected_exclude"] != 0
-           for record in records[:prepare_index]) or \
+           for record in records[:l44_index]) or \
        any(record["expected_register"] != registers or
            record["expected_exclude"] != excludes
-           for record in records[prepare_index:]):
+           for record in records[l44_index:]):
         return False
     matches = [
         production for production_branch, production in PRODUCTIONS

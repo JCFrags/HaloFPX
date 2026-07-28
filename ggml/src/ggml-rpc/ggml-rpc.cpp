@@ -589,6 +589,9 @@ struct ggml_backend_rpc_buffer_type_context {
 };
 
 #ifdef GGML_RPC_HALOFPX_LOCAL_STATE
+static constexpr size_t HFX_PREEXEC_REGISTER_EVENT_INDEX = 4;
+static constexpr size_t HFX_PREEXEC_EXCLUDE_EVENT_INDEX = 5;
+
 struct hfx_preexecute_recorder {
     std::mutex mutex;
     uint64_t generation = 0;
@@ -602,6 +605,7 @@ struct hfx_preexecute_recorder {
     uint32_t terminal_branch = 0;
     uint32_t expected_register = 0;
     uint32_t expected_exclude = 0;
+    bool expected_census_installed = false;
     std::array<uint32_t, 12> event_counts {};
     std::array<uint32_t, 256> transport_phase {};
     std::array<uint8_t, 32> attempt_nonce {};
@@ -611,6 +615,26 @@ struct hfx_preexecute_recorder {
     std::vector<uint32_t> observed_transport_states;
     bool terminal = false;
 };
+
+static bool hfx_preexecute_install_expected_census(
+        const std::shared_ptr<hfx_preexecute_recorder> & recorder,
+        const struct ggml_backend_sched_authority_prepared_admission & admission) {
+    if (!recorder ||
+        admission.logical_expected_mutable_count > HFX_MUTABLE_MAX_CENSUS ||
+        admission.logical_expected_exclusion_count > HFX_MUTABLE_MAX_CENSUS) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(recorder->mutex);
+    if (recorder->terminal || recorder->expected_census_installed ||
+        recorder->event_counts[HFX_PREEXEC_REGISTER_EVENT_INDEX] != 0 ||
+        recorder->event_counts[HFX_PREEXEC_EXCLUDE_EVENT_INDEX] != 0) {
+        return false;
+    }
+    recorder->expected_register = admission.logical_expected_mutable_count;
+    recorder->expected_exclude = admission.logical_expected_exclusion_count;
+    recorder->expected_census_installed = true;
+    return true;
+}
 #endif
 
 struct ggml_backend_rpc_context {
@@ -1745,12 +1769,15 @@ struct hfx_preexecute_production {
 // Exact, finite, versioned terminal productions. REGISTER_PLAN and
 // EXCLUDE_PLAN consume exactly the scheduler-sealed cardinalities. Transport
 // tokens consume exactly 10 complete stages or the named exact failing count.
-static const std::array<hfx_preexecute_production, 13> HFX_PREEXECUTE_PRODUCTIONS {{
+static const std::array<hfx_preexecute_production, 14> HFX_PREEXECUTE_PRODUCTIONS {{
     HFX_PRODUCTION(1, HFX_GRAMMAR_BEGIN, HFX_GRAMMAR_L42, HFX_GRAMMAR_L44_BEGIN,
         HFX_GRAMMAR_REGISTER_PLAN, HFX_GRAMMAR_EXCLUDE_PLAN, HFX_GRAMMAR_PREPARE,
         HFX_GRAMMAR_GRAPH_DECISION, HFX_GRAMMAR_TRANSPORT_COMPLETE,
         HFX_GRAMMAR_TRANSPORT_COMPLETE, HFX_GRAMMAR_COMMIT, HFX_GRAMMAR_END),
     HFX_PRODUCTION(2, HFX_GRAMMAR_BEGIN, HFX_GRAMMAR_L42, HFX_GRAMMAR_L44_BEGIN,
+        HFX_GRAMMAR_ABORT),
+    HFX_PRODUCTION(5, HFX_GRAMMAR_BEGIN, HFX_GRAMMAR_L42, HFX_GRAMMAR_L44_BEGIN,
+        HFX_GRAMMAR_REGISTER_PLAN, HFX_GRAMMAR_EXCLUDE_PLAN,
         HFX_GRAMMAR_ABORT),
     HFX_PRODUCTION(4, HFX_GRAMMAR_BEGIN, HFX_GRAMMAR_L42, HFX_GRAMMAR_L44_BEGIN,
         HFX_GRAMMAR_REGISTER_PLAN, HFX_GRAMMAR_EXCLUDE_PLAN, HFX_GRAMMAR_PREPARE,
@@ -2004,6 +2031,14 @@ static bool hfx_preexecute_emit(
     if (terminal) {
         const hfx_preexecute_production * matched = nullptr;
         for (const auto & production : HFX_PREEXECUTE_PRODUCTIONS) {
+            // Branch 5 represents a completed, non-empty sealed census. With
+            // two zero cardinalities its token expansion would be identical
+            // to the preserved pre-registration branch 2.
+            if (production.terminal_branch == 5 &&
+                recorder->expected_register == 0 &&
+                recorder->expected_exclude == 0) {
+                continue;
+            }
             if (hfx_preexecute_production_matches(
                     production, observed_events, observed_transport_states,
                     recorder->expected_register, recorder->expected_exclude)) {
@@ -4250,6 +4285,11 @@ bool ggml_backend_rpc_halofpx_mutable_begin(
                    ctx->execution_split_mapping_root.data(), 32)) {
         return refuse(HFX_PREEXEC_PREPARED_MISMATCH);
     }
+    if (ctx->preexecute_recorder &&
+        !hfx_preexecute_install_expected_census(
+            ctx->preexecute_recorder, *scheduler_admission)) {
+        return refuse(HFX_PREEXEC_PREPARED_MISMATCH);
+    }
     {
         std::lock_guard<std::mutex> lock(hfx_mutable_mutex);
         if (hfx_mutable_active_sockets.find(sock.get()) != hfx_mutable_active_sockets.end()) {
@@ -4779,12 +4819,6 @@ static bool hfx_mutable_client_finish(
     session.committed = !prepare;
     session.census_count = request.census_count;
     if (session.recorder) {
-        if (prepare) {
-            session.recorder->expected_register =
-                static_cast<uint32_t>(session.roles.size());
-            session.recorder->expected_exclude =
-                static_cast<uint32_t>(session.exclusions.size());
-        }
         if (!hfx_preexecute_emit(
                 session.recorder,
                 prepare ? HFX_PREEXEC_L44_PREPARE : HFX_PREEXEC_L44_COMMIT,
@@ -6613,6 +6647,18 @@ bool rpc_server::hfx_mutable_caps(
         }
         return false;
     }
+    if (preexecute_recorder &&
+        !hfx_preexecute_install_expected_census(
+            preexecute_recorder, request.scheduler_admission)) {
+        hfx_preexecute_emit(
+            preexecute_recorder, HFX_PREEXEC_L44_BEGIN,
+            HFX_PREEXEC_PREPARED_MISMATCH);
+        hfx_preexecute_emit(
+            preexecute_recorder, HFX_PREEXEC_L44_ABORT,
+            HFX_PREEXEC_PREPARED_MISMATCH, HFX_TRANSPORT_NOT_ATTEMPTED,
+            0, 0, UINT32_MAX, 0, 0, 0, true);
+        return false;
+    }
     response = request;
     hfx_set_magic(response.magic, "HFXMAR3\0");
     response.status = 1;
@@ -7262,21 +7308,63 @@ extern "C" uint32_t ggml_backend_rpc_halofpx_mutable_auth_self_test(void) {
 }
 
 extern "C" bool ggml_backend_rpc_halofpx_preexecute_publication_self_test(void) {
-    auto recorder = std::make_shared<hfx_preexecute_recorder>();
-    recorder->generation = UINT64_C(0x67);
-    recorder->execution_sequence = 1;
-    recorder->client_connection_epoch = UINT64_C(0x67);
-    for (size_t i = 0; i < recorder->attempt_nonce.size(); ++i) {
-        recorder->attempt_nonce[i] = static_cast<uint8_t>(0x67 + i);
-    }
-    return hfx_preexecute_emit(recorder, HFX_PREEXEC_BEGIN, HFX_PREEXEC_OK) &&
-        hfx_preexecute_emit(recorder, HFX_PREEXEC_L42_PREPARED, HFX_PREEXEC_OK) &&
-        hfx_preexecute_emit(recorder, HFX_PREEXEC_L44_BEGIN,
-                            HFX_PREEXEC_PREPARED_MISMATCH) &&
-        hfx_preexecute_emit(recorder, HFX_PREEXEC_L44_ABORT,
+    const auto make_recorder = [](uint64_t generation) {
+        auto recorder = std::make_shared<hfx_preexecute_recorder>();
+        recorder->generation = generation;
+        recorder->execution_sequence = 1;
+        recorder->client_connection_epoch = UINT64_C(0x67);
+        for (size_t i = 0; i < recorder->attempt_nonce.size(); ++i) {
+            recorder->attempt_nonce[i] =
+                static_cast<uint8_t>(generation + i);
+        }
+        return recorder;
+    };
+    struct ggml_backend_sched_authority_prepared_admission admission {};
+    admission.logical_expected_mutable_count = 2;
+    admission.logical_expected_exclusion_count = 1;
+
+    auto complete = make_recorder(UINT64_C(0x67));
+    const bool complete_abort =
+        hfx_preexecute_emit(complete, HFX_PREEXEC_BEGIN, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(complete, HFX_PREEXEC_L42_PREPARED, HFX_PREEXEC_OK) &&
+        hfx_preexecute_install_expected_census(complete, admission) &&
+        hfx_preexecute_emit(complete, HFX_PREEXEC_L44_BEGIN, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(complete, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(complete, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(complete, HFX_PREEXEC_L44_EXCLUDE, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(complete, HFX_PREEXEC_L44_ABORT,
                             HFX_PREEXEC_POST_ABORT,
                             HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX,
                             0, 0, 0, true);
+
+    auto wrong = make_recorder(UINT64_C(0x68));
+    admission.logical_expected_mutable_count = 1;
+    admission.logical_expected_exclusion_count = 1;
+    const bool wrong_counts_refused =
+        hfx_preexecute_emit(wrong, HFX_PREEXEC_BEGIN, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(wrong, HFX_PREEXEC_L42_PREPARED, HFX_PREEXEC_OK) &&
+        hfx_preexecute_install_expected_census(wrong, admission) &&
+        hfx_preexecute_emit(wrong, HFX_PREEXEC_L44_BEGIN, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(wrong, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(wrong, HFX_PREEXEC_L44_REGISTER, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(wrong, HFX_PREEXEC_L44_EXCLUDE, HFX_PREEXEC_OK) &&
+        !hfx_preexecute_emit(wrong, HFX_PREEXEC_L44_ABORT,
+                             HFX_PREEXEC_POST_ABORT,
+                             HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX,
+                             0, 0, 0, true);
+
+    auto pre_registration = make_recorder(UINT64_C(0x69));
+    const bool pre_registration_abort =
+        hfx_preexecute_emit(pre_registration, HFX_PREEXEC_BEGIN, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(
+            pre_registration, HFX_PREEXEC_L42_PREPARED, HFX_PREEXEC_OK) &&
+        hfx_preexecute_emit(pre_registration, HFX_PREEXEC_L44_BEGIN,
+                            HFX_PREEXEC_PREPARED_MISMATCH) &&
+        hfx_preexecute_emit(pre_registration, HFX_PREEXEC_L44_ABORT,
+                            HFX_PREEXEC_POST_ABORT,
+                            HFX_TRANSPORT_NOT_ATTEMPTED, 0, 0, UINT32_MAX,
+                            0, 0, 0, true);
+    return complete_abort && wrong_counts_refused && pre_registration_abort;
 }
 #endif
 
