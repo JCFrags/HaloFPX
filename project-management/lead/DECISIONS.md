@@ -1720,3 +1720,26 @@ Preserve the first success/publication and failed-custody evidence. Do not
 weaken the exact remote root, traversal, identity, collision, or atomic
 no-replace checks. No protocol/grammar/model/cache/primary/performance change,
 production mutation, extra runtime case, or automatic follow-on is authorized.
+
+## 2026-07-28 — align L76 helper HMAC key decoding and allow final replacement
+
+Decision: keep L76 open. Preserve full-file authority and SHA-256 binding, but
+make the harvest helper require the exact 130-byte, two-lowercase-hex-line key
+format and decode only the first line to the 32-byte graph/preexecute HMAC key,
+matching `hfx_graph_key`. After focused format/refusal checks, corrected
+synthetic evidence, one independent review, and one rebuild, authorize exactly
+one final replacement success request followed by the still-unconsumed
+publication-failure case. No further success retry is authorized in L76.
+
+Reason: exact C++ source validates owner/mode/type/size and the SHA-256 of the
+complete two-line file, then copies and decodes only bytes 0 through 63 for
+graph HMAC. The helper validates the same file identity but incorrectly passes
+all 130 bytes to HMAC. L75's synthetic fixture repeated that helper mistake, so
+it could not expose the real-server mismatch. Both L76 server requests remain
+valid execution/publication evidence but neither proves authenticated custody.
+
+The helper must reject uppercase, malformed length/newlines/hex, extra bytes,
+zero first-line key, full-file HMAC, and second-line HMAC while retaining the
+full-file digest requirement. Do not expose key material. No protocol, grammar,
+model, cache, primary, performance, or production change; extra runtime case;
+or automatic follow-on is authorized.

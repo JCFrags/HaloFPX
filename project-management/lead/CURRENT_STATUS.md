@@ -10,15 +10,16 @@ has been corrected by steering; recent work uses bounded kill gates and removes
 slower candidates.
 
 L76 remains active at implementation HEAD
-`71938770cd861cc396cd6cfc8667a344a40ebe6e`. The key-mode correction and its
-focused negatives passed. One real handler success request authenticated,
-executed, and durably journaled authority publication, but custody failed
-because Windows `pathlib.Path` converted the remote POSIX staging path to
-backslashes; the Linux helper correctly refused it. Cleanup and production
-reconciliation passed, and the failure-injection case remains unconsumed. The
-Lead authorized a remote-path-only correction plus exactly one replacement
-success and the original failure case. Production and model work remain
-unauthorized.
+`511499186e4df26005faf76c14c79d888d11d9c5`. The key-mode and remote POSIX
+path corrections passed focused checks. Two real handler requests have now
+authenticated, executed, and durably journaled authority publication. The
+replacement reached the correct staging path but custody failed closed because
+the helper used the full 130-byte two-line key file as HMAC material; C++ binds
+that full file by digest but decodes only its first 64-hex line as the graph
+key. Cleanup and production reconciliation passed, and failure injection is
+still unconsumed. The Lead authorized that exact helper-format correction, one
+final replacement success, and the original failure case. No further L76
+success retry, production work, or model work is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
