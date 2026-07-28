@@ -55,8 +55,8 @@
     "controller": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-production-transition.py"
   },
   "executable_sha256": {
-    "worker": "ae5651d3ac458c547880929f588ab79441e3883da3e637031cf0eeb04b47cf33",
-    "canary": "634812a281a23fd04c693be560962085faa748383ee04804b535e5e0036e6467",
+    "worker": "cd63d1a13d10782e49783071df838ae29d4924f017f0c25331e9c6e7c794ee33",
+    "canary": "fee85fc95f3454101c6c34c11f23e85b8aa5afb0b097a9da217a726b9dc8fa51",
     "readiness": "54b546c38ea8d0a4ec273ae33b961090589756788acc1b173f22f1dba3e070da",
     "placement": "d0f1a8ea3e84dea199ab5af56ed7cfdb96371d74eb77bbc4081cef2db3060872",
     "epoch_receipt": "a968b9e7d49cd9882b09badd8b48b22093f609b65cc740b6bc7a1c0ea33be389",
@@ -151,8 +151,8 @@
       "-DHALOFPX_PROVENANCE_SOURCE_ROOT=71d72d8f93709b92bea43b8f985bacfabc6fb1e424110822689c1915afbb2e62",
       "-DHALOFPX_PROVENANCE_BUILD_ID=5401deeeac66260401794dc1eff05888a6fee0c2a58895c0029d48edc2a77242"
     ],
-    "cmake_cache_sha256": "fd747717ce349d28f26fffd5aada0488664be384badff5de1e5b5efafd802618",
-    "worker_binary_sha256": "ae5651d3ac458c547880929f588ab79441e3883da3e637031cf0eeb04b47cf33",
+    "cmake_cache_sha256": "0dd9366c7ae53aef26105dd21397859b95069fc81978c1e45e03aec4aeb11f4f",
+    "worker_binary_sha256": "cd63d1a13d10782e49783071df838ae29d4924f017f0c25331e9c6e7c794ee33",
     "ldd_sha256": "74413384b81b793117f7c9ab3b598d5923502a0366f6ff4f6d526e64e00f606f",
     "device_inventory_sha256": "27c70d2186271e068e42ea720b1f78d76d1ba805605676abd3e0df51a1243951",
     "compiler_sha256": "8daef837093117e0f45079e49809f4a8631f4272338b79b0296a51fae7dd3f26",
