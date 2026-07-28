@@ -1,0 +1,22 @@
+{
+  "milestone": "L63",
+  "status": "NOT_PROMOTED",
+  "source_head": "76bae384139dbc083cea7a8fa4e26479a1219c2b",
+  "stories_run": false,
+  "primary_access": false,
+  "production_mutated": false,
+  "runtime_candidate_retained": false,
+  "l61_harvesting_changed": false,
+  "review_verdict": "ACCEPT_PRECISE_NOT_PROMOTED",
+  "artifacts": {
+    "adr_sha256": "4cda5a7b8b879656278a68e5e260830b279e719136d95d5164b48c412e6876f6",
+    "closeout_sha256": "d2ab231212f09fdeb311f82c06e67158973efb07b554b2aa16d93b3e09950608",
+    "review_sha256": "7807ffbe720ceab190ede6d96334876ee05f2ec3614f897aeb936ca476b396de",
+    "production_snapshot_sha256": "6f94ce321d4d3e6b63759d0868908671e72289671e40d3ddbac316e945e569dd"
+  },
+  "production": {
+    "worker": "nimo-2 system minimax-m27-rpc-worker.service PID1535639 port50052 NRestarts0",
+    "coordinator": "nimo-1 system minimax-m27-q6-server.service PID2356329 port8081 HTTP200 NRestarts0"
+  },
+  "terminal_boundary": "source/design qualification failed before any stories or model runtime"
+}

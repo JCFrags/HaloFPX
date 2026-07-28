@@ -1,0 +1,20 @@
+nimo-2
+LoadState=loaded
+ActiveState=active
+SubState=running
+MainPID=1535639
+NRestarts=0
+ExecStart=/opt/llm-usb4-cluster/bin/run-minimax-m27-rpc-worker.sh
+listener=0.0.0.0:50052 pid=1535639
+cgroup=/system.slice/minimax-m27-rpc-worker.service
+
+nimo-1
+LoadState=loaded
+ActiveState=active
+SubState=running
+MainPID=2356329
+NRestarts=0
+ExecStart=/opt/llm-usb4-cluster/bin/run-minimax-m27-q6-server.sh
+listener=0.0.0.0:8081 pid=2356329
+cgroup=/system.slice/minimax-m27-q6-server.service
+health_http_status=200
