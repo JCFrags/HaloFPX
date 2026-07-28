@@ -1,0 +1,47 @@
+{
+  "actions": [],
+  "after": {
+    "cgroup_pids": [],
+    "listener_pid": 0,
+    "listener_port": null,
+    "listener_returncode": 0,
+    "process_returncode": 0,
+    "properties": {
+      "ActiveState": "active",
+      "ControlGroup": "",
+      "FragmentPath": "/run/user/1000/systemd/transient/halofpx-l48-canary-first-chunk.service",
+      "LoadState": "loaded",
+      "MainPID": "0",
+      "SubState": "exited",
+      "UnitFileState": "transient"
+    },
+    "registration_returncode": 0,
+    "show_returncode": 0,
+    "unit_file_registration": "halofpx-l48-canary-first-chunk.service transient -"
+  },
+  "before": {
+    "cgroup_pids": [],
+    "listener_pid": 0,
+    "listener_port": null,
+    "listener_returncode": 0,
+    "process_returncode": 0,
+    "properties": {
+      "ActiveState": "active",
+      "ControlGroup": "",
+      "FragmentPath": "/run/user/1000/systemd/transient/halofpx-l48-canary-first-chunk.service",
+      "LoadState": "loaded",
+      "MainPID": "0",
+      "SubState": "exited",
+      "UnitFileState": "transient"
+    },
+    "registration_returncode": 0,
+    "show_returncode": 0,
+    "unit_file_registration": "halofpx-l48-canary-first-chunk.service transient -"
+  },
+  "host": "nimo-2",
+  "manager_scope": "user",
+  "phase": "prelaunch",
+  "schema": "halofpx.l60.transient-unit-absence.v1",
+  "status": "refused_active_or_owned",
+  "unit": "halofpx-l48-canary-first-chunk.service"
+}

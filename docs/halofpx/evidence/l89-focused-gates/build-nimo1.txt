@@ -1,0 +1,5 @@
+InvocationID=7d8c0ae7e9ff4153967462e63c09f929
+Result=success
+ExecMainStatus=0
+1810b76a41622100ae7644b90713de0cbe3e00f09832254b53ac23f1c7b8433d  /var/tmp/halofpx-l89-source/build-l89/bin/rpc-server
+0513bf8d7ee5f351d111361363ccdaa77d23b017143c5d2677e70daa7a3b5955  /var/tmp/halofpx-l89-source/build-l89/bin/test-halofpx-rpc-mutable-authority

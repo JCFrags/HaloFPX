@@ -1,0 +1,9 @@
+InvocationID=91b0792563ea448d9d4de4f16d6c44d3
+Result=success
+ExecMainStatus=0
+InvocationID=6eda0078df78489d9c0a2c20e2e7f129
+Result=success
+ExecMainStatus=0
+2290d67f3c5656736ee491312e02b0bd4f9fadc3c50dd8528224a79571998c26  /var/tmp/halofpx-l89-source/build-l89/bin/test-halofpx-distributed-state-canary
+b4165c11aee427d2cad9596b504329e81767cc7b8e011240171e702860a71d5a  /var/tmp/halofpx-l89-source/build-l89/bin/test-halofpx-placement-probe
+6d54b642e75f5ff4db7ce7596fdb71623e3cf7d6a1ff44221daaf91060bdf0b2  /var/tmp/halofpx-l89-source/build-l89-off/bin/rpc-server

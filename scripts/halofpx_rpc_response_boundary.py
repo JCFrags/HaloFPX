@@ -99,32 +99,46 @@ def validate_stream(
         records: list[dict[str, object]], side: str, *, allow_prefix: bool = False) -> None:
     phases = [str(record["phase"]) for record in records]
     if side == "client":
-        required = ["request_opcode", "request_header", "request_body", "response_header"]
-        if allow_prefix and len(records) < len(required):
-            if phases != required[:len(records)] or any(record["rc"] != 1 for record in records):
-                raise ValueError("client incomplete prefix is not canonical")
-            return
-        if phases[:len(required)] != required:
-            raise ValueError("client request/response-header lifecycle mismatch")
-        if records[3]["rc"] == 0:
-            if len(records) != 4:
-                raise ValueError("client response-header failure has trailing events")
-        elif len(records) == 5 and phases[4] == "response_size_mismatch":
-            if records[4]["rc"] != 0:
-                raise ValueError("response-size mismatch reports success")
+        late_semantic = phases == ["client_decode", "client_receipt_validation"]
+        if late_semantic:
+            expected_status = (1, 2)
+            if any(
+                    record["opcode"] != 25
+                    or record["expected"] != 0
+                    or record["actual"] != 0
+                    or record["rc"] != 1
+                    or record["errno"] != 0
+                    or record["eof"] != 0
+                    or record["status"] != status
+                    for record, status in zip(records, expected_status, strict=True)):
+                raise ValueError("client late semantic success authority is inconsistent")
         else:
-            if len(records) < 5 or phases[4] != "response_body":
-                raise ValueError("client response-body lifecycle mismatch")
-            if records[4]["rc"] == 0:
-                if len(records) != 5:
-                    raise ValueError("client body failure has trailing events")
-            elif len(records) < 6 or phases[5] != "client_decode":
-                raise ValueError("client decode lifecycle mismatch")
-            elif records[5]["rc"] == 0:
-                if len(records) != 6:
-                    raise ValueError("client decode failure has trailing events")
-            elif phases[6:] != ["client_receipt_validation"] or len(records) != 7:
-                raise ValueError("client receipt-validation lifecycle mismatch")
+            required = ["request_opcode", "request_header", "request_body", "response_header"]
+            if allow_prefix and len(records) < len(required):
+                if phases != required[:len(records)] or any(record["rc"] != 1 for record in records):
+                    raise ValueError("client incomplete prefix is not canonical")
+                return
+            if phases[:len(required)] != required:
+                raise ValueError("client request/response-header lifecycle mismatch")
+            if records[3]["rc"] == 0:
+                if len(records) != 4:
+                    raise ValueError("client response-header failure has trailing events")
+            elif len(records) == 5 and phases[4] == "response_size_mismatch":
+                if records[4]["rc"] != 0:
+                    raise ValueError("response-size mismatch reports success")
+            else:
+                if len(records) < 5 or phases[4] != "response_body":
+                    raise ValueError("client response-body lifecycle mismatch")
+                if records[4]["rc"] == 0:
+                    if len(records) != 5:
+                        raise ValueError("client body failure has trailing events")
+                elif len(records) < 6 or phases[5] != "client_decode":
+                    raise ValueError("client decode lifecycle mismatch")
+                elif records[5]["rc"] == 0:
+                    if len(records) != 6:
+                        raise ValueError("client decode failure has trailing events")
+                elif phases[6:] != ["client_receipt_validation"] or len(records) != 7:
+                    raise ValueError("client receipt-validation lifecycle mismatch")
         for record in records:
             phase = str(record["phase"])
             expected = int(record["expected"])
@@ -213,6 +227,31 @@ def main() -> int:
         raise SystemExit("exactly one client and one server stream are required")
     client = output.get("client", [])
     server = output.get("server", [])
+    late_client = [
+        str(record["phase"]) for record in client
+    ] == ["client_decode", "client_receipt_validation"]
+    if late_client:
+        expected_server = [
+            ("handler_entry", 0, 0),
+            ("handler_validation", 0, 1),
+            ("backend_complete", 0, 0),
+            ("receipt_construction", 0, 1),
+            ("handler_exit", 0, 2),
+            ("response_header_publish", 8, 0),
+            ("response_body_publish", 264, 0),
+        ]
+        if len(server) != len(expected_server) or any(
+                record["phase"] != phase
+                or record["opcode"] != 25
+                or record["expected"] != size
+                or record["actual"] != size
+                or record["rc"] != 1
+                or record["errno"] != 0
+                or record["eof"] != 0
+                or record["status"] != status
+                for record, (phase, size, status) in
+                zip(server, expected_server, strict=True)):
+            raise SystemExit("late client semantics require exact paired server success")
     if client and server:
         for field in (
                 "split_uid", "exec_sequence", "backend_ordinal", "attempt",

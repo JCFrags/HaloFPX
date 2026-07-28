@@ -1,0 +1,39 @@
+{
+  "build_id": "f5c159f5b4379038c3205d173bc0af25e271d7b02ab3c1f77fd6f7f8870d3585",
+  "canary": {
+    "authority_status": "missing",
+    "binary_sha256": "eb0b9634b24cda5573c6ec57700afb6ee3c16b66b2b8e8162b2e42a05b64b133",
+    "final_properties": null,
+    "invocation_id": "",
+    "pid": 0,
+    "unit": "halofpx-l48-canary-first-chunk"
+  },
+  "ordering": "before_worker_stop_remote_root_key_controller_cleanup",
+  "schema": "halofpx.l59.rpc-response-harvest-receipt.v1",
+  "source_root": "ad6c861ec615cb8f3e49e3165730e9874fee690404748f25993227557ac2ab60",
+  "streams": {
+    "client": {
+      "reason": "source_absent",
+      "schema": "halofpx.rpc-response-harvest.v1",
+      "source": "/var/tmp/halofpx-l48-evidence/rpc-response-client.jsonl",
+      "staging": "/var/tmp/halofpx-l48-evidence/.rpc-response-client.harvest",
+      "status": "missing"
+    },
+    "worker": {
+      "reason": "source_absent",
+      "schema": "halofpx.rpc-response-harvest.v1",
+      "source": "/var/tmp/halofpx-l48-worker/rpc-response-worker.jsonl",
+      "staging": "/var/tmp/halofpx-l48-worker/.rpc-response-worker.harvest",
+      "status": "missing"
+    }
+  },
+  "verification": {
+    "status": "no_stream_present"
+  },
+  "worker": {
+    "binary_sha256": "b630271eca40f30a491a0d595e1d91a1ecf01e88123eb3dc44b4bd6a5c057ee6",
+    "invocation_id": "3a356e1fae924aea956bed95b6e52e23",
+    "pid": 2870117,
+    "unit": "halofpx-l48-worker-capture"
+  }
+}

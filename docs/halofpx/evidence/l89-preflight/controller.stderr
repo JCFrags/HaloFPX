@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2613, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2377, in main
+    manifest = validate_milestone_manifest(args.milestone_manifest, selected_runner)
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 1174, in validate_milestone_manifest
+    raise TransitionError(f"L50 {name} mismatch")
+TransitionError: L50 ldd_sha256 mismatch
