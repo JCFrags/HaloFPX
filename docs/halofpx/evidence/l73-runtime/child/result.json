@@ -1,0 +1,131 @@
+{
+  "channel_key_sha256": "7f482d553b832e3d1852196a892442ac9f88686e2a8163d9fda02e10840ae85a",
+  "deterministic_output_agreement": true,
+  "device_admission": {
+    "caps": {
+      "admitted": true,
+      "attempts": 1,
+      "caps_bytes": 128,
+      "channel_binding_sha256": "fcaf232b934c32b55acc2201c8e9e2b768682bfc7d3386ebbc1362fad1cf4782",
+      "command_mask": 31,
+      "commands": [
+        "CAPS",
+        "CAPTURE",
+        "STAGE",
+        "COMMIT_APPLY",
+        "ABORT"
+      ],
+      "connection_caps_sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0",
+      "elapsed_ms": 0.754,
+      "endpoint": "127.0.0.1:50249",
+      "failures": [],
+      "key_generation": 7,
+      "logical_rank": 1,
+      "max_component_bytes": 1073741824,
+      "max_components": 4096,
+      "max_object_bytes": 68719476736,
+      "max_request": 1048576,
+      "max_response": 256,
+      "rpc_protocol": "4.0.1",
+      "state_protocol": "1.0",
+      "state_timeout_ms": 5000,
+      "world_size": 2
+    },
+    "invocation_id": {
+      "cursor": "s=4e2fa91ab7f94bb28bcbe361afa7567e;i=24c1ed;b=fbf76f5d91f3408580c1cbca4636a606;m=ab8d6a5832;t=657a83c948ade;x=9a3f9e0af5453da9",
+      "invocation_id": "6c8566efb6c24701ab3140025b264eb7",
+      "launch_properties": {
+        "ActiveState": "active",
+        "ExecMainCode": "0",
+        "ExecMainPID": "2668803",
+        "ExecMainStatus": "0",
+        "InvocationID": "6c8566efb6c24701ab3140025b264eb7",
+        "MainPID": "2668803",
+        "Result": "success",
+        "SubState": "running"
+      },
+      "pid": 2668803
+    },
+    "receipt": {
+      "backend": "ROCm",
+      "binary_sha256": "d8b04149cb9e4d3080eadbd514e26262cf72548fb416be17278ea2d0bc8715dd",
+      "device": "ROCm0",
+      "gfx": "gfx1151",
+      "hmac_sha256": "dc1e5e0e6550b63032d2d5b9180d8f7415b1bc409106a6b843547ebf99da69d3",
+      "inventory_lines": [
+        "ggml_rocm_init: found 1 ROCm devices (Total VRAM: 126976 MiB):",
+        "Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB",
+        "-t, --threads N                  number of threads for the CPU device (default: 16)"
+      ],
+      "inventory_sha256": "27c70d2186271e068e42ea720b1f78d76d1ba805605676abd3e0df51a1243951",
+      "schema": "halofpx.l50.device-admission.v1"
+    },
+    "unit": "halofpx-l50-device-gate.service"
+  },
+  "feature_on": {
+    "canary_unit": "halofpx-l48-canary-l68-on.service",
+    "fields": {
+      "auth_tag": "0e158932f16a8f9f43f55f7817e0fbcc5b3515ec6eaf79da488929a8ac4d746a",
+      "authority": "version=1",
+      "copies": "36",
+      "execution_sequence": "1",
+      "feature": "on",
+      "final_status": "1",
+      "graph_entries": "297",
+      "graph_uid": "25",
+      "local": "31",
+      "mode": "l68-vertical",
+      "output_hex": "78",
+      "prepared_root": "79f6d6fe95a4c68ec97b42e5771bc1bdc0b1a01dd40159c608042ba917f0202b",
+      "prepared_status": "1",
+      "prompt_tokens": "5",
+      "rpc": "66",
+      "rpc_backend": "0,parent_uid=25,split_ordinal=1,split_uid=27,reconcile_status=1,mutable_status=1,mutations=5,census=49,set=5,set_hash_hit=0,set_hash_miss=0,mutation_root=017724d1c9c3f816f16ee8631eacad01eee2228dd30b40219ae3f1777cac692b,semantic_root=923b3120e8e188daa5ccdcd4d7bd4713e557f3c8ed85dd53a7480b5845017b7c,census_root=28e82dc0007dd5e6313bf1e173bb438b8c565a83ecb2e5a5dfc30980a117be22,receipt_tag=a2ea7d10f0997b233e1ca21a0e1192cea29e3ca1fb989a65ef525ac6e0135672,graph_status=2,graph_sequence=1,graph_digest=03630ca6d2e58012dea774437b6733a373e3a18344ae074e1f80c24e68659f86,graph_transcript_root=15698fd3a6dc0ada9524370d4e8be3e17d565c14c9e860546932524dff971f11,graph_receipt_tag=f63b6b9d5cd61e4ad3288111df399cff976b402a6e04a98d66f20cdc5ced62dc",
+      "rpc_split_count": "1",
+      "scheduler_root": "6721cf503e2343bfd525e147a6fcd0d65f9eddab7e37c00bea13a38a21594e1f",
+      "scheduler_tag": "0e8d9cd066a20998c1ebefbd7a114adbdf6063715f8a7177fb9b50391fbf75ac",
+      "split_mapping_root": "133d01c98d7dc97834936e44afc96134243f8ba93550d0eb5eaf76449f6f527b",
+      "splits": "3",
+      "tokens": "29916"
+    },
+    "readiness": {
+      "admitted": true,
+      "attempts": 1,
+      "caps_bytes": 128,
+      "channel_binding_sha256": "fcaf232b934c32b55acc2201c8e9e2b768682bfc7d3386ebbc1362fad1cf4782",
+      "command_mask": 31,
+      "commands": [
+        "CAPS",
+        "CAPTURE",
+        "STAGE",
+        "COMMIT_APPLY",
+        "ABORT"
+      ],
+      "connection_caps_sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0",
+      "elapsed_ms": 2.644,
+      "endpoint": "10.44.0.1:50248",
+      "failures": [],
+      "key_generation": 7,
+      "logical_rank": 1,
+      "max_component_bytes": 1073741824,
+      "max_components": 4096,
+      "max_object_bytes": 68719476736,
+      "max_request": 1048576,
+      "max_response": 256,
+      "rpc_protocol": "4.0.1",
+      "state_protocol": "1.0",
+      "state_timeout_ms": 5000,
+      "world_size": 2
+    },
+    "record": "[halofpx-l68-result] mode=l68-vertical|feature=on|prompt_tokens=5|tokens=29916|output_hex=78|authority=version=1|execution_sequence=1|graph_uid=25|prepared_status=1|prepared_root=79f6d6fe95a4c68ec97b42e5771bc1bdc0b1a01dd40159c608042ba917f0202b|split_mapping_root=133d01c98d7dc97834936e44afc96134243f8ba93550d0eb5eaf76449f6f527b|final_status=1|scheduler_root=6721cf503e2343bfd525e147a6fcd0d65f9eddab7e37c00bea13a38a21594e1f|scheduler_tag=0e8d9cd066a20998c1ebefbd7a114adbdf6063715f8a7177fb9b50391fbf75ac|graph_entries=297|splits=3|rpc_split_count=1|copies=36|local=31|rpc=66|rpc_backend=0,parent_uid=25,split_ordinal=1,split_uid=27,reconcile_status=1,mutable_status=1,mutations=5,census=49,set=5,set_hash_hit=0,set_hash_miss=0,mutation_root=017724d1c9c3f816f16ee8631eacad01eee2228dd30b40219ae3f1777cac692b,semantic_root=923b3120e8e188daa5ccdcd4d7bd4713e557f3c8ed85dd53a7480b5845017b7c,census_root=28e82dc0007dd5e6313bf1e173bb438b8c565a83ecb2e5a5dfc30980a117be22,receipt_tag=a2ea7d10f0997b233e1ca21a0e1192cea29e3ca1fb989a65ef525ac6e0135672,graph_status=2,graph_sequence=1,graph_digest=03630ca6d2e58012dea774437b6733a373e3a18344ae074e1f80c24e68659f86,graph_transcript_root=15698fd3a6dc0ada9524370d4e8be3e17d565c14c9e860546932524dff971f11,graph_receipt_tag=f63b6b9d5cd61e4ad3288111df399cff976b402a6e04a98d66f20cdc5ced62dc|auth_tag=0e158932f16a8f9f43f55f7817e0fbcc5b3515ec6eaf79da488929a8ac4d746a",
+    "worker_invocation_id": "de93c76082114427a67b2986c652b8ac",
+    "worker_pid": 2669127
+  },
+  "retained_feature_off": {
+    "authority": "",
+    "milestone": "L68",
+    "output_hex": "78",
+    "tokens": "29916"
+  },
+  "schema": "halofpx.l69.feature-on-replacement-result.v1"
+}

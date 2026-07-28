@@ -1,0 +1,66 @@
+{
+  "schema": "halofpx.l73.terminal-receipt.v1",
+  "milestone": "L73",
+  "result": "NOT_PROMOTED",
+  "source_head": "11f4b50fc48cdb52570d55d4d054c5470d95f13e",
+  "runs_consumed": 1,
+  "retry": false,
+  "retained_feature_off": {
+    "milestone": "L68",
+    "rerun": false,
+    "token": 29916,
+    "output": "x",
+    "output_hex": "78",
+    "authority": ""
+  },
+  "build": {
+    "source_root": "d1c890121f8535f9b6192ac077d253991c9fd30bee474cd9f2d7fa9da3162e47",
+    "build_id": "c558440c4c3af96e81c208824f8af78914fb857f04042fb94dc2081a5eddd611",
+    "worker_sha256": "d8b04149cb9e4d3080eadbd514e26262cf72548fb416be17278ea2d0bc8715dd",
+    "canary_sha256": "8efba96d4f9edf1184b9016e281b14d765dcd61e6098c3742822c57286ccb5c2",
+    "manifest_sha256": "acc6b69903cd5347a61a2cfd268438f8a87e8659947f7939e544ddf9525bcd65"
+  },
+  "runtime": {
+    "canary_exit_status": 0,
+    "token": 29916,
+    "output": "x",
+    "output_hex": "78",
+    "scheduler_prepared_status": 1,
+    "scheduler_final_status": 1,
+    "mutable_reconcile_status": 1,
+    "mutable_status": 1,
+    "mutable_census": 49,
+    "mutable_census_root": "28e82dc0007dd5e6313bf1e173bb438b8c565a83ecb2e5a5dfc30980a117be22",
+    "execution_sequence": 1,
+    "graph_uid": 27,
+    "graph_status": 2,
+    "graph_digest": "03630ca6d2e58012dea774437b6733a373e3a18344ae074e1f80c24e68659f86",
+    "server_prepared": true,
+    "server_executed": true,
+    "client_terminal_authority_accepted": true,
+    "server_recorder_terminal_accepted": false,
+    "semantic_boundary": "server-local recorder lacks full-grammar lifecycle facts and terminally refuses during teardown after authenticated execution"
+  },
+  "evidence": {
+    "runtime_root": "docs/halofpx/evidence/l73-runtime",
+    "result_sha256": "b1be29196bc387044ee130e98653a540ccf27968185c94313f5118cb26ad653e",
+    "client_journal_sha256": "47d5637f76ae4acd534940cc7bd413bcc3bb756043d2331648440355c6c8794b",
+    "worker_journal_sha256": "65071471094c60aa301daae4b6183ce87e8b432654374bf9628971e60ef6a871",
+    "independent_source_review": "PASS",
+    "independent_terminal_review": "REJECT_PROMOTION_ONE_P2_NO_P1"
+  },
+  "cleanup": {
+    "bounded": true,
+    "transient_units_absent": true,
+    "disposable_paths_absent": true,
+    "source_build_roots_absent": true
+  },
+  "production": {
+    "mutated": false,
+    "preflight_final_sha256": "511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded",
+    "coordinator_pid": 2356329,
+    "coordinator_http": 200,
+    "worker_pid": 1535639,
+    "nrestarts": 0
+  }
+}

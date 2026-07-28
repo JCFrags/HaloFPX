@@ -1,0 +1,11 @@
+{
+  "schema": "halofpx.l73.build-receipt.v1",
+  "base_head": "11f4b50fc48cdb52570d55d4d054c5470d95f13e",
+  "source_root": "d1c890121f8535f9b6192ac077d253991c9fd30bee474cd9f2d7fa9da3162e47",
+  "build_id": "c558440c4c3af96e81c208824f8af78914fb857f04042fb94dc2081a5eddd611",
+  "worker_sha256": "d8b04149cb9e4d3080eadbd514e26262cf72548fb416be17278ea2d0bc8715dd",
+  "canary_sha256": "8efba96d4f9edf1184b9016e281b14d765dcd61e6098c3742822c57286ccb5c2",
+  "placement_sha256": "d0f1a8ea3e84dea199ab5af56ed7cfdb96371d74eb77bbc4081cef2db3060872",
+  "scheduler_test_sha256": "83bf32855f7bf0f7143e856d94806077e51c53ad408d9a74b8862576305e821c",
+  "mutable_test_sha256": "1424d2da4a657248ce06d1630924e5eb3f7b9f2eb1636594ecf24f97cc07c685"
+}

@@ -935,12 +935,12 @@ static bool sched_auth_build_canonical_census(sched_auth_state & state) {
     }
     const auto stable_less = [](const auto & a, const auto & b) {
         return std::tie(
-            a.destination_backend_ordinal, a.provenance, a.stable_tensor_id,
-            a.copy_slot, a.copy_generation, a.disposition, a.root_class,
+            a.destination_backend_ordinal, a.disposition, a.provenance,
+            a.stable_tensor_id, a.copy_slot, a.copy_generation, a.root_class,
             a.role, a.role_ordinal) <
             std::tie(
-            b.destination_backend_ordinal, b.provenance, b.stable_tensor_id,
-            b.copy_slot, b.copy_generation, b.disposition, b.root_class,
+            b.destination_backend_ordinal, b.disposition, b.provenance,
+            b.stable_tensor_id, b.copy_slot, b.copy_generation, b.root_class,
             b.role, b.role_ordinal);
     };
     std::sort(candidates.begin(), candidates.end(), stable_less);
@@ -3421,6 +3421,27 @@ uint32_t ggml_backend_sched_authority_self_test(void) {
     if (!sched_auth_build_canonical_census(conflicting_copy_state) &&
         conflicting_copy_state.canonical_census.empty()) {
         passed |= 1u << 18;
+    }
+    ggml_tensor interleaved_register {};
+    ggml_tensor interleaved_exclude {};
+    sched_auth_state interleaved_state {};
+    interleaved_state.admitted_roots.push_back({
+        1, 0,
+        { GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT, 1, 1 },
+        &interleaved_exclude,
+    });
+    interleaved_state.admitted_roots.push_back({
+        2, 0,
+        { GGML_BACKEND_SCHED_AUTH_MUTABLE, 1, 2 },
+        &interleaved_register,
+    });
+    if (sched_auth_build_canonical_census(interleaved_state) &&
+        interleaved_state.canonical_census.size() == 2 &&
+        interleaved_state.canonical_census[0].disposition ==
+            GGML_BACKEND_SCHED_CENSUS_REGISTER &&
+        interleaved_state.canonical_census[1].disposition ==
+            GGML_BACKEND_SCHED_CENSUS_EXCLUDE) {
+        passed |= 1u << 19;
     }
     memset(state.config.key, 0, sizeof(state.config.key));
     memset(state.config.attempt_nonce, 0, sizeof(state.config.attempt_nonce));
