@@ -315,15 +315,25 @@ independent read-only specialists are auditing graph-input coverage and
   terminalizes without weakening grammar, and consume one replacement
   feature-on Stories15M run. The accepted L68 feature-off control is reused and
   will not be repeated.
+- L69 closed NOT PROMOTED at
+  `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The ordering correction,
+  focused `2/1` pre-prepare abort, wrong-count refusal, preserved
+  pre-registration abort, focused compile, and independent review all passed.
+  The retained L68 feature-off control was not repeated. The single feature-on
+  replacement stopped before authenticated execute: its immutable sealed
+  census was `28 register / 38 exclude`, while the real preparation stream
+  terminated after `11 / 36`. Exact grammar refused the partial-census abort;
+  canary status was `42` and `llama_decode` returned `-3`. No retry occurred.
+  Disposable resources were removed and production snapshots are byte-identical.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `91e9761b09ca39786b5d1394f308412bab45041d`
+- Latest verified commit: `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L68 closeout when L69 opened
+- Worktree state: clean at terminal L69 closeout
 - Primary worker: L69 task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`

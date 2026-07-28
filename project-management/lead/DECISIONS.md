@@ -1462,3 +1462,22 @@ control. Exactly one identical feature-on replacement is authorized. If it
 fails after retaining terminal evidence, stop at the newly classified cause.
 No broad abort matrix, feature-off repeat, cache work, primary model, tuning,
 performance claim, repeated retry, or production mutation is authorized.
+
+## 2026-07-28 — L69 terminal NOT PROMOTED
+
+Implementation reported terminal L69 NOT PROMOTED at
+`09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`.
+
+The expected-census installation-order correction passed its focused compile,
+exact pre-prepare abort, wrong-count refusal, preserved pre-registration abort,
+and independent source review. The L68 feature-off control was reused without
+rerun.
+
+The single authorized feature-on replacement was consumed once and stopped
+before authenticated execute. The sealed logical census expected 28 register
+and 38 exclude events; the real preparation path emitted only 11 and 36 before
+abort. Exact grammar correctly refused this partial-census terminal state
+instead of inferring expectations from observation. Canary exit status was 42
+and `llama_decode` returned `-3`. No retry was attempted. Production remained
+byte-identical across preflight/final snapshots and all disposable resources
+were removed.
