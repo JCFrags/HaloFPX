@@ -1,0 +1,27 @@
+{
+  "milestone": "L71",
+  "status": "PASS",
+  "recorded_at": "2026-07-28T01:24:06.0198899-07:00",
+  "base_head": "09fa1f4313c81ca9e629af6772f2108fb7ab8bf7",
+  "branch": "codex/integration-base-61f2f2d",
+  "scope": "canonical immutable scheduler census source correction only",
+  "qualification": {
+    "rpc_server_compile_off": "PASS",
+    "scheduler_authority_self_test_mask": "0x7ffff",
+    "diff_check": "PASS",
+    "llama_context_translation_unit": "PASS",
+    "llama_final_link": "PREEXISTING_UNRESOLVED_MUTABLE_PREFLIGHT_SYMBOL",
+    "independent_review": "PASS_NO_CORRECTNESS_OR_SECURITY_P1_P2"
+  },
+  "binary_sha256": {
+    "build-l71-off/bin/Release/ggml-base.dll": "67db6af32de24127ae05520cacadde2b96d6aef797b312d409bdd15cc26beda4",
+    "build-l71-off/bin/Release/rpc-server.exe": "f3a51e864c083dbd454d6ba8f99c6d60e45a6975223220f40cbe360f5e5b200e"
+  },
+  "prohibited_operations": {
+    "model_or_stories_run": false,
+    "rpc_transport_qualification": false,
+    "production_access_or_mutation": false,
+    "cache_or_performance_work": false,
+    "project_management_edit": false
+  }
+}

@@ -1827,54 +1827,30 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             for (size_t s = 0; s < halofpx_mutable_sessions.size(); ++s) {
                 const uint32_t backend_ordinal = halofpx_mutable_backend_ordinals[s];
                 auto & session = halofpx_mutable_sessions[s];
-                const size_t n_roots = ggml_backend_sched_authority_root_count(
-                    sched.get(), &halofpx_execution_handle);
-                for (size_t i = 0; i < n_roots; ++i) {
-                    ggml_backend_sched_authority_root root {};
-                    if (!ggml_backend_sched_authority_root_at(
-                            sched.get(), &halofpx_execution_handle, i, &root)) {
+                const size_t census_count =
+                    ggml_backend_sched_authority_census_count(
+                        sched.get(), &halofpx_execution_handle, backend_ordinal);
+                for (size_t i = 0; i < census_count; ++i) {
+                    ggml_backend_sched_authority_census_entry entry {};
+                    if (!ggml_backend_sched_authority_census_at(
+                            sched.get(), &halofpx_execution_handle,
+                            backend_ordinal, i, &entry)) {
                         abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
                     }
-                    if (root.backend_ordinal != backend_ordinal) continue;
-                    const bool admitted = root.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
-                        ggml_backend_rpc_halofpx_mutable_register(
-                            &session, root.runtime_tensor,
-                            static_cast<ggml_backend_rpc_halofpx_mutable_role>(root.role),
-                            root.role_ordinal) :
-                        ggml_backend_rpc_halofpx_mutable_exclude(
-                            &session, root.runtime_tensor,
-                            root.root_class == GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT ?
-                                GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT :
-                                GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD,
-                            root.role_ordinal);
-                    if (!admitted) {
-                        abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
-                    }
-                }
-                const size_t n_copies = ggml_backend_sched_authority_copy_count(
-                    sched.get(), &halofpx_execution_handle);
-                for (size_t i = 0; i < n_copies; ++i) {
-                    ggml_backend_sched_authority_copy copy {};
-                    if (!ggml_backend_sched_authority_copy_at(
-                            sched.get(), &halofpx_execution_handle, i, &copy)) {
-                        abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
-                    }
-                    if (copy.destination_backend_ordinal != backend_ordinal) continue;
                     const bool admitted =
-                        (copy.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ||
-                         copy.root_class == 0) ?
+                        entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
                         ggml_backend_rpc_halofpx_mutable_register(
-                            &session, copy.runtime_tensor,
-                            copy.root_class == 0 ?
-                                GGML_RPC_HALOFPX_MUTABLE_SCHEDULER_COPY :
-                                static_cast<ggml_backend_rpc_halofpx_mutable_role>(copy.role),
-                            copy.role_ordinal) :
+                            &session, entry.runtime_tensor,
+                            static_cast<ggml_backend_rpc_halofpx_mutable_role>(
+                                entry.role),
+                            entry.role_ordinal) :
+                        entry.disposition == GGML_BACKEND_SCHED_CENSUS_EXCLUDE ?
                         ggml_backend_rpc_halofpx_mutable_exclude(
-                            &session, copy.runtime_tensor,
-                            copy.root_class == GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT ?
-                                GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT :
-                                GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD,
-                            copy.role_ordinal);
+                            &session, entry.runtime_tensor,
+                            static_cast<ggml_backend_rpc_halofpx_exclusion>(
+                                entry.role),
+                            entry.role_ordinal) :
+                        false;
                     if (!admitted) {
                         abort_composed(); ret = GGML_STATUS_FAILED; return nullptr;
                     }

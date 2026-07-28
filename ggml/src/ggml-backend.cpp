@@ -10,6 +10,7 @@
 
 #include "ggml-backend.h"
 #include "ggml-backend-impl.h"
+#include "ggml-rpc.h"
 #include "ggml-alloc.h"
 #include "ggml-impl.h"
 extern "C" {
@@ -31,6 +32,7 @@ extern "C" {
 #include <unordered_map>
 #include <unordered_set>
 #include <type_traits>
+#include <tuple>
 #include <mutex>
 #include <vector>
 
@@ -796,7 +798,6 @@ enum sched_auth_event : uint16_t {
 };
 
 using sched_digest = std::array<uint8_t, 32>;
-
 struct sched_auth_state {
     struct root_authority {
         uint32_t root_class;
@@ -848,6 +849,7 @@ struct sched_auth_state {
     std::vector<copy_range> copy_ranges;
     std::vector<admitted_copy> admitted_copies;
     std::vector<admitted_root> admitted_roots;
+    std::vector<ggml_backend_sched_authority_census_entry> canonical_census;
     std::vector<admitted_split> admitted_splits;
     sched_digest prepared_root {};
     sched_digest split_mapping_root {};
@@ -876,6 +878,112 @@ static const sched_auth_state::root_authority * sched_auth_root_for(
         if (found != state->roots.end()) return &found->second;
     }
     return nullptr;
+}
+
+static bool sched_auth_build_canonical_census(sched_auth_state & state) {
+    std::vector<ggml_backend_sched_authority_census_entry> candidates;
+    candidates.reserve(state.admitted_roots.size() + state.admitted_copies.size());
+    for (const auto & root : state.admitted_roots) {
+        candidates.push_back({
+            root.backend,
+            root.canonical_id,
+            static_cast<uint32_t>(GGML_BACKEND_SCHED_CENSUS_ROOT),
+            static_cast<uint32_t>(
+                root.authority.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
+                    GGML_BACKEND_SCHED_CENSUS_REGISTER :
+                    GGML_BACKEND_SCHED_CENSUS_EXCLUDE),
+            root.authority.root_class,
+            root.authority.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
+                root.authority.role :
+                static_cast<uint32_t>(
+                    root.authority.root_class ==
+                            GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT ?
+                        GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT :
+                        GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD),
+            root.authority.role_ordinal,
+            UINT32_MAX,
+            0,
+            root.tensor,
+        });
+    }
+    for (const auto & copy : state.admitted_copies) {
+        const bool scheduler_copy = copy.root_class == 0;
+        candidates.push_back({
+            copy.destination_backend,
+            copy.source_id,
+            static_cast<uint32_t>(GGML_BACKEND_SCHED_CENSUS_COPY),
+            static_cast<uint32_t>(
+                scheduler_copy ||
+                        copy.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
+                    GGML_BACKEND_SCHED_CENSUS_REGISTER :
+                    GGML_BACKEND_SCHED_CENSUS_EXCLUDE),
+            copy.root_class,
+            scheduler_copy ?
+                static_cast<uint32_t>(GGML_RPC_HALOFPX_MUTABLE_SCHEDULER_COPY) :
+            copy.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
+                copy.role :
+                static_cast<uint32_t>(
+                    copy.root_class ==
+                            GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT ?
+                        GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT :
+                        GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD),
+            copy.role_ordinal,
+            copy.copy_slot,
+            copy.generation,
+            copy.tensor,
+        });
+    }
+    const auto stable_less = [](const auto & a, const auto & b) {
+        return std::tie(
+            a.destination_backend_ordinal, a.provenance, a.stable_tensor_id,
+            a.copy_slot, a.copy_generation, a.disposition, a.root_class,
+            a.role, a.role_ordinal) <
+            std::tie(
+            b.destination_backend_ordinal, b.provenance, b.stable_tensor_id,
+            b.copy_slot, b.copy_generation, b.disposition, b.root_class,
+            b.role, b.role_ordinal);
+    };
+    std::sort(candidates.begin(), candidates.end(), stable_less);
+    state.canonical_census.clear();
+    for (const auto & candidate : candidates) {
+        const auto same_stable_identity = [&candidate](const auto & prior) {
+            return prior.destination_backend_ordinal ==
+                       candidate.destination_backend_ordinal &&
+                prior.provenance == candidate.provenance &&
+                prior.stable_tensor_id == candidate.stable_tensor_id &&
+                prior.copy_slot == candidate.copy_slot &&
+                prior.copy_generation == candidate.copy_generation;
+        };
+        const auto same_runtime_tensor = [&candidate](const auto & prior) {
+            return prior.destination_backend_ordinal ==
+                       candidate.destination_backend_ordinal &&
+                prior.runtime_tensor == candidate.runtime_tensor;
+        };
+        const auto same_semantics = [&candidate](const auto & prior) {
+            return prior.disposition == candidate.disposition &&
+                prior.root_class == candidate.root_class &&
+                prior.role == candidate.role &&
+                prior.role_ordinal == candidate.role_ordinal;
+        };
+        for (const auto & prior : state.canonical_census) {
+            if ((same_stable_identity(prior) || same_runtime_tensor(prior)) &&
+                (!same_stable_identity(prior) || !same_runtime_tensor(prior) ||
+                 !same_semantics(prior))) {
+                state.canonical_census.clear();
+                return false;
+            }
+        }
+        const auto duplicate = std::find_if(
+            state.canonical_census.begin(), state.canonical_census.end(),
+            [&](const auto & prior) {
+                return same_stable_identity(prior) &&
+                    same_runtime_tensor(prior) && same_semantics(prior);
+            });
+        if (duplicate == state.canonical_census.end()) {
+            state.canonical_census.push_back(candidate);
+        }
+    }
+    return true;
 }
 
 bool sched_auth_add_u64(uint64_t a, uint64_t b, uint64_t & out) {
@@ -2666,6 +2774,11 @@ bool ggml_backend_sched_authority_prepare(
     for (const auto & copy : state.admitted_copies) {
         if (state.rpc_backends.count(copy.destination_backend) != 0) ++rpc_count;
     }
+    if (!sched_auth_build_canonical_census(state)) {
+        state.failed = true;
+        state.result.status = 2;
+        return false;
+    }
     if (graph->uid == 0 || sched->n_splits <= 0 ||
         static_cast<uint32_t>(sched->n_splits) != state.result.split_count) {
         state.failed = true;
@@ -2804,28 +2917,26 @@ static bool sched_auth_build_prepared_admission(
     }
     std::vector<std::pair<uint32_t, uint32_t>> logical_mutable;
     std::vector<std::pair<uint32_t, uint32_t>> logical_excluded;
-    for (const auto & root : state.admitted_roots) {
-        if (root.backend != expectation->backend_ordinal) continue;
-        const auto value = std::make_pair(
-            root.authority.role, root.authority.role_ordinal);
-        if (root.authority.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE) {
-            logical_mutable.push_back(value);
-        } else {
-            logical_excluded.emplace_back(
-                UINT32_C(0x80000000) + root.authority.role,
-                root.authority.role_ordinal);
-        }
-    }
-    for (const auto & copy : state.admitted_copies) {
-        if (copy.destination_backend != expectation->backend_ordinal) continue;
-        const auto value = std::make_pair(copy.role, copy.role_ordinal);
-        if (copy.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE) {
-            logical_mutable.push_back(value);
-        } else {
-            logical_excluded.emplace_back(
-                UINT32_C(0x80000000) + copy.role,
-                copy.role_ordinal);
-        }
+    const auto first = std::lower_bound(
+        state.canonical_census.begin(), state.canonical_census.end(),
+        expectation->backend_ordinal,
+        [](const auto & entry, uint32_t backend) {
+            return entry.destination_backend_ordinal < backend;
+        });
+    const auto last = std::upper_bound(
+        first, state.canonical_census.end(), expectation->backend_ordinal,
+        [](uint32_t backend, const auto & entry) {
+            return backend < entry.destination_backend_ordinal;
+        });
+    for (auto it = first; it != last; ++it) {
+        const auto & entry = *it;
+        auto & target =
+            entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
+                logical_mutable : logical_excluded;
+        target.emplace_back(
+            entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
+                entry.role : UINT32_C(0x80000000) + entry.role,
+            entry.role_ordinal);
     }
     std::sort(logical_mutable.begin(), logical_mutable.end());
     std::sort(logical_excluded.begin(), logical_excluded.end());
@@ -2865,7 +2976,7 @@ static bool sched_auth_build_prepared_admission(
     std::vector<uint8_t> canonical(
         reinterpret_cast<const uint8_t *>(admission),
         reinterpret_cast<const uint8_t *>(admission) +
-            offsetof(struct ggml_backend_sched_authority_prepared_admission, tag));
+            offsetof(ggml_backend_sched_authority_prepared_admission_wire, tag));
     if (seal_and_register) {
         const auto tag = sched_auth_hmac(state.config.key, canonical.data(), canonical.size());
         memcpy(admission->tag, tag.data(), tag.size());
@@ -2941,11 +3052,10 @@ bool ggml_backend_sched_authority_verify_prepared_admission(
     std::vector<uint8_t> canonical(
         reinterpret_cast<const uint8_t *>(admission),
         reinterpret_cast<const uint8_t *>(admission) +
-            offsetof(struct ggml_backend_sched_authority_prepared_admission, tag));
+            offsetof(ggml_backend_sched_authority_prepared_admission_wire, tag));
     const auto tag = sched_auth_hmac(key, canonical.data(), canonical.size());
     return memcmp(admission->tag, tag.data(), tag.size()) == 0 &&
-        memcmp(admission, expected, offsetof(
-            struct ggml_backend_sched_authority_prepared_admission, tag)) == 0;
+        memcmp(admission, expected, offsetof(ggml_backend_sched_authority_prepared_admission_wire, tag)) == 0;
 }
 
 bool ggml_backend_sched_authority_consume_prepared_admission(
@@ -2967,7 +3077,7 @@ bool ggml_backend_sched_authority_consume_prepared_admission(
     }
     const auto expected_tag = sched_auth_hmac(
         state.config.key, admission,
-        offsetof(struct ggml_backend_sched_authority_prepared_admission, tag));
+        offsetof(ggml_backend_sched_authority_prepared_admission_wire, tag));
     if (memcmp(expected_tag.data(), admission->tag, 32) != 0) return false;
     found->second.state = GGML_BACKEND_SCHED_ADMISSION_CONSUMED;
     return true;
@@ -3065,6 +3175,43 @@ bool ggml_backend_sched_authority_root_at(
     root->role_ordinal = value.authority.role_ordinal;
     root->runtime_tensor = value.tensor;
     return true;
+}
+
+size_t ggml_backend_sched_authority_census_count(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        uint32_t backend_ordinal) {
+    if (!sched_auth_handle_matches(sched, handle) ||
+        !sched->authority->prepared) {
+        return 0;
+    }
+    return static_cast<size_t>(std::count_if(
+        sched->authority->canonical_census.begin(),
+        sched->authority->canonical_census.end(),
+        [backend_ordinal](const auto & entry) {
+            return entry.destination_backend_ordinal == backend_ordinal;
+        }));
+}
+
+bool ggml_backend_sched_authority_census_at(
+        ggml_backend_sched_t sched,
+        const ggml_backend_sched_authority_handle * handle,
+        uint32_t backend_ordinal,
+        size_t index,
+        ggml_backend_sched_authority_census_entry * entry) {
+    if (!sched_auth_handle_matches(sched, handle) || entry == nullptr ||
+        !sched->authority->prepared) {
+        return false;
+    }
+    size_t current = 0;
+    for (const auto & candidate : sched->authority->canonical_census) {
+        if (candidate.destination_backend_ordinal != backend_ordinal) continue;
+        if (current++ == index) {
+            *entry = candidate;
+            return true;
+        }
+    }
+    return false;
 }
 
 bool ggml_backend_sched_authority_finalize_execution(
@@ -3252,6 +3399,29 @@ uint32_t ggml_backend_sched_authority_self_test(void) {
     sched_auth_layout(strided_body, &strided, 11);
     if (strided_body.size() == 72 && strided_body[0] == 11 &&
         strided_body[48] == 32) passed |= 1u << 16;
+    ggml_tensor repeated_copy_tensor {};
+    sched_auth_state repeated_copy_state {};
+    repeated_copy_state.admitted_copies.push_back({
+        21, 0, 0, 0, 0, 21, 1, &repeated_copy_tensor
+    });
+    repeated_copy_state.admitted_copies.push_back(
+        repeated_copy_state.admitted_copies.front());
+    if (sched_auth_build_canonical_census(repeated_copy_state) &&
+        repeated_copy_state.canonical_census.size() == 1 &&
+        repeated_copy_state.canonical_census[0].provenance ==
+            GGML_BACKEND_SCHED_CENSUS_COPY &&
+        repeated_copy_state.canonical_census[0].role ==
+            GGML_RPC_HALOFPX_MUTABLE_SCHEDULER_COPY) {
+        passed |= 1u << 17;
+    }
+    sched_auth_state conflicting_copy_state {};
+    conflicting_copy_state.admitted_copies =
+        repeated_copy_state.admitted_copies;
+    conflicting_copy_state.admitted_copies[1].role_ordinal = 22;
+    if (!sched_auth_build_canonical_census(conflicting_copy_state) &&
+        conflicting_copy_state.canonical_census.empty()) {
+        passed |= 1u << 18;
+    }
     memset(state.config.key, 0, sizeof(state.config.key));
     memset(state.config.attempt_nonce, 0, sizeof(state.config.attempt_nonce));
     std::fill(key.begin(), key.end(), 0);

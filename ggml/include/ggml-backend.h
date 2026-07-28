@@ -433,6 +433,8 @@ extern "C" {
         } ordered_splits[64];
         uint8_t tag[32];
     };
+    typedef struct ggml_backend_sched_authority_prepared_admission
+        ggml_backend_sched_authority_prepared_admission_wire;
 
     enum ggml_backend_sched_authority_admission_state {
         GGML_BACKEND_SCHED_ADMISSION_PREPARED = 1,
@@ -487,6 +489,32 @@ extern "C" {
         uint32_t role;
         uint32_t role_ordinal;
         uint32_t reserved;
+        struct ggml_tensor * runtime_tensor;
+    };
+
+    enum ggml_backend_sched_authority_census_provenance {
+        GGML_BACKEND_SCHED_CENSUS_ROOT = 1,
+        GGML_BACKEND_SCHED_CENSUS_COPY = 2,
+    };
+
+    enum ggml_backend_sched_authority_census_disposition {
+        GGML_BACKEND_SCHED_CENSUS_REGISTER = 1,
+        GGML_BACKEND_SCHED_CENSUS_EXCLUDE = 2,
+    };
+
+    // Canonical immutable per-backend L42/L44 census entry. Pointer identity is
+    // never serialized or ordered; stable_tensor_id/copy_slot/copy_generation
+    // are the source-authority identity of the runtime tensor.
+    struct ggml_backend_sched_authority_census_entry {
+        uint32_t destination_backend_ordinal;
+        uint32_t stable_tensor_id;
+        uint32_t provenance;
+        uint32_t disposition;
+        uint32_t root_class;
+        uint32_t role;
+        uint32_t role_ordinal;
+        uint32_t copy_slot;
+        uint64_t copy_generation;
         struct ggml_tensor * runtime_tensor;
     };
 
@@ -603,6 +631,16 @@ extern "C" {
         const struct ggml_backend_sched_authority_handle * handle,
         size_t index,
         struct ggml_backend_sched_authority_root * root);
+    GGML_API size_t               ggml_backend_sched_authority_census_count(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        uint32_t backend_ordinal);
+    GGML_API bool                 ggml_backend_sched_authority_census_at(
+        ggml_backend_sched_t sched,
+        const struct ggml_backend_sched_authority_handle * handle,
+        uint32_t backend_ordinal,
+        size_t index,
+        struct ggml_backend_sched_authority_census_entry * entry);
     GGML_API bool                 ggml_backend_sched_authority_finalize_execution(
         ggml_backend_sched_t sched,
         struct ggml_backend_sched_authority_handle * handle,

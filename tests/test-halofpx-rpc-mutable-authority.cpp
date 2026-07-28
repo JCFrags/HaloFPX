@@ -2,6 +2,9 @@
 #include "ggml-alloc.h"
 #include "ggml-backend.h"
 #include "ggml-rpc.h"
+extern "C" {
+#include "../examples/gguf-hash/deps/sha256/sha256.h"
+}
 
 #include <array>
 #include <atomic>
@@ -13,7 +16,17 @@
 #include <fstream>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <vector>
+
+template<typename T>
+static void census_le(std::vector<uint8_t> & out, T value) {
+    using U = typename std::make_unsigned<T>::type;
+    const U v = static_cast<U>(value);
+    for (size_t i = 0; i < sizeof(T); ++i) {
+        out.push_back(static_cast<uint8_t>(v >> (8*i)));
+    }
+}
 
 extern "C" uint32_t ggml_backend_rpc_halofpx_mutable_auth_self_test(void);
 
@@ -257,6 +270,63 @@ static bool execute_once(
         std::fprintf(stderr, "fixture: independent admission comparison accepted invalid state\n");
         return false;
     }
+    const size_t canonical_count =
+        ggml_backend_sched_authority_census_count(
+            f.sched, &sched_handle, expectation.backend_ordinal);
+    std::vector<ggml_backend_sched_authority_census_entry> canonical_census(
+        canonical_count);
+    uint32_t canonical_register = 0;
+    uint32_t canonical_exclude = 0;
+    for (size_t i = 0; i < canonical_count; ++i) {
+        if (!ggml_backend_sched_authority_census_at(
+                f.sched, &sched_handle, expectation.backend_ordinal, i,
+                &canonical_census[i])) {
+            return false;
+        }
+        canonical_register += canonical_census[i].disposition ==
+            GGML_BACKEND_SCHED_CENSUS_REGISTER;
+        canonical_exclude += canonical_census[i].disposition ==
+            GGML_BACKEND_SCHED_CENSUS_EXCLUDE;
+    }
+    std::vector<std::pair<uint32_t, uint32_t>> canonical_mutable;
+    std::vector<std::pair<uint32_t, uint32_t>> canonical_excluded;
+    for (const auto & entry : canonical_census) {
+        auto & target =
+            entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
+                canonical_mutable : canonical_excluded;
+        target.emplace_back(
+            entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
+                entry.role : UINT32_C(0x80000000) + entry.role,
+            entry.role_ordinal);
+    }
+    std::sort(canonical_mutable.begin(), canonical_mutable.end());
+    std::sort(canonical_excluded.begin(), canonical_excluded.end());
+    std::vector<uint8_t> canonical_plan;
+    census_le<uint32_t>(canonical_plan, canonical_mutable.size());
+    census_le<uint32_t>(canonical_plan, canonical_excluded.size());
+    for (const auto & value : canonical_mutable) {
+        census_le<uint32_t>(canonical_plan, value.first);
+        census_le<uint32_t>(canonical_plan, value.second);
+    }
+    for (const auto & value : canonical_excluded) {
+        census_le<uint32_t>(canonical_plan, value.first);
+        census_le<uint32_t>(canonical_plan, value.second);
+    }
+    std::array<uint8_t, 32> canonical_root {};
+    sha256_t canonical_sha;
+    sha256_init(&canonical_sha);
+    sha256_update(
+        &canonical_sha, canonical_plan.data(), canonical_plan.size());
+    sha256_final(&canonical_sha, canonical_root.data());
+    if (canonical_count == 0 ||
+        canonical_register != admission.logical_expected_mutable_count ||
+        canonical_exclude != admission.logical_expected_exclusion_count ||
+        std::memcmp(
+            canonical_root.data(), admission.logical_expected_census_root,
+            canonical_root.size()) != 0) {
+        std::fprintf(stderr, "fixture: exported census/count mismatch\n");
+        return false;
+    }
 
     ggml_backend_rpc_halofpx_mutable_attempt attempt {};
     attempt.version = 3;
@@ -296,16 +366,29 @@ static bool execute_once(
         }
     }
     GGML_UNUSED(foreign_tensor);
-    if (!ggml_backend_rpc_halofpx_mutable_register(
-            &session, f.input, GGML_RPC_HALOFPX_MUTABLE_TOKEN, 0) ||
-        !ggml_backend_rpc_halofpx_mutable_exclude(
-            &session, f.bias, GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT, 0)) {
-        std::fprintf(stderr, "fixture: mutable begin/register failed sequence=%llu\n",
-            static_cast<unsigned long long>(sequence));
-        ggml_backend_rpc_halofpx_mutable_abort(&session);
-        ggml_backend_rpc_halofpx_execution_disarm(
-            f.rpc, nonce.data(), sequence);
-        return false;
+    for (const auto & entry : canonical_census) {
+        const bool admitted =
+            entry.disposition == GGML_BACKEND_SCHED_CENSUS_REGISTER ?
+            ggml_backend_rpc_halofpx_mutable_register(
+                &session, entry.runtime_tensor,
+                static_cast<ggml_backend_rpc_halofpx_mutable_role>(entry.role),
+                entry.role_ordinal) :
+            entry.disposition == GGML_BACKEND_SCHED_CENSUS_EXCLUDE ?
+            ggml_backend_rpc_halofpx_mutable_exclude(
+                &session, entry.runtime_tensor,
+                static_cast<ggml_backend_rpc_halofpx_exclusion>(entry.role),
+                entry.role_ordinal) :
+            false;
+        if (!admitted) {
+            std::fprintf(stderr,
+                "fixture: canonical census iteration failed sequence=%llu index=%zu\n",
+                static_cast<unsigned long long>(sequence),
+                static_cast<size_t>(&entry - canonical_census.data()));
+            ggml_backend_rpc_halofpx_mutable_abort(&session);
+            ggml_backend_rpc_halofpx_execution_disarm(
+                f.rpc, nonce.data(), sequence);
+            return false;
+        }
     }
     connection_epoch = session.connection_epoch;
     allocation_epoch = session.allocation_epoch;
