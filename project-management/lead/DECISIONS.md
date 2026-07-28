@@ -1374,3 +1374,35 @@ This is an in-scope L66 semantic correction, not a new milestone. Use explicit
 logical-expected and physical-observed census types/names, focused lifecycle and
 refusal checks, and the already-required real two-host fixture. No stories,
 model, production, cache-matrix, or performance work is authorized.
+
+## 2026-07-27 — accept L66 rejection and revise default-off retention for L67
+
+Decision: accept terminal L66 NOT PROMOTED at
+`755ba5f2ebd943e8a1204f31be4a80516dc06182`. Open L67 as the final bounded
+ADR-0049 foundation correction. Separate safe default-off source retention from
+milestone or product promotion.
+
+Reason: L64 through L66 repeatedly produced exact-output, overlapping two-host
+directional success and then deleted the complete candidate because recorder
+and evidence gates remained incomplete. L66's independent review still proves
+four real defects: self-derived/incomplete expected binding and split
+consumption authority, range-based grammar accepting unterminated streams,
+process-local shared-append publication, and no complete machine-validated
+refusal/provenance manifest. Repeating the same broad retention rule is no
+longer product-progressive.
+
+L67 must close the first three defects with independent expectations, one
+authenticated cross-side consume receipt immediately before execution, exact
+enumerated terminal productions, and immutable unique per-attempt atomic
+no-replace publication. It must generate a compact validated manifest for the
+focused evidence and reuse accepted L65/L66 real-handler evidence rather than
+repeat an exhaustive matrix. One final composed run is allowed only after local
+gates pass and only if the final source materially changes that path.
+
+Reviewed default-off source may remain when it builds, feature-off is inert,
+focused correctness gates pass, and independent review finds no correctness or
+security P1/P2. Documentation or manifest incompleteness alone blocks promotion
+but no longer requires deleting safe reusable source. Any accepted invalid
+state, unauthenticated consumption, unsafe publication, correctness/security
+defect, or feature-off regression still requires correction or removal. No
+stories, model, cache, performance, or production work is authorized.

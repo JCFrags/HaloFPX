@@ -271,16 +271,33 @@ independent read-only specialists are auditing graph-input coverage and
   L65, starting from ADR-0049 plus the exact L64 review. L65 is foundation-only:
   it must close all findings in a real two-host no-model composition and retain
   source only on independent PASS. No stories or production work is authorized.
+- L65 and L66 both closed NOT PROMOTED at
+  `a1c3af9d2f6dd40d696515758480ece66b3653f0` and
+  `755ba5f2ebd943e8a1204f31be4a80516dc06182`. Both real two-host fixtures
+  directionally validated non-mutating preflight, exact execute/recompute
+  output, overlap, distinct connection epochs, and allocation rollover, but
+  review rejected complete expected binding, exact terminal grammar,
+  interprocess publication, and retained refusal provenance. Candidate source
+  was removed after each run.
+- L67 is active as the final bounded ADR-0049 foundation correction. It narrows
+  qualification to decisive tests for independent full binding and authenticated
+  cross-side consumption, exact enumerated grammar, immutable no-replace
+  per-attempt publication, and a compact machine-validated evidence manifest.
+  The retention policy now distinguishes safe default-off source from product
+  promotion: missing documentation alone no longer erases reviewed reusable
+  source, while correctness, security, invalid-state acceptance, feature-off
+  regression, or unsafe publication remain removal blockers. No stories, model,
+  cache, performance, or production work is authorized.
 
 ## Repository
 
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
-- Latest verified commit: `54910a78fae5de586d918cb1252e5867749513b2`
+- Latest verified commit: `755ba5f2ebd943e8a1204f31be4a80516dc06182`
 - Remote count: zero
-- Worktree state: clean at the reviewed terminal L64 closeout
-- Primary worker: fresh L65 task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Worktree state: clean at the reviewed terminal L66 closeout when L67 opened
+- Primary worker: L67 task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
 - Prior implementation worker: idle preserved engineering record
   `019f83a3-9498-76c3-9398-be80344854ae`
 - Original handoff worker: idle preserved record
