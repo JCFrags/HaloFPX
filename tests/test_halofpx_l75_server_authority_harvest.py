@@ -24,8 +24,11 @@ CONTROLLER = importlib.util.module_from_spec(CONTROLLER_SPEC)
 sys.modules[CONTROLLER_SPEC.name] = CONTROLLER
 CONTROLLER_SPEC.loader.exec_module(CONTROLLER)
 
+KEY_FILE = b"01" * 32 + b"\n" + b"02" * 32 + b"\n"
+GRAPH_KEY = bytes([1]) * 32
 
-def authority(key: bytes, *, terminal=(1, 3, 4, 5, 6, 7)) -> tuple[bytes, dict[str, object]]:
+
+def authority(key: bytes = GRAPH_KEY, *, terminal=(1, 3, 4, 5, 6, 7)) -> tuple[bytes, dict[str, object]]:
     attempt = bytes(range(32))
     admission = bytes(range(32, 64))
     expected_digest = bytes([65]) * 32
@@ -55,17 +58,16 @@ def authority(key: bytes, *, terminal=(1, 3, 4, 5, 6, 7)) -> tuple[bytes, dict[s
 
 
 def test_server_success_authority_authenticates_and_cross_binds() -> None:
-    key = b"k" * 130
-    data, expected = authority(key)
-    verified = MODULE._verify(data, key, expected)
+    data, expected = authority()
+    verified = MODULE._verify(data, MODULE._decode_graph_key(KEY_FILE), expected)
     assert verified["terminal_branch"] == 1
     assert verified["records"] == 6
     assert verified["execute_receipt"] == bytes([67] * 32).hex()
 
 
 def test_tamper_and_wrong_journal_binding_fail_closed() -> None:
-    key = b"k" * 130
-    data, expected = authority(key)
+    key = MODULE._decode_graph_key(KEY_FILE)
+    data, expected = authority()
     tampered = bytearray(data)
     tampered[data.index(b"record=") + len(b"record=") + 10] ^= 1
     try:
@@ -106,7 +108,7 @@ def test_source_absence_is_proven_only_at_initial_open(tmp_path: Path) -> None:
 
 def test_key_mode_accepts_only_controller_canonical_0600(tmp_path: Path) -> None:
     key = tmp_path / "control.key"
-    key.write_bytes(b"k" * 130)
+    key.write_bytes(KEY_FILE)
     uid = key.stat().st_uid
     observed = list(key.stat())
     def metadata(mode: int):
@@ -116,17 +118,75 @@ def test_key_mode_accepts_only_controller_canonical_0600(tmp_path: Path) -> None
     assert MODULE._key_authority_valid(metadata(0o600), uid)
     assert not MODULE._key_authority_valid(metadata(0o400), uid)
     assert not MODULE._key_authority_valid(metadata(0o644), uid)
+    wrong_size = list(metadata(0o600))
+    wrong_size[6] = 131
+    assert not MODULE._key_authority_valid(
+        MODULE.os.stat_result(wrong_size), uid)
+
+
+def test_key_append_after_metadata_is_refused(tmp_path: Path) -> None:
+    key = tmp_path / "control.key"
+    key.write_bytes(KEY_FILE)
+    descriptor = MODULE.os.open(key, MODULE.os.O_RDONLY)
+    try:
+        with key.open("ab") as output:
+            output.write(b"x")
+        try:
+            MODULE._read_exact_unchanged(descriptor, 130)
+        except ValueError as exc:
+            assert str(exc) == "key_short_or_changed"
+        else:
+            raise AssertionError("appended key file accepted")
+    finally:
+        MODULE.os.close(descriptor)
+
+
+def test_graph_key_format_matches_server_and_refuses_other_material() -> None:
+    digest = hashlib.sha256(KEY_FILE).hexdigest()
+    decoded = MODULE._validated_graph_key(KEY_FILE, digest)
+    assert decoded == GRAPH_KEY
+    data, expected = authority()
+    assert MODULE._verify(data, decoded, expected)["terminal_branch"] == 1
+    for wrong_key in (KEY_FILE, bytes([2]) * 32):
+        try:
+            MODULE._verify(data, wrong_key, expected)
+        except ValueError as exc:
+            assert str(exc).endswith(":hmac")
+        else:
+            raise AssertionError("wrong HMAC key material accepted")
+    malformed = (
+        KEY_FILE[:-1],
+        KEY_FILE + b"\n",
+        KEY_FILE.replace(b"\n", b"", 1),
+        b"gg" + KEY_FILE[2:],
+        b"AA" + KEY_FILE[2:],
+        b"00" * 32 + KEY_FILE[64:],
+    )
+    for candidate in malformed:
+        try:
+            MODULE._decode_graph_key(candidate)
+        except ValueError as exc:
+            assert str(exc) == "key_format"
+        else:
+            raise AssertionError("malformed key file accepted")
+    try:
+        MODULE._validated_graph_key(
+            KEY_FILE, hashlib.sha256(KEY_FILE + b"x").hexdigest())
+    except ValueError as exc:
+        assert str(exc) == "key_digest"
+    else:
+        raise AssertionError("wrong full-file digest accepted")
 
 
 def test_missing_reordered_duplicate_and_post_terminal_refuse() -> None:
-    key = b"k" * 130
+    key = MODULE._decode_graph_key(KEY_FILE)
     for production in (
         (1, 3, 5, 6, 7),
         (1, 4, 3, 5, 6, 7),
         (1, 3, 3, 4, 5, 6, 7),
         (1, 3, 4, 5, 6, 7, 8),
     ):
-        data, expected = authority(key, terminal=production)
+        data, expected = authority(terminal=production)
         try:
             MODULE._verify(data, key, expected)
         except ValueError:
@@ -178,7 +238,7 @@ def journal_line(expected: dict[str, object], status: str = "present") -> str:
 
 
 def test_controller_harvest_precedes_remote_cleanup(tmp_path: Path) -> None:
-    data, expected = authority(b"k" * 130)
+    data, expected = authority()
     child = tmp_path / "child"
     child.mkdir()
     (child / "worker-journal.txt").write_text(journal_line(expected))
@@ -206,7 +266,7 @@ def test_controller_harvest_precedes_remote_cleanup(tmp_path: Path) -> None:
 
 
 def test_publication_failure_is_durable_and_cleanup_can_continue(tmp_path: Path) -> None:
-    data, expected = authority(b"k" * 130)
+    data, expected = authority()
     child = tmp_path / "child"
     child.mkdir()
     (child / "worker-journal.txt").write_text(journal_line(expected, "error"))
@@ -227,7 +287,7 @@ def test_publication_failure_is_durable_and_cleanup_can_continue(tmp_path: Path)
 
 def test_retained_copy_race_refuses_without_overwrite(
         tmp_path: Path, monkeypatch) -> None:
-    data, expected = authority(b"k" * 130)
+    data, expected = authority()
     child = tmp_path / "child"
     child.mkdir()
     (child / "worker-journal.txt").write_text(journal_line(expected))
@@ -264,7 +324,7 @@ def test_status_publication_failure_is_converted_for_cleanup(monkeypatch) -> Non
 
 def test_remote_publication_path_refuses_traversal_and_non_posix(
         tmp_path: Path) -> None:
-    _, expected = authority(b"k" * 130)
+    _, expected = authority()
     valid = journal_line(expected)
     marker = "/var/tmp/halofpx-l48-worker/"
     malformed = (

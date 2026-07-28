@@ -25,6 +25,27 @@ PRODUCTIONS = (
 )
 
 
+def _decode_graph_key(key_file: bytes) -> bytes:
+    if len(key_file) != 130:
+        raise ValueError("key_format")
+    first, second, trailing = key_file.split(b"\n")
+    if trailing or len(first) != 64 or len(second) != 64:
+        raise ValueError("key_format")
+    lowercase_hex = b"0123456789abcdef"
+    if any(value not in lowercase_hex for value in first + second):
+        raise ValueError("key_format")
+    key = bytes.fromhex(first.decode("ascii"))
+    if len(key) != 32 or key == bytes(32):
+        raise ValueError("key_format")
+    return key
+
+
+def _validated_graph_key(key_file: bytes, expected_sha256: str) -> bytes:
+    if hashlib.sha256(key_file).hexdigest() != expected_sha256:
+        raise ValueError("key_digest")
+    return _decode_graph_key(key_file)
+
+
 def _fsync_directory(path: Path) -> None:
     fd = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
     try:
@@ -49,7 +70,20 @@ def _key_authority_valid(metadata: os.stat_result, expected_uid: int) -> bool:
         stat.S_ISREG(metadata.st_mode)
         and metadata.st_uid == expected_uid
         and stat.S_IMODE(metadata.st_mode) == 0o600
+        and metadata.st_size == 130
     )
+
+
+def _read_exact_unchanged(fd: int, expected_size: int) -> bytes:
+    data = b""
+    while len(data) < expected_size:
+        chunk = os.read(fd, expected_size - len(data))
+        if not chunk:
+            break
+        data += chunk
+    if len(data) != expected_size or os.read(fd, 1):
+        raise ValueError("key_short_or_changed")
+    return data
 
 
 def _decode(raw: bytes) -> dict[str, object]:
@@ -194,17 +228,11 @@ def harvest(
             key_metadata = os.fstat(key_fd)
             if not _key_authority_valid(key_metadata, owner.pw_uid):
                 raise ValueError("key_authority")
-            key = b""
-            while len(key) < key_metadata.st_size:
-                chunk = os.read(key_fd, key_metadata.st_size - len(key))
-                if not chunk:
-                    break
-                key += chunk
+            key = _read_exact_unchanged(key_fd, key_metadata.st_size)
         finally:
             os.close(key_fd)
-        if hashlib.sha256(key).hexdigest() != expected_key_sha256:
-            raise ValueError("key_digest")
-        verification = _verify(data, key, expected)
+        graph_key = _validated_graph_key(key, expected_key_sha256)
+        verification = _verify(data, graph_key, expected)
         out = os.open(
             staging,
             os.O_WRONLY | os.O_CREAT | os.O_EXCL |
