@@ -303,6 +303,51 @@ def test_no_callable_default_captures_a_configuration_global():
     assert captured == []
 
 
+def test_restore_cursor_authority_uses_exact_helper_and_retains_receipt(
+        tmp_path):
+    cursor = "s=0123456789abcdef;i=1;b=" + "a" * 32
+    result = subprocess.CompletedProcess(
+        ["journalctl"], 0,
+        "No journal files were found.\n-- cursor: " + cursor + "\n",
+        "bounded diagnostic\n")
+    assert child.retain_exact_journal_cursor(
+        tmp_path, "restore-canary-lower-bound", result) == cursor
+    receipt = json.loads(
+        (tmp_path / "restore-canary-lower-bound-journal-cursor.json")
+        .read_text())
+    assert receipt["cursor"] == cursor
+    assert receipt["returncode"] == 0
+    assert receipt["stdout_bytes"] > len(cursor)
+    assert receipt["stderr_bytes"] == len(result.stderr.encode())
+
+
+@pytest.mark.parametrize("stdout", [
+    "",
+    "-- cursor: \n",
+    "-- cursor: has whitespace\n",
+    "-- cursor: one\n-- cursor: two\n",
+    "cursor: missing-prefix\n",
+])
+def test_restore_cursor_malformed_missing_or_ambiguous_stdout_refuses(
+        stdout, tmp_path):
+    with pytest.raises(child.CanaryError, match="journal cursor"):
+        child.retain_exact_journal_cursor(
+            tmp_path, "restore-canary-lower-bound",
+            subprocess.CompletedProcess(["journalctl"], 0, stdout, ""))
+    assert not (
+        tmp_path / "restore-canary-lower-bound-journal-cursor.json").exists()
+
+
+def test_restore_cursor_command_failure_refuses_before_receipt(tmp_path):
+    with pytest.raises(child.CanaryError, match="cursor command failed"):
+        child.retain_exact_journal_cursor(
+            tmp_path, "restore-canary-lower-bound",
+            subprocess.CompletedProcess(
+                ["journalctl"], 1, "-- cursor: ignored\n", "failure\n"))
+    assert not (
+        tmp_path / "restore-canary-lower-bound-journal-cursor.json").exists()
+
+
 def test_refusal_retains_requested_tuple_and_membership(
         monkeypatch, tmp_path):
     authority_environment(monkeypatch)

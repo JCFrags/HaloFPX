@@ -1119,7 +1119,9 @@ def _unit_guard_snapshot(host: str, unit: str, port: int | None) -> dict[str, ob
     }
 
 
-def _unit_guard_absent(snapshot: dict[str, object]) -> bool:
+def _unit_guard_absent(
+        snapshot: dict[str, object],
+        alternate_owner: dict[str, object] | None = None) -> bool:
     props = snapshot["properties"]
     assert isinstance(props, dict)
     return (
@@ -1135,7 +1137,11 @@ def _unit_guard_absent(snapshot: dict[str, object]) -> bool:
         and not props.get("ControlGroup")
         and not snapshot["cgroup_pids"]
         and not snapshot["unit_file_registration"]
-        and snapshot["listener_pid"] == 0
+        and (
+            snapshot["listener_pid"] == 0
+            or (
+                alternate_owner is not None
+                and snapshot["listener_pid"] == alternate_owner["pid"]))
     )
 
 
@@ -1150,6 +1156,68 @@ def _unit_guard_registration_query_valid(snapshot: dict[str, object]) -> bool:
             and props.get("LoadState") == "not-found"
         )
     )
+
+
+def _alternate_disposable_listener_owner(
+        host: str, requested_unit: str, port: int,
+        listener: int) -> dict[str, object]:
+    if listener <= 0 or UNIT_GUARD_AUTHORITY is None:
+        raise CanaryError("shared listener has no admitted alternate owner")
+    candidates = []
+    for admitted_host, admitted_unit, admitted_port in UNIT_GUARD_AUTHORITY:
+        if (
+            admitted_host != host
+            or admitted_port != port
+            or admitted_unit == requested_unit
+        ):
+            continue
+        launch = DISPOSABLE_UNIT_AUTHORITY.get((host, admitted_unit))
+        if (
+            not isinstance(launch, dict)
+            or launch.get("pid") != listener
+            or re.fullmatch(
+                r"[0-9a-f]{32}",
+                str(launch.get("invocation_id", ""))) is None
+        ):
+            continue
+        candidates.append((admitted_unit, launch))
+    if len(candidates) != 1:
+        raise CanaryError("shared listener alternate owner is absent or ambiguous")
+    owner_unit, launch = candidates[0]
+    show = ssh(
+        host, "systemctl", "--user", "show", f"{owner_unit}.service",
+        "-p", "Id", "-p", "LoadState", "-p", "ActiveState", "-p", "SubState",
+        "-p", "MainPID", "-p", "InvocationID", "-p", "ControlGroup",
+        check=False)
+    props = dict(
+        line.split("=", 1) for line in show.stdout.splitlines() if "=" in line)
+    cgroup = props.get("ControlGroup", "")
+    process = ssh(
+        host, "ps", "-p", str(listener), "-o", "cgroup=", check=False)
+    process_cgroup = process.stdout.strip()
+    if (
+        show.returncode != 0
+        or process.returncode != 0
+        or props.get("Id") != f"{owner_unit}.service"
+        or props.get("LoadState") != "loaded"
+        or props.get("ActiveState") != "active"
+        or props.get("SubState") != "running"
+        or props.get("MainPID") != str(listener)
+        or props.get("InvocationID", "").lower() != launch["invocation_id"]
+        or not cgroup
+        or not cgroup.endswith(f"/{owner_unit}.service")
+        or process_cgroup != cgroup
+    ):
+        raise CanaryError("shared listener alternate owner identity mismatch")
+    return {
+        "host": host,
+        "unit": owner_unit,
+        "port": port,
+        "pid": listener,
+        "invocation_id": launch["invocation_id"],
+        "control_group": cgroup,
+        "status": "exact_current_admitted_alternate_owner",
+    }
 
 
 def _canonical_guard_tuple(
@@ -1262,6 +1330,14 @@ def ensure_transient_unit_absent(
     unit = canonical_unit
     before = _unit_guard_snapshot(host, unit, port)
     actions: list[dict[str, object]] = []
+    before_alternate_owner = None
+    if (
+        phase == "postcleanup"
+        and port is not None
+        and before["listener_pid"] != 0
+    ):
+        before_alternate_owner = _alternate_disposable_listener_owner(
+            host, unit, port, int(before["listener_pid"]))
     if (
         any(
             before[name] != 0 for name in (
@@ -1276,7 +1352,7 @@ def ensure_transient_unit_absent(
         }
         _write_unit_guard_evidence(result)
         raise CanaryError(f"transient unit {unit} authority query failed")
-    if not _unit_guard_absent(before):
+    if not _unit_guard_absent(before, before_alternate_owner):
         props = before["properties"]
         assert isinstance(props, dict)
         main_pid = str(props.get("MainPID", ""))
@@ -1284,7 +1360,9 @@ def ensure_transient_unit_absent(
             props.get("ActiveState") not in {"inactive", "failed"}
             or main_pid != "0"
             or before["cgroup_pids"]
-            or before["listener_pid"] != 0
+            or (
+                before["listener_pid"] != 0
+                and before_alternate_owner is None)
         ):
             result = {
                 "schema": "halofpx.l60.transient-unit-absence.v1",
@@ -1316,12 +1394,22 @@ def ensure_transient_unit_absent(
     after = before
     while time.monotonic() < deadline:
         after = _unit_guard_snapshot(host, unit, port)
-        if _unit_guard_absent(after):
+        after_alternate_owner = None
+        if (
+            phase == "postcleanup"
+            and port is not None
+            and after["listener_pid"] != 0
+        ):
+            after_alternate_owner = _alternate_disposable_listener_owner(
+                host, unit, port, int(after["listener_pid"]))
+        if _unit_guard_absent(after, after_alternate_owner):
             result = {
                 "schema": "halofpx.l60.transient-unit-absence.v1",
                 "host": host, "manager_scope": "user", "unit": f"{unit}.service",
                 "phase": phase, "before": before, "actions": actions,
-                "after": after, "status": "absent",
+                "after": after,
+                "alternate_listener_owner": after_alternate_owner,
+                "status": "absent",
             }
             _write_unit_guard_evidence(result)
             return result
@@ -1464,6 +1552,26 @@ def exact_journal_cursor(text: str) -> str:
     if len(matches) != 1 or not matches[0] or any(c.isspace() for c in matches[0]):
         raise CanaryError("journal cursor is missing, malformed, or ambiguous")
     return matches[0]
+
+
+def retain_exact_journal_cursor(
+        root: Path, label: str, result) -> str:
+    if result.returncode != 0:
+        raise CanaryError(f"{label} journal cursor command failed")
+    cursor = exact_journal_cursor(result.stdout)
+    write_private_json(root / f"{label}-journal-cursor.json", {
+        "schema": "halofpx.l94.journal-cursor-authority.v1",
+        "label": label,
+        "cursor": cursor,
+        "stdout_bytes": len(result.stdout.encode("utf-8")),
+        "stdout_sha256": hashlib.sha256(
+            result.stdout.encode("utf-8")).hexdigest(),
+        "stderr_bytes": len(result.stderr.encode("utf-8")),
+        "stderr_sha256": hashlib.sha256(
+            result.stderr.encode("utf-8")).hexdigest(),
+        "returncode": result.returncode,
+    })
+    return cursor
 
 
 def write_private_json(path: Path, value: object) -> None:
@@ -3160,11 +3268,11 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     ):
         raise CanaryError("worker B reused worker A PID or InvocationID")
 
-    restore_cursor = ssh(
+    restore_cursor_result = ssh(
         NIMO2, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
-        check=False).stdout.strip()
-    if not restore_cursor.startswith("-- cursor: "):
-        raise CanaryError("restore canary journal lower bound is unavailable")
+        check=False)
+    restore_cursor = retain_exact_journal_cursor(
+        root, "restore-canary-lower-bound", restore_cursor_result)
     restore_launch = ssh(
         NIMO2, *restore_canary_launch_argv(restore_canary_unit))
     restore_launch_invocation = re.search(
@@ -3172,7 +3280,7 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     if restore_launch_invocation is None:
         raise CanaryError("restore canary launch InvocationID is unavailable")
     DISPOSABLE_UNIT_AUTHORITY[(NIMO2, restore_canary_unit)] = {
-        "cursor": restore_cursor.removeprefix("-- cursor: "),
+        "cursor": restore_cursor,
         "invocation_id": restore_launch_invocation.group(1).lower(),
     }
     wait_remote_file(f"{RENDEZVOUS_ROOT}/model-ready", 1200)

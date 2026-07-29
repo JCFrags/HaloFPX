@@ -1,0 +1,10 @@
+{
+  "cursor": "s=366c77678d0e420e926e015e6692f00b;i=149863;b=4511b107942944c28e81c6b7a54c376b;m=1581b1a7792;t=657b708d1737a;x=686bc5ff1b3ee16d",
+  "label": "restore-canary-lower-bound",
+  "returncode": 0,
+  "schema": "halofpx.l94.journal-cursor-authority.v1",
+  "stderr_bytes": 0,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 156,
+  "stdout_sha256": "f7ae383d7ae2b30c916947b047bae84d4597923f6c29ca5898e41be8b2d52a44"
+}

@@ -48,6 +48,8 @@ def configure(monkeypatch, tmp_path):
         ("nimo-1", "halofpx-l48-worker-restore", 50248),
         ("nimo-2", "halofpx-l48-canary-first-chunk", None),
     })
+    retry.DISPOSABLE_UNIT_AUTHORITY.clear()
+    retry.DISPOSABLE_UNIT_FINAL_AUTHORITY.clear()
     calls = []
 
     def fake_ssh(host, *argv, **kwargs):
@@ -210,3 +212,114 @@ def test_systemd_run_invokes_guard_before_spawn(monkeypatch):
         "--unit=halofpx-l50-device-gate", "--port", "50249")
     assert [entry[0] for entry in order] == ["guard", "spawn"]
     assert order[0][2]["port"] == 50249
+
+
+def test_absent_capture_accepts_exact_current_restore_listener_owner(
+        tmp_path, monkeypatch):
+    configure(monkeypatch, tmp_path)
+    invocation = "a" * 32
+    retry.DISPOSABLE_UNIT_AUTHORITY[(
+        "nimo-1", "halofpx-l48-worker-restore")] = {
+            "pid": 77, "invocation_id": invocation}
+    monkeypatch.setattr(
+        retry, "_unit_guard_snapshot",
+        lambda *_args: snapshot(listener=77, registration_rc=1))
+
+    def exact_owner_ssh(_host, *argv, **_kwargs):
+        if argv[:3] == ("systemctl", "--user", "show"):
+            return subprocess.CompletedProcess(argv, 0, "\n".join([
+                "Id=halofpx-l48-worker-restore.service",
+                "LoadState=loaded",
+                "ActiveState=active",
+                "SubState=running",
+                "MainPID=77",
+                f"InvocationID={invocation}",
+                "ControlGroup=/user.slice/halofpx-l48-worker-restore.service",
+            ]) + "\n", "")
+        if argv[:2] == ("ps", "-p"):
+            return subprocess.CompletedProcess(
+                argv, 0,
+                "/user.slice/halofpx-l48-worker-restore.service\n", "")
+        raise AssertionError(argv)
+
+    monkeypatch.setattr(retry, "ssh", exact_owner_ssh)
+    result = retry.ensure_transient_unit_absent(
+        "nimo-1", "halofpx-l48-worker-capture",
+        port=50248, phase="postcleanup")
+    assert result["status"] == "absent"
+    assert result["alternate_listener_owner"] == {
+        "host": "nimo-1",
+        "unit": "halofpx-l48-worker-restore",
+        "port": 50248,
+        "pid": 77,
+        "invocation_id": invocation,
+        "control_group":
+            "/user.slice/halofpx-l48-worker-restore.service",
+        "status": "exact_current_admitted_alternate_owner",
+    }
+
+
+@pytest.mark.parametrize("case", [
+    "unknown", "same-unit", "stale-pid", "stale-invocation",
+    "wrong-cgroup", "multiple",
+])
+def test_shared_listener_unknown_stale_same_or_ambiguous_owner_refuses(
+        case, tmp_path, monkeypatch):
+    configure(monkeypatch, tmp_path)
+    invocation = "b" * 32
+    if case != "unknown":
+        key = (
+            "nimo-1",
+            "halofpx-l48-worker-capture"
+            if case == "same-unit" else "halofpx-l48-worker-restore")
+        retry.DISPOSABLE_UNIT_AUTHORITY[key] = {
+            "pid": 78 if case == "stale-pid" else 77,
+            "invocation_id": invocation}
+    if case == "multiple":
+        retry.UNIT_GUARD_AUTHORITY = frozenset({
+            *retry.UNIT_GUARD_AUTHORITY,
+            ("nimo-1", "halofpx-l48-worker-other", 50248),
+        })
+        retry.DISPOSABLE_UNIT_AUTHORITY[(
+            "nimo-1", "halofpx-l48-worker-other")] = {
+                "pid": 77, "invocation_id": "c" * 32}
+    monkeypatch.setattr(
+        retry, "_unit_guard_snapshot",
+        lambda *_args: snapshot(listener=77, registration_rc=1))
+
+    def owner_ssh(_host, *argv, **_kwargs):
+        if argv[:3] == ("systemctl", "--user", "show"):
+            observed_invocation = (
+                "d" * 32 if case == "stale-invocation" else invocation)
+            cgroup = (
+                "/production.service" if case == "wrong-cgroup"
+                else "/user.slice/halofpx-l48-worker-restore.service")
+            return subprocess.CompletedProcess(argv, 0, "\n".join([
+                "Id=halofpx-l48-worker-restore.service",
+                "LoadState=loaded", "ActiveState=active", "SubState=running",
+                "MainPID=77", f"InvocationID={observed_invocation}",
+                f"ControlGroup={cgroup}",
+            ]) + "\n", "")
+        if argv[:2] == ("ps", "-p"):
+            return subprocess.CompletedProcess(
+                argv, 0,
+                "/user.slice/halofpx-l48-worker-restore.service\n", "")
+        raise AssertionError(argv)
+
+    monkeypatch.setattr(retry, "ssh", owner_ssh)
+    with pytest.raises(retry.CanaryError, match="alternate owner|identity mismatch"):
+        retry.ensure_transient_unit_absent(
+            "nimo-1", "halofpx-l48-worker-capture",
+            port=50248, phase="postcleanup")
+
+
+def test_shared_listener_is_never_admitted_during_prelaunch(
+        tmp_path, monkeypatch):
+    configure(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        retry, "_unit_guard_snapshot",
+        lambda *_args: snapshot(listener=77, registration_rc=1))
+    with pytest.raises(retry.CanaryError, match="active or still owns"):
+        retry.ensure_transient_unit_absent(
+            "nimo-1", "halofpx-l48-worker-capture",
+            port=50248, phase="prelaunch")
