@@ -1,0 +1,14 @@
+milestone=L108
+status=NOT_PROMOTED
+accepted_base=2cedd6a151d1c276530fa0b8d96d622c967ed0b5
+branch=codex/integration-base-61f2f2d
+remote=none
+candidate_source_retained=false
+independent_review=FAIL_MUST_REMOVE
+host_access=false
+production_access=false
+model_run=false
+two_host_runtime=false
+stories15m_runtime=false
+runtime_cases_consumed=0
+preserved_untracked_evidence=true
