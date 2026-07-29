@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 20:25 PDT
+Verified: 2026-07-28 20:49 PDT
 
 ## Overall state
 
@@ -322,6 +322,23 @@ absolute build/source RUNPATHs and symlink escapes, resolve every dependency
 under a sanitized environment, and execute the staged canary provenance/no-
 model probe on nimo-2 before production shutdown. Only a passing retained
 package receipt and review permit one full correctness transition.
+
+L96 closed NOT PROMOTED at
+`8c25e2a160655c4bdebb3fc742301e615b49ad1c` without production shutdown or a
+model attempt. Its reviewed default-off relocatable runtime and nimo-2 package
+gate are retained. The extracted canary passed closed ELF dependency,
+origin-relative RUNPATH, symlink, hash, and exact canonical provenance
+execution authority. The gate then incorrectly required `--help` to return
+zero; exact canary source has no help-success handler and returns 2 for
+unsupported/insufficient CLI input. Production remained continuously on the
+accepted baseline.
+
+L97 is active for this exact probe-contract correction. The successful
+sanitized `--halofpx-provenance` execution, bound to the closed ELF/package
+receipt, is the canonical no-model loader/startup proof. The unjustified help
+success requirement must be removed or retained only as an exact pinned
+negative. After focused review and a passing pre-mutation package gate, one
+full correctness transition is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

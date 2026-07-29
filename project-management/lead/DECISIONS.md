@@ -1602,6 +1602,35 @@ equality/state/custody/zero-GET-SET/cleanup/recovery gates. No retry, runtime
 semantic correction, protocol/cache product/performance work, or automatic
 follow-on is authorized.
 
+## 2026-07-28 — accept L96 and open L97 exact package probe contract
+
+Decision: accept L96 terminal NOT PROMOTED at
+`8c25e2a160655c4bdebb3fc742301e615b49ad1c` and retain its reviewed
+relocatable runtime/package gate. Open L97 to correct the unsupported `--help`
+exit assumption, followed conditionally by one full primary correctness
+attempt.
+
+Reason: exact canary source defines no `--help` success path; unsupported or
+insufficient CLI input returns 2 from option/common parsing. The staged nimo-2
+canary already executed exact canonical `--halofpx-provenance` with rc0 under a
+sanitized environment after its origin-relative RUNPATH, DT_NEEDED, ldd,
+symlink, hash, owner, mode, source, build, and archive authority passed. That is
+the proper loader/startup proof. Requiring generic help rc0 was unsupported.
+
+L97 must use canonical provenance execution cross-bound to the closed package
+receipt as the positive no-model execution gate. Remove the help requirement,
+or retain it only as an exact source-defined rc2 negative with pinned output
+hashes. Arbitrary nonzero acceptance is forbidden. Audit other generic CLI
+exit assumptions and focus tests on provenance success, loader rc127,
+tamper/unresolved dependency, wrong provenance, and wrong exit refusal. One
+independent review is sufficient.
+
+Only a passing nimo-2 pre-mutation gate authorizes exactly one OOM-aware
+primary capture/fresh-restore/one-token transition under existing equality,
+state/custody, zero-GET/SET, cleanup, recovery, and production reconciliation
+gates. No retry, runtime semantic correction, protocol/cache product/
+performance work, or automatic follow-on is authorized.
+
 ## 2026-07-28 — accept L90 and open L91 consolidated child authority
 
 Decision: accept L90 terminal NOT PROMOTED at
