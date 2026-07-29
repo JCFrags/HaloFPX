@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 01:44 PDT
+Verified: 2026-07-29 08:05 PDT
 
 ## Overall state
 
@@ -204,6 +204,23 @@ multi-layer synthetic gate: exact output, real simultaneous device execution,
 and at least 10% matched regional improvement or the candidate is removed. No
 primary model, production, cache work, broad matrix, or full-model speed claim
 is authorized.
+
+L110 was found idle after its worker ended a nonterminal turn. A read-only
+resumption audit verified exact HEAD
+`e5b4a9a0d1e92c44785fee8cc58bf56ef29bd4d2` and exactly four L110-authored
+uncommitted loader/model files (62 insertions, 2 deletions). No L110 build,
+test, evidence artifact, runtime, or commit exists. The prior independent
+review was only a conditional architecture-feasibility review at the pre-edit
+HEAD; it did not approve the four-file patch.
+
+The patch's caller-asserted `primary_partition` interface is not retainable:
+it has no atomic pair authority, complete coverage proof, rank/device binding,
+or established loader accounting. L110 has resumed at a strict first gate:
+replace it with an atomic two-rank partition-pair constructor and qualify exact
+coverage, ownership, bytes, mmap/progress/accounting, lookup, unwind, and
+feature-off behavior on a tiny GGUF fixture. A fresh independent review of the
+exact patch is required before any MiniMax graph or asynchronous RPC wiring.
+All older untracked evidence remains preserved.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID

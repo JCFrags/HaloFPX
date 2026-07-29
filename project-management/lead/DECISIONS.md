@@ -1,5 +1,33 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — resume L110 at atomic partition-loader gate
+
+Decision: resume the idle L110 worker after a read-only thread and repository
+audit. Preserve the four L110-authored uncommitted files only as WIP while
+replacing their unsafe caller-asserted single-slice interface. Do not treat the
+earlier architecture feasibility review as source approval.
+
+The first gate is one typed atomic two-rank source-partition constructor. A
+single operation must create both slices of one logical GGUF tensor and prove
+same source/type/shape, exact full axis-2 coverage, no gap/overlap/bounds error,
+distinct admitted rank/device ownership, one logical public/accounted tensor,
+secondary lookup exclusion, exact aggregate bytes/count/progress/mmap offsets,
+no hidden full allocation, and complete unwind on partial failure.
+
+A focused tiny-GGUF fixture must verify bytes in both target contexts and
+refuse missing halves, gaps, overlap, reversed/out-of-bounds ranges, same
+target, ambiguous primary, hidden full tensor, override/ownership mismatch,
+and partial allocation failure. Feature-on/off compile and a fresh independent
+review of the exact diff/evidence are required. No MiniMax graph, asynchronous
+RPC, host/model/production action, or product-candidate commit is allowed
+before this gate passes.
+
+Reason: exact inspection found that L110 had stopped with an uncompiled,
+uncalled four-file WIP. The proposed boolean `primary_partition` lets callers
+assert accounting without proving a complete authoritative pair. Hardening
+the loader boundary first is the smallest safe resumable step and prevents
+false rank ownership from contaminating the later graph/protocol work.
+
 ## 2026-07-29 — accept L109 blocker and authorize L110 expert parallelism
 
 Decision: accept L109's scheduler-only semantic blocker at
