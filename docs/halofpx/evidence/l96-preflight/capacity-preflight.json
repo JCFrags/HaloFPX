@@ -1,0 +1,34 @@
+{
+  "frozen_plan": {
+    "minimum_rocm_margin_bytes": 28406681241,
+    "minimum_rpc_margin_bytes": 26500867072,
+    "reported_total_each_bytes": 133143986176,
+    "rocm_device_request_bytes": 78280456704,
+    "rocm_host_request_bytes": 633802752,
+    "rocm_required_bytes": 104737304935,
+    "rpc_request_bytes": 80950550528,
+    "rpc_required_bytes": 106643119104
+  },
+  "hosts": {
+    "nimo-1": {
+      "allocation_margin_bytes": 26980389888,
+      "allocation_required_bytes": 106643119104,
+      "inode_accounting": "not_reported_by_filesystem",
+      "inode_free": 0,
+      "inode_total": 0,
+      "mem_total_bytes": 133623508992,
+      "var_tmp_available_bytes": 24936185856
+    },
+    "nimo-2": {
+      "allocation_margin_bytes": 28886195865,
+      "allocation_required_bytes": 104737304935,
+      "inode_accounting": "not_reported_by_filesystem",
+      "inode_free": 0,
+      "inode_total": 0,
+      "mem_total_bytes": 133623500800,
+      "var_tmp_available_bytes": 86515646464
+    }
+  },
+  "local_evidence_free_bytes": 310983966720,
+  "schema": "halofpx.primary.capacity-preflight.v1"
+}

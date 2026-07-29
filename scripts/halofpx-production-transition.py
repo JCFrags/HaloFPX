@@ -221,6 +221,7 @@ L48_SOURCE_FILES = (
     "tests/test_halofpx_l61_host_bound_harvest.py",
     "tools/rpc/rpc-server.cpp",
     "scripts/halofpx-l13-primary-retry.py",
+    "scripts/halofpx_staged_runtime_gate.py",
     "scripts/halofpx_l48_composed_result.py",
     "scripts/halofpx_l50_device_receipt.py",
     "scripts/halofpx_l55_status.py",
@@ -1019,6 +1020,9 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                     f"/var/tmp/halofpx-{source_tag}-coordinator",
                     f"/var/tmp/halofpx-{source_tag}-rendezvous",
                     *(["/var/tmp/halofpx-l50-device-gate-verify"] if l48 else []),
+                    *(["/var/tmp/halofpx-l96-staged-runtime.json"]
+                      if raw["schema"] ==
+                        "halofpx.l77.primary-manifest.v1" else []),
                 ],
             }
             or raw["executables"] != expected_exec
@@ -1167,6 +1171,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                     "-DGGML_RPC_HALOFPX_LOCAL_STATE=ON", "-DLLAMA_BUILD_TESTS=ON",
                     "-DGGML_HIP=ON", "-DAMDGPU_TARGETS=gfx1151",
                     "-DCMAKE_BUILD_TYPE=Release",
+                    "-DHALOFPX_RELOCATABLE_STAGED_RUNTIME=ON",
                     *([
                         "-DHALOFPX_PROVENANCE_SOURCE_ROOT=" +
                             raw["authority_contract"]["provenance"]["source_root"],
@@ -1366,6 +1371,79 @@ def bind_maintenance_command(
     if normalized != expected:
         raise TransitionError("maintenance argv does not exactly match the closed manifest")
     return normalized
+
+
+def run_l96_staged_runtime_gate(
+        manifest: dict[str, object], manifest_path: Path,
+        evidence_root: Path, runner: Runner) -> dict[str, object]:
+    """Require the exact relocatable nimo-2 package before production mutation."""
+    if manifest.get("schema") != "halofpx.l77.primary-manifest.v1":
+        raise TransitionError("L96 staged-runtime gate requires the primary manifest")
+    remote_root = "/var/tmp/halofpx-l48-source-nimo2"
+    remote_manifest = f"{remote_root}/scripts/halofpx-l77-primary-manifest.json"
+    remote_gate = f"{remote_root}/scripts/halofpx_staged_runtime_gate.py"
+    remote_archive = f"{remote_root}.tar"
+    remote_receipt = "/var/tmp/halofpx-l96-staged-runtime.json"
+    local_manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    manifest_hash = runner.run(
+        "nimo-2", ["sha256sum", "--", remote_manifest], operation="hash")
+    if (
+        manifest_hash.returncode != 0 or not manifest_hash.stdout.split()
+        or manifest_hash.stdout.split()[0] != local_manifest_sha
+    ):
+        raise TransitionError("L96 staged manifest identity mismatch")
+    archive_hash = runner.run(
+        "nimo-2", ["sha256sum", "--", remote_archive], operation="hash")
+    archive_sha = (
+        archive_hash.stdout.split()[0]
+        if archive_hash.returncode == 0 and archive_hash.stdout.split() else "")
+    if re.fullmatch(r"[0-9a-f]{64}", archive_sha) is None:
+        raise TransitionError("L96 staged source archive identity is unavailable")
+    gate_result = runner.run("nimo-2", [
+        "python3", remote_gate,
+        "--root", remote_root,
+        "--manifest", remote_manifest,
+        "--archive", remote_archive,
+        "--archive-sha256", archive_sha,
+        "--receipt", remote_receipt,
+    ], operation="command")
+    if gate_result.returncode != 0:
+        raise TransitionError(
+            f"L96 staged-runtime gate refused: {gate_result.stderr[-512:]}")
+    receipt_result = runner.run(
+        "nimo-2", ["cat", "--", remote_receipt], operation="command")
+    try:
+        receipt = json.loads(receipt_result.stdout)
+    except (json.JSONDecodeError, TypeError) as exc:
+        raise TransitionError("L96 staged-runtime receipt is malformed") from exc
+    provenance = manifest["authority_contract"]["provenance"]
+    source_files = manifest["source_identity"]["files"]
+    expected = {
+        "schema": "halofpx.l96.staged-runtime.v1",
+        "status": "pass",
+        "root": remote_root,
+        "archive_sha256": archive_sha,
+        "manifest_sha256": local_manifest_sha,
+        "gate_sha256": source_files["scripts/halofpx_staged_runtime_gate.py"],
+        "source_root": provenance["source_root"],
+        "build_id": provenance["build_id"],
+    }
+    if (
+        receipt_result.returncode != 0
+        or any(receipt.get(name) != value for name, value in expected.items())
+        or set(receipt.get("binaries", {})) != {"worker", "canary", "placement"}
+        or set(receipt.get("probes", {})) != {
+            "canary_provenance", "canary_help", "worker_help"}
+        or receipt["probes"]["canary_provenance"].get("record") != {
+            "schema": "halofpx.l57.binary-provenance.v1",
+            "source_root": provenance["source_root"],
+            "build_id": provenance["build_id"],
+            "binary": "canary",
+        }
+    ):
+        raise TransitionError("L96 staged-runtime receipt authority mismatch")
+    _atomic_json(evidence_root / "l96-staged-runtime.json", receipt)
+    return receipt
 
 
 def prepare_l52_evidence_directories(
@@ -2621,6 +2699,14 @@ def main(argv: Sequence[str] | None = None, *, runner: Runner | None = None) -> 
     }:
         capacity = l29_capacity_preflight(manifest, selected_runner, args.evidence_dir)
         _atomic_json(args.evidence_dir / "capacity-preflight.json", capacity)
+    if (
+        manifest is not None
+        and manifest.get("schema") == "halofpx.l77.primary-manifest.v1"
+        and args.command in {"maintenance", "disposable"}
+    ):
+        run_l96_staged_runtime_gate(
+            manifest, args.milestone_manifest, args.evidence_dir,
+            selected_runner)
 
     def emergency_recover() -> None:
         nonlocal recovery_running

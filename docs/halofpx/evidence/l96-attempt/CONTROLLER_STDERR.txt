@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2922, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2707, in main
+    run_l96_staged_runtime_gate(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        manifest, args.milestone_manifest, args.evidence_dir,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        selected_runner)
+        ^^^^^^^^^^^^^^^^
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 1411, in run_l96_staged_runtime_gate
+    raise TransitionError(
+        f"L96 staged-runtime gate refused: {gate_result.stderr[-512:]}")
+TransitionError: L96 staged-runtime gate refused:                 ~~~~^^
+  File "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_staged_runtime_gate.py", line 265, in main
+    result = run_checked(argv)
+  File "/var/tmp/halofpx-l48-source-nimo2/scripts/halofpx_staged_runtime_gate.py", line 170, in run_checked
+    raise GateError(
+        f"command failed ({result.returncode}): {argv!r}: "
+        f"{result.stderr[-512:]}")
+GateError: command failed (2): ['/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-distributed-state-canary', '--help']: 
+

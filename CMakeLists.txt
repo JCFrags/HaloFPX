@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.14...3.28) # for add_link_options and implicit target directories.
 project("llama.cpp" C CXX)
 
+option(HALOFPX_RELOCATABLE_STAGED_RUNTIME
+    "Use origin-relative build lookup for closed staged HaloFPX runtimes" OFF)
+if (HALOFPX_RELOCATABLE_STAGED_RUNTIME)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+    set(CMAKE_INSTALL_RPATH "$ORIGIN;/opt/rocm/lib")
+endif()
+
 set(HALOFPX_PROVENANCE_SOURCE_ROOT "" CACHE STRING "Canonical HaloFPX source root")
 set(HALOFPX_PROVENANCE_BUILD_ID "" CACHE STRING "Immutable HaloFPX diagnostic build identity")
 if (HALOFPX_PROVENANCE_SOURCE_ROOT OR HALOFPX_PROVENANCE_BUILD_ID)
