@@ -1,5 +1,41 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — accept L105 blocker; scope L106 to transactional KV only
+
+Decision: accept L105's confirmed memory-mutation blocker at
+`a35816e52f4bb2510936fa1a29e623c3b9249521`. Do not authorize a general
+transactional memory rewrite. Open L106 for a transformer-KV-only
+non-mutating preview and atomic commit contract, then continue the distributed
+server-cache product slice.
+
+The default-off distributed exact-key profile supports ordinary transformer KV
+memory only. Recurrent, hybrid, ISWA, and any memory implementation without
+the typed contract must refuse feature enablement or cache eligibility.
+
+After the real server batch/ubatch is frozen, KV preview owns the proposed
+cell/head/slot placement, post-commit graph-facing `n_kv` and metadata, and the
+source KV generation without mutating live state. Atomic single-use commit
+immediately before execution must validate the generation and apply exactly
+that placement. Abort/drop is non-mutating. Pending shift/copy/defrag must be
+completed before preview or explicitly represented and generation-bound.
+Stale, conflicting, reused, double-committed, wrong-context, or wrong-batch
+plans refuse and clean-recompute.
+
+L106 must use the same handle for lookup and hit/miss execution, then finish
+the live distributed topology/profile/transaction bridge already authorized.
+Qualification remains focused: KV placement/generation/state-machine tests,
+unsupported-memory refusal, preview-versus-commit graph identity, independent
+review, a real two-host no-model transaction, and one Stories15M
+miss/publish/fresh-worker-hit/corruption-fallback vertical run. Mechanical
+integration corrections may remain within L106. No primary model, production,
+general memory support, tuning, broad matrix, or new wire protocol is
+authorized.
+
+Reason: graph planning genuinely needs the post-placement KV geometry, but the
+project does not need to solve every llama memory architecture before shipping
+its transformer cache path. A strict KV-only profile closes the proven
+MiniMax/product requirement while safely refusing unsupported models.
+
 ## 2026-07-29 — accept L104 blocker and authorize L105 request-plan ownership
 
 Decision: accept L104's confirmed lookup-order blocker at

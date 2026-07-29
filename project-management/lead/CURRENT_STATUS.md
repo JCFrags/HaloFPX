@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 00:18 PDT
+Verified: 2026-07-29 00:36 PDT
 
 ## Overall state
 
@@ -96,6 +96,27 @@ After focused review and a real two-host no-model transaction, L105 may resume
 the already-authorized distributed profile/bridge and Stories15M vertical
 slice. Primary-model, production, tuning, and broad-matrix work remain
 prohibited.
+
+L105 closed at read-only evidence commit
+`a35816e52f4bb2510936fa1a29e623c3b9249521` with a confirmed memory
+transaction prerequisite and no candidate/runtime action. Current
+`process_ubatch` calls the mutating memory `apply()` before graph construction;
+for KV memory this commits cells/heads and only then produces graph-critical
+`n_kv`. Existing failure cleanup is not a complete rollback, and the server
+freezes the final continuous batch later than its current per-task cache
+lookup. Independent review classified bypass as a P1 state-integrity risk.
+
+To keep product progress focused, L106 does not generalize this contract across
+every recurrent/hybrid memory type. The distributed exact-key product profile
+is now explicitly limited to ordinary transformer KV memory and must refuse
+unsupported memory implementations. L106 is implementing a KV-specific
+non-mutating placement preview with frozen batch/ubatch, proposed
+cells/heads/slots and post-commit graph metadata, bound to a live KV
+generation. Atomic single-use commit validates and applies exactly that plan;
+abort/drop is non-mutating. It then continues the previously authorized live
+request plan, distributed profile/transaction bridge, and bounded Stories15M
+vertical slice. Primary-model, production, general recurrent/hybrid support,
+performance, and broad matrices remain out of scope.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID
