@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 00:03 PDT
+Verified: 2026-07-29 00:18 PDT
 
 ## Overall state
 
@@ -75,6 +75,27 @@ and fail to clean-context recompute on any missing, corrupt, stale, partial, or
 topology-mismatched state. After focused review and a two-host no-model fixture,
 one Stories15M end-user miss/restart/hit qualification may run. Primary-model,
 production, tuning, and broad-matrix work remain prohibited.
+
+L104 closed at read-only evidence commit
+`23f088deea65833a714271d7033d9c1c5f46c733` with a second confirmed
+product-ordering prerequisite and no candidate source/runtime action.
+llama-server currently performs exact-key lookup before slot launch, but the
+live graph allocation, canonical census, split binding, connection/allocation
+epochs, key generation, and component descriptors arise only later inside
+`process_ubatch`. A cached candidate cannot safely provide the authority used
+to select itself, and independently rebuilding after lookup permits plan
+drift. Independent review confirmed the cycle.
+
+L105 is active to add a default-off, single-use, non-executing request-plan
+handle. It will build and own the exact graph/allocation plus immutable live
+authority before lookup, perform no compute/input mutation/admission
+consumption/publication, and then be consumed by either hit restore or the same
+miss decode/capture without rebuilding. Stale, drifted, wrong-context,
+partial, reused, or double-consumed handles must refuse and clean-recompute.
+After focused review and a real two-host no-model transaction, L105 may resume
+the already-authorized distributed profile/bridge and Stories15M vertical
+slice. Primary-model, production, tuning, and broad-matrix work remain
+prohibited.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID

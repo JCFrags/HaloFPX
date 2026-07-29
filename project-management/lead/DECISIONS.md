@@ -1,5 +1,39 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — accept L104 blocker and authorize L105 request-plan ownership
+
+Decision: accept L104's confirmed lookup-order blocker at
+`23f088deea65833a714271d7033d9c1c5f46c733`. Authorize L105 to add a
+single-use non-executing request-plan handle, then continue the already
+authorized distributed authority/profile/transaction composition.
+
+The handle must be produced from the exact request ubatch through the same
+graph build/allocation, census resolution, split binding, and authenticated
+non-mutating RPC preflight used for execution. It owns the graph lifetime and
+immutable topology, epoch, channel/key-generation, endpoint, split/census,
+and component-descriptor authority. It may not consume admission, set inputs,
+mutate state, compute, publish, or derive authority from a cached candidate.
+
+Exact-key lookup may use only this live handle. A hit must reconcile the
+candidate and restore storage against it; a miss must pass the same handle into
+decode and capture without rebuilding. Drop/error safely releases and aborts.
+Reuse, double-consumption, wrong request/slot/context, stale epoch,
+independent rebuild, or incomplete authority must refuse and clean-recompute.
+Feature-off decode and world-1 cache behavior remain unchanged.
+
+Qualification is bounded to focused lifecycle and feature-off tests,
+plan-versus-execution identity equality, drift/stale/double-use negatives,
+independent review, and one real two-host no-model plan-to-hit/miss
+transaction. If those pass, the worker may finish the L104 distributed
+profile/bridge and one Stories15M vertical run under the existing gates. No
+primary model, production mutation, tuning, broad matrix, or new wire protocol
+is authorized.
+
+Reason: valid cache selection requires live request topology, but that topology
+currently exists only after lookup. A single owned plan used by both lookup
+and execution breaks the cycle without trusting stored candidates or building
+two graphs that can drift.
+
 ## 2026-07-29 — accept L103 blocker and authorize L104 product authority seam
 
 Decision: accept L103's confirmed semantic blocker at
