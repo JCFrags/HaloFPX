@@ -1,0 +1,11 @@
+milestone=L105
+classification=SEMANTIC_BLOCKER
+base_head=23f088deea65833a714271d7033d9c1c5f46c733
+candidate_source_changes=none
+host_access=none
+model_run=none
+production_access=none
+build=none
+blocker=execution-identical graph planning requires llama_memory_context_i::apply before graph parameters/build; apply mutates live memory and has no preview/commit/complete-rollback contract
+smallest_prerequisite=typed transactional memory-plan preview/validate/commit/drop authority
+independent_review=CONFIRMED_SEMANTIC_BLOCKER_P1_IF_BYPASSED
