@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 08:23 PDT
+Verified: 2026-07-29 09:02 PDT
 
 ## Overall state
 
@@ -238,6 +238,23 @@ generation-bound, no-throw atomic two-rank partition transaction and its
 tiny-GGUF accounting/rollback qualification. It cannot touch MiniMax graph,
 RPC, scheduler, hosts/models/production, cache, or performance work. Exact
 independent review determines source retention.
+
+The fresh worker's first read-only audit found that the accepted base already
+exposes the legacy caller-forgeable source-slice and lookup-exclusion helpers
+through the default-off MiniMax shadow loader. This made the original L111
+"no MiniMax call-site change" restriction contradictory. The lead has now
+authorized only the minimal mechanical call-site migration needed to remove
+those public aliases while preserving exact current shadow tensor ranges,
+devices, lookup behavior, and feature-off behavior. Graph execution, routing,
+RPC, scheduling, and runtime semantics remain out of scope. L111 is active
+again under the same tiny-GGUF, rollback, compile, source-scan, and independent
+review gates.
+
+A fresh read-only production check at 09:00 PDT found both standard Q6 services
+healthy and unchanged: nimo-1 coordinator PID `3027112`, InvocationID
+`e6da1fe637144cb394119959c0e88736`, NRestarts `0`, unique port 8081 and
+HTTP 200 `{"status":"ok"}`; nimo-2 worker PID `2148915`, InvocationID
+`3480c89086e04d5d80060366c5c7ab7f`, NRestarts `0`, unique port 50052.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID

@@ -1,5 +1,27 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — resolve L111 legacy-alias scope contradiction
+
+Decision: permit L111 to make the minimal MiniMax loader call-site and helper
+declaration changes required to remove the accepted base's public
+caller-forgeable source-slice and lookup-exclusion APIs. This is a mechanical
+migration into the loader-owned atomic pair transaction, not authorization to
+change MiniMax graph or RPC behavior.
+
+The migration must preserve exact default-off shadow tensor source ranges,
+shapes, target devices, lookup visibility, and feature-off behavior. A complete
+source scan must prove no raw/public creation or exclusion alias remains.
+Graph execution, routing, asynchronous RPC, scheduling, host/model/production
+runtime, cache, and performance claims remain prohibited. All original L111
+tiny-GGUF accounting, rollback injection, compilation, and independent-review
+gates still apply.
+
+Reason: exact source inspection proved the old helpers are already actively
+called by the default-off MiniMax loader. A safe loader-internal authority
+cannot replace them while call-site edits are forbidden. Allowing only the
+mechanical migration resolves the contradiction without broadening product
+semantics.
+
 ## 2026-07-29 — accept L110 rejection and assign fresh L111 worker
 
 Decision: accept L110 NOT PROMOTED/evidence-only at
