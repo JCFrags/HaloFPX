@@ -1659,6 +1659,41 @@ finish independent terminal review and commit, then diagnose the result-
 authority mismatch and InvocationID lifecycle read-only. No correction,
 host/model action, or automatic follow-on is authorized.
 
+## 2026-07-28 — accept L97 and open L98 result/lifecycle closure
+
+Decision: accept L97 terminal NOT PROMOTED at the corrected exact commit
+`647f3d4bfd4574e6b5086c42407116cbb5ce843b`. Retain its reviewed default-off
+source and accepted production baseline. Open L98 to close the empty result
+field and restore-canary terminal InvocationID P2s together, followed by one
+full primary correctness attempt.
+
+Reason: durable JSON and emitted output differ only because `output_fields()`
+uses `([^ ]+)`, which cannot represent the valid empty emitted field
+`prompt_chunk_sizes=`. Residency-B otherwise executed through authenticated
+server terminal authority. Separately, the transient restore unit unloads and
+clears InvocationID before evidence collection; no evidence makes that the
+forward cause, but its custody contract must be closed in the same milestone.
+
+L98 must replace regex extraction with a total canonical space-delimited
+`key=value` parser. Empty values are valid; empty tokens/multiple separators,
+invalid or duplicate keys, missing delimiters, whitespace/control characters
+inside values, and unconsumed text refuse. The parsed map must equal the
+independently verified durable JSON exactly. Tests must replay the retained L97
+line/JSON and cover empty/nonempty plus structural negatives.
+
+Restore-canary launch must retain systemd terminal authority, preferably with
+`RemainAfterExit=yes` consistent with ordinary canaries. Require exact terminal
+Active/SubState, ExecMainCode/Status/Result, retained launch cursor/PID/
+InvocationID, journal collection by InvocationID before explicit stop/reset/
+unload, and final absence. Cleared or changed identity before collection
+refuses. Audit other reachable canary collection paths for the same lifecycle.
+Focused tests and one independent review are sufficient.
+
+After those gates, exactly one OOM-aware primary capture/fresh-restore/
+one-token transition may run under existing equality/state/component/custody/
+zero-GET-SET/cleanup/recovery gates. No retry, runtime semantic correction,
+protocol/cache-product/performance work, or automatic follow-on is authorized.
+
 ## 2026-07-28 — accept L90 and open L91 consolidated child authority
 
 Decision: accept L90 terminal NOT PROMOTED at

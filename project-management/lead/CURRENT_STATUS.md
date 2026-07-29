@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 21:14 PDT
+Verified: 2026-07-28 21:18 PDT
 
 ## Overall state
 
@@ -357,6 +357,22 @@ PID `2135516`, InvocationID `7a3c97b846854036acd33421bb45ab73`,
 `NRestarts=1`, exact executable/argv/config, unique port 50052. No continuing
 fault exists and no production mutation is authorized. Exact disposable
 cleanup is already complete.
+
+L97 terminal closeout is committed at the corrected exact hash
+`647f3d4bfd4574e6b5086c42407116cbb5ce843b`. Read-only diagnosis proves the
+forward mismatch: durable JSON includes `prompt_chunk_sizes:""`, while
+`output_fields()` requires at least one non-space character and silently drops
+the empty emitted field. Separately, the restore transient loses its
+InvocationID after terminalization before evidence collection. Independent
+review records two P2s, no P1/security/accepted-invalid-state issue, and safe
+default-off retention.
+
+L98 is active to close both exact P2s together. Result lines require a total
+canonical space-delimited `key=value` parser that represents empty values and
+rejects malformed, duplicate, or unconsumed text. Restore-canary systemd
+authority must remain retained through exact terminal status and journal
+collection before explicit unload. After focused review, one full correctness
+transition is authorized; no retry or unrelated expansion is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
