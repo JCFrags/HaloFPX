@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 01:11 PDT
+Verified: 2026-07-29 01:28 PDT
 
 ## Overall state
 
@@ -159,6 +159,31 @@ manifest/profile, topology producer, transaction, ownership transfer,
 post-commit recovery, and resource refusal are all wired. Focused review
 precedes one no-model transaction and one Stories15M vertical run. No primary,
 production, performance, broad matrix, or new wire protocol is authorized.
+
+L108 closed NOT PROMOTED at evidence-only commit
+`56a0526cb4e9fdb1a0d597ca391f47bbcedb9bb5`; the partial candidate was
+removed after mandatory independent review found P1 false world-two authority,
+caller-asserted rather than resource-owned transaction state, incomplete
+server/slot rebinding, and no real stage/commit/recovery reachability. No
+runtime case was consumed.
+
+The lead has paused the user-facing distributed llama-server cache composition
+epic. L101 remains the accepted proof that the block-aware rank-local
+capture/restore mechanism is correct on the primary model, but repeated
+L103-L108 blockers show that server reachability requires a separately
+decomposed scheduler/memory/server architecture effort. Continuing to add one
+authority layer per milestone is not producing a usable product quickly
+enough.
+
+L109 is active as a time-boxed performance screen against the largest measured
+bottleneck: roughly 30 ms of remote work followed by roughly 30 ms of local
+work per decode token. It targets scheduler-wide overlap across multiple
+MiniMax expert layers and both ownership domains, with device-event proof,
+exact output, failure/fallback safety, and feature-off parity. A candidate is
+removed unless a predeclared synthetic repeated-layer screen shows material
+end-to-end benefit (default threshold 10%) without matched regressions. No
+primary model, production mutation, cache work, broad matrix, or synthetic
+speed claim is authorized.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID

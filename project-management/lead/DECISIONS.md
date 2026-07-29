@@ -1,5 +1,41 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — accept L108 removal and pivot L109 to rank overlap
+
+Decision: accept L108 NOT PROMOTED/evidence-only at
+`56a0526cb4e9fdb1a0d597ca391f47bbcedb9bb5` and confirm removal of its
+false/unreachable candidate. Pause the user-facing distributed server-cache
+composition epic. Preserve L101's accepted primary rank-local cache
+correctness, but stop serially adding cache authority/transaction milestones.
+
+Open L109 as a time-boxed scheduler-wide, multi-layer rank-overlap performance
+screen using the accepted P08/P13 evidence. It targets the measured serialized
+remote and local decode phases with a synthetic repeated MiniMax expert-layer
+workload spanning consecutive layers and both ownership domains.
+
+Any prototype must be default-off, preserve exact dependency ordering, buffer
+lifetime, deterministic output, error propagation, synchronization, and
+feature-off behavior. Device events/timelines must prove real concurrent
+execution across multiple layers and ranks—not host enqueue overlap or a
+single projection. The candidate is removed promptly if synchronization erases
+overlap, any matched case regresses, correctness differs, or the synthetic
+repeated-layer end-to-end improvement is below a predeclared material screen
+threshold (10% unless exact overhead evidence justifies a different threshold
+before measurement).
+
+Reuse accepted profiling and do not revisit P03, P05, P09, P10, P11, P13, or
+P14 without new evidence. Independent review is required before retention.
+L109 may recommend one later matched primary discriminator only if the screen
+passes. It may not load the primary model, mutate production, reopen cache
+composition, run a broad matrix, or claim product speed from synthetic data.
+
+Reason: L108's review showed that a complete server cache needs coordinated
+scheduler, memory, manifest, RPC, and ownership work that is not converging as
+incremental seams. Meanwhile, profiling already identifies a much larger
+performance opportunity than the rejected micro-optimizations. This pivot
+returns effort to measurable product results without discarding the proven
+cache foundation.
+
 ## 2026-07-29 — accept L107 removal; implement the complete slice in L108
 
 Decision: accept L107 NOT PROMOTED at
