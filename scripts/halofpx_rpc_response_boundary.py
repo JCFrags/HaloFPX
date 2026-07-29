@@ -197,36 +197,58 @@ def validate_stream(
             raise ValueError("EOF authority is inconsistent")
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--key-file", required=True)
-    parser.add_argument("--record-file", action="append", required=True)
-    parser.add_argument("--allow-prefix", action="store_true")
-    args = parser.parse_args()
-    key = load_key(Path(args.key_file))
-    output: dict[str, list[dict[str, object]]] = {}
-    for value in args.record_file:
-        path = Path(value)
-        if path.stat().st_size > MAX_FILE_BYTES:
-            raise SystemExit("record file size is outside the closed bound")
-        lines = path.read_text(encoding="ascii").splitlines()
-        if not 1 <= len(lines) <= 64:
-            raise SystemExit("record count is outside the closed bound")
-        records = [parse_record(line, key) for line in lines]
-        if [record["event"] for record in records] != list(range(1, len(records) + 1)):
-            raise SystemExit("record event sequence is missing, duplicate, or out of order")
-        sides = {str(record["side"]) for record in records}
-        if len(sides) != 1:
-            raise SystemExit("record file mixes client and server authority")
-        side = next(iter(sides))
-        if side in output:
-            raise SystemExit("duplicate side record file")
-        validate_stream(records, side, allow_prefix=args.allow_prefix)
-        output[side] = records
-    if not args.allow_prefix and set(output) != SIDES:
-        raise SystemExit("exactly one client and one server stream are required")
-    client = output.get("client", [])
-    server = output.get("server", [])
+GROUP_FIELDS = (
+    "attempt", "connection_epoch", "split_uid", "exec_sequence",
+    "backend_ordinal", "opcode",
+)
+
+
+def group_stream(
+        records: list[dict[str, object]], side: str,
+        *, allow_prefix: bool) -> dict[tuple[str, ...], list[dict[str, object]]]:
+    groups: dict[tuple[str, ...], list[dict[str, object]]] = {}
+    active_key: tuple[str, ...] | None = None
+    previous_event = 0
+    for record in records:
+        key = tuple(str(record[field]) for field in GROUP_FIELDS)
+        if key != active_key:
+            if key in groups:
+                raise ValueError("record stream replays or interleaves an attempt")
+            event = int(record["event"])
+            if event not in {1, previous_event + 1}:
+                raise ValueError(
+                    "record event sequence has a gap outside an authenticated reset")
+            groups[key] = []
+            active_key = key
+        groups[key].append(record)
+        previous_event = int(record["event"])
+    for group in groups.values():
+        start = int(group[0]["event"])
+        if [record["event"] for record in group] != list(
+                range(start, start + len(group))):
+            raise ValueError(
+                "record event sequence is missing, duplicate, or out of order")
+        validate_stream(group, side, allow_prefix=allow_prefix)
+    sequences: dict[tuple[str, ...], list[int]] = {}
+    for key in groups:
+        series = (
+            key[GROUP_FIELDS.index("attempt")],
+            key[GROUP_FIELDS.index("connection_epoch")],
+            key[GROUP_FIELDS.index("backend_ordinal")],
+            key[GROUP_FIELDS.index("opcode")],
+        )
+        sequences.setdefault(series, []).append(
+            int(key[GROUP_FIELDS.index("exec_sequence")]))
+    if any(values != list(range(1, len(values) + 1))
+           for values in sequences.values()):
+        raise ValueError(
+            "attempt execution groups are missing, duplicate, or reordered")
+    return groups
+
+
+def validate_pair(
+        client: list[dict[str, object]], server: list[dict[str, object]],
+        *, allow_prefix: bool) -> None:
     late_client = [
         str(record["phase"]) for record in client
     ] == ["client_decode", "client_receipt_validation"]
@@ -251,21 +273,79 @@ def main() -> int:
                 or record["status"] != status
                 for record, (phase, size, status) in
                 zip(server, expected_server, strict=True)):
-            raise SystemExit("late client semantics require exact paired server success")
+            raise ValueError(
+                "late client semantics require exact paired server success")
     if client and server:
-        for field in (
-                "split_uid", "exec_sequence", "backend_ordinal", "attempt",
-                "connection_epoch", "opcode"):
+        for field in GROUP_FIELDS:
             values = {str(record[field]) for record in client + server}
             if len(values) != 1:
-                raise SystemExit(f"cross-side {field} authority mismatch")
+                raise ValueError(f"cross-side {field} authority mismatch")
+    elif not allow_prefix:
+        raise ValueError("complete verification requires both sides")
     if server and any(record["parent_uid"] != 0 for record in server):
-        raise SystemExit("server-local parent UID must be canonical zero")
+        raise ValueError("server-local parent UID must be canonical zero")
     if client and (
             len({str(record["parent_uid"]) for record in client}) != 1
             or client[0]["parent_uid"] == 0):
-        raise SystemExit("client parent UID authority is missing or inconsistent")
-    print(json.dumps(output, sort_keys=True, separators=(",", ":")))
+        raise ValueError("client parent UID authority is missing or inconsistent")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--key-file", required=True)
+    parser.add_argument("--record-file", action="append", required=True)
+    parser.add_argument("--allow-prefix", action="store_true")
+    args = parser.parse_args()
+    key = load_key(Path(args.key_file))
+    output: dict[str, list[dict[str, object]]] = {}
+    for value in args.record_file:
+        path = Path(value)
+        if path.stat().st_size > MAX_FILE_BYTES:
+            raise SystemExit("record file size is outside the closed bound")
+        lines = path.read_text(encoding="ascii").splitlines()
+        if not 1 <= len(lines) <= 64:
+            raise SystemExit("record count is outside the closed bound")
+        records = [parse_record(line, key) for line in lines]
+        sides = {str(record["side"]) for record in records}
+        if len(sides) != 1:
+            raise SystemExit("record file mixes client and server authority")
+        side = next(iter(sides))
+        if side in output:
+            raise SystemExit("duplicate side record file")
+        output[side] = records
+    if not args.allow_prefix and set(output) != SIDES:
+        raise SystemExit("exactly one client and one server stream are required")
+    grouped = {
+        side: group_stream(records, side, allow_prefix=args.allow_prefix)
+        for side, records in output.items()
+    }
+    keys = set().union(*(set(groups) for groups in grouped.values()))
+    if set(grouped) == SIDES and any(
+            key not in grouped.get("client", {})
+            or key not in grouped.get("server", {})
+            for key in keys):
+        raise SystemExit("client/server attempt sets differ")
+    attempts = []
+    for key in keys:
+        client = grouped.get("client", {}).get(key, [])
+        server = grouped.get("server", {}).get(key, [])
+        validate_pair(client, server, allow_prefix=args.allow_prefix)
+        attempts.append({
+            **dict(zip(GROUP_FIELDS, key, strict=True)),
+            **({"client": client} if client else {}),
+            **({"server": server} if server else {}),
+        })
+    attempts.sort(key=lambda item: (
+        item["attempt"], int(item["exec_sequence"]), int(item["split_uid"])))
+    if len(attempts) == 1:
+        legacy = {
+            side: attempts[0][side] for side in SIDES if side in attempts[0]}
+        print(json.dumps(legacy, sort_keys=True, separators=(",", ":")))
+    else:
+        print(json.dumps(
+            {"schema": "halofpx.rpc-response-boundary.grouped.v1",
+             "attempts": attempts},
+            sort_keys=True, separators=(",", ":")))
     return 0
 
 

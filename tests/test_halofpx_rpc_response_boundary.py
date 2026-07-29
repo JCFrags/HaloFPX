@@ -128,7 +128,7 @@ def test_accepts_bounded_authenticated_record(tmp_path: Path) -> None:
 def test_accepts_exact_paired_late_client_semantics(tmp_path: Path) -> None:
     key = bytes(range(32))
     client, server = late_semantic_streams(key)
-    result = invoke(tmp_path, (client, server), allow_prefix=True)
+    result = invoke(tmp_path, (client, server))
     assert result.returncode == 0, result.stderr
     parsed = json.loads(result.stdout)
     assert [r["phase"] for r in parsed["client"]] == [
@@ -213,6 +213,105 @@ def test_replays_l88_late_semantic_pair(tmp_path: Path) -> None:
     assert [record["phase"] for record in parsed["client"]] == [
         "client_decode", "client_receipt_validation"]
     assert len(parsed["server"]) == 7
+
+
+def test_accepts_multiple_exact_attempt_groups(tmp_path: Path) -> None:
+    key = bytes(range(32))
+    client_a, server_a = late_semantic_streams(key)
+    client_b = "".join(
+        record(
+            key, index, phase=phase, expected=0, actual=0, status=status,
+            attempt="11" * 32, connection_epoch="22" * 32,
+            split_uid=31, exec_sequence=2, parent_uid=29)
+        for index, (phase, status) in enumerate((
+            ("client_decode", 1), ("client_receipt_validation", 2)), 1))
+    server_spec = [
+        ("handler_entry", 0, 0), ("handler_validation", 0, 1),
+        ("backend_complete", 0, 0), ("receipt_construction", 0, 1),
+        ("handler_exit", 0, 2), ("response_header_publish", 8, 0),
+        ("response_body_publish", 264, 0),
+    ]
+    server_b = "".join(
+        record(
+            key, index, side="server", phase=phase, expected=size,
+            actual=size, status=status, attempt="11" * 32,
+            connection_epoch="22" * 32, split_uid=31, exec_sequence=2)
+        for index, (phase, size, status) in enumerate(server_spec, 1))
+    result = invoke(
+        tmp_path, (client_a + client_b, server_a + server_b))
+    assert result.returncode == 0, result.stderr
+    parsed = json.loads(result.stdout)
+    assert parsed["schema"] == "halofpx.rpc-response-boundary.grouped.v1"
+    assert len(parsed["attempts"]) == 2
+
+
+def test_grouping_rejects_cross_attempt_mix_replay_and_interleave(
+        tmp_path: Path) -> None:
+    key = bytes(range(32))
+    client_a, server_a = late_semantic_streams(key)
+    client_b = "".join([
+        record(
+            key, 1, phase="client_decode", expected=0, actual=0, status=1,
+            attempt="33" * 32, connection_epoch="44" * 32,
+            split_uid=31, exec_sequence=2, parent_uid=29),
+        record(
+            key, 2, phase="client_receipt_validation", expected=0, actual=0,
+            status=2, attempt="33" * 32, connection_epoch="44" * 32,
+            split_uid=31, exec_sequence=2, parent_uid=29),
+    ])
+    assert invoke(
+        tmp_path, (client_a + client_b, server_a)).returncode != 0
+    assert invoke(
+        tmp_path, (client_a + client_a, server_a),
+        allow_prefix=True).returncode != 0
+    client_lines = client_a.splitlines(keepends=True)
+    interleaved = client_lines[0] + client_b + client_lines[1]
+    assert invoke(
+        tmp_path, (interleaved, server_a),
+        allow_prefix=True).returncode != 0
+
+
+def test_grouping_rejects_whole_group_gap_reorder_and_unmatched_side(
+        tmp_path: Path) -> None:
+    key = bytes(range(32))
+    client_a, server_a = late_semantic_streams(key)
+    client_c = "".join(
+        record(
+            key, index, phase=phase, expected=0, actual=0, status=status,
+            split_uid=35, exec_sequence=3, parent_uid=29)
+        for index, (phase, status) in enumerate((
+            ("client_decode", 1), ("client_receipt_validation", 2)), 1))
+    server_c = "".join(
+        record(
+            key, index, side="server", phase=phase, expected=size,
+            actual=size, status=status, split_uid=35, exec_sequence=3)
+        for index, (phase, size, status) in enumerate((
+            ("handler_entry", 0, 0), ("handler_validation", 0, 1),
+            ("backend_complete", 0, 0), ("receipt_construction", 0, 1),
+            ("handler_exit", 0, 2), ("response_header_publish", 8, 0),
+            ("response_body_publish", 264, 0)), 1))
+    assert invoke(tmp_path, (client_a + client_c, server_a + server_c)).returncode != 0
+    assert invoke(tmp_path, (client_c + client_a, server_c + server_a)).returncode != 0
+    assert invoke(
+        tmp_path, (client_a, server_a + server_c),
+        allow_prefix=True).returncode != 0
+
+
+def test_replays_grouped_l98_streams(tmp_path: Path) -> None:
+    key = bytes(range(32))
+    evidence = ROOT / "docs" / "halofpx" / "evidence" / "l98-attempt" / "child"
+    client = resign_stream(
+        (evidence / "rpc-response-client.jsonl").read_text(encoding="ascii"), key)
+    server = resign_stream(
+        (evidence / "rpc-response-worker.jsonl").read_text(encoding="ascii"), key)
+    result = invoke(tmp_path, (client, server))
+    assert result.returncode == 0, result.stderr
+    parsed = json.loads(result.stdout)
+    assert parsed["schema"] == "halofpx.rpc-response-boundary.grouped.v1"
+    assert len(parsed["attempts"]) == 5
+    assert all(
+        len(attempt["client"]) == 2 and len(attempt["server"]) == 7
+        for attempt in parsed["attempts"])
 
 
 def test_rejects_tamper_and_sequence_errors(tmp_path: Path) -> None:

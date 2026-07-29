@@ -1,0 +1,155 @@
+{
+  "schema": "halofpx.l99.l98-canonical-diff.v1",
+  "source_commit": "db3b034dfe6d6ef857031ff5473f8fe2286657d1",
+  "evidence_root": "docs/halofpx/evidence/l98-attempt",
+  "source_files": {
+    "capture_log": {"path": "child/capture.log", "sha256": "a76da100501a679a58e45d4f6f704071dab8fcb4fef0a230bd60e6142a2595fa"},
+    "restore_log": {"path": "child/restore.log", "sha256": "15cf6456ed921bcd902ded1667440a3f911f52dab0996265297884c95e1b6327"},
+    "capture_journal": {"path": "child/halofpx-l48-canary-capture-journal.txt", "sha256": "210ea2cc693a83cc8e14d590ca0691b365c7658168ee13c3f1b7cbc30d5f9f4d"},
+    "restore_journal": {"path": "child/halofpx-l48-canary-restore-journal.txt", "sha256": "af0222a59396003907ac0ceac498d320d16d0f513f8e7c8c7a3f9b9818ac6380"},
+    "rpc_response_client": {"path": "child/rpc-response-client.jsonl", "sha256": "6e57d1bc90298e5b9ab2d3d738a6580ead6a32d1bcedf8781d9ea227fb8ed5ad"},
+    "rpc_response_worker": {"path": "child/rpc-response-worker.jsonl", "sha256": "0fa6a77f755f1bc01781b7a1e8bc1a35f08bd117de66dc0af961c5640ec20830"},
+    "server_authority_harvest": {"path": "server-authority-harvest.json", "sha256": "1475fdd306a6fb9ad6e4fe6bc860b65445ccbb274995f956d9eeea6eeb88c93a"}
+  },
+  "authenticated_record_inventory": {
+    "capture_result_semantic_replay_composed_component_apply_capture": {"path": "child/capture.log", "sha256": "a76da100501a679a58e45d4f6f704071dab8fcb4fef0a230bd60e6142a2595fa"},
+    "restore_result_semantic_replay_composed_component_apply_capture": {"path": "child/restore.log", "sha256": "15cf6456ed921bcd902ded1667440a3f911f52dab0996265297884c95e1b6327"},
+    "epoch_audit": {"path": "child/capture-epoch-audit.json", "sha256": "a1b12592955253c09a9f68d403329fdd2f651d352e603be7a27a049c8f3f4afd"},
+    "epoch_authority": {"path": "child/capture-epoch-auth.json", "sha256": "657afef943bdb37ea8e2c57fe520f1152a57571b68e046d20d427643c1cbce5e"},
+    "capture_plan_topology": {"path": "child/halofpx-l48-worker-capture-placement.json", "sha256": "9ddfa80dce9df1b362791a7a885dc948455860def62f1f53702c5452f3ac0046"},
+    "restore_plan_topology": {"path": "child/halofpx-l48-worker-restore-placement.json", "sha256": "5cae99cd0c0b3367108bbf782b7a1182d57a85587572a51c17e53b6e73a9d14e"},
+    "device_admission": {"path": "child/device-admission.json", "sha256": "e19bda7e3c218aeb7ed730430fa9dc8341b16950c7bdcb1b22c2785bb1b88a71"},
+    "device_publication": {"path": "child/device-publication.json", "sha256": "c37fd1ff47758896fcbacd3280b92214933f2546763a31f32d55b5579bd58d0d"}
+  },
+  "represented_state": {
+    "equal": true,
+    "control_sha256": "2d614e8634f7f9defc4ed59f59b900490e021e382045c566109588bd288a0cbb",
+    "control_bytes": 15048,
+    "local_sha256": "7117319f7dc2b848d3ce3b35469aee3c62bc93a8262f88cb53949e7bbc5ceaca",
+    "local_bytes": 2301688,
+    "component_manifest_sha256": "7ad364fb0a047ca8db745c439bf8ad3f6fe6b92ae56f7b9f632caa88e47c69b3",
+    "worker_components": 64,
+    "worker_bytes": 2454528,
+    "prompt_tokens": 1129,
+    "saved_boundary": 1128,
+    "n_batch": 512
+  },
+  "semantic_provenance": {
+    "common": {
+      "replay_count": 1,
+      "replay_token": 32,
+      "position_before": 1127,
+      "position_after": 1128,
+      "logits_count": 200064,
+      "logits_invalidated": 0
+    },
+    "capture": {
+      "logits_sha256": "8564aef91899f6d5cc61ad88a8df4c836600a1006f1bc03b6eb6150e8c27c754",
+      "argmax_token": 21549,
+      "sampled_token": 21549,
+      "suffix_utf8": " alpha"
+    },
+    "restore": {
+      "logits_sha256": "7a8807f402dfca9a309b3fb30f504c973439ec2fabe29a77fd1dd19a436d36cd",
+      "argmax_token": 9283,
+      "sampled_token": 9283,
+      "suffix_utf8": "计划"
+    },
+    "equal": false
+  },
+  "replay_authority": {
+    "equal_authenticated_payload_except_phase_and_auth_tag": true,
+    "graph_reused": 0,
+    "scheduler_reset": 1,
+    "graph_nodes": 4719,
+    "output_count": 1,
+    "output_row": 0,
+    "output_swaps": 0,
+    "logits_backend": "ROCm0",
+    "flash_attention": 1,
+    "backends": ["RPC0[10.44.0.1:50248]", "ROCm0", "CPU"],
+    "kv_types": {"k": "q8_0", "v": "q8_0"},
+    "kv_slots": "0:1128",
+    "kv_heads": {"before": 1128, "after": 1129},
+    "kv_n": 1280,
+    "kv_positions": 1128,
+    "attention_view_count": 124,
+    "kv_tensor_count": 124,
+    "rpc_kv_layers": "0..31",
+    "rocm_kv_layers": "32..61",
+    "graph_input_digest": "8d71b3faab8201459ad37ef499beb336ba88bdcfa0f51ee6f0a46ec3192d750a",
+    "node_assignment_count": 4719,
+    "cross_backend_edges": 0,
+    "node_assignment_sha256": "b62c8fcdd667cfd22c4695d6246798c7fbdc7383776a13e3dcbd2017875f6577"
+  },
+  "composed_authority": {
+    "capture_productions": 4,
+    "restore_productions": 1,
+    "capture": [
+      {"execution_sequence": 1, "graph_uid": 25, "prepared_root": "218bcd5443bb430af81efc6b8ad0c92211d58da761c81625233cff6bd7b70047", "scheduler_root": "52abba5f3b23b8d9253036576052777967bf34bf36257c43aa05101a5298f507", "semantic_root": "d360767201ee554900ef1635a696c4181df878e02eee4179995e9ec386a4b083", "census_root": "8ff702c47f2cb8fd8460947803c830711f84901595b373c99286937da74e40e9", "graph_digest": "ff367d025764ae70506673b91a0843e57dcd63cda2b6ff05ed8e0540ddffde7f", "graph_transcript_root": "5a0746b0b446228e30463598855941e4c1fa79b19a0675e689da950582a2bf2e"},
+      {"execution_sequence": 2, "graph_uid": 29, "prepared_root": "0e3d8f856439cf81d884f40c40e204ecebc2672b95c8996d75de204cf5aedd13", "scheduler_root": "3dd81254fcb33e5ff2d1f452cc70d3ce0031c8a31c379843b068acce709d6f71", "semantic_root": "63945eb4e9d334368637a7306ce4c20b373a234d593abe2c06845094dbf3a3c5", "census_root": "2ce31fbb6eb473769106902792d10be9cb35be000a7cda67ec2917c204c28a6a", "graph_digest": "c4d8e66b2d854ae6c9433504dc3f8acd6831b441012880ed13bcdc707260075b", "graph_transcript_root": "7074518108c9c1fda0e8863e210322eba1ef9c91d44707c924e9b772300dc4ae"},
+      {"execution_sequence": 3, "graph_uid": 33, "prepared_root": "fa2387f5e3bc41852443b7c70a13dd6a9860e50663643c515c523285a1cbe55c", "scheduler_root": "e433a991807eec23df4f09c4c82c159d0c209a9ee50926732a6e8e80a0534988", "semantic_root": "d68e1b379d74898a1a4e1cfbfa48037729566b8b6d78ab5953c05544ddbb6895", "census_root": "a9dc0fc531857caf28d17fff75c2cae433cfb3abaaaf163e90983298c82f9a56", "graph_digest": "def82874dabac8da3562afaa2b357be6df23cf69b2fecb6634cac610667a2384", "graph_transcript_root": "c45bf2ea273abba85064e5995084d8c8dba3fb108e4b6f65bb88c86542c4840f"},
+      {"execution_sequence": 4, "graph_uid": 37, "prepared_root": "b114aeae0cfc4a1cd0e9711c4f7545b9db325c04e0208f36aa7abe5d8339fbf4", "scheduler_root": "f3fe3cef6b552f5346119c9ae1b25b65f84f43f0382139da0052a54a673795fb", "semantic_root": "64c8ca7acb0a4eafc3f980fd15d23001011c28035356066a7cba418ec486418d", "census_root": "fbc16ebf104d53644d9bc17bc96c10a1e299cc0ba20df62e02b558625a28840a", "graph_digest": "1749318e1deaff95b5aef2fd918b95bdfa979cfc834e7f6955a8df911c0aa53e", "graph_transcript_root": "0ffaf2ce221e9881665dd604a274faa464b394a692c50d567b9c3a0bab7629b1"}
+    ],
+    "restore": {
+      "execution_sequence": 1,
+      "graph_uid": 45,
+      "prepared_root": "e9ba237c09a3a13f4e2f178701e3513a70e42beb5d38de3c07d8dfad41a3f208",
+      "scheduler_root": "5fd17491014745b0981ea76c10928d0c9c9e1cc5afeec67e82a8d5e65fa42a48",
+      "graph_entries": 5660,
+      "splits": 3,
+      "rpc_split_count": 1,
+      "copies": 533,
+      "local": 461,
+      "rpc": 739,
+      "census": 487,
+      "mutations": 7,
+      "set": 7,
+      "semantic_root": "3394e1713b75e6fe6c5e1e17991f2c5b96414f6b436d37eea01d8c220cb04f03",
+      "census_root": "ca4a2c8355f939fd6e82e27dd45351ad85f59ffb689adef7dc399d9ed644fe6b",
+      "graph_digest": "d79459a7deb80a0d25db1b9ae247d73ae114ee313bdc6dc00c795e4dd8726d12",
+      "graph_transcript_root": "60869c27bb834907daa36b598e29c1e85801287c00c3cf52d1061be10c2f3e05"
+    },
+    "interpretation": "Per-execution graph/session roots differ by construction; authenticated terminal success is established but these roots do not assert numerical equivalence."
+  },
+  "server_authority": {
+    "authenticated_files": 5,
+    "capture_files": 4,
+    "restore_files": 1,
+    "restore_filename": "d6913d4afa31a51091a9df31d722f690c63c34fdab5fa35439a8dbb6cd84da33-1-11862515543028045-server.authority",
+    "restore_records": 6,
+    "restore_graph_digest": "d79459a7deb80a0d25db1b9ae247d73ae114ee313bdc6dc00c795e4dd8726d12",
+    "files": [
+      {"phase": "capture", "attempt": "04db08f3f28f20081d51cf04e3b9df67c478804be0093a90cff2f9c92a5c39d2", "sequence": 1, "split_uid": 27, "backend": 0, "path": "server-authority/04db08f3f28f20081d51cf04e3b9df67c478804be0093a90cff2f9c92a5c39d2-1-11873691851923347-server.authority", "sha256": "7cf151f9cac0f729e10d25fb5428b01189516279ca9aa6da908b54898e991851"},
+      {"phase": "capture", "attempt": "6cdb75395afa4652a35bf3b695e7641bd213990347d9e770eeb1c6318b4990a0", "sequence": 2, "split_uid": 31, "backend": 0, "path": "server-authority/6cdb75395afa4652a35bf3b695e7641bd213990347d9e770eeb1c6318b4990a0-2-11873691851923347-server.authority", "sha256": "ebf6b64ffc80e7832b1e2569067c5b75462f3d1e2c5cdc86e95725ac850b4e52"},
+      {"phase": "capture", "attempt": "7e562656ebac68f6bcef61a72b3deb041021855c519c05b4376c8a87c9ccc751", "sequence": 3, "split_uid": 35, "backend": 0, "path": "server-authority/7e562656ebac68f6bcef61a72b3deb041021855c519c05b4376c8a87c9ccc751-3-11873691851923347-server.authority", "sha256": "0d9ec0cf2a4f2adc28fbfef5636e22c018851cbe490cc14e6f19d11a59b07b5c"},
+      {"phase": "capture", "attempt": "1cb78a67314f8ca996af7d548dc9937118b4e0ad99f2105ede9ddb4b3bba8e2e", "sequence": 4, "split_uid": 39, "backend": 0, "path": "server-authority/1cb78a67314f8ca996af7d548dc9937118b4e0ad99f2105ede9ddb4b3bba8e2e-4-11873691851923347-server.authority", "sha256": "76455dab1b81f1304b4c60b23a662d942aa148cb82e382aa3112f4103ed9c55f"},
+      {"phase": "restore", "attempt": "d6913d4afa31a51091a9df31d722f690c63c34fdab5fa35439a8dbb6cd84da33", "sequence": 1, "split_uid": 47, "backend": 0, "path": "server-authority/d6913d4afa31a51091a9df31d722f690c63c34fdab5fa35439a8dbb6cd84da33-1-11862515543028045-server.authority", "sha256": "033d73f0f86d1f30404c2f9b396a1d348bb99d883c6c753ceaf1ef89fae3e0f9"}
+    ]
+  },
+  "response_streams": {
+    "client_records": 10,
+    "server_records": 35,
+    "paired_attempts": 5,
+    "capture_pairs": 4,
+    "restore_pairs": 1,
+    "grouping_key": ["attempt", "connection_epoch", "split_uid", "exec_sequence", "backend_ordinal", "opcode"],
+    "grouped_replay": "accepted",
+    "cross_attempt_mixing_replay_gap_policy": "refuse",
+    "zero_legacy_get_set": "not_proven",
+    "reason": "The retained evidence lacks an authenticated bounded state-page transport window; ordinary model-load tensor transport cannot be reclassified by absence."
+  },
+  "earliest_retained_divergence": {
+    "boundary": "post-backend-execution logits",
+    "last_equal": "authenticated replay geometry, KV logical geometry, graph input digest, and node assignment digest",
+    "first_unequal": "authenticated 200064-element logits SHA256",
+    "meaning": "Represented control/local/component bytes and declared geometry are equal, but equality of all live bytes and runtime state read by kernels is not established."
+  },
+  "unrepresented_or_unproven_live_state": [
+    "bytes in allocation padding, quantized block tails, and view-stride gaps outside serialized logical ranges",
+    "runtime buffer contents for scheduler-created copies and transient graph allocations",
+    "backend event completion and visibility state at capture/apply boundaries",
+    "RPC reconstructed tensor/view alias relationships and allocator placement beyond the authenticated geometry",
+    "kernel/runtime workspace and architecture-specific transient activations"
+  ]
+}
