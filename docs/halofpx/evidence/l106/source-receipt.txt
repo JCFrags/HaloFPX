@@ -1,0 +1,12 @@
+milestone=L106
+classification=SEMANTIC_BLOCKER
+base_head=a35816e52f4bb2510936fa1a29e623c3b9249521
+candidate_source_changes=none
+host_access=none
+model_run=none
+production_access=none
+runtime_cases_consumed=0
+blocker=prepare-only coordinator restore mutates live KV metadata and invalidates the prelookup placement preview
+severity=P1_IF_BYPASSED
+smallest_prerequisite=candidate-state shadow metadata/data plus atomic shadow-install-and-placement commit with coordinated remote recovery
+independent_review=CONFIRMED_DISTINCT_P1_SEMANTIC_BLOCKER
