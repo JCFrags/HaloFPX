@@ -1631,6 +1631,34 @@ state/custody, zero-GET/SET, cleanup, recovery, and production reconciliation
 gates. No retry, runtime semantic correction, protocol/cache product/
 performance work, or automatic follow-on is authorized.
 
+## 2026-07-28 — classify L97 terminal and accept attributed OOM baseline
+
+Decision: classify the consumed L97 transition terminal NOT PROMOTED with no
+retry. Accept the current `NRestarts=1` production pair as the new observed
+baseline. Authorize terminal evidence/review/commit and subsequent read-only/
+source-only diagnosis only.
+
+Reason: the L97 package gate passed and the primary path advanced through
+residency-A capture and fresh residency-B worker/canary execution before
+refusing `durable and emitted result authority differ`. This is the next
+forward correctness boundary. A restore-canary InvocationID change before
+evidence collection is separately material but is not assumed causal.
+
+During recovery, journals exactly attribute the worker counter change to one
+kernel OOM kill at 21:08:42 and one policy restart at 21:08:45. The coordinator
+then aborted after RPC loss at 21:08:47 and policy-restarted once at 21:08:52.
+Both services are now stable, unique, and healthy with unchanged installed
+unit/argv/config/executable identities and coordinator HTTP 200. Accepted
+authority is coordinator PID `2989515`, InvocationID
+`49d23af81c5d495b80e3c9c906f72c7a`, `NRestarts=1`; worker PID `2135516`,
+InvocationID `7a3c97b846854036acd33421bb45ab73`, `NRestarts=1`.
+
+Do not restart, reset, reconfigure, or otherwise mutate production. Disposable
+cleanup is complete. Preserve exact durable/emitted artifacts and chronology,
+finish independent terminal review and commit, then diagnose the result-
+authority mismatch and InvocationID lifecycle read-only. No correction,
+host/model action, or automatic follow-on is authorized.
+
 ## 2026-07-28 — accept L90 and open L91 consolidated child authority
 
 Decision: accept L90 terminal NOT PROMOTED at

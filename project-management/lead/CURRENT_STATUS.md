@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 20:49 PDT
+Verified: 2026-07-28 21:14 PDT
 
 ## Overall state
 
@@ -339,6 +339,24 @@ receipt, is the canonical no-model loader/startup proof. The unjustified help
 success requirement must be removed or retained only as an exact pinned
 negative. After focused review and a passing pre-mutation package gate, one
 full correctness transition is authorized.
+
+L97 has reached a terminal NOT PROMOTED boundary pending final evidence
+commit. Its package gate passed, residency-A capture completed, and a fresh
+residency-B worker/canary executed. The forward path then refused
+`durable and emitted result authority differ`; no correctness promotion or
+retry is authorized. Restore-canary InvocationID change before evidence
+collection is separately retained unless exact evidence proves it causal.
+
+Recovery encountered one attributed OOM cascade: the first recovered worker
+was kernel-OOM-killed, its existing policy restarted it once, the coordinator
+aborted after RPC loss, and its policy restarted it once. The current stable
+healthy pair is accepted as the new observed production baseline: coordinator
+PID `2989515`, InvocationID `49d23af81c5d495b80e3c9c906f72c7a`,
+`NRestarts=1`, exact executable/argv/config, unique port 8081/HTTP 200; worker
+PID `2135516`, InvocationID `7a3c97b846854036acd33421bb45ab73`,
+`NRestarts=1`, exact executable/argv/config, unique port 50052. No continuing
+fault exists and no production mutation is authorized. Exact disposable
+cleanup is already complete.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
