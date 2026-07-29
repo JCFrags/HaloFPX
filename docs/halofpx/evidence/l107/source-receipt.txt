@@ -1,0 +1,11 @@
+milestone=L107
+classification=NOT_PROMOTED_PRE_RUNTIME_REVIEW_FAILURE
+base_head=e15d6da0de55c0f1a604614db62b5d50957b40e3
+candidate_source_changes=none
+host_access=none
+model_run=none
+production_access=none
+runtime_cases_consumed=0
+review_boundary=partial selectable mode lacks frozen plan, topology producer, distributed profile codec, and ownership transaction
+epoch_review=fresh-shadow feasible only with stable candidate identity separated from live attempt epochs
+independent_review=FAIL_PARTIAL_MODE_P1_IF_REACHABLE
