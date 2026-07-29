@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 08:05 PDT
+Verified: 2026-07-29 08:23 PDT
 
 ## Overall state
 
@@ -221,6 +221,23 @@ coverage, ownership, bytes, mmap/progress/accounting, lookup, unwind, and
 feature-off behavior on a tiny GGUF fixture. A fresh independent review of the
 exact patch is required before any MiniMax graph or asynchronous RPC wiring.
 All older untracked evidence remains preserved.
+
+L110 closed NOT PROMOTED at evidence-only commit
+`6c88472bf5f567a1064f27f4d8a90fc8e2b47a02`. Fresh exact-diff review
+found two P1 defects: physical slice bytes could be subtracted from buffer
+accounting, and rollback ended before later throwing mutations. It also found
+unclosed rank identity, a forgeable/stale raw checkpoint, assertion-reachable
+dimensions, and no tiny-GGUF evidence. Every L110 source edit was removed;
+accepted source is unchanged and no runtime case was consumed.
+
+The long-lived implementation task
+`019fa62e-2e6f-7451-846f-1d4a6c1d13d0` is now idle as a preserved
+historical record. Fresh worker `/root/l111_loader_transaction` owns L111 to
+reduce context pollution. L111 is isolated to a loader-internal,
+generation-bound, no-throw atomic two-rank partition transaction and its
+tiny-GGUF accounting/rollback qualification. It cannot touch MiniMax graph,
+RPC, scheduler, hosts/models/production, cache, or performance work. Exact
+independent review determines source retention.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID

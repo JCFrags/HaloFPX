@@ -1,5 +1,36 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — accept L110 rejection and assign fresh L111 worker
+
+Decision: accept L110 NOT PROMOTED/evidence-only at
+`6c88472bf5f567a1064f27f4d8a90fc8e2b47a02` and its complete candidate
+removal. Retire the long-lived worker from active ownership and preserve its
+task as history. Assign fresh worker `/root/l111_loader_transaction` to the
+isolated loader transaction gate.
+
+L111 must implement one loader-owned, generation-bound operation creating
+exactly ranks `{0,1}` as two physical partitions of one logical GGUF tensor.
+It validates every input before mutation, covers every throwing mutation, and
+either performs a no-throw commit or restores exact contexts, registries,
+offsets, lookup state, counters, progress, and accounting. Logical source
+accounting is one tensor; physical buffer sizing includes both slices exactly
+once. Raw/forgeable checkpoints and caller-asserted primary authority are
+forbidden.
+
+Qualification uses a focused tiny-GGUF fixture with exact target bytes,
+counts, size/progress/mmap/source offsets, public lookup, deterministic
+teardown, and injected failure after every mutation boundary. Closed negatives
+cover coverage, dimensions, ranks/devices, overrides, hidden full allocation,
+cross-loader/stale transaction, and unwind. A fresh independent exact-diff
+review decides retention. L111 cannot touch MiniMax graph, asynchronous RPC,
+scheduler, host/model/production runtime, cache, or performance claims.
+
+Reason: L110's reviewed P1 defects were in the loader foundation itself, and
+the previous worker had accumulated a long sequence of unrelated protocol,
+cache, and performance context. A fresh bounded worker is the safest and
+fastest way to obtain a trustworthy primitive before resuming architecture
+work.
+
 ## 2026-07-29 — resume L110 at atomic partition-loader gate
 
 Decision: resume the idle L110 worker after a read-only thread and repository
