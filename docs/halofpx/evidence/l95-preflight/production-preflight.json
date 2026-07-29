@@ -1,0 +1,41 @@
+{
+  "roles": {
+    "coordinator": {
+      "active_state": "active",
+      "exec_start": "{ path=/opt/llm-usb4-cluster/bin/run-minimax-m27-q6-server.sh ; argv[]=/opt/llm-usb4-cluster/bin/run-minimax-m27-q6-server.sh ; ignore_errors=no ; start_time=[Tue 2026-07-28 19:52:01 PDT] ; stop_time=[n/a] ; pid=2947160 ; code=(null) ; status=0/0 }",
+      "fragment_path": "/etc/systemd/system/minimax-m27-q6-server.service",
+      "host": "nimo-1",
+      "hostname": "nimo-1",
+      "http_status": 200,
+      "listener_line": "LISTEN 0      512          0.0.0.0:8081 0.0.0.0:* users:((\"llama-server\",pid=2947160,fd=5))",
+      "listener_pid": 2947160,
+      "load_state": "loaded",
+      "main_pid": 2947160,
+      "nrestarts": 0,
+      "process_command": "/opt/llm-usb4-cluster/llama/llama-server --model /opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf --alias minimax-m2.7-ud-q6-k-xl --rpc 10.44.0.2:50052 --split-mode layer --tensor-split 1,1 --fit off --no-mmap --direct-io --n-gpu-layers 99 --flash-attn on --ctx-size 131072 --batch-size 4096 --ubatch-size 4096 --cache-type-k q8_0 --cache-type-v q8_0 --parallel 2 --threads 16 --threads-batch 16 --poll 100 --prio 2 --prio-batch 2 --cache-prompt --cache-reuse 256 --cache-ram 12288 --cache-idle-slots --ctx-checkpoints 256 --checkpoint-min-step 512 --temp 1.0 --top-p 0.95 --top-k 40 --host 0.0.0.0 --port 8081 --jinja --metrics",
+      "role": "coordinator",
+      "start_timestamp": "Tue 2026-07-28 19:52:01 PDT",
+      "sub_state": "running",
+      "unit": "minimax-m27-q6-server.service"
+    },
+    "worker": {
+      "active_state": "active",
+      "exec_start": "{ path=/opt/llm-usb4-cluster/bin/run-minimax-m27-rpc-worker.sh ; argv[]=/opt/llm-usb4-cluster/bin/run-minimax-m27-rpc-worker.sh ; ignore_errors=no ; start_time=[Tue 2026-07-28 19:52:00 PDT] ; stop_time=[n/a] ; pid=2124976 ; code=(null) ; status=0/0 }",
+      "fragment_path": "/etc/systemd/system/minimax-m27-rpc-worker.service",
+      "host": "nimo-2",
+      "hostname": "nimo-2",
+      "http_status": null,
+      "listener_line": "LISTEN 0      1            0.0.0.0:50052 0.0.0.0:* users:((\"ggml-rpc-server\",pid=2124976,fd=5))",
+      "listener_pid": 2124976,
+      "load_state": "loaded",
+      "main_pid": 2124976,
+      "nrestarts": 0,
+      "process_command": "/opt/llm-usb4-cluster/llama/ggml-rpc-server --host 0.0.0.0 --port 50052",
+      "role": "worker",
+      "start_timestamp": "Tue 2026-07-28 19:52:00 PDT",
+      "sub_state": "running",
+      "unit": "minimax-m27-rpc-worker.service"
+    }
+  },
+  "schema": "halofpx.production-transition.snapshot.v1"
+}

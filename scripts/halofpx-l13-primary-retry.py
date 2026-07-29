@@ -1193,8 +1193,13 @@ def _alternate_disposable_listener_owner(
         line.split("=", 1) for line in show.stdout.splitlines() if "=" in line)
     cgroup = props.get("ControlGroup", "")
     process = ssh(
-        host, "ps", "-p", str(listener), "-o", "cgroup=", check=False)
-    process_cgroup = process.stdout.strip()
+        host, "cat", f"/proc/{listener}/cgroup", check=False)
+    process_cgroup = ""
+    process_cgroup_lines = process.stdout.splitlines()
+    if len(process_cgroup_lines) == 1:
+        match = re.fullmatch(r"0::(/[^:\r\n]*)", process_cgroup_lines[0])
+        if match is not None:
+            process_cgroup = match.group(1)
     if (
         show.returncode != 0
         or process.returncode != 0
@@ -3273,16 +3278,10 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         check=False)
     restore_cursor = retain_exact_journal_cursor(
         root, "restore-canary-lower-bound", restore_cursor_result)
-    restore_launch = ssh(
+    ssh(
         NIMO2, *restore_canary_launch_argv(restore_canary_unit))
-    restore_launch_invocation = re.search(
-        r"invocation ID: ([0-9a-fA-F]{32})", restore_launch.stdout)
-    if restore_launch_invocation is None:
-        raise CanaryError("restore canary launch InvocationID is unavailable")
-    DISPOSABLE_UNIT_AUTHORITY[(NIMO2, restore_canary_unit)] = {
-        "cursor": restore_cursor,
-        "invocation_id": restore_launch_invocation.group(1).lower(),
-    }
+    restore_canary_authority = capture_disposable_unit_authority(
+        NIMO2, restore_canary_unit, restore_cursor)
     wait_remote_file(f"{RENDEZVOUS_ROOT}/model-ready", 1200)
     restore_show = ssh(
         NIMO2, "systemctl", "--user", "show", f"{restore_canary_unit}.service",
@@ -3299,6 +3298,14 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     restore_coordinator_invocation = restore_props.get("InvocationID", "").lower()
     if not re.fullmatch(r"[0-9a-f]{32}", restore_coordinator_invocation):
         raise CanaryError("restore coordinator InvocationID is absent or malformed")
+    if (
+        restore_canary_authority.get("cursor") != restore_cursor
+        or restore_canary_authority.get("pid") != restore_coordinator_pid
+        or restore_canary_authority.get("invocation_id")
+        != restore_coordinator_invocation
+    ):
+        raise CanaryError(
+            "restore coordinator identity changed after launch authority capture")
 
     current_worker_pid = int(ssh(
         NIMO1, "systemctl", "--user", "show", f"{restore_unit}.service",

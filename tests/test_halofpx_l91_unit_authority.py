@@ -145,6 +145,33 @@ def test_reachable_l77_launches_and_cleanup_are_closed_static_scan():
     assert "install_unit_guard_authority()" in inspect.getsource(child.main)
 
 
+def test_restore_canary_uses_captured_systemd_authority_not_launch_text():
+    source = inspect.getsource(child.run_diagnostic)
+    restore_region = source[source.index(
+        'restore_cursor_result = ssh('):source.index(
+        'wait_remote_file(f"{RENDEZVOUS_ROOT}/model-ready"')]
+    assert "capture_disposable_unit_authority(" in restore_region
+    assert "restore_canary_unit, restore_cursor" in restore_region
+    assert "restore_launch.stdout" not in restore_region
+    assert "restore_launch.stderr" not in restore_region
+    assert "invocation ID:" not in restore_region
+    assert "re.search(" not in restore_region
+
+
+def test_restore_canary_captured_identity_is_revalidated_at_model_ready():
+    source = inspect.getsource(child.run_diagnostic)
+    assert (
+        'restore_canary_authority.get("pid") != restore_coordinator_pid'
+        in source)
+    assert (
+        'restore_canary_authority.get("invocation_id")\n'
+        '        != restore_coordinator_invocation'
+        in source)
+    assert (
+        'restore_canary_authority.get("cursor") != restore_cursor'
+        in source)
+
+
 def test_active_ownership_still_refuses(monkeypatch, tmp_path):
     authority_environment(monkeypatch)
     child.UNIT_GUARD_EVIDENCE_ROOT = tmp_path

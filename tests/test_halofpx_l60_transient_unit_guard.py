@@ -236,10 +236,10 @@ def test_absent_capture_accepts_exact_current_restore_listener_owner(
                 f"InvocationID={invocation}",
                 "ControlGroup=/user.slice/halofpx-l48-worker-restore.service",
             ]) + "\n", "")
-        if argv[:2] == ("ps", "-p"):
+        if argv[:1] == ("cat",):
             return subprocess.CompletedProcess(
                 argv, 0,
-                "/user.slice/halofpx-l48-worker-restore.service\n", "")
+                "0::/user.slice/halofpx-l48-worker-restore.service\n", "")
         raise AssertionError(argv)
 
     monkeypatch.setattr(retry, "ssh", exact_owner_ssh)
@@ -261,7 +261,8 @@ def test_absent_capture_accepts_exact_current_restore_listener_owner(
 
 @pytest.mark.parametrize("case", [
     "unknown", "same-unit", "stale-pid", "stale-invocation",
-    "wrong-cgroup", "multiple",
+    "wrong-cgroup", "multiple", "v1", "multiple-cgroup", "malformed",
+    "relative",
 ])
 def test_shared_listener_unknown_stale_same_or_ambiguous_owner_refuses(
         case, tmp_path, monkeypatch):
@@ -300,10 +301,19 @@ def test_shared_listener_unknown_stale_same_or_ambiguous_owner_refuses(
                 "MainPID=77", f"InvocationID={observed_invocation}",
                 f"ControlGroup={cgroup}",
             ]) + "\n", "")
-        if argv[:2] == ("ps", "-p"):
+        if argv[:1] == ("cat",):
+            process_cgroup = {
+                "v1": "2:cpu:/user.slice/halofpx-l48-worker-restore.service\n",
+                "multiple-cgroup": (
+                    "0::/user.slice/halofpx-l48-worker-restore.service\n"
+                    "0::/other.service\n"),
+                "malformed": "garbage\n",
+                "relative": "0::relative/path\n",
+            }.get(
+                case,
+                "0::/user.slice/halofpx-l48-worker-restore.service\n")
             return subprocess.CompletedProcess(
-                argv, 0,
-                "/user.slice/halofpx-l48-worker-restore.service\n", "")
+                argv, 0, process_cgroup, "")
         raise AssertionError(argv)
 
     monkeypatch.setattr(retry, "ssh", owner_ssh)

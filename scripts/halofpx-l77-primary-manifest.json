@@ -55,10 +55,10 @@
     "controller": "C:\\Users\\britt\\Documents\\HaloFPX\\scripts\\halofpx-production-transition.py"
   },
   "executable_sha256": {
-    "worker": "125c6a2d9fd7ffa77e251042f418e30bee495e8e7599e0ccdcea18fcaf797648",
-    "canary": "8964d543591fb6219839c6a33df5ad97c6828dcc4fb3f351e0dbbed9c84c2f78",
+    "worker": "439f156ccdb1de1a07fc786b50329572fa3485e3c3e3275749e3f165b258c2e0",
+    "canary": "ced280877cc4b874b8cbc264dd40f1e4d04c0a453b1ba48aa0ec22bd47b3031c",
     "readiness": "f2db27e26567b33a4d4e69c5cb248cf61b63dfa3765aa218d09668225905c980",
-    "placement": "d0f1a8ea3e84dea199ab5af56ed7cfdb96371d74eb77bbc4081cef2db3060872",
+    "placement": "fb5d2ba9f5560e2b366cda952283f7fd0b6321072d7c0a7721a0395b06c3b474",
     "epoch_receipt": "6ec5f17be6d3dd7ab5aba7d986434539ed4529c4219f4c112c834169f0671527",
     "component_diagnostics": "eeb7645ee1d7fe396bf528efbb892d6fdfefd76dc027de7e5b268baa7eb159d0",
     "semantic_verifier": "f85a36b06e708f5858b6b97642f61597ae9500c5588b25d5cc599e627bd2621a",
@@ -72,7 +72,7 @@
     "response_harvester_client": "e717a71431d582b9266312b46863759529c9009a0aff9dda05d057f4776dd705",
     "server_authority_harvester": "fae2dcbc0a01fb85d505971e05cc7c25c8568480b6f7d38a2f67d42d5d7b9e49",
     "interpreter": "7ca24f26d6e3f463419ee4f537ddd3acd312c38fe45e678cce08572f26a8bd1a",
-    "child": "7be6fd821d6927f81b5dc82ca7c1e6c2f988ac0b25ab26ca60c1a49b97ce74bb",
+    "child": "4f2ccfae4479d26039be5941b02b65017b7b4a72a5743993b06aedf412be4dd9",
     "controller": "b0359f57e31c8fb8c4ea11e228bd2148a5879f375e0dc04f09219413a13fe946"
   },
   "child_evidence_subdir": "child",
@@ -95,8 +95,8 @@
     },
     "provenance": {
       "schema": "halofpx.l57.binary-provenance.v1",
-      "source_root": "3f139739aee870376d2f7badcc73b73e25dc000fe914bbeef13ddec866cb9520",
-      "build_id": "6f63bb1d95d0a7451800798356e58c33cc1a703c54c290f66e73bf18e86df086"
+      "source_root": "236eec6e1117827541b2063a4dca6b064721540a7e6002e6244abf013dec8d20",
+      "build_id": "3d8b9e11af8a51bef7fd61afcea178223c210ccbb7d651d21c2fb8de6e37e0ce"
     },
     "result_schema": "halofpx.l48.composed-result.v1",
     "result_path": "/var/tmp/halofpx-l48-evidence/l48-composed-result.json",
@@ -156,11 +156,11 @@
       "-DGGML_HIP=ON",
       "-DAMDGPU_TARGETS=gfx1151",
       "-DCMAKE_BUILD_TYPE=Release",
-      "-DHALOFPX_PROVENANCE_SOURCE_ROOT=3f139739aee870376d2f7badcc73b73e25dc000fe914bbeef13ddec866cb9520",
-      "-DHALOFPX_PROVENANCE_BUILD_ID=6f63bb1d95d0a7451800798356e58c33cc1a703c54c290f66e73bf18e86df086"
+      "-DHALOFPX_PROVENANCE_SOURCE_ROOT=236eec6e1117827541b2063a4dca6b064721540a7e6002e6244abf013dec8d20",
+      "-DHALOFPX_PROVENANCE_BUILD_ID=3d8b9e11af8a51bef7fd61afcea178223c210ccbb7d651d21c2fb8de6e37e0ce"
     ],
-  "cmake_cache_sha256": "7af6d6b350adea33ca460b542a0c2b3c288af9b5d97146fc491dedd287f932c1",
-  "worker_binary_sha256": "125c6a2d9fd7ffa77e251042f418e30bee495e8e7599e0ccdcea18fcaf797648",
+  "cmake_cache_sha256": "0b23dd4992c78571b35fbf9371712f3476bda79f07cf7b78d9445d5f38c55823",
+  "worker_binary_sha256": "439f156ccdb1de1a07fc786b50329572fa3485e3c3e3275749e3f165b258c2e0",
     "ldd_sha256": "74413384b81b793117f7c9ab3b598d5923502a0366f6ff4f6d526e64e00f606f",
     "device_inventory_sha256": "27c70d2186271e068e42ea720b1f78d76d1ba805605676abd3e0df51a1243951",
     "compiler_sha256": "8daef837093117e0f45079e49809f4a8631f4272338b79b0296a51fae7dd3f26",
@@ -180,7 +180,7 @@
       "ggml/src/ggml-rpc/transport.cpp": "e695cf4d033098dc584bb1097d94d221f63125a54917c3dbc7862e3ee2d550f1",
       "ggml/src/ggml-rpc/transport.h": "2053342b741f656136d40c125a2fa8b9be238ecbc0ae0dbd579215b7e439f62b",
       "include/llama.h": "5c05dd8f43e2829454cb115cfc703f8e04fa025640e32e8f69c51b8277335a72",
-      "scripts/halofpx-l13-primary-retry.py": "7be6fd821d6927f81b5dc82ca7c1e6c2f988ac0b25ab26ca60c1a49b97ce74bb",
+      "scripts/halofpx-l13-primary-retry.py": "4f2ccfae4479d26039be5941b02b65017b7b4a72a5743993b06aedf412be4dd9",
       "scripts/halofpx_l48_composed_result.py": "d7f4934db05055544d86e04e25f6c2d9db78a99a9cf6d85a10a88254d3f0ba68",
       "scripts/halofpx_l50_device_receipt.py": "533420ccbc2744909e0de444ce0ef793c490ade7716ada658c1fd367346b1952",
       "scripts/halofpx_l55_status.py": "d1c04a799a800651340461688d8c2cd19cbdbb031cf4ecc64a6238992c9cdd93",
@@ -198,7 +198,7 @@
       "tests/test_halofpx_rpc_response_boundary.py": "5fe1aa255ca6cd4dfa243ae7cd4d72e1f11b7b8a345a1e8a200d8bed5d8a2b6b",
       "tools/rpc/rpc-server.cpp": "e458fcf6902c0d00ece61cac357e77fbde464d0492170624aad2e7f6f83c0fd9"
     },
-    "root_sha256": "3f139739aee870376d2f7badcc73b73e25dc000fe914bbeef13ddec866cb9520"
+    "root_sha256": "236eec6e1117827541b2063a4dca6b064721540a7e6002e6244abf013dec8d20"
   },
   "artifact": {
     "host": "nimo-2",
