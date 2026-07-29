@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-29T01:28:00-07:00",
+  "updated_at": "2026-07-29T01:44:00-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l109_scheduler_wide_multi_layer_rank_overlap_screen",
+  "worker_status": "active_l110_multi_layer_expert_parallel_async_rpc_screen",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "56a0526cb4e9fdb1a0d597ca391f47bbcedb9bb5",
-  "last_observed_milestone": "L108 NOT PROMOTED/evidence-only: false world2 and caller-asserted unreachable transaction candidate removed after independent P1 review",
-  "last_decision": "pause_server_cache_composition_epic_and_open_l109_timeboxed_multi_layer_rank_overlap_performance_screen",
-  "last_progress": "L109 is attacking measured serialized remote/local decode phases with a multi-layer MiniMax-like synthetic screen and device-event proof; sub-10-percent or regressing candidates are removed",
+  "last_verified_head": "e5b4a9a0d1e92c44785fee8cc58bf56ef29bd4d2",
+  "last_observed_milestone": "L109 NOT PROMOTED: strict layer chain, ordered scheduler splits, and blocking RPC prove scheduler-only overlap cannot produce real device concurrency",
+  "last_decision": "accept_l109_blocker_and_authorize_l110_multi_layer_expert_parallel_graph_async_rpc_and_exact_join",
+  "last_progress": "L110 is implementing rank-owned concurrent MoE expert branches across consecutive layers with true async RPC completion and a 10-percent exact-output screen",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "L109 semantic blocker, independent review failure, unsafe state, or terminal screen result; no periodic polling, primary model, production mutation, cache work, or broad matrix"
+  "next_check_trigger": "L110 genuine semantic blocker, independent review failure, unsafe state, or terminal screen result; no periodic polling, primary model, production mutation, cache work, or broad matrix"
 }

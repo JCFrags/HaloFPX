@@ -1,5 +1,42 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — accept L109 blocker and authorize L110 expert parallelism
+
+Decision: accept L109's scheduler-only semantic blocker at
+`e5b4a9a0d1e92c44785fee8cc58bf56ef29bd4d2`. Do not retain host-threaded
+or event-only overlap. Open L110 as the separately authorized multi-layer
+expert-parallel graph, RPC, ownership, and scheduling lane.
+
+For each MiniMax MoE layer, routing occurs exactly once. Selected experts are
+partitioned into explicit local and RPC rank ownership, rank partials execute
+concurrently, and an exact deterministic fixed-order join completes before the
+residual and next layer. The prototype must span multiple consecutive layers,
+preserve router/top-k/scale semantics and tensor lifetimes, and retain
+feature-off and single-node fallback.
+
+L110 may add a narrowly scoped true asynchronous RPC graph
+plan/submit/completion primitive and dependency-aware scheduler frontier. The
+authenticated lifecycle binds plan, attempt, sequence, split/rank ownership,
+completion, receipt, cancellation/failure, and join. Host enqueue or socket
+wait is not accepted as device overlap. Rank failure must cancel/drain safely
+and either fall back before visible mutation or fail closed.
+
+Independent pre-runtime design review precedes focused no-model
+submit/completion/cancel/replay/refusal tests and device-event proof. The
+predeclared repeated multi-layer MiniMax-shaped screen then requires exact
+output, real simultaneous devices, and at least 10% matched regional
+end-to-end improvement. The candidate is removed if it misses that threshold,
+regresses a matched case, or synchronization removes the benefit. A retained
+result may recommend one later bounded primary discriminator, but L110 may not
+run the primary model, mutate production, reopen cache work, revisit
+single-layer kernels, use a broad matrix, or claim full-model speed from
+synthetic evidence.
+
+Reason: source proves there is no cross-layer independence to schedule. The
+only available concurrency is inside each MoE layer's independent expert
+branches. Reaching it requires real rank ownership and asynchronous completion,
+not another scheduler surface patch.
+
 ## 2026-07-29 — accept L108 removal and pivot L109 to rank overlap
 
 Decision: accept L108 NOT PROMOTED/evidence-only at

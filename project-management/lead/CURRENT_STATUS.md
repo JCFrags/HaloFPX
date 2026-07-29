@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 01:28 PDT
+Verified: 2026-07-29 01:44 PDT
 
 ## Overall state
 
@@ -184,6 +184,26 @@ removed unless a predeclared synthetic repeated-layer screen shows material
 end-to-end benefit (default threshold 10%) without matched regressions. No
 primary model, production mutation, cache work, broad matrix, or synthetic
 speed claim is authorized.
+
+L109 closed NOT PROMOTED at evidence commit
+`e5b4a9a0d1e92c44785fee8cc58bf56ef29bd4d2` with a source-proven
+scheduler-only blocker. MiniMax layers are strictly chained through attention,
+complete MoE, residual join, and the next `inpL`; scheduler splits execute in
+order; RPC graph compute is blocking and exposes no device completion event.
+Host threading would overlap only enqueue/socket wait or race dependencies.
+No candidate or runtime case was consumed.
+
+L110 is active as the explicitly authorized multi-layer expert-parallel
+architecture lane. Each MiniMax MoE layer will route once, partition selected
+experts into rank-owned local/RPC branches, execute independent partials
+concurrently, and join them in a deterministic fixed order before the residual
+and next layer. L110 may add the narrowly required asynchronous RPC
+plan/submit/completion authority and dependency-aware scheduler frontier.
+Focused protocol/device-event review precedes the same predeclared repeated
+multi-layer synthetic gate: exact output, real simultaneous device execution,
+and at least 10% matched regional improvement or the candidate is removed. No
+primary model, production, cache work, broad matrix, or full-model speed claim
+is authorized.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID
