@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 20:01 PDT
+Verified: 2026-07-28 20:25 PDT
 
 ## Overall state
 
@@ -301,6 +301,27 @@ shared ownership must compare a strictly parsed unified cgroup-v2 path with
 systemd authority. After focused review, one full correctness transition is
 authorized. No generic parsing relaxation, retry, or unrelated product/
 performance work is authorized.
+
+L95 closed NOT PROMOTED at
+`7e53bd82bdf96e18ec77380a011dc44be444f5f3`. Its independently reviewed
+systemd launch and strict cgroup-v2 authority corrections are retained. The
+sole transition stopped before model execution because the nimo-2 canary could
+not load `libllama-common.so.0`. Exact source evidence proves the archive was
+built under nimo-1 and carried an absolute nimo-1 build RUNPATH even though the
+library and valid relative symlinks were present after extraction on nimo-2.
+This is a packaging/pre-runtime P2, not a model, cache, or protocol result.
+
+Production recovered cleanly to coordinator PID `2962825`, InvocationID
+`c781d4778c4b4d5489187a9e6658afc0`, `NRestarts=0`, port 8081/HTTP 200; worker
+PID `2128643`, InvocationID `e7e16a1a4b884ffeb22d54f89cad398e`,
+`NRestarts=0`, port 50052.
+
+L96 is active for a relocatable staged-runtime package gate. Cross-host
+executables must use closed origin-relative project-library authority, reject
+absolute build/source RUNPATHs and symlink escapes, resolve every dependency
+under a sanitized environment, and execute the staged canary provenance/no-
+model probe on nimo-2 before production shutdown. Only a passing retained
+package receipt and review permit one full correctness transition.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

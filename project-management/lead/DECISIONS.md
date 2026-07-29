@@ -1570,6 +1570,38 @@ equality, zero legacy GET/SET, custody, cleanup, recovery, and production
 reconciliation gates. No retry, runtime semantic correction, protocol/cache
 product/performance work, or automatic follow-on is authorized.
 
+## 2026-07-28 — accept L95 and open L96 relocatable runtime package gate
+
+Decision: accept L95 terminal NOT PROMOTED at
+`7e53bd82bdf96e18ec77380a011dc44be444f5f3` and retain its reviewed parser
+corrections. Open L96 to make the cross-host staged runtime relocatable and
+prove it on nimo-2 before any production shutdown, followed conditionally by
+one full primary correctness attempt.
+
+Reason: L95 never executed the model. The staged canary failed provenance with
+rc127 because its ELF RUNPATH embedded the absolute nimo-1 build directory.
+The archive contained `libllama-common.so.0` and valid relative symlinks, but
+the dynamic loader could not resolve them on nimo-2. This must be prevented at
+package admission rather than discovered after production transition.
+
+L96 should use the smallest build/packaging correction, preferably
+origin-relative CMake build RUNPATH for project libraries plus only explicitly
+approved fixed ROCm paths. Ambient `LD_LIBRARY_PATH` and ad-hoc runtime copying
+are not authority. Before production mutation, exact extracted nimo-2 staging
+must reject absolute source/build RPATH/RUNPATH, path or symlink escape,
+missing/tampered libraries, and unresolved dependencies; bind ELF dependencies,
+paths, hashes, modes, owners, symlinks, source/build/archive identities, and
+run the exact staged provenance plus no-model probe under a sanitized
+environment. Apply the same closed gate to every cross-host executable in this
+transition. Focused negatives, feature-off inertness, and one independent
+review are sufficient.
+
+Only a passing retained pre-mutation package receipt authorizes exactly one
+OOM-aware primary capture/fresh-restore/one-token transition under existing
+equality/state/custody/zero-GET-SET/cleanup/recovery gates. No retry, runtime
+semantic correction, protocol/cache product/performance work, or automatic
+follow-on is authorized.
+
 ## 2026-07-28 — accept L90 and open L91 consolidated child authority
 
 Decision: accept L90 terminal NOT PROMOTED at
