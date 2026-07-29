@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 21:18 PDT
+Verified: 2026-07-28 22:01 PDT
 
 ## Overall state
 
@@ -373,6 +373,35 @@ rejects malformed, duplicate, or unconsumed text. Restore-canary systemd
 authority must remain retained through exact terminal status and journal
 collection before explicit unload. After focused review, one full correctness
 transition is authorized; no retry or unrelated expansion is authorized.
+
+L98 closed NOT PROMOTED at
+`db3b034dfe6d6ef857031ff5473f8fe2286657d1` with a conclusive P1 product
+correctness failure. Its reviewed result-parser and restore-terminal custody
+corrections are retained. Residency A produced token `21549`, logits SHA
+`8564aef9...`, and suffix `alpha`; fresh authenticated residency B produced
+token `9283`, different logits, and suffix `计划`. Represented coordinator
+control/local and all 64 worker component manifests match, but exact output
+does not. Five server authorities were retained. No cache promotion, retry, or
+zero legacy GET/SET claim is admitted.
+
+The response evidence has a separate P2: its verifier treats concatenated
+per-attempt sequences as one global 1..N stream, so four capture productions
+plus one restore production necessarily refuse. This cannot explain the output
+mismatch.
+
+Production recovered by clean controller stop/start with no fault to
+coordinator PID `3011904`, InvocationID
+`6e0b94e5c1ac46949e1b00946e3bb64e`, `NRestarts=0`, port 8081/HTTP 200; worker
+PID `2142476`, InvocationID `eb9bc3c6165346aeb871fb09d26753ef`,
+`NRestarts=0`, port 50052.
+
+L99 is active as read-only/source-only product diagnosis. It must identify the
+earliest retained capture/restore divergence, trace the complete final-token
+read-set beyond represented state, reconcile prior eliminated hypotheses, and
+propose the smallest discriminator. No host/model/build/runtime action or
+semantic correction is authorized. The aggregate response verifier may be
+repaired offline by exact authenticated per-attempt grouping, but must not
+distract from or explain away the P1.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

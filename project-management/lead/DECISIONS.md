@@ -1694,6 +1694,43 @@ one-token transition may run under existing equality/state/component/custody/
 zero-GET-SET/cleanup/recovery gates. No retry, runtime semantic correction,
 protocol/cache-product/performance work, or automatic follow-on is authorized.
 
+## 2026-07-28 — accept L98 correctness failure and open L99 product diagnosis
+
+Decision: accept L98 terminal NOT PROMOTED at
+`db3b034dfe6d6ef857031ff5473f8fe2286657d1`, retain its reviewed corrections,
+and classify the token/logits mismatch as a P1 product blocker. Open L99 as
+read-only/source-only diagnosis. No primary retry or semantic correction is
+authorized.
+
+Reason: the full path finally reached a genuine fresh restore result. Capture
+returned token 21549/suffix `alpha`; restore returned token 9283/suffix `计划`.
+Authenticated semantic provenance confirms different logits, while represented
+coordinator control/local state and all worker component manifests agree.
+Matching represented hashes therefore demonstrate the current state contract
+is incomplete or execution consumes additional uncontrolled state; they do not
+establish cache correctness.
+
+L99 must build a machine-readable canonical diff of all retained capture/
+restore results, semantic and replay authority, composed authority, component
+capture/apply records, epoch/plan/topology, and server authority to identify the
+earliest retained divergence. It must then trace exact final-token read-sets
+through coordinator ROCm and RPC worker code, including KV logical bytes versus
+padding/strides/views, cell/head/sequence metadata, scheduler copies and graph
+allocation, quantized attention, synchronization/events, RPC reconstruction,
+allocator/runtime state, and architecture-specific recurrent/expert/router
+state. Reconcile accepted L31-L35 and L37-L44 evidence; eliminated hypotheses
+stay eliminated absent new exact evidence. Rank source-supported candidates
+and propose the smallest offline/no-model discriminator or minimum future
+instrumentation.
+
+Separately, L99 may fix the response verifier offline only by grouping each
+authenticated stream into exact per-attempt 1..N productions with closed
+identity bindings and replay/gap/mixing refusal. Replay retained L98 evidence
+and claim zero legacy GET/SET only if exact bounded windows support it. This P2
+cannot explain the P1. One independent read-only review is required. No host,
+model, build, runtime, production mutation, or automatic follow-on is
+authorized.
+
 ## 2026-07-28 — accept L90 and open L91 consolidated child authority
 
 Decision: accept L90 terminal NOT PROMOTED at
