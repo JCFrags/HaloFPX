@@ -1,5 +1,34 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — require user-visible worker tasks
+
+Decision: stop internal subagent implementation work. Future implementation,
+documentation, review, and research workers must run as user-visible Codex
+tasks. Preserve the frozen L111 worktree exactly until the visible
+implementation task takes ownership.
+
+Create two visible tasks:
+
+1. L111 implementation takeover, using
+   `project-management/lead/worker-specs/L111_VISIBLE_IMPLEMENTATION_TASK.md`.
+2. Full internal documentation and Wiki Simplified Technical English and
+   organization work, using
+   `project-management/lead/worker-specs/DOCUMENTATION_STE_ORGANIZATION_TASK.md`.
+
+The documentation task must make `WORKER_START_HERE.md` the standard entry
+point for all workers. It must preserve raw evidence, licenses, immutable
+receipts, and exact technical meaning. It owns documentation navigation and
+validation, not implementation or lead authority records.
+
+Current task creation is blocked because all desktop task-control calls return
+`No handler registered`. Do not substitute invisible internal subagents and do
+not claim that a task was created. Retain the exact specifications and retry
+visible dispatch when the control plane is available.
+
+Reason: the user must be able to inspect every worker directly. Durable task
+specifications prevent context loss while the desktop control plane is
+unavailable.
+
 ## 2026-07-29 — resolve L111 legacy-alias scope contradiction
 
 Decision: permit L111 to make the minimal MiniMax loader call-site and helper

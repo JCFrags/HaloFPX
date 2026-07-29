@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 09:02 PDT
+Verified: 2026-07-29 09:34 PDT
 
 ## Overall state
 
@@ -255,6 +255,20 @@ healthy and unchanged: nimo-1 coordinator PID `3027112`, InvocationID
 `e6da1fe637144cb394119959c0e88736`, NRestarts `0`, unique port 8081 and
 HTTP 200 `{"status":"ok"}`; nimo-2 worker PID `2148915`, InvocationID
 `3480c89086e04d5d80060366c5c7ab7f`, NRestarts `0`, unique port 50052.
+
+The user now requires every worker to use a user-visible Codex task. The
+internal L111 worker was frozen and interrupted. Its uncommitted work remains
+preserved in the HaloFPX worktree. The desktop task controls are unavailable
+in this session: `list_projects`, `fork_thread`, and `create_thread` each
+return `No handler registered`. No hidden worker remains active.
+
+Two complete dispatch specifications are retained under
+`project-management/lead/worker-specs/`: one for the exact L111 implementation
+handoff and one for the documentation/organization task. The documentation
+specification defines the project Simplified Technical English rules,
+protected evidence, navigation structure, worker start requirements,
+inventory, link validation, organization receipts, and independent review.
+Visible task creation is the only current control-plane blocker.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID
