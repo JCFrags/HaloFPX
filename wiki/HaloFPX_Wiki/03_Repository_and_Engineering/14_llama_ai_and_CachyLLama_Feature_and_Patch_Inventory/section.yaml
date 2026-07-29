@@ -1,4 +1,5 @@
 section_id: "14"
+category_id: "03"
 title: "llama-ai and CachyLLama Feature and Patch Inventory"
 category: "03_Repository_and_Engineering"
 status: "needs-machine-validation"

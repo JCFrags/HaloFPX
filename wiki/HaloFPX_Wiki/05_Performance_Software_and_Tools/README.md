@@ -1,5 +1,18 @@
 # 05 — Performance Software and Tools
 
+## Category manifest
+
+- **Purpose:** Define runtime, toolchain, profiling, and host-tuning guidance.
+- **Authoritative files:** This manifest and the five linked section artifact sets.
+- **Current owner:** Performance workers own measurements. Documentation workers own routing.
+- **Status:** Source-backed draft complete. Machine qualification and policy selection remain open.
+- **Last verified date:** 2026-07-29 for routing. Section claims retain their own dates.
+- **Source commits:** Exact tool and runtime commits remain in each section source ledger.
+- **Related decisions:** [Decision map](../decision-map.md) and [Project Lead objectives](../../../project-management/lead/OBJECTIVES.md).
+- **Related evidence:** [Evidence map](../evidence-map.md) and [Verification and Performance](../11_Verification_and_Performance/README.md).
+- **Open work:** Qualify the exact target-machine software tuple and measurement controls.
+- **Next safe action:** Freeze exact versions before a tool or tuning comparison.
+
 Defines the low-level runtimes, build tools, profilers, and host tuning needed to measure and optimize the platform.
 
 Research status: source-backed draft complete; target-machine qualification and policy selection remain open.

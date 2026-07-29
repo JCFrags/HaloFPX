@@ -1,4 +1,5 @@
 section_id: "29"
+category_id: "06"
 title: "Target Model Catalog and Architecture Support Matrix"
 category: "06_Models_Quantization_and_Inference"
 status: "needs-machine-validation"

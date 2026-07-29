@@ -1,4 +1,5 @@
 section_id: "32"
+category_id: "06"
 title: "llama.cpp Model Loading, Graph Construction, and Backend Lifecycle"
 category: "06_Models_Quantization_and_Inference"
 status: "needs-machine-validation"
