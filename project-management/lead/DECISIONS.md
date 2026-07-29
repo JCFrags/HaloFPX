@@ -1601,6 +1601,42 @@ guard failure and complete independent terminal review. Diagnose why the
 consolidated child authority still refused using retained source/evidence only;
 no correction, host/model action, or new runtime is authorized.
 
+## 2026-07-28 — accept L91 capture and open L92 local authority discriminator
+
+Decision: accept L91 terminal NOT PROMOTED at
+`2b0910b3b0ac80b01901838e2f26773194aa3248` and retain its reviewed
+default-off source. Open L92 for a no-host closed-path unit-authority
+discriminator and conditional smallest source-proven correction. A primary
+transition is conditional on that discriminator passing.
+
+Reason: L91 materially advanced through authenticated residency-A capture and
+retained four server authorities, then refused before residency B. Retained
+evidence localizes the refusal to tuple membership after capture-worker
+cleanup, but omitted the rejected canonical tuple and installed authority-set
+identity. Current source nominally admits the expected restore tuple; choosing
+a field correction would therefore be guesswork and another blind full-model
+transition is disproportionate.
+
+L92 must durably retain the exact canonical installed authority entries and
+hash, all planned reachable L77 primary launch/cleanup tuples in execution
+order, and any refusal's requested tuple, phase, set hash, and membership
+result. Its deterministic no-host rehearsal must consume the real child
+initialization/environment produced by the exact validated manifest and the
+real tuple constructors for device gate, capture worker/canary, capture
+cleanup, restore worker/canary, and cleanup. Hand-built expected tuples are not
+acceptable. Exact coverage and a stable authority hash across the simulated
+capture-to-restore transition are required.
+
+If the rehearsal reproduces a mismatch, the smallest source-proven correction
+may remain within L92 after focused tests and independent review. If it does
+not reproduce, stop without host/model access and report the evidence blocker.
+Only a passing real closed-path rehearsal and no-P1/P2 review authorize exactly
+one primary transition through residency-A capture, fresh residency-B restore,
+and one deterministic token under existing equality, custody, zero-GET/SET,
+cleanup, recovery, and production-reconciliation gates. No retry, broad matrix,
+protocol change, performance work, production cache enablement, or automatic
+follow-on is authorized.
+
 ## 2026-07-28 — accept L71 and consume one canonical-census replacement run
 
 Decision: accept L71 PASS at

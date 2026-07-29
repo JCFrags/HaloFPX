@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 17:42 PDT
+Verified: 2026-07-28 17:51 PDT
 
 ## Overall state
 
@@ -205,6 +205,24 @@ The new accepted observed production baseline is nimo-1 coordinator PID
 units, argv/config, and unique listeners are unchanged. No production service
 restart, counter reset, or further mutation is authorized. Only predicate-
 checked exact disposable cleanup and read-only terminal diagnosis may proceed.
+
+L91 terminal closeout is committed at
+`2b0910b3b0ac80b01901838e2f26773194aa3248`. It completed authenticated
+residency-A capture with suffix `alpha` and retained four independently
+authenticated 4,200-byte server authorities. It then refused locally after
+capture-worker cleanup and before any residency-B launch. The rejected tuple
+and installed authority-set identity were not retained, so no exact mismatch
+or correction is claimed. Cleanup was already complete; final production
+matches the accepted `NRestarts=1` baseline exactly.
+
+L92 is active as a local closed-path authority discriminator. Before any host
+or production access it must use the real validated manifest-generated child
+environment and real tuple constructors to rehearse device, capture, cleanup,
+restore, and terminal cleanup in order, retaining the installed authority set,
+planned tuples, hashes, and exact refusal tuple. A source-proven mismatch may
+be corrected and focused-review qualified within L92. If the real rehearsal
+does not reproduce or explain the boundary, no primary run is authorized.
+Only a fully passing rehearsal/review permits one full correctness transition.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into
