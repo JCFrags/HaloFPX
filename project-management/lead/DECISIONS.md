@@ -1,5 +1,43 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — accept L106 blocker; use a dedicated shadow context in L107
+
+Decision: accept L106's confirmed in-place KV restore blocker at
+`e15d6da0de55c0f1a604614db62b5d50957b40e3`. Do not build a general atomic
+swap facility for arbitrary live continuous-batch memory. Open L107 for a
+dedicated, quiescent, single-slot distributed cache server profile using a
+fresh disposable shadow `llama_context`.
+
+The shadow shares immutable model weights but owns its KV, scheduler, and
+runtime state. Candidate authentication, complete local restore, exact request
+plan construction, and authenticated remote stage occur without touching the
+active context. At a quiescent boundary, the server revalidates active
+generation, empty slot, topology, and candidate identity, commits remote state,
+then transfers active context/runtime ownership to the already-prepared shadow
+and executes the same plan.
+
+Before remote commit, any failure discards the shadow and cold-recomputes on
+the unchanged active context. After remote commit, failure may not expose the
+old local state with new remote state: it must finish the prepared ownership
+transfer or tear down and cold-recreate the distributed residency before
+recompute. Transient duplicated KV/context/scheduler memory must be bounded and
+headroom-checked; model weights remain shared.
+
+This product profile must refuse multi-slot continuous batching, speculative
+decode, recurrent, hybrid, ISWA, and unsupported memory. Feature-off, world-1,
+and normal server behavior remain unchanged. Qualification covers shadow
+isolation/destruction, quiescence and single-use generations, both sides of the
+remote-commit failure boundary, resource refusal, unsupported modes,
+independent review, a real two-host no-model transaction, then one Stories15M
+miss/publish/fresh-shadow-hit/corruption-fallback run. No primary model,
+production, tuning, general swap API, broad matrix, or new wire protocol is
+authorized.
+
+Reason: existing restore preparation mutates live KV metadata before the
+candidate is fully validated. A disposable context uses the already-proven
+fresh-residency model and makes failure recoverable without inventing rollback
+for arbitrary live state.
+
 ## 2026-07-29 — accept L105 blocker; scope L106 to transactional KV only
 
 Decision: accept L105's confirmed memory-mutation blocker at

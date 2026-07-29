@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 00:36 PDT
+Verified: 2026-07-29 00:54 PDT
 
 ## Overall state
 
@@ -117,6 +117,28 @@ abort/drop is non-mutating. It then continues the previously authorized live
 request plan, distributed profile/transaction bridge, and bounded Stories15M
 vertical slice. Primary-model, production, general recurrent/hybrid support,
 performance, and broad matrices remain out of scope.
+
+L106 closed at evidence commit
+`e15d6da0de55c0f1a604614db62b5d50957b40e3` with a distinct confirmed
+in-place-restore blocker. Even coordinator `prepare_only` calls live KV
+`state_read_meta`, which removes/finds/applies slots and changes cells,
+positions, ownership, and heads before tensor bytes are staged. That
+invalidates any plan frozen before lookup and can leave partial local mutation
+if remote staging later fails. Exploratory edits were removed; no runtime case
+was consumed. Independent review classified bypass as P1.
+
+L107 is deliberately narrower than a general KV shadow/swap engine. The first
+distributed exact-key server product mode is dedicated, quiescent, and
+single-slot. A new disposable shadow `llama_context` shares immutable model
+weights but owns separate KV/scheduler/runtime state. Candidate authentication,
+local restore, exact request planning, and remote staging occur entirely in
+that shadow. After quiescence and generation/topology revalidation, remote
+commit and server context ownership transfer complete as one recovery-defined
+transition. Pre-commit failure discards the shadow and recomputes on untouched
+state; post-commit failure tears down the inconsistent residency before cold
+recreation. Multi-slot, speculative, recurrent, hybrid, and ISWA modes refuse.
+L107 retains the same bounded no-model and Stories15M vertical gates, with no
+primary-model or production access.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID
