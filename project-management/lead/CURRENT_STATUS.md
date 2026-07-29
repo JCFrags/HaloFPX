@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 23:24 PDT
+Verified: 2026-07-28 23:41 PDT
 
 ## Overall state
 
@@ -32,6 +32,26 @@ L102 is active only to correct and qualify this envelope validator from retained
 L101 payloads and focused no-model helper tests. It may not rerun the primary
 model, reconstruct a signed L101 envelope with a deleted runtime key, or reopen
 cache correctness.
+
+L102 passed and is promoted at exact commit
+`b1e21c49606f2ffd2768d0f28766b0007498a6a8`. Exact source confirmed that
+ordinary authenticated `MUTABLE_SET` increments `set`, while the hit/miss
+counters belong only to optional `MUTABLE_SET_HASH`. The verifier now removes
+only the stale positive-hit/miss predicate; all lifecycle, graph, receipt,
+HMAC, split, sequence, topology, and positive-set requirements remain.
+Focused Windows and real Linux helper sign/verify qualification passed 9/9,
+including retained L101 records and malformed/partial/tamper/key negatives.
+Independent adversarial review found no P1/P2. No L101 key or model/production
+access was used.
+
+L103 is active as the first user-facing product-reachability slice. It will
+compose the existing default-off llama-server exact-key lane with the accepted
+rank-local distributed protocol, binding actual topology and ownership instead
+of the current single-rank identity. Its bounded terminal gate is one real
+two-host Stories15M server miss/publish, fresh-worker restart, hit/restore and
+deterministic equality, with zero legacy state-page transfer and one corrupt or
+mismatched object proving miss/recompute. No primary-model run, production
+mutation, tuning, broad matrix, or new protocol layer is authorized.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID

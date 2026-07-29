@@ -1,5 +1,35 @@
 # Project-Lead Decisions
 
+## 2026-07-28 — promote L102 and open L103 server composition
+
+Decision: promote L102 PASS at
+`b1e21c49606f2ffd2768d0f28766b0007498a6a8`. The downstream L101 envelope
+P2 is closed. Open L103 to make the proven distributed cache reachable through
+the real llama-server exact-key lane.
+
+L103 must reuse the retained server cache and worker-local distributed
+protocols rather than add another layer. It must replace the composed lane's
+hard-coded single-rank cache identity with actual distributed
+topology/ownership authority, orchestrate worker capture and authenticated
+publication, and restore through fresh-worker stage/commit. Missing, corrupt,
+stale, partial, or topology-mismatched state must miss and recompute; it may
+never be accepted.
+
+Qualification is bounded to focused source tests, one real two-host no-model
+fixture, and one Stories15M end-user vertical run: miss/publish, worker
+restart/fresh residency, hit/restore, exact deterministic equality, zero
+legacy GET_TENSOR/SET_TENSOR state-page transfer, one corruption/mismatch
+miss-recompute, complete authority/custody, feature-off inertness, cleanup, and
+independent review. No primary model, production transition, performance
+claim, tuning, broad matrix, or new protocol foundation is authorized.
+
+Reason: L101 established the core rank-local mechanism's primary-model
+correctness. The remaining product gap is reachability: the current
+llama-server exact-key transformer uses coordinator state flags and
+single-rank identity, while the worker-local protocol is only called by the
+canary. Closing that seam produces an actual usable feature and is now higher
+value than more harness work.
+
 ## 2026-07-28 — accept L101 cache correctness; open L102 envelope-only correction
 
 Decision: accept the retained block-aware serialization source and L101's
