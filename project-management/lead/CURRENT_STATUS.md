@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 22:01 PDT
+Verified: 2026-07-28 22:12 PDT
 
 ## Overall state
 
@@ -402,6 +402,30 @@ propose the smallest discriminator. No host/model/build/runtime action or
 semantic correction is authorized. The aggregate response verifier may be
 repaired offline by exact authenticated per-attempt grouping, but must not
 distract from or explain away the P1.
+
+L99 passed at `bf861840423c60c9f71afa119086b32b4e4ef5e3`. Its canonical
+machine-readable L98 diff proves represented coordinator control/local/
+component bytes, authenticated replay geometry, node assignment, and graph
+input agree. The earliest retained divergence is post-execution logits:
+capture `8564aef9...c754`/token 21549 versus restore
+`7a8807f4...36cd`/token 9283. Transport/authentication is not the cause.
+Highest source-supported candidates are an unrepresented auxiliary replay
+input or kernel-readable physical storage omitted by logical serialization;
+synchronization/visibility and RPC reconstruction/allocator state rank next.
+Independent review passed.
+
+L99 also repaired the response verifier offline with exact authenticated
+per-attempt grouping; retained L98 streams contain five valid paired
+productions. Zero legacy GET/SET remains unproven because no bounded
+authenticated state-page transport window was retained.
+
+L100 is active as an offline/no-model byte-range discriminator over all 124 KV
+tensors. It must compare actual or conservatively kernel-addressable physical
+ranges—including quantization blocks, strides, views, padding, alignment, and
+ownership—with serialized/applied/live ranges. A proven readable gap stops with
+an exact correction proposal; exact coverage closes the hypothesis and defines
+the minimum synchronized per-layer digest discriminator. No runtime or semantic
+correction is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

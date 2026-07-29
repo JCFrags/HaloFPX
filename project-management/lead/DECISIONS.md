@@ -170,6 +170,41 @@ runner using structural source-call-site registration and closed evidence. No
 primary access, production mutation, cache promotion, tuning, matrix, or L47 is
 authorized.
 
+## 2026-07-28 — accept L99 and open L100 KV physical-range coverage
+
+Decision: accept L99 PASS at
+`bf861840423c60c9f71afa119086b32b4e4ef5e3`, including its canonical L98
+diff, ranked diagnosis, reviewed per-attempt response verifier, and explicit
+zero-GET/SET evidence limitation. Open L100 only for the recommended offline/
+no-model physical byte-range coverage discriminator across all 124 KV tensors.
+
+Reason: L99 proves the first retained divergence is computed logits, after
+equal represented state, replay geometry, node assignment, and graph input.
+The strongest remaining source-backed candidates are an auxiliary replay input
+outside the contract or kernel-readable physical KV bytes omitted by logical
+serialization. A complete range audit is cheaper and more decisive than
+another primary run.
+
+L100 must derive the byte intervals actually or conservatively addressable by
+the q8_0 final-replay attention/read kernels from exact tensor type/dimensions,
+strides, views/ancestry, allocation offsets, K/V layout, backend ownership, and
+kernel block/tile/vector behavior. Account for block rounding, padding,
+alignment, alias/overlap, transposition, and noncontiguous access. Compare
+these with exact captured, serialized, applied, and live component intervals,
+classifying proven-read, possibly-read, allocation-only, represented, restored,
+and unrepresented bytes. A gap is not causal unless source proves it can be
+read.
+
+Require machine-readable totals and tensor/range identities, focused synthetic
+coverage for contiguous, padded, quantized, strided/view, alias, truncated, and
+small-gap cases, retained L98 replay, and independent review. If a readable
+gap exists, stop with exact ranges and the smallest serialization-correction
+proposal; do not implement. If coverage is exact, close this hypothesis and
+specify the minimum synchronized authenticated per-layer pre/post-attention
+digest discriminator. No host/model/accelerator build/runtime/production
+action, primary retry, semantic correction, or automatic follow-on is
+authorized.
+
 ## 2026-07-27 — allow one L59 replacement after Windows durability admission failure
 
 Decision: preserve the first L59 controller attempt as a pre-runtime admission
