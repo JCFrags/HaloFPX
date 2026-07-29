@@ -484,9 +484,13 @@ add_test(
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-v1-attempt-wire-contract.cmake)
 set_property(TEST test-halofpx-context-store-v1-attempt-wire-contract PROPERTY LABELS "main;halofpx")
 
+add_executable(test-halofpx-state-byte-geometry test-halofpx-state-byte-geometry.cpp)
+target_link_libraries(test-halofpx-state-byte-geometry PRIVATE ggml)
+
 if (GGML_RPC_HALOFPX_LOCAL_STATE)
-    llama_build(test-halofpx-rpc-local-state.cpp)
-    target_link_libraries(test-halofpx-rpc-local-state PRIVATE ggml-rpc)
+    add_executable(test-halofpx-rpc-local-state test-halofpx-rpc-local-state.cpp)
+    target_include_directories(test-halofpx-rpc-local-state PRIVATE ${CMAKE_SOURCE_DIR}/ggml/include)
+    target_link_libraries(test-halofpx-rpc-local-state PRIVATE ggml-rpc ggml)
     llama_build(test-halofpx-distributed-state-canary.cpp)
     target_link_libraries(test-halofpx-distributed-state-canary PRIVATE ggml-rpc)
     llama_build(test-halofpx-graph-input-authority.cpp)

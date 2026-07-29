@@ -3812,6 +3812,12 @@ public:
     }
 
     ~llama_io_write_device() {
+        finalize();
+    }
+
+    bool finalize() {
+        if (finalized) return valid;
+        finalized = true;
         llama_memory_buffers mbufs_new;
 
         for (const auto & winfo : winfos) {
@@ -3837,12 +3843,25 @@ public:
         for (const auto & winfo : winfos) {
             auto * buft = ggml_backend_buffer_get_type(winfo.tensor->buffer);
 
-            const int64_t n = winfo.size/ggml_element_size(winfo.tensor);
+            int64_t n = 0;
+            if (!ggml_checked_1d_elements_for_bytes(
+                    winfo.tensor, winfo.offset, winfo.size, &n)) {
+                mbufs.clear();
+                valid = false;
+                return false;
+            }
 
             auto & mbuf = mbufs_new[buft];
 
-            mbuf.org.push_back(ggml_view_1d      (mbuf.ctx.get(), winfo.tensor, n, winfo.offset));
-            mbuf.cpy.push_back(ggml_new_tensor_1d(mbuf.ctx.get(), winfo.tensor->type, n));
+            auto * org = ggml_view_1d(mbuf.ctx.get(), winfo.tensor, n, winfo.offset);
+            auto * cpy = ggml_new_tensor_1d(mbuf.ctx.get(), winfo.tensor->type, n);
+            if (!org || !cpy || ggml_nbytes(org) != winfo.size || ggml_nbytes(cpy) != winfo.size) {
+                mbufs.clear();
+                valid = false;
+                return false;
+            }
+            mbuf.org.push_back(org);
+            mbuf.cpy.push_back(cpy);
         }
 
         for (auto & [buft, mbuf] : mbufs_new) {
@@ -3901,6 +3920,7 @@ public:
                 ggml_backend_tensor_copy(mbuf_cur.org[i], mbuf_cur.cpy[i]);
             }
         }
+        return true;
     }
 
     void write(const void * src, size_t size) override {
@@ -3936,6 +3956,8 @@ private:
     std::vector<write_info> winfos;
 
     llama_memory_buffers & mbufs;
+    bool finalized = false;
+    bool valid = true;
 };
 
 class llama_io_read_device : public llama_io_read_i {
@@ -3982,11 +4004,21 @@ public:
         for (const auto & rinfo : rinfos) {
             auto * buft = ggml_backend_buffer_get_type(rinfo.tensor->buffer);
 
-            const int64_t n = rinfo.size/ggml_element_size(rinfo.tensor);
+            int64_t n = 0;
+            if (!ggml_checked_1d_elements_for_bytes(
+                    rinfo.tensor, rinfo.offset, rinfo.size, &n)) {
+                valid = false;
+                return false;
+            }
 
             auto & mbuf = mbufs_new[buft];
 
-            mbuf.org.push_back(ggml_view_1d(mbuf.ctx.get(), rinfo.tensor, n, rinfo.offset));
+            auto * org = ggml_view_1d(mbuf.ctx.get(), rinfo.tensor, n, rinfo.offset);
+            if (!org || ggml_nbytes(org) != rinfo.size) {
+                valid = false;
+                return false;
+            }
+            mbuf.org.push_back(org);
 
             ggml_backend_view_init(mbuf.org.back());
         }
@@ -3995,7 +4027,13 @@ public:
             for (auto & [buft, mbuf] : mbufs_new) {
                 mbuf.cpy.reserve(mbuf.org.size());
                 for (auto * org : mbuf.org) {
-                    mbuf.cpy.push_back(ggml_new_tensor_1d(mbuf.ctx.get(), org->type, ggml_nelements(org)));
+                    auto * cpy = ggml_new_tensor_1d(
+                        mbuf.ctx.get(), org->type, ggml_nelements(org));
+                    if (!cpy || ggml_nbytes(cpy) != ggml_nbytes(org)) {
+                        valid = false;
+                        return false;
+                    }
+                    mbuf.cpy.push_back(cpy);
                 }
                 if (!mbuf.cpy.empty()) {
                     mbuf.buf.reset(ggml_backend_alloc_ctx_tensors_from_buft(mbuf.ctx.get(), buft));
@@ -4137,9 +4175,12 @@ size_t llama_context::state_seq_get_data(llama_seq_id seq_id, uint8_t * dst, siz
 
 size_t llama_context::state_seq_get_data(llama_seq_id seq_id, uint8_t * dst, size_t size, llama_state_seq_flags flags, llama_memory_buffers * storage) {
     std::unique_ptr<llama_io_write_i> io;
+    llama_io_write_device * io_dev = nullptr;
     if (flags & LLAMA_STATE_SEQ_FLAGS_ON_DEVICE) {
         auto & storage_cur = storage ? *storage : mem_storage[seq_id];
-        io = std::make_unique<llama_io_write_device>(dst, size, storage_cur);
+        auto io_device = std::make_unique<llama_io_write_device>(dst, size, storage_cur);
+        io_dev = io_device.get();
+        io = std::move(io_device);
     } else {
         io = std::make_unique<llama_io_write_host>(dst, size);
     }
@@ -4148,7 +4189,9 @@ size_t llama_context::state_seq_get_data(llama_seq_id seq_id, uint8_t * dst, siz
         io->write(&io_magic, sizeof(io_magic));
         io->write(&seq_id, sizeof(seq_id));
 
-        return state_seq_write_data(*io, seq_id, flags);
+        const size_t n = state_seq_write_data(*io, seq_id, flags);
+        if (io_dev && !io_dev->finalize()) return 0;
+        return n;
     } catch (const std::exception & err) {
         LLAMA_LOG_ERROR("%s: error saving state: %s\n", __func__, err.what());
         return 0;

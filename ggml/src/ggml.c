@@ -1460,6 +1460,35 @@ size_t ggml_element_size(const struct ggml_tensor * tensor) {
     return ggml_type_size(tensor->type);
 }
 
+bool ggml_checked_1d_elements_for_bytes(
+        const struct ggml_tensor * tensor,
+        size_t offset,
+        size_t size,
+        int64_t * elements) {
+    if (tensor == NULL || elements == NULL || tensor->type < 0 ||
+            tensor->type >= GGML_TYPE_COUNT || !ggml_is_contiguous(tensor)) {
+        return false;
+    }
+    const size_t type_size = ggml_type_size(tensor->type);
+    const int64_t block_size = ggml_blck_size(tensor->type);
+    const size_t tensor_bytes = ggml_nbytes(tensor);
+    if (type_size == 0 || block_size <= 0 || size == 0 ||
+            offset % type_size != 0 || size % type_size != 0 ||
+            offset > tensor_bytes || size > tensor_bytes - offset) {
+        return false;
+    }
+    const size_t blocks = size / type_size;
+    if (blocks > (size_t) INT64_MAX / (size_t) block_size) {
+        return false;
+    }
+    const int64_t count = (int64_t) blocks * block_size;
+    if (count <= 0 || ggml_row_size(tensor->type, count) != size) {
+        return false;
+    }
+    *elements = count;
+    return true;
+}
+
 bool ggml_is_scalar(const struct ggml_tensor * tensor) {
     static_assert(GGML_MAX_DIMS == 4, "GGML_MAX_DIMS is not 4 - update this function");
 

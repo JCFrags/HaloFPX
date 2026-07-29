@@ -8276,6 +8276,9 @@ ggml_tensor * hfx_component_tensor(
     for (size_t i = 0; i < GGML_MAX_DIMS; ++i) tensor->nb[i] = component.nb[i];
     tensor->buffer = buffer;
     tensor->data = reinterpret_cast<void *>(component.data);
+    int64_t exact_elements = 0;
+    if (!ggml_checked_1d_elements_for_bytes(
+            tensor, component.offset, component.size, &exact_elements)) return nullptr;
     uint64_t logical_end = 0;
     if (!hfx_add(component.offset, component.size, logical_end) ||
         logical_end > ggml_nbytes(tensor)) return nullptr;
@@ -8611,16 +8614,19 @@ bool rpc_server::hfx_state_commit_apply(const std::vector<uint8_t> & input, hfx_
         ggml_tensor * src = ctx ? hfx_component_tensor(buffers, ctx.get(), hfx_state_pending->staged[i]) : nullptr;
         ggml_tensor * dst = ctx ? hfx_component_tensor(buffers, ctx.get(), live[i]) : nullptr;
         if (!src || !dst) { ok = false; break; }
-        const uint64_t type_size = ggml_type_size(src->type);
-        const uint64_t block_size = ggml_blck_size(src->type);
-        uint64_t elements_u64 = 0;
-        if (type_size == 0 || block_size == 0 ||
-            hfx_state_pending->staged[i].size % type_size != 0 ||
-            !hfx_mul(hfx_state_pending->staged[i].size / type_size, block_size, elements_u64) ||
-            elements_u64 == 0 || elements_u64 > INT64_MAX) { ok = false; break; }
-        const int64_t elements = static_cast<int64_t>(elements_u64);
+        int64_t elements = 0;
+        int64_t live_elements = 0;
+        if (!ggml_checked_1d_elements_for_bytes(
+                    src, hfx_state_pending->staged[i].offset,
+                    hfx_state_pending->staged[i].size, &elements) ||
+            !ggml_checked_1d_elements_for_bytes(
+                    dst, live[i].offset, live[i].size, &live_elements) ||
+            live_elements != elements) { ok = false; break; }
         ggml_tensor * src_view = ggml_view_1d(ctx.get(), src, elements, hfx_state_pending->staged[i].offset);
         ggml_tensor * dst_view = ggml_view_1d(ctx.get(), dst, elements, live[i].offset);
+        if (!src_view || !dst_view ||
+            ggml_nbytes(src_view) != hfx_state_pending->staged[i].size ||
+            ggml_nbytes(dst_view) != live[i].size) { ok = false; break; }
         ggml_backend_view_init(src_view);
         ggml_backend_view_init(dst_view);
         ok = ggml_backend_buffer_copy_tensor(src_view, dst_view);

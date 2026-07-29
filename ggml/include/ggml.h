@@ -781,6 +781,14 @@ extern "C" {
 
     GGML_API size_t  ggml_element_size(const struct ggml_tensor * tensor);
 
+    // Converts an exact byte range in tensor storage into the element count
+    // required by a 1-D view/copy, including quantized block geometry.
+    GGML_API bool ggml_checked_1d_elements_for_bytes(
+            const struct ggml_tensor * tensor,
+            size_t offset,
+            size_t size,
+            int64_t * elements);
+
     GGML_API bool    ggml_is_quantized(enum ggml_type type);
 
     // TODO: temporary until model loading of ggml examples is refactored
