@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 17:51 PDT
+Verified: 2026-07-28 18:27 PDT
 
 ## Overall state
 
@@ -223,6 +223,23 @@ planned tuples, hashes, and exact refusal tuple. A source-proven mismatch may
 be corrected and focused-review qualified within L92. If the real rehearsal
 does not reproduce or explain the boundary, no primary run is authorized.
 Only a fully passing rehearsal/review permits one full correctness transition.
+
+L92 has reached its terminal runtime boundary and is NOT PROMOTED pending
+closeout. Residency-A capture again completed. The new durable refusal receipt
+proves the exact defect: `stop_worker(unit, port: int = PORT)` captured the
+startup default `50184` before L77 configuration changed global `PORT` to
+`50248`. Post-capture cleanup therefore requested the capture-worker tuple with
+port 50184 against an authority set and launch tuple using 50248. Residency B
+did not launch; no restore/cache conclusion exists. No L92 retry or correction
+is authorized.
+
+Recovery started fresh production activations whose counters currently report
+`NRestarts=0`: coordinator PID `2913255`, InvocationID
+`01bdd7c2e7084036a472ec9cea4b3d62`, unique port 8081/HTTP 200; worker PID
+`2099163`, InvocationID `ac463c354550467bbeb9c6253144b5`, unique port
+50052. This state is provisional pending exact read-only journal/unit/hash/
+listener reconciliation proving clean controller stop/start and no unexplained
+fault. No production mutation is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

@@ -1637,6 +1637,35 @@ cleanup, recovery, and production-reconciliation gates. No retry, broad matrix,
 protocol change, performance work, production cache enablement, or automatic
 follow-on is authorized.
 
+## 2026-07-28 — classify L92 terminal and require read-only production reconciliation
+
+Decision: classify L92 terminal NOT PROMOTED with no retry or correction in
+L92. Accept its exact source diagnosis. Authorize read-only production
+reconciliation and, only after exact attribution, predicate-checked disposable
+cleanup. Production services and counters must not be mutated.
+
+Reason: the durable sequence-5 receipt proves post-capture cleanup requested
+`(nimo-1, halofpx-l48-worker-capture, 50184)` while the validated authority and
+actual launch used port 50248. Python evaluated the default argument in
+`stop_worker(unit, port: int = PORT)` when module `PORT` was still 50184,
+before L77 configuration changed the global to 50248. The local rehearsal used
+the launch-derived tuple and therefore missed this language-level binding
+seam. Residency A captured successfully; residency B never launched.
+
+The freshly controller-started production services currently report
+`NRestarts=0`, unlike the prior accepted baseline of 1. Accept the new PIDs,
+InvocationIDs, and counters only if exact system-unit/argv/config/hash/cgroup/
+listener/HTTP/journal evidence proves clean controller stop/start, no
+intervening fault or policy restart, and stable health. Otherwise retain unsafe
+classification and stop. Do not normalize or reset counters.
+
+After acceptance, cleanup may touch only exact closed-manifest disposable
+targets after type/owner/mode/non-mount/no-live-reference/non-production
+predicates pass. Re-prove absence and production authority. Complete terminal
+review and commit. A read-only/source-only audit for other Python default
+arguments capturing mutable configuration globals is authorized; implementation
+belongs to a separate Lead decision.
+
 ## 2026-07-28 — accept L71 and consume one canonical-census replacement run
 
 Decision: accept L71 PASS at
