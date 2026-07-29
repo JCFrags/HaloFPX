@@ -1,5 +1,43 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — accept L103 blocker and authorize L104 product authority seam
+
+Decision: accept L103's confirmed semantic blocker at
+`8dcdc408ac76f73097dcfe3f39edae992d9d31b6`. Authorize L104 to implement
+the bounded internal shared authority/profile seam required to compose the
+server exact-key cache with the retained rank-local distributed protocol.
+
+L104 must add three product pieces:
+
+1. Scheduler/RPC-produced immutable distributed-checkpoint topology authority
+   from live allocation and session truth, with ordered ranks, distinct
+   plan/ownership/placement/topology identities and epoch, endpoint/device
+   identity, channel/key generation, component manifest, and authenticated
+   worker-object custody binding.
+2. A separately named Linux-only, default-off distributed transformer
+   profile/codec that reuses manifest v1 and represents coordinator
+   control/local state plus the authenticated external worker object. The
+   existing world-1 codec must remain byte- and behavior-identical.
+3. A typed llama/server capture and
+   prepare/reconcile/stage/local-stage/remote-commit/final-apply transaction.
+   Every failure must abort and recompute from a clean context.
+
+L104 may not derive authority from result text, opaque copied configuration,
+or invented rank constants, and may not introduce a second state transport
+protocol. Qualification proceeds through focused feature-on/off and negative
+tests, independent pre-runtime review, a real two-host no-model transaction,
+then one Stories15M server miss/publish/fresh-worker-hit test if the earlier
+gates pass. That run must prove deterministic equality, zero bounded legacy
+GET/SET, corruption or topology mismatch causing miss/recompute, and complete
+custody/cleanup. No primary model, production mutation, performance work,
+broad matrix, or automatic follow-on is authorized.
+
+Reason: this is not optional formalism. The current server describes every
+cache as world 1/rank 0 while the actual worker object is governed by live
+distributed ownership. Without this seam the product can only save partial
+state or lie about topology. Implementing it is now the shortest safe route to
+a usable HaloFPX cache.
+
 ## 2026-07-28 — promote L102 and open L103 server composition
 
 Decision: promote L102 PASS at

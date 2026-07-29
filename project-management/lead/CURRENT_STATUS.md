@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 23:41 PDT
+Verified: 2026-07-29 00:03 PDT
 
 ## Overall state
 
@@ -52,6 +52,29 @@ two-host Stories15M server miss/publish, fresh-worker restart, hit/restore and
 deterministic equality, with zero legacy state-page transfer and one corrupt or
 mismatched object proving miss/recompute. No primary-model run, production
 mutation, tuning, broad matrix, or new protocol layer is authorized.
+
+L103 closed at read-only evidence commit
+`8dcdc408ac76f73097dcfe3f39edae992d9d31b6` with a confirmed semantic
+blocker and no candidate source or runtime action. The reachable exact-key
+server lane is strictly coordinator-monolithic: world size 1/rank 0, fixed
+two-frame roster, `LLAMA_STATE_SEQ_FLAGS_NONE`, placeholder-equal
+plan/ownership/placement digests, and topology epoch 1. The retained rank-local
+API instead requires live typed topology, rank/world, channel/key generation,
+component identity, and authenticated worker object custody. No typed
+server/context seam currently supplies those facts. Changing constants or
+copying opaque configuration would publish partial state under fictitious
+topology, so the worker correctly stopped. Independent review confirmed the
+blocker.
+
+L104 is active with explicit authority to implement the smallest required
+internal product seam: scheduler/RPC-produced immutable distributed checkpoint
+topology, a distinct default-off distributed manifest-v1 transformer profile,
+and a typed server capture/stage/commit/apply transaction bridge. It must reuse
+the existing rank-local wire/object protocol, leave the world-1 codec unchanged,
+and fail to clean-context recompute on any missing, corrupt, stale, partial, or
+topology-mismatched state. After focused review and a two-host no-model fixture,
+one Stories15M end-user miss/restart/hit qualification may run. Primary-model,
+production, tuning, and broad-matrix work remain prohibited.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID
