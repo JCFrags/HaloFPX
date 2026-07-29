@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 18:35 PDT
+Verified: 2026-07-28 19:28 PDT
 
 ## Overall state
 
@@ -256,6 +256,29 @@ and make the real rehearsal execute that cleanup path. After focused tests and
 one review, exactly one full residency-A capture/fresh-residency-B restore
 correctness transition is authorized. No additional diagnostic layer, retry,
 protocol expansion, or performance work is authorized.
+
+L93 closed NOT PROMOTED at
+`62199ea96a171e0dd1f691cddf68af871b0f1e54`. Its reviewed explicit-port
+correction is retained. The sole attempt completed authenticated residency-A
+capture, retained deterministic token `21549`, suffix `alpha`, and four server
+authorities. All 22 guard requests used correct manifest bindings. A genuinely
+fresh restore worker then launched and admitted, but the child refused before
+restore-canary launch because its separate raw journal-cursor read did not
+produce the required lower-bound form. Cleanup also temporarily misattributed
+the fresh restore worker's shared 50248 listener to the already stopped capture
+worker. No restore token or cache conclusion exists.
+
+Production recovered cleanly to coordinator PID `2932494`, InvocationID
+`d3c9d328bdb940dba62ea3ad1e93be40`, `NRestarts=0`, unique port 8081/
+HTTP 200; worker PID `2115484`, InvocationID
+`bcf04aa0d57e40f59f1f56531b0aaa99`, `NRestarts=0`, unique port 50052.
+
+L94 is active to close both controller P2s together: use the accepted exact
+journal-cursor parser for restore-canary launch, and permit a shared-port
+listener during absent-unit cleanup only with positive binding to a different
+currently admitted manifest unit/PID/Invocation/cgroup. Unknown or ambiguous
+ownership still refuses. After focused review, one full correctness attempt is
+authorized; no further diagnostic layer or retry is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

@@ -1637,6 +1637,39 @@ cleanup, recovery, and production-reconciliation gates. No retry, broad matrix,
 protocol change, performance work, production cache enablement, or automatic
 follow-on is authorized.
 
+## 2026-07-28 — accept L93 and open L94 combined restore-launch closure
+
+Decision: accept L93 terminal NOT PROMOTED at
+`62199ea96a171e0dd1f691cddf68af871b0f1e54` and retain its reviewed explicit-
+port correction. Open L94 to close the restore-canary journal lower-bound and
+shared-listener cleanup-attribution P2s together, followed by one full primary
+correctness attempt.
+
+Reason: L93 completed authenticated residency-A capture and launched/admitted a
+genuinely fresh restore worker. Restore-canary launch stopped because this one
+path manually parsed raw `journalctl --show-cursor` output instead of using the
+already accepted exact cursor helper. During final cleanup, the stopped capture
+worker's absence check also treated the active restore worker's shared 50248
+listener as capture ownership. Both are bounded controller-observability
+defects, not runtime/cache failures.
+
+L94 must use `exact_journal_cursor()` for the restore-canary lower bound and
+retain it before launch, with focused format/refusal coverage. An absent
+capture unit may coexist with the shared listener only when the listener PID is
+positively bound to a different currently admitted manifest unit on the same
+host/port through retained PID/InvocationID plus exact current unit/cgroup/
+MainPID authority. Unknown, production, same-unit, stale, multiple, or
+mismatched ownership refuses. Generic nonzero-listener acceptance is forbidden.
+Audit capture-to-restore and finally-cleanup ordering; one independent review
+is sufficient.
+
+After those gates, exactly one OOM-aware primary transition may run through
+capture, fresh restore, and one token under the existing exact token/state/
+component equality, zero legacy GET/SET, authority/custody, cleanup, recovery,
+and production-reconciliation gates. No retry, runtime semantic correction,
+protocol change, cache product enablement, performance work, tuning, or
+automatic follow-on is authorized.
+
 ## 2026-07-28 — classify L92 terminal and require read-only production reconciliation
 
 Decision: classify L92 terminal NOT PROMOTED with no retry or correction in
