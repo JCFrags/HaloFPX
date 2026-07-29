@@ -1,0 +1,56 @@
+{
+  "actions": [],
+  "after": {
+    "cgroup_pids": [],
+    "listener_pid": 3011047,
+    "listener_port": 50248,
+    "listener_returncode": 0,
+    "process_returncode": 0,
+    "properties": {
+      "ActiveState": "inactive",
+      "ControlGroup": "",
+      "FragmentPath": "",
+      "LoadState": "not-found",
+      "MainPID": "0",
+      "SubState": "dead",
+      "UnitFileState": ""
+    },
+    "registration_returncode": 1,
+    "show_returncode": 0,
+    "unit_file_registration": ""
+  },
+  "alternate_listener_owner": {
+    "control_group": "/user.slice/user-1000.slice/user@1000.service/app.slice/halofpx-l48-worker-restore.service",
+    "host": "nimo-1",
+    "invocation_id": "df33da0e9be84dc796928c6615f75bbe",
+    "pid": 3011047,
+    "port": 50248,
+    "status": "exact_current_admitted_alternate_owner",
+    "unit": "halofpx-l48-worker-restore"
+  },
+  "before": {
+    "cgroup_pids": [],
+    "listener_pid": 3011047,
+    "listener_port": 50248,
+    "listener_returncode": 0,
+    "process_returncode": 0,
+    "properties": {
+      "ActiveState": "inactive",
+      "ControlGroup": "",
+      "FragmentPath": "",
+      "LoadState": "not-found",
+      "MainPID": "0",
+      "SubState": "dead",
+      "UnitFileState": ""
+    },
+    "registration_returncode": 1,
+    "show_returncode": 0,
+    "unit_file_registration": ""
+  },
+  "host": "nimo-1",
+  "manager_scope": "user",
+  "phase": "postcleanup",
+  "schema": "halofpx.l60.transient-unit-absence.v1",
+  "status": "absent",
+  "unit": "halofpx-l48-worker-capture.service"
+}

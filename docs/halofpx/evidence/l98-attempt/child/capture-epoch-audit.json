@@ -1,0 +1,7 @@
+{
+  "coordinator_pid": 2138675,
+  "coordinator_terminated_before_worker_stop": true,
+  "schema": "halofpx.l28.capture-epoch-audit.v1",
+  "worker_invocation_id": "80dc981c2eb1404a8fc92cfcfbf4de05",
+  "worker_pid": 3010713
+}

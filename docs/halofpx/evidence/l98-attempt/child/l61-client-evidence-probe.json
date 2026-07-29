@@ -1,0 +1,12 @@
+{
+  "authentication": "accepted_prefix",
+  "binary": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-distributed-state-canary",
+  "bytes": 485,
+  "host": "nimo-2",
+  "probe_returncode": 0,
+  "schema": "halofpx.l61.client-evidence-probe.v1",
+  "sha256": "b0bfc5763ca1a080d5b85f87a36d3040d7591be69a58de764ee23666a6424fb9",
+  "source": "/var/tmp/halofpx-l48-evidence/rpc-response-client-preflight.jsonl",
+  "staging": "/var/tmp/halofpx-l48-evidence/.rpc-response-client-preflight.harvest",
+  "status": "pass"
+}

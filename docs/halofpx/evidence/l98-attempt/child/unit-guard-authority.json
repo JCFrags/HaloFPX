@@ -1,0 +1,31 @@
+{
+  "entries": [
+    {
+      "host": "nimo-1",
+      "port": 50248,
+      "unit": "halofpx-l48-worker-capture"
+    },
+    {
+      "host": "nimo-1",
+      "port": 50248,
+      "unit": "halofpx-l48-worker-restore"
+    },
+    {
+      "host": "nimo-1",
+      "port": 50249,
+      "unit": "halofpx-l50-device-gate"
+    },
+    {
+      "host": "nimo-2",
+      "port": null,
+      "unit": "halofpx-l48-canary-capture"
+    },
+    {
+      "host": "nimo-2",
+      "port": null,
+      "unit": "halofpx-l48-canary-restore"
+    }
+  ],
+  "schema": "halofpx.l92.unit-guard-authority.v1",
+  "sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1"
+}

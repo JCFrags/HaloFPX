@@ -1,0 +1,73 @@
+{
+  "build_id": "d1460995dab7a6fdf71e0301a90a1516c5b3ab4cf985c5a7f9731ce2588dff9b",
+  "canary": {
+    "authority_status": "final",
+    "binary_sha256": "d9aa062faafc813408adf485984be15e107d84127138b1492dde0b5731b1626c",
+    "final_properties": {
+      "ActiveState": "active",
+      "ExecMainCode": "1",
+      "ExecMainPID": "2140538",
+      "ExecMainStatus": "0",
+      "InvocationID": "6e9bcb29304b4d028754e3bdfa3935b6",
+      "MainPID": "0",
+      "Result": "success",
+      "SubState": "exited"
+    },
+    "invocation_id": "6e9bcb29304b4d028754e3bdfa3935b6",
+    "pid": 2140538,
+    "unit": "halofpx-l48-canary-restore"
+  },
+  "ordering": "before_worker_stop_remote_root_key_controller_cleanup",
+  "schema": "halofpx.l59.rpc-response-harvest-receipt.v1",
+  "source_root": "073a32d4ed86ceb38c6c59c21ae786d7c2ce5d0d38ef183350ef817b5469afbc",
+  "streams": {
+    "client": {
+      "bytes": 4920,
+      "copyable": true,
+      "durability": {
+        "bytes": 4920,
+        "mechanism": "windows_file_fsync_atomic_noreplace_reopen_revalidate",
+        "sha256": "6e57d1bc90298e5b9ab2d3d738a6580ead6a32d1bcedf8781d9ea227fb8ed5ad",
+        "status": "success"
+      },
+      "local_path": "rpc-response-client.jsonl",
+      "mode": "0600",
+      "owner": "connorb",
+      "reason": "captured",
+      "schema": "halofpx.rpc-response-harvest.v1",
+      "sha256": "6e57d1bc90298e5b9ab2d3d738a6580ead6a32d1bcedf8781d9ea227fb8ed5ad",
+      "source": "/var/tmp/halofpx-l48-evidence/rpc-response-client.jsonl",
+      "staging": "/var/tmp/halofpx-l48-evidence/.rpc-response-client.harvest",
+      "status": "present"
+    },
+    "worker": {
+      "bytes": 17139,
+      "copyable": true,
+      "durability": {
+        "bytes": 17139,
+        "mechanism": "windows_file_fsync_atomic_noreplace_reopen_revalidate",
+        "sha256": "0fa6a77f755f1bc01781b7a1e8bc1a35f08bd117de66dc0af961c5640ec20830",
+        "status": "success"
+      },
+      "local_path": "rpc-response-worker.jsonl",
+      "mode": "0600",
+      "owner": "connorb",
+      "reason": "captured",
+      "schema": "halofpx.rpc-response-harvest.v1",
+      "sha256": "0fa6a77f755f1bc01781b7a1e8bc1a35f08bd117de66dc0af961c5640ec20830",
+      "source": "/var/tmp/halofpx-l48-worker/rpc-response-worker.jsonl",
+      "staging": "/var/tmp/halofpx-l48-worker/.rpc-response-worker.harvest",
+      "status": "present"
+    }
+  },
+  "verification": {
+    "reason": "record event sequence is missing, duplicate, or out of order",
+    "status": "refused"
+  },
+  "worker": {
+    "binary_sha256": "18b127bc0970383ce897d461f3ac87d6cdb311ebf5c41a62939b5d286cfc5662",
+    "invocation_id": "df33da0e9be84dc796928c6615f75bbe",
+    "pid": 3011047,
+    "unit": "halofpx-l48-worker-restore"
+  }
+}

@@ -2254,6 +2254,7 @@ def restore_canary_launch_argv(unit: str) -> list[str]:
     return [
         "systemd-run", "--user", f"--unit={unit}",
         "--property=RuntimeMaxSec=20min",
+        "--property=RemainAfterExit=yes",
         *(["--setenv=HALOFPX_STATE_DIAGNOSTICS=1"]
           if LIVE_RECAPTURE_DIAGNOSTICS else []),
         *semantic_env_args(),
@@ -2730,14 +2731,76 @@ def wait_remote_file(path: str, timeout_seconds: float) -> None:
     raise CanaryError(f"timed out waiting for residency rendezvous {path}")
 
 
-def output_fields(text: str) -> dict[str, str]:
-    line = next((line for line in reversed(text.splitlines()) if line.startswith("mode=")), "")
-    if not line:
-        raise CanaryError("canary output has no result line")
-    fields = {}
-    for match in re.finditer(r"(?:^| )([a-z0-9_]+)=([^ ]+)", line):
-        fields[match.group(1)] = match.group(2)
+def parse_canonical_result_line(line: str) -> dict[str, str]:
+    if not line or line != line.strip() or any(
+            character.isspace() and character != " " for character in line):
+        raise CanaryError("canary result line has noncanonical whitespace")
+    tokens = line.split(" ")
+    if not tokens or any(token == "" for token in tokens):
+        raise CanaryError("canary result line has an empty token or separator")
+    fields: dict[str, str] = {}
+    for token in tokens:
+        key, separator, value = token.partition("=")
+        if separator != "=" or re.fullmatch(r"[a-z0-9_]+", key) is None:
+            raise CanaryError("canary result line has an invalid key/value token")
+        if key in fields:
+            raise CanaryError("canary result line has a duplicate key")
+        if any(character.isspace() or ord(character) < 0x20
+               or ord(character) == 0x7f for character in value):
+            raise CanaryError("canary result value contains whitespace or control data")
+        fields[key] = value
     return fields
+
+
+def output_fields(text: str) -> dict[str, str]:
+    lines = [line for line in text.splitlines() if line.startswith("mode")]
+    if len(lines) != 1:
+        raise CanaryError("canary output result line is missing or ambiguous")
+    return parse_canonical_result_line(lines[0])
+
+
+def restore_terminal_status(
+        props: dict[str, str], expected_invocation: str,
+        expected_pid: int) -> int | None:
+    if props.get("InvocationID", "").lower() != expected_invocation:
+        raise CanaryError(
+            "restore coordinator InvocationID changed before terminal collection")
+    state = (props.get("ActiveState"), props.get("SubState"))
+    if state == ("active", "running"):
+        if props.get("MainPID") != str(expected_pid):
+            raise CanaryError("restore coordinator running PID changed")
+        return None
+    required = {
+        "MainPID", "ExecMainPID", "ExecMainCode", "ExecMainStatus", "Result",
+        "ActiveState", "SubState",
+    }
+    if (
+        not required.issubset(props)
+        or any(props[name] == "" for name in required)
+        or props["MainPID"] != "0"
+        or props["ExecMainPID"] != str(expected_pid)
+        or not props["ExecMainStatus"].isdecimal()
+    ):
+        raise CanaryError("restore coordinator terminal authority is incomplete")
+    status = int(props["ExecMainStatus"])
+    success = {
+        "ActiveState": "active", "SubState": "exited", "ExecMainCode": "1",
+        "ExecMainStatus": "0", "Result": "success",
+    }
+    if all(props[name] == value for name, value in success.items()):
+        return 0
+    failure_tuples = {
+        ("failed", "failed", "1", "exit-code"),
+        ("failed", "failed", "2", "signal"),
+        ("failed", "failed", "3", "core-dump"),
+    }
+    failure = (
+        props["ActiveState"], props["SubState"],
+        props["ExecMainCode"], props["Result"],
+    )
+    if failure in failure_tuples and status != 0:
+        return status
+    raise CanaryError("restore coordinator terminal authority is contradictory")
 
 
 def output_sequence(text: str) -> dict[str, dict[str, str]]:
@@ -3328,14 +3391,20 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
 
     deadline = time.monotonic() + 1200
     restore_status = None
+    restore_terminal_properties = None
     while time.monotonic() < deadline:
         show = ssh(
             NIMO2, "systemctl", "--user", "show", f"{restore_canary_unit}.service",
-            "-p", "ActiveState", "-p", "SubState", "-p", "ExecMainStatus",
+            "-p", "InvocationID", "-p", "MainPID", "-p", "ExecMainPID",
+            "-p", "ActiveState", "-p", "SubState", "-p", "ExecMainCode",
+            "-p", "ExecMainStatus", "-p", "Result",
             check=False).stdout
         props = dict(line.split("=", 1) for line in show.splitlines() if "=" in line)
-        if props.get("ActiveState") in {"inactive", "failed"}:
-            restore_status = int(props.get("ExecMainStatus", "-1"))
+        status = restore_terminal_status(
+            props, restore_coordinator_invocation, restore_coordinator_pid)
+        if status is not None:
+            restore_status = status
+            restore_terminal_properties = props
             break
         time.sleep(1)
     if restore_status is None:
@@ -3345,6 +3414,21 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         f"_SYSTEMD_INVOCATION_ID={restore_coordinator_invocation}",
         "--no-pager", "-o", "cat").stdout
     (root / "restore.log").write_text(restore_log, encoding="utf-8")
+    collected_restore_journal = collect_disposable_unit_evidence(
+        NIMO2, restore_canary_unit)
+    final_restore_authority = DISPOSABLE_UNIT_FINAL_AUTHORITY.get(
+        (NIMO2, restore_canary_unit))
+    if (
+        not collected_restore_journal
+        or final_restore_authority is None
+        or final_restore_authority.get("invocation_id")
+        != restore_coordinator_invocation
+        or final_restore_authority.get("pid") != restore_coordinator_pid
+        or final_restore_authority.get("final_properties")
+        != restore_terminal_properties
+    ):
+        raise CanaryError(
+            "restore coordinator terminal authority collection mismatch")
     if restore_status != 0:
         raise CanaryError(f"guarded restore failed with {restore_status}: {restore_log}")
     restore_fields = (

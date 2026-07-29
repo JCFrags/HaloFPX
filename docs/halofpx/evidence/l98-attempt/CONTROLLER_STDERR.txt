@@ -1,0 +1,4 @@
+L22 primary canary failed: RPC response evidence harvest or authentication failed
+transition refused/failed: maintenance command exited 1
+EMERGENCY RECOVERY FAILED: worker: NRestarts changed 1 -> 0
+EMERGENCY RECOVERY FAILED: worker: NRestarts changed 1 -> 0
