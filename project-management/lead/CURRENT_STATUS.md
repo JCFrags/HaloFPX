@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 18:27 PDT
+Verified: 2026-07-28 18:35 PDT
 
 ## Overall state
 
@@ -240,6 +240,22 @@ Recovery started fresh production activations whose counters currently report
 50052. This state is provisional pending exact read-only journal/unit/hash/
 listener reconciliation proving clean controller stop/start and no unexplained
 fault. No production mutation is authorized.
+
+L92 terminal closeout is committed at
+`6735cdddedc9254328bd2ef4b44c3b0f9071b60c`. Independent review confirms NOT
+PROMOTED/no retry, one correctness P2 (the stale default and rehearsal blind
+spot), no P1/security issue, and safe default-off retention. Read-only evidence
+proved the fresh `NRestarts=0` activations followed clean controller stop/start
+with no OOM, failure, or policy restart, so the provisional production
+authority above is accepted. Exact cleanup passed. A source-wide Python
+default-argument audit found no other mutable configuration default.
+
+L93 is active for the exact mechanical correction: remove the `PORT` default
+from `stop_worker`, require every call site to supply its launch/manifest port,
+and make the real rehearsal execute that cleanup path. After focused tests and
+one review, exactly one full residency-A capture/fresh-residency-B restore
+correctness transition is authorized. No additional diagnostic layer, retry,
+protocol expansion, or performance work is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

@@ -1666,6 +1666,38 @@ review and commit. A read-only/source-only audit for other Python default
 arguments capturing mutable configuration globals is authorized; implementation
 belongs to a separate Lead decision.
 
+## 2026-07-28 — accept L92 and open L93 explicit-port correctness attempt
+
+Decision: accept L92 terminal NOT PROMOTED at
+`6735cdddedc9254328bd2ef4b44c3b0f9071b60c`, its exact diagnosis, cleanup,
+independent review, and reconciled production baseline. Open L93 for the
+mechanical explicit-port correction followed by one full primary correctness
+attempt.
+
+Reason: durable evidence proves Python's `stop_worker` default captured port
+50184 before L77 configured 50248. No other mutable configuration default was
+found. Residency-A capture and four authenticated server authorities already
+passed; the correction no longer needs another diagnostic milestone.
+
+L93 must remove implicit mutable-global port authority: `stop_worker` requires
+an explicit port and every reachable call site must provide the exact
+launch/manifest-derived value, including device-gate 50249 and L77 50248.
+Missing/wrong ports refuse. The real no-host rehearsal must invoke the actual
+cleanup path, retaining request/set receipts and stable authority hash.
+Focused coverage of startup/configured ports, capture/restore cleanup, all
+reachable L77 branches, and feature-off behavior plus one independent review
+is sufficient.
+
+After those gates, exactly one OOM-aware primary transition may run through
+authenticated residency-A capture, worker restart/fresh residency-B
+stage/commit, and one restored token. Acceptance requires exact reference/
+restored token and authenticated state/component equality, zero legacy
+state-page GET/SET, complete client/server custody, no accepted invalid state,
+bounded cleanup, ordered recovery, and exact production reconciliation. No
+retry, runtime semantic correction, protocol change, production cache
+enablement, server composition, performance work, tuning, or automatic
+follow-on is authorized.
+
 ## 2026-07-28 — accept L71 and consume one canonical-census replacement run
 
 Decision: accept L71 PASS at
