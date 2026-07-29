@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 16:53 PDT
+Verified: 2026-07-28 17:42 PDT
 
 ## Overall state
 
@@ -188,6 +188,23 @@ reachable-branch scan and focused review. Its one runtime must use the full
 residency-A capture/fresh-residency-B restore path rather than stopping in
 first-chunk diagnostic mode. No retry or broader protocol/performance work is
 authorized.
+
+L91 has reached an unsafe terminal boundary and is NOT PROMOTED pending final
+evidence closeout. Its sole transition again refused
+`transient unit guard authority is outside the closed manifest`; no retry is
+authorized. During recovery, the newly started worker was killed by the kernel
+OOM at 17:38:16 and the coordinator aborted after RPC loss at 17:38:21.
+Existing on-failure policies restarted each exactly once. Read-only evidence
+attributes both counter changes to this single cascade, matching the prior
+accepted pattern rather than an unexplained production mutation.
+
+The new accepted observed production baseline is nimo-1 coordinator PID
+`2896932`, InvocationID `d33e57248a4e4eb98f81cc1a44cf1ff6`,
+`NRestarts=1`, port 8081/HTTP 200; nimo-2 worker PID `2084398`, InvocationID
+`0137204322234e5e9ddde8a4173ef177`, `NRestarts=1`, port 50052. Exact installed
+units, argv/config, and unique listeners are unchanged. No production service
+restart, counter reset, or further mutation is authorized. Only predicate-
+checked exact disposable cleanup and read-only terminal diagnosis may proceed.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

@@ -1572,6 +1572,35 @@ final production reconciliation. No retry, runtime semantic correction,
 server-abort change, production cache enablement, server composition,
 performance work, tuning, or automatic follow-on is authorized.
 
+## 2026-07-28 — accept L91 attributed OOM recovery baseline
+
+Decision: classify the consumed L91 transition as terminal NOT PROMOTED with no
+retry. Accept the current production PIDs, InvocationIDs, and `NRestarts=1` as
+the new observed baseline. Authorize only exact predicate-checked disposable
+cleanup and read-only terminal diagnosis/evidence closeout.
+
+Reason: journals attribute the worker counter change to one kernel OOM kill of
+the recovery-started process and the coordinator counter change to its abort
+after losing that RPC worker. Existing on-failure policies restarted each unit
+exactly once. Both are now healthy and unique with unchanged installed unit,
+argv/config, listener authority, and coordinator HTTP 200. This is an
+explained recovery cascade, not permission to normalize or reset counters.
+
+Accepted authority is coordinator PID `2896932`, InvocationID
+`d33e57248a4e4eb98f81cc1a44cf1ff6`, `NRestarts=1`, port 8081/HTTP 200; worker
+PID `2084398`, InvocationID `0137204322234e5e9ddde8a4173ef177`,
+`NRestarts=1`, port 50052. Production services must not be restarted or
+mutated.
+
+Cleanup may target only exact closed-manifest L48/L89/L90/L91 disposable
+units, keys, source/build/archive, and evidence-staging paths after exact
+type/owner/mode/identity, non-mount, no-live-reference, and non-production
+predicates pass. Only inactive/exited MainPID-0 expected disposables may unload.
+Re-prove absence and the accepted production authority afterward. Preserve the
+guard failure and complete independent terminal review. Diagnose why the
+consolidated child authority still refused using retained source/evidence only;
+no correction, host/model action, or new runtime is authorized.
+
 ## 2026-07-28 — accept L71 and consume one canonical-census replacement run
 
 Decision: accept L71 PASS at
