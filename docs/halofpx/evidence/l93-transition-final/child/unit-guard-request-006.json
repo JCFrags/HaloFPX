@@ -1,0 +1,10 @@
+{
+  "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+  "host": "nimo-1",
+  "membership": true,
+  "phase": "prelaunch",
+  "port": 50248,
+  "schema": "halofpx.l92.unit-guard-request.v1",
+  "sequence": 6,
+  "unit": "halofpx-l48-worker-restore"
+}

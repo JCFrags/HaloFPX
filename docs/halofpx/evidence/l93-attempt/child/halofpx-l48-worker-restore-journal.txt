@@ -1,0 +1,32 @@
+2026-07-28T19:17:56.204630-07:00 nimo-1 rpc-server[2931814]: ggml_rocm_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+2026-07-28T19:17:56.204630-07:00 nimo-1 rpc-server[2931814]:   Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+2026-07-28T19:17:56.205736-07:00 nimo-1 rpc-server[2931814]: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+2026-07-28T19:17:56.205736-07:00 nimo-1 rpc-server[2931814]: WARNING: Host ('10.44.0.1') is != '127.0.0.1'
+2026-07-28T19:17:56.205736-07:00 nimo-1 rpc-server[2931814]:          Never expose the RPC server to an open network!
+2026-07-28T19:17:56.205736-07:00 nimo-1 rpc-server[2931814]:          This is an experimental feature and is not secure!
+2026-07-28T19:17:56.205736-07:00 nimo-1 rpc-server[2931814]: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+2026-07-28T19:17:56.205801-07:00 nimo-1 rpc-server[2931814]: ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128415116
+2026-07-28T19:17:56.544199-07:00 nimo-1 rpc-server[2931814]: Starting RPC server v4.0.1
+2026-07-28T19:17:56.544199-07:00 nimo-1 rpc-server[2931814]:   endpoint       : 10.44.0.1:50248
+2026-07-28T19:17:56.544199-07:00 nimo-1 rpc-server[2931814]:   local cache    : n/a
+2026-07-28T19:17:56.544199-07:00 nimo-1 rpc-server[2931814]:   HaloFPX state  : enabled (canary)
+2026-07-28T19:17:56.544199-07:00 nimo-1 rpc-server[2931814]: Devices:
+2026-07-28T19:17:56.544199-07:00 nimo-1 rpc-server[2931814]:   ROCm0: AMD Radeon 8060S Graphics (126976 MiB, 125405 MiB free)
+2026-07-28T19:17:56.544199-07:00 nimo-1 rpc-server[2931814]:   transport      : TCP
+2026-07-28T19:17:56.544199-07:00 nimo-1 rpc-server[2931814]: Accepted client connection
+2026-07-28T19:17:56.544199-07:00 nimo-1 rpc-server[2931814]: [hello] version: 4.0.1
+2026-07-28T19:17:56.544603-07:00 nimo-1 rpc-server[2931814]: recv returned 0 (peer closed?)
+2026-07-28T19:17:56.544603-07:00 nimo-1 rpc-server[2931814]: Client connection closed
+2026-07-28T19:17:56.544603-07:00 nimo-1 rpc-server[2931814]: [~impl] closing socket 6
+2026-07-28T19:17:56.773457-07:00 nimo-1 rpc-server[2931814]: Accepted client connection
+2026-07-28T19:17:56.773457-07:00 nimo-1 rpc-server[2931814]: [hello] version: 4.0.1
+2026-07-28T19:17:56.773522-07:00 nimo-1 rpc-server[2931814]: recv returned 0 (peer closed?)
+2026-07-28T19:17:56.773522-07:00 nimo-1 rpc-server[2931814]: Client connection closed
+2026-07-28T19:17:56.773522-07:00 nimo-1 rpc-server[2931814]: [~impl] closing socket 6
+2026-07-28T19:17:56.774515-07:00 nimo-1 rpc-server[2931814]: Accepted client connection
+2026-07-28T19:17:56.774515-07:00 nimo-1 rpc-server[2931814]: [hello] version: 4.0.1
+2026-07-28T19:17:56.774600-07:00 nimo-1 rpc-server[2931814]: ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128412648
+2026-07-28T19:17:56.774600-07:00 nimo-1 rpc-server[2931814]: [get_device_memory] device: 0, free_mem: 131494551552, total_mem: 133143986176
+2026-07-28T19:17:56.774632-07:00 nimo-1 rpc-server[2931814]: recv returned 0 (peer closed?)
+2026-07-28T19:17:56.774632-07:00 nimo-1 rpc-server[2931814]: Client connection closed
+2026-07-28T19:17:56.774632-07:00 nimo-1 rpc-server[2931814]: [~impl] closing socket 6

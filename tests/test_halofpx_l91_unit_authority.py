@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import inspect
+import ast
 import json
 from pathlib import Path
 import subprocess
@@ -181,12 +182,125 @@ def test_real_l77_closed_path_rehearsal_is_exact_and_stable(
     } == EXPECTED
     assert len(first["planned"]) == 12
     assert first["authority_sha256"] == child._authority_digest(EXPECTED)
+    receipts = [
+        json.loads(path.read_text())
+        for path in sorted(tmp_path.glob("unit-guard-request-*.json"))
+    ]
+    assert len(receipts) == 12
+    assert [
+        (item["host"], item["unit"], item["port"], item["phase"])
+        for item in receipts
+    ] == [
+        (item["host"], item["unit"], item["port"], item["phase"])
+        for item in first["planned"]
+    ]
 
     second_root = tmp_path / "second"
     second_root.mkdir()
     second = child.rehearse_l77_unit_guard_authority(second_root)
     assert second["authority_sha256"] == first["authority_sha256"]
     assert second["planned"] == first["planned"]
+
+
+def test_rehearsal_invokes_real_worker_and_canary_cleanup_seams(
+        monkeypatch, tmp_path):
+    authority_environment(monkeypatch)
+    child.configure_l77_primary()
+    child.UNIT_GUARD_EVIDENCE_ROOT = tmp_path
+    worker_calls = []
+    canary_calls = []
+    real_stop_worker = child.stop_worker
+    real_stop_canary = child.stop_canary
+
+    def observe_worker(unit, port, **kwargs):
+        worker_calls.append((unit, port, kwargs))
+        return real_stop_worker(unit, port, **kwargs)
+
+    def observe_canary(unit, **kwargs):
+        canary_calls.append((unit, kwargs))
+        return real_stop_canary(unit, **kwargs)
+
+    monkeypatch.setattr(child, "stop_worker", observe_worker)
+    monkeypatch.setattr(child, "stop_canary", observe_canary)
+    child.rehearse_l77_unit_guard_authority(tmp_path)
+    assert [(unit, port) for unit, port, _ in worker_calls] == [
+        ("halofpx-l50-device-gate", 50249),
+        ("halofpx-l48-worker-capture", 50248),
+        ("halofpx-l48-worker-capture", 50248),
+        ("halofpx-l48-worker-restore", 50248),
+        ("halofpx-l50-device-gate", 50249),
+    ]
+    assert all(call[2] == {"_rehearsal_only": True} for call in worker_calls)
+    assert [unit for unit, _ in canary_calls] == [
+        "halofpx-l48-canary-restore",
+        "halofpx-l48-canary-restore",
+    ]
+    assert all(call[1] == {"_rehearsal_only": True} for call in canary_calls)
+
+
+def test_stop_worker_requires_exact_explicit_configured_port(
+        monkeypatch, tmp_path):
+    authority_environment(monkeypatch)
+    child.configure_l77_primary()
+    child.UNIT_GUARD_EVIDENCE_ROOT = tmp_path
+    child.UNIT_GUARD_REQUEST_SEQUENCE = 0
+    with pytest.raises(TypeError):
+        child.stop_worker("halofpx-l48-worker-capture")
+    with pytest.raises(child.CanaryError, match="outside the closed manifest"):
+        child.stop_worker(
+            "halofpx-l48-worker-capture", 50184, _rehearsal_only=True)
+    child.stop_worker(
+        "halofpx-l48-worker-capture", 50248, _rehearsal_only=True)
+    child.stop_worker(
+        "halofpx-l50-device-gate", 50249, _rehearsal_only=True)
+    receipts = [
+        json.loads(path.read_text())
+        for path in sorted(tmp_path.glob("unit-guard-request-*.json"))
+    ]
+    assert [(item["port"], item["membership"]) for item in receipts] == [
+        (50184, False), (50248, True), (50249, True)]
+
+
+def test_feature_off_legacy_authority_remains_inert_and_explicit(
+        monkeypatch, tmp_path):
+    monkeypatch.setattr(child, "UNIT_GUARD_AUTHORITY", None)
+    monkeypatch.setattr(child, "UNIT_GUARD_AUTHORITY_SHA256", "")
+    monkeypatch.setattr(child, "MANIFEST_UNIT_AUTHORITY_REQUIRED", False)
+    monkeypatch.setattr(child, "UNIT_PREFIX", "halofpx-l48")
+    monkeypatch.setattr(child, "PORT", 50248)
+    child.UNIT_GUARD_EVIDENCE_ROOT = tmp_path
+    child.UNIT_GUARD_REQUEST_SEQUENCE = 0
+    assert child.worker_cleanup_port(
+        "halofpx-l48-worker-capture") == 50248
+    child.stop_worker(
+        "halofpx-l48-worker-capture", 50248, _rehearsal_only=True)
+    receipt = json.loads(
+        (tmp_path / "unit-guard-request-001.json").read_text())
+    assert receipt["membership"] is True
+    assert receipt["port"] == 50248
+
+
+def test_no_callable_default_captures_a_configuration_global():
+    source = (ROOT / "scripts/halofpx-l13-primary-retry.py").read_text()
+    tree = ast.parse(source)
+    assigned_globals = {
+        target.id
+        for node in tree.body
+        if isinstance(node, (ast.Assign, ast.AnnAssign))
+        for target in (
+            node.targets if isinstance(node, ast.Assign) else [node.target])
+        if isinstance(target, ast.Name)
+    }
+    captured = []
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        defaults = [*node.args.defaults, *node.args.kw_defaults]
+        captured.extend(
+            (node.name, default.id)
+            for default in defaults
+            if isinstance(default, ast.Name) and default.id in assigned_globals)
+    assert captured == []
 
 
 def test_refusal_retains_requested_tuple_and_membership(

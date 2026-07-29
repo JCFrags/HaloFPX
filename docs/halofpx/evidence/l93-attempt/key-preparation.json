@@ -1,0 +1,26 @@
+{
+  "bytes": 130,
+  "format": "two-lowercase-hex-lines-v1",
+  "hosts": {
+    "nimo-1": {
+      "bytes": 130,
+      "host": "nimo-1",
+      "mode": "600",
+      "owner": "connorb",
+      "path": "/var/tmp/halofpx-l48-control.key",
+      "sha256": "9518bd357fa8ebd1e3b3056d38553f8845d85f4fe90cec8ab55d90c1e8844f62",
+      "type": "regular file"
+    },
+    "nimo-2": {
+      "bytes": 130,
+      "host": "nimo-2",
+      "mode": "600",
+      "owner": "connorb",
+      "path": "/var/tmp/halofpx-l48-control.key",
+      "sha256": "9518bd357fa8ebd1e3b3056d38553f8845d85f4fe90cec8ab55d90c1e8844f62",
+      "type": "regular file"
+    }
+  },
+  "schema": "halofpx.channel-key-preparation.v1",
+  "sha256": "9518bd357fa8ebd1e3b3056d38553f8845d85f4fe90cec8ab55d90c1e8844f62"
+}

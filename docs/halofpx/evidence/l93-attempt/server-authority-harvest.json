@@ -1,0 +1,158 @@
+{
+  "attempts": [
+    {
+      "bytes": 4200,
+      "journal": {
+        "admission": "41d30a695029a9888247c8c7f8d2aa4981e1ff2f963a63dacb78f29f6556dfca",
+        "attempt": "fb6d733782487ec4178a7caab2bc9b09c3f94914564a10a29e2e0383fdf59530",
+        "backend": "0",
+        "errno": "0",
+        "path": "/var/tmp/halofpx-l48-worker/fb6d733782487ec4178a7caab2bc9b09c3f94914564a10a29e2e0383fdf59530-1-11896626486709165-server.authority",
+        "sequence": "1",
+        "sha256": "7f04e12a92f5b6c8071d8e66fe60658abf1caf72e9a5860004f9b0cd544e8f0b",
+        "split_ordinal": "1",
+        "split_uid": "27",
+        "status": "present"
+      },
+      "reason": "authenticated_and_retained",
+      "remote_capture": {
+        "bytes": 4200,
+        "execute_receipt": "f334aeb4233ad6e87ba7502e369e154391f763149c2e5fe9cf3b6e0defc9e469",
+        "expected_admission_digest": "a7de6e43cdad05333405d737513c022e993462a48240891a9d58bd53eec73808",
+        "graph_digest": "ff367d025764ae70506673b91a0843e57dcd63cda2b6ff05ed8e0540ddffde7f",
+        "owner": "connorb",
+        "reason": "authenticated",
+        "records": 6,
+        "schema": "halofpx.server-authority-harvest.v1",
+        "sha256": "7f04e12a92f5b6c8071d8e66fe60658abf1caf72e9a5860004f9b0cd544e8f0b",
+        "source": "/var/tmp/halofpx-l48-worker/fb6d733782487ec4178a7caab2bc9b09c3f94914564a10a29e2e0383fdf59530-1-11896626486709165-server.authority",
+        "source_mode": "0400",
+        "staging": "/var/tmp/halofpx-l48-worker/.fb6d733782487ec4178a7caab2bc9b09c3f94914564a10a29e2e0383fdf59530-1-11896626486709165-server.authority.harvest",
+        "staging_mode": "0600",
+        "status": "present",
+        "terminal_branch": 1
+      },
+      "retained_path": "C:\\Users\\britt\\Documents\\HaloFPX\\docs\\halofpx\\evidence\\l93-attempt\\server-authority\\fb6d733782487ec4178a7caab2bc9b09c3f94914564a10a29e2e0383fdf59530-1-11896626486709165-server.authority",
+      "retained_sha256": "7f04e12a92f5b6c8071d8e66fe60658abf1caf72e9a5860004f9b0cd544e8f0b",
+      "status": "present"
+    },
+    {
+      "bytes": 4200,
+      "journal": {
+        "admission": "cd5a91b86d10666028bfa4daaa00d1b901e24e50691f8173659aa3658abd12cc",
+        "attempt": "e9e093a5e6917c7a24afd471a82904bed16c76fdf6dee59dbd02a0a936753c7b",
+        "backend": "0",
+        "errno": "0",
+        "path": "/var/tmp/halofpx-l48-worker/e9e093a5e6917c7a24afd471a82904bed16c76fdf6dee59dbd02a0a936753c7b-2-11896626486709165-server.authority",
+        "sequence": "2",
+        "sha256": "92495746199141869d29fafafd48ca5bb6da0ae47df58277b2aae4042c933a01",
+        "split_ordinal": "1",
+        "split_uid": "31",
+        "status": "present"
+      },
+      "reason": "authenticated_and_retained",
+      "remote_capture": {
+        "bytes": 4200,
+        "execute_receipt": "4d9b54b588c1c6734f8b4d1db41f42b658f57d03e17bf4449a6c6f90f4b47e54",
+        "expected_admission_digest": "eaba5d5cbb0537df7a5099703eb5caf324c081a3b04208e7243b2af2c8d407ca",
+        "graph_digest": "c4d8e66b2d854ae6c9433504dc3f8acd6831b441012880ed13bcdc707260075b",
+        "owner": "connorb",
+        "reason": "authenticated",
+        "records": 6,
+        "schema": "halofpx.server-authority-harvest.v1",
+        "sha256": "92495746199141869d29fafafd48ca5bb6da0ae47df58277b2aae4042c933a01",
+        "source": "/var/tmp/halofpx-l48-worker/e9e093a5e6917c7a24afd471a82904bed16c76fdf6dee59dbd02a0a936753c7b-2-11896626486709165-server.authority",
+        "source_mode": "0400",
+        "staging": "/var/tmp/halofpx-l48-worker/.e9e093a5e6917c7a24afd471a82904bed16c76fdf6dee59dbd02a0a936753c7b-2-11896626486709165-server.authority.harvest",
+        "staging_mode": "0600",
+        "status": "present",
+        "terminal_branch": 1
+      },
+      "retained_path": "C:\\Users\\britt\\Documents\\HaloFPX\\docs\\halofpx\\evidence\\l93-attempt\\server-authority\\e9e093a5e6917c7a24afd471a82904bed16c76fdf6dee59dbd02a0a936753c7b-2-11896626486709165-server.authority",
+      "retained_sha256": "92495746199141869d29fafafd48ca5bb6da0ae47df58277b2aae4042c933a01",
+      "status": "present"
+    },
+    {
+      "bytes": 4200,
+      "journal": {
+        "admission": "9e42a81272b175c09087685614ef824c323ee7ac4eb476a17c3f52fa9dd0d631",
+        "attempt": "5502d5ce3864a672be66c577028c183eb36fbe9a8df83e8c3a5918a77a781ee4",
+        "backend": "0",
+        "errno": "0",
+        "path": "/var/tmp/halofpx-l48-worker/5502d5ce3864a672be66c577028c183eb36fbe9a8df83e8c3a5918a77a781ee4-3-11896626486709165-server.authority",
+        "sequence": "3",
+        "sha256": "2fcaf4bace59e2de6edaf158765bbec9c8e43d4214297347ed27724ba4a78427",
+        "split_ordinal": "1",
+        "split_uid": "35",
+        "status": "present"
+      },
+      "reason": "authenticated_and_retained",
+      "remote_capture": {
+        "bytes": 4200,
+        "execute_receipt": "f35a73533dc055c712c975c4355f04982c016027698665505abaaea3f20bbd81",
+        "expected_admission_digest": "6bbdc147d694b9833f1b1669f7c4672381256a50d704da00e3eeb4e817c9a70c",
+        "graph_digest": "def82874dabac8da3562afaa2b357be6df23cf69b2fecb6634cac610667a2384",
+        "owner": "connorb",
+        "reason": "authenticated",
+        "records": 6,
+        "schema": "halofpx.server-authority-harvest.v1",
+        "sha256": "2fcaf4bace59e2de6edaf158765bbec9c8e43d4214297347ed27724ba4a78427",
+        "source": "/var/tmp/halofpx-l48-worker/5502d5ce3864a672be66c577028c183eb36fbe9a8df83e8c3a5918a77a781ee4-3-11896626486709165-server.authority",
+        "source_mode": "0400",
+        "staging": "/var/tmp/halofpx-l48-worker/.5502d5ce3864a672be66c577028c183eb36fbe9a8df83e8c3a5918a77a781ee4-3-11896626486709165-server.authority.harvest",
+        "staging_mode": "0600",
+        "status": "present",
+        "terminal_branch": 1
+      },
+      "retained_path": "C:\\Users\\britt\\Documents\\HaloFPX\\docs\\halofpx\\evidence\\l93-attempt\\server-authority\\5502d5ce3864a672be66c577028c183eb36fbe9a8df83e8c3a5918a77a781ee4-3-11896626486709165-server.authority",
+      "retained_sha256": "2fcaf4bace59e2de6edaf158765bbec9c8e43d4214297347ed27724ba4a78427",
+      "status": "present"
+    },
+    {
+      "bytes": 4200,
+      "journal": {
+        "admission": "9e8f60b3dfcd0f95359e32f2d987030acb60294b5b080062fe4e953c5d596369",
+        "attempt": "3c8aaf2c1441fa50f440586b9959c62db5093f996b16381923b5b862bfd033f2",
+        "backend": "0",
+        "errno": "0",
+        "path": "/var/tmp/halofpx-l48-worker/3c8aaf2c1441fa50f440586b9959c62db5093f996b16381923b5b862bfd033f2-4-11896626486709165-server.authority",
+        "sequence": "4",
+        "sha256": "f986f423250ac95e9ce2dcb1f93432d2affedb60a5045e573e67aafa958c8d9a",
+        "split_ordinal": "1",
+        "split_uid": "39",
+        "status": "present"
+      },
+      "reason": "authenticated_and_retained",
+      "remote_capture": {
+        "bytes": 4200,
+        "execute_receipt": "74978f04358ec18bddc98cda6e4001bc4d85a659c42922ebebca727bb52377a4",
+        "expected_admission_digest": "4ba372a9220ba050bfc42e8d9bc25fe0c30e8f81ba4d295f246a6727e8f55056",
+        "graph_digest": "1749318e1deaff95b5aef2fd918b95bdfa979cfc834e7f6955a8df911c0aa53e",
+        "owner": "connorb",
+        "reason": "authenticated",
+        "records": 6,
+        "schema": "halofpx.server-authority-harvest.v1",
+        "sha256": "f986f423250ac95e9ce2dcb1f93432d2affedb60a5045e573e67aafa958c8d9a",
+        "source": "/var/tmp/halofpx-l48-worker/3c8aaf2c1441fa50f440586b9959c62db5093f996b16381923b5b862bfd033f2-4-11896626486709165-server.authority",
+        "source_mode": "0400",
+        "staging": "/var/tmp/halofpx-l48-worker/.3c8aaf2c1441fa50f440586b9959c62db5093f996b16381923b5b862bfd033f2-4-11896626486709165-server.authority.harvest",
+        "staging_mode": "0600",
+        "status": "present",
+        "terminal_branch": 1
+      },
+      "retained_path": "C:\\Users\\britt\\Documents\\HaloFPX\\docs\\halofpx\\evidence\\l93-attempt\\server-authority\\3c8aaf2c1441fa50f440586b9959c62db5093f996b16381923b5b862bfd033f2-4-11896626486709165-server.authority",
+      "retained_sha256": "f986f423250ac95e9ce2dcb1f93432d2affedb60a5045e573e67aafa958c8d9a",
+      "status": "present"
+    }
+  ],
+  "cleanup_order": [
+    "quiesce_server",
+    "derive_expected_identity",
+    "authenticate_remote",
+    "retain_local",
+    "cleanup_key_and_paths"
+  ],
+  "reason": "all_authenticated_and_retained",
+  "schema": "halofpx.l75.server-authority-finally.v1",
+  "status": "present"
+}

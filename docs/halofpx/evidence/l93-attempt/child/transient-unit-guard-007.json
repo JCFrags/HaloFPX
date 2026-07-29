@@ -1,0 +1,47 @@
+{
+  "actions": [],
+  "after": {
+    "cgroup_pids": [],
+    "listener_pid": 2931814,
+    "listener_port": 50248,
+    "listener_returncode": 0,
+    "process_returncode": 0,
+    "properties": {
+      "ActiveState": "inactive",
+      "ControlGroup": "",
+      "FragmentPath": "",
+      "LoadState": "not-found",
+      "MainPID": "0",
+      "SubState": "dead",
+      "UnitFileState": ""
+    },
+    "registration_returncode": 1,
+    "show_returncode": 0,
+    "unit_file_registration": ""
+  },
+  "before": {
+    "cgroup_pids": [],
+    "listener_pid": 2931814,
+    "listener_port": 50248,
+    "listener_returncode": 0,
+    "process_returncode": 0,
+    "properties": {
+      "ActiveState": "inactive",
+      "ControlGroup": "",
+      "FragmentPath": "",
+      "LoadState": "not-found",
+      "MainPID": "0",
+      "SubState": "dead",
+      "UnitFileState": ""
+    },
+    "registration_returncode": 1,
+    "show_returncode": 0,
+    "unit_file_registration": ""
+  },
+  "host": "nimo-1",
+  "manager_scope": "user",
+  "phase": "postcleanup",
+  "schema": "halofpx.l60.transient-unit-absence.v1",
+  "status": "refused_active_or_owned",
+  "unit": "halofpx-l48-worker-capture.service"
+}

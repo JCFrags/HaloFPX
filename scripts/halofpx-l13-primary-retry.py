@@ -1225,7 +1225,7 @@ def _record_unit_guard_request(
 
 def ensure_transient_unit_absent(
         host: str, unit: str, *, port: int | None,
-        phase: str) -> dict[str, object]:
+        phase: str, verify_only: bool = False) -> dict[str, object]:
     global UNIT_GUARD_SEQUENCE
     requested = _canonical_guard_tuple(host, unit, port)
     canonical_unit = requested[1]
@@ -1249,6 +1249,16 @@ def ensure_transient_unit_absent(
     _record_unit_guard_request(requested, phase, membership)
     if not membership or phase not in {"prelaunch", "postcleanup"}:
         raise CanaryError("transient unit guard authority is outside the closed manifest")
+    if verify_only:
+        return {
+            "schema": "halofpx.l93.unit-guard-rehearsal-request.v1",
+            "host": requested[0],
+            "unit": requested[1],
+            "port": requested[2],
+            "phase": phase,
+            "authority_sha256": UNIT_GUARD_AUTHORITY_SHA256,
+            "membership": True,
+        }
     unit = canonical_unit
     before = _unit_guard_snapshot(host, unit, port)
     actions: list[dict[str, object]] = []
@@ -1696,7 +1706,15 @@ def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None
     return pid, invocation_id.lower(), readiness_result
 
 
-def stop_worker(unit: str, port: int = PORT) -> None:
+def stop_worker(
+        unit: str, port: int, *, _rehearsal_only: bool = False) -> None:
+    if not isinstance(port, int) or isinstance(port, bool) or not 1 <= port <= 65535:
+        raise CanaryError("disposable worker cleanup requires an explicit valid port")
+    if _rehearsal_only:
+        ensure_transient_unit_absent(
+            NIMO1, unit, port=port, phase="postcleanup", verify_only=True)
+        return
+
     def stopped(require_port_closed: bool) -> tuple[bool, str]:
         show = ssh(
             NIMO1, "systemctl", "--user", "show", f"{unit}.service",
@@ -1750,7 +1768,30 @@ def stop_worker(unit: str, port: int = PORT) -> None:
     raise CanaryError(f"disposable worker cleanup not verified for {unit}: {last}")
 
 
-def stop_canary(unit: str) -> None:
+def worker_cleanup_port(unit: str) -> int:
+    canonical_unit = _canonical_service_unit(unit)
+    authority = UNIT_GUARD_AUTHORITY
+    if authority is not None:
+        matches = [
+            port for host, admitted_unit, port in authority
+            if host == NIMO1 and admitted_unit == canonical_unit
+        ]
+        if len(matches) != 1 or not isinstance(matches[0], int):
+            raise CanaryError(
+                "worker cleanup port is absent or ambiguous in manifest authority")
+        return matches[0]
+    launch = _systemd_run_guard_tuple(
+        NIMO1, worker_launch_argv(True, canonical_unit))
+    if not isinstance(launch[2], int):
+        raise CanaryError("worker launch did not produce an exact cleanup port")
+    return launch[2]
+
+
+def stop_canary(unit: str, *, _rehearsal_only: bool = False) -> None:
+    if _rehearsal_only:
+        ensure_transient_unit_absent(
+            NIMO2, unit, port=None, phase="postcleanup", verify_only=True)
+        return
     ssh(
         NIMO2, "systemctl", "--user", "kill", "--kill-whom=main",
         "--signal=TERM", f"{unit}.service", check=False)
@@ -2158,16 +2199,25 @@ def rehearse_l77_unit_guard_authority(root: Path) -> dict[str, object]:
     planned_set = frozenset(
         (str(item["host"]), str(item["unit"]), item["port"])
         for item in plan)
-    coverage = [
-        {
+    coverage = []
+    for item in plan:
+        host = str(item["host"])
+        unit = str(item["unit"])
+        port = item["port"]
+        phase = str(item["phase"])
+        if host == NIMO1 and phase == "postcleanup":
+            stop_worker(unit, port, _rehearsal_only=True)
+        elif host == NIMO2 and phase == "postcleanup":
+            stop_canary(unit, _rehearsal_only=True)
+        else:
+            ensure_transient_unit_absent(
+                host, unit, port=port, phase=phase, verify_only=True)
+        coverage.append({
             **item,
             "authority_sha256": UNIT_GUARD_AUTHORITY_SHA256,
             "membership": (
-                (item["host"], item["unit"], item["port"])
-                in UNIT_GUARD_AUTHORITY),
-        }
-        for item in plan
-    ]
+                (host, unit, port) in UNIT_GUARD_AUTHORITY),
+        })
     result = {
         "schema": "halofpx.l92.unit-guard-rehearsal.v1",
         "authority_entries": _canonical_authority_entries(
@@ -2936,7 +2986,7 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
             result = canary_sequence("l68-vertical", f"l68-{label}")
             write_log(root, f"l68-{label}.log", result)
             stop_canary(canary_unit)
-            stop_worker(worker_unit, PORT)
+            stop_worker(worker_unit, worker_cleanup_port(worker_unit))
             lines = [
                 line for line in result.stdout.splitlines()
                 if line.startswith("[halofpx-l68-result] ")
@@ -3031,7 +3081,7 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
         capture_journal = worker_journal(
             capture_unit, capture_invocation, capture_worker_pid)
         (root / "worker-first-chunk.log").write_text(capture_journal, encoding="utf-8")
-        stop_worker(capture_unit)
+        stop_worker(capture_unit, worker_cleanup_port(capture_unit))
         status_lines = [
             line for line in capture_result.stdout.splitlines()
             if line.startswith("[halofpx-l55-status] ")
@@ -3101,7 +3151,7 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     run(["scp", f"{NIMO2}:{epoch_receipt_remote}", str(epoch_receipt_local)])
     epoch_receipt_sha = hashlib.sha256(epoch_receipt_local.read_bytes()).hexdigest()
 
-    stop_worker(capture_unit)
+    stop_worker(capture_unit, worker_cleanup_port(capture_unit))
     restore_worker_pid, restore_invocation, restore_readiness = start_worker(
         True, restore_unit, root)
     if (
@@ -3386,7 +3436,7 @@ def run_legacy_same_residency_diagnostic(root: Path, local_units: list[str]) -> 
         reference_suffix = fetch_suffix(root, "capture", "capture-pre-restart")
         capture_journal = worker_journal(capture_unit, capture_invocation, capture_pid)
         (root / "worker-capture.log").write_text(capture_journal, encoding="utf-8")
-        stop_worker(capture_unit)
+        stop_worker(capture_unit, worker_cleanup_port(capture_unit))
         restore_pid, restore_invocation, restore_readiness = start_worker(True, restore_unit, root)
         ssh(NIMO2, "touch", f"{RENDEZVOUS_ROOT}/worker-restarted")
         process.wait(timeout=SSH_TRANSPORT_MODULE.SSH_OPERATION_DEADLINES["model-session"])
@@ -3690,7 +3740,7 @@ def main() -> int:
         suffixes["cold"] = fetch_suffix(root, "cold", "cold")
         capture_journal = worker_journal(unit1, invocation_capture, pid_capture)
         (root / "worker-capture.log").write_text(capture_journal, encoding="utf-8")
-        stop_worker(unit1)
+        stop_worker(unit1, worker_cleanup_port(unit1))
 
         unit2 = "halofpx-l22-primary-worker-restore"
         local_units.append(unit2)
@@ -3723,7 +3773,7 @@ def main() -> int:
         capture_window, restore_window = state_windows(capture_journal, restore_journal)
         (root / "capture-state-window.log").write_text("\n".join(capture_window) + "\n", encoding="utf-8")
         (root / "restore-state-window.log").write_text("\n".join(restore_window) + "\n", encoding="utf-8")
-        stop_worker(unit2)
+        stop_worker(unit2, worker_cleanup_port(unit2))
 
         unit3 = "halofpx-l22-primary-worker-runtime-off"
         local_units.append(unit3)
@@ -3783,7 +3833,9 @@ def main() -> int:
         for unit in reversed(local_units):
             try:
                 stop_worker(
-                    unit, 50249 if unit == "halofpx-l50-device-gate" else PORT)
+                    unit,
+                    50249 if unit == "halofpx-l50-device-gate"
+                    else worker_cleanup_port(unit))
             except Exception as exc:
                 cleanup_errors.append(f"{unit}: {exc}")
         if DIAGNOSTIC_ONLY:
