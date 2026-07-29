@@ -70,7 +70,8 @@ def test_canary_provenance_is_exactly_bound():
     line = (
         "schema=halofpx.l57.binary-provenance.v1"
         f"|source_root={source_root}|build_id={build_id}|binary=canary\n")
-    assert gate.parse_provenance(line, "", source_root, build_id) == {
+    assert gate.parse_provenance(
+        line, "", source_root, build_id, "canary") == {
         "schema": "halofpx.l57.binary-provenance.v1",
         "source_root": source_root,
         "build_id": build_id,
@@ -85,7 +86,12 @@ def test_canary_provenance_is_exactly_bound():
         (line.replace("schema=", "extra=x|schema="), ""),
     ):
         with pytest.raises(gate.GateError):
-            gate.parse_provenance(stdout, stderr, source_root, build_id)
+            gate.parse_provenance(
+                stdout, stderr, source_root, build_id, "canary")
+    worker = line.replace("binary=canary", "binary=rpc-server")
+    assert gate.parse_provenance(
+        worker, "", source_root, build_id, "rpc-server"
+    )["binary"] == "rpc-server"
 
 
 def test_unresolved_or_omitted_dependency_refuses():
@@ -149,6 +155,21 @@ def test_sanitized_probe_environment_is_closed(monkeypatch):
     }
 
 
+@pytest.mark.parametrize("returncode,stderr", [
+    (1, "refused"),
+    (2, ""),
+    (127, "error while loading shared libraries: libx.so: not found"),
+])
+def test_wrong_provenance_exit_and_loader_failure_refuse(
+        returncode, stderr, monkeypatch):
+    monkeypatch.setattr(
+        gate.subprocess, "run",
+        lambda argv, **_kwargs:
+            subprocess.CompletedProcess(argv, returncode, "", stderr))
+    with pytest.raises(gate.GateError, match=f"command failed \\({returncode}\\)"):
+        gate.run_checked(["binary", "--halofpx-provenance"])
+
+
 def test_relocatable_build_option_is_default_off_and_exact_when_enabled():
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
     assert (
@@ -190,8 +211,12 @@ def test_controller_requires_exact_gate_receipt_before_shutdown(tmp_path):
                 "build_id": provenance["build_id"],
                 "binary": "canary",
             }},
-            "canary_help": {},
-            "worker_help": {},
+            "worker_provenance": {"record": {
+                "schema": "halofpx.l57.binary-provenance.v1",
+                "source_root": provenance["source_root"],
+                "build_id": provenance["build_id"],
+                "binary": "rpc-server",
+            }},
         },
     }
 

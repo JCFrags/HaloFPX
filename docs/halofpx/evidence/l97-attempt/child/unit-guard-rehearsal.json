@@ -1,0 +1,155 @@
+{
+  "all_requests_admitted": true,
+  "authority_entries": [
+    {
+      "host": "nimo-1",
+      "port": 50248,
+      "unit": "halofpx-l48-worker-capture"
+    },
+    {
+      "host": "nimo-1",
+      "port": 50248,
+      "unit": "halofpx-l48-worker-restore"
+    },
+    {
+      "host": "nimo-1",
+      "port": 50249,
+      "unit": "halofpx-l50-device-gate"
+    },
+    {
+      "host": "nimo-2",
+      "port": null,
+      "unit": "halofpx-l48-canary-capture"
+    },
+    {
+      "host": "nimo-2",
+      "port": null,
+      "unit": "halofpx-l48-canary-restore"
+    }
+  ],
+  "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+  "planned": [
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-1",
+      "membership": true,
+      "phase": "prelaunch",
+      "port": 50249,
+      "sequence": 1,
+      "step": "device_gate_prelaunch",
+      "unit": "halofpx-l50-device-gate"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-1",
+      "membership": true,
+      "phase": "postcleanup",
+      "port": 50249,
+      "sequence": 2,
+      "step": "device_gate_postcleanup",
+      "unit": "halofpx-l50-device-gate"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-1",
+      "membership": true,
+      "phase": "prelaunch",
+      "port": 50248,
+      "sequence": 3,
+      "step": "capture_worker_prelaunch",
+      "unit": "halofpx-l48-worker-capture"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-2",
+      "membership": true,
+      "phase": "prelaunch",
+      "port": null,
+      "sequence": 4,
+      "step": "capture_canary_prelaunch",
+      "unit": "halofpx-l48-canary-capture"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-1",
+      "membership": true,
+      "phase": "postcleanup",
+      "port": 50248,
+      "sequence": 5,
+      "step": "capture_worker_postcleanup",
+      "unit": "halofpx-l48-worker-capture"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-1",
+      "membership": true,
+      "phase": "prelaunch",
+      "port": 50248,
+      "sequence": 6,
+      "step": "restore_worker_prelaunch",
+      "unit": "halofpx-l48-worker-restore"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-2",
+      "membership": true,
+      "phase": "prelaunch",
+      "port": null,
+      "sequence": 7,
+      "step": "restore_canary_prelaunch",
+      "unit": "halofpx-l48-canary-restore"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-2",
+      "membership": true,
+      "phase": "postcleanup",
+      "port": null,
+      "sequence": 8,
+      "step": "restore_canary_postcleanup",
+      "unit": "halofpx-l48-canary-restore"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-1",
+      "membership": true,
+      "phase": "postcleanup",
+      "port": 50248,
+      "sequence": 9,
+      "step": "finally_capture_worker",
+      "unit": "halofpx-l48-worker-capture"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-1",
+      "membership": true,
+      "phase": "postcleanup",
+      "port": 50248,
+      "sequence": 10,
+      "step": "finally_restore_worker",
+      "unit": "halofpx-l48-worker-restore"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-1",
+      "membership": true,
+      "phase": "postcleanup",
+      "port": 50249,
+      "sequence": 11,
+      "step": "finally_device_gate",
+      "unit": "halofpx-l50-device-gate"
+    },
+    {
+      "authority_sha256": "769b1e2b713c1f70ac44d91c0093d61df30895a0944e4717065849debcb15cc1",
+      "host": "nimo-2",
+      "membership": true,
+      "phase": "postcleanup",
+      "port": null,
+      "sequence": 12,
+      "step": "finally_restore_canary",
+      "unit": "halofpx-l48-canary-restore"
+    }
+  ],
+  "planned_set_equals_authority": true,
+  "schema": "halofpx.l92.unit-guard-rehearsal.v1"
+}

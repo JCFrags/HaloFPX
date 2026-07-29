@@ -1,0 +1,11 @@
+L22 primary canary failed: durable and emitted result authority differ
+Traceback (most recent call last):
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-l13-primary-retry.py", line 3966, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-l13-primary-retry.py", line 3962, in main
+    raise CanaryError("; ".join(cleanup_errors))
+CanaryError: halofpx-l28-canary-restore: halofpx-l48-canary-restore InvocationID changed before evidence collection
+transition refused/failed: maintenance command exited 1
+EMERGENCY RECOVERY FAILED: timed out waiting for coordinator: nimo-1: HTTP health is 503, expected 200
+EMERGENCY RECOVERY FAILED: worker: NRestarts changed 0 -> 1

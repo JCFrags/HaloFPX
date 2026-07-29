@@ -1,0 +1,30 @@
+{
+  "host": "nimo-1",
+  "invocation_id": "0a38e5a464a64cb292f6e3d7711e35e9",
+  "journal_cursor_lower_bound": "s=4e2fa91ab7f94bb28bcbe361afa7567e;i=2829ee;b=fbf76f5d91f3408580c1cbca4636a606;m=bb5b8eed53;t=657b80ab91fff;x=b57ae5eb9bdf0293",
+  "journal_pids": [
+    "2986624"
+  ],
+  "launch_properties": {
+    "ActiveState": "active",
+    "ExecMainCode": "0",
+    "ExecMainPID": "2986624",
+    "ExecMainStatus": "0",
+    "InvocationID": "0a38e5a464a64cb292f6e3d7711e35e9",
+    "MainPID": "2986624",
+    "Result": "success",
+    "SubState": "running"
+  },
+  "properties": {
+    "ActiveState": "active",
+    "ExecMainCode": "2",
+    "ExecMainPID": "2986624",
+    "ExecMainStatus": "15",
+    "InvocationID": "0a38e5a464a64cb292f6e3d7711e35e9",
+    "MainPID": "0",
+    "Result": "success",
+    "SubState": "exited"
+  },
+  "schema": "halofpx.l51.disposable-unit-exit.v1",
+  "unit": "halofpx-l48-worker-restore.service"
+}

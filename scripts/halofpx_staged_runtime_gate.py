@@ -78,7 +78,7 @@ def parse_needed(dynamic: str) -> list[str]:
 
 def parse_provenance(
         stdout: str, stderr: str, source_root: str,
-        build_id: str) -> dict[str, str]:
+        build_id: str, binary: str) -> dict[str, str]:
     if stderr or stdout.count("\n") != 1 or not stdout.endswith("\n"):
         raise GateError("canary provenance output is not one canonical line")
     fields = stdout[:-1].split("|")
@@ -89,7 +89,7 @@ def parse_provenance(
         "schema": "halofpx.l57.binary-provenance.v1",
         "source_root": source_root,
         "build_id": build_id,
-        "binary": "canary",
+        "binary": binary,
     }
     if parsed != expected or list(parsed) != list(expected):
         raise GateError("canary provenance does not match manifest authority")
@@ -245,26 +245,19 @@ def main() -> int:
         for name in ELF_NAMES
     }
     probes = {}
-    provenance_argv = [str(paths["canary"]), "--halofpx-provenance"]
-    provenance_result = run_checked(provenance_argv)
-    parsed_provenance = parse_provenance(
-        provenance_result.stdout, provenance_result.stderr,
-        provenance["source_root"], provenance["build_id"])
-    probes["canary_provenance"] = {
-        "argv": provenance_argv,
-        "record": parsed_provenance,
-        "stdout_sha256": hashlib.sha256(
-            provenance_result.stdout.encode()).hexdigest(),
-        "stderr_sha256": hashlib.sha256(
-            provenance_result.stderr.encode()).hexdigest(),
-    }
-    for label, argv in {
-        "canary_help": [str(paths["canary"]), "--help"],
-        "worker_help": [str(paths["worker"]), "--help"],
-    }.items():
+    for label, binary_name, argv in (
+        ("canary_provenance", "canary",
+         [str(paths["canary"]), "--halofpx-provenance"]),
+        ("worker_provenance", "rpc-server",
+         [str(paths["worker"]), "--halofpx-provenance"]),
+    ):
         result = run_checked(argv)
         probes[label] = {
             "argv": argv,
+            "record": parse_provenance(
+                result.stdout, result.stderr,
+                provenance["source_root"], provenance["build_id"],
+                binary_name),
             "stdout_sha256": hashlib.sha256(result.stdout.encode()).hexdigest(),
             "stderr_sha256": hashlib.sha256(result.stderr.encode()).hexdigest(),
         }

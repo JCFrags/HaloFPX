@@ -1,0 +1,1 @@
+durable and emitted result authority differ

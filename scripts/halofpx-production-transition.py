@@ -1433,12 +1433,18 @@ def run_l96_staged_runtime_gate(
         or any(receipt.get(name) != value for name, value in expected.items())
         or set(receipt.get("binaries", {})) != {"worker", "canary", "placement"}
         or set(receipt.get("probes", {})) != {
-            "canary_provenance", "canary_help", "worker_help"}
+            "canary_provenance", "worker_provenance"}
         or receipt["probes"]["canary_provenance"].get("record") != {
             "schema": "halofpx.l57.binary-provenance.v1",
             "source_root": provenance["source_root"],
             "build_id": provenance["build_id"],
             "binary": "canary",
+        }
+        or receipt["probes"]["worker_provenance"].get("record") != {
+            "schema": "halofpx.l57.binary-provenance.v1",
+            "source_root": provenance["source_root"],
+            "build_id": provenance["build_id"],
+            "binary": "rpc-server",
         }
     ):
         raise TransitionError("L96 staged-runtime receipt authority mismatch")
