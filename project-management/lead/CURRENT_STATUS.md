@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 19:28 PDT
+Verified: 2026-07-28 20:01 PDT
 
 ## Overall state
 
@@ -279,6 +279,28 @@ listener during absent-unit cleanup only with positive binding to a different
 currently admitted manifest unit/PID/Invocation/cgroup. Unknown or ambiguous
 ownership still refuses. After focused review, one full correctness attempt is
 authorized; no further diagnostic layer or retry is authorized.
+
+L94 closed NOT PROMOTED at
+`4e4245f447928bd7ae8d63a1d0ef330ec2c0cc64`. Its exact journal-cursor and
+shared-listener owner corrections are retained. Residency-A capture/token
+`21549`, four server authorities, and a fresh admitted restore worker passed.
+The restore canary's `systemd-run` succeeded, but wrote its InvocationID to
+stderr while this path parsed stdout only, so the controller refused before
+the residency-B result. Cleanup then compared raw `ps` cgroup text with the
+normalized systemd `ControlGroup` path and refused despite the correct
+alternate owner. External bounded cleanup and production recovery passed.
+
+Production is healthy at coordinator PID `2947160`, InvocationID
+`23808765f78d4d6eaf506052ac91aab4`, `NRestarts=0`, port 8081/HTTP 200; worker
+PID `2124976`, InvocationID `9622a846b8ed45838afc5657f64c5bdd`,
+`NRestarts=0`, port 50052.
+
+L95 is active to remove both duplicated text parsers: restore-canary launch
+must use the existing systemd state-based disposable authority helper, and
+shared ownership must compare a strictly parsed unified cgroup-v2 path with
+systemd authority. After focused review, one full correctness transition is
+authorized. No generic parsing relaxation, retry, or unrelated product/
+performance work is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

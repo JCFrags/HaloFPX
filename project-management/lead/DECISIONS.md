@@ -1537,6 +1537,39 @@ No Stories/model run, offline extraction, RPC transport qualification, grammar
 change, cache or primary work, performance work, production action, or
 automatic follow-on is authorized.
 
+## 2026-07-28 — accept L94 and open L95 authoritative launch/cgroup parsing
+
+Decision: accept L94 terminal NOT PROMOTED at
+`4e4245f447928bd7ae8d63a1d0ef330ec2c0cc64` and retain its reviewed source.
+Open L95 to replace the restore-canary InvocationID text parser and raw cgroup
+comparison with existing/closed authority mechanisms, followed by one full
+primary correctness attempt.
+
+Reason: the restore canary's `systemd-run` returned success and emitted its
+InvocationID on stderr, while this one path parsed stdout. Other launches
+already obtain PID/InvocationID from exact systemd state through
+`capture_disposable_unit_authority`. Cleanup's alternate-owner check similarly
+compared raw `ps` cgroup text to systemd's normalized absolute ControlGroup
+path. These are duplicated presentation parsing defects, not cache/runtime
+failures.
+
+L95 must reuse `capture_disposable_unit_authority` for restore-canary launch
+and bind its cursor/PID/InvocationID to subsequent systemd state. Raw
+stdout/stderr remains evidence but not authority. For cgroups, read and
+strictly parse the source-proven unified cgroup-v2 identity (prefer
+`/proc/<pid>/cgroup`), require one valid `0::/absolute/path` entry, and compare
+the normalized path exactly to systemd ControlGroup plus manifest unit, PID,
+InvocationID, host, and port. Malformed, v1, multiple, relative, stale,
+same-unit, production, unknown, or ambiguous ownership refuses. Audit the same
+two parser families for other reachable duplicated seams. Focused tests and
+one independent review are sufficient.
+
+After those gates, exactly one OOM-aware primary transition may run through
+capture, fresh restore, and one token under existing token/state/component
+equality, zero legacy GET/SET, custody, cleanup, recovery, and production
+reconciliation gates. No retry, runtime semantic correction, protocol/cache
+product/performance work, or automatic follow-on is authorized.
+
 ## 2026-07-28 — accept L90 and open L91 consolidated child authority
 
 Decision: accept L90 terminal NOT PROMOTED at

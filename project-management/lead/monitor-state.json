@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-28T19:28:02-07:00",
+  "updated_at": "2026-07-28T20:01:25-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l94_restore_cursor_and_shared_listener_closure",
+  "worker_status": "active_l95_authoritative_restore_launch_and_cgroup_identity",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "62199ea96a171e0dd1f691cddf68af871b0f1e54",
-  "last_observed_milestone": "L93 NOT PROMOTED; residency-A capture/token21549 passed and fresh restore worker admitted, then raw journal-cursor lower bound refused before restore-canary launch; shared listener was also misattributed during cleanup",
-  "last_decision": "open_l94_exact_restore_cursor_and_positive_shared_listener_owner_binding_then_one_full_correctness_attempt",
-  "last_progress": "L94 is closing both bounded restore-launch/cleanup observability defects together before one capture/restore correctness transition",
+  "last_verified_head": "4e4245f447928bd7ae8d63a1d0ef330ec2c0cc64",
+  "last_observed_milestone": "L94 NOT PROMOTED; capture and fresh restore worker passed, restore canary systemd-run succeeded but stdout-only InvocationID parsing refused; cleanup also compared raw versus normalized cgroup text",
+  "last_decision": "open_l95_reuse_systemd_launch_authority_and_strict_cgroup_v2_identity_then_one_full_correctness_attempt",
+  "last_progress": "L95 is replacing both duplicated presentation parsers with systemd state and strict cgroup-v2 authority before one capture/restore transition",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "L94 semantic blocker, unsafe production uncertainty, or terminal reviewed result; no periodic polling"
+  "next_check_trigger": "L95 semantic blocker, unsafe production uncertainty, or terminal reviewed result; no periodic polling"
 }
