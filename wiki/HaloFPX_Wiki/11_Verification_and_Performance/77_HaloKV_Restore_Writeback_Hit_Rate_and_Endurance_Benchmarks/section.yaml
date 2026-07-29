@@ -1,4 +1,5 @@
 section_id: "77"
+category_id: "11"
 title: "HaloKV Restore, Writeback, Hit-Rate, and Endurance Benchmarks"
 category: "11_Verification_and_Performance"
 status: "needs-machine-validation"

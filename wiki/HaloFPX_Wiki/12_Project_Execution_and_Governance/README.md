@@ -1,8 +1,23 @@
 # 12 — Project Execution and Governance
 
+## Category manifest
+
+- **Purpose:** Route technical design into traceable work, risks, experiments, and reviews.
+- **Authoritative files:** This manifest, the five linked section artifact sets, and Project Lead records.
+- **Current owner:** Project Lead owns work authorization. Documentation workers own routing.
+- **Status:** Draft complete. Machine validation and human policy choices remain open.
+- **Last verified date:** 2026-07-29 for routing. Section claims retain their own dates.
+- **Source commits:** Documentation baseline `d30814ed08fe395f1bb1d292281ce82edb6bdab4`; implementation commits remain in accepted decisions.
+- **Related decisions:** [Project Lead decisions](../../../project-management/lead/DECISIONS.md) and [decision map](../decision-map.md).
+- **Related evidence:** [Evidence map](../evidence-map.md) and [current state](../../../CURRENT_STATE.md).
+- **Open work:** Keep worker tasks, reviews, and evidence linked to the active Project Lead boundary.
+- **Next safe action:** Start at [`WORKER_START_HERE.md`](../../../WORKER_START_HERE.md) and confirm task ownership.
+
 Turns the technical design into an actionable, traceable implementation program.
 
 Research status: draft-complete; needs machine validation and human policy decisions.
+
+The canonical titles use architecture decision record (ADR) and continuous integration (CI).
 
 ## Authoritative draft pages
 

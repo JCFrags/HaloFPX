@@ -1,8 +1,26 @@
 # 11 — Verification and Performance
 
-Defines the evidence model, experiments, correctness checks, and proposed release gates used to decide whether HaloFPX is correct, faster, stable, and releasable.
+## Category manifest
+
+- **Purpose:** Define correctness, measurement, stress, fault, and release evidence.
+- **Authoritative files:** This manifest and the nine linked section artifact sets.
+- **Current owner:** Verification workers own experiments. Documentation workers own routing.
+- **Status:** Source-backed planning complete. Target measurements and policy decisions remain open.
+- **Last verified date:** 2026-07-29 for routing. Section claims retain their own dates.
+- **Source commits:** No category-wide source commit exists. Each `section.yaml` and experiment record must name its exact source commit and binary.
+- **Related decisions:** [Project Lead objectives](../../../project-management/lead/OBJECTIVES.md) and [decision map](../decision-map.md).
+- **Related evidence:** [Evidence map](../evidence-map.md) and `experiments/`.
+- **Open work:** No Wiki page in this category establishes a current full-model speed improvement.
+- **Next safe action:** Compare matched feature-on and feature-off configurations. Separate prompt and generation results.
+
+Defines the evidence model, experiments, and correctness checks.
+Defines the proposed release gates for HaloFPX.
 
 Research status: source-backed planning complete for Sections 73-81; target-machine measurements and policy decisions remain open. No page in this category currently establishes a measured HaloFPX performance result.
+
+The canonical titles use these terms:
+continuous integration (CI), HIP, and out of memory (OOM).
+HIP is the AMD graphics processing unit portability programming model.
 
 ## Authority map
 
