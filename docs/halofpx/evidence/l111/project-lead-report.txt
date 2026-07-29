@@ -1,0 +1,40 @@
+L111 PROJECT LEAD TERMINAL REPORT
+
+Requested task:
+019fa661-0b7d-7a63-8fb4-07658f368f55
+
+Direct delivery result:
+REJECTED - agent with the supplied task id was not present in the reachable
+thread tree.
+
+Terminal state:
+PASS / RETAIN at the bounded loader-foundation review boundary.
+
+Accepted HEAD:
+6c88472bf5f567a1064f27f4d8a90fc8e2b47a02
+
+Branch:
+codex/integration-base-61f2f2d
+
+Focused verification:
+Release CTest 1/1 PASS
+Debug CTest 1/1 PASS
+Feature-off static llama compile PASS
+
+Independent review:
+PASS / RETAIN, no P0 or P1 findings
+
+Preservation:
+Historical L83/L85/L97/L98 evidence remains untouched.
+
+Cleanup:
+Disposable nimo-1 source/build root removed after receipts.
+
+Scope:
+No graph wiring, scheduler change, async RPC, runtime/model execution,
+production mutation, or performance claim.
+
+Next bounded decision:
+Accept L111 as the loader foundation. Any later graph milestone must separately
+adopt the lower-half/upper-half ownership authority; this result does not
+authorize that work.

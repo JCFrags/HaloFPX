@@ -980,7 +980,6 @@ struct llama_model::impl {
     std::vector<layer_dev> dev_layer;
 
     bool has_tensor_overrides;
-    std::vector<const ggml_tensor *> tensors_excluded_from_lookup;
 };
 
 llama_model::llama_model(const llama_model_params & params) : params(params), pimpl(std::make_unique<impl>()) {
@@ -1469,8 +1468,7 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
     // populate tensors_by_name
     for (auto & [_, ctx_ptr] : ml.ctx_map) {
         for (auto * cur = ggml_get_first_tensor(ctx_ptr.get()); cur != NULL; cur = ggml_get_next_tensor(ctx_ptr.get(), cur)) {
-            if (std::find(pimpl->tensors_excluded_from_lookup.begin(), pimpl->tensors_excluded_from_lookup.end(), cur) !=
-                    pimpl->tensors_excluded_from_lookup.end()) {
+            if (!ml.tensor_is_public(cur)) {
                 continue;
             }
             tensors_by_name.emplace_back(ggml_get_name(cur), cur);
@@ -1515,7 +1513,6 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
                 entry.name = ggml_get_name(tensor);
                 entry.type = ggml_type_name(tensor->type);
                 entry.logical_bytes = ggml_nbytes(tensor);
-                entry.source_offset = ml.tensor_source_offset(tensor);
                 entry.view = tensor->view_src != nullptr;
                 int layer = -1;
                 if (std::sscanf(entry.name.c_str(), "blk.%d.", &layer) == 1) {
@@ -1523,6 +1520,7 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
                 }
                 if (const auto * weight = ml.get_weight(entry.name.c_str())) {
                     entry.source_known = true;
+                    entry.source_offset = ml.require_tensor_source_offset(tensor);
                     entry.source_bytes = ggml_nbytes(weight->tensor);
                     if (entry.source_offset > entry.source_bytes ||
                             entry.logical_bytes > entry.source_bytes - entry.source_offset) {
@@ -1714,45 +1712,6 @@ ggml_tensor * llama_model_base::create_tensor_on_device(
     return ml.create_tensor(
         hparams, &pimpl->cpu_buft_list, pimpl->dev_input.buft_list, pimpl->dev_output.buft_list, &strict_buft_list,
         tn, ne, flags);
-}
-
-ggml_tensor * llama_model_base::create_tensor_source_slice_on_device(
-        llama_model_loader & ml,
-        const LLM_TN_IMPL & tn,
-        const std::initializer_list<int64_t> & ne,
-        size_t source_slice_begin,
-        ggml_backend_dev_t dev) {
-    if (pimpl->has_tensor_overrides) {
-        throw std::runtime_error("create_tensor_source_slice_on_device: tensor buffer overrides are incompatible with strict placement");
-    }
-    const auto it = pimpl->gpu_buft_list.find(dev);
-    if (it == pimpl->gpu_buft_list.end()) {
-        throw std::runtime_error(format(
-                "create_tensor_source_slice_on_device: device %s is not an admitted model device",
-                dev == nullptr ? "(null)" : ggml_backend_dev_name(dev)));
-    }
-
-    buft_list_t strict_buft_list;
-    for (const auto & [listed_dev, buft] : it->second) {
-        if (listed_dev == dev && ggml_backend_buft_get_device(buft) == dev) {
-            strict_buft_list.emplace_back(listed_dev, buft);
-        }
-    }
-    if (strict_buft_list.empty()) {
-        throw std::runtime_error(format(
-                "create_tensor_source_slice_on_device: device %s has no strict device-owned buffer type",
-                ggml_backend_dev_name(dev)));
-    }
-    return ml.create_tensor(
-        hparams, &pimpl->cpu_buft_list, pimpl->dev_input.buft_list, pimpl->dev_output.buft_list, &strict_buft_list,
-        tn, ne, llama_model_loader::TENSOR_DUPLICATED | llama_model_loader::TENSOR_SOURCE_SLICE, source_slice_begin);
-}
-
-void llama_model_base::exclude_tensor_from_lookup(const ggml_tensor * tensor) {
-    if (tensor == nullptr) {
-        throw std::runtime_error("exclude_tensor_from_lookup: tensor must not be null");
-    }
-    pimpl->tensors_excluded_from_lookup.push_back(tensor);
 }
 
 std::string llama_model::arch_name() const {

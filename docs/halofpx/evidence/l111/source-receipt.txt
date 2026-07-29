@@ -1,0 +1,34 @@
+L111 SOURCE RECEIPT
+
+accepted_head=6c88472bf5f567a1064f27f4d8a90fc8e2b47a02
+branch=codex/integration-base-61f2f2d
+remote_count=0
+base_archive_sha256=f982436f787c9890bfd7ef38999304929f780c5b40bc8e7e26efb299f40a381c
+tracked_source_patch_sha256=4f0dd8080d24b1a0401eae60ac561f0c605b27076b0bcef9534935a29c8b2551
+focused_test_source_sha256=5f9b68ce557fa74df47e811fe606458518cdc7b2938bc44b33a780d067e3c2de
+git_diff_check=PASS
+
+Exact candidate file SHA256:
+e180a11feb206171b651434cd0a43e6f94b3de1515e6af7bc2baee1964eb6ddf  ggml/src/ggml.c
+8244b55b757318557fa2383ff65819b10b00fdcb42a59cec3a1c43e439a11e26  src/llama-model-loader.cpp
+107715f84d0de52a531c08b8ce33d88aa50fcecaaf870582838a96acea24543f  src/llama-model-loader.h
+65e1131c1fc083e23bf179f704f4484a44aefeef70fddc44f2a12b0d57a2da08  src/llama-model.cpp
+c0ad1706c86c1e418a8b73959e0b1b671c1db290507efe10829cf90b2a29d443  src/llama-model.h
+9dd9cc7b7e12a44da26a921d331044656340d44ef8bacd1c7a14d92e02e01269  src/models/minimax-m2.cpp
+c702cffb5075fa2a0e0de0923569d24e80b217e880995d1efc2bbfd381ffba5b  tests/CMakeLists.txt
+5f9b68ce557fa74df47e811fe606458518cdc7b2938bc44b33a780d067e3c2de  tests/test-halofpx-loader-partition.cpp
+
+Tracked candidate numstat before evidence:
+224	0	ggml/src/ggml.c
+307	55	src/llama-model-loader.cpp
+33	6	src/llama-model-loader.h
+2	43	src/llama-model.cpp
+0	10	src/llama-model.h
+18	28	src/models/minimax-m2.cpp
+8	0	tests/CMakeLists.txt
+
+Untracked focused test length before retention: 715 lines.
+
+The remote build source matched the eight local candidate file hashes before
+the final exact rebuild. Historical untracked evidence was excluded from all
+L111 archives, patches, staging, and cleanup.

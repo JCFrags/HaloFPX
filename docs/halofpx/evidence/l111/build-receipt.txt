@@ -1,0 +1,46 @@
+L111 BUILD RECEIPT
+
+Disposable root:
+/var/tmp/halofpx-l111-visible-6c88472-20260729a
+
+Toolchain:
+cmake version 4.3.4
+Ninja 1.13.2
+gcc (GCC) 16.1.1 20260625
+
+Release focused build:
+BUILD_SHARED_LIBS=ON
+CMAKE_BUILD_TYPE=Release
+GGML_RPC=ON
+GGML_RPC_HALOFPX_LOCAL_STATE=ON
+LLAMA_BUILD_TESTS=ON
+target=test-halofpx-loader-partition
+ctest_result=1/1 PASS
+binary_sha256=eb65b0557b023f4fceb94a38a70b3c63366edf7d13d481c0a5e371ef5428931f
+
+Debug focused build:
+BUILD_SHARED_LIBS=ON
+CMAKE_BUILD_TYPE=Debug
+GGML_RPC=ON
+GGML_RPC_HALOFPX_LOCAL_STATE=ON
+LLAMA_BUILD_TESTS=ON
+target=test-halofpx-loader-partition
+ctest_result=1/1 PASS
+binary_sha256=20c674daedf242151b166ec0c8b97ad20d24a7619c7350a289763da038cb1503
+
+Feature-off compile:
+BUILD_SHARED_LIBS=OFF
+CMAKE_BUILD_TYPE=Release
+GGML_RPC=OFF
+GGML_RPC_HALOFPX_LOCAL_STATE=OFF
+LLAMA_BUILD_TESTS=OFF
+target=llama
+build_result=PASS
+libllama_a_sha256=fcdcb47884741f84c39339e71a8963e389e42fcae119719a92adf17c00e2ef8b
+
+The feature-off target was static so accepted-branch shared final-link
+dependencies did not obscure whether the complete L111 production source,
+including MiniMax, compiled with both HaloFPX local state and RPC disabled.
+
+No broad test matrix, model load, model artifact access, accelerator action,
+listener, service mutation, or production action occurred.

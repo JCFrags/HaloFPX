@@ -1034,6 +1034,230 @@ struct ggml_context {
     struct ggml_object * objects_end;
 };
 
+// Loader-internal two-context transaction. No arena checkpoint or transaction
+// handle crosses the ggml boundary. The private record is addressed only by
+// exact created tensors and by the loader's live generation authority.
+struct ggml_loader_txn_record {
+    struct ggml_context * ctx[2];
+    struct ggml_object * objects_end_before[2];
+    struct ggml_object * objects_end_after[2];
+    struct ggml_tensor * tensor[2];
+    const void * owner;
+    const uint64_t * generation_authority;
+    int n_objects_before[2];
+    int n_objects_after[2];
+    uint64_t generation;
+    struct ggml_loader_txn_record * next;
+};
+
+static struct ggml_loader_txn_record * ggml_loader_txns;
+
+int ggml_loader_txn_create_tensor_pair(
+        struct ggml_context * ctx0,
+        struct ggml_context * ctx1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation,
+        enum ggml_type type,
+        int64_t ne0,
+        int64_t ne1,
+        int64_t ne20,
+        int64_t ne21,
+        int fail_after_creation,
+        struct ggml_tensor ** tensor0,
+        struct ggml_tensor ** tensor1);
+bool ggml_loader_txn_rollback_tensor_pair(
+        struct ggml_context * ctx0,
+        struct ggml_tensor * tensor0,
+        struct ggml_context * ctx1,
+        struct ggml_tensor * tensor1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation);
+bool ggml_loader_txn_commit_tensor_pair(
+        struct ggml_context * ctx0,
+        struct ggml_tensor * tensor0,
+        struct ggml_context * ctx1,
+        struct ggml_tensor * tensor1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation);
+
+static void ggml_loader_txn_restore_context(
+        struct ggml_context * ctx,
+        struct ggml_object * objects_end,
+        int n_objects) {
+    if (objects_end == NULL) {
+        ctx->objects_begin = NULL;
+    } else {
+        objects_end->next = NULL;
+    }
+    ctx->objects_end = objects_end;
+    ctx->n_objects = n_objects;
+}
+
+static bool ggml_loader_txn_record_is_current(const struct ggml_loader_txn_record * record) {
+    return record->generation > 0 &&
+            *record->generation_authority == record->generation - 1 &&
+            record->ctx[0]->objects_end == record->objects_end_after[0] &&
+            record->ctx[1]->objects_end == record->objects_end_after[1] &&
+            record->ctx[0]->n_objects == record->n_objects_after[0] &&
+            record->ctx[1]->n_objects == record->n_objects_after[1];
+}
+
+static struct ggml_loader_txn_record ** ggml_loader_txn_find(
+        struct ggml_context * ctx0,
+        struct ggml_tensor * tensor0,
+        struct ggml_context * ctx1,
+        struct ggml_tensor * tensor1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation) {
+    struct ggml_loader_txn_record ** link = &ggml_loader_txns;
+    while (*link != NULL) {
+        struct ggml_loader_txn_record * record = *link;
+        if (record->ctx[0] == ctx0 && record->tensor[0] == tensor0 &&
+                record->ctx[1] == ctx1 && record->tensor[1] == tensor1 &&
+                record->owner == owner &&
+                record->generation_authority == generation_authority &&
+                record->generation == generation) {
+            return link;
+        }
+        link = &record->next;
+    }
+    return NULL;
+}
+
+int ggml_loader_txn_create_tensor_pair(
+        struct ggml_context * ctx0,
+        struct ggml_context * ctx1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation,
+        enum ggml_type type,
+        int64_t ne0,
+        int64_t ne1,
+        int64_t ne20,
+        int64_t ne21,
+        int fail_after_creation,
+        struct ggml_tensor ** tensor0,
+        struct ggml_tensor ** tensor1) {
+    if (ctx0 == NULL || ctx1 == NULL || ctx0 == ctx1 || owner == NULL ||
+            generation_authority == NULL || generation == 0 ||
+            *generation_authority != generation - 1 ||
+            ne0 <= 0 || ne1 <= 0 || ne20 <= 0 || ne21 <= 0 ||
+            (fail_after_creation != 0 && fail_after_creation != 1 && fail_after_creation != 2) ||
+            tensor0 == NULL || tensor1 == NULL) {
+        return -1;
+    }
+
+    *tensor0 = NULL;
+    *tensor1 = NULL;
+    struct ggml_loader_txn_record * record = malloc(sizeof(*record));
+    if (record == NULL) {
+        return -1;
+    }
+
+    ggml_critical_section_start();
+    if (*generation_authority != generation - 1) {
+        ggml_critical_section_end();
+        free(record);
+        return -1;
+    }
+    for (struct ggml_loader_txn_record * active = ggml_loader_txns;
+            active != NULL; active = active->next) {
+        if (active->owner == owner || active->ctx[0] == ctx0 || active->ctx[0] == ctx1 ||
+                active->ctx[1] == ctx0 || active->ctx[1] == ctx1) {
+            ggml_critical_section_end();
+            free(record);
+            return -1;
+        }
+    }
+
+    record->ctx[0] = ctx0;
+    record->ctx[1] = ctx1;
+    record->objects_end_before[0] = ctx0->objects_end;
+    record->objects_end_before[1] = ctx1->objects_end;
+    record->n_objects_before[0] = ctx0->n_objects;
+    record->n_objects_before[1] = ctx1->n_objects;
+    record->owner = owner;
+    record->generation_authority = generation_authority;
+    record->generation = generation;
+
+    record->tensor[0] = ggml_new_tensor_4d(ctx0, type, ne0, ne1, ne20, 1);
+    if (fail_after_creation == 1) {
+        ggml_loader_txn_restore_context(ctx0, record->objects_end_before[0], record->n_objects_before[0]);
+        ggml_critical_section_end();
+        free(record);
+        return 1;
+    }
+    record->tensor[1] = ggml_new_tensor_4d(ctx1, type, ne0, ne1, ne21, 1);
+    if (fail_after_creation == 2) {
+        ggml_loader_txn_restore_context(ctx1, record->objects_end_before[1], record->n_objects_before[1]);
+        ggml_loader_txn_restore_context(ctx0, record->objects_end_before[0], record->n_objects_before[0]);
+        ggml_critical_section_end();
+        free(record);
+        return 2;
+    }
+
+    record->objects_end_after[0] = ctx0->objects_end;
+    record->objects_end_after[1] = ctx1->objects_end;
+    record->n_objects_after[0] = ctx0->n_objects;
+    record->n_objects_after[1] = ctx1->n_objects;
+    record->next = ggml_loader_txns;
+    ggml_loader_txns = record;
+    *tensor0 = record->tensor[0];
+    *tensor1 = record->tensor[1];
+    ggml_critical_section_end();
+    return 0;
+}
+
+bool ggml_loader_txn_rollback_tensor_pair(
+        struct ggml_context * ctx0,
+        struct ggml_tensor * tensor0,
+        struct ggml_context * ctx1,
+        struct ggml_tensor * tensor1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation) {
+    ggml_critical_section_start();
+    struct ggml_loader_txn_record ** link = ggml_loader_txn_find(
+            ctx0, tensor0, ctx1, tensor1, owner, generation_authority, generation);
+    if (link == NULL || !ggml_loader_txn_record_is_current(*link)) {
+        ggml_critical_section_end();
+        return false;
+    }
+    struct ggml_loader_txn_record * record = *link;
+    *link = record->next;
+    ggml_loader_txn_restore_context(ctx1, record->objects_end_before[1], record->n_objects_before[1]);
+    ggml_loader_txn_restore_context(ctx0, record->objects_end_before[0], record->n_objects_before[0]);
+    ggml_critical_section_end();
+    free(record);
+    return true;
+}
+
+bool ggml_loader_txn_commit_tensor_pair(
+        struct ggml_context * ctx0,
+        struct ggml_tensor * tensor0,
+        struct ggml_context * ctx1,
+        struct ggml_tensor * tensor1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation) {
+    ggml_critical_section_start();
+    struct ggml_loader_txn_record ** link = ggml_loader_txn_find(
+            ctx0, tensor0, ctx1, tensor1, owner, generation_authority, generation);
+    if (link == NULL || !ggml_loader_txn_record_is_current(*link)) {
+        ggml_critical_section_end();
+        return false;
+    }
+    struct ggml_loader_txn_record * record = *link;
+    *link = record->next;
+    ggml_critical_section_end();
+    free(record);
+    return true;
+}
+
 //
 // data types
 //

@@ -815,6 +815,14 @@ target_link_libraries(${TEST_TARGET} PRIVATE llama)
 llama_build_and_test(test-alloc.cpp)
 target_include_directories(test-alloc PRIVATE ${PROJECT_SOURCE_DIR}/ggml/src)
 
+llama_build_and_test(test-halofpx-loader-partition.cpp)
+target_include_directories(test-halofpx-loader-partition PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/ggml/src)
+if (GGML_RPC)
+    target_link_libraries(test-halofpx-loader-partition PRIVATE ggml-rpc)
+endif()
+
 if (GGML_RPC_HALOFPX_LOCAL_STATE)
     add_executable(test-halofpx-rpc-graph-authority test-halofpx-rpc-graph-authority.cpp)
     target_link_libraries(test-halofpx-rpc-graph-authority PRIVATE llama ggml-rpc)

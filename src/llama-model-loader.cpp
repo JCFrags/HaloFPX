@@ -8,11 +8,46 @@
 #include <algorithm>
 #include <array>
 #include <cinttypes>
+#include <climits>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <future>
 #include <limits>
 #include <regex>
+
+extern "C" {
+int ggml_loader_txn_create_tensor_pair(
+        ggml_context * ctx0,
+        ggml_context * ctx1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation,
+        enum ggml_type type,
+        int64_t ne0,
+        int64_t ne1,
+        int64_t ne20,
+        int64_t ne21,
+        int fail_after_creation,
+        ggml_tensor ** tensor0,
+        ggml_tensor ** tensor1);
+bool ggml_loader_txn_rollback_tensor_pair(
+        ggml_context * ctx0,
+        ggml_tensor * tensor0,
+        ggml_context * ctx1,
+        ggml_tensor * tensor1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation);
+bool ggml_loader_txn_commit_tensor_pair(
+        ggml_context * ctx0,
+        ggml_tensor * tensor0,
+        ggml_context * ctx1,
+        ggml_tensor * tensor1,
+        const void * owner,
+        const uint64_t * generation_authority,
+        uint64_t generation);
+}
 
 static const size_t kiB = 1024;
 static const size_t MiB = 1024*kiB;
@@ -1131,12 +1166,13 @@ static ggml_backend_buffer_type_t select_weight_buft(const llama_hparams & hpara
 
 struct ggml_tensor * llama_model_loader::create_tensor(
         const llama_hparams & hparams, const buft_list_t * buft_list_cpu, const buft_list_t * buft_list_input, const buft_list_t * buft_list_output,
-        const buft_list_t * buft_list_layer, const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags,
-        size_t source_slice_begin) {
+        const buft_list_t * buft_list_layer, const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags) {
     const std::string tn_name = tn.str();
-    const bool source_slice = flags & TENSOR_SOURCE_SLICE;
-    if (source_slice && !(flags & TENSOR_DUPLICATED)) {
-        throw std::runtime_error(format("source-slice tensor '%s' must be an implementation-only duplicate", tn_name.c_str()));
+    const bool duplicated = flags & TENSOR_DUPLICATED;
+    const bool implementation_only = flags & TENSOR_IMPLEMENTATION_ONLY;
+    if (implementation_only && !duplicated) {
+        throw std::runtime_error(format(
+                "implementation-only tensor '%s' must be an internal duplicate", tn_name.c_str()));
     }
     std::string load_name = tn_name;
     if (!files.empty() && get_tensor_meta(load_name.c_str()) == nullptr) {
@@ -1329,9 +1365,6 @@ struct ggml_tensor * llama_model_loader::create_tensor(
     };
 
     if (files.empty()) {
-        if (source_slice) {
-            throw std::runtime_error(format("source-slice tensor '%s' requires a concrete GGUF source", tn_name.c_str()));
-        }
         if (flags & TENSOR_SKIP_IF_VIRTUAL) {
             return nullptr;
         }
@@ -1377,70 +1410,262 @@ struct ggml_tensor * llama_model_loader::create_tensor(
     ggml_context * ctx = ctx_for_buft(buft);
 
     // if duplicated, check if the original tensor was allocated in the same buffer type context and avoid creating a new one
-    if ((flags & TENSOR_DUPLICATED) && !source_slice) {
+    if (duplicated) {
         ggml_tensor * t = ggml_get_tensor(ctx, load_name.c_str());
         if (t) {
+            if (implementation_only &&
+                    std::find(tensors_excluded_from_lookup.begin(), tensors_excluded_from_lookup.end(), t) ==
+                            tensors_excluded_from_lookup.end()) {
+                throw std::runtime_error(format(
+                        "implementation-only duplicate '%s' cannot hide an existing public tensor",
+                        load_name.c_str()));
+            }
             return t;
         }
     }
-
-    LLAMA_LOG_DEBUG("%s: loading tensor %s\n", __func__, load_name.c_str());
-    if (source_slice) {
-        if (ne.size() < 3 || ne.size() > GGML_MAX_DIMS) {
-            throw std::runtime_error(format("source-slice tensor '%s' must specify three or four dimensions", tn_name.c_str()));
+    if (implementation_only) {
+        if (tensors_excluded_from_lookup.size() == tensors_excluded_from_lookup.max_size()) {
+            throw std::runtime_error("implementation-only tensor lookup authority is exhausted");
         }
-
-        std::array<int64_t, GGML_MAX_DIMS> dims { 1, 1, 1, 1 };
-        std::copy(ne.begin(), ne.end(), dims.begin());
-        if (dims[0] != t_meta->ne[0] || dims[1] != t_meta->ne[1] || dims[3] != t_meta->ne[3] || dims[2] <= 0 ||
-                source_slice_begin > static_cast<size_t>(t_meta->ne[2]) ||
-                static_cast<size_t>(dims[2]) > static_cast<size_t>(t_meta->ne[2]) - source_slice_begin) {
-            throw std::runtime_error(format("source-slice tensor '%s' is not a bounded contiguous axis-2 range", tn_name.c_str()));
-        }
-        if (source_slice_begin > std::numeric_limits<size_t>::max() / t_meta->nb[2] ||
-                static_cast<size_t>(dims[2]) > std::numeric_limits<size_t>::max() / t_meta->nb[2]) {
-            throw std::runtime_error(format("source-slice tensor '%s' range overflows", tn_name.c_str()));
-        }
-        const size_t source_offset = source_slice_begin * t_meta->nb[2];
-        const size_t source_size = static_cast<size_t>(dims[2]) * t_meta->nb[2];
-        const size_t full_size = ggml_nbytes(t_meta);
-        if (source_offset > full_size || source_size > full_size - source_offset) {
-            throw std::runtime_error(format("source-slice tensor '%s' exceeds its GGUF source", tn_name.c_str()));
-        }
-
-        ggml_tensor * tensor = ggml_new_tensor_4d(ctx, t_meta->type, dims[0], dims[1], dims[2], dims[3]);
-        ggml_set_name(tensor, load_name.c_str());
-        if (tensor->nb[1] != t_meta->nb[1] || tensor->nb[2] != t_meta->nb[2] || ggml_nbytes(tensor) != source_size) {
-            throw std::runtime_error(format("source-slice tensor '%s' changed packed row geometry", tn_name.c_str()));
-        }
-        if (!tensor_source_offsets.emplace(tensor, source_offset).second) {
-            throw std::runtime_error(format("source-slice tensor '%s' has duplicate load authority", tn_name.c_str()));
-        }
-        size_data += source_size;
-        LLAMA_LOG_INFO("%s: tensor '%s' loads axis-2 range [%zu, %zu) from packed source bytes [%zu, %zu)\n",
-                __func__, tn_name.c_str(), source_slice_begin, source_slice_begin + static_cast<size_t>(dims[2]),
-                source_offset, source_offset + source_size);
-        return tensor;
+        tensors_excluded_from_lookup.reserve(tensors_excluded_from_lookup.size() + 1);
     }
 
+    LLAMA_LOG_DEBUG("%s: loading tensor %s\n", __func__, load_name.c_str());
     const struct ggml_tensor * cur = check_tensor_dims(load_name, ne, !(flags & TENSOR_NOT_REQUIRED));
 
     if (cur == NULL) {
         return NULL;
     }
 
-    const bool duplicated = flags & TENSOR_DUPLICATED;
+    if (tensor_source_offsets.size() == tensor_source_offsets.max_size()) {
+        throw std::runtime_error("tensor source-offset authority is exhausted");
+    }
+    tensor_source_offsets.reserve(tensor_source_offsets.size() + 1);
+    const size_t source_bytes = ggml_nbytes(cur);
+    if (duplicated && size_data > std::numeric_limits<size_t>::max() - source_bytes) {
+        throw std::runtime_error(format("tensor '%s' duplicate accounting overflows", load_name.c_str()));
+    }
+    if (!duplicated && n_created == std::numeric_limits<int>::max()) {
+        throw std::runtime_error(format("tensor '%s' logical accounting overflows", load_name.c_str()));
+    }
 
     struct ggml_tensor * tensor = ggml_dup_tensor(ctx, cur);
     ggml_set_name(tensor, ggml_get_name(cur));
+    tensor_source_offsets.emplace_back(tensor, 0);
+    if (implementation_only) {
+        tensors_excluded_from_lookup.push_back(tensor);
+    }
 
     if (duplicated) {
-        size_data += ggml_nbytes(cur);
+        size_data += source_bytes;
     } else {
         n_created++;
     }
 
     return tensor;
+}
+
+llama_model_loader::axis2_partition_pair llama_model_loader::create_axis2_partition_pair(
+        const std::string & source_name,
+        const std::array<axis2_partition, 2> & requested) {
+    if (tensor_creation_sealed || !mappings.empty() || !mmaps_used.empty() || size_done != 0) {
+        throw std::runtime_error("axis-2 partition creation phase is already sealed");
+    }
+    if (files.empty()) {
+        throw std::runtime_error("axis-2 partition pair requires a concrete GGUF source");
+    }
+    if (tensor_buft_overrides != nullptr) {
+        throw std::runtime_error("axis-2 partition pair forbids tensor buffer overrides");
+    }
+
+    const ggml_tensor * source = require_tensor_meta(source_name);
+    if (source->ne[0] <= 0 || source->ne[1] <= 0 || source->ne[2] <= 0 || source->ne[3] != 1) {
+        throw std::runtime_error(format("axis-2 partition source '%s' must be a positive rank-3 tensor", source_name.c_str()));
+    }
+
+    const axis2_partition * by_rank[2] = { nullptr, nullptr };
+    for (const axis2_partition & part : requested) {
+        if (part.rank < 0 || part.rank > 1 || by_rank[part.rank] != nullptr) {
+            throw std::runtime_error("axis-2 partition ownership must be the closed rank set {0,1}");
+        }
+        by_rank[part.rank] = &part;
+    }
+    if (by_rank[0] == nullptr || by_rank[1] == nullptr) {
+        throw std::runtime_error("axis-2 partition ownership must contain ranks 0 and 1 exactly once");
+    }
+
+    const axis2_partition & rank0 = *by_rank[0];
+    const axis2_partition & rank1 = *by_rank[1];
+    if (rank0.dev == nullptr || rank1.dev == nullptr || rank0.dev == rank1.dev) {
+        throw std::runtime_error("axis-2 partition ranks require two distinct admitted devices");
+    }
+    if (ggml_backend_dev_type(rank0.dev) == GGML_BACKEND_DEVICE_TYPE_CPU ||
+            ggml_backend_dev_type(rank1.dev) == GGML_BACKEND_DEVICE_TYPE_CPU) {
+        throw std::runtime_error("axis-2 partition ranks require non-host devices");
+    }
+    if (rank0.buft == nullptr || rank1.buft == nullptr || rank0.buft == rank1.buft ||
+            ggml_backend_buft_get_device(rank0.buft) != rank0.dev ||
+            ggml_backend_buft_get_device(rank1.buft) != rank1.dev ||
+            ggml_backend_dev_buffer_type(rank0.dev) != rank0.buft ||
+            ggml_backend_dev_buffer_type(rank1.dev) != rank1.buft ||
+            ggml_backend_dev_host_buffer_type(rank0.dev) == rank0.buft ||
+            ggml_backend_dev_host_buffer_type(rank1.dev) == rank1.buft) {
+        throw std::runtime_error("axis-2 partition buffer ownership does not match its rank device");
+    }
+
+    auto ctx0_it = ctx_map.find(rank0.buft);
+    auto ctx1_it = ctx_map.find(rank1.buft);
+    if (ctx0_it == ctx_map.end() || ctx1_it == ctx_map.end()) {
+        throw std::runtime_error("axis-2 partition target is not an admitted loader context");
+    }
+    ggml_context * ctx0 = ctx0_it->second.get();
+    ggml_context * ctx1 = ctx1_it->second.get();
+    if (ctx0 == ctx1) {
+        throw std::runtime_error("axis-2 partition ranks cannot share a tensor context");
+    }
+
+    const size_t extent = static_cast<size_t>(source->ne[2]);
+    if (rank0.begin != 0 || rank0.end <= rank0.begin ||
+            rank1.begin != rank0.end || rank1.end <= rank1.begin || rank1.end != extent) {
+        throw std::runtime_error("axis-2 partitions must provide ordered, gap-free, non-overlapping full coverage");
+    }
+    if (rank0.end > extent || rank1.end > extent) {
+        throw std::runtime_error("axis-2 partition is outside source bounds");
+    }
+    if (source->nb[0] != ggml_type_size(source->type) ||
+            source->nb[1] != ggml_row_size(source->type, source->ne[0]) ||
+            static_cast<size_t>(source->ne[1]) > std::numeric_limits<size_t>::max() / source->nb[1] ||
+            source->nb[2] != source->nb[1] * static_cast<size_t>(source->ne[1]) ||
+            source->nb[2] == 0 ||
+            extent > std::numeric_limits<size_t>::max() / source->nb[2] ||
+            source->nb[3] != source->nb[2] * extent) {
+        throw std::runtime_error("axis-2 partition source byte geometry overflows");
+    }
+    const size_t full_bytes = extent * source->nb[2];
+    if (full_bytes != ggml_nbytes(source)) {
+        throw std::runtime_error("axis-2 partition source has non-contiguous axis-2 byte geometry");
+    }
+    const size_t rank0_bytes = rank0.end * source->nb[2];
+    const size_t rank1_offset = rank1.begin * source->nb[2];
+    const size_t rank1_bytes = (rank1.end - rank1.begin) * source->nb[2];
+    if (rank0_bytes == 0 || rank1_bytes == 0 || rank1_offset != rank0_bytes ||
+            rank1_bytes != full_bytes - rank1_offset) {
+        throw std::runtime_error("axis-2 partition byte ranges do not exactly cover the GGUF source");
+    }
+
+    for (const auto & [_, ctx_ptr] : ctx_map) {
+        if (ggml_get_tensor(ctx_ptr.get(), source_name.c_str()) != nullptr) {
+            throw std::runtime_error(format(
+                    "axis-2 partition source '%s' already has a full or aliased allocation", source_name.c_str()));
+        }
+    }
+    if (n_created < 0 || n_created >= n_tensors || n_created == std::numeric_limits<int>::max()) {
+        throw std::runtime_error("axis-2 partition accounting cannot represent one logical source tensor");
+    }
+    const size_t ctx0_size = ggml_get_mem_size(ctx0);
+    const size_t ctx1_size = ggml_get_mem_size(ctx1);
+    const size_t ctx0_used = ggml_used_mem(ctx0);
+    const size_t ctx1_used = ggml_used_mem(ctx1);
+    if (ctx0_used > ctx0_size || ctx1_used > ctx1_size ||
+            ctx0_size - ctx0_used < ggml_tensor_overhead() ||
+            ctx1_size - ctx1_used < ggml_tensor_overhead()) {
+        throw std::runtime_error("axis-2 partition target context lacks reserved metadata capacity");
+    }
+
+    if (tensor_source_offsets.size() > tensor_source_offsets.max_size() - 2 ||
+            tensors_excluded_from_lookup.size() == tensors_excluded_from_lookup.max_size()) {
+        throw std::runtime_error("axis-2 partition registry capacity is exhausted");
+    }
+    tensor_source_offsets.reserve(tensor_source_offsets.size() + 2);
+    tensors_excluded_from_lookup.reserve(tensors_excluded_from_lookup.size() + 1);
+    if (partition_generation == std::numeric_limits<uint64_t>::max()) {
+        throw std::runtime_error("axis-2 partition generation exhausted");
+    }
+    const uint64_t generation = partition_generation + 1;
+
+    axis2_partition_pair result = { nullptr, nullptr };
+    const int fail_after = [] {
+        const char * raw = std::getenv("HALOFPX_L111_FAIL_AFTER_MUTATION");
+        if (raw == nullptr || raw[0] == '\0') {
+            return 0;
+        }
+        char * end = nullptr;
+        const long value = std::strtol(raw, &end, 10);
+        return end != raw && *end == '\0' && value > 0 && value <= 6 ? static_cast<int>(value) : -1;
+    }();
+    if (fail_after < 0) {
+        throw std::runtime_error("HALOFPX_L111_FAIL_AFTER_MUTATION must be a decimal boundary from 1 through 6");
+    }
+    const int creation_status = ggml_loader_txn_create_tensor_pair(
+            ctx0,
+            ctx1,
+            this,
+            &partition_generation,
+            generation,
+            source->type,
+            source->ne[0],
+            source->ne[1],
+            rank0.end,
+            rank1.end - rank1.begin,
+            fail_after <= 2 ? fail_after : 0,
+            &result.rank0,
+            &result.rank1);
+    if (creation_status < 0) {
+        throw std::runtime_error("axis-2 partition could not begin its generation-bound tensor transaction");
+    }
+    if (creation_status > 0) {
+        throw std::runtime_error(format(
+                "injected L111 failure after mutation boundary %d", creation_status));
+    }
+
+    int mutation = 2;
+    auto inject = [&] {
+        ++mutation;
+        if (fail_after == mutation) {
+            throw std::runtime_error(format("injected L111 failure after mutation boundary %d", mutation));
+        }
+    };
+
+    const int old_n_created = n_created;
+    const size_t old_size_data = size_data;
+    const size_t old_source_offsets = tensor_source_offsets.size();
+    const size_t old_lookup_exclusions = tensors_excluded_from_lookup.size();
+    try {
+        ggml_set_name(result.rank0, source_name.c_str());
+        GGML_ASSERT(ggml_nbytes(result.rank0) == rank0_bytes);
+        tensor_source_offsets.emplace_back(result.rank0, 0);
+        inject();
+        ggml_set_name(result.rank1, source_name.c_str());
+        GGML_ASSERT(ggml_nbytes(result.rank1) == rank1_bytes);
+        tensor_source_offsets.emplace_back(result.rank1, rank1_offset);
+        inject();
+        tensors_excluded_from_lookup.push_back(result.rank1);
+        inject();
+        n_created++;
+        inject();
+
+        if (!ggml_loader_txn_commit_tensor_pair(
+                    ctx0, result.rank0, ctx1, result.rank1, this, &partition_generation, generation)) {
+            GGML_ABORT("loader-owned tensor transaction failed no-throw commit");
+        }
+        partition_generation = generation;
+    } catch (...) {
+        n_created = old_n_created;
+        size_data = old_size_data;
+        tensor_source_offsets.resize(old_source_offsets);
+        tensors_excluded_from_lookup.resize(old_lookup_exclusions);
+        GGML_ASSERT(ggml_loader_txn_rollback_tensor_pair(
+                ctx0, result.rank0, ctx1, result.rank1, this, &partition_generation, generation));
+        throw;
+    }
+
+    return result;
+}
+
+bool llama_model_loader::tensor_is_public(const ggml_tensor * tensor) const {
+    return tensor != nullptr &&
+            std::find(tensors_excluded_from_lookup.begin(), tensors_excluded_from_lookup.end(), tensor) ==
+                    tensors_excluded_from_lookup.end();
 }
 
 struct ggml_tensor * llama_model_loader::create_tensor_as_view(struct ggml_context * ctx, struct ggml_tensor * base, const std::string & name, const std::initializer_list<int64_t> & ne, size_t offset, bool required) {
@@ -1452,6 +1677,13 @@ struct ggml_tensor * llama_model_loader::create_tensor_as_view(struct ggml_conte
 
     if (cur->type != base->type) {
         throw std::runtime_error(format("%s: tensor '%s' has wrong type; expected %s, got %s", __func__, name.c_str(), ggml_type_name(base->type), ggml_type_name(cur->type)));
+    }
+    if (tensor_source_offsets.size() == tensor_source_offsets.max_size()) {
+        throw std::runtime_error("tensor view source-offset authority is exhausted");
+    }
+    tensor_source_offsets.reserve(tensor_source_offsets.size() + 1);
+    if (n_created == std::numeric_limits<int>::max()) {
+        throw std::runtime_error("tensor view logical accounting overflows");
     }
 
     std::array<int64_t, GGML_MAX_DIMS> dims;
@@ -1465,13 +1697,14 @@ struct ggml_tensor * llama_model_loader::create_tensor_as_view(struct ggml_conte
                                     offset);
 
     ggml_set_name(tensor, name.c_str());
+    tensor_source_offsets.emplace_back(tensor, 0);
 
     n_created++;
 
     return tensor;
 }
 
-void llama_model_loader::done_getting_tensors(bool partial) const {
+void llama_model_loader::done_getting_tensors(bool partial) {
     if (n_created > n_tensors) {
         throw std::runtime_error(format("%s: too many tensors created; expected %d, got %d", __func__, n_tensors, n_created));
     }
@@ -1487,9 +1720,11 @@ void llama_model_loader::done_getting_tensors(bool partial) const {
             __func__, first_tensor_moved_name.c_str(), first_tensor_moved_type_name.c_str(), n_tensors_moved - 1,
             ggml_backend_buft_name(first_moved_from_buft), ggml_backend_buft_name(first_moved_to_buft));
     }
+    tensor_creation_sealed = true;
 }
 
 void llama_model_loader::init_mappings(bool prefetch, llama_mlocks * mlock_mmaps) {
+    tensor_creation_sealed = true;
     if (use_mmap) {
         mappings.reserve(files.size());
         mmaps_used.reserve(files.size());
@@ -1522,9 +1757,25 @@ void llama_model_loader::init_mappings(bool prefetch, llama_mlocks * mlock_mmaps
     }
 }
 
-size_t llama_model_loader::tensor_source_offset(const struct ggml_tensor * tensor) const {
-    const auto it = tensor_source_offsets.find(tensor);
-    return it == tensor_source_offsets.end() ? 0 : it->second;
+std::optional<size_t> llama_model_loader::tensor_source_offset(const struct ggml_tensor * tensor) const {
+    const auto it = std::find_if(
+            tensor_source_offsets.begin(),
+            tensor_source_offsets.end(),
+            [tensor](const auto & entry) { return entry.first == tensor; });
+    if (it == tensor_source_offsets.end()) {
+        return std::nullopt;
+    }
+    return it->second;
+}
+
+size_t llama_model_loader::require_tensor_source_offset(const struct ggml_tensor * tensor) const {
+    const auto offset = tensor_source_offset(tensor);
+    if (!offset.has_value()) {
+        throw std::runtime_error(format(
+                "tensor '%s' has no loader-owned GGUF source-offset authority",
+                tensor == nullptr ? "(null)" : ggml_get_name(tensor)));
+    }
+    return *offset;
 }
 
 void llama_model_loader::get_mapping_range(size_t * first, size_t * last, void ** addr, int idx, ggml_context * ctx) const {
@@ -1539,7 +1790,7 @@ void llama_model_loader::get_mapping_range(size_t * first, size_t * last, void *
         if (!weight || weight->idx != idx) {
             continue;
         }
-        const size_t source_offset = tensor_source_offset(tensor);
+        const size_t source_offset = require_tensor_source_offset(tensor);
         *first = std::min(*first, weight->offs + source_offset);
         *last  = std::max(*last,  weight->offs + source_offset + ggml_nbytes(tensor));
     }
@@ -1547,7 +1798,7 @@ void llama_model_loader::get_mapping_range(size_t * first, size_t * last, void *
 
 void llama_model_loader::load_data_for(struct ggml_tensor * cur) const {
     const auto & w = require_weight(ggml_get_name(cur));
-    const size_t source_offset = tensor_source_offset(cur);
+    const size_t source_offset = require_tensor_source_offset(cur);
 
     if (use_mmap) {
         const auto & mapping = mappings.at(w.idx);
@@ -1575,6 +1826,7 @@ bool llama_model_loader::load_all_data(
         llama_mlocks * lmlocks,
         llama_progress_callback progress_callback,
         void * progress_callback_user_data) {
+    tensor_creation_sealed = true;
     if (files.empty()) {
         for (ggml_tensor * t = ggml_get_first_tensor(ctx); t != nullptr; t = ggml_get_next_tensor(ctx, t)) {
             set_tensor_data(t, set_tensor_data_ud);
@@ -1698,7 +1950,7 @@ bool llama_model_loader::load_all_data(
         }
 
         size_t n_size = ggml_nbytes(cur);
-        const size_t source_offset = tensor_source_offset(cur);
+        const size_t source_offset = require_tensor_source_offset(cur);
         if (source_offset > ggml_nbytes(weight->tensor) || n_size > ggml_nbytes(weight->tensor) - source_offset ||
                 weight->offs > std::numeric_limits<size_t>::max() - source_offset) {
             throw std::runtime_error(format("tensor '%s' has an invalid GGUF source range", ggml_get_name(cur)));

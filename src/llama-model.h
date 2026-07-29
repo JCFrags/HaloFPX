@@ -726,16 +726,6 @@ struct llama_model_base : public llama_model {
             int flags,
             ggml_backend_dev_t dev);
 
-    ggml_tensor * create_tensor_source_slice_on_device(
-            llama_model_loader & ml,
-            const LLM_TN_IMPL & tn,
-            const std::initializer_list<int64_t> & ne,
-            size_t source_slice_begin,
-            ggml_backend_dev_t dev);
-
-    // Keep duplicated implementation-only tensors out of public name lookup.
-    void exclude_tensor_from_lookup(const ggml_tensor * tensor);
-
     // convenience overload of create_tensor that doesn't require llama_model_loader
     ggml_tensor * create_tensor(const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags);
 

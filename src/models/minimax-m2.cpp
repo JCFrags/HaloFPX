@@ -8,6 +8,8 @@
 #include <cstring>
 #include <string_view>
 
+void llama_model_minimax_m2_reject_removed_peer_half_load_from_env();
+
 static int halofpx_minimax_m2_shadow_layer_from_env() {
     const char * raw = std::getenv("HALOFPX_MINIMAX_M2_EXPERT_SHADOW_LAYER");
     if (raw == nullptr) {
@@ -36,15 +38,14 @@ static bool halofpx_minimax_m2_shadow_compute_from_env() {
     return true;
 }
 
-static bool halofpx_minimax_m2_peer_half_load_from_env() {
+void llama_model_minimax_m2_reject_removed_peer_half_load_from_env() {
     const char * raw = std::getenv("HALOFPX_MINIMAX_M2_EXPERT_PEER_HALF_LOAD");
     if (raw == nullptr) {
-        return false;
+        return;
     }
-    if (std::strcmp(raw, "1") != 0) {
-        throw std::runtime_error("HALOFPX_MINIMAX_M2_EXPERT_PEER_HALF_LOAD must be exactly 1 when present");
-    }
-    return true;
+    throw std::invalid_argument(
+            "HALOFPX_MINIMAX_M2_EXPERT_PEER_HALF_LOAD is no longer supported: "
+            "the legacy full-local-plus-peer-half loader was non-transactional");
 }
 
 static bool halofpx_device_backend_is(ggml_backend_dev_t dev, const char * backend_name) {
@@ -69,12 +70,10 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
 
     const int shadow_layer = halofpx_minimax_m2_shadow_layer_from_env();
     const bool shadow_compute = halofpx_minimax_m2_shadow_compute_from_env();
-    const bool peer_half_load = halofpx_minimax_m2_peer_half_load_from_env();
+    llama_model_minimax_m2_reject_removed_peer_half_load_from_env();
+    const bool peer_half_load = false;
     if (shadow_compute && shadow_layer < 0) {
         throw std::runtime_error("HALOFPX MiniMax-M2 expert shadow compute requires HALOFPX_MINIMAX_M2_EXPERT_SHADOW_LAYER");
-    }
-    if (peer_half_load && (!shadow_compute || shadow_layer < 0)) {
-        throw std::runtime_error("HaloFPX MiniMax-M2 peer half-load requires shadow placement and compute");
     }
     ggml_backend_dev_t shadow_peer = nullptr;
     if (shadow_layer >= 0) {
@@ -153,29 +152,20 @@ void llama_model_minimax_m2::load_arch_tensors(llama_model_loader & ml) {
                         ggml_type_name(layer.ffn_down_exps->type),
                         ggml_type_name(layer.ffn_up_exps->type)));
             }
-            if (peer_half_load) {
-                layer.ffn_gate_exps_shadow_peer = create_tensor_source_slice_on_device(
-                        ml, tn(LLM_TENSOR_FFN_GATE_EXPS, "weight", i), {n_embd, n_ff, 96}, 96, shadow_peer);
-                layer.ffn_down_exps_shadow_peer = create_tensor_source_slice_on_device(
-                        ml, tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff, n_embd, 96}, 96, shadow_peer);
-                layer.ffn_up_exps_shadow_peer = create_tensor_source_slice_on_device(
-                        ml, tn(LLM_TENSOR_FFN_UP_EXPS, "weight", i), {n_embd, n_ff, 96}, 96, shadow_peer);
-            } else {
-                layer.ffn_gate_exps_shadow_peer = create_tensor_on_device(
-                        ml, tn(LLM_TENSOR_FFN_GATE_EXPS, "weight", i), {n_embd, n_ff, n_expert}, TENSOR_DUPLICATED, shadow_peer);
-                layer.ffn_down_exps_shadow_peer = create_tensor_on_device(
-                        ml, tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff, n_embd, n_expert}, TENSOR_DUPLICATED, shadow_peer);
-                layer.ffn_up_exps_shadow_peer = create_tensor_on_device(
-                        ml, tn(LLM_TENSOR_FFN_UP_EXPS, "weight", i), {n_embd, n_ff, n_expert}, TENSOR_DUPLICATED, shadow_peer);
-            }
+            layer.ffn_gate_exps_shadow_peer = create_tensor_on_device(
+                    ml, tn(LLM_TENSOR_FFN_GATE_EXPS, "weight", i), {n_embd, n_ff, n_expert},
+                    TENSOR_DUPLICATED | llama_model_loader::TENSOR_IMPLEMENTATION_ONLY, shadow_peer);
+            layer.ffn_down_exps_shadow_peer = create_tensor_on_device(
+                    ml, tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff, n_embd, n_expert},
+                    TENSOR_DUPLICATED | llama_model_loader::TENSOR_IMPLEMENTATION_ONLY, shadow_peer);
+            layer.ffn_up_exps_shadow_peer = create_tensor_on_device(
+                    ml, tn(LLM_TENSOR_FFN_UP_EXPS, "weight", i), {n_embd, n_ff, n_expert},
+                    TENSOR_DUPLICATED | llama_model_loader::TENSOR_IMPLEMENTATION_ONLY, shadow_peer);
             if (layer.ffn_gate_exps_shadow_peer->type != GGML_TYPE_Q6_0_ROCMFPX ||
                     layer.ffn_down_exps_shadow_peer->type != GGML_TYPE_Q6_0_ROCMFPX ||
                     layer.ffn_up_exps_shadow_peer->type != GGML_TYPE_Q6_0_ROCMFPX) {
                 throw std::runtime_error("HaloFPX MiniMax-M2 expert shadow rejected: duplicated peer tensors changed type");
             }
-            exclude_tensor_from_lookup(layer.ffn_gate_exps_shadow_peer);
-            exclude_tensor_from_lookup(layer.ffn_down_exps_shadow_peer);
-            exclude_tensor_from_lookup(layer.ffn_up_exps_shadow_peer);
             if (shadow_compute) {
                 LLAMA_LOG_INFO("HaloFPX %s: admitted rank-local 96-expert Q6 shadow compute for layer %d on peer %s; peer storage=%s and authoritative output remains the full local MoE result\n",
                         peer_half_load ? "P06h" : "P06g", shadow_layer, ggml_backend_dev_name(shadow_peer),

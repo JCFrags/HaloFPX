@@ -9,11 +9,15 @@
 
 #include "ggml-cpp.h"
 
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <map>
+#include <optional>
 #include <stdexcept>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 using llama_buf_map = std::unordered_map<uint32_t, ggml_backend_buffer_t>;
 
@@ -67,7 +71,20 @@ struct llama_model_loader {
     static const int TENSOR_DUPLICATED      = 1 << 1;
     static const int TENSOR_SKIP            = 1 << 2;
     static const int TENSOR_SKIP_IF_VIRTUAL = 1 << 3;
-    static const int TENSOR_SOURCE_SLICE    = 1 << 4;
+    static const int TENSOR_IMPLEMENTATION_ONLY = 1 << 4;
+
+    struct axis2_partition {
+        int rank;
+        size_t begin;
+        size_t end;
+        ggml_backend_dev_t dev;
+        ggml_backend_buffer_type_t buft;
+    };
+
+    struct axis2_partition_pair {
+        ggml_tensor * rank0;
+        ggml_tensor * rank1;
+    };
 
     int n_kv      = 0;
     int n_tensors = 0;
@@ -116,7 +133,10 @@ struct llama_model_loader {
     // Relative packed-GGUF source offsets for bounded last-dimension slices.
     // Tensor names are not unique across strict device contexts, so authority
     // is bound to the exact created tensor pointer.
-    std::unordered_map<const ggml_tensor *, size_t> tensor_source_offsets;
+    std::vector<std::pair<const ggml_tensor *, size_t>> tensor_source_offsets;
+    std::vector<const ggml_tensor *> tensors_excluded_from_lookup;
+    uint64_t partition_generation = 0;
+    bool tensor_creation_sealed = false;
 
     // track tensors that had to be moved for debugging:
     size_t n_tensors_moved = 0;
@@ -186,16 +206,23 @@ struct llama_model_loader {
 
     struct ggml_tensor * create_tensor(
         const llama_hparams & hparams, const buft_list_t * buft_list_cpu, const buft_list_t * buft_list_input, const buft_list_t * buft_list_output,
-        const buft_list_t * buft_list_layer, const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags,
-        size_t source_slice_begin = 0);
+        const buft_list_t * buft_list_layer, const LLM_TN_IMPL & tn, const std::initializer_list<int64_t> & ne, int flags);
+
+    axis2_partition_pair create_axis2_partition_pair(
+            const std::string & source_name,
+            const std::array<axis2_partition, 2> & partitions);
+
+    bool tensor_is_public(const ggml_tensor * tensor) const;
 
     struct ggml_tensor * create_tensor_as_view(struct ggml_context * ctx, struct ggml_tensor * base, const std::string & name, const std::initializer_list<int64_t> & ne, size_t offset, bool required = true);
 
-    void done_getting_tensors(bool partial = false) const;
+    void done_getting_tensors(bool partial = false);
 
     void init_mappings(bool prefetch = true, llama_mlocks * mlock_mmaps = nullptr);
 
-    size_t tensor_source_offset(const struct ggml_tensor * tensor) const;
+    std::optional<size_t> tensor_source_offset(const struct ggml_tensor * tensor) const;
+
+    size_t require_tensor_source_offset(const struct ggml_tensor * tensor) const;
 
     void get_mapping_range(size_t * first, size_t * last, void ** addr, int idx, ggml_context * ctx) const;
 
