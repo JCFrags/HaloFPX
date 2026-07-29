@@ -89,7 +89,6 @@ def _execution(record: object, expected_phase: str, ordinal: int) -> None:
     if (
         record["rpc"] <= 0 or record["mutable_sessions"] <= 0
         or record["mutable_census"] <= 0 or record["set"] <= 0
-        or record["set_hash_hit"] + record["set_hash_miss"] <= 0
         or record["prepared_status"] != 1 or record["final_status"] != 1
         or record["mutable_status"] != 1 or record["graph_status"] != 2
         or record["graph_sequence"] != record["execution_sequence"]

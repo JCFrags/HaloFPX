@@ -2,6 +2,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -12,10 +13,15 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 VERIFIER = ROOT / "scripts" / "halofpx_l48_composed_result.py"
 RUNNER = ROOT / "scripts" / "halofpx-l13-primary-retry.py"
+L101_EVIDENCE = ROOT / "docs" / "halofpx" / "evidence" / "l101-attempt-final" / "child"
 SPEC = importlib.util.spec_from_file_location("halofpx_l48_result", VERIFIER)
 assert SPEC and SPEC.loader
 result_authority = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(result_authority)
+RUNNER_SPEC = importlib.util.spec_from_file_location("halofpx_l48_runner", RUNNER)
+assert RUNNER_SPEC and RUNNER_SPEC.loader
+runner = importlib.util.module_from_spec(RUNNER_SPEC)
+RUNNER_SPEC.loader.exec_module(runner)
 
 
 def execution(phase: str, ordinal: int, sequence: int) -> dict[str, object]:
@@ -111,6 +117,17 @@ class L48ResultTests(unittest.TestCase):
             [sys.executable, str(VERIFIER), *args],
             input=stdin, text=True, capture_output=True, check=False)
 
+    def authority_args(self):
+        if os.name != "nt":
+            import pwd
+            expected_owner = pwd.getpwuid(self.key.stat().st_uid).pw_name
+        else:
+            expected_owner = os.environ.get("USERNAME", "connorb")
+        return (
+            "--expected-key-sha256", hashlib.sha256(self.key.read_bytes()).hexdigest(),
+            "--expected-owner", expected_owner,
+        )
+
     def signed_record(self, value):
         canonical = json.dumps(value, sort_keys=True, separators=(",", ":"))
         signed = self.command("sign", "--key-file", str(self.key), stdin=canonical)
@@ -124,6 +141,66 @@ class L48ResultTests(unittest.TestCase):
 
     def test_exact_result_is_accepted(self):
         self.assertEqual(result_authority.validate(payload()), payload())
+
+    def test_zero_legacy_hash_activity_with_authenticated_sets_is_accepted(self):
+        value = payload()
+        for record in value["capture"] + value["restore"]:
+            record["set_hash_hit"] = 0
+            record["set_hash_miss"] = 0
+        self.assertEqual(result_authority.validate(value), value)
+
+        if os.name == "nt":
+            return
+        canonical = json.dumps(value, sort_keys=True, separators=(",", ":"))
+        signed = self.command(
+            "sign", "--key-file", str(self.key), *self.authority_args(),
+            stdin=canonical)
+        self.assertEqual(signed.returncode, 0, signed.stderr)
+        record = self.root / "result.json"
+        record.write_text(json.dumps({
+            "payload": value, "auth_tag": signed.stdout.strip(),
+        }, sort_keys=True, separators=(",", ":")) + "\n", encoding="ascii")
+        os.chmod(record, 0o600)
+        verified = self.command(
+            "verify", "--key-file", str(self.key), "--record", str(record),
+            *self.authority_args())
+        self.assertEqual(verified.returncode, 0, verified.stderr)
+        self.assertEqual(json.loads(verified.stdout), value)
+
+    def test_retained_l101_composed_executions_accept_zero_hash_activity(self):
+        value = payload()
+        for phase, expected_count in (("capture", 4), ("restore", 1)):
+            log = (L101_EVIDENCE / f"{phase}.log").read_text(encoding="utf-8")
+            line = next(
+                item for item in log.splitlines()
+                if item.startswith(f"[halofpx-composed-authority] phase={phase}|"))
+            body = line.split(f"phase={phase}|", 1)[1].rsplit("|auth_tag=", 1)[0]
+            markers = list(re.finditer(r"(?:^|\|)(prompt_[0-9]+|replay)=", body))
+            records = []
+            for ordinal, marker in enumerate(markers):
+                end = markers[ordinal + 1].start() if ordinal + 1 < len(markers) else len(body)
+                records.append(runner._composed_execution(
+                    body[marker.end():end].strip("|"), phase, ordinal))
+            self.assertEqual(len(records), expected_count)
+            self.assertTrue(all(record["set"] == 7 for record in records))
+            self.assertTrue(all(
+                record["set_hash_hit"] == 0 and record["set_hash_miss"] == 0
+                for record in records))
+            for ordinal, record in enumerate(records):
+                result_authority._execution(record, phase, ordinal)
+
+    def test_zero_set_and_partial_mutable_authority_refuse(self):
+        zero_set = payload()
+        zero_set["capture"][0]["set"] = 0
+        with self.assertRaisesRegex(
+                result_authority.ResultError, "RPC mutable authority is incomplete"):
+            result_authority.validate(zero_set)
+
+        missing = payload()
+        del missing["restore"][0]["mutation_root"]
+        with self.assertRaisesRegex(
+                result_authority.ResultError, "execution field set mismatch"):
+            result_authority.validate(missing)
 
     def test_multiple_split_receipts_are_ordered_and_closed(self):
         value = payload()
