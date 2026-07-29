@@ -935,8 +935,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                     "l58-rpc-response-boundary-discriminator",
                     "l59-rpc-response-evidence-lifetime",
                     "l60-transient-unit-response-discriminator",
-                    "l61-host-bound-response-discriminator",
-                    "l77-primary-distributed-state-correctness"}:
+                    "l61-host-bound-response-discriminator"}:
                 expected_child_argv += ["--l55-first-chunk"]
             if raw["milestone"] == "l68-stories15m-vertical-slice":
                 expected_child_argv += ["--l68-vertical-slice"]
@@ -988,9 +987,10 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 f"{prefix}-canary-capture.service",
                 f"{prefix}-canary-restore.service",
                 *((f"{prefix}-canary-first-chunk.service",)
-                  if l48 and raw["milestone"] in {
-                      "l60-transient-unit-response-discriminator",
-                      "l61-host-bound-response-discriminator"} else ()),
+                      if l48 and raw["milestone"] in {
+                          "l60-transient-unit-response-discriminator",
+                          "l61-host-bound-response-discriminator",
+                          "l77-primary-distributed-state-correctness"} else ()),
                 *((f"{prefix}-canary-l68-off.service",
                    f"{prefix}-canary-l68-on.service")
                   if l48 and raw["milestone"] == "l68-stories15m-vertical-slice"
@@ -2139,6 +2139,23 @@ def child_environment(
                 environment["HALOFPX_L61_HOST_BOUND_HARVEST"] = "1"
         environment["HALOFPX_L50_DEVICE_RECEIPT_SHA256"] = str(
             hashes["device_receipt"])
+    unit_authority = []
+    for unit in manifest["worker_units"]:
+        unit_authority.append({
+            "host": str(manifest["worker_host"]),
+            "unit": str(unit),
+            "port": (
+                50249 if unit == "halofpx-l50-device-gate.service"
+                else int(manifest["worker_port"])),
+        })
+    for unit in manifest["canary_units"]:
+        unit_authority.append({
+            "host": str(manifest["canary_host"]),
+            "unit": str(unit),
+            "port": None,
+        })
+    environment["HALOFPX_DISPOSABLE_UNIT_AUTHORITY"] = json.dumps(
+        unit_authority, separators=(",", ":"), sort_keys=True)
     return environment
 
 

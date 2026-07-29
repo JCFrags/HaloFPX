@@ -42,6 +42,12 @@ def configure(monkeypatch, tmp_path):
     retry.UNIT_GUARD_SEQUENCE = 0
     retry.UNIT_GUARD_EVIDENCE_ROOT = tmp_path
     retry.UNIT_PREFIX = "halofpx-l48"
+    retry.UNIT_GUARD_AUTHORITY = frozenset({
+        ("nimo-1", "halofpx-l50-device-gate", 50249),
+        ("nimo-1", "halofpx-l48-worker-capture", 50248),
+        ("nimo-1", "halofpx-l48-worker-restore", 50248),
+        ("nimo-2", "halofpx-l48-canary-first-chunk", None),
+    })
     calls = []
 
     def fake_ssh(host, *argv, **kwargs):

@@ -101,6 +101,8 @@ UNIT_GUARD_SEQUENCE = 0
 LOCAL_EVIDENCE_ROOT: Path | None = None
 DISPOSABLE_UNIT_AUTHORITY: dict[tuple[str, str], dict[str, object]] = {}
 DISPOSABLE_UNIT_FINAL_AUTHORITY: dict[tuple[str, str], dict[str, object]] = {}
+UNIT_GUARD_AUTHORITY: frozenset[tuple[str, str, int | None]] | None = None
+MANIFEST_UNIT_AUTHORITY_REQUIRED = False
 
 
 class CanaryError(RuntimeError):
@@ -556,6 +558,7 @@ def configure_l77_primary() -> None:
     configure_l48_fixture()
     global MODEL, MODEL_SHA, MODEL_BYTES, MODEL_DIGEST, PROMPT, PROMPT_SHA
     global CACHE_TYPE_K, CACHE_TYPE_V, FLASH_ATTN, FIXTURE_QUALIFICATION
+    global MANIFEST_UNIT_AUTHORITY_REQUIRED
     MODEL = (
         "/opt/llm-usb4-cluster/models/rcmorano_saricles-minimax-m2.7-reap-172b-a10b-rocmfpx/"
         "dba517197f2854f3d362529e13abddcdcad6c10b/"
@@ -569,6 +572,7 @@ def configure_l77_primary() -> None:
     CACHE_TYPE_V = "q8_0"
     FLASH_ATTN = "on"
     FIXTURE_QUALIFICATION = False
+    MANIFEST_UNIT_AUTHORITY_REQUIRED = True
 
 
 def _composed_execution(text: str, phase: str, ordinal: int) -> dict[str, object]:
@@ -1158,20 +1162,29 @@ def ensure_transient_unit_absent(
         host: str, unit: str, *, port: int | None,
         phase: str) -> dict[str, object]:
     global UNIT_GUARD_SEQUENCE
-    allowed = {
-        ("nimo-1", "halofpx-l50-device-gate", 50249),
-        ("nimo-1", f"{UNIT_PREFIX}-worker-capture", PORT),
-        ("nimo-1", f"{UNIT_PREFIX}-worker-restore", PORT),
-        ("nimo-2", f"{UNIT_PREFIX}-canary-capture", None),
-        ("nimo-2", f"{UNIT_PREFIX}-canary-restore", None),
-        ("nimo-2", f"{UNIT_PREFIX}-canary-first-chunk", None),
-        ("nimo-1", f"{UNIT_PREFIX}-worker-l68-off", PORT),
-        ("nimo-1", f"{UNIT_PREFIX}-worker-l68-on", PORT),
-        ("nimo-2", f"{UNIT_PREFIX}-canary-l68-off", None),
-        ("nimo-2", f"{UNIT_PREFIX}-canary-l68-on", None),
-    }
-    if (host, unit, port) not in allowed or phase not in {"prelaunch", "postcleanup"}:
+    canonical_unit = _canonical_service_unit(unit)
+    authority = UNIT_GUARD_AUTHORITY
+    if authority is None:
+        if MANIFEST_UNIT_AUTHORITY_REQUIRED:
+            raise CanaryError("transient unit guard manifest authority is unavailable")
+        authority = frozenset({
+            ("nimo-1", "halofpx-l50-device-gate", 50249),
+            ("nimo-1", f"{UNIT_PREFIX}-worker-capture", PORT),
+            ("nimo-1", f"{UNIT_PREFIX}-worker-restore", PORT),
+            ("nimo-2", f"{UNIT_PREFIX}-canary-capture", None),
+            ("nimo-2", f"{UNIT_PREFIX}-canary-restore", None),
+            ("nimo-2", f"{UNIT_PREFIX}-canary-first-chunk", None),
+            ("nimo-1", f"{UNIT_PREFIX}-worker-l68-off", PORT),
+            ("nimo-1", f"{UNIT_PREFIX}-worker-l68-on", PORT),
+            ("nimo-2", f"{UNIT_PREFIX}-canary-l68-off", None),
+            ("nimo-2", f"{UNIT_PREFIX}-canary-l68-on", None),
+        })
+    if (
+        (host, canonical_unit, port) not in authority
+        or phase not in {"prelaunch", "postcleanup"}
+    ):
         raise CanaryError("transient unit guard authority is outside the closed manifest")
+    unit = canonical_unit
     before = _unit_guard_snapshot(host, unit, port)
     actions: list[dict[str, object]] = []
     if (
@@ -1246,6 +1259,46 @@ def ensure_transient_unit_absent(
     }
     _write_unit_guard_evidence(result)
     raise CanaryError(f"transient unit {unit} absence timed out")
+
+
+def _canonical_service_unit(unit: str) -> str:
+    if not isinstance(unit, str) or not unit or "/" in unit or "\x00" in unit:
+        raise CanaryError("transient unit name is malformed")
+    if unit.endswith(".service"):
+        unit = unit[:-len(".service")]
+    if not unit or unit.endswith(".service") or not re.fullmatch(
+            r"[A-Za-z0-9_.@-]+", unit):
+        raise CanaryError("transient unit service-name normalization is ambiguous")
+    return unit
+
+
+def install_unit_guard_authority() -> None:
+    global UNIT_GUARD_AUTHORITY
+    encoded = os.environ.get("HALOFPX_DISPOSABLE_UNIT_AUTHORITY", "")
+    try:
+        raw = json.loads(encoded)
+    except json.JSONDecodeError as exc:
+        raise CanaryError("disposable unit authority is malformed") from exc
+    if not isinstance(raw, list) or not raw:
+        raise CanaryError("disposable unit authority is absent")
+    entries: set[tuple[str, str, int | None]] = set()
+    for item in raw:
+        if (
+            not isinstance(item, dict)
+            or set(item) != {"host", "unit", "port"}
+            or item["host"] not in {NIMO1, NIMO2}
+            or not (
+                item["port"] is None
+                or isinstance(item["port"], int)
+                and 1 <= item["port"] <= 65535)
+        ):
+            raise CanaryError("disposable unit authority entry is invalid")
+        entry = (
+            item["host"], _canonical_service_unit(item["unit"]), item["port"])
+        if entry in entries:
+            raise CanaryError("disposable unit authority is duplicate")
+        entries.add(entry)
+    UNIT_GUARD_AUTHORITY = frozenset(entries)
 
 
 def _write_unit_guard_evidence(value: dict[str, object]) -> None:
@@ -3319,6 +3372,7 @@ def main() -> int:
         configure_l48_fixture()
     if args.l77_primary:
         configure_l77_primary()
+        install_unit_guard_authority()
     if args.l48_fixture or args.l77_primary:
         global L55_FIRST_CHUNK_ONLY
         L55_FIRST_CHUNK_ONLY = args.l55_first_chunk
