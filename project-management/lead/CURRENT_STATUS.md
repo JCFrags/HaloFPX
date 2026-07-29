@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 00:54 PDT
+Verified: 2026-07-29 01:11 PDT
 
 ## Overall state
 
@@ -139,6 +139,26 @@ state; post-commit failure tears down the inconsistent residency before cold
 recreation. Multi-slot, speculative, recurrent, hybrid, and ISWA modes refuse.
 L107 retains the same bounded no-model and Stories15M vertical gates, with no
 primary-model or production access.
+
+L107 closed NOT PROMOTED at evidence commit
+`2cedd6a151d1c276530fa0b8d96d622c967ed0b5`. Independent pre-runtime
+review confirmed the shadow-context design is feasible but rejected retaining
+an unreachable partial mode; the worker removed it. The review established a
+critical identity split: persisted candidates bind stable logical
+plan/topology/placement/component/key-generation/channel authority, while each
+fresh attempt binds its current connection and allocation epochs only after
+the shadow is fully allocated. No runtime case was consumed.
+
+L108 is active as one complete reachable product slice. It retains and
+quiesces the old single-slot context, fully allocates the shadow, reconciles
+stable candidate authority, freezes the exact plan, then performs fresh
+preflight and the staged transaction. The old context remains alive through
+execute/terminal; its later destruction invalidates epochs and forces a new
+preflight. The mode will not become selectable until the distributed
+manifest/profile, topology producer, transaction, ownership transfer,
+post-commit recovery, and resource refusal are all wired. Focused review
+precedes one no-model transaction and one Stories15M vertical run. No primary,
+production, performance, broad matrix, or new wire protocol is authorized.
 
 Production recovered cleanly and is the current accepted authority: nimo-1
 coordinator PID `3027112`, InvocationID

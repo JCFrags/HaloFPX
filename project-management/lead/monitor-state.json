@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-29T00:54:00-07:00",
+  "updated_at": "2026-07-29T01:11:00-07:00",
   "worker_thread_id": "019fa62e-2e6f-7451-846f-1d4a6c1d13d0",
   "prior_worker_thread_id": "019f83a3-9498-76c3-9398-be80344854ae",
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "active_l107_dedicated_single_slot_shadow_context_server_cache",
+  "worker_status": "active_l108_complete_reachable_shadow_context_server_cache_slice",
   "implementation_repository": "C:/Users/britt/Documents/HaloFPX",
   "implementation_branch": "codex/integration-base-61f2f2d",
-  "last_verified_head": "e15d6da0de55c0f1a604614db62b5d50957b40e3",
-  "last_observed_milestone": "L106 blocker confirmed: coordinator prepare-only restore still mutates live KV metadata before candidate and remote transaction completion, invalidating frozen plan and rollback safety",
-  "last_decision": "accept_l106_blocker_and_use_dedicated_quiescent_single_slot_shadow_llama_context_in_l107",
-  "last_progress": "L107 is implementing first-generation dedicated server cache via fully prepared disposable shadow context, bounded ownership transfer, and cold recreation recovery",
+  "last_verified_head": "2cedd6a151d1c276530fa0b8d96d622c967ed0b5",
+  "last_observed_milestone": "L107 NOT PROMOTED: partial mode removed; review confirms feasible lifecycle requires stable persisted authority separated from fresh post-allocation connection/epoch authority",
+  "last_decision": "accept_l107_removal_and_authorize_l108_complete_reachable_shadow_context_product_slice",
+  "last_progress": "L108 is wiring the entire stable-key/fresh-preflight shadow transaction before exposure, then focused review, no-model, and one Stories15M vertical run",
   "monitoring_mode": "event_only_worker_reported",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "L107 genuine semantic blocker, independent review failure, unsafe state, or terminal result; mechanical integration stays in milestone; no periodic polling, primary, production, or performance work"
+  "next_check_trigger": "L108 genuine semantic blocker, independent review failure, unsafe state, or terminal result; mechanical corrections stay in milestone; no periodic polling, primary, production, or performance work"
 }

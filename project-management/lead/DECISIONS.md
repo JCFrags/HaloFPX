@@ -1,5 +1,41 @@
 # Project-Lead Decisions
 
+## 2026-07-29 — accept L107 removal; implement the complete slice in L108
+
+Decision: accept L107 NOT PROMOTED at
+`2cedd6a151d1c276530fa0b8d96d622c967ed0b5` and confirm removal of the
+unreachable partial mode. Open L108 to implement the complete dedicated
+shadow-context server cache slice before exposing it.
+
+Persisted candidate identity binds only stable logical model/profile/request,
+plan, topology, ownership, placement, component manifest, key generation, and
+channel authority. It must never bind a prior socket, connection epoch,
+allocation epoch, or candidate-supplied live identity. Each fresh attempt must
+fully construct and allocate its shadow before authenticated preflight binds
+current connection and allocation epochs.
+
+The exact lifecycle is: quiesce and retain the old context; fully allocate the
+shadow; independently reconcile stable candidate authority; freeze the exact
+ubatch/plan; preflight; stage and commit local/remote state; transfer server
+ownership; execute and terminalize that same plan; only then destroy the old
+context and require fresh preflight for later work. Allocation after preflight,
+identity drift, candidate/live conflation, early old-context destruction, or
+partial transaction refuses and uses the defined cold-recreation path.
+
+L108 may keep mechanical integration and review corrections in one milestone,
+but may not run an intermediate partial mode. Focused gates cover stable/live
+identity negatives, allocation ordering, isolation/lifetime, both failure
+sides of remote commit, single-use plans, unsupported modes, feature-off and
+world-1 parity, and resource refusal. Independent pre-runtime review must pass
+before a real two-host no-model transaction and one Stories15M
+miss/publish/fresh-shadow-hit/corruption-fallback run. No primary model,
+production, tuning, broad matrix, or new wire protocol is authorized.
+
+Reason: L107 did not disprove the product design; it proved that scaffolding
+cannot safely be exposed piecemeal. Stable cached authority and fresh live
+attempt authority must remain separate, and the entire transaction must become
+reachable atomically.
+
 ## 2026-07-29 — accept L106 blocker; use a dedicated shadow context in L107
 
 Decision: accept L106's confirmed in-place KV restore blocker at
