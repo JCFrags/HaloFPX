@@ -1,0 +1,17 @@
+milestone=L109
+status=NOT_PROMOTED
+classification=SOURCE_PROVEN_SEMANTIC_BLOCKER
+accepted_base=56a0526cb4e9fdb1a0d597ca391f47bbcedb9bb5
+branch=codex/integration-base-61f2f2d
+remote=none
+screen_threshold_percent=10
+candidate_source_retained=false
+independent_review=FAIL_TO_PROTOTYPE
+build=false
+host_access=false
+accelerator_run=false
+model_run=false
+production_access=false
+runtime_cases_consumed=0
+speed_claim=false
+preserved_untracked_evidence=true
