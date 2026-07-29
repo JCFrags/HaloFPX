@@ -989,8 +989,7 @@ def validate_milestone_manifest(path: Path, runner: Runner) -> dict[str, object]
                 *((f"{prefix}-canary-first-chunk.service",)
                       if l48 and raw["milestone"] in {
                           "l60-transient-unit-response-discriminator",
-                          "l61-host-bound-response-discriminator",
-                          "l77-primary-distributed-state-correctness"} else ()),
+                          "l61-host-bound-response-discriminator"} else ()),
                 *((f"{prefix}-canary-l68-off.service",
                    f"{prefix}-canary-l68-on.service")
                   if l48 and raw["milestone"] == "l68-stories15m-vertical-slice"

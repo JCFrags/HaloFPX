@@ -1,0 +1,19 @@
+{
+  "local": {
+    "cleanup_owned": true,
+    "empty": true,
+    "mode": "0700",
+    "path": "C:\\Users\\britt\\Documents\\HaloFPX\\docs\\halofpx\\evidence\\l92-transition\\child",
+    "type": "directory"
+  },
+  "remote": {
+    "cleanup_owned": true,
+    "empty": true,
+    "host": "nimo-2",
+    "mode": "0700",
+    "owner": "connorb",
+    "path": "/var/tmp/halofpx-l48-evidence",
+    "type": "directory"
+  },
+  "schema": "halofpx.l52.evidence-directory-admission.v1"
+}

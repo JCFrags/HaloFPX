@@ -34,7 +34,6 @@ EXPECTED = frozenset({
     ("nimo-1", "halofpx-l48-worker-restore", 50248),
     ("nimo-2", "halofpx-l48-canary-capture", None),
     ("nimo-2", "halofpx-l48-canary-restore", None),
-    ("nimo-2", "halofpx-l48-canary-first-chunk", None),
 })
 
 
@@ -131,7 +130,6 @@ def test_reachable_l77_launches_and_cleanup_are_closed_static_scan():
         'restore_unit = f"{UNIT_PREFIX}-worker-restore"',
         'unit = f"{UNIT_PREFIX}-canary-{unit_label}"',
         'restore_canary_unit = f"{UNIT_PREFIX}-canary-restore"',
-        'canary_unit = f"{UNIT_PREFIX}-canary-first-chunk"',
     }
     for construction in required_unit_constructions:
         assert construction in source
@@ -167,3 +165,82 @@ def test_active_ownership_still_refuses(monkeypatch, tmp_path):
         child.ensure_transient_unit_absent(
             "nimo-1", "halofpx-l48-worker-capture",
             port=50248, phase="prelaunch")
+
+
+def test_real_l77_closed_path_rehearsal_is_exact_and_stable(
+        monkeypatch, tmp_path):
+    authority_environment(monkeypatch)
+    child.configure_l77_primary()
+    child.UNIT_GUARD_EVIDENCE_ROOT = tmp_path
+    first = child.rehearse_l77_unit_guard_authority(tmp_path)
+    assert first["planned_set_equals_authority"] is True
+    assert first["all_requests_admitted"] is True
+    assert {
+        (item["host"], item["unit"], item["port"])
+        for item in first["planned"]
+    } == EXPECTED
+    assert len(first["planned"]) == 12
+    assert first["authority_sha256"] == child._authority_digest(EXPECTED)
+
+    second_root = tmp_path / "second"
+    second_root.mkdir()
+    second = child.rehearse_l77_unit_guard_authority(second_root)
+    assert second["authority_sha256"] == first["authority_sha256"]
+    assert second["planned"] == first["planned"]
+
+
+def test_refusal_retains_requested_tuple_and_membership(
+        monkeypatch, tmp_path):
+    authority_environment(monkeypatch)
+    child.UNIT_GUARD_EVIDENCE_ROOT = tmp_path
+    child.UNIT_GUARD_REQUEST_SEQUENCE = 0
+    with pytest.raises(child.CanaryError, match="outside the closed manifest"):
+        child.ensure_transient_unit_absent(
+            "nimo-1", "halofpx-l48-worker-restore",
+            port=50249, phase="prelaunch")
+    receipt = json.loads(
+        (tmp_path / "unit-guard-request-001.json").read_text())
+    assert receipt == {
+        "schema": "halofpx.l92.unit-guard-request.v1",
+        "sequence": 1,
+        "host": "nimo-1",
+        "unit": "halofpx-l48-worker-restore",
+        "port": 50249,
+        "phase": "prelaunch",
+        "authority_sha256": child.UNIT_GUARD_AUTHORITY_SHA256,
+        "membership": False,
+    }
+
+
+def test_exact_l77_main_publishes_rehearsal_before_ssh(
+        monkeypatch, tmp_path):
+    prepared = {"sha256": "a" * 64}
+    env = controller.child_environment(prepared, manifest)
+    monkeypatch.setenv(
+        "HALOFPX_DISPOSABLE_UNIT_AUTHORITY",
+        env["HALOFPX_DISPOSABLE_UNIT_AUTHORITY"])
+    child.UNIT_GUARD_AUTHORITY = None
+    child.UNIT_GUARD_AUTHORITY_SHA256 = ""
+    child.UNIT_GUARD_REQUEST_SEQUENCE = 0
+
+    class OfflineStop(RuntimeError):
+        pass
+
+    def stop_before_transport(root):
+        authority = json.loads(
+            (root / "unit-guard-authority.json").read_text())
+        rehearsal = json.loads(
+            (root / "unit-guard-rehearsal.json").read_text())
+        assert authority["sha256"] == rehearsal["authority_sha256"]
+        assert rehearsal["planned_set_equals_authority"] is True
+        raise OfflineStop
+
+    monkeypatch.setattr(child, "initialize_ssh_transport", stop_before_transport)
+    monkeypatch.setattr(sys, "argv", [
+        "halofpx-l13-primary-retry.py",
+        "--evidence-dir", str(tmp_path),
+        "--l77-primary",
+        "--authority-key-file", "/var/tmp/halofpx-l48-control.key",
+    ])
+    with pytest.raises(OfflineStop):
+        child.main()

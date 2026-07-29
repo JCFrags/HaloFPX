@@ -102,6 +102,8 @@ LOCAL_EVIDENCE_ROOT: Path | None = None
 DISPOSABLE_UNIT_AUTHORITY: dict[tuple[str, str], dict[str, object]] = {}
 DISPOSABLE_UNIT_FINAL_AUTHORITY: dict[tuple[str, str], dict[str, object]] = {}
 UNIT_GUARD_AUTHORITY: frozenset[tuple[str, str, int | None]] | None = None
+UNIT_GUARD_AUTHORITY_SHA256 = ""
+UNIT_GUARD_REQUEST_SEQUENCE = 0
 MANIFEST_UNIT_AUTHORITY_REQUIRED = False
 
 
@@ -1031,18 +1033,10 @@ def ssh(host, *argv, timeout=900, check=True):
         raise CanaryError("bounded SSH transport is not initialized")
     structured_argv = [str(value) for value in argv]
     if structured_argv and structured_argv[0] == "systemd-run":
-        unit_values = [
-            value.removeprefix("--unit=") for value in structured_argv
-            if value.startswith("--unit=")]
-        if len(unit_values) != 1:
-            raise CanaryError("systemd-run unit authority is missing or ambiguous")
-        port_values = [
-            int(structured_argv[index + 1])
-            for index, value in enumerate(structured_argv[:-1])
-            if value == "--port" and structured_argv[index + 1].isdecimal()]
+        guard_host, guard_unit, guard_port = _systemd_run_guard_tuple(
+            host, structured_argv)
         ensure_transient_unit_absent(
-            host, unit_values[0],
-            port=port_values[-1] if port_values else None,
+            guard_host, guard_unit, port=guard_port,
             phase="prelaunch")
     is_readiness = (
         len(argv) >= 2 and argv[0] == "python3"
@@ -1158,11 +1152,83 @@ def _unit_guard_registration_query_valid(snapshot: dict[str, object]) -> bool:
     )
 
 
+def _canonical_guard_tuple(
+        host: str, unit: str, port: int | None) -> tuple[str, str, int | None]:
+    return (host, _canonical_service_unit(unit), port)
+
+
+def _systemd_run_guard_tuple(
+        host: str, argv: list[str]) -> tuple[str, str, int | None]:
+    unit_values = [
+        value.removeprefix("--unit=") for value in argv
+        if value.startswith("--unit=")]
+    if len(unit_values) != 1:
+        raise CanaryError("systemd-run unit authority is missing or ambiguous")
+    port_values = [
+        int(argv[index + 1])
+        for index, value in enumerate(argv[:-1])
+        if value == "--port" and argv[index + 1].isdecimal()]
+    return _canonical_guard_tuple(
+        host, unit_values[0], port_values[-1] if port_values else None)
+
+
+def _canonical_authority_entries(
+        authority: frozenset[tuple[str, str, int | None]]) -> list[dict[str, object]]:
+    return [
+        {"host": host, "unit": unit, "port": port}
+        for host, unit, port in sorted(
+            authority, key=lambda item: (
+                item[0], item[1], -1 if item[2] is None else item[2]))
+    ]
+
+
+def _authority_digest(
+        authority: frozenset[tuple[str, str, int | None]]) -> str:
+    encoded = json.dumps(
+        _canonical_authority_entries(authority),
+        separators=(",", ":"), sort_keys=True).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def publish_unit_guard_authority() -> None:
+    if UNIT_GUARD_EVIDENCE_ROOT is None or UNIT_GUARD_AUTHORITY is None:
+        raise CanaryError("unit guard authority publication is unavailable")
+    write_private_json(
+        UNIT_GUARD_EVIDENCE_ROOT / "unit-guard-authority.json", {
+            "schema": "halofpx.l92.unit-guard-authority.v1",
+            "entries": _canonical_authority_entries(UNIT_GUARD_AUTHORITY),
+            "sha256": UNIT_GUARD_AUTHORITY_SHA256,
+        })
+
+
+def _record_unit_guard_request(
+        requested: tuple[str, str, int | None], phase: str,
+        membership: bool) -> None:
+    global UNIT_GUARD_REQUEST_SEQUENCE
+    if UNIT_GUARD_EVIDENCE_ROOT is None:
+        raise CanaryError("transient unit guard evidence root is unavailable")
+    UNIT_GUARD_REQUEST_SEQUENCE += 1
+    host, unit, port = requested
+    write_private_json(
+        UNIT_GUARD_EVIDENCE_ROOT
+        / f"unit-guard-request-{UNIT_GUARD_REQUEST_SEQUENCE:03d}.json", {
+            "schema": "halofpx.l92.unit-guard-request.v1",
+            "sequence": UNIT_GUARD_REQUEST_SEQUENCE,
+            "host": host,
+            "unit": unit,
+            "port": port,
+            "phase": phase,
+            "authority_sha256": UNIT_GUARD_AUTHORITY_SHA256,
+            "membership": membership,
+        })
+
+
 def ensure_transient_unit_absent(
         host: str, unit: str, *, port: int | None,
         phase: str) -> dict[str, object]:
     global UNIT_GUARD_SEQUENCE
-    canonical_unit = _canonical_service_unit(unit)
+    requested = _canonical_guard_tuple(host, unit, port)
+    canonical_unit = requested[1]
     authority = UNIT_GUARD_AUTHORITY
     if authority is None:
         if MANIFEST_UNIT_AUTHORITY_REQUIRED:
@@ -1179,10 +1245,9 @@ def ensure_transient_unit_absent(
             ("nimo-2", f"{UNIT_PREFIX}-canary-l68-off", None),
             ("nimo-2", f"{UNIT_PREFIX}-canary-l68-on", None),
         })
-    if (
-        (host, canonical_unit, port) not in authority
-        or phase not in {"prelaunch", "postcleanup"}
-    ):
+    membership = requested in authority
+    _record_unit_guard_request(requested, phase, membership)
+    if not membership or phase not in {"prelaunch", "postcleanup"}:
         raise CanaryError("transient unit guard authority is outside the closed manifest")
     unit = canonical_unit
     before = _unit_guard_snapshot(host, unit, port)
@@ -1273,7 +1338,7 @@ def _canonical_service_unit(unit: str) -> str:
 
 
 def install_unit_guard_authority() -> None:
-    global UNIT_GUARD_AUTHORITY
+    global UNIT_GUARD_AUTHORITY, UNIT_GUARD_AUTHORITY_SHA256
     encoded = os.environ.get("HALOFPX_DISPOSABLE_UNIT_AUTHORITY", "")
     try:
         raw = json.loads(encoded)
@@ -1299,6 +1364,7 @@ def install_unit_guard_authority() -> None:
             raise CanaryError("disposable unit authority is duplicate")
         entries.add(entry)
     UNIT_GUARD_AUTHORITY = frozenset(entries)
+    UNIT_GUARD_AUTHORITY_SHA256 = _authority_digest(UNIT_GUARD_AUTHORITY)
 
 
 def _write_unit_guard_evidence(value: dict[str, object]) -> None:
@@ -1534,10 +1600,7 @@ def validate_provisioned_keys() -> str:
     return expected
 
 
-def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None) -> tuple[int, str, dict[str, object]]:
-    cursor = exact_journal_cursor(ssh(
-        NIMO1, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
-        check=False).stdout)
+def worker_launch_argv(local_state: bool, unit: str) -> list[str]:
     command = [
         "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=90min",
         "--property=RemainAfterExit=yes",
@@ -1552,6 +1615,14 @@ def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None
             "--halofpx-state-rank", "1", "--halofpx-state-world", "2",
             "--halofpx-state-key-generation", "7",
         ])
+    return command
+
+
+def start_worker(local_state: bool, unit: str, evidence_root: Path | None = None) -> tuple[int, str, dict[str, object]]:
+    cursor = exact_journal_cursor(ssh(
+        NIMO1, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
+        check=False).stdout)
+    command = worker_launch_argv(local_state, unit)
     ssh(NIMO1, *command)
     authority = capture_disposable_unit_authority(NIMO1, unit, cursor)
     probe_command = [
@@ -1907,13 +1978,8 @@ print(json.dumps({"bytes": int(expected_size), "sha256": expected_digest,
     return final_path
 
 
-def run_l50_device_admission(root: Path, local_units: list[str]) -> dict[str, object]:
-    unit = "halofpx-l50-device-gate"
-    local_units.append(unit)
-    cursor = exact_journal_cursor(ssh(
-        NIMO1, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
-        check=False).stdout)
-    command = [
+def device_gate_launch_argv(unit: str = "halofpx-l50-device-gate") -> list[str]:
+    return [
         "systemd-run", "--user", f"--unit={unit}",
         "--property=RuntimeMaxSec=5min", "--property=RemainAfterExit=yes",
         "--setenv=GGML_RPC_DEBUG=1",
@@ -1925,6 +1991,15 @@ def run_l50_device_admission(root: Path, local_units: list[str]) -> dict[str, ob
         "--halofpx-state-rank", "1", "--halofpx-state-world", "2",
         "--halofpx-state-key-generation", "7",
     ]
+
+
+def run_l50_device_admission(root: Path, local_units: list[str]) -> dict[str, object]:
+    unit = "halofpx-l50-device-gate"
+    local_units.append(unit)
+    cursor = exact_journal_cursor(ssh(
+        NIMO1, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
+        check=False).stdout)
+    command = device_gate_launch_argv(unit)
     ssh(NIMO1, *command)
     invocation = capture_disposable_unit_authority(NIMO1, unit, cursor)
     probe = ssh(
@@ -2012,18 +2087,115 @@ def canary_argv(sequence: str, *, restore_gate: bool = False) -> list[str]:
     return canary_command
 
 
+def canary_launch_argv(sequence: str, unit: str) -> list[str]:
+    return [
+        "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=20min",
+        "--property=RemainAfterExit=yes",
+        *semantic_env_args(), *composed_env_args("client"),
+        *canary_argv(sequence),
+    ]
+
+
+def restore_canary_launch_argv(unit: str) -> list[str]:
+    return [
+        "systemd-run", "--user", f"--unit={unit}",
+        "--property=RuntimeMaxSec=20min",
+        *(["--setenv=HALOFPX_STATE_DIAGNOSTICS=1"]
+          if LIVE_RECAPTURE_DIAGNOSTICS else []),
+        *semantic_env_args(),
+        *composed_env_args("client"),
+        *canary_argv("restore-guarded", restore_gate=True),
+    ]
+
+
+def l77_unit_guard_plan() -> list[dict[str, object]]:
+    capture_worker = f"{UNIT_PREFIX}-worker-capture"
+    restore_worker = f"{UNIT_PREFIX}-worker-restore"
+    capture_canary = f"{UNIT_PREFIX}-canary-capture"
+    restore_canary = f"{UNIT_PREFIX}-canary-restore"
+    commands = {
+        "device_gate": (NIMO1, device_gate_launch_argv()),
+        "capture_worker": (
+            NIMO1, worker_launch_argv(True, capture_worker)),
+        "capture_canary": (
+            NIMO2, canary_launch_argv("capture-only", capture_canary)),
+        "restore_worker": (
+            NIMO1, worker_launch_argv(True, restore_worker)),
+        "restore_canary": (
+            NIMO2, restore_canary_launch_argv(restore_canary)),
+    }
+    launch = {
+        name: _systemd_run_guard_tuple(host, argv)
+        for name, (host, argv) in commands.items()
+    }
+    ordered = [
+        ("device_gate_prelaunch", *launch["device_gate"], "prelaunch"),
+        ("device_gate_postcleanup", *launch["device_gate"], "postcleanup"),
+        ("capture_worker_prelaunch", *launch["capture_worker"], "prelaunch"),
+        ("capture_canary_prelaunch", *launch["capture_canary"], "prelaunch"),
+        ("capture_worker_postcleanup", *launch["capture_worker"], "postcleanup"),
+        ("restore_worker_prelaunch", *launch["restore_worker"], "prelaunch"),
+        ("restore_canary_prelaunch", *launch["restore_canary"], "prelaunch"),
+        ("restore_canary_postcleanup", *launch["restore_canary"], "postcleanup"),
+        ("finally_capture_worker", *launch["capture_worker"], "postcleanup"),
+        ("finally_restore_worker", *launch["restore_worker"], "postcleanup"),
+        ("finally_device_gate", *launch["device_gate"], "postcleanup"),
+        ("finally_restore_canary", *launch["restore_canary"], "postcleanup"),
+    ]
+    return [
+        {
+            "step": step, "sequence": index, "host": host, "unit": unit,
+            "port": port, "phase": phase,
+        }
+        for index, (step, host, unit, port, phase) in enumerate(ordered, 1)
+    ]
+
+
+def rehearse_l77_unit_guard_authority(root: Path) -> dict[str, object]:
+    if UNIT_GUARD_AUTHORITY is None:
+        raise CanaryError("L77 unit guard authority is unavailable")
+    plan = l77_unit_guard_plan()
+    planned_set = frozenset(
+        (str(item["host"]), str(item["unit"]), item["port"])
+        for item in plan)
+    coverage = [
+        {
+            **item,
+            "authority_sha256": UNIT_GUARD_AUTHORITY_SHA256,
+            "membership": (
+                (item["host"], item["unit"], item["port"])
+                in UNIT_GUARD_AUTHORITY),
+        }
+        for item in plan
+    ]
+    result = {
+        "schema": "halofpx.l92.unit-guard-rehearsal.v1",
+        "authority_entries": _canonical_authority_entries(
+            UNIT_GUARD_AUTHORITY),
+        "authority_sha256": UNIT_GUARD_AUTHORITY_SHA256,
+        "planned": coverage,
+        "planned_set_equals_authority": planned_set == UNIT_GUARD_AUTHORITY,
+        "all_requests_admitted": all(
+            bool(item["membership"]) for item in coverage),
+    }
+    write_private_json(root / "unit-guard-rehearsal.json", result)
+    if (
+        not result["planned_set_equals_authority"]
+        or not result["all_requests_admitted"]
+        or _authority_digest(UNIT_GUARD_AUTHORITY)
+            != UNIT_GUARD_AUTHORITY_SHA256
+    ):
+        raise CanaryError("L77 unit guard closed-path rehearsal mismatch")
+    return result
+
+
 def canary_sequence(sequence: str, unit_label: str, rendezvous: bool = False):
     canary_command = canary_argv(sequence)
     unit = f"{UNIT_PREFIX}-canary-{unit_label}"
     cursor = exact_journal_cursor(ssh(
         NIMO2, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
         check=False).stdout)
-    command = [
-        "systemd-run", "--user", f"--unit={unit}", "--property=RuntimeMaxSec=20min",
-        "--property=RemainAfterExit=yes",
-        *semantic_env_args(), *composed_env_args("client"),
-        *canary_command,
-    ]
+    command = canary_launch_argv(sequence, unit)
     invocation = "invocation=" + " ".join(canary_command) + "\ntransient_unit=" + unit + "\n"
     if rendezvous:
         raise CanaryError("legacy multi-case rendezvous is outside the closed L25 authority")
@@ -2938,19 +3110,13 @@ def run_diagnostic(root: Path, local_units: list[str]) -> dict[str, object]:
     ):
         raise CanaryError("worker B reused worker A PID or InvocationID")
 
-    restore_command = canary_argv("restore-guarded", restore_gate=True)
     restore_cursor = ssh(
         NIMO2, "journalctl", "--user", "--show-cursor", "-n", "0", "--no-pager",
         check=False).stdout.strip()
     if not restore_cursor.startswith("-- cursor: "):
         raise CanaryError("restore canary journal lower bound is unavailable")
     restore_launch = ssh(
-        NIMO2, "systemd-run", "--user", f"--unit={restore_canary_unit}",
-        "--property=RuntimeMaxSec=20min",
-        *(["--setenv=HALOFPX_STATE_DIAGNOSTICS=1"] if LIVE_RECAPTURE_DIAGNOSTICS else []),
-        *semantic_env_args(),
-        *composed_env_args("client"),
-        *restore_command)
+        NIMO2, *restore_canary_launch_argv(restore_canary_unit))
     restore_launch_invocation = re.search(
         r"invocation ID: ([0-9a-fA-F]{32})", restore_launch.stdout)
     if restore_launch_invocation is None:
@@ -3322,7 +3488,7 @@ def run_legacy_same_residency_diagnostic(root: Path, local_units: list[str]) -> 
 
 
 def main() -> int:
-    global LOCAL_EVIDENCE_ROOT
+    global LOCAL_EVIDENCE_ROOT, UNIT_GUARD_EVIDENCE_ROOT
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence-dir", required=True, type=Path)
     parser.add_argument("--l28-fixture", action="store_true")
@@ -3390,12 +3556,16 @@ def main() -> int:
         parser.error("--authority-key-file is admitted only for L48")
     root = args.evidence_dir.resolve()
     LOCAL_EVIDENCE_ROOT = root
+    UNIT_GUARD_EVIDENCE_ROOT = root
     if (
         not root.is_dir() or root.is_symlink()
         or (os.name != "nt" and stat.S_IMODE(root.stat().st_mode) != 0o700)
         or any(root.iterdir())
     ):
         raise CanaryError("controller-owned local evidence directory was not admitted")
+    if args.l77_primary:
+        publish_unit_guard_authority()
+        rehearse_l77_unit_guard_authority(root)
     initialize_ssh_transport(root)
     local_units = []
     results = {}
