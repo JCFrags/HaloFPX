@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 22:12 PDT
+Verified: 2026-07-28 22:23 PDT
 
 ## Overall state
 
@@ -426,6 +426,27 @@ ownership—with serialized/applied/live ranges. A proven readable gap stops wit
 an exact correction proposal; exact coverage closes the hypothesis and defines
 the minimum synchronized per-layer digest discriminator. No runtime or semantic
 correction is authorized.
+
+L100 passed with a source-proven P1 root defect at
+`1597a2b4610d397b9d31411b51210527edfc9b31`. Device capture/prepare divided
+requested byte length by `ggml_element_size`. For Q8_0 that is the 34-byte
+block size; constructing a Q8_0 tensor from the resulting count applied the
+32-elements-per-block ratio again. Each requested 1,227,264-byte occupied KV
+range therefore serialized only 38,352 bytes.
+
+Across all 124 tensors, 152,180,736 occupied bytes are provably kernel-readable
+but only 4,755,648 were represented/restored. The exact causal gap is
+147,425,088 bytes: 76,090,368 on RPC and 71,334,720 on local ROCm. Padded rows
+are not needed for this conclusion. The machine audit regenerated
+byte-identically and independent review passed.
+
+L101 is active for one shared block-aware byte-to-element/view contract across
+local and RPC capture/stage/apply, with exact nbytes equality and strict
+alignment/overflow/bounds refusal. Focused coverage must prove all retained
+occupied ranges are represented with zero readable gaps, followed by a small
+two-host quantized restore proof. Only then may one primary correctness
+confirmation run. No padded-row expansion, retry, or performance/product
+expansion is authorized.
 
 Project-lead monitoring is event-driven only. The 30-minute heartbeat was
 deleted. Because a worker final response does not itself inject an event into

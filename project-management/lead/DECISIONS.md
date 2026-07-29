@@ -170,6 +170,45 @@ runner using structural source-call-site registration and closed evidence. No
 primary access, production mutation, cache promotion, tuning, matrix, or L47 is
 authorized.
 
+## 2026-07-28 — accept L100 root cause and open L101 block-aware serialization
+
+Decision: accept L100 PASS at
+`1597a2b4610d397b9d31411b51210527edfc9b31` and its independently reproduced
+124-tensor audit. Open L101 for the narrow block-aware KV serialization
+correction, targeted qualification, and one conditional primary confirmation.
+
+Reason: current capture/prepare computes element count as byte size divided by
+`ggml_element_size`. For Q8_0, the divisor is the 34-byte storage block; a new
+Q8_0 tensor then reapplies 32 elements per block, shrinking each requested
+1,227,264-byte occupied interval to 38,352 bytes. Only 4,755,648 of
+152,180,736 provably read occupied bytes were serialized/restored. This exact
+147,425,088-byte omission explains why represented hashes matched while logits
+and tokens diverged.
+
+L101 must use one checked byte-to-element/view contract across coordinator
+local and RPC capture/stage/apply: require byte length divisible by type size,
+compute `(bytes/type_size)*block_size` with overflow checks, validate type,
+offset, stride, dimensions, allocation bounds, and require
+`ggml_nbytes(view_or_copy)==requested_bytes` before capture/publication or
+restore acceptance. Plain block-size-1 types follow the same helper. Partial
+blocks, mismatch, truncation/oversize, misalignment, and range escape refuse.
+Preserve exact occupied rows; padded-row expansion is not authorized.
+
+Focused gates must cover Q8_0 unit and retained 1,227,264-byte geometry,
+plain types, structural negatives, all 124 L98 tensors totaling 152,180,736
+represented occupied bytes with zero readable gaps, capture/stage/apply/live
+equality, feature-off inertness, and the smallest real two-host quantized
+capture/restore fixture with zero legacy GET/SET. One adversarial review is
+sufficient.
+
+Only if those gates pass with no P1/P2 may exactly one OOM-aware primary
+capture/fresh-restore/one-token confirmation run. Acceptance requires token
+21549/suffix `alpha`, exact logits and represented/live state equality, all 124
+occupied ranges, per-attempt custody, authenticated bounded zero legacy
+GET/SET, cleanup, ordered recovery, and exact production reconciliation. No
+retry, padded-row expansion, protocol/cache product/performance work, or
+automatic follow-on is authorized.
+
 ## 2026-07-28 — accept L99 and open L100 KV physical-range coverage
 
 Decision: accept L99 PASS at
