@@ -5,7 +5,7 @@ generated_on: '2026-07-17'
 registry: ../../research/prompts/section_index.yaml
 schema: manifest.schema.json
 generator: ../../research/prompts/tools/generate_wiki_manifest.py
-input_digest_sha256: 957ff8f752a5080677b32f6c2017d59cf0ed719118e1932eabb12085a02b9e8b
+input_digest_sha256: 5ac4ce11a7ab40dc604ad0c24148dfdc671b8f4a963d4af7b80220f604c7eee5
 planned_category_count: 12
 planned_section_count: 86
 categories:
@@ -151,9 +151,8 @@ categories:
     section_manifest: 03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 03
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-16'
     source_count: 16
@@ -176,9 +175,8 @@ categories:
     section_manifest: 03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 03
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
     source_count: 13
@@ -189,9 +187,8 @@ categories:
     section_manifest: 03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 03
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-16'
     source_count: 7
@@ -214,9 +211,8 @@ categories:
     section_manifest: 03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 03
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-16'
     source_count: 15
@@ -281,9 +277,8 @@ categories:
     section_manifest: 04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 04
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
     source_count: 8
@@ -294,9 +289,8 @@ categories:
     section_manifest: 04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 04
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-16'
     source_count: 6
@@ -307,9 +301,8 @@ categories:
     section_manifest: 04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 04
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
     source_count: 12
@@ -392,9 +385,8 @@ categories:
     section_manifest: 06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 06
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
     source_count: 6
@@ -405,9 +397,8 @@ categories:
     section_manifest: 06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 06
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-16'
     source_count: 6
@@ -418,9 +409,8 @@ categories:
     section_manifest: 06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 06
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-16'
     source_count: 5
@@ -431,9 +421,8 @@ categories:
     section_manifest: 06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 06
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-16'
     source_count: 6
@@ -954,9 +943,8 @@ categories:
     section_manifest: 11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 11
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
     source_count: 11
@@ -979,9 +967,8 @@ categories:
     section_manifest: 11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 11
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
     source_count: 11
@@ -992,9 +979,8 @@ categories:
     section_manifest: 11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 11
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-16'
     source_count: 7
@@ -1005,9 +991,8 @@ categories:
     section_manifest: 11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 11
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-16'
     source_count: 7
@@ -1084,9 +1069,8 @@ categories:
     section_manifest: 12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 12
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
     source_count: 22
@@ -1097,9 +1081,8 @@ categories:
     section_manifest: 12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/section.yaml
     artifact_state: complete
     missing_required_files: []
-    metadata_state: invalid
-    metadata_errors:
-    - category_id must equal 12
+    metadata_state: valid
+    metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-07-17'
     source_count: 11

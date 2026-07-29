@@ -1,24 +1,37 @@
-# Custom Inference Project
+# HaloFPX Start Here
 
-This repository is the working home for the HaloFPX LLM Wiki and its evidence-driven research program.
+This repository contains HaloFPX research, evidence, and project guidance.
+The writable HaloFPX implementation repository is a separate workspace.
 
-The user-directed destination and phase gates are defined in [`PROJECT_GOAL.md`](PROJECT_GOAL.md).
+All workers must start with [`WORKER_START_HERE.md`](WORKER_START_HERE.md).
 
-## Project map
+## Main navigation
 
-- `wiki/HaloFPX_Wiki/` - canonical assembled Wiki.
-- `research/prompts/` - 86 standalone research assignments and orchestration support files.
-- `sources/imports/2026-07-16-research-project/` - preserved input archives and import receipt.
-- `sources/imports/2026-07-17-further-research-wikis/` - 12 preserved follow-up research Wiki archives, extracted candidates, hashes, and import receipt.
-- `sources/imports/2026-07-18-pre-fork-internet-research/` - all eleven preserved PF-IR research returns (01-11), extracted candidates, hashes, and intake receipt.
-- `sources/repositories/` - read-only upstream/fork reference clones with exact HEAD, research-pin, submodule, and license provenance.
-- `knowledge/` - compact, evidence-routed pre-implementation reasoning, invariants, constraints, and readiness gates.
-- `skills/` - project-local candidate procedures for fork preparation and Strix Halo qualification; not globally installed or validated for production use.
-- `references/` - pointers to external canonical references used by this project.
-- `reviews/` - research quality reviews, gaps, contradiction reports, and improvement proposals.
-- `experiments/` - reproducible on-machine experiment records and raw outputs.
-- `project-management/lead/` - project-lead objectives, current status, monitoring policy, decisions, and worker cursor.
+1. **Start Here:** [`WORKER_START_HERE.md`](WORKER_START_HERE.md)
+2. **Current Project State:** [`CURRENT_STATE.md`](CURRENT_STATE.md)
+3. **Goals and Non-Negotiable Rules:** [`PROJECT_GOAL.md`](PROJECT_GOAL.md) and [`AGENTS.md`](AGENTS.md)
+4. **System Architecture:** [`architecture-overview.md`](wiki/HaloFPX_Wiki/architecture-overview.md)
+5. **Production Operations:** [Product, Server, and Operations](wiki/HaloFPX_Wiki/10_Product_Server_and_Operations/README.md)
+6. **Cache Design:** [HaloKV Persistent Cache](wiki/HaloFPX_Wiki/09_HaloKV_Persistent_Cache/README.md)
+7. **Distributed Execution:** [Distributed Runtime](wiki/HaloFPX_Wiki/07_Distributed_Runtime/README.md)
+8. **Performance Results:** [Verification and Performance](wiki/HaloFPX_Wiki/11_Verification_and_Performance/README.md)
+9. **Milestones and Decisions:** [`decision-map.md`](wiki/HaloFPX_Wiki/decision-map.md)
+10. **Evidence Index:** [`evidence-map.md`](wiki/HaloFPX_Wiki/evidence-map.md)
+11. **Worker Guide:** [`WORKER_START_HERE.md`](WORKER_START_HERE.md)
+12. **Glossary:** [`glossary.md`](wiki/HaloFPX_Wiki/glossary.md)
+13. **Archive:** [`archive-index.md`](wiki/HaloFPX_Wiki/archive-index.md)
 
-Start with `research/prompts/README.md` for the research index, `wiki/HaloFPX_Wiki/README.md` for the canonical research context, `knowledge/README.md` for compact pre-implementation retrieval, and `skills/README.md` for candidate procedures.
+## Repository map
 
-> This is a maintained working system, not permanent truth. Review sources, identify gaps, and improve only with traceable evidence.
+- [`wiki/HaloFPX_Wiki/`](wiki/HaloFPX_Wiki/README.md) contains the canonical research Wiki.
+- [`research/prompts/`](research/prompts/README.md) contains 86 research assignments.
+- `sources/` preserves imported evidence, repositories, archives, hashes, and licenses.
+- `experiments/` contains reproducible experiment records and raw outputs.
+- [`knowledge/`](knowledge/README.md) contains compact evidence-routed reasoning.
+- [`skills/`](skills/README.md) contains project-local candidate procedures.
+- [`references/`](references/agent-harness.md) contains pointers to external authorities.
+- [`reviews/`](reviews/README.md) contains reviews and improvement proposals.
+- [`project-management/lead/`](project-management/lead/README.md) contains Project Lead authority.
+
+The Wiki is maintained guidance, not permanent truth.
+Use exact source, evidence, and accepted decisions before you change project material.

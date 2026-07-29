@@ -4,11 +4,12 @@ Treat this repository as a living, evidence-backed engineering wiki for the cust
 
 ## Read before changing project material
 
-1. Read `README.md`, `wiki/HaloFPX_Wiki/README.md`, the relevant category manifest, and linked decisions.
-2. Treat claim labels literally: `[MEASURED]` is environment-specific; `[VERIFIED]` requires primary evidence; `[INFERENCE]`, `[ASSUMPTION]`, and `[RECOMMENDATION]` are not facts; `[OPEN]` remains unresolved.
-3. Prefer exact commits, model hashes, hardware revisions, and software versions over names such as "latest."
-4. Do not fabricate benchmarks, compatibility, hardware capability, API behavior, or provenance.
-5. Preserve raw sources and licenses. Keep research prompts in `research/prompts/`, researched pages in `wiki/HaloFPX_Wiki/`, experiments in `experiments/`, and import evidence in `sources/`.
+1. Start with `WORKER_START_HERE.md` and complete its required sequence.
+2. Read `README.md`, `wiki/HaloFPX_Wiki/README.md`, the relevant category manifest, and linked decisions.
+3. Treat claim labels literally: `[MEASURED]` is environment-specific; `[VERIFIED]` requires primary evidence; `[INFERENCE]`, `[ASSUMPTION]`, and `[RECOMMENDATION]` are not facts; `[OPEN]` remains unresolved.
+4. Prefer exact commits, model hashes, hardware revisions, and software versions over names such as "latest."
+5. Do not fabricate benchmarks, compatibility, hardware capability, API behavior, or provenance.
+6. Preserve raw sources and licenses. Keep research prompts in `research/prompts/`, researched pages in `wiki/HaloFPX_Wiki/`, experiments in `experiments/`, and import evidence in `sources/`.
 
 ## Evidence and improvement discipline
 
