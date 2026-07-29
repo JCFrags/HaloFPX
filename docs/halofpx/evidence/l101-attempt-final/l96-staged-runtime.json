@@ -1,0 +1,496 @@
+{
+  "archive_bytes": 211392000,
+  "archive_sha256": "293573c815d64973075c488fd9dd86eb3dd13aeb96af14002e519f7cd51851bd",
+  "binaries": {
+    "canary": {
+      "bytes": 153400,
+      "dependencies": {
+        "libc.so.6": {
+          "reported": "/usr/lib/libc.so.6",
+          "resolved": "/usr/lib/libc.so.6"
+        },
+        "libgcc_s.so.1": {
+          "reported": "/usr/lib/libgcc_s.so.1",
+          "resolved": "/usr/lib/libgcc_s.so.1"
+        },
+        "libggml-base.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0.11.1",
+          "staged_identity": {
+            "bytes": 1165984,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0",
+                "target": "libggml-base.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "c931261dcbd00de4e0fc2665244540ea1a8a852305cda353d729e1ecef3589f1"
+          }
+        },
+        "libggml-cpu.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0.11.1",
+          "staged_identity": {
+            "bytes": 1383856,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0",
+                "target": "libggml-cpu.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "a3ee46d3991924f40318fa610d91aac5b82f547c5f2161bd2a4b500ee307fadd"
+          }
+        },
+        "libggml-hip.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0.11.1",
+          "staged_identity": {
+            "bytes": 83111664,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0",
+                "target": "libggml-hip.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "695e9d05ffb7076fbecbdc17ff71969f4b120a6d01df4923c4a2249efb6f14b7"
+          }
+        },
+        "libggml-rpc.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0.11.1",
+          "staged_identity": {
+            "bytes": 607808,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0",
+                "target": "libggml-rpc.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "53fcf841323166dd0a211b539482608fb3c8f2b6ddb85f68007d3947a7978727"
+          }
+        },
+        "libggml.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0.11.1",
+          "staged_identity": {
+            "bytes": 55264,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0",
+                "target": "libggml.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "2436b553462990ac7cdcbf64483915818bd93aba3f9bbc9fb1cdea7c40d409a1"
+          }
+        },
+        "libllama-common.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama-common.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama-common.so.0.0.0",
+          "staged_identity": {
+            "bytes": 6253800,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama-common.so.0.0.0",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama-common.so.0",
+                "target": "libllama-common.so.0.0.0"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "156f50db7fa8bf2cb75b20300d9e357a89b30eed51c6eeccc3241dd28619acc3"
+          }
+        },
+        "libllama.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0.0.0",
+          "staged_identity": {
+            "bytes": 4106496,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0.0.0",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0",
+                "target": "libllama.so.0.0.0"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "243edad5c45c083b051b7211373a7e919d081d2cedb0681befc9be1db8e63e97"
+          }
+        },
+        "libm.so.6": {
+          "reported": "/usr/lib/libm.so.6",
+          "resolved": "/usr/lib/libm.so.6"
+        },
+        "libstdc++.so.6": {
+          "reported": "/usr/lib/libstdc++.so.6",
+          "resolved": "/usr/lib/libstdc++.so.6.0.35"
+        }
+      },
+      "ldd_sha256": "6b440ed847e99e11f27c5a585dd23b50a895030483bb596e11b9841fd42d4dda",
+      "mode": "0755",
+      "needed": [
+        "libllama-common.so.0",
+        "libllama.so.0",
+        "libggml.so.0",
+        "libggml-rpc.so.0",
+        "libggml-cpu.so.0",
+        "libggml-hip.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ],
+      "owner": "connorb",
+      "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-distributed-state-canary",
+      "readelf_sha256": "fdb0d2af8646d53b04d3a9cfdc02af1303086b9ab6c8aa1a923afc802edb1f0d",
+      "runpath": [
+        "$ORIGIN",
+        "/opt/rocm/lib"
+      ],
+      "sha256": "0c446215a44b91a23dcd299c88c5c388a7908bd9c663ad3a58ee5bd643ee70eb"
+    },
+    "placement": {
+      "bytes": 53976,
+      "dependencies": {
+        "libc.so.6": {
+          "reported": "/usr/lib/libc.so.6",
+          "resolved": "/usr/lib/libc.so.6"
+        },
+        "libgcc_s.so.1": {
+          "reported": "/usr/lib/libgcc_s.so.1",
+          "resolved": "/usr/lib/libgcc_s.so.1"
+        },
+        "libggml-base.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0.11.1",
+          "staged_identity": {
+            "bytes": 1165984,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0",
+                "target": "libggml-base.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "c931261dcbd00de4e0fc2665244540ea1a8a852305cda353d729e1ecef3589f1"
+          }
+        },
+        "libggml-cpu.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0.11.1",
+          "staged_identity": {
+            "bytes": 1383856,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0",
+                "target": "libggml-cpu.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "a3ee46d3991924f40318fa610d91aac5b82f547c5f2161bd2a4b500ee307fadd"
+          }
+        },
+        "libggml-hip.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0.11.1",
+          "staged_identity": {
+            "bytes": 83111664,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0",
+                "target": "libggml-hip.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "695e9d05ffb7076fbecbdc17ff71969f4b120a6d01df4923c4a2249efb6f14b7"
+          }
+        },
+        "libggml-rpc.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0.11.1",
+          "staged_identity": {
+            "bytes": 607808,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0",
+                "target": "libggml-rpc.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "53fcf841323166dd0a211b539482608fb3c8f2b6ddb85f68007d3947a7978727"
+          }
+        },
+        "libggml.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0.11.1",
+          "staged_identity": {
+            "bytes": 55264,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0",
+                "target": "libggml.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "2436b553462990ac7cdcbf64483915818bd93aba3f9bbc9fb1cdea7c40d409a1"
+          }
+        },
+        "libllama-common.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama-common.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama-common.so.0.0.0",
+          "staged_identity": {
+            "bytes": 6253800,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama-common.so.0.0.0",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama-common.so.0",
+                "target": "libllama-common.so.0.0.0"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "156f50db7fa8bf2cb75b20300d9e357a89b30eed51c6eeccc3241dd28619acc3"
+          }
+        },
+        "libllama.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0.0.0",
+          "staged_identity": {
+            "bytes": 4106496,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0.0.0",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libllama.so.0",
+                "target": "libllama.so.0.0.0"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "243edad5c45c083b051b7211373a7e919d081d2cedb0681befc9be1db8e63e97"
+          }
+        },
+        "libm.so.6": {
+          "reported": "/usr/lib/libm.so.6",
+          "resolved": "/usr/lib/libm.so.6"
+        },
+        "libstdc++.so.6": {
+          "reported": "/usr/lib/libstdc++.so.6",
+          "resolved": "/usr/lib/libstdc++.so.6.0.35"
+        }
+      },
+      "ldd_sha256": "e1e037cd126fcef2d7448de2eeb09b79a8eb84ff0e4fe8e6337116ee2a883456",
+      "mode": "0755",
+      "needed": [
+        "libllama-common.so.0",
+        "libllama.so.0",
+        "libggml.so.0",
+        "libggml-cpu.so.0",
+        "libggml-hip.so.0",
+        "libggml-rpc.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ],
+      "owner": "connorb",
+      "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-placement-probe",
+      "readelf_sha256": "a789c54ed7864d3643273c143acdd398b1af0ffe852eb55975cd52c70d43293a",
+      "runpath": [
+        "$ORIGIN",
+        "/opt/rocm/lib"
+      ],
+      "sha256": "efc690a08f54d6a3d6884a84af1620ed1ed77d27e6f69cc24903c6f97884e991"
+    },
+    "worker": {
+      "bytes": 220576,
+      "dependencies": {
+        "libc.so.6": {
+          "reported": "/usr/lib/libc.so.6",
+          "resolved": "/usr/lib/libc.so.6"
+        },
+        "libgcc_s.so.1": {
+          "reported": "/usr/lib/libgcc_s.so.1",
+          "resolved": "/usr/lib/libgcc_s.so.1"
+        },
+        "libggml-base.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0.11.1",
+          "staged_identity": {
+            "bytes": 1165984,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-base.so.0",
+                "target": "libggml-base.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "c931261dcbd00de4e0fc2665244540ea1a8a852305cda353d729e1ecef3589f1"
+          }
+        },
+        "libggml-cpu.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0.11.1",
+          "staged_identity": {
+            "bytes": 1383856,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-cpu.so.0",
+                "target": "libggml-cpu.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "a3ee46d3991924f40318fa610d91aac5b82f547c5f2161bd2a4b500ee307fadd"
+          }
+        },
+        "libggml-hip.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0.11.1",
+          "staged_identity": {
+            "bytes": 83111664,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-hip.so.0",
+                "target": "libggml-hip.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "695e9d05ffb7076fbecbdc17ff71969f4b120a6d01df4923c4a2249efb6f14b7"
+          }
+        },
+        "libggml-rpc.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0.11.1",
+          "staged_identity": {
+            "bytes": 607808,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml-rpc.so.0",
+                "target": "libggml-rpc.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "53fcf841323166dd0a211b539482608fb3c8f2b6ddb85f68007d3947a7978727"
+          }
+        },
+        "libggml.so.0": {
+          "reported": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0",
+          "resolved": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0.11.1",
+          "staged_identity": {
+            "bytes": 55264,
+            "final": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0.11.1",
+            "links": [
+              {
+                "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/libggml.so.0",
+                "target": "libggml.so.0.11.1"
+              }
+            ],
+            "mode": "0755",
+            "owner": "connorb",
+            "sha256": "2436b553462990ac7cdcbf64483915818bd93aba3f9bbc9fb1cdea7c40d409a1"
+          }
+        },
+        "libm.so.6": {
+          "reported": "/usr/lib/libm.so.6",
+          "resolved": "/usr/lib/libm.so.6"
+        },
+        "libstdc++.so.6": {
+          "reported": "/usr/lib/libstdc++.so.6",
+          "resolved": "/usr/lib/libstdc++.so.6.0.35"
+        }
+      },
+      "ldd_sha256": "87e92d241fee47b6379bd64308b0f84b368e1cdc7e759a262d6965770c4c3a57",
+      "mode": "0755",
+      "needed": [
+        "libggml.so.0",
+        "libggml-cpu.so.0",
+        "libggml-hip.so.0",
+        "libggml-rpc.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ],
+      "owner": "connorb",
+      "path": "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/rpc-server",
+      "readelf_sha256": "b972e4c09a999787a53d62b6cd75a145165f245e96efd167a0d325dd34651eda",
+      "runpath": [
+        "$ORIGIN",
+        "/opt/rocm/lib"
+      ],
+      "sha256": "265d688d74ebbb8cc1daccf6ca5e90b518952c968fd1c1cc63fcb4bd231d7dc1"
+    }
+  },
+  "build_id": "743047e7206b643e80d603ddff48ddb59e747ecbf6e5b7e754cb131b44c4114f",
+  "gate_sha256": "bd061d30dae0b4affa97bdfba924022be23393e19b069deefcd06fea91b899b5",
+  "manifest_sha256": "0f7c646e0009404286e63c6adf8981718efe2f89b3925ec550a2f416888e715d",
+  "probes": {
+    "canary_provenance": {
+      "argv": [
+        "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/test-halofpx-distributed-state-canary",
+        "--halofpx-provenance"
+      ],
+      "record": {
+        "binary": "canary",
+        "build_id": "743047e7206b643e80d603ddff48ddb59e747ecbf6e5b7e754cb131b44c4114f",
+        "schema": "halofpx.l57.binary-provenance.v1",
+        "source_root": "290c9e5d2a9f82c27a7f0af7099952557ab3faf37d3390aee6fef64e52635736"
+      },
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "7910089690b8420a86ecb572d68e200e4d8abc74c7d9efde8e3abec565987e7a"
+    },
+    "worker_provenance": {
+      "argv": [
+        "/var/tmp/halofpx-l48-source-nimo2/build-l48/bin/rpc-server",
+        "--halofpx-provenance"
+      ],
+      "record": {
+        "binary": "rpc-server",
+        "build_id": "743047e7206b643e80d603ddff48ddb59e747ecbf6e5b7e754cb131b44c4114f",
+        "schema": "halofpx.l57.binary-provenance.v1",
+        "source_root": "290c9e5d2a9f82c27a7f0af7099952557ab3faf37d3390aee6fef64e52635736"
+      },
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "7764accfe1ae72e23e174c46170e4062c8c11a4b2f693ff2b7db5a6c02344cf7"
+    }
+  },
+  "root": "/var/tmp/halofpx-l48-source-nimo2",
+  "schema": "halofpx.l96.staged-runtime.v1",
+  "source_root": "290c9e5d2a9f82c27a7f0af7099952557ab3faf37d3390aee6fef64e52635736",
+  "status": "pass"
+}

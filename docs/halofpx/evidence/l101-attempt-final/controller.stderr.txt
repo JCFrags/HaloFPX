@@ -1,0 +1,2 @@
+L22 primary canary failed: L48 composed result signing failed
+transition refused/failed: maintenance command exited 1

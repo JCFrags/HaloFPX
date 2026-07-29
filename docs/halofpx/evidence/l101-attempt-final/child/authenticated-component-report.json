@@ -1,0 +1,56 @@
+{
+  "coordinator": {
+    "auth_tag": "3d0728b541e8c8b97f7aa3b325e292dac34194d1119e7285e5b5262c0d9f6c70",
+    "control_bytes": 15048,
+    "live_control_sha256": "2d614e8634f7f9defc4ed59f59b900490e021e382045c566109588bd288a0cbb",
+    "live_local_sha256": "80f8a706f330dc1bcca8c98ef83324b66260220a64847bafa750658d8fffa3a8",
+    "live_manifest_sha256": "b8d55f2810523e336e77e9d4ca124ea075533c12adfa72be129625edbfb5a7b7",
+    "local_bytes": 73636408,
+    "original_control_sha256": "2d614e8634f7f9defc4ed59f59b900490e021e382045c566109588bd288a0cbb",
+    "original_local_sha256": "80f8a706f330dc1bcca8c98ef83324b66260220a64847bafa750658d8fffa3a8",
+    "original_manifest_sha256": "b8d55f2810523e336e77e9d4ca124ea075533c12adfa72be129625edbfb5a7b7",
+    "pregeneration_control_sha256": "2d614e8634f7f9defc4ed59f59b900490e021e382045c566109588bd288a0cbb",
+    "pregeneration_local_sha256": "80f8a706f330dc1bcca8c98ef83324b66260220a64847bafa750658d8fffa3a8",
+    "pregeneration_manifest_sha256": "b8d55f2810523e336e77e9d4ca124ea075533c12adfa72be129625edbfb5a7b7",
+    "recapture_object_sha256": "89dbc3675b4db5da05bed2ccf8abe633590497ddb754f1dd050b965ab80b4e22",
+    "restore_input_control_sha256": "2d614e8634f7f9defc4ed59f59b900490e021e382045c566109588bd288a0cbb",
+    "restore_input_local_sha256": "80f8a706f330dc1bcca8c98ef83324b66260220a64847bafa750658d8fffa3a8",
+    "restore_input_manifest_sha256": "b8d55f2810523e336e77e9d4ca124ea075533c12adfa72be129625edbfb5a7b7",
+    "token_boundary": 1128,
+    "worker_bytes": 78544896,
+    "worker_components": 64
+  },
+  "mismatches": [],
+  "phases": {
+    "apply": {
+      "aggregate_sha256": "0386b0393dd101d7b96d4da739ce13e2384d096064b625ac02039c1e50ca9d6f",
+      "auth_tag": "56920769300bd1ef8999587f777d3eeeca02a383e3ba1085fa70fc76697ae8fc",
+      "bytes": 78544896,
+      "components": 64,
+      "merkle_sha256": "b1554c110a61c8fa469e59ffeaea22bafd171d315e0ee67f43369010cfb42483"
+    },
+    "capture": {
+      "aggregate_sha256": "0386b0393dd101d7b96d4da739ce13e2384d096064b625ac02039c1e50ca9d6f",
+      "auth_tag": "441a1793d0b7f73597c225a0a5e4e2a895430df766303248872fb486fa76a61d",
+      "bytes": 78544896,
+      "components": 64,
+      "merkle_sha256": "e726bcfe1085147959a3381fda6f58b80fb66cdc12116eeb5cceafdd0d0090e5"
+    },
+    "recapture": {
+      "aggregate_sha256": "0386b0393dd101d7b96d4da739ce13e2384d096064b625ac02039c1e50ca9d6f",
+      "auth_tag": "441a1793d0b7f73597c225a0a5e4e2a895430df766303248872fb486fa76a61d",
+      "bytes": 78544896,
+      "components": 64,
+      "merkle_sha256": "e726bcfe1085147959a3381fda6f58b80fb66cdc12116eeb5cceafdd0d0090e5"
+    },
+    "stage": {
+      "aggregate_sha256": "0386b0393dd101d7b96d4da739ce13e2384d096064b625ac02039c1e50ca9d6f",
+      "auth_tag": "6fe5612ab04338824510c4b263ab4703d8e5b9d306a7c9173894ca394816a120",
+      "bytes": 78544896,
+      "components": 64,
+      "merkle_sha256": "e726bcfe1085147959a3381fda6f58b80fb66cdc12116eeb5cceafdd0d0090e5"
+    }
+  },
+  "report_auth_tag": "5a20e596c23fd09c32409f127d35158fe09df35569e41dfff6c44ef63a495a7a",
+  "schema": "halofpx.state-component-live-recapture-diagnostic.v1"
+}

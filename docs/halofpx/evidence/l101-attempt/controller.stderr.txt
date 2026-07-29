@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2928, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 2676, in main
+    manifest = validate_milestone_manifest(args.milestone_manifest, selected_runner)
+  File "C:\Users\britt\Documents\HaloFPX\scripts\halofpx-production-transition.py", line 1153, in validate_milestone_manifest
+    raise TransitionError(
+        f"L48 staged source hash mismatch: {host}:{relative}")
+TransitionError: L48 staged source hash mismatch: nimo-1:CMakeLists.txt
