@@ -1,6 +1,6 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-28 22:23 PDT
+Verified: 2026-07-28 23:24 PDT
 
 ## Overall state
 
@@ -8,6 +8,36 @@ The project is active and materially progressing. The current worker remains
 suitable as the primary implementation owner. Earlier excessive test expansion
 has been corrected by steering; recent work uses bounded kill gates and removes
 slower candidates.
+
+L101 closed NOT PROMOTED at exact terminal commit
+`4ebc29ee1f557ffa73860465158e6a35e80540fb`, but its product-correctness
+result is accepted as conclusive PASS. The retained block-aware correction
+restored and live-recaptured all 124 occupied Q8_0 KV payloads
+(152,180,736 bytes). Capture and a genuinely fresh restore produced the same
+token `21549`, suffix ` alpha`, and logits SHA-256
+`8564aef91899f6d5cc61ad88a8df4c836600a1006f1bc03b6eb6150e8c27c754`.
+All 64 RPC components matched through capture/stage/apply/live-recapture, and
+the bounded windows contained zero legacy GET_TENSOR/SET_TENSOR transfers.
+Five response attempts and five authenticated server terminal authorities were
+retained. Independent review found no correctness P1 and explicitly concluded
+that no correctness rerun is required.
+
+L101's sole promotion blocker is downstream evidence publication. The final
+remote signer refused `RPC mutable authority is incomplete`. Exact retained
+operation 540 and the authenticated composed journals show the stale invariant:
+each successful record has `set=7` with `set_hash_hit=0` and
+`set_hash_miss=0`, while the signer requires hit+miss to be positive. That
+requirement is incompatible with the now-proven no-legacy-transfer path.
+L102 is active only to correct and qualify this envelope validator from retained
+L101 payloads and focused no-model helper tests. It may not rerun the primary
+model, reconstruct a signed L101 envelope with a deleted runtime key, or reopen
+cache correctness.
+
+Production recovered cleanly and is the current accepted authority: nimo-1
+coordinator PID `3027112`, InvocationID
+`e6da1fe637144cb394119959c0e88736`, NRestarts `0`, unique port 8081 and
+HTTP 200; nimo-2 worker PID `2148915`, InvocationID
+`3480c89086e04d5d80060366c5c7ab7f`, NRestarts `0`, unique port 50052.
 
 L76 passed and is promoted at terminal evidence commit
 `6c8dc28a66b0fc3fb2525713dd505cc4320a4c27`, retaining exact corrected source

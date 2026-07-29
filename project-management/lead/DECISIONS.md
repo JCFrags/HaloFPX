@@ -1,5 +1,33 @@
 # Project-Lead Decisions
 
+## 2026-07-28 — accept L101 cache correctness; open L102 envelope-only correction
+
+Decision: accept the retained block-aware serialization source and L101's
+primary capture/fresh-restore result as conclusive cache-correctness PASS at
+terminal commit `4ebc29ee1f557ffa73860465158e6a35e80540fb`. Keep L101 itself
+NOT PROMOTED solely because no signed terminal controller envelope was
+published. No primary correctness rerun is authorized or required.
+
+Open L102 only to correct and qualify the composed-result signer invariant.
+Retained operation 540 proves the helper refused `RPC mutable authority is
+incomplete`; the five authenticated records have `set=7`,
+`set_hash_hit=0`, and `set_hash_miss=0`. The signer incorrectly requires the
+last two counters to sum positive even though L101 proves the valid
+rank-local path used zero legacy GET_TENSOR/SET_TENSOR state-page transfers.
+
+L102 must preserve positive set activity and every mutable, graph, receipt,
+identity, and cross-binding requirement while permitting the legitimate
+zero-hit/zero-miss legacy-counter state. Qualification is limited to retained
+L101 composed payloads, focused real helper sign/verify, malformed and partial
+negative cases, and independent review. It must not access the model or
+production, forge a retrospective L101 envelope, reopen block geometry, or
+claim performance or end-user cache reachability.
+
+Reason: replay correctness is established by identical token, suffix, logits,
+all 152,180,736 occupied KV bytes, all 64 RPC components, and authenticated
+server custody. Repeating that expensive run would add no decision value. The
+remaining defect is an exact, downstream evidence-validator assumption.
+
 ## 2026-07-27 — accept L56 root cause and bind parent/split graph identity
 
 Decision: accept L56 diagnostic PASS commit
