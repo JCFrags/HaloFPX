@@ -312,14 +312,21 @@ void ggml_cuda_mul_mat_q_rocmfpx_pair(
         GGML_ASSERT(weight->nb[0] == ts_weight);
         GGML_ASSERT(dst->nb[0] == ts_dst);
 
+        const int64_t weight_s01 = weight->nb[1] / ts_weight;
+        const int64_t weight_s02 = weight->nb[2] / ts_weight;
+        const int64_t weight_s03 = weight->nb[3] / ts_weight;
+        const int64_t dst_s1     = dst->nb[1] / ts_dst;
+        const int64_t dst_s2     = dst->nb[2] / ts_dst;
+        const int64_t dst_s3     = dst->nb[3] / ts_dst;
+
         clear_compute_padding(weight);
 
         const mmq_args args = {
             (const char *) weight->data, weight->type, (const int *) src1_q8_1.get(), nullptr, nullptr,
             (float *) dst->data,
-            weight->ne[0], weight->ne[1], dst->ne[1], weight->nb[1] / ts_weight, ne11, dst->nb[1] / ts_dst,
-            weight->ne[2], ne12, weight->nb[2] / ts_weight, q8_s12, dst->nb[2] / ts_dst,
-            weight->ne[3], ne13, weight->nb[3] / ts_weight, q8_s13, dst->nb[3] / ts_dst,
+            weight->ne[0], weight->ne[1], dst->ne[1], weight_s01, ne11, dst_s1,
+            weight->ne[2], ne12, weight_s02, q8_s12, dst_s2,
+            weight->ne[3], ne13, weight_s03, q8_s13, dst_s3,
             use_stream_k, dst->ne[1]};
         ggml_cuda_mul_mat_q_switch_type(ctx, args, stream);
     };
