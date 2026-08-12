@@ -4723,6 +4723,16 @@ extern DECL_MMQ_CASE(GGML_TYPE_IQ4_XS);
 void ggml_cuda_mul_mat_q(
         ggml_backend_cuda_context & ctx, const ggml_tensor * src0, const ggml_tensor * src1, const ggml_tensor * ids, ggml_tensor * dst);
 
+#if defined(GGML_HIP_ROCMFPX_FFN_Q8_REUSE)
+void ggml_cuda_mul_mat_q_rocmfpx_pair(
+        ggml_backend_cuda_context & ctx,
+        const ggml_tensor * src0_a,
+        const ggml_tensor * src0_b,
+        const ggml_tensor * src1,
+        ggml_tensor * dst_a,
+        ggml_tensor * dst_b);
+#endif
+
 void ggml_cuda_op_mul_mat_q(
     ggml_backend_cuda_context & ctx,
     const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst, const char * src0_dd_i, const float * src1_ddf_i,

@@ -141,6 +141,10 @@ if (GGML_HIP_ROCMFPX_MMVQ_SUM_FREE)
     target_compile_definitions(ggml-hip PRIVATE GGML_HIP_ROCMFPX_MMVQ_SUM_FREE)
 endif()
 
+if (GGML_HIP_ROCMFPX_FFN_Q8_REUSE)
+    target_compile_definitions(ggml-hip PRIVATE GGML_HIP_ROCMFPX_FFN_Q8_REUSE)
+endif()
+
 if (NOT GGML_HIP_MMQ_MFMA)
     add_compile_definitions(GGML_HIP_NO_MMQ_MFMA)
 endif()

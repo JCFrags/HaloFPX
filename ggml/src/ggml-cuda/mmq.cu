@@ -2,6 +2,7 @@
 #include "mmq.cuh"
 #include "quantize.cuh"
 #include "mmid.cuh"
+#include "rocmfpx-ffn-q8-reuse.h"
 
 static void ggml_cuda_mul_mat_q_switch_type(ggml_backend_cuda_context & ctx, const mmq_args & args, cudaStream_t stream) {
     switch (args.type_x) {
@@ -239,6 +240,95 @@ void ggml_cuda_mul_mat_q(
 
     ggml_cuda_mul_mat_q_switch_type(ctx, args, stream);
 }
+
+#if defined(GGML_HIP_ROCMFPX_FFN_Q8_REUSE)
+// HALOFPX_FFN_Q8_REUSE_PAIR_BEGIN
+void ggml_cuda_mul_mat_q_rocmfpx_pair(
+        ggml_backend_cuda_context & ctx,
+        const ggml_tensor * src0_a,
+        const ggml_tensor * src0_b,
+        const ggml_tensor * src1,
+        ggml_tensor * dst_a,
+        ggml_tensor * dst_b) {
+    GGML_ASSERT(src0_a && src0_b && src1 && dst_a && dst_b);
+    GGML_ASSERT(halofpx_rocmfpx_ffn_q8_reuse_type(src0_a->type));
+    GGML_ASSERT(src0_a->type == src0_b->type);
+    GGML_ASSERT(ggml_are_same_shape(src0_a, src0_b));
+    GGML_ASSERT(ggml_are_same_stride(src0_a, src0_b));
+    GGML_ASSERT(src1->type == GGML_TYPE_F32);
+    GGML_ASSERT(dst_a->type == GGML_TYPE_F32 && dst_b->type == GGML_TYPE_F32);
+    GGML_ASSERT(ggml_are_same_shape(dst_a, dst_b));
+    GGML_ASSERT(ggml_are_same_stride(dst_a, dst_b));
+
+    cudaStream_t stream = ctx.stream();
+    const int cc = ggml_cuda_info().devices[ggml_cuda_get_device()].cc;
+
+    const size_t ts_src1 = ggml_type_size(src1->type);
+    GGML_ASSERT(src1->nb[0] == ts_src1);
+
+    const int64_t ne10 = src1->ne[0];
+    const int64_t ne11 = src1->ne[1];
+    const int64_t ne12 = src1->ne[2];
+    const int64_t ne13 = src1->ne[3];
+    const int64_t ne10_padded = GGML_PAD(ne10, MATRIX_ROW_PADDING);
+
+    const size_t nbytes_src1_q8_1 = ne13*ne12 * ne11*ne10_padded * sizeof(block_q8_1)/QK8_1 +
+        get_mmq_x_max_host(cc)*sizeof(block_q8_1_mmq);
+    ggml_cuda_pool_alloc<char> src1_q8_1(ctx.pool(), nbytes_src1_q8_1);
+
+    const int64_t src1_s11 = src1->nb[1] / ts_src1;
+    const int64_t src1_s12 = src1->nb[2] / ts_src1;
+    const int64_t src1_s13 = src1->nb[3] / ts_src1;
+
+    // This is the sole activation conversion in the paired path. Both MMQs
+    // consume the allocation below on the same execution stream before release.
+    quantize_mmq_q8_1_cuda(
+        (const float *) src1->data, nullptr, src1_q8_1.get(), src0_a->type,
+        ne10, src1_s11, src1_s12, src1_s13, ne10_padded, ne11, ne12, ne13, stream);
+    CUDA_CHECK(cudaGetLastError());
+
+    const int64_t q8_s12 = ne11 * ne10_padded * sizeof(block_q8_1) / (QK8_1 * sizeof(int));
+    const int64_t q8_s13 = ne12 * q8_s12;
+    const bool use_stream_k = (GGML_CUDA_CC_IS_NVIDIA(cc) &&
+                               ggml_cuda_highest_compiled_arch(cc) >= GGML_CUDA_CC_VOLTA) ||
+                              GGML_CUDA_CC_IS_CDNA(cc);
+
+    const auto clear_compute_padding = [stream](const ggml_tensor * weight) {
+        if (ggml_backend_buffer_get_usage(weight->buffer) != GGML_BACKEND_BUFFER_USAGE_COMPUTE) {
+            return;
+        }
+        const size_t size_data  = ggml_nbytes(weight);
+        const size_t size_alloc = ggml_backend_buffer_get_alloc_size(weight->buffer, weight);
+        if (size_alloc > size_data) {
+            GGML_ASSERT(ggml_is_contiguously_allocated(weight));
+            GGML_ASSERT(!weight->view_src);
+            CUDA_CHECK(cudaMemsetAsync((char *) weight->data + size_data, 0, size_alloc - size_data, stream));
+        }
+    };
+
+    const auto launch = [&](const ggml_tensor * weight, ggml_tensor * dst) {
+        const size_t ts_weight = ggml_type_size(weight->type);
+        const size_t ts_dst    = ggml_type_size(dst->type);
+        GGML_ASSERT(weight->nb[0] == ts_weight);
+        GGML_ASSERT(dst->nb[0] == ts_dst);
+
+        clear_compute_padding(weight);
+
+        const mmq_args args = {
+            (const char *) weight->data, weight->type, (const int *) src1_q8_1.get(), nullptr, nullptr,
+            (float *) dst->data,
+            weight->ne[0], weight->ne[1], dst->ne[1], weight->nb[1] / ts_weight, ne11, dst->nb[1] / ts_dst,
+            weight->ne[2], ne12, weight->nb[2] / ts_weight, q8_s12, dst->nb[2] / ts_dst,
+            weight->ne[3], ne13, weight->nb[3] / ts_weight, q8_s13, dst->nb[3] / ts_dst,
+            use_stream_k, dst->ne[1]};
+        ggml_cuda_mul_mat_q_switch_type(ctx, args, stream);
+    };
+
+    launch(src0_a, dst_a);
+    launch(src0_b, dst_b);
+}
+// HALOFPX_FFN_Q8_REUSE_PAIR_END
+#endif
 
 void ggml_cuda_op_mul_mat_q(
     ggml_backend_cuda_context & ctx,

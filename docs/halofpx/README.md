@@ -4,6 +4,7 @@ This directory owns implementation-local source, baseline, gate, and review
 records for the writable HaloFPX fork. The consolidated research, engineering
 Wiki, and imported target-machine evidence are under [`project/`](../../project/).
 
+- [ROCmFPX dense FFN Q8_1 activation reuse candidate](rocmfpx-ffn-q8-reuse.md)
 - [L111 atomic rank-partition gate — PASS / RETAIN](evidence/l111/README.md)
 - [L111 source receipt](evidence/l111/source-receipt.txt)
 - [L111 build receipt](evidence/l111/build-receipt.txt)

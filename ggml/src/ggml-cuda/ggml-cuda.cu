@@ -31,6 +31,7 @@
 #include "ggml-cuda/mmq.cuh"
 #include "ggml-cuda/mmvf.cuh"
 #include "ggml-cuda/mmvq.cuh"
+#include "ggml-cuda/rocmfpx-ffn-q8-reuse.h"
 #include "ggml-cuda/norm.cuh"
 #include "ggml-cuda/opt-step-adamw.cuh"
 #include "ggml-cuda/opt-step-sgd.cuh"
@@ -2773,6 +2774,81 @@ static bool ggml_cuda_should_fuse_mul_mat(const ggml_tensor * ffn_up,
     return true;
 }
 
+#if defined(GGML_HIP_ROCMFPX_FFN_Q8_REUSE)
+static bool ggml_cuda_should_reuse_rocmfpx_ffn_q8(
+        ggml_backend_cuda_context & ctx,
+        const ggml_tensor * first,
+        const ggml_tensor * second,
+        const ggml_tensor * glu) {
+    GGML_ASSERT(first && second && glu);
+
+    const ggml_tensor * weight_a = first->src[0];
+    const ggml_tensor * weight_b = second->src[0];
+    const ggml_tensor * act_a    = first->src[1];
+    const ggml_tensor * act_b    = second->src[1];
+
+    if (!weight_a || !weight_b || !act_a || !act_b || !first->buffer || !second->buffer ||
+        !weight_a->buffer || !weight_b->buffer || !act_a->buffer) {
+        return false;
+    }
+
+    const bool ordinary_dense = first->op == GGML_OP_MUL_MAT && second->op == GGML_OP_MUL_MAT &&
+                                first->src[2] == nullptr && second->src[2] == nullptr;
+    const bool no_bias_glu_pair = glu->op == GGML_OP_GLU &&
+        ((glu->src[0] == first && glu->src[1] == second) ||
+         (glu->src[0] == second && glu->src[1] == first));
+    const bool same_activation = act_a == act_b && act_a->data == act_b->data;
+    const bool f32_activation  = act_a->type == GGML_TYPE_F32 && act_b->type == GGML_TYPE_F32;
+    const bool f32_outputs     = first->type == GGML_TYPE_F32 && second->type == GGML_TYPE_F32;
+    const bool same_weight_layout = weight_a->type == weight_b->type &&
+                                    ggml_are_same_shape(weight_a, weight_b) &&
+                                    ggml_are_same_stride(weight_a, weight_b) &&
+                                    ggml_are_same_shape(first, second) &&
+                                    ggml_are_same_stride(first, second) &&
+                                    weight_a->ne[0] == act_a->ne[0];
+
+    const ggml_backend_buffer_type_t local_buft = ggml_backend_cuda_buffer_type(ctx.device);
+    const bool local_non_split = weight_a->buffer->buft == local_buft &&
+                                 weight_b->buffer->buft == local_buft &&
+                                 act_a->buffer->buft == local_buft &&
+                                 first->buffer->buft == local_buft &&
+                                 second->buffer->buft == local_buft &&
+                                 !ggml_backend_buft_is_cuda_split(weight_a->buffer->buft) &&
+                                 !ggml_backend_buft_is_cuda_split(weight_b->buffer->buft) &&
+                                 !ggml_backend_buft_is_cuda_split(act_a->buffer->buft);
+
+    const auto unsafe_compute_view = [](const ggml_tensor * tensor) {
+        return tensor->view_src && tensor->buffer &&
+               ggml_backend_buffer_get_usage(tensor->buffer) == GGML_BACKEND_BUFFER_USAGE_COMPUTE &&
+               ggml_nbytes(tensor) != ggml_backend_buffer_get_alloc_size(tensor->buffer, tensor);
+    };
+    const bool safe_allocation_views = act_a->view_src == nullptr &&
+                                       first->view_src == nullptr && second->view_src == nullptr &&
+                                       !unsafe_compute_view(weight_a) && !unsafe_compute_view(weight_b) &&
+                                       ggml_is_contiguous(act_a);
+
+    const int cc = ggml_cuda_info().devices[ggml_cuda_get_device()].cc;
+    const bool both_mmq_eligible = ggml_cuda_should_use_mmq(weight_a->type, cc, act_a->ne[1], 0) &&
+                                   ggml_cuda_should_use_mmq(weight_b->type, cc, act_b->ne[1], 0);
+
+    const halofpx_rocmfpx_ffn_q8_reuse_contract contract = {
+        weight_a->type,
+        weight_b->type,
+        act_a->ne[1],
+        ordinary_dense,
+        no_bias_glu_pair,
+        same_activation,
+        f32_activation,
+        f32_outputs,
+        same_weight_layout,
+        local_non_split,
+        safe_allocation_views,
+        both_mmq_eligible,
+    };
+    return halofpx_rocmfpx_ffn_q8_reuse_dispatch(contract);
+}
+#endif
+
 static bool ggml_cuda_should_fuse_mul_mat_vec_f(const ggml_tensor * tensor) {
     ggml_tensor *       src0 = tensor->src[0];
     ggml_tensor *       src1 = tensor->src[1];
@@ -4501,6 +4577,22 @@ static int ggml_cuda_try_fuse(ggml_backend_cuda_context * cuda_ctx, ggml_cgraph 
                 fused_node_count  = 3;
                 break;
             }
+
+#if defined(GGML_HIP_ROCMFPX_FFN_Q8_REUSE)
+            // Prompt/MMQ path: retain the ordinary graph outputs and execute
+            // GLU normally, but quantize their exact shared activation once.
+            if (op == GGML_OP_MUL_MAT &&
+                ggml_cuda_should_reuse_rocmfpx_ffn_q8(*cuda_ctx, cgraph->nodes[i], cgraph->nodes[i + 1], glu)) {
+                ggml_cuda_mul_mat_q_rocmfpx_pair(
+                    *cuda_ctx,
+                    cgraph->nodes[i]->src[0],
+                    cgraph->nodes[i + 1]->src[0],
+                    cgraph->nodes[i]->src[1],
+                    cgraph->nodes[i],
+                    cgraph->nodes[i + 1]);
+                return 1;
+            }
+#endif
         }
     }
 
