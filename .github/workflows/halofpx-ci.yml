@@ -171,6 +171,10 @@ jobs:
           python -m pip install --disable-pip-version-check
           pytest~=8.3.3 requests~=2.32.3 wget~=3.2
 
+      - name: Prepare focused test data directory
+        working-directory: tools/server/tests
+        run: mkdir -p tmp
+
       - name: Run exact prompt-cache integrity tests
         working-directory: tools/server/tests
         env:
