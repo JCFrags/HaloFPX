@@ -82,3 +82,44 @@ jobs:
 
       - name: Compile core library
         run: cmake --build build/ci-feature-off --target llama --parallel 2
+
+  loader-partition-test:
+    name: CPU loader-partition recovery seam
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configure focused CPU test build
+        run: >-
+          cmake -S . -B build/ci-loader-partition
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_RPC=ON
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=ON
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=OFF
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=OFF
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_USE_PREBUILT_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+
+      - name: Compile loader-partition test
+        run: >-
+          cmake --build build/ci-loader-partition
+          --target test-halofpx-loader-partition
+          --parallel 2
+
+      - name: Run exact loader-partition CTest
+        run: >-
+          ctest --test-dir build/ci-loader-partition
+          --output-on-failure
+          -R '^test-halofpx-loader-partition$'

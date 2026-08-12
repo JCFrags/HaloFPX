@@ -57,6 +57,14 @@ bool ggml_loader_txn_commit_tensor_pair(
         uint64_t generation);
 }
 
+struct llama_model_loader_test_access {
+    static void fail_after_mutation(llama_model_loader & loader, int boundary) {
+        assert(boundary >= 1 && boundary <= 6);
+        assert(loader.test_failure_after_mutation == 0);
+        loader.test_failure_after_mutation = boundary;
+    }
+};
+
 namespace {
 
 constexpr const char * tensor_name = "blk.0.ffn_gate_exps.weight";
@@ -203,7 +211,7 @@ mock_targets & targets() {
     return value;
 }
 
-void set_failure_raw(const char * value) {
+void set_legacy_failure_environment(const char * value) {
 #ifdef _WIN32
     _putenv_s("HALOFPX_L111_FAIL_AFTER_MUTATION", value == nullptr ? "" : value);
 #else
@@ -213,11 +221,6 @@ void set_failure_raw(const char * value) {
         setenv("HALOFPX_L111_FAIL_AFTER_MUTATION", value, 1);
     }
 #endif
-}
-
-void set_failure_boundary(int boundary) {
-    const std::string value = boundary == 0 ? "" : std::to_string(boundary);
-    set_failure_raw(value.c_str());
 }
 
 void set_peer_half_raw(const char * value) {
@@ -525,13 +528,11 @@ void test_full_duplicate_parity(const std::filesystem::path & path) {
 void test_failure_boundaries(const std::filesystem::path & path) {
     for (int boundary = 1; boundary <= 6; ++boundary) {
         fixture_loader f(path);
-        set_failure_boundary(boundary);
+        llama_model_loader_test_access::fail_after_mutation(f.loader, boundary);
         expect_refusal(f, f.good());
-    }
-    {
-        fixture_loader f(path);
-        set_failure_raw("not-a-boundary");
-        expect_refusal(f, f.good());
+        const auto pair = f.loader.create_axis2_partition_pair(tensor_name, f.good());
+        assert(pair.rank0 != nullptr && pair.rank1 != nullptr);
+        assert(f.loader.partition_generation == 1);
     }
     {
         fixture_loader f(path);
@@ -540,10 +541,18 @@ void test_failure_boundaries(const std::filesystem::path & path) {
         ggml_set_name(sentinel0, "l111.sentinel.rank0");
         ggml_set_name(sentinel1, "l111.sentinel.rank1");
         f.loader.size_data = 23;
-        set_failure_boundary(4);
+        llama_model_loader_test_access::fail_after_mutation(f.loader, 4);
         expect_refusal(f, f.good());
     }
-    set_failure_boundary(0);
+}
+
+void test_legacy_failure_environment_is_ignored(const std::filesystem::path & path) {
+    set_legacy_failure_environment("1");
+    fixture_loader f(path);
+    const auto pair = f.loader.create_axis2_partition_pair(tensor_name, f.good());
+    assert(pair.rank0 != nullptr && pair.rank1 != nullptr);
+    assert(f.loader.partition_generation == 1);
+    set_legacy_failure_environment(nullptr);
 }
 
 void test_transaction_binding(const std::filesystem::path & path) {
@@ -753,8 +762,9 @@ void test_negatives(const std::filesystem::path & path, const std::filesystem::p
 int main() {
     const auto path = write_fixture(false);
     const auto rank4_path = write_fixture(true);
-    set_failure_boundary(0);
+    set_legacy_failure_environment(nullptr);
     test_failure_boundaries(path);
+    test_legacy_failure_environment_is_ignored(path);
     test_transaction_binding(path);
     test_creation_lifecycle_seal(path);
     test_minimax_removed_peer_half_gate();
@@ -763,7 +773,7 @@ int main() {
     test_success(path, false);
     test_success(path, true);
     test_full_duplicate_parity(path);
-    set_failure_boundary(0);
+    set_legacy_failure_environment(nullptr);
     set_peer_half_raw(nullptr);
     std::filesystem::remove(path);
     std::filesystem::remove(rank4_path);
