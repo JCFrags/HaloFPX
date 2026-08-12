@@ -8,7 +8,7 @@ The Project Lead records remain authoritative for active work and production sta
 ## Current authority
 
 - Current monorepo `main` at this reconciliation:
-  `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`.
+  `7a36e01a25bd5c27b684b489d9996b4de3afa299`.
 - Historical documentation repository baseline:
   `d30814ed08fe395f1bb1d292281ce82edb6bdab4`.
 - Imported documentation source: `b1c2d8aef707fb03920fc189ccd26395fa61879d`.
@@ -43,10 +43,23 @@ prompt-cache files. Exact-length, full-file, digest, corruption, and
 feature-off behavior remain qualified. Internal EVP failure reopens the file
 and restarts scalar hashing at byte zero. No end-to-end speedup is accepted.
 
-**[OPEN]** Issue #25 is the active generation-performance slice. Draft PR #30
-is not merged into the source authority above. Issues #15, #16, #18, #26, #28,
-and #29 remain open prompt, harness, cache-metrics, two-rank cache, sampling,
-and FFN-conversion work.
+**[VERIFIED]** PR #30 merged at
+`7a36e01a25bd5c27b684b489d9996b4de3afa299`. The default-off HIP
+specialization removes an activation-block sum only for exact Q2/Q3/Q6/Q8
+ROCmFPX MMVQ consumers. Both CachyOS Strix nodes compiled matched feature-on
+and feature-off source while production retained its PIDs and zero restart
+counts. No GPU correctness, model parity, or performance result is accepted;
+issue #25 remains open.
+
+**[VERIFIED]** PR #35 merged at
+`167df62ffc8970bc408d72e97ab71a57de4b69d2` and fixes the server's
+mixed sampled/raw logits row-count fallback. Issue #28 remains open for a
+single coherent output snapshot and synchronization reduction.
+
+**[OPEN]** Issues #15, #16, #18, #26, #28, #29, #32, and #33 remain open for
+prefill instrumentation, the CachyOS A/B adapter, cache metrics, two-rank cache
+composition, sampling synchronization, FFN activation reuse, verified
+longest-prefix reuse, and live-derived cache compatibility.
 
 ## Retained publication-era project boundary
 
@@ -117,12 +130,12 @@ No accepted full-model speed improvement exists.
 ## Next safe actions
 
 - Documentation workers must follow [`WORKER_START_HERE.md`](WORKER_START_HERE.md).
-- Keep issue #25 and draft PR #30 separate from accepted `main` until target
-  qualification and review finish. Do not infer a performance gain from host
-  contracts or compilation.
-- Use issues #15, #16, #18, #26, #28, and #29 as the open continuation
-  trackers; preserve cache, cold-prompt, and generation measurements as
-  separate lanes.
+- Keep issue #25 open and the merged PR #30 feature default-off until target
+  correctness, model parity, and matched evidence complete. Do not infer a
+  performance gain from host contracts or compilation.
+- Use issues #15, #16, #18, #26, #28, #29, #32, and #33 as the open
+  continuation trackers; preserve cache, cold-prompt, and generation
+  measurements as separate lanes.
 - Treat the
   [L111 visible-worker specification](project-management/lead/worker-specs/L111_VISIBLE_IMPLEMENTATION_TASK.md)
   as the completed historical contract, not an active implementation handoff.

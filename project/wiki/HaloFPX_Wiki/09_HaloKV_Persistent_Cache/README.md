@@ -42,9 +42,14 @@ semantics. No end-to-end cache-speed claim exists.
 
 **[OPEN]** [Issue #26](https://github.com/JCFrags/HaloFPX/issues/26) owns
 restart-safe cache-state coordination across two RPC ranks.
+[Issue #32](https://github.com/JCFrags/HaloFPX/issues/32) owns verified longest
+exact-token prefix selection and suffix replay; its selector may be developed
+independently but remains non-product until issue #26 supplies atomic two-rank
+composition. [Issue #33](https://github.com/JCFrags/HaloFPX/issues/33) owns
+deriving the compatibility authority from the live model and inference plan.
 [Issue #18](https://github.com/JCFrags/HaloFPX/issues/18) owns cache-source,
 restored-work, and phase-attribution metrics. HaloKV v1 product composition,
-prefix matching, and target performance remain separate claims.
+prefix reuse, and target performance remain separate claims.
 
 Cache lookup/validation/restore time and avoided prompt work must be measured
 separately from the cold/cache-off prompt-processing engine and from token
