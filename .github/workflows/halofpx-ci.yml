@@ -24,7 +24,9 @@ jobs:
         # actions/checkout v4.4.0
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          fetch-depth: 1
+          # The publication validator verifies both imported ancestors and the
+          # exact two-parent integration boundary.
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python

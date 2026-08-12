@@ -72,3 +72,9 @@ regenerated in that LF-normalized clone, producing input digest
 `5ac4ce11a7ab40dc604ad0c24148dfdc671b8f4a963d4af7b80220f604c7eee5`.
 This is a packaging-byte correction; it does not change wiki content or any
 engineering claim. The corrected remote workflow is the publication gate.
+
+The follow-up remote run passed the corrected wiki digest, section validation,
+and unit tests, then correctly refused the documentation-provenance check
+because its checkout was shallow. The validation job now fetches complete Git
+history so it can verify both imported ancestors and the exact two-parent
+integration boundary. The compile-only job remains shallow.
