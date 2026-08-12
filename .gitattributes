@@ -1,6 +1,8 @@
 * text=auto
+.gitattributes text eol=lf
 
 # Evidence manifests and executable text must be byte-stable across clones.
+SHA256SUMS text eol=lf
 *.json text eol=lf
 *.jsonl text eol=lf
 *.md text eol=lf

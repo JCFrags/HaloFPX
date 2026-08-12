@@ -4,9 +4,16 @@ This page is the current routing authority for the physical systems on which
 HaloFPX performance is judged. It does not replace dated raw observations or
 historical experiment records.
 
-Last live read-only observation: `2026-08-12T20:33:55Z` through
+Last broad live read-only inventory: `2026-08-12T20:33:55Z` through
 `2026-08-12T20:49:20Z`. The retained receipt is
 [`../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md`](../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md).
+
+Latest health-only recheck: `2026-08-12T23:06:08Z`. The retained
+[`health receipt`](../docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
+rechecked only the named service state, PIDs, InvocationIDs, restart counters,
+listeners, kernel string, and coordinator HTTP health. It did not re-audit the
+platform, packages, firmware, unit or launcher contents, binaries/libraries,
+model, cache contents, network policy, or performance.
 
 ## Physical target
 
@@ -55,6 +62,12 @@ HaloFPX or ROCmFPX performance result.
 Both units were active with `NRestarts=0`. At observation time, root-volume
 free space was approximately 30.5 GB on nimo-1 and 87.1 GB on nimo-2. Capacity
 is volatile and must be rechecked before staging builds, models, or evidence.
+
+The health-only recheck at `2026-08-12T23:06:08Z` found the same PIDs,
+InvocationIDs, `NRestarts=0` values, and listener ownership. Nimo-1 returned
+`{"status":"ok"}` from its local `/health` route. This establishes only
+bounded service health at that time; it does not refresh the executable hashes
+or other deployment fields above.
 
 The 2026-07-17 ROCmFP4 experiments used the opposite role assignment because
 the stress model was resident on nimo-2. Historical roles remain valid for

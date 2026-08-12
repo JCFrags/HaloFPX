@@ -9,17 +9,42 @@ current.
 The immutable publication boundary below remains valid, but current work has
 advanced beyond L111:
 
-- `main` at the start of this update was
-  `4a156395db62604cf37e27e6459e3ee0e3949c48` after PRs #12, #17, and #20.
-- issue #5 is closed; PR #20 made the automatic run-local SSD spill cache
-  reject same-size corruption. It did not create restart persistence.
-- issue #14 is the active restart-cache correctness boundary. Cache metrics,
-  cold prompt processing, and generation are tracked separately.
+- `main` at the start of this update is
+  `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`.
+- the cache-saving behavior reference is pinned to
+  `fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940`.
+  This is a behavior/reference authority, not an assertion that the donor
+  implementation or its complete feature set has been imported.
+- [PR #23](https://github.com/JCFrags/HaloFPX/pull/23) merged as
+  `aee627bd46de21327c9082f7915818430d38f453` and closed issue #14. It
+  qualifies a default-off, exact-key, world-size-1/rank-0 restart lane with a
+  Linux CPU model fixture. It does not qualify prefix reuse, multiple slots,
+  recurrent state, two-rank coordination, or target performance.
+- [PR #27](https://github.com/JCFrags/HaloFPX/pull/27) merged as
+  `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`. It adds an optional
+  default-off OpenSSL EVP SHA-256 provider to the separate run-local
+  `--cache-disk` prompt-cache path while retaining its full-file integrity
+  gates. It has no matched end-to-end target result yet.
+- [Issue #25](https://github.com/JCFrags/HaloFPX/issues/25) is the active
+  generation-performance slice. Its draft
+  [PR #30](https://github.com/JCFrags/HaloFPX/pull/30) remains outside `main`
+  at this snapshot. Issues
+  [#15](https://github.com/JCFrags/HaloFPX/issues/15),
+  [#16](https://github.com/JCFrags/HaloFPX/issues/16),
+  [#18](https://github.com/JCFrags/HaloFPX/issues/18),
+  [#26](https://github.com/JCFrags/HaloFPX/issues/26),
+  [#28](https://github.com/JCFrags/HaloFPX/issues/28), and
+  [#29](https://github.com/JCFrags/HaloFPX/issues/29) remain open follow-ons.
 - HaloFPX targets ROCmFPX-family GGUF inference across supported model
   architectures. MiniMax is the largest stress fixture, not a model-specific
   product target.
 - both physical Strix Halo targets are Nimo MME3L machines running CachyOS.
   Ubuntu is a portability/control lane; Windows is the local control PC.
+- a bounded read-only health check at `2026-08-12T23:06:08Z` found the named
+  comparison services active with their established PIDs, InvocationIDs,
+  listeners, and `NRestarts=0`; it was not a full host or deployment audit.
+  See the
+  [health receipt](docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md).
 
 Read [`project/TARGET_MACHINES.md`](project/TARGET_MACHINES.md), the current
 blocks at the top of
@@ -116,9 +141,10 @@ authority.
 - [VERIFIED] L111 is only a bounded loader foundation. It does not establish
   graph wiring, scheduling, asynchronous remote procedure calls, a model run,
   production fitness, or a performance improvement.
-- [MEASURED] The last production observation in the imported Lead record was
-  made on 2026-07-29. It is historical evidence, not current health. Re-observe
-  under current authority before making any production statement or mutation.
+- [MEASURED] The latest bounded service-health observation was made at
+  `2026-08-12T23:06:08Z`. It found the established named services active,
+  their expected listeners present, and the coordinator health route healthy.
+  It did not re-audit binaries, packages, models, unit contents, or performance.
 - [OPEN] No accepted end-user two-node persistent-cache product or accepted
   full-model speed improvement exists in the imported authority.
 
@@ -188,10 +214,13 @@ attestation are recorded in
 
 ## Safe continuation boundary
 
-[RECOMMENDATION] The next implementation action is a separately authorized,
-narrowly specified milestone after reading the reconciled Lead authority. Do
-not infer authorization for graph, scheduler, transport, model, runtime, or
-production work from the L111 acceptance.
+[RECOMMENDATION] Continue the accepted, narrowly scoped generation work under
+issue #25; draft PR #30 remains a candidate outside `main` until its review and
+target qualification complete. Route cache attribution, model-general prefill,
+the dual-Strix A/B harness, two-rank restart coordination, sampling
+synchronization, and FFN conversion reuse through issues #18, #15, #16, #26,
+#28, and #29 respectively. Do not infer authorization for a production
+transition or broader cache-product claim from the L111 or PR #23 acceptance.
 
 For any new claim:
 

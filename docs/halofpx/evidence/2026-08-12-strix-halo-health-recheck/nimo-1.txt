@@ -1,0 +1,12 @@
+2026-08-12T23:06:08Z
+nimo-1
+Linux 7.1.3-1-cachyos x86_64 GNU/Linux
+ActiveState=active
+SubState=running
+FragmentPath=/etc/systemd/system/minimax-m27-q6-server.service
+InvocationID=e6da1fe637144cb394119959c0e88736
+MainPID=3027112
+NRestarts=0
+ExecStart={ path=/opt/llm-usb4-cluster/bin/run-minimax-m27-q6-server.sh ; argv[]=/opt/llm-usb4-cluster/bin/run-minimax-m27-q6-server.sh ; ignore_errors=no ; start_time=[Tue 2026-07-28 23:04:50 PDT] ; stop_time=[n/a] ; pid=3027112 ; code=(null) ; status=0/0 }
+LISTEN 0      512    0.0.0.0:8081 0.0.0.0:* users:(("llama-server",pid=3027112,fd=5))
+{"status":"ok"}

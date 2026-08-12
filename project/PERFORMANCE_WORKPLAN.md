@@ -52,17 +52,40 @@ donor code merely because the behavior is authoritative.
   potential, not an accepted end-user persistent-cache product.
 - **[VERIFIED]** PR #20 hardened the run-local SSD prompt-cache spill path
   against same-size corruption. It did not make that path restart-persistent.
+- **[VERIFIED]** PR #23 merged at
+  `aee627bd46de21327c9082f7915818430d38f453` and closed issue #14. A
+  default-off Linux CPU fixture proved exact-key reuse across fresh server
+  processes plus compatibility/corruption cold recomputation. Its profile is
+  world size 1, rank 0, ordinary transformer memory, and greedy memoryless
+  sampling. It is not a distributed or prefix-cache result.
+- **[VERIFIED]** PR #27 merged at
+  `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`. It provides optional
+  OpenSSL EVP SHA-256 for the separate run-local SSD prompt cache while
+  retaining every exact-length and full-file integrity gate. Scalar and EVP
+  hosted tests passed; no target end-to-end speedup is accepted.
+
+## Current execution trackers
+
+| Tracker | State | Boundary |
+|---|---|---|
+| [#14](https://github.com/JCFrags/HaloFPX/issues/14) | closed | bounded world-1 exact-key restart qualification |
+| [#25](https://github.com/JCFrags/HaloFPX/issues/25) | active P0 | remove unused ROCmFPX MMVQ activation sum; draft PR #30 is not merged |
+| [#15](https://github.com/JCFrags/HaloFPX/issues/15) | open | model-general Strix Halo prefill matrix |
+| [#16](https://github.com/JCFrags/HaloFPX/issues/16) | open | dual-Strix generation A/B harness |
+| [#18](https://github.com/JCFrags/HaloFPX/issues/18) | open | cache source and restored-work metrics |
+| [#26](https://github.com/JCFrags/HaloFPX/issues/26) | open | coordinated restart-safe state across two RPC ranks |
+| [#28](https://github.com/JCFrags/HaloFPX/issues/28) | open | repeated sampling output synchronizations |
+| [#29](https://github.com/JCFrags/HaloFPX/issues/29) | open | dense FFN gate/up activation-conversion reuse |
 
 ## Ordered work
 
-### 1. Restart cache correctness
+### 1. Restart cache correctness — bounded lane complete
 
-Close GitHub issue #14 with a small CPU fixture: process A saves and exits;
-process B obtains the exact hit and deterministic continuation; same-size
-corruption and compatibility mismatch must miss and recompute. Keep this
-correctness qualification separate from target performance. The existing
-full-v1 exact-key context-store path is the implementation under qualification;
-the run-local `--cache-disk` spill path is not restart-persistent.
+PR #23 completed the exact issue #14 fixture. Keep that result separate from
+the run-local `--cache-disk` spill path, which is not restart-persistent. Prefix
+matching, multiple slots, recurrent/hybrid state, and coordinated rank-local
+objects remain unqualified. Issue #26 owns the two-rank coordination lane; any
+failure must miss and recompute without accepting partial rank state.
 
 ### 2. Measurement visibility
 
@@ -71,6 +94,8 @@ serialization, integrity hashing, write/sync/publish, verification, decode, and
 install. Extend the matched target harness so every condition binds and hashes
 both distributed binaries, retains failures, and reports TTFT, inter-token
 latency, prompt/decode rates, cache source, bytes, and avoided tokens.
+Issues #18, #15, and #16 own the cache-attribution, prefill-matrix, and
+dual-Strix A/B-harness parts of this work.
 
 ### 3. First low-risk target screens
 
@@ -97,9 +122,10 @@ for an explicit verified-file or staged-apply design. Target measurements must
 separate page-cache-hot CPU traversal from physical NVMe reads.
 
 A 2026-08-12 capability screen measured OpenSSL EVP SHA-256 at about 2.42 GB/s
-on one pinned, low-priority CPU thread on each target. This makes an optional
-server-local EVP provider the first bounded candidate, but it does not yet
-measure the bundled helper or a cache request. See the
+on one pinned, low-priority CPU thread on each target. PR #27 now implements
+the optional server-local provider and preserves scalar parity, but it still
+does not measure a matched cache request or end-to-end avoided work. Measure
+that through issue #18 before making a speed claim. See the
 [`SHA-256 screen`](../docs/halofpx/evidence/2026-08-12-strix-halo-sha256-screen/README.md).
 
 ### 5. Prompt-processing implementation
@@ -120,7 +146,22 @@ types is a later prompt/long-context candidate after reference parity and
 gfx1151 build qualification. Model weight format and K/V-cache type must remain
 separate experiment dimensions.
 
+Issue #29 records the nearer prompt-side candidate: reuse one exact Q8_1
+activation conversion across an eligible adjacent dense gate/up MMQ pair.
+It remains an open proposal until focused parity, feature-off, profiler, and
+matched target evidence pass.
+
 ### 6. Generation
+
+Issue #25 is the active P0 slice. Its draft PR #30 removes an activation-block
+sum only for an exact admitted ROCmFPX MMVQ whitelist under a default-off HIP
+option. It is not part of `main` in this work-plan snapshot and has no accepted
+target speed result. Compilation, host contracts, and microbenchmarks cannot
+substitute for matched model-level generation evidence.
+
+Issue #28 records the subsequent sampling-output synchronization lane. It must
+first close output-row/count correctness gaps and add scheduler-sync
+instrumentation before consolidation is considered.
 
 The current dual-node token path is structurally serialized across remote and
 local graph splits. Model-free n-gram speculation can amortize those turns only

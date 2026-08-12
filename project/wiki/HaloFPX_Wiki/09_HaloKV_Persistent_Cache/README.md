@@ -5,7 +5,7 @@
 - **Purpose:** Define persistent cache identity, ownership, durability, recovery, isolation, and operation.
 - **Authoritative files:** This manifest, the 10 linked section artifact sets, and accepted cache decisions.
 - **Current owner:** Cache implementation workers own runtime evidence. Documentation workers own routing.
-- **Status:** Source-backed design complete. Machine validation and policy choices remain open.
+- **Status:** Bounded CPU exact-key restart qualification and the optional run-local EVP provider are complete. Target cache performance, prefix reuse, and distributed product work remain open.
 - **Last verified date:** 2026-08-12 for current routing. Category technical review remains dated 2026-07-17.
 - **Source commits:** CachyLLama `6be745998f568e379ea197fcf827baec73ff9940`; the [decision map](../decision-map.md) routes exact HaloFPX commits.
 - **Related decisions:** [Decision map](../decision-map.md) routes the implementation decision index and accepted records.
@@ -25,12 +25,26 @@ must follow a correct cold-recomputation path.
 [GitHub issue #5](https://github.com/JCFrags/HaloFPX/issues/5): the reachable
 run-local SSD prompt-cache path now rejects same-size content corruption. That
 directory is process-scoped and this does not establish restart reuse.
-**[VERIFIED current work authority]**
-[GitHub issue #14](https://github.com/JCFrags/HaloFPX/issues/14) is the active
-P0 execution tracker for fresh-process exact-key reuse, deterministic
-continuation, corruption-miss, and compatibility-mismatch behavior. Accepted
-Project Lead/source decisions remain authoritative. HaloKV v1, distributed
-cache composition, and target performance remain separate claims.
+**[VERIFIED]** [PR #23](https://github.com/JCFrags/HaloFPX/pull/23) merged as
+`aee627bd46de21327c9082f7915818430d38f453` and closed
+[issue #14](https://github.com/JCFrags/HaloFPX/issues/14). A default-off
+Linux CPU fixture proved fresh-process exact-key reuse, deterministic
+continuation, compatibility miss/recomputation, and same-size corruption
+miss/recomputation for world size 1, rank 0, ordinary transformer memory, and
+greedy memoryless sampling. It does not establish prefix reuse, recurrent or
+hybrid state, multiple slots, target performance, or two-rank coordination.
+
+**[VERIFIED]** [PR #27](https://github.com/JCFrags/HaloFPX/pull/27) merged as
+`bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67` and adds an optional OpenSSL
+EVP SHA-256 provider to the separate run-local SSD prompt cache. It preserves
+full-file integrity checks and does not change the PR #23 context-store
+semantics. No end-to-end cache-speed claim exists.
+
+**[OPEN]** [Issue #26](https://github.com/JCFrags/HaloFPX/issues/26) owns
+restart-safe cache-state coordination across two RPC ranks.
+[Issue #18](https://github.com/JCFrags/HaloFPX/issues/18) owns cache-source,
+restored-work, and phase-attribution metrics. HaloKV v1 product composition,
+prefix matching, and target performance remain separate claims.
 
 Cache lookup/validation/restore time and avoided prompt work must be measured
 separately from the cold/cache-off prompt-processing engine and from token
