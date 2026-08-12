@@ -1,5 +1,11 @@
 #Requires -Version 7.2
 
+# Historical general-purpose packager. It did not create the
+# evidence-2026-08-12 release. Do not use it for a new authoritative package
+# until its source capture is bound to an immutable filesystem snapshot (or to
+# verified before/after content and ref-set digests); HEAD and branch identity
+# alone cannot make a live dirty working tree atomic.
+
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
@@ -12,7 +18,9 @@ param(
 
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [string] $OutputDirectory
+    [string] $OutputDirectory,
+
+    [switch] $AllowNonAuthoritativeLiveCapture
 )
 
 Set-StrictMode -Version Latest
@@ -25,6 +33,10 @@ $SplitThresholdBytes = [uint64] 1900000000
 $CopyBufferBytes = 8 * 1024 * 1024
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $PathComparison = [System.StringComparison]::OrdinalIgnoreCase
+
+if (-not $AllowNonAuthoritativeLiveCapture) {
+    throw 'This historical live-tree packager is non-authoritative and non-atomic. Pass -AllowNonAuthoritativeLiveCapture only for an explicitly labelled diagnostic capture; do not use its output as release evidence.'
+}
 
 $ExcludedDirectoryNames = [System.Collections.Generic.HashSet[string]]::new(
     [System.StringComparer]::OrdinalIgnoreCase
@@ -683,6 +695,9 @@ try {
 
     $manifest = [ordered] @{
         schema_version        = '1.0'
+        authoritative         = $false
+        source_capture_atomic = $false
+        warning               = 'Non-authoritative live working-tree capture; files may have changed while packaging.'
         created_utc           = [DateTimeOffset]::UtcNow.ToString('o')
         generator             = 'scripts/prepare-publication-assets.ps1'
         split_threshold_bytes = $SplitThresholdBytes
@@ -750,7 +765,8 @@ try {
         $Utf8NoBom
     )
 
-    Write-Output 'Publication asset preparation completed. Verify the JSON and SHA-256 manifests before upload.'
+    Write-Warning 'NON-AUTHORITATIVE live-tree capture completed. It is not atomic release evidence.'
+    Write-Output 'Diagnostic asset preparation completed. Verify the JSON and SHA-256 manifests before any restricted internal use.'
 }
 catch {
     throw 'Publication asset preparation failed without printing source content. Inspect locally before retrying into a new empty output directory.'

@@ -1,14 +1,23 @@
 ---
 type: pointer
-canonical_path: C:\Users\britt\Documents\Agent_Harness
+historical_source_machine_path: C:\Users\britt\Documents\Agent_Harness
+configurable_environment_variable: HALOFPX_AGENT_HARNESS_ROOT
+clone_availability: external_not_included
 created: 2026-07-16
 ---
 
 # Agent Harness reference
 
-The canonical Agent Harness remains at `C:\Users\britt\Documents\Agent_Harness`; it is referenced rather than duplicated so improvements there remain authoritative.
+The Agent Harness was an external reference authority at
+`C:\Users\britt\Documents\Agent_Harness` on the publication machine. It was
+not imported into this repository and no transferable commit identity was
+available. Set `HALOFPX_AGENT_HARNESS_ROOT` to an independently authorized copy
+when one exists. If it is unavailable, record that gap as `[OPEN]`, use the root
+and project `AGENTS.md` rules, and do not reconstruct or fabricate Harness
+content from this summary.
 
-Use these files when governing this workspace:
+When an authorized Harness copy is available, use these files within
+`HALOFPX_AGENT_HARNESS_ROOT` when governing this workspace:
 
 - `AGENTS.md` and `guide/architecture.md` for evidence promotion, provenance, reversibility, and closeout review.
 - `templates/source.md` when preserving external evidence.

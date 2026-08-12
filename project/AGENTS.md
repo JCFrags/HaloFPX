@@ -26,4 +26,6 @@ Treat this repository as a living, evidence-backed engineering wiki for the cust
 
 Exact source code/commit -> official documentation or standard -> research paper -> official issue or PR -> clearly labeled secondary evidence.
 
-The Agent Harness reference authority is `C:\Users\britt\Documents\Agent_Harness`; use `references/agent-harness.md` for routing.
+The Agent Harness was an external reference authority at publication time. Use
+`HALOFPX_AGENT_HARNESS_ROOT` for an independently authorized copy and
+`references/agent-harness.md` for its availability and fallback boundary.

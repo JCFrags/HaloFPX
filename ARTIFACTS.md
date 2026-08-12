@@ -12,17 +12,19 @@ filename resembles a historical file.
 | Combined Git history | [VERIFIED] included | Clone `main`; verify both imported ancestors and the integration boundary. |
 | Engineering wiki and tracked imports | [VERIFIED] included under `project/` | Use Git paths and commit identities, not a GitHub Wiki mirror. |
 | Implementation evidence tracked at `620ef60...` | [VERIFIED] included | Use `docs/halofpx/` and its immutable receipts. |
-| Pre-publication Git bundles | [VERIFIED] created and checksum-bound locally; [OPEN] private-release publication | Accept only the exact names, sizes, and SHA-256 values recorded below. |
-| Large raw source/formal/evidence payloads | [OPEN] publication as private release assets | Restore only from a complete asset set and verify every part plus the reconstructed payload. |
+| Pre-publication Git bundles | [VERIFIED] uploaded to private release `evidence-2026-08-12`; remote size and SHA-256 matched | Accept only the exact names, sizes, and SHA-256 values recorded below. |
+| Large raw source/formal/evidence payloads | [VERIFIED] uploaded to private release `evidence-2026-08-12`; remote size and SHA-256 matched | Restore only from a complete asset set and verify every part plus the reconstructed payload. |
 | Generated build trees and caches | [RECOMMENDATION] rebuild, not canonical | Do not treat local build output as a transferable source of truth. |
 | Primary model | [OPEN] absent | Obtain exact bytes independently; verify size and SHA-256 before use. |
 | Credentials and live service state | intentionally excluded | Re-provision through the current operator authority; never restore from project artifacts. |
 
-The machine-readable companion is
-[`docs/publication/manifest.json`](docs/publication/manifest.json). Release-side
-asset manifests and checksum files, when published, supersede planned names or
-groupings in this guide only for byte-level packaging. They cannot supersede
-project decisions.
+The machine-readable companions are the publication
+[`manifest.json`](docs/publication/manifest.json), exact byte
+[`release-manifest.json`](docs/publication/release-manifest.json), tracked
+[`SHA256SUMS.txt`](docs/publication/SHA256SUMS.txt), and per-asset
+[`asset-provenance.json`](docs/publication/asset-provenance.json). Together they
+are the packaging, source-role, sensitivity, retention, and restore authority.
+They cannot supersede project decisions.
 
 ## Git history preservation
 
@@ -38,23 +40,50 @@ integration:
 
 | Bundle | Size (bytes) | SHA-256 | Publication state |
 |---|---:|---|---|
-| `implementation-620ef60.bundle` | `41317318` | `b69bbcb25b5d21fa5551e9a66fdd4ba69a8914973e35f9695c640f31652e322b` | [OPEN] private-release upload |
-| `wiki-b1c2d8a.bundle` | `39827352` | `68405b7510450898a5ec2b690431c204ed56ba76eaba5ef2d2bab42368ab4293` | [OPEN] private-release upload |
+| `implementation-620ef60.bundle` | `41317318` | `b69bbcb25b5d21fa5551e9a66fdd4ba69a8914973e35f9695c640f31652e322b` | [VERIFIED] private-release asset |
+| `wiki-b1c2d8a.bundle` | `39827352` | `68405b7510450898a5ec2b690431c204ed56ba76eaba5ef2d2bab42368ab4293` | [VERIFIED] private-release asset |
 
 The normal clone is sufficient for continuing work; the bundles reconstruct
 the former separate repositories. Before using a downloaded bundle, require
 the exact size and SHA-256 above even when its filename matches.
 
-After downloading verified bundles into an empty scratch directory:
+After downloading verified bundles into an empty scratch directory, initialize
+a disposable repository for `git bundle verify`:
 
 ```powershell
-git bundle verify .\implementation-620ef60.bundle
-git bundle verify .\wiki-b1c2d8a.bundle
-git clone .\implementation-620ef60.bundle .\HaloFPX-implementation-legacy
-git clone .\wiki-b1c2d8a.bundle .\HaloFPX-project-legacy
+git init .\bundle-verifier
+git -C .\bundle-verifier bundle verify ..\implementation-620ef60.bundle
+git -C .\bundle-verifier bundle verify ..\wiki-b1c2d8a.bundle
+git clone --branch codex/integration-base-61f2f2d .\implementation-620ef60.bundle .\HaloFPX-implementation-legacy
+git clone --branch codex/pre-fork-preparation .\wiki-b1c2d8a.bundle .\HaloFPX-project-legacy
 git -C .\HaloFPX-implementation-legacy cat-file -t 620ef60aa446990335ef46c7d76738f797e62f8f
 git -C .\HaloFPX-project-legacy cat-file -t b1c2d8aef707fb03920fc189ccd26395fa61879d
 ```
+
+The explicit branches are required because these two bundles do not advertise
+a symbolic `HEAD` that `git clone` can select automatically.
+
+### All-refs bundle recovery
+
+The donor bundles named `--all-refs.bundle` intentionally retain refs outside
+`refs/heads/*`, including captured `refs/remotes/origin/*` names. Plain
+`git clone` does not reproduce that ref namespace. To reconstruct one exactly,
+initialize a new scratch repository, move its checked-out `HEAD` out of the
+incoming namespace, fetch the complete refspec, then set `HEAD` explicitly:
+
+```powershell
+git init .\donor-recovery
+git -C .\donor-recovery symbolic-ref HEAD refs/heads/recovery-bootstrap
+git -C .\donor-recovery fetch ..\charlie12345__rocmfpx--all-refs.bundle '+refs/*:refs/*'
+git -C .\donor-recovery symbolic-ref HEAD refs/heads/main
+git bundle list-heads .\charlie12345__rocmfpx--all-refs.bundle
+git -C .\donor-recovery for-each-ref --format='%(objectname) %(refname)'
+```
+
+Compare every advertised non-`HEAD` ref and object ID with `for-each-ref`.
+For the CachyLlama and retained llama.cpp bundles, set the final symbolic
+`HEAD` to `refs/heads/master`; for llama-ai use `refs/heads/main`. Never
+mirror-push these preserved ref sets.
 
 Do not push bundle refs with `--mirror`. Historical local checkpoint refs in the
 former documentation repository included large blobs that were not part of the
@@ -63,7 +92,9 @@ history rather than every workstation-only ref.
 
 ## Large payload groups
 
-The publication process may use one or more private releases for these groups:
+The private `evidence-2026-08-12` release preserves these groups. Exact archive
+roots, member recipes, sensitivity classes, and restore destinations are in
+[`asset-provenance.json`](docs/publication/asset-provenance.json).
 
 | Group | Purpose | Packaging requirement |
 |---|---|---|
@@ -90,8 +121,9 @@ preservation requires restoration of the original bytes.
 
 1. Use an account authorized for the private repository.
 2. Download the release manifest and checksum file before bulk payloads.
-3. Compare the manifest's repository, release tag, artifact identifier, part
-   count, part order, sizes, and hashes with the Git-tracked publication record.
+3. Compare the manifest's repository, release tag, asset names, split-payload
+   `logical_name` values, part counts, part order, sizes, and hashes with the
+   Git-tracked publication record.
 4. Download into a new scratch directory with enough free space for both the
    parts and reconstructed payload.
 5. Hash each downloaded part before concatenation.
@@ -106,9 +138,17 @@ preservation requires restoration of the original bytes.
 Example private-release download after selecting an exact tag:
 
 ```powershell
-gh release view <exact-tag> --repo JCFrags/HaloFPX
-gh release download <exact-tag> --repo JCFrags/HaloFPX --dir .\halofpx-release
-Get-ChildItem .\halofpx-release -File | Get-FileHash -Algorithm SHA256
+gh api repos/JCFrags/HaloFPX/releases/tags/evidence-2026-08-12 --jq '{id,tag_name,target_commitish,draft,prerelease,immutable,published_at}'
+git ls-remote https://github.com/JCFrags/HaloFPX.git refs/tags/evidence-2026-08-12 'refs/tags/evidence-2026-08-12^{}'
+# Compare target_commitish and the peeled tag commit with the publication receipt.
+New-Item -ItemType Directory -Path .\halofpx-release
+gh release download evidence-2026-08-12 --repo JCFrags/HaloFPX --dir .\halofpx-release --pattern release-manifest.json --pattern SHA256SUMS.txt
+Get-FileHash .\halofpx-release\release-manifest.json -Algorithm SHA256
+Get-FileHash .\halofpx-release\SHA256SUMS.txt -Algorithm SHA256
+# Compare both results with docs/publication/release-upload-verification-2026-08-12.md,
+# then download payloads without overwriting the verified control files.
+gh release download evidence-2026-08-12 --repo JCFrags/HaloFPX --dir .\halofpx-release --skip-existing
+pwsh -NoProfile -File scripts/verify-publication-assets.ps1 -AssetDirectory .\halofpx-release -ManifestPath docs/publication/release-manifest.json
 ```
 
 Do not use an unpinned `latest` release for evidence restoration.
@@ -148,6 +188,28 @@ Get-FileHash -Algorithm SHA256 $outputPath
 Replace the example names with the complete manifest order. For the known L24
 tar, accept the result only when length is `17101714432` and SHA-256 is
 `5920dbdb2f1d29eac0be84c82611a9869318fae2ec5b3fe1392fd2ef9abef3cf`.
+
+The other split payload is
+`halofpx-project-p63-formal-evidence.tar.gz`. Accept it only when length is
+`2516292772` and SHA-256 is
+`412dc86ea616b91e77b8618ffae3e4cadf9597c30a32fb91b5a2d3df41a98892`.
+
+On GNU/Linux with Bash and GNU coreutils, enter the downloaded asset directory,
+stream parts in the manifest order, and verify the result:
+
+```bash
+cd halofpx-release
+printf '%s\0' l24-source-v2.tar.part{0001..0010} |
+  xargs -0 cat -- > l24-source-v2.tar
+test "$(stat -c %s l24-source-v2.tar)" = 17101714432
+printf '%s  %s\n' \
+  5920dbdb2f1d29eac0be84c82611a9869318fae2ec5b3fe1392fd2ef9abef3cf \
+  l24-source-v2.tar | sha256sum --check --strict
+```
+
+The brace expression above is valid only for this exact recorded ten-part L24
+payload. For any other split payload, copy the ordered names from the manifest
+instead of inferring them.
 
 ## Model identity and absence
 

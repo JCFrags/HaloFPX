@@ -28,21 +28,28 @@ runtime knob until an end-to-end decode guard also benefits.
 Build the reproducible Strix Halo ROCmFP4 + MTP binary:
 
 ```bash
-cd /home/caf/strix-fp4/llama.cpp-mtp-rocmfp4
+cd /path/to/HaloFPX
 env JOBS=16 scripts/build-strix-rocmfp4-mtp.sh
 ```
 
-Run the full promoted regression gate:
+Run the full promoted regression gate with an independently obtained, pinned
+model. The gate now fails closed when `MODEL` is absent; setting
+`SKIP_MISSING_MODEL=1` produces only a partial run and is not promotion proof.
 
 ```bash
-cd /home/caf/strix-fp4/llama.cpp-mtp-rocmfp4
-env HSA_OVERRIDE_GFX_VERSION=11.5.1 scripts/check-rocmfp4-all-regression.sh
+cd /path/to/HaloFPX
+env HSA_OVERRIDE_GFX_VERSION=11.5.1 \
+  SKIP_MISSING_MODEL=0 MODEL=/path/to/pinned-model.gguf \
+  scripts/check-rocmfp4-all-regression.sh
 ```
+
+Retain the model SHA-256 and the complete gate output. A skipped model lane must
+be labelled partial even if every available non-model check passes.
 
 Run the controlled Qwen3.6 27B MTP comparison and write a markdown report:
 
 ```bash
-cd /home/caf/strix-fp4/llama.cpp-mtp-rocmfp4
+cd /path/to/HaloFPX
 env HSA_OVERRIDE_GFX_VERSION=11.5.1 scripts/reproduce-rocmfp4-qwen-mtp-comparison.sh
 ```
 

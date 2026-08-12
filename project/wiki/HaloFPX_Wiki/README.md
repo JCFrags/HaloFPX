@@ -43,15 +43,15 @@ The generator uses `research/prompts/section_index.yaml` and the present section
 It generates the manifest deterministically:
 
 ```powershell
-python research/prompts/tools/generate_wiki_manifest.py wiki/HaloFPX_Wiki
-python research/prompts/tools/generate_wiki_manifest.py wiki/HaloFPX_Wiki --check
+python project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki
+python project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
 ```
 
 Validate both required artifacts and the permissive-core `section.yaml` contract with:
 
 ```powershell
-python research/prompts/tools/validate_wiki.py wiki/HaloFPX_Wiki
-python -m unittest research/prompts/tools/test_validate_wiki.py -v
+python project/research/prompts/tools/validate_wiki.py project/wiki/HaloFPX_Wiki
+python -m unittest discover -s project/research/prompts/tools -p "test_validate_wiki.py"
 ```
 
 The validator enforces registry identity, category, and allowed status values.

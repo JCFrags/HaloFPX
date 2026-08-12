@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "record_type": "halofpx_release_asset_provenance",
+  "repository": "JCFrags/HaloFPX",
+  "release_tag": "evidence-2026-08-12",
+  "release_manifest": {
+    "path": "docs/publication/release-manifest.json",
+    "size_bytes": 8251,
+    "sha256": "317390d10c9194bb44cf769a596d0f5257772f6328d7118d0d1167c7461f0950"
+  },
+  "source_roles": {
+    "former_implementation_repository": {
+      "published_monorepo_path": ".",
+      "head": "620ef60aa446990335ef46c7d76738f797e62f8f"
+    },
+    "former_documentation_repository": {
+      "published_monorepo_path": "project",
+      "head": "b1c2d8aef707fb03920fc189ccd26395fa61879d"
+    }
+  },
+  "common_restore_rule": "Verify the release manifest and checksums, restore into a new scratch directory, inspect archive entries for traversal and collisions, and never overlay an active worktree or service configuration.",
+  "logical_artifacts": {
+    "impl_l05s_attack_matrix": {
+      "source": "former_implementation_repository/build/agent-l05s-attack-matrix.sh",
+      "purpose": "L05s loopback-Btrfs qualification and attack-matrix controller",
+      "sensitivity": "private_internal_operational_script",
+      "retention": "immutable_evidence",
+      "restore": "Review-only scratch or the former build/ path; never execute automatically because it performs privileged mount and cleanup operations."
+    },
+    "impl_l05s_attack_matrix_rerun": {
+      "source": "former_implementation_repository/build/agent-l05s-attack-matrix-rerun.sh",
+      "purpose": "L05s rerun controller for an already prepared qualification fixture",
+      "sensitivity": "private_internal_operational_script",
+      "retention": "immutable_evidence",
+      "restore": "Review-only scratch or the former build/ path; never execute automatically."
+    },
+    "third_party_rocmfpx_all_refs": {
+      "source": "former_documentation_repository/sources/repositories/charlie12345__rocmfpx",
+      "purpose": "Preserve all available Git refs and HEAD for donor provenance",
+      "sensitivity": "private_third_party_mixed_license",
+      "retention": "private_pending_redistribution_audit",
+      "restore": "Follow ARTIFACTS.md#all-refs-bundle-recovery: initialize a new scratch repository, move HEAD to refs/heads/recovery-bootstrap, fetch +refs/*:refs/*, set HEAD explicitly to refs/heads/main, and compare all advertised non-HEAD refs and object IDs. Never mirror-push or promote it to canonical HaloFPX history."
+    },
+    "third_party_cachyllama_all_refs": {
+      "source": "former_documentation_repository/sources/repositories/fewtarius__cachyllama",
+      "purpose": "Preserve all available Git refs and HEAD for donor provenance",
+      "sensitivity": "private_third_party_mixed_license",
+      "retention": "private_pending_redistribution_audit",
+      "restore": "Follow ARTIFACTS.md#all-refs-bundle-recovery: initialize a new scratch repository, move HEAD to refs/heads/recovery-bootstrap, fetch +refs/*:refs/*, set HEAD explicitly to refs/heads/master, and compare all advertised non-HEAD refs and object IDs. Never mirror-push the retained ref set."
+    },
+    "third_party_llama_ai_all_refs": {
+      "source": "former_documentation_repository/sources/repositories/fewtarius__llama-ai",
+      "purpose": "Preserve all available Git refs and HEAD for donor provenance",
+      "sensitivity": "private_third_party_mixed_license",
+      "retention": "private_pending_redistribution_audit",
+      "restore": "Follow ARTIFACTS.md#all-refs-bundle-recovery: initialize a new scratch repository, move HEAD to refs/heads/recovery-bootstrap, fetch +refs/*:refs/*, set HEAD explicitly to refs/heads/main, and compare all advertised non-HEAD refs and object IDs. Never mirror-push the retained ref set."
+    },
+    "third_party_llama_cpp_all_refs": {
+      "source": "former_documentation_repository/sources/repositories/ggml-org__llama.cpp",
+      "purpose": "Preserve all available Git refs and HEAD from the upstream-reference repository available during research",
+      "sensitivity": "private_third_party_mixed_license",
+      "retention": "private_pending_redistribution_audit",
+      "restore": "Follow ARTIFACTS.md#all-refs-bundle-recovery: initialize a new scratch repository, move HEAD to refs/heads/recovery-bootstrap, fetch +refs/*:refs/*, set HEAD explicitly to refs/heads/master, and compare all advertised non-HEAD refs and object IDs. Never mirror-push the retained ref set."
+    },
+    "third_party_nathan_strix_halo_fa_fixes_branch": {
+      "source": "former_documentation_repository/sources/repositories/candidate-intake/2026-07-18-strix-halo-quant-kv/Nathanw1014__llama.cpp--strix-halo-fa-fixes",
+      "purpose": "Preserve candidate branch refs/heads/strix-halo-fa-fixes at a18067a85e986f7798f43d98345ed5b86b55cf88",
+      "sensitivity": "private_third_party_mixed_license",
+      "retention": "private_pending_redistribution_audit",
+      "restore": "Verify and fetch the advertised branch into a new scratch repository; this is deliberately not an all-refs bundle."
+    },
+    "impl_labelled_source_snapshots": {
+      "sources": [
+        "former_implementation_repository/build/halofpx-b2137e6-source.zip",
+        "former_implementation_repository/build/halofpx-l05t-9da5b32.tar",
+        "former_implementation_repository/build/halofpx-p12-a0d9299.tar.gz"
+      ],
+      "purpose": "Supplemental historical source snapshots labelled by filename",
+      "sensitivity": "private_mixed_license_source",
+      "retention": "immutable_supplemental_recovery",
+      "restore": "Extract each into its own empty scratch directory; the filename label alone does not prove a commit and the snapshot never supersedes canonical Git."
+    },
+    "impl_l05t_initializer_seam_patch": {
+      "source": "former_implementation_repository/build/halofpx-l05t-seam.patch",
+      "purpose": "Historical Linux-only L05t initializer-seam delta",
+      "sensitivity": "private_internal_source_delta",
+      "retention": "immutable_supplemental_recovery",
+      "restore": "Inspect and dry-run only against a verified matching historical base; never apply blindly to current main."
+    },
+    "impl_l05p_committed_bundle": {
+      "source": "former_implementation_repository/build/halofpx-l05p-committed.bundle",
+      "purpose": "Preserve the L05p recovery point whose advertised HEAD is 453d184bef15dd28c0879e21aaf9b5ca5363befb",
+      "sensitivity": "private_mixed_license_source_history",
+      "retention": "immutable_supplemental_recovery",
+      "restore": "Verify, then clone or fetch the advertised HEAD into a newly initialized scratch repository."
+    },
+    "impl_raw_evidence": {
+      "source_recipe": "Complete former implementation docs/halofpx/evidence and evidence trees; 3030 archive entries, missing=0, extra=0 at packaging audit",
+      "purpose": "Preserve receipts plus ignored and untracked operational evidence",
+      "sensitivity": "restricted_private_operational_evidence",
+      "retention": "immutable_private_evidence",
+      "restore": "Extract only into a new restricted scratch directory; it may contain machine identifiers, private addresses, and operational logs."
+    },
+    "impl_transition_root_logs": {
+      "sources": [
+        "former_implementation_repository/l97-attempt.stderr.txt",
+        "former_implementation_repository/l97-attempt.stdout.txt"
+      ],
+      "purpose": "Preserve L97 transition console evidence",
+      "sensitivity": "restricted_private_operational_logs",
+      "retention": "immutable_private_evidence",
+      "restore": "Extract to restricted scratch; these logs are not active configuration or current validation."
+    },
+    "project_p63_formal_evidence": {
+      "source_recipe": "Complete former documentation experiments/P63-00 tree; 4169 archive entries, missing=0, extra=0 at packaging audit",
+      "purpose": "Preserve formal models, inputs, runs, retained state, and model-checker output",
+      "sensitivity": "private_internal_evidence",
+      "retention": "immutable_private_evidence",
+      "restore": "Concatenate both parts in manifest order; require 2516292772 bytes and SHA-256 412dc86ea616b91e77b8618ffae3e4cadf9597c30a32fb91b5a2d3df41a98892, then inspect and extract to scratch. Retained state is not a fresh verification run."
+    },
+    "project_raw_source_captures_except_l24": {
+      "source_recipe": "Complete former documentation sources/halofpx tree except exactly sources/halofpx/l24-source-v2.tar; 1007 archive entries, missing=0, extra=0 at packaging audit",
+      "purpose": "Preserve raw source captures and provenance other than the separate L24 payload",
+      "sensitivity": "private_mixed_license_source",
+      "retention": "immutable_private_evidence",
+      "restore": "Extract to empty scratch and restore under sources/halofpx only after path and license review."
+    },
+    "project_restricted_private_files": {
+      "sources": [
+        "former_documentation_repository/sources/measurements/2026-07-17-local-preparation/nimo-1/paired-machine-manifest.txt",
+        "former_documentation_repository/sources/measurements/2026-07-17-local-preparation/nimo-2/paired-machine-manifest.txt",
+        "former_documentation_repository/sources/imports/2026-07-17-further-research-wikis/extracted/cross-fork-llama-conformance-wiki/cross-fork-llama-conformance-wiki/fixtures/models/README.md",
+        "former_documentation_repository/sources/imports/2026-07-17-further-research-wikis/extracted/cross-fork-llama-conformance-wiki/cross-fork-llama-conformance-wiki/fixtures/models/model-manifest.json"
+      ],
+      "purpose": "Preserve paired-machine provenance and model-fixture metadata",
+      "sensitivity": "restricted_private",
+      "retention": "least_access_private_evidence",
+      "restore": "Extract only into a restricted evidence area, never an active configuration directory."
+    },
+    "project_tool_distributions": {
+      "source_recipe": "Complete former documentation sources/tools tree; 17 archive entries at packaging audit",
+      "purpose": "Preserve exact locally available formal-tool packages, receipts, and licenses",
+      "sensitivity": "private_third_party_mixed_license_binaries",
+      "retention": "private_pending_redistribution_audit",
+      "restore": "Extract to scratch, verify package identities and licenses, then optionally restore to sources/tools; retention does not imply current tool verification."
+    },
+    "former_implementation_git_history": {
+      "source": "former implementation canonical branches, tags, and active HEAD",
+      "purpose": "Disaster recovery for the former separate implementation repository at 620ef60aa446990335ef46c7d76738f797e62f8f",
+      "sensitivity": "private_mixed_license_history",
+      "retention": "indefinite_disaster_recovery",
+      "restore": "Verify inside a disposable Git repository, clone into a legacy-recovery directory, and never mirror-push workstation-only refs."
+    },
+    "former_wiki_git_history": {
+      "source": "former engineering-wiki canonical branches, tags, and active HEAD",
+      "purpose": "Disaster recovery for the former separate engineering-wiki repository at b1c2d8aef707fb03920fc189ccd26395fa61879d",
+      "sensitivity": "private_no_blanket_wiki_license",
+      "retention": "indefinite_disaster_recovery",
+      "restore": "Verify inside a disposable Git repository and clone into a legacy-recovery directory; normal continuation uses the monorepo."
+    },
+    "project_l24_source_v2": {
+      "source": "former_documentation_repository/sources/halofpx/l24-source-v2.tar",
+      "purpose": "Preserve the exact oversized L24 raw source capture",
+      "sensitivity": "private_mixed_license_raw_source",
+      "retention": "immutable_private_evidence",
+      "restore": "Concatenate all ten parts in manifest order; require 17101714432 bytes and SHA-256 5920dbdb2f1d29eac0be84c82611a9869318fae2ec5b3fe1392fd2ef9abef3cf, inspect entries, and restore only in a reconstructed legacy workspace."
+    },
+    "impl_l97_l98_transition_archives": {
+      "source_recipe": "Eight exact former implementation root files with their release names: l97-build/source and l98 build/source original, corrected, and final variants",
+      "purpose": "Preserve milestone-transition build and source payloads explicitly exempted from generic cache exclusion",
+      "sensitivity": "private_operational_and_mixed_license_content",
+      "retention": "immutable_transition_evidence",
+      "restore": "Inspect and extract each into its own empty scratch directory. Build trees are historical and nonportable; source archives do not supersede canonical Git."
+    }
+  },
+  "asset_index": [
+    {"name":"agent-l05s-attack-matrix-rerun.sh","logical_artifact_id":"impl_l05s_attack_matrix_rerun"},
+    {"name":"agent-l05s-attack-matrix.sh","logical_artifact_id":"impl_l05s_attack_matrix"},
+    {"name":"charlie12345__rocmfpx--all-refs.bundle","logical_artifact_id":"third_party_rocmfpx_all_refs"},
+    {"name":"fewtarius__cachyllama--all-refs.bundle","logical_artifact_id":"third_party_cachyllama_all_refs"},
+    {"name":"fewtarius__llama-ai--all-refs.bundle","logical_artifact_id":"third_party_llama_ai_all_refs"},
+    {"name":"ggml-org__llama.cpp--all-refs.bundle","logical_artifact_id":"third_party_llama_cpp_all_refs"},
+    {"name":"halofpx-b2137e6-source.zip","logical_artifact_id":"impl_labelled_source_snapshots"},
+    {"name":"halofpx-implementation-raw-evidence.tar.gz","logical_artifact_id":"impl_raw_evidence"},
+    {"name":"halofpx-implementation-transition-root-logs.tar.gz","logical_artifact_id":"impl_transition_root_logs"},
+    {"name":"halofpx-l05p-committed.bundle","logical_artifact_id":"impl_l05p_committed_bundle"},
+    {"name":"halofpx-l05t-9da5b32.tar","logical_artifact_id":"impl_labelled_source_snapshots"},
+    {"name":"halofpx-l05t-seam.patch","logical_artifact_id":"impl_l05t_initializer_seam_patch"},
+    {"name":"halofpx-p12-a0d9299.tar.gz","logical_artifact_id":"impl_labelled_source_snapshots"},
+    {"name":"halofpx-project-p63-formal-evidence.tar.gz.part0001","logical_artifact_id":"project_p63_formal_evidence","part_index":1},
+    {"name":"halofpx-project-p63-formal-evidence.tar.gz.part0002","logical_artifact_id":"project_p63_formal_evidence","part_index":2},
+    {"name":"halofpx-project-raw-source-captures-excluding-l24-v2.tar.gz","logical_artifact_id":"project_raw_source_captures_except_l24"},
+    {"name":"halofpx-project-restricted-private-files.tar.gz","logical_artifact_id":"project_restricted_private_files"},
+    {"name":"halofpx-project-tool-distributions.tar.gz","logical_artifact_id":"project_tool_distributions"},
+    {"name":"implementation-620ef60.bundle","logical_artifact_id":"former_implementation_git_history"},
+    {"name":"l24-source-v2.tar.part0001","logical_artifact_id":"project_l24_source_v2","part_index":1},
+    {"name":"l24-source-v2.tar.part0002","logical_artifact_id":"project_l24_source_v2","part_index":2},
+    {"name":"l24-source-v2.tar.part0003","logical_artifact_id":"project_l24_source_v2","part_index":3},
+    {"name":"l24-source-v2.tar.part0004","logical_artifact_id":"project_l24_source_v2","part_index":4},
+    {"name":"l24-source-v2.tar.part0005","logical_artifact_id":"project_l24_source_v2","part_index":5},
+    {"name":"l24-source-v2.tar.part0006","logical_artifact_id":"project_l24_source_v2","part_index":6},
+    {"name":"l24-source-v2.tar.part0007","logical_artifact_id":"project_l24_source_v2","part_index":7},
+    {"name":"l24-source-v2.tar.part0008","logical_artifact_id":"project_l24_source_v2","part_index":8},
+    {"name":"l24-source-v2.tar.part0009","logical_artifact_id":"project_l24_source_v2","part_index":9},
+    {"name":"l24-source-v2.tar.part0010","logical_artifact_id":"project_l24_source_v2","part_index":10},
+    {"name":"l97-build.tar","logical_artifact_id":"impl_l97_l98_transition_archives"},
+    {"name":"l97-source.tar","logical_artifact_id":"impl_l97_l98_transition_archives"},
+    {"name":"l98-build-corrected.tar","logical_artifact_id":"impl_l97_l98_transition_archives"},
+    {"name":"l98-build-final.tar","logical_artifact_id":"impl_l97_l98_transition_archives"},
+    {"name":"l98-build.tar","logical_artifact_id":"impl_l97_l98_transition_archives"},
+    {"name":"l98-source-corrected.tar","logical_artifact_id":"impl_l97_l98_transition_archives"},
+    {"name":"l98-source-final.tar","logical_artifact_id":"impl_l97_l98_transition_archives"},
+    {"name":"l98-source.tar","logical_artifact_id":"impl_l97_l98_transition_archives"},
+    {"name":"Nathanw1014__llama.cpp--strix-halo-fa-fixes.bundle","logical_artifact_id":"third_party_nathan_strix_halo_fa_fixes_branch"},
+    {"name":"wiki-b1c2d8a.bundle","logical_artifact_id":"former_wiki_git_history"}
+  ],
+  "packaging_audit": {
+    "asset_presence_and_size": {"status":"PASS","matched":39,"expected":39},
+    "git_bundle_verify": {"status":"PASS","bundle_count":8},
+    "aggregate_archive_membership": "PASS for all six generated aggregate archives",
+    "direct_source_to_asset_size": {"status":"PASS","matched":15,"expected":15}
+  }
+}

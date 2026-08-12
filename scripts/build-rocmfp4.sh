@@ -10,7 +10,7 @@
 # Prefer the thin wrappers when possible:
 #   scripts/build-rdna2.sh   (gfx1030)
 #   scripts/build-rdna3.sh   (gfx1100)
-#   scripts/build-rdna4.sh   (gfx1200)
+#   scripts/build-rdna4.sh   (gfx1201 default; gfx1200 override)
 #   scripts/build-strix-rocmfp4-mtp.sh (gfx1151, validated default)
 #
 # See docs/BUILD-AMD-ARCHITECTURES.md for the full architecture table.
@@ -28,7 +28,7 @@ source "$ROOT/scripts/rocmfp4-decode-tune-flags.sh"
 
 if [[ -z "${CMAKE_HIP_ARCHITECTURES:-}" ]]; then
     echo "Using default CMAKE_HIP_ARCHITECTURES=${HIP_ARCH}" >&2
-    echo "Set CMAKE_HIP_ARCHITECTURES to your GPU target (for example gfx1030, gfx1100, gfx1151, gfx1200)." >&2
+    echo "Set CMAKE_HIP_ARCHITECTURES to your GPU target (for example gfx1030, gfx1100, gfx1151, gfx1200, gfx1201)." >&2
 fi
 
 if [[ "${GGML_HIP_ROCWMMA_FATTN:-OFF}" == "ON" ]]; then

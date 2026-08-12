@@ -4,18 +4,19 @@ Every worker must complete this sequence before changing project material.
 
 ## Required sequence
 
-1. Read [`AGENTS.md`](AGENTS.md).
-2. Read [`PROJECT_GOAL.md`](PROJECT_GOAL.md).
-3. Read [`CURRENT_STATE.md`](CURRENT_STATE.md).
-4. Read the Project Lead [`CURRENT_STATUS.md`](project-management/lead/CURRENT_STATUS.md).
-5. Read the Project Lead [`DECISIONS.md`](project-management/lead/DECISIONS.md).
-6. Read the relevant [Wiki category manifest](wiki/HaloFPX_Wiki/README.md).
-7. Read each accepted decision that the category manifest links.
-8. Verify current source and linked evidence.
-9. Check the exact production authority before an authorized transition.
-10. Preserve unrelated worktree files.
-11. Keep feature-off behavior unchanged.
-12. Report exact commits, binaries, evidence, and cleanup.
+1. Read the monorepo root [`AGENTS.md`](../AGENTS.md).
+2. Read the project [`AGENTS.md`](AGENTS.md).
+3. Read [`PROJECT_GOAL.md`](PROJECT_GOAL.md).
+4. Read [`CURRENT_STATE.md`](CURRENT_STATE.md).
+5. Read the Project Lead [`CURRENT_STATUS.md`](project-management/lead/CURRENT_STATUS.md).
+6. Read the Project Lead [`DECISIONS.md`](project-management/lead/DECISIONS.md).
+7. Read the relevant [Wiki category manifest](wiki/HaloFPX_Wiki/README.md).
+8. Read each accepted decision that the category manifest links.
+9. Verify current source and linked evidence.
+10. Check the exact production authority before an authorized transition.
+11. Preserve unrelated worktree files.
+12. Keep feature-off behavior unchanged.
+13. Report exact commits, binaries, evidence, and cleanup.
 
 ## Project Lead records
 
@@ -26,7 +27,8 @@ Every worker must complete this sequence before changing project material.
 - [Documentation task specification](project-management/lead/worker-specs/DOCUMENTATION_STE_ORGANIZATION_TASK.md)
   controls documentation organization work.
 - [L111 visible implementation specification](project-management/lead/worker-specs/L111_VISIBLE_IMPLEMENTATION_TASK.md)
-  controls the active implementation task.
+  is the completed historical contract for the bounded retained foundation.
+  It does not authorize a successor milestone.
 
 ## Authority rules
 

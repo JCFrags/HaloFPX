@@ -9,8 +9,13 @@ HaloFPX repository. It does not replace Project Lead authority.
   resources, and publication-time preservation state.
 - Read [`validation-2026-08-12.md`](validation-2026-08-12.md) for the scoped
   clean-publication validation and feature-off build receipt.
+- Read
+  [`release-upload-verification-2026-08-12.md`](release-upload-verification-2026-08-12.md)
+  for the immutable 41-file draft-release digest reconciliation.
 - Use [`release-manifest.json`](release-manifest.json) and
   [`SHA256SUMS.txt`](SHA256SUMS.txt) to verify the private evidence release.
+- Use [`asset-provenance.json`](asset-provenance.json) to map every payload to
+  its source role, purpose, sensitivity, retention rule, and safe restore path.
 
 ## Current authority
 
@@ -21,14 +26,15 @@ accepts implementation commit `620ef60aa446990335ef46c7d76738f797e62f8f` as
 promote graph, remote-procedure-call, runtime, model, production, cache,
 product, or performance behavior.
 
-The two verified local legacy bundles and their exact sizes and SHA-256 values
-are recorded in [`../../ARTIFACTS.md`](../../ARTIFACTS.md). Their upload state
-remains separate from their byte-level verification state.
+The two legacy bundles are verified private release assets. Their remote names,
+sizes, and GitHub-reported SHA-256 values matched the local bytes recorded in
+[`../../ARTIFACTS.md`](../../ARTIFACTS.md).
 
 ## Update rule
 
-When a private release is created or amended, add an immutable release asset
-manifest that records:
+When a private release is created or amended, maintain a collective immutable
+record consisting of the byte manifest, checksum file, provenance map, and
+release verification receipt. Together they must record:
 
 - exact repository and release tag;
 - asset name, purpose, size, SHA-256, and sensitivity class;

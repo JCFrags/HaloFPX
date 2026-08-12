@@ -5,9 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 BUILD_DIR="${BUILD_DIR:-$ROOT/build-strix-rocmfp4}"
 BIN="${BIN:-$BUILD_DIR/bin/llama-cli}"
-MODEL="${MODEL:-/home/caf/strix-fp4/models/Qwen3.6-27B-MTP-GGUF/Qwen3.6-27B-MTP-BF16-to-ROCmFP4-STRIX_LEAN.gguf}"
+MODEL="${MODEL:-}"
 BACKEND="${BACKEND:-ROCm0}"
-SKIP_MISSING_MODEL="${SKIP_MISSING_MODEL:-1}"
+SKIP_MISSING_MODEL="${SKIP_MISSING_MODEL:-0}"
 STALE_BINARY_CHECK="${STALE_BINARY_CHECK:-1}"
 MIN_DECODE_TPS="${MIN_DECODE_TPS:-12.0}"
 MIN_SUSTAINED_DECODE_TPS="${MIN_SUSTAINED_DECODE_TPS:-11.5}"
@@ -50,6 +50,15 @@ if [[ "$STALE_BINARY_CHECK" == "1" ]]; then
             exit 1
         fi
     done
+fi
+
+if [[ -z "$MODEL" ]]; then
+    if [[ "$SKIP_MISSING_MODEL" == "1" ]]; then
+        echo "SKIP: MODEL was not supplied for the Qwen MTP regression"
+        exit 0
+    fi
+    echo "MODEL must name the pinned Qwen MTP GGUF; the primary model is not stored in this repository" >&2
+    exit 1
 fi
 
 if [[ ! -f "$MODEL" ]]; then

@@ -9,7 +9,7 @@
 - **Last verified date:** 2026-07-29 for routing. Section claims retain their own dates.
 - **Source commits:** No category-wide source commit exists. Each `section.yaml` and experiment record must name its exact source commit and binary.
 - **Related decisions:** [Project Lead objectives](../../../project-management/lead/OBJECTIVES.md) and [decision map](../decision-map.md).
-- **Related evidence:** [Evidence map](../evidence-map.md) and `experiments/`.
+- **Related evidence:** [Evidence map](../evidence-map.md) and [experiments](../../../experiments/).
 - **Open work:** No Wiki page in this category establishes a current full-model speed improvement.
 - **Next safe action:** Compare matched feature-on and feature-off configurations. Separate prompt and generation results.
 
@@ -49,4 +49,5 @@ HIP is the AMD graphics processing unit portability programming model.
 - HaloKV identity, durability, and recovery: [Sections 56-65](../09_HaloKV_Persistent_Cache/README.md)
 - Server, security, deployment, and recovery behavior: [Sections 66-72](../10_Product_Server_and_Operations/README.md)
 
-All machine results must route to `experiments/` with raw data and environment metadata before promotion into `[MEASURED]` wiki claims.
+All machine results must route to [experiments](../../../experiments/) with raw
+data and environment metadata before promotion into `[MEASURED]` wiki claims.

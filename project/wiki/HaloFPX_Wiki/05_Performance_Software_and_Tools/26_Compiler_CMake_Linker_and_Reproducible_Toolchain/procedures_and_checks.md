@@ -35,17 +35,23 @@ Also save the distribution package manifest, `/sys/module/amdgpu/version` when p
 
 ## 2. Configure and inspect
 
+The tracked configure preset is `strix-rocmfpx`; there is no build preset named
+`release-gfx1151`. From the combined repository root, use the actual configure
+preset and its output directory:
+
 ```bash
 export SOURCE_DATE_EPOCH="$(git log -1 --pretty=%ct)"
-cmake --preset release-gfx1151
-cmake --build --preset release-gfx1151 --verbose
-cmake --build build/release --target help > evidence/toolchain/targets.txt
+cmake --preset strix-rocmfpx
+cmake --build build-strix-rocmfpx --verbose
+cmake --build build-strix-rocmfpx --target help > evidence/toolchain/targets.txt
 ```
 
-The preset name is proposed, not yet present. It should select Ninja, explicit compilers, `gfx1151`, relative RPATH, deterministic prefix maps, and compile commands. Preserve `CMakeCache.txt`, `CMakeConfigureLog.yaml`, `compile_commands.json`, and the expanded build command.
+Preserve `CMakeCache.txt`, `CMakeConfigureLog.yaml`, `compile_commands.json`,
+and the expanded build command. A future deterministic release preset remains
+[OPEN]; do not advertise it until it is tracked and validated.
 
 ```bash
-find build/release -type f -perm -u+x -exec file {} \; > evidence/toolchain/file.txt
+find build-strix-rocmfpx -type f -perm -u+x -exec file {} \; > evidence/toolchain/file.txt
 readelf -n path/to/binary > evidence/toolchain/notes.txt
 readelf -d path/to/binary > evidence/toolchain/dynamic.txt
 llvm-objdump --offloading path/to/binary > evidence/toolchain/offloading.txt

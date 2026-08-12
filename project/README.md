@@ -1,7 +1,7 @@
 # HaloFPX Start Here
 
-This repository contains HaloFPX research, evidence, and project guidance.
-The writable HaloFPX implementation repository is a separate workspace.
+This monorepo contains the writable HaloFPX implementation at the repository
+root and its research, evidence, Wiki, and project guidance under `project/`.
 
 All workers must start with [`WORKER_START_HERE.md`](WORKER_START_HERE.md).
 
@@ -32,6 +32,8 @@ All workers must start with [`WORKER_START_HERE.md`](WORKER_START_HERE.md).
 - [`references/`](references/agent-harness.md) contains pointers to external authorities.
 - [`reviews/`](reviews/README.md) contains reviews and improvement proposals.
 - [`project-management/lead/`](project-management/lead/README.md) contains Project Lead authority.
+- The repository root contains the accepted implementation lineage and build
+  system; use the root [`HANDOFF.md`](../HANDOFF.md) for the combined boundary.
 
 The Wiki is maintained guidance, not permanent truth.
 Use exact source, evidence, and accepted decisions before you change project material.

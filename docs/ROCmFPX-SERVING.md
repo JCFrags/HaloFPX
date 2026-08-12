@@ -417,7 +417,13 @@ The helper emits only request JSON fields. It does not change the server cap,
 so the server still needs to start with a high enough `--spec-draft-n-max`.
 Available profiles are `fp3-mtp`, `fp4-general`, and `dense-coder`.
 
-Use `scripts/rocmfpx-dynamic-draft.py` for full Dynamic Drafting. It injects
+[OPEN] The full Dynamic Drafting helper described below is an interface design,
+not an available command: `scripts/rocmfpx-dynamic-draft.py` is not tracked in
+this repository or the preserved implementation history. Do not copy the
+following command blocks into an operational run until an implementation is
+added with provenance and tests.
+
+The proposed helper would inject
 `speculative.n_max`, `speculative.n_min`, `speculative.p_min`, and
 `speculative.p_split` into each request, then optionally records
 `draft_n/draft_n_accepted` feedback from responses and adjusts later requests.
@@ -443,7 +449,8 @@ scripts/rocmfpx-dynamic-draft.py \
   }'
 ```
 
-For OpenAI-compatible chat:
+Proposed OpenAI-compatible chat shape (non-runnable until the [OPEN] helper is
+implemented):
 
 ```bash
 scripts/rocmfpx-dynamic-draft.py \

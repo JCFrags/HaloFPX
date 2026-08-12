@@ -10,8 +10,10 @@ runtime, compatibility, or performance claim.
   `728c3b441fcb38a9eb55272ed673da9d2d18c173`.
 - Retained implementation source:
   `620ef60aa446990335ef46c7d76738f797e62f8f`.
-- `git diff --quiet 620ef60... -- CMakeLists.txt cmake common ggml include src tests`
-  returned `0`; publication work had not changed those implementation paths.
+- `git diff --quiet 620ef60aa446990335ef46c7d76738f797e62f8f
+  728c3b441fcb38a9eb55272ed673da9d2d18c173 -- CMakeLists.txt cmake common
+  ggml include src tests` returned `0`; publication work had not changed those
+  implementation paths.
 
 ## Documentation checks
 

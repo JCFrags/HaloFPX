@@ -9,7 +9,7 @@
 - **Last verified date:** 2026-07-29 for routing. Section claims retain their own dates.
 - **Source commits:** Section-specific kernel and software commits remain in each `section.yaml` and source ledger.
 - **Related decisions:** [Decision map](../decision-map.md) and current [Project Lead decisions](../../../project-management/lead/DECISIONS.md).
-- **Related evidence:** [Evidence map](../evidence-map.md) and `experiments/`.
+- **Related evidence:** [Evidence map](../evidence-map.md) and [experiments](../../../experiments/).
 - **Open work:** Revalidate the exact machine bill of materials, firmware, software tuple, and link topology when the environment changes.
 - **Next safe action:** Record the host, date, command, binary, and exact result for each machine observation.
 

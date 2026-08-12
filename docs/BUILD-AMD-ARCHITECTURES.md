@@ -14,11 +14,14 @@ GPUs, but HIP performance tuning in this tree is strongest on Strix Halo.
 | Your GPU | Example cards | Easiest build command | Build output folder |
 |---|---|---|---|
 | **Strix Halo / RDNA3.5** | Ryzen AI MAX+ 395, Framework Desktop | `scripts/build-strix-rocmfp4-mtp.sh` | `build-strix-rocmfp4/` |
-| **RDNA2** | RX 6700 XT, RX 6800 | `scripts/build-rdna2.sh` | `build-rdna2/` |
-| **RDNA3** | RX 7600, RX 7900 XTX, RX 7800 XT | `scripts/build-rdna3.sh` | `build-rdna3/` |
-| **RDNA4** | RX 9070 XT | `scripts/build-rdna4.sh` | `build-rdna4/` |
+| **RDNA2** | RX 6800 / RX 6900 | `scripts/build-rdna2.sh` (`gfx1030` default) | `build-rdna2/` |
+| **RDNA2** | RX 6700 / RX 6600 | set `gfx1031` / `gfx1032` as shown below | `build-rdna2/` |
+| **RDNA3** | RX 7900 XTX | `scripts/build-rdna3.sh` (`gfx1100` default) | `build-rdna3/` |
+| **RDNA3** | RX 7800 XT / RX 7600 | set `gfx1101` / `gfx1102` as shown below | `build-rdna3/` |
+| **RDNA4** | RX 9070 XT | `scripts/build-rdna4.sh` (`gfx1201` default) | `build-rdna4/` |
+| **RDNA4** | RX 9060 XT | set `gfx1200` as shown below | `build-rdna4/` |
 | **Vega 20 / gfx906 experimental** | Radeon Instinct MI50 / MI60 | `scripts/build-gfx906.sh` | `build-gfx906/` |
-| **Windows RDNA2** | RX 6000 series on Windows | `build-hip.bat` | `build-hip/` |
+| **Windows HIP** | supported AMD GPUs on Windows | [OPEN] no tracked, validated wrapper in this repository | custom |
 | **Vulkan only** | Any AMD GPU with Vulkan drivers | see [Vulkan-only build](#vulkan-only-no-hip-arch-needed) | `build-vulkan/` |
 
 All Linux scripts accept `JOBS=16` to control parallel compile jobs:
@@ -38,21 +41,25 @@ rocminfo | grep -m1 "Name:"
 rocminfo | grep -m1 "gfx"
 ```
 
+Cross-check the result against AMD's current
+[GPU specifications](https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html);
+the exact LLVM target, not only the RDNA generation name, selects the build.
+
 Then match your GPU to this table:
 
 | AMD generation | Example hardware | Typical `gfx` IDs | Build target | Linux runtime fallback |
 |---|---|---|---|---|
 | Vega 20 / GCN5 | Radeon Instinct MI50 / MI60 | `gfx906` | `gfx906` | use native `gfx906` when ROCm supports it |
-| RDNA1 | RX 5700 XT, RX 5600 | `gfx1010`, `gfx1012` | `gfx1010` | `HSA_OVERRIDE_GFX_VERSION=10.1.0` |
-| RDNA2 | RX 6700/6800/6900 | `gfx1030`–`gfx1037` | `gfx1030` | `HSA_OVERRIDE_GFX_VERSION=10.3.0` |
-| RDNA3 | RX 7600, RX 7900 XTX/XT/GRE, RX 7800 XT | `gfx1100`–`gfx1102` | `gfx1100` | `HSA_OVERRIDE_GFX_VERSION=11.0.0` |
-| RDNA3.5 | Strix Halo, Ryzen AI MAX+ | `gfx1150`, `gfx1151` | `gfx1151` | `HSA_OVERRIDE_GFX_VERSION=11.5.1` |
-| RDNA4 | RX 9070 XT/GRE | `gfx1200`, `gfx1201` | `gfx1200` | use native `gfx` when ROCm supports it |
+| RDNA1 | RX 5700/5600; RX 5500 class | `gfx1010`; `gfx1012` | exact reported target | any override is runtime-only and requires validation |
+| RDNA2 | RX 6800/6900; RX 6700; RX 6600 | `gfx1030`; `gfx1031`; `gfx1032` (family range through `gfx1036`) | exact reported target | any override is runtime-only and is not a substitute for an exact-target build |
+| RDNA3 | RX 7900 XTX/XT/GRE; RX 7800/7700; RX 7600 | `gfx1100`; `gfx1101`; `gfx1102` | exact reported target | do not substitute an override for an exact-target build without testing |
+| RDNA3.5 | Strix Point Ryzen AI 300; Strix Halo Ryzen AI MAX | `gfx1150`; `gfx1151` | exact reported target; this project defaults to Strix Halo `gfx1151` | any override is runtime-only and requires validation |
+| RDNA4 | RX 9070 XT/9070/GRE; RX 9060 XT/9060 | `gfx1201`; `gfx1200` | exact reported target | use native `gfx` when ROCm supports it |
 
 **Tips**
 
-- Sub-variants usually map to the nearest base target (`gfx1035` → `gfx1030`,
-  `gfx1102` → `gfx1100`).
+- Build the exact target reported for the GPU when the installed ROCm release
+  supports it. A generation-level fallback is not evidence of compatibility.
 - Published benchmark numbers and regression guards assume **Strix Halo /
   `gfx1151`**.
 - Vega 20 / `gfx906` is an experimental community target. It is not RDNA/CDNA,
@@ -69,12 +76,11 @@ You do not need separate full build scripts for each architecture.
 | Script | Target | Notes |
 |---|---|---|
 | `scripts/build-strix-rocmfp4-mtp.sh` | `gfx1151` | Validated default; includes regression-test binaries |
-| `scripts/build-rdna2.sh` | `gfx1030` | RX 6000 class |
-| `scripts/build-rdna3.sh` | `gfx1100` | RX 7000 class, including RX 7600-class cards |
-| `scripts/build-rdna4.sh` | `gfx1200` | RX 9000 class; requires ROCm support for `gfx1200` device libraries |
+| `scripts/build-rdna2.sh` | `gfx1030` default; override supported | RX 6800/6900 default; use `gfx1031` for RX 6700 and `gfx1032` for RX 6600 |
+| `scripts/build-rdna3.sh` | `gfx1100` default; override supported | RX 7900 defaults; use `gfx1101` for RX 7800/7700 and `gfx1102` for RX 7600 |
+| `scripts/build-rdna4.sh` | `gfx1201` default; override supported | RX 9070 defaults; use `gfx1200` for RX 9060 |
 | `scripts/build-gfx906.sh` | `gfx906` | Experimental Vega 20 / MI50 / MI60 community target |
 | `scripts/build-rocmfp4.sh` | any `gfx` | Generic — set `CMAKE_HIP_ARCHITECTURES` yourself |
-| `build-hip.bat` | `gfx1030` | Windows + ROCm 7.x |
 
 Generic example (any single target):
 
@@ -97,7 +103,11 @@ Every ROCmFP4 HIP build in this tree uses:
 | `CMAKE_BUILD_TYPE` | `Release` | Release build |
 | `CMAKE_HIP_ARCHITECTURES` or `GPU_TARGETS` | your `gfx` | GPU ISA to compile for |
 
-`GPU_TARGETS` and `CMAKE_HIP_ARCHITECTURES` are equivalent here — use either one.
+The repository wrappers accept the environment variable
+`CMAKE_HIP_ARCHITECTURES`; they do not consume an environment variable named
+`GPU_TARGETS`. A direct CMake configuration can pass either
+`-DGPU_TARGETS=...` or `-DCMAKE_HIP_ARCHITECTURES=...`. Do not set only
+environment `GPU_TARGETS` when invoking a wrapper.
 
 ---
 
@@ -123,9 +133,12 @@ Full Strix install guide: [`docs/STRIX-HALO-QUICKSTART.md`](STRIX-HALO-QUICKSTAR
 
 ```bash
 env JOBS=16 scripts/build-rdna2.sh
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1031 scripts/build-rdna2.sh     # RX 6700
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1032 scripts/build-rdna2.sh     # RX 6600
 ```
 
-If ROCm does not recognize your exact `gfx` ID:
+The following override is a runtime experiment only; it does not make a binary
+compiled for a different code object an exact-target build:
 
 ```bash
 HSA_OVERRIDE_GFX_VERSION=10.3.0 ./build-rdna2/bin/llama-cli -m model.gguf -dev ROCm0 ...
@@ -134,22 +147,20 @@ HSA_OVERRIDE_GFX_VERSION=10.3.0 ./build-rdna2/bin/llama-cli -m model.gguf -dev R
 ### RDNA3 — Linux
 
 ```bash
-env JOBS=16 scripts/build-rdna3.sh
-```
-
-Runtime fallback:
-
-```bash
-HSA_OVERRIDE_GFX_VERSION=11.0.0 ./build-rdna3/bin/llama-cli -m model.gguf -dev ROCm0 ...
+env JOBS=16 scripts/build-rdna3.sh                                      # RX 7900: gfx1100
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1101 scripts/build-rdna3.sh     # RX 7800/7700
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1102 scripts/build-rdna3.sh     # RX 7600
 ```
 
 ### RDNA4 — Linux
 
 ```bash
-env JOBS=16 scripts/build-rdna4.sh
+env JOBS=16 scripts/build-rdna4.sh                                      # RX 9070: gfx1201
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1200 scripts/build-rdna4.sh     # RX 9060
 ```
 
-Requires a ROCm version with `gfx1200` device libraries. If HIP is not ready yet,
+Requires a ROCm version with the selected `gfx1200` or `gfx1201` device
+libraries. If HIP is not ready yet,
 use the [Vulkan-only path](#vulkan-only-no-hip-arch-needed).
 
 ### Vega 20 / gfx906 — Linux Experimental
@@ -175,19 +186,16 @@ If HIP support is unreliable on a specific ROCm version, try the
 
 ### Windows
 
-**RDNA2** — run the included batch file:
+[OPEN] This repository does not contain a validated Windows HIP wrapper. Do not
+follow references to `build-hip.bat`; no such tracked file exists. Use a ROCm
+for Windows release that supports the exact GPU, record the CMake generator and
+toolchain, and compile for the exact `gfx` target reported by that environment.
+The Linux wrappers above have not been validated as Windows recipes.
 
-```bat
-build-hip.bat
-```
-
-Binaries land in `build-hip\bin\`.
-
-**RDNA3** — same as RDNA2, but change `gfx1030` to `gfx1100` in the cmake command
-inside `build-hip.bat` (or copy the file and edit the arch line).
-
-`HSA_OVERRIDE_GFX_VERSION` does not work on Windows. The binary must match a
-ROCm-supported `gfx` target.
+`HSA_OVERRIDE_GFX_VERSION` does not work on Windows. A future Windows wrapper
+must expose exact-target selection (`gfx1100`, `gfx1101`, or `gfx1102` for the
+corresponding RDNA3 card) and pass a hardware smoke gate before this lane can be
+promoted from [OPEN].
 
 ---
 
@@ -204,17 +212,17 @@ cmake -S . -B build-multi \
   -DGGML_VULKAN=ON \
   -DGGML_CUDA=OFF \
   -DGGML_NATIVE=OFF \
-  -DGPU_TARGETS="gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201"
+  -DGPU_TARGETS="gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201"
 
 cmake --build build-multi -j "$(nproc)"
 ```
 
 | Use case | `GPU_TARGETS` |
 |---|---|
-| RDNA2 only | `gfx1030` |
-| RDNA3 only | `gfx1100` |
-| RDNA3 + Strix Halo | `gfx1100;gfx1150;gfx1151` |
-| All current consumer AMD | `gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201` |
+| RDNA2 only | `gfx1030;gfx1031;gfx1032` |
+| RDNA3 only | `gfx1100;gfx1101;gfx1102` |
+| RDNA3 + Strix Halo | `gfx1100;gfx1101;gfx1102;gfx1151` |
+| Project-documented AMD targets | `gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201` |
 | Experimental MI50/MI60 add-on | append `gfx906` only if you intend to test Vega 20 |
 
 ---
@@ -285,10 +293,14 @@ default paths. Details: [`docs/ROCmFP4-REPRODUCIBILITY.md`](ROCmFP4-REPRODUCIBIL
 env JOBS=16 scripts/build-strix-rocmfp4-mtp.sh
 
 # Desktop AMD GPUs
-env JOBS=16 scripts/build-rdna2.sh   # RX 6000 / 7600
-env JOBS=16 scripts/build-rdna3.sh   # RX 7000
-env JOBS=16 scripts/build-rdna4.sh   # RX 9000
+env JOBS=16 scripts/build-rdna2.sh   # RX 6000
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1031 scripts/build-rdna2.sh     # RX 6700
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1032 scripts/build-rdna2.sh     # RX 6600
+env JOBS=16 scripts/build-rdna3.sh                                      # RX 7900 (gfx1100)
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1101 scripts/build-rdna3.sh     # RX 7800/7700
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1102 scripts/build-rdna3.sh     # RX 7600
+env JOBS=16 scripts/build-rdna4.sh                                      # RX 9070 (gfx1201)
+env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1200 scripts/build-rdna4.sh     # RX 9060
 
-# Windows RDNA2
-build-hip.bat
+# Windows HIP: [OPEN] no validated wrapper is tracked
 ```

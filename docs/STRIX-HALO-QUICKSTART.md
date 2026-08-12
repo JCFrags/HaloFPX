@@ -6,16 +6,19 @@ RDNA3, RDNA4), see [`BUILD-AMD-ARCHITECTURES.md`](BUILD-AMD-ARCHITECTURES.md).
 Use this repository when you want the ready-to-build llama.cpp fork with
 ROCmFP4, MTP, ROCm/HIP, and Vulkan integration already applied.
 
-Reference repository:
+Canonical continuation repository (private; authenticate with an authorized
+GitHub account):
 
 ```bash
-git clone https://github.com/charlie12345/rocmfp4-llama.git
-cd rocmfp4-llama
-git checkout mtp-rocmfp4-strix
+git clone https://github.com/JCFrags/HaloFPX.git
+cd HaloFPX
+git checkout main
 ```
 
-If the repository is private, public users cannot clone it from a Twitter link.
-Make it public or invite collaborators before sharing install instructions.
+The historical `charlie12345/rocmfp4-llama` donor is provenance, not the
+continuation authority. Do not make the combined repository or evidence release
+public until the privacy and third-party redistribution gates in
+[`LICENSES_AND_PROVENANCE.md`](../LICENSES_AND_PROVENANCE.md) are satisfied.
 
 ## Target Hardware
 

@@ -67,7 +67,10 @@ Pins must be refreshed deliberately, with upstream changes reviewed before promo
 - Preserve fetched archives, commits, licenses, manifests, and raw experiment data under `sources/`.
 - Keep research prompts under `research/prompts/` and promote reviewed findings into `wiki/HaloFPX_Wiki/`.
 - Record executable trials under `experiments/` and material architectural decisions as linked decision records.
-- Use [`references/agent-harness.md`](references/agent-harness.md) to route Agent Harness concepts; the reference authority remains `C:\Users\britt\Documents\Agent_Harness`.
+- Use [`references/agent-harness.md`](references/agent-harness.md) to route Agent
+  Harness concepts. The publication machine path is historical; discover an
+  independently authorized external copy with `HALOFPX_AGENT_HARNESS_ROOT` or
+  record the authority as unavailable.
 - Do not present unverified compatibility, benchmark, capacity, or performance claims as project facts.
 
 ## Related project material

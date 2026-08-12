@@ -107,9 +107,9 @@ Use the repo’s existing build scripts for the relevant GPU family:
 | Target | Script |
 |---|---|
 | Strix Halo / RDNA3.5 (`gfx1151`) | `scripts/build-strix-rocmfp4-mtp.sh` |
-| RDNA2 (`gfx1030` class) | `scripts/build-rdna2.sh` |
-| RDNA3 (`gfx1100` class) | `scripts/build-rdna3.sh` |
-| RDNA4 (`gfx1200` class) | `scripts/build-rdna4.sh` |
+| RDNA2 (`gfx1030` default; exact `gfx1031`/`gfx1032` override) | `scripts/build-rdna2.sh` |
+| RDNA3 (`gfx1100` default; exact `gfx1101`/`gfx1102` override) | `scripts/build-rdna3.sh` |
+| RDNA4 (`gfx1201` default; exact `gfx1200` override) | `scripts/build-rdna4.sh` |
 
 The usual local build pattern is:
 
@@ -239,16 +239,22 @@ The script now refuses to start if ROCm already reports an active KFD process,
 and it idles briefly before loading the next model. That was added to make
 “clear VRAM before each test” a concrete rule instead of a memory-based one.
 
-## Observed Local Results
+## Historical unreceipted observations
 
-These are the current local reference points from the Strix Halo workspace:
+[OPEN] The donor handoff reported the following Strix Halo workspace values,
+but did not bind them here to a model hash, source commit, ROCm/backend tuple,
+exact commands, environment, or raw receipt. They are preserved as leads only,
+not current measurements, benchmarks, or validation evidence:
 
-- ROCmFP8 agent quant from BF16: `31,568.94 MiB`, `8.39 BPW`
-- ROCmFP4 agent quant from BF16: `17,136.79 MiB`, `4.55 BPW`
-- ROCmFP4 agent bench: `pp512 650.63 t/s`, `tg128 76.55 t/s`
-- ROCmFP4 agent smoke: pass
-- ROCmFP8 agent smoke: pass
-- BF16 baseline smoke: pass
+- historical report — ROCmFP8 agent quant from BF16: `31,568.94 MiB`, `8.39 BPW`;
+- historical report — ROCmFP4 agent quant from BF16: `17,136.79 MiB`, `4.55 BPW`;
+- historical report — ROCmFP4 agent bench: `pp512 650.63 t/s`, `tg128 76.55 t/s`;
+- historical report — ROCmFP4 agent smoke: pass;
+- historical report — ROCmFP8 agent smoke: pass;
+- historical report — BF16 baseline smoke: pass.
+
+Re-measure under the project evidence schema before using any value as a
+reference point or promotion gate.
 
 ## Review Notes
 

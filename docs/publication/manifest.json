@@ -9,6 +9,29 @@
     "visibility_at_staging": "private",
     "public_redistribution_authorized": false
   },
+  "private_evidence_release": {
+    "release_id": 369369453,
+    "tag": "evidence-2026-08-12",
+    "url_after_publication": "https://github.com/JCFrags/HaloFPX/releases/tag/evidence-2026-08-12",
+    "status": "verified_draft_private_release",
+    "asset_count": 41,
+    "payload_asset_count": 39,
+    "total_bytes": 23317868085,
+    "remote_asset_audit": "PASS_name_size_state_and_github_reported_sha256",
+    "release_manifest": {
+      "path": "docs/publication/release-manifest.json",
+      "size_bytes": 8251,
+      "sha256": "317390d10c9194bb44cf769a596d0f5257772f6328d7118d0d1167c7461f0950"
+    },
+    "checksum_file": {
+      "path": "docs/publication/SHA256SUMS.txt",
+      "size_bytes": 3876,
+      "sha256": "cbeb29fb2e6cf6b45043bd17db2e925c1e0b4dcd5cff0c3d6f3250745708d827"
+    },
+    "asset_provenance": "docs/publication/asset-provenance.json",
+    "upload_verification_receipt": "docs/publication/release-upload-verification-2026-08-12.md",
+    "publication_gate": "final_tag_target_and_github_actions_success"
+  },
   "history": {
     "integration_commit": "728c3b441fcb38a9eb55272ed673da9d2d18c173",
     "integration_method": "two-parent_non_squashed_merge_with_project_prefix",
@@ -28,13 +51,13 @@
     "legacy_bundle_plan": [
       {
         "name": "implementation-620ef60.bundle",
-        "status": "verified_local_bundle_planned_private_release_asset",
+        "status": "verified_draft_private_release_asset",
         "size_bytes": 41317318,
         "sha256": "b69bbcb25b5d21fa5551e9a66fdd4ba69a8914973e35f9695c640f31652e322b"
       },
       {
         "name": "wiki-b1c2d8a.bundle",
-        "status": "verified_local_bundle_planned_private_release_asset",
+        "status": "verified_draft_private_release_asset",
         "size_bytes": 39827352,
         "sha256": "68405b7510450898a5ec2b690431c204ed56ba76eaba5ef2d2bab42368ab4293"
       }
@@ -58,12 +81,63 @@
         "project_relative_path": "CURRENT_STATE.md",
         "normalized_text_sha256": "7c5aa398cc3e0e17197209c4de84d27edb9b9bf5bd7ea5c31607fdf7d75a01dc",
         "reason": "replace stale split-repository and active-L111 routing with the additive 2026-08-12 publication reconciliation"
+      },
+      {
+        "project_relative_path": "AGENTS.md",
+        "normalized_text_sha256": "9d6ac192ab432762414b185ae5cc78f1f05b3faa22b976e7cf63d9c16205a293",
+        "reason": "make the external Agent Harness locator portable without importing or fabricating the unavailable authority"
+      },
+      {
+        "project_relative_path": "README.md",
+        "normalized_text_sha256": "9731ad8551197acc32519539a189cd6c5aad0ff858d9514632e6535973b85ccc",
+        "reason": "replace stale separate-workspace routing with the combined monorepo implementation and handoff paths"
+      },
+      {
+        "project_relative_path": "PROJECT_GOAL.md",
+        "normalized_text_sha256": "de3522521304bddaaddd8eda657a69dbee6a32f805de1d54eb1fd79fb528a971",
+        "reason": "replace the source-machine Agent Harness path with portable external discovery and an explicit unavailable state"
+      },
+      {
+        "project_relative_path": "WORKER_START_HERE.md",
+        "normalized_text_sha256": "aaf2951aa5e09bc338f40dc2a9f9734bc9c628004eb8bae8a56867e7d40e8490",
+        "reason": "route workers through root and project instructions and mark L111 as a completed historical contract"
+      },
+      {
+        "project_relative_path": "references/agent-harness.md",
+        "normalized_text_sha256": "140b5bc04b2fd4a5600ec606b086643bfb6524404d477619b673f6748c96ef5f",
+        "reason": "record the historical source-machine locator, configurable discovery, and explicit unavailable fallback"
+      },
+      {
+        "project_relative_path": "skills/README.md",
+        "normalized_text_sha256": "19a401ad7b41de7f8add9be4df8701c1ece05788cb3ea6e5be158eee31043929",
+        "reason": "route candidate-skill governance to the portable external Agent Harness availability boundary"
+      },
+      {
+        "project_relative_path": "wiki/HaloFPX_Wiki/README.md",
+        "normalized_text_sha256": "1e0346fbf2a0662554030cb7e3c236a21bc65943af67feb46340bc381674abf6",
+        "reason": "make Wiki validation commands executable from the combined repository root"
+      },
+      {
+        "project_relative_path": "wiki/HaloFPX_Wiki/04_Hardware_and_OS_Platform/README.md",
+        "normalized_text_sha256": "ebe04596dc7331b8d97e4ad89a95e26225be6c111fea53ae415638e214796d95",
+        "reason": "replace the ambiguous pre-monorepo experiments path with a resolvable link"
+      },
+      {
+        "project_relative_path": "wiki/HaloFPX_Wiki/05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/procedures_and_checks.md",
+        "normalized_text_sha256": "602c1af1c1671169986eb20edc683d7c8b299b4c884c080046a55bf128e8b498",
+        "reason": "replace a proposed nonexistent CMake preset and build directory with the tracked Strix configure preset and output path"
+      },
+      {
+        "project_relative_path": "wiki/HaloFPX_Wiki/11_Verification_and_Performance/README.md",
+        "normalized_text_sha256": "f9592ba95302285072aa4779bb99955183f293313106dec82af8ddb9ed5bd087",
+        "reason": "replace ambiguous pre-monorepo experiment routing with resolvable links without changing claim state"
       }
     ]
   },
   "continuation": {
     "entry_point": "HANDOFF.md",
     "artifact_guide": "ARTIFACTS.md",
+    "asset_provenance": "docs/publication/asset-provenance.json",
     "project_worker_entry_point": "project/WORKER_START_HERE.md",
     "project_lead_status": "project/project-management/lead/CURRENT_STATUS.md",
     "project_lead_decisions": "project/project-management/lead/DECISIONS.md",
@@ -103,30 +177,30 @@
     {
       "id": "l24_source_v2_tar",
       "former_relative_path": "sources/halofpx/l24-source-v2.tar",
-      "status": "planned_split_private_release_payload",
+      "status": "verified_draft_split_private_release_payload",
       "size_bytes": 17101714432,
       "sha256": "5920dbdb2f1d29eac0be84c82611a9869318fae2ec5b3fe1392fd2ef9abef3cf",
-      "part_manifest": null
+      "part_manifest": "docs/publication/release-manifest.json#l24-source-v2.tar"
     },
     {
       "id": "documentation_raw_sources",
-      "status": "planned_private_release_group",
-      "release_manifest": null
+      "status": "verified_draft_private_release_group",
+      "release_manifest": "docs/publication/release-manifest.json"
     },
     {
       "id": "p63_formal_artifacts_and_tools",
-      "status": "planned_private_release_group",
-      "release_manifest": null
+      "status": "verified_draft_private_release_group",
+      "release_manifest": "docs/publication/release-manifest.json"
     },
     {
       "id": "implementation_raw_evidence",
-      "status": "planned_private_release_group",
-      "release_manifest": null
+      "status": "verified_draft_private_release_group",
+      "release_manifest": "docs/publication/release-manifest.json"
     },
     {
       "id": "restricted_paired_machine_manifests",
-      "status": "planned_restricted_private_release_group",
-      "release_manifest": null
+      "status": "verified_draft_restricted_private_release_group",
+      "release_manifest": "docs/publication/release-manifest.json"
     }
   ],
   "absent_or_external_resources": [

@@ -110,10 +110,13 @@ python project/project-management/documentation/validate_documentation.py
 ```
 
 The wiki tools require PyYAML. Install it in a virtual environment rather than
-changing system Python. The documentation validator was authored before the
-two repositories were combined; if it reports only repository-prefix migration
-differences, fix the validator's Git path normalization and record that change
-instead of weakening its protected-content checks.
+changing system Python. The validation workflow uses Python `3.12` and
+`PyYAML==6.0.3`. The documentation validator is monorepo-aware and requires the
+complete imported history to verify both ancestors, the two-parent integration
+tree, and the protected snapshot. New clones are full-history by default. If
+`git rev-parse --is-shallow-repository` returns `true`, run
+`git fetch --unshallow --tags origin`; otherwise use `git fetch --tags origin`.
+Investigate a provenance failure; never weaken the check merely to make it pass.
 
 [MEASURED] Immediately before publication work, the source documentation tree
 passed its manifest check, all 86 wiki sections passed structural and schema
@@ -179,6 +182,15 @@ because the evidence set includes machine identifiers and material with
 unresolved redistribution boundaries. The implementation source has an MIT
 license; the engineering-wiki repository does not have a blanket project
 license, and imported sources retain their own terms.
+
+[VERIFIED] The draft private `evidence-2026-08-12` preservation release contains
+41 files totaling `23317868085` bytes. Every remote name, size, upload state,
+and GitHub-reported SHA-256 matched the local set; all 39 payloads also match
+[`release-manifest.json`](docs/publication/release-manifest.json). Interpret and
+restore them with
+[`asset-provenance.json`](docs/publication/asset-provenance.json) and
+[`ARTIFACTS.md`](ARTIFACTS.md). Publication remains gated on the final tagged
+commit and its passing workflow.
 
 [RECOMMENDATION] Keep the repository and release assets private until a fresh
 privacy review, credential scan, third-party notice audit, and explicit license

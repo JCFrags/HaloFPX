@@ -390,13 +390,19 @@ tensor-type rules if an all-restored policy is needed. When
 before the base tensor policy because tensor-type overrides are first-match
 wins.
 
-For local served-inference experiments, `scripts/run-rocmfpx-fp3-mtp-server-speed-profile.sh`
-starts a `llama-server` FP3 MTP profile with the observed Strix/Vulkan settings:
+[OPEN] `scripts/run-rocmfpx-fp3-mtp-server-speed-profile.sh` is not tracked in
+this repository or the preserved implementation history. The following text
+and commands record a historical interface proposal, not a runnable helper.
+Do not use them as a validation procedure until the script is restored from
+provenance or reimplemented and tested.
+
+The proposed local served-inference helper would start a `llama-server` FP3 MTP
+profile with the observed Strix/Vulkan settings:
 `draft-mtp`, `n_max=4`, `p_min=0.75`, F16 target/draft KV, and draft backend
 sampling disabled. This is an opt-in speed reproduction helper, not a validation
 gate or a universal default.
 
-The helper intentionally accepts environment overrides so the same launch shape
+The proposed helper accepts environment overrides so the same launch shape
 can reproduce the FP4 cap4 rows with a local FP4 MTP GGUF:
 
 ```bash

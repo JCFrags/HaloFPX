@@ -13,6 +13,9 @@ experiments, and handoff material used to govern that implementation.
   commands, and the next safe work boundary.
 - [Artifact inventory](ARTIFACTS.md) — what is in Git, what is preserved as a
   release artifact, what is reproducible, and what is not available.
+- [License and provenance boundary](LICENSES_AND_PROVENANCE.md) — which
+  implementation material is MIT and why the combined private preservation set
+  is not covered by one blanket license.
 - [Canonical HaloFPX wiki](project/wiki/HaloFPX_Wiki/README.md) — the engineering
   knowledge base; this in-repository copy is authoritative, not the optional
   GitHub Wiki surface.
@@ -154,7 +157,7 @@ build-strix-rocmfp4/bin/llama-cli \
 | Target | Status |
 |---|---|
 | Strix Halo / RDNA3.5 (`gfx1151`) | locally built and benchmarked with Vulkan and HIP/ROCm; Vulkan was fastest for tested decode workloads |
-| RDNA2 (`gfx1030`), RDNA3 (`gfx1100`), RDNA4 (`gfx1200`) | dedicated build scripts are provided; results vary by GPU and ROCm version |
+| RDNA2 (`gfx1030`/`gfx1031`/`gfx1032`), RDNA3 (`gfx1100`/`gfx1101`/`gfx1102`), RDNA4 (`gfx1200`/`gfx1201`) | dedicated build scripts are provided; results vary by exact GPU target and ROCm version |
 | CPU | reference and correctness paths; not the recommended performance backend |
 | Vulkan | accelerated and the recommended decode starting point on tested Strix Halo hardware |
 | HIP/ROCm | accelerated and validated on the tested Strix Halo system |
@@ -297,8 +300,9 @@ cd HaloFPX
 ```
 
 Use `main` for this monorepo. Historical donor and pre-publication source
-lineages are checksum-bound in the private evidence release described in
-[`ARTIFACTS.md`](ARTIFACTS.md); no publication branch named
+lineages are checksum-bound in private release
+[`evidence-2026-08-12`](https://github.com/JCFrags/HaloFPX/releases/tag/evidence-2026-08-12)
+and described in [`ARTIFACTS.md`](ARTIFACTS.md); no publication branch named
 `experimental-rocmfpx-branch` is asserted here.
 
 Pick the build script for your machine:
@@ -306,10 +310,15 @@ Pick the build script for your machine:
 | Hardware | Build command | Output folder |
 |---|---|---|
 | Strix Halo / RDNA3.5 (`gfx1151`) | `env JOBS=16 scripts/build-strix-rocmfp4-mtp.sh` | `build-strix-rocmfp4/` |
-| RDNA2 / RX 6000 (`gfx1030` class) | `env JOBS=16 scripts/build-rdna2.sh` | `build-rdna2/` |
-| RDNA3 / RX 7000 (`gfx1100` class) | `env JOBS=16 scripts/build-rdna3.sh` | `build-rdna3/` |
-| RDNA4 / RX 9000 (`gfx1200` class) | `env JOBS=16 scripts/build-rdna4.sh` | `build-rdna4/` |
-| RDNA4 / RX 9000 — self-contained (no system ROCm) | `env JOBS=16 scripts/build-rocmfp4-rocm714-local.sh` | `build-rdna4-rocm714/` |
+| RDNA2 / RX 6800 or 6900 (`gfx1030`) | `env JOBS=16 scripts/build-rdna2.sh` | `build-rdna2/` |
+| RDNA2 / RX 6700 (`gfx1031`) | `env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1031 scripts/build-rdna2.sh` | `build-rdna2/` |
+| RDNA2 / RX 6600 (`gfx1032`) | `env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1032 scripts/build-rdna2.sh` | `build-rdna2/` |
+| RDNA3 / RX 7900 (`gfx1100`) | `env JOBS=16 scripts/build-rdna3.sh` | `build-rdna3/` |
+| RDNA3 / RX 7800 or 7700 (`gfx1101`) | `env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1101 scripts/build-rdna3.sh` | `build-rdna3/` |
+| RDNA3 / RX 7600 (`gfx1102`) | `env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1102 scripts/build-rdna3.sh` | `build-rdna3/` |
+| RDNA4 / RX 9070 (`gfx1201`) | `env JOBS=16 scripts/build-rdna4.sh` | `build-rdna4/` |
+| RDNA4 / RX 9060 (`gfx1200`) | `env JOBS=16 CMAKE_HIP_ARCHITECTURES=gfx1200 scripts/build-rdna4.sh` | `build-rdna4/` |
+| RDNA4 / RX 9000 — local ROCm nightly (operator-supplied SHA-256 required) | `env JOBS=16 ROCM_TARBALL_SHA256=<sha256> scripts/build-rocmfp4-rocm714-local.sh` | `build-rdna4-rocm714/` |
 | Vulkan-only / manual | use the Vulkan CMake path in `docs/BUILD-AMD-ARCHITECTURES.md` | custom |
 
 For Strix Halo, the common runtime environment is:
@@ -332,11 +341,16 @@ build-strix-rocmfp4/bin/test-backend-ops
 For RDNA2/RDNA3/RDNA4 builds, use the same binary names under that build
 folder, for example `build-rdna3/bin/llama-quantize`.
 
-The `build-rocmfp4-rocm714-local.sh` script (RDNA4 / RX 9000) downloads the
-ROCm 7.14.0a20260624 toolchain automatically and bundles the required
-runtime libraries alongside the binaries. The resulting build is
-self-contained — no system-wide ROCm install or `LD_LIBRARY_PATH` needed
-at runtime.
+The `build-rocmfp4-rocm714-local.sh` script (RDNA4 / RX 9000) selects the
+ROCm 7.14.0a20260624 nightly by versioned name, but the nightly URL is not an
+immutable byte identity. The script therefore requires an independently
+recorded `ROCM_TARBALL_SHA256` before it downloads or extracts the toolchain.
+It also requires `patchelf`, copies candidate runtime libraries, and fails if
+`ldd` reports an unresolved direct dependency or resolves a recognized ROCm
+dependency outside that candidate directory. This is still only a build-host
+packaging check: the script does not prove that every data package (including
+device-code payloads) is relocatable. Run a clean-host, target-GPU smoke test
+before describing the folder as portable or distributable.
 
 ## Quantize Straight ROCmFPX Models
 
@@ -641,6 +655,9 @@ scripts/check-rocmfpx-agentic-smoke.sh
 
 ## License
 
-This repository is based on `llama.cpp` and keeps the upstream MIT license. See
-`LICENSE` for details. Bundled third-party notices are listed in
-`THIRD_PARTY_NOTICES.md`.
+The implementation lineage is based on `llama.cpp` and retains the upstream
+MIT license where it applies. This combined repository also preserves research,
+evidence, tools, and third-party material under other or unresolved terms; the
+root `LICENSE` is not a blanket license for those materials. See
+[`LICENSES_AND_PROVENANCE.md`](LICENSES_AND_PROVENANCE.md), `LICENSE`, and
+`THIRD_PARTY_NOTICES.md` before copying or redistributing any subset.
