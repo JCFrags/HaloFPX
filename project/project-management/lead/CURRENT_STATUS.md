@@ -4,6 +4,41 @@ Reconciled from retained source and evidence: 2026-08-12
 
 ## Overall state
 
+### Current owner direction and work order
+
+The accepted 2026-08-12 direction makes HaloFPX a model-general inference
+engine for the two AMD Strix Halo Linux nodes and their `gfx1151`
+accelerators. MiniMax remains the largest current stress fixture; it is not
+the optimization target. This current-authority block supersedes older
+current-tense model-specific priority and dispatch language later in this
+file. The exact historical evidence and milestone dispositions remain valid
+within their recorded scope.
+
+Work proceeds in this order:
+
+1. saved prompt/KV-state integrity and corruption-as-miss;
+2. correct reuse after process restart and verified prefix reuse;
+3. prompt-processing and time-to-first-token improvement; and
+4. token-generation throughput and latency improvement.
+
+The active first code slice is
+[GitHub issue #5](https://github.com/JCFrags/HaloFPX/issues/5): detect
+same-size SSD prompt-cache corruption before restore, remove the bad entry,
+and cold-recompute. It is a bounded hardening of the reachable disk cache, not
+a claim that HaloKV or distributed restart reuse is complete. The direction
+record is [GitHub issue #13](https://github.com/JCFrags/HaloFPX/issues/13).
+
+Prompt processing, cache-hit benefit, and generation remain separate
+measurement lanes. Performance claims require matched runs on the real
+dual-Strix-Halo Linux machines. The local Windows PC is for source control,
+documentation, orchestration, and limited CPU checks; it supplies no target
+performance authority.
+
+Ordinary personal-project validation is intentionally bounded: run exact
+impacted tests and short paired screens, then use broader suites and repeated
+measurements only for milestone promotion or a concrete regression. Cache
+correctness remains fail-closed regardless of test scope.
+
 ### L111 terminal reconciliation
 
 L111 is closed `PASS / RETAIN` at the bounded loader-foundation review
