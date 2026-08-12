@@ -12,8 +12,13 @@
   "private_evidence_release": {
     "release_id": 369369453,
     "tag": "evidence-2026-08-12",
-    "url_after_publication": "https://github.com/JCFrags/HaloFPX/releases/tag/evidence-2026-08-12",
-    "status": "verified_draft_private_release",
+    "url": "https://github.com/JCFrags/HaloFPX/releases/tag/evidence-2026-08-12",
+    "status": "verified_published_immutable_private_release",
+    "release_node_id": "RE_kwDOT2ckv84WBCFt",
+    "release_commit": "7c801894062c2e09122c18447da66d50da60c050",
+    "annotated_tag_object": "ddbdc98d5a98ea19fd96daf11d848360721aae74",
+    "published_at": "2026-08-12T17:25:51Z",
+    "immutable": true,
     "asset_count": 41,
     "payload_asset_count": 39,
     "total_bytes": 23317868085,
@@ -30,7 +35,8 @@
     },
     "asset_provenance": "docs/publication/asset-provenance.json",
     "upload_verification_receipt": "docs/publication/release-upload-verification-2026-08-12.md",
-    "publication_gate": "final_tag_target_and_github_actions_success"
+    "publication_verification_receipt": "docs/publication/release-verification-2026-08-12.md",
+    "publication_gate": "PASS_exact_tag_target_github_actions_assets_immutability_and_attestation"
   },
   "history": {
     "integration_commit": "728c3b441fcb38a9eb55272ed673da9d2d18c173",
@@ -51,13 +57,13 @@
     "legacy_bundle_plan": [
       {
         "name": "implementation-620ef60.bundle",
-        "status": "verified_draft_private_release_asset",
+        "status": "verified_published_immutable_private_release_asset",
         "size_bytes": 41317318,
         "sha256": "b69bbcb25b5d21fa5551e9a66fdd4ba69a8914973e35f9695c640f31652e322b"
       },
       {
         "name": "wiki-b1c2d8a.bundle",
-        "status": "verified_draft_private_release_asset",
+        "status": "verified_published_immutable_private_release_asset",
         "size_bytes": 39827352,
         "sha256": "68405b7510450898a5ec2b690431c204ed56ba76eaba5ef2d2bab42368ab4293"
       }
@@ -177,29 +183,29 @@
     {
       "id": "l24_source_v2_tar",
       "former_relative_path": "sources/halofpx/l24-source-v2.tar",
-      "status": "verified_draft_split_private_release_payload",
+      "status": "verified_published_immutable_split_private_release_payload",
       "size_bytes": 17101714432,
       "sha256": "5920dbdb2f1d29eac0be84c82611a9869318fae2ec5b3fe1392fd2ef9abef3cf",
       "part_manifest": "docs/publication/release-manifest.json#l24-source-v2.tar"
     },
     {
       "id": "documentation_raw_sources",
-      "status": "verified_draft_private_release_group",
+      "status": "verified_published_immutable_private_release_group",
       "release_manifest": "docs/publication/release-manifest.json"
     },
     {
       "id": "p63_formal_artifacts_and_tools",
-      "status": "verified_draft_private_release_group",
+      "status": "verified_published_immutable_private_release_group",
       "release_manifest": "docs/publication/release-manifest.json"
     },
     {
       "id": "implementation_raw_evidence",
-      "status": "verified_draft_private_release_group",
+      "status": "verified_published_immutable_private_release_group",
       "release_manifest": "docs/publication/release-manifest.json"
     },
     {
       "id": "restricted_paired_machine_manifests",
-      "status": "verified_draft_restricted_private_release_group",
+      "status": "verified_published_immutable_restricted_private_release_group",
       "release_manifest": "docs/publication/release-manifest.json"
     }
   ],

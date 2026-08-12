@@ -11,7 +11,11 @@ HaloFPX repository. It does not replace Project Lead authority.
   clean-publication validation and feature-off build receipt.
 - Read
   [`release-upload-verification-2026-08-12.md`](release-upload-verification-2026-08-12.md)
-  for the immutable 41-file draft-release digest reconciliation.
+  for the historical 41-file draft-upload digest reconciliation.
+- Read
+  [`release-verification-2026-08-12.md`](release-verification-2026-08-12.md)
+  for the published immutable tag, release, CI, inventory, and attestation
+  receipt.
 - Use [`release-manifest.json`](release-manifest.json) and
   [`SHA256SUMS.txt`](SHA256SUMS.txt) to verify the private evidence release.
 - Use [`asset-provenance.json`](asset-provenance.json) to map every payload to

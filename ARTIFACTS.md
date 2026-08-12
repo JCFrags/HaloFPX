@@ -12,8 +12,8 @@ filename resembles a historical file.
 | Combined Git history | [VERIFIED] included | Clone `main`; verify both imported ancestors and the integration boundary. |
 | Engineering wiki and tracked imports | [VERIFIED] included under `project/` | Use Git paths and commit identities, not a GitHub Wiki mirror. |
 | Implementation evidence tracked at `620ef60...` | [VERIFIED] included | Use `docs/halofpx/` and its immutable receipts. |
-| Pre-publication Git bundles | [VERIFIED] uploaded to private release `evidence-2026-08-12`; remote size and SHA-256 matched | Accept only the exact names, sizes, and SHA-256 values recorded below. |
-| Large raw source/formal/evidence payloads | [VERIFIED] uploaded to private release `evidence-2026-08-12`; remote size and SHA-256 matched | Restore only from a complete asset set and verify every part plus the reconstructed payload. |
+| Pre-publication Git bundles | [VERIFIED] published in immutable private release `evidence-2026-08-12`; remote size and SHA-256 matched | Accept only the exact names, sizes, and SHA-256 values recorded below. |
+| Large raw source/formal/evidence payloads | [VERIFIED] published in immutable private release `evidence-2026-08-12`; remote size and SHA-256 matched | Restore only from a complete asset set and verify every part plus the reconstructed payload. |
 | Generated build trees and caches | [RECOMMENDATION] rebuild, not canonical | Do not treat local build output as a transferable source of truth. |
 | Primary model | [OPEN] absent | Obtain exact bytes independently; verify size and SHA-256 before use. |
 | Credentials and live service state | intentionally excluded | Re-provision through the current operator authority; never restore from project artifacts. |
@@ -24,7 +24,9 @@ The machine-readable companions are the publication
 [`SHA256SUMS.txt`](docs/publication/SHA256SUMS.txt), and per-asset
 [`asset-provenance.json`](docs/publication/asset-provenance.json). Together they
 are the packaging, source-role, sensitivity, retention, and restore authority.
-They cannot supersede project decisions.
+The final tag, release, and attestation identities are in the
+[`publication receipt`](docs/publication/release-verification-2026-08-12.md).
+These records cannot supersede project decisions.
 
 ## Git history preservation
 

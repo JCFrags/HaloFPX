@@ -154,8 +154,10 @@ Ninja 1.13.2, and GCC 16.1.1 20260625. Compare results and hashes with
 [`build-receipt.txt`](docs/halofpx/evidence/l111/build-receipt.txt).
 
 The initial publication validation and Windows feature-off compile are recorded
-separately in
-[`docs/publication/validation-2026-08-12.md`](docs/publication/validation-2026-08-12.md).
+in [`docs/publication/validation-2026-08-12.md`](docs/publication/validation-2026-08-12.md).
+The final immutable release identity, artifact reconciliation, and GitHub
+attestation are recorded in
+[`docs/publication/release-verification-2026-08-12.md`](docs/publication/release-verification-2026-08-12.md).
 
 ## Safe continuation boundary
 
@@ -183,14 +185,17 @@ unresolved redistribution boundaries. The implementation source has an MIT
 license; the engineering-wiki repository does not have a blanket project
 license, and imported sources retain their own terms.
 
-[VERIFIED] The draft private `evidence-2026-08-12` preservation release contains
-41 files totaling `23317868085` bytes. Every remote name, size, upload state,
-and GitHub-reported SHA-256 matched the local set; all 39 payloads also match
-[`release-manifest.json`](docs/publication/release-manifest.json). Interpret and
-restore them with
+[VERIFIED] The published private `evidence-2026-08-12` preservation release is
+immutable and contains 41 files totaling `23317868085` bytes. Every remote
+name, size, upload state, and GitHub-reported SHA-256 matched the locally
+rehashed set; all 39 payloads also match
+[`release-manifest.json`](docs/publication/release-manifest.json). The release
+attestation and final tag identity passed verification. Interpret and restore
+the assets with
 [`asset-provenance.json`](docs/publication/asset-provenance.json) and
-[`ARTIFACTS.md`](ARTIFACTS.md). Publication remains gated on the final tagged
-commit and its passing workflow.
+[`ARTIFACTS.md`](ARTIFACTS.md); use the
+[`final publication receipt`](docs/publication/release-verification-2026-08-12.md)
+for the frozen boundary.
 
 [RECOMMENDATION] Keep the repository and release assets private until a fresh
 privacy review, credential scan, third-party notice audit, and explicit license
