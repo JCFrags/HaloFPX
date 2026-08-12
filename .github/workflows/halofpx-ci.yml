@@ -123,3 +123,61 @@ jobs:
           ctest --test-dir build/ci-loader-partition
           --output-on-failure
           -R '^test-halofpx-loader-partition$'
+
+  prompt-cache-integrity-test:
+    name: CPU prompt-cache content integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Python
+        # actions/setup-python v6.3.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+
+      - name: Configure focused CPU server build
+        run: >-
+          cmake -S . -B build/ci-prompt-cache-integrity
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_RPC=ON
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=ON
+          -DLLAMA_BUILD_TESTS=OFF
+          -DLLAMA_BUILD_TOOLS=OFF
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=ON
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_USE_PREBUILT_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+
+      - name: Compile llama-server
+        run: >-
+          cmake --build build/ci-prompt-cache-integrity
+          --target llama-server
+          --parallel 2
+
+      - name: Install focused test dependencies
+        run: >-
+          python -m pip install --disable-pip-version-check
+          pytest~=8.3.3 requests~=2.32.3 wget~=3.2
+
+      - name: Run exact prompt-cache integrity tests
+        working-directory: tools/server/tests
+        env:
+          LLAMA_SERVER_BIN_PATH: ${{ github.workspace }}/build/ci-prompt-cache-integrity/bin/llama-server
+        run: >-
+          python -m pytest -v -x
+          unit/test_prompt_cache_disk.py::test_disk_only_parse_restore_and_owned_cleanup
+          unit/test_prompt_cache_disk.py::test_disk_cache_round_trips_target_and_draft
+          unit/test_prompt_cache_disk.py::test_disk_cache_rejects_partial_target_draft_pair
+          unit/test_prompt_cache_disk.py::test_disk_cache_rejects_same_size_target_corruption
+          unit/test_prompt_cache_disk.py::test_disk_cache_rejects_same_size_corruption_before_touch

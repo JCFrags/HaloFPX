@@ -9,6 +9,9 @@
 #include "sampling.h"
 #include "speculative.h"
 #include "server-common.h"
+extern "C" {
+#include "sha256/sha256.h"
+}
 
 #include <cerrno>
 #include <cinttypes>
@@ -2067,6 +2070,109 @@ static bool server_prompt_cache_disk_size_exact(
     return (size_t) actual == expected;
 }
 
+enum class server_prompt_cache_disk_digest_status {
+    ok,
+    open_failed,
+    read_failed,
+    size_mismatch,
+    digest_mismatch,
+};
+
+static const char * server_prompt_cache_disk_digest_status_name(
+        server_prompt_cache_disk_digest_status status) {
+    switch (status) {
+        case server_prompt_cache_disk_digest_status::ok:              return "ok";
+        case server_prompt_cache_disk_digest_status::open_failed:     return "digest-open-failed";
+        case server_prompt_cache_disk_digest_status::read_failed:     return "digest-read-failed";
+        case server_prompt_cache_disk_digest_status::size_mismatch:   return "size-mismatch";
+        case server_prompt_cache_disk_digest_status::digest_mismatch: return "digest-mismatch";
+    }
+    return "digest-unknown";
+}
+
+static const char * server_prompt_cache_disk_digest_rejection_reason(
+        bool draft, server_prompt_cache_disk_digest_status status) {
+    switch (status) {
+        case server_prompt_cache_disk_digest_status::open_failed:
+            return draft ? "draft-digest-open-failed" : "target-digest-open-failed";
+        case server_prompt_cache_disk_digest_status::read_failed:
+            return draft ? "draft-digest-read-failed" : "target-digest-read-failed";
+        case server_prompt_cache_disk_digest_status::size_mismatch:
+            return draft ? "draft-size-mismatch" : "target-size-mismatch";
+        case server_prompt_cache_disk_digest_status::digest_mismatch:
+            return draft ? "draft-digest-mismatch" : "target-digest-mismatch";
+        case server_prompt_cache_disk_digest_status::ok:
+            break;
+    }
+    return draft ? "draft-digest-unknown" : "target-digest-unknown";
+}
+
+// The exact-length read rejects stable truncation/appends and the digest rejects
+// quiescent on-disk content corruption. It does not pin a file identity across
+// the later pathname reopen and is not a defense against malicious concurrent
+// same-user replacement.
+static server_prompt_cache_disk_digest_status server_prompt_cache_disk_sha256_exact(
+        const std::string & path,
+                    size_t expected_size,
+        const std::array<uint8_t, SHA256_DIGEST_SIZE> * expected_digest,
+              std::array<uint8_t, SHA256_DIGEST_SIZE> * digest_out = nullptr) {
+    if (digest_out != nullptr) {
+        digest_out->fill(0);
+    }
+
+    std::ifstream file(fs::u8path(path), std::ios::binary);
+    if (!file) {
+        SRV_ERR("prompt cache disk digest open failed: path=%s\n", path.c_str());
+        return server_prompt_cache_disk_digest_status::open_failed;
+    }
+
+    sha256_t sha;
+    sha256_init(&sha);
+
+    std::array<unsigned char, 64 * 1024> buffer;
+    size_t remaining = expected_size;
+    while (remaining > 0) {
+        const size_t requested = remaining < buffer.size() ? remaining : buffer.size();
+        file.read(reinterpret_cast<char *>(buffer.data()), (std::streamsize) requested);
+        const std::streamsize n = file.gcount();
+        if (n > 0) {
+            sha256_update(&sha, buffer.data(), (size_t) n);
+            remaining -= (size_t) n;
+        }
+        if ((size_t) n != requested) {
+            const auto status = file.bad()
+                ? server_prompt_cache_disk_digest_status::read_failed
+                : server_prompt_cache_disk_digest_status::size_mismatch;
+            std::memset(&sha, 0, sizeof(sha));
+            return status;
+        }
+    }
+
+    char extra = 0;
+    file.read(&extra, 1);
+    if (file.bad()) {
+        SRV_ERR("prompt cache disk digest read failed: path=%s\n", path.c_str());
+        std::memset(&sha, 0, sizeof(sha));
+        return server_prompt_cache_disk_digest_status::read_failed;
+    }
+    if (file.gcount() != 0) {
+        std::memset(&sha, 0, sizeof(sha));
+        return server_prompt_cache_disk_digest_status::size_mismatch;
+    }
+
+    std::array<uint8_t, SHA256_DIGEST_SIZE> digest {};
+    sha256_final(&sha, digest.data());
+    std::memset(&sha, 0, sizeof(sha));
+
+    if (digest_out != nullptr) {
+        *digest_out = digest;
+    }
+    if (expected_digest != nullptr && digest != *expected_digest) {
+        return server_prompt_cache_disk_digest_status::digest_mismatch;
+    }
+    return server_prompt_cache_disk_digest_status::ok;
+}
+
 // llama_state_seq_save_file() closes the file before returning. Reopen it to
 // force dirty pages to stable storage and immediately mark the cold state as
 // reclaimable. This avoids replacing anonymous cache pressure with several GiB
@@ -2477,6 +2583,30 @@ bool server_prompt_cache::save_disk(
             continue;
         }
 
+        bool digest_is_draft = false;
+        auto digest_status = server_prompt_cache_disk_sha256_exact(
+            it->path_main, it->size_main, &it->digest_main);
+        (void) server_prompt_cache_disk_flush_and_drop(it->path_main, false);
+        if (digest_status == server_prompt_cache_disk_digest_status::ok && !it->path_drft.empty()) {
+            digest_is_draft = true;
+            digest_status = server_prompt_cache_disk_sha256_exact(
+                it->path_drft, it->size_drft, &it->digest_drft);
+            (void) server_prompt_cache_disk_flush_and_drop(it->path_drft, false);
+        }
+        if (digest_status != server_prompt_cache_disk_digest_status::ok) {
+            const char * rejection_reason = server_prompt_cache_disk_digest_rejection_reason(
+                digest_is_draft, digest_status);
+            SRV_WRN("prompt cache disk touch rejected: entry=%" PRIu64 " component=%s reason=%s path=%s\n",
+                    it->id, digest_is_draft ? "draft" : "target",
+                    server_prompt_cache_disk_digest_status_name(digest_status), disk_owned_path.c_str());
+            auto bad = it++;
+            bad->usable = false;
+            if (!erase_disk_state(bad, false, rejection_reason)) {
+                disable_disk_saves("touch-digest-removal", disk_owned_path);
+            }
+            continue;
+        }
+
         {
             const auto id = it->id;
             disk_states.splice(disk_states.end(), disk_states, it);
@@ -2539,23 +2669,47 @@ bool server_prompt_cache::save_disk(
     const size_t n_main = llama_state_seq_save_file(
         ctx_main, path_main_tmp_utf8.c_str(), id_slot, tokens.data(), tokens.size());
     size_t actual_main = 0;
+    std::array<uint8_t, SHA256_DIGEST_SIZE> digest_main {};
     if (n_main == 0 ||
-        !server_prompt_cache_disk_size_exact(path_main_tmp_utf8, n_main, &actual_main) ||
-        !server_prompt_cache_disk_flush_and_drop(path_main_tmp_utf8, true)) {
+        !server_prompt_cache_disk_size_exact(path_main_tmp_utf8, n_main, &actual_main)) {
         SRV_ERR("prompt cache disk save failed: entry=%" PRIu64 " component=target path=%s\n",
+                entry_id, path_main_tmp_utf8.c_str());
+        return fail_io("target-save", path_main_tmp_utf8);
+    }
+    const auto digest_main_status = server_prompt_cache_disk_sha256_exact(
+        path_main_tmp_utf8, n_main, nullptr, &digest_main);
+    if (digest_main_status != server_prompt_cache_disk_digest_status::ok) {
+        SRV_ERR("prompt cache disk save failed: entry=%" PRIu64 " component=target reason=%s path=%s\n",
+                entry_id, server_prompt_cache_disk_digest_status_name(digest_main_status), path_main_tmp_utf8.c_str());
+        return fail_io("target-digest", path_main_tmp_utf8);
+    }
+    if (!server_prompt_cache_disk_flush_and_drop(path_main_tmp_utf8, true)) {
+        SRV_ERR("prompt cache disk save failed: entry=%" PRIu64 " component=target reason=durable-flush path=%s\n",
                 entry_id, path_main_tmp_utf8.c_str());
         return fail_io("target-save", path_main_tmp_utf8);
     }
 
     size_t n_drft = 0;
+    std::array<uint8_t, SHA256_DIGEST_SIZE> digest_drft {};
     if (ctx_drft) {
         n_drft = llama_state_seq_save_file(
             ctx_drft, path_drft_tmp_utf8.c_str(), id_slot, tokens.data(), tokens.size());
         size_t actual_drft = 0;
         if (n_drft == 0 ||
-            !server_prompt_cache_disk_size_exact(path_drft_tmp_utf8, n_drft, &actual_drft) ||
-            !server_prompt_cache_disk_flush_and_drop(path_drft_tmp_utf8, true)) {
+            !server_prompt_cache_disk_size_exact(path_drft_tmp_utf8, n_drft, &actual_drft)) {
             SRV_ERR("prompt cache disk save failed: entry=%" PRIu64 " component=draft path=%s\n",
+                    entry_id, path_drft_tmp_utf8.c_str());
+            return fail_io("draft-save", path_drft_tmp_utf8);
+        }
+        const auto digest_drft_status = server_prompt_cache_disk_sha256_exact(
+            path_drft_tmp_utf8, n_drft, nullptr, &digest_drft);
+        if (digest_drft_status != server_prompt_cache_disk_digest_status::ok) {
+            SRV_ERR("prompt cache disk save failed: entry=%" PRIu64 " component=draft reason=%s path=%s\n",
+                    entry_id, server_prompt_cache_disk_digest_status_name(digest_drft_status), path_drft_tmp_utf8.c_str());
+            return fail_io("draft-digest", path_drft_tmp_utf8);
+        }
+        if (!server_prompt_cache_disk_flush_and_drop(path_drft_tmp_utf8, true)) {
+            SRV_ERR("prompt cache disk save failed: entry=%" PRIu64 " component=draft reason=durable-flush path=%s\n",
                     entry_id, path_drft_tmp_utf8.c_str());
             return fail_io("draft-save", path_drft_tmp_utf8);
         }
@@ -2634,6 +2788,8 @@ bool server_prompt_cache::save_disk(
     state.path_drft = ctx_drft ? path_drft_utf8 : std::string();
     state.size_main = n_main;
     state.size_drft = n_drft;
+    state.digest_main = digest_main;
+    state.digest_drft = digest_drft;
     state.spec      = state_spec;
     state.id        = entry_id;
     state.usable    = true;
@@ -2810,6 +2966,9 @@ bool server_prompt_cache::load_disk(
     const size_t n_checkpoints = it->checkpoints.size();
     const std::string path_main = it->path_main;
     const std::string path_drft = it->path_drft;
+    const auto digest_main_expected = it->digest_main;
+    const auto digest_drft_expected = it->digest_drft;
+    const int64_t t_start = ggml_time_us();
 
     const auto reject_entry = [&](const char * reason) -> bool {
         it->usable = false;
@@ -2842,7 +3001,22 @@ bool server_prompt_cache::load_disk(
         return reject_entry("missing-draft-file");
     }
 
-    const int64_t t_start = ggml_time_us();
+    const auto digest_main_status = server_prompt_cache_disk_sha256_exact(
+        path_main, target_bytes, &digest_main_expected);
+    if (digest_main_status != server_prompt_cache_disk_digest_status::ok) {
+        SRV_ERR("prompt cache disk load failed: entry=%" PRIu64 " component=target reason=%s path=%s\n",
+                entry_id, server_prompt_cache_disk_digest_status_name(digest_main_status), path_main.c_str());
+        return reject_entry(server_prompt_cache_disk_digest_rejection_reason(false, digest_main_status));
+    }
+    if (!path_drft.empty()) {
+        const auto digest_drft_status = server_prompt_cache_disk_sha256_exact(
+            path_drft, draft_bytes, &digest_drft_expected);
+        if (digest_drft_status != server_prompt_cache_disk_digest_status::ok) {
+            SRV_ERR("prompt cache disk load failed: entry=%" PRIu64 " component=draft reason=%s path=%s\n",
+                    entry_id, server_prompt_cache_disk_digest_status_name(digest_drft_status), path_drft.c_str());
+            return reject_entry(server_prompt_cache_disk_digest_rejection_reason(true, digest_drft_status));
+        }
+    }
 
     llama_tokens tokens_main(n_tokens_expected);
     size_t n_tokens_main = 0;

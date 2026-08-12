@@ -763,6 +763,7 @@ set(TARGET server-context)
 
 add_library(${TARGET} STATIC
     ${CMAKE_SOURCE_DIR}/examples/diffusion/diffusion.cpp
+    ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps/sha256/sha256.c
     halofpx-context-store.cpp
     halofpx-context-store.h
     server-chat.cpp
@@ -786,6 +787,7 @@ endif()
 target_include_directories(${TARGET} PRIVATE ../mtmd)
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/examples/diffusion)
+target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps)
 target_link_libraries(${TARGET} PUBLIC llama-common mtmd ${CMAKE_THREAD_LIBS_INIT})
 
 if (HALOFPX_CONTEXT_STORE_CANARY)

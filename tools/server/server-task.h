@@ -684,6 +684,9 @@ struct server_prompt_disk_state {
     size_t size_main = 0;
     size_t size_drft = 0;
 
+    std::array<uint8_t, 32> digest_main {};
+    std::array<uint8_t, 32> digest_drft {};
+
     uint64_t id = 0;
     bool usable = true;
 
