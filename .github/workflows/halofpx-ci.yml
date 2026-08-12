@@ -172,10 +172,10 @@ jobs:
           -DLLAMA_OPENSSL=OFF
           -DHALOFPX_SERVER_PROMPT_CACHE_OPENSSL_SHA256=${{ matrix.openssl_sha256 }}
 
-      - name: Compile llama-server and SHA-256 vector test
+      - name: Compile llama-server and focused server tests
         run: >-
           cmake --build build/ci-prompt-cache-integrity-${{ matrix.provider }}
-          --target llama-server test-server-prompt-cache-digest
+          --target llama-server test-server-prompt-cache-digest test-server-token-probabilities
           --parallel 2
 
       - name: Validate HaloFPX context-store feature-off runtime contract
@@ -191,11 +191,11 @@ jobs:
           -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=OFF
           -P tests/test-halofpx-feature-off-contract.cmake
 
-      - name: Run exact SHA-256 vector test
+      - name: Run focused server CTests
         run: >-
           ctest --test-dir build/ci-prompt-cache-integrity-${{ matrix.provider }}
           --output-on-failure
-          -R '^test-server-prompt-cache-digest$'
+          -R '^(test-server-prompt-cache-digest|test-server-token-probabilities)$'
 
       - name: Install focused test dependencies
         run: >-
