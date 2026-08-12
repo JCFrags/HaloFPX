@@ -9,6 +9,13 @@ The later `feature-off/` records bind the hardened branch head
 `a3fd09e0d522e20d0153bb2a07ddd09916249c8d` and prove that the same HIP source
 also compiles for `gfx1151` with the candidate definition absent.
 
+PR #31 merged while this candidate was under review, so PR #30 was rebased
+after the target builds. [`rebase-equivalence.md`](rebase-equivalence.md)
+binds the target-built commits to the rebased implementation commits by exact
+Git blob identity for every target compile/runtime source and host contract.
+The rebase added only PR #31's A/B-harness files; it did not change the target-
+built candidate sources. No runtime result is inferred from this equivalence.
+
 This is a **compile and host-contract receipt**, not a GPU correctness or
 performance result. The production inference processes remained active, so the
 fail-closed target qualifier correctly was not used to execute candidate HIP
