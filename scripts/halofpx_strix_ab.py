@@ -832,7 +832,9 @@ def analyze_run(root: Path) -> dict[str, Any]:
         "retained_samples": len(samples),
         "missing": [dict(pair_id=a, order_index=b, condition=c) for a, b, c in missing],
         "failures": failures,
-        "complete": complete,
+        "evidence_core_complete": complete,
+        "execution_qualified": False,
+        "measurement_ready": False,
         "minimum_five_pairs_met": plan["execution"]["pairs"] >= 5,
         "performance_claim": False,
         "metrics": {},
@@ -872,7 +874,9 @@ def analyze_run(root: Path) -> dict[str, Any]:
     write_json(root / "status.json", {
         "schema": "halofpx.strix-ab-status.v1",
         "experiment_id": plan["experiment_id"],
-        "state": "complete" if complete else "incomplete",
+        "state": "evidence-core-complete" if complete else "evidence-core-incomplete",
+        "execution_qualified": False,
+        "measurement_ready": False,
         "performance_claim": False,
     })
     evidence_files = sorted(
@@ -940,7 +944,7 @@ def main() -> int:
         elif args.command == "analyze":
             report = analyze_run(args.run_root)
             print(json.dumps(report, indent=2, sort_keys=True))
-            return 0 if report["complete"] else 1
+            return 0 if report["evidence_core_complete"] else 1
     except PlanError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

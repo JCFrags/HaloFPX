@@ -27,9 +27,13 @@ golden output is embedded in the implementation.
   of the always-on services.
 - Do not store secrets in a plan or raw bundle. The harness records only the
   explicit environment allowlist; it never dumps the ambient environment.
-- A changed binary, model, request, node authority receipt, command, topology,
-  schedule, token count, output, raw-file hash, failure, or missing sample
-  prevents a complete result.
+- A mismatch among the plan, preflight, raw bundle, binary/model/request hashes,
+  command, topology, schedule, token counts, or output prevents evidence-core
+  completeness.
+- Evidence-core completeness is not execution qualification. Until the target
+  adapter proves live InvocationIDs, executable hashes, argv/environment,
+  order, warmups, cache-off state, and cleanup, `analysis.json` keeps both
+  `execution_qualified` and `measurement_ready` false.
 - Three pairs are a preliminary direction screen. Five pairs meet only the
   project's minimum count before a `[MEASURED]` review; the analyzer never
   emits a performance claim by itself.
@@ -104,6 +108,8 @@ paired deltas, and paired improvement percentages separately for prompt rate,
 generation rate, client wall time, TTFT, and mean inter-token latency.
 It does not use requests within a long-lived block as independent replicates.
 `samples.jsonl` and `SHA256SUMS` make the exact raw bundle portable to a new PC.
+The core may mark only `evidence_core_complete`; it never marks a measurement
+ready without the separate target execution adapter.
 
 ## Follow-up execution adapter
 

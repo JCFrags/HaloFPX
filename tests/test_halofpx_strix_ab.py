@@ -138,7 +138,9 @@ class StrixABTest(unittest.TestCase):
             response, client = self.raw_success(110.0 if on else 100.0, 22.0 if on else 20.0, 900.0 if on else 1000.0)
             AB.record_sample(run, entry["pair_id"], entry["condition"], entry["order_index"], response, client, "success", None, [])
         report = AB.analyze_run(run)
-        self.assertTrue(report["complete"])
+        self.assertTrue(report["evidence_core_complete"])
+        self.assertFalse(report["execution_qualified"])
+        self.assertFalse(report["measurement_ready"])
         self.assertFalse(report["performance_claim"])
         self.assertEqual(report["metrics"]["prompt_tokens_per_second"]["pair_count"], 3)
         self.assertAlmostEqual(report["metrics"]["prompt_tokens_per_second"]["paired_improvement_percent_mean"], 10.0)
@@ -152,7 +154,7 @@ class StrixABTest(unittest.TestCase):
         response, client = self.raw_success(100.0, 20.0, 1000.0)
         AB.record_sample(run, first["pair_id"], first["condition"], first["order_index"], response, client, "success", None, [])
         report = AB.analyze_run(run)
-        self.assertFalse(report["complete"])
+        self.assertFalse(report["evidence_core_complete"])
         self.assertTrue(report["missing"])
 
     def test_invalid_raw_sample_does_not_reserve_schedule_slot(self) -> None:
