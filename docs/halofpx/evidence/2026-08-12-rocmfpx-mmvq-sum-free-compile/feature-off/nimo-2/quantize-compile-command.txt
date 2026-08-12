@@ -1,0 +1,3 @@
+  "command": "/opt/rocm/lib/llvm/bin/clang++  -DGGML_BACKEND_BUILD -DGGML_BACKEND_SHARED -DGGML_HIP_GRAPHS -DGGML_HIP_NO_VMM -DGGML_SCHED_MAX_COPIES=4 -DGGML_SHARED -DGGML_USE_HIP -DUSE_PROF_API=1 -D_GNU_SOURCE -D_XOPEN_SOURCE=600 -D__HIP_PLATFORM_AMD__=1 -D__HIP_ROCclr__=1 -Dggml_hip_EXPORTS -I/tmp/halofpx-sumfree-off-a3fd09e/ggml/src/ggml-hip/.. -I/tmp/halofpx-sumfree-off-a3fd09e/ggml/src/../include -O3 -DNDEBUG -std=gnu++17 --offload-arch=gfx1151 -fPIC -ffast-math -o CMakeFiles/ggml-hip.dir/__/ggml-cuda/quantize.cu.o -x hip -c /tmp/halofpx-sumfree-off-a3fd09e/ggml/src/ggml-cuda/quantize.cu",
+  "file": "/tmp/halofpx-sumfree-off-a3fd09e/ggml/src/ggml-cuda/quantize.cu",
+  "output": "ggml/src/ggml-hip/CMakeFiles/ggml-hip.dir/__/ggml-cuda/quantize.cu.o"
