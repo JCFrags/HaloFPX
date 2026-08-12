@@ -2,11 +2,12 @@
 section_id: "13"
 title: "ROCmFPX Facts and Constraints"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories:
     - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
     - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "JCFrags/HaloFPX@4a156395db62604cf37e27e6459e3ee0e3949c48"
   software_versions: []
   hardware_revisions: ["AMD Strix Halo / gfx1151 (target only)"]
 related_sections: ["11", "12", "15", "30", "31", "33", "36", "37"]
@@ -24,13 +25,13 @@ Maturity below means: **wired** = code dispatch exists; **scripted** = a test/ru
 <a id="s13-formats"></a>
 ## Weight formats and serialization
 
-| GGML/GGUF type | Layout at pinned head | Nominal BPW | CPU ref | HIP/ROCm | Vulkan | Maturity / limits |
+| GGML/GGUF type | Layout at pinned head | Nominal BPW | CPU ref | CUDA/HIP | Vulkan | Maturity / limits |
 |---|---|---:|---|---|---|---|
-| `Q2_0_ROCMFPX` | 32 weights; 8 packed bytes + two UE4M3 scales; S40-style 4-code mapping | 2.50 | wired plus frozen binary64 reference | MMVQ/MMQ, copy, rows wired | **absent from Vulkan dispatch/shaders** | newest/very experimental; CPU outer-product fix landed `a8b5fa9`; quality unproven |
+| `Q2_0_ROCMFPX` | 32 weights; 8 packed bytes + two UE4M3 scales; S40 mapping `-4,-1,+1,+4` | 2.50 | wired plus frozen binary64 reference | dequantization, `GET_ROWS`, MMVQ, and MMQ wired; generic same-type contiguous copy remains; no conversion/noncontiguous `CPY` or `SET_ROWS` | **absent from Vulkan dispatch/shaders** | very experimental; absent from common application cache CLI allowlist, wrapper, and agent presets; quality unproven |
 | `Q3_0_ROCMFPX` | 32; 12 packed bytes + two UE4M3 scales; codes `0, ±1, ±2, ±4` | 3.50 | wired | wired | dequant/copy/rows/DMMV-MMV/MMQ wiring | experimental; lowest-bit documented coherency risk |
 | `Q4_0_ROCMFP4` | 32; 16 nibbles + two UE4M3 scales | 4.50 | ref + vector dot | wired | wired | fork’s promoted baseline, but custom/non-upstream type |
 | `Q4_0_ROCMFP4_FAST` | 32; 16 nibbles + one UE4M3 scale | 4.25 | ref + vector dot | wired | wired | speed layout; separate type prevents aliasing dual-scale files |
-| `Q6_0_ROCMFPX` | 32; 24 packed bytes + two UE4M3 scales; signed magnitude through 31 | 6.50 | wired | wired | wired | experimental; endpoint semantics have multiple fix commits |
+| `Q6_0_ROCMFPX` | 32; 24 packed bytes + two UE4M3 scales; signed range `[-32,31]` | 6.50 | wired | wired | wired; 26-byte GGUF blocks expand to 34 device bytes | experimental; endpoint semantics have multiple fix commits |
 | `Q8_0_ROCMFPX` | 32 int8 values + one UE4M3 scale; clamp `[-127,127]` | 8.25 | wired | wired | wired | high-quality family reference, still custom/experimental |
 
 **[VERIFIED]** Scale validation rejects sign-bit scale bytes and `0x7f`; layouts use finite unsigned UE4M3 scales [S13-02, S13-03]. **[VERIFIED]** Custom GGML type IDs occupy `100–107`, and custom llama file-type IDs occupy `100–119` with gaps [S13-02, S13-04]. These numeric assignments are compatibility and upstream-merge hazards.
@@ -54,13 +55,23 @@ Maturity below means: **wired** = code dispatch exists; **scripted** = a test/ru
 <a id="s13-kernels"></a>
 ## Kernel and operation inventory
 
+The first claim below is the pinned-fork family summary from S13-02/03/05.
+The dated reconciliation that follows narrows its generalized backend wording
+for Q2 without replacing the preserved source-scoped claim.
+
 **[VERIFIED]** CPU registers quantize/dequantize/type-trait paths and custom vector dots. HIP uses the shared `ggml-cuda` backend with custom decode, copy, `GET_ROWS`, MMVQ, MMQ, and type traits. Vulkan has custom dequant shaders for ROCmFP3/4/4-fast/6/8 and Turbo3/4 plus copy, row, matvec/matmul dispatch [S13-02, S13-03, S13-05].
+
+**[VERIFIED]** At HaloFPX `4a156395` on 2026-08-12, Q2 has shared CUDA/HIP
+dequantization, `GET_ROWS`, MMVQ, and MMQ wiring. Generic same-type contiguous
+device copy remains available, but conversion/noncontiguous `CPY`, `SET_ROWS`,
+and Vulkan are absent. The other listed weight families retain their
+CPU/CUDA/HIP/Vulkan paths [S13-L04].
 
 | Operation surface | Q3/Q4/Q6/Q8 | Q2 | Turbo3/4 |
 |---|---|---|---|
 | CPU quant/dequant | yes | yes + frozen ref | yes |
-| HIP copy / dequant / rows | wired | wired | wired |
-| HIP MMVQ/MMQ | wired | wired | cache attention/vector paths |
+| CUDA/HIP copy / dequant / rows | wired | dequant + `GET_ROWS`; generic same-type contiguous copy only; no conversion/noncontiguous `CPY` or `SET_ROWS` | wired |
+| CUDA/HIP MMVQ/MMQ | wired | wired | cache attention/vector paths |
 | Vulkan copy / dequant / rows | wired | no Q2 symbols found | wired |
 | Vulkan matvec/matmul | wired | no Q2 symbols found | cache/FA-related use |
 | `SET_ROWS` | backend-dependent custom wiring; must test | open | Vulkan `set_rows_turbo` exists |
@@ -111,7 +122,7 @@ Maturity below means: **wired** = code dispatch exists; **scripted** = a test/ru
 
 **[VERIFIED]** Attribution files identify direct upstream cherry-picks and manual ports, but do not define a complete machine-readable patch stack [S13-09].
 
-## Deployed comparison baseline — 2026-07-17
+## Historical deployed comparison baseline — 2026-07-17
 
 - **[MEASURED]** Both nodes had clean detached checkouts of `charlie12345/rocmfp4-llama@4860505ee322091f0f61eba77d6ad49be88cf4ea`; nimo-1 ran its RPC server and nimo-2 its model/API server [S13-L01].
 - **[MEASURED]** The RPC executable SHA-256 was `7f7cb7f0b2217ed714e32d028c210059d78dc932caf2b1a78055d23b59b99d9a`; the coordinator `llama-server` SHA-256 was `ab9c0275289857811154e17fdffd35bb857ce20a1b0fdcf00e3c85e82de5a479` [S13-L01].

@@ -2,7 +2,7 @@
 section_id: "23"
 title: "Software compatibility facts and matrix"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["HaloFPX", "ROCmFPX"]
   software_versions: ["ROCm 7.2.1", "ROCm 7.14.0", "Linux 7.2-rc2", "Mesa 26.1.5"]
@@ -45,6 +45,11 @@ related_sections: ["13", "17", "18", "19", "20", "37", "50"]
 | 23-M06 | Supported distro kernel plus a backport of `thunderbolt-stream` | supported ROCm tuple | USB4STREAM | **[BACKPORTED/UNVERIFIED]** Must pin source commits/config and pass transport, suspend, error, and compute tests. |
 | 23-M07 | Other distro < 6.18.4 without both KFD fixes | any gfx1151 ROCm | any | **[RECOMMENDATION] Reject** for production; AMD warns of queue-creation/memory-availability failures. |
 | 23-M08 | CachyOS; running `7.1.3-1-cachyos` | ROCm packages 7.2.4; HIP `7.2.53211`; Mesa 26.1.4 | dual `thunderbolt-net` with MPTCP; no USB4STREAM module/device | **[MEASURED] Current cluster baseline** [S23-L01]; HSA/gfx1151 and deployed service readiness observed, but not vendor-supported or fully qualified for HaloFPX. |
+| 23-M09 | CachyOS; running `7.1.3-1-cachyos` | ROCm 7.2.4-family packages; Mesa/RADV 26.1.4 | July dual-`thunderbolt-net`/MPTCP state retained; transport modules not re-audited | **[MEASURED] Current project compute tuple, re-observed 2026-08-12** [S23-L02]; HSA/gfx1151 and the conventional UD-Q6 production baseline were healthy, but the tuple is not AMD's supported Ubuntu matrix and does not qualify current HaloFPX/ROCmFPX. |
+
+M08 and the next two claims retain the exact 2026-07-17 wording for evidence
+continuity. Their cluster-state scope is S23-L01; M09 and S23-L02 are the
+2026-08-12 current-authority update.
 
 **[MEASURED]** Both nodes had GCC 16.1.1, Clang 22.1.6, CMake 4.3.4, Ninja 1.13.2, Python 3.14.6, and linux-firmware 20260622. Package parity was not exact: nimo-1 exposed `hipcub` and the aggregate `rocm-hip-sdk` package in the captured subset, and installed LTS-kernel package revisions differed by one point [S23-L01].
 
@@ -53,6 +58,8 @@ related_sections: ["13", "17", "18", "19", "20", "37", "50"]
 ## Firmware and Mesa boundary
 
 **[MEASURED]** The live package snapshot pins linux-firmware to 20260622 and Mesa to 26.1.4 [S23-L01]. **[OPEN]** Loaded firmware file hashes, amdgpu load log, exact Mesa build flags, RADV API, and extension inventory still require capture. The rolling upstream firmware repository ([S23-11]) is not a substitute for those files.
+
+**[MEASURED]** The superseding 2026-08-12 live package snapshot reported `linux-firmware 1:20260622-1`, `mesa 3:26.1.4-1`, and `vulkan-radeon 3:26.1.4-1` [S23-L02]. The open loaded-firmware, build-flag, API, and extension qualification items remain unchanged.
 
 **[RECOMMENDATION]** HIP and Vulkan are independent backends. Record `rocminfo`/HIP results separately from `vulkaninfo`; success in one does not validate the other.
 

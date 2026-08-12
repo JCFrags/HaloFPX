@@ -42,6 +42,11 @@ grep -R -n 'Q2_0_ROCMFPX' ggml/src/ggml-cuda ggml/src/ggml-cpu
 
 **[VERIFIED]** At the pinned head the Vulkan Q2 grep is empty while CPU/HIP greps are non-empty [S13-05]. A later non-empty result requires inventory review, not automatic promotion.
 
+**[VERIFIED current-source reconciliation]** The `ggml-cuda` sources are
+shared by CUDA and HIP builds; at HaloFPX `4a156395`, Q2 symbols are present in
+that shared backend and remain absent from Vulkan. Static symbol presence still
+requires separate runtime qualification on each admitted backend.
+
 <a id="s13-build"></a>
 ## Clean build and reference gates
 

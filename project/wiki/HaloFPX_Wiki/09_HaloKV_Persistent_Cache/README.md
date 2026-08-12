@@ -6,7 +6,7 @@
 - **Authoritative files:** This manifest, the 10 linked section artifact sets, and accepted cache decisions.
 - **Current owner:** Cache implementation workers own runtime evidence. Documentation workers own routing.
 - **Status:** Source-backed design complete. Machine validation and policy choices remain open.
-- **Last verified date:** 2026-07-29 for routing. Category technical review remains dated 2026-07-17.
+- **Last verified date:** 2026-08-12 for current routing. Category technical review remains dated 2026-07-17.
 - **Source commits:** CachyLLama `6be745998f568e379ea197fcf827baec73ff9940`; the [decision map](../decision-map.md) routes exact HaloFPX commits.
 - **Related decisions:** [Decision map](../decision-map.md) routes the implementation decision index and accepted records.
 - **Related evidence:** [Evidence map](../evidence-map.md) and the [implementation evidence index](../../../../docs/halofpx/README.md).
@@ -21,12 +21,16 @@ reuse. A cache hit must preserve the applicable continuation semantics;
 corrupt, incomplete, incompatible, stale, or unauthorized state is a miss and
 must follow a correct cold-recomputation path.
 
-The first active slice is
-[GitHub issue #5](https://github.com/JCFrags/HaloFPX/issues/5), which hardens
-the reachable SSD prompt-cache path against same-size content corruption. It
-does not claim that HaloKV v1, distributed cache composition, or restart reuse
-is complete. Those claims still require exact source authority and retained
-target-machine evidence.
+**[VERIFIED]** PR #20 completed
+[GitHub issue #5](https://github.com/JCFrags/HaloFPX/issues/5): the reachable
+run-local SSD prompt-cache path now rejects same-size content corruption. That
+directory is process-scoped and this does not establish restart reuse.
+**[VERIFIED current work authority]**
+[GitHub issue #14](https://github.com/JCFrags/HaloFPX/issues/14) is the active
+P0 execution tracker for fresh-process exact-key reuse, deterministic
+continuation, corruption-miss, and compatibility-mismatch behavior. Accepted
+Project Lead/source decisions remain authoritative. HaloKV v1, distributed
+cache composition, and target performance remain separate claims.
 
 Cache lookup/validation/restore time and avoided prompt work must be measured
 separately from the cold/cache-off prompt-processing engine and from token

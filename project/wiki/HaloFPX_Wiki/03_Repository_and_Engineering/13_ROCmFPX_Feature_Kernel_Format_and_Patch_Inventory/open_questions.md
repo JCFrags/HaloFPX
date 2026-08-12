@@ -16,11 +16,11 @@ related_sections: ["15", "23", "30", "33", "36", "37", "74", "78"]
 |---|---|---|---|
 | S13-OQ-01 | What exact upstream commit should become the new patch-stack base? | fork has no merge base; `b9438/22cadc194` is historical documentation, not current ancestry | semantic tree comparison; section 11/15 |
 | S13-OQ-02 | Are custom GGML/GGUF numeric IDs collision-free for the chosen base and durable file exchange? | IDs 100–107 are fork-local | enum/schema audit plus read/write round trips |
-| S13-OQ-03 | Will HaloFPX implement Vulkan Q2, restrict Q2 to HIP/CPU, or exclude it? | Q2 Vulkan wiring is absent at `a5605a7` | design decision after quality/need assessment |
+| S13-OQ-03 | Will HaloFPX implement Vulkan Q2, restrict Q2 to CPU/CUDA/HIP, or exclude it? | Q2 Vulkan wiring is absent at `a5605a7` | design decision after quality/need assessment |
 | S13-OQ-04 | Which weight formats meet model-quality and agent/tool gates? | repository reports are model/machine-specific; no Halo measurements | section 78 matched evaluation |
 | S13-OQ-05 | Do HIP and Vulkan custom kernels agree for every required op/shape on both nodes? | dispatch presence is not runtime proof | backend-op matrix with fallback tracing |
 | S13-OQ-06 | Which backend wins for prefill/decode at target contexts and model families? | historical tables are not universal or fully reproducible here | section 74 controlled benchmarks |
-| S13-OQ-07 | Are Q6 endpoint and Q2 correction histories fully represented in every CPU/HIP/Vulkan path? | multiple late corrective commits indicate drift risk | exhaustive codebook vectors and backend parity |
+| S13-OQ-07 | Are Q6 endpoint and Q2 correction histories fully represented in every CPU/CUDA/HIP/Vulkan path? | multiple late corrective commits indicate drift risk | exhaustive codebook vectors and backend parity |
 | S13-OQ-08 | Can the marker-based capability detector be replaced by parsed GGUF metadata/tensors? | bounded byte/filename scanning has false-positive/negative modes | implement parser; real-model fixture corpus |
 | S13-OQ-09 | Which MTP architectures and head counts are correct at this pin? | Qwen/Gemma/Step/HY3 ports have model-specific graph fixes | per-architecture conversion, metadata, greedy parity |
 | S13-OQ-10 | How does MTP state map to two ranks and degraded single-node mode? | current wrappers are single-process/local-device oriented | distributed state protocol and fault injection |

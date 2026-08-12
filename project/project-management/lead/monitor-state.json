@@ -6,16 +6,16 @@
   "original_handoff_thread_id": "019f7377-5d73-7ca1-a83c-a0163f7d4780",
   "worker_host_id": "local",
   "worker_cursor": null,
-  "worker_status": "idle_after_l111_bounded_acceptance_and_private_repository_publication_handoff",
+  "worker_status": "active_rocmfpx_target_authority_restart_cache_and_performance_work",
   "implementation_repository": "https://github.com/JCFrags/HaloFPX.git",
   "implementation_branch": "main",
-  "last_verified_head": "620ef60aa446990335ef46c7d76738f797e62f8f",
-  "last_observed_milestone": "L111 PASS / RETAIN at bounded loader-foundation scope only; no graph, RPC, scheduler, model/runtime, production, cache-product, or performance promotion",
-  "last_decision": "accept_bounded_l111_loader_foundation_and_require_separate_decision_for_later_runtime_work",
-  "last_progress": "L111 source is committed and reconciled; publication handoff preserves the implementation and engineering-wiki histories in one private monorepo",
-  "monitoring_mode": "historical_record_no_active_worker",
+  "last_verified_head": "4a156395db62604cf37e27e6459e3ee0e3949c48",
+  "last_observed_milestone": "PR #20 merged and issue #5 closed; run-local SSD cache rejects same-size corruption; issue #14 is active; no restart-persistent product or current-main target speed claim",
+  "last_decision": "correct_target_to_cachyos_nimo_rocmfpx_gguf_and_continue_cache_prompt_generation_work",
+  "last_progress": "both targets re-audited read-only; current authority and performance work plan are being reconciled on codex/rocmfpx-target-authority",
+  "monitoring_mode": "active_github_issue_and_evidence_work",
   "periodic_heartbeat": "deleted",
   "prior_manager_thread_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
   "manager_thread_id": "019fa661-0b7d-7a63-8fb4-07658f368f55",
-  "next_check_trigger": "a new Project Lead decision authorizes a narrowly specified milestone; re-observe production before any production claim or mutation"
+  "next_check_trigger": "merge the current authority reconciliation, close issue #14 qualification, then measure the first cache and prompt candidates on the exact CachyOS target tuple"
 }

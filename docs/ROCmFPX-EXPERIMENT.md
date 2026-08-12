@@ -1,6 +1,6 @@
 # ROCmFPx Experiment
 
-The ROCmFPx experiment is the staging area for possible AMD-native
+The ROCmFPx experiment is the staging area for AMD-oriented `ROCmFP2`,
 `ROCmFP3`, `ROCmFP6`, and `ROCmFP8` quant formats.
 
 The implementation lives in:
@@ -11,15 +11,19 @@ ggml/rocmfpx/
 
 The first stage defines block layouts, finite UE4M3 scale-byte decoding,
 pack/unpack, quantize/dequantize, validation, and a deterministic reference
-test. `Q3_0_ROCMFPX`, `Q6_0_ROCMFPX`, and `Q8_0_ROCMFPX` are now promoted to
-very experimental GGUF tensor types with CPU reference paths plus ROCm/HIP and
-Vulkan acceleration hooks.
+test. `Q2_0_ROCMFPX`, `Q3_0_ROCMFPX`, `Q6_0_ROCMFPX`, and
+`Q8_0_ROCMFPX` are registered experimental GGUF tensor types. Q2 has CPU plus
+partial shared CUDA/HIP static wiring and no Vulkan path; Q3/Q6/Q8 have CPU,
+CUDA/HIP, and Vulkan paths.
 
-ROCm/HIP and Vulkan kernels are wired for the new ROCmFPx family in the same
-style as ROCmFP4. They support GPU copy/dequantization (`CPY` to/from
-F32/F16/BF16), embedding lookup (`GET_ROWS`), and vector-matrix/matrix-matrix
-dot products (`MUL_MAT`/`MUL_MAT_ID` via MMVQ/MMQ and Vulkan DMMV/MMV paths).
-As of June 15, 2026, CPU reference checks, CPU backend ops, ROCm backend ops,
+For Q3/Q6/Q8, ROCm/HIP and Vulkan kernels follow the ROCmFP4 style and support
+GPU type-conversion copy/dequantization involving F32/F16/BF16, embedding lookup
+(`GET_ROWS`), and vector-matrix/matrix-matrix dot products (`MUL_MAT`/
+`MUL_MAT_ID` via MMVQ/MMQ and Vulkan DMMV/MMV paths). Q2 is narrower: it has
+CUDA/HIP dequantization, `GET_ROWS`, MMVQ, and MMQ wiring. Generic same-type
+contiguous device copy remains available, but Q2 lacks conversion or
+noncontiguous `CPY`, `SET_ROWS`, and a Vulkan path.
+For Q3/Q6/Q8, the repository-reported June 15, 2026 CPU reference checks, CPU backend ops, ROCm backend ops,
 Vulkan backend ops, and CPU/ROCm/Vulkan tiny-model offload smokes pass. The
 previous wider ROCm backend-op caveat was traced to a generic HIP
 `F16 x F16 -> F32` `MUL_MAT` correctness failure that reproduced on the clean
@@ -55,27 +59,30 @@ ROCmFP4 instructions that carry forward:
   multiply by the decoded UE4M3 scale. ROCmFP4 uses Codebook10 at half scale;
   ROCmFP3/6/8 keep their own code ranges but must keep the same deterministic
   integer-code-times-scale structure.
-- **Kernel coverage:** do not call a ROCmFPX format runtime-complete until CPU
-  reference, HIP, and Vulkan paths cover `CPY`, `GET_ROWS`, `SET_ROWS`,
-  `MUL_MAT`, and `MUL_MAT_ID`, with backend-op coverage.
+- **Kernel coverage:** declare the per-format backend/operator matrix exactly.
+  Do not call Q3/Q4/Q6/Q8 runtime-complete until their intended CPU, CUDA/HIP,
+  and Vulkan operations pass. Q2 is explicitly limited to CPU plus selected
+  CUDA/HIP operations until its missing surface is implemented and qualified.
 - **Feature parity:** MTP, EAGLE3, speculative decoding, RoPE/attention scaling,
   tool-calling grammar paths, and long-context behavior should continue to use
   normal llama.cpp runtime surfaces. The quant format must not require a
   separate inference stack.
 
-ROCmFP4 Codebook10 itself is not copied into FP3/FP6/FP8. The inherited part is
+ROCmFP4 Codebook10 itself is not copied into FP2/FP3/FP6/FP8. The inherited part is
 the quantization discipline and kernel contract. The ROCmFPX code ranges are:
 
 | Format | Code range | Scale policy |
 |---|---|---|
+| `Q2_0_ROCMFPX` | S40 `-4, -1, +1, +4` | two UE4M3 scales, one per 16 weights |
 | `Q3_0_ROCMFPX` | `0, +/-1, +/-2, +/-4` | two UE4M3 scales, one per 16 weights |
-| `Q6_0_ROCMFPX` | signed magnitude up to `31` | two UE4M3 scales, one per 16 weights |
+| `Q6_0_ROCMFPX` | signed range `[-32, 31]` | two UE4M3 scales, one per 16 weights |
 | `Q8_0_ROCMFPX` | signed int8 clamped to `[-127, 127]` | one UE4M3 scale per 32 weights |
 
 ## Current Layouts
 
 | Format | Block | BPW | Current Role |
 |---|---:|---:|---|
+| `Q2_0_ROCMFPX` | 32 weights, 8 packed code bytes, 2 scale bytes | 2.50 | Experimental CPU plus selected CUDA/HIP operations; no Vulkan |
 | `Q3_0_ROCMFPX` | 32 weights, 12 packed code bytes, 2 scale bytes | 3.50 | Experimental low-bit candidate |
 | `Q6_0_ROCMFPX` | 32 weights, 24 packed code bytes, 2 scale bytes | 6.50 | Experimental quality candidate |
 | `Q8_0_ROCMFPX` | 32 weights, 32 signed code bytes, 1 scale byte | 8.25 | Experimental high-quality reference |
@@ -83,6 +90,7 @@ the quantization discipline and kernel contract. The ROCmFPX code ranges are:
 ## Experimental Quantize Names
 
 ```bash
+llama-quantize model-f16.gguf model-q2-rocmfpx.gguf Q2_0_ROCMFPX
 llama-quantize model-f16.gguf model-q3-rocmfpx.gguf Q3_0_ROCMFPX
 llama-quantize model-f16.gguf model-q6-rocmfpx.gguf Q6_0_ROCMFPX
 llama-quantize model-f16.gguf model-q8-rocmfpx.gguf Q8_0_ROCMFPX
@@ -91,17 +99,20 @@ llama-quantize model-f16.gguf model-q6-agent-rocmfpx.gguf Q6_0_ROCMFPX_AGENT
 llama-quantize model-f16.gguf model-q8-agent-rocmfpx.gguf Q8_0_ROCMFPX_AGENT
 ```
 
-These formats are integrated into llama.cpp and support experimental hardware
-acceleration via the ROCm/HIP and Vulkan backends.
+These formats are integrated into llama.cpp. Q2 has CPU plus selected CUDA/HIP
+operations and no Vulkan path; the other listed formats have experimental
+CUDA/HIP and Vulkan acceleration.
 
 ## Check
 
 ```bash
+scripts/check-rocmfp2-reference.sh
 scripts/check-rocmfpx-reference.sh
 ```
 
-This compiles `ggml/rocmfpx/rocmfpx.c` and runs the local reference test in
-`build-rocmfpx-reference/`.
+`check-rocmfp2-reference.sh` compiles the dedicated Q2 reference and test into
+`build-rocmfp2-reference/`. `check-rocmfpx-reference.sh` separately compiles
+`rocmfpx.c` and its Q3/Q6/Q8 test into `build-rocmfpx-reference/`.
 
 The reference test covers finite decode/roundtrip behavior plus weighted
 imatrix scale-search checks for ROCmFP3, ROCmFP6, and ROCmFP8. The imatrix

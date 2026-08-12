@@ -2,10 +2,10 @@
 section_id: "30"
 title: "ROCmFPX quantization procedures"
 status: "needs-machine-validation"
-last_verified: "2026-07-16"
+last_verified: "2026-08-12"
 applies_to:
-  repositories: ["charlie12345/ROCmFPX"]
-  software_versions: ["a5605a7"]
+  repositories: ["charlie12345/ROCmFPX", "JCFrags/HaloFPX"]
+  software_versions: ["a5605a7", "4a156395db62604cf37e27e6459e3ee0e3949c48"]
   hardware_revisions: ["gfx1151 pending"]
 related_sections: ["31", "37"]
 ---
@@ -20,6 +20,20 @@ scripts/check-rocmfpx-reference.sh
 cmake --build build-strix-rocmfp4 --target llama-quantize test-backend-ops -j 8
 build-strix-rocmfp4/bin/test-backend-ops test -o MUL_MAT,MUL_MAT_ID,GET_ROWS,CPY,SET_ROWS -b ROCm0
 build-strix-rocmfp4/bin/test-backend-ops test -o MUL_MAT,MUL_MAT_ID,GET_ROWS,CPY,SET_ROWS -b Vulkan0
+```
+
+Q2 is a narrower lane. Build and run its frozen CPU reference, then restrict
+CUDA/HIP static/runtime qualification to admitted operations. Test generic
+same-type contiguous copy separately; do not request Q2 conversion or
+noncontiguous `CPY`, `SET_ROWS`, Vulkan, common-CLI cache, or agent-wrapper
+coverage:
+
+```bash
+scripts/check-rocmfp2-reference.sh
+build-strix-rocmfp4/bin/llama-quantize \
+  /models/model-BF16.gguf /models/model-Q2_0_ROCMFPX.gguf Q2_0_ROCMFPX
+build-strix-rocmfp4/bin/test-backend-ops test \
+  -o MUL_MAT,MUL_MAT_ID,GET_ROWS -b ROCm0
 ```
 
 Dry-run size before writing an artifact:

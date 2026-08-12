@@ -5,6 +5,27 @@ Halo inference project. The repository combines the C/C++ implementation lineage
 with the evidence-backed project wiki, research records, requirements, decisions,
 experiments, and handoff material used to govern that implementation.
 
+## Current target
+
+HaloFPX is a llama.cpp-derived, model-architecture-general inference engine
+specialized for ROCmFPX-family GGUF model weights on the two AMD Strix Halo
+(`gfx1151`) target machines. Both physical targets are Nimo Direct MME3L
+systems running CachyOS; Ubuntu is a portability/vendor-support lane and the
+local Windows PC is the control environment. See the dated
+[target-machine authority](project/TARGET_MACHINES.md).
+
+“Model-general” does not mean that the current optimization program targets
+every conventional GGUF quant equally. Primary performance work uses admitted
+ROCmFPX/ROCmFP4 artifacts across supported model architectures. Conventional
+quants are controls or fallbacks unless separately admitted. MiniMax Q6 Agent
+is the largest stress fixture, not the model-specific product target.
+
+The current order is restart-safe saved prompt/KV-state reuse, measurable
+cache-path cost reduction, prompt-processing/TTFT improvement, and generation
+throughput/latency improvement. The living
+[performance work plan](project/PERFORMANCE_WORKPLAN.md) records candidates and
+kill gates without turning them into claims.
+
 ## Start here
 
 - [Worker start sequence](project/WORKER_START_HERE.md) — required reading and
@@ -19,9 +40,14 @@ experiments, and handoff material used to govern that implementation.
 - [Canonical HaloFPX wiki](project/wiki/HaloFPX_Wiki/README.md) — the engineering
   knowledge base; this in-repository copy is authoritative, not the optional
   GitHub Wiki surface.
-- [Current project state](project/CURRENT_STATE.md) and
-  [lead decisions](project/project-management/lead/DECISIONS.md) — active status
+- [Publication-era project state](project/CURRENT_STATE.md) and
+  [current lead decisions](project/project-management/lead/DECISIONS.md) — preserved
+  historical state plus the active decision authority
   and the evidence-backed decision record.
+- [Target machines](project/TARGET_MACHINES.md) — current CachyOS, hardware,
+  role, access, production, and fresh-PC continuation authority.
+- [Performance work plan](project/PERFORMANCE_WORKPLAN.md) — current cache,
+  prompt-processing, and generation lanes.
 
 ## Current status and evidence boundary
 
@@ -42,9 +68,11 @@ using them for an engineering decision.
 
 ## Implementation lineage: ROCmFPX for `llama.cpp`
 
-ROCmFPX adds experimental AMD-focused 3-, 4-, 6-, and 8-bit GGUF model-weight
-formats to `llama.cpp`, with CPU reference paths and accelerated HIP/ROCm and
-Vulkan kernels.
+ROCmFPX adds experimental AMD-focused 2-, 3-, 4-, 6-, and 8-bit GGUF model-weight
+formats to `llama.cpp`, with CPU reference paths and accelerated CUDA/HIP and
+Vulkan kernels where implemented. The current Q2 path has CPU plus selected
+CUDA/HIP operations and no Vulkan path; do not infer uniform backend coverage
+from family membership.
 
 > **Implementation status:** this source lineage is experimental. APIs, tuning
 > choices, compatibility, and performance can change. The inherited guide below
@@ -54,7 +82,7 @@ Vulkan kernels.
 
 ## Why ROCmFPX?
 
-- **AMD-first weight formats:** ROCmFP3, ROCmFP4, ROCmFP6, and ROCmFP8 are real
+- **AMD-first weight formats:** ROCmFP2, ROCmFP3, ROCmFP4, ROCmFP6, and ROCmFP8 are real
   GGUF model-weight quants, not just K/V-cache compression.
 - **Native accelerated paths:** HIP/ROCm and Vulkan kernels are backed by CPU
   reference implementations for correctness testing.
@@ -171,7 +199,8 @@ build-strix-rocmfp4/bin/llama-cli \
 | **Agents / tools / JSON / code** | `Q4_0_ROCMFP4_COHERENT` (or any `*_AGENT`) | protects the tensors that keep structured output correct |
 | **Strix Halo tuned recipe** | `Q4_0_ROCMFP4_STRIX_LEAN` | attn-K/V quality recipe tuned on `gfx1151` |
 | **Higher quality reference** | `Q6_0_ROCMFPX` / `Q8_0_ROCMFPX` | 6.5 / 8.25 bpw ROCmFPX references |
-| **Smallest experimental** | `Q3_0_ROCMFPX` | 3.5 bpw — smallest, most lossy; test coherency first |
+| **Smallest experimental** | `Q2_0_ROCMFPX` | 2.5 bpw — CPU plus selected CUDA/HIP operations, no Vulkan, and absent from the common application cache-type CLI allowlist; qualify carefully |
+| **Low-bit experimental** | `Q3_0_ROCMFPX` | 3.5 bpw — test coherency first |
 
 Rule of thumb: start with **`Q4_0_ROCMFP4_FAST`** for speed, or a **`*_COHERENT` /
 `*_AGENT`** preset if the model does tool-calling, JSON, or coding. Always compare
@@ -183,7 +212,8 @@ ROCmFPX is a family of GGUF model-weight quants:
 
 | Family name | GGUF preset | Role |
 |---|---|---|
-| ROCmFP3 | `Q3_0_ROCMFPX` | smallest experimental ROCmFPX weight format |
+| ROCmFP2 | `Q2_0_ROCMFPX` | smallest experimental weight format; CPU plus selected CUDA/HIP operations, no Vulkan |
+| ROCmFP3 | `Q3_0_ROCMFPX` | low-bit experimental ROCmFPX weight format |
 | ROCmFP4 | `Q4_0_ROCMFP4`, `Q4_0_ROCMFP4_FAST` | promoted 4-bit ROCm family baseline |
 | ROCmFP6 | `Q6_0_ROCMFPX` | middle quality/size ROCmFPX weight format |
 | ROCmFP8 | `Q8_0_ROCMFPX` | high-quality ROCmFPX reference format |
@@ -198,8 +228,9 @@ Agent-specific versions are also available:
 | ROCmFP4 Agent | `Q4_0_ROCMFP4_COHERENT` | ROCmFP4 coherent agent-oriented preset |
 
 ROCmFPX is not a K/V-cache-only compression trick. It is a set of actual GGUF
-model-weight tensor formats with CPU reference paths plus ROCm/HIP and Vulkan
-kernel coverage.
+model-weight tensor formats. Q3/Q4/Q4_FAST/Q6/Q8 have CPU, CUDA/HIP, and
+Vulkan paths; Q2 currently has CPU plus selected CUDA/HIP operations and no
+Vulkan path.
 
 ## Contributors And Credit
 
@@ -220,7 +251,7 @@ Additional ROCmFPX contributors:
 Most regular GGUF quants target broad size/quality tradeoffs. ROCmFPX is
 AMD-oriented and keeps the ROCmFP4 discipline:
 
-- 32-weight blocks for CPU, HIP, and Vulkan kernel compatibility
+- 32-weight blocks with format-specific CPU, HIP, and Vulkan coverage
 - finite unsigned UE4M3 scale bytes
 - explicit integer-code-times-decoded-scale dequant math
 - reconstruction-MSE scale selection where low-bit coherency needs it
@@ -355,6 +386,14 @@ before describing the folder as portable or distributable.
 ## Quantize Straight ROCmFPX Models
 
 Use BF16 or F16 GGUF sources. The wrapper keeps split GGUFs split by default.
+
+ROCmFP2 is currently a direct-quantizer-only experimental path; the wrapper
+does not expose a Q2 or agent preset:
+
+```bash
+build-strix-rocmfp4/bin/llama-quantize source-BF16.gguf \
+  out-Q2_0_ROCMFPX.gguf Q2_0_ROCMFPX
+```
 
 ROCmFP3:
 
@@ -645,7 +684,7 @@ scripts/check-rocmfpx-agentic-smoke.sh
 
 ## Code Layout
 
-- `ggml/rocmfpx/` - ROCmFP3/ROCmFP6/ROCmFP8 reference formats
+- `ggml/rocmfpx/` - ROCmFP2/ROCmFP3/ROCmFP6/ROCmFP8 reference formats
 - `ggml/rocmfp4/` - ROCmFP4 reference path this family inherits from
 - `scripts/quantize-rocmfpx-agent.sh` - simple straight-vs-agent quant wrapper
 - `scripts/check-rocmfpx-agentic-smoke.sh` - OpenAI-compatible agent smoke test

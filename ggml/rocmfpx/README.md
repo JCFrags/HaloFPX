@@ -1,7 +1,7 @@
 # ROCmFPx Experimental Formats
 
-This folder contains the reference layer for the proposed ROCmFP3, ROCmFP6, and
-ROCmFP8 quantization family. It is intentionally separate from `ggml/rocmfp4/`
+This folder contains the reference layer for the proposed ROCmFP2, ROCmFP3,
+ROCmFP6, and ROCmFP8 quantization family. It is intentionally separate from `ggml/rocmfp4/`
 so the promoted ROCmFP4 GGUF formats and kernels are not affected while the new
 layouts are evaluated.
 
@@ -26,18 +26,24 @@ family should behave in llama.cpp:
   use their own integer code ranges but must retain the same finite-scale and
   integer-dot discipline.
 
-The ROCmFP4 Codebook10 levels are not reused by FP3/FP6/FP8 directly:
-`ROCmFP3` uses `0, +/-1, +/-2, +/-4`, `ROCmFP6` uses signed-magnitude levels up
-to `31`, and `ROCmFP8` uses signed int8 levels clamped to `[-127, 127]`.
+The ROCmFP4 Codebook10 levels are not reused by FP2/FP3/FP6/FP8 directly:
+`ROCmFP2` uses the S40 codebook `-4, -1, +1, +4`, `ROCmFP3` uses
+`0, +/-1, +/-2, +/-4`, `ROCmFP6` uses the current asymmetric signed range
+`[-32, 31]`, and `ROCmFP8` uses signed int8 levels clamped to `[-127, 127]`.
 What is inherited is the block/scale/kernel/dequant contract.
 
-Current status (June 16, 2026):
-- CPU reference quantize/dequantize exists for all three formats.
-- `Q3_0_ROCMFPX`, `Q6_0_ROCMFPX`, and `Q8_0_ROCMFPX` are registered as
+Current source status (August 12, 2026):
+- CPU reference quantize/dequantize exists for all four formats.
+- `Q2_0_ROCMFPX`, `Q3_0_ROCMFPX`, `Q6_0_ROCMFPX`, and `Q8_0_ROCMFPX` are registered as
   experimental GGUF tensor types.
-- ROCm/HIP and Vulkan kernels support `CPY`, `GET_ROWS`, `SET_ROWS`, and
-  `MUL_MAT`/`MUL_MAT_ID` for all three formats.
-- Qwen3-0.6B BF16 smoke tests pass on CPU, ROCm0, and Vulkan0.
+- Q3/Q6/Q8 have CPU, CUDA/HIP, and Vulkan operator paths. Q2 currently has CPU
+  plus CUDA/HIP dequantization, `GET_ROWS`, MMVQ, and MMQ static wiring. Generic
+  same-type contiguous device copy remains available, but Q2 lacks conversion
+  or noncontiguous `CPY`, `SET_ROWS`, Vulkan, the common application cache CLI
+  allowlist, wrapper, and agent-preset surfaces.
+- Historical repository-reported Qwen3-0.6B BF16 smokes passed on CPU, ROCm0,
+  and Vulkan0 for the then-tested formats. This is not current-main or Q2
+  qualification.
 - Generic baseline quant presets now include lean coherency routing. These
   preset names are not release recipe identities; released artifact mappings
   and architecture-qualified recipe IDs live in
@@ -75,12 +81,14 @@ All formats use 32-weight blocks.
 
 | Format | Payload | Scale bytes | Block bytes | BPW | Purpose |
 |---|---:|---:|---:|---:|---|
+| `Q2_0_ROCMFPX` | 32 packed 2-bit S40 codes | 2, one per 16 weights | 10 | 2.50 | Experimental minimum-size candidate; CPU plus selected CUDA/HIP operations, no Vulkan |
 | `Q3_0_ROCMFPX` | 32 packed 3-bit codes | 2, one per 16 weights | 14 | 3.50 | Experimental low-bit candidate |
 | `Q6_0_ROCMFPX` | 32 packed 6-bit codes | 2, one per 16 weights | 26 | 6.50 | Experimental quality candidate |
 | `Q8_0_ROCMFPX` | 32 signed 8-bit codes | 1, one per 32 weights | 33 | 8.25 | Experimental high-quality reference |
 
+`ROCmFP2` uses the S40 codebook `-4, -1, +1, +4`.
 `ROCmFP3` uses a tiny signed codebook: `0, +/-1, +/-2, +/-4`.
-`ROCmFP6` uses signed-magnitude integer levels up to `31`.
+`ROCmFP6` uses the current asymmetric signed integer range `[-32, 31]`.
 `ROCmFP8` uses signed int8 levels clamped to `[-127, 127]`.
 
 ## Validation
@@ -88,6 +96,7 @@ All formats use 32-weight blocks.
 Reference math only:
 
 ```bash
+scripts/check-rocmfp2-reference.sh
 scripts/check-rocmfpx-reference.sh
 ```
 
