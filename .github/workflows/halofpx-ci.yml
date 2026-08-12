@@ -166,6 +166,19 @@ jobs:
           --target llama-server
           --parallel 2
 
+      - name: Validate HaloFPX context-store feature-off runtime contract
+        run: >-
+          cmake
+          -DHALOFPX_SERVER=${{ github.workspace }}/build/ci-prompt-cache-integrity/bin/llama-server
+          -DHALOFPX_SOURCE_DIR=${{ github.workspace }}
+          -DHALOFPX_CONTEXT_STORE_CANARY=OFF
+          -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=OFF
+          -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=OFF
+          -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=OFF
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=OFF
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=OFF
+          -P tests/test-halofpx-feature-off-contract.cmake
+
       - name: Install focused test dependencies
         run: >-
           python -m pip install --disable-pip-version-check
@@ -187,3 +200,105 @@ jobs:
           unit/test_prompt_cache_disk.py::test_disk_cache_rejects_same_size_target_corruption
           unit/test_prompt_cache_disk.py::test_disk_cache_rejects_same_size_corruption_before_touch
           unit/test_prompt_cache_disk.py::test_failed_corrupt_entry_removal_keeps_conservative_accounting
+
+  exact-key-restart-qualification:
+    name: CPU exact-key restart qualification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HALOFPX_MODEL_COMMIT: 499bc8821c6b12b4e53c5bffcb21ec206f212d81
+      HALOFPX_MODEL_SHA256: 66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739
+      HALOFPX_CANARY_MODEL: ${{ github.workspace }}/build/fixtures/stories15M-q4_0.gguf
+      HALOFPX_CANARY_SERVER: ${{ github.workspace }}/build/ci-exact-key/bin/llama-server
+      HALOFPX_CANARY_PORT: "18083"
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Python
+        # actions/setup-python v6.3.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+
+      - name: Configure focused CPU exact-key build
+        run: >-
+          cmake -S . -B build/ci-exact-key
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_VULKAN=OFF
+          -DGGML_RPC=ON
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=ON
+          -DLLAMA_BUILD_COMMON=ON
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=ON
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=ON
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_USE_PREBUILT_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+          -DHALOFPX_CONTEXT_STORE_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=ON
+          -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=OFF
+
+      - name: Compile focused server and adapter test
+        run: >-
+          cmake --build build/ci-exact-key
+          --target llama-server test-halofpx-context-store-v1-server-canary-selection
+          --parallel 2
+
+      - name: Run adapter corruption regression
+        run: >-
+          ctest --test-dir build/ci-exact-key
+          --output-on-failure
+          -R '^test-halofpx-context-store-v1-server-canary-selection$'
+
+      - name: Install focused test dependencies
+        run: >-
+          python -m pip install --disable-pip-version-check
+          pytest==8.3.3 requests==2.32.3
+
+      - name: Download and verify pinned model fixture
+        # Test-only, checksum-pinned external fixture; it is not redistributed.
+        # Its exact conversion/license chain remains provenance-limited, so it
+        # is a correctness fixture only and cannot support a release claim.
+        run: |
+          mkdir -p build/fixtures
+          curl --fail --location --retry 3 --retry-all-errors \
+            --max-filesize 19077344 \
+            --proto '=https' --proto-redir '=https' \
+            --output "$HALOFPX_CANARY_MODEL" \
+            "https://huggingface.co/ggml-org/models-moved/resolve/${HALOFPX_MODEL_COMMIT}/tinyllamas/stories15M-q4_0.gguf?download=true"
+          echo "${HALOFPX_MODEL_SHA256}  ${HALOFPX_CANARY_MODEL}" | sha256sum --check -
+
+      - name: Validate exact-key runtime contract
+        run: >-
+          cmake
+          -DHALOFPX_SOURCE_DIR=${{ github.workspace }}
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=ON
+          -P tests/test-halofpx-context-store-exact-key-runtime-contract.cmake
+
+      - name: Run four-process restart qualification
+        working-directory: tools/server/tests
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: >-
+          python -m pytest -v -x
+          --confcutdir=${{ github.workspace }}/tools/server/tests/unit
+          unit/test_halofpx_exact_key_canary.py::test_exact_key_restart_hit_mismatch_and_corruption_recompute
+
+      - name: Print retained failure logs
+        if: failure()
+        run: >-
+          find "${RUNNER_TEMP}" -maxdepth 3 -type f
+          \( -name '*.log' -o -name 'results.json' \)
+          -print -exec tail -n 200 {} \;
