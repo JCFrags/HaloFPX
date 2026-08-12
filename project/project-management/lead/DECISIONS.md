@@ -1,5 +1,51 @@
 # Project-Lead Decisions
 
+## 2026-08-12 — accept bounded restart qualification and begin target performance slices
+
+Decision: accept merged PR #23 at exact merge commit
+`aee627bd46de21327c9082f7915818430d38f453` as closure of issue #14's
+bounded restart-correctness lane. The accepted claim is a default-off,
+exact-key, Linux CPU server fixture across fresh processes for cold
+publication, exact restart hit, compatibility miss/cold recomputation, and
+same-size corruption miss/cold recomputation with deterministic continuation.
+
+The admitted profile is world size 1, rank 0, ordinary transformer memory,
+one slot, and greedy memoryless sampling. It is not a prefix cache, the
+run-local `--cache-disk` spill cache, recurrent/hybrid support, coordinated
+two-rank state, a production deployment, or target performance evidence.
+Issue #26 owns the two-rank restart-safe cache boundary.
+
+Accept merged PR #27 at exact merge commit
+`bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67` as a bounded optional digest
+provider for the separate run-local SSD prompt cache. When explicitly built
+on Linux with OpenSSL 3 Crypto, EVP SHA-256 replaces only the scalar provider;
+exact-length and full-file digest gates remain. Filesystem, size, and digest
+failures remain authoritative. Only an internal EVP-provider failure reopens
+the file and restarts scalar hashing at byte zero. Scalar and EVP hosted rows
+passed, but no matched cache-request speedup or target measurement is accepted.
+
+Keep `fewtarius/CachyLLama` commit
+`6be745998f568e379ea197fcf827baec73ff9940` as the saved-cache behavior
+reference. Do not turn the two merged slices into a claim that CachyLLama's
+prefix/tiering/lifecycle feature set or a complete HaloKV product is present.
+
+Begin serious performance work with issue #25 as the active P0 generation
+slice. Draft PR #30 is a candidate and remains outside accepted `main` at this
+decision. Issues #15, #16, #18, #26, #28, and #29 remain open follow-ons for
+prefill measurement, the target A/B harness, cache attribution, two-rank cache
+coordination, sampling synchronization, and FFN conversion reuse. Correctness,
+feature-off behavior, and matched target evidence remain promotion gates; a
+compile or microbenchmark alone is not a model-level performance claim.
+
+The read-only service-health observation at `2026-08-12T23:06:08Z` is accepted
+only as a health receipt. It does not replace the broader platform audit or
+authorize a production transition.
+
+Reason: issue #14 and the optional digest-provider implementation are now
+merged and hosted checks are green. The owner directed the project to finish
+the cache boundary promptly and move into real prompt/generation performance
+work without overstating cache completeness or local/control-host results.
+
 ## 2026-08-12 — pin CachyLlama cache behavior and start measured acceleration
 
 Decision: use the `fewtarius/CachyLLama` component at exact commit

@@ -26,6 +26,34 @@ throughput/latency improvement. The living
 [performance work plan](project/PERFORMANCE_WORKPLAN.md) records candidates and
 kill gates without turning them into claims.
 
+## Current work snapshot — 2026-08-12
+
+- **[VERIFIED]** The cache-saving behavior reference is pinned to
+  `fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940`.
+  It is a behavior/reference authority, not evidence that its implementation
+  or complete feature set has been imported.
+- **[VERIFIED]** [PR #23](https://github.com/JCFrags/HaloFPX/pull/23), merged
+  as `aee627bd46de21327c9082f7915818430d38f453`, closed issue #14 with a
+  default-off Linux CPU qualification of exact-key reuse across fresh server
+  processes. Its scope is world size 1, rank 0, an ordinary transformer, and
+  greedy memoryless sampling. Compatibility mismatch and same-size corruption
+  miss and cold-recompute; this is not distributed HaloKV or prefix reuse.
+- **[VERIFIED]** [PR #27](https://github.com/JCFrags/HaloFPX/pull/27), merged
+  as `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`, added an optional,
+  default-off OpenSSL EVP SHA-256 provider to the separate run-local SSD prompt
+  cache. It retains exact-length and full-file digest checks. No target
+  end-to-end cache-speed claim exists yet.
+- **[OPEN]** [Issue #25](https://github.com/JCFrags/HaloFPX/issues/25) is the
+  active generation-performance slice. Its
+  [draft PR #30](https://github.com/JCFrags/HaloFPX/pull/30) is not part of
+  `main` at this snapshot. Prompt, harness, cache-metrics, distributed-cache,
+  sampling, and FFN-conversion follow-ons remain tracked in
+  [the work plan](project/PERFORMANCE_WORKPLAN.md).
+- **[MEASURED]** The named comparison services remained healthy in the bounded
+  read-only observation at `2026-08-12T23:06:08Z`. The
+  [health receipt](docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
+  is not a full machine, deployment, or performance audit.
+
 ## Start here
 
 - [Worker start sequence](project/WORKER_START_HERE.md) — required reading and

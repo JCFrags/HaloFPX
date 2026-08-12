@@ -10,6 +10,7 @@ Wiki, and imported target-machine evidence are under [`project/`](../../project/
 - [L111 independent review](evidence/l111/independent-review.md)
 - [L111 historical lead-delivery report](evidence/l111/project-lead-report.txt)
 - [L111 lead reconciliation](evidence/l111/RECONCILIATION.md)
+- [2026-08-12 Strix Halo health-only recheck](evidence/2026-08-12-strix-halo-health-recheck/README.md)
 
 - [Clean baseline manifest](baseline-manifest.json)
 - [Feature-off baseline](feature-off-baseline.md)

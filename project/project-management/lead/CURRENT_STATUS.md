@@ -4,6 +4,58 @@ Reconciled from retained source and evidence: 2026-08-12
 
 ## Overall state
 
+### 2026-08-12 merged cache boundary and active performance work
+
+The saved prompt/K/V-state behavior reference remains
+`fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940`.
+It is a pinned behavior and requirements reference, not evidence that its code
+or every feature was imported.
+
+PR #23 merged as
+`aee627bd46de21327c9082f7915818430d38f453` and closed issue #14. Hosted
+qualification passed for a default-off, exact-key Linux CPU lane across fresh
+server processes: cold publication, exact restart hit, compatibility mismatch
+with cold recomputation, and same-size corruption with cold recomputation.
+The admitted profile is world size 1, rank 0, ordinary transformer memory, and
+greedy memoryless sampling. The clean store remains unchanged after an exact
+hit or compatibility miss; corrupt storage remains quarantined and is not
+silently overwritten. This does not accept prefix matching, recurrent/hybrid
+state, multiple slots, two-rank cache coordination, or target performance.
+
+PR #27 merged as
+`bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`. It adds an optional,
+default-off OpenSSL 3 EVP SHA-256 provider to the separate run-local
+`--cache-disk` prompt-cache files. Both scalar and EVP hosted integrity rows
+passed. Exact-length, full-file pre-publication/pre-apply hashing and
+corruption rejection remain mandatory. Only internal EVP-provider failure can
+fall back; the fallback reopens the file and hashes from byte zero. This is not
+an acceleration of the PR #23 context-store engine and no matched end-to-end
+target gain is accepted.
+
+[GitHub issue #25](https://github.com/JCFrags/HaloFPX/issues/25) is the active
+P0 generation-performance slice. Its
+[draft PR #30](https://github.com/JCFrags/HaloFPX/pull/30) remains outside
+accepted `main` at this status boundary. Open follow-ons are
+[#15](https://github.com/JCFrags/HaloFPX/issues/15) for the prefill matrix,
+[#16](https://github.com/JCFrags/HaloFPX/issues/16) for the dual-Strix A/B
+harness, [#18](https://github.com/JCFrags/HaloFPX/issues/18) for cache metrics,
+[#26](https://github.com/JCFrags/HaloFPX/issues/26) for coordinated two-rank
+restart state, [#28](https://github.com/JCFrags/HaloFPX/issues/28) for sampling
+output synchronization, and
+[#29](https://github.com/JCFrags/HaloFPX/issues/29) for dense FFN activation
+conversion reuse.
+
+A health-only read at `2026-08-12T23:06:08Z` found the established nimo-1
+coordinator/API and nimo-2 RPC-worker services active/running with their
+existing PIDs, InvocationIDs, listeners, and `NRestarts=0`; the coordinator
+health route returned `{"status":"ok"}`. The
+[receipt](../../../docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
+does not re-audit packages, binaries, model identity, unit contents, or
+performance.
+
+This block supersedes the issue #14 and PR #27 current-tense work order in the
+next block. Historical milestone records retain their stated scope.
+
 ### 2026-08-12 latest cache and performance authority
 
 The behavior/reference authority for saved prompt and K/V-state work is the
@@ -100,9 +152,10 @@ records the source and receipt checks.
 This block supersedes the older current-tense L111 handoff and task-control
 paragraphs later in this file. Those paragraphs remain preserved as historical
 chronology. No later graph or RPC milestone is accepted by this reconciliation.
-The last production observations in this file remain measurements from
-2026-07-29; production was not rechecked during the 2026-08-12 source-only
-reconciliation, so current production health is open.
+At the time of this source-only reconciliation, the last production
+observations were measurements from 2026-07-29 and current health was open.
+The later health-only recheck recorded in the top block supersedes that narrow
+historical health statement without changing the L111 technical boundary.
 
 The remainder of this file is preserved historical lead chronology. Accepted
 milestone results retain their stated scope, but its current-tense worker,

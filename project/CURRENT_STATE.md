@@ -7,6 +7,10 @@ The Project Lead records remain authoritative for active work and production sta
 
 ## Current authority
 
+- Current monorepo `main` at this reconciliation:
+  `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`.
+- Historical documentation repository baseline:
+  `d30814ed08fe395f1bb1d292281ce82edb6bdab4`.
 - Imported documentation source: `b1c2d8aef707fb03920fc189ccd26395fa61879d`.
 - Retained L111 implementation source: `620ef60aa446990335ef46c7d76738f797e62f8f`.
 - L111 source and evidence are committed. The implementation commit is the
@@ -15,7 +19,36 @@ The Project Lead records remain authoritative for active work and production sta
 - The [Project Lead status](project-management/lead/CURRENT_STATUS.md) records the complete current state.
 - The [Project Lead decisions](project-management/lead/DECISIONS.md) record accepted boundaries.
 
-## Active project boundary
+## Current continuation state
+
+**[VERIFIED]** The cache-saving behavior reference is pinned to
+`fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940`.
+It is a behavior/reference authority, not evidence that its implementation or
+complete feature set has been imported.
+
+**[VERIFIED]** PR #23 merged at
+`aee627bd46de21327c9082f7915818430d38f453` and closed issue #14. The
+focused hosted qualification starts separate server processes for cold
+publication, exact restart hit, compatibility mismatch, and same-size
+corruption. Continuation remains exact; incompatible or corrupt state misses
+and cold-recomputes. The admitted profile is default-off, world size 1, rank
+0, ordinary transformer memory, and greedy memoryless sampling. This does not
+accept prefix matching, recurrent/hybrid state, two-rank coordination, or
+target-machine performance.
+
+**[VERIFIED]** PR #27 merged at
+`bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`. It adds an optional,
+default-off OpenSSL EVP SHA-256 implementation for the separate run-local SSD
+prompt-cache files. Exact-length, full-file, digest, corruption, and
+feature-off behavior remain qualified. Internal EVP failure reopens the file
+and restarts scalar hashing at byte zero. No end-to-end speedup is accepted.
+
+**[OPEN]** Issue #25 is the active generation-performance slice. Draft PR #30
+is not merged into the source authority above. Issues #15, #16, #18, #26, #28,
+and #29 remain open prompt, harness, cache-metrics, two-rank cache, sampling,
+and FFN-conversion work.
+
+## Retained publication-era project boundary
 
 [VERIFIED] L110 closed `NOT PROMOTED` at
 `6c88472bf5f567a1064f27f4d8a90fc8e2b47a02`.
@@ -32,24 +65,35 @@ claim. Its feature-off evidence is compile-level rather than a real MiniMax
 runtime-parity result.
 [Source: L111 evidence](../docs/halofpx/evidence/l111/README.md)
 
+[VERIFIED] The Project Lead paused internal hidden workers on 2026-07-29.
+That historical task-control state is preserved for provenance; later owner
+direction authorizes the current multi-agent work. Uncommitted L111 files are
+not accepted source. The accepted L111 boundary is the exact retained commit
+and evidence above.
+
 ## Production state
 
 [MEASURED] On nimo-1 at 2026-07-29 09:00 Pacific Daylight Time, the coordinator
-used process identifier (PID) `3027112`.
-Its InvocationID was `e6da1fe637144cb394119959c0e88736`.
-The service had `NRestarts=0` and one port 8081 listener.
-The Hypertext Transfer Protocol (HTTP) result was 200.
-[Source: Project Lead status](project-management/lead/CURRENT_STATUS.md)
+used PID `3027112`, InvocationID `e6da1fe637144cb394119959c0e88736`,
+`NRestarts=0`, and one port 8081 listener. The HTTP result was 200.
 
 [MEASURED] On nimo-2 at 2026-07-29 09:00 Pacific Daylight Time, the rank worker used
-PID `2148915` and InvocationID `3480c89086e04d5d80060366c5c7ab7f`.
-The service had `NRestarts=0` and one port 50052 listener.
-[Source: Project Lead status](project-management/lead/CURRENT_STATUS.md)
+PID `2148915`, InvocationID `3480c89086e04d5d80060366c5c7ab7f`,
+`NRestarts=0`, and one port 50052 listener.
 
-[OPEN] Production was not rechecked during the 2026-08-12 source-only
-reconciliation. The two measurements above are historical 2026-07-29
-observations, not a current health claim. Read current machine authority before
-any authorized transition.
+**[MEASURED]** At `2026-08-12T23:06:08Z`, a bounded read-only health recheck
+found the established comparison services active and running. Nimo-1 retained
+PID `3027112`, InvocationID `e6da1fe637144cb394119959c0e88736`,
+`NRestarts=0`, its port 8081 listener, and `{"status":"ok"}` from the local
+health route. Nimo-2 retained PID `2148915`, InvocationID
+`3480c89086e04d5d80060366c5c7ab7f`, `NRestarts=0`, and its port 50052
+listener.
+[Source: health-only receipt](../docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
+
+This health receipt did not re-audit packages, firmware, unit or launcher
+contents, binaries/libraries, model identity, cache contents, or performance.
+Read the complete target-machine authority and run a fresh bounded preflight
+before an authorized transition.
 
 ## Product and performance state
 
@@ -73,6 +117,12 @@ No accepted full-model speed improvement exists.
 ## Next safe actions
 
 - Documentation workers must follow [`WORKER_START_HERE.md`](WORKER_START_HERE.md).
+- Keep issue #25 and draft PR #30 separate from accepted `main` until target
+  qualification and review finish. Do not infer a performance gain from host
+  contracts or compilation.
+- Use issues #15, #16, #18, #26, #28, and #29 as the open continuation
+  trackers; preserve cache, cold-prompt, and generation measurements as
+  separate lanes.
 - Treat the
   [L111 visible-worker specification](project-management/lead/worker-specs/L111_VISIBLE_IMPLEMENTATION_TASK.md)
   as the completed historical contract, not an active implementation handoff.
