@@ -1,0 +1,13 @@
+{
+  "capture_path": "raw/github/llama-ai/README.blob-cb8f9dee239db6df865ee08d0b7008eb5f8b71be.md",
+  "capture_method": "exact-byte HTTP retrieval followed by Git blob verification",
+  "byte_fidelity": "exact",
+  "source_url": "https://raw.githubusercontent.com/fewtarius/llama-ai/1017f3dfdce3ca2b06aa9007b23295db3bb35722/README.md",
+  "repository_commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+  "repository_path": "README.md",
+  "git_blob_sha1": "cb8f9dee239db6df865ee08d0b7008eb5f8b71be",
+  "sha256": "0ae5fb260d79260a3a5cb46f5f6cceed372a6bd515c6e99ae49aa19b00cab4b1",
+  "size_bytes": 14051,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-REPOSITORY-ASSERTION"
+}

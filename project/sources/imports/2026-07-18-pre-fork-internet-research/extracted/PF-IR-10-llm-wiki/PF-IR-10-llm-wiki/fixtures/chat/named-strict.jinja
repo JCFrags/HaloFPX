@@ -1,0 +1,2 @@
+{%- for message in messages -%}{%- if message['role'] not in ['system','user','assistant','tool'] -%}{{ raise_exception('unsupported role') }}{%- endif -%}[{{ message['role'] }}]{{ message['content'] | default('') }}
+{%- endfor -%}{%- if add_generation_prompt -%}[assistant]{%- endif -%}

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/dual-strix-halo/placement.schema.json",
+  "title": "Dual-Strix-Halo LLM placement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "name", "mode", "viability", "objective", "topology",
+    "coordinator_rank", "ranks", "flows", "hard_gates"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "name": {"type": "string", "minLength": 3},
+    "mode": {
+      "enum": [
+        "tensor_parallel_2", "contiguous_layer_split", "pipeline_parallel_2",
+        "moe_layer_local_split", "moe_expert_service", "remote_speculation_greedy",
+        "remote_speculation_exact_stochastic", "replicated_decode",
+        "hybrid_layer_pipeline", "hybrid_prefill_decode_migration"
+      ]
+    },
+    "viability": {"enum": ["go_candidate", "conditional", "experimental", "no_go_without_new_evidence"]},
+    "objective": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "physical_links", "aggregation_policy"],
+      "properties": {
+        "nodes": {"const": 2},
+        "physical_links": {"const": 2},
+        "aggregation_policy": {"enum": ["single_link", "session_hash", "validated_striping", "control_plus_bulk"]},
+        "bandwidth_symbol": {"type": "string"},
+        "latency_symbol": {"type": "string"}
+      }
+    },
+    "coordinator_rank": {"enum": [0, 1, "external_frontend"]},
+    "ranks": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {"$ref": "#/$defs/rank"}
+    },
+    "flows": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/flow"}
+    },
+    "hard_gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"}
+    },
+    "notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tokenizer", "sampler", "rng", "model", "experts", "kv", "sessions"],
+      "properties": {
+        "tokenizer": {"type": "string"},
+        "sampler": {"type": "string"},
+        "rng": {"type": "string"},
+        "model": {"type": "string"},
+        "experts": {"type": "string"},
+        "kv": {"type": "string"},
+        "sessions": {"type": "string"}
+      }
+    },
+    "rank": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rank_id", "node", "role", "ownership"],
+      "properties": {
+        "rank_id": {"enum": [0, 1]},
+        "node": {"enum": ["A", "B"]},
+        "role": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "ownership": {"$ref": "#/$defs/ownership"}
+      }
+    },
+    "flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "from", "to", "payload", "volume_formula", "synchronization", "link_policy"],
+      "properties": {
+        "phase": {"type": "string"},
+        "from": {"enum": [0, 1, "external"]},
+        "to": {"enum": [0, 1, "external"]},
+        "payload": {"type": "string"},
+        "volume_formula": {"type": "string"},
+        "synchronization": {"type": "string"},
+        "link_policy": {"enum": ["control", "bulk_single", "bulk_striped_if_validated", "session_selected", "none"]}
+      }
+    }
+  }
+}

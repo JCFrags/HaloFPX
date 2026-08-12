@@ -1,0 +1,33 @@
+snapshot: 2026-07-17
+levels:
+  - id: 0
+    name: naming
+    sufficient: false
+    evidence: [two physical ports or cables]
+  - id: 1
+    name: interface-separation
+    sufficient: false
+    evidence: [two USB4NET netdevs present simultaneously, distinct service/XDomain paths, attaching cable 2 does not remove cable 1]
+  - id: 2
+    name: controller-separation
+    sufficient: topology-only
+    evidence: [distinct domainX objects, distinct NHI PCI BDFs, on both nodes]
+  - id: 3
+    name: fault-separation
+    sufficient: failure-only
+    evidence: [unplug one cable, other path remains operational, repeat both directions]
+  - id: 4
+    name: execution-separation
+    sufficient: processing-only
+    evidence: [path-bound counters, IRQ/NAPI attribution]
+  - id: 5
+    name: capacity-separation
+    sufficient: end-to-end-capacity
+    evidence: [isolated baselines, concurrent flows, both productive]
+    heuristic:
+      aggregate_to_best_isolated: 1.7
+      each_link_retention: 0.8
+  - id: 6
+    name: application-multipath
+    sufficient: true
+    evidence: [one MPTCP meta-socket, two established intended subflows, bytes on both, single-link survival]

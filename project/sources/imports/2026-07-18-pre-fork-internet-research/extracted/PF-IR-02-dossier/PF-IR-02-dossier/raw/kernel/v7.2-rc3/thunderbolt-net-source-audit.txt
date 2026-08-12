@@ -1,0 +1,21 @@
+PRIMARY SOURCE AUDIT CAPTURE
+Path: drivers/net/thunderbolt/main.c
+Ref: v7.2-rc3
+Blob: 02a91650561ab1556d28c4945cae7f62a704b1f3
+License: GPL-2.0
+
+Pinned constants and behavior:
+- login delay 4500 ms; login timeout 500 ms; logout timeout 1000 ms
+- ring size 256; login retries 60; logout retries 10; interrupt throttling 128000 ns
+- protocol frame limit 64 KiB; netdev MTU range 68..65522
+- DMA frame 4096 bytes; 12-byte USB4NET frame header; payload 4084 bytes
+- little-endian header: frame_size u32, frame_index u16, frame_id u16, frame_count u32
+- START PDF 1, END PDF 2
+- optional end-to-end flow control is enabled by a read-only module parameter by default and is negotiated with the peer
+- receive completion is processed under NAPI and final reassembly is delivered with GRO
+- TX copies skb data into DMA-backed pages; RX hands page-backed data into skb/frags
+- netdevice name thunderbolt%d; MAC is generated
+- TSO, scatter-gather, GRO, checksum offload advertisement and HIGHDMA are enabled
+- source counters have a unit asymmetry: TX packet accounting is skb-oriented while RX packet accounting advances per accepted USB4NET DMA frame
+
+No application goodput is inferred from ethtool link speed or protocol limits.

@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "default_timeout_seconds": null,
+  "rule": "Each CI tier must provide an explicit timeout; no universal duration is assumed.",
+  "on_timeout": [
+    "mark case failed with status timeout",
+    "capture stdout/stderr and process tree",
+    "terminate child process group",
+    "retain temporary directory when policy permits",
+    "never convert timeout to skip"
+  ]
+}

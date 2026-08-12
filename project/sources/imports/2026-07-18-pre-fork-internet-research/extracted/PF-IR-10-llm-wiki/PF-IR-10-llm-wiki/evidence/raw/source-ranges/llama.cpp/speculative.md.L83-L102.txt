@@ -1,0 +1,20 @@
+An n-gram is a sequence of n tokens. The n-gram cache implementation maintains statistics about short n-gram sequences.
+A draft is computed using probabilities derived from these statistics. External statistics can also be loaded from files for improved accuracy.
+
+See:
+
+- #5479, #6828, #6848
+
+### n-gram Map (`ngram-simple`, `ngram-map-*`)
+
+These implementations search the token history for patterns and use matching sequences as draft candidates.
+They require no additional model but rely on patterns that have already appeared in the generated text.
+An example to use this approach can be the rewriting of source code by a LLM.
+
+#### n-gram Map (`ngram-simple`)
+
+This implementation looks for the last n-gram in history that matches the current n-gram and creates a draft using the m tokens following the matched n-gram. It is the simplest self-speculative approach with minimal overhead.
+
+```
+llama-server [...] --spec-type ngram-simple --spec-draft-n-max 64
+```

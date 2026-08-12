@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "case_id": "DET-001",
+  "fork": "upstream",
+  "source": {
+    "repository": "ggml-org/llama.cpp",
+    "commit": "0000000",
+    "dirty": false
+  },
+  "build": {
+    "build_id": "EXAMPLE",
+    "compiler": "EXAMPLE",
+    "flags": [],
+    "binary_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "environment": {
+    "os": "EXAMPLE",
+    "arch": "EXAMPLE",
+    "backend": "cpu",
+    "device": null,
+    "driver": null,
+    "runtime": null
+  },
+  "fixtures": [],
+  "run": {
+    "started_at": "1970-01-01T00:00:00Z",
+    "command": [],
+    "seed_schedule_id": null,
+    "timeout_seconds": null
+  },
+  "result": {
+    "status": "skip",
+    "exit_code": null,
+    "duration_seconds": 0,
+    "skip_reason": "schema example only",
+    "outputs": {}
+  },
+  "artifacts": []
+}

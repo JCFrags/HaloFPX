@@ -1,0 +1,41 @@
+reason_code,failure,cachyllama_observed,llama_cpp_observed,other_designs_observed,halofpx_required_result,operational_action
+NO_ENTRY,Entry absent,miss,read/lookup error,miss,MISS_RECOMPUTE,none
+UNAUTHORIZED_NAMESPACE,Unauthorized namespace,isolated user route but unkeyed FNV path,directory/salt policy varies,no tenant scope,MISS_RECOMPUTE or authorization denial without existence leakage,security audit
+MANIFEST_AUTH_KEY_UNAVAILABLE,Catalog authentication key unavailable,no keyed manifest auth,no keyed catalog,varies,MISS_RECOMPUTE before object pointer use,key availability metric
+MANIFEST_AUTH_FAILURE,Manifest HMAC/signature invalid,no keyed manifest auth,no keyed catalog,varies,MISS_RECOMPUTE; do not follow object pointer,security alert/quarantine
+BAD_MAGIC,Wrong magic,reject,reject,not self-describing,MISS_RECOMPUTE; quarantine,corruption
+UNSUPPORTED_VERSION,Unsupported version,record version not consistently enforced,exact reject,no object version,MISS_RECOMPUTE; migrate only through supported reader,migration
+SHORT_HEADER,Truncated header,skip/fail,fail,raw file,MISS_RECOMPUTE before allocation,corruption
+SHORT_PAYLOAD,"Complete header, short payload",may index; later exact read fails,state read fails,LMCache short read unchecked; SGLang raises,MISS_RECOMPUTE after exact stat/length proof,corruption
+PAYLOAD_BITFLIP,Same-length payload mutation,undetected by outer format,no outer digest,undetected in raw local files,MISS_RECOMPUTE on digest/AEAD failure,security alert
+SIZE_CORRUPTION,Corrupt length field,can influence allocation/read,decoder dependent,raw formats infer size,MISS_RECOMPUTE via checked arithmetic/caps,corruption
+TOKEN_COUNT_OVERFLOW,Token count exceeds fixed array,not authenticated/bounded during scan,session capacity checked,key metadata separate,MISS_RECOMPUTE,corruption
+FINGERPRINT_MISMATCH,Compatibility mismatch,miss,architecture mismatch reject,keys/suffix mismatch varies,MISS_RECOMPUTE,normal miss metric
+FINGERPRINT_INCOMPLETE,False compatible configuration,possible,possible,possible,key cannot be built without required canonical fields,configuration error
+CRASH_TEMP_WRITE,Crash while writing,visible final partial possible,visible final partial possible,SGLang temp remains; LMCache final partial,unreachable .partial; cleanup,recovery
+FSYNC_FAILURE,File sync error,return not used as commit failure,no explicit sync,no explicit sync,store fails; old manifest retained,I/O alert
+ORPHAN_OBJECT,Object published before manifest,not applicable,not applicable,not applicable,safe orphan; grace-period GC,recovery
+INDEX_CORRUPT,Index/manifest corrupt,index reject + scan + ID reset risk,no catalog,LMCache local empty; SGLang scan,manifest invalid => miss; rebuild accounting,recovery
+ID_REUSE,Sequential ID collision,possible after index loss,caller filename collision possible,content keys mostly,content digest name; no sequential dependency,security/corruption
+DUPLICATE_WRITER,Concurrent fills,process mutex only,caller,process-local locks,single-flight + no-replace + CAS,contention metric
+EVICT_READ_RACE,Eviction during read,pointer/process race windows,caller,process-local races possible,open-FD snapshot and logical tombstone,concurrency
+ENOSPC_OBJECT,No space during object write,write fails; partial cleanup attempted,save fails,reserve/refuse varies,abort temp; old manifest remains; recompute,capacity alert
+ENOSPC_MANIFEST,No space during index/manifest,index may fail after file exists,N/A,N/A,new object orphan; old manifest remains,capacity alert
+MISSING_OBJECT,Manifest references absent object,N/A,N/A,N/A,MISS_RECOMPUTE; quarantine manifest,repair
+OBJECT_DIGEST_MISMATCH,Object name/content mismatch,no content name,N/A,page key not payload digest,MISS_RECOMPUTE; quarantine,security alert
+METADATA_DIGEST_MISMATCH,Metadata mutation,no digest,no digest,no digest,MISS_RECOMPUTE,security alert
+SEGMENT_DIGEST_MISMATCH,Segment mutation,no digest,no digest,no digest,MISS_RECOMPUTE,security alert
+KEY_UNAVAILABLE,Encryption key absent,no app encryption,no app encryption,no app encryption,MISS_RECOMPUTE; no plaintext fallback,key management
+AEAD_FAILURE,Authentication tag failure,N/A,N/A,N/A,MISS_RECOMPUTE; quarantine,security alert
+DECOMPRESSION_FAILURE,Corrupt/bomb compressed data,no standard outer codec,N/A,backend dependent,MISS_RECOMPUTE under ratio/output caps,security alert
+MISSING_TARGET,Required target segment absent,load fails,state load fails,backend item miss,MISS_RECOMPUTE,corruption
+OPTIONAL_DRAFT_FAILURE,Draft/spec segment invalid,draft catch-up allowed in wrapper,usually not bundled,pool policies vary,target hit only if independently valid and declared optional,optional miss metric
+RECURRENT_PARTIAL,Partial recurrent/global state,opaque full snapshot,opaque full snapshot,pool-specific,MISS_RECOMPUTE unless formal composability contract,integrity
+ENGINE_IMPORT_REJECTED,Engine rejects verified bytes,false return,read/import failure,backend returns/raises,MISS_RECOMPUTE; staged context discarded,compatibility alert
+ROLLBACK_DETECTED,Old generation replayed,no generation,no generation,no generation,MISS_RECOMPUTE; alert,security alert
+UNKNOWN_CRITICAL_FIELD,Unknown critical flag,native layout,exact version,backend dependent,MISS_RECOMPUTE,migration
+MIGRATION_INTERRUPTED,Crash during migration,no migrator,exact reject,backend dependent,old manifest intact; new temp/orphan cleanup,recovery
+PATH_SUBSTITUTION,Symlink/path attack,ordinary paths,filename validation + ordinary paths,ordinary paths,directory-FD no-follow canonical paths,security alert
+STALE_LEASE,Writer dies holding lease,no process lease,N/A,task bookkeeping,lease expiry; no published hit,recovery
+EIO_READ,SSD read error,load false in paths,read fail,backend error,MISS_RECOMPUTE; replica/repair optional,I/O alert
+LATENT_BITROT,Corrupt cold unused object,found on read only,found on read if parse fails,found on read,background scrub + lookup verification,maintenance

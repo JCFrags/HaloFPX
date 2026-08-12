@@ -1,0 +1,14 @@
+schema_version: 1
+baseline_id: REPLACE
+lineage_id: REPLACE
+promoted_at: REPLACE_ISO_UTC
+source_decision_id: REPLACE
+profile: scale_out
+testbed_id: REPLACE
+model_sha256: REPLACE_64_HEX
+software_fingerprint_sha256: REPLACE_64_HEX
+summary_sha256: REPLACE_64_HEX
+eligible_until: REPLACE_ISO_UTC
+immutable: true
+supersedes: null
+notes: null

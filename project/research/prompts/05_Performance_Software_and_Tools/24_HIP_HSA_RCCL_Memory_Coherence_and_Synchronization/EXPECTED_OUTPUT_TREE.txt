@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

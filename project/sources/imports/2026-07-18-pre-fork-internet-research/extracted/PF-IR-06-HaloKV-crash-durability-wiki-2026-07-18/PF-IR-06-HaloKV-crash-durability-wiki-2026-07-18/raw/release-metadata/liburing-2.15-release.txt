@@ -1,0 +1,17 @@
+---
+source_id: "S011"
+title: "liburing 2.15 release receipt"
+capture_kind: "metadata-receipt"
+canonical_url: "https://github.com/axboe/liburing/commit/d41bf9220ec39277ff235379e9089d9e0fd6c2a5"
+version: "liburing 2.15"
+commit: "d41bf9220ec39277ff235379e9089d9e0fd6c2a5"
+release_date: "2026-06-29"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "LGPL-2.0-or-later / MIT components"
+---
+Verified release tag target:
+  version: 2.15
+  commit: d41bf9220ec39277ff235379e9089d9e0fd6c2a5
+  release date: 2026-06-29
+
+This is a normalized receipt, not a byte-for-byte capture of the release page.

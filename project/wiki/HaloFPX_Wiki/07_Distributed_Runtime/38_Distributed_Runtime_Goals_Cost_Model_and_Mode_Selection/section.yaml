@@ -1,0 +1,16 @@
+section_id: "38"
+title: "Distributed Runtime Goals, Cost Model, and Mode Selection"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 7
+required_machine_experiments:
+  - "DR-38-E1 matched mode matrix and two-link tail characterization"
+related_sections: ["39", "40", "41", "42", "43", "44", "47", "48", "51"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  hardware: "two Nimo MME3L AMD Strix Halo systems; current predecessor dual-node baseline captured 2026-07-17"

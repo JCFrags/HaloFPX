@@ -1,0 +1,21 @@
+section_id: "47"
+title: "Topology Planner, Autotuner, and HIP-versus-Vulkan Selection"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 8
+required_machine_experiments:
+  - "version-pinned HIP versus Vulkan correctness and performance matrix"
+  - "single/dual-link and collective curves by size and concurrency"
+  - "held-out plan validation, thermal soak, fault, canary, and rollback"
+related_sections: ["17", "18", "20", "23", "24", "25", "37", "38", "42", "43", "44", "46", "48", "55", "67", "73", "74", "75", "76"]
+applicability:
+  repositories:
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
+  software_versions: []
+  hardware_revisions:
+    - "two matched AMD Strix Halo systems (exact BOM open)"

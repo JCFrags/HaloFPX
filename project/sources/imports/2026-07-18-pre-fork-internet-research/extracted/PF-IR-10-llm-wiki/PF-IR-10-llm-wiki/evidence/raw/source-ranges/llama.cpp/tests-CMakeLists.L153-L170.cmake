@@ -1,0 +1,18 @@
+if (NOT WIN32 OR NOT BUILD_SHARED_LIBS)
+    # these tests are disabled on Windows because they use internal functions not exported with LLAMA_API (when building with shared libraries)
+    llama_build_and_test(test-sampling.cpp)
+    llama_build_and_test(test-reasoning-budget.cpp)
+    llama_build_and_test(test-grammar-parser.cpp)
+    llama_build_and_test(test-grammar-integration.cpp)
+    llama_build_and_test(test-llama-grammar.cpp)
+    llama_build_and_test(test-batch-alloc.cpp)
+    llama_build_and_test(test-chat.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    target_include_directories(test-chat PRIVATE ${PROJECT_SOURCE_DIR}/tools/server)
+    target_link_libraries(test-chat PRIVATE server-context)
+    # TODO: disabled on loongarch64 because the ggml-ci node lacks Python 3.8
+    if (NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "loongarch64")
+        llama_build_and_test(test-json-schema-to-grammar.cpp   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+        target_include_directories(test-json-schema-to-grammar PRIVATE ${PROJECT_SOURCE_DIR}/tools/server)
+    endif()
+
+    if (NOT GGML_BACKEND_DL)

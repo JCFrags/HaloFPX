@@ -1,0 +1,8 @@
+data: {"choices":[{"delta":{"role":"assistant"},"finish_reason":null,"index":0}],"created":0,"id":"STATIC","model":"pfir10","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"A"},"finish_reason":null,"index":0}],"created":0,"id":"STATIC","model":"pfir10","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"created":0,"id":"STATIC","model":"pfir10","object":"chat.completion.chunk"}
+
+data: [DONE]
+

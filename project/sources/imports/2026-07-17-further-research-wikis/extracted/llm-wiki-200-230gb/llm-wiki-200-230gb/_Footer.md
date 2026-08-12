@@ -1,0 +1,1 @@
+Research snapshot 2026-07-17. Model licenses remain with their respective publishers. No model weights are included.

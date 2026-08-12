@@ -1,0 +1,109 @@
+- id: REG-FW-MES083-20251125
+  severity: critical
+  state: fixed-by-newer-firmware-avoid-old-package
+  component: amdgpu firmware / linux-firmware
+  affected: linux-firmware 20251125 / MES 0x83 era on Strix Halo
+  symptoms: GPU hang, gfxhub page fault, memory access fault, llama-bench segfault, blocked management processes
+  detection: Package version; dmesg page faults; firmware inventory and hashes
+  mitigation: Upgrade to distribution-fixed firmware (Fedora 20260110 line or newer validated package); do not treat a kernel
+    update alone as sufficient
+  do_not: Do not make permanent firmware rollback the default modern recipe
+  sources:
+  - ROCM-ISSUE-5724
+  - FEDORA-BUG-2420062
+  - LINUX-FW-REVERT-C092
+- id: REG-CWSR-MES080-ROCM71
+  severity: high
+  state: legacy-stack-only
+  component: amdgpu CWSR / MES / ROCm 7.1
+  affected: ROCm 7.1.x with MES 0x80-era stack
+  symptoms: MES REMOVE_QUEUE hang and GPU hang
+  detection: dmesg contains MES failed to respond; workload stalls
+  mitigation: Move to a currently supported ROCm line; amdgpu.cwsr_enable=0 is only a legacy containment measure
+  do_not: Do not present amdgpu.cwsr_enable=0 as a current official requirement
+  sources:
+  - ROCM-ISSUE-5590
+  - AMD-RDNA35
+- id: REG-KERNEL-RDNA35-FIXSET
+  severity: critical
+  state: fixed-in-minimum-kernels
+  component: Linux amdgpu kernel driver
+  affected: Kernels below AMD’s distro-specific thresholds
+  symptoms: Compute instability, queue faults, incomplete memory behavior
+  detection: uname -r compared with AMD RDNA3.5 table
+  mitigation: Use Ubuntu HWE >=6.17.0-19.19~24.04.2, OEM >=6.14.0-1018, or >=6.18.4 elsewhere
+  do_not: Do not substitute HSA_OVERRIDE_GFX_VERSION for missing kernel fixes
+  sources:
+  - AMD-RDNA35
+  - ROCM-ISSUE-5824
+- id: REG-LLAMA-ROCWMMA-FA
+  severity: medium
+  state: open-or-retest-required
+  component: llama.cpp HIP rocWMMA FlashAttention
+  affected: gfx1151 long-context prefill on reported ROCm 7.2.1 stack
+  symptoms: Up to approximately 41% lower prefill performance
+  detection: Matched llama-bench A/B build with GGML_HIP_ROCWMMA_FATTN OFF versus ON
+  mitigation: Keep GGML_HIP_ROCWMMA_FATTN=OFF unless local benchmark proves benefit
+  do_not: Do not copy the upstream generic ROCm Dockerfile’s ON setting into a gfx1151 performance baseline without A/B testing
+  sources:
+  - LLAMA-ISSUE-24437
+  - LLAMA-GGML-CMAKE-86D86ED
+  - LLAMA-ROCM-DOCKER-86D86ED
+- id: REG-LLAMA-RADV-PP-B8460-B8933
+  severity: medium
+  state: historical-build-regression
+  component: llama.cpp Vulkan/RADV prompt processing
+  affected: Reported transition b8460 to b8933 on Mesa 26.0.2 and Linux 6.19.4
+  symptoms: pp512 decreased by about 39%; token generation stayed approximately stable
+  detection: Pin both builds and run matched llama-bench pp512/tg128
+  mitigation: Pin known-good commits and gate upgrades with benchmark thresholds
+  do_not: Do not assume a newer llama.cpp commit is monotonically faster
+  sources:
+  - LLAMA-ISSUE-22375
+- id: REG-VULKAN-DIRECT-IO-LOAD
+  severity: medium
+  state: workaround-available
+  component: llama.cpp Vulkan model loading
+  affected: Selected filesystems/models/drivers
+  symptoms: Model fails during load or mapping
+  detection: Retry with --no-direct-io, then --no-mmap
+  mitigation: Use --no-direct-io and/or --no-mmap; collect loader and kernel logs
+  do_not: Do not treat either flag as proof that the GPU stack is healthy
+  sources:
+  - LLAMA-ISSUE-18741
+  - KYUZ0-TOOLBOX-A7C71E9
+- id: REG-AMDVLK-2G-ALLOCATION
+  severity: high-for-large-models
+  state: driver-limitation-or-unresolved
+  component: AMDVLK Vulkan memory allocation
+  affected: Large GGUF buffers exceeding reported per-allocation behavior
+  symptoms: Model load fails although sufficient aggregate memory exists
+  detection: Force AMDVLK and compare with RADV using the same model
+  mitigation: Use Mesa RADV for large models
+  do_not: Do not infer aggregate free memory guarantees a single allocation succeeds
+  sources:
+  - LLAMA-ISSUE-15054
+  - KYUZ0-TOOLBOX-A7C71E9
+- id: REG-HIST-15G-VISIBLE-MEM
+  severity: historical-high
+  state: closed
+  component: Kernel/ROCm unified-memory visibility
+  affected: Kernel <=6.15 and older ROCm-era combinations
+  symptoms: Only approximately 15.5 GiB available despite much larger system RAM
+  detection: rocminfo pool size versus system RAM
+  mitigation: Use current fixed kernel/ROCm and official TTM sizing
+  do_not: Do not confuse this closed cap with intentional TTM/GTT limits
+  sources:
+  - ROCM-ISSUE-5444
+  - AMD-RDNA35
+- id: REG-HIP-POST-FAULT-DSTATE
+  severity: high
+  state: diagnostic-record
+  component: HIP/amdgpu post-fault recovery
+  affected: Selected fault paths
+  symptoms: rocm-smi or workload process blocked in D state
+  detection: ps state, sysrq task dump, dmesg, /sys/kernel/debug/dri
+  mitigation: Capture diagnostics before reboot; update kernel/firmware/ROCm as one tested profile
+  do_not: Do not repeatedly invoke blocked tools and overwrite useful timing context
+  sources:
+  - ROCM-ISSUE-5745

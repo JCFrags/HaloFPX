@@ -1,0 +1,203 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Recipe: pinned llama.cpp b10064 with ROCm 7.2.1 · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body data-root="../" data-page="recipes/llama-hip-rocm721.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="../index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="../index.html">Overview</a>
+          
+            <a href="../decision-tree.html">Decision tree</a>
+          
+            <a href="../evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="../compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="../official-support.html">Official support</a>
+          
+            <a href="../community-validation.html">Community validation</a>
+          
+            <a href="../regressions.html">Known regressions</a>
+          
+            <a href="../unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="../build-flags.html">Exact build flags</a>
+          
+            <a href="../environment-variables.html">Environment variables</a>
+          
+            <a href="../diagnostics.html">Diagnostics</a>
+          
+            <a href="../containers.html">Containers</a>
+          
+            <a href="../reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="../rocmfpx.html">ROCmFPX</a>
+          
+            <a href="../usb4-networking.html">USB4 networking</a>
+          
+            <a href="../glossary.html">Glossary</a>
+          
+            <a href="../sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="../recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="../recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="../recipes/llama-hip-rocm721.html" class="active" aria-current="page">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="../recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="../recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="../recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="../recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="../recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="../recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="../recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="../versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Reproducible recipe</div>
+      <article class="article"><h1 id="recipe-pinned-llama-cpp-b10064-with-rocm-7-2-1">Recipe: pinned llama.cpp b10064 with ROCm 7.2.1<a aria-label="Link to section" class="heading-anchor" href="#recipe-pinned-llama-cpp-b10064-with-rocm-7-2-1">#</a></h1>
+<p><strong>Classification:</strong> AMD target-stable ROCm release plus official upstream source<br/>
+<strong>Host floor:</strong> Ubuntu HWE <code>&gt;=6.17.0-19.19~24.04.2</code>, OEM <code>&gt;=6.14.0-1018</code>, or kernel <code>&gt;=6.18.4</code> elsewhere<br/>
+<strong>Sources:</strong> <a href="../sources.html#amd-rdna35">AMD-RDNA35</a>, <a href="../sources.html#llama-release-b10064">LLAMA-RELEASE-B10064</a></p>
+<h2 id="prefer-a-clean-container-for-the-compiler">Prefer a clean container for the compiler<a aria-label="Link to section" class="heading-anchor" href="#prefer-a-clean-container-for-the-compiler">#</a></h2>
+<pre><code class="language-bash">docker build \
+  -f ../../containers/Dockerfile.llama-rocm721 \
+  -t llama-strix:rocm721-b10064 \
+  ../..
+</code></pre>
+<p>Run on a qualified host:</p>
+<pre><code class="language-bash">docker run --rm -it \
+  --device=/dev/kfd \
+  --device=/dev/dri \
+  --security-opt seccomp=unconfined \
+  -v "$PWD/models:/models:ro" \
+  llama-strix:rocm721-b10064 \
+  llama-cli --list-devices
+</code></pre>
+<p>Record and replace the base tag with an OCI digest for a production lock.</p>
+<h2 id="native-source-build">Native source build<a aria-label="Link to section" class="heading-anchor" href="#native-source-build">#</a></h2>
+<pre><code class="language-bash">export ROCM_PATH=/opt/rocm
+export HIPCXX="$(hipconfig -l)/clang"
+export HIP_PATH="$(hipconfig -R)"
+unset HSA_OVERRIDE_GFX_VERSION
+
+LLAMA_COMMIT=86d86ed4396b4130922f7b9af26e3d9fc11a591b \
+  ../../scripts/build-llama-hip.sh
+</code></pre>
+<p>Expanded configuration:</p>
+<pre><code class="language-bash">cmake -S llama.cpp -B llama.cpp/build-hip -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DGGML_HIP=ON \
+  -DGGML_VULKAN=OFF \
+  -DGGML_CUDA=OFF \
+  -DCMAKE_HIP_ARCHITECTURES=gfx1151 \
+  -DGGML_HIP_ROCWMMA_FATTN=OFF \
+  -DGGML_HIP_NO_VMM=ON \
+  -DGGML_HIP_GRAPHS=ON \
+  -DLLAMA_BUILD_TESTS=OFF \
+  -DGGML_BUILD_TESTS=OFF
+</code></pre>
+<h2 id="prebuilt-binary-alternative">Prebuilt binary alternative<a aria-label="Link to section" class="heading-anchor" href="#prebuilt-binary-alternative">#</a></h2>
+<pre><code class="language-bash">../../scripts/download-llama-b10064-rocm72.sh
+./downloads/llama-b10064-rocm72/llama-cli --version
+</code></pre>
+<p>The archive is checked against:</p>
+<pre><code class="language-text">42a00452f42b04598d32db66c5249b3e8855cd99bf9448e22fd2a738aaa89c82
+</code></pre>
+<p>Do not use this ROCm 7.2 binary as a shortcut inside an arbitrary ROCm 7.14 runtime. Rebuild from source for the 7.14 lane.</p>
+<h2 id="runtime-and-benchmark">Runtime and benchmark<a aria-label="Link to section" class="heading-anchor" href="#runtime-and-benchmark">#</a></h2>
+<pre><code class="language-bash">HIP_VISIBLE_DEVICES=0 \
+./llama.cpp/build-hip/bin/llama-cli \
+  -m MODEL.gguf -ngl 999 -fa 1 -c 8192 -p 'gfx1151 smoke' -n 64
+
+./llama.cpp/build-hip/bin/llama-bench \
+  -m MODEL.gguf -p 512 -n 128 -ngl 999 -fa 1
+</code></pre>
+<p>Keep rocWMMA FlashAttention OFF until a matched local build proves it improves the actual context and model mix.</p>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="../sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#prefer-a-clean-container-for-the-compiler">Prefer a clean container for the compiler</a><a class="level-2" href="#native-source-build">Native source build</a><a class="level-2" href="#prebuilt-binary-alternative">Prebuilt binary alternative</a><a class="level-2" href="#runtime-and-benchmark">Runtime and benchmark</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="../assets/wiki.js"></script>
+</body>
+</html>

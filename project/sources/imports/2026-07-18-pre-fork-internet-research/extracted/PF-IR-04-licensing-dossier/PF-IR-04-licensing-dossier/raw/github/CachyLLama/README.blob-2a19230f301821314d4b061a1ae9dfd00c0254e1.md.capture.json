@@ -1,0 +1,13 @@
+{
+  "capture_path": "raw/github/CachyLLama/README.blob-2a19230f301821314d4b061a1ae9dfd00c0254e1.md",
+  "capture_method": "exact-byte HTTP retrieval followed by Git blob verification",
+  "byte_fidelity": "exact",
+  "source_url": "https://raw.githubusercontent.com/fewtarius/CachyLLama/master/README.md",
+  "repository_commit": "6be745998f568e379ea197fcf827baec73ff9940 (verified unchanged by Git blob)",
+  "repository_path": "README.md",
+  "git_blob_sha1": "2a19230f301821314d4b061a1ae9dfd00c0254e1",
+  "sha256": "e3861b8b70c3ca5829b3d0599bc5041b54e138ed5890f1e9fb5c4a99af38c6aa",
+  "size_bytes": 41354,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-REPOSITORY-ASSERTION"
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "profile_id": "REPLACE_WITH_SCOPED_PROFILE_ID",
+  "status": "UNCALIBRATED",
+  "scope": {
+    "case_ids": [],
+    "forks": [],
+    "backends": [],
+    "model_sha256": null,
+    "build_family": null,
+    "hardware_lane": null,
+    "driver_family": null
+  },
+  "metrics": {
+    "max_abs": null,
+    "max_rel": null,
+    "mean_abs": null,
+    "cosine_distance": null,
+    "top1_must_match": null,
+    "top_k_overlap_min": null,
+    "distribution_statistic_max": null,
+    "p_value_min": null,
+    "quality_delta_max": null
+  },
+  "calibration": {
+    "calibration_observations": [],
+    "validation_observations": [],
+    "method": null,
+    "approved_by": [],
+    "approved_at": null
+  },
+  "notes": "No metric is a gate while status is UNCALIBRATED or PROPOSED."
+}

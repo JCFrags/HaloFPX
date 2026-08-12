@@ -1,0 +1,44 @@
+; Semantic metadata encoded as canonical JSON in the reference v1 fixture.
+; A production canonical-CBOR profile may use this CDDL directly.
+halofpx-object-metadata = {
+  schema: "halofpx.kv.object/v1",
+  cache_key_sha256: hex64,
+  compatibility_fingerprint_sha256: hex64,
+  prompt_root_sha256: hex64,
+  boundary: {
+    kind: "token_page" / "sequence_checkpoint" / "recurrent_checkpoint",
+    start_token: uint,
+    end_token: uint
+  },
+  engine: {
+    family: tstr,
+    state_abi: tstr
+  },
+  segments: [+ segment],
+  created_unix_ns: uint,
+  writer_id: tstr,
+  policy: {
+    partial_reuse: "complete_prefix_only" / "all_or_nothing",
+    ? optional_draft_catchup: bool
+  },
+  * tstr => any
+}
+
+segment = {
+  name: tstr,
+  required: bool,
+  offset: uint,
+  stored_length: uint,
+  logical_length: uint,
+  stored_sha256: hex64,
+  codec: "none" / "zstd",
+  encryption: "none" / "aes-256-gcm" / "xchacha20-poly1305",
+  role: tstr,
+  ? key_id: tstr,
+  ? nonce_b64: tstr,
+  ? tag_length: uint,
+  ? aad_profile: tstr,
+  * tstr => any
+}
+
+hex64 = tstr .regexp "^[0-9a-f]{64}$"

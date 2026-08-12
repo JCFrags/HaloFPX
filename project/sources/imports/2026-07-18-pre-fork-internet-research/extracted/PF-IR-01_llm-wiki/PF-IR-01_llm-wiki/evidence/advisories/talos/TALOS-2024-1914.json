@@ -1,0 +1,15 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "Cisco Talos vulnerability report",
+  "report_id": "TALOS-2024-1914",
+  "cve": "CVE-2024-21802",
+  "title": "info->ne tensor-dimension heap overflow",
+  "source_url": "https://talosintelligence.com/vulnerability_reports/TALOS-2024-1914",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "legacy tensor dimension metadata",
+    "affected": "Legacy parser before 2024-01-29 fixes"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved; the full report is not redistributed.",
+  "payload_sha256": "e9a5e2c2a49193949ae8b65230b5372bd16cd742372e411bd4441f2aa6f6984e"
+}

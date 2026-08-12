@@ -1,0 +1,180 @@
+{
+  "dry_run": true,
+  "sources": [
+    {
+      "id": "WATCH-LLAMA-RELEASES",
+      "type": "github_releases",
+      "status": "poll",
+      "freshness_class": "runtime_releases",
+      "target": "ggml-org/llama.cpp"
+    },
+    {
+      "id": "WATCH-LLAMA-SECURITY-ADVISORIES",
+      "type": "web_hash",
+      "status": "poll",
+      "freshness_class": "security_critical",
+      "target": "https://github.com/ggml-org/llama.cpp/security/advisories"
+    },
+    {
+      "id": "WATCH-LLAMA-RPC-COMMITS",
+      "type": "github_commits",
+      "status": "poll",
+      "freshness_class": "relevant_commits_and_issues",
+      "target": "ggml-org/llama.cpp"
+    },
+    {
+      "id": "WATCH-LLAMA-SERVER-COMMITS",
+      "type": "github_commits",
+      "status": "poll",
+      "freshness_class": "relevant_commits_and_issues",
+      "target": "ggml-org/llama.cpp"
+    },
+    {
+      "id": "WATCH-LLAMA-ISSUES-STRIX",
+      "type": "github_issue_search",
+      "status": "poll",
+      "freshness_class": "community_signal",
+      "target": "repo:ggml-org/llama.cpp (gfx1151 OR \"Strix Halo\" OR \"Ryzen AI Max\" OR ROCm OR HIP) is:open"
+    },
+    {
+      "id": "WATCH-LLAMA-ISSUES-RPC",
+      "type": "github_issue_search",
+      "status": "poll",
+      "freshness_class": "community_signal",
+      "target": "repo:ggml-org/llama.cpp (RPC OR remote) (hang OR crash OR regression OR performance OR cache) is:open"
+    },
+    {
+      "id": "WATCH-ROCM-RELEASES",
+      "type": "github_releases",
+      "status": "poll",
+      "freshness_class": "runtime_releases",
+      "target": "ROCm/ROCm"
+    },
+    {
+      "id": "WATCH-ROCM-SECURITY-ADVISORIES",
+      "type": "web_hash",
+      "status": "poll",
+      "freshness_class": "security_critical",
+      "target": "https://github.com/ROCm/ROCm/security/advisories"
+    },
+    {
+      "id": "WATCH-ROCM-ISSUES-GFX1151",
+      "type": "github_issue_search",
+      "status": "poll",
+      "freshness_class": "relevant_commits_and_issues",
+      "target": "org:ROCm (gfx1151 OR \"Strix Halo\" OR \"Ryzen AI Max\") is:issue"
+    },
+    {
+      "id": "WATCH-THEROCK-COMMITS",
+      "type": "github_commits",
+      "status": "poll",
+      "freshness_class": "relevant_commits_and_issues",
+      "target": "ROCm/TheRock"
+    },
+    {
+      "id": "WATCH-ROCM-SYSTEMS-COMMITS",
+      "type": "github_commits",
+      "status": "poll",
+      "freshness_class": "relevant_commits_and_issues",
+      "target": "ROCm/rocm-systems"
+    },
+    {
+      "id": "WATCH-ROCM-RELEASE-NOTES",
+      "type": "web_hash",
+      "status": "poll",
+      "freshness_class": "compatibility_docs",
+      "target": "https://rocm.docs.amd.com/en/latest/about/release-notes.html"
+    },
+    {
+      "id": "WATCH-ROCM-COMPAT",
+      "type": "web_hash",
+      "status": "poll",
+      "freshness_class": "compatibility_docs",
+      "target": "https://rocm.docs.amd.com/projects/radeon-ryzen/en/latest/docs/compatibility/compatibilityryz/native_linux/native_linux_compatibility.html"
+    },
+    {
+      "id": "WATCH-RDNA35-GUIDANCE",
+      "type": "web_hash",
+      "status": "poll",
+      "freshness_class": "compatibility_docs",
+      "target": "https://rocm.docs.amd.com/en/latest/how-to/system-optimization/rdna3-5.html"
+    },
+    {
+      "id": "WATCH-AMD-SECURITY",
+      "type": "web_hash",
+      "status": "poll",
+      "freshness_class": "security_critical",
+      "target": "https://www.amd.com/en/resources/product-security.html"
+    },
+    {
+      "id": "WATCH-LINUX-AMDGPU",
+      "type": "git_atom",
+      "status": "poll",
+      "freshness_class": "kernel_mesa_llvm",
+      "target": "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/atom/drivers/gpu/drm/amd"
+    },
+    {
+      "id": "WATCH-LINUX-FIRMWARE-AMDGPU",
+      "type": "git_atom",
+      "status": "poll",
+      "freshness_class": "kernel_mesa_llvm",
+      "target": "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/atom/amdgpu"
+    },
+    {
+      "id": "WATCH-LINUX-THUNDERBOLT",
+      "type": "git_atom",
+      "status": "poll",
+      "freshness_class": "kernel_mesa_llvm",
+      "target": "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/atom/drivers/thunderbolt"
+    },
+    {
+      "id": "WATCH-MESA-RELEASE-NOTES",
+      "type": "web_hash",
+      "status": "poll",
+      "freshness_class": "kernel_mesa_llvm",
+      "target": "https://docs.mesa3d.org/relnotes.html"
+    },
+    {
+      "id": "WATCH-MESA-AMD-COMMITS",
+      "type": "git_atom",
+      "status": "poll",
+      "freshness_class": "kernel_mesa_llvm",
+      "target": "https://gitlab.freedesktop.org/mesa/mesa/-/commits/main/src/amd?format=atom"
+    },
+    {
+      "id": "WATCH-LLVM-AMDGPU-COMMITS",
+      "type": "github_commits",
+      "status": "poll",
+      "freshness_class": "kernel_mesa_llvm",
+      "target": "llvm/llvm-project"
+    },
+    {
+      "id": "WATCH-VLLM-RELEASES",
+      "type": "github_releases",
+      "status": "conditional-skip",
+      "freshness_class": "runtime_releases",
+      "target": "vllm-project/vllm"
+    },
+    {
+      "id": "WATCH-PYTORCH-RELEASES",
+      "type": "github_releases",
+      "status": "conditional-skip",
+      "freshness_class": "runtime_releases",
+      "target": "pytorch/pytorch"
+    },
+    {
+      "id": "WATCH-OEM-BIOS",
+      "type": "manual_or_web_hash",
+      "status": "configuration-required",
+      "freshness_class": "oem_bios_firmware",
+      "target": null
+    },
+    {
+      "id": "WATCH-DISTRO-SECURITY",
+      "type": "manual_or_web_hash",
+      "status": "configuration-required",
+      "freshness_class": "security_critical",
+      "target": null
+    }
+  ]
+}

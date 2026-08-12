@@ -1,0 +1,132 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>200–230 GB Large-Model Selection and Capacity Wiki · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="index.html">Home</a><a data-search="ranked shortlist" href="pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="pages/Methodology.html">Methodology</a><a data-search="reproduction" href="pages/Reproduction.html">Reproduction</a><a data-search="source index" href="pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>200–230 GB Large-Model Selection and Capacity Wiki</h1>
+<blockquote>
+<p><strong>Research snapshot:</strong> 2026-07-17<br />
+<strong>llama.cpp:</strong> <code>6bdd77f13cf11b264b4231d320afc404f48d576e</code><br />
+<strong>ROCmFPX:</strong> <code>61f2f2d7bc4955e9bca821095ef69125837133b5</code></p>
+</blockquote>
+<p>This wiki selects runnable large-model representations whose <strong>chosen artifact</strong> is approximately <strong>200–230 decimal GB</strong>, then budgets the rest of the runtime explicitly: KV cache, graph/work buffers, operating-system memory, split skew, multimodal sidecars, and validation margin.</p>
+<h2>Decision summary</h2>
+<table>
+<thead>
+<tr>
+  <th>Rank</th>
+  <th>Candidate</th>
+  <th>Selected representation</th>
+  <th>Artifact GB</th>
+  <th>Plan GiB</th>
+  <th>Type</th>
+  <th>Active B</th>
+  <th>Disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td><a href="candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a></td>
+  <td>UD-Q6_K_XL</td>
+  <td>201.91</td>
+  <td>190</td>
+  <td>MoE</td>
+  <td>22.0</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><a href="candidates/step-3.7-flash.html">Step-3.7-Flash</a></td>
+  <td>Q8_0</td>
+  <td>209.0</td>
+  <td>196</td>
+  <td>MoE + hybrid attention</td>
+  <td>11.0</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><a href="candidates/mimo-v2-flash.html">MiMo-V2-Flash</a></td>
+  <td>Q5_K_M</td>
+  <td>219.2</td>
+  <td>206</td>
+  <td>MoE + hybrid attention</td>
+  <td>15.0</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><a href="candidates/glm-4.7.html">GLM-4.7</a></td>
+  <td>Q4_K_M</td>
+  <td>218.52</td>
+  <td>205</td>
+  <td>MoE</td>
+  <td>32.0</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><a href="candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a></td>
+  <td>Q6_K</td>
+  <td>207.88</td>
+  <td>195</td>
+  <td>Dense NAS-pruned</td>
+  <td>253.0</td>
+  <td>shortlist</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><a href="candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a></td>
+  <td>UD-IQ2_M</td>
+  <td>229.0</td>
+  <td>215</td>
+  <td>MoE + MLA</td>
+  <td>37.0</td>
+  <td>conditional</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><a href="candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a></td>
+  <td>IQ4_XS</td>
+  <td>216.57</td>
+  <td>203</td>
+  <td>Dense</td>
+  <td>405.0</td>
+  <td>conditional</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><a href="candidates/minimax-m3.html">MiniMax-M3</a></td>
+  <td>UD-IQ4_XS</td>
+  <td>208.0</td>
+  <td>195</td>
+  <td>MoE + MiniMax Sparse Attention</td>
+  <td>23.0</td>
+  <td>experimental</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><a href="candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a></td>
+  <td>i1-IQ1_M community artifact</td>
+  <td>228.0</td>
+  <td>214</td>
+  <td>MoE</td>
+  <td>32.0</td>
+  <td>screened-out</td>
+</tr>
+</tbody>
+</table>
+<h2>Recommended starting points</h2>
+<ol>
+<li><strong>Qwen3-235B-A22B-Instruct-2507 UD-Q6_K_XL</strong> is the default deployment candidate: mature dual-runtime support, Apache-2.0, 22B active parameters, and a high effective bit budget.</li>
+<li><strong>Step-3.7-Flash Q8_0</strong> is the fidelity-first sparse candidate: approximately 209 GB, only about 11B active parameters, and direct quant-specific PPL/KLD evidence. Pin the runtime because Step support is newer.</li>
+<li><strong>MiMo-V2-Flash Q5_K_M</strong> is the long-context capacity candidate: its hybrid attention produces much slower KV growth than full-attention models.</li>
+<li><strong>GLM-4.7 Q4_K_M</strong> has strong official coding/agent evidence, but the selected 4-bit artifact and full-attention KV growth increase deployment risk.</li>
+<li><strong>Nemotron Ultra 253B Q6_K</strong> is the dense high-bit option; it is compute-heavy even though the artifact fits the target band.</li>
+</ol>
+<h2>Non-negotiable caveats</h2>
+<ul>
+<li><strong>A 210 GB file is not a 210 GB deployment.</strong> The tables use a conservative weight allocation plus KV and fixed planning reserves.</li>
+<li><strong>MoE reduces active compute, not resident weights.</strong> All experts remain resident unless a runtime explicitly implements expert paging/offload.</li>
+<li><strong>Official benchmark tables are not cross-model leaderboards.</strong> Prompting, harnesses, dates, and tool scaffolds differ.</li>
+<li><strong>Strix Halo target-size performance is open.</strong> ROCmFPX publishes local Strix Halo results for much smaller 27B/35B examples; this package does not extrapolate them to 200–230 GB artifacts.</li>
+<li><strong>RPC is a capacity mechanism, not a performance guarantee.</strong> llama.cpp describes the RPC backend as proof-of-concept and without authentication or encryption.</li>
+</ul>
+<p>Start with the <a href="pages/Ranked-Shortlist.html">Ranked Shortlist</a>, then read <a href="pages/Capacity-Planning.html">Capacity Planning</a> and the candidate card for the selected model.</p>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="assets/wiki.js"></script></body></html>

@@ -1,0 +1,33 @@
+id: PROV-CHANGE-0000
+status: draft
+claim_label: VERIFIED
+source:
+  repository: https://github.com/OWNER/REPOSITORY
+  commit: 0000000000000000000000000000000000000000
+  paths:
+    - path/to/source
+  license_expression: MIT
+  authors:
+    - name: ""
+      email: ""
+import:
+  method: merge # merge | cherry-pick-x | manual-port | exact-blob-copy | generated | submodule | vendor-sync
+  local_commit: 0000000000000000000000000000000000000000
+  local_paths:
+    - path/to/local
+  modifications: ""
+  exact_blob_identity: false
+  source_blob_sha: ""
+  local_blob_sha: ""
+notices:
+  license_text_path: LICENSES/
+  notice_entry: THIRD_PARTY_NOTICES.md
+verification:
+  ancestry_commands: []
+  tests: []
+  reviewed_by: ""
+  reviewed_at: ""
+legal:
+  review_required: false
+  review_id: ""
+  decision: ""

@@ -1,0 +1,33 @@
+---
+upstream_repository: "ROCm/rccl"
+upstream_ref: "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4"
+accessed_at: "2026-07-18"
+source_id: "SRC-STABLE-REGISTER"
+source_class: "source"
+claim_label: "[SOURCE_IMPLEMENTATION]"
+upstream_path: "src/register/register.cc"
+upstream_blob_sha: "d49b159cbb23e033278d59c54664eebbb167c517"
+upstream_locator: "lines 21-24 and 136-164"
+snapshot_kind: "verbatim selected excerpts"
+completeness: "selected relevant excerpts; not full file"
+license: "RCCL LICENSE.txt"
+---
+
+```cpp
+NCCL_PARAM(LocalRegister, "LOCAL_REGISTER", 0); // LWPCOMMLIBS-632: off by default for RCCL as unsupported feature.
+
+NCCL_API(ncclResult_t, ncclCommRegister, const ncclComm_t comm, void* buff, size_t size, void** handle);
+ncclResult_t ncclCommRegister_impl(const ncclComm_t comm, void* buff, size_t size, void** handle) {
+  ncclResult_t ret = ncclSuccess;
+
+  if (!ncclParamLocalRegister())
+    *handle = NULL;
+  else {
+    INFO(NCCL_INIT, "RCCL: ncclCommRegister");
+    NCCLCHECKGOTO(ncclRegister(comm, buff, size, false, handle), ret, end);
+  }
+end:
+  NCCLCHECK(Recorder::instance().record(rrCommRegister, comm, *handle, buff, size));
+  return ret;
+}
+```

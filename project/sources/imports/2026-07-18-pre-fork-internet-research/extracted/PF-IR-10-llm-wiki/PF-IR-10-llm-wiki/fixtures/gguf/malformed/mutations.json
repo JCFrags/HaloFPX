@@ -1,0 +1,122 @@
+{
+  "base": {
+    "locators": {
+      "header": {
+        "end": 24,
+        "start": 0
+      },
+      "metadata": {
+        "general.alignment": {
+          "end": 320,
+          "length": 33,
+          "start": 287
+        },
+        "general.architecture": {
+          "end": 112,
+          "length": 51,
+          "start": 61
+        },
+        "general.description": {
+          "end": 287,
+          "length": 85,
+          "start": 202
+        },
+        "general.file_type": {
+          "end": 353,
+          "length": 33,
+          "start": 320
+        },
+        "general.license": {
+          "end": 395,
+          "length": 42,
+          "start": 353
+        },
+        "general.name": {
+          "end": 162,
+          "length": 50,
+          "start": 112
+        },
+        "general.source.repo_url": {
+          "end": 465,
+          "length": 70,
+          "start": 395
+        },
+        "general.type": {
+          "end": 61,
+          "length": 37,
+          "start": 24
+        },
+        "general.version": {
+          "end": 202,
+          "length": 40,
+          "start": 162
+        },
+        "pfir10.deterministic": {
+          "end": 557,
+          "length": 33,
+          "start": 524
+        },
+        "pfir10.recipe": {
+          "end": 524,
+          "length": 59,
+          "start": 465
+        },
+        "pfir10.tensor_values_hex": {
+          "end": 633,
+          "length": 76,
+          "start": 557
+        }
+      },
+      "tensor_data": {
+        "probe.weight": {
+          "end": 720,
+          "length": 16,
+          "start": 704
+        }
+      },
+      "tensor_data_start": 704,
+      "tensor_info": {
+        "probe.weight": {
+          "end": 685,
+          "offset_field_start": 677,
+          "relative_offset": 0,
+          "start": 633
+        }
+      }
+    },
+    "path": "fixtures/gguf/pfir10-tiny-tensor-v3.gguf",
+    "sha256": "cf27aa3690c25886f02340194619ab6eb7b3a3f6f7bd9d9ba0002b54b55b83bc"
+  },
+  "mutations": [
+    {
+      "file": "bad-magic.gguf",
+      "length": 736,
+      "sha256": "9ecf0a281769a22bcc2129e566602031cbd8c8a491ee8156a9e80db71c2ab2bb"
+    },
+    {
+      "file": "misaligned-tensor-offset.gguf",
+      "length": 736,
+      "sha256": "ec3351fa419de6b1a26d9894112973bae23e24a14f90de01aa3d8577f0805516"
+    },
+    {
+      "file": "truncated-header.gguf",
+      "length": 12,
+      "sha256": "43c439801c05bd36e6f20ca4d100b8f208371b62e3bdd4ae9c87367fe671d357"
+    },
+    {
+      "file": "truncated-metadata.gguf",
+      "length": 42,
+      "sha256": "e375bda7c95b4c97a22cdc54e4638507043b033ad60f2bc22620f66506bdafb5"
+    },
+    {
+      "file": "truncated-tensor-data.gguf",
+      "length": 716,
+      "sha256": "3f4f9f4b07473c7b1126ea655fea14d0ea7d4f7630f0a6c427b6e83b26cf10c2"
+    },
+    {
+      "file": "unknown-metadata-type.gguf",
+      "length": 736,
+      "sha256": "a5e2b544a26f136fbbc5ea109371886fa4a815a3444e854e905b3ff7d5f20574"
+    }
+  ]
+}

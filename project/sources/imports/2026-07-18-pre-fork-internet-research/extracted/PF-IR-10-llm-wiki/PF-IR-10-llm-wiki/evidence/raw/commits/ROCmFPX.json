@@ -1,0 +1,12 @@
+{
+  "access_date": "2026-07-18",
+  "candidate_id": "ROCmFPX",
+  "claim_labels": [
+    "VERIFIED-SOURCE"
+  ],
+  "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "commit_created_at": "2026-07-17T15:41:08-04:00",
+  "default_branch": "main",
+  "message": "hip : avoid full-cache TurboQuant flash-attention staging (#34)\n\nFixes #33.",
+  "repository": "charlie12345/ROCmFPX"
+}

@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/llama-conformance/observation.schema.json",
+  "title": "Conformance observation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case_id",
+    "fork",
+    "source",
+    "build",
+    "environment",
+    "fixtures",
+    "run",
+    "result",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^[A-Z]+-[0-9]{3}$"
+    },
+    "fork": {
+      "enum": [
+        "upstream",
+        "rocmfpx",
+        "cachyllama",
+        "integration"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "repository",
+        "commit"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{7,40}$"
+        },
+        "dirty": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "build": {
+      "type": "object",
+      "required": [
+        "build_id",
+        "compiler",
+        "flags",
+        "binary_sha256"
+      ],
+      "properties": {
+        "build_id": {
+          "type": "string"
+        },
+        "compiler": {
+          "type": "string"
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "binary_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "os",
+        "arch",
+        "backend"
+      ],
+      "properties": {
+        "os": {
+          "type": "string"
+        },
+        "arch": {
+          "type": "string"
+        },
+        "backend": {
+          "type": "string"
+        },
+        "device": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "driver": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "runtime": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "fixtures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "sha256"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "run": {
+      "type": "object",
+      "required": [
+        "started_at",
+        "command",
+        "seed_schedule_id"
+      ],
+      "properties": {
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "seed_schedule_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timeout_seconds": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        }
+      },
+      "additionalProperties": true
+    },
+    "result": {
+      "type": "object",
+      "required": [
+        "status",
+        "exit_code",
+        "duration_seconds",
+        "outputs"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "error",
+            "skip",
+            "cancelled",
+            "timeout"
+          ]
+        },
+        "exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "duration_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "skip_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "tokens": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer"
+              }
+            },
+            "text": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "json": {
+              "type": [
+                "object",
+                "array",
+                "null"
+              ]
+            },
+            "logits": {
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "vectors": {
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "samples": {
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "stderr_class": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "http_status": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "counters": {
+              "type": [
+                "object",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

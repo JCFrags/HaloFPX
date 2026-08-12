@@ -1,0 +1,25 @@
+{
+  "record_model_version": "1.0.0",
+  "record_type": "request",
+  "run_id": "not-a-uuid",
+  "recorded_at": "not-a-date-time",
+  "monotonic_clock": "wall-clock",
+  "monotonic_ns": 1000000000,
+  "request_id": "fixture-request-invalid",
+  "status": "success",
+  "input_tokens": 128,
+  "output_tokens": 4,
+  "request_start_ns": 1000000000,
+  "first_output_observed_ns": 900000000,
+  "final_response_observed_ns": 800000000,
+  "cache": {
+    "eligible_tokens": 16,
+    "restored_tokens": 32,
+    "class": "exact_hit"
+  },
+  "speculation": {
+    "proposed_tokens": 1,
+    "accepted_tokens": 2,
+    "target_only_tokens": 0
+  }
+}

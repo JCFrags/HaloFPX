@@ -1,0 +1,14 @@
+test_explicit_struct_sizes (test_validation.ValidationTests.test_explicit_struct_sizes) ... ok
+test_halo_payload_bitflip_is_miss (test_validation.ValidationTests.test_halo_payload_bitflip_is_miss) ... ok
+test_legacy_payload_bitflip_remains_structurally_valid (test_validation.ValidationTests.test_legacy_payload_bitflip_remains_structurally_valid) ... ok
+test_manifest_binding_mismatch_is_miss (test_validation.ValidationTests.test_manifest_binding_mismatch_is_miss) ... ok
+test_manifest_without_auth_key_is_miss (test_validation.ValidationTests.test_manifest_without_auth_key_is_miss) ... ok
+test_valid_halofpx_manifest_is_import_candidate_not_hit (test_validation.ValidationTests.test_valid_halofpx_manifest_is_import_candidate_not_hit) ... ok
+test_valid_halofpx_manifest_without_request_binding_is_catalog_only (test_validation.ValidationTests.test_valid_halofpx_manifest_without_request_binding_is_catalog_only) ... ok
+test_valid_index_and_system (test_validation.ValidationTests.test_valid_index_and_system) ... ok
+test_valid_legacy_is_not_hit_eligible (test_validation.ValidationTests.test_valid_legacy_is_not_hit_eligible) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.054s
+
+OK

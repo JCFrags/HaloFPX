@@ -1,0 +1,7 @@
+refs/heads/master	commit	6be745998f568e379ea197fcf827baec73ff9940	origin/master
+refs/remotes/origin/20260625	commit	b56d9c952380f760bb69046352324e5f706b1a90	
+refs/remotes/origin/20260630	commit	de62cdfbd5def9104a396975b0679eb90fd23f5e	
+refs/remotes/origin/20260704	commit	4db9548a8c421da633e1124b4d4110b82306803e	
+refs/remotes/origin/20260708	commit	c8ead677a7fe42fb0a67e6e866fb254cc338e9fd	
+refs/remotes/origin/HEAD	commit	6be745998f568e379ea197fcf827baec73ff9940	
+refs/remotes/origin/master	commit	6be745998f568e379ea197fcf827baec73ff9940	

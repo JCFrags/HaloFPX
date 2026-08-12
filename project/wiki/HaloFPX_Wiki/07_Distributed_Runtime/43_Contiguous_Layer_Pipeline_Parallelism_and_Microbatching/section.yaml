@@ -1,0 +1,23 @@
+section_id: "43"
+title: "Contiguous Layer Pipeline Parallelism and Microbatching"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 9
+open_question_count: 12
+required_machine_experiments:
+  - "DR-43-E1 placement, load, and correctness oracle"
+  - "DR-43-E2 boundary transport matrix"
+  - "DR-43-E3 stage and microbatch sweep"
+  - "DR-43-E4 long-prefill and continuous-batching test"
+  - "DR-43-E5 fault and recovery matrix"
+related_sections: ["32", "38", "39", "42", "44", "45", "46", "48", "51", "52", "58", "73", "76"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "vllm-project/vllm@9354f222042986addf20709e5274fc26e0d09745"
+  software_versions:
+    - "PyTorch distributed.pipelining 2.13 documentation"
+  hardware: "two matched AMD Strix Halo systems; exact revisions and dual-link behavior unverified"

@@ -1,0 +1,5 @@
+flowchart LR
+  I[Prompt/token] --> A[Rank 0: embedding + layers 0:k + local KV]
+  A -->|one hidden-state boundary| B[Rank 1: layers k:L + head + sampler + local KV]
+  B -->|token ID feedback| A
+

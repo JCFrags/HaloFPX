@@ -1,0 +1,15 @@
+flowchart TD
+    A[Alert / acceptance failure] --> B[Stop admission and capture evidence]
+    B --> C{Correctness or isolation risk?}
+    C -- Yes --> D[Disable all persistent reads/writes]
+    C -- No, write/storage only --> E[Open write circuit / read-only]
+    D --> F[Snapshot or rename persistent root]
+    E --> F
+    F --> G[Restart current binary in ephemeral/off mode]
+    G --> H{Service healthy and cold path correct?}
+    H -- Yes --> I[Preserve store; investigate offline]
+    H -- No --> J[Deploy previous release]
+    J --> K[Ensure previous binary cannot access newer store]
+    K --> I
+    I --> L[Regression test + lane fix]
+    L --> M[Read-only canary before re-enable]

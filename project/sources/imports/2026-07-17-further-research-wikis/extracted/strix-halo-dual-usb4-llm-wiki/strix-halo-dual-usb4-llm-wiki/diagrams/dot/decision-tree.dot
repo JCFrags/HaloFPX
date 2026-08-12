@@ -1,0 +1,21 @@
+digraph G {
+
+graph [bgcolor="transparent", pad="0.25", nodesep="0.55", ranksep="0.65", fontname="Inter,Arial"];
+node [shape=box, style="rounded,filled", fillcolor="#111827", color="#475569", fontcolor="#e5e7eb", fontname="Inter,Arial", fontsize=11, margin="0.14,0.10"];
+edge [color="#22d3ee", fontcolor="#cbd5e1", fontname="Inter,Arial", fontsize=9, penwidth=1.6, arrowsize=0.8];
+
+rankdir=TB;
+q1 [shape=diamond,label="Model + planned KV + workspace\nfit on each node?",fillcolor="#312e81",color="#818cf8"];
+r [label="Replicated decode for concurrent requests\nSingle node for one-request baseline",fillcolor="#064e3b",color="#34d399"];
+q2 [shape=diamond,label="Contiguous layer partitions\nfit independently?",fillcolor="#312e81",color="#818cf8"];
+ls [label="Contiguous split baseline\nAdd pipeline only for concurrency",fillcolor="#064e3b",color="#34d399"];
+q3 [shape=diamond,label="MoE expert capacity is the blocker?",fillcolor="#312e81",color="#818cf8"];
+moe [label="Keep experts layer-local first\nExpert service only after routing trace",fillcolor="#78350f",color="#f59e0b"];
+tp [label="TP=2 only after collective\nbreak-even and runtime gates",fillcolor="#7f1d1d",color="#f87171"];
+q1 -> r [label="yes"];
+q1 -> q2 [label="no"];
+q2 -> ls [label="yes"];
+q2 -> q3 [label="no"];
+q3 -> moe [label="yes"];
+q3 -> tp [label="no / per-layer shard required"];
+}

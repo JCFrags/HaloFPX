@@ -1,0 +1,10 @@
+rank,candidate_id,name,selected_quant,size_gb_decimal,params_b,artifact_effective_bits_per_parameter,quant_risk
+1,qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,UD-Q6_K_XL,201.91,235.0,6.873531914893617,Moderate-low: high effective bit budget; candidate-specific independent quant benchmark not located.
+2,step-3.7-flash,Step-3.7-Flash,Q8_0,209.0,198.0,8.444444444444445,Low for Q8_0; direct quant-specific PPL/KLD evidence is available.
+3,mimo-v2-flash,MiMo-V2-Flash,Q5_K_M,219.2,309.0,5.675080906148867,"Moderate: Q5_K_M is materially safer than 4-bit options, but no candidate-specific independent quant benchmark was located."
+4,glm-4.7,GLM-4.7,Q4_K_M,218.52,358.0,4.883128491620112,Moderate-high versus Q5/Q6/Q8 candidates because the chosen artifact is Q4_K_M.
+5,nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,Q6_K,207.88,253.0,6.573280632411067,Moderate-low: Q6_K gives high weight fidelity.
+6,deepseek-r1-0528,DeepSeek-R1-0528,UD-IQ2_M,229.0,671.0,2.730253353204173,High: effective storage is only about 2.73 bits/parameter and no direct selected-quant evaluation was found.
+7,tulu3-405b,Llama-3.1-Tulu-3-405B,IQ4_XS,216.57,405.0,4.277925925925926,Moderate-high: IQ4_XS is an aggressive dense-model quant; card claims similar quality to Q4_K_S but lacks candidate-specific independent evaluation.
+8,minimax-m3,MiniMax-M3,UD-IQ4_XS,208.0,428.0,3.8878504672897196,Moderate-high: IQ4_XS; no selected-quant independent evaluation located.
+9,kimi-k2-thinking,Kimi-K2-Thinking,i1-IQ1_M community artifact,228.0,1000.0,1.824,Very high: about 1.82 effective bits/parameter; the community card labels the quant as suitable only for the mostly desperate.

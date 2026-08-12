@@ -1,0 +1,1 @@
+Strix Halo / gfx1151 compatibility snapshot **2026.07.17**. Support labels are scoped; verify live vendor matrices before production changes. [Sources](docs/sources.md) · [Version](docs/versions/2026.07.17.md)

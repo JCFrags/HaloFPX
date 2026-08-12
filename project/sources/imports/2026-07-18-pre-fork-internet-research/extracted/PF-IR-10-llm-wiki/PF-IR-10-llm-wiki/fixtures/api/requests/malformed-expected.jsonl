@@ -1,0 +1,4 @@
+{"expected":"reject-request","id":"messages-not-array"}
+{"expected":"reject-request","id":"tool-choice-missing-tool"}
+{"expected":"reject-request","id":"schema-invalid-type"}
+{"expected":"reject-or-ignore-extension","fork_variance":true,"id":"stream-options-without-stream"}

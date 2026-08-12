@@ -1,0 +1,20 @@
+digraph G {
+graph [bgcolor="transparent", fontname="Helvetica", pad="0.25", nodesep="0.45", ranksep="0.65"]; node [shape=box, style="rounded,filled", fillcolor="#eef3fa", color="#506784", fontname="Helvetica", fontsize=10, margin="0.12,0.08"]; edge [color="#506784", fontname="Helvetica", fontsize=9];
+rankdir=LR;
+req[label="AUTHORIZED REQUEST"];
+ns[label="NAMESPACE RESOLVER"];
+fp[label="COMPATIBILITY BUILDER"];
+pk[label="PROMPT-CHAIN KEY"];
+ckey[label="CATALOG-AUTH\nKEY MANAGER", fillcolor="#fff0d6", color="#8a5a00"];
+look[label="HMAC-AUTHENTICATED\nMANIFEST LOOKUP"];
+val[label="BOUNDED VALIDATOR"];
+obj[label="IMMUTABLE OBJECT STORE"];
+dkey[label="DATA KEY / AEAD"];
+eng[label="ISOLATED ENGINE ADAPTER"];
+hit[label="VERIFIED CONTEXT COMMIT", fillcolor="#dff5e3", color="#216e39"];
+sf[label="SINGLE-FLIGHT / LEASE"];
+wr[label="DURABLE OBJECT WRITER"];
+cat[label="GENERATIONED MANIFEST\nCATALOG"];
+ev[label="QUOTA / EVICTION / GC"];
+req->ns; req->fp; req->pk; ns->look; fp->look; pk->look; ckey->look; look->val; val->obj; val->dkey; val->eng; eng->hit; look->sf; sf->wr; wr->obj; wr->cat; ckey->cat; cat->look; ev->cat; ev->obj;
+}

@@ -1,0 +1,36 @@
+{
+  "access_date": "2026-07-18",
+  "assets": [
+    {
+      "id": "ggml-org-vocabs-binaries",
+      "reason": "No sufficient per-repository/per-artifact license evidence was observed.",
+      "reason_label": "EXCLUDED-LICENSE-UNCLEAR",
+      "source": "https://huggingface.co/ggml-org/vocabs",
+      "status": "excluded"
+    },
+    {
+      "id": "stories15M-q4_0.gguf",
+      "reason": "Checksum is pinned upstream, but the exact converted artifact license/conversion chain was not sufficiently preserved.",
+      "reason_label": "EXCLUDED-PROVENANCE-GAP",
+      "sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+      "status": "excluded"
+    },
+    {
+      "id": "stories15M-q4_0-big-endian.gguf",
+      "reason_label": "EXCLUDED-PROVENANCE-GAP",
+      "sha256": "9aec857937849d976f30397e97eb1cabb53eb9dcb1ce4611ba8247fb5f44c65d",
+      "status": "excluded"
+    },
+    {
+      "id": "publisher-MTP-EAGLE-DFlash-draft-weights",
+      "reason": "No minimal exact artifact with complete redistribution and conversion evidence chain was accepted.",
+      "reason_label": "EXCLUDED-LICENSE-UNCLEAR",
+      "status": "excluded"
+    }
+  ],
+  "claim_labels": [
+    "EXCLUDED-LICENSE-UNCLEAR",
+    "EXCLUDED-PROVENANCE-GAP"
+  ],
+  "schema_version": 1
+}

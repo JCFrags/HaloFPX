@@ -1,0 +1,1615 @@
+{
+  "schema_version": "1.0",
+  "fixtures": [
+    {
+      "id": "api.anthropic-messages",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.cancel-stress",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.cancellation-envelope",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.completion-basic",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.completion-corpus",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.completion-stream",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.embeddings",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.expert-tracking",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.health-probe",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.malformed-requests",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.metrics-sequence",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/normalization.json",
+      "sha256": "f3b8fc38b4ccce3e71bea1a89a03536f69a3d45ffb77f4f52feb07bf353eabcc",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.openai-chat",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.openai-completions",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.openai-responses",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.parallel-cancel",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.props-models",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/normalization.json",
+      "sha256": "f3b8fc38b4ccce3e71bea1a89a03536f69a3d45ffb77f4f52feb07bf353eabcc",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.rerank",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.security-config",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/normalization.json",
+      "sha256": "f3b8fc38b4ccce3e71bea1a89a03536f69a3d45ffb77f4f52feb07bf353eabcc",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.slots",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.stream-cancel",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.structured-output",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.tool-calls",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.unknown-fields",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/requests.jsonl",
+      "sha256": "4aaefe43e7573ba597079e2a10532e226c6d3705b3d556402568e5818ee27235",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "api.user-concurrency",
+      "kind": "api",
+      "materialization": "included",
+      "path": "fixtures/api/user-concurrency.json",
+      "sha256": "7c544cd72fccb97e5455a5a96de1582c66469121361fa64a1404cb64cdeed2c5",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "backend.fault-injection",
+      "kind": "backend",
+      "materialization": "included",
+      "path": "fixtures/backend/fault-injection.json",
+      "sha256": "17b854f0624d434af7d90c9a7c0441c1235b8856ec9e95142507926a9c87dcf5",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "backend.synthetic-ops",
+      "kind": "backend",
+      "materialization": "recipe",
+      "path": "fixtures/quant/kernel-shapes.json",
+      "sha256": "3384fe2ce441a4f63122bd9f5d8778619cd87902e75f4825297e88ce06246f82",
+      "source": "upstream test plus suite augmentation",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "The included file describes inputs/selection; native upstream expectations remain authoritative for the reused test."
+    },
+    {
+      "id": "cache.atomic-publication",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/storage-failures.json",
+      "sha256": "4b76c75a94a8fea94d226f8f1fbea5def83fb3c577d7b67691e1a0902f1df7fd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.concurrent-conversations",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.conversation-basic",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.corrupt-byte-recipes",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/rejection-recipes.json",
+      "sha256": "e641938581378e21a632b78717f5a446a1125f23b43fda91a82ace1cecb39001",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.cross-conversation-recurrent",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/rejection-recipes.json",
+      "sha256": "e641938581378e21a632b78717f5a446a1125f23b43fda91a82ace1cecb39001",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.expiry-clock",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/storage-failures.json",
+      "sha256": "4b76c75a94a8fea94d226f8f1fbea5def83fb3c577d7b67691e1a0902f1df7fd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.fragmented-state",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.future-version",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/rejection-recipes.json",
+      "sha256": "e641938581378e21a632b78717f5a446a1125f23b43fda91a82ace1cecb39001",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.interrupted-write",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/storage-failures.json",
+      "sha256": "4b76c75a94a8fea94d226f8f1fbea5def83fb3c577d7b67691e1a0902f1df7fd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.large-cancellable",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/storage-failures.json",
+      "sha256": "4b76c75a94a8fea94d226f8f1fbea5def83fb3c577d7b67691e1a0902f1df7fd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.long-prefix",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.multi-sequence",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.overflow-recipes",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/rejection-recipes.json",
+      "sha256": "e641938581378e21a632b78717f5a446a1125f23b43fda91a82ace1cecb39001",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.page-manager-sequence",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/page-manager-sequence.json",
+      "sha256": "6e0b8810967edf7f4a0e354ae72359851d50d29f5eb611c9748e2f8db27fc349",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.persistent-conversation",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.reject-context-config",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/rejection-recipes.json",
+      "sha256": "e641938581378e21a632b78717f5a446a1125f23b43fda91a82ace1cecb39001",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.reject-model-bytes",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/rejection-recipes.json",
+      "sha256": "e641938581378e21a632b78717f5a446a1125f23b43fda91a82ace1cecb39001",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.reject-quant-layout",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/rejection-recipes.json",
+      "sha256": "e641938581378e21a632b78717f5a446a1125f23b43fda91a82ace1cecb39001",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.slot-basic",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.speculative-state",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.state-record",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.storage-failures",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/storage-failures.json",
+      "sha256": "4b76c75a94a8fea94d226f8f1fbea5def83fb3c577d7b67691e1a0902f1df7fd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.system-prompt-two-conversations",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.telemetry-cases",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.truncation-recipes",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/rejection-recipes.json",
+      "sha256": "e641938581378e21a632b78717f5a446a1125f23b43fda91a82ace1cecb39001",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "cache.user-isolation-attacks",
+      "kind": "cache",
+      "materialization": "included",
+      "path": "fixtures/cache/scenarios.json",
+      "sha256": "0e6be314d85dd7881bf4f8c578f7a6f29d9735d6eabe3626b5111d7f67e928c1",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.adapter-parity",
+      "kind": "chat",
+      "materialization": "included",
+      "path": "fixtures/chat/basic-messages.json",
+      "sha256": "4ed6397bbc5db2587c307069c86c36faa3996e5b1d08321ae439bc5c20562cdd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.basic-messages",
+      "kind": "chat",
+      "materialization": "included",
+      "path": "fixtures/chat/basic-messages.json",
+      "sha256": "4ed6397bbc5db2587c307069c86c36faa3996e5b1d08321ae439bc5c20562cdd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.content-forms",
+      "kind": "chat",
+      "materialization": "included",
+      "path": "fixtures/chat/basic-messages.json",
+      "sha256": "4ed6397bbc5db2587c307069c86c36faa3996e5b1d08321ae439bc5c20562cdd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.generation-prompt-matrix",
+      "kind": "chat",
+      "materialization": "included",
+      "path": "fixtures/chat/basic-messages.json",
+      "sha256": "4ed6397bbc5db2587c307069c86c36faa3996e5b1d08321ae439bc5c20562cdd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.invalid-templates",
+      "kind": "chat",
+      "materialization": "included",
+      "path": "fixtures/chat/invalid-templates.json",
+      "sha256": "ec5e78a6b9fa6f93db951c7dfa8ab568ea197c4984bf0ed99c72749b3823bf33",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.override-template",
+      "kind": "chat",
+      "materialization": "included",
+      "path": "fixtures/chat/basic-messages.json",
+      "sha256": "4ed6397bbc5db2587c307069c86c36faa3996e5b1d08321ae439bc5c20562cdd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.resource-limit-templates",
+      "kind": "chat",
+      "materialization": "included",
+      "path": "fixtures/chat/invalid-templates.json",
+      "sha256": "ec5e78a6b9fa6f93db951c7dfa8ab568ea197c4984bf0ed99c72749b3823bf33",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.template-corpus",
+      "kind": "chat",
+      "materialization": "included",
+      "path": "fixtures/chat/basic-messages.json",
+      "sha256": "4ed6397bbc5db2587c307069c86c36faa3996e5b1d08321ae439bc5c20562cdd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.tools",
+      "kind": "chat",
+      "materialization": "included",
+      "path": "fixtures/chat/tools.json",
+      "sha256": "ee6a9e24ebed2ba8dd8a98b111960e1fd639cf2b7abd9c2c7e5f4aa511a2982a",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "chat.upstream-templates",
+      "kind": "chat",
+      "materialization": "recipe",
+      "path": "fixtures/chat/basic-messages.json",
+      "sha256": "4ed6397bbc5db2587c307069c86c36faa3996e5b1d08321ae439bc5c20562cdd",
+      "source": "upstream test plus suite augmentation",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "The included file describes inputs/selection; native upstream expectations remain authoritative for the reused test."
+    },
+    {
+      "id": "determinism.batch-matrix",
+      "kind": "determinism",
+      "materialization": "included",
+      "path": "fixtures/determinism/profile.json",
+      "sha256": "da2073d9d6a832bff8516f878f1d09f4d9faadfd1f739f26d8e2f2c79f6d130d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "determinism.thread-matrix",
+      "kind": "determinism",
+      "materialization": "included",
+      "path": "fixtures/determinism/profile.json",
+      "sha256": "da2073d9d6a832bff8516f878f1d09f4d9faadfd1f739f26d8e2f2c79f6d130d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.adapter-envelope",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.capability-matrix",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.capacity",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.cli-arguments",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.device-oom",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.filesystem",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.host-oom",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.http-routing",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.invalid-device",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.missing-model",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.redaction",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.request-validation",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.signals",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "error.unsupported-quant",
+      "kind": "error",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "failure.all-fast",
+      "kind": "failure",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.bad-kv-count",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.bad-magic",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.bad-tensor-count",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.bad-version-0",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.bad-version-1",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.custom-alignment",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.future-version",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.invalid-kv-recipes",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.invalid-tensor-recipes",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.known-good",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.oob-special-token",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.truncated-data",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "gguf.unknown-metadata",
+      "kind": "gguf",
+      "materialization": "included",
+      "path": "fixtures/gguf/recipes.json",
+      "sha256": "c115371b7b812a5dc59f6ab5ffeb6d36314de02fc930290d8d3f5306a359c58d",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "harness.watchdog",
+      "kind": "harness",
+      "materialization": "included",
+      "path": "fixtures/harness/watchdog.json",
+      "sha256": "c7affed4d719490412d1c099387105af92592b9ac9ddd2f1539dd79e9e51e742",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "model.backend-matrix",
+      "kind": "model",
+      "materialization": "recipe",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.embedding",
+      "kind": "model",
+      "materialization": "operator-supplied",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.identity-inputs",
+      "kind": "model",
+      "materialization": "recipe",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.long-context",
+      "kind": "model",
+      "materialization": "operator-supplied",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.mtp-capable",
+      "kind": "model",
+      "materialization": "operator-supplied",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.non-mtp",
+      "kind": "model",
+      "materialization": "recipe",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.quant-quality-pairs",
+      "kind": "model",
+      "materialization": "recipe",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.reference-f16",
+      "kind": "model",
+      "materialization": "operator-supplied",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.rocmfpx-micro-matrix",
+      "kind": "model",
+      "materialization": "generated",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.speculative-mismatch",
+      "kind": "model",
+      "materialization": "recipe",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.speculative-pair",
+      "kind": "model",
+      "materialization": "operator-supplied",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.synthetic-qwen35-dense",
+      "kind": "model",
+      "materialization": "recipe",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.tiny-split.recipe",
+      "kind": "model",
+      "materialization": "recipe",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": null,
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "model.tiny-stories15m-q4_0",
+      "kind": "model",
+      "materialization": "download",
+      "path": "fixtures/models/model-manifest.json",
+      "sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739",
+      "source": "fixtures/models/model-manifest.json",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "Resolve the model entry and create a local lock before execution."
+    },
+    {
+      "id": "process.shutdown-phases",
+      "kind": "process",
+      "materialization": "included",
+      "path": "fixtures/failure/failure-recipes.yaml",
+      "sha256": "8cbca2bce34b409dcb71e6b191bece6d60e60394b1f5e5620f469c36c2f71d9b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.basic-completion",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/core.jsonl",
+      "sha256": "f6edd51305c45de42c2352427dc493bf8e19a25d62f3df64ed041820d724237f",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.boundary-exact",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/long-context-spec.json",
+      "sha256": "002736ea1adb8fb78fb83f91fc07a872787be2db8c18daf32f31c5a2fcc038cd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.boundary-plus-one",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/long-context-spec.json",
+      "sha256": "002736ea1adb8fb78fb83f91fc07a872787be2db8c18daf32f31c5a2fcc038cd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.context-shift",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/long-context-spec.json",
+      "sha256": "002736ea1adb8fb78fb83f91fc07a872787be2db8c18daf32f31c5a2fcc038cd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.cross-fork-core",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/core.jsonl",
+      "sha256": "f6edd51305c45de42c2352427dc493bf8e19a25d62f3df64ed041820d724237f",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.embedding-corpus",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/core.jsonl",
+      "sha256": "f6edd51305c45de42c2352427dc493bf8e19a25d62f3df64ed041820d724237f",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.logit-probes",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/core.jsonl",
+      "sha256": "f6edd51305c45de42c2352427dc493bf8e19a25d62f3df64ed041820d724237f",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.long-cancellable",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/long-context-spec.json",
+      "sha256": "002736ea1adb8fb78fb83f91fc07a872787be2db8c18daf32f31c5a2fcc038cd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.long-context",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/long-context-spec.json",
+      "sha256": "002736ea1adb8fb78fb83f91fc07a872787be2db8c18daf32f31c5a2fcc038cd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.passkey-generator",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/long-context-spec.json",
+      "sha256": "002736ea1adb8fb78fb83f91fc07a872787be2db8c18daf32f31c5a2fcc038cd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.quality-corpus",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/core.jsonl",
+      "sha256": "f6edd51305c45de42c2352427dc493bf8e19a25d62f3df64ed041820d724237f",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.speculative-accounting",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/core.jsonl",
+      "sha256": "f6edd51305c45de42c2352427dc493bf8e19a25d62f3df64ed041820d724237f",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.speculative-boundary",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/long-context-spec.json",
+      "sha256": "002736ea1adb8fb78fb83f91fc07a872787be2db8c18daf32f31c5a2fcc038cd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.speculative-cancellable",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/long-context-spec.json",
+      "sha256": "002736ea1adb8fb78fb83f91fc07a872787be2db8c18daf32f31c5a2fcc038cd",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.speculative-corpus",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/core.jsonl",
+      "sha256": "f6edd51305c45de42c2352427dc493bf8e19a25d62f3df64ed041820d724237f",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.speculative-parallel",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/core.jsonl",
+      "sha256": "f6edd51305c45de42c2352427dc493bf8e19a25d62f3df64ed041820d724237f",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "prompt.speculative-performance",
+      "kind": "prompt",
+      "materialization": "included",
+      "path": "fixtures/prompts/core.jsonl",
+      "sha256": "f6edd51305c45de42c2352427dc493bf8e19a25d62f3df64ed041820d724237f",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "quant.boundary-shapes",
+      "kind": "quant",
+      "materialization": "included",
+      "path": "fixtures/quant/kernel-shapes.json",
+      "sha256": "3384fe2ce441a4f63122bd9f5d8778619cd87902e75f4825297e88ce06246f82",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "quant.canonical-blocks",
+      "kind": "quant",
+      "materialization": "included",
+      "path": "fixtures/quant/kernel-shapes.json",
+      "sha256": "3384fe2ce441a4f63122bd9f5d8778619cd87902e75f4825297e88ce06246f82",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "quant.concurrent-jobs",
+      "kind": "quant",
+      "materialization": "included",
+      "path": "fixtures/quant/kernel-shapes.json",
+      "sha256": "3384fe2ce441a4f63122bd9f5d8778619cd87902e75f4825297e88ce06246f82",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "quant.fallback-matrix",
+      "kind": "quant",
+      "materialization": "included",
+      "path": "fixtures/quant/fallback-matrix.json",
+      "sha256": "55ce35b7af37981815a6d8b86f3a2b026dac143e1057abdeb4cac9029180fb77",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "quant.kernel-shape-matrix",
+      "kind": "quant",
+      "materialization": "included",
+      "path": "fixtures/quant/kernel-shapes.json",
+      "sha256": "3384fe2ce441a4f63122bd9f5d8778619cd87902e75f4825297e88ce06246f82",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "quant.rocmfpx-blocks",
+      "kind": "quant",
+      "materialization": "included",
+      "path": "fixtures/quant/kernel-shapes.json",
+      "sha256": "3384fe2ce441a4f63122bd9f5d8778619cd87902e75f4825297e88ce06246f82",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "quant.strided-shapes",
+      "kind": "quant",
+      "materialization": "included",
+      "path": "fixtures/quant/kernel-shapes.json",
+      "sha256": "3384fe2ce441a4f63122bd9f5d8778619cd87902e75f4825297e88ce06246f82",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "quant.synthetic-blocks",
+      "kind": "quant",
+      "materialization": "included",
+      "path": "fixtures/quant/kernel-shapes.json",
+      "sha256": "3384fe2ce441a4f63122bd9f5d8778619cd87902e75f4825297e88ce06246f82",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "quant.turboquant-vectors",
+      "kind": "quant",
+      "materialization": "included",
+      "path": "fixtures/quant/kernel-shapes.json",
+      "sha256": "3384fe2ce441a4f63122bd9f5d8778619cd87902e75f4825297e88ce06246f82",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.cancellable-job",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.disconnect-phases",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.invalid-endpoints",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.loopback-config",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.multi-endpoint",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.op-matrix",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.rdma-config",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.tensor-cache",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.unsupported-op",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "rpc.version-mismatch",
+      "kind": "rpc",
+      "materialization": "included",
+      "path": "fixtures/rpc/configs.json",
+      "sha256": "4d90e14b4abb64f12053848c95434e988913a347e82e1e8b72bb9b0bd5b85bba",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "sampling.cache-state-traces",
+      "kind": "sampling",
+      "materialization": "included",
+      "path": "fixtures/sampling/synthetic-probabilities.json",
+      "sha256": "ccbf66df01c89a319bb98d20300dd0c9ae72f191035f513f46abe9ae510a2e84",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "sampling.distribution-probes",
+      "kind": "sampling",
+      "materialization": "included",
+      "path": "fixtures/sampling/seed-schedule-v1.json",
+      "sha256": "80ddbd64563cdf4a8991c176e36775c7aa2d4d8316095c48ebaa782cbfcffb40",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "sampling.grammar-corpus",
+      "kind": "sampling",
+      "materialization": "included",
+      "path": "fixtures/sampling/synthetic-probabilities.json",
+      "sha256": "ccbf66df01c89a319bb98d20300dd0c9ae72f191035f513f46abe9ae510a2e84",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "sampling.invalid-parameters",
+      "kind": "sampling",
+      "materialization": "included",
+      "path": "fixtures/sampling/synthetic-probabilities.json",
+      "sha256": "ccbf66df01c89a319bb98d20300dd0c9ae72f191035f513f46abe9ae510a2e84",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "sampling.order-matrix",
+      "kind": "sampling",
+      "materialization": "included",
+      "path": "fixtures/sampling/synthetic-probabilities.json",
+      "sha256": "ccbf66df01c89a319bb98d20300dd0c9ae72f191035f513f46abe9ae510a2e84",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "sampling.seeded-traces",
+      "kind": "sampling",
+      "materialization": "included",
+      "path": "fixtures/sampling/seed-schedule-v1.json",
+      "sha256": "80ddbd64563cdf4a8991c176e36775c7aa2d4d8316095c48ebaa782cbfcffb40",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "sampling.speculative-distribution",
+      "kind": "sampling",
+      "materialization": "included",
+      "path": "fixtures/sampling/seed-schedule-v1.json",
+      "sha256": "80ddbd64563cdf4a8991c176e36775c7aa2d4d8316095c48ebaa782cbfcffb40",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "sampling.synthetic-probabilities",
+      "kind": "sampling",
+      "materialization": "recipe",
+      "path": "fixtures/sampling/synthetic-probabilities.json",
+      "sha256": "ccbf66df01c89a319bb98d20300dd0c9ae72f191035f513f46abe9ae510a2e84",
+      "source": "upstream test plus suite augmentation",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "The included file describes inputs/selection; native upstream expectations remain authoritative for the reused test."
+    },
+    {
+      "id": "sampling.tie-cases",
+      "kind": "sampling",
+      "materialization": "included",
+      "path": "fixtures/sampling/synthetic-probabilities.json",
+      "sha256": "ccbf66df01c89a319bb98d20300dd0c9ae72f191035f513f46abe9ae510a2e84",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "tokenizer.api-corpus",
+      "kind": "tokenizer",
+      "materialization": "included",
+      "path": "fixtures/tokenizer/corpus.jsonl",
+      "sha256": "992ba273bfd9a8fe0d54d06ddaaa20de4cc1dcf05ab9777f846cf90c724a5030",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "tokenizer.detokenize-corpus",
+      "kind": "tokenizer",
+      "materialization": "included",
+      "path": "fixtures/tokenizer/corpus.jsonl",
+      "sha256": "992ba273bfd9a8fe0d54d06ddaaa20de4cc1dcf05ab9777f846cf90c724a5030",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "tokenizer.invalid-api-inputs",
+      "kind": "tokenizer",
+      "materialization": "included",
+      "path": "fixtures/tokenizer/invalid-api-inputs.json",
+      "sha256": "688fcded7ce9c08e4c22e7426fc6de43cf5acbb87f84e58661aac0c5ecce0656",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "tokenizer.property-seeds",
+      "kind": "tokenizer",
+      "materialization": "included",
+      "path": "fixtures/tokenizer/corpus.jsonl",
+      "sha256": "992ba273bfd9a8fe0d54d06ddaaa20de4cc1dcf05ab9777f846cf90c724a5030",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "tokenizer.special-token-matrix",
+      "kind": "tokenizer",
+      "materialization": "included",
+      "path": "fixtures/tokenizer/special-token-matrix.json",
+      "sha256": "5552b11b9efd51013af99e27cca2131ba35087ef0790e8503840e8c6d2ccf96b",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "tokenizer.unicode-corpus",
+      "kind": "tokenizer",
+      "materialization": "included",
+      "path": "fixtures/tokenizer/corpus.jsonl",
+      "sha256": "992ba273bfd9a8fe0d54d06ddaaa20de4cc1dcf05ab9777f846cf90c724a5030",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    },
+    {
+      "id": "tokenizer.upstream-corpus",
+      "kind": "tokenizer",
+      "materialization": "recipe",
+      "path": "fixtures/tokenizer/corpus.jsonl",
+      "sha256": "992ba273bfd9a8fe0d54d06ddaaa20de4cc1dcf05ab9777f846cf90c724a5030",
+      "source": "upstream test plus suite augmentation",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": "The included file describes inputs/selection; native upstream expectations remain authoritative for the reused test."
+    },
+    {
+      "id": "tokenizer.whitespace-corpus",
+      "kind": "tokenizer",
+      "materialization": "included",
+      "path": "fixtures/tokenizer/corpus.jsonl",
+      "sha256": "992ba273bfd9a8fe0d54d06ddaaa20de4cc1dcf05ab9777f846cf90c724a5030",
+      "source": "suite-authored fixture or recipe",
+      "license_notes": "Suite-authored metadata is provided under the repository license; external model/license terms remain separate.",
+      "notes": null
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+site_name: HaloFPX Persistent KV-Cache Wiki
+site_description: Source-pinned audit and fail-closed redesign for persistent LLM KV caches
+site_author: OpenAI research artifact
+site_dir: build/mkdocs
+use_directory_urls: false
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+nav:
+  - Home: index.md
+  - Executive findings: executive-findings.md
+  - Scope and method: scope-and-method.md
+  - Observed implementations:
+      - CachyLLama: observed-cachyllama.md
+      - llama.cpp: observed-llama-cpp.md
+      - Comparative designs: comparative-designs.md
+  - HaloFPX:
+      - Redesign: halofpx-redesign.md
+      - Integrity invariants: integrity-invariants.md
+      - Storage schemas: storage-schemas.md
+      - State machines: state-machines.md
+      - Failure and recovery: failure-and-recovery.md
+      - Security: security.md
+      - SSD endurance: ssd-endurance.md
+  - Verification:
+      - Validation: validation.md
+      - Source matrix: source-matrix.md
+      - Claim ledger: claim-ledger.md
+      - Glossary: glossary.md
+      - Changelog: changelog.md
+extra_css:
+  - assets/extra.css
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid

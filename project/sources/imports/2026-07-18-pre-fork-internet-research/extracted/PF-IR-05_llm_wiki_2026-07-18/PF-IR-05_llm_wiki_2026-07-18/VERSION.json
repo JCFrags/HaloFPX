@@ -1,0 +1,10 @@
+{
+  "package": "PF-IR-05 Exact 200–230 GB model artifact shortlist and immutable identity",
+  "version": "PF-IR-05-2026-07-18.1",
+  "generated_at": "2026-07-18T00:00:00-07:00",
+  "access_date": "2026-07-18",
+  "catalog_imported": false,
+  "machine_validation": "NOT_RUN",
+  "llama_cpp_revision": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+  "rocmfpx_revision": "61f2f2d7bc4955e9bca821095ef69125837133b5"
+}

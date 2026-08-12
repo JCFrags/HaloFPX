@@ -1,0 +1,21 @@
+item,spdx_or_family,status,provenance,source_ids,notice_action
+TheRock build system,MIT,verified root license,TheRock therock-7.14 LICENSE blob 5c22b7e0496700a306b37a37fcfb23bfaa6a986f,"[""S013""]",retain copyright and license
+LLVM/Clang toolchain,Apache-2.0 WITH LLVM-exception,declared by package metadata; source scan required,amdrocm-llvm package declaration and exact llvm-project pin,"[""S012"", ""S007""]",retain LICENSE.TXT and exception text
+HIP / ROCR / COMGR ROCm components,primarily MIT,component-level verification required,amdrocm-runtime declared MIT; exact source tree scan required,"[""S012""]",retain all per-component LICENSE/NOTICE files
+rocBLAS / hipBLAS / hipBLASLt,primarily MIT,component-level verification required,rocm-libraries exact pin and package metadata,"[""S007"", ""S012""]",scan bundled kernels/code generators and notices
+rocWMMA / rocPRIM / rocThrust / hipCUB,primarily MIT/BSD-family depending component and imported headers,artifact/source scan required,rocm-libraries exact pin,"[""S007"", ""S012""]",preserve third-party header notices
+RCCL,MIT (package declared); imported NCCL-derived notices may apply,"package declaration verified, notice scan required",amdrocm-rccl package JSON,"[""S012""]",retain RCCL and imported-source notices
+Linux kernel,GPL-2.0-only,project license; exact source tag/signature required,selected kernel source tree,"[""S015"", ""S016""]",retain COPYING and source/offering obligations as applicable
+linux-firmware / AMD GPU firmware,mixed per-file licenses,unresolved until exact distro package is captured,distro linux-firmware package and WHENCE,"[""S001"", ""S003""]",retain WHENCE and every per-blob license/notice
+Mesa / RADV,"mixed permissive, predominantly MIT/X11-family",exact source/package scan required,Mesa 26.1.4 source or distro package,"[""S019""]",retain top-level and per-driver notices
+libdrm,MIT-family,bundled/system dependency; exact build selection required,amdrocm-sysdeps or distro package,"[""S002"", ""S012""]",retain package copyright/license files
+libnuma / numactl,LGPL/GPL mixed by file/package,exact package scan required,amdrocm-sysdeps or distro package,"[""S012""]",retain licenses and notices
+libelf / elfutils,mixed LGPL/GPL by component,exact package scan required,amdrocm-sysdeps or distro package,"[""S012""]",retain package copyright/license files
+ELFIO,MIT,package source indicated; verify artifact inclusion,TheRock sysdeps mapping,"[""S012""]",retain MIT notice
+libpciaccess,MIT-family,package source indicated; verify artifact inclusion,TheRock sysdeps mapping,"[""S012""]",retain copyright/license
+SuiteSparse,mixed per subproject,exact included subprojects and licenses unresolved,TheRock host-suite-sparse artifact mapping,"[""S012""]",inventory each included SuiteSparse component
+ncurses,X11-style permissive,verify bundled version and notice,TheRock sysdeps mapping,"[""S012""]",retain ncurses license
+Boost,BSL-1.0,build dependency/inclusion to verify,TheRock source/build graph,"[""S007"", ""S010""]",retain Boost license where redistributed
+FlatBuffers,Apache-2.0,build/runtime inclusion to verify,TheRock source/build graph,"[""S007""]",retain NOTICE/LICENSE if redistributed
+fmt,MIT,RCCL/build dependency inclusion to verify,RCCL source/build graph,"[""S004"", ""S012""]",retain MIT notice
+All artifact files not enumerated above,UNKNOWN UNTIL SCAN,blocking open item,acquired package/tarball bytes,"[""S009"", ""S012""]",run inventory-artifact.sh and generate-sbom.sh; review every LICENSE/COPYING/NOTICE and package copyright record

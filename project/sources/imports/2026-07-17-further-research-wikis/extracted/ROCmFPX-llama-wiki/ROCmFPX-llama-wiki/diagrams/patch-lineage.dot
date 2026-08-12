@@ -1,0 +1,14 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="transparent", pad=0.25, nodesep=0.4, ranksep=0.5, fontname="Inter"];
+  node [shape=box, style="rounded,filled", fontname="Inter", fontsize=10, color="#6d5dfc", fillcolor="#17182a", fontcolor="#eef0ff", margin="0.12,0.08"];
+  edge [color="#71d7ff", fontcolor="#b9c7ff", fontname="Inter", fontsize=9, arrowsize=0.7];
+
+  base [label="Baseline\n5b395660…"];
+  p27 [label="PR #27\n53 commits + merge\n237 paths"];
+  p28 [label="PR #28\n1 commit + merge\nfunding only"];
+  p31 [label="PR #31\n1 commit + merge\nper-request spec"];
+  p32 [label="PR #32\n41 commits + merge\n73 paths"];
+  head [label="Current head\na5605a72…\n100 graph nodes after baseline"];
+
+  base -> p27 -> p28 -> p31 -> p32 -> head;
+}

@@ -1,0 +1,1436 @@
+# Current Project-Lead Status
+
+Verified: 2026-07-29 09:34 PDT
+
+## Overall state
+
+The project is active and materially progressing. The current worker remains
+suitable as the primary implementation owner. Earlier excessive test expansion
+has been corrected by steering; recent work uses bounded kill gates and removes
+slower candidates.
+
+L101 closed NOT PROMOTED at exact terminal commit
+`4ebc29ee1f557ffa73860465158e6a35e80540fb`, but its product-correctness
+result is accepted as conclusive PASS. The retained block-aware correction
+restored and live-recaptured all 124 occupied Q8_0 KV payloads
+(152,180,736 bytes). Capture and a genuinely fresh restore produced the same
+token `21549`, suffix ` alpha`, and logits SHA-256
+`8564aef91899f6d5cc61ad88a8df4c836600a1006f1bc03b6eb6150e8c27c754`.
+All 64 RPC components matched through capture/stage/apply/live-recapture, and
+the bounded windows contained zero legacy GET_TENSOR/SET_TENSOR transfers.
+Five response attempts and five authenticated server terminal authorities were
+retained. Independent review found no correctness P1 and explicitly concluded
+that no correctness rerun is required.
+
+L101's sole promotion blocker is downstream evidence publication. The final
+remote signer refused `RPC mutable authority is incomplete`. Exact retained
+operation 540 and the authenticated composed journals show the stale invariant:
+each successful record has `set=7` with `set_hash_hit=0` and
+`set_hash_miss=0`, while the signer requires hit+miss to be positive. That
+requirement is incompatible with the now-proven no-legacy-transfer path.
+L102 is active only to correct and qualify this envelope validator from retained
+L101 payloads and focused no-model helper tests. It may not rerun the primary
+model, reconstruct a signed L101 envelope with a deleted runtime key, or reopen
+cache correctness.
+
+L102 passed and is promoted at exact commit
+`b1e21c49606f2ffd2768d0f28766b0007498a6a8`. Exact source confirmed that
+ordinary authenticated `MUTABLE_SET` increments `set`, while the hit/miss
+counters belong only to optional `MUTABLE_SET_HASH`. The verifier now removes
+only the stale positive-hit/miss predicate; all lifecycle, graph, receipt,
+HMAC, split, sequence, topology, and positive-set requirements remain.
+Focused Windows and real Linux helper sign/verify qualification passed 9/9,
+including retained L101 records and malformed/partial/tamper/key negatives.
+Independent adversarial review found no P1/P2. No L101 key or model/production
+access was used.
+
+L103 is active as the first user-facing product-reachability slice. It will
+compose the existing default-off llama-server exact-key lane with the accepted
+rank-local distributed protocol, binding actual topology and ownership instead
+of the current single-rank identity. Its bounded terminal gate is one real
+two-host Stories15M server miss/publish, fresh-worker restart, hit/restore and
+deterministic equality, with zero legacy state-page transfer and one corrupt or
+mismatched object proving miss/recompute. No primary-model run, production
+mutation, tuning, broad matrix, or new protocol layer is authorized.
+
+L103 closed at read-only evidence commit
+`8dcdc408ac76f73097dcfe3f39edae992d9d31b6` with a confirmed semantic
+blocker and no candidate source or runtime action. The reachable exact-key
+server lane is strictly coordinator-monolithic: world size 1/rank 0, fixed
+two-frame roster, `LLAMA_STATE_SEQ_FLAGS_NONE`, placeholder-equal
+plan/ownership/placement digests, and topology epoch 1. The retained rank-local
+API instead requires live typed topology, rank/world, channel/key generation,
+component identity, and authenticated worker object custody. No typed
+server/context seam currently supplies those facts. Changing constants or
+copying opaque configuration would publish partial state under fictitious
+topology, so the worker correctly stopped. Independent review confirmed the
+blocker.
+
+L104 is active with explicit authority to implement the smallest required
+internal product seam: scheduler/RPC-produced immutable distributed checkpoint
+topology, a distinct default-off distributed manifest-v1 transformer profile,
+and a typed server capture/stage/commit/apply transaction bridge. It must reuse
+the existing rank-local wire/object protocol, leave the world-1 codec unchanged,
+and fail to clean-context recompute on any missing, corrupt, stale, partial, or
+topology-mismatched state. After focused review and a two-host no-model fixture,
+one Stories15M end-user miss/restart/hit qualification may run. Primary-model,
+production, tuning, and broad-matrix work remain prohibited.
+
+L104 closed at read-only evidence commit
+`23f088deea65833a714271d7033d9c1c5f46c733` with a second confirmed
+product-ordering prerequisite and no candidate source/runtime action.
+llama-server currently performs exact-key lookup before slot launch, but the
+live graph allocation, canonical census, split binding, connection/allocation
+epochs, key generation, and component descriptors arise only later inside
+`process_ubatch`. A cached candidate cannot safely provide the authority used
+to select itself, and independently rebuilding after lookup permits plan
+drift. Independent review confirmed the cycle.
+
+L105 is active to add a default-off, single-use, non-executing request-plan
+handle. It will build and own the exact graph/allocation plus immutable live
+authority before lookup, perform no compute/input mutation/admission
+consumption/publication, and then be consumed by either hit restore or the same
+miss decode/capture without rebuilding. Stale, drifted, wrong-context,
+partial, reused, or double-consumed handles must refuse and clean-recompute.
+After focused review and a real two-host no-model transaction, L105 may resume
+the already-authorized distributed profile/bridge and Stories15M vertical
+slice. Primary-model, production, tuning, and broad-matrix work remain
+prohibited.
+
+L105 closed at read-only evidence commit
+`a35816e52f4bb2510936fa1a29e623c3b9249521` with a confirmed memory
+transaction prerequisite and no candidate/runtime action. Current
+`process_ubatch` calls the mutating memory `apply()` before graph construction;
+for KV memory this commits cells/heads and only then produces graph-critical
+`n_kv`. Existing failure cleanup is not a complete rollback, and the server
+freezes the final continuous batch later than its current per-task cache
+lookup. Independent review classified bypass as a P1 state-integrity risk.
+
+To keep product progress focused, L106 does not generalize this contract across
+every recurrent/hybrid memory type. The distributed exact-key product profile
+is now explicitly limited to ordinary transformer KV memory and must refuse
+unsupported memory implementations. L106 is implementing a KV-specific
+non-mutating placement preview with frozen batch/ubatch, proposed
+cells/heads/slots and post-commit graph metadata, bound to a live KV
+generation. Atomic single-use commit validates and applies exactly that plan;
+abort/drop is non-mutating. It then continues the previously authorized live
+request plan, distributed profile/transaction bridge, and bounded Stories15M
+vertical slice. Primary-model, production, general recurrent/hybrid support,
+performance, and broad matrices remain out of scope.
+
+L106 closed at evidence commit
+`e15d6da0de55c0f1a604614db62b5d50957b40e3` with a distinct confirmed
+in-place-restore blocker. Even coordinator `prepare_only` calls live KV
+`state_read_meta`, which removes/finds/applies slots and changes cells,
+positions, ownership, and heads before tensor bytes are staged. That
+invalidates any plan frozen before lookup and can leave partial local mutation
+if remote staging later fails. Exploratory edits were removed; no runtime case
+was consumed. Independent review classified bypass as P1.
+
+L107 is deliberately narrower than a general KV shadow/swap engine. The first
+distributed exact-key server product mode is dedicated, quiescent, and
+single-slot. A new disposable shadow `llama_context` shares immutable model
+weights but owns separate KV/scheduler/runtime state. Candidate authentication,
+local restore, exact request planning, and remote staging occur entirely in
+that shadow. After quiescence and generation/topology revalidation, remote
+commit and server context ownership transfer complete as one recovery-defined
+transition. Pre-commit failure discards the shadow and recomputes on untouched
+state; post-commit failure tears down the inconsistent residency before cold
+recreation. Multi-slot, speculative, recurrent, hybrid, and ISWA modes refuse.
+L107 retains the same bounded no-model and Stories15M vertical gates, with no
+primary-model or production access.
+
+L107 closed NOT PROMOTED at evidence commit
+`2cedd6a151d1c276530fa0b8d96d622c967ed0b5`. Independent pre-runtime
+review confirmed the shadow-context design is feasible but rejected retaining
+an unreachable partial mode; the worker removed it. The review established a
+critical identity split: persisted candidates bind stable logical
+plan/topology/placement/component/key-generation/channel authority, while each
+fresh attempt binds its current connection and allocation epochs only after
+the shadow is fully allocated. No runtime case was consumed.
+
+L108 is active as one complete reachable product slice. It retains and
+quiesces the old single-slot context, fully allocates the shadow, reconciles
+stable candidate authority, freezes the exact plan, then performs fresh
+preflight and the staged transaction. The old context remains alive through
+execute/terminal; its later destruction invalidates epochs and forces a new
+preflight. The mode will not become selectable until the distributed
+manifest/profile, topology producer, transaction, ownership transfer,
+post-commit recovery, and resource refusal are all wired. Focused review
+precedes one no-model transaction and one Stories15M vertical run. No primary,
+production, performance, broad matrix, or new wire protocol is authorized.
+
+L108 closed NOT PROMOTED at evidence-only commit
+`56a0526cb4e9fdb1a0d597ca391f47bbcedb9bb5`; the partial candidate was
+removed after mandatory independent review found P1 false world-two authority,
+caller-asserted rather than resource-owned transaction state, incomplete
+server/slot rebinding, and no real stage/commit/recovery reachability. No
+runtime case was consumed.
+
+The lead has paused the user-facing distributed llama-server cache composition
+epic. L101 remains the accepted proof that the block-aware rank-local
+capture/restore mechanism is correct on the primary model, but repeated
+L103-L108 blockers show that server reachability requires a separately
+decomposed scheduler/memory/server architecture effort. Continuing to add one
+authority layer per milestone is not producing a usable product quickly
+enough.
+
+L109 is active as a time-boxed performance screen against the largest measured
+bottleneck: roughly 30 ms of remote work followed by roughly 30 ms of local
+work per decode token. It targets scheduler-wide overlap across multiple
+MiniMax expert layers and both ownership domains, with device-event proof,
+exact output, failure/fallback safety, and feature-off parity. A candidate is
+removed unless a predeclared synthetic repeated-layer screen shows material
+end-to-end benefit (default threshold 10%) without matched regressions. No
+primary model, production mutation, cache work, broad matrix, or synthetic
+speed claim is authorized.
+
+L109 closed NOT PROMOTED at evidence commit
+`e5b4a9a0d1e92c44785fee8cc58bf56ef29bd4d2` with a source-proven
+scheduler-only blocker. MiniMax layers are strictly chained through attention,
+complete MoE, residual join, and the next `inpL`; scheduler splits execute in
+order; RPC graph compute is blocking and exposes no device completion event.
+Host threading would overlap only enqueue/socket wait or race dependencies.
+No candidate or runtime case was consumed.
+
+L110 is active as the explicitly authorized multi-layer expert-parallel
+architecture lane. Each MiniMax MoE layer will route once, partition selected
+experts into rank-owned local/RPC branches, execute independent partials
+concurrently, and join them in a deterministic fixed order before the residual
+and next layer. L110 may add the narrowly required asynchronous RPC
+plan/submit/completion authority and dependency-aware scheduler frontier.
+Focused protocol/device-event review precedes the same predeclared repeated
+multi-layer synthetic gate: exact output, real simultaneous device execution,
+and at least 10% matched regional improvement or the candidate is removed. No
+primary model, production, cache work, broad matrix, or full-model speed claim
+is authorized.
+
+L110 was found idle after its worker ended a nonterminal turn. A read-only
+resumption audit verified exact HEAD
+`e5b4a9a0d1e92c44785fee8cc58bf56ef29bd4d2` and exactly four L110-authored
+uncommitted loader/model files (62 insertions, 2 deletions). No L110 build,
+test, evidence artifact, runtime, or commit exists. The prior independent
+review was only a conditional architecture-feasibility review at the pre-edit
+HEAD; it did not approve the four-file patch.
+
+The patch's caller-asserted `primary_partition` interface is not retainable:
+it has no atomic pair authority, complete coverage proof, rank/device binding,
+or established loader accounting. L110 has resumed at a strict first gate:
+replace it with an atomic two-rank partition-pair constructor and qualify exact
+coverage, ownership, bytes, mmap/progress/accounting, lookup, unwind, and
+feature-off behavior on a tiny GGUF fixture. A fresh independent review of the
+exact patch is required before any MiniMax graph or asynchronous RPC wiring.
+All older untracked evidence remains preserved.
+
+L110 closed NOT PROMOTED at evidence-only commit
+`6c88472bf5f567a1064f27f4d8a90fc8e2b47a02`. Fresh exact-diff review
+found two P1 defects: physical slice bytes could be subtracted from buffer
+accounting, and rollback ended before later throwing mutations. It also found
+unclosed rank identity, a forgeable/stale raw checkpoint, assertion-reachable
+dimensions, and no tiny-GGUF evidence. Every L110 source edit was removed;
+accepted source is unchanged and no runtime case was consumed.
+
+The long-lived implementation task
+`019fa62e-2e6f-7451-846f-1d4a6c1d13d0` is now idle as a preserved
+historical record. Fresh worker `/root/l111_loader_transaction` owns L111 to
+reduce context pollution. L111 is isolated to a loader-internal,
+generation-bound, no-throw atomic two-rank partition transaction and its
+tiny-GGUF accounting/rollback qualification. It cannot touch MiniMax graph,
+RPC, scheduler, hosts/models/production, cache, or performance work. Exact
+independent review determines source retention.
+
+The fresh worker's first read-only audit found that the accepted base already
+exposes the legacy caller-forgeable source-slice and lookup-exclusion helpers
+through the default-off MiniMax shadow loader. This made the original L111
+"no MiniMax call-site change" restriction contradictory. The lead has now
+authorized only the minimal mechanical call-site migration needed to remove
+those public aliases while preserving exact current shadow tensor ranges,
+devices, lookup behavior, and feature-off behavior. Graph execution, routing,
+RPC, scheduling, and runtime semantics remain out of scope. L111 is active
+again under the same tiny-GGUF, rollback, compile, source-scan, and independent
+review gates.
+
+A fresh read-only production check at 09:00 PDT found both standard Q6 services
+healthy and unchanged: nimo-1 coordinator PID `3027112`, InvocationID
+`e6da1fe637144cb394119959c0e88736`, NRestarts `0`, unique port 8081 and
+HTTP 200 `{"status":"ok"}`; nimo-2 worker PID `2148915`, InvocationID
+`3480c89086e04d5d80060366c5c7ab7f`, NRestarts `0`, unique port 50052.
+
+The user now requires every worker to use a user-visible Codex task. The
+internal L111 worker was frozen and interrupted. Its uncommitted work remains
+preserved in the HaloFPX worktree. The desktop task controls are unavailable
+in this session: `list_projects`, `fork_thread`, and `create_thread` each
+return `No handler registered`. No hidden worker remains active.
+
+Two complete dispatch specifications are retained under
+`project-management/lead/worker-specs/`: one for the exact L111 implementation
+handoff and one for the documentation/organization task. The documentation
+specification defines the project Simplified Technical English rules,
+protected evidence, navigation structure, worker start requirements,
+inventory, link validation, organization receipts, and independent review.
+Visible task creation is the only current control-plane blocker.
+
+Production recovered cleanly and is the current accepted authority: nimo-1
+coordinator PID `3027112`, InvocationID
+`e6da1fe637144cb394119959c0e88736`, NRestarts `0`, unique port 8081 and
+HTTP 200; nimo-2 worker PID `2148915`, InvocationID
+`3480c89086e04d5d80060366c5c7ab7f`, NRestarts `0`, unique port 50052.
+
+L76 passed and is promoted at terminal evidence commit
+`6c8dc28a66b0fc3fb2525713dd505cc4320a4c27`, retaining exact corrected source
+`52cda98fd3e6f871096089db623ddcc2c2f10705`. A real Linux no-model handler
+success authenticated and retained the immutable 4,200-byte server authority
+before cleanup; its independent SHA-256 is
+`04ea9584d338d3772fa7a031daa20b12818ad7c93c074d1197d1a942e2cd9c8f`.
+The real injected publication failure recorded bound `errno=5`, produced no
+authority file, remained non-promotable, and still completed cleanup.
+Independent review found no P1/P2. Production preflight and terminal snapshots
+are byte-identical at SHA-256
+`511f05d2b638277e19ae7af44573eb9e244d829458f24cdefc46e3f88ffd6ded`.
+No next milestone was automatically opened by the L76 acceptance.
+
+L77 closed NOT PROMOTED at terminal evidence commit
+`72ac37f80e5b721bfe5824f702d50ed4d7cce7a4`. Its sole transition refused
+before SSH, model load, or RPC execution because the existing L52
+evidence-directory preparer admitted only the L48 schema even though the rest
+of the controller already validates L77. Recovery and cleanup passed; no
+token, cache, or performance conclusion exists.
+
+L78 closed NOT PROMOTED at terminal evidence commit
+`ee6a7039996e8cb265268f2dd6c657544669098f`. Its directory correction passed,
+but the sole replacement again refused before worker, canary, model, or RPC
+launch because `child_environment()` treated only L48 as the composed family
+and omitted all L77 provenance/composition environment. Recovery and cleanup
+passed; no cache conclusion exists.
+
+L79 closed NOT PROMOTED at terminal evidence commit
+`64ef3034f232be980a2ee388e39c1bc43691e5cb`. Its consolidated controller
+closure passed, and the exact primary model loaded. Warmup then completed one
+authenticated server prepare/execute/publication sequence before the client
+returned generic `GGML_STATUS_FAILED` (`-3`). No workload token, capture,
+restore, or state comparison occurred, so no cache conclusion exists. A
+separate helper source-identity mismatch prevented L76 authority custody.
+Recovery and cleanup passed.
+
+L80 completed read-only diagnosis. High-confidence retained evidence proves
+graph compute and authenticated server execution/return succeeded; the `-3`
+arose in one of five silent client postcompute authority families: L44 commit,
+L42 finalize, L40 reconcile, L44 session finalize, or RPC disarm. Existing
+branch text remained in memory but model/context warmup failed before the
+caller-owned harvesting path could retain it. Separately, custody failed
+because the controller derived a nimo-2 helper path and executed it on nimo-1;
+this was a wrong-host path, not stale bytes.
+
+L81 closed NOT PROMOTED at terminal evidence commit
+`d41441864e1fc3ab2b32713c93be341de96cc2bb`. Its durable discriminator and
+worker-side custody correction passed focused and independent review. The sole
+primary attempt stopped at warmup with authenticated server terminal branch 3:
+`ADMISSION_ACCEPTED -> ABORT`, reason `WRONG_ALLOCATION_EPOCH`, before physical
+prepare or execute. The allocation epoch advanced when buffer allocation/free
+occurred while the mutable session was admitted. No workload, capture, restore,
+or cache conclusion exists; custody and recovery passed.
+
+L82 stopped before edits or runtime after exact ordering disproved the proposed
+cause. All L81 allocations preceded admission; buffer frees occurred only after
+the client had already returned `-3`. The server's
+`WRONG_ALLOCATION_EPOCH` authority was teardown terminalization of a session
+left live by client-local abort, not the forward refusal. No epoch exemption or
+reordering is safe or authorized.
+
+L83 reached its exact warmup discriminator:
+`l44_mutable_exclude_refused`, backend 0, census index 253, disposition 2,
+role 1, role ordinal 579. The kill gate prevented workload, capture, and
+restore. Authenticated server authority was retained. L83 is NOT PROMOTED and
+no cache conclusion exists.
+
+Production reconciliation is accepted with a new observed baseline. The first
+recovered worker was killed by a kernel global OOM; the coordinator then
+aborted after losing RPC. Existing `Restart=on-failure` policies restarted each
+unit exactly once. Current authority is nimo-1 coordinator PID `2791438`,
+InvocationID `037044282f2445d5814e44562858cec0`, port 8081, HTTP 200,
+`NRestarts=1`; nimo-2 worker PID `1980935`, InvocationID
+`fdb16161c9474e7c9fc33b43f29f45c7`, port 50052, `NRestarts=1`. Both exact
+units, commands, executable hashes, cgroups, and unique listeners reconcile
+with no continuing fault.
+
+The four exact inert L83 staging artifacts were revalidated and removed.
+Exact absence passed, no other path or service was touched, and production
+remains byte-for-byte on the accepted authority above.
+
+L84 completed read-only diagnosis. The refusal can only be resolved
+storage absent/non-RPC or resolved RPC storage bound to a different socket;
+current evidence collapses both as `WRONG_CONNECTION`. L71 canonical authority
+binds logical/runtime tensor identity but not the view-resolved storage and RPC
+socket later required by mutable exclusion. It can therefore seal a
+destination entry whose live storage authority is incompatible.
+
+L85 closed NOT PROMOTED at
+`6f1f962ae0cb5670e727d4b2bfdbbcc462649f91`. Its reviewed default-off
+resolved-storage census source is retained. The primary warmup refused before
+admission with `l42_resolved_census_refused`, but scheduler conflict cleanup
+discarded the failing entry and returned `typed_reason=0`. No workload,
+server admission, or cache conclusion exists.
+
+Production recovered cleanly to a new observed baseline: nimo-1 coordinator
+PID `2808706`, InvocationID `4e67ea30ddaf4037a70435a9ff2ff022`,
+`NRestarts=0`, port 8081/HTTP 200; nimo-2 worker PID `2000412`, InvocationID
+`bf3ec63660b5451892cd346124fec158`, `NRestarts=0`, port 50052.
+
+L86 closed NOT PROMOTED at
+`4c77d7af13ae03b425ccf32377af7e8bc1024aa8`. Its typed diagnostic source
+passed review and identified the exact pre-admission failure:
+`WRONG_DESTINATION_BACKEND`, backend 1, candidate 487, local mutable root,
+selected-KV role 11/ordinal 64. The RPC census builder includes legitimate
+local backend candidates, and the new RPC storage resolver correctly rejects
+that local destination. No admission, workload, or cache conclusion exists.
+
+Production recovered cleanly to nimo-1 coordinator PID `2825097`,
+InvocationID `d77a2401d9954b208bb49b32ffd493b0`, `NRestarts=0`, port 8081/
+HTTP 200; nimo-2 worker PID `2023878`, InvocationID
+`b1ba9535181d46f8a3446d21b0652b01`, `NRestarts=0`, port 50052.
+
+L87 closed NOT PROMOTED at
+`eb92a66da1a21ef230597f25dd5002c9890a7af3`. Its reviewed local-vs-RPC census
+correction is retained. The primary reached L44 exclusion, but the first
+EXCLUDE event failed with typed `RECORDER_FAILURE`. Exact source proves the
+recorder already contained BEGIN + L42 + L44_BEGIN + 253 REGISTER events =
+256, equal to its unrelated hard-coded maximum. No graph compute, workload, or
+cache conclusion exists.
+
+Production recovered to nimo-1 coordinator PID `2838185`, `NRestarts=0`, port
+8081/HTTP 200; nimo-2 worker PID `2035972`, `NRestarts=0`, port 50052.
+
+L88 closed NOT PROMOTED at
+`a546ca48c6d997f145ff42be3adcd34adf658d1d`. Its independently reviewed
+recorder-capacity correction is retained: the finite maximum is now 8,219
+events, derived from two 4,096-entry census blocks plus the largest fixed
+grammar expansion. Boundary, feature-on/off, and real no-model gates passed.
+The sole primary attempt crossed the former capacity seam, completed
+authenticated server prepare/execute/response, and returned the first
+512-token chunk with `decode_status=0`. It then stopped before capture/restore
+because the response verifier rejected the authenticated two-event client
+stream (`client_decode`, `client_receipt_validation`) as a noncanonical
+incomplete prefix. No cache-correctness conclusion exists.
+
+Production recovered healthy and unique: nimo-1 coordinator PID `2853771`,
+InvocationID `aa2676e5efc043f1915ffdfb4e905b7c`, `NRestarts=0`, port 8081/
+HTTP 200; nimo-2 worker PID `2052134`, InvocationID
+`9c4635752e024bb7a7c8eef893e0f4ef`, `NRestarts=0`, port 50052.
+
+L89 closed NOT PROMOTED at
+`8c71aab90e8fdec124bbd593eb53c08ec54b2861`. Its independently reviewed
+response-boundary correction is retained. Exact source proves the late client
+stream owns `client_decode -> client_receipt_validation`; acceptance now
+requires a simultaneous complete authenticated seven-stage server success and
+exact shared-identity binding. Focused, feature-on/off, and real two-host
+no-model gates passed. The sole primary transition stopped before model launch
+because a stale disposable L48 unit was loaded `active/exited` with MainPID 0.
+No model, token, capture, restore, or cache conclusion exists. Cleanup removed
+the stale unit and all L48/L89 disposable state.
+
+Production recovered healthy and unique: nimo-1 coordinator PID `2870733`,
+InvocationID `1c2ffb21b93d47ae86e416e5582e575c`, `NRestarts=0`, port 8081/
+HTTP 200; nimo-2 worker PID `2065665`, InvocationID
+`2d2d446beb3f433e8cf3ae92f0db16e7`, `NRestarts=0`, port 50052.
+
+L90 closed NOT PROMOTED at
+`6e8d2b2b834af3a0e739efd11dbef271a362ddc6`. Its reviewed pre-mutation
+disposable reconciliation is retained. The prerequisite proved the closed set
+absent before production mutation. Primary warmup then completed one 512-token
+chunk with `decode_status=0`, exact L89 paired response custody, and accepted
+server authority. The child stopped before workload/capture/restore because
+its separate hard-coded transient-unit allowlist rejected the successfully
+completed first-chunk unit as outside the closed manifest. No cache-correctness
+conclusion exists.
+
+Production recovered healthy and unique: nimo-1 coordinator PID `2882360`,
+InvocationID `e7977bbefee74bf3b33787390f390811`, `NRestarts=0`, port 8081/
+HTTP 200; nimo-2 worker PID `2074808`, InvocationID
+`1f45a635e7154eeca44fe081b24ac6b9`, `NRestarts=0`, port 50052.
+
+L91 is active as a consolidated controller closure plus one full correctness
+attempt. The child must derive its exact host/unit/port authority from the
+already validated manifest instead of a duplicate allowlist, with an exhaustive
+reachable-branch scan and focused review. Its one runtime must use the full
+residency-A capture/fresh-residency-B restore path rather than stopping in
+first-chunk diagnostic mode. No retry or broader protocol/performance work is
+authorized.
+
+L91 has reached an unsafe terminal boundary and is NOT PROMOTED pending final
+evidence closeout. Its sole transition again refused
+`transient unit guard authority is outside the closed manifest`; no retry is
+authorized. During recovery, the newly started worker was killed by the kernel
+OOM at 17:38:16 and the coordinator aborted after RPC loss at 17:38:21.
+Existing on-failure policies restarted each exactly once. Read-only evidence
+attributes both counter changes to this single cascade, matching the prior
+accepted pattern rather than an unexplained production mutation.
+
+The new accepted observed production baseline is nimo-1 coordinator PID
+`2896932`, InvocationID `d33e57248a4e4eb98f81cc1a44cf1ff6`,
+`NRestarts=1`, port 8081/HTTP 200; nimo-2 worker PID `2084398`, InvocationID
+`0137204322234e5e9ddde8a4173ef177`, `NRestarts=1`, port 50052. Exact installed
+units, argv/config, and unique listeners are unchanged. No production service
+restart, counter reset, or further mutation is authorized. Only predicate-
+checked exact disposable cleanup and read-only terminal diagnosis may proceed.
+
+L91 terminal closeout is committed at
+`2b0910b3b0ac80b01901838e2f26773194aa3248`. It completed authenticated
+residency-A capture with suffix `alpha` and retained four independently
+authenticated 4,200-byte server authorities. It then refused locally after
+capture-worker cleanup and before any residency-B launch. The rejected tuple
+and installed authority-set identity were not retained, so no exact mismatch
+or correction is claimed. Cleanup was already complete; final production
+matches the accepted `NRestarts=1` baseline exactly.
+
+L92 is active as a local closed-path authority discriminator. Before any host
+or production access it must use the real validated manifest-generated child
+environment and real tuple constructors to rehearse device, capture, cleanup,
+restore, and terminal cleanup in order, retaining the installed authority set,
+planned tuples, hashes, and exact refusal tuple. A source-proven mismatch may
+be corrected and focused-review qualified within L92. If the real rehearsal
+does not reproduce or explain the boundary, no primary run is authorized.
+Only a fully passing rehearsal/review permits one full correctness transition.
+
+L92 has reached its terminal runtime boundary and is NOT PROMOTED pending
+closeout. Residency-A capture again completed. The new durable refusal receipt
+proves the exact defect: `stop_worker(unit, port: int = PORT)` captured the
+startup default `50184` before L77 configuration changed global `PORT` to
+`50248`. Post-capture cleanup therefore requested the capture-worker tuple with
+port 50184 against an authority set and launch tuple using 50248. Residency B
+did not launch; no restore/cache conclusion exists. No L92 retry or correction
+is authorized.
+
+Recovery started fresh production activations whose counters currently report
+`NRestarts=0`: coordinator PID `2913255`, InvocationID
+`01bdd7c2e7084036a472ec9cea4b3d62`, unique port 8081/HTTP 200; worker PID
+`2099163`, InvocationID `ac463c354550467bbeb9c6253144b5`, unique port
+50052. This state is provisional pending exact read-only journal/unit/hash/
+listener reconciliation proving clean controller stop/start and no unexplained
+fault. No production mutation is authorized.
+
+L92 terminal closeout is committed at
+`6735cdddedc9254328bd2ef4b44c3b0f9071b60c`. Independent review confirms NOT
+PROMOTED/no retry, one correctness P2 (the stale default and rehearsal blind
+spot), no P1/security issue, and safe default-off retention. Read-only evidence
+proved the fresh `NRestarts=0` activations followed clean controller stop/start
+with no OOM, failure, or policy restart, so the provisional production
+authority above is accepted. Exact cleanup passed. A source-wide Python
+default-argument audit found no other mutable configuration default.
+
+L93 is active for the exact mechanical correction: remove the `PORT` default
+from `stop_worker`, require every call site to supply its launch/manifest port,
+and make the real rehearsal execute that cleanup path. After focused tests and
+one review, exactly one full residency-A capture/fresh-residency-B restore
+correctness transition is authorized. No additional diagnostic layer, retry,
+protocol expansion, or performance work is authorized.
+
+L93 closed NOT PROMOTED at
+`62199ea96a171e0dd1f691cddf68af871b0f1e54`. Its reviewed explicit-port
+correction is retained. The sole attempt completed authenticated residency-A
+capture, retained deterministic token `21549`, suffix `alpha`, and four server
+authorities. All 22 guard requests used correct manifest bindings. A genuinely
+fresh restore worker then launched and admitted, but the child refused before
+restore-canary launch because its separate raw journal-cursor read did not
+produce the required lower-bound form. Cleanup also temporarily misattributed
+the fresh restore worker's shared 50248 listener to the already stopped capture
+worker. No restore token or cache conclusion exists.
+
+Production recovered cleanly to coordinator PID `2932494`, InvocationID
+`d3c9d328bdb940dba62ea3ad1e93be40`, `NRestarts=0`, unique port 8081/
+HTTP 200; worker PID `2115484`, InvocationID
+`bcf04aa0d57e40f59f1f56531b0aaa99`, `NRestarts=0`, unique port 50052.
+
+L94 is active to close both controller P2s together: use the accepted exact
+journal-cursor parser for restore-canary launch, and permit a shared-port
+listener during absent-unit cleanup only with positive binding to a different
+currently admitted manifest unit/PID/Invocation/cgroup. Unknown or ambiguous
+ownership still refuses. After focused review, one full correctness attempt is
+authorized; no further diagnostic layer or retry is authorized.
+
+L94 closed NOT PROMOTED at
+`4e4245f447928bd7ae8d63a1d0ef330ec2c0cc64`. Its exact journal-cursor and
+shared-listener owner corrections are retained. Residency-A capture/token
+`21549`, four server authorities, and a fresh admitted restore worker passed.
+The restore canary's `systemd-run` succeeded, but wrote its InvocationID to
+stderr while this path parsed stdout only, so the controller refused before
+the residency-B result. Cleanup then compared raw `ps` cgroup text with the
+normalized systemd `ControlGroup` path and refused despite the correct
+alternate owner. External bounded cleanup and production recovery passed.
+
+Production is healthy at coordinator PID `2947160`, InvocationID
+`23808765f78d4d6eaf506052ac91aab4`, `NRestarts=0`, port 8081/HTTP 200; worker
+PID `2124976`, InvocationID `9622a846b8ed45838afc5657f64c5bdd`,
+`NRestarts=0`, port 50052.
+
+L95 is active to remove both duplicated text parsers: restore-canary launch
+must use the existing systemd state-based disposable authority helper, and
+shared ownership must compare a strictly parsed unified cgroup-v2 path with
+systemd authority. After focused review, one full correctness transition is
+authorized. No generic parsing relaxation, retry, or unrelated product/
+performance work is authorized.
+
+L95 closed NOT PROMOTED at
+`7e53bd82bdf96e18ec77380a011dc44be444f5f3`. Its independently reviewed
+systemd launch and strict cgroup-v2 authority corrections are retained. The
+sole transition stopped before model execution because the nimo-2 canary could
+not load `libllama-common.so.0`. Exact source evidence proves the archive was
+built under nimo-1 and carried an absolute nimo-1 build RUNPATH even though the
+library and valid relative symlinks were present after extraction on nimo-2.
+This is a packaging/pre-runtime P2, not a model, cache, or protocol result.
+
+Production recovered cleanly to coordinator PID `2962825`, InvocationID
+`c781d4778c4b4d5489187a9e6658afc0`, `NRestarts=0`, port 8081/HTTP 200; worker
+PID `2128643`, InvocationID `e7e16a1a4b884ffeb22d54f89cad398e`,
+`NRestarts=0`, port 50052.
+
+L96 is active for a relocatable staged-runtime package gate. Cross-host
+executables must use closed origin-relative project-library authority, reject
+absolute build/source RUNPATHs and symlink escapes, resolve every dependency
+under a sanitized environment, and execute the staged canary provenance/no-
+model probe on nimo-2 before production shutdown. Only a passing retained
+package receipt and review permit one full correctness transition.
+
+L96 closed NOT PROMOTED at
+`8c25e2a160655c4bdebb3fc742301e615b49ad1c` without production shutdown or a
+model attempt. Its reviewed default-off relocatable runtime and nimo-2 package
+gate are retained. The extracted canary passed closed ELF dependency,
+origin-relative RUNPATH, symlink, hash, and exact canonical provenance
+execution authority. The gate then incorrectly required `--help` to return
+zero; exact canary source has no help-success handler and returns 2 for
+unsupported/insufficient CLI input. Production remained continuously on the
+accepted baseline.
+
+L97 is active for this exact probe-contract correction. The successful
+sanitized `--halofpx-provenance` execution, bound to the closed ELF/package
+receipt, is the canonical no-model loader/startup proof. The unjustified help
+success requirement must be removed or retained only as an exact pinned
+negative. After focused review and a passing pre-mutation package gate, one
+full correctness transition is authorized.
+
+L97 has reached a terminal NOT PROMOTED boundary pending final evidence
+commit. Its package gate passed, residency-A capture completed, and a fresh
+residency-B worker/canary executed. The forward path then refused
+`durable and emitted result authority differ`; no correctness promotion or
+retry is authorized. Restore-canary InvocationID change before evidence
+collection is separately retained unless exact evidence proves it causal.
+
+Recovery encountered one attributed OOM cascade: the first recovered worker
+was kernel-OOM-killed, its existing policy restarted it once, the coordinator
+aborted after RPC loss, and its policy restarted it once. The current stable
+healthy pair is accepted as the new observed production baseline: coordinator
+PID `2989515`, InvocationID `49d23af81c5d495b80e3c9c906f72c7a`,
+`NRestarts=1`, exact executable/argv/config, unique port 8081/HTTP 200; worker
+PID `2135516`, InvocationID `7a3c97b846854036acd33421bb45ab73`,
+`NRestarts=1`, exact executable/argv/config, unique port 50052. No continuing
+fault exists and no production mutation is authorized. Exact disposable
+cleanup is already complete.
+
+L97 terminal closeout is committed at the corrected exact hash
+`647f3d4bfd4574e6b5086c42407116cbb5ce843b`. Read-only diagnosis proves the
+forward mismatch: durable JSON includes `prompt_chunk_sizes:""`, while
+`output_fields()` requires at least one non-space character and silently drops
+the empty emitted field. Separately, the restore transient loses its
+InvocationID after terminalization before evidence collection. Independent
+review records two P2s, no P1/security/accepted-invalid-state issue, and safe
+default-off retention.
+
+L98 is active to close both exact P2s together. Result lines require a total
+canonical space-delimited `key=value` parser that represents empty values and
+rejects malformed, duplicate, or unconsumed text. Restore-canary systemd
+authority must remain retained through exact terminal status and journal
+collection before explicit unload. After focused review, one full correctness
+transition is authorized; no retry or unrelated expansion is authorized.
+
+L98 closed NOT PROMOTED at
+`db3b034dfe6d6ef857031ff5473f8fe2286657d1` with a conclusive P1 product
+correctness failure. Its reviewed result-parser and restore-terminal custody
+corrections are retained. Residency A produced token `21549`, logits SHA
+`8564aef9...`, and suffix `alpha`; fresh authenticated residency B produced
+token `9283`, different logits, and suffix `计划`. Represented coordinator
+control/local and all 64 worker component manifests match, but exact output
+does not. Five server authorities were retained. No cache promotion, retry, or
+zero legacy GET/SET claim is admitted.
+
+The response evidence has a separate P2: its verifier treats concatenated
+per-attempt sequences as one global 1..N stream, so four capture productions
+plus one restore production necessarily refuse. This cannot explain the output
+mismatch.
+
+Production recovered by clean controller stop/start with no fault to
+coordinator PID `3011904`, InvocationID
+`6e0b94e5c1ac46949e1b00946e3bb64e`, `NRestarts=0`, port 8081/HTTP 200; worker
+PID `2142476`, InvocationID `eb9bc3c6165346aeb871fb09d26753ef`,
+`NRestarts=0`, port 50052.
+
+L99 is active as read-only/source-only product diagnosis. It must identify the
+earliest retained capture/restore divergence, trace the complete final-token
+read-set beyond represented state, reconcile prior eliminated hypotheses, and
+propose the smallest discriminator. No host/model/build/runtime action or
+semantic correction is authorized. The aggregate response verifier may be
+repaired offline by exact authenticated per-attempt grouping, but must not
+distract from or explain away the P1.
+
+L99 passed at `bf861840423c60c9f71afa119086b32b4e4ef5e3`. Its canonical
+machine-readable L98 diff proves represented coordinator control/local/
+component bytes, authenticated replay geometry, node assignment, and graph
+input agree. The earliest retained divergence is post-execution logits:
+capture `8564aef9...c754`/token 21549 versus restore
+`7a8807f4...36cd`/token 9283. Transport/authentication is not the cause.
+Highest source-supported candidates are an unrepresented auxiliary replay
+input or kernel-readable physical storage omitted by logical serialization;
+synchronization/visibility and RPC reconstruction/allocator state rank next.
+Independent review passed.
+
+L99 also repaired the response verifier offline with exact authenticated
+per-attempt grouping; retained L98 streams contain five valid paired
+productions. Zero legacy GET/SET remains unproven because no bounded
+authenticated state-page transport window was retained.
+
+L100 is active as an offline/no-model byte-range discriminator over all 124 KV
+tensors. It must compare actual or conservatively kernel-addressable physical
+ranges—including quantization blocks, strides, views, padding, alignment, and
+ownership—with serialized/applied/live ranges. A proven readable gap stops with
+an exact correction proposal; exact coverage closes the hypothesis and defines
+the minimum synchronized per-layer digest discriminator. No runtime or semantic
+correction is authorized.
+
+L100 passed with a source-proven P1 root defect at
+`1597a2b4610d397b9d31411b51210527edfc9b31`. Device capture/prepare divided
+requested byte length by `ggml_element_size`. For Q8_0 that is the 34-byte
+block size; constructing a Q8_0 tensor from the resulting count applied the
+32-elements-per-block ratio again. Each requested 1,227,264-byte occupied KV
+range therefore serialized only 38,352 bytes.
+
+Across all 124 tensors, 152,180,736 occupied bytes are provably kernel-readable
+but only 4,755,648 were represented/restored. The exact causal gap is
+147,425,088 bytes: 76,090,368 on RPC and 71,334,720 on local ROCm. Padded rows
+are not needed for this conclusion. The machine audit regenerated
+byte-identically and independent review passed.
+
+L101 is active for one shared block-aware byte-to-element/view contract across
+local and RPC capture/stage/apply, with exact nbytes equality and strict
+alignment/overflow/bounds refusal. Focused coverage must prove all retained
+occupied ranges are represented with zero readable gaps, followed by a small
+two-host quantized restore proof. Only then may one primary correctness
+confirmation run. No padded-row expansion, retry, or performance/product
+expansion is authorized.
+
+Project-lead monitoring is event-driven only. The 30-minute heartbeat was
+deleted. Because a worker final response does not itself inject an event into
+the manager task, workers must now send their boundary report directly to the
+Project Lead task before ending their own turn. No periodic polling remains.
+
+L36 closed NOT PROMOTED at
+`0b4c00c5f90cf245ceee769619886f295bf4e5d2`. Both attempts were invalidated by
+a proven post-free `llama_n_batch(run_ctx)` result read; no model
+interpretation is admitted and no further primary repeat is authorized. L37
+is active as no-production work to correct result lifetime authority and
+authenticate remaining mutable graph inputs between replay and logits. Two
+independent read-only specialists are auditing graph-input coverage and
+  RPC/ROCm determinism.
+- L37 passed at `a1bee312ca79f3087cd5bfcd327e9f11b2be72d2`.
+  Result emission is now lifetime-safe, authenticated, durable, and verified
+  before context destruction; focused tests reject the prior invalid values.
+  Closed graph-input diagnostics cover admitted mutable classes, while RPC
+  internal tensor/copy authority and opaque execution state remain explicit
+  gaps. Two independent audits converged on numerical input bytes/bindings,
+  scheduler copies, RPC graph reconstruction, and FA read-set extent. L38 is
+  active as a no-primary/no-production replay-exec-v2 contract plus one
+  synthetic Q8_0 FA poison-span discriminator.
+- L38 closed NOT PROMOTED at
+  `169d81ad84167fcd5449b5dc99126bd861446087`. Independent review rejected and
+  removed the candidate because it did not instrument the real scheduler copy
+  loop or RPC client/server execution authority. Its isolated Q8_0 FA poison
+  test produced equal output despite different bytes outside selected spans,
+  narrowly demoting that hypothesis. L39 is active as direct default-off
+  instrumentation in scheduler split/copy execution and RPC
+  serialization/reconstruction, qualified by one combined synthetic graph.
+  No primary run or production mutation is authorized.
+- L39 closed NOT PROMOTED at
+  `0658a272d25ee660055143904aa47a2d76dc2d19`. The combined fixture proved
+  deterministic compute/recompute only after replaying identical mutable
+  inputs, but independent review rejected the implementation because core RPC
+  authentication, server-owned reconstruction authority, canonical records,
+  mutable-census closure, and required negative coverage were incomplete. The
+  candidate was removed, leaving accepted runtime source byte-identical to
+  L38. L40 is active as a narrower RPC-only foundation: negotiated capability,
+  authenticated client/server graph equality, and bound recompute lineage.
+  Scheduler-copy and mutable-census work are deliberately deferred.
+- L40 passed at `53f414dfc5a8f9873ad9961f541eb41cf6dc2aae`.
+  It establishes the accepted RPC trust boundary: negotiated default-off
+  capability, canonical client/server graph authority, authenticated
+  server-owned reconstruction receipts, and bound compute/recompute lineage.
+  L41 is active only for the next independent layer, the real scheduler
+  split/copy execution authority. Mutable-input census, primary testing, and
+  production mutation remain unauthorized.
+- L41 closed NOT PROMOTED at
+  `ba0cbd51634cd58496d35cf615dfdae32a367269`. It reached the real ordinary and
+  expert-partial scheduler copy seams, but review rejected the evidence
+  contract: no inspectable authenticated event stream, incomplete
+  destination/view authority, missing focused refusal cases, and insufficient
+  exact-output assertions. The candidate was removed. L42 is authorized only
+  to close those four findings with exact exported evidence and targeted
+  qualification.
+- L42 passed at `d0d74ff55d8b063ab73911ae95516512177c824d`.
+  The accepted scheduler layer now authenticates exact split, copy-map,
+  ordinary-copy, and expert-partial execution authority with externally
+  reconstructable transcripts and exact destination/view/range evidence.
+  L43 is active only for closed structural mutable-input classification,
+  SET/SET_HASH server-applied authority, and a complete execution census bound
+  to the accepted L40/L42 layers.
+- L43 closed NOT PROMOTED at
+  `aba0f78d07c824c3bcdbcb5ffbdc26e174cda3bf`. The candidate demonstrated real
+  SET/SET_HASH and mutable-census behavior, but review rejected process-global
+  pointer registration without admitted-session isolation and missing
+  real-handler negative injection. Candidate code was removed; L40 and L42
+  remain unchanged. Per user direction, implementation is paused for OS
+  migration and no L44 is open.
+- OS-migration restoration verification passed on 2026-07-26. Both repository
+  identities match the handoff, HaloFPX is clean, and the intentionally
+  retained project evidence remains preserved. Production was reconciled
+  read-only at the exact unchanged system services: nimo-2 PID `1535639`,
+  port `50052`, `NRestarts=0`; nimo-1 PID `2356329`, port `8081`, HTTP `200`,
+  `NRestarts=0`. L44 is now active only for admitted-session mutable authority
+  and real-handler refusal injection.
+- L44 passed at `5f69d5cdaf8eb51283dd750c1fd8ca869fcf4d66`.
+  It replaces process-global mutable registration with admitted session handles,
+  proves concurrent/foreign/stale/closed isolation, authenticates real
+  SET/SET_HASH server-applied material, and exercises the required refusal
+  branches through actual RPC handlers. L45 is active as the single exact
+  primary two-fresh-residency one-token discriminator combining L40, L42, and
+  L44 authority. No retry or performance work is authorized.
+- L45 stopped before mutation because the real distributed-state canary and
+  runner do not yet call the accepted L42/L44 admission APIs. Enabling L44
+  without a committed session would fail compute; leaving it off would make the
+  intended discriminator incomplete. No model or production state was touched.
+  L46 is authorized as the no-primary integration prerequisite connecting
+  structural source-owned registration, scheduler/session lifetime, and closed
+  result evidence to the real replay path.
+- L46 closed NOT PROMOTED at
+  `0d655b54d77929dafc2a7efe05f25a94d6c6ca0d`. Source audit proved L42/L44
+  cannot currently compose for the real mixed local/RPC graph: L44 requires
+  authority for leaves its API rejects, the scheduler exposes no precompute RPC
+  split/copy bridge, and L44 needs admission before L42's transcript exists.
+  L47 is active as an ADR-first correction for mixed ownership, prepared
+  scheduler admission, and bounded per-execution arm/finalize/abort lifecycle.
+  No primary or production action is authorized.
+- L47 closed NOT PROMOTED at
+  `d9aabb66822660b393cc8f14501ea5552471c6d9`. Its ADR-0048 composition
+  successfully qualified the real disposable multi-chunk capture/restore path,
+  including exact token `4245`, composed per-execution evidence, and zero
+  legacy state transfer. Review rejected promotion because the closed primary
+  runner/controller could not securely enable, verify, retain, or require that
+  result, and warmup diagnostics were not clean. Candidate source was removed.
+  L48 is active only for the protected-key, argv-safe runner/controller binding,
+  explicit warmup/unarmed lifecycle, verifier, and reconstruction of the
+  already-qualified composition.
+- L48 closed NOT PROMOTED at
+  `591603ff0982fe684fd67c45f40898f4332fac88`. Its runner/controller, protected
+  key, manifest, verifier, builds, 50 focused tests, and pre-runtime review all
+  passed. The sole stories15M session was killed at 30 seconds because the real
+  120-second HFXCAP2 readiness operation was incorrectly assigned to the
+  generic command transport class. No model result or production mutation was
+  admitted. L49 is active only to add a closed readiness transport class with
+  correctly nested deadlines and requalify the accepted L48 shape once.
+- L49 closed NOT PROMOTED at
+  `e606f62cb19063ceb7bfdbe9dff979ea0544abf0`. The readiness class behaved
+  correctly, but its exact disposable worker exited before opening the port.
+  A Project Lead read-only journal recovery identified the retained cause
+  without reproduction: `unknown device: ROCm0`, no accelerator devices, CPU
+  only. L50 is active only to correct the proven ROCm build/device admission,
+  make early-exit journal authority mandatory, and requalify the same controller
+  shape once.
+- L50 closed NOT PROMOTED at
+  `8fa511036ef9fc633b00fe1148ae0b032457f495`. It proved and corrected the
+  exact `GGML_HIP=OFF` cause, froze an ROCm/gfx1151 build, and passed the real
+  device/HFXCAP2 gate. The sole stories run then failed during diagnostic
+  warmup before prompt execution, and its unit collection exposed InvocationID
+  and journal-cursor evidence defects. L51 is active only to source-localize and
+  correct unarmed warmup lifecycle plus exact user-unit exit/journal evidence,
+  then requalify once.
+- L51 closed NOT PROMOTED at
+  `1746c15c9688cb068751ab40619bb0637cff1b3a`. Source audit and focused
+  qualification closed the global-env warmup defect with explicit
+  per-execution arm/disarm, and repaired InvocationID/journal/exit evidence.
+  The sole controller session stopped before model runtime because it copied
+  the device receipt before creating the remote evidence directory. L52 is
+  active only to correct that closed evidence-path ordering and perform the
+  deferred stories15M qualification once.
+- L52 closed NOT PROMOTED at
+  `d236e74d2b2c3df96d88ef4cce5269d1baf3f24a`. Evidence directory admission
+  and atomic receipt publication passed, followed by device, readiness, and
+  placement gates. Warmup still returned decode `-3`. The retained worker
+  journal proves L40 server graph preparation/execution succeeded, narrowing
+  the failure to the coordinator scheduler/composition status path. L53 is
+  active only to localize and correct that explicit unarmed scheduler lifecycle
+  and perform the deferred stories run once.
+- L53 closed NOT PROMOTED at
+  `20af537f0d36d9de3877af860e4f24d89d7e2641`. Source audit found a genuine
+  contradiction: source says common warmup is unarmed and L42/L44-gated, while
+  retained runtime shows an authenticated RPC execution before the canary can
+  arm. Existing evidence cannot distinguish binary/source lineage mismatch
+  from an uncovered arm transition. L54 is active only as one warmup-only
+  discriminator binding exact source/binary provenance and recording the
+  pending/arm/scheduler/RPC refusal transitions. No semantic fix is authorized.
+- L54 closed NOT PROMOTED at
+  `0578c9ce3e58ef832af734ab4a9c0e0ddae94f26` without consuming runtime. It
+  corrected the retained chronology: common warmup succeeded on the ordinary
+  RPC graph; authenticated sequence `1`/UID `27` was the first armed 512-token
+  prompt chunk, whose remote graph executed before the coordinator returned
+  `-3`. A warmup-only run could not reach that failure. L55 is active only to
+  record exact provenance and the client/scheduler/L42/L44 status path through
+  that first chunk, then stop.
+- L55 passed as a bounded diagnostic at
+  `51e87b0c011eb3c7dc5b170bd8f64048bccd0853`. Exact source/binary provenance
+  and one first-chunk run prove the server prepared and executed sequence `1`,
+  UID `27`, digest `0717...`, then the coordinator first failed in
+  `l40_graph_result_reconcile`. No later execution occurred. L56 is active only
+  to distinguish the exact L40 receipt condition—absence, identity/digest/tag,
+  replay/consumption, or backend-status mismatch—without changing behavior.
+- L56 passed as a bounded diagnostic at
+  `8af226d675d9ae287d5d2bddd849f9920507d9ba`. Source and retained evidence
+  decisively identify `graph_uid_mismatch`: reconciliation compared parent
+  scheduler graph UID `26` to the valid RPC split UID `27` for backend ordinal
+  `0`, sequence `1`. L57 is active only to bind explicit parent/split UID
+  mapping, retain fail-closed lineage, and perform one complete stories15M
+  controller qualification.
+- L57 closed NOT PROMOTED at
+  `0026d5243c6108659fa53ce9185af9de0d6ec857`. Its independently reviewed
+  parent/split identity correction is retained and focused qualification
+  passed. In the sole stories15M run, the first armed graph reached the RPC
+  worker, which logged ordinary graph execution, but the coordinator received
+  no usable response and failed with `Remote RPC server crashed or returned
+  malformed response`; cleanup then aborted while freeing the RPC buffer.
+  Existing evidence cannot distinguish worker failure, missing/truncated
+  response, framing/size mismatch, socket EOF, or client validation refusal.
+  L58 is active only as a no-primary/no-production authenticated discriminator
+  at that exact request/response boundary. It may run one small RPC fixture and
+  one first armed stories chunk, but no cache/restore matrix or semantic fix.
+- L58 closed NOT PROMOTED at
+  `e561b56ffb0edc4ffbc38b1c5426722146d32b37`. Its default-off RPC
+  response-boundary instrumentation, verifier, focused tests, and pre-runtime
+  review passed, but the sole stories run remained ambiguous because the
+  success-only harvester skipped both diagnostic streams after the canary
+  failed and controller cleanup then deleted the remote roots. The worker again
+  logged graph execution and the coordinator again reported a malformed or
+  crashed response, but no causal classification is admitted. L59 is active
+  only to make failure-path stream harvesting durable before cleanup, qualify
+  that ordering with injected failures, and then consume one deferred
+  first-chunk discriminator. No cache matrix or semantic correction is
+  authorized.
+- L59 failure-path harvesting passed focused qualification and a real injected
+  unit failure, including retention of an authenticated partial worker stream
+  with explicit missing-client status. Its first controller attempt stopped
+  before stories/model runtime because POSIX directory-fd `fsync` was applied
+  to a Windows evidence directory and raised `PermissionError`. One narrow
+  cross-platform durability correction and one replacement discriminator
+  attempt are authorized; the admission failure remains immutable evidence.
+- L59 closed NOT PROMOTED at
+  `d80b792747a43a9ee2f6faacad6a9b5dfe17d331`. The accepted foundation now
+  durably harvests authenticated client/worker response prefixes on failure
+  before cleanup and records truthful Windows/POSIX durability. The replacement
+  attempt still stopped before model launch because systemd retained the fixed
+  transient device-gate unit name from the earlier failure. L60 is active only
+  to enforce pre/post-launch not-found unit authority and then execute the
+  deferred first-chunk response discriminator once.
+- L60 closed NOT PROMOTED at
+  `ade0bc86a9f7659a67239865641d9a1211f8744f`. Its transient-unit
+  absence/reconciliation guard passed and is retained. The sole model run
+  reached the first armed graph, but response evidence remained unavailable:
+  the worker harvester was invoked through a nimo-2-only source path from
+  nimo-1, while the client stream was absent. L61 is active only to bind and
+  exercise exact host-local harvesters and both stream-creation paths before
+  one deferred first-chunk discriminator.
+- L61 closed NOT PROMOTED at
+  `b74170ec208f17001d12e8bb5278f67f75bb38ba`. Its host-bound two-stream
+  harvesting and runtime client prelaunch probe passed and are retained. The
+  sole stories run proves the armed first-chunk failure occurs before
+  `RPC_CMD_HALOFPX_GRAPH_AUTH_EXECUTE`; the earlier worker graph was ordinary
+  warmup and the later malformed-response text came from teardown. L62 is
+  active only to authenticate the preceding L40/L42/L44 admission and
+  graph-compute/recompute client decision, then run one first-chunk
+  discriminator.
+- L62 closed NOT PROMOTED at
+  `76bae384139dbc083cea7a8fa4e26479a1219c2b` without consuming stories
+  runtime. Its proposed pre-execute diagnostic was removed after real
+  no-model composition failed at L44 mutable begin and review found synthetic
+  evidence, dishonest send-state semantics, an aliased connection epoch,
+  missing real L44 refusal authority, and process-global cardinality. L63 is
+  active as a source-native, attempt-scoped L40/L42/L44 lifecycle and honest
+  transport authority redesign. Stories runtime is conditional on a real
+  composed two-host fixture and independent review.
+- L63 closed NOT PROMOTED at corrected exact HEAD
+  `7628b7cd2ada0fc4d0262f94eaee59f3768a13b0`. Source review proved the
+  accepted APIs cannot supply trustworthy observational evidence: connection
+  and allocation epochs are conflated, admission is not handle-bound, refusal
+  recording begins too late, global locks/cardinality cross network and attempt
+  boundaries, and transport semantics are incomplete. Candidate code was
+  removed. ADR-0049 freezes the required capability/lifecycle revision. L64 is
+  active to implement and qualify that reusable foundation with a real
+  two-host no-model composition; stories runtime is not authorized.
+- L64 closed NOT PROMOTED at
+  `54910a78fae5de586d918cb1252e5867749513b2`; its candidate was removed
+  after review found seven material gaps in negotiation, admission
+  authentication/lifetime, real refusal coverage, event grammar,
+  evidence-preserving aborts, transport injection/harvesting, and genuine
+  concurrency/atomic publication. A fresh-context implementation task now owns
+  L65, starting from ADR-0049 plus the exact L64 review. L65 is foundation-only:
+  it must close all findings in a real two-host no-model composition and retain
+  source only on independent PASS. No stories or production work is authorized.
+- L65 and L66 both closed NOT PROMOTED at
+  `a1c3af9d2f6dd40d696515758480ece66b3653f0` and
+  `755ba5f2ebd943e8a1204f31be4a80516dc06182`. Both real two-host fixtures
+  directionally validated non-mutating preflight, exact execute/recompute
+  output, overlap, distinct connection epochs, and allocation rollover, but
+  review rejected complete expected binding, exact terminal grammar,
+  interprocess publication, and retained refusal provenance. Candidate source
+  was removed after each run.
+- L67 was opened as the final bounded ADR-0049 foundation correction. It narrowed
+  qualification to decisive tests for independent full binding and authenticated
+  cross-side consumption, exact enumerated grammar, immutable no-replace
+  per-attempt publication, and a compact machine-validated evidence manifest.
+  The retention policy now distinguishes safe default-off source from product
+  promotion: missing documentation alone no longer erases reviewed reusable
+  source, while correctness, security, invalid-state acceptance, feature-off
+  regression, or unsafe publication remain removal blockers. No stories, model,
+  cache, performance, or production work is authorized.
+- L67 passed and is retained at
+  `38c7d4ad7802116daac83e3927a1e1ea42fec8c9`. Independent review accepted
+  complete expected binding and signed cross-side consumption, exact finite
+  terminal grammar, immutable atomic no-replace per-attempt publication, and
+  the validated focused manifest with no remaining P1/P2. Compile-off and
+  runtime-off passed, and the real two-host no-model fixture remained exact and
+  overlapping. This is a default-off foundation result, not cache-product or
+  performance promotion.
+- L68 is active as one disposable Stories15M product-path vertical slice. It
+  compares one matched feature-off control with one feature-on composed request
+  and must prove exact output plus a complete authenticated RPC execute/return
+  path. It reuses accepted evidence and prohibits cache capture/restore, primary
+  model work, broad matrices, tuning, performance claims, and production
+  mutation.
+- L68 closed NOT PROMOTED at
+  `91e9761b09ca39786b5d1394f308412bab45041d`. Its feature-off Stories15M
+  control was deterministic and inert (token `29916`, output `x`), while the
+  feature-on path reached real L42/L44 setup and the complete logical census but
+  failed before authenticated execute. Exact evidence proves the abort recorder
+  still held expected census counts `0/0` because they were installed only
+  after prepare; terminal publication therefore refused and the primary cause
+  remained ambiguous. Production was unchanged.
+- L69 is active only to install the sealed admission's authenticated expected
+  census counts before registration begins, prove the pre-prepare abort
+  terminalizes without weakening grammar, and consume one replacement
+  feature-on Stories15M run. The accepted L68 feature-off control is reused and
+  will not be repeated.
+- L69 closed NOT PROMOTED at
+  `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The expected-census ordering
+  correction and focused review passed. Its sole replacement run proved the
+  sealed whole-graph census expected 28 register and 38 exclude entries, while
+  the real stream stopped at 11 and 36 before prepare. This is now classified
+  as an earlier registration/exclusion refusal; partial-census grammar is not
+  the primary defect and no retry is authorized.
+- L70 is active as read-only/offline diagnosis of the first unadmitted ordered
+  census entry and its exact tensor/view/buffer/backend ownership and refusal
+  condition. It authorizes no source change, instrumentation, build expansion,
+  model run, grammar change, production action, or implementation follow-on.
+- L70 closed as an evidence-insufficiency diagnosis. Source proves the sealed
+  census sorts and counts roots/copies separately while runtime re-walks them in
+  different original orders, and scheduler copy planning can append repeated
+  destination tensor identities when insertion is reused. Retained L69 evidence
+  cannot name the exact first tensor because the rejected terminal record never
+  published its pending per-entry detail.
+- L71 is active only to create one immutable canonical per-RPC-backend census
+  entry list used identically for sealing and runtime registration. Identical
+  repeated tensor entries may collapse; conflicting duplicates must refuse.
+  Qualification is synthetic/source-focused only. No Stories/model run,
+  transport qualification, grammar change, production action, or automatic
+  follow-on is authorized.
+- L71 passed and is retained at
+  `3f22338f0582640496c4f7033ea1c67132f6ba8d`. One immutable canonical
+  per-backend list now owns sealing and runtime iteration; exact duplicates
+  collapse and semantic conflicts refuse. Focused synthetic gates and
+  independent review passed with no correctness/security P1/P2. No model or
+  production action occurred.
+- L72 is active for exactly one feature-on Stories15M replacement using the
+  identical L69 tuple and retained L68 feature-off token/output. It must either
+  complete authenticated prepare/execute/return with exact output or retain the
+  precise terminal semantic refusal and stop. No control rerun, foundation
+  expansion, cache work, primary model, tuning, performance claim, production
+  mutation, or automatic follow-on is authorized.
+- L72 closed NOT PROMOTED at
+  `11f4b50fc48cdb52570d55d4d054c5470d95f13e`. Canonical census cardinality
+  matched exactly at 13 register / 36 exclude, and the server authenticated,
+  prepared, and executed sequence 1 / UID 27. The client rejected its otherwise
+  complete terminal stream because canonical sorting interleaved dispositions
+  while grammar v1 requires a contiguous register block then exclude block.
+- L73 is active as one combined mechanical ordering correction and one
+  feature-on replacement. Disposition becomes the primary canonical key
+  (REGISTER before EXCLUDE) while the shared list, grammar, duplicate/conflict
+  semantics, and feature-off behavior remain unchanged. The retained L68
+  control is reused; no additional retry or semantic expansion is authorized.
+- L73 closed NOT PROMOTED at
+  `8ee9ba84ded5f96094762108da63fcac9524ae4f`. The feature-on Stories15M
+  request completed with exact retained-control token `29916` / output `x`,
+  accepted client authority, authenticated mutable receipt, and matching server
+  prepare/execute/consume/return. Promotion was rejected only because the
+  separate server-local recorder reused the client grammar without owning or
+  recording its L42/census/transport facts, then emitted a contradictory
+  teardown refusal.
+- L74 is active as one narrow server-recorder ownership correction plus one
+  final feature-on qualification. Client grammar remains unchanged. A separate
+  exact server grammar will contain only server-owned admission, prepare,
+  atomic consume, execute, response publication, and terminal facts, all bound
+  to the same admission and execution receipt. No broader protocol work,
+  control rerun, cache/primary/performance work, production mutation, retry, or
+  automatic follow-on is authorized.
+- L74 closed NOT PROMOTED at
+  `2c6c39c5b9e01baa945bc81151b0a51211817ed3`. Its server-owned grammar passed
+  source review, and one feature-on request again returned exact token `29916`
+  / output `x` with accepted client authority and matching server
+  prepare/consume/execute/return. Promotion was rejected only because the
+  immutable server authority file was not harvested before disposable cleanup;
+  client response success does not prove later server publication durability.
+- L75 is active as no-model publication-observability and harvest-custody work.
+  It must explicitly journal server publication outcome and authenticate/copy
+  the expected immutable server authority before cleanup. L74/Stories will not
+  be rerun. No protocol/grammar redesign, model/cache/primary/performance work,
+  production action, or automatic follow-on is authorized.
+- L75 closed NOT PROMOTED at
+  `2902b4b6e3266c591dbaabbd7de3802866275bc4`. Its reviewed source now journals
+  explicit server publication outcome and makes controller harvest
+  authenticated, atomic, durable, and cleanup-safe. Focused suites and a Linux
+  helper harvest passed with no review P1/P2. Promotion remains open only
+  because no real Linux server-handler publication/harvest case ran.
+- L76 is active only for that missing real Linux no-model qualification: one
+  isolated handler success and one injected publication failure on disposable
+  units/paths/ports, with production services continuously untouched. No model,
+  cache, protocol/grammar, performance, or production mutation is authorized.
+- L69 closed NOT PROMOTED at
+  `09fa1f4313c81ca9e629af6772f2108fb7ab8bf7`. The ordering correction,
+  focused `2/1` pre-prepare abort, wrong-count refusal, preserved
+  pre-registration abort, focused compile, and independent review all passed.
+  The retained L68 feature-off control was not repeated. The single feature-on
+  replacement stopped before authenticated execute: its immutable sealed
+  census was `28 register / 38 exclude`, while the real preparation stream
+  terminated after `11 / 36`. Exact grammar refused the partial-census abort;
+  canary status was `42` and `llama_decode` returned `-3`. No retry occurred.
+  Disposable resources were removed and production snapshots are byte-identical.
+
+## Repository
+
+- Implementation: `C:\Users\britt\Documents\HaloFPX`
+- Branch: `codex/integration-base-61f2f2d`
+- Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
+- Latest verified commit: `2902b4b6e3266c591dbaabbd7de3802866275bc4`
+- Remote count: zero
+- Worktree state: clean at reviewed terminal L75 closeout when L76 opened
+- Primary worker: L76 real-Linux-custody task `019fa62e-2e6f-7451-846f-1d4a6c1d13d0`
+- Prior implementation worker: idle preserved engineering record
+  `019f83a3-9498-76c3-9398-be80344854ae`
+- Original handoff worker: idle preserved record
+  `019f7377-5d73-7ca1-a83c-a0163f7d4780`
+- Current work: L21 passed. Its closed manifest/evidence controller survived a
+  real early-allocation refusal, retained mandatory PID/InvocationID/cursor,
+  journal, disk, archive, production-equality, and cleanup evidence, passed 13
+  focused tests, and was independently accepted. Production remained unchanged.
+  L22 preflight verified the exact primary artifact and production authority,
+  but two disposable 15M-fixture configurations failed before production
+  mutation: Q8_0 KV is structurally incompatible with its 48-wide heads, and
+  F16 KV reached a flash-attention abort. Production and the primary artifact
+  remained untouched. One narrow no-production compatible-fixture
+  qualification is authorized; kernel debugging and broad fixture exploration
+  are not.
+- The authorized fallback fixture then passed the single-residency smoke and
+  exact three-residency lifecycle with F16 KV and flash attention off, explicitly
+  without representing primary-model kernel performance. Independent review
+  nevertheless blocked production: the controller validated manifest
+  `child_argv` but did not bind the actual `maintenance_command` passed to
+  `Popen` before shutdown. Production remained untouched. A narrow
+  no-production exact-argv/evidence-path binding repair and re-review is now
+  authorized.
+- L22 is terminal NOT PROMOTED. The single exact 160 GB attempt proved exact
+  capture, cold, missing-object fallback, plan-mismatch fallback, and mode-off
+  continuations, with rank-local worker state and zero legacy state-page
+  GET/SET. True worker-restart restore produced a different continuation and
+  failed closed. Production recovered worker-first and is healthy. L23 is open
+  only for offline/source/disposable diagnosis of the earliest restored-state
+  divergence; it authorizes no primary load or production mutation.
+- L23 added default-off authenticated capture/stage/live-apply worker digests.
+  The disposable lifecycle remained exact with equal worker aggregates, but
+  retained L22 evidence cannot distinguish worker application from
+  coordinator/model-specific incompleteness. L24 is authorized for one
+  primary-model load and only capture plus true worker-restart restore with
+  minimum deterministic output. It is diagnostic, not a cache retry or
+  promotion.
+- L24 capture completed, but a controller-owned SSH readiness probe hung.
+  Terminating the disposable child triggered emergency recovery, whose first
+  SSH probe also hung. Both production services were temporarily inactive.
+  The bounded stuck subprocess was cleared and the existing controller restored
+  nimo-2 worker first (PID 1415055/50052), then nimo-1 coordinator (PID
+  2236922/8081/HTTP 200), both `NRestarts=0`. No retry is authorized. L24 is
+  closing NOT PROMOTED with the diagnostic and recovery evidence preserved.
+- L24 is now reviewed and committed NOT PROMOTED. Capture retained the primary
+  worker aggregate, but no authenticated reference token, stage, apply, or
+  restore result exists. L25 is open only to give every controller-owned SSH
+  subprocess a local process-group deadline, preserve typed timeout evidence,
+  keep recovery live without orphan processes, and flush/authenticate capture
+  evidence before handoff. Production must remain continuously unchanged.
+- L25 passed 79 focused tests and independent review. All controller and child
+  SSH now use locally enforced process-group deadlines with typed fsynced
+  evidence, bounded escalation/reaping, no ambiguous mutation retry, and
+  recovery continuation. Capture output is flushed, authenticated, and durable
+  before restart. L26 is authorized for one primary load and only the
+  capture/restart/restore one-token discriminator that L24 could not complete.
+- L26 is terminal after the single authorized run. Capture and the disposable
+  worker restart occurred, but the coordinator aborted while creating its
+  post-restart context after RPC reported a crashed or malformed remote
+  response. No retry occurred. Recovery restored nimo-2 worker first (PID
+  1422619/50052), then nimo-1 coordinator (PID 2248156/8081/HTTP 200), with
+  exact unit/cgroup/command ownership and `NRestarts=0`. The worker is closing
+  L26 NOT PROMOTED with evidence and independent review.
+- L26 is reviewed and committed NOT PROMOTED. Its capture evidence is valid,
+  but no stage/apply result exists. L27 is open only to test whether restarting
+  an RPC worker invalidates the server-side model/buffer allocations held by a
+  still-resident coordinator model. It will compare same-residency failure
+  against a fresh coordinator/model residency using a disposable small model,
+  with production continuously unchanged.
+- L27 passed and proved the lifecycle boundary: a worker restart destroys
+  process-local RPC buffer/tensor/graph authority, so an old coordinator model
+  residency cannot continue even after fresh CAPS. A new coordinator/model
+  residency against the new worker restored the disposable state exactly. L28
+  is open only to wire worker epoch and model-allocation epoch authority into
+  the real fresh-residency runner and qualify that two-residency lifecycle on
+  the disposable model.
+- L28 passed 78 focused tests and independent review. The executable runner now
+  enforces two fresh model residencies, authenticated capture-object/epoch-A
+  lineage, coordinator-A-before-worker-A shutdown, distinct worker B, complete
+  model-B readiness and current epoch revalidation before restore authorization.
+  The disposable capture/restore was exact. L29 is authorized for one primary
+  transition using only this two-residency, one-token discriminator.
+- L29 completed the single two-residency primary transition and reached output
+  comparison. Capture and restored token/text hashes differ, so the run failed
+  closed and will not be repeated. Production recovered worker-first and is
+  healthy at nimo-2 PID 1454894/50052 and nimo-1 PID 2283857/8081/HTTP 200,
+  both `NRestarts=0`. Final boundary localization awaits the committed
+  capture/stage/apply worker and coordinator digest closeout.
+- A closeout alarm that both units were inactive was resolved without mutation:
+  the probe queried the user systemd manager for system units. `/proc` cgroups
+  and explicit system-manager queries prove both exact production units are
+  loaded active/running with the PIDs above, correct commands/listeners,
+  HTTP 200, and `NRestarts=0`. L29 closeout must retain this wrong-scope
+  evidence and bind future production probes explicitly to system scope.
+- L29 is reviewed and committed NOT PROMOTED. Capture and validated stage agree
+  exactly on all 64 components and 2,454,528 bytes, while the live post-apply
+  aggregate differs; coordinator control/local/manifest digests are identical.
+  This localizes the first retained defect to stage-to-live worker application
+  or restart layout. L30 is open only for component-level digest/range,
+  alias/view/stride/order, RPC-offset, and synchronization diagnosis using no
+  primary model and no production mutation.
+- L30 passed and identified the source-backed defect: live apply converted Q8_0
+  storage bytes to scalar elements without multiplying by the block size, so a
+  1,088-byte component restored only 34 bytes. The guarded correction restores
+  full block geometry and passed exact Q8 RPC, view, and disposable
+  two-residency tests plus independent review. L31 is authorized for one
+  corrected primary two-residency, one-token confirmation.
+- L31 consumed the single corrected primary transition but the first restored
+  token still differed from capture, so it is terminal NOT PROMOTED with no
+  retry. Production recovered worker-first and is healthy at nimo-2 PID
+  1468887/50052 and nimo-1 PID 2304428/8081/HTTP 200, both `NRestarts=0`.
+  The next decision is intentionally deferred until independent review freezes
+  the authenticated component-level capture/stage/apply comparison.
+- L31 is reviewed and committed NOT PROMOTED. All 64 worker components now have
+  identical authenticated identity/content after live apply and coordinator
+  input receipts match, yet the first token differs. L32 is open only to
+  recapture the restored live coordinator/context state before generation and
+  compare it canonically with the original capture, including control metadata,
+  local components, sequence/KV cell state, and architecture-exposed memory.
+- L32 passed 96 focused tests and independent review. It added authenticated
+  live post-apply coordinator and worker recapture immediately before
+  generation. The disposable two-residency lifecycle is exact across all live
+  phases. No source-backed coordinator defect is proven without the primary
+  workload. Work is intentionally stopped at this clean boundary pending
+  explicit user approval; no L33 task has been sent.
+- User approval to resume was received. L33 is now active as one exact-primary,
+  two-residency, one-token live-state discriminator using the already qualified
+  L32 instrumentation. No broad smoke-test matrix, automatic retry, tuning,
+  speculative fix, or production-cache promotion is authorized.
+- L33 is terminal NOT PROMOTED at
+  `83ce2b5a449fa68d7864d8e0d31bf85c8edfc0ed`. All authenticated serialized and
+  live-recaptured coordinator/worker state is equal through the adjacent
+  pre-generation boundary, but the primary first token still differs. L34 is
+  active as a source-only semantic completeness diagnosis focused on final
+  prompt-token replay, logits provenance, decode positions, sampler inputs,
+  and architecture-specific runtime state. Two independent read-only
+  specialist audits are running in parallel; no primary load or production
+  mutation is authorized.
+- L34 passed at `fc8517ffc473220d74ee27b6eb111d4be7fefd82`.
+  Source and focused diagnostics prove both paths replay the final prompt token
+  exactly once and freshly generate synchronized logits; generic replay-count,
+  stale-logit, sampler-history, recurrent-memory, and state-write synchronization
+  explanations are unsupported. Two independent source audits identify
+  graph/scheduler history and KV physical-cell/allocator authority as the
+  strongest remaining uncovered inputs. L35 is active as one combined
+  disposable discriminator and mutable-state coverage census; no primary run
+  is authorized.
+- L35 passed at `93c3ae313b86aa0bfddd2c5a1a8745223cb256ac`.
+  Authenticated disposable evidence shows capture and restore both rebuilt the
+  graph, selected identical KV prepare/apply cells and heads, used identical
+  attention views/backends/output mapping, and produced identical synchronized
+  logits and token. L36 is active as exactly one ordinary primary replay-
+  authority discriminator. No canonical-reset variant, matrix, retry, tuning,
+  or speculative correction is authorized.
+- The first L36 transition was rejected by a narrow harness admission defect
+  after both residencies: honest fresh restore reports `n_batch=0`, but the
+  combined diagnostics path incorrectly expected 512 because the invariant was
+  coupled to `SEMANTIC_DIAGNOSTICS_ONLY`. No replay-authority interpretation
+  was admitted. Production recovered exactly to HTTP 200. One corrected L36
+  execution is authorized only after focused lifecycle-gate tests, hash refresh,
+  and independent review; the failed run must remain separately preserved.
+
+## Product progress
+
+- L10c is the first normal-completion, client-handle-free default-off server
+  canary to demonstrate authenticated exact-key cold miss, prompt-boundary
+  publication, process restart, and hit. The tiny-model proof reduced prompt
+  processing from 11 tokens cold to 1 restored token with exact continuation.
+- A changed prompt recomputed cold without replacing the original entry;
+  reserve exhaustion published nothing; corrupt/incompatible state remains a
+  cold fallback. This remains a single-entry generation-one laboratory canary,
+  not production persistence or a 160 GB model cache-state workload.
+- L10a now authenticates the fixed generation-one anchor and automatically
+  derives its selected manifest without trusting directory names. Publish,
+  reopen, automatic selection, exact restore, wrong-scope miss, and
+  corrupted-anchor miss passed on nimo-2. Server runtime lookup/writeback is the
+  current next gate rather than a completed claim.
+- L10b derives an opaque authenticated checkpoint lineage from private scope,
+  closed compatibility, exact fixed-width canonical tokens, and bounded target
+  topology/profile. Focused and inherited controls passed on nimo-2, and the
+  ordinary server binary contained no exact-session marker. This is committed
+  as `d7950c43`; it still has no normal request/runtime behavior by itself.
+- L10c passed 7/7 focused tests in both gate-on and gate-off builds. Thirty
+  balanced tiny-model feature-off pairs had identical outputs and non-worse
+  point estimates (+2.35% prompt, +0.75% paired generation), but the broad
+  confidence intervals mean this is not final G9/G10 evidence.
+- L10d adds a fixed authenticated catalog of two to eight independent immutable
+  generation-one entries while partitioning the existing quota. Two prompts
+  each processed 11 tokens cold and 1 after restart; a third prompt at capacity
+  processed cold without tree mutation. Focused Linux tests passed 8/8,
+  independent review accepted the repaired authority, and production remained
+  active with zero restarts. Commit `6862ffb9` is clean.
+- L11 proves the current sequence serializer is globally complete only by
+  transferring worker-resident KV pages through RPC: four GET payloads totaling
+  41,472 bytes during capture and four SET payloads totaling 41,472 bytes during
+  restore for the small fixture. The worker has no rank-local serializer,
+  persistent writer, readiness authority, or commit-live participant. The
+  reviewed documentation-only blocker is committed cleanly as `78a102ac`.
+- L12 implements the default-off worker-local RPC state protocol and proves it
+  on a disposable two-host small model. Uninterrupted, restart-restored, and
+  cold suffixes were exact. Missing/corrupt objects and plan/topology mismatch
+  rebuilt cold. Capture and restore state windows contained zero legacy
+  GET_TENSOR/SET_TENSOR payload transfers. Independent adversarial review
+  accepted the implementation; commits `6444d1e1` and `51922809` are clean.
+- Live production authority was reverified after L12: nimo-1 is the current
+  coordinator on port 8081 (PID 2053029) and nimo-2 is the RPC worker on port
+  50052 (PID 1186396). Earlier project records using the opposite orientation
+  describe disposable or prior deployments and are not current runtime truth.
+- L13 did not reach capture. Attempt one asserted because the 1,128-token saved
+  prefix exceeded `n_batch=512`; its chunking correction is committed but
+  runtime-unqualified. Attempt two stopped nimo-2's production worker before
+  nimo-1's coordinator due to a wrong-host command, causing the coordinator to
+  abort. The stop gate fired, no state object was published, and no L13
+  correctness/performance claim is admitted. Production recovered to HTTP 200:
+  nimo-1 coordinator PID 2068256 and nimo-2 worker PID 1247685, both with
+  `NRestarts=0`. The reviewed negative result is commit `519a4400`.
+- L13R prerequisites succeeded: the actual canary processed the 1,128-token
+  saved prefix in three chunks at `n_batch=512`, and the host-bound transition
+  controller passed 19 focused tests and independent review. The single retry
+  then failed before model load or state operations because TCP listener
+  visibility preceded RPC application readiness. The enforced rollback restored
+  nimo-2 worker PID 1275544 and nimo-1 coordinator PID 2093167/HTTP 200, both
+  `NRestarts=0`. No state object or model result exists. Final reviewed closeout
+  is `aa3c2cf6`.
+- L14 replaces socket/listener readiness with exact HELLO plus runtime-bound
+  `HFXCAP2` admission. The probe binds RPC/state versions, command mask and
+  ordinal, limits, rank/world, key generation, and channel identity. Thirty
+  focused tests passed, including delayed listener-first, timeout, runtime-off,
+  malformed and wrong-capability cases. A real disposable ROCm worker admitted
+  in 1.225 ms with zero state operations while production remained unchanged.
+  Implementation `b688680e`, reviewed closeout `a496492c`.
+- L15 consumed one guarded transition but stopped before RPC connection because
+  the nimo-2 expected-channel key was created mode 0644. No model load, state
+  operation, object, or result occurred. Worker-first rollback restored the
+  standard production deployment at nimo-2 worker PID 1291141 and nimo-1
+  coordinator PID 2125672/HTTP 200, both NRestarts=0. The reviewed terminal
+  closeout is `0db5a561`; no primary cache claim is admitted.
+- L16 proved the secure binary-stdin key gate and exact HFXCAP2 readiness, then
+  failed during the first model load when current placement requested one
+  159,231,007,232-byte RPC0 buffer from a worker with 133,143,986,176 bytes
+  total. No prompt/state/object result exists. Production recovered worker-first
+  at nimo-2 PID 1305879 and nimo-1 PID 2144857/HTTP 200, both NRestarts=0.
+  Reviewed terminal closeout `20f19a2d` narrowly attributes this to current
+  placement, not aggregate capacity or model incompatibility.
+- L17 makes `RPC0,ROCm0` executable pre-allocation authority through a shared
+  loader/probe resolver. Its focused negative matrix, isolated real RPC probe,
+  and two exact-output tiny-model loads passed with nonzero allocations on both
+  devices. Independent re-review found no remaining P1/P2 issue. Production was
+  never mutated and remains healthy at nimo-1 PID 2144857/HTTP 200 and nimo-2
+  PID 1305879, both with `NRestarts=0`. Commit `730e9633` is clean. L17 does not
+  prove the 159.9 GB artifact's allocation shapes or capacity fit.
+- L18 uses the real architecture loader in metadata-only `no_alloc` mode and
+  accounts for all 809/809 source tensors with zero unknown or unaccounted.
+  Planned requests are 80,950,550,528 bytes on RPC0, 78,280,456,704 bytes on
+  ROCm0 device memory, and 633,802,752 bytes in the ROCm host group. With
+  simulated context/compute, a 10% fragmentation assumption, and a fixed 16 GiB
+  reserve, margins remain 26,500,867,072 bytes on RPC0 and 28,406,681,241 bytes
+  on ROCm0. The real loader places `output.weight` on RPC0, overriding L17's
+  resolver-only prediction. No primary weights were allocated, production was
+  not mutated, cleanup completed, independent review found no P1/P2 issue, and
+  commit `93c61eadd` is clean.
+- L19 correctly stopped before mutation after independent review found two P1
+  execution-contract defects and one P2 evidence defect: six process modes
+  implied six material loads rather than one; controller key/child/cleanup
+  authority remained L16-specific; and allocation-failure evidence would be
+  collected too late. No primary load, inference, cache operation, key
+  provisioning, unit transition, or disposable listener occurred. The exact
+  artifact and current production authority were revalidated, focused tests
+  passed 52/52, production stayed at the known-good PIDs with zero restarts,
+  and terminal closeout `7cb42be0` is clean.
+- L20 proves on a disposable two-host 15M model that the complete current
+  lifecycle needs three material residencies: capture/uninterrupted plus clean
+  cold; post-worker-restart restore plus corrupt/mismatch cold fallbacks; and a
+  feature-off cold control. All continuation hashes matched, the 1,129-token
+  prompt chunked 512/512/104, and state windows carried zero legacy tensor-page
+  transfers. The controller candidate was not retained because it lacked a
+  real early allocation-refusal evidence case, did not own all disposable
+  paths, could lose InvocationID authority after unit collection, treated some
+  evidence failures as nonfatal, and lacked a production-before snapshot. All
+  disposable resources were removed, production remained unchanged, and the
+  docs-only terminal closeout is clean at `e2edc4b3`.
+- The exact 160 GB primary model is pinned and repeatedly benchmarked.
+
+## Performance truth
+
+- Matched feature-off baseline is roughly 203.8 prompt tokens/s and 16.65
+  generation tokens/s for the exact primary workload.
+- No accepted full-model speedup exists yet.
+- Several rank-local/fused/placement candidates were correctly rejected and
+  removed after 0.3–4.3% matched slowdowns.
+- Profiling shows alternating rank work and roughly half-duty GPUs; aggregate
+  USB4 bandwidth is not the present limiting resource.
+- The P13 private MMVQ micro-canary is correct and locally faster, but its
+  estimated full-token contribution is only about 0.1%. It was retained as a
+  default-off exact-shape proof at `ea49690a` and its product integration lane
+  was correctly closed rather than overstated.
+- P14 RPC row split preserved exact output but changed prompt throughput by only
+  about +0.046% and generation by about -0.092%. It was correctly rejected and
+  committed at `522dd90c`; production recovered to HTTP 200 with zero restarts.
+
+## Lead decision
+
+Accept L20's three-residency lifecycle result but reject its controller
+candidate exactly as reviewed. Open L21 only to close the five concrete
+execution-contract defects: complete manifest ownership, real early allocation
+refusal capture, fail-closed journal authority after unit collection, fatal
+evidence-command failures, and a bound production-before snapshot. Reuse the
+already proven three-residency small-model lifecycle; do not expand its semantic
+matrix. L21 must remain no-production and may not read/load the primary artifact.
+Only a later lead decision may authorize a three-residency primary canary.

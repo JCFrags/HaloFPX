@@ -1,0 +1,19 @@
+section_id: "52"
+title: "Dual-Link Multipath: Striping, Alternation, Hedging, and Failover"
+category_id: "08"
+category_title: "Fabric and Transport"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 7
+open_question_count: 9
+required_machine_experiments:
+  - "FT-52-E1 physical and logical independence"
+  - "FT-52-E2 policy sweep"
+  - "FT-52-E3 degradation and failover"
+  - "FT-52-E4 correctness oracle"
+related_sections: ["20", "38", "41", "42", "43", "49", "50", "53", "55"]
+applicability:
+  repositories:
+    - "torvalds/linux@fce2dfa773ced15f27dd27cd0b482a7473cdcf2a"
+  software: "MPTCP v1 and candidate HaloFPX application multipath"
+  hardware: "two independent USB4 links assumed but unverified"

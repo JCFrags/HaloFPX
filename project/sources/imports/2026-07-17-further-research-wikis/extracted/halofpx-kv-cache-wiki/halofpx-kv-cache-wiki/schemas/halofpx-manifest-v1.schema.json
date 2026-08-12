@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://halofpx.invalid/schema/kv-manifest-v1.json",
+  "title": "HaloFPX KV manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generation",
+    "namespace_id",
+    "engine_family",
+    "cache_key_sha256",
+    "compatibility_fingerprint_sha256",
+    "prompt_root_sha256",
+    "object_sha256",
+    "object_size",
+    "created_unix_ns",
+    "last_access_unix_ns",
+    "verified_prefix_tokens",
+    "required_segments",
+    "encryption_policy",
+    "state",
+    "catalog_auth"
+  ],
+  "properties": {
+    "schema": {
+      "const": "halofpx.kv.manifest/v1"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "namespace_id": {
+      "$ref": "#/$defs/hex64"
+    },
+    "engine_family": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "cache_key_sha256": {
+      "$ref": "#/$defs/hex64"
+    },
+    "compatibility_fingerprint_sha256": {
+      "$ref": "#/$defs/hex64"
+    },
+    "prompt_root_sha256": {
+      "$ref": "#/$defs/hex64"
+    },
+    "object_sha256": {
+      "$ref": "#/$defs/hex64"
+    },
+    "object_size": {
+      "type": "integer",
+      "minimum": 104
+    },
+    "created_unix_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "last_access_unix_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "verified_prefix_tokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "required_segments": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      }
+    },
+    "encryption_policy": {
+      "enum": [
+        "none",
+        "optional-aead",
+        "required-aead"
+      ]
+    },
+    "state": {
+      "const": "committed"
+    },
+    "catalog_auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "key_id",
+        "tag_hex"
+      ],
+      "properties": {
+        "mode": {
+          "const": "hmac-sha256"
+        },
+        "key_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "tag_hex": {
+          "$ref": "#/$defs/hex64"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "hex64": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

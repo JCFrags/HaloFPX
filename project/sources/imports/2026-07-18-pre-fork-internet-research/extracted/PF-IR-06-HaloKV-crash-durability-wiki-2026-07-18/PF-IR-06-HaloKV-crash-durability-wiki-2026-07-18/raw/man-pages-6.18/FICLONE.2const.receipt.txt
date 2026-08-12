@@ -1,0 +1,14 @@
+---
+source_id: "S028"
+title: "FICLONE/FICLONERANGE"
+capture_kind: "official-web-receipt-with-short-excerpt"
+canonical_url: "https://man7.org/linux/man-pages/man2/FICLONERANGE.2const.html"
+version: "Linux man-pages 6.18"
+page_colophon_date: "2026-02-08 or page-specific"
+retrieved_by_man7: "2026-05-24"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "per-page upstream license"
+---
+Reflink cloning initially shares physical storage and separates blocks on later writes. This is a space optimization, not a durability or isolation proof.
+
+This local file is a normalized receipt; it is not a byte-for-byte HTML capture.

@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Output correctness record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "record_id",
+    "request_id",
+    "suite",
+    "test_id",
+    "method",
+    "sampling",
+    "output_sha256",
+    "passed",
+    "critical"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "record_id": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "suite": {
+      "type": "string"
+    },
+    "test_id": {
+      "type": "string"
+    },
+    "method": {
+      "enum": [
+        "exact",
+        "token_exact",
+        "regex",
+        "json_parse",
+        "json_schema",
+        "invariant",
+        "reference_score",
+        "pairwise_judge",
+        "metamorphic"
+      ]
+    },
+    "sampling": {
+      "type": "object",
+      "required": [
+        "temperature",
+        "seed"
+      ],
+      "properties": {
+        "temperature": {
+          "type": "number",
+          "minimum": 0
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "grammar_or_schema_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "expected_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "output_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "normalized_output_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "score": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "threshold": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "passed": {
+      "type": "boolean"
+    },
+    "critical": {
+      "type": "boolean"
+    },
+    "cache_state": {
+      "enum": [
+        "C0",
+        "C1",
+        "C2",
+        "C3",
+        "NA"
+      ]
+    },
+    "comparison_group": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "failure_class": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "adjudication": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

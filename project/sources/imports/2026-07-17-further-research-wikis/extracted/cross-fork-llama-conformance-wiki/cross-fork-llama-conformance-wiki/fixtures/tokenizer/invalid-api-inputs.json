@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "requests": [
+    {
+      "id": "negative-token",
+      "content": [
+        -1
+      ]
+    },
+    {
+      "id": "noninteger-token",
+      "content": [
+        1,
+        2.5,
+        3
+      ]
+    },
+    {
+      "id": "string-in-token-array",
+      "content": [
+        1,
+        "x",
+        2
+      ]
+    },
+    {
+      "id": "null-content",
+      "content": null
+    },
+    {
+      "id": "object-content",
+      "content": {
+        "unexpected": true
+      }
+    },
+    {
+      "id": "oversized-token-placeholder",
+      "content": [
+        "TOKEN_ID_EQUAL_TO_VOCAB_SIZE"
+      ]
+    }
+  ],
+  "note": "Resolve symbolic token IDs from the loaded vocabulary at runtime."
+}

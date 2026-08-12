@@ -1,0 +1,19 @@
+---
+source_id: "S001"
+title: "Linux 7.1.3 release commit receipt"
+capture_kind: "metadata-receipt"
+canonical_url: "https://github.com/gregkh/linux/commit/199c9959d3a9b53f346c221757fc7ac507fbac50"
+version: "Linux 7.1.3"
+commit: "199c9959d3a9b53f346c221757fc7ac507fbac50"
+annotated_tag_object: "113be0295f4f632d61f4e9c93322f70e2365f54d"
+release_date: "2026-07-04"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "metadata; source tree GPL-2.0"
+---
+Verified release commit:
+  sha: 199c9959d3a9b53f346c221757fc7ac507fbac50
+  subject: Linux 7.1.3
+  Makefile version transition: SUBLEVEL 2 -> 3
+  signed-off-by: Greg Kroah-Hartman
+
+This is a normalized receipt, not a byte-for-byte capture of the web page.

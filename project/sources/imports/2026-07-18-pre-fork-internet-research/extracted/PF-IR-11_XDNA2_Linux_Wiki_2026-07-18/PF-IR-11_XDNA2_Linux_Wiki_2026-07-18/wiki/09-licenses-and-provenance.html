@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>9. Licenses and provenance — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a class="active" href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/09-licenses-and-provenance.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>9. Licenses and provenance</h1>
+<h2 id="license-boundary">License boundary</h2>
+<table>
+<thead>
+<tr>
+  <th>Component</th>
+  <th>Captured license/terms</th>
+  <th>Handling</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Linux <code>amdxdna</code></td>
+  <td>GPL-2.0 / GPL-2.0-only; UAPI has Linux syscall note</td>
+  <td>SPDX notices preserved</td>
+</tr>
+<tr>
+  <td>AMD legacy kernel source</td>
+  <td>GPL-2.0</td>
+  <td>exact source preserved</td>
+</tr>
+<tr>
+  <td>AMD XDNA shim/build</td>
+  <td>Apache-2.0</td>
+  <td>exact SPDX-bearing build/shim excerpts preserved</td>
+</tr>
+<tr>
+  <td><code>linux-firmware</code> amdnpu</td>
+  <td>Redistributable; see <code>LICENSE.amdnpu</code></td>
+  <td>binaries not included; reference preserved</td>
+</tr>
+<tr>
+  <td>XRT userspace</td>
+  <td>Apache-2.0</td>
+  <td>public commit and license blob recorded</td>
+</tr>
+<tr>
+  <td>XRT kernel portions</td>
+  <td>GPL-2.0 or dual terms depending component</td>
+  <td>not used as target kernel proof</td>
+</tr>
+<tr>
+  <td><code>llvm-aie</code></td>
+  <td>Apache-2.0 with LLVM exception</td>
+  <td>public commit/license blob recorded</td>
+</tr>
+<tr>
+  <td><code>mlir-aie</code></td>
+  <td>Apache-2.0 with LLVM exception</td>
+  <td>public commit/license blob recorded</td>
+</tr>
+<tr>
+  <td><code>amd/RyzenAI-SW</code> examples</td>
+  <td>MIT</td>
+  <td>exact license included and Git-blob verified</td>
+</tr>
+<tr>
+  <td>AMD Ryzen AI binaries</td>
+  <td>AMD EULA and third-party notices</td>
+  <td>packages absent; terms not interpreted</td>
+</tr>
+<tr>
+  <td>AMD web documentation</td>
+  <td>AMD website terms</td>
+  <td>factual claim capture only</td>
+</tr>
+</tbody>
+</table>
+<p>The machine-readable table is <a href="../manifests/licenses.csv"><code>../manifests/licenses.csv</code></a>.</p>
+<h2 id="provenance-rules">Provenance rules</h2>
+<ol>
+<li>Every source has an access date.</li>
+<li>Git sources use immutable commit pins.</li>
+<li>Exact raw files record upstream Git blob SHA-1 where available.</li>
+<li>Every bundle file receives SHA-256.</li>
+<li>Vendor package filenames are preserved exactly.</li>
+<li>Gated binaries and firmware payloads are not silently mirrored.</li>
+<li>A public repository head is not asserted to be an AMD binary-package build input without evidence.</li>
+<li>Structured vendor-document captures are distinguished from exact raw files.</li>
+</ol>
+<h2 id="exact-source-verification">Exact source verification</h2>
+<p><a href="../manifests/exact-source-verification.json"><code>../manifests/exact-source-verification.json</code></a> recomputes Git blob object IDs for exact captured Git files.</p>
+<p><a href="../manifests/files.sha256"><code>../manifests/files.sha256</code></a> covers the complete bundle.</p>
+<h2 id="capture-limitations">Capture limitations</h2>
+<p>See <a href="../sources/CAPTURE_LIMITATIONS.html"><code>../sources/CAPTURE_LIMITATIONS.md</code></a>. Notably:</p>
+<p><span class="claim claim-missing">[MISSING]</span> AMD account-gated package payloads and their hashes are absent.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Firmware binaries are absent.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> The relationship between public source heads and AMD's supported binary release is not proven.</p>
+<p><span class="claim claim-decision">[DECISION]</span> These gaps are preserved as decision blockers rather than filled with assumptions.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

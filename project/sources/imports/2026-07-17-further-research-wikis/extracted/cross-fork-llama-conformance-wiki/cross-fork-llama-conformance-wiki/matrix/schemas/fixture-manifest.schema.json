@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/llama-conformance/fixture-manifest.schema.json",
+  "title": "Fixture manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "fixtures"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "fixtures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "materialization",
+          "path",
+          "sha256",
+          "source",
+          "license_notes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "materialization": {
+            "enum": [
+              "included",
+              "download",
+              "generated",
+              "operator-supplied",
+              "recipe"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "license_notes": {
+            "type": "string"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

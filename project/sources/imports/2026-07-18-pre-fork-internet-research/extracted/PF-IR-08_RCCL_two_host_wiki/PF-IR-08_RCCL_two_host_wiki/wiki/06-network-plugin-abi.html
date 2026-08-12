@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Network-plugin ABI and custom transport boundary · PF-IR-08</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-08<br>RCCL two-host boundary</div><div class="audit">Evidence snapshot · 2026-07-18<br><code>801a9ca…</code> active authority</div><input id="nav-search" class="search" type="search" placeholder="Filter pages…"><nav class="nav"><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-method.html" class="">Scope, method, and evidence rules</a><a href="../wiki/01-executive-decision.html" class="">Executive decision</a><a href="../wiki/02-authority-and-version-lanes.html" class="">Authority and version lanes</a><a href="../wiki/03-strix-halo-evidence.html" class="">Strix Halo evidence and support boundary</a><a href="../wiki/04-socket-and-interface-selection.html" class="">Socket transport and interface selection</a><a href="../wiki/05-topology-and-memory-registration.html" class="">Topology discovery and memory registration</a><a href="../wiki/06-network-plugin-abi.html" class="active">Network-plugin ABI and custom transport boundary</a><a href="../wiki/07-communicator-failure-semantics.html" class="">Communicator creation and failure semantics</a><a href="../wiki/08-two-way-tensor-parallelism-boundary.html" class="">Two-way tensor parallelism and adjacent architectures</a><a href="../wiki/09-upstream-tests-statements.html" class="">Upstream tests and maintainer statements</a><a href="../wiki/10-local-experiment-matrix.html" class="">Local experiment matrix</a><a href="../wiki/11-open-questions-machine-evidence.html" class="">Open questions requiring machine evidence</a><a href="../wiki/12-evidence-index.html" class="">Evidence index</a></nav><div class="mini"><b>Non-claim boundary</b><br>No RCCL suitability or GPU-direct-over-USB4 conclusion without exact two-node evidence.</div></aside><main class="main"><div class="topbar"><span class="crumb">PF-IR-08 / Network-plugin ABI and custom transport boundary</span><span><a href="../README.md">README</a> · <a href="../claims/claims.csv">claims.csv</a> · <a href="../manifests/source_manifest.csv">manifest</a></span></div><div class="content"><article class="article"><h1>Network-plugin ABI and custom transport boundary</h1>
+<h2>Versioned ABI</h2>
+<table>
+<thead>
+<tr>
+  <th>RCCL line</th>
+  <th>Current Net struct</th>
+  <th>Loader compatibility set</th>
+  <th>Current symbol</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>2.27.7</td>
+  <td>v10</td>
+  <td>v10, v9, v8, v7, v6</td>
+  <td><code>ncclNetPlugin_v10</code></td>
+</tr>
+<tr>
+  <td>active 2.30.4</td>
+  <td>v12</td>
+  <td>v12, v11, v10, v9, v8, v7, v6</td>
+  <td><code>ncclNetPlugin_v12</code></td>
+</tr>
+</tbody>
+</table>
+<p>A plugin must be built and tested against the exact RCCL header/runtime pair. Loader compatibility means older symbols may be accepted; it does not mean a newer plugin can be dropped into an older runtime.</p>
+<h2>Selection and fallback</h2>
+<p>The loader can obtain an external library from <code>NCCL_NET_PLUGIN</code>, probes versioned exported symbols, and appends internal IB and Socket providers as fallbacks. <code>NCCL_NET</code>/communicator <code>netName</code> selects the provider by its declared name. The harness must capture logs proving both the library and provider selected; silent fallback would invalidate a custom-transport result.</p>
+<h2>v12 responsibilities relevant to USB4STREAM</h2>
+<p>A custom provider is responsible for:</p>
+<ul>
+<li>device enumeration and topology properties;</li>
+<li>nonblocking listener/connect/accept progress;</li>
+<li>host/device/DMA-BUF pointer capability declarations;</li>
+<li>memory registration and deregistration;</li>
+<li>asynchronous send, receive, and completion polling;</li>
+<li>visibility/flush semantics for device receives;</li>
+<li>connection and listener teardown;</li>
+<li>error propagation and optional device-offload hooks.</li>
+</ul>
+<p>A USB4STREAM proof of concept therefore needs ABI conformance tests before any collective benchmark. A fast byte channel without correct progress, ordering, visibility, and teardown is not an RCCL transport.</p>
+</article><div class="footer">Commit-pinned research snapshot. Literal labels distinguish API, implementation, documentation, tests, commentary, inference, and unresolved machine evidence.</div></div></main></div><script src="../assets/wiki.js"></script></body></html>

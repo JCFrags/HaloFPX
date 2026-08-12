@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "normalized_classes": [
+    "invalid-format",
+    "unsupported-version",
+    "invalid-argument",
+    "not-supported",
+    "not-found",
+    "capacity",
+    "rate-limit",
+    "cancelled",
+    "timeout",
+    "transport",
+    "out-of-memory",
+    "io-error",
+    "authorization",
+    "internal"
+  ],
+  "rule": "Compare normalized class and endpoint-required envelope. Do not require exact diagnostic wording unless the case explicitly says so."
+}

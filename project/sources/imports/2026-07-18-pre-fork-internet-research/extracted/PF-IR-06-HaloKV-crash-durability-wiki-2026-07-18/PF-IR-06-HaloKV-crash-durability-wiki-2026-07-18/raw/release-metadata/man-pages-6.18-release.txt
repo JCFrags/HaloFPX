@@ -1,0 +1,14 @@
+---
+source_id: "S019"
+title: "Linux man-pages 6.18 release receipt"
+capture_kind: "metadata-receipt"
+canonical_url: "https://www.kernel.org/pub/linux/docs/man-pages/"
+version: "man-pages 6.18"
+release_date: "2026-04-22"
+tarball_sha256: "c934fadc8b59748c68227a34f6581d2ddf8282b73cdcd52546c8cd88b74b24d1"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "per-page licenses; see upstream LICENSES"
+---
+Pinned release: man-pages-6.18.
+The local web receipts below record the 6.18 colophon and relevant lines.
+This receipt is normalized metadata, not the tarball itself.

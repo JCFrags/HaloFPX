@@ -1,0 +1,385 @@
+{
+  "access_date": "2026-07-18",
+  "approval_status": "evidence-only",
+  "records": [
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 2252,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/tests-CMakeLists.L120-L145.cmake",
+      "local_sha256": "8020a38ce2fc29d398f01d61abb71fe0ceed93d4542c888194ed9d0e9224e3cd",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 145,
+      "requested_line_start": 120,
+      "source_git_blob_sha1": "7a93b19a0765b19ed82b5cc70e6b3733d3283334",
+      "source_path": "tests/CMakeLists.txt",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tests/CMakeLists.txt#L120-L145"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 1098,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/tests-CMakeLists.L153-L170.cmake",
+      "local_sha256": "1cf1f60d4494ccf2e19396e9eb4d38e04d14f3ebcc108f1c2434e2acd3ff5e63",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 170,
+      "requested_line_start": 153,
+      "source_git_blob_sha1": "7a93b19a0765b19ed82b5cc70e6b3733d3283334",
+      "source_path": "tests/CMakeLists.txt",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tests/CMakeLists.txt#L153-L170"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 588,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/tests-CMakeLists.L198-L220.cmake",
+      "local_sha256": "439e07d6b689ad103e3505358f82d9d8e62ffd36f57a4d6f447f4d67c0392261",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 220,
+      "requested_line_start": 198,
+      "source_git_blob_sha1": "7a93b19a0765b19ed82b5cc70e6b3733d3283334",
+      "source_path": "tests/CMakeLists.txt",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tests/CMakeLists.txt#L198-L220"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 697,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/tests-CMakeLists.L240-L255.cmake",
+      "local_sha256": "56346ead816123fad9a212141001892ffa7416105cf15b1aa832c4fb3c46b9cb",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 255,
+      "requested_line_start": 240,
+      "source_git_blob_sha1": "7a93b19a0765b19ed82b5cc70e6b3733d3283334",
+      "source_path": "tests/CMakeLists.txt",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tests/CMakeLists.txt#L240-L255"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 887,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/test-llama-archs.cpp.L42-L65.txt",
+      "local_sha256": "cf2cd7d615e11a4aa9c15f99064677aae768fd67d3cb8c2f4b73d68dff83fd18",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 65,
+      "requested_line_start": 42,
+      "source_git_blob_sha1": "57d33a627d5dfe8da6edcc491260ebcea0b7c703",
+      "source_path": "tests/test-llama-archs.cpp",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tests/test-llama-archs.cpp#L42-L65"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 1572,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/gguf-constants.py.L263-L287.txt",
+      "local_sha256": "4f0acbab2a96ef9be789b402fbba101d6842d28d67867a32db94fbe0e7dc49a6",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 287,
+      "requested_line_start": 263,
+      "source_git_blob_sha1": "63ac2ed1f5cf402555994945935090b401087605",
+      "source_path": "gguf-py/gguf/constants.py",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/gguf-py/gguf/constants.py#L263-L287"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 2027,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/sse.test.ts.L14-L77.txt",
+      "local_sha256": "a38e6b0239d55372ddfc9110f63c633230a516b252e4f42a3db437641e7e7685",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 77,
+      "requested_line_start": 14,
+      "source_git_blob_sha1": "741d107419cc1b97991149d374683fff07e18e70",
+      "source_path": "tools/ui/tests/unit/sse.test.ts",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tools/ui/tests/unit/sse.test.ts#L14-L77"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 3392,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/test_tool_call.py.L49-L130.txt",
+      "local_sha256": "9b396c49a80e0c647f8b6871389d799cbaade7a2a2b846f3d93d5eee186010c6",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 130,
+      "requested_line_start": 49,
+      "source_git_blob_sha1": "9fa84d165efcbae3380d0ad0fe0f18f71e4e6fa3",
+      "source_path": "tools/server/tests/unit/test_tool_call.py",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tools/server/tests/unit/test_tool_call.py#L49-L130"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 4114,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/test-sampling.cpp.L310-L367.txt",
+      "local_sha256": "e987f260cdade51794e390cfbe80113846c589ceddfd28f84eac88f1414d483a",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 367,
+      "requested_line_start": 310,
+      "source_git_blob_sha1": "2aecff90e7bb4b8c09e32ae3dab24d41ca2138f0",
+      "source_path": "tests/test-sampling.cpp",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tests/test-sampling.cpp#L310-L367"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 1591,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/test-save-load-state.cpp.L160-L203.txt",
+      "local_sha256": "c927d850376992f74574ff18e5796be855f61727e154336197b75da24082828a",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 203,
+      "requested_line_start": 160,
+      "source_git_blob_sha1": "6e93ce6fb8dab00cce4a5d325d49e9cf99f02b00",
+      "source_path": "tests/test-save-load-state.cpp",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tests/test-save-load-state.cpp#L160-L203"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 1431,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/test-recurrent-state-rollback.cpp.L102-L139.txt",
+      "local_sha256": "1a1d774b1eb6d7596ec88d4b145d19427d2fc0043c42854d1e37bceb1939468f",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 139,
+      "requested_line_start": 102,
+      "source_git_blob_sha1": "8e2eace6a195a2904d923109035b722d97b6c3a8",
+      "source_path": "tests/test-recurrent-state-rollback.cpp",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/tests/test-recurrent-state-rollback.cpp#L102-L139"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 968,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/speculative.md.L83-L102.txt",
+      "local_sha256": "ee1e1966387cdeefa4ec707bc0b94420d0d63eeb982fd8cb2a93de11281563d8",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 102,
+      "requested_line_start": 83,
+      "source_git_blob_sha1": "4100b92f8f18b987c8a6b9fa49b21c02f2aa7baf",
+      "source_path": "docs/speculative.md",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/docs/speculative.md#L83-L102"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "llama.cpp",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "86a9c79f866799eb0e7e89c03578ccfbcc5d808e",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/llama.cpp-LICENSE.txt",
+      "local_length": 2072,
+      "local_path": "evidence/raw/source-ranges/llama.cpp/speculative.md.L171-L205.txt",
+      "local_sha256": "c207fc0ceb21fb9cf46805dcf0fa7c337d3234c6b7496994ede62ffba8e69bb5",
+      "repository": "ggml-org/llama.cpp",
+      "requested_line_end": 205,
+      "requested_line_start": 171,
+      "source_git_blob_sha1": "4100b92f8f18b987c8a6b9fa49b21c02f2aa7baf",
+      "source_path": "docs/speculative.md",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/docs/speculative.md#L171-L205"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "ROCmFPX",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/ROCmFPX-LICENSE.txt",
+      "local_length": 2314,
+      "local_path": "evidence/raw/source-ranges/ROCmFPX/ggml.h.L391-L444.txt",
+      "local_sha256": "78cadfe25a31cd66b73425ec26b9939a630104d2b269d988eee0ce205120c145",
+      "repository": "charlie12345/ROCmFPX",
+      "requested_line_end": 444,
+      "requested_line_start": 391,
+      "source_git_blob_sha1": "071168700dad65c2d7193f255ab32ab89bb3cb53",
+      "source_path": "ggml/include/ggml.h",
+      "source_url": "https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/ggml/include/ggml.h#L391-L444"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "ROCmFPX",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/ROCmFPX-LICENSE.txt",
+      "local_length": 880,
+      "local_path": "evidence/raw/source-ranges/ROCmFPX/test-turboquant.cpp.L1-L25.txt",
+      "local_sha256": "93df58a8398edb1d0f25bac68e18651beadf016b6559a3634c2ccd3fb1d00667",
+      "repository": "charlie12345/ROCmFPX",
+      "requested_line_end": 25,
+      "requested_line_start": 1,
+      "source_git_blob_sha1": "96320b032029eedabf673153803fbae6344ab6a8",
+      "source_path": "tests/test-turboquant.cpp",
+      "source_url": "https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/tests/test-turboquant.cpp#L1-L25"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "ROCmFPX",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/ROCmFPX-LICENSE.txt",
+      "local_length": 1842,
+      "local_path": "evidence/raw/source-ranges/ROCmFPX/test-turboquant.cpp.L81-L126.txt",
+      "local_sha256": "a010f96fba1ad2617dd3d955adc89ee2af7bbd39e05cadc67011e0607dc18809",
+      "repository": "charlie12345/ROCmFPX",
+      "requested_line_end": 126,
+      "requested_line_start": 81,
+      "source_git_blob_sha1": "96320b032029eedabf673153803fbae6344ab6a8",
+      "source_path": "tests/test-turboquant.cpp",
+      "source_url": "https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/tests/test-turboquant.cpp#L81-L126"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "ROCmFPX",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/ROCmFPX-LICENSE.txt",
+      "local_length": 2210,
+      "local_path": "evidence/raw/source-ranges/ROCmFPX/tests-CMakeLists.L215-L266.txt",
+      "local_sha256": "59211e878e2c8910eefb7755165c1288c9552323dfb6ee53619fba3592128977",
+      "repository": "charlie12345/ROCmFPX",
+      "requested_line_end": 266,
+      "requested_line_start": 215,
+      "source_git_blob_sha1": "a3b7a83ca8f96088154df636909b2738410fd08e",
+      "source_path": "tests/CMakeLists.txt",
+      "source_url": "https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/tests/CMakeLists.txt#L215-L266"
+    },
+    {
+      "access_date": "2026-07-18",
+      "candidate_id": "CachyLLama",
+      "capture_method": "GitHub connector exact-commit line-range capture; candidate source not executed",
+      "claim_labels": [
+        "VERIFIED-SOURCE",
+        "UNEXECUTED-EVIDENCE"
+      ],
+      "commit": "6be745998f568e379ea197fcf827baec73ff9940",
+      "license": "MIT",
+      "license_evidence": "evidence/licenses/CachyLLama-LICENSE.txt",
+      "local_length": 606,
+      "local_path": "evidence/raw/source-ranges/CachyLLama/tests-CMakeLists.L250-L258.txt",
+      "local_sha256": "48a0370be2ac14814405005977423c49b9c1f0c07235c04ffd59e417f0f04aab",
+      "repository": "fewtarius/CachyLLama",
+      "requested_line_end": 258,
+      "requested_line_start": 250,
+      "source_git_blob_sha1": "d4ea3b96225c59e8f97e353ced16ac5eed3bb675",
+      "source_path": "tests/CMakeLists.txt",
+      "source_url": "https://github.com/fewtarius/CachyLLama/blob/6be745998f568e379ea197fcf827baec73ff9940/tests/CMakeLists.txt#L250-L258"
+    }
+  ],
+  "schema_version": 1
+}

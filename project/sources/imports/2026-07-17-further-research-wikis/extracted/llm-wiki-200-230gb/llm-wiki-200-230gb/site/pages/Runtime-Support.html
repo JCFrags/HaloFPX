@@ -1,0 +1,90 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Runtime Support · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Runtime Support</h1>
+<p><strong>Pinned snapshots:</strong> llama.cpp <code>6bdd77f13cf11b264b4231d320afc404f48d576e</code>; ROCmFPX <code>61f2f2d7bc4955e9bca821095ef69125837133b5</code>.</p>
+<table>
+<thead>
+<tr>
+  <th>Candidate</th>
+  <th>GGUF architecture</th>
+  <th>llama.cpp</th>
+  <th>ROCmFPX</th>
+  <th>Runtime risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Qwen3-235B-A22B-Instruct-2507</td>
+  <td>qwen3moe</td>
+  <td>Yes — dedicated qwen3moe implementation at pinned snapshot.</td>
+  <td>Yes — qwen3moe implementation present.</td>
+  <td>Low relative to this set; still preflight the exact GGUF and template.</td>
+</tr>
+<tr>
+  <td>Step-3.7-Flash</td>
+  <td>step35</td>
+  <td>Yes — step35 implementation, hybrid SWA cache, and MTP paths present.</td>
+  <td>Yes — step35 plus a released ROCmFPX Q3 QualityPlus recipe.</td>
+  <td>Medium: newer architecture and multimodal/MTP paths make revision pinning important.</td>
+</tr>
+<tr>
+  <td>MiMo-V2-Flash</td>
+  <td>mimo2</td>
+  <td>Yes — dedicated mimo2 implementation and hybrid SWA cache.</td>
+  <td>Yes — mimo2 implementation present.</td>
+  <td>Medium-low: implementation is current, but the model is newer and MTP tensors are preserved/disabled in the main pass.</td>
+</tr>
+<tr>
+  <td>GLM-4.7</td>
+  <td>glm4moe</td>
+  <td>Yes — dedicated glm4-moe implementation.</td>
+  <td>Yes — glm4-moe implementation present.</td>
+  <td>Medium: long context and parser/template semantics deserve an exact-build acceptance test.</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Nemotron-Ultra-253B-v1</td>
+  <td>deci</td>
+  <td>Yes — Deci implementation supports per-layer attention/FFN topology arrays and 253B type.</td>
+  <td>Yes — Deci implementation present.</td>
+  <td>Medium: custom NAS topology means the exact GGUF metadata and current Deci implementation must match.</td>
+</tr>
+<tr>
+  <td>DeepSeek-R1-0528</td>
+  <td>deepseek2</td>
+  <td>Yes — deepseek2 implementation with MLA absorption.</td>
+  <td>Yes — deepseek2 implementation present.</td>
+  <td>Medium: large artifact, specialized MLA graph, and reasoning-generation behavior require end-to-end validation.</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Tulu-3-405B</td>
+  <td>llama</td>
+  <td>Yes — mature generic Llama implementation.</td>
+  <td>Yes — generic Llama implementation inherited.</td>
+  <td>Low architecture risk, high compute and memory-pressure risk.</td>
+</tr>
+<tr>
+  <td>MiniMax-M3</td>
+  <td>minimax-m3</td>
+  <td>Not production-ready at snapshot: quant card points to a PR and says MSA falls back to dense attention.</td>
+  <td>Yes — dedicated minimax-m3 implementation and smoke tests present.</td>
+  <td>High: preliminary mainline status and sparse-attention semantics are not yet a stable deployment baseline.</td>
+</tr>
+<tr>
+  <td>Kimi-K2-Thinking</td>
+  <td>deepseek2-derived</td>
+  <td>Architecture family is supported, but the exact community conversion is not qualified here.</td>
+  <td>Architecture-family support expected; exact artifact not qualified.</td>
+  <td>High: extreme size, community conversion, and low-bit kernels.</td>
+</tr>
+</tbody>
+</table>
+<h2>What “supported” means here</h2>
+<p>A source implementation exists at the pinned commit and matches the model's architecture family. It does <strong>not</strong> mean every community GGUF, template, multimodal sidecar, speculative head, quant kernel, or backend combination is qualified.</p>
+<h2>Important implementation findings</h2>
+<ul>
+<li>MiMo and Step use llama.cpp's interleaved sliding-window/full-attention cache. With one sequence, <code>ubatch=512</code>, and <code>--swa-full</code> disabled, SWA capacity is padded to 256 cells and is bounded by <code>window + ubatch</code> rather than the full context.</li>
+<li>DeepSeek MLA uses the absorption optimization and a V-less cache input: 512 latent values plus a 64-value RoPE key per layer/token. Value vectors are reconstructed through <code>wv_b</code>.</li>
+<li>Nemotron Ultra uses the Deci architecture implementation with per-layer attention skip and FFN topology metadata. The table uses a conservative full-attention cache bound because the exact 126-block array is artifact-specific.</li>
+<li>MiniMax-M3 is not treated as mainline-production-ready. Its quant card references an in-flight PR and notes that MSA falls back to dense attention in that path.</li>
+</ul>
+<h2>RPC and multi-device</h2>
+<p>llama.cpp can split layers/tensors across local devices and exposes an RPC backend for remote devices. The RPC documentation calls it proof-of-concept and warns that it has no authentication or encryption. Use it only on an isolated trusted network, and treat all two-node tables as capacity envelopes pending measurement.</p>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

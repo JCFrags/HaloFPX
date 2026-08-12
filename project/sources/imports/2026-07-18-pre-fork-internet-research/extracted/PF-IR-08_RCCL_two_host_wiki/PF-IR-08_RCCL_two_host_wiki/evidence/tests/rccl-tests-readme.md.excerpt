@@ -1,0 +1,25 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "TEST-RCCL-TESTS-MPI"
+source_class: "test"
+claim_label: "[UPSTREAM_TEST]"
+upstream_path: "projects/rccl-tests/README.md"
+upstream_blob_sha: "ff98827796ec3d70b86402b756e0361db6005b55"
+upstream_locator: "MPI and multi-node execution sections"
+snapshot_kind: "structured relevant documentation excerpt"
+completeness: "selected relevant content; not full file"
+license: "RCCL-tests repository license; exact file SPDX not captured"
+---
+
+```text
+RCCL Tests may be built with MPI to run multiple processes and multiple nodes.
+The total number of ranks is the product of MPI processes and GPUs selected per
+process. Multi-node examples use an MPI host list/hostfile; one process per GPU
+is recommended for representative distributed testing. The suite reports
+collective correctness and algorithm/bus bandwidth across message sizes.
+
+The README does not name Strix Halo, USB4, Thunderbolt, or Ethernet-over-USB4 as
+a validated topology.
+```

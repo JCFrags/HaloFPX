@@ -1,0 +1,26 @@
+source_id,access_date,access_method,immutability,local_capture,notes
+KERNEL-HEAD,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,,Research pin; not a statement about target distro kernel.
+KERNEL-INITIAL,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,,Initial mainline driver commit.
+KERNEL-KCONFIG,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/raw/kernel/Kconfig,"Depends on AMD_IOMMU, DRM_ACCEL, PCI/HAS_IOMEM, X86_64."
+KERNEL-PCI,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/excerpts/kernel/amdxdna_pci_drv.c.lines26-139.txt,UAPI version 0.10; firmware names; SVA/PASID binding.
+KERNEL-NPU5,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/raw/kernel/npu5_regs.c,fw_path amdnpu/17f0_11; 16 hardware contexts; KMQ.
+KERNEL-DOC,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/raw/kernel/amdnpu.rst,"DMA, L2, PASID, scheduling, compiler output, suspend/resume, telemetry."
+KERNEL-GEM,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/excerpts/kernel/amdxdna_gem.c.noncoherent-sync.txt,Explicitly states NPU is not cache coherent.
+KERNEL-AIE2-PCI,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/excerpts/kernel/aie2_pci.c.suspend-resume-init.txt,Rejects hypervisor and no-IOMMU; firmware candidate order; suspend/resume.
+KERNEL-UAPI,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/excerpts/kernel/amdxdna_accel.h.qos-bo-sync-telemetry.txt,"QoS, BO types, sync directions, telemetry and firmware queries."
+XDNA-VENDOR,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/excerpts/amd-xdna-driver-README.packaging.md,Pinned vendor tree reproduced on Strix Halo one day before access.
+XDNA-LEGACY-NPU5,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/raw/amd-xdna-driver/legacy-npu5_regs.c,Legacy path expects npu.dev.sbin and minimum firmware 6.12; do not conflate with upstream names.
+LINUX-FIRMWARE,2026-07-18,official repository web/Git source retrieval,Git commit pinned,sources/excerpts/vendor-docs/linux-firmware-WHENCE.amdxdna.txt,npu.sbin.1.0.0.166 and npu_7 target npu.sbin.1.1.2.65.
+AMD-LINUX-171,2026-07-18,web retrieval of official AMD documentation,version/page update captured; web content may change,sources/records/official-primary-claim-capture.md,"Ubuntu 24.04, kernel >=6.10, exact XRT/plugin package filenames."
+AMD-RELNOTES-171,2026-07-18,web retrieval of official AMD documentation,version/page update captured; web content may change,sources/records/official-primary-claim-capture.md,SmolLM 135M entries and version compatibility warnings.
+AMD-MODEL,2026-07-18,web retrieval of official AMD documentation,version/page update captured; web content may change,sources/records/official-primary-claim-capture.md,"ONNX, FP32->BF16, CNN INT8."
+AMD-OPS,2026-07-18,web retrieval of official AMD documentation,version/page update captured; web content may change,sources/records/official-primary-claim-capture.md,BF16/A16W8/A8W8/XINT8; configurations may still be unsupported.
+AMD-LLM-LINUX,2026-07-18,web retrieval of official AMD documentation,version/page update captured; web content may change,sources/records/official-primary-claim-capture.md,Versioned OGA assets; published sample figures are not target measurements.
+AMD-OVERVIEW,2026-07-18,web retrieval of official AMD documentation,version/page update captured; web content may change,sources/records/official-primary-claim-capture.md,llama.cpp identified as iGPU-only.
+AMD-WHISPER,2026-07-18,web retrieval of official AMD documentation,version/page update captured; web content may change,sources/records/official-primary-claim-capture.md,NPU acceleration currently Windows-only; Linux planned.
+RYZENAI-DISTIL,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/raw/ryzenai-sw/DistilBERT_text_classification_bf16_README.md,"ONNX opset 17, BF16, batch 1, fixed sequence length 128, cache."
+RYZENAI-EMBED,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/raw/ryzenai-sw/custom_embedding.py; sources/excerpts/ryzenai-sw/RAG-OGA.embedding-relevant.md,BGE max length 512; public RAG instructions pin 1.7.0 hybrid/Conda flow; RAG README blob d44216307ac18ea01a59a129e52af67ffceaea21.
+XRT,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/excerpts/runtime/XRT_LICENSE.lines1-55.txt,No assertion that AMD 1.7.1 package was built from this commit.
+LLVM-AIE,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/excerpts/runtime/LLVM-AIE_LICENSE.lines1-20.txt,Open low-level compiler; not turnkey ONNX deployment by itself.
+MLIR-AIE,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/excerpts/runtime/MLIR-AIE_LICENSE.lines1-20.txt,Open low-level compiler; vendor high-level stack still required for documented flows.
+RYZENAI-RAG-README,2026-07-18,GitHub connector/API source retrieval,Git commit pinned,sources/excerpts/ryzenai-sw/RAG-OGA.embedding-relevant.md,Documents BGE Vitis AI EP and hybrid flow in a 1.7.0 Conda environment.

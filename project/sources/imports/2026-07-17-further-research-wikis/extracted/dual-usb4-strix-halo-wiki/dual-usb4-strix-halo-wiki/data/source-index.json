@@ -1,0 +1,137 @@
+{
+  "snapshot_date": "2026-07-17",
+  "sources": [
+    {
+      "id": "kernel-releases",
+      "title": "Linux Kernel Archives",
+      "url": "https://www.kernel.org/",
+      "type": "primary"
+    },
+    {
+      "id": "linux-usb4-guide",
+      "title": "USB4 and Thunderbolt \u2014 Linux documentation",
+      "url": "https://docs.kernel.org/admin-guide/thunderbolt.html",
+      "type": "primary"
+    },
+    {
+      "id": "usb4net-7.1",
+      "title": "Linux 7.1 thunderbolt-net source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/main.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "usb4net-kconfig",
+      "title": "Linux 7.1 USB4NET Kconfig",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/Kconfig",
+      "type": "primary-source"
+    },
+    {
+      "id": "usb4stream-mainline",
+      "title": "Linux mainline USB4STREAM source",
+      "url": "https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/stream.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "usb4-kconfig-mainline",
+      "title": "Linux mainline USB4 Kconfig",
+      "url": "https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/Kconfig",
+      "type": "primary-source"
+    },
+    {
+      "id": "mptcp-doc",
+      "title": "Linux MPTCP documentation",
+      "url": "https://docs.kernel.org/networking/mptcp.html",
+      "type": "primary"
+    },
+    {
+      "id": "mptcp-pm",
+      "title": "MPTCP path-manager guide",
+      "url": "https://www.mptcp.dev/pm.html",
+      "type": "primary-project"
+    },
+    {
+      "id": "mptcp-setup",
+      "title": "MPTCP application setup",
+      "url": "https://www.mptcp.dev/setup.html",
+      "type": "primary-project"
+    },
+    {
+      "id": "rfc8684",
+      "title": "RFC 8684 \u2014 Multipath TCP v1",
+      "url": "https://www.rfc-editor.org/rfc/rfc8684.html",
+      "type": "primary-standard"
+    },
+    {
+      "id": "bonding",
+      "title": "Linux Ethernet Bonding Driver HOWTO",
+      "url": "https://docs.kernel.org/networking/bonding.html",
+      "type": "primary"
+    },
+    {
+      "id": "network-scaling",
+      "title": "Scaling in the Linux Networking Stack",
+      "url": "https://docs.kernel.org/networking/scaling.html",
+      "type": "primary"
+    },
+    {
+      "id": "llama-rpc-readme",
+      "title": "llama.cpp RPC README",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/master/tools/rpc/README.md",
+      "type": "primary"
+    },
+    {
+      "id": "llama-rpc-transport",
+      "title": "llama.cpp RPC transport source",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/master/ggml/src/ggml-rpc/transport.cpp",
+      "type": "primary-source"
+    },
+    {
+      "id": "llama-security",
+      "title": "llama.cpp security policy",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/master/SECURITY.md",
+      "type": "primary"
+    },
+    {
+      "id": "amd-395",
+      "title": "AMD Ryzen AI Max+ 395",
+      "url": "https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html",
+      "type": "primary-vendor"
+    },
+    {
+      "id": "rxe",
+      "title": "rdma-core RXE documentation",
+      "url": "https://github.com/linux-rdma/rdma-core/blob/master/Documentation/rxe.md",
+      "type": "primary-project"
+    },
+    {
+      "id": "hellas-nhi",
+      "title": "thunderbolt-ibverbs research series",
+      "url": "https://blog.hellas.ai/blog/thunderbolt-ibverbs/4-thunderbolt-ibverbs/",
+      "type": "field-research"
+    },
+    {
+      "id": "xdomain-7.1",
+      "title": "Linux 7.1 XDomain core source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/xdomain.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "icm-7.1",
+      "title": "Linux 7.1 firmware/ICM connection-manager source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/icm.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "software-cm-7.1",
+      "title": "Linux 7.1 software connection-manager source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/tb.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "nhi-cm-select-7.1",
+      "title": "Linux 7.1 NHI connection-manager selection source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/nhi.c",
+      "type": "primary-source"
+    }
+  ]
+}

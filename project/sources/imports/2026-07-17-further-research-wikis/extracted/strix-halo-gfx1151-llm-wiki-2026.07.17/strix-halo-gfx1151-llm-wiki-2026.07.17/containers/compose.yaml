@@ -1,0 +1,71 @@
+name: strix-halo-wiki
+services:
+  llama-rocm721:
+    build:
+      context: ..
+      dockerfile: containers/Dockerfile.llama-rocm721
+    image: local/llama-strix:rocm721-b10064
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${RENDER_GID:-109}"
+      - "${VIDEO_GID:-44}"
+    security_opt:
+      - seccomp=unconfined
+    ipc: host
+    volumes:
+      - ${MODEL_DIR:-../models}:/models:ro
+    command: ["llama-cli", "--list-devices"]
+
+  llama-rocm714:
+    build:
+      context: ..
+      dockerfile: containers/Dockerfile.rocm714-therock
+      args:
+        ROCM_TARBALL_SHA256: ${ROCM_714_TARBALL_SHA256:?set ROCM_714_TARBALL_SHA256}
+    image: local/llama-strix:rocm714-b10064
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${RENDER_GID:-109}"
+      - "${VIDEO_GID:-44}"
+    security_opt:
+      - seccomp=unconfined
+    ipc: host
+    volumes:
+      - ${MODEL_DIR:-../models}:/models:ro
+    command: ["llama-cli", "--list-devices"]
+
+  llama-vulkan:
+    build:
+      context: ..
+      dockerfile: containers/Containerfile.llama-vulkan
+    image: local/llama-strix:vulkan-b10064
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${RENDER_GID:-109}"
+      - "${VIDEO_GID:-44}"
+    volumes:
+      - ${MODEL_DIR:-../models}:/models:ro
+    command: ["llama-cli", "--list-devices"]
+
+  rocmfpx:
+    build:
+      context: ..
+      dockerfile: containers/Dockerfile.rocmfpx
+    image: local/rocmfpx-strix:a5605-rocm721
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${RENDER_GID:-109}"
+      - "${VIDEO_GID:-44}"
+    security_opt:
+      - seccomp=unconfined
+    ipc: host
+    volumes:
+      - ${MODEL_DIR:-../models}:/models:rw
+    command: ["llama-cli", "--list-devices"]

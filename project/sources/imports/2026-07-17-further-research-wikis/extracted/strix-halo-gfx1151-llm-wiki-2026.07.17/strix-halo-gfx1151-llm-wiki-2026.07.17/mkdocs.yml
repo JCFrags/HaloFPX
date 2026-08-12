@@ -1,0 +1,59 @@
+site_name: Strix Halo / gfx1151 Compatibility Wiki
+site_description: Versioned Linux, ROCm, Vulkan, llama.cpp, ROCmFPX and USB4 compatibility matrix
+site_dir: mkdocs-site
+docs_dir: docs
+use_directory_urls: false
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: light blue
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: blue
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+nav:
+  - Overview: index.md
+  - Compatibility:
+      - Matrix: compatibility-matrix.md
+      - Official support: official-support.md
+      - Community validation: community-validation.md
+      - Regressions: regressions.md
+      - Unsupported: unsupported-combinations.md
+  - Build and operation:
+      - Build flags: build-flags.md
+      - Environment: environment-variables.md
+      - Diagnostics: diagnostics.md
+      - Containers: containers.md
+      - Reproducibility: reproducibility.md
+  - Components:
+      - ROCmFPX: rocmfpx.md
+      - USB4: usb4-networking.md
+  - Recipes:
+      - ROCm 7.14 host: recipes/host-official-rocm-714.md
+      - llama.cpp ROCm 7.2.1: recipes/llama-hip-rocm721.md
+      - Fedora ROCm 7.2.4: recipes/community-fedora-rocm724.md
+      - RADV: recipes/llama-vulkan-radv.md
+      - ROCmFPX: recipes/rocmfpx-pinned.md
+      - USB4 IP: recipes/usb4-ip-network.md
+      - USB4 RDMA: recipes/usb4-rdma-experimental.md
+  - Sources: sources.md
+  - Glossary: glossary.md

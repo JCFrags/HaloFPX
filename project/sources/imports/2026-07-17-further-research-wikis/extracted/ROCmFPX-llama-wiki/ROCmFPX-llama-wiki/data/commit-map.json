@@ -1,0 +1,317 @@
+[
+  {
+    "series": "PR #27",
+    "sha": "ff8e7b8cf9dab714951df49d71f5835a7322404a",
+    "title": "Fix WebUI build: async/image plumbing",
+    "category": "WebUI",
+    "paths": "tools/server/webui/src/lib/constants/uri-template.ts; tools/server/webui/src/lib/services/chat.service.ts; tools/server/webui/src/lib/stores/agentic.svelte.ts",
+    "decision": "RETIRE",
+    "source": "S-C-FF8"
+  },
+  {
+    "series": "PR #27",
+    "sha": "0631515b0bca7859387e3467a6f6ac6379622a02",
+    "title": "Validate WebUI and isolate backend CI builds",
+    "category": "Build / CI",
+    "paths": ".github/workflows/build.yml; .github/workflows/hip-quality-check.yml; tools/server/webui/**",
+    "decision": "RETIRE",
+    "source": "S-C-063"
+  },
+  {
+    "series": "PR #27",
+    "sha": "df3b8a0efa4dbdfcc2e29dac367c69eed310ed24",
+    "title": "Preserve negative infinity under ROCm 7.2 fast-math",
+    "category": "ROCm/HIP kernels",
+    "paths": "ggml/src/ggml-cuda/common.cuh; cross-entropy-loss.cu; dsv4.cu; softmax.cu; topk-moe.cu",
+    "decision": "REFRESH",
+    "source": "S-C-DF3"
+  },
+  {
+    "series": "PR #27",
+    "sha": "62f7508b12c6b8510fd7a77dfc5d9519fa026d82",
+    "title": "Restore ROCmFPX GPU coherency",
+    "category": "ROCm/HIP + Vulkan",
+    "paths": "ggml/src/ggml-cuda/mmq.cuh; ggml/src/ggml-vulkan/ggml-vulkan.cpp; promotion evidence docs",
+    "decision": "RETAIN",
+    "source": "S-C-62F"
+  },
+  {
+    "series": "PR #27",
+    "sha": "b1331a2dd4ca774833a26d7682b6ce1f9c022d4a",
+    "title": "Make the promotion candidate portable",
+    "category": "TurboQuant / build integration",
+    "paths": "TurboQuant helper declarations; exhaustive type switches; converter requirements/checks",
+    "decision": "REFRESH",
+    "source": "S-C-B133"
+  },
+  {
+    "series": "PR #27",
+    "sha": "e6009eb76d55062d22357e6f117a829e861be01b",
+    "title": "Restore coherent WebGPU and Hexagon sources",
+    "category": "Imported backend snapshots",
+    "paths": "ggml/src/ggml-webgpu/**; ggml/src/ggml-hexagon/**",
+    "decision": "RETIRE",
+    "source": "S-C-E600"
+  },
+  {
+    "series": "PR #27",
+    "sha": "80732f992f7c75e9154cfe184041f1384c59a0fb",
+    "title": "Restore coherent backend and parser snapshots",
+    "category": "Imported upstream snapshots",
+    "paths": "ggml/src/ggml-{hexagon,opencl,webgpu}/**; common parser/chat units; related tests",
+    "decision": "RETIRE",
+    "source": "S-C-807"
+  },
+  {
+    "series": "PR #27",
+    "sha": "8fcff76bca27ea2818761adad681cb792eb2fa26",
+    "title": "Align chat whitespace fixtures with upstream",
+    "category": "Parser tests",
+    "paths": "tests/test-chat*.cpp and associated parser fixtures",
+    "decision": "RETIRE",
+    "source": "S-C-8FC"
+  },
+  {
+    "series": "PR #27",
+    "sha": "a8c41d31423e3e0b6f2dc7138af1d4fba8edb295",
+    "title": "Harden cross-platform WebUI provisioning",
+    "category": "Build / WebUI",
+    "paths": ".github/workflows/**; scripts/webui-download.cmake",
+    "decision": "RETIRE",
+    "source": "S-C-A8C"
+  },
+  {
+    "series": "PR #27",
+    "sha": "0ff0b4d03e74d9bc8a092ce2dd177d24cfdea007",
+    "title": "Accept valid backend tokens across parallel slots",
+    "category": "Sampling / server",
+    "paths": "common/sampling.cpp",
+    "decision": "REFRESH",
+    "source": "S-C-0FF"
+  },
+  {
+    "series": "PR #27",
+    "sha": "0e5159daa31132e16a1cc45f724c410b1d236185",
+    "title": "Reject Metal GET_ROWS types without kernels",
+    "category": "Metal",
+    "paths": "ggml/src/ggml-metal/ggml-metal-device.m",
+    "decision": "RETIRE",
+    "source": "S-C-0E5"
+  },
+  {
+    "series": "PR #27",
+    "sha": "d45ceff8d2b67fdebf73ebcb999807b0d322c73b",
+    "title": "Route ROCmFPX OUT_PROD through CPU dequantization",
+    "category": "CPU / ggml",
+    "paths": "ggml/src/ggml-cpu/ops.cpp",
+    "decision": "RETAIN",
+    "source": "S-C-D45"
+  },
+  {
+    "series": "PR #27",
+    "sha": "01d463bb23c3f290688c4529c13b3b467fa2f7dc",
+    "title": "Restore upstream XCFramework script",
+    "category": "Apple packaging",
+    "paths": "build-xcframework.sh",
+    "decision": "RETIRE",
+    "source": "S-C-01D"
+  },
+  {
+    "series": "PR #27",
+    "sha": "ccac6e55ec7c0fa8acdcb6e80b1a242e4f7d654e",
+    "title": "Clarify ROCmFPX benefits and MTP results",
+    "category": "Documentation",
+    "paths": "README.md",
+    "decision": "REFRESH",
+    "source": "S-C-CCAC"
+  },
+  {
+    "series": "PR #27",
+    "sha": "c2845bf86a5c1842d33bd9e990b2bcaf75779251",
+    "title": "Merge PR #27",
+    "category": "Merge",
+    "paths": "237-file PR series",
+    "decision": "MIXED",
+    "source": "S-C-PR27-M"
+  },
+  {
+    "series": "PR #28",
+    "sha": "1b49f4a004b8a2e0183c6cda7a61e7d322ac8d60",
+    "title": "Add funding link",
+    "category": "Housekeeping",
+    "paths": ".github/FUNDING.yml",
+    "decision": "RETIRE",
+    "source": "S-C-FUND"
+  },
+  {
+    "series": "PR #28",
+    "sha": "6bf20cd688ba0af882d1f68ba50b292edf646ab4",
+    "title": "Merge PR #28",
+    "category": "Merge",
+    "paths": ".github/FUNDING.yml",
+    "decision": "RETIRE",
+    "source": "S-C-PR28-M"
+  },
+  {
+    "series": "PR #31",
+    "sha": "b56ad79d77bc1eb9fe6407640eec8b8edfc04900",
+    "title": "Honor per-request speculative n_max/n_min/p_min",
+    "category": "Server / speculative",
+    "paths": "tools/server/server-context.cpp; tools/server/server-task.cpp",
+    "decision": "RETAIN",
+    "source": "S-C-B56"
+  },
+  {
+    "series": "PR #31",
+    "sha": "25c71fc6e12d73bb3804127e032d29fb8976ae40",
+    "title": "Merge PR #31",
+    "category": "Merge",
+    "paths": "tools/server/server-context.cpp; tools/server/server-task.cpp",
+    "decision": "RETAIN",
+    "source": "S-C-PR31-M"
+  },
+  {
+    "series": "PR #32",
+    "sha": "c81c7c92233b6370b4eb7087398779a8dcb234a4",
+    "title": "Add SSD prompt cache for stateful MTP",
+    "category": "Server / cache",
+    "paths": "common/{arg,common,speculative}.*; tools/server/{server-context,server-task}.*; server cache tests/docs",
+    "decision": "REFRESH",
+    "source": "S-C-C81"
+  },
+  {
+    "series": "PR #32",
+    "sha": "bb7d9cb5965e3be1ce2073134ba14787bf378113",
+    "title": "Use portable cache-file synchronization",
+    "category": "Server / cache",
+    "paths": "tools/server/server-context.cpp",
+    "decision": "REFRESH",
+    "source": "S-C-BB7"
+  },
+  {
+    "series": "PR #32",
+    "sha": "630fa5a0f8fc04689b86d1b0a3d75b2b7d546d07",
+    "title": "Add HY3 MTP/NextN graph",
+    "category": "Graph / model",
+    "paths": "src/models/hyv3.cpp; src/llama-model*.cpp; src/llama-context.cpp; private MTP graph hooks",
+    "decision": "RETIRE",
+    "source": "S-C-630"
+  },
+  {
+    "series": "PR #32",
+    "sha": "f961404519a2ed286b750ba1419d40318a6b9a92",
+    "title": "Support HY3 MTP tensors and split export",
+    "category": "Conversion / GGUF",
+    "paths": "convert_hf_to_gguf.py",
+    "decision": "RETIRE",
+    "source": "S-C-F961"
+  },
+  {
+    "series": "PR #32",
+    "sha": "eff9987923b58d1a6b7e54610c667803ac2d0ea7",
+    "title": "Harden native MTP context and effective limits",
+    "category": "MTP / speculative",
+    "paths": "common/speculative.cpp; associated context/private API integration",
+    "decision": "REFRESH",
+    "source": "S-C-EFF"
+  },
+  {
+    "series": "PR #32",
+    "sha": "120227d3d34a0d52cfee168964d0a7e3212960a9",
+    "title": "Restore FP6 endpoint semantics across backends",
+    "category": "Quantization / backends",
+    "paths": "ROCmFPX reference and shared CPU/HIP/Vulkan expansion/dispatch files",
+    "decision": "RETAIN",
+    "source": "S-C-120"
+  },
+  {
+    "series": "PR #32",
+    "sha": "7d7b06bc5e6fd4a128af8efa954caa7409376a79",
+    "title": "Add strict greedy verification for HY3 MTP",
+    "category": "Server / MTP",
+    "paths": "common/speculative.*; tools/server/server-context.cpp; server options/tests",
+    "decision": "RETAIN",
+    "source": "S-C-7D7"
+  },
+  {
+    "series": "PR #32",
+    "sha": "2766f419526ea14ba1be8f31eca21263cfc52813",
+    "title": "Auto-select one slot for strict HY3 MTP",
+    "category": "Server policy",
+    "paths": "tools/server/server.cpp; server startup/configuration path",
+    "decision": "REFRESH",
+    "source": "S-C-276"
+  },
+  {
+    "series": "PR #32",
+    "sha": "756121a5e8e7da464aebd2ab344a2aefef6cecac",
+    "title": "Use UTF-8 paths for disk prompt cache",
+    "category": "Server / Windows",
+    "paths": "tools/server/server-context.cpp; cache filesystem boundary",
+    "decision": "REFRESH",
+    "source": "S-C-756"
+  },
+  {
+    "series": "PR #32",
+    "sha": "8488bfc69f716b5aa34bf75d1a72466ac75cc5da",
+    "title": "Run ROCmFP2 reference probe in CI",
+    "category": "Build / CI",
+    "paths": ".github/workflows/check-rocmfpx.yml",
+    "decision": "RETAIN",
+    "source": "S-C-848"
+  },
+  {
+    "series": "PR #32",
+    "sha": "16ed874b3d950a67be0d14311708879a435ad3ca",
+    "title": "Bound HY3 WebGPU matrix runtime",
+    "category": "WebGPU tests",
+    "paths": "tests/test-backend-ops.cpp",
+    "decision": "RETIRE",
+    "source": "S-C-16E"
+  },
+  {
+    "series": "PR #32",
+    "sha": "0d7ac512e5eb511843797c07a16bc7d97d3bc4f8",
+    "title": "Make disk failure probes portable",
+    "category": "Server tests",
+    "paths": "tools/server/tests/unit/test_prompt_cache_disk.py; tests/utils.py",
+    "decision": "RETAIN",
+    "source": "S-C-0D7"
+  },
+  {
+    "series": "PR #32",
+    "sha": "a8b5fa906ccd13c6a8ca06d55aa287854c376868",
+    "title": "Dispatch Q2 ROCmFPX CPU OUT_PROD",
+    "category": "CPU / ggml",
+    "paths": "ggml/src/ggml-cpu/ops.cpp",
+    "decision": "RETAIN",
+    "source": "S-C-A8B"
+  },
+  {
+    "series": "PR #32",
+    "sha": "d52c96a8339325417624351bebad194c3864cb26",
+    "title": "Preserve indentation in read_file tool output",
+    "category": "Server backport",
+    "paths": "tools/server/server-tools.cpp",
+    "decision": "RETIRE",
+    "source": "S-C-D52"
+  },
+  {
+    "series": "PR #32",
+    "sha": "fe2b7dc5e19a5e24c276593368a1bb41d0e27b1d",
+    "title": "Validate Jinja integer base before CRT call",
+    "category": "Jinja backport",
+    "paths": "common/jinja/value.cpp",
+    "decision": "RETIRE",
+    "source": "S-C-FE2"
+  },
+  {
+    "series": "PR #32",
+    "sha": "a5605a72768c6562241b248e268e33dc92787394",
+    "title": "Merge PR #32; current fork head",
+    "category": "Merge",
+    "paths": "73-file PR series",
+    "decision": "MIXED",
+    "source": "S-C-PR32-M"
+  }
+]

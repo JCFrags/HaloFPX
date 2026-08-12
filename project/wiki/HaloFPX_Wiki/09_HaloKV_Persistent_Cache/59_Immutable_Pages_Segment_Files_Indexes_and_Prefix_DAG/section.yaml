@@ -1,0 +1,21 @@
+section_id: "59"
+title: "Immutable Pages, Segment Files, Indexes, and Prefix DAG"
+category_id: "09"
+category_title: "HaloKV Persistent Cache"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 12
+required_machine_experiments:
+  - "Benchmark component-native page sizes and segment targets on both NVMe/filesystem stacks"
+  - "Compare buffered pread, mmap, readahead and aligned direct/async restore"
+  - "Fault-inject every publication, WAL, segment and compaction boundary"
+  - "Rebuild all indexes from committed manifests and verify logical identity"
+  - "Fuzz bounds, schemas, DAG links, token intervals and digests"
+related_sections: ["57", "58", "60", "61", "62", "63", "64", "65"]
+applicability:
+  repositories:
+    - "HaloKV format proposal v0"
+    - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
+  hardware_revisions:
+    - "Two Strix Halo NVMe hosts; device/filesystem details pending"

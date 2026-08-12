@@ -1,0 +1,381 @@
+######## control a5605a72768c6562241b248e268e33dc92787394 ########
+===== control-build-test-turboquant =====
+argv=cmake --build /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01 -j 16 --target test-turboquant
+start=2026-07-17T18:23:25,381561536-07:00
+[  0%] Performing build step for 'vulkan-shaders-gen'
+[  0%] Built target cpp-httplib
+[  0%] Built target llama-common-base
+[  1%] Built target ggml-base
+[  4%] Built target ggml-cpu
+[ 27%] Built target ggml-hip
+[100%] Built target vulkan-shaders-gen
+[ 27%] Performing install step for 'vulkan-shaders-gen'
+-- Up-to-date: /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/Release/./vulkan-shaders-gen
+[ 27%] Completed 'vulkan-shaders-gen'
+[ 27%] Built target vulkan-shaders-gen
+[ 68%] Built target ggml-vulkan
+[ 68%] Built target ggml
+[ 94%] Built target llama
+[ 98%] Built target llama-common
+[ 98%] Building CXX object tests/CMakeFiles/test-turboquant.dir/test-turboquant.cpp.o
+[100%] Linking CXX executable ../bin/test-turboquant
+[100%] Built target test-turboquant
+rc=0
+end=2026-07-17T18:23:25,788847946-07:00
+===== control-rocmfp2-reference =====
+argv=env ROOT=/home/connorb/halofpx-lab/open-pin-01/control BUILD_DIR=/home/connorb/halofpx-lab/open-pin-01/control/build-ref-rocmfp2 /home/connorb/halofpx-lab/open-pin-01/control/scripts/check-rocmfp2-reference.sh
+start=2026-07-17T18:23:25,789308962-07:00
+ROCmFP2 Phase-1 CPU reference check
+source_root=/home/connorb/halofpx-lab/open-pin-01/control
+compiler=cc
+PASS layout_p0: block=10 data=8 scales=2 bpw=2.50 golden=e4e4e4e4e4e4e4e4127e
+PASS packed_byte_decode: mappings=2 bytes=256 lanes=2048
+PASS ue4m3_boundaries: legal=127 invalid=129 adjacent_midpoints=126 max=224
+PASS metadata_validation: legal_pairs=16129 invalid_bytes=129 malformed_lengths=18
+PASS deterministic_ties: signed_zero=2 magnitude_midpoint=4 scale_tuple=2 saturation=0x7e
+PASS python_golden_vectors: vectors=2 mord=e4x8+4048 msm=4bx8+4048
+PASS fixed_random: codebooks=8 blocks_each=24 mappings=2 ref_opt_equal=384 fingerprint=78389c1c8a0a57a2
+PASS nonfinite_rejection: positions=32 values=3 mappings=2 paths=2 status=NONFINITE_SOURCE
+PASS rocmfp2_phase1_reference: checks=32520 arithmetic=IEEE754-binary64 search=127-scales exhaustive
+rc=0
+end=2026-07-17T18:23:26,088396903-07:00
+===== control-rocmfpx-reference =====
+argv=env ROOT=/home/connorb/halofpx-lab/open-pin-01/control BUILD_DIR=/home/connorb/halofpx-lab/open-pin-01/control/build-ref-rocmfpx /home/connorb/halofpx-lab/open-pin-01/control/scripts/check-rocmfpx-reference.sh
+start=2026-07-17T18:23:26,088968426-07:00
+ROCmFP3: block=14 row=28 bpw=3.50 mse=0.0198147
+ROCmFP6: block=26 row=52 bpw=6.50 mse=0.000487858
+ROCmFP8: block=33 row=66 bpw=8.25 mse=4.32492e-05
+ROCmFP3 imatrix weighted_mse: plain=0.0240604 weighted=9.13573e-05
+ROCmFP6 imatrix weighted_mse: plain=0.00110283 weighted=2.32813e-07
+ROCmFP8 imatrix weighted_mse: plain=7.18925e-05 weighted=7.31383e-08
+rc=0
+end=2026-07-17T18:23:26,170780296-07:00
+===== control-rocmfp4-quant-regression =====
+argv=env ROOT=/home/connorb/halofpx-lab/open-pin-01/control BUILD_DIR=/home/connorb/halofpx-lab/open-pin-01/control/build-ref-rocmfp4-quant /home/connorb/halofpx-lab/open-pin-01/control/scripts/check-rocmfp4-quant-regression.sh
+start=2026-07-17T18:23:26,171156955-07:00
+/home/connorb/halofpx-lab/open-pin-01/control/scripts/check-rocmfp4-quant-regression.sh: line 24: /home/connorb/halofpx-lab/open-pin-01/control/build-ref-rocmfp4-quant/bin/test-quantize-fns: No such file or directory
+rc=127
+end=2026-07-17T18:23:26,173307971-07:00
+===== control-test-turboquant =====
+argv=env LD_LIBRARY_PATH=/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-turboquant
+start=2026-07-17T18:23:26,173659381-07:00
+TurboQuant CPU reference tests
+==============================
+
+Test 1: FWHT self-inverse
+  FWHT self-inverse (d=128)... max_err=4.77e-07 ok
+
+Test 2: TQ3 roundtrip MSE
+  turbo3 roundtrip MSE*d (n=10000, d=128)... MSE*d=0.0341 [0.025..0.045] ok
+
+Test 3: TQ4 roundtrip MSE
+  turbo4 roundtrip MSE*d (n=10000, d=128)... MSE*d=0.0093 [0.005..0.015] ok
+
+Test 4: Bit-pack tests
+  turbo3 pack determinism... ok
+  turbo4 pack determinism... ok
+  turbo3 dequantize sanity... finite=yes nonzero=yes ok
+  turbo4 dequantize sanity... finite=yes nonzero=yes ok
+
+==============================
+7/7 tests passed
+rc=0
+end=2026-07-17T18:23:26,218448126-07:00
+===== control-test-backend-help =====
+argv=env LD_LIBRARY_PATH=/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-backend-ops --help
+start=2026-07-17T18:23:26,218878423-07:00
+Usage: /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-backend-ops [mode] [-o <op,..>] [-b <backend>] [-p <params regex>] [--output <console|sql|csv>] [--list-ops] [--show-coverage] [--test-file <path>]
+    valid modes:
+      - test (default, compare with CPU backend for correctness)
+      - grad (compare gradients from backpropagation with method of finite differences)
+      - perf (performance evaluation)
+      - support (probe backend operation support)
+    op names for -o are as given by ggml_op_desc() (e.g. ADD, MUL_MAT, etc),
+        optionally including the full test case string (e.g. "ADD(type=f16,ne=[1,1,8,1],nr=[1,1,1,1],nf=1)")
+    --output specifies output format (default: console, options: console, sql, csv)
+    --list-ops lists all available GGML operations
+    --show-coverage shows test coverage
+    --test-file reads test operators from a test file generated by llama-export-graph-ops
+rc=1
+end=2026-07-17T18:23:26,240894801-07:00
+===== control-test-backend-list =====
+argv=env LD_LIBRARY_PATH=/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-backend-ops --list
+start=2026-07-17T18:23:26,241307999-07:00
+Usage: /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-backend-ops [mode] [-o <op,..>] [-b <backend>] [-p <params regex>] [--output <console|sql|csv>] [--list-ops] [--show-coverage] [--test-file <path>]
+    valid modes:
+      - test (default, compare with CPU backend for correctness)
+      - grad (compare gradients from backpropagation with method of finite differences)
+      - perf (performance evaluation)
+      - support (probe backend operation support)
+    op names for -o are as given by ggml_op_desc() (e.g. ADD, MUL_MAT, etc),
+        optionally including the full test case string (e.g. "ADD(type=f16,ne=[1,1,8,1],nr=[1,1,1,1],nf=1)")
+    --output specifies output format (default: console, options: console, sql, csv)
+    --list-ops lists all available GGML operations
+    --show-coverage shows test coverage
+    --test-file reads test operators from a test file generated by llama-export-graph-ops
+rc=1
+end=2026-07-17T18:23:26,261411134-07:00
+===== control artifact hashes =====
+ac7ab7be08cabd71f01233a4d2027fb65ee447d275a1db5993e05143f039fc02  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml-base.so.0.11.1
+ea290e79a30072f73538a9fb6e83fc1d88a722f4682874be0d79987144a74612  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml-cpu.so.0.11.1
+bbf3072cdd66d7f002af660a82e4bd4d5885cf94106323d5993d8980d4ab1ff5  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml-hip.so.0.11.1
+1d932673a12b6722b0f12b8492bfade7004061d974b31cf6c361b1fa1514a3a4  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml.so.0.11.1
+0c4878c32a9e64cd075526fee641a3732b3011f5a950679ef6baf50c2a8caa3f  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml-vulkan.so.0.11.1
+df6045bd8de02ecb02c60b43853ed806070b22970f3545284e140d36341a22de  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libllama-common.so.0.0.161
+24a1a3d0579f48ff726d24f87d36b5c6e3bc7905a14d1c6ab027fb7be08b69d2  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libllama.so.0.0.161
+9e51a40f8a89e50293e33d80cfba4b7d4e538dabffc50f17cfa2eb822c77f03b  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libmtmd.so.0.0.161
+d511c94c5b19f3ee4f0b15ab5b171f477e06419e986a6d8548d5ce1467a819a7  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-bench
+9b41ec73490839329d72e0bcfe758f34492793cf0867219dccd0cdec28e18ee4  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-cli
+71ceb7b4977132ccea10b210022d24ce7054214f6d04c8a461c8947b74f815c9  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-completion
+d700c6457ae2a8a6c64bbfd8eee0e79a705de58a50d9403e0da546c7b58add4e  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-perplexity
+69d8ea3e019f98d2b748dd2cf126eebc86ddb8135f599f1a3b4b9e9cbd714e11  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-quantize
+6a0d77a775f74c0fc6c83e0a7eb52e568e35db0d2c65040c6a2e8d821335046c  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-server
+caf149a48eb35b9e5d23b54b220e2bed74fec2547439d3285208cb38cf58a79f  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-backend-ops
+36d16359fae1169ee5e1e82694b1449eda1a25351509671fe4790fae2b659e99  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-quantize-fns
+aee1c6c4c7b022612f41bc4fec305cee85896b75d4f6d33164a001bbd7589d71  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-quantize-perf
+a41aad7525be449b35b1a9473eaa9c1396330abcc99cf84ef1b13db186cd9211  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/test-turboquant
+===== control linked libraries =====
+	linux-vdso.so.1 (0x00007f77f3b33000)
+	libllama-common.so.0 => /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libllama-common.so.0 (0x00007f77f3200000)
+	libmtmd.so.0 => /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libmtmd.so.0 (0x00007f77f36cf000)
+	libllama.so.0 => /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libllama.so.0 (0x00007f77f2e00000)
+	libggml.so.0 => /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml.so.0 (0x00007f77f3b1f000)
+	libggml-cpu.so.0 => /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml-cpu.so.0 (0x00007f77f2c3c000)
+	libggml-hip.so.0 => /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml-hip.so.0 (0x00007f77ee000000)
+	libggml-vulkan.so.0 => /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml-vulkan.so.0 (0x00007f77e8a00000)
+	libggml-base.so.0 => /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/libggml-base.so.0 (0x00007f77f3a32000)
+	libssl.so.3 => /usr/lib/libssl.so.3 (0x00007f77f2b22000)
+	libcrypto.so.3 => /usr/lib/libcrypto.so.3 (0x00007f77e8200000)
+	libstdc++.so.6 => /usr/lib/libstdc++.so.6 (0x00007f77e7e00000)
+	libm.so.6 => /usr/lib/libm.so.6 (0x00007f77e88f9000)
+	libgcc_s.so.1 => /usr/lib/libgcc_s.so.1 (0x00007f77f319e000)
+	libc.so.6 => /usr/lib/libc.so.6 (0x00007f77e7a00000)
+	/lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x00007f77f3b35000)
+	libgomp.so.1 => /usr/lib/libgomp.so.1 (0x00007f77edf90000)
+	libhipblas.so.3 => /opt/rocm/lib/libhipblas.so.3 (0x00007f77e8153000)
+	librocblas.so.5 => /opt/rocm/lib/librocblas.so.5 (0x00007f77dca00000)
+	libamdhip64.so.7 => /opt/rocm/lib/libamdhip64.so.7 (0x00007f77dae00000)
+	libvulkan.so.1 => /usr/lib/libvulkan.so.1 (0x00007f77e7d63000)
+	libz.so.1 => /usr/lib/libz.so.1 (0x00007f77f3162000)
+	libbrotlienc.so.1 => /usr/lib/libbrotlienc.so.1 (0x00007f77e7c69000)
+	libbrotlidec.so.1 => /usr/lib/libbrotlidec.so.1 (0x00007f77f36bd000)
+	libzstd.so.1 => /usr/lib/libzstd.so.1 (0x00007f77e789f000)
+	librocsolver.so.0 => /opt/rocm/lib/../lib/librocsolver.so.0 (0x00007f77afe00000)
+	libroctx64.so.4 => /opt/rocm/lib/../lib/libroctx64.so.4 (0x00007f77f315d000)
+	librocprofiler-register.so.0 => /opt/rocm/lib/librocprofiler-register.so.0 (0x00007f77e88ae000)
+	libhsa-runtime64.so.1 => /opt/rocm/lib/libhsa-runtime64.so.1 (0x00007f77af800000)
+	libbrotlicommon.so.1 => /usr/lib/libbrotlicommon.so.1 (0x00007f77edf6d000)
+	libfmt.so.12 => /usr/lib/libfmt.so.12 (0x00007f77e7870000)
+	libglog.so.2 => /usr/lib/libglog.so.2 (0x00007f77dc9a1000)
+	libelf.so.1 => /usr/lib/libelf.so.1 (0x00007f77e8136000)
+	libdrm.so.2 => /usr/lib/libdrm.so.2 (0x00007f77f3140000)
+	libdrm_amdgpu.so.1 => /usr/lib/libdrm_amdgpu.so.1 (0x00007f77f2b14000)
+	libnuma.so.1 => /usr/lib/libnuma.so.1 (0x00007f77e88a0000)
+	libgflags.so.2.2 => /usr/lib/libgflags.so.2.2 (0x00007f77e783f000)
+===== control cmake cache =====
+61367fcf6071a9f2c00528e6576d8e68c14310a5ae34c423fbad5448e509ec42  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/CMakeCache.txt
+CMAKE_BUILD_TYPE:STRING=Release
+CMAKE_HIP_ARCHITECTURES:UNINITIALIZED=gfx1151
+GGML_BUILD_TESTS:BOOL=OFF
+GGML_CUDA:BOOL=OFF
+GGML_HIP:BOOL=ON
+GGML_VULKAN:BOOL=ON
+GPU_TARGETS:UNINITIALIZED=gfx1151
+LLAMA_BUILD_SERVER:BOOL=ON
+LLAMA_BUILD_TESTS:BOOL=ON
+
+######## candidate 61f2f2d7bc4955e9bca821095ef69125837133b5 ########
+===== candidate-build-test-turboquant =====
+argv=cmake --build /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01 -j 16 --target test-turboquant
+start=2026-07-17T18:23:26,370279563-07:00
+[  0%] Performing build step for 'vulkan-shaders-gen'
+[  0%] Built target cpp-httplib
+[  1%] Built target llama-common-base
+[  2%] Built target ggml-base
+[  5%] Built target ggml-cpu
+[ 28%] Built target ggml-hip
+[100%] Built target vulkan-shaders-gen
+[ 28%] Performing install step for 'vulkan-shaders-gen'
+-- Up-to-date: /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/Release/./vulkan-shaders-gen
+[ 28%] Completed 'vulkan-shaders-gen'
+[ 28%] Built target vulkan-shaders-gen
+[ 70%] Built target ggml-vulkan
+[ 70%] Built target ggml
+[ 94%] Built target llama
+[ 98%] Built target llama-common
+[ 98%] Building CXX object tests/CMakeFiles/test-turboquant.dir/test-turboquant.cpp.o
+[100%] Linking CXX executable ../bin/test-turboquant
+[100%] Built target test-turboquant
+rc=0
+end=2026-07-17T18:23:26,772963319-07:00
+===== candidate-rocmfp2-reference =====
+argv=env ROOT=/home/connorb/halofpx-lab/open-pin-01/candidate BUILD_DIR=/home/connorb/halofpx-lab/open-pin-01/candidate/build-ref-rocmfp2 /home/connorb/halofpx-lab/open-pin-01/candidate/scripts/check-rocmfp2-reference.sh
+start=2026-07-17T18:23:26,773373717-07:00
+ROCmFP2 Phase-1 CPU reference check
+source_root=/home/connorb/halofpx-lab/open-pin-01/candidate
+compiler=cc
+PASS layout_p0: block=10 data=8 scales=2 bpw=2.50 golden=e4e4e4e4e4e4e4e4127e
+PASS packed_byte_decode: mappings=2 bytes=256 lanes=2048
+PASS ue4m3_boundaries: legal=127 invalid=129 adjacent_midpoints=126 max=224
+PASS metadata_validation: legal_pairs=16129 invalid_bytes=129 malformed_lengths=18
+PASS deterministic_ties: signed_zero=2 magnitude_midpoint=4 scale_tuple=2 saturation=0x7e
+PASS python_golden_vectors: vectors=2 mord=e4x8+4048 msm=4bx8+4048
+PASS fixed_random: codebooks=8 blocks_each=24 mappings=2 ref_opt_equal=384 fingerprint=78389c1c8a0a57a2
+PASS nonfinite_rejection: positions=32 values=3 mappings=2 paths=2 status=NONFINITE_SOURCE
+PASS rocmfp2_phase1_reference: checks=32520 arithmetic=IEEE754-binary64 search=127-scales exhaustive
+rc=0
+end=2026-07-17T18:23:27,071183866-07:00
+===== candidate-rocmfpx-reference =====
+argv=env ROOT=/home/connorb/halofpx-lab/open-pin-01/candidate BUILD_DIR=/home/connorb/halofpx-lab/open-pin-01/candidate/build-ref-rocmfpx /home/connorb/halofpx-lab/open-pin-01/candidate/scripts/check-rocmfpx-reference.sh
+start=2026-07-17T18:23:27,071769738-07:00
+ROCmFP3: block=14 row=28 bpw=3.50 mse=0.0198147
+ROCmFP6: block=26 row=52 bpw=6.50 mse=0.000487858
+ROCmFP8: block=33 row=66 bpw=8.25 mse=4.32492e-05
+ROCmFP3 imatrix weighted_mse: plain=0.0240604 weighted=9.13573e-05
+ROCmFP6 imatrix weighted_mse: plain=0.00110283 weighted=2.32813e-07
+ROCmFP8 imatrix weighted_mse: plain=7.18925e-05 weighted=7.31383e-08
+rc=0
+end=2026-07-17T18:23:27,154773832-07:00
+===== candidate-rocmfp4-quant-regression =====
+argv=env ROOT=/home/connorb/halofpx-lab/open-pin-01/candidate BUILD_DIR=/home/connorb/halofpx-lab/open-pin-01/candidate/build-ref-rocmfp4-quant /home/connorb/halofpx-lab/open-pin-01/candidate/scripts/check-rocmfp4-quant-regression.sh
+start=2026-07-17T18:23:27,155209070-07:00
+/home/connorb/halofpx-lab/open-pin-01/candidate/scripts/check-rocmfp4-quant-regression.sh: line 24: /home/connorb/halofpx-lab/open-pin-01/candidate/build-ref-rocmfp4-quant/bin/test-quantize-fns: No such file or directory
+rc=127
+end=2026-07-17T18:23:27,157411554-07:00
+===== candidate-test-turboquant =====
+argv=env LD_LIBRARY_PATH=/home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-turboquant
+start=2026-07-17T18:23:27,157765044-07:00
+TurboQuant CPU reference tests
+==============================
+
+Test 1: FWHT self-inverse
+  FWHT self-inverse (d=128)... max_err=4.77e-07 ok
+
+Test 2: TQ3 roundtrip MSE
+  turbo3 roundtrip MSE*d (n=10000, d=128)... MSE*d=0.0341 [0.025..0.045] ok
+
+Test 3: TQ4 roundtrip MSE
+  turbo4 roundtrip MSE*d (n=10000, d=128)... MSE*d=0.0093 [0.005..0.015] ok
+
+Test 4: Bit-pack tests
+  turbo3 pack determinism... ok
+  turbo4 pack determinism... ok
+  turbo3 dequantize sanity... finite=yes nonzero=yes ok
+  turbo4 dequantize sanity... finite=yes nonzero=yes ok
+
+==============================
+7/7 tests passed
+rc=0
+end=2026-07-17T18:23:27,200269446-07:00
+===== candidate-test-backend-help =====
+argv=env LD_LIBRARY_PATH=/home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-backend-ops --help
+start=2026-07-17T18:23:27,200697264-07:00
+Usage: /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-backend-ops [mode] [-o <op,..>] [-b <backend>] [-p <params regex>] [--output <console|sql|csv>] [--list-ops] [--show-coverage] [--test-file <path>]
+    valid modes:
+      - test (default, compare with CPU backend for correctness)
+      - grad (compare gradients from backpropagation with method of finite differences)
+      - perf (performance evaluation)
+      - support (probe backend operation support)
+    op names for -o are as given by ggml_op_desc() (e.g. ADD, MUL_MAT, etc),
+        optionally including the full test case string (e.g. "ADD(type=f16,ne=[1,1,8,1],nr=[1,1,1,1],nf=1)")
+    --output specifies output format (default: console, options: console, sql, csv)
+    --list-ops lists all available GGML operations
+    --show-coverage shows test coverage
+    --test-file reads test operators from a test file generated by llama-export-graph-ops
+rc=1
+end=2026-07-17T18:23:27,224732623-07:00
+===== candidate-test-backend-list =====
+argv=env LD_LIBRARY_PATH=/home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-backend-ops --list
+start=2026-07-17T18:23:27,225214288-07:00
+Usage: /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-backend-ops [mode] [-o <op,..>] [-b <backend>] [-p <params regex>] [--output <console|sql|csv>] [--list-ops] [--show-coverage] [--test-file <path>]
+    valid modes:
+      - test (default, compare with CPU backend for correctness)
+      - grad (compare gradients from backpropagation with method of finite differences)
+      - perf (performance evaluation)
+      - support (probe backend operation support)
+    op names for -o are as given by ggml_op_desc() (e.g. ADD, MUL_MAT, etc),
+        optionally including the full test case string (e.g. "ADD(type=f16,ne=[1,1,8,1],nr=[1,1,1,1],nf=1)")
+    --output specifies output format (default: console, options: console, sql, csv)
+    --list-ops lists all available GGML operations
+    --show-coverage shows test coverage
+    --test-file reads test operators from a test file generated by llama-export-graph-ops
+rc=1
+end=2026-07-17T18:23:27,247915437-07:00
+===== candidate artifact hashes =====
+94d7f99e12d505a0b9444ef9ea163e8b68fb9b194228b986ce46ad475d98087b  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml-base.so.0.11.1
+6a24a943d8dab4970a240264abc4550fde480215612dff0466355699d7bdc513  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml-cpu.so.0.11.1
+cbcd3a2346eec44a1fa0af4e7d08cc3ddb56ea0d7d5efbcad9a140062f0a2e9b  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml-hip.so.0.11.1
+f26627b4cf19a5f4870eb37d49dce14c075c461c93edeeaa41f92bcda12ce104  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml.so.0.11.1
+f78b85167380d90878547e035fc10557f4674e071c04bed04f125e7aac1eed37  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml-vulkan.so.0.11.1
+88cca5448c32aef78f002b7161ef5ac9e2e00db2684b494a5c4329a13ef5f892  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libllama-common.so.0.0.162
+2b786d24b0bd80fb3b8fc585e18bf927b7fd2aabf832324a66221934edcfde99  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libllama.so.0.0.162
+118bf0ebdf13173935ce522f3b0dea661c6a6d8ba2154e948ebc43ac8a2f8082  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libmtmd.so.0.0.162
+10ae1f6df2a82c3baa293efde0a1b2fb29a77fc963084fa885ff24242aa2b082  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/llama-bench
+1f8ec9dff8aa3c21a40b628d64fa8e4ab0b183ee15eb48fd7355928d71b05540  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/llama-cli
+af0343fe8f145a9333e37d3eebfecc5b24facf997aeb8450e9644c2bd533e259  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/llama-completion
+4ccb2bd69c5b0f2c0502f81d53cf959273a705bed2ce31e67b8c290c0e662153  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/llama-perplexity
+bf78b38e638868052257d144d9a1aa37cc523940cd906da3d2f2adfa3d4a8223  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/llama-quantize
+7be9b07041b63159e6c0fb6bd489b751f3eebdf00d4ae5660af16eb7b6a799de  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/llama-server
+b0fd0724a8087d7349eeb60c1f264c5023e5b433a865026b552645d77dfd9a0d  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-backend-ops
+17270dd887c8ad8a279d08cc7bdc1d105a359ba0bfe65b86d5d88b67424f960b  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-quantize-fns
+ba794b1caccdb27dafd1f26fa581616fdd79b2bcdebb67b4d4095ca2141fc512  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-quantize-perf
+db951c2446f0de6793b106b9f9c9cc1bf4d43c85d079c9fdc685ca7974caab71  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/test-turboquant
+===== candidate linked libraries =====
+	linux-vdso.so.1 (0x00007f37d1764000)
+	libllama-common.so.0 => /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libllama-common.so.0 (0x00007f37d0e00000)
+	libmtmd.so.0 => /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libmtmd.so.0 (0x00007f37d12cf000)
+	libllama.so.0 => /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libllama.so.0 (0x00007f37d0a00000)
+	libggml.so.0 => /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml.so.0 (0x00007f37d1750000)
+	libggml-cpu.so.0 => /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml-cpu.so.0 (0x00007f37d083c000)
+	libggml-hip.so.0 => /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml-hip.so.0 (0x00007f37cba00000)
+	libggml-vulkan.so.0 => /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml-vulkan.so.0 (0x00007f37c6400000)
+	libggml-base.so.0 => /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/bin/libggml-base.so.0 (0x00007f37d1663000)
+	libssl.so.3 => /usr/lib/libssl.so.3 (0x00007f37d0722000)
+	libcrypto.so.3 => /usr/lib/libcrypto.so.3 (0x00007f37c5c00000)
+	libstdc++.so.6 => /usr/lib/libstdc++.so.6 (0x00007f37c5800000)
+	libm.so.6 => /usr/lib/libm.so.6 (0x00007f37c62f9000)
+	libgcc_s.so.1 => /usr/lib/libgcc_s.so.1 (0x00007f37d0dcb000)
+	libc.so.6 => /usr/lib/libc.so.6 (0x00007f37c5400000)
+	/lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x00007f37d1766000)
+	libgomp.so.1 => /usr/lib/libgomp.so.1 (0x00007f37d0d5b000)
+	libhipblas.so.3 => /opt/rocm/lib/libhipblas.so.3 (0x00007f37c5b53000)
+	librocblas.so.5 => /opt/rocm/lib/librocblas.so.5 (0x00007f37ba400000)
+	libamdhip64.so.7 => /opt/rocm/lib/libamdhip64.so.7 (0x00007f37b8800000)
+	libvulkan.so.1 => /usr/lib/libvulkan.so.1 (0x00007f37c5763000)
+	libz.so.1 => /usr/lib/libz.so.1 (0x00007f37cb9c4000)
+	libbrotlienc.so.1 => /usr/lib/libbrotlienc.so.1 (0x00007f37c5669000)
+	libbrotlidec.so.1 => /usr/lib/libbrotlidec.so.1 (0x00007f37d12bf000)
+	libzstd.so.1 => /usr/lib/libzstd.so.1 (0x00007f37c529f000)
+	librocsolver.so.0 => /opt/rocm/lib/../lib/librocsolver.so.0 (0x00007f378d800000)
+	libroctx64.so.4 => /opt/rocm/lib/../lib/libroctx64.so.4 (0x00007f37d0d56000)
+	librocprofiler-register.so.0 => /opt/rocm/lib/librocprofiler-register.so.0 (0x00007f37cb979000)
+	libhsa-runtime64.so.1 => /opt/rocm/lib/libhsa-runtime64.so.1 (0x00007f378d200000)
+	libbrotlicommon.so.1 => /usr/lib/libbrotlicommon.so.1 (0x00007f37c62d6000)
+	libfmt.so.12 => /usr/lib/libfmt.so.12 (0x00007f37c62a7000)
+	libglog.so.2 => /usr/lib/libglog.so.2 (0x00007f37c5240000)
+	libelf.so.1 => /usr/lib/libelf.so.1 (0x00007f37c5b36000)
+	libdrm.so.2 => /usr/lib/libdrm.so.2 (0x00007f37d0709000)
+	libdrm_amdgpu.so.1 => /usr/lib/libdrm_amdgpu.so.1 (0x00007f37d0d48000)
+	libnuma.so.1 => /usr/lib/libnuma.so.1 (0x00007f37cb96b000)
+	libgflags.so.2.2 => /usr/lib/libgflags.so.2.2 (0x00007f37ba3cf000)
+===== candidate cmake cache =====
+15f9a085c8182fff70bd468e40012326705138c91a72063fb06493c4fb01e48f  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01/CMakeCache.txt
+CMAKE_BUILD_TYPE:STRING=Release
+CMAKE_HIP_ARCHITECTURES:UNINITIALIZED=gfx1151
+GGML_BUILD_TESTS:BOOL=OFF
+GGML_CUDA:BOOL=OFF
+GGML_HIP:BOOL=ON
+GGML_VULKAN:BOOL=ON
+GPU_TARGETS:UNINITIALIZED=gfx1151
+LLAMA_BUILD_SERVER:BOOL=ON
+LLAMA_BUILD_TESTS:BOOL=ON
+
+               total        used        free      shared  buff/cache   available
+Mem:     133623500800  2259152896 67009658880      679936 65722437632 131364347904
+Swap:    34359734272   478515200 33881219072
+NAME      TYPE        SIZE      USED PRIO
+/swapfile file 34359734272 478515200  100
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/nvme0n1p2 999665881088 659470921728 340357664768  66% /
+-- No entries --
+overall_rc=1

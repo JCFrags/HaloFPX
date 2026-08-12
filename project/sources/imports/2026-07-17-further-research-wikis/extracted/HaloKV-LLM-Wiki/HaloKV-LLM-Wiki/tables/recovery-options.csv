@@ -1,0 +1,11 @@
+Mechanism,Preconditions,Network transfer,Latency/cost,Single-node continuation,Notes
+Exact local reuse,Both hosts/processes restart with verified local pages and exact topology,Minimal metadata,Low,No while peer absent,Fastest; requires both ranks to attach
+Delta fetch for replacement rank,Off-host or peer-independent copy of failed rank objects,Only missing/corrupt pages for failed rank,Moderate,No,Preferred host-failure recovery
+Force-replay on restored two-rank topology,Prompt/input and emitted tokens available,Compact recovery capsule; no bulk KV,Compute-heavy,No during one-rank period,Trades bandwidth for compute
+Older checkpoint plus token replay,Newest checkpoint corrupt/unavailable,Older valid objects plus compact token log,Moderate to high,No,Preserves visible output by force-feeding tokens
+Full cache download to two replacements,Both execution hosts lost,Both rank caches,High,No,Fallback when no local state
+Hot two-rank standby,Standby ranks already have weights/cache,"Low at failover, high ongoing replication",Low failover; high cost,No if standby still needs two nodes,True HA with duplicate topology
+Full-model one-node hot replica,One node stores all weights and complete logical cache,Potentially low at failover; high replication cost,Low to moderate,Yes,Only unconditional single-node option when fully current
+Dynamic two-to-one re-shard + replay,Full model fits and engine supports one-node topology,Compact token/input state,High startup compute,"Yes, conditionally",New generation; rank-local pages normally incompatible
+Verified cache converter two-to-one,Reviewed converter exists and full model fits,Read two rank manifests/pages; output new one-node pages,Potentially large local/remote I/O,"Yes, conditionally",Must be all-or-nothing and compared with rebuild
+Continue with partial rank cache,Peer unavailable,None,N/A,No,Forbidden: incomplete model computation

@@ -1,0 +1,33 @@
+# Source index
+
+- S001: Kernel.org current release index — `raw/kernel/release-index.txt` — mainline 7.2-rc3; stable 7.1.3
+- S002: Linux v7.2-rc3 tag metadata — `raw/kernel/v7.2-rc3/tag-metadata.txt` — tag object 1137d8b5df06137fb49513cc923b3b24d94cb809; commit a13c140cc289c0b7b3770bce5b3ad42ab35074aa
+- S003: Thunderbolt v7.2 signed subsystem tag — `raw/kernel/v7.2-rc3/thunderbolt-signed-tag.txt` — tag aa1565cc3d6aa4bd75fce5dcf9338d763906c077; target c1bef05763c94ae284ee2881c03bf0753f8d213a
+- S004: Linus USB 7.2 merge commit — `raw/kernel/v7.2-rc3/usb-merge.txt` — 364f4a55c661641c02c86a849f0608d8fc3c0006; merged usb-7.2-rc1 tip 1c2b66a7d7257d2652aa41f9a860ecb96dde27dd
+- S005: USB4STREAM implementation source — `raw/kernel/v7.2-rc3/drivers-thunderbolt-stream.c` — v7.2-rc3 blob c1f5c55583d069c811d25df95f4e90136255d585
+- S006: USB4/USB4STREAM Kconfig — `raw/kernel/v7.2-rc3/drivers-thunderbolt-Kconfig` — v7.2-rc3-equivalent blob 294b3227a54582536433cbb391057b99bb9df352
+- S007: Thunderbolt module Makefile — `raw/kernel/v7.2-rc3/drivers-thunderbolt-Makefile` — v7.2-rc3-equivalent blob beb054c3126b1445d26b4c14de039d23367a5100
+- S008: Thunderbolt ConfigFS support — `raw/kernel/v7.2-rc3/drivers-thunderbolt-configfs.c` — v7.2-rc3-equivalent blob dc6bc363dfe8052d7f94c6e3dca3efe9fe9771be
+- S009: USB4STREAM ConfigFS ABI documentation — `raw/kernel/v7.2-rc3/configfs-thunderbolt_stream.txt` — v7.2 source; new-file blob 7abc6b7…
+- S010: Thunderbolt administrator guide — USB4STREAM section — `raw/kernel/v7.2-rc3/admin-guide-thunderbolt-usb4stream.txt` — v7.2-rc3
+- S011: USB4STREAM v1 cover letter — `raw/mail/usb4stream-v1-cover.txt` — Message-ID 20260428072209.3084930-1-mika.westerberg@linux.intel.com
+- S012: USB4STREAM v2 cover letter — `raw/mail/usb4stream-v2-cover.txt` — Message-ID 20260511102744.1867485-1-mika.westerberg@linux.intel.com
+- S013: USB4STREAM DMA unmap-size fix proposal and acceptance — `raw/kernel/thunderbolt-fixes/unmap-mapped-size.patch` — blob delta c1f5c55583d0..4cc86d8d6491; fixes branch head observed db79679595326fd3f6bd1e6fd0cefc3ba016039a
+- S014: thunderbolt-net implementation source audit capture — `raw/kernel/v7.2-rc3/thunderbolt-net-source-audit.txt` — v7.2-rc3 blob 02a91650561ab1556d28c4945cae7f62a704b1f3
+- S015: MPTCP sysctl documentation — `raw/kernel/v7.2-rc3/mptcp-sysctl.txt` — v7.2-rc3 blob b9b5f58e…
+- S016: MPTCP control defaults and close handling — `raw/kernel/v7.2-rc3/mptcp-control-source-audit.txt` — v7.2-rc3 net/mptcp/ctrl.c and protocol.c
+- S017: MPTCP scheduler and stale-subflow source audit — `raw/kernel/v7.2-rc3/mptcp-scheduler-source-audit.txt` — v7.2-rc3 net/mptcp/sched.c and protocol.c
+- S018: MPTCP path-manager generic-netlink specification — `raw/kernel/v7.2-rc3/mptcp-pm-netlink.txt` — mptcp_pm family
+- S019: RFC 8684 — TCP Extensions for Multipath Operation — `raw/specs/rfc8684-metadata.txt` — RFC 8684; obsoletes RFC 6824
+- S020: RFC 8684 verified technical erratum — `raw/specs/rfc8684-erratum-6609.txt` — Errata ID 6609
+- S021: USB4 Specification v2.0 public download metadata — `raw/specs/usb4-v2.0-metadata.txt` — USB4 Specification November 2025 package; page updated 2026-04-02
+- S022: USB Type-C Cable and Connector Specification — `raw/specs/type-c-2.5-metadata.txt` — Release 2.5
+- S023: Windows USB4 connection-manager and USB4NET documentation — `raw/specs/windows-usb4net.txt` — current at access
+- S024: PCI Express Base Specification public overview/access record — `raw/specs/pcie-7.0-access-gap.txt` — PCI Express Base Specification Revision 7.0
+- S025: CachyOS linux-cachyos-rc package — x86_64_v3 — `raw/distro/cachyos-linux-cachyos-rc-v3.txt` — 7.2.rc3-1; SHA256 8d65e3132b24f28120cabcae34103949676c46fdcde20542aa1e0f427b413554
+- S026: CachyOS linux-cachyos-rc package — x86_64_v4 — `raw/distro/cachyos-linux-cachyos-rc-v4.txt` — 7.2.rc3-1; SHA256 042a202c5508044e126b89268607016a39ccf6175038576e0d799228287e5774
+- S027: CachyOS stable package record — `raw/distro/cachyos-linux-cachyos-stable.txt` — linux-cachyos 7.1.3-2; x86_64 SHA256 6c63efb0b639ab91ac3a69fc0efbf1303afac16c33e557073fe0806ee6430a47
+- S028: CachyOS RC PKGBUILD moving snapshot — `raw/distro/cachyos-rc-pkgbuild-snapshot.txt` — blob dd4c9a88224b44c3dadb47d7c4db52aeee10cc38; indexed repository commit 5aeec554010d57edf03e7cad83c174fd945da8b9
+- S029: CachyOS RC kernel config symbol evidence — `raw/distro/cachyos-rc-config-symbols.txt` — config blob 69d62dfb8752dfc550e3e31011acd05bda1ae039 at repository commit 5aeec554010d57edf03e7cad83c174fd945da8b9
+- S030: linux-next integration record — `raw/kernel/linux-next/next-20260717.txt` — next-20260717
+- S031: Public USB4 interoperability and compatibility material index — `raw/specs/usb4-interoperability-index.txt` — USB4 interoperability procedures v1.06 (2025-10-09); Thunderbolt 3 compatibility requirements rev 1.0 (2021-08-18)

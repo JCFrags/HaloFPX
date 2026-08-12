@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "conversations": [
+    {
+      "id": "conversation-basic",
+      "system": "You are a deterministic test assistant.",
+      "turns": [
+        {
+          "role": "user",
+          "content": "State the number 7."
+        },
+        {
+          "role": "assistant",
+          "content": "REFERENCE_GENERATED_AT_PROMOTION"
+        },
+        {
+          "role": "user",
+          "content": "Repeat the same number."
+        }
+      ]
+    },
+    {
+      "id": "conversation-divergent-a",
+      "system": "Shared system prefix for cache isolation.",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Branch A: state alpha."
+        }
+      ]
+    },
+    {
+      "id": "conversation-divergent-b",
+      "system": "Shared system prefix for cache isolation.",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Branch B: state beta."
+        }
+      ]
+    }
+  ],
+  "note": "Assistant continuations are reference artifacts, not embedded expected text."
+}

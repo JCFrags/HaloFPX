@@ -1,0 +1,2346 @@
+# Strix Halo / gfx1151 Wiki — full text
+
+Snapshot: 2026.07.17
+
+
+---
+
+<!-- source-file: docs/index.md -->
+
+# Strix Halo / gfx1151 build and compatibility wiki
+
+<span class="badge badge-version">Snapshot 2026.07.17</span> <span class="badge badge-target">gfx1151</span> <span class="badge badge-static">Static-validation release</span>
+
+This wiki reconciles the Linux kernel, amdgpu firmware, ROCm/HIP/LLVM, Mesa/Vulkan, CMake, llama.cpp, ROCmFPX, and USB4 networking layers for AMD Strix Halo. It separates **official support**, **upstream release status**, **community validation**, **experimental work**, and **known-bad combinations**.
+
+> [!IMPORTANT]
+> A supported component does not make the complete stack supported. AMD’s ROCm 7.14 matrix establishes current **Core SDK** support for gfx1151, while AMD’s Ryzen application pages and RDNA 3.5 prebuilt-release table retain narrower release-specific scopes. See [Evidence model](evidence-model.md).
+
+## Current conclusions
+
+1. **Current official Core SDK lane:** ROCm 7.14 supports gfx1151 on Ubuntu 26.04 with kernel 7.0 GA and Ubuntu 24.04.4 with HWE kernel 6.17. The release line pairs HIP 7.14 with LLVM 23.0.0. This does not automatically certify every Ryzen application. Sources: [AMD-CORE-714](sources.md#amd-core-714), [AMD-INSTALL-714](sources.md#amd-install-714).
+2. **Current official RDNA 3.5 prebuilt lane:** qualifying kernels are Ubuntu HWE `>=6.17.0-19.19~24.04.2`, Ubuntu OEM `>=6.14.0-1018`, or `>=6.18.4` elsewhere. AMD’s target-specific table marks ROCm 7.2.1–7.2.3 stable on those kernels. Source: [AMD-RDNA35](sources.md#amd-rdna35).
+3. **Current maintained community lane:** Fedora 42/43, kernel 6.18.9, firmware 20260110, ROCm 7.2.4, and RADV are maintained as a known-good Strix Halo toolbox baseline. ROCm 7.2.4 is an official general release, but is not named in the captured gfx1151-specific 7.2.1–7.2.3 row. Sources: [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9), [AMD-CORE-724](sources.md#amd-core-724), [AMD-RDNA35](sources.md#amd-rdna35).
+4. **Firmware is a hard gate:** avoid the `linux-firmware-20251125` / MES 0x83 era. A new kernel alone does not remove that firmware failure mode. Sources: [ROCM-ISSUE-5724](sources.md#rocm-issue-5724), [FEDORA-BUG-2420062](sources.md#fedora-bug-2420062), [LINUX-FW-REVERT-C092](sources.md#linux-fw-revert-c092).
+5. **llama.cpp pin:** this snapshot uses release `b10064`, commit `86d86ed4396b4130922f7b9af26e3d9fc11a591b`. The current safe gfx1151 HIP baseline explicitly leaves rocWMMA FlashAttention OFF, matching upstream’s source default and the reported regression. Sources: [LLAMA-RELEASE-B10064](sources.md#llama-release-b10064), [LLAMA-GGML-CMAKE-86D86ED](sources.md#llama-ggml-cmake-86d86ed), [LLAMA-ISSUE-24437](sources.md#llama-issue-24437).
+6. **Vulkan lane:** use Mesa RADV first for broad compatibility. AMDVLK has a community-reported large single-allocation limitation. Mesa 26.1.5 is the current upstream source pin, but the captured gfx1151 reports exercised 26.0.2/26.0.3. Sources: [MESA-2615](sources.md#mesa-2615), [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9), [LLAMA-ISSUE-15054](sources.md#llama-issue-15054).
+7. **USB4:** standard IP networking uses upstream `CONFIG_USB4_NET` / `thunderbolt_net`. `thunderbolt-ibverbs` is a separate research driver explicitly described as buggy, insecure, and non-production. Sources: [LINUX-USB4-NET-KCONFIG](sources.md#linux-usb4-net-kconfig), [LINUX-THUNDERBOLT-DOC](sources.md#linux-thunderbolt-doc), [THUNDERBOLT-IBVERBS-76BA39B](sources.md#thunderbolt-ibverbs-76ba39b).
+
+## Choose a lane
+
+| Goal | Start here | Classification |
+|---|---|---|
+| Current AMD Core SDK | [ROCm 7.14 host and tarball recipe](recipes/host-official-rocm-714.md) | Official Core SDK + pinned build candidate |
+| Conservative HIP llama.cpp | [ROCm 7.2.1 / b10064 source build](recipes/llama-hip-rocm721.md) | Official target release + upstream source |
+| Maintained Fedora profile | [Fedora / ROCm 7.2.4 community recipe](recipes/community-fedora-rocm724.md) | Community-validated |
+| Most compatible llama.cpp backend | [Mesa RADV / Vulkan build](recipes/llama-vulkan-radv.md) | Upstream + community-validated |
+| Experimental AMD-focused quants | [ROCmFPX pinned build](recipes/rocmfpx-pinned.md) | Experimental community |
+| Two-node IP link | [USB4/Thunderbolt IP recipe](recipes/usb4-ip-network.md) | Upstream kernel component |
+| Research RDMA link | [USB4 verbs recipe](recipes/usb4-rdma-experimental.md) | Experimental, insecure |
+
+## Release contents
+
+- Human matrix: [Compatibility matrix](compatibility-matrix.md)
+- Machine matrix: [`data/compatibility-matrix-2026.07.17.json`](../data/compatibility-matrix-2026.07.17.json), CSV, and YAML
+- Exact flags: [Build flags](build-flags.md)
+- Known failures: [Regressions](regressions.md) and [Unsupported combinations](unsupported-combinations.md)
+- Runtime controls: [Environment variables](environment-variables.md)
+- Collection and smoke tests: [Diagnostics](diagnostics.md)
+- Reproducible images: [Containers](containers.md)
+- Evidence: [Official support](official-support.md), [Community validation](community-validation.md), and [Source registry](sources.md)
+
+## Validation boundary
+
+The release generator validated data structure, script syntax, local links, and offline rendering. It did **not** execute ROCm, Vulkan, kernel, firmware, USB4, or performance tests on physical Strix Halo hardware. Every recipe therefore includes an acceptance gate rather than claiming local hardware certification.
+
+
+---
+
+<!-- source-file: docs/decision-tree.md -->
+
+# Backend and stack decision tree
+
+```text
+Need AMD-supported current SDK development?
+  yes -> ROCm 7.14 Core SDK on Ubuntu 24.04.4 HWE 6.17 or Ubuntu 26.04 kernel 7.0
+         -> build llama.cpp from source -> classify application as candidate until accepted
+  no  -> Need the most conservative target-specific ROCm prebuilt line?
+           yes -> qualifying kernel + fixed firmware + ROCm 7.2.1–7.2.3
+                  -> llama.cpp b10064 source or ROCm 7.2 release asset
+           no  -> Want maintained Fedora containers?
+                    yes -> kernel 6.18.9 + firmware 20260110 + ROCm 7.2.4 community toolbox
+
+Need broad GGUF compatibility and easy A/B?
+  -> Build RADV/Vulkan first
+  -> Add HIP in the same pinned source tree
+  -> Select -dev Vulkan0 / -dev ROCm0 explicitly
+
+Need ROCmFP3/4/6/8 experimental formats?
+  -> Use ROCmFPX a5605 exact commit and ROCm 7.2.1 container
+  -> Keep its flags and environment isolated from upstream builds
+
+Need two-node transport?
+  trusted production-like IP -> thunderbolt_net + TCP
+  research native verbs      -> thunderbolt-ibverbs, isolated lab only
+```
+
+At every branch, reject known-bad firmware and below-threshold kernels before changing application flags.
+
+
+---
+
+<!-- source-file: docs/evidence-model.md -->
+
+# Evidence model and support semantics
+
+## Why the classification is strict
+
+The Strix Halo stack spans independent authorities:
+
+- AMD certifies selected ROCm hardware, operating systems, release lines, and applications.
+- Linux, Mesa, CMake, Vulkan Loader, and llama.cpp publish upstream code and releases without jointly certifying a complete Strix Halo appliance.
+- Community maintainers report combinations that run on real systems, but those reports vary in workload, firmware, BIOS, memory allocation, and regression coverage.
+
+A row is therefore classified by the **narrowest defensible claim**, not by the strongest label found anywhere in the stack.
+
+## Evidence grades
+
+| Grade | Meaning | Typical use |
+|---|---|---|
+| `O1` | Vendor or upstream hardware/OS/application support matrix | “ROCm 7.14 Core SDK supports gfx1151 on these OS/kernel pairs.” |
+| `O2` | Official upstream release, source, or build configuration | “llama.cpp b10064 exists and this option defaults OFF.” |
+| `C1` | First-hand report with exact versions, reproducer, benchmark, or logs | Regression and workload-specific claims |
+| `C2` | Maintained community image or repeated operational recipe | Known-good community baseline |
+| `C3` | Single anecdotal report with limited reproduction detail | Leads for testing, not defaults |
+| `I1` | Explicit synthesis or inference from compatible component scopes | Reproducible candidate, never relabeled official |
+
+## Classification labels
+
+- **official-supported** — the target and release/OS scope are explicitly supported by the responsible vendor.
+- **official-upstream-current** — a current upstream release exists; target-specific validation may still be absent.
+- **community-validated** — a maintainer or reproducible report exercised the combination on Strix Halo.
+- **experimental-community** — working research or fork work with explicit stability limitations.
+- **unsupported-known-bad** — documented failure or an official unsupported classification.
+- **reproducible-candidate** — all components can be pinned coherently, but the combined profile is not published as a supported application row.
+- **official-historical** — formerly documented vendor path that is obsolete under the current matrix.
+
+## Non-transitivity rules
+
+1. **Core SDK support is not application support.** ROCm 7.14’s gfx1151 row does not automatically validate PyTorch, llama.cpp, ROCmFPX, or a given container image.
+2. **A general ROCm release matrix is not a target-specific row.** ROCm 7.2.4 is official generally; the captured RDNA 3.5 table names 7.2.1–7.2.3 specifically.
+3. **An upstream release is not a host certification.** A llama.cpp ROCm 7.2 binary still depends on a correct host kernel, firmware, `/dev/kfd`, runtime libraries, and model path.
+4. **A fixed kernel does not fix bad firmware.** Kernel and firmware are separate gates.
+5. **A community benchmark is workload-specific.** Vulkan beating HIP in one MoE decode test does not establish a universal backend ranking.
+6. **A workaround is not support.** Architecture overrides or disabled kernel features can help isolate faults but do not turn an unsupported release into a supported one.
+
+## Updating the matrix
+
+A status promotion requires a new source that states the relevant scope. For example, ROCm 7.2.4 moves from “general official + community-validated gfx1151” to “official gfx1151 stable” only when AMD’s target-specific RDNA 3.5 table or an equivalent application matrix names it.
+
+
+---
+
+<!-- source-file: docs/compatibility-matrix.md -->
+
+# Versioned compatibility matrix
+
+Matrix version: **2026.07.17** · Target: **Strix Halo / gfx1151** · Rows: **21**
+
+Machine-readable forms:
+
+- [`compatibility-matrix-2026.07.17.csv`](../data/compatibility-matrix-2026.07.17.csv)
+- [`compatibility-matrix-2026.07.17.json`](../data/compatibility-matrix-2026.07.17.json)
+- [`compatibility-matrix-2026.07.17.yaml`](../data/compatibility-matrix-2026.07.17.yaml)
+- [`component-versions-2026.07.17.csv`](../data/component-versions-2026.07.17.csv)
+
+> [!CAUTION]
+> Rows are scoped profiles, not a Cartesian product. Do not combine a kernel from one row, firmware from another, and a compiler from a third without revalidation.
+
+## Component-level status
+
+| Component | Official/current | Official target floor/scope | Community-validated | Known bad or risky | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| Linux kernel | Ubuntu 26.04 kernel 7.0 or Ubuntu 24.04.4 HWE 6.17 for ROCm 7.14 | HWE >=6.17.0-19.19~24.04.2; OEM >=6.14.0-1018; other distros >=6.18.4 | Fedora 43 kernel 6.18.9 | Below distro-specific fixed minimum | [AMD-CORE-714](sources.md#amd-core-714), [AMD-RDNA35](sources.md#amd-rdna35), [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9) |
+| amdgpu firmware | Use supported OS inbox/distribution pair | No single cross-distro package version stated; fixed firmware required | Fedora linux-firmware 20260110 | linux-firmware 20251125 / MES 0x83 era | [AMD-CORE-714](sources.md#amd-core-714), [FEDORA-BUG-2420062](sources.md#fedora-bug-2420062), [ROCM-ISSUE-5724](sources.md#rocm-issue-5724) |
+| ROCm | 7.14 Core SDK | 7.2.1-7.2.3 stable in RDNA3.5 prebuilt table on qualifying kernels | 7.2.4 toolbox on Fedora 42/43 | 7.1.x and 6.4.x unsupported in current RDNA3.5 table | [AMD-CORE-714](sources.md#amd-core-714), [AMD-RDNA35](sources.md#amd-rdna35), [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9) |
+| HIP | 7.14 | llama.cpp source requires HIP >=6.1; use supported ROCm line | 7.2.1 and 7.2.4 paths | Mixed HIP runtime/compiler generations | [AMD-CORE-714](sources.md#amd-core-714), [AMD-CORE-724](sources.md#amd-core-724), [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed) |
+| LLVM/Clang | 23.0.0 with ROCm 7.14 | Use compiler bundled with selected ROCm SDK | 22.0.0.26084 with ROCm 7.2.4 | System Clang or LLVM from another ROCm generation | [AMD-CORE-714](sources.md#amd-core-714), [AMD-CORE-724](sources.md#amd-core-724) |
+| Mesa/RADV | Mesa 26.1.5 upstream | No Mesa project hardware-support certification claim captured | Mesa 26.0.2/26.0.3 on gfx1151 llama.cpp reports; RADV recommended by toolbox | Upgrade regressions must be benchmark-gated | [MESA-2615](sources.md#mesa-2615), [LLAMA-ISSUE-22375](sources.md#llama-issue-22375), [LLAMA-ISSUE-24438](sources.md#llama-issue-24438), [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9) |
+| AMDVLK | Driver release independent of this matrix | Not asserted | Works for selected models | Reported ~2 GiB single-buffer allocation limit for large models | [LLAMA-ISSUE-15054](sources.md#llama-issue-15054), [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9) |
+| CMake | 4.3.4 | 3.21 for native HIP language and CMAKE_HIP_ARCHITECTURES | Ubuntu 24.04 3.28.x conservative baseline | Latest CMake not assumed validated with every old ROCm package | [CMAKE-RELEASE-434](sources.md#cmake-release-434), [CMAKE-HIP-ARCH](sources.md#cmake-hip-arch), [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed) |
+| llama.cpp | b10064 / 86d86ed on 2026-07-17 | Upstream binary is ROCm 7.2; host support external | HIP and Vulkan on gfx1151; workload-dependent winner | rocWMMA FA long-context regression; commit-to-commit RADV pp regression | [LLAMA-RELEASE-B10064](sources.md#llama-release-b10064), [LLAMA-ISSUE-24437](sources.md#llama-issue-24437), [LLAMA-ISSUE-24438](sources.md#llama-issue-24438), [LLAMA-ISSUE-22375](sources.md#llama-issue-22375) |
+| ROCmFPX | Not AMD/upstream llama official | N/A | a5605a7 with ROCm 7.2.1 container, HIP and Vulkan | Experimental APIs, formats, tuning and fork-only flags | [ROCMFPX-A5605](sources.md#rocmfpx-a5605), [ROCMFPX-BUILD-A5605](sources.md#rocmfpx-build-a5605), [ROCMFPX-DOCKER-A5605](sources.md#rocmfpx-docker-a5605) |
+| USB4 IP networking | CONFIG_USB4_NET / thunderbolt_net | Kernel component independent of gfx ISA | Linux-to-Linux clustering; ~9 Gbit/s/link reported on specific systems | Cable/topology/authorization/MTU variability | [LINUX-THUNDERBOLT-DOC](sources.md#linux-thunderbolt-doc), [LINUX-USB4-NET-KCONFIG](sources.md#linux-usb4-net-kconfig), [STRIXHALO-WIKI-CLUSTERING](sources.md#strixhalo-wiki-clustering) |
+| USB4 RDMA verbs | No upstream production support claim | N/A | thunderbolt-ibverbs 76ba39b, Linux >=6.14 | Explicitly buggy, insecure, research-only | [THUNDERBOLT-IBVERBS-76BA39B](sources.md#thunderbolt-ibverbs-76ba39b) |
+
+## Profile matrix
+
+| Profile | Class | Status | OS | Kernel | ROCm | Mesa/Vulkan | llama.cpp | Primary caveat |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| OFF-CORE-714-U2604 | official-supported | supported-core-sdk | Ubuntu 26.04 | 7.0 GA | 7.14.0 | Host-dependent; not part of HIP support claim | Source build candidate; not AMD application-certified by this matrix | Do not infer PyTorch/llama.cpp/ROCmFPX application support from Core SDK support alone. |
+| OFF-CORE-714-U2404-HWE | official-supported | supported-core-sdk | Ubuntu 24.04.4 | 6.17 HWE | 7.14.0 | Host-dependent; not part of HIP support claim | Source build candidate or upstream ROCm 7.2 binary only; do not mix binary runtime lines | Do not run the b10064 ROCm 7.2 prebuilt against a 7.14-only userspace unless all dynamic dependencies resolve to its intended line. |
+| OFF-RDNA35-ROCM721-723 | official-supported | stable-on-qualified-kernel | Ubuntu 24.04 or another supported distribution | Ubuntu HWE >=6.17.0-19.19~24.04.2; Ubuntu OEM >=6.14.0-1018; others >=6.18.4 | 7.2.1, 7.2.2, or 7.2.3 | Independent path; RADV community validation below | Current source can be built; upstream b10064 ROCm 7.2 binary is compatible in release scope | rocWMMA FlashAttention can regress long-context prefill; firmware and kernel are independent gates. |
+| OFF-RYZEN-72-U24043 | official-supported | supported-or-preliminary-by-application | Ubuntu 24.04.3 via documented 24.04.2 installer path | Must also satisfy the RDNA 3.5 fixed-minimum kernel rule | 7.2 application line | Not part of AMD HIP app claim | Listed application/use-case; exact release pin remains upstream-controlled | “Preliminary” OS support and “production” framework support are distinct labels. |
+| UPSTREAM-LLAMA-B10064-ROCM72 | official-upstream-current | released-binary | Ubuntu-compatible Linux userspace | Host must independently meet gfx1151 requirements | ROCm 7.2 runtime line | Separate Vulkan assets/build path | b10064 / 86d86ed4396b4130922f7b9af26e3d9fc11a591b | Binary release scope does not guarantee host kernel, firmware, or every model path. |
+| SYNTH-LLAMA-B10064-ROCM714 | reproducible-candidate | build-candidate-not-hardware-validated-here | Ubuntu 24.04.4 HWE 6.17 or Ubuntu 26.04 kernel 7.0 | Per ROCm 7.14 official matrix | 7.14.0 gfx1151 TheRock tarball | Optional; disable for HIP-only build | b10064 / 86d86ed4396b4130922f7b9af26e3d9fc11a591b | This is a reasoned pinned build combination, not a published AMD llama.cpp application-validation row. |
+| COMM-F43-K6189-FW20260110-ROCM724 | community-validated | maintained-community-known-good | Fedora 42/43 | 6.18.9-200.fc43.x86_64 reported stable baseline | 7.2.4 toolbox | RADV preferred; AMDVLK available with allocation caveat | Toolbox tracks upstream master; pin a commit for reproducibility | ROCm 7.2.4 is a general official release and community-validated here, but is not named in AMD’s gfx1151-specific 7.2.1–7.2.3 row. |
+| COMM-RADV-MESA2602-2603 | community-validated | recommended-community-vulkan-path | Modern Linux distribution | Qualifying gfx1151 kernel; reports include 6.19.4 | Not required for Vulkan | Mesa RADV 26.0.2 or 26.0.3 community-tested | Current source; pin b10064 for reproducibility | Prompt-processing regressions have occurred between llama.cpp builds; --no-direct-io/--no-mmap can isolate model-load failures. |
+| UPSTREAM-MESA-2615-CANDIDATE | official-upstream-current | current-release-not-target-certified | Linux | Use a qualifying gfx1151 kernel | Not required for Vulkan | Mesa 26.1.5 / RADV | b10064 pinned build candidate | “Latest” is not equivalent to “validated on gfx1151.” Run the included Vulkan smoke and llama-bench gate. |
+| RISK-AMDVLK-LARGE-ALLOC | community-reported-risk | conditionally-usable | Linux | Qualifying gfx1151 kernel | Not required | AMDVLK | Vulkan backend | Approximately 2 GiB single-buffer allocation failures have been reported; prefer RADV for large models. |
+| EXP-ROCMFPX-A5605-ROCM721 | experimental-community | experimental-validated-by-maintainer | Ubuntu 24.04 container or compatible host | Qualifying gfx1151 host kernel | 7.2.1 complete container baseline | mesa-vulkan-drivers in runtime image; maintainer reports Vulkan and HIP tests | Fork commit a5605a72768c6562241b248e268e33dc92787394 | Fork-specific flags and environment variables must not be generalized to upstream llama.cpp. APIs and formats may change. |
+| OFF-USB4-IP-THUNDERBOLT-NET | official-upstream-supported | supported-kernel-component | Linux with USB4, INET, and CONFIG_USB4_NET | Mainline kernel with thunderbolt_net; use gfx1151-qualified kernel for the overall host | Independent | Independent | Use TCP RPC over thunderbolt0 as normal IP networking | Interface naming and authorization depend on firmware, topology, and distribution policy; benchmark each cable/topology. |
+| EXP-USB4-RDMA-76BA39B | experimental-community | research-only-not-production | Linux; packages for Debian/Ubuntu, Fedora, Arch, and Nix | >=6.14 or project-patched linux-thunderbolt kernel | Can be exposed into ROCm/vLLM/llama containers | Independent | Potential RDMA-aware distributed transports; project integration required | Project explicitly states buggy, insecure, and not for production. |
+| HIST-AMD-LLAMA-B7146-ROCM711 | official-historical | historical-do-not-deploy-new | Ubuntu 24.04 | Historical installer prerequisites | 7.1.1 | Not material | b7146 AMD bundle | AMD’s current RDNA3.5 table marks ROCm 7.1.x unsupported on qualifying kernels; CWSR/MES hangs were reported. |
+| BAD-FIRMWARE-20251125-MES083 | unsupported-known-bad | avoid | Affected Linux distributions | A new kernel does not neutralize the bad firmware by itself | Failures reported across 7.1 and later test paths | GPU stability risk can affect both compute and graphics paths | llama-bench segfaults/hangs reported in distribution tracking | GPU page faults, memory-access faults, hangs, and process D-state behavior. |
+| BAD-KERNEL-BELOW-RDNA35-FIX | unsupported-known-bad | avoid-for-current-rocm | Linux | Below Ubuntu HWE 6.17.0-19, OEM 6.14.0-1018, or 6.18.4 elsewhere | Current prebuilt support is experimental or unsupported below thresholds | May show separate issues | Compute instability or memory limitations possible | Queue, memory, and visibility failures; historical approximately 15.5 GiB cap on much older kernels. |
+| BAD-ROCM71-CURRENT-KERNEL | unsupported-known-bad | unsupported | Linux | Even a qualifying current kernel | 7.1.x | Independent | Historical package/builds only | CWSR/MES hangs and historical application regressions. |
+| BAD-HSA-OVERRIDE-GFX110X | unsupported-workaround | do-not-use-as-fix | Linux | Any | Old or mismatched stacks | Not applicable | Not a supported upstream requirement on native current gfx1151 stacks | The reported 11.0.x overrides did not repair the underlying old-stack failures. |
+| RISK-ROCWMMA-FA-GFX1151 | community-reported-regression | disable-by-default | Linux | Qualifying gfx1151 kernel | Reported on 7.2.1 | Not applicable | Current default is GGML_HIP_ROCWMMA_FATTN=OFF | Reported long-context prefill loss up to roughly 41% when enabled; retest before enabling. |
+| RISK-MIXED-ROCM-LLVM-GENERATIONS | unsupported-by-scope | avoid | Linux | Any supported host | Do not mix 7.14 libraries with 7.2 compiler packages or vice versa | Independent | Clean CMake cache when switching SDK roots | Mismatched CMake packages, bitcode libraries, runtime DSOs, and compiler resource directories can cause configure, link, or runtime failures. |
+| HIST-VISIBLE-MEMORY-15GB | historical-regression | closed-historical | Linux | <=6.15 era | 6.4.1 through early 7.0-era reports | Not primary cause | Large models could not use full unified memory | Approximately 15.5 GiB visible-memory cap; issue closed. |
+
+## Recommended operational profiles
+
+### A. Current official Core SDK profile
+
+Use `OFF-CORE-714-U2604` or `OFF-CORE-714-U2404-HWE` when the objective is current ROCm SDK development. Keep ROCm 7.14, HIP 7.14, and LLVM 23 in one SDK root. Build current llama.cpp from source as a **candidate** and run the acceptance suite before deployment.
+
+### B. Conservative ROCm 7.2 llama.cpp profile
+
+Use `OFF-RDNA35-ROCM721-723` with a qualifying kernel and fixed firmware. Pin llama.cpp b10064. Explicitly compile `gfx1151`, leave rocWMMA FlashAttention OFF, and use the bundled ROCm LLVM 22 compiler.
+
+### C. Maintained community profile
+
+Use `COMM-F43-K6189-FW20260110-ROCM724` for the maintained Fedora toolbox path. Preserve its classification: ROCm 7.2.4 is official generally and community-validated on Strix Halo, not yet named by the captured AMD gfx1151-specific prebuilt row.
+
+### D. Vulkan-first profile
+
+Use `COMM-RADV-MESA2602-2603` for community-tested RADV versions or `UPSTREAM-MESA-2615-CANDIDATE` to test the latest upstream source. Pin both Mesa and llama.cpp and gate upgrades with `llama-bench` prompt-processing and token-generation thresholds.
+
+### E. Experimental profiles
+
+`EXP-ROCMFPX-A5605-ROCM721` and `EXP-USB4-RDMA-76BA39B` are deliberately separated from supported lanes. Their fork-only flags, kernel modules, and security risks are not inherited by upstream or official profiles.
+
+
+---
+
+<!-- source-file: docs/official-support.md -->
+
+# Officially supported combinations
+
+## Support scopes that currently coexist
+
+### ROCm 7.14 Core SDK
+
+AMD’s current matrix lists gfx1151 in the ROCm 7.14 hardware set. The captured supported host combinations are Ubuntu 26.04 with kernel 7.0 GA and Ubuntu 24.04.4 with HWE kernel 6.17, using the inbox kernel driver. ROCm/HIP 7.14 is paired with LLVM 23.0.0. Sources: [AMD-CORE-714](sources.md#amd-core-714).
+
+This is the correct lane for current SDK development. It does **not** by itself state that the Ryzen llama.cpp binary page, PyTorch wheel matrix, or ROCmFPX fork has been validated against 7.14.
+
+### RDNA 3.5 target-specific release table
+
+AMD’s RDNA 3.5 page establishes the current fixed-minimum kernel rules:
+
+```text
+Ubuntu 24.04 HWE: 6.17.0-19.19~24.04.2 or newer
+Ubuntu 24.04 OEM: 6.14.0-1018 or newer
+Other distributions: 6.18.4 or newer
+```
+
+On qualifying kernels, the captured prebuilt-release table marks ROCm 7.2.1, 7.2.2, and 7.2.3 stable. ROCm 7.1.x and 6.4.x are not supported in that row. Source: [AMD-RDNA35](sources.md#amd-rdna35).
+
+### Ryzen application-support line
+
+The ROCm 7.2 Radeon/Ryzen documentation includes gfx1151 and provides application-oriented validation, including a production-supported PyTorch 2.9 / ROCm 7.2 / Python 3.12 line. Ubuntu 24.04.3 is documented through a preliminary 24.04.2 installer path. Sources: [AMD-RYZEN-72](sources.md#amd-ryzen-72), [AMD-RYZEN-INDEX](sources.md#amd-ryzen-index).
+
+### General ROCm 7.2.4 release
+
+ROCm 7.2.4 is an official release with HIP 7.2.53211, LLVM 22.0.0.26084, ROCr 1.18.0, and ROCm CMake 0.14.0. The general matrix is authoritative for those component versions. It is not, by itself, an explicit gfx1151 application-support row. Source: [AMD-CORE-724](sources.md#amd-core-724).
+
+## Official/upstream components outside AMD application certification
+
+| Component | Official statement | What it does not prove |
+|---|---|---|
+| llama.cpp b10064 | Upstream release and ROCm 7.2 binary asset | Host kernel/firmware correctness or AMD application certification |
+| Mesa 26.1.5 | Current upstream Mesa bugfix release | gfx1151 llama.cpp performance or regression-free behavior |
+| CMake 4.3.4 | Current Kitware release | Compatibility with every older ROCm package layout |
+| `CONFIG_USB4_NET` | Upstream kernel networking component | A particular cable’s speed or distributed LLM scaling |
+
+Sources: [LLAMA-RELEASE-B10064](sources.md#llama-release-b10064), [MESA-2615](sources.md#mesa-2615), [CMAKE-RELEASE-434](sources.md#cmake-release-434), [LINUX-USB4-NET-KCONFIG](sources.md#linux-usb4-net-kconfig).
+
+## Historical official path
+
+AMD’s old ROCm 7.1.1 llama.cpp page documents `llama-b7146-ubuntu-24.04-rocm-7.1.1-gfx1150-gfx1151-x64.zip`. Retain it only for provenance. AMD’s current RDNA 3.5 table now classifies ROCm 7.1.x as unsupported on qualifying kernels, and the CWSR/MES regression record makes it a poor new deployment choice. Sources: [AMD-LLAMA-711](sources.md#amd-llama-711), [AMD-RDNA35](sources.md#amd-rdna35), [ROCM-ISSUE-5590](sources.md#rocm-issue-5590).
+
+## Official profile checklist
+
+- Match the exact supported OS and kernel family.
+- Use the supported inbox/distribution kernel driver rather than mixing arbitrary DKMS and firmware packages.
+- Keep HIP, LLVM, ROCr, and CMake packages from one ROCm release line.
+- Verify `/dev/kfd`, `/dev/dri`, `rocminfo`, and a compiled HIP smoke test before application testing.
+- Treat application matrices separately from the Core SDK matrix.
+
+
+---
+
+<!-- source-file: docs/community-validation.md -->
+
+# Community-reported and community-validated combinations
+
+## Maintained Fedora / toolbox baseline
+
+The current maintained community profile reports:
+
+```text
+OS: Fedora 42/43
+Kernel: 6.18.9-200.fc43.x86_64
+Firmware: linux-firmware 20260110
+ROCm: 7.2.4 toolbox
+Vulkan: Mesa RADV preferred
+```
+
+The repository also offers ROCm 7.2.4, ROCm 6.4.4 with a backported kernel patch, RADV, AMDVLK, and experimental ROCmFP4 images. This wiki promotes only the 7.2.4 and RADV paths as current community baselines; the patched 6.4.4 image remains useful for comparison but conflicts with AMD’s current target-specific support classification. Source: [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9).
+
+### Runtime practices reported by that profile
+
+```bash
+llama-cli --no-mmap -ngl 999 -fa 1 -m MODEL.gguf -p 'test'
+```
+
+`--no-mmap` is a community stability choice, not an upstream universal requirement. Preserve an A/B path without it so that a filesystem or direct-I/O failure is not misdiagnosed as a compute failure.
+
+The repository also reports a performance profile using:
+
+```text
+amd_iommu=off amdgpu.gttsize=126976 ttm.pages_limit=32505856
+```
+
+on a 128 GiB system. This is **not** adopted as a default here. Disabling IOMMU reduces DMA isolation and can be inappropriate for USB4, virtualization, or research RDMA. Use AMD’s `amd-ttm` guidance first; benchmark any IOMMU change inside the relevant security model.
+
+## HIP versus Vulkan
+
+A first-hand gfx1151 report using ROCm 7.2.1 and Mesa 26.0.3 measured substantially faster generation with Vulkan than HIP for one Qwen3.6 35B-A3B Q8_0 workload. ROCmFPX’s maintainer also reports Vulkan as the faster tested decode backend on that system. These results justify a **Vulkan-first test**, not a universal verdict. Sources: [LLAMA-ISSUE-24438](sources.md#llama-issue-24438), [ROCMFPX-A5605](sources.md#rocmfpx-a5605).
+
+Benchmark both paths with the same:
+
+- model file and checksum;
+- prompt and token counts;
+- batch and micro-batch;
+- context and K/V cache types;
+- FlashAttention setting;
+- power mode and temperature;
+- llama.cpp commit.
+
+## RADV and AMDVLK
+
+RADV is the maintained community default because it covers more large-model cases. AMDVLK can be faster in selected paths, but a reported roughly 2 GiB single-allocation limitation can prevent large GGUF loads despite sufficient aggregate memory. Sources: [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9), [LLAMA-ISSUE-15054](sources.md#llama-issue-15054).
+
+## Community firmware resolution
+
+Fedora’s regression record identifies the 20260110 firmware package line as fixed relative to the broken 20251125 line. Treat package dates as distribution-specific labels, not universal firmware ABI numbers; capture file hashes and dmesg firmware versions in every bug report. Sources: [FEDORA-BUG-2420062](sources.md#fedora-bug-2420062), [ROCM-ISSUE-5724](sources.md#rocm-issue-5724).
+
+## Community validation acceptance gate
+
+A profile graduates to “locally accepted” only after it passes:
+
+1. 30-minute repeated HIP or Vulkan smoke without new amdgpu faults.
+2. `llama-bench` prompt processing and generation with stable variance.
+3. Model load both with normal I/O and, when needed, `--no-direct-io --no-mmap`.
+4. Suspend/resume or at least one warm reboot when the deployment requires it.
+5. USB4 throughput and packet-loss test when distributed execution is in scope.
+6. A saved diagnostics bundle from [`collect-diagnostics.sh`](../scripts/collect-diagnostics.sh).
+
+
+---
+
+<!-- source-file: docs/regressions.md -->
+
+# Known regressions and failure modes
+
+Machine-readable records: [`regressions-2026.07.17.json`](../data/regressions-2026.07.17.json), CSV, and YAML.
+
+| ID | Severity | Component | Affected | Symptoms | Mitigation | Evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+| REG-FW-MES083-20251125 | critical | amdgpu firmware / linux-firmware | linux-firmware 20251125 / MES 0x83 era on Strix Halo | GPU hang, gfxhub page fault, memory access fault, llama-bench segfault, blocked management processes | Upgrade to distribution-fixed firmware (Fedora 20260110 line or newer validated package); do not treat a kernel update alone as sufficient | [ROCM-ISSUE-5724](sources.md#rocm-issue-5724), [FEDORA-BUG-2420062](sources.md#fedora-bug-2420062), [LINUX-FW-REVERT-C092](sources.md#linux-fw-revert-c092) |
+| REG-CWSR-MES080-ROCM71 | high | amdgpu CWSR / MES / ROCm 7.1 | ROCm 7.1.x with MES 0x80-era stack | MES REMOVE_QUEUE hang and GPU hang | Move to a currently supported ROCm line; amdgpu.cwsr_enable=0 is only a legacy containment measure | [ROCM-ISSUE-5590](sources.md#rocm-issue-5590), [AMD-RDNA35](sources.md#amd-rdna35) |
+| REG-KERNEL-RDNA35-FIXSET | critical | Linux amdgpu kernel driver | Kernels below AMD’s distro-specific thresholds | Compute instability, queue faults, incomplete memory behavior | Use Ubuntu HWE >=6.17.0-19.19~24.04.2, OEM >=6.14.0-1018, or >=6.18.4 elsewhere | [AMD-RDNA35](sources.md#amd-rdna35), [ROCM-ISSUE-5824](sources.md#rocm-issue-5824) |
+| REG-LLAMA-ROCWMMA-FA | medium | llama.cpp HIP rocWMMA FlashAttention | gfx1151 long-context prefill on reported ROCm 7.2.1 stack | Up to approximately 41% lower prefill performance | Keep GGML_HIP_ROCWMMA_FATTN=OFF unless local benchmark proves benefit | [LLAMA-ISSUE-24437](sources.md#llama-issue-24437), [LLAMA-GGML-CMAKE-86D86ED](sources.md#llama-ggml-cmake-86d86ed), [LLAMA-ROCM-DOCKER-86D86ED](sources.md#llama-rocm-docker-86d86ed) |
+| REG-LLAMA-RADV-PP-B8460-B8933 | medium | llama.cpp Vulkan/RADV prompt processing | Reported transition b8460 to b8933 on Mesa 26.0.2 and Linux 6.19.4 | pp512 decreased by about 39%; token generation stayed approximately stable | Pin known-good commits and gate upgrades with benchmark thresholds | [LLAMA-ISSUE-22375](sources.md#llama-issue-22375) |
+| REG-VULKAN-DIRECT-IO-LOAD | medium | llama.cpp Vulkan model loading | Selected filesystems/models/drivers | Model fails during load or mapping | Use --no-direct-io and/or --no-mmap; collect loader and kernel logs | [LLAMA-ISSUE-18741](sources.md#llama-issue-18741), [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9) |
+| REG-AMDVLK-2G-ALLOCATION | high-for-large-models | AMDVLK Vulkan memory allocation | Large GGUF buffers exceeding reported per-allocation behavior | Model load fails although sufficient aggregate memory exists | Use Mesa RADV for large models | [LLAMA-ISSUE-15054](sources.md#llama-issue-15054), [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9) |
+| REG-HIST-15G-VISIBLE-MEM | historical-high | Kernel/ROCm unified-memory visibility | Kernel <=6.15 and older ROCm-era combinations | Only approximately 15.5 GiB available despite much larger system RAM | Use current fixed kernel/ROCm and official TTM sizing | [ROCM-ISSUE-5444](sources.md#rocm-issue-5444), [AMD-RDNA35](sources.md#amd-rdna35) |
+| REG-HIP-POST-FAULT-DSTATE | high | HIP/amdgpu post-fault recovery | Selected fault paths | rocm-smi or workload process blocked in D state | Capture diagnostics before reboot; update kernel/firmware/ROCm as one tested profile | [ROCM-ISSUE-5745](sources.md#rocm-issue-5745) |
+
+## Triage order
+
+When a GPU workload fails, do not start by changing application flags. Establish the lower layers first:
+
+1. **Kernel threshold** — compare `uname -r` with the AMD RDNA 3.5 rule.
+2. **Firmware package and files** — reject the 20251125/MES 0x83 era and capture hashes.
+3. **ROCm release integrity** — one SDK root, one HIP compiler, one runtime generation.
+4. **Minimal HIP smoke** — compile and run [`smoke-hip.cpp`](../scripts/smoke-hip.cpp).
+5. **Vulkan loader** — list ICDs and run `vulkaninfo --summary` with loader debug when needed.
+6. **llama.cpp A/B** — backend, mmap/direct-I/O, graphs, rocWMMA, and commit pin.
+7. **Model/workload** — only after the platform passes minimal tests.
+
+## Fault-signature commands
+
+```bash
+sudo dmesg -T | grep -Eai 'amdgpu|MES|gfxhub|page fault|GPU reset|ring timeout|firmware'
+ps -eo pid,stat,wchan:32,comm,args | awk '$2 ~ /D/'
+cat /proc/cmdline
+find /lib/firmware/amdgpu -maxdepth 1 -type f -printf '%f
+' | sort
+rocminfo
+hipconfig --full
+```
+
+If `rocm-smi` or another management command blocks after a fault, capture kernel logs and task states before rebooting. The post-fault D-state record exists specifically because repeated tool invocations can obscure the first failure.
+
+## Regression gates for upgrades
+
+Record these values before changing kernel, firmware, ROCm, Mesa, or llama.cpp:
+
+```text
+pp512, pp2048, tg128
+model load wall time
+peak resident memory and reported GPU pool size
+new dmesg warnings/errors
+Vulkan device/driver ID
+HIP runtime and compiler version
+```
+
+Fail the upgrade if median performance regresses beyond the chosen tolerance or any new amdgpu fault appears. A default tolerance of 5% for stable local runs is reasonable; noisy thermal systems require tighter environmental control rather than a wider tolerance.
+
+
+---
+
+<!-- source-file: docs/unsupported-combinations.md -->
+
+# Unsupported, known-bad, and unvalidated combinations
+
+| Combination | Classification | Reason | Replacement |
+|---|---|---|---|
+| `linux-firmware-20251125` / MES 0x83 era | Known bad | GPU page faults, hangs, and distribution regressions | Fixed/current distribution firmware; Fedora 20260110 line is community-validated |
+| Kernel below AMD’s RDNA 3.5 threshold | Officially below stable floor | Missing target fixes | HWE >=6.17.0-19, OEM >=6.14.0-1018, or >=6.18.4 elsewhere |
+| ROCm 7.1.x as a new gfx1151 deployment | Officially unsupported in current target table | CWSR/MES and application regressions | ROCm 7.2.1–7.2.3 official target lane or current 7.14 Core SDK |
+| ROCm 6.4.x as an official current profile | Officially unsupported in current target table | Community patches do not change vendor status | Use supported line; retain patched images only for controlled comparison |
+| `HSA_OVERRIDE_GFX_VERSION=11.0.0` or `11.0.3` as a generic fix | Unsupported workaround | Failed to repair reported old-stack faults and can select wrong ISA assumptions | Native gfx1151 identification on current stack |
+| ROCm 7.14 runtime with ROCm 7.2 LLVM/CMake packages | Unsupported-by-scope | Mixed compiler resource, bitcode, CMake, and runtime generations | One SDK root and clean build directory |
+| b10064 ROCm 7.2 prebuilt loaded against arbitrary 7.14 libraries | Unvalidated | Binary dynamic-dependency scope differs | Run with intended ROCm 7.2 runtime or rebuild from source for 7.14 |
+| `GGML_HIP_ROCWMMA_FATTN=ON` as gfx1151 default | Community-reported regression | Long-context prefill loss in reported ROCm 7.2.1 test | Keep OFF, then A/B locally |
+| AMDVLK for any large model without allocation test | Risky | Reported approximately 2 GiB single-allocation failure | RADV first |
+| Mesa 26.1.5 called “gfx1151 validated” without local test | Unvalidated wording | It is current upstream, while captured target reports used 26.0.2/26.0.3 | Label current-upstream candidate and run acceptance gate |
+| ROCmFPX commit a5605 with ROCm 7.14 assumed compatible | Unvalidated | Fork baseline is ROCm 7.2.1 | Use pinned container or perform a new qualification |
+| `thunderbolt-ibverbs` in production or untrusted environments | Explicitly unsupported by project | Buggy and insecure research driver | Standard `thunderbolt_net` TCP/IP or production RDMA hardware |
+| `amd_iommu=off` combined with untrusted USB4/RDMA | Security-risk combination | Weakens DMA isolation | Default IOMMU or `iommu=pt`, then benchmark |
+
+Evidence: [AMD-RDNA35](sources.md#amd-rdna35), [ROCM-ISSUE-5724](sources.md#rocm-issue-5724), [ROCM-ISSUE-5590](sources.md#rocm-issue-5590), [ROCM-ISSUE-5824](sources.md#rocm-issue-5824), [LLAMA-ISSUE-24437](sources.md#llama-issue-24437), [LLAMA-ISSUE-15054](sources.md#llama-issue-15054), [THUNDERBOLT-IBVERBS-76BA39B](sources.md#thunderbolt-ibverbs-76ba39b).
+
+## “Unsupported” versus “not yet validated”
+
+- **Unsupported** means an authority explicitly excludes the combination or a known-bad record exists.
+- **Unvalidated** means no source in this snapshot certifies the combined profile. It may work; it must not be represented as supported until tested or documented.
+- **Historical** means the path was once official but has been superseded by a current matrix.
+
+
+---
+
+<!-- source-file: docs/build-flags.md -->
+
+# Exact build flags
+
+## Current pinned upstream llama.cpp HIP build
+
+Pin: `b10064` / `86d86ed4396b4130922f7b9af26e3d9fc11a591b`.
+
+```bash
+git clone https://github.com/ggml-org/llama.cpp.git
+cd llama.cpp
+git checkout 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+
+export HIPCXX="$(hipconfig -l)/clang"
+export HIP_PATH="$(hipconfig -R)"
+
+cmake -S . -B build-hip -G Ninja   -DCMAKE_BUILD_TYPE=Release   -DGGML_HIP=ON   -DGGML_VULKAN=OFF   -DGGML_CUDA=OFF   -DCMAKE_HIP_ARCHITECTURES=gfx1151   -DGGML_HIP_ROCWMMA_FATTN=OFF   -DGGML_HIP_NO_VMM=ON   -DGGML_HIP_GRAPHS=ON   -DLLAMA_BUILD_TESTS=OFF   -DGGML_BUILD_TESTS=OFF
+
+cmake --build build-hip --config Release -j"$(nproc)"
+```
+
+Rationale:
+
+- `CMAKE_HIP_ARCHITECTURES=gfx1151` is the current direct CMake target control.
+- `GGML_HIP_ROCWMMA_FATTN=OFF` matches current source default and avoids the reported long-context prefill regression until a local A/B proves otherwise.
+- `GGML_HIP_NO_VMM=ON` and `GGML_HIP_GRAPHS=ON` preserve current upstream defaults explicitly so a future default change is visible in the recipe.
+- The compiler and runtime are resolved from the same `hipconfig` root.
+
+Sources: [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed), [LLAMA-GGML-CMAKE-86D86ED](sources.md#llama-ggml-cmake-86d86ed), [LLAMA-ISSUE-24437](sources.md#llama-issue-24437).
+
+## Vulkan/RADV build
+
+```bash
+cmake -S . -B build-vulkan -G Ninja   -DCMAKE_BUILD_TYPE=Release   -DGGML_VULKAN=ON   -DGGML_HIP=OFF   -DGGML_CUDA=OFF   -DLLAMA_BUILD_TESTS=OFF   -DGGML_BUILD_TESTS=OFF
+cmake --build build-vulkan --config Release -j"$(nproc)"
+```
+
+Use `vulkaninfo --summary` before building. The compiler does not need ROCm for a Vulkan-only build.
+
+## Deliberate dual-backend build
+
+A single binary can include HIP and Vulkan for matched A/B tests:
+
+```bash
+cmake -S . -B build-amd-dual -G Ninja   -DCMAKE_BUILD_TYPE=Release   -DGGML_HIP=ON   -DGGML_VULKAN=ON   -DGGML_CUDA=OFF   -DCMAKE_HIP_ARCHITECTURES=gfx1151   -DGGML_HIP_ROCWMMA_FATTN=OFF   -DGGML_HIP_NO_VMM=ON   -DGGML_HIP_GRAPHS=ON   -DLLAMA_BUILD_TESTS=OFF   -DGGML_BUILD_TESTS=OFF
+cmake --build build-amd-dual -j"$(nproc)"
+```
+
+Use explicit runtime devices (`-dev ROCm0` and `-dev Vulkan0`) so automatic selection cannot invalidate a comparison.
+
+## Target-variable precedence
+
+| Control | Use |
+|---|---|
+| `CMAKE_HIP_ARCHITECTURES=gfx1151` | Preferred current CMake control |
+| `GPU_TARGETS=gfx1151` | Compatibility input for projects that forward it |
+| `AMDGPU_TARGETS=gfx1151` | Older compatibility alias; current llama.cpp forwards it when needed |
+
+Do not set all three to different values. When switching ROCm versions or target variables, delete the build directory; CMake caches the compiler and architecture.
+
+## ROCmFPX fork flags
+
+The pinned fork’s own script uses:
+
+```bash
+cmake -S . -B build-strix-rocmfp4   -DCMAKE_BUILD_TYPE=Release   -DGGML_HIP=ON   -DGGML_HIP_ROCWMMA_FATTN=OFF   -DGGML_HIP_FORCE_MMQ=ON   -DGGML_VULKAN=ON   -DGGML_CUDA=OFF   -DCMAKE_HIP_ARCHITECTURES=gfx1151   -DGPU_TARGETS=gfx1151   -DLLAMA_BUILD_SERVER=ON   -DLLAMA_BUILD_WEBUI=OFF   -DLLAMA_USE_PREBUILT_WEBUI=OFF   -DLLAMA_BUILD_TESTS=ON   -DGGML_BUILD_TESTS=OFF
+```
+
+`GGML_HIP_FORCE_MMQ` is **fork-specific** in this context. Do not substitute it for upstream’s current option names. Source: [ROCMFPX-BUILD-A5605](sources.md#rocmfpx-build-a5605).
+
+## CMake version policy
+
+- CMake 3.21 is the effective minimum for current llama.cpp’s native HIP-language path and `CMAKE_HIP_ARCHITECTURES`.
+- Ubuntu 24.04’s 3.28.x line is the conservative reproducible baseline used in these container recipes.
+- CMake 4.3.4 is current upstream, but should be introduced as a separate matrix change and tested rather than silently replacing the baseline.
+
+Sources: [CMAKE-HIP-ARCH](sources.md#cmake-hip-arch), [CMAKE-RELEASE-434](sources.md#cmake-release-434), [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed).
+
+
+---
+
+<!-- source-file: docs/environment-variables.md -->
+
+# Environment variables and kernel parameters
+
+Machine-readable table: [`environment-variables.csv`](../data/environment-variables.csv).
+
+| Variable/parameter | Class | Recommended use | Example | Risk | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| `ROCM_PATH` | official | Set to the exact unpacked SDK root for a tarball install. | `export ROCM_PATH=/opt/rocm-7.14.0` | A stale value can mix release lines. | [AMD-INSTALL-714](sources.md#amd-install-714), [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed) |
+| `PATH` | official | Prepend or append one ROCm SDK bin directory consistently. | `export PATH="$ROCM_PATH/bin:$PATH"` | Multiple hipconfig binaries can select the wrong SDK. | [AMD-INSTALL-714](sources.md#amd-install-714) |
+| `LD_LIBRARY_PATH` | official-for-tarball | Use only for nonstandard/tarball installs; prefer a container or ldconfig file for deployment. | `export LD_LIBRARY_PATH="$ROCM_PATH/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"` | Can silently load libraries from the wrong release line. | [AMD-INSTALL-714](sources.md#amd-install-714) |
+| `HIPCXX` | upstream-recipe | Resolve from the active ROCm SDK. | `export HIPCXX="$(hipconfig -l)/clang"` | Do not point it to a system Clang from another generation. | [LLAMA-ROCM-DOCKER-86D86ED](sources.md#llama-rocm-docker-86d86ed), [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed) |
+| `HIP_PATH` | upstream-recipe | Resolve from active hipconfig. | `export HIP_PATH="$(hipconfig -R)"` | Mismatch with HIPCXX creates a mixed toolchain. | [LLAMA-ROCM-DOCKER-86D86ED](sources.md#llama-rocm-docker-86d86ed) |
+| `CMAKE_HIP_ARCHITECTURES` | official-upstream | Set gfx1151 explicitly for a single-target Strix Halo build. | `cmake ... -DCMAKE_HIP_ARCHITECTURES=gfx1151` | Omitting it can produce a larger or wrong-target build; requires CMake >=3.21. | [CMAKE-HIP-ARCH](sources.md#cmake-hip-arch), [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed) |
+| `GPU_TARGETS` | compatibility-alias | Use only for projects/ROCm packages that consume it; direct CMAKE_HIP_ARCHITECTURES is clearer in current llama.cpp. | `cmake ... -DGPU_TARGETS=gfx1151` | Project-specific behavior. | [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed), [ROCMFPX-BUILD-A5605](sources.md#rocmfpx-build-a5605) |
+| `AMDGPU_TARGETS` | legacy-compatibility-alias | Prefer CMAKE_HIP_ARCHITECTURES for current CMake projects. | `cmake ... -DAMDGPU_TARGETS=gfx1151` | Can be ignored or translated depending on project version. | [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed) |
+| `CMAKE_HIP_COMPILER_ROCM_ROOT` | advanced-upstream | Set only when a nonstandard SDK layout cannot be auto-discovered. | `cmake ... -DCMAKE_HIP_COMPILER_ROCM_ROOT="$ROCM_PATH"` | Can hide an inconsistent install if used reflexively. | [CMAKE-HIP-ARCH](sources.md#cmake-hip-arch), [LLAMA-HIP-CMAKE-86D86ED](sources.md#llama-hip-cmake-86d86ed) |
+| `HIP_VISIBLE_DEVICES` | official | Use for deterministic single-GPU selection. | `export HIP_VISIBLE_DEVICES=0` | Device numbering can differ from other APIs. | [HIP-ENV-VARS](sources.md#hip-env-vars) |
+| `ROCR_VISIBLE_DEVICES` | official | Use when HSA-level filtering is required; avoid contradictory visibility variables. | `export ROCR_VISIBLE_DEVICES=0` | Contradictory HIP and ROCR filters can confuse diagnostics. | [HIP-ENV-VARS](sources.md#hip-env-vars) |
+| `HIP_LAUNCH_BLOCKING` | diagnostic | Set to 1 only to localize an asynchronous fault. | `HIP_LAUNCH_BLOCKING=1 ./build/bin/llama-bench ...` | Severely changes timing and performance. | [HIP-ENV-VARS](sources.md#hip-env-vars) |
+| `TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL` | official-pytorch-recipe | Set to 1 only for the AMD ROCm 7.2.1 PyTorch recipe that documents it; it is not a llama.cpp, HIP, or system-wide requirement. | `export TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1` | Experimental application behavior; irrelevant to llama.cpp and may change across PyTorch/ROCm release lines. | [AMD-PYTORCH-721-AOTRITON](sources.md#amd-pytorch-721-aotriton) |
+| `HSA_OVERRIDE_GFX_VERSION` | project-specific-or-unsupported-workaround | Leave unset on a native current gfx1151 stack. The ROCmFPX fork documents 11.5.1 for its own HIP path. | `export HSA_OVERRIDE_GFX_VERSION=11.5.1  # ROCmFPX recipe only` | 11.0.0/11.0.3 spoofing did not fix old-stack failures and can select incompatible code paths. | [ROCMFPX-A5605](sources.md#rocmfpx-a5605), [ROCM-ISSUE-5824](sources.md#rocm-issue-5824) |
+| `GGML_HIP_ENABLE_UNIFIED_MEMORY` | ROCmFPX-project-specific | Use only with the pinned ROCmFPX fork recipe that documents it. | `export GGML_HIP_ENABLE_UNIFIED_MEMORY=1` | Not an upstream llama.cpp compatibility requirement. | [ROCMFPX-A5605](sources.md#rocmfpx-a5605) |
+| `VK_DRIVER_FILES` | official-upstream | Set only to force a verified ICD manifest during controlled A/B tests. | `export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.x86_64.json` | A wrong path makes Vulkan devices disappear; ignored in elevated contexts. | [VULKAN-LOADER-ICD](sources.md#vulkan-loader-icd) |
+| `VK_ICD_FILENAMES` | deprecated-upstream | Use VK_DRIVER_FILES instead for new recipes. | `unset VK_ICD_FILENAMES` | Stale shell configuration can force AMDVLK or a nonexistent driver unexpectedly. | [VULKAN-LOADER-ICD](sources.md#vulkan-loader-icd) |
+| `VK_LOADER_DEBUG` | official-upstream | Use all for a one-shot loader trace. | `VK_LOADER_DEBUG=all vulkaninfo --summary 2>vulkan-loader.log` | Verbose; may expose filesystem paths in logs. | [VULKAN-LOADER-ICD](sources.md#vulkan-loader-icd) |
+| `GGML_CUDA_DISABLE_GRAPHS` | related-community-diagnostic | Not a gfx1151 default; use only when investigating graph-related faults and record the result. | `GGML_CUDA_DISABLE_GRAPHS=1 ./llama-cli ...` | May reduce performance and is sourced from a related RDNA4 report. | [LLAMA-ISSUE-24961](sources.md#llama-issue-24961) |
+| `HSA_ENABLE_SDMA` | system-specific-community-workaround | Leave enabled on a validated current stack. Set to 0 only for a bounded A/B test or the cited kernel 6.19.x community setup; remove it after diagnosis unless independently reproduced. | `HSA_ENABLE_SDMA=0 ./reproducer  # diagnostic or cited 6.19.x setup only` | Changes transfer paths and performance; can conceal rather than repair a kernel, firmware, or runtime mismatch. | [COMM-STRIX-GUIDE-2026](sources.md#comm-strix-guide-2026) |
+| `amdgpu.cwsr_enable` | legacy-workaround | Leave default on current supported stacks; use =0 only to contain the documented legacy ROCm 7.1/MES issue while migrating. | `amdgpu.cwsr_enable=0` | Disables a kernel feature and can mask an obsolete stack. | [ROCM-ISSUE-5590](sources.md#rocm-issue-5590), [ROCM-ISSUE-5724](sources.md#rocm-issue-5724) |
+| `amd_iommu` | community-performance-tuning | Do not disable IOMMU by default when USB4, virtualization, device isolation, or RDMA security matters; benchmark in your threat model. | `amd_iommu=off  # community performance profile only` | Disabling IOMMU weakens DMA isolation and may conflict with USB4/RDMA security requirements. | [KYUZ0-TOOLBOX-A7C71E9](sources.md#kyuz0-toolbox-a7c71e9), [THUNDERBOLT-IBVERBS-76BA39B](sources.md#thunderbolt-ibverbs-76ba39b) |
+
+## Minimal clean-shell profiles
+
+### ROCm 7.14 tarball
+
+```bash
+export ROCM_PATH=/opt/rocm-7.14.0
+export PATH="$ROCM_PATH/bin:$PATH"
+export LD_LIBRARY_PATH="$ROCM_PATH/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export HIPCXX="$ROCM_PATH/llvm/bin/clang"
+export HIP_PATH="$ROCM_PATH"
+unset HSA_OVERRIDE_GFX_VERSION VK_ICD_FILENAMES VK_DRIVER_FILES
+```
+
+### ROCm installed under `/opt/rocm`
+
+```bash
+export ROCM_PATH=/opt/rocm
+export HIPCXX="$(hipconfig -l)/clang"
+export HIP_PATH="$(hipconfig -R)"
+unset HSA_OVERRIDE_GFX_VERSION
+```
+
+### RADV A/B test
+
+```bash
+unset VK_ICD_FILENAMES
+export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+VK_LOADER_DEBUG=all vulkaninfo --summary 2>vulkan-loader.log
+```
+
+Verify the manifest path before exporting it. Do not place `VK_DRIVER_FILES` in a global shell profile unless the machine intentionally has one Vulkan ICD.
+
+## Variables intentionally not made defaults
+
+- `HSA_OVERRIDE_GFX_VERSION`: native current gfx1151 stacks should identify themselves correctly. The `11.5.1` setting is scoped to the pinned ROCmFPX recipe; `11.0.x` spoofing is explicitly rejected as a generic fix.
+- `HSA_ENABLE_SDMA=0`: diagnostic only; it changes transfer paths.
+- `HIP_LAUNCH_BLOCKING=1`: diagnostic only; it changes timing.
+- `GGML_CUDA_DISABLE_GRAPHS=1`: related architecture diagnostic, not a gfx1151 baseline.
+- `amdgpu.cwsr_enable=0`: legacy ROCm 7.1 containment, not a current requirement.
+- `amd_iommu=off`: community performance tuning with security and device-isolation consequences.
+
+
+---
+
+<!-- source-file: docs/diagnostics.md -->
+
+# Diagnostics and acceptance commands
+
+Run the bundled collector first:
+
+```bash
+./scripts/collect-diagnostics.sh
+```
+
+It creates a timestamped directory and tarball without modifying the host. Root-only commands are attempted through noninteractive `sudo` and skipped when unavailable.
+
+## Host identity
+
+```bash
+uname -a
+cat /etc/os-release
+cat /proc/cmdline
+lscpu
+lspci -nnk | grep -A4 -Ei 'VGA|Display|USB4|Thunderbolt|Network'
+```
+
+## Kernel, amdgpu, and firmware
+
+```bash
+modinfo amdgpu | sed -n '1,120p'
+lsmod | grep -E 'amdgpu|thunderbolt|thunderbolt_net'
+cat /sys/module/ttm/parameters/pages_limit 2>/dev/null
+cat /sys/module/amdgpu/parameters/gttsize 2>/dev/null
+find /lib/firmware/amdgpu -maxdepth 1 -type f -printf '%f %s bytes
+' | sort
+find /lib/firmware/amdgpu -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum
+sudo dmesg -T | grep -Eai 'amdgpu|MES|gfxhub|page fault|GPU reset|ring timeout|firmware'
+```
+
+Record the **distribution package version** and **file hashes**. A date-like firmware package version is not portable across distributions.
+
+## ROCm/HIP/compiler
+
+```bash
+command -v hipconfig rocminfo rocm-smi amd-smi
+hipconfig --full
+rocminfo
+/opt/rocm/llvm/bin/clang --version 2>/dev/null || true
+cmake --version
+ldd --version | head -n1
+ldconfig -p | grep -E 'libamdhip64|libhsa-runtime64|librocblas' | sort
+```
+
+Minimal compile/run:
+
+```bash
+./scripts/smoke-hip.sh
+```
+
+Debug an asynchronous failure:
+
+```bash
+HIP_LAUNCH_BLOCKING=1 ./scripts/smoke-hip.sh
+```
+
+Do not compare performance with `HIP_LAUNCH_BLOCKING=1`.
+
+## Vulkan/Mesa
+
+```bash
+find /usr/share/vulkan/icd.d /etc/vulkan/icd.d -maxdepth 1 -type f -name '*.json' -print 2>/dev/null
+vulkaninfo --summary
+VK_LOADER_DEBUG=all vulkaninfo --summary 2>vulkan-loader.log
+```
+
+When both RADV and AMDVLK are installed, force one manifest at a time with `VK_DRIVER_FILES`, after verifying the path.
+
+## llama.cpp
+
+```bash
+./build-hip/bin/llama-cli --version
+./build-hip/bin/llama-cli --list-devices
+./build-vulkan/bin/llama-cli --list-devices
+
+./build-hip/bin/llama-bench -m MODEL.gguf -p 512 -n 128 -ngl 999 -fa 1
+./build-vulkan/bin/llama-bench -m MODEL.gguf -p 512 -n 128 -ngl 999 -fa 1
+```
+
+For model-load isolation:
+
+```bash
+./build-vulkan/bin/llama-cli -m MODEL.gguf -ngl 999 -fa 1 --no-direct-io --no-mmap -p test -n 16
+```
+
+For ROCmFPX, select the backend explicitly:
+
+```bash
+./build-strix-rocmfp4/bin/llama-cli -m MODEL.gguf -dev ROCm0 -ngl 999 -fa on -p test -n 16
+./build-strix-rocmfp4/bin/llama-cli -m MODEL.gguf -dev Vulkan0 -ngl 999 -fa on -p test -n 16
+```
+
+## USB4 / Thunderbolt networking
+
+```bash
+boltctl list 2>/dev/null || true
+ls -l /sys/bus/thunderbolt/devices
+ip -details link show type thunderbolt 2>/dev/null || ip link show
+ethtool -i thunderbolt0 2>/dev/null || true
+ping -c 10 192.168.44.2
+iperf3 -c 192.168.44.2 -P 4 -t 30
+iperf3 -c 192.168.44.2 -P 4 -t 30 -R
+```
+
+Experimental verbs path:
+
+```bash
+ibv_devices
+rdma link
+ibv_devinfo -d usb4_rdma0
+sudo cat /sys/kernel/debug/thunderbolt_ibverbs/summary 2>/dev/null
+```
+
+## Acceptance thresholds
+
+A practical release gate should require:
+
+- zero new `amdgpu`, `MES`, `gfxhub`, page-fault, or ring-timeout messages;
+- stable device enumeration across five process starts;
+- HIP smoke and Vulkan summary success;
+- model load and 30-minute generation loop;
+- median pp/tg performance within 5% of the pinned local baseline;
+- no D-state workload or management processes after exit;
+- USB4 packet loss of zero and throughput within the locally documented cable/topology range.
+
+
+---
+
+<!-- source-file: docs/containers.md -->
+
+# Reproducible containers
+
+Container definitions are under [`containers/`](../containers/README.md).
+
+## Images
+
+| File | Purpose | Classification |
+|---|---|---|
+| `Dockerfile.llama-rocm721` | b10064 built with ROCm 7.2.1 and gfx1151 safe flags | Conservative supported-target lane |
+| `Dockerfile.rocm714-therock` | b10064 built from official gfx1151 ROCm 7.14 tarball | Reproducible candidate; app validation separate |
+| `Containerfile.llama-vulkan` | b10064 Vulkan build with distro RADV runtime | Upstream/community lane |
+| `Dockerfile.rocmfpx` | ROCmFPX a5605 on its ROCm 7.2.1 baseline | Experimental community |
+| `compose.yaml` | Device mappings and smoke commands | Local orchestration |
+
+## Host requirements remain outside the image
+
+A container cannot repair:
+
+- a kernel below the gfx1151 fixed minimum;
+- bad amdgpu firmware;
+- missing `/dev/kfd` or `/dev/dri` permissions;
+- an incompatible IOMMU/security policy;
+- a USB4 kernel-module issue.
+
+## Typical device mapping
+
+HIP:
+
+```bash
+docker run --rm -it   --device=/dev/kfd   --device=/dev/dri   --group-add "$(getent group render | cut -d: -f3)"   --group-add "$(getent group video | cut -d: -f3)"   --security-opt seccomp=unconfined   -v "$PWD/models:/models:ro"   IMAGE llama-cli --list-devices
+```
+
+Vulkan:
+
+```bash
+docker run --rm -it   --device=/dev/dri   --group-add "$(getent group render | cut -d: -f3)"   -v "$PWD/models:/models:ro"   IMAGE llama-cli --list-devices
+```
+
+The `seccomp=unconfined` setting is common in community examples but broadens process privileges. Prefer a tailored seccomp profile after identifying required syscalls.
+
+## Digest locking
+
+Version tags are not immutable. Resolve each base image digest and pin it before treating an image as reproducible. The included [`lock-container-digests.sh`](../scripts/lock-container-digests.sh) prints digest metadata when Docker or Podman is available.
+
+
+---
+
+<!-- source-file: docs/reproducibility.md -->
+
+# Reproducibility and provenance
+
+## Pins in this snapshot
+
+```text
+Wiki version: 2026.07.17
+llama.cpp: b10064 / 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+llama.cpp ROCm 7.2 asset SHA256: 42a00452f42b04598d32db66c5249b3e8855cd99bf9448e22fd2a738aaa89c82
+Mesa: 26.1.5 / SHA256 79e421c7ce18cd9e790b8375920325779f10798630bf30e0b22f1a21c8617122
+ROCmFPX: a5605a72768c6562241b248e268e33dc92787394
+thunderbolt-ibverbs: 76ba39b630a70accb72f19388eefe48844b50eb8
+```
+
+## Reproducibility levels
+
+| Level | Requirement |
+|---|---|
+| Source-pinned | Exact Git commit or release tarball and checksum |
+| Toolchain-pinned | Exact ROCm/HIP/LLVM, CMake/Meson, compiler, and base OS |
+| Container-pinned | OCI image digest, not only a mutable tag |
+| Host-pinned | Kernel build, firmware package, firmware file hashes, BIOS version, kernel command line |
+| Workload-pinned | Model hash, prompt, context, batch, K/V cache, flags, power mode |
+
+The included Dockerfiles use versioned base tags because OCI digests were not captured in the source set. Before production use, resolve and record each digest:
+
+```bash
+docker buildx imagetools inspect rocm/dev-ubuntu-24.04:7.2.1-complete
+podman image inspect IMAGE --format '{.Digest}'
+```
+
+Then replace `FROM image:tag` with `FROM image@sha256:...` in a local lock branch.
+
+## Build metadata capture
+
+After every build:
+
+```bash
+cmake -LAH -N build-hip > build-hip/cmake-cache-options.txt
+cmake --build build-hip --verbose > build-hip/build.log 2>&1
+ldd build-hip/bin/llama-cli | sort > build-hip/llama-cli.ldd.txt
+sha256sum build-hip/bin/* > build-hip/SHA256SUMS
+```
+
+Capture source state:
+
+```bash
+git rev-parse HEAD
+git status --short
+git submodule status --recursive
+```
+
+## ROCm 7.14 tarball limitation
+
+The official versioned gfx1151 tarball URL is pinned in this wiki. The captured AMD page did not provide a tarball checksum in the research record, so [`install-rocm-714-tarball.sh`](../scripts/install-rocm-714-tarball.sh) requires either an operator-supplied `ROCM_TARBALL_SHA256` or explicit `ALLOW_UNVERIFIED=1`. The latter produces a checksum for the build record but is not byte-verification against an independent source.
+
+## Rebuild versus prebuilt
+
+- Use the upstream b10064 ROCm 7.2 binary and its published checksum for the fastest byte-pinned path.
+- Use source builds when targeting ROCm 7.14, when changing backend flags, or when producing both HIP and Vulkan in one binary.
+- Use ROCmFPX only from its exact commit and container baseline.
+- Keep host drivers outside the container model: containers do not replace the host kernel, amdgpu driver, firmware, or device permissions.
+
+## Offline validation included in this release
+
+```bash
+make validate
+```
+
+The target runs:
+
+- JSON/YAML/CSV consistency checks;
+- source-ID integrity checks;
+- Python compilation;
+- `bash -n` on shell scripts;
+- local Markdown/HTML link checks;
+- offline site rendering.
+
+No physical GPU execution is implied.
+
+
+---
+
+<!-- source-file: docs/rocmfpx.md -->
+
+# ROCmFPX on Strix Halo
+
+## Classification
+
+ROCmFPX is an **experimental community fork**, not an AMD-supported ROCm component and not an upstream ggml-org llama.cpp feature set in the form documented here. Pin commit:
+
+```text
+a5605a72768c6562241b248e268e33dc92787394
+```
+
+The fork describes AMD-focused ROCmFP3, ROCmFP4, ROCmFP6, and ROCmFP8 GGUF weight formats with CPU reference paths and accelerated HIP/ROCm and Vulkan kernels. Sources: [ROCMFPX-A5605](sources.md#rocmfpx-a5605).
+
+## Reproducible baseline
+
+The project Dockerfile pins:
+
+```text
+Ubuntu 24.04
+rocm/dev-ubuntu-24.04:7.2.1-complete
+gfx1151
+```
+
+Source: [ROCMFPX-DOCKER-A5605](sources.md#rocmfpx-docker-a5605).
+
+Build:
+
+```bash
+git clone https://github.com/charlie12345/ROCmFPX.git
+cd ROCmFPX
+git checkout a5605a72768c6562241b248e268e33dc92787394
+env JOBS=16 scripts/build-strix-rocmfp4-mtp.sh
+```
+
+The script builds HIP and Vulkan, targets `gfx1151`, keeps rocWMMA FlashAttention OFF, and enables the fork’s forced MMQ path. Exact expanded flags are in [Build flags](build-flags.md).
+
+## Runtime
+
+Vulkan:
+
+```bash
+build-strix-rocmfp4/bin/llama-cli   -m MODEL-ROCMFP4.gguf -dev Vulkan0 -ngl 999 -fa on --jinja
+```
+
+HIP/ROCm, using the fork-documented environment:
+
+```bash
+export HSA_OVERRIDE_GFX_VERSION=11.5.1
+export GGML_HIP_ENABLE_UNIFIED_MEMORY=1
+build-strix-rocmfp4/bin/llama-cli   -m MODEL-ROCMFP4.gguf -dev ROCm0 -ngl 999 -fa on --jinja
+```
+
+Those variables are scoped to this pinned fork recipe. Native upstream llama.cpp on a current gfx1151 ROCm stack should normally run without `HSA_OVERRIDE_GFX_VERSION`.
+
+## Quantization examples
+
+```bash
+build-strix-rocmfp4/bin/llama-quantize   model-BF16.gguf model-ROCMFP4-FAST.gguf Q4_0_ROCMFP4_FAST
+```
+
+Other documented families include `Q3_0_ROCMFPX`, `Q4_0_ROCMFP4`, `Q6_0_ROCMFPX`, `Q8_0_ROCMFPX`, and agent/coherency variants. Compare every output to the BF16/F16 source for task-specific quality.
+
+## Tuning profiles
+
+The pinned tree exposes profile names including:
+
+```text
+rocmfpx-strix-moe-rpb1..4
+rocmfpx-strix-nwarps1,2,4
+rocmfpx-strix-rpb2
+rocmfpx-strix-mmid1..4
+rocmfpx-strix-vdr2,8
+```
+
+Set `ROCMFPX_DECODE_TUNE=PROFILE` only for controlled benchmark runs. The stable profile emits no extra compile definitions.
+
+## Unsupported combinations
+
+- Do not assume ROCm 7.14 works with this commit merely because Core SDK supports gfx1151; the fork’s reproducible container is ROCm 7.2.1.
+- Do not copy fork-only `GGML_HIP_FORCE_MMQ` or unified-memory variables into upstream llama.cpp builds.
+- Do not use the fork’s local rocWMMA header path unless the headers are deliberately pinned and the feature is A/B tested.
+- Do not treat maintainer benchmark numbers as model-independent.
+
+
+---
+
+<!-- source-file: docs/usb4-networking.md -->
+
+# USB4 and Thunderbolt networking
+
+## Standard, upstream IP networking
+
+Linux exposes IP networking over USB4/Thunderbolt through `CONFIG_USB4_NET`; the module name is `thunderbolt_net`. The Kconfig entry depends on `USB4` and `INET` and implements the Apple ThunderboltIP protocol. Sources: [LINUX-USB4-NET-KCONFIG](sources.md#linux-usb4-net-kconfig), [LINUX-THUNDERBOLT-DOC](sources.md#linux-thunderbolt-doc).
+
+Required kernel configuration:
+
+```text
+CONFIG_USB4=y or m
+CONFIG_INET=y
+CONFIG_USB4_NET=m or y
+```
+
+Basic two-host setup:
+
+```bash
+# Host A
+sudo modprobe thunderbolt-net
+sudo ip link set thunderbolt0 up
+sudo ip address replace 192.168.44.1/30 dev thunderbolt0
+
+# Host B
+sudo modprobe thunderbolt-net
+sudo ip link set thunderbolt0 up
+sudo ip address replace 192.168.44.2/30 dev thunderbolt0
+```
+
+Then test `ping` and both iperf directions. The included [`usb4-net-setup.sh`](../scripts/usb4-net-setup.sh) is dry-run by default and requires `--apply` before changing an interface.
+
+A community guide reports roughly 9 Gbit/s per link on specific Strix Halo systems. Cable generation, topology, tunneling, firmware, and CPU placement can change this substantially. Source: [STRIXHALO-WIKI-CLUSTERING](sources.md#strixhalo-wiki-clustering).
+
+### llama.cpp use
+
+Once `thunderbolt0` has IP addresses, llama.cpp RPC traffic is normal TCP/IP traffic. Bind explicitly to the USB4 address or add a route so Ethernet is not selected accidentally. Capture `ss -tnp`, `ip route get PEER`, and per-interface counters during tests.
+
+## Research-only verbs transport
+
+`thunderbolt-ibverbs` creates an InfiniBand verbs device over generic USB4/Thunderbolt DMA rings. The project explicitly warns that it is buggy, insecure, and not for production. Its primary path requires Linux 6.14 or newer, or the project’s patched kernel. Source: [THUNDERBOLT-IBVERBS-76BA39B](sources.md#thunderbolt-ibverbs-76ba39b).
+
+Host module load:
+
+```bash
+sudo modprobe thunderbolt_ibverbs   profile=linux_perf   bind_services=1   allocate_rings=1   start_rings=1   negotiate_native=1   enable_tunnels=1   register_verbs=1
+```
+
+Container exposure:
+
+```bash
+docker run --rm -it   --device=/dev/infiniband   --cap-add=IPC_LOCK   --ulimit memlock=-1   IMAGE
+```
+
+The kernel module remains on the host; the container needs the project’s libibverbs provider. Do not use this driver on an untrusted cable, peripheral, host, or physical environment.
+
+## IOMMU warning
+
+A community compute profile reports performance gains from `amd_iommu=off`. USB4 and experimental RDMA are DMA-capable transports, so disabling IOMMU changes the security boundary. This wiki does not combine that tuning with the USB4/RDMA profile. Benchmark `iommu=pt` or default policy before considering isolation-reducing settings.
+
+## Network validation matrix
+
+| Path | Production classification | Kernel component | User space | Test |
+|---|---|---|---|---|
+| ThunderboltIP/TCP | Upstream kernel component | `thunderbolt_net` | `iproute2`, `iperf3` | ping, iperf3, llama RPC |
+| RXE over thunderbolt0 | Standard software RDMA over IP, performance varies | `rdma_rxe` + `thunderbolt_net` | `rdma-core` | `rping`, `ib_write_bw` |
+| Native thunderbolt-ibverbs | Research only | `thunderbolt_ibverbs` | custom provider | project smoke and perftest |
+
+
+---
+
+<!-- source-file: docs/recipes/host-official-rocm-714.md -->
+
+# Recipe: official ROCm 7.14 Core SDK host
+
+**Classification:** official Core SDK host plus application build candidate  
+**Target:** gfx1151  
+**Supported host lanes captured:** Ubuntu 24.04.4 HWE kernel 6.17; Ubuntu 26.04 GA kernel 7.0  
+**Sources:** [AMD-CORE-714](../sources.md#amd-core-714), [AMD-INSTALL-714](../sources.md#amd-install-714)
+
+## 1. Establish the supported host
+
+```bash
+. /etc/os-release
+printf 'OS=%s %s\n' "$ID" "$VERSION_ID"
+uname -r
+cat /proc/cmdline
+```
+
+Do not proceed on a generic Ubuntu 24.04 point release without confirming that the machine is actually on the captured 24.04.4/HWE 6.17 lane. The ROCm 7.14 matrix uses the inbox kernel driver; avoid mixing arbitrary amdgpu DKMS and firmware packages into this profile.
+
+## 2. Reject known-bad firmware
+
+```bash
+dpkg-query -W -f='${Package} ${Version}\n' 'linux-firmware*' 2>/dev/null || true
+sudo dmesg -T | grep -Eai 'amdgpu|MES|firmware|gfxhub|page fault' | tail -n 200
+```
+
+Any package or local pin corresponding to the late-2025 `20251125` / MES 0x83 regression must be removed before compute validation. Run [`collect-diagnostics.sh`](../../scripts/collect-diagnostics.sh) to record firmware files and hashes.
+
+## 3. Install build prerequisites
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+  build-essential ca-certificates cmake curl git ninja-build pkg-config \
+  libnuma-dev libssl-dev libstdc++-dev pciutils python3 python3-pip pipx \
+  libvulkan-dev vulkan-tools
+```
+
+Ubuntu 24.04’s CMake 3.28.x is the conservative baseline. CMake 4.3.4 is current upstream but should be a separate qualification change.
+
+## 4. Install the exact gfx1151 SDK tarball
+
+```bash
+sudo install -d -m 0755 /opt/rocm-7.14.0
+sudo chown "$USER":"$USER" /opt/rocm-7.14.0
+
+# Supply an independently obtained checksum when AMD publishes or your
+# organization records one. ALLOW_UNVERIFIED=1 is intentionally explicit.
+ROCM_PREFIX=/opt/rocm-7.14.0 \
+ROCM_TARBALL_SHA256='YOUR_RECORDED_SHA256' \
+  ../../scripts/install-rocm-714-tarball.sh
+```
+
+The official URL pinned by the script is:
+
+```text
+https://repo.amd.com/rocm/tarball-multi-arch/therock-dist-linux-gfx1151-7.14.0.tar.gz
+```
+
+## 5. Activate one SDK root
+
+```bash
+cat > "$HOME/.config/strix-rocm-7.14.env" <<'EOF'
+export ROCM_PATH=/opt/rocm-7.14.0
+export PATH="$ROCM_PATH/bin:$PATH"
+export LD_LIBRARY_PATH="$ROCM_PATH/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export HIPCXX="$ROCM_PATH/llvm/bin/clang"
+export HIP_PATH="$ROCM_PATH"
+unset HSA_OVERRIDE_GFX_VERSION
+EOF
+
+. "$HOME/.config/strix-rocm-7.14.env"
+```
+
+Check that every command resolves under one root:
+
+```bash
+command -v hipconfig rocminfo clang
+hipconfig --full
+"$ROCM_PATH/llvm/bin/clang" --version
+ldd "$ROCM_PATH/bin/rocminfo" | grep -E 'rocm|hsa|hip' || true
+```
+
+## 6. Configure unified memory using AMD’s tool
+
+Keep BIOS dedicated VRAM small unless a particular firmware requires otherwise. Install and inspect the AMD helper:
+
+```bash
+pipx install amd-debug-tools
+amd-ttm
+cat /sys/module/ttm/parameters/pages_limit
+```
+
+Choose a limit that leaves adequate RAM for the OS, page cache, model conversion, and networking. Apply the value through the tool’s documented interface:
+
+```bash
+sudo amd-ttm --set <NUM_GIB>
+```
+
+Do not copy a 124 GiB community profile onto systems with different RAM or security requirements.
+
+## 7. Build pinned llama.cpp
+
+```bash
+LLAMA_COMMIT=86d86ed4396b4130922f7b9af26e3d9fc11a591b \
+ROCM_PATH=/opt/rocm-7.14.0 \
+  ../../scripts/build-llama-hip.sh
+```
+
+The recipe explicitly targets `gfx1151`, disables rocWMMA FlashAttention, keeps HIP VMM disabled, and keeps HIP graphs enabled.
+
+## 8. Acceptance gate
+
+```bash
+ROCM_PATH=/opt/rocm-7.14.0 ../../scripts/smoke-hip.sh
+./llama.cpp/build-hip/bin/llama-cli --list-devices
+./llama.cpp/build-hip/bin/llama-bench -m MODEL.gguf -p 512 -n 128 -ngl 999 -fa 1
+sudo dmesg -T | grep -Eai 'amdgpu|MES|gfxhub|page fault|ring timeout' | tail -n 200
+```
+
+Classify the resulting llama.cpp profile as **locally accepted** only after the smoke and workload gates pass. AMD’s Core SDK support is not an application certification.
+
+
+---
+
+<!-- source-file: docs/recipes/rocm714-tarball.md -->
+
+# Recipe: byte-aware ROCm 7.14 gfx1151 tarball install
+
+**Classification:** official versioned distribution artifact; checksum must be recorded separately  
+**Source:** [AMD-INSTALL-714](../sources.md#amd-install-714)
+
+## Pinned inputs
+
+```bash
+ROCM_VERSION=7.14.0
+ROCM_TARBALL=therock-dist-linux-gfx1151-7.14.0.tar.gz
+ROCM_URL=https://repo.amd.com/rocm/tarball-multi-arch/$ROCM_TARBALL
+ROCM_PREFIX=/opt/rocm-7.14.0
+```
+
+## Secure install behavior
+
+The bundled installer refuses to call an unverified download reproducible unless one of these is true:
+
+1. `ROCM_TARBALL_SHA256` is supplied and matches; or
+2. `ALLOW_UNVERIFIED=1` is supplied, in which case the computed hash is printed and saved for provenance.
+
+```bash
+sudo install -d -m 0755 /opt/rocm-7.14.0
+sudo chown "$USER":"$USER" /opt/rocm-7.14.0
+
+ROCM_TARBALL_SHA256='...' \
+ROCM_PREFIX=/opt/rocm-7.14.0 \
+  ../../scripts/install-rocm-714-tarball.sh
+```
+
+## Verify layout
+
+```bash
+find /opt/rocm-7.14.0 -maxdepth 2 -type f \( -name hipconfig -o -name rocminfo -o -name clang \) -print
+/opt/rocm-7.14.0/bin/hipconfig --full
+/opt/rocm-7.14.0/llvm/bin/clang --version
+```
+
+The installer uses a staging directory and recognizes both a single top-level archive directory and a flat archive. It writes `INSTALL-PROVENANCE.txt` containing URL, computed hash, install time, and tool versions.
+
+## Uninstall
+
+The tarball install is isolated. Remove only after checking that no shell, service, or CMake cache references it:
+
+```bash
+grep -R '/opt/rocm-7.14.0' "$HOME/.config" /etc/systemd/system 2>/dev/null || true
+sudo rm -rf /opt/rocm-7.14.0
+```
+
+Do not delete `/opt/rocm` if it belongs to a package-managed installation.
+
+
+---
+
+<!-- source-file: docs/recipes/llama-hip-rocm721.md -->
+
+# Recipe: pinned llama.cpp b10064 with ROCm 7.2.1
+
+**Classification:** AMD target-stable ROCm release plus official upstream source  
+**Host floor:** Ubuntu HWE `>=6.17.0-19.19~24.04.2`, OEM `>=6.14.0-1018`, or kernel `>=6.18.4` elsewhere  
+**Sources:** [AMD-RDNA35](../sources.md#amd-rdna35), [LLAMA-RELEASE-B10064](../sources.md#llama-release-b10064)
+
+## Prefer a clean container for the compiler
+
+```bash
+docker build \
+  -f ../../containers/Dockerfile.llama-rocm721 \
+  -t llama-strix:rocm721-b10064 \
+  ../..
+```
+
+Run on a qualified host:
+
+```bash
+docker run --rm -it \
+  --device=/dev/kfd \
+  --device=/dev/dri \
+  --security-opt seccomp=unconfined \
+  -v "$PWD/models:/models:ro" \
+  llama-strix:rocm721-b10064 \
+  llama-cli --list-devices
+```
+
+Record and replace the base tag with an OCI digest for a production lock.
+
+## Native source build
+
+```bash
+export ROCM_PATH=/opt/rocm
+export HIPCXX="$(hipconfig -l)/clang"
+export HIP_PATH="$(hipconfig -R)"
+unset HSA_OVERRIDE_GFX_VERSION
+
+LLAMA_COMMIT=86d86ed4396b4130922f7b9af26e3d9fc11a591b \
+  ../../scripts/build-llama-hip.sh
+```
+
+Expanded configuration:
+
+```bash
+cmake -S llama.cpp -B llama.cpp/build-hip -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DGGML_HIP=ON \
+  -DGGML_VULKAN=OFF \
+  -DGGML_CUDA=OFF \
+  -DCMAKE_HIP_ARCHITECTURES=gfx1151 \
+  -DGGML_HIP_ROCWMMA_FATTN=OFF \
+  -DGGML_HIP_NO_VMM=ON \
+  -DGGML_HIP_GRAPHS=ON \
+  -DLLAMA_BUILD_TESTS=OFF \
+  -DGGML_BUILD_TESTS=OFF
+```
+
+## Prebuilt binary alternative
+
+```bash
+../../scripts/download-llama-b10064-rocm72.sh
+./downloads/llama-b10064-rocm72/llama-cli --version
+```
+
+The archive is checked against:
+
+```text
+42a00452f42b04598d32db66c5249b3e8855cd99bf9448e22fd2a738aaa89c82
+```
+
+Do not use this ROCm 7.2 binary as a shortcut inside an arbitrary ROCm 7.14 runtime. Rebuild from source for the 7.14 lane.
+
+## Runtime and benchmark
+
+```bash
+HIP_VISIBLE_DEVICES=0 \
+./llama.cpp/build-hip/bin/llama-cli \
+  -m MODEL.gguf -ngl 999 -fa 1 -c 8192 -p 'gfx1151 smoke' -n 64
+
+./llama.cpp/build-hip/bin/llama-bench \
+  -m MODEL.gguf -p 512 -n 128 -ngl 999 -fa 1
+```
+
+Keep rocWMMA FlashAttention OFF until a matched local build proves it improves the actual context and model mix.
+
+
+---
+
+<!-- source-file: docs/recipes/community-fedora-rocm724.md -->
+
+# Recipe: maintained Fedora / ROCm 7.2.4 community profile
+
+**Classification:** official general ROCm release plus maintained community gfx1151 validation  
+**Reference profile:** Fedora 42/43, kernel 6.18.9, linux-firmware 20260110, ROCm 7.2.4  
+**Sources:** [KYUZ0-TOOLBOX-A7C71E9](../sources.md#kyuz0-toolbox-a7c71e9), [AMD-CORE-724](../sources.md#amd-core-724), [AMD-RDNA35](../sources.md#amd-rdna35)
+
+## Host checks
+
+```bash
+rpm -q kernel-core linux-firmware
+uname -r
+sudo dmesg -T | grep -Eai 'amdgpu|MES|gfxhub|page fault|firmware' | tail -n 200
+```
+
+Reject firmware 20251125 and kernels below 6.18.4. The maintained baseline names 6.18.9 and firmware 20260110; newer packages require a fresh acceptance run.
+
+## Toolbx
+
+```bash
+toolbox create llama-rocm-724 \
+  --image docker.io/kyuz0/amd-strix-halo-toolboxes:rocm-7.2.4 \
+  -- --device /dev/dri --device /dev/kfd \
+     --group-add video --group-add render \
+     --security-opt seccomp=unconfined
+
+toolbox enter llama-rocm-724
+llama-cli --list-devices
+```
+
+On Ubuntu or another distribution using Distrobox, use the corresponding `distrobox create` command and preserve the same device mappings.
+
+## Pin the mutable image
+
+```bash
+skopeo inspect docker://docker.io/kyuz0/amd-strix-halo-toolboxes:rocm-7.2.4 \
+  | tee rocm-7.2.4-image-inspect.json
+```
+
+Record the digest and recreate the toolbox from `image@sha256:...`.
+
+## Runtime
+
+```bash
+llama-cli --no-mmap -ngl 999 -fa 1 \
+  -m MODEL.gguf -p 'community profile smoke' -n 64
+```
+
+`--no-mmap` is part of this community recipe, not a universal upstream requirement. Also run a small model without it to distinguish platform health from I/O behavior.
+
+## Unified memory
+
+Use AMD’s `amd-ttm` tool and leave a deliberate OS reserve. The repository’s 128 GiB example uses large GTT/TTM values and reports `amd_iommu=off` performance gains. This wiki does not make IOMMU disablement a default because it weakens DMA isolation and conflicts with conservative USB4/RDMA security.
+
+## Status wording
+
+Use this exact description in deployment records:
+
+> ROCm 7.2.4 is an official general release and this Fedora/toolbox combination is community-validated on Strix Halo. The captured AMD RDNA 3.5 target table explicitly names 7.2.1–7.2.3, not 7.2.4.
+
+
+---
+
+<!-- source-file: docs/recipes/llama-vulkan-radv.md -->
+
+# Recipe: pinned llama.cpp with Mesa RADV
+
+**Classification:** official upstream components plus community gfx1151 validation  
+**Preferred driver:** RADV  
+**llama.cpp pin:** b10064 / 86d86ed4396b4130922f7b9af26e3d9fc11a591b  
+**Sources:** [MESA-2615](../sources.md#mesa-2615), [LLAMA-ISSUE-24438](../sources.md#llama-issue-24438), [KYUZ0-TOOLBOX-A7C71E9](../sources.md#kyuz0-toolbox-a7c71e9)
+
+## Distro Mesa lane
+
+Install the distribution’s Vulkan loader, tools, and RADV driver:
+
+```bash
+# Debian/Ubuntu
+sudo apt-get install -y build-essential cmake git glslc libvulkan-dev \
+  mesa-vulkan-drivers ninja-build spirv-tools vulkan-tools
+
+# Fedora
+sudo dnf install -y cmake gcc-c++ git glslc mesa-vulkan-drivers \
+  ninja-build vulkan-loader-devel vulkan-tools
+```
+
+Check the selected driver:
+
+```bash
+vulkaninfo --summary
+find /usr/share/vulkan/icd.d /etc/vulkan/icd.d -maxdepth 1 -name '*.json' -print 2>/dev/null
+```
+
+When multiple AMD ICDs exist:
+
+```bash
+export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+VK_LOADER_DEBUG=all vulkaninfo --summary 2>vulkan-loader.log
+```
+
+Verify the path before export. `VK_ICD_FILENAMES` is the older deprecated control.
+
+## Build
+
+```bash
+LLAMA_COMMIT=86d86ed4396b4130922f7b9af26e3d9fc11a591b \
+  ../../scripts/build-llama-vulkan.sh
+```
+
+Expanded flags:
+
+```bash
+cmake -S llama.cpp -B llama.cpp/build-vulkan -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DGGML_VULKAN=ON \
+  -DGGML_HIP=OFF \
+  -DGGML_CUDA=OFF \
+  -DLLAMA_BUILD_TESTS=OFF \
+  -DGGML_BUILD_TESTS=OFF
+```
+
+## Load and benchmark
+
+```bash
+./llama.cpp/build-vulkan/bin/llama-cli --list-devices
+./llama.cpp/build-vulkan/bin/llama-cli \
+  -m MODEL.gguf -dev Vulkan0 -ngl 999 -fa 1 -p test -n 64
+
+./llama.cpp/build-vulkan/bin/llama-bench \
+  -m MODEL.gguf -dev Vulkan0 -p 512 -n 128 -ngl 999 -fa 1
+```
+
+If model load fails:
+
+```bash
+./llama.cpp/build-vulkan/bin/llama-cli \
+  -m MODEL.gguf -dev Vulkan0 -ngl 999 -fa 1 \
+  --no-direct-io --no-mmap -p test -n 16
+```
+
+## Upgrade gate
+
+A reported Mesa 26.0.2 setup experienced a substantial prompt-processing regression between llama.cpp commits while generation stayed stable. Pin both Mesa and llama.cpp and retain pp512 plus tg128 baselines. Do not accept an upgrade based only on token-generation speed.
+
+Avoid AMDVLK for large-model default use until the exact model passes a single-allocation test; an approximately 2 GiB allocation limitation has been reported.
+
+
+---
+
+<!-- source-file: docs/recipes/mesa-2615-source.md -->
+
+# Recipe: Mesa 26.1.5 RADV source candidate
+
+**Classification:** current official upstream source; gfx1151 acceptance required  
+**Source:** [MESA-2615](../sources.md#mesa-2615)
+
+## Pin and verify
+
+```bash
+MESA_VERSION=26.1.5
+MESA_SHA256=79e421c7ce18cd9e790b8375920325779f10798630bf30e0b22f1a21c8617122
+curl -fL "https://archive.mesa3d.org/mesa-${MESA_VERSION}.tar.xz" \
+  -o "mesa-${MESA_VERSION}.tar.xz"
+printf '%s  %s\n' "$MESA_SHA256" "mesa-${MESA_VERSION}.tar.xz" | sha256sum -c -
+tar -xf "mesa-${MESA_VERSION}.tar.xz"
+```
+
+## Debian/Ubuntu build prerequisites
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+  bison build-essential flex glslang-tools libdrm-dev libelf-dev \
+  libexpat1-dev libllvm-dev libudev-dev libvulkan-dev libwayland-dev \
+  libx11-xcb-dev libxcb-dri3-dev libxcb-present-dev libxcb-randr0-dev \
+  libxcb-shm0-dev libxcb-xfixes0-dev libxshmfence-dev libxxf86vm-dev \
+  meson ninja-build pkg-config python3-mako python3-ply python3-yaml \
+  wayland-protocols zlib1g-dev
+```
+
+Dependency names vary by distribution. Meson will report missing development packages.
+
+## Build isolated RADV/Radeonsi
+
+```bash
+cd mesa-26.1.5
+meson setup build \
+  --prefix=/opt/mesa-26.1.5 \
+  --libdir=lib \
+  --buildtype=release \
+  -Dvulkan-drivers=amd \
+  -Dgallium-drivers=radeonsi \
+  -Dllvm=enabled \
+  -Dshared-llvm=enabled \
+  -Dplatforms=x11,wayland
+ninja -C build
+sudo ninja -C build install
+```
+
+## Select without replacing distro Mesa
+
+```bash
+export LD_LIBRARY_PATH=/opt/mesa-26.1.5/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+export VK_DRIVER_FILES=/opt/mesa-26.1.5/share/vulkan/icd.d/radeon_icd.x86_64.json
+VK_LOADER_DEBUG=all vulkaninfo --summary 2>mesa-26.1.5-loader.log
+```
+
+If the installed manifest name differs, use the actual file from the prefix. Do not copy files into `/usr` for the first qualification.
+
+## Acceptance
+
+Run the same b10064 llama.cpp binary against distro RADV and Mesa 26.1.5, with one shell environment at a time. Compare:
+
+```text
+vulkaninfo driverName/driverInfo
+pp512 and pp2048
+TG128
+model-load time
+new kernel warnings
+```
+
+Promote Mesa 26.1.5 from “upstream current candidate” to “locally validated” only after this A/B.
+
+
+---
+
+<!-- source-file: docs/recipes/prebuilt-llama-b10064.md -->
+
+# Recipe: verified llama.cpp b10064 ROCm 7.2 binary
+
+**Classification:** official upstream binary; host compatibility remains external  
+**Source:** [LLAMA-RELEASE-B10064](../sources.md#llama-release-b10064)
+
+```bash
+../../scripts/download-llama-b10064-rocm72.sh
+```
+
+Pinned asset:
+
+```text
+URL: https://github.com/ggml-org/llama.cpp/releases/download/b10064/llama-b10064-bin-ubuntu-rocm-7.2-x64.tar.gz
+SHA256: 42a00452f42b04598d32db66c5249b3e8855cd99bf9448e22fd2a738aaa89c82
+```
+
+Verify dynamic dependencies and devices:
+
+```bash
+cd downloads/llama-b10064-rocm72
+ldd ./llama-cli | sort
+./llama-cli --version
+./llama-cli --list-devices
+```
+
+Run only on a host with a qualified kernel, fixed firmware, and the intended ROCm 7.2 runtime line. For ROCm 7.14, use the source-build recipe.
+
+
+---
+
+<!-- source-file: docs/recipes/rocmfpx-pinned.md -->
+
+# Recipe: pinned ROCmFPX a5605 on gfx1151
+
+**Classification:** experimental community  
+**Pin:** `a5605a72768c6562241b248e268e33dc92787394`  
+**Sources:** [ROCMFPX-A5605](../sources.md#rocmfpx-a5605), [ROCMFPX-BUILD-A5605](../sources.md#rocmfpx-build-a5605), [ROCMFPX-DOCKER-A5605](../sources.md#rocmfpx-docker-a5605)
+
+## Container build
+
+```bash
+docker build \
+  -f ../../containers/Dockerfile.rocmfpx \
+  -t rocmfpx-strix:a5605-rocm721 \
+  ../..
+```
+
+Run:
+
+```bash
+docker run --rm -it \
+  --device=/dev/kfd --device=/dev/dri \
+  --security-opt seccomp=unconfined \
+  -v "$PWD/models:/models" \
+  rocmfpx-strix:a5605-rocm721 \
+  llama-cli --list-devices
+```
+
+## Native pinned build
+
+```bash
+ROCMFPX_COMMIT=a5605a72768c6562241b248e268e33dc92787394 \
+  ../../scripts/build-rocmfpx.sh
+```
+
+## Quantize
+
+```bash
+./ROCmFPX/build-strix-rocmfp4/bin/llama-quantize \
+  source-BF16.gguf output-ROCMFP4-FAST.gguf Q4_0_ROCMFP4_FAST
+```
+
+Hash both source and output and record the quantizer version.
+
+## Run Vulkan and HIP separately
+
+```bash
+./ROCmFPX/build-strix-rocmfp4/bin/llama-cli \
+  -m output-ROCMFP4-FAST.gguf -dev Vulkan0 -ngl 999 -fa on --jinja
+
+HSA_OVERRIDE_GFX_VERSION=11.5.1 \
+GGML_HIP_ENABLE_UNIFIED_MEMORY=1 \
+./ROCmFPX/build-strix-rocmfp4/bin/llama-cli \
+  -m output-ROCMFP4-FAST.gguf -dev ROCm0 -ngl 999 -fa on --jinja
+```
+
+## Quality gate
+
+For every model family, compare BF16/F16 and ROCmFPX output on:
+
+- perplexity or task-specific evaluation;
+- JSON/tool-call validity;
+- code compilation/tests;
+- long-context retrieval;
+- prompt processing and generation speed.
+
+The fork’s agent/coherency presets are hypotheses about protected tensors, not a substitute for evaluation.
+
+## Isolation rule
+
+Do not export `HSA_OVERRIDE_GFX_VERSION` or `GGML_HIP_ENABLE_UNIFIED_MEMORY` globally. Put them in the ROCmFPX launch wrapper only.
+
+
+---
+
+<!-- source-file: docs/recipes/usb4-ip-network.md -->
+
+# Recipe: static USB4/Thunderbolt IP link
+
+**Classification:** upstream Linux kernel component  
+**Kernel:** `CONFIG_USB4_NET` / `thunderbolt_net`  
+**Sources:** [LINUX-THUNDERBOLT-DOC](../sources.md#linux-thunderbolt-doc), [LINUX-USB4-NET-KCONFIG](../sources.md#linux-usb4-net-kconfig)
+
+## Verify support
+
+```bash
+zgrep -E 'CONFIG_USB4=|CONFIG_USB4_NET=|CONFIG_INET=' /proc/config.gz 2>/dev/null \
+  || grep -E 'CONFIG_USB4=|CONFIG_USB4_NET=|CONFIG_INET=' "/boot/config-$(uname -r)"
+modinfo thunderbolt_net
+ls -l /sys/bus/thunderbolt/devices
+```
+
+Authorize devices through the distribution’s normal policy (`boltctl`) when required.
+
+## Dry-run helper
+
+Host A:
+
+```bash
+../../scripts/usb4-net-setup.sh --interface thunderbolt0 --address 192.168.44.1/30
+../../scripts/usb4-net-setup.sh --apply --interface thunderbolt0 --address 192.168.44.1/30
+```
+
+Host B:
+
+```bash
+../../scripts/usb4-net-setup.sh --apply --interface thunderbolt0 --address 192.168.44.2/30
+```
+
+The helper uses `ip address replace`, does not alter the default route, and is dry-run unless `--apply` is supplied.
+
+## Test
+
+```bash
+# Host A
+iperf3 -s
+
+# Host B
+ping -c 20 192.168.44.1
+iperf3 -c 192.168.44.1 -P 4 -t 30
+iperf3 -c 192.168.44.1 -P 4 -t 30 -R
+iperf3 -c 192.168.44.1 -P 4 -t 30 --bidir
+```
+
+Record cable model, negotiated USB4/Thunderbolt generation, topology, MTU, CPU power mode, and interface counters.
+
+## Route an application explicitly
+
+```bash
+ip route get 192.168.44.1
+ss -tnp
+```
+
+Bind llama.cpp RPC or another service to the `192.168.44.0/30` address so Ethernet is not selected by a lower metric.
+
+## MTU
+
+Start with MTU 1500. Increase only after both peers and the complete path pass packet-loss and throughput tests:
+
+```bash
+sudo ip link set thunderbolt0 mtu 9000
+ping -M do -s 8972 -c 5 192.168.44.1
+```
+
+Do not assume jumbo frames improve latency-sensitive batch-1 inference.
+
+
+---
+
+<!-- source-file: docs/recipes/usb4-rdma-experimental.md -->
+
+# Recipe: experimental native verbs over USB4
+
+**Classification:** research-only, explicitly buggy and insecure  
+**Pin:** `76ba39b630a70accb72f19388eefe48844b50eb8`  
+**Source:** [THUNDERBOLT-IBVERBS-76BA39B](../sources.md#thunderbolt-ibverbs-76ba39b)
+
+> [!DANGER]
+> Use only in an isolated lab with trusted hosts, cables, and physical access. Do not combine with a blanket `amd_iommu=off` profile.
+
+## Kernel requirement
+
+Use Linux 6.14 or newer or the project’s patched `linux-thunderbolt` kernel. Install matching headers and DKMS tools.
+
+```bash
+sudo apt-get install -y build-essential dkms git kmod \
+  "linux-headers-$(uname -r)" rdma-core perftest
+```
+
+## Pinned source build
+
+```bash
+git clone https://github.com/hellas-ai/thunderbolt-ibverbs.git
+cd thunderbolt-ibverbs
+git checkout 76ba39b630a70accb72f19388eefe48844b50eb8
+sudo make dkms-add
+sudo make dkms-build
+sudo make dkms-install
+```
+
+Alternatively, pin the Nix flake revision:
+
+```bash
+nix build github:hellas-ai/thunderbolt-ibverbs/76ba39b630a70accb72f19388eefe48844b50eb8#thunderbolt-ibverbs
+nix build github:hellas-ai/thunderbolt-ibverbs/76ba39b630a70accb72f19388eefe48844b50eb8#rdma-core-usb4
+```
+
+## Load
+
+```bash
+sudo modprobe thunderbolt_ibverbs \
+  profile=linux_perf \
+  bind_services=1 \
+  allocate_rings=1 \
+  start_rings=1 \
+  negotiate_native=1 \
+  enable_tunnels=1 \
+  register_verbs=1
+```
+
+Verify:
+
+```bash
+dmesg | grep thunderbolt_ibverbs
+ibv_devices
+rdma link
+```
+
+## Perftest
+
+```bash
+# Peer A
+ib_write_bw -d usb4_rdma0
+
+# Peer B
+ib_write_bw -d usb4_rdma0 PEER_A_ADDRESS
+```
+
+Capture `/sys/kernel/debug/thunderbolt_ibverbs/summary` before and after the test.
+
+## Container
+
+The module remains on the host. Pass the verbs devices and provider into a stock compute image:
+
+```bash
+docker run --rm -it \
+  --device=/dev/infiniband \
+  --cap-add=IPC_LOCK \
+  --ulimit memlock=-1 \
+  IMAGE
+```
+
+Inside the image, install the provider package matching the image’s Ubuntu codename and run `ibv_devices`.
+
+## Rollback
+
+```bash
+sudo modprobe -r thunderbolt_ibverbs
+sudo make dkms-remove
+```
+
+Reboot into the distribution kernel if a patched test kernel was used. Preserve logs before rollback.
+
+
+---
+
+<!-- source-file: docs/glossary.md -->
+
+# Glossary
+
+**gfx1151** — LLVM/ROCm target identifier used by Strix Halo’s RDNA 3.5 GPU.
+
+**amdgpu** — Linux kernel DRM/compute driver for AMD GPUs.
+
+**MES** — Micro Engine Scheduler firmware and queue-management path implicated in several historical hangs.
+
+**CWSR** — Compute Wave Save/Restore; a legacy ROCm 7.1 issue used `amdgpu.cwsr_enable=0` as containment.
+
+**ROCm** — AMD’s open GPU compute software platform.
+
+**HIP** — ROCm’s C++ runtime and programming model; current llama.cpp requires HIP 6.1 or newer.
+
+**ROCr** — ROCm runtime layer implementing HSA services.
+
+**RADV** — Mesa’s open-source AMD Vulkan driver.
+
+**AMDVLK** — AMD’s open-source Vulkan driver distinct from Mesa RADV.
+
+**ICD** — Installable Client Driver manifest used by the Vulkan loader.
+
+**VMM** — Virtual memory management API. Current upstream llama.cpp defaults `GGML_HIP_NO_VMM=ON`.
+
+**TTM/GTT** — Linux GPU memory-management limits used to expose a controlled portion of unified system memory.
+
+**rocWMMA** — ROCm wave matrix multiplication library; llama.cpp’s rocWMMA FlashAttention option is left OFF in the gfx1151 baseline.
+
+**ROCmFPX** — Experimental community GGUF quantization and kernel family in the pinned fork.
+
+**ThunderboltIP** — IP networking protocol over Thunderbolt/USB4, implemented by Linux `thunderbolt_net`.
+
+**RXE** — Software RoCE implementation over a normal IP-capable network interface.
+
+**DKMS** — Framework that rebuilds an out-of-tree kernel module for each installed kernel.
+
+
+---
+
+<!-- source-file: docs/sources.md -->
+
+# Source registry
+
+This page is the human-readable form of [`sources/source-registry.json`](../sources/source-registry.json). Source IDs are stable inside version `2026.07.17`. A source proves only the scope stated here; support claims are not transitively combined.
+
+## AMD-CORE-714
+
+**ROCm 7.14 compatibility matrix** — AMD ROCm Documentation  
+Classification: `official` · Type: `official-support-matrix` · Accessed: `2026-07-17`  
+Scope: ROCm Core SDK hardware, OS, and component compatibility  
+Source: <https://rocm.docs.amd.com/en/latest/compatibility/compatibility-matrix.html>
+
+Claims used in this snapshot:
+
+- gfx1151 is listed as a supported Ryzen GPU target for ROCm 7.14 Core SDK.
+- Ubuntu 26.04 GA kernel 7.0 and Ubuntu 24.04.4 HWE kernel 6.17 are listed with the inbox kernel driver.
+- ROCm/HIP 7.14 pairs with LLVM 23.0.0 and ROCr 1.21.0.
+
+## AMD-INSTALL-714
+
+**ROCm 7.14 installation guide and gfx1151 tarball** — AMD ROCm Documentation  
+Classification: `official` · Type: `official-install-guide` · Accessed: `2026-07-17`  
+Scope: ROCm SDK installation  
+Source: <https://rocm.docs.amd.com/en/latest/install/rocm.html>
+
+Claims used in this snapshot:
+
+- Provides the versioned gfx1151 TheRock tarball URL.
+- Documents ROCM_PATH, PATH, and LD_LIBRARY_PATH setup for tarball installs.
+
+## AMD-RDNA35
+
+**RDNA 3.5 / gfx115x system optimization and release support table** — AMD ROCm Documentation  
+Classification: `official` · Type: `official-target-support-table` · Accessed: `2026-07-17`  
+Scope: gfx1150/gfx1151 kernel requirements, release status, unified memory  
+Source: <https://rocm.docs.amd.com/en/latest/reference/system-optimization/rdna3-5.html>
+
+Claims used in this snapshot:
+
+- Fixed minimum kernels are Ubuntu HWE 6.17.0-19.19~24.04.2, Ubuntu OEM 6.14.0-1018, or 6.18.4 on other distributions.
+- ROCm 7.2.1 through 7.2.3 are marked stable on qualifying kernels; 7.1.x and 6.4.x are not supported there.
+- Documents amd-ttm and GTT/TTM memory tuning guidance.
+
+## AMD-CORE-724
+
+**ROCm 7.2.4 compatibility matrix** — AMD ROCm Documentation  
+Classification: `official` · Type: `official-release-matrix` · Accessed: `2026-07-17`  
+Scope: General ROCm 7.2.4 components and operating systems  
+Source: <https://rocm.docs.amd.com/en/docs-7.2.4/compatibility/compatibility-matrix.html>
+
+Claims used in this snapshot:
+
+- HIP 7.2.53211, LLVM 22.0.0.26084, ROCr 1.18.0, and ROCm CMake 0.14.0 are the 7.2.4 component line.
+- This general matrix does not itself establish gfx1151 application validation.
+
+## AMD-RYZEN-72
+
+**ROCm 7.2 native Linux compatibility for Radeon and Ryzen** — AMD ROCm Documentation  
+Classification: `official` · Type: `official-application-support` · Accessed: `2026-07-17`  
+Scope: Ryzen gfx1150/gfx1151 application validation  
+Source: <https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2/docs/compatibility/compatibilityryz/native_linux/native_linux_compatibility.html>
+
+Claims used in this snapshot:
+
+- gfx1151 is included in the ROCm 7.2 Ryzen application-support line.
+- Ubuntu 24.04.3 support is described as preliminary through the 24.04.2 installer path.
+- PyTorch 2.9 with ROCm 7.2 and Python 3.12 is listed as production-supported.
+
+## AMD-RYZEN-INDEX
+
+**ROCm on Radeon and Ryzen documentation index** — AMD ROCm Documentation  
+Classification: `official` · Type: `official-application-index` · Accessed: `2026-07-17`  
+Scope: Radeon/Ryzen application use cases  
+Source: <https://rocm.docs.amd.com/projects/radeon-ryzen/en/latest/index.html>
+
+Claims used in this snapshot:
+
+- llama.cpp is included among Radeon/Ryzen application use cases.
+
+## AMD-LLAMA-711
+
+**Historical AMD llama.cpp package for ROCm 7.1.1** — AMD ROCm Documentation  
+Classification: `official-historical` · Type: `official-historical-recipe` · Accessed: `2026-07-17`  
+Scope: Historical prebuilt gfx1150/gfx1151 llama.cpp bundle  
+Source: <https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.1.1/docs/advanced/advancedryz/linux/llm/llamacpp.html>
+
+Claims used in this snapshot:
+
+- Documents llama-b7146 for Ubuntu 24.04, ROCm 7.1.1, gfx1150/gfx1151.
+
+## LLAMA-RELEASE-B10064
+
+**llama.cpp release b10064** — ggml-org  
+Classification: `official-upstream` · Type: `upstream-release` · Accessed: `2026-07-17`  
+Scope: Current pinned llama.cpp release and ROCm 7.2 binary asset  
+Source: <https://github.com/ggml-org/llama.cpp/releases/tag/b10064>
+
+Claims used in this snapshot:
+
+- Release b10064 corresponds to source commit 86d86ed4396b4130922f7b9af26e3d9fc11a591b.
+- Includes a Linux Ubuntu ROCm 7.2 x64 binary archive.
+
+## LLAMA-HIP-CMAKE-86D86ED
+
+**llama.cpp HIP backend CMake at 86d86ed** — ggml-org  
+Classification: `official-upstream` · Type: `upstream-source` · Accessed: `2026-07-17`  
+Scope: HIP compiler and target selection behavior  
+Source: <https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/ggml/src/ggml-hip/CMakeLists.txt>
+
+Claims used in this snapshot:
+
+- HIP 6.1 or newer is required.
+- The native HIP-language path requires CMake 3.21 or newer.
+- GPU_TARGETS and AMDGPU_TARGETS can be forwarded to CMAKE_HIP_ARCHITECTURES; direct CMAKE_HIP_ARCHITECTURES is preferred.
+
+## LLAMA-GGML-CMAKE-86D86ED
+
+**llama.cpp backend options at 86d86ed** — ggml-org  
+Classification: `official-upstream` · Type: `upstream-source` · Accessed: `2026-07-17`  
+Scope: Current ggml HIP and Vulkan option defaults  
+Source: <https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/ggml/CMakeLists.txt>
+
+Claims used in this snapshot:
+
+- GGML_HIP_GRAPHS defaults ON.
+- GGML_HIP_NO_VMM defaults ON.
+- GGML_HIP_ROCWMMA_FATTN defaults OFF.
+
+## LLAMA-ROCM-DOCKER-86D86ED
+
+**llama.cpp upstream ROCm Dockerfile at 86d86ed** — ggml-org  
+Classification: `official-upstream` · Type: `upstream-container-recipe` · Accessed: `2026-07-17`  
+Scope: Upstream ROCm build container  
+Source: <https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/.devops/rocm.Dockerfile>
+
+Claims used in this snapshot:
+
+- Defaults to Ubuntu 24.04 and ROCm 7.2.1.
+- Uses the ROCm-bundled Clang and enables ROCm/HIP through CMake.
+
+## LLAMA-ISSUE-24437
+
+**gfx1151 rocWMMA FlashAttention prefill regression** — ggml-org issue tracker  
+Classification: `community` · Type: `community-reproducible-regression` · Accessed: `2026-07-17`  
+Scope: ROCm 7.2.1, gfx1151, long-context prefill  
+Source: <https://github.com/ggml-org/llama.cpp/issues/24437>
+
+Claims used in this snapshot:
+
+- Enabling GGML_HIP_ROCWMMA_FATTN produced up to approximately 41% lower long-context prefill in the reported test.
+
+## LLAMA-ISSUE-24438
+
+**gfx1151 HIP versus Vulkan decode benchmark** — ggml-org issue tracker  
+Classification: `community` · Type: `community-benchmark` · Accessed: `2026-07-17`  
+Scope: ROCm 7.2.1 and Mesa 26.0.3 on Strix Halo  
+Source: <https://github.com/ggml-org/llama.cpp/issues/24438>
+
+Claims used in this snapshot:
+
+- The reported Qwen3.6 35B-A3B Q8_0 decode workload favored Vulkan over HIP; this is workload-specific, not universal.
+
+## LLAMA-ISSUE-22375
+
+**RADV prompt-processing regression between llama.cpp builds** — ggml-org issue tracker  
+Classification: `community` · Type: `community-reproducible-regression` · Accessed: `2026-07-17`  
+Scope: Mesa 26.0.2 RADV, Linux 6.19.4  
+Source: <https://github.com/ggml-org/llama.cpp/issues/22375>
+
+Claims used in this snapshot:
+
+- A reported b8460 to b8933 change reduced pp512 by roughly 39% while token generation remained stable.
+
+## LLAMA-ISSUE-18741
+
+**RADV model-load failure and direct-I/O workaround** — ggml-org issue tracker  
+Classification: `community` · Type: `community-workaround` · Accessed: `2026-07-17`  
+Scope: Vulkan/RADV model loading  
+Source: <https://github.com/ggml-org/llama.cpp/issues/18741>
+
+Claims used in this snapshot:
+
+- --no-direct-io enabled model loading in the reported failure; --no-mmap is a common paired diagnostic.
+
+## LLAMA-ISSUE-15054
+
+**AMDVLK large single-allocation limitation** — ggml-org issue tracker  
+Classification: `community` · Type: `community-driver-limitation` · Accessed: `2026-07-17`  
+Scope: AMDVLK large-model loading  
+Source: <https://github.com/ggml-org/llama.cpp/issues/15054>
+
+Claims used in this snapshot:
+
+- The report identifies an approximately 2 GiB single-buffer allocation limitation; the same model loaded under RADV.
+
+## LLAMA-ISSUE-17014
+
+**Historical ROCm 7.1 MoE performance and crash regression** — ggml-org issue tracker  
+Classification: `community` · Type: `community-historical-regression` · Accessed: `2026-07-17`  
+Scope: ROCm 7.1 and MoE workloads  
+Source: <https://github.com/ggml-org/llama.cpp/issues/17014>
+
+Claims used in this snapshot:
+
+- Documents a ROCm 7.1-era performance/crash regression relevant to avoiding the obsolete stack.
+
+## LLAMA-ISSUE-24961
+
+**Related RDNA4 graph workaround** — ggml-org issue tracker  
+Classification: `community` · Type: `community-related-diagnostic` · Accessed: `2026-07-17`  
+Scope: RDNA4, not gfx1151-specific  
+Source: <https://github.com/ggml-org/llama.cpp/issues/24961>
+
+Claims used in this snapshot:
+
+- GGML_CUDA_DISABLE_GRAPHS=1 is a related diagnostic only; it must not be treated as a default gfx1151 setting.
+
+## MESA-2615
+
+**Mesa 26.1.5 release notes** — Mesa Project  
+Classification: `official-upstream` · Type: `upstream-release` · Accessed: `2026-07-17`  
+Scope: Current Mesa bugfix release  
+Source: <https://docs.mesa3d.org/relnotes/26.1.5.html>
+
+Claims used in this snapshot:
+
+- Mesa 26.1.5 was released 2026-07-15.
+- The release tarball SHA-256 is 79e421c7ce18cd9e790b8375920325779f10798630bf30e0b22f1a21c8617122.
+
+## CMAKE-HIP-ARCH
+
+**CMAKE_HIP_ARCHITECTURES variable** — Kitware CMake Documentation  
+Classification: `official-upstream` · Type: `upstream-build-documentation` · Accessed: `2026-07-17`  
+Scope: HIP target selection  
+Source: <https://cmake.org/cmake/help/latest/variable/CMAKE_HIP_ARCHITECTURES.html>
+
+Claims used in this snapshot:
+
+- CMAKE_HIP_ARCHITECTURES was added in CMake 3.21.
+
+## CMAKE-RELEASE-434
+
+**CMake v4.3.4 release** — Kitware  
+Classification: `official-upstream` · Type: `upstream-release` · Accessed: `2026-07-17`  
+Scope: Current CMake patch release  
+Source: <https://github.com/Kitware/CMake/releases/tag/v4.3.4>
+
+Claims used in this snapshot:
+
+- CMake 4.3.4 is current as of the wiki snapshot, but is not assumed validated with every ROCm 7.2 recipe.
+
+## VULKAN-LOADER-ICD
+
+**Vulkan loader driver discovery interface** — KhronosGroup  
+Classification: `official-upstream` · Type: `upstream-runtime-documentation` · Accessed: `2026-07-17`  
+Scope: Vulkan ICD selection and diagnostics  
+Source: <https://github.com/KhronosGroup/Vulkan-Loader/blob/main/docs/LoaderDriverInterface.md>
+
+Claims used in this snapshot:
+
+- VK_DRIVER_FILES selects manifest files; VK_ICD_FILENAMES is the older deprecated form.
+- VK_LOADER_DEBUG enables loader diagnostics.
+
+## LINUX-THUNDERBOLT-DOC
+
+**Linux Thunderbolt and USB4 administration guide** — Linux Kernel Documentation  
+Classification: `official-upstream` · Type: `upstream-kernel-documentation` · Accessed: `2026-07-17`  
+Scope: Thunderbolt/USB4 networking  
+Source: <https://docs.kernel.org/admin-guide/thunderbolt.html>
+
+Claims used in this snapshot:
+
+- Linux supports ThunderboltIP; thunderbolt-net can be manually loaded on one Linux peer.
+
+## LINUX-USB4-NET-KCONFIG
+
+**Linux CONFIG_USB4_NET definition** — Linux Kernel  
+Classification: `official-upstream` · Type: `upstream-kernel-source` · Accessed: `2026-07-17`  
+Scope: USB4 networking kernel configuration  
+Source: <https://github.com/torvalds/linux/blob/af5e34a41cd607c00ef752e00331736570992354/drivers/net/thunderbolt/Kconfig>
+
+Claims used in this snapshot:
+
+- CONFIG_USB4_NET depends on USB4 and INET.
+- The module is named thunderbolt_net and implements Apple ThunderboltIP interoperability.
+
+## ROCMFPX-A5605
+
+**ROCmFPX repository at a5605a7** — charlie12345  
+Classification: `experimental-community` · Type: `community-experimental-source` · Accessed: `2026-07-17`  
+Scope: Experimental ROCmFP3/4/6/8 llama.cpp fork  
+Source: <https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394>
+
+Claims used in this snapshot:
+
+- ROCmFPX is explicitly experimental.
+- The fork contains CPU, HIP/ROCm, and Vulkan paths and reports local gfx1151 validation.
+
+## ROCMFPX-BUILD-A5605
+
+**ROCmFPX Strix Halo build script at a5605a7** — charlie12345  
+Classification: `experimental-community` · Type: `community-experimental-build-recipe` · Accessed: `2026-07-17`  
+Scope: Exact gfx1151 build flags  
+Source: <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/build-strix-rocmfp4-mtp.sh>
+
+Claims used in this snapshot:
+
+- Builds HIP and Vulkan for gfx1151, disables rocWMMA FlashAttention by default, and forces the fork MMQ path.
+
+## ROCMFPX-DOCKER-A5605
+
+**ROCmFPX Dockerfile at a5605a7** — charlie12345  
+Classification: `experimental-community` · Type: `community-experimental-container` · Accessed: `2026-07-17`  
+Scope: ROCm 7.2.1 Ubuntu 24.04 reproducible container baseline  
+Source: <https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/.devops/strix-rocmfp4.Dockerfile>
+
+Claims used in this snapshot:
+
+- Pins the base stack to rocm/dev-ubuntu-24.04:7.2.1-complete and gfx1151.
+
+## KYUZ0-TOOLBOX-A7C71E9
+
+**AMD Strix Halo toolboxes at a7c71e9** — kyuz0  
+Classification: `community` · Type: `maintained-community-profile` · Accessed: `2026-07-17`  
+Scope: Current community host and container validation  
+Source: <https://github.com/kyuz0/amd-strix-halo-toolboxes/tree/a7c71e91917234c44eb81b7fc64dc704db14879c>
+
+Claims used in this snapshot:
+
+- Reports Fedora 42/43, kernel 6.18.9, and linux-firmware 20260110 as a stable baseline.
+- Provides ROCm 7.2.4, RADV, AMDVLK, and ROCmFP4 toolbox profiles.
+- Recommends RADV for broad compatibility and warns about AMDVLK large allocations.
+
+## ROCM-ISSUE-5724
+
+**MES 0x83 firmware GPU hang and page fault on Strix Halo** — ROCm issue tracker  
+Classification: `community` · Type: `community-reproducible-regression` · Accessed: `2026-07-17`  
+Scope: late-2025 amdgpu firmware regression  
+Source: <https://github.com/ROCm/ROCm/issues/5724>
+
+Claims used in this snapshot:
+
+- Documents GPU hangs and memory-access faults associated with the 20251125/MES 0x83 firmware era.
+
+## ROCM-ISSUE-5590
+
+**CWSR-related MES 0x80 hang on ROCm 7.1** — ROCm issue tracker  
+Classification: `community` · Type: `community-reproducible-regression` · Accessed: `2026-07-17`  
+Scope: ROCm 7.1 legacy stack  
+Source: <https://github.com/ROCm/ROCm/issues/5590>
+
+Claims used in this snapshot:
+
+- Documents amdgpu.cwsr_enable=0 as a legacy workaround for a separate ROCm 7.1/MES 0x80 hang.
+
+## ROCM-ISSUE-5824
+
+**Strix Halo failures across old kernel, firmware, and ROCm combinations** — ROCm issue tracker  
+Classification: `community` · Type: `community-reproducible-regression` · Accessed: `2026-07-17`  
+Scope: known-bad combination evidence  
+Source: <https://github.com/ROCm/ROCm/issues/5824>
+
+Claims used in this snapshot:
+
+- HSA_OVERRIDE_GFX_VERSION=11.0.0 or 11.0.3 did not repair the reported old-stack failures.
+
+## ROCM-ISSUE-5745
+
+**ROCm SMI and process D-state after HIP error** — ROCm issue tracker  
+Classification: `community` · Type: `community-regression` · Accessed: `2026-07-17`  
+Scope: post-fault recovery diagnostics  
+Source: <https://github.com/ROCm/ROCm/issues/5745>
+
+Claims used in this snapshot:
+
+- Documents a post-error state where management tools or processes can block, motivating kernel-log collection before reset.
+
+## ROCM-ISSUE-5444
+
+**Historical Strix Halo visible-memory cap** — ROCm issue tracker  
+Classification: `community` · Type: `community-historical-regression` · Accessed: `2026-07-17`  
+Scope: kernel <=6.15 era memory visibility  
+Source: <https://github.com/ROCm/ROCm/issues/5444>
+
+Claims used in this snapshot:
+
+- Documents the historical approximately 15.5 GiB visible-memory cap; the issue is closed and should not be confused with current TTM sizing.
+
+## FEDORA-BUG-2420062
+
+**Fedora linux-firmware regression affecting Strix Halo ROCm** — Fedora / Red Hat Bugzilla  
+Classification: `community-distribution` · Type: `distribution-regression-record` · Accessed: `2026-07-17`  
+Scope: linux-firmware 20251125 regression and 20260110 fix line  
+Source: <https://bugzilla.redhat.com/show_bug.cgi?id=2420062>
+
+Claims used in this snapshot:
+
+- Tracks the bad 20251125 firmware and fixed 20260110 Fedora package line.
+
+## LINUX-FW-REVERT-C092
+
+**linux-firmware amdgpu firmware revert c092c748** — linux-firmware project  
+Classification: `official-upstream` · Type: `upstream-firmware-commit` · Accessed: `2026-07-17`  
+Scope: Firmware regression response  
+Source: <https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/commit/?id=c092c7487eb7c3d58697f490ff605bc38f4cc947>
+
+Claims used in this snapshot:
+
+- Upstream reverted the implicated amdgpu firmware update.
+
+## THUNDERBOLT-IBVERBS-76BA39B
+
+**thunderbolt-ibverbs at 76ba39b** — hellas-ai  
+Classification: `experimental-community` · Type: `experimental-community-driver` · Accessed: `2026-07-17`  
+Scope: InfiniBand verbs over USB4/Thunderbolt DMA rings  
+Source: <https://github.com/hellas-ai/thunderbolt-ibverbs/tree/76ba39b630a70accb72f19388eefe48844b50eb8>
+
+Claims used in this snapshot:
+
+- The project explicitly labels itself buggy, insecure, and not for production.
+- Requires Linux 6.14 or newer unless using its patched kernel.
+- Provides DKMS, a libibverbs provider, Nix outputs, and container integration.
+
+## STRIXHALO-WIKI-CLUSTERING
+
+**Strix Halo community clustering notes** — Strix Halo Wiki  
+Classification: `community` · Type: `community-guide` · Accessed: `2026-07-17`  
+Scope: Thunderbolt networking throughput and clustering  
+Source: <https://strixhalo.wiki/AI/Clustering>
+
+Claims used in this snapshot:
+
+- Reports system-specific thunderbolt-net throughput around 9 Gbit/s per link; treat as indicative rather than guaranteed.
+
+## HIP-ENV-VARS
+
+**HIP environment variables reference** — AMD HIP Documentation  
+Classification: `official` · Type: `official-runtime-documentation` · Accessed: `2026-07-17`  
+Scope: GPU visibility, debugging, and runtime behavior  
+Source: <https://rocm.docs.amd.com/projects/HIP/en/latest/reference/env_variables.html>
+
+Claims used in this snapshot:
+
+- Documents HIP_VISIBLE_DEVICES and debugging-oriented HIP environment controls.
+
+## AMD-PYTORCH-721-AOTRITON
+
+**Install PyTorch for Ryzen on ROCm 7.2.1** — AMD ROCm Documentation  
+Classification: `official` · Type: `official-application-install-guide` · Accessed: `2026-07-17`  
+Scope: PyTorch runtime configuration for ROCm 7.2.1 on supported Ryzen systems  
+Source: <https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2.1/docs/install/installryz/native_linux/install-pytorch.html>
+
+Claims used in this snapshot:
+
+- The native PyTorch recipe exports TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1.
+- The documented container line is ROCm 7.2.1 with Ubuntu 24.04, Python 3.12, and PyTorch 2.9.1.
+
+## COMM-STRIX-GUIDE-2026
+
+**Strix Halo Linux and ROCm community guide** — hogeheer499-commits  
+Classification: `community` · Type: `community-guide` · Accessed: `2026-07-17`  
+Scope: Measured troubleshooting notes for a kernel 6.19.x Strix Halo setup  
+Source: <https://github.com/hogeheer499-commits/strix-halo-guide>
+
+Claims used in this snapshot:
+
+- Reports HSA_OVERRIDE_GFX_VERSION=11.5.1 together with HSA_ENABLE_SDMA=0 as a local workaround for a measured kernel 6.19.x setup.
+- The workaround is system-specific evidence and is not an AMD support requirement or a general current-stack default.
+
+
+---
+
+<!-- source-file: docs/versions/2026.07.17.md -->
+
+# Matrix release 2026.07.17
+
+Release date: 2026-07-17
+
+## Pins
+
+- ROCm current Core SDK: 7.14.0
+- ROCm target-specific conservative line: 7.2.1–7.2.3
+- Maintained community ROCm line: 7.2.4
+- llama.cpp: b10064 / 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+- Mesa: 26.1.5 upstream candidate; 26.0.2/26.0.3 captured community validation
+- ROCmFPX: a5605a72768c6562241b248e268e33dc92787394
+- thunderbolt-ibverbs: 76ba39b630a70accb72f19388eefe48844b50eb8
+
+## Material decisions
+
+- Separated ROCm 7.14 Core SDK support from ROCm 7.2 Ryzen application validation.
+- Classified ROCm 7.2.4 as official general release plus community-validated Strix Halo profile, not target-specific official support.
+- Rejected firmware 20251125 as known bad.
+- Kept rocWMMA FlashAttention OFF in the safe HIP build.
+- Preferred RADV over AMDVLK for large-model compatibility.
+- Classified native USB4 verbs as research-only and standard ThunderboltIP as upstream-supported.
+
+## Artifacts
+
+See [Compatibility matrix](../compatibility-matrix.md) and the dated files under [`data/`](../../data/).

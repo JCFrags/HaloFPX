@@ -1,0 +1,63 @@
+; HaloKV authenticated manifest, design version HKVM1.
+; Private manifests may be AEAD-encrypted/MACed under K_manifest.
+; Public-system manifests may use a separately specified digital signature.
+
+halokv-manifest = {
+  1: "HKVM1",
+  2: 1,                         ; manifest schema version
+  3: bstr .size 16,             ; manifest_id
+  4: bstr .size 16,             ; authority_id
+  5: bstr .size 16,             ; principal_scope_id
+  6: bstr .size 16,             ; tenant_id or public-system sentinel
+  7: bstr .size 16 / null,      ; project_id
+  8: bstr .size 16,             ; prefix_id
+  9: bstr .size 16,             ; namespace_id
+  10: 1 / 2 / 3 / 4,            ; sharing_class
+  11: bstr .size 16,            ; rank_id
+  12: bstr .size 16,            ; active_epoch_id
+  13: uint,                      ; manifest generation
+  ? 14: bstr .size 16 / null,   ; predecessor manifest_id
+  ? 15: uint / null,            ; predecessor generation
+  16: uint,                      ; minimum accepted object epoch sequence
+  ? 17: bstr / null,            ; source/model/build revision
+  ? 18: uint / null,            ; coarse creation time
+  ? 19: uint / null,            ; expiration time
+  20: [* manifest-entry],
+  ? 21: [* tombstone-entry],
+  ? 22: [* critical-extension],
+  23: manifest-auth
+}
+
+manifest-entry = {
+  1: uint,                      ; ordinal/chunk index
+  2: bstr .size 32,            ; scoped CID
+  3: bstr .size 16,            ; object key reference
+  4: bstr .size 16,            ; object epoch_id
+  5: uint,                      ; object_type
+  6: uint,                      ; ciphertext length
+  7: uint,                      ; uncompressed length
+  8: uint,                      ; object schema version
+  ? 9: bstr / null              ; optional storage locator commitment
+}
+
+tombstone-entry = {
+  1: bstr .size 32,            ; scoped CID or manifest/object deletion target
+  2: uint,                      ; tombstone generation
+  3: uint,                      ; reason code, non-secret
+  ? 4: uint / null             ; deletion time bucket
+}
+
+critical-extension = [uint, uint, any]
+
+manifest-auth = private-manifest-auth / public-manifest-auth
+private-manifest-auth = {
+  1: 1,                        ; private MAC/AEAD mode
+  2: bstr .size 16,            ; K_manifest reference
+  3: bstr .size 16             ; full MAC/tag; exact construction is suite-bound
+}
+public-manifest-auth = {
+  1: 2,                        ; public signature mode
+  2: bstr,                     ; publisher signing key identifier
+  3: uint,                     ; signature suite identifier
+  4: bstr                      ; signature bytes
+}

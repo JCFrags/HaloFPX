@@ -1,0 +1,39 @@
+{
+  "research_date": "2026-07-18",
+  "target": {
+    "processor": "AMD Ryzen AI MAX+ 395",
+    "architecture": "XDNA2 / Strix Halo",
+    "pci_expected": {
+      "vendor_device": "1022:17f0",
+      "revision": "0x11",
+      "kernel_device": "npu5"
+    },
+    "target_distro": null,
+    "target_kernel": null,
+    "target_linux_firmware_package": null,
+    "probe_status": "not run"
+  },
+  "pins": {
+    "linux": "94515f3a7d4256a5062176b7d6ed0471938cd51a",
+    "linux_initial_amdxdna": "8c9ff1b181ba3d31d6b4a48606248b52180a7046",
+    "amd_xdna_driver": "0697b1720fc539f57bdc8d5854ddf7c7014ae160",
+    "linux_firmware": "924d73c9a2501a256d18a26cbe640548c70b3a9a",
+    "ryzenai_sw_examples": "9513bd60ddd5cb960ddda897096b808dd5cca6d0",
+    "xrt_public_head": "a21f10d59b51e9235b7c90b804470fce9650cfa0",
+    "llvm_aie_public_head": "ce8c0f8fd66bff15b347351c67e9fb4fe0a17205",
+    "mlir_aie_public_head": "79089be0abae3c7ec8a69b69357031b99667bdd4"
+  },
+  "vendor_release": {
+    "ryzen_ai_software": "1.7.1",
+    "reference_os": "Ubuntu 24.04 LTS",
+    "minimum_kernel": "6.10",
+    "python": "3.12.x",
+    "xrt_packages": [
+      "xrt_202610.2.21.75_24.04-amd64-base.deb",
+      "xrt_202610.2.21.75_24.04-amd64-base-dev.deb",
+      "xrt_202610.2.21.75_24.04-amd64-npu.deb"
+    ],
+    "plugin_package": "xrt_plugin.2.21.260102.53.release_24.04-amd64-amdxdna.deb",
+    "software_archive": "ryzen_ai-1.7.1.tgz"
+  }
+}

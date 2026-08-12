@@ -1,0 +1,21 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-MINIMAX-PUBLISHER
+authority: publisher
+capture_type: rendered_text_extract
+source_title: MiniMaxAI/MiniMax-M2.7
+source_url: https://huggingface.co/MiniMaxAI/MiniMax-M2.7/tree/d494266a4affc0d2995ba1fa35c8481cbd84294b
+immutable_revision: d494266a4affc0d2995ba1fa35c8481cbd84294b
+accessed_at: 2026-07-18
+completeness: SELECTED_FACTS
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Normalized publisher facts:
+- Model repository presents M2.7 as an agentic/software-engineering and professional-work model.
+- Model metadata is approximately 229B/230B total; config summary records 62 layers, max_position_embeddings=204800, and one MTP transformer layer.
+- Publisher examples use trust_remote_code=True.
+- Recommended sampling: temperature 1.0, top_p 0.95, top_k 40; a default system prompt is documented.
+- Official weights use 130 shards numbered from 00000.
+- License metadata is “other”; exact custom non-commercial terms are the governing gate.
+
+Benchmark and product-marketing claims are not adopted as local quality evidence.

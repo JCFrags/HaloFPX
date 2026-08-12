@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

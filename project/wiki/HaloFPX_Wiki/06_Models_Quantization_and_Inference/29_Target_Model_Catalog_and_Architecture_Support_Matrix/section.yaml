@@ -1,0 +1,18 @@
+section_id: "29"
+category_id: "06"
+title: "Target Model Catalog and Architecture Support Matrix"
+category: "06_Models_Quantization_and_Inference"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 6
+open_question_count: 9
+required_machine_experiments:
+  - "source and local GGUF hash inventory"
+  - "converter, tokenizer, tensor, and state-roundtrip validation"
+  - "HIP and Vulkan backend-op and fallback audit on both nodes"
+  - "memory/context/slot sweeps and matched quality gates"
+related_sections: ["30", "31", "33", "34", "35", "36", "57"]
+applicability:
+  repositories: ["charlie12345/ROCmFPX", "ggml-org/llama.cpp"]
+  software_versions: ["a5605a72768c6562241b248e268e33dc92787394", "788e07dc91d266ad3162a1ce9037665656269689"]
+  hardware_revisions: ["exact two-node Strix Halo BOM pending"]

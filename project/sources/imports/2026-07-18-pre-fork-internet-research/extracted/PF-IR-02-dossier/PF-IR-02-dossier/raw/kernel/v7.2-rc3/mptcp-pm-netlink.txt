@@ -1,0 +1,2 @@
+PRIMARY SOURCE METADATA — mptcp_pm generic-netlink family
+The Linux path-manager UAPI exposes endpoint and limits operations. Kernel and userspace path-manager modes are distinct. Endpoint flags include signal, subflow, backup and fullmesh where supported by the interface.

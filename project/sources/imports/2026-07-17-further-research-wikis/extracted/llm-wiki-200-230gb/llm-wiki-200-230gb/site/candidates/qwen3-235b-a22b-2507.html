@@ -1,0 +1,141 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qwen3-235B-A22B-Instruct-2507 · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Qwen3-235B-A22B-Instruct-2507</h1>
+<p><strong>Rank:</strong> 1 · <strong>Score:</strong> 92/100 · <strong>Disposition:</strong> <code>shortlist</code></p>
+<h2>Selected representation</h2>
+<table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Architecture</td>
+  <td>qwen3moe</td>
+</tr>
+<tr>
+  <td>Class</td>
+  <td>MoE</td>
+</tr>
+<tr>
+  <td>Total parameters</td>
+  <td>235B</td>
+</tr>
+<tr>
+  <td>Activated parameters/token</td>
+  <td>22B</td>
+</tr>
+<tr>
+  <td>Layers</td>
+  <td>94</td>
+</tr>
+<tr>
+  <td>Experts / active</td>
+  <td>128 / 8</td>
+</tr>
+<tr>
+  <td>Native context</td>
+  <td>262,144</td>
+</tr>
+<tr>
+  <td>License</td>
+  <td>Apache-2.0</td>
+</tr>
+<tr>
+  <td>Chosen quant</td>
+  <td>UD-Q6_K_XL</td>
+</tr>
+<tr>
+  <td>Publisher size</td>
+  <td>201.91 decimal GB</td>
+</tr>
+<tr>
+  <td>Conservative weight plan</td>
+  <td>190 GiB</td>
+</tr>
+<tr>
+  <td>Artifact effective bits/parameter</td>
+  <td>6.874</td>
+</tr>
+</tbody>
+</table>
+<h2>Selection rationale</h2>
+<p>Best balance of mature architecture support, Apache license, high-bit representation, manageable KV, and 22B active compute.</p>
+<h2>Runtime support</h2>
+<ul>
+<li><strong>llama.cpp:</strong> Yes — dedicated qwen3moe implementation at pinned snapshot.</li>
+<li><strong>ROCmFPX:</strong> Yes — qwen3moe implementation present.</li>
+<li><strong>Runtime risk:</strong> Low relative to this set; still preflight the exact GGUF and template.</li>
+</ul>
+<h2>Tokenizer and chat template</h2>
+<ul>
+<li><strong>Tokenizer:</strong> Embedded Qwen tokenizer in GGUF</li>
+<li><strong>Template:</strong> Embedded Qwen Jinja; launch with --jinja and preserve tool-call tokens.</li>
+</ul>
+<h2>KV cache</h2>
+<p><strong>Formula status:</strong> verified-from-config</p>
+<table>
+<thead>
+<tr>
+  <th>Context tokens</th>
+  <th>Q8_0 exact GiB</th>
+  <th>Q8 planning GiB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>32,768</td>
+  <td>3.121</td>
+  <td>3.25</td>
+</tr>
+<tr>
+  <td>65,536</td>
+  <td>6.242</td>
+  <td>6.25</td>
+</tr>
+<tr>
+  <td>131,072</td>
+  <td>12.484</td>
+  <td>12.50</td>
+</tr>
+<tr>
+  <td>262,144</td>
+  <td>24.969</td>
+  <td>25.00</td>
+</tr>
+</tbody>
+</table>
+<h2>Expert activation and buffers</h2>
+<p>The router activates 8 of 128 routed experts per token. All expert weights remain resident.</p>
+<p>Graph/work buffers are not predicted from parameter count. Use the package reserve profiles, then replace them with measured startup logs.</p>
+<h2>Quality evidence</h2>
+<p>Official BF16/Instruct card reports MMLU-Pro 83.0 and GPQA 77.5; results are not directly comparable to other cards.</p>
+<p><strong>Selected-quant assessment:</strong> Moderate-low: high effective bit budget; candidate-specific independent quant benchmark not located.</p>
+<h2>Download provenance</h2>
+<ul>
+<li>Upstream: <code>Qwen/Qwen3-235B-A22B-Instruct-2507</code></li>
+<li>Quant repo: <code>unsloth/Qwen3-235B-A22B-Instruct-2507-GGUF</code></li>
+<li>Revision: <code>160ed54</code></li>
+<li>Path: <code>UD-Q6_K_XL</code></li>
+<li>Shard count: <code>5</code></li>
+</ul>
+<p>Known exact LFS pointers:</p>
+<ul>
+<li><code>Qwen3-235B-A22B-Instruct-2507-UD-Q6_K_XL-00001-of-00005.gguf</code> — SHA-256 <code>a28eea726d74f2f22c1fa18acd38a2e310185a4c605ee55ecccb551c68d83910</code>, <code>49846266560</code> bytes</li>
+</ul>
+<h2>Acceptance gates</h2>
+<ul>
+<li>Refresh and verify every shard hash.</li>
+<li>Load with the pinned runtime and exact embedded Jinja template.</li>
+<li>Run the production quality suite against a higher-bit reference.</li>
+<li>Capture per-device/node weights, KV, graph, and compute buffers.</li>
+<li>Benchmark the intended backend/topology; do not use parameter-count throughput extrapolation.</li>
+</ul>
+<h2>Sources</h2>
+<ul>
+<li><a href="https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507">qwen_upstream</a></li>
+<li><a href="https://huggingface.co/unsloth/Qwen3-235B-A22B-Instruct-2507-GGUF/tree/160ed54/UD-Q6_K_XL">qwen_quant</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/qwen3moe.cpp">llama_qwen3moe</a></li>
+<li><a href="https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/README.md">rocmfpx_readme</a></li>
+</ul>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/04-project-gutenberg-license-and-trademark-policy-evidence.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://www.gutenberg.org/policy/license.html",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "f18d484902d649333793c22e848d87aa49dafdae1e9e518a2c9656b4b36aa2e1",
+  "size_bytes": 795,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-PUBLISHER-TERMS"
+}

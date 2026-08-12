@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Build and artifact validation · PF-IR-06</title><link rel="stylesheet" href="assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="wiki/00-scope-and-claim-language.html">Scope / labels</a><a href="wiki/01-executive-decision-record.html">Decision record</a><a href="wiki/02-portable-linux-minimum.html">Portable minimum</a><a href="wiki/03-temporary-files-and-publication.html">Publication</a><a href="wiki/04-deployed-filesystem-profile.html">Deployed profile</a><a href="wiki/05-ext4.html">ext4</a><a href="wiki/06-xfs.html">XFS</a><a href="wiki/07-btrfs.html">Btrfs</a><a href="wiki/08-io-uring.html">io_uring</a><a href="wiki/09-errors-space-direct-io.html">Errors / DIO</a><a href="wiki/10-locking-and-fencing.html">Locking</a><a href="wiki/11-fault-test-matrix.html">Fault program</a><a href="wiki/12-nontarget-portability.html">Non-targets</a><a href="wiki/13-open-questions.html">Open questions</a><a href="wiki/14-source-audit.html">Source audit</a><a href="matrices/claim-ledger.html">Claim ledger</a><a href="matrices/guarantee-source-test.html">Guarantee map</a><a href="matrices/experiment-matrix.html">Experiment matrix</a><a href="matrices/source-register.html">Source register</a><a href="VERSION-PINS.html">Version pins</a><a href="raw/README.html">Raw capture policy</a><a href="licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="scripts/fault-tests/README.html">Harness notes</a><a class="active" href="BUILD-VALIDATION.html">Build validation</a><a href="README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="index.html">Wiki home</a><span>·</span><a href="BUILD-VALIDATION.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>Build and artifact validation</h1>
+<p><strong>Validation date:</strong> 2026-07-18<br/>
+<strong>Scope:</strong> packaging/workspace checks only; <strong>not</strong> deployed-filesystem durability evidence.</p>
+<h2>Environment</h2>
+<ul>
+<li>Compiler: <code>cc (Debian 14.2.0-19) 14.2.0</code></li>
+<li>Python: <code>Python 3.13.5</code></li>
+<li>Host: <code>Linux a3d1b0e69f37 4.4.0 #1 SMP Sun Jan 10 15:06:54 PST 2016 x86_64 GNU/Linux</code></li>
+<li>Test-directory mount: <code>/ none overlay rw</code></li>
+<li>liburing development package: <code>not installed</code></li>
+</ul>
+<h2>Passed checks</h2>
+<ul>
+<li>C probes compiled with <code>-std=c11 -O2 -Wall -Wextra -Werror</code>.</li>
+<li>Python scripts passed bytecode compilation; shell harnesses passed <code>bash -n</code>.</li>
+<li>Unprivileged error-path harness passed positive short writes, <code>EINTR</code>, zero-progress abort, immediate <code>ENOSPC</code>/<code>EIO</code>, file-sync failure, rename failure, and directory-sync failure/no-ack handling.</li>
+<li>Process-kill harness completed all five failpoints.</li>
+<li>Demonstration object validator accepted a complete object and rejected a truncated object (rejection rc <code>1</code>).</li>
+<li>Internal source/test ID cross-references and rendered local links are checked during packaging.</li>
+</ul>
+<h2>Capability outcomes, not failures</h2>
+<ul>
+<li><code>O_TMPFILE</code> create/link probe returned rc <code>1</code> in the workspace. Output:</li>
+</ul>
+<pre><code>O_TMPFILE open: Is a directory (errno=21)
+</code></pre>
+<ul>
+<li>Filesystem profile probe returned rc <code>78</code>; the workspace mount is a non-target layer and is expected to be rejected. Relevant output:</li>
+</ul>
+<pre><code>PF-IR-06 filesystem profile
+timestamp_utc=2026-07-18T01:36:40Z
+path=/tmp/pf-ir-06-finalqa.NXEbfW/fs/profile
+kernel=Linux 4.4.0 #1 SMP Sun Jan 10 15:06:54 PST 2016 x86_64 GNU/Linux
+uid_gid=0:0
+
+[findmnt]
+/ none overlay rw /   0:19   
+
+[statfs]
+type=overlayfs type_hex=794c7630 block_size=4096 blocks=2251799813685247 free_blocks=2251799813683673 avail_blocks=2251799813683673 files=0 free_files=0
+
+[mountinfo matching mount id]
+stat_mountpoint=/
+{
+   "filesystems": [
+      {
+         "target": "/",
+         "source": "none",
+         "fstype": "overlay",
+         "options": "rw"
+      }
+   ]
+}
+
+[block topology]
+source=none
+
+[filesystem-specific]
+
+[O_TMPFILE basic open probe]
+supported_open=false errno=21 name=EISDIR detail=[Errno 21] Is a directory: '/tmp/pf-ir-06-finalqa.NXEbfW/fs/profile'
+
+[denylist decision]
+fstype_candidate=false reason=non-target-layer
+</code></pre>
+<h2>Deliberately not executed here</h2>
+<p>No privileged loopback ext4/XFS/Btrfs ENOSPC test, quota test, dm-error/dm-flakey test, io_uring T030–T036 harness, VM reset, real host power cut, or deployed block-stack flush/FUA test was run. Those remain release-gating evidence requirements. This validation page does not change <code>durability_claim: false</code> in <code>decision-record.json</code>.</p>
+<h2>Harness excerpts</h2>
+<h3>Immediate error-path run</h3>
+<pre><code>payload_len=16 fnv1a=bfad94ed2e171b5f
+positive-short-write: PASS
+payload_len=17 fnv1a=db27d026a0cb3d27
+EINTR-retry: PASS
+zero-write: PASS (rc=1)
+pwrite-enospc: PASS (rc=1)
+pwrite-eio: PASS (rc=1)
+fdatasync-enospc: PASS (rc=1)
+fdatasync-eio: PASS (rc=1)
+renameat-EIO-old-generation-preserved: PASS
+directory-fsync-EIO-no-ack-complete-visible-object: PASS
+Error-path matrix completed. This injector is not a delayed-writeback, journal, block-layer, or power-cut test.
+</code></pre>
+<h3>Process-kill run</h3>
+<pre><code>== after_create ==
+PF_FAILPOINT=after_create: SIGKILL
+/mnt/data/PF-IR-06-HaloKV-crash-durability-wiki-2026-07-18/scripts/fault-tests/run_kill_matrix.sh: line 12:  6494 Killed                  PF_FAILPOINT=$point "$BUILD/publish_probe" "$ROOT_DIR" "$name" "$payload"
+exit=137
+.pf-ir-06.tmp.6494 0 bytes
+kill 60 bytes
+== after_write ==
+payload_len=29 fnv1a=12c4606fa46d3bba
+PF_FAILPOINT=after_write: SIGKILL
+/mnt/data/PF-IR-06-HaloKV-crash-durability-wiki-2026-07-18/scripts/fault-tests/run_kill_matrix.sh: line 12:  6498 Killed                  PF_FAILPOINT=$point "$BUILD/publish_probe" "$ROOT_DIR" "$name" "$payload"
+exit=137
+.pf-ir-06.tmp.6498 29 bytes
+kill 80 bytes
+== after_file_sync ==
+payload_len=29 fnv1a=12c4606fa46d3bba
+PF_FAILPOINT=after_file_sync: SIGKILL
+/mnt/data/PF-IR-06-HaloKV-crash-durability-wiki-2026-07-18/scripts/fault-tests/run_kill_matrix.sh: line 12:  6502 Killed                  PF_FAILPOINT=$point "$BUILD/publish_probe" "$ROOT_DIR" "$name" "$payload"
+exit=137
+.pf-ir-06.tmp.6502 29 bytes
+kill 100 bytes
+== after_publish ==
+payload_len=29 fnv1a=12c4606fa46d3bba
+PF_FAILPOINT=after_publish: SIGKILL
+/mnt/data/PF-IR-06-HaloKV-crash-durability-wiki-2026-07-18/scripts/fault-tests/run_kill_matrix.sh: line 12:  6506 Killed                  PF_FAILPOINT=$point "$BUILD/publish_probe" "$ROOT_DIR" "$name" "$payload"
+exit=137
+kill 140 bytes
+obj-after_publish 29 bytes
+== after_dir_sync ==
+payload_len=29 fnv1a=12c4606fa46d3bba
+PF_FAILPOINT=after_dir_sync: SIGKILL
+/mnt/data/PF-IR-06-HaloKV-crash-durability-wiki-2026-07-18/scripts/fault-tests/run_kill_matrix.sh: line 12:  6510 Killed                  PF_FAILPOINT=$point "$BUILD/publish_probe" "$ROOT_DIR" "$name" "$payload"
+exit=137
+kill 180 bytes
+obj-after_dir_sync 29 bytes
+obj-after_publish 29 bytes
+Process-kill matrix completed. This is not a power-cut durability test.
+</code></pre>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="assets/wiki.js"></script></body></html>

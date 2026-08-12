@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Upstream tests and maintainer statements · PF-IR-08</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-08<br>RCCL two-host boundary</div><div class="audit">Evidence snapshot · 2026-07-18<br><code>801a9ca…</code> active authority</div><input id="nav-search" class="search" type="search" placeholder="Filter pages…"><nav class="nav"><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-method.html" class="">Scope, method, and evidence rules</a><a href="../wiki/01-executive-decision.html" class="">Executive decision</a><a href="../wiki/02-authority-and-version-lanes.html" class="">Authority and version lanes</a><a href="../wiki/03-strix-halo-evidence.html" class="">Strix Halo evidence and support boundary</a><a href="../wiki/04-socket-and-interface-selection.html" class="">Socket transport and interface selection</a><a href="../wiki/05-topology-and-memory-registration.html" class="">Topology discovery and memory registration</a><a href="../wiki/06-network-plugin-abi.html" class="">Network-plugin ABI and custom transport boundary</a><a href="../wiki/07-communicator-failure-semantics.html" class="">Communicator creation and failure semantics</a><a href="../wiki/08-two-way-tensor-parallelism-boundary.html" class="">Two-way tensor parallelism and adjacent architectures</a><a href="../wiki/09-upstream-tests-statements.html" class="active">Upstream tests and maintainer statements</a><a href="../wiki/10-local-experiment-matrix.html" class="">Local experiment matrix</a><a href="../wiki/11-open-questions-machine-evidence.html" class="">Open questions requiring machine evidence</a><a href="../wiki/12-evidence-index.html" class="">Evidence index</a></nav><div class="mini"><b>Non-claim boundary</b><br>No RCCL suitability or GPU-direct-over-USB4 conclusion without exact two-node evidence.</div></aside><main class="main"><div class="topbar"><span class="crumb">PF-IR-08 / Upstream tests and maintainer statements</span><span><a href="../README.md">README</a> · <a href="../claims/claims.csv">claims.csv</a> · <a href="../manifests/source_manifest.csv">manifest</a></span></div><div class="content"><article class="article"><h1>Upstream tests and maintainer statements</h1>
+<h2>Tests that merit reuse</h2>
+<ul>
+<li><code>rccl-tests</code> with MPI: multi-node correctness and performance sweeps for standard collectives.</li>
+<li>RCCL MPI framework: hostfile/network-interface controlled distributed tests.</li>
+<li><code>NetSocketTests.cpp</code>: local Socket request/progress unit coverage.</li>
+<li>Active <code>RevokeMPITests.cpp</code> and <code>GrowMPITests.cpp</code>: version-specific recovery API coverage.</li>
+<li>Active timeout tests: specific <code>ncclTimeout</code> producers and async-state handling.</li>
+</ul>
+<h2>Tests that do not establish the target</h2>
+<p>The Socket unit test runs locally. The generic MPI suite does not encode cable or NIC topology. The active timeout tests do not establish a universal Socket deadline. No audited test fixture names two gfx1151 hosts connected by Ethernet-over-USB4.</p>
+<h2>Maintainer/report chronology</h2>
+<ol>
+<li>A 2025 standalone issue received an initial “no plans” maintainer response.</li>
+<li>The same maintainer later redirected tracking to monorepo issue #2788.</li>
+<li>PR #3415 merged gfx1151 enablement with explicit single-GPU-only validation.</li>
+<li>PR #4875 merged Strix Halo tuning and reported 1–4 nodes over a 10 Gbps Ethernet switch.</li>
+</ol>
+<p>This chronology prevents an obsolete issue comment from being mistaken for the current source state while preserving its historical context.</p>
+</article><div class="footer">Commit-pinned research snapshot. Literal labels distinguish API, implementation, documentation, tests, commentary, inference, and unresolved machine evidence.</div></div></main></div><script src="../assets/wiki.js"></script></body></html>

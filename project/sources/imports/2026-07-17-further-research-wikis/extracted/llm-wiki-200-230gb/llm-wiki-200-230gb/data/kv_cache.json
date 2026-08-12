@@ -1,0 +1,862 @@
+[
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 32768,
+    "cache_type": "f16",
+    "scalars": 3154116608,
+    "bytes": 6308233216,
+    "gib": 5.875,
+    "plan_gib": 6.0,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 32768,
+    "cache_type": "q8_0",
+    "scalars": 3154116608,
+    "bytes": 3351248896,
+    "gib": 3.12109375,
+    "plan_gib": 3.25,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 32768,
+    "cache_type": "q4_0",
+    "scalars": 3154116608,
+    "bytes": 1774190592,
+    "gib": 1.65234375,
+    "plan_gib": 1.75,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 65536,
+    "cache_type": "f16",
+    "scalars": 6308233216,
+    "bytes": 12616466432,
+    "gib": 11.75,
+    "plan_gib": 11.75,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 65536,
+    "cache_type": "q8_0",
+    "scalars": 6308233216,
+    "bytes": 6702497792,
+    "gib": 6.2421875,
+    "plan_gib": 6.25,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 65536,
+    "cache_type": "q4_0",
+    "scalars": 6308233216,
+    "bytes": 3548381184,
+    "gib": 3.3046875,
+    "plan_gib": 3.5,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 131072,
+    "cache_type": "f16",
+    "scalars": 12616466432,
+    "bytes": 25232932864,
+    "gib": 23.5,
+    "plan_gib": 23.5,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 131072,
+    "cache_type": "q8_0",
+    "scalars": 12616466432,
+    "bytes": 13404995584,
+    "gib": 12.484375,
+    "plan_gib": 12.5,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 131072,
+    "cache_type": "q4_0",
+    "scalars": 12616466432,
+    "bytes": 7096762368,
+    "gib": 6.609375,
+    "plan_gib": 6.75,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 262144,
+    "cache_type": "f16",
+    "scalars": 25232932864,
+    "bytes": 50465865728,
+    "gib": 47.0,
+    "plan_gib": 47.0,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 262144,
+    "cache_type": "q8_0",
+    "scalars": 25232932864,
+    "bytes": 26809991168,
+    "gib": 24.96875,
+    "plan_gib": 25.0,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "qwen3-235b-a22b-2507",
+    "context_tokens": 262144,
+    "cache_type": "q4_0",
+    "scalars": 25232932864,
+    "bytes": 14193524736,
+    "gib": 13.21875,
+    "plan_gib": 13.25,
+    "status": "verified-from-config"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 32768,
+    "cache_type": "f16",
+    "scalars": 874512384,
+    "bytes": 1749024768,
+    "gib": 1.62890625,
+    "plan_gib": 1.75,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 32768,
+    "cache_type": "q8_0",
+    "scalars": 874512384,
+    "bytes": 929169408,
+    "gib": 0.8653564453125,
+    "plan_gib": 1.0,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 32768,
+    "cache_type": "q4_0",
+    "scalars": 874512384,
+    "bytes": 491913216,
+    "gib": 0.4581298828125,
+    "plan_gib": 0.5,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 65536,
+    "cache_type": "f16",
+    "scalars": 1679818752,
+    "bytes": 3359637504,
+    "gib": 3.12890625,
+    "plan_gib": 3.25,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 65536,
+    "cache_type": "q8_0",
+    "scalars": 1679818752,
+    "bytes": 1784807424,
+    "gib": 1.6622314453125,
+    "plan_gib": 1.75,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 65536,
+    "cache_type": "q4_0",
+    "scalars": 1679818752,
+    "bytes": 944898048,
+    "gib": 0.8800048828125,
+    "plan_gib": 1.0,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 131072,
+    "cache_type": "f16",
+    "scalars": 3290431488,
+    "bytes": 6580862976,
+    "gib": 6.12890625,
+    "plan_gib": 6.25,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 131072,
+    "cache_type": "q8_0",
+    "scalars": 3290431488,
+    "bytes": 3496083456,
+    "gib": 3.2559814453125,
+    "plan_gib": 3.5,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 131072,
+    "cache_type": "q4_0",
+    "scalars": 3290431488,
+    "bytes": 1850867712,
+    "gib": 1.7237548828125,
+    "plan_gib": 1.75,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 262144,
+    "cache_type": "f16",
+    "scalars": 6511656960,
+    "bytes": 13023313920,
+    "gib": 12.12890625,
+    "plan_gib": 12.25,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 262144,
+    "cache_type": "q8_0",
+    "scalars": 6511656960,
+    "bytes": 6918635520,
+    "gib": 6.4434814453125,
+    "plan_gib": 6.5,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "step-3.7-flash",
+    "context_tokens": 262144,
+    "cache_type": "q4_0",
+    "scalars": 6511656960,
+    "bytes": 3662807040,
+    "gib": 3.4112548828125,
+    "plan_gib": 3.5,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 32768,
+    "cache_type": "f16",
+    "scalars": 454164480,
+    "bytes": 908328960,
+    "gib": 0.845947265625,
+    "plan_gib": 1.0,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 32768,
+    "cache_type": "q8_0",
+    "scalars": 454164480,
+    "bytes": 482549760,
+    "gib": 0.44940948486328125,
+    "plan_gib": 0.5,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 32768,
+    "cache_type": "q4_0",
+    "scalars": 454164480,
+    "bytes": 255467520,
+    "gib": 0.23792266845703125,
+    "plan_gib": 0.25,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 65536,
+    "cache_type": "f16",
+    "scalars": 831651840,
+    "bytes": 1663303680,
+    "gib": 1.549072265625,
+    "plan_gib": 1.75,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 65536,
+    "cache_type": "q8_0",
+    "scalars": 831651840,
+    "bytes": 883630080,
+    "gib": 0.8229446411132812,
+    "plan_gib": 1.0,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 65536,
+    "cache_type": "q4_0",
+    "scalars": 831651840,
+    "bytes": 467804160,
+    "gib": 0.43567657470703125,
+    "plan_gib": 0.5,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 131072,
+    "cache_type": "f16",
+    "scalars": 1586626560,
+    "bytes": 3173253120,
+    "gib": 2.955322265625,
+    "plan_gib": 3.0,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 131072,
+    "cache_type": "q8_0",
+    "scalars": 1586626560,
+    "bytes": 1685790720,
+    "gib": 1.5700149536132812,
+    "plan_gib": 1.75,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 131072,
+    "cache_type": "q4_0",
+    "scalars": 1586626560,
+    "bytes": 892477440,
+    "gib": 0.8311843872070312,
+    "plan_gib": 1.0,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 262144,
+    "cache_type": "f16",
+    "scalars": 3096576000,
+    "bytes": 6193152000,
+    "gib": 5.767822265625,
+    "plan_gib": 6.0,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 262144,
+    "cache_type": "q8_0",
+    "scalars": 3096576000,
+    "bytes": 3290112000,
+    "gib": 3.0641555786132812,
+    "plan_gib": 3.25,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "mimo-v2-flash",
+    "context_tokens": 262144,
+    "cache_type": "q4_0",
+    "scalars": 3096576000,
+    "bytes": 1741824000,
+    "gib": 1.6222000122070312,
+    "plan_gib": 1.75,
+    "status": "verified-from-config-and-current-iswa-cache-code"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 32768,
+    "cache_type": "f16",
+    "scalars": 6174015488,
+    "bytes": 12348030976,
+    "gib": 11.5,
+    "plan_gib": 11.5,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 32768,
+    "cache_type": "q8_0",
+    "scalars": 6174015488,
+    "bytes": 6559891456,
+    "gib": 6.109375,
+    "plan_gib": 6.25,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 32768,
+    "cache_type": "q4_0",
+    "scalars": 6174015488,
+    "bytes": 3472883712,
+    "gib": 3.234375,
+    "plan_gib": 3.25,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 65536,
+    "cache_type": "f16",
+    "scalars": 12348030976,
+    "bytes": 24696061952,
+    "gib": 23.0,
+    "plan_gib": 23.0,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 65536,
+    "cache_type": "q8_0",
+    "scalars": 12348030976,
+    "bytes": 13119782912,
+    "gib": 12.21875,
+    "plan_gib": 12.25,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 65536,
+    "cache_type": "q4_0",
+    "scalars": 12348030976,
+    "bytes": 6945767424,
+    "gib": 6.46875,
+    "plan_gib": 6.5,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 131072,
+    "cache_type": "f16",
+    "scalars": 24696061952,
+    "bytes": 49392123904,
+    "gib": 46.0,
+    "plan_gib": 46.0,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 131072,
+    "cache_type": "q8_0",
+    "scalars": 24696061952,
+    "bytes": 26239565824,
+    "gib": 24.4375,
+    "plan_gib": 24.5,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 131072,
+    "cache_type": "q4_0",
+    "scalars": 24696061952,
+    "bytes": 13891534848,
+    "gib": 12.9375,
+    "plan_gib": 13.0,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 202752,
+    "cache_type": "f16",
+    "scalars": 38201720832,
+    "bytes": 76403441664,
+    "gib": 71.15625,
+    "plan_gib": 71.25,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 202752,
+    "cache_type": "q8_0",
+    "scalars": 38201720832,
+    "bytes": 40589328384,
+    "gib": 37.8017578125,
+    "plan_gib": 38.0,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "glm-4.7",
+    "context_tokens": 202752,
+    "cache_type": "q4_0",
+    "scalars": 38201720832,
+    "bytes": 21488467968,
+    "gib": 20.0126953125,
+    "plan_gib": 20.25,
+    "status": "verified-from-config/current-implementation"
+  },
+  {
+    "candidate_id": "nemotron-ultra-253b",
+    "context_tokens": 32768,
+    "cache_type": "f16",
+    "scalars": 8455716864,
+    "bytes": 16911433728,
+    "gib": 15.75,
+    "plan_gib": 15.75,
+    "status": "conservative-upper-bound; actual lower because some NAS blocks skip attention"
+  },
+  {
+    "candidate_id": "nemotron-ultra-253b",
+    "context_tokens": 32768,
+    "cache_type": "q8_0",
+    "scalars": 8455716864,
+    "bytes": 8984199168,
+    "gib": 8.3671875,
+    "plan_gib": 8.5,
+    "status": "conservative-upper-bound; actual lower because some NAS blocks skip attention"
+  },
+  {
+    "candidate_id": "nemotron-ultra-253b",
+    "context_tokens": 32768,
+    "cache_type": "q4_0",
+    "scalars": 8455716864,
+    "bytes": 4756340736,
+    "gib": 4.4296875,
+    "plan_gib": 4.5,
+    "status": "conservative-upper-bound; actual lower because some NAS blocks skip attention"
+  },
+  {
+    "candidate_id": "nemotron-ultra-253b",
+    "context_tokens": 65536,
+    "cache_type": "f16",
+    "scalars": 16911433728,
+    "bytes": 33822867456,
+    "gib": 31.5,
+    "plan_gib": 31.5,
+    "status": "conservative-upper-bound; actual lower because some NAS blocks skip attention"
+  },
+  {
+    "candidate_id": "nemotron-ultra-253b",
+    "context_tokens": 65536,
+    "cache_type": "q8_0",
+    "scalars": 16911433728,
+    "bytes": 17968398336,
+    "gib": 16.734375,
+    "plan_gib": 16.75,
+    "status": "conservative-upper-bound; actual lower because some NAS blocks skip attention"
+  },
+  {
+    "candidate_id": "nemotron-ultra-253b",
+    "context_tokens": 65536,
+    "cache_type": "q4_0",
+    "scalars": 16911433728,
+    "bytes": 9512681472,
+    "gib": 8.859375,
+    "plan_gib": 9.0,
+    "status": "conservative-upper-bound; actual lower because some NAS blocks skip attention"
+  },
+  {
+    "candidate_id": "nemotron-ultra-253b",
+    "context_tokens": 131072,
+    "cache_type": "f16",
+    "scalars": 33822867456,
+    "bytes": 67645734912,
+    "gib": 63.0,
+    "plan_gib": 63.0,
+    "status": "conservative-upper-bound; actual lower because some NAS blocks skip attention"
+  },
+  {
+    "candidate_id": "nemotron-ultra-253b",
+    "context_tokens": 131072,
+    "cache_type": "q8_0",
+    "scalars": 33822867456,
+    "bytes": 35936796672,
+    "gib": 33.46875,
+    "plan_gib": 33.5,
+    "status": "conservative-upper-bound; actual lower because some NAS blocks skip attention"
+  },
+  {
+    "candidate_id": "nemotron-ultra-253b",
+    "context_tokens": 131072,
+    "cache_type": "q4_0",
+    "scalars": 33822867456,
+    "bytes": 19025362944,
+    "gib": 17.71875,
+    "plan_gib": 17.75,
+    "status": "conservative-upper-bound; actual lower because some NAS blocks skip attention"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 32768,
+    "cache_type": "f16",
+    "scalars": 1151336448,
+    "bytes": 2302672896,
+    "gib": 2.14453125,
+    "plan_gib": 2.25,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 32768,
+    "cache_type": "q8_0",
+    "scalars": 1151336448,
+    "bytes": 1223294976,
+    "gib": 1.1392822265625,
+    "plan_gib": 1.25,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 32768,
+    "cache_type": "q4_0",
+    "scalars": 1151336448,
+    "bytes": 647626752,
+    "gib": 0.6031494140625,
+    "plan_gib": 0.75,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 65536,
+    "cache_type": "f16",
+    "scalars": 2302672896,
+    "bytes": 4605345792,
+    "gib": 4.2890625,
+    "plan_gib": 4.5,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 65536,
+    "cache_type": "q8_0",
+    "scalars": 2302672896,
+    "bytes": 2446589952,
+    "gib": 2.278564453125,
+    "plan_gib": 2.5,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 65536,
+    "cache_type": "q4_0",
+    "scalars": 2302672896,
+    "bytes": 1295253504,
+    "gib": 1.206298828125,
+    "plan_gib": 1.25,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 131072,
+    "cache_type": "f16",
+    "scalars": 4605345792,
+    "bytes": 9210691584,
+    "gib": 8.578125,
+    "plan_gib": 8.75,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 131072,
+    "cache_type": "q8_0",
+    "scalars": 4605345792,
+    "bytes": 4893179904,
+    "gib": 4.55712890625,
+    "plan_gib": 4.75,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 131072,
+    "cache_type": "q4_0",
+    "scalars": 4605345792,
+    "bytes": 2590507008,
+    "gib": 2.41259765625,
+    "plan_gib": 2.5,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 163840,
+    "cache_type": "f16",
+    "scalars": 5756682240,
+    "bytes": 11513364480,
+    "gib": 10.72265625,
+    "plan_gib": 10.75,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 163840,
+    "cache_type": "q8_0",
+    "scalars": 5756682240,
+    "bytes": 6116474880,
+    "gib": 5.6964111328125,
+    "plan_gib": 5.75,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "deepseek-r1-0528",
+    "context_tokens": 163840,
+    "cache_type": "q4_0",
+    "scalars": 5756682240,
+    "bytes": 3238133760,
+    "gib": 3.0157470703125,
+    "plan_gib": 3.25,
+    "status": "verified-from-current-MLA-absorption-implementation"
+  },
+  {
+    "candidate_id": "tulu3-405b",
+    "context_tokens": 32768,
+    "cache_type": "f16",
+    "scalars": 8455716864,
+    "bytes": 16911433728,
+    "gib": 15.75,
+    "plan_gib": 15.75,
+    "status": "verified-standard-GQA"
+  },
+  {
+    "candidate_id": "tulu3-405b",
+    "context_tokens": 32768,
+    "cache_type": "q8_0",
+    "scalars": 8455716864,
+    "bytes": 8984199168,
+    "gib": 8.3671875,
+    "plan_gib": 8.5,
+    "status": "verified-standard-GQA"
+  },
+  {
+    "candidate_id": "tulu3-405b",
+    "context_tokens": 32768,
+    "cache_type": "q4_0",
+    "scalars": 8455716864,
+    "bytes": 4756340736,
+    "gib": 4.4296875,
+    "plan_gib": 4.5,
+    "status": "verified-standard-GQA"
+  },
+  {
+    "candidate_id": "tulu3-405b",
+    "context_tokens": 65536,
+    "cache_type": "f16",
+    "scalars": 16911433728,
+    "bytes": 33822867456,
+    "gib": 31.5,
+    "plan_gib": 31.5,
+    "status": "verified-standard-GQA"
+  },
+  {
+    "candidate_id": "tulu3-405b",
+    "context_tokens": 65536,
+    "cache_type": "q8_0",
+    "scalars": 16911433728,
+    "bytes": 17968398336,
+    "gib": 16.734375,
+    "plan_gib": 16.75,
+    "status": "verified-standard-GQA"
+  },
+  {
+    "candidate_id": "tulu3-405b",
+    "context_tokens": 65536,
+    "cache_type": "q4_0",
+    "scalars": 16911433728,
+    "bytes": 9512681472,
+    "gib": 8.859375,
+    "plan_gib": 9.0,
+    "status": "verified-standard-GQA"
+  },
+  {
+    "candidate_id": "tulu3-405b",
+    "context_tokens": 131072,
+    "cache_type": "f16",
+    "scalars": 33822867456,
+    "bytes": 67645734912,
+    "gib": 63.0,
+    "plan_gib": 63.0,
+    "status": "verified-standard-GQA"
+  },
+  {
+    "candidate_id": "tulu3-405b",
+    "context_tokens": 131072,
+    "cache_type": "q8_0",
+    "scalars": 33822867456,
+    "bytes": 35936796672,
+    "gib": 33.46875,
+    "plan_gib": 33.5,
+    "status": "verified-standard-GQA"
+  },
+  {
+    "candidate_id": "tulu3-405b",
+    "context_tokens": 131072,
+    "cache_type": "q4_0",
+    "scalars": 33822867456,
+    "bytes": 19025362944,
+    "gib": 17.71875,
+    "plan_gib": 17.75,
+    "status": "verified-standard-GQA"
+  },
+  {
+    "candidate_id": "minimax-m3",
+    "context_tokens": 32768,
+    "cache_type": "unverified",
+    "scalars": null,
+    "bytes": null,
+    "gib": null,
+    "plan_gib": null,
+    "status": "measurement-gate: MSA cache allocation not verified in pinned mainline"
+  },
+  {
+    "candidate_id": "minimax-m3",
+    "context_tokens": 65536,
+    "cache_type": "unverified",
+    "scalars": null,
+    "bytes": null,
+    "gib": null,
+    "plan_gib": null,
+    "status": "measurement-gate: MSA cache allocation not verified in pinned mainline"
+  },
+  {
+    "candidate_id": "minimax-m3",
+    "context_tokens": 131072,
+    "cache_type": "unverified",
+    "scalars": null,
+    "bytes": null,
+    "gib": null,
+    "plan_gib": null,
+    "status": "measurement-gate: MSA cache allocation not verified in pinned mainline"
+  },
+  {
+    "candidate_id": "minimax-m3",
+    "context_tokens": 1048576,
+    "cache_type": "unverified",
+    "scalars": null,
+    "bytes": null,
+    "gib": null,
+    "plan_gib": null,
+    "status": "measurement-gate: MSA cache allocation not verified in pinned mainline"
+  },
+  {
+    "candidate_id": "kimi-k2-thinking",
+    "context_tokens": 32768,
+    "cache_type": "unverified",
+    "scalars": null,
+    "bytes": null,
+    "gib": null,
+    "plan_gib": null,
+    "status": "not capacity-qualified in this package"
+  },
+  {
+    "candidate_id": "kimi-k2-thinking",
+    "context_tokens": 65536,
+    "cache_type": "unverified",
+    "scalars": null,
+    "bytes": null,
+    "gib": null,
+    "plan_gib": null,
+    "status": "not capacity-qualified in this package"
+  },
+  {
+    "candidate_id": "kimi-k2-thinking",
+    "context_tokens": 131072,
+    "cache_type": "unverified",
+    "scalars": null,
+    "bytes": null,
+    "gib": null,
+    "plan_gib": null,
+    "status": "not capacity-qualified in this package"
+  },
+  {
+    "candidate_id": "kimi-k2-thinking",
+    "context_tokens": 262144,
+    "cache_type": "unverified",
+    "scalars": null,
+    "bytes": null,
+    "gib": null,
+    "plan_gib": null,
+    "status": "not capacity-qualified in this package"
+  }
+]

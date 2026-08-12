@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Signed release decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "decision_id",
+    "candidate_id",
+    "profile",
+    "stage",
+    "decision",
+    "decided_at",
+    "summary_sha256",
+    "gate_results",
+    "signoffs"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "decision_id": {
+      "type": "string"
+    },
+    "candidate_id": {
+      "type": "string"
+    },
+    "profile": {
+      "enum": [
+        "scale_out",
+        "capacity_extension",
+        "availability_recovery"
+      ]
+    },
+    "stage": {
+      "enum": [
+        "G0",
+        "G1",
+        "G2",
+        "G3",
+        "G4"
+      ]
+    },
+    "decision": {
+      "enum": [
+        "DESIGN_COMPLETE",
+        "LAB_READY",
+        "INTEGRATION_EXIT_PASS",
+        "RC_PASS",
+        "STABLE",
+        "PASS_WITH_WAIVER",
+        "FAIL",
+        "INSUFFICIENT_EVIDENCE"
+      ]
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "summary_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "gate_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "gate_id",
+          "status",
+          "reason"
+        ],
+        "properties": {
+          "gate_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "WARN",
+              "FAIL",
+              "INSUFFICIENT_EVIDENCE",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "evidence_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "waivers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "owner",
+          "expires_at",
+          "bounded_claim",
+          "rollback"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "bounded_claim": {
+            "type": "string"
+          },
+          "rollback": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "signoffs": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "role",
+          "name",
+          "signed_at"
+        ],
+        "properties": {
+          "role": {
+            "enum": [
+              "benchmark",
+              "runtime",
+              "platform",
+              "release",
+              "security"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "signed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signature_or_attestation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "benchmark"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "runtime"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "platform"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "release"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "const": "security"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        }
+      ]
+    },
+    "claim_text": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

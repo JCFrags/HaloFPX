@@ -1,0 +1,37 @@
+function cache_write(request, semantic_value):
+    authz = principal_authority.authorize(request.principal, request.scope, "cache-write")
+    require(authz.allowed)
+
+    policy = trusted_policy.current(authz.scope)
+    epoch = key_broker.current_rank_epoch(request.principal, authz.scope, request.rank_id)
+    require(epoch.state == ACTIVE)
+
+    semantic_bytes = deterministic_semantic_encode(semantic_value, policy.schema)
+    scoped_cid = HMAC_SHA256(epoch.K_id, CID_LABEL || semantic_bytes)
+
+    existing = scope_index(authz.scope).lookup(scoped_cid)
+    if existing is not NONE and cache_read(request, existing) is CACHE_HIT:
+        return existing
+
+    compressed = bounded_compress(semantic_bytes, policy.compression)
+    nonce = nonce_allocator(epoch.key_id).reserve_and_take_durable()
+
+    aad = build_canonical_aad(
+        authz, epoch, policy, scoped_cid,
+        uncompressed_length=len(semantic_bytes),
+        ciphertext_length=predicted_ciphertext_length(len(compressed)),
+        manifest_generation=policy.next_manifest_generation)
+    aad_bytes = deterministic_cbor(aad)
+
+    ciphertext, tag = AEAD_SEAL(
+        suite=epoch.suite, key=epoch.K_enc, nonce=nonce,
+        aad=aad_bytes, plaintext=compressed)
+
+    tmp = create_exclusive_temp_file(target_filesystem)
+    write_all(tmp, encode_envelope(epoch.key_id, nonce, aad_bytes, ciphertext, tag))
+    fsync(tmp)
+    rename_no_replace(tmp, content_path(scoped_cid, nonce_or_object_id))
+    fsync(parent_directory)
+
+    publish_authenticated_manifest_last(aad, object_locator)
+    return object_locator

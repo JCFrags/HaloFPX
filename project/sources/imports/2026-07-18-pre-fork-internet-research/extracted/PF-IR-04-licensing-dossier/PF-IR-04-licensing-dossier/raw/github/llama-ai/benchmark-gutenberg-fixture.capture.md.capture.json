@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/github/llama-ai/benchmark-gutenberg-fixture.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "line-normalized authoritative connector capture",
+  "source_url": "https://github.com/fewtarius/llama-ai/blob/1017f3dfdce3ca2b06aa9007b23295db3bb35722/scripts/benchmark.sh",
+  "repository": "fewtarius/llama-ai",
+  "repository_commit_or_revision": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+  "repository_path": "scripts/benchmark.sh",
+  "git_blob_sha1": "6d4743a25906a271f8eef17bbe5e153c3d430704",
+  "sha256": "c7dee7a4c9f4bd447fba54c8c77012ebeee64faa044ede1d89c54db1430c29ba",
+  "size_bytes": 882,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-TEST-FIXTURE-REFERENCE"
+}

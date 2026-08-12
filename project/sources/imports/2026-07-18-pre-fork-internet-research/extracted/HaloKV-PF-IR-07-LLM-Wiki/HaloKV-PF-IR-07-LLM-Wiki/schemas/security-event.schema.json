@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:halokv:pfir07:security-event:v1",
+  "title": "HaloKV protected internal security event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "event_id",
+    "time",
+    "reason_code",
+    "action",
+    "external_result",
+    "rank_id",
+    "namespace_id",
+    "epoch_id",
+    "redaction_profile"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason_code": {
+      "enum": [
+        "KEY_NOT_AUTHORIZED",
+        "KEY_UNAVAILABLE",
+        "KEY_REVOKED",
+        "FORMAT_BOUNDS",
+        "FORMAT_NONCANONICAL",
+        "AAD_EXPECTED_DIFFERENT",
+        "AEAD_TAG_FAIL",
+        "CID_FAIL",
+        "REPLAY_FLOOR",
+        "TOMBSTONED",
+        "OBJECT_MISSING",
+        "MANIFEST_FAIL",
+        "UNSUPPORTED_SUITE",
+        "UNSUPPORTED_CRITICAL_EXTENSION",
+        "NONCE_STATE_UNCERTAIN",
+        "LOWER_LAYER_IO"
+      ]
+    },
+    "action": {
+      "enum": [
+        "MISS",
+        "DELETE_CANDIDATE",
+        "QUARANTINE",
+        "STOP_SCOPE",
+        "ROTATE_EPOCH",
+        "ESCALATE"
+      ]
+    },
+    "external_result": {
+      "const": "MISS_RECOMPUTE"
+    },
+    "authority_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tenant_pseudonym": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Audit pseudonym, not raw tenant display name."
+    },
+    "project_pseudonym": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rank_id": {
+      "type": "string"
+    },
+    "namespace_id": {
+      "type": "string"
+    },
+    "epoch_id": {
+      "type": "string"
+    },
+    "key_id_hash": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "object_locator_hash": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "manifest_generation": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "redaction_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlation_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 128
+    }
+  }
+}

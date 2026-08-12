@@ -1,0 +1,56 @@
+section_id: "73"
+category_id: "11"
+title: "Benchmark Methodology, Terminology, Experimental Controls, and Data Schema"
+category: "11_Verification_and_Performance"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 11
+open_question_count: 15
+required_machine_experiments:
+  - "Characterize warmup convergence and steady-state variance by model, backend, and distributed mode."
+  - "Validate monotonic and cross-node clock behavior, offset, and uncertainty."
+  - "Inventory AMD SMI fields, cadence, units, missing values, and sensor stability on both nodes."
+  - "Calibrate device/package telemetry against synchronized wall power."
+  - "Validate per-token versus per-chunk streaming timestamps."
+  - "Prove DRAM, Linux page-cache, and NVMe cache-state classifications."
+  - "Estimate independent run and request counts for tail and release claims."
+  - "Round-trip raw JSONL validation and reproduce summaries from hashes."
+related_sections:
+  - "05"
+  - "18"
+  - "22"
+  - "27"
+  - "36"
+  - "38"
+  - "55"
+  - "57"
+  - "65"
+  - "74"
+  - "75"
+  - "76"
+  - "77"
+  - "78"
+  - "79"
+  - "81"
+  - "84"
+applicability:
+  repositories:
+    - repository: "charlie12345/ROCmFPX"
+      commit: "a5605a72768c6562241b248e268e33dc92787394"
+    - repository: "ggml-org/llama.cpp"
+      commit: "788e07dc91d266ad3162a1ce9037665656269689"
+  software_versions:
+    - "HaloFPX benchmark record schema 1.0.0"
+    - "jsonschema 4.26.0"
+    - "JSON Schema Draft 2020-12"
+  hardware_revisions:
+    - "two matched AMD Strix Halo systems; exact BOM pending section 18"
+claim_scope:
+  measurements_present: false
+  schema_structure_validated: true
+  methodology_state: "schema structure implemented; experimental controls and thresholds require on-machine validation and approval"
+validated_artifacts:
+  schema: "data/benchmark_record.schema.json"
+  validator: "scripts/validate_benchmark_records.py"
+  fixtures: ["data/fixtures/valid-request.json", "data/fixtures/invalid-request.json"]
+  evidence: "evidence/schema-validation-result.json"

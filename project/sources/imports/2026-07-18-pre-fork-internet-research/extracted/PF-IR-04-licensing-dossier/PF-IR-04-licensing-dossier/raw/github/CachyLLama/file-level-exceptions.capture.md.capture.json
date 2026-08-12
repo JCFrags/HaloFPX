@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/github/CachyLLama/file-level-exceptions.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "line-normalized authoritative connector capture",
+  "source_url": "https://github.com/fewtarius/CachyLLama/tree/6be745998f568e379ea197fcf827baec73ff9940",
+  "repository": "fewtarius/CachyLLama",
+  "repository_commit_or_revision": "6be745998f568e379ea197fcf827baec73ff9940",
+  "repository_path": "representative files",
+  "git_blob_sha1": null,
+  "sha256": "63947dac5ec201ce4d56acad78691980954c0e3b964095dd91381805ea3a240e",
+  "size_bytes": 1009,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-FILE-SPDX"
+}

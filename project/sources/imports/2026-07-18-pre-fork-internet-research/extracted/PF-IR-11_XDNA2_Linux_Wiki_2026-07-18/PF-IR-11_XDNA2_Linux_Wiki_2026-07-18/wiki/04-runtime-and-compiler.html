@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>4. Userspace runtime and compiler boundary — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a class="active" href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/04-runtime-and-compiler.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>4. Userspace runtime and compiler boundary</h1>
+<h2 id="open-source-components">Open-source components</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The kernel documentation identifies an open-source lower stack:</p>
+<table>
+<thead>
+<tr>
+  <th>Component</th>
+  <th>Role</th>
+  <th>Research pin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Linux <code>amdxdna</code></td>
+  <td>kernel driver/UAPI</td>
+  <td><code>94515f3...</code></td>
+</tr>
+<tr>
+  <td>XRT</td>
+  <td>generic userspace runtime</td>
+  <td><code>a21f10d...</code></td>
+</tr>
+<tr>
+  <td>AMD XDNA shim</td>
+  <td>XRT-to-<code>amdxdna</code> plugin</td>
+  <td><code>0697b172...</code></td>
+</tr>
+<tr>
+  <td><code>llvm-aie</code> / Peano</td>
+  <td>compute-tile compiler</td>
+  <td><code>ce8c0f8...</code></td>
+</tr>
+<tr>
+  <td><code>mlir-aie</code> / IRON</td>
+  <td>array compiler</td>
+  <td><code>79089be0...</code></td>
+</tr>
+</tbody>
+</table>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> These public repository heads are not proven to be the exact build inputs for AMD's Ryzen AI Software 1.7.1 binary packages.</p>
+<h2 id="high-level-supported-path">High-level supported path</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's captured Linux 1.7.1 instructions require a matched package set:</p>
+<ul>
+<li><code>xrt_202610.2.21.75_24.04-amd64-base.deb</code></li>
+<li><code>xrt_202610.2.21.75_24.04-amd64-base-dev.deb</code></li>
+<li><code>xrt_202610.2.21.75_24.04-amd64-npu.deb</code></li>
+<li><code>xrt_plugin.2.21.260102.53.release_24.04-amd64-amdxdna.deb</code></li>
+<li><code>ryzen_ai-1.7.1.tgz</code></li>
+</ul>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> These assets are account-downloaded and governed by AMD's package terms/EULA and third-party notices.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Their archive hashes were not available in this research capture.</p>
+<h2 id="runtime-layers">Runtime layers</h2>
+<p>The documented model path is not “kernel driver plus arbitrary ONNX”:</p>
+<ol>
+<li>application or framework;</li>
+<li>ONNX Runtime or ONNX Runtime GenAI;</li>
+<li>Vitis AI / VAIML execution-provider and compiler passes;</li>
+<li>compiled/cache artifact;</li>
+<li>XRT;</li>
+<li>AMD XDNA shim;</li>
+<li><code>amdxdna</code> UAPI;</li>
+<li>matched firmware.</li>
+</ol>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's DistilBERT example instantiates <code>VitisAIExecutionProvider</code> with a VAIML configuration and cache key.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's Linux LLM flow uses versioned prepared model folders and AMD deployment libraries rather than a generic GGUF interface.</p>
+<h2 id="compiler-output-boundary">Compiler output boundary</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> At the low-level kernel contract, an NPU workload contains an array overlay and <code>ctrlcode</code>, both generated by the NPU compiler.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> <code>ctrlcode</code> orchestrates the overlay and encodes DMA operations between host DDR and local memory.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> Open Peano/IRON source availability does not make arbitrary ONNX deployment turnkey. The documented ONNX graph importer, quantization, partitioning, compiled artifacts, and supported package integration remain AMD-release-specific.</p>
+<h2 id="packaging-consistency">Packaging consistency</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD recommends building XRT from the submodule matched to the XDNA plugin source when building from source.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD documents both an upstream/staging module and a legacy module in its plugin packages.</p>
+<p><span class="claim claim-decision">[DECISION]</span> A local experiment must select exactly one driver/firmware/runtime lineage and record the package and module source. Hybrid mixing is an automatic fail.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

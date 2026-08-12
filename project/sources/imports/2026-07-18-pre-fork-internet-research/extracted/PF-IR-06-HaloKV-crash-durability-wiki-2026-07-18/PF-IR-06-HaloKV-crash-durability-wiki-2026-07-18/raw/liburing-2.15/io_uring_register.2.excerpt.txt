@@ -1,0 +1,24 @@
+---
+source_id: "S015"
+title: "liburing io_uring_register(2)"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "axboe/liburing"
+path: "man/io_uring_register.2"
+version: "2.15"
+commit: "d41bf9220ec39277ff235379e9089d9e0fd6c2a5"
+upstream_blob_sha1: "1b36ce1f23e807862941279bef7edceb60d71ab3"
+line_ranges: "22-31, 48-108, 138-177, 230-357"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "LGPL-2.0-or-later"
+---
+Registration gives the kernel long-term references to files or long-term
+mappings of application memory. Registered buffers are locked/pinned for fixed
+buffer operations. Resource updates may return before old resources are
+actually deallocated; they can remain alive until all users complete.
+
+When nonzero resource tags are used, a CQE carrying the tag is posted after the
+resource is unregistered and no longer in use.
+
+Registered files are automatically unregistered on ring teardown. Buffer
+unpinning during shutdown may proceed asynchronously.

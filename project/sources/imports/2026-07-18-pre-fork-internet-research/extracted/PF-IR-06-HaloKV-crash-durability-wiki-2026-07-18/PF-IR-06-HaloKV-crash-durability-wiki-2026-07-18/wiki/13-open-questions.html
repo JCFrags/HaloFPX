@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Open questions and release gates · PF-IR-06</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="../index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="00-scope-and-claim-language.html">Scope / labels</a><a href="01-executive-decision-record.html">Decision record</a><a href="02-portable-linux-minimum.html">Portable minimum</a><a href="03-temporary-files-and-publication.html">Publication</a><a href="04-deployed-filesystem-profile.html">Deployed profile</a><a href="05-ext4.html">ext4</a><a href="06-xfs.html">XFS</a><a href="07-btrfs.html">Btrfs</a><a href="08-io-uring.html">io_uring</a><a href="09-errors-space-direct-io.html">Errors / DIO</a><a href="10-locking-and-fencing.html">Locking</a><a href="11-fault-test-matrix.html">Fault program</a><a href="12-nontarget-portability.html">Non-targets</a><a class="active" href="13-open-questions.html">Open questions</a><a href="14-source-audit.html">Source audit</a><a href="../matrices/claim-ledger.html">Claim ledger</a><a href="../matrices/guarantee-source-test.html">Guarantee map</a><a href="../matrices/experiment-matrix.html">Experiment matrix</a><a href="../matrices/source-register.html">Source register</a><a href="../VERSION-PINS.html">Version pins</a><a href="../raw/README.html">Raw capture policy</a><a href="../licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="../scripts/fault-tests/README.html">Harness notes</a><a href="../BUILD-VALIDATION.html">Build validation</a><a href="../README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="../index.html">Wiki home</a><span>·</span><a href="13-open-questions.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>Open questions and release gates</h1>
+<h2>Deployment facts</h2>
+<ul>
+<li>What are the exact HaloKV and tensor-cache paths in production?</li>
+<li>What do <code>findmnt</code>, <code>/proc/self/mountinfo</code>, filesystem feature tools and block topology report for each?</li>
+<li>Is either root inside a container overlay, bind mount or managed volume?</li>
+<li>What are the controller/device volatile-cache and power-loss-protection characteristics?</li>
+</ul>
+<h2>OPEN-FMT-01 details</h2>
+<ul>
+<li>Final header schema, endianness, checksum/hash and collision policy.</li>
+<li>Object key binding and separation between HaloKV and tensor-cache object classes.</li>
+<li>Generation, manifest and garbage-collection model.</li>
+<li>Compatibility/upgrade policy and maximum object size.</li>
+<li>Whether metadata such as mode/ownership/xattrs is part of the durable contract, which determines <code>fdatasync</code> versus <code>fsync</code>.</li>
+</ul>
+<h2>OPEN-STORAGE-01 details</h2>
+<ul>
+<li>Create-only versus replace semantics per object class.</li>
+<li>Whether a manifest indirection is required for multi-object transactions.</li>
+<li>Whether directory batching is allowed and the maximum acknowledgement window.</li>
+<li>ext4 versus XFS deployment decision; Btrfs conditional acceptance.</li>
+<li>DIO admission criteria and measured benefit.</li>
+<li>Required behavior after directory-sync failure or EIO: process exit, root read-only mode, or operator fence.</li>
+</ul>
+<h2>io_uring details</h2>
+<ul>
+<li>Minimum supported kernel and liburing versions for deployment, not merely the research anchor.</li>
+<li>Ring ownership model and whether SQPOLL/IOPOLL is permitted.</li>
+<li>CQ overflow policy, multishot use and <code>IOSQE_CQE_SKIP_SUCCESS</code> prohibition/allowance.</li>
+<li>Resource-tag strategy and maximum registered memory.</li>
+<li>Shutdown deadlines and behavior for noncancelable storage I/O.</li>
+</ul>
+<h2>Hard release gate</h2>
+<p>No persistent writes until <code>T001–T040</code> applicable to the selected profile pass and the evidence bundle is reviewed. Documentation narrows the design space; it does not certify the implementation.</p>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="../assets/wiki.js"></script></body></html>

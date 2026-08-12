@@ -1,0 +1,59 @@
+schema_version: "1.0"
+name: Two-rank Megatron-style tensor parallel inference
+mode: tensor_parallel_2
+viability: conditional
+objective: [per-layer weight capacity, possible compute sharing]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: validated_striping
+  bandwidth_symbol: B_sum after striping gate; otherwise B_1
+  latency_symbol: ell plus traced p=2 all-reduce phase count m_AR
+coordinator_rank: 0
+ranks:
+  - rank_id: 0
+    node: A
+    role: [request coordinator, tensor rank 0, final token coordinator]
+    ownership:
+      tokenizer: full tokenizer and detokenizer
+      sampler: distributed vocabulary sampler coordinator; never require full-logit gather by default
+      rng: final sampling RNG/counter owner
+      model: embedding shard, tensor shard 0/2 of every transformer layer, final norm replica, LM-head vocabulary shard 0/2
+      experts: not defined by this dense placement; use a tensor-expert hybrid schema for MoE
+      kv: KV-head shard 0/2 for every layer when H_kv is divisible by 2; otherwise explicit replicate/uneven plan required
+      sessions: authoritative request state and token history
+  - rank_id: 1
+    node: B
+    role: [tensor rank 1]
+    ownership:
+      tokenizer: none
+      sampler: local vocabulary statistics and candidate contribution
+      rng: no independent final RNG
+      model: embedding shard, tensor shard 1/2 of every transformer layer, final norm replica, LM-head vocabulary shard 1/2
+      experts: not defined by this dense placement
+      kv: KV-head shard 1/2 for every layer when divisible
+      sessions: mirrored token IDs needed for forward execution; not authoritative
+flows:
+  - phase: every attention output projection and MLP down projection
+    from: 0
+    to: 1
+    payload: p=2 all-reduce exchange; symmetric reverse direction occurs concurrently
+    volume_formula: S=N*h*b_a for prefill or S=Q*h*b_a for decode; 2*L collectives
+    synchronization: one collective dependency per operation; transport uses m_AR traced phases
+    link_policy: bulk_striped_if_validated
+  - phase: token selection
+    from: 1
+    to: 0
+    payload: local maxima or distributed-sampling statistics/candidates
+    volume_formula: protocol dependent and normally far below full logits; full-logit fallback is Q*Vocab*b_p
+    synchronization: one sampler reduction/protocol per decode step
+    link_policy: control
+hard_gates:
+  - Runtime supports correct TP=2 kernels and collectives on both Strix Halo systems.
+  - Measured TP inequality passes after including 2*L collectives and m_AR latency phases.
+  - KV-head count is divisible by two or a validated replicate/uneven policy exists.
+  - Distributed sampling is exact for the selected greedy/stochastic policy.
+  - Dual-link striping is used only after simultaneous scaling is measured.
+notes:
+  - Capacity feasibility does not imply latency or throughput speedup.
+  - The default model excludes sequence parallel variants and activation compression.

@@ -1,0 +1,140 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MiMo-V2-Flash · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>MiMo-V2-Flash</h1>
+<p><strong>Rank:</strong> 3 · <strong>Score:</strong> 86/100 · <strong>Disposition:</strong> <code>shortlist</code></p>
+<h2>Selected representation</h2>
+<table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Architecture</td>
+  <td>mimo2</td>
+</tr>
+<tr>
+  <td>Class</td>
+  <td>MoE + hybrid attention</td>
+</tr>
+<tr>
+  <td>Total parameters</td>
+  <td>309B</td>
+</tr>
+<tr>
+  <td>Activated parameters/token</td>
+  <td>15B</td>
+</tr>
+<tr>
+  <td>Layers</td>
+  <td>48</td>
+</tr>
+<tr>
+  <td>Experts / active</td>
+  <td>256 / 8</td>
+</tr>
+<tr>
+  <td>Native context</td>
+  <td>262,144</td>
+</tr>
+<tr>
+  <td>License</td>
+  <td>MIT (model weights; verify code components separately)</td>
+</tr>
+<tr>
+  <td>Chosen quant</td>
+  <td>Q5_K_M</td>
+</tr>
+<tr>
+  <td>Publisher size</td>
+  <td>219.20 decimal GB</td>
+</tr>
+<tr>
+  <td>Conservative weight plan</td>
+  <td>206 GiB</td>
+</tr>
+<tr>
+  <td>Artifact effective bits/parameter</td>
+  <td>5.675</td>
+</tr>
+</tbody>
+</table>
+<h2>Selection rationale</h2>
+<p>Strong active-compute efficiency and exceptionally slow KV growth because most layers use a 128-token sliding window.</p>
+<h2>Runtime support</h2>
+<ul>
+<li><strong>llama.cpp:</strong> Yes — dedicated mimo2 implementation and hybrid SWA cache.</li>
+<li><strong>ROCmFPX:</strong> Yes — mimo2 implementation present.</li>
+<li><strong>Runtime risk:</strong> Medium-low: implementation is current, but the model is newer and MTP tensors are preserved/disabled in the main pass.</li>
+</ul>
+<h2>Tokenizer and chat template</h2>
+<ul>
+<li><strong>Tokenizer:</strong> Embedded tokenizer in GGUF.</li>
+<li><strong>Template:</strong> Embedded MiMo Jinja; use --jinja and validate reasoning/tool modes against upstream examples.</li>
+</ul>
+<h2>KV cache</h2>
+<p><strong>Formula status:</strong> verified-from-config-and-current-iswa-cache-code</p>
+<table>
+<thead>
+<tr>
+  <th>Context tokens</th>
+  <th>Q8_0 exact GiB</th>
+  <th>Q8 planning GiB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>32,768</td>
+  <td>0.449</td>
+  <td>0.50</td>
+</tr>
+<tr>
+  <td>65,536</td>
+  <td>0.823</td>
+  <td>1.00</td>
+</tr>
+<tr>
+  <td>131,072</td>
+  <td>1.570</td>
+  <td>1.75</td>
+</tr>
+<tr>
+  <td>262,144</td>
+  <td>3.064</td>
+  <td>3.25</td>
+</tr>
+</tbody>
+</table>
+<h2>Expert activation and buffers</h2>
+<p>The router activates 8 of 256 routed experts per token. All expert weights remain resident.</p>
+<p>Graph/work buffers are not predicted from parameter count. Use the package reserve profiles, then replace them with measured startup logs.</p>
+<h2>Quality evidence</h2>
+<p>Official model card reports benchmark results for coding, reasoning, and agents; use only as upstream evidence.</p>
+<p><strong>Selected-quant assessment:</strong> Moderate: Q5_K_M is materially safer than 4-bit options, but no candidate-specific independent quant benchmark was located.</p>
+<h2>Download provenance</h2>
+<ul>
+<li>Upstream: <code>XiaomiMiMo/MiMo-V2-Flash</code></li>
+<li>Quant repo: <code>bartowski/XiaomiMiMo_MiMo-V2-Flash-GGUF</code></li>
+<li>Revision: <code>6b8a0ba</code></li>
+<li>Path: <code>XiaomiMiMo_MiMo-V2-Flash-Q5_K_M</code></li>
+<li>Shard count: <code>6</code></li>
+</ul>
+<p>Known exact LFS pointers:</p>
+<ul>
+<li><code>XiaomiMiMo_MiMo-V2-Flash-Q5_K_M-00002-of-00006.gguf</code> — SHA-256 <code>1014b460405b8f1db647ce974ebc5ea7c5466ecfd2a486b40eb3c8a749abd8e2</code>, <code>39809416864</code> bytes</li>
+</ul>
+<h2>Acceptance gates</h2>
+<ul>
+<li>Refresh and verify every shard hash.</li>
+<li>Load with the pinned runtime and exact embedded Jinja template.</li>
+<li>Run the production quality suite against a higher-bit reference.</li>
+<li>Capture per-device/node weights, KV, graph, and compute buffers.</li>
+<li>Benchmark the intended backend/topology; do not use parameter-count throughput extrapolation.</li>
+</ul>
+<h2>Sources</h2>
+<ul>
+<li><a href="https://huggingface.co/XiaomiMiMo/MiMo-V2-Flash">mimo_upstream</a></li>
+<li><a href="https://huggingface.co/bartowski/XiaomiMiMo_MiMo-V2-Flash-GGUF/tree/6b8a0ba/XiaomiMiMo_MiMo-V2-Flash-Q5_K_M">mimo_quant</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/mimo2.cpp">llama_mimo2</a></li>
+</ul>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

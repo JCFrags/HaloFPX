@@ -1,0 +1,13 @@
+flowchart TD
+  P[Authenticated principal + sharing policy] --> N[HMAC namespace resolver]
+  N --> PRIV[private namespace]
+  N --> TEN[tenant trust-group namespace]
+  N --> PUB[administrator-approved public-system namespace]
+  PRIV --> M1[namespace-scoped manifests]
+  TEN --> M2[namespace-scoped manifests]
+  PUB --> M3[namespace-scoped manifests]
+  M1 --> O[immutable object store]
+  M2 --> O
+  M3 --> O
+  O --> E[encrypted/deduplicated according to policy]
+  U[Unauthorized principal] -. denied before lookup .-> X[No existence disclosure]

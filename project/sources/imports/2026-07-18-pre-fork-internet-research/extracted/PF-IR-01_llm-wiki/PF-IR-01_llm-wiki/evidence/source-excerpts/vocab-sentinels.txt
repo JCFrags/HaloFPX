@@ -1,0 +1,5 @@
+[VERIFIED] ROCm vocab blob: bccc4ecb99fae0c0c535c3d5ac65044734864b1e
+[VERIFIED] upstream/Cachy vocab blob: fdd447147d43daa42ea8d437924240bd02036b01
+[VERIFIED] deployed-source vocab blob: a42cc74bfa6c40cd6a80330a6baa82497237408c
+[MEASURED] Sentinel semantics: checked special-token access, token-piece INT32_MAX guard, and tokenization-result INT32_MAX guard are present in all three lineages.
+[VERIFIED] License: MIT.

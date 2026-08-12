@@ -1,0 +1,7 @@
+[VERIFIED] Candidate server-task blob: 6e0bb85d1080ac57746eeef0aacddfa293d90fd8
+[MEASURED] Negative n_discard is clamped to zero.
+[MEASURED] API-key middleware treats health/models as public and protects other routes only when at least one API key is configured.
+[MEASURED] Slot filenames pass fs_validate_filename with subdirectories disallowed.
+[MEASURED] Sequence-state loading checks magic, version, token capacity, exact reads, and catches exceptions at the public wrapper.
+[OPEN] Exhaustive safety of all nested memory state readers and same-UID symlink races requires local dynamic evidence.
+[VERIFIED] License: MIT.

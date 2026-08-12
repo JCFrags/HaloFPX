@@ -1,0 +1,4 @@
+data: {"choices":[{"delta":{"content":"👩‍💻"},"finish_reason":null,"index":0}],"created":0,"id":"STATIC","model":"pfir10","object":"chat.completion.chunk"}
+
+data: [DONE]
+

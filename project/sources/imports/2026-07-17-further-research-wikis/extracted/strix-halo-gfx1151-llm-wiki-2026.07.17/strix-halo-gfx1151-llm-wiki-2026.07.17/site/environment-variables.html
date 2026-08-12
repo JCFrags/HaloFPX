@@ -1,0 +1,366 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Environment variables and kernel parameters · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="environment-variables.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html">Community validation</a>
+          
+            <a href="regressions.html">Known regressions</a>
+          
+            <a href="unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html">Exact build flags</a>
+          
+            <a href="environment-variables.html" class="active" aria-current="page">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html">ROCmFPX</a>
+          
+            <a href="usb4-networking.html">USB4 networking</a>
+          
+            <a href="glossary.html">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Runtime control</div>
+      <article class="article"><h1 id="environment-variables-and-kernel-parameters">Environment variables and kernel parameters<a aria-label="Link to section" class="heading-anchor" href="#environment-variables-and-kernel-parameters">#</a></h1>
+<p>Machine-readable table: <a href="../data/environment-variables.csv"><code>environment-variables.csv</code></a>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Variable/parameter</th>
+<th>Class</th>
+<th>Recommended use</th>
+<th>Example</th>
+<th>Risk</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ROCM_PATH</code></td>
+<td>official</td>
+<td>Set to the exact unpacked SDK root for a tarball install.</td>
+<td><code>export ROCM_PATH=/opt/rocm-7.14.0</code></td>
+<td>A stale value can mix release lines.</td>
+<td><a href="sources.html#amd-install-714">AMD-INSTALL-714</a>, <a href="sources.html#llama-hip-cmake-86d86ed">LLAMA-HIP-CMAKE-86D86ED</a></td>
+</tr>
+<tr>
+<td><code>PATH</code></td>
+<td>official</td>
+<td>Prepend or append one ROCm SDK bin directory consistently.</td>
+<td><code>export PATH="$ROCM_PATH/bin:$PATH"</code></td>
+<td>Multiple hipconfig binaries can select the wrong SDK.</td>
+<td><a href="sources.html#amd-install-714">AMD-INSTALL-714</a></td>
+</tr>
+<tr>
+<td><code>LD_LIBRARY_PATH</code></td>
+<td>official-for-tarball</td>
+<td>Use only for nonstandard/tarball installs; prefer a container or ldconfig file for deployment.</td>
+<td><code>export LD_LIBRARY_PATH="$ROCM_PATH/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"</code></td>
+<td>Can silently load libraries from the wrong release line.</td>
+<td><a href="sources.html#amd-install-714">AMD-INSTALL-714</a></td>
+</tr>
+<tr>
+<td><code>HIPCXX</code></td>
+<td>upstream-recipe</td>
+<td>Resolve from the active ROCm SDK.</td>
+<td><code>export HIPCXX="$(hipconfig -l)/clang"</code></td>
+<td>Do not point it to a system Clang from another generation.</td>
+<td><a href="sources.html#llama-rocm-docker-86d86ed">LLAMA-ROCM-DOCKER-86D86ED</a>, <a href="sources.html#llama-hip-cmake-86d86ed">LLAMA-HIP-CMAKE-86D86ED</a></td>
+</tr>
+<tr>
+<td><code>HIP_PATH</code></td>
+<td>upstream-recipe</td>
+<td>Resolve from active hipconfig.</td>
+<td><code>export HIP_PATH="$(hipconfig -R)"</code></td>
+<td>Mismatch with HIPCXX creates a mixed toolchain.</td>
+<td><a href="sources.html#llama-rocm-docker-86d86ed">LLAMA-ROCM-DOCKER-86D86ED</a></td>
+</tr>
+<tr>
+<td><code>CMAKE_HIP_ARCHITECTURES</code></td>
+<td>official-upstream</td>
+<td>Set gfx1151 explicitly for a single-target Strix Halo build.</td>
+<td><code>cmake ... -DCMAKE_HIP_ARCHITECTURES=gfx1151</code></td>
+<td>Omitting it can produce a larger or wrong-target build; requires CMake &gt;=3.21.</td>
+<td><a href="sources.html#cmake-hip-arch">CMAKE-HIP-ARCH</a>, <a href="sources.html#llama-hip-cmake-86d86ed">LLAMA-HIP-CMAKE-86D86ED</a></td>
+</tr>
+<tr>
+<td><code>GPU_TARGETS</code></td>
+<td>compatibility-alias</td>
+<td>Use only for projects/ROCm packages that consume it; direct CMAKE_HIP_ARCHITECTURES is clearer in current llama.cpp.</td>
+<td><code>cmake ... -DGPU_TARGETS=gfx1151</code></td>
+<td>Project-specific behavior.</td>
+<td><a href="sources.html#llama-hip-cmake-86d86ed">LLAMA-HIP-CMAKE-86D86ED</a>, <a href="sources.html#rocmfpx-build-a5605">ROCMFPX-BUILD-A5605</a></td>
+</tr>
+<tr>
+<td><code>AMDGPU_TARGETS</code></td>
+<td>legacy-compatibility-alias</td>
+<td>Prefer CMAKE_HIP_ARCHITECTURES for current CMake projects.</td>
+<td><code>cmake ... -DAMDGPU_TARGETS=gfx1151</code></td>
+<td>Can be ignored or translated depending on project version.</td>
+<td><a href="sources.html#llama-hip-cmake-86d86ed">LLAMA-HIP-CMAKE-86D86ED</a></td>
+</tr>
+<tr>
+<td><code>CMAKE_HIP_COMPILER_ROCM_ROOT</code></td>
+<td>advanced-upstream</td>
+<td>Set only when a nonstandard SDK layout cannot be auto-discovered.</td>
+<td><code>cmake ... -DCMAKE_HIP_COMPILER_ROCM_ROOT="$ROCM_PATH"</code></td>
+<td>Can hide an inconsistent install if used reflexively.</td>
+<td><a href="sources.html#cmake-hip-arch">CMAKE-HIP-ARCH</a>, <a href="sources.html#llama-hip-cmake-86d86ed">LLAMA-HIP-CMAKE-86D86ED</a></td>
+</tr>
+<tr>
+<td><code>HIP_VISIBLE_DEVICES</code></td>
+<td>official</td>
+<td>Use for deterministic single-GPU selection.</td>
+<td><code>export HIP_VISIBLE_DEVICES=0</code></td>
+<td>Device numbering can differ from other APIs.</td>
+<td><a href="sources.html#hip-env-vars">HIP-ENV-VARS</a></td>
+</tr>
+<tr>
+<td><code>ROCR_VISIBLE_DEVICES</code></td>
+<td>official</td>
+<td>Use when HSA-level filtering is required; avoid contradictory visibility variables.</td>
+<td><code>export ROCR_VISIBLE_DEVICES=0</code></td>
+<td>Contradictory HIP and ROCR filters can confuse diagnostics.</td>
+<td><a href="sources.html#hip-env-vars">HIP-ENV-VARS</a></td>
+</tr>
+<tr>
+<td><code>HIP_LAUNCH_BLOCKING</code></td>
+<td>diagnostic</td>
+<td>Set to 1 only to localize an asynchronous fault.</td>
+<td><code>HIP_LAUNCH_BLOCKING=1 ./build/bin/llama-bench ...</code></td>
+<td>Severely changes timing and performance.</td>
+<td><a href="sources.html#hip-env-vars">HIP-ENV-VARS</a></td>
+</tr>
+<tr>
+<td><code>TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL</code></td>
+<td>official-pytorch-recipe</td>
+<td>Set to 1 only for the AMD ROCm 7.2.1 PyTorch recipe that documents it; it is not a llama.cpp, HIP, or system-wide requirement.</td>
+<td><code>export TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1</code></td>
+<td>Experimental application behavior; irrelevant to llama.cpp and may change across PyTorch/ROCm release lines.</td>
+<td><a href="sources.html#amd-pytorch-721-aotriton">AMD-PYTORCH-721-AOTRITON</a></td>
+</tr>
+<tr>
+<td><code>HSA_OVERRIDE_GFX_VERSION</code></td>
+<td>project-specific-or-unsupported-workaround</td>
+<td>Leave unset on a native current gfx1151 stack. The ROCmFPX fork documents 11.5.1 for its own HIP path.</td>
+<td><code>export HSA_OVERRIDE_GFX_VERSION=11.5.1  # ROCmFPX recipe only</code></td>
+<td>11.0.0/11.0.3 spoofing did not fix old-stack failures and can select incompatible code paths.</td>
+<td><a href="sources.html#rocmfpx-a5605">ROCMFPX-A5605</a>, <a href="sources.html#rocm-issue-5824">ROCM-ISSUE-5824</a></td>
+</tr>
+<tr>
+<td><code>GGML_HIP_ENABLE_UNIFIED_MEMORY</code></td>
+<td>ROCmFPX-project-specific</td>
+<td>Use only with the pinned ROCmFPX fork recipe that documents it.</td>
+<td><code>export GGML_HIP_ENABLE_UNIFIED_MEMORY=1</code></td>
+<td>Not an upstream llama.cpp compatibility requirement.</td>
+<td><a href="sources.html#rocmfpx-a5605">ROCMFPX-A5605</a></td>
+</tr>
+<tr>
+<td><code>VK_DRIVER_FILES</code></td>
+<td>official-upstream</td>
+<td>Set only to force a verified ICD manifest during controlled A/B tests.</td>
+<td><code>export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.x86_64.json</code></td>
+<td>A wrong path makes Vulkan devices disappear; ignored in elevated contexts.</td>
+<td><a href="sources.html#vulkan-loader-icd">VULKAN-LOADER-ICD</a></td>
+</tr>
+<tr>
+<td><code>VK_ICD_FILENAMES</code></td>
+<td>deprecated-upstream</td>
+<td>Use VK_DRIVER_FILES instead for new recipes.</td>
+<td><code>unset VK_ICD_FILENAMES</code></td>
+<td>Stale shell configuration can force AMDVLK or a nonexistent driver unexpectedly.</td>
+<td><a href="sources.html#vulkan-loader-icd">VULKAN-LOADER-ICD</a></td>
+</tr>
+<tr>
+<td><code>VK_LOADER_DEBUG</code></td>
+<td>official-upstream</td>
+<td>Use all for a one-shot loader trace.</td>
+<td><code>VK_LOADER_DEBUG=all vulkaninfo --summary 2&gt;vulkan-loader.log</code></td>
+<td>Verbose; may expose filesystem paths in logs.</td>
+<td><a href="sources.html#vulkan-loader-icd">VULKAN-LOADER-ICD</a></td>
+</tr>
+<tr>
+<td><code>GGML_CUDA_DISABLE_GRAPHS</code></td>
+<td>related-community-diagnostic</td>
+<td>Not a gfx1151 default; use only when investigating graph-related faults and record the result.</td>
+<td><code>GGML_CUDA_DISABLE_GRAPHS=1 ./llama-cli ...</code></td>
+<td>May reduce performance and is sourced from a related RDNA4 report.</td>
+<td><a href="sources.html#llama-issue-24961">LLAMA-ISSUE-24961</a></td>
+</tr>
+<tr>
+<td><code>HSA_ENABLE_SDMA</code></td>
+<td>system-specific-community-workaround</td>
+<td>Leave enabled on a validated current stack. Set to 0 only for a bounded A/B test or the cited kernel 6.19.x community setup; remove it after diagnosis unless independently reproduced.</td>
+<td><code>HSA_ENABLE_SDMA=0 ./reproducer  # diagnostic or cited 6.19.x setup only</code></td>
+<td>Changes transfer paths and performance; can conceal rather than repair a kernel, firmware, or runtime mismatch.</td>
+<td><a href="sources.html#comm-strix-guide-2026">COMM-STRIX-GUIDE-2026</a></td>
+</tr>
+<tr>
+<td><code>amdgpu.cwsr_enable</code></td>
+<td>legacy-workaround</td>
+<td>Leave default on current supported stacks; use =0 only to contain the documented legacy ROCm 7.1/MES issue while migrating.</td>
+<td><code>amdgpu.cwsr_enable=0</code></td>
+<td>Disables a kernel feature and can mask an obsolete stack.</td>
+<td><a href="sources.html#rocm-issue-5590">ROCM-ISSUE-5590</a>, <a href="sources.html#rocm-issue-5724">ROCM-ISSUE-5724</a></td>
+</tr>
+<tr>
+<td><code>amd_iommu</code></td>
+<td>community-performance-tuning</td>
+<td>Do not disable IOMMU by default when USB4, virtualization, device isolation, or RDMA security matters; benchmark in your threat model.</td>
+<td><code>amd_iommu=off  # community performance profile only</code></td>
+<td>Disabling IOMMU weakens DMA isolation and may conflict with USB4/RDMA security requirements.</td>
+<td><a href="sources.html#kyuz0-toolbox-a7c71e9">KYUZ0-TOOLBOX-A7C71E9</a>, <a href="sources.html#thunderbolt-ibverbs-76ba39b">THUNDERBOLT-IBVERBS-76BA39B</a></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="minimal-clean-shell-profiles">Minimal clean-shell profiles<a aria-label="Link to section" class="heading-anchor" href="#minimal-clean-shell-profiles">#</a></h2>
+<h3 id="rocm-7-14-tarball">ROCm 7.14 tarball<a aria-label="Link to section" class="heading-anchor" href="#rocm-7-14-tarball">#</a></h3>
+<pre><code class="language-bash">export ROCM_PATH=/opt/rocm-7.14.0
+export PATH="$ROCM_PATH/bin:$PATH"
+export LD_LIBRARY_PATH="$ROCM_PATH/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export HIPCXX="$ROCM_PATH/llvm/bin/clang"
+export HIP_PATH="$ROCM_PATH"
+unset HSA_OVERRIDE_GFX_VERSION VK_ICD_FILENAMES VK_DRIVER_FILES
+</code></pre>
+<h3 id="rocm-installed-under-opt-rocm">ROCm installed under <code>/opt/rocm</code><a aria-label="Link to section" class="heading-anchor" href="#rocm-installed-under-opt-rocm">#</a></h3>
+<pre><code class="language-bash">export ROCM_PATH=/opt/rocm
+export HIPCXX="$(hipconfig -l)/clang"
+export HIP_PATH="$(hipconfig -R)"
+unset HSA_OVERRIDE_GFX_VERSION
+</code></pre>
+<h3 id="radv-a-b-test">RADV A/B test<a aria-label="Link to section" class="heading-anchor" href="#radv-a-b-test">#</a></h3>
+<pre><code class="language-bash">unset VK_ICD_FILENAMES
+export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+VK_LOADER_DEBUG=all vulkaninfo --summary 2&gt;vulkan-loader.log
+</code></pre>
+<p>Verify the manifest path before exporting it. Do not place <code>VK_DRIVER_FILES</code> in a global shell profile unless the machine intentionally has one Vulkan ICD.</p>
+<h2 id="variables-intentionally-not-made-defaults">Variables intentionally not made defaults<a aria-label="Link to section" class="heading-anchor" href="#variables-intentionally-not-made-defaults">#</a></h2>
+<ul>
+<li><code>HSA_OVERRIDE_GFX_VERSION</code>: native current gfx1151 stacks should identify themselves correctly. The <code>11.5.1</code> setting is scoped to the pinned ROCmFPX recipe; <code>11.0.x</code> spoofing is explicitly rejected as a generic fix.</li>
+<li><code>HSA_ENABLE_SDMA=0</code>: diagnostic only; it changes transfer paths.</li>
+<li><code>HIP_LAUNCH_BLOCKING=1</code>: diagnostic only; it changes timing.</li>
+<li><code>GGML_CUDA_DISABLE_GRAPHS=1</code>: related architecture diagnostic, not a gfx1151 baseline.</li>
+<li><code>amdgpu.cwsr_enable=0</code>: legacy ROCm 7.1 containment, not a current requirement.</li>
+<li><code>amd_iommu=off</code>: community performance tuning with security and device-isolation consequences.</li>
+</ul>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#minimal-clean-shell-profiles">Minimal clean-shell profiles</a><a class="level-3" href="#rocm-7-14-tarball">ROCm 7.14 tarball</a><a class="level-3" href="#rocm-installed-under-opt-rocm">ROCm installed under /opt/rocm</a><a class="level-3" href="#radv-a-b-test">RADV A/B test</a><a class="level-2" href="#variables-intentionally-not-made-defaults">Variables intentionally not made defaults</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

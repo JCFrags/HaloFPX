@@ -1,0 +1,101 @@
+schema_version: "1.0.0"
+experiment_id: "HLX-EXP-20260717-843"
+card_version: "1.0.0"
+title: "Matched single-node backend and model baseline"
+family: "E03"
+status: "draft"
+owner: null
+reviewer: null
+hypothesis: "Each admitted model and quantization has a correct, stable single-node HIP and/or Vulkan reference with a measured resource envelope on both hosts."
+falsifier: "A candidate cell fails its correctness oracle, uses an undeclared fallback, or cannot sustain the predeclared run controls."
+setup:
+  description: "Paired per-host correctness-first backend, model, memory, context, and concurrency baseline matrix."
+  sut_boundary: "Pinned build, model, tokenizer, workload, backend, and single-host runtime boundary."
+  nodes: [null]
+  ranks: [null]
+  links: [null]
+  artifact_root: null
+prerequisites: ["E02-qualified collectors","Frozen model, tokenizer, workload, and correctness oracle"]
+dependency_gates:
+  - {experiment_id: "HLX-EXP-20260717-842", condition: "always", required_gate_result: "pass", evidence: null}
+safety:
+  class: "user-space-mutating"
+  elevation_required: false
+  elevation_reason: null
+  authorization_required: true
+  authorization_record: null
+  hazards: ["High memory, power, or thermal load","Model artifacts must remain immutable"]
+  exact_targets: [null]
+  stop_plan: null
+  rollback_plan: null
+  emergency_stop: null
+commands:
+  - id: "unresolved-command-01"
+    description: "Resolve and review exact argv, host, working directory, outputs, safety target, and authorization before approval; this draft command is intentionally non-executable."
+    host: null
+    cwd: null
+    argv: null
+    environment: null
+    requires_elevation: null
+    destructive: false
+    authorization_gate: "Card status must be approved and every unresolved command field must be replaced."
+    expected_outputs: [null]
+environment_snapshot:
+  repositories: [null]
+  software: [null]
+  hardware: [null]
+  model: null
+  tokenizer: null
+  workload: null
+  configuration: null
+  clocks: [null]
+  collectors: [null]
+variables:
+  independent: ["host","backend","model","quantization","context","batch","ubatch","concurrency","KV type","optimization"]
+  dependent: ["correctness","fallbacks","memory","TTFT","ITL","throughput","power","temperature"]
+  controlled: ["Exact model/tokenizer/workload hashes","Matched warmup and run order"]
+controls:
+  baseline: "Highest-trust single-node oracle defined by owning model and correctness sections"
+  randomized_order: null
+  random_seed: null
+  warmup: null
+  repetitions: null
+outputs:
+  root: null
+  raw: ["node-01/backend-results.jsonl","node-02/backend-results.jsonl","shared/correctness.json","shared/resource-envelope.json"]
+  schemas: [null]
+  integrity_manifest: null
+analysis:
+  plan: null
+  statistics: null
+  uncertainty: null
+  exclusions: [null]
+  analysis_commit: null
+  command: null
+acceptance:
+  pass: "At least one correctness-passing cell has a repeatable host-specific resource and performance envelope; every failed cell remains visible."
+  fail: "No admitted cell passes correctness or a performance result hides fallback, mismatch, or invalid controls."
+  inconclusive: "Required observations or uncertainty are insufficient for pass or fail; preserve the run and issue a revised card."
+  stop_rules: [null]
+result:
+  gate_result: null
+  conclusion: null
+  confidence: null
+  uncertainty: null
+  completed_at: null
+  run_ids: []
+follow_up: null
+links:
+  originating_sections: ["24","25","26","27","28","29","30","31","32","33","34","35","36","37","48","73","74","78"]
+  open_questions: ["HLX-OQ-8404"]
+  issues: [null]
+  requirements: [null]
+  adrs: [null]
+  aliases: ["M82-02","M82-03","M82-04","M83-02","M83-03","M83-04","EX85-01","EX85-02","EX85-03","EX85-04"]
+provenance:
+  created_at: "2026-07-17T00:00:00Z"
+  updated_at: "2026-07-17T00:00:00Z"
+  authors: ["Codex section-84 research workflow"]
+  source_refs: ["S84-01", "S84-03", "S84-04"]
+  card_sha256: null
+notes: "Draft only. Null values and null list entries are unresolved contract fields, not measurements or permission to execute."

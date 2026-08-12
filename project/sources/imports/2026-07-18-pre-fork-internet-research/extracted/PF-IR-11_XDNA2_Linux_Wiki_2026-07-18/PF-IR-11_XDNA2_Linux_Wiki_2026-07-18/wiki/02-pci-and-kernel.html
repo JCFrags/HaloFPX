@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>2. PCI and upstream kernel boundary — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a class="active" href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/02-pci-and-kernel.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>2. PCI and upstream kernel boundary</h1>
+<h2 id="mainline-status">Mainline status</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> <code>amdxdna</code> is present in the pinned Linux tree at commit <code>94515f3a7d4256a5062176b7d6ed0471938cd51a</code>.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The initial mainline driver commit is pinned as <code>8c9ff1b181ba3d31d6b4a48606248b52180a7046</code>. Its initial scope was basic device initialization, firmware loading, power-up, and low-level initialization; the current pinned tree has materially broader UAPI and runtime behavior.</p>
+<h2 id="exact-pci-applicability">Exact PCI applicability</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The current mapping includes:</p>
+<table>
+<thead>
+<tr>
+  <th>PCI device</th>
+  <th style="text-align:right">revision</th>
+  <th>driver device</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>0x17f0</code></td>
+  <td style="text-align:right"><code>0x10</code></td>
+  <td>npu4</td>
+</tr>
+<tr>
+  <td><code>0x17f0</code></td>
+  <td style="text-align:right"><code>0x11</code></td>
+  <td><strong>npu5</strong></td>
+</tr>
+<tr>
+  <td><code>0x17f0</code></td>
+  <td style="text-align:right"><code>0x20</code></td>
+  <td>npu6</td>
+</tr>
+</tbody>
+</table>
+<p><span class="claim claim-inference">[INFERENCE]</span> The research target is applicable only when the real host reports <code>1022:17f0</code> revision <code>0x11</code>. A different revision must be re-evaluated against its own device entry.</p>
+<h2 id="kernel-build-boundary">Kernel build boundary</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> <code>CONFIG_DRM_ACCEL_AMDXDNA</code> depends on:</p>
+<ul>
+<li><code>CONFIG_AMD_IOMMU</code></li>
+<li><code>CONFIG_DRM_ACCEL</code></li>
+<li>PCI and I/O memory</li>
+<li>x86-64</li>
+</ul>
+<p>It selects the DRM scheduler, GEM shared-memory helper, firmware loader, and HMM mirror support.</p>
+<p>Exact source: <a href="../sources/raw/kernel/Kconfig"><code>../sources/raw/kernel/Kconfig</code></a>.</p>
+<h2 id="uapi-boundary">UAPI boundary</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The pinned driver advertises UAPI major/minor <code>0.10</code>. The captured UAPI includes:</p>
+<ul>
+<li>hardware context creation, configuration, destruction, and priorities;</li>
+<li>shared, device-heap, device, and command buffer objects;</li>
+<li>explicit buffer synchronization directions;</li>
+<li>command submission, dependencies, signals, waits, and sync objects;</li>
+<li>firmware, AIE metadata, clock, power, utilization, resource, context, and telemetry queries;</li>
+<li>context counters, preemptions, migrations, suspensions, errors, and heap usage.</li>
+</ul>
+<p>Exact selected declarations: <a href="../sources/excerpts/kernel/amdxdna_accel.h.qos-bo-sync-telemetry.txt"><code>../sources/excerpts/kernel/amdxdna_accel.h.qos-bo-sync-telemetry.txt</code></a>.</p>
+<h2 id="iommu-and-native-host-boundary">IOMMU and native-host boundary</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The npu5/AIE2 initialization path rejects operation without an IOMMU group.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The same path rejects operation under a hypervisor.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> A normal client open binds SVA and obtains a PASID. If PASID is unavailable and no supported carveout path is configured, open fails.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> A container may be feasible only when it still runs on a native host with the required device and IOMMU interfaces passed through; this bundle does not claim container support.</p>
+<h2 id="upstream-versus-amd-vendor-tree">Upstream versus AMD vendor tree</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> A distro may ship the in-tree driver.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's <code>amd/xdna-driver</code> repository also builds a staging/upstream-style module and a separate legacy/OOT module, plus the XRT NPU shim and firmware packaging.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD warns that a newer plugin may issue ioctls that an older in-tree driver lacks. The correct comparison is therefore not “driver present” but “driver UAPI, firmware, shim, and XRT matched.”</p>
+<h2 id="target-probe-gate">Target probe gate</h2>
+<p><span class="claim claim-target-distro">[TARGET-DISTRO]</span> Record all of the following before installing anything:</p>
+<ul>
+<li><code>lspci -nn -D</code> vendor/device/revision;</li>
+<li><code>modinfo amdxdna</code> filename, version, aliases, signer, and firmware declarations;</li>
+<li><code>/sys/bus/pci/devices/.../driver</code> and <code>iommu_group</code>;</li>
+<li>active kernel config symbols;</li>
+<li><code>/dev/accel</code> nodes and permissions;</li>
+<li>kernel log lines related to <code>amdxdna</code>, firmware, IOMMU, PASID, mailbox, PSP, and SMU.</li>
+</ul>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

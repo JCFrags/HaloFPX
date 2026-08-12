@@ -1,0 +1,6 @@
+[NORMATIVE ERRATUM]
+RFC: 8684
+Errata ID: 6609
+Status: Verified
+Accessed: 2026-07-18
+The erratum is retained as part of the normative MPTCP baseline. Consult the RFC Editor record for the corrected text.

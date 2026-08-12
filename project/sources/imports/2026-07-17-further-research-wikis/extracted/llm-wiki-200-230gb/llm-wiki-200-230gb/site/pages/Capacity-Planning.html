@@ -1,0 +1,197 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Capacity Planning · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Capacity Planning</h1>
+<h2>Exact planning convention</h2>
+<p>All table arithmetic is exact under these declared assumptions:</p>
+<ul>
+<li>publisher display size in decimal GB;</li>
+<li><code>weight_plan_GiB = ceil(GB × 10^9 / 2^30) + 1</code>;</li>
+<li>Q8_0 KV cache, one sequence, <code>ubatch=512</code>, FlashAttention, <code>--swa-full</code> disabled;</li>
+<li>weight and KV budgets divided in quarter-GiB units across members;</li>
+<li>fixed reserves shown below include OS (where applicable), graph/runtime, layer-granularity skew, and safety;</li>
+<li>multimodal projector memory is separate unless explicitly added.</li>
+</ul>
+<p>These are deterministic <strong>capacity envelopes</strong>, not measured allocator traces.</p>
+<h2>Profile reserves</h2>
+<table>
+<thead>
+<tr>
+  <th>Profile member</th>
+  <th>Capacity GiB</th>
+  <th>OS/services</th>
+  <th>Runtime/graph</th>
+  <th>Split/skew safety</th>
+  <th>Usable before weights/KV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>uma-256-single:host</td>
+  <td>256.0</td>
+  <td>12.0</td>
+  <td>8.0</td>
+  <td>4.0</td>
+  <td>232.0</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma:coordinator</td>
+  <td>128.0</td>
+  <td>10.0</td>
+  <td>6.0</td>
+  <td>4.0</td>
+  <td>108.0</td>
+</tr>
+<tr>
+  <td>rpc-2x128-uma:worker</td>
+  <td>128.0</td>
+  <td>8.0</td>
+  <td>6.0</td>
+  <td>4.0</td>
+  <td>110.0</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu:gpu0</td>
+  <td>96.0</td>
+  <td>0.0</td>
+  <td>6.0</td>
+  <td>2.0</td>
+  <td>88.0</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu:gpu1</td>
+  <td>96.0</td>
+  <td>0.0</td>
+  <td>4.0</td>
+  <td>2.0</td>
+  <td>90.0</td>
+</tr>
+<tr>
+  <td>local-3x96-gpu:gpu2</td>
+  <td>96.0</td>
+  <td>0.0</td>
+  <td>4.0</td>
+  <td>2.0</td>
+  <td>90.0</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu:gpu0</td>
+  <td>64.0</td>
+  <td>0.0</td>
+  <td>6.0</td>
+  <td>2.0</td>
+  <td>56.0</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu:gpu1</td>
+  <td>64.0</td>
+  <td>0.0</td>
+  <td>4.0</td>
+  <td>2.0</td>
+  <td>58.0</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu:gpu2</td>
+  <td>64.0</td>
+  <td>0.0</td>
+  <td>4.0</td>
+  <td>2.0</td>
+  <td>58.0</td>
+</tr>
+<tr>
+  <td>local-4x64-gpu:gpu3</td>
+  <td>64.0</td>
+  <td>0.0</td>
+  <td>4.0</td>
+  <td>2.0</td>
+  <td>58.0</td>
+</tr>
+</tbody>
+</table>
+<h2>128K-or-native qualification</h2>
+<p>For models whose native context is below 128K, the native context is used. The margin is the tightest member margin after equal planned split.</p>
+<table>
+<thead>
+<tr>
+  <th>Candidate</th>
+  <th>Weights plan GiB</th>
+  <th>Q8 KV plan GiB</th>
+  <th>256 UMA</th>
+  <th>2×128 RPC UMA</th>
+  <th>3×96 local</th>
+  <th>4×64 local</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Qwen3-235B-A22B-Instruct-2507</td>
+  <td>190</td>
+  <td>12.50</td>
+  <td>FIT (+29.50 GiB min)</td>
+  <td>FIT (+6.75 GiB min)</td>
+  <td>FIT (+20.25 GiB min)</td>
+  <td>FIT (+5.25 GiB min)</td>
+</tr>
+<tr>
+  <td>Step-3.7-Flash</td>
+  <td>196</td>
+  <td>3.50</td>
+  <td>FIT (+32.50 GiB min)</td>
+  <td>FIT (+8.25 GiB min)</td>
+  <td>FIT (+21.25 GiB min)</td>
+  <td>FIT (+6.00 GiB min)</td>
+</tr>
+<tr>
+  <td>MiMo-V2-Flash</td>
+  <td>206</td>
+  <td>1.75</td>
+  <td>FIT (+24.25 GiB min)</td>
+  <td>FIT (+4.00 GiB min)</td>
+  <td>FIT (+18.50 GiB min)</td>
+  <td>FIT (+4.00 GiB min)</td>
+</tr>
+<tr>
+  <td>GLM-4.7</td>
+  <td>205</td>
+  <td>24.50</td>
+  <td>FIT (+2.50 GiB min)</td>
+  <td>NO (-6.75 GiB min)</td>
+  <td>FIT (+11.25 GiB min)</td>
+  <td>NO (-1.50 GiB min)</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Nemotron-Ultra-253B-v1</td>
+  <td>195</td>
+  <td>33.50</td>
+  <td>FIT (+3.50 GiB min)</td>
+  <td>NO (-6.25 GiB min)</td>
+  <td>FIT (+11.75 GiB min)</td>
+  <td>NO (-1.25 GiB min)</td>
+</tr>
+<tr>
+  <td>DeepSeek-R1-0528</td>
+  <td>215</td>
+  <td>4.75</td>
+  <td>FIT (+12.25 GiB min)</td>
+  <td>NO (-2.00 GiB min)</td>
+  <td>FIT (+14.50 GiB min)</td>
+  <td>FIT (+1.00 GiB min)</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Tulu-3-405B</td>
+  <td>203</td>
+  <td>33.50</td>
+  <td>NO (-4.50 GiB min)</td>
+  <td>NO (-10.25 GiB min)</td>
+  <td>FIT (+9.00 GiB min)</td>
+  <td>NO (-3.25 GiB min)</td>
+</tr>
+</tbody>
+</table>
+<h2>Strix Halo interpretation</h2>
+<p>A single 128 GiB-class Strix Halo node cannot hold any selected 200–230 GB artifact entirely. The two-node RPC profile shows only a memory envelope. It does not establish tokens/second, latency, prompt-fill scaling, inter-node transfer cost, or thermal behavior. Those remain open until the exact target model, quant, runtime commit, backend, context, and network are measured.</p>
+<h2>Local multi-GPU interpretation</h2>
+<p>The 3×96 and 4×64 profiles aggregate enough accelerator memory for most candidates, but layer sizes are indivisible and embeddings/output tensors can skew allocation. The fixed skew reserve is a planning allowance, not proof. Use the startup memory breakdown and adjust <code>--tensor-split</code> before acceptance.</p>
+<h2>Full detail</h2>
+<p>See <a href="Per-Node-Budgets.html">Exact Per-Node Budgets</a> for the complete human-readable 128K/native member tables.</p>
+<p><code>data/capacity_budgets.csv</code> contains every profile member for 32K, 64K, 128K, and each model's native context. <code>data/capacity_summary.csv</code> provides fit and maximum utilization by model/profile/context.</p>
+<h2>Vision sidecars</h2>
+<p>Step's projector is about 3.97 decimal GB. Reserve <strong>5 GiB</strong> in the deployment that owns the vision path. Text-only inference does not need that sidecar. MiniMax-M3 multimodal memory is not qualified here.</p>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

@@ -1,0 +1,104 @@
+schema_version: "1.0.0"
+experiment_id: "HLX-EXP-20260717-847"
+card_version: "1.0.0"
+title: "Distributed-mode matched break-even matrix"
+family: "E07"
+status: "draft"
+owner: null
+reviewer: null
+hypothesis: "At least one admitted distributed mode has a correctness-preserving advantage in a defined workload region relative to matched single-node and replicated controls."
+falsifier: "A candidate fails correctness or ownership semantics, or its apparent advantage disappears under matched controls and uncertainty."
+setup:
+  description: "Two-path distributed qualification: mandatory cache-off architecture comparison, plus optional cache-integrated qualification after E06 passes."
+  sut_boundary: "Coordinator, ranks, plan, carrier, synchronization, workload, client, and optional HaloKV integration boundary."
+  nodes: [null]
+  ranks: [null]
+  links: [null]
+  artifact_root: null
+prerequisites: ["E03 per-host controls","E04 admitted carrier","E05 proven buffer path","Cache disabled and proven absent for cache-off path"]
+dependency_gates:
+  - {experiment_id: "HLX-EXP-20260717-843", condition: "always", required_gate_result: "pass", evidence: null}
+  - {experiment_id: "HLX-EXP-20260717-844", condition: "always", required_gate_result: "pass", evidence: null}
+  - {experiment_id: "HLX-EXP-20260717-845", condition: "always", required_gate_result: "pass", evidence: null}
+  - {experiment_id: "HLX-EXP-20260717-846", condition: "cache_integrated_only", required_gate_result: "pass", evidence: null}
+safety:
+  class: "user-space-mutating"
+  elevation_required: false
+  elevation_reason: null
+  authorization_required: true
+  authorization_record: null
+  hazards: ["Coupled rank failures can hang or lose in-flight requests","Cache-integrated branch must not run before E06"]
+  exact_targets: [null]
+  stop_plan: null
+  rollback_plan: null
+  emergency_stop: null
+commands:
+  - id: "unresolved-command-01"
+    description: "Resolve and review exact argv, host, working directory, outputs, safety target, and authorization before approval; this draft command is intentionally non-executable."
+    host: null
+    cwd: null
+    argv: null
+    environment: null
+    requires_elevation: null
+    destructive: false
+    authorization_gate: "Card status must be approved and every unresolved command field must be replaced."
+    expected_outputs: [null]
+environment_snapshot:
+  repositories: [null]
+  software: [null]
+  hardware: [null]
+  model: null
+  tokenizer: null
+  workload: null
+  configuration: null
+  clocks: [null]
+  collectors: [null]
+variables:
+  independent: ["qualification path","mode","model","prompt/output bin","concurrency","topology","link policy","microbatch","speculative depth","expert placement","cache state"]
+  dependent: ["correctness","capacity","TTFT","ITL","throughput","tails","memory","energy","failure denominator"]
+  controlled: ["E03 per-host baseline","Two independent replicas","Cache-off path with persistent cache disabled"]
+controls:
+  baseline: "Matched single-node and two-replica cache-off controls"
+  randomized_order: null
+  random_seed: null
+  warmup: null
+  repetitions: null
+outputs:
+  root: null
+  raw: ["shared/cache-off-distributed.jsonl","shared/cache-integrated-distributed.jsonl","shared/break-even-inputs.json"]
+  schemas: [null]
+  integrity_manifest: null
+analysis:
+  plan: null
+  statistics: null
+  uncertainty: null
+  exclusions: [null]
+  analysis_commit: null
+  command: null
+acceptance:
+  pass: "Cache-off candidates have region-scoped correctness and break-even results; any cache-integrated claim separately satisfies E06 and reports cache effects."
+  fail: "A candidate fails token/logit/state oracle, ownership is ambiguous, or cache effects contaminate the cache-off comparison."
+  inconclusive: "Required observations or uncertainty are insufficient for pass or fail; preserve the run and issue a revised card."
+  stop_rules: [null]
+result:
+  gate_result: null
+  conclusion: null
+  confidence: null
+  uncertainty: null
+  completed_at: null
+  run_ids: []
+follow_up: null
+links:
+  originating_sections: ["38","39","40","41","42","43","44","45","46","47","48","55","75","76","78"]
+  open_questions: ["HLX-OQ-8408"]
+  issues: [null]
+  requirements: [null]
+  adrs: [null]
+  aliases: ["M82-06","M82-09","EX85-02"]
+provenance:
+  created_at: "2026-07-17T00:00:00Z"
+  updated_at: "2026-07-17T00:00:00Z"
+  authors: ["Codex section-84 research workflow"]
+  source_refs: ["S84-01", "S84-03", "S84-04"]
+  card_sha256: null
+notes: "Draft only. Null values and null list entries are unresolved contract fields, not measurements or permission to execute."

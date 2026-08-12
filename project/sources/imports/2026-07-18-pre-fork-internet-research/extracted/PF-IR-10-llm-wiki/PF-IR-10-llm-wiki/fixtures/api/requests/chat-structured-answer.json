@@ -1,0 +1,33 @@
+{
+  "messages": [
+    {
+      "content": "Return 42.",
+      "role": "user"
+    }
+  ],
+  "model": "pfir10-tiny",
+  "response_format": {
+    "json_schema": {
+      "name": "answer",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "const": 42,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "type": "object"
+      },
+      "strict": true
+    },
+    "type": "json_schema"
+  },
+  "seed": 1234,
+  "stream": false,
+  "temperature": 0
+}

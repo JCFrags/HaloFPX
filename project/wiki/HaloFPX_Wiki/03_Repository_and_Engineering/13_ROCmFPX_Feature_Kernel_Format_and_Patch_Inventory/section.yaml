@@ -1,0 +1,29 @@
+section_id: "13"
+category_id: "03"
+title: "ROCmFPX Feature, Kernel, Format, and Patch Inventory"
+category: "03_Repository_and_Engineering"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 13
+open_question_count: 15
+required_machine_experiments:
+  - "Complete pin selection after the matched two-node build/reference and small-model runtime lanes"
+  - "Run CPU reference and CPU/HIP/Vulkan backend-op parity for every admitted custom type"
+  - "Quantize a hashed BF16/F16 source into matched Q4/Q6/Q8 artifacts and record tensor manifests"
+  - "Run model-quality, agent/tool, perplexity, and matched llama-bench gates"
+  - "Validate MTP greedy equivalence, accounting, context limits, checkpoint restore, and rank failure"
+  - "Validate Turbo3/4 cache quality at filled context and SSD cache corruption/durability behavior"
+related_sections: ["11", "12", "15", "16", "23", "30", "31", "33", "36", "37", "56", "66", "73", "74", "78", "81"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  software_versions: []
+  hardware_revisions:
+    - "AMD Strix Halo / gfx1151 (measured on nimo-1 and nimo-2 for the bounded local lanes)"
+key_source_ids: ["S13-L02", "S13-L03", "S13-01", "S13-02", "S13-03", "S13-04", "S13-05", "S13-06", "S13-07", "S13-08", "S13-09", "S13-10"]
+inventory_summary:
+  weight_types: ["Q2_0_ROCMFPX", "Q3_0_ROCMFPX", "Q4_0_ROCMFP4", "Q4_0_ROCMFP4_FAST", "Q6_0_ROCMFPX", "Q8_0_ROCMFPX"]
+  kv_cache_types: ["turbo3", "turbo4"]
+  qualified_backends: []
+  static_backend_wiring: ["CPU", "HIP/ROCm", "Vulkan (Q2 absent)"]

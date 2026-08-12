@@ -1,0 +1,21 @@
+# Proposed artifact acceptance form
+
+- Release identifier:
+- Artifact path/name:
+- SHA-256:
+- Source component and commit:
+- Source file(s)/generator:
+- License declared:
+- License concluded:
+- Copyright/attribution:
+- Required license/notice files:
+- Source-to-binary map row:
+- SBOM package/file IDs:
+- Corresponding Source location (if applicable):
+- Model/data/template terms record (if applicable):
+- Clean-room record (if applicable):
+- Unresolved item IDs closed:
+- Maintainer decision:
+- Legal reviewer decision:
+- Decision date:
+- Conditions/expiration:

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PF IR 07 decision record Status: Proposed standards backed option set for OPEN SCOPE 01 Priority: P1 Research access date: 2026 07 18 Bundle version: 1.0.0 Decision HaloKV's minimu…">
+  <title>PF-IR-07 decision record · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link active" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / PF-IR-07 decision record</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>PF-IR-07 decision record</h1>
+<p><strong>Status:</strong> Proposed standards-backed option set for <code>OPEN-SCOPE-01</code><br />
+<strong>Priority:</strong> P1<br />
+<strong>Research access date:</strong> 2026-07-18<br />
+<strong>Bundle version:</strong> 1.0.0</p>
+<h2 id="decision">Decision<a class="heading-anchor" href="#decision" aria-label="Link to section">#</a></h2>
+<p>HaloKV's minimum multi-user persistent-cache profile uses <strong>application/object-level authenticated encryption for every persisted object and manifest</strong>. It may add <strong>LUKS2/dm-crypt</strong> for rank-local volume confidentiality and <strong>fscrypt v2</strong> for selective directory/key-domain isolation, but neither lower layer substitutes for object authentication or tenant binding.</p>
+<p><span class="claim-label" data-claim="PFIR07-C050" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C050][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C002-C004,C009,C030-C035,C045]</span></p>
+<p>The object layer binds immutable authority, tenant, project, prefix, namespace, sharing class, rank, epoch, object format, codec, chunk position, scoped content identifier, and manifest generation in canonical associated data. Any unknown, corrupt, malformed, unauthenticated, wrong-key, wrong-principal, wrong-rank, stale, or mismatched object returns the single caller-visible result <code>MISS_RECOMPUTE</code> and is recomputed from an authoritative source.</p>
+<p><span class="claim-label" data-claim="PFIR07-C058" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C058][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C003,C016,C030,C034]</span></p>
+<h2 id="selected-option-set">Selected option set<a class="heading-anchor" href="#selected-option-set" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Layer</th>
+  <th>Minimum status</th>
+  <th>Purpose</th>
+  <th>Explicit non-claim</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Object AEAD</td>
+  <td><strong>Required</strong></td>
+  <td>Authenticated tenant/object semantics, failure normalization, scoped identifiers, replay metadata</td>
+  <td>Does not protect against a compromised live process/kernel and does not by itself stop replay.</td>
+</tr>
+<tr>
+  <td>LUKS2/dm-crypt</td>
+  <td><strong>Recommended host-volume baseline</strong> where operationally supported</td>
+  <td>Stolen-media and offline block-volume confidentiality; boot-time unlock</td>
+  <td>Ordinary XTS mode is not object authenticity, tenant isolation, or secure deletion.</td>
+</tr>
+<tr>
+  <td>fscrypt v2</td>
+  <td><strong>Conditional defense in depth</strong></td>
+  <td>Selective tree unlock and filesystem-level key domains</td>
+  <td>Not authenticated object storage; busy files can retain keys after master-key removal.</td>
+</tr>
+<tr>
+  <td>dm-integrity + authenticated dm-crypt</td>
+  <td><strong>Optional, evaluate</strong></td>
+  <td>Block-level integrity/replay-related storage features depending configuration</td>
+  <td>Selected stack documents authenticated disk encryption as experimental; object AEAD remains mandatory.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="deduplication-policy">Deduplication policy<a class="heading-anchor" href="#deduplication-policy" aria-label="Link to section">#</a></h2>
+<ul>
+<li>Private data: keyed content identifiers and dedup indexes are scoped no wider than the explicitly authorized tenant/project sharing domain.</li>
+<li>Shared groups: use a distinct sharing-class authority and key domain; membership changes trigger a new epoch and do not retroactively erase copies already obtained.</li>
+<li>Public/system prefixes: use a separate publisher authority, publication keys, immutable signed/authenticated manifests, rollback policy, and read-only tenant access. Never merge private tenant objects into a global pool by digest equality.</li>
+</ul>
+<p><span class="claim-label" data-claim="PFIR07-C052" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C052][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C047,C056,C061-C062]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C053" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C053][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C027,C052]</span></p>
+<h2 id="key-lifecycle-policy">Key lifecycle policy<a class="heading-anchor" href="#key-lifecycle-policy" aria-label="Link to section">#</a></h2>
+<p>Use a versioned hierarchy: authority → tenant → project → prefix → namespace/sharing class → rank → epoch → purpose. Encryption, private identifier, manifest, and audit keys are distinct. A suspected key compromise, nonce-state uncertainty, or restored allocator snapshot creates a new epoch; it does not resume the old nonce/key domain.</p>
+<p><span class="claim-label" data-claim="PFIR07-C054" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C054][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C037-C040,C046]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C055" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C055][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C031-C033,C035-C036]</span></p>
+<h2 id="backup-and-deletion-posture">Backup and deletion posture<a class="heading-anchor" href="#backup-and-deletion-posture" aria-label="Link to section">#</a></h2>
+<p>The cache is recomputable, so the default is <strong>no backup of cache content</strong>. A business-approved exception backs up a coherent set of ciphertext, authenticated manifests, format metadata, wrapped epoch roots, freshness floors/tombstones, and any lower-layer key/header dependencies. Restore goes to quarantine, never directly to the serving path.</p>
+<p>Logical deletion removes authorization, indexes, manifests, serving references, and scheduled objects. It is not labeled sanitization. Cryptographic erasure is claimed only for a precisely stated key scope after all usable key copies, wrappers, backups, escrow, snapshots, open-file/mapping dependencies, and required evidence have been addressed. Physical media retirement follows a media-specific sanitization procedure with verification and validation; discard is not treated as proof.</p>
+<p><span class="claim-label" data-claim="PFIR07-C064" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C064][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C013-C014,C040-C044]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C067" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C067][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C041-C044]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C068" data-class="SYNTHESIS" data-status="CONDITIONAL">[CLAIM:PFIR07-C068][CLASS:SYNTHESIS][STATUS:CONDITIONAL][SRC:C042-C044,C054]</span></p>
+<h2 id="human-decisions-left-open">Human decisions left open<a class="heading-anchor" href="#human-decisions-left-open" aria-label="Link to section">#</a></h2>
+<p>The technical profile intentionally does not choose the principal authority, sharing-policy authority, key owner/custodian, backup retention, rollback tolerance, or physical-media disposition authority. Those choices must be made by accountable humans and reflected in authorization and KMS policies. See <a href="../matrices/human-decisions.csv">Human decisions</a>.</p>
+<h2 id="decision-consequences">Decision consequences<a class="heading-anchor" href="#decision-consequences" aria-label="Link to section">#</a></h2>
+<p><strong>Positive:</strong> object substitution and wrong-domain reuse fail closed; private dedup scope is explicit; rank/epoch separation limits nonce-state and compromise blast radius; lower storage layers remain available for offline defense.</p>
+<p><strong>Cost:</strong> canonical format governance, key-broker integration, nonce-state durability, negative-path testing, recomputation load, restore quarantine, and a non-trivial operational key inventory.</p>
+<p><strong>Residual:</strong> traffic analysis, timing, object size/count, within-scope equality, live privileged compromise, authority mistakes, and unknown key copies are not eliminated. They are tracked in <a href="13-residual-risks-and-unsupported.html">the residual-risk ledger</a>.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

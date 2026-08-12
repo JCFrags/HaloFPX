@@ -1,0 +1,145 @@
+schema_version: 1
+artifact_type: reference_repository_manifest
+status: raw
+retrieved_at: "2026-07-17T20:51:16Z"
+retrieval_method: "git clone --no-recurse-submodules --origin origin"
+execution_policy: "No repository code was built or executed; no submodule was initialized."
+hash_policy: "License SHA-256 values are computed over raw Git blob bytes, not CRLF-converted Windows worktree bytes."
+repositories:
+  - repository: "charlie12345/ROCmFPX"
+    canonical_path: "sources/repositories/charlie12345__rocmfpx"
+    remote_url: "https://github.com/charlie12345/ROCmFPX.git"
+    remote_default_branch: "main"
+    captured_head:
+      commit: "61f2f2d7bc4955e9bca821095ef69125837133b5"
+      commit_date: "2026-07-17T15:41:08-04:00"
+      subject: "hip : avoid full-cache TurboQuant flash-attention staging (#34)"
+    frozen_research_pins:
+      - commit: "a5605a72768c6562241b248e268e33dc92787394"
+        commit_date: "2026-07-16T22:34:40-04:00"
+        subject: "Merge pull request #32 from charlie12345/qualify/hy3-on-github-main-20260716"
+        object_present: true
+    worktree_clean: true
+    submodules:
+      declaration_file: ".gitmodules"
+      declaration_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      declarations: []
+      status: []
+    licenses:
+      root_license_expression_observed: "MIT"
+      applies_to_revisions:
+        - "61f2f2d7bc4955e9bca821095ef69125837133b5"
+        - "a5605a72768c6562241b248e268e33dc92787394"
+      files:
+        - { path: "LICENSE", git_blob: "e7dca554bcb802f98408383a864404e3aa4eacca", sha256: "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d" }
+        - { path: "THIRD_PARTY_NOTICES.md", git_blob: "4b2f877fe5011ac7eca70b5409a1cb7b032109ea", sha256: "038b892fb3e926f9f85c3256554f1e74c7a6fab023574ad5869aa389dcf45729" }
+        - { path: "cmake/license.cmake", git_blob: "de066603ba5e99d0ae4633647e69ef435f6824fd", sha256: "083515dff8a9b8696e348c7c616934e53941a7db30e1b3f092576632e9a2d1d4" }
+        - { path: "gguf-py/LICENSE", git_blob: "76f67efdc6470081b512a8db5bf2b1d4962d9c3c", sha256: "ef78c7e6659e34c798194f0d344e807c722de70cbca1359ef54772661e11ca38" }
+        - { path: "vendor/cpp-httplib/LICENSE", git_blob: "3e5ed359a2bb16f52c383745c25f14bb7a81c9e4", sha256: "4b45cbe16d7b71b89ae6127e26e0d90a029198ca5e958ad8e3d0b8bbed364d8b" }
+
+  - repository: "fewtarius/llama-ai"
+    canonical_path: "sources/repositories/fewtarius__llama-ai"
+    remote_url: "https://github.com/fewtarius/llama-ai.git"
+    remote_default_branch: "main"
+    captured_head:
+      commit: "1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+      commit_date: "2026-07-08T20:21:33-04:00"
+      subject: "submodules(CachyLLama): merge upstream/master (61 commits, server fixes)"
+    frozen_research_pins:
+      - commit: "1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+        commit_date: "2026-07-08T20:21:33-04:00"
+        subject: "submodules(CachyLLama): merge upstream/master (61 commits, server fixes)"
+        object_present: true
+    worktree_clean: true
+    submodules:
+      declaration_file: ".gitmodules"
+      declaration_sha256: "e380cfba6a6bd383c0b6a25063c947ed17cb18d5d076503db4e03cfae2f2c2ef"
+      declarations:
+        - path: "CachyLLama"
+          url: "git@github.com:fewtarius/CachyLLama.git"
+          branch: "master"
+          gitlink_commit: "6be745998f568e379ea197fcf827baec73ff9940"
+      status:
+        - path: "CachyLLama"
+          state: "not initialized"
+          commit: "6be745998f568e379ea197fcf827baec73ff9940"
+    licenses:
+      root_license_text_observed: "GNU General Public License version 3"
+      applies_to_revisions:
+        - "1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+      files:
+        - { path: "LICENSE", git_blob: "f288702d2fa16d3cdf0035b15a9fcbc552cd88e7", sha256: "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986" }
+
+  - repository: "fewtarius/CachyLLama"
+    canonical_path: "sources/repositories/fewtarius__cachyllama"
+    remote_url: "https://github.com/fewtarius/CachyLLama.git"
+    remote_default_branch: "master"
+    captured_head:
+      commit: "6be745998f568e379ea197fcf827baec73ff9940"
+      commit_date: "2026-07-08T20:17:28-04:00"
+      subject: "Merge upstream/master: 61 commits (server: SSD checkpoint fix, eviction, SSE ping, /responses timings, prompt cache RAM limit, HTTP CLI, schema validation, UI context gauge, MCP, OpenCL/SYCL/Vulkan backends)"
+    frozen_research_pins:
+      - commit: "6be745998f568e379ea197fcf827baec73ff9940"
+        commit_date: "2026-07-08T20:17:28-04:00"
+        subject: "Merge upstream/master: 61 commits (server: SSD checkpoint fix, eviction, SSE ping, /responses timings, prompt cache RAM limit, HTTP CLI, schema validation, UI context gauge, MCP, OpenCL/SYCL/Vulkan backends)"
+        object_present: true
+    worktree_clean: true
+    submodules:
+      declaration_file: ".gitmodules"
+      declaration_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      declarations: []
+      status: []
+    licenses:
+      root_license_expression_observed: "MIT"
+      applies_to_revisions:
+        - "6be745998f568e379ea197fcf827baec73ff9940"
+      files:
+        - { path: "LICENSE", git_blob: "e7dca554bcb802f98408383a864404e3aa4eacca", sha256: "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d" }
+        - { path: "cmake/license.cmake", git_blob: "de066603ba5e99d0ae4633647e69ef435f6824fd", sha256: "083515dff8a9b8696e348c7c616934e53941a7db30e1b3f092576632e9a2d1d4" }
+        - { path: "gguf-py/LICENSE", git_blob: "76f67efdc6470081b512a8db5bf2b1d4962d9c3c", sha256: "ef78c7e6659e34c798194f0d344e807c722de70cbca1359ef54772661e11ca38" }
+        - { path: "vendor/cpp-httplib/LICENSE", git_blob: "3e5ed359a2bb16f52c383745c25f14bb7a81c9e4", sha256: "4b45cbe16d7b71b89ae6127e26e0d90a029198ca5e958ad8e3d0b8bbed364d8b" }
+
+  - repository: "ggml-org/llama.cpp"
+    canonical_path: "sources/repositories/ggml-org__llama.cpp"
+    remote_url: "https://github.com/ggml-org/llama.cpp.git"
+    remote_default_branch: "master"
+    captured_head:
+      commit: "6bdd77f13cf11b264b4231d320afc404f48d576e"
+      commit_date: "2026-07-17T12:02:27-07:00"
+      subject: "opencl:  read/write MoE dp4a activation tiles to local memory as 128-bit (vectorized LD/ST perf opt) for Adreno GPUs (#25810)"
+    frozen_research_pins:
+      - commit: "788e07dc91d266ad3162a1ce9037665656269689"
+        commit_date: "2026-07-17T08:42:59+02:00"
+        subject: "vulkan: Support Q2_0 (#25430)"
+        role: "Wiki baseline"
+        object_present: true
+      - commit: "92366df30d4eaa4b85139b5fd694360237731b19"
+        commit_date: "2026-07-08T15:52:21-07:00"
+        subject: "opencl:  Q6_K GEMM/GEMV fix for ne01 of weights that are not multiples of 128.  (#25464)"
+        role: "llama-ai/CachyLLama comparison parent"
+        object_present: true
+    worktree_clean: true
+    submodules:
+      declaration_file: ".gitmodules"
+      declaration_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      declarations: []
+      status: []
+    licenses:
+      root_license_expression_observed: "MIT"
+      applies_to_revisions:
+        - "6bdd77f13cf11b264b4231d320afc404f48d576e"
+        - "788e07dc91d266ad3162a1ce9037665656269689"
+        - "92366df30d4eaa4b85139b5fd694360237731b19"
+      files:
+        - { path: "LICENSE", git_blob: "e7dca554bcb802f98408383a864404e3aa4eacca", sha256: "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d" }
+        - { path: "cmake/license.cmake", git_blob: "de066603ba5e99d0ae4633647e69ef435f6824fd", sha256: "083515dff8a9b8696e348c7c616934e53941a7db30e1b3f092576632e9a2d1d4" }
+        - { path: "gguf-py/LICENSE", git_blob: "76f67efdc6470081b512a8db5bf2b1d4962d9c3c", sha256: "ef78c7e6659e34c798194f0d344e807c722de70cbca1359ef54772661e11ca38" }
+        - { path: "vendor/cpp-httplib/LICENSE", git_blob: "3e5ed359a2bb16f52c383745c25f14bb7a81c9e4", sha256: "4b45cbe16d7b71b89ae6127e26e0d90a029198ca5e958ad8e3d0b8bbed364d8b" }
+
+access_and_license_notes:
+  clone_access_problems: []
+  notes:
+    - "llama-ai's declared CachyLLama submodule URL uses SSH; this capture did not initialize it. The separately captured CachyLLama clone used HTTPS and contains the exact gitlink commit."
+    - "llama-ai carries GPLv3 license text while the three C/C++ source repositories carry MIT root license text. This is provenance evidence, not legal advice or permission to copy code across licensing boundaries."
+    - "ROCmFPX is newer than its frozen Wiki pin; llama.cpp is newer than both recorded comparison pins. No moving HEAD was substituted for a frozen research baseline."
+

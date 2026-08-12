@@ -1,0 +1,17 @@
+section_id: "08"
+title: "Scope, Non-Goals, Boundaries, and External Dependencies"
+category_id: "02"
+category_title: "Project Definition"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 5
+open_question_count: 10
+required_machine_experiments:
+  - "Exact supported hardware and software inventory"
+  - "Per-model Vulkan and HIP/ROCm compatibility tests"
+  - "Single-node, one-link, and peer-loss fallback tests"
+  - "Cache incompatibility, corruption, upgrade, and privacy tests"
+related_sections: ["06", "07", "09", "10", "11", "15", "18", "23", "38", "49", "60", "69"]
+applicability:
+  repositories: ["charlie12345/ROCmFPX@a5605a7", "fewtarius/CachyLLama@6be7459", "fewtarius/llama-ai@1017f3d", "ggml-org/llama.cpp@788e07d"]
+  hardware: ["two matched AMD Strix Halo systems; exact BOM open"]

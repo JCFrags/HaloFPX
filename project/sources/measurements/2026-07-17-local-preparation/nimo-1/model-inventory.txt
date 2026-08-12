@@ -1,0 +1,17 @@
+164633502592	2026-07-10T14:18:40.3785061270-0700	129540	/home/connorb/ds4-models/DeepSeek-V4-Flash-Q4KExperts-F16HC-F16Compressor-F16Indexer-Q8Attn-Q8Shared-Q8Out-chat-v2-imatrix.gguf
+49728887808	2026-07-11T21:04:07.4615279680-0700	1695796	/opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00003-of-00006.gguf
+49728887808	2026-07-11T21:04:05.3986202840-0700	1695804	/opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00004-of-00006.gguf
+49728887808	2026-07-11T21:04:04.0276816330-0700	1695797	/opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00005-of-00006.gguf
+49049951008	2026-07-11T21:02:54.2198047080-0700	1695802	/opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00002-of-00006.gguf
+32483931648	2026-07-13T00:22:05.3494210200-0700	1758565	/opt/llm-usb4-cluster/models/qwen-quality-reference/qwen--qwen3-30b-a3b-gguf__e4d4bafdfb96a411a163846265362aceb0b9c63a/Qwen3-30B-A3B-Q8_0.gguf
+26883306112	2026-07-12T14:56:36.5747674840-0700	1745509	/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-32b-gguf__938a7432affaec9157f883a87164e2646ae17555/Qwen3-32B-Q6_K.gguf
+25092531712	2026-07-12T15:19:23.5377744310-0700	1749163	/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-30b-a3b-gguf__e4d4bafdfb96a411a163846265362aceb0b9c63a/Qwen3-30B-A3B-Q6_K.gguf
+9200590816	2026-07-11T20:56:29.4869771280-0700	1695798	/opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00006-of-00006.gguf
+4280404704	2026-07-12T15:20:33.8225725360-0700	1749206	/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-4b-gguf__bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q8_0.gguf
+3807602400	2026-07-10T14:18:58.1671913990-0700	130004	/home/connorb/ds4-models/DeepSeek-V4-Flash-MTP-Q4K-Q8_0-F32.gguf
+8237824	2026-07-11T20:52:13.1713574670-0700	1695807	/opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf
+162348	2026-06-09T22:47:51.0000000000-0700	72930	/home/connorb/.local/share/containers/storage/overlay/5b0210578f251b3d7f46bde4eb39178de1404ca5e0c46ea1eba910277462fb45/diff/etc/pki/ca-trust/extracted/edk2/cacerts.bin
+68	2026-07-10T13:59:15.7717095830-0700	127111	/home/connorb/.local/share/pipx/venvs/huggingface-hub/lib/python3.14/site-packages/pipx_shared.pth
+
+===== container images =====
+792eac5fcbbc3b8008dfdcc6e6f21b6730001fd3f5f5a71a9a5317f5c2355844	docker.io/kyuz0/strix-halo-ds4-toolbox:multi-node-rocm-7.2.4	6.97 GB

@@ -1,0 +1,389 @@
+{
+  "allowed_statuses": [
+    "required",
+    "expected-reject",
+    "not-applicable",
+    "open"
+  ],
+  "rows": [
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "gguf-structural",
+      "scope": "generic GGUF v3 header/tensor parser",
+      "test_id": "GGUF-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "gguf-structural",
+      "scope": "vocab-only GGUF load",
+      "test_id": "GGUF-02"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "numeric_f32_restore",
+      "scope": "tiny self-generated Llama F32 model load/inference",
+      "test_id": "GGUF-03"
+    },
+    {
+      "CachyLLama": "expected-reject",
+      "HaloFPX": "open",
+      "ROCmFPX": "expected-reject",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "expected-reject",
+      "oracle_profile": "rejection-class",
+      "scope": "bad magic/truncation/alignment/type boundary corpus",
+      "test_id": "GGUF-NEG-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "exact-token-ids",
+      "scope": "byte BPE edge cases including invalid UTF-8",
+      "test_id": "TOK-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "exact-token-ids",
+      "scope": "special-token parse/no-parse and BOS behavior",
+      "test_id": "TOK-02"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "exact-template-utf8",
+      "scope": "default chat template metadata/rendering",
+      "test_id": "CHAT-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "exact-template-utf8",
+      "scope": "named strict/tools chat templates",
+      "test_id": "CHAT-02"
+    },
+    {
+      "CachyLLama": "expected-reject",
+      "HaloFPX": "open",
+      "ROCmFPX": "expected-reject",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "expected-reject",
+      "oracle_profile": "rejection-class",
+      "scope": "malformed templates and unsupported role",
+      "test_id": "CHAT-NEG-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "schema-validity",
+      "scope": "JSON Schema and GBNF structured output",
+      "test_id": "STRUCT-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "exact-allowed-token-set",
+      "scope": "grammar accepted-prefix/clone state",
+      "test_id": "GRAMMAR-STATE-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "numeric-probabilities",
+      "scope": "temperature/top-k/top-p/min-p/penalty vectors",
+      "test_id": "SAMPLER-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "rng-metamorphic",
+      "scope": "same-candidate seeded clone/replay property",
+      "test_id": "RNG-01"
+    },
+    {
+      "CachyLLama": "not-applicable",
+      "HaloFPX": "open",
+      "ROCmFPX": "not-applicable",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "not-applicable",
+      "oracle_profile": "rng-metamorphic",
+      "scope": "exact RNG token sequence across forks",
+      "test_id": "RNG-XFORK-EXACT"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "canonical-json",
+      "scope": "static tool-call and structured-output response normalization",
+      "test_id": "API-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "sse-normalized",
+      "scope": "incremental SSE content/tool/structured traces",
+      "test_id": "API-02"
+    },
+    {
+      "CachyLLama": "expected-reject",
+      "HaloFPX": "open",
+      "ROCmFPX": "expected-reject",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "expected-reject",
+      "oracle_profile": "rejection-class",
+      "scope": "invalid request/schema/message shapes",
+      "test_id": "API-NEG-01"
+    },
+    {
+      "CachyLLama": "open",
+      "HaloFPX": "open",
+      "ROCmFPX": "open",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "open",
+      "oracle_profile": "rejection-class",
+      "scope": "stream_options with stream=false",
+      "test_id": "API-EXT-01"
+    },
+    {
+      "CachyLLama": "open",
+      "HaloFPX": "open",
+      "ROCmFPX": "open",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "open",
+      "oracle_profile": "canonical-json",
+      "scope": "live required tool call from generated model",
+      "test_id": "API-LIVE-TOOL-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "open",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "state-semantic",
+      "scope": "whole-context save/restore semantic continuation",
+      "test_id": "STATE-01"
+    },
+    {
+      "CachyLLama": "required",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "state-semantic",
+      "scope": "fragmented/sequence state isolation and restore",
+      "test_id": "STATE-02"
+    },
+    {
+      "CachyLLama": "not-applicable",
+      "HaloFPX": "open",
+      "ROCmFPX": "not-applicable",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "not-applicable",
+      "oracle_profile": "state-metamorphic",
+      "scope": "opaque state-file byte equality across forks",
+      "test_id": "STATE-BYTES-01"
+    },
+    {
+      "CachyLLama": "open",
+      "HaloFPX": "open",
+      "ROCmFPX": "open",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "open",
+      "oracle_profile": "numeric_f32_restore",
+      "scope": "recurrent rollback and dirty-context restore",
+      "test_id": "RECURRENT-01"
+    },
+    {
+      "CachyLLama": "open",
+      "HaloFPX": "open",
+      "ROCmFPX": "open",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "required",
+      "oracle_profile": "state-semantic",
+      "scope": "model-free ngram-simple speculative equivalence",
+      "test_id": "SPEC-NGRAM-01"
+    },
+    {
+      "CachyLLama": "open",
+      "HaloFPX": "open",
+      "ROCmFPX": "open",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "open",
+      "oracle_profile": "state-semantic",
+      "scope": "MTP/model-assisted speculative equivalence",
+      "test_id": "SPEC-MTP-01"
+    },
+    {
+      "CachyLLama": "expected-reject",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "expected-reject",
+      "oracle_profile": "fork-specific",
+      "scope": "ROCmFPX TURBO4 type-ID dispatch probe",
+      "test_id": "ROCM-TYPE-106"
+    },
+    {
+      "CachyLLama": "not-applicable",
+      "HaloFPX": "open",
+      "ROCmFPX": "required",
+      "approval_status": "not-approved",
+      "claim_labels": [
+        "PROPOSAL",
+        "QUALIFICATION-REQUIRED"
+      ],
+      "llama.cpp": "not-applicable",
+      "oracle_profile": "fork-specific",
+      "scope": "ROCmFPX TurboQuant CPU vector recipe",
+      "test_id": "ROCM-TURBO-CPU"
+    }
+  ],
+  "schema_version": 1
+}

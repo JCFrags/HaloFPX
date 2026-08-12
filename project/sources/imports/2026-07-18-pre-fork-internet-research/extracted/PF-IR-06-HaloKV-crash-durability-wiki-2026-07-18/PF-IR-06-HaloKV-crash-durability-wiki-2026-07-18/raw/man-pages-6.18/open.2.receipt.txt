@@ -1,0 +1,14 @@
+---
+source_id: "S022"
+title: "open(2)"
+capture_kind: "official-web-receipt-with-short-excerpt"
+canonical_url: "https://man7.org/linux/man-pages/man2/open.2.html"
+version: "Linux man-pages 6.18"
+page_colophon_date: "2026-02-08 or page-specific"
+retrieved_by_man7: "2026-05-24"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "per-page upstream license"
+---
+O_TMPFILE creates an unnamed inode in the named directory filesystem and can later be linked. Support is filesystem-dependent and must be probed.
+
+This local file is a normalized receipt; it is not a byte-for-byte HTML capture.

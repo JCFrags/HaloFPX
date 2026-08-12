@@ -1,0 +1,97 @@
+section_id: "84"
+category_id: "12"
+title: "On-Machine Research Plan, Experiment Cards, and Lab Notebook"
+category: "12_Project_Execution_and_Governance"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 11
+open_question_count: 12
+required_machine_experiments:
+  - id: "HLX-EXP-20260717-841"
+    title: "Identity, topology, and clock admission"
+    dependencies: []
+  - id: "HLX-EXP-20260717-842"
+    title: "Measurement-system and notebook qualification"
+    dependencies: ["HLX-EXP-20260717-841"]
+  - id: "HLX-EXP-20260717-843"
+    title: "Matched single-node backend and model baseline"
+    dependencies: ["HLX-EXP-20260717-842"]
+  - id: "HLX-EXP-20260717-844"
+    title: "Dual-link fabric and GPU-to-peer-GPU path"
+    dependencies: ["HLX-EXP-20260717-842", "HLX-EXP-20260717-843"]
+  - id: "HLX-EXP-20260717-845"
+    title: "Buffer visibility, coherence, copy, graph, and synchronization"
+    dependencies: ["HLX-EXP-20260717-843", "HLX-EXP-20260717-844"]
+  - id: "HLX-EXP-20260717-846"
+    title: "HaloKV correctness, durability, performance, and endurance"
+    dependencies: ["HLX-EXP-20260717-843", "HLX-EXP-20260717-845"]
+  - id: "HLX-EXP-20260717-847"
+    title: "Cache-off and cache-integrated distributed-mode matched break-even matrices"
+    dependencies: ["HLX-EXP-20260717-843", "HLX-EXP-20260717-844", "HLX-EXP-20260717-845"]
+    conditional_dependencies:
+      cache_integrated_only: ["HLX-EXP-20260717-846"]
+  - id: "HLX-EXP-20260717-848"
+    title: "Service envelope, lifecycle, concurrency, and soak"
+    dependencies: ["HLX-EXP-20260717-847"]
+  - id: "HLX-EXP-20260717-849"
+    title: "Fault, security, recovery, and rollback"
+    dependencies: ["HLX-EXP-20260717-847", "HLX-EXP-20260717-848"]
+  - id: "HLX-EXP-20260717-850"
+    title: "Randomized holdout and independent reproduction"
+    dependencies: ["HLX-EXP-20260717-848", "HLX-EXP-20260717-849"]
+related_sections:
+  - "03"
+  - "04"
+  - "05"
+  - "18"
+  - "20"
+  - "22"
+  - "24"
+  - "25"
+  - "29"
+  - "38"
+  - "55"
+  - "65"
+  - "73"
+  - "74"
+  - "75"
+  - "76"
+  - "77"
+  - "78"
+  - "79"
+  - "80"
+  - "81"
+  - "82"
+  - "83"
+  - "85"
+  - "86"
+applicability:
+  repositories:
+    - repository: "charlie12345/ROCmFPX"
+      commit: "a5605a72768c6562241b248e268e33dc92787394"
+    - repository: "ggml-org/llama.cpp"
+      commit: "788e07dc91d266ad3162a1ce9037665656269689"
+    - repository: "mlcommons/inference_policies"
+      commit: "c547732b539cb3a14cc5680597714c8c1df4cad0"
+    - repository: "richardcochran/linuxptp"
+      commit: "e312b959a7dd3e8db0c6c8e282917c89909f8f76"
+  software_versions:
+    - "experiment-plan proposal v0.1"
+    - "JCGM 100:2008"
+    - "RFC 3339"
+    - "RFC 8633"
+  hardware_revisions:
+    - "two matched AMD Strix Halo systems; exact inventory pending E01"
+claim_scope:
+  source_research_complete: true
+  target_machine_validation_complete: false
+  measurements_present: false
+  architecture_choices_finalized: false
+experiment_card_artifacts:
+  schema: "experiment-card.schema.json"
+  template: "experiment-card.template.yaml"
+  instances: "cards/HLX-EXP-20260717-841.yaml through cards/HLX-EXP-20260717-850.yaml"
+  alias_mapping: "experiment-aliases.yaml"
+  validator: "validate_experiment_cards.py"
+  card_count: 10
+  alias_count: 32

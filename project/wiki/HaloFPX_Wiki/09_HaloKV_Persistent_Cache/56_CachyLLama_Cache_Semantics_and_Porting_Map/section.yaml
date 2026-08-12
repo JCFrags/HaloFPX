@@ -1,0 +1,23 @@
+section_id: "56"
+title: "CachyLLama Cache Semantics and Porting Map"
+category_id: "09"
+category_title: "HaloKV Persistent Cache"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 12
+required_machine_experiments:
+  - "Reproduce pinned transformer, hybrid/recurrent, MTP and speculative suffix-only restores"
+  - "Mutate every compatibility input and require diagnostic misses"
+  - "Fault-inject checkpoint/index publication and recovery"
+  - "Exercise tenant isolation and adversarial namespace/continuation cases"
+  - "Measure cold/warm/hot memory, NVMe, restore latency and evaluation saved"
+  - "Coordinate independent rank-local restore and failure fallback"
+related_sections: ["57", "58", "59", "60", "61", "62", "63", "64", "65"]
+applicability:
+  repositories:
+    - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+  hardware_revisions:
+    - "Two gfx1151 Strix Halo hosts; exact BOM pending"

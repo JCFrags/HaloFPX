@@ -1,0 +1,12 @@
+section_id: "35"
+title: "Recurrent, Mamba, SSM, Hybrid, and State-Shift Semantics"
+category_id: "06"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 8
+required_machine_experiments: ["M35-01 state inventory", "M35-02 restore equivalence matrix", "M35-03 distributed fault test"]
+related_sections: ["29", "32", "57", "58", "61", "63", "77", "78", "80"]
+applicability:
+  repositories: ["ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689", "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"]
+  hardware: ["dual Strix Halo"]

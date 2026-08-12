@@ -1,0 +1,21 @@
+{
+  "notice": "Template only. No cryptographic output in this file is a valid production test vector.",
+  "format_version": "HKV1",
+  "suite": "HKV1-A256GCM",
+  "key_hex": "<32-byte test key; never production>",
+  "nonce_hex": "<12-byte unique test nonce>",
+  "aad_cbor_hex": "<deterministic encoded AAD>",
+  "plaintext_hex": "<test plaintext>",
+  "ciphertext_hex": "<expected ciphertext>",
+  "tag_hex": "<16-byte tag>",
+  "negative_mutations": [
+    "ciphertext-bit-0",
+    "tag-bit-0",
+    "tenant-id",
+    "rank-id",
+    "epoch-id",
+    "manifest-generation",
+    "scoped-cid",
+    "truncate-each-boundary"
+  ]
+}

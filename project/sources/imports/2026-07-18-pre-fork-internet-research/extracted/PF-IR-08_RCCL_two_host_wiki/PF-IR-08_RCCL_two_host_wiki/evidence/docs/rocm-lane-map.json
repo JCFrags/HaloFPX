@@ -1,0 +1,71 @@
+{
+  "accessed_at": "2026-07-18",
+  "scope_note": "Candidate lanes were not enumerated in the request; the audit covers the visible relevant ROCm release lanes plus active develop.",
+  "lanes": [
+    {
+      "rocm_lane": "6.4.3",
+      "rccl_version": "2.22.3",
+      "tag": "rocm-6.4.3",
+      "tag_commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
+      "authority": "retired standalone release tag"
+    },
+    {
+      "rocm_lane": "7.0.2",
+      "rccl_version": "2.26.6",
+      "tag": "rocm-7.0.2",
+      "tag_commit": "01dfdacf4278d4369dc8c34c8877f4210f1f486b",
+      "authority": "retired standalone release tag"
+    },
+    {
+      "rocm_lane": "7.1.1",
+      "rccl_version": "2.27.7",
+      "tag": "rocm-7.1.1",
+      "tag_commit": "bf3ebf549fec376521b7d35f09a67f67071c96d3",
+      "authority": "retired standalone release tag"
+    },
+    {
+      "rocm_lane": "7.2.1",
+      "rccl_version": "2.27.7",
+      "tag": "rocm-7.2.1",
+      "tag_commit": "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4",
+      "authority": "retired standalone release tag"
+    },
+    {
+      "rocm_lane": "7.2.2",
+      "rccl_version": "2.27.7",
+      "tag": "rocm-7.2.2",
+      "tag_commit": "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4",
+      "authority": "retired standalone release tag"
+    },
+    {
+      "rocm_lane": "7.2.3",
+      "rccl_version": "2.27.7",
+      "tag": "rocm-7.2.3",
+      "tag_commit": "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4",
+      "authority": "retired standalone release tag"
+    },
+    {
+      "rocm_lane": "7.2.4",
+      "rccl_version": "2.27.7",
+      "tag": "rocm-7.2.4",
+      "tag_commit": "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4",
+      "authority": "retired standalone release tag"
+    },
+    {
+      "rocm_lane": "active develop",
+      "rccl_version": "2.30.4",
+      "tag": null,
+      "tag_commit": "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab",
+      "audit_base": "3dddea1389e5d28e84fe2c29f50450f00b7474a1",
+      "authority": "ROCm/rocm-systems/projects/rccl"
+    }
+  ],
+  "official_docs": [
+    "https://rocm.docs.amd.com/en/docs-6.4.3/about/release-notes.html",
+    "https://rocm.docs.amd.com/en/docs-7.0.2/about/release-notes.html",
+    "https://rocm.docs.amd.com/en/docs-7.1.1/about/release-notes.html",
+    "https://rocm.docs.amd.com/en/docs-7.2.1/about/release-notes.html",
+    "https://rocm.docs.amd.com/en/docs-7.2.2/about/release-notes.html",
+    "https://rocm.docs.amd.com/en/develop/release.html"
+  ]
+}

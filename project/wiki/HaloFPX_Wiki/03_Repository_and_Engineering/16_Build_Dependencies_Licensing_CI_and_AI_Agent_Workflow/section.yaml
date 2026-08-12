@@ -1,0 +1,47 @@
+section_id: "16"
+category_id: "03"
+title: "Build, Dependencies, Licensing, CI, and AI-Agent Workflow"
+category: "03_Repository_and_Engineering"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 15
+open_question_count: 16
+required_machine_experiments:
+  - "Capture complete software, firmware, driver, compiler, ROCm, and Vulkan manifests on both Strix Halo hosts."
+  - "Perform clean and offline HIP+Vulkan builds from the exact source and dependency manifest on both hosts."
+  - "Run CPU, HIP, and Vulkan reference/backend-ops plus quantization and server regression gates."
+  - "Run cache corruption/version-mismatch tests and prove miss/recomputation behavior."
+  - "Run dual-rank transport failure and single-node fallback tests."
+  - "Run matched quality/performance experiments with raw output and environment metadata."
+  - "Perform isolated double builds and compare artifact digests and normalized differences."
+  - "Generate and validate SPDX SBOM, provenance, notices, and append-only AI-log linkage."
+related_sections:
+  - "03.11"
+  - "03.13"
+  - "03.14"
+  - "03.15"
+  - "04"
+  - "11"
+applicability:
+  repositories:
+    - repository: "charlie12345/ROCmFPX"
+      commit: "a5605a72768c6562241b248e268e33dc92787394"
+    - repository: "ggml-org/llama.cpp"
+      commit: "788e07dc91d266ad3162a1ce9037665656269689"
+    - repository: "fewtarius/CachyLLama"
+      commit: "6be745998f568e379ea197fcf827baec73ff9940"
+    - repository: "fewtarius/llama-ai"
+      commit: "1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+      submodule_commit: "6be745998f568e379ea197fcf827baec73ff9940"
+  software_versions:
+    - "CMake project policy range 3.14...3.28"
+    - "C 11 / C++ 17"
+    - "SPDX 3.0.1"
+    - "SLSA 1.2 provenance guidance"
+  hardware_revisions:
+    - "dual Strix Halo / gfx1151 planned; no machine validation in this section"
+claim_scope:
+  source_research_complete: true
+  target_machine_validation_complete: false
+  benchmark_results_added: false
+  legal_review_complete: false

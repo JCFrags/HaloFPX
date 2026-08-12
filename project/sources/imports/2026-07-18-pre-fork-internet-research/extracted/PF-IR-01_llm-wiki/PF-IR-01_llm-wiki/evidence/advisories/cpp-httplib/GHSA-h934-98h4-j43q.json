@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-h934-98h4-j43q",
+  "title": "Compressed-body zip-bomb resource exhaustion",
+  "severity": "High",
+  "affected_versions": "<=0.29.0",
+  "patched_versions": "0.30.1",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-h934-98h4-j43q",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "compressed content reader",
+    "precondition": "Compression support compiled and server accepts encoded body"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "205ac35e4733d24e94aebc9ef2c60aba4648b202bc98a858bb3a036ca7974499"
+}

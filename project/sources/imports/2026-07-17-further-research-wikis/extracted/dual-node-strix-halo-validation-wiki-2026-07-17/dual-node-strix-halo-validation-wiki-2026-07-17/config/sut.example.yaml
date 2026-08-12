@@ -1,0 +1,129 @@
+schema_version: 1
+status: TEMPLATE_NOT_POPULATED
+testbed_id: null
+release_profile: null
+claim_boundary: null
+owners:
+  benchmark: null
+  runtime: null
+  platform: null
+  release: null
+  security: null
+nodes:
+- id: node-a
+  role: coordinator_or_single
+  manufacturer: null
+  model: null
+  serial_asset_id: null
+  cpu_apu: AMD Strix Halo-class (exact SKU required)
+  memory_bytes: null
+  memory_configuration: null
+  storage: null
+  bios_version: null
+  agesa_version: null
+  usb4_controller_firmware: null
+  power_profile: null
+  cooling_configuration: null
+- id: node-b
+  role: worker_or_single
+  manufacturer: null
+  model: null
+  serial_asset_id: null
+  cpu_apu: AMD Strix Halo-class (exact SKU required)
+  memory_bytes: null
+  memory_configuration: null
+  storage: null
+  bios_version: null
+  agesa_version: null
+  usb4_controller_firmware: null
+  power_profile: null
+  cooling_configuration: null
+interconnect:
+  transport: USB4NET/thunderbolt-net
+  cable_vendor_model: null
+  cable_length_m: null
+  cable_marking_or_certification: null
+  interface_a: null
+  interface_b: null
+  ip_subnet: null
+  mtu: null
+  offloads: null
+  routing: null
+  firewall: null
+  rpc_bind_scope: dedicated isolated link only
+software:
+  os_distribution: null
+  kernel: null
+  amdgpu_driver: null
+  rocm: null
+  mesa: null
+  llvm: null
+  runtime_name: llama.cpp or declared equivalent
+  runtime_commit: null
+  build_flags: null
+  compiler: null
+  python: null
+  container_or_nix_digest: null
+model:
+  name: null
+  family: null
+  source_revision: null
+  artifact_path: null
+  artifact_sha256: null
+  artifact_bytes: null
+  quantization: null
+  tokenizer_sha256: null
+  license: null
+  declared_context_tokens: null
+  kv_cache_type: null
+runtime_configuration:
+  command_coordinator: null
+  command_worker: null
+  device_mapping: null
+  tensor_or_layer_split: null
+  threads: null
+  affinity: null
+  batch_size: null
+  ubatch_size: null
+  context_tokens: null
+  parallel_slots: null
+  flash_attention: null
+  mmap: null
+  mlock: null
+  prompt_cache: null
+  sampling_defaults:
+    temperature: 0
+    seed: 1
+client:
+  host: null
+  placement: null
+  network_path: null
+  clock_source: null
+lab:
+  ambient_target_c: null
+  ambient_tolerance_c: 2.0
+  wall_power_meter: null
+  power_meter_sample_hz: null
+  ups: null
+  background_services_disabled: []
+absolute_slos:
+  approval_state: UNAPPROVED_REQUIRED_INPUT
+  interactive_short:
+    p95_ttft_ms: null
+    p99_ttft_ms: null
+    p95_itl_ms: null
+    p99_itl_ms: null
+    success_rate_min: 0.9999
+  interactive_long:
+    p95_ttft_ms: null
+    p99_ttft_ms: null
+    p95_itl_ms: null
+    p99_itl_ms: null
+    success_rate_min: 0.9999
+  batch:
+    goodput_output_tokens_per_s_min: null
+    success_rate_min: 0.9999
+  recovery:
+    fault_detection_s_max: null
+    service_recovery_s_max: null
+    data_loss_requests_max: 0

@@ -1,0 +1,63 @@
+{
+  "candidate_binaries_executed": false,
+  "match": true,
+  "results": [
+    {
+      "command": [
+        "python3",
+        "<ROOT>/comparators/exact_json.py",
+        "<TMP>/e.json",
+        "<TMP>/a.json",
+        "--ignore",
+        "/id"
+      ],
+      "pass": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\"match\": true}\n"
+    },
+    {
+      "command": [
+        "python3",
+        "<ROOT>/comparators/numeric.py",
+        "<TMP>/n1.json",
+        "<TMP>/n2.json",
+        "--atol",
+        "1e-5"
+      ],
+      "pass": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\"atol\": 1e-05, \"count\": 3, \"match\": true, \"rtol\": 0.0, \"worst\": {\"abs_error\": 1.000000000139778e-06, \"actual\": 2.999999, \"expected\": 3.0, \"index\": 2}}\n"
+    },
+    {
+      "command": [
+        "python3",
+        "<ROOT>/comparators/rejection.py",
+        "<TMP>/reject.json",
+        "--class",
+        "reject-load"
+      ],
+      "pass": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\"diagnostic_hint\": true, \"expected_class\": \"reject-load\", \"match\": true, \"rejected\": true}\n"
+    },
+    {
+      "command": [
+        "python3",
+        "<ROOT>/comparators/sse.py",
+        "<ROOT>/fixtures/api/streaming/canonical.sse",
+        "--chunks",
+        "<ROOT>/fixtures/api/streaming/canonical.chunks.json",
+        "--expected-row",
+        "<TMP>/sse-expected.json"
+      ],
+      "pass": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\n  \"actual\": {\n    \"done\": true,\n    \"events\": [\n      {\n        \"choices\": [\n          {\n            \"delta\": {\n              \"role\": \"assistant\"\n            },\n            \"finish_reason\": null,\n            \"index\": 0\n          }\n        ],\n        \"created\": 0,\n        \"id\": \"STATIC\",\n        \"model\": \"pfir10\",\n        \"object\": \"chat.completion.chunk\"\n      },\n      {\n        \"choices\": [\n          {\n            \"delta\": {\n              \"content\": \"A\"\n            },\n            \"finish_reason\": null,\n            \"index\": 0\n          }\n        ],\n        \"created\": 0,\n        \"id\": \"STATIC\",\n        \"model\": \"pfir10\",\n        \"object\": \"chat.completion.chunk\"\n      },\n      {\n        \"choices\": [\n          {\n            \"delta\": {},\n            \"finish_reason\": \"stop\",\n            \"index\": 0\n          }\n        ],\n        \"created\": 0,\n        \"id\": \"STATIC\",\n        \"model\": \"pfir10\",\n        \"object\": \"chat.completion.chunk\"\n      }\n    ],\n    \"malformed_records_skipped\": 0,\n    \"post_done_ignored\": 0\n  },\n  \"expected\": {\n    \"done\": true,\n    \"events\": [\n      {\n        \"choices\": [\n          {\n            \"delta\": {\n              \"role\": \"assistant\"\n            },\n            \"finish_reason\": null,\n            \"index\": 0\n          }\n        ],\n        \"created\": 0,\n        \"id\": \"STATIC\",\n        \"model\": \"pfir10\",\n        \"object\": \"chat.completion.chunk\"\n      },\n      {\n        \"choices\": [\n          {\n            \"delta\": {\n              \"content\": \"A\"\n            },\n            \"finish_reason\": null,\n            \"index\": 0\n          }\n        ],\n        \"created\": 0,\n        \"id\": \"STATIC\",\n        \"model\": \"pfir10\",\n        \"object\": \"chat.completion.chunk\"\n      },\n      {\n        \"choices\": [\n          {\n            \"delta\": {},\n            \"finish_reason\": \"stop\",\n            \"index\": 0\n          }\n        ],\n        \"created\": 0,\n        \"id\": \"STATIC\",\n        \"model\": \"pfir10\",\n        \"object\": \"chat.completion.chunk\"\n      }\n    ],\n    \"malformed_records_skipped\": 0,\n    \"post_done_ignored\": 0\n  },\n  \"match\": true\n}\n"
+    }
+  ],
+  "schema_version": 1
+}

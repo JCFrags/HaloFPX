@@ -1,0 +1,27 @@
+# PF-IR-09 NIMO MME3L authority map
+
+> Access date: 2026-07-18. Priority: P1.
+
+## Target
+
+Nimo Direct MME3L; NIMO Mini PC board v1.0; BIOS 3.05 dated 2025-10-11; AMD Ryzen AI MAX+ 395 / gfx1151; PCI 1002:1586 rev c1; Crucial P310 1 TB firmware VACR001; USB4 exact IDs open.
+
+## Critical decisions
+
+- [HOLD] Exact OEM BIOS and rollback/signature proof are absent. Current public Strix Halo PI floor in captured advisories is 1.0.0.2b.
+- CVE-2025-48516 is an exact-family no-fix residual requiring risk acceptance or hardware replacement.
+- [HOLD] Rowhammer Mixed Refresh Mode, P310 VACR001, USB4 firmware and Strix Halo KFD kernel floor require local/vendor proof.
+- AER is supported if present; EDAC/MCA and amdgpu RAS target coverage are unknown until local capability evidence exists.
+
+## Canonical files
+
+- `index.html`: interactive LLM-Wiki view.
+- `08_manifests/wiki-data.json`: combined machine-readable corpus.
+- `06_decision_tables/product-to-advisory-applicability.csv`: main applicability table.
+- `06_decision_tables/pre-deployment-update-holds.csv`: holds and release conditions.
+- `06_decision_tables/telemetry-support-matrix.csv`: CE/UE/RAS coverage.
+- `08_manifests/sources.jsonl`: official source records.
+- `07_local_evidence/collect-local-evidence.sh`: read-only target collector.
+- `08_manifests/files.sha256`: internal integrity manifest.
+
+Literal [OPEN] and [UNKNOWN] labels do not mean no errata, vulnerability, or fault risk.

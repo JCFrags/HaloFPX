@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-j6p8-779x-p5pw",
+  "title": "Trailer-header request smuggling",
+  "severity": "High",
+  "affected_versions": "<=0.22.0",
+  "patched_versions": "0.23.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-j6p8-779x-p5pw",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "chunk trailer parser",
+    "precondition": "Chunked request carries conflicting trailers"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "4535d88ecd0817d145cd8afa179380901c268def0c7eb9c193a059663d62e32e"
+}

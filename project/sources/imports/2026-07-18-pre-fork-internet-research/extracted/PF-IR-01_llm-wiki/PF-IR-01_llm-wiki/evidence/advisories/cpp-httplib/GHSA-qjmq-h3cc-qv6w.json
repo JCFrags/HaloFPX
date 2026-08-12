@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-qjmq-h3cc-qv6w",
+  "title": "Persistent unbounded allocation in chunked/no-length requests",
+  "severity": "High",
+  "affected_versions": "<0.22.0",
+  "patched_versions": "0.23.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-qjmq-h3cc-qv6w",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "request body accumulation",
+    "precondition": "Server reads chunked or no-length body without aggregate limit"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "a28a7830f2bea9a9958c0538f98acfefc5c3b8116cd263e9e0368c7af3f0fc8c"
+}

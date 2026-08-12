@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "Cite this research package as a design proposal."
+title: "HaloKV Two-Node Persistent-Cache Protocol Research Wiki"
+type: software
+version: 0.1.0
+date-released: 2026-07-17
+license: Apache-2.0
+abstract: "Protocol, fault, security, formal-modeling, and fuzzing design for persistent LLM KV-cache state split across two model-execution ranks."

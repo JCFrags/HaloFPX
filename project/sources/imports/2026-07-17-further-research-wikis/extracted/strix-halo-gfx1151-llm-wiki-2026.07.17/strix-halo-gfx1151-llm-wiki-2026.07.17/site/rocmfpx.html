@@ -1,0 +1,194 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>ROCmFPX on Strix Halo · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="rocmfpx.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html">Community validation</a>
+          
+            <a href="regressions.html">Known regressions</a>
+          
+            <a href="unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html">Exact build flags</a>
+          
+            <a href="environment-variables.html">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html" class="active" aria-current="page">ROCmFPX</a>
+          
+            <a href="usb4-networking.html">USB4 networking</a>
+          
+            <a href="glossary.html">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Experimental component</div>
+      <article class="article"><h1 id="rocmfpx-on-strix-halo">ROCmFPX on Strix Halo<a aria-label="Link to section" class="heading-anchor" href="#rocmfpx-on-strix-halo">#</a></h1>
+<h2 id="classification">Classification<a aria-label="Link to section" class="heading-anchor" href="#classification">#</a></h2>
+<p>ROCmFPX is an <strong>experimental community fork</strong>, not an AMD-supported ROCm component and not an upstream ggml-org llama.cpp feature set in the form documented here. Pin commit:</p>
+<pre><code class="language-text">a5605a72768c6562241b248e268e33dc92787394
+</code></pre>
+<p>The fork describes AMD-focused ROCmFP3, ROCmFP4, ROCmFP6, and ROCmFP8 GGUF weight formats with CPU reference paths and accelerated HIP/ROCm and Vulkan kernels. Sources: <a href="sources.html#rocmfpx-a5605">ROCMFPX-A5605</a>.</p>
+<h2 id="reproducible-baseline">Reproducible baseline<a aria-label="Link to section" class="heading-anchor" href="#reproducible-baseline">#</a></h2>
+<p>The project Dockerfile pins:</p>
+<pre><code class="language-text">Ubuntu 24.04
+rocm/dev-ubuntu-24.04:7.2.1-complete
+gfx1151
+</code></pre>
+<p>Source: <a href="sources.html#rocmfpx-docker-a5605">ROCMFPX-DOCKER-A5605</a>.</p>
+<p>Build:</p>
+<pre><code class="language-bash">git clone https://github.com/charlie12345/ROCmFPX.git
+cd ROCmFPX
+git checkout a5605a72768c6562241b248e268e33dc92787394
+env JOBS=16 scripts/build-strix-rocmfp4-mtp.sh
+</code></pre>
+<p>The script builds HIP and Vulkan, targets <code>gfx1151</code>, keeps rocWMMA FlashAttention OFF, and enables the fork’s forced MMQ path. Exact expanded flags are in <a href="build-flags.html">Build flags</a>.</p>
+<h2 id="runtime">Runtime<a aria-label="Link to section" class="heading-anchor" href="#runtime">#</a></h2>
+<p>Vulkan:</p>
+<pre><code class="language-bash">build-strix-rocmfp4/bin/llama-cli   -m MODEL-ROCMFP4.gguf -dev Vulkan0 -ngl 999 -fa on --jinja
+</code></pre>
+<p>HIP/ROCm, using the fork-documented environment:</p>
+<pre><code class="language-bash">export HSA_OVERRIDE_GFX_VERSION=11.5.1
+export GGML_HIP_ENABLE_UNIFIED_MEMORY=1
+build-strix-rocmfp4/bin/llama-cli   -m MODEL-ROCMFP4.gguf -dev ROCm0 -ngl 999 -fa on --jinja
+</code></pre>
+<p>Those variables are scoped to this pinned fork recipe. Native upstream llama.cpp on a current gfx1151 ROCm stack should normally run without <code>HSA_OVERRIDE_GFX_VERSION</code>.</p>
+<h2 id="quantization-examples">Quantization examples<a aria-label="Link to section" class="heading-anchor" href="#quantization-examples">#</a></h2>
+<pre><code class="language-bash">build-strix-rocmfp4/bin/llama-quantize   model-BF16.gguf model-ROCMFP4-FAST.gguf Q4_0_ROCMFP4_FAST
+</code></pre>
+<p>Other documented families include <code>Q3_0_ROCMFPX</code>, <code>Q4_0_ROCMFP4</code>, <code>Q6_0_ROCMFPX</code>, <code>Q8_0_ROCMFPX</code>, and agent/coherency variants. Compare every output to the BF16/F16 source for task-specific quality.</p>
+<h2 id="tuning-profiles">Tuning profiles<a aria-label="Link to section" class="heading-anchor" href="#tuning-profiles">#</a></h2>
+<p>The pinned tree exposes profile names including:</p>
+<pre><code class="language-text">rocmfpx-strix-moe-rpb1..4
+rocmfpx-strix-nwarps1,2,4
+rocmfpx-strix-rpb2
+rocmfpx-strix-mmid1..4
+rocmfpx-strix-vdr2,8
+</code></pre>
+<p>Set <code>ROCMFPX_DECODE_TUNE=PROFILE</code> only for controlled benchmark runs. The stable profile emits no extra compile definitions.</p>
+<h2 id="unsupported-combinations">Unsupported combinations<a aria-label="Link to section" class="heading-anchor" href="#unsupported-combinations">#</a></h2>
+<ul>
+<li>Do not assume ROCm 7.14 works with this commit merely because Core SDK supports gfx1151; the fork’s reproducible container is ROCm 7.2.1.</li>
+<li>Do not copy fork-only <code>GGML_HIP_FORCE_MMQ</code> or unified-memory variables into upstream llama.cpp builds.</li>
+<li>Do not use the fork’s local rocWMMA header path unless the headers are deliberately pinned and the feature is A/B tested.</li>
+<li>Do not treat maintainer benchmark numbers as model-independent.</li>
+</ul>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#classification">Classification</a><a class="level-2" href="#reproducible-baseline">Reproducible baseline</a><a class="level-2" href="#runtime">Runtime</a><a class="level-2" href="#quantization-examples">Quantization examples</a><a class="level-2" href="#tuning-profiles">Tuning profiles</a><a class="level-2" href="#unsupported-combinations">Unsupported combinations</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

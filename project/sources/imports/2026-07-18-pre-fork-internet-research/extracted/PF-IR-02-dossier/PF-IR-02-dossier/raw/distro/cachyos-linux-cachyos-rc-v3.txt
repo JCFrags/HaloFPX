@@ -1,0 +1,9 @@
+[PACKAGED]
+Repository: cachyos-v3 / x86_64_v3
+Package: linux-cachyos-rc
+Version: 7.2.rc3-1
+Build date: 2026-07-13 17:06
+Package SHA256: 8d65e3132b24f28120cabcae34103949676c46fdcde20542aa1e0f427b413554
+Package size: 148.6 MB
+Installed size: 149.02 MB
+License: GPL-2.0-only

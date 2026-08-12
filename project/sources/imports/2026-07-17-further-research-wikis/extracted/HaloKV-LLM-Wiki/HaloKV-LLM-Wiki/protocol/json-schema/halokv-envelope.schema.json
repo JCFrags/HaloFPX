@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/halokv/v1/halokv-envelope.schema.json",
+  "title": "HaloKV diagnostic control envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_major",
+    "protocol_minor",
+    "tenant_namespace",
+    "session_id",
+    "session_generation",
+    "epoch",
+    "checkpoint_seq",
+    "op_id",
+    "request_digest",
+    "topology_fingerprint",
+    "sender_instance_id",
+    "sender_role",
+    "message_kind",
+    "body"
+  ],
+  "properties": {
+    "protocol_major": {
+      "type": "integer",
+      "const": 1
+    },
+    "protocol_minor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535
+    },
+    "tenant_namespace": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]{1,128}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "session_generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "checkpoint_seq": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "op_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "request_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "topology_fingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sender_instance_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "sender_role": {
+      "enum": [
+        "COORDINATOR",
+        "RANK",
+        "STORAGE"
+      ]
+    },
+    "sender_rank": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "message_kind": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "deadline_budget_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600000
+    },
+    "body": {
+      "type": "object",
+      "maxProperties": 64
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "sender_role": {
+            "const": "RANK"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "sender_rank"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sender_role": {
+            "enum": [
+              "COORDINATOR",
+              "STORAGE"
+            ]
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "sender_rank"
+          ]
+        }
+      }
+    }
+  ]
+}

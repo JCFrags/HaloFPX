@@ -1,0 +1,10 @@
+{
+  "outcome": "RECONFIGURE",
+  "authority_revision": 5543,
+  "target_commit_certificate_id": "8888888888888888888888888888888888888888888888888888888888888888",
+  "recovery_plan_token": "opaque_demo_rebuild_token_02",
+  "new_session_generation": 8,
+  "target_topology_fingerprint": "2222222222222222222222222222222222222222222222222222222222222222",
+  "single_node_continuation_permitted": true,
+  "single_node_decision_reason": "Full model fits on the node and the engine will rebuild the complete cache from prompt and forced emitted tokens under the one-node topology."
+}

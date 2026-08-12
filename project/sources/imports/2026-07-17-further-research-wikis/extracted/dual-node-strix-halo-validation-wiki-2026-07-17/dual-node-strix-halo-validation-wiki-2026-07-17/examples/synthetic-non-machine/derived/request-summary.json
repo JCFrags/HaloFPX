@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "derived_record_type": "request_aggregate",
+  "run_id": "SYNTH-20260717-0001",
+  "request_count": 3,
+  "successful_requests": 3,
+  "request_success_rate": 1.0,
+  "measurement_span_s": 2.3,
+  "request_throughput_per_s": 1.3043478260869565,
+  "prompt_tokens": 192,
+  "output_tokens": 9,
+  "aggregate_prompt_tokens_per_s": 83.47826086956522,
+  "aggregate_output_tokens_per_s": 3.91304347826087,
+  "ttft_ms": {
+    "count": 3,
+    "mean": 200.0,
+    "median": 200.0,
+    "stdev": 0.0,
+    "mad": 0.0,
+    "p90": 200.0,
+    "p95": 200.0,
+    "p99": 200.0,
+    "min": 200.0,
+    "max": 200.0,
+    "mean_ci95": [
+      200.0,
+      200.0
+    ],
+    "median_ci95": [
+      200.0,
+      200.0
+    ]
+  },
+  "itl_ms": {
+    "count": 6,
+    "mean": 41.0,
+    "median": 41.0,
+    "stdev": 1.0954451150103321,
+    "mad": 1.0,
+    "p90": 42.0,
+    "p95": 42.0,
+    "p99": 42.0,
+    "min": 40.0,
+    "max": 42.0,
+    "mean_ci95": [
+      40.333333333333336,
+      41.666666666666664
+    ],
+    "median_ci95": [
+      40.0,
+      42.0
+    ]
+  },
+  "tpot_ms": {
+    "count": 3,
+    "mean": 41.0,
+    "median": 41.0,
+    "stdev": 0.0,
+    "mad": 0.0,
+    "p90": 41.0,
+    "p95": 41.0,
+    "p99": 41.0,
+    "min": 41.0,
+    "max": 41.0,
+    "mean_ci95": [
+      41.0,
+      41.0
+    ],
+    "median_ci95": [
+      41.0,
+      41.0
+    ]
+  },
+  "decode_tokens_per_s_per_request": {
+    "count": 3,
+    "mean": 24.390243902439025,
+    "median": 24.390243902439025,
+    "stdev": 0.0,
+    "mad": 0.0,
+    "p90": 24.390243902439025,
+    "p95": 24.390243902439025,
+    "p99": 24.390243902439025,
+    "min": 24.390243902439025,
+    "max": 24.390243902439025,
+    "mean_ci95": [
+      24.390243902439025,
+      24.390243902439025
+    ],
+    "median_ci95": [
+      24.390243902439025,
+      24.390243902439025
+    ]
+  },
+  "e2e_ms": {
+    "count": 3,
+    "mean": 300.0,
+    "median": 300.0,
+    "stdev": 0.0,
+    "mad": 0.0,
+    "p90": 300.0,
+    "p95": 300.0,
+    "p99": 300.0,
+    "min": 300.0,
+    "max": 300.0,
+    "mean_ci95": [
+      300.0,
+      300.0
+    ],
+    "median_ci95": [
+      300.0,
+      300.0
+    ]
+  },
+  "eligible_prefix_tokens": 0,
+  "cached_prompt_tokens": 0,
+  "prefix_token_hit_rate": null,
+  "invalid_timing_records": [],
+  "interpretation": {
+    "ttft": "client send to first non-empty content event",
+    "itl": "between consecutive recorded content events; verify one event per token for true token ITL",
+    "throughput": "successful completions/tokens over first-submit to last-complete span"
+  },
+  "source_files": [
+    {
+      "path": "examples/synthetic-non-machine/requests.jsonl",
+      "sha256": "73caa24bc31d985873540dc95851b5772df8e74fc1e45af175b0244cf5d4a287"
+    },
+    {
+      "path": "examples/synthetic-non-machine/tokens.jsonl",
+      "sha256": "8987f2834c3477b89ac8bdfd314376619cb52e4750192545ef5ac4e66b0f1005"
+    }
+  ]
+}

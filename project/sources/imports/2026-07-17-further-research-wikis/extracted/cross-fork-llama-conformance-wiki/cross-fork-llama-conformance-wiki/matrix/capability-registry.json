@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "states": {
+    "required": "unconditional gate",
+    "required-if-supported": "gate when capability probe says supported; otherwise evidence-backed skip",
+    "required-if-feature": "gate when the fork carries/enables the feature; otherwise evidence-backed skip",
+    "required-if-state-format-checks": "gate when state serialization is exposed",
+    "observe": "collect evidence but do not gate",
+    "optional": "may run; status must still be reported",
+    "not-applicable": "feature intentionally absent; record capability evidence"
+  },
+  "forks": {
+    "researched_on": "2026-07-17",
+    "upstream": {
+      "repository": "ggml-org/llama.cpp",
+      "ref": "86d86ed4396b4130922f7b9af26e3d9fc11a591b",
+      "branch": "master",
+      "role": "reference implementation"
+    },
+    "rocmfpx": {
+      "repository": "charlie12345/ROCmFPX",
+      "ref": "a5605a72768c6562241b248e268e33dc92787394",
+      "branch": "main",
+      "role": "experimental ROCmFPX quantization and MTP fork"
+    },
+    "cachyllama": {
+      "requested_repository": "llama-ai/CachyLlama",
+      "requested_status": "not resolved during research",
+      "candidate_repository": "fewtarius/CachyLLama",
+      "ref": "6be745998f568e379ea197fcf827baec73ff9940",
+      "branch": "master",
+      "role": "candidate persistent-cache fork; confirm before release gating"
+    },
+    "integration": {
+      "repository": null,
+      "ref": null,
+      "branch": null,
+      "role": "future integration fork; pin required before execution"
+    }
+  }
+}

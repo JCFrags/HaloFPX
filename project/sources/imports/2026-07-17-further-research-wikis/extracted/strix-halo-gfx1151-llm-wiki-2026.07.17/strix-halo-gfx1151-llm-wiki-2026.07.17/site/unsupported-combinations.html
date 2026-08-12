@@ -1,0 +1,242 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Unsupported, known-bad, and unvalidated combinations · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="unsupported-combinations.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html">Community validation</a>
+          
+            <a href="regressions.html">Known regressions</a>
+          
+            <a href="unsupported-combinations.html" class="active" aria-current="page">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html">Exact build flags</a>
+          
+            <a href="environment-variables.html">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html">ROCmFPX</a>
+          
+            <a href="usb4-networking.html">USB4 networking</a>
+          
+            <a href="glossary.html">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Failure analysis</div>
+      <article class="article"><h1 id="unsupported-known-bad-and-unvalidated-combinations">Unsupported, known-bad, and unvalidated combinations<a aria-label="Link to section" class="heading-anchor" href="#unsupported-known-bad-and-unvalidated-combinations">#</a></h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Combination</th>
+<th>Classification</th>
+<th>Reason</th>
+<th>Replacement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>linux-firmware-20251125</code> / MES 0x83 era</td>
+<td>Known bad</td>
+<td>GPU page faults, hangs, and distribution regressions</td>
+<td>Fixed/current distribution firmware; Fedora 20260110 line is community-validated</td>
+</tr>
+<tr>
+<td>Kernel below AMD’s RDNA 3.5 threshold</td>
+<td>Officially below stable floor</td>
+<td>Missing target fixes</td>
+<td>HWE &gt;=6.17.0-19, OEM &gt;=6.14.0-1018, or &gt;=6.18.4 elsewhere</td>
+</tr>
+<tr>
+<td>ROCm 7.1.x as a new gfx1151 deployment</td>
+<td>Officially unsupported in current target table</td>
+<td>CWSR/MES and application regressions</td>
+<td>ROCm 7.2.1–7.2.3 official target lane or current 7.14 Core SDK</td>
+</tr>
+<tr>
+<td>ROCm 6.4.x as an official current profile</td>
+<td>Officially unsupported in current target table</td>
+<td>Community patches do not change vendor status</td>
+<td>Use supported line; retain patched images only for controlled comparison</td>
+</tr>
+<tr>
+<td><code>HSA_OVERRIDE_GFX_VERSION=11.0.0</code> or <code>11.0.3</code> as a generic fix</td>
+<td>Unsupported workaround</td>
+<td>Failed to repair reported old-stack faults and can select wrong ISA assumptions</td>
+<td>Native gfx1151 identification on current stack</td>
+</tr>
+<tr>
+<td>ROCm 7.14 runtime with ROCm 7.2 LLVM/CMake packages</td>
+<td>Unsupported-by-scope</td>
+<td>Mixed compiler resource, bitcode, CMake, and runtime generations</td>
+<td>One SDK root and clean build directory</td>
+</tr>
+<tr>
+<td>b10064 ROCm 7.2 prebuilt loaded against arbitrary 7.14 libraries</td>
+<td>Unvalidated</td>
+<td>Binary dynamic-dependency scope differs</td>
+<td>Run with intended ROCm 7.2 runtime or rebuild from source for 7.14</td>
+</tr>
+<tr>
+<td><code>GGML_HIP_ROCWMMA_FATTN=ON</code> as gfx1151 default</td>
+<td>Community-reported regression</td>
+<td>Long-context prefill loss in reported ROCm 7.2.1 test</td>
+<td>Keep OFF, then A/B locally</td>
+</tr>
+<tr>
+<td>AMDVLK for any large model without allocation test</td>
+<td>Risky</td>
+<td>Reported approximately 2 GiB single-allocation failure</td>
+<td>RADV first</td>
+</tr>
+<tr>
+<td>Mesa 26.1.5 called “gfx1151 validated” without local test</td>
+<td>Unvalidated wording</td>
+<td>It is current upstream, while captured target reports used 26.0.2/26.0.3</td>
+<td>Label current-upstream candidate and run acceptance gate</td>
+</tr>
+<tr>
+<td>ROCmFPX commit a5605 with ROCm 7.14 assumed compatible</td>
+<td>Unvalidated</td>
+<td>Fork baseline is ROCm 7.2.1</td>
+<td>Use pinned container or perform a new qualification</td>
+</tr>
+<tr>
+<td><code>thunderbolt-ibverbs</code> in production or untrusted environments</td>
+<td>Explicitly unsupported by project</td>
+<td>Buggy and insecure research driver</td>
+<td>Standard <code>thunderbolt_net</code> TCP/IP or production RDMA hardware</td>
+</tr>
+<tr>
+<td><code>amd_iommu=off</code> combined with untrusted USB4/RDMA</td>
+<td>Security-risk combination</td>
+<td>Weakens DMA isolation</td>
+<td>Default IOMMU or <code>iommu=pt</code>, then benchmark</td>
+</tr>
+</tbody>
+</table></div>
+<p>Evidence: <a href="sources.html#amd-rdna35">AMD-RDNA35</a>, <a href="sources.html#rocm-issue-5724">ROCM-ISSUE-5724</a>, <a href="sources.html#rocm-issue-5590">ROCM-ISSUE-5590</a>, <a href="sources.html#rocm-issue-5824">ROCM-ISSUE-5824</a>, <a href="sources.html#llama-issue-24437">LLAMA-ISSUE-24437</a>, <a href="sources.html#llama-issue-15054">LLAMA-ISSUE-15054</a>, <a href="sources.html#thunderbolt-ibverbs-76ba39b">THUNDERBOLT-IBVERBS-76BA39B</a>.</p>
+<h2 id="unsupported-versus-not-yet-validated">“Unsupported” versus “not yet validated”<a aria-label="Link to section" class="heading-anchor" href="#unsupported-versus-not-yet-validated">#</a></h2>
+<ul>
+<li><strong>Unsupported</strong> means an authority explicitly excludes the combination or a known-bad record exists.</li>
+<li><strong>Unvalidated</strong> means no source in this snapshot certifies the combined profile. It may work; it must not be represented as supported until tested or documented.</li>
+<li><strong>Historical</strong> means the path was once official but has been superseded by a current matrix.</li>
+</ul>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#unsupported-versus-not-yet-validated">“Unsupported” versus “not yet validated”</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

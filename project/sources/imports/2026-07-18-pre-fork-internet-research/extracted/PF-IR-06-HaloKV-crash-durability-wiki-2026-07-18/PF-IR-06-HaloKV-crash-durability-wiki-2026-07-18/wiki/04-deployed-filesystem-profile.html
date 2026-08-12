@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deployed filesystem profile — unresolved first-class input · PF-IR-06</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="../index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="00-scope-and-claim-language.html">Scope / labels</a><a href="01-executive-decision-record.html">Decision record</a><a href="02-portable-linux-minimum.html">Portable minimum</a><a href="03-temporary-files-and-publication.html">Publication</a><a class="active" href="04-deployed-filesystem-profile.html">Deployed profile</a><a href="05-ext4.html">ext4</a><a href="06-xfs.html">XFS</a><a href="07-btrfs.html">Btrfs</a><a href="08-io-uring.html">io_uring</a><a href="09-errors-space-direct-io.html">Errors / DIO</a><a href="10-locking-and-fencing.html">Locking</a><a href="11-fault-test-matrix.html">Fault program</a><a href="12-nontarget-portability.html">Non-targets</a><a href="13-open-questions.html">Open questions</a><a href="14-source-audit.html">Source audit</a><a href="../matrices/claim-ledger.html">Claim ledger</a><a href="../matrices/guarantee-source-test.html">Guarantee map</a><a href="../matrices/experiment-matrix.html">Experiment matrix</a><a href="../matrices/source-register.html">Source register</a><a href="../VERSION-PINS.html">Version pins</a><a href="../raw/README.html">Raw capture policy</a><a href="../licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="../scripts/fault-tests/README.html">Harness notes</a><a href="../BUILD-VALIDATION.html">Build validation</a><a href="../README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="../index.html">Wiki home</a><span>·</span><a href="04-deployed-filesystem-profile.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>Deployed filesystem profile — unresolved first-class input</h1>
+<p><span class="badge u">UNKNOWN-DEPLOYMENT</span> The production filesystem, mount options and block topology were not provided. This is the first release gate, not a detail to infer from a typical Linux installation.</p>
+<p>Run:</p>
+<pre><code class="language-sh">./scripts/inspect_fs_profile.sh /absolute/path/to/halokv-cache
+./scripts/inspect_fs_profile.sh /absolute/path/to/tensor-cache
+</code></pre>
+<p>Archive the output with the test run. The two roots can differ and therefore require separate certification.</p>
+<h2>Profile record</h2>
+<p>Record at minimum:</p>
+<ul>
+<li>kernel release and architecture;</li>
+<li>mount ID, filesystem type, source device, superblock and mount options;</li>
+<li>namespace layers: bind mounts, overlay, container volume, FUSE or network client;</li>
+<li>block stack: partition, LVM/dm-crypt/dm-cache, md/RAID, multipath, virtual disk, hypervisor, controller and device;</li>
+<li>volatile write-cache and power-loss-protection claims;</li>
+<li>filesystem feature flags and mkfs geometry;</li>
+<li><code>O_TMPFILE</code> create/link support;</li>
+<li><code>renameat2</code> flag support;</li>
+<li>directory <code>fsync</code> result;</li>
+<li><code>STATX_DIOALIGN</code> values if DIO is considered;</li>
+<li>free data blocks, metadata/inodes and quota policy.</li>
+</ul>
+<h2>Immediate stop conditions</h2>
+<p>Persistent mode should refuse: unknown fstype; <code>overlay</code>, <code>fuse.*</code>, <code>nfs*</code>, <code>cifs</code>, <code>smb3</code>, <code>virtiofs</code>, <code>9p</code>; read-only or error-remounted root; denied mount options; inability to synchronize the parent directory; untested block remapping; or a profile drift from the certified record.</p>
+<p><code>findmnt</code> output is evidence of the current namespace, not proof of physical media behavior. <code>T040</code> remains mandatory.</p>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="../assets/wiki.js"></script></body></html>

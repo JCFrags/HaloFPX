@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/06-git-submodule-gitlink-semantics.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://git-scm.com/book/en/v2/Git-Tools-Submodules",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "8d21d3ab58f51a823a0dd9dc9536a4fd3bc56ce8037f611c591fcbf242c2ca8b",
+  "size_bytes": 695,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-VCS-DOCUMENTATION"
+}

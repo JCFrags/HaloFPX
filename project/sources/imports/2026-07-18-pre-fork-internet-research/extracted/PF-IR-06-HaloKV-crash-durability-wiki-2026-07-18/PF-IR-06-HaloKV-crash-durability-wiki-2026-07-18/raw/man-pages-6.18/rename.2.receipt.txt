@@ -1,0 +1,14 @@
+---
+source_id: "S021"
+title: "rename(2)"
+capture_kind: "official-web-receipt-with-short-excerpt"
+canonical_url: "https://man7.org/linux/man-pages/man2/rename.2.html"
+version: "Linux man-pages 6.18"
+page_colophon_date: "2026-02-08 or page-specific"
+retrieved_by_man7: "2026-05-24"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "per-page upstream license"
+---
+Replacing an existing target is atomic in the namespace. RENAME_EXCHANGE swaps two existing names atomically. EXDEV rejects cross-mount rename. The NFS failure result can be ambiguous.
+
+This local file is a normalized receipt; it is not a byte-for-byte HTML capture.

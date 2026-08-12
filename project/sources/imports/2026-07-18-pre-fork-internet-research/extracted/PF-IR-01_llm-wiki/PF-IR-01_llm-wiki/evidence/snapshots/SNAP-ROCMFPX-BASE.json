@@ -1,0 +1,11 @@
+{
+  "capture_format": "primary-source-commit-metadata/v1",
+  "repository": "charlie12345/ROCmFPX",
+  "commit": "a5605a72768c6562241b248e268e33dc92787394",
+  "role": "baseline source snapshot",
+  "commit_title": "Integrate HY3 MTP, ROCmFP2, and cross-platform server fixes",
+  "source_url": "https://github.com/charlie12345/ROCmFPX/commit/a5605a72768c6562241b248e268e33dc92787394",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "proof_scope": "Commit object/source selection only; not deployed binary proof.",
+  "payload_sha256": "eee513e4bbdb6caca53e506a38db16bc2a02c0569c86809033780f7190537073"
+}

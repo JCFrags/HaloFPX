@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Local experiment matrix · PF-IR-08</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-08<br>RCCL two-host boundary</div><div class="audit">Evidence snapshot · 2026-07-18<br><code>801a9ca…</code> active authority</div><input id="nav-search" class="search" type="search" placeholder="Filter pages…"><nav class="nav"><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-method.html" class="">Scope, method, and evidence rules</a><a href="../wiki/01-executive-decision.html" class="">Executive decision</a><a href="../wiki/02-authority-and-version-lanes.html" class="">Authority and version lanes</a><a href="../wiki/03-strix-halo-evidence.html" class="">Strix Halo evidence and support boundary</a><a href="../wiki/04-socket-and-interface-selection.html" class="">Socket transport and interface selection</a><a href="../wiki/05-topology-and-memory-registration.html" class="">Topology discovery and memory registration</a><a href="../wiki/06-network-plugin-abi.html" class="">Network-plugin ABI and custom transport boundary</a><a href="../wiki/07-communicator-failure-semantics.html" class="">Communicator creation and failure semantics</a><a href="../wiki/08-two-way-tensor-parallelism-boundary.html" class="">Two-way tensor parallelism and adjacent architectures</a><a href="../wiki/09-upstream-tests-statements.html" class="">Upstream tests and maintainer statements</a><a href="../wiki/10-local-experiment-matrix.html" class="active">Local experiment matrix</a><a href="../wiki/11-open-questions-machine-evidence.html" class="">Open questions requiring machine evidence</a><a href="../wiki/12-evidence-index.html" class="">Evidence index</a></nav><div class="mini"><b>Non-claim boundary</b><br>No RCCL suitability or GPU-direct-over-USB4 conclusion without exact two-node evidence.</div></aside><main class="main"><div class="topbar"><span class="crumb">PF-IR-08 / Local experiment matrix</span><span><a href="../README.md">README</a> · <a href="../claims/claims.csv">claims.csv</a> · <a href="../manifests/source_manifest.csv">manifest</a></span></div><div class="content"><article class="article"><h1>Local experiment matrix</h1>
+<h2>Gate 0 — identity and eligibility</h2>
+<p>Capture host model, kernel, amdgpu/ROCr versions, exact ROCm packages, <code>librccl.so</code> path/hash/version log, <code>rocminfo</code> gfx target, library code objects, and whether the chosen RCCL build actually includes gfx1151. Failure here blocks all later conclusions.</p>
+<h2>Gate 1 — two-rank Socket bring-up</h2>
+<p>Force <code>NCCL_NET=Socket</code>, an exact <code>NCCL_SOCKET_IFNAME</code>, and one IP family. Run two ranks with a small Broadcast, AllReduce, and paired Send/Recv. Preserve <code>NCCL_DEBUG=INFO</code> and <code>INIT,NET,ENV,GRAPH</code> logs. Passing requires logs that identify the intended provider and interface on both hosts.</p>
+<h2>Gate 2 — correctness envelope</h2>
+<p>Run MPI-enabled <code>rccl-tests</code> over powers-of-two and awkward message sizes, multiple data types and reductions, in-place/out-of-place modes, repeated communicator creation/destruction, and sustained loops. Record corruption, hangs, error codes, latency, algorithm bandwidth, bus bandwidth, and host CPU utilization.</p>
+<h2>Gate 3 — failure semantics</h2>
+<p>Inject separately:</p>
+<table>
+<thead>
+<tr>
+  <th>Fault</th>
+  <th>Expected observable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Peer absent at init</td>
+  <td>bounded harness timeout; initialization failure or async terminal state.</td>
+</tr>
+<tr>
+  <td>Wrong interface/family</td>
+  <td>deterministic failure with logs showing selection.</td>
+</tr>
+<tr>
+  <td>Kill one rank during collective</td>
+  <td>survivor detects async error/remote error or watchdog fires; no silent success.</td>
+</tr>
+<tr>
+  <td>Link down / interface removal</td>
+  <td>terminal async state or watchdog; coordinated abort.</td>
+</tr>
+<tr>
+  <td>Remote close after connection</td>
+  <td>source predicts <code>ncclRemoteError</code>.</td>
+</tr>
+<tr>
+  <td>Reinitialize</td>
+  <td>old communicator discarded; fresh unique ID and communicator succeed or fail cleanly.</td>
+</tr>
+<tr>
+  <td>Active-only revoke/shrink/grow</td>
+  <td>semantics match active docs; never attributed to 2.27.7.</td>
+</tr>
+</tbody>
+</table>
+<h2>Gate 4 — data-path and performance characterization</h2>
+<p>Measure wall time, throughput, CPU utilization, memory bandwidth, host copies where observable, pinned-memory behavior, and power. Treat the path as host-staged unless a non-Socket provider and direct registration are proven by logs/source and measurements.</p>
+<h2>Gate 5 — application comparison</h2>
+<p>Compare identical model, quantization, context, batch, prompt, sampling, and power settings for: local single-host baseline; RCCL-backed tensor parallel adapter; ggml RPC; pipeline/layer split. Separate collective microbenchmarks from end-to-end tokens/s and time-to-first-token.</p>
+<h2>Gate 6 — Phase 2 transport trigger</h2>
+<p>Prototype USB4STREAM only after recording a concrete unmet requirement: IP overhead, excessive host copies/CPU, insufficient bandwidth/latency, need for non-IP device semantics, or a direct-registration objective. Pin the exact Net ABI and add provider conformance tests before model work.</p>
+</article><div class="footer">Commit-pinned research snapshot. Literal labels distinguish API, implementation, documentation, tests, commentary, inference, and unresolved machine evidence.</div></div></main></div><script src="../assets/wiki.js"></script></body></html>

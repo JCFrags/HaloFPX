@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "status": "PROPOSED",
+  "case_id": "LOGIT-001",
+  "reference_id": "EXAMPLE-NOT-A-REFERENCE",
+  "observation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "provenance": {
+    "source_commit": "REPLACE",
+    "model_digests": [],
+    "hardware_lane": "REPLACE",
+    "build_id": "REPLACE"
+  },
+  "approval": {
+    "independent_runs": [],
+    "reviewers": [],
+    "approved_at": null,
+    "notes": "This file demonstrates shape only and must never be used as an oracle."
+  }
+}

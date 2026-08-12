@@ -1,0 +1,38 @@
+{
+  "mode": "persistent",
+  "basePath": "/var/lib/rocmfpx/prompt-cache",
+  "ramMiB": 8192,
+  "diskMiB": 65536,
+  "durability": "strict",
+  "atomicCommit": true,
+  "directoryMode": "0700",
+  "fileMode": "0600",
+  "namespace": {
+    "modelFingerprint": "sha256:model+state-abi+kv-types+adapters",
+    "tenantId": "opaque-authenticated-tenant",
+    "conversationId": "opaque-conversation"
+  },
+  "prefixPolicy": {
+    "minimumTokens": 64,
+    "minimumRatio": 0.9,
+    "crossRestart": true,
+    "crossConversation": false,
+    "systemPrefix": false
+  },
+  "retention": {
+    "maxUnusedDays": 30,
+    "maxEntries": 0,
+    "maxBytesPerTenant": 0
+  },
+  "security": {
+    "requireAuthenticatedTenantBinding": true,
+    "logRawUserIds": false,
+    "encryptAtRest": false,
+    "allowAnonymousCrossRestartReuse": false
+  },
+  "administration": {
+    "enableAuthenticatedApi": false,
+    "quarantineCorruptEntries": true,
+    "manifestStartupBudgetMs": 2000
+  }
+}

@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reproduction and Acceptance Workflow · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Reproduction and Acceptance Workflow</h1>
+<h2>1. Resolve exact artifact manifests</h2>
+<pre><code class="language-bash">python scripts/refresh_hf_manifests.py --all
+</code></pre>
+<h2>2. Download one selected representation</h2>
+<pre><code class="language-bash">bash scripts/download_selected.sh qwen3-235b-a22b-2507 /models/qwen
+</code></pre>
+<h2>3. Verify all shards</h2>
+<pre><code class="language-bash">python scripts/verify_downloads.py --download-root /models/qwen --manifest manifests/refreshed/qwen3-235b-a22b-2507.json
+</code></pre>
+<h2>4. Build pinned runtimes</h2>
+<pre><code class="language-bash">git clone https://github.com/ggml-org/llama.cpp.git
+git -C llama.cpp checkout 6bdd77f13cf11b264b4231d320afc404f48d576e
+
+git clone https://github.com/charlie12345/ROCmFPX.git
+git -C ROCmFPX checkout 61f2f2d7bc4955e9bca821095ef69125837133b5
+</code></pre>
+<p>Use backend-specific build instructions from the repositories. Record compiler, driver, ROCm/Vulkan version, and build flags.</p>
+<h2>5. Template smoke test</h2>
+<p>Run one-token generation with <code>--jinja</code>, inspect rendered roles and special tokens, then execute tool/JSON validators before performance benchmarking.</p>
+<h2>6. Capture measured memory</h2>
+<p>Save verbose startup output and parse it:</p>
+<pre><code class="language-bash">llama-cli -m /models/model-00001-of-000NN.gguf --jinja -c 32768 -b 512 -ub 512 -n 1 -p &quot;ping&quot; 2&gt;&amp;1 | tee run.log
+python scripts/parse_llama_memory.py run.log --output measured-memory.json
+</code></pre>
+<h2>7. Recalculate with measured reserves</h2>
+<p>Edit <code>data/profiles.json</code>, then rerun <code>python scripts/calculate_capacity.py</code> and <code>python scripts/build_static.py</code>. A candidate advances only when every device/node has positive measured margin at the intended context and concurrency.</p>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

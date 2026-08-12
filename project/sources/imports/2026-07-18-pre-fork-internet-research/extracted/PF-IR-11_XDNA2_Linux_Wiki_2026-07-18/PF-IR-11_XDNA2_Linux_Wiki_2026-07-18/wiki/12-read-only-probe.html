@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>12. Minimal non-invasive local probe — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a class="active" href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/12-read-only-probe.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>12. Minimal non-invasive local probe</h1>
+<p>Script: <a href="../probe/xdna2_readonly_probe.sh"><code>../probe/xdna2_readonly_probe.sh</code></a></p>
+<h2 id="safety-boundary">Safety boundary</h2>
+<p>The default probe:</p>
+<ul>
+<li>does not use <code>sudo</code>;</li>
+<li>does not install packages;</li>
+<li>does not load, unload, bind, or unbind modules;</li>
+<li>does not write sysfs or debugfs;</li>
+<li>does not reset the NPU;</li>
+<li>does not change IOMMU or kernel parameters;</li>
+<li>does not change locked-memory limits;</li>
+<li>does not suspend the system;</li>
+<li>does not compile or execute a model;</li>
+<li>does not open a workload context through XRT.</li>
+</ul>
+<p>An optional <code>--xrt-query</code> flag runs only <code>xrt-smi examine</code> when already installed. It is disabled by default.</p>
+<h2 id="invocation">Invocation</h2>
+<pre><code class="language-bash">chmod +x probe/xdna2_readonly_probe.sh
+./probe/xdna2_readonly_probe.sh
+</code></pre>
+<p>Specify a destination:</p>
+<pre><code class="language-bash">./probe/xdna2_readonly_probe.sh --output ./pf-ir-11-probe
+</code></pre>
+<p>Optional pre-existing XRT query:</p>
+<pre><code class="language-bash">./probe/xdna2_readonly_probe.sh --output ./pf-ir-11-probe --xrt-query
+</code></pre>
+<h2 id="captured-evidence">Captured evidence</h2>
+<ul>
+<li>OS release and kernel version;</li>
+<li>sanitized kernel command line;</li>
+<li>relevant kernel configuration symbols;</li>
+<li>PCI identity and revision;</li>
+<li>bound driver and IOMMU group;</li>
+<li><code>modinfo</code>, loaded module state, and module parameters;</li>
+<li><code>/dev/accel</code> nodes and permissions;</li>
+<li>filtered kernel log, when readable without privilege;</li>
+<li>exact firmware symlinks, metadata, and hashes;</li>
+<li>installed packages across <code>dpkg</code>, RPM, or Pacman;</li>
+<li>relevant runtime libraries;</li>
+<li>locked-memory limit;</li>
+<li>IOMMU group inventory;</li>
+<li>optional <code>xrt-smi examine</code>;</li>
+<li><code>summary.json</code> and <code>SHA256SUMS</code>.</li>
+</ul>
+<h2 id="interpretation">Interpretation</h2>
+<p>A probe can establish substrate state, not model suitability.</p>
+<table>
+<thead>
+<tr>
+  <th>Probe result</th>
+  <th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>no <code>1022:17f0</code></td>
+  <td>wrong device visibility or platform</td>
+</tr>
+<tr>
+  <td>revision not <code>0x11</code></td>
+  <td>this npu5 conclusion does not directly apply</td>
+</tr>
+<tr>
+  <td>no IOMMU group</td>
+  <td>upstream npu5 path should fail</td>
+</tr>
+<tr>
+  <td>no <code>amdxdna</code> binding</td>
+  <td>kernel/device setup incomplete</td>
+</tr>
+<tr>
+  <td>missing firmware</td>
+  <td>boot should fail</td>
+</tr>
+<tr>
+  <td>firmware present but mismatched package lineage</td>
+  <td>unsafe to proceed</td>
+</tr>
+<tr>
+  <td>old distro module with new plugin</td>
+  <td>UAPI mismatch risk</td>
+</tr>
+<tr>
+  <td>substrate passes</td>
+  <td>experiment may be prepared; no performance claim</td>
+</tr>
+</tbody>
+</table>
+<h2 id="privacy">Privacy</h2>
+<p>The script sanitizes common <code>root=</code>, <code>resume=</code>, LUKS, and crypt-device command-line identifiers. Review the output before sharing because hostnames, package inventories, paths, and device topology can still be sensitive.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

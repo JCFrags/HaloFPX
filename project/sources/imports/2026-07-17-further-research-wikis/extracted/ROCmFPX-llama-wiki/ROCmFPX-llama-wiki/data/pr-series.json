@@ -1,0 +1,54 @@
+[
+  {
+    "series": "PR #27",
+    "purpose": "Promote the validated experimental ROCmFPX branch",
+    "base": "5b3956605309dd3e6beed49c8f3a41423ba71d25",
+    "head": "ccac6e55ec7c0fa8acdcb6e80b1a242e4f7d654e",
+    "merge": "c2845bf86a5c1842d33bd9e990b2bcaf75779251",
+    "authored_commits": 53,
+    "merge_nodes": 1,
+    "range_nodes": 54,
+    "changed_files": 237,
+    "decision": "MIXED",
+    "source": "S-PR27"
+  },
+  {
+    "series": "PR #28",
+    "purpose": "Add funding metadata",
+    "base": "c2845bf86a5c1842d33bd9e990b2bcaf75779251",
+    "head": "1b49f4a004b8a2e0183c6cda7a61e7d322ac8d60",
+    "merge": "6bf20cd688ba0af882d1f68ba50b292edf646ab4",
+    "authored_commits": 1,
+    "merge_nodes": 1,
+    "range_nodes": 2,
+    "changed_files": 1,
+    "decision": "RETIRE",
+    "source": "S-PR28"
+  },
+  {
+    "series": "PR #31",
+    "purpose": "Honor per-request speculative limits",
+    "base": "6bf20cd688ba0af882d1f68ba50b292edf646ab4",
+    "head": "b56ad79d77bc1eb9fe6407640eec8b8edfc04900",
+    "merge": "25c71fc6e12d73bb3804127e032d29fb8976ae40",
+    "authored_commits": 1,
+    "merge_nodes": 1,
+    "range_nodes": 2,
+    "changed_files": 2,
+    "decision": "RETAIN",
+    "source": "S-PR31"
+  },
+  {
+    "series": "PR #32",
+    "purpose": "Integrate HY3 MTP, ROCmFP2, and cross-platform server fixes",
+    "base": "25c71fc6e12d73bb3804127e032d29fb8976ae40",
+    "head": "a8b5fa906ccd13c6a8ca06d55aa287854c376868",
+    "merge": "a5605a72768c6562241b248e268e33dc92787394",
+    "authored_commits": 41,
+    "merge_nodes": 1,
+    "range_nodes": 42,
+    "changed_files": 73,
+    "decision": "MIXED",
+    "source": "S-PR32"
+  }
+]

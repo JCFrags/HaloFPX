@@ -1,0 +1,995 @@
+{
+  "candidate_binaries_executed": false,
+  "generated_files": [
+    {
+      "length": 208,
+      "path": "fixtures/api/expected/chat-structured-answer.canonical.json",
+      "sha256": "38433b84f8d70910663aff813923996090810981bbbe34ba2b07ca5793c921d5"
+    },
+    {
+      "length": 437,
+      "path": "fixtures/api/expected/chat-tool-required.canonical.json",
+      "sha256": "e509344dbdc783337f0c874fbf4e5a5c68161b19d5c69fe19e2a2dc18a0f3edf"
+    },
+    {
+      "length": 630,
+      "path": "fixtures/api/requests/chat-structured-answer.json",
+      "sha256": "c63af4bba88269cff3018e60605a3d1b232611158f336a171471b149496193dd"
+    },
+    {
+      "length": 778,
+      "path": "fixtures/api/requests/chat-tool-required-stream.json",
+      "sha256": "138f612f4a0a86b6276c4a6cda5242bf0ffe587f96eef9a5a7f46927f876ece1"
+    },
+    {
+      "length": 726,
+      "path": "fixtures/api/requests/chat-tool-required.json",
+      "sha256": "4fced590c8bb61acf6a0d0ca90a0b0a4aae8ae1d1c71f6727f7309299e11c742"
+    },
+    {
+      "length": 48,
+      "path": "fixtures/api/requests/malformed/messages-not-array.json",
+      "sha256": "194487b1f3622d70cadf4c2eb8f7f1c18c1027e51cb7e89667db43349a8fab57"
+    },
+    {
+      "length": 304,
+      "path": "fixtures/api/requests/malformed/schema-invalid-type.json",
+      "sha256": "f7fa3870f370307885012315020ed476fa8e8dce88a485aec5d1fe090e38f373"
+    },
+    {
+      "length": 177,
+      "path": "fixtures/api/requests/malformed/stream-options-without-stream.json",
+      "sha256": "d7742c84a1b77bb0ee62b37cfba73bd238f0b41dd3cdd2b238cc57eb1efb6bc0"
+    },
+    {
+      "length": 216,
+      "path": "fixtures/api/requests/malformed/tool-choice-missing-tool.json",
+      "sha256": "85fe01cb355558c3748756724222b977c945df8f461e099da3e28841e0bc2878"
+    },
+    {
+      "length": 275,
+      "path": "fixtures/api/requests/malformed-expected.jsonl",
+      "sha256": "fd3efb38db3cb05b980e9f413f07a2ec745cedc99b644187826fc611c4b6a563"
+    },
+    {
+      "length": 208,
+      "path": "fixtures/api/streaming/canonical.chunks.json",
+      "sha256": "301681ee9685fcc7cfdca7267566fd723776244ece8277f8ddd15a87cfa7c448"
+    },
+    {
+      "length": 470,
+      "path": "fixtures/api/streaming/canonical.sse",
+      "sha256": "49086d72133d32a4e7973dd1d5a7452e8634f06091419743017d41f9e6681c9a"
+    },
+    {
+      "length": 2891,
+      "path": "fixtures/api/streaming/expected.jsonl",
+      "sha256": "6577c3ecd304c3e3cf6f3cb454448f7b0bcf70656ccd09b8123a8572158ac519"
+    },
+    {
+      "length": 488,
+      "path": "fixtures/api/streaming/malformed-json-and-post-done.sse",
+      "sha256": "9f9eb889f52da47846d1265a9cd658fc3fb44c1bd880d8a8470782babe66e29f"
+    },
+    {
+      "length": 497,
+      "path": "fixtures/api/streaming/structured-output.sse",
+      "sha256": "c278999ddf999657babf6bf63219463c493002f6328a770ee5e6d28e64de4669"
+    },
+    {
+      "length": 176,
+      "path": "fixtures/api/streaming/tool-call.chunks.json",
+      "sha256": "0b8e87d180682aa05d188b22654c3d2dbc8023e653f980a6d0dd6c2c8a12d4d5"
+    },
+    {
+      "length": 830,
+      "path": "fixtures/api/streaming/tool-call.sse",
+      "sha256": "5c535e4c8f3ea18c970c207a4a99c5a3dfef3ac1fadb011e96b433b890aac9a1"
+    },
+    {
+      "length": 146,
+      "path": "fixtures/api/streaming/utf8-split.chunks.json",
+      "sha256": "18dce71a0e3fcf4375638b3c7983d873d72b1e91d419d93a597435797bc2e19a"
+    },
+    {
+      "length": 178,
+      "path": "fixtures/api/streaming/utf8-split.sse",
+      "sha256": "d9518c3dc6fa6ed83e6e82875737adde74d311346e75503d2d00fe09768a7df6"
+    },
+    {
+      "length": 1335,
+      "path": "fixtures/chat/cases.jsonl",
+      "sha256": "23ece69198b3c6d82c514d13fb551493945d7612fb4d4ef595213703f4411f65"
+    },
+    {
+      "length": 170,
+      "path": "fixtures/chat/default.jinja",
+      "sha256": "cb3c0bde4849681d0b608d2a52637f26866878554f2edbf265bd477907b7d226"
+    },
+    {
+      "length": 339,
+      "path": "fixtures/chat/malformed-cases.jsonl",
+      "sha256": "c825ac1c9508623d42b5586fbf508709714caf7884e5c4f2e19edc299ba0db1d"
+    },
+    {
+      "length": 288,
+      "path": "fixtures/chat/named-strict.jinja",
+      "sha256": "9f5406729d422f3488d939e5f874bdc623a0887785a71acaac685fb02deaae99"
+    },
+    {
+      "length": 338,
+      "path": "fixtures/chat/named-tools.jinja",
+      "sha256": "392b863978c9af6db378014a5e0b119886d104b359e328f8f86a07d064921372"
+    },
+    {
+      "length": 736,
+      "path": "fixtures/fork-specific/rocmfpx-turbo4-type106-probe.gguf",
+      "sha256": "c718551fd3ac24f6db61fc2d99257227f896fd88eaa80da5634287b1a41fbd99"
+    },
+    {
+      "length": 1552,
+      "path": "fixtures/fork-specific/rocmfpx-turbo4-type106-probe.locators.json",
+      "sha256": "af986626c443bf57ded5c944ce910818d67d2d1f4d9607d46cf194d51e507b61"
+    },
+    {
+      "length": 558,
+      "path": "fixtures/fork-specific/rocmfpx-turboquant-cpu-vectors.recipe.jsonl",
+      "sha256": "b3b8ea9d9f0342940a7400684b593e2123aeb00521a088d08b2fda9c290a0c37"
+    },
+    {
+      "length": 579,
+      "path": "fixtures/fork-specific/rocmfpx-type-map.json",
+      "sha256": "5a3e5830d0c91587a25cd90d6e6a28d0b66944255b4bc723bc8ad74c0e569ff5"
+    },
+    {
+      "length": 736,
+      "path": "fixtures/gguf/malformed/bad-magic.gguf",
+      "sha256": "9ecf0a281769a22bcc2129e566602031cbd8c8a491ee8156a9e80db71c2ab2bb"
+    },
+    {
+      "length": 736,
+      "path": "fixtures/gguf/malformed/misaligned-tensor-offset.gguf",
+      "sha256": "ec3351fa419de6b1a26d9894112973bae23e24a14f90de01aa3d8577f0805516"
+    },
+    {
+      "length": 2925,
+      "path": "fixtures/gguf/malformed/mutations.json",
+      "sha256": "3c5046a766a6b62ef7120038f5998ec220000c1ab9d9c19b1497c110272d8256"
+    },
+    {
+      "length": 12,
+      "path": "fixtures/gguf/malformed/truncated-header.gguf",
+      "sha256": "43c439801c05bd36e6f20ca4d100b8f208371b62e3bdd4ae9c87367fe671d357"
+    },
+    {
+      "length": 42,
+      "path": "fixtures/gguf/malformed/truncated-metadata.gguf",
+      "sha256": "e375bda7c95b4c97a22cdc54e4638507043b033ad60f2bc22620f66506bdafb5"
+    },
+    {
+      "length": 716,
+      "path": "fixtures/gguf/malformed/truncated-tensor-data.gguf",
+      "sha256": "3f4f9f4b07473c7b1126ea655fea14d0ea7d4f7630f0a6c427b6e83b26cf10c2"
+    },
+    {
+      "length": 736,
+      "path": "fixtures/gguf/malformed/unknown-metadata-type.gguf",
+      "sha256": "a5e2b544a26f136fbbc5ea109371886fa4a815a3444e854e905b3ff7d5f20574"
+    },
+    {
+      "length": 5760,
+      "path": "fixtures/gguf/pfir10-byte-bpe-chat-v3.gguf",
+      "sha256": "80b3cc41c2853288c1c31dd2ab60645155502989290ba52d73fab4530c965037"
+    },
+    {
+      "length": 2862,
+      "path": "fixtures/gguf/pfir10-byte-bpe-chat-v3.locators.json",
+      "sha256": "1d0c8d8f18bc25e124ddc4cc8cab238a0441611dd030ac6a966b837203785e1f"
+    },
+    {
+      "length": 26272,
+      "path": "fixtures/gguf/pfir10-tiny-llama-f32-v3.gguf",
+      "sha256": "3e184de6d7bbe7e16fdf33b35b086b3df426f8557b166933415b59479dd021ec"
+    },
+    {
+      "length": 6534,
+      "path": "fixtures/gguf/pfir10-tiny-llama-f32-v3.locators.json",
+      "sha256": "d892e8709829f5aedb436f55941f9fdc9e140ed0d5e70db875fd007f508df57b"
+    },
+    {
+      "length": 736,
+      "path": "fixtures/gguf/pfir10-tiny-tensor-v3.gguf",
+      "sha256": "cf27aa3690c25886f02340194619ab6eb7b3a3f6f7bd9d9ba0002b54b55b83bc"
+    },
+    {
+      "length": 1451,
+      "path": "fixtures/gguf/pfir10-tiny-tensor-v3.locators.json",
+      "sha256": "5b8826a4d32e07c850cf9b14d56dc4b9fadf2dfb13ab56dd9556e591929a4380"
+    },
+    {
+      "length": 36,
+      "path": "fixtures/malformed/json-boundaries.base.bin",
+      "sha256": "818e6ab390ef435ff84efb65b3e49e6346b1d7d73f60afd3058d7b648ac6312a"
+    },
+    {
+      "length": 3871,
+      "path": "fixtures/malformed/json-boundaries.jsonl",
+      "sha256": "b70a43f6ea61d17f7507379f9c6217cfff92a3010a9046bc3370e1faa9db28b4"
+    },
+    {
+      "length": 484,
+      "path": "fixtures/malformed/utf8-boundaries.jsonl",
+      "sha256": "abd709a2f53178eb3829a1537a1a532ac245a6341356305b67cf6a9b7692d7bb"
+    },
+    {
+      "length": 1159,
+      "path": "fixtures/sampler/probability-vectors.jsonl",
+      "sha256": "fee1cb92136ba008b56ddeab6ff1f1cc84923fd1cd3baa69edefef974591b468"
+    },
+    {
+      "length": 437,
+      "path": "fixtures/sampler/rng-properties.jsonl",
+      "sha256": "a208de0a3593e6d77bd6fed5cdfd9e2b54e0f2cf99bfae160aed0a36c0a051ea"
+    },
+    {
+      "length": 686,
+      "path": "fixtures/sampler/state-properties.jsonl",
+      "sha256": "da606af289b00ad242a15352ecac401ef814f5b31528995f36e5c6a9778a3d93"
+    },
+    {
+      "length": 394,
+      "path": "fixtures/state/recurrent-scenarios.jsonl",
+      "sha256": "2e639ceb50f4bbf4e1bc733ae81cff6651f2c8c41c522112dd651936974380b4"
+    },
+    {
+      "length": 727,
+      "path": "fixtures/state/save-restore-scenarios.jsonl",
+      "sha256": "cc00b661884301a7087351c4f6ffc57bb6864ff6642e63e600ceaf7a250c76ad"
+    },
+    {
+      "length": 432,
+      "path": "fixtures/state/speculative-scenarios.jsonl",
+      "sha256": "1eb01d6375247e7fb8d2975acf5e864a417c74a0b259c7e0f0ea1a81f2719b5c"
+    },
+    {
+      "length": 239,
+      "path": "fixtures/structured/answer.schema.json",
+      "sha256": "0a275a3a8a29915ea76d8125c8c54f15034c90a1d73baa40aa61b2f86e4333f1"
+    },
+    {
+      "length": 713,
+      "path": "fixtures/structured/cases.jsonl",
+      "sha256": "73409ecf19e9231cb89b620c053817760a86f69895b3418d8783ff3e6979e91a"
+    },
+    {
+      "length": 279,
+      "path": "fixtures/structured/echo-tool.schema.json",
+      "sha256": "2eb0895a38c8114e5156cdb001d6fb520aac10bcc19426ec395c75629d4e9527"
+    },
+    {
+      "length": 395,
+      "path": "fixtures/structured/grammar-state-cases.jsonl",
+      "sha256": "c07180d1f443602d7ab5400cb14ae44c4cf6f22e42b212f6beb8ee0a8496d5d2"
+    },
+    {
+      "length": 30,
+      "path": "fixtures/structured/grammars/abc-state.gbnf",
+      "sha256": "ac3efee96411b6be4d26c8f5533fe69d543b9ad6f756bb0363a45a0c1ce022fc"
+    },
+    {
+      "length": 77,
+      "path": "fixtures/structured/grammars/answer.gbnf",
+      "sha256": "567c0277c661a1cd48d16d7e8e34742f7722ce76cd77a534b69ba26c9643c844"
+    },
+    {
+      "length": 2271,
+      "path": "fixtures/tokenizer/cases.jsonl",
+      "sha256": "5c773e8828e9efdb0d9074836c55f7537704cc3a2d65224c2b9f31ec3b1988f7"
+    },
+    {
+      "length": 1314,
+      "path": "fixtures/tokenizer/special-token-cases.jsonl",
+      "sha256": "4136977568e131d5951b676ce533b3e9b6447c320d670373931ee808fe183ccd"
+    },
+    {
+      "length": 265,
+      "path": "fixtures/tokenizer/vocabulary-map.json",
+      "sha256": "c6596d706c7623e8c8c4d02f384d7b7c0e1f6543e6d6261e48b69364a9618c51"
+    }
+  ],
+  "generator": "recipes/generate_assets.py",
+  "generator_sha256": "204a53d6c04b81c5de9aaaf65a82b55e7a34080e1d7862b19e7a0e716ee6e03d",
+  "ggufs": {
+    "generic": {
+      "locators": {
+        "header": {
+          "end": 24,
+          "start": 0
+        },
+        "metadata": {
+          "general.alignment": {
+            "end": 320,
+            "length": 33,
+            "start": 287
+          },
+          "general.architecture": {
+            "end": 112,
+            "length": 51,
+            "start": 61
+          },
+          "general.description": {
+            "end": 287,
+            "length": 85,
+            "start": 202
+          },
+          "general.file_type": {
+            "end": 353,
+            "length": 33,
+            "start": 320
+          },
+          "general.license": {
+            "end": 395,
+            "length": 42,
+            "start": 353
+          },
+          "general.name": {
+            "end": 162,
+            "length": 50,
+            "start": 112
+          },
+          "general.source.repo_url": {
+            "end": 465,
+            "length": 70,
+            "start": 395
+          },
+          "general.type": {
+            "end": 61,
+            "length": 37,
+            "start": 24
+          },
+          "general.version": {
+            "end": 202,
+            "length": 40,
+            "start": 162
+          },
+          "pfir10.deterministic": {
+            "end": 557,
+            "length": 33,
+            "start": 524
+          },
+          "pfir10.recipe": {
+            "end": 524,
+            "length": 59,
+            "start": 465
+          },
+          "pfir10.tensor_values_hex": {
+            "end": 633,
+            "length": 76,
+            "start": 557
+          }
+        },
+        "tensor_data": {
+          "probe.weight": {
+            "end": 720,
+            "length": 16,
+            "start": 704
+          }
+        },
+        "tensor_data_start": 704,
+        "tensor_info": {
+          "probe.weight": {
+            "end": 685,
+            "offset_field_start": 677,
+            "relative_offset": 0,
+            "start": 633
+          }
+        }
+      },
+      "path": "fixtures/gguf/pfir10-tiny-tensor-v3.gguf",
+      "sha256": "cf27aa3690c25886f02340194619ab6eb7b3a3f6f7bd9d9ba0002b54b55b83bc"
+    },
+    "malformed": {
+      "bad-magic.gguf": {
+        "path": "fixtures/gguf/malformed/bad-magic.gguf",
+        "sha256": "9ecf0a281769a22bcc2129e566602031cbd8c8a491ee8156a9e80db71c2ab2bb"
+      },
+      "misaligned-tensor-offset.gguf": {
+        "path": "fixtures/gguf/malformed/misaligned-tensor-offset.gguf",
+        "sha256": "ec3351fa419de6b1a26d9894112973bae23e24a14f90de01aa3d8577f0805516"
+      },
+      "truncated-header.gguf": {
+        "path": "fixtures/gguf/malformed/truncated-header.gguf",
+        "sha256": "43c439801c05bd36e6f20ca4d100b8f208371b62e3bdd4ae9c87367fe671d357"
+      },
+      "truncated-metadata.gguf": {
+        "path": "fixtures/gguf/malformed/truncated-metadata.gguf",
+        "sha256": "e375bda7c95b4c97a22cdc54e4638507043b033ad60f2bc22620f66506bdafb5"
+      },
+      "truncated-tensor-data.gguf": {
+        "path": "fixtures/gguf/malformed/truncated-tensor-data.gguf",
+        "sha256": "3f4f9f4b07473c7b1126ea655fea14d0ea7d4f7630f0a6c427b6e83b26cf10c2"
+      },
+      "unknown-metadata-type.gguf": {
+        "path": "fixtures/gguf/malformed/unknown-metadata-type.gguf",
+        "sha256": "a5e2b544a26f136fbbc5ea109371886fa4a815a3444e854e905b3ff7d5f20574"
+      }
+    },
+    "model": {
+      "locators": {
+        "header": {
+          "end": 24,
+          "start": 0
+        },
+        "metadata": {
+          "general.alignment": {
+            "end": 339,
+            "length": 33,
+            "start": 306
+          },
+          "general.architecture": {
+            "end": 106,
+            "length": 45,
+            "start": 61
+          },
+          "general.description": {
+            "end": 306,
+            "length": 107,
+            "start": 199
+          },
+          "general.file_type": {
+            "end": 372,
+            "length": 33,
+            "start": 339
+          },
+          "general.license": {
+            "end": 414,
+            "length": 42,
+            "start": 372
+          },
+          "general.name": {
+            "end": 159,
+            "length": 53,
+            "start": 106
+          },
+          "general.source.repo_url": {
+            "end": 484,
+            "length": 70,
+            "start": 414
+          },
+          "general.type": {
+            "end": 61,
+            "length": 37,
+            "start": 24
+          },
+          "general.version": {
+            "end": 199,
+            "length": 40,
+            "start": 159
+          },
+          "llama.attention.head_count": {
+            "end": 840,
+            "length": 42,
+            "start": 798
+          },
+          "llama.attention.head_count_kv": {
+            "end": 885,
+            "length": 45,
+            "start": 840
+          },
+          "llama.attention.layer_norm_rms_epsilon": {
+            "end": 939,
+            "length": 54,
+            "start": 885
+          },
+          "llama.block_count": {
+            "end": 715,
+            "length": 33,
+            "start": 682
+          },
+          "llama.context_length": {
+            "end": 644,
+            "length": 36,
+            "start": 608
+          },
+          "llama.embedding_length": {
+            "end": 682,
+            "length": 38,
+            "start": 644
+          },
+          "llama.feed_forward_length": {
+            "end": 756,
+            "length": 41,
+            "start": 715
+          },
+          "llama.rope.dimension_count": {
+            "end": 798,
+            "length": 42,
+            "start": 756
+          },
+          "llama.vocab_size": {
+            "end": 608,
+            "length": 32,
+            "start": 576
+          },
+          "pfir10.deterministic": {
+            "end": 576,
+            "length": 33,
+            "start": 543
+          },
+          "pfir10.recipe": {
+            "end": 543,
+            "length": 59,
+            "start": 484
+          },
+          "tokenizer.chat_template": {
+            "end": 5359,
+            "length": 212,
+            "start": 5147
+          },
+          "tokenizer.chat_template.strict": {
+            "end": 5696,
+            "length": 337,
+            "start": 5359
+          },
+          "tokenizer.chat_template.tools": {
+            "end": 6082,
+            "length": 386,
+            "start": 5696
+          },
+          "tokenizer.ggml.add_bos_token": {
+            "end": 5062,
+            "length": 41,
+            "start": 5021
+          },
+          "tokenizer.ggml.add_eos_token": {
+            "end": 5103,
+            "length": 41,
+            "start": 5062
+          },
+          "tokenizer.ggml.add_space_prefix": {
+            "end": 5147,
+            "length": 44,
+            "start": 5103
+          },
+          "tokenizer.ggml.bos_token_id": {
+            "end": 4841,
+            "length": 43,
+            "start": 4798
+          },
+          "tokenizer.ggml.eos_token_id": {
+            "end": 4884,
+            "length": 43,
+            "start": 4841
+          },
+          "tokenizer.ggml.eot_token_id": {
+            "end": 4927,
+            "length": 43,
+            "start": 4884
+          },
+          "tokenizer.ggml.merges": {
+            "end": 4798,
+            "length": 45,
+            "start": 4753
+          },
+          "tokenizer.ggml.model": {
+            "end": 983,
+            "length": 44,
+            "start": 939
+          },
+          "tokenizer.ggml.padding_token_id": {
+            "end": 5021,
+            "length": 47,
+            "start": 4974
+          },
+          "tokenizer.ggml.pre": {
+            "end": 1026,
+            "length": 43,
+            "start": 983
+          },
+          "tokenizer.ggml.token_type": {
+            "end": 4753,
+            "length": 1101,
+            "start": 3652
+          },
+          "tokenizer.ggml.tokens": {
+            "end": 3652,
+            "length": 2626,
+            "start": 1026
+          },
+          "tokenizer.ggml.unknown_token_id": {
+            "end": 4974,
+            "length": 47,
+            "start": 4927
+          }
+        },
+        "tensor_data": {
+          "blk.0.attn_k.weight": {
+            "end": 24192,
+            "length": 256,
+            "start": 23936
+          },
+          "blk.0.attn_norm.weight": {
+            "end": 23680,
+            "length": 32,
+            "start": 23648
+          },
+          "blk.0.attn_output.weight": {
+            "end": 24704,
+            "length": 256,
+            "start": 24448
+          },
+          "blk.0.attn_q.weight": {
+            "end": 23936,
+            "length": 256,
+            "start": 23680
+          },
+          "blk.0.attn_v.weight": {
+            "end": 24448,
+            "length": 256,
+            "start": 24192
+          },
+          "blk.0.ffn_down.weight": {
+            "end": 26272,
+            "length": 512,
+            "start": 25760
+          },
+          "blk.0.ffn_gate.weight": {
+            "end": 25248,
+            "length": 512,
+            "start": 24736
+          },
+          "blk.0.ffn_norm.weight": {
+            "end": 24736,
+            "length": 32,
+            "start": 24704
+          },
+          "blk.0.ffn_up.weight": {
+            "end": 25760,
+            "length": 512,
+            "start": 25248
+          },
+          "output.weight": {
+            "end": 23648,
+            "length": 8416,
+            "start": 15232
+          },
+          "output_norm.weight": {
+            "end": 15232,
+            "length": 32,
+            "start": 15200
+          },
+          "token_embd.weight": {
+            "end": 15200,
+            "length": 8416,
+            "start": 6784
+          }
+        },
+        "tensor_data_start": 6784,
+        "tensor_info": {
+          "blk.0.attn_k.weight": {
+            "end": 6414,
+            "offset_field_start": 6406,
+            "relative_offset": 17152,
+            "start": 6355
+          },
+          "blk.0.attn_norm.weight": {
+            "end": 6296,
+            "offset_field_start": 6288,
+            "relative_offset": 16864,
+            "start": 6242
+          },
+          "blk.0.attn_output.weight": {
+            "end": 6537,
+            "offset_field_start": 6529,
+            "relative_offset": 17664,
+            "start": 6473
+          },
+          "blk.0.attn_q.weight": {
+            "end": 6355,
+            "offset_field_start": 6347,
+            "relative_offset": 16896,
+            "start": 6296
+          },
+          "blk.0.attn_v.weight": {
+            "end": 6473,
+            "offset_field_start": 6465,
+            "relative_offset": 17408,
+            "start": 6414
+          },
+          "blk.0.ffn_down.weight": {
+            "end": 6771,
+            "offset_field_start": 6763,
+            "relative_offset": 18976,
+            "start": 6710
+          },
+          "blk.0.ffn_gate.weight": {
+            "end": 6651,
+            "offset_field_start": 6643,
+            "relative_offset": 17952,
+            "start": 6590
+          },
+          "blk.0.ffn_norm.weight": {
+            "end": 6590,
+            "offset_field_start": 6582,
+            "relative_offset": 17920,
+            "start": 6537
+          },
+          "blk.0.ffn_up.weight": {
+            "end": 6710,
+            "offset_field_start": 6702,
+            "relative_offset": 18464,
+            "start": 6651
+          },
+          "output.weight": {
+            "end": 6242,
+            "offset_field_start": 6234,
+            "relative_offset": 8448,
+            "start": 6189
+          },
+          "output_norm.weight": {
+            "end": 6189,
+            "offset_field_start": 6181,
+            "relative_offset": 8416,
+            "start": 6139
+          },
+          "token_embd.weight": {
+            "end": 6139,
+            "offset_field_start": 6131,
+            "relative_offset": 0,
+            "start": 6082
+          }
+        }
+      },
+      "path": "fixtures/gguf/pfir10-tiny-llama-f32-v3.gguf",
+      "sha256": "3e184de6d7bbe7e16fdf33b35b086b3df426f8557b166933415b59479dd021ec"
+    },
+    "rocm_probe": {
+      "locators": {
+        "header": {
+          "end": 24,
+          "start": 0
+        },
+        "metadata": {
+          "general.alignment": {
+            "end": 342,
+            "length": 33,
+            "start": 309
+          },
+          "general.architecture": {
+            "end": 112,
+            "length": 51,
+            "start": 61
+          },
+          "general.description": {
+            "end": 309,
+            "length": 100,
+            "start": 209
+          },
+          "general.file_type": {
+            "end": 375,
+            "length": 33,
+            "start": 342
+          },
+          "general.license": {
+            "end": 417,
+            "length": 42,
+            "start": 375
+          },
+          "general.name": {
+            "end": 169,
+            "length": 57,
+            "start": 112
+          },
+          "general.source.repo_url": {
+            "end": 487,
+            "length": 70,
+            "start": 417
+          },
+          "general.type": {
+            "end": 61,
+            "length": 37,
+            "start": 24
+          },
+          "general.version": {
+            "end": 209,
+            "length": 40,
+            "start": 169
+          },
+          "pfir10.deterministic": {
+            "end": 579,
+            "length": 33,
+            "start": 546
+          },
+          "pfir10.qualification_required": {
+            "end": 658,
+            "length": 42,
+            "start": 616
+          },
+          "pfir10.recipe": {
+            "end": 546,
+            "length": 59,
+            "start": 487
+          },
+          "pfir10.source_type_id": {
+            "end": 616,
+            "length": 37,
+            "start": 579
+          }
+        },
+        "tensor_data": {
+          "turbo4.probe": {
+            "end": 722,
+            "length": 18,
+            "start": 704
+          }
+        },
+        "tensor_data_start": 704,
+        "tensor_info": {
+          "turbo4.probe": {
+            "end": 702,
+            "offset_field_start": 694,
+            "relative_offset": 0,
+            "start": 658
+          }
+        }
+      },
+      "path": "fixtures/fork-specific/rocmfpx-turbo4-type106-probe.gguf",
+      "sha256": "c718551fd3ac24f6db61fc2d99257227f896fd88eaa80da5634287b1a41fbd99"
+    },
+    "vocab": {
+      "locators": {
+        "header": {
+          "end": 24,
+          "start": 0
+        },
+        "metadata": {
+          "general.alignment": {
+            "end": 329,
+            "length": 33,
+            "start": 296
+          },
+          "general.architecture": {
+            "end": 106,
+            "length": 45,
+            "start": 61
+          },
+          "general.description": {
+            "end": 296,
+            "length": 96,
+            "start": 200
+          },
+          "general.file_type": {
+            "end": 362,
+            "length": 33,
+            "start": 329
+          },
+          "general.license": {
+            "end": 404,
+            "length": 42,
+            "start": 362
+          },
+          "general.name": {
+            "end": 160,
+            "length": 54,
+            "start": 106
+          },
+          "general.source.repo_url": {
+            "end": 474,
+            "length": 70,
+            "start": 404
+          },
+          "general.type": {
+            "end": 61,
+            "length": 37,
+            "start": 24
+          },
+          "general.version": {
+            "end": 200,
+            "length": 40,
+            "start": 160
+          },
+          "llama.vocab_size": {
+            "end": 598,
+            "length": 32,
+            "start": 566
+          },
+          "pfir10.deterministic": {
+            "end": 566,
+            "length": 33,
+            "start": 533
+          },
+          "pfir10.recipe": {
+            "end": 533,
+            "length": 59,
+            "start": 474
+          },
+          "tokenizer.chat_template": {
+            "end": 5018,
+            "length": 212,
+            "start": 4806
+          },
+          "tokenizer.chat_template.strict": {
+            "end": 5355,
+            "length": 337,
+            "start": 5018
+          },
+          "tokenizer.chat_template.tools": {
+            "end": 5741,
+            "length": 386,
+            "start": 5355
+          },
+          "tokenizer.ggml.add_bos_token": {
+            "end": 4721,
+            "length": 41,
+            "start": 4680
+          },
+          "tokenizer.ggml.add_eos_token": {
+            "end": 4762,
+            "length": 41,
+            "start": 4721
+          },
+          "tokenizer.ggml.add_space_prefix": {
+            "end": 4806,
+            "length": 44,
+            "start": 4762
+          },
+          "tokenizer.ggml.bos_token_id": {
+            "end": 4500,
+            "length": 43,
+            "start": 4457
+          },
+          "tokenizer.ggml.eos_token_id": {
+            "end": 4543,
+            "length": 43,
+            "start": 4500
+          },
+          "tokenizer.ggml.eot_token_id": {
+            "end": 4586,
+            "length": 43,
+            "start": 4543
+          },
+          "tokenizer.ggml.merges": {
+            "end": 4457,
+            "length": 45,
+            "start": 4412
+          },
+          "tokenizer.ggml.model": {
+            "end": 642,
+            "length": 44,
+            "start": 598
+          },
+          "tokenizer.ggml.padding_token_id": {
+            "end": 4680,
+            "length": 47,
+            "start": 4633
+          },
+          "tokenizer.ggml.pre": {
+            "end": 685,
+            "length": 43,
+            "start": 642
+          },
+          "tokenizer.ggml.token_type": {
+            "end": 4412,
+            "length": 1101,
+            "start": 3311
+          },
+          "tokenizer.ggml.tokens": {
+            "end": 3311,
+            "length": 2626,
+            "start": 685
+          },
+          "tokenizer.ggml.unknown_token_id": {
+            "end": 4633,
+            "length": 47,
+            "start": 4586
+          }
+        },
+        "tensor_data": {},
+        "tensor_data_start": 5760,
+        "tensor_info": {}
+      },
+      "path": "fixtures/gguf/pfir10-byte-bpe-chat-v3.gguf",
+      "sha256": "80b3cc41c2853288c1c31dd2ab60645155502989290ba52d73fab4530c965037"
+    }
+  }
+}

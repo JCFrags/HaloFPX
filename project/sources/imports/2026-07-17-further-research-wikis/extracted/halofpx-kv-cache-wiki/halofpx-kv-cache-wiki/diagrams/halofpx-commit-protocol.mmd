@@ -1,0 +1,19 @@
+stateDiagram-v2
+  [*] --> Miss
+  Miss --> Leased: acquire single-flight lease
+  Leased --> TempWriting: O_EXCL 0600 in target filesystem
+  TempWriting --> TempSynced: exact writes + fdatasync
+  TempSynced --> TempVerified: reopen + full validator
+  TempVerified --> ObjectPublished: no-replace immutable digest path
+  ObjectPublished --> ObjectDirSynced: fsync object directory
+  ObjectDirSynced --> ManifestAuthenticated: canonical manifest + HMAC
+  ManifestAuthenticated --> ManifestTempSynced: exact write + fsync
+  ManifestTempSynced --> ManifestCommitted: CAS/atomic replace + fsync directory
+  ManifestCommitted --> AuthenticatedCatalogEntryReachable
+  TempWriting --> Abort: any error
+  TempSynced --> Abort: validation error
+  TempVerified --> Abort: publish error
+  ManifestAuthenticated --> Abort: key/HMAC error
+  ObjectPublished --> SafeOrphan: crash before manifest
+  SafeOrphan --> GarbageCollected: orphan grace period
+  Abort --> Miss

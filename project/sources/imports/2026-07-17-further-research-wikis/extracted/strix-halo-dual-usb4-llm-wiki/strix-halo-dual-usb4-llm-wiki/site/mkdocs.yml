@@ -1,0 +1,81 @@
+site_name: Dual-Strix-Halo USB4 LLM Wiki
+site_description: Feasibility and placement models for two Strix Halo systems over dual USB4
+repo_name: dual-strix-halo-usb4-llm-wiki
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: deep purple
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: cyan
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - tables
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+extra_css:
+  - stylesheets/extra.css
+nav:
+  - Home: index.md
+  - Executive summary: executive-summary.md
+  - Platform:
+      - Strix Halo: hardware/strix-halo.md
+      - Dual USB4: interconnect/dual-usb4.md
+      - Transport and striping: interconnect/transport-and-striping.md
+  - Method:
+      - Evidence labels: methodology/evidence-labels.md
+      - Assumptions: assumptions-and-evidence.md
+      - Notation: methodology/notation.md
+      - Glossary: glossary.md
+  - Cost models:
+      - Network: cost-models/network.md
+      - Memory and KV: cost-models/memory.md
+      - Prefill: cost-models/prefill.md
+      - Decode: cost-models/decode.md
+      - Break-even: cost-models/break-even.md
+  - Modes:
+      - Tensor parallel: modes/tensor-parallel.md
+      - Contiguous layer split: modes/contiguous-layer-split.md
+      - Pipeline parallel: modes/pipeline-parallel.md
+      - MoE expert placement: modes/moe-expert-placement.md
+      - Remote speculation: modes/remote-speculation.md
+      - Replicated decode: modes/replicated-decode.md
+      - Hybrid: modes/hybrid.md
+  - Placement:
+      - Ownership matrix: placement/ownership-matrix.md
+      - Schema guide: placement/schema-guide.md
+  - Feasibility:
+      - Gates: feasibility/gates.md
+      - Failure modes: feasibility/failure-modes.md
+      - Decision framework: decision-framework.md
+  - Worked examples:
+      - Method: examples/index.md
+      - Llama 3.1 8B: examples/llama31-8b.md
+      - Llama 3.1 405B: examples/llama31-405b.md
+      - Mixtral 8x7B: examples/mixtral-8x7b.md
+      - Qwen3-30B-A3B: examples/qwen3-30b-a3b.md
+  - Benchmarking:
+      - Plan: benchmarking/benchmark-plan.md
+      - Worksheet: benchmarking/measurement-worksheet.md
+  - Implementation: implementation-notes.md
+  - Limitations: limitations.md
+  - Sources: sources.md

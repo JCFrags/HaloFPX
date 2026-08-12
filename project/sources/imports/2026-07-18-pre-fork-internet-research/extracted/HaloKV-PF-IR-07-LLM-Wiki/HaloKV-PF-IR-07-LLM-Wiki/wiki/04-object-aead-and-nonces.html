@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Object AEAD, nonce allocation, and associated data Algorithm profile The minimum profile permits two primary suites, each with a 128 bit authentication tag: Suite ID Algorithm Nonc…">
+  <title>Object AEAD, nonce allocation, and associated data · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link active" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Object AEAD, nonce allocation, and associated data</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Object AEAD, nonce allocation, and associated data</h1>
+<h2 id="algorithm-profile">Algorithm profile<a class="heading-anchor" href="#algorithm-profile" aria-label="Link to section">#</a></h2>
+<p>The minimum profile permits two primary suites, each with a 128-bit authentication tag:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Suite ID</th>
+  <th>Algorithm</th>
+  <th>Nonce</th>
+  <th>Local policy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>HKV1-A256GCM</code></td>
+  <td>AES-256-GCM</td>
+  <td>96 bits</td>
+  <td>Unique per <code>K_enc</code>; deterministic reservation preferred; full tag; rotate well before implementation/source limits.</td>
+</tr>
+<tr>
+  <td><code>HKV1-C20P</code></td>
+  <td>ChaCha20-Poly1305 (IETF)</td>
+  <td>96 bits</td>
+  <td>Unique per <code>K_enc</code>; full tag; use high-quality implementation with test vectors.</td>
+</tr>
+<tr>
+  <td><code>HKV1-A256GCMSIV</code></td>
+  <td>AES-256-GCM-SIV</td>
+  <td>96 bits</td>
+  <td>Optional, separately negotiated/versioned; misuse resistance is defense in depth, not permission for intentional reuse.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Primitive selection does not imply implementation validation, FIPS status, or compliance. Use a reviewed platform cryptographic library, disable unauthenticated modes, and include the exact suite in the authenticated format.</p>
+<p><span class="claim-label" data-claim="PFIR07-C030" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C030][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38D §§5.2,7]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C031" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C031][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38D §8]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C036" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C036][CLASS:SOURCE][STATUS:SUPPORTED][SRC:RFC8452 §§3,9]</span></p>
+<h2 id="envelope">Envelope<a class="heading-anchor" href="#envelope" aria-label="Link to section">#</a></h2>
+<p>The persisted record consists of a small bounded header, canonical AAD, ciphertext, and tag. The header fields required to locate a key and bound allocation are themselves repeated or committed in the AAD. No untrusted length may cause an allocation above configured limits.</p>
+<pre><code class="language-text">magic | envelope_version | suite_id | flags | key_ref | nonce |
+aad_length | ciphertext_length | aad | ciphertext | tag
+</code></pre>
+<p>The CDDL model is in <a href="../schemas/object-envelope.cddl"><code>schemas/object-envelope.cddl</code></a>. It is a design schema, not an IANA or standards-body format.</p>
+<h2 id="canonical-associated-data">Canonical associated data<a class="heading-anchor" href="#canonical-associated-data" aria-label="Link to section">#</a></h2>
+<p>The AAD map is deterministic and versioned. Mandatory or conditionally mandatory fields:</p>
+<pre><code class="language-text">aad_version
+algorithm_suite
+authority_id
+principal_scope_id
+tenant_id
+project_id_or_null
+prefix_id
+namespace_id
+sharing_class
+rank_id
+epoch_id
+key_id
+object_type
+object_schema_version
+codec_id
+compression_id
+uncompressed_length
+ciphertext_length
+chunk_index
+chunk_count
+scoped_content_id
+manifest_id
+manifest_generation
+source_revision_or_null
+created_time_bucket_or_null
+critical_extensions
+</code></pre>
+<p>AAD is authenticated but not encrypted; do not place secrets in it. Where identifiers themselves are sensitive, use pseudonymous stable IDs assigned by the authority, not plaintext names. Reject unknown critical extensions and duplicate map keys. Include lengths in AAD and enforce local maximums before attempting decryption or decompression.</p>
+<p><span class="claim-label" data-claim="PFIR07-C057" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C057][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C030,C034,C038,C049]</span></p>
+<h2 id="nonce-strategies">Nonce strategies<a class="heading-anchor" href="#nonce-strategies" aria-label="Link to section">#</a></h2>
+<h3 id="preferred-crash-safe-deterministic-reservation">Preferred: crash-safe deterministic reservation<a class="heading-anchor" href="#preferred-crash-safe-deterministic-reservation" aria-label="Link to section">#</a></h3>
+<p>For each <code>(key_id, rank_id, epoch_id)</code> maintain a 64-bit invocation counter and a 32-bit rank/allocator instance field, producing 96 bits. Reserve counter ranges transactionally before use; never return a range to the pool. Persist the high-water mark outside rollback-prone cache data, or bind it to the epoch key record in the key authority. After restore, clone, counter loss, or uncertainty, create a fresh epoch key and reset only within that new key domain.</p>
+<p>A reservation record must be durable before any nonce from the range is used. Example:</p>
+<pre><code class="language-text">nonce = uint32_be(allocator_instance) || uint64_be(invocation_counter)
+</code></pre>
+<p>The allocator instance must be unique for the life of the key. A rank identity alone is insufficient if the same rank can be cloned or restored concurrently.</p>
+<h3 id="alternative-bounded-random-nonces">Alternative: bounded random nonces<a class="heading-anchor" href="#alternative-bounded-random-nonces" aria-label="Link to section">#</a></h3>
+<p>Generate the entire 96-bit nonce from an approved RNG, track per-key invocation counts, and rotate well below the applicable limit. This avoids a persistent counter but retains collision probability and still requires key-domain isolation across clones. For AES-GCM, NIST's RBG-based construction has a global <code>2^32</code> invocation ceiling for a key; the local HaloKV ceiling should be materially lower and operationally monitored.</p>
+<p><span class="claim-label" data-claim="PFIR07-C032" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C032][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38D §8.3]</span></p>
+<h3 id="prohibited">Prohibited<a class="heading-anchor" href="#prohibited" aria-label="Link to section">#</a></h3>
+<ul>
+<li>Timestamp-only, process-ID-only, rank-only, path-hash-only, or truncated counters.</li>
+<li>Counter reset under the same key after reboot or restore.</li>
+<li>Sharing one <code>K_enc</code> across ranks without a formally reviewed disjoint nonce allocation.</li>
+<li>Deriving nonce from the plaintext CID alone; identical plaintext would repeat the nonce under the same key.</li>
+<li>Deliberate reuse because AES-GCM-SIV is available.</li>
+</ul>
+<h2 id="decrypt-accept-order">Decrypt/accept order<a class="heading-anchor" href="#decrypt-accept-order" aria-label="Link to section">#</a></h2>
+<ol>
+<li>Read fixed header into a bounded buffer; validate magic/version/suite and encoded lengths.</li>
+<li>Resolve an exact key reference under caller authorization; do not try arbitrary keys or all tenant keys.</li>
+<li>Reconstruct expected canonical AAD from trusted request/policy fields and compare it to the encoded AAD representation.</li>
+<li>Enforce epoch floor, manifest generation, object-size, codec, and extension policy.</li>
+<li>Invoke AEAD open once. On failure, emit internal reason and return <code>MISS_RECOMPUTE</code>.</li>
+<li>Verify scoped CID/semantic digest after successful decryption if it is defined over canonical plaintext semantics.</li>
+<li>Only then decompress/deserialize with independent resource limits.</li>
+<li>Publish data to the consumer only after all checks pass.</li>
+</ol>
+<p><span class="claim-label" data-claim="PFIR07-C059" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C059][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C030,C034]</span></p>
+<h2 id="replay-and-freshness">Replay and freshness<a class="heading-anchor" href="#replay-and-freshness" aria-label="Link to section">#</a></h2>
+<p>A valid AEAD tag proves authenticity under its key and AAD, not recency. Include epoch and manifest generation in AAD, but compare them against trusted current state. A restored old manifest with a valid tag is rejected if its generation is below the trusted floor or a deletion tombstone supersedes it.</p>
+<p><span class="claim-label" data-claim="PFIR07-C060" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C060][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C030-C036]</span></p>
+<h2 id="failure-normalization">Failure normalization<a class="heading-anchor" href="#failure-normalization" aria-label="Link to section">#</a></h2>
+<p>Internal reason codes are not part of the external API. The following all become one result:</p>
+<pre><code class="language-text">MISS_RECOMPUTE
+</code></pre>
+<p>Unknown suite, missing key, revoked key, malformed header, oversized field, nonce-policy violation, AAD mismatch, tag failure, CID mismatch, wrong chunk, missing manifest, stale generation, and unsupported extension are logged only through a protected diagnostic channel. Avoid error-dependent network payload sizes, status codes, or retry hints that expose which key or object exists.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

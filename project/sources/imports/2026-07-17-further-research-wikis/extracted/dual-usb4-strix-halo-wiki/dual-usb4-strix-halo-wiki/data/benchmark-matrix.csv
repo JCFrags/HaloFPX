@@ -1,0 +1,10 @@
+transport,mtu,parallelism,direction,affinity,offloads,replicates,metrics
+TCP-link0,1500,1/4/8,forward+reverse,default+split,on,5,Gbit/s CPU-s/GiB RTT errors
+TCP-link1,1500,1/4/8,forward+reverse,default+split,on,5,Gbit/s CPU-s/GiB RTT errors
+TCP-dual,1500,4+4,forward+reverse,split,on,5,aggregate retention CPU
+MPTCP,1500,1 meta socket,forward+reverse,split,on,5,Gbit/s subflow bytes failover
+TCP-dual,9000,4+4,forward+reverse,split,on,5,aggregate retention CPU
+MPTCP,9000,1 meta socket,forward+reverse,split,on,5,Gbit/s subflow bytes failover
+TCP-dual,65522,4+4,forward+reverse,split,on,5,aggregate retention CPU
+USB4STREAM,n/a,one process/device,forward+reverse,split,n/a,5,Gbit/s CPU-s/GiB hashes
+llama.cpp RPC,selected,one MPTCP socket,application,selected,on,5,load time prompt tok/s generation tok/s CPU bytes

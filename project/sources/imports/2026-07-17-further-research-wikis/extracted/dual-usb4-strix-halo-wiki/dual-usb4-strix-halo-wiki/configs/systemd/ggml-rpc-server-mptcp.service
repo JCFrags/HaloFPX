@@ -1,0 +1,30 @@
+[Unit]
+Description=ggml RPC server over isolated dual-USB4 MPTCP fabric
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Create this account and grant only the GPU/render groups required by the backend.
+User=llama-rpc
+Group=llama-rpc
+EnvironmentFile=-/etc/default/ggml-rpc-server
+Environment=GGML_RPC_MPTCP=1
+Environment=GGML_RPC_DEBUG=1
+ExecStart=/opt/llama.cpp/build/bin/ggml-rpc-server -H 0.0.0.0 -p 50052 -c
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/var/cache/llama.cpp
+# Add GPU/render devices and IPC limits required by the selected backend.
+
+[Install]
+WantedBy=multi-user.target

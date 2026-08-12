@@ -1,0 +1,25 @@
+// TurboQuant CPU reference tests: FWHT self-inverse, roundtrip MSE, bit-packing
+//
+// Validates that the quantize/dequantize pipeline in ggml-quants.c produces
+// MSE*d values consistent with the paper (Zandieh et al., ICLR 2026).
+
+#include "ggml.h"
+
+#undef NDEBUG
+#include <cassert>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+
+static constexpr int HEAD_DIM          = 128;
+static constexpr int BLOCK_SIZE        = 32;
+static constexpr int BLOCKS_PER_CHUNK  = HEAD_DIM / BLOCK_SIZE;
+static constexpr int N_VECTORS         = 10000;
+static constexpr int N_ELEMENTS        = N_VECTORS * HEAD_DIM;
+
+// Expected MSE*d ranges (paper: TQ3 ~0.034, TQ4 ~0.009 for d=128)
+static constexpr float TQ3_MSE_D_MIN = 0.025f;
+static constexpr float TQ3_MSE_D_MAX = 0.045f;
+static constexpr float TQ4_MSE_D_MIN = 0.005f;
+static constexpr float TQ4_MSE_D_MAX = 0.015f;

@@ -1,0 +1,28 @@
+digraph G {
+
+  graph [bgcolor="#101820", pad="0.35", nodesep="0.4", ranksep="0.55", fontname="DejaVu Sans"];
+  node [shape=box, style="rounded,filled", fillcolor="#263238", color="#4dd0e1", fontcolor="#f5f7fa", fontname="DejaVu Sans", penwidth=1.7, margin="0.16,0.10"];
+  edge [color="#90caf9", fontcolor="#cfd8dc", fontname="DejaVu Sans", penwidth=2.0, arrowsize=0.75];
+
+  rankdir=LR; label="Transport stacks: what is removed, what remains"; labelloc=t; fontsize=20; fontcolor="#ffffff";
+  subgraph cluster_tcp { label="USB4NET + TCP/MPTCP"; color="#455a64"; fontcolor="#ffffff";
+    app1 [label="llama.cpp RPC framing"];
+    mptcp [label="TCP or MPTCP"];
+    ip [label="IP routing / policy"];
+    eth [label="USB4NET Ethernet netdev"];
+    ring1 [label="thunderbolt-net
+TX/RX DMA rings"];
+    app1 -> mptcp -> ip -> eth -> ring1;
+  }
+  subgraph cluster_stream { label="USB4STREAM"; color="#455a64"; fontcolor="#ffffff";
+    app2 [label="custom framing + security"];
+    rw [label="read/write/poll
+current userspace copy"];
+    ring2 [label="thunderbolt-stream
+TX/RX DMA rings"];
+    app2 -> rw -> ring2;
+  }
+  wire [label="USB4 tunneled link
+not coherent shared memory", shape=hexagon, fillcolor="#4e342e", color="#ffb74d"];
+  ring1 -> wire [dir=both]; ring2 -> wire [dir=both];
+}

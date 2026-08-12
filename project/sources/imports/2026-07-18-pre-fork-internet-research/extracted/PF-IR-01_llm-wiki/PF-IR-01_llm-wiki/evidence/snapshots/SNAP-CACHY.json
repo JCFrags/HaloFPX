@@ -1,0 +1,11 @@
+{
+  "capture_format": "primary-source-commit-metadata/v1",
+  "repository": "fewtarius/CachyLlama",
+  "commit": "6be745998f568e379ea197fcf827baec73ff9940",
+  "role": "CachyLlama source snapshot",
+  "commit_title": "Merge upstream server and core changes",
+  "source_url": "https://github.com/fewtarius/CachyLlama/commit/6be745998f568e379ea197fcf827baec73ff9940",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "proof_scope": "Commit object/source selection only; not deployed binary proof.",
+  "payload_sha256": "47075dd980715420f443f63c4f38bd9a00053c9231ba260a5ece0e9f49998a2a"
+}

@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0",
+  "rules": [
+    {
+      "patterns": [
+        "src/llama-model-loader.*",
+        "ggml/src/gguf.*",
+        "include/llama.h"
+      ],
+      "areas": [
+        "GGUF parsing"
+      ]
+    },
+    {
+      "patterns": [
+        "src/llama-vocab.*",
+        "common/**token*",
+        "models/**vocab*"
+      ],
+      "areas": [
+        "Tokenizer"
+      ]
+    },
+    {
+      "patterns": [
+        "common/chat.*",
+        "common/jinja/**",
+        "models/templates/**"
+      ],
+      "areas": [
+        "Chat templates",
+        "Server APIs"
+      ]
+    },
+    {
+      "patterns": [
+        "src/llama-sampling.*",
+        "common/sampling.*"
+      ],
+      "areas": [
+        "Sampling",
+        "Deterministic runs"
+      ]
+    },
+    {
+      "patterns": [
+        "ggml/src/**",
+        "ggml/src/ggml-*/**"
+      ],
+      "areas": [
+        "Logits",
+        "Quantized kernels",
+        "Deterministic runs"
+      ]
+    },
+    {
+      "patterns": [
+        "src/llama-context.*",
+        "src/llama-memory.*"
+      ],
+      "areas": [
+        "Long context",
+        "Cache save/restore",
+        "Cache rejection"
+      ]
+    },
+    {
+      "patterns": [
+        "tools/server/**"
+      ],
+      "areas": [
+        "Server APIs",
+        "Cancellation",
+        "Expected error behavior"
+      ]
+    },
+    {
+      "patterns": [
+        "examples/speculative/**",
+        "common/speculative.*"
+      ],
+      "areas": [
+        "MTP/speculative decoding"
+      ]
+    },
+    {
+      "patterns": [
+        "examples/rpc/**",
+        "ggml/src/ggml-rpc/**"
+      ],
+      "areas": [
+        "RPC",
+        "Cancellation"
+      ]
+    },
+    {
+      "patterns": [
+        "common/kv_*",
+        "**cache**",
+        "**checkpoint**"
+      ],
+      "areas": [
+        "Cache save/restore",
+        "Cache rejection",
+        "Long context"
+      ]
+    }
+  ],
+  "rule": "Path mapping adds cases; it never removes mandatory smoke and suite-integrity lanes."
+}

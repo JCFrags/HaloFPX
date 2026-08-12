@@ -1,0 +1,14 @@
+#!/usr/sbin/nft -f
+flush table inet dual_usb4
+
+table inet dual_usb4 {
+  set usb4_ifaces { type ifname; elements = { "thunderbolt0", "thunderbolt1" } }
+  set node_a_ips { type ipv4_addr; elements = { 10.44.0.1, 10.44.1.1 } }
+
+  chain input {
+    type filter hook input priority 0; policy accept;
+    ct state established,related accept
+    iifname @usb4_ifaces ip saddr @node_a_ips tcp dport 50052 accept
+    iifname @usb4_ifaces tcp dport 50052 drop
+  }
+}

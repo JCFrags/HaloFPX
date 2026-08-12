@@ -1,0 +1,7 @@
+flowchart LR
+  I[Message + final hash] --> S[Chunk scheduler]
+  S --> Q0[Path 0 queue] --> P0[Socket/tbstream 0]
+  S --> Q1[Path 1 queue] --> P1[Socket/tbstream 1]
+  P0 --> R[Range reassembly]
+  P1 --> R
+  R --> O[Hash-verified message]

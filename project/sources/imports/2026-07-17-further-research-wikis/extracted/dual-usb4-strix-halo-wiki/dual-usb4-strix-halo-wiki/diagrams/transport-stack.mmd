@@ -1,0 +1,6 @@
+flowchart LR
+  A[RPC framing] --> M[TCP/MPTCP] --> I[IP] --> E[USB4NET] --> R1[DMA rings]
+  B[Custom framing] --> RW[read/write copy] --> R2[USB4STREAM rings]
+  R1 <--> W[USB4 tunneled link]
+  R2 <--> W
+  W -. not shared memory .-> X[Peer-local buffers]

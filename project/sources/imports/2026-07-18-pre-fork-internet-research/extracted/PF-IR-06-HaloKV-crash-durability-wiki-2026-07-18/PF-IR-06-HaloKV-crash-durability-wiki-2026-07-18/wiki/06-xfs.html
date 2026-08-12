@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XFS profile · PF-IR-06</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="../index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="00-scope-and-claim-language.html">Scope / labels</a><a href="01-executive-decision-record.html">Decision record</a><a href="02-portable-linux-minimum.html">Portable minimum</a><a href="03-temporary-files-and-publication.html">Publication</a><a href="04-deployed-filesystem-profile.html">Deployed profile</a><a href="05-ext4.html">ext4</a><a class="active" href="06-xfs.html">XFS</a><a href="07-btrfs.html">Btrfs</a><a href="08-io-uring.html">io_uring</a><a href="09-errors-space-direct-io.html">Errors / DIO</a><a href="10-locking-and-fencing.html">Locking</a><a href="11-fault-test-matrix.html">Fault program</a><a href="12-nontarget-portability.html">Non-targets</a><a href="13-open-questions.html">Open questions</a><a href="14-source-audit.html">Source audit</a><a href="../matrices/claim-ledger.html">Claim ledger</a><a href="../matrices/guarantee-source-test.html">Guarantee map</a><a href="../matrices/experiment-matrix.html">Experiment matrix</a><a href="../matrices/source-register.html">Source register</a><a href="../VERSION-PINS.html">Version pins</a><a href="../raw/README.html">Raw capture policy</a><a href="../licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="../scripts/fault-tests/README.html">Harness notes</a><a href="../BUILD-VALIDATION.html">Build validation</a><a href="../README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="../index.html">Wiki home</a><span>·</span><a href="06-xfs.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>XFS profile</h1>
+<p>XFS is a realistic supported candidate. It is a metadata-journaling filesystem with buffered delayed allocation and extensive extent/B-tree allocation behavior. The portable application protocol remains unchanged.</p>
+<h2>Material semantics</h2>
+<ul>
+<li>Buffered end-of-file writes use delayed allocation. A write completion does not reserve all final metadata or establish persistence.</li>
+<li>XFS documents <code>wsync</code>, which makes namespace operations synchronous. It can be studied for HA behavior, but the portable contract still issues explicit directory synchronization and checks it.</li>
+<li>Historical <code>barrier</code>/<code>nobarrier</code> mount options were removed. Do not infer that the storage stack is therefore power safe; flush/FUA propagation still requires <code>T040</code>.</li>
+<li>Online discard can materially affect performance; scheduled <code>fstrim</code> is normally preferable. Discard is outside durability.</li>
+<li>Reflink-capable XFS can share extents. The selected immutable-object design avoids mutating shared live extents. Do not use clone-and-patch as the core write primitive.</li>
+<li>New atomic-write/exchange-range facilities are filesystem-specific and are not selected as the portable minimum without a separate format and fault-test decision.</li>
+</ul>
+<h2>Required XFS matrix</h2>
+<p>Run the complete baseline, with emphasis on delayed-allocation ENOSPC, metadata reservation, reflink/shared extent behavior if used, XFS shutdown/read-only transitions under EIO, DIO alignment discovery, and host power cut through the deployed block stack.</p>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="../assets/wiki.js"></script></body></html>

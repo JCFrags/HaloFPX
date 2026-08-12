@@ -1,0 +1,5 @@
+CachyOS/linux-cachyos moving packaging snapshot
+Repository commit indexed: 5aeec554010d57edf03e7cad83c174fd945da8b9
+PKGBUILD blob: dd4c9a88224b44c3dadb47d7c4db52aeee10cc38
+Snapshot values observed: _major=7.2, _rcver=rc3, _tagrel=3, pkgrel=2, _srctag=cachyos-7.2-rc3-3.
+The published binary record remains 7.2.rc3-1. The package page's source link resolves to a moving branch, so this snapshot is not proof of the exact recipe used for the earlier binary.

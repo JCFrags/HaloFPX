@@ -1,0 +1,4 @@
+flowchart LR
+  A[Rank 0: attention/router/KV/local experts] -->|dispatch remote assignments| B[Rank 1: remote experts]
+  B -->|expert outputs| A
+

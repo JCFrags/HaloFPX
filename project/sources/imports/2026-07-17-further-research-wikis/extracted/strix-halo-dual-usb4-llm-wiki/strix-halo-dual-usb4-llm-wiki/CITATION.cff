@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "Please cite this wiki and the primary sources listed in docs/sources.md."
+title: "Dual-Strix-Halo USB4 Distributed LLM Wiki"
+type: software
+version: 0.1.0
+date-released: 2026-07-17
+authors:
+  - family-names: OpenAI
+license: CC-BY-4.0
+repository-code: "local artifact"
+abstract: "Communication, synchronization, placement, and break-even models for LLM inference on two Strix Halo systems over dual USB4."
+keywords:
+  - Strix Halo
+  - USB4
+  - large language model inference
+  - tensor parallelism
+  - pipeline parallelism
+  - mixture of experts
+  - speculative decoding

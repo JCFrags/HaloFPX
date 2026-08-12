@@ -1,0 +1,213 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>USB4 and Thunderbolt networking · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="usb4-networking.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html">Community validation</a>
+          
+            <a href="regressions.html">Known regressions</a>
+          
+            <a href="unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html">Exact build flags</a>
+          
+            <a href="environment-variables.html">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html">ROCmFPX</a>
+          
+            <a href="usb4-networking.html" class="active" aria-current="page">USB4 networking</a>
+          
+            <a href="glossary.html">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Networking</div>
+      <article class="article"><h1 id="usb4-and-thunderbolt-networking">USB4 and Thunderbolt networking<a aria-label="Link to section" class="heading-anchor" href="#usb4-and-thunderbolt-networking">#</a></h1>
+<h2 id="standard-upstream-ip-networking">Standard, upstream IP networking<a aria-label="Link to section" class="heading-anchor" href="#standard-upstream-ip-networking">#</a></h2>
+<p>Linux exposes IP networking over USB4/Thunderbolt through <code>CONFIG_USB4_NET</code>; the module name is <code>thunderbolt_net</code>. The Kconfig entry depends on <code>USB4</code> and <code>INET</code> and implements the Apple ThunderboltIP protocol. Sources: <a href="sources.html#linux-usb4-net-kconfig">LINUX-USB4-NET-KCONFIG</a>, <a href="sources.html#linux-thunderbolt-doc">LINUX-THUNDERBOLT-DOC</a>.</p>
+<p>Required kernel configuration:</p>
+<pre><code class="language-text">CONFIG_USB4=y or m
+CONFIG_INET=y
+CONFIG_USB4_NET=m or y
+</code></pre>
+<p>Basic two-host setup:</p>
+<pre><code class="language-bash"># Host A
+sudo modprobe thunderbolt-net
+sudo ip link set thunderbolt0 up
+sudo ip address replace 192.168.44.1/30 dev thunderbolt0
+
+# Host B
+sudo modprobe thunderbolt-net
+sudo ip link set thunderbolt0 up
+sudo ip address replace 192.168.44.2/30 dev thunderbolt0
+</code></pre>
+<p>Then test <code>ping</code> and both iperf directions. The included <a href="../scripts/usb4-net-setup.sh"><code>usb4-net-setup.sh</code></a> is dry-run by default and requires <code>--apply</code> before changing an interface.</p>
+<p>A community guide reports roughly 9 Gbit/s per link on specific Strix Halo systems. Cable generation, topology, tunneling, firmware, and CPU placement can change this substantially. Source: <a href="sources.html#strixhalo-wiki-clustering">STRIXHALO-WIKI-CLUSTERING</a>.</p>
+<h3 id="llama-cpp-use">llama.cpp use<a aria-label="Link to section" class="heading-anchor" href="#llama-cpp-use">#</a></h3>
+<p>Once <code>thunderbolt0</code> has IP addresses, llama.cpp RPC traffic is normal TCP/IP traffic. Bind explicitly to the USB4 address or add a route so Ethernet is not selected accidentally. Capture <code>ss -tnp</code>, <code>ip route get PEER</code>, and per-interface counters during tests.</p>
+<h2 id="research-only-verbs-transport">Research-only verbs transport<a aria-label="Link to section" class="heading-anchor" href="#research-only-verbs-transport">#</a></h2>
+<p><code>thunderbolt-ibverbs</code> creates an InfiniBand verbs device over generic USB4/Thunderbolt DMA rings. The project explicitly warns that it is buggy, insecure, and not for production. Its primary path requires Linux 6.14 or newer, or the project’s patched kernel. Source: <a href="sources.html#thunderbolt-ibverbs-76ba39b">THUNDERBOLT-IBVERBS-76BA39B</a>.</p>
+<p>Host module load:</p>
+<pre><code class="language-bash">sudo modprobe thunderbolt_ibverbs   profile=linux_perf   bind_services=1   allocate_rings=1   start_rings=1   negotiate_native=1   enable_tunnels=1   register_verbs=1
+</code></pre>
+<p>Container exposure:</p>
+<pre><code class="language-bash">docker run --rm -it   --device=/dev/infiniband   --cap-add=IPC_LOCK   --ulimit memlock=-1   IMAGE
+</code></pre>
+<p>The kernel module remains on the host; the container needs the project’s libibverbs provider. Do not use this driver on an untrusted cable, peripheral, host, or physical environment.</p>
+<h2 id="iommu-warning">IOMMU warning<a aria-label="Link to section" class="heading-anchor" href="#iommu-warning">#</a></h2>
+<p>A community compute profile reports performance gains from <code>amd_iommu=off</code>. USB4 and experimental RDMA are DMA-capable transports, so disabling IOMMU changes the security boundary. This wiki does not combine that tuning with the USB4/RDMA profile. Benchmark <code>iommu=pt</code> or default policy before considering isolation-reducing settings.</p>
+<h2 id="network-validation-matrix">Network validation matrix<a aria-label="Link to section" class="heading-anchor" href="#network-validation-matrix">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Production classification</th>
+<th>Kernel component</th>
+<th>User space</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ThunderboltIP/TCP</td>
+<td>Upstream kernel component</td>
+<td><code>thunderbolt_net</code></td>
+<td><code>iproute2</code>, <code>iperf3</code></td>
+<td>ping, iperf3, llama RPC</td>
+</tr>
+<tr>
+<td>RXE over thunderbolt0</td>
+<td>Standard software RDMA over IP, performance varies</td>
+<td><code>rdma_rxe</code> + <code>thunderbolt_net</code></td>
+<td><code>rdma-core</code></td>
+<td><code>rping</code>, <code>ib_write_bw</code></td>
+</tr>
+<tr>
+<td>Native thunderbolt-ibverbs</td>
+<td>Research only</td>
+<td><code>thunderbolt_ibverbs</code></td>
+<td>custom provider</td>
+<td>project smoke and perftest</td>
+</tr>
+</tbody>
+</table></div>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#standard-upstream-ip-networking">Standard, upstream IP networking</a><a class="level-3" href="#llama-cpp-use">llama.cpp use</a><a class="level-2" href="#research-only-verbs-transport">Research-only verbs transport</a><a class="level-2" href="#iommu-warning">IOMMU warning</a><a class="level-2" href="#network-validation-matrix">Network validation matrix</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+section_id: "15"
+title: "Integration Patch Stack and Upstream Synchronization Strategy"
+category_id: "03"
+category_title: "Repository and Engineering"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 12
+open_question_count: 12
+required_machine_experiments:
+  - "EXP-15-01: clean upstream and per-lane builds on both Strix Halo machines"
+  - "EXP-15-02: ROCmFPX donor-to-port completeness and backend validation"
+  - "EXP-15-03: cache compatibility, corruption, and invalidation fault injection"
+  - "EXP-15-04: dual-link and rank failure with coherent single-node fallback"
+  - "EXP-15-05: seeded regression and automated bisect rehearsal"
+  - "EXP-15-06: candidate upgrade and rollback with cache compatibility checks"
+related_sections: ["11", "13", "14", "16"]
+applicability:
+  repositories:
+    ggml_org_llama_cpp: "788e07dc91d266ad3162a1ce9037665656269689"
+    charlie12345_ROCmFPX: "a5605a72768c6562241b248e268e33dc92787394"
+    fewtarius_CachyLLama: "6be745998f568e379ea197fcf827baec73ff9940"
+    fewtarius_llama_ai: "1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+    llama_ai_CachyLLama_gitlink: "6be745998f568e379ea197fcf827baec73ff9940"
+  software_versions:
+    git_documentation: "2.54.0"
+  hardware_revisions:
+    - "two matched AMD Strix Halo systems; exact revisions open"
+claim_summary:
+  measured: 0
+  verified: "Pinned repository topology, ancestry observations, licenses, and Git workflow mechanics"
+  inference: "ROCmFPX requires a provenance-preserving normalization/port boundary"
+  recommendation: "Ordered six-lane patch stack with immutable candidates/releases"
+  open: "Patch inventories, ABI, rank protocol, CI matrix, machine results, and ownership"

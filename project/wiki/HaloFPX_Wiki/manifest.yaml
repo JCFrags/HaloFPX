@@ -1,0 +1,1115 @@
+manifest_version: '1.0'
+wiki_name: HaloFPX LLM Wiki
+authority_scope: canonical section paths and structural artifact state
+generated_on: '2026-07-17'
+registry: ../../research/prompts/section_index.yaml
+schema: manifest.schema.json
+generator: ../../research/prompts/tools/generate_wiki_manifest.py
+input_digest_sha256: 5ac4ce11a7ab40dc604ad0c24148dfdc671b8f4a963d4af7b80220f604c7eee5
+planned_category_count: 12
+planned_section_count: 86
+categories:
+- category_id: '01'
+  title: Wiki Governance
+  canonical_path: 01_Wiki_Governance
+  sections:
+  - section_id: '01'
+    title: Wiki Architecture, Navigation, and Root Manifest
+    canonical_path: 01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest
+    section_manifest: 01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 7
+    open_question_count: 5
+  - section_id: '02'
+    title: Evidence, Citation, and Source Policy
+    canonical_path: 01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy
+    section_manifest: 01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 10
+    open_question_count: 6
+  - section_id: '03'
+    title: Glossary, Naming, and Stable Identifiers
+    canonical_path: 01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers
+    section_manifest: 01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 9
+    open_question_count: 7
+  - section_id: '04'
+    title: Assumption, Open-Question, and Decision Ledgers
+    canonical_path: 01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers
+    section_manifest: 01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 7
+    open_question_count: 7
+  - section_id: '05'
+    title: Research Data and Benchmark Artifact Conventions
+    canonical_path: 01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions
+    section_manifest: 01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 9
+    open_question_count: 10
+  artifact_state: complete
+  section_count: 5
+- category_id: '02'
+  title: Project Definition
+  canonical_path: 02_Project_Definition
+  sections:
+  - section_id: '06'
+    title: Project Charter, Vision, and Intended Outcomes
+    canonical_path: 02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes
+    section_manifest: 02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 5
+    open_question_count: 8
+  - section_id: '07'
+    title: Users, Workloads, Personas, and Use Cases
+    canonical_path: 02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases
+    section_manifest: 02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 5
+    open_question_count: 10
+  - section_id: 08
+    title: Scope, Non-Goals, Boundaries, and External Dependencies
+    canonical_path: 02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies
+    section_manifest: 02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 5
+    open_question_count: 10
+  - section_id: 09
+    title: Functional Requirements, SLOs, and Acceptance Criteria
+    canonical_path: 02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria
+    section_manifest: 02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 5
+    open_question_count: 12
+  - section_id: '10'
+    title: Architecture Principles and Tradeoff Framework
+    canonical_path: 02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework
+    section_manifest: 02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 5
+    open_question_count: 9
+  artifact_state: complete
+  section_count: 5
+- category_id: '03'
+  title: Repository and Engineering
+  canonical_path: 03_Repository_and_Engineering
+  sections:
+  - section_id: '11'
+    title: Repository Lineage, Branches, Commits, and Frozen Baselines
+    canonical_path: 03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines
+    section_manifest: 03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 16
+    open_question_count: 10
+  - section_id: '12'
+    title: Codebase Architecture and Module Map
+    canonical_path: 03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map
+    section_manifest: 03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 13
+    open_question_count: 10
+  - section_id: '13'
+    title: ROCmFPX Feature, Kernel, Format, and Patch Inventory
+    canonical_path: 03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory
+    section_manifest: 03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 13
+    open_question_count: 15
+  - section_id: '14'
+    title: llama-ai and CachyLLama Feature and Patch Inventory
+    canonical_path: 03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory
+    section_manifest: 03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 7
+    open_question_count: 16
+  - section_id: '15'
+    title: Integration Patch Stack and Upstream Synchronization Strategy
+    canonical_path: 03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy
+    section_manifest: 03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 12
+    open_question_count: 12
+  - section_id: '16'
+    title: Build, Dependencies, Licensing, CI, and AI-Agent Workflow
+    canonical_path: 03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow
+    section_manifest: 03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 15
+    open_question_count: 16
+  artifact_state: complete
+  section_count: 6
+- category_id: '04'
+  title: Hardware and OS Platform
+  canonical_path: 04_Hardware_and_OS_Platform
+  sections:
+  - section_id: '17'
+    title: AMD Strix Halo SoC and gfx1151 Architecture
+    canonical_path: 04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture
+    section_manifest: 04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 8
+    open_question_count: 8
+  - section_id: '18'
+    title: Exact Machine BOM, BIOS, Firmware, Cabling, and Revisions
+    canonical_path: 04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions
+    section_manifest: 04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 6
+    open_question_count: 8
+  - section_id: '19'
+    title: Unified Memory, GTT, GPUVM, IOMMU, and Allocation Limits
+    canonical_path: 04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits
+    section_manifest: 04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 11
+    open_question_count: 9
+  - section_id: '20'
+    title: USB4 Physical Topology and Dual-Port Independence
+    canonical_path: 04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence
+    section_manifest: 04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 7
+    open_question_count: 10
+  - section_id: '21'
+    title: NVMe and Storage Topology, Performance, and Endurance
+    canonical_path: 04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance
+    section_manifest: 04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 9
+  - section_id: '22'
+    title: Power, Thermals, Cooling, and Sustained Clocks
+    canonical_path: 04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks
+    section_manifest: 04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 9
+  - section_id: '23'
+    title: Linux, Kernel, amdgpu, Firmware, ROCm, and Mesa Compatibility Matrix
+    canonical_path: 04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix
+    section_manifest: 04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 12
+    open_question_count: 12
+  artifact_state: complete
+  section_count: 7
+- category_id: '05'
+  title: Performance Software and Tools
+  canonical_path: 05_Performance_Software_and_Tools
+  sections:
+  - section_id: '24'
+    title: HIP, HSA, RCCL, Memory Coherence, and Synchronization
+    canonical_path: 05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization
+    section_manifest: 05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 17
+    open_question_count: 12
+  - section_id: '25'
+    title: Vulkan, RADV, Host-Visible Memory, and Synchronization
+    canonical_path: 05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization
+    section_manifest: 05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 9
+    open_question_count: 12
+  - section_id: '26'
+    title: Compiler, CMake, Linker, and Reproducible Toolchain
+    canonical_path: 05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain
+    section_manifest: 05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 11
+    open_question_count: 10
+  - section_id: '27'
+    title: Profiling, Tracing, Debugging, and Hardware-Counter Collection
+    canonical_path: 05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection
+    section_manifest: 05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 12
+    open_question_count: 9
+  - section_id: '28'
+    title: 'Host System Tuning: CPU, IRQ, Scheduler, Cgroups, and Filesystems'
+    canonical_path: 05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems
+    section_manifest: 05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 12
+    open_question_count: 12
+  artifact_state: complete
+  section_count: 5
+- category_id: '06'
+  title: Models, Quantization, and Inference
+  canonical_path: 06_Models_Quantization_and_Inference
+  sections:
+  - section_id: '29'
+    title: Target Model Catalog and Architecture Support Matrix
+    canonical_path: 06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix
+    section_manifest: 06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 6
+    open_question_count: 9
+  - section_id: '30'
+    title: ROCmFPX Weight Formats and Quantization Recipes
+    canonical_path: 06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes
+    section_manifest: 06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 7
+  - section_id: '31'
+    title: Conversion, Imatrix, Calibration, and Quality Validation
+    canonical_path: 06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation
+    section_manifest: 06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 5
+    open_question_count: 9
+  - section_id: '32'
+    title: llama.cpp Model Loading, Graph Construction, and Backend Lifecycle
+    canonical_path: 06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle
+    section_manifest: 06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 8
+  - section_id: '33'
+    title: Attention Variants, KV Layouts, FlashAttention, and TurboQuant
+    canonical_path: 06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant
+    section_manifest: 06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-19'
+    source_count: 12
+    open_question_count: 9
+  - section_id: '34'
+    title: MoE Routing, Expert Telemetry, and Expert Placement Inputs
+    canonical_path: 06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs
+    section_manifest: 06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 7
+  - section_id: '35'
+    title: Recurrent, Mamba, SSM, Hybrid, and State-Shift Semantics
+    canonical_path: 06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics
+    section_manifest: 06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 8
+  - section_id: '36'
+    title: Native MTP, External Draft Models, and Speculative Decoding
+    canonical_path: 06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding
+    section_manifest: 06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 9
+  - section_id: '37'
+    title: gfx1151 HIP and Vulkan Kernel Optimization Opportunities
+    canonical_path: 06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities
+    section_manifest: 06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 7
+    open_question_count: 10
+  artifact_state: complete
+  section_count: 9
+- category_id: '07'
+  title: Distributed Runtime
+  canonical_path: 07_Distributed_Runtime
+  sections:
+  - section_id: '38'
+    title: Distributed Runtime Goals, Cost Model, and Mode Selection
+    canonical_path: 07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection
+    section_manifest: 07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 7
+  - section_id: '39'
+    title: Coordinator, Rank Worker, Session, and Persistent-Graph Architecture
+    canonical_path: 07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture
+    section_manifest: 07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 6
+    open_question_count: 7
+  - section_id: '40'
+    title: Full Replication, Request Routing, and Session Affinity
+    canonical_path: 07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity
+    section_manifest: 07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 5
+    open_question_count: 7
+  - section_id: '41'
+    title: Remote Draft-Node Speculation
+    canonical_path: 07_Distributed_Runtime/41_Remote_Draft_Node_Speculation
+    section_manifest: 07_Distributed_Runtime/41_Remote_Draft_Node_Speculation/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 8
+  - section_id: '42'
+    title: Two-Way Tensor Parallelism and Collective Placement
+    canonical_path: 07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement
+    section_manifest: 07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 9
+  - section_id: '43'
+    title: Contiguous Layer Pipeline Parallelism and Microbatching
+    canonical_path: 07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching
+    section_manifest: 07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 9
+    open_question_count: 12
+  - section_id: '44'
+    title: MoE-Aware Hybrid Distribution and Hot-Expert Replication
+    canonical_path: 07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication
+    section_manifest: 07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 10
+    open_question_count: 9
+  - section_id: '45'
+    title: Persistent Rank Protocol, Command Rings, and Graph Reuse
+    canonical_path: 07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse
+    section_manifest: 07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 9
+    open_question_count: 10
+  - section_id: '46'
+    title: Scheduler, Continuous Batching, Backpressure, and Concurrency
+    canonical_path: 07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency
+    section_manifest: 07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 5
+    open_question_count: 8
+  - section_id: '47'
+    title: Topology Planner, Autotuner, and HIP-versus-Vulkan Selection
+    canonical_path: 07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection
+    section_manifest: 07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 8
+  - section_id: '48'
+    title: Distributed Correctness, Determinism, Fault Recovery, and Degraded Mode
+    canonical_path: 07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode
+    section_manifest: 07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 6
+    open_question_count: 9
+  artifact_state: complete
+  section_count: 11
+- category_id: 08
+  title: Fabric and Transport
+  canonical_path: 08_Fabric_and_Transport
+  sections:
+  - section_id: '49'
+    title: Fabric Requirements and Transport Abstraction
+    canonical_path: 08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction
+    section_manifest: 08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 6
+    open_question_count: 8
+  - section_id: '50'
+    title: USB4STREAM and thunderbolt-net Implementation Options
+    canonical_path: 08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options
+    section_manifest: 08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 8
+  - section_id: '51'
+    title: Existing ggml RPC and ROCmFPX RDMA Transport Audit
+    canonical_path: 08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit
+    section_manifest: 08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 9
+    open_question_count: 9
+  - section_id: '52'
+    title: 'Dual-Link Multipath: Striping, Alternation, Hedging, and Failover'
+    canonical_path: 08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover
+    section_manifest: 08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 7
+    open_question_count: 9
+  - section_id: '53'
+    title: Message Framing, Credits, Flow Control, Integrity, and Security
+    canonical_path: 08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security
+    section_manifest: 08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 12
+    open_question_count: 10
+  - section_id: '54'
+    title: GPU-Visible Buffers, Coherence, Copies, and Zero-Copy Options
+    canonical_path: 08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options
+    section_manifest: 08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 9
+  - section_id: '55'
+    title: Fabric Microbenchmark Plan and USB4 Kernel-Patch Decision
+    canonical_path: 08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision
+    section_manifest: 08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 10
+  artifact_state: complete
+  section_count: 7
+- category_id: 09
+  title: HaloKV Persistent Cache
+  canonical_path: 09_HaloKV_Persistent_Cache
+  sections:
+  - section_id: '56'
+    title: CachyLLama Cache Semantics and Porting Map
+    canonical_path: 09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map
+    section_manifest: 09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 12
+  - section_id: '57'
+    title: Compatibility Fingerprints, Versioning, and Topology Identity
+    canonical_path: 09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity
+    section_manifest: 09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 10
+  - section_id: '58'
+    title: Rank-Local Ownership and Distributed Restore Coordination
+    canonical_path: 09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination
+    section_manifest: 09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 12
+  - section_id: '59'
+    title: Immutable Pages, Segment Files, Indexes, and Prefix DAG
+    canonical_path: 09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG
+    section_manifest: 09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 12
+  - section_id: '60'
+    title: System-Prompt Sharing, Deduplication, Copy-on-Write, and Continuations
+    canonical_path: 09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations
+    section_manifest: 09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 12
+  - section_id: '61'
+    title: Attention KV, Recurrent, MTP, Speculative, Sampling, and RNG State
+    canonical_path: 09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State
+    section_manifest: 09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 5
+    open_question_count: 8
+  - section_id: '62'
+    title: Async I/O, io_uring, Prefetch, DRAM Tiers, and GPU Mapping
+    canonical_path: 09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping
+    section_manifest: 09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 6
+    open_question_count: 8
+  - section_id: '63'
+    title: Durability Modes, Atomic Commit, Crash Recovery, and Corruption Handling
+    canonical_path: 09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling
+    section_manifest: 09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-19'
+    source_count: 34
+    open_question_count: 9
+  - section_id: '64'
+    title: Eviction, Garbage Collection, Quotas, User Isolation, and Privacy
+    canonical_path: 09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy
+    section_manifest: 09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 5
+    open_question_count: 9
+  - section_id: '65'
+    title: Cache Inspection, Migration, Benchmarking, Write Amplification, and SSD Endurance
+    canonical_path: 09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance
+    section_manifest: 09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 5
+    open_question_count: 9
+  artifact_state: complete
+  section_count: 10
+- category_id: '10'
+  title: Product, Server, and Operations
+  canonical_path: 10_Product_Server_and_Operations
+  sections:
+  - section_id: '66'
+    title: OpenAI-Compatible API, Server Semantics, and Error Model
+    canonical_path: 10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model
+    section_manifest: 10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 10
+  - section_id: '67'
+    title: Configuration, Hardware Profiles, Model Manifests, and Plan Manifests
+    canonical_path: 10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests
+    section_manifest: 10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 11
+  - section_id: '68'
+    title: Model Lifecycle, Session Lifecycle, Admission Control, and Routing
+    canonical_path: 10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing
+    section_manifest: 10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 5
+    open_question_count: 12
+  - section_id: '69'
+    title: CLI, Admin API, Diagnostics, Health, Metrics, Logs, and Traces
+    canonical_path: 10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces
+    section_manifest: 10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 7
+    open_question_count: 8
+  - section_id: '70'
+    title: Packaging, systemd, Containers, Deployment, and Cold-Boot Procedure
+    canonical_path: 10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure
+    section_manifest: 10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 6
+    open_question_count: 8
+  - section_id: '71'
+    title: Security, Trust Boundaries, Permissions, Local Network, and Secrets
+    canonical_path: 10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets
+    section_manifest: 10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 10
+    open_question_count: 10
+  - section_id: '72'
+    title: Upgrades, Rollbacks, Protocol and Cache Migration, Backup, and Runbooks
+    canonical_path: 10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks
+    section_manifest: 10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 7
+    open_question_count: 10
+  artifact_state: complete
+  section_count: 7
+- category_id: '11'
+  title: Verification and Performance
+  canonical_path: 11_Verification_and_Performance
+  sections:
+  - section_id: '73'
+    title: Benchmark Methodology, Terminology, Experimental Controls, and Data Schema
+    canonical_path: 11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema
+    section_manifest: 11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 11
+    open_question_count: 15
+  - section_id: '74'
+    title: Single-Node HIP and Vulkan Baseline Matrix
+    canonical_path: 11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix
+    section_manifest: 11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 9
+    open_question_count: 14
+  - section_id: '75'
+    title: Fabric Microbenchmarks and GPU-to-Peer-GPU End-to-End Tests
+    canonical_path: 11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests
+    section_manifest: 11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 11
+    open_question_count: 12
+  - section_id: '76'
+    title: Distributed Mode Benchmark Matrix and Break-Even Analysis
+    canonical_path: 11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis
+    section_manifest: 11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 7
+    open_question_count: 13
+  - section_id: '77'
+    title: HaloKV Restore, Writeback, Hit-Rate, and Endurance Benchmarks
+    canonical_path: 11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks
+    section_manifest: 11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-16'
+    source_count: 7
+    open_question_count: 14
+  - section_id: '78'
+    title: Correctness, Regression, Determinism, and Model Quality Evaluation
+    canonical_path: 11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation
+    section_manifest: 11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 10
+  - section_id: '79'
+    title: Stress, Soak, Long-Context, Multi-Session, Power, and Thermal Testing
+    canonical_path: 11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing
+    section_manifest: 11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 8
+    open_question_count: 10
+  - section_id: '80'
+    title: 'Fault Injection: Cable Pulls, Restarts, OOM, Disk-Full, and Corruption'
+    canonical_path: 11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption
+    section_manifest: 11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 7
+    open_question_count: 11
+  - section_id: '81'
+    title: CI Matrix, Release Gates, Reproducibility, and Performance Regression Policy
+    canonical_path: 11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy
+    section_manifest: 11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 9
+    open_question_count: 12
+  artifact_state: complete
+  section_count: 9
+- category_id: '12'
+  title: Project Execution and Governance
+  canonical_path: 12_Project_Execution_and_Governance
+  sections:
+  - section_id: '82'
+    title: Implementation Roadmap, Epics, Dependencies, and Exit Criteria
+    canonical_path: 12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria
+    section_manifest: 12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-18'
+    source_count: 11
+    open_question_count: 16
+  - section_id: '83'
+    title: Risk Register, Failure Modes, Mitigations, and Contingencies
+    canonical_path: 12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies
+    section_manifest: 12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 22
+    open_question_count: 15
+  - section_id: '84'
+    title: On-Machine Research Plan, Experiment Cards, and Lab Notebook
+    canonical_path: 12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook
+    section_manifest: 12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 11
+    open_question_count: 12
+  - section_id: '85'
+    title: Internet Research Backlog, Upstream Watch, and Knowledge Freshness
+    canonical_path: 12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness
+    section_manifest: 12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-18'
+    source_count: 18
+    open_question_count: 18
+  - section_id: '86'
+    title: Issues, Labels, Milestones, ADRs, Code Review, and Contribution Process
+    canonical_path: 12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process
+    section_manifest: 12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/section.yaml
+    artifact_state: complete
+    missing_required_files: []
+    metadata_state: valid
+    metadata_errors: []
+    declared_status: needs-machine-validation
+    last_verified: '2026-07-17'
+    source_count: 28
+    open_question_count: 15
+  artifact_state: complete
+  section_count: 5

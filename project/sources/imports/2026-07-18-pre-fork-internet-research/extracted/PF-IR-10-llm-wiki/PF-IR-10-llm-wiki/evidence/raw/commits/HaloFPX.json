@@ -1,0 +1,14 @@
+{
+  "access_date": "2026-07-18",
+  "candidate_id": "HaloFPX",
+  "claim_labels": [
+    "UNVERIFIED-IDENTITY",
+    "OPEN-QUESTION"
+  ],
+  "commit": null,
+  "commit_created_at": null,
+  "default_branch": null,
+  "message": null,
+  "note": "No authoritative public repository or exact source revision was identified under this name. No substitute project was inferred.",
+  "repository": null
+}

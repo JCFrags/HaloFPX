@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-g4cc-763q-h9h6",
+  "cve": "",
+  "title": "Vocabulary special-token heap over-read",
+  "severity": "Moderate",
+  "published": "2025-06-25",
+  "affected_versions_as_displayed_or_normalized": "Official page lists c33fe8b8",
+  "patched_versions_as_displayed_or_normalized": "Official page also lists c33fe8b8",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-g4cc-763q-h9h6",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "llama_vocab::impl::print_info; id_to_token special-token indexing",
+    "preconditions_summary": "Malicious or malformed GGUF has a vocabulary smaller than default/specified special-token IDs."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "586beb9743917d76261fbcc1bb5db5611699ea9b4aca4a41c29fa1c9311ebb77"
+}

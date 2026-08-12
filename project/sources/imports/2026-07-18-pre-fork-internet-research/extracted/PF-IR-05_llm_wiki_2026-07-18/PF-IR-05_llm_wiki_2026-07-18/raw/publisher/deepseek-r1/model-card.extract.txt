@@ -1,0 +1,20 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-DSR1-PUBLISHER
+authority: publisher
+capture_type: rendered_text_extract
+source_title: deepseek-ai/DeepSeek-R1
+source_url: https://huggingface.co/deepseek-ai/DeepSeek-R1/tree/56d4cbbb4d29f4355bab4b9a39ccb717a14ad5ad
+immutable_revision: 56d4cbbb4d29f4355bab4b9a39ccb717a14ad5ad
+accessed_at: 2026-07-18
+completeness: SELECTED_FACTS
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Normalized publisher facts:
+- 671B total / 37B activated.
+- DeepSeek2/DeepSeek-V3-family MLA sparse MoE reasoning architecture.
+- 128K model-card context and MIT license.
+- Official tree observed around 689 GB with 163 safetensor shards.
+- Usage guidance recommends temperature near 0.6 and avoiding a system prompt for standard evaluation-style use.
+
+No publisher-authoritative structured tool-call contract was accepted as established for this shortlist.

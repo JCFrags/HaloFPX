@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Normalized upstream watch event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "source_id",
+    "source_type",
+    "immutable_id",
+    "title",
+    "published_at",
+    "discovered_at",
+    "severity",
+    "affected_layers",
+    "status",
+    "canaries"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "source_type": {
+      "type": "string"
+    },
+    "immutable_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "discovered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "content_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "severity": {
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ]
+    },
+    "affected_layers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "enum": [
+        "new",
+        "triaged",
+        "canary_pending",
+        "blocked",
+        "adopted",
+        "deferred",
+        "not_applicable",
+        "duplicate",
+        "closed"
+      ]
+    },
+    "owner": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "decision": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "canaries": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^EXP-[0-9]{3}$"
+      }
+    },
+    "evidence_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

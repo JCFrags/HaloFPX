@@ -1,0 +1,4 @@
+USB-IF public material index
+- USB4 interoperability test procedures: v1.06, dated 2025-10-09
+- USB4 Thunderbolt 3 Compatibility Requirements Specification: Revision 1.0, dated 2021-08-18
+Access and redistribution vary by document. No captured result establishes USB4STREAM interoperability with a non-Linux peer.

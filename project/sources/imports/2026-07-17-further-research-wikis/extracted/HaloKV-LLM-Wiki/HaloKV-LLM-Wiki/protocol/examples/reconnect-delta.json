@@ -1,0 +1,10 @@
+{
+  "outcome": "FETCH_DELTA",
+  "authority_revision": 5542,
+  "target_commit_certificate_id": "8888888888888888888888888888888888888888888888888888888888888888",
+  "recovery_plan_token": "opaque_demo_plan_token_01",
+  "new_session_generation": null,
+  "target_topology_fingerprint": "1111111111111111111111111111111111111111111111111111111111111111",
+  "single_node_continuation_permitted": false,
+  "single_node_decision_reason": "Replacement must restore logical rank 1 and rejoin rank 0 before decode resumes."
+}

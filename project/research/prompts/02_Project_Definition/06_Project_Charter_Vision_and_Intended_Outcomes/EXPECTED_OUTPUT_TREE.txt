@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

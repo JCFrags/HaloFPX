@@ -1,0 +1,2 @@
+run_id,timestamp,node_a,node_b,os_a,os_b,kernel_or_build,cable_id,port_a,port_b,interface,path_count,message_bytes,direction,concurrency,transport,median_latency_us,p95_latency_us,p99_latency_us,payload_GBps,cpu_percent,notes,evidence_label
+,,,,,,,,,,,,,,,,,,,,,,MEASURED INPUT REQUIRED

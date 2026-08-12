@@ -1,0 +1,236 @@
+[
+  {
+    "capability": "GGUF/GGML type IDs 100\u2013107 for ROCmFP4, ROCmFPX, TurboQuant, and Q2",
+    "area": "Quantization formats",
+    "fork_implementation": "Fork-only enum extension plus GGUF Python constants and quantizer mappings.",
+    "upstream_status": "Current upstream enum ends at its own Q2_0 family and does not define ROCmFPX/Turbo type IDs.",
+    "decision": "RETAIN",
+    "action": "Preserve stable on-disk IDs and block ABI; re-register them in current upstream without renumbering.",
+    "sources": "S-QT-ENUM-FORK;S-QT-ENUM-UP;S-GGUF-CONSTANTS"
+  },
+  {
+    "capability": "ROCmFP4 standard and FAST 32-weight blocks",
+    "area": "Quantization formats",
+    "fork_implementation": "Dual-scale 18-byte block and single-scale 17-byte FAST block.",
+    "upstream_status": "No equivalent upstream weight format.",
+    "decision": "RETAIN",
+    "action": "Treat block size, scale coding, and bit order as immutable file-format contracts.",
+    "sources": "S-ROCMFP4-H;S-ROCMFP4-C"
+  },
+  {
+    "capability": "ROCmFPX Q3/Q6/Q8 blocks",
+    "area": "Quantization formats",
+    "fork_implementation": "32-weight blocks with 14/26/33-byte storage and fork-specific scale/codebook semantics.",
+    "upstream_status": "No equivalent upstream formats.",
+    "decision": "RETAIN",
+    "action": "Preserve CPU reference and exhaustive cross-backend conformance tests.",
+    "sources": "S-ROCMFPX-H;S-ROCMFPX-C;S-ROCMFPX-README"
+  },
+  {
+    "capability": "ROCmFPX Q2 and Phase-1 ROCmFP2 reference",
+    "area": "Quantization formats",
+    "fork_implementation": "10-byte, 32-weight Q2 format plus deterministic MORD/MSM reference probes.",
+    "upstream_status": "Upstream has a different Q2_0 type and no ROCmFP2 codebook contract.",
+    "decision": "RETAIN",
+    "action": "Keep the frozen byte format and reference oracle; do not equate it with upstream Q2_0.",
+    "sources": "S-ROCMFP2-H;S-ROCMFP2-C;S-ROCMFP2-TEST;S-QT-ENUM-UP"
+  },
+  {
+    "capability": "CPU quantize/dequantize, GET_ROWS, OUT_PROD, and type traits",
+    "area": "CPU / ggml",
+    "fork_implementation": "Reference functions and shared CPU dispatch entries for ROCmFPX formats.",
+    "upstream_status": "Upstream shared files have evolved but cannot replace fork-only format semantics.",
+    "decision": "REFRESH",
+    "action": "Start from current upstream CPU/ggml files, then re-port type traits and operation cases with oracle tests.",
+    "sources": "S-ROCMFP4-C;S-ROCMFPX-C;S-CPU-REG;S-CPU-OPS;S-C-D45;S-C-A8B"
+  },
+  {
+    "capability": "HIP/ROCm MMVQ and MMQ kernels",
+    "area": "ROCm/HIP kernels",
+    "fork_implementation": "ROCmFPX dequant/dot-product paths, MMVQ/MMQ dispatch, Q2 template instantiation, and wave32 tuning.",
+    "upstream_status": "Shared CUDA/HIP backend has newer generic implementation but no ROCmFPX formats.",
+    "decision": "REFRESH",
+    "action": "Rebase shared backend wholesale; re-port only format-specialized templates, dispatch, and validated fixes.",
+    "sources": "S-MMVQ;S-MMQ;S-MMQ-H;S-VECDOT;S-DEQUANT;S-CUDA-DISPATCH"
+  },
+  {
+    "capability": "ROCm 7.2 exact negative-infinity behavior",
+    "area": "ROCm/HIP kernels",
+    "fork_implementation": "Bit-exact negative-infinity helper used by reductions, softmax, and MoE top-k.",
+    "upstream_status": "A generic backend correctness fix rather than a ROCmFPX format capability.",
+    "decision": "REFRESH",
+    "action": "Use the current upstream implementation if equivalent; otherwise retain a narrowly scoped regression test and minimal patch.",
+    "sources": "S-C-DF3;S-UP-HEAD"
+  },
+  {
+    "capability": "Vulkan packed FP6 host/device coherency",
+    "area": "Vulkan kernels",
+    "fork_implementation": "Host-packed 26-byte FP6 blocks are expanded on device; unaligned async chunks preserve surrounding bytes.",
+    "upstream_status": "No upstream ROCmFPX FP6 storage transform.",
+    "decision": "RETAIN",
+    "action": "Preserve transformation semantics and unaligned copy tests while rebasing the surrounding Vulkan backend.",
+    "sources": "S-C-62F;S-VULKAN;S-VULKAN-FP6"
+  },
+  {
+    "capability": "Vulkan ROCmFPX dequant, matvec/matmul, copy, and FlashAttention hooks",
+    "area": "Vulkan kernels",
+    "fork_implementation": "Custom shader types and backend capability/dispatch entries.",
+    "upstream_status": "No ROCmFPX formats; current Vulkan infrastructure is newer.",
+    "decision": "REFRESH",
+    "action": "Port only ROCmFPX shader primitives and dispatch into current upstream shader generation.",
+    "sources": "S-VULKAN;S-VULKAN-TYPES;S-PR27-FILES;S-PR32-FILES"
+  },
+  {
+    "capability": "Strix Halo gfx1151 build target and wave32 decode knobs",
+    "area": "Strix Halo",
+    "fork_implementation": "gfx1151 CMake/HIP target, Vulkan+HIP build, RDNA3.5 warp/row/batch tuning, and benchmark scripts.",
+    "upstream_status": "AMD documents Strix Halo as gfx1151/RDNA 3.5; generic upstream does not encode fork-specific tuned defaults.",
+    "decision": "RETAIN",
+    "action": "Keep the profile and scripts, but convert hard-coded defaults into benchmarked presets with per-release gates.",
+    "sources": "S-BUILD-STRIX;S-CMAKE-PRESETS;S-TUNE-FLAGS;S-MMVQ;S-AMD-STRIX"
+  },
+  {
+    "capability": "rocWMMA path for Strix Halo",
+    "area": "Strix Halo",
+    "fork_implementation": "Optional local rocWMMA headers/build path.",
+    "upstream_status": "Current official rocWMMA architecture list does not name gfx1151.",
+    "decision": "RETIRE",
+    "action": "Do not make rocWMMA the default for gfx1151; retain only as an opt-in experiment behind explicit detection and benchmarks.",
+    "sources": "S-BUILD-STRIX;S-AMD-ROCWMMA"
+  },
+  {
+    "capability": "TurboQuant KV-cache formats",
+    "area": "KV cache / quantization",
+    "fork_implementation": "Turbo3/Turbo4 type handling across quant traits, KV cache, HIP/Vulkan dequant/copy/FA, and tests.",
+    "upstream_status": "No identical fork format; upstream KV-cache and FlashAttention internals have moved.",
+    "decision": "REFRESH",
+    "action": "Preserve format ABI and quality tests; re-integrate against current KV-cache/FA APIs.",
+    "sources": "S-QT-ENUM-FORK;S-PR27-FILES;S-CPU-REG;S-CUDA-DISPATCH;S-VULKAN"
+  },
+  {
+    "capability": "Base HY3 model architecture",
+    "area": "Graph / model",
+    "fork_implementation": "src/models/hyv3.cpp and converter/template integration.",
+    "upstream_status": "Upstream PR #25395 merged a current HY3 implementation, explicitly ported from ROCmFPX.",
+    "decision": "RETIRE",
+    "action": "Delete the fork model port and adopt upstream src/models/hy-v3.cpp and current converter metadata.",
+    "sources": "S-HYV3-FORK;S-UP-PR25395;S-UP-HY3-MERGE;S-HYV3-UP"
+  },
+  {
+    "capability": "Generic HY3 MTP/NextN graph and split export",
+    "area": "Graph / model",
+    "fork_implementation": "Extra MTP decoder blocks, shared-head fallback, target/draft context split, and converter export.",
+    "upstream_status": "Merged upstream HY3 MTP plus separate upstream split-export support.",
+    "decision": "RETIRE",
+    "action": "Use upstream graph, private API, context split, and converter; carry only independently tested fork deltas.",
+    "sources": "S-C-630;S-C-F961;S-UP-PR25395;S-UP-SPLIT-MTP;S-HYV3-UP"
+  },
+  {
+    "capability": "Fork private MTP graph API",
+    "area": "Graph / model",
+    "fork_implementation": "embeddings_pre_norm and fork-specific MTP source/setter hooks.",
+    "upstream_status": "Current upstream exposes embeddings_nextn, nextn layer offset, and other-context APIs.",
+    "decision": "RETIRE",
+    "action": "Replace the private fork API with current upstream llama-ext.h contracts.",
+    "sources": "S-EXT-FORK;S-EXT-UP"
+  },
+  {
+    "capability": "Generic speculative draft-MTP engine",
+    "area": "MTP / speculative decoding",
+    "fork_implementation": "Fork copy with additional sentinel/truncation/state handling.",
+    "upstream_status": "Current upstream has a newer draft-MTP engine and model/context initialization flow.",
+    "decision": "REFRESH",
+    "action": "Use upstream speculative.cpp as the base and port only proven state/verification deltas.",
+    "sources": "S-SPEC-FORK;S-SPEC-UP;S-C-EFF"
+  },
+  {
+    "capability": "Strict greedy HY3 target verification",
+    "area": "MTP / speculative decoding",
+    "fork_implementation": "Single-row target verification intended to keep greedy output token-exact; explicit opt-out and slot restriction.",
+    "upstream_status": "No equivalent fork-specific strict mode was identified in the pinned upstream snapshot.",
+    "decision": "RETAIN",
+    "action": "Re-port as a small upstream-based feature with deterministic token-equivalence tests.",
+    "sources": "S-C-7D7;S-SERVER-CTX;S-SPEC-UP"
+  },
+  {
+    "capability": "Per-request speculative n_min/n_max/p_min",
+    "area": "Server",
+    "fork_implementation": "Request parser clamps and applies overrides per task.",
+    "upstream_status": "Pinned upstream schema contains speculative request fields behind disabled code.",
+    "decision": "RETAIN",
+    "action": "Port the request contract into current server schema/task plumbing and keep API tests.",
+    "sources": "S-C-B56;S-SERVER-TASK;S-SERVER-SCHEMA-UP"
+  },
+  {
+    "capability": "SSD-backed prompt cache with speculative state",
+    "area": "Server / cache",
+    "fork_implementation": "Target+draft context persistence, speculative-state serialization, size accounting, failure handling, UTF-8 paths, and cleanup.",
+    "upstream_status": "No equivalent complete server feature was identified in the pinned upstream snapshot.",
+    "decision": "REFRESH",
+    "action": "Preserve capability but redesign on current upstream state APIs; add versioned cache format, integrity, permissions, and compatibility checks.",
+    "sources": "S-C-C81;S-C-BB7;S-C-756;S-C-0D7;S-SERVER-CTX;S-SERVER-TEST"
+  },
+  {
+    "capability": "Automatic one-slot policy for strict HY3",
+    "area": "Server",
+    "fork_implementation": "Architecture inspection changes automatic parallel-slot selection.",
+    "upstream_status": "Policy is fork-specific and coupled to strict mode.",
+    "decision": "REFRESH",
+    "action": "Prefer an explicit warning/config constraint over a hidden default; retain only if multi-slot correctness tests require it.",
+    "sources": "S-C-276;S-SERVER-CTX"
+  },
+  {
+    "capability": "RPC protocol implementation",
+    "area": "RPC",
+    "fork_implementation": "No PR #27/#31/#32 file delta under ggml/src/ggml-rpc; custom type IDs travel through the generic integer tensor-type field.",
+    "upstream_status": "Upstream has newer MTP multi-context, Strix iGPU+RPC selection, operation/version, and hardening changes.",
+    "decision": "RETIRE",
+    "action": "Replace RPC wholesale with current upstream. Maintain only same-build custom-type round-trip/handshake tests; do not fork the wire protocol.",
+    "sources": "S-RPC-FORK;S-RPC-UP;S-PR27-FILES;S-PR32-FILES;S-RPC-MTP-FIX;S-RPC-IGPU-FIX;S-RPC-LIGHTNING"
+  },
+  {
+    "capability": "WebUI async/image repairs and provisioning patches",
+    "area": "Server / WebUI",
+    "fork_implementation": "Repairs to async message conversion, image URI regex, and CI asset provisioning.",
+    "upstream_status": "Generic upstream code, unrelated to ROCmFPX format semantics.",
+    "decision": "RETIRE",
+    "action": "Use current upstream WebUI and provisioning unmodified unless a current reproducer remains.",
+    "sources": "S-C-FF8;S-C-063;S-C-A8C;S-UP-HEAD"
+  },
+  {
+    "capability": "Hexagon/OpenCL/WebGPU source snapshots",
+    "area": "Other backends",
+    "fork_implementation": "Large copied snapshots restored to an older upstream lineage for build coherence.",
+    "upstream_status": "Current upstream contains newer backend trees.",
+    "decision": "RETIRE",
+    "action": "Replace wholesale from upstream; add ROCmFPX hooks only where real backend support and tests exist.",
+    "sources": "S-C-807;S-PR27-FILES;S-UP-HEAD"
+  },
+  {
+    "capability": "ROCmFPX correctness, register-quality, and real-backend gates",
+    "area": "Build / CI",
+    "fork_implementation": "Reference probes, backend matrices, HIP register gates, model coherency checks, and Strix benchmark scripts.",
+    "upstream_status": "Upstream CI cannot cover fork-only formats or local Strix performance invariants.",
+    "decision": "RETAIN",
+    "action": "Keep these as the acceptance contract; refresh workflow plumbing and separate correctness from benchmark evidence.",
+    "sources": "S-ROCMFPX-CI;S-HIP-QUALITY;S-SWEEP-BACKEND;S-BACKEND-TEST;S-C-848"
+  },
+  {
+    "capability": "Generic parser/Jinja/server formatting/Apple packaging backports",
+    "area": "Portability",
+    "fork_implementation": "A collection of upstream backports and restored files.",
+    "upstream_status": "All are generic upstream responsibilities and have newer upstream implementations.",
+    "decision": "RETIRE",
+    "action": "Remove from the fork patch stack and inherit from current upstream.",
+    "sources": "S-C-8FC;S-C-D52;S-C-FE2;S-C-01D;S-UP-HEAD"
+  },
+  {
+    "capability": "Open draft PRs #29 and #30",
+    "area": "Patch hygiene",
+    "fork_implementation": "Earlier SSD-cache/HY3-IFP2 proposals.",
+    "upstream_status": "Their material capabilities were integrated and qualified through PR #32.",
+    "decision": "RETIRE",
+    "action": "Close or label superseded; do not carry them as parallel patch stacks.",
+    "sources": "S-PR29;S-PR30;S-PR32"
+  }
+]

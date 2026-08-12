@@ -1,0 +1,78 @@
+{
+  "artifact_id": "ART-NEMOTRON-UD-IQ3-XXS",
+  "candidate_id": "nemotron-3-ultra",
+  "repository": "unsloth/NVIDIA-Nemotron-3-Ultra-550B-A55B-GGUF",
+  "revision": "05c80881664d32be9b26bab9d0360be00230ade4",
+  "selected_path": "UD-IQ3_XXS",
+  "quantization": "UD-IQ3_XXS",
+  "lineage": {
+    "publisher_repository": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+    "publisher_revision": "624ba927cfbef0427354998700de3d51173c8c04",
+    "converter": "Unsloth",
+    "format": "GGUF",
+    "conversion_recipe_commit": null
+  },
+  "display_total": "223 GB (Hugging Face UI, rounded)",
+  "exact_total_bytes": null,
+  "known_exact_subtotal_bytes": 0,
+  "manifest_completeness": "NAMES_AND_ROUNDED_SIZES_ONLY",
+  "file_count": 6,
+  "shards": [
+    {
+      "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00001-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "7.87 MB",
+      "hash_provenance": "UNAVAILABLE"
+    },
+    {
+      "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00002-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "48.1 GB",
+      "hash_provenance": "UNAVAILABLE"
+    },
+    {
+      "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00003-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "48.3 GB",
+      "hash_provenance": "UNAVAILABLE"
+    },
+    {
+      "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00004-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "48.1 GB",
+      "hash_provenance": "UNAVAILABLE"
+    },
+    {
+      "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00005-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "48.4 GB",
+      "hash_provenance": "UNAVAILABLE"
+    },
+    {
+      "name": "NVIDIA-Nemotron-3-Ultra-550B-A55B-UD-IQ3_XXS-00006-of-00006.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "30.5 GB",
+      "hash_provenance": "UNAVAILABLE"
+    }
+  ],
+  "imatrix": {
+    "file": null,
+    "display_size": null,
+    "sha256": null,
+    "prompt_corpus": null,
+    "method": "Unsloth Dynamic 2.0; selected artifact calibration material not captured",
+    "provenance_status": "UNAVAILABLE"
+  },
+  "license": {
+    "declared": "OpenMDW-1.1",
+    "upstream_license_source": "SRC-OPENMDW",
+    "conversion_repository_license_metadata": "openmdw-1.1"
+  },
+  "local_validation": "NOT_RUN"
+}

@@ -1,0 +1,419 @@
+schema_version: 1
+capture_date: '2026-07-18'
+components:
+- component_id: COMP-001
+  component: Composable Kernel
+  legacy_7_2_4_version: 1.2.0
+  core_sdk_7_14_0_version: 1.2.0
+  core_sdk_package_group: amdrocm-ck
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: math/ML kernels
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-002
+  component: hipBLAS
+  legacy_7_2_4_version: 3.2.0
+  core_sdk_7_14_0_version: 3.5.0
+  core_sdk_package_group: amdrocm-blas
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: BLAS API front end
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-003
+  component: hipBLASLt
+  legacy_7_2_4_version: 1.2.2
+  core_sdk_7_14_0_version: 1.4.1
+  core_sdk_package_group: amdrocm-blas
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: GEMM/Lt back end; performance-sensitive
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-004
+  component: hipCUB
+  legacy_7_2_4_version: 4.2.0
+  core_sdk_7_14_0_version: 4.5.0
+  core_sdk_package_group: amdrocm-ccl
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: device primitives; not RCCL
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-005
+  component: hipFFT
+  legacy_7_2_4_version: 1.0.22
+  core_sdk_7_14_0_version: 1.0.24
+  core_sdk_package_group: amdrocm-fft
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: FFT front end
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-006
+  component: hipRAND
+  legacy_7_2_4_version: 3.1.0
+  core_sdk_7_14_0_version: 3.4.0
+  core_sdk_package_group: amdrocm-rand
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: random API front end
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-007
+  component: hipSOLVER
+  legacy_7_2_4_version: 3.2.0
+  core_sdk_7_14_0_version: 3.5.0
+  core_sdk_package_group: amdrocm-solver
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: solver front end
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-008
+  component: hipSPARSE
+  legacy_7_2_4_version: 4.2.0
+  core_sdk_7_14_0_version: 4.6.0
+  core_sdk_package_group: amdrocm-sparse
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: sparse front end
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-009
+  component: hipSPARSELt
+  legacy_7_2_4_version: 0.2.6
+  core_sdk_7_14_0_version: 0.2.9
+  core_sdk_package_group: amdrocm-blas
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: 7.14 release table limits to Instinct; do not assume gfx1151
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-010
+  component: MIOpen
+  legacy_7_2_4_version: 3.5.1
+  core_sdk_7_14_0_version: 3.5.2
+  core_sdk_package_group: amdrocm-dnn
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: deep learning primitives
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-011
+  component: rocBLAS
+  legacy_7_2_4_version: 5.2.0
+  core_sdk_7_14_0_version: 5.5.0
+  core_sdk_package_group: amdrocm-blas
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: BLAS implementation
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-012
+  component: rocFFT
+  legacy_7_2_4_version: 1.0.36
+  core_sdk_7_14_0_version: 1.0.38
+  core_sdk_package_group: amdrocm-fft
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: FFT implementation
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-013
+  component: rocPRIM
+  legacy_7_2_4_version: 4.2.0
+  core_sdk_7_14_0_version: 4.5.0
+  core_sdk_package_group: amdrocm-ccl
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: device primitives; not RCCL
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-014
+  component: rocRAND
+  legacy_7_2_4_version: 4.2.0
+  core_sdk_7_14_0_version: 4.5.0
+  core_sdk_package_group: amdrocm-rand
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: random implementation
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-015
+  component: rocSOLVER
+  legacy_7_2_4_version: 3.32.0
+  core_sdk_7_14_0_version: 3.35.0
+  core_sdk_package_group: amdrocm-solver
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: solver implementation
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-016
+  component: rocSPARSE
+  legacy_7_2_4_version: 4.2.0
+  core_sdk_7_14_0_version: 4.7.0
+  core_sdk_package_group: amdrocm-sparse
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: sparse implementation
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-017
+  component: rocThrust
+  legacy_7_2_4_version: 4.2.0
+  core_sdk_7_14_0_version: 4.5.0
+  core_sdk_package_group: amdrocm-ccl
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: parallel algorithms; not RCCL
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-018
+  component: rocWMMA
+  legacy_7_2_4_version: 2.2.0
+  core_sdk_7_14_0_version: 2.2.1
+  core_sdk_package_group: amdrocm-ccl (legacy mapping includes rocwmma; verify installed package file owner)
+  authoritative_source_root: rocm-libraries
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: wave matrix templates
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-019
+  component: RCCL
+  legacy_7_2_4_version: 2.27.7
+  core_sdk_7_14_0_version: 2.30.4
+  core_sdk_package_group: amdrocm-rccl
+  authoritative_source_root: rocm-systems/projects/rccl
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: collective communication
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-020
+  component: rocSHMEM
+  legacy_7_2_4_version: 3.2.0
+  core_sdk_7_14_0_version: 3.5.0
+  core_sdk_package_group: amdrocm-rocshmem
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: GPU-centric SHMEM
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-021
+  component: rocDecode
+  legacy_7_2_4_version: 1.7.0
+  core_sdk_7_14_0_version: 1.8.0
+  core_sdk_package_group: amdrocm-decode
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: media decode; gfx1151 listed in 7.14 applicability
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-022
+  component: rocJPEG
+  legacy_7_2_4_version: 1.4.0
+  core_sdk_7_14_0_version: 1.6.0
+  core_sdk_package_group: amdrocm-jpeg
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: JPEG
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-023
+  component: hipFile
+  legacy_7_2_4_version: not listed
+  core_sdk_7_14_0_version: 0.3.0
+  core_sdk_package_group: see package manifest
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: 7.14 release table limits to Instinct
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-024
+  component: HIP
+  legacy_7_2_4_version: 7.2.1
+  core_sdk_7_14_0_version: '7.14'
+  core_sdk_package_group: amdrocm-runtime
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: runtime and language
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-025
+  component: ROCr Runtime / HSA
+  legacy_7_2_4_version: 1.18.0
+  core_sdk_7_14_0_version: 1.21.0
+  core_sdk_package_group: amdrocm-runtime
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: HSA runtime
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-026
+  component: LLVM
+  legacy_7_2_4_version: 22.0.0
+  core_sdk_7_14_0_version: 23.0.0
+  core_sdk_package_group: amdrocm-llvm
+  authoritative_source_root: llvm-project
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: compiler/toolchain
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-027
+  component: HIPIFY
+  legacy_7_2_4_version: 22.0.0
+  core_sdk_7_14_0_version: '7.14'
+  core_sdk_package_group: amdrocm-hipify
+  authoritative_source_root: HIPIFY
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: source translation
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-028
+  component: SPIRV-LLVM-Translator
+  legacy_7_2_4_version: not listed
+  core_sdk_7_14_0_version: 23.0.0
+  core_sdk_package_group: amdrocm-llvm/runtime dependency
+  authoritative_source_root: SPIRV-LLVM-Translator
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: SPIR-V translation
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-029
+  component: rocminfo
+  legacy_7_2_4_version: package-version capture required
+  core_sdk_7_14_0_version: 1.0.0
+  core_sdk_package_group: amdrocm-base
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: runtime discovery
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-030
+  component: AMD SMI
+  legacy_7_2_4_version: legacy ROCm SMI/AMD SMI capture required
+  core_sdk_7_14_0_version: 26.5.0
+  core_sdk_package_group: amdrocm-amdsmi
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: monitoring; APU metrics added
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-031
+  component: ROCm Compute Profiler
+  legacy_7_2_4_version: capture required
+  core_sdk_7_14_0_version: 3.7.0
+  core_sdk_package_group: amdrocm-profiler
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: gfx1151 known counter issues
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002
+- component_id: COMP-032
+  component: ROCprofiler-SDK
+  legacy_7_2_4_version: capture required
+  core_sdk_7_14_0_version: 1.3.2
+  core_sdk_package_group: amdrocm-profiler / profiler-base
+  authoritative_source_root: rocm-systems
+  gfx1151_status: documented where listed; component applicability must follow 7.14 release table
+  notes: profiling runtime
+  source_ids:
+  - S001
+  - S004
+  - S006
+  - S002

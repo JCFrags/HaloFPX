@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "generator": "scripts/generate-long-context.py",
+  "cases": [
+    {
+      "id": "boundary-exact",
+      "target_relation": "input_tokens == usable_context_tokens"
+    },
+    {
+      "id": "boundary-plus-one",
+      "target_relation": "input_tokens == usable_context_tokens + 1"
+    },
+    {
+      "id": "shift",
+      "target_relation": "input_tokens near usable boundary; output crosses it"
+    },
+    {
+      "id": "passkey",
+      "positions": [
+        "early",
+        "middle",
+        "late"
+      ],
+      "nonce_bytes": 16
+    }
+  ],
+  "note": "The generator tokenizes iteratively with the tested fork. It does not assume characters equal tokens."
+}

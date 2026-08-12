@@ -1,0 +1,20 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-QWEN35-CONVERSION
+authority: third_party_converter
+capture_type: partial_lfs_pointer_extract
+source_title: unsloth/Qwen3.5-397B-A17B-GGUF UD-Q4_K_S
+source_url: https://huggingface.co/unsloth/Qwen3.5-397B-A17B-GGUF/tree/0b7386368898883d58d445525ba8fa45e3f7289f/UD-Q4_K_S
+immutable_revision: 0b7386368898883d58d445525ba8fa45e3f7289f
+accessed_at: 2026-07-18
+completeness: PARTIAL_5_OF_6_POINTER_SET
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Qwen3.5-397B-A17B-UD-Q4_K_S-00001-of-00006.gguf	bytes=10943552	sha256=0c281dd4cc77769c0945704f770dbf950950e23c45680c64caa8e680b76fc0cc	xet=ff7b84227cb6ac33955c2284eb589d4a9080d7bab78c00bdf02d68737adde63c
+Qwen3.5-397B-A17B-UD-Q4_K_S-00002-of-00006.gguf	bytes=49649743104	sha256=817bc274bbc50b0b093e6a7c7f4a236304de9b5e572b1a20f74ce2aece58f292	xet=de67e55a7888d2e16cdb4323221e25fd0443e9aad3bf9e793ed6b147ff99e808
+Qwen3.5-397B-A17B-UD-Q4_K_S-00003-of-00006.gguf	bytes=48983522144	sha256=05f99ad3a60c3afc69911ddcdc36494bc50f26ba8825db66f64a0880ce3c05f0	xet=936ec3135953218f00946bc0deb7b8baf47afe354f803eff5459ecb9485bab95
+Qwen3.5-397B-A17B-UD-Q4_K_S-00004-of-00006.gguf	bytes=48983522144	sha256=b3af6efac978262e7242f0ebfdf9dc438697e1dfd1b61c35dec848613ea4ba4e	xet=76ed6a75db84ec986448cf55d7a77e1884f4d662311f62beb7070402e91140b1
+Qwen3.5-397B-A17B-UD-Q4_K_S-00005-of-00006.gguf	bytes=49005806656	sha256=b2519d7617f8c8d350c07d37ae2fa46b56157fa11d197ea5d939e6f443418de5	xet=ce9fe0f554fac8fb91654745b126ab0a24ec60c4e47d6835988a8aa72610d3f0
+Qwen3.5-397B-A17B-UD-Q4_K_S-00006-of-00006.gguf	bytes=UNAVAILABLE	sha256=UNAVAILABLE	xet=UNAVAILABLE
+Known exact subtotal: 196633537600 bytes
+Rounded folder total: 228 GB; sixth shard exact bytes/hash unavailable.

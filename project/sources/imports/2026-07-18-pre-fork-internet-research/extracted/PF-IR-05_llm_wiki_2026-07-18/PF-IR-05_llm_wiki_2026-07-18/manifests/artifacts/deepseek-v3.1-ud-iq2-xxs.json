@@ -1,0 +1,70 @@
+{
+  "artifact_id": "ART-DSV31-UD-IQ2-XXS",
+  "candidate_id": "deepseek-v3.1",
+  "repository": "unsloth/DeepSeek-V3.1-GGUF",
+  "revision": "f69aacf1ee1e4f66737daebc7e71fa527dfda1bd",
+  "selected_path": "UD-IQ2_XXS",
+  "quantization": "UD-IQ2_XXS",
+  "lineage": {
+    "publisher_repository": "deepseek-ai/DeepSeek-V3.1",
+    "publisher_revision": "c0781d039fb7a1ba2abc4add0bdc293e92d2b8db",
+    "converter": "Unsloth",
+    "format": "GGUF",
+    "conversion_recipe_commit": null
+  },
+  "display_total": "226 GB (Hugging Face UI, rounded)",
+  "exact_total_bytes": null,
+  "known_exact_subtotal_bytes": 48771619904,
+  "manifest_completeness": "PARTIAL",
+  "file_count": 5,
+  "shards": [
+    {
+      "name": "DeepSeek-V3.1-UD-IQ2_XXS-00001-of-00005.gguf",
+      "bytes": 48771619904,
+      "sha256": "cfe213b5cd15f7f311b3e6e65e69193794d4d745f2984efa505e852bb7875b71",
+      "hash_provenance": "LFS/Xet pointer"
+    },
+    {
+      "name": "DeepSeek-V3.1-UD-IQ2_XXS-00002-of-00005.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "49.3 GB",
+      "hash_provenance": "UNAVAILABLE"
+    },
+    {
+      "name": "DeepSeek-V3.1-UD-IQ2_XXS-00003-of-00005.gguf",
+      "bytes": null,
+      "sha256": "af31108fe922eb2b8559313f32c2795bb0e805c99b14244e575960517ee19a2a",
+      "display_size": "49.4 GB",
+      "hash_provenance": "pointer hash captured; exact byte count unavailable"
+    },
+    {
+      "name": "DeepSeek-V3.1-UD-IQ2_XXS-00004-of-00005.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "49.3 GB",
+      "hash_provenance": "UNAVAILABLE"
+    },
+    {
+      "name": "DeepSeek-V3.1-UD-IQ2_XXS-00005-of-00005.gguf",
+      "bytes": null,
+      "sha256": null,
+      "display_size": "29.1 GB",
+      "hash_provenance": "UNAVAILABLE"
+    }
+  ],
+  "imatrix": {
+    "file": "imatrix_unsloth.gguf_file",
+    "display_size": "about 1.01 GB",
+    "sha256": null,
+    "prompt_corpus": null,
+    "method": "Unsloth Dynamic quantization; exact calibration corpus and recipe not captured",
+    "provenance_status": "PARTIAL_PROVENANCE"
+  },
+  "license": {
+    "declared": "MIT",
+    "upstream_license_source": "SRC-DSV31-PUBLISHER",
+    "conversion_repository_license_metadata": "mit"
+  },
+  "local_validation": "NOT_RUN"
+}

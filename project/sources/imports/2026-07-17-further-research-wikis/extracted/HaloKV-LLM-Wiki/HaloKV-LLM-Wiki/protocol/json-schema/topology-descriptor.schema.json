@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/halokv/v1/topology-descriptor.schema.json",
+  "title": "HaloKV canonical topology descriptor v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "model",
+    "parallelism",
+    "cache",
+    "attention",
+    "runtime",
+    "input_contract"
+  ],
+  "properties": {
+    "schema": {
+      "const": "halokv-topology-v1"
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config_sha256",
+        "weights_merkle_root",
+        "adapters"
+      ],
+      "properties": {
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "weights_merkle_root": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "adapters": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "digest"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "digest": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "parallelism": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "world_size",
+        "rank_map"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "TP",
+            "PP",
+            "EP",
+            "HYBRID"
+          ]
+        },
+        "world_size": {
+          "const": 2
+        },
+        "rank_map": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rank",
+              "shard_descriptor"
+            ],
+            "properties": {
+              "rank": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "shard_descriptor": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            }
+          }
+        }
+      }
+    },
+    "cache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "dtype",
+        "page_tokens",
+        "layout",
+        "endianness"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "dtype": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "page_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65536
+        },
+        "layout": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "endianness": {
+          "enum": [
+            "little",
+            "big"
+          ]
+        }
+      }
+    },
+    "attention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backend_abi",
+        "rope_config_sha256",
+        "sliding_window"
+      ],
+      "properties": {
+        "backend_abi": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "rope_config_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sliding_window": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine_cache_abi",
+        "value_affecting_flags"
+      ],
+      "properties": {
+        "engine_cache_abi": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "value_affecting_flags": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "maxLength": 128
+          }
+        }
+      }
+    },
+    "input_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tokenizer_revision",
+        "embedding_contract_sha256",
+        "multimodal_preprocess_sha256"
+      ],
+      "properties": {
+        "tokenizer_revision": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "embedding_contract_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "multimodal_preprocess_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

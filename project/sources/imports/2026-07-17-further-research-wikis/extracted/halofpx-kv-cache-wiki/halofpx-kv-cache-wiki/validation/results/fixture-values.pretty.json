@@ -1,0 +1,25 @@
+{
+  "cachyllama": {
+    "compat_u64": 1234605616436508552,
+    "compat_u64_hex": "0x1122334455667788",
+    "token_hash": 7878894531067569207,
+    "token_hash_hex": "0x6d5774d4f30ce437",
+    "checkpoint": "cachyllama/valid/ckpt-1.bin",
+    "index": "cachyllama/valid/index.bin",
+    "system": "cachyllama/valid/sys-596d5eff621ab3ad.bin",
+    "system_hash_hex": "596d5eff621ab3ad"
+  },
+  "halofpx": {
+    "compatibility_fingerprint_sha256": "99ac70e19c8633f552e856ca1ecfa4a787e5e5a083c6f20c8166c90d9cbdc7e1",
+    "prompt_root_sha256": "fe62e9c359ac1776c2a8ebecd21f16342ee7e7925fadcfa813b25b7f527302aa",
+    "cache_key_sha256": "32b0cbb42c95bfa034207dd054f59e18eeb18f28d1004335335ec22005b7bfb0",
+    "namespace_id": "d9e904298dc620a3a501d98c0b0d4bb57abab26cf46b329bce900029a9a496aa",
+    "engine_family": "llama.cpp",
+    "object_sha256": "f1c050f7ac8f13b354c79c2f7e0cac1b178aef9bb040a532deba1a722a072dd9",
+    "object": "halofpx/objects/sha256/f1/f1c050f7ac8f13b354c79c2f7e0cac1b178aef9bb040a532deba1a722a072dd9.hkv",
+    "object_root": "halofpx/objects/sha256",
+    "manifest": "halofpx/manifests/private/example.json",
+    "manifest_hmac_key": "halofpx/keys/fixture-manifest-hmac.key",
+    "manifest_hmac_key_id": "fixture/catalog-auth/1"
+  }
+}

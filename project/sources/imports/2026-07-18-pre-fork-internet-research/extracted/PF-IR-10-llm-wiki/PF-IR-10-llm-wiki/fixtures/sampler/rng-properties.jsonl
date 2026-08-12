@@ -1,0 +1,2 @@
+{"candidate_probabilities":[0.1,0.2,0.3,0.4],"cross_fork_sequence_oracle":false,"draws":64,"id":"seed-replay-within-candidate","oracle":"two fresh samplers in the same candidate produce identical token-ID sequences","seed":1234}
+{"candidate_probabilities":[0.1,0.2,0.3,0.4],"draws":64,"id":"seed-change-sensitivity","oracle":"sequences should not be identical; failure is diagnostic, not a sole conformance failure","seeds":[1234,1235]}

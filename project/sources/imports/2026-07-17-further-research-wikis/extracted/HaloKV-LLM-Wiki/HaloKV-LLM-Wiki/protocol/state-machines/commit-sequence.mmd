@@ -1,0 +1,27 @@
+sequenceDiagram
+  participant A as Epoch/commit authority
+  participant C as Coordinator
+  participant R0 as Rank 0
+  participant R1 as Rank 1
+  participant S as Blob store
+
+  C->>A: acquire epoch E / fencing token
+  A-->>C: revision V
+  C->>R0: Begin(E, seq, op, fp, target)
+  C->>R1: Begin(E, seq, op, fp, target)
+  par durable snapshot
+    R0->>R0: publish immutable pages + rank manifest
+    R1->>R1: publish immutable pages + rank manifest
+  end
+  opt HOST_FAILURE_DURABLE
+    R0->>S: put-if-absent missing objects
+    R1->>S: put-if-absent missing objects
+  end
+  R0-->>C: Prepared(rank0 manifest, target, proof)
+  R1-->>C: Prepared(rank1 manifest, target, proof)
+  C->>C: validate exact ranks, target, fp, epoch, durability
+  C->>S: put-if-absent global manifest
+  C->>A: CAS terminal OPEN/PARTIAL -> COMMITTED
+  A-->>C: certificate + revision V+1
+  C-->>R0: CommitNotice
+  C-->>R1: CommitNotice

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Dated decision record: keep excluded — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="../wiki/00-home.html">Home / decision</a></li><li><a href="../wiki/01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="../wiki/02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="../wiki/03-firmware.html">Firmware</a></li><li><a href="../wiki/04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="../wiki/05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="../wiki/06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="../wiki/07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="../wiki/08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="../wiki/09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="../wiki/10-role-evaluation.html">Role evaluation</a></li><li><a href="../wiki/11-bounded-experiment.html">Bounded experiment</a></li><li><a href="../wiki/12-read-only-probe.html">Read-only probe</a></li><li><a href="../wiki/13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="../wiki/14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">decision/keep-excluded-2026-07-18.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>Dated decision record: keep excluded</h1>
+<p><strong>Decision ID:</strong> PF-IR-11<br />
+<strong>Date:</strong> 2026-07-18<br />
+<strong>Priority:</strong> P2<br />
+<strong>Status:</strong> final for this research pass</p>
+<h2 id="decision">Decision</h2>
+<p><span class="claim claim-decision">[DECISION]</span> Keep the Ryzen AI MAX+ 395 XDNA2 NPU excluded from the production architecture, default builds, dependency graph, release packaging, and performance roadmap.</p>
+<p><span class="claim claim-decision">[DECISION]</span> Continue the primary HIP/Vulkan fork without an XDNA2 workstream.</p>
+<h2 id="what-this-decision-does-not-deny">What this decision does not deny</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The kernel driver and firmware substrate have reached a meaningful upstream state.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD provides a supported Linux package path and examples for some CNN, NLP, and LLM workloads.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> These facts justify preserving a re-entry test, but they do not justify product integration.</p>
+<h2 id="blocking-conditions">Blocking conditions</h2>
+<ol>
+<li><span class="claim claim-missing">[MISSING]</span> The target Linux installation is unknown.</li>
+<li><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> The supported high-level path is versioned and package-coupled.</li>
+<li><span class="claim claim-upstream">[UPSTREAM]</span> IOMMU/SVA/PASID and native-host constraints are hard prerequisites.</li>
+<li><span class="claim claim-upstream">[UPSTREAM]</span> Memory is non-coherent; explicit cache maintenance and DMA movement remain in the critical path.</li>
+<li><span class="claim claim-missing">[MISSING]</span> No target graph-assignment report demonstrates that the expensive classifier operators remain on NPU.</li>
+<li><span class="claim claim-missing">[MISSING]</span> No target correctness, latency, energy, stability, suspend/resume, or recovery evidence exists.</li>
+<li><span class="claim claim-unsupported">[UNSUPPORTED]</span> No generic <code>llama.cpp</code> NPU transformer path exists in the captured support boundary.</li>
+<li><span class="claim claim-unknown">[UNKNOWN]</span> Small OGA model availability does not establish a speculative-decoding interface or useful draft-model economics.</li>
+<li><span class="claim claim-unknown">[UNKNOWN]</span> The public embedding example does not establish a qualified Linux deployment for the target stack.</li>
+<li><span class="claim claim-missing">[MISSING]</span> No exact Linux reranker example was captured.</li>
+</ol>
+<h2 id="re-entry-authority">Re-entry authority</h2>
+<p><span class="claim claim-decision">[DECISION]</span> The only pre-authorized re-entry work is the isolated classifier experiment specified in <a href="bounded-classifier-experiment.html"><code>bounded-classifier-experiment.md</code></a>. It is not a commitment to integrate.</p>
+<h2 id="review-trigger">Review trigger</h2>
+<p>Re-open only when all of the following are available:</p>
+<ul>
+<li>a read-only target probe with the exact PCI revision, kernel config, driver source/version, firmware symlinks and hashes, package inventory, and IOMMU binding;</li>
+<li>reproducible AMD package hashes and license acceptance records;</li>
+<li>an exact task-specific ONNX model and compile/cache manifest;</li>
+<li>provider assignment showing the intended heavy subgraph on NPU;</li>
+<li>measured correctness, latency, energy, stability, and recovery against a CPU baseline;</li>
+<li>proof that the experiment remains isolated from HIP/Vulkan deliverables.</li>
+</ul>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

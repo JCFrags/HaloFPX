@@ -1,0 +1,137 @@
+schema_version: 1
+notes:
+- All prompt lengths are post-tokenization counts using the candidate tokenizer.
+- Every release cell is run on node-a, node-b, and dual unless marked capacity-only.
+- Prompt content families and hashes must be frozen before M1 measurement.
+global:
+  seeds:
+  - 1
+  - 7
+  - 42
+  temperature_for_performance: 0
+  temperature_for_quality: task-defined
+  streaming:
+  - true
+  - false
+  cache_states:
+  - C0
+  - C1
+  - C2
+  - C3
+  topologies:
+  - node-a
+  - node-b
+  - dual
+  client_concurrency:
+  - 1
+  - 2
+  - 4
+  - 8
+  - 16
+  request_timeout_s: 600
+workload_cells:
+- id: smoke-64x16
+  purpose: startup/canary
+  prompt_tokens: 64
+  output_tokens: 16
+  prompt_family: deterministic_synthetic
+  required: true
+- id: interactive-128x128
+  purpose: short interactive decode
+  prompt_tokens: 128
+  output_tokens: 128
+  prompt_family: mixed_natural_language
+  required: true
+- id: interactive-512x128
+  purpose: typical interactive
+  prompt_tokens: 512
+  output_tokens: 128
+  prompt_family: mixed_natural_language
+  required: true
+- id: prefill-2048x32
+  purpose: prefill-focused
+  prompt_tokens: 2048
+  output_tokens: 32
+  prompt_family: entropy_balanced
+  required: true
+- id: prefill-8192x32
+  purpose: medium-context prefill
+  prompt_tokens: 8192
+  output_tokens: 32
+  prompt_family: entropy_balanced
+  required: true
+- id: long-16384x128
+  purpose: long-context knee
+  prompt_tokens: 16384
+  output_tokens: 128
+  prompt_family: position_probe_plus_natural
+  required_when_supported: true
+- id: long-32768x128
+  purpose: long-context scaling
+  prompt_tokens: 32768
+  output_tokens: 128
+  prompt_family: position_probe_plus_natural
+  required_when_supported: true
+- id: long-65536x64
+  purpose: upper context
+  prompt_tokens: 65536
+  output_tokens: 64
+  prompt_family: position_probe_plus_natural
+  required_when_supported: true
+- id: long-131072x32
+  purpose: declared-limit probe
+  prompt_tokens: 131072
+  output_tokens: 32
+  prompt_family: position_probe_plus_natural
+  required_when_supported: true
+prefix_cache_cells:
+- id: cache-512
+  prefix_tokens: 512
+  suffix_tokens: 64
+  output_tokens: 64
+  reuse_count: 20
+- id: cache-2048
+  prefix_tokens: 2048
+  suffix_tokens: 64
+  output_tokens: 64
+  reuse_count: 20
+- id: cache-8192
+  prefix_tokens: 8192
+  suffix_tokens: 128
+  output_tokens: 32
+  reuse_count: 20
+load_shapes:
+- id: closed-loop
+  method: fixed_concurrency
+  concurrency:
+  - 1
+  - 2
+  - 4
+  - 8
+  - 16
+- id: open-loop
+  method: poisson
+  rates_relative_to_knee:
+  - 0.25
+  - 0.5
+  - 0.75
+  - 0.9
+  - 1.0
+  - 1.1
+  - 1.25
+- id: burst
+  method: burst
+  requests_per_burst:
+  - 4
+  - 8
+  - 16
+  inter_burst_s: 30
+long_context_rule:
+  lengths: powers of two from 2K through min(model declared limit, safe memory limit), plus 75% and 100% declared
+    limit
+  stop_on:
+  - OOM or allocation failure
+  - thermal safety limit
+  - correctness failure at two consecutive lengths
+  - operator safety stop
+  safe_failure_is_data: true

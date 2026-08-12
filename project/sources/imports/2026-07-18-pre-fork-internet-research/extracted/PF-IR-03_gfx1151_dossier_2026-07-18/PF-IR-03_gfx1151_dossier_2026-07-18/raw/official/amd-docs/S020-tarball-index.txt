@@ -1,0 +1,8 @@
+CAPTURE_TYPE: repository-index record
+SOURCE_ID: S020
+URL: https://repo.amd.com/rocm/tarball-multi-arch/
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn531743view1
+INDEX_TITLE: ROCm SDK tarballs
+FILTERS_INCLUDE: gfx1151
+INTEGRITY_OBSERVATION: the captured index did not expose a checksum/signature sidecar for the selected stable artifact.

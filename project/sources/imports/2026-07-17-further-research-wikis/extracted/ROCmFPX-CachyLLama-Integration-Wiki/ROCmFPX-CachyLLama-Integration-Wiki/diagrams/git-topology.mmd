@@ -1,0 +1,24 @@
+flowchart LR
+    U[ggml-org/llama.cpp
+upstream/master
+86d86ed4396b] --> S[sync/upstream/YYYYMMDD-sha]
+    O[charlie12345/ROCmFPX
+origin/main
+a5605a72768c] --> S
+    S --> B[frozen integration base]
+    B --> L0[lane/00-provenance]
+    L0 --> L1[lane/01-contracts]
+    L1 --> L2[lane/02-provider-seam]
+    L2 --> I[integration/cachy/milestone]
+    I --> PR[PR to protected main]
+
+    D[fewtarius/CachyLLama
+donor-cachy/master
+6be745998f56] -. evidence only .-> Q[intake/cachy/capability/sha]
+    Q -. provenance decision .-> L0
+    P[fewtarius/llama-ai
+donor-parent/main
+GPL-3.0] -. requirements only .-> CR[clean-room spec]
+    CR --> L0
+
+    R[rollback/milestone-premerge] --- B

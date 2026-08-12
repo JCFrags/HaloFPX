@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

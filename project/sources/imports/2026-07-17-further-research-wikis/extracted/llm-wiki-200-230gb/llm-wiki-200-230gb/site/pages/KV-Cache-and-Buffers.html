@@ -1,0 +1,118 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KV Cache and Runtime Buffers · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>KV Cache and Runtime Buffers</h1>
+<h2>Storage encodings</h2>
+<table>
+<thead>
+<tr>
+  <th>Cache type</th>
+  <th style="text-align:right">Exact storage used in formulas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>F16/BF16</td>
+  <td style="text-align:right">2 bytes/scalar</td>
+</tr>
+<tr>
+  <td>Q8_0</td>
+  <td style="text-align:right">34 bytes per 32 scalars = 1.0625 bytes/scalar</td>
+</tr>
+<tr>
+  <td>Q4_0</td>
+  <td style="text-align:right">18 bytes per 32 scalars = 0.5625 bytes/scalar</td>
+</tr>
+</tbody>
+</table>
+<h2>General GQA formula</h2>
+<pre><code class="language-text">KV_bytes = layers × context_tokens × KV_heads × (K_head_dim + V_head_dim) × bytes_per_scalar
+</code></pre>
+<p>MoE expert count does not change KV-cache growth. Attention topology does.</p>
+<h2>Candidate formulas</h2>
+<ul>
+<li><strong>Qwen:</strong> <code>94 × T × 4 × (128+128)</code> scalars.</li>
+<li><strong>GLM:</strong> <code>92 × T × 8 × (128+128)</code> scalars.</li>
+<li><strong>Tulu 405B:</strong> <code>126 × T × 8 × (128+128)</code> scalars.</li>
+<li><strong>Nemotron upper bound:</strong> same full-attention formula as the 126-layer Llama control; actual is lower where NAS blocks skip attention.</li>
+<li><strong>DeepSeek MLA:</strong> <code>61 × T × (512+64)</code> scalars under the current absorption implementation.</li>
+<li><strong>MiMo hybrid:</strong> <code>9 × T × 4 × (192+128) + 39 × S128 × 8 × (192+128)</code>, where <code>S128 = pad256(min(T, 128+512)) = 768</code> for the contexts in this package.</li>
+<li><strong>Step hybrid:</strong> <code>12 × T × 8 × 256 + 33 × S512 × 8 × 256</code>, where <code>S512 = pad256(min(T, 512+512)) = 1024</code>.</li>
+</ul>
+<h2>Q8_0 cache results</h2>
+<table>
+<thead>
+<tr>
+  <th>Candidate</th>
+  <th>32K GiB</th>
+  <th>64K GiB</th>
+  <th>128K GiB</th>
+  <th>Native-context GiB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Qwen3-235B-A22B-Instruct-2507</td>
+  <td>3.121</td>
+  <td>6.242</td>
+  <td>12.484</td>
+  <td>24.969</td>
+</tr>
+<tr>
+  <td>Step-3.7-Flash</td>
+  <td>0.865</td>
+  <td>1.662</td>
+  <td>3.256</td>
+  <td>6.443</td>
+</tr>
+<tr>
+  <td>MiMo-V2-Flash</td>
+  <td>0.449</td>
+  <td>0.823</td>
+  <td>1.570</td>
+  <td>3.064</td>
+</tr>
+<tr>
+  <td>GLM-4.7</td>
+  <td>6.109</td>
+  <td>12.219</td>
+  <td>24.438</td>
+  <td>37.802</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Nemotron-Ultra-253B-v1</td>
+  <td>8.367</td>
+  <td>16.734</td>
+  <td>33.469</td>
+  <td>33.469</td>
+</tr>
+<tr>
+  <td>DeepSeek-R1-0528</td>
+  <td>1.139</td>
+  <td>2.279</td>
+  <td>4.557</td>
+  <td>5.696</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Tulu-3-405B</td>
+  <td>8.367</td>
+  <td>16.734</td>
+  <td>33.469</td>
+  <td>33.469</td>
+</tr>
+<tr>
+  <td>MiniMax-M3</td>
+  <td>unverified</td>
+  <td>unverified</td>
+  <td>unverified</td>
+  <td>measurement gate</td>
+</tr>
+<tr>
+  <td>Kimi-K2-Thinking</td>
+  <td>unverified</td>
+  <td>unverified</td>
+  <td>unverified</td>
+  <td>measurement gate</td>
+</tr>
+</tbody>
+</table>
+<h2>Buffers are not a universal formula</h2>
+<p>Graph/work buffers depend on backend, FlashAttention, batch/ubatch, output count, offload map, quant kernels, and graph reuse. This package therefore uses explicit fixed <strong>planning reserves</strong> rather than fabricating a model-independent buffer equation. Replace those reserves with measured startup logs before purchase approval.</p>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

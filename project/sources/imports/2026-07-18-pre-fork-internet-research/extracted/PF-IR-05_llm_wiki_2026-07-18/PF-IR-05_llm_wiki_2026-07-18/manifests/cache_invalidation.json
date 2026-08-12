@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "candidate_id": "deepseek-v3.1",
+      "artifact_cache_key": "39ab0f87ed8a778282ac3f7440bb1a0df5cdac4ee727f477bd0b1b7917f2c513",
+      "artifact_key_complete": false,
+      "required_full_cache_key_fields": [
+        "publisher repository+commit",
+        "artifact repository+commit+path",
+        "ordered shard names+exact bytes+sha256 or literal UNAVAILABLE",
+        "tokenizer/config/chat-template hashes",
+        "imatrix/calibration hash and provenance",
+        "llama.cpp commit",
+        "ROCmFPX commit",
+        "compiler and build flags",
+        "GPU architecture",
+        "driver and ROCm versions",
+        "context configuration",
+        "chat_template_kwargs",
+        "speculative/MTP configuration"
+      ],
+      "cache_reuse_rule": "Do not reuse qualified results if any field changes. Incomplete artifact identity must not be treated as content verification."
+    },
+    {
+      "candidate_id": "glm-4.7",
+      "artifact_cache_key": "44c3f52cf06b243ad39d093e933a24144fb5ee968ffac0a1dcfb60884f0f7094",
+      "artifact_key_complete": true,
+      "required_full_cache_key_fields": [
+        "publisher repository+commit",
+        "artifact repository+commit+path",
+        "ordered shard names+exact bytes+sha256 or literal UNAVAILABLE",
+        "tokenizer/config/chat-template hashes",
+        "imatrix/calibration hash and provenance",
+        "llama.cpp commit",
+        "ROCmFPX commit",
+        "compiler and build flags",
+        "GPU architecture",
+        "driver and ROCm versions",
+        "context configuration",
+        "chat_template_kwargs",
+        "speculative/MTP configuration"
+      ],
+      "cache_reuse_rule": "Do not reuse qualified results if any field changes. Incomplete artifact identity must not be treated as content verification."
+    },
+    {
+      "candidate_id": "qwen3.5-397b-a17b",
+      "artifact_cache_key": "5b6cd8917802d9f8db467081f0852f0778b4c4c6cff81513ef89afb89d17923a",
+      "artifact_key_complete": false,
+      "required_full_cache_key_fields": [
+        "publisher repository+commit",
+        "artifact repository+commit+path",
+        "ordered shard names+exact bytes+sha256 or literal UNAVAILABLE",
+        "tokenizer/config/chat-template hashes",
+        "imatrix/calibration hash and provenance",
+        "llama.cpp commit",
+        "ROCmFPX commit",
+        "compiler and build flags",
+        "GPU architecture",
+        "driver and ROCm versions",
+        "context configuration",
+        "chat_template_kwargs",
+        "speculative/MTP configuration"
+      ],
+      "cache_reuse_rule": "Do not reuse qualified results if any field changes. Incomplete artifact identity must not be treated as content verification."
+    },
+    {
+      "candidate_id": "nemotron-3-ultra",
+      "artifact_cache_key": "7d7380303d39bbf712cf2f4ed3b2cd865204b25fdca56293efadd21f5164cf29",
+      "artifact_key_complete": false,
+      "required_full_cache_key_fields": [
+        "publisher repository+commit",
+        "artifact repository+commit+path",
+        "ordered shard names+exact bytes+sha256 or literal UNAVAILABLE",
+        "tokenizer/config/chat-template hashes",
+        "imatrix/calibration hash and provenance",
+        "llama.cpp commit",
+        "ROCmFPX commit",
+        "compiler and build flags",
+        "GPU architecture",
+        "driver and ROCm versions",
+        "context configuration",
+        "chat_template_kwargs",
+        "speculative/MTP configuration"
+      ],
+      "cache_reuse_rule": "Do not reuse qualified results if any field changes. Incomplete artifact identity must not be treated as content verification."
+    },
+    {
+      "candidate_id": "deepseek-r1",
+      "artifact_cache_key": "5c004e2b73bd99a39bfdd2ff2ab90ff4d1a30cc1ce69208eb556c59915e8d2fd",
+      "artifact_key_complete": true,
+      "required_full_cache_key_fields": [
+        "publisher repository+commit",
+        "artifact repository+commit+path",
+        "ordered shard names+exact bytes+sha256 or literal UNAVAILABLE",
+        "tokenizer/config/chat-template hashes",
+        "imatrix/calibration hash and provenance",
+        "llama.cpp commit",
+        "ROCmFPX commit",
+        "compiler and build flags",
+        "GPU architecture",
+        "driver and ROCm versions",
+        "context configuration",
+        "chat_template_kwargs",
+        "speculative/MTP configuration"
+      ],
+      "cache_reuse_rule": "Do not reuse qualified results if any field changes. Incomplete artifact identity must not be treated as content verification."
+    },
+    {
+      "candidate_id": "minimax-m2.7",
+      "artifact_cache_key": "bb46263ea09795e242dd8fee821933c1af8106599632d87ca1d13ff24a84112c",
+      "artifact_key_complete": false,
+      "required_full_cache_key_fields": [
+        "publisher repository+commit",
+        "artifact repository+commit+path",
+        "ordered shard names+exact bytes+sha256 or literal UNAVAILABLE",
+        "tokenizer/config/chat-template hashes",
+        "imatrix/calibration hash and provenance",
+        "llama.cpp commit",
+        "ROCmFPX commit",
+        "compiler and build flags",
+        "GPU architecture",
+        "driver and ROCm versions",
+        "context configuration",
+        "chat_template_kwargs",
+        "speculative/MTP configuration"
+      ],
+      "cache_reuse_rule": "Do not reuse qualified results if any field changes. Incomplete artifact identity must not be treated as content verification."
+    }
+  ]
+}

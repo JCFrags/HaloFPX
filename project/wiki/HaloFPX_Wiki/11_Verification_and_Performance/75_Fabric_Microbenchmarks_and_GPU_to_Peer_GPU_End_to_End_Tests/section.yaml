@@ -1,0 +1,31 @@
+section_id: "75"
+category_id: "11"
+title: "Fabric Microbenchmarks and GPU-to-Peer-GPU End-to-End Tests"
+category: "11_Verification_and_Performance"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 11
+open_question_count: 12
+required_machine_experiments:
+  - "Inventory and prove binding for link A, link B, and both-link paths."
+  - "Calibrate host/GPU timers and any supported PTP or hardware timestamps."
+  - "Sweep RTT, one-way delay where admissible, bandwidth, payload size, and queue depth in both directions."
+  - "Measure simultaneous bidirectional and dual-link independence/scaling."
+  - "Capture CPU, interrupts, errors, retries, counters, power, and thermal telemetry."
+  - "Run GPU-produce to peer-GPU-consume validation with explicit synchronization."
+  - "Repeat selected cells during concurrent decode, NVMe, and mixed load."
+  - "Verify single-link degraded behavior and route destructive fault tests to Section 80."
+related_sections: ["20", "24", "49", "50", "51", "52", "53", "54", "55", "73", "76", "80"]
+applicability:
+  repositories: []
+  software_versions:
+    - "iperf3 3.21 methodology reference"
+    - "Linux 6.15 documentation reference"
+    - "HIP 6.4.x documentation reference"
+  hardware_revisions:
+    - "planned two matched AMD Strix Halo nodes and dual USB4 links; exact inventory pending"
+claim_scope:
+  source_research_complete: true
+  target_machine_validation_complete: false
+  benchmark_results_added: false
+  transport_selected: false

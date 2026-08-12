@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RB 07 — Quarantine and key/object incident Immediate actions 1. Stop serving and writes for the smallest safely identifiable affected scope. 2. Preserve caller facing behavior as M…">
+  <title>RB-07 — Quarantine and key/object incident · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="../wiki/00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="../wiki/01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="../wiki/02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="../wiki/03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="../wiki/04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="../wiki/05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="../wiki/06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="../wiki/07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="../wiki/08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="../wiki/09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="../wiki/10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="../wiki/11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="../wiki/12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="../wiki/13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="../wiki/14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="../wiki/15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link active" href="RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Operational runbooks / RB-07 — Quarantine and key/object incident</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>RB-07 — Quarantine and key/object incident</h1>
+<h2 id="immediate-actions">Immediate actions<a class="heading-anchor" href="#immediate-actions" aria-label="Link to section">#</a></h2>
+<ol>
+<li>Stop serving and writes for the smallest safely identifiable affected scope.</li>
+<li>Preserve caller-facing behavior as <code>MISS_RECOMPUTE</code>; do not expose failure class.</li>
+<li>Disable affected unwrap/derive permissions and mark key/epoch compromised when indicated.</li>
+<li>Isolate suspect ciphertext, manifests, allocator records, and lower-layer metadata in non-serving quarantine.</li>
+<li>Record hashes, time, rank, scope, key IDs, detection reason, and collector; never copy plaintext keys into evidence.</li>
+<li>Drain processes/files/mappings through RB-08 when key exposure is plausible.</li>
+<li>Establish new epoch/allocator identity; invalidate old generation and recompute.</li>
+</ol>
+<h2 id="investigation-questions">Investigation questions<a class="heading-anchor" href="#investigation-questions" aria-label="Link to section">#</a></h2>
+<ul>
+<li>Was the failure random corruption, deliberate substitution, wrong principal/key mapping, replay, format bug, or nonce reuse?</li>
+<li>Which ranks/tenants/projects/prefixes shared the key, identifier index, backup, or publisher?</li>
+<li>Did any detailed error, timing, or index behavior cross tenant boundaries?</li>
+<li>Which backups, snapshots, headers, escrow, exports, dumps, or peers contain affected data/key paths?</li>
+<li>Is the authoritative recomputation source trustworthy?</li>
+<li>Does the event invalidate a prior deletion/CE/sanitization statement?</li>
+</ul>
+<h2 id="recovery-and-closure">Recovery and closure<a class="heading-anchor" href="#recovery-and-closure" aria-label="Link to section">#</a></h2>
+<p>Release no quarantined object directly. Authenticate and re-encrypt into a new
+context or recompute. Close only after key/policy revocation, manifest floors,
+copy inventory, root cause, customer/publisher communications, and residual-risk
+updates are complete.</p>
+<p><span class="claim-label" data-claim="PFIR07-C058" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C058][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C003,C016,C030,C034]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C070" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C070][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C031-C033,C040,C058-C065]</span></p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

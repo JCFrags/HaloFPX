@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/11-cisa-2025-minimum-elements-for-an-sbom.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://www.cisa.gov/resources-tools/resources/2025-minimum-elements-software-bill-materials-sbom",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "fa539618f2fb92b5bc8ec3e5af120e3a482a8578b076a64e1bae3ded55ebff07",
+  "size_bytes": 661,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-GOVERNMENT-GUIDANCE"
+}

@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-49q7-2jmh-92fp",
+  "cve": "CVE-2024-41130",
+  "title": "Legacy GGUF duplicate-key null dereference",
+  "severity": "Moderate",
+  "published": "2024-07-22",
+  "affected_versions_as_displayed_or_normalized": "<= b3426",
+  "patched_versions_as_displayed_or_normalized": "b3427",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-49q7-2jmh-92fp",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "legacy gguf_init_from_file duplicate-name loop",
+    "preconditions_summary": "Malformed GGUF with duplicate/inconsistent key metadata reaches the legacy parser."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "bfa1751fefb158cca3c95b0712ad253e10be97f1a2ad78ab3feffb85684a04a1"
+}

@@ -1,0 +1,68 @@
+{
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "snapshots": [
+    {
+      "id": "SNAP-ROCMFPX-BASE",
+      "repo": "charlie12345/ROCmFPX",
+      "sha": "a5605a72768c6562241b248e268e33dc92787394",
+      "role": "baseline source snapshot",
+      "commit_title": "Integrate HY3 MTP, ROCmFP2, and cross-platform server fixes",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-ROCMFPX-CANDIDATE",
+      "repo": "charlie12345/ROCmFPX",
+      "sha": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "role": "candidate source snapshot",
+      "commit_title": "hip: avoid full-cache TurboQuant flash-attention staging (#34)",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-CACHY",
+      "repo": "fewtarius/CachyLlama",
+      "sha": "6be745998f568e379ea197fcf827baec73ff9940",
+      "role": "CachyLlama source snapshot",
+      "commit_title": "Merge upstream server and core changes",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-LLAMA-AI",
+      "repo": "fewtarius/llama-ai",
+      "sha": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "role": "wrapper/submodule selection snapshot",
+      "commit_title": "Submodule pointer update",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-UPSTREAM-A",
+      "repo": "ggml-org/llama.cpp",
+      "sha": "788e07dc91d266ad3162a1ce9037665656269689",
+      "role": "upstream comparison snapshot",
+      "commit_title": "vulkan: Support Q2_0 (#25430)",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-UPSTREAM-B",
+      "repo": "ggml-org/llama.cpp",
+      "sha": "86d86ed4396b4130922f7b9af26e3d9fc11a591b",
+      "role": "upstream comparison snapshot",
+      "commit_title": "opencl: transpose q4_K no-shuffle scales",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    },
+    {
+      "id": "SNAP-DEPLOYED-SOURCE",
+      "repo": "charlie12345/rocmfp4-llama",
+      "sha": "4860505ee322091f0f61eba77d6ad49be88cf4ea",
+      "role": "declared deployed predecessor source",
+      "commit_title": "vulkan: enable CM2 decode-vector extension",
+      "selection_evidence": "[VERIFIED]",
+      "binary_proof": "[OPEN]"
+    }
+  ]
+}

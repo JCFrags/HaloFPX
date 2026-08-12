@@ -1,0 +1,22 @@
+source_id,path,url,access_date,capture_ref
+S001,raw/official/amd-docs/S001-rocm-7.14-compatibility.txt,https://rocm.docs.amd.com/en/docs-7.14.0/compatibility/compatibility-matrix.html,2026-07-18,turn800020view0
+S002,raw/official/amd-docs/S002-transition-guide.txt,https://rocm.docs.amd.com/en/latest/about/transition-guide-TheRock.html,2026-07-18,turn921834view4; turn628835view0
+S003,raw/official/amd-docs/S003-install-rocm-7.14.txt,https://rocm.docs.amd.com/en/docs-7.14.0/install/rocm.html,2026-07-18,turn619120view2; turn619120view3; turn921834view5; turn921834view6
+S004,raw/official/amd-docs/S004-release-notes-7.14.txt,https://rocm.docs.amd.com/en/docs-7.14.0/about/release-notes.html,2026-07-18,turn890393view0; turn890393view1; turn890393view2; turn890393view3
+S005,raw/official/amd-docs/S005-ryzen-linux-7.2-matrix.txt,https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2/docs/compatibility/compatibilityryz/native_linux/native_linux_compatibility.html,2026-07-18,turn619120view0
+S006,raw/official/amd-docs/S006-release-notes-7.2.4.txt,https://rocm.docs.amd.com/en/docs-7.2.4/about/release-notes.html,2026-07-18,turn619120view5
+S007,raw/official/github/S007-TheRock-tag.txt,https://github.com/ROCm/TheRock/tree/therock-7.14,2026-07-18,turn744481view0; turn18file0; turn50file0; turn53file0; turn54file0
+S008,raw/official/github/S008-SUPPORTED_GPUS.txt,https://github.com/ROCm/TheRock/blob/therock-7.14/SUPPORTED_GPUS.md,2026-07-18,turn15file0
+S009,raw/official/github/S009-RELEASES.txt,https://github.com/ROCm/TheRock/blob/therock-7.14/RELEASES.md,2026-07-18,turn20file0 through turn24file0
+S010,raw/official/github/S010-gitmodules.txt,https://github.com/ROCm/TheRock/blob/therock-7.14/.gitmodules,2026-07-18,turn19file0
+S011,raw/official/github/S011-manifest-generator.txt,https://github.com/ROCm/TheRock/blob/therock-7.14/build_tools/generate_therock_manifest.py,2026-07-18,turn27file0
+S012,raw/official/github/S012-package-json.txt,https://github.com/ROCm/TheRock/blob/therock-7.14/build_tools/packaging/linux/package.json,2026-07-18,turn42file0; turn44file0
+S013,raw/official/github/S013-TheRock-LICENSE.txt,https://github.com/ROCm/TheRock/blob/therock-7.14/LICENSE,2026-07-18,turn40file0
+S014,raw/official/github/S014-rocm-7.2.4-default-xml.txt,https://github.com/ROCm/ROCm/blob/rocm-7.2.4/default.xml,2026-07-18,turn31file0
+S015,raw/official/kernel/S015-kernel-org-release-index.txt,https://www.kernel.org/,2026-07-18,turn398973view0
+S016,raw/official/kernel/S016-usb4stream.txt,https://www.kernel.org/doc/html/next/admin-guide/thunderbolt.html,2026-07-18,turn921834view2; turn921834view3
+S017,raw/official/kernel/S017-gfx1151-kfd-sru.txt,https://lists.ubuntu.com/archives/kernel-team/2026-January/165207.html,2026-07-18,turn398973view1
+S018,raw/official/kernel/S018-hwe-6.17-accepted.txt,https://lists.ubuntu.com/archives/noble-changes/2026-February/053556.html,2026-07-18,turn398973view2
+S019,raw/official/mesa/S019-mesa-26.1.4.txt,https://docs.mesa3d.org/relnotes/26.1.4.html,2026-07-18,turn689053view2
+S020,raw/official/amd-docs/S020-tarball-index.txt,https://repo.amd.com/rocm/tarball-multi-arch/,2026-07-18,turn531743view1
+S021,raw/local/S021-local-two-node-comparison.txt,,2026-07-17,user prompt

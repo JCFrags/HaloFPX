@@ -1,0 +1,188 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Community-reported and community-validated combinations · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="community-validation.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html" class="active" aria-current="page">Community validation</a>
+          
+            <a href="regressions.html">Known regressions</a>
+          
+            <a href="unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html">Exact build flags</a>
+          
+            <a href="environment-variables.html">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html">ROCmFPX</a>
+          
+            <a href="usb4-networking.html">USB4 networking</a>
+          
+            <a href="glossary.html">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Support classification</div>
+      <article class="article"><h1 id="community-reported-and-community-validated-combinations">Community-reported and community-validated combinations<a aria-label="Link to section" class="heading-anchor" href="#community-reported-and-community-validated-combinations">#</a></h1>
+<h2 id="maintained-fedora-toolbox-baseline">Maintained Fedora / toolbox baseline<a aria-label="Link to section" class="heading-anchor" href="#maintained-fedora-toolbox-baseline">#</a></h2>
+<p>The current maintained community profile reports:</p>
+<pre><code class="language-text">OS: Fedora 42/43
+Kernel: 6.18.9-200.fc43.x86_64
+Firmware: linux-firmware 20260110
+ROCm: 7.2.4 toolbox
+Vulkan: Mesa RADV preferred
+</code></pre>
+<p>The repository also offers ROCm 7.2.4, ROCm 6.4.4 with a backported kernel patch, RADV, AMDVLK, and experimental ROCmFP4 images. This wiki promotes only the 7.2.4 and RADV paths as current community baselines; the patched 6.4.4 image remains useful for comparison but conflicts with AMD’s current target-specific support classification. Source: <a href="sources.html#kyuz0-toolbox-a7c71e9">KYUZ0-TOOLBOX-A7C71E9</a>.</p>
+<h3 id="runtime-practices-reported-by-that-profile">Runtime practices reported by that profile<a aria-label="Link to section" class="heading-anchor" href="#runtime-practices-reported-by-that-profile">#</a></h3>
+<pre><code class="language-bash">llama-cli --no-mmap -ngl 999 -fa 1 -m MODEL.gguf -p 'test'
+</code></pre>
+<p><code>--no-mmap</code> is a community stability choice, not an upstream universal requirement. Preserve an A/B path without it so that a filesystem or direct-I/O failure is not misdiagnosed as a compute failure.</p>
+<p>The repository also reports a performance profile using:</p>
+<pre><code class="language-text">amd_iommu=off amdgpu.gttsize=126976 ttm.pages_limit=32505856
+</code></pre>
+<p>on a 128 GiB system. This is <strong>not</strong> adopted as a default here. Disabling IOMMU reduces DMA isolation and can be inappropriate for USB4, virtualization, or research RDMA. Use AMD’s <code>amd-ttm</code> guidance first; benchmark any IOMMU change inside the relevant security model.</p>
+<h2 id="hip-versus-vulkan">HIP versus Vulkan<a aria-label="Link to section" class="heading-anchor" href="#hip-versus-vulkan">#</a></h2>
+<p>A first-hand gfx1151 report using ROCm 7.2.1 and Mesa 26.0.3 measured substantially faster generation with Vulkan than HIP for one Qwen3.6 35B-A3B Q8_0 workload. ROCmFPX’s maintainer also reports Vulkan as the faster tested decode backend on that system. These results justify a <strong>Vulkan-first test</strong>, not a universal verdict. Sources: <a href="sources.html#llama-issue-24438">LLAMA-ISSUE-24438</a>, <a href="sources.html#rocmfpx-a5605">ROCMFPX-A5605</a>.</p>
+<p>Benchmark both paths with the same:</p>
+<ul>
+<li>model file and checksum;</li>
+<li>prompt and token counts;</li>
+<li>batch and micro-batch;</li>
+<li>context and K/V cache types;</li>
+<li>FlashAttention setting;</li>
+<li>power mode and temperature;</li>
+<li>llama.cpp commit.</li>
+</ul>
+<h2 id="radv-and-amdvlk">RADV and AMDVLK<a aria-label="Link to section" class="heading-anchor" href="#radv-and-amdvlk">#</a></h2>
+<p>RADV is the maintained community default because it covers more large-model cases. AMDVLK can be faster in selected paths, but a reported roughly 2 GiB single-allocation limitation can prevent large GGUF loads despite sufficient aggregate memory. Sources: <a href="sources.html#kyuz0-toolbox-a7c71e9">KYUZ0-TOOLBOX-A7C71E9</a>, <a href="sources.html#llama-issue-15054">LLAMA-ISSUE-15054</a>.</p>
+<h2 id="community-firmware-resolution">Community firmware resolution<a aria-label="Link to section" class="heading-anchor" href="#community-firmware-resolution">#</a></h2>
+<p>Fedora’s regression record identifies the 20260110 firmware package line as fixed relative to the broken 20251125 line. Treat package dates as distribution-specific labels, not universal firmware ABI numbers; capture file hashes and dmesg firmware versions in every bug report. Sources: <a href="sources.html#fedora-bug-2420062">FEDORA-BUG-2420062</a>, <a href="sources.html#rocm-issue-5724">ROCM-ISSUE-5724</a>.</p>
+<h2 id="community-validation-acceptance-gate">Community validation acceptance gate<a aria-label="Link to section" class="heading-anchor" href="#community-validation-acceptance-gate">#</a></h2>
+<p>A profile graduates to “locally accepted” only after it passes:</p>
+<ol>
+<li>30-minute repeated HIP or Vulkan smoke without new amdgpu faults.</li>
+<li><code>llama-bench</code> prompt processing and generation with stable variance.</li>
+<li>Model load both with normal I/O and, when needed, <code>--no-direct-io --no-mmap</code>.</li>
+<li>Suspend/resume or at least one warm reboot when the deployment requires it.</li>
+<li>USB4 throughput and packet-loss test when distributed execution is in scope.</li>
+<li>A saved diagnostics bundle from <a href="../scripts/collect-diagnostics.sh"><code>collect-diagnostics.sh</code></a>.</li>
+</ol>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#maintained-fedora-toolbox-baseline">Maintained Fedora / toolbox baseline</a><a class="level-3" href="#runtime-practices-reported-by-that-profile">Runtime practices reported by that profile</a><a class="level-2" href="#hip-versus-vulkan">HIP versus Vulkan</a><a class="level-2" href="#radv-and-amdvlk">RADV and AMDVLK</a><a class="level-2" href="#community-firmware-resolution">Community firmware resolution</a><a class="level-2" href="#community-validation-acceptance-gate">Community validation acceptance gate</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

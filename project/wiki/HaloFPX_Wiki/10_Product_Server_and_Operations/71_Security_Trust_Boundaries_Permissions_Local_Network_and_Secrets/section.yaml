@@ -1,0 +1,19 @@
+section_id: "71"
+title: "Security, Trust Boundaries, Permissions, Local Network, and Secrets"
+category_id: "10"
+category_title: "Product Server and Operations"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 10
+open_question_count: 10
+required_machine_experiments:
+  - "SEC-71-E1 threat and control verification"
+  - "SEC-71-E2 authorization, path, and parser abuse"
+  - "SEC-71-E3 cache isolation and privacy"
+  - "SEC-71-E4 peer MITM and replay"
+  - "SEC-71-E5 RPC artifact and exposure gate"
+related_sections: ["66", "67", "68", "69", "70", "72"]
+applicability:
+  repositories: ["Custom_Inference_Project", "llama.cpp", "CachyLlama"]
+  software_versions: ["llama.cpp 788e07dc91d266ad3162a1ce9037665656269689", "CachyLlama 6be745998f568e379ea197fcf827baec73ff9940"]
+  hardware_revisions: ["dual Strix Halo target; exact nodes open"]

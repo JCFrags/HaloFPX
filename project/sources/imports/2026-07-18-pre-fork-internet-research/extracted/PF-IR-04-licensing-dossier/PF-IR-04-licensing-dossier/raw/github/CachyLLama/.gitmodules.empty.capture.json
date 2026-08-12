@@ -1,0 +1,13 @@
+{
+  "capture_path": "raw/github/CachyLLama/.gitmodules.empty.blob-e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+  "capture_method": "exact empty Git blob reconstruction",
+  "byte_fidelity": "exact",
+  "source_url": "https://github.com/fewtarius/CachyLLama/blob/6be745998f568e379ea197fcf827baec73ff9940/.gitmodules",
+  "repository_commit": "6be745998f568e379ea197fcf827baec73ff9940",
+  "repository_path": ".gitmodules",
+  "git_blob_sha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "size_bytes": 0,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-GITLINK-BOUNDARY"
+}

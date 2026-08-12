@@ -1,0 +1,25 @@
+title: Strix Halo / gfx1151 Build and Software Compatibility Wiki
+version: 2026.07.17
+generated_at: '2026-07-17T18:00:00-07:00'
+as_of_date: '2026-07-17'
+hardware_target: AMD Strix Halo / gfx1151 / RDNA 3.5
+llama_cpp_pin:
+  release: b10064
+  commit: 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+  rocm72_asset: llama-b10064-bin-ubuntu-rocm-7.2-x64.tar.gz
+  rocm72_asset_sha256: 42a00452f42b04598d32db66c5249b3e8855cd99bf9448e22fd2a738aaa89c82
+rocmfpx_pin: a5605a72768c6562241b248e268e33dc92787394
+thunderbolt_ibverbs_pin: 76ba39b630a70accb72f19388eefe48844b50eb8
+mesa_source_pin:
+  version: 26.1.5
+  sha256: 79e421c7ce18cd9e790b8375920325779f10798630bf30e0b22f1a21c8617122
+validation_scope:
+  performed:
+  - Primary-source research
+  - Cross-source support-scope reconciliation
+  - Static syntax/data/link validation of generated wiki and recipes
+  not_performed:
+  - Physical Strix Halo execution
+  - Kernel module loading
+  - ROCm/Vulkan compilation inside this environment
+  - Performance benchmarking

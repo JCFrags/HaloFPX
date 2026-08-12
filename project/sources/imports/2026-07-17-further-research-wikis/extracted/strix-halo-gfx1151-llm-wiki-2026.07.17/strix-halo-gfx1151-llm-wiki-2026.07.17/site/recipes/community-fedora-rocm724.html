@@ -1,0 +1,182 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Recipe: maintained Fedora / ROCm 7.2.4 community profile · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body data-root="../" data-page="recipes/community-fedora-rocm724.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="../index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="../index.html">Overview</a>
+          
+            <a href="../decision-tree.html">Decision tree</a>
+          
+            <a href="../evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="../compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="../official-support.html">Official support</a>
+          
+            <a href="../community-validation.html">Community validation</a>
+          
+            <a href="../regressions.html">Known regressions</a>
+          
+            <a href="../unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="../build-flags.html">Exact build flags</a>
+          
+            <a href="../environment-variables.html">Environment variables</a>
+          
+            <a href="../diagnostics.html">Diagnostics</a>
+          
+            <a href="../containers.html">Containers</a>
+          
+            <a href="../reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="../rocmfpx.html">ROCmFPX</a>
+          
+            <a href="../usb4-networking.html">USB4 networking</a>
+          
+            <a href="../glossary.html">Glossary</a>
+          
+            <a href="../sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="../recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="../recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="../recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="../recipes/community-fedora-rocm724.html" class="active" aria-current="page">Fedora / ROCm 7.2.4</a>
+          
+            <a href="../recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="../recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="../recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="../recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="../recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="../recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="../versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Reproducible recipe</div>
+      <article class="article"><h1 id="recipe-maintained-fedora-rocm-7-2-4-community-profile">Recipe: maintained Fedora / ROCm 7.2.4 community profile<a aria-label="Link to section" class="heading-anchor" href="#recipe-maintained-fedora-rocm-7-2-4-community-profile">#</a></h1>
+<p><strong>Classification:</strong> official general ROCm release plus maintained community gfx1151 validation<br/>
+<strong>Reference profile:</strong> Fedora 42/43, kernel 6.18.9, linux-firmware 20260110, ROCm 7.2.4<br/>
+<strong>Sources:</strong> <a href="../sources.html#kyuz0-toolbox-a7c71e9">KYUZ0-TOOLBOX-A7C71E9</a>, <a href="../sources.html#amd-core-724">AMD-CORE-724</a>, <a href="../sources.html#amd-rdna35">AMD-RDNA35</a></p>
+<h2 id="host-checks">Host checks<a aria-label="Link to section" class="heading-anchor" href="#host-checks">#</a></h2>
+<pre><code class="language-bash">rpm -q kernel-core linux-firmware
+uname -r
+sudo dmesg -T | grep -Eai 'amdgpu|MES|gfxhub|page fault|firmware' | tail -n 200
+</code></pre>
+<p>Reject firmware 20251125 and kernels below 6.18.4. The maintained baseline names 6.18.9 and firmware 20260110; newer packages require a fresh acceptance run.</p>
+<h2 id="toolbx">Toolbx<a aria-label="Link to section" class="heading-anchor" href="#toolbx">#</a></h2>
+<pre><code class="language-bash">toolbox create llama-rocm-724 \
+  --image docker.io/kyuz0/amd-strix-halo-toolboxes:rocm-7.2.4 \
+  -- --device /dev/dri --device /dev/kfd \
+     --group-add video --group-add render \
+     --security-opt seccomp=unconfined
+
+toolbox enter llama-rocm-724
+llama-cli --list-devices
+</code></pre>
+<p>On Ubuntu or another distribution using Distrobox, use the corresponding <code>distrobox create</code> command and preserve the same device mappings.</p>
+<h2 id="pin-the-mutable-image">Pin the mutable image<a aria-label="Link to section" class="heading-anchor" href="#pin-the-mutable-image">#</a></h2>
+<pre><code class="language-bash">skopeo inspect docker://docker.io/kyuz0/amd-strix-halo-toolboxes:rocm-7.2.4 \
+  | tee rocm-7.2.4-image-inspect.json
+</code></pre>
+<p>Record the digest and recreate the toolbox from <code>image@sha256:...</code>.</p>
+<h2 id="runtime">Runtime<a aria-label="Link to section" class="heading-anchor" href="#runtime">#</a></h2>
+<pre><code class="language-bash">llama-cli --no-mmap -ngl 999 -fa 1 \
+  -m MODEL.gguf -p 'community profile smoke' -n 64
+</code></pre>
+<p><code>--no-mmap</code> is part of this community recipe, not a universal upstream requirement. Also run a small model without it to distinguish platform health from I/O behavior.</p>
+<h2 id="unified-memory">Unified memory<a aria-label="Link to section" class="heading-anchor" href="#unified-memory">#</a></h2>
+<p>Use AMD’s <code>amd-ttm</code> tool and leave a deliberate OS reserve. The repository’s 128 GiB example uses large GTT/TTM values and reports <code>amd_iommu=off</code> performance gains. This wiki does not make IOMMU disablement a default because it weakens DMA isolation and conflicts with conservative USB4/RDMA security.</p>
+<h2 id="status-wording">Status wording<a aria-label="Link to section" class="heading-anchor" href="#status-wording">#</a></h2>
+<p>Use this exact description in deployment records:</p>
+<blockquote>
+<p>ROCm 7.2.4 is an official general release and this Fedora/toolbox combination is community-validated on Strix Halo. The captured AMD RDNA 3.5 target table explicitly names 7.2.1–7.2.3, not 7.2.4.</p>
+</blockquote>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="../sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#host-checks">Host checks</a><a class="level-2" href="#toolbx">Toolbx</a><a class="level-2" href="#pin-the-mutable-image">Pin the mutable image</a><a class="level-2" href="#runtime">Runtime</a><a class="level-2" href="#unified-memory">Unified memory</a><a class="level-2" href="#status-wording">Status wording</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="../assets/wiki.js"></script>
+</body>
+</html>

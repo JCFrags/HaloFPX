@@ -1,0 +1,35 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-LLAMACPP-MODELS
+authority: primary_runtime_source
+capture_type: connector_text_extract
+source_title: llama.cpp candidate model graph files
+source_url: https://github.com/ggml-org/llama.cpp/tree/86a9c79f866799eb0e7e89c03578ccfbcc5d808e/src/models
+immutable_revision: 86a9c79f866799eb0e7e89c03578ccfbcc5d808e
+accessed_at: 2026-07-18
+completeness: SELECTED_FACTS
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Static graph observations at commit 86a9c79f866799eb0e7e89c03578ccfbcc5d808e:
+
+DeepSeek2 — src/models/deepseek2.cpp, blob a9e8bc51403656cf0ddc30792f5dbd6a99509b21
+- Loads MLA ranks/dimensions, routed/shared MoE tensors, and builds MLA attention state inputs.
+- No explicit decoder-MTP graph path identified.
+
+GLM4-MoE — src/models/glm4-moe.cpp, blob d60e47ddf0c6599901c9b01a9c278a2b697839e8
+- Loads MoE and NextN metadata.
+- NextN tensors are marked with skip flags; forward graph processes only main layers and skips final NextN layer.
+
+Qwen3.5-MoE — src/models/qwen35moe.cpp, blob 7b0876cbb04b232b1dd47600606a0a12fe4e659b
+- Loads gated-delta recurrent state, full-attention layers, routed/shared experts, and NextN tensors.
+- Provides an explicit decoder-MTP graph type.
+
+Nemotron-H-MoE — src/models/nemotron-h-moe.cpp blob a59cc6c9fbd7fe60de129ae2995d84af847020ae; shared implementation src/models/nemotron-h.cpp blob a456269347b9aec0711d0c31100f9f528f437c61
+- Builds Mamba2 recurrent, attention, and MoE paths with hybrid memory.
+- No explicit decoder-MTP graph identified in the reviewed files.
+
+MiniMax-M2 — src/models/minimax-m2.cpp, blob 86a8ae2b1d91efd4ca36ef177ed847995bcb5734
+- Builds attention and MoE graph; static type label 230B-A10B for 62 layers.
+- No explicit decoder-MTP graph identified.
+
+These are static source facts only. Machine validation is NOT_RUN.

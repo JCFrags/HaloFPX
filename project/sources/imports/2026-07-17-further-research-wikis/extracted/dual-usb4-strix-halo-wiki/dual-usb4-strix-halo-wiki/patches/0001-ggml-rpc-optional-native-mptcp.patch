@@ -1,0 +1,58 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Dual USB4 Wiki <noreply@localhost>
+Date: Fri, 17 Jul 2026 00:00:00 +0000
+Subject: [EXPERIMENTAL] ggml-rpc: allow native MPTCP sockets on Linux
+
+Set GGML_RPC_MPTCP=1 on both the server and client to request protocol 262
+(IPPROTO_MPTCP) instead of protocol 0 (TCP) on Linux. MPTCP can fall back to
+ordinary TCP when the peer does not negotiate MPTCP. Socket creation fails when
+the local Linux kernel has no MPTCP support.
+
+Pinned to the transport.cpp shape observed on 2026-07-17. Rebase and test.
+---
+ ggml/src/ggml-rpc/transport.cpp | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/ggml/src/ggml-rpc/transport.cpp b/ggml/src/ggml-rpc/transport.cpp
+index a72815242..000000000 100644
+--- a/ggml/src/ggml-rpc/transport.cpp
++++ b/ggml/src/ggml-rpc/transport.cpp
+@@ -38,6 +38,18 @@ typedef int sockfd_t;
+ #endif
+ 
+ static const char * RPC_DEBUG = std::getenv("GGML_RPC_DEBUG");
++
++// Linux assigns protocol number 262 to MPTCP. Keep the constant local so this
++// opt-in change does not depend on libc headers exposing IPPROTO_MPTCP.
++static int rpc_stream_protocol() {
++#if defined(__linux__)
++    const char * value = std::getenv("GGML_RPC_MPTCP");
++    if (value && value[0] != '\0' && value[0] != '0') {
++        return 262;
++    }
++#endif
++    return 0;
++}
+ 
+ #define LOG_DBG(...) \
+     do { if (RPC_DEBUG) GGML_LOG_DEBUG(__VA_ARGS__); } while (0)
+@@ -601,7 +613,7 @@ socket_ptr socket_t::accept() {
+ }
+ 
+ socket_ptr socket_t::create_server(const char * host, int port) {
+-    auto sockfd = socket(AF_INET, SOCK_STREAM, 0);
++    auto sockfd = socket(AF_INET, SOCK_STREAM, rpc_stream_protocol());
+     if (!is_valid_fd(sockfd)) {
+         return nullptr;
+     }
+@@ -628,7 +640,7 @@ socket_ptr socket_t::create_server(const char * host, int port) {
+ }
+ 
+ socket_ptr socket_t::connect(const char * host, int port) {
+-    auto sockfd = socket(AF_INET, SOCK_STREAM, 0);
++    auto sockfd = socket(AF_INET, SOCK_STREAM, rpc_stream_protocol());
+     if (!is_valid_fd(sockfd)) {
+         return nullptr;
+     }
+-- 
+2.50.0

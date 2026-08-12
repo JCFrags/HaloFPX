@@ -1,0 +1,101 @@
+schema_version: "1.0.0"
+experiment_id: "HLX-EXP-20260717-842"
+card_version: "1.0.0"
+title: "Measurement-system and notebook qualification"
+family: "E02"
+status: "draft"
+owner: null
+reviewer: null
+hypothesis: "The selected clocks, collectors, sensors, capture path, hashing, and derivation workflow are repeatable and do not materially perturb the tested workload."
+falsifier: "Collector perturbation, clock uncertainty, missing data, or non-reproducible derivation exceeds a predeclared metric-specific limit."
+setup:
+  description: "Paired collector-off/on and timing-calibration pilot with artifact corruption and derivation regeneration checks."
+  sut_boundary: "Measurement system and evidence pipeline; the representative workload is a stimulus, not the performance subject."
+  nodes: [null]
+  ranks: [null]
+  links: [null]
+  artifact_root: null
+prerequisites: ["E01 identity and timing capability record","Predeclared perturbation and uncertainty limits"]
+dependency_gates:
+  - {experiment_id: "HLX-EXP-20260717-841", condition: "always", required_gate_result: "pass", evidence: null}
+safety:
+  class: "privileged-reversible"
+  elevation_required: null
+  elevation_reason: null
+  authorization_required: true
+  authorization_record: null
+  hazards: ["Clock configuration could invalidate timing","Collector privileges may expose sensitive system state"]
+  exact_targets: [null]
+  stop_plan: null
+  rollback_plan: null
+  emergency_stop: null
+commands:
+  - id: "unresolved-command-01"
+    description: "Resolve and review exact argv, host, working directory, outputs, safety target, and authorization before approval; this draft command is intentionally non-executable."
+    host: null
+    cwd: null
+    argv: null
+    environment: null
+    requires_elevation: null
+    destructive: false
+    authorization_gate: "Card status must be approved and every unresolved command field must be replaced."
+    expected_outputs: [null]
+environment_snapshot:
+  repositories: [null]
+  software: [null]
+  hardware: [null]
+  model: null
+  tokenizer: null
+  workload: null
+  configuration: null
+  clocks: [null]
+  collectors: [null]
+variables:
+  independent: ["collector state","collector cadence","time synchronization method"]
+  dependent: ["perturbation","missing-sample rate","cadence jitter","offset uncertainty","derivation reproducibility"]
+  controlled: ["Same-clock RTT or echo","Matched workload block"]
+controls:
+  baseline: "Collector-off matched block and same-clock timing control"
+  randomized_order: null
+  random_seed: null
+  warmup: null
+  repetitions: null
+outputs:
+  root: null
+  raw: ["shared/time-alignment.json","node-01/observations.jsonl","node-02/observations.jsonl","derivation/reproduction-receipt.json"]
+  schemas: [null]
+  integrity_manifest: null
+analysis:
+  plan: null
+  statistics: null
+  uncertainty: null
+  exclusions: [null]
+  analysis_commit: null
+  command: null
+acceptance:
+  pass: "Each admitted metric has acceptable measured uncertainty and perturbation, and raw artifacts plus derivation reproduce from hashes."
+  fail: "A collector or timing method exceeds its ratified limit, corrupt input is accepted, or derivation cannot reproduce."
+  inconclusive: "Required observations or uncertainty are insufficient for pass or fail; preserve the run and issue a revised card."
+  stop_rules: [null]
+result:
+  gate_result: null
+  conclusion: null
+  confidence: null
+  uncertainty: null
+  completed_at: null
+  run_ids: []
+follow_up: null
+links:
+  originating_sections: ["05","22","27","73","75","79","81"]
+  open_questions: ["HLX-OQ-8402","HLX-OQ-8403","HLX-OQ-8411"]
+  issues: [null]
+  requirements: [null]
+  adrs: [null]
+  aliases: [null]
+provenance:
+  created_at: "2026-07-17T00:00:00Z"
+  updated_at: "2026-07-17T00:00:00Z"
+  authors: ["Codex section-84 research workflow"]
+  source_refs: ["S84-01", "S84-03", "S84-04"]
+  card_sha256: null
+notes: "Draft only. Null values and null list entries are unresolved contract fields, not measurements or permission to execute."

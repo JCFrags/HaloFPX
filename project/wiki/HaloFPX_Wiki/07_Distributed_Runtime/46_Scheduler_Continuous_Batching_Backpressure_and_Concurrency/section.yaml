@@ -1,0 +1,21 @@
+section_id: "46"
+title: "Scheduler, Continuous Batching, Backpressure, and Concurrency"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 5
+open_question_count: 8
+required_machine_experiments:
+  - "mixed prompt/decode concurrency sweep on HIP and Vulkan"
+  - "distributed admission, cancellation, overload, and fairness fault matrix"
+  - "KV, queue, ring, transport-credit, and stream-buffer saturation"
+related_sections: ["09", "38", "39", "40", "43", "45", "48", "58", "68", "73", "79", "80"]
+applicability:
+  repositories:
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "vllm-project/vllm@9354f222042986addf20709e5274fc26e0d09745"
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+  software_versions: []
+  hardware_revisions:
+    - "two matched AMD Strix Halo systems (exact BOM open)"

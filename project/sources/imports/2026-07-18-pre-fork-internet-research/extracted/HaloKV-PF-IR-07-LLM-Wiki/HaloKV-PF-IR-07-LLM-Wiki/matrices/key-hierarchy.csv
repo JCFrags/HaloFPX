@@ -1,0 +1,10 @@
+level,name,example_id,key_material,binding,rotation_scope,notes
+0,Authority root,authority_id,Root KEK or root derivation key in KMS/HSM,Organization/security-domain authority,All subordinate domains; avoid direct data encryption,"Human decision: owner, custody, quorum, escrow."
+1,Tenant root,tenant_id,"Random tenant root wrapped by authority root, or KDF-isolated tenant branch",Immutable tenant UUID from principal authority,All tenant projects/prefixes,Do not derive from tenant display name.
+2,Project root,project_id,Random/wrapped project root or context-derived branch,Immutable project UUID and authorization relation,Project cache,Optional if tenant has no project separation; do not omit field silently.
+3,Prefix authority,prefix_id,Prefix branch,"Private prefix, public/system prefix, or service-controlled prefix",Objects under prefix,"System/public prefix uses a separate authority, not a tenant key."
+4,Namespace and sharing class,namespace_id + sharing_class,Namespace branch,"private-tenant, private-project, public-system, explicit-share-group",Deduplication and authorization domain,This level fixes maximum CID/dedup scope.
+5,Rank/peer branch,rank_id,Rank root delivered/wrapped to one rank,Authority-assigned rank identity,One rank within one namespace,Prevents cross-rank ciphertext reuse and partitions nonce state.
+6,Epoch,epoch_id,Random epoch root or derived epoch branch,Monotonic or random unique epoch identifier,New writes for rank/namespace,Old epoch can be read-only during bounded migration; uncertain nonce state requires new epoch.
+7,Purpose keys,purpose,"K_enc, K_id, K_manifest, optional K_audit; optionally K_wrap",Literal versioned purpose labels,One cryptographic purpose,Never reuse AEAD key as HMAC/CID/manifest key.
+8,Optional per-object DEK,object_id or random DEK id,Random DEK wrapped by K_wrap,One object or independently erasable group,Object/group,Needed only for fine-grained CE; increases metadata and key-record cost.

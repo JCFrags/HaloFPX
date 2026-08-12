@@ -1,0 +1,153 @@
+schema_version: 1
+accessed_at: 2026-07-17T00:00:00Z
+sources:
+  - id: SRC-001
+    title: "ROCm Core SDK 7.14.0 release notes"
+    publisher: "AMD"
+    url: "https://rocm.docs.amd.com/en/latest/about/release-notes.html"
+    scope: "release/support/profiler changes"
+  - id: SRC-002
+    title: "ROCm 7.14.0 compatibility matrix"
+    publisher: "AMD"
+    url: "https://rocm.docs.amd.com/en/latest/compatibility/compatibility-matrix.html"
+    scope: "supported OS, APU, driver and component combinations"
+  - id: SRC-003
+    title: "Ryzen Linux support matrices"
+    publisher: "AMD"
+    url: "https://rocm.docs.amd.com/projects/radeon-ryzen/en/latest/docs/compatibility/compatibilityryz/native_linux/native_linux_compatibility.html"
+    scope: "gfx1151/Ryzen production support channel"
+  - id: SRC-004
+    title: "AMD RDNA 3.5 system optimization"
+    publisher: "AMD"
+    url: "https://rocm.docs.amd.com/en/latest/how-to/system-optimization/rdna3-5.html"
+    scope: "Strix Halo kernel requirements and system settings"
+  - id: SRC-005
+    title: "AMD Ryzen AI Halo developer platform"
+    publisher: "AMD"
+    url: "https://www.amd.com/en/products/processors/desktops/ryzen/ryzen-ai-halo.html"
+    scope: "platform family and current product/software positioning"
+  - id: SRC-006
+    title: "Trillion-parameter LLM on Ryzen AI Max+ cluster"
+    publisher: "AMD"
+    url: "https://www.amd.com/en/developer/resources/technical-articles/2026/how-to-run-a-one-trillion-parameter-llm-locally-an-amd.html"
+    scope: "llama.cpp RPC cluster reference; not USB4 validation"
+  - id: SRC-007
+    title: "llama.cpp RPC README"
+    publisher: "ggml-org"
+    url: "https://github.com/ggml-org/llama.cpp/blob/master/tools/rpc/README.md"
+    scope: "RPC topology, proof-of-concept and security warning"
+  - id: SRC-008
+    title: "llama-bench README"
+    publisher: "ggml-org"
+    url: "https://github.com/ggml-org/llama.cpp/blob/master/tools/llama-bench/README.md"
+    scope: "prompt-processing, text-generation and combined benchmark modes"
+  - id: SRC-009
+    title: "llama.cpp server README"
+    publisher: "ggml-org"
+    url: "https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md"
+    scope: "server timings, streaming and prompt-cache behavior"
+  - id: SRC-010
+    title: "Linux USB4 and Thunderbolt guide"
+    publisher: "Linux kernel community"
+    url: "https://docs.kernel.org/admin-guide/thunderbolt.html"
+    scope: "USB4NET host-to-host operation and security model"
+  - id: SRC-011
+    title: "USB4 specification overview"
+    publisher: "USB Implementers Forum"
+    url: "https://www.usb.org/usb4"
+    scope: "USB4 signaling and architecture; nominal capability only"
+  - id: SRC-012
+    title: "Linux Thunderbolt sysfs ABI"
+    publisher: "Linux kernel community"
+    url: "https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-bus-thunderbolt"
+    scope: "RX/TX speed, lane and topology attributes"
+  - id: SRC-013
+    title: "AMDGPU power and thermal monitoring"
+    publisher: "Linux kernel community"
+    url: "https://docs.kernel.org/gpu/amdgpu/thermal.html"
+    scope: "GPU busy, memory busy, gpu_metrics, power and thermal fields"
+  - id: SRC-014
+    title: "ROCm Compute Profiler compatible APUs"
+    publisher: "AMD"
+    url: "https://rocm.docs.amd.com/projects/rocprofiler-compute/en/develop/reference/compatible-accelerators.html"
+    scope: "Strix/Halo profiler support"
+  - id: SRC-015
+    title: "vLLM production metrics"
+    publisher: "vLLM project"
+    url: "https://docs.vllm.ai/en/stable/design/metrics/"
+    scope: "TTFT, inter-token latency, E2E and serving metrics"
+  - id: SRC-016
+    title: "vLLM benchmark CLI"
+    publisher: "vLLM project"
+    url: "https://docs.vllm.ai/en/latest/benchmarking/cli/"
+    scope: "serving benchmark and load-ramp methodology"
+  - id: SRC-017
+    title: "MLPerf Inference"
+    publisher: "MLCommons"
+    url: "https://mlcommons.org/working-groups/benchmarks/inference/"
+    scope: "benchmark reproducibility and inference measurement context"
+  - id: SRC-018
+    title: "MLPerf Client benchmark"
+    publisher: "MLCommons"
+    url: "https://mlcommons.org/benchmarks/client/"
+    scope: "separate accuracy qualification from performance"
+  - id: SRC-019
+    title: "Linux /proc/sys/vm drop_caches"
+    publisher: "Linux kernel community"
+    url: "https://docs.kernel.org/admin-guide/sysctl/vm.html#drop-caches"
+    scope: "test-only cache control and caveat"
+  - id: SRC-020
+    title: "Linux control group v2"
+    publisher: "Linux kernel community"
+    url: "https://docs.kernel.org/admin-guide/cgroup-v2.html"
+    scope: "per-cgroup resource and IO accounting"
+  - id: SRC-021
+    title: "Linux Pressure Stall Information"
+    publisher: "Linux kernel community"
+    url: "https://docs.kernel.org/accounting/psi.html"
+    scope: "CPU, memory and IO stall telemetry"
+  - id: SRC-022
+    title: "GitHub scheduled workflow events"
+    publisher: "GitHub"
+    url: "https://docs.github.com/actions/using-workflows/events-that-trigger-workflows#schedule"
+    scope: "cron behavior, delay and default-branch constraints"
+  - id: SRC-023
+    title: "GitHub REST commits API"
+    publisher: "GitHub"
+    url: "https://docs.github.com/en/rest/commits/commits"
+    scope: "commit polling and signature metadata"
+  - id: SRC-024
+    title: "AMD Product Security"
+    publisher: "AMD"
+    url: "https://www.amd.com/en/resources/product-security.html"
+    scope: "security bulletins and briefs"
+  - id: SRC-025
+    title: "Mesa release notes"
+    publisher: "Mesa project"
+    url: "https://docs.mesa3d.org/relnotes.html"
+    scope: "Mesa feature and bug-fix release stream"
+  - id: SRC-026
+    title: "ROCm GitHub repository"
+    publisher: "AMD"
+    url: "https://github.com/ROCm/ROCm"
+    scope: "ROCm releases, issues and source coordination"
+  - id: SRC-027
+    title: "TheRock repository"
+    publisher: "AMD"
+    url: "https://github.com/ROCm/TheRock"
+    scope: "nightly/build platform and GPU support readiness"
+  - id: SRC-028
+    title: "ROCm Systems repository"
+    publisher: "AMD"
+    url: "https://github.com/ROCm/rocm-systems"
+    scope: "current AMD SMI and profiler source location"
+  - id: SRC-029
+    title: "ROCm 7.14 ecosystem post"
+    publisher: "AMD"
+    url: "https://rocm.blogs.amd.com/ecosystems-and-partners/rocm-7.14-blog/README.html"
+    scope: "Strix Halo profiler and telemetry expansion"
+  - id: SRC-030
+    title: "GitHub REST API overview"
+    publisher: "GitHub"
+    url: "https://docs.github.com/en/rest"
+    scope: "authenticated polling and rate-limit-aware automation"

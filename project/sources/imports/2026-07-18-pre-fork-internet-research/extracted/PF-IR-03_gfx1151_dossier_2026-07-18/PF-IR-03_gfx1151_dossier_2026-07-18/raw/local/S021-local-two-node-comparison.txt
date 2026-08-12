@@ -1,0 +1,9 @@
+CAPTURE_TYPE: user-provided local comparison
+SOURCE_ID: S021
+CAPTURE_DATE: 2026-07-17
+ROCM_PACKAGES: 7.2.4
+MESA: 26.1.4
+KERNEL: 7.1.3
+CLASSIFICATION: LOCAL_COMPARISON_ONLY
+OFFICIAL_QUALIFICATION: no
+NOTE: node-specific package lists, configs, firmware and runtime results were not supplied and remain local.

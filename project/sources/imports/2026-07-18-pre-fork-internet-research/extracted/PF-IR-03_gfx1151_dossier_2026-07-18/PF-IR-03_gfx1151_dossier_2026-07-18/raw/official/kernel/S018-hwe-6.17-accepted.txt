@@ -1,0 +1,10 @@
+CAPTURE_TYPE: distro-package changelog record
+SOURCE_ID: S018
+URL: https://lists.ubuntu.com/archives/noble-changes/2026-February/053556.html
+ACCESS_DATE: 2026-07-18
+SOURCE_REFERENCE: turn398973view2
+PACKAGE: linux-hwe-6.17 6.17.0-16.16~24.04.1
+STATUS: Accepted (noble-proposed at the cited record)
+RELEVANT_CHANGESET:
+- drm/amdkfd: bump minimum vgpr size for gfx1151
+- drm/amdkfd: export cwsr_size and ctl_stack_size to userspace

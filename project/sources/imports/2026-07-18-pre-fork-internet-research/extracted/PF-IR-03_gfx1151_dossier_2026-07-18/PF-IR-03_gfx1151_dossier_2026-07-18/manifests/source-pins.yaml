@@ -1,0 +1,79 @@
+schema_version: 1
+capture_date: '2026-07-18'
+lanes:
+  core_sdk_7_14_0:
+    root:
+      repo: https://github.com/ROCm/TheRock.git
+      ref: therock-7.14
+      commit: 418cd5f63abb7a604bad5874cd7b2e29334e640f
+      signature_status: unverified
+    top_level_gitlinks:
+    - path: compiler/amd-llvm
+      repo: https://github.com/ROCm/llvm-project.git
+      commit: aa451e1fe6a793394d6733051b1778633063ae96
+      evidence: last amd-llvm-only gitlink bump before frozen TheRock commit
+    - path: compiler/hipify
+      repo: https://github.com/ROCm/HIPIFY.git
+      commit: 6acec7751d2b2bfe162dba9efdcf7c16efb27bd8
+      evidence: compiler weekly pin retained through frozen TheRock commit
+    - path: compiler/spirv-llvm-translator
+      repo: https://github.com/ROCm/SPIRV-LLVM-Translator.git
+      commit: fb08e83ae872775acfeaee53fda3ccf99a04ba53
+      evidence: compiler weekly pin retained through frozen TheRock commit
+    - path: rocm-libraries
+      repo: https://github.com/ROCm/rocm-libraries.git
+      commit: cd9574023093742434e8c992d13b89ab9a6c1cf8
+    - path: rocm-systems
+      repo: https://github.com/ROCm/rocm-systems.git
+      commit: 2b22ab0195cc1461cd9abf3b969e9dd7c10af350
+    submodule_repository_map:
+    - path: base/half
+      repo: https://github.com/ROCm/half.git
+      declared_branch: rocm
+    - path: compiler/hipify
+      repo: https://github.com/ROCm/HIPIFY.git
+      declared_branch: null
+    - path: compiler/amd-llvm
+      repo: https://github.com/ROCm/llvm-project.git
+      declared_branch: null
+    - path: base/rocm-cmake
+      repo: https://github.com/ROCm/rocm-cmake.git
+      declared_branch: mainline
+    - path: rocm-libraries
+      repo: https://github.com/ROCm/rocm-libraries.git
+      declared_branch: develop
+    - path: rocm-systems
+      repo: https://github.com/ROCm/rocm-systems.git
+      declared_branch: develop
+    - path: compiler/spirv-llvm-translator
+      repo: https://github.com/ROCm/SPIRV-LLVM-Translator.git
+      declared_branch: null
+    - path: third-party/sysdeps/linux/amd-mesa/mesa-fork
+      repo: https://github.com/ROCm/mesa-fork.git
+      declared_branch: main
+    - path: math-libs/libhipcxx
+      repo: https://github.com/ROCm/libhipcxx.git
+      declared_branch: amd-develop
+    - path: debug-tools/rocgdb/source
+      repo: https://github.com/ROCm/rocgdb.git
+      declared_branch: amd-staging-rocgdb-16
+    recursive_pin_authority: TheRock commit gitlinks plus share/therock/therock_manifest.json from acquired artifact; run
+      fetch-7.14-sources.sh and compare manifests
+    do_not_replace_with_branch_heads: true
+  legacy_7_2_4:
+    root_repositories:
+    - repo: https://github.com/ROCm/ROCm.git
+      ref: rocm-7.2.4
+      commit: e0b62c25d8ea39473a7208c1c8995f1b5c2e277c
+    - repo: https://github.com/ROCm/rocm-systems.git
+      ref: rocm-7.2.4
+      commit: 97f5574fe2fdc7bef44fb01545347912ee9f1779
+    - repo: https://github.com/ROCm/rocm-libraries.git
+      ref: rocm-7.2.4
+      commit: dabb6df2b988f8eabed1e2fecefaaf4e818bc7ef
+    - repo: https://github.com/ROCm/llvm-project.git
+      ref: rocm-7.2.4
+      commit: f58b06dce1f9c15707c5f808fd002e18c2accf7e
+    manifest_warning: ROCm/ROCm default.xml at rocm-7.2.4 defaults project revisions to refs/tags/rocm-7.2.0; it is not a
+      patch-level lock without overrides.
+    recursive_pin_authority: gitlinks in the three pinned superrepositories; capture with fetch-7.2.4-sources.sh

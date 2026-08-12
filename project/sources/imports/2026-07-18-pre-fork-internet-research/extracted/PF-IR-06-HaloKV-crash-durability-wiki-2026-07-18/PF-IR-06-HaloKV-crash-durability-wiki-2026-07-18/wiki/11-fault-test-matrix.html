@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fault-test program · PF-IR-06</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="../index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="00-scope-and-claim-language.html">Scope / labels</a><a href="01-executive-decision-record.html">Decision record</a><a href="02-portable-linux-minimum.html">Portable minimum</a><a href="03-temporary-files-and-publication.html">Publication</a><a href="04-deployed-filesystem-profile.html">Deployed profile</a><a href="05-ext4.html">ext4</a><a href="06-xfs.html">XFS</a><a href="07-btrfs.html">Btrfs</a><a href="08-io-uring.html">io_uring</a><a href="09-errors-space-direct-io.html">Errors / DIO</a><a href="10-locking-and-fencing.html">Locking</a><a class="active" href="11-fault-test-matrix.html">Fault program</a><a href="12-nontarget-portability.html">Non-targets</a><a href="13-open-questions.html">Open questions</a><a href="14-source-audit.html">Source audit</a><a href="../matrices/claim-ledger.html">Claim ledger</a><a href="../matrices/guarantee-source-test.html">Guarantee map</a><a href="../matrices/experiment-matrix.html">Experiment matrix</a><a href="../matrices/source-register.html">Source register</a><a href="../VERSION-PINS.html">Version pins</a><a href="../raw/README.html">Raw capture policy</a><a href="../licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="../scripts/fault-tests/README.html">Harness notes</a><a href="../BUILD-VALIDATION.html">Build validation</a><a href="../README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="../index.html">Wiki home</a><span>·</span><a href="11-fault-test-matrix.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>Fault-test program</h1>
+<p>The canonical matrix is <code>../matrices/experiment-matrix.md</code>. The scripts directory supplies unprivileged probes and templates for privileged/VM tests.</p>
+<h2>Test tiers</h2>
+<ol>
+<li><strong>Process fault tier:</strong> short writes, injected errno, kill failpoints, collisions, lock loss and recovery. Fast CI on a local test filesystem.</li>
+<li><strong>Loopback/dm tier:</strong> ext4/XFS/Btrfs images; data and metadata ENOSPC; quota; dm-error/dm-flakey; mount-option profiles. Requires root in an isolated runner.</li>
+<li><strong>VM power tier:</strong> host kills or resets the guest at persisted failpoints; remount/replay; validates acknowledged generation set. The guest must not perform orderly shutdown.</li>
+<li><strong>Deployed-stack tier:</strong> actual filesystem, volume manager, encryption, RAID, hypervisor/controller/device and firmware profile. This is the release evidence.</li>
+</ol>
+<h2>Required oracle</h2>
+<p>For every key, recovery may select only a file that passes format identity, exact declared length and hash. Before the final directory-sync/ack boundary, replacement recovery may expose either the old complete generation or the new complete generation; create-only recovery may expose the complete new object or no entry. After the certified directory-sync/ack boundary, the new complete generation must be present. A torn/mixed object is never permitted. An unacknowledged operation can be retried idempotently.</p>
+<h2>Evidence record</h2>
+<p>Archive: test ID, binary/source hash, kernel, filesystem and feature flags, mount output, block topology, device/firmware, failpoint, injected fault, syscall/CQE trace, kernel log, recovered namespace, object hashes, and pass/fail reason. Hash the complete run directory.</p>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="../assets/wiki.js"></script></body></html>

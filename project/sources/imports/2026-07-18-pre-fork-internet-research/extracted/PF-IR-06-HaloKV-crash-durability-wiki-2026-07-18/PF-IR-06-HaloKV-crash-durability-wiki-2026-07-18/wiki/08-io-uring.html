@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>io_uring and liburing contract · PF-IR-06</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="layout"><aside class="sidebar"><div class="brand"><a href="../index.html">PF-IR-06</a><small>Persistent-cache crash contract</small></div>
+<input id="nav-search" class="search" placeholder="Filter pages…" aria-label="Filter wiki navigation"><nav class="nav"><a href="00-scope-and-claim-language.html">Scope / labels</a><a href="01-executive-decision-record.html">Decision record</a><a href="02-portable-linux-minimum.html">Portable minimum</a><a href="03-temporary-files-and-publication.html">Publication</a><a href="04-deployed-filesystem-profile.html">Deployed profile</a><a href="05-ext4.html">ext4</a><a href="06-xfs.html">XFS</a><a href="07-btrfs.html">Btrfs</a><a class="active" href="08-io-uring.html">io_uring</a><a href="09-errors-space-direct-io.html">Errors / DIO</a><a href="10-locking-and-fencing.html">Locking</a><a href="11-fault-test-matrix.html">Fault program</a><a href="12-nontarget-portability.html">Non-targets</a><a href="13-open-questions.html">Open questions</a><a href="14-source-audit.html">Source audit</a><a href="../matrices/claim-ledger.html">Claim ledger</a><a href="../matrices/guarantee-source-test.html">Guarantee map</a><a href="../matrices/experiment-matrix.html">Experiment matrix</a><a href="../matrices/source-register.html">Source register</a><a href="../VERSION-PINS.html">Version pins</a><a href="../raw/README.html">Raw capture policy</a><a href="../licenses/SOURCE-LICENSE-INVENTORY.html">Licenses</a><a href="../scripts/fault-tests/README.html">Harness notes</a><a href="../BUILD-VALIDATION.html">Build validation</a><a href="../README.html">Bundle README</a></nav></aside>
+<main class="main"><article class="content"><div class="page-tools"><a href="../index.html">Wiki home</a><span>·</span><a href="08-io-uring.md">Markdown source</a><span>·</span><span>accessed 2026-07-18</span></div>
+<h1>io_uring and liburing contract</h1>
+<p>Semantic anchors: Linux 7.1.3 and liburing 2.15.</p>
+<h2>Completion and durability</h2>
+<p>A CQE reports the result of one submitted operation. For write-like operations, <code>cqe-&gt;res</code> is bytes transferred or a negated errno. A successful write CQE is not a durability boundary. The candidate sequence requires exact write completion, then a successful fsync/fdatasync CQE, then successful namespace publication, then a successful directory-fsync CQE.</p>
+<p>Linux 7.1.3 implements <code>IORING_OP_FSYNC</code> with <code>vfs_fsync_range</code>; <code>IORING_FSYNC_DATASYNC</code> selects datasync behavior. That establishes syscall equivalence, not deployed power-loss proof.</p>
+<h2>Registered files</h2>
+<p>Registration holds kernel file references. Closing the ordinary descriptor does not cancel pending requests. Slot update or unregister can detach the table entry while an in-flight request retains the old resource. Use resource tags when lifecycle certainty matters.</p>
+<h2>Registered buffers</h2>
+<p>Registration pins/maps application memory. Do not resize, unmap, free, repurpose, or return a buffer to another allocator while any request or old registered-resource generation can still reference it. A resource <strong>update/replacement</strong> may return while the old resource remains alive; a tag CQE can signal terminal release. Explicit <code>IORING_UNREGISTER_BUFFERS</code> is documented as synchronous, while ring-shutdown unpinning can finish asynchronously. Keep these cases distinct and test the selected lifecycle.</p>
+<h2>Cancellation and late CQEs</h2>
+<p>Cancellation is inherently racy. Track two logical operations: target and cancel request. Their CQEs can arrive in either order. The cancel result can be success, <code>-ENOENT</code> or <code>-EALREADY</code>; the target can complete normally, fail, or be cancelled. Disk I/O already submitted to hardware is commonly not cancellable.</p>
+<p><code>user_data</code> should encode at least operation kind, cache-root ID, object generation and resource/slot generation. Never store a raw pointer that can be freed and reallocated before all terminal CQEs are consumed.</p>
+<h2>Linked operations</h2>
+<p>Links sequence execution. Soft links cancel downstream requests only when a prior result is negative. A <strong>positive short write is not negative</strong>, so a blindly linked fsync can run after incomplete data. The safe default is:</p>
+<ol>
+<li>submit write(s);</li>
+<li>consume every CQE and prove exact total length;</li>
+<li>submit file sync;</li>
+<li>consume and check it;</li>
+<li>publish;</li>
+<li>submit/perform directory sync and check it.</li>
+</ol>
+<p>Hard links deliberately continue after errors and are unsuitable for durability sequencing unless every result is separately interpreted.</p>
+<h2>Teardown</h2>
+<p>Graceful shutdown: stop new SQEs; cancel outstanding operations; drain target, cancel, multishot-final and auxiliary/tag CQEs; unregister files/buffers; wait for release tags when used; then <code>io_uring_queue_exit</code>. Ring teardown cancels pending work but does not convert completed writes into synchronized writes or make application memory safe before terminal lifetime events.</p>
+
+<div class="footer">PF-IR-06 evidence bundle. Recommendations are not implementation durability claims. Verify manifests before use.</div>
+</article></main></div><script src="../assets/wiki.js"></script></body></html>

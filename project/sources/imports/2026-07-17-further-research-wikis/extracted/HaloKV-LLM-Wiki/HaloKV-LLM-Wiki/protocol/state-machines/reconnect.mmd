@@ -1,0 +1,19 @@
+flowchart TD
+  H[Authenticated HELLO] --> A{Authority generation/epoch valid?}
+  A -- no, stale --> S[REJECT_STALE and fence]
+  A -- future unproven --> S
+  A -- yes --> T{Exact topology fingerprint?}
+  T -- no --> C{Supported full-model reconfiguration?}
+  C -- yes --> RC[RECONFIGURE: new generation + rebuild/convert]
+  C -- no --> RS[RESET_SESSION]
+  T -- yes --> M{Same committed rank manifest present and verified?}
+  M -- yes --> E[RESUME_EXACT after two-rank attach barrier]
+  M -- no --> I[Compare Merkle subtrees / bounded inventory]
+  I --> P{Missing pages available independently?}
+  P -- yes --> D[FETCH_DELTA only for missing/corrupt objects]
+  P -- no --> R{Compact replay state and complete executable topology?}
+  R -- yes --> B[REBUILD_RANK by force-replay]
+  R -- no --> RS
+  D --> V[Verify all objects and logical position]
+  B --> V
+  V --> E

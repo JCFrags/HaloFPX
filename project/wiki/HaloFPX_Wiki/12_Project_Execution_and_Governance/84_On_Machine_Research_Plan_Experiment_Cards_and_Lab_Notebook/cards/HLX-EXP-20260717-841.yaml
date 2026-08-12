@@ -1,0 +1,101 @@
+schema_version: "1.0.0"
+experiment_id: "HLX-EXP-20260717-841"
+card_version: "1.0.0"
+title: "Identity, topology, and clock admission"
+family: "E01"
+status: "draft"
+owner: null
+reviewer: null
+hypothesis: "Both hosts and both logical USB4 links can be identified reproducibly, and the available clock state supports a declared timing method."
+falsifier: "Any required identity is ambiguous or unstable, or timing capability cannot be bounded for the intended observation."
+setup:
+  description: "Repeated read-only identity, topology, software, firmware, and clock capability capture on both hosts."
+  sut_boundary: "Two target hosts, their ports, cables, USB4 links, storage, firmware, software tuple, and timekeeping interfaces."
+  nodes: [null]
+  ranks: [null]
+  links: [null]
+  artifact_root: null
+prerequisites: ["Physical access to both hosts","Stable provisional node and link labels"]
+dependency_gates: []
+safety:
+  class: "read-only"
+  elevation_required: false
+  elevation_reason: null
+  authorization_required: false
+  authorization_record: null
+  hazards: ["Sensitive serials may require controlled artifact access"]
+  exact_targets: [null]
+  stop_plan: null
+  rollback_plan: null
+  emergency_stop: null
+commands:
+  - id: "unresolved-command-01"
+    description: "Resolve and review exact argv, host, working directory, outputs, safety target, and authorization before approval; this draft command is intentionally non-executable."
+    host: null
+    cwd: null
+    argv: null
+    environment: null
+    requires_elevation: null
+    destructive: false
+    authorization_gate: "Card status must be approved and every unresolved command field must be replaced."
+    expected_outputs: [null]
+environment_snapshot:
+  repositories: [null]
+  software: [null]
+  hardware: [null]
+  model: null
+  tokenizer: null
+  workload: null
+  configuration: null
+  clocks: [null]
+  collectors: [null]
+variables:
+  independent: ["host","capture ordinal"]
+  dependent: ["identity stability","topology discrepancies","clock capability"]
+  controlled: ["No reconfiguration between repeat captures"]
+controls:
+  baseline: "Repeat capture without reconfiguration"
+  randomized_order: null
+  random_seed: null
+  warmup: null
+  repetitions: null
+outputs:
+  root: null
+  raw: ["node-01/environment.json","node-02/environment.json","shared/topology.json","shared/time-capabilities.json"]
+  schemas: [null]
+  integrity_manifest: null
+analysis:
+  plan: null
+  statistics: null
+  uncertainty: null
+  exclusions: [null]
+  analysis_commit: null
+  command: null
+acceptance:
+  pass: "All later cards can reference unambiguous stable node, rank, link, device, software, firmware, and clock identities; differences are documented."
+  fail: "A required identity remains ambiguous, repeat capture conflicts materially, or the timing method lacks observable bounds."
+  inconclusive: "Required observations or uncertainty are insufficient for pass or fail; preserve the run and issue a revised card."
+  stop_rules: [null]
+result:
+  gate_result: null
+  conclusion: null
+  confidence: null
+  uncertainty: null
+  completed_at: null
+  run_ids: []
+follow_up: null
+links:
+  originating_sections: ["18","19","20","21","22","23","67","73","75"]
+  open_questions: ["HLX-OQ-8401","HLX-OQ-8402"]
+  issues: [null]
+  requirements: [null]
+  adrs: [null]
+  aliases: ["M82-01","M83-02","EX85-01","EX85-02","EX85-06"]
+provenance:
+  created_at: "2026-07-17T00:00:00Z"
+  updated_at: "2026-07-17T00:00:00Z"
+  authors: ["Codex section-84 research workflow"]
+  source_refs: ["S84-01", "S84-03", "S84-04"]
+  card_sha256: null
+notes: "Draft only. Null values and null list entries are unresolved contract fields, not measurements or permission to execute."
+

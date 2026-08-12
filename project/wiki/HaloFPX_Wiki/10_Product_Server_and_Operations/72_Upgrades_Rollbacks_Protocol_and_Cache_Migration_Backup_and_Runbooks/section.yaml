@@ -1,0 +1,19 @@
+section_id: "72"
+title: "Upgrades, Rollbacks, Protocol and Cache Migration, Backup, and Runbooks"
+category_id: "10"
+category_title: "Product Server and Operations"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 7
+open_question_count: 10
+required_machine_experiments:
+  - "OPS-72-E1 compatibility matrix"
+  - "OPS-72-E2 rolling and coordinated rehearsal"
+  - "OPS-72-E3 cache migration mutation"
+  - "OPS-72-E4 backup and restore disaster recovery"
+  - "OPS-72-E5 hardware replacement runbooks"
+related_sections: ["67", "68", "69", "70", "71"]
+applicability:
+  repositories: ["Custom_Inference_Project", "CachyLlama"]
+  software_versions: ["CachyLlama 6be745998f568e379ea197fcf827baec73ff9940", "Semantic Versioning 2.0.0"]
+  hardware_revisions: ["dual Strix Halo target; exact nodes open"]

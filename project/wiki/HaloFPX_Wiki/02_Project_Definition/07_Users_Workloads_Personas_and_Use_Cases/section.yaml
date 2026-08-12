@@ -1,0 +1,17 @@
+section_id: "07"
+title: "Users, Workloads, Personas, and Use Cases"
+category_id: "02"
+category_title: "Project Definition"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 5
+open_question_count: 10
+required_machine_experiments:
+  - "Privacy-preserving representative workload capture"
+  - "Cold, warm, and restart-restore workload replay"
+  - "Mixed interactive and batch concurrency test"
+  - "Tool-call quality and tenant-isolation test"
+related_sections: ["06", "08", "09", "10", "34", "36", "38", "46", "60", "69"]
+applicability:
+  repositories: ["ggml-org/llama.cpp@788e07d", "fewtarius/CachyLLama@6be7459", "fewtarius/llama-ai@1017f3d", "charlie12345/ROCmFPX@a5605a7"]
+  hardware: ["two-node Strix Halo target; actual deployment not inventoried"]

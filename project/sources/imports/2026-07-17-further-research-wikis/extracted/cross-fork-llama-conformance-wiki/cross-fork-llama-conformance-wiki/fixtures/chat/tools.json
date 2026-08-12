@@ -1,0 +1,55 @@
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "Use tools when instructed."
+    },
+    {
+      "role": "user",
+      "content": "Look up item 7."
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "id": "call_0001",
+          "type": "function",
+          "function": {
+            "name": "lookup",
+            "arguments": {
+              "item_id": 7
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_0001",
+      "name": "lookup",
+      "content": "{\"name\":\"seven\"}"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "lookup",
+        "description": "Look up one integer item.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "item_id": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "item_id"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "add_generation_prompt": true
+}

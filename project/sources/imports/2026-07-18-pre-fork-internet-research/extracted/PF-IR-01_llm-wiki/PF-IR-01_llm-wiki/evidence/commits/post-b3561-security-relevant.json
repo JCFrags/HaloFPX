@@ -1,0 +1,145 @@
+{
+  "capture_format": "security-relevant-commit-ledger/v1",
+  "repository": "ggml-org/llama.cpp",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "entries": [
+    {
+      "date": "2024-08-12",
+      "sha": "1f67436c5ee6f4c99e71a8518bdfc214c27ce934",
+      "title": "Enable RPC in released builds",
+      "kind": "attack-surface expansion",
+      "candidate": "Downstream release workflow retains equivalent explicit enablement",
+      "action": "Reverse in standard release; isolate RPC artifact."
+    },
+    {
+      "date": "2024-08-19",
+      "sha": "18eaf29f4c5f7c8e89412f3a9a0392a9e4e01d75",
+      "title": "Reject invalid commands and contain allocation failures",
+      "kind": "malformed-input/DoS hardening",
+      "candidate": "Semantic checks present",
+      "action": "Keep sentinel coverage."
+    },
+    {
+      "date": "2024-10-08",
+      "sha": "458367a90606448a9c0262b276947c9e536086e0",
+      "title": "Server public-deployment security controls",
+      "kind": "HTTP authorization/defaults",
+      "candidate": "Middleware present; fork diverges with slots enabled by default",
+      "action": "Backport policy/default portion: slots off, protected-by-default."
+    },
+    {
+      "date": "2025-02-06",
+      "sha": "1d20e53c40c3cc848ba2b95f5bf7c075eeec8b19",
+      "title": "COPY_TENSOR destination bounds check",
+      "kind": "known RCE-class RPC hardening",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-04",
+      "sha": "43ddab6eeeaab5a04fe5a364af0bafb0e4d35065",
+      "title": "Broader RPC malformed-input and failure handling",
+      "kind": "RPC validation/DoS hardening",
+      "candidate": "Measured present",
+      "action": "Keep; review integer sums in local static analysis."
+    },
+    {
+      "date": "2025-04-22",
+      "sha": "ab47dec3d37aa1927c2ec590e166b76141374ed3",
+      "title": "Explicit untrusted-network prohibition in SECURITY.md",
+      "kind": "security policy",
+      "candidate": "Policy is upstream documentation, not enforced by fork build",
+      "action": "Adopt as deployment policy and CI gate."
+    },
+    {
+      "date": "2025-05-01",
+      "sha": "8efbdadc616fa717c369059b9b388160958d886c",
+      "title": "Zero RPC tensor name/padding before serialization",
+      "kind": "information-leak hygiene",
+      "candidate": "Included by ancestry/semantics",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-07-25",
+      "sha": "64bf1c3744053cf7def10aeed21ff48883ee755b",
+      "title": "RPC null-buffer checks for get/set/copy",
+      "kind": "RPC validation",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-10-04",
+      "sha": "f39283960b58a92ecc0c72567711318b20e22b55",
+      "title": "COPY_TENSOR source-buffer validation",
+      "kind": "RPC validation",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-12-23",
+      "sha": "12ee1763a6f6130ce820a366d220bbadff54b818",
+      "title": "RPC buffer-type validation",
+      "kind": "RPC validation",
+      "candidate": "Included",
+      "action": "No source backport."
+    },
+    {
+      "date": "2025-12-28",
+      "sha": "60f17f56da78d8fabc658279fd25e109700122da",
+      "title": "Invalid endpoint crash handling",
+      "kind": "RPC robustness",
+      "candidate": "Included",
+      "action": "No source backport."
+    },
+    {
+      "date": "2026-01-11",
+      "sha": "28068af78996485eaa5c34557eae56dc1f996f92",
+      "title": "Narrow and clarify supported security scope",
+      "kind": "security policy",
+      "candidate": "External policy evidence",
+      "action": "Mirror scope in HaloFPX release documentation."
+    },
+    {
+      "date": "2026-01-11",
+      "sha": "4b060bf240daaeb4fc83386a628b9dfedeb33342",
+      "title": "Clarify server and DoS exclusions",
+      "kind": "security policy",
+      "candidate": "External policy evidence",
+      "action": "Do not infer network hardening from advisory status."
+    },
+    {
+      "date": "2026-03-21",
+      "sha": "2bcdddd5e3ade6b1e8c9437a652f9fbcf2ad2512",
+      "title": "Reject deprecated zero-block-size tensor types",
+      "kind": "RPC divide-by-zero/security hardening",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    },
+    {
+      "date": "2026-03-23",
+      "sha": "39bf0d3c6a95803e0f41aaba069ffbee26721042",
+      "title": "Emergency GRAPH_COMPUTE null-buffer rejection",
+      "kind": "RPC RCE mitigation",
+      "candidate": "Superseded by corrected behavior",
+      "action": "Do not cherry-pick alone."
+    },
+    {
+      "date": "2026-03-27",
+      "sha": "ba38f3becce7d1283585c73d796eb47d72bbbd30",
+      "title": "Correct CPU-buffer data-pointer serialization/validation",
+      "kind": "RPC RCE mitigation",
+      "candidate": "Measured semantic equivalent",
+      "action": "Required minimum if maintaining RPC."
+    },
+    {
+      "date": "2026-04-23",
+      "sha": "c78fb909b23758f5e418cf98a69bc8a0ef142fb8",
+      "title": "Clamp negative n_discard",
+      "kind": "HTTP memory-safety fix",
+      "candidate": "Measured present",
+      "action": "No source backport."
+    }
+  ],
+  "reuse_notice": "Commit metadata is factual; code changes are MIT-licensed by the repository.",
+  "payload_sha256": "361354e7dbc1638af4989d1c408b47a8f32c43733842a00193ae4f9b736e44de"
+}

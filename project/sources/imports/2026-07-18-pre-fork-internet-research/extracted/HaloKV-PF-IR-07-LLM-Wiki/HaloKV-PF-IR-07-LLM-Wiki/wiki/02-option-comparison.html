@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="fscrypt, LUKS/dm crypt, and object AEAD Comparative conclusion The three mechanisms enforce controls at different abstraction layers: fscrypt is a filesystem policy/key domain mech…">
+  <title>fscrypt, LUKS/dm-crypt, and object AEAD · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link active" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / fscrypt, LUKS/dm-crypt, and object AEAD</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>fscrypt, LUKS/dm-crypt, and object AEAD</h1>
+<h2 id="comparative-conclusion">Comparative conclusion<a class="heading-anchor" href="#comparative-conclusion" aria-label="Link to section">#</a></h2>
+<p>The three mechanisms enforce controls at different abstraction layers:</p>
+<ul>
+<li><strong>fscrypt</strong> is a filesystem policy/key-domain mechanism. It is useful for selective offline confidentiality of directory trees and filename protection, but ordinary fscrypt content modes do not authenticate HaloKV objects.</li>
+<li><strong>dm-crypt/LUKS2</strong> is a block-volume encryption and keyslot/unlock mechanism. It is the strongest operationally common stolen-volume baseline, but ordinary XTS mode is confidentiality-only and a shared unlocked volume does not separate tenants.</li>
+<li><strong>Object AEAD</strong> is the only option that natively binds HaloKV object bytes to tenant/project/prefix/rank/epoch/format semantics and can implement the required miss/recompute contract.</li>
+</ul>
+<p><span class="claim-label" data-claim="PFIR07-C045" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C045][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-111 §§2-4]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C051" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C051][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C004,C009-C012,C027,C039]</span></p>
+<h2 id="decision-matrix">Decision matrix<a class="heading-anchor" href="#decision-matrix" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Dimension</th>
+  <th>fscrypt v2</th>
+  <th>dm-crypt/LUKS2</th>
+  <th>Object AEAD</th>
+  <th>HaloKV decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Control granularity</td>
+  <td>Per encrypted directory tree / inode policy; file and filename encryption</td>
+  <td>Whole block mapping or volume</td>
+  <td>Per object/chunk/envelope and manifest</td>
+  <td>Use object AEAD as semantic enforcement; layer fscrypt/LUKS where operationally justified.</td>
+</tr>
+<tr>
+  <td>Primary threat boundary</td>
+  <td>Offline filesystem access without installed policy key</td>
+  <td>Offline block-device or volume access without active volume key</td>
+  <td>Unauthorized, wrong-domain, corrupt, substituted, or tampered cache object</td>
+  <td>These boundaries are complementary, not interchangeable.</td>
+</tr>
+<tr>
+  <td>At-rest payload confidentiality</td>
+  <td>Native for file contents and filenames within protected trees</td>
+  <td>Native for mapped blocks while mapping is closed; common XTS mode</td>
+  <td>Native for each encrypted payload</td>
+  <td>Require object AEAD; prefer at least one lower storage layer for stolen-media defense.</td>
+</tr>
+<tr>
+  <td>Cryptographic authenticity</td>
+  <td>Absent for ordinary file-content modes</td>
+  <td>Absent for ordinary XTS; possible with dm-integrity authenticated modes, selected stack marks experimental</td>
+  <td>Native tag verification over ciphertext and AAD</td>
+  <td>Only object AEAD supplies required object-semantic authentication in the minimum profile.</td>
+</tr>
+<tr>
+  <td>Tenant/project/principal binding</td>
+  <td>Indirect key-domain separation only; no HaloKV principal fields</td>
+  <td>Volume unlock identity only; no HaloKV principal fields</td>
+  <td>Explicit canonical principal/scope fields in AAD and KDF context</td>
+  <td>Bind authoritative principal IDs in AAD and authorization, not display names or mutable OS labels.</td>
+</tr>
+<tr>
+  <td>Wrong key / wrong tenant behavior</td>
+  <td>May appear as unavailable names/content; not a HaloKV miss contract</td>
+  <td>Mapping activation failure or garbage/I/O behavior depending mode</td>
+  <td>AEAD FAIL normalized to MISS_RECOMPUTE</td>
+  <td>One external miss class; precise reason only in access-controlled telemetry.</td>
+</tr>
+<tr>
+  <td>Unknown/corrupt object</td>
+  <td>Filesystem/application-dependent</td>
+  <td>May produce I/O errors only with supporting integrity; otherwise corruption may pass upward</td>
+  <td>Envelope parse bounds + tag + identifier + manifest checks; any failure is miss</td>
+  <td>Fail closed before decompression/deserialization.</td>
+</tr>
+<tr>
+  <td>Replay / rollback protection</td>
+  <td>None</td>
+  <td>None by default</td>
+  <td>Not supplied by AEAD alone; can bind epoch/generation but needs trusted freshness state</td>
+  <td>Maintain trusted epoch floors and manifest generations where freshness is required.</td>
+</tr>
+<tr>
+  <td>Online privileged compromise</td>
+  <td>Does not protect after keys are installed against privileged live compromise</td>
+  <td>Does not protect after mapping is active</td>
+  <td>Keys/plaintext available to authorized process; does not defeat compromised process/kernel</td>
+  <td>Out of cryptographic at-rest scope; use OS isolation, least privilege, attestation only as separate controls.</td>
+</tr>
+<tr>
+  <td>Online co-tenant separation</td>
+  <td>Possible directory-key separation plus OS access controls</td>
+  <td>Weak if tenants share one unlocked mapping</td>
+  <td>Strongest native cryptographic tenant/project binding if keys and AAD are separated</td>
+  <td>Object AEAD mandatory for shared multi-user cache.</td>
+</tr>
+<tr>
+  <td>Peer/rank separation</td>
+  <td>Possible separate directory policies but operationally coarse</td>
+  <td>Separate volumes/mappings are coarse</td>
+  <td>Per-rank derived key within epoch; rank ID in AAD</td>
+  <td>Use rank-local AEAD key domain and rank-local nonce state.</td>
+</tr>
+<tr>
+  <td>Nonce/IV lifecycle</td>
+  <td>Kernel/filesystem mode-specific; application does not manage object nonce</td>
+  <td>Sector-IV mode managed by mapping configuration</td>
+  <td>Explicit 96-bit nonce allocation and per-key uniqueness; epoch rollover on uncertain state</td>
+  <td>Persist monotonic allocation safely or use randomly generated nonces under strict limits; never reuse intentionally.</td>
+</tr>
+<tr>
+  <td>Key storage and unlock</td>
+  <td>Filesystem master keys installed through fscrypt key APIs/keyrings</td>
+  <td>LUKS2 keyslots/tokens unwrap volume key; boot via crypttab or orchestrator</td>
+  <td>KMS/HSM/wrapped epoch roots; rank keys delivered to least-privileged service memory</td>
+  <td>No plaintext long-lived rank key on cache media; record authority and key owner.</td>
+</tr>
+<tr>
+  <td>Boot behavior</td>
+  <td>Mount may proceed while protected names remain inaccessible until key installation</td>
+  <td>Mapping may block, fail, or be optional depending crypttab/orchestrator policy</td>
+  <td>Cache starts cold/read-disabled until key authorization; compute path remains authoritative</td>
+  <td>Boot must fail closed for cache serving but should degrade to recomputation rather than plaintext cache.</td>
+</tr>
+<tr>
+  <td>Busy-file/mapping revocation</td>
+  <td>Open/in-use files can retain per-file keys after master-key removal</td>
+  <td>Mapping close can fail while busy; deferred close is not immediate</td>
+  <td>Process-held keys and already decrypted buffers survive until drained/wiped/terminated</td>
+  <td>Drain, close/unmap, revoke, verify absence, then destroy key references; document incomplete eviction.</td>
+</tr>
+<tr>
+  <td>Rotation</td>
+  <td>New policy/key usually means migration/rewrite or new tree</td>
+  <td>Credential/keyslot rotation differs from payload reencryption; reencryption has recovery modes</td>
+  <td>New epoch for writes; old epoch read-only during bounded transition; lazy recompute preferred</td>
+  <td>Prefer epoch rollover and cache recomputation over bulk in-place transformation.</td>
+</tr>
+<tr>
+  <td>Revocation blast radius</td>
+  <td>Directory-tree policy key</td>
+  <td>Entire volume key / all data on mapping</td>
+  <td>Tenant/project/prefix/rank/epoch scope; per-object with independent DEKs if required</td>
+  <td>Choose hierarchy granularity according to deletion and incident requirements.</td>
+</tr>
+<tr>
+  <td>Crash recovery</td>
+  <td>Filesystem crash behavior; no application authenticity/freshness semantics</td>
+  <td>Filesystem plus mapping; dm-integrity journal and LUKS reencryption resilience matter</td>
+  <td>Immutable object write + atomic manifest publish; nonce state and epoch recovery are explicit</td>
+  <td>Treat uncertain nonce counters or partially published manifests as miss/new epoch.</td>
+</tr>
+<tr>
+  <td>Backup/restore</td>
+  <td>Backup needs keys/policies and may expose names/metadata depending tool</td>
+  <td>Raw volume plus protected LUKS header/key dependencies; header backups are sensitive</td>
+  <td>Coherent ciphertext, authenticated manifests, format version, wrapped epochs, policy metadata</td>
+  <td>No cache backup by default; quarantine and validate any restore.</td>
+</tr>
+<tr>
+  <td>Content addressing and dedup</td>
+  <td>Filesystem block/file dedup interactions are filesystem-specific and can leak equality</td>
+  <td>Below-filesystem encryption usually disrupts physical ciphertext dedup and reveals allocation via discard</td>
+  <td>Scoped keyed CID enables authorized logical dedup; randomized ciphertext itself is not the stable key</td>
+  <td>Private dedup ≤ tenant/project sharing scope; public/system namespace separate.</td>
+</tr>
+<tr>
+  <td>Cryptographic erasure</td>
+  <td>Potentially tree-scoped only if all master/derived copies become inaccessible; busy files complicate</td>
+  <td>Volume-scoped if all volume-key unlock paths, headers, backups, escrow, and snapshots are eliminated</td>
+  <td>Epoch- or object-scoped depending independent key wrapping; all copies and backups still matter</td>
+  <td>State scope and evidence; never claim physical zeroization.</td>
+</tr>
+<tr>
+  <td>Discard and physical sanitization</td>
+  <td>Filesystem discard behavior separate from encryption</td>
+  <td>Pass-through discard leaks allocation and does not prove erase</td>
+  <td>Logical deletion/key destruction does not command media sanitization by itself</td>
+  <td>Use NIST SP 800-88r2-aligned media-specific procedure with verification/validation.</td>
+</tr>
+<tr>
+  <td>Operational complexity</td>
+  <td>Moderate; policy inheritance/keyring/busy-file caveats</td>
+  <td>Moderate; boot dependencies, mappings, header backup, reencryption</td>
+  <td>Highest implementation responsibility; envelope, canonicalization, nonce state, key authority, telemetry</td>
+  <td>Complexity is justified because semantic tenant/object binding cannot be delegated to lower layers.</td>
+</tr>
+<tr>
+  <td>Recommended HaloKV role</td>
+  <td>Optional/conditional defense-in-depth for per-tenant or service directory isolation</td>
+  <td>Recommended host-volume baseline where operationally supported</td>
+  <td>Required minimum multi-user persistent-cache control</td>
+  <td>Profile: object AEAD + optional fscrypt v2 + LUKS2/dm-crypt at host-volume layer.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="fscrypt-threat-boundary-and-caveats">fscrypt threat boundary and caveats<a class="heading-anchor" href="#fscrypt-threat-boundary-and-caveats" aria-label="Link to section">#</a></h2>
+<p>fscrypt protects file contents and filenames within protected trees against an offline observer who lacks the key, while leaving most filesystem metadata visible. The kernel documentation explicitly does not provide a general authenticity guarantee against offline modification. Once the key is installed, OS access control is the live protection boundary.</p>
+<p><span class="claim-label" data-claim="PFIR07-C002" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C002][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Threat model]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C003" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C003][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Threat model]</span></p>
+<p>Key removal is not instantaneous revocation for active objects: open or otherwise in-use files can retain per-file keys, and userspace must erase its own copies. Even after removal, this is not a claim that all plaintext copies, VFS state, registers, or caches have been wiped.</p>
+<p><span class="claim-label" data-claim="PFIR07-C005" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C005][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Removing keys]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C007" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C007][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Memory wiping]</span></p>
+<p><strong>Configuration posture:</strong> use fscrypt v2 policies for new use; isolate the cache process and key installer; keep policy descriptors and authority mappings in authenticated HaloKV metadata; rehearse key removal with busy descriptors. Do not use filesystem path or directory key possession as the sole tenant authorization decision.</p>
+<h2 id="dm-crypt-luks2-threat-boundary-and-caveats">dm-crypt/LUKS2 threat boundary and caveats<a class="heading-anchor" href="#dm-crypt-luks2-threat-boundary-and-caveats" aria-label="Link to section">#</a></h2>
+<p>LUKS2 stores and wraps a volume key through multiple credentials/keyslots and optional token metadata. Ordinary dm-crypt with XTS-AES provides block confidentiality. It does not authenticate blocks, objects, tenants, manifests, or freshness. LUKS2 metadata checksums/redundancy support corruption recovery but are not a general malicious-header authentication boundary.</p>
+<p><span class="claim-label" data-claim="PFIR07-C010" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C010][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LUKS2-SPEC-1.1.4 §Introduction]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C011" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C011][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LUKS2-SPEC-1.1.4 §§1.1,2]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C039" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C039][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38E §1]</span></p>
+<p><code>dm-integrity</code> can pair data with integrity tags and journaling, and authenticated dm-crypt modes can turn detected tampering into I/O failure. In the selected release documentation this path remains an optional/experimental configuration, and it still does not know HaloKV tenant or object semantics. Evaluate only after fault injection, performance testing, and recovery drills.</p>
+<p>LUKS header backups, detached headers, alternate keyslots, tokens, and escrow are key-bearing dependencies. Closing an active mapping fails while it is busy; deferred close is a future action, not completed revocation. Passphrase/keyslot rotation does not necessarily change the payload volume key.</p>
+<p><span class="claim-label" data-claim="PFIR07-C014" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C014][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-luksHeaderBackup]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C019" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C019][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-close]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C022" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C022][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 luksChangeKey and reencrypt]</span></p>
+<h2 id="object-aead-responsibility">Object AEAD responsibility<a class="heading-anchor" href="#object-aead-responsibility" aria-label="Link to section">#</a></h2>
+<p>The application owns more correctness obligations: canonical encoding, key hierarchy, nonce allocation, format versioning, parser bounds, replay state, atomic publish, telemetry, and negative tests. That complexity is accepted because lower layers cannot enforce the HaloKV semantic boundary.</p>
+<p>The object layer <strong>does not eliminate the value</strong> of lower layers. A practical profile is:</p>
+<ol>
+<li>Rank-local LUKS2/dm-crypt volume, unlocked only for the cache service lifecycle.</li>
+<li>Optional fscrypt v2 tree separation where selective unlock or host-user separation is useful.</li>
+<li>Mandatory object AEAD and authenticated manifests inside those layers.</li>
+<li>Optional dm-integrity authenticated storage only after environment-specific validation.</li>
+</ol>
+<h2 id="unsupported-substitutions">Unsupported substitutions<a class="heading-anchor" href="#unsupported-substitutions" aria-label="Link to section">#</a></h2>
+<p><span class="claim-label" data-claim="PFIR07-C071" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C071][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C003,C009]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C072" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C072][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C011-C012,C039]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C081" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C081][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C030-C049]</span></p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

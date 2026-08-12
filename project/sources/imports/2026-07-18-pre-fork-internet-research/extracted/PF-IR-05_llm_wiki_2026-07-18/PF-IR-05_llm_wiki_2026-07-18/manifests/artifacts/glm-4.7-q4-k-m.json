@@ -1,0 +1,67 @@
+{
+  "artifact_id": "ART-GLM47-Q4-K-M",
+  "candidate_id": "glm-4.7",
+  "repository": "unsloth/GLM-4.7-GGUF",
+  "revision": "a030db4a327b2dece3f0e5c4ff82c5f4feab4f26",
+  "folder_content_commit": "f3c1e89dabe51321e3783d430311930078856095",
+  "selected_path": "Q4_K_M",
+  "quantization": "Q4_K_M",
+  "lineage": {
+    "publisher_repository": "zai-org/GLM-4.7",
+    "publisher_revision": "602d01efcdd332c5238ca4bcede555defbe83eb7",
+    "converter": "Unsloth",
+    "format": "GGUF",
+    "conversion_recipe_commit": null
+  },
+  "display_total": "216 GB-class",
+  "exact_total_bytes": 216455572576,
+  "known_exact_subtotal_bytes": 216455572576,
+  "manifest_completeness": "EXACT_SELECTED_SHARDS",
+  "file_count": 5,
+  "shards": [
+    {
+      "name": "GLM-4.7-Q4_K_M-00001-of-00005.gguf",
+      "bytes": 50006655232,
+      "sha256": "85b45d0fe56295af49a080dc498882173ac8e90f60e6c5eab9a995c3564e754a",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    },
+    {
+      "name": "GLM-4.7-Q4_K_M-00002-of-00005.gguf",
+      "bytes": 49705685664,
+      "sha256": "732329c8d48b5468bf3a54355bf5d155471640041a9963433f0931b7fc5226b1",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    },
+    {
+      "name": "GLM-4.7-Q4_K_M-00003-of-00005.gguf",
+      "bytes": 49631164960,
+      "sha256": "e6d241ebfeb59a09a25237a4b2bf8efc05806b4b067aa51c7ca1c9f530ffc736",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    },
+    {
+      "name": "GLM-4.7-Q4_K_M-00004-of-00005.gguf",
+      "bytes": 49501239424,
+      "sha256": "96e609ec3c6259ab82be1ee322424588fde98816431030175f82af561e1457ec",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    },
+    {
+      "name": "GLM-4.7-Q4_K_M-00005-of-00005.gguf",
+      "bytes": 17610827296,
+      "sha256": "2ffdc358f1f71f7f96952408e1e0202f17ecf0a527783018d0b83b186d125f31",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    }
+  ],
+  "imatrix": {
+    "file": "imatrix_unsloth.dat",
+    "display_size": "about 688 MB",
+    "sha256": null,
+    "prompt_corpus": null,
+    "method": "Unsloth imatrix; corpus and exact generation command not captured",
+    "provenance_status": "PARTIAL_PROVENANCE"
+  },
+  "license": {
+    "declared": "MIT",
+    "upstream_license_source": "SRC-GLM47-PUBLISHER",
+    "conversion_repository_license_metadata": "mit"
+  },
+  "local_validation": "NOT_RUN"
+}

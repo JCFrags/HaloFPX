@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-wpc6-j37r-jcx7",
+  "title": "Outbound header CRLF injection",
+  "severity": "High",
+  "affected_versions": "<=0.29.0",
+  "patched_versions": "0.30.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-wpc6-j37r-jcx7",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "client/server header setters",
+    "precondition": "Untrusted value passed to outbound header API"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "e45ed13ba880b5a4d37f369d7056a65b9e07a495064a231e72f9ca4403c171d8"
+}

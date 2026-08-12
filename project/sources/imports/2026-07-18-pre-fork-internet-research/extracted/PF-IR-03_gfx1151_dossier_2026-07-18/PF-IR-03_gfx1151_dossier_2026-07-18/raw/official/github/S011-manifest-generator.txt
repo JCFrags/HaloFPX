@@ -1,0 +1,10 @@
+CAPTURE_TYPE: source provenance record
+SOURCE_ID: S011
+URL: https://github.com/ROCm/TheRock/blob/therock-7.14/build_tools/generate_therock_manifest.py
+ACCESS_DATE: 2026-07-18
+FILE_BLOB_SHA: a7b22bd6a40670d3a79deb6ec7e5b89788cd68b4
+SPDX_HEADER: MIT
+OBSERVED_SEMANTICS:
+- Uses Git tree state to record submodule gitlink SHAs.
+- Records patch paths and build provenance in therock_manifest.json.
+CLASSIFICATION: source manifest, not a complete software bill of materials.

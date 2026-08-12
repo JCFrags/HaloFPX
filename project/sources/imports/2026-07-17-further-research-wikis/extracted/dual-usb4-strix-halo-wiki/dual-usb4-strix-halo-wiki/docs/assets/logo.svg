@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" role="img" aria-label="Dual USB4 Wiki">
+  <rect width="640" height="160" rx="24" fill="#15202b"/>
+  <rect x="48" y="44" width="120" height="72" rx="12" fill="#263238" stroke="#26c6da" stroke-width="4"/>
+  <rect x="472" y="44" width="120" height="72" rx="12" fill="#263238" stroke="#26c6da" stroke-width="4"/>
+  <path d="M168 64 C270 16 370 16 472 64" fill="none" stroke="#26c6da" stroke-width="8"/>
+  <path d="M168 96 C270 144 370 144 472 96" fill="none" stroke="#90caf9" stroke-width="8"/>
+  <text x="320" y="88" text-anchor="middle" font-family="system-ui,sans-serif" font-size="34" font-weight="700" fill="#ffffff">DUAL USB4</text>
+  <text x="320" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" fill="#b0bec5">LINUX TRANSPORT WIKI</text>
+</svg>

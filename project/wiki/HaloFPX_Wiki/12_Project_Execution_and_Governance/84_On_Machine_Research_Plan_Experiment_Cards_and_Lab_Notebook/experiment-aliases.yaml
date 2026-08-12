@@ -1,0 +1,131 @@
+schema_version: "1.0.0"
+aliases:
+  - alias: "M82-01"
+    title: "same-window hardware, firmware, cabling, port, and software inventory"
+    canonical_cards: ["HLX-EXP-20260717-841"]
+    coverage: "planned"
+  - alias: "M82-02"
+    title: "clean and offline HIP plus Vulkan builds on both nodes"
+    canonical_cards: ["HLX-EXP-20260717-843", "HLX-EXP-20260717-850"]
+    coverage: "planned"
+  - alias: "M82-03"
+    title: "model, quantization, backend correctness, and quality oracle"
+    canonical_cards: ["HLX-EXP-20260717-843"]
+    coverage: "planned"
+  - alias: "M82-04"
+    title: "memory, context, and concurrency allocation staircase"
+    canonical_cards: ["HLX-EXP-20260717-843"]
+    coverage: "planned"
+  - alias: "M82-05"
+    title: "single-node service conformance and restart"
+    canonical_cards: ["HLX-EXP-20260717-848"]
+    coverage: "planned"
+  - alias: "M82-06"
+    title: "replicated routing, affinity, overload, and peer-loss"
+    canonical_cards: ["HLX-EXP-20260717-847", "HLX-EXP-20260717-849"]
+    coverage: "planned"
+  - alias: "M82-07"
+    title: "single-link and dual-link independence and service envelope"
+    canonical_cards: ["HLX-EXP-20260717-844"]
+    coverage: "planned"
+  - alias: "M82-08"
+    title: "GPU-produce to peer-GPU-consume transport conformance"
+    canonical_cards: ["HLX-EXP-20260717-845"]
+    coverage: "planned"
+  - alias: "M82-09"
+    title: "matched distributed-mode comparison and break-even analysis"
+    canonical_cards: ["HLX-EXP-20260717-847"]
+    coverage: "planned"
+  - alias: "M82-10"
+    title: "cache restore, crash, mutation, incompatibility, and isolation matrix"
+    canonical_cards: ["HLX-EXP-20260717-846"]
+    coverage: "planned"
+  - alias: "M82-11"
+    title: "cache I/O, hit-rate, write-amplification, and endurance under mixed load"
+    canonical_cards: ["HLX-EXP-20260717-846"]
+    coverage: "planned"
+  - alias: "M82-12"
+    title: "integrated long-context, multi-session, fault, soak, upgrade, and rollback"
+    canonical_cards: ["HLX-EXP-20260717-848", "HLX-EXP-20260717-849", "HLX-EXP-20260717-850"]
+    coverage: "planned"
+  - alias: "M83-01"
+    title: "paired USB4 topology and independence qualification"
+    canonical_cards: ["HLX-EXP-20260717-844"]
+    coverage: "planned"
+  - alias: "M83-02"
+    title: "software tuple, KFD ancestry, smoke, and rollback"
+    canonical_cards: ["HLX-EXP-20260717-841", "HLX-EXP-20260717-843", "HLX-EXP-20260717-850"]
+    coverage: "planned"
+  - alias: "M83-03"
+    title: "matched HIP/Vulkan correctness and performance matrix"
+    canonical_cards: ["HLX-EXP-20260717-843"]
+    coverage: "planned"
+  - alias: "M83-04"
+    title: "unified-memory pressure and admission envelope"
+    canonical_cards: ["HLX-EXP-20260717-843", "HLX-EXP-20260717-848"]
+    coverage: "planned"
+  - alias: "M83-05"
+    title: "NVMe inventory, endurance, disk-full, corruption, and crash matrix"
+    canonical_cards: ["HLX-EXP-20260717-846", "HLX-EXP-20260717-849"]
+    coverage: "conditional"
+  - alias: "M83-06"
+    title: "combined compute, fabric, storage, power, and thermal soak"
+    canonical_cards: ["HLX-EXP-20260717-848"]
+    coverage: "planned"
+  - alias: "M83-07"
+    title: "listener, identity, permission, secret, replay, and isolation tests"
+    canonical_cards: ["HLX-EXP-20260717-848", "HLX-EXP-20260717-849"]
+    coverage: "planned"
+  - alias: "M83-08"
+    title: "cable, rank, coordinator, output-commit, and observability fault matrix"
+    canonical_cards: ["HLX-EXP-20260717-849"]
+    coverage: "conditional"
+  - alias: "M83-09"
+    title: "offline restore, reproducible build, upstream sync, and rollback rehearsal"
+    canonical_cards: ["HLX-EXP-20260717-850"]
+    coverage: "planned"
+  - alias: "M83-10"
+    title: "independent operator bus-factor and schedule drill"
+    canonical_cards: ["HLX-EXP-20260717-850"]
+    coverage: "planned"
+  - alias: "EX85-01"
+    title: "kernel, firmware, USB4, HIP, and Vulkan paired revalidation"
+    canonical_cards: ["HLX-EXP-20260717-841", "HLX-EXP-20260717-843", "HLX-EXP-20260717-844"]
+    coverage: "conditional"
+  - alias: "EX85-02"
+    title: "ROCm, Mesa, RCCL tuple and two-rank correctness qualification"
+    canonical_cards: ["HLX-EXP-20260717-841", "HLX-EXP-20260717-843", "HLX-EXP-20260717-847"]
+    coverage: "conditional"
+  - alias: "EX85-03"
+    title: "llama.cpp and donor patch/build/state/custom-format regression qualification"
+    canonical_cards: ["HLX-EXP-20260717-843", "HLX-EXP-20260717-846", "HLX-EXP-20260717-850"]
+    coverage: "conditional"
+  - alias: "EX85-04"
+    title: "complete model artifact, conversion, backend, state, and quality revalidation"
+    canonical_cards: ["HLX-EXP-20260717-843", "HLX-EXP-20260717-846"]
+    coverage: "conditional"
+  - alias: "EX85-05"
+    title: "io_uring and HaloKV cancellation, completion, corruption, and pressure qualification"
+    canonical_cards: ["HLX-EXP-20260717-846", "HLX-EXP-20260717-849"]
+    coverage: "conditional"
+  - alias: "EX85-06"
+    title: "BIOS and firmware provenance, rollback, recovery, and soak qualification"
+    canonical_cards: ["HLX-EXP-20260717-841", "HLX-EXP-20260717-849", "HLX-EXP-20260717-850"]
+    coverage: "conditional"
+  - alias: "EXP-86-01"
+    title: "governance fixture repository validation"
+    canonical_cards: ["HLX-EXP-20260717-850"]
+    coverage: "planned"
+  - alias: "EXP-86-02"
+    title: "untrusted-fork and trusted-hardware CI threat drill"
+    canonical_cards: ["HLX-EXP-20260717-849"]
+    coverage: "conditional"
+  - alias: "EXP-86-03"
+    title: "vertical traceability slice on both nodes"
+    canonical_cards: ["HLX-EXP-20260717-850"]
+    coverage: "planned"
+  - alias: "EXP-86-04"
+    title: "release and rollback rehearsal"
+    canonical_cards: ["HLX-EXP-20260717-848", "HLX-EXP-20260717-849", "HLX-EXP-20260717-850"]
+    coverage: "planned"
+

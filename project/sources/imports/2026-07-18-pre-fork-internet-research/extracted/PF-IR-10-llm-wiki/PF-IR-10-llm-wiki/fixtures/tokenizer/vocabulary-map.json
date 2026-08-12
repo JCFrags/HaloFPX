@@ -1,0 +1,14 @@
+{
+  "byte_token_base": 7,
+  "byte_token_rule": "token_id = 7 + input_byte",
+  "special_tokens": {
+    "</s>": 2,
+    "<s>": 1,
+    "<unk>": 0,
+    "<|end_tool_call|>": 6,
+    "<|eot_id|>": 3,
+    "<|pad|>": 4,
+    "<|tool_call|>": 5
+  },
+  "vocabulary_size": 263
+}

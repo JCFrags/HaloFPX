@@ -1,0 +1,34 @@
+{
+  "XRT_LICENSE.lines1-55.txt": {
+    "repository": "Xilinx/XRT",
+    "commit": "a21f10d59b51e9235b7c90b804470fce9650cfa0",
+    "path": "LICENSE",
+    "upstream_blob_sha1": "2d57c902f59b9d65bc04651e9cea007ab21ead23",
+    "capture": "exact excerpt, lines 1-55",
+    "access_date": "2026-07-18"
+  },
+  "LLVM-AIE_LICENSE.lines1-20.txt": {
+    "repository": "Xilinx/llvm-aie",
+    "commit": "ce8c0f8fd66bff15b347351c67e9fb4fe0a17205",
+    "path": "LICENSE.TXT",
+    "upstream_blob_sha1": "fa6ac540007032cbd0ec772a1c72e6cb5527a4fe",
+    "capture": "exact excerpt, lines 1-20",
+    "access_date": "2026-07-18"
+  },
+  "MLIR-AIE_LICENSE.lines1-20.txt": {
+    "repository": "Xilinx/mlir-aie",
+    "commit": "79089be0abae3c7ec8a69b69357031b99667bdd4",
+    "path": "LICENSE",
+    "upstream_blob_sha1": "3149f1e840dc915b6355a397462634e362dc3cef",
+    "capture": "exact excerpt, lines 1-20",
+    "access_date": "2026-07-18"
+  },
+  "RAG-OGA.embedding-relevant.md": {
+    "repository": "amd/RyzenAI-SW",
+    "commit": "9513bd60ddd5cb960ddda897096b808dd5cca6d0",
+    "path": "LLM-examples/RAG-OGA/README.md",
+    "upstream_blob_sha1": "d44216307ac18ea01a59a129e52af67ffceaea21",
+    "capture": "selected exact passages; non-contiguous",
+    "access_date": "2026-07-18"
+  }
+}

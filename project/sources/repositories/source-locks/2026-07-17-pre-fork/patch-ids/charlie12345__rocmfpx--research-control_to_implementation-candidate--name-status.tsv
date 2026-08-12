@@ -1,0 +1,14 @@
+M	ggml/src/ggml-cpu/ggml-cpu.c
+M	ggml/src/ggml-cpu/quants.h
+M	ggml/src/ggml-cuda/fattn-common.cuh
+M	ggml/src/ggml-cuda/fattn-tile.cuh
+M	ggml/src/ggml-cuda/fattn-vec.cuh
+M	ggml/src/ggml-cuda/fattn.cu
+M	ggml/src/ggml-cuda/template-instances/fattn-vec-instance-turbo3_0-turbo3_0.cu
+M	ggml/src/ggml-cuda/template-instances/fattn-vec-instance-turbo4_0-turbo4_0.cu
+M	ggml/src/ggml-hip/CMakeLists.txt
+A	ggml/src/ggml-hip/fattn-kv-batched.cu
+A	ggml/src/ggml-hip/fattn-vec-turbo-mixed.cu
+M	ggml/src/ggml-quants.c
+M	ggml/src/ggml.c
+M	tests/test-backend-ops.cpp

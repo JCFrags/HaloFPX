@@ -1,0 +1,18 @@
+section_id: "40"
+title: "Full Replication, Request Routing, and Session Affinity"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 5
+open_question_count: 7
+required_machine_experiments:
+  - "DR-40-E1 router/load matrix"
+  - "DR-40-E2 failover and cache safety"
+  - "DR-40-E3 model diversity/reload"
+related_sections: ["38", "39", "46", "48", "55", "56"]
+applicability:
+  repositories:
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "fewtarius/CachyLlama@6be745998f568e379ea197fcf827baec73ff9940"
+  hardware: "dual Strix Halo premise"

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>PF-IR-11 decision — PF-IR-11</title>
+<link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="wiki/00-home.html">Home / decision</a></li><li><a href="wiki/01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="wiki/02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="wiki/03-firmware.html">Firmware</a></li><li><a href="wiki/04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="wiki/05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="wiki/06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="wiki/07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="wiki/08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="wiki/09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="wiki/10-role-evaluation.html">Role evaluation</a></li><li><a href="wiki/11-bounded-experiment.html">Bounded experiment</a></li><li><a href="wiki/12-read-only-probe.html">Read-only probe</a></li><li><a href="wiki/13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="wiki/14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="DECISION.html">Decision memo</a></li>
+    <li><a href="manifests/sources.csv">Source manifest</a></li>
+    <li><a href="manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">DECISION.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>PF-IR-11 decision</h1>
+<blockquote>
+<p><strong><span class="claim claim-decision">[DECISION]</span> KEEP EXCLUDED — 2026-07-18</strong></p>
+</blockquote>
+<p>The Ryzen AI MAX+ 395 XDNA2 NPU remains excluded from the product architecture and from the primary HIP/Vulkan fork path.</p>
+<h2 id="basis">Basis</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The Linux substrate is real: the pinned mainline <code>amdxdna</code> driver recognizes PCI <code>1022:17f0</code> revision <code>0x11</code>, the matching <code>linux-firmware</code> namespace exists, the UAPI exposes contexts, buffer objects, command submission, explicit synchronization, telemetry, firmware queries, and power/resource data.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> A usable high-level model path still depends on a matched AMD package set: XRT base/NPU packages, the <code>amdxdna</code> plugin/shim, Ryzen AI Software, compiler passes, execution providers, and model/cache artifacts. AMD documents strict version coupling and warns that driver/firmware or driver/plugin mismatches can produce mailbox failures, aborted commands, or unsupported ioctls.</p>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> The NPU is not cache coherent. Host DDR to local memory-tile/L2 movement is explicit and compiler/<code>ctrlcode</code> driven. AMD IOMMU, SVA/PASID, native execution, firmware loading, and locked-memory limits are material deployment constraints.</p>
+<p><span class="claim claim-missing">[MISSING]</span> The actual target distro and installed stack have not been probed. There are no local measurements for correctness, graph partitioning, latency, throughput, energy, thermal behavior, memory movement, suspend/resume, or recovery.</p>
+<p><span class="claim claim-unsupported">[UNSUPPORTED]</span> No <code>llama.cpp</code> NPU backend is established. The documented AMD <code>llama.cpp</code> path is for the iGPU.</p>
+<h2 id="permitted-re-entry-gate">Permitted re-entry gate</h2>
+<p><span class="claim claim-decision">[DECISION]</span> One isolated auxiliary experiment may be considered only after the read-only probe passes:</p>
+<ul>
+<li>task: prompt classification or moderation represented by a task-specific DistilBERT-class classifier;</li>
+<li>model boundary: ONNX opset 17, BF16, batch 1, fixed sequence length 128;</li>
+<li>runtime boundary: AMD's matched Linux package set in an isolated environment;</li>
+<li>architectural boundary: no dependency from the primary inference path and no modifications to the HIP/Vulkan fork;</li>
+<li>acceptance boundary: correctness parity, demonstrated NPU placement, stable execution, and a material latency or energy benefit.</li>
+</ul>
+<p>Failure of any gate retains <code>keep excluded</code>.</p>
+<p>See <a href="decision/keep-excluded-2026-07-18.html"><code>decision/keep-excluded-2026-07-18.md</code></a> and <a href="decision/bounded-classifier-experiment.html"><code>decision/bounded-classifier-experiment.md</code></a>.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="assets/wiki.js"></script>
+</body>
+</html>

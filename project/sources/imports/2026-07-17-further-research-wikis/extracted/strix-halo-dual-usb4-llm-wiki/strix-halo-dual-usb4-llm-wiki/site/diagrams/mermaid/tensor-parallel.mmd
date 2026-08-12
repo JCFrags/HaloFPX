@@ -1,0 +1,5 @@
+flowchart LR
+  A[Rank 0: tensor/KV/vocab shard 0] <-->|2L all-reduces; S=N h ba or Q h ba| B[Rank 1: tensor/KV/vocab shard 1]
+  A --> S[Distributed sampler; final token authority rank 0]
+  B --> S
+

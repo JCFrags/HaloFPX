@@ -1,0 +1,5 @@
+[NORMATIVE METADATA / REDISTRIBUTION GAP]
+USB Type-C Cable and Connector Specification Release 2.5
+Date observed: 2026-04-08
+Access: public download subject to USB-IF specification license.
+The dossier records cable discovery/identity as a standards dependency but does not redistribute the normative package.

@@ -1,0 +1,212 @@
+[
+  {
+    "control_id": "PFIR07-MP-001",
+    "level": "HALOKV-MUST",
+    "control": "Use authenticated object encryption for every persistent private, project, or system/public cache object.",
+    "verification": "Format inspection and negative tag tests.",
+    "basis": "PFIR07-C050,C058"
+  },
+  {
+    "control_id": "PFIR07-MP-002",
+    "level": "HALOKV-MUST",
+    "control": "Use an approved implementation of AES-256-GCM or ChaCha20-Poly1305 with a 128-bit authentication tag; AES-GCM-SIV may be an explicitly versioned alternative.",
+    "verification": "Cryptographic module inventory; test vectors.",
+    "basis": "PFIR07-C030-C036"
+  },
+  {
+    "control_id": "PFIR07-MP-003",
+    "level": "HALOKV-MUST",
+    "control": "Use 96-bit nonces and enforce uniqueness within each AEAD key domain; never truncate or recycle nonce state.",
+    "verification": "Allocator review, collision tests, invocation metrics.",
+    "basis": "PFIR07-C031-C035"
+  },
+  {
+    "control_id": "PFIR07-MP-004",
+    "level": "HALOKV-MUST",
+    "control": "Assign a separate rank key domain per epoch, or document an equivalently rigorous nonce partition.",
+    "verification": "KDF context and key-broker policy inspection.",
+    "basis": "PFIR07-C055"
+  },
+  {
+    "control_id": "PFIR07-MP-005",
+    "level": "HALOKV-MUST",
+    "control": "Roll to a fresh epoch/key after uncertain nonce state, restored counter state, or suspected reuse.",
+    "verification": "Crash/restore fault-injection.",
+    "basis": "PFIR07-C033,C070"
+  },
+  {
+    "control_id": "PFIR07-MP-006",
+    "level": "HALOKV-MUST",
+    "control": "Bind immutable authority, tenant, project, prefix, namespace, sharing class, rank, epoch, object type, format, codec, sizes, chunk position, CID, and manifest generation in canonical AAD as applicable.",
+    "verification": "Cross-field substitution tests.",
+    "basis": "PFIR07-C057"
+  },
+  {
+    "control_id": "PFIR07-MP-007",
+    "level": "HALOKV-MUST",
+    "control": "Canonicalize AAD and identifier input with a versioned deterministic encoding and published test vectors.",
+    "verification": "Cross-language canonicalization suite.",
+    "basis": "PFIR07-C049,C057"
+  },
+  {
+    "control_id": "PFIR07-MP-008",
+    "level": "HALOKV-MUST",
+    "control": "Authenticate before decompression, deserialization, semantic parsing, or data exposure.",
+    "verification": "Fuzzing and code-path review.",
+    "basis": "PFIR07-C059"
+  },
+  {
+    "control_id": "PFIR07-MP-009",
+    "level": "HALOKV-MUST",
+    "control": "Normalize every unknown/corrupt/unauthenticated/wrong-key/wrong-principal/mismatch outcome to MISS_RECOMPUTE at the caller boundary.",
+    "verification": "Negative corpus and API contract tests.",
+    "basis": "PFIR07-C058,C063"
+  },
+  {
+    "control_id": "PFIR07-MP-010",
+    "level": "HALOKV-MUST",
+    "control": "Never serve cached plaintext or partially parsed data after authentication failure.",
+    "verification": "Taint and exception-path review.",
+    "basis": "PFIR07-C059,C063"
+  },
+  {
+    "control_id": "PFIR07-MP-011",
+    "level": "HALOKV-MUST",
+    "control": "Use purpose-separated encryption, identifier, manifest, and optional audit keys.",
+    "verification": "KDF/wrapping context review.",
+    "basis": "PFIR07-C054"
+  },
+  {
+    "control_id": "PFIR07-MP-012",
+    "level": "HALOKV-MUST",
+    "control": "Use immutable authority-issued tenant/project identifiers; mutable names are metadata only.",
+    "verification": "Principal-schema and rename tests.",
+    "basis": "PFIR07-C027,C051"
+  },
+  {
+    "control_id": "PFIR07-MP-013",
+    "level": "HALOKV-MUST",
+    "control": "Scope private deduplication/index lookup no wider than the authorized tenant/project sharing domain.",
+    "verification": "Index partition and authorization tests.",
+    "basis": "PFIR07-C052,C078"
+  },
+  {
+    "control_id": "PFIR07-MP-014",
+    "level": "HALOKV-MUST",
+    "control": "Use a separate authority-owned, publication-controlled namespace for public/system prefixes.",
+    "verification": "Key ownership and write-ACL inspection.",
+    "basis": "PFIR07-C053"
+  },
+  {
+    "control_id": "PFIR07-MP-015",
+    "level": "HALOKV-MUST",
+    "control": "Use a keyed, scope-specific private content identifier rather than a globally exposed raw plaintext digest.",
+    "verification": "CID derivation test vectors and index review.",
+    "basis": "PFIR07-C056"
+  },
+  {
+    "control_id": "PFIR07-MP-016",
+    "level": "HALOKV-MUST",
+    "control": "Authenticate manifests and bind generation/epoch; enforce a trusted freshness policy where rollback matters.",
+    "verification": "Replay/rollback tests.",
+    "basis": "PFIR07-C060"
+  },
+  {
+    "control_id": "PFIR07-MP-017",
+    "level": "HALOKV-MUST",
+    "control": "Write immutable objects with bounded lengths, fsync/atomic publish semantics, and publish the manifest/index last.",
+    "verification": "Power-failure and torn-write tests.",
+    "basis": "PFIR07-C059,C065"
+  },
+  {
+    "control_id": "PFIR07-MP-018",
+    "level": "HALOKV-MUST",
+    "control": "Keep object and epoch keys out of cache-media plaintext; obtain them from a controlled KMS/HSM or wrapped-key broker.",
+    "verification": "Filesystem scan, deployment configuration, key-broker audit.",
+    "basis": "PFIR07-C040,C046"
+  },
+  {
+    "control_id": "PFIR07-MP-019",
+    "level": "HALOKV-MUST",
+    "control": "Record key owner, custodian, authorization policy, lifecycle state, epoch, and destroy/escrow dependencies.",
+    "verification": "Key inventory and state-transition audit.",
+    "basis": "PFIR07-C040,C042"
+  },
+  {
+    "control_id": "PFIR07-MP-020",
+    "level": "HALOKV-MUST",
+    "control": "Drain users and terminate/restart affected workers before declaring revocation complete; verify fscrypt key status and/or dm-crypt mapping closure when used.",
+    "verification": "Revocation runbook exercise.",
+    "basis": "PFIR07-C005-C007,C019-C020,C026"
+  },
+  {
+    "control_id": "PFIR07-MP-021",
+    "level": "HALOKV-MUST",
+    "control": "Treat LUKS headers, header backups, detached headers, recovery credentials, KMS replicas, and snapshots as key-bearing dependencies.",
+    "verification": "Backup/key-copy inventory.",
+    "basis": "PFIR07-C014,C021,C042"
+  },
+  {
+    "control_id": "PFIR07-MP-022",
+    "level": "HALOKV-MUST",
+    "control": "Restore only into a quarantine namespace and enforce current epoch floors, tombstones, format policy, and authentication before publication.",
+    "verification": "Restore drill.",
+    "basis": "PFIR07-C065"
+  },
+  {
+    "control_id": "PFIR07-MP-023",
+    "level": "HALOKV-MUST",
+    "control": "Authorize and authenticate before export, then re-encrypt under the destination authority/scope and emit a new manifest.",
+    "verification": "Export integration tests and audit record.",
+    "basis": "PFIR07-C066"
+  },
+  {
+    "control_id": "PFIR07-MP-024",
+    "level": "HALOKV-MUST",
+    "control": "Describe deletion as logical deletion unless a documented CE or media-sanitization procedure has met its preconditions and evidence requirements.",
+    "verification": "Deletion report wording and evidence review.",
+    "basis": "PFIR07-C041-C044,C067"
+  },
+  {
+    "control_id": "PFIR07-MP-025",
+    "level": "HALOKV-MUST",
+    "control": "Do not claim per-object CE when an epoch key is shared by other live objects or usable key copies/backups remain.",
+    "verification": "Key-scope and copy inventory.",
+    "basis": "PFIR07-C068"
+  },
+  {
+    "control_id": "PFIR07-MP-026",
+    "level": "HALOKV-MUST",
+    "control": "Do not treat discard/TRIM acknowledgement as secure deletion or physical sanitization evidence.",
+    "verification": "Configuration and deletion-report review.",
+    "basis": "PFIR07-C069,C083"
+  },
+  {
+    "control_id": "PFIR07-MP-027",
+    "level": "HALOKV-SHOULD",
+    "control": "Use LUKS2/dm-crypt for the rank-local cache volume to protect offline media; keep discard off absent a reviewed exception.",
+    "verification": "Host storage configuration.",
+    "basis": "PFIR07-C039,C045,C069"
+  },
+  {
+    "control_id": "PFIR07-MP-028",
+    "level": "HALOKV-SHOULD",
+    "control": "Use fscrypt v2 when directory-level offline isolation or selective unlock adds value; do not count it as object authenticity.",
+    "verification": "Policy version and key-removal drill.",
+    "basis": "PFIR07-C001-C009"
+  },
+  {
+    "control_id": "PFIR07-MP-029",
+    "level": "HALOKV-SHOULD",
+    "control": "Avoid backing up regenerable cache content; when required, back up a coherent protected set and test quarantine restore.",
+    "verification": "Backup policy and restore evidence.",
+    "basis": "PFIR07-C064-C065"
+  },
+  {
+    "control_id": "PFIR07-MP-030",
+    "level": "HALOKV-MUST",
+    "control": "Maintain rate limits, recomputation coalescing, quotas, and circuit breakers so fail-closed misses do not become an unbounded denial-of-service primitive.",
+    "verification": "Load/abuse tests.",
+    "basis": "PFIR07-C058,C063; RR25"
+  }
+]

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Official support matrices · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html">Lane map</a><a href="02-official-support-matrices.html" class="active">Official support matrices</a><a href="03-component-dossier.html">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="06-source-build-provenance.html">Source/build provenance</a><a href="07-known-issues.html">Known issues</a><a href="08-rollback-removal.html">Rollback and removal</a><a href="09-licensing-sbom.html">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / Official support matrices</div>
+  <article><h1>Official Ryzen/Linux support matrices</h1>
+<h2>Core SDK 7.14.0 — current matrix</h2>
+<p>[DOCUMENTED_SUPPORT] The current 7.14 matrix lists Strix Halo/RDNA 3.5 <code>gfx1151</code> APUs, including 300-series and 400-series Ryzen AI MAX/MAX PRO parts. The support boundary for Ryzen APUs is:</p>
+<table>
+<thead>
+<tr>
+  <th>OS</th>
+  <th>Kernel</th>
+  <th>Driver</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Ubuntu 26.04</td>
+  <td>GA 7.0</td>
+  <td>inbox <code>amdgpu</code>/KFD from the supported Ubuntu release</td>
+</tr>
+<tr>
+  <td>Ubuntu 24.04.4</td>
+  <td>HWE 6.17</td>
+  <td>inbox <code>amdgpu</code>/KFD from the supported Ubuntu release</td>
+</tr>
+</tbody>
+</table>
+<p>The matrix does not assign Ryzen an Instinct-style amdgpu package or PLDM firmware version. Kernel and firmware provenance must therefore be captured from the chosen Ubuntu image.</p>
+<h2>7.14 maturity is not a single Boolean</h2>
+<ul>
+<li>[DOCUMENTED_SUPPORT] <code>gfx1151</code> is in the official compatibility selector.</li>
+<li>[PREVIEW_AVAILABILITY] AMD's transition guide explicitly calls Core SDK 7.14.0 a preview.</li>
+<li>[NOT_RELEASE_READY] TheRock's <code>SUPPORTED_GPUS.md</code> records build and sanity success but leaves Release Ready blank for Linux gfx1151.</li>
+<li>[MATURITY_CONFLICT] These statements coexist. The dossier does not erase one to simplify the other.</li>
+</ul>
+<h2>Legacy ROCm 7.2 Ryzen matrix</h2>
+<table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Captured official value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>OS</td>
+  <td>Ubuntu 24.04.3</td>
+</tr>
+<tr>
+  <td>OS caveat</td>
+  <td>preliminary support using the Ubuntu 24.04.2 installer</td>
+</tr>
+<tr>
+  <td>GPU targets</td>
+  <td>gfx1150, gfx1151</td>
+</tr>
+<tr>
+  <td>gfx1151 products listed</td>
+  <td>Ryzen AI Max+ 395, Ryzen AI Max 390, Ryzen AI Max 385</td>
+</tr>
+<tr>
+  <td>Framework tuple</td>
+  <td>PyTorch 2.9, ROCm 7.2, Python 3.12</td>
+</tr>
+<tr>
+  <td>Framework comment</td>
+  <td>official production support</td>
+</tr>
+<tr>
+  <td>Officially validated data type</td>
+  <td>FP16 only</td>
+</tr>
+</tbody>
+</table>
+<p>[LANE_BOUNDARY] ROCm 7.2.4 release notes are an Instinct-focused quality update. For Ryzen platform qualification, the Ryzen matrix—not the generic 7.2.4 patch note—is the controlling source.</p>
+<h2>Documentation drift record</h2>
+<p>[DOCUMENTATION_DRIFT] A 7.14 release-note table references an Ubuntu 24.04 OEM kernel minimum of <code>6.14.0-1018</code> or newer, while the current compatibility matrix specifies Ubuntu 24.04.4 with HWE 6.17. Qualification should use the current matrix. The older/minimum statement is retained for audit rather than silently reconciled.</p>
+<h2>Unverified combinations</h2>
+<p>The following are not documented support tuples in the captured sources:</p>
+<ul>
+<li>Core SDK 7.14.0 on generic upstream Linux 7.1.3.</li>
+<li>Core SDK 7.14.0 on Linux 7.2-rc with USB4STREAM.</li>
+<li>Legacy 7.2.4 packages combined with the 7.14 compiler or libraries.</li>
+<li>A 7.14 raw tarball accepted only because its locally computed hash is stable across two nodes.</li>
+</ul>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

@@ -1,0 +1,12 @@
+{"expected_ids_no_special":[],"expected_roundtrip_hex":"","id":"empty","input_hex":"","input_utf8":"","note":"empty input"}
+{"expected_ids_no_special":[72,39,129,40],"expected_roundtrip_hex":"41207a21","id":"ascii","input_hex":"41207a21","input_utf8":"A z!","note":"ASCII and spaces"}
+{"expected_ids_no_special":[39,16,20,17,39,39],"expected_roundtrip_hex":"20090d0a2020","id":"whitespace","input_hex":"20090d0a2020","input_utf8":" \t\r\n  ","note":"mixed whitespace"}
+{"expected_ids_no_special":[72,7,73,38,74],"expected_roundtrip_hex":"4100421f43","id":"nul-controls","input_hex":"4100421f43","input_utf8":"A\u0000B\u001fC","note":"NUL and C0 control"}
+{"expected_ids_no_special":[106,104,109,202,176],"expected_roundtrip_hex":"636166c3a9","id":"utf8-composed","input_hex":"636166c3a9","input_utf8":"café","note":"composed accent"}
+{"expected_ids_no_special":[106,104,109,108,211,136],"expected_roundtrip_hex":"63616665cc81","id":"utf8-decomposed","input_hex":"63616665cc81","input_utf8":"café","note":"decomposed accent"}
+{"expected_ids_no_special":[247,166,152,176,233,135,148,247,166,153,194],"expected_roundtrip_hex":"f09f91a9e2808df09f92bb","id":"emoji-zwj","input_hex":"f09f91a9e2808df09f92bb","input_utf8":"👩‍💻","note":"emoji ZWJ sequence"}
+{"expected_ids_no_special":[237,195,169,236,180,158,234,136,146,234,136,177],"expected_roundtrip_hex":"e6bca2e5ad97e3818be381aa","id":"cjk","input_hex":"e6bca2e5ad97e3818be381aa","input_utf8":"漢字かな","note":"CJK text"}
+{"expected_ids_no_special":[223,174,224,139,223,192,223,184,223,175,224,145,223,176],"expected_roundtrip_hex":"d8a7d984d8b9d8b1d8a8d98ad8a9","id":"rtl","input_hex":"d8a7d984d8b9d8b1d8a8d98ad8a9","input_utf8":"العربية","note":"right-to-left script"}
+{"expected_ids_no_special":[199,182],"expected_roundtrip_hex":"c0af","id":"invalid-overlong","input_hex":"c0af","input_utf8":null,"note":"invalid UTF-8 overlong sequence"}
+{"expected_ids_no_special":[135,198],"expected_roundtrip_hex":"80bf","id":"invalid-continuation","input_hex":"80bf","input_utf8":null,"note":"orphan UTF-8 continuation bytes"}
+{"expected_ids_no_special":[247,166,153],"expected_roundtrip_hex":"f09f92","id":"invalid-truncated-4","input_hex":"f09f92","input_utf8":null,"note":"truncated four-byte sequence"}

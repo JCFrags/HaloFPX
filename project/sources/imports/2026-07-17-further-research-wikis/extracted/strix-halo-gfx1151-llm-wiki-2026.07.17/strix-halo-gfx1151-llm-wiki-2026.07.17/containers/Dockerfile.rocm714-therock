@@ -1,0 +1,70 @@
+# syntax=docker/dockerfile:1.7
+ARG BASE_IMAGE=ubuntu:24.04
+FROM ${BASE_IMAGE} AS build
+ARG ROCM_VERSION=7.14.0
+ARG ROCM_TARBALL=therock-dist-linux-gfx1151-7.14.0.tar.gz
+ARG ROCM_TARBALL_SHA256=UNSET
+ARG LLAMA_COMMIT=86d86ed4396b4130922f7b9af26e3d9fc11a591b
+ARG HIP_ARCH=gfx1151
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential ca-certificates cmake curl git libcurl4-openssl-dev \
+      libnuma-dev libssl-dev libstdc++-12-dev ninja-build pkg-config python3 && \
+    rm -rf /var/lib/apt/lists/*
+RUN test "${ROCM_TARBALL_SHA256}" != UNSET || \
+      (echo 'Pass --build-arg ROCM_TARBALL_SHA256=<independently recorded hash>' >&2; exit 2)
+RUN curl --fail --location --retry 3 \
+      "https://repo.amd.com/rocm/tarball-multi-arch/${ROCM_TARBALL}" \
+      -o /tmp/rocm.tar.gz && \
+    echo "${ROCM_TARBALL_SHA256}  /tmp/rocm.tar.gz" | sha256sum -c - && \
+    mkdir -p /opt/rocm-${ROCM_VERSION} /tmp/rocm-extract && \
+    tar -xf /tmp/rocm.tar.gz -C /tmp/rocm-extract && \
+    if [ "$(find /tmp/rocm-extract -mindepth 1 -maxdepth 1 | wc -l)" -eq 1 ] && \
+       [ -d "$(find /tmp/rocm-extract -mindepth 1 -maxdepth 1)" ]; then \
+      cp -a "$(find /tmp/rocm-extract -mindepth 1 -maxdepth 1)/." /opt/rocm-${ROCM_VERSION}/; \
+    else cp -a /tmp/rocm-extract/. /opt/rocm-${ROCM_VERSION}/; fi && \
+    ln -s /opt/rocm-${ROCM_VERSION} /opt/rocm && \
+    test -x /opt/rocm/bin/hipconfig && rm -rf /tmp/rocm*
+ENV ROCM_PATH=/opt/rocm \
+    HIP_PATH=/opt/rocm \
+    PATH=/opt/rocm/bin:/opt/rocm/llvm/bin:${PATH} \
+    LD_LIBRARY_PATH=/opt/rocm/lib
+WORKDIR /src
+RUN git clone --filter=blob:none https://github.com/ggml-org/llama.cpp.git && \
+    cd llama.cpp && git fetch --depth=1 origin ${LLAMA_COMMIT} && \
+    git checkout --detach ${LLAMA_COMMIT}
+WORKDIR /src/llama.cpp
+RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
+    cmake -S . -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_PREFIX_PATH=/opt/rocm \
+      -DGGML_HIP=ON \
+      -DGGML_VULKAN=OFF \
+      -DGGML_CUDA=OFF \
+      -DCMAKE_HIP_ARCHITECTURES=${HIP_ARCH} \
+      -DGGML_HIP_ROCWMMA_FATTN=OFF \
+      -DGGML_HIP_NO_VMM=ON \
+      -DGGML_HIP_GRAPHS=ON \
+      -DLLAMA_BUILD_TESTS=OFF \
+      -DGGML_BUILD_TESTS=OFF && \
+    cmake --build build -j"$(nproc)" && \
+    printf 'llama_commit=%s\nrocm_version=%s\nhip_arch=%s\nrocm_tarball_sha256=%s\n' \
+      "${LLAMA_COMMIT}" "${ROCM_VERSION}" "${HIP_ARCH}" "${ROCM_TARBALL_SHA256}" \
+      > build/bin/STRIX_BUILD_PROVENANCE.txt
+
+FROM ${BASE_IMAGE} AS runtime
+ARG ROCM_VERSION=7.14.0
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl libcurl4 libgomp1 libnuma1 libssl3 libstdc++6 && \
+    rm -rf /var/lib/apt/lists/*
+COPY --from=build /opt/rocm-${ROCM_VERSION}/ /opt/rocm-${ROCM_VERSION}/
+RUN ln -s /opt/rocm-${ROCM_VERSION} /opt/rocm
+COPY --from=build /src/llama.cpp/build/bin/ /opt/llama/bin/
+ENV ROCM_PATH=/opt/rocm \
+    HIP_PATH=/opt/rocm \
+    PATH=/opt/llama/bin:/opt/rocm/bin:/opt/rocm/llvm/bin:${PATH} \
+    LD_LIBRARY_PATH=/opt/rocm/lib
+WORKDIR /work
+LABEL org.opencontainers.image.description="gfx1151 ROCm 7.14 Core SDK plus pinned llama.cpp build candidate; application validation is separate"
+CMD ["llama-cli", "--help"]

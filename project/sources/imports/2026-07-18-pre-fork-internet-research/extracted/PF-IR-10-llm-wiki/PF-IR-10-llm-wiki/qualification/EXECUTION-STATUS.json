@@ -1,0 +1,96 @@
+{
+  "candidate_binaries_executed": false,
+  "candidate_helper_scripts_executed": false,
+  "candidate_libraries_loaded": false,
+  "candidate_network_services_contacted": false,
+  "claim_labels": [
+    "UNEXECUTED-EVIDENCE",
+    "QUALIFICATION-REQUIRED"
+  ],
+  "executed_self_authored_tools": [
+    {
+      "path": "recipes/generate_assets.py",
+      "purpose": "deterministic fixture generation",
+      "sha256": "204a53d6c04b81c5de9aaaf65a82b55e7a34080e1d7862b19e7a0e716ee6e03d"
+    },
+    {
+      "path": "recipes/verify_gguf.py",
+      "purpose": "independent structural self-check",
+      "sha256": "2a68dc59d117cff2ac763012f8ae8b9980bfbe49ec8955e4c85a3a944308bb60"
+    },
+    {
+      "path": "recipes/build_manifest.py",
+      "purpose": "fixture/applicability manifest materialization",
+      "sha256": "f7b77aa0c0515323afd01b811befc5569ec3473f4aec54aa939de5a424e03c0c"
+    },
+    {
+      "path": "recipes/verify_corpus.py",
+      "purpose": "package self-check and clean reproduction",
+      "sha256": "a1d70bdfbe75ec73aab35a104497fe62ceff4fec295603a62cd99d46966a1942"
+    },
+    {
+      "path": "recipes/verify_comparators.py",
+      "purpose": "comparator command-line self-check",
+      "sha256": "f9324fb7a43daf9f3d369b4e7295b26dd6b516aa4fe987c709249dcd9c41b19d"
+    },
+    {
+      "path": "recipes/write_execution_status.py",
+      "purpose": "non-execution status materialization",
+      "sha256": "c4dfbd8c8aa4810dc0361baa3a154382b8840c20496f28a0b5d5488b844969cd"
+    },
+    {
+      "path": "recipes/package.py",
+      "purpose": "deterministic inventory/archive construction",
+      "sha256": "dc4a5988e7256b576ac06d665d5859f45736113f587a584cbffc95f306f37823"
+    },
+    {
+      "path": "comparators/exact_json.py",
+      "purpose": "canonical JSON comparator self-check",
+      "sha256": "0469c7929539b54703f63f4e02603cce635debaece22021c1012f90db5932322"
+    },
+    {
+      "path": "comparators/numeric.py",
+      "purpose": "numerical comparator self-check",
+      "sha256": "1e7a9a065981c8de4fd2b6c00bba762fbc3dcfb18764d0db083875604abba255"
+    },
+    {
+      "path": "comparators/rejection.py",
+      "purpose": "rejection classifier self-check",
+      "sha256": "f5e37c5166c31046b6be5140a8ec3cb20393d00e47f448bcc120be3412b9b543"
+    },
+    {
+      "path": "comparators/sse.py",
+      "purpose": "streaming reference validation",
+      "sha256": "54e907b348c5fc26120ed90d294023f7c7f5a3b1bf307284b072811a44b17b0f"
+    },
+    {
+      "path": "comparators/tokenizer_reference.py",
+      "purpose": "tokenizer reference validation",
+      "sha256": "ce23a28f6c43b6f75c2d2336bc0aec42f7019a5d929b6b798fdb383e6ca6d0f2"
+    },
+    {
+      "path": "comparators/json_schema_subset.py",
+      "purpose": "schema reference validation",
+      "sha256": "bcae192e1f34e5a1f037e7e5996bde2ccd78abefedbf7f10dd560acb12aab944"
+    }
+  ],
+  "prepared_on": "2026-07-18",
+  "python": {
+    "implementation": "CPython",
+    "platform": "Linux-4.4.0-x86_64-with-glibc2.41",
+    "version": "3.13.5"
+  },
+  "qualification_state": {
+    "mtp_artifact": "not present",
+    "recurrent_model": "not present",
+    "rocmfpx_type106_probe": "not candidate-loaded",
+    "tiny_llama_model": "not candidate-loaded"
+  },
+  "schema_version": 1,
+  "unexecuted_candidate_evidence": [
+    "adapters/run-candidate.example.sh",
+    "adapters/api-capture.example.py",
+    "recipes/portable-recurrent-model.md",
+    "recipes/portable-mtp-sidecar.md"
+  ]
+}

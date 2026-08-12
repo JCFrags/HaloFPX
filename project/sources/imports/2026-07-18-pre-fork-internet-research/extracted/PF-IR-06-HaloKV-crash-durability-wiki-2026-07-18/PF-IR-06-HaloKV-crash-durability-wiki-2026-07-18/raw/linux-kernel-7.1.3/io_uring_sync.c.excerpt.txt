@@ -1,0 +1,35 @@
+---
+source_id: "S007"
+title: "Linux io_uring fsync/fallocate implementation"
+capture_kind: "normalized-source-excerpt-from-immutable-revision"
+byte_exact_upstream_file: false
+repository: "gregkh/linux mirror of Linux stable"
+path: "io_uring/sync.c"
+version: "Linux 7.1.3"
+commit: "199c9959d3a9b53f346c221757fc7ac507fbac50"
+upstream_blob_sha1: "ab7fa1cd7dd639074190ff991aa2ae7121170ba5"
+line_ranges: "55-115"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "GPL-2.0"
+---
+int io_fsync_prep(struct io_kiocb *req, const struct io_uring_sqe *sqe)
+{
+        ...
+        sync->flags = READ_ONCE(sqe->fsync_flags);
+        if (unlikely(sync->flags & ~IORING_FSYNC_DATASYNC))
+                return -EINVAL;
+        ...
+        req->flags |= REQ_F_FORCE_ASYNC;
+        return 0;
+}
+
+int io_fsync(struct io_kiocb *req, unsigned int issue_flags)
+{
+        ...
+        ret = vfs_fsync_range(req->file, sync->off, end > 0 ? end : LLONG_MAX,
+                              sync->flags & IORING_FSYNC_DATASYNC);
+        io_req_set_res(req, ret, 0);
+        return IOU_COMPLETE;
+}
+
+int io_fallocate(...) { ... ret = vfs_fallocate(...); ... }

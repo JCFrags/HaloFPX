@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "answer": {
+      "const": 42,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "answer"
+  ],
+  "type": "object"
+}

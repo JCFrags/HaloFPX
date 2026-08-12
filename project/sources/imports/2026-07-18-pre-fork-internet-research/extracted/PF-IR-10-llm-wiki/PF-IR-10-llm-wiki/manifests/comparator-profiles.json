@@ -1,0 +1,77 @@
+{
+  "profiles": {
+    "canonical-json": {
+      "class": "exact-output",
+      "rule": "project dynamic fields, parse JSON, compare semantic tree; tool arguments parse then canonicalize"
+    },
+    "exact-allowed-token-set": {
+      "class": "exact-output",
+      "rule": "allowed next byte/token set equal; ordering ignored"
+    },
+    "exact-bytes": {
+      "class": "exact-output",
+      "rule": "SHA-256 and byte length equal"
+    },
+    "exact-template-utf8": {
+      "class": "exact-output",
+      "rule": "UTF-8 byte sequence equal"
+    },
+    "exact-token-ids": {
+      "class": "exact-output",
+      "rule": "integer token vector equal; detokenized bytes equal input bytes"
+    },
+    "fork-specific": {
+      "class": "fork-specific",
+      "rule": "evaluate only for declared candidate; other candidates reject or are not applicable"
+    },
+    "gguf-structural": {
+      "class": "exact-output",
+      "rule": "container fields, metadata, type IDs, dimensions, alignment, and tensor byte ranges equal"
+    },
+    "json-boundary-validity": {
+      "class": "expected-rejection",
+      "rule": "all incomplete cuts reject; complete record accepts"
+    },
+    "numeric-probabilities": {
+      "class": "numerical",
+      "rule": "token order exact when present; probabilities abs(error)<=1e-5; rtol=0"
+    },
+    "numeric_f32_restore": {
+      "class": "numerical",
+      "rule": "same continuation token IDs; logits abs(error)<=1e-5; rtol=0"
+    },
+    "rejection-class": {
+      "class": "expected-rejection",
+      "rule": "non-success plus coarse error class; diagnostic wording is not an oracle"
+    },
+    "request-contract": {
+      "class": "exact-output",
+      "rule": "request file is immutable input; response evaluated by another declared profile"
+    },
+    "rng-metamorphic": {
+      "class": "metamorphic",
+      "rule": "same-candidate clone/replay equality; no cross-fork exact RNG sequence oracle"
+    },
+    "schema-validity": {
+      "class": "exact-output",
+      "rule": "valid/invalid boolean equal under declared JSON-Schema subset"
+    },
+    "sse-normalized": {
+      "class": "exact-output",
+      "rule": "incremental UTF-8 decode; data records in order; malformed-count and post-DONE-count exact"
+    },
+    "state-metamorphic": {
+      "class": "metamorphic",
+      "rule": "clone/reset/restore semantics; opaque serialization bytes excluded"
+    },
+    "state-semantic": {
+      "class": "metamorphic",
+      "rule": "continuation and logits equivalence after save/restore"
+    },
+    "utf8-validity": {
+      "class": "expected-rejection",
+      "rule": "validity boolean equal"
+    }
+  },
+  "schema_version": 1
+}

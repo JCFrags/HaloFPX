@@ -1,0 +1,261 @@
+candidate_id,candidate_name,profile_id,profile_name,member,context_tokens,capacity_gib,weight_plan_gib,kv_q8_plan_gib,reserve_os_gib,reserve_runtime_gib,reserve_skew_gib,total_plan_gib,margin_gib,utilization,fit
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,uma-256-single,Single 256 GiB unified-memory host,host,32768,256.0,190.0,3.25,12.0,8.0,4.0,217.25,38.75,0.8486328125,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,32768,128.0,95.0,1.75,10.0,6.0,4.0,116.75,11.25,0.912109375,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,32768,128.0,95.0,1.5,8.0,6.0,4.0,114.5,13.5,0.89453125,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,32768,96.0,63.5,1.25,0.0,6.0,2.0,72.75,23.25,0.7578125,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,32768,96.0,63.25,1.0,0.0,4.0,2.0,70.25,25.75,0.7317708333333334,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,32768,96.0,63.25,1.0,0.0,4.0,2.0,70.25,25.75,0.7317708333333334,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,32768,64.0,47.5,1.0,0.0,6.0,2.0,56.5,7.5,0.8828125,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,32768,64.0,47.5,0.75,0.0,4.0,2.0,54.25,9.75,0.84765625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,32768,64.0,47.5,0.75,0.0,4.0,2.0,54.25,9.75,0.84765625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,32768,64.0,47.5,0.75,0.0,4.0,2.0,54.25,9.75,0.84765625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,uma-256-single,Single 256 GiB unified-memory host,host,65536,256.0,190.0,6.25,12.0,8.0,4.0,220.25,35.75,0.8603515625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,65536,128.0,95.0,3.25,10.0,6.0,4.0,118.25,9.75,0.923828125,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,65536,128.0,95.0,3.0,8.0,6.0,4.0,116.0,12.0,0.90625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,65536,96.0,63.5,2.25,0.0,6.0,2.0,73.75,22.25,0.7682291666666666,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,65536,96.0,63.25,2.0,0.0,4.0,2.0,71.25,24.75,0.7421875,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,65536,96.0,63.25,2.0,0.0,4.0,2.0,71.25,24.75,0.7421875,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,65536,64.0,47.5,1.75,0.0,6.0,2.0,57.25,6.75,0.89453125,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,65536,64.0,47.5,1.5,0.0,4.0,2.0,55.0,9.0,0.859375,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,65536,64.0,47.5,1.5,0.0,4.0,2.0,55.0,9.0,0.859375,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,65536,64.0,47.5,1.5,0.0,4.0,2.0,55.0,9.0,0.859375,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,uma-256-single,Single 256 GiB unified-memory host,host,131072,256.0,190.0,12.5,12.0,8.0,4.0,226.5,29.5,0.884765625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,131072,128.0,95.0,6.25,10.0,6.0,4.0,121.25,6.75,0.947265625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,131072,128.0,95.0,6.25,8.0,6.0,4.0,119.25,8.75,0.931640625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,131072,96.0,63.5,4.25,0.0,6.0,2.0,75.75,20.25,0.7890625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,131072,96.0,63.25,4.25,0.0,4.0,2.0,73.5,22.5,0.765625,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,131072,96.0,63.25,4.0,0.0,4.0,2.0,73.25,22.75,0.7630208333333334,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,131072,64.0,47.5,3.25,0.0,6.0,2.0,58.75,5.25,0.91796875,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,131072,64.0,47.5,3.25,0.0,4.0,2.0,56.75,7.25,0.88671875,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,131072,64.0,47.5,3.0,0.0,4.0,2.0,56.5,7.5,0.8828125,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,131072,64.0,47.5,3.0,0.0,4.0,2.0,56.5,7.5,0.8828125,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,uma-256-single,Single 256 GiB unified-memory host,host,262144,256.0,190.0,25.0,12.0,8.0,4.0,239.0,17.0,0.93359375,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,262144,128.0,95.0,12.5,10.0,6.0,4.0,127.5,0.5,0.99609375,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,262144,128.0,95.0,12.5,8.0,6.0,4.0,125.5,2.5,0.98046875,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,262144,96.0,63.5,8.5,0.0,6.0,2.0,80.0,16.0,0.8333333333333334,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,262144,96.0,63.25,8.25,0.0,4.0,2.0,77.5,18.5,0.8072916666666666,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,262144,96.0,63.25,8.25,0.0,4.0,2.0,77.5,18.5,0.8072916666666666,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,262144,64.0,47.5,6.25,0.0,6.0,2.0,61.75,2.25,0.96484375,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,262144,64.0,47.5,6.25,0.0,4.0,2.0,59.75,4.25,0.93359375,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,262144,64.0,47.5,6.25,0.0,4.0,2.0,59.75,4.25,0.93359375,True
+qwen3-235b-a22b-2507,Qwen3-235B-A22B-Instruct-2507,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,262144,64.0,47.5,6.25,0.0,4.0,2.0,59.75,4.25,0.93359375,True
+step-3.7-flash,Step-3.7-Flash,uma-256-single,Single 256 GiB unified-memory host,host,32768,256.0,196.0,1.0,12.0,8.0,4.0,221.0,35.0,0.86328125,True
+step-3.7-flash,Step-3.7-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,32768,128.0,98.0,0.5,10.0,6.0,4.0,118.5,9.5,0.92578125,True
+step-3.7-flash,Step-3.7-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,32768,128.0,98.0,0.5,8.0,6.0,4.0,116.5,11.5,0.91015625,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,32768,96.0,65.5,0.5,0.0,6.0,2.0,74.0,22.0,0.7708333333333334,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,32768,96.0,65.25,0.25,0.0,4.0,2.0,71.5,24.5,0.7447916666666666,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,32768,96.0,65.25,0.25,0.0,4.0,2.0,71.5,24.5,0.7447916666666666,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,32768,64.0,49.0,0.25,0.0,6.0,2.0,57.25,6.75,0.89453125,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,32768,64.0,49.0,0.25,0.0,4.0,2.0,55.25,8.75,0.86328125,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,32768,64.0,49.0,0.25,0.0,4.0,2.0,55.25,8.75,0.86328125,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,32768,64.0,49.0,0.25,0.0,4.0,2.0,55.25,8.75,0.86328125,True
+step-3.7-flash,Step-3.7-Flash,uma-256-single,Single 256 GiB unified-memory host,host,65536,256.0,196.0,1.75,12.0,8.0,4.0,221.75,34.25,0.8662109375,True
+step-3.7-flash,Step-3.7-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,65536,128.0,98.0,1.0,10.0,6.0,4.0,119.0,9.0,0.9296875,True
+step-3.7-flash,Step-3.7-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,65536,128.0,98.0,0.75,8.0,6.0,4.0,116.75,11.25,0.912109375,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,65536,96.0,65.5,0.75,0.0,6.0,2.0,74.25,21.75,0.7734375,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,65536,96.0,65.25,0.5,0.0,4.0,2.0,71.75,24.25,0.7473958333333334,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,65536,96.0,65.25,0.5,0.0,4.0,2.0,71.75,24.25,0.7473958333333334,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,65536,64.0,49.0,0.5,0.0,6.0,2.0,57.5,6.5,0.8984375,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,65536,64.0,49.0,0.5,0.0,4.0,2.0,55.5,8.5,0.8671875,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,65536,64.0,49.0,0.5,0.0,4.0,2.0,55.5,8.5,0.8671875,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,65536,64.0,49.0,0.25,0.0,4.0,2.0,55.25,8.75,0.86328125,True
+step-3.7-flash,Step-3.7-Flash,uma-256-single,Single 256 GiB unified-memory host,host,131072,256.0,196.0,3.5,12.0,8.0,4.0,223.5,32.5,0.873046875,True
+step-3.7-flash,Step-3.7-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,131072,128.0,98.0,1.75,10.0,6.0,4.0,119.75,8.25,0.935546875,True
+step-3.7-flash,Step-3.7-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,131072,128.0,98.0,1.75,8.0,6.0,4.0,117.75,10.25,0.919921875,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,131072,96.0,65.5,1.25,0.0,6.0,2.0,74.75,21.25,0.7786458333333334,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,131072,96.0,65.25,1.25,0.0,4.0,2.0,72.5,23.5,0.7552083333333334,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,131072,96.0,65.25,1.0,0.0,4.0,2.0,72.25,23.75,0.7526041666666666,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,131072,64.0,49.0,1.0,0.0,6.0,2.0,58.0,6.0,0.90625,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,131072,64.0,49.0,1.0,0.0,4.0,2.0,56.0,8.0,0.875,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,131072,64.0,49.0,0.75,0.0,4.0,2.0,55.75,8.25,0.87109375,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,131072,64.0,49.0,0.75,0.0,4.0,2.0,55.75,8.25,0.87109375,True
+step-3.7-flash,Step-3.7-Flash,uma-256-single,Single 256 GiB unified-memory host,host,262144,256.0,196.0,6.5,12.0,8.0,4.0,226.5,29.5,0.884765625,True
+step-3.7-flash,Step-3.7-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,262144,128.0,98.0,3.25,10.0,6.0,4.0,121.25,6.75,0.947265625,True
+step-3.7-flash,Step-3.7-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,262144,128.0,98.0,3.25,8.0,6.0,4.0,119.25,8.75,0.931640625,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,262144,96.0,65.5,2.25,0.0,6.0,2.0,75.75,20.25,0.7890625,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,262144,96.0,65.25,2.25,0.0,4.0,2.0,73.5,22.5,0.765625,True
+step-3.7-flash,Step-3.7-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,262144,96.0,65.25,2.0,0.0,4.0,2.0,73.25,22.75,0.7630208333333334,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,262144,64.0,49.0,1.75,0.0,6.0,2.0,58.75,5.25,0.91796875,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,262144,64.0,49.0,1.75,0.0,4.0,2.0,56.75,7.25,0.88671875,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,262144,64.0,49.0,1.5,0.0,4.0,2.0,56.5,7.5,0.8828125,True
+step-3.7-flash,Step-3.7-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,262144,64.0,49.0,1.5,0.0,4.0,2.0,56.5,7.5,0.8828125,True
+mimo-v2-flash,MiMo-V2-Flash,uma-256-single,Single 256 GiB unified-memory host,host,32768,256.0,206.0,0.5,12.0,8.0,4.0,230.5,25.5,0.900390625,True
+mimo-v2-flash,MiMo-V2-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,32768,128.0,103.0,0.25,10.0,6.0,4.0,123.25,4.75,0.962890625,True
+mimo-v2-flash,MiMo-V2-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,32768,128.0,103.0,0.25,8.0,6.0,4.0,121.25,6.75,0.947265625,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,32768,96.0,68.75,0.25,0.0,6.0,2.0,77.0,19.0,0.8020833333333334,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,32768,96.0,68.75,0.25,0.0,4.0,2.0,75.0,21.0,0.78125,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,32768,96.0,68.5,0.0,0.0,4.0,2.0,74.5,21.5,0.7760416666666666,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,32768,64.0,51.5,0.25,0.0,6.0,2.0,59.75,4.25,0.93359375,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,32768,64.0,51.5,0.25,0.0,4.0,2.0,57.75,6.25,0.90234375,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,32768,64.0,51.5,0.0,0.0,4.0,2.0,57.5,6.5,0.8984375,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,32768,64.0,51.5,0.0,0.0,4.0,2.0,57.5,6.5,0.8984375,True
+mimo-v2-flash,MiMo-V2-Flash,uma-256-single,Single 256 GiB unified-memory host,host,65536,256.0,206.0,1.0,12.0,8.0,4.0,231.0,25.0,0.90234375,True
+mimo-v2-flash,MiMo-V2-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,65536,128.0,103.0,0.5,10.0,6.0,4.0,123.5,4.5,0.96484375,True
+mimo-v2-flash,MiMo-V2-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,65536,128.0,103.0,0.5,8.0,6.0,4.0,121.5,6.5,0.94921875,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,65536,96.0,68.75,0.5,0.0,6.0,2.0,77.25,18.75,0.8046875,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,65536,96.0,68.75,0.25,0.0,4.0,2.0,75.0,21.0,0.78125,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,65536,96.0,68.5,0.25,0.0,4.0,2.0,74.75,21.25,0.7786458333333334,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,65536,64.0,51.5,0.25,0.0,6.0,2.0,59.75,4.25,0.93359375,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,65536,64.0,51.5,0.25,0.0,4.0,2.0,57.75,6.25,0.90234375,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,65536,64.0,51.5,0.25,0.0,4.0,2.0,57.75,6.25,0.90234375,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,65536,64.0,51.5,0.25,0.0,4.0,2.0,57.75,6.25,0.90234375,True
+mimo-v2-flash,MiMo-V2-Flash,uma-256-single,Single 256 GiB unified-memory host,host,131072,256.0,206.0,1.75,12.0,8.0,4.0,231.75,24.25,0.9052734375,True
+mimo-v2-flash,MiMo-V2-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,131072,128.0,103.0,1.0,10.0,6.0,4.0,124.0,4.0,0.96875,True
+mimo-v2-flash,MiMo-V2-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,131072,128.0,103.0,0.75,8.0,6.0,4.0,121.75,6.25,0.951171875,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,131072,96.0,68.75,0.75,0.0,6.0,2.0,77.5,18.5,0.8072916666666666,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,131072,96.0,68.75,0.5,0.0,4.0,2.0,75.25,20.75,0.7838541666666666,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,131072,96.0,68.5,0.5,0.0,4.0,2.0,75.0,21.0,0.78125,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,131072,64.0,51.5,0.5,0.0,6.0,2.0,60.0,4.0,0.9375,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,131072,64.0,51.5,0.5,0.0,4.0,2.0,58.0,6.0,0.90625,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,131072,64.0,51.5,0.5,0.0,4.0,2.0,58.0,6.0,0.90625,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,131072,64.0,51.5,0.25,0.0,4.0,2.0,57.75,6.25,0.90234375,True
+mimo-v2-flash,MiMo-V2-Flash,uma-256-single,Single 256 GiB unified-memory host,host,262144,256.0,206.0,3.25,12.0,8.0,4.0,233.25,22.75,0.9111328125,True
+mimo-v2-flash,MiMo-V2-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,262144,128.0,103.0,1.75,10.0,6.0,4.0,124.75,3.25,0.974609375,True
+mimo-v2-flash,MiMo-V2-Flash,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,262144,128.0,103.0,1.5,8.0,6.0,4.0,122.5,5.5,0.95703125,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,262144,96.0,68.75,1.25,0.0,6.0,2.0,78.0,18.0,0.8125,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,262144,96.0,68.75,1.0,0.0,4.0,2.0,75.75,20.25,0.7890625,True
+mimo-v2-flash,MiMo-V2-Flash,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,262144,96.0,68.5,1.0,0.0,4.0,2.0,75.5,20.5,0.7864583333333334,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,262144,64.0,51.5,1.0,0.0,6.0,2.0,60.5,3.5,0.9453125,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,262144,64.0,51.5,0.75,0.0,4.0,2.0,58.25,5.75,0.91015625,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,262144,64.0,51.5,0.75,0.0,4.0,2.0,58.25,5.75,0.91015625,True
+mimo-v2-flash,MiMo-V2-Flash,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,262144,64.0,51.5,0.75,0.0,4.0,2.0,58.25,5.75,0.91015625,True
+glm-4.7,GLM-4.7,uma-256-single,Single 256 GiB unified-memory host,host,32768,256.0,205.0,6.25,12.0,8.0,4.0,235.25,20.75,0.9189453125,True
+glm-4.7,GLM-4.7,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,32768,128.0,102.5,3.25,10.0,6.0,4.0,125.75,2.25,0.982421875,True
+glm-4.7,GLM-4.7,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,32768,128.0,102.5,3.0,8.0,6.0,4.0,123.5,4.5,0.96484375,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,32768,96.0,68.5,2.25,0.0,6.0,2.0,78.75,17.25,0.8203125,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,32768,96.0,68.25,2.0,0.0,4.0,2.0,76.25,19.75,0.7942708333333334,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,32768,96.0,68.25,2.0,0.0,4.0,2.0,76.25,19.75,0.7942708333333334,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,32768,64.0,51.25,1.75,0.0,6.0,2.0,61.0,3.0,0.953125,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,32768,64.0,51.25,1.5,0.0,4.0,2.0,58.75,5.25,0.91796875,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,32768,64.0,51.25,1.5,0.0,4.0,2.0,58.75,5.25,0.91796875,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,32768,64.0,51.25,1.5,0.0,4.0,2.0,58.75,5.25,0.91796875,True
+glm-4.7,GLM-4.7,uma-256-single,Single 256 GiB unified-memory host,host,65536,256.0,205.0,12.25,12.0,8.0,4.0,241.25,14.75,0.9423828125,True
+glm-4.7,GLM-4.7,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,65536,128.0,102.5,6.25,10.0,6.0,4.0,128.75,-0.75,1.005859375,False
+glm-4.7,GLM-4.7,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,65536,128.0,102.5,6.0,8.0,6.0,4.0,126.5,1.5,0.98828125,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,65536,96.0,68.5,4.25,0.0,6.0,2.0,80.75,15.25,0.8411458333333334,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,65536,96.0,68.25,4.0,0.0,4.0,2.0,78.25,17.75,0.8151041666666666,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,65536,96.0,68.25,4.0,0.0,4.0,2.0,78.25,17.75,0.8151041666666666,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,65536,64.0,51.25,3.25,0.0,6.0,2.0,62.5,1.5,0.9765625,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,65536,64.0,51.25,3.0,0.0,4.0,2.0,60.25,3.75,0.94140625,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,65536,64.0,51.25,3.0,0.0,4.0,2.0,60.25,3.75,0.94140625,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,65536,64.0,51.25,3.0,0.0,4.0,2.0,60.25,3.75,0.94140625,True
+glm-4.7,GLM-4.7,uma-256-single,Single 256 GiB unified-memory host,host,131072,256.0,205.0,24.5,12.0,8.0,4.0,253.5,2.5,0.990234375,True
+glm-4.7,GLM-4.7,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,131072,128.0,102.5,12.25,10.0,6.0,4.0,134.75,-6.75,1.052734375,False
+glm-4.7,GLM-4.7,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,131072,128.0,102.5,12.25,8.0,6.0,4.0,132.75,-4.75,1.037109375,False
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,131072,96.0,68.5,8.25,0.0,6.0,2.0,84.75,11.25,0.8828125,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,131072,96.0,68.25,8.25,0.0,4.0,2.0,82.5,13.5,0.859375,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,131072,96.0,68.25,8.0,0.0,4.0,2.0,82.25,13.75,0.8567708333333334,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,131072,64.0,51.25,6.25,0.0,6.0,2.0,65.5,-1.5,1.0234375,False
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,131072,64.0,51.25,6.25,0.0,4.0,2.0,63.5,0.5,0.9921875,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,131072,64.0,51.25,6.0,0.0,4.0,2.0,63.25,0.75,0.98828125,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,131072,64.0,51.25,6.0,0.0,4.0,2.0,63.25,0.75,0.98828125,True
+glm-4.7,GLM-4.7,uma-256-single,Single 256 GiB unified-memory host,host,202752,256.0,205.0,38.0,12.0,8.0,4.0,267.0,-11.0,1.04296875,False
+glm-4.7,GLM-4.7,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,202752,128.0,102.5,19.0,10.0,6.0,4.0,141.5,-13.5,1.10546875,False
+glm-4.7,GLM-4.7,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,202752,128.0,102.5,19.0,8.0,6.0,4.0,139.5,-11.5,1.08984375,False
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,202752,96.0,68.5,12.75,0.0,6.0,2.0,89.25,6.75,0.9296875,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,202752,96.0,68.25,12.75,0.0,4.0,2.0,87.0,9.0,0.90625,True
+glm-4.7,GLM-4.7,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,202752,96.0,68.25,12.5,0.0,4.0,2.0,86.75,9.25,0.9036458333333334,True
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,202752,64.0,51.25,9.5,0.0,6.0,2.0,68.75,-4.75,1.07421875,False
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,202752,64.0,51.25,9.5,0.0,4.0,2.0,66.75,-2.75,1.04296875,False
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,202752,64.0,51.25,9.5,0.0,4.0,2.0,66.75,-2.75,1.04296875,False
+glm-4.7,GLM-4.7,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,202752,64.0,51.25,9.5,0.0,4.0,2.0,66.75,-2.75,1.04296875,False
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,uma-256-single,Single 256 GiB unified-memory host,host,32768,256.0,195.0,8.5,12.0,8.0,4.0,227.5,28.5,0.888671875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,32768,128.0,97.5,4.25,10.0,6.0,4.0,121.75,6.25,0.951171875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,32768,128.0,97.5,4.25,8.0,6.0,4.0,119.75,8.25,0.935546875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,32768,96.0,65.0,3.0,0.0,6.0,2.0,76.0,20.0,0.7916666666666666,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,32768,96.0,65.0,2.75,0.0,4.0,2.0,73.75,22.25,0.7682291666666666,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,32768,96.0,65.0,2.75,0.0,4.0,2.0,73.75,22.25,0.7682291666666666,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,32768,64.0,48.75,2.25,0.0,6.0,2.0,59.0,5.0,0.921875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,32768,64.0,48.75,2.25,0.0,4.0,2.0,57.0,7.0,0.890625,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,32768,64.0,48.75,2.0,0.0,4.0,2.0,56.75,7.25,0.88671875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,32768,64.0,48.75,2.0,0.0,4.0,2.0,56.75,7.25,0.88671875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,uma-256-single,Single 256 GiB unified-memory host,host,65536,256.0,195.0,16.75,12.0,8.0,4.0,235.75,20.25,0.9208984375,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,65536,128.0,97.5,8.5,10.0,6.0,4.0,126.0,2.0,0.984375,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,65536,128.0,97.5,8.25,8.0,6.0,4.0,123.75,4.25,0.966796875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,65536,96.0,65.0,5.75,0.0,6.0,2.0,78.75,17.25,0.8203125,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,65536,96.0,65.0,5.5,0.0,4.0,2.0,76.5,19.5,0.796875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,65536,96.0,65.0,5.5,0.0,4.0,2.0,76.5,19.5,0.796875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,65536,64.0,48.75,4.25,0.0,6.0,2.0,61.0,3.0,0.953125,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,65536,64.0,48.75,4.25,0.0,4.0,2.0,59.0,5.0,0.921875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,65536,64.0,48.75,4.25,0.0,4.0,2.0,59.0,5.0,0.921875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,65536,64.0,48.75,4.0,0.0,4.0,2.0,58.75,5.25,0.91796875,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,uma-256-single,Single 256 GiB unified-memory host,host,131072,256.0,195.0,33.5,12.0,8.0,4.0,252.5,3.5,0.986328125,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,131072,128.0,97.5,16.75,10.0,6.0,4.0,134.25,-6.25,1.048828125,False
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,131072,128.0,97.5,16.75,8.0,6.0,4.0,132.25,-4.25,1.033203125,False
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,131072,96.0,65.0,11.25,0.0,6.0,2.0,84.25,11.75,0.8776041666666666,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,131072,96.0,65.0,11.25,0.0,4.0,2.0,82.25,13.75,0.8567708333333334,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,131072,96.0,65.0,11.0,0.0,4.0,2.0,82.0,14.0,0.8541666666666666,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,131072,64.0,48.75,8.5,0.0,6.0,2.0,65.25,-1.25,1.01953125,False
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,131072,64.0,48.75,8.5,0.0,4.0,2.0,63.25,0.75,0.98828125,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,131072,64.0,48.75,8.25,0.0,4.0,2.0,63.0,1.0,0.984375,True
+nemotron-ultra-253b,Llama-3.1-Nemotron-Ultra-253B-v1,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,131072,64.0,48.75,8.25,0.0,4.0,2.0,63.0,1.0,0.984375,True
+deepseek-r1-0528,DeepSeek-R1-0528,uma-256-single,Single 256 GiB unified-memory host,host,32768,256.0,215.0,1.25,12.0,8.0,4.0,240.25,15.75,0.9384765625,True
+deepseek-r1-0528,DeepSeek-R1-0528,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,32768,128.0,107.5,0.75,10.0,6.0,4.0,128.25,-0.25,1.001953125,False
+deepseek-r1-0528,DeepSeek-R1-0528,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,32768,128.0,107.5,0.5,8.0,6.0,4.0,126.0,2.0,0.984375,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,32768,96.0,71.75,0.5,0.0,6.0,2.0,80.25,15.75,0.8359375,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,32768,96.0,71.75,0.5,0.0,4.0,2.0,78.25,17.75,0.8151041666666666,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,32768,96.0,71.5,0.25,0.0,4.0,2.0,77.75,18.25,0.8098958333333334,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,32768,64.0,53.75,0.5,0.0,6.0,2.0,62.25,1.75,0.97265625,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,32768,64.0,53.75,0.25,0.0,4.0,2.0,60.0,4.0,0.9375,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,32768,64.0,53.75,0.25,0.0,4.0,2.0,60.0,4.0,0.9375,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,32768,64.0,53.75,0.25,0.0,4.0,2.0,60.0,4.0,0.9375,True
+deepseek-r1-0528,DeepSeek-R1-0528,uma-256-single,Single 256 GiB unified-memory host,host,65536,256.0,215.0,2.5,12.0,8.0,4.0,241.5,14.5,0.943359375,True
+deepseek-r1-0528,DeepSeek-R1-0528,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,65536,128.0,107.5,1.25,10.0,6.0,4.0,128.75,-0.75,1.005859375,False
+deepseek-r1-0528,DeepSeek-R1-0528,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,65536,128.0,107.5,1.25,8.0,6.0,4.0,126.75,1.25,0.990234375,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,65536,96.0,71.75,1.0,0.0,6.0,2.0,80.75,15.25,0.8411458333333334,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,65536,96.0,71.75,0.75,0.0,4.0,2.0,78.5,17.5,0.8177083333333334,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,65536,96.0,71.5,0.75,0.0,4.0,2.0,78.25,17.75,0.8151041666666666,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,65536,64.0,53.75,0.75,0.0,6.0,2.0,62.5,1.5,0.9765625,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,65536,64.0,53.75,0.75,0.0,4.0,2.0,60.5,3.5,0.9453125,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,65536,64.0,53.75,0.5,0.0,4.0,2.0,60.25,3.75,0.94140625,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,65536,64.0,53.75,0.5,0.0,4.0,2.0,60.25,3.75,0.94140625,True
+deepseek-r1-0528,DeepSeek-R1-0528,uma-256-single,Single 256 GiB unified-memory host,host,131072,256.0,215.0,4.75,12.0,8.0,4.0,243.75,12.25,0.9521484375,True
+deepseek-r1-0528,DeepSeek-R1-0528,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,131072,128.0,107.5,2.5,10.0,6.0,4.0,130.0,-2.0,1.015625,False
+deepseek-r1-0528,DeepSeek-R1-0528,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,131072,128.0,107.5,2.25,8.0,6.0,4.0,127.75,0.25,0.998046875,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,131072,96.0,71.75,1.75,0.0,6.0,2.0,81.5,14.5,0.8489583333333334,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,131072,96.0,71.75,1.5,0.0,4.0,2.0,79.25,16.75,0.8255208333333334,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,131072,96.0,71.5,1.5,0.0,4.0,2.0,79.0,17.0,0.8229166666666666,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,131072,64.0,53.75,1.25,0.0,6.0,2.0,63.0,1.0,0.984375,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,131072,64.0,53.75,1.25,0.0,4.0,2.0,61.0,3.0,0.953125,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,131072,64.0,53.75,1.25,0.0,4.0,2.0,61.0,3.0,0.953125,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,131072,64.0,53.75,1.0,0.0,4.0,2.0,60.75,3.25,0.94921875,True
+deepseek-r1-0528,DeepSeek-R1-0528,uma-256-single,Single 256 GiB unified-memory host,host,163840,256.0,215.0,5.75,12.0,8.0,4.0,244.75,11.25,0.9560546875,True
+deepseek-r1-0528,DeepSeek-R1-0528,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,163840,128.0,107.5,3.0,10.0,6.0,4.0,130.5,-2.5,1.01953125,False
+deepseek-r1-0528,DeepSeek-R1-0528,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,163840,128.0,107.5,2.75,8.0,6.0,4.0,128.25,-0.25,1.001953125,False
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,163840,96.0,71.75,2.0,0.0,6.0,2.0,81.75,14.25,0.8515625,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,163840,96.0,71.75,2.0,0.0,4.0,2.0,79.75,16.25,0.8307291666666666,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,163840,96.0,71.5,1.75,0.0,4.0,2.0,79.25,16.75,0.8255208333333334,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,163840,64.0,53.75,1.5,0.0,6.0,2.0,63.25,0.75,0.98828125,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,163840,64.0,53.75,1.5,0.0,4.0,2.0,61.25,2.75,0.95703125,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,163840,64.0,53.75,1.5,0.0,4.0,2.0,61.25,2.75,0.95703125,True
+deepseek-r1-0528,DeepSeek-R1-0528,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,163840,64.0,53.75,1.25,0.0,4.0,2.0,61.0,3.0,0.953125,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,uma-256-single,Single 256 GiB unified-memory host,host,32768,256.0,203.0,8.5,12.0,8.0,4.0,235.5,20.5,0.919921875,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,32768,128.0,101.5,4.25,10.0,6.0,4.0,125.75,2.25,0.982421875,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,32768,128.0,101.5,4.25,8.0,6.0,4.0,123.75,4.25,0.966796875,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,32768,96.0,67.75,3.0,0.0,6.0,2.0,78.75,17.25,0.8203125,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,32768,96.0,67.75,2.75,0.0,4.0,2.0,76.5,19.5,0.796875,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,32768,96.0,67.5,2.75,0.0,4.0,2.0,76.25,19.75,0.7942708333333334,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,32768,64.0,50.75,2.25,0.0,6.0,2.0,61.0,3.0,0.953125,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,32768,64.0,50.75,2.25,0.0,4.0,2.0,59.0,5.0,0.921875,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,32768,64.0,50.75,2.0,0.0,4.0,2.0,58.75,5.25,0.91796875,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,32768,64.0,50.75,2.0,0.0,4.0,2.0,58.75,5.25,0.91796875,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,uma-256-single,Single 256 GiB unified-memory host,host,65536,256.0,203.0,16.75,12.0,8.0,4.0,243.75,12.25,0.9521484375,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,65536,128.0,101.5,8.5,10.0,6.0,4.0,130.0,-2.0,1.015625,False
+tulu3-405b,Llama-3.1-Tulu-3-405B,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,65536,128.0,101.5,8.25,8.0,6.0,4.0,127.75,0.25,0.998046875,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,65536,96.0,67.75,5.75,0.0,6.0,2.0,81.5,14.5,0.8489583333333334,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,65536,96.0,67.75,5.5,0.0,4.0,2.0,79.25,16.75,0.8255208333333334,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,65536,96.0,67.5,5.5,0.0,4.0,2.0,79.0,17.0,0.8229166666666666,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,65536,64.0,50.75,4.25,0.0,6.0,2.0,63.0,1.0,0.984375,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,65536,64.0,50.75,4.25,0.0,4.0,2.0,61.0,3.0,0.953125,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,65536,64.0,50.75,4.25,0.0,4.0,2.0,61.0,3.0,0.953125,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,65536,64.0,50.75,4.0,0.0,4.0,2.0,60.75,3.25,0.94921875,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,uma-256-single,Single 256 GiB unified-memory host,host,131072,256.0,203.0,33.5,12.0,8.0,4.0,260.5,-4.5,1.017578125,False
+tulu3-405b,Llama-3.1-Tulu-3-405B,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,coordinator,131072,128.0,101.5,16.75,10.0,6.0,4.0,138.25,-10.25,1.080078125,False
+tulu3-405b,Llama-3.1-Tulu-3-405B,rpc-2x128-uma,Two 128 GiB UMA RPC nodes,worker,131072,128.0,101.5,16.75,8.0,6.0,4.0,136.25,-8.25,1.064453125,False
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu0,131072,96.0,67.75,11.25,0.0,6.0,2.0,87.0,9.0,0.90625,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu1,131072,96.0,67.75,11.25,0.0,4.0,2.0,85.0,11.0,0.8854166666666666,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-3x96-gpu,"One host, 3 × 96 GiB accelerators",gpu2,131072,96.0,67.5,11.0,0.0,4.0,2.0,84.5,11.5,0.8802083333333334,True
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu0,131072,64.0,50.75,8.5,0.0,6.0,2.0,67.25,-3.25,1.05078125,False
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu1,131072,64.0,50.75,8.5,0.0,4.0,2.0,65.25,-1.25,1.01953125,False
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu2,131072,64.0,50.75,8.25,0.0,4.0,2.0,65.0,-1.0,1.015625,False
+tulu3-405b,Llama-3.1-Tulu-3-405B,local-4x64-gpu,"One host, 4 × 64 GiB accelerators",gpu3,131072,64.0,50.75,8.25,0.0,4.0,2.0,65.0,-1.0,1.015625,False

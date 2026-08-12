@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-jv63-rm9j-6jwc",
+  "title": "GET body request smuggling",
+  "severity": "High",
+  "affected_versions": "<=0.38.0",
+  "patched_versions": "0.40.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-jv63-rm9j-6jwc",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "HTTP request framing",
+    "precondition": "Proxy/server disagreement over GET bodies"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "62794afa3cfe799642be6add875ea1863860cf2570edfd8b0a9dfff189791d05"
+}

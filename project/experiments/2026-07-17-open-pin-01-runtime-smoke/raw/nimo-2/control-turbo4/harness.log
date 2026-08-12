@@ -1,0 +1,66 @@
+timestamp=2026-07-17T18:36:18-07:00
+host=nimo-2
+lane=control
+cache_type=turbo4
+port=18081
+binary=/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-server
+model=/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-4b-gguf__bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q8_0.gguf
+6a0d77a775f74c0fc6c83e0a7eb52e568e35db0d2c65040c6a2e8d821335046c  /home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-server
+8c2f07f26af9747e41988551106f149b03eb9b5cb6df636027b6bf6278473300  /opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-4b-gguf__bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q8_0.gguf
+/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-server|2683176|2026-07-17 18:18:29.194668603 -0700
+/opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-4b-gguf__bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q8_0.gguf|4280404704|2026-07-12 15:20:33.822572536 -0700
+a5605a72768c6562241b248e268e33dc92787394
+6528a116ad015c316948d288b4ffd9c3586c00ad
+inactive
+inactive
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+LISTEN 0      4096      127.0.0.54:53        0.0.0.0:*   
+LISTEN 0      4096         0.0.0.0:5355      0.0.0.0:*   
+LISTEN 0      128          0.0.0.0:22        0.0.0.0:*   
+LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*   
+LISTEN 0      4096            [::]:5355         [::]:*   
+LISTEN 0      128             [::]:22           [::]:*   
+MemAvailable:   128362840 kB
+SwapTotal:      33554428 kB
+SwapFree:       33087128 kB
+WARNING: AMD GPU device(s) is/are in a low-power state. Check power control/runtime_status
+
+
+
+============================ ROCm System Management Interface ============================
+====================================== Temperature =======================================
+GPU[0]		: Temperature (Sensor edge) (C): 36.0
+==========================================================================================
+=================================== % time GPU is busy ===================================
+GPU[0]		: GPU use (%): 0
+==========================================================================================
+=================================== Current Memory Use ===================================
+GPU[0]		: GPU Memory Allocated (VRAM%): 14
+GPU[0]		: Memory Activity: N/A
+GPU[0]		: Not supported on the given system
+==========================================================================================
+================================== End of ROCm SMI Log ===================================
+/home/connorb/halofpx-lab/open-pin-01/control/build-open-pin-01/bin/llama-server --model /opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-4b-gguf__bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q8_0.gguf --host 127.0.0.1 --port 18081 --ctx-size 4096 --parallel 1 --threads 16 --threads-batch 16 --device ROCm0 --n-gpu-layers 999 --flash-attn on --cache-type-k turbo4 --cache-type-v turbo4 --seed 1234 --temp 0 server_pid=3529675
+ready=1
+request_rc=0
+MemAvailable:   123337716 kB
+SwapTotal:      33554428 kB
+SwapFree:       33087128 kB
+WARNING: AMD GPU device(s) is/are in a low-power state. Check power control/runtime_status
+
+
+
+============================ ROCm System Management Interface ============================
+====================================== Temperature =======================================
+GPU[0]		: Temperature (Sensor edge) (C): 42.0
+==========================================================================================
+=================================== % time GPU is busy ===================================
+GPU[0]		: GPU use (%): 53
+==========================================================================================
+=================================== Current Memory Use ===================================
+GPU[0]		: GPU Memory Allocated (VRAM%): 15
+GPU[0]		: Memory Activity: N/A
+GPU[0]		: Not supported on the given system
+==========================================================================================
+================================== End of ROCm SMI Log ===================================
+overall_rc=0

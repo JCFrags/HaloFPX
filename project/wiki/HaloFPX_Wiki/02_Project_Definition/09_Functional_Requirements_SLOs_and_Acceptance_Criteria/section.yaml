@@ -1,0 +1,18 @@
+section_id: "09"
+title: "Functional Requirements, SLOs, and Acceptance Criteria"
+category_id: "02"
+category_title: "Project Definition"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 5
+open_question_count: 12
+required_machine_experiments:
+  - "Matched cold/warm single-node baselines on both nodes"
+  - "Per-workload two-node SLO benchmark campaign"
+  - "Cache mutation, crash, compatibility, and tenant-isolation matrix"
+  - "Node/link/storage fault injection and fallback timing"
+  - "Clean-host install, upgrade, rollback, and 24-hour soak"
+related_sections: ["06", "07", "08", "10", "38", "48", "54", "60", "69", "71", "74", "78", "80"]
+applicability:
+  repositories: ["ggml-org/llama.cpp@788e07d", "charlie12345/ROCmFPX@a5605a7", "fewtarius/CachyLLama@6be7459", "fewtarius/llama-ai@1017f3d"]
+  hardware: ["two matched AMD Strix Halo systems; exact BOM open"]

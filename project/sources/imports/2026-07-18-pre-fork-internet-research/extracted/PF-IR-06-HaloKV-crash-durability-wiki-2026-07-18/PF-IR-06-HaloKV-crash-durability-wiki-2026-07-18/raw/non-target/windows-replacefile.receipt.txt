@@ -1,0 +1,12 @@
+---
+source_id: "S036"
+title: "Windows ReplaceFile"
+capture_kind: "official-web-receipt-with-short-excerpt"
+canonical_url: "https://learn.microsoft.com/windows/win32/api/winbase/nf-winbase-replacefilea"
+version: "Microsoft documentation current at access"
+accessed: "2026-07-18T00:00:00-07:00"
+license: "Microsoft documentation terms"
+---
+NON-TARGET: ReplaceFile has Windows-specific replacement, metadata, backup,
+and error behavior. Its WRITE_THROUGH flag is documented as unsupported; no
+Linux rename+directory-fsync inference is made.

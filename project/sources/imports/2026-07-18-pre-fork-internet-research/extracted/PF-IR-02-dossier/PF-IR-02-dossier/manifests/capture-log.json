@@ -1,0 +1,12 @@
+{
+  "project": "PF-IR-02",
+  "as_of": "2026-07-18",
+  "generated_utc": "2026-07-18T01:46:22.561954+00:00",
+  "source_count": 31,
+  "claim_count": 70,
+  "machine_tested_claim_count": 0,
+  "notes": [
+    "Raw files may be full source, excerpt, metadata record, or patch capture; see sources.csv kind/access fields.",
+    "Restricted normative packages are not redistributed."
+  ]
+}

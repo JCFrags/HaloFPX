@@ -1,0 +1,23 @@
+{
+  "disposition": {
+    "MTP": "open recipe; no accepted model-assisted artifact",
+    "candidate_execution": "none",
+    "recurrent": "open recipe; no accepted recurrent GGUF",
+    "speculative": "model-free ngram scenario present"
+  },
+  "fixture_record_count": 144,
+  "requested_domains": [
+    "tiny GGUF tensors/models",
+    "tokenizer edge cases",
+    "default/named chat templates",
+    "special-token behavior",
+    "tool calls/structured output",
+    "streaming API traces",
+    "malformed-boundary inputs",
+    "state save/restore",
+    "recurrent",
+    "MTP/speculative",
+    "sampler/RNG/grammar state"
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

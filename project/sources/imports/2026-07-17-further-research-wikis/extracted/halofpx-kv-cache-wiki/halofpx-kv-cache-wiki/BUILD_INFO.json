@@ -1,0 +1,33 @@
+{
+  "artifact": "HaloFPX Persistent KV-Cache Wiki",
+  "version": "1.0.0",
+  "research_cut": "2026-07-17",
+  "built_at_utc": "2026-07-17T19:27:57+00:00",
+  "source_commits": {
+    "CachyLLama": "6be745998f568e379ea197fcf827baec73ff9940",
+    "llama.cpp": "86d86ed4396b4130922f7b9af26e3d9fc11a591b",
+    "LMCache": "c9439c6535503c9e17fe236da9bc88807b58c2bc",
+    "SGLang": "fec613184480bd6fc5bfc9967bfb24a6125f684c",
+    "vLLM": "bf578e1abdffc2d25232783ff59a3132279e6bdd"
+  },
+  "entrypoints": {
+    "offline_html": "site/index.html",
+    "github_wiki": "Home.md",
+    "mkdocs": "docs/index.md",
+    "validation": "validation/run_all.sh"
+  },
+  "validation": {
+    "all_passed": true,
+    "unit_tests_passed": 9,
+    "fault_injection_cases": 18,
+    "public_hit_emitted": false,
+    "summary": "validation/results/validation-summary.json"
+  },
+  "qa": {
+    "json_csv_schema_checks": "passed",
+    "markdown_link_check": "passed",
+    "offline_html_link_check": "passed",
+    "diagram_rendering": "passed",
+    "report": "QA_REPORT.md"
+  }
+}

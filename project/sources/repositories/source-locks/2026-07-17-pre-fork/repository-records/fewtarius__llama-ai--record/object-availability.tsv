@@ -1,0 +1,5 @@
+role	object_role	object_id	observed_type
+operational-requirements-donor	commit	1017f3dfdce3ca2b06aa9007b23295db3bb35722	commit
+operational-requirements-donor	tree	3b228912f4206aad3e8fc7bd09e31fe9133a51bf	tree
+operational-requirements-donor	parent	d8a07baad6ab175f8badbc4d496c9190b0cc3b2d	commit
+operational-requirements-donor	gitlink	6be745998f568e379ea197fcf827baec73ff9940	declared-not-required-in-superproject-object-db

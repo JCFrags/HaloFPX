@@ -1,0 +1,207 @@
+ggml_rocm_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 8060S Graphics (RADV STRIX_HALO) (radv) | uma: 1 | fp16: dot2 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+WARNING: Host ('10.44.0.1') is != '127.0.0.1'
+         Never expose the RPC server to an open network!
+         This is an experimental feature and is not secure!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128271692
+Starting RPC server v4.0.1
+  endpoint       : 10.44.0.1:50053
+  local cache    : n/a
+Devices:
+  ROCm0: AMD Radeon 8060S Graphics (126976 MiB, 125265 MiB free)
+  transport      : TCP
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128274908
+Client connection closed
+Accepted client connection
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128274908
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128274908
+Client connection closed
+Accepted client connection
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128274908
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+Client connection closed
+Accepted client connection
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128274908
+Client connection closed
+Accepted client connection
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128274908
+Client connection closed
+Accepted client connection
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128274908
+Client connection closed
+Accepted client connection
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 128274908
+Client connection closed
+Accepted client connection
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 125720088
+ggml_backend_rocm_graph_compute: ROCm graph warmup complete
+ggml_backend_rocm_graph_compute: ROCm graph warmup reset
+ggml_backend_rocm_graph_compute: ROCm graph warmup complete
+ggml_backend_rocm_get_available_uma_memory: final available_memory_kb: 125522440
+Client connection closed

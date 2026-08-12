@@ -1,0 +1,21 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-DSV31-CONVERSION
+authority: third_party_converter
+capture_type: rendered_text_extract
+source_title: unsloth/DeepSeek-V3.1-GGUF UD-IQ2_XXS
+source_url: https://huggingface.co/unsloth/DeepSeek-V3.1-GGUF/tree/f69aacf1ee1e4f66737daebc7e71fa527dfda1bd/UD-IQ2_XXS
+immutable_revision: f69aacf1ee1e4f66737daebc7e71fa527dfda1bd
+accessed_at: 2026-07-18
+completeness: PARTIAL_POINTER_SET
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+Selected path: UD-IQ2_XXS
+Rounded folder total: 226 GB
+Files: 5
+Known exact shard 1: 48,771,619,904 bytes; SHA-256 cfe213b5cd15f7f311b3e6e65e69193794d4d745f2984efa505e852bb7875b71
+Known shard 3 SHA-256: af31108fe922eb2b8559313f32c2795bb0e805c99b14244e575960517ee19a2a; exact byte count unavailable.
+Remaining exact pointers: UNAVAILABLE.
+Imatrix/calibration: partial provenance only.
+
+Manifest: manifests/artifacts/deepseek-v3.1-ud-iq2-xxs.json

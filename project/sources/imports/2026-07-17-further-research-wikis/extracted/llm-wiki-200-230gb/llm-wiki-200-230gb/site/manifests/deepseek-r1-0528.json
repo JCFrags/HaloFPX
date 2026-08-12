@@ -1,0 +1,25 @@
+{
+  "schema": "llm-wiki-hf-artifact-manifest-v1",
+  "as_of": "2026-07-17",
+  "candidate_id": "deepseek-r1-0528",
+  "model": "DeepSeek-R1-0528",
+  "selected_quant": "UD-IQ2_M",
+  "publisher_display_size_gb_decimal": 229.0,
+  "conservative_weight_plan_gib": 215,
+  "huggingface": {
+    "upstream_repo": "deepseek-ai/DeepSeek-R1-0528",
+    "quant_repo": "unsloth/DeepSeek-R1-0528-GGUF",
+    "revision": "main-observed-916bb7c",
+    "path": "UD-IQ2_M",
+    "shard_count": 5,
+    "displayed_shard_gb": [],
+    "known_lfs": []
+  },
+  "source_urls": [
+    "https://huggingface.co/deepseek-ai/DeepSeek-R1-0528",
+    "https://huggingface.co/unsloth/DeepSeek-R1-0528-GGUF/tree/main/UD-IQ2_M",
+    "https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/deepseek2.cpp"
+  ],
+  "integrity_status": "authoritative-revision/path-manifest; run refresh_hf_manifests.py for exact LFS OIDs",
+  "notes": "No model weight bytes are redistributed in this package. Display sizes are publisher UI values; exact downloaded files must be verified locally."
+}

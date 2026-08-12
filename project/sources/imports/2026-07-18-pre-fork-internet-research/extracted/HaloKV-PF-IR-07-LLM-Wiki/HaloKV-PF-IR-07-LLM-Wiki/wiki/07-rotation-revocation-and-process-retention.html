@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Rotation, revocation, peer separation, and process retention Rotation taxonomy Operation Changes Does not necessarily change LUKS passphrase/keyslot change Credential/KDF wrapper f…">
+  <title>Rotation, revocation, peer separation, and process retention · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link active" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Rotation, revocation, peer separation, and process retention</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Rotation, revocation, peer separation, and process retention</h1>
+<h2 id="rotation-taxonomy">Rotation taxonomy<a class="heading-anchor" href="#rotation-taxonomy" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Operation</th>
+  <th>Changes</th>
+  <th>Does not necessarily change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>LUKS passphrase/keyslot change</td>
+  <td>Credential/KDF wrapper for a volume key</td>
+  <td>Payload volume key or ciphertext</td>
+</tr>
+<tr>
+  <td>LUKS payload reencryption</td>
+  <td>Volume key and/or cipher parameters according to operation</td>
+  <td>HaloKV object keys, tenant AAD, manifests</td>
+</tr>
+<tr>
+  <td>fscrypt new policy/tree</td>
+  <td>Directory policy and master-key domain for new/migrated files</td>
+  <td>Object semantic key unless explicitly coordinated</td>
+</tr>
+<tr>
+  <td>HaloKV wrapping-key rotation</td>
+  <td>Parent KEK version or wrapped child record</td>
+  <td>Object ciphertext if child data key is unchanged</td>
+</tr>
+<tr>
+  <td>HaloKV epoch rotation</td>
+  <td>Rank/namespace write key and nonce domain</td>
+  <td>Old ciphertext; old epoch may remain read-only temporarily</td>
+</tr>
+<tr>
+  <td>HaloKV data-key rotation</td>
+  <td>Object ciphertext under new key/DEK</td>
+  <td>Scoped plaintext semantics/CID if policy leaves <code>K_id</code> unchanged</td>
+</tr>
+<tr>
+  <td>Identifier-key rotation</td>
+  <td>Private CID/index values</td>
+  <td>Payload ciphertext unless migrated separately</td>
+</tr>
+</tbody>
+</table></div>
+<p><span class="claim-label" data-claim="PFIR07-C022" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C022][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 luksChangeKey and reencrypt]</span></p>
+<h2 id="routine-epoch-rotation">Routine epoch rotation<a class="heading-anchor" href="#routine-epoch-rotation" aria-label="Link to section">#</a></h2>
+<p>Preferred cache operation:</p>
+<ol>
+<li>Create a fresh random epoch root under the same approved authority/tenant/project/prefix/namespace/rank context.</li>
+<li>Derive new purpose keys and allocate a new nonce state.</li>
+<li>Mark the old epoch <code>READ_ONLY</code>; all new writes use the new epoch.</li>
+<li>Publish a manifest generation that identifies the new active epoch and accepted old-read window.</li>
+<li>On a hit from the old epoch, authenticate under the old policy, then optionally recompute/re-encrypt into the new epoch.</li>
+<li>Expire the old-read window, invalidate remaining old manifest entries, drain keys from workers, and mark the old epoch <code>DEACTIVATED</code>.</li>
+<li>Destroy old key material only after backup, escrow, legal-hold, and rollback decisions permit; record scope and evidence.</li>
+</ol>
+<p>This approach avoids risky bulk in-place cache transformation. A cache entry that cannot be migrated safely is discarded and recomputed.</p>
+<h2 id="compromise-rotation">Compromise rotation<a class="heading-anchor" href="#compromise-rotation" aria-label="Link to section">#</a></h2>
+<p>For suspected key compromise or nonce reuse, skip the read-only serving period unless the incident commander explicitly accepts it. Mark the affected epoch <code>COMPROMISED</code>, stop writes and serving reads, establish a new epoch, invalidate manifests, quarantine old ciphertext as evidence, and recompute from trusted inputs.</p>
+<p><span class="claim-label" data-claim="PFIR07-C070" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C070][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C031-C033,C040,C058-C065]</span></p>
+<h2 id="rank-and-peer-separation">Rank and peer separation<a class="heading-anchor" href="#rank-and-peer-separation" aria-label="Link to section">#</a></h2>
+<p>Each rank receives only its own rank-epoch key branch. Objects bind <code>rank_id</code> in AAD. Peer transfer has three safe forms:</p>
+<ul>
+<li><strong>No transfer:</strong> destination recomputes under its rank key.</li>
+<li><strong>Authenticated import:</strong> source object is opened under source authorization in a controlled transfer service, then re-encrypted under destination rank/epoch AAD.</li>
+<li><strong>Shared group namespace:</strong> both ranks are members of an explicitly authorized sharing class with a group-owned key domain and a reviewed nonce allocation. This is not the default.</li>
+</ul>
+<p>Copying a ciphertext file and editing its path, manifest, or metadata cannot make it valid for another rank. Sharing an AEAD key across peers without a rigorous nonce partition is prohibited.</p>
+<h2 id="busy-file-and-mapping-behavior">Busy-file and mapping behavior<a class="heading-anchor" href="#busy-file-and-mapping-behavior" aria-label="Link to section">#</a></h2>
+<h3 id="fscrypt">fscrypt<a class="heading-anchor" href="#fscrypt" aria-label="Link to section">#</a></h3>
+<p>Removing a master key does not evict per-file keys for open or otherwise active files. Revocation procedure must stop new opens, close descriptors, release memory maps and working-directory/root references, terminate stubborn processes, retry key removal, and inspect the kernel's removal status. Restarting a worker or host may be the only practical way to bound residual process/kernel state, but it is still not a physical memory-erasure guarantee.</p>
+<p><span class="claim-label" data-claim="PFIR07-C005" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C005][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Removing keys]</span></p>
+<h3 id="dm-crypt-luks2">dm-crypt/LUKS2<a class="heading-anchor" href="#dm-crypt-luks2" aria-label="Link to section">#</a></h3>
+<p>A mapping close requires no active users. Deferred close waits for the final user and therefore is not completion evidence. Stop I/O, unmount, inspect open handles, close the mapping, verify device-mapper state, and remove any linked volume key. LUKS keyslot removal while the mapping remains active does not remove the in-kernel active volume key.</p>
+<p><span class="claim-label" data-claim="PFIR07-C019" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C019][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-close]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C020" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C020][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-close]</span></p>
+<h3 id="halokv-process-keys">HaloKV process keys<a class="heading-anchor" href="#halokv-process-keys" aria-label="Link to section">#</a></h3>
+<p>Workers may hold <code>K_enc</code>, <code>K_id</code>, <code>K_manifest</code>, plaintext, decompressed data, or derived subkeys. Controls include:</p>
+<ul>
+<li>smallest feasible worker and key-broker privilege;</li>
+<li>no key material in arguments, environment dumps, logs, metrics, tracing, or panic text;</li>
+<li>disable or encrypt core dumps and swap according to platform policy;</li>
+<li>lock sensitive buffers where justified, while acknowledging OS limits;</li>
+<li>explicit zeroization using library/compiler-supported primitives;</li>
+<li>bounded key leases and process lifetime;</li>
+<li>process termination/restart for emergency revocation;</li>
+<li>exclusion of secret-bearing pages from backup/checkpoint mechanisms where supported.</li>
+</ul>
+<p>These reduce retention; they do not prove every register, cache, device, or forensic copy is erased.</p>
+<p><span class="claim-label" data-claim="PFIR07-C006" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C006][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-FSCRYPT-7.2RC3 §Removing keys]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C043" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C043][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-88R2 §5.4]</span></p>
+<h2 id="revocation-completion-criteria">Revocation completion criteria<a class="heading-anchor" href="#revocation-completion-criteria" aria-label="Link to section">#</a></h2>
+<p>A revocation is complete only for the stated layer and scope. Evidence should identify:</p>
+<ol>
+<li>authority and key IDs/epochs revoked;</li>
+<li>broker authorization disabled;</li>
+<li>workers drained/terminated and leases expired;</li>
+<li>fscrypt removal result, when applicable;</li>
+<li>mount and dm-crypt mapping state, when applicable;</li>
+<li>kernel keyring links removed, when applicable;</li>
+<li>manifests/indexes invalidated and epoch floor advanced;</li>
+<li>backup/escrow/snapshot dependencies and whether they remain;</li>
+<li>quarantine/evidence retention;</li>
+<li>residual memory and media limitations.</li>
+</ol>
+<p>Never use “all keys erased” without an inventory-backed scope and qualification.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

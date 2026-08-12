@@ -1,0 +1,13 @@
+CAPTURE_TYPE: source provenance record
+SOURCE_ID: S014
+URL: https://github.com/ROCm/ROCm/blob/rocm-7.2.4/default.xml
+ACCESS_DATE: 2026-07-18
+FILE_BLOB_SHA: 65bf98ccc7aff583c0d52ec2fa4b198525a72404
+OBSERVATION:
+- The default project revision is refs/tags/rocm-7.2.0.
+- Therefore this file alone is not an exact 7.2.4 component lock.
+EXACT_7.2.4_ROOT_PINS:
+- ROCm/ROCm: e0b62c25d8ea39473a7208c1c8995f1b5c2e277c
+- ROCm/rocm-systems: 97f5574fe2fdc7bef44fb01545347912ee9f1779
+- ROCm/rocm-libraries: dabb6df2b988f8eabed1e2fecefaaf4e818bc7ef
+- ROCm/llvm-project: f58b06dce1f9c15707c5f808fd002e18c2accf7e

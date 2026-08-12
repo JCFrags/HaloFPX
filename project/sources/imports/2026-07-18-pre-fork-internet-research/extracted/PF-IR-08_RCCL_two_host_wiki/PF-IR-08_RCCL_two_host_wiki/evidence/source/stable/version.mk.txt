@@ -1,0 +1,23 @@
+---
+upstream_repository: "ROCm/rccl"
+upstream_ref: "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4"
+accessed_at: "2026-07-18"
+source_id: "SRC-STABLE-VERSION"
+source_class: "source"
+claim_label: "[SOURCE_IMPLEMENTATION]"
+upstream_path: "makefiles/version.mk"
+upstream_blob_sha: "3b182d61bdab57ddbe66f4f1e8383095fd7917af"
+upstream_locator: "lines 1-6"
+snapshot_kind: "verbatim complete file"
+completeness: "complete"
+license: "RCCL LICENSE.txt"
+---
+
+```text
+##### version
+NCCL_MAJOR   := 2
+NCCL_MINOR   := 27
+NCCL_PATCH   := 7
+NCCL_SUFFIX  :=
+PKG_REVISION := 1
+```

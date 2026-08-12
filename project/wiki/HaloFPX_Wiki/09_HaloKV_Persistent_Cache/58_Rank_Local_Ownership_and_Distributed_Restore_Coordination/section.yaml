@@ -1,0 +1,22 @@
+section_id: "58"
+title: "Rank-Local Ownership and Distributed Restore Coordination"
+category_id: "09"
+category_title: "HaloKV Persistent Cache"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 12
+required_machine_experiments:
+  - "Map serialized state ownership for replication, layer/pipeline, tensor and MoE-aware plans"
+  - "Restore independently from both NVMe devices and prove suffix equivalence"
+  - "Inject rank, manifest, topology, timing and corruption failures at every state transition"
+  - "Trace both USB4 links and enforce control-plane-only restore coordination"
+  - "Validate separate single-node fallback and recomputation paths"
+related_sections: ["49", "50", "52", "54", "56", "57", "59", "61", "63", "75"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  hardware_revisions:
+    - "Two gfx1151 Strix Halo hosts; topology and NVMe identities pending"

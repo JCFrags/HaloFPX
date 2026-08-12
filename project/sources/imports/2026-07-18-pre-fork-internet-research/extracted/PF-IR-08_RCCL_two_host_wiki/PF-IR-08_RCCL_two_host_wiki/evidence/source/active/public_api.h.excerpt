@@ -1,0 +1,52 @@
+---
+upstream_repository: "ROCm/rocm-systems"
+upstream_ref: "801a9ca2ad8940ac7cd7d571163e003f3a3d6cab"
+accessed_at: "2026-07-18"
+source_id: "SRC-ACTIVE-API"
+source_class: "source"
+claim_label: "[NORMATIVE_API]"
+upstream_path: "projects/rccl/src/nccl.h.in"
+upstream_blob_sha: "4e93c73d15cb294e5f22016e0d31f39073d8926e"
+upstream_locator: "result codes, communicator config, init, abort, revoke, shrink, grow, async error"
+snapshot_kind: "structured selected API excerpt preserving declarations and literal identifiers"
+completeness: "selected API declarations and normative comments; not full header"
+license: "Apache-2.0 (per-file SPDX)"
+---
+
+```cpp
+typedef enum {
+  ncclSuccess            = 0,
+  ncclUnhandledCudaError = 1,
+  ncclSystemError        = 2,
+  ncclInternalError      = 3,
+  ncclInvalidArgument    = 4,
+  ncclInvalidUsage       = 5,
+  ncclRemoteError        = 6, /*!< Remote process exited or there was a network error */
+  ncclInProgress         = 7, /*!< RCCL operation in progress */
+  ncclTimeout            = 8, /*!< Operation timed out */
+  ncclNumResults         = 9
+} ncclResult_t;
+
+ncclResult_t ncclGetUniqueId(ncclUniqueId* uniqueId);
+ncclResult_t ncclCommInitRankConfig(ncclComm_t* comm, int nranks, ncclUniqueId commId,
+                                    int rank, ncclConfig_t* config);
+ncclResult_t ncclCommInitRank(ncclComm_t* comm, int nranks, ncclUniqueId commId, int rank);
+
+ncclResult_t ncclCommFinalize(ncclComm_t comm);
+ncclResult_t ncclCommDestroy(ncclComm_t comm);
+
+/*! Abort any in-progress calls and destroy the communicator object. */
+ncclResult_t ncclCommAbort(ncclComm_t comm);
+
+/*! Revoke a communicator without destroying it. In-flight output buffers are undefined. */
+ncclResult_t ncclCommRevoke(ncclComm_t comm, int revokeFlags);
+
+ncclResult_t ncclCommShrink(ncclComm_t comm, int* excludeRanksList, int excludeRanksCount,
+                            ncclComm_t* newcomm, ncclConfig_t* config, int shrinkFlags);
+
+ncclResult_t ncclCommGetUniqueId(ncclComm_t comm, ncclUniqueId* uniqueId);
+ncclResult_t ncclCommGrow(ncclComm_t comm, int nRanks, const ncclUniqueId* uniqueId,
+                          int rank, ncclComm_t* newcomm, ncclConfig_t* config);
+
+ncclResult_t ncclCommGetAsyncError(ncclComm_t comm, ncclResult_t* asyncError);
+```

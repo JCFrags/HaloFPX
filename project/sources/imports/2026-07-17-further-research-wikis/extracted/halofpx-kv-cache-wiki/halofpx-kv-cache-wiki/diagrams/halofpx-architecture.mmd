@@ -1,0 +1,24 @@
+flowchart LR
+  REQ[Authorized request] --> NS[Namespace resolver]
+  REQ --> FP[Compatibility builder]
+  REQ --> PK[Prompt-chain key builder]
+  NS --> LOOK[Manifest lookup]
+  FP --> LOOK
+  PK --> LOOK
+  CKEY[Catalog-auth key manager] --> LOOK
+  LOOK --> VAL[Bounded integrity validator]
+  VAL --> OBJ[Immutable object store]
+  VAL --> KM[Data key manager / AEAD]
+  VAL --> ENG[Isolated engine adapter]
+  ENG --> HIT[Verified context commit]
+  LOOK --> SF[Single-flight coordinator]
+  SF --> WR[Object writer]
+  WR --> OBJ
+  WR --> CAT[Generationed HMAC-authenticated manifest catalog]
+  CKEY --> CAT
+  CAT --> LOOK
+  EVICT[Quota / eviction / GC] --> CAT
+  EVICT --> OBJ
+  TEL[Metrics / audit / wear] --- LOOK
+  TEL --- WR
+  TEL --- EVICT

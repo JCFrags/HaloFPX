@@ -1,0 +1,66 @@
+{
+  "artifact_id": "ART-DSR1-Q2-K-XS",
+  "candidate_id": "deepseek-r1",
+  "repository": "unsloth/DeepSeek-R1-GGUF",
+  "revision": "4dab99fdb3fea560e5a402b49c6ef11e025321a8",
+  "selected_path": "DeepSeek-R1-Q2_K_XS",
+  "quantization": "Q2_K_XS",
+  "lineage": {
+    "publisher_repository": "deepseek-ai/DeepSeek-R1",
+    "publisher_revision": "56d4cbbb4d29f4355bab4b9a39ccb717a14ad5ad",
+    "converter": "Unsloth",
+    "format": "GGUF",
+    "conversion_recipe_commit": null
+  },
+  "display_total": "221 GB-class",
+  "exact_total_bytes": 221253686944,
+  "known_exact_subtotal_bytes": 221253686944,
+  "manifest_completeness": "EXACT_SELECTED_SHARDS",
+  "file_count": 5,
+  "shards": [
+    {
+      "name": "DeepSeek-R1-Q2_K_XS-00001-of-00005.gguf",
+      "bytes": 49797465088,
+      "sha256": "df8e381870dd3aa2ea20b698f5484a1493fffe5503cae9dd4dcdd6ac56319e6d",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    },
+    {
+      "name": "DeepSeek-R1-Q2_K_XS-00002-of-00005.gguf",
+      "bytes": 49174169600,
+      "sha256": "87b29033b0988ebfdce71cc0678b4cbb0954c00562be6c71f529001b9ab7244f",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    },
+    {
+      "name": "DeepSeek-R1-Q2_K_XS-00003-of-00005.gguf",
+      "bytes": 49174169600,
+      "sha256": "03dfc0f75f94710ccace9e9ef39cd93f691cc05a33dbc425f0d4237719218a68",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    },
+    {
+      "name": "DeepSeek-R1-Q2_K_XS-00004-of-00005.gguf",
+      "bytes": 49174169600,
+      "sha256": "cb3125f56b745364cb552660fcee089163f99aa8e2d8ebbbff70722b3684e7de",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    },
+    {
+      "name": "DeepSeek-R1-Q2_K_XS-00005-of-00005.gguf",
+      "bytes": 23933713056,
+      "sha256": "84d95c85fb5ae9be44540a0491e80bdf8557665cafbb94d65dd948333b3f3e5f",
+      "hash_provenance": "publisher-hosted LFS/Xet pointer exposed by converter repository"
+    }
+  ],
+  "imatrix": {
+    "file": "imatrix_unsloth.dat",
+    "display_size": "about 987 MB",
+    "sha256": null,
+    "prompt_corpus": null,
+    "method": "Unsloth imatrix; exact prompt corpus and command not captured",
+    "provenance_status": "PARTIAL_PROVENANCE"
+  },
+  "license": {
+    "declared": "MIT",
+    "upstream_license_source": "SRC-DSR1-PUBLISHER",
+    "conversion_repository_license_metadata": "mit"
+  },
+  "local_validation": "NOT_RUN"
+}

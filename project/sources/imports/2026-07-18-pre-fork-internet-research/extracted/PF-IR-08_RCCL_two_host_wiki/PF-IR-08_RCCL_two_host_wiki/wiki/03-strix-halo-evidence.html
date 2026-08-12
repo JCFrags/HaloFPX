@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Strix Halo evidence and support boundary · PF-IR-08</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-08<br>RCCL two-host boundary</div><div class="audit">Evidence snapshot · 2026-07-18<br><code>801a9ca…</code> active authority</div><input id="nav-search" class="search" type="search" placeholder="Filter pages…"><nav class="nav"><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-method.html" class="">Scope, method, and evidence rules</a><a href="../wiki/01-executive-decision.html" class="">Executive decision</a><a href="../wiki/02-authority-and-version-lanes.html" class="">Authority and version lanes</a><a href="../wiki/03-strix-halo-evidence.html" class="active">Strix Halo evidence and support boundary</a><a href="../wiki/04-socket-and-interface-selection.html" class="">Socket transport and interface selection</a><a href="../wiki/05-topology-and-memory-registration.html" class="">Topology discovery and memory registration</a><a href="../wiki/06-network-plugin-abi.html" class="">Network-plugin ABI and custom transport boundary</a><a href="../wiki/07-communicator-failure-semantics.html" class="">Communicator creation and failure semantics</a><a href="../wiki/08-two-way-tensor-parallelism-boundary.html" class="">Two-way tensor parallelism and adjacent architectures</a><a href="../wiki/09-upstream-tests-statements.html" class="">Upstream tests and maintainer statements</a><a href="../wiki/10-local-experiment-matrix.html" class="">Local experiment matrix</a><a href="../wiki/11-open-questions-machine-evidence.html" class="">Open questions requiring machine evidence</a><a href="../wiki/12-evidence-index.html" class="">Evidence index</a></nav><div class="mini"><b>Non-claim boundary</b><br>No RCCL suitability or GPU-direct-over-USB4 conclusion without exact two-node evidence.</div></aside><main class="main"><div class="topbar"><span class="crumb">PF-IR-08 / Strix Halo evidence and support boundary</span><span><a href="../README.md">README</a> · <a href="../claims/claims.csv">claims.csv</a> · <a href="../manifests/source_manifest.csv">manifest</a></span></div><div class="content"><article class="article"><h1>Strix Halo evidence and support boundary</h1>
+<h2>Evidence ledger</h2>
+<table>
+<thead>
+<tr>
+  <th>Evidence</th>
+  <th>Literal class</th>
+  <th>What it establishes</th>
+  <th>What it does not establish</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>ROCm 7.2 Ryzen matrix</td>
+  <td><code>[NORMATIVE_DOC]</code></td>
+  <td>gfx1151/Ryzen AI Max+ 395 platform and PyTorch support.</td>
+  <td>RCCL component support, multi-node collectives, or USB4 networking.</td>
+</tr>
+<tr>
+  <td>PR #3415</td>
+  <td><code>[MAINTAINER_STATEMENT]</code></td>
+  <td>gfx1151 source enablement merged; single-GPU unit tests and PyTorch load reported.</td>
+  <td>Multi-GPU or multi-node suitability; the PR says those were pending.</td>
+</tr>
+<tr>
+  <td>PR #4875</td>
+  <td><code>[MAINTAINER_REPORTED_MACHINE_EVIDENCE]</code></td>
+  <td>1–4 Strix Halo nodes over a 10 Gbps Ethernet switch reportedly ran RCCL without failure.</td>
+  <td>USB4, exact target hosts, stock-vs-custom transport path, or independently reproduced logs.</td>
+</tr>
+<tr>
+  <td>Issue #2026</td>
+  <td><code>[MAINTAINER_STATEMENT]</code></td>
+  <td>Historical “no plans” reply, later redirected to monorepo tracking.</td>
+  <td>Current prohibition; it was superseded by later work.</td>
+</tr>
+<tr>
+  <td>Issue #2788</td>
+  <td><code>[ISSUE_COMMENTARY]</code></td>
+  <td>Community interest in a Thunderbolt/USB4 plugin and gfx1151 enablement.</td>
+  <td>AMD validation of that plugin or topology.</td>
+</tr>
+<tr>
+  <td>PR #2075</td>
+  <td><code>[COMMUNITY_REPORTED_MACHINE_EVIDENCE]</code></td>
+  <td>Unmerged community report of two Strix Halo nodes, rccl-tests, and vLLM TP.</td>
+  <td>Normative support, reproducibility, or proof of a DMA-BUF/GPU-direct Socket path.</td>
+</tr>
+</tbody>
+</table>
+<h2>Interpretive rule</h2>
+<p>Architecture enablement, framework support, and a successful load are three different facts. None substitutes for the two-host test. The strongest relevant upstream machine report uses an Ethernet switch; the exact Ethernet-over-USB4 topology remains unvalidated in this corpus.</p>
+</article><div class="footer">Commit-pinned research snapshot. Literal labels distinguish API, implementation, documentation, tests, commentary, inference, and unresolved machine evidence.</div></div></main></div><script src="../assets/wiki.js"></script></body></html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>14. Primary-source and manifest index — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a class="active" href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/14-source-index.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>14. Primary-source and manifest index</h1>
+<h2 id="machine-readable-indexes">Machine-readable indexes</h2>
+<ul>
+<li><a href="../manifests/sources.csv"><code>../manifests/sources.csv</code></a> — source IDs, commits/versions, URLs, PCI applicability, access dates, local captures, licenses, and blob hashes.</li>
+<li><a href="../manifests/claims.csv"><code>../manifests/claims.csv</code></a> — literal labels, statements, evidence IDs, confidence, and decision impact.</li>
+<li><a href="../manifests/support-boundary.csv"><code>../manifests/support-boundary.csv</code></a> — upstream/vendor/Windows/missing boundary by topic.</li>
+<li><a href="../manifests/versions.json"><code>../manifests/versions.json</code></a> — target identity, current pins, and exact AMD package names.</li>
+<li><a href="../manifests/licenses.csv"><code>../manifests/licenses.csv</code></a> — license/terms boundary and bundle handling.</li>
+<li><a href="../manifests/access-log.csv"><code>../manifests/access-log.csv</code></a> — access chronology.</li>
+<li><a href="../manifests/exact-source-verification.json"><code>../manifests/exact-source-verification.json</code></a> — Git blob verification.</li>
+<li><a href="../manifests/files.sha256"><code>../manifests/files.sha256</code></a> — whole-bundle checksums.</li>
+<li><a href="../manifests/validation.json"><code>../manifests/validation.json</code></a> — structural validation.</li>
+</ul>
+<h2 id="key-local-primary-captures">Key local primary captures</h2>
+<h3 id="linux">Linux</h3>
+<ul>
+<li><a href="../sources/raw/kernel/Kconfig"><code>../sources/raw/kernel/Kconfig</code></a></li>
+<li><a href="../sources/raw/kernel/npu5_regs.c"><code>../sources/raw/kernel/npu5_regs.c</code></a></li>
+<li><a href="../sources/raw/kernel/amdnpu.rst"><code>../sources/raw/kernel/amdnpu.rst</code></a></li>
+<li><a href="../sources/excerpts/kernel/amdxdna_pci_drv.c.lines26-139.txt"><code>../sources/excerpts/kernel/amdxdna_pci_drv.c.lines26-139.txt</code></a></li>
+<li><a href="../sources/excerpts/kernel/aie2_pci.c.suspend-resume-init.txt"><code>../sources/excerpts/kernel/aie2_pci.c.suspend-resume-init.txt</code></a></li>
+<li><a href="../sources/excerpts/kernel/amdxdna_gem.c.noncoherent-sync.txt"><code>../sources/excerpts/kernel/amdxdna_gem.c.noncoherent-sync.txt</code></a></li>
+<li><a href="../sources/excerpts/kernel/amdxdna_accel.h.qos-bo-sync-telemetry.txt"><code>../sources/excerpts/kernel/amdxdna_accel.h.qos-bo-sync-telemetry.txt</code></a></li>
+</ul>
+<h3 id="amd-xdna-driver-shim">AMD XDNA driver/shim</h3>
+<ul>
+<li><a href="../sources/raw/amd-xdna-driver/legacy-npu5_regs.c"><code>../sources/raw/amd-xdna-driver/legacy-npu5_regs.c</code></a></li>
+<li><a href="../sources/raw/amd-xdna-driver/CMakeLists.txt"><code>../sources/raw/amd-xdna-driver/CMakeLists.txt</code></a></li>
+<li><a href="../sources/raw/amd-xdna-driver/.gitmodules"><code>../sources/raw/amd-xdna-driver/.gitmodules</code></a></li>
+<li><a href="../sources/records/amd-xdna-driver_README_relevant-capture.md"><code>../sources/records/amd-xdna-driver_README_relevant-capture.md</code></a></li>
+</ul>
+<h3 id="firmware">Firmware</h3>
+<ul>
+<li><a href="../sources/excerpts/vendor-docs/linux-firmware-WHENCE.amdxdna.txt"><code>../sources/excerpts/vendor-docs/linux-firmware-WHENCE.amdxdna.txt</code></a></li>
+</ul>
+<h3 id="ryzen-ai-examples">Ryzen AI examples</h3>
+<ul>
+<li><a href="../sources/raw/ryzenai-sw/DistilBERT_text_classification_bf16_README.md"><code>../sources/raw/ryzenai-sw/DistilBERT_text_classification_bf16_README.md</code></a></li>
+<li><a href="../sources/raw/ryzenai-sw/run_inference.py"><code>../sources/raw/ryzenai-sw/run_inference.py</code></a></li>
+<li><a href="../sources/raw/ryzenai-sw/vitisai_config.json"><code>../sources/raw/ryzenai-sw/vitisai_config.json</code></a></li>
+<li><a href="../sources/raw/ryzenai-sw/custom_embedding.py"><code>../sources/raw/ryzenai-sw/custom_embedding.py</code></a></li>
+<li><a href="../sources/raw/ryzenai-sw/LICENSE.txt"><code>../sources/raw/ryzenai-sw/LICENSE.txt</code></a></li>
+</ul>
+<h3 id="runtime-compiler-licensing">Runtime/compiler licensing</h3>
+<ul>
+<li><a href="../sources/excerpts/runtime/XRT_LICENSE.lines1-55.txt"><code>../sources/excerpts/runtime/XRT_LICENSE.lines1-55.txt</code></a></li>
+<li><a href="../sources/excerpts/runtime/LLVM-AIE_LICENSE.lines1-20.txt"><code>../sources/excerpts/runtime/LLVM-AIE_LICENSE.lines1-20.txt</code></a></li>
+<li><a href="../sources/excerpts/runtime/MLIR-AIE_LICENSE.lines1-20.txt"><code>../sources/excerpts/runtime/MLIR-AIE_LICENSE.lines1-20.txt</code></a></li>
+</ul>
+<h3 id="vendor-documentation-capture">Vendor documentation capture</h3>
+<ul>
+<li><a href="../sources/records/official-primary-claim-capture.md"><code>../sources/records/official-primary-claim-capture.md</code></a></li>
+<li><a href="../sources/CAPTURE_LIMITATIONS.html"><code>../sources/CAPTURE_LIMITATIONS.md</code></a></li>
+</ul>
+<h2 id="re-fetch-recipe">Re-fetch recipe</h2>
+<p><a href="../sources/fetch-primary-sources.sh"><code>../sources/fetch-primary-sources.sh</code></a> records immutable raw URLs and expected Git blob IDs. It does not download AMD account-gated packages or firmware binaries.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

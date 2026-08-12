@@ -1,0 +1,17 @@
+digraph G {
+  graph [rankdir=TB, bgcolor="transparent", pad=0.25, nodesep=0.45, ranksep=0.55, fontname="Inter"];
+  node [shape=box, style="rounded,filled", fontname="Inter", fontsize=10, color="#6d5dfc", fillcolor="#17182a", fontcolor="#eef0ff", margin="0.12,0.08"];
+  edge [color="#71d7ff", fontcolor="#b9c7ff", fontname="Inter", fontsize=9, arrowsize=0.7];
+
+  upstream [label="Pinned current llama.cpp\nmodels • graphs • server • RPC • platform backends"];
+  ext [label="Small ROCmFPX extension layer\nformat ABI • CPU oracle • HIP/Vulkan kernels • type registration"];
+  policy [label="Optional server extension\nstrict HY3 verification • request overrides • versioned disk cache"];
+  tests [label="Acceptance contract\nformat vectors • backend matrices • Strix regression • RPC same-build probe"];
+  releases [label="Reproducible release\nupstream SHA + extension SHA + ROCm/driver/toolchain fingerprint"];
+
+  upstream -> ext;
+  upstream -> policy;
+  ext -> tests;
+  policy -> tests;
+  tests -> releases;
+}

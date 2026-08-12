@@ -1,0 +1,2 @@
+# Preserve exact upstream patch whitespace without treating it as project prose.
+*.patch whitespace=-blank-at-eol,-blank-at-eof

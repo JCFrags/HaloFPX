@@ -1,0 +1,18 @@
+digraph G {
+graph [bgcolor="transparent", fontname="Helvetica", pad="0.25", nodesep="0.45", ranksep="0.55"]; node [shape=box, style="rounded,filled", fillcolor="#eef3fa", color="#506784", fontname="Helvetica", fontsize=10, margin="0.12,0.08"]; edge [color="#506784", fontname="Helvetica", fontsize=9];
+rankdir=LR;
+a[label="LEASED"];
+b[label="TEMP WRITE\nO_EXCL 0600"];
+c[label="FILE SYNCED"];
+d[label="REOPENED + VERIFIED"];
+e[label="IMMUTABLE OBJECT\nNO-REPLACE"];
+f[label="OBJECT DIR SYNCED"];
+auth[label="CANONICAL MANIFEST\nHMAC AUTHENTICATED"];
+g[label="MANIFEST TEMP\nSYNCED"];
+h[label="MANIFEST CAS / RENAME\nDIR SYNCED", fillcolor="#e8f5e9", color="#216e39"];
+cand[label="AUTHENTICATED CATALOG ENTRY\nREACHABLE", fillcolor="#dff5e3", color="#216e39"];
+orph[label="SAFE ORPHAN", fillcolor="#fff0d6", color="#8a5a00"];
+miss[label="MISS; OLD MANIFEST INTACT", fillcolor="#eef3fa"];
+a->b->c->d->e->f->auth->g->h->cand;
+b->miss[label="error",style=dashed,color="#a40e26"]; c->miss[label="verify fail",style=dashed,color="#a40e26"]; auth->miss[label="key / HMAC fail",style=dashed,color="#a40e26"]; e->orph[label="crash before manifest",style=dashed,color="#8a5a00"]; orph->miss[label="GC after grace"];
+}

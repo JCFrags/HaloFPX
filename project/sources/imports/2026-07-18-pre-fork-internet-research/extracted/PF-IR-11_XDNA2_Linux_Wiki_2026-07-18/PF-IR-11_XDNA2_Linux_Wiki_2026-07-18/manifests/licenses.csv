@@ -1,0 +1,13 @@
+component,license_or_terms,primary_evidence,bundle_handling
+Linux amdxdna kernel sources,GPL-2.0 / GPL-2.0-only; UAPI GPL-2.0 WITH Linux-syscall-note,SPDX per file,included source captures preserve notices
+amd/xdna-driver kernel trees,GPL-2.0,SPDX per file,legacy npu5 exact source included
+amd/xdna-driver shim/build,Apache-2.0,SPDX per file,exact CMakeLists and shim excerpt included
+linux-firmware amdnpu payload,Redistributable; see LICENSE.amdnpu,WHENCE at pinned commit,binary and full license text not redistributed
+XRT userspace,Apache-2.0,XRT LICENSE at pinned public commit,public commit/license hash recorded
+XRT xocl/xclmgmt kernel drivers,GPL-2.0,XRT LICENSE,not used as amdxdna kernel evidence
+XRT zocl,Apache-2.0 or GPL-2.0,XRT LICENSE,not central to target
+llvm-aie / Peano,Apache-2.0 WITH LLVM-exception,LICENSE.TXT,public commit/license hash recorded
+mlir-aie / IRON,Apache-2.0 WITH LLVM-exception,LICENSE,public commit/license hash recorded
+amd/RyzenAI-SW examples,MIT,LICENSE.txt,exact CRLF license file included and Git-blob verified
+AMD Ryzen AI binary packages,AMD EULA + third-party notices,AMD licensing page/account downloads,terms not interpreted; packages absent
+AMD documentation,AMD website terms,page footer,structured factual capture only; full pages not mirrored

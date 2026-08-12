@@ -1,0 +1,10 @@
+component,license,reuse_limit
+llama.cpp / ROCmFPX / CachyLlama / rocmfp4 source,MIT,Retain copyright and license notice.
+cpp-httplib,MIT,Retain copyright and license notice.
+nlohmann/json,MIT,Retain copyright and license notice.
+stb_image,Public domain or MIT alternative,Use under selected upstream option; retain notice when using MIT.
+miniaudio,Public domain or MIT-0,Follow upstream dual-option notice.
+sheredom/subprocess.h,Unlicense/public-domain dedication,Retain provenance notice as good practice.
+GitHub advisory webpage captures,No reuse license asserted for full page prose,Only factual metadata and bounded excerpts preserved; no PoC redistribution.
+Cisco Talos report captures,Cisco website content,Only factual metadata and bounded excerpts preserved; link to original.
+"GitHub Advisory Database JSON, if separately retrieved",CC-BY 4.0,Attribution required; this package primarily uses repository advisory pages.

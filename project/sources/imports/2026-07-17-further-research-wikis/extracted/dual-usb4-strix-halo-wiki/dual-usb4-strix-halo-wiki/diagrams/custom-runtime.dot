@@ -1,0 +1,30 @@
+digraph G {
+
+  graph [bgcolor="#101820", pad="0.35", nodesep="0.4", ranksep="0.55", fontname="DejaVu Sans"];
+  node [shape=box, style="rounded,filled", fillcolor="#263238", color="#4dd0e1", fontcolor="#f5f7fa", fontname="DejaVu Sans", penwidth=1.7, margin="0.16,0.10"];
+  edge [color="#90caf9", fontcolor="#cfd8dc", fontname="DejaVu Sans", penwidth=2.0, arrowsize=0.75];
+
+  rankdir=LR; label="Custom runtime: explicit chunk striping, not packet striping"; labelloc=t; fontsize=20; fontcolor="#ffffff";
+  input [label="tensor/message
+length + final hash", fillcolor="#37474f"];
+  sched [label="chunk scheduler
+global offsets + credits"];
+  q0 [label="path 0 queue
+worker pinned near NHI 0"];
+  q1 [label="path 1 queue
+worker pinned near NHI 1"];
+  p0 [label="bound TCP socket 0
+or tbstream device 0"];
+  p1 [label="bound TCP socket 1
+or tbstream device 1"];
+  r0 [label="receiver path 0"];
+  r1 [label="receiver path 1"];
+  reasm [label="range reassembly
+per-chunk hash + bounds"];
+  output [label="complete message
+final hash verified", fillcolor="#1b5e20", color="#66bb6a"];
+  input -> sched; sched -> q0; sched -> q1; q0 -> p0; q1 -> p1;
+  p0 -> r0 [label="cable 0", color="#26c6da", penwidth=4];
+  p1 -> r1 [label="cable 1", color="#7e57c2", penwidth=4];
+  r0 -> reasm; r1 -> reasm; reasm -> output;
+}

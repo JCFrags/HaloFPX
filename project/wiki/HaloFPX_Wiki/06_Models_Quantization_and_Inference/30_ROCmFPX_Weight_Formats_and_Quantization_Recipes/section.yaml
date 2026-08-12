@@ -1,0 +1,17 @@
+section_id: "30"
+category_id: "06"
+title: "ROCmFPX Weight Formats and Quantization Recipes"
+category: "06_Models_Quantization_and_Inference"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 7
+required_machine_experiments:
+  - "reference and backend-op gates on HIP and Vulkan"
+  - "per-architecture quantization and tensor-type manifest audit"
+  - "matched quality, memory, prompt, and decode comparisons"
+related_sections: ["29", "31", "33", "37", "57"]
+applicability:
+  repositories: ["charlie12345/ROCmFPX"]
+  software_versions: ["a5605a72768c6562241b248e268e33dc92787394"]
+  hardware_revisions: ["gfx1151 validation pending"]

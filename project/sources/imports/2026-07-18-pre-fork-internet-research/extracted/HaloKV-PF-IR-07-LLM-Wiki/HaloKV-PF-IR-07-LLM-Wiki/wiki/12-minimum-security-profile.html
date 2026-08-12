@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Minimum multi user persistent cache security profile Normative language HALOKV MUST and HALOKV SHOULD are local profile labels , not IETF/NIST normative statements and not complian…">
+  <title>Minimum multi-user persistent-cache security profile · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link active" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Minimum multi-user persistent-cache security profile</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Minimum multi-user persistent-cache security profile</h1>
+<h2 id="normative-language">Normative language<a class="heading-anchor" href="#normative-language" aria-label="Link to section">#</a></h2>
+<p><code>HALOKV-MUST</code> and <code>HALOKV-SHOULD</code> are <strong>local profile labels</strong>, not IETF/NIST normative statements and not compliance claims. They define the proposed minimum implementation profile for PF-IR-07.</p>
+<h2 id="controls">Controls<a class="heading-anchor" href="#controls" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Control</th>
+  <th>Level</th>
+  <th>Requirement</th>
+  <th>Verification</th>
+  <th>Claim basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>PFIR07-MP-001</td>
+  <td>HALOKV-MUST</td>
+  <td>Use authenticated object encryption for every persistent private, project, or system/public cache object.</td>
+  <td>Format inspection and negative tag tests.</td>
+  <td>PFIR07-C050,C058</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-002</td>
+  <td>HALOKV-MUST</td>
+  <td>Use an approved implementation of AES-256-GCM or ChaCha20-Poly1305 with a 128-bit authentication tag; AES-GCM-SIV may be an explicitly versioned alternative.</td>
+  <td>Cryptographic module inventory; test vectors.</td>
+  <td>PFIR07-C030-C036</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-003</td>
+  <td>HALOKV-MUST</td>
+  <td>Use 96-bit nonces and enforce uniqueness within each AEAD key domain; never truncate or recycle nonce state.</td>
+  <td>Allocator review, collision tests, invocation metrics.</td>
+  <td>PFIR07-C031-C035</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-004</td>
+  <td>HALOKV-MUST</td>
+  <td>Assign a separate rank key domain per epoch, or document an equivalently rigorous nonce partition.</td>
+  <td>KDF context and key-broker policy inspection.</td>
+  <td>PFIR07-C055</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-005</td>
+  <td>HALOKV-MUST</td>
+  <td>Roll to a fresh epoch/key after uncertain nonce state, restored counter state, or suspected reuse.</td>
+  <td>Crash/restore fault-injection.</td>
+  <td>PFIR07-C033,C070</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-006</td>
+  <td>HALOKV-MUST</td>
+  <td>Bind immutable authority, tenant, project, prefix, namespace, sharing class, rank, epoch, object type, format, codec, sizes, chunk position, CID, and manifest generation in canonical AAD as applicable.</td>
+  <td>Cross-field substitution tests.</td>
+  <td>PFIR07-C057</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-007</td>
+  <td>HALOKV-MUST</td>
+  <td>Canonicalize AAD and identifier input with a versioned deterministic encoding and published test vectors.</td>
+  <td>Cross-language canonicalization suite.</td>
+  <td>PFIR07-C049,C057</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-008</td>
+  <td>HALOKV-MUST</td>
+  <td>Authenticate before decompression, deserialization, semantic parsing, or data exposure.</td>
+  <td>Fuzzing and code-path review.</td>
+  <td>PFIR07-C059</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-009</td>
+  <td>HALOKV-MUST</td>
+  <td>Normalize every unknown/corrupt/unauthenticated/wrong-key/wrong-principal/mismatch outcome to MISS_RECOMPUTE at the caller boundary.</td>
+  <td>Negative corpus and API contract tests.</td>
+  <td>PFIR07-C058,C063</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-010</td>
+  <td>HALOKV-MUST</td>
+  <td>Never serve cached plaintext or partially parsed data after authentication failure.</td>
+  <td>Taint and exception-path review.</td>
+  <td>PFIR07-C059,C063</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-011</td>
+  <td>HALOKV-MUST</td>
+  <td>Use purpose-separated encryption, identifier, manifest, and optional audit keys.</td>
+  <td>KDF/wrapping context review.</td>
+  <td>PFIR07-C054</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-012</td>
+  <td>HALOKV-MUST</td>
+  <td>Use immutable authority-issued tenant/project identifiers; mutable names are metadata only.</td>
+  <td>Principal-schema and rename tests.</td>
+  <td>PFIR07-C027,C051</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-013</td>
+  <td>HALOKV-MUST</td>
+  <td>Scope private deduplication/index lookup no wider than the authorized tenant/project sharing domain.</td>
+  <td>Index partition and authorization tests.</td>
+  <td>PFIR07-C052,C078</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-014</td>
+  <td>HALOKV-MUST</td>
+  <td>Use a separate authority-owned, publication-controlled namespace for public/system prefixes.</td>
+  <td>Key ownership and write-ACL inspection.</td>
+  <td>PFIR07-C053</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-015</td>
+  <td>HALOKV-MUST</td>
+  <td>Use a keyed, scope-specific private content identifier rather than a globally exposed raw plaintext digest.</td>
+  <td>CID derivation test vectors and index review.</td>
+  <td>PFIR07-C056</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-016</td>
+  <td>HALOKV-MUST</td>
+  <td>Authenticate manifests and bind generation/epoch; enforce a trusted freshness policy where rollback matters.</td>
+  <td>Replay/rollback tests.</td>
+  <td>PFIR07-C060</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-017</td>
+  <td>HALOKV-MUST</td>
+  <td>Write immutable objects with bounded lengths, fsync/atomic publish semantics, and publish the manifest/index last.</td>
+  <td>Power-failure and torn-write tests.</td>
+  <td>PFIR07-C059,C065</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-018</td>
+  <td>HALOKV-MUST</td>
+  <td>Keep object and epoch keys out of cache-media plaintext; obtain them from a controlled KMS/HSM or wrapped-key broker.</td>
+  <td>Filesystem scan, deployment configuration, key-broker audit.</td>
+  <td>PFIR07-C040,C046</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-019</td>
+  <td>HALOKV-MUST</td>
+  <td>Record key owner, custodian, authorization policy, lifecycle state, epoch, and destroy/escrow dependencies.</td>
+  <td>Key inventory and state-transition audit.</td>
+  <td>PFIR07-C040,C042</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-020</td>
+  <td>HALOKV-MUST</td>
+  <td>Drain users and terminate/restart affected workers before declaring revocation complete; verify fscrypt key status and/or dm-crypt mapping closure when used.</td>
+  <td>Revocation runbook exercise.</td>
+  <td>PFIR07-C005-C007,C019-C020,C026</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-021</td>
+  <td>HALOKV-MUST</td>
+  <td>Treat LUKS headers, header backups, detached headers, recovery credentials, KMS replicas, and snapshots as key-bearing dependencies.</td>
+  <td>Backup/key-copy inventory.</td>
+  <td>PFIR07-C014,C021,C042</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-022</td>
+  <td>HALOKV-MUST</td>
+  <td>Restore only into a quarantine namespace and enforce current epoch floors, tombstones, format policy, and authentication before publication.</td>
+  <td>Restore drill.</td>
+  <td>PFIR07-C065</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-023</td>
+  <td>HALOKV-MUST</td>
+  <td>Authorize and authenticate before export, then re-encrypt under the destination authority/scope and emit a new manifest.</td>
+  <td>Export integration tests and audit record.</td>
+  <td>PFIR07-C066</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-024</td>
+  <td>HALOKV-MUST</td>
+  <td>Describe deletion as logical deletion unless a documented CE or media-sanitization procedure has met its preconditions and evidence requirements.</td>
+  <td>Deletion report wording and evidence review.</td>
+  <td>PFIR07-C041-C044,C067</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-025</td>
+  <td>HALOKV-MUST</td>
+  <td>Do not claim per-object CE when an epoch key is shared by other live objects or usable key copies/backups remain.</td>
+  <td>Key-scope and copy inventory.</td>
+  <td>PFIR07-C068</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-026</td>
+  <td>HALOKV-MUST</td>
+  <td>Do not treat discard/TRIM acknowledgement as secure deletion or physical sanitization evidence.</td>
+  <td>Configuration and deletion-report review.</td>
+  <td>PFIR07-C069,C083</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-027</td>
+  <td>HALOKV-SHOULD</td>
+  <td>Use LUKS2/dm-crypt for the rank-local cache volume to protect offline media; keep discard off absent a reviewed exception.</td>
+  <td>Host storage configuration.</td>
+  <td>PFIR07-C039,C045,C069</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-028</td>
+  <td>HALOKV-SHOULD</td>
+  <td>Use fscrypt v2 when directory-level offline isolation or selective unlock adds value; do not count it as object authenticity.</td>
+  <td>Policy version and key-removal drill.</td>
+  <td>PFIR07-C001-C009</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-029</td>
+  <td>HALOKV-SHOULD</td>
+  <td>Avoid backing up regenerable cache content; when required, back up a coherent protected set and test quarantine restore.</td>
+  <td>Backup policy and restore evidence.</td>
+  <td>PFIR07-C064-C065</td>
+</tr>
+<tr>
+  <td>PFIR07-MP-030</td>
+  <td>HALOKV-MUST</td>
+  <td>Maintain rate limits, recomputation coalescing, quotas, and circuit breakers so fail-closed misses do not become an unbounded denial-of-service primitive.</td>
+  <td>Load/abuse tests.</td>
+  <td>PFIR07-C058,C063; RR25</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="reference-deployment-profile">Reference deployment profile<a class="heading-anchor" href="#reference-deployment-profile" aria-label="Link to section">#</a></h2>
+<pre><code class="language-text">Host / rank
+├── controlled boot and workload identity
+├── LUKS2/dm-crypt encrypted cache volume (recommended)
+│   ├── discard off by default
+│   └── header backup policy explicit
+├── filesystem
+│   └── optional fscrypt v2 protected tree
+└── HaloKV cache service
+    ├── principal authorization before key/index lookup
+    ├── rank-epoch K_enc / K_id / K_manifest
+    ├── crash-safe nonce allocation
+    ├── immutable AEAD object files
+    ├── authenticated generation manifests
+    ├── scoped private dedup index
+    ├── separate public/system publisher namespace
+    └── all validation failure =&gt; MISS_RECOMPUTE
+</code></pre>
+<h2 id="required-implementation-gates">Required implementation gates<a class="heading-anchor" href="#required-implementation-gates" aria-label="Link to section">#</a></h2>
+<p>An implementation is not ready for persistent multi-user use until all of these gates pass:</p>
+<ol>
+<li>Cross-tenant, cross-project, cross-prefix, cross-rank, cross-epoch, and wrong-suite substitution tests fail to miss.</li>
+<li>Every malformed/truncated/oversized/duplicate-field envelope fails before data exposure.</li>
+<li>AEAD negative tests use real modified ciphertext, tag, nonce, and AAD vectors.</li>
+<li>Crash and snapshot tests prove no nonce/key domain resumes from uncertain allocator state.</li>
+<li>Restore cannot publish directly into the live namespace and enforces tombstones/epoch floors.</li>
+<li>Busy fscrypt files and busy dm-crypt mappings are exercised if those layers are used.</li>
+<li>Logs and metrics contain no secret key material, plaintext, or externally distinguishable cryptographic error.</li>
+<li>Backup/header/escrow dependencies appear in the key and deletion inventory.</li>
+<li>Deletion reports correctly distinguish logical deletion, CE, and media sanitization.</li>
+<li>Abuse/load tests show repeated invalid objects cannot cause unbounded memory allocation or recomputation amplification.</li>
+</ol>
+<h2 id="configuration-floor">Configuration floor<a class="heading-anchor" href="#configuration-floor" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Area</th>
+  <th>Floor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>AEAD tag</td>
+  <td>128 bits; no unauthenticated or shortened-tag compatibility path</td>
+</tr>
+<tr>
+  <td>Nonce</td>
+  <td>96 bits, unique per key; state uncertainty creates new epoch</td>
+</tr>
+<tr>
+  <td>Encryption key</td>
+  <td>256-bit suite key generated/derived through reviewed library/KMS</td>
+</tr>
+<tr>
+  <td>Private CID</td>
+  <td>Full HMAC-SHA-256 by default, scope-specific <code>K_id</code></td>
+</tr>
+<tr>
+  <td>Canonical encoding</td>
+  <td>Versioned deterministic CBOR or equivalently reviewed deterministic encoding</td>
+</tr>
+<tr>
+  <td>Compression</td>
+  <td>Only after authentication on read; expansion and resource caps</td>
+</tr>
+<tr>
+  <td>Key delivery</td>
+  <td>Narrow rank-epoch/purpose keys; no parent root to cache worker</td>
+</tr>
+<tr>
+  <td>Key persistence</td>
+  <td>No plaintext object keys on cache media; protected wrapped records only</td>
+</tr>
+<tr>
+  <td>Freshness</td>
+  <td>Trusted epoch/generation floor for namespaces where rollback matters</td>
+</tr>
+<tr>
+  <td>Dedup</td>
+  <td>Private project/tenant scope; no default cross-tenant index</td>
+</tr>
+<tr>
+  <td>Public/system</td>
+  <td>Separate authority and publication workflow</td>
+</tr>
+<tr>
+  <td>Backup</td>
+  <td>None by default; quarantine restore if approved</td>
+</tr>
+<tr>
+  <td>Failure</td>
+  <td>One caller-visible miss/recompute class</td>
+</tr>
+<tr>
+  <td>Discard</td>
+  <td>Off by default; no deletion claim</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="human-approvals-required-before-production">Human approvals required before production<a class="heading-anchor" href="#human-approvals-required-before-production" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>ID</th>
+  <th>Decision</th>
+  <th>Why human</th>
+  <th>Required artifact</th>
+  <th>Safety default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>HD-01</td>
+  <td>Principal authority</td>
+  <td>Determines which identity source can issue immutable tenant/project/service IDs and revoke them.</td>
+  <td>Authority policy, issuer trust roots, identifier lifecycle, audit ownership.</td>
+  <td>No cache-key issuance without authoritative immutable IDs.</td>
+</tr>
+<tr>
+  <td>HD-02</td>
+  <td>Sharing and deduplication policy</td>
+  <td>Defines whether content equality may be shared within a project, tenant, explicit group, or public/system namespace.</td>
+  <td>Approved sharing classes and promotion workflow.</td>
+  <td>Private tenant/project scope; no cross-tenant dedup.</td>
+</tr>
+<tr>
+  <td>HD-03</td>
+  <td>Key ownership and custody</td>
+  <td>Defines who can create, unwrap, escrow, rotate, revoke, and destroy roots and backups.</td>
+  <td>RACI/quorum, KMS policy, escrow and legal-hold rules.</td>
+  <td>Service cannot self-authorize parent-root access.</td>
+</tr>
+<tr>
+  <td>HD-04</td>
+  <td>Backup requirement and retention</td>
+  <td>A regenerable cache may not merit backup; retaining it expands key copies and deletion obligations.</td>
+  <td>Data classification, RPO/RTO, retention and legal-hold policy.</td>
+  <td>No cache-content backup.</td>
+</tr>
+<tr>
+  <td>HD-05</td>
+  <td>Freshness/rollback requirement</td>
+  <td>Some caches tolerate stale valid data; others need a monotonic source generation.</td>
+  <td>Maximum tolerated staleness and trusted state design.</td>
+  <td>Reject epochs/generations below current trusted floor.</td>
+</tr>
+<tr>
+  <td>HD-06</td>
+  <td>Physical sanitization method</td>
+  <td>Depends on media, provider capability, reuse/disposition, regulatory policy, and evidence threshold.</td>
+  <td>Media-specific procedure, verification/validation criteria, disposition record.</td>
+  <td>Do not assert sanitization without procedure evidence.</td>
+</tr>
+</tbody>
+</table></div>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

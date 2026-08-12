@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "faults": [
+    "backend not compiled",
+    "device missing",
+    "kernel/type combination unavailable",
+    "shape unsupported by optimized kernel",
+    "allocation failure on target backend"
+  ],
+  "allowed_outcomes": [
+    "explicit unsupported",
+    "observable policy-compliant fallback"
+  ],
+  "forbidden_outcomes": [
+    "silent tensor reinterpretation",
+    "unchecked output",
+    "false backend attribution"
+  ]
+}

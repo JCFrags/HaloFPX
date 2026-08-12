@@ -1,0 +1,5 @@
+[PROPOSED] USB4STREAM v1 cover metadata
+Date: 2026-04-28
+Message-ID: <20260428072209.3084930-1-mika.westerberg@linux.intel.com>
+Series introduced USB4STREAM, ConfigFS support and supporting Thunderbolt APIs. Review objected to a custom device major and network module-parameter design.
+This capture records proposal history only; v1 is not released behavior.

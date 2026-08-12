@@ -1,0 +1,11 @@
+{
+  "capture_format": "primary-source-commit-metadata/v1",
+  "repository": "fewtarius/llama-ai",
+  "commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+  "role": "wrapper/submodule selection snapshot",
+  "commit_title": "Submodule pointer update",
+  "source_url": "https://github.com/fewtarius/llama-ai/commit/1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "proof_scope": "Commit object/source selection only; not deployed binary proof.",
+  "payload_sha256": "9193c796ed188d9b138445a2793a633a669e7f5e5118fe0e7542c786909bd453"
+}

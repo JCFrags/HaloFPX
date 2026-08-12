@@ -1,0 +1,16 @@
+{
+  "messages": [
+    {
+      "content": "x",
+      "role": "user"
+    }
+  ],
+  "model": "pfir10-tiny",
+  "tool_choice": {
+    "function": {
+      "name": "missing"
+    },
+    "type": "function"
+  },
+  "tools": []
+}

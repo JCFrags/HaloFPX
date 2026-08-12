@@ -1,0 +1,13 @@
+{
+  "capture_path": "raw/github/CachyLLama/LICENSE.blob-e7dca554bcb802f98408383a864404e3aa4eacca.txt",
+  "capture_method": "byte-identical reuse of verified Git blob capture",
+  "byte_fidelity": "exact",
+  "source_url": "https://github.com/fewtarius/CachyLLama/blob/6be745998f568e379ea197fcf827baec73ff9940/LICENSE",
+  "repository_commit": "6be745998f568e379ea197fcf827baec73ff9940",
+  "repository_path": "LICENSE",
+  "git_blob_sha1": "e7dca554bcb802f98408383a864404e3aa4eacca",
+  "sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+  "size_bytes": 1078,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-REPO-LICENSE-TEXT"
+}

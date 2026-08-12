@@ -1,0 +1,19 @@
+{
+  "messages": [
+    {
+      "content": "x",
+      "role": "user"
+    }
+  ],
+  "model": "pfir10-tiny",
+  "response_format": {
+    "json_schema": {
+      "name": "bad",
+      "schema": {
+        "type": "pfir10-not-a-json-schema-type"
+      },
+      "strict": true
+    },
+    "type": "json_schema"
+  }
+}

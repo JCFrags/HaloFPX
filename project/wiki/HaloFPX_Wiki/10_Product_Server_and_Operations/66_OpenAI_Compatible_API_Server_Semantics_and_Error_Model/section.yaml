@@ -1,0 +1,17 @@
+section_id: "66"
+title: "OpenAI-Compatible API, Server Semantics, and Error Model"
+category_id: "10"
+category_title: "Product, Server, and Operations"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 10
+required_machine_experiments:
+  - "Advertised endpoint and official SDK conformance matrix"
+  - "SSE assembly, cancellation, and mid-stream fault tests"
+  - "Tool-call and structured-output quality suite"
+  - "Overload, authentication, rank-loss, retry, and idempotency tests"
+related_sections: ["09", "29", "32", "36", "46", "48", "60", "67", "68", "69", "71"]
+applicability:
+  repositories: ["ggml-org/llama.cpp@788e07d", "openai/openai-openapi@db3e531", "fewtarius/CachyLLama@6be7459"]
+  hardware: ["two-node Strix Halo target"]

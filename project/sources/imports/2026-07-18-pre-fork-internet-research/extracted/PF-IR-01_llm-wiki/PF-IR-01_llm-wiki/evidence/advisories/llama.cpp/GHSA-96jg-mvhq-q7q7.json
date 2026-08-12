@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-96jg-mvhq-q7q7",
+  "cve": "CVE-2026-33298",
+  "title": "GGUF tensor-size representability overflow",
+  "severity": "High",
+  "published": "2026-03-18",
+  "affected_versions_as_displayed_or_normalized": "< b7437",
+  "patched_versions_as_displayed_or_normalized": "b7824",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-96jg-mvhq-q7q7",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "ggml_nbytes; GGUF tensor dimension validation",
+    "preconditions_summary": "Untrusted GGUF with crafted dimensions is loaded."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "bd1493a13d75c56071c53980312d2715419e1b032846b9dca5e2a6462594d2c3"
+}

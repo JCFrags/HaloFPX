@@ -1,0 +1,13 @@
+{
+  "capture_path": "raw/github/ROCmFPX/LICENSE.blob-e7dca554bcb802f98408383a864404e3aa4eacca.txt",
+  "capture_method": "exact-byte HTTP retrieval followed by Git blob verification",
+  "byte_fidelity": "exact",
+  "source_url": "https://raw.githubusercontent.com/charlie12345/ROCmFPX/a5605a72768c6562241b248e268e33dc92787394/LICENSE",
+  "repository_commit": "a5605a72768c6562241b248e268e33dc92787394 and 61f2f2d7bc4955e9bca821095ef69125837133b5",
+  "repository_path": "LICENSE",
+  "git_blob_sha1": "e7dca554bcb802f98408383a864404e3aa4eacca",
+  "sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+  "size_bytes": 1078,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-REPO-LICENSE-TEXT"
+}

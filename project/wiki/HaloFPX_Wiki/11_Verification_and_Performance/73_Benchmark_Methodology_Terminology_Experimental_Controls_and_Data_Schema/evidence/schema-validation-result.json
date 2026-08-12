@@ -1,0 +1,45 @@
+{
+  "executed_at": "2026-07-17",
+  "working_directory": "C:/Users/britt/Documents/Custom_Inference_Project",
+  "runtime": {
+    "python": "3.14.4",
+    "jsonschema": "4.26.0"
+  },
+  "commands": [
+    "python wiki/HaloFPX_Wiki/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/scripts/validate_benchmark_records.py wiki/HaloFPX_Wiki/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/benchmark_record.schema.json wiki/HaloFPX_Wiki/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/fixtures/valid-request.json --expect valid",
+    "python wiki/HaloFPX_Wiki/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/scripts/validate_benchmark_records.py wiki/HaloFPX_Wiki/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/benchmark_record.schema.json wiki/HaloFPX_Wiki/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/fixtures/invalid-request.json --expect invalid"
+  ],
+  "artifacts": {
+    "validator_sha256": "6c7310449e8013bb3b96c4779b9620c942645dc04797aa8bc671e3c0d8e1a145",
+    "schema_sha256": "e3981e18bea145881d68560e5a14f5d3ce5167f1568f672eeaaabb422537640b",
+    "valid_fixture_sha256": "3f85af3cfabc657ebeebf8e1e89b22cf7a62a2e0b5ab5869e73f62058f4b988d",
+    "invalid_fixture_sha256": "61bed04c82af2c4ea28bfd1490c9a1bf04364800a5e7b04480e8bee6b5feced4"
+  },
+  "results": {
+    "valid_fixture": {
+      "expected": "valid",
+      "valid": true,
+      "error_count": 0,
+      "expectation_met": true,
+      "exit_code": 0
+    },
+    "invalid_fixture": {
+      "expected": "invalid",
+      "valid": false,
+      "error_count": 9,
+      "error_paths": [
+        "$",
+        "$.cache.restored_tokens",
+        "$.final_response_observed_ns",
+        "$.first_output_observed_ns",
+        "$.monotonic_clock",
+        "$.recorded_at",
+        "$.run_id",
+        "$.speculation.accepted_tokens"
+      ],
+      "expectation_met": true,
+      "exit_code": 0
+    }
+  },
+  "scope": "Structural and cross-field record validation only. This evidence does not approve warmup, repetitions, confidence methods, metric thresholds, or release gates."
+}

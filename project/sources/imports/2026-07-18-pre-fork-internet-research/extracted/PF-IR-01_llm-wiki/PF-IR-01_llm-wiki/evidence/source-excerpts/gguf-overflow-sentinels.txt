@@ -1,0 +1,6 @@
+[VERIFIED] Source groups:
+[VERIFIED] upstream blob 7920b8100b61e2f2d903f55e7e0887fc07b65d4b
+[VERIFIED] ROCm lineage blob ab3cc9748678ce79ee171a22e426061a4235fa8f
+[VERIFIED] Cachy blob 5e1986182515b3baadd3ab4c45c7e09038d0b64e
+[MEASURED] Sentinel semantics: checked cumulative size arithmetic, representability checks before tensor allocation, and bounded string/array parsing are present.
+[VERIFIED] License: MIT.

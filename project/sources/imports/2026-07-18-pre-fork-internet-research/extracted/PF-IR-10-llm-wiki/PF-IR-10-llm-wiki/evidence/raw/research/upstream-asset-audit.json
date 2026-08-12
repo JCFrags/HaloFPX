@@ -1,0 +1,47 @@
+{
+  "access_date": "2026-07-18",
+  "claim_labels": [
+    "VERIFIED-SOURCE",
+    "EXCLUDED-LICENSE-UNCLEAR",
+    "EXCLUDED-PROVENANCE-GAP"
+  ],
+  "halo_search": {
+    "claim_label": "UNVERIFIED-IDENTITY",
+    "queries": [
+      "HaloFPX",
+      "HaloFPX llama",
+      "HaloFPX GitHub",
+      "site:github.com HaloFPX"
+    ],
+    "result": "No authoritative candidate repository identified."
+  },
+  "publisher_context": [
+    {
+      "license_observation": "The source project is MIT, but that alone does not establish the exact converted GGUF artifact chain.",
+      "source": "https://github.com/karpathy/llama2.c/tree/master/tinyllamas"
+    }
+  ],
+  "upstream_binary_assets": [
+    {
+      "decision": "excluded-from-accepted-payload",
+      "id": "ggml-org-vocabs",
+      "observation": "Repository page exposed no model card or per-artifact license evidence during review.",
+      "reason_label": "EXCLUDED-LICENSE-UNCLEAR",
+      "source": "https://huggingface.co/ggml-org/vocabs"
+    },
+    {
+      "decision": "excluded-from-accepted-payload",
+      "id": "stories15M-q4_0",
+      "observation": "llama.cpp pins the checksum, but the exact converted file's publisher-to-conversion license chain was not preserved as sufficient evidence.",
+      "reason_label": "EXCLUDED-PROVENANCE-GAP",
+      "source": "https://huggingface.co/ggml-org/models/resolve/main/tinyllamas/stories15M-q4_0.gguf",
+      "upstream_sha256": "66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739"
+    },
+    {
+      "decision": "excluded-from-accepted-payload",
+      "id": "stories15M-big-endian",
+      "reason_label": "EXCLUDED-PROVENANCE-GAP",
+      "upstream_sha256": "9aec857937849d976f30397e97eb1cabb53eb9dcb1ce4611ba8247fb5f44c65d"
+    }
+  ]
+}

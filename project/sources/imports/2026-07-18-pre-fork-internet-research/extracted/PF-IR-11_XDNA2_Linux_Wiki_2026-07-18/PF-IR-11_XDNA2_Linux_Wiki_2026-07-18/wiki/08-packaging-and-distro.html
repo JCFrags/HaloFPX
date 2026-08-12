@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>8. Packaging and target-distro boundary — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a class="active" href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/08-packaging-and-distro.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>8. Packaging and target-distro boundary</h1>
+<h2 id="amd-reference-environment">AMD reference environment</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> The captured Ryzen AI Software 1.7.1 Linux reference specifies:</p>
+<table>
+<thead>
+<tr>
+  <th>Item</th>
+  <th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Distribution</td>
+  <td>Ubuntu 24.04 LTS</td>
+</tr>
+<tr>
+  <td>Kernel</td>
+  <td>6.10 or newer</td>
+</tr>
+<tr>
+  <td>Python</td>
+  <td>3.12.x</td>
+</tr>
+<tr>
+  <td>Memory guidance</td>
+  <td>64 GB recommended</td>
+</tr>
+<tr>
+  <td>XRT base</td>
+  <td><code>xrt_202610.2.21.75_24.04-amd64-base.deb</code></td>
+</tr>
+<tr>
+  <td>XRT development</td>
+  <td><code>xrt_202610.2.21.75_24.04-amd64-base-dev.deb</code></td>
+</tr>
+<tr>
+  <td>XRT NPU</td>
+  <td><code>xrt_202610.2.21.75_24.04-amd64-npu.deb</code></td>
+</tr>
+<tr>
+  <td>XDNA plugin</td>
+  <td><code>xrt_plugin.2.21.260102.53.release_24.04-amd64-amdxdna.deb</code></td>
+</tr>
+<tr>
+  <td>Ryzen AI archive</td>
+  <td><code>ryzen_ai-1.7.1.tgz</code></td>
+</tr>
+</tbody>
+</table>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> The install path is account-gated and EULA-governed.</p>
+<p><span class="claim claim-missing">[MISSING]</span> Package hashes and package contents were not captured because the gated assets were not downloaded.</p>
+<h2 id="distro-kernel-versus-vendor-module">Distro kernel versus vendor module</h2>
+<p><span class="claim claim-upstream">[UPSTREAM]</span> A sufficiently new distro kernel may contain <code>amdxdna</code>.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's source repository says Ubuntu 25.04 includes an in-tree driver but still needs the XRT shim.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's plugin packaging can install a DKMS-built staging driver and a separate legacy driver.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD warns that an older distro driver can enumerate and execute basic paths while failing newer plugin ioctls.</p>
+<p><span class="claim claim-decision">[DECISION]</span> Record the loaded module filename, build ID, signer, package owner, UAPI behavior, and firmware lineage. Do not treat “in-tree” or “vendor” as automatically superior; treat a matched, reproducible stack as the requirement.</p>
+<h2 id="source-build-boundary">Source-build boundary</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's source instructions support Ubuntu/Debian and Arch-oriented packaging, but this does not make every rolling distro a supported high-level Ryzen AI Software target.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD recommends matching XRT base to the plugin source, commonly through the repository submodule.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> Rebuilding public sources does not guarantee bit-for-bit equivalence to AMD's 1.7.1 packages or access to all high-level compiler/model assets.</p>
+<h2 id="target-distro-classification">Target-distro classification</h2>
+<p>Until probed, classify the target as:</p>
+<table>
+<thead>
+<tr>
+  <th>Layer</th>
+  <th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>PCI identity</td>
+  <td><code><span class="claim claim-unknown">[UNKNOWN]</span></code></td>
+</tr>
+<tr>
+  <td>kernel feature</td>
+  <td><code><span class="claim claim-unknown">[UNKNOWN]</span></code></td>
+</tr>
+<tr>
+  <td>IOMMU/SVA/PASID</td>
+  <td><code><span class="claim claim-unknown">[UNKNOWN]</span></code></td>
+</tr>
+<tr>
+  <td>firmware</td>
+  <td><code><span class="claim claim-unknown">[UNKNOWN]</span></code></td>
+</tr>
+<tr>
+  <td>XRT/plugin</td>
+  <td><code><span class="claim claim-unknown">[UNKNOWN]</span></code></td>
+</tr>
+<tr>
+  <td>Ryzen AI high-level runtime</td>
+  <td><code><span class="claim claim-unknown">[UNKNOWN]</span></code></td>
+</tr>
+<tr>
+  <td>package reproducibility</td>
+  <td><code><span class="claim claim-missing">[MISSING]</span></code></td>
+</tr>
+<tr>
+  <td>model compilation</td>
+  <td><code><span class="claim claim-missing">[MISSING]</span></code></td>
+</tr>
+<tr>
+  <td>performance/reliability</td>
+  <td><code><span class="claim claim-missing">[MISSING]</span></code></td>
+</tr>
+</tbody>
+</table>
+<p>The probe produces evidence but does not install or fix anything.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

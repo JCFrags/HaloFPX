@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Per-request raw trace record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "request_id",
+    "prompt_id",
+    "topology",
+    "cache_state",
+    "client_send_monotonic_ns",
+    "client_complete_monotonic_ns",
+    "prompt_tokens",
+    "output_tokens",
+    "http_status",
+    "success"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "prompt_id": {
+      "type": "string"
+    },
+    "topology": {
+      "enum": [
+        "node-a",
+        "node-b",
+        "dual"
+      ]
+    },
+    "cache_state": {
+      "enum": [
+        "C0",
+        "C1",
+        "C2",
+        "C3",
+        "NA"
+      ]
+    },
+    "client_send_monotonic_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "client_first_token_monotonic_ns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "client_last_token_monotonic_ns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "client_complete_monotonic_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "client_send_utc": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "client_complete_utc": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "server_received_monotonic_ns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "server_first_token_monotonic_ns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "prompt_tokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "eligible_prefix_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "cached_prompt_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "processed_prompt_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "output_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "max_output_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "http_status": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 100,
+      "maximum": 599
+    },
+    "success": {
+      "type": "boolean"
+    },
+    "finish_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "error_class": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "error_message_redacted": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "output_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "correctness_record_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "server_timings": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": [
+          "number",
+          "integer",
+          "string",
+          "null"
+        ]
+      }
+    },
+    "queue_depth_at_submit": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "token_count_method": {
+      "enum": [
+        "server_usage",
+        "server_timings",
+        "tokenizer",
+        "event_estimate",
+        "unknown"
+      ]
+    },
+    "output_tokens_estimated": {
+      "type": "boolean"
+    },
+    "stream_event_count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

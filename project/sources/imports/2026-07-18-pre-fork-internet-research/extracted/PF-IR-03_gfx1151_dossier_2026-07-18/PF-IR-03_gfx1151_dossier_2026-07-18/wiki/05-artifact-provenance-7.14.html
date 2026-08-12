@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>7.14 artifact provenance · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html">Lane map</a><a href="02-official-support-matrices.html">Official support matrices</a><a href="03-component-dossier.html">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html" class="active">7.14 artifact provenance</a><a href="06-source-build-provenance.html">Source/build provenance</a><a href="07-known-issues.html">Known issues</a><a href="08-rollback-removal.html">Rollback and removal</a><a href="09-licensing-sbom.html">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / 7.14 artifact provenance</div>
+  <article><h1>ROCm 7.14.0 gfx1151 artifact provenance</h1>
+<h2>Exact artifact</h2>
+<pre><code class="language-text">https://repo.amd.com/rocm/tarball-multi-arch/therock-dist-linux-gfx1151-7.14.0.tar.gz
+</code></pre>
+<h2>Integrity status</h2>
+<table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Captured value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Vendor-published SHA-256</td>
+  <td><strong>not located</strong></td>
+</tr>
+<tr>
+  <td>Vendor-published SHA-512</td>
+  <td><strong>not located</strong></td>
+</tr>
+<tr>
+  <td>Detached signature</td>
+  <td><strong>not located</strong></td>
+</tr>
+<tr>
+  <td>Vendor SBOM</td>
+  <td><strong>not located</strong></td>
+</tr>
+<tr>
+  <td>HTTPS URL</td>
+  <td>yes</td>
+</tr>
+<tr>
+  <td>Promotion status</td>
+  <td><code>false</code> until expected bytes are authenticated</td>
+</tr>
+</tbody>
+</table>
+<p>[PROVENANCE_GAP] A hash computed after download proves repeatability of the acquired bytes, not that AMD intended those bytes. The verification script therefore fails closed unless an expected digest is supplied from an independently trusted source, or an explicit inventory-only override is used.</p>
+<h2>Stable native package alternative</h2>
+<p>AMD documents stable multi-architecture APT repositories for both supported candidate OS lanes (<code>ubuntu2604</code> and <code>ubuntu2404</code>) with a ROCm release GPG key and <code>signed-by</code> configuration. The package lane provides a stronger reproducible-integrity path because APT verifies signed repository metadata and package hashes. Freeze:</p>
+<ul>
+<li>key bytes and fingerprint;</li>
+<li>InRelease/Release/Release.gpg;</li>
+<li>Packages metadata;</li>
+<li>every selected package version, filename and SHA-256;</li>
+<li>dependency closure and package-file list;</li>
+<li>repository access date.</li>
+</ul>
+<p>Do not confuse this stable repository model with TheRock nightly native-package instructions, which explicitly disable signature checks.</p>
+<h2>Expected tarball contents</h2>
+<p>TheRock documents a flattened SDK layout containing <code>.kpack</code>, <code>bin</code>, <code>clients</code>, <code>include</code>, <code>lib</code>, <code>libexec</code> and <code>share</code>. <code>share/therock/therock_manifest.json</code> is expected to carry TheRock/source git pins and patch provenance. The tarball is not an installer and does not establish environment variables.</p>
+<h2>Acquisition procedure</h2>
+<pre><code class="language-bash">EXPECTED_SHA256='&lt;authenticated value&gt;'   scripts/verify-7.14-artifact.sh /var/tmp/pf-ir-03-acquire
+</code></pre>
+<p>The script records HTTP headers, SHA-256/SHA-512, a sorted tar listing, path-safety checks, extracted source manifest, file hashes and license candidates. It refuses promotion when <code>EXPECTED_SHA256</code> is absent or mismatched.</p>
+<h2>Artifact/package compatibility tuple</h2>
+<p>For a signed-metadata candidate, prefer:</p>
+<pre><code class="language-text">Ubuntu 24.04.4 + HWE 6.17 inbox driver
+amdrocm-core-sdk7.14-gfx1151 from the stable multi-arch APT repository
+TheRock source root 418cd5f63abb7a604bad5874cd7b2e29334e640f
+</code></pre>
+<p>The Ubuntu 26.04/GA 7.0 option is equally documented; choose one and freeze it. Do not combine both node images under one tuple identifier.</p>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

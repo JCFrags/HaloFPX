@@ -1,0 +1,5 @@
+# Large offline Git recovery artifacts remain in the workspace evidence store.
+sources/repositories/source-locks/*/bundles/*.bundle
+
+# Raw paired-machine manifests contain restricted hardware identifiers.
+sources/measurements/*/*/paired-machine-manifest.txt

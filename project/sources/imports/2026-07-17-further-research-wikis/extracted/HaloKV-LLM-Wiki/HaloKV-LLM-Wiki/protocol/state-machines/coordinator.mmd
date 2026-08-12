@@ -1,0 +1,19 @@
+stateDiagram-v2
+  [*] --> NO_AUTHORITY
+  NO_AUTHORITY --> READY: acquire epoch + persist fencing token
+  READY --> OPEN: BeginCheckpoint CAS
+  OPEN --> PARTIAL: first valid RankPrepared
+  OPEN --> ABORTED: cancel / deadline / validation failure
+  PARTIAL --> PARTIAL: duplicate valid prepare (idempotent)
+  PARTIAL --> PUBLISHING: both ranks valid at same position/topology
+  PARTIAL --> ABORTED: cancel / epoch loss / prepare failure
+  PUBLISHING --> COMMITTED: certificate CAS succeeds or identical exists
+  PUBLISHING --> RECONCILING: timeout / connection loss
+  RECONCILING --> COMMITTED: authority query finds certificate
+  RECONCILING --> ABORTED: authority query finds abort
+  RECONCILING --> PARTIAL: authority says operation still open and epoch valid
+  READY --> NO_AUTHORITY: authority unavailable / lease lost
+  OPEN --> NO_AUTHORITY: authority lost; stop mutation and reconcile
+  PARTIAL --> NO_AUTHORITY: authority lost; stop mutation and reconcile
+  COMMITTED --> [*]
+  ABORTED --> [*]

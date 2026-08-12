@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prepare HaloFPX Fork"
+  short_description: "Gate-safe HaloFPX fork preparation"
+  default_prompt: "Use $prepare-halofpx-fork to freeze source baselines, audit donor provenance, and produce a gate-aware implementation plan."

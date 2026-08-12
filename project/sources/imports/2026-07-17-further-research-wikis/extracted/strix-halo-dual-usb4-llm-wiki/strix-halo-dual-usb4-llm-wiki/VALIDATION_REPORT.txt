@@ -1,0 +1,10 @@
+VALIDATION PASSED
+- required wiki/project files present
+- MkDocs navigation targets present
+- local Markdown links resolve
+- all placement YAML files pass JSON Schema and ownership checks
+- structured-data columns present
+- worked examples exactly regenerate from cost_model.py
+- evidence labels and non-fabrication checks pass
+- prebuilt static site present and page-complete
+- SHA256SUMS regenerated

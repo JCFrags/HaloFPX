@@ -1,0 +1,167 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Matrix release 2026.07.17 · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body data-root="../" data-page="versions/2026.07.17.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="../index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="../index.html">Overview</a>
+          
+            <a href="../decision-tree.html">Decision tree</a>
+          
+            <a href="../evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="../compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="../official-support.html">Official support</a>
+          
+            <a href="../community-validation.html">Community validation</a>
+          
+            <a href="../regressions.html">Known regressions</a>
+          
+            <a href="../unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="../build-flags.html">Exact build flags</a>
+          
+            <a href="../environment-variables.html">Environment variables</a>
+          
+            <a href="../diagnostics.html">Diagnostics</a>
+          
+            <a href="../containers.html">Containers</a>
+          
+            <a href="../reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="../rocmfpx.html">ROCmFPX</a>
+          
+            <a href="../usb4-networking.html">USB4 networking</a>
+          
+            <a href="../glossary.html">Glossary</a>
+          
+            <a href="../sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="../recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="../recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="../recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="../recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="../recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="../recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="../recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="../recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="../recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="../recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="../versions/2026.07.17.html" class="active" aria-current="page">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Version history</div>
+      <article class="article"><h1 id="matrix-release-2026-07-17">Matrix release 2026.07.17<a aria-label="Link to section" class="heading-anchor" href="#matrix-release-2026-07-17">#</a></h1>
+<p>Release date: 2026-07-17</p>
+<h2 id="pins">Pins<a aria-label="Link to section" class="heading-anchor" href="#pins">#</a></h2>
+<ul>
+<li>ROCm current Core SDK: 7.14.0</li>
+<li>ROCm target-specific conservative line: 7.2.1–7.2.3</li>
+<li>Maintained community ROCm line: 7.2.4</li>
+<li>llama.cpp: b10064 / 86d86ed4396b4130922f7b9af26e3d9fc11a591b</li>
+<li>Mesa: 26.1.5 upstream candidate; 26.0.2/26.0.3 captured community validation</li>
+<li>ROCmFPX: a5605a72768c6562241b248e268e33dc92787394</li>
+<li>thunderbolt-ibverbs: 76ba39b630a70accb72f19388eefe48844b50eb8</li>
+</ul>
+<h2 id="material-decisions">Material decisions<a aria-label="Link to section" class="heading-anchor" href="#material-decisions">#</a></h2>
+<ul>
+<li>Separated ROCm 7.14 Core SDK support from ROCm 7.2 Ryzen application validation.</li>
+<li>Classified ROCm 7.2.4 as official general release plus community-validated Strix Halo profile, not target-specific official support.</li>
+<li>Rejected firmware 20251125 as known bad.</li>
+<li>Kept rocWMMA FlashAttention OFF in the safe HIP build.</li>
+<li>Preferred RADV over AMDVLK for large-model compatibility.</li>
+<li>Classified native USB4 verbs as research-only and standard ThunderboltIP as upstream-supported.</li>
+</ul>
+<h2 id="artifacts">Artifacts<a aria-label="Link to section" class="heading-anchor" href="#artifacts">#</a></h2>
+<p>See <a href="../compatibility-matrix.html">Compatibility matrix</a> and the dated files under <a href="../../data/"><code>data/</code></a>.</p>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="../sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#pins">Pins</a><a class="level-2" href="#material-decisions">Material decisions</a><a class="level-2" href="#artifacts">Artifacts</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="../assets/wiki.js"></script>
+</body>
+</html>

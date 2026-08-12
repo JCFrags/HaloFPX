@@ -1,0 +1,17 @@
+ ggml/src/ggml-cpu/ggml-cpu.c                       |  10 +
+ ggml/src/ggml-cpu/quants.h                         |   2 +
+ ggml/src/ggml-cuda/fattn-common.cuh                | 109 +++++++-
+ ggml/src/ggml-cuda/fattn-tile.cuh                  |  21 +-
+ ggml/src/ggml-cuda/fattn-vec.cuh                   |  31 ++-
+ ggml/src/ggml-cuda/fattn.cu                        | 179 +++++++++++-
+ .../fattn-vec-instance-turbo3_0-turbo3_0.cu        |   2 +
+ .../fattn-vec-instance-turbo4_0-turbo4_0.cu        |   2 +
+ ggml/src/ggml-hip/CMakeLists.txt                   |   5 +-
+ ggml/src/ggml-hip/fattn-kv-batched.cu              | 299 +++++++++++++++++++++
+ ggml/src/ggml-hip/fattn-vec-turbo-mixed.cu         |  14 +
+ ggml/src/ggml-quants.c                             |   8 +-
+ ggml/src/ggml.c                                    |  10 +
+ tests/test-backend-ops.cpp                         |  87 +++++-
+ 14 files changed, 753 insertions(+), 26 deletions(-)
+ create mode 100644 ggml/src/ggml-hip/fattn-kv-batched.cu
+ create mode 100644 ggml/src/ggml-hip/fattn-vec-turbo-mixed.cu

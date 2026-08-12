@@ -1,0 +1,26 @@
+{
+  "record_model_version": "1.0.0",
+  "record_type": "request",
+  "run_id": "019f6ece-b364-79c2-8c40-e9c025d9499d",
+  "recorded_at": "2026-07-17T12:00:00Z",
+  "monotonic_clock": "CLOCK_MONOTONIC_RAW",
+  "monotonic_ns": 1000000000,
+  "request_id": "fixture-request-001",
+  "status": "success",
+  "input_tokens": 128,
+  "output_tokens": 4,
+  "request_start_ns": 1000000000,
+  "first_output_observed_ns": 1250000000,
+  "final_response_observed_ns": 1400000000,
+  "error_code": null,
+  "cache": {
+    "eligible_tokens": 64,
+    "restored_tokens": 64,
+    "class": "exact_hit"
+  },
+  "speculation": {
+    "proposed_tokens": 3,
+    "accepted_tokens": 2,
+    "target_only_tokens": 2
+  }
+}

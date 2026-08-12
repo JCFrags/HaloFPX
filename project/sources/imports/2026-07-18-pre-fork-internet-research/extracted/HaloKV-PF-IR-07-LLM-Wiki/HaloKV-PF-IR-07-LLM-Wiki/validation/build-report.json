@@ -1,0 +1,16 @@
+{
+  "bundle": "HaloKV PF-IR-07 LLM Wiki",
+  "version": "1.0.0",
+  "build_date": "2026-07-18",
+  "access_date": "2026-07-18",
+  "wiki_markdown_pages": 16,
+  "runbook_markdown_pages": 9,
+  "rendered_search_records": 27,
+  "claims": 83,
+  "source_records": 26,
+  "threat_rows": 18,
+  "residual_risks": 25,
+  "minimum_profile_controls": 30,
+  "systemd_raw_xml_byte_preserved": false,
+  "cryptsetup_release_archive_signature_verified": false
+}

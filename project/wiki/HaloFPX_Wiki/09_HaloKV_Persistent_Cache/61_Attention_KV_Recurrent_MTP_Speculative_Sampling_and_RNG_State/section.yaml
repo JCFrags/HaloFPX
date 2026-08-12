@@ -1,0 +1,12 @@
+section_id: "61"
+title: "Attention KV, Recurrent, MTP, Speculative, Sampling, and RNG State"
+category_id: "09"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 5
+open_question_count: 8
+required_machine_experiments: ["M61-01 stream inventory", "M61-02 exact-continuation matrix", "M61-03 fault matrix"]
+related_sections: ["33", "35", "36", "57", "58", "59", "63", "77", "78", "80"]
+applicability:
+  repositories: ["ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689", "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"]
+  hardware: ["dual Strix Halo"]

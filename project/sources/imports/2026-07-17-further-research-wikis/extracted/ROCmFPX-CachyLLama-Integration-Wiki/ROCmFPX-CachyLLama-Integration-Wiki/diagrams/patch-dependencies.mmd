@@ -1,0 +1,22 @@
+flowchart TD
+    L00[L00 Provenance] --> L01[L01 Contracts]
+    L01 --> L02[L02 Provider seam]
+    L02 --> L03[L03 v1 reader]
+    L03 --> L04[L04 v1 writer off]
+    L04 --> L05[L05 Persistent provider]
+    L03 --> L06[L06 Matching / importer]
+    L05 --> L06
+    L05 --> L07[L07 System prefix]
+    L06 --> L07
+    L02 --> L08[L08 Hybrid capabilities]
+    L03 --> L08
+    L02 --> L09[L09 Scope identity]
+    L09 --> L10[L10 Concurrency]
+    L10 --> L11[L11 Slot affinity]
+    L01 --> L12[L12 Expert telemetry]
+    L00 --> L13[L13 Clean-room ISA]
+    L00 --> L14[L14 Upstream verification]
+    L07 --> L15[L15 Compatibility / defaults]
+    L08 --> L15
+    L11 --> L15
+    L12 --> L15

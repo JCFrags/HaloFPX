@@ -1,0 +1,25 @@
+---
+upstream_repository: "ROCm/rccl"
+upstream_ref: "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4"
+accessed_at: "2026-07-18"
+source_id: "SRC-STABLE-TOPOLOGY"
+source_class: "source"
+claim_label: "[SOURCE_IMPLEMENTATION]"
+upstream_path: "src/graph/topo.cc"
+upstream_blob_sha: "503cf9f4b0af4ee035861b7fa569c169a9e8c6f9"
+upstream_locator: "topology system construction and network node properties"
+snapshot_kind: "structured relevant excerpt summary with literal identifiers"
+completeness: "not a verbatim full file; identifiers and behavior captured from inspected source"
+license: "RCCL LICENSE.txt"
+---
+
+```text
+The topology implementation constructs a node-local graph containing GPU, PCI,
+CPU, NIC, and NET nodes. For network devices it consumes plugin properties such
+as ``name``, ``pciPath``, ``guid``, ``speed``, ``latency``, and pointer support,
+then computes paths and transport scores. The path is local to each process and
+is derived from Linux/sysfs-visible device ancestry and plugin metadata.
+
+No inspected source routine identifies a remote physical USB4 cable or infers
+its internal topology from an IP interface name.
+```

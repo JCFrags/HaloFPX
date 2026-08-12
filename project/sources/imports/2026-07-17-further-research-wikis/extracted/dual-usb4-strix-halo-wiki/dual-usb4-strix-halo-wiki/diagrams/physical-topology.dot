@@ -1,0 +1,41 @@
+digraph G {
+
+  graph [bgcolor="#101820", pad="0.35", nodesep="0.4", ranksep="0.55", fontname="DejaVu Sans"];
+  node [shape=box, style="rounded,filled", fillcolor="#263238", color="#4dd0e1", fontcolor="#f5f7fa", fontname="DejaVu Sans", penwidth=1.7, margin="0.16,0.10"];
+  edge [color="#90caf9", fontcolor="#cfd8dc", fontname="DejaVu Sans", penwidth=2.0, arrowsize=0.75];
+
+  rankdir=LR;
+  label="Reference dual-USB4 topology: prove each layer"; labelloc=t; fontsize=20; fontcolor="#ffffff";
+  subgraph cluster_a { label="Node A — Strix Halo Linux"; color="#455a64"; fontcolor="#ffffff";
+    a_app [label="llama.cpp / custom runtime", fillcolor="#37474f"];
+    a_m [label="MPTCP meta-socket
+or explicit two-socket scheduler"];
+    a0 [label="thunderbolt0
+10.44.0.1/30"];
+    a1 [label="thunderbolt1
+10.44.1.1/30"];
+    ac0 [label="USB4 domain 0
+NHI PCI BDF A0", shape=component];
+    ac1 [label="USB4 domain 1
+NHI PCI BDF A1", shape=component];
+    a_app -> a_m; a_m -> a0; a_m -> a1; a0 -> ac0; a1 -> ac1;
+  }
+  subgraph cluster_b { label="Node B — Strix Halo Linux"; color="#455a64"; fontcolor="#ffffff";
+    b_app [label="ggml-rpc-server / custom runtime", fillcolor="#37474f"];
+    b_m [label="MPTCP listener
+or explicit two-socket receiver"];
+    b0 [label="thunderbolt0
+10.44.0.2/30"];
+    b1 [label="thunderbolt1
+10.44.1.2/30"];
+    bc0 [label="USB4 domain 0
+NHI PCI BDF B0", shape=component];
+    bc1 [label="USB4 domain 1
+NHI PCI BDF B1", shape=component];
+    b_app -> b_m; b_m -> b0; b_m -> b1; b0 -> bc0; b1 -> bc1;
+  }
+  ac0 -> bc0 [dir=both, label="certified cable 0
+XDomain path 0", color="#26c6da", penwidth=4];
+  ac1 -> bc1 [dir=both, label="certified cable 1
+XDomain path 1", color="#7e57c2", penwidth=4];
+}

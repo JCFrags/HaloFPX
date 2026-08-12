@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-mqp6-7pv6-fqjf",
+  "cve": "CVE-2024-42477",
+  "title": "RPC invalid tensor type global buffer overflow",
+  "severity": "Moderate",
+  "published": "2024-08-12",
+  "affected_versions_as_displayed_or_normalized": "Before b3561",
+  "patched_versions_as_displayed_or_normalized": "b3561",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-mqp6-7pv6-fqjf",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "RPC tensor deserialization; ggml_type and block-size validation",
+    "preconditions_summary": "RPC server built, launched, reachable; peer supplies invalid/deprecated type."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "1846412f8ad96602ddc6156749c18c27ce6721da189e35bb420ff6ca1b4ddc73"
+}

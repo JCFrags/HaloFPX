@@ -1,0 +1,19 @@
+requirement_id,requirement,documentation,executable_or_schema_evidence
+REQ-KEYS,Document keys,docs/observed-cachyllama.md; docs/comparative-designs.md; schemas/halofpx-key-derivation.md,tables/compatibility-fingerprint.csv
+REQ-NS,Document namespaces,docs/observed-cachyllama.md; docs/security.md; docs/halofpx-redesign.md,diagrams/namespace-tree.svg
+REQ-FORMAT,Document on-disk formats,docs/storage-schemas.md,schemas/*.ksy; schemas/*.json; schemas/*.cddl
+REQ-META,Document metadata,docs/observed-cachyllama.md; docs/storage-schemas.md,schemas/sample-manifest.json
+REQ-FP,Compatibility fingerprints,docs/comparative-designs.md; docs/halofpx-redesign.md,tables/compatibility-fingerprint.csv
+REQ-ATOMIC,Atomic writes,docs/observed-cachyllama.md; docs/halofpx-redesign.md,diagrams/halofpx-commit-protocol.svg
+REQ-CHECKSUM,Checksums/authentication,docs/integrity-invariants.md; docs/storage-schemas.md,validation/fault_inject.py
+REQ-EVICT,Eviction,docs/observed-cachyllama.md; docs/comparative-designs.md; docs/halofpx-redesign.md,tables/comparison-matrix.csv
+REQ-CONCURRENCY,Concurrency,docs/observed-cachyllama.md; docs/halofpx-redesign.md,diagrams/halofpx-architecture.svg
+REQ-CRASH,Crash recovery,docs/failure-and-recovery.md; docs/state-machines.md,validation/fault_inject.py
+REQ-CORRUPTION,Corruption handling,docs/failure-and-recovery.md,tables/failure-matrix.csv; validation/fault_inject.py
+REQ-PARTIAL,Partial-write behavior,docs/state-machines.md; docs/failure-and-recovery.md,diagrams/observed-crash-states.svg
+REQ-MIGRATE,Version migration,docs/halofpx-redesign.md; docs/storage-schemas.md,tables/failure-matrix.csv
+REQ-ENCRYPT,Encryption possibilities,docs/security.md; docs/storage-schemas.md,schemas/halofpx-cache-object-v1.cddl
+REQ-ENDURANCE,SSD endurance,docs/ssd-endurance.md,validation/endurance_model.py; tables/endurance-scenarios.csv
+REQ-MISS,Invalid state => miss/recompute,docs/integrity-invariants.md,validation/validate_cache.py; validation/fault_inject.py
+REQ-WIKI,Standard Wiki files,Home.md; _Sidebar.md; _Footer.md; SUMMARY.md; mkdocs.yml,site/index.html
+REQ-OBS-REC,Separate observed vs recommended,All chapters use evidence badges/classes,research/claim-ledger.csv

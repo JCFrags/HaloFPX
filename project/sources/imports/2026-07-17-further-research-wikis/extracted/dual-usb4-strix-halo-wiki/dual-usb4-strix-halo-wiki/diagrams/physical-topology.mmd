@@ -1,0 +1,17 @@
+flowchart LR
+  subgraph A[Node A]
+    APP[llama.cpp / custom runtime] --> M[MPTCP or explicit scheduler]
+    M --> A0[thunderbolt0 10.44.0.1]
+    M --> A1[thunderbolt1 10.44.1.1]
+    A0 --> AC0[domain/NHI A0]
+    A1 --> AC1[domain/NHI A1]
+  end
+  subgraph B[Node B]
+    BC0[domain/NHI B0] --> B0[thunderbolt0 10.44.0.2]
+    BC1[domain/NHI B1] --> B1[thunderbolt1 10.44.1.2]
+    B0 --> BM[MPTCP listener or receiver]
+    B1 --> BM
+    BM --> SRV[ggml-rpc-server / runtime]
+  end
+  AC0 <== cable 0 ==> BC0
+  AC1 <== cable 1 ==> BC1

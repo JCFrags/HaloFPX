@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>10. Bounded auxiliary-role evaluation — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a class="active" href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/10-role-evaluation.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>10. Bounded auxiliary-role evaluation</h1>
+<h2 id="decision-matrix">Decision matrix</h2>
+<table>
+<thead>
+<tr>
+  <th>Role</th>
+  <th>Evidence</th>
+  <th>Linux status</th>
+  <th>Integration decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Prompt classification</td>
+  <td>exact BF16 DistilBERT example</td>
+  <td><code><span class="claim claim-vendor-only">[VENDOR-ONLY]</span></code> plausible</td>
+  <td>conditional isolated experiment only</td>
+</tr>
+<tr>
+  <td>Moderation</td>
+  <td>classifier-shaped, but no policy model proof</td>
+  <td><code><span class="claim claim-inference">[INFERENCE]</span></code> plausible</td>
+  <td>conditional only with task-specific validation</td>
+</tr>
+<tr>
+  <td>Embeddings</td>
+  <td>public BGE NPU example</td>
+  <td><code><span class="claim claim-unknown">[UNKNOWN]</span></code> Linux qualification</td>
+  <td>keep excluded</td>
+</tr>
+<tr>
+  <td>Reranking</td>
+  <td>no exact captured Linux model/example</td>
+  <td><code><span class="claim claim-missing">[MISSING]</span></code></td>
+  <td>keep excluded</td>
+</tr>
+<tr>
+  <td>Small draft model</td>
+  <td>135M OGA models listed</td>
+  <td><code><span class="claim claim-vendor-only">[VENDOR-ONLY]</span></code> model availability</td>
+  <td>keep excluded</td>
+</tr>
+<tr>
+  <td><code>llama.cpp</code> transformer offload</td>
+  <td>iGPU path only</td>
+  <td><code><span class="claim claim-unsupported">[UNSUPPORTED]</span></code> on NPU</td>
+  <td>keep excluded</td>
+</tr>
+<tr>
+  <td>Whisper NPU</td>
+  <td>Windows-only, Linux planned</td>
+  <td><code><span class="claim claim-windows-only">[WINDOWS-ONLY]</span></code></td>
+  <td>keep excluded</td>
+</tr>
+</tbody>
+</table>
+<h2 id="prompt-classification">Prompt classification</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> The DistilBERT example is the strongest bounded evidence because it has a small fixed-shape encoder, explicit ONNX/BF16 path, simple outputs, and a public execution-provider configuration.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> The example does not establish target Linux packaging, graph placement, latency, energy, or reliability.</p>
+<p><span class="claim claim-decision">[DECISION]</span> It is the only role eligible for a pre-authorized experiment.</p>
+<h2 id="moderation">Moderation</h2>
+<p><span class="claim claim-inference">[INFERENCE]</span> Moderation can use the same technical shape as prompt classification.</p>
+<p><span class="claim claim-missing">[MISSING]</span> A sentiment classifier does not supply moderation labels, policy coverage, multilingual behavior, calibration, safety thresholds, or production accuracy.</p>
+<p><span class="claim claim-decision">[DECISION]</span> A moderation test must use a task-specific model and held-out policy dataset; it cannot inherit the sentiment example's correctness claim.</p>
+<h2 id="embeddings">Embeddings</h2>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> AMD's public BGE code uses the NPU execution provider and a static maximum length of 512.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> The captured RAG instructions use a Ryzen AI 1.7.0 hybrid environment and do not establish the exact Linux 1.7.1 target path.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> Embedding economics also depend strongly on batching, document indexing cadence, tokenizer cost, vector-store placement, transfer overhead, and whether queries are latency sensitive.</p>
+<p><span class="claim claim-decision">[DECISION]</span> Keep excluded until the smaller classifier gate passes and a Linux-qualified embedding manifest exists.</p>
+<h2 id="reranking">Reranking</h2>
+<p><span class="claim claim-missing">[MISSING]</span> No exact supported Linux reranker model, compile recipe, execution-provider configuration, or operator assignment report was captured.</p>
+<p><span class="claim claim-decision">[DECISION]</span> Keep excluded.</p>
+<h2 id="small-draft-model">Small draft model</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD lists 135M SmolLM/SmolLM2 models in its versioned OGA support.</p>
+<p><span class="claim claim-missing">[MISSING]</span> There is no captured interface for speculative decoding with the primary runtime, shared KV state, token acceptance, or low-overhead handoff.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> Running a small model independently is not equivalent to a useful draft-model architecture.</p>
+<p><span class="claim claim-decision">[DECISION]</span> Keep excluded.</p>
+<h2 id="product-path-consequence">Product-path consequence</h2>
+<p><span class="claim claim-decision">[DECISION]</span> None of these roles justifies changing the main HIP/Vulkan architecture. The NPU remains a separately gated optional device.</p>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

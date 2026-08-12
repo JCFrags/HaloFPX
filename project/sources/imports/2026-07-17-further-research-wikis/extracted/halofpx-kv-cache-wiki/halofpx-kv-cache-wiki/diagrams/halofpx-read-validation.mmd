@@ -1,0 +1,26 @@
+flowchart TD
+  A[Request with trusted inputs] --> B[Authorize namespace]
+  B --> C[Derive full compatibility and prompt key]
+  C --> D[Open + bounded-parse canonical manifest]
+  D --> DA[Resolve catalog key + verify HMAC]
+  DA --> DB[Verify namespace, key, generation, fingerprint, prompt root]
+  DB --> E[Open immutable object by digest]
+  E --> F[Validate header, exact size, canonical metadata]
+  F --> G[Verify object/payload/segment digest or AEAD]
+  G --> H[Validate required segment policy and prefix chain]
+  H --> I[Import into isolated engine context]
+  I --> J[Atomic context commit]
+  J --> HIT[HIT_VERIFIED]
+  B -. any failure .-> MISS[MISS_RECOMPUTE reason]
+  C -. any failure .-> MISS
+  D -. any failure .-> MISS
+  DA -. key or HMAC failure .-> MISS
+  DB -. binding failure .-> MISS
+  E -. any failure .-> MISS
+  F -. any failure .-> MISS
+  G -. any failure .-> MISS
+  H -. any failure .-> MISS
+  I -. reject .-> MISS
+  MISS --> K[Discard staged bytes/state]
+  K --> L[Quarantine/metric if required]
+  L --> R[Trusted prefill recomputation]

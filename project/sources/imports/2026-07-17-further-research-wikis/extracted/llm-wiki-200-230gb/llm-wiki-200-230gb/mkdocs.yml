@@ -1,0 +1,20 @@
+site_name: "200\u2013230 GB LLM Wiki"
+site_description: Large-model selection, provenance, quantization, runtime support,
+  and capacity planning
+docs_dir: .
+site_dir: mkdocs-site
+theme:
+  name: material
+  features:
+  - navigation.sections
+  - navigation.top
+  - content.code.copy
+nav:
+- Home: Home.md
+- Ranked Shortlist: pages/Ranked-Shortlist.md
+- Candidate Matrix: pages/Candidate-Matrix.md
+- Capacity Planning: pages/Capacity-Planning.md
+- Runtime Support: pages/Runtime-Support.md
+- Provenance: pages/Download-Provenance.md
+extra_css:
+- assets/wiki.css

@@ -1,0 +1,62 @@
+name: cross-fork-native-cpu-example
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fork: upstream
+            repository: ggml-org/llama.cpp
+            ref: 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+          - fork: rocmfpx
+            repository: charlie12345/ROCmFPX
+            ref: a5605a72768c6562241b248e268e33dc92787394
+          - fork: cachyllama-candidate
+            repository: fewtarius/CachyLLama
+            ref: 6be745998f568e379ea197fcf827baec73ff9940
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out suite
+        uses: actions/checkout@v6
+        with:
+          path: suite
+      - name: Check out fork
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ matrix.repository }}
+          ref: ${{ matrix.ref }}
+          path: source
+          submodules: recursive
+      - name: Configure
+        run: >
+          cmake -S source -B build
+          -DLLAMA_BUILD_TESTS=ON
+          -DGGML_NATIVE=OFF
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Inventory tests
+        run: ctest --test-dir build --show-only=json-v1 > ctest-inventory.json
+      - name: Run native tests
+        run: ctest --test-dir build --output-on-failure
+      - name: Validate suite
+        run: python3 suite/scripts/verify-suite.py
+      - name: Preserve evidence
+        if: always()
+        run: |
+          mkdir -p evidence
+          cp ctest-inventory.json evidence/
+          cp build/CMakeCache.txt evidence/ || true
+          tar -cf evidence-${{ matrix.fork }}.tar evidence
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          path: evidence-${{ matrix.fork }}.tar
+          archive: false

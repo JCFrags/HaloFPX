@@ -1,0 +1,27 @@
+section_id: "57"
+title: "Compatibility Fingerprints, Versioning, and Topology Identity"
+category_id: "09"
+category_title: "HaloKV Persistent Cache"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 10
+required_machine_experiments:
+  - "P57-01 deterministic two-host manifest generation and independent re-encoding"
+  - "P57-02 one-field compatibility mutation matrix"
+  - "P57-03 corruption, malformed canonical encoding, parser fuzzing, and collision-path simulation"
+  - "P57-04 upgrade, rollback, crash-point, and continuation-equivalence migration matrix"
+  - "P57-05 rank/topology mutation and single-node degraded-mode validation"
+  - "P57-06 fingerprint cost and observability measurements"
+related_sections: ["03", "11", "13", "15", "26", "32", "39", "43", "47", "48", "56", "58", "59", "61", "63", "65", "78"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  software_versions:
+    - "RFC 8949"
+    - "FIPS 180-4"
+    - "fingerprint schema candidate v1"
+  hardware_revisions:
+    - "Two gfx1151 Strix Halo hosts; exact BOM and runtime inventories pending"

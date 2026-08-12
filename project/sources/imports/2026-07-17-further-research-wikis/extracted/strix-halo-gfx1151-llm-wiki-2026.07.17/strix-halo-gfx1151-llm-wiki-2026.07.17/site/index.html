@@ -1,0 +1,220 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Strix Halo / gfx1151 build and compatibility wiki · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="" data-page="index.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="index.html" class="active" aria-current="page">Overview</a>
+          
+            <a href="decision-tree.html">Decision tree</a>
+          
+            <a href="evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="official-support.html">Official support</a>
+          
+            <a href="community-validation.html">Community validation</a>
+          
+            <a href="regressions.html">Known regressions</a>
+          
+            <a href="unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="build-flags.html">Exact build flags</a>
+          
+            <a href="environment-variables.html">Environment variables</a>
+          
+            <a href="diagnostics.html">Diagnostics</a>
+          
+            <a href="containers.html">Containers</a>
+          
+            <a href="reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="rocmfpx.html">ROCmFPX</a>
+          
+            <a href="usb4-networking.html">USB4 networking</a>
+          
+            <a href="glossary.html">Glossary</a>
+          
+            <a href="sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="recipes/rocm714-tarball.html">ROCm 7.14 tarball</a>
+          
+            <a href="recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Knowledge base</div>
+      <article class="article"><h1 id="strix-halo-gfx1151-build-and-compatibility-wiki">Strix Halo / gfx1151 build and compatibility wiki<a aria-label="Link to section" class="heading-anchor" href="#strix-halo-gfx1151-build-and-compatibility-wiki">#</a></h1>
+<p><span class="badge badge-version">Snapshot 2026.07.17</span> <span class="badge badge-target">gfx1151</span> <span class="badge badge-static">Static-validation release</span></p>
+<p>This wiki reconciles the Linux kernel, amdgpu firmware, ROCm/HIP/LLVM, Mesa/Vulkan, CMake, llama.cpp, ROCmFPX, and USB4 networking layers for AMD Strix Halo. It separates <strong>official support</strong>, <strong>upstream release status</strong>, <strong>community validation</strong>, <strong>experimental work</strong>, and <strong>known-bad combinations</strong>.</p>
+<div class="callout callout-important"><span class="callout-title">important</span>
+<p>A supported component does not make the complete stack supported. AMD’s ROCm 7.14 matrix establishes current <strong>Core SDK</strong> support for gfx1151, while AMD’s Ryzen application pages and RDNA 3.5 prebuilt-release table retain narrower release-specific scopes. See <a href="evidence-model.html">Evidence model</a>.</p>
+</div>
+<h2 id="current-conclusions">Current conclusions<a aria-label="Link to section" class="heading-anchor" href="#current-conclusions">#</a></h2>
+<ol>
+<li><strong>Current official Core SDK lane:</strong> ROCm 7.14 supports gfx1151 on Ubuntu 26.04 with kernel 7.0 GA and Ubuntu 24.04.4 with HWE kernel 6.17. The release line pairs HIP 7.14 with LLVM 23.0.0. This does not automatically certify every Ryzen application. Sources: <a href="sources.html#amd-core-714">AMD-CORE-714</a>, <a href="sources.html#amd-install-714">AMD-INSTALL-714</a>.</li>
+<li><strong>Current official RDNA 3.5 prebuilt lane:</strong> qualifying kernels are Ubuntu HWE <code>&gt;=6.17.0-19.19~24.04.2</code>, Ubuntu OEM <code>&gt;=6.14.0-1018</code>, or <code>&gt;=6.18.4</code> elsewhere. AMD’s target-specific table marks ROCm 7.2.1–7.2.3 stable on those kernels. Source: <a href="sources.html#amd-rdna35">AMD-RDNA35</a>.</li>
+<li><strong>Current maintained community lane:</strong> Fedora 42/43, kernel 6.18.9, firmware 20260110, ROCm 7.2.4, and RADV are maintained as a known-good Strix Halo toolbox baseline. ROCm 7.2.4 is an official general release, but is not named in the captured gfx1151-specific 7.2.1–7.2.3 row. Sources: <a href="sources.html#kyuz0-toolbox-a7c71e9">KYUZ0-TOOLBOX-A7C71E9</a>, <a href="sources.html#amd-core-724">AMD-CORE-724</a>, <a href="sources.html#amd-rdna35">AMD-RDNA35</a>.</li>
+<li><strong>Firmware is a hard gate:</strong> avoid the <code>linux-firmware-20251125</code> / MES 0x83 era. A new kernel alone does not remove that firmware failure mode. Sources: <a href="sources.html#rocm-issue-5724">ROCM-ISSUE-5724</a>, <a href="sources.html#fedora-bug-2420062">FEDORA-BUG-2420062</a>, <a href="sources.html#linux-fw-revert-c092">LINUX-FW-REVERT-C092</a>.</li>
+<li><strong>llama.cpp pin:</strong> this snapshot uses release <code>b10064</code>, commit <code>86d86ed4396b4130922f7b9af26e3d9fc11a591b</code>. The current safe gfx1151 HIP baseline explicitly leaves rocWMMA FlashAttention OFF, matching upstream’s source default and the reported regression. Sources: <a href="sources.html#llama-release-b10064">LLAMA-RELEASE-B10064</a>, <a href="sources.html#llama-ggml-cmake-86d86ed">LLAMA-GGML-CMAKE-86D86ED</a>, <a href="sources.html#llama-issue-24437">LLAMA-ISSUE-24437</a>.</li>
+<li><strong>Vulkan lane:</strong> use Mesa RADV first for broad compatibility. AMDVLK has a community-reported large single-allocation limitation. Mesa 26.1.5 is the current upstream source pin, but the captured gfx1151 reports exercised 26.0.2/26.0.3. Sources: <a href="sources.html#mesa-2615">MESA-2615</a>, <a href="sources.html#kyuz0-toolbox-a7c71e9">KYUZ0-TOOLBOX-A7C71E9</a>, <a href="sources.html#llama-issue-15054">LLAMA-ISSUE-15054</a>.</li>
+<li><strong>USB4:</strong> standard IP networking uses upstream <code>CONFIG_USB4_NET</code> / <code>thunderbolt_net</code>. <code>thunderbolt-ibverbs</code> is a separate research driver explicitly described as buggy, insecure, and non-production. Sources: <a href="sources.html#linux-usb4-net-kconfig">LINUX-USB4-NET-KCONFIG</a>, <a href="sources.html#linux-thunderbolt-doc">LINUX-THUNDERBOLT-DOC</a>, <a href="sources.html#thunderbolt-ibverbs-76ba39b">THUNDERBOLT-IBVERBS-76BA39B</a>.</li>
+</ol>
+<h2 id="choose-a-lane">Choose a lane<a aria-label="Link to section" class="heading-anchor" href="#choose-a-lane">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Start here</th>
+<th>Classification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Current AMD Core SDK</td>
+<td><a href="recipes/host-official-rocm-714.html">ROCm 7.14 host and tarball recipe</a></td>
+<td>Official Core SDK + pinned build candidate</td>
+</tr>
+<tr>
+<td>Conservative HIP llama.cpp</td>
+<td><a href="recipes/llama-hip-rocm721.html">ROCm 7.2.1 / b10064 source build</a></td>
+<td>Official target release + upstream source</td>
+</tr>
+<tr>
+<td>Maintained Fedora profile</td>
+<td><a href="recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4 community recipe</a></td>
+<td>Community-validated</td>
+</tr>
+<tr>
+<td>Most compatible llama.cpp backend</td>
+<td><a href="recipes/llama-vulkan-radv.html">Mesa RADV / Vulkan build</a></td>
+<td>Upstream + community-validated</td>
+</tr>
+<tr>
+<td>Experimental AMD-focused quants</td>
+<td><a href="recipes/rocmfpx-pinned.html">ROCmFPX pinned build</a></td>
+<td>Experimental community</td>
+</tr>
+<tr>
+<td>Two-node IP link</td>
+<td><a href="recipes/usb4-ip-network.html">USB4/Thunderbolt IP recipe</a></td>
+<td>Upstream kernel component</td>
+</tr>
+<tr>
+<td>Research RDMA link</td>
+<td><a href="recipes/usb4-rdma-experimental.html">USB4 verbs recipe</a></td>
+<td>Experimental, insecure</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="release-contents">Release contents<a aria-label="Link to section" class="heading-anchor" href="#release-contents">#</a></h2>
+<ul>
+<li>Human matrix: <a href="compatibility-matrix.html">Compatibility matrix</a></li>
+<li>Machine matrix: <a href="../data/compatibility-matrix-2026.07.17.json"><code>data/compatibility-matrix-2026.07.17.json</code></a>, CSV, and YAML</li>
+<li>Exact flags: <a href="build-flags.html">Build flags</a></li>
+<li>Known failures: <a href="regressions.html">Regressions</a> and <a href="unsupported-combinations.html">Unsupported combinations</a></li>
+<li>Runtime controls: <a href="environment-variables.html">Environment variables</a></li>
+<li>Collection and smoke tests: <a href="diagnostics.html">Diagnostics</a></li>
+<li>Reproducible images: <a href="containers.html">Containers</a></li>
+<li>Evidence: <a href="official-support.html">Official support</a>, <a href="community-validation.html">Community validation</a>, and <a href="sources.html">Source registry</a></li>
+</ul>
+<h2 id="validation-boundary">Validation boundary<a aria-label="Link to section" class="heading-anchor" href="#validation-boundary">#</a></h2>
+<p>The release generator validated data structure, script syntax, local links, and offline rendering. It did <strong>not</strong> execute ROCm, Vulkan, kernel, firmware, USB4, or performance tests on physical Strix Halo hardware. Every recipe therefore includes an acceptance gate rather than claiming local hardware certification.</p>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#current-conclusions">Current conclusions</a><a class="level-2" href="#choose-a-lane">Choose a lane</a><a class="level-2" href="#release-contents">Release contents</a><a class="level-2" href="#validation-boundary">Validation boundary</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="assets/wiki.js"></script>
+</body>
+</html>

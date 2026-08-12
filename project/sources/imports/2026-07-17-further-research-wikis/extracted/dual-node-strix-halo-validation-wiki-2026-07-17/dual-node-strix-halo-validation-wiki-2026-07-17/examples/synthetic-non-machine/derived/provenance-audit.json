@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "audit_type": "provenance",
+  "manifest": "examples/synthetic-non-machine/manifest.json",
+  "schema_valid": true,
+  "schema_errors": [],
+  "required_fields": 56,
+  "missing_fields": [
+    "software.os_distribution",
+    "software.amdgpu_driver",
+    "software.rocm_or_graphics_stack",
+    "software.runtime_binary_sha256",
+    "software.build_flags_sha256",
+    "environment.ambient_c",
+    "interconnect.interface_a",
+    "interconnect.interface_b",
+    "interconnect.mtu",
+    "interconnect.rx_speed",
+    "interconnect.tx_speed",
+    "interconnect.rx_lanes",
+    "interconnect.tx_lanes",
+    "interconnect.reference_goodput_bps",
+    "cache_state_evidence.model_resident",
+    "cache_state_evidence.cache_clear_method",
+    "cache_state_evidence.next_request_cached_tokens"
+  ],
+  "completeness": 0.6964285714285714,
+  "raw_hashes_verified": true,
+  "raw_hash_failures": [],
+  "missing_required_record_types": [
+    "coordinator-log",
+    "runtime-log",
+    "telemetry-node-a",
+    "telemetry-node-b",
+    "usb4-after",
+    "usb4-before",
+    "worker-log"
+  ],
+  "forbidden_secret_key_hits": [],
+  "status": "INSUFFICIENT_EVIDENCE",
+  "note": "A passing provenance audit confirms evidence identity/integrity, not machine performance or correctness."
+}

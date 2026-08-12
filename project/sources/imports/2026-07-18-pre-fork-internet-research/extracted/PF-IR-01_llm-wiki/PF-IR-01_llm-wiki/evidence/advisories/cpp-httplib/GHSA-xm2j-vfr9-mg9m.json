@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-xm2j-vfr9-mg9m",
+  "title": "Internal REMOTE/LOCAL header shadowing",
+  "severity": "High",
+  "affected_versions": "<=0.26.0",
+  "patched_versions": "0.27.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-xm2j-vfr9-mg9m",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "internal connection metadata headers",
+    "precondition": "Client supplies reserved internal header names"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "7a47ad19cd919215846dc293dfdce3c5effbbf92ac42d37f31b5818c2729f86d"
+}

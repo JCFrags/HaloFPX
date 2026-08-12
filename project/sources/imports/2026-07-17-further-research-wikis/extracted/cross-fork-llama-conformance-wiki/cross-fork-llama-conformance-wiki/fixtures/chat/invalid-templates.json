@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "templates": [
+    {
+      "id": "unclosed-block",
+      "template": "{% for x in items %}{{ x }}"
+    },
+    {
+      "id": "unclosed-expression",
+      "template": "{{ messages[0]"
+    },
+    {
+      "id": "missing-required",
+      "template": "{{ required_value }}"
+    },
+    {
+      "id": "pathological-nesting-recipe",
+      "template": null,
+      "generator": "scripts/generate-pathological-template.py"
+    }
+  ]
+}

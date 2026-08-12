@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/09-spdx-2.3-package-and-relationship-data-model.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://spdx.github.io/spdx-spec/v2.3/",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "7049a34ccc2745899fd1caa15c6ac3efc76cc10aaad045ff5681354c3f8b652b",
+  "size_bytes": 570,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-STANDARD"
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "mechanisms": [
+    {
+      "id": "mock-backend-error",
+      "availability": "backend-specific",
+      "action": "return backend operation error after a configured call count"
+    },
+    {
+      "id": "device-loss",
+      "availability": "hardware-lab only",
+      "action": "use vendor-supported fault or reset mechanism"
+    },
+    {
+      "id": "allocation-failure",
+      "availability": "test allocator or memory limit",
+      "action": "fail the selected allocation deterministically"
+    }
+  ],
+  "safety": "Do not use destructive device-reset tests on shared CI hosts."
+}

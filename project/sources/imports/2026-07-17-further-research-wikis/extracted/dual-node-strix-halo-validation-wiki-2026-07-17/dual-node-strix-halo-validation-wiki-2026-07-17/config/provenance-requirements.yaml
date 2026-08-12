@@ -1,0 +1,103 @@
+schema_version: 1
+hash_algorithm: sha256
+completeness_rule: Every applicable required path must exist and be non-null/nonempty. A schema-valid manifest can still be provenance-incomplete.
+required_manifest_paths:
+  common:
+    - run_id
+    - experiment_id
+    - evidence_level
+    - evidence_origin
+    - release_profile
+    - topology
+    - cache_state
+    - started_at
+    - ended_at
+    - testbed_id
+    - run_block_id
+    - model.name
+    - model.source_revision
+    - model.artifact_sha256
+    - model.artifact_bytes
+    - model.quantization
+    - model.tokenizer_sha256
+    - software.os_distribution
+    - software.kernel
+    - software.amdgpu_driver
+    - software.rocm_or_graphics_stack
+    - software.runtime_commit
+    - software.runtime_binary_sha256
+    - software.build_flags_sha256
+    - hardware[*].node_id
+    - hardware[*].hardware_fingerprint_sha256
+    - workload.workload_cell
+    - workload.prompt_tokens
+    - workload.max_output_tokens
+    - workload.seed
+    - workload.temperature
+    - workload.prompt_set_sha256
+    - commands[*].host
+    - commands[*].argv
+    - collectors[*].name
+    - collectors[*].version
+    - collectors[*].sample_interval_ms
+    - time_sync.method
+    - time_sync.offset_ms
+    - environment.ambient_c
+    - raw_files[*].path
+    - raw_files[*].sha256
+    - raw_files[*].bytes
+    - raw_files[*].record_type
+  dual:
+    - interconnect.transport
+    - interconnect.interface_a
+    - interconnect.interface_b
+    - interconnect.mtu
+    - interconnect.rx_speed
+    - interconnect.tx_speed
+    - interconnect.rx_lanes
+    - interconnect.tx_lanes
+    - interconnect.reference_goodput_bps
+  cache_state:
+    C0:
+      - cache_state_evidence.boot_id
+      - cache_state_evidence.previous_boot_id
+      - cache_state_evidence.runtime_absent_before_start
+    C1:
+      - cache_state_evidence.prime_method
+      - cache_state_evidence.model_sha256
+      - cache_state_evidence.verification_read_bytes
+    C2:
+      - cache_state_evidence.model_resident
+      - cache_state_evidence.cache_clear_method
+      - cache_state_evidence.next_request_cached_tokens
+    C3:
+      - cache_state_evidence.prefix_token_sha256
+      - cache_state_evidence.eligible_prefix_tokens
+      - cache_state_evidence.prime_request_id
+required_raw_record_types:
+  default:
+    - requests
+    - telemetry-node-a
+    - correctness
+    - runtime-log
+  dual:
+    - telemetry-node-b
+    - usb4-before
+    - usb4-after
+    - coordinator-log
+    - worker-log
+  streaming:
+    - tokens
+  faults:
+    - faults
+    - kernel-log-node-a
+    - kernel-log-node-b
+retention:
+  raw_append_only: true
+  derived_regenerable: true
+  checksum_before_aggregation: true
+  signed_or_attested_release_packet: true
+  baseline_immutable_after_promotion: true
+forbidden_manifest_key_patterns:
+  - '(?i)(api[_-]?key|password|passwd|secret|access[_-]?token|private[_-]?key)$'
+secret_handling: Store secret names or redacted markers only. Never put credential values in manifests, commands, logs, or workflow artifacts.

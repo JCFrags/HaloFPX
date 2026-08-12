@@ -1,0 +1,5 @@
+kernel_line,status_at_snapshot,usb4net,mptcp,bonding_note,usb4stream,recommendation
+6.18.38,LTS,yes,yes; laminar available,"pre-7.0 thunderbolt-net hooks; validate modes",no,USB4NET+MPTCP fallback
+7.0.14,EOL,yes,yes,"MAC and link-setting additions enable current bonding support",no,feature boundary only
+7.1.3,stable,yes,yes,current improved hooks,no,recommended stable baseline
+7.2-rc3,mainline pre-release,yes,yes,current,yes,USB4STREAM experiment

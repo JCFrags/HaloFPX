@@ -1,0 +1,14 @@
+{
+  "repository": "ROCm/rccl",
+  "number": 2075,
+  "title": "gfx1151 enablement for two-node vLLM use",
+  "state": "closed",
+  "merged": false,
+  "accessed_at": "2026-07-18",
+  "url": "https://github.com/ROCm/rccl/pull/2075",
+  "body_excerpt": "Community PR enabling gfx1151 similarly to gfx1100. The author reported running rccl-tests across two hosts labeled SH-1 and SH-2, 11/12 tests with NCCL_DMABUF_ENABLE=1, and vLLM tensor-parallel inference across two Strix Halo nodes. The author also reported pipeline-parallel failure unless CUDA graphs were disabled and low throughput on a larger model.",
+  "sample_log_excerpt": "# Rank 0 ... on SH-1 device 0 ... AMD Radeon Graphics\n# Rank 1 ... on SH-2 device 0 ... AMD Radeon Graphics\n# Collective test starting: all_reduce_perf\n# Out of bounds values : 0 OK",
+  "claim_label": "[COMMUNITY_REPORTED_MACHINE_EVIDENCE]",
+  "completeness": "connector response was truncated because the PR body contains long logs; this local snapshot preserves the substantive claims and a small literal log excerpt",
+  "boundary": "Unmerged community evidence. NCCL_DMABUF_ENABLE=1 does not prove the stock Socket transport used DMA-BUF or GPU-direct; stock Socket has a null DMA-BUF callback."
+}

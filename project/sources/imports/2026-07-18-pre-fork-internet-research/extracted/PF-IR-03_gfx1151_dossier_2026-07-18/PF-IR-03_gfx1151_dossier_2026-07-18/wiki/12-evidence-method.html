@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evidence method · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html">Lane map</a><a href="02-official-support-matrices.html">Official support matrices</a><a href="03-component-dossier.html">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="06-source-build-provenance.html">Source/build provenance</a><a href="07-known-issues.html">Known issues</a><a href="08-rollback-removal.html">Rollback and removal</a><a href="09-licensing-sbom.html">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html">USB4STREAM assessment</a><a href="12-evidence-method.html" class="active">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / Evidence method</div>
+  <article><h1>Evidence and claim method</h1>
+<h2>Source hierarchy</h2>
+<ol>
+<li>Current AMD ROCm compatibility matrix for official device/OS/kernel support.</li>
+<li>AMD release/install/transition documentation for maturity, packaging and removal.</li>
+<li>AMD source repositories and exact tags/commits/gitlinks for build provenance.</li>
+<li>Linux kernel, Ubuntu kernel-team/archive and Mesa project records for kernel/graphics facts.</li>
+<li>User-supplied local tuple only for comparison.</li>
+</ol>
+<h2>Literal claim labels</h2>
+<table>
+<thead>
+<tr>
+  <th>Label</th>
+  <th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>[DOCUMENTED_SUPPORT]</code></td>
+  <td>directly stated in an authoritative support/release source</td>
+</tr>
+<tr>
+  <td><code>[PREVIEW_AVAILABILITY]</code></td>
+  <td>available but explicitly preview/preliminary</td>
+</tr>
+<tr>
+  <td><code>[KNOWN_ISSUE]</code></td>
+  <td>documented defect, limitation or workaround</td>
+</tr>
+<tr>
+  <td><code>[UNVERIFIED_COMBINATION]</code></td>
+  <td>combination not qualified by the captured sources</td>
+</tr>
+<tr>
+  <td><code>[LOCAL_COMPARISON_ONLY]</code></td>
+  <td>local observation; no official support inference</td>
+</tr>
+<tr>
+  <td><code>[PROVENANCE_GAP]</code></td>
+  <td>required identity/integrity evidence not located</td>
+</tr>
+<tr>
+  <td><code>[MATURITY_CONFLICT]</code></td>
+  <td>authoritative sources describe different support/maturity dimensions</td>
+</tr>
+<tr>
+  <td><code>[NOT_RELEASE_READY]</code></td>
+  <td>source project status lacks release-ready designation</td>
+</tr>
+<tr>
+  <td><code>[SIGNED_REPOSITORY_METADATA]</code></td>
+  <td>package metadata is verified through a documented signature mechanism</td>
+</tr>
+<tr>
+  <td><code>[UNVERIFIED_SIGNATURE_STATUS]</code></td>
+  <td>signature verification was not completed</td>
+</tr>
+<tr>
+  <td><code>[SOURCE_PIN]</code></td>
+  <td>exact source commit/tag/hash captured</td>
+</tr>
+<tr>
+  <td><code>[LANE_BOUNDARY]</code> / <code>[DO_NOT_MIX]</code></td>
+  <td>enforced separation rule</td>
+</tr>
+<tr>
+  <td><code>[SBOM_NOT_LOCATED]</code></td>
+  <td>no vendor SBOM located in captured material</td>
+</tr>
+<tr>
+  <td><code>[PLAUSIBLE_SEPARATE_CANDIDATE]</code></td>
+  <td>technically plausible, separately testable overlay</td>
+</tr>
+<tr>
+  <td><code>[DOCUMENTATION_DRIFT]</code></td>
+  <td>official documents differ; governing source is identified</td>
+</tr>
+</tbody>
+</table>
+<h2>Raw captures</h2>
+<p>The <code>raw/</code> tree contains structured capture records with exact URLs, access dates, source references, line locators, hashes and identifiers. It does not mirror full third-party web pages. Source manifests and lockfiles are retained in <code>manifests/</code>.</p>
+<h2>Uncertainty policy</h2>
+<p>Unknown values are <code>null</code>, <code>not located</code>, or <code>unverified</code>; they are never filled by inference. In particular, the stable 7.14 tarball checksum/signature is deliberately unresolved. Promotion gates fail closed on those values.</p>
+<h2>Revalidation</h2>
+<p>This dossier is date-scoped. Re-run source capture when AMD changes the matrix, publishes a 7.14.x patch, Linux 7.2 becomes stable, or repository metadata/artifacts change. Do not mutate this folder; create a new dated capture and compare manifests.</p>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

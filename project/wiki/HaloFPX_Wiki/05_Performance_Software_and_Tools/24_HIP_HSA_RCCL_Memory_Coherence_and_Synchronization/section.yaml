@@ -1,0 +1,43 @@
+section_id: "24"
+title: "HIP, HSA, RCCL, Memory Coherence, and Synchronization"
+category_id: "05"
+category_title: "Performance Software and Tools"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 17
+open_question_count: 12
+required_machine_experiments:
+  - id: "EX24-01"
+    title: "Software and agent inventory"
+  - id: "EX24-02"
+    title: "HIP capability probe"
+  - id: "EX24-03"
+    title: "HSA pool and pointer classification"
+  - id: "EX24-04"
+    title: "CPU/GPU coherence litmus tests"
+  - id: "EX24-05"
+    title: "Stream, event, and queue mapping"
+  - id: "EX24-06"
+    title: "Graph-capture compatibility and overhead"
+  - id: "EX24-07"
+    title: "Local peer API boundary"
+  - id: "EX24-08"
+    title: "GPU-produced transport-buffer comparison"
+  - id: "EX24-09"
+    title: "RCCL two-rank baseline"
+  - id: "EX24-10"
+    title: "Profiler perturbation check"
+related_sections: ["18", "19", "23", "25", "27", "42", "45", "49", "52", "54", "74", "75"]
+applicability:
+  hardware:
+    - "AMD Strix Halo gfx1151 family"
+    - "Two matched hosts; exact BOM and revisions not yet recorded"
+  software:
+    - "ROCm 7.2.3 research baseline"
+    - "HIP tag rocm-7.2.3 at bc9af25177f96c0fea93198b89cf4c3cf08f3ea3"
+    - "ROCR-Runtime tag rocm-7.2.3 at e5498ba92dad7099d2027bd22bd7295ca1caf833"
+    - "RCCL tag rocm-7.2.3 at 96a25b5fd6f73fba58c7d83eb57cf19a50230aa4"
+  exclusions:
+    - "No claim that system-scope fences cross the host-to-host transport"
+    - "No measured bandwidth, latency, coherence, queue, graph, or collective result"
+    - "No assertion that a GPU-direct RCCL plugin works over the proposed USB4 links"

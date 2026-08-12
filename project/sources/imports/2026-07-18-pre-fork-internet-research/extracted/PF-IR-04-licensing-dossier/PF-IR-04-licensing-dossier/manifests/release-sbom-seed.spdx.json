@@ -1,0 +1,133 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "PF-IR-04 external evidence SBOM seed",
+  "documentNamespace": "https://example.invalid/spdx/pf-ir-04/2026-07-18",
+  "creationInfo": {
+    "created": "2026-07-18T01:32:31+00:00",
+    "creators": [
+      "Tool: OpenAI evidence dossier generator",
+      "Organization: human review required"
+    ],
+    "comment": "External-evidence seed only. Not a complete SBOM for any local or distributed artifact."
+  },
+  "documentDescribes": [
+    "SPDXRef-ROCmFPX-61f",
+    "SPDXRef-CachyLLama-6be",
+    "SPDXRef-llama-ai-code-1017",
+    "SPDXRef-llama-ai-docs-1017"
+  ],
+  "packages": [
+    {
+      "name": "ROCmFPX",
+      "SPDXID": "SPDXRef-ROCmFPX-61f",
+      "versionInfo": "61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "downloadLocation": "git+https://github.com/charlie12345/ROCmFPX.git@61f2f2d7bc4955e9bca821095ef69125837133b5",
+      "filesAnalyzed": false,
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceType": "vcs",
+          "referenceLocator": "git+https://github.com/charlie12345/ROCmFPX.git@61f2f2d7bc4955e9bca821095ef69125837133b5",
+          "comment": "Exact VCS commit locator; not an archive/package checksum."
+        }
+      ],
+      "comment": "Root MIT assertion; representative Apache/LLVM/Unlicense/public-domain exceptions found; exact tree scan required."
+    },
+    {
+      "name": "CachyLLama",
+      "SPDXID": "SPDXRef-CachyLLama-6be",
+      "versionInfo": "6be745998f568e379ea197fcf827baec73ff9940",
+      "downloadLocation": "git+https://github.com/fewtarius/CachyLLama.git@6be745998f568e379ea197fcf827baec73ff9940",
+      "filesAnalyzed": false,
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceType": "vcs",
+          "referenceLocator": "git+https://github.com/fewtarius/CachyLLama.git@6be745998f568e379ea197fcf827baec73ff9940",
+          "comment": "Exact VCS commit locator; not an archive/package checksum."
+        }
+      ],
+      "comment": "No root third-party notice file at exact commit; representative exceptions found."
+    },
+    {
+      "name": "llama-ai operational code",
+      "SPDXID": "SPDXRef-llama-ai-code-1017",
+      "versionInfo": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "downloadLocation": "git+https://github.com/fewtarius/llama-ai.git@1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "filesAnalyzed": false,
+      "licenseDeclared": "GPL-3.0-or-later",
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceType": "vcs",
+          "referenceLocator": "git+https://github.com/fewtarius/llama-ai.git@1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+          "comment": "Exact VCS commit locator; not an archive/package checksum."
+        }
+      ],
+      "comment": "Sampled operational files have GPL-3.0-or-later SPDX headers; exact file scope and release composition require review."
+    },
+    {
+      "name": "llama-ai documentation",
+      "SPDXID": "SPDXRef-llama-ai-docs-1017",
+      "versionInfo": "1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "downloadLocation": "git+https://github.com/fewtarius/llama-ai.git@1017f3dfdce3ca2b06aa9007b23295db3bb35722",
+      "filesAnalyzed": false,
+      "licenseDeclared": "CC-BY-NC-SA-4.0",
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "comment": "README scope statement; exact documentation file map not analyzed."
+    },
+    {
+      "name": "ROCmFPX Web UI npm dependency graph",
+      "SPDXID": "SPDXRef-WebUI-NPM",
+      "versionInfo": "package-lock blob bf23307b82c2489a680e9da3f11efed455149246",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseDeclared": "NOASSERTION",
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "comment": "Direct dependency seed included; full transitive package/file SBOM pending."
+    },
+    {
+      "name": "Models-tokenizers-templates-fixtures",
+      "SPDXID": "SPDXRef-ModelAssets",
+      "versionInfo": "unresolved",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseDeclared": "NOASSERTION",
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "comment": "Blocked pending exact publisher, revision, license, file hash, and transformation chain."
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-llama-ai-code-1017",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-CachyLLama-6be",
+      "comment": "Superproject gitlink pins exact child commit; technical relationship only."
+    },
+    {
+      "spdxElementId": "SPDXRef-ROCmFPX-61f",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-WebUI-NPM",
+      "comment": "Web UI source/build depends on the package-lock dependency graph; exact release output not supplied."
+    },
+    {
+      "spdxElementId": "SPDXRef-ROCmFPX-61f",
+      "relationshipType": "OTHER",
+      "relatedSpdxElement": "SPDXRef-ModelAssets",
+      "comment": "Test/generation scripts reference external model/tokenizer/template assets; no distribution approval."
+    }
+  ]
+}

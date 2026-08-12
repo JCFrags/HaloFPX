@@ -1,0 +1,34 @@
+{
+  "schema": "halokv-global-manifest-v1",
+  "tenant_namespace": "tenant-demo",
+  "session_id": "00112233445566778899aabbccddeeff",
+  "session_generation": 7,
+  "epoch": 42,
+  "checkpoint_seq": 19,
+  "op_id": "11112222333344445555666677778888",
+  "topology_fingerprint": "1111111111111111111111111111111111111111111111111111111111111111",
+  "logical_position": {
+    "processed_tokens": 8192,
+    "cache_base_position": 0,
+    "sequence_count": 1,
+    "sequence_layout_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+    "externally_acked_output_offset": 96
+  },
+  "durability": "HOST_FAILURE_DURABLE",
+  "ranks": [
+    {
+      "rank_id": 0,
+      "rank_manifest_id": "3333333333333333333333333333333333333333333333333333333333333333",
+      "shard_descriptor": "tp-heads=0..15",
+      "logical_bytes": 4294967296
+    },
+    {
+      "rank_id": 1,
+      "rank_manifest_id": "4444444444444444444444444444444444444444444444444444444444444444",
+      "shard_descriptor": "tp-heads=16..31",
+      "logical_bytes": 4294967296
+    }
+  ],
+  "recovery_capsule_id": "5555555555555555555555555555555555555555555555555555555555555555",
+  "previous_commit_certificate_id": "6666666666666666666666666666666666666666666666666666666666666666"
+}

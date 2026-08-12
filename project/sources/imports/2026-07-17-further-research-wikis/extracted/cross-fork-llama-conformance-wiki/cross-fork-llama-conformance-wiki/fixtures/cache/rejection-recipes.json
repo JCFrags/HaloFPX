@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "recipes": [
+    {
+      "id": "different-model-bytes",
+      "mutation": "use a model with a different SHA-256"
+    },
+    {
+      "id": "different-quant-layout",
+      "mutation": "same architecture converted to a different weight layout"
+    },
+    {
+      "id": "different-context",
+      "mutation": "change one state-affecting context or rope parameter"
+    },
+    {
+      "id": "flip-header-byte",
+      "mutation": "XOR one non-magic header byte with 0x01"
+    },
+    {
+      "id": "flip-payload-byte",
+      "mutation": "XOR one middle payload byte with 0x01"
+    },
+    {
+      "id": "truncate-header",
+      "mutation": "retain fewer bytes than the minimum header"
+    },
+    {
+      "id": "truncate-page",
+      "mutation": "truncate one byte before a declared page boundary"
+    },
+    {
+      "id": "truncate-final",
+      "mutation": "remove the final byte"
+    },
+    {
+      "id": "future-version",
+      "mutation": "increment the serialized format version"
+    },
+    {
+      "id": "oversized-length",
+      "mutation": "replace a length field with the maximum representable unsigned value"
+    }
+  ],
+  "requirements": [
+    "Never run a corruption case without a per-process watchdog.",
+    "Preserve the original checkpoint and record both SHA-256 digests.",
+    "The harness must not infer field offsets; use a fork-specific format adapter."
+  ]
+}

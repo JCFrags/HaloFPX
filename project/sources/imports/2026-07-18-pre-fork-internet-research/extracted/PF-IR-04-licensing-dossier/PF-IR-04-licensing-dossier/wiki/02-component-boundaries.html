@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component and gitlink boundaries · PF-IR-04</title><link rel="stylesheet" href="../assets/style.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-04 <span>Wiki</span></div><div class="kicker">Licensing & provenance dossier</div><input id="wiki-search" class="search" placeholder="Search this page…"><div class="nav"><div class="nav-title">Navigation</div><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-and-limits.html" class="">Scope & limits</a><a href="../wiki/01-decision-summary.html" class="">Decision summary</a><a href="../wiki/02-component-boundaries.html" class="">Component boundaries</a><a href="../wiki/03-code-license-evidence.html" class="">Code & SPDX</a><a href="../wiki/04-fixtures-models-tokenizers.html" class="">Models & fixtures</a><a href="../wiki/05-webui-generated-assets.html" class="">Web UI & generated</a><a href="../wiki/06-release-evidence.html" class="">Release evidence</a><a href="../wiki/07-gpl-separation-clean-room.html" class="">GPL & clean room</a><a href="../wiki/08-unresolved-blocked.html" class="">Unresolved items</a><a href="../wiki/09-maintainer-runbook.html" class="">Reviewer runbook</a><a href="../wiki/10-source-register.html" class="">Source register</a><div class="nav-title">Machine records</div><a href="../manifests/components.csv">Components CSV</a><a href="../manifests/files.csv">Files CSV</a><a href="../manifests/unresolved.csv">Unresolved CSV</a><a href="../manifests/provenance-chain.jsonld">Provenance JSON-LD</a><a href="../manifests/release-sbom-seed.spdx.json">SPDX seed</a><a href="../hashes/SHA256SUMS">SHA256SUMS</a></div></aside><main class="main"><div class="hero"><div class="kicker">Evidence date 2026-07-18 · P0</div><h1>Component and gitlink boundaries</h1><div class="doc-meta"><span class="badge info">EXTERNAL EVIDENCE</span><span class="badge warn">HUMAN DECISION REQUIRED</span><span class="badge bad">NO UNKNOWN-LICENSE APPROVAL</span></div></div><article data-searchable><h1>Component and gitlink boundaries</h1>
+<h2>Public component graph</h2>
+<pre><code class="language-text">fewtarius/llama-ai@1017f3d  [GPL operational code; CC docs]
+  └─ gitlink CachyLLama = 6be745998f568e379ea197fcf827baec73ff9940
+       └─ fewtarius/CachyLLama@6be7459 [root MIT; mixed file exceptions]
+
+charlie12345/ROCmFPX@a5605a7 [root MIT; mixed file exceptions]
+  └─ one commit later: ROCmFPX@61f2f2d
+</code></pre>
+<p>A Git submodule has independent history. The superproject tree records a gitlink object naming the child commit; it does not flatten all child file blobs into the superproject commit. A release archive, installer, or binary can nonetheless materialize or combine components, so the technical boundary is evidence, not a legal conclusion.</p>
+<h2>License-scope separation</h2>
+<ul>
+<li><strong>MIT engine source:</strong> ROCmFPX and CachyLLama root assertions, subject to exceptions and provenance.</li>
+<li><strong>GPL operational expression:</strong> runner/build/install/benchmark/systemd scripts in <code>llama-ai</code>.</li>
+<li><strong>Separately licensed documentation:</strong> <code>llama-ai</code> README asserts CC-BY-NC-SA-4.0.</li>
+<li><strong>External model/data assets:</strong> separate publisher terms; not relicensed by code repositories.</li>
+<li><strong>Toolchains/runtimes:</strong> per package/component licensing.</li>
+</ul>
+<p>See <code>manifests/components.*</code> and <code>manifests/provenance-chain.jsonld</code>.</p>
+</article><div class="footer">PF-IR-04 dossier · Generated 2026-07-18T01:32:31+00:00 · Not legal advice · Not a local full-tree scan.</div></main></div><script src="../assets/wiki.js"></script></body></html>

@@ -1,0 +1,106 @@
+
+### 2026-07-10T01:30:11-07:00 MPTCP EVIDENCE AFTER IPERF
+MPTcpExtMPCapableSYNRX          0                  0.0
+MPTcpExtMPCapableSYNTX          2                  0.0
+MPTcpExtMPCapableSYNACKRX       2                  0.0
+MPTcpExtMPCapableACKRX          0                  0.0
+MPTcpExtMPCapableFallbackACK    0                  0.0
+MPTcpExtMPCapableFallbackSYNACK 0                  0.0
+MPTcpExtMPCapableSYNTXDrop      0                  0.0
+MPTcpExtMPCapableSYNTXDisabled  0                  0.0
+MPTcpExtMPCapableEndpAttempt    0                  0.0
+MPTcpExtMPFallbackTokenInit     0                  0.0
+MPTcpExtMPTCPRetrans            0                  0.0
+MPTcpExtMPJoinNoTokenFound      0                  0.0
+MPTcpExtMPJoinSynRx             0                  0.0
+MPTcpExtMPJoinSynBackupRx       0                  0.0
+MPTcpExtMPJoinSynAckRx          4                  0.0
+MPTcpExtMPJoinSynAckBackupRx    0                  0.0
+MPTcpExtMPJoinSynAckHMacFailure 0                  0.0
+MPTcpExtMPJoinAckRx             0                  0.0
+MPTcpExtMPJoinAckHMacFailure    0                  0.0
+MPTcpExtMPJoinRejected          0                  0.0
+MPTcpExtMPJoinSynTx             4                  0.0
+MPTcpExtMPJoinSynTxCreatSkErr   0                  0.0
+MPTcpExtMPJoinSynTxBindErr      0                  0.0
+MPTcpExtMPJoinSynTxConnectErr   0                  0.0
+MPTcpExtDSSNotMatching          0                  0.0
+MPTcpExtDSSCorruptionFallback   0                  0.0
+MPTcpExtDSSCorruptionReset      0                  0.0
+MPTcpExtInfiniteMapTx           0                  0.0
+MPTcpExtInfiniteMapRx           0                  0.0
+MPTcpExtDSSNoMatchTCP           0                  0.0
+MPTcpExtDataCsumErr             0                  0.0
+MPTcpExtOFOQueueTail            0                  0.0
+MPTcpExtOFOQueue                1                  0.0
+MPTcpExtOFOMerge                0                  0.0
+MPTcpExtNoDSSInWindow           0                  0.0
+MPTcpExtDuplicateData           1                  0.0
+MPTcpExtAddAddr                 2                  0.0
+MPTcpExtAddAddrTx               2                  0.0
+MPTcpExtAddAddrTxDrop           0                  0.0
+MPTcpExtEchoAdd                 2                  0.0
+MPTcpExtEchoAddTx               2                  0.0
+MPTcpExtEchoAddTxDrop           0                  0.0
+MPTcpExtPortAdd                 0                  0.0
+MPTcpExtAddAddrDrop             0                  0.0
+MPTcpExtMPJoinPortSynRx         0                  0.0
+MPTcpExtMPJoinPortSynAckRx      0                  0.0
+MPTcpExtMPJoinPortAckRx         0                  0.0
+MPTcpExtMismatchPortSynRx       0                  0.0
+MPTcpExtMismatchPortAckRx       0                  0.0
+MPTcpExtRmAddr                  0                  0.0
+MPTcpExtRmAddrDrop              0                  0.0
+MPTcpExtRmAddrTx                0                  0.0
+MPTcpExtRmAddrTxDrop            0                  0.0
+MPTcpExtRmSubflow               0                  0.0
+MPTcpExtMPPrioTx                0                  0.0
+MPTcpExtMPPrioRx                0                  0.0
+MPTcpExtMPFailTx                0                  0.0
+MPTcpExtMPFailRx                0                  0.0
+MPTcpExtMPFastcloseTx           0                  0.0
+MPTcpExtMPFastcloseRx           2                  0.0
+MPTcpExtMPRstTx                 1                  0.0
+MPTcpExtMPRstRx                 2                  0.0
+MPTcpExtSubflowStale            0                  0.0
+MPTcpExtSubflowRecover          0                  0.0
+MPTcpExtSndWndShared            7                  0.0
+MPTcpExtRcvWndShared            0                  0.0
+MPTcpExtRcvWndConflictUpdate    0                  0.0
+MPTcpExtRcvWndConflict          0                  0.0
+MPTcpExtMPCurrEstab             0                  0.0
+MPTcpExtBlackhole               0                  0.0
+MPTcpExtMPCapableDataFallback   0                  0.0
+MPTcpExtMD5SigFallback          0                  0.0
+MPTcpExtDssFallback             0                  0.0
+MPTcpExtSimultConnectFallback   0                  0.0
+MPTcpExtFallbackFailed          0                  0.0
+MPTcpExtWinProbe                0                  0.0
+4: thunderbolt0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:f6:66:34:5b:41 brd ff:ff:ff:ff:ff:ff
+    RX:   bytes packets errors dropped  missed   mcast           
+       30467206  390564      0       0       0       0 
+    TX:   bytes packets errors dropped carrier collsns           
+    24059993418  554020      0       0       0       0 
+    altname enx02f666345b41
+5: thunderbolt1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:f5:42:f6:c4:cc brd ff:ff:ff:ff:ff:ff
+    RX:   bytes packets errors dropped  missed   mcast           
+       26360181  337928      0       0       0       0 
+    TX:   bytes packets errors dropped carrier collsns           
+    24054058346  551652      0       0       0       0 
+    altname enx02f542f6c4cc
+4: thunderbolt0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:0e:2b:e7:6b:70 brd ff:ff:ff:ff:ff:ff
+    RX:   bytes packets errors dropped  missed   mcast           
+    24059993418 6229708      0       0       0       0 
+    TX:   bytes packets errors dropped carrier collsns           
+       30467206  390564      0       0       0       0 
+    altname enx020e2be76b70
+5: thunderbolt1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 02:9d:26:c2:5f:33 brd ff:ff:ff:ff:ff:ff
+    RX:   bytes packets errors dropped  missed   mcast           
+    24054058346 6226815      0       0       0       0 
+    TX:   bytes packets errors dropped carrier collsns           
+       26360181  337928      0       0       0       0 
+    altname enx029d26c25f33

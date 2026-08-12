@@ -1,0 +1,31 @@
+# Cross-Fork llama.cpp Conformance Wiki
+
+Purpose: correctness and regression conformance across upstream llama.cpp, ROCmFPX, CachyLLama candidate, and a future integration fork.
+
+Core documents:
+- Home.md
+- Scope-and-Principles.md
+- Forks-and-Pinning.md
+- Conformance-Architecture.md
+- Test-Matrix.md
+- Upstream-Test-Reuse.md
+- Fixtures.md
+- Oracles-and-Tolerances.md
+- Deterministic-and-Nondeterministic-Comparisons.md
+- Failure-Injection.md
+- Expected-Error-Behavior.md
+- CI-Recommendations.md
+- Runbook.md
+- Security.md
+- Research-Sources.md
+
+Machine-readable assets:
+- matrix/test-matrix.json (175 cases)
+- matrix/test-matrix.csv
+- matrix/test-matrix.yaml
+- fixtures/manifest.json (161 logical fixtures)
+- references/source-inventory.yaml
+- references/upstream-test-map.csv
+- matrix/schemas/*.json
+
+Policy: model-specific numeric results and tolerances are absent until independently promoted. Unapproved profiles use null normative metrics.

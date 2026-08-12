@@ -1,0 +1,211 @@
+[
+  {
+    "item": "TheRock build system",
+    "spdx_or_family": "MIT",
+    "status": "verified root license",
+    "provenance": "TheRock therock-7.14 LICENSE blob 5c22b7e0496700a306b37a37fcfb23bfaa6a986f",
+    "source_ids": [
+      "S013"
+    ],
+    "notice_action": "retain copyright and license"
+  },
+  {
+    "item": "LLVM/Clang toolchain",
+    "spdx_or_family": "Apache-2.0 WITH LLVM-exception",
+    "status": "declared by package metadata; source scan required",
+    "provenance": "amdrocm-llvm package declaration and exact llvm-project pin",
+    "source_ids": [
+      "S012",
+      "S007"
+    ],
+    "notice_action": "retain LICENSE.TXT and exception text"
+  },
+  {
+    "item": "HIP / ROCR / COMGR ROCm components",
+    "spdx_or_family": "primarily MIT",
+    "status": "component-level verification required",
+    "provenance": "amdrocm-runtime declared MIT; exact source tree scan required",
+    "source_ids": [
+      "S012"
+    ],
+    "notice_action": "retain all per-component LICENSE/NOTICE files"
+  },
+  {
+    "item": "rocBLAS / hipBLAS / hipBLASLt",
+    "spdx_or_family": "primarily MIT",
+    "status": "component-level verification required",
+    "provenance": "rocm-libraries exact pin and package metadata",
+    "source_ids": [
+      "S007",
+      "S012"
+    ],
+    "notice_action": "scan bundled kernels/code generators and notices"
+  },
+  {
+    "item": "rocWMMA / rocPRIM / rocThrust / hipCUB",
+    "spdx_or_family": "primarily MIT/BSD-family depending component and imported headers",
+    "status": "artifact/source scan required",
+    "provenance": "rocm-libraries exact pin",
+    "source_ids": [
+      "S007",
+      "S012"
+    ],
+    "notice_action": "preserve third-party header notices"
+  },
+  {
+    "item": "RCCL",
+    "spdx_or_family": "MIT (package declared); imported NCCL-derived notices may apply",
+    "status": "package declaration verified, notice scan required",
+    "provenance": "amdrocm-rccl package JSON",
+    "source_ids": [
+      "S012"
+    ],
+    "notice_action": "retain RCCL and imported-source notices"
+  },
+  {
+    "item": "Linux kernel",
+    "spdx_or_family": "GPL-2.0-only",
+    "status": "project license; exact source tag/signature required",
+    "provenance": "selected kernel source tree",
+    "source_ids": [
+      "S015",
+      "S016"
+    ],
+    "notice_action": "retain COPYING and source/offering obligations as applicable"
+  },
+  {
+    "item": "linux-firmware / AMD GPU firmware",
+    "spdx_or_family": "mixed per-file licenses",
+    "status": "unresolved until exact distro package is captured",
+    "provenance": "distro linux-firmware package and WHENCE",
+    "source_ids": [
+      "S001",
+      "S003"
+    ],
+    "notice_action": "retain WHENCE and every per-blob license/notice"
+  },
+  {
+    "item": "Mesa / RADV",
+    "spdx_or_family": "mixed permissive, predominantly MIT/X11-family",
+    "status": "exact source/package scan required",
+    "provenance": "Mesa 26.1.4 source or distro package",
+    "source_ids": [
+      "S019"
+    ],
+    "notice_action": "retain top-level and per-driver notices"
+  },
+  {
+    "item": "libdrm",
+    "spdx_or_family": "MIT-family",
+    "status": "bundled/system dependency; exact build selection required",
+    "provenance": "amdrocm-sysdeps or distro package",
+    "source_ids": [
+      "S002",
+      "S012"
+    ],
+    "notice_action": "retain package copyright/license files"
+  },
+  {
+    "item": "libnuma / numactl",
+    "spdx_or_family": "LGPL/GPL mixed by file/package",
+    "status": "exact package scan required",
+    "provenance": "amdrocm-sysdeps or distro package",
+    "source_ids": [
+      "S012"
+    ],
+    "notice_action": "retain licenses and notices"
+  },
+  {
+    "item": "libelf / elfutils",
+    "spdx_or_family": "mixed LGPL/GPL by component",
+    "status": "exact package scan required",
+    "provenance": "amdrocm-sysdeps or distro package",
+    "source_ids": [
+      "S012"
+    ],
+    "notice_action": "retain package copyright/license files"
+  },
+  {
+    "item": "ELFIO",
+    "spdx_or_family": "MIT",
+    "status": "package source indicated; verify artifact inclusion",
+    "provenance": "TheRock sysdeps mapping",
+    "source_ids": [
+      "S012"
+    ],
+    "notice_action": "retain MIT notice"
+  },
+  {
+    "item": "libpciaccess",
+    "spdx_or_family": "MIT-family",
+    "status": "package source indicated; verify artifact inclusion",
+    "provenance": "TheRock sysdeps mapping",
+    "source_ids": [
+      "S012"
+    ],
+    "notice_action": "retain copyright/license"
+  },
+  {
+    "item": "SuiteSparse",
+    "spdx_or_family": "mixed per subproject",
+    "status": "exact included subprojects and licenses unresolved",
+    "provenance": "TheRock host-suite-sparse artifact mapping",
+    "source_ids": [
+      "S012"
+    ],
+    "notice_action": "inventory each included SuiteSparse component"
+  },
+  {
+    "item": "ncurses",
+    "spdx_or_family": "X11-style permissive",
+    "status": "verify bundled version and notice",
+    "provenance": "TheRock sysdeps mapping",
+    "source_ids": [
+      "S012"
+    ],
+    "notice_action": "retain ncurses license"
+  },
+  {
+    "item": "Boost",
+    "spdx_or_family": "BSL-1.0",
+    "status": "build dependency/inclusion to verify",
+    "provenance": "TheRock source/build graph",
+    "source_ids": [
+      "S007",
+      "S010"
+    ],
+    "notice_action": "retain Boost license where redistributed"
+  },
+  {
+    "item": "FlatBuffers",
+    "spdx_or_family": "Apache-2.0",
+    "status": "build/runtime inclusion to verify",
+    "provenance": "TheRock source/build graph",
+    "source_ids": [
+      "S007"
+    ],
+    "notice_action": "retain NOTICE/LICENSE if redistributed"
+  },
+  {
+    "item": "fmt",
+    "spdx_or_family": "MIT",
+    "status": "RCCL/build dependency inclusion to verify",
+    "provenance": "RCCL source/build graph",
+    "source_ids": [
+      "S004",
+      "S012"
+    ],
+    "notice_action": "retain MIT notice"
+  },
+  {
+    "item": "All artifact files not enumerated above",
+    "spdx_or_family": "UNKNOWN UNTIL SCAN",
+    "status": "blocking open item",
+    "provenance": "acquired package/tarball bytes",
+    "source_ids": [
+      "S009",
+      "S012"
+    ],
+    "notice_action": "run inventory-artifact.sh and generate-sbom.sh; review every LICENSE/COPYING/NOTICE and package copyright record"
+  }
+]

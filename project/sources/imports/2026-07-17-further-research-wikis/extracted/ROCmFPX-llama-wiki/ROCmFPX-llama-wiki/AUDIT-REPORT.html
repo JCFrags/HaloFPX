@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Commit- and file-level ROCmFPX deviation inventory against upstream llama.cpp">
+  <title>Audit report · ROCmFPX Inventory</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">RX</div>
+      <div><div class="brand-title">ROCmFPX Inventory</div><span class="brand-sub">llama.cpp deviation wiki</span></div>
+    </div>
+    <div class="search-wrap">
+      <input id="wiki-search" class="search" type="search" placeholder="Search paths, commits, formats…" autocomplete="off">
+      <div id="search-results" class="search-results"></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-heading">Wiki</div>
+      
+      <a href="Home.html" class="">Home</a>
+      
+      <a href="01-Scope-and-Baselines.html" class="">Scope & baselines</a>
+      
+      <a href="AUDIT-REPORT.html" class="active">Audit report</a>
+      
+      <a href="02-Executive-Inventory.html" class="">Executive inventory</a>
+      
+      <a href="03-Commit-Map.html" class="">Commit map</a>
+      
+      <a href="04-File-Map.html" class="">File map</a>
+      
+      <a href="05-Quantization-Formats.html" class="">Quantization formats</a>
+      
+      <a href="06-Strix-Halo-and-ROCm-Kernels.html" class="">Strix Halo & ROCm kernels</a>
+      
+      <a href="07-Graph-and-Model-Architecture.html" class="">Graph & model architecture</a>
+      
+      <a href="08-MTP-and-Speculative-Decoding.html" class="">MTP & speculative decoding</a>
+      
+      <a href="09-RPC-and-Distributed-Execution.html" class="">RPC & distributed execution</a>
+      
+      <a href="10-Server-and-WebUI.html" class="">Server & WebUI</a>
+      
+      <a href="11-Build-CI-and-Portability.html" class="">Build, CI & portability</a>
+      
+      <a href="12-Upstream-Replacement-Analysis.html" class="">Upstream replacement</a>
+      
+      <a href="13-Retain-Refresh-Retire.html" class="">Retain / refresh / retire</a>
+      
+      <a href="14-Migration-Plan.html" class="">Migration plan</a>
+      
+      <a href="15-Exact-Path-Ledger.html" class="">Exact path ledger</a>
+      
+      <a href="16-Source-Ledger.html" class="">Source ledger</a>
+      
+      <div class="nav-heading">Exact patch maps</div>
+      
+      <a href="patches/Post-baseline-series.html" class="">Post-baseline series</a>
+      
+      <a href="patches/PR-27-promotion.html" class="">PR #27</a>
+      
+      <a href="patches/PR-28-funding.html" class="">PR #28</a>
+      
+      <a href="patches/PR-31-speculative-overrides.html" class="">PR #31</a>
+      
+      <a href="patches/PR-32-hy3-rocmfp2-cache.html" class="">PR #32</a>
+      
+      <div class="nav-heading">Data</div>
+      <a href="data/file-map.csv">File map CSV</a>
+      <a href="data/commit-map.csv">Commit map CSV</a>
+      <a href="data/capability-matrix.csv">Capability matrix CSV</a>
+      <a href="data/dependency-table.csv">Dependency table CSV</a>
+      <a href="data/source-ledger.csv">Source ledger CSV</a>
+    </nav>
+    <div class="sidebar-meta">
+      Fork <code>a5605a72</code><br>
+      Upstream <code>86d86ed4</code><br>
+      Snapshot 2026-07-17
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div><button id="mobile-toggle" class="mobile-toggle" aria-label="Toggle navigation">☰</button> <span class="crumb">Audit / Audit report</span></div>
+      <div class="snapshot">
+        <span class="pill">100 commits</span>
+        <span class="pill">276 paths</span>
+        <span class="pill">primary-source cited</span>
+      </div>
+    </header>
+    <div class="content">
+      <article><h1 id="audit-report">Audit report</h1>
+<h2 id="snapshot">Snapshot</h2>
+<ul>
+<li>Fork: <a href="https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394"><code>a5605a72768c6562241b248e268e33dc92787394</code></a></li>
+<li>Upstream: <a href="https://github.com/ggml-org/llama.cpp/tree/86d86ed4396b4130922f7b9af26e3d9fc11a591b"><code>86d86ed4396b4130922f7b9af26e3d9fc11a591b</code></a></li>
+<li>Exact recent range: <a href="https://github.com/charlie12345/ROCmFPX/compare/5b3956605309dd3e6beed49c8f3a41423ba71d25...a5605a72768c6562241b248e268e33dc92787394"><code>5b3956605309dd3e6beed49c8f3a41423ba71d25...a5605a72768c6562241b248e268e33dc92787394</code></a></li>
+<li>Inventory date: <code>2026-07-17</code></li>
+</ul>
+<h2 id="coverage">Coverage</h2>
+<ul>
+<li>100 commit-graph nodes decomposed into four exact PR series.</li>
+<li>96 authored commits plus four merge commits.</li>
+<li>276 unique changed paths across the exact PR changed-file lists.</li>
+<li>35 capability-owning or patch-hygiene commit anchors.</li>
+<li>26 capability decisions.</li>
+<li>112 primary-source entries.</li>
+<li>Four architecture/lineage diagrams.</li>
+<li>CSV and JSON ledgers for paths, commits, capabilities, dependencies, sources, formats, and upstream equivalence.</li>
+</ul>
+<p>Primary sources: <a class="citation" href="https://github.com/charlie12345/ROCmFPX/compare/5b3956605309dd3e6beed49c8f3a41423ba71d25...a5605a72768c6562241b248e268e33dc92787394">S-COMPARE</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/27">S-PR27</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/28">S-PR28</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/31">S-PR31</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/32">S-PR32</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/27/files">S-PR27-FILES</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/32/files">S-PR32-FILES</a></p>
+<h2 id="commit-map-precision">Commit-map precision</h2>
+<p>The local map is exact at PR base/head/merge/count boundaries and for the named capability-owning commit anchors. The canonical complete inner-commit enumeration remains linked to each PR’s <code>commits</code> page rather than being duplicated as 96 rows. <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/27/commits">S-PR27-COMMITS</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/32/commits">S-PR32-COMMITS</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/28">S-PR28</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/31">S-PR31</a></p>
+<h2 id="file-map-precision">File-map precision</h2>
+<p>The local file ledger is a complete union of the exact PR #27/#28/#31/#32 changed-file lists. Each path records PR membership, subsystem, and a retain/refresh/retire assessment. <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/27/files">S-PR27-FILES</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/28">S-PR28</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/31/files">S-PR31-FILES</a> <a class="citation" href="https://github.com/charlie12345/ROCmFPX/pull/32/files">S-PR32-FILES</a></p>
+<h2 id="validation-performed">Validation performed</h2>
+<ul>
+<li>Every Markdown source ID resolves to the source ledger.</li>
+<li>Every local Markdown and HTML link resolves.</li>
+<li>All four DOT diagrams render to SVG.</li>
+<li>Path and capability classification counts reconcile with the CSV/JSON outputs.</li>
+<li>The archive checksum manifest is generated after all files are finalized.</li>
+</ul>
+<h2 id="interpretation-boundary">Interpretation boundary</h2>
+<p>Source citations establish code, commit, PR, and official-document facts. Retain/refresh/retire labels and migration steps are engineering assessments derived from those facts, not claims made by the upstream or fork maintainers.</p>
+</article>
+      <div class="page-footer">ROCmFPX technical inventory · pinned source audit · retain / refresh / retire assessment</div>
+    </div>
+  </main>
+</div>
+<script src="assets/search-index.js"></script>
+<script src="assets/wiki.js"></script>
+</body>
+</html>

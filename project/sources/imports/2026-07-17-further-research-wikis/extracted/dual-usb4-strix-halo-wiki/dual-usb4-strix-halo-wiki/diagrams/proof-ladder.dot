@@ -1,0 +1,23 @@
+digraph G {
+
+  graph [bgcolor="#101820", pad="0.35", nodesep="0.4", ranksep="0.55", fontname="DejaVu Sans"];
+  node [shape=box, style="rounded,filled", fillcolor="#263238", color="#4dd0e1", fontcolor="#f5f7fa", fontname="DejaVu Sans", penwidth=1.7, margin="0.16,0.10"];
+  edge [color="#90caf9", fontcolor="#cfd8dc", fontname="DejaVu Sans", penwidth=2.0, arrowsize=0.75];
+
+  rankdir=BT; label="Proof ladder: do not stop at two interface names"; labelloc=t; fontsize=20; fontcolor="#ffffff";
+  l0 [label="L0 Naming
+two ports/cables", fillcolor="#3e2723", color="#ef5350"];
+  l1 [label="L1 Interface separation
+coexisting netdevs + XDomains"];
+  l2 [label="L2 Controller separation
+distinct domains + NHI BDFs"];
+  l3 [label="L3 Fault separation
+unplug either, other survives"];
+  l4 [label="L4 Execution separation
+counters + IRQ/NAPI attribution"];
+  l5 [label="L5 Capacity separation
+concurrent productive throughput"];
+  l6 [label="L6 Application multipath
+one MPTCP socket, two byte-carrying subflows", fillcolor="#1b5e20", color="#66bb6a"];
+  l0 -> l1 -> l2 -> l3 -> l4 -> l5 -> l6;
+}

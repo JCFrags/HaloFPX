@@ -1,0 +1,56 @@
+schema_version: "1.0"
+name: Contiguous layer placement with inter-request pipeline scheduling
+mode: hybrid_layer_pipeline
+viability: conditional
+objective: [model capacity, aggregate throughput, minimal per-forward cut count]
+topology:
+  nodes: 2
+  physical_links: 2
+  aggregation_policy: control_plus_bulk
+  bandwidth_symbol: B_bulk for hidden states
+  latency_symbol: ell per microbatch plus control return
+coordinator_rank: 0
+ranks:
+  - rank_id: 0
+    node: A
+    role: [frontend, stage 0, pipeline scheduler]
+    ownership:
+      tokenizer: full tokenizer and detokenizer
+      sampler: none
+      rng: request seed metadata
+      model: embeddings and layers [0,k)
+      experts: experts local to layers [0,k)
+      kv: local-layer KV for all scheduled sessions
+      sessions: global admission and pipeline order
+  - rank_id: 1
+    node: B
+    role: [stage 1, sampler]
+    ownership:
+      tokenizer: optional mirror
+      sampler: complete final token selection
+      rng: final per-session RNG counters
+      model: layers [k,L), final norm, LM head
+      experts: experts local to layers [k,L)
+      kv: local-layer KV for all scheduled sessions
+      sessions: stage-local queue and KV handles
+flows:
+  - phase: scheduled microbatch boundary
+    from: 0
+    to: 1
+    payload: hidden activations tagged by session and token position
+    volume_formula: sum_i s_i*h*b_a for prefill; Q*h*b_a per decode round
+    synchronization: pipeline queues plus per-session ordering
+    link_policy: bulk_striped_if_validated
+  - phase: token feedback
+    from: 1
+    to: 0
+    payload: selected token IDs and completion flags
+    volume_formula: Q*b_t + metadata
+    synchronization: each session waits; other sessions continue
+    link_policy: control
+hard_gates:
+  - All contiguous-split memory gates pass.
+  - Pipeline minimum-concurrency inequality passes with measured stage and transfer times.
+  - Queue memory and tail-latency objectives remain acceptable.
+notes:
+  - This is an execution-schedule hybrid, not a new ownership split.

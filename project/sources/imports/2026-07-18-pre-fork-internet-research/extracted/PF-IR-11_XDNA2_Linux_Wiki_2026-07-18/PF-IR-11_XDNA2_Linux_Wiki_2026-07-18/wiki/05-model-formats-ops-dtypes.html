@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>5. Model formats, operators, and data types — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="00-home.html">Home / decision</a></li><li><a href="01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="03-firmware.html">Firmware</a></li><li><a href="04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a class="active" href="05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="10-role-evaluation.html">Role evaluation</a></li><li><a href="11-bounded-experiment.html">Bounded experiment</a></li><li><a href="12-read-only-probe.html">Read-only probe</a></li><li><a href="13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">wiki/05-model-formats-ops-dtypes.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>5. Model formats, operators, and data types</h1>
+<h2 id="model-interchange">Model interchange</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> ONNX is the documented high-level interchange format.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD recommends ONNX opset 17 for captured CNN/transformer flows.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> The public DistilBERT classifier converts the Hugging Face checkpoint to ONNX opset 17, then uses BF16 and the Vitis AI execution provider.</p>
+<p><span class="claim claim-unsupported">[UNSUPPORTED]</span> Generic GGUF or <code>llama.cpp</code> model loading is not a documented NPU path.</p>
+<h2 id="numeric-formats">Numeric formats</h2>
+<p>The captured AMD support boundary includes:</p>
+<table>
+<thead>
+<tr>
+  <th>Family</th>
+  <th>Captured use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>BF16</td>
+  <td>NLP/transformers and CNN paths</td>
+</tr>
+<tr>
+  <td>XINT8</td>
+  <td>supported quantization family in AMD operator documentation</td>
+</tr>
+<tr>
+  <td>A8W8</td>
+  <td>activation 8-bit / weight 8-bit family</td>
+</tr>
+<tr>
+  <td>A16W8</td>
+  <td>activation 16-bit / weight 8-bit family</td>
+</tr>
+<tr>
+  <td>FP32</td>
+  <td>model input/baseline; transformer flow may compile to BF16</td>
+</tr>
+</tbody>
+</table>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> Data-type support is conditional on model, operator, shape, and compiler/runtime version.</p>
+<h2 id="operator-coverage">Operator coverage</h2>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD publishes a broad operator table, but the captured table is labeled Ryzen AI 1.5.0 rather than an exact 1.7.1 guarantee.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> The documentation warns that particular configurations can remain unsupported even when the operator family appears in the table.</p>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> The execution provider may partition unsupported subgraphs to CPU.</p>
+<p><span class="claim claim-decision">[DECISION]</span> A successful session creation does not pass the gate. The actual provider assignment/partition report must show the expensive subgraph on NPU.</p>
+<h2 id="captured-examples-relevant-to-bounded-roles">Captured examples relevant to bounded roles</h2>
+<h3 id="distilbert-classifier">DistilBERT classifier</h3>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> Exact public example:</p>
+<ul>
+<li>model: <code>distilbert-base-uncased-finetuned-sst-2-english</code>;</li>
+<li>ONNX opset 17;</li>
+<li>BF16;</li>
+<li>batch 1;</li>
+<li>input IDs and attention mask as <code>int64</code>;</li>
+<li>fixed maximum length 128;</li>
+<li>Vitis AI execution provider;</li>
+<li>compiled cache.</li>
+</ul>
+<p>Sources:</p>
+<ul>
+<li><a href="../sources/raw/ryzenai-sw/DistilBERT_text_classification_bf16_README.md"><code>../sources/raw/ryzenai-sw/DistilBERT_text_classification_bf16_README.md</code></a></li>
+<li><a href="../sources/raw/ryzenai-sw/run_inference.py"><code>../sources/raw/ryzenai-sw/run_inference.py</code></a></li>
+<li><a href="../sources/raw/ryzenai-sw/vitisai_config.json"><code>../sources/raw/ryzenai-sw/vitisai_config.json</code></a></li>
+</ul>
+<h3 id="bge-embedding">BGE embedding</h3>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> AMD publishes a BGE embedding implementation using <code>VitisAIExecutionProvider</code>, fixed maximum length 512, and pooler output.</p>
+<p><span class="claim claim-unknown">[UNKNOWN]</span> The captured public RAG instructions are pinned to a Ryzen AI 1.7.0 hybrid/Conda flow and do not establish Linux qualification for the exact 1.7.1 target stack.</p>
+<p>Source: <a href="../sources/raw/ryzenai-sw/custom_embedding.py"><code>../sources/raw/ryzenai-sw/custom_embedding.py</code></a>.</p>
+<h3 id="small-oga-models">Small OGA models</h3>
+<p><span class="claim claim-vendor-only">[VENDOR-ONLY]</span> AMD's 1.7.1 release notes list SmolLM and SmolLM2 135M instruction models for the NPU stack.</p>
+<p><span class="claim claim-inference">[INFERENCE]</span> Model availability does not establish a draft-model API, speculative-decoding integration, KV-cache sharing, acceptable token latency, or useful system-level speedup.</p>
+<h2 id="required-model-manifest">Required model manifest</h2>
+<p>Any experiment must preserve:</p>
+<ul>
+<li>original model and tokenizer IDs and licenses;</li>
+<li>original and converted model hashes;</li>
+<li>ONNX opset and graph hash;</li>
+<li>static shapes and all tensor dtypes;</li>
+<li>quantization/compiler commands;</li>
+<li>provider configuration;</li>
+<li>compiled cache hashes;</li>
+<li>NPU/CPU assignment report;</li>
+<li>release/package versions.</li>
+</ul>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>

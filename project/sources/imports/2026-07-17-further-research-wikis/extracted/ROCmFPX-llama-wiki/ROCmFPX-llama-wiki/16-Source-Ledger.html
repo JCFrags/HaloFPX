@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Commit- and file-level ROCmFPX deviation inventory against upstream llama.cpp">
+  <title>Source ledger · ROCmFPX Inventory</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body data-root="">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">RX</div>
+      <div><div class="brand-title">ROCmFPX Inventory</div><span class="brand-sub">llama.cpp deviation wiki</span></div>
+    </div>
+    <div class="search-wrap">
+      <input id="wiki-search" class="search" type="search" placeholder="Search paths, commits, formats…" autocomplete="off">
+      <div id="search-results" class="search-results"></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-heading">Wiki</div>
+      
+      <a href="Home.html" class="">Home</a>
+      
+      <a href="01-Scope-and-Baselines.html" class="">Scope & baselines</a>
+      
+      <a href="AUDIT-REPORT.html" class="">Audit report</a>
+      
+      <a href="02-Executive-Inventory.html" class="">Executive inventory</a>
+      
+      <a href="03-Commit-Map.html" class="">Commit map</a>
+      
+      <a href="04-File-Map.html" class="">File map</a>
+      
+      <a href="05-Quantization-Formats.html" class="">Quantization formats</a>
+      
+      <a href="06-Strix-Halo-and-ROCm-Kernels.html" class="">Strix Halo & ROCm kernels</a>
+      
+      <a href="07-Graph-and-Model-Architecture.html" class="">Graph & model architecture</a>
+      
+      <a href="08-MTP-and-Speculative-Decoding.html" class="">MTP & speculative decoding</a>
+      
+      <a href="09-RPC-and-Distributed-Execution.html" class="">RPC & distributed execution</a>
+      
+      <a href="10-Server-and-WebUI.html" class="">Server & WebUI</a>
+      
+      <a href="11-Build-CI-and-Portability.html" class="">Build, CI & portability</a>
+      
+      <a href="12-Upstream-Replacement-Analysis.html" class="">Upstream replacement</a>
+      
+      <a href="13-Retain-Refresh-Retire.html" class="">Retain / refresh / retire</a>
+      
+      <a href="14-Migration-Plan.html" class="">Migration plan</a>
+      
+      <a href="15-Exact-Path-Ledger.html" class="">Exact path ledger</a>
+      
+      <a href="16-Source-Ledger.html" class="active">Source ledger</a>
+      
+      <div class="nav-heading">Exact patch maps</div>
+      
+      <a href="patches/Post-baseline-series.html" class="">Post-baseline series</a>
+      
+      <a href="patches/PR-27-promotion.html" class="">PR #27</a>
+      
+      <a href="patches/PR-28-funding.html" class="">PR #28</a>
+      
+      <a href="patches/PR-31-speculative-overrides.html" class="">PR #31</a>
+      
+      <a href="patches/PR-32-hy3-rocmfp2-cache.html" class="">PR #32</a>
+      
+      <div class="nav-heading">Data</div>
+      <a href="data/file-map.csv">File map CSV</a>
+      <a href="data/commit-map.csv">Commit map CSV</a>
+      <a href="data/capability-matrix.csv">Capability matrix CSV</a>
+      <a href="data/dependency-table.csv">Dependency table CSV</a>
+      <a href="data/source-ledger.csv">Source ledger CSV</a>
+    </nav>
+    <div class="sidebar-meta">
+      Fork <code>a5605a72</code><br>
+      Upstream <code>86d86ed4</code><br>
+      Snapshot 2026-07-17
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div><button id="mobile-toggle" class="mobile-toggle" aria-label="Toggle navigation">☰</button> <span class="crumb">Wiki / Source ledger</span></div>
+      <div class="snapshot">
+        <span class="pill">100 commits</span>
+        <span class="pill">276 paths</span>
+        <span class="pill">primary-source cited</span>
+      </div>
+    </header>
+    <div class="content">
+      <article><h1 id="source-ledger">Source ledger</h1>
+<blockquote>
+<p><strong>Audit snapshot:</strong> fork <code>a5605a72768c6562241b248e268e33dc92787394</code>; upstream <code>86d86ed4396b4130922f7b9af26e3d9fc11a591b</code>; inventory date <code>2026-07-17</code>.<br />
+<strong>Decision vocabulary:</strong> <span class="badge retain">RETAIN</span> = capability/ABI must survive; <span class="badge refresh">REFRESH</span> = preserve capability but re-port onto current upstream; <span class="badge retire">RETIRE</span> = remove the fork patch and use upstream or archive it. <a class="citation" href="https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394">S-FORK-HEAD</a> <a class="citation" href="https://github.com/ggml-org/llama.cpp/tree/86d86ed4396b4130922f7b9af26e3d9fc11a591b">S-UP-HEAD</a></p>
+</blockquote>
+<p>Every factual claim in this wiki links to one or more entries below. Repository code links are pinned to the audited fork or upstream SHA unless the source is a PR/commit page; AMD links are official documentation.</p>
+<table>
+<thead>
+<tr>
+  <th>Source ID</th>
+  <th>Description</th>
+  <th>Evidence type</th>
+  <th>Primary source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>S-AMD-LLAMA</code></td>
+  <td>ROCm llama.cpp compatibility</td>
+  <td>Official AMD documentation</td>
+  <td><a href="https://rocm.docs.amd.com/en/develop/compatibility/ml-compatibility/llama-cpp-compatibility.html">open</a></td>
+</tr>
+<tr>
+  <td><code>S-AMD-ROCWMMA</code></td>
+  <td>rocWMMA supported architectures</td>
+  <td>Official AMD documentation</td>
+  <td><a href="https://rocm.docs.amd.com/projects/rocWMMA/en/develop/api-reference/api-reference-guide.html#supported-gpu-architectures">open</a></td>
+</tr>
+<tr>
+  <td><code>S-AMD-STRIX</code></td>
+  <td>AMD Strix Halo system optimization</td>
+  <td>Official AMD documentation</td>
+  <td><a href="https://rocm.docs.amd.com/en/docs-7.2.0/how-to/system-optimization/strixhalo.html">open</a></td>
+</tr>
+<tr>
+  <td><code>S-BACKEND-TEST</code></td>
+  <td>ROCmFPX backend operation test coverage</td>
+  <td>Primary test code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tests/test-backend-ops.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-BASELINE</code></td>
+  <td>ROCmFP4 upstream-integration baseline note</td>
+  <td>Primary repository documentation</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ROCMFP4-UPSTREAM-INTEGRATION.html">open</a></td>
+</tr>
+<tr>
+  <td><code>S-BUILD-STRIX</code></td>
+  <td>Strix Halo build script</td>
+  <td>Primary build code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/build-strix-rocmfp4-mtp.sh">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-01D</code></td>
+  <td>XCFramework script restoration</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/01d463bb23c3f290688c4529c13b3b467fa2f7dc">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-063</code></td>
+  <td>CI/WebUI isolation</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/0631515b0bca7859387e3467a6f6ac6379622a02">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-0D7</code></td>
+  <td>Portable disk-cache failure probes</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/0d7ac512e5eb511843797c07a16bc7d97d3bc4f8">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-0E5</code></td>
+  <td>Metal GET_ROWS capability correction</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/0e5159daa31132e16a1cc45f724c410b1d236185">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-0FF</code></td>
+  <td>Backend token sampling across slots</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/0ff0b4d03e74d9bc8a092ce2dd177d24cfdea007">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-120</code></td>
+  <td>FP6 endpoint semantics across backends</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/120227d3d34a0d52cfee168964d0a7e3212960a9">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-16E</code></td>
+  <td>Bounded HY3 WebGPU matrix</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/16ed874b3d950a67be0d14311708879a435ad3ca">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-276</code></td>
+  <td>One-slot automatic policy for strict HY3</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/2766f419526ea14ba1be8f31eca21263cfc52813">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-62F</code></td>
+  <td>ROCm/Vulkan ROCmFPX coherency repair</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/62f7508b12c6b8510fd7a77dfc5d9519fa026d82">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-630</code></td>
+  <td>HY3 MTP/NextN model graph</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/630fa5a0f8fc04689b86d1b0a3d75b2b7d546d07">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-756</code></td>
+  <td>UTF-8 disk-cache paths</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/756121a5e8e7da464aebd2ab344a2aefef6cecac">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-7D7</code></td>
+  <td>Strict greedy HY3 MTP verification</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/7d7b06bc5e6fd4a128af8efa954caa7409376a79">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-807</code></td>
+  <td>Backend/parser source-snapshot restoration</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/80732f992f7c75e9154cfe184041f1384c59a0fb">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-848</code></td>
+  <td>ROCmFP2 reference CI probe</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/8488bfc69f716b5aa34bf75d1a72466ac75cc5da">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-8FC</code></td>
+  <td>Chat whitespace upstream backport</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/8fcff76bca27ea2818761adad681cb792eb2fa26">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-A8B</code></td>
+  <td>Q2 ROCmFPX CPU OUT_PROD</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/a8b5fa906ccd13c6a8ca06d55aa287854c376868">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-A8C</code></td>
+  <td>WebUI provisioning upstream backports</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/a8c41d31423e3e0b6f2dc7138af1d4fba8edb295">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-B133</code></td>
+  <td>TurboQuant portability/type-handling repair</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/b1331a2dd4ca774833a26d7682b6ce1f9c022d4a">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-B56</code></td>
+  <td>Per-request speculative overrides</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/b56ad79d77bc1eb9fe6407640eec8b8edfc04900">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-BB7</code></td>
+  <td>Portable cache file synchronization</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/bb7d9cb5965e3be1ce2073134ba14787bf378113">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-C81</code></td>
+  <td>SSD prompt cache for stateful MTP</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/c81c7c92233b6370b4eb7087398779a8dcb234a4">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-CCAC</code></td>
+  <td>ROCmFPX README/MTP results update</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/ccac6e55ec7c0fa8acdcb6e80b1a242e4f7d654e">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-D45</code></td>
+  <td>CPU ROCmFPX OUT_PROD routing</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/d45ceff8d2b67fdebf73ebcb999807b0d322c73b">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-D52</code></td>
+  <td>Server read_file indentation upstream backport</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/d52c96a8339325417624351bebad194c3864cb26">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-DF3</code></td>
+  <td>ROCm 7.2 negative-infinity semantics</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/df3b8a0efa4dbdfcc2e29dac367c69eed310ed24">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-E600</code></td>
+  <td>WebGPU/Hexagon coherent snapshot restoration</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/e6009eb76d55062d22357e6f117a829e861be01b">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-EFF</code></td>
+  <td>Native MTP hardening and effective limits</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/eff9987923b58d1a6b7e54610c667803ac2d0ea7">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-F961</code></td>
+  <td>HY3 MTP conversion/split export</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/f961404519a2ed286b750ba1419d40318a6b9a92">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-FE2</code></td>
+  <td>Jinja CRT base guard upstream backport</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/fe2b7dc5e19a5e24c276593368a1bb41d0e27b1d">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-FF8</code></td>
+  <td>WebUI build repair</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/ff8e7b8cf9dab714951df49d71f5835a7322404a">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-FUND</code></td>
+  <td>Funding-link commit</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/1b49f4a004b8a2e0183c6cda7a61e7d322ac8d60">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-PR27-M</code></td>
+  <td>PR #27 merge</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/c2845bf86a5c1842d33bd9e990b2bcaf75779251">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-PR28-M</code></td>
+  <td>PR #28 merge</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/6bf20cd688ba0af882d1f68ba50b292edf646ab4">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-PR31-M</code></td>
+  <td>PR #31 merge</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/25c71fc6e12d73bb3804127e032d29fb8976ae40">open</a></td>
+</tr>
+<tr>
+  <td><code>S-C-PR32-M</code></td>
+  <td>PR #32 merge/current head</td>
+  <td>Primary commit</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/commit/a5605a72768c6562241b248e268e33dc92787394">open</a></td>
+</tr>
+<tr>
+  <td><code>S-CMAKE-PRESETS</code></td>
+  <td>Strix ROCmFPX CMake preset</td>
+  <td>Primary build code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/CMakePresets.json">open</a></td>
+</tr>
+<tr>
+  <td><code>S-COMPARE</code></td>
+  <td>Exact 100-commit post-baseline compare</td>
+  <td>Primary commit graph</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/compare/5b3956605309dd3e6beed49c8f3a41423ba71d25...a5605a72768c6562241b248e268e33dc92787394">open</a></td>
+</tr>
+<tr>
+  <td><code>S-CONTEXT-FORK</code></td>
+  <td>Fork context/graph execution integration</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/llama-context.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-CONVERTER-FORK</code></td>
+  <td>Fork HF-to-GGUF converter</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/convert_hf_to_gguf.py">open</a></td>
+</tr>
+<tr>
+  <td><code>S-CONVERTER-UP</code></td>
+  <td>Current upstream HF-to-GGUF converter</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/convert_hf_to_gguf.py">open</a></td>
+</tr>
+<tr>
+  <td><code>S-CPU-OPS</code></td>
+  <td>CPU operation dispatch</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cpu/ops.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-CPU-REG</code></td>
+  <td>CPU type-trait registration</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cpu/ggml-cpu.c">open</a></td>
+</tr>
+<tr>
+  <td><code>S-CUDA-DISPATCH</code></td>
+  <td>Shared CUDA/HIP backend dispatch</td>
+  <td>Primary backend code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/ggml-cuda.cu">open</a></td>
+</tr>
+<tr>
+  <td><code>S-DEQUANT</code></td>
+  <td>ROCmFPX device dequantization</td>
+  <td>Primary kernel code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/dequantize.cuh">open</a></td>
+</tr>
+<tr>
+  <td><code>S-EXT-FORK</code></td>
+  <td>Fork private llama extension API</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/llama-ext.h">open</a></td>
+</tr>
+<tr>
+  <td><code>S-EXT-UP</code></td>
+  <td>Current upstream private llama extension API</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/src/llama-ext.h">open</a></td>
+</tr>
+<tr>
+  <td><code>S-FORK-HEAD</code></td>
+  <td>ROCmFPX pinned source tree</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394">open</a></td>
+</tr>
+<tr>
+  <td><code>S-GGML-QUANTS</code></td>
+  <td>Quant traits and conversion integration</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-quants.c">open</a></td>
+</tr>
+<tr>
+  <td><code>S-GGUF-CONSTANTS</code></td>
+  <td>GGUF Python type constants</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/gguf-py/gguf/constants.py">open</a></td>
+</tr>
+<tr>
+  <td><code>S-GRAPH-FORK</code></td>
+  <td>Fork graph plumbing</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/llama-graph.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-HIP-CODEBOOK</code></td>
+  <td>ROCmFPX HIP codebook helpers</td>
+  <td>Primary kernel code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfpx_hip_codebook.cuh">open</a></td>
+</tr>
+<tr>
+  <td><code>S-HIP-QUALITY</code></td>
+  <td>HIP kernel quality workflow</td>
+  <td>Primary CI code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/.github/workflows/hip-quality-check.yml">open</a></td>
+</tr>
+<tr>
+  <td><code>S-HYV3-FORK</code></td>
+  <td>Fork HY3 model and MTP graph</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/models/hyv3.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-HYV3-UP</code></td>
+  <td>Current upstream HY3 model</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/src/models/hy-v3.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-MMQ</code></td>
+  <td>ROCmFPX MMQ/GEMM integration</td>
+  <td>Primary kernel code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmq.cu">open</a></td>
+</tr>
+<tr>
+  <td><code>S-MMQ-H</code></td>
+  <td>ROCmFPX MMQ tile loaders</td>
+  <td>Primary kernel code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmq.cuh">open</a></td>
+</tr>
+<tr>
+  <td><code>S-MMVQ</code></td>
+  <td>ROCmFPX MMVQ/GEMV dispatch and Strix tuning</td>
+  <td>Primary kernel code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/mmvq.cu">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR27</code></td>
+  <td>PR #27 — promote validated experimental branch</td>
+  <td>Primary patch series</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/27">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR27-COMMITS</code></td>
+  <td>PR #27 commit list</td>
+  <td>Primary commit list</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/27/commits">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR27-FILES</code></td>
+  <td>PR #27 file diff</td>
+  <td>Primary patch map</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/27/files">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR28</code></td>
+  <td>PR #28 — funding link</td>
+  <td>Primary patch series</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/28">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR29</code></td>
+  <td>Draft PR #29 — SSD prompt cache</td>
+  <td>Primary patch series</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/29">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR30</code></td>
+  <td>Draft PR #30 — HY3 IFP2/adaptive MoE/cache</td>
+  <td>Primary patch series</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/30">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR31</code></td>
+  <td>PR #31 — per-request speculative overrides</td>
+  <td>Primary patch series</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/31">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR31-FILES</code></td>
+  <td>PR #31 file diff</td>
+  <td>Primary patch map</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/31/files">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR32</code></td>
+  <td>PR #32 — HY3 MTP, ROCmFP2, server fixes</td>
+  <td>Primary patch series</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/32">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR32-COMMITS</code></td>
+  <td>PR #32 commit list</td>
+  <td>Primary commit list</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/32/commits">open</a></td>
+</tr>
+<tr>
+  <td><code>S-PR32-FILES</code></td>
+  <td>PR #32 file diff</td>
+  <td>Primary patch map</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/pull/32/files">open</a></td>
+</tr>
+<tr>
+  <td><code>S-QT-ENUM-FORK</code></td>
+  <td>ROCmFPX ggml type enumeration</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/include/ggml.h">open</a></td>
+</tr>
+<tr>
+  <td><code>S-QT-ENUM-UP</code></td>
+  <td>Current upstream ggml type enumeration</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/ggml/include/ggml.h">open</a></td>
+</tr>
+<tr>
+  <td><code>S-QUANT-TOOL</code></td>
+  <td>llama-quantize CLI integration</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tools/quantize/quantize.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-QUANTIZER</code></td>
+  <td>Model quantizer integration</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/src/llama-quant.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-README-FORK</code></td>
+  <td>ROCmFPX project README</td>
+  <td>Primary repository documentation</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/README.html">open</a></td>
+</tr>
+<tr>
+  <td><code>S-RECIPES</code></td>
+  <td>ROCmFPX quantization recipes</td>
+  <td>Primary repository documentation</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/docs/recipes/README.html">open</a></td>
+</tr>
+<tr>
+  <td><code>S-ROCMFP2-C</code></td>
+  <td>ROCmFP2 Phase-1 reference algorithms</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfp2_reference.c">open</a></td>
+</tr>
+<tr>
+  <td><code>S-ROCMFP2-H</code></td>
+  <td>ROCmFP2 Phase-1 frozen format/reference API</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfp2_reference.h">open</a></td>
+</tr>
+<tr>
+  <td><code>S-ROCMFP2-TEST</code></td>
+  <td>ROCmFP2 deterministic reference test</td>
+  <td>Primary test code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/test_rocmfp2_reference.c">open</a></td>
+</tr>
+<tr>
+  <td><code>S-ROCMFP4-C</code></td>
+  <td>ROCmFP4 CPU reference implementation</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfp4/rocmfp4.c">open</a></td>
+</tr>
+<tr>
+  <td><code>S-ROCMFP4-H</code></td>
+  <td>ROCmFP4 on-disk block definitions</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfp4/rocmfp4.h">open</a></td>
+</tr>
+<tr>
+  <td><code>S-ROCMFPX-C</code></td>
+  <td>ROCmFPX CPU reference implementation</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfpx.c">open</a></td>
+</tr>
+<tr>
+  <td><code>S-ROCMFPX-CI</code></td>
+  <td>ROCmFPX validation workflow</td>
+  <td>Primary CI code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/.github/workflows/check-rocmfpx.yml">open</a></td>
+</tr>
+<tr>
+  <td><code>S-ROCMFPX-H</code></td>
+  <td>ROCmFPX block definitions</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfpx.h">open</a></td>
+</tr>
+<tr>
+  <td><code>S-ROCMFPX-README</code></td>
+  <td>ROCmFPX format/backend notes</td>
+  <td>Primary repository documentation</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/README.html">open</a></td>
+</tr>
+<tr>
+  <td><code>S-RPC-FORK</code></td>
+  <td>Fork RPC implementation</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-rpc/ggml-rpc.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-RPC-IGPU-FIX</code></td>
+  <td>Upstream RPC+iGPU/Strix Halo device-selection fix</td>
+  <td>Primary upstream commit</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/commit/1738129bee5c81b06fa1850daf3f958813c76f5f">open</a></td>
+</tr>
+<tr>
+  <td><code>S-RPC-LIGHTNING</code></td>
+  <td>Upstream Lightning Indexer and RPC version bump</td>
+  <td>Primary upstream commit</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/commit/00f5442cc4e805293280c8f85d21d8f9d4aad206">open</a></td>
+</tr>
+<tr>
+  <td><code>S-RPC-MTP-FIX</code></td>
+  <td>Upstream RPC multi-context graph UID fix</td>
+  <td>Primary upstream commit</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/commit/c3e9ade6dd3ff2a1ceafd2d59062634715b472c4">open</a></td>
+</tr>
+<tr>
+  <td><code>S-RPC-UP</code></td>
+  <td>Current upstream RPC implementation</td>
+  <td>Primary upstream code</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/ggml/src/ggml-rpc/ggml-rpc.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-SERVER-ARGS</code></td>
+  <td>Fork server arguments</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/common/arg.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-SERVER-CTX</code></td>
+  <td>Fork server context/cache/MTP integration</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tools/server/server-context.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-SERVER-DOC</code></td>
+  <td>Fork serving documentation</td>
+  <td>Primary repository documentation</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/docs/ROCmFPX-SERVING.html">open</a></td>
+</tr>
+<tr>
+  <td><code>S-SERVER-SCHEMA-UP</code></td>
+  <td>Current upstream server schema</td>
+  <td>Primary upstream code</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/tools/server/server-schema.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-SERVER-TASK</code></td>
+  <td>Fork request parsing/task behavior</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tools/server/server-task.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-SERVER-TEST</code></td>
+  <td>Fork disk-cache server tests</td>
+  <td>Primary test code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/tools/server/tests/unit/test_prompt_cache_disk.py">open</a></td>
+</tr>
+<tr>
+  <td><code>S-SPEC-FORK</code></td>
+  <td>Fork speculative decoding implementation</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/common/speculative.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-SPEC-UP</code></td>
+  <td>Current upstream speculative decoding implementation</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/blob/86d86ed4396b4130922f7b9af26e3d9fc11a591b/common/speculative.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-SWEEP-BACKEND</code></td>
+  <td>ROCmFPX backend sweep</td>
+  <td>Primary validation code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/sweep-rocmfpx-backend-ops.sh">open</a></td>
+</tr>
+<tr>
+  <td><code>S-TUNE-FLAGS</code></td>
+  <td>ROCmFPX decode tuning flags</td>
+  <td>Primary build/tuning code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/scripts/rocmfp4-decode-tune-flags.sh">open</a></td>
+</tr>
+<tr>
+  <td><code>S-UP-HEAD</code></td>
+  <td>llama.cpp pinned upstream tree</td>
+  <td>Primary code</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/tree/86d86ed4396b4130922f7b9af26e3d9fc11a591b">open</a></td>
+</tr>
+<tr>
+  <td><code>S-UP-HY3-MERGE</code></td>
+  <td>Upstream HY3 merge commit</td>
+  <td>Primary upstream commit</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/commit/2969d6d15d67a08e7b83f26164b15350c79c5248">open</a></td>
+</tr>
+<tr>
+  <td><code>S-UP-PR25395</code></td>
+  <td>Upstream PR #25395 — HY3 with MTP</td>
+  <td>Primary upstream patch series</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/pull/25395">open</a></td>
+</tr>
+<tr>
+  <td><code>S-UP-SPLIT-MTP</code></td>
+  <td>Upstream split MTP export</td>
+  <td>Primary upstream commit</td>
+  <td><a href="https://github.com/ggml-org/llama.cpp/commit/cb489bc0fb789c2cb7a9cc9dc44fa71893fe0988">open</a></td>
+</tr>
+<tr>
+  <td><code>S-VECDOT</code></td>
+  <td>ROCmFPX quantized dot products</td>
+  <td>Primary kernel code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-cuda/vecdotq.cuh">open</a></td>
+</tr>
+<tr>
+  <td><code>S-VULKAN</code></td>
+  <td>ROCmFPX Vulkan backend integration</td>
+  <td>Primary backend code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/ggml-vulkan.cpp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-VULKAN-FP6</code></td>
+  <td>ROCmFPX FP6 Vulkan dequant shader</td>
+  <td>Primary shader code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/vulkan-shaders/dequant_rocmfpx_fp6.comp">open</a></td>
+</tr>
+<tr>
+  <td><code>S-VULKAN-TYPES</code></td>
+  <td>ROCmFPX Vulkan shader types</td>
+  <td>Primary shader code</td>
+  <td><a href="https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/src/ggml-vulkan/vulkan-shaders/types.glsl">open</a></td>
+</tr>
+</tbody>
+</table>
+</article>
+      <div class="page-footer">ROCmFPX technical inventory · pinned source audit · retain / refresh / retire assessment</div>
+    </div>
+  </main>
+</div>
+<script src="assets/search-index.js"></script>
+<script src="assets/wiki.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+{
+  "archive_format": {
+    "source_date_epoch": 0,
+    "tar_gzip": "Python stdlib tarfile + gzip, level 9",
+    "zip": "Python stdlib zipfile, DEFLATE level 9"
+  },
+  "artifact_build": {
+    "external_executables_required": [],
+    "internal_modules": [
+      "json_schema_subset",
+      "sse",
+      "tokenizer_reference",
+      "verify_gguf"
+    ],
+    "language": "Python",
+    "minimum_version": "3.11",
+    "standard_library_modules": [
+      "argparse",
+      "codecs",
+      "csv",
+      "dataclasses",
+      "gzip",
+      "hashlib",
+      "io",
+      "json",
+      "math",
+      "os",
+      "pathlib",
+      "platform",
+      "re",
+      "shutil",
+      "stat",
+      "struct",
+      "subprocess",
+      "sys",
+      "tarfile",
+      "tempfile",
+      "typing",
+      "urllib",
+      "zipfile"
+    ],
+    "third_party_packages": []
+  },
+  "candidate_builds": {
+    "claim_labels": [
+      "UNEXECUTED-EVIDENCE",
+      "QUALIFICATION-REQUIRED"
+    ],
+    "rule": "Resolve and lock compiler, accelerator SDK, build system, Python packages, and service dependencies independently for each exact local candidate checkout.",
+    "status": "not-resolved-in-evidence-package"
+  },
+  "prepared_with": {
+    "implementation": "CPython",
+    "platform": "Linux x86_64",
+    "version": "3.13.5"
+  },
+  "schema_version": 1
+}

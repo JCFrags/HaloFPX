@@ -1,0 +1,5 @@
+series,purpose,base,head,merge,authored_commits,merge_nodes,range_nodes,changed_files,decision,source
+PR #27,Promote the validated experimental ROCmFPX branch,5b3956605309dd3e6beed49c8f3a41423ba71d25,ccac6e55ec7c0fa8acdcb6e80b1a242e4f7d654e,c2845bf86a5c1842d33bd9e990b2bcaf75779251,53,1,54,237,MIXED,S-PR27
+PR #28,Add funding metadata,c2845bf86a5c1842d33bd9e990b2bcaf75779251,1b49f4a004b8a2e0183c6cda7a61e7d322ac8d60,6bf20cd688ba0af882d1f68ba50b292edf646ab4,1,1,2,1,RETIRE,S-PR28
+PR #31,Honor per-request speculative limits,6bf20cd688ba0af882d1f68ba50b292edf646ab4,b56ad79d77bc1eb9fe6407640eec8b8edfc04900,25c71fc6e12d73bb3804127e032d29fb8976ae40,1,1,2,2,RETAIN,S-PR31
+PR #32,"Integrate HY3 MTP, ROCmFP2, and cross-platform server fixes",25c71fc6e12d73bb3804127e032d29fb8976ae40,a8b5fa906ccd13c6a8ca06d55aa287854c376868,a5605a72768c6562241b248e268e33dc92787394,41,1,42,73,MIXED,S-PR32

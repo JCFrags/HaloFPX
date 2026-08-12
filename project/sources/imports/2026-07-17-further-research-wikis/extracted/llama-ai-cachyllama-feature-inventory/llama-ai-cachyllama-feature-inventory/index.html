@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Commit-pinned llama-ai and CachyLlama capability inventory with ROCmFPX portability decisions.">
+  <title>LLM Wiki — llama-ai × CachyLlama inventory</title>
+  <link rel="stylesheet" href="assets/wiki.css">
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand"><span class="logo">λ</span><span>LLM Wiki / llama-ai × CachyLlama</span></div>
+    <div class="commit mono">generated 2026-07-17</div>
+  </div>
+</header>
+<div class="layout">
+<nav>
+  <h3>Start</h3>
+  <a href="Home.md">Home</a>
+  <a href="00-Scope-and-Pins.md">Scope & pins</a>
+  <a href="01-Executive-Inventory.md">Executive inventory</a>
+  <a href="02-Architecture.md">Architecture</a>
+  <h3>Feature areas</h3>
+  <a href="03-Persistent-SSD-KV-Cache.md">Persistent SSD KV</a>
+  <a href="04-System-Prompt-Cache.md">System prompts</a>
+  <a href="05-Prefix-Matching-and-Session-Continuation.md">Prefix & continuation</a>
+  <a href="06-Checkpoint-Restore-and-Hybrid-State.md">Checkpoint restore</a>
+  <a href="07-Slot-Affinity-and-User-Isolation.md">Slot & isolation</a>
+  <a href="08-Cache-Administration.md">Cache administration</a>
+  <a href="09-Model-Lifecycle.md">Model lifecycle</a>
+  <a href="10-Server-APIs.md">Server APIs</a>
+  <a href="11-Observability.md">Observability</a>
+  <a href="12-Deployment.md">Deployment</a>
+  <a href="13-Strix-Halo-Optimizations.md">Strix Halo</a>
+  <h3>Porting</h3>
+  <a href="14-ROCmFPX-Target-Baseline.md">ROCmFPX baseline</a>
+  <a href="15-Retain-Redesign-Reject.md">Decision matrix</a>
+  <a href="22-ROCmFPX-Porting-Plan.md">Porting plan</a>
+  <h3>Reference</h3>
+  <a href="16-Dependencies-and-Licenses.md">Dependencies & licenses</a>
+  <a href="17-Maturity-and-Risk-Register.md">Risk register</a>
+  <a href="18-API-Examples.md">API examples</a>
+  <a href="19-Configuration-Schemas.md">Configuration schemas</a>
+  <a href="20-Evidence-Index.md">Evidence index</a>
+  <a href="21-Contradiction-Register.md">Contradictions</a>
+  <h3>Machine-readable</h3>
+  <a href="data/feature-inventory.csv">Feature CSV</a>
+  <a href="data/feature-inventory.json">Feature JSON</a>
+  <a href="data/retain-redesign-reject.csv">Decision CSV</a>
+  <a href="data/evidence.json">Evidence JSON</a>
+</nav>
+<main>
+  <section class="hero">
+    <div class="eyebrow">Commit-pinned source inventory</div>
+    <h1>Persistent inference state, server surfaces, and Strix Halo portability.</h1>
+    <p class="lede">A feature-by-feature assessment of <code>fewtarius/llama-ai</code> and its pinned <code>fewtarius/CachyLLama</code> component, compared with the existing <code>charlie12345/ROCmFPX</code> baseline. Every behavior below resolves to exact source evidence; every porting recommendation is labeled retain, redesign, or reject.</p>
+    <div class="pin-grid">
+      <div class="card"><small>llama-ai</small><strong class="mono" style="font-size:1rem">1017f3d</strong><div class="pin">1017f3dfdce3ca2b06aa9007b23295db3bb35722</div></div>
+      <div class="card"><small>CachyLlama pin</small><strong class="mono" style="font-size:1rem">6be7459</strong><div class="pin">6be745998f568e379ea197fcf827baec73ff9940</div></div>
+      <div class="card"><small>ROCmFPX target</small><strong class="mono" style="font-size:1rem">a5605a7</strong><div class="pin">a5605a72768c6562241b248e268e33dc92787394</div></div>
+      <div class="card"><small>Assessment mode</small><strong style="font-size:1rem">Static source</strong><div class="pin">No build or hardware execution</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Decision distribution</h2>
+    <div class="cards">
+      <div class="card"><small>Features</small><strong>120</strong><span>decisioned rows</span></div>
+      <div class="card"><small>Evidence records</small><strong>118</strong><span>exact commit + path</span></div>
+      <div class="card"><small>Source paths</small><strong>54</strong><span>deduplicated</span></div>
+      <div class="card"><small>Custom M4 features</small><strong>0</strong><span>no stable-release designation</span></div>
+    </div>
+    <div class="bar-grid">
+      <div class="bar retain"><strong>RETAIN · 68</strong><div class="bar-track"><div id="bar-retain" class="bar-fill"></div></div></div>
+      <div class="bar redesign"><strong>REDESIGN · 39</strong><div class="bar-track"><div id="bar-redesign" class="bar-fill"></div></div></div>
+      <div class="bar reject"><strong>REJECT · 13</strong><div class="bar-track"><div id="bar-reject" class="bar-fill"></div></div></div>
+    </div>
+    <p class="note">Key architectural conclusion: ROCmFPX already has the safer atomic, owner-only, run-scoped disk cache. Add persistence as a mode on that engine; do not replace it with CachyLlama's direct-final-name persistence path.</p>
+  </section>
+
+  <section>
+    <h2>Feature inventory</h2>
+    <div class="controls">
+      <input id="search" type="search" placeholder="Search behavior, path, risk, dependency…">
+      <select id="category"><option value="">All categories</option></select>
+      <select id="decision"><option value="">All decisions</option><option>RETAIN</option><option>REDESIGN</option><option>REJECT</option></select>
+      <select id="maturity"><option value="">All maturity</option><option>M0</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option></select>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:.5rem 0;color:var(--muted);font-size:.82rem">
+      <span id="visibleCount"></span>
+      <button id="clear" style="background:transparent;color:var(--accent-2);border:0;cursor:pointer">Clear filters</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Category</th><th>Feature / observed behavior</th><th>Decision</th><th>Maturity</th><th>Portability</th><th>Evidence</th></tr></thead>
+        <tbody id="featureRows"></tbody>
+      </table>
+    </div>
+    <article id="detail" class="detail" aria-live="polite"></article>
+  </section>
+  <footer>
+    Exact pins and methodology are in <a href="00-Scope-and-Pins.md">Scope & pins</a>. License handling is in <a href="16-Dependencies-and-Licenses.md">Dependencies & licenses</a>. This inventory is engineering analysis, not legal advice.
+  </footer>
+</main>
+</div>
+<script src="assets/features.js"></script>
+<script src="assets/wiki.js"></script>
+</body>
+</html>

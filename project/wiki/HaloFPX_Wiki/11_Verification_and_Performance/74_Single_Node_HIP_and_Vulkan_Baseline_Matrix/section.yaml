@@ -1,0 +1,52 @@
+section_id: "74"
+title: "Single-Node HIP and Vulkan Baseline Matrix"
+category_id: "11"
+category_title: "Verification and Performance"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 9
+open_question_count: 14
+required_machine_experiments:
+  - id: "EXP74-01"
+    title: "Paired inventory, artifact hash, and HIP/Vulkan preflight"
+    machines: ["nimo-1", "nimo-2"]
+    status: "not-run"
+  - id: "EXP74-02"
+    title: "HIP and Vulkan engine prompt/decode anchor matrix"
+    machines: ["nimo-1", "nimo-2"]
+    status: "not-run"
+  - id: "EXP74-03"
+    title: "End-to-end TTFT and inter-token latency distributions"
+    machines: ["nimo-1", "nimo-2"]
+    status: "not-run"
+  - id: "EXP74-04"
+    title: "Context, batch, quant, K/V, and FlashAttention sweeps"
+    machines: ["nimo-1", "nimo-2"]
+    status: "not-run"
+  - id: "EXP74-05"
+    title: "Compatible native MTP off/on and draft-depth sweep"
+    machines: ["nimo-1", "nimo-2"]
+    status: "blocked-pending-compatible-artifact"
+  - id: "EXP74-06"
+    title: "Sustained power, thermal, clock, memory, and energy comparison"
+    machines: ["nimo-1", "nimo-2"]
+    status: "not-run"
+  - id: "EXP74-07"
+    title: "Perplexity, deterministic output, and workload quality gates"
+    machines: ["nimo-1", "nimo-2"]
+    status: "not-run"
+related_sections: ["18", "22", "23", "29", "30", "31", "33", "36", "73", "76", "78", "79", "81"]
+applicability:
+  repositories:
+    - name: "charlie12345/ROCmFPX"
+      commit: "a5605a72768c6562241b248e268e33dc92787394"
+    - name: "ggml-org/llama.cpp"
+      commit: "788e07dc91d266ad3162a1ce9037665656269689"
+  software_versions:
+    - "Live ROCm, Mesa/RADV, kernel, firmware, and tools must be captured per run"
+  hardware_revisions:
+    - "nimo-1/nimo-2 historical premise; fresh inventory required"
+claim_state:
+  measured_results: 0
+  matrix_cells_status: "NOT_RUN"
+  promotion_blocker: "Section 73 controls remain unvalidated and no Section 74 machine evidence exists"

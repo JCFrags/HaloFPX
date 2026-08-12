@@ -1,0 +1,38 @@
+{
+  "schema": "llm-wiki-hf-artifact-manifest-v1",
+  "as_of": "2026-07-17",
+  "candidate_id": "mimo-v2-flash",
+  "model": "MiMo-V2-Flash",
+  "selected_quant": "Q5_K_M",
+  "publisher_display_size_gb_decimal": 219.2,
+  "conservative_weight_plan_gib": 206,
+  "huggingface": {
+    "upstream_repo": "XiaomiMiMo/MiMo-V2-Flash",
+    "quant_repo": "bartowski/XiaomiMiMo_MiMo-V2-Flash-GGUF",
+    "revision": "6b8a0ba",
+    "path": "XiaomiMiMo_MiMo-V2-Flash-Q5_K_M",
+    "shard_count": 6,
+    "displayed_shard_gb": [
+      38.9,
+      39.8,
+      39.9,
+      39.6,
+      38.9,
+      22.1
+    ],
+    "known_lfs": [
+      {
+        "file": "XiaomiMiMo_MiMo-V2-Flash-Q5_K_M-00002-of-00006.gguf",
+        "sha256": "1014b460405b8f1db647ce974ebc5ea7c5466ecfd2a486b40eb3c8a749abd8e2",
+        "bytes": 39809416864
+      }
+    ]
+  },
+  "source_urls": [
+    "https://huggingface.co/XiaomiMiMo/MiMo-V2-Flash",
+    "https://huggingface.co/bartowski/XiaomiMiMo_MiMo-V2-Flash-GGUF/tree/6b8a0ba/XiaomiMiMo_MiMo-V2-Flash-Q5_K_M",
+    "https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/mimo2.cpp"
+  ],
+  "integrity_status": "known-LFS-pointers-partial",
+  "notes": "No model weight bytes are redistributed in this package. Display sizes are publisher UI values; exact downloaded files must be verified locally."
+}

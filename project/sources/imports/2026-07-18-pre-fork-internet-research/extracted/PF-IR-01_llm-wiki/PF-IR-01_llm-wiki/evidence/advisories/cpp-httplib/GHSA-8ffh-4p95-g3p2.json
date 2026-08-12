@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-8ffh-4p95-g3p2",
+  "title": "TLS IP-literal chain-verification bypass on MbedTLS/wolfSSL",
+  "severity": "High",
+  "affected_versions": ">=0.31.0,<0.47.0",
+  "patched_versions": "0.47.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-8ffh-4p95-g3p2",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "TLS client host/IP verification",
+    "precondition": "Client built with MbedTLS or wolfSSL; IP-literal HTTPS target"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "c6f481da281679cc2fa4368c0bcd64c6dd0dea7b897d0b712bb0d9737ec2509d"
+}

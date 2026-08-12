@@ -1,0 +1,89 @@
+{
+  "header": {
+    "end": 24,
+    "start": 0
+  },
+  "metadata": {
+    "general.alignment": {
+      "end": 342,
+      "length": 33,
+      "start": 309
+    },
+    "general.architecture": {
+      "end": 112,
+      "length": 51,
+      "start": 61
+    },
+    "general.description": {
+      "end": 309,
+      "length": 100,
+      "start": 209
+    },
+    "general.file_type": {
+      "end": 375,
+      "length": 33,
+      "start": 342
+    },
+    "general.license": {
+      "end": 417,
+      "length": 42,
+      "start": 375
+    },
+    "general.name": {
+      "end": 169,
+      "length": 57,
+      "start": 112
+    },
+    "general.source.repo_url": {
+      "end": 487,
+      "length": 70,
+      "start": 417
+    },
+    "general.type": {
+      "end": 61,
+      "length": 37,
+      "start": 24
+    },
+    "general.version": {
+      "end": 209,
+      "length": 40,
+      "start": 169
+    },
+    "pfir10.deterministic": {
+      "end": 579,
+      "length": 33,
+      "start": 546
+    },
+    "pfir10.qualification_required": {
+      "end": 658,
+      "length": 42,
+      "start": 616
+    },
+    "pfir10.recipe": {
+      "end": 546,
+      "length": 59,
+      "start": 487
+    },
+    "pfir10.source_type_id": {
+      "end": 616,
+      "length": 37,
+      "start": 579
+    }
+  },
+  "tensor_data": {
+    "turbo4.probe": {
+      "end": 722,
+      "length": 18,
+      "start": 704
+    }
+  },
+  "tensor_data_start": 704,
+  "tensor_info": {
+    "turbo4.probe": {
+      "end": 702,
+      "offset_field_start": 694,
+      "relative_offset": 0,
+      "start": 658
+    }
+  }
+}

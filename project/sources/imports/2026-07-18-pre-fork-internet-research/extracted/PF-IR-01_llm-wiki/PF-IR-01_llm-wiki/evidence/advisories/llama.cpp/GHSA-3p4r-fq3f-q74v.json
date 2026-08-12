@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-3p4r-fq3f-q74v",
+  "cve": "",
+  "title": "GGUF mem_size integer-overflow validation bypass",
+  "severity": "High",
+  "published": "2026-03-12",
+  "affected_versions_as_displayed_or_normalized": "<= b8145",
+  "patched_versions_as_displayed_or_normalized": ">= b8146",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-3p4r-fq3f-q74v",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "gguf_init_from_file_impl; cumulative object/tensor/string/array size arithmetic",
+    "preconditions_summary": "Attacker-controlled GGUF reaches a path using allocation/parsing; highest relevance to quantize, imatrix, control-vector and GGUF tools using no_alloc=false."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "60a35781cf15dbad849b7fc1f03a62687735c0d9878a177a0e3a4397af6deccf"
+}

@@ -1,0 +1,31 @@
+schema_version: 1
+policy:
+  missing_evidence_state: INSUFFICIENT_EVIDENCE
+  documentation_only_state: DESIGN_COMPLETE
+  synthetic_data_may_satisfy_machine_gate: false
+  minimum_stable_level: R1
+levels:
+- id: D0
+  name: Design only
+  origin: document
+  description: Methods, schemas, cards, and gates exist; no machine run.
+- id: S0
+  name: Synthetic tool check
+  origin: synthetic
+  description: Parsers and evaluators exercised with invented data; never performance evidence.
+- id: M1
+  name: Single-node measured
+  origin: machine
+  description: Matched Node A and Node B controls measured with complete provenance.
+- id: M2
+  name: Dual-node measured
+  origin: machine
+  description: Dual-node measurements plus matched M1 controls.
+- id: R1
+  name: Independent reproduction
+  origin: machine
+  description: Key M1/M2 blocks reproduced in a separate run block/day.
+- id: STABLE
+  name: Accepted stable release
+  origin: decision
+  description: Named profile passed G4 with signed evidence packet.

@@ -1,0 +1,30 @@
+[
+  {
+    "kind": "begin",
+    "epoch": 0
+  },
+  {
+    "kind": "durable",
+    "rank": 0
+  },
+  {
+    "kind": "durable",
+    "rank": 1
+  },
+  {
+    "kind": "prepare",
+    "rank": 0,
+    "epoch": 0
+  },
+  {
+    "kind": "prepare",
+    "rank": 1,
+    "epoch": 0
+  },
+  {
+    "kind": "commit"
+  },
+  {
+    "kind": "read"
+  }
+]

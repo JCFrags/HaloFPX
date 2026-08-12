@@ -1,0 +1,33 @@
+site_name: llama-ai × CachyLlama Feature Inventory
+site_description: Commit-pinned capability inventory and ROCmFPX portability assessment
+docs_dir: .
+site_dir: site
+use_directory_urls: false
+nav:
+  - Home: Home.md
+  - Scope and pins: 00-Scope-and-Pins.md
+  - Executive inventory: 01-Executive-Inventory.md
+  - Architecture: 02-Architecture.md
+  - Features:
+      - Persistent SSD KV: 03-Persistent-SSD-KV-Cache.md
+      - System prompts: 04-System-Prompt-Cache.md
+      - Prefix and continuation: 05-Prefix-Matching-and-Session-Continuation.md
+      - Checkpoint restore: 06-Checkpoint-Restore-and-Hybrid-State.md
+      - Slot and isolation: 07-Slot-Affinity-and-User-Isolation.md
+      - Cache administration: 08-Cache-Administration.md
+      - Model lifecycle: 09-Model-Lifecycle.md
+      - Server APIs: 10-Server-APIs.md
+      - Observability: 11-Observability.md
+      - Deployment: 12-Deployment.md
+      - Strix Halo: 13-Strix-Halo-Optimizations.md
+  - ROCmFPX:
+      - Target baseline: 14-ROCmFPX-Target-Baseline.md
+      - Decision matrix: 15-Retain-Redesign-Reject.md
+      - Porting plan: 22-ROCmFPX-Porting-Plan.md
+  - Reference:
+      - Dependencies and licenses: 16-Dependencies-and-Licenses.md
+      - Maturity and risk: 17-Maturity-and-Risk-Register.md
+      - API examples: 18-API-Examples.md
+      - Configuration schemas: 19-Configuration-Schemas.md
+      - Evidence index: 20-Evidence-Index.md
+      - Contradictions: 21-Contradiction-Register.md

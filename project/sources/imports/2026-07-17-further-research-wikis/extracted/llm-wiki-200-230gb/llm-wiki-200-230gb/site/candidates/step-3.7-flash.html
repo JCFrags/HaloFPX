@@ -1,0 +1,142 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Step-3.7-Flash · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Step-3.7-Flash</h1>
+<p><strong>Rank:</strong> 2 · <strong>Score:</strong> 90/100 · <strong>Disposition:</strong> <code>shortlist</code></p>
+<h2>Selected representation</h2>
+<table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Architecture</td>
+  <td>step35</td>
+</tr>
+<tr>
+  <td>Class</td>
+  <td>MoE + hybrid attention</td>
+</tr>
+<tr>
+  <td>Total parameters</td>
+  <td>198B</td>
+</tr>
+<tr>
+  <td>Activated parameters/token</td>
+  <td>11B</td>
+</tr>
+<tr>
+  <td>Layers</td>
+  <td>45</td>
+</tr>
+<tr>
+  <td>Experts / active</td>
+  <td>288 / 8</td>
+</tr>
+<tr>
+  <td>Native context</td>
+  <td>262,144</td>
+</tr>
+<tr>
+  <td>License</td>
+  <td>Apache-2.0</td>
+</tr>
+<tr>
+  <td>Chosen quant</td>
+  <td>Q8_0</td>
+</tr>
+<tr>
+  <td>Publisher size</td>
+  <td>209.00 decimal GB</td>
+</tr>
+<tr>
+  <td>Conservative weight plan</td>
+  <td>196 GiB</td>
+</tr>
+<tr>
+  <td>Artifact effective bits/parameter</td>
+  <td>8.444</td>
+</tr>
+</tbody>
+</table>
+<h2>Selection rationale</h2>
+<p>Highest-fidelity target-band artifact and only ~11B active parameters; selected Q8 artifact has direct quant evidence.</p>
+<h2>Runtime support</h2>
+<ul>
+<li><strong>llama.cpp:</strong> Yes — step35 implementation, hybrid SWA cache, and MTP paths present.</li>
+<li><strong>ROCmFPX:</strong> Yes — step35 plus a released ROCmFPX Q3 QualityPlus recipe.</li>
+<li><strong>Runtime risk:</strong> Medium: newer architecture and multimodal/MTP paths make revision pinning important.</li>
+</ul>
+<h2>Tokenizer and chat template</h2>
+<ul>
+<li><strong>Tokenizer:</strong> Embedded tokenizer; verify BOS/EOS and multimodal special tokens.</li>
+<li><strong>Template:</strong> Embedded Step Jinja; vision requires the matching mmproj sidecar.</li>
+</ul>
+<h2>KV cache</h2>
+<p><strong>Formula status:</strong> verified-from-config-and-current-iswa-cache-code</p>
+<table>
+<thead>
+<tr>
+  <th>Context tokens</th>
+  <th>Q8_0 exact GiB</th>
+  <th>Q8 planning GiB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>32,768</td>
+  <td>0.865</td>
+  <td>1.00</td>
+</tr>
+<tr>
+  <td>65,536</td>
+  <td>1.662</td>
+  <td>1.75</td>
+</tr>
+<tr>
+  <td>131,072</td>
+  <td>3.256</td>
+  <td>3.50</td>
+</tr>
+<tr>
+  <td>262,144</td>
+  <td>6.443</td>
+  <td>6.50</td>
+</tr>
+</tbody>
+</table>
+<h2>Expert activation and buffers</h2>
+<p>The router activates 8 of 288 routed experts per token plus 1 shared expert(s). All expert weights remain resident.</p>
+<p>Graph/work buffers are not predicted from parameter count. Use the package reserve profiles, then replace them with measured startup logs.</p>
+<h2>Quality evidence</h2>
+<p>Official card supplies broad benchmark evidence; AesSedai reports Q8_0 PPL 1.894568 and KLD 0.005301 for its evaluation setup.</p>
+<p><strong>Selected-quant assessment:</strong> Low for Q8_0; direct quant-specific PPL/KLD evidence is available.</p>
+<h2>Download provenance</h2>
+<ul>
+<li>Upstream: <code>stepfun-ai/Step-3.7-Flash</code></li>
+<li>Quant repo: <code>stepfun-ai/Step-3.7-Flash-GGUF</code></li>
+<li>Revision: <code>713961b</code></li>
+<li>Path: <code>Q8_0</code></li>
+<li>Shard count: <code>5</code></li>
+</ul>
+<p>Known exact LFS pointers:</p>
+<ul>
+<li>No exact shard hash captured in this snapshot; use the revision/path manifest and refresh script.</li>
+</ul>
+<h2>Acceptance gates</h2>
+<ul>
+<li>Refresh and verify every shard hash.</li>
+<li>Load with the pinned runtime and exact embedded Jinja template.</li>
+<li>Run the production quality suite against a higher-bit reference.</li>
+<li>Capture per-device/node weights, KV, graph, and compute buffers.</li>
+<li>Benchmark the intended backend/topology; do not use parameter-count throughput extrapolation.</li>
+</ul>
+<h2>Sources</h2>
+<ul>
+<li><a href="https://huggingface.co/stepfun-ai/Step-3.7-Flash">step_upstream</a></li>
+<li><a href="https://huggingface.co/stepfun-ai/Step-3.7-Flash-GGUF/tree/713961b/Q8_0">step_quant</a></li>
+<li><a href="https://huggingface.co/AesSedai/Step-3.7-Flash-GGUF">step_quant_eval</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/6bdd77f13cf11b264b4231d320afc404f48d576e/src/models/step35.cpp">llama_step35</a></li>
+<li><a href="https://github.com/charlie12345/ROCmFPX/blob/61f2f2d7bc4955e9bca821095ef69125837133b5/docs/recipes/step35-rocmfpx-q3-qualityplus.md">rocmfpx_step_recipe</a></li>
+</ul>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

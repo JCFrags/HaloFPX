@@ -1,0 +1,17 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-qq6v-r583-3h69",
+  "title": "Multipart filename* regex stack overflow",
+  "severity": "High",
+  "affected_versions": "<=0.35.0",
+  "patched_versions": "0.37.0",
+  "source_url": "https://github.com/yhirose/cpp-httplib/security/advisories/GHSA-qq6v-r583-3h69",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbol_or_path": "multipart Content-Disposition filename* parser",
+    "precondition": "Server parses attacker-controlled multipart metadata"
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and PoCs are intentionally not redistributed.",
+  "payload_sha256": "cde49c6f658193684040f6cc3ff1c165e7dd8c856531acee7515ed4b7521c94b"
+}

@@ -1,0 +1,10 @@
+mode,capacity_objective,single_request_latency,aggregate_throughput,hard_gate,default_disposition
+replicated_decode,Only when full model fits each node,No improvement,Strong candidate with independent requests,Full model plus KV/workspace fits each node,GO for concurrency; NO-GO as single-request speedup
+contiguous_layer_split,Strong candidate,Conditional and usually capacity-driven,Conditional,Each layer partition and local KV fits; boundary runtime works,GO for capacity after memory gate
+pipeline_parallel,Same capacity as layer split,NO-GO for one autoregressive stream,Conditional with independent microbatches,Stage service interval below serial stage sum and enough concurrency,CONDITIONAL
+megaton_tensor_parallel,Can solve per-layer capacity,Conditional with strict communication gate,Conditional,Collective runtime plus TP break-even inequality,CONDITIONAL / fail closed
+moe_layer_local_split,Strong candidate,Same as contiguous split,Same as pipeline option,Experts remain with owning layers,GO as preferred MoE capacity split
+moe_expert_service,Can solve expert-capacity imbalance,Conditional,Conditional,Routing trace yields low remote fraction and communication below compute saved,EXPERIMENTAL
+remote_speculation_greedy,Target and draft fit assigned nodes,Conditional potential,Not inherently replica throughput,Measured acceptance and round break-even inequality,CONDITIONAL
+remote_speculation_exact_stochastic,Target and draft fit assigned nodes,Conditional,Not inherently replica throughput,Exact probability protocol volume and correctness validated,EXPERIMENTAL / fail closed
+hybrid,Mode dependent,Mode dependent,Mode dependent,Every component gate plus contention trace,CONDITIONAL

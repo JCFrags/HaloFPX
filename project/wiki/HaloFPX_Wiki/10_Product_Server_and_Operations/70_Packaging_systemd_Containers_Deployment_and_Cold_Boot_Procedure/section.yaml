@@ -1,0 +1,19 @@
+section_id: "70"
+title: "Packaging, systemd, Containers, Deployment, and Cold-Boot Procedure"
+category_id: "10"
+category_title: "Product Server and Operations"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 6
+open_question_count: 8
+required_machine_experiments:
+  - "OPS-70-E1 cold-boot matrix"
+  - "OPS-70-E2 unit hardening and device access"
+  - "OPS-70-E3 container parity"
+  - "OPS-70-E4 uninstall and reinstall preservation"
+  - "OPS-70-E5 activation and rollback phase rehearsal"
+related_sections: ["67", "68", "69", "71", "72"]
+applicability:
+  repositories: ["Custom_Inference_Project", "ROCmFPX", "llama.cpp"]
+  software_versions: ["systemd 8009fa49845cd6fb7b7014ab06218b68fe702006", "ROCm 7.2.3 stable documentation snapshot"]
+  hardware_revisions: ["dual Strix Halo target; exact nodes open"]

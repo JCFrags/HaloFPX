@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "lane_id": "REPLACE",
+  "runner_labels": [],
+  "os": null,
+  "arch": null,
+  "cpu": null,
+  "memory_bytes": null,
+  "backend": null,
+  "device_ids": [],
+  "driver": null,
+  "runtime": null,
+  "firmware": null,
+  "backend_library_sha256": [],
+  "power_clock_policy": null,
+  "network_isolation": null,
+  "notes": "Populate through a reviewed hardware inventory job."
+}

@@ -1,0 +1,18 @@
+PF-IR-05 SOURCE CAPTURE
+source_id: SRC-DSR1-CONVERSION
+authority: third_party_converter
+capture_type: lfs_pointer_extract
+source_title: unsloth/DeepSeek-R1-GGUF Q2_K_XS
+source_url: https://huggingface.co/unsloth/DeepSeek-R1-GGUF/tree/4dab99fdb3fea560e5a402b49c6ef11e025321a8/DeepSeek-R1-Q2_K_XS
+immutable_revision: 4dab99fdb3fea560e5a402b49c6ef11e025321a8
+accessed_at: 2026-07-18
+completeness: COMPLETE_SELECTED_LFS_POINTER_SET
+claim_boundary: This is a normalized evidence extract. It is not a byte-for-byte mirror unless capture_type is exact_small_file.
+
+---
+DeepSeek-R1-Q2_K_XS-00001-of-00005.gguf	49797465088	sha256:df8e381870dd3aa2ea20b698f5484a1493fffe5503cae9dd4dcdd6ac56319e6d
+DeepSeek-R1-Q2_K_XS-00002-of-00005.gguf	49174169600	sha256:87b29033b0988ebfdce71cc0678b4cbb0954c00562be6c71f529001b9ab7244f
+DeepSeek-R1-Q2_K_XS-00003-of-00005.gguf	49174169600	sha256:03dfc0f75f94710ccace9e9ef39cd93f691cc05a33dbc425f0d4237719218a68
+DeepSeek-R1-Q2_K_XS-00004-of-00005.gguf	49174169600	sha256:cb3125f56b745364cb552660fcee089163f99aa8e2d8ebbbff70722b3684e7de
+DeepSeek-R1-Q2_K_XS-00005-of-00005.gguf	23933713056	sha256:84d95c85fb5ae9be44540a0491e80bdf8557665cafbb94d65dd948333b3f3e5f
+Exact total: 221253686944 bytes

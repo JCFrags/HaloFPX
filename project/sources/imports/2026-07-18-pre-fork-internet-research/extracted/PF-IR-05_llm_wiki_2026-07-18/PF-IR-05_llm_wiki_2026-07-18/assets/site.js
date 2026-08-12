@@ -1,0 +1,1 @@
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.filter;document.querySelectorAll('.candidate-card').forEach(c=>c.style.display=(v==='all'||c.dataset.status===v)?'block':'none')}));

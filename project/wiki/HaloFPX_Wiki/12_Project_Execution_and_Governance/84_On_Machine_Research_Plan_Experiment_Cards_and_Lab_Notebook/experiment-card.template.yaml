@@ -1,0 +1,102 @@
+# Copy this file, allocate a valid HLX-EXP-YYYYMMDD-NNN identifier, and replace every null before approval.
+schema_version: "1.0.0"
+experiment_id: "HLX-EXP-YYYYMMDD-NNN"
+card_version: "0.1.0"
+title: "Unresolved experiment title"
+family: "E01"
+status: "draft"
+owner: null
+reviewer: null
+hypothesis: "Unresolved hypothesis"
+falsifier: "Unresolved falsifier"
+setup:
+  description: "Unresolved setup"
+  sut_boundary: "Unresolved SUT boundary"
+  nodes: [null]
+  ranks: [null]
+  links: [null]
+  artifact_root: null
+prerequisites: []
+dependency_gates: []
+safety:
+  class: "read-only"
+  elevation_required: null
+  elevation_reason: null
+  authorization_required: true
+  authorization_record: null
+  hazards: [null]
+  exact_targets: [null]
+  stop_plan: null
+  rollback_plan: null
+  emergency_stop: null
+commands:
+  - id: "unresolved-command-01"
+    description: "Resolve and review before approval."
+    host: null
+    cwd: null
+    argv: null
+    environment: null
+    requires_elevation: null
+    destructive: false
+    authorization_gate: "Card must be approved."
+    expected_outputs: [null]
+environment_snapshot:
+  repositories: [null]
+  software: [null]
+  hardware: [null]
+  model: null
+  tokenizer: null
+  workload: null
+  configuration: null
+  clocks: [null]
+  collectors: [null]
+variables:
+  independent: [null]
+  dependent: [null]
+  controlled: [null]
+controls:
+  baseline: null
+  randomized_order: null
+  random_seed: null
+  warmup: null
+  repetitions: null
+outputs:
+  root: null
+  raw: [null]
+  schemas: [null]
+  integrity_manifest: null
+analysis:
+  plan: null
+  statistics: null
+  uncertainty: null
+  exclusions: [null]
+  analysis_commit: null
+  command: null
+acceptance:
+  pass: null
+  fail: null
+  inconclusive: null
+  stop_rules: [null]
+result:
+  gate_result: null
+  conclusion: null
+  confidence: null
+  uncertainty: null
+  completed_at: null
+  run_ids: []
+follow_up: null
+links:
+  originating_sections: [null]
+  open_questions: [null]
+  issues: [null]
+  requirements: [null]
+  adrs: [null]
+  aliases: [null]
+provenance:
+  created_at: "2026-07-17T00:00:00Z"
+  updated_at: "2026-07-17T00:00:00Z"
+  authors: [null]
+  source_refs: [null]
+  card_sha256: null
+notes: null
+

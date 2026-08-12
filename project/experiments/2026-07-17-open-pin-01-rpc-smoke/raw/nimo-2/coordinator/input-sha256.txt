@@ -1,0 +1,2 @@
+d752b7f327b51d50f3a868fda537ffec90f999ae2144ad61416203ccc12d4b4c  /home/connorb/halofpx-lab/open-pin-01/candidate/build-open-pin-01-rpc/bin/llama-server
+8c2f07f26af9747e41988551106f149b03eb9b5cb6df636027b6bf6278473300  /opt/llm-usb4-cluster/models/qwen-official/qwen--qwen3-4b-gguf__bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q8_0.gguf

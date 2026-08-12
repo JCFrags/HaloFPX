@@ -1,0 +1,50 @@
+# syntax=docker/dockerfile:1.7
+ARG UBUNTU_VERSION=24.04
+ARG ROCM_VERSION=7.2.1
+ARG BASE_IMAGE=rocm/dev-ubuntu-${UBUNTU_VERSION}:${ROCM_VERSION}-complete
+
+FROM ${BASE_IMAGE} AS build
+ARG ROCM_VERSION
+ARG LLAMA_COMMIT=86d86ed4396b4130922f7b9af26e3d9fc11a591b
+ARG HIP_ARCH=gfx1151
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential ca-certificates cmake curl git libcurl4-openssl-dev \
+      libnuma-dev libssl-dev ninja-build pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+RUN git clone --filter=blob:none https://github.com/ggml-org/llama.cpp.git && \
+    cd llama.cpp && git fetch --depth=1 origin ${LLAMA_COMMIT} && \
+    git checkout --detach ${LLAMA_COMMIT}
+WORKDIR /src/llama.cpp
+RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
+    cmake -S . -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DGGML_HIP=ON \
+      -DGGML_VULKAN=OFF \
+      -DGGML_CUDA=OFF \
+      -DCMAKE_HIP_ARCHITECTURES=${HIP_ARCH} \
+      -DGGML_HIP_ROCWMMA_FATTN=OFF \
+      -DGGML_HIP_NO_VMM=ON \
+      -DGGML_HIP_GRAPHS=ON \
+      -DLLAMA_BUILD_TESTS=OFF \
+      -DGGML_BUILD_TESTS=OFF && \
+    cmake --build build -j"$(nproc)" && \
+    printf 'llama_commit=%s\nrocm_version=%s\nhip_arch=%s\n' \
+      "${LLAMA_COMMIT}" "${ROCM_VERSION}" "${HIP_ARCH}" \
+      > build/bin/STRIX_BUILD_PROVENANCE.txt && \
+    find build/bin -maxdepth 1 -type f -print0 | sort -z | xargs -0 -r sha256sum \
+      > build/bin/SHA256SUMS
+
+FROM ${BASE_IMAGE} AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl libcurl4 libgomp1 libnuma1 libssl3 && \
+    rm -rf /var/lib/apt/lists/*
+COPY --from=build /src/llama.cpp/build/bin/ /opt/llama/bin/
+ENV PATH=/opt/llama/bin:${PATH}
+WORKDIR /work
+LABEL org.opencontainers.image.source="https://github.com/ggml-org/llama.cpp" \
+      org.opencontainers.image.revision="86d86ed4396b4130922f7b9af26e3d9fc11a591b" \
+      org.opencontainers.image.description="Pinned gfx1151 llama.cpp build on ROCm 7.2.1; host kernel and firmware remain external"
+CMD ["llama-cli", "--help"]

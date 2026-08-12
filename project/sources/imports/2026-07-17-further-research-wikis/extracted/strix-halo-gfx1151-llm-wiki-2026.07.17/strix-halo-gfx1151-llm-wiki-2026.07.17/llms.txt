@@ -1,0 +1,35 @@
+# Strix Halo / gfx1151 Build and Software Compatibility Wiki
+
+> Version 2026.07.17. Evidence-scoped Linux, ROCm, HIP, LLVM, Mesa/Vulkan, CMake, llama.cpp, ROCmFPX and USB4 compatibility research.
+
+## Primary pages
+
+- [Overview](docs/index.md): Current conclusions and lane selection.
+- [Compatibility matrix](docs/compatibility-matrix.md): Official, community, experimental, unsupported and candidate profiles.
+- [Official support](docs/official-support.md): AMD and upstream support scopes.
+- [Community validation](docs/community-validation.md): Maintained and first-hand Strix Halo reports.
+- [Regressions](docs/regressions.md): Kernel, firmware, ROCm, Mesa and llama.cpp failures.
+- [Build flags](docs/build-flags.md): Exact CMake flags for HIP, Vulkan and ROCmFPX.
+- [Diagnostics](docs/diagnostics.md): Layered collection and acceptance commands.
+- [Reproducibility](docs/reproducibility.md): Pins, checksums, containers and host provenance.
+- [Source registry](docs/sources.md): Stable source IDs and direct source links.
+
+## Machine-readable data
+
+- [Compatibility JSON](data/compatibility-matrix-2026.07.17.json)
+- [Compatibility CSV](data/compatibility-matrix-2026.07.17.csv)
+- [Regressions JSON](data/regressions-2026.07.17.json)
+- [Environment variables JSON](data/environment-variables.json)
+- [Source registry JSON](sources/source-registry.json)
+
+## Reproducible recipes
+
+- [ROCm 7.14 host](docs/recipes/host-official-rocm-714.md)
+- [llama.cpp HIP / ROCm 7.2.1](docs/recipes/llama-hip-rocm721.md)
+- [Fedora / ROCm 7.2.4](docs/recipes/community-fedora-rocm724.md)
+- [llama.cpp RADV](docs/recipes/llama-vulkan-radv.md)
+- [ROCmFPX](docs/recipes/rocmfpx-pinned.md)
+- [USB4 IP](docs/recipes/usb4-ip-network.md)
+- [USB4 RDMA research](docs/recipes/usb4-rdma-experimental.md)
+
+The package was statically validated but not executed on physical Strix Halo hardware.

@@ -1,0 +1,13 @@
+PRIMARY SOURCE EXCERPT
+Path: Documentation/admin-guide/thunderbolt.rst
+Version: v7.2 source
+
+The guide instructs users to load thunderbolt-stream, create ConfigFS stream groups, set in_hopid/out_hopid, and transfer bytes through /dev/tbstreamX. It states that multiple streams and thunderbolt-net can be used simultaneously.
+
+Example:
+  modprobe thunderbolt-stream
+  cd /sys/kernel/config/thunderbolt/stream
+  mkdir -p 0-1.0/data
+  echo -1 > 0-1.0/data/in_hopid
+  echo -1 > 0-1.0/data/out_hopid
+  cat /dev/tbstream0

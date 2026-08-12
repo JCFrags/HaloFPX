@@ -1,0 +1,530 @@
+{
+  "cases": [
+    {
+      "actual": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "role": "assistant"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "A"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {},
+                "finish_reason": "stop",
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 0,
+        "post_done_ignored": 0
+      },
+      "expected": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "role": "assistant"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "A"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {},
+                "finish_reason": "stop",
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 0,
+        "post_done_ignored": 0
+      },
+      "id": "canonical",
+      "line": 1,
+      "match": true
+    },
+    {
+      "actual": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "role": "assistant"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "A"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 1,
+        "post_done_ignored": 1
+      },
+      "expected": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "role": "assistant"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "A"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 1,
+        "post_done_ignored": 1
+      },
+      "id": "malformed",
+      "line": 2,
+      "match": true
+    },
+    {
+      "actual": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "👩‍💻"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 0,
+        "post_done_ignored": 0
+      },
+      "expected": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "👩‍💻"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 0,
+        "post_done_ignored": 0
+      },
+      "id": "utf8-split",
+      "line": 3,
+      "match": true
+    },
+    {
+      "actual": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "role": "assistant",
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "",
+                        "name": "echo"
+                      },
+                      "id": "CALL_ID",
+                      "index": 0,
+                      "type": "function"
+                    }
+                  ]
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "{\"text\":"
+                      },
+                      "index": 0
+                    }
+                  ]
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "\"A\"}"
+                      },
+                      "index": 0
+                    }
+                  ]
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {},
+                "finish_reason": "tool_calls",
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 0,
+        "post_done_ignored": 0
+      },
+      "expected": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "role": "assistant",
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "",
+                        "name": "echo"
+                      },
+                      "id": "CALL_ID",
+                      "index": 0,
+                      "type": "function"
+                    }
+                  ]
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "{\"text\":"
+                      },
+                      "index": 0
+                    }
+                  ]
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "\"A\"}"
+                      },
+                      "index": 0
+                    }
+                  ]
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {},
+                "finish_reason": "tool_calls",
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 0,
+        "post_done_ignored": 0
+      },
+      "id": "tool-call",
+      "line": 4,
+      "match": true
+    },
+    {
+      "actual": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "{\"answer\":",
+                  "role": "assistant"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "42}"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {},
+                "finish_reason": "stop",
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 0,
+        "post_done_ignored": 0
+      },
+      "expected": {
+        "done": true,
+        "events": [
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "{\"answer\":",
+                  "role": "assistant"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "42}"
+                },
+                "finish_reason": null,
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          },
+          {
+            "choices": [
+              {
+                "delta": {},
+                "finish_reason": "stop",
+                "index": 0
+              }
+            ],
+            "created": 0,
+            "id": "STATIC",
+            "model": "pfir10",
+            "object": "chat.completion.chunk"
+          }
+        ],
+        "malformed_records_skipped": 0,
+        "post_done_ignored": 0
+      },
+      "id": "structured-output",
+      "line": 5,
+      "match": true
+    }
+  ],
+  "match": true
+}

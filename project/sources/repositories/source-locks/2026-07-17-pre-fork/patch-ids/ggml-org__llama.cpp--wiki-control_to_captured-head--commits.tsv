@@ -1,0 +1,8 @@
+commit	parents	author_date	author	subject
+11fd0a6fb756b9d3f387b4901aa1ce8173c03170	788e07dc91d266ad3162a1ce9037665656269689	2026-07-17T16:39:33+08:00	Aaron Teo <aaron.teo1@ibm.com>	ggml-blas: default hadamard mul_mat to cpu routine (#25710)
+635cdd5fcc5bdeb8ec2e108bb2a40acf62d9039b	11fd0a6fb756b9d3f387b4901aa1ce8173c03170	2026-07-17T12:15:30+03:00	Georgi Gerganov <ggerganov@gmail.com>	common : auto-download dflash- and eagle3- HF sidecars (#25811)
+5d5306bf3e2de8eeaaba0a282299f3f58639ea48	635cdd5fcc5bdeb8ec2e108bb2a40acf62d9039b	2026-07-17T15:33:35+02:00	fairydreaming <166155368+fairydreaming@users.noreply.github.com>	tests : initialize all tensors in test_dsv4_hc to avoid NaNs in sentinel tensors (#25822)
+3727404068b23d3d762e22168e4bdb145721266b	5d5306bf3e2de8eeaaba0a282299f3f58639ea48	2026-07-17T16:44:55+03:00	Georgi Gerganov <ggerganov@gmail.com>	ggml : bump version to 0.17.0 (ggml/1568)
+7d56da7e546f54fb1fa54ef2bc9ad9a872860ab0	3727404068b23d3d762e22168e4bdb145721266b	2026-07-17T16:45:30+03:00	Georgi Gerganov <ggerganov@gmail.com>	sync : ggml
+86d86ed4396b4130922f7b9af26e3d9fc11a591b	7d56da7e546f54fb1fa54ef2bc9ad9a872860ab0	2026-07-17T07:49:43-07:00	Hongqiang Wang <wangh@qti.qualcomm.com>	opencl: transpose q4_K noshuffle scales for coalesced reads (#25805)
+6bdd77f13cf11b264b4231d320afc404f48d576e	86d86ed4396b4130922f7b9af26e3d9fc11a591b	2026-07-17T12:02:27-07:00	Hongqiang Wang <wangh@qti.qualcomm.com>	opencl:  read/write MoE dp4a activation tiles to local memory as 128-bit (vectorized LD/ST perf opt) for Adreno GPUs (#25810)

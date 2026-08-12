@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/halokv/v1/reconnect-plan.schema.json",
+  "title": "HaloKV reconnect plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "outcome",
+    "authority_revision",
+    "target_commit_certificate_id",
+    "recovery_plan_token",
+    "new_session_generation",
+    "target_topology_fingerprint",
+    "single_node_continuation_permitted",
+    "single_node_decision_reason"
+  ],
+  "properties": {
+    "outcome": {
+      "enum": [
+        "RESUME_EXACT",
+        "FETCH_DELTA",
+        "REBUILD_RANK",
+        "RECONFIGURE",
+        "RESET_SESSION",
+        "REJECT_STALE"
+      ]
+    },
+    "authority_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "target_commit_certificate_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recovery_plan_token": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{0,2048}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "new_session_generation": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "target_topology_fingerprint": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "single_node_continuation_permitted": {
+      "type": "boolean"
+    },
+    "single_node_decision_reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "single_node_continuation_permitted": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "RECONFIGURE"
+          },
+          "new_session_generation": {
+            "type": "integer"
+          },
+          "target_topology_fingerprint": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "RESUME_EXACT",
+              "FETCH_DELTA",
+              "REBUILD_RANK"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "single_node_continuation_permitted": {
+            "const": false
+          }
+        }
+      }
+    }
+  ]
+}

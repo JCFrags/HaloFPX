@@ -1,0 +1,178 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Strix Halo gfx1151 Linux, ROCm, Vulkan, llama.cpp and USB4 compatibility wiki">
+  <title>Recipe: byte-aware ROCm 7.14 gfx1151 tarball install · Strix Halo Wiki</title>
+  <link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body data-root="../" data-page="recipes/rocm714-tarball.html">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menuButton" aria-label="Open navigation">☰</button>
+    <a class="brand" href="../index.html"><span class="brand-mark">SH</span><span>Strix Halo Wiki</span></a>
+    <span class="top-status">gfx1151 · 2026.07.17</span>
+    <button class="search-button" id="searchButton" aria-label="Search"><span>Search</span><kbd>/</kbd></button>
+    <button class="icon-button" id="themeButton" aria-label="Toggle theme">◐</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-meta">
+        <div class="target-chip">AMD RDNA 3.5</div>
+        <div class="snapshot">Snapshot 2026.07.17</div>
+      </div>
+      <nav aria-label="Wiki navigation">
+      
+        <section class="nav-group">
+          <h2>Start</h2>
+          
+            <a href="../index.html">Overview</a>
+          
+            <a href="../decision-tree.html">Decision tree</a>
+          
+            <a href="../evidence-model.html">Evidence model</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Compatibility</h2>
+          
+            <a href="../compatibility-matrix.html">Versioned matrix</a>
+          
+            <a href="../official-support.html">Official support</a>
+          
+            <a href="../community-validation.html">Community validation</a>
+          
+            <a href="../regressions.html">Known regressions</a>
+          
+            <a href="../unsupported-combinations.html">Unsupported combinations</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Build and operation</h2>
+          
+            <a href="../build-flags.html">Exact build flags</a>
+          
+            <a href="../environment-variables.html">Environment variables</a>
+          
+            <a href="../diagnostics.html">Diagnostics</a>
+          
+            <a href="../containers.html">Containers</a>
+          
+            <a href="../reproducibility.html">Reproducibility</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Components</h2>
+          
+            <a href="../rocmfpx.html">ROCmFPX</a>
+          
+            <a href="../usb4-networking.html">USB4 networking</a>
+          
+            <a href="../glossary.html">Glossary</a>
+          
+            <a href="../sources.html">Sources</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Recipes</h2>
+          
+            <a href="../recipes/host-official-rocm-714.html">ROCm 7.14 host</a>
+          
+            <a href="../recipes/rocm714-tarball.html" class="active" aria-current="page">ROCm 7.14 tarball</a>
+          
+            <a href="../recipes/llama-hip-rocm721.html">llama.cpp HIP / ROCm 7.2.1</a>
+          
+            <a href="../recipes/community-fedora-rocm724.html">Fedora / ROCm 7.2.4</a>
+          
+            <a href="../recipes/llama-vulkan-radv.html">llama.cpp RADV</a>
+          
+            <a href="../recipes/mesa-2615-source.html">Mesa 26.1.5 source</a>
+          
+            <a href="../recipes/prebuilt-llama-b10064.html">llama.cpp b10064 binary</a>
+          
+            <a href="../recipes/rocmfpx-pinned.html">ROCmFPX pinned</a>
+          
+            <a href="../recipes/usb4-ip-network.html">USB4 IP</a>
+          
+            <a href="../recipes/usb4-rdma-experimental.html">USB4 RDMA research</a>
+          
+        </section>
+      
+        <section class="nav-group">
+          <h2>Versions</h2>
+          
+            <a href="../versions/2026.07.17.html">2026.07.17</a>
+          
+        </section>
+      
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../../data/compatibility-matrix-2026.07.17.csv">CSV</a>
+        <a href="../../data/compatibility-matrix-2026.07.17.json">JSON</a>
+        <a href="../../README.md">README</a>
+      </div>
+    </aside>
+    <main id="content" class="content">
+      <div class="page-kicker">Reproducible recipe</div>
+      <article class="article"><h1 id="recipe-byte-aware-rocm-7-14-gfx1151-tarball-install">Recipe: byte-aware ROCm 7.14 gfx1151 tarball install<a aria-label="Link to section" class="heading-anchor" href="#recipe-byte-aware-rocm-7-14-gfx1151-tarball-install">#</a></h1>
+<p><strong>Classification:</strong> official versioned distribution artifact; checksum must be recorded separately<br/>
+<strong>Source:</strong> <a href="../sources.html#amd-install-714">AMD-INSTALL-714</a></p>
+<h2 id="pinned-inputs">Pinned inputs<a aria-label="Link to section" class="heading-anchor" href="#pinned-inputs">#</a></h2>
+<pre><code class="language-bash">ROCM_VERSION=7.14.0
+ROCM_TARBALL=therock-dist-linux-gfx1151-7.14.0.tar.gz
+ROCM_URL=https://repo.amd.com/rocm/tarball-multi-arch/$ROCM_TARBALL
+ROCM_PREFIX=/opt/rocm-7.14.0
+</code></pre>
+<h2 id="secure-install-behavior">Secure install behavior<a aria-label="Link to section" class="heading-anchor" href="#secure-install-behavior">#</a></h2>
+<p>The bundled installer refuses to call an unverified download reproducible unless one of these is true:</p>
+<ol>
+<li><code>ROCM_TARBALL_SHA256</code> is supplied and matches; or</li>
+<li><code>ALLOW_UNVERIFIED=1</code> is supplied, in which case the computed hash is printed and saved for provenance.</li>
+</ol>
+<pre><code class="language-bash">sudo install -d -m 0755 /opt/rocm-7.14.0
+sudo chown "$USER":"$USER" /opt/rocm-7.14.0
+
+ROCM_TARBALL_SHA256='...' \
+ROCM_PREFIX=/opt/rocm-7.14.0 \
+  ../../scripts/install-rocm-714-tarball.sh
+</code></pre>
+<h2 id="verify-layout">Verify layout<a aria-label="Link to section" class="heading-anchor" href="#verify-layout">#</a></h2>
+<pre><code class="language-bash">find /opt/rocm-7.14.0 -maxdepth 2 -type f \( -name hipconfig -o -name rocminfo -o -name clang \) -print
+/opt/rocm-7.14.0/bin/hipconfig --full
+/opt/rocm-7.14.0/llvm/bin/clang --version
+</code></pre>
+<p>The installer uses a staging directory and recognizes both a single top-level archive directory and a flat archive. It writes <code>INSTALL-PROVENANCE.txt</code> containing URL, computed hash, install time, and tool versions.</p>
+<h2 id="uninstall">Uninstall<a aria-label="Link to section" class="heading-anchor" href="#uninstall">#</a></h2>
+<p>The tarball install is isolated. Remove only after checking that no shell, service, or CMake cache references it:</p>
+<pre><code class="language-bash">grep -R '/opt/rocm-7.14.0' "$HOME/.config" /etc/systemd/system 2&gt;/dev/null || true
+sudo rm -rf /opt/rocm-7.14.0
+</code></pre>
+<p>Do not delete <code>/opt/rocm</code> if it belongs to a package-managed installation.</p>
+</article>
+      <footer class="page-footer">
+        <span>Static research snapshot. Verify live support matrices before changing a production host.</span>
+        <a href="../sources.html">Source registry</a>
+      </footer>
+    </main>
+    <aside class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <a class="level-2" href="#pinned-inputs">Pinned inputs</a><a class="level-2" href="#secure-install-behavior">Secure install behavior</a><a class="level-2" href="#verify-layout">Verify layout</a><a class="level-2" href="#uninstall">Uninstall</a>
+    </aside>
+  </div>
+  <dialog class="search-dialog" id="searchDialog">
+    <form method="dialog" class="search-head">
+      <input id="searchInput" type="search" placeholder="Search the wiki" autocomplete="off" aria-label="Search query">
+      <button class="icon-button" value="cancel" aria-label="Close search">×</button>
+    </form>
+    <div id="searchResults" class="search-results"><p>Type a component, version, flag, or regression.</p></div>
+  </dialog>
+  <script src="../assets/wiki.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+commit: 364f4a55c661641c02c86a849f0608d8fc3c0006
+author/committer: Linus Torvalds
+date: 2026-06-22
+subject: Merge tag 'usb-7.2-rc1'
+second parent / pulled tip: 1c2b66a7d7257d2652aa41f9a860ecb96dde27dd
+pull base recorded during audit: e43ffb69e0438cddd72aaa30898b4dc446f664f8
+The merge message identifies USB4STREAM as a major highlight.

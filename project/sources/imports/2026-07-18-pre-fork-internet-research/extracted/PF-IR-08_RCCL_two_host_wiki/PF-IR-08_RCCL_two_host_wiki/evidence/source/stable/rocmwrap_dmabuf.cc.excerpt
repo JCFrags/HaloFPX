@@ -1,0 +1,46 @@
+---
+upstream_repository: "ROCm/rccl"
+upstream_ref: "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4"
+accessed_at: "2026-07-18"
+source_id: "SRC-STABLE-DMABUF"
+source_class: "source"
+claim_label: "[SOURCE_IMPLEMENTATION]"
+upstream_path: "src/misc/rocmwrap.cc"
+upstream_blob_sha: "9f23fe95f952c0f1de6b106e8e12d4e0c96165a5"
+upstream_locator: "DMA-BUF parameters, ROCr capability checks, kernel prerequisites"
+snapshot_kind: "structured selected source excerpt preserving literal identifiers"
+completeness: "selected relevant excerpts; not full file"
+license: "RCCL LICENSE.txt"
+---
+
+```cpp
+DECLARE_ROCM_PFN(hsa_amd_portable_export_dmabuf); // DMA-BUF support
+NCCL_PARAM(DmaBufEnable, "DMABUF_ENABLE", 0);
+RCCL_PARAM(ForceEnableDMABUF, "FORCE_ENABLE_DMABUF", 0);
+
+bool dmaBufSupport = false;
+
+if (rcclParamForceEnableDMABUF()) {
+  dmaBufSupport = 1;
+  WARN("DMA_BUF Support is force enabled, so explicitly setting RCCL_FORCE_ENABLE_DMABUF=1");
+} else if (ncclParamDmaBufEnable() == 0) {
+  INFO(NCCL_INIT, "Dmabuf feature disabled without NCCL_DMABUF_ENABLE=1");
+  goto error;
+}
+
+res = pfn_hsa_system_get_info((hsa_system_info_t) 0x204, &dmaBufSupport);
+if (res != HSA_STATUS_SUCCESS || !dmaBufSupport) {
+  INFO(NCCL_INIT, "Current version of ROCm does not support dmabuf feature.");
+  goto error;
+} else {
+  pfn_hsa_amd_portable_export_dmabuf =
+      (PFN_hsa_amd_portable_export_dmabuf) dlsym(hsaLib, "hsa_amd_portable_export_dmabuf");
+  if (pfn_hsa_amd_portable_export_dmabuf == NULL) {
+    WARN("Failed to load ROCr missing symbol hsa_amd_portable_export_dmabuf");
+    goto error;
+  }
+}
+
+// The implementation also checks kernel configuration for CONFIG_DMABUF_MOVE_NOTIFY=y
+// and CONFIG_PCI_P2PDMA=y unless force-enabled.
+```

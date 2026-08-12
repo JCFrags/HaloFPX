@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-wcr5-566p-9cwj",
+  "cve": "CVE-2024-42479",
+  "title": "RPC SET_TENSOR arbitrary write",
+  "severity": "Critical",
+  "published": "2024-08-12",
+  "affected_versions_as_displayed_or_normalized": "Before b3561",
+  "patched_versions_as_displayed_or_normalized": "b3561",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-wcr5-566p-9cwj",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "rpc_server::set_tensor; tensor-buffer offset/length validation",
+    "preconditions_summary": "RPC server built, launched, reachable; unauthenticated peer sends out-of-range tensor metadata."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "b459019444157251172266d8fe91a5b3472981275d75f5b195787ff34ca10ceb"
+}

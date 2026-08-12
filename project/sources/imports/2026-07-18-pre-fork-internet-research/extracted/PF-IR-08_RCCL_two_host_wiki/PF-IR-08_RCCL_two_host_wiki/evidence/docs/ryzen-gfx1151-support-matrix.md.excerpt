@@ -1,0 +1,25 @@
+---
+source_id: "DOC-RYZEN-GFX1151"
+source_class: "documentation"
+claim_label: "[NORMATIVE_DOC]"
+upstream_site: "AMD ROCm Documentation"
+upstream_url: "https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2/docs/compatibility/compatibilityryz/native_linux/native_linux_compatibility.html"
+upstream_ref: "ROCm 7.2 documentation"
+upstream_locator: "Linux GPU and framework support matrix"
+accessed_at: "2026-07-18"
+snapshot_kind: "short verbatim-derived official documentation excerpt"
+completeness: "selected rows only"
+license: "documentation terms not independently determined"
+---
+
+```text
+ROCm 7.2 Linux Ryzen matrix:
+
+* Supported architecture: ``gfx1151``.
+* Listed hardware includes AMD Ryzen AI Max+ 395, Ryzen AI Max 390, and Ryzen AI Max 385.
+* Ubuntu 24.04.3 is listed, with preliminary support via the 24.04.2 installer.
+* PyTorch 2.9 is listed with official production support; FP16 is the officially validated AI data type.
+
+This is a platform/framework matrix. It does not state that every ROCm component,
+RCCL multi-node operation, or Ethernet-over-USB4 topology is validated.
+```

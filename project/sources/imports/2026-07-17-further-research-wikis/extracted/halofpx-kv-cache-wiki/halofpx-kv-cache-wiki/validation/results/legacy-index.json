@@ -1,0 +1,14 @@
+{
+  "details": {
+    "compatibility_hash": "0x1122334455667788",
+    "format": "cachyllama.kv_ssd_index/v3-lp64le",
+    "keyed_authentication_verified": false,
+    "next_id": 2,
+    "payload_integrity_verified": false
+  },
+  "eligible_for_engine_import": false,
+  "eligible_for_hit": false,
+  "path": "fixtures/cachyllama/valid/index.bin",
+  "reason": "NO_INDEX_AUTHENTICATION",
+  "status": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED"
+}

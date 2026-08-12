@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>USB4STREAM assessment · PF-IR-03</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body><div class="layout">
+<aside class="sidebar">
+  <div class="brand">PF-IR-03</div>
+  <div class="subtitle">gfx1151 compute-stack provenance dossier<br>Evidence: 2026-07-18</div>
+  <input id="wiki-search" class="search" type="search" placeholder="Filter pages" aria-label="Filter pages">
+  <nav class="nav">
+  <a href="../index.html">Dossier home</a><a href="00-executive-decision.html">Executive decision</a><a href="01-lane-map.html">Lane map</a><a href="02-official-support-matrices.html">Official support matrices</a><a href="03-component-dossier.html">Component dossier</a><a href="04-kernel-mesa-firmware.html">Kernel, Mesa, firmware</a><a href="05-artifact-provenance-7.14.html">7.14 artifact provenance</a><a href="06-source-build-provenance.html">Source/build provenance</a><a href="07-known-issues.html">Known issues</a><a href="08-rollback-removal.html">Rollback and removal</a><a href="09-licensing-sbom.html">Licensing and SBOM</a><a href="10-control-candidate-tuples.html">Control and candidate tuples</a><a href="11-usb4stream-assessment.html" class="active">USB4STREAM assessment</a><a href="12-evidence-method.html">Evidence method</a>
+  </nav>
+  <div class="sidebar-actions"><button id="theme-toggle" type="button">Theme</button><button onclick="window.print()" type="button">Print</button></div>
+</aside>
+<main class="content">
+  <div class="breadcrumb">PF-IR-03 / USB4STREAM assessment</div>
+  <article><h1>Linux 7.2 USB4STREAM assessment</h1>
+<h2>Captured upstream state</h2>
+<p>At the 2026-07-18 capture:</p>
+<ul>
+<li>stable Linux: 7.1.3;</li>
+<li>mainline: 7.2-rc3;</li>
+<li>linux-next: next-20260717.</li>
+</ul>
+<p>The linux-next admin guide documents direct cable streaming through <code>thunderbolt-stream</code>, ConfigFS at <code>/sys/kernel/config/thunderbolt/stream</code>, and <code>/dev/tbstreamX</code>. Multiple streams and simultaneous <code>thunderbolt-net</code> use are described.</p>
+<h2>Decision</h2>
+<p>[PLAUSIBLE_SEPARATE_CANDIDATE] A Linux 7.2/USB4STREAM lane is technically plausible for the two-node use case. [UNVERIFIED_COMBINATION] It is not an AMD-qualified gfx1151 ROCm tuple in the captured matrix and Linux 7.2 was not stable.</p>
+<h2>Baseline-preserving test design</h2>
+<ol>
+<li>Freeze either the 7.2 control userspace or the 7.14 candidate userspace unchanged.</li>
+<li>Add a separate boot entry containing an exact 7.2-rc tag/commit or exact linux-next commit with <code>CONFIG_USB4_STREAM</code> and its ConfigFS dependency.</li>
+<li>Retain signed kernel source provenance, <code>.config</code>, patch list and build toolchain.</li>
+<li>Confirm IOMMU/DMA protection and Thunderbolt security level.</li>
+<li>Run the entire gfx1151 compute regression before attributing any failure to USB4STREAM.</li>
+<li>Run two-node stream correctness, sustained throughput, backpressure, hotplug, teardown, suspend/resume and simultaneous <code>thunderbolt-net</code> tests.</li>
+<li>Keep USB4STREAM transport results separate from RCCL transport claims unless RCCL is explicitly integrated with that interface and source-pinned.</li>
+</ol>
+<h2>Preflight</h2>
+<p><code>scripts/usb4stream-preflight.sh</code> checks kernel/config/module/ConfigFS/IOMMU evidence without creating or deleting streams. The actual stream test remains local because topology and peer identifiers are machine-specific.</p>
+</article>
+  <div class="footer">Offline primary-source dossier. Machine-readable locks are under <code>manifests/</code>.</div>
+</main></div><script src="../assets/wiki.js"></script></body></html>

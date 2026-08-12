@@ -1,0 +1,13 @@
+{
+  "capture_path": "raw/github/llama-ai/.gitmodules.blob-c73a9ad6ca6261b42aea9c2d5107fd24298066bb",
+  "capture_method": "exact-byte HTTP retrieval followed by Git blob verification",
+  "byte_fidelity": "exact",
+  "source_url": "https://raw.githubusercontent.com/fewtarius/llama-ai/main/.gitmodules",
+  "repository_commit": "1017f3dfdce3ca2b06aa9007b23295db3bb35722 (verified unchanged by Git blob)",
+  "repository_path": ".gitmodules",
+  "git_blob_sha1": "c73a9ad6ca6261b42aea9c2d5107fd24298066bb",
+  "sha256": "e380cfba6a6bd383c0b6a25063c947ed17cb18d5d076503db4e03cfae2f2c2ef",
+  "size_bytes": 108,
+  "access_date": "2026-07-18",
+  "claim_label": "PRIMARY-GITLINK-CONFIG"
+}

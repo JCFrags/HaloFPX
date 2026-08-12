@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

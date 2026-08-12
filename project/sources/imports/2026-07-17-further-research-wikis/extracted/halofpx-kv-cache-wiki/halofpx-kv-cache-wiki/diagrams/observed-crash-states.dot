@@ -1,0 +1,21 @@
+digraph G {
+graph [bgcolor="transparent", fontname="Helvetica", pad="0.25", nodesep="0.45", ranksep="0.55"]; node [shape=box, style="rounded,filled", fillcolor="#eef3fa", color="#506784", fontname="Helvetica", fontsize=10, margin="0.12,0.08"]; edge [color="#506784", fontname="Helvetica", fontsize=9];
+rankdir=TB;
+a[label="Open final ckpt-ID.bin
+O_TRUNC", fillcolor="#fde8e8", color="#a40e26"];
+b[label="Write native header"];
+c[label="Write target/draft/spec"];
+d[label="Optional file fsync
+(return not commit gate)"];
+e[label="Rewrite index.bin
+O_TRUNC", fillcolor="#fde8e8", color="#a40e26"];
+p1[label="Short visible file", fillcolor="#fff0d6", color="#8a5a00"];
+p2[label="Full header / short body", fillcolor="#fff0d6", color="#8a5a00"];
+p3[label="Checkpoint present / index stale", fillcolor="#fff0d6", color="#8a5a00"];
+p4[label="Partial index / next_id reset", fillcolor="#fff0d6", color="#8a5a00"];
+m[label="MISS / delayed MISS", fillcolor="#e8f5e9", color="#216e39"];
+r[label="Same-length damage
+not outer-detectable", fillcolor="#fde8e8", color="#a40e26"];
+a->b->c->d->e;
+a->p1[label="crash",style=dashed]; b->p2[label="crash",style=dashed]; d->p3[label="crash",style=dashed]; e->p4[label="crash",style=dashed]; p1->m; p2->m; p3->m[label="scan/recover"]; p4->m[label="scan + collision risk"]; c->r[label="bit rot after complete write",style=dashed];
+}

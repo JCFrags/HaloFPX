@@ -1,0 +1,23 @@
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "content": null,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"text\":\"A\"}",
+              "name": "echo"
+            },
+            "id": "CALL_ID",
+            "type": "function"
+          }
+        ]
+      }
+    }
+  ],
+  "object": "chat.completion"
+}

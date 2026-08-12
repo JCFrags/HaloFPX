@@ -1,0 +1,29 @@
+section_id: "86"
+title: "Issues, Labels, Milestones, ADRs, Code Review, and Contribution Process"
+category_id: "12"
+category_title: "Project Execution and Governance"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 28
+open_question_count: 15
+required_machine_experiments:
+  - "HLX-EXP-20260717-850 candidate scope alias EXP-86-01: independently reproduced repository-governance fixture; requires Section 84 card amendment before external use"
+  - "HLX-EXP-20260717-849 candidate scope alias EXP-86-02: untrusted-fork and trusted-runner isolation drill; requires Section 84 card amendment before execution"
+  - "HLX-EXP-20260717-850 candidate scope alias EXP-86-03: independently reviewed vertical traceability slice; requires Section 84 card amendment before execution"
+  - "HLX-EXP-20260717-849 candidate scope alias EXP-86-04: release, rollback, cache rejection, and single-node fallback rehearsal; distinct subprotocol requiring Section 84 card amendment"
+related_sections: ["01", "02", "03", "04", "05", "11", "12", "13", "14", "15", "16", "73", "78", "82", "83", "84", "85"]
+applicability:
+  repositories:
+    - "Custom_Inference_Project research checkout (no commit or remote observed 2026-07-17)"
+    - "HaloFPX integration repository (proposed; location and hosting open)"
+  software_versions:
+    - "GitHub Docs observed at github/docs@df4329a271f3a195338ed6ab8cd493e1a413444f"
+    - "MADR 4.0.0"
+    - "Semantic Versioning 2.0.0"
+  hardware_revisions:
+    - "dual AMD Strix Halo / gfx1151 planned; exact BOM and runner isolation open"
+claim_summary:
+  verified: "Current local governance gaps and documented GitHub platform behavior"
+  measured: "none"
+  recommendation: "One evidence-to-issue-to-decision-or-experiment-to-PR-to-release traceability contract"
+  open: "Repository, owners, namespace extensions, enforcement, thresholds, runner isolation, security policy, contribution/license policy, and human approval of draft roadmap/risk/experiment/freshness contracts"

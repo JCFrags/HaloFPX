@@ -1,0 +1,8 @@
+flowchart TB
+  Q1{Full model fits each node?} -->|yes| R[Replicated decode for concurrency]
+  Q1 -->|no| Q2{Contiguous partitions fit?}
+  Q2 -->|yes| L[Layer split; pipeline only for concurrency]
+  Q2 -->|no| Q3{MoE expert capacity blocker?}
+  Q3 -->|yes| M[Layer-local experts first; trace-gated expert service]
+  Q3 -->|no| T[TP only after collective break-even]
+

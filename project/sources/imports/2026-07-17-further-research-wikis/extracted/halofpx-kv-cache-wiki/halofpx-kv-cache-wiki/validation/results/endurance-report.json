@@ -1,0 +1,80 @@
+[
+  {
+    "scenario": "Light",
+    "state_gib_including_base": 4.0,
+    "optional_overhead_ratio": 0.0,
+    "checkpoints_per_day": 10.0,
+    "replicas": 1.0,
+    "host_gib_per_day": 40.0,
+    "host_tb_per_year": 15.676630630399998,
+    "modeled_nand_tb_per_year": 23.514945945599997,
+    "rated_tbw": 600.0,
+    "waf": 1.5,
+    "estimated_years_to_rated_tbw": 25.51568697576654
+  },
+  {
+    "scenario": "Moderate",
+    "state_gib_including_base": 4.0,
+    "optional_overhead_ratio": 0.0,
+    "checkpoints_per_day": 50.0,
+    "replicas": 1.0,
+    "host_gib_per_day": 200.0,
+    "host_tb_per_year": 78.383153152,
+    "modeled_nand_tb_per_year": 117.57472972800001,
+    "rated_tbw": 1200.0,
+    "waf": 1.5,
+    "estimated_years_to_rated_tbw": 10.206274790306614
+  },
+  {
+    "scenario": "Heavy",
+    "state_gib_including_base": 4.0,
+    "optional_overhead_ratio": 0.0,
+    "checkpoints_per_day": 200.0,
+    "replicas": 1.0,
+    "host_gib_per_day": 800.0,
+    "host_tb_per_year": 313.532612608,
+    "modeled_nand_tb_per_year": 533.0054414336,
+    "rated_tbw": 2400.0,
+    "waf": 1.7,
+    "estimated_years_to_rated_tbw": 4.5027682898411525
+  },
+  {
+    "scenario": "Long-context heavy",
+    "state_gib_including_base": 16.0,
+    "optional_overhead_ratio": 0.0,
+    "checkpoints_per_day": 100.0,
+    "replicas": 1.0,
+    "host_gib_per_day": 1600.0,
+    "host_tb_per_year": 627.065225216,
+    "modeled_nand_tb_per_year": 1254.130450432,
+    "rated_tbw": 2400.0,
+    "waf": 2.0,
+    "estimated_years_to_rated_tbw": 1.91367652318249
+  },
+  {
+    "scenario": "Target plus 20% optional state",
+    "state_gib_including_base": 4.0,
+    "optional_overhead_ratio": 0.2,
+    "checkpoints_per_day": 100.0,
+    "replicas": 1.0,
+    "host_gib_per_day": 480.0,
+    "host_tb_per_year": 188.1195675648,
+    "modeled_nand_tb_per_year": 300.99130810368,
+    "rated_tbw": 1200.0,
+    "waf": 1.6,
+    "estimated_years_to_rated_tbw": 3.986826089963521
+  },
+  {
+    "scenario": "Replicated cache",
+    "state_gib_including_base": 4.0,
+    "optional_overhead_ratio": 0.0,
+    "checkpoints_per_day": 50.0,
+    "replicas": 2.0,
+    "host_gib_per_day": 400.0,
+    "host_tb_per_year": 156.766306304,
+    "modeled_nand_tb_per_year": 235.14945945600002,
+    "rated_tbw": 2400.0,
+    "waf": 1.5,
+    "estimated_years_to_rated_tbw": 10.206274790306614
+  }
+]

@@ -1,0 +1,14 @@
+Expected research-agent return folder
+
+08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/
+├── README.md
+├── facts_and_constraints.md
+├── design_implications.md
+├── procedures_and_checks.md
+├── open_questions.md
+├── sources.md
+├── section.yaml
+├── diagrams/      # optional
+├── scripts/       # optional
+├── data/          # optional
+└── evidence/      # optional

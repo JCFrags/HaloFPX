@@ -1,0 +1,3 @@
+{%- if tools -%}<tools>{{ tools | tojson }}</tools>
+{%- endif -%}{%- for message in messages -%}<{{ message['role'] }}>{{ message['content'] | default('') }}{%- if message.get('tool_calls') -%}{{ message['tool_calls'] | tojson }}{%- endif -%}</{{ message['role'] }}>
+{%- endfor -%}{%- if add_generation_prompt -%}<assistant>{%- endif -%}

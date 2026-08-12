@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RB 01 — Boot, unlock, and cache readiness Preconditions Approved host/rank identity and workload principal. Current lower layer configuration, key broker trust, and policy hashes.…">
+  <title>RB-01 — Boot, unlock, and cache readiness · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="../wiki/00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="../wiki/01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="../wiki/02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="../wiki/03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="../wiki/04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="../wiki/05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="../wiki/06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="../wiki/07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="../wiki/08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="../wiki/09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="../wiki/10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="../wiki/11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="../wiki/12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="../wiki/13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="../wiki/14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="../wiki/15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link active" href="RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Operational runbooks / RB-01 — Boot, unlock, and cache readiness</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>RB-01 — Boot, unlock, and cache readiness</h1>
+<h2 id="preconditions">Preconditions<a class="heading-anchor" href="#preconditions" aria-label="Link to section">#</a></h2>
+<ul>
+<li>Approved host/rank identity and workload principal.</li>
+<li>Current lower-layer configuration, key-broker trust, and policy hashes.</li>
+<li>Current tenant/project/prefix epoch floors and revoked-key list.</li>
+<li>Authoritative compute path can operate without persistent cache.</li>
+<li>No plaintext fallback cache path exists.</li>
+</ul>
+<h2 id="procedure">Procedure<a class="heading-anchor" href="#procedure" aria-label="Link to section">#</a></h2>
+<ol>
+<li>Start with the encrypted cache volume closed and persistent cache serving disabled.</li>
+<li>Verify expected block-device identity, LUKS UUID/header location, and boot policy before unlock.</li>
+<li>Acquire the LUKS unlock condition through the approved method. In unattended mode, do not silently fall back to interactive or an unprotected key file.</li>
+<li>Activate the mapping and verify expected cipher/mode/device identity using the installed release's official tooling. Record status without collecting key bytes.</li>
+<li>Mount with restrictive owner/mode and the approved filesystem options. Treat mount or integrity errors as cache unavailable.</li>
+<li>If fscrypt is used, install only the required v2 directory policy key. Verify policy identity and deny plaintext alternate directories.</li>
+<li>Authenticate the cache workload to the key/principal authority. Obtain only the authorized rank-epoch purpose keys or broker handles.</li>
+<li>Load current epoch/generation floors, deletion tombstones, accepted format/suite policy, and public/system publisher trust.</li>
+<li>Initialize nonce allocation. If state is missing, restored, cloned, or inconsistent, invoke RB-03 and create a new epoch before writes.</li>
+<li>Authenticate the current manifest. Build no serving index from unauthenticated or stale metadata.</li>
+<li>Run a negative self-test: wrong tag/AAD test object must return <code>MISS_RECOMPUTE</code> and expose no detailed external error.</li>
+<li>Mark cache ready. If any step fails, remain cold and recompute; do not weaken validation.</li>
+</ol>
+<h2 id="evidence">Evidence<a class="heading-anchor" href="#evidence" aria-label="Link to section">#</a></h2>
+<ul>
+<li>host/rank/principal IDs;</li>
+<li>volume UUID and mapping name/status;</li>
+<li>fscrypt policy/key identifier and removal-status baseline, if applicable;</li>
+<li>key IDs/epochs and broker authorization decision—not key material;</li>
+<li>nonce allocator instance/range high-water evidence;</li>
+<li>accepted manifest generation/hash;</li>
+<li>self-test result and cache-ready transition.</li>
+</ul>
+<h2 id="failure-handling">Failure handling<a class="heading-anchor" href="#failure-handling" aria-label="Link to section">#</a></h2>
+<ul>
+<li>Missing automated volume key: boot may continue with persistent cache unavailable if policy permits.</li>
+<li>Wrong LUKS header or unexpected mapping: stop; quarantine/image only under incident authority.</li>
+<li>Key broker unavailable: cold cache; no local parent-key fallback.</li>
+<li>Manifest/tag/policy mismatch: miss/quarantine and rebuild; never parse or repair unauthenticated payload.</li>
+</ul>
+<p><span class="claim-label" data-claim="PFIR07-C023" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C023][CLASS:SOURCE][STATUS:SUPPORTED][SRC:SYSTEMD-CRYPTTAB-261.1 §Description]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C058" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C058][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C003,C016,C030,C034]</span></p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

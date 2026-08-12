@@ -1,0 +1,15 @@
+digraph G {
+
+graph [bgcolor="transparent", pad="0.25", nodesep="0.55", ranksep="0.65", fontname="Inter,Arial"];
+node [shape=box, style="rounded,filled", fillcolor="#111827", color="#475569", fontcolor="#e5e7eb", fontname="Inter,Arial", fontsize=11, margin="0.14,0.10"];
+edge [color="#22d3ee", fontcolor="#cbd5e1", fontname="Inter,Arial", fontsize=9, penwidth=1.6, arrowsize=0.8];
+
+rankdir=LR;
+a [label="Stage A\nLayers [0,k)"];
+x [label="USB4 transfer stage\nx=ℓ+Vmb/B",fillcolor="#172554"];
+b [label="Stage B\nLayers [k,L) + sampler"];
+a -> x [label="MB 0,1,…,M−1"];
+x -> b;
+n [shape=note,label="Forward makespan (separate resources):\ncA+x+cB+(M−1)·max(cA,x,cB)\nOne sequence still has token feedback dependency",fillcolor="#1e293b"];
+b -> n [style=dashed,color="#64748b"];
+}

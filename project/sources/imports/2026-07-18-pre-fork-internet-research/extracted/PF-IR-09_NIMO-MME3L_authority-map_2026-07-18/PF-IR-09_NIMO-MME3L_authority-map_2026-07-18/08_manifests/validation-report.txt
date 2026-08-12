@@ -1,0 +1,70 @@
+PF-IR-09 FINAL VALIDATION REPORT
+================================
+Report/access date: 2026-07-18
+Package root: PF-IR-09_NIMO-MME3L_authority-map_2026-07-18
+
+RESULT: PASS
+
+Content and structure
+---------------------
+- 35 normalized official-source captures are indexed in sources.jsonl and provenance.csv.
+- Every source_id is unique; every capture_path exists; provenance.csv and sources.jsonl contain the same source-ID set.
+- Every structured claim and gap in sources.jsonl is present verbatim in its associated Markdown capture.
+- All 35 captures carry matching canonical URL, access date, source type, applicability label, confidence, and literal claim labels.
+- All decision-table source references resolve to indexed source IDs or the explicit [LOCAL_CONTROL] marker.
+- No symbolic links are present in the package.
+
+Machine-readable formats
+------------------------
+- CSV parsing passed with consistent field counts:
+  * product-to-advisory-applicability.csv: 27 rows / 14 columns
+  * telemetry-support-matrix.csv: 14 rows / 9 columns
+  * security-firmware-watch-list.csv: 14 rows / 7 columns
+  * pre-deployment-update-holds.csv: 8 rows / 8 columns (7 P1, 1 P2)
+  * candidate-rollback-sources.csv: 9 rows / 6 columns
+  * gaps-register.csv: 15 rows / 7 columns (14 [OPEN]/[UNKNOWN] rows plus one signature/rollback-only gap)
+  * integrity-check-candidates.csv: 12 rows / 6 columns
+  * raw-official-artifacts.csv: 2 rows / 9 columns
+  * provenance.csv: 35 rows / 10 columns
+- wiki-data.json parsed successfully.
+- sources.jsonl parsed successfully: 35 records.
+- target_identity.yaml parsed successfully with PyYAML.
+- All package text files validated as UTF-8.
+
+LLM Wiki and links
+------------------
+- index.html parsed successfully with the standard-library HTML parser.
+- All local HTML href targets and anchors resolve after final manifest creation.
+- All relative Markdown links remain within the package and resolve.
+- A print-media render completed with WeasyPrint as a 25-page internal QA preview; the preview is not part of the evidence pack.
+
+Scripts
+-------
+- collect-local-evidence.sh: bash syntax PASS; executable bit present.
+- verify.sh: bash syntax PASS; executable bit present.
+- The collector is read-only by design: it performs no firmware writes, metadata refresh, device reset, NVM authentication, fault injection, stress test, or configuration change.
+
+Raw official artifacts
+----------------------
+- LVFS PULP_MANIFEST:
+  * bytes: 2,833,871
+  * lines: 16,287
+  * SHA-256: f68cbf0d998b5a1155660ac03723265e2668efb881fcc153f7a371701d2b0f73
+  * exact target-bearing strings NIMO, MME3L, P310, CT1000P310SSD2, VACR001, and 1002:1586: zero matches
+  * bare substring 1586: 19 unrelated occurrences in hashes, filenames, numeric identifiers, or size fields; no target mapping inferred
+- Crucial/Micron P310 product flyer:
+  * bytes: 756,662
+  * pages: 2
+  * PDF 1.7; unencrypted; no JavaScript
+  * SHA-256: 9dd5a9aaf0ba63e74586e29ba8a8b1147f6ea036864ccab6d3e10f2ecd70c4af
+
+Cryptographic packaging
+-----------------------
+- 08_manifests/files.sha256 covers every package file except itself.
+- 08_manifests/verify.sh completes successfully against the final tree.
+- The external ZIP passes `unzip -t`.
+- The external ZIP SHA-256 is recorded in the adjacent .zip.sha256 sidecar; it is intentionally outside the ZIP to avoid a circular digest.
+
+Interpretation boundary
+-----------------------
+A matching hash establishes identity relative to this package manifest. It does not prove vendor authenticity, device-side image authorization, anti-rollback, or safe recoverability. Those require the vendor signature chain, exact device applicability, local inventory, rollback proof, and human approval.

@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tenant identity, principal binding, and key hierarchy Identity is an authority decision Cryptographic keys do not decide who a tenant is. HaloKV accepts only immutable, authority i…">
+  <title>Tenant identity, principal binding, and key hierarchy · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link active" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Tenant identity, principal binding, and key hierarchy</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Tenant identity, principal binding, and key hierarchy</h1>
+<h2 id="identity-is-an-authority-decision">Identity is an authority decision<a class="heading-anchor" href="#identity-is-an-authority-decision" aria-label="Link to section">#</a></h2>
+<p>Cryptographic keys do not decide who a tenant is. HaloKV accepts only immutable, authority-issued identifiers and an authorization assertion that binds the requesting workload to tenant/project/prefix scope. Human-readable names, Unix usernames, paths, container names, ranks assigned by an untrusted peer, and cloud display labels are metadata—not key-derivation authority.</p>
+<p>Required identity inputs:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>authority_id</code></td>
+  <td>Stable identifier for the identity/key policy authority.</td>
+</tr>
+<tr>
+  <td><code>principal_id</code></td>
+  <td>Stable workload/user/service principal identifier used for authorization audit.</td>
+</tr>
+<tr>
+  <td><code>tenant_id</code></td>
+  <td>Immutable tenant UUID; mandatory for private namespaces.</td>
+</tr>
+<tr>
+  <td><code>project_id</code></td>
+  <td>Immutable project UUID or explicit null sentinel; never omitted ambiguously.</td>
+</tr>
+<tr>
+  <td><code>prefix_id</code></td>
+  <td>Private prefix or separately governed public/system prefix.</td>
+</tr>
+<tr>
+  <td><code>namespace_id</code></td>
+  <td>Cache format/application namespace.</td>
+</tr>
+<tr>
+  <td><code>sharing_class</code></td>
+  <td><code>private-tenant</code>, <code>private-project</code>, <code>explicit-group:&lt;id&gt;</code>, or <code>public-system</code>.</td>
+</tr>
+<tr>
+  <td><code>rank_id</code></td>
+  <td>Authority-assigned rank/peer identity, unique within its namespace and lifecycle.</td>
+</tr>
+</tbody>
+</table></div>
+<p>TPM2, FIDO2, PKCS#11, a boot passphrase, or possession of an fscrypt key may establish an unlock condition. They do not, without a separate authority mapping, prove the HaloKV tenant/project principal.</p>
+<p><span class="claim-label" data-claim="PFIR07-C027" data-class="INFERENCE" data-status="SUPPORTED">[CLAIM:PFIR07-C027][CLASS:INFERENCE][STATUS:SUPPORTED][SRC:SYSTEMD-CRYPTTAB-261.1 TPM2 option; principal model]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C080" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C080][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C024,C027]</span></p>
+<h2 id="key-hierarchy">Key hierarchy<a class="heading-anchor" href="#key-hierarchy" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Level</th>
+  <th>Domain</th>
+  <th>Identifier</th>
+  <th>Key material</th>
+  <th>Binding</th>
+  <th>Rotation scope</th>
+  <th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>0</td>
+  <td>Authority root</td>
+  <td>authority_id</td>
+  <td>Root KEK or root derivation key in KMS/HSM</td>
+  <td>Organization/security-domain authority</td>
+  <td>All subordinate domains; avoid direct data encryption</td>
+  <td>Human decision: owner, custody, quorum, escrow.</td>
+</tr>
+<tr>
+  <td>1</td>
+  <td>Tenant root</td>
+  <td>tenant_id</td>
+  <td>Random tenant root wrapped by authority root, or KDF-isolated tenant branch</td>
+  <td>Immutable tenant UUID from principal authority</td>
+  <td>All tenant projects/prefixes</td>
+  <td>Do not derive from tenant display name.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>Project root</td>
+  <td>project_id</td>
+  <td>Random/wrapped project root or context-derived branch</td>
+  <td>Immutable project UUID and authorization relation</td>
+  <td>Project cache</td>
+  <td>Optional if tenant has no project separation; do not omit field silently.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td>Prefix authority</td>
+  <td>prefix_id</td>
+  <td>Prefix branch</td>
+  <td>Private prefix, public/system prefix, or service-controlled prefix</td>
+  <td>Objects under prefix</td>
+  <td>System/public prefix uses a separate authority, not a tenant key.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td>Namespace and sharing class</td>
+  <td>namespace_id + sharing_class</td>
+  <td>Namespace branch</td>
+  <td>private-tenant, private-project, public-system, explicit-share-group</td>
+  <td>Deduplication and authorization domain</td>
+  <td>This level fixes maximum CID/dedup scope.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td>Rank/peer branch</td>
+  <td>rank_id</td>
+  <td>Rank root delivered/wrapped to one rank</td>
+  <td>Authority-assigned rank identity</td>
+  <td>One rank within one namespace</td>
+  <td>Prevents cross-rank ciphertext reuse and partitions nonce state.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td>Epoch</td>
+  <td>epoch_id</td>
+  <td>Random epoch root or derived epoch branch</td>
+  <td>Monotonic or random unique epoch identifier</td>
+  <td>New writes for rank/namespace</td>
+  <td>Old epoch can be read-only during bounded migration; uncertain nonce state requires new epoch.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td>Purpose keys</td>
+  <td>purpose</td>
+  <td>K_enc, K_id, K_manifest, optional K_audit; optionally K_wrap</td>
+  <td>Literal versioned purpose labels</td>
+  <td>One cryptographic purpose</td>
+  <td>Never reuse AEAD key as HMAC/CID/manifest key.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td>Optional per-object DEK</td>
+  <td>object_id or random DEK id</td>
+  <td>Random DEK wrapped by K_wrap</td>
+  <td>One object or independently erasable group</td>
+  <td>Object/group</td>
+  <td>Needed only for fine-grained CE; increases metadata and key-record cost.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="derivation-wrapping-construction">Derivation/wrapping construction<a class="heading-anchor" href="#derivation-wrapping-construction" aria-label="Link to section">#</a></h2>
+<p>Two acceptable implementation families are:</p>
+<ol>
+<li><strong>Random child roots wrapped by parent KEKs.</strong> The KMS generates a random tenant/project/rank/epoch root and stores only a parent-wrapped blob plus policy metadata. This supports explicit destruction records and flexible reparenting.</li>
+<li><strong>Reviewed KDF branches.</strong> A root derivation key applies HKDF or an SP 800-108 construction with canonical versioned <code>Label</code> and <code>Context</code>. The context contains all hierarchy identifiers and cannot be influenced without authorization.</li>
+</ol>
+<p>A hybrid is common: random authority/tenant/project/epoch roots are wrapped in KMS, while short-lived rank/purpose keys are derived. Never derive keys directly from tenant names, passwords, public digests, paths, timestamps, or low-entropy rank numbers. Human credentials, if unavoidable for lower-layer unlock, use the selected platform KDF and parameters; they do not replace random data keys.</p>
+<p>Example context, encoded deterministically rather than concatenated ad hoc:</p>
+<pre><code class="language-text">label   = &quot;HaloKV/PFIR07/v1/purpose-key&quot;
+context = encode({
+  authority_id, tenant_id, project_id, prefix_id,
+  namespace_id, sharing_class, rank_id, epoch_id,
+  purpose, algorithm_suite, output_length
+})
+</code></pre>
+<p><span class="claim-label" data-claim="PFIR07-C038" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C038][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-108R1U1 §§4-5]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C046" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C046][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-133R2]</span></p>
+<h2 id="purpose-separation">Purpose separation<a class="heading-anchor" href="#purpose-separation" aria-label="Link to section">#</a></h2>
+<p>At minimum:</p>
+<ul>
+<li><code>K_enc</code>: object AEAD only.</li>
+<li><code>K_id</code>: private scoped content identifier only.</li>
+<li><code>K_manifest</code>: manifest MAC/AEAD or manifest signing-key wrap only.</li>
+<li><code>K_audit</code>: optional pseudonymous audit correlation, never object encryption.</li>
+<li><code>K_wrap</code>: optional per-object DEK wrapping key where independently scoped CE is required.</li>
+</ul>
+<p>Do not reuse the same bytes across these purposes, even if the underlying primitive accepts the key length. Include literal purpose and suite identifiers in the KDF/wrapping record.</p>
+<p><span class="claim-label" data-claim="PFIR07-C054" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C054][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C037-C040,C046]</span></p>
+<h2 id="key-records-and-authority-checks">Key records and authority checks<a class="heading-anchor" href="#key-records-and-authority-checks" aria-label="Link to section">#</a></h2>
+<p>Every key or wrapped-root record should contain:</p>
+<pre><code class="language-text">key_id, key_type, parent_key_id, authority_id, owner_id, custodian_policy,
+principal_scope, tenant_id, project_id, prefix_id, namespace_id, sharing_class,
+rank_id, epoch_id, purpose, suite, state, created_at, activates_at,
+deactivates_at, compromise_time, destroy_time, escrow_dependencies,
+backup_dependencies, wrapped_key_blob, wrapping_key_version, policy_hash
+</code></pre>
+<p>Before unwrapping or deriving, the broker verifies the caller identity, requested operation, exact context, key lifecycle state, and current revocation/epoch floor. A cache process cannot request a broader parent key and derive arbitrary tenants locally.</p>
+<h2 id="lifecycle-states">Lifecycle states<a class="heading-anchor" href="#lifecycle-states" aria-label="Link to section">#</a></h2>
+<p>Map local states to an explicit lifecycle: <code>PREACTIVE → ACTIVE → READ_ONLY/DEACTIVATED → COMPROMISED or DESTROY_PENDING → DESTROYED</code>. <code>READ_ONLY</code> is a HaloKV operational substate: old epoch decrypt may be allowed during bounded migration, while all writes use the new epoch. A compromised epoch is never returned for serving reads unless an incident evidence workflow explicitly reads ciphertext in quarantine without trusting it.</p>
+<p><span class="claim-label" data-claim="PFIR07-C040" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C040][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-57P1R5 §7]</span></p>
+<h2 id="rotation-scopes">Rotation scopes<a class="heading-anchor" href="#rotation-scopes" aria-label="Link to section">#</a></h2>
+<ul>
+<li>Credential rotation: replace passphrase/token/keyslot wrapper; payload key may be unchanged.</li>
+<li>Wrapping-key rotation: rewrap child roots without changing object ciphertext, when the hierarchy allows it.</li>
+<li>Epoch rotation: all new object writes use a fresh epoch AEAD key and nonce state.</li>
+<li>Data-key rotation: re-encrypt or recompute object payloads under a new <code>K_enc</code>/DEK.</li>
+<li>Authority-root rotation: controlled rewrap/reissue across all descendants; highest-risk operation.</li>
+</ul>
+<p>The runbook defaults to epoch rollover plus lazy cache recomputation, not bulk in-place transformation.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+{
+  "candidate_binaries_executed": false,
+  "checks": {
+    "applicability": {
+      "match": true,
+      "rows": 27
+    },
+    "boundary_reference": {
+      "cases": 27,
+      "match": true
+    },
+    "clean_reproduction": {
+      "count": 59,
+      "match": true
+    },
+    "dependency_lock": {
+      "match": true,
+      "third_party_packages": 0
+    },
+    "excluded_payload_absent": {
+      "match": true
+    },
+    "execution_boundary": {
+      "match": true
+    },
+    "fixture_manifest": {
+      "count": 144,
+      "match": true
+    },
+    "generated_asset_hashes": {
+      "count": 59,
+      "match": true
+    },
+    "gguf_structural": {
+      "good": 4,
+      "malformed": 6,
+      "match": true
+    },
+    "grammar_state_reference": {
+      "cases": 6,
+      "match": true
+    },
+    "json_syntax": {
+      "json_files": 21,
+      "jsonl_records": 94,
+      "match": true
+    },
+    "license_evidence": {
+      "match": true,
+      "records": 4
+    },
+    "schema_reference": {
+      "cases": 7,
+      "match": true
+    },
+    "source_range_evidence": {
+      "match": true,
+      "records": 18
+    },
+    "sse_reference": {
+      "cases": 5,
+      "match": true
+    },
+    "tokenizer_reference": {
+      "cases": 18,
+      "match": true
+    }
+  },
+  "errors": [],
+  "match": true,
+  "schema_version": 1
+}

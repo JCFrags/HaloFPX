@@ -1,0 +1,34 @@
+researched_on: '2026-07-17'
+repositories:
+- id: upstream
+  repository: ggml-org/llama.cpp
+  branch: master
+  commit: 86d86ed4396b4130922f7b9af26e3d9fc11a591b
+  url: https://github.com/ggml-org/llama.cpp
+  status: resolved
+- id: rocmfpx
+  repository: charlie12345/ROCmFPX
+  branch: main
+  commit: a5605a72768c6562241b248e268e33dc92787394
+  url: https://github.com/charlie12345/ROCmFPX
+  status: resolved public candidate
+- id: cachyllama-requested
+  repository: llama-ai/CachyLlama
+  url: https://github.com/llama-ai/CachyLlama
+  status: not resolved during research
+- id: cachyllama-candidate
+  repository: fewtarius/CachyLLama
+  branch: master
+  commit: 6be745998f568e379ea197fcf827baec73ff9940
+  url: https://github.com/fewtarius/CachyLLama
+  status: resolved public candidate; README identifies fewtarius/llama-ai as parent
+- id: integration
+  repository: null
+  branch: null
+  commit: null
+  url: null
+  status: must be supplied and pinned
+research_notes:
+- Fork pins are a research snapshot, not rolling branch names.
+- Confirm the CachyLLama repository alias before making it a release gate.
+- All source reuse must preserve upstream license and notices.

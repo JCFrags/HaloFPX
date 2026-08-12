@@ -1,0 +1,11 @@
+Mode,Inference behavior,Checkpoint behavior,Recovery,Single-node continuation
+NORMAL_STRICT,Two ranks generate,Commit at required durability,Exact/delta recovery,N/A
+PERSISTENCE_LAGGED,Continue with declared replay window or pause by policy,Refuse false durability; checkpoint may stop,Last valid checkpoint plus forced token replay,No
+AUTHORITY_UNAVAILABLE,Conservative pause; optional bounded current-lease work only,No new epoch or commit,Reconcile authority revision,No
+ONE_RANK_DOWN,Stop generation,Abort in-flight unless already committed,"Replace, rebuild, reconfigure, or reset",No unless full model and complete/rebuildable state on one node
+SHARED_STORE_UNAVAILABLE,Two-rank inference may continue,Only weaker/local durability if policy allows,Local exact reuse; later offload,No
+LOCAL_STORE_PRESSURE,Continue/shed/pause by policy,Throttle or deny snapshots,GC unreferenced; preserve committed refs,No
+TOPOLOGY_MISMATCH,Do not attach cache,Reject old topology commit/reuse,New generation rebuild or verified conversion,Conditional
+CORRUPTION_QUARANTINE,Stop affected session before use,Reject affected checkpoint/object,"Independent repair, older checkpoint + replay, or rebuild",No unless full one-node recovery succeeds
+CONTROL_PLANE_PARTITION,Only authority-leased side may act,Fenced side cannot commit,Reconcile via authority,No
+ASYNC_OFFLOAD_LAG,Normal two-rank inference,Advertise lower durability/watermark,Host loss may use older checkpoint/replay,No

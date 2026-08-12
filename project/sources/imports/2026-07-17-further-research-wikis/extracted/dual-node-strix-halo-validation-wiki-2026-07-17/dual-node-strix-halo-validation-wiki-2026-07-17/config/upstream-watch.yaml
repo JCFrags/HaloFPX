@@ -1,0 +1,419 @@
+schema_version: 1
+generated_on: '2026-07-17'
+defaults:
+  state_file: raw-data/upstream/watch-state.json
+  ledger_file: raw-data/upstream/events.jsonl
+  user_agent: dual-node-validation-upstream-watch/1.0
+  github_api: https://api.github.com
+classifiers:
+  P0:
+  - CVE
+  - critical
+  - actively exploited
+  - remote code execution
+  - data corruption
+  - silent corruption
+  - kernel oops
+  - GPU reset
+  P1:
+  - gfx1151
+  - Strix Halo
+  - Ryzen AI Max
+  - RPC
+  - USB4
+  - thunderbolt-net
+  - prompt cache
+  - KV cache
+  - hang
+  - OOM
+  - regression
+  P2:
+  - release
+  - compatibility
+  - profiler
+  - telemetry
+  - benchmark
+  - documentation
+sources:
+- id: WATCH-LLAMA-RELEASES
+  type: github_releases
+  repo: ggml-org/llama.cpp
+  freshness_class: runtime_releases
+  labels:
+  - runtime
+  - release
+  canaries:
+  - EXP-003
+  - EXP-004
+  - EXP-005
+  - EXP-006
+  - EXP-007
+  - EXP-008
+  - EXP-009
+  - EXP-015
+  - EXP-019
+- id: WATCH-LLAMA-SECURITY-ADVISORIES
+  type: web_hash
+  url: https://github.com/ggml-org/llama.cpp/security/advisories
+  freshness_class: security_critical
+  labels:
+  - security
+  - runtime
+  - llama.cpp
+  canaries:
+  - EXP-001
+  - EXP-015
+  - EXP-016
+  - EXP-017
+- id: WATCH-LLAMA-RPC-COMMITS
+  type: github_commits
+  repo: ggml-org/llama.cpp
+  path: tools/rpc
+  freshness_class: relevant_commits_and_issues
+  labels:
+  - runtime
+  - rpc
+  canaries:
+  - EXP-001
+  - EXP-002
+  - EXP-008
+  - EXP-009
+  - EXP-016
+  - EXP-017
+  - EXP-018
+  - EXP-019
+- id: WATCH-LLAMA-SERVER-COMMITS
+  type: github_commits
+  repo: ggml-org/llama.cpp
+  path: tools/server
+  freshness_class: relevant_commits_and_issues
+  labels:
+  - runtime
+  - server
+  - cache
+  canaries:
+  - EXP-004
+  - EXP-007
+  - EXP-008
+  - EXP-009
+  - EXP-011
+  - EXP-015
+- id: WATCH-LLAMA-ISSUES-STRIX
+  type: github_issue_search
+  query: repo:ggml-org/llama.cpp (gfx1151 OR "Strix Halo" OR "Ryzen AI Max" OR ROCm OR HIP) is:open
+  freshness_class: community_signal
+  labels:
+  - runtime
+  - gfx1151
+  canaries:
+  - EXP-005
+  - EXP-006
+  - EXP-012
+  - EXP-019
+- id: WATCH-LLAMA-ISSUES-RPC
+  type: github_issue_search
+  query: repo:ggml-org/llama.cpp (RPC OR remote) (hang OR crash OR regression OR performance OR cache) is:open
+  freshness_class: community_signal
+  labels:
+  - runtime
+  - rpc
+  canaries:
+  - EXP-007
+  - EXP-008
+  - EXP-009
+  - EXP-016
+  - EXP-017
+  - EXP-018
+- id: WATCH-ROCM-RELEASES
+  type: github_releases
+  repo: ROCm/ROCm
+  freshness_class: runtime_releases
+  labels:
+  - rocm
+  - release
+  canaries:
+  - EXP-001
+  - EXP-005
+  - EXP-006
+  - EXP-007
+  - EXP-012
+  - EXP-013
+  - EXP-019
+- id: WATCH-ROCM-SECURITY-ADVISORIES
+  type: web_hash
+  url: https://github.com/ROCm/ROCm/security/advisories
+  freshness_class: security_critical
+  labels:
+  - security
+  - rocm
+  canaries:
+  - EXP-001
+  - EXP-005
+  - EXP-006
+  - EXP-012
+  - EXP-019
+- id: WATCH-ROCM-ISSUES-GFX1151
+  type: github_issue_search
+  query: org:ROCm (gfx1151 OR "Strix Halo" OR "Ryzen AI Max") is:issue
+  freshness_class: relevant_commits_and_issues
+  labels:
+  - rocm
+  - gfx1151
+  canaries:
+  - EXP-005
+  - EXP-006
+  - EXP-012
+  - EXP-013
+  - EXP-019
+- id: WATCH-THEROCK-COMMITS
+  type: github_commits
+  repo: ROCm/TheRock
+  freshness_class: relevant_commits_and_issues
+  labels:
+  - rocm
+  - build
+  canaries:
+  - EXP-001
+  - EXP-005
+  - EXP-006
+  - EXP-019
+- id: WATCH-ROCM-SYSTEMS-COMMITS
+  type: github_commits
+  repo: ROCm/rocm-systems
+  freshness_class: relevant_commits_and_issues
+  labels:
+  - rocm
+  - telemetry
+  - profiler
+  canaries:
+  - EXP-012
+  - EXP-013
+- id: WATCH-ROCM-RELEASE-NOTES
+  type: web_hash
+  url: https://rocm.docs.amd.com/en/latest/about/release-notes.html
+  freshness_class: compatibility_docs
+  labels:
+  - rocm
+  - docs
+  canaries:
+  - EXP-001
+  - EXP-005
+  - EXP-006
+  - EXP-012
+  - EXP-019
+- id: WATCH-ROCM-COMPAT
+  type: web_hash
+  url: https://rocm.docs.amd.com/projects/radeon-ryzen/en/latest/docs/compatibility/compatibilityryz/native_linux/native_linux_compatibility.html
+  freshness_class: compatibility_docs
+  labels:
+  - rocm
+  - support
+  canaries:
+  - EXP-001
+  - EXP-005
+  - EXP-006
+  - EXP-019
+- id: WATCH-RDNA35-GUIDANCE
+  type: web_hash
+  url: https://rocm.docs.amd.com/en/latest/how-to/system-optimization/rdna3-5.html
+  freshness_class: compatibility_docs
+  labels:
+  - kernel
+  - gfx1151
+  canaries:
+  - EXP-001
+  - EXP-005
+  - EXP-006
+  - EXP-012
+  - EXP-019
+- id: WATCH-AMD-SECURITY
+  type: web_hash
+  url: https://www.amd.com/en/resources/product-security.html
+  freshness_class: security_critical
+  labels:
+  - security
+  - amd
+  canaries: []
+- id: WATCH-LINUX-AMDGPU
+  type: git_atom
+  url: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/atom/drivers/gpu/drm/amd
+  freshness_class: kernel_mesa_llvm
+  labels:
+  - kernel
+  - amdgpu
+  keywords:
+  - gfx1151
+  - Strix
+  - KFD
+  - amdgpu
+  - reset
+  - power
+  - thermal
+  canaries:
+  - EXP-005
+  - EXP-006
+  - EXP-012
+  - EXP-013
+  - EXP-019
+- id: WATCH-LINUX-FIRMWARE-AMDGPU
+  type: git_atom
+  url: https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/atom/amdgpu
+  freshness_class: kernel_mesa_llvm
+  labels:
+  - firmware
+  - amdgpu
+  keywords:
+  - Strix
+  - gfx1151
+  - gc_11
+  - dcn_3_5
+  - psp_14
+  - amdgpu
+  canaries:
+  - EXP-001
+  - EXP-005
+  - EXP-006
+  - EXP-012
+  - EXP-013
+  - EXP-019
+- id: WATCH-LINUX-THUNDERBOLT
+  type: git_atom
+  url: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/atom/drivers/thunderbolt
+  freshness_class: kernel_mesa_llvm
+  labels:
+  - kernel
+  - usb4
+  keywords:
+  - USB4
+  - thunderbolt
+  - net
+  - lane
+  - retimer
+  - reset
+  canaries:
+  - EXP-002
+  - EXP-007
+  - EXP-016
+  - EXP-018
+  - EXP-019
+- id: WATCH-MESA-RELEASE-NOTES
+  type: web_hash
+  url: https://docs.mesa3d.org/relnotes.html
+  freshness_class: kernel_mesa_llvm
+  labels:
+  - mesa
+  - radv
+  canaries:
+  - EXP-005
+  - EXP-006
+  - EXP-012
+  - EXP-019
+- id: WATCH-MESA-AMD-COMMITS
+  type: git_atom
+  url: https://gitlab.freedesktop.org/mesa/mesa/-/commits/main/src/amd?format=atom
+  freshness_class: kernel_mesa_llvm
+  labels:
+  - mesa
+  - radv
+  - amdgpu
+  keywords:
+  - gfx1151
+  - Strix Halo
+  - GFX11.5
+  - RDNA 3.5
+  - amdgpu
+  canaries:
+  - EXP-005
+  - EXP-006
+  - EXP-012
+  - EXP-019
+- id: WATCH-LLVM-AMDGPU-COMMITS
+  type: github_commits
+  repo: llvm/llvm-project
+  path: llvm/lib/Target/AMDGPU
+  freshness_class: kernel_mesa_llvm
+  labels:
+  - llvm
+  - amdgpu
+  keywords:
+  - gfx1151
+  - GFX11
+  - RDNA 3.5
+  - AMDGPU
+  canaries:
+  - EXP-005
+  - EXP-006
+  - EXP-015
+  - EXP-019
+- id: WATCH-VLLM-RELEASES
+  type: github_releases
+  repo: vllm-project/vllm
+  freshness_class: runtime_releases
+  enabled_when: vLLM is selected runtime or benchmark client
+  labels:
+  - runtime
+  - vllm
+  canaries:
+  - EXP-007
+  - EXP-008
+  - EXP-009
+  - EXP-015
+  - EXP-019
+- id: WATCH-PYTORCH-RELEASES
+  type: github_releases
+  repo: pytorch/pytorch
+  freshness_class: runtime_releases
+  enabled_when: PyTorch path is selected
+  labels:
+  - runtime
+  - pytorch
+  canaries:
+  - EXP-005
+  - EXP-006
+  - EXP-015
+  - EXP-019
+- id: WATCH-OEM-BIOS
+  type: manual_or_web_hash
+  url: null
+  freshness_class: oem_bios_firmware
+  required_configuration: exact OEM support/advisory URL for both node models
+  labels:
+  - firmware
+  - oem
+  canaries:
+  - EXP-001
+  - EXP-002
+  - EXP-012
+  - EXP-013
+  - EXP-019
+- id: WATCH-DISTRO-SECURITY
+  type: manual_or_web_hash
+  url: null
+  freshness_class: security_critical
+  required_configuration: exact security/advisory feed for the deployed Linux distribution and release
+  labels:
+  - security
+  - os
+  canaries:
+  - EXP-001
+  - EXP-015
+triage:
+  required_fields:
+  - event_id
+  - source_id
+  - immutable_id
+  - published_at
+  - discovered_at
+  - severity
+  - affected_layers
+  - owner
+  - decision
+  - canaries
+  decisions:
+  - block
+  - canary
+  - adopt
+  - defer
+  - not_applicable
+  - duplicate
+  security_rule: No automated adoption. P0/P1 events require human review and signed canary disposition.

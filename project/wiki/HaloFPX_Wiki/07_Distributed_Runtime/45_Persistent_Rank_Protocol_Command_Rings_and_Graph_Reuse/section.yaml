@@ -1,0 +1,21 @@
+section_id: "45"
+title: "Persistent Rank Protocol, Command Rings, and Graph Reuse"
+category_id: "07"
+category_title: "Distributed Runtime"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 9
+open_question_count: 10
+required_machine_experiments:
+  - "DR-45-E1 ring and protocol conformance"
+  - "DR-45-E2 allocation-free token path and graph reuse"
+  - "DR-45-E3 cancellation, timeout, and desynchronization"
+  - "DR-45-E4 depth, polling, and replay-window sweep"
+related_sections: ["32", "39", "42", "43", "44", "46", "48", "49", "53", "54", "73", "75", "78", "80"]
+applicability:
+  repositories:
+    - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  software_versions:
+    - "HIP documentation 7.2.53210"
+  hardware: "two matched Strix Halo nodes over dual USB4; exact revisions and transport mapping pending"

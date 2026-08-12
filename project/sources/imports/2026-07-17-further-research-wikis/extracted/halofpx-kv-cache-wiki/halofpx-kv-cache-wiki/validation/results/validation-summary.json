@@ -1,0 +1,428 @@
+{
+  "artifact": "HaloFPX persistent KV-cache validation",
+  "research_cut": "2026-07-17",
+  "all_passed": true,
+  "public_hit_emitted": false,
+  "artifacts": {
+    "legacy-checkpoint.json": {
+      "details": {
+        "checkpoint_id": 1,
+        "compatibility_hash": "0x1122334455667788",
+        "format": "cachyllama.kv_ssd_record/v3-lp64le",
+        "header_size": 16480,
+        "keyed_authentication_verified": false,
+        "n_tokens": 16,
+        "payload_integrity_verified": false,
+        "pos_max": 15,
+        "pos_min": 0,
+        "segment_sizes": {
+          "draft": 1024,
+          "speculative": 256,
+          "target": 8192
+        },
+        "slot_id": 4,
+        "token_count": 16,
+        "token_hash": "0x6d5774d4f30ce437",
+        "turn_created": 9,
+        "warning": "Outer format cannot detect same-length payload corruption; do not treat as trusted hit."
+      },
+      "eligible_for_engine_import": false,
+      "eligible_for_hit": false,
+      "path": "fixtures/cachyllama/valid/ckpt-1.bin",
+      "reason": "NO_PAYLOAD_INTEGRITY",
+      "status": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED"
+    },
+    "legacy-index.json": {
+      "details": {
+        "compatibility_hash": "0x1122334455667788",
+        "format": "cachyllama.kv_ssd_index/v3-lp64le",
+        "keyed_authentication_verified": false,
+        "next_id": 2,
+        "payload_integrity_verified": false
+      },
+      "eligible_for_engine_import": false,
+      "eligible_for_hit": false,
+      "path": "fixtures/cachyllama/valid/index.bin",
+      "reason": "NO_INDEX_AUTHENTICATION",
+      "status": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED"
+    },
+    "legacy-system.json": {
+      "details": {
+        "access_count": 3,
+        "compatibility_hash": "0x1122334455667788",
+        "created_at": 1700000000,
+        "data_size": 4096,
+        "format": "cachyllama.system/v1-lp64le",
+        "keyed_authentication_verified": false,
+        "last_used": 1700000100,
+        "n_tokens": 8,
+        "payload_integrity_verified": false,
+        "token_count": 8,
+        "token_hash": "596d5eff621ab3ad"
+      },
+      "eligible_for_engine_import": false,
+      "eligible_for_hit": false,
+      "path": "fixtures/cachyllama/valid/sys-596d5eff621ab3ad.bin",
+      "reason": "NO_PAYLOAD_INTEGRITY",
+      "status": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED"
+    },
+    "halofpx-catalog-entry.json": {
+      "details": {
+        "catalog_authentication": "hmac-sha256",
+        "manifest": {
+          "cache_key_sha256": "32b0cbb42c95bfa034207dd054f59e18eeb18f28d1004335335ec22005b7bfb0",
+          "catalog_auth": {
+            "key_id": "fixture/catalog-auth/1",
+            "mode": "hmac-sha256",
+            "tag_hex": "4fb5cb86a4efa10675f06f920ddccf94606181c25ef100fb7c4c9b389d9cc818"
+          },
+          "compatibility_fingerprint_sha256": "99ac70e19c8633f552e856ca1ecfa4a787e5e5a083c6f20c8166c90d9cbdc7e1",
+          "created_unix_ns": 1700000000000000000,
+          "encryption_policy": "none",
+          "engine_family": "llama.cpp",
+          "generation": 1,
+          "last_access_unix_ns": 1700000000000000000,
+          "namespace_id": "d9e904298dc620a3a501d98c0b0d4bb57abab26cf46b329bce900029a9a496aa",
+          "object_sha256": "f1c050f7ac8f13b354c79c2f7e0cac1b178aef9bb040a532deba1a722a072dd9",
+          "object_size": 74941,
+          "prompt_root_sha256": "fe62e9c359ac1776c2a8ebecd21f16342ee7e7925fadcfa813b25b7f527302aa",
+          "required_segments": [
+            "target"
+          ],
+          "schema": "halofpx.kv.manifest/v1",
+          "state": "committed",
+          "verified_prefix_tokens": 4096
+        },
+        "missing_current_request_bindings": [
+          "cache_key_sha256",
+          "compatibility_fingerprint_sha256",
+          "engine_family",
+          "namespace_id",
+          "prompt_root_sha256"
+        ],
+        "note": "The catalog entry is internally valid but cannot be offered to the engine until every current-request binding is supplied and matched.",
+        "object_path": "fixtures/halofpx/objects/sha256/f1/f1c050f7ac8f13b354c79c2f7e0cac1b178aef9bb040a532deba1a722a072dd9.hkv",
+        "object_sha256": "f1c050f7ac8f13b354c79c2f7e0cac1b178aef9bb040a532deba1a722a072dd9"
+      },
+      "eligible_for_engine_import": false,
+      "eligible_for_hit": false,
+      "path": "fixtures/halofpx/manifests/private/example.json",
+      "reason": "AUTHENTICATED_CATALOG_ENTRY_VALID_BUT_UNBOUND",
+      "status": "CATALOG_ENTRY_VALID"
+    },
+    "halofpx-manifest.json": {
+      "details": {
+        "catalog_authentication": "hmac-sha256",
+        "manifest": {
+          "cache_key_sha256": "32b0cbb42c95bfa034207dd054f59e18eeb18f28d1004335335ec22005b7bfb0",
+          "catalog_auth": {
+            "key_id": "fixture/catalog-auth/1",
+            "mode": "hmac-sha256",
+            "tag_hex": "4fb5cb86a4efa10675f06f920ddccf94606181c25ef100fb7c4c9b389d9cc818"
+          },
+          "compatibility_fingerprint_sha256": "99ac70e19c8633f552e856ca1ecfa4a787e5e5a083c6f20c8166c90d9cbdc7e1",
+          "created_unix_ns": 1700000000000000000,
+          "encryption_policy": "none",
+          "engine_family": "llama.cpp",
+          "generation": 1,
+          "last_access_unix_ns": 1700000000000000000,
+          "namespace_id": "d9e904298dc620a3a501d98c0b0d4bb57abab26cf46b329bce900029a9a496aa",
+          "object_sha256": "f1c050f7ac8f13b354c79c2f7e0cac1b178aef9bb040a532deba1a722a072dd9",
+          "object_size": 74941,
+          "prompt_root_sha256": "fe62e9c359ac1776c2a8ebecd21f16342ee7e7925fadcfa813b25b7f527302aa",
+          "required_segments": [
+            "target"
+          ],
+          "schema": "halofpx.kv.manifest/v1",
+          "state": "committed",
+          "verified_prefix_tokens": 4096
+        },
+        "note": "This is an import candidate, not a public hit. Transactional engine import must still succeed; any failure is MISS_RECOMPUTE.",
+        "object_path": "fixtures/halofpx/objects/sha256/f1/f1c050f7ac8f13b354c79c2f7e0cac1b178aef9bb040a532deba1a722a072dd9.hkv",
+        "object_sha256": "f1c050f7ac8f13b354c79c2f7e0cac1b178aef9bb040a532deba1a722a072dd9",
+        "verified_prefix_tokens": 4096
+      },
+      "eligible_for_engine_import": true,
+      "eligible_for_hit": false,
+      "path": "fixtures/halofpx/manifests/private/example.json",
+      "reason": "AUTHENTICATED_MANIFEST_OBJECT_AND_REQUEST_VERIFIED",
+      "status": "IMPORT_CANDIDATE_VALID"
+    },
+    "fault-injection.json": {
+      "all_passed": true,
+      "case_count": 18,
+      "cases": [
+        {
+          "case": "legacy_bad_magic",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "BAD_MAGIC",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "legacy_bad_version",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "UNSUPPORTED_VERSION",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "legacy_truncated_payload",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "LENGTH_MISMATCH",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "legacy_token_count_overflow",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "TOKEN_COUNT_OVERFLOW",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "legacy_length_inflated",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "OBJECT_TOO_LARGE",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "legacy_compatibility_mismatch",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "FINGERPRINT_MISMATCH",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "legacy_same_length_payload_bitflip",
+          "expected": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED (not hit eligible)",
+          "actual_status": "LEGACY_STRUCTURALLY_VALID_UNAUTHENTICATED",
+          "actual_reason": "NO_PAYLOAD_INTEGRITY",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": "Expected demonstration: the observed outer format has no payload digest."
+        },
+        {
+          "case": "halo_bad_magic",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "BAD_MAGIC",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "halo_bad_version",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "UNSUPPORTED_VERSION",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "halo_truncated_payload",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "LENGTH_MISMATCH",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "halo_metadata_bitflip",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "METADATA_DIGEST_MISMATCH",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "halo_same_length_payload_bitflip",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "PAYLOAD_DIGEST_MISMATCH",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "halo_length_inflated",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "LENGTH_MISMATCH",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "manifest_auth_key_unavailable",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "MANIFEST_AUTH_KEY_UNAVAILABLE",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "manifest_hmac_failure",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "MANIFEST_AUTH_FAILURE",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "manifest_object_alias",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "REFERENCED_OBJECT_INVALID",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "manifest_missing_required_segment",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "MISSING_REQUIRED_SEGMENT",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        },
+        {
+          "case": "manifest_cache_key_alias",
+          "expected": "MISS_RECOMPUTE",
+          "actual_status": "MISS_RECOMPUTE",
+          "actual_reason": "REFERENCED_OBJECT_INVALID",
+          "eligible_for_hit": false,
+          "eligible_for_engine_import": false,
+          "passed": true,
+          "note": ""
+        }
+      ]
+    },
+    "endurance-report.json": [
+      {
+        "scenario": "Light",
+        "state_gib_including_base": 4.0,
+        "optional_overhead_ratio": 0.0,
+        "checkpoints_per_day": 10.0,
+        "replicas": 1.0,
+        "host_gib_per_day": 40.0,
+        "host_tb_per_year": 15.676630630399998,
+        "modeled_nand_tb_per_year": 23.514945945599997,
+        "rated_tbw": 600.0,
+        "waf": 1.5,
+        "estimated_years_to_rated_tbw": 25.51568697576654
+      },
+      {
+        "scenario": "Moderate",
+        "state_gib_including_base": 4.0,
+        "optional_overhead_ratio": 0.0,
+        "checkpoints_per_day": 50.0,
+        "replicas": 1.0,
+        "host_gib_per_day": 200.0,
+        "host_tb_per_year": 78.383153152,
+        "modeled_nand_tb_per_year": 117.57472972800001,
+        "rated_tbw": 1200.0,
+        "waf": 1.5,
+        "estimated_years_to_rated_tbw": 10.206274790306614
+      },
+      {
+        "scenario": "Heavy",
+        "state_gib_including_base": 4.0,
+        "optional_overhead_ratio": 0.0,
+        "checkpoints_per_day": 200.0,
+        "replicas": 1.0,
+        "host_gib_per_day": 800.0,
+        "host_tb_per_year": 313.532612608,
+        "modeled_nand_tb_per_year": 533.0054414336,
+        "rated_tbw": 2400.0,
+        "waf": 1.7,
+        "estimated_years_to_rated_tbw": 4.5027682898411525
+      },
+      {
+        "scenario": "Long-context heavy",
+        "state_gib_including_base": 16.0,
+        "optional_overhead_ratio": 0.0,
+        "checkpoints_per_day": 100.0,
+        "replicas": 1.0,
+        "host_gib_per_day": 1600.0,
+        "host_tb_per_year": 627.065225216,
+        "modeled_nand_tb_per_year": 1254.130450432,
+        "rated_tbw": 2400.0,
+        "waf": 2.0,
+        "estimated_years_to_rated_tbw": 1.91367652318249
+      },
+      {
+        "scenario": "Target plus 20% optional state",
+        "state_gib_including_base": 4.0,
+        "optional_overhead_ratio": 0.2,
+        "checkpoints_per_day": 100.0,
+        "replicas": 1.0,
+        "host_gib_per_day": 480.0,
+        "host_tb_per_year": 188.1195675648,
+        "modeled_nand_tb_per_year": 300.99130810368,
+        "rated_tbw": 1200.0,
+        "waf": 1.6,
+        "estimated_years_to_rated_tbw": 3.986826089963521
+      },
+      {
+        "scenario": "Replicated cache",
+        "state_gib_including_base": 4.0,
+        "optional_overhead_ratio": 0.0,
+        "checkpoints_per_day": 50.0,
+        "replicas": 2.0,
+        "host_gib_per_day": 400.0,
+        "host_tb_per_year": 156.766306304,
+        "modeled_nand_tb_per_year": 235.14945945600002,
+        "rated_tbw": 2400.0,
+        "waf": 1.5,
+        "estimated_years_to_rated_tbw": 10.206274790306614
+      }
+    ]
+  },
+  "unit_tests": {
+    "passed": 9,
+    "output": "unit-tests.txt"
+  },
+  "fault_injection": {
+    "passed": true,
+    "case_count": 18,
+    "report_json": "fault-injection.json",
+    "report_markdown": "fault-injection.md"
+  }
+}

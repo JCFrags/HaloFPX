@@ -1,0 +1,13 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"answer\":42}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "object": "chat.completion"
+}

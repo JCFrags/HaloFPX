@@ -1,0 +1,33 @@
+report_id: PF-IR-09
+priority: P1
+access_date: 2026-07-18
+search_key:
+  oem_marketing_identity: "Nimo Direct MME3L"
+  board_identity: "NIMO Mini PC board v1.0"
+  bios:
+    measured_version: "3.05"
+    measured_date: "2025-10-11"
+  processor:
+    measured_name: "AMD Ryzen AI MAX+ 395"
+    family_name: "AMD Ryzen AI Max 300 Series"
+    codename: "Strix Halo"
+  graphics:
+    measured_gfx_target: "gfx1151"
+    pci_vendor_device: "1002:1586"
+    pci_revision: "c1"
+  storage:
+    marketing_name: "Crucial P310 1 TB"
+    measured_firmware: "VACR001"
+    candidate_official_part_number: "CT1000P310SSD2"
+  usb4:
+    measured_router_controller_identities: "[OPEN: not supplied in request payload]"
+identity_status:
+  exact_board_and_bios: "[MEASURED]"
+  cpu_family_mapping: "[EXPLICITLY_APPLIES]"
+  gfx1151_mapping: "[OFFICIAL]"
+  pci_1002_1586_rev_c1_to_retail_sku: "[OPEN]"
+  ssd_vacr001_to_public_firmware_package: "[OPEN]"
+  usb4_exact_vendor_device_mapping: "[OPEN: LOCAL_ID_REQUIRED]"
+notes:
+  - "Measured strings are search keys, not vendor-issued attestation."
+  - "No absence in this pack is interpreted as absence of errata, vulnerability, latent fault, or service risk."

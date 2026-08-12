@@ -1,0 +1,93 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dense vs MoE · 200–230 GB LLM Wiki</title><link rel="stylesheet" href="../assets/wiki.css"></head><body><div class="layout"><aside class="sidebar"><div class="brand">LLM Capacity Wiki</div><div class="snapshot">200–230 GB · snapshot 2026-07-17</div><input id="search" class="search" type="search" placeholder="Filter navigation"><nav class="nav"><div class="section">Research</div><a data-search="home" href="../index.html">Home</a><a data-search="ranked shortlist" href="../pages/Ranked-Shortlist.html">Ranked Shortlist</a><a data-search="candidate matrix" href="../pages/Candidate-Matrix.html">Candidate Matrix</a><a data-search="capacity planning" href="../pages/Capacity-Planning.html">Capacity Planning</a><a data-search="exact per-node budgets" href="../pages/Per-Node-Budgets.html">Exact Per-Node Budgets</a><a data-search="kv cache" href="../pages/KV-Cache-and-Buffers.html">KV Cache</a><a data-search="runtime support" href="../pages/Runtime-Support.html">Runtime Support</a><a data-search="quantization" href="../pages/Quantization-Comparison.html">Quantization</a><a data-search="provenance" href="../pages/Download-Provenance.html">Provenance</a><a data-search="quality evidence" href="../pages/Quality-Evidence.html">Quality Evidence</a><a data-search="strix halo" href="../pages/Strix-Halo-Open-Questions.html">Strix Halo</a><a data-search="methodology" href="../pages/Methodology.html">Methodology</a><a data-search="reproduction" href="../pages/Reproduction.html">Reproduction</a><a data-search="source index" href="../pages/Source-Index.html">Source Index</a><div class="section">Candidates</div><a data-search="qwen3-235b-a22b-instruct-2507" href="../candidates/qwen3-235b-a22b-2507.html">Qwen3-235B-A22B-Instruct-2507</a><a data-search="step-3.7-flash" href="../candidates/step-3.7-flash.html">Step-3.7-Flash</a><a data-search="mimo-v2-flash" href="../candidates/mimo-v2-flash.html">MiMo-V2-Flash</a><a data-search="glm-4.7" href="../candidates/glm-4.7.html">GLM-4.7</a><a data-search="llama-3.1-nemotron-ultra-253b-v1" href="../candidates/nemotron-ultra-253b.html">Llama-3.1-Nemotron-Ultra-253B-v1</a><a data-search="deepseek-r1-0528" href="../candidates/deepseek-r1-0528.html">DeepSeek-R1-0528</a><a data-search="llama-3.1-tulu-3-405b" href="../candidates/tulu3-405b.html">Llama-3.1-Tulu-3-405B</a><a data-search="minimax-m3" href="../candidates/minimax-m3.html">MiniMax-M3</a><a data-search="kimi-k2-thinking" href="../candidates/kimi-k2-thinking.html">Kimi-K2-Thinking</a><div class="section">Raw files</div><a data-search="data csv json" href="../data/candidates.csv">Candidate CSV</a><a data-search="capacity csv" href="../data/capacity_budgets.csv">Capacity CSV</a><a data-search="manifest provenance" href="../manifests/README.md">Manifests</a></nav></aside><main class="content"><h1>Dense vs MoE</h1>
+<h2>Resident memory</h2>
+<p>For inference in llama.cpp-style runtimes, <strong>all model weights normally remain resident</strong> whether the model is dense or sparse. MoE routing reduces the matrix multiplications performed per token; it does not reduce the weight artifact that must be loaded. Expert paging is not assumed in any capacity table.</p>
+<h2>Active compute</h2>
+<table>
+<thead>
+<tr>
+  <th>Candidate</th>
+  <th>Class</th>
+  <th>Resident B</th>
+  <th>Active B/token</th>
+  <th>Resident ÷ active</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Qwen3-235B-A22B-Instruct-2507</td>
+  <td>MoE</td>
+  <td>235</td>
+  <td>22</td>
+  <td>10.7×</td>
+</tr>
+<tr>
+  <td>Step-3.7-Flash</td>
+  <td>MoE + hybrid attention</td>
+  <td>198</td>
+  <td>11</td>
+  <td>18.0×</td>
+</tr>
+<tr>
+  <td>MiMo-V2-Flash</td>
+  <td>MoE + hybrid attention</td>
+  <td>309</td>
+  <td>15</td>
+  <td>20.6×</td>
+</tr>
+<tr>
+  <td>GLM-4.7</td>
+  <td>MoE</td>
+  <td>358</td>
+  <td>32</td>
+  <td>11.2×</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Nemotron-Ultra-253B-v1</td>
+  <td>Dense NAS-pruned</td>
+  <td>253</td>
+  <td>253</td>
+  <td>1.0×</td>
+</tr>
+<tr>
+  <td>DeepSeek-R1-0528</td>
+  <td>MoE + MLA</td>
+  <td>671</td>
+  <td>37</td>
+  <td>18.1×</td>
+</tr>
+<tr>
+  <td>Llama-3.1-Tulu-3-405B</td>
+  <td>Dense</td>
+  <td>405</td>
+  <td>405</td>
+  <td>1.0×</td>
+</tr>
+<tr>
+  <td>MiniMax-M3</td>
+  <td>MoE + MiniMax Sparse Attention</td>
+  <td>428</td>
+  <td>23</td>
+  <td>18.6×</td>
+</tr>
+<tr>
+  <td>Kimi-K2-Thinking</td>
+  <td>MoE</td>
+  <td>1000</td>
+  <td>32</td>
+  <td>31.2×</td>
+</tr>
+</tbody>
+</table>
+<p>Dense candidates provide a useful architecture-control baseline and avoid router/expert implementation risk, but their decode cost scales with every layer's full FFN. The 405B dense control has roughly 18× the active parameter count of Qwen3-235B-A22B even though both occupy the same storage band after quantization.</p>
+<h2>Expert activation details</h2>
+<ul>
+<li>Qwen: 128 routed experts, 8 active.</li>
+<li>Step: 288 routed experts, 8 active plus a shared expert on MoE layers.</li>
+<li>MiMo: model-card/config topology indicates sparse routing with approximately 15B active parameters.</li>
+<li>GLM: 160 routed experts, 8 active plus one shared expert; first three blocks are dense.</li>
+<li>DeepSeek R1: 256 routed experts, 8 active plus shared expert; first three blocks are dense.</li>
+<li>MiniMax M3: 128 experts, 4 active plus shared expert; support remains experimental.</li>
+</ul>
+<h2>Operational consequence</h2>
+<p>Sparse models are the logical first choice when decode throughput or power is constrained, but the only safe conclusion before measurement is <strong>lower active compute</strong>, not a tokens/second prediction. Kernel quality, memory bandwidth, router implementation, quant type, and interconnect still dominate realized performance.</p>
+<div class="footer">Snapshot 2026-07-17 · No model weights included · Performance claims require direct measurement.</div></main></div><script src="../assets/wiki.js"></script></body></html>

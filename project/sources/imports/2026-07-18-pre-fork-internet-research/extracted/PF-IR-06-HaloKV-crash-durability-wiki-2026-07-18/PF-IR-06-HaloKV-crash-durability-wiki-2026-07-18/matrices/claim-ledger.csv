@@ -1,0 +1,57 @@
+claim_id,label,claim,scope,sources,tests,disposition
+PF-IR-06-C001,UNKNOWN-DEPLOYMENT,The deployed cache filesystem and mount stack were not supplied; no filesystem-specific durability claim is made.,All,S001,T001,open deployment fact
+PF-IR-06-C002,A-CONSTRAINT,"Persistent mode targets a local Linux filesystem and block stack only. NFS, SMB/CIFS, FUSE, overlayfs, virtiofs and clustered filesystems require separate contracts.",All,S021;S026;S027,T001;T038,minimum profile
+PF-IR-06-C003,A-GUARANTEE,Same-filesystem rename can atomically replace a target name in the namespace.,Portable Linux,S021;S033,T020,source guarantee
+PF-IR-06-C004,A-CONSTRAINT,Namespace atomicity does not by itself establish crash-durable publication.,All,S020;S021,T017;T019,contract distinction
+PF-IR-06-C005,A-GUARANTEE,A successful file fsync/fdatasync does not necessarily persist the containing directory entry; synchronize the directory explicitly.,Portable Linux,S020,T017;T019,source guarantee
+PF-IR-06-C006,RECOMMENDATION,Use fdatasync for immutable payloads whose required metadata is limited to retrievability and size; use fsync when other inode metadata is part of the format contract.,All,S020;S017,T014;T019,design option
+PF-IR-06-C007,A-CONSTRAINT,Create the unpublished inode in the target directory/filesystem; cross-mount rename is rejected and cross-directory durability broadens the sync set.,All,S021;S022,T001;T002,minimum protocol
+PF-IR-06-C008,RECOMMENDATION,Prefer O_TMPFILE only after a runtime capability probe; retain a named O_CREAT|O_EXCL fallback.,Local Linux,S022;S034,T002;T003,optimization with fallback
+PF-IR-06-C009,A-CONSTRAINT,An object write is successful only when the accumulated result exactly equals the requested object length.,All,S023;S016,T004;T005;T006,minimum protocol
+PF-IR-06-C010,A-GUARANTEE,A positive write result may be short and must be followed by writes of the remaining range.,All,S023,T004,source guarantee
+PF-IR-06-C011,A-CONSTRAINT,A completed write or write CQE is not a persistence boundary.,All,S020;S012,T014;T019,minimum protocol
+PF-IR-06-C012,A-CONSTRAINT,A direct-I/O error can leave part of the requested region written and inconsistent; reject the object rather than infer all-or-none behavior.,DIO,S023,T025,source constraint
+PF-IR-06-C013,A-GUARANTEE,Buffered writeback errors and ENOSPC can surface at file synchronization rather than at the original write.,All,S020;S023,T011,source guarantee
+PF-IR-06-C014,A-CONSTRAINT,"fallocate is an optional space-management step, not a replacement for exact writes, validation, or synchronization.",All,S025;S007,T007,minimum protocol
+PF-IR-06-C015,A-CONSTRAINT,"ENOSPC or EDQUOT at create, allocation, write, file sync, namespace mutation, or directory sync fails the transaction and forbids acknowledgement.",All,S020;S021;S022;S025,T007;T008;T009,error policy
+PF-IR-06-C016,RECOMMENDATION,"Treat EIO as a root-level health event: stop acknowledgements, fence the writer, retain diagnostics, and require recovery/operator action.",All,S020;S023,T010;T011,fail-closed policy
+PF-IR-06-C017,A-CONSTRAINT,Do not retry close after an error; perform the decisive fsync/fdatasync first and record close errors diagnostically.,All,S029,T011,minimum protocol
+PF-IR-06-C018,RECOMMENDATION,Published cache objects are immutable; updates create a new inode and replace a name or manifest pointer.,HaloKV and tensor cache,S021;S028;S031,T020;T037,architecture decision
+PF-IR-06-C019,RECOMMENDATION,"Publication order is: create unpublished inode, exact write, validate, file sync, atomic publish, directory sync, then acknowledge.",All,S020;S021;S022,T012-T019,candidate contract
+PF-IR-06-C020,A-CONSTRAINT,Synchronize every directory whose entry set changed; prefer one parent directory to keep the durability boundary explicit.,All,S020,T017;T019,minimum protocol
+PF-IR-06-C021,RECOMMENDATION,"Avoid cross-directory publication. If unavoidable, synchronize both source and destination directories and test the precise operation.",All,S020;S021,T019,portable conservative rule
+PF-IR-06-C022,A-CONSTRAINT,"Overwrite policy permits atomic whole-inode replacement, not in-place mutation of a published object.",All,S021,T020,minimum protocol
+PF-IR-06-C023,A-CONSTRAINT,RENAME_EXCHANGE is atomic name exchange only; it does not eliminate file-sync or directory-sync requirements.,Linux,S021,T022,source plus inference
+PF-IR-06-C024,A-GUARANTEE,ext4 data=ordered orders associated data before the transaction metadata commit; delayed allocation remains enabled by default.,ext4,S002,T019;T038,filesystem profile
+PF-IR-06-C025,A-CONSTRAINT,ext4 auto_da_alloc is a compatibility heuristic for broken applications and is not the selected application durability primitive.,ext4,S002,T017;T019,filesystem caveat
+PF-IR-06-C026,RECOMMENDATION,Do not support ext4 data=writeback for persistent mode without a separately proven contract.,ext4,S002,T038,denylist
+PF-IR-06-C027,A-CONSTRAINT,ext4 data=journal disables delayed allocation and O_DIRECT; do not assume the normal DIO profile under that mount mode.,ext4,S002,T023;T038,filesystem constraint
+PF-IR-06-C028,RECOMMENDATION,Keep ext4 ordering barriers enabled and reject nobarrier unless the complete nonvolatile cache claim is independently proven and tested.,ext4,S002;S005,T038;T040,denylist
+PF-IR-06-C029,A-CONSTRAINT,XFS buffered writes use delayed allocation; explicit file and directory synchronization remains the baseline.,XFS,S003;S020,T007;T019,filesystem profile
+PF-IR-06-C030,RECOMMENDATION,XFS wsync may be evaluated as an optimization/HA option but is not part of the portable application contract.,XFS,S003,T038,filesystem optimization
+PF-IR-06-C031,A-CONSTRAINT,"Btrfs COW, snapshots, compression and reflink alter allocation and sharing behavior; immutable publication avoids mutable shared-extent assumptions.",Btrfs,S004;S028;S031,T037,filesystem hazard
+PF-IR-06-C032,A-CONSTRAINT,Btrfs nodatacow implies nodatasum and permits interrupted in-place updates to be partial; do not combine it with mutable published objects.,Btrfs,S031,T037;T038,filesystem hazard
+PF-IR-06-C033,TEST-REQUIRED,"Btrfs support is conditional on near-full data and metadata, snapshot, reflink, compression, and recovery tests on the deployed profile.",Btrfs,S031,T037,conditional support
+PF-IR-06-C034,A-CONSTRAINT,Discard/TRIM reclaims storage and can affect latency; it is neither a durability boundary nor a secure-erasure guarantee.,All,S003;S004;S031,T038,space-management rule
+PF-IR-06-C035,A-CONSTRAINT,Direct-I/O alignment must be queried with statx when available; never hard-code 4096 as a portable alignment.,DIO,S024,T023;T024,minimum DIO rule
+PF-IR-06-C036,RECOMMENDATION,"Do not mix buffered I/O, O_DIRECT, and writable mmap for one object; do not fork with in-flight DIO using private mappings.",DIO,S022;S024,T026,conservative rule
+PF-IR-06-C037,A-CONSTRAINT,An io_uring CQE proves only the submitted operation result; durability follows only from successful sync CQEs and the tested storage stack.,io_uring,S012;S017;S005,T019;T040,minimum uring rule
+PF-IR-06-C038,A-CONSTRAINT,"For writes, require CQE res to equal the submitted length; res > 0 but short is not a chain-breaking error.",io_uring,S012;S016,T004;T035,minimum uring rule
+PF-IR-06-C039,A-GUARANTEE,Registered files and pending requests hold kernel file references; closing the userspace descriptor does not cancel them.,io_uring,S013;S015;S009,T033,source guarantee
+PF-IR-06-C040,A-CONSTRAINT,"Registered-buffer updates/replacements can leave old resources alive after the update returns; tagged release CQEs identify terminal release. Explicit UNREGISTER_BUFFERS is documented synchronous, while ring-shutdown unpinning can complete asynchronously.",io_uring,S015;S009,T034,resource-lifetime rule
+PF-IR-06-C041,A-CONSTRAINT,"Cancellation is racy. Handle target and cancel CQEs in either order and accept completion, independent failure, -ECANCELED/-EINTR, -ENOENT, and -EALREADY as documented.",io_uring,S013;S008,T030;T031,cancellation rule
+PF-IR-06-C042,A-CONSTRAINT,Linked operations sequence execution but do not validate application-level success. Check every CQE and do not blindly link a potentially short write to fsync.,io_uring,S014;S016,T035,link rule
+PF-IR-06-C043,RECOMMENDATION,"Graceful teardown: stop submissions, cancel/drain outstanding requests, unregister resources, observe release tags, then queue_exit.",io_uring,S013;S015;S018,T036,lifecycle policy
+PF-IR-06-C044,RECOMMENDATION,"Encode operation kind, object generation, and slot generation in user_data; do not reuse state until all terminal CQEs are consumed.",io_uring,S012;S013;S015,T032;T034,late-CQE defense
+PF-IR-06-C045,A-GUARANTEE,Linux 7.1.3 implements IORING_OP_FSYNC via vfs_fsync_range and maps IORING_FSYNC_DATASYNC to the datasync argument.,io_uring,S006;S007,T019,kernel implementation fact
+PF-IR-06-C046,A-CONSTRAINT,"The final crash boundary depends on filesystem, block layer, device, firmware, RAID/dm/hypervisor and power-loss behavior honoring flush/FUA.",All,S005,T040,hardware boundary
+PF-IR-06-C047,RECOMMENDATION,Use exactly one writer process per cache root; give HaloKV and the RPC tensor cache separate roots and lock files.,Multiprocess,S026;S027,T027;T028,writer policy
+PF-IR-06-C048,A-CONSTRAINT,flock/OFD locks are advisory and released with the open-file-description lifetime; all participating writers must cooperate.,Multiprocess,S026;S027,T027;T028,locking semantics
+PF-IR-06-C049,A-CONSTRAINT,Classic process-associated fcntl locks can be dropped by closing any descriptor for the same file and are not the preferred writer fence.,Multiprocess,S027,T029,locking hazard
+PF-IR-06-C050,A-CONSTRAINT,"A local advisory lock is not durable fencing, lease arbitration, or a multi-host consensus mechanism.",Multiprocess,S026;S027,T001;T027,scope limit
+PF-IR-06-C051,RECOMMENDATION,"OPEN-FMT-01 should use an immutable self-describing object with magic, version, declared length, checksum/hash, object identity, and generation.",Format,S023,T039,decision option
+PF-IR-06-C052,RECOMMENDATION,"HaloKV and model-tensor cache share the primitive but retain separate format namespaces, roots, admission/eviction policy, and writer fences.",Architecture,S026;S027,T027;T039,decision option
+PF-IR-06-C053,A-CONSTRAINT,Do not report success to a caller until directory synchronization succeeds after publication.,All,S020,T018;T019,ack boundary
+PF-IR-06-C054,RECOMMENDATION,"Startup recovery validates object header, exact length and hash before making an object live; orphan temps and corrupt generations are quarantined or removed.",All,S023,T039,recovery policy
+PF-IR-06-C055,TEST-REQUIRED,"Record and enforce filesystem type, kernel, mount options, block topology, DIO alignment and O_TMPFILE support as a certified profile.",Deployment,S001;S002;S003;S031,T001;T002;T023;T038,profile gate
+PF-IR-06-C056,TEST-REQUIRED,Documentation selects candidate primitives; only the implementation and local kill/ENOSPC/EIO/power-cut matrix can establish the deployed contract.,All,S001-S037,T001-T040,no durability claim

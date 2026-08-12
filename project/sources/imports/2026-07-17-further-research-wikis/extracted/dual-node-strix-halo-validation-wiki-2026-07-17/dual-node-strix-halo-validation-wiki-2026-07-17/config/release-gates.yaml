@@ -1,0 +1,150 @@
+schema_version: 1
+decision_precedence:
+- INSUFFICIENT_EVIDENCE
+- FAIL
+- PASS_WITH_WAIVER
+- PASS
+nonwaivable:
+- synthetic_or_missing_machine_evidence
+- missing_matched_single_node_baseline
+- missing_or_unverified_provenance
+- silent_output_corruption
+- critical_correctness_failure
+- unexpected_crash_hang_reset_or_kernel_oops
+- security_boundary_violation
+- untriaged_critical_upstream_event
+stages:
+  G0:
+    name: Design ready
+    minimum_evidence_level: D0
+    authorized_outcome: DESIGN_COMPLETE
+    required_experiments: []
+  G1:
+    name: Lab ready
+    minimum_evidence_level: M1
+    authorized_outcome: LAB_READY
+    required_experiments:
+    - EXP-001
+  G2:
+    name: Integration exit
+    minimum_evidence_level: M2
+    authorized_outcome: INTEGRATION_EXIT_PASS
+    required_experiments:
+    - EXP-001
+    - EXP-002
+    - EXP-003
+    - EXP-004
+    - EXP-005
+    - EXP-006
+    - EXP-007
+    - EXP-015
+    - EXP-019
+  G3:
+    name: Release candidate
+    minimum_evidence_level: M2
+    authorized_outcome: RC_PASS
+    required_experiments:
+    - EXP-001
+    - EXP-002
+    - EXP-003
+    - EXP-004
+    - EXP-005
+    - EXP-006
+    - EXP-007
+    - EXP-008
+    - EXP-009
+    - EXP-010
+    - EXP-011
+    - EXP-012
+    - EXP-013
+    - EXP-014
+    - EXP-015
+    - EXP-016
+    - EXP-017
+    - EXP-018
+    - EXP-019
+    - EXP-020
+  G4:
+    name: Stable
+    minimum_evidence_level: R1
+    authorized_outcome: STABLE
+    required_experiments:
+    - EXP-001
+    - EXP-002
+    - EXP-003
+    - EXP-004
+    - EXP-005
+    - EXP-006
+    - EXP-007
+    - EXP-008
+    - EXP-009
+    - EXP-010
+    - EXP-011
+    - EXP-012
+    - EXP-013
+    - EXP-014
+    - EXP-015
+    - EXP-016
+    - EXP-017
+    - EXP-018
+    - EXP-019
+    - EXP-020
+global_stable:
+  evidence_origin: machine
+  provenance_completeness_min: 1.0
+  raw_hashes_verified: true
+  matched_topologies_required:
+  - node-a
+  - node-b
+  - dual
+  independent_reproduction_blocks_min: 2
+  absolute_slos_populated_and_approved: true
+  request_success_rate_min: 0.9999
+  critical_correctness_rate_min: 1.0
+  task_quality_drift_max: configured_per_suite
+  unexpected_crashes_max: 0
+  unexpected_hangs_max: 0
+  kernel_oops_max: 0
+  gpu_resets_max: 0
+  silent_corruption_max: 0
+  thermal_throttle_events_max: 0
+  normal_run_usb4_renegotiations_max: 0
+  soak_hours_min: 72
+  soak_evidence_gap_s_max: 60
+  mandatory_fault_repeats_min: 3
+  mandatory_fault_success_fraction_min: 1.0
+  upstream_sources_fresh: true
+  untriaged_p0_p1_blockers_max: 0
+  rpc_network_isolated: true
+  mandatory_fault_scenario_ids:
+  - F-NET-001
+  - F-NET-002
+  - F-NET-003
+  - F-NET-004
+  - F-PROC-001
+  - F-PROC-002
+  - F-PROC-003
+  - F-NODE-001
+  - F-STOR-001
+  - F-LOAD-001
+  - F-CANCEL-001
+profiles:
+  scale_out:
+    dual_goodput_over_best_single_min: 1.15
+    dual_p95_ttft_over_best_single_max: 1.1
+    dual_p95_itl_over_best_single_max: 1.1
+    dual_p99_ttft_over_best_single_max: 1.15
+    dual_p99_itl_over_best_single_max: 1.15
+    same_workload_fits_single_node: true
+  capacity_extension:
+    large_workload_documented_unsafe_or_impossible_on_single: true
+    large_workload_absolute_slos_met: true
+    minimum_memory_headroom_fraction: 0.1
+    matched_smaller_control_required: true
+    speedup_claim_permitted: false
+  availability_recovery:
+    fault_detection_s_max: from approved SUT SLO
+    service_recovery_s_max: from approved SUT SLO
+    silent_corruption_max: 0
+    lost_acknowledged_requests_max: 0
+    post_recovery_correctness_rate_min: 1.0

@@ -1,0 +1,51 @@
+# Illustrative HaloKV PF-IR-07 policy. Values are placeholders.
+profile_version: PFIR07-v1
+principal_authority: urn:example:authority:workload-identity
+key_authority: urn:example:kms:halokv
+
+object_crypto:
+  required: true
+  allowed_suites: [HKV1-A256GCM, HKV1-C20P]
+  tag_bits: 128
+  nonce_bits: 96
+  nonce_strategy: durable-counter-reservation
+  nonce_uncertainty_action: rotate-epoch
+  authenticate_before_decompress: true
+  failure_result: MISS_RECOMPUTE
+
+key_domains:
+  hierarchy: [authority, tenant, project, prefix, namespace-sharing, rank, epoch, purpose]
+  purposes: [encrypt, private-id, manifest, audit]
+  plaintext_keys_on_cache_media: forbidden
+  parent_roots_to_rank_process: forbidden
+
+identity:
+  immutable_ids_required: true
+  display_names_in_kdf: forbidden
+  rank_id_issuer: principal-authority
+
+sharing:
+  default_private_scope: private-project
+  cross_tenant_private_dedup: forbidden
+  public_system_namespace: urn:example:halokv:system-prefix
+  public_write_role: halokv-system-publisher
+
+storage_layers:
+  luks2_dmcrypt: recommended
+  fscrypt_v2: conditional
+  dm_integrity_authenticated_mode: evaluate-only
+  discard_default: false
+
+backup:
+  cache_content: disabled
+  approved_exception_requires_quarantine_restore: true
+
+freshness:
+  trusted_epoch_floor: required
+  manifest_generation_floor: required
+  stale_valid_object_result: MISS_RECOMPUTE
+
+deletion:
+  default_claim: logical-deletion
+  cryptographic_erase_requires_key_copy_inventory: true
+  discard_is_sanitization_evidence: false

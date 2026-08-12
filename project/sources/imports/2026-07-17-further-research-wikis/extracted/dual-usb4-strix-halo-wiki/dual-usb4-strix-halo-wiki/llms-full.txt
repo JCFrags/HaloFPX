@@ -1,0 +1,3532 @@
+# Dual-USB4 Strix Halo Transport Wiki — full LLM corpus
+Snapshot: 2026-07-17. Canonical paths are retained as source markers. Source-code facts are revision-pinned; target-hardware results must be measured.
+
+---
+
+<!-- source: README.md -->
+
+# Dual-USB4 Strix Halo Transport Wiki
+
+**Research snapshot:** 2026-07-17  
+**Validation:** passed with documented environment-only skips; see [VALIDATION.md](VALIDATION.md)  
+**Target:** two Linux nodes based on AMD Strix Halo / Ryzen AI Max, joined by two host-to-host USB4 cables  
+**Primary recommendation:** expose each cable as its own `thunderbolt-net` interface, place the links in different point-to-point subnets, prove controller and failure independence, and use Linux MPTCP for a single logical llama.cpp RPC connection. Use explicit two-socket striping for a custom runtime. Treat USB4STREAM as a Linux 7.2-era experimental raw transport, not shared memory.
+
+![Dual-link reference topology](diagrams/physical-topology.svg)
+
+## What is in this folder
+
+This repository is both a human-readable wiki and an LLM-ingestible evidence pack. It includes:
+
+- GitHub Wiki files: `Home.md`, `_Sidebar.md`, `_Footer.md`.
+- MkDocs files: `mkdocs.yml`, `docs/`, and `requirements-docs.txt`.
+- LLM discovery files: `llms.txt`, `llms-full.txt`, `AGENTS.md`, `data/claims.jsonl`, and `manifest.json`.
+- Reproducible Linux procedures, topology capture, MPTCP, bonding, performance, and proof scripts.
+- Mermaid, Graphviz, SVG, and PNG topology diagrams.
+- Machine-readable kernel, transport, source, and proof matrices.
+- An optional llama.cpp patch that makes MPTCP selection explicit through `GGML_RPC_MPTCP=1`.
+- An auditable [citation map](CITATIONS.md), [source snapshot](SOURCE-SNAPSHOT.md), and offline [validation procedure](VALIDATION.md).
+
+## Start here
+
+1. Read [Executive conclusions](docs/00-executive-conclusions.md).
+2. Run `sudo scripts/capture-topology.sh before` on both nodes.
+3. Configure two separate subnets with `scripts/configure-links.sh` and `scripts/configure-policy-routing.sh`.
+4. Establish per-link baselines and the simultaneous-throughput test in [Measurement and proof](docs/14-measurement-and-proof.md).
+5. Configure MPTCP with `scripts/configure-mptcp.sh` and verify two byte-carrying subflows.
+6. Run both sides of llama.cpp RPC through `mptcpize`, or apply the supplied native-MPTCP patch.
+
+## Bottom-line decisions
+
+| Requirement | Preferred mechanism | Reason |
+|---|---|---|
+| One llama.cpp RPC connection using both cables | MPTCP over two USB4NET subnets | Preserves one ordered stream while scheduling independent TCP subflows |
+| Custom runtime, maximum control | Two bound TCP sockets or two USB4STREAM devices with application striping | Explicit path ownership, queueing, integrity, and reassembly |
+| Link failover only | Bond `active-backup` or MPTCP backup subflow | Low reordering risk |
+| Many independent TCP flows | Policy routing, ECMP, or bond `balance-xor`/802.3ad | Flow hashing can spread sockets, but not one socket |
+| Shared memory across nodes | Not available through generic USB4 host-to-host links | USB4NET and USB4STREAM are DMA-backed transports, not coherent memory fabrics |
+| Raw upstream USB4 data plane | USB4STREAM on Linux 7.2+ | Character devices, 4 KiB tunneled frames, configurable rings; still copy-based at userspace ABI |
+
+## Scope warning
+
+AMD specifies two native USB4 40 Gbit/s ports for Ryzen AI Max+ 395, but that does **not** prove that a particular board exposes two independent Linux USB4 host controllers or two non-contending internal paths. Linux's firmware/ICM connection-manager path can also replace an existing same-peer XDomain when a second route appears within one USB4 domain. This wiki defines and tests several levels of independence rather than assuming it from the port count.
+
+## Build the web wiki
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements-docs.txt
+mkdocs serve
+```
+
+The Markdown files remain usable without MkDocs. Pre-rendered SVG and PNG diagrams are included. Run `scripts/validate-wiki.sh` for offline syntax, link, data, diagram, C-build, and dual-path loopback checks.
+
+## License
+
+Documentation and scripts are provided under the MIT License. Hardware behavior, firmware behavior, and performance remain platform-specific; validate all claims on the target nodes.
+
+---
+
+<!-- source: Home.md -->
+
+# Dual-USB4 Strix Halo Transport Wiki
+
+This is the GitHub Wiki entry point. The canonical content is under [`docs/`](docs/index.md).
+
+> **Preflight gate:** both cables must coexist as two USB4NET interfaces. Prefer a different `domainX` and NHI PCI BDF for each path on both nodes. In Linux's firmware/ICM connection-manager path, a second route to the same peer UUID within one USB4 domain can replace the first XDomain rather than create a concurrent path.
+
+## Recommended architecture
+
+```text
+Node A                                      Node B
+10.44.0.1/30 -- thunderbolt0 == cable 0 == thunderbolt0 -- 10.44.0.2/30
+10.44.1.1/30 -- thunderbolt1 == cable 1 == thunderbolt1 -- 10.44.1.2/30
+                         \____ one MPTCP connection ____/
+```
+
+Use the links as distinct Layer-3 paths. Do not put both USB4 interfaces in the same subnet unless there is a specific reason and a complete ARP/policy-routing design.
+
+## Navigation
+
+- [Executive conclusions](docs/00-executive-conclusions.md)
+- [Topology and enumeration](docs/02-topology-and-enumeration.md)
+- [Kernel prerequisites](docs/03-kernel-prerequisites.md)
+- [MPTCP procedure](docs/07-mptcp.md)
+- [llama.cpp RPC integration](docs/11-llama-cpp-rpc.md)
+- [Transport comparison](docs/12-transport-comparison.md)
+- [Measurement and proof](docs/14-measurement-and-proof.md)
+- [One-page runbook](docs/18-runbook.md)
+
+---
+
+<!-- source: _Sidebar.md -->
+
+### Dual-USB4 Wiki
+
+- [Home](Home.md)
+- [Conclusions](docs/00-executive-conclusions.md)
+- [Scope and terms](docs/01-scope-and-terms.md)
+- [Topology](docs/02-topology-and-enumeration.md)
+- [Kernel](docs/03-kernel-prerequisites.md)
+- [USB4NET](docs/04-usb4net-configuration.md)
+- [Routing](docs/05-routing-and-policy-routing.md)
+- [Bonding / ECMP](docs/06-bonding-and-ecmp.md)
+- [MPTCP](docs/07-mptcp.md)
+- [MTU / queues](docs/08-mtu-queues-offloads.md)
+- [CPU / NUMA](docs/09-cpu-and-numa.md)
+- [Security](docs/10-integrity-and-security.md)
+- [llama.cpp RPC](docs/11-llama-cpp-rpc.md)
+- [Transport matrix](docs/12-transport-comparison.md)
+- [USB4STREAM](docs/13-usb4stream-and-experimental.md)
+- [Proof](docs/14-measurement-and-proof.md)
+- [Troubleshooting](docs/15-troubleshooting.md)
+- [Custom runtime](docs/17-custom-runtime-design.md)
+- [Runbook](docs/18-runbook.md)
+- [References](docs/16-references.md)
+
+### Evidence
+
+- [Citation map](CITATIONS.md)
+- [Source snapshot](SOURCE-SNAPSHOT.md)
+- [Validation](VALIDATION.md)
+
+---
+
+<!-- source: _Footer.md -->
+
+Research snapshot 2026-07-17. Re-run the capture and proof procedures after kernel, firmware, BIOS, cable, or board changes.
+
+---
+
+<!-- source: AGENTS.md -->
+
+# Guidance for AI and automation agents
+
+## Authoritative interpretation
+
+The repository distinguishes evidence from inference:
+
+- **Upstream fact:** directly supported by Linux, AMD, MPTCP, rdma-core, or llama.cpp primary sources.
+- **Source-code fact:** derived from the cited implementation at the recorded revision.
+- **Platform observation:** valid only for the machine on which the capture was made.
+- **Engineering inference:** reasoned from source and measurements; must be validated on the target hardware.
+- **Heuristic:** a practical threshold, not a protocol requirement or formal standard.
+
+Do not infer controller independence merely from two ports, two cables, two IP addresses, or two `thunderboltN` interfaces. Before any multipath claim, require that both same-peer XDomains and netdevs remain present simultaneously. Linux 7.1's firmware/ICM connection-manager path removes an existing same-remote-UUID XDomain when that UUID appears at another route within the same USB4 domain; the software-CM object model is route keyed. The strongest available topology evidence is two different USB4 domains backed by two different NHI PCI functions on **each** node. End-to-end independence additionally requires failure isolation and concurrent throughput evidence.
+
+## Preferred answer hierarchy
+
+**Precondition:** apply the same-peer coexistence gate. If cable 2 replaces cable 1 inside one firmware-managed domain, stop and report that dual-link exposure is not available on that topology.
+
+1. Recommend two separate USB4NET subnets and MPTCP for one logical stream.
+2. Recommend explicit two-socket striping for a custom runtime.
+3. Recommend active-backup bonding only for simple failover.
+4. Explain that flow-hash bonding and ECMP distribute flows, not a single TCP connection.
+5. Label balance-rr, Soft-RoCE, USB4STREAM, and out-of-tree NHI transports experimental or workload-dependent.
+6. State that generic USB4 does not expose coherent shared memory between the hosts.
+
+## Temporal boundaries
+
+- Stable kernel observed at snapshot: Linux 7.1.3.
+- Mainline observed at snapshot: Linux 7.2-rc3.
+- USB4STREAM is present in the 7.2 development line, not Linux 7.1.
+- `thunderbolt-net` gained the current bonding-enabling MAC/link-setting hooks in Linux 7.0.
+- Re-check upstream sources after the snapshot date.
+
+## Machine-readable evidence
+
+Use `data/claims.jsonl`, `data/source-index.json`, and `data/kernel-feature-matrix.csv` before producing a summary. Use `scripts/capture-topology.sh` and `tools/verify_report.py` for target-specific conclusions.
+
+---
+
+<!-- source: CITATIONS.md -->
+
+# Citation map
+
+**Snapshot:** 2026-07-17. Claims are atomic retrieval units. Source-code claims are pinned to the revisions and blob IDs in [SOURCE-SNAPSHOT.md](SOURCE-SNAPSHOT.md).
+
+## Claims
+
+| ID | Kind | Confidence | Claim | Sources |
+|---|---|---|---|---|
+| C001 | upstream-fact | high | AMD Ryzen AI Max+ 395 advertises two native USB4 40 Gbit/s ports | [amd-395](https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html) |
+| C002 | upstream-fact | high | Linux creates one USB4NET virtual Ethernet interface per Thunderbolt port | [linux-usb4-guide](https://docs.kernel.org/admin-guide/thunderbolt.html) |
+| C003 | upstream-fact | high | Linux typically exposes one domain per USB4/Thunderbolt host controller | [linux-usb4-guide](https://docs.kernel.org/admin-guide/thunderbolt.html) |
+| C004 | source-code-fact | high | Linux 7.1 thunderbolt-net has one NAPI object and one TX/RX ring pair per netdev | [usb4net-7.1](https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/main.c) |
+| C005 | source-code-fact | high | Linux 7.1 thunderbolt-net advertises maximum MTU 65522 and splits into roughly 4 KiB frames | [usb4net-7.1](https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/main.c) |
+| C006 | source-code-fact | high | USB4STREAM is in the Linux 7.2 development line and absent from Linux 7.1 Kconfig | [usb4stream-mainline](https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/stream.c), [usb4-kconfig-mainline](https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/Kconfig) |
+| C007 | source-code-fact | high | USB4STREAM currently exposes copy-based read/write character devices, not remote shared memory | [usb4stream-mainline](https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/stream.c) |
+| C008 | upstream-fact | high | Flow-hash bonding does not spread one TCP connection; balance-rr can but risks reordering | [bonding](https://docs.kernel.org/networking/bonding.html) |
+| C009 | upstream-fact | high | MPTCP can aggregate interfaces under one logical connection and provide failover | [mptcp-doc](https://docs.kernel.org/networking/mptcp.html) |
+| C010 | engineering-inference | medium | The reference laminar endpoint design pairs the second local address with the second announced address | [mptcp-pm](https://www.mptcp.dev/pm.html) |
+| C011 | source-code-fact | high | Current llama.cpp RPC uses IPv4 TCP sockets and has no authentication/TLS | [llama-rpc-readme](https://github.com/ggml-org/llama.cpp/blob/master/tools/rpc/README.md), [llama-rpc-transport](https://github.com/ggml-org/llama.cpp/blob/master/ggml/src/ggml-rpc/transport.cpp), [llama-security](https://github.com/ggml-org/llama.cpp/blob/master/SECURITY.md) |
+| C012 | engineering-inference | high | Two --rpc endpoints to the same remote device are not a transparent multipath abstraction | [llama-rpc-readme](https://github.com/ggml-org/llama.cpp/blob/master/tools/rpc/README.md) |
+| C013 | upstream-fact | high | Soft-RoCE can be created over USB4NET but is software processing, not USB4 hardware RDMA | [rxe](https://github.com/linux-rdma/rdma-core/blob/master/Documentation/rxe.md) |
+| C014 | engineering-inference | high | Distinct domains and NHI BDFs are strong topology evidence but concurrent throughput is needed for end-to-end capacity independence | [linux-usb4-guide](https://docs.kernel.org/admin-guide/thunderbolt.html) |
+| C015 | heuristic | n/a | Aggregate >=1.7x best isolated and each path >=80% retained is a project heuristic, not a standard | Project-defined |
+| C016 | upstream-fact | high | MPTCP authenticates additional subflow joins and ADD_ADDR signaling to the existing connection with key-derived HMACs, but does not provide application peer identity or payload encryption | [rfc8684](https://www.rfc-editor.org/rfc/rfc8684.html) |
+| C017 | source-code-fact | high | Linux 7.1 software-CM XDomain scanning and control matching are route keyed, allowing distinct route objects within a domain at the object-model level | [software-cm-7.1](https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/tb.c), [xdomain-7.1](https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/xdomain.c) |
+| C018 | source-code-fact | high | Linux 7.1 firmware/ICM XDomain connect handling removes an existing same-remote-UUID XDomain when the UUID appears at a different route within the same USB4 domain | [icm-7.1](https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/icm.c) |
+| C019 | source-code-fact | high | Linux selects software CM when ACPI grants USB4 native control; otherwise it tries firmware/ICM first and falls back to software CM | [nhi-cm-select-7.1](https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/nhi.c) |
+| C020 | engineering-inference | high | Same-UUID lookup in the ICM path is scoped to one USB4 domain, so separate domainX/NHI instances avoid that same-domain replacement scope | [icm-7.1](https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/icm.c) |
+| C021 | upstream-fact | high | At the 2026-07-17 snapshot kernel.org lists Linux 7.1.3 as stable, 7.2-rc3 as mainline, and 6.18.38 as longterm | [kernel-releases](https://www.kernel.org/) |
+
+## Source catalog
+
+| Source ID | Type | Title |
+|---|---|---|
+| `kernel-releases` | primary | [Linux Kernel Archives](https://www.kernel.org/) |
+| `linux-usb4-guide` | primary | [USB4 and Thunderbolt — Linux documentation](https://docs.kernel.org/admin-guide/thunderbolt.html) |
+| `usb4net-7.1` | primary-source | [Linux 7.1 thunderbolt-net source](https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/main.c) |
+| `usb4net-kconfig` | primary-source | [Linux 7.1 USB4NET Kconfig](https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/Kconfig) |
+| `usb4stream-mainline` | primary-source | [Linux mainline USB4STREAM source](https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/stream.c) |
+| `usb4-kconfig-mainline` | primary-source | [Linux mainline USB4 Kconfig](https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/Kconfig) |
+| `mptcp-doc` | primary | [Linux MPTCP documentation](https://docs.kernel.org/networking/mptcp.html) |
+| `mptcp-pm` | primary-project | [MPTCP path-manager guide](https://www.mptcp.dev/pm.html) |
+| `mptcp-setup` | primary-project | [MPTCP application setup](https://www.mptcp.dev/setup.html) |
+| `rfc8684` | primary-standard | [RFC 8684 — Multipath TCP v1](https://www.rfc-editor.org/rfc/rfc8684.html) |
+| `bonding` | primary | [Linux Ethernet Bonding Driver HOWTO](https://docs.kernel.org/networking/bonding.html) |
+| `network-scaling` | primary | [Scaling in the Linux Networking Stack](https://docs.kernel.org/networking/scaling.html) |
+| `llama-rpc-readme` | primary | [llama.cpp RPC README](https://github.com/ggml-org/llama.cpp/blob/master/tools/rpc/README.md) |
+| `llama-rpc-transport` | primary-source | [llama.cpp RPC transport source](https://github.com/ggml-org/llama.cpp/blob/master/ggml/src/ggml-rpc/transport.cpp) |
+| `llama-security` | primary | [llama.cpp security policy](https://github.com/ggml-org/llama.cpp/blob/master/SECURITY.md) |
+| `amd-395` | primary-vendor | [AMD Ryzen AI Max+ 395](https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html) |
+| `rxe` | primary-project | [rdma-core RXE documentation](https://github.com/linux-rdma/rdma-core/blob/master/Documentation/rxe.md) |
+| `hellas-nhi` | field-research | [thunderbolt-ibverbs research series](https://blog.hellas.ai/blog/thunderbolt-ibverbs/4-thunderbolt-ibverbs/) |
+| `xdomain-7.1` | primary-source | [Linux 7.1 XDomain core source](https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/xdomain.c) |
+| `icm-7.1` | primary-source | [Linux 7.1 firmware/ICM connection-manager source](https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/icm.c) |
+| `software-cm-7.1` | primary-source | [Linux 7.1 software connection-manager source](https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/tb.c) |
+| `nhi-cm-select-7.1` | primary-source | [Linux 7.1 NHI connection-manager selection source](https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/nhi.c) |
+
+## Interpretation
+
+- **Upstream fact:** documented by a project, vendor, or standard body.
+- **Source-code fact:** observed in the pinned implementation and subject to later change.
+- **Engineering inference:** a reasoned conclusion that still requires target-platform validation.
+- **Heuristic:** a project acceptance threshold, not a protocol guarantee.
+
+See also: [source snapshot](SOURCE-SNAPSHOT.md) and [full references](docs/16-references.md).
+
+---
+
+<!-- source: SOURCE-SNAPSHOT.md -->
+
+# Source snapshot
+
+**Observed:** 2026-07-17. This file records the exact temporal and source-code boundary used by the wiki. Re-check current releases and source before deployment.
+
+## Release boundary
+
+| Item | Snapshot value |
+|---|---|
+| Linux stable | 7.1.3 |
+| Linux mainline | 7.2-rc3 |
+| Linux LTS used in compatibility matrix | 6.18.38 |
+| USB4NET bonding-enabling source boundary | Linux 7.0 |
+| USB4STREAM source boundary | Linux 7.2 development line; absent from upstream 7.1 Kconfig |
+| MPTCP `laminar` kernel boundary | Linux 6.18 plus matching iproute2 support |
+
+## Reviewed source objects
+
+| Project/ref | File | Blob SHA |
+|---|---|---|
+| Linux `v7.1` | `drivers/net/thunderbolt/main.c` | `7aae5d915a1ebc1c6ef6f686df3514cab796c009` |
+| Linux `v6.18` | `drivers/net/thunderbolt/main.c` | `dcaa62377808c290fa3103347f6089c942f04057` |
+| Linux `v7.1` | `drivers/thunderbolt/Kconfig` | `db3b0bef48f4c30be6b27e11a2ff9d1ba072c3fe` |
+| Linux `v7.1` | `drivers/net/thunderbolt/Kconfig` | `e127848c8cbd10cc4919e1041fddd3d190fd1166` |
+| Linux mainline | `drivers/thunderbolt/Kconfig` | `294b3227a54582536433cbb391057b99bb9df352` |
+| Linux mainline | `drivers/thunderbolt/stream.c` | `c1f5c55583d069c811d25df95f4e90136255d585` |
+| Linux mainline | `Documentation/admin-guide/thunderbolt.rst` | `91a6cb1099889175d5cff3aac16961228cc1da2e` |
+| Linux `v7.1` | `drivers/thunderbolt/xdomain.c` | `1fd1cf4295a2a58f307d2a6ed7d47899f962adc4` |
+| Linux `v7.1` | `drivers/thunderbolt/icm.c` | `9d95bf3ab44c103828dc8871115bcd2304df92ea` |
+| Linux `v7.1` | `drivers/thunderbolt/tb.c` | `c69c323e6952a36d98bb82f8d1c47f77fd25718e` |
+| Linux `v7.1` | `drivers/thunderbolt/nhi.c` | `2bb2e79ca3cb35df1565c35ad22c0f52a41454f9` |
+| llama.cpp `master` | `tools/rpc/README.md` | `655b65347e2dcde76cb630e75fcc9ecc6ed9cb34` |
+| llama.cpp `master` | `ggml/src/ggml-rpc/transport.cpp` | `a728152421f7dac44baefc582d713540398dabe4` |
+| llama.cpp `master` | `tools/rpc/rpc-server.cpp` | `08e680391415f24e7e3c6c547aa4b517e535840a` |
+
+Blob IDs identify reviewed file contents, not endorsement of a branch's later state. The complete URL list is in [References](docs/16-references.md) and the machine-readable index is `data/source-index.json`.
+
+---
+
+<!-- source: VALIDATION.md -->
+
+# Validation report
+
+**Validated:** 2026-07-17T19:25:02Z  
+**Result:** `passed-with-environmental-skips`
+
+Validation is generated for the packaged snapshot. See `scripts/validate-wiki.sh` for the executable checks and `data/validation-environment.json` for the machine-readable result.
+
+## Passed checks
+
+- Bash syntax for every script and shell example.
+- Python compilation with bytecode redirected outside the artifact tree.
+- JSON, JSONL, and CSV parsing through the offline self-test.
+- Relative Markdown link validation across the full wiki.
+- Graphviz regeneration of all included SVG and PNG diagrams.
+- `gcc -Wall -Wextra -Werror` build of `tools/mptcp_smoke.c`.
+- Parse and `git apply --check`/apply of the optional llama.cpp MPTCP patch against a fixture containing the exact old-line contexts reviewed in `transport.cpp` blob `a728152421f7dac44baefc582d713540398dabe4`.
+- Two-listener localhost execution of `tools/dual_path_copy.py` with a 2 MiB random payload, complete range coverage, and final SHA-256 equality.
+- `tools/tbstream_file.py` send/receive execution over a FIFO with a 2 MiB random payload and final SHA-256 equality.
+
+## Environmental skips and boundaries
+
+### MkDocs build
+
+`mkdocs` and MkDocs Material were not installed in the build container, so `mkdocs build --strict` was not executed. The dependency-pinned build instructions are in `requirements-docs.txt`; Markdown links, data files, Mermaid/Graphviz sources, and pre-rendered SVG/PNG diagrams were validated independently.
+
+### Native MPTCP runtime
+
+The MPTCP C program compiled cleanly. A runtime socket attempt on the build container's Linux `4.4.0` kernel failed with `socket(IPPROTO_MPTCP): Address family not supported by protocol`. This is an environment limitation, not a successful MPTCP transport test. Use Linux 5.6+ with MPTCP enabled; this wiki's deployment baseline is Linux 7.1.
+
+### Target hardware
+
+No Strix Halo hardware or physical USB4 links were available in the build environment. The folder therefore does **not** claim measured throughput, controller independence, or successful MPTCP subflow aggregation on a particular product. It supplies the capture scripts, measurement commands, and falsifiable proof criteria required to establish those facts on the target pair of nodes.
+
+## Re-run
+
+```bash
+cd dual-usb4-strix-halo-wiki
+scripts/validate-wiki.sh
+```
+
+For a full web-theme check after installing documentation dependencies:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements-docs.txt
+mkdocs build --strict
+```
+
+---
+
+<!-- source: docs/index.md -->
+
+# Dual-USB4 topology and transport research
+
+![Wiki logo](assets/logo.svg)
+
+This wiki answers a narrow systems question: **how can two host-to-host USB4 links between two Linux Strix Halo nodes be exposed, proven independent, and used concurrently by llama.cpp RPC or a custom runtime?**
+
+## Decision
+
+<div class="decision">
+First require two simultaneously present `thunderbolt-net` interfaces; if attaching cable 2 removes cable 1's XDomain, the topology fails before routing. Put the surviving links in separate /30 subnets. Prove that each maps to a separate XDomain and preferably a separate USB4 domain/NHI PCI function on both nodes. Use MPTCP for one ordered RPC byte stream. For a custom runtime, use two explicitly bound sockets and stripe framed chunks. Evaluate USB4STREAM only on Linux 7.2+ and only after establishing a USB4NET baseline.
+</div>
+
+## Why this design
+
+The Linux software connection manager discovers XDomains by route, but the firmware/ICM event path de-duplicates a remote UUID within one USB4 domain and replaces the old route. Separate `domainX`/NHI instances are therefore the most robust way to expose two same-peer links concurrently.
+
+A second physical cable does not automatically increase one TCP connection's throughput. Linux routing and common bond hash modes choose a path per flow. `balance-rr` can stripe packets but often creates harmful reordering. MPTCP instead presents one socket to the application while creating regular TCP subflows on both links, with sequence mapping and reinjection at the MPTCP layer.
+
+USB4STREAM removes the IP and Ethernet layers and exposes `/dev/tbstreamX`, but the current upstream implementation still copies between userspace and page-backed DMA rings. It is a raw byte stream without authentication, encryption, remote `mmap`, shared cache coherence, or a llama.cpp transport adapter.
+
+## Research boundaries
+
+- Snapshot date: **2026-07-17**.
+- Current stable kernel at snapshot: **7.1.3**.
+- Current mainline pre-release at snapshot: **7.2-rc3**.
+- Ryzen AI Max+ 395 advertises two native USB4 40 Gbit/s ports, but board topology and firmware determine what Linux actually exposes.
+- Performance numbers are intentionally not prescribed. Cable quality, firmware, IOMMU, power policy, kernel, board routing, CPU affinity, and workload materially affect results.
+
+## Fast navigation
+
+| Question | Page |
+|---|---|
+| Are the links genuinely independent? | [Topology](02-topology-and-enumeration.md) and [proof criteria](14-measurement-and-proof.md) |
+| Which kernel is required? | [Kernel prerequisites](03-kernel-prerequisites.md) |
+| How should addresses and routes be configured? | [USB4NET](04-usb4net-configuration.md) and [routing](05-routing-and-policy-routing.md) |
+| Bonding or MPTCP? | [Bonding and ECMP](06-bonding-and-ecmp.md), [MPTCP](07-mptcp.md) |
+| How does llama.cpp RPC behave? | [llama.cpp RPC](11-llama-cpp-rpc.md) |
+| Is shared memory possible? | [Experimental transports](13-usb4stream-and-experimental.md) |
+| Which commands prove both paths carry data? | [Measurement and proof](14-measurement-and-proof.md) |
+
+---
+
+<!-- source: docs/00-executive-conclusions.md -->
+
+# Executive conclusions
+
+## Recommended deployment
+
+```mermaid
+graph LR
+  A0[Node A 10.44.0.1] ---|USB4 cable 0| B0[Node B 10.44.0.2]
+  A1[Node A 10.44.1.1] ---|USB4 cable 1| B1[Node B 10.44.1.2]
+  APP[llama.cpp RPC socket] --> M[MPTCP]
+  M --> A0
+  M --> A1
+```
+
+1. Connect one cable at a time, then both. Require two simultaneously present XDomains and `thunderboltN` interfaces; prefer different `domainX` objects and NHI PCI BDFs on both hosts.
+2. Load `thunderbolt-net` if needed, then rename interfaces persistently or record their sysfs path. Interface numbers are discovery order, not physical identity.
+3. Assign separate point-to-point subnets. Avoid one shared subnet across both cables.
+4. Add source-specific policy tables and set reverse-path filtering to loose mode on the USB4 interfaces.
+5. Establish single-link baselines, then run two simultaneous source-bound flows.
+6. Configure MPTCP endpoints so the initial subflow is cable 0 and the announced/additional subflow is cable 1.
+7. Run both llama.cpp RPC endpoints through `mptcpize`, or use the optional source patch.
+8. Confirm two established subflows and byte movement on both netdevs. Unplug one cable and confirm continuity.
+
+## What “independent” must mean
+
+There are multiple useful but non-equivalent claims:
+
+| Claim | Minimum evidence |
+|---|---|
+| Interface independence | Two netdevs and two XDomain service paths |
+| Physical-link independence | Unplugging either cable leaves the other carrier and traffic intact |
+| Host-controller independence | Different `domainX` objects and different NHI PCI BDFs on both nodes |
+| Interrupt/queue independence | Distinct driver instances and observable IRQ/NAPI activity per link |
+| Performance independence | Simultaneous aggregate throughput is materially above the best isolated link and both links remain productive |
+| Application multipath | One MPTCP connection has at least two established, byte-carrying subflows with the intended address pairs |
+
+Two netdevs alone prove none of the stronger claims.
+
+## Transport verdicts
+
+### TCP over one USB4NET link
+
+The stable baseline. It is directly usable by llama.cpp RPC. It cannot aggregate one socket across both links.
+
+### Two ordinary TCP connections
+
+The best custom-runtime baseline. Bind one socket to each source address or device, frame data explicitly, stripe at chunk granularity, and reassemble by global offset. This is deterministic and observable.
+
+### MPTCP
+
+The preferred llama.cpp path. It retains one stream abstraction, permits bandwidth aggregation and failover, and can be introduced with `mptcpize` or a two-line socket-protocol change. The path manager, routing, and endpoint configuration must be explicit in a two-cable lab.
+
+### Linux bonding
+
+- `active-backup`: robust failover; no aggregation.
+- `balance-xor` or 802.3ad: useful for several concurrent flows; one flow remains on one member.
+- `balance-rr`: can stripe one flow, but reordering often reduces TCP performance.
+- Linux 7.0+ is the practical `thunderbolt-net` floor for current bonding support because the driver gained MAC and link-setting support there.
+
+### USB4STREAM
+
+An upstream raw character-device transport in Linux 7.2 development. It supports multiple streams and coexistence with USB4NET. The current implementation uses 4 KiB tunneled data frames, page-backed DMA rings, blocking/nonblocking I/O, and `poll`, but no `mmap` or zero-copy userspace interface. A custom runtime needs its own message framing, scheduling, reconnection, integrity, and security.
+
+### Shared-memory-like and RDMA approaches
+
+Generic host-to-host USB4 does not expose coherent memory. `memfd`, POSIX shared memory, `dma-buf`, and ROCm allocations are local to one kernel unless a separate transport copies or RDMA-writes data. Soft-RoCE can create a verbs device over USB4NET, but it is software processing over the same network path and should not be confused with hardware-offloaded or coherent shared memory.
+
+## Primary constraints
+
+- The firmware/ICM connection-manager path can replace an existing same-UUID XDomain when that peer appears at another route within one USB4 domain. Two connectors therefore do not guarantee two concurrent same-peer interfaces; separate domains/controllers are the robust topology.
+- The current `thunderbolt-net` driver has one NAPI instance and one TX/RX ring pair per interface; it is not an RSS-style multiqueue NIC.
+- Its advertised MTU range reaches 65522 bytes, while USB4NET internally fragments packets into roughly 4 KiB transport frames.
+- llama.cpp's RPC server is explicitly proof-of-concept/insecure, IPv4-only in the current transport implementation, and listens on loopback by default.
+- USB4 link CRC and TCP/MPTCP checksums are error detectors, not peer authentication or encryption.
+- Strix Halo systems may report one NUMA node. Measure PCI/IRQ/cache locality rather than inventing NUMA boundaries.
+
+---
+
+<!-- source: docs/01-scope-and-terms.md -->
+
+# Scope and terminology
+
+## Scope
+
+The reference setup is two Linux hosts with two direct, certified USB4/Thunderbolt-compatible cables between them. Each host is assumed to expose two USB4-capable receptacles. No switch, dock, or USB4 hub is required. The procedures remain valid when a hub is present, but a shared hub or upstream link weakens path independence.
+
+The workload is bulk and latency-sensitive tensor/RPC traffic rather than general Internet routing. Both hosts are under one administrator's control.
+
+## Linux object vocabulary
+
+**NHI** — Native Host Interface, the PCI-function-facing controller interface driven by the Linux `thunderbolt` subsystem.
+
+**Domain** — a Linux Thunderbolt/USB4 domain object, typically one per host controller. The domain includes a connection manager and router topology.
+
+**Router** — a USB4 router. A host router is the local controller; an XDomain represents a connected remote host.
+
+**XDomain** — a cross-domain host-to-host connection. Services such as USB4NET and USB4STREAM are advertised beneath it.
+
+**USB4NET / ThunderboltIP** — the host-to-host networking protocol exposed by Linux through `thunderbolt-net` as an Ethernet netdev.
+
+**USB4STREAM** — the Linux raw streaming protocol exposed by `thunderbolt-stream` through `/dev/tbstreamX`.
+
+**Path** — an end-to-end route defined by local interface, cable/USB4 fabric, remote interface, IP addressing, and transport subflow. A path is not the same thing as an IP route entry.
+
+**Subflow** — one regular TCP connection used as a component of an MPTCP connection.
+
+## Independence ladder
+
+![Proof ladder](../diagrams/proof-ladder.svg)
+
+### Level 0 — naming only
+
+Two ports or two cables exist. No software evidence.
+
+### Level 1 — interface separation
+
+Two `thunderboltN` netdevs remain present **simultaneously** and resolve to different service/XDomain sysfs paths. Attaching cable 2 must not remove or replace cable 1's XDomain.
+
+### Level 2 — controller separation
+
+The two paths resolve to different USB4 domains and different NHI PCI functions on each host. This is strong evidence that they do not share the same host-controller DMA engine or driver instance.
+
+### Level 3 — fault separation
+
+Unplugging, deauthorizing, or administratively lowering one path does not remove the other XDomain, carrier, route, or data transfer.
+
+### Level 4 — execution separation
+
+Traffic bound to link 0 changes only link-0 counters and its associated IRQ/NAPI activity; link 1 behaves similarly.
+
+### Level 5 — capacity separation
+
+Both links transfer concurrently and the aggregate is materially greater than the best isolated-link result. A shared memory controller, SoC interconnect, firmware policy, thermal limit, or CPU bottleneck can prevent ideal scaling even when controllers are distinct.
+
+### Level 6 — application multipath
+
+One logical MPTCP connection has at least two established subflows on the intended address pairs and both subflows carry payload bytes.
+
+## Evidence labels used in this wiki
+
+- **Upstream fact** — documented by a primary project.
+- **Source-code fact** — observed in a specific upstream implementation.
+- **Inference** — follows from documented behavior but should be tested.
+- **Heuristic** — an operational criterion chosen for this project.
+- **Platform observation** — machine-specific output; never generalized without corroboration.
+
+---
+
+<!-- source: docs/02-topology-and-enumeration.md -->
+
+# Topology and interface enumeration
+
+## Expected Linux exposure
+
+The upstream USB4 documentation states that Linux creates one virtual Ethernet interface per Thunderbolt/USB4 port for USB4NET. Typical names are `thunderbolt0`, `thunderbolt1`, and so on. The numeric suffix is assigned by discovery order and must not be treated as a stable physical-port label.
+
+AMD lists two native 40 Gbit/s USB4 ports for Ryzen AI Max+ 395. Some Strix Halo Linux systems have been observed with two AMD USB4 Host Router PCI functions, but a product's board layout, BIOS, firmware, retimers, and connector routing remain decisive. Capture the actual topology on both nodes.
+
+## Same peer over two cables: the connection-manager gate
+
+Linux has two relevant connection-manager paths, and they do not treat a second route to the same peer identically:
+
+- With the Linux software connection manager, XDomain discovery is initiated per route. The XDomain object name is derived from the local domain index and route, and incoming control traffic is matched by route.
+- In the firmware/ICM connection-manager path, an XDomain-connect event first searches the **current USB4 domain** by remote UUID. If the same UUID is already present at another route, the old XDomain is removed before the new one is added.
+- The lookup is scoped to one `struct tb` / `domainX`. Consequently, two separate NHI/controller domains avoid the same-domain UUID replacement case. They will usually also expose different local/remote domain UUIDs.
+
+This produces a hard preflight rule:
+
+> For a robust two-link deployment between the same two hosts, require two simultaneously present USB4NET interfaces and prefer two distinct `domainX` objects and NHI PCI BDFs on **both** hosts. A board with two connectors under one firmware-managed USB4 domain may expose only one route to the peer at a time.
+
+On USB4 systems where ACPI grants native control, the driver selects the Linux software connection manager. Otherwise it tries the firmware/ICM path first and only falls back to software control. There is no portable userspace knob that turns an arbitrary firmware-managed topology into two independent domains; board firmware and ACPI ownership are part of the topology.
+
+Useful evidence:
+
+```bash
+journalctl -k -b | grep -Ei 'thunderbolt|usb4|xdomain|ICM|native|connection manager'
+find /sys/bus/thunderbolt/devices -maxdepth 2 -type f \
+  \( -name unique_id -o -name security -o -name iommu_dma_protection \) \
+  -print -exec cat {} \;
+```
+
+If the second cable makes the first XDomain/netdev disappear, stop: the two paths are not concurrently exposed. Do not attempt bonding or MPTCP until this layer passes.
+
+## Capture first
+
+```bash
+sudo scripts/capture-topology.sh node-a-before
+sudo scripts/capture-topology.sh node-b-before
+```
+
+The script records kernel configuration, modules, netdev-to-sysfs mappings, USB4 domains and services, PCI topology, NUMA information, IRQs, routes, MPTCP state, and link counters.
+
+## Manual enumeration
+
+```bash
+uname -r
+ls -l /sys/bus/thunderbolt/devices
+ip -br link
+ip -br address
+ls -ld /sys/class/net/thunderbolt* 2>/dev/null
+
+for ifc in /sys/class/net/thunderbolt*; do
+    [ -e "$ifc" ] || continue
+    i=${ifc##*/}
+    printf '\n### %s\n' "$i"
+    readlink -f "$ifc/device"
+    udevadm info -q path -p "$ifc"
+    ethtool -i "$i" || true
+    ethtool "$i" || true
+    ethtool -k "$i" || true
+    ethtool -l "$i" || true
+    ip -s -d link show dev "$i"
+done
+```
+
+## Map each netdev to an XDomain, domain, and PCI function
+
+A typical path resembles:
+
+```text
+/sys/devices/pci0000:00/.../0000:c8:00.5/domain0/0-0/0-1/0-1.0/net/thunderbolt0
+```
+
+Interpretation:
+
+- `0000:c8:00.5` — candidate NHI PCI function.
+- `domain0` — USB4 domain.
+- `0-1` — remote XDomain/router.
+- `0-1.0` — service instance used by `thunderbolt-net`.
+- `thunderbolt0` — Ethernet interface.
+
+Use real paths rather than assuming this exact layout:
+
+```bash
+for i in thunderbolt0 thunderbolt1; do
+    p=$(readlink -f /sys/class/net/$i/device)
+    echo "$i -> $p"
+    echo "$p" | grep -oE 'domain[0-9]+' | tail -1
+    echo "$p" | grep -oE '[0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]' | tail -1
+ done
+```
+
+Confirm the PCI functions and hierarchy:
+
+```bash
+lspci -Dnnk | grep -A4 -Ei 'USB4|Thunderbolt|Host Router'
+lspci -tv
+for bdf in 0000:c8:00.5 0000:c8:00.6; do
+    [ -e /sys/bus/pci/devices/$bdf ] || continue
+    printf '%s numa_node=' "$bdf"
+    cat /sys/bus/pci/devices/$bdf/numa_node
+    readlink -f /sys/bus/pci/devices/$bdf/iommu_group || true
+done
+```
+
+## Link speed and lane evidence
+
+The Thunderbolt sysfs ABI can expose `rx_speed`, `tx_speed`, `rx_lanes`, and `tx_lanes` on applicable router/XDomain objects. Record all candidates because exact placement can vary:
+
+```bash
+find /sys/bus/thunderbolt/devices -maxdepth 3 -type f \
+  \( -name rx_speed -o -name tx_speed -o -name rx_lanes -o -name tx_lanes \
+     -o -name link_speed -o -name link_width \) \
+  -print -exec cat {} \;
+```
+
+`ethtool thunderboltN` on Linux 7.0+ can report the driver's view of aggregate link speed and duplex. Treat this as negotiated-link evidence, not a guarantee of TCP throughput.
+
+## Stable naming
+
+Use a udev rule based on the service device path or a systemd `.link` file. Avoid rules based only on the generated MAC address until it is confirmed stable across kernel/firmware updates.
+
+Example inspection:
+
+```bash
+udevadm info --attribute-walk /sys/class/net/thunderbolt0
+udevadm test-builtin net_id /sys/class/net/thunderbolt0 2>&1 | less
+```
+
+The supplied scripts accept arbitrary interface names, so persistent renaming is optional. At minimum, save the path-to-cable mapping in the topology capture.
+
+## Physical port mapping procedure
+
+1. Disconnect both cables.
+2. Capture the empty topology.
+3. Connect only cable 0 to the intended connector pair.
+4. Record the new XDomain, service, netdev, domain, PCI BDF, and lane/speed attributes.
+5. Disconnect cable 0 and verify removal.
+6. Repeat for cable 1.
+7. Connect both and verify both objects coexist.
+
+This procedure is more reliable than connector labels or interface numbering.
+
+## Signs of shared topology
+
+- Both netdev paths contain the same `domainX` and same PCI BDF.
+- Both cables traverse one USB4 hub or dock with one upstream link.
+- Unplugging one cable removes or resets both interfaces.
+- Simultaneous traffic is capped near one isolated-link result while neither CPU nor memory bandwidth is saturated.
+- IRQ and counter activity for both interfaces maps to one shared controller context.
+
+A shared domain does not make dual-link use impossible; it means the correct claim is “two physical links under one host controller,” not “two independent host-controller paths.”
+
+---
+
+<!-- source: docs/03-kernel-prerequisites.md -->
+
+# Current kernel prerequisites
+
+## Snapshot versions
+
+As of 2026-07-17, kernel.org listed Linux 7.1.3 as the current stable release, Linux 7.2-rc3 as mainline, and Linux 6.18.38 as a long-term release.
+
+| Kernel line | USB4NET | MPTCP | Bonding status for `thunderbolt-net` | USB4STREAM | Recommendation |
+|---|---:|---:|---|---:|---|
+| 6.18 LTS | Yes | Yes; includes `laminar` endpoint support | Driver predates the Linux 7.0 MAC/link-setting additions; active-backup may work, aggregation modes need case-by-case validation | No | Viable USB4NET+MPTCP baseline when 7.x is unavailable |
+| 7.0 | Yes | Yes | Added live MAC-change and link-setting support intended to allow bonding; 7.0 is EOL at snapshot | No | Feature boundary, not a deployment target |
+| 7.1.3 stable | Yes | Yes | Current improved bonding hooks | No | Recommended stable USB4NET+MPTCP baseline |
+| 7.2-rc3 mainline | Yes | Yes | Current | Yes, `thunderbolt-stream` | Experimental USB4STREAM evaluation only |
+
+## Same-peer dual-link prerequisite
+
+Kernel version alone cannot create two independent links. Before transport configuration, verify that both cables coexist as separate XDomains/netdevs. Linux 7.1 source shows a material connection-manager distinction: software-CM scanning is route keyed, whereas the firmware/ICM event path replaces an existing same-UUID XDomain at another route within the same USB4 domain. Two distinct `domainX`/NHI instances on both nodes are therefore the preferred hardware prerequisite.
+
+USB4-native ACPI ownership selects the software CM; otherwise Linux probes firmware/ICM first. Treat connection-manager ownership as firmware/platform state, not a tunable promised by `CONFIG_USB4`.
+
+## Required kernel configuration
+
+### USB4NET path
+
+```text
+CONFIG_PCI=y
+CONFIG_USB4=y or m
+CONFIG_INET=y
+CONFIG_USB4_NET=y or m
+```
+
+The module names are `thunderbolt` and `thunderbolt_net` (`modprobe` also accepts hyphenated spelling).
+
+### MPTCP path
+
+```text
+CONFIG_MPTCP=y
+CONFIG_INET_MPTCP_DIAG=y       # strongly recommended for ss diagnostics
+CONFIG_MPTCP_IPV6=y            # optional; llama.cpp RPC transport is currently IPv4-only
+CONFIG_IP_ROUTE_MULTIPATH=y    # only needed for ECMP experiments
+```
+
+### Bonding and CPU steering
+
+```text
+CONFIG_BONDING=y or m
+CONFIG_RPS=y
+CONFIG_XPS=y
+```
+
+### USB4STREAM path
+
+```text
+CONFIG_USB4=y or m
+CONFIG_CONFIGFS_FS=y or m
+CONFIG_USB4_CONFIGFS=y or m
+CONFIG_USB4_STREAM=y or m
+```
+
+`CONFIG_USB4_STREAM` builds the `thunderbolt_stream` module. It is absent from Linux 7.1's upstream Kconfig and appears in the Linux 7.2 development tree.
+
+## Verify a running distribution kernel
+
+```bash
+cfg=/boot/config-$(uname -r)
+if [ ! -r "$cfg" ] && [ -r /proc/config.gz ]; then
+    zcat /proc/config.gz > /tmp/kernel.config
+    cfg=/tmp/kernel.config
+fi
+
+grep -E '^(CONFIG_(USB4|USB4_NET|USB4_CONFIGFS|USB4_STREAM|CONFIGFS_FS|MPTCP|MPTCP_IPV6|INET_MPTCP_DIAG|BONDING|RPS|XPS|IP_ROUTE_MULTIPATH))=' "$cfg"
+```
+
+Module checks:
+
+```bash
+modinfo thunderbolt
+modinfo thunderbolt_net
+modprobe thunderbolt_net
+lsmod | grep -E '^thunderbolt(_net|_stream)?\b'
+
+# Linux 7.2+ stream experiment
+modinfo thunderbolt_stream
+mountpoint /sys/kernel/config || sudo mount -t configfs none /sys/kernel/config
+```
+
+## Userspace prerequisites
+
+Minimum useful tools:
+
+```text
+iproute2 with `ip mptcp`
+ethtool
+pciutils
+udev
+iperf3
+iputils-ping
+nftables
+util-linux (lscpu, taskset)
+numactl
+sysstat (mpstat, pidstat)
+perf
+tcpdump
+jq
+mptcpize / mptcpd package where available
+```
+
+Check versions:
+
+```bash
+ip -Version
+ip mptcp help 2>&1 | grep -E 'endpoint|laminar'
+ss -V
+iperf3 --version
+ethtool --version
+```
+
+BusyBox `ip` is not sufficient for MPTCP endpoint management. The reference pairing also requires an iproute2 build that recognizes the Linux 6.18-era `laminar` endpoint flag; the setup script fails closed when it is absent.
+
+## Firmware and BIOS prerequisites
+
+- Install current OEM BIOS, USB4 firmware, retimer firmware, and Linux firmware packages.
+- Check `fwupdmgr get-devices` and `fwupdmgr get-updates` where supported.
+- Prefer an IOMMU-enabled configuration.
+- For a dedicated host-to-host data fabric, a BIOS `nopcie` or USB-only security policy is preferable when it still permits XDomain host networking.
+- Disable aggressive USB4/PCI runtime power management only as a controlled diagnostic; do not make it the first tuning step.
+
+## Compatibility gate
+
+Before performance work, require all of the following:
+
+```bash
+# two netdevs
+ls /sys/class/net/thunderbolt0 /sys/class/net/thunderbolt1
+
+# expected modules
+lsmod | grep thunderbolt
+
+# MPTCP available
+sysctl net.mptcp.enabled 2>/dev/null || true
+ip mptcp limits
+
+# no obvious controller faults
+dmesg --level=err,warn | grep -Ei 'thunderbolt|usb4|nhi|iommu|pcie' || true
+```
+
+A distro backport may make feature availability differ from the nominal upstream version. Source and runtime capability checks take precedence over version-number assumptions.
+
+---
+
+<!-- source: docs/04-usb4net-configuration.md -->
+
+# USB4NET configuration
+
+## Load and discover
+
+```bash
+sudo modprobe thunderbolt_net
+ip -br link | grep -E 'thunderbolt|tb[01]'
+```
+
+Linux-to-Linux host networking is created through XDomain service discovery. It may take several seconds after cable insertion. Watch both the kernel and udev streams:
+
+```bash
+sudo dmesg -wH | grep -Ei 'thunderbolt|usb4|xdomain|nhi'
+sudo udevadm monitor --kernel --udev --subsystem-match=thunderbolt --subsystem-match=net
+```
+
+## Reference address plan
+
+| Path | Node A | Node B | Subnet |
+|---|---|---|---|
+| Cable 0 | `10.44.0.1/30` | `10.44.0.2/30` | `10.44.0.0/30` |
+| Cable 1 | `10.44.1.1/30` | `10.44.1.2/30` | `10.44.1.0/30` |
+
+Use different subnets. This produces deterministic connected routes and avoids ARP flux.
+
+## Scripted setup
+
+On node A:
+
+```bash
+sudo ROLE=A IF0=thunderbolt0 IF1=thunderbolt1 MTU=9000 \
+  scripts/configure-links.sh
+sudo ROLE=A IF0=thunderbolt0 IF1=thunderbolt1 \
+  scripts/configure-policy-routing.sh
+```
+
+On node B:
+
+```bash
+sudo ROLE=B IF0=thunderbolt0 IF1=thunderbolt1 MTU=9000 \
+  scripts/configure-links.sh
+sudo ROLE=B IF0=thunderbolt0 IF1=thunderbolt1 \
+  scripts/configure-policy-routing.sh
+```
+
+The scripts use `ip address replace` and do not flush unrelated addresses. Inspect with `DRY_RUN=1` first.
+
+## Manual setup
+
+Node A:
+
+```bash
+sudo ip link set thunderbolt0 up mtu 9000
+sudo ip link set thunderbolt1 up mtu 9000
+sudo ip address replace 10.44.0.1/30 dev thunderbolt0
+sudo ip address replace 10.44.1.1/30 dev thunderbolt1
+```
+
+Node B:
+
+```bash
+sudo ip link set thunderbolt0 up mtu 9000
+sudo ip link set thunderbolt1 up mtu 9000
+sudo ip address replace 10.44.0.2/30 dev thunderbolt0
+sudo ip address replace 10.44.1.2/30 dev thunderbolt1
+```
+
+Test each path explicitly:
+
+```bash
+# Node A
+ping -I 10.44.0.1 -c 5 10.44.0.2
+ping -I 10.44.1.1 -c 5 10.44.1.2
+ip route get 10.44.0.2 from 10.44.0.1
+ip route get 10.44.1.2 from 10.44.1.1
+```
+
+## Network manager ownership
+
+Do not let two management systems race over the same interface. Choose one:
+
+### NetworkManager manual/unmanaged mode
+
+```bash
+sudo nmcli device set thunderbolt0 managed no
+sudo nmcli device set thunderbolt1 managed no
+```
+
+Or create explicit NetworkManager profiles with manual IPv4 addresses and no default route.
+
+### systemd-networkd
+
+Samples for both nodes are in `configs/networkd/`. Copy the files after substituting persistent interface names, then:
+
+```bash
+sudo systemctl enable --now systemd-networkd
+networkctl status thunderbolt0
+```
+
+## Link health
+
+```bash
+for i in thunderbolt0 thunderbolt1; do
+  ethtool "$i" || true
+  ip -s link show dev "$i"
+  cat /sys/class/net/$i/carrier
+  cat /sys/class/net/$i/operstate
+done
+```
+
+Capture counters before and after every test. `thunderbolt-net` exposes standard netdev error counters, including receive CRC errors accumulated by the driver.
+
+## MTU selection
+
+Start at 1500 for correctness, then test 9000 and larger values. Both ends of one path must match. The upstream driver permits a maximum MTU of 65522, but large IP packets are still divided into approximately 4 KiB USB4NET transport frames internally.
+
+```bash
+sudo ip link set dev thunderbolt0 mtu 65522
+sudo ip link set dev thunderbolt1 mtu 65522
+ping -I 10.44.0.1 -M do -s 65494 -c 3 10.44.0.2
+```
+
+For IPv4 ICMP, payload `MTU - 28` tests a full-MTU packet. Reduce the payload if options or encapsulation are present.
+
+## Do not bridge by default
+
+A Linux bridge merges Layer-2 domains but does not aggregate one end-to-end flow. Bridging both USB4 links can create loops unless STP or another loop-control mechanism is deliberately configured. It is not a substitute for routing, bonding, or MPTCP.
+
+---
+
+<!-- source: docs/05-routing-and-policy-routing.md -->
+
+# Routing and policy routing
+
+## Why separate subnets are the default
+
+Linux owns IP addresses at the host level, not strictly per interface. Placing two interfaces in one subnet can produce ARP flux, ambiguous source selection, and return-path asymmetry. Two /30 subnets make each cable a distinct Layer-3 path and simplify MPTCP endpoint pairing.
+
+## Connected routes
+
+After address assignment, the main table should contain:
+
+```text
+10.44.0.0/30 dev thunderbolt0 proto kernel scope link src 10.44.0.1
+10.44.1.0/30 dev thunderbolt1 proto kernel scope link src 10.44.1.1
+```
+
+Verify:
+
+```bash
+ip -4 route show table main
+ip -4 route get 10.44.0.2 from 10.44.0.1
+ip -4 route get 10.44.1.2 from 10.44.1.1
+```
+
+## Source-specific policy tables
+
+Policy routes make the intended egress explicit even if additional routes, bridges, VPNs, or defaults are added later.
+
+Node A:
+
+```bash
+sudo ip route replace table 144 10.44.0.0/30 dev thunderbolt0 src 10.44.0.1
+sudo ip route replace table 145 10.44.1.0/30 dev thunderbolt1 src 10.44.1.1
+sudo ip rule del priority 10440 2>/dev/null || true
+sudo ip rule del priority 10441 2>/dev/null || true
+sudo ip rule add priority 10440 from 10.44.0.1/32 lookup 144
+sudo ip rule add priority 10441 from 10.44.1.1/32 lookup 145
+```
+
+Node B uses `.2` source addresses. The supplied script implements both roles.
+
+## Reverse-path filtering
+
+Strict reverse-path filtering (`rp_filter=1`) can discard valid packets in asymmetric or multipath designs. MPTCP guidance recommends loose mode (`2`) on participating interfaces.
+
+```bash
+sudo sysctl -w net.ipv4.conf.thunderbolt0.rp_filter=2
+sudo sysctl -w net.ipv4.conf.thunderbolt1.rp_filter=2
+sudo sysctl -w net.ipv4.conf.all.rp_filter=2
+```
+
+Loose mode still rejects sources unreachable through any interface. In a fully isolated lab, `0` is another option, but it removes this source-reachability check.
+
+## Application path selection
+
+### Bind by source address
+
+```c
+bind(fd, local_usb4_address, ...);
+connect(fd, peer_usb4_address, ...);
+```
+
+This is the most portable method for a custom runtime.
+
+### Bind by device
+
+`SO_BINDTODEVICE` forces a socket to a Linux netdev but normally requires privilege or a suitable capability. It is useful for tests and tightly controlled services.
+
+### Command-line examples
+
+```bash
+ping -I 10.44.0.1 10.44.0.2
+iperf3 -c 10.44.0.2 -B 10.44.0.1 -p 5201
+curl --interface 10.44.0.1 http://10.44.0.2:8000/
+```
+
+llama.cpp RPC currently does not expose a source-bind option. Connecting to the path-specific remote address chooses the initial route; MPTCP or a source change is needed for transparent multi-link use.
+
+## ECMP
+
+An equal-cost multipath route can spread multiple flows over equal nexthops:
+
+```bash
+sudo sysctl -w net.ipv4.fib_multipath_hash_policy=1  # Layer-4/5-tuple hash
+```
+
+ECMP is flow-hashed. It does not normally alternate packets from one TCP connection across both links. A single llama.cpp RPC socket therefore remains on one nexthop. ECMP is useful when a custom runtime opens multiple connections with varying source ports.
+
+Directly connected path-specific peer addresses do not need ECMP. Adding an extra virtual service address and ECMP nexthops is possible, but MPTCP offers a clearer one-stream abstraction.
+
+## Same-subnet fallback
+
+Only use this when an external constraint requires it. In addition to source-specific routing, evaluate:
+
+```bash
+sudo sysctl -w net.ipv4.conf.all.arp_filter=1
+sudo sysctl -w net.ipv4.conf.all.arp_announce=2
+sudo sysctl -w net.ipv4.conf.all.arp_ignore=1
+```
+
+This is more fragile than distinct subnets and can interact poorly with bonding, NetworkManager, and MPTCP address announcements.
+
+## Route proof
+
+For every intended address pair, save:
+
+```bash
+ip -4 rule show
+ip -4 route show table all
+ip -4 route get REMOTE from LOCAL ipproto tcp sport 40000 dport 50052
+```
+
+A route lookup that chooses the wrong interface invalidates any later “path independence” result.
+
+---
+
+<!-- source: docs/06-bonding-and-ecmp.md -->
+
+# Bonding, ECMP, and multipath behavior
+
+## The central distinction
+
+Bonding and ECMP usually distribute **flows**. MPTCP distributes one **logical connection** through several TCP subflows. This distinction determines whether one llama.cpp RPC stream can use both cables.
+
+## Kernel-version boundary
+
+Linux 6.18's `thunderbolt-net` implementation lacked the live MAC-change and ethtool link-setting support present in Linux 7.0 and later. The Linux 7.0 networking changes explicitly targeted bonding support. On older kernels, active-backup may still be usable, while 802.3ad and other modes can fail capability checks or behave inconsistently.
+
+Use Linux 7.1 stable or newer for a new bonded deployment, then verify `/proc/net/bonding/bond0` rather than relying on version alone.
+
+## Mode comparison
+
+| Mode | Single-flow aggregation | Failover | Direct Linux-to-Linux suitability | Principal risk |
+|---|---:|---:|---|---|
+| `active-backup` | No | Yes | Good | Idle second link |
+| `balance-xor`, `xmit_hash_policy=layer3+4` | No; different sockets may spread | Yes | Reasonable if both peers mirror the bond | One flow pins to one member |
+| `802.3ad` | No; flow-hashed | Yes | Possible when both peers negotiate LACP correctly | Added state/capability requirements; same-speed requirement |
+| `balance-rr` | Yes, at packet level | Yes | Lab-only | Packet reordering, TCP congestion response, jitter |
+| `balance-tlb` / `balance-alb` | Workload-dependent | Yes | Not recommended as first design | MAC/ARP asymmetry and difficult observability |
+
+The kernel bonding documentation states that `layer3+4` can spread traffic to a peer across slaves while a single connection remains on one slave. It also identifies `balance-rr` as the only standard bond mode that stripes one TCP connection, with out-of-order delivery as the cost.
+
+## Active-backup example
+
+This is the safe bond starting point when transparent interface failover is more important than aggregate bandwidth:
+
+```bash
+sudo CONFIRM=YES MODE=active-backup BOND=bond0 \
+  IF0=thunderbolt0 IF1=thunderbolt1 ROLE=A \
+  scripts/configure-bond.sh
+```
+
+Node B uses `ROLE=B`. The script removes path addresses from the members and assigns one bond subnet. Inspect before production use:
+
+```bash
+cat /proc/net/bonding/bond0
+ip -d link show bond0
+```
+
+## Flow-hash bond example
+
+```bash
+sudo CONFIRM=YES MODE=balance-xor XMIT_HASH_POLICY=layer3+4 \
+  BOND=bond0 IF0=thunderbolt0 IF1=thunderbolt1 ROLE=A \
+  scripts/configure-bond.sh
+```
+
+Open several independent TCP sockets to test distribution. A single iperf3 stream or one llama.cpp RPC connection is expected to use one member.
+
+## 802.3ad caveats
+
+- Both Linux peers must create compatible LACP bonds.
+- Member speeds and duplex must be reported consistently. Linux 7.0 added `thunderbolt-net` link-setting support for this class of use.
+- LACP actor/partner state must show both members in one aggregator.
+- A direct two-host bond is less common than a host-to-switch LACP design; test failover and restart behavior.
+- Aggregate throughput still requires several flows because transmit selection is hashed.
+
+## Why balance-rr is not the default
+
+USB4 links may have similar nominal latency, but ring interrupt timing, NAPI batching, host-controller scheduling, and CPU placement still differ. Packet striping can reorder segments enough to trigger duplicate acknowledgements, retransmissions, and congestion-window reduction. Increasing `net.ipv4.tcp_reordering` can mask some symptoms but does not remove the architectural problem.
+
+Use `balance-rr` only as a controlled comparison and collect:
+
+```bash
+nstat -az | grep -E 'TcpRetransSegs|TcpExtTCPLostRetransmit|TcpExtTCPDSACK'
+ss -ti dst PEER
+ip -s link show bond0
+cat /proc/net/bonding/bond0
+```
+
+## ECMP versus bonding
+
+| Property | ECMP | Bond |
+|---|---|---|
+| Layer | L3 route | L2 netdev |
+| Addressing | Can retain per-link addresses | Members usually lose their addresses |
+| Path visibility | Strong; route lookup shows nexthop | Hidden behind bond master |
+| One flow | One hashed nexthop | One hashed member except round-robin |
+| MPTCP compatibility | Natural: endpoints retain addresses | Possible but usually defeats path visibility |
+| Failure detection | Route/neighbour/application dependent | Bond monitor and mode dependent |
+
+For this two-node research topology, separate interfaces plus MPTCP are easier to prove and tune than a bond.
+
+## Proof for a bond
+
+A bond is not proven merely because both members show `up`. Require:
+
+1. Both members in the expected aggregator or active/backup state.
+2. Per-member TX/RX counters that match the selected mode.
+3. Single-link failure without session loss where failover is claimed.
+4. Multi-flow distribution for hash modes.
+5. Reordering and retransmission measurements for round-robin.
+
+---
+
+<!-- source: docs/07-mptcp.md -->
+
+# Multipath TCP
+
+## Why MPTCP fits llama.cpp RPC
+
+MPTCP exposes one ordered stream socket to the application while creating regular TCP subflows over multiple interfaces. It can aggregate bandwidth, reinject data after path loss, and fall back to ordinary TCP when the peer does not negotiate MPTCP. This aligns with llama.cpp RPC's existing stream-oriented send/receive interface.
+
+![MPTCP subflows](../diagrams/mptcp-subflows.svg)
+
+## Prerequisites
+
+```bash
+sysctl net.mptcp.enabled 2>/dev/null || true
+ip mptcp limits
+ip mptcp endpoint show
+ss -M -h
+```
+
+Use the in-kernel path manager for a fixed two-cable topology:
+
+```bash
+sudo sysctl -w net.mptcp.path_manager=kernel 2>/dev/null || true
+```
+
+Do not allow NetworkManager and `mptcpd` to manage the same endpoints simultaneously.
+
+## Reference endpoint design
+
+Initial subflow:
+
+```text
+Node A 10.44.0.1  <---- cable 0 ---->  10.44.0.2 Node B
+```
+
+Additional subflow:
+
+```text
+Node A 10.44.1.1  <---- cable 1 ---->  10.44.1.2 Node B
+```
+
+Node B announces `10.44.1.2` with `signal`. Node A marks `10.44.1.1` as a `subflow laminar` endpoint. `laminar`, introduced in Linux 6.18 and exposed by correspondingly recent iproute2 builds, helps pair one local endpoint with one additional remote address instead of generating a full local×remote mesh.
+
+## Configure with the supplied script
+
+Node B, the RPC server:
+
+```bash
+sudo ROLE=server IF0=thunderbolt0 IF1=thunderbolt1 \
+  scripts/configure-mptcp.sh
+```
+
+Node A, the RPC client:
+
+```bash
+sudo ROLE=client IF0=thunderbolt0 IF1=thunderbolt1 \
+  scripts/configure-mptcp.sh
+```
+
+Inspect before clearing existing endpoint policy. The script requires `RESET_ENDPOINTS=1` to delete pre-existing MPTCP endpoints and refuses `LAMINAR=1` when the installed `ip` tool does not advertise that flag. `LAMINAR=0` is a compatibility fallback, but may require stricter routing to avoid an unintended pair.
+
+## Manual configuration
+
+Both nodes:
+
+```bash
+sudo ip mptcp limits set subflows 2 add_addr_accepted 2
+sudo sysctl -w net.ipv4.conf.thunderbolt0.rp_filter=2
+sudo sysctl -w net.ipv4.conf.thunderbolt1.rp_filter=2
+```
+
+Node B:
+
+```bash
+sudo ip mptcp endpoint add 10.44.1.2 dev thunderbolt1 id 2 signal
+```
+
+Node A:
+
+```bash
+sudo ip mptcp endpoint add 10.44.1.1 dev thunderbolt1 id 2 subflow laminar
+```
+
+Connect the client to `10.44.0.2`, ensuring cable 0 carries the initial subflow.
+
+## Make an application use MPTCP
+
+### `mptcpize`
+
+Run both listener and client through the preload wrapper:
+
+```bash
+# Node B
+mptcpize run iperf3 -s -p 5203
+
+# Node A
+mptcpize run iperf3 -c 10.44.0.2 -p 5203 -t 30
+```
+
+`mptcpize` uses `LD_PRELOAD`. It does not affect static binaries, direct syscalls that bypass the wrapper, or runtimes that do not use libc's socket function. llama.cpp's normal dynamically linked Linux build is a suitable candidate, but verify rather than assume:
+
+```bash
+ldd ./bin/ggml-rpc-server
+strace -f -e socket,connect,accept4 ./your-command
+```
+
+### Native socket selection
+
+On Linux, create the socket with protocol `IPPROTO_MPTCP` (262) instead of protocol 0/TCP. The supplied llama.cpp patch makes this opt-in through `GGML_RPC_MPTCP=1`.
+
+### cgroup/eBPF conversion
+
+Kernels 6.6+ can use a cgroup socket-create hook to replace TCP with MPTCP. This is operationally useful but less explicit than native support and outside the baseline scripts.
+
+## Verify that MPTCP did not silently fall back
+
+During a transfer:
+
+```bash
+ss -Mani
+sudo ss -tani | grep -A4 -B2 -E '50052|5203'
+ip -ts mptcp monitor
+nstat -asz | grep -i MPTcpExt
+sudo tcpdump -ni thunderbolt0 'tcp port 50052'
+sudo tcpdump -ni thunderbolt1 'tcp port 50052'
+```
+
+Evidence required:
+
+- The meta-socket is reported as MPTCP.
+- Two established subflows exist.
+- Local/remote address pairs are `10.44.0.1↔10.44.0.2` and `10.44.1.1↔10.44.1.2`.
+- Both interface byte counters increase while one application connection is active.
+- Packet captures on both links show payload-bearing packets, not only address announcements or keepalives.
+
+## Failover test
+
+Start a long transfer, then unplug one cable. Record:
+
+```bash
+watch -n 0.5 'ss -Mani; ip -s link show thunderbolt0; ip -s link show thunderbolt1'
+```
+
+The application connection should survive if one usable subflow remains. Data may pause while loss is detected and outstanding bytes are reinjected.
+
+Current in-kernel path-manager documentation notes that subflows closed during an existing connection are not automatically re-established. Reconnecting a cable may therefore not restore two-path operation until the application opens a new MPTCP connection.
+
+## Scheduler and checksum
+
+```bash
+sysctl net.mptcp.available_schedulers 2>/dev/null || true
+sysctl net.mptcp.scheduler 2>/dev/null || true
+sysctl net.mptcp.checksum_enabled 2>/dev/null || true
+```
+
+The default scheduler is the baseline. Measure before switching schedulers. DSS checksum is disabled by default; enabling it provides an additional error-detection field, not encryption or peer authentication.
+
+## Full-mesh alternative
+
+`fullmesh` can create a subflow from each local endpoint to each known peer address. In a two-direct-cable design, this may attempt cross-pairs that route over the wrong cable. Use full mesh only with explicit routes/firewall rules and a reason to want more than two subflows. `laminar` is the cleaner reference design.
+
+## Performance interpretation
+
+MPTCP aggregation is not guaranteed to equal the sum of two iperf3 baselines. The scheduler must account for RTT and congestion windows; receive reassembly and reinjection add work; one application thread may be the bottleneck; and both USB4 controllers may still share memory or SoC resources. Compare:
+
+1. single TCP on cable 0;
+2. single TCP on cable 1;
+3. two simultaneous independent TCP flows;
+4. one MPTCP flow;
+5. llama.cpp RPC throughput and end-to-end token/prompt metrics.
+
+---
+
+<!-- source: docs/08-mtu-queues-offloads.md -->
+
+# MTU, queues, and offloads
+
+## Driver architecture relevant to performance
+
+At Linux 7.1, the upstream `thunderbolt-net` source defines:
+
+- one 256-entry TX ring and one 256-entry RX ring per netdev;
+- one NAPI instance per netdev;
+- 4 KiB USB4NET frames with a maximum data payload of approximately 4084 bytes;
+- a maximum network packet size of 64 KiB and netdev MTU range 68–65522;
+- SG, TSO, GRO, IPv4 checksum, IPv6 checksum, and high-DMA feature flags.
+
+The netdev is therefore a single-queue device in the Linux networking sense. Two USB4 links create two driver instances, each with its own rings/NAPI context, but one interface does not expose RSS-style multiple queue pairs.
+
+## Inspect the running driver
+
+```bash
+for i in thunderbolt0 thunderbolt1; do
+  echo "### $i"
+  ethtool -i "$i" || true
+  ethtool -k "$i" || true
+  ethtool -l "$i" || true
+  find /sys/class/net/$i/queues -maxdepth 1 -mindepth 1 -printf '%f\n'
+done
+```
+
+Expected queue layout is typically `rx-0` and `tx-0`. A distro backport or future kernel can differ; runtime output wins.
+
+## MTU test matrix
+
+Test at least:
+
+```text
+1500, 9000, 16384, 32768, 65522
+```
+
+For each MTU:
+
+1. Set both ends of both links.
+2. Verify with `ping -M do`.
+3. Run isolated and simultaneous throughput.
+4. Record CPU, softirq, retransmission, and error counters.
+5. Repeat the application workload.
+
+Large MTUs can reduce packets per second and protocol overhead, but USB4NET still fragments data into 4 KiB tunneled frames. Benefits therefore come mostly from fewer skbs/IP/TCP headers and better segmentation/coalescing behavior, not from one USB4 frame carrying a 64 KiB packet.
+
+## TSO/GSO/GRO interpretation
+
+The driver accepts large TSO/GSO skbs and splits them into USB4NET frames itself. On receive it uses GRO/NAPI to present coalesced traffic to the stack. Do not infer hardware checksum or segmentation offload equivalent to a conventional NIC; some work is implemented in the driver and CPU.
+
+Controlled offload comparison:
+
+```bash
+sudo ethtool -K thunderbolt0 gro off gso off tso off
+# benchmark, then restore
+sudo ethtool -K thunderbolt0 gro on gso on tso on
+```
+
+Only change features reported as supported. Offload-off tests help attribute CPU cost but are not normal production settings.
+
+## RPS
+
+Receive Packet Steering can move protocol processing above the interrupt handler to other CPUs. It works on single-queue devices, but adds inter-processor interrupts and cache movement.
+
+```bash
+cat /sys/class/net/thunderbolt0/queues/rx-0/rps_cpus
+# Example bitmap only; calculate for the intended CPU set
+printf '0000000e\n' | sudo tee /sys/class/net/thunderbolt0/queues/rx-0/rps_cpus
+```
+
+Use RPS only when the interrupting CPU or softirq context is saturated. Keep one flow on one CPU to avoid reordering; RPS flow hashing does this by design.
+
+## XPS
+
+XPS selects among transmit queues. With one TX queue, there is no queue choice, so XPS configuration has no material queue-selection effect. CPU pinning can still affect where the application builds skbs and where completions are processed.
+
+## qdisc and backlog
+
+```bash
+tc -s qdisc show dev thunderbolt0
+tc -s qdisc show dev thunderbolt1
+sysctl net.core.netdev_max_backlog
+cat /proc/net/softnet_stat
+```
+
+Queue drops or `time_squeeze` growth indicate host processing pressure rather than link-layer loss.
+
+## Busy polling and threaded NAPI
+
+Modern kernels expose NAPI controls, including threaded NAPI on supporting netdevs. These are advanced experiments, not baseline requirements:
+
+```bash
+cat /sys/class/net/thunderbolt0/threaded 2>/dev/null || true
+# sudo sh -c 'echo 1 > /sys/class/net/thunderbolt0/threaded'
+```
+
+If enabled, pin the NAPI thread near the corresponding interrupt and application CPU. Re-run latency and CPU measurements; threaded processing can help isolation but also add scheduling overhead.
+
+## Queue proof
+
+Record the following before claiming per-link queue independence:
+
+```bash
+find /sys/class/net/thunderbolt0/queues -maxdepth 2 -type f -print -exec cat {} \; 2>/dev/null
+find /sys/class/net/thunderbolt1/queues -maxdepth 2 -type f -print -exec cat {} \; 2>/dev/null
+cat /proc/interrupts | grep -Ei 'thunderbolt|nhi|usb4'
+```
+
+Source inspection proves one ring/NAPI object per netdev in the recorded kernel; target captures prove how a distribution kernel and the actual controller expose interrupts.
+
+---
+
+<!-- source: docs/09-cpu-and-numa.md -->
+
+# CPU overhead and NUMA locality
+
+## Do not assume a NUMA topology
+
+Strix Halo is a chiplet-based SoC, but Linux may expose one NUMA node. A single NUMA node means `numactl` cannot express chiplet or cache locality as separate memory nodes. CPU/IRQ/cache placement can still matter.
+
+Capture:
+
+```bash
+lscpu -e=CPU,NODE,SOCKET,CORE,CACHE,ONLINE
+numactl --hardware
+for n in /sys/devices/system/node/node*; do
+  echo "$n: $(cat "$n/cpulist")"
+done
+```
+
+## Map the controllers to NUMA nodes
+
+After extracting each NHI BDF from the netdev sysfs path:
+
+```bash
+for bdf in 0000:c8:00.5 0000:c8:00.6; do
+  [ -e /sys/bus/pci/devices/$bdf ] || continue
+  echo "$bdf"
+  cat /sys/bus/pci/devices/$bdf/numa_node
+  cat /sys/bus/pci/devices/$bdf/local_cpulist 2>/dev/null || true
+  cat /sys/bus/pci/devices/$bdf/local_cpus 2>/dev/null || true
+done
+```
+
+`numa_node=-1` usually means no specific node association. Use empirical IRQ/core placement.
+
+## Find and pin interrupts
+
+```bash
+grep -Ei 'thunderbolt|nhi|usb4' /proc/interrupts
+# Stronger mapping when the NHI uses MSI/MSI-X:
+find /sys/bus/pci/devices/0000:c8:00.5/msi_irqs -maxdepth 1 -mindepth 1 -printf '%f\n' 2>/dev/null
+for irq in $(grep -Ei 'thunderbolt|nhi|usb4' /proc/interrupts | cut -d: -f1 | tr -d ' '); do
+  echo "IRQ $irq affinity=$(cat /proc/irq/$irq/smp_affinity_list)"
+done
+```
+
+Set an affinity only after mapping the IRQ to a specific controller/link:
+
+```bash
+echo 4-5 | sudo tee /proc/irq/IRQ0/smp_affinity_list
+echo 6-7 | sudo tee /proc/irq/IRQ1/smp_affinity_list
+```
+
+`irqbalance` may overwrite manual settings. Either configure an IRQ-balance policy or stop it during a controlled benchmark.
+
+## Application placement
+
+```bash
+taskset -c 8-15 mptcpize run ./bin/llama-cli ...
+numactl --physcpubind=8-15 --membind=0 ./bin/ggml-rpc-server ...
+```
+
+Use `--membind` only when the node exists and the model/runtime can tolerate strict allocation. For an integrated GPU/APU, CPU memory policy, GPU memory registration, and UMA behavior can interact; measure model load and inference, not only network microbenchmarks.
+
+## CPU accounting
+
+During a 30-second transfer:
+
+```bash
+mpstat -P ALL 1
+pidstat -t -p $(pidof ggml-rpc-server) 1
+sudo perf stat -a -e cycles,instructions,cache-misses,context-switches,cpu-migrations,irq:irq_handler_entry -- sleep 30
+cat /proc/softirqs
+cat /proc/net/softnet_stat
+```
+
+For attribution:
+
+```bash
+sudo perf record -a -g -- sleep 30
+sudo perf report
+```
+
+Likely stacks include `thunderbolt_net`, NAPI, GRO, TCP/MPTCP, socket copies, and the RPC serialization/deserialization path.
+
+## Per-byte CPU metric
+
+Report CPU cost as:
+
+```text
+CPU-seconds / GiB transferred
+cycles / byte
+instructions / byte
+```
+
+This allows fair comparison among MTUs, one versus two links, TCP versus MPTCP, and USB4NET versus USB4STREAM. Wall-clock CPU percentage alone is misleading when throughput changes.
+
+## Expected tradeoffs
+
+- Two links can consume two IRQ/NAPI contexts and more memory bandwidth.
+- MPTCP adds meta-socket scheduling, sequence mapping, and possible reinjection work.
+- Larger MTU/GSO can lower packet-processing overhead.
+- RPS can reduce one-CPU saturation but increase IPIs and cache misses.
+- USB4STREAM removes IP/TCP processing but currently performs userspace copies and serializes I/O through a device mutex.
+- Soft-RoCE adds software verbs/RDMA processing on top of the netdev path and is unlikely to lower CPU without a specific implementation advantage.
+
+## Locality experiment matrix
+
+| Test | IRQ placement | App placement | RPS | Purpose |
+|---|---|---|---|---|
+| Baseline | irqbalance | scheduler default | off | Real-world default |
+| Same-core | link IRQ and socket thread near one core set | same set | off | Cache locality |
+| Split links | cable 0 and cable 1 IRQs on different core groups | app spans both | off | Controller parallelism |
+| RPS | IRQ core excluded; nearby cores enabled | app nearby | on | Relieve single RX CPU |
+| Remote | intentionally distant CPU group | distant | off | Bound locality penalty |
+
+Change one factor per run and repeat enough times to quantify variance.
+
+---
+
+<!-- source: docs/10-integrity-and-security.md -->
+
+# Integrity and security
+
+## Threat model
+
+A direct cable reduces exposure but does not make the stack authenticated. Consider:
+
+- malicious or compromised peer host;
+- unauthorized physical cable/device insertion;
+- PCIe DMA exposure through USB4 security policy;
+- malformed RPC requests or tensor graphs;
+- passive capture where a link, dock, or debug environment is not physically trusted;
+- accidental corruption, dropped frames, reordering, and partial writes.
+
+## USB4 authorization and DMA protection
+
+Linux exposes a security level per USB4 domain. Typical values include `none`, `user`, `secure`, `dponly`, `usbonly`, and `nopcie`. Read:
+
+```bash
+for d in /sys/bus/thunderbolt/devices/domain*; do
+  echo "### $d"
+  cat "$d/security" 2>/dev/null || true
+  cat "$d/iommu_dma_protection" 2>/dev/null || true
+done
+```
+
+The kernel documentation warns that a blanket udev rule authorizing every Thunderbolt device can expose the system to DMA attacks. If automatic authorization is required, scope it to known UUIDs or require `iommu_dma_protection=1`.
+
+For dedicated host networking, prefer a BIOS mode that disables arbitrary PCIe tunneling while retaining host-to-host XDomain services, where the platform supports it.
+
+## Link and transport integrity
+
+| Layer | Detection | Authentication/encryption? |
+|---|---|---|
+| USB4 physical/link | Link-level CRC and driver error reporting | No |
+| USB4NET | Frame validation and netdev CRC/error counters | No |
+| IP/TCP | IPv4 header checksum and TCP checksum | No |
+| MPTCP | TCP checksum per subflow; optional DSS checksum; HMAC-protected MP_JOIN/ADD_ADDR control | No payload encryption or application peer identity |
+| USB4STREAM | Ring descriptor CRC error indication | No |
+| Application framing | Optional cryptographic hash/MAC chosen by runtime | Only if implemented |
+
+Zero CRC errors do not prove payload authenticity. TCP checksums are designed for accidental corruption, not an adversarial peer.
+
+MPTCP v1 is more nuanced than “no authentication”: MP_JOIN and ADD_ADDR use key-derived HMACs and nonces to prove that an additional subflow belongs to the existing MPTCP connection and to resist replay/off-path address injection. That protection does **not** authenticate the original application peer, encrypt RPC payloads, authorize requests, or protect a compromised endpoint. TLS, WireGuard, or an authenticated application protocol is still required for those properties.
+
+## llama.cpp RPC warning
+
+The upstream llama.cpp RPC README calls the backend proof-of-concept, fragile, and insecure, and tells users not to run it on an open network or sensitive environment. Its security policy says not to use the RPC backend on untrusted networks and to encrypt network data.
+
+The current RPC transport does not provide TLS, authentication, authorization, or request sandboxing. Bind only to the dedicated USB4 address or `0.0.0.0` inside an isolated network namespace, then enforce a firewall.
+
+## nftables baseline
+
+Node-specific samples are in `configs/nftables/dual-usb4-rpc-node-a.nft` and `configs/nftables/dual-usb4-rpc-node-b.nft`. Core server-side policy:
+
+```nft
+ip saddr { 10.44.0.1, 10.44.1.1 } iifname { "thunderbolt0", "thunderbolt1" } tcp dport 50052 accept
+```
+
+Do not expose port 50052 on Wi-Fi, Ethernet, a management bridge, or the public Internet.
+
+## Encryption options
+
+### WireGuard per link
+
+Create one WireGuard interface per USB4 path, assign distinct tunnel subnets, and configure MPTCP over the tunnel addresses. This adds encryption, authentication, packet overhead, and CPU cost while preserving path identity.
+
+### TLS in a proxy
+
+Terminate TLS in a small authenticated proxy on each host and relay to the loopback-bound RPC server. One proxy stream must itself use MPTCP if both links should carry data.
+
+### SSH tunnel
+
+Suitable for administration and low-rate validation, but often not the best bulk-data path due to encryption and user-space relay overhead.
+
+## Application integrity for a custom runtime
+
+For striped or raw transports, include:
+
+- protocol magic and version;
+- session and message identifiers;
+- global byte offset and total length;
+- per-chunk length and sequence;
+- strong per-chunk checksum such as BLAKE3 or SHA-256;
+- final message hash;
+- bounded allocation and length validation;
+- replay/duplicate handling;
+- authenticated key agreement and AEAD when peers are not physically trusted.
+
+Do not rely on USB4STREAM's CLOSE packet as an authenticated session terminator.
+
+## Security proof checklist
+
+```bash
+# Listener scope
+ss -lntp | grep ':50052'
+
+# Firewall path
+sudo nft list ruleset
+
+# IOMMU and domain security
+find /sys/bus/thunderbolt/devices/domain* -maxdepth 1 -type f \
+  \( -name security -o -name iommu_dma_protection \) -print -exec cat {} \;
+
+# Link errors
+ip -s link show thunderbolt0
+ip -s link show thunderbolt1
+ethtool -S thunderbolt0 2>/dev/null || true
+
+# Transport retransmission/error counters
+nstat -az | grep -Ei 'Tcp.*Retrans|MPTcp|InCsumErrors'
+```
+
+A secure deployment needs isolation, a current llama.cpp build, explicit peer filtering, and encryption when confidentiality matters. MPTCP changes path use, not the trust model.
+
+---
+
+<!-- source: docs/11-llama-cpp-rpc.md -->
+
+# llama.cpp RPC integration
+
+## Current upstream behavior
+
+The current llama.cpp RPC backend is a proof-of-concept transport that exposes one or more remote ggml devices. The upstream documentation identifies TCP as the normal data path and warns that the RPC service is fragile and insecure.
+
+The current Linux transport implementation:
+
+- creates IPv4 `AF_INET`, `SOCK_STREAM` sockets with protocol 0, meaning ordinary TCP;
+- sets `TCP_NODELAY` on connected/accepted sockets;
+- uses blocking send/receive loops over one ordered byte stream;
+- binds the RPC server to `127.0.0.1:50052` by default;
+- accepts `-H/--host` and `-p/--port` for listener configuration;
+- can negotiate a verbs/RDMA data path when built with RDMA and when a matching RoCE-capable verbs device/GID is available;
+- retains the TCP socket for control/liveness when RDMA is activated;
+- does not provide TLS or authentication.
+
+The implementation is therefore compatible with transparent MPTCP conversion: the RPC framing still sees a reliable ordered stream.
+
+## Build
+
+On both nodes:
+
+```bash
+git clone https://github.com/ggml-org/llama.cpp.git
+cd llama.cpp
+cmake -S . -B build -DGGML_RPC=ON -DGGML_HIP=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+```
+
+Choose backends appropriate to the target distribution and current ROCm support. The network research does not depend on HIP; CPU-only RPC is sufficient for transport validation.
+
+## Secure listener scope
+
+The server defaults to loopback. To make it reachable on the dedicated fabric:
+
+```bash
+./build/bin/ggml-rpc-server -H 10.44.0.2 -p 50052 -c
+```
+
+Binding to only `10.44.0.2` is narrow, but an MPTCP additional subflow targets `10.44.1.2` at the same port. For MPTCP, use one of:
+
+- bind `0.0.0.0` and restrict ingress with nftables;
+- place both USB4 addresses in an isolated network namespace and bind `0.0.0.0` there;
+- patch the listener for multiple bind addresses or a wildcard listener with explicit device filtering.
+
+Reference command:
+
+```bash
+mptcpize run ./build/bin/ggml-rpc-server -H 0.0.0.0 -p 50052 -c
+```
+
+Run the client through `mptcpize` as well:
+
+```bash
+mptcpize run ./build/bin/llama-cli \
+  -m /models/model.gguf \
+  -ngl 99 \
+  --rpc 10.44.0.2:50052
+```
+
+The initial connection uses cable 0; the MPTCP path manager adds cable 1.
+
+## Verify conversion
+
+```bash
+GGML_RPC_DEBUG=1 mptcpize run ./build/bin/ggml-rpc-server -H 0.0.0.0 -p 50052
+
+# During a client request
+ss -Mani '( sport = :50052 or dport = :50052 )'
+sudo ss -tani '( sport = :50052 or dport = :50052 )'
+ip -ts mptcp monitor
+```
+
+If `ss -M` shows no MPTCP socket, check:
+
+```bash
+ldd ./build/bin/ggml-rpc-server
+LD_DEBUG=libs mptcpize run ./build/bin/ggml-rpc-server --help 2>&1 | grep -i mptcp
+strace -f -e socket,bind,listen,connect,accept ./your-command
+```
+
+## Native MPTCP option
+
+`patches/0001-ggml-rpc-optional-native-mptcp.patch` changes both listener and client socket creation to use `IPPROTO_MPTCP` when `GGML_RPC_MPTCP=1` is set. Native selection is preferable to an implicit preload wrapper for a controlled deployment because it is visible in the application configuration and fails clearly when MPTCP is unavailable.
+
+Example after applying the patch:
+
+```bash
+GGML_RPC_MPTCP=1 ./build/bin/ggml-rpc-server -H 0.0.0.0 -p 50052 -c
+GGML_RPC_MPTCP=1 ./build/bin/llama-cli -m model.gguf -ngl 99 --rpc 10.44.0.2:50052
+```
+
+The patch is pinned to the source shape observed at this wiki's snapshot and may need rebasing.
+
+## Why two `--rpc` addresses are not transparent multipath
+
+The comma-separated `--rpc` list represents multiple RPC server endpoints/devices. It does not tell the backend that two addresses lead to the same remote device through two paths. Running two server instances on the same remote APU/GPU can:
+
+- expose duplicate logical devices;
+- duplicate model state or cache;
+- oversubscribe compute and memory bandwidth;
+- alter tensor splitting;
+- fail independently in ways the client does not interpret as path failover.
+
+Use two endpoints only when they represent intentionally separate RPC devices or an explicitly designed multi-server partition. Use MPTCP for two paths to one RPC server.
+
+## RPC cache and network measurement
+
+The `-c/--cache` option stores large tensors locally on the remote host. This can substantially change link utilization during model loading. Measure both:
+
+1. cold cache / first load;
+2. warm cache / repeated load;
+3. prompt processing;
+4. token generation;
+5. graph/tensor transfer bytes per phase.
+
+Record `GGML_RPC_DEBUG=1` logs together with link and MPTCP counters.
+
+## Current RDMA path
+
+When built with `libibverbs`, llama.cpp probes verbs devices and matches a GID to the local TCP socket address. If both peers advertise compatible capabilities, it activates a reliable-connected QP. The current code uses 256 KiB staging chunks and copies into/out of registered buffers. It is not a zero-copy mapping of ggml tensor memory.
+
+A hardware RoCE NIC is the intended case. Soft-RoCE over a USB4NET interface may satisfy the verbs/GID discovery path, but it is software RDMA over the same netdev and must be treated as experimental. It may increase CPU work and does not make USB4 memory-coherent.
+
+## RPC benchmark metrics
+
+Collect:
+
+```text
+model-load wall time
+remote tensor bytes
+prompt tokens/s and prompt latency
+generation tokens/s and inter-token latency
+RPC server CPU-seconds
+client CPU-seconds
+per-link bytes and errors
+MPTCP subflow bytes/retransmissions
+GPU/APU utilization and memory occupancy
+```
+
+A transport that wins iperf3 can still lose end-to-end inference if RPC serialization, compute partitioning, or synchronization dominates.
+
+---
+
+<!-- source: docs/12-transport-comparison.md -->
+
+# Transport comparison
+
+## Decision matrix
+
+| Transport | Upstream maturity at snapshot | One logical ordered stream | Can use both links for one RPC stream | Failover | Userspace copies | App changes for llama.cpp | Security |
+|---|---|---:|---:|---:|---|---|---|
+| TCP over one USB4NET link | Stable | Yes | No | Reconnect only | Socket copies | None | No auth/encryption in RPC |
+| Two explicit TCP sockets | Stable | No; runtime reassembles | Yes | Runtime-managed | Socket copies | Major/custom transport | Runtime responsibility |
+| ECMP with ordinary TCP | Stable | Yes | No; one flow hashes to one route | Route-dependent | Socket copies | None | Same as TCP |
+| Bond active-backup | Stable; use 7.0+ driver hooks | Yes | No | Yes | Socket copies | None | Same as TCP |
+| Bond balance-xor / 802.3ad | Stable; use 7.0+ | Yes | No; multiple flows may spread | Yes | Socket copies | None | Same as TCP |
+| Bond balance-rr | Stable but risky | Yes | Packet-striped, potentially | Yes | Socket copies | None | Same as TCP; reordering risk |
+| MPTCP over USB4NET | Stable | Yes | Yes, through subflows | Yes | Socket copies | `mptcpize`, eBPF, or small patch | Join/address HMACs; no payload encryption or app identity |
+| USB4STREAM | Linux 7.2 development | Yes, raw file stream | One stream per physical XDomain; custom striping can use two | Runtime-managed | Current driver copies on read/write | New transport adapter | No auth/encryption |
+| Soft-RoCE/RXE over USB4NET | Experimental for this use | Verbs messages | One QP/path unless runtime creates several | Runtime-dependent | Software provider plus app staging | May trigger current RPC RDMA negotiation | No inherent channel security |
+| Hardware RoCE NIC | Mature outside USB4 | Yes | Separate NIC paths possible | Runtime/RDMA-CM dependent | Lower-copy potential | Already supported by RPC negotiation | No inherent encryption unless added |
+| Out-of-tree NHI/ibverbs | Research | Project-specific | Potentially | Project-specific | Project-specific | Major | Project-specific |
+| CXL/NTB/ivshmem-style shared memory | Not provided by generic host-to-host USB4 | N/A | N/A | N/A | N/A | New hardware/platform | Platform-specific |
+
+## Ranking by deployment objective
+
+### Lowest engineering risk
+
+1. TCP on one USB4NET link.
+2. MPTCP on two routed USB4NET links.
+3. Active-backup bond.
+
+### Highest deterministic control
+
+1. Two explicitly bound TCP connections with runtime striping.
+2. Two USB4STREAM devices with application framing, after Linux 7.2 stabilizes.
+3. A purpose-built kernel/NHI transport, with substantial maintenance burden.
+
+### Lowest plausible CPU overhead
+
+This cannot be declared without measurement. The hypotheses are:
+
+- larger MTU/GSO over USB4NET reduces per-byte stack overhead;
+- MPTCP adds meta-layer work but can use two controller/CPU contexts;
+- USB4STREAM removes IP/TCP but retains copy and syscall/ring processing;
+- Soft-RoCE adds software verbs layers and likely does not beat tuned TCP by default;
+- a future mmap/registered-buffer USB4STREAM interface could change the result, but it does not exist in the current upstream driver.
+
+## Why shared-memory claims require rejection
+
+A transport can be DMA-backed without exposing shared memory. In both USB4NET and USB4STREAM, the local controller DMA engine reads/writes buffers owned by the local kernel. The remote host receives bytes through its own controller and buffers. There is no single cache-coherent address space, remote page faulting, or direct `mmap` of peer RAM.
+
+The following are local-only primitives unless another transport is added:
+
+```text
+POSIX shm
+memfd
+tmpfs
+anonymous mmap
+dma-buf file descriptors
+ROCm/HIP allocations
+hugetlbfs
+io_uring registered buffers
+```
+
+## Workload fit
+
+| Workload shape | Best first experiment |
+|---|---|
+| One large ordered RPC stream | MPTCP |
+| Many independent requests/sockets | Separate interfaces with policy routing or flow-hash bond |
+| Bulk tensor shards with explicit offsets | Two TCP sockets in a custom runtime |
+| Control + bulk data separation | TCP/MPTCP control plus one or two USB4STREAM data devices |
+| Link redundancy, simple operations | Active-backup bond |
+| Research on minimum protocol stack | USB4STREAM |
+| Existing verbs-only runtime | RXE proof-of-concept, then compare against TCP |
+
+## Acceptance gate for replacing TCP/MPTCP
+
+An experimental transport should beat the stable baseline on all material dimensions:
+
+- throughput and latency at the application phase that matters;
+- CPU-seconds/GiB;
+- bounded memory and queue behavior;
+- reconnect/failure semantics;
+- integrity and confidentiality requirements;
+- observability and supportability;
+- kernel/firmware upgrade risk;
+- code maintenance burden.
+
+A microbenchmark win alone is insufficient.
+
+---
+
+<!-- source: docs/13-usb4stream-and-experimental.md -->
+
+# USB4STREAM and experimental USB4 transports
+
+## Status
+
+USB4STREAM entered the Linux 7.2 development line. Linux 7.1's upstream Kconfig does not contain `CONFIG_USB4_STREAM`; the current mainline Kconfig does. At this snapshot, evaluate it on a test kernel, not as the only production control path.
+
+## User-facing model
+
+Load the module and create a stream group beneath the XDomain service in ConfigFS:
+
+```bash
+sudo modprobe thunderbolt_stream
+sudo mount -t configfs none /sys/kernel/config 2>/dev/null || true
+cd /sys/kernel/config/thunderbolt/stream
+sudo mkdir -p 0-1.0/data
+echo -1 | sudo tee 0-1.0/data/in_hopid
+echo -1 | sudo tee 0-1.0/data/out_hopid
+```
+
+The peer sees advertised XDomain properties and can create a matching stream group. Linux then creates `/dev/tbstreamX`. The supplied `scripts/usb4stream-setup.sh` wraps this procedure.
+
+Multiple named streams may coexist on one XDomain, and USB4STREAM may coexist with `thunderbolt-net`.
+
+## Implementation properties
+
+The current upstream driver source establishes the following:
+
+- DATA packets carry up to 4 KiB; CLOSE packets up to 256 bytes.
+- End-to-end flow control is mandatory.
+- Ring size defaults to 256 descriptors and is configurable from 32 through 4096.
+- Interrupt throttling defaults to 8192 ns and has a configurable upper bound.
+- Each stream character device has one TX ring and one RX ring.
+- Paths are established on first open and torn down on final close.
+- The driver supports blocking and nonblocking I/O plus `poll`/epoll readiness.
+- RX and TX buffers are page-backed and DMA-mapped.
+- `write_iter` copies from the caller's iov into the TX page; `read_iter` copies from the RX page into the caller's iov.
+- The file operations do not expose `mmap`, splice-specific methods, XDP, an AF_XDP queue, or a remote-memory registration API.
+- Multiple opens of one stream device share the rings and are serialized by a device mutex.
+- CRC error and RX buffer-overrun flags are logged, but no cryptographic integrity is provided.
+
+Consequences:
+
+1. It is a raw byte stream, not shared memory.
+2. It is not zero-copy at the current userspace ABI.
+3. It does not preserve application message boundaries.
+4. A custom runtime needs explicit framing and failure recovery.
+5. Creating several streams can separate control and data, but each stream is still a single ring pair.
+
+## Two physical links
+
+Each cable/XDomain needs its own ConfigFS parent and stream device. Example conceptual mapping:
+
+```text
+cable 0: /sys/kernel/config/thunderbolt/stream/0-1.0/data0 -> /dev/tbstream0
+cable 1: /sys/kernel/config/thunderbolt/stream/1-1.0/data1 -> /dev/tbstream1
+```
+
+Names and indices are discovery-dependent. Save the parent/service/device mapping and verify with sysfs/udev before opening devices.
+
+## Minimal benchmark
+
+On receiver:
+
+```bash
+sudo dd if=/dev/tbstream0 of=/dev/null bs=4M status=progress
+```
+
+On sender:
+
+```bash
+dd if=/dev/zero of=/dev/tbstream0 bs=4M count=4096 status=progress
+```
+
+This measures one-way bulk transfer but does not validate data integrity. For integrity, send a deterministic file and compare hashes after capture to storage or a hashing sink.
+
+Run two independent processes on the two physical stream devices for the first dual-link test. Do not begin with one process multiplexing both; separate processes simplify CPU and counter attribution.
+
+## Custom llama.cpp adapter implications
+
+The existing RPC transport expects `send_data()` and `recv_data()` with exact-length semantics. A USB4STREAM adapter could implement those calls, but it also needs:
+
+- listener/peer discovery and session ownership;
+- bidirectional open ordering;
+- connection capability handshake;
+- message length validation;
+- timeout and cancellation;
+- close/error propagation;
+- reconnection after cable reset;
+- authentication/encryption if required;
+- dual-link scheduling if two stream devices are used;
+- compatibility fallback to TCP.
+
+Because the current driver already presents an ordered stream, the existing RPC framing may be reusable. However, the RPC handshake assumes a network endpoint model and the transport abstraction should be separated cleanly rather than replacing sockets ad hoc.
+
+## Soft-RoCE over USB4NET
+
+Create an RXE device:
+
+```bash
+sudo modprobe rdma_rxe
+sudo rdma link add rxe_tb0 type rxe netdev thunderbolt0
+rdma link
+ibv_devices
+```
+
+Repeat for the second interface if desired. Validate with `ib_write_bw`/`ib_read_bw` and compare CPU cost to TCP.
+
+Limitations:
+
+- all RoCE packet processing is software;
+- USB4NET remains the lower network device;
+- no hardware queue pair offload exists in the USB4 controller;
+- no generic GPUDirect/peer-memory path follows from RXE;
+- one QP does not automatically use both RXE devices;
+- the current llama.cpp RDMA path still stages/copies data.
+
+## Out-of-tree NHI/ibverbs research
+
+Experimental projects have explored direct ibverbs-like access to the Thunderbolt/USB4 NHI. These can illuminate controller behavior and potential queue APIs, but they are not upstream Linux ABIs, not portable across controller revisions, and not suitable as a baseline dependency.
+
+Require source review, IOMMU analysis, reset/unplug testing, and a clear security model before loading such modules.
+
+## AF_XDP, DPDK, and io_uring zero-copy
+
+The current `thunderbolt-net` driver does not expose native XDP/AF_XDP queue operations or a DPDK poll-mode driver. Generic XDP does not create a zero-copy userspace queue. io_uring can submit ordinary socket/file I/O, but it cannot remove the current driver's page-to-user copy by itself.
+
+## Research priorities
+
+1. Measure USB4STREAM CPU-seconds/GiB versus tuned USB4NET TCP at the same payload and affinity.
+2. Measure ring-size and throttling sensitivity.
+3. Add robust framed integrity tooling.
+4. Prototype a transport abstraction in llama.cpp without changing RPC semantics.
+5. Evaluate whether registered-buffer or splice/mmap support is feasible upstream.
+6. Prove reset, close, and reconnect behavior under cable removal.
+
+---
+
+<!-- source: docs/14-measurement-and-proof.md -->
+
+# Measurement and proof criteria
+
+## Principle
+
+A convincing result combines topology evidence, failure isolation, counter attribution, concurrent capacity, and transport-level path evidence. No single command is sufficient.
+
+![Proof ladder](../diagrams/proof-ladder.svg)
+
+## Phase 0 — freeze variables
+
+Record on both hosts:
+
+```text
+board and BIOS version
+kernel build and configuration
+linux-firmware and USB4/retimer firmware
+iproute2, ethtool, iperf3, llama.cpp revision
+cable make, length, and certification
+power profile and thermal state
+CPU governor and irqbalance state
+MTU and offload settings
+```
+
+Run and retain the exact directory printed by the script:
+
+```bash
+CAPTURE=$(sudo scripts/capture-topology.sh phase0 | tail -n 1)
+printf '%s\n' "$CAPTURE"
+```
+
+## Phase 1 — topology proof
+
+Pass criteria on **each host**:
+
+- two USB4NET interfaces exist **at the same time**;
+- attaching cable 2 does not remove or replace cable 1's XDomain/netdev;
+- each resolves to a different service/XDomain path;
+- preferred: each resolves to a different `domainX`;
+- preferred: each resolves to a different NHI PCI BDF;
+- lane/speed attributes are present and plausible;
+- both interfaces can be up simultaneously.
+
+Use:
+
+```bash
+python3 tools/verify_report.py "$CAPTURE"
+```
+
+The verifier reports evidence; it does not invent independence when sysfs data is incomplete.
+
+## Phase 2 — path correctness
+
+```bash
+ping -I 10.44.0.1 -c 10 10.44.0.2
+ping -I 10.44.1.1 -c 10 10.44.1.2
+ip route get 10.44.0.2 from 10.44.0.1
+ip route get 10.44.1.2 from 10.44.1.1
+```
+
+Pass criteria:
+
+- no packet loss in the unloaded lab;
+- the route lookup chooses the intended interface;
+- the source address remains path-specific;
+- no traffic appears on the other link's counters during a path-bound ping beyond unrelated control traffic.
+
+## Phase 3 — isolated throughput baselines
+
+On node B, start two servers:
+
+```bash
+iperf3 -s -p 5201
+iperf3 -s -p 5202
+```
+
+Use separate terminals or `examples/start-iperf-servers.sh`.
+
+Node A:
+
+```bash
+mkdir -p results
+iperf3 -c 10.44.0.2 -B 10.44.0.1 -p 5201 -P 4 -t 30 -O 3 -J > results/link0.json
+iperf3 -c 10.44.1.2 -B 10.44.1.1 -p 5202 -P 4 -t 30 -O 3 -J > results/link1.json
+```
+
+Repeat in reverse direction with `-R`. Record at least five steady-state runs per MTU.
+
+## Phase 4 — simultaneous capacity
+
+```bash
+scripts/proof-independent-paths.sh results/dual
+```
+
+The script runs the two source-bound iperf3 clients concurrently and creates JSON plus a Markdown summary.
+
+Pass criteria:
+
+- both links carry substantial bytes at the same time;
+- neither link is accidentally idle;
+- aggregate exceeds the best isolated-link result by a meaningful margin;
+- CPU, memory bandwidth, or application limits are documented if scaling is not additive.
+
+**Project heuristic, not a standard:** a strong capacity-independence result is aggregate throughput at least `1.7 ×` the best isolated-link baseline, while each loaded link retains at least `80%` of its own isolated throughput. Platforms can be genuinely controller-independent and still miss this heuristic because of a shared SoC/memory/CPU ceiling.
+
+## Phase 5 — failure isolation
+
+Start continuous traffic on both paths. Unplug cable 0:
+
+- only the cable-0 netdev/XDomain should lose carrier or disappear;
+- cable 1 should continue transferring;
+- its counters and route should remain valid;
+- no controller reset should remove both domains.
+
+Reconnect and repeat with cable 1.
+
+Capture:
+
+```bash
+sudo journalctl -kf
+ip monitor link address route
+udevadm monitor --kernel --udev
+```
+
+For MPTCP, one logical transfer should survive either single-link loss.
+
+## Phase 6 — IRQ and counter attribution
+
+Before a link-0-only transfer:
+
+```bash
+ip -s link show thunderbolt0 > before-tb0.txt
+ip -s link show thunderbolt1 > before-tb1.txt
+cat /proc/interrupts > before-irqs.txt
+```
+
+Repeat after transfer. Pass criteria:
+
+- target link bytes rise by the expected amount;
+- non-target payload bytes remain near baseline control noise;
+- the corresponding NHI/USB4 interrupt activity rises;
+- error, CRC, missed, overrun, and drop counters do not grow materially.
+
+## Phase 7 — one-connection MPTCP proof
+
+Run one MPTCP iperf3 stream or llama.cpp RPC operation. Save:
+
+```bash
+ss -Mani > results/ss-meta.txt
+sudo ss -tani > results/ss-subflows.txt
+ip mptcp endpoint show > results/mptcp-endpoints.txt
+ip mptcp limits > results/mptcp-limits.txt
+nstat -asz > results/nstat.txt
+sudo timeout 30 tcpdump -ni thunderbolt0 -w results/tb0.pcap 'tcp port 50052' &
+sudo timeout 30 tcpdump -ni thunderbolt1 -w results/tb1.pcap 'tcp port 50052' &
+```
+
+Pass criteria:
+
+1. one MPTCP meta-socket;
+2. at least two established subflows;
+3. intended address pairs, not cross-cable routes;
+4. payload packets and increasing byte counters on both interfaces;
+5. no silent fallback to one ordinary TCP flow;
+6. connection survives single-cable removal.
+
+## MTU proof
+
+For each candidate MTU:
+
+```bash
+ping -I 10.44.0.1 -M do -s $((MTU-28)) -c 3 10.44.0.2
+tracepath -b 10.44.0.2
+```
+
+Do not call `iperf3 -M` an MTU setting; it sets TCP MSS. Set link MTU with `ip link` first.
+
+## CPU and latency proof
+
+Collect `perf stat`, `mpstat`, `pidstat`, softnet counters, and application latency in the same interval. Normalize CPU by bytes or work units. For inference, include prompt tokens/s and inter-token latency distributions.
+
+## Integrity proof
+
+- zero unexplained netdev CRC/error growth;
+- no application hash mismatch;
+- no unexpected TCP/MPTCP retransmission spike;
+- for raw USB4STREAM, deterministic payload plus per-chunk and final hash;
+- cable removal produces a defined error/recovery outcome, not silent truncation.
+
+## Report template
+
+Use `examples/proof-checklist.md` and preserve raw captures. A final claim should state:
+
+```text
+Topology independence: interface / XDomain / controller / unknown
+Failure independence: passed / failed / not tested
+Capacity independence: ratio and raw Gbit/s
+Application multipath: subflow pairs and bytes
+Kernel and firmware: exact versions
+Security envelope: listener, firewall, IOMMU, encryption
+```
+
+---
+
+<!-- source: docs/15-troubleshooting.md -->
+
+# Troubleshooting
+
+## No `thunderboltN` interface
+
+```bash
+sudo modprobe thunderbolt
+sudo modprobe thunderbolt_net
+ls -l /sys/bus/thunderbolt/devices
+dmesg | grep -Ei 'thunderbolt|usb4|xdomain|nhi'
+```
+
+Check cable capability, connector choice, BIOS USB4 enablement, host-to-host support, firmware, and whether the peer loaded the driver. Some passive USB-C cables support charging/USB 2 only; use a certified 40 Gbit/s cable.
+
+## Only one interface when both cables are connected
+
+- Connect each cable alone and map the physical connectors.
+- Check whether both ports route through one hub or one upstream path.
+- Inspect `lspci` for one versus two NHI functions.
+- Watch for firmware resets or bandwidth warnings.
+- Update BIOS/firmware.
+- Check whether the product exposes one native port plus one non-USB4 USB-C port.
+
+AMD's SoC port count is not a board guarantee.
+
+## Interface numbering swaps
+
+Use sysfs/udev physical paths and persistent naming. Never hard-code `thunderbolt0` as “left port” without a recorded mapping.
+
+## Ping works on one link but not the other
+
+```bash
+ip addr show
+ip route show table all
+ip rule show
+ip neigh show
+sysctl net.ipv4.conf.all.rp_filter
+ip route get REMOTE from LOCAL
+sudo tcpdump -ni IFACE arp or icmp
+```
+
+Distinct subnets should create direct routes automatically. Check address reversal, mask `/30`, and manager conflicts.
+
+## MPTCP remains one subflow
+
+```bash
+ip mptcp endpoint show
+ip mptcp limits
+ss -Mani
+sudo ss -tani
+ip -ts mptcp monitor
+sysctl net.mptcp.path_manager
+```
+
+Common causes:
+
+- application still created a plain TCP socket;
+- only one side ran through `mptcpize`;
+- `add_addr_accepted` is zero;
+- endpoint has the wrong `signal`/`subflow` role;
+- strict `rp_filter` drops MP_JOIN traffic;
+- policy routing selects the wrong interface;
+- firewall blocks the additional address/port;
+- NetworkManager and `mptcpd` overwrite endpoints;
+- no application data has yet made the MPTCP connection fully established enough for path-manager actions.
+
+## MPTCP creates cross-paired subflows
+
+Remove `fullmesh`, use `laminar`, and verify source-specific routes. Filter invalid cross-pairs if necessary:
+
+```bash
+sudo nft add rule inet dual_usb4 output ip saddr 10.44.0.1 ip daddr 10.44.1.2 reject
+sudo nft add rule inet dual_usb4 output ip saddr 10.44.1.1 ip daddr 10.44.0.2 reject
+```
+
+Use the provided nftables file as a starting point and adapt addresses/roles.
+
+## Bond refuses a member or LACP stays down
+
+- Require Linux 7.0+ or a distro backport of the `thunderbolt-net` MAC/link-setting changes.
+- Ensure no IP address remains on a member.
+- Ensure member MTUs match.
+- Inspect `ethtool`, `ip -d link`, and `/proc/net/bonding/bond0`.
+- For 802.3ad, both peers must run compatible LACP and show one aggregator.
+- Begin with active-backup to isolate capability from aggregation behavior.
+
+## `balance-rr` underperforms
+
+Look for reordering and retransmission:
+
+```bash
+nstat -az | grep -Ei 'Retrans|Reorder|DSACK'
+ss -ti dst PEER
+```
+
+Return to separate interfaces plus MPTCP. Do not tune `tcp_reordering` until the baseline and packet traces establish that reordering is the cause.
+
+## Large MTU fails
+
+- Set exactly the same MTU at both ends.
+- Check bond master and members if bonding.
+- Remove VPN/encapsulation or account for its overhead.
+- Use `ping -M do` with payload `MTU-28` for direct IPv4.
+- Check route cache and PMTU diagnostics.
+- Fall back to 9000 or 1500 and compare.
+
+## Throughput plateaus near one link
+
+Determine which ceiling is active:
+
+```bash
+mpstat -P ALL 1
+perf stat -a -- sleep 30
+cat /proc/net/softnet_stat
+ip -s link show
+ss -ti
+```
+
+Possible causes:
+
+- both ports share one controller/domain;
+- one CPU handles both NAPI/IRQ paths;
+- one application thread is saturated;
+- memory bandwidth or SoC fabric is saturated;
+- MPTCP scheduler uses only the lower-RTT path;
+- one link negotiates fewer lanes/lower speed;
+- one route/subflow is not carrying payload;
+- thermal or power policy throttles the platform.
+
+## USB4STREAM ConfigFS path missing
+
+```bash
+uname -r
+modinfo thunderbolt_stream
+zgrep CONFIG_USB4_STREAM /proc/config.gz 2>/dev/null || true
+mount | grep configfs
+ls /sys/kernel/config/thunderbolt/stream
+```
+
+Linux 7.1 does not contain the upstream driver. A distro kernel may backport it, but verify the Kconfig/module and ABI.
+
+## USB4STREAM blocks on open
+
+The driver can wait for the peer stream/service to appear. Configure both ends, open the read side first, and use `O_NONBLOCK` while debugging. Verify in/out HopIDs and XDomain service names.
+
+## llama.cpp RPC reachable on cable 0 but MPTCP join fails on cable 1
+
+A listener bound only to `10.44.0.2` may not accept joins targeting `10.44.1.2`. Use a wildcard listener inside a restricted namespace/firewall, or modify the listener architecture. Confirm the server socket itself is MPTCP.
+
+## Soft-RoCE device exists but llama.cpp remains TCP
+
+Enable RPC debug, verify the verbs GID matches the local TCP address, and inspect `ibv_devices`, `rdma link`, and GID tables. Even if negotiation succeeds, compare end-to-end CPU and throughput; RXE is not hardware offload.
+
+## Connecting cable 1 removes cable 0
+
+This is below IP and MPTCP. Capture `journalctl -k -b`, the Thunderbolt sysfs tree, and the netdev-to-domain map while connecting one cable at a time. Linux's firmware/ICM path de-duplicates a remote UUID within one USB4 domain and can replace the old route. A robust fix is a board/port pairing that gives each cable a different NHI and `domainX` on both hosts. A newer kernel cannot manufacture controller independence that the firmware/ACPI topology does not expose.
+
+Do not hide the symptom with interface renaming or NetworkManager profiles. The pass condition is two XDomains/services/netdevs present at the same time.
+
+---
+
+<!-- source: docs/16-references.md -->
+
+# References and source snapshot
+
+Accessed 2026-07-17 unless noted. Primary sources are preferred; field reports are labeled.
+
+## Linux kernel and USB4
+
+1. Linux Kernel Archives — current releases: <https://www.kernel.org/>
+2. Linux USB4 and Thunderbolt administration guide: <https://docs.kernel.org/admin-guide/thunderbolt.html>
+3. USB4 sysfs ABI: <https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-bus-thunderbolt>
+4. USB4 Kconfig, current mainline: <https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/Kconfig>
+5. USB4 Kconfig, Linux 7.1: <https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/Kconfig>
+6. USB4NET Kconfig, Linux 7.1: <https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/Kconfig>
+7. USB4NET driver, Linux 7.1: <https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/main.c>
+8. USB4NET driver, Linux 6.18: <https://github.com/torvalds/linux/blob/v6.18/drivers/net/thunderbolt/main.c>
+9. USB4NET driver, Linux 7.0: <https://github.com/torvalds/linux/blob/v7.0/drivers/net/thunderbolt/main.c>
+10. USB4STREAM driver, current mainline: <https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/stream.c>
+11. XDomain core, Linux 7.1: <https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/xdomain.c>
+12. Firmware/ICM connection manager, Linux 7.1: <https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/icm.c>
+13. Software connection manager, Linux 7.1: <https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/tb.c>
+14. NHI connection-manager selection, Linux 7.1: <https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/nhi.c>
+15. Linux networking pull context for 7.0 bonding-enabling changes: <https://lore.kernel.org/netdev/>
+
+## Linux networking
+
+16. MPTCP kernel documentation: <https://docs.kernel.org/networking/mptcp.html>
+17. MPTCP path-manager guide: <https://www.mptcp.dev/pm.html>
+18. MPTCP application setup and `mptcpize`: <https://www.mptcp.dev/setup.html>
+19. MPTCP v1 standard, RFC 8684: <https://www.rfc-editor.org/rfc/rfc8684.html>
+20. MPTCP sysctls: <https://docs.kernel.org/networking/mptcp-sysctl.html>
+21. `ip-mptcp(8)`: <https://man7.org/linux/man-pages/man8/ip-mptcp.8.html>
+22. Linux bonding HOWTO: <https://docs.kernel.org/networking/bonding.html>
+23. Linux networking scaling, RPS/RFS/XPS: <https://docs.kernel.org/networking/scaling.html>
+24. Linux NAPI documentation: <https://docs.kernel.org/networking/napi.html>
+25. Linux IPv4 sysctls, ECMP and reverse-path filtering: <https://docs.kernel.org/networking/ip-sysctl.html>
+26. `ip-rule(8)`: <https://man7.org/linux/man-pages/man8/ip-rule.8.html>
+
+## llama.cpp
+
+27. llama.cpp RPC README: <https://github.com/ggml-org/llama.cpp/blob/master/tools/rpc/README.md>
+28. llama.cpp RPC transport implementation: <https://github.com/ggml-org/llama.cpp/blob/master/ggml/src/ggml-rpc/transport.cpp>
+29. llama.cpp RPC server options: <https://github.com/ggml-org/llama.cpp/blob/master/tools/rpc/rpc-server.cpp>
+30. llama.cpp security policy: <https://github.com/ggml-org/llama.cpp/blob/master/SECURITY.md>
+
+## Hardware and experimental transports
+
+31. AMD Ryzen AI Max+ 395 product page — two native 40 Gbit/s USB4 ports: <https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html>
+32. rdma-core — RXE/Soft-RoCE configuration: <https://github.com/linux-rdma/rdma-core/blob/master/Documentation/rxe.md>
+33. rdma-core repository and supported providers: <https://github.com/linux-rdma/rdma-core>
+34. `thunderbolt-ibverbs` field/research series, non-upstream: <https://blog.hellas.ai/blog/thunderbolt-ibverbs/4-thunderbolt-ibverbs/>
+35. Strix Halo Wiki clustering page, community observation only: <https://strixhalo.wiki/AI/Clustering>
+
+## Source interpretation notes
+
+- Kernel source statements are tied to the branches above and can change.
+- The Linux USB4 guide visible in the 7.2 development documentation includes USB4STREAM; Linux 7.1 source does not.
+- The AMD product page establishes SoC capability, not a specific board's controller/domain topology.
+- Community throughput and PCI listings are examples, not acceptance targets.
+- Current release numbers and security advice should be re-checked before deployment.
+
+---
+
+<!-- source: docs/17-custom-runtime-design.md -->
+
+# Custom runtime design for two paths
+
+## Recommended architecture
+
+![Custom runtime](../diagrams/custom-runtime.svg)
+
+Use one control session and two data paths:
+
+```text
+control: MPTCP or single TCP socket
+path 0 data: TCP bound 10.44.0.1 -> 10.44.0.2
+path 1 data: TCP bound 10.44.1.1 -> 10.44.1.2
+```
+
+The control session negotiates capabilities, creates a session, assigns path IDs, and exchanges credits. Data sockets carry framed chunks with global offsets. This avoids packet-level striping and makes scheduling observable.
+
+USB4STREAM can replace the two data sockets when Linux 7.2+ is available, while the control plane remains TCP/MPTCP for discovery and recovery.
+
+## Framing
+
+A practical fixed header:
+
+```c
+struct frame_header {
+    uint32_t magic;          // constant, network byte order
+    uint16_t version;
+    uint16_t type;           // DATA, CREDIT, ACK, ERROR, CLOSE
+    uint32_t flags;
+    uint64_t session_id;
+    uint64_t message_id;
+    uint32_t path_id;
+    uint32_t chunk_seq;
+    uint64_t global_offset;
+    uint64_t total_length;
+    uint32_t payload_length;
+    uint32_t header_crc32c;
+    uint8_t  payload_hash[32];
+};
+```
+
+Validate every field before allocation. Set a protocol maximum for messages, chunks, and outstanding bytes.
+
+## Striping unit
+
+Start with chunks between 256 KiB and 4 MiB. A 4 KiB unit mirrors the raw USB4 frame size but creates too much userspace scheduling overhead. A very large unit makes load balancing and failover coarse.
+
+Adaptive scheduler inputs:
+
+```text
+bytes in flight per path
+smoothed throughput
+smoothed RTT / completion latency
+queue depth / available credits
+recent errors or stalls
+NUMA/CPU ownership
+```
+
+Do not send alternating TCP segments manually. Send independent complete chunks on independent ordered streams.
+
+## Ordering and reassembly
+
+Each path preserves local order, but completion across paths is unordered. Reassemble by `message_id + global_offset`, not arrival order. Release a message only after all ranges are present and the final hash matches.
+
+Use a bounded interval/range map. Reject overlapping chunks unless they are exact validated retransmissions.
+
+## Flow control
+
+A fast sender can exhaust receiver memory even when the underlying transport provides byte-stream flow control. Add application credits:
+
+```text
+receiver advertises N bytes and M frame slots
+sender may not exceed either limit
+credits return after data is consumed, not merely received
+```
+
+Separate credits per path prevent a stalled link from blocking the other.
+
+## Failure model
+
+Define states:
+
+```text
+UP -> DEGRADED -> DRAINING -> DOWN -> RECONNECTING
+```
+
+On path loss:
+
+1. stop assigning new chunks;
+2. identify unacknowledged global ranges;
+3. requeue them to the remaining path;
+4. preserve idempotence with message/chunk IDs;
+5. reconnect and reauthenticate before rejoining the scheduler.
+
+MPTCP provides much of this below the application for one stream. Explicit striping provides more control but more code.
+
+## Integrity and confidentiality
+
+CRC32C is useful for detecting header corruption quickly. Use BLAKE3/SHA-256 or an AEAD tag for payload integrity. When confidentiality or peer authenticity matters, use an authenticated encrypted session; do not rely on physical cable possession alone.
+
+## Copy model
+
+### TCP/USB4NET
+
+Likely copy path:
+
+```text
+runtime buffer -> socket/skb -> thunderbolt-net DMA pages -> cable
+peer DMA pages -> skb/GRO -> socket -> runtime buffer
+```
+
+### USB4STREAM
+
+Current source path:
+
+```text
+runtime buffer -> copy_page_from_iter -> DMA-mapped TX page -> cable
+peer DMA-mapped RX page -> copy_page_to_iter -> runtime buffer
+```
+
+Both have copies. Registered application buffers, `mmap`, or direct tensor placement would require new kernel/user APIs.
+
+## Queue ownership
+
+Use one I/O worker per physical path, pinned near that controller's IRQ/NAPI CPU set. Keep compute workers separate from network softirq hot spots. For USB4STREAM, one process/thread per device avoids contention between unrelated writers on the same stream mutex.
+
+## llama.cpp integration seam
+
+The RPC transport already abstracts exact-length send and receive. Refactor toward:
+
+```cpp
+class byte_transport {
+public:
+    virtual bool send_exact(const void *, size_t) = 0;
+    virtual bool recv_exact(void *, size_t) = 0;
+    virtual void get_caps(uint8_t *) = 0;
+    virtual void update_caps(const uint8_t *) = 0;
+    virtual ~byte_transport() = default;
+};
+```
+
+Then implement:
+
+- `tcp_transport`;
+- `mptcp_transport` as a socket-protocol option;
+- `tbstream_transport`;
+- `striped_transport` over two child transports.
+
+Keep protocol framing above the child transport and add explicit capability/version negotiation.
+
+## Acceptance tests
+
+- random chunk sizes and boundaries;
+- partial read/write handling;
+- path delay asymmetry;
+- path bandwidth asymmetry;
+- cable removal during every message phase;
+- duplicate/replayed chunks;
+- corrupted header/payload;
+- receiver backpressure;
+- process crash and reconnect;
+- session ID collision/reuse;
+- 24-hour soak with hashes and memory leak detection.
+
+---
+
+<!-- source: docs/18-runbook.md -->
+
+# One-page deployment runbook
+
+## 1. Update and capture
+
+On both nodes:
+
+```bash
+PREFLIGHT=$(sudo scripts/capture-topology.sh preflight | tail -n 1)
+python3 tools/verify_report.py "$PREFLIGHT"
+```
+
+Require Linux 7.1+ for the stable path. Use Linux 7.2+ only for USB4STREAM experiments.
+
+## 2. Connect and map one cable at a time
+
+Record for each connector:
+
+```text
+netdev -> service/XDomain -> domain -> NHI PCI BDF
+```
+
+Required exposure result: both netdevs coexist when both cables are connected. Preferred independence result: two different domains and BDFs on each node. If connecting cable 1 removes cable 0's XDomain/netdev, stop; the platform/connection-manager topology cannot expose the requested two paths concurrently.
+
+## 3. Configure addresses
+
+Node A:
+
+```bash
+sudo ROLE=A IF0=thunderbolt0 IF1=thunderbolt1 MTU=9000 scripts/configure-links.sh
+sudo ROLE=A IF0=thunderbolt0 IF1=thunderbolt1 scripts/configure-policy-routing.sh
+```
+
+Node B:
+
+```bash
+sudo ROLE=B IF0=thunderbolt0 IF1=thunderbolt1 MTU=9000 scripts/configure-links.sh
+sudo ROLE=B IF0=thunderbolt0 IF1=thunderbolt1 scripts/configure-policy-routing.sh
+```
+
+## 4. Validate each path
+
+Node A:
+
+```bash
+ping -I 10.44.0.1 -c 5 10.44.0.2
+ping -I 10.44.1.1 -c 5 10.44.1.2
+```
+
+## 5. Measure isolated and simultaneous throughput
+
+Node B:
+
+```bash
+examples/start-iperf-servers.sh
+```
+
+Node A:
+
+```bash
+LOCAL0=10.44.0.1 PEER0=10.44.0.2 \
+LOCAL1=10.44.1.1 PEER1=10.44.1.2 \
+  scripts/proof-independent-paths.sh results/pre-mptcp
+```
+
+## 6. Configure MPTCP
+
+Node B:
+
+```bash
+sudo ROLE=server IF0=thunderbolt0 IF1=thunderbolt1 scripts/configure-mptcp.sh
+```
+
+Node A:
+
+```bash
+sudo ROLE=client IF0=thunderbolt0 IF1=thunderbolt1 scripts/configure-mptcp.sh
+```
+
+## 7. Validate one MPTCP stream
+
+Node B:
+
+```bash
+mptcpize run iperf3 -s -p 5203
+```
+
+Node A:
+
+```bash
+mptcpize run iperf3 -c 10.44.0.2 -p 5203 -t 60
+```
+
+During transfer:
+
+```bash
+ss -Mani
+sudo ss -tani
+ip -ts mptcp monitor
+```
+
+Require two intended subflows and payload bytes on both links.
+
+## 8. Start llama.cpp RPC
+
+Node B:
+
+```bash
+sudo nft -f configs/nftables/dual-usb4-rpc-node-b.nft
+mptcpize run ./build/bin/ggml-rpc-server -H 0.0.0.0 -p 50052 -c
+```
+
+Node A:
+
+```bash
+mptcpize run ./build/bin/llama-cli -m model.gguf -ngl 99 --rpc 10.44.0.2:50052
+```
+
+## 9. Failure proof
+
+During a long RPC or iperf operation, unplug each cable in turn. The session must survive one link loss. Save `ss`, counters, logs, and packet captures.
+
+## 10. Final capture
+
+```bash
+POST=$(sudo scripts/capture-topology.sh post-test | tail -n 1)
+python3 tools/verify_report.py "$POST"
+```
+
+Do not publish “dual 40 Gbit/s” based on negotiated speed labels. Publish measured payload throughput, CPU cost, and the exact independence level proven.
+
+---
+
+<!-- source: docs/19-open-questions.md -->
+
+# Open questions and future work
+
+These are not blockers for the recommended USB4NET+MPTCP design; they are research targets.
+
+## USB4 controller topology
+
+- Do all shipping Strix Halo boards expose the two native USB4 ports as two Linux domains/NHI PCI functions?
+- Which boards route both connectors through shared retimers, muxes, or power-management domains?
+- Does simultaneous host-to-host use encounter firmware bandwidth arbitration not visible in sysfs?
+
+## Driver scalability
+
+- Would multiple ring/NAPI queues per `thunderbolt-net` interface improve one-link throughput or only CPU distribution?
+- Can hardware expose more independent DMA rings/HopIDs safely to networking?
+- Would busy-poll or threaded NAPI reduce tail latency for RPC-sized transfers?
+
+## USB4STREAM ABI
+
+- Can an upstream `mmap`, registered-buffer, `splice`, or io_uring-specific API remove the current user copy without weakening isolation?
+- What stable discovery/session API should a production runtime use?
+- How should permissions, namespaces, cgroups, and LSM policy apply to `/dev/tbstreamX`?
+- What reconnect semantics should applications expect after XDomain disappearance?
+
+## Runtime integration
+
+- Should llama.cpp accept an explicit `--rpc-transport tcp|mptcp|rdma|tbstream` option?
+- Should the RPC server support several bind addresses and expose source/interface binding?
+- Can RPC transfers be scheduled as independent tensor chunks over two connections without duplicating devices?
+- How much of inference time is transport-bound on realistic Strix Halo model partitions?
+
+## Integrity and security
+
+- Should the RPC protocol gain authentication, encryption, strict graph validation, and resource quotas before transport optimization?
+- Can USB4 host identity/XDomain properties be safely incorporated into channel authentication?
+
+## Measurement
+
+- Which MTU minimizes CPU-seconds/GiB on current AMD NHI hardware?
+- Does MPTCP match two independent TCP flows under equal RTT, or does scheduler/reassembly overhead dominate?
+- Does USB4STREAM outperform USB4NET after normalizing for copies, chunk sizes, and CPU affinity?
+- What shared memory-bandwidth ceiling appears when both links and the integrated GPU are busy?
+
+---
+
+<!-- source: docs/glossary.md -->
+
+# Glossary
+
+**AF_XDP** — Linux address family for high-performance userspace packet I/O, requiring driver/queue support for zero-copy operation.
+
+**BDF** — PCI domain:bus:device.function identifier, for example `0000:c8:00.5`.
+
+**Bond** — Linux virtual netdev combining member interfaces under one link-layer interface.
+
+**CRC** — cyclic redundancy check; detects accidental errors but is not cryptographic authentication.
+
+**DSS** — MPTCP Data Sequence Signal, mapping subflow sequence space to the connection-level data sequence.
+
+**ECMP** — equal-cost multipath routing, normally hash-selecting a nexthop per flow.
+
+**GRO/GSO/TSO** — receive/generic/transmit segmentation/coalescing mechanisms that reduce per-packet stack cost.
+
+**HopID** — USB4/Thunderbolt path identifier used by tunneled traffic and DMA rings.
+
+**IOMMU** — I/O memory-management unit restricting DMA to mapped memory.
+
+**MPTCP** — Multipath TCP, one socket composed of one or more TCP subflows.
+
+**NAPI** — Linux network event polling/processing abstraction used by drivers.
+
+**NHI** — Native Host Interface for a Thunderbolt/USB4 host controller.
+
+**NUMA** — non-uniform memory access topology exposed by the operating system.
+
+**RPS/RFS/XPS** — software receive steering, receive flow steering, and transmit queue steering.
+
+**RXE** — Linux Soft-RoCE provider implementing RDMA verbs over a normal Ethernet netdev in software.
+
+**Subflow** — a regular TCP flow belonging to one MPTCP connection.
+
+**USB4NET** — host-to-host networking protocol exposed as an Ethernet interface by `thunderbolt-net`.
+
+**USB4STREAM** — raw host-to-host streaming protocol exposed by `thunderbolt-stream` as `/dev/tbstreamX`.
+
+**XDomain** — a USB4/Thunderbolt cross-domain connection to another host and its advertised services.
+
+---
+
+<!-- source: examples/address-plan.md -->
+
+# Reference address plan
+
+| Link | Node A interface/address | Node B interface/address | Purpose |
+|---|---|---|---|
+| Cable 0 | `thunderbolt0`, `10.44.0.1/30` | `thunderbolt0`, `10.44.0.2/30` | Initial TCP/MPTCP subflow |
+| Cable 1 | `thunderbolt1`, `10.44.1.1/30` | `thunderbolt1`, `10.44.1.2/30` | Additional MPTCP subflow |
+| Optional bond lab | `bond0`, `10.44.2.1/30` | `bond0`, `10.44.2.2/30` | Mutually exclusive with per-link addresses |
+
+Replace interface names with persistent names after physical mapping. Do not reuse the same subnet on both cables.
+
+---
+
+<!-- source: examples/expected-output.md -->
+
+# Expected output patterns
+
+These are shapes, not exact device names or performance targets.
+
+## Strong topology evidence
+
+```text
+interface      domain   NHI BDF        XDomain  service  remote UUID
+thunderbolt0   domain0  0000:c8:00.5   0-1      0-1.0   <peer-domain-uuid-0>
+thunderbolt1   domain1  0000:c8:00.6   1-1      1-1.0   <peer-domain-uuid-1>
+```
+
+## Correct route selection
+
+```text
+10.44.0.2 from 10.44.0.1 dev thunderbolt0 src 10.44.0.1
+10.44.1.2 from 10.44.1.1 dev thunderbolt1 src 10.44.1.1
+```
+
+## MPTCP evidence
+
+`ss -Mani` shows one MPTCP socket; root `ss -tani` shows two TCP subflows with the intended address pairs. Both `ip -s link` byte counters grow during one application operation.
+
+## Insufficient evidence
+
+```text
+thunderbolt0 UP
+thunderbolt1 UP
+```
+
+Two interface names alone do not prove controller, fault, capacity, or application-path independence.
+
+## Failed same-peer coexistence gate
+
+```text
+insert cable 1 -> thunderbolt0 / XDomain 0-1 exists
+insert cable 2 -> XDomain 0-1 disappears and only the new route/netdev remains
+```
+
+This is a failure before IP configuration. A firmware/ICM-managed domain can replace a same-UUID XDomain at a new route; bonding and MPTCP cannot recover a path that Linux does not expose concurrently.
+
+---
+
+<!-- source: examples/proof-checklist.md -->
+
+# Dual-USB4 proof checklist
+
+## Identity
+
+- [ ] Node A and B board/BIOS/firmware recorded.
+- [ ] Kernel and kernel config recorded.
+- [ ] Cable type/length recorded.
+- [ ] Each connector mapped one cable at a time.
+
+## Topology
+
+- [ ] Two USB4NET netdevs on node A.
+- [ ] Two USB4NET netdevs on node B.
+- [ ] Adding cable 2 does not remove or replace cable 1's XDomain/netdev on either node.
+- [ ] Two distinct XDomains/services on each node.
+- [ ] Two distinct USB4 domains on each node, or shared-domain limitation stated.
+- [ ] Two distinct NHI PCI BDFs on each node, or shared-controller limitation stated.
+
+## Correctness
+
+- [ ] Separate /30 subnets.
+- [ ] Source-specific route lookup selects correct interface.
+- [ ] MTU verified with DF ping.
+- [ ] No unexplained errors/CRC growth.
+
+## Performance
+
+- [ ] Isolated link 0 results, both directions.
+- [ ] Isolated link 1 results, both directions.
+- [ ] Concurrent two-link results.
+- [ ] CPU-seconds/GiB and softirq data.
+- [ ] MTU/offload settings recorded.
+
+## Fault isolation
+
+- [ ] Cable 0 removal leaves cable 1 operational.
+- [ ] Cable 1 removal leaves cable 0 operational.
+- [ ] No shared controller reset.
+
+## MPTCP
+
+- [ ] Both application endpoints create MPTCP sockets.
+- [ ] Two intended subflows are established.
+- [ ] Both subflows carry payload bytes.
+- [ ] One-cable failure does not close the meta-socket.
+- [ ] Reconnect limitation documented.
+
+## Security
+
+- [ ] RPC listener restricted to dedicated fabric/namespace.
+- [ ] nftables peer filter installed.
+- [ ] USB4 domain security and IOMMU status captured.
+- [ ] Encryption decision documented.
+
+---
+
+<!-- source: manifest.json -->
+
+## Source file: `manifest.json`
+
+```json
+{
+  "schema_version": 1,
+  "name": "dual-usb4-strix-halo-wiki",
+  "title": "Dual-USB4 Strix Halo Transport Wiki",
+  "version": "2026.07.17",
+  "snapshot_date": "2026-07-17",
+  "generated_at_utc": "2026-07-17T19:25:02Z",
+  "license": "MIT",
+  "formats": [
+    "GitHub Wiki",
+    "MkDocs Material",
+    "llms.txt",
+    "machine-readable evidence pack"
+  ],
+  "target": "Two Linux AMD Strix Halo / Ryzen AI Max nodes connected by two host-to-host USB4 cables",
+  "primary_recommendation": "Require two coexisting USB4NET paths, route them as separate point-to-point subnets, and use MPTCP for one llama.cpp RPC stream",
+  "custom_runtime_recommendation": "Use two source-bound TCP sockets with framed chunk striping; evaluate two USB4STREAM devices only as a Linux 7.2-era experiment",
+  "same_peer_gate": "If attaching the second cable removes or replaces the first XDomain/netdev, dual-link exposure has failed; prefer separate domainX/NHI instances on both nodes",
+  "kernel_snapshot": {
+    "stable": "7.1.3",
+    "mainline": "7.2-rc3",
+    "longterm_reference": "6.18.38",
+    "usb4net_bonding_floor": "7.0",
+    "usb4stream_floor": "7.2 development line"
+  },
+  "entrypoints": [
+    "README.md",
+    "Home.md",
+    "docs/index.md",
+    "docs/00-executive-conclusions.md",
+    "docs/18-runbook.md",
+    "llms.txt",
+    "llms-full.txt",
+    "CITATIONS.md",
+    "VALIDATION.md"
+  ],
+  "standard_wiki_files": [
+    "Home.md",
+    "_Sidebar.md",
+    "_Footer.md",
+    "SUMMARY.md",
+    "mkdocs.yml"
+  ],
+  "validation": {
+    "status": "passed-with-environmental-skips",
+    "report": "VALIDATION.md",
+    "machine_readable": "data/validation-environment.json",
+    "script": "scripts/validate-wiki.sh",
+    "target_hardware_measured": false
+  },
+  "inventory": {
+    "definition": "Counts exclude SHA256SUMS and external archive files",
+    "file_count": 111,
+    "tree_bytes": 1418075,
+    "llms_full_bytes": 146929
+  },
+  "limitations": [
+    "No physical Strix Halo dual-USB4 measurements were performed in the artifact build environment",
+    "MkDocs strict build was not run because documentation dependencies were absent",
+    "Native MPTCP runtime was not available on the build environment's Linux 4.4.0 kernel"
+  ]
+}
+```
+
+---
+
+<!-- source: wiki.json -->
+
+## Source file: `wiki.json`
+
+```json
+{
+  "schema_version": 1,
+  "name": "Dual-USB4 Strix Halo Transport Wiki",
+  "slug": "dual-usb4-strix-halo-wiki",
+  "snapshot_date": "2026-07-17",
+  "audience": [
+    "Linux networking engineers",
+    "kernel/driver researchers",
+    "LLM runtime developers"
+  ],
+  "entrypoints": [
+    "README.md",
+    "Home.md",
+    "docs/index.md",
+    "llms.txt",
+    "llms-full.txt"
+  ],
+  "topics": [
+    "USB4NET",
+    "connection-manager coexistence gate",
+    "USB4STREAM",
+    "MPTCP",
+    "bonding",
+    "routing",
+    "llama.cpp RPC",
+    "NUMA",
+    "integrity",
+    "proof criteria"
+  ],
+  "pages": [
+    {
+      "path": "docs/00-executive-conclusions.md",
+      "title": "Executive conclusions"
+    },
+    {
+      "path": "docs/01-scope-and-terms.md",
+      "title": "Scope and terminology"
+    },
+    {
+      "path": "docs/02-topology-and-enumeration.md",
+      "title": "Topology and interface enumeration"
+    },
+    {
+      "path": "docs/03-kernel-prerequisites.md",
+      "title": "Current kernel prerequisites"
+    },
+    {
+      "path": "docs/04-usb4net-configuration.md",
+      "title": "USB4NET configuration"
+    },
+    {
+      "path": "docs/05-routing-and-policy-routing.md",
+      "title": "Routing and policy routing"
+    },
+    {
+      "path": "docs/06-bonding-and-ecmp.md",
+      "title": "Bonding, ECMP, and multipath behavior"
+    },
+    {
+      "path": "docs/07-mptcp.md",
+      "title": "Multipath TCP"
+    },
+    {
+      "path": "docs/08-mtu-queues-offloads.md",
+      "title": "MTU, queues, and offloads"
+    },
+    {
+      "path": "docs/09-cpu-and-numa.md",
+      "title": "CPU overhead and NUMA locality"
+    },
+    {
+      "path": "docs/10-integrity-and-security.md",
+      "title": "Integrity and security"
+    },
+    {
+      "path": "docs/11-llama-cpp-rpc.md",
+      "title": "llama.cpp RPC integration"
+    },
+    {
+      "path": "docs/12-transport-comparison.md",
+      "title": "Transport comparison"
+    },
+    {
+      "path": "docs/13-usb4stream-and-experimental.md",
+      "title": "USB4STREAM and experimental USB4 transports"
+    },
+    {
+      "path": "docs/14-measurement-and-proof.md",
+      "title": "Measurement and proof criteria"
+    },
+    {
+      "path": "docs/15-troubleshooting.md",
+      "title": "Troubleshooting"
+    },
+    {
+      "path": "docs/16-references.md",
+      "title": "References and source snapshot"
+    },
+    {
+      "path": "docs/17-custom-runtime-design.md",
+      "title": "Custom runtime design for two paths"
+    },
+    {
+      "path": "docs/18-runbook.md",
+      "title": "One-page deployment runbook"
+    },
+    {
+      "path": "docs/19-open-questions.md",
+      "title": "Open questions and future work"
+    },
+    {
+      "path": "docs/glossary.md",
+      "title": "Glossary"
+    },
+    {
+      "path": "docs/index.md",
+      "title": "Dual-USB4 topology and transport research"
+    }
+  ],
+  "machine_readable": [
+    "data/claims.jsonl",
+    "data/source-index.json",
+    "data/kernel-feature-matrix.csv",
+    "data/transports.csv",
+    "data/proof-criteria.yaml",
+    "data/validation-environment.json"
+  ],
+  "validation": {
+    "status": "passed-with-environmental-skips",
+    "report": "VALIDATION.md",
+    "machine_readable": "data/validation-environment.json",
+    "validated_at_utc": "2026-07-17T19:25:02Z"
+  }
+}
+```
+
+---
+
+<!-- source: data/claims.jsonl -->
+
+## Source file: `data/claims.jsonl`
+
+```jsonl
+{"id":"C001","claim":"AMD Ryzen AI Max+ 395 advertises two native USB4 40 Gbit/s ports","kind":"upstream-fact","confidence":"high","sources":["amd-395"],"snapshot":"2026-07-17"}
+{"id":"C002","claim":"Linux creates one USB4NET virtual Ethernet interface per Thunderbolt port","kind":"upstream-fact","confidence":"high","sources":["linux-usb4-guide"],"snapshot":"2026-07-17"}
+{"id":"C003","claim":"Linux typically exposes one domain per USB4/Thunderbolt host controller","kind":"upstream-fact","confidence":"high","sources":["linux-usb4-guide"],"snapshot":"2026-07-17"}
+{"id":"C004","claim":"Linux 7.1 thunderbolt-net has one NAPI object and one TX/RX ring pair per netdev","kind":"source-code-fact","confidence":"high","sources":["usb4net-7.1"],"snapshot":"2026-07-17"}
+{"id":"C005","claim":"Linux 7.1 thunderbolt-net advertises maximum MTU 65522 and splits into roughly 4 KiB frames","kind":"source-code-fact","confidence":"high","sources":["usb4net-7.1"],"snapshot":"2026-07-17"}
+{"id":"C006","claim":"USB4STREAM is in the Linux 7.2 development line and absent from Linux 7.1 Kconfig","kind":"source-code-fact","confidence":"high","sources":["usb4stream-mainline","usb4-kconfig-mainline"],"snapshot":"2026-07-17"}
+{"id":"C007","claim":"USB4STREAM currently exposes copy-based read/write character devices, not remote shared memory","kind":"source-code-fact","confidence":"high","sources":["usb4stream-mainline"],"snapshot":"2026-07-17"}
+{"id":"C008","claim":"Flow-hash bonding does not spread one TCP connection; balance-rr can but risks reordering","kind":"upstream-fact","confidence":"high","sources":["bonding"],"snapshot":"2026-07-17"}
+{"id":"C009","claim":"MPTCP can aggregate interfaces under one logical connection and provide failover","kind":"upstream-fact","confidence":"high","sources":["mptcp-doc"],"snapshot":"2026-07-17"}
+{"id":"C010","claim":"The reference laminar endpoint design pairs the second local address with the second announced address","kind":"engineering-inference","confidence":"medium","sources":["mptcp-pm"],"snapshot":"2026-07-17"}
+{"id":"C011","claim":"Current llama.cpp RPC uses IPv4 TCP sockets and has no authentication/TLS","kind":"source-code-fact","confidence":"high","sources":["llama-rpc-readme","llama-rpc-transport","llama-security"],"snapshot":"2026-07-17"}
+{"id":"C012","claim":"Two --rpc endpoints to the same remote device are not a transparent multipath abstraction","kind":"engineering-inference","confidence":"high","sources":["llama-rpc-readme"],"snapshot":"2026-07-17"}
+{"id":"C013","claim":"Soft-RoCE can be created over USB4NET but is software processing, not USB4 hardware RDMA","kind":"upstream-fact","confidence":"high","sources":["rxe"],"snapshot":"2026-07-17"}
+{"id":"C014","claim":"Distinct domains and NHI BDFs are strong topology evidence but concurrent throughput is needed for end-to-end capacity independence","kind":"engineering-inference","confidence":"high","sources":["linux-usb4-guide"],"snapshot":"2026-07-17"}
+{"id":"C015","claim":"Aggregate >=1.7x best isolated and each path >=80% retained is a project heuristic, not a standard","kind":"heuristic","confidence":"n/a","sources":[],"snapshot":"2026-07-17"}
+{"id":"C016","claim":"MPTCP authenticates additional subflow joins and ADD_ADDR signaling to the existing connection with key-derived HMACs, but does not provide application peer identity or payload encryption","kind":"upstream-fact","confidence":"high","sources":["rfc8684"],"snapshot":"2026-07-17"}
+{"id":"C017","claim":"Linux 7.1 software-CM XDomain scanning and control matching are route keyed, allowing distinct route objects within a domain at the object-model level","kind":"source-code-fact","confidence":"high","sources":["software-cm-7.1","xdomain-7.1"],"snapshot":"2026-07-17"}
+{"id":"C018","claim":"Linux 7.1 firmware/ICM XDomain connect handling removes an existing same-remote-UUID XDomain when the UUID appears at a different route within the same USB4 domain","kind":"source-code-fact","confidence":"high","sources":["icm-7.1"],"snapshot":"2026-07-17"}
+{"id":"C019","claim":"Linux selects software CM when ACPI grants USB4 native control; otherwise it tries firmware/ICM first and falls back to software CM","kind":"source-code-fact","confidence":"high","sources":["nhi-cm-select-7.1"],"snapshot":"2026-07-17"}
+{"id":"C020","claim":"Same-UUID lookup in the ICM path is scoped to one USB4 domain, so separate domainX/NHI instances avoid that same-domain replacement scope","kind":"engineering-inference","confidence":"high","sources":["icm-7.1"],"snapshot":"2026-07-17"}
+{"id":"C021","claim":"At the 2026-07-17 snapshot kernel.org lists Linux 7.1.3 as stable, 7.2-rc3 as mainline, and 6.18.38 as longterm","kind":"upstream-fact","confidence":"high","sources":["kernel-releases"],"snapshot":"2026-07-17"}
+```
+
+---
+
+<!-- source: data/source-index.json -->
+
+## Source file: `data/source-index.json`
+
+```json
+{
+  "snapshot_date": "2026-07-17",
+  "sources": [
+    {
+      "id": "kernel-releases",
+      "title": "Linux Kernel Archives",
+      "url": "https://www.kernel.org/",
+      "type": "primary"
+    },
+    {
+      "id": "linux-usb4-guide",
+      "title": "USB4 and Thunderbolt \u2014 Linux documentation",
+      "url": "https://docs.kernel.org/admin-guide/thunderbolt.html",
+      "type": "primary"
+    },
+    {
+      "id": "usb4net-7.1",
+      "title": "Linux 7.1 thunderbolt-net source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/main.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "usb4net-kconfig",
+      "title": "Linux 7.1 USB4NET Kconfig",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/net/thunderbolt/Kconfig",
+      "type": "primary-source"
+    },
+    {
+      "id": "usb4stream-mainline",
+      "title": "Linux mainline USB4STREAM source",
+      "url": "https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/stream.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "usb4-kconfig-mainline",
+      "title": "Linux mainline USB4 Kconfig",
+      "url": "https://github.com/torvalds/linux/blob/master/drivers/thunderbolt/Kconfig",
+      "type": "primary-source"
+    },
+    {
+      "id": "mptcp-doc",
+      "title": "Linux MPTCP documentation",
+      "url": "https://docs.kernel.org/networking/mptcp.html",
+      "type": "primary"
+    },
+    {
+      "id": "mptcp-pm",
+      "title": "MPTCP path-manager guide",
+      "url": "https://www.mptcp.dev/pm.html",
+      "type": "primary-project"
+    },
+    {
+      "id": "mptcp-setup",
+      "title": "MPTCP application setup",
+      "url": "https://www.mptcp.dev/setup.html",
+      "type": "primary-project"
+    },
+    {
+      "id": "rfc8684",
+      "title": "RFC 8684 \u2014 Multipath TCP v1",
+      "url": "https://www.rfc-editor.org/rfc/rfc8684.html",
+      "type": "primary-standard"
+    },
+    {
+      "id": "bonding",
+      "title": "Linux Ethernet Bonding Driver HOWTO",
+      "url": "https://docs.kernel.org/networking/bonding.html",
+      "type": "primary"
+    },
+    {
+      "id": "network-scaling",
+      "title": "Scaling in the Linux Networking Stack",
+      "url": "https://docs.kernel.org/networking/scaling.html",
+      "type": "primary"
+    },
+    {
+      "id": "llama-rpc-readme",
+      "title": "llama.cpp RPC README",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/master/tools/rpc/README.md",
+      "type": "primary"
+    },
+    {
+      "id": "llama-rpc-transport",
+      "title": "llama.cpp RPC transport source",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/master/ggml/src/ggml-rpc/transport.cpp",
+      "type": "primary-source"
+    },
+    {
+      "id": "llama-security",
+      "title": "llama.cpp security policy",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/master/SECURITY.md",
+      "type": "primary"
+    },
+    {
+      "id": "amd-395",
+      "title": "AMD Ryzen AI Max+ 395",
+      "url": "https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html",
+      "type": "primary-vendor"
+    },
+    {
+      "id": "rxe",
+      "title": "rdma-core RXE documentation",
+      "url": "https://github.com/linux-rdma/rdma-core/blob/master/Documentation/rxe.md",
+      "type": "primary-project"
+    },
+    {
+      "id": "hellas-nhi",
+      "title": "thunderbolt-ibverbs research series",
+      "url": "https://blog.hellas.ai/blog/thunderbolt-ibverbs/4-thunderbolt-ibverbs/",
+      "type": "field-research"
+    },
+    {
+      "id": "xdomain-7.1",
+      "title": "Linux 7.1 XDomain core source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/xdomain.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "icm-7.1",
+      "title": "Linux 7.1 firmware/ICM connection-manager source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/icm.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "software-cm-7.1",
+      "title": "Linux 7.1 software connection-manager source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/tb.c",
+      "type": "primary-source"
+    },
+    {
+      "id": "nhi-cm-select-7.1",
+      "title": "Linux 7.1 NHI connection-manager selection source",
+      "url": "https://github.com/torvalds/linux/blob/v7.1/drivers/thunderbolt/nhi.c",
+      "type": "primary-source"
+    }
+  ]
+}
+```
+
+---
+
+<!-- source: data/kernel-feature-matrix.csv -->
+
+## Source file: `data/kernel-feature-matrix.csv`
+
+```csv
+kernel_line,status_at_snapshot,usb4net,mptcp,bonding_note,usb4stream,recommendation
+6.18.38,LTS,yes,yes; laminar available,"pre-7.0 thunderbolt-net hooks; validate modes",no,USB4NET+MPTCP fallback
+7.0.14,EOL,yes,yes,"MAC and link-setting additions enable current bonding support",no,feature boundary only
+7.1.3,stable,yes,yes,current improved hooks,no,recommended stable baseline
+7.2-rc3,mainline pre-release,yes,yes,current,yes,USB4STREAM experiment
+```
+
+---
+
+<!-- source: data/transports.csv -->
+
+## Source file: `data/transports.csv`
+
+```csv
+transport,maturity,single_ordered_stream,one_stream_uses_two_links,failover,llama_cpp_change,shared_memory,security_note
+TCP one USB4NET,stable,yes,no,reconnect,none,no,RPC has no TLS/auth
+Two TCP sockets,stable,no; app reassembles,yes,application,custom runtime,no,application responsibility
+ECMP TCP,stable,yes,no,route dependent,none,no,same as TCP
+Bond active-backup,stable 7.0+,yes,no,yes,none,no,same as TCP
+Bond hash/LACP,stable 7.0+,yes,no; multiple flows spread,yes,none,no,same as TCP
+Bond balance-rr,stable but risky,yes,packet stripes,yes,none,no,reordering risk
+MPTCP,stable,yes,yes,yes,mptcpize or patch,no,join/address HMACs; no payload encryption or app identity
+USB4STREAM,Linux 7.2 development,yes raw stream,custom two-device striping,application,new adapter,no,no encryption/auth
+Soft-RoCE over USB4NET,experimental,verbs semantics,custom multi-QP,application,may trigger RDMA path,no,no channel security
+Coherent shared memory over generic USB4,unavailable,n/a,n/a,n/a,new hardware/platform,no,n/a
+```
+
+---
+
+<!-- source: data/proof-criteria.yaml -->
+
+## Source file: `data/proof-criteria.yaml`
+
+```yaml
+snapshot: 2026-07-17
+levels:
+  - id: 0
+    name: naming
+    sufficient: false
+    evidence: [two physical ports or cables]
+  - id: 1
+    name: interface-separation
+    sufficient: false
+    evidence: [two USB4NET netdevs present simultaneously, distinct service/XDomain paths, attaching cable 2 does not remove cable 1]
+  - id: 2
+    name: controller-separation
+    sufficient: topology-only
+    evidence: [distinct domainX objects, distinct NHI PCI BDFs, on both nodes]
+  - id: 3
+    name: fault-separation
+    sufficient: failure-only
+    evidence: [unplug one cable, other path remains operational, repeat both directions]
+  - id: 4
+    name: execution-separation
+    sufficient: processing-only
+    evidence: [path-bound counters, IRQ/NAPI attribution]
+  - id: 5
+    name: capacity-separation
+    sufficient: end-to-end-capacity
+    evidence: [isolated baselines, concurrent flows, both productive]
+    heuristic:
+      aggregate_to_best_isolated: 1.7
+      each_link_retention: 0.8
+  - id: 6
+    name: application-multipath
+    sufficient: true
+    evidence: [one MPTCP meta-socket, two established intended subflows, bytes on both, single-link survival]
+```
+
+---
+
+<!-- source: data/validation-environment.json -->
+
+## Source file: `data/validation-environment.json`
+
+```json
+{
+  "validated_at_utc": "2026-07-17T19:25:02Z",
+  "status": "passed-with-environmental-skips",
+  "build_environment": {
+    "kernel": "4.4.0",
+    "mkdocs_installed": false,
+    "graphviz_dot_installed": true,
+    "gcc_installed": true,
+    "target_strix_halo_hardware_present": false
+  },
+  "passed": [
+    "Bash syntax for scripts and examples",
+    "Python compilation with bytecode cache outside the artifact tree",
+    "JSON, JSONL, and CSV parsing",
+    "Relative Markdown link validation",
+    "Graphviz SVG and PNG regeneration",
+    "MPTCP smoke program compilation with -Wall -Wextra -Werror",
+    "llama.cpp optional MPTCP patch parse and apply against pinned source contexts",
+    "Two-socket loopback striper with 2 MiB payload and final SHA-256 equality",
+    "USB4STREAM framing tool over a FIFO with 2 MiB payload and final SHA-256 equality"
+  ],
+  "environmental_skips": [
+    "MkDocs strict site build: mkdocs/material dependencies were not installed in the build container",
+    "Native MPTCP runtime transfer: build kernel 4.4.0 rejected socket(IPPROTO_MPTCP) as unsupported",
+    "Physical dual-USB4 proof and performance measurements: no target Strix Halo nodes or USB4 cables were attached"
+  ]
+}
+```

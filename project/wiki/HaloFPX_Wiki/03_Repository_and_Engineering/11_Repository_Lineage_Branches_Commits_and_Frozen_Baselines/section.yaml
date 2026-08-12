@@ -1,0 +1,38 @@
+section_id: "11"
+category_id: "03"
+title: "Repository Lineage, Branches, Commits, and Frozen Baselines"
+category: "03_Repository_and_Engineering"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 16
+open_question_count: 10
+required_machine_experiments:
+  - "Inventory remotes, commits, worktrees, dirty state, patches, and recursive submodules for every relevant checkout on both Strix Halo nodes and the integration workstation."
+  - "Create verified Git bundles for every pinned repository and prove a clean offline detached checkout without network fallback."
+  - "Run the locked section-16 build and smoke suite from the frozen source on both nodes; retain environment metadata, binary hashes, and raw logs."
+  - "Using disposable cache data only, prove corrupt or incompatible cache state is rejected as a miss/recomputation."
+related_sections:
+  - "12"
+  - "13"
+  - "14"
+  - "15"
+  - "16"
+applicability:
+  repositories:
+    - repository: "fewtarius/llama-ai"
+      commit: "1017f3dfdce3ca2b06aa9007b23295db3bb35722"
+      observed_default_branch: "main"
+    - repository: "fewtarius/CachyLLama"
+      commit: "6be745998f568e379ea197fcf827baec73ff9940"
+      observed_default_branch: "master"
+    - repository: "charlie12345/ROCmFPX"
+      commit: "a5605a72768c6562241b248e268e33dc92787394"
+      observed_default_branch: "main"
+    - repository: "ggml-org/llama.cpp"
+      commit: "788e07dc91d266ad3162a1ce9037665656269689"
+      observed_default_branch: "master"
+  software_versions:
+    - "Git object format sha1; full 40-hex object IDs"
+  hardware_revisions: []
+known_conflicts:
+  - "ROCmFPX integration documentation associates b9438 with 22cadc194, while the official llama.cpp b9438 ref resolves to d749821db3bd587932d1ed57d43626cd552c9909; 22cadc1944f4658214aee03abd08240358840a95 is one commit later."

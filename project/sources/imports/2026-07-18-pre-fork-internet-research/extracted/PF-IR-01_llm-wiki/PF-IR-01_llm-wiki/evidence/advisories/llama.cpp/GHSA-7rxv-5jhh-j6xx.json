@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-7rxv-5jhh-j6xx",
+  "cve": "CVE-2025-52566",
+  "title": "Tokenizer result-size signed/unsigned overflow",
+  "severity": "High",
+  "published": "2025-06-23",
+  "affected_versions_as_displayed_or_normalized": "< b5721",
+  "patched_versions_as_displayed_or_normalized": "b5721",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-7rxv-5jhh-j6xx",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "llama_vocab::tokenize; result-size conversion to int32_t",
+    "preconditions_summary": "A prompt/template/tokenization result approaches or exceeds INT32_MAX; practical exploitation is resource-intensive but input can originate at HTTP/API boundaries."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "9f77d95f3bb70de20365c3d256d1d6c4bc67eaede1547fb716649d139c76b570"
+}

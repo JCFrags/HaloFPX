@@ -1,0 +1,22 @@
+section_id: "60"
+title: "System-Prompt Sharing, Deduplication, Copy-on-Write, and Continuations"
+category_id: "09"
+category_title: "HaloKV Persistent Cache"
+status: "needs-machine-validation"
+last_verified: "2026-07-17"
+source_count: 8
+open_question_count: 12
+required_machine_experiments:
+  - "Validate explicit rendered prefix boundaries and full token verification across model/template/tool variants"
+  - "Prove suffix-only equivalence for attention, recurrent, MTP and speculative states"
+  - "Exercise tenant/session authorization, poisoning, collision and timing side-channel cases"
+  - "Test immutable copy-on-write branches, expiry, revocation and concurrent deletion"
+  - "Measure shared-prefix restore against full recomputation on both ranks"
+related_sections: ["56", "57", "58", "59", "61", "63", "64"]
+applicability:
+  repositories:
+    - "HaloKV proposal v0"
+    - "fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940"
+    - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+  hardware_revisions:
+    - "Two gfx1151 Strix Halo hosts; exact topology pending"

@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/07-gnu-gpl-version-3-canonical-terms.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://www.gnu.org/licenses/gpl-3.0.en.html",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "457a6adf6791c6c8326ab8d64cd5c56d377835630153848af8ad1b0a2295bef6",
+  "size_bytes": 604,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-LICENSE-CANON"
+}

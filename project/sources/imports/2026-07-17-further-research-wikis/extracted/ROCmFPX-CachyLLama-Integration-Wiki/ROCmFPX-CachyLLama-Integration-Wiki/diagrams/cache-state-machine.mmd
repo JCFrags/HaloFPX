@@ -1,0 +1,14 @@
+stateDiagram-v2
+    [*] --> Disabled
+    Disabled --> ReadOnly: compile on + runtime read-only
+    ReadOnly --> ShadowWrite: parser/fault gates pass
+    ShadowWrite --> CanaryRW: disposable replay matches cold path
+    CanaryRW --> StableOptIn: release gates + rollback drill
+    StableOptIn --> DefaultOn: separate ADR, two release cycles
+
+    ReadOnly --> EphemeralFallback: rejection spike / incompatibility
+    ShadowWrite --> ReadOnly: write fault
+    CanaryRW --> ReadOnly: write circuit opens
+    CanaryRW --> EphemeralFallback: correctness/isolation incident
+    StableOptIn --> EphemeralFallback: emergency kill switch
+    EphemeralFallback --> ReadOnly: fixed reader + offline scan

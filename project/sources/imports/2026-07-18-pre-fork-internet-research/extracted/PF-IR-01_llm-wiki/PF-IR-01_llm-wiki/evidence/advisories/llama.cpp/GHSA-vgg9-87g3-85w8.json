@@ -1,0 +1,19 @@
+{
+  "capture_format": "bounded-primary-source-capture/v1",
+  "source_kind": "GitHub repository security advisory",
+  "advisory_id": "GHSA-vgg9-87g3-85w8",
+  "cve": "CVE-2025-53630",
+  "title": "GGUF cumulative context-size overflow",
+  "severity": "High",
+  "published": "2025-07-10",
+  "affected_versions_as_displayed_or_normalized": "< 26a48ad",
+  "patched_versions_as_displayed_or_normalized": "26a48ad",
+  "source_url": "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-vgg9-87g3-85w8",
+  "accessed": "2026-07-18T00:00:00-07:00",
+  "bounded_raw_excerpt": {
+    "symbols": "gguf_init_from_file_impl; ctx->size accumulation",
+    "preconditions_summary": "Untrusted GGUF drives cumulative metadata/tensor-size arithmetic."
+  },
+  "reuse_notice": "Factual metadata and a bounded synopsis are preserved. Full advisory text and any PoC are intentionally not redistributed.",
+  "payload_sha256": "a5b8279205941960c59b85f10b562e1c14bf8c5c3b2e7910c056c3ffe5673325"
+}

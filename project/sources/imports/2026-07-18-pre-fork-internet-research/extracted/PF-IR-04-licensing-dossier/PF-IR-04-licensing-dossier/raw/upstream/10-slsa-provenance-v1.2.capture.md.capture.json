@@ -1,0 +1,14 @@
+{
+  "capture_path": "raw/upstream/10-slsa-provenance-v1.2.capture.md",
+  "capture_method": "connector capture",
+  "byte_fidelity": "dated public-page text capture; page may be mutable",
+  "source_url": "https://slsa.dev/spec/v1.2/provenance",
+  "repository": null,
+  "repository_commit_or_revision": null,
+  "repository_path": null,
+  "git_blob_sha1": null,
+  "sha256": "98515475427a1999d230b1ed91cad8061ffea9d8567abac6fd418a536629b5fa",
+  "size_bytes": 599,
+  "access_date": "2026-07-18",
+  "claim_label": "OFFICIAL-STANDARD"
+}

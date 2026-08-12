@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Logical deletion, cryptographic erasure, discard, and media sanitization Terms must remain distinct Term HaloKV meaning Evidence allowed Prohibited wording Logical deletion Remove…">
+  <title>Logical deletion, cryptographic erasure, discard, and media sanitization · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link active" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Logical deletion, cryptographic erasure, discard, and media sanitization</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Logical deletion, cryptographic erasure, discard, and media sanitization</h1>
+<h2 id="terms-must-remain-distinct">Terms must remain distinct<a class="heading-anchor" href="#terms-must-remain-distinct" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Term</th>
+  <th>HaloKV meaning</th>
+  <th>Evidence allowed</th>
+  <th>Prohibited wording</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Logical deletion</td>
+  <td>Remove authorization, serving indexes/manifests, object references, and schedule physical object removal/GC</td>
+  <td>Tombstone, index/manifest generation, GC status, retention dependencies</td>
+  <td>“Bytes are unrecoverable”</td>
+</tr>
+<tr>
+  <td>Cryptographic erase (CE)</td>
+  <td>Render all encryption keys needed to decrypt a stated target-data scope inaccessible, under documented assumptions</td>
+  <td>Key IDs/copies/dependencies, destroy operation, verification/validation, scope</td>
+  <td>“Physical cells zeroized”</td>
+</tr>
+<tr>
+  <td>Clear/Purge/Destroy media action</td>
+  <td>Media-specific sanitization categories and techniques under the current sanitization program</td>
+  <td>Device/provider method, verification, validation, disposition record</td>
+  <td>Generic “rm/TRIM securely wiped it”</td>
+</tr>
+<tr>
+  <td>Physical destruction</td>
+  <td>Damage media to the approved destruction threshold for its type and policy</td>
+  <td>Chain of custody, method, validation, disposition</td>
+  <td>“Encryption alone destroyed media”</td>
+</tr>
+</tbody>
+</table></div>
+<p><span class="claim-label" data-claim="PFIR07-C041" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C041][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-88R2 §§2,5,7]</span></p>
+<h2 id="logical-deletion-run">Logical deletion run<a class="heading-anchor" href="#logical-deletion-run" aria-label="Link to section">#</a></h2>
+<ol>
+<li>Authenticate and authorize the deletion request and scope.</li>
+<li>Create a signed/MACed tombstone with tenant/project/prefix/namespace, source object/manifest generation, time, requester, retention/legal-hold result, and deletion ID.</li>
+<li>Advance the serving manifest/index so the object is unreachable before storage GC.</li>
+<li>Revoke future key authorization where the deletion scope justifies it.</li>
+<li>Remove object files from active paths and queue replicas, snapshots, backups, and quarantine copies according to policy.</li>
+<li>Record shared-object references: a shared ciphertext cannot be physically removed while an authorized live reference remains.</li>
+<li>Confirm future reads return miss and do not resurrect from older manifests/backups.</li>
+<li>Report this as logical deletion unless CE or media sanitization is separately completed.</li>
+</ol>
+<p><span class="claim-label" data-claim="PFIR07-C067" data-class="SYNTHESIS" data-status="REQUIRED">[CLAIM:PFIR07-C067][CLASS:SYNTHESIS][STATUS:REQUIRED][SRC:C041-C044]</span></p>
+<h2 id="cryptographic-erasure-scope">Cryptographic-erasure scope<a class="heading-anchor" href="#cryptographic-erasure-scope" aria-label="Link to section">#</a></h2>
+<p>A shared epoch key normally makes CE <strong>epoch-scoped</strong>, not object-scoped. Destroying it also removes every object under that key, while retaining it means one deleted object remains decryptable wherever ciphertext and authorization/key access survive. Fine-grained per-object CE requires a random per-object DEK (or independently erasable small group DEK) wrapped by a parent key, plus deletion of every usable DEK/wrapper copy and backup dependency.</p>
+<p>CE preconditions include:</p>
+<ul>
+<li>target data was encrypted with sufficient, correctly implemented cryptography;</li>
+<li>the relevant key scope is precisely identified;</li>
+<li>all key copies, wrappers, alternate credentials, parent derivation paths, escrow, KMS replicas, LUKS headers/keyslots, snapshots, backups, and process-held copies are inventoried;</li>
+<li>the destroy operation makes every usable target-data key inaccessible;</li>
+<li>active files/mappings/processes are drained as required;</li>
+<li>verification and validation are performed and documented;</li>
+<li>residual memory, future cryptanalysis, implementation, and media assumptions are stated.</li>
+</ul>
+<p><span class="claim-label" data-claim="PFIR07-C042" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C042][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-88R2 §5.4]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C068" data-class="SYNTHESIS" data-status="CONDITIONAL">[CLAIM:PFIR07-C068][CLASS:SYNTHESIS][STATUS:CONDITIONAL][SRC:C042-C044,C054]</span></p>
+<p>CE may be the selected purge technique under a media policy when its requirements are met. This bundle does not assert that any specific HaloKV deployment, KMS, drive, filesystem, or provider meets those requirements without deployment evidence.</p>
+<h2 id="luks-keyslot-deletion-is-not-automatically-ce">LUKS keyslot deletion is not automatically CE<a class="heading-anchor" href="#luks-keyslot-deletion-is-not-automatically-ce" aria-label="Link to section">#</a></h2>
+<p>A keyslot or passphrase removal can leave alternate keyslots, an active mapping, a volume key in memory/keyring, detached headers, header backups, escrow, and snapshots. It also does not overwrite payload data. Credential/keyslot rotation and payload-key reencryption are distinct operations.</p>
+<p><span class="claim-label" data-claim="PFIR07-C021" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C021][CLASS:SOURCE][STATUS:SUPPORTED][SRC:CRYPTSETUP-2.8.6 cryptsetup-erase and luksKillSlot]</span></p>
+<h2 id="discard-trim">Discard/TRIM<a class="heading-anchor" href="#discard-trim" aria-label="Link to section">#</a></h2>
+<p>Passing discard through dm-crypt can reveal which regions are unused and may expose filesystem/allocation patterns. A discard acknowledgement describes a storage command path, not a verified conclusion about all physical cells, remapped blocks, over-provisioned flash, replicas, or provider media.</p>
+<p>Default: <code>discard</code> off for the encrypted cache volume. A performance exception records leakage acceptance and still uses the normal deletion/sanitization process.</p>
+<p><span class="claim-label" data-claim="PFIR07-C015" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C015][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-DMCRYPT-7.2RC3; CRYPTSETUP-2.8.6 common options]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C069" data-class="SYNTHESIS" data-status="RECOMMENDED">[CLAIM:PFIR07-C069][CLASS:SYNTHESIS][STATUS:RECOMMENDED][SRC:C015,C041-C044]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C083" data-class="UNSUPPORTED" data-status="REJECTED">[CLAIM:PFIR07-C083][CLASS:UNSUPPORTED][STATUS:REJECTED][SRC:C015,C041-C044]</span></p>
+<h2 id="physical-media-sanitization">Physical-media sanitization<a class="heading-anchor" href="#physical-media-sanitization" aria-label="Link to section">#</a></h2>
+<p>Media retirement/reuse uses the organization's current NIST SP 800-88r2-aligned program and current authoritative device/provider instructions. Select a technique based on media type, sensitivity, reuse/disposition, device capabilities, and required assurance. The process includes:</p>
+<ol>
+<li>media and data classification;</li>
+<li>chosen clear/purge/destroy technique and rationale;</li>
+<li>authorized operator and chain of custody;</li>
+<li>command/tool/device capability and version;</li>
+<li>verification that the technique executed as expected;</li>
+<li>validation that the result satisfies the organization's requirement;</li>
+<li>exception/failure handling, including destruction where appropriate;</li>
+<li>disposition and retained certificate/report.</li>
+</ol>
+<p>Do not invent a universal number of overwrite passes, SSD secure-erase guarantee, cloud physical-sanitization guarantee, or cryptographic-module compliance result. Use current media/vendor/provider evidence and record uncertainty.</p>
+<p><span class="claim-label" data-claim="PFIR07-C044" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C044][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-88R2 §§6-7]</span></p>
+<h2 id="deletion-report-language">Deletion report language<a class="heading-anchor" href="#deletion-report-language" aria-label="Link to section">#</a></h2>
+<p>Acceptable:</p>
+<blockquote>
+<p>“HaloKV logical deletion completed for tenant T/project P at manifest generation G. Serving references and authorization were removed; active replicas are queued for GC. Backup B remains until date D under retention policy. No physical-sanitization claim is made.”</p>
+</blockquote>
+<blockquote>
+<p>“Cryptographic erase was validated for epoch E under key inventory I: all listed wrapped-key, escrow, and backup dependencies were rendered inaccessible. The conclusion applies to the stated target-data scope and assumptions; it is not a claim of physical zeroization.”</p>
+</blockquote>
+<p>Unacceptable: “The file was securely wiped because it was unlinked,” “TRIM destroyed the data,” “removing one LUKS slot erased the disk,” or “encryption guarantees regulatory compliance.”</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

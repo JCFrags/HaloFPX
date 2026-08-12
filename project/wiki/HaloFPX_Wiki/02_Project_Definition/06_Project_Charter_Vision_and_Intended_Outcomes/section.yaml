@@ -1,0 +1,18 @@
+section_id: "06"
+title: "Project Charter, Vision, and Intended Outcomes"
+category_id: "02"
+category_title: "Project Definition"
+status: "needs-machine-validation"
+last_verified: "2026-07-16"
+source_count: 5
+open_question_count: 8
+required_machine_experiments:
+  - "Exact two-node platform inventory and symmetry check"
+  - "Matched node-A and node-B single-node baselines"
+  - "Single-link, dual-link, and link-loss characterization"
+  - "Distributed-mode correctness, performance, and fault campaign"
+related_sections: ["07", "08", "09", "10", "18", "38", "49", "68", "80"]
+applicability:
+  repositories: ["charlie12345/ROCmFPX@a5605a7", "fewtarius/CachyLLama@6be7459", "fewtarius/llama-ai@1017f3d", "ggml-org/llama.cpp@788e07d"]
+  hardware: ["two matched AMD Strix Halo systems; exact revisions open"]
+

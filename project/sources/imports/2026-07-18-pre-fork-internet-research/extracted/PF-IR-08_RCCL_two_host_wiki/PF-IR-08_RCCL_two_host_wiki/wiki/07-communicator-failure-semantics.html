@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Communicator creation and failure semantics · PF-IR-08</title><link rel="stylesheet" href="../assets/wiki.css"></head>
+<body><div class="shell"><aside class="sidebar"><div class="brand">PF-IR-08<br>RCCL two-host boundary</div><div class="audit">Evidence snapshot · 2026-07-18<br><code>801a9ca…</code> active authority</div><input id="nav-search" class="search" type="search" placeholder="Filter pages…"><nav class="nav"><a href="../index.html" class="">Overview</a><a href="../wiki/00-scope-method.html" class="">Scope, method, and evidence rules</a><a href="../wiki/01-executive-decision.html" class="">Executive decision</a><a href="../wiki/02-authority-and-version-lanes.html" class="">Authority and version lanes</a><a href="../wiki/03-strix-halo-evidence.html" class="">Strix Halo evidence and support boundary</a><a href="../wiki/04-socket-and-interface-selection.html" class="">Socket transport and interface selection</a><a href="../wiki/05-topology-and-memory-registration.html" class="">Topology discovery and memory registration</a><a href="../wiki/06-network-plugin-abi.html" class="">Network-plugin ABI and custom transport boundary</a><a href="../wiki/07-communicator-failure-semantics.html" class="active">Communicator creation and failure semantics</a><a href="../wiki/08-two-way-tensor-parallelism-boundary.html" class="">Two-way tensor parallelism and adjacent architectures</a><a href="../wiki/09-upstream-tests-statements.html" class="">Upstream tests and maintainer statements</a><a href="../wiki/10-local-experiment-matrix.html" class="">Local experiment matrix</a><a href="../wiki/11-open-questions-machine-evidence.html" class="">Open questions requiring machine evidence</a><a href="../wiki/12-evidence-index.html" class="">Evidence index</a></nav><div class="mini"><b>Non-claim boundary</b><br>No RCCL suitability or GPU-direct-over-USB4 conclusion without exact two-node evidence.</div></aside><main class="main"><div class="topbar"><span class="crumb">PF-IR-08 / Communicator creation and failure semantics</span><span><a href="../README.md">README</a> · <a href="../claims/claims.csv">claims.csv</a> · <a href="../manifests/source_manifest.csv">manifest</a></span></div><div class="content"><article class="article"><h1>Communicator creation and failure semantics</h1>
+<h2>Creation</h2>
+<p>One rank calls <code>ncclGetUniqueId</code>; the ID is distributed out of band; every rank calls <code>ncclCommInitRank</code> or the configured variant with a unique rank in <code>[0, N-1]</code>. Initialization synchronizes the clique. The control/rendezvous channel is an application responsibility.</p>
+<h2>Nonblocking and asynchronous errors</h2>
+<p>For failure experiments, create communicators with <code>config.blocking = 0</code> and poll <code>ncclCommGetAsyncError</code>. Avoid relying exclusively on <code>hipStreamSynchronize</code> after peer loss because the active fault-tolerance documentation warns that it can hang indefinitely.</p>
+<h2>Version matrix</h2>
+<table>
+<thead>
+<tr>
+  <th>Mechanism</th>
+  <th style="text-align:right">2.27.7 / ROCm 7.2.x</th>
+  <th style="text-align:right">active 2.30.4</th>
+  <th>Boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>ncclRemoteError</code></td>
+  <td style="text-align:right">Yes</td>
+  <td style="text-align:right">Yes</td>
+  <td>Remote process exit/network error result.</td>
+</tr>
+<tr>
+  <td><code>ncclInProgress</code> + async poll</td>
+  <td style="text-align:right">Yes</td>
+  <td style="text-align:right">Yes</td>
+  <td>Core nonblocking state.</td>
+</tr>
+<tr>
+  <td><code>ncclCommAbort</code></td>
+  <td style="text-align:right">Yes</td>
+  <td style="text-align:right">Yes</td>
+  <td>Destroys communicator; application recreates.</td>
+</tr>
+<tr>
+  <td><code>ncclCommShrink</code></td>
+  <td style="text-align:right">Yes</td>
+  <td style="text-align:right">Yes</td>
+  <td>Surviving ranks create a smaller communicator.</td>
+</tr>
+<tr>
+  <td><code>ncclTimeout</code></td>
+  <td style="text-align:right">No</td>
+  <td style="text-align:right">Yes</td>
+  <td>Active result; tested paths are not a universal Socket deadline.</td>
+</tr>
+<tr>
+  <td><code>ncclCommRevoke</code></td>
+  <td style="text-align:right">No</td>
+  <td style="text-align:right">Yes</td>
+  <td>Aborts in-flight work while preserving parent for recovery.</td>
+</tr>
+<tr>
+  <td><code>ncclCommGrow</code></td>
+  <td style="text-align:right">No</td>
+  <td style="text-align:right">Yes</td>
+  <td>Adds ranks using a single-use out-of-band grow ID.</td>
+</tr>
+</tbody>
+</table>
+<h2>Recovery interpretation</h2>
+<p>No audited mechanism transparently reconnects the same failed transport and resumes the old collective. Stable recovery is abort/recreate, with shrink where applicable. Active recovery can also revoke/shrink/grow, but membership decisions and replacement process coordination remain application-level. Buffers from aborted or revoked in-flight collectives must be treated as invalid/undefined.</p>
+</article><div class="footer">Commit-pinned research snapshot. Literal labels distinguish API, implementation, documentation, tests, commentary, inference, and unresolved machine evidence.</div></div></main></div><script src="../assets/wiki.js"></script></body></html>

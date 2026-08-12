@@ -1,0 +1,6 @@
+name,bytes,sha256,xet_hash,display_size,hash_provenance
+DeepSeek-R1-Q2_K_XS-00001-of-00005.gguf,49797465088,df8e381870dd3aa2ea20b698f5484a1493fffe5503cae9dd4dcdd6ac56319e6d,,,publisher-hosted LFS/Xet pointer exposed by converter repository
+DeepSeek-R1-Q2_K_XS-00002-of-00005.gguf,49174169600,87b29033b0988ebfdce71cc0678b4cbb0954c00562be6c71f529001b9ab7244f,,,publisher-hosted LFS/Xet pointer exposed by converter repository
+DeepSeek-R1-Q2_K_XS-00003-of-00005.gguf,49174169600,03dfc0f75f94710ccace9e9ef39cd93f691cc05a33dbc425f0d4237719218a68,,,publisher-hosted LFS/Xet pointer exposed by converter repository
+DeepSeek-R1-Q2_K_XS-00004-of-00005.gguf,49174169600,cb3125f56b745364cb552660fcee089163f99aa8e2d8ebbbff70722b3684e7de,,,publisher-hosted LFS/Xet pointer exposed by converter repository
+DeepSeek-R1-Q2_K_XS-00005-of-00005.gguf,23933713056,84d95c85fb5ae9be44540a0491e80bdf8557665cafbb94d65dd948333b3f3e5f,,,publisher-hosted LFS/Xet pointer exposed by converter repository

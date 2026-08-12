@@ -1,0 +1,43 @@
+---
+upstream_repository: "ROCm/rccl"
+upstream_ref: "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4"
+accessed_at: "2026-07-18"
+source_id: "SRC-STABLE-API"
+source_class: "source"
+claim_label: "[NORMATIVE_API]"
+upstream_path: "src/nccl.h.in"
+upstream_blob_sha: "88c4c2434470a958904698dae4530f9fdd588c7c"
+upstream_locator: "result codes and communicator API"
+snapshot_kind: "structured selected API excerpt preserving declarations and literal identifiers"
+completeness: "selected API declarations and comments; not full header"
+license: "RCCL LICENSE.txt"
+---
+
+```cpp
+typedef enum {
+  ncclSuccess            = 0,
+  ncclUnhandledCudaError = 1,
+  ncclSystemError        = 2,
+  ncclInternalError      = 3,
+  ncclInvalidArgument    = 4,
+  ncclInvalidUsage       = 5,
+  ncclRemoteError        = 6, /*!< Remote process exited or there was a network error */
+  ncclInProgress         = 7, /*!< RCCL operation in progress */
+  ncclNumResults         = 8
+} ncclResult_t;
+
+ncclResult_t ncclGetUniqueId(ncclUniqueId* uniqueId);
+ncclResult_t ncclCommInitRankConfig(ncclComm_t* comm, int nranks, ncclUniqueId commId,
+                                    int rank, ncclConfig_t* config);
+ncclResult_t ncclCommInitRank(ncclComm_t* comm, int nranks, ncclUniqueId commId, int rank);
+ncclResult_t ncclCommFinalize(ncclComm_t comm);
+ncclResult_t ncclCommDestroy(ncclComm_t comm);
+ncclResult_t ncclCommAbort(ncclComm_t comm);
+ncclResult_t ncclCommSplit(ncclComm_t comm, int color, int key,
+                           ncclComm_t* newcomm, ncclConfig_t* config);
+ncclResult_t ncclCommShrink(ncclComm_t comm, int* excludeRanksList, int excludeRanksCount,
+                            ncclComm_t* newcomm, ncclConfig_t* config, int shrinkFlags);
+ncclResult_t ncclCommGetAsyncError(ncclComm_t comm, ncclResult_t* asyncError);
+
+// This 2.27.7 header has no ncclTimeout result and no ncclCommRevoke or ncclCommGrow declaration.
+```

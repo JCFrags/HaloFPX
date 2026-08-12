@@ -1,0 +1,9 @@
+flowchart LR
+  A[Node A app: one socket] --> MA[MPTCP]
+  MA --> A0[10.44.0.1]
+  MA --> A1[10.44.1.1 subflow laminar]
+  A0 <== cable 0 / MP_CAPABLE ==> B0[10.44.0.2]
+  A1 <== cable 1 / MP_JOIN ==> B1[10.44.1.2 signal]
+  B0 --> MB[MPTCP]
+  B1 --> MB
+  MB --> B[Node B app: one socket]

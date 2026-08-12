@@ -1,0 +1,52 @@
+name: protected-reference-promotion-example
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_lock:
+        required: true
+        type: string
+      model_lock:
+        required: true
+        type: string
+      case_ids:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    environment: conformance-reference-collection
+    runs-on: [self-hosted, reference-cpu]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify immutable inputs
+        run: |
+          test -n "${{ inputs.source_lock }}"
+          test -n "${{ inputs.model_lock }}"
+          python scripts/verify-suite.py
+      - name: Collect independent calibration observations
+        run: ./ci/reference-workflow.sh collect-calibration "${{ inputs.case_ids }}"
+      - name: Collect disjoint validation observations
+        run: ./ci/reference-workflow.sh collect-validation "${{ inputs.case_ids }}"
+      - name: Produce proposed records only
+        run: ./ci/reference-workflow.sh propose "${{ inputs.case_ids }}"
+      - name: Package review bundle
+        run: tar -cf reference-review-bundle.tar reports references/proposed
+      - uses: actions/upload-artifact@v7
+        with:
+          path: reference-review-bundle.tar
+          archive: false
+
+  approve:
+    needs: collect
+    environment: conformance-reference-approval
+    runs-on: ubuntu-latest
+    steps:
+      - name: Approval boundary
+        run: |
+          echo "Human reviewers inspect the collected bundle."
+          echo "Candidate PR workflows have no write permission to the approved store."
+          echo "Publishing is performed by an organization-specific signed process."

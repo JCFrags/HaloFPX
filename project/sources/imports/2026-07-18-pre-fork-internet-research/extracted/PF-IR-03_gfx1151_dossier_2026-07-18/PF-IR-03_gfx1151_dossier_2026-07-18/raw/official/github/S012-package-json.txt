@@ -1,0 +1,11 @@
+CAPTURE_TYPE: package metadata excerpt
+SOURCE_ID: S012
+URL: https://github.com/ROCm/TheRock/blob/therock-7.14/build_tools/packaging/linux/package.json
+ACCESS_DATE: 2026-07-18
+FILE_BLOB_SHA: 3a61d5da0ad608448c07bf8bc8cfe62662af4f7c
+RCCL_PACKAGES:
+- amdrocm-rccl: runtime/lib/doc; declared license MIT; Gfxarch false.
+- amdrocm-rccl-devel: development files; depends on amdrocm-rccl and Python/system runtime dependencies; declared license MIT.
+- amdrocm-rccl-test: tests; depends on base/profiler/rccl-devel; declared license MIT.
+IMPORTANT_DISTINCTION:
+- amdrocm-ccl is the primitive-algorithms package family; RCCL uses amdrocm-rccl.

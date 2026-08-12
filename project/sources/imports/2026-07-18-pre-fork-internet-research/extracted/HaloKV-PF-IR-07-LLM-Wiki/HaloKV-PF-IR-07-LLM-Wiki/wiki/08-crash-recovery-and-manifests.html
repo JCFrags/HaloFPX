@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Crash recovery, immutable writes, and manifests Object write protocol HaloKV objects are immutable after publication. A safe local write sequence is: 1. Authorize principal and sco…">
+  <title>Crash recovery, immutable writes, and manifests · HaloKV PF-IR-07</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-root="../">
+<div class="layout">
+  <aside class="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">HK</span><span><div class="brand-title">HaloKV Security Wiki</div><div class="brand-sub">PF-IR-07 · OPEN-SCOPE-01</div></span></a><input id="nav-search" class="nav-search" type="search" placeholder="Search wiki…" aria-label="Search wiki"><div id="search-results" class="search-results"></div><div class="nav-group"><div class="nav-label">Research wiki</div><a class="nav-link" href="00-decision-record.html">PF-IR-07 decision record</a><a class="nav-link" href="01-threat-model.html">Threat model and invariant</a><a class="nav-link" href="02-option-comparison.html">fscrypt, LUKS/dm-crypt, and object AEAD</a><a class="nav-link" href="03-identity-and-key-hierarchy.html">Tenant identity, principal binding, and key hierarchy</a><a class="nav-link" href="04-object-aead-and-nonces.html">Object AEAD, nonce allocation, and associated data</a><a class="nav-link" href="05-content-addressing-and-dedup.html">Content addressing, deduplication, identifiers, and manifests</a><a class="nav-link" href="06-key-storage-unlock-and-boot.html">Key storage, unlock, and boot behavior</a><a class="nav-link" href="07-rotation-revocation-and-process-retention.html">Rotation, revocation, peer separation, and process retention</a><a class="nav-link active" href="08-crash-recovery-and-manifests.html">Crash recovery, immutable writes, and manifests</a><a class="nav-link" href="09-backup-restore-and-export.html">Backup, restore, snapshots, and export</a><a class="nav-link" href="10-deletion-cryptographic-erasure-and-media.html">Logical deletion, cryptographic erasure, discard, and media sanitization</a><a class="nav-link" href="11-quarantine-and-incident-response.html">Quarantine and incident response</a><a class="nav-link" href="12-minimum-security-profile.html">Minimum multi-user persistent-cache security profile</a><a class="nav-link" href="13-residual-risks-and-unsupported.html">Residual-risk ledger and unsupported claims</a><a class="nav-link" href="14-sources-claims-and-reproducibility.html">Sources, claim labels, revisions, licenses, and reproducibility</a><a class="nav-link" href="15-validation-and-test-plan.html">Validation and adversarial test plan</a></div><div class="nav-group"><div class="nav-label">Runbooks</div><a class="nav-link" href="../runbooks/RB-01-boot-unlock.html">RB-01 — Boot, unlock, and cache readiness</a><a class="nav-link" href="../runbooks/RB-02-epoch-rotation-and-revocation.html">RB-02 — Epoch rotation and revocation</a><a class="nav-link" href="../runbooks/RB-03-nonce-state-loss-and-crash.html">RB-03 — Nonce-state loss, crash, clone, or snapshot restore</a><a class="nav-link" href="../runbooks/RB-04-backup-and-quarantine-restore.html">RB-04 — Backup exception and quarantine restore</a><a class="nav-link" href="../runbooks/RB-05-deletion-ce-and-media.html">RB-05 — Logical deletion, CE decision, and media disposition</a><a class="nav-link" href="../runbooks/RB-06-export-and-scope-transition.html">RB-06 — Export and cryptographic scope transition</a><a class="nav-link" href="../runbooks/RB-07-quarantine-and-key-incident.html">RB-07 — Quarantine and key/object incident</a><a class="nav-link" href="../runbooks/RB-08-fscrypt-luks-busy-drain.html">RB-08 — Busy files, mappings, kernel keys, and process drain</a><a class="nav-link" href="../runbooks/index.html">Runbook index</a></div>
+      <div class="nav-group"><div class="nav-label">Bundle</div>
+        <a class="nav-link" href="../readme.html">README and file map</a>
+      </div>
+      <div class="sidebar-footer">
+        <div>Accessed 2026-07-18<br>Bundle 1.0.0</div>
+        <div class="sidebar-actions">
+          <button id="theme-toggle" class="icon-button" type="button" title="Toggle theme">Theme</button>
+        </div>
+      </div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button id="mobile-menu" class="icon-button mobile-menu" type="button">Menu</button>
+        <div class="breadcrumb">Research wiki / Crash recovery, immutable writes, and manifests</div>
+      </div>
+      <div class="meta-line">Primary sources · claim labels · SHA-256 manifests</div>
+    </div>
+    <div class="content">
+      <article class="article"><h1>Crash recovery, immutable writes, and manifests</h1>
+<h2 id="object-write-protocol">Object write protocol<a class="heading-anchor" href="#object-write-protocol" aria-label="Link to section">#</a></h2>
+<p>HaloKV objects are immutable after publication. A safe local write sequence is:</p>
+<ol>
+<li>Authorize principal and scope; obtain exact rank-epoch keys.</li>
+<li>Canonicalize semantics and compute scope-specific CID.</li>
+<li>Reserve a nonce durably before first use.</li>
+<li>Construct final AAD, including object size/chunk/manifest fields.</li>
+<li>AEAD-seal to a newly created temporary file in the target filesystem.</li>
+<li>Write complete header, AAD, ciphertext, and tag; reject short writes.</li>
+<li><code>fsync</code>/equivalent the file according to the filesystem durability contract.</li>
+<li>Atomically rename into a non-overwriting content-object path.</li>
+<li><code>fsync</code>/equivalent the parent directory when required by the platform.</li>
+<li>Publish the authenticated manifest/index update last using the same immutable/atomic pattern.</li>
+</ol>
+<p>A temporary orphan, missing object, truncated object, duplicate object, or manifest referencing an absent object is a miss/recompute condition. Recovery may garbage-collect unreferenced complete objects after an age threshold.</p>
+<h2 id="crash-matrix">Crash matrix<a class="heading-anchor" href="#crash-matrix" aria-label="Link to section">#</a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Crash point</th>
+  <th>Expected state</th>
+  <th>Recovery action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Before nonce reservation commits</td>
+  <td>No nonce may have been used</td>
+  <td>Retry reservation or start new epoch if uncertain</td>
+</tr>
+<tr>
+  <td>After reservation, before encryption</td>
+  <td>Reserved nonce/range is burned</td>
+  <td>Skip it; never return to pool</td>
+</tr>
+<tr>
+  <td>During object write</td>
+  <td>Temp/truncated file</td>
+  <td>Never index; delete/quarantine after bounded inspection</td>
+</tr>
+<tr>
+  <td>After object fsync, before rename</td>
+  <td>Complete temp file</td>
+  <td>Validate and rename only through recovery policy, otherwise delete</td>
+</tr>
+<tr>
+  <td>After rename, before directory durability</td>
+  <td>Presence may be filesystem-dependent</td>
+  <td>Startup scan treats absent/unknown as miss; do not infer nonce reuse</td>
+</tr>
+<tr>
+  <td>After object publish, before manifest publish</td>
+  <td>Orphan complete object</td>
+  <td>Safe but unreachable; garbage-collect later</td>
+</tr>
+<tr>
+  <td>During manifest write</td>
+  <td>Old manifest remains authoritative</td>
+  <td>Reject temp/invalid generation; recompute missing entries</td>
+</tr>
+<tr>
+  <td>After new manifest publish, before old cleanup</td>
+  <td>Both generations may exist</td>
+  <td>Trusted generation pointer/floor chooses current; old generation is non-serving</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="nonce-state-recovery">Nonce state recovery<a class="heading-anchor" href="#nonce-state-recovery" aria-label="Link to section">#</a></h2>
+<p>Nonce state is more sensitive than cache availability. If the system cannot prove which nonces were consumed under a key, it creates a new epoch key. It does not scan object files and infer a safe next counter, because lost/unpublished ciphertext, backup copies, concurrent clones, or partially durable writes may not be visible.</p>
+<p><span class="claim-label" data-claim="PFIR07-C033" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C033][CLASS:SOURCE][STATUS:SUPPORTED][SRC:NIST-SP800-38D §8.2.1]</span></p>
+<h2 id="manifest-model">Manifest model<a class="heading-anchor" href="#manifest-model" aria-label="Link to section">#</a></h2>
+<p>A manifest is immutable and generation-addressed. A small trusted pointer or authority record names the current accepted generation and minimum epoch. The manifest contains:</p>
+<ul>
+<li>authority/tenant/project/prefix/namespace/sharing identifiers;</li>
+<li>rank and epoch policy;</li>
+<li>generation, predecessor, creation time, optional expiration;</li>
+<li>source revision or model/build identity;</li>
+<li>ordered object/chunk entries with scoped CID, length, key reference, and object type;</li>
+<li>tombstone or supersession information where applicable;</li>
+<li>critical format/policy extensions;</li>
+<li>MAC/AEAD tag or publisher signature.</li>
+</ul>
+<p>The full design schema is <a href="../schemas/manifest.cddl"><code>schemas/manifest.cddl</code></a>.</p>
+<h2 id="authentication-order-on-startup">Authentication order on startup<a class="heading-anchor" href="#authentication-order-on-startup" aria-label="Link to section">#</a></h2>
+<ol>
+<li>Load trusted policy/epoch floor from the authority, not the cache directory alone.</li>
+<li>Locate candidate current manifest without trusting path metadata.</li>
+<li>Bound and parse only the fixed outer framing.</li>
+<li>Resolve exact authorized manifest key/signing identity.</li>
+<li>Authenticate the manifest; reject unknown critical extensions.</li>
+<li>Enforce generation/epoch/source policy and deletion tombstones.</li>
+<li>Build a serving index only from authenticated entries.</li>
+<li>Validate each object lazily on read or eagerly according to declared restore/startup policy.</li>
+<li>Any invalid entry is removed from the serving index and becomes miss/recompute.</li>
+</ol>
+<h2 id="filesystem-and-block-layer-recovery">Filesystem and block-layer recovery<a class="heading-anchor" href="#filesystem-and-block-layer-recovery" aria-label="Link to section">#</a></h2>
+<p>Object-level atomicity assumes documented filesystem semantics. Test the exact filesystem, mount options, storage hardware, virtualization layer, and power-failure model. Lower layers affect what failures appear:</p>
+<ul>
+<li>ordinary dm-crypt does not authenticate corruption;</li>
+<li>dm-integrity journal mode can maintain data/tag atomicity, while direct mode can expose mismatch after a crash;</li>
+<li>an unencrypted integrity journal may leak recent write behavior;</li>
+<li>LUKS2 reencryption resilience mode determines recovery after interrupted volume transformation;</li>
+<li>header backups are sensitive and must match the intended recovery point.</li>
+</ul>
+<p><span class="claim-label" data-claim="PFIR07-C017" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C017][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-DMINTEGRITY-7.2RC3 §Modes]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C018" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C018][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LINUX-DMINTEGRITY-7.2RC3 §Security considerations]</span></p>
+<p><span class="claim-label" data-claim="PFIR07-C013" data-class="SOURCE" data-status="SUPPORTED">[CLAIM:PFIR07-C013][CLASS:SOURCE][STATUS:SUPPORTED][SRC:LUKS2-SPEC-1.1.4 §7; CRYPTSETUP-2.8.6 cryptsetup-reencrypt]</span></p>
+<h2 id="rebuild-policy">Rebuild policy<a class="heading-anchor" href="#rebuild-policy" aria-label="Link to section">#</a></h2>
+<p>Because the cache is non-authoritative, ambiguous recovery favors discard/recompute. Do not repair tags, rewrite AAD, guess a key, patch a CID, or “salvage” partially authenticated plaintext in place. A recovery tool may collect ciphertext and metadata into quarantine for analysis, then remove the serving reference.</p>
+</article>
+      <footer class="page-footer">
+        <span>HaloKV PF-IR-07 · standards-backed synthesis</span>
+        <span>No certification, compliance, or secure-deletion claim</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

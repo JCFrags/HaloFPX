@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Capture limitations — PF-IR-11</title>
+<link rel="stylesheet" href="../assets/wiki.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" aria-label="Wiki navigation">
+  <a class="brand" href="../index.html">
+    <span class="brand-mark">X2</span>
+    <span><span class="brand-title">PF-IR-11 Wiki</span><span class="brand-sub">Linux XDNA2 support boundary</span></span>
+  </a>
+  <span class="decision-chip">Keep excluded · 2026-07-18</span>
+  <input id="nav-search" class="search" type="search" placeholder="Filter pages…  /" aria-label="Filter wiki pages">
+  <div class="nav-section">Evidence chapters</div>
+  <ul class="nav-list"><li><a href="../wiki/00-home.html">Home / decision</a></li><li><a href="../wiki/01-scope-and-baseline.html">Scope and baseline</a></li><li><a href="../wiki/02-pci-and-kernel.html">PCI and kernel</a></li><li><a href="../wiki/03-firmware.html">Firmware</a></li><li><a href="../wiki/04-runtime-and-compiler.html">Runtime and compiler</a></li><li><a href="../wiki/05-model-formats-ops-dtypes.html">Formats, ops, dtypes</a></li><li><a href="../wiki/06-memory-dma-iommu.html">Memory, DMA, IOMMU</a></li><li><a href="../wiki/07-scheduling-telemetry-pm-reset.html">Scheduling, telemetry, PM</a></li><li><a href="../wiki/08-packaging-and-distro.html">Packaging and distro</a></li><li><a href="../wiki/09-licenses-and-provenance.html">Licenses and provenance</a></li><li><a href="../wiki/10-role-evaluation.html">Role evaluation</a></li><li><a href="../wiki/11-bounded-experiment.html">Bounded experiment</a></li><li><a href="../wiki/12-read-only-probe.html">Read-only probe</a></li><li><a href="../wiki/13-gaps-and-reentry.html">Gaps and re-entry</a></li><li><a href="../wiki/14-source-index.html">Source index</a></li></ul>
+  <div class="nav-section">Primary artifacts</div>
+  <ul class="nav-list">
+    <li><a href="../DECISION.html">Decision memo</a></li>
+    <li><a href="../manifests/sources.csv">Source manifest</a></li>
+    <li><a href="../manifests/claims.csv">Claim manifest</a></li>
+    <li><a href="../probe/xdna2_readonly_probe.sh">Read-only probe</a></li>
+  </ul>
+  <div class="sidebar-actions">
+    <button id="theme-toggle" class="icon-button" type="button">Light / dark</button>
+    <button class="icon-button" type="button" onclick="window.print()">Print</button>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="breadcrumb">sources/CAPTURE_LIMITATIONS.md</span>
+      <span class="date-stamp">Evidence accessed 2026-07-18</span>
+    </div>
+  </header>
+  <div class="content">
+    <article class="article">
+      <h1>Capture limitations</h1>
+<ol>
+<li>The target distro was not specified. The bundle therefore distinguishes:<ul>
+<li>the <strong>AMD-qualified reference</strong>: Ubuntu 24.04 LTS, kernel &gt;= 6.10, Ryzen AI Software 1.7.1;</li>
+<li>the <strong>actual target</strong>: unknown until the read-only probe is run.</li>
+</ul>
+</li>
+<li>Firmware binaries are not included. Their filenames, symlinks, upstream commit, WHENCE blob, and license pointer are preserved.</li>
+<li>AMD account-gated DEB/TGZ payloads are not included. Exact package filenames are preserved; package hashes remain <code><span class="claim claim-missing">[MISSING]</span></code> until locally downloaded.</li>
+<li>AMD EULA and third-party-license PDFs are not included or interpreted.</li>
+<li>Public XRT/compiler repository HEADs are evidence of open components, not proof of the source revision used to build AMD's gated 1.7.1 binaries.</li>
+<li>Large kernel files are represented by exact pinned full small files, an exact full architecture document, exact source excerpts, blob identifiers, and an immutable fetch script.</li>
+<li>No local Ryzen AI MAX+ 395 machine was probed and no performance result is asserted.</li>
+</ol>
+
+      <div class="page-meta">
+        <span>Decision: keep excluded</span>
+        <span>See manifests for exact source pins, labels, licenses, and hashes.</span>
+      </div>
+    </article>
+  </div>
+</main>
+<div class="mobile-bar"><button id="mobile-menu" type="button">Menu</button></div>
+</div>
+<script src="../assets/wiki.js"></script>
+</body>
+</html>
