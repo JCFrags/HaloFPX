@@ -13,6 +13,27 @@
 - **Open work:** Product composition remains paused. No end-user two-node cache product is accepted.
 - **Next safe action:** Treat corrupt, incomplete, incompatible, or unauthorized state as a miss and recompute.
 
+## 2026-08-12 current priority authority
+
+HaloFPX is model-general. Persistent prompt and KV-state work is ordered by
+integrity first, then correct reuse across process restart and verified prefix
+reuse. A cache hit must preserve the applicable continuation semantics;
+corrupt, incomplete, incompatible, stale, or unauthorized state is a miss and
+must follow a correct cold-recomputation path.
+
+The first active slice is
+[GitHub issue #5](https://github.com/JCFrags/HaloFPX/issues/5), which hardens
+the reachable SSD prompt-cache path against same-size content corruption. It
+does not claim that HaloKV v1, distributed cache composition, or restart reuse
+is complete. Those claims still require exact source authority and retained
+target-machine evidence.
+
+Cache lookup/validation/restore time and avoided prompt work must be measured
+separately from the cold/cache-off prompt-processing engine and from token
+generation. Target performance claims require the real dual-Strix-Halo Linux
+machines; local Windows checks cannot establish cache, prompt, or generation
+speed.
+
 Defines the distributed SSD-backed prefix and inference-state cache.
 
 Research status: source-backed design complete; machine validation and policy decisions remain open.

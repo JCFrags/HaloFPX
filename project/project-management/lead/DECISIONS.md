@@ -1,5 +1,58 @@
 # Project-Lead Decisions
 
+## 2026-08-12 — make HaloFPX model-general and cache/performance-first
+
+Decision: HaloFPX is a model-general llama.cpp-derived inference engine for
+the two AMD Strix Halo Linux nodes and their `gfx1151` accelerators. The
+current MiniMax artifact is the largest available stress fixture. It is not
+the product target, the default optimization target, or evidence that a
+MiniMax-specific improvement benefits other supported models.
+
+Use this default priority order:
+
+1. persistent prompt and KV-state integrity, including corruption-as-miss;
+2. restart-persistent reuse and verified prefix reuse with a correct cold
+   recomputation path;
+3. prompt processing and time to first token; and
+4. token-generation throughput and latency.
+
+Model-specific work is stress coverage unless a generic measured bottleneck
+and a reusable correction justify it. Prompt processing, cache reuse benefit,
+and generation are separate measurements. Do not credit restored prompt work
+to the cold/cache-off prompt-processing engine, and do not combine prompt and
+generation rates into one performance claim.
+
+Performance authority requires matched evidence from the real dual-Strix-Halo
+Linux machines. The local Windows PC is a source-control, documentation,
+build-orchestration, and limited CPU-test environment; it cannot establish
+`gfx1151`, dual-node, prompt-processing, cache-reuse, or generation
+performance. Preserve the exact model, source, binaries, configuration,
+topology, sampler, cache state, and raw measurements used for every promoted
+performance result.
+
+Testing is proportional to a personal project. During ordinary development,
+run the exact impacted tests and use short paired target-machine screens when
+performance is relevant. Reserve broad suites, long matrices, and repeated
+statistical qualification for milestone gates or a concrete regression. This
+does not weaken the rule that corrupt, incompatible, incomplete, stale, or
+unauthorized cache state must miss and recompute rather than be accepted.
+
+The first active integrity slice is
+[GitHub issue #5](https://github.com/JCFrags/HaloFPX/issues/5), which covers
+same-size SSD prompt-cache corruption without claiming completion of HaloKV.
+[GitHub issue #13](https://github.com/JCFrags/HaloFPX/issues/13) records this
+owner clarification.
+
+This decision supersedes model-specific or older current-priority language in
+the records below. It does not rewrite their exact experiments, accepted or
+rejected results, model identities, measurements, or historical milestone
+scope.
+
+Reason: the owner clarified that MiniMax is used because it is the largest
+current test model, while the intended engine must run any supported model as
+well as possible. Reliable saved-state reuse, prompt processing, and token
+generation are the product outcomes that should govern the next work.
+
 ## 2026-08-12 — accept the bounded L111 loader foundation
 
 Decision: accept L111 as `PASS / RETAIN` at exact implementation source

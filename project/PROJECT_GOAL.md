@@ -2,6 +2,29 @@
 
 This file records the user-directed top-level goal for the HaloFPX project as of 2026-07-17. It defines the destination and phase order. The Wiki owns supporting evidence and evolving design analysis; decision records and experiment results own approved implementation choices.
 
+## 2026-08-12 owner clarification
+
+HaloFPX is a model-general llama.cpp-derived inference engine for the two AMD
+Strix Halo Linux machines and their `gfx1151` accelerators. It should run any
+supported model as well as the evidence permits. MiniMax is the largest
+current stress fixture, not a model-specific product or optimization target.
+
+The current work order is saved prompt/KV-state integrity, restart-persistent
+and verified prefix reuse, prompt-processing/time-to-first-token performance,
+and token-generation performance. Model-specific changes require a measured
+generic bottleneck or remain labeled stress coverage.
+
+Only matched measurements on the real dual-Strix-Halo Linux machines can
+support target performance claims. The local Windows PC is a development and
+control environment. Daily validation should remain proportional to this
+personal project: exact impacted tests and short paired screens first, with
+broad matrices reserved for milestone gates or concrete regressions.
+
+This clarification supersedes the model-specific priority implied by the
+original 200–230 GB phase wording below. That model class and the pinned
+MiniMax artifact remain useful large-model qualification cases, and their
+historical evidence remains unchanged.
+
 ## Goal
 
 Build a stable, provenance-preserving HaloFPX inference stack for two AMD Strix Halo nodes by:
