@@ -638,6 +638,8 @@ def check_unrelated_changes(inventory: dict[str, object]) -> list[str]:
         "PROJECT_GOAL.md",
         "WORKER_START_HERE.md",
         "references/agent-harness.md",
+        "research/prompts/tools/generate_wiki_manifest.py",
+        "research/prompts/tools/test_generate_wiki_manifest.py",
         "skills/README.md",
         "wiki/HaloFPX_Wiki/",
         "project-management/documentation/",

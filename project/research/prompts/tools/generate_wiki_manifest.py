@@ -23,12 +23,14 @@ REQUIRED_FILES = (
 )
 
 
-def sha256_bytes(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
+def normalized_text_bytes(path: Path) -> bytes:
+    """Return UTF-8 text with canonical LF endings for cross-platform hashes."""
+    text = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+    return text.encode("utf-8")
 
 
 def build_manifest(wiki_root: Path, registry_path: Path) -> dict:
-    registry_bytes = registry_path.read_bytes()
+    registry_bytes = normalized_text_bytes(registry_path)
     registry = yaml.safe_load(registry_bytes)
     records = registry.get("sections", [])
     if not isinstance(records, list):
@@ -67,7 +69,7 @@ def build_manifest(wiki_root: Path, registry_path: Path) -> dict:
         open_question_count = None
         metadata_errors: list[str] = []
         if section_manifest_path.is_file():
-            section_bytes = section_manifest_path.read_bytes()
+            section_bytes = normalized_text_bytes(section_manifest_path)
             input_hasher.update(target_path.encode("utf-8"))
             input_hasher.update(section_bytes)
             section_data = yaml.safe_load(section_bytes) or {}

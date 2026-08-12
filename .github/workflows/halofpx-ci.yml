@@ -48,7 +48,7 @@ jobs:
 
       - name: Run validator unit tests
         working-directory: project
-        run: python -m unittest research/prompts/tools/test_validate_wiki.py -v
+        run: python -m unittest discover -s research/prompts/tools -p 'test_*.py' -v
 
       - name: Validate publication documentation and protected provenance
         run: python project/project-management/documentation/validate_documentation.py

@@ -5,7 +5,7 @@ generated_on: '2026-07-17'
 registry: ../../research/prompts/section_index.yaml
 schema: manifest.schema.json
 generator: ../../research/prompts/tools/generate_wiki_manifest.py
-input_digest_sha256: 89a6f0340375078bf2681cfbbd2a27e3d3c8a7196b4389b31ca773539b831521
+input_digest_sha256: 5ac4ce11a7ab40dc604ad0c24148dfdc671b8f4a963d4af7b80220f604c7eee5
 planned_category_count: 12
 planned_section_count: 86
 categories:
