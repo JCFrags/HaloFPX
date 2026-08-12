@@ -8,10 +8,12 @@ MiniMax-specific assumptions in `run-halofpx-primary-block.sh` and
 paired order, exact artifact preflight, raw-sample retention, and paired
 analysis. It does not change or control the always-on services.
 
-The harness is feature-agnostic. An OFF/ON pair may compare different commits,
-different builds of one commit, or exact condition arguments. Cache reuse,
-cold prompt processing, and generation remain distinct lanes. MiniMax remains
-an optional capacity fixture; no model name, architecture, prompt length, or
+The harness is feature-agnostic. An OFF/ON pair may compare different commits
+or different builds of one commit. Runtime arguments must match across the two
+conditions, and the typed runtime contract must agree with the exact common
+argv. Version 1 admits only cold-cache-off prompt/generation work; persistent
+cache reuse keeps its separate lifecycle qualification. MiniMax remains an
+optional capacity fixture; no model name, architecture, prompt length, or
 golden output is embedded in the implementation.
 
 ## Scope and safety boundary
@@ -26,7 +28,8 @@ golden output is embedded in the implementation.
 - Do not store secrets in a plan or raw bundle. The harness records only the
   explicit environment allowlist; it never dumps the ambient environment.
 - A changed binary, model, request, node authority receipt, command, topology,
-  token count, output, failure, or missing sample prevents a complete result.
+  schedule, token count, output, raw-file hash, failure, or missing sample
+  prevents a complete result.
 - Three pairs are a preliminary direction screen. Five pairs meet only the
   project's minimum count before a `[MEASURED]` review; the analyzer never
   emits a performance claim by itself.
@@ -62,8 +65,9 @@ exclude the declared warmup, retain every attempted request, collect both
 nodes' telemetry/journals/link counters, and stop both processes. Keep profiling
 runs outside this schedule.
 
-For a successful non-streaming `/completion` request, retain the raw server
-response and a client record like this:
+For a successful streamed `/completion` request, retain an assembled raw server
+response with its final timing object and a monotonic client-event record. This
+small record illustrates a three-token fixture, so it contains two ITLs:
 
 ```json
 {
@@ -72,10 +76,14 @@ response and a client record like this:
   "ended_at": "2026-08-12T20:00:10Z",
   "http_status": 200,
   "wall_ms": 10000.0,
-  "ttft_ms": null,
-  "itl_ms": []
+  "ttft_ms": 312.5,
+  "itl_ms": [21.4, 20.9]
 }
 ```
+
+The harness requires one positive interval for every generated token after the
+first, valid zoned timestamps, and a TTFT-plus-ITL span consistent with
+monotonic wall time.
 
 Import the response, client record, and any raw logs. The `pair`, `condition`,
 and `order-index` values must match the frozen schedule. Record failed requests
@@ -93,7 +101,7 @@ python scripts/halofpx_strix_ab.py analyze /var/tmp/halofpx-ab-my-run
 
 `analysis.json` uses the pair as the comparison unit. It reports OFF/ON means,
 paired deltas, and paired improvement percentages separately for prompt rate,
-generation rate, client wall time, and TTFT when every sample supplies TTFT.
+generation rate, client wall time, TTFT, and mean inter-token latency.
 It does not use requests within a long-lived block as independent replicates.
 `samples.jsonl` and `SHA256SUMS` make the exact raw bundle portable to a new PC.
 

@@ -42,11 +42,11 @@ class StrixABTest(unittest.TestCase):
                 "coordinator": {"host": "nimo-1", "device": "ROCm0", "authority_receipt": {"path": str(self.files["nimo1"]), "sha256": sha(self.files["nimo1"])}},
                 "worker": {"host": "nimo-2", "device": "ROCm0", "authority_receipt": {"path": str(self.files["nimo2"]), "sha256": sha(self.files["nimo2"])}},
             },
-            "runtime": {"lane": "cold_prompt_generation", "cache_class": "cold_cache_off", "context": 1024, "batch": 512, "ubatch": 512, "flash_attention": True, "kv_k": "q8_0", "kv_v": "q8_0", "common_environment": {"HSA_ENABLE_SDMA": "0"}, "common_worker_args": ["--port", "50052"], "common_coordinator_args": ["--port", "18080"]},
+            "runtime": {"lane": "cold_prompt_generation", "cache_class": "cold_cache_off", "context": 1024, "batch": 512, "ubatch": 512, "flash_attention": True, "kv_k": "q8_0", "kv_v": "q8_0", "common_environment": {"HSA_ENABLE_SDMA": "0"}, "common_worker_args": ["--port", "50052"], "common_coordinator_args": ["--port", "18080", "--model", str(self.files["model"]), "--rpc", "nimo-2:50052", "--ctx-size", "1024", "--batch-size", "512", "--ubatch-size", "512", "--cache-type-k", "q8_0", "--cache-type-v", "q8_0", "--flash-attn", "on"]},
             "execution": {"pairs": 3, "order_seed": 7, "warmups_per_condition": 1, "retained_per_condition_per_pair": 1, "profiling_separate": True},
             "conditions": {
-                "off": {"source_commit": "0" * 40, "coordinator_binary": {"path": str(self.files["off-server"]), "sha256": sha(self.files["off-server"])}, "worker_binary": {"path": str(self.files["off-worker"]), "sha256": sha(self.files["off-worker"])}, "coordinator_args": ["--feature", "off"], "worker_args": ["--feature", "off"]},
-                "on": {"source_commit": "1" * 40, "coordinator_binary": {"path": str(self.files["on-server"]), "sha256": sha(self.files["on-server"])}, "worker_binary": {"path": str(self.files["on-worker"]), "sha256": sha(self.files["on-worker"])}, "coordinator_args": ["--feature", "on"], "worker_args": ["--feature", "on"]},
+                "off": {"source_commit": "0" * 40, "coordinator_binary": {"path": str(self.files["off-server"]), "sha256": sha(self.files["off-server"])}, "worker_binary": {"path": str(self.files["off-worker"]), "sha256": sha(self.files["off-worker"])}, "coordinator_args": [], "worker_args": []},
+                "on": {"source_commit": "1" * 40, "coordinator_binary": {"path": str(self.files["on-server"]), "sha256": sha(self.files["on-server"])}, "worker_binary": {"path": str(self.files["on-worker"]), "sha256": sha(self.files["on-worker"])}, "coordinator_args": [], "worker_args": []},
             },
         }
 
@@ -69,9 +69,9 @@ class StrixABTest(unittest.TestCase):
 
     def raw_success(self, prompt_tps: float, generation_tps: float, wall_ms: float) -> tuple[Path, Path]:
         response = self.root / f"response-{prompt_tps}-{generation_tps}.json"
-        response.write_text(json.dumps({"content": "same", "timings": {"prompt_n": 512, "predicted_n": 8, "prompt_ms": 1000.0, "predicted_ms": 500.0, "prompt_per_second": prompt_tps, "predicted_per_second": generation_tps}}), encoding="utf-8")
+        response.write_text(json.dumps({"content": "same", "timings": {"prompt_n": 512, "predicted_n": 8, "prompt_ms": 512 / prompt_tps * 1000, "predicted_ms": 8 / generation_tps * 1000, "prompt_per_second": prompt_tps, "predicted_per_second": generation_tps}}), encoding="utf-8")
         client = self.root / f"client-{wall_ms}.json"
-        client.write_text(json.dumps({"schema": AB.CLIENT_SCHEMA, "started_at": "2026-08-12T00:00:00Z", "ended_at": "2026-08-12T00:00:01Z", "http_status": 200, "wall_ms": wall_ms}), encoding="utf-8")
+        client.write_text(json.dumps({"schema": AB.CLIENT_SCHEMA, "started_at": "2026-08-12T00:00:00Z", "ended_at": "2026-08-12T00:00:01Z", "http_status": 200, "wall_ms": wall_ms, "ttft_ms": wall_ms / 10, "itl_ms": [1000 / generation_tps] * 7}), encoding="utf-8")
         return response, client
 
     def test_plan_and_schedule_are_model_general_and_balanced(self) -> None:
@@ -84,7 +84,6 @@ class StrixABTest(unittest.TestCase):
     def test_feature_branches_may_use_empty_condition_arguments(self) -> None:
         plan = copy.deepcopy(self.plan)
         plan["runtime"]["common_worker_args"] = []
-        plan["runtime"]["common_coordinator_args"] = []
         for condition in ("off", "on"):
             plan["conditions"][condition]["worker_args"] = []
             plan["conditions"][condition]["coordinator_args"] = []
@@ -93,6 +92,12 @@ class StrixABTest(unittest.TestCase):
     def test_plan_rejects_wrong_lane_and_same_host(self) -> None:
         broken = copy.deepcopy(self.plan)
         broken["runtime"]["cache_class"] = "fresh_process_exact_hit"
+        with self.assertRaises(AB.PlanError):
+            AB.validate_plan(broken)
+
+    def test_plan_rejects_unmatched_condition_runtime_arguments(self) -> None:
+        broken = copy.deepcopy(self.plan)
+        broken["conditions"]["on"]["coordinator_args"] = ["--batch-size", "1"]
         with self.assertRaises(AB.PlanError):
             AB.validate_plan(broken)
         broken = copy.deepcopy(self.plan)
@@ -159,6 +164,17 @@ class StrixABTest(unittest.TestCase):
             AB.record_sample(run, first["pair_id"], first["condition"], first["order_index"], response, client, "success", None, [])
         destination = run / "raw" / f"pair-{first['pair_id']:03d}-order-{first['order_index']}-{first['condition']}"
         self.assertFalse(destination.exists())
+
+    def test_analysis_rejects_raw_evidence_modified_after_record(self) -> None:
+        run = self.initialize()
+        self.import_preflights(run)
+        first = json.loads((run / "schedule.json").read_text(encoding="utf-8"))["entries"][0]
+        response, client = self.raw_success(100.0, 20.0, 1000.0)
+        AB.record_sample(run, first["pair_id"], first["condition"], first["order_index"], response, client, "success", None, [])
+        destination = run / "raw" / f"pair-{first['pair_id']:03d}-order-{first['order_index']}-{first['condition']}"
+        (destination / "response.json").write_text("{}", encoding="utf-8")
+        with self.assertRaises(AB.PlanError):
+            AB.analyze_run(run)
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ analyzed.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import hashlib
 import json
 import math
@@ -142,6 +143,19 @@ def condition_commands(plan: dict[str, Any], name: str) -> dict[str, list[str]]:
     }
 
 
+def require_argv_option(args: list[str], flag: str, expected: str, where: str) -> None:
+    matches = []
+    for index, item in enumerate(args):
+        if item == flag:
+            if index + 1 >= len(args):
+                raise PlanError(f"{where} ends with {flag} but has no value")
+            matches.append(args[index + 1])
+        elif item.startswith(flag + "="):
+            matches.append(item.split("=", 1)[1])
+    if matches != [expected]:
+        raise PlanError(f"{where} must contain exactly one {flag} value equal to {expected!r}")
+
+
 def validate_plan(value: Any) -> dict[str, Any]:
     plan = require_mapping(value, "plan")
     require_keys(
@@ -190,7 +204,7 @@ def validate_plan(value: Any) -> dict[str, Any]:
     require_string(request["path"], "plan.request.path")
     require_hash(request["sha256"], "plan.request.sha256")
     require_int(request["prompt_tokens"], "plan.request.prompt_tokens", 1)
-    require_int(request["output_tokens"], "plan.request.output_tokens", 1)
+    require_int(request["output_tokens"], "plan.request.output_tokens", 2)
     if request["require_content_parity"] is not True:
         raise PlanError("plan.request.require_content_parity must be true for A/B qualification")
     if request.get("expected_content_sha256") is not None:
@@ -219,12 +233,8 @@ def validate_plan(value: Any) -> dict[str, Any]:
         set(),
         "plan.runtime",
     )
-    if runtime["lane"] not in {"cold_prompt_generation", "cache_reuse"}:
-        raise PlanError("plan.runtime.lane must separate cold performance from cache reuse")
-    if runtime["cache_class"] not in {"cold_cache_off", "fresh_process_exact_hit"}:
-        raise PlanError("plan.runtime.cache_class is unsupported")
-    if runtime["lane"] == "cold_prompt_generation" and runtime["cache_class"] != "cold_cache_off":
-        raise PlanError("cold prompt/generation runs must use cache_class=cold_cache_off")
+    if runtime["lane"] != "cold_prompt_generation" or runtime["cache_class"] != "cold_cache_off":
+        raise PlanError("v1 qualifies only lane=cold_prompt_generation with cache_class=cold_cache_off")
     context = require_int(runtime["context"], "plan.runtime.context", 1)
     batch = require_int(runtime["batch"], "plan.runtime.batch", 1)
     ubatch = require_int(runtime["ubatch"], "plan.runtime.ubatch", 1)
@@ -244,6 +254,21 @@ def validate_plan(value: Any) -> dict[str, Any]:
         runtime["common_worker_args"], "plan.runtime.common_worker_args", allow_empty=True)
     runtime["common_coordinator_args"] = require_argv(
         runtime["common_coordinator_args"], "plan.runtime.common_coordinator_args", allow_empty=True)
+    required_coordinator_options = {
+        "--model": model["path"],
+        "--rpc": topology["rpc_endpoint"],
+        "--ctx-size": str(context),
+        "--batch-size": str(batch),
+        "--ubatch-size": str(ubatch),
+        "--cache-type-k": runtime["kv_k"],
+        "--cache-type-v": runtime["kv_v"],
+        "--flash-attn": "on" if runtime["flash_attention"] else "off",
+    }
+    for flag, expected in required_coordinator_options.items():
+        require_argv_option(
+            runtime["common_coordinator_args"], flag, expected,
+            "plan.runtime.common_coordinator_args",
+        )
 
     execution = require_mapping(plan["execution"], "plan.execution")
     require_keys(
@@ -284,6 +309,12 @@ def validate_plan(value: Any) -> dict[str, Any]:
             condition["coordinator_args"], f"plan.conditions.{name}.coordinator_args", allow_empty=True)
         condition["worker_args"] = require_argv(
             condition["worker_args"], f"plan.conditions.{name}.worker_args", allow_empty=True)
+
+    for name in ("off", "on"):
+        for role in ("coordinator_args", "worker_args"):
+            if conditions[name][role]:
+                raise PlanError(
+                    f"plan.conditions.{name}.{role} must be empty; v1 compares feature branches/builds with matched common controls")
 
     off_fingerprint = canonical_bytes({
         "commit": conditions["off"]["source_commit"],
@@ -487,30 +518,50 @@ def import_preflight(root: Path, receipt_path: Path) -> None:
     write_json(destination, receipt)
 
 
-def parse_client(path: Path) -> dict[str, Any]:
+def parse_timestamp(value: Any, where: str) -> dt.datetime:
+    text = require_string(value, where)
+    try:
+        parsed = dt.datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise PlanError(f"{where} must be an ISO-8601 timestamp") from exc
+    if parsed.tzinfo is None:
+        raise PlanError(f"{where} must include a timezone")
+    return parsed
+
+
+def parse_client(path: Path, output_tokens: int) -> dict[str, Any]:
     client = require_mapping(read_json(path), "client timing")
     require_keys(
         client,
-        {"schema", "started_at", "ended_at", "http_status", "wall_ms"},
-        {"ttft_ms", "itl_ms"},
+        {"schema", "started_at", "ended_at", "http_status", "wall_ms", "ttft_ms", "itl_ms"},
+        set(),
         "client timing",
     )
     if client["schema"] != CLIENT_SCHEMA:
         raise PlanError(f"client timing schema must be {CLIENT_SCHEMA}")
-    require_string(client["started_at"], "client.started_at")
-    require_string(client["ended_at"], "client.ended_at")
+    started = parse_timestamp(client["started_at"], "client.started_at")
+    ended = parse_timestamp(client["ended_at"], "client.ended_at")
+    if ended <= started:
+        raise PlanError("client.ended_at must be after client.started_at")
     require_int(client["http_status"], "client.http_status", 100)
     for name in ("wall_ms", "ttft_ms"):
-        if client.get(name) is not None:
-            value = client[name]
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
-                raise PlanError(f"client.{name} must be finite and positive")
+        value = client[name]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+            raise PlanError(f"client.{name} must be finite and positive")
     itl = client.get("itl_ms", [])
     if not isinstance(itl, list) or any(
         isinstance(item, bool) or not isinstance(item, (int, float)) or not math.isfinite(item) or item <= 0
         for item in itl
     ):
         raise PlanError("client.itl_ms must contain finite positive numbers")
+    if len(itl) != output_tokens - 1:
+        raise PlanError("client.itl_ms must contain one interval after each generated token except the first")
+    if client["ttft_ms"] > client["wall_ms"]:
+        raise PlanError("client.ttft_ms cannot exceed client.wall_ms")
+    observed_generation_span = client["ttft_ms"] + sum(itl)
+    tolerance_ms = max(5.0, client["wall_ms"] * 0.01)
+    if observed_generation_span > client["wall_ms"] + tolerance_ms:
+        raise PlanError("client TTFT plus inter-token intervals exceeds client wall time")
     return client
 
 
@@ -528,6 +579,13 @@ def parse_response(path: Path, plan: dict[str, Any]) -> dict[str, Any]:
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
             raise PlanError(f"server response.timings.{name} must be finite and positive")
         numeric[name] = float(value)
+    expected_rates = {
+        "prompt_per_second": timings["prompt_n"] / numeric["prompt_ms"] * 1000.0,
+        "predicted_per_second": timings["predicted_n"] / numeric["predicted_ms"] * 1000.0,
+    }
+    for name, expected_rate in expected_rates.items():
+        if not math.isclose(numeric[name], expected_rate, rel_tol=0.01, abs_tol=0.01):
+            raise PlanError(f"server response.timings.{name} is inconsistent with count and duration")
     content = response.get("content")
     if not isinstance(content, str):
         raise PlanError("server response.content must be a string")
@@ -608,7 +666,7 @@ def record_sample(
         client: dict[str, Any] | None = None
         if status == "success":
             result = parse_response(staging / "response.json", plan)
-            client = parse_client(staging / "client.json")
+            client = parse_client(staging / "client.json", plan["request"]["output_tokens"])
             if client["http_status"] != 200:
                 raise PlanError("successful sample did not return HTTP 200")
         sample = {
@@ -653,6 +711,35 @@ def validate_preflights(root: Path, plan: dict[str, Any]) -> dict[str, str]:
     return hashes
 
 
+def validate_raw_evidence(sample_path: Path, sample: dict[str, Any], plan: dict[str, Any]) -> None:
+    raw = require_mapping(sample.get("raw"), "sample.raw")
+    seen_paths = set()
+    for name, value in raw.items():
+        record = require_mapping(value, f"sample.raw.{name}")
+        require_keys(record, {"path", "sha256", "size_bytes"}, set(), f"sample.raw.{name}")
+        relative = require_string(record["path"], f"sample.raw.{name}.path")
+        if Path(relative).name != relative or relative in seen_paths:
+            raise PlanError("sample raw paths must be unique filenames")
+        seen_paths.add(relative)
+        require_hash(record["sha256"], f"sample.raw.{name}.sha256")
+        require_int(record["size_bytes"], f"sample.raw.{name}.size_bytes", 1)
+        artifact = sample_path.parent / relative
+        if not artifact.is_file():
+            raise PlanError(f"sample raw artifact is missing: {relative}")
+        if artifact.stat().st_size != record["size_bytes"] or digest_file(artifact) != record["sha256"]:
+            raise PlanError(f"sample raw artifact identity changed: {relative}")
+    if sample["status"] == "success":
+        if not {"response", "client"}.issubset(raw):
+            raise PlanError("successful sample is missing response or client raw evidence")
+        result = parse_response(sample_path.parent / raw["response"]["path"], plan)
+        client = parse_client(
+            sample_path.parent / raw["client"]["path"], plan["request"]["output_tokens"])
+        if result != sample.get("result") or client != sample.get("client"):
+            raise PlanError("sample summary differs from reparsed raw evidence")
+    elif sample.get("result") is not None or sample.get("client") is not None:
+        raise PlanError("failed sample cannot contain successful timing summaries")
+
+
 def mean(values: list[float]) -> float:
     return statistics.fmean(values)
 
@@ -687,13 +774,32 @@ def analyze_run(root: Path) -> dict[str, Any]:
     preflight_hashes = validate_preflights(root, plan)
     schedule = validate_run_contract(root, plan)
     expected = {(entry["pair_id"], entry["order_index"], entry["condition"]) for entry in schedule["entries"]}
-    samples = [read_json(path) for path in sorted((root / "raw").glob("*/sample.json"))]
+    sample_paths = sorted((root / "raw").glob("*/sample.json"))
+    samples = [read_json(path) for path in sample_paths]
     observed: dict[tuple[int, int, str], dict[str, Any]] = {}
-    for sample in samples:
-        if sample.get("schema") != SAMPLE_SCHEMA or sample.get("experiment_id") != plan["experiment_id"]:
+    for sample_path, sample_value in zip(sample_paths, samples):
+        sample = require_mapping(sample_value, "sample")
+        require_keys(
+            sample,
+            {
+                "schema", "experiment_id", "plan_sha256", "pair_id", "order_index",
+                "condition", "status", "failure_code", "identity", "client", "result", "raw",
+            },
+            set(),
+            "sample",
+        )
+        if sample["schema"] != SAMPLE_SCHEMA or sample["experiment_id"] != plan["experiment_id"]:
             raise PlanError("sample schema or experiment identity mismatch")
-        if sample.get("plan_sha256") != plan_digest(plan):
+        if sample["plan_sha256"] != plan_digest(plan):
             raise PlanError("sample plan identity mismatch")
+        require_int(sample["pair_id"], "sample.pair_id", 1)
+        require_int(sample["order_index"], "sample.order_index", 0)
+        if sample["condition"] not in {"off", "on"} or sample["status"] not in {"success", "failure"}:
+            raise PlanError("sample condition or status is invalid")
+        if sample["status"] == "success" and sample["failure_code"] is not None:
+            raise PlanError("successful sample cannot contain a failure code")
+        if sample["status"] == "failure":
+            require_string(sample["failure_code"], "sample.failure_code")
         key = (sample["pair_id"], sample["order_index"], sample["condition"])
         if key not in expected or key in observed:
             raise PlanError("sample is extra, duplicated, or outside the schedule")
@@ -707,6 +813,7 @@ def analyze_run(root: Path) -> dict[str, Any]:
         }
         if sample.get("identity") != expected_identity:
             raise PlanError("sample artifact or command identity mismatch")
+        validate_raw_evidence(sample_path, sample, plan)
         observed[key] = sample
     missing = sorted(expected - observed.keys())
     failures = [
@@ -746,9 +853,9 @@ def analyze_run(root: Path) -> dict[str, Any]:
             "prompt_tokens_per_second": (lambda sample: sample["result"]["prompt_tokens_per_second"], False),
             "generation_tokens_per_second": (lambda sample: sample["result"]["generation_tokens_per_second"], False),
             "client_wall_ms": (lambda sample: float(sample["client"]["wall_ms"]), True),
+            "ttft_ms": (lambda sample: float(sample["client"]["ttft_ms"]), True),
+            "mean_itl_ms": (lambda sample: mean([float(value) for value in sample["client"]["itl_ms"]]), True),
         }
-        if all(sample["client"].get("ttft_ms") is not None for sample in samples):
-            fields["ttft_ms"] = (lambda sample: float(sample["client"]["ttft_ms"]), True)
         for metric, (extract, lower_is_better) in fields.items():
             values = []
             for pair_id in sorted(by_pair):

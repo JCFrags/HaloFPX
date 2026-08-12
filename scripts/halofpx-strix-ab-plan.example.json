@@ -76,8 +76,8 @@
         "path": "/absolute/off/bin/rpc-server",
         "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
       },
-      "coordinator_args": ["--feature-under-test", "off"],
-      "worker_args": ["--feature-under-test", "off"]
+      "coordinator_args": [],
+      "worker_args": []
     },
     "on": {
       "source_commit": "1111111111111111111111111111111111111111",
@@ -89,9 +89,9 @@
         "path": "/absolute/on/bin/rpc-server",
         "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
       },
-      "coordinator_args": ["--feature-under-test", "on"],
-      "worker_args": ["--feature-under-test", "on"]
+      "coordinator_args": [],
+      "worker_args": []
     }
   },
-  "notes": "Use an ordinary ROCmFPX model for daily work. MiniMax is optional stress coverage."
+  "notes": "Use an ordinary ROCmFPX model for daily work. Compare feature branches/builds with matched runtime arguments. MiniMax is optional stress coverage."
 }
