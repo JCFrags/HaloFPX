@@ -182,3 +182,4 @@ jobs:
           unit/test_prompt_cache_disk.py::test_disk_cache_rejects_partial_target_draft_pair
           unit/test_prompt_cache_disk.py::test_disk_cache_rejects_same_size_target_corruption
           unit/test_prompt_cache_disk.py::test_disk_cache_rejects_same_size_corruption_before_touch
+          unit/test_prompt_cache_disk.py::test_failed_corrupt_entry_removal_keeps_conservative_accounting
