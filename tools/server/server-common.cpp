@@ -8,6 +8,7 @@
 #include "base64.hpp"
 
 #include "server-common.h"
+#include "server-token-probabilities.h"
 
 #include <random>
 #include <sstream>
@@ -1310,42 +1311,24 @@ json format_response_rerank(
 //
 
 std::vector<llama_token_data> get_token_probabilities(llama_context * ctx, int idx) {
-    std::vector<llama_token_data> cur;
+    const llama_vocab * vocab = llama_model_get_vocab(llama_get_model(ctx));
+    const int32_t n_vocab = llama_vocab_n_tokens(vocab);
 
-    const auto * logits = llama_get_logits_ith(ctx, idx);
-    const llama_token * sampled_ids = llama_get_sampled_candidates_ith(ctx, idx);
-
-    const int n_logits = llama_get_sampled_logits_count_ith(ctx, idx);
-
-    cur.resize(n_logits);
-    if (sampled_ids) {
-        for (int i = 0; i < n_logits; i++) {
-            cur[i] = llama_token_data{sampled_ids[i], logits[i], 0.0f};
-        }
-    } else {
-        for (llama_token token_id = 0; token_id < n_logits; token_id++) {
-            cur[token_id] = llama_token_data{token_id, logits[token_id], 0.0f};
-        }
+    // Determine the row source from the sampled pointer itself. The sampled
+    // buffers are allocated for the whole context, so a row with no backend
+    // sampler can legitimately have a zero sampled count while raw logits are
+    // available. Keeping these branches separate prevents mixing that raw
+    // pointer with the zero sampled count.
+    const float * sampled_logits = llama_get_sampled_logits_ith(ctx, idx);
+    if (sampled_logits != nullptr) {
+        const llama_token * sampled_ids = llama_get_sampled_candidates_ith(ctx, idx);
+        const uint32_t sampled_logits_count = llama_get_sampled_logits_count_ith(ctx, idx);
+        return server_build_token_probabilities(
+                sampled_logits, sampled_ids, sampled_logits_count, nullptr, n_vocab);
     }
 
-    // sort tokens by logits
-    std::sort(cur.begin(), cur.end(), [](const llama_token_data & a, const llama_token_data & b) {
-        return a.logit > b.logit;
-    });
-
-    // apply softmax
-    float max_l = cur[0].logit;
-    float cum_sum = 0.0f;
-    for (size_t i = 0; i < cur.size(); ++i) {
-        float p = expf(cur[i].logit - max_l);
-        cur[i].p = p;
-        cum_sum += p;
-    }
-    for (size_t i = 0; i < cur.size(); ++i) {
-        cur[i].p /= cum_sum;
-    }
-
-    return cur;
+    const float * raw_logits = llama_get_logits_ith(ctx, idx);
+    return server_build_token_probabilities(nullptr, nullptr, 0, raw_logits, n_vocab);
 }
 
 std::string safe_json_to_str(const json & data) {

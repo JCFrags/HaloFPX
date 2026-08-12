@@ -806,6 +806,13 @@ if (BUILD_TESTING)
         LABELS "main;halofpx")
 endif()
 
+add_library(server-token-probabilities STATIC
+    server-token-probabilities.cpp
+    server-token-probabilities.h
+)
+target_compile_features(server-token-probabilities PRIVATE cxx_std_17)
+target_link_libraries(server-token-probabilities PUBLIC llama)
+
 set(TARGET server-context)
 
 add_library(${TARGET} STATIC
@@ -835,7 +842,7 @@ target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/examples/diffusion)
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps)
 target_link_libraries(${TARGET}
-    PRIVATE server-prompt-cache-digest
+    PRIVATE server-prompt-cache-digest server-token-probabilities
     PUBLIC llama-common mtmd ${CMAKE_THREAD_LIBS_INIT})
 
 if (HALOFPX_CONTEXT_STORE_CANARY)
@@ -883,6 +890,20 @@ if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
     target_compile_definitions(${TARGET} PUBLIC
         HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=1)
     target_link_libraries(${TARGET} PRIVATE halofpx-context-store-v1-catalog)
+endif()
+
+if (BUILD_TESTING)
+    add_executable(test-server-token-probabilities
+        tests/test-server-token-probabilities.cpp)
+    target_compile_features(test-server-token-probabilities PRIVATE cxx_std_17)
+    target_include_directories(test-server-token-probabilities PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test-server-token-probabilities PRIVATE
+        server-token-probabilities)
+    add_test(NAME test-server-token-probabilities
+        COMMAND test-server-token-probabilities)
+    set_tests_properties(test-server-token-probabilities PROPERTIES
+        LABELS "main;server;halofpx")
 endif()
 
 
