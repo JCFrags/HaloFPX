@@ -1,0 +1,97 @@
+{
+  "schema": "halofpx.strix-ab-plan.v1",
+  "experiment_id": "replace-with-date-and-feature",
+  "issues": [15, 16],
+  "source": {
+    "repository": "https://github.com/JCFrags/HaloFPX.git",
+    "off_commit": "0000000000000000000000000000000000000000",
+    "on_commit": "1111111111111111111111111111111111111111"
+  },
+  "model": {
+    "path": "/absolute/path/to/ordinary-rocmfpx-model.gguf",
+    "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "size_bytes": 1,
+    "format_family": "rocmfpx",
+    "architecture": "replace-with-gguf-architecture",
+    "provenance": "replace-with-model-repository-and-revision"
+  },
+  "request": {
+    "path": "/absolute/path/to/request.json",
+    "sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "prompt_tokens": 512,
+    "output_tokens": 128,
+    "require_content_parity": true,
+    "expected_content_sha256": null
+  },
+  "topology": {
+    "world_size": 2,
+    "rpc_endpoint": "nimo-2.example:50052",
+    "coordinator": {
+      "host": "nimo-1",
+      "device": "ROCm0",
+      "authority_receipt": {
+        "path": "/absolute/path/to/nimo-1-authority.json",
+        "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    },
+    "worker": {
+      "host": "nimo-2",
+      "device": "ROCm0",
+      "authority_receipt": {
+        "path": "/absolute/path/to/nimo-2-authority.json",
+        "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      }
+    }
+  },
+  "runtime": {
+    "lane": "cold_prompt_generation",
+    "cache_class": "cold_cache_off",
+    "context": 8192,
+    "batch": 512,
+    "ubatch": 512,
+    "flash_attention": true,
+    "kv_k": "q8_0",
+    "kv_v": "q8_0",
+    "common_environment": {
+      "HSA_ENABLE_SDMA": "0"
+    },
+    "common_worker_args": ["--host", "0.0.0.0", "--port", "50052", "--device", "ROCm0"],
+    "common_coordinator_args": ["--host", "127.0.0.1", "--port", "18080", "--model", "/absolute/path/to/ordinary-rocmfpx-model.gguf", "--rpc", "nimo-2.example:50052", "--device", "RPC0,ROCm0", "--ctx-size", "8192", "--batch-size", "512", "--ubatch-size", "512", "--cache-type-k", "q8_0", "--cache-type-v", "q8_0", "--flash-attn", "on", "--seed", "1234", "--temp", "0", "--metrics", "--offline"]
+  },
+  "execution": {
+    "pairs": 3,
+    "order_seed": 20260812,
+    "warmups_per_condition": 1,
+    "retained_per_condition_per_pair": 1,
+    "profiling_separate": true
+  },
+  "conditions": {
+    "off": {
+      "source_commit": "0000000000000000000000000000000000000000",
+      "coordinator_binary": {
+        "path": "/absolute/off/bin/llama-server",
+        "sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+      },
+      "worker_binary": {
+        "path": "/absolute/off/bin/rpc-server",
+        "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      "coordinator_args": ["--feature-under-test", "off"],
+      "worker_args": ["--feature-under-test", "off"]
+    },
+    "on": {
+      "source_commit": "1111111111111111111111111111111111111111",
+      "coordinator_binary": {
+        "path": "/absolute/on/bin/llama-server",
+        "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+      },
+      "worker_binary": {
+        "path": "/absolute/on/bin/rpc-server",
+        "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+      },
+      "coordinator_args": ["--feature-under-test", "on"],
+      "worker_args": ["--feature-under-test", "on"]
+    }
+  },
+  "notes": "Use an ordinary ROCmFPX model for daily work. MiniMax is optional stress coverage."
+}

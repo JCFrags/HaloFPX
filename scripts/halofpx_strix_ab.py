@@ -1,0 +1,844 @@
+#!/usr/bin/env python3
+"""Small fail-closed A/B evidence harness for the two HaloFPX target nodes.
+
+This tool deliberately does not own production services or infer that a command
+was executed.  It freezes an exact plan and schedule, verifies artifacts on
+each node, imports raw request evidence, and performs paired analysis.  A run
+adapter may execute the frozen argv arrays, but only imported raw evidence is
+analyzed.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+import os
+import platform
+import random
+import re
+import shutil
+import socket
+import statistics
+import sys
+import tempfile
+from pathlib import Path
+from typing import Any
+
+
+PLAN_SCHEMA = "halofpx.strix-ab-plan.v1"
+PREFLIGHT_SCHEMA = "halofpx.strix-ab-preflight.v1"
+SAMPLE_SCHEMA = "halofpx.strix-ab-sample.v1"
+ANALYSIS_SCHEMA = "halofpx.strix-ab-analysis.v1"
+CLIENT_SCHEMA = "halofpx.client-timing.v1"
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
+ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
+ENV_RE = re.compile(r"^[A-Z_][A-Z0-9_]*$")
+
+
+class PlanError(ValueError):
+    pass
+
+
+def canonical_bytes(value: Any) -> bytes:
+    return (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+
+
+def digest_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def digest_file(path: Path) -> str:
+    hasher = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def read_json(path: Path) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise PlanError(f"cannot read JSON {path}: {exc}") from exc
+
+
+def write_json(path: Path, value: Any) -> None:
+    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def require_mapping(value: Any, where: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise PlanError(f"{where} must be an object")
+    return value
+
+
+def require_keys(value: dict[str, Any], required: set[str], optional: set[str], where: str) -> None:
+    missing = required - value.keys()
+    unknown = value.keys() - required - optional
+    if missing:
+        raise PlanError(f"{where} is missing: {', '.join(sorted(missing))}")
+    if unknown:
+        raise PlanError(f"{where} has unknown keys: {', '.join(sorted(unknown))}")
+
+
+def require_string(value: Any, where: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise PlanError(f"{where} must be a non-empty string")
+    if any(ord(char) < 32 for char in value):
+        raise PlanError(f"{where} contains a control character")
+    return value
+
+
+def require_int(value: Any, where: str, minimum: int = 0) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+        raise PlanError(f"{where} must be an integer >= {minimum}")
+    return value
+
+
+def require_hash(value: Any, where: str, pattern: re.Pattern[str] = SHA256_RE) -> str:
+    text = require_string(value, where)
+    if not pattern.fullmatch(text):
+        raise PlanError(f"{where} has the wrong identity format")
+    return text
+
+
+def require_argv(value: Any, where: str, *, allow_empty: bool = False) -> list[str]:
+    if not isinstance(value, list) or (not allow_empty and not value):
+        qualifier = "an argv array" if allow_empty else "a non-empty argv array"
+        raise PlanError(f"{where} must be {qualifier}")
+    return [require_string(item, f"{where}[{index}]") for index, item in enumerate(value)]
+
+
+def validate_artifact(value: Any, where: str) -> dict[str, Any]:
+    artifact = require_mapping(value, where)
+    require_keys(artifact, {"path", "sha256"}, set(), where)
+    require_string(artifact["path"], f"{where}.path")
+    require_hash(artifact["sha256"], f"{where}.sha256")
+    return artifact
+
+
+def validate_node(value: Any, where: str) -> dict[str, Any]:
+    node = require_mapping(value, where)
+    require_keys(node, {"host", "device", "authority_receipt"}, set(), where)
+    require_string(node["host"], f"{where}.host")
+    require_string(node["device"], f"{where}.device")
+    validate_artifact(node["authority_receipt"], f"{where}.authority_receipt")
+    return node
+
+
+def condition_commands(plan: dict[str, Any], name: str) -> dict[str, list[str]]:
+    condition = plan["conditions"][name]
+    runtime = plan["runtime"]
+    return {
+        "worker": [condition["worker_binary"]["path"]]
+        + runtime["common_worker_args"]
+        + condition["worker_args"],
+        "coordinator": [condition["coordinator_binary"]["path"]]
+        + runtime["common_coordinator_args"]
+        + condition["coordinator_args"],
+    }
+
+
+def validate_plan(value: Any) -> dict[str, Any]:
+    plan = require_mapping(value, "plan")
+    require_keys(
+        plan,
+        {
+            "schema", "experiment_id", "issues", "source", "model", "request",
+            "topology", "runtime", "execution", "conditions",
+        },
+        {"notes"},
+        "plan",
+    )
+    if plan["schema"] != PLAN_SCHEMA:
+        raise PlanError(f"plan.schema must be {PLAN_SCHEMA}")
+    if not ID_RE.fullmatch(require_string(plan["experiment_id"], "plan.experiment_id")):
+        raise PlanError("plan.experiment_id must be a safe lowercase identifier")
+    if not isinstance(plan["issues"], list) or not {15, 16}.issubset(set(plan["issues"])):
+        raise PlanError("plan.issues must include GitHub issues 15 and 16")
+
+    source = require_mapping(plan["source"], "plan.source")
+    require_keys(source, {"repository", "off_commit", "on_commit"}, set(), "plan.source")
+    require_string(source["repository"], "plan.source.repository")
+    require_hash(source["off_commit"], "plan.source.off_commit", COMMIT_RE)
+    require_hash(source["on_commit"], "plan.source.on_commit", COMMIT_RE)
+
+    model = require_mapping(plan["model"], "plan.model")
+    require_keys(
+        model,
+        {"path", "sha256", "size_bytes", "format_family", "architecture"},
+        {"provenance"},
+        "plan.model",
+    )
+    require_string(model["path"], "plan.model.path")
+    require_hash(model["sha256"], "plan.model.sha256")
+    require_int(model["size_bytes"], "plan.model.size_bytes", 1)
+    if model["format_family"] not in {"rocmfpx", "rocmfp4", "conventional-control"}:
+        raise PlanError("plan.model.format_family must declare ROCmFPX, ROCmFP4, or a control")
+    require_string(model["architecture"], "plan.model.architecture")
+
+    request = require_mapping(plan["request"], "plan.request")
+    require_keys(
+        request,
+        {"path", "sha256", "prompt_tokens", "output_tokens", "require_content_parity"},
+        {"expected_content_sha256", "tokenizer_sha256"},
+        "plan.request",
+    )
+    require_string(request["path"], "plan.request.path")
+    require_hash(request["sha256"], "plan.request.sha256")
+    require_int(request["prompt_tokens"], "plan.request.prompt_tokens", 1)
+    require_int(request["output_tokens"], "plan.request.output_tokens", 1)
+    if request["require_content_parity"] is not True:
+        raise PlanError("plan.request.require_content_parity must be true for A/B qualification")
+    if request.get("expected_content_sha256") is not None:
+        require_hash(request["expected_content_sha256"], "plan.request.expected_content_sha256")
+    if request.get("tokenizer_sha256") is not None:
+        require_hash(request["tokenizer_sha256"], "plan.request.tokenizer_sha256")
+
+    topology = require_mapping(plan["topology"], "plan.topology")
+    require_keys(topology, {"world_size", "rpc_endpoint", "coordinator", "worker"}, set(), "plan.topology")
+    if topology["world_size"] != 2:
+        raise PlanError("plan.topology.world_size must be exactly 2")
+    require_string(topology["rpc_endpoint"], "plan.topology.rpc_endpoint")
+    coordinator = validate_node(topology["coordinator"], "plan.topology.coordinator")
+    worker = validate_node(topology["worker"], "plan.topology.worker")
+    if coordinator["host"].split(".", 1)[0] == worker["host"].split(".", 1)[0]:
+        raise PlanError("coordinator and worker hosts must be distinct")
+
+    runtime = require_mapping(plan["runtime"], "plan.runtime")
+    require_keys(
+        runtime,
+        {
+            "lane", "cache_class", "context", "batch", "ubatch", "flash_attention",
+            "kv_k", "kv_v", "common_environment", "common_worker_args",
+            "common_coordinator_args",
+        },
+        set(),
+        "plan.runtime",
+    )
+    if runtime["lane"] not in {"cold_prompt_generation", "cache_reuse"}:
+        raise PlanError("plan.runtime.lane must separate cold performance from cache reuse")
+    if runtime["cache_class"] not in {"cold_cache_off", "fresh_process_exact_hit"}:
+        raise PlanError("plan.runtime.cache_class is unsupported")
+    if runtime["lane"] == "cold_prompt_generation" and runtime["cache_class"] != "cold_cache_off":
+        raise PlanError("cold prompt/generation runs must use cache_class=cold_cache_off")
+    context = require_int(runtime["context"], "plan.runtime.context", 1)
+    batch = require_int(runtime["batch"], "plan.runtime.batch", 1)
+    ubatch = require_int(runtime["ubatch"], "plan.runtime.ubatch", 1)
+    if batch < ubatch:
+        raise PlanError("plan.runtime.batch must be >= ubatch")
+    if context < request["prompt_tokens"] + request["output_tokens"]:
+        raise PlanError("plan.runtime.context is smaller than prompt plus output tokens")
+    if not isinstance(runtime["flash_attention"], bool):
+        raise PlanError("plan.runtime.flash_attention must be boolean")
+    require_string(runtime["kv_k"], "plan.runtime.kv_k")
+    require_string(runtime["kv_v"], "plan.runtime.kv_v")
+    environment = require_mapping(runtime["common_environment"], "plan.runtime.common_environment")
+    for name, item in environment.items():
+        if not ENV_RE.fullmatch(name) or not isinstance(item, str):
+            raise PlanError("common_environment must map safe variable names to strings")
+    runtime["common_worker_args"] = require_argv(
+        runtime["common_worker_args"], "plan.runtime.common_worker_args", allow_empty=True)
+    runtime["common_coordinator_args"] = require_argv(
+        runtime["common_coordinator_args"], "plan.runtime.common_coordinator_args", allow_empty=True)
+
+    execution = require_mapping(plan["execution"], "plan.execution")
+    require_keys(
+        execution,
+        {"pairs", "order_seed", "warmups_per_condition", "retained_per_condition_per_pair", "profiling_separate"},
+        set(),
+        "plan.execution",
+    )
+    require_int(execution["pairs"], "plan.execution.pairs", 1)
+    require_int(execution["order_seed"], "plan.execution.order_seed", 0)
+    require_int(execution["warmups_per_condition"], "plan.execution.warmups_per_condition", 1)
+    retained = require_int(
+        execution["retained_per_condition_per_pair"],
+        "plan.execution.retained_per_condition_per_pair",
+        1,
+    )
+    if retained != 1:
+        raise PlanError("each schedule pair currently retains exactly one sample per condition")
+    if execution["profiling_separate"] is not True:
+        raise PlanError("profiling runs must be declared separate from timing samples")
+
+    conditions = require_mapping(plan["conditions"], "plan.conditions")
+    if set(conditions) != {"off", "on"}:
+        raise PlanError("plan.conditions must contain exactly off and on")
+    for name, expected_commit in (("off", source["off_commit"]), ("on", source["on_commit"])):
+        condition = require_mapping(conditions[name], f"plan.conditions.{name}")
+        require_keys(
+            condition,
+            {"source_commit", "coordinator_binary", "worker_binary", "coordinator_args", "worker_args"},
+            set(),
+            f"plan.conditions.{name}",
+        )
+        if require_hash(condition["source_commit"], f"plan.conditions.{name}.source_commit", COMMIT_RE) != expected_commit:
+            raise PlanError(f"plan.conditions.{name}.source_commit differs from plan.source")
+        validate_artifact(condition["coordinator_binary"], f"plan.conditions.{name}.coordinator_binary")
+        validate_artifact(condition["worker_binary"], f"plan.conditions.{name}.worker_binary")
+        condition["coordinator_args"] = require_argv(
+            condition["coordinator_args"], f"plan.conditions.{name}.coordinator_args", allow_empty=True)
+        condition["worker_args"] = require_argv(
+            condition["worker_args"], f"plan.conditions.{name}.worker_args", allow_empty=True)
+
+    off_fingerprint = canonical_bytes({
+        "commit": conditions["off"]["source_commit"],
+        "coordinator": conditions["off"]["coordinator_binary"]["sha256"],
+        "worker": conditions["off"]["worker_binary"]["sha256"],
+        "commands": condition_commands(plan, "off"),
+    })
+    on_fingerprint = canonical_bytes({
+        "commit": conditions["on"]["source_commit"],
+        "coordinator": conditions["on"]["coordinator_binary"]["sha256"],
+        "worker": conditions["on"]["worker_binary"]["sha256"],
+        "commands": condition_commands(plan, "on"),
+    })
+    if off_fingerprint == on_fingerprint:
+        raise PlanError("off and on conditions are identical")
+    return plan
+
+
+def load_plan(path: Path) -> dict[str, Any]:
+    return validate_plan(read_json(path))
+
+
+def plan_digest(plan: dict[str, Any]) -> str:
+    return digest_bytes(canonical_bytes(plan))
+
+
+def make_schedule(plan: dict[str, Any]) -> dict[str, Any]:
+    count = plan["execution"]["pairs"]
+    first = ["off"] * ((count + 1) // 2) + ["on"] * (count // 2)
+    random.Random(plan["execution"]["order_seed"]).shuffle(first)
+    entries = []
+    for pair_id, first_condition in enumerate(first, 1):
+        second_condition = "on" if first_condition == "off" else "off"
+        for order_index, condition in enumerate((first_condition, second_condition)):
+            entries.append({"pair_id": pair_id, "order_index": order_index, "condition": condition})
+    return {
+        "schema": "halofpx.strix-ab-schedule.v1",
+        "experiment_id": plan["experiment_id"],
+        "plan_sha256": plan_digest(plan),
+        "entries": entries,
+    }
+
+
+def commands_document(plan: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "schema": "halofpx.strix-ab-commands.v1",
+        "experiment_id": plan["experiment_id"],
+        "plan_sha256": plan_digest(plan),
+        "environment": plan["runtime"]["common_environment"],
+        "conditions": {name: condition_commands(plan, name) for name in ("off", "on")},
+    }
+
+
+def validate_run_contract(root: Path, plan: dict[str, Any]) -> dict[str, Any]:
+    schedule = read_json(root / "schedule.json")
+    if schedule != make_schedule(plan):
+        raise PlanError("frozen schedule differs from the validated plan")
+    if read_json(root / "commands.json") != commands_document(plan):
+        raise PlanError("frozen commands differ from the validated plan")
+    return schedule
+
+
+def init_run(plan_path: Path, root: Path) -> None:
+    plan = load_plan(plan_path)
+    if root.exists():
+        raise PlanError(f"run root already exists: {root}")
+    root.mkdir(parents=True, mode=0o700)
+    (root / "raw").mkdir(mode=0o700)
+    (root / "preflight").mkdir(mode=0o700)
+    write_json(root / "plan.json", plan)
+    write_json(root / "schedule.json", make_schedule(plan))
+    write_json(root / "commands.json", commands_document(plan))
+    write_json(root / "status.json", {
+        "schema": "halofpx.strix-ab-status.v1",
+        "experiment_id": plan["experiment_id"],
+        "state": "initialized",
+        "performance_claim": False,
+    })
+
+
+def host_matches(expected: str, observed: str) -> bool:
+    return expected.lower().split(".", 1)[0] == observed.lower().split(".", 1)[0]
+
+
+def checked_artifact(artifact: dict[str, Any], where: str) -> dict[str, Any]:
+    path = Path(artifact["path"])
+    if not path.is_file():
+        raise PlanError(f"{where} is not a regular file: {path}")
+    actual = digest_file(path)
+    if actual != artifact["sha256"]:
+        raise PlanError(f"{where} SHA-256 mismatch: {actual}")
+    return {"path": str(path), "size_bytes": path.stat().st_size, "sha256": actual}
+
+
+def collect_preflight(plan: dict[str, Any], role: str, observed_hostname: str | None = None) -> dict[str, Any]:
+    if role not in {"coordinator", "worker"}:
+        raise PlanError("preflight role must be coordinator or worker")
+    observed = observed_hostname or socket.gethostname()
+    node = plan["topology"][role]
+    if not host_matches(node["host"], observed):
+        raise PlanError(f"expected host {node['host']}, observed {observed}")
+    artifacts = {
+        "authority_receipt": checked_artifact(node["authority_receipt"], f"{role} authority receipt"),
+    }
+    binary_key = "coordinator_binary" if role == "coordinator" else "worker_binary"
+    for condition in ("off", "on"):
+        artifacts[f"{condition}_binary"] = checked_artifact(
+            plan["conditions"][condition][binary_key], f"{role} {condition} binary")
+    if role == "coordinator":
+        artifacts["model"] = checked_artifact(
+            {"path": plan["model"]["path"], "sha256": plan["model"]["sha256"]}, "model")
+        if artifacts["model"]["size_bytes"] != plan["model"]["size_bytes"]:
+            raise PlanError("model size differs from the plan")
+        artifacts["request"] = checked_artifact(
+            {"path": plan["request"]["path"], "sha256": plan["request"]["sha256"]}, "request")
+    os_release = ""
+    os_release_path = Path("/etc/os-release")
+    if os_release_path.is_file():
+        os_release = os_release_path.read_text(encoding="utf-8", errors="strict")
+    return {
+        "schema": PREFLIGHT_SCHEMA,
+        "experiment_id": plan["experiment_id"],
+        "plan_sha256": plan_digest(plan),
+        "role": role,
+        "expected_host": node["host"],
+        "observed_host": observed,
+        "commands": {name: condition_commands(plan, name)[role] for name in ("off", "on")},
+        "artifacts": artifacts,
+        "system": {
+            "platform": platform.platform(),
+            "uname": list(platform.uname()),
+            "python": sys.version,
+            "os_release": os_release,
+        },
+        "ok": True,
+    }
+
+
+def planned_role_artifacts(plan: dict[str, Any], role: str) -> dict[str, dict[str, Any]]:
+    binary_key = "coordinator_binary" if role == "coordinator" else "worker_binary"
+    artifacts = {
+        "authority_receipt": plan["topology"][role]["authority_receipt"],
+        "off_binary": plan["conditions"]["off"][binary_key],
+        "on_binary": plan["conditions"]["on"][binary_key],
+    }
+    if role == "coordinator":
+        artifacts["model"] = {
+            "path": plan["model"]["path"],
+            "sha256": plan["model"]["sha256"],
+            "size_bytes": plan["model"]["size_bytes"],
+        }
+        artifacts["request"] = {
+            "path": plan["request"]["path"],
+            "sha256": plan["request"]["sha256"],
+        }
+    return artifacts
+
+
+def validate_preflight_receipt(plan: dict[str, Any], receipt: dict[str, Any]) -> str:
+    required = {
+        "schema", "experiment_id", "plan_sha256", "role", "expected_host",
+        "observed_host", "commands", "artifacts", "system", "ok",
+    }
+    require_keys(receipt, required, set(), "preflight receipt")
+    if receipt["schema"] != PREFLIGHT_SCHEMA or receipt["experiment_id"] != plan["experiment_id"]:
+        raise PlanError("preflight receipt identity mismatch")
+    if receipt["plan_sha256"] != plan_digest(plan) or receipt["ok"] is not True:
+        raise PlanError("preflight receipt does not approve the frozen plan")
+    role = receipt["role"]
+    if role not in {"coordinator", "worker"}:
+        raise PlanError("preflight role is invalid")
+    node = plan["topology"][role]
+    if receipt["expected_host"] != node["host"] or not host_matches(node["host"], receipt["observed_host"]):
+        raise PlanError("preflight role or host mismatch")
+    if receipt["commands"] != {name: condition_commands(plan, name)[role] for name in ("off", "on")}:
+        raise PlanError("preflight command receipt differs from the plan")
+    expected_artifacts = planned_role_artifacts(plan, role)
+    artifacts = require_mapping(receipt["artifacts"], "preflight receipt.artifacts")
+    if set(artifacts) != set(expected_artifacts):
+        raise PlanError("preflight artifact set differs from the plan")
+    for name, expected in expected_artifacts.items():
+        actual = require_mapping(artifacts[name], f"preflight receipt.artifacts.{name}")
+        require_keys(actual, {"path", "size_bytes", "sha256"}, set(), f"preflight receipt.artifacts.{name}")
+        require_int(actual["size_bytes"], f"preflight receipt.artifacts.{name}.size_bytes", 1)
+        if actual["path"] != str(Path(expected["path"])) or actual["sha256"] != expected["sha256"]:
+            raise PlanError(f"preflight {name} identity differs from the plan")
+        if "size_bytes" in expected and actual["size_bytes"] != expected["size_bytes"]:
+            raise PlanError(f"preflight {name} size differs from the plan")
+    require_mapping(receipt["system"], "preflight receipt.system")
+    return role
+
+
+def import_preflight(root: Path, receipt_path: Path) -> None:
+    plan = load_plan(root / "plan.json")
+    validate_run_contract(root, plan)
+    receipt = require_mapping(read_json(receipt_path), "preflight receipt")
+    role = validate_preflight_receipt(plan, receipt)
+    destination = root / "preflight" / f"{role}.json"
+    if destination.exists():
+        raise PlanError(f"preflight already imported for {role}")
+    write_json(destination, receipt)
+
+
+def parse_client(path: Path) -> dict[str, Any]:
+    client = require_mapping(read_json(path), "client timing")
+    require_keys(
+        client,
+        {"schema", "started_at", "ended_at", "http_status", "wall_ms"},
+        {"ttft_ms", "itl_ms"},
+        "client timing",
+    )
+    if client["schema"] != CLIENT_SCHEMA:
+        raise PlanError(f"client timing schema must be {CLIENT_SCHEMA}")
+    require_string(client["started_at"], "client.started_at")
+    require_string(client["ended_at"], "client.ended_at")
+    require_int(client["http_status"], "client.http_status", 100)
+    for name in ("wall_ms", "ttft_ms"):
+        if client.get(name) is not None:
+            value = client[name]
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+                raise PlanError(f"client.{name} must be finite and positive")
+    itl = client.get("itl_ms", [])
+    if not isinstance(itl, list) or any(
+        isinstance(item, bool) or not isinstance(item, (int, float)) or not math.isfinite(item) or item <= 0
+        for item in itl
+    ):
+        raise PlanError("client.itl_ms must contain finite positive numbers")
+    return client
+
+
+def parse_response(path: Path, plan: dict[str, Any]) -> dict[str, Any]:
+    response = require_mapping(read_json(path), "server response")
+    timings = require_mapping(response.get("timings"), "server response.timings")
+    required = {"prompt_n", "predicted_n", "prompt_ms", "predicted_ms", "prompt_per_second", "predicted_per_second"}
+    if not required.issubset(timings):
+        raise PlanError("server response.timings is incomplete")
+    if timings["prompt_n"] != plan["request"]["prompt_tokens"] or timings["predicted_n"] != plan["request"]["output_tokens"]:
+        raise PlanError("server response token counts differ from the plan")
+    numeric = {}
+    for name in required - {"prompt_n", "predicted_n"}:
+        value = timings[name]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+            raise PlanError(f"server response.timings.{name} must be finite and positive")
+        numeric[name] = float(value)
+    content = response.get("content")
+    if not isinstance(content, str):
+        raise PlanError("server response.content must be a string")
+    content_sha256 = digest_bytes(content.encode("utf-8"))
+    expected = plan["request"].get("expected_content_sha256")
+    if expected is not None and content_sha256 != expected:
+        raise PlanError("server response content differs from the expected golden hash")
+    return {
+        "prompt_n": timings["prompt_n"],
+        "predicted_n": timings["predicted_n"],
+        "prompt_ms": numeric["prompt_ms"],
+        "generation_ms": numeric["predicted_ms"],
+        "prompt_tokens_per_second": numeric["prompt_per_second"],
+        "generation_tokens_per_second": numeric["predicted_per_second"],
+        "content_sha256": content_sha256,
+    }
+
+
+def expected_schedule_entry(
+    root: Path, plan: dict[str, Any], pair_id: int, condition: str, order_index: int,
+) -> dict[str, Any]:
+    schedule = validate_run_contract(root, plan)
+    matches = [entry for entry in schedule["entries"] if entry == {
+        "pair_id": pair_id, "order_index": order_index, "condition": condition}]
+    if len(matches) != 1:
+        raise PlanError("sample does not match the frozen A/B schedule")
+    return matches[0]
+
+
+def record_sample(
+    root: Path,
+    pair_id: int,
+    condition: str,
+    order_index: int,
+    response_path: Path | None,
+    client_path: Path | None,
+    status: str,
+    failure_code: str | None,
+    extra_paths: list[Path],
+) -> None:
+    plan = load_plan(root / "plan.json")
+    expected_schedule_entry(root, plan, pair_id, condition, order_index)
+    if status not in {"success", "failure"}:
+        raise PlanError("sample status must be success or failure")
+    if status == "success" and (response_path is None or client_path is None):
+        raise PlanError("successful samples require response and client timing JSON")
+    if status == "failure" and not failure_code:
+        raise PlanError("failed samples require a failure code")
+    destination = root / "raw" / f"pair-{pair_id:03d}-order-{order_index}-{condition}"
+    if destination.exists():
+        raise PlanError(f"sample already exists: {destination}")
+    staging = Path(tempfile.mkdtemp(prefix=".record-", dir=root / "raw"))
+    try:
+        copied: dict[str, dict[str, Any]] = {}
+        for name, source in (("response", response_path), ("client", client_path)):
+            if source is not None:
+                if not source.is_file():
+                    raise PlanError(f"raw {name} is not a file: {source}")
+                target = staging / f"{name}.json"
+                shutil.copyfile(source, target)
+                copied[name] = {
+                    "path": target.name,
+                    "sha256": digest_file(target),
+                    "size_bytes": target.stat().st_size,
+                }
+        for index, source in enumerate(extra_paths):
+            if not source.is_file():
+                raise PlanError(f"extra raw evidence is not a file: {source}")
+            target = staging / f"extra-{index:02d}-{source.name}"
+            shutil.copyfile(source, target)
+            copied[f"extra_{index}"] = {
+                "path": target.name,
+                "sha256": digest_file(target),
+                "size_bytes": target.stat().st_size,
+            }
+
+        result: dict[str, Any] | None = None
+        client: dict[str, Any] | None = None
+        if status == "success":
+            result = parse_response(staging / "response.json", plan)
+            client = parse_client(staging / "client.json")
+            if client["http_status"] != 200:
+                raise PlanError("successful sample did not return HTTP 200")
+        sample = {
+            "schema": SAMPLE_SCHEMA,
+            "experiment_id": plan["experiment_id"],
+            "plan_sha256": plan_digest(plan),
+            "pair_id": pair_id,
+            "order_index": order_index,
+            "condition": condition,
+            "status": status,
+            "failure_code": failure_code,
+            "identity": {
+                "source_commit": plan["conditions"][condition]["source_commit"],
+                "coordinator_binary_sha256": plan["conditions"][condition]["coordinator_binary"]["sha256"],
+                "worker_binary_sha256": plan["conditions"][condition]["worker_binary"]["sha256"],
+                "model_sha256": plan["model"]["sha256"],
+                "request_sha256": plan["request"]["sha256"],
+                "commands_sha256": digest_bytes(canonical_bytes(condition_commands(plan, condition))),
+            },
+            "client": client,
+            "result": result,
+            "raw": copied,
+        }
+        write_json(staging / "sample.json", sample)
+        staging.rename(destination)
+    except Exception:
+        if staging.exists():
+            shutil.rmtree(staging)
+        raise
+
+
+def validate_preflights(root: Path, plan: dict[str, Any]) -> dict[str, str]:
+    hashes = {}
+    for role in ("coordinator", "worker"):
+        path = root / "preflight" / f"{role}.json"
+        if not path.is_file():
+            raise PlanError(f"missing {role} preflight receipt")
+        receipt = require_mapping(read_json(path), f"{role} preflight")
+        if validate_preflight_receipt(plan, receipt) != role:
+            raise PlanError(f"invalid {role} preflight receipt")
+        hashes[role] = digest_file(path)
+    return hashes
+
+
+def mean(values: list[float]) -> float:
+    return statistics.fmean(values)
+
+
+def metric_summary(pair_values: list[dict[str, float]], metric: str, lower_is_better: bool) -> dict[str, Any]:
+    off = [item["off"] for item in pair_values]
+    on = [item["on"] for item in pair_values]
+    deltas = [candidate - control for control, candidate in zip(off, on)]
+    improvement = [
+        ((control - candidate) if lower_is_better else (candidate - control)) / control * 100.0
+        for control, candidate in zip(off, on)
+    ]
+    return {
+        "metric": metric,
+        "lower_is_better": lower_is_better,
+        "pair_count": len(pair_values),
+        "off_mean": mean(off),
+        "on_mean": mean(on),
+        "paired_on_minus_off_mean": mean(deltas),
+        "paired_improvement_percent_mean": mean(improvement),
+        "paired_improvement_percent_median": statistics.median(improvement),
+        "paired_improvement_percent_sample_sd": statistics.stdev(improvement) if len(improvement) >= 2 else None,
+        "pairs": [
+            {"pair_id": index + 1, "off": control, "on": candidate, "on_minus_off": delta, "improvement_percent": gain}
+            for index, (control, candidate, delta, gain) in enumerate(zip(off, on, deltas, improvement))
+        ],
+    }
+
+
+def analyze_run(root: Path) -> dict[str, Any]:
+    plan = load_plan(root / "plan.json")
+    preflight_hashes = validate_preflights(root, plan)
+    schedule = validate_run_contract(root, plan)
+    expected = {(entry["pair_id"], entry["order_index"], entry["condition"]) for entry in schedule["entries"]}
+    samples = [read_json(path) for path in sorted((root / "raw").glob("*/sample.json"))]
+    observed: dict[tuple[int, int, str], dict[str, Any]] = {}
+    for sample in samples:
+        if sample.get("schema") != SAMPLE_SCHEMA or sample.get("experiment_id") != plan["experiment_id"]:
+            raise PlanError("sample schema or experiment identity mismatch")
+        if sample.get("plan_sha256") != plan_digest(plan):
+            raise PlanError("sample plan identity mismatch")
+        key = (sample["pair_id"], sample["order_index"], sample["condition"])
+        if key not in expected or key in observed:
+            raise PlanError("sample is extra, duplicated, or outside the schedule")
+        expected_identity = {
+            "source_commit": plan["conditions"][sample["condition"]]["source_commit"],
+            "coordinator_binary_sha256": plan["conditions"][sample["condition"]]["coordinator_binary"]["sha256"],
+            "worker_binary_sha256": plan["conditions"][sample["condition"]]["worker_binary"]["sha256"],
+            "model_sha256": plan["model"]["sha256"],
+            "request_sha256": plan["request"]["sha256"],
+            "commands_sha256": digest_bytes(canonical_bytes(condition_commands(plan, sample["condition"]))),
+        }
+        if sample.get("identity") != expected_identity:
+            raise PlanError("sample artifact or command identity mismatch")
+        observed[key] = sample
+    missing = sorted(expected - observed.keys())
+    failures = [
+        {"pair_id": item[0], "order_index": item[1], "condition": item[2], "failure_code": sample["failure_code"]}
+        for item, sample in observed.items() if sample["status"] != "success"
+    ]
+    complete = not missing and not failures
+    report: dict[str, Any] = {
+        "schema": ANALYSIS_SCHEMA,
+        "experiment_id": plan["experiment_id"],
+        "plan_sha256": plan_digest(plan),
+        "lane": plan["runtime"]["lane"],
+        "cache_class": plan["runtime"]["cache_class"],
+        "preflight_sha256": preflight_hashes,
+        "scheduled_samples": len(expected),
+        "retained_samples": len(samples),
+        "missing": [dict(pair_id=a, order_index=b, condition=c) for a, b, c in missing],
+        "failures": failures,
+        "complete": complete,
+        "minimum_five_pairs_met": plan["execution"]["pairs"] >= 5,
+        "performance_claim": False,
+        "metrics": {},
+    }
+    if complete:
+        by_pair: dict[int, dict[str, list[dict[str, Any]]]] = {}
+        all_content = set()
+        for sample in samples:
+            by_pair.setdefault(sample["pair_id"], {"off": [], "on": []})[sample["condition"]].append(sample)
+            all_content.add(sample["result"]["content_sha256"])
+        expected_per_cell = plan["execution"]["retained_per_condition_per_pair"]
+        for pair_id, conditions in by_pair.items():
+            if any(len(conditions[name]) != expected_per_cell for name in ("off", "on")):
+                raise PlanError(f"pair {pair_id} has the wrong retained sample count")
+        if len(all_content) != 1:
+            raise PlanError("deterministic content parity failed across A/B samples")
+        fields = {
+            "prompt_tokens_per_second": (lambda sample: sample["result"]["prompt_tokens_per_second"], False),
+            "generation_tokens_per_second": (lambda sample: sample["result"]["generation_tokens_per_second"], False),
+            "client_wall_ms": (lambda sample: float(sample["client"]["wall_ms"]), True),
+        }
+        if all(sample["client"].get("ttft_ms") is not None for sample in samples):
+            fields["ttft_ms"] = (lambda sample: float(sample["client"]["ttft_ms"]), True)
+        for metric, (extract, lower_is_better) in fields.items():
+            values = []
+            for pair_id in sorted(by_pair):
+                values.append({
+                    name: mean([extract(sample) for sample in by_pair[pair_id][name]])
+                    for name in ("off", "on")
+                })
+            report["metrics"][metric] = metric_summary(values, metric, lower_is_better)
+        report["content_sha256"] = next(iter(all_content))
+    write_json(root / "analysis.json", report)
+    with (root / "samples.jsonl").open("w", encoding="utf-8", newline="\n") as handle:
+        for sample in sorted(samples, key=lambda item: (item["pair_id"], item["order_index"])):
+            handle.write(json.dumps(sample, sort_keys=True, separators=(",", ":")) + "\n")
+    write_json(root / "status.json", {
+        "schema": "halofpx.strix-ab-status.v1",
+        "experiment_id": plan["experiment_id"],
+        "state": "complete" if complete else "incomplete",
+        "performance_claim": False,
+    })
+    evidence_files = sorted(
+        path for path in root.rglob("*")
+        if path.is_file() and path.name != "SHA256SUMS"
+    )
+    (root / "SHA256SUMS").write_text(
+        "".join(f"{digest_file(path)}  {path.relative_to(root).as_posix()}\n" for path in evidence_files),
+        encoding="utf-8",
+    )
+    return report
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    validate = subparsers.add_parser("validate", help="validate and normalize a plan")
+    validate.add_argument("plan", type=Path)
+    initialize = subparsers.add_parser("init", help="freeze a plan and deterministic paired schedule")
+    initialize.add_argument("plan", type=Path)
+    initialize.add_argument("run_root", type=Path)
+    preflight = subparsers.add_parser("preflight", help="verify this node's planned artifacts")
+    preflight.add_argument("plan", type=Path)
+    preflight.add_argument("--role", choices=("coordinator", "worker"), required=True)
+    preflight.add_argument("--output", type=Path)
+    import_pf = subparsers.add_parser("import-preflight", help="import a node preflight receipt")
+    import_pf.add_argument("run_root", type=Path)
+    import_pf.add_argument("receipt", type=Path)
+    record = subparsers.add_parser("record", help="copy and validate one raw scheduled sample")
+    record.add_argument("run_root", type=Path)
+    record.add_argument("--pair", type=int, required=True)
+    record.add_argument("--condition", choices=("off", "on"), required=True)
+    record.add_argument("--order-index", type=int, choices=(0, 1), required=True)
+    record.add_argument("--status", choices=("success", "failure"), required=True)
+    record.add_argument("--response", type=Path)
+    record.add_argument("--client", type=Path)
+    record.add_argument("--failure-code")
+    record.add_argument("--extra", type=Path, action="append", default=[])
+    analyze = subparsers.add_parser("analyze", help="validate completeness and emit paired results")
+    analyze.add_argument("run_root", type=Path)
+    return parser
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+    try:
+        if args.command == "validate":
+            plan = load_plan(args.plan)
+            print(json.dumps({"schema": PLAN_SCHEMA, "experiment_id": plan["experiment_id"], "plan_sha256": plan_digest(plan)}, sort_keys=True))
+        elif args.command == "init":
+            init_run(args.plan, args.run_root)
+        elif args.command == "preflight":
+            receipt = collect_preflight(load_plan(args.plan), args.role)
+            if args.output:
+                write_json(args.output, receipt)
+            else:
+                print(json.dumps(receipt, indent=2, sort_keys=True))
+        elif args.command == "import-preflight":
+            import_preflight(args.run_root, args.receipt)
+        elif args.command == "record":
+            record_sample(
+                args.run_root, args.pair, args.condition, args.order_index,
+                args.response, args.client, args.status, args.failure_code, args.extra,
+            )
+        elif args.command == "analyze":
+            report = analyze_run(args.run_root)
+            print(json.dumps(report, indent=2, sort_keys=True))
+            return 0 if report["complete"] else 1
+    except PlanError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
