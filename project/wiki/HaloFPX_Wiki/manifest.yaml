@@ -5,7 +5,7 @@ generated_on: '2026-07-17'
 registry: ../../research/prompts/section_index.yaml
 schema: manifest.schema.json
 generator: ../../research/prompts/tools/generate_wiki_manifest.py
-input_digest_sha256: 5ac4ce11a7ab40dc604ad0c24148dfdc671b8f4a963d4af7b80220f604c7eee5
+input_digest_sha256: 551fec7750ffc618f97a7d5a7a09338292a4a687719d5c36210613bc3da871d7
 planned_category_count: 12
 planned_section_count: 86
 categories:
@@ -178,8 +178,8 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-17'
-    source_count: 13
+    last_verified: '2026-08-12'
+    source_count: 15
     open_question_count: 15
   - section_id: '14'
     title: llama-ai and CachyLLama Feature and Patch Inventory
@@ -304,8 +304,8 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-17'
-    source_count: 12
+    last_verified: '2026-08-12'
+    source_count: 13
     open_question_count: 12
   artifact_state: complete
   section_count: 7
@@ -400,8 +400,8 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-16'
-    source_count: 6
+    last_verified: '2026-08-12'
+    source_count: 7
     open_question_count: 7
   - section_id: '31'
     title: Conversion, Imatrix, Calibration, and Quality Validation

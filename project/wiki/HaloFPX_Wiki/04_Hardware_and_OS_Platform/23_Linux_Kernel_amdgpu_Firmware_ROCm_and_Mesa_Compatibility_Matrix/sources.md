@@ -2,7 +2,7 @@
 section_id: "23"
 title: "Software compatibility sources"
 status: "draft"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["HaloFPX", "ROCmFPX"]
   software_versions: []
@@ -12,11 +12,18 @@ related_sections: ["13", "17", "18", "19", "20", "37", "50"]
 
 # Software compatibility sources
 
+## S23-L02 — Current target OS and service authority
+
+- **Canonical source:** [`../../../../../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md`](../../../../../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md)
+- **Capture:** both nodes, read-only, 2026-08-12 20:33:55Z–20:49:20Z.
+- **Supports:** current CachyOS/kernel/package/BIOS/gfx1151 tuple; service roles, state, listeners, executable hashes, coordinator health, and volatile root-volume capacity.
+- **Limitations:** normalized rather than raw output; executable hashes do not identify dynamic libraries; the worker exposes no independent source version; no target performance, full kernel config, loaded-firmware hash, Vulkan qualification, or bare-metal recovery proof.
+
 ## S23-L01 — Live target software and accelerator inventory
 
 - **Canonical source:** [`../../../../sources/measurements/2026-07-17-strix-halo-live-inventory/README.md`](../../../../sources/measurements/2026-07-17-strix-halo-live-inventory/README.md)
 - **Capture:** both nodes, 2026-07-17 11:52–12:05 America/Los_Angeles.
-- **Supports:** current kernel, ROCm/HIP, Mesa, firmware, toolchain, gfx1151 enumeration, device permissions, installed package skew, and USB4NET/USB4STREAM capability state.
+- **Supports:** historical 2026-07-17 kernel, ROCm/HIP, Mesa, firmware, toolchain, gfx1151 enumeration, device permissions, installed package skew, and USB4NET/USB4STREAM capability state.
 - **Limitations:** does not establish vendor support, kernel-fix ancestry, Vulkan correctness, reproducible build closure, or sustained inference stability.
 
 ## S23-01

@@ -4,6 +4,31 @@ This is the shortest safe route into the combined HaloFPX repository. It records
 the publication boundary, not a claim that every historical experiment is still
 current.
 
+## Current continuation layer — 2026-08-12
+
+The immutable publication boundary below remains valid, but current work has
+advanced beyond L111:
+
+- `main` at the start of this update was
+  `4a156395db62604cf37e27e6459e3ee0e3949c48` after PRs #12, #17, and #20.
+- issue #5 is closed; PR #20 made the automatic run-local SSD spill cache
+  reject same-size corruption. It did not create restart persistence.
+- issue #14 is the active restart-cache correctness boundary. Cache metrics,
+  cold prompt processing, and generation are tracked separately.
+- HaloFPX targets ROCmFPX-family GGUF inference across supported model
+  architectures. MiniMax is the largest stress fixture, not a model-specific
+  product target.
+- both physical Strix Halo targets are Nimo MME3L machines running CachyOS.
+  Ubuntu is a portability/control lane; Windows is the local control PC.
+
+Read [`project/TARGET_MACHINES.md`](project/TARGET_MACHINES.md), the current
+blocks at the top of
+[`project/project-management/lead/CURRENT_STATUS.md`](project/project-management/lead/CURRENT_STATUS.md)
+and [`project/project-management/lead/DECISIONS.md`](project/project-management/lead/DECISIONS.md),
+and [`project/PERFORMANCE_WORKPLAN.md`](project/PERFORMANCE_WORKPLAN.md) before
+using `project/CURRENT_STATE.md` or the publication-era status text below as
+current work authority.
+
 ## Read this first
 
 1. Read [`AGENTS.md`](AGENTS.md) for the inherited implementation policy.
@@ -51,7 +76,9 @@ expected result.
 | Need | Canonical route |
 |---|---|
 | Project goal and non-negotiable boundaries | [`project/PROJECT_GOAL.md`](project/PROJECT_GOAL.md) |
-| Current routing summary | [`project/CURRENT_STATE.md`](project/CURRENT_STATE.md) |
+| Publication-era routing summary (historical where superseded) | [`project/CURRENT_STATE.md`](project/CURRENT_STATE.md) |
+| Current physical target and fresh-PC access boundary | [`project/TARGET_MACHINES.md`](project/TARGET_MACHINES.md) |
+| Active cache/prompt/generation work plan | [`project/PERFORMANCE_WORKPLAN.md`](project/PERFORMANCE_WORKPLAN.md) |
 | Current accepted authority | [`project/project-management/lead/`](project/project-management/lead/) |
 | Complete engineering wiki | [`project/wiki/HaloFPX_Wiki/`](project/wiki/HaloFPX_Wiki/) |
 | Research prompts and section registry | [`project/research/prompts/`](project/research/prompts/) |

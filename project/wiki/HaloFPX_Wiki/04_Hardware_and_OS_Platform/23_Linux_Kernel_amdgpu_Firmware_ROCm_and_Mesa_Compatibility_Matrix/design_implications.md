@@ -2,7 +2,7 @@
 section_id: "23"
 title: "Software stack design implications"
 status: "needs-machine-validation"
-last_verified: "2026-07-16"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["HaloFPX", "ROCmFPX"]
   software_versions: ["ROCm 7.2.1", "ROCm 7.14.0", "Linux 7.2-rc2", "Mesa 26.1.5"]
@@ -12,10 +12,20 @@ related_sections: ["13", "19", "20", "37", "50", "70", "81"]
 
 # Software stack design implications
 
-## Two-lane platform policy
+## Preserved pre-audit two-lane policy
+
+These two recommendations are retained verbatim as the 2026-07-16 planning
+baseline. The dated three-lane policy below supersedes them for the installed
+targets; in particular, Ubuntu is not asserted to be their rollback boot.
 
 - **[RECOMMENDATION] Supported lane:** Ubuntu 24.04.4 with AMD's minimum fixed HWE/OEM kernel, ROCm 7.2.1 exact packages, and USB4NET. Use it as the control for correctness and rollback.
 - **[RECOMMENDATION] Experimental lane:** pinned Linux 7.2 source/commit with `thunderbolt-stream`, exact config, identical firmware/userspace where compatible, and a separate boot entry. Never overwrite the known-good kernel.
+
+## Three-lane platform policy — 2026-08-12
+
+- **[MEASURED project lane]:** the targets run CachyOS `7.1.3-1-cachyos`, ROCm 7.2.4-family packages, and Mesa/RADV 26.1.4. The 2026-08-12 audit did not recheck transport; USB4NET belongs to the retained July capture until requalified. Preserve and measure the exact current lane; it is not vendor-supported merely because it works.
+- **[RECOMMENDATION] Vendor/control lane:** Ubuntu 24.04.4 with AMD's minimum fixed HWE/OEM kernel, ROCm 7.2.1 exact packages, and USB4NET. Use it for portability/vendor comparison, not as a description of the installed targets or their rollback boot.
+- **[RECOMMENDATION] Experimental transport lane:** pinned Linux 7.2 source/commit with `thunderbolt-stream`, exact config, identical firmware/userspace where compatible, and a separate boot entry. Never overwrite the known-good target kernel.
 - **[RECOMMENDATION]** Qualify ROCm 7.14.0 as its own lane because its broader matrix is newer/different from the Ryzen-specific 7.2.1 framework matrix.
 
 ## Reproducibility contract

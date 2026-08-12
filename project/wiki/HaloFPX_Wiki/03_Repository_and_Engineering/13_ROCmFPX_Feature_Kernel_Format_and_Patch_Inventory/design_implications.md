@@ -42,6 +42,12 @@ This is a risk order, not a performance claim.
 
 **[OPEN]** Q2 cannot be a cross-backend artifact at this head because Vulkan support is absent. Decide whether to implement it, constrain Q2 to HIP/CPU, or exclude it.
 
+**[OPEN current-source reconciliation]** The shared backend source also builds
+for CUDA, so the current implementation boundary is CPU plus selected
+CUDA/HIP operations, with no Vulkan. Decide whether to implement the missing
+Vulkan and CUDA/HIP operation surfaces, keep that narrower scope, or exclude
+Q2 from promoted artifacts.
+
 <a id="s13-mtp-distributed"></a>
 ## MTP and distributed execution
 

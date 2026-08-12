@@ -2,11 +2,12 @@
 section_id: "13"
 title: "ROCmFPX Sources"
 status: "verified"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories:
     - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
     - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
+    - "JCFrags/HaloFPX@4a156395db62604cf37e27e6459e3ee0e3949c48"
   software_versions: []
   hardware_revisions: []
 related_sections: ["02", "11", "15", "16"]
@@ -14,13 +15,29 @@ related_sections: ["02", "11", "15", "16"]
 
 # Sources
 
-All repository links are pinned. Internet access date: 2026-07-16. Source count: **13**.
+All repository links are pinned. Internet access date: 2026-07-16. Source count: **15**.
+
+## S13-L05 — Current live target deployment authority
+
+- Canonical source: [`../../../../../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md`](../../../../../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md).
+- Capture: normalized read-only observations from both targets, 2026-08-12.
+- Supports: current target OS/package tuple, node roles, services, executable hashes, coordinator source self-report, active conventional UD-Q6 model class, and volatile storage observations.
+- Limitations: the RPC worker has no independent source-version report; this inventory does not qualify HaloFPX/ROCmFPX correctness, performance, or persistent cache behavior.
+
+## S13-L04 — Current HaloFPX format/backend source audit
+
+- Canonical source: repository source at `JCFrags/HaloFPX@4a156395db62604cf37e27e6459e3ee0e3949c48`.
+- Capture: read-only exact-source audit, 2026-08-12.
+- Supports: current tensor/file-type registration, block layouts, code ranges,
+  quantizer and common application cache parsing, CPU/CUDA/HIP/Vulkan operator
+  presence, Q2 omissions, and Q6 Vulkan device expansion.
+- Limitations: static source inspection; it does not prove a model converts, loads, produces correct output, or runs faster on either target. Public/internal Q2 file-type numeric authority requires a separate focused review.
 
 ## S13-L01 — Live deployed comparison baseline
 
 - Canonical source: [`../../../../sources/measurements/2026-07-17-strix-halo-live-inventory/README.md`](../../../../sources/measurements/2026-07-17-strix-halo-live-inventory/README.md)
 - Revision/capture: both nodes, 2026-07-17; deployed `charlie12345/rocmfp4-llama@4860505ee322091f0f61eba77d6ad49be88cf4ea`.
-- Supports: current predecessor checkout, executable hashes, node roles, process configuration, active artifact size, and service readiness.
+- Supports: historical predecessor checkout, executable hashes, node roles, process configuration, artifact size, and service readiness on 2026-07-17.
 - Limitations: different repository from ROCmFPX; no build reproduction, output correctness, or performance experiment was performed in this capture.
 
 ## S13-L02 — Matched two-node build/reference qualification

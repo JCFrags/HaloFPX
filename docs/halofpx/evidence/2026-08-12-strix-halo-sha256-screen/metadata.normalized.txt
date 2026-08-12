@@ -1,0 +1,21 @@
+capture_utc=2026-08-12T20:48:58Z
+
+[nimo-1]
+host=nimo-1
+cpu_model=AMD RYZEN AI MAX+ 395 w/ Radeon 8060S
+cpu_flag_sha_ni=present
+openssl_version=OpenSSL 3.6.3 9 Jun 2026 (Library: OpenSSL 3.6.3 9 Jun 2026)
+openssl_built_on=Tue Jun  9 19:50:01 2026 UTC
+openssl_platform=linux-x86_64
+openssl_options=bn(64,64)
+openssl_package=openssl 3.6.3-1.1
+
+[nimo-2]
+host=nimo-2
+cpu_model=AMD RYZEN AI MAX+ 395 w/ Radeon 8060S
+cpu_flag_sha_ni=present
+openssl_version=OpenSSL 3.6.3 9 Jun 2026 (Library: OpenSSL 3.6.3 9 Jun 2026)
+openssl_built_on=Tue Jun  9 19:50:01 2026 UTC
+openssl_platform=linux-x86_64
+openssl_options=bn(64,64)
+openssl_package=openssl 3.6.3-1.1

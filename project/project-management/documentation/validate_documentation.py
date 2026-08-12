@@ -631,25 +631,30 @@ def check_unrelated_changes(inventory: dict[str, object]) -> list[str]:
         ]
     else:
         current = [line for line in run_git("status", "--short").splitlines() if line]
-    allowed_owned_prefixes = (
+    allowed_owned_files = {
         "AGENTS.md",
         "README.md",
         "CURRENT_STATE.md",
+        "PERFORMANCE_WORKPLAN.md",
         "PROJECT_GOAL.md",
+        "TARGET_MACHINES.md",
         "WORKER_START_HERE.md",
         "references/agent-harness.md",
         "research/prompts/tools/generate_wiki_manifest.py",
         "research/prompts/tools/test_generate_wiki_manifest.py",
+        "reviews/follow-ups/2026-08-12__documentation-and-target-authority-audit__v01.md",
         "skills/README.md",
+    }
+    allowed_owned_prefixes = (
         "wiki/HaloFPX_Wiki/",
         "project-management/documentation/",
     )
     if PUBLICATION_MODE:
-        allowed_owned_prefixes += (
+        allowed_owned_files.update({
             "project-management/lead/CURRENT_STATUS.md",
             "project-management/lead/DECISIONS.md",
             "project-management/lead/monitor-state.json",
-        )
+        })
     protected_prefixes = ("sources/", "experiments/")
     unrelated: list[str] = []
     for line in current:
@@ -661,7 +666,11 @@ def check_unrelated_changes(inventory: dict[str, object]) -> list[str]:
             continue
         if "__pycache__/" in project_path and project_path.endswith(".pyc"):
             continue
-        if not project_path.startswith(allowed_owned_prefixes) and not project_path.startswith(protected_prefixes):
+        if (
+            project_path not in allowed_owned_files
+            and not project_path.startswith(allowed_owned_prefixes)
+            and not project_path.startswith(protected_prefixes)
+        ):
             unrelated.append(f"{line[:3]}{project_path}" if PUBLICATION_MODE else line)
     unrelated.sort()
     # The legacy baseline recorded generated Python bytecode differences from

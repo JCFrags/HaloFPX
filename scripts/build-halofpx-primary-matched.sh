@@ -23,10 +23,39 @@ if [[ -e ${build_root}/CMakeCache.txt ]]; then
     exit 2
 fi
 
+if [[ -e ${evidence_root} && ! -d ${evidence_root} ]]; then
+    echo "evidence root exists and is not a directory: ${evidence_root}" >&2
+    exit 2
+fi
+
+if [[ -d ${evidence_root} ]] &&
+   [[ -n $(find "${evidence_root}" -mindepth 1 -maxdepth 1 -print -quit) ]]; then
+    echo "refusing to overwrite non-empty evidence root: ${evidence_root}" >&2
+    exit 2
+fi
+
 mkdir -p "${build_root}" "${evidence_root}"
 date --iso-8601=ns >"${evidence_root}/started-at.txt"
 uname -a >"${evidence_root}/uname.txt"
-env | LC_ALL=C sort >"${evidence_root}/environment.txt"
+
+# Retain only build-relevant variables. A full `env` dump can copy unrelated
+# credentials and API tokens into a benchmark evidence bundle.
+build_environment_keys=(
+    LANG LC_ALL PATH
+    CC CXX CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+    CMAKE_BUILD_PARALLEL_LEVEL CMAKE_GENERATOR CMAKE_PREFIX_PATH
+    HIPCXX HIP_PATH ROCM_PATH GPU_TARGETS CMAKE_HIP_ARCHITECTURES
+    HSA_OVERRIDE_GFX_VERSION GGML_HIP_ENABLE_UNIFIED_MEMORY
+    LD_LIBRARY_PATH LIBRARY_PATH CPATH PKG_CONFIG_PATH
+)
+{
+    printf '%s\n' '# allowlisted build environment; unrelated variables intentionally omitted'
+    for key in "${build_environment_keys[@]}"; do
+        if [[ -v ${key} ]]; then
+            printf '%s=%q\n' "${key}" "${!key}"
+        fi
+    done
+} | LC_ALL=C sort >"${evidence_root}/environment.txt"
 cc --version >"${evidence_root}/cc-version.txt"
 c++ --version >"${evidence_root}/cxx-version.txt"
 cmake --version >"${evidence_root}/cmake-version.txt"

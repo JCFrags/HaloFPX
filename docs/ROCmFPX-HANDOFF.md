@@ -9,9 +9,16 @@ reconstructing the intent from commit history.
 ROCmFPX is a model-weight quantization family that sits beside ROCmFP4 in this
 tree. It is not a new K/V-only compression layer. The model-file presets are:
 
+- `Q2_0_ROCMFPX`
 - `Q3_0_ROCMFPX`
 - `Q6_0_ROCMFPX`
 - `Q8_0_ROCMFPX`
+
+ROCmFP4 contributes `Q4_0_ROCMFP4` and `Q4_0_ROCMFP4_FAST`. Current source is
+authoritative: Q2 is an experimental 2.50-bpw S40-codebook format with a CPU
+path and selected CUDA/HIP operations, but no Vulkan path. Q3/Q4/Q4_FAST/Q6/Q8
+have CPU, CUDA/HIP, and Vulkan paths. Static operator presence does not by
+itself admit a model or establish performance.
 
 The ROCmFP4 path stays the reference for block shape, scale discipline, kernel
 coverage, and dequant semantics. K/V cache flags remain runtime settings in
@@ -44,8 +51,9 @@ ROCmFPX code ranges are intentionally simple:
 
 | Format | Code range | Scale policy |
 |---|---|---|
+| `Q2_0_ROCMFPX` | S40 `-4, -1, +1, +4` | 2 scales, 1 per 16 weights |
 | `Q3_0_ROCMFPX` | `0, +/-1, +/-2, +/-4` | 2 scales, 1 per 16 weights |
-| `Q6_0_ROCMFPX` | signed magnitude up to `31` | 2 scales, 1 per 16 weights |
+| `Q6_0_ROCMFPX` | signed integer range `[-32, 31]` | 2 scales, 1 per 16 weights |
 | `Q8_0_ROCMFPX` | signed int8 clamped to `[-127, 127]` | 1 scale per 32 weights |
 
 ## Agentic Presets
@@ -76,6 +84,9 @@ calls.
 The ROCmFPX model family is separate from cache quantization, but cache types
 still matter at runtime.
 
+- `Q2_0_ROCMFPX` is absent from the common application cache-type CLI
+  allowlist. Lower-level callers such as `llama-bench` can pass an arbitrary
+  parsed GGML type, so this is not a universal runtime prohibition.
 - `Q3_0_ROCMFPX` is usable for V cache.
 - `Q3_0_ROCMFPX` is not acceptable for K cache in the current build.
 - `common/common.cpp` promotes `-ctk q3_0_rocmfpx` to `q6_0_rocmfpx` and logs a
@@ -164,6 +175,10 @@ scripts/quantize-rocmfpx-agent.sh
 Family quants:
 
 ```bash
+# Q2 has no wrapper or agent preset; use the quantizer directly.
+build-strix-rocmfp4/bin/llama-quantize \
+  /path/to/model-BF16.gguf /path/to/model-Q2_0_ROCMFPX.gguf Q2_0_ROCMFPX
+
 SRC=/path/to/model-BF16.gguf OUT=/path/to/model-Q3_0_ROCMFPX.gguf \
   FORMAT=rocmfp3 PROFILE=straight scripts/quantize-rocmfpx-agent.sh
 

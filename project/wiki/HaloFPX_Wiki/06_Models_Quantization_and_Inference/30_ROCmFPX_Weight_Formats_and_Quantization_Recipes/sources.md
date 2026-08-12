@@ -2,10 +2,10 @@
 section_id: "30"
 title: "ROCmFPX format sources"
 status: "verified"
-last_verified: "2026-07-16"
+last_verified: "2026-08-12"
 applies_to:
-  repositories: ["charlie12345/ROCmFPX"]
-  software_versions: ["a5605a7"]
+  repositories: ["charlie12345/ROCmFPX", "JCFrags/HaloFPX"]
+  software_versions: ["a5605a7", "4a156395db62604cf37e27e6459e3ee0e3949c48"]
   hardware_revisions: []
 related_sections: ["31", "33"]
 ---
@@ -14,6 +14,7 @@ related_sections: ["31", "33"]
 
 | ID | Primary source | Claims supported | Limitations |
 |---|---|---|---|
+| S30-L01 | HaloFPX source at `4a156395db62604cf37e27e6459e3ee0e3949c48`: `ggml/rocmfpx`, CPU/CUDA/HIP/Vulkan backends, quantizer, and common application cache parsing | current layouts, code ranges, Q2 operator omissions, common-CLI cache eligibility, Q6 Vulkan expansion | static source audit only; no current model/backend performance qualification |
 | S30-01 | [ggml.h custom type registry](https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/include/ggml.h), commit `a5605a7`, accessed 2026-07-16 | exact numeric tensor/ftype IDs | fork-only IDs may collide after rebase |
 | S30-02 | [ROCmFPX layouts](https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/README.md), [header](https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx/rocmfpx.h), accessed 2026-07-16 | blocks, scales, BPW, code ranges and claimed ops | test claims are repository-scoped, not locally reproduced |
 | S30-03 | [ROCmFP4 header](https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfp4/rocmfp4.h), [format README](https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfp4/README.md), accessed 2026-07-16 | dual/FAST block layouts and preset intent | included measurements are another environment |

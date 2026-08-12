@@ -4,6 +4,11 @@ ROCmFP4 runs on **CPU**, **Vulkan**, and **ROCm/HIP**. Most users want the HIP
 backend for best performance. To build HIP support, you must compile for your
 GPU's `gfx` target.
 
+For this project's promoted performance claims, “Strix Halo” means the two
+Nimo Direct MME3L CachyOS targets in
+[`../project/TARGET_MACHINES.md`](../project/TARGET_MACHINES.md). Framework is
+an example of the same GPU class, not the installed project hardware.
+
 Vulkan does not need a `gfx` target at compile time and works across RDNA2+ AMD
 GPUs, but HIP performance tuning in this tree is strongest on Strix Halo.
 

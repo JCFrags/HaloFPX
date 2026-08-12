@@ -1,5 +1,12 @@
 # Strix Halo Quickstart
 
+This guide has two distinct lanes. The HaloFPX performance targets are the two
+Nimo Direct MME3L machines running CachyOS. Ubuntu/Framework instructions are
+portability or donor-history guidance and are not evidence about the installed
+targets. Read the dated
+[`TARGET_MACHINES.md`](../project/TARGET_MACHINES.md) before changing either
+node.
+
 Strix Halo / RDNA3.5 (`gfx1151`) install guide. For other AMD GPUs (RDNA2,
 RDNA3, RDNA4), see [`BUILD-AMD-ARCHITECTURES.md`](BUILD-AMD-ARCHITECTURES.md).
 
@@ -20,20 +27,42 @@ continuation authority. Do not make the combined repository or evidence release
 public until the privacy and third-party redistribution gates in
 [`LICENSES_AND_PROVENANCE.md`](../LICENSES_AND_PROVENANCE.md) are satisfied.
 
-## Target Hardware
+## Target hardware and operating system
 
-This build is tuned and validated on:
+The current physical target is:
 
 ```text
-Framework AMD Strix Halo 395+, 128 GB unified RAM, gfx1151
+nimo-1 and nimo-2
+Nimo Direct MME3L
+AMD Ryzen AI MAX+ 395 / Radeon 8060S / gfx1151
+about 124.45 GiB host-visible memory per node
+CachyOS rolling, kernel 7.1.3-1-cachyos
+ROCm 7.2.4 family, Mesa/RADV 26.1.4
 ```
 
-Other AMD systems may work, but they are not the proof target for the published
-numbers.
+Other Strix Halo systems, Ubuntu, and Framework hardware may work, but they are
+not the proof target for a promoted HaloFPX performance claim unless the claim
+explicitly names that environment.
 
 ## Prerequisites
 
-Install the normal llama.cpp Linux build tools plus ROCm/HIP and Vulkan support:
+On the existing targets, verify the installed CachyOS toolchain before adding
+or upgrading packages:
+
+```bash
+uname -a
+cat /etc/os-release
+pacman -Q cmake ninja gcc clang pkgconf shaderc vulkan-tools \
+  rocm-core rocm-hip-runtime hip-runtime-amd rocminfo
+/opt/rocm/lib/llvm/bin/clang++ --version
+```
+
+The exact fresh-CachyOS bootstrap package set remains a qualification task; do
+not mutate production merely to make this guide look complete. A disposable
+or approved fresh host may install the normal Arch/CachyOS build tools with
+`pacman`, but retain the resolved package versions in the build receipt.
+
+For an Ubuntu portability/control host only, the inherited package command is:
 
 ```bash
 sudo apt-get update
@@ -54,6 +83,20 @@ vulkaninfo --summary
 ```
 
 ## Build
+
+For a distributed target A/B, prefer the evidence-capturing matched build on
+each node independently:
+
+```bash
+scripts/build-halofpx-primary-matched.sh \
+  "$PWD" /absolute/disposable/build /absolute/restricted/evidence OFF
+```
+
+Do not copy one node's binary to the other without proving runtime-library
+resolution; an absolute target RUNPATH has failed previously. Hash both
+coordinator and worker binaries for every condition.
+
+For the broader interactive tools and quantizer:
 
 ```bash
 env JOBS=16 scripts/build-strix-rocmfp4-mtp.sh

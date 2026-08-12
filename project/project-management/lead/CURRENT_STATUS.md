@@ -4,6 +4,33 @@ Reconciled from retained source and evidence: 2026-08-12
 
 ## Overall state
 
+### 2026-08-12 latest cache and performance authority
+
+The behavior/reference authority for saved prompt and K/V-state work is the
+pinned `fewtarius/CachyLLama` component at exact commit
+`6be745998f568e379ea197fcf827baec73ff9940`. Use it to define and check desired
+cache behavior only. The use boundary is clean-room only: HaloFPX
+implementation remains provenance-reviewed; do not copy code across an
+incompatible or unreviewed license boundary.
+
+The immediate work order is:
+
+1. finish issue #14's fresh-process restart qualification with deterministic
+   continuation and fail-closed corruption and compatibility behavior;
+2. implement and measure cache verification acceleration without removing any
+   full-file integrity gate; and
+3. proceed to the separately measured cold prompt-processing and generation
+   lanes.
+
+PR #20 completed issue #5's run-local same-size-corruption hardening. The
+active production comparison service remains conventional `UD-Q6_K_XL`, not a
+deployed HaloFPX/ROCmFPX result. Target performance authority comes only from
+matched measurements on the two observed CachyOS Strix Halo nodes; the local
+Windows PC remains a control environment.
+
+This additive block is the latest dispatch authority. The prior owner block
+and issue chronology below are retained verbatim as historical records.
+
 ### Current owner direction and work order
 
 The accepted 2026-08-12 direction makes HaloFPX a model-general inference

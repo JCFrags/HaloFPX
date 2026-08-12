@@ -3,8 +3,8 @@ category_id: "04"
 title: "Linux, Kernel, amdgpu, Firmware, ROCm, and Mesa Compatibility Matrix"
 category: "04_Hardware_and_OS_Platform"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
-source_count: 12
+last_verified: "2026-08-12"
+source_count: 13
 open_question_count: 12
 required_machine_experiments:
   - "Paired OS, kernel/config, driver, package, firmware, and PCI inventory"
@@ -17,5 +17,5 @@ related_sections: ["13", "17", "18", "19", "20", "37", "50", "70", "81"]
 applicability:
   repositories: ["HaloFPX", "ROCmFPX"]
   software_versions: ["ROCm 7.2.1", "ROCm 7.14.0", "Linux 7.2-rc2", "Mesa 26.1.5"]
-  current_cluster_snapshot: "CachyOS Linux 7.1.3-1-cachyos; ROCm 7.2.4; Mesa 26.1.4; linux-firmware 20260622"
-  hardware_revisions: ["Radeon 8060S/gfx1151 premise; exact systems open"]
+  current_cluster_snapshot: "2026-08-12: Nimo MME3L; CachyOS Linux 7.1.3-1-cachyos; ROCm 7.2.4 family; Mesa 26.1.4; linux-firmware 20260622"
+  hardware_revisions: ["Nimo Direct MME3L; Ryzen AI MAX+ 395; Radeon 8060S/gfx1151"]

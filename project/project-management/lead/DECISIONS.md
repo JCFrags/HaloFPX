@@ -1,5 +1,70 @@
 # Project-Lead Decisions
 
+## 2026-08-12 — pin CachyLlama cache behavior and start measured acceleration
+
+Decision: use the `fewtarius/CachyLLama` component at exact commit
+`6be745998f568e379ea197fcf827baec73ff9940` as HaloFPX's cache
+behavior/reference authority. This is a requirements and behavior reference
+for clean-room use only, not permission to copy source. Any HaloFPX
+implementation must remain provenance-reviewed unless an exact file and
+license review establishes a compatible import.
+
+Finish the cache-correctness boundary promptly and in this order: first close
+issue #14 with fresh-process exact-key reuse, deterministic continuation, and
+corruption/compatibility miss-and-recompute behavior; next measure and
+accelerate cache verification while preserving every full-file integrity gate;
+then advance the separately measured cold prompt-processing and generation
+lanes. A faster digest provider is only accepted when it produces identical
+digests, retains corruption parity, and improves matched end-to-end cache time.
+Do not claim prompt-processing or generation gains from avoided prompt work.
+
+Reason: the owner identified CachyLlama as the specific saved-cache reference
+and directed the project to finish that work soon, then begin serious measured
+performance work. The sequence preserves fail-closed cache semantics while
+moving directly into speed work with bounded kill gates.
+
+## 2026-08-12 — correct target OS, ROCmFPX scope, and active work authority
+
+Decision: the two physical performance targets are Nimo Direct MME3L AMD
+Strix Halo systems running CachyOS, not Ubuntu and not the local Windows PC. A
+bounded live read-only audit on both nodes at 2026-08-12T20:33:55Z through
+20:49:20Z observed kernel `7.1.3-1-cachyos`, ROCm 7.2.4-family packages, Mesa
+26.1.4, and Radeon 8060S `gfx1151`. Ubuntu remains a vendor-support and
+portability/control lane only.
+
+HaloFPX is model-architecture-general within ROCmFPX-family GGUF artifacts that
+the tree can convert, load, execute, and qualify. Primary optimization and
+performance claims use admitted ROCmFPX/ROCmFP4 model weights. Conventional
+GGUF quants are correctness, quality, rollback, or comparison controls unless
+separately admitted. MiniMax Q6 Agent is the largest stress/capacity fixture,
+not the product-specific optimization target.
+
+ROCmFPX names the GGUF weight serialization and quantization family. CPU is the
+correctness reference; HIP/ROCm and Vulkan are independent accelerated
+backends; RPC is the dual-node transport. Runtime K/V-cache types remain a
+separate control. Current source exposes Q2, Q3, Q4 dual-scale, Q4_FAST, Q6,
+and Q8 family members. Q2 has a CPU path plus selected CUDA/HIP operations and
+no Vulkan path; Q3/Q4/Q4_FAST/Q6/Q8 have CPU, CUDA/HIP, and Vulkan paths. Static
+support is not a performance or model compatibility claim.
+
+PR #20 completed issue #5's run-local SSD cache-integrity slice. That cache is
+not restart persistent. Issue #14 is now the active P0 correctness boundary;
+issues #18, #15, and #16 own cache measurement, cold prompt processing, and
+generation respectively. The ordered implementation and target kill gates are
+recorded in `project/PERFORMANCE_WORKPLAN.md`.
+
+The current always-on deployment remains a healthy conventional MiniMax
+`UD-Q6_K_XL` comparison service: nimo-1 is coordinator/API and nimo-2 is the
+RPC worker. It is not proof that current HaloFPX source or a ROCmFPX GGUF is
+deployed. Historical ROCmFP4 experiments with reversed roles remain unchanged.
+
+Reason: the owner corrected the operating-system and product-target
+understanding. The documentation audit found current routing pages that mixed
+vendor Ubuntu guidance, donor Framework hardware, historical role assignments,
+and MiniMax-centric priority language. The live receipt and audit are retained
+under `docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/` and
+`project/reviews/follow-ups/`.
+
 ## 2026-08-12 — make HaloFPX model-general and cache/performance-first
 
 Decision: HaloFPX is a model-general llama.cpp-derived inference engine for
