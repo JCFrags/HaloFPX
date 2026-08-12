@@ -62,3 +62,13 @@ historical Linux L111 evidence remains under `docs/halofpx/evidence/l111/`, and
 the publication workflow schedules the portable feature-off build plus the
 documentation gates on Ubuntu. This local receipt does not expand L111's
 accepted bounded loader-foundation scope.
+
+## Clean-checkout manifest correction
+
+The first remote workflow exposed that the wiki input digest had been generated
+from CRLF working-tree bytes before `.gitattributes` took effect. A clean clone
+with `core.autocrlf=false` correctly rejected that digest. The manifest was
+regenerated in that LF-normalized clone, producing input digest
+`5ac4ce11a7ab40dc604ad0c24148dfdc671b8f4a963d4af7b80220f604c7eee5`.
+This is a packaging-byte correction; it does not change wiki content or any
+engineering claim. The corrected remote workflow is the publication gate.
