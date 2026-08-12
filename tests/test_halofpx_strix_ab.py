@@ -69,7 +69,7 @@ class StrixABTest(unittest.TestCase):
 
     def raw_success(self, prompt_tps: float, generation_tps: float, wall_ms: float) -> tuple[Path, Path]:
         response = self.root / f"response-{prompt_tps}-{generation_tps}.json"
-        response.write_text(json.dumps({"content": "same", "timings": {"prompt_n": 512, "predicted_n": 8, "prompt_ms": 512 / prompt_tps * 1000, "predicted_ms": 8 / generation_tps * 1000, "prompt_per_second": prompt_tps, "predicted_per_second": generation_tps}}), encoding="utf-8")
+        response.write_text(json.dumps({"content": "same", "timings": {"cache_n": 0, "prompt_n": 512, "predicted_n": 8, "prompt_ms": 512 / prompt_tps * 1000, "predicted_ms": 8 / generation_tps * 1000, "prompt_per_second": prompt_tps, "predicted_per_second": generation_tps}}), encoding="utf-8")
         client = self.root / f"client-{wall_ms}.json"
         client.write_text(json.dumps({"schema": AB.CLIENT_SCHEMA, "started_at": "2026-08-12T00:00:00Z", "ended_at": "2026-08-12T00:00:01Z", "http_status": 200, "wall_ms": wall_ms, "ttft_ms": wall_ms / 10, "itl_ms": [1000 / generation_tps] * 7}), encoding="utf-8")
         return response, client
@@ -166,6 +166,26 @@ class StrixABTest(unittest.TestCase):
             AB.record_sample(run, first["pair_id"], first["condition"], first["order_index"], response, client, "success", None, [])
         destination = run / "raw" / f"pair-{first['pair_id']:03d}-order-{first['order_index']}-{first['condition']}"
         self.assertFalse(destination.exists())
+
+    def test_response_rejects_missing_noninteger_or_nonzero_cache_count(self) -> None:
+        response, _ = self.raw_success(100.0, 20.0, 1000.0)
+        original = json.loads(response.read_text(encoding="utf-8"))
+        cases = {
+            "missing": None,
+            "boolean": True,
+            "float": 0.0,
+            "nonzero": 511,
+        }
+        for name, cache_n in cases.items():
+            with self.subTest(name=name):
+                candidate = copy.deepcopy(original)
+                if cache_n is None:
+                    del candidate["timings"]["cache_n"]
+                else:
+                    candidate["timings"]["cache_n"] = cache_n
+                response.write_text(json.dumps(candidate), encoding="utf-8")
+                with self.assertRaises(AB.PlanError):
+                    AB.parse_response(response, self.plan)
 
     def test_analysis_rejects_raw_evidence_modified_after_record(self) -> None:
         run = self.initialize()

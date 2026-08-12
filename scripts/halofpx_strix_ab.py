@@ -568,13 +568,21 @@ def parse_client(path: Path, output_tokens: int) -> dict[str, Any]:
 def parse_response(path: Path, plan: dict[str, Any]) -> dict[str, Any]:
     response = require_mapping(read_json(path), "server response")
     timings = require_mapping(response.get("timings"), "server response.timings")
-    required = {"prompt_n", "predicted_n", "prompt_ms", "predicted_ms", "prompt_per_second", "predicted_per_second"}
+    required = {
+        "cache_n", "prompt_n", "predicted_n", "prompt_ms", "predicted_ms",
+        "prompt_per_second", "predicted_per_second",
+    }
     if not required.issubset(timings):
         raise PlanError("server response.timings is incomplete")
+    cache_n = timings["cache_n"]
+    if isinstance(cache_n, bool) or not isinstance(cache_n, int):
+        raise PlanError("server response.timings.cache_n must be an integer")
+    if cache_n != 0:
+        raise PlanError("cold-cache-off samples require server response.timings.cache_n == 0")
     if timings["prompt_n"] != plan["request"]["prompt_tokens"] or timings["predicted_n"] != plan["request"]["output_tokens"]:
         raise PlanError("server response token counts differ from the plan")
     numeric = {}
-    for name in required - {"prompt_n", "predicted_n"}:
+    for name in required - {"cache_n", "prompt_n", "predicted_n"}:
         value = timings[name]
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
             raise PlanError(f"server response.timings.{name} must be finite and positive")
@@ -594,6 +602,7 @@ def parse_response(path: Path, plan: dict[str, Any]) -> dict[str, Any]:
     if expected is not None and content_sha256 != expected:
         raise PlanError("server response content differs from the expected golden hash")
     return {
+        "cache_n": cache_n,
         "prompt_n": timings["prompt_n"],
         "predicted_n": timings["predicted_n"],
         "prompt_ms": numeric["prompt_ms"],

@@ -93,5 +93,5 @@
       "worker_args": []
     }
   },
-  "notes": "Use an ordinary ROCmFPX model for daily work. Compare feature branches/builds with matched runtime arguments. MiniMax is optional stress coverage."
+  "notes": "The exact hashed request JSON must set stream=true and cache_prompt=false. Run each retained request in fresh isolated worker/coordinator processes after a separate warmup process. Use an ordinary ROCmFPX model for daily work, compare feature branches/builds with matched runtime arguments, and keep MiniMax as optional stress coverage."
 }

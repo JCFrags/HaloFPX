@@ -34,6 +34,11 @@ golden output is embedded in the implementation.
   adapter proves live InvocationIDs, executable hashes, argv/environment,
   order, warmups, cache-off state, and cleanup, `analysis.json` keeps both
   `execution_qualified` and `measurement_ready` false.
+- The exact hashed request JSON must set `"cache_prompt": false`. Every retained
+  request must run in a newly isolated process after warmup; do not warm the
+  process that supplies a measured sample. The final server timing object must
+  contain integer `cache_n: 0`. Missing, Boolean, floating-point, or nonzero
+  cache counts are rejected.
 - Three pairs are a preliminary direction screen. Five pairs meet only the
   project's minimum count before a `[MEASURED]` review; the analyzer never
   emits a performance claim by itself.
@@ -44,6 +49,19 @@ Start from
 [`halofpx-strix-ab-plan.example.json`](../../scripts/halofpx-strix-ab-plan.example.json).
 Replace every placeholder with an exact identity. Use one ordinary ROCmFPX
 model for daily work and keep `cache_class=cold_cache_off` for issues #15/#16.
+The request file identified by `request.path` and `request.sha256` should have
+this shape (replace the prompt and keep its exact token count in the plan):
+
+```json
+{
+  "prompt": "replace-with-the-exact-frozen-prompt",
+  "n_predict": 128,
+  "stream": true,
+  "cache_prompt": false,
+  "seed": 1234,
+  "temperature": 0
+}
+```
 
 ```bash
 python scripts/halofpx_strix_ab.py validate plan.json
@@ -63,11 +81,12 @@ python scripts/halofpx_strix_ab.py import-preflight /var/tmp/halofpx-ab-my-run c
 python scripts/halofpx_strix_ab.py import-preflight /var/tmp/halofpx-ab-my-run worker.json
 ```
 
-Execute `schedule.json` in order. For each entry, the adapter must start fresh
-disposable processes using exactly the condition arrays in `commands.json`,
-exclude the declared warmup, retain every attempted request, collect both
-nodes' telemetry/journals/link counters, and stop both processes. Keep profiling
-runs outside this schedule.
+Execute `schedule.json` in order. For each entry, the adapter must run the
+declared warmup outside the measured process, then start fresh disposable
+worker and coordinator processes using exactly the condition arrays in
+`commands.json`. Retain every attempted measured request, collect both nodes'
+telemetry/journals/link counters, and stop both processes. Keep profiling runs
+outside this schedule.
 
 For a successful streamed `/completion` request, retain an assembled raw server
 response with its final timing object and a monotonic client-event record. This
