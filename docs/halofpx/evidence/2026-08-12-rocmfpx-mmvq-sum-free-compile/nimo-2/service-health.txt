@@ -1,0 +1,9 @@
+2026-08-12T23:04:07Z
+ActiveState=active
+SubState=running
+InvocationID=3480c89086e04d5d80060366c5c7ab7f
+MainPID=2148915
+NRestarts=0
+2148915 Tue Jul 28 23:04:49 2026 /opt/llm-usb4-cluster/llama/ggml-rpc-server --host 0.0.0.0 --port 50052
+0::/system.slice/minimax-m27-rpc-worker.service
+LISTEN 0      1            0.0.0.0:50052      0.0.0.0:*    users:(("ggml-rpc-server",pid=2148915,fd=5))
