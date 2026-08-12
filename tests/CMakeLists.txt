@@ -712,6 +712,26 @@ endif()
 llama_build_and_test(test-gguf.cpp)
 llama_build_and_test(test-backend-ops.cpp)
 
+foreach(HALOFPX_SUM_FREE_MODE IN ITEMS off on)
+    set(HALOFPX_SUM_FREE_TARGET test-halofpx-rocmfpx-mmvq-sum-free-${HALOFPX_SUM_FREE_MODE})
+    add_executable(${HALOFPX_SUM_FREE_TARGET} test-halofpx-rocmfpx-mmvq-sum-free.cpp)
+    target_compile_features(${HALOFPX_SUM_FREE_TARGET} PRIVATE cxx_std_17)
+    target_include_directories(${HALOFPX_SUM_FREE_TARGET} PRIVATE
+        ${CMAKE_SOURCE_DIR}/ggml/include
+        ${CMAKE_SOURCE_DIR}/ggml/src
+        ${CMAKE_SOURCE_DIR}/ggml/src/ggml-cuda)
+    if (HALOFPX_SUM_FREE_MODE STREQUAL "on")
+        target_compile_definitions(${HALOFPX_SUM_FREE_TARGET} PRIVATE
+            GGML_HIP_ROCMFPX_MMVQ_SUM_FREE
+            HALOFPX_EXPECT_ROCMFPX_MMVQ_SUM_FREE=1)
+    else()
+        target_compile_definitions(${HALOFPX_SUM_FREE_TARGET} PRIVATE
+            HALOFPX_EXPECT_ROCMFPX_MMVQ_SUM_FREE=0)
+    endif()
+    llama_test(${HALOFPX_SUM_FREE_TARGET})
+    set_property(TEST ${HALOFPX_SUM_FREE_TARGET} PROPERTY LABELS "main;halofpx")
+endforeach()
+
 if (GGML_HIP AND GGML_RPC)
     llama_build(test-halofpx-rocmfpx-q6-view.cpp)
     target_link_libraries(test-halofpx-rocmfpx-q6-view PRIVATE ggml-rpc)

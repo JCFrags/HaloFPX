@@ -1,0 +1,9 @@
+2026-08-12T23:23:16Z
+ActiveState=active
+SubState=running
+InvocationID=e6da1fe637144cb394119959c0e88736
+MainPID=3027112
+NRestarts=0
+3027112 Tue Jul 28 23:04:50 2026 /opt/llm-usb4-cluster/llama/llama-server --model /opt/llm-usb4-cluster/models/unsloth_MiniMax-M2.7-GGUF/UD-Q6_K_XL/MiniMax-M2.7-UD-Q6_K_XL-00001-of-00006.gguf --alias minimax-m2.7-ud-q6-k-xl --rpc 10.44.0.2:50052 --split-mode layer --tensor-split 1,1 --fit off --no-mmap --direct-io --n-gpu-layers 99 --flash-attn on --ctx-size 131072 --batch-size 4096 --ubatch-size 4096 --cache-type-k q8_0 --cache-type-v q8_0 --parallel 2 --threads 16 --threads-batch 16 --poll 100 --prio 2 --prio-batch 2 --cache-prompt --cache-reuse 256 --cache-ram 12288 --cache-idle-slots --ctx-checkpoints 256 --checkpoint-min-step 512 --temp 1.0 --top-p 0.95 --top-k 40 --host 0.0.0.0 --port 8081 --jinja --metrics
+LISTEN 0      512          0.0.0.0:8081      0.0.0.0:*    users:(("llama-server",pid=3027112,fd=5))
+{"status":"ok"}

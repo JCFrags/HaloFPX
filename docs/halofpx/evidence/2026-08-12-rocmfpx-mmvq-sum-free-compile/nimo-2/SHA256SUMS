@@ -1,0 +1,17 @@
+7c07b5522cc4fa339d1ca301402de1040674c6cb6f0d4fd55eac43d42f21be1b  /tmp/halofpx-sumfree-evidence-3c9ba0b/artifacts.sha256
+f52e905c1fe71d51eac12535aa5900f05ac9f150a4807139180ad062fde1cce8  /tmp/halofpx-sumfree-evidence-3c9ba0b/build.log
+71dc3595000b18aaeb21dae23a8b214b8de84e1ff430efafbb8388d76e8755b5  /tmp/halofpx-sumfree-evidence-3c9ba0b/build-selection.txt
+15a99ea13da94272f01fa284f66e4e6afd4b09f9e94c0bb092dca3b3e0cede12  /tmp/halofpx-sumfree-evidence-3c9ba0b/CMakeCache.txt
+337f29729840609dc91c2b884b7ab49d11471571ffea4ab0f55039e84d3f93d6  /tmp/halofpx-sumfree-evidence-3c9ba0b/cmake-version.txt
+510a2131c76739e3a940b8c15d8c41d120b40d9f7ab158a46c6b02c6341290bd  /tmp/halofpx-sumfree-evidence-3c9ba0b/configure.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /tmp/halofpx-sumfree-evidence-3c9ba0b/driver.log
+9436f945a428fe74ae0fbfbdd1b585bd8a19eea7a14730232f4b61c00d0da67c  /tmp/halofpx-sumfree-evidence-3c9ba0b/driver.pid
+42648d33314395ea4fbd489e14a6694ddef1e69846d5f757b0bb06c3791f5837  /tmp/halofpx-sumfree-evidence-3c9ba0b/hipcc-version.txt
+491ada4656c88b6e0ccf09bd6d34581ad638b23433160560ab434c1be05dc921  /tmp/halofpx-sumfree-evidence-3c9ba0b/host-contracts.log
+79f68f2534c9e776ddc3560d97d2027a3dc0ebda4d11d78516ebbc9dc7718dd5  /tmp/halofpx-sumfree-evidence-3c9ba0b/os-release.txt
+f2396aab86e1230dd033f56843dd9560c72cce3be9dd5a6b80caef39f5a4c3c6  /tmp/halofpx-sumfree-evidence-3c9ba0b/quantize-compile-command.txt
+bfb71041cb9b701cea6c815ca9e278fd62be4444714743bd7f4c79eb1c39c296  /tmp/halofpx-sumfree-evidence-3c9ba0b/service-health.txt
+605780acd0f3c7e78dd8a9d08eef14edd0758a524f5d146d6f4e424d60f6399b  /tmp/halofpx-sumfree-evidence-3c9ba0b/source-bundle.sha256
+a7f194f5de352e38d00614ac1620ed18cfe0426e4e0e803612492cc2ac0b7af8  /tmp/halofpx-sumfree-evidence-3c9ba0b/source-commit.txt
+facf77d58b5ab9dc3da6c9a4c75a47bdfa1b40f90f4ca6fa2c69cd7be49a0046  /tmp/halofpx-sumfree-evidence-3c9ba0b/source-status.txt
+b71e2ffdec3411a553c02ed5090dab9c8390f9545ebe51fd3520ef7caf0e9d3d  /tmp/halofpx-sumfree-evidence-3c9ba0b/uname.txt

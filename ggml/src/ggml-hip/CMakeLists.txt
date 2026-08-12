@@ -137,6 +137,10 @@ if (GGML_HIP_QUANT_KV_FATTN_TILE)
     add_compile_definitions(GGML_HIP_QUANT_KV_FATTN_TILE)
 endif()
 
+if (GGML_HIP_ROCMFPX_MMVQ_SUM_FREE)
+    target_compile_definitions(ggml-hip PRIVATE GGML_HIP_ROCMFPX_MMVQ_SUM_FREE)
+endif()
+
 if (NOT GGML_HIP_MMQ_MFMA)
     add_compile_definitions(GGML_HIP_NO_MMQ_MFMA)
 endif()

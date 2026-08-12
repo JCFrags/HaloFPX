@@ -127,6 +127,50 @@ jobs:
           --output-on-failure
           -R '^test-halofpx-loader-partition$'
 
+  rocmfpx-mmvq-sum-free-contract:
+    name: ROCmFPX MMVQ sum-free host contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Test target process guard
+        run: bash tests/test-halofpx-rocmfpx-mmvq-process-guard.sh
+
+      - name: Configure focused host tests
+        run: >-
+          cmake -S . -B build/ci-rocmfpx-mmvq-sum-free
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_RPC=OFF
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=OFF
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=OFF
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+
+      - name: Compile both dispatch modes
+        run: >-
+          cmake --build build/ci-rocmfpx-mmvq-sum-free
+          --target
+          test-halofpx-rocmfpx-mmvq-sum-free-off
+          test-halofpx-rocmfpx-mmvq-sum-free-on
+          --parallel 2
+
+      - name: Run exact host contracts
+        run: >-
+          ctest --test-dir build/ci-rocmfpx-mmvq-sum-free
+          --output-on-failure
+          -R '^test-halofpx-rocmfpx-mmvq-sum-free-(off|on)$'
+
   prompt-cache-integrity-test:
     name: CPU prompt-cache integrity (${{ matrix.provider }})
     runs-on: ubuntu-latest

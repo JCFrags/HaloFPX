@@ -1,0 +1,3 @@
+cmake_build_directory=/tmp/halofpx-sumfree-build-3c9ba0b
+targets=ggml-hip test-halofpx-rocmfpx-mmvq-sum-free-off test-halofpx-rocmfpx-mmvq-sum-free-on
+parallel_jobs=4
