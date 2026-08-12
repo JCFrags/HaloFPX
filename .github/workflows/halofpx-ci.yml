@@ -125,9 +125,17 @@ jobs:
           -R '^test-halofpx-loader-partition$'
 
   prompt-cache-integrity-test:
-    name: CPU prompt-cache content integrity
+    name: CPU prompt-cache integrity (${{ matrix.provider }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - provider: scalar
+            openssl_sha256: "OFF"
+          - provider: openssl-evp
+            openssl_sha256: "ON"
     steps:
       - name: Check out repository
         # actions/checkout v4.4.0
@@ -144,7 +152,7 @@ jobs:
 
       - name: Configure focused CPU server build
         run: >-
-          cmake -S . -B build/ci-prompt-cache-integrity
+          cmake -S . -B build/ci-prompt-cache-integrity-${{ matrix.provider }}
           -DCMAKE_BUILD_TYPE=Release
           -DBUILD_SHARED_LIBS=OFF
           -DGGML_NATIVE=OFF
@@ -152,24 +160,25 @@ jobs:
           -DGGML_RPC=ON
           -DGGML_RPC_HALOFPX_LOCAL_STATE=ON
           -DLLAMA_BUILD_COMMON=ON
-          -DLLAMA_BUILD_TESTS=OFF
+          -DLLAMA_BUILD_TESTS=ON
           -DLLAMA_BUILD_TOOLS=ON
           -DLLAMA_BUILD_EXAMPLES=OFF
           -DLLAMA_BUILD_SERVER=ON
           -DLLAMA_BUILD_WEBUI=OFF
           -DLLAMA_USE_PREBUILT_WEBUI=OFF
           -DLLAMA_OPENSSL=OFF
+          -DHALOFPX_SERVER_PROMPT_CACHE_OPENSSL_SHA256=${{ matrix.openssl_sha256 }}
 
-      - name: Compile llama-server
+      - name: Compile llama-server and SHA-256 vector test
         run: >-
-          cmake --build build/ci-prompt-cache-integrity
-          --target llama-server
+          cmake --build build/ci-prompt-cache-integrity-${{ matrix.provider }}
+          --target llama-server test-server-prompt-cache-digest
           --parallel 2
 
       - name: Validate HaloFPX context-store feature-off runtime contract
         run: >-
           cmake
-          -DHALOFPX_SERVER=${{ github.workspace }}/build/ci-prompt-cache-integrity/bin/llama-server
+          -DHALOFPX_SERVER=${{ github.workspace }}/build/ci-prompt-cache-integrity-${{ matrix.provider }}/bin/llama-server
           -DHALOFPX_SOURCE_DIR=${{ github.workspace }}
           -DHALOFPX_CONTEXT_STORE_CANARY=OFF
           -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=OFF
@@ -178,6 +187,12 @@ jobs:
           -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=OFF
           -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=OFF
           -P tests/test-halofpx-feature-off-contract.cmake
+
+      - name: Run exact SHA-256 vector test
+        run: >-
+          ctest --test-dir build/ci-prompt-cache-integrity-${{ matrix.provider }}
+          --output-on-failure
+          -R '^test-server-prompt-cache-digest$'
 
       - name: Install focused test dependencies
         run: >-
@@ -191,7 +206,7 @@ jobs:
       - name: Run exact prompt-cache integrity tests
         working-directory: tools/server/tests
         env:
-          LLAMA_SERVER_BIN_PATH: ${{ github.workspace }}/build/ci-prompt-cache-integrity/bin/llama-server
+          LLAMA_SERVER_BIN_PATH: ${{ github.workspace }}/build/ci-prompt-cache-integrity-${{ matrix.provider }}/bin/llama-server
         run: >-
           python -m pytest -v -x
           unit/test_prompt_cache_disk.py::test_disk_only_parse_restore_and_owned_cleanup

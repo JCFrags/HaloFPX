@@ -1,5 +1,9 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
+option(HALOFPX_SERVER_PROMPT_CACHE_OPENSSL_SHA256
+    "Use OpenSSL EVP SHA-256 for server prompt-cache file integrity hashing"
+    OFF)
+
 option(HALOFPX_CONTEXT_STORE_CANARY
     "Compile the experimental Linux direct-session persistent-cache canary"
     OFF)
@@ -759,11 +763,53 @@ endif()
 
 # server-context containing the core server logic, used by llama-server and CLI
 
+add_library(server-prompt-cache-digest STATIC
+    server-prompt-cache-digest.cpp
+    server-prompt-cache-digest.h
+    ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps/sha256/sha256.c
+)
+target_compile_features(server-prompt-cache-digest PRIVATE cxx_std_17)
+target_include_directories(server-prompt-cache-digest
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+    PRIVATE ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps)
+
+if (BUILD_SHARED_LIBS)
+    set_target_properties(server-prompt-cache-digest PROPERTIES
+        POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if (HALOFPX_SERVER_PROMPT_CACHE_OPENSSL_SHA256)
+    if (LLAMA_BUILD_BORINGSSL OR LLAMA_BUILD_LIBRESSL)
+        message(FATAL_ERROR
+            "HALOFPX_SERVER_PROMPT_CACHE_OPENSSL_SHA256 requires system OpenSSL and cannot be combined with BoringSSL or LibreSSL")
+    endif()
+
+    find_package(OpenSSL 3.0 REQUIRED COMPONENTS Crypto)
+    target_compile_definitions(server-prompt-cache-digest PRIVATE
+        HALOFPX_SERVER_PROMPT_CACHE_OPENSSL_SHA256=1)
+    target_link_libraries(server-prompt-cache-digest PUBLIC OpenSSL::Crypto)
+endif()
+
+if (BUILD_TESTING)
+    add_executable(test-server-prompt-cache-digest
+        tests/test-server-prompt-cache-digest.cpp)
+    target_compile_features(test-server-prompt-cache-digest PRIVATE cxx_std_17)
+    target_link_libraries(test-server-prompt-cache-digest PRIVATE
+        server-prompt-cache-digest)
+    if (HALOFPX_SERVER_PROMPT_CACHE_OPENSSL_SHA256)
+        target_compile_definitions(test-server-prompt-cache-digest PRIVATE
+            HALOFPX_TEST_EXPECT_OPENSSL_SHA256=1)
+    endif()
+    add_test(NAME test-server-prompt-cache-digest
+        COMMAND test-server-prompt-cache-digest)
+    set_tests_properties(test-server-prompt-cache-digest PROPERTIES
+        LABELS "main;halofpx")
+endif()
+
 set(TARGET server-context)
 
 add_library(${TARGET} STATIC
     ${CMAKE_SOURCE_DIR}/examples/diffusion/diffusion.cpp
-    ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps/sha256/sha256.c
     halofpx-context-store.cpp
     halofpx-context-store.h
     server-chat.cpp
@@ -788,7 +834,9 @@ target_include_directories(${TARGET} PRIVATE ../mtmd)
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/examples/diffusion)
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps)
-target_link_libraries(${TARGET} PUBLIC llama-common mtmd ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${TARGET}
+    PRIVATE server-prompt-cache-digest
+    PUBLIC llama-common mtmd ${CMAKE_THREAD_LIBS_INIT})
 
 if (HALOFPX_CONTEXT_STORE_CANARY)
     target_compile_definitions(llama-common PUBLIC HALOFPX_CONTEXT_STORE_CANARY=1)
