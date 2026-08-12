@@ -240,4 +240,10 @@ struct llama_model_loader {
     std::string ftype_name() const;
 
     void print_info() const;
+
+private:
+    // The focused loader test owns the only accessor. Normal callers cannot
+    // arm fault injection through process state or a production-facing API.
+    friend struct llama_model_loader_test_access;
+    int test_failure_after_mutation = 0;
 };

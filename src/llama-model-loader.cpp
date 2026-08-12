@@ -15,6 +15,7 @@
 #include <future>
 #include <limits>
 #include <regex>
+#include <utility>
 
 extern "C" {
 int ggml_loader_txn_create_tensor_pair(
@@ -1584,18 +1585,7 @@ llama_model_loader::axis2_partition_pair llama_model_loader::create_axis2_partit
     const uint64_t generation = partition_generation + 1;
 
     axis2_partition_pair result = { nullptr, nullptr };
-    const int fail_after = [] {
-        const char * raw = std::getenv("HALOFPX_L111_FAIL_AFTER_MUTATION");
-        if (raw == nullptr || raw[0] == '\0') {
-            return 0;
-        }
-        char * end = nullptr;
-        const long value = std::strtol(raw, &end, 10);
-        return end != raw && *end == '\0' && value > 0 && value <= 6 ? static_cast<int>(value) : -1;
-    }();
-    if (fail_after < 0) {
-        throw std::runtime_error("HALOFPX_L111_FAIL_AFTER_MUTATION must be a decimal boundary from 1 through 6");
-    }
+    const int fail_after = std::exchange(test_failure_after_mutation, 0);
     const int creation_status = ggml_loader_txn_create_tensor_pair(
             ctx0,
             ctx1,
