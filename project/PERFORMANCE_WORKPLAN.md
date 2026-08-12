@@ -153,15 +153,20 @@ matched target evidence pass.
 
 ### 6. Generation
 
-Issue #25 is the active P0 slice. Its draft PR #30 removes an activation-block
-sum only for an exact admitted ROCmFPX MMVQ whitelist under a default-off HIP
-option. It is not part of `main` in this work-plan snapshot and has no accepted
-target speed result. Compilation, host contracts, and microbenchmarks cannot
-substitute for matched model-level generation evidence.
+Issue #25 is the active P0 slice. **[VERIFIED]** The HIP MMVQ consumers for
+Q2/Q3/Q6/Q8 ROCmFPX use the Q8_1 activation scale and all quantized bytes but
+not its sum lane. PR #30 therefore skips only that sum reduction for the exact
+admitted whitelist under a default-off HIP option, preserves the 36-byte block
+ABI, and leaves ROCmFP4 and stock formats on the legacy path. Both CachyOS
+Strix Halo nodes have compile-qualified the feature-on and feature-off source,
+but no target runtime speed result is accepted. Compilation and host contracts
+cannot substitute for the focused correctness and counterbalanced A/B recipe
+in [`P15`](../docs/halofpx/p15-rocmfpx-mmvq-sum-free-candidate.md).
 
-Issue #28 records the subsequent sampling-output synchronization lane. It must
-first close output-row/count correctness gaps and add scheduler-sync
-instrumentation before consolidation is considered.
+Issue #28 records the subsequent sampling-output synchronization lane. Its
+raw/sampled row-count crash is fixed; the remaining snapshot/coalescing work
+must bind output provenance coherently and add scheduler-sync instrumentation
+before consolidation is promoted.
 
 The current dual-node token path is structurally serialized across remote and
 local graph splits. Model-free n-gram speculation can amortize those turns only
