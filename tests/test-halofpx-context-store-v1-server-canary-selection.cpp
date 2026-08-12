@@ -9,6 +9,9 @@
 #include <array>
 #include <filesystem>
 #include <fcntl.h>
+#include <fstream>
+#include <iterator>
+#include <map>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
@@ -24,6 +27,46 @@ void create_data_layout(const std::filesystem::path & data) {
     assert(::mkdir((data / "staging").c_str(), 0700) == 0);
     assert(::mkdir((data / "objects").c_str(), 0700) == 0);
     assert(::mkdir((data / "manifests").c_str(), 0700) == 0);
+}
+
+using tree_contents = std::map<std::string, std::vector<uint8_t>>;
+
+tree_contents read_tree(const std::filesystem::path & root) {
+    tree_contents result;
+    for (const auto & entry : std::filesystem::recursive_directory_iterator(root)) {
+        if (!entry.is_regular_file()) continue;
+        std::ifstream input(entry.path(), std::ios::binary);
+        assert(input.good());
+        const std::istreambuf_iterator<char> begin(input);
+        const std::istreambuf_iterator<char> end;
+        std::vector<uint8_t> bytes(begin, end);
+        assert(!input.bad());
+        result.emplace(std::filesystem::relative(entry.path(), root).generic_string(),
+                       std::move(bytes));
+    }
+    return result;
+}
+
+void corrupt_largest_object(const std::filesystem::path & objects) {
+    std::filesystem::path selected;
+    uintmax_t selected_size = 0;
+    size_t object_count = 0;
+    for (const auto & entry : std::filesystem::directory_iterator(objects)) {
+        if (entry.is_regular_file() && entry.file_size() > selected_size) {
+            selected = entry.path();
+            selected_size = entry.file_size();
+        }
+        if (entry.is_regular_file()) ++object_count;
+    }
+    assert(object_count == 2 && !selected.empty() && selected_size > 0);
+    const int fd = ::open(selected.c_str(), O_RDWR | O_CLOEXEC | O_NOFOLLOW);
+    assert(fd >= 0);
+    const off_t offset = static_cast<off_t>(selected_size / 2);
+    uint8_t byte = 0;
+    assert(::pread(fd, &byte, 1, offset) == 1);
+    byte ^= 1;
+    assert(::pwrite(fd, &byte, 1, offset) == 1 && ::fsync(fd) == 0);
+    assert(::close(fd) == 0);
 }
 
 void cbor_head(std::vector<uint8_t> & out, uint8_t major, uint64_t value) {
@@ -169,7 +212,6 @@ void test_selected_restore_and_rejection() {
     const auto wrong = opened.canary->restore_selected(
         snapshot.tokens.data(), snapshot.tokens.size(), wrong_identity, snapshot.profile);
     assert(wrong.status == halofpx::context_store_v1_server_canary_status::miss_corrupt);
-
     const int anchor_fd = ::open((anchor / "anchor.v1").c_str(), O_RDWR | O_CLOEXEC);
     assert(anchor_fd >= 0);
     uint8_t byte = 0;
@@ -187,10 +229,76 @@ void test_selected_restore_and_rejection() {
     std::filesystem::remove_all(base, ignored);
 }
 
+void test_corrupt_object_quarantines_without_rewrite() {
+    std::array<char, 72> pattern {};
+    const char text[] = "/tmp/halofpx-selection-object-XXXXXX";
+    std::copy(text, text + sizeof(text), pattern.begin());
+    const char * base_text = ::mkdtemp(pattern.data());
+    assert(base_text != nullptr);
+    const std::filesystem::path base(base_text);
+    const auto data = base / "data";
+    const auto anchor = base / "anchor";
+    assert(::chmod(base.c_str(), 0700) == 0);
+    assert(::mkdir(data.c_str(), 0700) == 0 && ::mkdir(anchor.c_str(), 0700) == 0);
+    create_lock(data / "writer.lock");
+    create_lock(anchor / "writer.lock");
+    create_data_layout(data);
+
+    std::array<uint8_t, 32> operator_key {};
+    operator_key.fill(0x41);
+    const std::string data_path = data.string();
+    const std::string anchor_path = anchor.string();
+    auto config = config_for(data_path, anchor_path, operator_key);
+
+    halofpx::context_store_transformer_snapshot_v1 snapshot;
+    snapshot.compatibility_identity.compatibility_root = config.compatibility.root;
+    snapshot.compatibility_identity.scope_namespace.fill(0x51);
+    snapshot.compatibility_identity.checkpoint_lineage_id.fill(0x52);
+    snapshot.compatibility_identity.policy_epoch = 1;
+    snapshot.profile = admitted_profile();
+    snapshot.tokens = { 7, 11, 13 };
+    snapshot.state = { 0xa1, 0xb2, 0xc3, 0xd4 };
+
+    auto opened = halofpx::make_context_store_v1_server_canary(config);
+    assert(opened.canary != nullptr);
+    assert(opened.canary->publish(snapshot).status ==
+        halofpx::context_store_v1_server_canary_status::published);
+    opened.canary.reset();
+
+    const auto tree_before_corruption = read_tree(base);
+    corrupt_largest_object(data / "objects");
+    const auto corrupt_tree = read_tree(base);
+    assert(corrupt_tree != tree_before_corruption);
+
+    opened = halofpx::make_context_store_v1_server_canary(config);
+    assert(opened.canary != nullptr);
+    const auto corrupt_object = opened.canary->restore_selected(
+        snapshot.tokens.data(), snapshot.tokens.size(), snapshot.compatibility_identity,
+        snapshot.profile);
+    assert(corrupt_object.status ==
+        halofpx::context_store_v1_server_canary_status::miss_corrupt);
+    const auto observation = opened.canary->observation();
+    assert(observation.lifecycle_state ==
+        halofpx::context_store_v1_server_canary_lifecycle_state::quarantined);
+    assert(observation.last_close_reason ==
+        halofpx::context_store_v1_server_canary_close_reason::quarantined);
+    assert(observation.eviction_state ==
+        halofpx::context_store_v1_server_canary_eviction_state::uncertain_material_retained);
+    assert(observation.writes_closed && observation.safe_online_eviction_bytes == 0);
+    assert(opened.canary->publish(snapshot).status ==
+        halofpx::context_store_v1_server_canary_status::source_rejected);
+    assert(read_tree(base) == corrupt_tree);
+
+    opened.canary.reset();
+    std::error_code ignored;
+    std::filesystem::remove_all(base, ignored);
+}
+
 } // namespace
 
 int main() {
     test_missing_anchor_is_miss();
     test_selected_restore_and_rejection();
+    test_corrupt_object_quarantines_without_rewrite();
     return 0;
 }
