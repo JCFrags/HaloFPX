@@ -16,15 +16,15 @@ This page does not replace any decision record.
 
 ## Implementation decisions
 
-- [HaloFPX implementation decision index](C:/Users/britt/Documents/HaloFPX/docs/halofpx/decisions/README.md)
+- [HaloFPX implementation decision index](../../../docs/halofpx/decisions/README.md)
 
 Current accepted architecture decision records (ADRs) include:
 
-- [ADR-0048](C:/Users/britt/Documents/HaloFPX/docs/halofpx/decisions/0048-composed-scheduler-rpc-execution-authority.md):
+- [ADR-0048](../../../docs/halofpx/decisions/0048-composed-scheduler-rpc-execution-authority.md):
   composed scheduler and remote procedure call execution authority.
-- [ADR-0049](C:/Users/britt/Documents/HaloFPX/docs/halofpx/decisions/0049-l63-real-lifecycle-preexecute-authority.md):
+- [ADR-0049](../../../docs/halofpx/decisions/0049-l63-real-lifecycle-preexecute-authority.md):
   real-lifecycle pre-execute authority.
-- [Decision 0050](C:/Users/britt/Documents/HaloFPX/docs/halofpx/decisions/0050-l67-retained-adr0049-foundation.md):
+- [Decision 0050](../../../docs/halofpx/decisions/0050-l67-retained-adr0049-foundation.md):
   retain the L67 ADR-0049 default-off foundation.
 
 Read each complete decision in the HaloFPX implementation repository.

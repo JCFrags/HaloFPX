@@ -1,8 +1,15 @@
 # HaloFPX integration records
 
 This directory owns implementation-local source, baseline, gate, and review
-records for the writable HaloFPX fork. Raw research and target-machine evidence
-remain authoritative in `C:\Users\britt\Documents\Custom_Inference_Project`.
+records for the writable HaloFPX fork. The consolidated research, engineering
+Wiki, and imported target-machine evidence are under [`project/`](../../project/).
+
+- [L111 atomic rank-partition gate — PASS / RETAIN](evidence/l111/README.md)
+- [L111 source receipt](evidence/l111/source-receipt.txt)
+- [L111 build receipt](evidence/l111/build-receipt.txt)
+- [L111 independent review](evidence/l111/independent-review.md)
+- [L111 historical lead-delivery report](evidence/l111/project-lead-report.txt)
+- [L111 lead reconciliation](evidence/l111/RECONCILIATION.md)
 
 - [Clean baseline manifest](baseline-manifest.json)
 - [Feature-off baseline](feature-off-baseline.md)

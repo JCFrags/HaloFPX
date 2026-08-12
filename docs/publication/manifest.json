@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "record_type": "halofpx_publication_manifest",
+  "as_of_date": "2026-08-12",
+  "canonical_repository": {
+    "owner": "JCFrags",
+    "name": "HaloFPX",
+    "url": "https://github.com/JCFrags/HaloFPX.git",
+    "visibility_at_staging": "private",
+    "public_redistribution_authorized": false
+  },
+  "history": {
+    "integration_commit": "728c3b441fcb38a9eb55272ed673da9d2d18c173",
+    "integration_method": "two-parent_non_squashed_merge_with_project_prefix",
+    "parents": [
+      {
+        "role": "implementation",
+        "commit": "620ef60aa446990335ef46c7d76738f797e62f8f",
+        "path": "."
+      },
+      {
+        "role": "engineering_wiki",
+        "commit": "b1c2d8aef707fb03920fc189ccd26395fa61879d",
+        "path": "project"
+      }
+    ],
+    "engineering_wiki_tree_equal_at_integration": true,
+    "legacy_bundle_plan": [
+      {
+        "name": "implementation-620ef60.bundle",
+        "status": "verified_local_bundle_planned_private_release_asset",
+        "size_bytes": 41317318,
+        "sha256": "b69bbcb25b5d21fa5551e9a66fdd4ba69a8914973e35f9695c640f31652e322b"
+      },
+      {
+        "name": "wiki-b1c2d8a.bundle",
+        "status": "verified_local_bundle_planned_private_release_asset",
+        "size_bytes": 39827352,
+        "sha256": "68405b7510450898a5ec2b690431c204ed56ba76eaba5ef2d2bab42368ab4293"
+      }
+    ]
+  },
+  "documentation_inventory_preservation": {
+    "inventory_path": "project/project-management/documentation/document-inventory.json",
+    "inventory_repository_head": "d30814ed08fe395f1bb1d292281ce82edb6bdab4",
+    "engineering_wiki_source_commit": "b1c2d8aef707fb03920fc189ccd26395fa61879d",
+    "integration_commit": "728c3b441fcb38a9eb55272ed673da9d2d18c173",
+    "protected_repository_snapshot": {
+      "file_count": 20858,
+      "metadata_digest_sha256": "245169a3b6f7e5320ae053662efef856595e4cfe22dd7e909502120a2c6aee24",
+      "content_digest_sha256": "54e0fb0e2f8eed329e64197d4cdeee3f81aa92f05a504b5d5e0c3c7047022583",
+      "content_digest_recorded_on": "2026-07-29"
+    },
+    "snapshot_scope": "legacy_worktree_sources_and_experiments_including_untracked_payloads",
+    "monorepo_verification_rule": "verify_exact_import_history_and_tree_at_the_integration_commit_then_require_protected_git_content_and_worktree_to_remain_unchanged",
+    "authorized_semantic_rewrites": [
+      {
+        "project_relative_path": "CURRENT_STATE.md",
+        "normalized_text_sha256": "7c5aa398cc3e0e17197209c4de84d27edb9b9bf5bd7ea5c31607fdf7d75a01dc",
+        "reason": "replace stale split-repository and active-L111 routing with the additive 2026-08-12 publication reconciliation"
+      }
+    ]
+  },
+  "continuation": {
+    "entry_point": "HANDOFF.md",
+    "artifact_guide": "ARTIFACTS.md",
+    "project_worker_entry_point": "project/WORKER_START_HERE.md",
+    "project_lead_status": "project/project-management/lead/CURRENT_STATUS.md",
+    "project_lead_decisions": "project/project-management/lead/DECISIONS.md",
+    "canonical_wiki": "project/wiki/HaloFPX_Wiki"
+  },
+  "milestone_boundary": {
+    "id": "L111",
+    "candidate_commit": "620ef60aa446990335ef46c7d76738f797e62f8f",
+    "base_commit": "6c88472bf5f567a1064f27f4d8a90fc8e2b47a02",
+    "independent_review": "PASS_RETAIN",
+    "p0_findings": 0,
+    "p1_findings": 0,
+    "formal_lead_acceptance": "accepted_by_additive_2026_08_12_lead_decision",
+    "lead_decision_path": "project/project-management/lead/DECISIONS.md#2026-08-12--accept-the-bounded-l111-loader-foundation",
+    "historical_state_at_integration": "terminal_report_delivery_unreachable_and_lead_records_not_yet_reconciled",
+    "scope": "bounded_loader_foundation_only",
+    "evidence_path": "docs/halofpx/evidence/l111"
+  },
+  "prepublication_validation_observations": {
+    "scope": "source_worktrees_before_publication_changes",
+    "wiki_manifest_check": "PASS",
+    "wiki_expected_sections": 86,
+    "wiki_schema_valid_sections": 86,
+    "wiki_validator_unit_tests_passed": 4,
+    "documentation_validator": {
+      "status": "PASS",
+      "markdown_files": 554,
+      "category_manifests": 12,
+      "broken_internal_links": 0
+    },
+    "json_files_parsed": 447,
+    "yaml_files_parsed": 268,
+    "governed_schemas": "PASS",
+    "clean_clone_revalidation_required": true
+  },
+  "large_artifacts": [
+    {
+      "id": "l24_source_v2_tar",
+      "former_relative_path": "sources/halofpx/l24-source-v2.tar",
+      "status": "planned_split_private_release_payload",
+      "size_bytes": 17101714432,
+      "sha256": "5920dbdb2f1d29eac0be84c82611a9869318fae2ec5b3fe1392fd2ef9abef3cf",
+      "part_manifest": null
+    },
+    {
+      "id": "documentation_raw_sources",
+      "status": "planned_private_release_group",
+      "release_manifest": null
+    },
+    {
+      "id": "p63_formal_artifacts_and_tools",
+      "status": "planned_private_release_group",
+      "release_manifest": null
+    },
+    {
+      "id": "implementation_raw_evidence",
+      "status": "planned_private_release_group",
+      "release_manifest": null
+    },
+    {
+      "id": "restricted_paired_machine_manifests",
+      "status": "planned_restricted_private_release_group",
+      "release_manifest": null
+    }
+  ],
+  "absent_or_external_resources": [
+    {
+      "id": "primary_model",
+      "status": "absent_from_source_and_publication_workspace",
+      "size_bytes": 159873097824,
+      "sha256": "96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6",
+      "authorized_source": null
+    },
+    {
+      "id": "agent_harness",
+      "status": "external_reference_not_imported",
+      "routing_document": "project/references/agent-harness.md"
+    },
+    {
+      "id": "generated_build_trees_and_caches",
+      "status": "reproducible_workstation_scratch_not_canonical",
+      "restore_action": "rebuild_from_exact_source_and_toolchain_receipts"
+    },
+    {
+      "id": "credentials_and_live_service_state",
+      "status": "intentionally_excluded",
+      "restore_action": "reprovision_under_current_operator_authority"
+    }
+  ],
+  "safety": {
+    "initial_publication_boundary": "private_only",
+    "opaque_archives_fully_content_audited_for_public_release": false,
+    "blanket_engineering_wiki_license_present": false,
+    "public_release_prerequisites": [
+      "privacy_review",
+      "credential_scan",
+      "third_party_notice_audit",
+      "explicit_license_decision",
+      "release_asset_checksum_manifest"
+    ]
+  }
+}

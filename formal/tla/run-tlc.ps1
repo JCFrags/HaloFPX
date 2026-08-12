@@ -7,19 +7,62 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$java = 'C:\Program Files\Stirling-PDF\runtime\jre\bin\java.exe'
-$jar = 'C:\Users\britt\Documents\Custom_Inference_Project\sources\tools\tlaplus\v1.7.4\tla2tools.jar'
 $specRoot = $PSScriptRoot
+$repoRoot = [IO.Path]::GetFullPath((Join-Path $specRoot '../..'))
 $spec = Join-Path $specRoot 'HaloFPXPublication.tla'
 
-if (-not (Test-Path -LiteralPath $java -PathType Leaf)) { throw "Java runtime not found: $java" }
-if (-not (Test-Path -LiteralPath $jar -PathType Leaf)) { throw "Pinned TLC JAR not found: $jar" }
+function Resolve-JavaRuntime {
+    $configured = [Environment]::GetEnvironmentVariable('HALOFPX_JAVA')
+    if (-not [string]::IsNullOrWhiteSpace($configured)) {
+        $candidate = [Environment]::ExpandEnvironmentVariables($configured)
+        if (-not [IO.Path]::IsPathRooted($candidate)) { $candidate = Join-Path $repoRoot $candidate }
+        $candidate = [IO.Path]::GetFullPath($candidate)
+        if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+            throw "HALOFPX_JAVA does not identify a Java executable: $candidate"
+        }
+        return $candidate
+    }
+
+    $javaHome = [Environment]::GetEnvironmentVariable('JAVA_HOME')
+    if (-not [string]::IsNullOrWhiteSpace($javaHome)) {
+        foreach ($name in @('java.exe', 'java')) {
+            $candidate = Join-Path $javaHome (Join-Path 'bin' $name)
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                return [IO.Path]::GetFullPath($candidate)
+            }
+        }
+    }
+
+    $command = Get-Command java -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($null -ne $command) { return $command.Source }
+    throw 'Java runtime not found. Set HALOFPX_JAVA, set JAVA_HOME, or add java to PATH.'
+}
+
+function Resolve-PinnedJar {
+    $configured = [Environment]::GetEnvironmentVariable('HALOFPX_TLC_JAR')
+    $candidate = if ([string]::IsNullOrWhiteSpace($configured)) {
+        Join-Path $repoRoot 'project/sources/tools/tlaplus/v1.7.4/tla2tools.jar'
+    } else {
+        [Environment]::ExpandEnvironmentVariables($configured)
+    }
+    if (-not [IO.Path]::IsPathRooted($candidate)) { $candidate = Join-Path $repoRoot $candidate }
+    $candidate = [IO.Path]::GetFullPath($candidate)
+    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+        throw "Pinned TLC JAR not found: $candidate. Restore project/sources/tools or set HALOFPX_TLC_JAR."
+    }
+    return $candidate
+}
+
+$java = Resolve-JavaRuntime
+$jar = Resolve-PinnedJar
 if ($SafetyRepetitions -lt 1 -or $SafetyRepetitions -gt 20) { throw 'SafetyRepetitions must be 1..20' }
 
 $resolvedEvidence = [IO.Path]::GetFullPath($EvidenceRoot)
-$forbidden = [IO.Path]::GetFullPath((Join-Path $specRoot '..\..'))
-if ($resolvedEvidence.StartsWith($forbidden, [StringComparison]::OrdinalIgnoreCase)) {
-    throw 'Raw evidence must remain outside the implementation repository'
+$repositoryBoundary = $repoRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+if ($resolvedEvidence.Equals($repoRoot, [StringComparison]::OrdinalIgnoreCase) -or
+    $resolvedEvidence.StartsWith($repositoryBoundary, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Raw evidence must remain outside the monorepo'
 }
 [IO.Directory]::CreateDirectory($resolvedEvidence) | Out-Null
 
@@ -156,8 +199,8 @@ $manifest = [ordered]@{
     tla2tools_sha256 = $jarSha256
     spec = $spec
     spec_sha256 = (Get-FileHash -LiteralPath $spec -Algorithm SHA256).Hash.ToLowerInvariant()
-    git_head = (git -C (Join-Path $specRoot '..\..') rev-parse HEAD).Trim()
-    git_status = @((git -C (Join-Path $specRoot '..\..') status --short))
+    git_head = (git -C $repoRoot rev-parse HEAD).Trim()
+    git_status = @((git -C $repoRoot status --short))
     runs = $records
 }
 $manifestPath = Join-Path $resolvedEvidence 'run-manifest.json'

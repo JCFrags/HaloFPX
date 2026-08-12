@@ -1,8 +1,50 @@
 # Current Project-Lead Status
 
-Verified: 2026-07-29 09:34 PDT
+Reconciled from retained source and evidence: 2026-08-12
 
 ## Overall state
+
+### L111 terminal reconciliation
+
+L111 is closed `PASS / RETAIN` at the bounded loader-foundation review
+boundary. The exact retained implementation source is
+`620ef60aa446990335ef46c7d76738f797e62f8f`, whose direct parent is accepted
+L110 base `6c88472bf5f567a1064f27f4d8a90fc8e2b47a02`.
+
+Release and Debug focused CTest each passed `1/1`. A feature-off static
+`llama` compile passed with RPC and HaloFPX RPC local state disabled. The
+independent exact-diff review returned `PASS / RETAIN` with no P0 or P1
+finding. The retained source-diff and focused-test digests match the immutable
+receipts under `docs/halofpx/evidence/l111/`.
+
+This acceptance covers only the loader-internal, generation-bound atomic
+two-rank partition transaction and its focused accounting, rollback, lookup,
+and legacy-mode-refusal qualification. It does not accept graph wiring,
+asynchronous RPC, scheduler behavior, model or runtime execution, production
+behavior, cache behavior, a user-facing product, or performance. Feature-off
+evidence is compile-level; L111 did not load a real MiniMax model. Its focused
+fixture is a tiny contiguous F32 GGUF on mock devices, and no production caller
+adopts the constructor. Raw build logs and binaries were not retained, so the
+recorded build and binary hashes were not independently rerun in this
+reconciliation.
+
+The immutable source receipt's `accepted_head=6c88472...` field names the
+pre-change accepted base. The terminal retained source is `620ef60...`. The
+terminal report's rejected direct delivery records an unreachable historical
+lead-task identifier, not a failed technical review. The
+[reconciliation note](../../../docs/halofpx/evidence/l111/RECONCILIATION.md)
+records the source and receipt checks.
+
+This block supersedes the older current-tense L111 handoff and task-control
+paragraphs later in this file. Those paragraphs remain preserved as historical
+chronology. No later graph or RPC milestone is accepted by this reconciliation.
+The last production observations in this file remain measurements from
+2026-07-29; production was not rechecked during the 2026-08-12 source-only
+reconciliation, so current production health is open.
+
+The remainder of this file is preserved historical lead chronology. Accepted
+milestone results retain their stated scope, but its current-tense worker,
+active-task, and next-milestone language is not a 2026-08-12 dispatch.
 
 The project is active and materially progressing. The current worker remains
 suitable as the primary implementation owner. Earlier excessive test expansion
@@ -1117,6 +1159,10 @@ independent read-only specialists are auditing graph-input coverage and
 
 ## Repository
 
+Historical snapshot preserved from the earlier lead record. The L111 terminal
+reconciliation at the top of this file supersedes its commit, worktree, worker,
+and current-work fields.
+
 - Implementation: `C:\Users\britt\Documents\HaloFPX`
 - Branch: `codex/integration-base-61f2f2d`
 - Locked ROCmFPX base: `61f2f2d7bc4955e9bca821095ef69125837133b5`
@@ -1425,6 +1471,9 @@ independent read-only specialists are auditing graph-input coverage and
   committed at `522dd90c`; production recovered to HTTP 200 with zero restarts.
 
 ## Lead decision
+
+Historical L20/L21 decision preserved for chronology. The 2026-08-12 L111
+decision in `DECISIONS.md` is the latest accepted source disposition.
 
 Accept L20's three-residency lifecycle result but reject its controller
 candidate exactly as reviewed. Open L21 only to close the five concrete

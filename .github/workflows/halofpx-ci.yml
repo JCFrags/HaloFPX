@@ -1,0 +1,82 @@
+name: HaloFPX validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: halofpx-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  wiki:
+    name: Wiki structure and validator tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Python
+        # actions/setup-python v6.3.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+
+      - name: Install validator dependency
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
+
+      - name: Check generated wiki manifest
+        working-directory: project
+        run: python research/prompts/tools/generate_wiki_manifest.py wiki/HaloFPX_Wiki --check
+
+      - name: Validate wiki structure
+        working-directory: project
+        run: python research/prompts/tools/validate_wiki.py wiki/HaloFPX_Wiki
+
+      - name: Run validator unit tests
+        working-directory: project
+        run: python -m unittest research/prompts/tools/test_validate_wiki.py -v
+
+      - name: Validate publication documentation and protected provenance
+        run: python project/project-management/documentation/validate_documentation.py
+
+  feature-off-build:
+    name: Feature-off static build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configure feature-off build
+        run: >-
+          cmake -S . -B build/ci-feature-off
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_RPC=OFF
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=OFF
+          -DLLAMA_BUILD_TESTS=OFF
+          -DLLAMA_BUILD_TOOLS=OFF
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=OFF
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+
+      - name: Compile core library
+        run: cmake --build build/ci-feature-off --target llama --parallel 2

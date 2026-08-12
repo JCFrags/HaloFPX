@@ -1,0 +1,22 @@
+* text=auto
+
+# Evidence manifests and executable text must be byte-stable across clones.
+*.json text eol=lf
+*.jsonl text eol=lf
+*.md text eol=lf
+*.ps1 text eol=lf
+*.py text eol=lf
+*.sh text eol=lf
+*.txt text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Preserve binary evidence and archives exactly.
+*.bin binary
+*.bundle binary
+*.gguf binary
+*.jar binary
+*.pdf binary
+*.st binary
+*.tar binary
+*.zip binary

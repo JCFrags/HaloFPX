@@ -1,13 +1,53 @@
-# ROCmFPX for llama.cpp
+# HaloFPX
+
+HaloFPX is a continuation-ready engineering monorepo for the custom dual-Strix-
+Halo inference project. The repository combines the C/C++ implementation lineage
+with the evidence-backed project wiki, research records, requirements, decisions,
+experiments, and handoff material used to govern that implementation.
+
+## Start here
+
+- [Worker start sequence](project/WORKER_START_HERE.md) — required reading and
+  validation order before changing project material.
+- [Project handoff](HANDOFF.md) — exact source state, current milestone, validation
+  commands, and the next safe work boundary.
+- [Artifact inventory](ARTIFACTS.md) — what is in Git, what is preserved as a
+  release artifact, what is reproducible, and what is not available.
+- [Canonical HaloFPX wiki](project/wiki/HaloFPX_Wiki/README.md) — the engineering
+  knowledge base; this in-repository copy is authoritative, not the optional
+  GitHub Wiki surface.
+- [Current project state](project/CURRENT_STATE.md) and
+  [lead decisions](project/project-management/lead/DECISIONS.md) — active status
+  and the evidence-backed decision record.
+
+## Current status and evidence boundary
+
+The L111 work is a **bounded loader-foundation milestone**. It is accepted only
+when the publication reconciliation record is present in the lead decision log;
+without that record, treat it as a candidate with independent PASS evidence.
+Even when accepted, L111 does **not** establish production readiness, end-to-end
+runtime correctness, distributed-serving readiness, model-quality equivalence,
+or a current performance result.
+
+Claims in project material retain their literal labels: `[MEASURED]` is tied to
+the recorded machine, software, model, and run conditions; `[VERIFIED]` requires
+primary evidence; `[INFERENCE]`, `[ASSUMPTION]`, and `[RECOMMENDATION]` are not
+facts; `[OPEN]` remains unresolved. The performance figures below are preserved
+historical measurements from 2026-07-12, not promises for this branch or other
+systems. Reproduce them from their evidence and matched configurations before
+using them for an engineering decision.
+
+## Implementation lineage: ROCmFPX for `llama.cpp`
 
 ROCmFPX adds experimental AMD-focused 3-, 4-, 6-, and 8-bit GGUF model-weight
 formats to `llama.cpp`, with CPU reference paths and accelerated HIP/ROCm and
 Vulkan kernels.
 
-> **Status:** ROCmFPX is an experimental feature family on the canonical `main`
-> branch. APIs, tuning choices, and performance can change. Results depend on
-> hardware, drivers, model, prompt, and quantization recipe; use BF16/F16 sources
-> for quality comparisons.
+> **Implementation status:** this source lineage is experimental. APIs, tuning
+> choices, compatibility, and performance can change. The inherited guide below
+> documents previously exercised paths; it is not a fresh validation of the
+> publication branch. Results depend on hardware, drivers, model, prompt, and
+> quantization recipe; use BF16/F16 sources for quality comparisons.
 
 ## Why ROCmFPX?
 
@@ -22,18 +62,18 @@ Vulkan kernels.
 - **Built-in MTP acceleration:** models with an MTP/NextN head—including
   M-RoPE Qwen models—can use target-verified self-speculative decoding without
   loading a separate draft model.
-- **Broad validation:** the promoted source was exercised through local
-  CPU/Vulkan/ROCm tests and cross-platform CI covering Windows, macOS/Metal,
-  WebUI provisioning, and Apple packaging.
+- **Preserved validation history:** the source lineage was exercised through
+  local CPU/Vulkan/ROCm tests and cross-platform CI. Consult the linked evidence
+  before relying on those historical results in a new environment.
 
 Start with [Quick Start](#quick-start-strix-halo--gfx1151), choose a format in
 [Which Format Should I Pick?](#which-format-should-i-pick), or jump directly to
 [MTP Speculative Decoding](#faster-decode-mtp-speculative-decoding).
 
-## Verified MTP Results — Strix Halo, 2026-07-12
+## Historical measured MTP results — Strix Halo, 2026-07-12
 
-These are local command-line decode results from the promoted `main` source on
-Strix Halo (`gfx1151`). Throughput is the final `Generation:` rate from
+These are `[MEASURED]` local command-line decode results from the source under
+test on Strix Halo (`gfx1151`). Throughput is the final `Generation:` rate from
 `llama-cli`; runs used full GPU offload, FlashAttention, `-c 4096`, greedy
 sampling (`--temp 0`), `-b 512 -ub 512`, the same prompt within each row, and
 one model at a time.
@@ -47,11 +87,11 @@ one model at a time.
 Qwable is a matched single 64-token pair. Qwen no-MTP is one 256-token run;
 the MTP values are the median and peak of three matched 256-token runs.
 
-The promoted source and the pre-promotion experimental build were effectively
+The source under test and the earlier experimental build were effectively
 tied on Qwen3.6: median differences were `-0.7%` on Vulkan and `-0.3%` on ROCm.
-On a longer 512-token Vulkan run, the promoted source reached `110.7 t/s` versus
+On a longer 512-token Vulkan run, the tested source reached `110.7 t/s` versus
 `107.2 t/s` for the experimental build. Qwable's 256-token branch comparison
-was also tied: promoted/experimental measured `32.9/33.0 t/s` on Vulkan and
+was also tied: tested/experimental measured `32.9/33.0 t/s` on Vulkan and
 `32.3/32.3 t/s` on ROCm.
 
 MTP gains are content-dependent: predictable code, JSON, and lists usually
@@ -60,13 +100,15 @@ starting points, not universal defaults.
 
 ## Quick Start (Strix Halo / `gfx1151`)
 
-Four commands from clone to a running model. For other AMD GPUs, swap the build
-script using the [Clone And Build](#clone-and-build) table.
+This is the inherited operator recipe, retained so it can be reproduced and
+revalidated. It is not evidence that the publication branch currently builds or
+runs on a particular machine. For other AMD GPUs, select the corresponding build
+script from the [Clone And Build](#clone-and-build) table.
 
 ```bash
-# 1. Get the code (canonical main branch)
-git clone https://github.com/charlie12345/ROCmFPX.git
-cd ROCmFPX && git checkout main
+# 1. Get the code (HaloFPX monorepo main branch)
+git clone https://github.com/JCFrags/HaloFPX.git
+cd HaloFPX && git checkout main
 
 # 2. Build for Strix Halo
 env JOBS=16 scripts/build-strix-rocmfp4-mtp.sh          # -> build-strix-rocmfp4/
@@ -107,7 +149,7 @@ build-strix-rocmfp4/bin/llama-cli \
   -m model-ROCMFP4_FAST.gguf -dev ROCm0 -ngl 999 -fa on --jinja
 ```
 
-## Tested Support
+## Historically tested support
 
 | Target | Status |
 |---|---|
@@ -161,8 +203,8 @@ kernel coverage.
 This work builds on `llama.cpp`; upstream authors and contributors retain credit
 under the MIT license. See `AUTHORS`, `LICENSE`, and `THIRD_PARTY_NOTICES.md`.
 
-ROCmFP4 and ROCmFPX experiment work in this repository is maintained by
-`charlie12345` / `caf`.
+The imported ROCmFP4 and ROCmFPX experiment lineage was maintained by
+`charlie12345` / `caf`; that attribution is retained in this monorepo.
 
 Additional ROCmFPX contributors:
 
@@ -250,12 +292,14 @@ ROCmFP4.
 ## Clone And Build
 
 ```bash
-git clone https://github.com/charlie12345/ROCmFPX.git
-cd ROCmFPX
+git clone https://github.com/JCFrags/HaloFPX.git
+cd HaloFPX
 ```
 
-Most users should stay on `main`. The preserved
-`experimental-rocmfpx-branch` exists for history and rollback comparisons.
+Use `main` for this monorepo. Historical donor and pre-publication source
+lineages are checksum-bound in the private evidence release described in
+[`ARTIFACTS.md`](ARTIFACTS.md); no publication branch named
+`experimental-rocmfpx-branch` is asserted here.
 
 Pick the build script for your machine:
 
@@ -447,8 +491,9 @@ build-strix-rocmfp4/bin/llama-cli \
   JSON) accepts more drafts and gains most; free-form creative text gains less.
 - It is **lossless**: at greedy (`--temp 0`) the output matches non-speculative
   decoding token-for-token (the target model verifies every drafted token).
-- See [Verified MTP Results](#verified-mtp-results--strix-halo-2026-07-12) for
-  current Qwable and Qwen3.6 measurements, profiles, and branch-parity context.
+- See [Historical measured MTP results](#historical-measured-mtp-results--strix-halo-2026-07-12)
+  for the dated Qwable and Qwen3.6 measurements, profiles, and branch-parity
+  context.
 
 **M-RoPE models (`qwen35` / `qwen35moe`, and any IMROPE/MROPE arch):** MTP now
 works on these. They use 4-D M-RoPE positions, and the batch position check

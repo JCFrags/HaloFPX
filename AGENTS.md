@@ -1,4 +1,27 @@
-# Instructions for llama.cpp
+# HaloFPX monorepo instructions
+
+This private repository is the continuation authority for HaloFPX. Before
+changing project material, read and follow [`project/AGENTS.md`](project/AGENTS.md)
+and complete [`project/WORKER_START_HERE.md`](project/WORKER_START_HERE.md).
+Those project-specific evidence, claim-label, provenance, cache-safety, and
+distributed-behavior rules apply to the entire monorepo.
+
+Use [`HANDOFF.md`](HANDOFF.md) for the exact accepted source boundary and
+[`ARTIFACTS.md`](ARTIFACTS.md) for non-Git evidence recovery. Do not infer
+production, runtime, compatibility, or performance claims from a successful
+build. Keep raw evidence immutable and record every promotion through the
+Project Lead decisions under `project/project-management/lead/`.
+
+The upstream `llama.cpp` contributor guidance below is retained as provenance
+and must be followed for any contribution proposed back to that upstream
+project. Its own text explicitly exempts private forks. Work authorized by the
+HaloFPX owner inside this private fork may use coding agents, but must still be
+understood, reviewed, tested, and disclosed appropriately before any external
+submission. Never submit or publish changes upstream automatically.
+
+---
+
+# Inherited instructions for llama.cpp
 
 > [!IMPORTANT]
 > This project does **not** accept pull requests that are fully or predominantly AI-generated. AI tools may be utilized solely in an assistive capacity.

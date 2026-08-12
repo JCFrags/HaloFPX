@@ -17,6 +17,29 @@ ROOT = Path(__file__).resolve().parents[2]
 WIKI = ROOT / "wiki" / "HaloFPX_Wiki"
 INVENTORY = Path(__file__).with_name("document-inventory.json")
 
+PUBLICATION_INTEGRATION_COMMIT = "728c3b441fcb38a9eb55272ed673da9d2d18c173"
+PUBLICATION_IMPLEMENTATION_COMMIT = "620ef60aa446990335ef46c7d76738f797e62f8f"
+PUBLICATION_WIKI_COMMIT = "b1c2d8aef707fb03920fc189ccd26395fa61879d"
+
+
+def discover_git_root() -> Path:
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        cwd=ROOT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        check=True,
+    )
+    return Path(result.stdout.strip()).resolve()
+
+
+GIT_ROOT = discover_git_root()
+PROJECT_PREFIX = "" if ROOT == GIT_ROOT else ROOT.relative_to(GIT_ROOT).as_posix()
+PUBLICATION_MODE = PROJECT_PREFIX == "project"
+PUBLICATION_MANIFEST = GIT_ROOT / "docs" / "publication" / "manifest.json"
+
 CLAIM_LABELS = (
     "[MEASURED]",
     "[VERIFIED]",
@@ -99,7 +122,7 @@ def rel(path: Path) -> str:
 def run_git(*args: str) -> str:
     result = subprocess.run(
         ["git", *args],
-        cwd=ROOT,
+        cwd=GIT_ROOT,
         text=True,
         encoding="utf-8",
         errors="replace",
@@ -107,6 +130,38 @@ def run_git(*args: str) -> str:
         check=True,
     )
     return result.stdout
+
+
+def run_git_result(*args: str, text: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["git", *args],
+        cwd=GIT_ROOT,
+        text=text,
+        encoding="utf-8" if text else None,
+        errors="replace" if text else None,
+        capture_output=True,
+        check=False,
+    )
+
+
+def project_git_path(path: str) -> str:
+    path = path.strip("/")
+    if not PROJECT_PREFIX:
+        return path
+    return f"{PROJECT_PREFIX}/{path}" if path else PROJECT_PREFIX
+
+
+def project_relative_git_path(path: str) -> str | None:
+    path = path.replace("\\", "/").strip("/")
+    if not PROJECT_PREFIX:
+        return path
+    prefix = f"{PROJECT_PREFIX}/"
+    return path[len(prefix):] if path.startswith(prefix) else None
+
+
+def normalized_text_sha256(path: Path) -> str:
+    text = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def resolve_link(source: Path, raw_target: str) -> tuple[str, bool]:
@@ -234,7 +289,7 @@ def protected_digests() -> tuple[int, str, str]:
     return count, metadata_digest.hexdigest(), content_digest.hexdigest()
 
 
-def check_protected(inventory: dict[str, object]) -> list[str]:
+def check_legacy_protected(inventory: dict[str, object]) -> tuple[list[str], dict[str, object]]:
     errors: list[str] = []
     snapshot = inventory["protected_repository_snapshot"]
     count, metadata_digest, content_digest = protected_digests()
@@ -247,11 +302,202 @@ def check_protected(inventory: dict[str, object]) -> list[str]:
     baseline_status = inventory.get("baseline_protected_git_status")
     if baseline_status is not None:
         current_status = sorted(
-            line for line in run_git("status", "--short", "--", "sources", "experiments").splitlines() if line
+            line
+            for line in run_git(
+                "status",
+                "--short",
+                "--",
+                project_git_path("sources"),
+                project_git_path("experiments"),
+            ).splitlines()
+            if line
         )
         if current_status != baseline_status:
             errors.append("protected Git status changed from the inventory baseline")
+    return errors, {
+        "mode": "legacy_worktree_snapshot",
+        "files_checked": count,
+        "recorded_file_count": snapshot["file_count"],
+        "recorded_content_digest_sha256": snapshot["content_digest_sha256"],
+        "computed_content_digest_sha256": content_digest,
+        "worktree_clean_at_committed_head": None,
+        "publication_receipt_verified": None,
+    }
+
+
+def publication_manifest_receipt_errors(
+    inventory: dict[str, object], manifest: dict[str, object]
+) -> list[str]:
+    errors: list[str] = []
+    snapshot = inventory["protected_repository_snapshot"]
+    receipt = manifest.get("documentation_inventory_preservation")
+    if not isinstance(receipt, dict):
+        return ["publication manifest lacks documentation_inventory_preservation"]
+
+    expected_scalars = {
+        "inventory_path": "project/project-management/documentation/document-inventory.json",
+        "inventory_repository_head": inventory["repository_head"],
+        "engineering_wiki_source_commit": PUBLICATION_WIKI_COMMIT,
+        "integration_commit": PUBLICATION_INTEGRATION_COMMIT,
+    }
+    for key, expected in expected_scalars.items():
+        if receipt.get(key) != expected:
+            errors.append(f"publication inventory receipt has invalid {key}")
+
+    recorded = receipt.get("protected_repository_snapshot")
+    if not isinstance(recorded, dict):
+        errors.append("publication inventory receipt lacks protected_repository_snapshot")
+        return errors
+    for key in (
+        "file_count",
+        "metadata_digest_sha256",
+        "content_digest_sha256",
+        "content_digest_recorded_on",
+    ):
+        if recorded.get(key) != snapshot.get(key):
+            errors.append(f"publication inventory receipt changed protected snapshot {key}")
     return errors
+
+
+def check_publication_protected(
+    inventory: dict[str, object]
+) -> tuple[list[str], dict[str, object]]:
+    errors: list[str] = []
+    snapshot = inventory["protected_repository_snapshot"]
+
+    if not PUBLICATION_MANIFEST.is_file():
+        return [f"missing publication manifest: {PUBLICATION_MANIFEST}"], {
+            "mode": "monorepo_publication",
+            "files_checked": 0,
+            "recorded_file_count": snapshot["file_count"],
+            "recorded_content_digest_sha256": snapshot["content_digest_sha256"],
+            "worktree_clean_at_committed_head": False,
+            "publication_receipt_verified": False,
+        }
+
+    try:
+        manifest = json.loads(PUBLICATION_MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"invalid publication manifest: {exc}"], {
+            "mode": "monorepo_publication",
+            "files_checked": 0,
+            "recorded_file_count": snapshot["file_count"],
+            "recorded_content_digest_sha256": snapshot["content_digest_sha256"],
+            "worktree_clean_at_committed_head": False,
+            "publication_receipt_verified": False,
+        }
+
+    receipt_errors = publication_manifest_receipt_errors(inventory, manifest)
+    errors.extend(receipt_errors)
+
+    history = manifest.get("history", {})
+    if not isinstance(history, dict) or history.get("integration_commit") != PUBLICATION_INTEGRATION_COMMIT:
+        errors.append("publication manifest changed the integration commit")
+
+    for commit, role in (
+        (PUBLICATION_IMPLEMENTATION_COMMIT, "implementation"),
+        (PUBLICATION_WIKI_COMMIT, "engineering wiki"),
+        (PUBLICATION_INTEGRATION_COMMIT, "integration"),
+    ):
+        if run_git_result("cat-file", "-e", f"{commit}^{{commit}}").returncode != 0:
+            errors.append(f"missing {role} commit {commit}")
+        elif run_git_result("merge-base", "--is-ancestor", commit, "HEAD").returncode != 0:
+            errors.append(f"{role} commit is not an ancestor of HEAD: {commit}")
+
+    parent_line = run_git_result(
+        "rev-list", "--parents", "-n", "1", PUBLICATION_INTEGRATION_COMMIT
+    )
+    expected_parents = [
+        PUBLICATION_INTEGRATION_COMMIT,
+        PUBLICATION_IMPLEMENTATION_COMMIT,
+        PUBLICATION_WIKI_COMMIT,
+    ]
+    if parent_line.returncode != 0 or parent_line.stdout.split() != expected_parents:
+        errors.append("publication integration commit parents changed")
+
+    imported_tree = run_git_result(
+        "rev-parse", f"{PUBLICATION_INTEGRATION_COMMIT}:project"
+    )
+    source_tree = run_git_result("rev-parse", f"{PUBLICATION_WIKI_COMMIT}^{{tree}}")
+    if (
+        imported_tree.returncode != 0
+        or source_tree.returncode != 0
+        or imported_tree.stdout.strip() != source_tree.stdout.strip()
+    ):
+        errors.append("integration project tree does not equal the engineering-wiki source tree")
+
+    source_inventory = run_git_result(
+        "show",
+        f"{PUBLICATION_WIKI_COMMIT}:project-management/documentation/document-inventory.json",
+        text=False,
+    )
+    source_inventory_bytes = source_inventory.stdout.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    current_inventory_bytes = INVENTORY.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    if source_inventory.returncode != 0 or source_inventory_bytes != current_inventory_bytes:
+        errors.append("documentation inventory differs from the imported source commit")
+
+    inventory_head = str(inventory["repository_head"])
+    if run_git_result(
+        "merge-base", "--is-ancestor", inventory_head, PUBLICATION_WIKI_COMMIT
+    ).returncode != 0:
+        errors.append("inventory baseline is not an ancestor of the imported engineering wiki")
+
+    protected_pathspecs = (
+        project_git_path("sources"),
+        project_git_path("experiments"),
+    )
+    protected_commit_diff = run_git_result(
+        "diff",
+        "--quiet",
+        PUBLICATION_INTEGRATION_COMMIT,
+        "HEAD",
+        "--",
+        *protected_pathspecs,
+    )
+    if protected_commit_diff.returncode != 0:
+        errors.append("committed protected content changed after the publication boundary")
+
+    current_status = [
+        line
+        for line in run_git(
+            "status",
+            "--porcelain=v1",
+            "--untracked-files=all",
+            "--",
+            *protected_pathspecs,
+        ).splitlines()
+        if line
+    ]
+    if current_status:
+        errors.append(f"protected worktree differs from committed HEAD: {current_status!r}")
+
+    tracked_result = run_git_result(
+        "ls-tree",
+        "-r",
+        "--name-only",
+        PUBLICATION_INTEGRATION_COMMIT,
+        "--",
+        *protected_pathspecs,
+    )
+    tracked_count = len([line for line in tracked_result.stdout.splitlines() if line])
+    if tracked_result.returncode != 0 or tracked_count == 0:
+        errors.append("could not enumerate imported protected Git files")
+
+    return errors, {
+        "mode": "monorepo_publication",
+        "files_checked": tracked_count,
+        "recorded_file_count": snapshot["file_count"],
+        "recorded_content_digest_sha256": snapshot["content_digest_sha256"],
+        "imported_project_tree_sha1": imported_tree.stdout.strip() if imported_tree.returncode == 0 else None,
+        "worktree_clean_at_committed_head": not current_status,
+        "publication_receipt_verified": not receipt_errors,
+    }
+
+
+def check_protected(inventory: dict[str, object]) -> tuple[list[str], dict[str, object]]:
+    if PUBLICATION_MODE:
+        return check_publication_protected(inventory)
+    return check_legacy_protected(inventory)
 
 
 def semantic_tokens(text: str) -> Counter[str]:
@@ -270,17 +516,74 @@ def claim_lines(text: str) -> Counter[str]:
     )
 
 
+def changed_project_markdown_names(inventory: dict[str, object]) -> list[str]:
+    if PUBLICATION_MODE:
+        names: set[str] = set()
+        for name in run_git(
+            "diff",
+            "--name-only",
+            PUBLICATION_INTEGRATION_COMMIT,
+            "--",
+            project_git_path(""),
+        ).splitlines():
+            project_name = project_relative_git_path(name)
+            if project_name and project_name.lower().endswith(".md"):
+                names.add(project_name)
+        for name in run_git(
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "--",
+            project_git_path("*.md"),
+            project_git_path("**/*.md"),
+        ).splitlines():
+            project_name = project_relative_git_path(name)
+            if project_name and project_name.lower().endswith(".md"):
+                names.add(project_name)
+        return sorted(names)
+
+    baseline = str(inventory["repository_head"])
+    return sorted(
+        name
+        for name in run_git("diff", "--name-only", baseline, "--", "*.md").splitlines()
+        if name.lower().endswith(".md")
+    )
+
+
+def authorized_semantic_rewrites() -> dict[str, str]:
+    if not PUBLICATION_MODE or not PUBLICATION_MANIFEST.is_file():
+        return {}
+    try:
+        manifest = json.loads(PUBLICATION_MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    receipt = manifest.get("documentation_inventory_preservation", {})
+    rewrites = receipt.get("authorized_semantic_rewrites", []) if isinstance(receipt, dict) else []
+    result: dict[str, str] = {}
+    if not isinstance(rewrites, list):
+        return result
+    for item in rewrites:
+        if not isinstance(item, dict):
+            continue
+        path = item.get("project_relative_path")
+        digest = item.get("normalized_text_sha256")
+        if isinstance(path, str) and isinstance(digest, str):
+            result[path] = digest.lower()
+    return result
+
+
 def check_claim_diff(inventory: dict[str, object]) -> list[str]:
     errors: list[str] = []
-    baseline = str(inventory["repository_head"])
-    for name in run_git("diff", "--name-only", baseline, "--", "*.md").splitlines():
+    baseline = PUBLICATION_WIKI_COMMIT if PUBLICATION_MODE else str(inventory["repository_head"])
+    rewrite_receipts = authorized_semantic_rewrites()
+    for name in changed_project_markdown_names(inventory):
         path = ROOT / name
         if not path.exists():
             continue
         current = path.read_text(encoding="utf-8")
         base_result = subprocess.run(
             ["git", "show", f"{baseline}:{name}"],
-            cwd=ROOT,
+            cwd=GIT_ROOT,
             text=True,
             encoding="utf-8",
             errors="replace",
@@ -289,26 +592,45 @@ def check_claim_diff(inventory: dict[str, object]) -> list[str]:
         if base_result.returncode != 0:
             continue
         base = base_result.stdout
+        rewrite_authorized = (
+            rewrite_receipts.get(name) == normalized_text_sha256(path)
+        )
         base_labels = Counter({label: base.count(label) for label in CLAIM_LABELS})
         current_labels = Counter({label: current.count(label) for label in CLAIM_LABELS})
         for label, count in base_labels.items():
-            if current_labels[label] < count:
+            if current_labels[label] < count and not rewrite_authorized:
                 errors.append(f"{name}: claim label count decreased for {label}")
         missing_claim_lines = claim_lines(base) - claim_lines(current)
-        for claim_line in missing_claim_lines:
-            errors.append(f"{name}: changed claim-labeled line: {claim_line}")
+        if not rewrite_authorized:
+            for claim_line in missing_claim_lines:
+                errors.append(f"{name}: changed claim-labeled line: {claim_line}")
         missing_tokens = semantic_tokens(base) - semantic_tokens(current)
-        for token, count in missing_tokens.items():
-            errors.append(f"{name}: removed exact semantic token {token} ({count})")
+        if not rewrite_authorized:
+            for token, count in missing_tokens.items():
+                errors.append(f"{name}: removed exact semantic token {token} ({count})")
         base_qualifiers = Counter(match.lower() for match in QUALIFIER_RE.findall(base))
         current_qualifiers = Counter(match.lower() for match in QUALIFIER_RE.findall(current))
-        for qualifier, count in (base_qualifiers - current_qualifiers).items():
-            errors.append(f"{name}: removed limiting qualifier {qualifier} ({count})")
+        if not rewrite_authorized:
+            for qualifier, count in (base_qualifiers - current_qualifiers).items():
+                errors.append(f"{name}: removed limiting qualifier {qualifier} ({count})")
     return errors
 
 
 def check_unrelated_changes(inventory: dict[str, object]) -> list[str]:
-    current = [line for line in run_git("status", "--short").splitlines() if line]
+    if PUBLICATION_MODE:
+        current = [
+            line
+            for line in run_git(
+                "status",
+                "--short",
+                "--untracked-files=all",
+                "--",
+                project_git_path(""),
+            ).splitlines()
+            if line
+        ]
+    else:
+        current = [line for line in run_git("status", "--short").splitlines() if line]
     allowed_owned_prefixes = (
         "AGENTS.md",
         "README.md",
@@ -317,14 +639,30 @@ def check_unrelated_changes(inventory: dict[str, object]) -> list[str]:
         "wiki/HaloFPX_Wiki/",
         "project-management/documentation/",
     )
+    if PUBLICATION_MODE:
+        allowed_owned_prefixes += (
+            "project-management/lead/CURRENT_STATUS.md",
+            "project-management/lead/DECISIONS.md",
+            "project-management/lead/monitor-state.json",
+        )
     protected_prefixes = ("sources/", "experiments/")
-    unrelated = sorted(
-        line
-        for line in current
-        if not line[3:].startswith(allowed_owned_prefixes)
-        and not line[3:].startswith(protected_prefixes)
-    )
-    baseline = sorted(inventory.get("baseline_unrelated_git_status", []))
+    unrelated: list[str] = []
+    for line in current:
+        path_text = line[3:]
+        if " -> " in path_text:
+            path_text = path_text.rsplit(" -> ", 1)[-1]
+        project_path = project_relative_git_path(path_text) if PUBLICATION_MODE else path_text
+        if project_path is None:
+            continue
+        if "__pycache__/" in project_path and project_path.endswith(".pyc"):
+            continue
+        if not project_path.startswith(allowed_owned_prefixes) and not project_path.startswith(protected_prefixes):
+            unrelated.append(f"{line[:3]}{project_path}" if PUBLICATION_MODE else line)
+    unrelated.sort()
+    # The legacy baseline recorded generated Python bytecode differences from
+    # that workstation. They are not publication content and must not be
+    # recreated in a clean monorepo checkout.
+    baseline = [] if PUBLICATION_MODE else sorted(inventory.get("baseline_unrelated_git_status", []))
     if unrelated != baseline:
         return [f"unrelated Git status changed: {baseline!r} -> {unrelated!r}"]
     return []
@@ -332,9 +670,7 @@ def check_unrelated_changes(inventory: dict[str, object]) -> list[str]:
 
 def changed_markdown() -> list[Path]:
     inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
-    baseline = str(inventory["repository_head"])
-    names = set(run_git("diff", "--name-only", baseline, "--", "*.md").splitlines())
-    names.update(run_git("ls-files", "--others", "--exclude-standard", "--", "*.md").splitlines())
+    names = set(changed_project_markdown_names(inventory))
     return sorted(
         ROOT / name
         for name in names
@@ -397,13 +733,14 @@ def main() -> int:
     inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
     files = markdown_files()
     link_errors, inbound = check_links(files)
+    protected_errors, protected_report = check_protected(inventory)
     checks = {
         "broken_internal_links": link_errors,
         "orphan_authoritative_pages": check_orphans(files, inbound),
         "category_manifest_errors": check_manifests(),
         "missing_root_routes": check_root_routes(),
         "worker_start_errors": check_worker_start(),
-        "protected_area_errors": check_protected(inventory),
+        "protected_area_errors": protected_errors,
         "claim_or_identifier_regressions": check_claim_diff(inventory),
         "unrelated_change_errors": check_unrelated_changes(inventory),
     }
@@ -416,8 +753,9 @@ def main() -> int:
         "category_manifests_checked": 12,
         "authoritative_orphans": len(checks["orphan_authoritative_pages"]),
         "broken_internal_links": len(link_errors),
-        "protected_files_checked": inventory["protected_repository_snapshot"]["file_count"],
-        "protected_content_digest_sha256": inventory["protected_repository_snapshot"]["content_digest_sha256"],
+        "protected_files_checked": protected_report["files_checked"],
+        "protected_content_digest_sha256": protected_report["recorded_content_digest_sha256"],
+        "protected_preservation": protected_report,
         "failures": failures,
         "readability_warnings": warnings,
     }

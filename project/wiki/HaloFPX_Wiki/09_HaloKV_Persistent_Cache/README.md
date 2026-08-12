@@ -9,7 +9,7 @@
 - **Last verified date:** 2026-07-29 for routing. Category technical review remains dated 2026-07-17.
 - **Source commits:** CachyLLama `6be745998f568e379ea197fcf827baec73ff9940`; the [decision map](../decision-map.md) routes exact HaloFPX commits.
 - **Related decisions:** [Decision map](../decision-map.md) routes the implementation decision index and accepted records.
-- **Related evidence:** [Evidence map](../evidence-map.md) and the [implementation evidence index](C:/Users/britt/Documents/HaloFPX/docs/halofpx/README.md).
+- **Related evidence:** [Evidence map](../evidence-map.md) and the [implementation evidence index](../../../../docs/halofpx/README.md).
 - **Open work:** Product composition remains paused. No end-user two-node cache product is accepted.
 - **Next safe action:** Treat corrupt, incomplete, incompatible, or unauthorized state as a miss and recompute.
 

@@ -1,5 +1,46 @@
 # Project-Lead Decisions
 
+## 2026-08-12 — accept the bounded L111 loader foundation
+
+Decision: accept L111 as `PASS / RETAIN` at exact implementation source
+commit `620ef60aa446990335ef46c7d76738f797e62f8f`. That commit is the direct
+child of accepted L110 base
+`6c88472bf5f567a1064f27f4d8a90fc8e2b47a02`.
+
+The accepted qualification is narrow. The retained Release and Debug focused
+CTest each passed `1/1`. The feature-off static `llama` target compiled with
+both RPC options disabled. Fresh exact-diff review returned `PASS / RETAIN`
+with no P0 or P1 finding. The source-diff and focused-test digests match the
+immutable L111 receipts.
+
+This decision accepts only the loader-internal, generation-bound atomic
+two-rank partition transaction, its accounting and rollback behavior, removal
+of the obsolete public slice/exclusion aliases, and typed refusal of the old
+MiniMax peer-half loader mode. It does not promote graph execution,
+asynchronous RPC, scheduling, a model or runtime result, production behavior,
+cache behavior, product readiness, or performance. Feature-off evidence is
+compile-level; no real MiniMax model was loaded for L111. The focused fixture
+is a tiny contiguous F32 GGUF on mock devices, and no production caller adopts
+the new partition constructor. The raw build logs and binaries were not
+retained, so this reconciliation accepts the recorded build receipt and its
+independent review; it does not independently reproduce their binary hashes.
+A later graph or RPC milestone must receive a separate decision and separate
+qualification.
+
+Keep `docs/halofpx/evidence/l111/source-receipt.txt` immutable. Its
+`accepted_head=6c88472...` field identifies the accepted pre-change base, not
+the terminal retained commit. Keep
+`docs/halofpx/evidence/l111/project-lead-report.txt` immutable. Its rejected
+direct delivery records an unreachable historical task identifier, not a
+technical rejection. The additive L111 reconciliation note and this decision
+supply the missing lead disposition.
+
+Reason: the terminal source commit, focused build receipts, exact source-diff
+identity, and independent review satisfy the bounded retention gate defined by
+the 2026-07-29 L111 decisions. The historical report could not reach the old
+lead task, so the technical result was committed but the lead status files
+remained stale.
+
 ## 2026-07-29 — require user-visible worker tasks
 
 Decision: stop internal subagent implementation work. Future implementation,

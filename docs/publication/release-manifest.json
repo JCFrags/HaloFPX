@@ -1,0 +1,232 @@
+{
+  "schema_version": "1.0",
+  "repository": "JCFrags/HaloFPX",
+  "visibility": "private",
+  "release_tag": "evidence-2026-08-12",
+  "generated_utc": "2026-08-12T15:55:02.4864557+00:00",
+  "assets": [
+    {
+      "name": "agent-l05s-attack-matrix-rerun.sh",
+      "size_bytes": 8038,
+      "sha256": "1c2c8fd87c4b162a7786f1fa68f16af57794044738801556fff6780043918e9d"
+    },
+    {
+      "name": "agent-l05s-attack-matrix.sh",
+      "size_bytes": 16240,
+      "sha256": "3e41db5cd0c5b29224129573e6358873695628740e8c7af6dc7d88cb93926c40"
+    },
+    {
+      "name": "charlie12345__rocmfpx--all-refs.bundle",
+      "size_bytes": 36143527,
+      "sha256": "bcbe6cf910f4dd183d8ad96ea0d936ac85bd636a1cfe570179599d3fc5e307fa"
+    },
+    {
+      "name": "fewtarius__cachyllama--all-refs.bundle",
+      "size_bytes": 377303761,
+      "sha256": "fc9b1e067de688527580f9f5a2b297b277e076e131d37544dbd7e29456975d80"
+    },
+    {
+      "name": "fewtarius__llama-ai--all-refs.bundle",
+      "size_bytes": 1221275,
+      "sha256": "65915e35a7e628ecdea103d119efcf6f716eb3e9fbbdcaf2a3268812abd72dd4"
+    },
+    {
+      "name": "ggml-org__llama.cpp--all-refs.bundle",
+      "size_bytes": 430919351,
+      "sha256": "66f5e48ec9b175c191d6a57eeef4d0da98e4fdb6ae86edc1a9d1bab40082623a"
+    },
+    {
+      "name": "halofpx-b2137e6-source.zip",
+      "size_bytes": 36282010,
+      "sha256": "70b3ef23e9c29e73ff09d9c8790f5b48d8b2bfd5c14ade0494d461b500aa62cf"
+    },
+    {
+      "name": "halofpx-implementation-raw-evidence.tar.gz",
+      "size_bytes": 11736971,
+      "sha256": "03e153790de5d4340b4f26fc3d43f35ec141504b9a44cbaa992cfedb62da9e58"
+    },
+    {
+      "name": "halofpx-implementation-transition-root-logs.tar.gz",
+      "size_bytes": 558,
+      "sha256": "56c1eab7a07b6da56a3cce75014e2c3f04f842bfb5c066174048162fa70cde07"
+    },
+    {
+      "name": "halofpx-l05p-committed.bundle",
+      "size_bytes": 36521685,
+      "sha256": "e7221261d6ab0f19479f9e09b5539a62af3af8efc56b324c963758ce037e9254"
+    },
+    {
+      "name": "halofpx-l05t-9da5b32.tar",
+      "size_bytes": 161402880,
+      "sha256": "56a241a73447bf38bcd5ce63911b0d930204634d0954a775d9271a154d168b1f"
+    },
+    {
+      "name": "halofpx-l05t-seam.patch",
+      "size_bytes": 21220,
+      "sha256": "ad7ace4e4be2c4a9c4c0229f52c20d6e3d41e6301e1379aacd4279accde727e9"
+    },
+    {
+      "name": "halofpx-p12-a0d9299.tar.gz",
+      "size_bytes": 35528294,
+      "sha256": "49003c1b7226e4e3d4d7de0018c7fa488cc9587e1608203b70df2c64f8f2e004"
+    },
+    {
+      "name": "halofpx-project-p63-formal-evidence.tar.gz.part0001",
+      "size_bytes": 1900000000,
+      "sha256": "3cfc1eec0f9406850f9d4897d9c30aee8fabf9067f2d63edb731b577a4b4fc73"
+    },
+    {
+      "name": "halofpx-project-p63-formal-evidence.tar.gz.part0002",
+      "size_bytes": 616292772,
+      "sha256": "80e8aa93ba2daff0ed1cbe9cb9feb5970010c5fb105a123e8a7f117e129e41ec"
+    },
+    {
+      "name": "halofpx-project-raw-source-captures-excluding-l24-v2.tar.gz",
+      "size_bytes": 157988756,
+      "sha256": "275acfd0ebdf475f677e2fe82427313873628a7dcf20977397ec109ff0895f32"
+    },
+    {
+      "name": "halofpx-project-restricted-private-files.tar.gz",
+      "size_bytes": 28270,
+      "sha256": "69b4aa1ae066703e2825a56c83ef7b6d4b19d17347e82ab8d0e270f050575d51"
+    },
+    {
+      "name": "halofpx-project-tool-distributions.tar.gz",
+      "size_bytes": 264334221,
+      "sha256": "87b0b6e6b709f288d4eb11103f7ae9def2cb402b984af7529645029d14d5e097"
+    },
+    {
+      "name": "implementation-620ef60.bundle",
+      "size_bytes": 41317318,
+      "sha256": "b69bbcb25b5d21fa5551e9a66fdd4ba69a8914973e35f9695c640f31652e322b"
+    },
+    {
+      "name": "l24-source-v2.tar.part0001",
+      "size_bytes": 1900000000,
+      "sha256": "175e93fc51b1d29d14e2bff9ec1bc5eb9c706ba86452c5f2f9865de7d6240111"
+    },
+    {
+      "name": "l24-source-v2.tar.part0002",
+      "size_bytes": 1900000000,
+      "sha256": "bdcab50ad2c35bf8b6c8a05f824ddf30eecc781c87469881265a08e3337eda25"
+    },
+    {
+      "name": "l24-source-v2.tar.part0003",
+      "size_bytes": 1900000000,
+      "sha256": "dab78561e2841da675180a0bdfd82e5d64551b96c1a5739bb9e777dbebf0a8cb"
+    },
+    {
+      "name": "l24-source-v2.tar.part0004",
+      "size_bytes": 1900000000,
+      "sha256": "090f1d38947cee41bcafcc1fbb816b6e7a5161443c7cdb6bfa8bafa7b0f04bc1"
+    },
+    {
+      "name": "l24-source-v2.tar.part0005",
+      "size_bytes": 1900000000,
+      "sha256": "3eb47cac9bf529ac7bd325570f973171aa396eb622c7ee212a3cbb16dff90ca3"
+    },
+    {
+      "name": "l24-source-v2.tar.part0006",
+      "size_bytes": 1900000000,
+      "sha256": "1439c25a328a7c36fed0f54bbc30bd75ca73cc74d23f3e074de433802980e358"
+    },
+    {
+      "name": "l24-source-v2.tar.part0007",
+      "size_bytes": 1900000000,
+      "sha256": "eb64a243260240484fb887028a671c0622f0c0b720c34ab3c8a22ddc7996a648"
+    },
+    {
+      "name": "l24-source-v2.tar.part0008",
+      "size_bytes": 1900000000,
+      "sha256": "d4eaf8c00d8176a5d6e46d95911280899015e9be3f9bad68070e2ab90562102e"
+    },
+    {
+      "name": "l24-source-v2.tar.part0009",
+      "size_bytes": 1900000000,
+      "sha256": "d1eac5d0fb1f13829313bd9cbe0a3a81ac06d2fb4a91f2c121b6d1562a8eef32"
+    },
+    {
+      "name": "l24-source-v2.tar.part0010",
+      "size_bytes": 1714432,
+      "sha256": "ac5786eeb7e6f0ab4022abef834543ac5f27e5de33b982bb30d11620f85e450e"
+    },
+    {
+      "name": "l97-build.tar",
+      "size_bytes": 237322240,
+      "sha256": "45696172d142f0d2a62dfe38d88d571d4cea76075b4d63b88e0b3aa0769819c1"
+    },
+    {
+      "name": "l97-source.tar",
+      "size_bytes": 167439872,
+      "sha256": "3745afc164fc362455771ad09185a3e89cfb85d9981ba570626a751584cf30b6"
+    },
+    {
+      "name": "l98-build-corrected.tar",
+      "size_bytes": 223262720,
+      "sha256": "dca40c887370041e093073ee2dfda8b5690e8627e84b5e65925835947def0242"
+    },
+    {
+      "name": "l98-build-final.tar",
+      "size_bytes": 223744000,
+      "sha256": "a2716b8d859416ce98e52699c41904d84bb31c5e900282f6add62dc75848ccd5"
+    },
+    {
+      "name": "l98-build.tar",
+      "size_bytes": 223262720,
+      "sha256": "74266d661cfc647d14670b18387f2c38533cf885ca377c2b57153444f396b52b"
+    },
+    {
+      "name": "l98-source-corrected.tar",
+      "size_bytes": 204707328,
+      "sha256": "c15140c958565b41a310a06632efa819957d583d526e1a6195bc26649b128413"
+    },
+    {
+      "name": "l98-source-final.tar",
+      "size_bytes": 204707328,
+      "sha256": "8d2ca5170a6f942bf65538c2a4c12ef01d1fd2f124fa6831fb599f3769767fb7"
+    },
+    {
+      "name": "l98-source.tar",
+      "size_bytes": 205447168,
+      "sha256": "2bf737d1d9f3322a89d510306872cb7bd21082d5de98ac70c7982aed9048641b"
+    },
+    {
+      "name": "Nathanw1014__llama.cpp--strix-halo-fa-fixes.bundle",
+      "size_bytes": 379353651,
+      "sha256": "79c61718bd60ecce3e5ea3919fb18d8c709b3d26032c5fe9d4f24055ade3bc3f"
+    },
+    {
+      "name": "wiki-b1c2d8a.bundle",
+      "size_bytes": 39827352,
+      "sha256": "68405b7510450898a5ec2b690431c204ed56ba76eaba5ef2d2bab42368ab4293"
+    }
+  ],
+  "split_payloads": [
+    {
+      "logical_name": "l24-source-v2.tar",
+      "original_size_bytes": 17101714432,
+      "original_sha256": "5920dbdb2f1d29eac0be84c82611a9869318fae2ec5b3fe1392fd2ef9abef3cf",
+      "reassembly_order": [
+        "l24-source-v2.tar.part0001",
+        "l24-source-v2.tar.part0002",
+        "l24-source-v2.tar.part0003",
+        "l24-source-v2.tar.part0004",
+        "l24-source-v2.tar.part0005",
+        "l24-source-v2.tar.part0006",
+        "l24-source-v2.tar.part0007",
+        "l24-source-v2.tar.part0008",
+        "l24-source-v2.tar.part0009",
+        "l24-source-v2.tar.part0010"
+      ]
+    },
+    {
+      "logical_name": "halofpx-project-p63-formal-evidence.tar.gz",
+      "original_size_bytes": 2516292772,
+      "original_sha256": "412dc86ea616b91e77b8618ffae3e4cadf9597c30a32fb91b5a2d3df41a98892",
+      "reassembly_order": [
+        "halofpx-project-p63-formal-evidence.tar.gz.part0001",
+        "halofpx-project-p63-formal-evidence.tar.gz.part0002"
+      ]
+    }
+  ]
+}

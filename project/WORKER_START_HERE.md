@@ -45,11 +45,12 @@ Do not change exact hashes, measurements, versions, or identifiers.
 
 ## Worktree rules
 
-Inspect both repositories before implementation-related work:
+Inspect the complete monorepo before implementation-related work:
 
 ```powershell
-git status --short
-git -C C:\Users\britt\Documents\HaloFPX status --short
+$repoRoot = (git rev-parse --show-toplevel).Trim()
+git -C $repoRoot status --short
+git -C $repoRoot log -1 --format='%H'
 ```
 
 Treat every unrelated change as user-owned work.

@@ -1,31 +1,36 @@
 # HaloFPX Current Project State
 
-Verified from Project Lead records: 2026-07-29 09:34 Pacific Daylight Time
+Reconciled from retained source and Project Lead records: 2026-08-12
 
 This page is a routing summary.
 The Project Lead records remain authoritative for active work and production state.
 
 ## Current authority
 
-- Documentation repository baseline: `d30814ed08fe395f1bb1d292281ce82edb6bdab4`.
-- HaloFPX implementation repository HEAD: `6c88472bf5f567a1064f27f4d8a90fc8e2b47a02`.
-- The HaloFPX worktree contains preserved, uncommitted L111 implementation work.
-- The documentation task does not own that implementation work.
+- Imported documentation source: `b1c2d8aef707fb03920fc189ccd26395fa61879d`.
+- Retained L111 implementation source: `620ef60aa446990335ef46c7d76738f797e62f8f`.
+- L111 source and evidence are committed. The implementation commit is the
+  direct child of accepted L110 base
+  `6c88472bf5f567a1064f27f4d8a90fc8e2b47a02`.
 - The [Project Lead status](project-management/lead/CURRENT_STATUS.md) records the complete current state.
 - The [Project Lead decisions](project-management/lead/DECISIONS.md) record accepted boundaries.
 
 ## Active project boundary
 
-[VERIFIED] The Project Lead paused internal hidden workers on 2026-07-29.
-The user requires user-visible Codex tasks.
-The documentation task is active under the retained documentation specification.
-[Source: Project Lead decision](project-management/lead/DECISIONS.md#2026-07-29--require-user-visible-worker-tasks)
-
 [VERIFIED] L110 closed `NOT PROMOTED` at
 `6c88472bf5f567a1064f27f4d8a90fc8e2b47a02`.
-L111 owns only the loader transaction gate described by the Project Lead.
-Uncommitted L111 files are not accepted source.
-[Source: Project Lead status](project-management/lead/CURRENT_STATUS.md)
+L111 then closed `PASS / RETAIN` at
+`620ef60aa446990335ef46c7d76738f797e62f8f`.
+The accepted result is only the bounded loader foundation. Release and Debug
+focused CTest passed `1/1`; the feature-off static `llama` target compiled; and
+independent review returned `PASS / RETAIN` with no P0 or P1 finding.
+[Source: Project Lead decision](project-management/lead/DECISIONS.md#2026-08-12--accept-the-bounded-l111-loader-foundation)
+
+[VERIFIED] L111 did not wire a graph, add asynchronous RPC, change scheduling,
+run a model, touch production, restart cache integration, or make a performance
+claim. Its feature-off evidence is compile-level rather than a real MiniMax
+runtime-parity result.
+[Source: L111 evidence](../docs/halofpx/evidence/l111/README.md)
 
 ## Production state
 
@@ -41,8 +46,10 @@ PID `2148915` and InvocationID `3480c89086e04d5d80060366c5c7ab7f`.
 The service had `NRestarts=0` and one port 50052 listener.
 [Source: Project Lead status](project-management/lead/CURRENT_STATUS.md)
 
-The documentation task did not recheck or change production.
-Read the current Project Lead authority before any authorized transition.
+[OPEN] Production was not rechecked during the 2026-08-12 source-only
+reconciliation. The two measurements above are historical 2026-07-29
+observations, not a current health claim. Read current machine authority before
+any authorized transition.
 
 ## Product and performance state
 
@@ -66,7 +73,10 @@ No accepted full-model speed improvement exists.
 ## Next safe actions
 
 - Documentation workers must follow [`WORKER_START_HERE.md`](WORKER_START_HERE.md).
-- Implementation workers must use the
-  [L111 visible-worker specification](project-management/lead/worker-specs/L111_VISIBLE_IMPLEMENTATION_TASK.md).
-- No worker may treat uncommitted HaloFPX source as accepted.
+- Treat the
+  [L111 visible-worker specification](project-management/lead/worker-specs/L111_VISIBLE_IMPLEMENTATION_TASK.md)
+  as the completed historical contract, not an active implementation handoff.
+- Any graph, asynchronous RPC, scheduler, model/runtime, cache-product, or
+  performance milestone requires a separate Project Lead decision and focused
+  qualification.
 - No worker may change production without a current Project Lead decision.

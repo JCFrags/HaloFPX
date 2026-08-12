@@ -27,7 +27,7 @@ The linked artifact remains authoritative for its own contents.
 | Reviewed Wiki claims | [Wiki categories](README.md#categories) | Explain source-backed findings |
 | Project reviews | [`reviews/`](../../reviews/README.md) | Retain findings and improvement proposals |
 | Project Lead authority | [`project-management/lead/`](../../project-management/lead/README.md) | Record current state and accepted boundaries |
-| HaloFPX implementation evidence | `C:\Users\britt\Documents\HaloFPX\docs\halofpx\README.md` | Index implementation-local milestones and receipts |
+| HaloFPX implementation evidence | [`docs/halofpx/`](../../../docs/halofpx/README.md) | Index implementation-local milestones and receipts |
 
 ## Claim labels
 

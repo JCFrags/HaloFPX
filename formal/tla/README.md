@@ -21,8 +21,13 @@ hardware, real time, or implementation conformance.
 - Apalache `v0.57.0`, build `635865a`, checker-JAR SHA-256
   `1c2500ec2b014fcf41a7b0bd4c30fc3204b69377028fd689224eea9cf23f66f5`
 - qualification runtime: Temurin OpenJDK `25.0.2+10-LTS`
-- receipts remain under
-  `C:\Users\britt\Documents\Custom_Inference_Project\sources\tools`
+- receipts remain under [`project/sources/tools/`](../../project/sources/tools/)
+
+The runners look for the pinned checker JARs below that repository-local tool
+directory. Set `HALOFPX_TLC_JAR` or `HALOFPX_APALACHE_JAR` to an alternate
+absolute path when the archived tools are restored elsewhere. Set
+`HALOFPX_JAVA` to a Java executable when `JAVA_HOME` and `PATH` do not identify
+the required runtime.
 
 ## Configurations
 
@@ -40,7 +45,7 @@ hardware, real time, or implementation conformance.
 
 ## Evidence runners
 
-Raw evidence must be outside the implementation repository:
+Raw evidence must be outside the monorepo:
 
 ```powershell
 .\run-tlc.ps1 -EvidenceRoot <absolute-evidence-path> -SafetyRepetitions 3

@@ -8,20 +8,64 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$java = 'C:\Program Files\Stirling-PDF\runtime\jre\bin\java.exe'
-$jar = 'C:\Users\britt\Documents\Custom_Inference_Project\sources\tools\apalache\v0.57.0\extracted\apalache-0.57.0\lib\apalache.jar'
 $expectedJarSha256 = '1c2500ec2b014fcf41a7b0bd4c30fc3204b69377028fd689224eea9cf23f66f5'
 $specRoot = $PSScriptRoot
+$repoRoot = [IO.Path]::GetFullPath((Join-Path $specRoot '../..'))
 $spec = Join-Path $specRoot 'HaloFPXPublication.tla'
 $config = Join-Path $specRoot 'GenerationChainSafety.cfg'
 $resolvedEvidence = [IO.Path]::GetFullPath($EvidenceRoot)
-$forbidden = [IO.Path]::GetFullPath((Join-Path $specRoot '..\..'))
+$repositoryBoundary = $repoRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 
-if ($resolvedEvidence.StartsWith($forbidden, [StringComparison]::OrdinalIgnoreCase)) {
-    throw 'Raw evidence must remain outside the implementation repository'
+if ($resolvedEvidence.Equals($repoRoot, [StringComparison]::OrdinalIgnoreCase) -or
+    $resolvedEvidence.StartsWith($repositoryBoundary, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Raw evidence must remain outside the monorepo'
 }
-if (-not (Test-Path -LiteralPath $java -PathType Leaf)) { throw "Java runtime not found: $java" }
-if (-not (Test-Path -LiteralPath $jar -PathType Leaf)) { throw "Pinned Apalache JAR not found: $jar" }
+
+function Resolve-JavaRuntime {
+    $configured = [Environment]::GetEnvironmentVariable('HALOFPX_JAVA')
+    if (-not [string]::IsNullOrWhiteSpace($configured)) {
+        $candidate = [Environment]::ExpandEnvironmentVariables($configured)
+        if (-not [IO.Path]::IsPathRooted($candidate)) { $candidate = Join-Path $repoRoot $candidate }
+        $candidate = [IO.Path]::GetFullPath($candidate)
+        if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+            throw "HALOFPX_JAVA does not identify a Java executable: $candidate"
+        }
+        return $candidate
+    }
+
+    $javaHome = [Environment]::GetEnvironmentVariable('JAVA_HOME')
+    if (-not [string]::IsNullOrWhiteSpace($javaHome)) {
+        foreach ($name in @('java.exe', 'java')) {
+            $candidate = Join-Path $javaHome (Join-Path 'bin' $name)
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                return [IO.Path]::GetFullPath($candidate)
+            }
+        }
+    }
+
+    $command = Get-Command java -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($null -ne $command) { return $command.Source }
+    throw 'Java runtime not found. Set HALOFPX_JAVA, set JAVA_HOME, or add java to PATH.'
+}
+
+function Resolve-PinnedJar {
+    $configured = [Environment]::GetEnvironmentVariable('HALOFPX_APALACHE_JAR')
+    $candidate = if ([string]::IsNullOrWhiteSpace($configured)) {
+        Join-Path $repoRoot 'project/sources/tools/apalache/v0.57.0/extracted/apalache-0.57.0/lib/apalache.jar'
+    } else {
+        [Environment]::ExpandEnvironmentVariables($configured)
+    }
+    if (-not [IO.Path]::IsPathRooted($candidate)) { $candidate = Join-Path $repoRoot $candidate }
+    $candidate = [IO.Path]::GetFullPath($candidate)
+    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+        throw "Pinned Apalache JAR not found: $candidate. Restore project/sources/tools or set HALOFPX_APALACHE_JAR."
+    }
+    return $candidate
+}
+
+$java = Resolve-JavaRuntime
+$jar = Resolve-PinnedJar
 $jarSha256 = (Get-FileHash -LiteralPath $jar -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($jarSha256 -ne $expectedJarSha256) { throw "Unexpected Apalache JAR SHA-256: $jarSha256" }
 [IO.Directory]::CreateDirectory($resolvedEvidence) | Out-Null
@@ -90,8 +134,8 @@ $manifest = [ordered]@{
     apalache_jar_sha256 = $jarSha256
     spec_sha256 = (Get-FileHash -LiteralPath $spec -Algorithm SHA256).Hash.ToLowerInvariant()
     config_sha256 = (Get-FileHash -LiteralPath $config -Algorithm SHA256).Hash.ToLowerInvariant()
-    git_head = (git -C (Join-Path $specRoot '..\..') rev-parse HEAD).Trim()
-    git_status = @((git -C (Join-Path $specRoot '..\..') status --short))
+    git_head = (git -C $repoRoot rev-parse HEAD).Trim()
+    git_status = @((git -C $repoRoot status --short))
     runs = $records
     artifacts = $artifacts
 }
