@@ -103,6 +103,18 @@ def prime_and_displace(prompt=LONG_PROMPT):
     return original
 
 
+def flip_last_byte_without_resizing(path):
+    original_size = path.stat().st_size
+    assert original_size > 0
+    with path.open("r+b") as state:
+        state.seek(-1, os.SEEK_END)
+        final_byte = state.read(1)
+        assert len(final_byte) == 1
+        state.seek(-1, os.SEEK_END)
+        state.write(bytes([final_byte[0] ^ 0x01]))
+    assert path.stat().st_size == original_size
+
+
 def test_disk_only_parse_restore_and_owned_cleanup(tmp_path):
     configure_disk_server(str(tmp_path), limit_mib=64)
     server.start()
@@ -251,6 +263,88 @@ def test_disk_cache_rejects_partial_target_draft_pair(tmp_path):
     # A rejected pair must not poison the slot or the server.
     healthy = complete("The server remains healthy after a rejected cache pair.")
     assert healthy.status_code == 200
+
+
+def test_disk_cache_rejects_same_size_target_corruption(tmp_path):
+    configure_disk_server(str(tmp_path), limit_mib=64)
+    server.start()
+    log = LogReader(server.log_path)
+    log.drain()
+
+    original = prime_and_displace()
+    saved = log.drain()
+    assert re.search(r"prompt cache disk save: .*target_bytes=[1-9][0-9]* draft_bytes=0", saved)
+
+    run_dirs = list((tmp_path / ".llama-prompt-cache-v1").glob("run-*"))
+    assert len(run_dirs) == 1
+    target_files = list(run_dirs[0].glob("state-*-target.bin"))
+    assert len(target_files) == 1
+    target_file = target_files[0]
+    flip_last_byte_without_resizing(target_file)
+
+    restored = complete(LONG_PROMPT)
+    rejected = log.drain()
+    assert "reason=digest-mismatch" in rejected
+    assert re.search(r"prompt cache disk remove: .*reason=target-digest-mismatch", rejected)
+    assert "prompt cache disk load accepted:" not in rejected
+    assert "prompt cache cold fallback:" in rejected
+    assert "target_and_draft_cleared=true" in rejected
+    assert restored.body["timings"]["cache_n"] == 0
+    assert restored.body["timings"]["prompt_n"] == original.body["timings"]["prompt_n"]
+    assert not target_file.exists()
+
+    healthy = complete("The server remains healthy after same-size cache corruption.")
+    assert healthy.status_code == 200
+
+
+def test_disk_cache_rejects_same_size_corruption_before_touch(tmp_path):
+    configure_disk_server(str(tmp_path), limit_mib=64)
+    server.start()
+    log = LogReader(server.log_path)
+    log.drain()
+
+    prime_and_displace()
+    log.drain()
+
+    restored = complete(LONG_PROMPT)
+    loaded = log.drain()
+    first_entry = re.search(r"prompt cache disk load: entry=([0-9]+)", loaded)
+    assert first_entry is not None
+    first_entry_id = first_entry.group(1)
+    assert restored.body["timings"]["cache_n"] > 0
+
+    run_dirs = list((tmp_path / ".llama-prompt-cache-v1").glob("run-*"))
+    assert len(run_dirs) == 1
+    corrupt_path = run_dirs[0] / f"state-{first_entry_id}-target.bin"
+    assert corrupt_path.is_file()
+    flip_last_byte_without_resizing(corrupt_path)
+
+    # Saving the restored idle slot must reject the corrupt old entry before
+    # considering it safe to clear. The valid live context may then be saved as
+    # a fresh entry and reused normally.
+    complete("A third prompt triggers validation of the restored idle slot.", 1)
+    rewritten = log.drain()
+    assert (
+        f"prompt cache disk touch rejected: entry={first_entry_id} "
+        "component=target reason=digest-mismatch"
+    ) in rewritten
+    assert f"prompt cache disk touch: entry={first_entry_id}" not in rewritten
+    assert re.search(
+        rf"prompt cache disk remove: entry={first_entry_id} .*reason=target-digest-mismatch",
+        rewritten,
+    )
+    assert not corrupt_path.exists()
+
+    replacement = re.search(r"prompt cache disk save: entry=([0-9]+)", rewritten)
+    assert replacement is not None
+    replacement_entry_id = replacement.group(1)
+    assert replacement_entry_id != first_entry_id
+
+    restored_again = complete(LONG_PROMPT)
+    reloaded = log.drain()
+    assert f"prompt cache disk load: entry={replacement_entry_id}" in reloaded
+    assert f"prompt cache disk load accepted: entry={replacement_entry_id}" in reloaded
+    assert restored_again.body["timings"]["cache_n"] > 0
 
 
 def test_disk_save_failure_opens_breaker_and_preserves_idle_slot(tmp_path):
