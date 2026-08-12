@@ -139,6 +139,9 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Test target process guard
+        run: bash tests/test-halofpx-rocmfpx-mmvq-process-guard.sh
+
       - name: Configure focused host tests
         run: >-
           cmake -S . -B build/ci-rocmfpx-mmvq-sum-free

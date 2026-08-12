@@ -20,14 +20,17 @@ kernels or model benchmarks.
   `GGML_HIP_ROCMFPX_MMVQ_SUM_FREE` candidate definition.
 - **[MEASURED]** The feature-off and feature-on host contracts passed 2/2 on
   both machines. These contracts check the exact admitted type set, unchanged
-  36-byte `block_q8_1` ABI, scale and quant-byte preservation, positive-zero
-  unused high lane, and the expected compile mode.
+  36-byte `block_q8_1` ABI, positive-zero unused high-lane policy, and the
+  expected compile mode. Source inspection, not these host contracts, establishes
+  that the candidate kernel retains the scale and all 32 quantized bytes.
 - **[MEASURED]** Both independently built HIP libraries had SHA-256
   `aab1bff95c831f5222701dac0e9124ef1c11a5201a2c1294fa6ae6dec97cb0cc`.
-- **[MEASURED]** nimo-1's coordinator remained active and healthy at PID
-  `3027112`, InvocationID `e6da1fe637144cb394119959c0e88736`, with zero
-  restarts. nimo-2's RPC worker remained active and listening at PID `2148915`,
-  InvocationID `3480c89086e04d5d80060366c5c7ab7f`, with zero restarts.
+- **[MEASURED]** Post-build snapshots recorded nimo-1's coordinator active and
+  healthy at PID `3027112`, InvocationID
+  `e6da1fe637144cb394119959c0e88736`, with zero restarts. The nimo-2 snapshot
+  recorded its RPC worker active and listening at PID `2148915`, InvocationID
+  `3480c89086e04d5d80060366c5c7ab7f`, with zero restarts. These snapshots show
+  no recorded restart; they are not continuous service monitoring.
 - **[OPEN]** No candidate HIP kernel was executed in this receipt. Numerical
   parity, model-output parity, and generation-speed benefit still require a
   matched OFF/ON target run while the production processes are deliberately

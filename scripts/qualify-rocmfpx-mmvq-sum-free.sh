@@ -34,6 +34,11 @@ fail() {
     exit 1
 }
 
+PROCESS_GUARD="$SCRIPT_DIR/halofpx-rocmfpx-mmvq-process-guard.sh"
+[[ -r "$PROCESS_GUARD" ]] || fail "missing process guard: $PROCESS_GUARD"
+# shellcheck source=halofpx-rocmfpx-mmvq-process-guard.sh
+source "$PROCESS_GUARD"
+
 require_positive_integer() {
     local name="$1"
     local value="$2"
@@ -61,8 +66,7 @@ done
 source /etc/os-release
 [[ "${ID:-}" == cachyos ]] || fail "target qualification requires CachyOS (found ${ID:-unknown})"
 
-LLAMA_PROCESS_RE='(^|/)(llama-server|llama-cli|llama-completion|llama-bench|rpc-server)( |$)'
-ACTIVE_LLAMA_PROCESSES="$(pgrep -af "$LLAMA_PROCESS_RE" || true)"
+ACTIVE_LLAMA_PROCESSES="$(halofpx_rocmfpx_mmvq_active_processes)"
 if [[ -n "$ACTIVE_LLAMA_PROCESSES" ]]; then
     printf '%s\n' "$ACTIVE_LLAMA_PROCESSES" >&2
     fail "refusing to benchmark while another llama process is active"
