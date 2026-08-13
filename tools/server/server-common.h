@@ -190,6 +190,10 @@ public:
 
     // for compatibility with context shift and prompt truncation
     void insert(const llama_tokens & inp_tokens);
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+    void reserve(size_t token_capacity);
+    void insert_prefix(const llama_tokens & inp_tokens, size_t count);
+#endif
 
     // for compatibility with speculative decoding, ctx shift, slot save/load
     const llama_tokens & get_tokens() const;

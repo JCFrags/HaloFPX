@@ -24,6 +24,9 @@ struct context_store_world1_cache_authority_v1 {
 
 bool context_store_world1_cache_authority_v1_is_valid(
     const context_store_world1_cache_authority_v1 & authority) noexcept;
+bool context_store_world1_cache_authority_v1_matches(
+    const context_store_world1_cache_authority_v1 & left,
+    const context_store_world1_cache_authority_v1 & right) noexcept;
 
 enum class context_store_world1_prefix_source_v1 : uint8_t {
     cold,
@@ -37,6 +40,7 @@ enum class context_store_world1_prefix_fallback_v1 : uint8_t {
     live_authority_unavailable,
     live_authority_invalid,
     authority_generation_changed,
+    authority_changed,
     invalid_request,
     catalog_unavailable,
     live_slot_state_present,
@@ -58,12 +62,25 @@ struct context_store_world1_prefix_lookup_request_v1 {
 };
 
 struct context_store_world1_prefix_lookup_result_v1 {
+    context_store_world1_prefix_lookup_result_v1() = default;
+    ~context_store_world1_prefix_lookup_result_v1() noexcept;
+    context_store_world1_prefix_lookup_result_v1(
+        const context_store_world1_prefix_lookup_result_v1 &) = delete;
+    context_store_world1_prefix_lookup_result_v1 & operator=(
+        const context_store_world1_prefix_lookup_result_v1 &) = delete;
+    context_store_world1_prefix_lookup_result_v1(
+        context_store_world1_prefix_lookup_result_v1 && other) noexcept;
+    context_store_world1_prefix_lookup_result_v1 & operator=(
+        context_store_world1_prefix_lookup_result_v1 && other) noexcept;
+
     context_store_world1_prefix_source_v1 source =
         context_store_world1_prefix_source_v1::cold;
     context_store_world1_prefix_fallback_v1 fallback =
         context_store_world1_prefix_fallback_v1::feature_off;
     context_store_transformer_snapshot_v1 snapshot;
     context_store_identity selected_identity {};
+    context_store_world1_cache_authority_v1 bound_authority {};
+    bool authority_bound = false;
     size_t selected_prefix_tokens = 0;
     size_t restored_tokens = 0;
     size_t residual_tokens = 0;
@@ -84,6 +101,7 @@ enum class context_store_world1_prefix_install_status_v1 : uint8_t {
     installed,
     rejected,
     authority_generation_changed,
+    authority_changed,
     state_apply_failed,
 };
 
@@ -93,6 +111,7 @@ struct context_store_world1_prefix_install_request_v1 {
     context_store_world1_prefix_lookup_result_v1 * lookup = nullptr;
     llama_context * context = nullptr;
     llama_seq_id sequence = -1;
+    size_t sequence_limit = 0;
     const llama_token * full_tokens = nullptr;
     size_t full_token_count = 0;
     context_store_transformer_profile_v1 profile;
@@ -111,6 +130,16 @@ struct context_store_world1_prefix_install_result_v1 {
         return status == context_store_world1_prefix_install_status_v1::installed;
     }
 };
+
+struct context_store_world1_work_accounting_v1 {
+    bool valid = false;
+    size_t actual_prompt_tokens = 0;
+    size_t avoided_prompt_tokens = 0;
+};
+
+context_store_world1_work_accounting_v1
+context_store_world1_finalize_work_accounting_v1(
+    size_t request_prompt_tokens, int64_t actual_prompt_tokens) noexcept;
 
 // Production and deterministic model-free seams share identical validation,
 // authority, state-application, and state-wiping semantics.

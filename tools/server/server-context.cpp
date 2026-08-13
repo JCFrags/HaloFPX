@@ -1587,13 +1587,25 @@ private:
 #endif
 
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+    bool halofpx_prefix_product_request_fits_slot(
+            const server_slot & slot, const server_task & task) const noexcept {
+        const bool can_split = !task.need_embd() ||
+            (llama_get_memory(ctx_tgt) &&
+             llama_pooling_type(ctx_tgt) == LLAMA_POOLING_TYPE_LAST);
+        return can_split
+            ? task.n_tokens() < slot.n_ctx
+            : task.n_tokens() <= static_cast<int32_t>(llama_n_ubatch(ctx_tgt)) &&
+                task.n_tokens() <= slot.n_ctx;
+    }
+
     bool halofpx_prefix_product_exact_session(
             const server_task & task,
             halofpx::context_store_exact_session_inputs_v1 & exact,
             halofpx::context_store_exact_session_result_v1 & resolved) const noexcept {
-        if (!halofpx_world1_cache_authority ||
-            task.halofpx_prefix_product.authority_generation !=
-                halofpx_world1_cache_authority->model_generation) {
+        const auto & carrier = task.halofpx_prefix_product;
+        if (!halofpx_world1_cache_authority || !carrier.authority_bound ||
+            !halofpx::context_store_world1_cache_authority_v1_matches(
+                carrier.bound_authority, *halofpx_world1_cache_authority)) {
             return false;
         }
         const llama_tokens & tokens = task.tokens.get_tokens();
@@ -1632,34 +1644,44 @@ private:
                         live_slot_state_present);
             return false;
         }
+        if (!halofpx_prefix_product_request_fits_slot(slot, task) ||
+            (task.need_logits() && !llama_get_memory(ctx_tgt))) {
+            carrier.telemetry.fallback_reason = "invalid-request";
+            return false;
+        }
         halofpx::context_store_transformer_profile_v1 profile;
         if (!halofpx_profile_for_slot(slot, profile, false)) return false;
         halofpx::context_store_exact_session_inputs_v1 exact;
         halofpx::context_store_exact_session_result_v1 resolved;
         if (!halofpx_prefix_product_exact_session(task, exact, resolved)) {
             carrier.active = false;
-            carrier.telemetry.fallback_reason = "authority-generation-changed";
+            carrier.telemetry.fallback_reason =
+                halofpx_world1_cache_authority && carrier.authority_bound &&
+                carrier.bound_authority.model_generation !=
+                    halofpx_world1_cache_authority->model_generation
+                    ? "authority-generation-changed" : "authority-changed";
             return false;
         }
 
         halofpx::context_store_world1_prefix_lookup_request_v1 lookup_request;
         lookup_request.enabled = true;
         lookup_request.authority = halofpx_world1_cache_authority.get();
-        lookup_request.expected_model_generation = carrier.authority_generation;
+        lookup_request.expected_model_generation =
+            carrier.bound_authority.model_generation;
         lookup_request.catalog = halofpx_catalog_store.get();
         lookup_request.exact_session = exact;
         lookup_request.policy_epoch = 1;
         lookup_request.profile = profile;
         auto lookup = halofpx::context_store_world1_prefix_lookup_v1(lookup_request);
-        carrier.telemetry.source =
+        carrier.telemetry.match_kind =
             halofpx::context_store_world1_prefix_source_name_v1(lookup.source);
         carrier.telemetry.fallback_reason =
             halofpx::context_store_world1_prefix_fallback_name_v1(lookup.fallback);
         carrier.telemetry.selected_prefix_tokens = lookup.selected_prefix_tokens;
-        carrier.telemetry.restored_tokens = lookup.restored_tokens;
-        carrier.telemetry.residual_tokens = lookup.residual_tokens;
+        carrier.telemetry.restored_state_tokens = lookup.restored_tokens;
+        carrier.telemetry.logical_residual_tokens = lookup.residual_tokens;
         carrier.telemetry.candidates_examined = lookup.candidates_examined;
-        carrier.telemetry.lookup_validation_ns = lookup.validation_time_ns;
+        carrier.telemetry.lookup_total_ns = lookup.validation_time_ns;
         if (!lookup.hit()) {
             carrier.publish_after_prompt = lookup.fallback ==
                 halofpx::context_store_world1_prefix_fallback_v1::
@@ -1676,10 +1698,12 @@ private:
         };
         halofpx::context_store_world1_prefix_install_request_v1 install_request;
         install_request.authority = halofpx_world1_cache_authority.get();
-        install_request.expected_model_generation = carrier.authority_generation;
+        install_request.expected_model_generation =
+            carrier.bound_authority.model_generation;
         install_request.lookup = &lookup;
         install_request.context = ctx_tgt;
         install_request.sequence = slot.id;
+        install_request.sequence_limit = llama_n_seq_max(ctx_tgt);
         install_request.full_tokens = tokens.data();
         install_request.full_token_count = tokens.size();
         install_request.profile = profile;
@@ -1690,47 +1714,54 @@ private:
         // applying it, so this phase is restore validation + apply + cleanup.
         const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now() - install_started).count();
-        carrier.telemetry.state_install_ns =
+        carrier.telemetry.state_install_cleanup_ns =
             elapsed <= 0 ? 0 : static_cast<uint64_t>(elapsed);
         if (!install_result.installed()) {
             slot.prompt_clear(false);
             slot.prompt.checkpoints.clear();
-            carrier.telemetry.source = "cold";
-            carrier.telemetry.fallback_reason = install_result.status ==
+            if (install_result.status ==
                     halofpx::context_store_world1_prefix_install_status_v1::
-                        authority_generation_changed
-                ? "authority-generation-changed"
-                : "state-install-failed";
-            carrier.telemetry.selected_prefix_tokens = 0;
-            carrier.telemetry.restored_tokens = 0;
-            carrier.telemetry.residual_tokens = tokens.size();
+                        authority_generation_changed) {
+                carrier.telemetry.fallback_reason =
+                    halofpx::context_store_world1_prefix_fallback_name_v1(
+                        halofpx::context_store_world1_prefix_fallback_v1::
+                            authority_generation_changed);
+            } else if (install_result.status ==
+                    halofpx::context_store_world1_prefix_install_status_v1::
+                        authority_changed) {
+                carrier.telemetry.fallback_reason =
+                    halofpx::context_store_world1_prefix_fallback_name_v1(
+                        halofpx::context_store_world1_prefix_fallback_v1::
+                            authority_changed);
+            } else {
+                carrier.telemetry.fallback_reason = "state-install-failed";
+            }
+            carrier.telemetry.restored_state_tokens = 0;
             return false;
         }
         const size_t prefix_tokens = install_result.installed_prefix_tokens;
         try {
-            llama_tokens installed_tokens(tokens.begin(), tokens.begin() + prefix_tokens);
+            // Reserve while the destination is still empty. A failed reserve
+            // leaves no copied token IDs, and the following insertion cannot
+            // allocate or create a disposable intermediate buffer.
+            slot.prompt.tokens.reserve(prefix_tokens);
             // Checkpoint payloads belong to the previous live slot state and
             // must never survive an externally installed restart snapshot.
             slot.prompt.checkpoints.clear();
-            slot.prompt.tokens.insert(installed_tokens);
+            slot.prompt.tokens.insert_prefix(tokens, prefix_tokens);
         } catch (const std::bad_alloc &) {
             slot.prompt_clear(false);
             slot.prompt.checkpoints.clear();
-            carrier.telemetry.source = "cold";
             carrier.telemetry.fallback_reason = "state-install-failed";
-            carrier.telemetry.selected_prefix_tokens = 0;
-            carrier.telemetry.restored_tokens = 0;
-            carrier.telemetry.residual_tokens = tokens.size();
+            carrier.telemetry.restored_state_tokens = 0;
             return false;
         }
-        // llama-server must evaluate one prompt token to materialize logits.
-        // Report effective reused/residual work rather than the logical exact
-        // snapshot boundary reported by the selector.
-        if (exact_hit && prefix_tokens != 0) {
-            carrier.telemetry.restored_tokens = prefix_tokens - 1;
-            carrier.telemetry.residual_tokens = 1;
-        }
+        // Exact hits still replay one token to materialize logits, but the
+        // immutable snapshot/logical counts above remain exact. Final-response
+        // timing reports actual and avoided prompt work separately.
+        (void) exact_hit;
         carrier.publish_after_prompt = install_result.residual_tokens != 0;
+        carrier.telemetry.reuse_tier = "persistent-filesystem";
         return true;
     }
 
@@ -1743,10 +1774,9 @@ private:
         }
         auto & carrier = slot.task->halofpx_prefix_product;
         carrier.publication_attempted = true;
-        if (carrier.authority_generation !=
-                halofpx_world1_cache_authority->model_generation) {
-            carrier.telemetry.source = "cold";
-            carrier.telemetry.fallback_reason = "authority-generation-changed";
+        if (!carrier.authority_bound ||
+            !halofpx::context_store_world1_cache_authority_v1_matches(
+                carrier.bound_authority, *halofpx_world1_cache_authority)) {
             return;
         }
         halofpx::context_store_transformer_profile_v1 profile;
@@ -1768,11 +1798,14 @@ private:
             ctx_tgt, slot.id, tokens.data(), tokens.size(), identity, profile, limits);
         if (captured.status !=
                 halofpx::context_store_transformer_status_v1::captured) return;
-        if (carrier.authority_generation ==
-                halofpx_world1_cache_authority->model_generation) {
+        if (carrier.authority_bound &&
+            halofpx::context_store_world1_cache_authority_v1_matches(
+                carrier.bound_authority, *halofpx_world1_cache_authority)) {
             (void) halofpx_catalog_store->publish(captured.snapshot);
         }
         halofpx_wipe(captured.snapshot.state.data(), captured.snapshot.state.size());
+        halofpx_wipe(captured.snapshot.tokens.data(),
+                     captured.snapshot.tokens.size() * sizeof(llama_token));
     }
 #endif
 #endif
@@ -2789,6 +2822,11 @@ private:
         res->response_fields = std::move(slot.task->params.response_fields);
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
         res->halofpx_cache = slot.task->halofpx_prefix_product.telemetry;
+        if (slot.n_prompt_tokens_cache > 0 &&
+            std::strcmp(res->halofpx_cache.reuse_tier,
+                        "persistent-filesystem") != 0) {
+            res->halofpx_cache.reuse_tier = "live-slot-memory";
+        }
 #endif
 
         res->truncated             = slot.truncated;
@@ -5287,13 +5325,19 @@ std::unique_ptr<server_res_generator> server_routes::handle_completions_impl(
             if (observable_prefix_request) {
                 auto & carrier = task.halofpx_prefix_product;
                 carrier.telemetry.enabled = true;
-                carrier.telemetry.source = "cold";
-                carrier.telemetry.residual_tokens = task.tokens.size();
-                carrier.telemetry.fallback_reason =
-                    ctx_server.halofpx_world1_cache_authority
-                        ? (ctx_server.halofpx_catalog_store
-                            ? "invalid-request" : "catalog-unavailable")
-                        : "live-authority-unavailable";
+                carrier.telemetry.match_kind = "cold";
+                carrier.telemetry.logical_residual_tokens = task.tokens.size();
+                const bool authority_present =
+                    static_cast<bool>(ctx_server.halofpx_world1_cache_authority);
+                const bool authority_valid = authority_present &&
+                    halofpx::context_store_world1_cache_authority_v1_is_valid(
+                        *ctx_server.halofpx_world1_cache_authority);
+                carrier.telemetry.fallback_reason = !authority_present
+                    ? "live-authority-unavailable"
+                    : !authority_valid
+                        ? "live-authority-invalid"
+                        : ctx_server.halofpx_catalog_store
+                            ? "invalid-request" : "catalog-unavailable";
                 const bool eligible = task.params.cache_prompt &&
                     task.params.lora.empty() && task.params.antiprompt.empty() &&
                     task.params.response_fields.empty() &&
@@ -5332,8 +5376,9 @@ std::unique_ptr<server_res_generator> server_routes::handle_completions_impl(
                     halofpx_wipe(principal.data(), principal.size());
                     if (scope.resolved()) {
                         carrier.scope_namespace = scope.namespace_id;
-                        carrier.authority_generation =
-                            ctx_server.halofpx_world1_cache_authority->model_generation;
+                        carrier.bound_authority =
+                            *ctx_server.halofpx_world1_cache_authority;
+                        carrier.authority_bound = true;
                         carrier.active = true;
                         carrier.telemetry.fallback_reason =
                             "no-authenticated-checkpoint";

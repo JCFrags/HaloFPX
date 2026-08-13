@@ -10,6 +10,9 @@
 #include "speculative.h"
 #include "server-common.h"
 #include "server-prompt-cache-digest.h"
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+#include "halofpx-context-store-world1-prefix-product-v1.h"
+#endif
 
 #include <cerrno>
 #include <cinttypes>
@@ -773,15 +776,23 @@ json server_task_result_cmpl_final::to_json_non_oaicompat() {
     }
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
     if (halofpx_cache.enabled) {
+        halofpx::context_store_world1_work_accounting_v1 work;
+        if (n_prompt_tokens >= 0) {
+            work = halofpx::context_store_world1_finalize_work_accounting_v1(
+                static_cast<size_t>(n_prompt_tokens), timings.prompt_n);
+        }
         res["halofpx_cache"] = json {
-            {"source",                    halofpx_cache.source},
+            {"match_kind",                halofpx_cache.match_kind},
+            {"reuse_tier",                halofpx_cache.reuse_tier},
             {"selected_prefix_tokens",    halofpx_cache.selected_prefix_tokens},
-            {"restored_tokens",           halofpx_cache.restored_tokens},
-            {"residual_tokens",           halofpx_cache.residual_tokens},
-            {"actual_prompt_tokens",      timings.prompt_n},
+            {"restored_state_tokens",     halofpx_cache.restored_state_tokens},
+            {"logical_residual_tokens",   halofpx_cache.logical_residual_tokens},
+            {"work_accounting_valid",     work.valid},
+            {"actual_prompt_tokens",      work.actual_prompt_tokens},
+            {"avoided_prompt_tokens",     work.avoided_prompt_tokens},
             {"candidates_examined",       halofpx_cache.candidates_examined},
-            {"lookup_validation_ns",      halofpx_cache.lookup_validation_ns},
-            {"state_install_ns",          halofpx_cache.state_install_ns},
+            {"lookup_total_ns",           halofpx_cache.lookup_total_ns},
+            {"state_install_cleanup_ns",  halofpx_cache.state_install_cleanup_ns},
             {"fallback_reason",           halofpx_cache.fallback_reason},
         };
     }

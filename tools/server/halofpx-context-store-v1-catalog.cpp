@@ -726,13 +726,18 @@ context_store_v1_catalog::discover_prefix_token_counts(
         return fail(context_store_v1_catalog_status::busy);
     }
     if (!implementation_ ||
-        !nonzero(query.compatibility_root) || !nonzero(query.scope_namespace) ||
+        !nonzero(query.compatibility_root) || !nonzero(query.producer_identity) ||
+        !nonzero(query.scope_namespace) ||
         query.policy_epoch == 0 || query.max_token_count == 0 ||
         !context_store_transformer_profile_v1_is_admitted(query.profile) ||
         query.profile.world_size != 1 || query.profile.rank != 0 ||
         query.profile.architecture !=
             context_store_transformer_architecture_v1::transformer) {
         return fail(context_store_v1_catalog_status::source_rejected);
+    }
+    if (!same_digest(query.producer_identity,
+                     implementation_->config.producer_identity)) {
+        return fail(context_store_v1_catalog_status::miss_incompatible);
     }
     if (!implementation_->layout_valid()) {
         return fail(context_store_v1_catalog_status::miss_corrupt);

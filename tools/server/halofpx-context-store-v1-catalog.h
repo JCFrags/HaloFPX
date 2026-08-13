@@ -54,6 +54,7 @@ struct context_store_v1_catalog_restore_result {
 
 struct context_store_v1_catalog_prefix_query {
     context_store_format_digest compatibility_root {};
+    context_store_format_digest producer_identity {};
     context_store_format_digest scope_namespace {};
     uint64_t policy_epoch = 0;
     size_t max_token_count = 0;

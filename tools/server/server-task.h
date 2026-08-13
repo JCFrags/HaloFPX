@@ -12,6 +12,10 @@
 // TODO: prevent including the whole server-common.h as we only use server_tokens
 #include "server-common.h"
 
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+#include "halofpx-context-store-world1-prefix-product-v1.h"
+#endif
+
 using json = nlohmann::ordered_json;
 
 enum server_task_type {
@@ -137,17 +141,19 @@ struct task_result_state {
 // principal, key, or model name.
 struct halofpx_cache_telemetry_v1 {
     bool enabled = false;
-    // These pointers are restricted to process-lifetime string literals from
-    // the typed source/fallback name helpers.  Keeping telemetry allocation
+    // match_kind reports cold/exact/prefix checkpoint matching; it is not a
+    // storage tier. These pointers are restricted to process-lifetime string
+    // literals from the typed match/fallback name helpers. Keeping telemetry allocation
     // free makes the fail-closed server hooks safe in noexcept paths.
-    const char * source = "cold";
+    const char * match_kind = "cold";
+    const char * reuse_tier = "none";
     const char * fallback_reason = "feature-off";
     size_t selected_prefix_tokens = 0;
-    size_t restored_tokens = 0;
-    size_t residual_tokens = 0;
+    size_t restored_state_tokens = 0;
+    size_t logical_residual_tokens = 0;
     size_t candidates_examined = 0;
-    uint64_t lookup_validation_ns = 0;
-    uint64_t state_install_ns = 0;
+    uint64_t lookup_total_ns = 0;
+    uint64_t state_install_cleanup_ns = 0;
 
     void clear() noexcept {
         *this = {};
@@ -197,7 +203,8 @@ struct server_task {
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
     struct halofpx_prefix_product_carrier {
         std::array<uint8_t, 32> scope_namespace {};
-        uint64_t authority_generation = 0;
+        halofpx::context_store_world1_cache_authority_v1 bound_authority {};
+        bool authority_bound = false;
         bool active = false;
         mutable bool publish_after_prompt = false;
         mutable bool publication_attempted = false;
@@ -205,7 +212,8 @@ struct server_task {
 
         void clear() noexcept {
             scope_namespace.fill(0);
-            authority_generation = 0;
+            bound_authority = {};
+            authority_bound = false;
             active = false;
             publish_after_prompt = false;
             publication_attempted = false;

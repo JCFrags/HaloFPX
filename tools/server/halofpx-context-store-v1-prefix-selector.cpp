@@ -36,6 +36,15 @@ bool same_profile(const context_store_transformer_profile_v1 & left,
         left.greedy_memoryless_sampling == right.greedy_memoryless_sampling;
 }
 
+template <typename T>
+void secure_wipe(std::vector<T> & values) noexcept {
+    volatile uint8_t * bytes =
+        reinterpret_cast<volatile uint8_t *>(values.data());
+    const size_t byte_count = values.size() * sizeof(T);
+    for (size_t index = 0; index != byte_count; ++index) bytes[index] = 0;
+    values.clear();
+}
+
 void reject(context_store_v1_prefix_selector_result & result,
             context_store_v1_prefix_fallback_reason reason) noexcept {
     result.status = context_store_v1_prefix_selector_status::source_rejected;
@@ -211,9 +220,8 @@ context_store_v1_restore_longest_prefix(
                         request.exact_session.tokens) ||
             !same_identity(restored.snapshot.compatibility_identity, identity) ||
             !same_profile(restored.snapshot.profile, request.profile)) {
-            std::fill(restored.snapshot.state.begin(), restored.snapshot.state.end(), 0);
-            restored.snapshot.tokens.clear();
-            restored.snapshot.state.clear();
+            secure_wipe(restored.snapshot.state);
+            secure_wipe(restored.snapshot.tokens);
             result.status = context_store_v1_prefix_selector_status::miss_corrupt;
             result.fallback_reason =
                 context_store_v1_prefix_fallback_reason::authenticated_state_corrupt;

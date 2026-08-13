@@ -47,9 +47,12 @@ bool profiles_equal(
         left.greedy_memoryless_sampling == right.greedy_memoryless_sampling;
 }
 
-void wipe(std::vector<uint8_t> & state) noexcept {
-    volatile uint8_t * output = state.data();
-    for (size_t index = 0; index < state.size(); ++index) {
+template <typename T>
+void wipe(std::vector<T> & state) noexcept {
+    volatile uint8_t * output =
+        reinterpret_cast<volatile uint8_t *>(state.data());
+    const size_t bytes = state.size() * sizeof(T);
+    for (size_t index = 0; index < bytes; ++index) {
         output[index] = 0;
     }
     state.clear();
@@ -57,7 +60,7 @@ void wipe(std::vector<uint8_t> & state) noexcept {
 
 void reject_partial_capture(context_store_transformer_capture_result_v1 & result) noexcept {
     wipe(result.snapshot.state);
-    result.snapshot.tokens.clear();
+    wipe(result.snapshot.tokens);
     result.snapshot.compatibility_identity = {};
     result.snapshot.profile = {};
 }

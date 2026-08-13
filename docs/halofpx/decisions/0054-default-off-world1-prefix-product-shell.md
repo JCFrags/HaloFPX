@@ -39,6 +39,19 @@ compatibility root from all components. There is no CLI or operator-component
 fallback. Until a trusted live-loader adapter installs a complete capability,
 server startup succeeds, storage is not opened, every request computes cold,
 and native response telemetry reports `live-authority-unavailable`.
+The standalone world-size-2 live-authority builder in ADR-0052 is intentionally
+not linked into this world-size-1 product and does not install this capability.
+
+Catalog discovery must match the capability's producer identity against the
+trusted catalog configuration. A successful lookup retains the complete
+capability, and live installation requires exact equality of every retained
+compatibility component/root, producer, plan, ownership, placement, topology,
+generation, world, and rank field. Installation also requires a nonnegative
+single sequence ID inside the trusted context sequence limit; the whole-cache
+`-1` state API sentinel and an out-of-range sequence are rejected before any
+live-state call. The request carrier binds that same complete authority, and
+capture/publication recheck exact equality before and after capture so an
+authority replacement cannot cross lineages.
 
 For a valid capability, catalog discovery derives candidate token counts only
 from authenticated generation-one child manifests in the request's private
@@ -71,9 +84,11 @@ The server inserts only the authenticated prefix tokens into an empty slot.
 The ordinary prompt path then derives `n_past` from those tokens and evaluates
 the untouched residual suffix. A full-request exact hit retains the server's
 mandatory one-token logits replay. The selector's internal logical residual is
-`0`, while server response telemetry reports the effective work as one
-residual token and one fewer restored token. After a clean empty miss, or after
-extending a shorter hit, publication captures the full request boundary only.
+`0`; response telemetry preserves that logical value and the full restored
+state-token count. It separately reports actual prompt tokens from final
+timings and avoided prompt tokens as the bounded request-minus-actual
+difference. After a clean empty miss, or after extending a shorter hit,
+publication captures the full request boundary only.
 This slice does not automatically create a system/chat-role checkpoint and
 does not infer semantic boundaries from text.
 
@@ -87,11 +102,19 @@ persistent lookup and reports `live-slot-state-present`; it does not imply a
 catalog miss.
 
 Native product responses may include fixed non-sensitive `halofpx_cache`
-telemetry: source, selected/restored/residual/actual prompt token counts,
-candidates examined, lookup-validation time, state-apply-and-cleanup time, and
-fallback reason. Prompt text, token values, identities, digests, paths,
-principals, keys, and model names are excluded. Exact legacy and runtime-off
-responses do not gain this field.
+telemetry: match kind (`cold`, `exact`, or `prefix`, not a storage tier),
+selected-prefix, restored-state, logical-residual, actual, and avoided prompt
+token counts plus a validity bit, candidates examined, total lookup time,
+state-install-and-cleanup time, and fallback reason. Reuse tier is `none` or
+`persistent-filesystem` for an empty-slot product lookup, or
+`live-slot-memory` only when final server accounting confirms that in-process
+slot state avoided prompt work; the core does not claim that configured roots
+are SSD. A selected exact/prefix candidate remains the `match_kind` even if
+installation fails; zero restored-state/avoided counts, tier `none`, and the
+typed fallback record that cold outcome without erasing selection evidence.
+Prompt text, token values,
+identities, digests, paths, principals, keys, and model names are excluded.
+Exact legacy and runtime-off responses do not gain this field.
 
 ## Qualification boundary
 
@@ -100,14 +123,28 @@ authenticated restart discovery, preseeded exact-prefix reuse for two distinct
 suffixes, exact hit accounting, one-shot state application and wiping, failed
 state application, authority/generation mismatch, canonical catalog-v1 bytes,
 catalog-mutation custody with busy publication/lookup behavior, and terminal
-corrupt/incomplete longer candidates. The gated `llama-server` build and
-inherited exact/selector contracts must remain green.
+corrupt/incomplete longer candidates. It also covers a same-generation
+producer switch and the negative whole-cache sequence sentinel without a state
+API call. The gated `llama-server` build and inherited exact/selector contracts
+must remain green.
 
 These tests do not execute a positive server hit because no trusted live-loader
 authority provider exists. They do not prove slot insertion, model output
 parity, residual-only model decode, automatic system-prefix capture, target
 performance, or any two-rank behavior. A local WSL no-authority server smoke is
 correctness evidence only and creates no speed claim.
+
+The timing fields are intentionally narrow. `lookup_total_ns` covers the
+product lookup path and `state_install_cleanup_ns` covers state apply plus
+cleanup; neither is inclusive client latency, and the ordinary server
+`prompt_ms` clock starts after this prelaunch cache transition. The response
+does not expose a physical-I/O byte total. A later issue-#18 schema-v2 evidence
+lane must use client-observed TTFT/wall time plus an inclusive cache-transition
+measurement. The existing A/B v1 adapter drops streamed `halofpx_cache` and
+requires uncached prompt accounting, so it is not qualification for this path.
+Issue #18 must also account for request-scoped preprompt cache maintenance,
+including selected-slot transition and synchronous idle-slot saves, with a
+client-observed TTFT arbiter; that broader clock is outside this slice.
 
 Issue #32 remains open until a trusted world-1 authority adapter, fresh-process
 model-backed prefix and exact runs, deterministic cold/output parity, retained

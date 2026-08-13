@@ -16,6 +16,7 @@
 #include <map>
 #include <string>
 #include <sys/stat.h>
+#include <type_traits>
 #include <unistd.h>
 #include <vector>
 
@@ -393,6 +394,7 @@ void test_prefix_token_counts_are_authenticated_scoped_and_restart_stable() {
 
     halofpx::context_store_v1_catalog_prefix_query query;
     query.compatibility_root = shorter.compatibility_identity.compatibility_root;
+    query.producer_identity = config.child.producer_identity;
     query.scope_namespace = shorter.compatibility_identity.scope_namespace;
     query.policy_epoch = shorter.compatibility_identity.policy_epoch;
     query.max_token_count = 8;
@@ -412,6 +414,12 @@ void test_prefix_token_counts_are_authenticated_scoped_and_restart_stable() {
     mismatch.compatibility_root[0] ^= 1;
     discovered = opened.catalog->discover_prefix_token_counts(mismatch);
     assert(discovered.status == halofpx::context_store_v1_catalog_status::miss_not_found);
+    mismatch = query;
+    mismatch.producer_identity[0] ^= 1;
+    discovered = opened.catalog->discover_prefix_token_counts(mismatch);
+    assert(discovered.status ==
+           halofpx::context_store_v1_catalog_status::miss_incompatible);
+    assert(discovered.token_count == 0);
     mismatch = query;
     ++mismatch.policy_epoch;
     discovered = opened.catalog->discover_prefix_token_counts(mismatch);
@@ -446,6 +454,7 @@ void test_exact_catalog_retains_zero_reserved_bytes_and_supports_manifest_discov
 
     halofpx::context_store_v1_catalog_prefix_query query;
     query.compatibility_root = snapshot.compatibility_identity.compatibility_root;
+    query.producer_identity = config.child.producer_identity;
     query.scope_namespace = snapshot.compatibility_identity.scope_namespace;
     query.policy_epoch = snapshot.compatibility_identity.policy_epoch;
     query.max_token_count = snapshot.tokens.size();
@@ -488,6 +497,7 @@ void test_authenticated_incomplete_identity_is_terminal() {
 
     halofpx::context_store_v1_catalog_prefix_query query;
     query.compatibility_root = snapshot.compatibility_identity.compatibility_root;
+    query.producer_identity = config.child.producer_identity;
     query.scope_namespace = snapshot.compatibility_identity.scope_namespace;
     query.policy_epoch = snapshot.compatibility_identity.policy_epoch;
     query.max_token_count = snapshot.tokens.size();
@@ -498,6 +508,15 @@ void test_authenticated_incomplete_identity_is_terminal() {
 }
 
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+static_assert(!std::is_copy_constructible_v<
+    halofpx::context_store_world1_prefix_lookup_result_v1>);
+static_assert(!std::is_copy_assignable_v<
+    halofpx::context_store_world1_prefix_lookup_result_v1>);
+static_assert(std::is_nothrow_move_constructible_v<
+    halofpx::context_store_world1_prefix_lookup_result_v1>);
+static_assert(std::is_nothrow_destructible_v<
+    halofpx::context_store_world1_prefix_lookup_result_v1>);
+
 class fake_product_state_api final
     : public halofpx::context_store_transformer_state_api_v1 {
 public:
@@ -676,6 +695,101 @@ void test_product_catalog_mutation_custody_is_enforced() {
         halofpx::context_store_world1_prefix_source_v1::exact);
 }
 
+void test_product_install_rejects_authority_switch_and_negative_sequence() {
+    catalog_roots roots;
+    std::array<uint8_t, 32> operator_key {};
+    operator_key.fill(0x41);
+    auto config = make_config(roots, operator_key);
+    const auto authority = authority_for(config);
+    std::array<uint8_t, 32> derivation_key {};
+    derivation_key.fill(0x91);
+    halofpx::context_store_format_digest scope {};
+    scope.fill(0x51);
+    const std::vector<llama_token> tokens { 43, 47, 53 };
+    const auto checkpoint = exact_snapshot(
+        authority, derivation_key, scope, tokens, { 0x81, 0x82 });
+    auto opened = halofpx::make_context_store_v1_catalog(config);
+    assert(opened.catalog != nullptr);
+    assert(opened.catalog->publish(checkpoint).status ==
+        halofpx::context_store_v1_catalog_status::published);
+
+    auto original_lookup = product_lookup(
+        opened.catalog.get(), &authority, derivation_key, scope, tokens);
+    assert(original_lookup.hit());
+    auto lookup = std::move(original_lookup);
+    assert(!original_lookup.hit());
+    assert(original_lookup.snapshot.state.empty());
+    assert(original_lookup.snapshot.tokens.empty());
+    assert(lookup.hit() && lookup.authority_bound);
+    assert(lookup.bound_authority.producer_identity ==
+           authority.producer_identity);
+    fake_product_state_api state_api;
+    halofpx::context_store_world1_prefix_install_request_v1 request;
+    request.expected_model_generation = authority.model_generation;
+    request.lookup = &lookup;
+    request.context = fake_product_context();
+    request.sequence = 2;
+    request.sequence_limit = 4;
+    request.full_tokens = tokens.data();
+    request.full_token_count = tokens.size();
+    request.profile = admitted_profile();
+    request.limits = { 64, 16 };
+
+    auto changed = authority;
+    changed.producer_identity[0] ^= 1;
+    assert(halofpx::context_store_world1_cache_authority_v1_is_valid(changed));
+    request.authority = &changed;
+    auto installed = halofpx::context_store_world1_prefix_install_v1_with_api(
+        state_api, request);
+    assert(installed.status ==
+        halofpx::context_store_world1_prefix_install_status_v1::authority_changed);
+    assert(state_api.set_calls == 0);
+    assert(!lookup.hit() && !lookup.authority_bound);
+
+    lookup = product_lookup(
+        opened.catalog.get(), &authority, derivation_key, scope, tokens);
+    assert(lookup.hit());
+    request.authority = &authority;
+    request.lookup = &lookup;
+    request.sequence = -1;
+    installed = halofpx::context_store_world1_prefix_install_v1_with_api(
+        state_api, request);
+    assert(installed.status ==
+        halofpx::context_store_world1_prefix_install_status_v1::rejected);
+    assert(state_api.set_calls == 0);
+    assert(!lookup.hit() && !lookup.authority_bound);
+
+    lookup = product_lookup(
+        opened.catalog.get(), &authority, derivation_key, scope, tokens);
+    assert(lookup.hit());
+    request.lookup = &lookup;
+    request.sequence = static_cast<llama_seq_id>(request.sequence_limit);
+    installed = halofpx::context_store_world1_prefix_install_v1_with_api(
+        state_api, request);
+    assert(installed.status ==
+        halofpx::context_store_world1_prefix_install_status_v1::rejected);
+    assert(state_api.set_calls == 0);
+    assert(!lookup.hit() && !lookup.authority_bound);
+}
+
+void test_product_work_accounting_is_bounded_and_unambiguous() {
+    auto work = halofpx::context_store_world1_finalize_work_accounting_v1(8, 1);
+    assert(work.valid && work.actual_prompt_tokens == 1 &&
+           work.avoided_prompt_tokens == 7);
+    work = halofpx::context_store_world1_finalize_work_accounting_v1(8, 3);
+    assert(work.valid && work.actual_prompt_tokens == 3 &&
+           work.avoided_prompt_tokens == 5);
+    work = halofpx::context_store_world1_finalize_work_accounting_v1(8, 8);
+    assert(work.valid && work.actual_prompt_tokens == 8 &&
+           work.avoided_prompt_tokens == 0);
+    work = halofpx::context_store_world1_finalize_work_accounting_v1(8, -1);
+    assert(!work.valid && work.actual_prompt_tokens == 0 &&
+           work.avoided_prompt_tokens == 0);
+    work = halofpx::context_store_world1_finalize_work_accounting_v1(8, 9);
+    assert(!work.valid && work.actual_prompt_tokens == 0 &&
+           work.avoided_prompt_tokens == 0);
+}
+
 void test_product_same_system_prefix_different_suffix_and_exact_hit() {
     catalog_roots roots;
     std::array<uint8_t, 32> operator_key {};
@@ -712,6 +826,7 @@ void test_product_same_system_prefix_different_suffix_and_exact_hit() {
     install_request.lookup = &result;
     install_request.context = fake_product_context();
     install_request.sequence = 3;
+    install_request.sequence_limit = 4;
     install_request.full_tokens = request_a.data();
     install_request.full_token_count = request_a.size();
     install_request.profile = admitted_profile();
@@ -750,6 +865,7 @@ void test_product_same_system_prefix_different_suffix_and_exact_hit() {
     assert(result.hit());
     assert(result.source == halofpx::context_store_world1_prefix_source_v1::exact);
     assert(result.selected_prefix_tokens == request_a.size());
+    assert(result.restored_tokens == request_a.size());
     assert(result.residual_tokens == 0);
 
     state_api = {};
@@ -853,6 +969,15 @@ void test_product_authority_mismatch_and_generation_change_are_cold() {
         halofpx::context_store_world1_prefix_fallback_v1::invalid_request);
 
     authority = authority_for(config);
+    authority.producer_identity[0] ^= 1;
+    result = product_lookup(opened.catalog.get(), &authority,
+        derivation_key, scope, tokens);
+    assert(!result.hit());
+    assert(result.fallback ==
+        halofpx::context_store_world1_prefix_fallback_v1::
+            authenticated_state_incompatible);
+
+    authority = authority_for(config);
     authority.compatibility.root[0] ^= 1;
     result = product_lookup(opened.catalog.get(), &authority,
         derivation_key, scope, tokens);
@@ -876,6 +1001,8 @@ int main() {
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
     test_product_feature_off_and_live_authority_unavailable_are_cold();
     test_product_catalog_mutation_custody_is_enforced();
+    test_product_install_rejects_authority_switch_and_negative_sequence();
+    test_product_work_accounting_is_bounded_and_unambiguous();
     test_product_same_system_prefix_different_suffix_and_exact_hit();
     test_product_corrupt_longer_candidate_is_terminal_cold();
     test_product_authority_mismatch_and_generation_change_are_cold();

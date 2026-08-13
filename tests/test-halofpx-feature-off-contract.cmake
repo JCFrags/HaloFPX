@@ -100,6 +100,53 @@ else()
     if (prefix_product_position EQUAL -1)
         message(FATAL_ERROR "world1 prefix product build lost its explicit runtime mode")
     endif()
+    file(READ "${HALOFPX_SOURCE_DIR}/tools/server/server-context.cpp" server_context_source)
+    foreach(required_product_lifecycle_guard
+            "halofpx_prefix_product_request_fits_slot"
+            "task.n_tokens() < slot.n_ctx"
+            "task.n_tokens() <= static_cast<int32_t>(llama_n_ubatch(ctx_tgt))"
+            "task.need_logits() && !llama_get_memory(ctx_tgt)"
+            "carrier.bound_authority"
+            "context_store_world1_cache_authority_v1_matches"
+            "slot.n_prompt_tokens_cache > 0")
+        string(FIND "${server_context_source}" "${required_product_lifecycle_guard}"
+            lifecycle_guard_position)
+        if (lifecycle_guard_position EQUAL -1)
+            message(FATAL_ERROR
+                "world1 prefix product lost pre-restore lifecycle guard: ${required_product_lifecycle_guard}")
+        endif()
+    endforeach()
+    file(READ "${HALOFPX_SOURCE_DIR}/tools/server/server-task.cpp" server_task_source)
+    foreach(required_product_telemetry
+            "\"match_kind\""
+            "\"reuse_tier\""
+            "\"restored_state_tokens\""
+            "\"logical_residual_tokens\""
+            "\"work_accounting_valid\""
+            "\"actual_prompt_tokens\""
+            "\"avoided_prompt_tokens\""
+            "\"lookup_total_ns\""
+            "\"state_install_cleanup_ns\"")
+        string(FIND "${server_task_source}" "${required_product_telemetry}"
+            product_telemetry_position)
+        if (product_telemetry_position EQUAL -1)
+            message(FATAL_ERROR
+                "world1 prefix product lost telemetry field: ${required_product_telemetry}")
+        endif()
+    endforeach()
+    foreach(forbidden_product_telemetry
+            "{\"source\""
+            "{\"restored_tokens\""
+            "{\"residual_tokens\""
+            "{\"lookup_validation_ns\""
+            "{\"state_install_ns\"")
+        string(FIND "${server_task_source}" "${forbidden_product_telemetry}"
+            ambiguous_product_telemetry_position)
+        if (NOT ambiguous_product_telemetry_position EQUAL -1)
+            message(FATAL_ERROR
+                "world1 prefix product exposes ambiguous telemetry field: ${forbidden_product_telemetry}")
+        endif()
+    endforeach()
 endif()
 
 if (NOT HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)

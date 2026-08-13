@@ -17,7 +17,7 @@ bool nonzero(const std::array<uint8_t, N> & value) noexcept {
         [](uint8_t byte) { return byte != 0; });
 }
 
-bool exact_authority_matches(
+bool exact_session_authority_matches(
         const context_store_world1_cache_authority_v1 & authority,
         const context_store_exact_session_inputs_v1 & exact) noexcept {
     return exact.compatibility_root == authority.compatibility.root &&
@@ -26,6 +26,20 @@ bool exact_authority_matches(
         exact.rank_placement_digest == authority.rank_placement_digest &&
         exact.topology_epoch == authority.topology_epoch &&
         exact.world_size == authority.world_size && exact.rank == authority.rank;
+}
+
+bool same_authority(
+        const context_store_world1_cache_authority_v1 & left,
+        const context_store_world1_cache_authority_v1 & right) noexcept {
+    return left.compatibility.root == right.compatibility.root &&
+        left.compatibility.components == right.compatibility.components &&
+        left.producer_identity == right.producer_identity &&
+        left.global_plan_digest == right.global_plan_digest &&
+        left.rank_ownership_digest == right.rank_ownership_digest &&
+        left.rank_placement_digest == right.rank_placement_digest &&
+        left.topology_epoch == right.topology_epoch &&
+        left.model_generation == right.model_generation &&
+        left.world_size == right.world_size && left.rank == right.rank;
 }
 
 bool same_identity(const context_store_identity & left,
@@ -56,10 +70,32 @@ void consume_lookup(context_store_world1_prefix_lookup_result_v1 & lookup) noexc
     lookup.snapshot.state.clear();
     lookup.snapshot.tokens.clear();
     lookup.selected_identity = {};
+    lookup.bound_authority = {};
+    lookup.authority_bound = false;
     lookup.source = context_store_world1_prefix_source_v1::cold;
     lookup.selected_prefix_tokens = 0;
     lookup.restored_tokens = 0;
     lookup.residual_tokens = 0;
+}
+
+void move_lookup(context_store_world1_prefix_lookup_result_v1 & destination,
+                 context_store_world1_prefix_lookup_result_v1 & source) noexcept {
+    consume_lookup(destination);
+    destination.source = source.source;
+    destination.fallback = source.fallback;
+    destination.snapshot = std::move(source.snapshot);
+    destination.selected_identity = source.selected_identity;
+    destination.bound_authority = source.bound_authority;
+    destination.authority_bound = source.authority_bound;
+    destination.selected_prefix_tokens = source.selected_prefix_tokens;
+    destination.restored_tokens = source.restored_tokens;
+    destination.residual_tokens = source.residual_tokens;
+    destination.candidates_examined = source.candidates_examined;
+    destination.validation_time_ns = source.validation_time_ns;
+    consume_lookup(source);
+    source.fallback = context_store_world1_prefix_fallback_v1::feature_off;
+    source.candidates_examined = 0;
+    source.validation_time_ns = 0;
 }
 
 context_store_world1_prefix_fallback_v1 map_catalog(
@@ -104,6 +140,24 @@ context_store_world1_prefix_fallback_v1 map_selector(
 
 } // namespace
 
+context_store_world1_prefix_lookup_result_v1::
+context_store_world1_prefix_lookup_result_v1(
+        context_store_world1_prefix_lookup_result_v1 && other) noexcept {
+    move_lookup(*this, other);
+}
+
+context_store_world1_prefix_lookup_result_v1 &
+context_store_world1_prefix_lookup_result_v1::operator=(
+        context_store_world1_prefix_lookup_result_v1 && other) noexcept {
+    if (this != &other) move_lookup(*this, other);
+    return *this;
+}
+
+context_store_world1_prefix_lookup_result_v1::
+~context_store_world1_prefix_lookup_result_v1() noexcept {
+    consume_lookup(*this);
+}
+
 bool context_store_world1_cache_authority_v1_is_valid(
         const context_store_world1_cache_authority_v1 & authority) noexcept {
     if (!nonzero(authority.compatibility.root) ||
@@ -130,6 +184,12 @@ bool context_store_world1_cache_authority_v1_is_valid(
         components.data(), components.size());
     return rebuilt.status == context_store_compatibility_build_status_v1::built &&
         rebuilt.expectation.root == authority.compatibility.root;
+}
+
+bool context_store_world1_cache_authority_v1_matches(
+        const context_store_world1_cache_authority_v1 & left,
+        const context_store_world1_cache_authority_v1 & right) noexcept {
+    return same_authority(left, right);
 }
 
 context_store_world1_prefix_lookup_result_v1
@@ -169,7 +229,7 @@ context_store_world1_prefix_lookup_v1(
         request.exact_session.token_count == 0 ||
         request.exact_session.logical_boundary != request.exact_session.token_count ||
         request.exact_session.output_boundary != request.exact_session.token_count ||
-        !exact_authority_matches(*request.authority, request.exact_session) ||
+        !exact_session_authority_matches(*request.authority, request.exact_session) ||
         !context_store_transformer_profile_v1_is_admitted(request.profile) ||
         request.profile.world_size != 1 || request.profile.rank != 0 ||
         request.profile.architecture !=
@@ -190,6 +250,7 @@ context_store_world1_prefix_lookup_v1(
 
     context_store_v1_catalog_prefix_query query;
     query.compatibility_root = request.authority->compatibility.root;
+    query.producer_identity = request.authority->producer_identity;
     query.scope_namespace = request.exact_session.scope_namespace;
     query.policy_epoch = request.policy_epoch;
     query.max_token_count = request.exact_session.token_count;
@@ -239,6 +300,8 @@ context_store_world1_prefix_lookup_v1(
     result.restored_tokens = selected.restored_token_count;
     result.residual_tokens = selected.residual_token_count;
     result.selected_identity = selected_identity;
+    result.bound_authority = *request.authority;
+    result.authority_bound = true;
     result.snapshot = std::move(selected.snapshot);
     return finish();
 }
@@ -266,7 +329,16 @@ context_store_world1_prefix_install_result_v1 install(
                 authority_generation_changed;
         return finish();
     }
-    if (!lookup.hit() || request.context == nullptr ||
+    if (!lookup.hit()) return finish();
+    if (!lookup.authority_bound ||
+        !same_authority(lookup.bound_authority, *request.authority)) {
+        result.status =
+            context_store_world1_prefix_install_status_v1::authority_changed;
+        return finish();
+    }
+    if (request.context == nullptr || request.sequence < 0 ||
+        request.sequence_limit == 0 ||
+        static_cast<size_t>(request.sequence) >= request.sequence_limit ||
         request.full_tokens == nullptr || request.full_token_count == 0 ||
         lookup.selected_prefix_tokens == 0 ||
         lookup.selected_prefix_tokens > request.full_token_count ||
@@ -333,6 +405,21 @@ context_store_world1_prefix_install_v1_with_api(
     });
 }
 
+context_store_world1_work_accounting_v1
+context_store_world1_finalize_work_accounting_v1(
+        size_t request_prompt_tokens, int64_t actual_prompt_tokens) noexcept {
+    context_store_world1_work_accounting_v1 result;
+    if (actual_prompt_tokens < 0 ||
+        static_cast<uint64_t>(actual_prompt_tokens) > request_prompt_tokens) {
+        return result;
+    }
+    result.valid = true;
+    result.actual_prompt_tokens = static_cast<size_t>(actual_prompt_tokens);
+    result.avoided_prompt_tokens =
+        request_prompt_tokens - result.actual_prompt_tokens;
+    return result;
+}
+
 const char * context_store_world1_prefix_source_name_v1(
         context_store_world1_prefix_source_v1 source) noexcept {
     switch (source) {
@@ -351,6 +438,7 @@ const char * context_store_world1_prefix_fallback_name_v1(
         case context_store_world1_prefix_fallback_v1::live_authority_unavailable: return "live-authority-unavailable";
         case context_store_world1_prefix_fallback_v1::live_authority_invalid: return "live-authority-invalid";
         case context_store_world1_prefix_fallback_v1::authority_generation_changed: return "authority-generation-changed";
+        case context_store_world1_prefix_fallback_v1::authority_changed: return "authority-changed";
         case context_store_world1_prefix_fallback_v1::invalid_request: return "invalid-request";
         case context_store_world1_prefix_fallback_v1::catalog_unavailable: return "catalog-unavailable";
         case context_store_world1_prefix_fallback_v1::live_slot_state_present: return "live-slot-state-present";
