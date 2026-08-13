@@ -1,0 +1,13 @@
+{
+  "normalization": "The raw native response was reduced to output and prompt-work fields; timing noise and generated-settings echoes were omitted.",
+  "raw_response_sha256_with_terminal_lf": "d19870b9b737540b37db3fb42e2b2819ab568bc1044ed6839907bbd57d417669",
+  "content": " the word that is",
+  "tokens": [279, 3409, 429, 374],
+  "tokens_predicted": 4,
+  "tokens_evaluated": 4,
+  "timings": {
+    "cache_n": 0,
+    "prompt_n": 4
+  },
+  "halofpx_cache_present": false
+}

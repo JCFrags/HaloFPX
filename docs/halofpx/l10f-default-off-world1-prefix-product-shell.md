@@ -77,23 +77,23 @@ uses a deliberately preseeded canonical prefix.
 
 **[MEASURED] (off-target WSL2, 2026-08-12):** A Release CPU build on Ubuntu
 WSL2 compiled `llama-server` with the product gate and repository-required RPC
-local-state support. Eight focused inherited and new CTests passed: feature
+local-state support. Nine focused inherited and new CTests passed: feature
 contract, exact session, exact-session contract, exact-key runtime contract,
-catalog/product, prefix selector, selector contract, and the exact-session
-golden vector. A separate compile-time product-OFF build passed its contract;
+state transformer, catalog/product, prefix selector, selector contract, and the
+exact-session golden vector. A separate compile-time product-OFF build passed its contract;
 its help and Ninja graphs contained no product surface. The catalog/product
 test additionally passed after hardening for one-shot install,
 compatibility-root recomputation, configured manifest/frame limits, stale
 checkpoint cleanup, and authenticated incomplete-record handling.
 
 **[MEASURED] (off-target WSL2, 2026-08-12):** A manual server smoke using the
-local tiny GGUF fixture with SHA-256
-`3e184de6d7bbe7e16fdf33b35b086b3df426f8557b166933415b59479dd021ec`
+issue-#43 immutable Qwen3-0.6B pure-Q3 ROCmFPX release fixture with SHA-256
+`d1404c1afc61ffe49357c14c6d3dbfb252a72e87744fb7e491e7a2e205321fff`
 returned cold telemetry with zero selected/restored-state tokens and
-`live-authority-unavailable`. Four deterministic generated characters matched
-runtime-OFF output. This validates the reachable fallback only. The fixture is
-not added by this slice, and the transient run is not retained target or
-performance evidence.
+`live-authority-unavailable`. Four deterministic generated token IDs and text
+matched runtime-OFF output. The request, normalized responses, exact release
+download identity, and server observations are retained with the receipt. This
+validates the reachable fallback only and is not target or performance evidence.
 
 ## Open product proof
 

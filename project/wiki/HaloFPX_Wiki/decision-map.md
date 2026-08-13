@@ -28,6 +28,8 @@ Current accepted architecture decision records (ADRs) include:
   retain the L67 ADR-0049 default-off foundation.
 - [ADR-0051](../../../docs/halofpx/decisions/0051-default-off-exact-longest-prefix-selector.md):
   default-off exact longest-prefix selector.
+- [ADR-0052](../../../docs/halofpx/decisions/0052-standalone-live-cache-authority.md):
+  standalone live-derived cache authority.
 - [ADR-0054](../../../docs/halofpx/decisions/0054-default-off-world1-prefix-product-shell.md):
   default-off world-1 authenticated-prefix product shell.
 
