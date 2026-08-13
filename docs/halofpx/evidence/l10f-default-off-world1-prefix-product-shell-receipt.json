@@ -4,8 +4,9 @@
   "title": "default-off world-1 authenticated-prefix product shell",
   "date": "2026-08-12",
   "behavior_reference_commit": "fewtarius/CachyLlama@6be745998f568e379ea197fcf827baec73ff9940",
-  "qualification_base_commit": "72436b9c701c4a309a6393979db382c44d871e43",
-  "qualified_code_commit_before_receipt": "7f2019cbcdf66f474d30df92e5773555884b9c57",
+  "qualification_base_commit": "e3e8b286b8316abd246fb155044effd11e60b0eb",
+  "qualified_code_commit_before_receipt": "7937bf20d86e368eb7d64833c46785811ac76c56",
+  "integrated_selector_hardening_commit": "01210ee055fe9d887c3c1117c4b9ddb268eeab8c",
   "environment": {
     "kind": "local correctness-only WSL2; not Strix Halo target or performance evidence",
     "distribution": "Ubuntu 26.04",
@@ -22,7 +23,7 @@
   "feature_on_result": {
     "passed": 8,
     "failed": 0,
-    "real_seconds": 0.40,
+    "real_seconds": 6.67,
     "tests": [
       "test-halofpx-feature-off-contract",
       "test-halofpx-context-store-exact-session",
@@ -54,6 +55,8 @@
     "actual_prompt_tokens": 20,
     "candidates_examined": 0,
     "fallback_reason": "live-authority-unavailable",
+    "runtime_off_content_equal": true,
+    "compared_predicted_characters": 4,
     "scope": "reachable fallback correctness only; transient log was not retained"
   },
   "documentation_validation": {
