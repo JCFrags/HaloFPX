@@ -1660,6 +1660,24 @@ extern "C" {
         int32_t n_reused;   // number of times a ggml compute graph had been reused
     };
 
+    // Diagnostic host-wall counters for an explicitly enabled prefill profile.
+    // The scheduler dispatch duration measures only the host call that submits
+    // asynchronous work. The scheduler synchronization duration measures host
+    // wait time and can include queued CPU, accelerator, copy, or RPC work.
+    // Neither field is an isolated GPU-compute duration.
+    struct llama_perf_prefill_phase_data {
+        uint64_t graph_reset_wall_ns;
+        uint64_t graph_build_wall_ns;
+        uint64_t scheduler_dispatch_wall_ns;
+        uint64_t scheduler_synchronize_wall_ns;
+
+        uint32_t successful_ubatch_count;
+        uint32_t graph_build_count;
+        uint32_t graph_reuse_count;
+
+        bool rpc_stats_available;
+    };
+
     struct llama_perf_sampler_data {
         double t_sample_ms; // time needed for sampling in ms
 
@@ -1670,6 +1688,12 @@ extern "C" {
     LLAMA_API void                           llama_perf_context_print(const struct llama_context * ctx);
     LLAMA_API void                           llama_perf_context_print_graph_build(const struct llama_context * ctx);
     LLAMA_API void                           llama_perf_context_reset(      struct llama_context * ctx);
+
+    // Used by llama-bench's opt-in diagnostic profile. Collection is disabled
+    // by default and should remain disabled for ordinary benchmark aggregates.
+    LLAMA_API void                                  llama_perf_prefill_phase_set_enabled(struct llama_context * ctx, bool enabled);
+    LLAMA_API void                                  llama_perf_prefill_phase_reset(      struct llama_context * ctx);
+    LLAMA_API struct llama_perf_prefill_phase_data  llama_perf_prefill_phase(      const struct llama_context * ctx);
 
     // NOTE: the following work only with samplers constructed via llama_sampler_chain_init
     LLAMA_API struct llama_perf_sampler_data llama_perf_sampler      (const struct llama_sampler * chain);

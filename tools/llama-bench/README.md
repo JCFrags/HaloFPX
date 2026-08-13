@@ -10,7 +10,8 @@ Performance testing tool for llama.cpp.
     2. [Prompt processing with different batch sizes](#prompt-processing-with-different-batch-sizes)
     3. [Different numbers of threads](#different-numbers-of-threads)
     4. [Different numbers of layers offloaded to the GPU](#different-numbers-of-layers-offloaded-to-the-gpu)
-3. [Output formats](#output-formats)
+3. [Diagnostic prefill phase profile](#diagnostic-prefill-phase-profile)
+4. [Output formats](#output-formats)
     1. [Markdown](#markdown)
     2. [CSV](#csv)
     3. [JSON](#json)
@@ -34,6 +35,7 @@ options:
   -v, --verbose                             verbose output
   --progress                                print test progress indicators
   --no-warmup                               skip warmup runs before benchmarking
+  --prefill-phase-profile                   emit diagnostic per-repetition prefill phase data in JSON/JSONL
   -fitt, --fit-target <MiB>                 fit model to device memory with this margin per device in MiB (default: off)
   -fitc, --fit-ctx <n>                      minimum ctx size for --fit-target (default: 4096)
   -rpc, --rpc <rpc_servers>                 register RPC devices (comma separated)
@@ -186,6 +188,57 @@ $ ./llama-bench -d 0,512
 | qwen2 7B Q4_K - Medium         |   4.36 GiB |     7.62 B | CUDA       |  -1 |           tg128 |        120.60 ± 0.59 |
 | qwen2 7B Q4_K - Medium         |   4.36 GiB |     7.62 B | CUDA       |  -1 |    pp512 @ d512 |      6425.91 ± 18.88 |
 | qwen2 7B Q4_K - Medium         |   4.36 GiB |     7.62 B | CUDA       |  -1 |    tg128 @ d512 |        116.71 ± 0.60 |
+
+## Diagnostic prefill phase profile
+
+`--prefill-phase-profile` enables a repetition-scoped diagnostic profile for
+tests that contain prompt processing. JSON and JSONL rows gain a nested
+`prefill_phase_profile_samples` array beside `samples_ns`; CSV, Markdown, and
+SQL output schemas remain unchanged.
+
+```sh
+./llama-bench -m model.gguf -p 512 -n 0 -r 3 -o json \
+  --prefill-phase-profile
+```
+
+The profile is reset after any depth-state preparation and immediately before
+each measured repetition. It is read after the prompt scheduler synchronization
+and before generation begins, so a combined `-pg` row still reports only its
+prefill portion. The prompt workload boundary is captured before diagnostic
+readback, and combined rows start a fresh generation timing segment afterward;
+profile readback and result bookkeeping are therefore excluded from
+`samples_ns`. Generation-only rows do not gain the profile field.
+
+Each sample has this schema:
+
+```json
+{
+  "graph_reset_wall_ns": 12000,
+  "graph_build_wall_ns": 45000,
+  "scheduler_dispatch_wall_ns": 3000,
+  "scheduler_synchronize_wall_ns": 87000,
+  "successful_ubatch_count": 2,
+  "graph_build_count": 1,
+  "graph_reuse_count": 1,
+  "rpc_stats_available": false
+}
+```
+
+All four durations are host-wall observations. In particular,
+`scheduler_dispatch_wall_ns` surrounds only the asynchronous scheduler submit
+call and is **not GPU compute time**. `scheduler_synchronize_wall_ns` is host
+wait time and can include queued accelerator, CPU, copy, or RPC work. The
+successful-ubatch count records scheduler-accepted ubatch dispatches in a
+prompt repetition that subsequently synchronized successfully. RPC-specific
+byte/wait/compute counters are not currently exposed, so
+`rpc_stats_available` is explicitly `false` rather than synthesizing zeros.
+
+Profiling calls a clock at internal phase boundaries and therefore perturbs the
+profiled workload even though diagnostic readback/bookkeeping are outside the
+ordinary sample clock. Keep rows containing `prefill_phase_profile_samples` out
+of ordinary throughput aggregates; use a matched unprofiled run for performance
+comparison. This option adds no profile field when disabled and does not make a
+target-hardware performance claim.
 
 ## Output formats
 

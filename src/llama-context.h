@@ -203,6 +203,10 @@ struct llama_context {
     void perf_print_graph_build_data() const;
     void perf_reset();
 
+    llama_perf_prefill_phase_data perf_prefill_phase_get_data() const;
+    void perf_prefill_phase_set_enabled(bool enabled);
+    void perf_prefill_phase_reset();
+
     llama_memory_breakdown memory_breakdown() const;
 
     //
@@ -262,6 +266,10 @@ public:
 
     // returns the result of ggml_backend_sched_graph_compute_async execution
     ggml_status graph_compute(ggml_cgraph * gf, bool batched);
+
+    // Synchronize the scheduler and, when explicitly enabled, record only the
+    // host-wall duration of the wait.
+    void sched_synchronize_profiled();
 
     // reserve a graph with a dummy ubatch of the specified size
     ggml_cgraph * graph_reserve(
@@ -416,6 +424,20 @@ private:
 
     // env: LLAMA_GRAPH_BUILD_TIMING
     bool graph_build_timing = false;
+
+    struct {
+        bool enabled = false;
+
+        int64_t scheduler_dispatch_wall_us    = 0;
+        int64_t scheduler_synchronize_wall_us = 0;
+
+        int64_t graph_reset_wall_base_us = 0;
+        int64_t graph_build_wall_base_us = 0;
+        int32_t graph_build_count_base   = 0;
+        int32_t graph_reuse_count_base   = 0;
+
+        uint32_t successful_ubatch_count = 0;
+    } prefill_phase_profile;
 
     // perf
     mutable int64_t t_start_us  = 0;
