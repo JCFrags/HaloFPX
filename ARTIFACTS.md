@@ -132,9 +132,12 @@ separate, exact tag and tracked receipt. It is not silently added to
 The member-level inventory and claim boundary are in the
 [FFN Q8 reuse receipt](docs/halofpx/evidence/rocmfpx-ffn-q8-reuse-3402aa7/README.md).
 The target-built source was `3402aa7fbe820496726bfb45504549830634d7bd`;
-the release tag points to the PR branch documentation head that records its
-rebase equivalence. This asset does not establish target runtime correctness,
-numerical parity, launch-count reduction, deployment, or performance.
+the immutable release tag points to the pre-publication PR branch head that
+records its rebase equivalence but still says the upload is pending. This
+post-publication branch index and receipt, then their `main` versions after
+merge, record the completed recovery URL. The asset does not establish target
+runtime correctness, numerical parity, launch-count reduction, deployment, or
+performance.
 
 Recover and verify it with an authenticated account:
 

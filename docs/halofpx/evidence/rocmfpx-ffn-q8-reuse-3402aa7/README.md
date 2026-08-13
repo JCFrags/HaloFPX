@@ -83,9 +83,13 @@ as an immutable private prerelease asset:
 GitHub reported release ID `369641490`, asset ID `512401535`,
 `prerelease=true`, and `immutable=true`. An authenticated fresh download after
 publication matched both the exact size and SHA-256 above. This supplemental
-release is outside the original `evidence-2026-08-12` publication manifest;
-this receipt and [`../../../../ARTIFACTS.md`](../../../../ARTIFACTS.md) are its
-recovery authority. Verify both fields before using it.
+release is outside the original `evidence-2026-08-12` publication manifest.
+The immutable tag points to the pre-publication PR head, so its tree still
+contains the earlier pending-upload text and cannot be rewritten to include
+this later result. This post-publication branch receipt and
+[`../../../../ARTIFACTS.md`](../../../../ARTIFACTS.md), then their `main`
+versions after merge, are the tracked recovery authority. Verify both fields
+before using the asset.
 
 The archive has eight regular-file members with normalized root ownership,
 mode `0644`, timestamp zero, and distinct OFF/ON paths. Rebuilding it changed
