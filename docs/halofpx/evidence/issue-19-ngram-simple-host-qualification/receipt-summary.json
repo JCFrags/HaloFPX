@@ -1,24 +1,45 @@
 {
-  "schema": "halofpx.ngram-simple.host-qualification-summary.v1",
-  "status": "SUPERSEDED_PRE_REBASE_REVIEW",
-  "authority": "NONE; retained only as provenance for the superseded worktree-backed run",
+  "schema": "halofpx.ngram-simple.host-qualification-summary.v3",
+  "status": "PASS_HOST_ONLY_DEFAULT_OFF",
+  "authority": "Host correctness qualification for the pinned exported source only; no two-rank or performance admission.",
   "scope": {
     "host_only": true,
     "performance_claim": false,
     "target_machine_contacted": false,
-    "two_rank_test": false
+    "two_rank_test": false,
+    "feature_default_off": true
   },
-  "source": {
-    "head": "0ee1217a2dccddc91ea03a1160c18025326a6f33",
-    "head_tree": "31f1783d80475193be50c8df5da1578800465095",
-    "tested_index_tree": "b8e471a461a403dfbf7179abc2bbcef60bbe01b8",
-    "tested_diff_sha256": "d8a7e84f396a840812b75d1c1fbe30b74790f1d52d25c3b20a492c9dc2b8b3f6",
-    "qualification_summary_added_after_tested_index_tree": true
+  "tested_source": {
+    "commit": "eb04b9baad514b4cfde60dce2c96725e53ec115d",
+    "tree": "00ad8a7655c2c633392a605fbf400ee507eb04d8",
+    "git_archive_sha256": "afa6aad7933df5ec15bad48b1660846bad38879cc44dbba62ae64c908b55b9d1",
+    "git_archive_size_bytes": 309340160,
+    "exported_manifest_sha256": "141aa600c52acce0db65e9a64adb8a75ea711a7f81893084fbd5fc1aee5ab4af",
+    "exported_manifest_size_bytes": 2561226,
+    "exported_file_count": 10622,
+    "git_metadata_present_in_export": false,
+    "source_state_unchanged_through_matrix": true,
+    "evidence_summary_commit_added_after_tested_source": true
   },
-  "build": {
+  "test_separation": {
+    "inherited_external_draft_module": "tools/server/tests/unit/test_speculative.py",
+    "inherited_external_draft_git_blob": "84cd77e6f2ed59aef4e29dd739b5df916f3cf3f9",
+    "inherited_external_draft_sha256": "505cf453ea1d212aadd0025c51191fa49a0a52c2ee5b9d4868837329d313656e",
+    "matches_base_0ee1217a_byte_for_byte": true,
+    "isolated_ngram_module": "tools/server/tests/unit/test_ngram_simple_qualification.py",
+    "isolated_ngram_module_sha256": "436485f49f80cb948b661953a2b6e78f0ab203ebf28109275f32668c9465f9c6",
+    "external_draft_module_invoked_by_host_qualification": false,
+    "matches_canonical_main_e220ef6b_byte_for_byte": true
+  },
+  "clean_export_build": {
+    "source_root": "/tmp/halofpx-ngram-export-eb04b9ba-final/source",
+    "build_root": "/tmp/halofpx-ngram-export-eb04b9ba-final/build",
+    "preconfigure_build_directory_entries": [
+      "source-export.log"
+    ],
+    "preexisting_cmake_cache": false,
+    "preexisting_build_graph": false,
     "compiler": "GCC 15.2.0",
-    "build_directory": "/tmp/halofpx-ngram-identity-build",
-    "clean_new_build_directory": true,
     "cmake_options": [
       "-DCMAKE_BUILD_TYPE=Release",
       "-DGGML_NATIVE=OFF",
@@ -28,76 +49,110 @@
       "-DGGML_OPENMP=OFF",
       "-DLLAMA_BUILD_WEBUI=OFF"
     ],
-    "superseded_network_dependent_attempt": {
-      "failure": "Web UI asset provisioning entered a network-dependent download path and did not produce the qualified binary.",
-      "used_for_qualification": false
+    "source_to_binary_binding": {
+      "cmake_home_directory": "/tmp/halofpx-ngram-export-eb04b9ba-final/source",
+      "server_relative_to_build_root": "bin/llama-server",
+      "source_export_command_sha256": "9aa12c74a78b6f17f1597d10b9465c1dd617f31b7dacbd5c789d39c04bf4dfb6",
+      "configure_command_sha256": "0d0cb7c8c581aeb5431c6d5861964ecf18821deb2a6bc99e01682cded743d8dc",
+      "configure_log_sha256": "5362379cdf68c83ecc59c0693b2f6881e7cae190b45169db6932567e4b350f0a",
+      "build_command_sha256": "04845e829a1fc98aab9c6f9fce856ef506a04fc6efa7f2ff030a329de71ecbc9",
+      "build_log_sha256": "657c42da119035ab4b501b28473c4ed02dac86d63270c59526ee6ae7d57bfc70",
+      "cmake_cache_sha256": "2cf91c665c099c728f3f8698c04717984c83fcd2b18eccb63e482463364899e2",
+      "build_ninja_sha256": "a9af77296ad1d0a5258f00cb8b85cf838e1fc28342a9fb9ed7e6dca06c626cc5"
     }
   },
-  "artifacts": {
-    "raw_receipt_local_path": "/tmp/halofpx-ngram-identity-receipt-final",
-    "raw_receipt_manifest_entry_count": 34,
-    "raw_receipt_manifest_sha256": "c5aede80055b6aca9fd6e515ba552d817c68d7e576eaf754535e32fcf1b9dc3c",
-    "run_identity_sha256": "22535492a8ec82d085f43bf54d0745a44e8b7ada9281a9485c488c6c9fdbdb22",
-    "raw_summary_sha256": "c5e343108f9dd251ecc69ed3b7435a72e533ea28e90b80d268ca008db9441fee",
-    "secret_scan": {
-      "patterns": "authorization, bearer, api key, password, passwd, secret, cookie",
-      "material_findings": 0,
-      "source_diff_identifier_only_matches": 1
+  "offline_tests": {
+    "parser": {
+      "result": "PASS",
+      "network_filter": "LLAMA_TEST_SKIP_NETWORK=1",
+      "network_section_skipped_in_log": true,
+      "command_sha256": "84f920736f55ec49dd22bf14894c1902d2569247b589bf4eaab87a9572493829",
+      "log_sha256": "0ffa9ee8e27e77c39d40de9964fee439c8fddad2e04964b8bb255db39fbb62aa"
+    },
+    "ngram_pytest": {
+      "result": "3 passed, 1 deselected",
+      "command_sha256": "95c4aed083b2e4f20282f8d2d5aff3884c6483cfb4087cb2a56909ea3f471f72",
+      "log_sha256": "0848006db58b6c33828502eac7faacadba8aaa30a47092f7a906a4cc72cd3b8b",
+      "cache_path_absent_before": true,
+      "cache_path_absent_after": true,
+      "exact_server_processes_absent_before": true,
+      "exact_server_processes_absent_after": true,
+      "covered": [
+        "stable-corpus exact parity and observed natural rejection (not injected)",
+        "feature-off startup properties and absent draft counters",
+        "context shift",
+        "two sequential identical requests",
+        "two concurrent identical requests on two slots"
+      ]
     }
   },
   "runtime": {
     "server": {
-      "path": "/tmp/halofpx-ngram-identity-build/bin/llama-server",
-      "sha256": "c216bea3518954313635fc06693703d4cb9b23371ee6f2fb5f64817771e45300"
+      "path": "/tmp/halofpx-ngram-export-eb04b9ba-final/build/bin/llama-server",
+      "size_bytes": 2697368,
+      "sha256": "9e9d29f5cb521b4a68f7a3ecdc1c8c093449ecf3ed6e8aa37b6ad26720608179",
+      "unchanged_through_matrix": true
     },
     "model": {
       "path": "/tmp/halofpx-ngram-model/stories15M_MOE-F16.gguf",
       "size_bytes": 73466432,
-      "sha256": "1240dfc1957df9f3550dd6c1d9e64b466fc2f452d8bc34bd4e45e1a1e2ca6055"
+      "sha256": "1240dfc1957df9f3550dd6c1d9e64b466fc2f452d8bc34bd4e45e1a1e2ca6055",
+      "unchanged_through_matrix": true
     },
     "ld_library_path": null,
-    "project_mapped_files_sha256": "dc97602eba4d6fb424886333d2e605fc4065ec1b95b751940d867fb2418fdb6f",
+    "full_mapped_files_sha256": "8dff176a2bee11ba1ffee00b68ca0c45e6650c78c1a217cc10899381eb31d2ae",
+    "full_mapped_files_identical_across_all_six_processes": true,
+    "project_mapped_files_sha256": "cf21e3a9d754c985e916f1eda75c74d6cae5d41e952add6b8db54060de87f0d1",
     "project_mapped_files_identical_across_all_six_processes": true,
     "project_mapped_files": [
       {
         "name": "libggml-base.so.0.11.1",
-        "sha256": "eacc9e42ec9fc04c80b059b9f32db503c7e4a56974afc73a8291f1ef652313c5"
+        "size_bytes": 1144960,
+        "sha256": "f6db9198a41e4fe4d8f8cd0684f5f8118f6cdac9d09db394a0e06577b1eac719"
       },
       {
         "name": "libggml-cpu.so.0.11.1",
-        "sha256": "19d832c3fad18533126d6fd01830c7d84ef14e219bdbd0c71ad71a1598f3a7a3"
+        "size_bytes": 1182056,
+        "sha256": "9ce527fe7789e6b79e10dbffa9a7e669c4b0d6848c0c7fd1ec7dce1212bfd2ee"
       },
       {
         "name": "libggml-rpc.so.0.11.1",
-        "sha256": "1c1276e0431be50189c36035ac32046db2074580a05db250a3d74f5582ea5b95"
+        "size_bytes": 580928,
+        "sha256": "91a009b1f0329d2caa69f578794a8617f86fb1f3042369ce90d15eaec2a1b8b1"
       },
       {
         "name": "libggml.so.0.11.1",
-        "sha256": "c7eae10a329b2ecb248cd3966d370a7811d8c15d5d817e4cb2555742fe63a63b"
+        "size_bytes": 59440,
+        "sha256": "f7a8dd2955b63c3fa7ffcc4f2e6e593eb1a36673a1823bf6e7fcb842b8083787"
       },
       {
         "name": "libllama-common.so.0.0.0",
-        "sha256": "e4deca8b164d58e040f9b8140f762a16cee36a646b484c68c3cf67ee31a6b8f3"
+        "size_bytes": 6109088,
+        "sha256": "71e147367edd174f7cd06c9502d86c86c5eabe1cd56674f4c972a11c080fa0ea"
       },
       {
         "name": "libllama.so.0.0.0",
-        "sha256": "6f6ae0d7abad2853e2a0d90518a57774e12414feb9b8d059fa5afffe5e44e520"
+        "size_bytes": 4179560,
+        "sha256": "77a4c3b30153478049b16a1318bda430218b7b09ef032576d30ea9aca83d3ee9"
       },
       {
         "name": "libmtmd.so.0.0.0",
-        "sha256": "42781813068563a2ec5e38734d77b2bb9ae34991b39d4f75cb22a009758ccad8"
+        "size_bytes": 1308888,
+        "sha256": "dc147e0b31e0f3a65f674670c0e32df142b8e106f4d9734ca0c73fc3208dce71"
       },
       {
         "name": "llama-server",
-        "sha256": "c216bea3518954313635fc06693703d4cb9b23371ee6f2fb5f64817771e45300"
+        "size_bytes": 2697368,
+        "sha256": "9e9d29f5cb521b4a68f7a3ecdc1c8c093449ecf3ed6e8aa37b6ad26720608179"
       }
     ]
   },
   "request": {
     "bytes_utf8": "{\"prompt\":\"I believe the meaning of life is\",\"temperature\":0.0,\"samplers\":[\"temperature\"],\"n_predict\":96,\"return_tokens\":true,\"cache_prompt\":false,\"seed\":42}",
     "sha256": "40359ef9397a64d77d659f8774861a0f921f5545afbbae2368eecb49034b05ba",
-    "cache_prompt": false,
     "startup_cache_ram": 0,
+    "request_cache_prompt": false,
+    "hf_hub_offline": true,
     "cache_path_absent_after_each_process": true
   },
   "matrix": {
@@ -108,56 +163,175 @@
     "rows": [
       {
         "n_ubatch": 1,
+        "effective_n_batch": 256,
+        "effective_n_ubatch": 1,
         "exact_target_speculative_parity": true,
         "draft_n": 100,
         "draft_n_accepted": 22,
-        "target_runtime_receipt_sha256": "8264e1a881c7c3ba45694fb08889875926793fadde75b14d4dabf4997cde4ae6",
-        "speculative_runtime_receipt_sha256": "d768c57401413d3b12542fcd0da3da8fefd7c048a7c73ef90ebf97de37c5feec"
+        "target_runtime_receipt_sha256": "9cd1f814a9974e3d37e4d93afad16c8ead1a9077c94c07c4a84866df31f703db",
+        "speculative_runtime_receipt_sha256": "176cf6bf7101bf85ecac0b623e3c146f65782c01963a765a27e08fd54fb6a6d1"
       },
       {
         "n_ubatch": 2,
+        "effective_n_batch": 256,
+        "effective_n_ubatch": 2,
         "exact_target_speculative_parity": true,
         "draft_n": 100,
         "draft_n_accepted": 22,
-        "target_runtime_receipt_sha256": "6fbd8ef8246fda3662d25d0ae2048e0998716001a0fb3da024526eb5a4527209",
-        "speculative_runtime_receipt_sha256": "2d1cef8603331d10fa8cd4a5fd7c57a61a9b6c164c3882b86c511f743404e3e0"
+        "target_runtime_receipt_sha256": "cd260146b160cc00938a743cc6bbb7b6fcc89fce67fc1eb0fb87c83d258f2afb",
+        "speculative_runtime_receipt_sha256": "a61d69ffe8bf93388005369178e33e61d2b45e055ccd72f0284eeedff6e182fa"
       },
       {
         "n_ubatch": 256,
+        "effective_n_batch": 256,
+        "effective_n_ubatch": 256,
         "exact_target_speculative_parity": true,
         "draft_n": 100,
         "draft_n_accepted": 22,
-        "target_runtime_receipt_sha256": "ad79140558d4a44911cbe5a26efc9b87e7ec055bf2456e7a47f6cb0edd57925c",
-        "speculative_runtime_receipt_sha256": "14f42b4f5cdcb14348a8a68a59ee3f41995ab63feb8459c2f4d61018ff8fb07e"
+        "target_runtime_receipt_sha256": "9f5ca5057f28cc946c8985cad2871163e01e93ae826b6ebf6a88e8f5d9a18c4f",
+        "speculative_runtime_receipt_sha256": "4e99e55aad2f2330b1db8937bd4e817853a1eab69527794d9eebca26153da5e2"
       }
-    ]
+    ],
+    "rejection_classification": "Observed natural rejection: accepted was less than drafted; no rejection was injected."
   },
   "cleanup": {
-    "exact_process_count": 6,
+    "exact_matrix_process_count": 6,
     "all_proc_pids_absent_after": true,
     "all_ports_clear_after": true,
-    "all_executables_matched_before_signal": true
+    "all_executables_matched_before_signal": true,
+    "all_cache_paths_absent_after": true
   },
-  "separate_host_tests": {
-    "pytest_result": "3 passed, 1 deselected",
-    "covered": [
-      "stable-corpus exact parity and observed natural rejection (not injected)",
-      "feature-off startup properties and absent draft counters",
-      "context shift",
-      "two sequential identical requests",
-      "two concurrent identical requests on two slots"
-    ],
-    "exact_server_processes_absent_after": true,
-    "test_arg_parser": "PASS"
+  "authoritative_receipt": {
+    "local_path": "/tmp/halofpx-ngram-export-eb04b9ba-final/receipt",
+    "manifest_entry_count": 62,
+    "payload_size_bytes": 316914467,
+    "manifest_sha256": "f1494523010b963847f5fe6d7eced798c1a44a702bfc671497bfa91189a273b6",
+    "manifest_check": "PASS",
+    "manifest_check_log_sha256": "9b78a992452a0b147acf545ec058408df258f9ebbc11fa4b4945836b55b90305",
+    "run_identity_sha256": "e2bfd302742c425f6ffd38895ac41f04ad9c1d13266e55c81a9d1cbb0ecce90d",
+    "summary_sha256": "ed59fa551f173f768163c459b021e6d07353a7a023c067d0fc9a04871f1d9b11",
+    "secret_scan": {
+      "scanned_non_source_files": 59,
+      "material_findings": 0,
+      "scan_receipt_sha256": "7c32968a6a53a1a5b4a697a3e2697dec0ab7137690063cf2bad2d13e395c7ed1",
+      "source_archive_origin": "clean tracked git archive; no worktree or untracked files"
+    }
   },
-  "superseded_observations": [
-    "A target run with implicit default ubatch was compared to an explicit ubatch-1 speculative run; the unmatched token difference is not qualification evidence.",
+  "superseded_evidence": [
+    {
+      "name": "network-dependent Web UI provisioning attempt",
+      "classification": "UNRETAINED_ANECDOTAL",
+      "hash": null,
+      "size_bytes": null,
+      "qualification_authority": false
+    },
+    {
+      "name": "preliminary worktree-backed receipt",
+      "local_path": "/tmp/halofpx-ngram-identity-receipt-prelim",
+      "classification": "SUPERSEDED_POST_HOC_INVENTORY",
+      "entry_count": 27,
+      "payload_size_bytes": 809674,
+      "inventory_json_sha256": "3701305247de59039495d20300dd28eee2846b4d539036450544777f11439e82",
+      "qualification_authority": false
+    },
+    {
+      "name": "prior final worktree-backed receipt",
+      "local_path": "/tmp/halofpx-ngram-identity-receipt-final",
+      "classification": "SUPERSEDED_RETAINED_MANIFEST",
+      "manifest_entry_count": 34,
+      "payload_size_bytes": 965680,
+      "manifest_sha256": "c5aede80055b6aca9fd6e515ba552d817c68d7e576eaf754535e32fcf1b9dc3c",
+      "qualification_authority": false
+    },
+    {
+      "name": "matched ubatch-1 baseline response",
+      "local_path": "/tmp/halofpx-ngram-matched-ub1-baseline.json",
+      "size_bytes": 5102,
+      "sha256": "98aed7ac04292454ab09ae3d90d6ed43a298cc30480a93353b4481a7f91fca71",
+      "qualification_authority": false
+    },
+    {
+      "name": "matched ubatch-1 speculative response",
+      "local_path": "/tmp/halofpx-ngram-matched-ub1-spec.json",
+      "size_bytes": 5333,
+      "sha256": "54f82b5477f4e6a61958ccd653a0f2ab4720e88a996a9c1886b2c389f0dfdea3",
+      "qualification_authority": false
+    },
+    {
+      "name": "default nmax-1 diagnostic trace",
+      "local_path": "/tmp/halofpx-ngram-default-nmax1-trace.log",
+      "size_bytes": 109416,
+      "sha256": "fd207a974b56e53ceb4b9c5ae5d4b86e53294c2a393d73cf3e7e65f4c43ecc62",
+      "qualification_authority": false
+    },
+    {
+      "name": "failed pre-CMake wrapper root",
+      "local_path": "/tmp/halofpx-ngram-export-29f717fb",
+      "classification": "SUPERSEDED_RETAINED_FAILURE",
+      "failure": "PowerShell-to-WSL argument forwarding failed before CMake ran.",
+      "configure_command_size_bytes": 613,
+      "configure_command_sha256": "febd915339014da69f08bdd5e03b8170b2e87fbf50e70da8a0fb058510015a6c",
+      "configure_log_size_bytes": 210,
+      "configure_log_sha256": "48cdac8e2fda74db9aaf16afc34dc6e3516e281368474625921e2d9cf167c4d5",
+      "source_export_command_size_bytes": 798,
+      "source_export_command_sha256": "22d09563f7cb3350be8f074565455b57602b8a57c2452e076347553d30e6476e",
+      "source_export_log_size_bytes": 0,
+      "source_export_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "qualification_authority": false
+    },
+    {
+      "name": "pre-rebase clean exported receipt",
+      "local_path": "/tmp/halofpx-ngram-export-29f717fb-v2/receipt",
+      "classification": "SUPERSEDED_BY_FINAL_REBASE",
+      "tested_commit": "29f717fba01cad323225874d9bf352c35e03a8a7",
+      "manifest_entry_count": 47,
+      "payload_size_bytes": 312716115,
+      "manifest_sha256": "d0bbd18b07c4f21c53a2398cef3d4d8bb91dbaf693aabbff421e6dd9bb795de6",
+      "qualification_authority": false
+    }
+  ],
+  "superseded_runtime_observations": [
+    "An implicit-default-ubatch target run was compared with an explicit-ubatch-1 speculative run; that unmatched token difference is not qualification evidence.",
     "A provisional ubatch>=2 difference lacked complete source, executable, and DSO identity and was not reproduced by the clean matched matrix."
   ],
-  "superseded_artifacts_retained_locally": [
-    "/tmp/halofpx-ngram-identity-receipt-prelim",
-    "/tmp/halofpx-ngram-matched-ub1-baseline.json",
-    "/tmp/halofpx-ngram-matched-ub1-spec.json",
-    "/tmp/halofpx-ngram-default-nmax1-trace.log"
-  ]
+  "composition_controls": {
+    "raw_summary": {
+      "path": "composition/summary.json",
+      "sha256": "2004ffb8e50fca559f2e715b18a3925f1430ff73766eff2173d764ea21ac4d5e",
+      "size_bytes": 4106
+    },
+    "native_default": {
+      "build_root": "/tmp/halofpx-ngram-export-eb04b9ba-final/build",
+      "cmake_cache": {
+        "HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL": "OFF",
+        "HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT": "OFF",
+        "HALOFPX_SAMPLING_SYNC_COALESCE_CANARY": "OFF"
+      },
+      "pr67_native_contract_result": "PASS_2_OF_2",
+      "pr67_sidecar_unittest_result": "PASS_15_OF_15",
+      "server_sha256_after_composition_tests": "9e9d29f5cb521b4a68f7a3ecdc1c8c093449ecf3ed6e8aa37b6ad26720608179"
+    },
+    "world1_install_on": {
+      "build_returncode": 0,
+      "build_root": "/tmp/halofpx-ngram-export-eb04b9ba-final/world1-on",
+      "cmake_cache": {
+        "HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL": "ON",
+        "HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT": "ON"
+      },
+      "configure_returncode": 0,
+      "ctest_result": "PASS_9_OF_9",
+      "ctest_returncode": 0
+    },
+    "world1_install_off": {
+      "build_root": "/tmp/halofpx-ngram-export-eb04b9ba-final/world1-off",
+      "cmake_cache": {
+        "HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL": "OFF",
+        "HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT": "ON"
+      },
+      "configure_returncode": 0,
+      "ctest_result": "PASS_1_OF_1_BOUNDARY_GRAPH",
+      "ctest_returncode": 0
+    },
+    "retained_file_set_sha256": "d19c262f798fde317f088e4be7d44a510e04a6f86d5f09fe7e271949fbf9d67e"
+  }
 }
