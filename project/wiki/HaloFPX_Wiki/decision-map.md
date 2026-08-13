@@ -34,6 +34,8 @@ Current accepted architecture decision records (ADRs) include:
   default-off world-1 authenticated-prefix product shell.
 - [ADR-0056](../../../docs/halofpx/decisions/0056-versioned-strix-ab-runtime-comparison.md):
   versioned Strix A/B runtime comparison.
+- [ADR-0057](../../../docs/halofpx/decisions/0057-offline-strix-maintenance-admission-controller.md):
+  offline-only issue-#41 Strix maintenance admission controller.
 
 Read each complete decision in the HaloFPX implementation repository.
 Do not copy a decision into the Wiki as a replacement authority.

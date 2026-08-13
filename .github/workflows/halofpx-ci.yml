@@ -55,11 +55,12 @@ jobs:
         working-directory: project
         run: python -m unittest discover -s research/prompts/tools -p 'test_*.py' -v
 
-      - name: Run model-general Strix A/B harness tests
+      - name: Run model-general Strix harness and maintenance tests
         run: >-
           python -m unittest
           tests/test_halofpx_strix_ab.py
           tests/test_halofpx_strix_ab_cachyos.py
+          tests/test_halofpx_strix_maintenance.py
           -v
 
       - name: Run portable ROCmFPX fixture tests

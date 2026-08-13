@@ -48,6 +48,11 @@ independent variable.
   host may validate plans and offline fixtures, but cannot create a Strix Halo
   performance result. A separately reviewed change must enable target
   execution after every issue-#41 custody gate closes.
+- The [offline maintenance admission controller](strix-maintenance-admission-controller.md)
+  exercises shutdown/cleanup/recovery ordering only through deterministic
+  fakes. It is not the missing target executor. Owner-signed authorization,
+  atomic two-node receipt consumption, and an independent recovery watchdog
+  remain mandatory future promotion gates.
 - Use fresh disposable worker and coordinator processes for every condition.
   A machine-specific adapter owns start, readiness, telemetry, stop, cleanup,
   and rollback. The checked-in tool does not claim that frozen argv was run.
