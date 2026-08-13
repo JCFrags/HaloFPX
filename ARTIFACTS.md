@@ -119,6 +119,35 @@ names, size, and SHA-256 for every part, plus the reconstructed file's identity
 above. Do not compress or rewrite this tar merely to make its digest differ;
 preservation requires restoration of the original bytes.
 
+## Supplemental candidate evidence
+
+Supplemental evidence created after the original publication set uses a
+separate, exact tag and tracked receipt. It is not silently added to
+`docs/publication/release-manifest.json`.
+
+| Tag | Target commit | Asset | Size (bytes) | SHA-256 | Scope |
+|---|---|---|---:|---|---|
+| `evidence-ffn-q8-reuse-3402aa7-2026-08-12` | `7e68d8a2eaa36a5a115ca2736f6bfca66ee4770f` | [`halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz`](https://github.com/JCFrags/HaloFPX/releases/download/evidence-ffn-q8-reuse-3402aa7-2026-08-12/halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz) | `40697` | `7a154b62d665c0a1324a84eda8adadde32006a1467f259bfb7e583f9797a82b0` | [VERIFIED] immutable private prerelease asset; target compile and host/source contracts only |
+
+The member-level inventory and claim boundary are in the
+[FFN Q8 reuse receipt](docs/halofpx/evidence/rocmfpx-ffn-q8-reuse-3402aa7/README.md).
+The target-built source was `3402aa7fbe820496726bfb45504549830634d7bd`;
+the release tag points to the PR branch documentation head that records its
+rebase equivalence. This asset does not establish target runtime correctness,
+numerical parity, launch-count reduction, deployment, or performance.
+
+Recover and verify it with an authenticated account:
+
+```powershell
+gh release download evidence-ffn-q8-reuse-3402aa7-2026-08-12 `
+  --repo JCFrags/HaloFPX `
+  --pattern halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz
+Get-Item .\halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz |
+  Select-Object Length
+Get-FileHash -Algorithm SHA256 `
+  .\halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz
+```
+
 ## Download and trust procedure
 
 1. Use an account authorized for the private repository.

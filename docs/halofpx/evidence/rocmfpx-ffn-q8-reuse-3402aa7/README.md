@@ -67,11 +67,25 @@ Selected artifact SHA-256 values:
 | `libggml-hip.so.0.11.1` | `280b1132ee1327ee5d4b5ecf6063b95da77f7f855661653f2cc814c130d01299` | `d9c8a27bf704a266b243e594d1dbbdcbb82e759865f5c982be8fb7577831f3cb` |
 | `test-backend-ops` | `751adecc0ed57d2754d214f04a97981ac4f0a93cfe5a0206b9a9577e9b6bcadd` | `d1e60215d66f8a13381dbcc65e11e34c4b73ad4cb4b883bbf55a6895c2ad40b7` |
 
-The portable raw evidence archive is pending upload as the GitHub release
-asset `halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz`. Its SHA-256 is
-`7a154b62d665c0a1324a84eda8adadde32006a1467f259bfb7e583f9797a82b0`
-and its size is 40,697 bytes. The release URL remains **[OPEN]** until the
-asset is uploaded; verify the checksum before using it.
+The portable raw evidence archive is **[VERIFIED] published and byte-checked**
+as an immutable private prerelease asset:
+
+- tag:
+  `evidence-ffn-q8-reuse-3402aa7-2026-08-12`;
+- release target and tag commit:
+  `7e68d8a2eaa36a5a115ca2736f6bfca66ee4770f`;
+- asset:
+  [`halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz`](https://github.com/JCFrags/HaloFPX/releases/download/evidence-ffn-q8-reuse-3402aa7-2026-08-12/halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz);
+- size: `40,697` bytes;
+- SHA-256:
+  `7a154b62d665c0a1324a84eda8adadde32006a1467f259bfb7e583f9797a82b0`.
+
+GitHub reported release ID `369641490`, asset ID `512401535`,
+`prerelease=true`, and `immutable=true`. An authenticated fresh download after
+publication matched both the exact size and SHA-256 above. This supplemental
+release is outside the original `evidence-2026-08-12` publication manifest;
+this receipt and [`../../../../ARTIFACTS.md`](../../../../ARTIFACTS.md) are its
+recovery authority. Verify both fields before using it.
 
 The archive has eight regular-file members with normalized root ownership,
 mode `0644`, timestamp zero, and distinct OFF/ON paths. Rebuilding it changed
