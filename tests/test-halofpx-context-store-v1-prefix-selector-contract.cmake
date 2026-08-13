@@ -36,9 +36,9 @@ endforeach()
 if (NOT ${tests_subdirectory} LESS ${tools_subdirectory})
     message(FATAL_ERROR "contract assumes tests precede the tools implementation target")
 endif()
-string(FIND "${server_cmake}"
-    "if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY)\n        add_library(halofpx-context-store-v1-prefix-selector STATIC EXCLUDE_FROM_ALL"
-    selector_target)
+set(selector_target_block
+"if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY)\n        add_library(halofpx-context-store-v1-prefix-selector STATIC EXCLUDE_FROM_ALL\n            halofpx-context-store-v1-prefix-selector.cpp\n            halofpx-context-store-v1-prefix-selector.h\n        )\n        target_link_libraries(halofpx-context-store-v1-prefix-selector PUBLIC\n            halofpx-context-store-v1-catalog\n            halofpx-context-store-exact-session)\n        target_compile_features(halofpx-context-store-v1-prefix-selector PRIVATE cxx_std_17)\n    endif()")
+string(FIND "${server_cmake}" "${selector_target_block}" selector_target)
 if (selector_target EQUAL -1)
     message(FATAL_ERROR "missing isolated longest-prefix selector target")
 endif()
@@ -49,15 +49,31 @@ if (NOT late_option EQUAL -1)
     message(FATAL_ERROR "longest-prefix selector option was redeclared after test traversal")
 endif()
 
-string(FIND "${server_cmake}" "# server-context containing the core server logic" runtime_marker)
-if (runtime_marker EQUAL -1)
-    message(FATAL_ERROR "Cannot locate production server-context CMake section")
+# The exact isolated declaration above and the focused test link are the only
+# admitted CMake references. Removing the declaration must leave no selector
+# reference in tools/server, so a direct or intermediate product link cannot
+# hide above the server-context marker.
+string(REPLACE "${selector_target_block}" "" server_without_selector_target "${server_cmake}")
+string(FIND "${server_without_selector_target}"
+    "halofpx-context-store-v1-prefix-selector" extra_server_reference)
+if (NOT extra_server_reference EQUAL -1)
+    message(FATAL_ERROR "longest-prefix selector gained a non-isolated tools/server reference")
 endif()
-string(SUBSTRING "${server_cmake}" ${runtime_marker} -1 runtime_cmake)
-string(FIND "${runtime_cmake}" "halofpx-context-store-v1-prefix-selector" runtime_link)
-if (NOT runtime_link EQUAL -1)
-    message(FATAL_ERROR "longest-prefix selector gained a product server link")
-endif()
+
+file(GLOB_RECURSE cmake_lists "${HALOFPX_SOURCE_DIR}/*/CMakeLists.txt")
+foreach(cmake_list IN LISTS cmake_lists)
+    if (cmake_list STREQUAL "${HALOFPX_SOURCE_DIR}/tools/server/CMakeLists.txt" OR
+        cmake_list STREQUAL "${HALOFPX_SOURCE_DIR}/tests/CMakeLists.txt")
+        continue()
+    endif()
+    file(READ "${cmake_list}" cmake_text)
+    string(FIND "${cmake_text}"
+        "halofpx-context-store-v1-prefix-selector" unexpected_reference)
+    if (NOT unexpected_reference EQUAL -1)
+        message(FATAL_ERROR
+            "longest-prefix selector gained an unadmitted CMake reference: ${cmake_list}")
+    endif()
+endforeach()
 
 file(READ
     "${HALOFPX_SOURCE_DIR}/tools/server/halofpx-context-store-v1-prefix-selector.cpp"

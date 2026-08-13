@@ -4,7 +4,8 @@ Status: **implemented and locally selector-unit-qualified as a non-product
 seam; fresh-process selector, target, and distributed restore remain open**
 
 This issue-32 slice turns the existing bounded authenticated exact-key catalog
-into a deterministic longest-prefix lookup seam. It uses the pinned
+into a deterministic longest-prefix lookup seam while the caller holds
+catalog-mutation custody. It uses the pinned
 [`fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940`](https://github.com/fewtarius/CachyLLama/tree/6be745998f568e379ea197fcf827baec73ff9940)
 as a behavioral reference for reusable prefixes and suffix prefill. It does not
 copy CachyLlama's storage/index implementation, native-endian FNV authority,
@@ -24,8 +25,10 @@ server or distributed restore path.
 the exact-key catalog and complete common/tools/server build graph, is checked
 before test traversal, builds an `EXCLUDE_FROM_ALL` library only when explicitly
 enabled, and has no `llama-server`, `server-context`, runtime-mode, or CLI edge.
-The source contract test rejects a future product link or weak selector
-mechanism.
+The source contract permits the exact isolated target declaration and focused
+test link only; any additional CMake reference to that target, including a
+direct or intermediate product link, fails qualification. It also rejects weak
+selector mechanisms.
 
 **[VERIFIED]** The caller supplies the complete canonical token-ID sequence and
 at most eight complete semantic checkpoint boundaries in strictly increasing
@@ -43,6 +46,13 @@ For every boundary, longest first, the selector:
 4. calls the existing authenticated `restore_exact` path with the same exact
    token prefix and target-only world-1/rank-0 transformer profile; and
 5. repeats exact token, identity, and profile equality before returning a hit.
+
+The inherited catalog locks each `restore_exact` probe separately. Therefore,
+the caller must prevent publish or any other catalog mutation for the whole
+selector call; concurrent read-only restores are allowed. Without that
+quiescent-mutation boundary, a publication could interleave between probes and
+the result would not represent one atomic catalog snapshot. Product ADR-0054
+owns the separate coordinator needed to enforce that boundary.
 
 An accepted result reports matched-token count, restored-token count, suffix
 offset/count, candidates examined, a fixed-cardinality fallback reason, the

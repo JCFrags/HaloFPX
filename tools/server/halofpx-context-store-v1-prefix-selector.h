@@ -81,7 +81,10 @@ struct context_store_v1_prefix_selector_result {
 // untouched suffix as offset/count for caller-owned replay. This function does
 // not mutate a live llama_context, publish state, infer boundaries, or perform
 // product-server routing. Corruption or ambiguity is a cold miss, never a
-// reason to accept a shorter candidate.
+// reason to accept a shorter candidate. The caller must hold catalog-mutation
+// custody for the complete call: no publish or other catalog mutation may run
+// concurrently between the longest and shortest exact probes. Concurrent
+// read-only restores are allowed.
 context_store_v1_prefix_selector_result
 context_store_v1_restore_longest_prefix(
     context_store_v1_catalog & catalog,

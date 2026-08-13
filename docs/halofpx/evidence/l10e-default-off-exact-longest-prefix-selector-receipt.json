@@ -44,18 +44,18 @@
     "scope": "merge-preservation correctness only; no real rank-local restore, RPC, filesystem, server, or performance claim"
   },
   "source_git_blob_oid_sha1": {
-    ".github/workflows/halofpx-ci.yml": "8f1038b7d1f6c2441d0d91ab7cf6928203f782c9",
-    "CMakeLists.txt": "92407c6aa8341195606b4b07a335677a7d1acb60",
-    "tools/server/halofpx-context-store-v1-prefix-selector.h": "9d706296035a5e45f3ecbc544f2d9531becd7097",
+    ".github/workflows/halofpx-ci.yml": "4775b22d42a8d1a7e2208d47fd1523f9b3da57ab",
+    "CMakeLists.txt": "132f651b45e11fba2bc2835c602f7c11647dde4f",
+    "tools/server/halofpx-context-store-v1-prefix-selector.h": "43159a028bfec0eb454f4774545c9e2ce84ade25",
     "tools/server/halofpx-context-store-v1-prefix-selector.cpp": "4a86ab3a29c03bbd0333c37e09ea306e6f4f733e",
-    "tools/server/CMakeLists.txt": "54a80e40548dfe0705723b8d6e034f33d55f4c84",
-    "tests/test-halofpx-context-store-v1-prefix-selector.cpp": "687dadd2b3cbb8531a1bcaabe9bf7523176c59d1",
-    "tests/test-halofpx-context-store-v1-prefix-selector-contract.cmake": "fc149362c53cb7ae78e3179a54392a5202533700",
+    "tools/server/CMakeLists.txt": "cd550a736fd69072a3437af4528d8bf0b14892b5",
+    "tests/test-halofpx-context-store-v1-prefix-selector.cpp": "15a5a18312945d05ef8472ace7008ea1c2cf72f8",
+    "tests/test-halofpx-context-store-v1-prefix-selector-contract.cmake": "a5a00959c3453072970ea51b81da44e984377a20",
     "tests/test-halofpx-feature-off-contract.cmake": "8578e7d4478ac84e6520813c823bde122dd513bb",
-    "tests/CMakeLists.txt": "b02c58a6e14ce75af103cdcbbc00f17cfe82a771",
-    "docs/halofpx/decisions/0051-default-off-exact-longest-prefix-selector.md": "98b4209ffd78d33e0c2fdecba786e953961ac45e",
-    "docs/halofpx/l10e-default-off-exact-longest-prefix-selector.md": "dbe29ff9969a448edc10844249955b70b387214b",
-    "project/PERFORMANCE_WORKPLAN.md": "b5359691457486ba654b6fa0fc0ca1d47658e687"
+    "tests/CMakeLists.txt": "f5efb62d45a45803ee286307217bf15363c2cced",
+    "docs/halofpx/decisions/0051-default-off-exact-longest-prefix-selector.md": "44d7575e14d5a40a4125b443059b5e4727dfbdef",
+    "docs/halofpx/l10e-default-off-exact-longest-prefix-selector.md": "4c1729a5ed36b8a55e47a9529ce8bda6181f2d7d",
+    "project/PERFORMANCE_WORKPLAN.md": "229e2b8df1522b52115c6e47a5a3bfee13fece87"
   },
   "default_enabled": false,
   "server_or_runtime_linked": false,

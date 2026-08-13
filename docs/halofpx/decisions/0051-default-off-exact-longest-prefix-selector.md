@@ -26,8 +26,9 @@ qualified.
 Add a Linux-only, literal-default-`OFF`, `EXCLUDE_FROM_ALL` selector library
 around the unchanged ADR-0038 catalog. It has no server-context, llama-server,
 CLI, or runtime-mode link. The gate requires the exact-key catalog and the
-common, tools, and server build graph so root configuration cannot traverse
-tests before defining the implementation target.
+common, tools, and server build graph before test traversal; the focused test
+may then name the isolated implementation target that tools/server defines
+later in the same configure graph.
 
 The caller provides the complete canonical request token IDs and no more than
 eight complete semantic checkpoint boundaries in strictly increasing order.
@@ -42,6 +43,14 @@ authority. It forms the unchanged catalog identity with the explicit policy
 epoch and invokes `restore_exact`. Same-length entries remain distinct; only
 the requested authenticated authority may win, independent of catalog scan or
 publication order.
+
+The standalone API is deterministic over a quiescent catalog. Its public
+catalog dependency locks each exact probe independently, so the caller must
+hold catalog-mutation custody across the complete longest-to-shortest call.
+No publish or other catalog mutation may interleave between probes; concurrent
+read-only restores are permitted. A later product coordinator must enforce
+this custody explicitly rather than treating the selector as an atomic catalog
+snapshot.
 
 A missing candidate or a catalog entry under a different authenticated
 authority may continue to the next shorter boundary. Once the exact catalog
@@ -72,6 +81,9 @@ same-size corruption, and truncation without rewrite. A source contract must
 prove literal default-off, early dependency/Linux gates, an isolated target,
 no product link, exact-session/catalog calls, and absence of fuzzy, prompt-text,
 FNV, or string-based selection.
+
+This qualification does not prove behavior under concurrent publication; such
+use violates the standalone API contract above.
 
 This does not close issue #32. Fresh-process selector execution, pinned-model
 output equality, canonical-token/timing evidence, retained raw evidence, real

@@ -379,23 +379,40 @@ void test_exact_tie_and_boundary_rejection() {
     assert(result.hit());
     assert(result.snapshot.state == std::vector<uint8_t>({ 0xb1 }));
 
-    const std::array<size_t, 2> duplicate { 4, 4 };
-    result = halofpx::context_store_v1_restore_longest_prefix(
-        *opened.catalog,
-        request_for(config, alternate_session_key, tokens, 1,
-                    duplicate.data(), duplicate.size()));
-    assert(result.status == halofpx::context_store_v1_prefix_selector_status::source_rejected);
-    assert(result.fallback_reason ==
-           halofpx::context_store_v1_prefix_fallback_reason::invalid_boundaries);
-    assert(result.candidates_examined == 0);
+    // Make any accidental catalog access terminal. Every invalid-boundary case
+    // below must reject before restore_exact observes this corrupted record.
+    flip_first_byte(roots.catalog / "slot-00.final.v1");
+    const auto expect_pre_catalog_rejection = [&](const size_t * boundaries,
+                                                   size_t boundary_count) {
+        const auto rejected = halofpx::context_store_v1_restore_longest_prefix(
+            *opened.catalog,
+            request_for(config, alternate_session_key, tokens, 1,
+                        boundaries, boundary_count));
+        assert(rejected.status ==
+               halofpx::context_store_v1_prefix_selector_status::source_rejected);
+        assert(rejected.fallback_reason ==
+               halofpx::context_store_v1_prefix_fallback_reason::invalid_boundaries);
+        assert(rejected.candidates_examined == 0);
+        assert(rejected.matched_token_count == 0);
+        assert(rejected.restored_token_count == 0);
+        assert(rejected.residual_token_offset == 0);
+        assert(rejected.residual_token_count == tokens.size());
+        assert(rejected.snapshot.tokens.empty() && rejected.snapshot.state.empty());
+    };
 
+    expect_pre_catalog_rejection(nullptr, 1);
+    const std::array<size_t, 1> zero { 0 };
+    expect_pre_catalog_rejection(zero.data(), zero.size());
+    const std::array<size_t, 2> descending { 4, 2 };
+    expect_pre_catalog_rejection(descending.data(), descending.size());
+    const std::array<size_t, 2> duplicate { 4, 4 };
+    expect_pre_catalog_rejection(duplicate.data(), duplicate.size());
     const std::array<size_t, 2> out_of_range { 2, tokens.size() + 1 };
-    result = halofpx::context_store_v1_restore_longest_prefix(
-        *opened.catalog,
-        request_for(config, alternate_session_key, tokens, 1,
-                    out_of_range.data(), out_of_range.size()));
-    assert(result.status == halofpx::context_store_v1_prefix_selector_status::source_rejected);
-    assert(result.candidates_examined == 0);
+    expect_pre_catalog_rejection(out_of_range.data(), out_of_range.size());
+    const std::array<size_t,
+                     halofpx::context_store_v1_prefix_selector_max_boundaries + 1>
+        too_many { 1, 2, 3, 4, 5, 5, 5, 5, 5 };
+    expect_pre_catalog_rejection(too_many.data(), too_many.size());
 }
 
 void test_different_longer_authority_and_incompatible_authority_cannot_win() {
