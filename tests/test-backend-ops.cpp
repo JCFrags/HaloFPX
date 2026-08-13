@@ -9351,6 +9351,29 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
         }
     }
 
+    // HaloFPX issue #29: prompt-sized dense FFN pairs. These graph-level cases
+    // are controls when the feature is off and exercise the paired Q8_1 path in
+    // an enabled HIP build. Keep routed MoE and bias coverage in their existing
+    // independent test lanes.
+    for (ggml_type type : {
+            GGML_TYPE_Q2_0_ROCMFPX,
+            GGML_TYPE_Q3_0_ROCMFPX,
+            GGML_TYPE_Q6_0_ROCMFPX,
+            GGML_TYPE_Q8_0_ROCMFPX}) {
+        test_cases.emplace_back(new test_mul_mat_vec_fusion(
+            type, GGML_GLU_OP_SWIGLU, 9, 128, 256,
+            false, 1, 1, false, false, true, {1, 1}));
+        test_cases.emplace_back(new test_mul_mat_vec_fusion(
+            type, GGML_GLU_OP_SWIGLU, 32, 128, 256,
+            false, 1, 1, false, false, true, {1, 1}));
+    }
+    test_cases.emplace_back(new test_mul_mat_vec_fusion(
+        GGML_TYPE_Q6_0_ROCMFPX, GGML_GLU_OP_SWIGLU, 8, 128, 256,
+        false, 1, 1, false, false, true, {1, 1}));
+    test_cases.emplace_back(new test_mul_mat_vec_fusion(
+        GGML_TYPE_Q4_0, GGML_GLU_OP_SWIGLU, 32, 128, 256,
+        false, 1, 1, false, false, true, {1, 1}));
+
     for (auto gate : {GATING_FUNC_SOFTMAX, GATING_FUNC_SIGMOID, GATING_FUNC_SOFTMAX_WEIGHT}) {
         for (bool with_norm : {false, true}) {
             for (bool bias_probs : {false, true}) {
