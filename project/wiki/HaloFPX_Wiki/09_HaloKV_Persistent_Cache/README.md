@@ -47,6 +47,13 @@ exact-token prefix selection and suffix replay; its selector may be developed
 independently but remains non-product until issue #26 supplies atomic two-rank
 composition. [Issue #33](https://github.com/JCFrags/HaloFPX/issues/33) owns
 deriving the compatibility authority from the live model and inference plan.
+**[VERIFIED]** The default-off standalone
+[live-authority contract](../../../../docs/halofpx/cache-live-authority-v1.md)
+now derives exact model/shard bytes, typed model/tokenizer/template facts,
+immutable runtime/state ABI, and a fixed two-rank topology into the closed
+compatibility root. It remains outside the product path: loader-time typed
+capture, resolved context/request semantics, reload invalidation, and the live
+server adapter remain **[OPEN]**.
 [Issue #18](https://github.com/JCFrags/HaloFPX/issues/18) owns cache-source,
 restored-work, and phase-attribution metrics. HaloKV v1 product composition,
 prefix reuse, and target performance remain separate claims.

@@ -65,10 +65,20 @@ single coherent output snapshot and synchronization reduction.
 model-general frozen-plan, schedule, preflight, and raw-evidence core. It is
 not execution-qualified; issue #37 owns the CachyOS process adapter.
 
+**[VERIFIED]** Issue #33 now has a default-off standalone live-authority
+implementation slice. It derives six closed compatibility components from
+exact model/shard bytes, typed model/tokenizer/template facts, immutable
+runtime/state ABI facts, and a fixed two-rank plan, then constructs the closed
+root. The focused Linux/CPU behavior and source-boundary tests passed locally.
+It is not linked into the server: loader-time typed capture, resolved
+request/context components, reload invalidation, and live-plan adaptation
+remain open before product use.
+
 **[OPEN]** Issues #15, #18, #26, #28, #29, #32, #33, and #37 remain open for
 prefill instrumentation, cache metrics, two-rank cache composition, sampling
 synchronization, FFN activation reuse, verified longest-prefix reuse,
-live-derived cache compatibility, and the CachyOS A/B adapter.
+completion of live-derived cache compatibility and its server adapter, and the
+CachyOS A/B adapter.
 
 ## Retained publication-era project boundary
 
