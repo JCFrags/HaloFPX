@@ -4,6 +4,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -109,6 +110,95 @@ class StrixABTest(unittest.TestCase):
         self.assertEqual(len(schedule["entries"]), 6)
         for pair in range(1, 4):
             self.assertEqual({entry["condition"] for entry in schedule["entries"] if entry["pair_id"] == pair}, {"off", "on"})
+
+    def test_shared_resource_profile_is_bounded_before_schedule_expansion(self) -> None:
+        def set_context(plan: dict, value: int) -> None:
+            plan["runtime"]["context"] = value
+            args = plan["runtime"]["common_coordinator_args"]
+            args[args.index("--ctx-size") + 1] = str(value)
+
+        maximum_output = copy.deepcopy(self.plan)
+        maximum_output["execution"].update({"pairs": 1, "warmups_per_condition": 1})
+        maximum_output["request"]["output_tokens"] = AB.MAX_OUTPUT_TOKENS
+        set_context(
+            maximum_output,
+            maximum_output["request"]["prompt_tokens"] + AB.MAX_OUTPUT_TOKENS)
+        admitted = AB.admit_resource_profile(maximum_output)
+        self.assertEqual(admitted["schedule_entries"], 2)
+        self.assertEqual(
+            admitted["cycle_output_token_records"],
+            AB.MAX_CYCLE_OUTPUT_TOKEN_RECORDS)
+        AB.validate_plan(copy.deepcopy(maximum_output))
+        self.assertEqual(len(AB.make_schedule(maximum_output)["entries"]), 2)
+
+        over = copy.deepcopy(maximum_output)
+        over["request"]["output_tokens"] = AB.MAX_OUTPUT_TOKENS + 1
+        set_context(over, over["request"]["prompt_tokens"] + AB.MAX_OUTPUT_TOKENS + 1)
+        with self.assertRaisesRegex(AB.PlanError, "output_tokens"):
+            AB.validate_plan(over)
+        with self.assertRaisesRegex(AB.PlanError, "output_tokens"):
+            AB.make_schedule(over)
+
+        boundary = copy.deepcopy(self.plan)
+        boundary["execution"].update({"pairs": 64, "warmups_per_condition": 16})
+        boundary["request"]["output_tokens"] = 120
+        set_context(boundary, boundary["request"]["prompt_tokens"] + 120)
+        admitted = AB.admit_resource_profile(boundary)
+        self.assertEqual(admitted["schedule_entries"], 128)
+        self.assertEqual(admitted["cycle_output_token_records"], 261_120)
+        AB.validate_plan(copy.deepcopy(boundary))
+        self.assertEqual(len(AB.make_schedule(boundary)["entries"]), 128)
+
+        over = copy.deepcopy(boundary)
+        over["request"]["output_tokens"] = 121
+        set_context(over, over["request"]["prompt_tokens"] + 121)
+        with self.assertRaisesRegex(AB.PlanError, "coupled retained cycle/output-token"):
+            AB.validate_plan(over)
+        with self.assertRaisesRegex(AB.PlanError, "coupled retained cycle/output-token"):
+            AB.make_schedule(over)
+
+        for name, mutate, pattern in (
+            ("pairs", lambda plan: plan["execution"].update({"pairs": 65}), "cardinality"),
+            ("warmups", lambda plan: plan["execution"].update(
+                {"warmups_per_condition": 17}), "cardinality"),
+            ("output", lambda plan: plan["request"].update(
+                {"output_tokens": AB.MAX_OUTPUT_TOKENS + 1}), "output_tokens"),
+            ("prompt", lambda plan: plan["request"].update(
+                {"prompt_tokens": AB.MAX_PROMPT_TOKENS + 1}), "prompt_tokens"),
+            ("context", lambda plan: set_context(plan, AB.MAX_CONTEXT + 1), "context"),
+        ):
+            with self.subTest(name=name):
+                changed = copy.deepcopy(self.plan)
+                mutate(changed)
+                if name in {"output", "prompt"}:
+                    set_context(
+                        changed,
+                        changed["request"]["prompt_tokens"] +
+                        changed["request"]["output_tokens"])
+                with self.assertRaisesRegex(AB.PlanError, pattern):
+                    AB.validate_plan(changed)
+
+        malformed_issues = copy.deepcopy(self.plan)
+        malformed_issues["issues"] = [15, 16, {}]
+        with self.assertRaisesRegex(AB.PlanError, "issues"):
+            AB.validate_plan(malformed_issues)
+
+    def test_strict_json_numeric_hooks_reject_nonfinite_or_oversize_lexemes(self) -> None:
+        parsed = AB.parse_json_bytes(b'{"x":1e308}', "finite-number")
+        self.assertTrue(math.isfinite(parsed["x"]))
+        for content in (
+            b'{"x":1e309}', b'{"x":1e999}',
+            b'{"x":1e' + b'9' * 129 + b'}',
+            b'{"x":' + b'9' * 129 + b'}',
+            b'{"x":1e-999}',
+        ):
+            with self.subTest(content=content), self.assertRaises(AB.PlanError):
+                AB.parse_json_bytes(content, "adversarial-number")
+
+        request = self.files["request"].read_bytes().replace(
+            b'"temperature":0', b'"temperature":1e999')
+        with self.assertRaisesRegex(AB.PlanError, "strict duplicate-free"):
+            AB.validate_completion_request(request, self.plan)
 
     def test_v1_normalized_documents_and_canonical_identity_are_unchanged(self) -> None:
         example = Path(__file__).parents[1] / "scripts" / "halofpx-strix-ab-plan.example.json"
@@ -401,6 +491,24 @@ class StrixABTest(unittest.TestCase):
                 response.write_text(json.dumps(candidate), encoding="utf-8")
                 with self.assertRaises(AB.PlanError):
                     AB.parse_response(response, self.plan)
+
+    def test_response_rates_are_strictly_validated_and_source_order_derived(self) -> None:
+        response, _ = self.raw_success(100.0, 20.0, 1000.0)
+        value = json.loads(response.read_text(encoding="utf-8"))
+        value["timings"].update({
+            "prompt_ms": 9654.62232333005,
+            "prompt_per_second": 1_000.0 / 9654.62232333005 * 512,
+        })
+        response.write_text(json.dumps(value), encoding="utf-8")
+        parsed = AB.parse_response(response, self.plan)
+        self.assertEqual(
+            parsed["prompt_tokens_per_second"],
+            1_000.0 / 9654.62232333005 * 512)
+
+        value["timings"]["prompt_per_second"] *= 1.009
+        response.write_text(json.dumps(value), encoding="utf-8")
+        with self.assertRaisesRegex(AB.PlanError, "inconsistent with count and duration"):
+            AB.parse_response(response, self.plan)
 
     def test_analysis_rejects_raw_evidence_modified_after_record(self) -> None:
         run = self.initialize()

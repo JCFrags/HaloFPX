@@ -26,6 +26,7 @@ Wiki, and imported target-machine evidence are under [`project/`](../../project/
 - [ADR-0057 independent review](reviews/2026-08-12__adr-0057-offline-strix-maintenance-controller__review__v01.md)
 - [Offline independent two-node recovery-watchdog model](strix-recovery-watchdog.md)
 - [ADR-0065 offline independent two-node recovery-watchdog model](decisions/0065-offline-independent-two-node-recovery-watchdog.md)
+- [ADR-0062 proposed offline complete PR-#51 adapter-evidence validator](decisions/0062-offline-strix-adapter-evidence-validator.md)
 - [Issue #26 test-only two-rank cache coordinator contract](two-rank-cache-coordinator-contract.md)
 - [Issue #28 default-off sampling-output synchronization canary](issue-28-sampling-output-sync-canary.md)
 - [Issue #19 ngram-simple host qualification](evidence/issue-19-ngram-simple-host-qualification/README.md)

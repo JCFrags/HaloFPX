@@ -8,13 +8,20 @@ import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
+import types
 import unittest
 from unittest import mock
 from pathlib import Path
 from typing import Any
+
+from tests.halofpx_strix_adapter_evidence_fixture import (
+    create_control_repository,
+    materialize_complete_adapter_tree,
+)
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -43,7 +50,7 @@ def identity(role: str, *, fresh: bool = False) -> dict[str, Any]:
         port = 8081
         health = "c" * 64
         tick = 101 + (1000 if fresh else 0)
-        mono = 10001 + (100000 if fresh else 0)
+        mono = 1_000_001 + (100_000 if fresh else 0)
     else:
         pid = 2248760 + (10000 if fresh else 0)
         invocation = "e" * 32 if fresh else "d15fe49610274e77bd9a3d84a0b791a5"
@@ -52,7 +59,7 @@ def identity(role: str, *, fresh: bool = False) -> dict[str, Any]:
         port = 50052
         health = None
         tick = 202 + (1000 if fresh else 0)
-        mono = 20002 + (100000 if fresh else 0)
+        mono = 2_000_002 + (100_000 if fresh else 0)
     return {
         "role": role,
         "host": host,
@@ -85,9 +92,17 @@ def authority() -> dict[str, Any]:
     }
 
 
-def authorization_value(evidence_root: Path, commit: str) -> dict[str, Any]:
-    plan_path = REPO / "scripts" / "halofpx-strix-ab-plan.example.json"
-    adapter_policy_path = REPO / "scripts" / "halofpx-strix-ab-cachyos-policy.example.json"
+def authorization_value(
+    evidence_root: Path,
+    commit: str,
+    *,
+    plan_path: Path | None = None,
+    adapter_policy_path: Path | None = None,
+) -> dict[str, Any]:
+    plan_path = plan_path or REPO / "scripts" / "halofpx-strix-ab-plan.example.json"
+    adapter_policy_path = (
+        adapter_policy_path or REPO / "scripts" / "halofpx-strix-ab-cachyos-policy.example.json"
+    )
     return {
         "schema": maintenance.AUTHORIZATION_SCHEMA,
         "authorization_id": "issue41-offline-domain-20260812-a",
@@ -133,7 +148,18 @@ def authorization_value(evidence_root: Path, commit: str) -> dict[str, Any]:
     }
 
 
-def policy_value(authorization_sha256: str, commit: str) -> dict[str, Any]:
+def policy_value(
+    authorization_sha256: str,
+    commit: str,
+    *,
+    repository_root: Path = REPO,
+    plan_path: Path | None = None,
+    adapter_policy_path: Path | None = None,
+) -> dict[str, Any]:
+    plan_path = plan_path or REPO / "scripts" / "halofpx-strix-ab-plan.example.json"
+    adapter_policy_path = (
+        adapter_policy_path or REPO / "scripts" / "halofpx-strix-ab-cachyos-policy.example.json"
+    )
     return {
         "schema": maintenance.POLICY_SCHEMA,
         "issue": 41,
@@ -151,10 +177,10 @@ def policy_value(authorization_sha256: str, commit: str) -> dict[str, Any]:
             "manifest_sha256": maintenance.ISSUE41_MANIFEST_SHA256,
         },
         "adapter": {
-            "plan_path": "scripts/halofpx-strix-ab-plan.example.json",
-            "plan_sha256": digest(REPO / "scripts" / "halofpx-strix-ab-plan.example.json"),
-            "policy_path": "scripts/halofpx-strix-ab-cachyos-policy.example.json",
-            "policy_sha256": digest(REPO / "scripts" / "halofpx-strix-ab-cachyos-policy.example.json"),
+            "plan_path": plan_path.relative_to(repository_root).as_posix(),
+            "plan_sha256": digest(plan_path),
+            "policy_path": adapter_policy_path.relative_to(repository_root).as_posix(),
+            "policy_sha256": digest(adapter_policy_path),
             "schedule_index": 0,
         },
         "timeouts": {
@@ -172,16 +198,30 @@ def write_json(path: Path, value: Any) -> None:
 
 def rebuild_unsigned_bundle_bindings(root: Path) -> None:
     """Rebuild local hashes after adversarial edits; this is not a signature."""
-    rows = []
-    for path in sorted(root.rglob("*")):
-        if path.is_file() and path.name not in {"SHA256SUMS", "COMMITTED.json"}:
-            rows.append(f"{digest(path)}  {path.relative_to(root).as_posix()}\n")
+    excluded = {root / "SHA256SUMS", root / "COMMITTED.json"}
+    entries = [
+        (path.relative_to(root).as_posix(), digest(path))
+        for path in root.rglob("*")
+        if path.is_file() and path not in excluded
+    ]
+    rows = [f"{value}  {relative}\n" for relative, value in sorted(entries)]
     hashes = root / "SHA256SUMS"
     hashes.write_text("".join(rows), encoding="ascii", newline="")
     marker = json.loads((root / "COMMITTED.json").read_text(encoding="utf-8"))
     marker["terminal_sha256"] = digest(root / "terminal.json")
     marker["hashes_sha256"] = digest(hashes)
     (root / "COMMITTED.json").write_bytes(maintenance._pretty_json_bytes(marker))
+
+
+def rebuild_adapter_ledger(root: Path) -> None:
+    """Rebuild the nested adapter ledger after an adversarial semantic edit."""
+    ledger = root / "SHA256SUMS"
+    rows = [
+        f"{digest(path)}  {path.relative_to(root).as_posix()}\n"
+        for path in sorted(root.rglob("*"), key=lambda item: item.relative_to(root).as_posix())
+        if path.is_file() and path != ledger
+    ]
+    ledger.write_bytes("".join(rows).encode("ascii"))
 
 
 class FakeRunner:
@@ -200,6 +240,8 @@ class FakeRunner:
         self.incomplete_census = False
         self.fail_adapter = False
         self.bad_adapter_receipt = False
+        self.sparse_adapter_tree = False
+        self.rejected_adapter_artifact: str | None = None
         self.fail_cleanup = False
         self.fail_cleanup_after_effect = False
         self.adapter_present = False
@@ -219,6 +261,10 @@ class FakeRunner:
         self.reappear_stopped_before_recovery = False
         self.reappear_on_snapshot_call = 4
         self.drop_role_on_snapshot_call: tuple[str, int] | None = None
+        self.incident_bytes: bytes | None = None
+        self.hmm_snapshot_bytes: bytes | None = None
+        self.hmm_policy_bytes: bytes | None = None
+        self.hmm_result_bytes: bytes | None = None
 
     def snapshot_production(self) -> dict[str, Any]:
         self.history.append("snapshot")
@@ -343,34 +389,57 @@ class FakeRunner:
         self.adapter_present = True
         if self.fail_adapter:
             raise maintenance.MaintenanceError("synthetic adapter failure")
-        plan = maintenance.core.load_plan(plan_path)
-        schedule = maintenance.core.make_schedule(plan)
-        value = {
-            "schema": maintenance.adapter.RECEIPT_SCHEMA,
-            "issue": 37,
-            "experiment_id": plan["experiment_id"],
-            "plan_sha256": maintenance.core.plan_digest(plan),
-            "policy_sha256": digest(policy_path),
-            "policy_binding": {"path": "policy.raw", "size_bytes": 1, "sha256": digest(policy_path)},
-            "schedule_index": 0,
-            "entry": schedule["entries"][0],
-            "input_bindings": {},
-            "model_binding": {},
-            "preflight_sha256": {},
-            "production_before": {"inactive": True},
-            "production_after": {"inactive": True},
-            "gpu_admission_before_intent": {},
-            "model_binding_after": {},
-            "cycles": [],
-            "errors": [],
-            "outcome": {"status": "success", "failure_code": None},
-            "execution_qualified": False,
-            "measurement_ready": False,
-            "performance_claim": False,
-        }
+        if self.sparse_adapter_tree:
+            evidence_root.mkdir(parents=True)
+            (evidence_root / "execution.json").write_bytes(b"{}\n")
+            outside = evidence_root.parent.parent / "outside-custody.bin"
+            outside.write_bytes(b"outside bytes must never enter custody\n")
+            if self.rejected_adapter_artifact == "symlink":
+                os.symlink(outside, evidence_root / "foreign-link")
+            elif self.rejected_adapter_artifact == "directory-reparse":
+                external_dir = evidence_root.parent.parent / "outside-directory"
+                external_dir.mkdir()
+                (external_dir / "external.bin").write_bytes(b"external directory bytes\n")
+                os.symlink(external_dir, evidence_root / "foreign-directory", target_is_directory=True)
+            elif self.rejected_adapter_artifact == "hardlink":
+                os.link(outside, evidence_root / "foreign-hardlink")
+            elif self.rejected_adapter_artifact == "oversize":
+                with (evidence_root / "oversize.bin").open("wb") as handle:
+                    handle.truncate(maintenance.MAX_CUSTODY_FILE_BYTES + 1)
+            elif self.rejected_adapter_artifact == "deep":
+                deep = evidence_root
+                for index in range(maintenance.MAX_CUSTODY_DEPTH + 1):
+                    deep = deep / f"depth-{index:02d}"
+                deep.mkdir(parents=True)
+                (deep / "untrusted.bin").write_bytes(b"too deep\n")
+            elif self.rejected_adapter_artifact == "unsafe-name":
+                unsafe = evidence_root / ".ambiguous"
+                unsafe.write_bytes(b"unsafe name\n")
+                if not unsafe.is_file():
+                    raise AssertionError("unsafe-name fixture was not created")
+            return b"{}\n"
+        if self.incident_bytes is None or self.hmm_snapshot_bytes is None or \
+                self.hmm_policy_bytes is None or self.hmm_result_bytes is None:
+            raise maintenance.MaintenanceError(
+                "synthetic incident/HMM-admission snapshot/policy/result bytes "
+                "were not configured")
+        content = materialize_complete_adapter_tree(
+            evidence_root,
+            core=maintenance.core,
+            adapter=maintenance.adapter,
+            plan_path=plan_path,
+            policy_path=policy_path,
+            incident_bytes=self.incident_bytes,
+            hmm_snapshot_bytes=self.hmm_snapshot_bytes,
+            hmm_policy_bytes=self.hmm_policy_bytes,
+            hmm_result_bytes=self.hmm_result_bytes,
+            selected_schedule_index=self.auth["adapter"]["schedule_index"],
+        )
         if self.bad_adapter_receipt:
+            value = json.loads(content)
             value["performance_claim"] = True
-        return json.dumps(value, sort_keys=True).encode("utf-8") + b"\n"
+            content = json.dumps(value, sort_keys=True).encode("utf-8") + b"\n"
+        return content
 
     def cleanup_adapter(self, timeout_seconds: int) -> dict[str, Any]:
         self.history.append("cleanup-adapter")
@@ -460,21 +529,83 @@ class MaintenanceControllerTest(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.commit = subprocess.check_output(
             ["git", "-C", str(REPO), "rev-parse", "HEAD"], text=True).strip()
+        self.repository = self.root / "repository"
+        controls = create_control_repository(
+            self.repository,
+            core=maintenance.core,
+            adapter=maintenance.adapter,
+            incident_source=REPO / maintenance.ISSUE41_MANIFEST_RELATIVE,
+        )
+        self.controls = controls
         self.evidence = self.root / "evidence"
-        self.authorization = authorization_value(self.evidence, self.commit)
+        self.authorization = authorization_value(
+            self.evidence,
+            self.commit,
+            plan_path=controls["plan"],
+            adapter_policy_path=controls["policy"],
+        )
         self.auth_path = self.root / "authorization.json"
         write_json(self.auth_path, self.authorization)
-        self.policy = policy_value(digest(self.auth_path), self.commit)
+        self.policy = policy_value(
+            digest(self.auth_path),
+            self.commit,
+            repository_root=self.repository,
+            plan_path=controls["plan"],
+            adapter_policy_path=controls["policy"],
+        )
         self.policy_path = self.root / "policy.json"
         write_json(self.policy_path, self.policy)
         self.runner = FakeRunner(self.authorization)
+        self.runner.incident_bytes = controls["incident"].read_bytes()
+        self.runner.hmm_snapshot_bytes = controls["hmm_snapshot"].read_bytes()
+        self.runner.hmm_policy_bytes = controls["hmm_policy"].read_bytes()
+        self.runner.hmm_result_bytes = controls["hmm_result"].read_bytes()
+        hmm_result = json.loads(self.runner.hmm_result_bytes)
+        self.assertEqual(
+            {
+                role: maintenance.parse_identity(
+                    identity(role), role, f"synthetic {role}").digest
+                for role in ("coordinator", "worker")
+            },
+            {
+                role: hmm_result["roles"][role]["production_identity_sha256"]
+                for role in ("coordinator", "worker")
+            },
+        )
 
     def tearDown(self) -> None:
         self.temp.cleanup()
 
     def execute(self) -> Path:
         return maintenance.execute_offline_domain(
-            REPO, self.policy_path, self.auth_path, self.runner, now=NOW)
+            self.repository, self.policy_path, self.auth_path, self.runner, now=NOW)
+
+    def rebind_plan(self, mutate: Any) -> None:
+        plan = maintenance.core.read_json(self.controls["plan"])
+        mutate(plan)
+        write_json(self.controls["plan"], plan)
+        self.authorization = authorization_value(
+            self.evidence, self.commit, plan_path=self.controls["plan"],
+            adapter_policy_path=self.controls["policy"])
+        write_json(self.auth_path, self.authorization)
+        self.policy = policy_value(
+            digest(self.auth_path), self.commit, repository_root=self.repository,
+            plan_path=self.controls["plan"], adapter_policy_path=self.controls["policy"])
+        write_json(self.policy_path, self.policy)
+        self.runner.auth = copy.deepcopy(self.authorization)
+
+    def test_controller_refuses_preloaded_originless_adapter_validator(self) -> None:
+        module_name = "halofpx_strix_maintenance_poison_test"
+        ambient = types.ModuleType("halofpx_strix_adapter_evidence")
+        spec = importlib.util.spec_from_file_location(module_name, SOURCE)
+        assert spec is not None and spec.loader is not None
+        candidate = importlib.util.module_from_spec(spec)
+        with mock.patch.dict(
+                sys.modules,
+                {"halofpx_strix_adapter_evidence": ambient, module_name: candidate},
+                clear=False):
+            with self.assertRaisesRegex(ImportError, "refusing ambient"):
+                spec.loader.exec_module(candidate)
 
     def failure(self) -> maintenance.MaintenanceRunFailed:
         with self.assertRaises(maintenance.MaintenanceRunFailed) as raised:
@@ -589,6 +720,244 @@ class MaintenanceControllerTest(unittest.TestCase):
         self.assertTrue(any(item["stage"] == "maintenance body" for item in terminal["errors"]))
         self.assertIn("cleanup-adapter", self.runner.history)
         self.assertIn("probe", self.runner.history)
+
+    def test_sparse_adapter_tree_is_rejected_but_recovery_is_retained(self) -> None:
+        self.runner.sparse_adapter_tree = True
+        failure = self.failure()
+        terminal = json.loads(failure.terminal_path.read_text(encoding="utf-8"))
+        self.assertTrue(terminal["recovery_complete"])
+        self.assertTrue(any(
+            item["stage"] == "maintenance body" and
+            "complete PR51 adapter evidence" in item["detail"]
+            for item in terminal["errors"]))
+        self.assertIn("cleanup-adapter", self.runner.history)
+        self.assertIn("probe", self.runner.history)
+        self.assertFalse((self.evidence / "COMMITTED.json").exists())
+
+    def _assert_unsafe_failure_custody(self, artifact: str, expected_reason: str) -> None:
+        self.runner.sparse_adapter_tree = True
+        self.runner.rejected_adapter_artifact = artifact
+        failure = self.failure()
+        terminal = json.loads(failure.terminal_path.read_text(encoding="utf-8"))
+        report = json.loads(
+            (self.evidence / "failure-custody.json").read_text(encoding="utf-8"))
+        manifest = (self.evidence / "SHA256SUMS").read_text(encoding="utf-8")
+        outside = self.root / "outside-custody.bin"
+        self.assertTrue(terminal["recovery_complete"])
+        self.assertTrue((self.evidence / "FAILED.json").is_file())
+        self.assertFalse((self.evidence / "COMMITTED.json").exists())
+        self.assertEqual(report["schema"], maintenance.FAILURE_CUSTODY_SCHEMA)
+        self.assertFalse(report["complete"])
+        self.assertTrue(any(
+            expected_reason in row["reason"] for row in report["exclusions"]),
+            report["exclusions"])
+        self.assertNotIn(hashlib.sha256(outside.read_bytes()).hexdigest(), manifest)
+        self.assertNotIn("foreign-link", manifest)
+        self.assertNotIn("foreign-directory", manifest)
+        self.assertNotIn("foreign-hardlink", manifest)
+        self.assertNotIn("oversize.bin", manifest)
+        self.assertNotIn("untrusted.bin", manifest)
+        self.assertLess(
+            self.runner.history.index("cleanup-adapter"),
+            self.runner.history.index("start-worker"))
+
+    def test_failure_custody_never_follows_external_file_symlink(self) -> None:
+        self._assert_unsafe_failure_custody("symlink", "link-or-reparse")
+
+    def test_failure_custody_never_traverses_directory_reparse(self) -> None:
+        self._assert_unsafe_failure_custody("directory-reparse", "link-or-reparse")
+
+    def test_failure_custody_never_reads_external_hardlink(self) -> None:
+        self._assert_unsafe_failure_custody("hardlink", "hard-linked")
+
+    def test_failure_custody_excludes_oversize_file_and_still_terminalizes(self) -> None:
+        self._assert_unsafe_failure_custody("oversize", "file-size-bound-exceeded")
+
+    def test_failure_custody_excludes_overdeep_tree_and_still_terminalizes(self) -> None:
+        self._assert_unsafe_failure_custody("deep", "depth-bound-exceeded")
+
+    def test_failure_custody_excludes_manifest_ambiguous_name(self) -> None:
+        self._assert_unsafe_failure_custody("unsafe-name", "unsafe-name")
+
+    def test_failure_custody_exclusion_report_is_canonically_truncated(self) -> None:
+        self.runner.sparse_adapter_tree = True
+        self.runner.rejected_adapter_artifact = "unsafe-name"
+        with mock.patch.object(maintenance, "MAX_FAILURE_EXCLUSION_ROWS", 0):
+            failure = self.failure()
+        report = json.loads(
+            (self.evidence / "failure-custody.json").read_text(encoding="utf-8"))
+        self.assertTrue(json.loads(failure.terminal_path.read_text(encoding="utf-8"))[
+            "recovery_complete"])
+        self.assertGreater(report["exclusion_count"], 0)
+        self.assertTrue(report["exclusions_truncated"])
+        self.assertEqual(report["exclusions"], [])
+        self.assertEqual(report["retained_exclusion_count"], 0)
+        self.assertEqual(report["omitted_exclusion_count"], report["exclusion_count"])
+        self.assertRegex(report["exclusions_sha256"], r"^[0-9a-f]{64}$")
+        self.assertRegex(report["omitted_exclusions_sha256"], r"^[0-9a-f]{64}$")
+        self.assertGreater(report["exclusion_reason_counts"]["unsafe-name"], 0)
+
+    def test_failure_custody_long_paths_are_digest_bound_and_report_bounded(self) -> None:
+        files = {"terminal.json": b"{}\n"}
+        exclusions = [
+            maintenance._failure_exclusion_row(
+                "/".join(["x" * 255] * 8 + [f".{index:04d}-" + "y" * 240]),
+                "unsafe-name",
+            )
+            for index in range(2_049)
+        ]
+        report, content = maintenance._build_failure_custody_report(files, exclusions)
+        self.assertLessEqual(len(content), maintenance.MAX_FAILURE_REPORT_BYTES)
+        self.assertEqual(report["exclusion_count"], 2_049)
+        self.assertLessEqual(
+            report["retained_exclusion_count"], maintenance.MAX_FAILURE_EXCLUSION_ROWS)
+        self.assertEqual(
+            report["retained_exclusion_count"] + report["omitted_exclusion_count"],
+            report["exclusion_count"])
+        self.assertTrue(report["exclusions_truncated"])
+        self.assertGreater(report["omitted_exclusion_count"], 0)
+        self.assertTrue(all(
+            row["path_truncated"] and len(row["path"].encode("utf-8")) <=
+            maintenance.MAX_FAILURE_EXCLUSION_PATH_BYTES and
+            re.fullmatch(r"[0-9a-f]{64}", row["path_sha256"])
+            for row in report["exclusions"]))
+        self.assertRegex(report["omitted_exclusions_sha256"], r"^[0-9a-f]{64}$")
+
+    def test_failure_custody_reserves_mandatory_report_manifest_row(self) -> None:
+        evidence_root = self.root / "manifest-edge-custody"
+        custody = maintenance.EvidenceCustody(evidence_root, b"authorization\n", b"policy\n")
+        terminal = custody.write_json("terminal.json", {"status": "failure"})
+        (evidence_root / "zz-edge.bin").write_bytes(b"must be excluded at manifest edge\n")
+        base_names = (
+            "authorization.raw.json", "policy.raw.json", "terminal.json",
+            "failure-custody.json",
+        )
+        exact_base_manifest_bytes = sum(67 + len(name) for name in base_names)
+        with mock.patch.object(
+                maintenance, "MAX_FAILURE_MANIFEST_BYTES", exact_base_manifest_bytes):
+            manifest = custody.finalize_hashes(failure_mode=True)
+            marker = custody.commit_failure(terminal, manifest)
+        report = json.loads(
+            (evidence_root / "failure-custody.json").read_text(encoding="utf-8"))
+        self.assertTrue(marker.is_file())
+        self.assertLessEqual(manifest.stat().st_size, exact_base_manifest_bytes)
+        self.assertNotIn("zz-edge.bin", manifest.read_text(encoding="utf-8"))
+        self.assertTrue(any(
+            row["reason"] == "manifest-byte-bound-exceeded"
+            for row in report["exclusions"]))
+
+    def test_failure_custody_entry_budget_is_streamed_and_terminalizes(self) -> None:
+        self.runner.sparse_adapter_tree = True
+        with mock.patch.object(maintenance, "MAX_OUTER_BUNDLE_ENTRIES", 5):
+            failure = self.failure()
+        report = json.loads(
+            (self.evidence / "failure-custody.json").read_text(encoding="utf-8"))
+        self.assertTrue(json.loads(failure.terminal_path.read_text(encoding="utf-8"))["recovery_complete"])
+        self.assertTrue((self.evidence / "FAILED.json").is_file())
+        self.assertTrue(any(
+            row["reason"] == "entry-bound-exhausted" for row in report["exclusions"]))
+
+    def test_failure_custody_read_race_is_typed_and_terminalizes(self) -> None:
+        self.runner.sparse_adapter_tree = True
+        original = maintenance._read_owned_regular_file
+
+        def remove_rejected_file(path: Path, info: os.stat_result) -> bytes:
+            if path.name == "execution.json":
+                path.unlink()
+            return original(path, info)
+
+        with mock.patch.object(
+                maintenance, "_read_owned_regular_file", new=remove_rejected_file):
+            failure = self.failure()
+        report = json.loads(
+            (self.evidence / "failure-custody.json").read_text(encoding="utf-8"))
+        self.assertTrue(json.loads(failure.terminal_path.read_text(encoding="utf-8"))["recovery_complete"])
+        self.assertTrue((self.evidence / "FAILED.json").is_file())
+        self.assertTrue(any(
+            "bounded-read-refused" in row["reason"] for row in report["exclusions"]))
+
+    def test_failure_custody_iterator_error_is_typed_and_terminalizes(self) -> None:
+        self.runner.sparse_adapter_tree = True
+        real_scandir = maintenance.os.scandir
+        adapter_scans = 0
+
+        class FailingIterator:
+            def __init__(self, delegate: Any):
+                self.delegate = delegate
+                self.returned = False
+
+            def __iter__(self) -> Any:
+                return self
+
+            def __next__(self) -> Any:
+                if not self.returned:
+                    self.returned = True
+                    return next(self.delegate)
+                raise FileNotFoundError("synthetic iterator-time disappearance")
+
+            def close(self) -> None:
+                self.delegate.close()
+
+        def flaky_scandir(path: Any) -> Any:
+            nonlocal adapter_scans
+            iterator = real_scandir(path)
+            if Path(path).name == "adapter":
+                adapter_scans += 1
+                if adapter_scans == 3:
+                    return FailingIterator(iterator)
+            return iterator
+
+        with mock.patch.object(maintenance.os, "scandir", new=flaky_scandir):
+            failure = self.failure()
+        report = json.loads(
+            (self.evidence / "failure-custody.json").read_text(encoding="utf-8"))
+        self.assertTrue(json.loads(failure.terminal_path.read_text(encoding="utf-8"))["recovery_complete"])
+        self.assertTrue((self.evidence / "FAILED.json").is_file())
+        self.assertTrue(any(
+            "directory-iteration-error" in row["reason"] for row in report["exclusions"]))
+
+    def test_failure_custody_directory_swap_rolls_back_descendant_bytes(self) -> None:
+        self.runner.sparse_adapter_tree = True
+        real_scandir = maintenance.os.scandir
+        swapped = False
+        adapter_scans = 0
+        parked = self.root / "adapter-parked"
+        external = self.root / "swap-external"
+        external.mkdir()
+        outside = external / "external.bin"
+        outside.write_bytes(b"swapped external bytes must not bind\n")
+
+        def swapping_scandir(path: Any) -> Any:
+            nonlocal swapped, adapter_scans
+            candidate = Path(path)
+            if candidate.name == "adapter":
+                adapter_scans += 1
+            if candidate.name == "adapter" and adapter_scans == 3 and not swapped:
+                swapped = True
+                candidate.rename(parked)
+                os.symlink(external, candidate, target_is_directory=True)
+            return real_scandir(path)
+
+        try:
+            with mock.patch.object(maintenance.os, "scandir", new=swapping_scandir):
+                failure = self.failure()
+        finally:
+            adapter_path = self.evidence / "adapter"
+            if adapter_path.is_symlink():
+                adapter_path.unlink()
+            if parked.exists() and not adapter_path.exists():
+                parked.rename(adapter_path)
+        report = json.loads(
+            (self.evidence / "failure-custody.json").read_text(encoding="utf-8"))
+        manifest = (self.evidence / "SHA256SUMS").read_text(encoding="utf-8")
+        self.assertTrue(swapped)
+        self.assertTrue(json.loads(failure.terminal_path.read_text(encoding="utf-8"))["recovery_complete"])
+        self.assertTrue((self.evidence / "FAILED.json").is_file())
+        self.assertNotIn(hashlib.sha256(outside.read_bytes()).hexdigest(), manifest)
+        self.assertNotIn("adapter/external.bin", manifest)
+        self.assertTrue(any(
+            "directory-changed-during-scan" in row["reason"]
+            for row in report["exclusions"]))
 
     def test_cleanup_failure_is_retained_and_blocks_production_restart(self) -> None:
         self.runner.fail_cleanup = True
@@ -946,6 +1315,76 @@ class MaintenanceControllerTest(unittest.TestCase):
         with self.assertRaisesRegex(maintenance.MaintenanceError, "inventory"):
             maintenance.verify_committed_bundle(self.evidence)
 
+    def test_commit_verifier_rejects_outer_hardlink(self) -> None:
+        self.execute()
+        linked = self.evidence / "hardlinked-terminal-copy.json"
+        try:
+            os.link(self.evidence / "terminal.json", linked)
+        except OSError as exc:
+            if exc.errno in {errno.EACCES, errno.EPERM, errno.ENOTSUP} or \
+                    getattr(exc, "winerror", None) in {1, 5, 1314}:
+                self.skipTest(f"hard-link privilege unavailable: {exc}")
+            raise
+        with self.assertRaisesRegex(maintenance.MaintenanceError, "hard-linked"):
+            maintenance.verify_committed_bundle(self.evidence)
+
+    def test_commit_verifier_rejects_outer_directory_reparse(self) -> None:
+        self.execute()
+        linked = self.evidence / "linked-events"
+        try:
+            os.symlink(self.evidence / "events", linked, target_is_directory=True)
+        except OSError as exc:
+            if exc.errno in {errno.EACCES, errno.EPERM} or \
+                    getattr(exc, "winerror", None) == 1314:
+                self.skipTest(f"directory-link privilege unavailable: {exc}")
+            raise
+        with self.assertRaisesRegex(
+                maintenance.MaintenanceError, "symbolic link or reparse point"):
+            maintenance.verify_committed_bundle(self.evidence)
+
+    def test_commit_verifier_uses_captured_bytes_after_outer_capture(self) -> None:
+        self.execute()
+        original_capture = maintenance.adapter_evidence.capture_closed_regular_tree
+        terminal_path = self.evidence / "terminal.json"
+
+        def capture_then_replace(
+            root: Path, **kwargs: Any,
+        ) -> tuple[dict[str, bytes], tuple[str, ...]]:
+            captured = original_capture(root, **kwargs)
+            terminal = json.loads(terminal_path.read_text(encoding="utf-8"))
+            terminal["authorization_id"] += "-post-capture-path-swap"
+            terminal_path.write_bytes(maintenance._pretty_json_bytes(terminal))
+            return captured
+
+        with mock.patch.object(
+                maintenance.adapter_evidence, "capture_closed_regular_tree",
+                side_effect=capture_then_replace):
+            verified = maintenance.verify_committed_bundle(self.evidence)
+        self.assertEqual(verified["status"], "success")
+
+    def test_commit_verifier_rejects_outer_capture_race(self) -> None:
+        self.execute()
+        original_scan = maintenance.adapter_evidence._scan_once
+        calls = 0
+
+        def racing_scan(
+            path: str, expected_root_identity: dict[str, tuple[int, ...]] | None = None,
+            *, max_tree_bytes: int = maintenance.adapter_evidence._MAX_TREE_BYTES,
+        ) -> dict[str, Any]:
+            nonlocal calls
+            captured = original_scan(
+                path, expected_root_identity, max_tree_bytes=max_tree_bytes)
+            calls += 1
+            if calls == 1:
+                terminal = self.evidence / "terminal.json"
+                terminal.write_bytes(terminal.read_bytes() + b"race")
+            return captured
+
+        with mock.patch.object(
+                maintenance.adapter_evidence, "_scan_once", side_effect=racing_scan):
+            with self.assertRaisesRegex(maintenance.MaintenanceError, "capture passes"):
+                maintenance.verify_committed_bundle(self.evidence)
+
     def test_commit_verifier_rejects_semantic_tamper_after_hashes_are_rebuilt(self) -> None:
         self.execute()
         receipt_path = self.evidence / "adapter-receipt.raw.json"
@@ -959,6 +1398,18 @@ class MaintenanceControllerTest(unittest.TestCase):
         rebuild_unsigned_bundle_bindings(self.evidence)
         with self.assertRaisesRegex(
                 maintenance.MaintenanceError, "retained PR51 adapter receipt"):
+            maintenance.verify_committed_bundle(self.evidence)
+
+    def test_commit_verifier_cold_revalidates_nested_adapter_semantics(self) -> None:
+        self.execute()
+        status_path = self.evidence / "adapter/status.json"
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+        status["performance_claim"] = True
+        status_path.write_bytes(maintenance._pretty_json_bytes(status))
+        rebuild_adapter_ledger(self.evidence / "adapter")
+        rebuild_unsigned_bundle_bindings(self.evidence)
+        with self.assertRaisesRegex(
+                maintenance.MaintenanceError, "PR51 adapter evidence"):
             maintenance.verify_committed_bundle(self.evidence)
 
     def test_commit_verifier_rejects_rehashed_policy_path_traversal(self) -> None:
@@ -1114,7 +1565,7 @@ class MaintenanceControllerTest(unittest.TestCase):
         second = FakeRunner(self.authorization)
         with self.assertRaisesRegex(maintenance.MaintenanceError, "must not already exist"):
             maintenance.execute_offline_domain(
-                REPO, self.policy_path, self.auth_path, second, now=NOW)
+                self.repository, self.policy_path, self.auth_path, second, now=NOW)
         self.assertEqual(second.history, [])
 
     def test_non_fake_runner_is_refused_before_input_or_mutation(self) -> None:
@@ -1156,21 +1607,64 @@ class MaintenanceControllerTest(unittest.TestCase):
         changed["authorization"]["authority"]["node_id"] = "IC_kwDOdifferent1234"
         write_json(self.policy_path, changed)
         with self.assertRaisesRegex(maintenance.MaintenanceError, "authority differs"):
-            maintenance.validate_inputs(REPO, self.policy_path, self.auth_path, now=NOW)
+            maintenance.validate_inputs(
+                self.repository, self.policy_path, self.auth_path, now=NOW)
 
     def test_changed_pr51_input_bytes_refuse(self) -> None:
         changed = copy.deepcopy(self.policy)
         changed["adapter"]["plan_sha256"] = "0" * 64
         write_json(self.policy_path, changed)
         with self.assertRaisesRegex(maintenance.MaintenanceError, "raw bytes differ"):
-            maintenance.validate_inputs(REPO, self.policy_path, self.auth_path, now=NOW)
+            maintenance.validate_inputs(
+                self.repository, self.policy_path, self.auth_path, now=NOW)
+
+    def test_plan_errors_and_coupled_output_volume_refuse_before_schedule(self) -> None:
+        self.rebind_plan(lambda plan: plan["execution"].update({"pairs": 0}))
+        with self.assertRaisesRegex(maintenance.MaintenanceError, "adapter plan is invalid"):
+            maintenance.validate_inputs(
+                self.repository, self.policy_path, self.auth_path, now=NOW)
+
+        self.tearDown()
+        self.setUp()
+        self.rebind_plan(lambda plan: (
+            plan["execution"].update({"pairs": 64, "warmups_per_condition": 16}),
+            plan["request"].update({"output_tokens": 256}),
+        ))
+        with self.assertRaisesRegex(
+                maintenance.MaintenanceError, "coupled retained cycle/output-token"):
+            maintenance.validate_inputs(
+                self.repository, self.policy_path, self.auth_path, now=NOW)
+
+    def test_finalized_bundle_capture_reserves_manifest_and_marker_bytes(self) -> None:
+        self.assertEqual(
+            maintenance.MAX_FINALIZED_CUSTODY_BYTES,
+            maintenance.MAX_CUSTODY_TOTAL_BYTES +
+            maintenance.MAX_FINALIZATION_RESERVE_BYTES)
+        self.assertEqual(maintenance.MAX_CUSTODY_TOTAL_BYTES, 304 * 1024 * 1024)
+        self.assertEqual(maintenance.MAX_FINALIZED_CUSTODY_BYTES, 320 * 1024 * 1024)
+        self.assertGreaterEqual(
+            maintenance.MAX_FINALIZATION_RESERVE_BYTES,
+            maintenance.MAX_FAILURE_REPORT_BYTES +
+            maintenance.MAX_FAILURE_MANIFEST_BYTES + maintenance.MAX_MARKER_BYTES)
+        self.execute()
+        with mock.patch.object(
+                maintenance.adapter_evidence, "capture_closed_regular_tree",
+                wraps=maintenance.adapter_evidence.capture_closed_regular_tree) as captured:
+            maintenance.verify_committed_bundle(self.evidence)
+        self.assertEqual(
+            captured.call_args.kwargs["max_tree_bytes"],
+            maintenance.MAX_FINALIZED_CUSTODY_BYTES)
 
     def test_dual_strix_scope_cannot_cross_offline_domain_seam(self) -> None:
         changed = copy.deepcopy(self.authorization)
         changed["execution_scope"] = "dual-strix-maintenance"
         changed["approval_statement"] = maintenance.APPROVAL_STATEMENT
         write_json(self.auth_path, changed)
-        self.policy = policy_value(digest(self.auth_path), self.commit)
+        self.policy = policy_value(
+            digest(self.auth_path), self.commit,
+            repository_root=self.repository,
+            plan_path=self.controls["plan"],
+            adapter_policy_path=self.controls["policy"])
         write_json(self.policy_path, self.policy)
         with self.assertRaisesRegex(maintenance.MaintenanceError, "offline-domain-simulation"):
             self.execute()
@@ -1180,9 +1674,13 @@ class MaintenanceControllerTest(unittest.TestCase):
         changed["execution_scope"] = "dual-strix-maintenance"
         changed["approval_statement"] = maintenance.APPROVAL_STATEMENT
         write_json(self.auth_path, changed)
-        write_json(self.policy_path, policy_value(digest(self.auth_path), self.commit))
+        write_json(self.policy_path, policy_value(
+            digest(self.auth_path), self.commit,
+            repository_root=self.repository,
+            plan_path=self.controls["plan"],
+            adapter_policy_path=self.controls["policy"]))
         result = subprocess.run([
-            sys.executable, str(SOURCE), "--repository-root", str(REPO),
+            sys.executable, str(SOURCE), "--repository-root", str(self.repository),
             "--policy", str(self.policy_path), "--authorization", str(self.auth_path),
             "--now-utc", "2026-08-13T07:00:00Z", "validate",
         ], capture_output=True, text=True, check=False)

@@ -23,46 +23,35 @@ from pathlib import Path
 from typing import Any, Protocol, Sequence
 
 
-def _load_sibling(name: str, filename: str) -> Any:
-    try:
-        return __import__(name)
-    except ModuleNotFoundError:
-        path = Path(__file__).with_name(filename)
-        spec = importlib.util.spec_from_file_location(name, path)
-        if spec is None or spec.loader is None:
-            raise
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[name] = module
-        try:
-            spec.loader.exec_module(module)
-        except BaseException:
-            sys.modules.pop(name, None)
-            raise
-        return module
-
-
 def _load_exact_sibling(name: str, filename: str) -> Any:
     path = Path(__file__).resolve().with_name(filename)
+    existing = sys.modules.get(name)
+    if existing is not None:
+        origin = getattr(existing, "__file__", None)
+        if not isinstance(origin, str) or Path(origin).resolve() != path:
+            raise ImportError(
+                f"refusing ambient {name}; expected exact sibling module {path}")
+        return existing
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         raise ImportError(f"cannot load exact sibling module {path}")
     module = importlib.util.module_from_spec(spec)
-    previous = sys.modules.get(name)
     sys.modules[name] = module
     try:
         spec.loader.exec_module(module)
-    finally:
-        if previous is None:
-            sys.modules.pop(name, None)
-        else:
-            sys.modules[name] = previous
+    except BaseException:
+        sys.modules.pop(name, None)
+        raise
     return module
 
 
-core = _load_sibling("halofpx_strix_ab", "halofpx_strix_ab.py")
-adapter = _load_sibling("halofpx_strix_ab_cachyos", "halofpx_strix_ab_cachyos.py")
+core = _load_exact_sibling("halofpx_strix_ab", "halofpx_strix_ab.py")
+adapter = _load_exact_sibling(
+    "halofpx_strix_ab_cachyos", "halofpx_strix_ab_cachyos.py")
 production_identity_contract = _load_exact_sibling(
     "halofpx_strix_production_identity", "halofpx_strix_production_identity.py")
+adapter_evidence = _load_exact_sibling(
+    "halofpx_strix_adapter_evidence", "halofpx_strix_adapter_evidence.py")
 
 
 AUTHORIZATION_SCHEMA = "halofpx.strix-maintenance-authorization.v1"
@@ -97,6 +86,28 @@ PROTECTED_UNITS = dict(adapter.PROTECTED_UNITS)
 PROTECTED_PORTS = {"coordinator": 8081, "worker": 50052}
 TARGET_EXECUTION_ENABLED = False
 MAX_WINDOW = dt.timedelta(hours=8)
+FAILURE_CUSTODY_SCHEMA = "halofpx.strix-maintenance-failure-custody.v1"
+# ADR-0062's exact maximum supported adapter profile contains 15,638 entries
+# (128 schedule entries, 16 warmups each, and the supported PR67 sidecar).
+# The outer controller owns at most another 128 files/directories.  Keep these
+# bounds explicit and shared with tests rather than relying on an unbounded
+# rglob over attacker-influenced rejected evidence.
+MAX_ADAPTER_EVIDENCE_ENTRIES = 15_638
+MAX_OUTER_BUNDLE_OVERHEAD_ENTRIES = 128
+MAX_OUTER_BUNDLE_ENTRIES = (
+    MAX_ADAPTER_EVIDENCE_ENTRIES + MAX_OUTER_BUNDLE_OVERHEAD_ENTRIES)
+MAX_CUSTODY_DEPTH = 8
+MAX_CUSTODY_FILE_BYTES = 16 * 1024 * 1024
+MAX_CUSTODY_TOTAL_BYTES = 304 * 1024 * 1024
+MAX_FAILURE_REPORT_BYTES = 4 * 1024 * 1024
+MAX_FAILURE_MANIFEST_BYTES = 10 * 1024 * 1024
+MAX_MARKER_BYTES = 2 * 1024 * 1024
+MAX_FINALIZATION_RESERVE_BYTES = 16 * 1024 * 1024
+MAX_FINALIZED_CUSTODY_BYTES = (
+    MAX_CUSTODY_TOTAL_BYTES + MAX_FINALIZATION_RESERVE_BYTES)
+MAX_FAILURE_EXCLUSION_ROWS = 2_048
+MAX_FAILURE_EXCLUSION_PATH_BYTES = 512
+_REPARSE_ATTRIBUTE = 0x400
 
 
 class MaintenanceError(RuntimeError):
@@ -115,6 +126,280 @@ class MarkerPublicationError(MaintenanceError):
     def __init__(self, detail: str, *, marker_may_exist: bool):
         self.marker_may_exist = marker_may_exist
         super().__init__(detail)
+
+
+def _custody_is_reparse(info: os.stat_result) -> bool:
+    return bool(getattr(info, "st_file_attributes", 0) & _REPARSE_ATTRIBUTE)
+
+
+def _custody_identity(info: os.stat_result) -> tuple[int, ...]:
+    return (
+        int(info.st_dev), int(info.st_ino), int(info.st_mode), int(info.st_nlink),
+        int(info.st_size), int(getattr(info, "st_mtime_ns", int(info.st_mtime * 1e9))),
+        int(getattr(info, "st_file_attributes", 0)),
+    )
+
+
+def _read_owned_regular_file(path: Path, initial: os.stat_result) -> bytes:
+    """Read one bounded single-link regular file without following a link."""
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(os.fspath(path), flags)
+    try:
+        before = os.fstat(descriptor)
+        if _custody_is_reparse(before) or not stat.S_ISREG(before.st_mode) or \
+                before.st_nlink != 1 or _custody_identity(before) != _custody_identity(initial):
+            raise MaintenanceError(f"unsafe or changed custody file: {path}")
+        chunks: list[bytes] = []
+        count = 0
+        while True:
+            chunk = os.read(
+                descriptor, min(1024 * 1024, MAX_CUSTODY_FILE_BYTES + 1 - count))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            count += len(chunk)
+            if count > MAX_CUSTODY_FILE_BYTES:
+                raise MaintenanceError(f"custody file exceeds byte bound: {path}")
+        after = os.fstat(descriptor)
+        content = b"".join(chunks)
+        if _custody_identity(before) != _custody_identity(after) or len(content) != after.st_size:
+            raise MaintenanceError(f"custody file changed during read: {path}")
+        return content
+    finally:
+        os.close(descriptor)
+
+
+def _failure_exclusion_row(
+    relative: str, reason: str, info: os.stat_result | None = None,
+) -> dict[str, Any]:
+    raw_path = (relative or ".").encode("utf-8", errors="surrogatepass")
+    display_bytes = raw_path
+    truncated = len(display_bytes) > MAX_FAILURE_EXCLUSION_PATH_BYTES
+    if truncated:
+        display_bytes = display_bytes[:MAX_FAILURE_EXCLUSION_PATH_BYTES - 3]
+        while True:
+            try:
+                display = display_bytes.decode("utf-8", errors="strict") + "..."
+                break
+            except UnicodeDecodeError:
+                display_bytes = display_bytes[:-1]
+    else:
+        display = display_bytes.decode("utf-8", errors="replace")
+    row: dict[str, Any] = {
+        "path": display,
+        "path_sha256": hashlib.sha256(raw_path).hexdigest(),
+        "path_truncated": truncated,
+        "reason": reason[:128],
+    }
+    if info is not None:
+        row["mode"] = int(info.st_mode)
+        row["size_bytes"] = max(0, int(info.st_size))
+    return row
+
+
+def _build_failure_custody_report(
+    files: dict[str, bytes], exclusions: list[dict[str, Any]],
+) -> tuple[dict[str, Any], bytes]:
+    ordered = sorted(
+        exclusions,
+        key=lambda row: (row["path"], row["path_sha256"], row["reason"]),
+    )
+    exclusion_digest = hashlib.sha256()
+    reason_counts: dict[str, int] = {}
+    for row in ordered:
+        exclusion_digest.update(canonical_bytes(row))
+        reason = str(row["reason"])
+        reason_counts[reason] = reason_counts.get(reason, 0) + 1
+
+    retained_count = min(len(ordered), MAX_FAILURE_EXCLUSION_ROWS)
+    while True:
+        retained = ordered[:retained_count]
+        omitted = ordered[retained_count:]
+        omitted_digest = hashlib.sha256()
+        omitted_reason_counts: dict[str, int] = {}
+        for row in omitted:
+            omitted_digest.update(canonical_bytes(row))
+            reason = str(row["reason"])
+            omitted_reason_counts[reason] = omitted_reason_counts.get(reason, 0) + 1
+        report = {
+            "schema": FAILURE_CUSTODY_SCHEMA,
+            "bounded": True,
+            "complete": not ordered,
+            "limits": {
+                "max_entries": MAX_OUTER_BUNDLE_ENTRIES,
+                "max_depth": MAX_CUSTODY_DEPTH,
+                "max_file_bytes": MAX_CUSTODY_FILE_BYTES,
+                "max_total_bytes": MAX_CUSTODY_TOTAL_BYTES,
+                "max_report_bytes": MAX_FAILURE_REPORT_BYTES,
+                "max_retained_exclusion_rows": MAX_FAILURE_EXCLUSION_ROWS,
+                "max_exclusion_path_bytes": MAX_FAILURE_EXCLUSION_PATH_BYTES,
+            },
+            "admitted_file_count": len(files),
+            "admitted_total_bytes": sum(len(content) for content in files.values()),
+            "exclusion_count": len(ordered),
+            "retained_exclusion_count": retained_count,
+            "omitted_exclusion_count": len(omitted),
+            "exclusions_truncated": bool(omitted),
+            "exclusions_sha256": exclusion_digest.hexdigest(),
+            "exclusion_reason_counts": dict(sorted(reason_counts.items())),
+            "omitted_exclusions_sha256": omitted_digest.hexdigest(),
+            "omitted_exclusion_reason_counts": dict(
+                sorted(omitted_reason_counts.items())),
+            "exclusions": retained,
+        }
+        report_bytes = json.dumps(
+            report, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+        if len(report_bytes) <= MAX_FAILURE_REPORT_BYTES:
+            return report, report_bytes
+        if retained_count == 0:
+            raise MaintenanceError(
+                "failure custody aggregate report exceeds its closed byte bound")
+        retained_count -= 1
+
+
+def _capture_failure_custody(
+    root: Path,
+) -> tuple[dict[str, bytes], list[dict[str, Any]]]:
+    """Bounded no-follow capture for a terminal failure bundle.
+
+    Observed unsafe entries are not deliberately opened and are represented
+    only by bounded metadata exclusions. Safely observed regular files may be
+    read and hashed; descendants are discarded if directory drift is observed.
+    This portable best-effort capture assumes a trusted single operator and
+    does not claim that a synchronized hostile path swap cannot cause a
+    transient read before the enclosing drift check discards those bytes.
+    """
+    files: dict[str, bytes] = {}
+    excluded: list[dict[str, Any]] = []
+    enumerated = 0
+    total_bytes = 0
+    # failure-custody.json is written after this capture and is mandatory in
+    # the failure manifest. Reserve its exact SHA256SUMS row before admitting
+    # any candidate bytes so an edge-full census can still terminalize.
+    manifest_bytes = 67 + len("failure-custody.json")
+    budget_exhausted = False
+
+    def safe_name(name: str) -> bool:
+        if not name or name in {".", ".."} or not name.isascii() or \
+                name != name.rstrip(". ") or name.startswith(".") or \
+                any(char in name for char in ("/", "\\", "\x00", ":", "\r", "\n")) or \
+                any(ord(char) < 32 for char in name):
+            return False
+        lowered = name.casefold()
+        stem = name.rstrip(". ").split(".", 1)[0].casefold()
+        if stem in adapter_evidence._WINDOWS_RESERVED or \
+                lowered.endswith(("~", ".tmp", ".temp", ".part", ".partial", ".swp", ".bak")) or \
+                lowered.startswith(("tmp-", "temp-", ".record-")):
+            return False
+        return True
+
+    def exclusion(relative: str, reason: str, info: os.stat_result | None = None) -> None:
+        excluded.append(_failure_exclusion_row(relative, reason, info))
+
+    def visit(directory: Path, relative: str, depth: int) -> None:
+        nonlocal enumerated, total_bytes, manifest_bytes, budget_exhausted
+        admitted_before = set(files)
+        total_before = total_bytes
+        manifest_before = manifest_bytes
+
+        def rollback_admitted_descendants() -> None:
+            nonlocal total_bytes, manifest_bytes
+            for name in set(files) - admitted_before:
+                del files[name]
+            total_bytes = total_before
+            manifest_bytes = manifest_before
+        if budget_exhausted:
+            return
+        if depth > MAX_CUSTODY_DEPTH:
+            exclusion(relative, "depth-bound-exceeded")
+            return
+        try:
+            directory_info = os.lstat(directory)
+        except OSError as exc:
+            exclusion(relative, f"directory-lstat-error:{type(exc).__name__}")
+            return
+        if _custody_is_reparse(directory_info) or stat.S_ISLNK(directory_info.st_mode):
+            exclusion(relative, "directory-link-or-reparse", directory_info)
+            return
+        if not stat.S_ISDIR(directory_info.st_mode):
+            exclusion(relative, "not-a-directory", directory_info)
+            return
+        before_identity = _custody_identity(directory_info)
+        try:
+            iterator = os.scandir(directory)
+        except OSError as exc:
+            exclusion(relative, f"directory-scan-error:{type(exc).__name__}", directory_info)
+            return
+        try:
+            while True:
+                try:
+                    entry = next(iterator)
+                except StopIteration:
+                    break
+                except OSError as exc:
+                    exclusion(
+                        relative,
+                        f"directory-iteration-error:{type(exc).__name__}",
+                        directory_info)
+                    break
+                if enumerated >= MAX_OUTER_BUNDLE_ENTRIES:
+                    exclusion(relative, "entry-bound-exhausted", directory_info)
+                    budget_exhausted = True
+                    break
+                enumerated += 1
+                child_relative = entry.name if not relative else f"{relative}/{entry.name}"
+                child_path = directory / entry.name
+                try:
+                    info = os.lstat(child_path)
+                except OSError as exc:
+                    exclusion(child_relative, f"entry-lstat-error:{type(exc).__name__}")
+                    continue
+                if not safe_name(entry.name):
+                    exclusion(child_relative, "unsafe-name", info)
+                    continue
+                if _custody_is_reparse(info) or stat.S_ISLNK(info.st_mode):
+                    exclusion(child_relative, "link-or-reparse", info)
+                elif stat.S_ISDIR(info.st_mode):
+                    visit(child_path, child_relative, depth + 1)
+                elif not stat.S_ISREG(info.st_mode):
+                    exclusion(child_relative, "non-regular", info)
+                elif info.st_nlink != 1:
+                    exclusion(child_relative, "hard-linked", info)
+                elif info.st_size < 0 or info.st_size > MAX_CUSTODY_FILE_BYTES:
+                    exclusion(child_relative, "file-size-bound-exceeded", info)
+                elif total_bytes + info.st_size > MAX_CUSTODY_TOTAL_BYTES:
+                    exclusion(child_relative, "total-byte-bound-exceeded", info)
+                elif manifest_bytes + 67 + len(child_relative.encode("ascii")) > \
+                        MAX_FAILURE_MANIFEST_BYTES:
+                    exclusion(child_relative, "manifest-byte-bound-exceeded", info)
+                else:
+                    try:
+                        content = _read_owned_regular_file(child_path, info)
+                    except (OSError, MaintenanceError) as exc:
+                        exclusion(child_relative, f"bounded-read-refused:{type(exc).__name__}", info)
+                    else:
+                        total_bytes += len(content)
+                        manifest_bytes += 67 + len(child_relative.encode("ascii"))
+                        files[child_relative] = content
+        finally:
+            try:
+                iterator.close()
+            except OSError as exc:
+                exclusion(
+                    relative, f"directory-close-error:{type(exc).__name__}",
+                    directory_info)
+        try:
+            after = os.lstat(directory)
+        except OSError as exc:
+            rollback_admitted_descendants()
+            exclusion(relative, f"directory-reinspect-error:{type(exc).__name__}")
+        else:
+            if _custody_identity(after) != before_identity:
+                rollback_admitted_descendants()
+                exclusion(relative, "directory-changed-during-scan", after)
+
+    visit(root, "", 0)
+    return files, sorted(excluded, key=lambda row: (row["path"], row["reason"]))
 
 
 def canonical_bytes(value: Any) -> bytes:
@@ -153,12 +438,8 @@ def require_hash(value: Any, where: str, pattern: re.Pattern[str] = SHA256_RE) -
 
 def parse_closed_json(content: bytes, where: str) -> dict[str, Any]:
     try:
-        value = json.loads(
-            content.decode("utf-8", errors="strict"),
-            object_pairs_hook=core.unique_json_object,
-            parse_constant=core.reject_json_constant,
-        )
-    except (UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        value = adapter_evidence._parse_json(content, where)
+    except adapter_evidence.AdapterEvidenceError as exc:
         raise MaintenanceError(f"{where} is unreadable: {exc}") from exc
     if not isinstance(value, dict):
         raise MaintenanceError(f"{where} must be an object")
@@ -167,8 +448,17 @@ def parse_closed_json(content: bytes, where: str) -> dict[str, Any]:
 
 def read_regular(path: Path, where: str) -> bytes:
     try:
-        return core.read_regular_bytes(path, where)
-    except core.PlanError as exc:
+        absolute = Path(os.path.abspath(os.fspath(path)))
+        for component in (absolute, *absolute.parents):
+            info = os.lstat(component)
+            if adapter_evidence._is_reparse(info) or stat.S_ISLNK(info.st_mode):
+                raise MaintenanceError(
+                    f"{where} has a symbolic-link or reparse path component: {component}")
+        initial = os.lstat(absolute)
+        return adapter_evidence._read_file(os.fspath(absolute), initial, where)
+    except MaintenanceError:
+        raise
+    except (OSError, core.PlanError, adapter_evidence.AdapterEvidenceError) as exc:
         raise MaintenanceError(str(exc)) from exc
 
 
@@ -528,8 +818,15 @@ def validate_inputs(
             authorization.adapter_policy_sha256 != policy.adapter_policy_sha256 or \
             authorization.schedule_index != policy.schedule_index:
         raise MaintenanceError("authorization PR51 adapter binding differs from policy")
-    plan = core.validate_plan(parse_closed_json(plan_bytes, "adapter plan"))
-    adapter_policy = adapter.load_policy_bytes(adapter_policy_bytes, plan)
+    try:
+        plan = core.validate_plan(parse_closed_json(plan_bytes, "adapter plan"))
+        core.admit_resource_profile(plan)
+    except core.PlanError as exc:
+        raise MaintenanceError(f"adapter plan is invalid: {exc}") from exc
+    try:
+        adapter_policy = adapter.load_policy_bytes(adapter_policy_bytes, plan)
+    except adapter.AdapterError as exc:
+        raise MaintenanceError(f"adapter policy is invalid: {exc}") from exc
     if adapter_policy.unit_prefix != authorization.unit_prefix or \
             adapter_policy.coordinator_port != authorization.coordinator_port or \
             adapter_policy.worker_port != authorization.worker_port:
@@ -542,6 +839,7 @@ def validate_inputs(
         "schedule": schedule,
         "plan_bytes": plan_bytes,
         "adapter_policy_bytes": adapter_policy_bytes,
+        "incident_bytes": incident_bytes,
         "plan_path": plan_path,
         "adapter_policy_path": adapter_policy_path,
         "adapter_policy": adapter_policy,
@@ -610,15 +908,45 @@ class EvidenceCustody:
             "status": status, "observation": observation,
         })
 
-    def finalize_hashes(self) -> Path:
-        rows = []
-        for path in sorted(self.root.rglob("*")):
-            if path.is_file() and path.name != "SHA256SUMS":
-                content = path.read_bytes()
-                rows.append(f"{sha256_bytes(content)}  {path.relative_to(self.root).as_posix()}\n")
-        path = self.root / "SHA256SUMS"
-        self._write_bytes(path, "".join(rows).encode("utf-8"))
-        return path
+    def finalize_hashes(self, *, failure_mode: bool = False) -> Path:
+        """Finalize a manifest without following attacker-influenced paths.
+
+        A successful candidate must admit the entire outer tree through the
+        strict two-pass regular-tree capture.  A failure candidate instead
+        records bounded lstat-only exclusions and hashes only safely captured
+        controller-owned regular bytes, so rejected evidence cannot suppress
+        worker-first recovery or the distinct FAILED marker.
+        """
+        manifest_path = self.root / "SHA256SUMS"
+        if manifest_path.exists():
+            raise MaintenanceError("SHA256SUMS already exists before finalization")
+        if failure_mode:
+            files, exclusions = _capture_failure_custody(self.root)
+            _, report_bytes = _build_failure_custody_report(files, exclusions)
+            report_path = self.root / "failure-custody.json"
+            self._write_bytes(report_path, report_bytes)
+            files["failure-custody.json"] = report_bytes
+        else:
+            try:
+                files, directories = adapter_evidence.capture_closed_regular_tree(
+                    self.root, max_tree_bytes=MAX_CUSTODY_TOTAL_BYTES)
+            except adapter_evidence.AdapterEvidenceError as exc:
+                raise MaintenanceError(
+                    f"successful outer custody is not a closed regular tree: {exc}") from exc
+            if len(files) + len(directories) > MAX_OUTER_BUNDLE_ENTRIES:
+                raise MaintenanceError("successful outer custody exceeds its exact entry bound")
+        entries = sorted(
+            (relative, sha256_bytes(content))
+            for relative, content in files.items() if relative != "SHA256SUMS")
+        rows = [f"{digest}  {relative}\n" for relative, digest in entries]
+        manifest_bytes = "".join(rows).encode("utf-8")
+        if len(manifest_bytes) > MAX_FAILURE_MANIFEST_BYTES:
+            raise MaintenanceError("SHA256SUMS exceeds its closed byte bound")
+        if sum(len(content) for content in files.values()) + len(manifest_bytes) > \
+                MAX_FINALIZED_CUSTODY_BYTES:
+            raise MaintenanceError("finalized custody exceeds its closed byte bound")
+        self._write_bytes(manifest_path, manifest_bytes)
+        return manifest_path
 
     def _publish_marker(
         self, *, terminal_path: Path, hashes_path: Path, schema: str,
@@ -631,8 +959,16 @@ class EvidenceCustody:
             "hashes_path": hashes_path.relative_to(self.root).as_posix(),
             "hashes_sha256": sha256_bytes(hashes_path.read_bytes()),
         }
+        marker_bytes = json.dumps(
+            marker, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+        if len(marker_bytes) > MAX_MARKER_BYTES:
+            raise MarkerPublicationError(
+                f"{final_name} exceeds its closed marker byte bound",
+                marker_may_exist=False,
+            )
         try:
-            staged = self.write_json(staging_name, marker)
+            staged = self.root / staging_name
+            self._write_bytes(staged, marker_bytes)
         except BaseException as exc:
             raise MarkerPublicationError(
                 f"failed while staging {final_name}: {exc}", marker_may_exist=False) from exc
@@ -901,57 +1237,48 @@ def validate_ready(value: Any, identity: ProductionIdentity, where: str) -> dict
     return row
 
 
-def validate_adapter_receipt(content: bytes, policy: Policy, context: dict[str, Any]) -> dict[str, Any]:
-    value = parse_closed_json(content, "PR51 adapter receipt")
-    required = {
-        "schema", "issue", "experiment_id", "plan_sha256", "policy_sha256",
-        "policy_binding", "schedule_index", "entry", "input_bindings", "model_binding",
-        "preflight_sha256", "production_before", "production_after",
-        "gpu_admission_before_intent", "model_binding_after", "cycles", "errors",
-        "outcome", "execution_qualified", "measurement_ready", "performance_claim",
-    }
-    require_exact(value, required, "PR51 adapter receipt")
-    plan = context["plan"]
-    expected_entry = context["schedule"]["entries"][policy.schedule_index]
-    issue = require_int(value["issue"], "PR51 adapter receipt.issue", 1)
-    schedule_index = require_int(
-        value["schedule_index"], "PR51 adapter receipt.schedule_index")
-    if value["schema"] != adapter.RECEIPT_SCHEMA or issue != 37 or \
-            value["experiment_id"] != plan["experiment_id"] or \
-            value["plan_sha256"] != core.plan_digest(plan) or \
-            value["policy_sha256"] != policy.adapter_policy_sha256 or \
-            schedule_index != policy.schedule_index or value["entry"] != expected_entry or \
-            value["errors"] != [] or value["outcome"] != {"status": "success", "failure_code": None} or \
-            value["execution_qualified"] is not False or value["measurement_ready"] is not False or \
-            value["performance_claim"] is not False:
-        raise MaintenanceError("PR51 adapter receipt differs from the frozen successful entry")
-    if value["production_before"] != value["production_after"]:
-        raise MaintenanceError("PR51 adapter changed protected production authority")
-    return value
-
-
-def validate_retained_adapter_receipt(
-    content: bytes, authorization: Authorization, policy: Policy,
-    plan_bytes: bytes, adapter_policy_bytes: bytes,
+def validate_retained_adapter_evidence(
+    files: dict[str, bytes], directories: tuple[str, ...], content: bytes,
+    authorization: Authorization, policy: Policy,
+    plan_bytes: bytes, adapter_policy_bytes: bytes, incident_bytes: bytes,
 ) -> dict[str, Any]:
-    """Re-run the live sparse-receipt validator from retained frozen inputs."""
+    """Cold-validate one complete success-only adapter tree and selected handoff."""
     if sha256_bytes(plan_bytes) != authorization.adapter_plan_sha256 or \
             sha256_bytes(plan_bytes) != policy.adapter_plan_sha256 or \
             sha256_bytes(adapter_policy_bytes) != authorization.adapter_policy_sha256 or \
             sha256_bytes(adapter_policy_bytes) != policy.adapter_policy_sha256:
         raise MaintenanceError("retained PR51 plan/policy raw bytes differ from authority")
-    plan = core.validate_plan(parse_closed_json(plan_bytes, "retained adapter plan"))
-    adapter_policy = adapter.load_policy_bytes(adapter_policy_bytes, plan)
+    if sha256_bytes(incident_bytes) != authorization.incident_sha256 or \
+            sha256_bytes(incident_bytes) != policy.incident_sha256 or \
+            sha256_bytes(incident_bytes) != ISSUE41_MANIFEST_SHA256:
+        raise MaintenanceError("retained issue #41 incident bytes differ from authority")
+    try:
+        plan = core.validate_plan(parse_closed_json(plan_bytes, "retained adapter plan"))
+        adapter_policy = adapter.load_policy_bytes(adapter_policy_bytes, plan)
+    except (core.PlanError, adapter.AdapterError) as exc:
+        raise MaintenanceError(f"retained adapter plan/policy is invalid: {exc}") from exc
     if adapter_policy.unit_prefix != authorization.unit_prefix or \
             adapter_policy.coordinator_port != authorization.coordinator_port or \
             adapter_policy.worker_port != authorization.worker_port:
         raise MaintenanceError("retained adapter policy differs from disposable authority")
     try:
-        return validate_adapter_receipt(content, policy, {
-            "plan": plan, "schedule": core.make_schedule(plan),
-        })
-    except MaintenanceError as exc:
-        raise MaintenanceError(f"retained PR51 adapter receipt is invalid: {exc}") from exc
+        result = adapter_evidence.verify_captured_adapter_evidence_tree(
+            files, directories,
+            expected_plan_bytes=plan_bytes,
+            expected_policy_bytes=adapter_policy_bytes,
+            expected_incident_bytes=incident_bytes,
+            expected_schedule_index=policy.schedule_index,
+            expected_production_identity_sha256={
+                role: authorization.production[role].digest
+                for role in ("coordinator", "worker")
+            },
+        )
+    except adapter_evidence.AdapterEvidenceError as exc:
+        raise MaintenanceError(f"retained PR51 adapter evidence is invalid: {exc}") from exc
+    if result["selected_receipt_bytes"] != content:
+        raise MaintenanceError(
+            "retained PR51 adapter receipt differs from the complete adapter tree")
+    return result
 
 
 def validate_adapter_cleanup(value: Any) -> dict[str, Any]:
@@ -1041,30 +1368,6 @@ def _pretty_json_bytes(value: Any) -> bytes:
     return json.dumps(value, indent=2, sort_keys=True).encode("utf-8") + b"\n"
 
 
-def _closed_regular_tree(root: Path) -> tuple[dict[str, Path], set[str]]:
-    if root.is_symlink() or not root.is_dir():
-        raise MaintenanceError("committed bundle root must be a real directory")
-    files: dict[str, Path] = {}
-    directories: set[str] = set()
-    for current, dirnames, filenames in os.walk(root, followlinks=False):
-        current_path = Path(current)
-        for name in dirnames:
-            path = current_path / name
-            relative = path.relative_to(root).as_posix()
-            mode = path.lstat().st_mode
-            if path.is_symlink() or not stat.S_ISDIR(mode):
-                raise MaintenanceError(f"committed bundle directory is not regular: {relative}")
-            directories.add(relative)
-        for name in filenames:
-            path = current_path / name
-            relative = path.relative_to(root).as_posix()
-            mode = path.lstat().st_mode
-            if path.is_symlink() or not stat.S_ISREG(mode):
-                raise MaintenanceError(f"committed bundle file is not regular: {relative}")
-            files[relative] = path
-    return files, directories
-
-
 def _parse_hash_manifest(content: bytes) -> dict[str, str]:
     try:
         text = content.decode("ascii", errors="strict")
@@ -1099,12 +1402,19 @@ def verify_committed_bundle(root: Path) -> dict[str, Any]:
     fake-domain inventory. It is not a signature, two-node receipt, or target
     promotion mechanism.
     """
-    files, directories = _closed_regular_tree(root)
-    marker_path = files.get("COMMITTED.json")
-    hashes_path = files.get("SHA256SUMS")
-    if marker_path is None or hashes_path is None or "COMMITTING.json" in files:
+    if not isinstance(root, Path):
+        raise MaintenanceError("committed bundle root must be a pathlib.Path")
+    absolute_root = Path(os.path.abspath(os.fspath(root)))
+    try:
+        files, captured_directories = adapter_evidence.capture_closed_regular_tree(
+            root, max_tree_bytes=MAX_FINALIZED_CUSTODY_BYTES)
+    except adapter_evidence.AdapterEvidenceError as exc:
+        raise MaintenanceError(f"committed bundle immutable capture failed: {exc}") from exc
+    directories = set(captured_directories)
+    marker_bytes = files.get("COMMITTED.json")
+    hashes_bytes = files.get("SHA256SUMS")
+    if marker_bytes is None or hashes_bytes is None or "COMMITTING.json" in files:
         raise MaintenanceError("offline bundle has no sole final commit marker")
-    marker_bytes = marker_path.read_bytes()
     marker = parse_closed_json(marker_bytes, "offline commit marker")
     require_exact(marker, {
         "schema", "terminal_path", "terminal_sha256", "hashes_path", "hashes_sha256",
@@ -1114,27 +1424,23 @@ def verify_committed_bundle(root: Path) -> dict[str, Any]:
         raise MaintenanceError("offline commit marker is not the exact canonical v1 marker")
     terminal_digest = require_hash(marker["terminal_sha256"], "commit terminal digest")
     hashes_digest = require_hash(marker["hashes_sha256"], "commit manifest digest")
-    hashes_bytes = hashes_path.read_bytes()
     if sha256_bytes(hashes_bytes) != hashes_digest:
         raise MaintenanceError("commit marker does not bind current SHA256SUMS bytes")
     manifest = _parse_hash_manifest(hashes_bytes)
-    expected_payload = {
+    base_payload = {
         "authorization.raw.json", "policy.raw.json", "intent.json",
         "adapter-plan.raw.json", "adapter-policy.raw.json",
         "adapter-receipt.raw.json", "terminal.json",
         *(event_relative_path(index, stage)
           for index, stage in enumerate(SUCCESS_EVENT_STAGES)),
     }
-    if directories != {"events"} or set(manifest) != expected_payload or \
-            set(files) != expected_payload | {"SHA256SUMS", "COMMITTED.json"}:
-        raise MaintenanceError("offline bundle inventory is not the exact successful v1 tree")
-    for relative, expected_digest in manifest.items():
-        if sha256_bytes(files[relative].read_bytes()) != expected_digest:
-            raise MaintenanceError(f"offline bundle digest mismatch: {relative}")
-    terminal_bytes = files["terminal.json"].read_bytes()
-    if sha256_bytes(terminal_bytes) != terminal_digest or \
-            manifest["terminal.json"] != terminal_digest:
-        raise MaintenanceError("terminal digest does not agree across marker, manifest, and bytes")
+    required_files = base_payload | {"SHA256SUMS", "COMMITTED.json"}
+    if not required_files.issubset(files) or not base_payload.issubset(manifest) or \
+            not set(manifest).issubset(files):
+        raise MaintenanceError("offline bundle is missing a required successful v1 artifact")
+    terminal_bytes = files["terminal.json"]
+    if sha256_bytes(terminal_bytes) != terminal_digest:
+        raise MaintenanceError("terminal.json digest does not agree with marker and bytes")
     terminal = parse_closed_json(terminal_bytes, "maintenance terminal")
     require_exact(terminal, {
         "schema", "authorization_id", "authorization_sha256", "policy_sha256",
@@ -1155,8 +1461,8 @@ def verify_committed_bundle(root: Path) -> dict[str, Any]:
     authorization_sha = require_hash(
         terminal["authorization_sha256"], "terminal authorization digest")
     policy_sha = require_hash(terminal["policy_sha256"], "terminal policy digest")
-    authorization_bytes = files["authorization.raw.json"].read_bytes()
-    policy_bytes = files["policy.raw.json"].read_bytes()
+    authorization_bytes = files["authorization.raw.json"]
+    policy_bytes = files["policy.raw.json"]
     if sha256_bytes(authorization_bytes) != authorization_sha or \
             sha256_bytes(policy_bytes) != policy_sha:
         raise MaintenanceError("terminal input digests do not bind retained raw inputs")
@@ -1171,7 +1477,7 @@ def verify_committed_bundle(root: Path) -> dict[str, Any]:
     terminal_authorization_id = require_string(
         terminal["authorization_id"], "terminal authorization_id")
     if authorization.execution_scope != "offline-domain-simulation" or \
-            Path(authorization.evidence_root) != root.resolve() or \
+            Path(authorization.evidence_root) != absolute_root or \
             terminal_authorization_id != authorization.authorization_id or \
             policy.authorization_sha256 != authorization_sha or \
             policy.authority != authorization.authority or \
@@ -1182,6 +1488,47 @@ def verify_committed_bundle(root: Path) -> dict[str, Any]:
             policy.adapter_policy_sha256 != authorization.adapter_policy_sha256 or \
             policy.schedule_index != authorization.schedule_index:
         raise MaintenanceError("retained policy/authorization/terminal authority differs")
+    incident_relative = "adapter/incident.raw"
+    if incident_relative not in files:
+        raise MaintenanceError("offline bundle has no retained adapter incident bytes")
+    adapter_prefix = "adapter/"
+    captured_adapter_files = {
+        relative[len(adapter_prefix):]: content
+        for relative, content in files.items()
+        if relative.startswith(adapter_prefix)
+    }
+    captured_adapter_directories = tuple(sorted(
+        relative[len(adapter_prefix):]
+        for relative in captured_directories
+        if relative.startswith(adapter_prefix) and relative != "adapter"
+    ))
+    retained_adapter = validate_retained_adapter_evidence(
+        captured_adapter_files, captured_adapter_directories,
+        files["adapter-receipt.raw.json"], authorization, policy,
+        files["adapter-plan.raw.json"], files["adapter-policy.raw.json"],
+        files[incident_relative])
+    adapter_files = {f"adapter/{relative}" for relative in retained_adapter["files"]}
+    adapter_directories = {
+        "adapter", *(f"adapter/{relative}" for relative in retained_adapter["directories"]),
+    }
+    expected_payload = base_payload | adapter_files
+    if directories != {"events"} | adapter_directories or \
+            set(manifest) != expected_payload or \
+            set(files) != expected_payload | {"SHA256SUMS", "COMMITTED.json"}:
+        raise MaintenanceError("offline bundle inventory is not the exact successful v1 tree")
+    expected_adapter_digests = {
+        f"adapter/{relative}": digest
+        for relative, digest in retained_adapter["file_sha256"].items()
+    }
+    if any(manifest.get(relative) != digest
+           for relative, digest in expected_adapter_digests.items()):
+        raise MaintenanceError(
+            "offline bundle manifest does not bind the two-pass captured adapter tree")
+    for relative, expected_digest in manifest.items():
+        if sha256_bytes(files[relative]) != expected_digest:
+            raise MaintenanceError(f"offline bundle digest mismatch: {relative}")
+    if manifest["terminal.json"] != terminal_digest:
+        raise MaintenanceError("terminal digest does not agree across marker and manifest")
     before_raw = require_exact(
         terminal["production_before"], {"coordinator", "worker"}, "terminal production before")
     recovered_raw = require_exact(
@@ -1199,7 +1546,7 @@ def verify_committed_bundle(root: Path) -> dict[str, Any]:
         raise MaintenanceError("terminal final service state differs from recovered identities")
     for role in ("coordinator", "worker"):
         validate_new_identity(dataclasses.asdict(recovered[role]), role, before[role])
-    intent = parse_closed_json(files["intent.json"].read_bytes(), "maintenance intent")
+    intent = parse_closed_json(files["intent.json"], "maintenance intent")
     require_exact(intent, {
         "schema", "authorization_id", "authorization_sha256", "policy_sha256",
         "repository_commit", "schedule_index", "no_retry_after_intent",
@@ -1217,7 +1564,7 @@ def verify_committed_bundle(root: Path) -> dict[str, Any]:
     events: list[dict[str, Any]] = []
     for index, stage in enumerate(SUCCESS_EVENT_STAGES):
         relative = event_relative_path(index, stage)
-        event_bytes = files[relative].read_bytes()
+        event_bytes = files[relative]
         event = parse_closed_json(event_bytes, f"event {index}")
         require_exact(event, {"schema", "index", "stage", "status", "observation"}, f"event {index}")
         if event_bytes != _pretty_json_bytes(event) or event["schema"] != EVENT_SCHEMA or \
@@ -1303,20 +1650,17 @@ def verify_committed_bundle(root: Path) -> dict[str, Any]:
         raise MaintenanceError("committed recovery probe differs from exact authority")
     kernel_after = validate_kernel(observations["kernel after"], "committed kernel after")
     compare_kernel(kernel_before, kernel_after)
-    retained_adapter = validate_retained_adapter_receipt(
-        files["adapter-receipt.raw.json"].read_bytes(), authorization, policy,
-        files["adapter-plan.raw.json"].read_bytes(),
-        files["adapter-policy.raw.json"].read_bytes())
     adapter_handoff = require_exact(
         events[SUCCESS_EVENT_STAGES.index("adapter handoff")]["observation"],
         {"receipt_sha256", "schedule_index", "outcome"}, "adapter handoff event")
     handoff_schedule_index = require_int(
         adapter_handoff["schedule_index"], "adapter handoff schedule index")
-    if sha256_bytes(files["adapter-receipt.raw.json"].read_bytes()) != \
+    if sha256_bytes(files["adapter-receipt.raw.json"]) != \
             require_hash(adapter_handoff["receipt_sha256"], "adapter receipt event digest") or \
             handoff_schedule_index != authorization.schedule_index or \
+            retained_adapter["selected_schedule_index"] != authorization.schedule_index or \
             adapter_handoff["outcome"] != {"status": "success", "failure_code": None} or \
-            adapter_handoff["outcome"] != retained_adapter["outcome"]:
+            retained_adapter["selected_receipt_sha256"] != adapter_handoff["receipt_sha256"]:
         raise MaintenanceError("adapter handoff event does not bind the retained receipt")
     if events[-1]["observation"] != terminal["production_final_observed"]:
         raise MaintenanceError("final observation event differs from the terminal state")
@@ -1531,11 +1875,27 @@ def execute_offline_domain(
         except BaseException as exc:
             custody_error("adapter receipt raw", exc)
             raise MaintenanceError(f"mandatory adapter receipt custody failed: {exc}") from exc
-        adapter_receipt = validate_adapter_receipt(receipt_bytes, policy, context)
+        try:
+            adapter_result = adapter_evidence.verify_adapter_evidence_tree(
+                evidence_root / "adapter",
+                expected_plan_bytes=context["plan_bytes"],
+                expected_policy_bytes=context["adapter_policy_bytes"],
+                expected_incident_bytes=context["incident_bytes"],
+                expected_schedule_index=policy.schedule_index,
+                expected_production_identity_sha256={
+                    role: before[role].digest for role in ("coordinator", "worker")
+                },
+            )
+        except adapter_evidence.AdapterEvidenceError as exc:
+            raise MaintenanceError(
+                f"complete PR51 adapter evidence is invalid: {exc}") from exc
+        if adapter_result["selected_receipt_bytes"] != receipt_bytes:
+            raise MaintenanceError(
+                "PR51 adapter handoff differs from the complete captured evidence tree")
         record("adapter handoff", {
             "receipt_sha256": sha256_bytes(receipt_bytes),
-            "schedule_index": adapter_receipt["schedule_index"],
-            "outcome": adapter_receipt["outcome"],
+            "schedule_index": adapter_result["selected_schedule_index"],
+            "outcome": {"status": "success", "failure_code": None},
         })
     except BaseException as exc:
         error("maintenance body", exc)
@@ -1676,7 +2036,7 @@ def execute_offline_domain(
     terminal_path = custody.write_json("terminal.json", terminal)
     finalization_errors: list[dict[str, str]] = []
     try:
-        hashes_path = custody.finalize_hashes()
+        hashes_path = custody.finalize_hashes(failure_mode=bool(errors))
     except BaseException as exc:
         finalization_errors.append({
             "stage": "evidence finalization", "type": type(exc).__name__, "detail": str(exc)})

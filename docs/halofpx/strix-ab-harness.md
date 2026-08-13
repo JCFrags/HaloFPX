@@ -296,6 +296,83 @@ never be used to attribute work in a long-lived or generally batched server.
 Offline fake-adapter tests establish parser and contract behavior only; they
 provide no CachyOS, ROCm, `gfx1151`, dual-node, or performance evidence.
 
+### Complete-tree maintenance handoff
+
+The proposed [ADR-0062 complete-tree validator](decisions/0062-offline-strix-adapter-evidence-validator.md)
+is stricter than the evidence core's ordinary incremental validation. It is a
+closed, full-success maintenance-handoff profile: every frozen schedule entry
+must have one successful adapter execution, one matching raw sample, and the
+complete final analysis and SHA-256 inventory. It validates plan, commands,
+schedule, both preflights and retained inputs, every intent/cycle/receipt/raw
+artifact, `samples.jsonl`, `status.json`, `analysis.json`, and `SHA256SUMS`
+from two matching observed captures of a contained regular-file tree. Missing, failed,
+duplicated, linked, reparse, hard-linked, temporary, reserved, or extra
+content refuses.
+
+The complete-tree profile admits at most 16,384 files/directories, depth 8,
+16 MiB per file, and 256 MiB total. Its shared pre-expansion resource gate
+couples schedule and output volume as
+`2*pairs*(warmups_per_condition+1)*output_tokens <= 262144`; the individual
+ceilings are not independently attainable.
+
+The capture assumes trusted single-operator custody with no synchronized
+hostile writer. It detects observed drift but cannot rule out a nested
+directory A-to-B-to-A swap that is restored around both portable passes; this
+is not a hostile-concurrency or filesystem-immutability guarantee.
+If the maintenance handoff rejects, worker-first recovery precedes a bounded
+failure-custody report. Unsafe or racy paths are metadata-only exclusions,
+observed directory drift rolls back descendants, and the non-authorizing
+`FAILED.json`/manifest may intentionally omit rejected bytes.
+
+The validator cross-binds both rank roles through host, boot, process, cgroup,
+listener, host-local readiness/live/cleanup times, GPU-census, terminal, and
+cleanup records. Every next disposable role process must follow the prior
+role-local cleanup, and all observations must remain within ADR-0064 freshness
+and policy RuntimeMax windows; clocks from different hosts are never compared.
+ADR-0062 uses a stricter half-open event deadline than ADR-0064's inclusive
+configured maximum-age boundary: equality at the local deadline refuses.
+Contained request-time telemetry and a common two-role GPU census are required.
+It also rechecks exact request bytes and the response, client, raw-stream,
+source-shaped terminal event, remote event stamps, token-count, derived
+TTFT/ITL, and all-cycle output-content hashes. The admitted performance profile
+requires exactly one observable partial event per output token; valid UTF-8
+suppression outside that profile refuses. The closed root inventory requires the exact
+`hmm-admission-snapshot.raw.json`, `hmm-admission-policy.raw.json`, and
+`hmm-admission-result.raw.json` files. Both authority receipts bind the result
+through `hmm_admission_result_sha256`; the result binds the exact other two
+digests. The validator calls [ADR-0064](decisions/0064-offline-strix-hmm-admission-snapshot.md)'s
+bound canonical-recomputation API over all three captured byte strings. Its
+result-only API cannot authorize `ADMIT`.
+
+The recomputed `halofpx.strix-hmm-admission-result.v1` prerequisite must bind
+issue #41, both exact hosts and role identities, `ADMIT` with empty reasons,
+non-null node and production identity hashes, and nonnegative headroom. During
+maintenance handoff, each role's production-identity hash must equal the
+expected digest from the maintenance authorization. The result also keeps
+explicit `target_execution_authority=false` and `performance_result=false`.
+The hosted fixture supplies only the checked-in synthetic triple; internal
+binding is not collector-origin, trusted-time, owner/window/nonce, or target
+authorization.
+ADR-0064 `planned_increment_bytes` is not bound to the adapter workload
+allocation and grants no workload authority.
+The remote event stamps are retained collector evidence. Raw SSE independently
+binds their count and order, but contains no event timestamps from which the
+stamp values could be reconstructed; TTFT/ITL summaries inherit that boundary.
+
+The baseline profile may include PR-#67's exact
+`sampling_output_sync_prometheus_v1` observability tree. Detection of any
+reserved sidecar root path or sample directory requires both root files and
+one exact four-file sidecar subtree for every scheduled sample. The validator
+replays the captured bytes under a private temporary root, invokes the
+authoritative `validate_frozen_run` raw-counter reparse, compares the rebuilt
+analysis with the retained report, and cross-binds the sidecar PID,
+InvocationID, process-start ticks, request interval, request hash, response
+hash, and client hash to the measured adapter cycle. A sidecar completion flag
+alone is never accepted. Other observability profiles fail closed. A
+complete-tree PASS remains offline evidence integrity only. It does not make
+`execution_qualified`, `measurement_ready`, or `performance_claim` true and
+does not change the issue-#41 `REFUSE` gate.
+
 ## CachyOS isolated-process adapter — issue #37
 
 [`halofpx_strix_ab_cachyos.py`](../../scripts/halofpx_strix_ab_cachyos.py)
@@ -326,6 +403,10 @@ blocked:
 - independently reviewed disposable-process and cleanup custody; and
 - a two-rank recovery contract that requires exact identities plus a real
   minimal inference after either identity changes.
+
+The proposed ADR-0062 validator closes only the offline complete-tree checking
+gap in this list. It does not create a target Runner, authorize the adapter, or
+replace live maintenance and recovery custody.
 
 The policy permanently protects the current system-unit names and ports:
 

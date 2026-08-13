@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import base64
 import datetime as dt
+import decimal
 import hashlib
 import importlib.util
 import json
@@ -42,10 +43,18 @@ ANALYSIS_SCHEMA_V1 = "halofpx.strix-ab-analysis.v1"
 ANALYSIS_SCHEMA_V2 = "halofpx.strix-ab-analysis.v2"
 ANALYSIS_SCHEMA = ANALYSIS_SCHEMA_V1
 CLIENT_SCHEMA = "halofpx.client-timing.v1"
+CLIENT_SCHEMA_V2 = "halofpx.client-timing.v2"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
 ENV_RE = re.compile(r"^[A-Z_][A-Z0-9_]*$")
+MAX_PAIRS = 64
+MAX_WARMUPS_PER_CONDITION = 16
+MAX_OUTPUT_TOKENS = 65_536
+MAX_PROMPT_TOKENS = 1_048_576
+MAX_CONTEXT = 1_114_112
+MAX_CYCLE_OUTPUT_TOKEN_RECORDS = 262_144
+MAX_JSON_NUMBER_CHARS = 128
 
 
 class PlanError(ValueError):
@@ -122,6 +131,25 @@ def reject_json_constant(value: str) -> None:
     raise ValueError(f"non-finite JSON number {value}")
 
 
+def strict_json_int(value: str) -> int:
+    if len(value) > MAX_JSON_NUMBER_CHARS:
+        raise ValueError("JSON integer exceeds the bounded numeric token length")
+    return int(value, 10)
+
+
+def strict_json_float(value: str) -> float:
+    if len(value) > MAX_JSON_NUMBER_CHARS:
+        raise ValueError("JSON float exceeds the bounded numeric token length")
+    try:
+        exact = decimal.Decimal(value)
+        result = float(exact)
+    except (decimal.InvalidOperation, OverflowError) as exc:
+        raise ValueError("JSON float is not a finite bounded decimal") from exc
+    if not exact.is_finite() or not math.isfinite(result) or (exact != 0 and result == 0):
+        raise ValueError("JSON float is not a finite representable decimal")
+    return result
+
+
 def unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
@@ -142,8 +170,10 @@ def validate_completion_request(raw: bytes, plan: dict[str, Any]) -> dict[str, A
             raw.decode("utf-8", errors="strict"),
             object_pairs_hook=unique_json_object,
             parse_constant=reject_json_constant,
+            parse_int=strict_json_int,
+            parse_float=strict_json_float,
         )
-    except (UnicodeError, json.JSONDecodeError, ValueError) as exc:
+    except (UnicodeError, json.JSONDecodeError, ValueError, RecursionError, MemoryError) as exc:
         raise PlanError(f"request is not strict duplicate-free UTF-8 JSON: {exc}") from exc
     request = require_mapping(request, "request")
     required = {
@@ -177,8 +207,10 @@ def parse_json_bytes(content: bytes, where: str) -> Any:
             content.decode("utf-8", errors="strict"),
             object_pairs_hook=unique_json_object,
             parse_constant=reject_json_constant,
+            parse_int=strict_json_int,
+            parse_float=strict_json_float,
         )
-    except (UnicodeError, json.JSONDecodeError, ValueError) as exc:
+    except (UnicodeError, json.JSONDecodeError, ValueError, RecursionError, MemoryError) as exc:
         raise PlanError(f"cannot parse {where}: {exc}") from exc
 
 
@@ -217,6 +249,43 @@ def require_int(value: Any, where: str, minimum: int = 0) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
         raise PlanError(f"{where} must be an integer >= {minimum}")
     return value
+
+
+def admit_resource_profile(plan: Any) -> dict[str, int]:
+    """Fail before schedule expansion when the closed PR51 profile is too large."""
+    document = require_mapping(plan, "plan")
+    execution = require_mapping(document.get("execution"), "plan.execution")
+    request = require_mapping(document.get("request"), "plan.request")
+    runtime = require_mapping(document.get("runtime"), "plan.runtime")
+    pairs = require_int(execution.get("pairs"), "plan.execution.pairs", 1)
+    warmups = require_int(
+        execution.get("warmups_per_condition"),
+        "plan.execution.warmups_per_condition", 1)
+    retained = require_int(
+        execution.get("retained_per_condition_per_pair"),
+        "plan.execution.retained_per_condition_per_pair", 1)
+    prompt_tokens = require_int(
+        request.get("prompt_tokens"), "plan.request.prompt_tokens", 1)
+    output_tokens = require_int(
+        request.get("output_tokens"), "plan.request.output_tokens", 2)
+    context = require_int(runtime.get("context"), "plan.runtime.context", 1)
+    if pairs > MAX_PAIRS or warmups > MAX_WARMUPS_PER_CONDITION or retained != 1:
+        raise PlanError("plan exceeds bounded pairs/warmups/retained cardinality")
+    if prompt_tokens > MAX_PROMPT_TOKENS:
+        raise PlanError("plan.request.prompt_tokens exceeds its bounded maximum")
+    if output_tokens > MAX_OUTPUT_TOKENS:
+        raise PlanError("plan.request.output_tokens exceeds its bounded maximum")
+    if context > MAX_CONTEXT:
+        raise PlanError("plan.runtime.context exceeds its bounded maximum")
+    schedule_entries = pairs * 2 * retained
+    cycle_output_token_records = schedule_entries * (warmups + 1) * output_tokens
+    if cycle_output_token_records > MAX_CYCLE_OUTPUT_TOKEN_RECORDS:
+        raise PlanError(
+            "plan exceeds the coupled retained cycle/output-token record bound")
+    return {
+        "schedule_entries": schedule_entries,
+        "cycle_output_token_records": cycle_output_token_records,
+    }
 
 
 def require_hash(value: Any, where: str, pattern: re.Pattern[str] = SHA256_RE) -> str:
@@ -345,7 +414,10 @@ def validate_plan(value: Any) -> dict[str, Any]:
     )
     if not ID_RE.fullmatch(require_string(plan["experiment_id"], "plan.experiment_id")):
         raise PlanError("plan.experiment_id must be a safe lowercase identifier")
-    if not isinstance(plan["issues"], list) or not {15, 16}.issubset(set(plan["issues"])):
+    issues = plan["issues"]
+    if not isinstance(issues, list) or any(
+            isinstance(item, bool) or not isinstance(item, int) for item in issues) or \
+            not {15, 16}.issubset(set(issues)):
         raise PlanError("plan.issues must include GitHub issues 15 and 16")
 
     source = require_mapping(plan["source"], "plan.source")
@@ -589,6 +661,7 @@ def validate_plan(value: Any) -> dict[str, Any]:
                 raise PlanError("feature_build requires a distinct OFF/ON binary SHA-256")
             if off_fingerprint == on_fingerprint:
                 raise PlanError("off and on feature_build conditions are identical")
+    admit_resource_profile(plan)
     return plan
 
 
@@ -601,6 +674,9 @@ def plan_digest(plan: dict[str, Any]) -> str:
 
 
 def make_schedule(plan: dict[str, Any]) -> dict[str, Any]:
+    # This defensive gate is intentional: callers may pass an already-parsed
+    # mapping instead of a value returned directly by validate_plan().
+    admit_resource_profile(plan)
     count = plan["execution"]["pairs"]
     first = ["off"] * ((count + 1) // 2) + ["on"] * (count // 2)
     random.Random(plan["execution"]["order_seed"]).shuffle(first)
@@ -864,14 +940,22 @@ def parse_timestamp(value: Any, where: str) -> dt.datetime:
 
 def parse_client(path: Path, output_tokens: int) -> dict[str, Any]:
     client = require_mapping(read_json(path), "client timing")
+    schema = client.get("schema")
+    required = {"schema", "started_at", "ended_at", "http_status", "wall_ms", "ttft_ms", "itl_ms"}
+    if schema == CLIENT_SCHEMA_V2:
+        required |= {
+            "remote_started_monotonic_ns", "remote_ended_monotonic_ns",
+            "event_monotonic_ns",
+        }
     require_keys(
         client,
-        {"schema", "started_at", "ended_at", "http_status", "wall_ms", "ttft_ms", "itl_ms"},
+        required,
         set(),
         "client timing",
     )
-    if client["schema"] != CLIENT_SCHEMA:
-        raise PlanError(f"client timing schema must be {CLIENT_SCHEMA}")
+    if schema not in {CLIENT_SCHEMA, CLIENT_SCHEMA_V2}:
+        raise PlanError(
+            f"client timing schema must be {CLIENT_SCHEMA} or {CLIENT_SCHEMA_V2}")
     started = parse_timestamp(client["started_at"], "client.started_at")
     ended = parse_timestamp(client["ended_at"], "client.ended_at")
     if ended <= started:
@@ -887,8 +971,36 @@ def parse_client(path: Path, output_tokens: int) -> dict[str, Any]:
         for item in itl
     ):
         raise PlanError("client.itl_ms must contain finite positive numbers")
-    if len(itl) != output_tokens - 1:
-        raise PlanError("client.itl_ms must contain one interval after each generated token except the first")
+    if schema == CLIENT_SCHEMA:
+        if len(itl) != output_tokens - 1:
+            raise PlanError(
+                "client.itl_ms must contain one interval after each generated token except the first")
+    else:
+        remote_started = require_int(
+            client["remote_started_monotonic_ns"],
+            "client.remote_started_monotonic_ns", 1)
+        remote_ended = require_int(
+            client["remote_ended_monotonic_ns"],
+            "client.remote_ended_monotonic_ns", 1)
+        events = client["event_monotonic_ns"]
+        if remote_ended <= remote_started or not isinstance(events, list) or \
+                len(events) != output_tokens:
+            raise PlanError("client v2 remote/event monotonic evidence is empty or reversed")
+        previous = remote_started
+        for index, event in enumerate(events):
+            observed = require_int(event, f"client.event_monotonic_ns[{index}]", 1)
+            if observed <= previous or observed >= remote_ended:
+                raise PlanError("client v2 event monotonic evidence is not strictly inside the request")
+            previous = observed
+        derived_ttft = (events[0] - remote_started) / 1e6
+        derived_itl = [(right - left) / 1e6 for left, right in zip(events, events[1:])]
+        derived_wall = (remote_ended - remote_started) / 1e6
+        if len(itl) != len(events) - 1 or any(
+                not math.isclose(observed, expected, rel_tol=1e-12, abs_tol=1e-9)
+                for observed, expected in zip(itl, derived_itl)) or \
+                not math.isclose(client["ttft_ms"], derived_ttft, rel_tol=1e-12, abs_tol=1e-9) or \
+                not math.isclose(client["wall_ms"], derived_wall, rel_tol=1e-12, abs_tol=1e-9):
+            raise PlanError("client v2 timing summaries differ from retained monotonic events")
     if client["ttft_ms"] > client["wall_ms"]:
         raise PlanError("client.ttft_ms cannot exceed client.wall_ms")
     observed_generation_span = client["ttft_ms"] + sum(itl)
@@ -921,11 +1033,13 @@ def parse_response(path: Path, plan: dict[str, Any]) -> dict[str, Any]:
             raise PlanError(f"server response.timings.{name} must be finite and positive")
         numeric[name] = float(value)
     expected_rates = {
-        "prompt_per_second": timings["prompt_n"] / numeric["prompt_ms"] * 1000.0,
-        "predicted_per_second": timings["predicted_n"] / numeric["predicted_ms"] * 1000.0,
+        # Match llama-server's source operation order exactly. Reassociation
+        # can differ by an ulp for non-round retained timings.
+        "prompt_per_second": 1_000.0 / numeric["prompt_ms"] * timings["prompt_n"],
+        "predicted_per_second": 1_000.0 / numeric["predicted_ms"] * timings["predicted_n"],
     }
     for name, expected_rate in expected_rates.items():
-        if not math.isclose(numeric[name], expected_rate, rel_tol=0.01, abs_tol=0.01):
+        if not math.isclose(numeric[name], expected_rate, rel_tol=1e-12, abs_tol=1e-9):
             raise PlanError(f"server response.timings.{name} is inconsistent with count and duration")
     content = response.get("content")
     if not isinstance(content, str):
@@ -940,8 +1054,8 @@ def parse_response(path: Path, plan: dict[str, Any]) -> dict[str, Any]:
         "predicted_n": timings["predicted_n"],
         "prompt_ms": numeric["prompt_ms"],
         "generation_ms": numeric["predicted_ms"],
-        "prompt_tokens_per_second": numeric["prompt_per_second"],
-        "generation_tokens_per_second": numeric["predicted_per_second"],
+        "prompt_tokens_per_second": expected_rates["prompt_per_second"],
+        "generation_tokens_per_second": expected_rates["predicted_per_second"],
         "content_sha256": content_sha256,
     }
 

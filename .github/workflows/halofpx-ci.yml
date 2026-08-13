@@ -68,12 +68,13 @@ jobs:
         working-directory: project
         run: python -m unittest discover -s research/prompts/tools -p 'test_*.py' -v
 
-      - name: Run model-general Strix harness and maintenance tests
+      - name: Run model-general Strix harness, maintenance, and adapter evidence tests
         run: >-
           python -m unittest
           tests/test_halofpx_strix_ab.py
           tests/test_halofpx_strix_ab_sampling_sync.py
           tests/test_halofpx_strix_ab_cachyos.py
+          tests/test_halofpx_strix_adapter_evidence.py
           tests/test_halofpx_strix_maintenance.py
           tests/test_halofpx_strix_recovery_watchdog.py
           tests/test_halofpx_strix_nonce_protocol.py

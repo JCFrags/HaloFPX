@@ -17,6 +17,11 @@ qualifies only the fake transaction model. It keeps target execution literal
 false. Owner-signed authorization, exact reviewed-source binding, atomic
 two-node receipt consumption, and an independent recovery watchdog remain
 mandatory before any real maintenance-controller proposal.
+The proposed
+[ADR-0062 adapter-evidence validator](../docs/halofpx/decisions/0062-offline-strix-adapter-evidence-validator.md)
+adds only a hosted, two-observed-capture closed-world check of a complete successful
+PR-#51 tree. It does not change issue #41, authorize target work, or create a
+performance result.
 
 ## Outcomes
 
@@ -152,6 +157,39 @@ latency, prompt/decode rates, cache source, bytes, and avoided tokens.
 Issues #18, #15, and #37 own the cache-attribution, prefill-matrix, and
 CachyOS A/B-adapter parts of this work. Closed issue #16 supplies the
 model-general evidence core used by #37.
+
+Before a complete adapter tree may enter even the offline maintenance bundle,
+the proposed ADR-0062 profile requires every scheduled entry, both preflights,
+all adapter intents/cycles/raw artifacts, final analysis, and exact SHA-256
+inventory to agree from an unchanged contained regular-file tree. It
+cross-binds both roles' process/cgroup/listener/GPU/HMM, before/after, cleanup,
+the exact retained ADR-0064 snapshot/policy/result bytes through bound
+canonical recomputation, including both maintenance-authorization-derived
+production-identity hashes, request/response/token, and deterministic output
+identities. Result-only `ADMIT` and unknown
+observability layouts refuse. PR-#67's exact
+`sampling_output_sync_prometheus_v1` profile is admitted only when both root
+documents and every scheduled four-file subtree are present, the authoritative
+validator reconstructs the analysis from raw counters, and its process,
+request, response, and client identities agree with the adapter cycle. Neither
+core nor sidecar `evidence_complete` is acceptance authority. Hosted synthetic
+completion is not target measurement.
+
+The portable capture assumes trusted single-operator custody and does not
+close a synchronized nested A-to-B-to-A attack. Rejected-tree failure custody
+is bounded and non-authorizing; excluded bytes may be omitted so worker-first
+recovery and a typed `FAILED` receipt can complete. Role-local boot/freshness,
+RuntimeMax, readiness, cleanup, contained telemetry/GPU witnesses, native SSE
+event stamps, and all-cycle output parity are structural checks only.
+The inner tree is capped at 16,384 nodes/depth 8/16 MiB per file/256 MiB, with
+`2*pairs*(warmups+1)*output_tokens <= 262144`. Outer failure custody admits at
+most 15,766 nodes and 304 MiB before a bounded 4 MiB exclusion report and
+10 MiB manifest; a 16 MiB reserve yields a 320 MiB finalized cold cap.
+ADR-0062's local event freshness is strictly half-open even though ADR-0064
+admits equality at its configured maximum age. Raw SSE binds retained event-
+stamp count/order, but cannot independently reconstruct their timestamps.
+ADR-0064 `planned_increment_bytes` is not digest-bound to the adapter workload
+allocation and grants no allocation authority.
 
 ### 3. First low-risk target screens
 

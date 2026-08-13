@@ -100,8 +100,9 @@ worker-first recovery. A provisional terminal or marker existence is not
 accepted as success. The executable `verify-bundle` path requires a canonical
 `COMMITTED.json` binding the terminal and `SHA256SUMS`, exact regular-file
 inventory with no staging or extra paths, every manifest digest, empty terminal
-errors, every recovery gate, the exact event sequence, and the sparse adapter
-receipt semantics recomputed from retained frozen inputs. Pre-publication
+errors, every recovery gate, the exact event sequence, and the complete
+adapter-tree semantics recomputed from retained frozen inputs. The copied
+receipt alone is never accepted. Pre-publication
 failures make only a best-effort terminal-failure rewrite. A rename exception
 is treated as a possible lost response. If rename may have occurred, or a
 post-rename directory sync fails, the controller first attempts marker
@@ -109,6 +110,78 @@ withdrawal and never mutates bytes an indeterminate surviving marker may bind.
 Windows supplies no directory-fsync primitive here, so this offline fake does
 not claim crash durability. Atomic two-node terminal reconciliation remains a
 mandatory future real-controller gate.
+
+Failure recovery always precedes custody finalization. A bounded no-follow
+failure census admits at most 15,766 entries, depth 8, 16 MiB per regular file,
+and 304 MiB of pre-finalization bytes. Links/reparse points, hard links, special files, unsafe
+names, oversize/deep/count/byte cases, iterator/read races, and changed
+directories are typed exclusions; observed directory drift removes captured
+descendants. The canonical `failure-custody.json` sets `complete=false` when
+anything is excluded. Its `SHA256SUMS` and `FAILED.json` deliberately bind only
+safely admitted bytes, remain non-authorizing, and do not represent a complete
+adapter tree. The trusted-single-operator boundary still makes no claim that a
+synchronized hostile swap cannot cause a transient read before rollback.
+The exclusion report is at most 4 MiB with 2,048 retained rows and 512 UTF-8
+display bytes per path; every row binds the full path digest, while omitted
+rows retain counts, reason counts, and an aggregate digest. The manifest is at
+most 10 MiB. A distinct 16 MiB reserve makes the finalized cold-verification
+ceiling 320 MiB. Successful nested adapter evidence remains separately bounded
+to 16,384 nodes, depth 8, 16 MiB per file, 256 MiB total, and the shared
+`2*pairs*(warmups+1)*output_tokens <= 262144` pre-expansion workload gate.
+
+### Proposed complete adapter-evidence gate
+
+[ADR-0062](decisions/0062-offline-strix-adapter-evidence-validator.md)
+implements a proposed replacement for the sparse selected-receipt replay: a
+cold, from-disk validation of the complete successful PR-#51 tree. The deterministic adapter
+fake must materialize every frozen schedule entry, finalize the evidence-core
+analysis and `SHA256SUMS`, and return the selected receipt only after the full
+tree passes. The maintenance bundle verifier repeats that complete-tree check;
+it does not trust the earlier in-memory result or validate only the copied
+receipt.
+
+The validator performs two matching observed tree captures, admits only contained
+regular single-link files and real directories, and rejects symlinks,
+junctions/reparse points, hard links, aliases, temporary/reserved names, and
+unaccounted paths. It re-derives the exact plan, policy, preflight, intent,
+cycle, raw-sample, analysis, and SHA inventory. Both roles' process, cgroup,
+listener, GPU-census, before/after, terminal, and cleanup identities must
+agree, as must the request, response, raw HTTP, token, and output-content
+hashes. The closed root inventory requires
+`hmm-admission-snapshot.raw.json`, `hmm-admission-policy.raw.json`, and
+`hmm-admission-result.raw.json`. Both authority receipts bind the exact result
+bytes by `hmm_admission_result_sha256`; the result transitively binds the exact
+snapshot and policy digests. The validator then invokes
+[ADR-0064](decisions/0064-offline-strix-hmm-admission-snapshot.md)'s mandatory
+bound API to canonically recompute the result from all three captured byte
+strings at its retained trusted time. The result-only API refuses positive
+admission.
+
+This portable capture assumes trusted single-operator custody. It detects
+observed drift, but a synchronized hostile nested A-to-B-to-A path swap can
+evade both passes; it is not an atomic snapshot or hostile-concurrency claim.
+Role-local boot/monotonic readiness, cleanup, ADR-0064 freshness and
+RuntimeMax bounds are checked without comparing clocks across PCs. The
+ADR-0064 planned increment is not bound to the adapter workload and is not
+allocation authority.
+
+The recomputed `halofpx.strix-hmm-admission-result.v1` document must bind issue
+#41, exact coordinator/worker hosts, per-role and overall `ADMIT` with empty
+reasons, non-null node identity hashes, and nonnegative headroom. Each
+result-role production-identity hash must equal the expected digest derived
+from the exact before identity in the maintenance authorization. The result
+retains explicit non-authority fields. Hosted qualification uses only the
+checked-in synthetic triple; bound consistency is not owner/window/nonce,
+trusted-time, collector-origin, or target-execution authorization.
+
+The validator admits PR-#67's `sampling_output_sync_prometheus_v1` sidecar only
+as an explicit complete profile: both reserved root documents, every
+scheduled exact four-file subtree, authoritative raw-counter reparse, and
+adapter process/request/hash cross-bindings are mandatory. Partial, orphaned,
+unknown, or completion-flag-only observability refuses. Complete-tree
+validation remains an offline evidence-integrity gate. It adds no target
+Runner and changes neither
+literal target-execution flag.
 
 Rank ownership is explicit: `nimo-2` owns the RPC worker and must be ready
 first; `nimo-1` owns the coordinator and may start only after worker readiness.
@@ -191,8 +264,10 @@ mutation:
    census, protected systemd/PID/cgroup/listener identities, kernel counters,
    and adequate HMM headroom under the signed window. Any foreign or uncertain
    owner refuses.
-7. **Complete adapter evidence:** validate the complete immutable PR-#51
-   evidence tree, not the deliberately sparse offline handoff receipt.
+7. **Complete adapter evidence:** retain the ADR-0062 two-pass validator and
+   extend it only through explicit versioned profiles; validate the complete
+   immutable PR-#51 evidence tree, including any admitted observability
+   profile, rather than a selected receipt.
 8. **Atomic terminalization:** reconcile controller and watchdog receipts from
    both nodes, including cleanup, fresh identities, exact recovered ownership,
    the mandatory real two-rank probe, and kernel deltas. A health route alone
@@ -220,3 +295,12 @@ failure, closed-tree verification, replayed evidence roots, closed input
 schemas and scalar types, changed PR-#51 bytes, the exact tracked example pair,
 the non-fake seam, and the public CLI's hard-off gate. They prove only the
 domain contract.
+
+The proposed ADR-0062 cases use a hosted synthetic fixture that executes the
+real evidence-core and adapter writers for every schedule row. They cover the
+complete good tree plus closed-world inventory, link/reparse/hard-link,
+between-pass change, cross-role identity, GPU/HMM, cleanup, cold-request,
+response/token/output, and unsupported-sidecar refusals. They do not contact a
+target or establish a benchmark, performance result, owner authorization,
+trusted time, nonce consumption, watchdog, source binding, or terminal
+authority.

@@ -52,6 +52,25 @@ advanced beyond L111:
   remains open because real SSH execution is hard-disabled,
   `execution_qualified=false`, and issue #41 currently makes target execution
   `REFUSE`. No benchmark was run or accepted.
+- [ADR-0062](docs/halofpx/decisions/0062-offline-strix-adapter-evidence-validator.md)
+  is proposed for a two-pass, closed-world verifier of a complete successful
+  PR-#51 adapter tree. Its hosted fixture is synthetic and offline. It admits
+  PR-#67's sampling-sync observability sidecar only as an explicit complete
+  profile with authoritative raw-counter reparse; every other layout refuses.
+  Its portable double capture detects observed drift only under trusted
+  single-operator custody; synchronized hostile nested ABA replacement remains
+  outside the claim. Failure custody is non-authorizing and may omit rejected
+  bytes after typed bounded exclusion so recovery can still terminalize.
+  The adapter admits at most 16,384 nodes/depth 8/16 MiB per file/256 MiB and
+  couples retained cycle-output records at 262,144. Outer failure custody is
+  capped at 15,766 nodes and 304 MiB before a bounded 4 MiB exclusion report
+  and 10 MiB manifest; a 16 MiB reserve yields a 320 MiB cold cap. ADR-0062
+  locally refuses maximum-age equality even though ADR-0064's base evaluator
+  treats its configured maximum as inclusive. Remote event stamps are retained
+  collector evidence, not timestamps derivable from raw SSE.
+  ADR-0064 planned increments are not adapter workload-allocation authority.
+  It changes no Runner, SSH,
+  target, maintenance, benchmark, or performance gate.
 - [PR #52](https://github.com/JCFrags/HaloFPX/pull/52) merged the default-off
   standalone two-rank live-derived authority builder as
   `65bddac2538c020b62cefe62c3c7cc4ab365c55c`; it remains deliberately
@@ -137,6 +156,20 @@ branch pointer. A fresh worker must record and validate its own checked-out
   exact source binding, atomic
   two-node receipt consumption, and an independent recovery watchdog are
   mandatory before a separate real-target promotion can be considered.
+- Proposed ADR-0062 narrows the controller's adapter handoff to a complete
+  successful tree with exact plan/policy/preflight/intent/cycle/raw/analysis
+  and SHA custody. It validates both roles, cold request/output hashes,
+  the three retained ADR-0064 HMM snapshot/policy/result byte strings through
+  mandatory bound canonical recomputation, including each authorization-derived
+  expected production-identity hash and the result receipt binding, plus
+  GPU/HMM facts, before/after state, and cleanup from disk. Result-only
+  `ADMIT` is non-authorizing. It is
+  also the explicit PR-#67 consumer: reserved sidecar paths require both root
+  documents, every scheduled four-file subtree, raw-counter reparse, and
+  adapter process/request cross-binding. A completion flag alone refuses.
+  This is evidence integrity only; collector origin, owner authentication,
+  reviewed-source binding, trusted time, atomic nonce consumption, watchdog
+  recovery, and terminal authority remain unresolved.
 - [PR #52](https://github.com/JCFrags/HaloFPX/pull/52) merged the standalone
   default-off typed live-derived cache-authority slice. Loader capture,
   request/context resolution, reload invalidation, and product adaptation
