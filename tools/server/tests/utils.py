@@ -94,8 +94,12 @@ class ServerProcess:
     no_models_autoload: bool | None = None
     lora_files: List[str] | None = None
     enable_ctx_shift: int | None = False
+    spec_type: str | None = None
     spec_draft_n_min: int | None = None
     spec_draft_n_max: int | None = None
+    spec_ngram_simple_size_n: int | None = None
+    spec_ngram_simple_size_m: int | None = None
+    spec_ngram_simple_min_hits: int | None = None
     no_webui: bool | None = None
     jinja: bool | None = None
     reasoning_format: Literal['deepseek', 'none', 'nothink'] | None = None
@@ -227,10 +231,18 @@ class ServerProcess:
             server_args.append("--context-shift")
         if self.api_key:
             server_args.extend(["--api-key", self.api_key])
-        if self.spec_draft_n_max:
+        if self.spec_type is not None:
+            server_args.extend(["--spec-type", self.spec_type])
+        if self.spec_draft_n_max is not None:
             server_args.extend(["--spec-draft-n-max", self.spec_draft_n_max])
-        if self.spec_draft_n_min:
+        if self.spec_draft_n_min is not None:
             server_args.extend(["--spec-draft-n-min", self.spec_draft_n_min])
+        if self.spec_ngram_simple_size_n is not None:
+            server_args.extend(["--spec-ngram-simple-size-n", self.spec_ngram_simple_size_n])
+        if self.spec_ngram_simple_size_m is not None:
+            server_args.extend(["--spec-ngram-simple-size-m", self.spec_ngram_simple_size_m])
+        if self.spec_ngram_simple_min_hits is not None:
+            server_args.extend(["--spec-ngram-simple-min-hits", self.spec_ngram_simple_min_hits])
         if self.no_webui:
             server_args.append("--no-webui")
         if self.no_models_autoload:

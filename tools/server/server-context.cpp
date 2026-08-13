@@ -5942,6 +5942,8 @@ void server_routes::init_routes() {
 
         task_params tparams;
         tparams.sampling = params.sampling;
+        // These are startup-backed task defaults, not live per-request values.
+        tparams.speculative = params.speculative;
         json default_generation_settings_for_props = json {
             { "params", tparams.to_json(true) },
             { "n_ctx",  meta->slot_n_ctx },

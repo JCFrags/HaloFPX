@@ -1,0 +1,162 @@
+{
+  "schema": "halofpx.ngram-simple.host-qualification-summary.v1",
+  "status": "PASS",
+  "scope": {
+    "host_only": true,
+    "performance_claim": false,
+    "target_machine_contacted": false,
+    "two_rank_test": false
+  },
+  "source": {
+    "head": "0ee1217a2dccddc91ea03a1160c18025326a6f33",
+    "head_tree": "31f1783d80475193be50c8df5da1578800465095",
+    "tested_index_tree": "b8e471a461a403dfbf7179abc2bbcef60bbe01b8",
+    "tested_diff_sha256": "d8a7e84f396a840812b75d1c1fbe30b74790f1d52d25c3b20a492c9dc2b8b3f6",
+    "qualification_summary_added_after_tested_index_tree": true
+  },
+  "build": {
+    "compiler": "GCC 15.2.0",
+    "build_directory": "/tmp/halofpx-ngram-identity-build",
+    "clean_new_build_directory": true,
+    "cmake_options": [
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DGGML_NATIVE=OFF",
+      "-DLLAMA_CURL=OFF",
+      "-DGGML_RPC=ON",
+      "-DGGML_RPC_HALOFPX_LOCAL_STATE=ON",
+      "-DGGML_OPENMP=OFF",
+      "-DLLAMA_BUILD_WEBUI=OFF"
+    ],
+    "superseded_network_dependent_attempt": {
+      "failure": "Web UI asset provisioning entered a network-dependent download path and did not produce the qualified binary.",
+      "used_for_qualification": false
+    }
+  },
+  "artifacts": {
+    "raw_receipt_local_path": "/tmp/halofpx-ngram-identity-receipt-final",
+    "raw_receipt_manifest_entry_count": 34,
+    "raw_receipt_manifest_sha256": "c5aede80055b6aca9fd6e515ba552d817c68d7e576eaf754535e32fcf1b9dc3c",
+    "run_identity_sha256": "22535492a8ec82d085f43bf54d0745a44e8b7ada9281a9485c488c6c9fdbdb22",
+    "raw_summary_sha256": "c5e343108f9dd251ecc69ed3b7435a72e533ea28e90b80d268ca008db9441fee",
+    "secret_scan": {
+      "patterns": "authorization, bearer, api key, password, passwd, secret, cookie",
+      "material_findings": 0,
+      "source_diff_identifier_only_matches": 1
+    }
+  },
+  "runtime": {
+    "server": {
+      "path": "/tmp/halofpx-ngram-identity-build/bin/llama-server",
+      "sha256": "c216bea3518954313635fc06693703d4cb9b23371ee6f2fb5f64817771e45300"
+    },
+    "model": {
+      "path": "/tmp/halofpx-ngram-model/stories15M_MOE-F16.gguf",
+      "size_bytes": 73466432,
+      "sha256": "1240dfc1957df9f3550dd6c1d9e64b466fc2f452d8bc34bd4e45e1a1e2ca6055"
+    },
+    "ld_library_path": null,
+    "project_mapped_files_sha256": "dc97602eba4d6fb424886333d2e605fc4065ec1b95b751940d867fb2418fdb6f",
+    "project_mapped_files_identical_across_all_six_processes": true,
+    "project_mapped_files": [
+      {
+        "name": "libggml-base.so.0.11.1",
+        "sha256": "eacc9e42ec9fc04c80b059b9f32db503c7e4a56974afc73a8291f1ef652313c5"
+      },
+      {
+        "name": "libggml-cpu.so.0.11.1",
+        "sha256": "19d832c3fad18533126d6fd01830c7d84ef14e219bdbd0c71ad71a1598f3a7a3"
+      },
+      {
+        "name": "libggml-rpc.so.0.11.1",
+        "sha256": "1c1276e0431be50189c36035ac32046db2074580a05db250a3d74f5582ea5b95"
+      },
+      {
+        "name": "libggml.so.0.11.1",
+        "sha256": "c7eae10a329b2ecb248cd3966d370a7811d8c15d5d817e4cb2555742fe63a63b"
+      },
+      {
+        "name": "libllama-common.so.0.0.0",
+        "sha256": "e4deca8b164d58e040f9b8140f762a16cee36a646b484c68c3cf67ee31a6b8f3"
+      },
+      {
+        "name": "libllama.so.0.0.0",
+        "sha256": "6f6ae0d7abad2853e2a0d90518a57774e12414feb9b8d059fa5afffe5e44e520"
+      },
+      {
+        "name": "libmtmd.so.0.0.0",
+        "sha256": "42781813068563a2ec5e38734d77b2bb9ae34991b39d4f75cb22a009758ccad8"
+      },
+      {
+        "name": "llama-server",
+        "sha256": "c216bea3518954313635fc06693703d4cb9b23371ee6f2fb5f64817771e45300"
+      }
+    ]
+  },
+  "request": {
+    "bytes_utf8": "{\"prompt\":\"I believe the meaning of life is\",\"temperature\":0.0,\"samplers\":[\"temperature\"],\"n_predict\":96,\"return_tokens\":true,\"cache_prompt\":false,\"seed\":42}",
+    "sha256": "40359ef9397a64d77d659f8774861a0f921f5545afbbae2368eecb49034b05ba",
+    "cache_prompt": false,
+    "startup_cache_ram": 0,
+    "cache_path_absent_after_each_process": true
+  },
+  "matrix": {
+    "n_batch": 256,
+    "n_predict": 96,
+    "token_array_sha256": "eed673f91a666fc90c05d0539c779156fe34e2a0b0402aed1a10fd81d93514ad",
+    "content_sha256": "4051eef9db9c629d48ad8663c95d2d253eb26d85d28d6c6757b3254f7afcd0a4",
+    "rows": [
+      {
+        "n_ubatch": 1,
+        "exact_target_speculative_parity": true,
+        "draft_n": 100,
+        "draft_n_accepted": 22,
+        "target_runtime_receipt_sha256": "8264e1a881c7c3ba45694fb08889875926793fadde75b14d4dabf4997cde4ae6",
+        "speculative_runtime_receipt_sha256": "d768c57401413d3b12542fcd0da3da8fefd7c048a7c73ef90ebf97de37c5feec"
+      },
+      {
+        "n_ubatch": 2,
+        "exact_target_speculative_parity": true,
+        "draft_n": 100,
+        "draft_n_accepted": 22,
+        "target_runtime_receipt_sha256": "6fbd8ef8246fda3662d25d0ae2048e0998716001a0fb3da024526eb5a4527209",
+        "speculative_runtime_receipt_sha256": "2d1cef8603331d10fa8cd4a5fd7c57a61a9b6c164c3882b86c511f743404e3e0"
+      },
+      {
+        "n_ubatch": 256,
+        "exact_target_speculative_parity": true,
+        "draft_n": 100,
+        "draft_n_accepted": 22,
+        "target_runtime_receipt_sha256": "ad79140558d4a44911cbe5a26efc9b87e7ec055bf2456e7a47f6cb0edd57925c",
+        "speculative_runtime_receipt_sha256": "14f42b4f5cdcb14348a8a68a59ee3f41995ab63feb8459c2f4d61018ff8fb07e"
+      }
+    ]
+  },
+  "cleanup": {
+    "exact_process_count": 6,
+    "all_proc_pids_absent_after": true,
+    "all_ports_clear_after": true,
+    "all_executables_matched_before_signal": true
+  },
+  "separate_host_tests": {
+    "pytest_result": "3 passed, 1 deselected",
+    "covered": [
+      "stable-corpus exact parity and forced rejection",
+      "feature-off startup properties and absent draft counters",
+      "context shift",
+      "two sequential identical requests",
+      "two concurrent identical requests on two slots"
+    ],
+    "exact_server_processes_absent_after": true,
+    "test_arg_parser": "PASS"
+  },
+  "superseded_observations": [
+    "A target run with implicit default ubatch was compared to an explicit ubatch-1 speculative run; the unmatched token difference is not qualification evidence.",
+    "A provisional ubatch>=2 difference lacked complete source, executable, and DSO identity and was not reproduced by the clean matched matrix."
+  ],
+  "superseded_artifacts_retained_locally": [
+    "/tmp/halofpx-ngram-identity-receipt-prelim",
+    "/tmp/halofpx-ngram-matched-ub1-baseline.json",
+    "/tmp/halofpx-ngram-matched-ub1-spec.json",
+    "/tmp/halofpx-ngram-default-nmax1-trace.log"
+  ]
+}

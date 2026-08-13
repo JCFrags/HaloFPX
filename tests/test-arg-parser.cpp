@@ -148,6 +148,55 @@ int main(void) {
         assert(strict_params.speculative.mtp_strict == true);
     }
 
+    printf("test-arg-parser: test speculative type assignment\n\n");
+
+    {
+        common_params spec_params;
+        assert(spec_params.speculative.types.size() == 1);
+        assert(spec_params.speculative.types[0] == COMMON_SPECULATIVE_TYPE_NONE);
+
+        argv = {"binary_name", "--spec-type", "ngram-simple,ngram-map-k"};
+        assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), spec_params, LLAMA_EXAMPLE_SERVER));
+        assert(spec_params.speculative.types.size() == 2);
+        assert(spec_params.speculative.types[0] == COMMON_SPECULATIVE_TYPE_NGRAM_SIMPLE);
+        assert(spec_params.speculative.types[1] == COMMON_SPECULATIVE_TYPE_NGRAM_MAP_K);
+
+        // Re-parsing an already populated params object must not append types.
+        assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), spec_params, LLAMA_EXAMPLE_SERVER));
+        assert(spec_params.speculative.types.size() == 2);
+        assert(spec_params.speculative.types[0] == COMMON_SPECULATIVE_TYPE_NGRAM_SIMPLE);
+        assert(spec_params.speculative.types[1] == COMMON_SPECULATIVE_TYPE_NGRAM_MAP_K);
+
+        // Repeated assignment follows the parser's existing "last value wins" contract.
+        argv = {"binary_name", "--spec-type", "ngram-simple", "--spec-type", "ngram-map-k4v"};
+        assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), spec_params, LLAMA_EXAMPLE_SERVER));
+        assert(spec_params.speculative.types.size() == 1);
+        assert(spec_params.speculative.types[0] == COMMON_SPECULATIVE_TYPE_NGRAM_MAP_K4V);
+
+        argv = {"binary_name", "--spec-type", "none"};
+        assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), spec_params, LLAMA_EXAMPLE_SERVER));
+        assert(spec_params.speculative.types.size() == 1);
+        assert(spec_params.speculative.types[0] == COMMON_SPECULATIVE_TYPE_NONE);
+
+        argv = {"binary_name", "--spec-default"};
+        assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), spec_params, LLAMA_EXAMPLE_SERVER));
+        assert(spec_params.speculative.types.size() == 1);
+        assert(spec_params.speculative.types[0] == COMMON_SPECULATIVE_TYPE_NGRAM_MOD);
+    }
+
+    for (const std::string & invalid_types : {
+            std::string(""),
+            std::string("unknown"),
+            std::string("ngram-simple,ngram-simple"),
+            std::string("none,ngram-simple"),
+            std::string("ngram-simple,none")}) {
+        common_params spec_params;
+        argv = {"binary_name", "--spec-type", invalid_types};
+        assert(false == common_params_parse(argv.size(), list_str_to_char(argv).data(), spec_params, LLAMA_EXAMPLE_SERVER));
+        assert(spec_params.speculative.types.size() == 1);
+        assert(spec_params.speculative.types[0] == COMMON_SPECULATIVE_TYPE_NONE);
+    }
+
     // multi-value args (CSV)
     argv = {"binary_name", "--lora", "file1.gguf,\"file2,2.gguf\",\"file3\"\"3\"\".gguf\",file4\".gguf"};
     assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), params, LLAMA_EXAMPLE_COMMON));
@@ -162,6 +211,25 @@ int main(void) {
     printf("test-arg-parser: skip on windows build\n");
 #else
     printf("test-arg-parser: test environment variables (valid + invalid usages)\n\n");
+
+    {
+        common_params spec_params;
+        setenv("LLAMA_ARG_SPEC_TYPE", "ngram-simple,ngram-map-k", true);
+        argv = {"binary_name"};
+        assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), spec_params, LLAMA_EXAMPLE_SERVER));
+        assert(spec_params.speculative.types.size() == 2);
+        assert(spec_params.speculative.types[0] == COMMON_SPECULATIVE_TYPE_NGRAM_SIMPLE);
+        assert(spec_params.speculative.types[1] == COMMON_SPECULATIVE_TYPE_NGRAM_MAP_K);
+
+        // Environment assignment is also idempotent, and CLI keeps precedence.
+        assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), spec_params, LLAMA_EXAMPLE_SERVER));
+        assert(spec_params.speculative.types.size() == 2);
+        argv = {"binary_name", "--spec-type", "ngram-map-k4v"};
+        assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), spec_params, LLAMA_EXAMPLE_SERVER));
+        assert(spec_params.speculative.types.size() == 1);
+        assert(spec_params.speculative.types[0] == COMMON_SPECULATIVE_TYPE_NGRAM_MAP_K4V);
+        unsetenv("LLAMA_ARG_SPEC_TYPE");
+    }
 
     setenv("LLAMA_ARG_THREADS", "blah", true);
     argv = {"binary_name"};

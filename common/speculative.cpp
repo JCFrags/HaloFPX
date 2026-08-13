@@ -2480,19 +2480,27 @@ std::string common_speculative_type_to_str(common_speculative_type type) {
 }
 
 std::vector<common_speculative_type> common_speculative_types_from_names(const std::vector<std::string> & names) {
+    if (names.empty()) {
+        throw std::invalid_argument("speculative type list cannot be empty");
+    }
+
     std::vector<common_speculative_type> types;
     types.reserve(names.size());
 
     for (const auto & name : names) {
-        auto type = common_speculative_type_from_name_map.find(name);
-        if (type != common_speculative_type_from_name_map.end()) {
-            if (type->second == COMMON_SPECULATIVE_TYPE_NONE) {
-                return std::vector<common_speculative_type> { COMMON_SPECULATIVE_TYPE_NONE };
-            }
-            types.push_back(type->second);
-            continue;
+        const auto type = common_speculative_type_from_name_map.find(name);
+        if (type == common_speculative_type_from_name_map.end()) {
+            throw std::invalid_argument("unknown speculative type: " + name);
         }
-        throw std::invalid_argument("unknown speculative type: " + name);
+        if (std::find(types.begin(), types.end(), type->second) != types.end()) {
+            throw std::invalid_argument("duplicate speculative type: " + name);
+        }
+        types.push_back(type->second);
+    }
+
+    if (types.size() > 1 &&
+        std::find(types.begin(), types.end(), COMMON_SPECULATIVE_TYPE_NONE) != types.end()) {
+        throw std::invalid_argument("speculative type 'none' cannot be combined with other types");
     }
 
     return types;
