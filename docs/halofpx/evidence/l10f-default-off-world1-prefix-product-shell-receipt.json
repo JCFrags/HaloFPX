@@ -1,0 +1,83 @@
+{
+  "schema": "halofpx-world1-prefix-product-shell-receipt-v1",
+  "milestone": "L10f",
+  "title": "default-off world-1 authenticated-prefix product shell",
+  "date": "2026-08-12",
+  "behavior_reference_commit": "fewtarius/CachyLlama@6be745998f568e379ea197fcf827baec73ff9940",
+  "qualification_base_commit": "72436b9c701c4a309a6393979db382c44d871e43",
+  "qualified_code_commit_before_receipt": "7f2019cbcdf66f474d30df92e5773555884b9c57",
+  "environment": {
+    "kind": "local correctness-only WSL2; not Strix Halo target or performance evidence",
+    "distribution": "Ubuntu 26.04",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "compiler": "GCC 15.2.0",
+    "cmake": "4.2.3",
+    "ninja": "1.13.2",
+    "configuration": "Release CPU; native, HIP, Vulkan, OpenMP, and embedded Web UI off; RPC and local-state authority on"
+  },
+  "feature_on_commands": {
+    "build": "cmake --build \"$BUILD_DIR\" --target llama-server test-halofpx-context-store-v1-catalog test-halofpx-context-store-v1-prefix-selector test-halofpx-context-store-exact-session -j4",
+    "test": "ctest --test-dir \"$BUILD_DIR\" --output-on-failure -R '^(test-halofpx-feature-off-contract|test-halofpx-context-store-exact-session|test-halofpx-context-store-exact-session-contract|test-halofpx-context-store-exact-key-runtime-contract|test-halofpx-context-store-v1-catalog|test-halofpx-context-store-v1-prefix-selector|test-halofpx-context-store-v1-prefix-selector-contract|test-halofpx-context-store-exact-session-golden)$'"
+  },
+  "feature_on_result": {
+    "passed": 8,
+    "failed": 0,
+    "real_seconds": 0.40,
+    "tests": [
+      "test-halofpx-feature-off-contract",
+      "test-halofpx-context-store-exact-session",
+      "test-halofpx-context-store-exact-session-contract",
+      "test-halofpx-context-store-exact-key-runtime-contract",
+      "test-halofpx-context-store-v1-catalog",
+      "test-halofpx-context-store-v1-prefix-selector",
+      "test-halofpx-context-store-v1-prefix-selector-contract",
+      "test-halofpx-context-store-exact-session-golden"
+    ]
+  },
+  "compile_time_off_control": {
+    "configure": "cmake -S \"$SOURCE_DIR\" -B \"$OFF_BUILD_DIR\" -G Ninja -DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=OFF -DGGML_OPENMP=OFF -DGGML_RPC=ON -DGGML_RPC_HALOFPX_LOCAL_STATE=ON -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=ON -DLLAMA_BUILD_TOOLS=ON -DLLAMA_BUILD_SERVER=ON -DLLAMA_BUILD_WEBUI=OFF -DHALOFPX_CONTEXT_STORE_CANARY=ON -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=ON -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=ON -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=ON -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=ON -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=ON -DHALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY=ON -DHALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT=OFF",
+    "build": "cmake --build \"$OFF_BUILD_DIR\" --target llama-server -j4",
+    "test": "ctest --test-dir \"$OFF_BUILD_DIR\" -V -R '^test-halofpx-feature-off-contract$'",
+    "passed": 1,
+    "failed": 0,
+    "runtime_mode_in_help": false,
+    "product_source_in_build_graph": false,
+    "binary_sha256": "1af2bc2d416ef1333dc6f36d8cbc53d84da2b60209c1f5dd89605f78098ed4dc",
+    "binary_bytes": 3090872
+  },
+  "no_authority_server_smoke": {
+    "model_fixture_sha256": "3e184de6d7bbe7e16fdf33b35b086b3df426f8557b166933415b59479dd021ec",
+    "source": "cold",
+    "selected_prefix_tokens": 0,
+    "restored_tokens": 0,
+    "residual_tokens": 20,
+    "actual_prompt_tokens": 20,
+    "candidates_examined": 0,
+    "fallback_reason": "live-authority-unavailable",
+    "scope": "reachable fallback correctness only; transient log was not retained"
+  },
+  "documentation_validation": {
+    "documentation_status": "PASS",
+    "markdown_files_checked": 556,
+    "category_manifests_checked": 12,
+    "broken_internal_links": 0,
+    "wiki_complete": 86,
+    "wiki_expected": 86,
+    "wiki_schema_invalid": 0
+  },
+  "default_enabled": false,
+  "trusted_world1_live_authority_provider_present": false,
+  "positive_server_hit_proved": false,
+  "automatic_system_prefix_capture_proved": false,
+  "dual_rank_support_proved": false,
+  "production_deployment_touched": false,
+  "performance_claim": false,
+  "open": [
+    "trusted world-1 live-loader authority adapter from issue 33",
+    "fresh-process model-backed state install and residual suffix decode",
+    "deterministic cache-off/output parity including exact one-token logits replay",
+    "automatic template-derived system-prefix checkpoint publication",
+    "matched single-node Strix Halo performance",
+    "atomic two-rank product composition from issue 26"
+  ]
+}

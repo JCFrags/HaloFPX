@@ -97,6 +97,10 @@ speed improvement. Target evidence must attribute lookup, validation,
 state-apply-and-cleanup, actual prompt tokens, TTFT, prompt rate, and generation
 rate under issue #18.
 
+The portable hosted qualification receipt, including the compile-time-off
+control and no-authority server smoke, is
+[retained here](evidence/l10f-default-off-world1-prefix-product-shell-receipt.json).
+
 ## Rollback
 
 Disable the product build option or remove the product coordinator/server
