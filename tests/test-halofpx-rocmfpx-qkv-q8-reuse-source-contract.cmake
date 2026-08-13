@@ -230,6 +230,7 @@ require_text(CI_REGION
 foreach(REQUIRED_HIP_CI_TEXT IN ITEMS
         "rocmfpx-qkv-q8-reuse-hip-compile:"
         "sha256:bdc8e61026cbb844ede93d44d2c50055f51ebb2041906b60182bf3bee3139054"
+        "/opt/rocm/bin/hipconfig --full"
         "-DGPU_TARGETS=gfx1151"
         "-DGGML_HIP_ROCMFPX_QKV_Q8_REUSE=ON"
         "--target ggml-hip"

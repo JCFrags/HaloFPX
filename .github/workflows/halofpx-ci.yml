@@ -528,7 +528,7 @@ jobs:
 
       - name: Record pinned ROCm compiler identity
         run: |
-          hipconfig --full
+          /opt/rocm/bin/hipconfig --full
           /opt/rocm/lib/llvm/bin/clang++ --version
 
       - name: Configure feature-on gfx1151 HIP translation units
