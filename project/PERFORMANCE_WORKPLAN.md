@@ -113,6 +113,7 @@ donor code merely because the behavior is authoritative.
 | [#33](https://github.com/JCFrags/HaloFPX/issues/33) | active | standalone typed authority slice complete; loader capture, resolved request/context semantics, reload invalidation, and server adapter remain |
 | [#42](https://github.com/JCFrags/HaloFPX/issues/42) | active | prompt-side reuse merged and compile-qualified; strict n=1 local-HIP MMVQ generation slice implemented, target runtime/performance blocked by #41 |
 | [#43](https://github.com/JCFrags/HaloFPX/issues/43) | active | portable small Qwen3-0.6B pure ROCmFPX registry/recipe; target qualification remains open |
+| [#58](https://github.com/JCFrags/HaloFPX/issues/58) | next P1 | retain/rehydrate authenticated scheduler plans, then versioned prior-lineage RPC recompute; no current product or performance claim |
 
 ## Ordered work
 
@@ -260,6 +261,34 @@ draft counts and target-verification latency. MiniMax n-gram acceptance is
 currently **[OPEN]**; retained slower n-gram results apply to a Qwen ROCmFP4
 workload, not MiniMax. This is workload-dependent and must remain opt-in unless
 evidence supports adaptive use.
+
+The exact feature-off RPC path has no redundant compute-completion response to
+remove: graph compute/recompute is send-only, and the following ordered
+`GET_TENSOR` response is already the completion boundary. Its steady recompute
+frame is only 13 bytes; the GET request is 321 bytes and the output response
+remains mandatory. P05's stronger small-command coalescing screen removed 252
+send calls without a positive generation point estimate. Do not build a fused
+legacy recompute/GET opcode or compact-handle protocol without a new mechanism.
+
+The [source audit](../docs/halofpx/rpc-decode-roundtrip-source-audit.md) found a
+larger default-off authenticated-composed omission: that lane disables llama
+graph reuse and retransmits `G = 12 + 8*N_nodes + 296*N_tensors` bytes per RPC
+split. A direct reuse toggle is P0-invalid because fresh composed authority
+changes the transcript while current recompute requires prior-transcript
+equality, and the scheduler retains no canonical pre-rewrite authority plan.
+Issue [#58](https://github.com/JCFrags/HaloFPX/issues/58) therefore owns two
+stages: first retain/rehydrate the scheduler plan while explicitly forcing
+fresh full authenticated compute; then add a versioned prior-lineage recompute
+record that can honestly omit `G` only for splits admitted by an exact
+endpoint/device cardinality policy. The current server has one stored-graph
+slot per endpoint/device, so phase 2 must either require one reusable split or
+add a negotiated bounded multi-UID table. Both stages keep L40's preparation
+receipt, client-side validation, and separate execute. Neither has a current
+product or performance claim.
+
+Model-general rank-parallel fork/join execution remains the higher-ceiling
+generation architecture candidate once its dependency and whole-join failure
+semantics are explicit.
 
 ## Kill gates
 
