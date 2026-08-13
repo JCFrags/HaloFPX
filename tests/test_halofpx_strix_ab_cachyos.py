@@ -59,6 +59,9 @@ class FakeRunner:
         self.cleanup_failure_roles: set[str] = set()
         self.change_production_after = False
         self.snapshot_count = 0
+        self.started_identities: list[AD.UnitIdentity] = []
+        self.coordinator_batch_override: str | None = None
+        self.observed_sha256_override: str | None = None
 
     def snapshot_production(self, protected: dict[str, dict[str, Any]]) -> dict[str, Any]:
         self.snapshot_count += 1
@@ -99,14 +102,19 @@ class FakeRunner:
         self.start_count += 1
         pid = self.identity_pid_override if self.identity_pid_override is not None else self.next_pid
         self.next_pid += 1
-        observed_argv = tuple(argv) + (("--unexpected",) if self.argv_mismatch else ())
+        observed_argv_list = list(argv)
+        if role == "coordinator" and self.coordinator_batch_override is not None:
+            batch_index = observed_argv_list.index("--batch-size")
+            observed_argv_list[batch_index + 1] = self.coordinator_batch_override
+        observed_argv = tuple(observed_argv_list) + (("--unexpected",) if self.argv_mismatch else ())
         identity = AD.UnitIdentity(
             role, host, unit, pid, f"{self.start_count:032x}", 10000 + self.start_count,
             20000 + self.start_count, f"cursor-{self.start_count}", observed_argv,
-            dict(environment), executable_sha256, port,
+            dict(environment), self.observed_sha256_override or executable_sha256, port,
             f"/user.slice/user-1000.slice/user@1000.service/app.slice/{unit}")
         self.units[(host, unit)] = identity
         self.port_map[(host, port)] = pid
+        self.started_identities.append(identity)
         return identity
 
     def prove_live(self, identity: AD.UnitIdentity, require_listener: bool = True) -> dict[str, Any]:
@@ -247,6 +255,34 @@ class AdapterTest(unittest.TestCase):
         self.policy_path = self.root / "policy.json"
         self.policy_path.write_text(json.dumps(self.policy), encoding="utf-8")
 
+    def make_v2_run(self, kind: str = "runtime_n_batch") -> tuple[dict[str, Any], Path]:
+        plan = copy.deepcopy(self.plan)
+        plan["schema"] = AB.PLAN_SCHEMA_V2
+        plan["comparison"] = {"kind": kind, "control": "off", "candidate": "on"}
+        plan["runtime"].pop("batch")
+        plan["runtime"]["batch_by_condition"] = {
+            "off": 512, "on": 2048 if kind == "runtime_n_batch" else 512}
+        args = plan["runtime"]["common_coordinator_args"]
+        batch_index = args.index("--batch-size")
+        del args[batch_index:batch_index + 2]
+        plan["execution"]["pairs"] = 1
+        if kind == "runtime_n_batch":
+            plan["source"]["on_commit"] = plan["source"]["off_commit"]
+            plan["conditions"]["on"]["source_commit"] = plan["source"]["off_commit"]
+            for key in ("coordinator_binary", "worker_binary"):
+                plan["conditions"]["on"][key] = copy.deepcopy(
+                    plan["conditions"]["off"][key])
+        plan_path = self.root / f"plan-{kind}.json"
+        plan_path.write_text(json.dumps(plan), encoding="utf-8")
+        run = self.root / f"run-{kind}"
+        AB.init_run(plan_path, run)
+        for role, host in (("coordinator", "nimo-1"), ("worker", "nimo-2")):
+            receipt = AB.collect_preflight(plan, role, observed_hostname=host)
+            receipt_path = self.root / f"{kind}-{role}.json"
+            AB.write_json(receipt_path, receipt)
+            AB.import_preflight(run, receipt_path)
+        return plan, run
+
     def tearDown(self) -> None:
         self.temporary.cleanup()
 
@@ -327,8 +363,86 @@ class AdapterTest(unittest.TestCase):
             plan["conditions"]["off"]["coordinator_binary"]["sha256"]
         plan["conditions"]["on"]["worker_binary"]["sha256"] = \
             plan["conditions"]["off"]["worker_binary"]["sha256"]
-        with self.assertRaisesRegex(AD.AdapterError, "identical binary hashes"):
+        with self.assertRaisesRegex(AD.AdapterError, "distinct OFF/ON binary|identical binary hashes"):
             AD.load_policy(self.policy_path, plan)
+
+    def test_v2_runtime_batch_accepts_same_binaries_and_executes_exact_generated_argv(self) -> None:
+        plan, run = self.make_v2_run()
+        policy = AD.load_policy(self.policy_path, plan)
+        self.assertEqual(policy.worker_port, 50252)
+        commands = AB.commands_document(plan)["conditions"]
+        self.assertEqual(commands["off"]["worker"], commands["on"]["worker"])
+        self.assertEqual(commands["off"]["coordinator"][-2:], ["--batch-size", "512"])
+        self.assertEqual(commands["on"]["coordinator"][-2:], ["--batch-size", "2048"])
+
+        runner = FakeRunner(self.files["request"].read_bytes())
+        AD.execute_next(run, self.policy_path, runner)
+        AD.execute_next(run, self.policy_path, runner)
+        coordinator = [item for item in runner.started_identities if item.role == "coordinator"]
+        worker = [item for item in runner.started_identities if item.role == "worker"]
+        self.assertEqual(len(coordinator), 4)
+        self.assertEqual(len(worker), 4)
+        self.assertEqual({item.executable_sha256 for item in coordinator}, {
+            plan["conditions"]["off"]["coordinator_binary"]["sha256"]})
+        self.assertEqual({item.executable_sha256 for item in worker}, {
+            plan["conditions"]["off"]["worker_binary"]["sha256"]})
+        by_condition = {
+            condition: [item for item in coordinator if f"-{condition}-coordinator" in item.unit]
+            for condition in ("off", "on")}
+        self.assertEqual(
+            {AD.argv_option(item.argv, "--batch-size") for item in by_condition["off"]}, {"512"})
+        self.assertEqual(
+            {AD.argv_option(item.argv, "--batch-size") for item in by_condition["on"]}, {"2048"})
+
+    def test_v2_runtime_preflight_equal_artifacts_are_bound_and_tampering_refuses(self) -> None:
+        plan, run = self.make_v2_run()
+        receipt = AB.read_json(run / "preflight" / "coordinator.json")
+        self.assertEqual(receipt["artifacts"]["off_binary"], receipt["artifacts"]["on_binary"])
+        receipt["artifacts"]["on_binary"]["sha256"] = "f" * 64
+        with self.assertRaises(AB.PlanError):
+            AB.validate_preflight_receipt(plan, receipt)
+
+    def test_v2_runtime_live_batch_substitution_fails_closed_and_cleans_both_roles(self) -> None:
+        _, run = self.make_v2_run()
+        runner = FakeRunner(self.files["request"].read_bytes())
+        runner.coordinator_batch_override = "4096"
+        with self.assertRaises(AD.AdapterError):
+            AD.execute_next(run, self.policy_path, runner)
+        self.assertEqual(len(runner.cleanup_attempts), 2)
+        sample = next((run / "raw").glob("*/sample.json"))
+        self.assertEqual(json.loads(sample.read_text())["status"], "failure")
+
+    def test_v2_runtime_live_executable_substitution_fails_closed_and_cleans_both_roles(self) -> None:
+        _, run = self.make_v2_run()
+        runner = FakeRunner(self.files["request"].read_bytes())
+        runner.observed_sha256_override = "f" * 64
+        with self.assertRaises(AD.AdapterError):
+            AD.execute_next(run, self.policy_path, runner)
+        self.assertEqual(len(runner.cleanup_attempts), 2)
+        self.assertEqual(runner.start_count, 1)
+
+    def test_v2_feature_build_keeps_adapter_distinct_binary_rule(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["schema"] = AB.PLAN_SCHEMA_V2
+        plan["comparison"] = {"kind": "feature_build", "control": "off", "candidate": "on"}
+        plan["runtime"].pop("batch")
+        plan["runtime"]["batch_by_condition"] = {"off": 512, "on": 512}
+        args = plan["runtime"]["common_coordinator_args"]
+        index = args.index("--batch-size")
+        del args[index:index + 2]
+        for key in ("coordinator_binary", "worker_binary"):
+            plan["conditions"]["on"][key]["sha256"] = plan["conditions"]["off"][key]["sha256"]
+        with self.assertRaisesRegex(AD.AdapterError, "distinct OFF/ON binary|identical binary hashes"):
+            AD.load_policy(self.policy_path, plan)
+
+    def test_v2_target_execution_remains_blocked_before_ssh(self) -> None:
+        _, run = self.make_v2_run()
+        runner = AD.SshCachyRunner()
+        self.assertFalse(AD.TARGET_EXECUTION_ENABLED)
+        with mock.patch.object(runner, "_run") as remote, \
+                self.assertRaisesRegex(AD.AdapterError, "issue #41"):
+            AD.execute_next(run, self.policy_path, runner)
+        remote.assert_not_called()
 
     def test_adapter_refuses_rpc_endpoint_on_wrong_host(self) -> None:
         plan = copy.deepcopy(self.plan)

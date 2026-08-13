@@ -10,13 +10,24 @@ MiniMax-specific assumptions in `run-halofpx-primary-block.sh` and
 paired order, exact artifact preflight, raw-sample retention, and paired
 analysis. It does not change or control the always-on services.
 
-The harness is feature-agnostic. An OFF/ON pair may compare different commits
-or different builds of one commit. Runtime arguments must match across the two
-conditions, and the typed runtime contract must agree with the exact common
-argv. Version 1 admits only cold-cache-off prompt/generation work; persistent
-cache reuse keeps its separate lifecycle qualification. MiniMax remains an
-optional capacity fixture; no model name, architecture, prompt length, or
-golden output is embedded in the implementation.
+The harness has two versioned comparison contracts. Plan v1 retains its exact
+feature-build behavior and serialization. Plan v2 declares either
+`feature_build` or `runtime_n_batch`; it does not reinterpret or migrate an
+initialized v1 run. Both versions admit only cold-cache-off prompt/generation
+work. Persistent cache reuse keeps its separate lifecycle qualification.
+MiniMax remains an optional capacity fixture; no model name, architecture,
+prompt length, or golden output is embedded in the implementation.
+
+The plan-v2 `runtime_n_batch` comparison is deliberately closed: OFF is
+`n_batch/n_ubatch=512/512`, ON is `2048/512`, and both conditions use the same
+source commit plus identical coordinator and worker binary paths and SHA-256
+identities. Condition-specific arguments remain empty. The common coordinator
+argv must omit every batch alias, including llama.cpp's underscore-normalized
+long spellings; the harness emits the only `--batch-size` pair from the typed
+condition map. Worker argv is identical and coordinator
+argv differs only in that generated integer. `LLAMA_ARG_BATCH` and
+`LLAMA_ARG_UBATCH` are refused. This makes outer batch size the only declared
+independent variable.
 
 ## Scope and safety boundary
 
@@ -72,10 +83,13 @@ golden output is embedded in the implementation.
 
 ## Small workflow
 
-Start from
-[`halofpx-strix-ab-plan.example.json`](../../scripts/halofpx-strix-ab-plan.example.json).
-Replace every placeholder with an exact identity. Use one ordinary ROCmFPX
-model for daily work and keep `cache_class=cold_cache_off` for issues #15/#16.
+Start from the historical plan-v1
+[`halofpx-strix-ab-plan.example.json`](../../scripts/halofpx-strix-ab-plan.example.json)
+for a feature-build comparison. Start from
+[`halofpx-strix-ab-runtime-n-batch-plan.example.json`](../../scripts/halofpx-strix-ab-runtime-n-batch-plan.example.json)
+for the exact plan-v2 512/512 versus 2048/512 screen. Replace every placeholder
+with an exact identity. Use one ordinary ROCmFPX model for daily work and keep
+`cache_class=cold_cache_off` for issues #15/#16.
 The request file identified by `request.path` and `request.sha256` should have
 this shape (replace the prompt and keep its exact token count in the plan):
 
@@ -153,6 +167,8 @@ python scripts/halofpx_strix_ab.py analyze /var/tmp/halofpx-ab-my-run
 `analysis.json` uses the pair as the comparison unit. It reports OFF/ON means,
 paired deltas, and paired improvement percentages separately for prompt rate,
 generation rate, client wall time, TTFT, and mean inter-token latency.
+For plan v2 it also binds the comparison kind, control/candidate labels,
+condition batch map, ubatch, and both complete condition-command hashes.
 It does not use requests within a long-lived block as independent replicates.
 `samples.jsonl` and `SHA256SUMS` make the exact raw bundle portable to a new PC.
 The core may mark only `evidence_core_complete`; it never marks a measurement
@@ -257,10 +273,12 @@ python scripts/halofpx_strix_ab_cachyos.py validate \
   /var/tmp/halofpx-ab-my-run policy.json
 ```
 
-`validate` reports `target_execution_state=blocked`, the incident-manifest
+`validate` accepts the versioned runtime comparison and reports
+`target_execution_state=blocked`, the incident-manifest
 identity, and the unresolved custody list. The CLI `execute-next` command exits
 before host inspection or SSH. Offline fake-runner tests cover the proposed
-happy lifecycle, exact body custody, global schedule order, protected
+happy lifecycle, exact 512/2048 generated argv and equal-binary custody,
+exact body custody, global schedule order, protected
 unit/port/PID collision, pre-intent and late foreign GPU clients, argv
 mismatch, reused-cache response, production drift, multi-target cleanup
 failure, failed-cycle evidence retention, and SSH watchdog construction. They

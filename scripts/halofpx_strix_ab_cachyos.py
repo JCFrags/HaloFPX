@@ -315,6 +315,10 @@ def load_policy_bytes(content: bytes, plan: dict[str, Any]) -> Policy:
             "issue #37 adapter currently supports only the frozen dual-node topology; "
             "single-node execution is not implemented and fails closed")
     try:
+        core.validate_plan(plan)
+    except core.PlanError as exc:
+        raise AdapterError(f"adapter plan is invalid: {exc}") from exc
+    try:
         raw = json.loads(
             content.decode("utf-8", errors="strict"),
             object_pairs_hook=core.unique_json_object,
@@ -363,12 +367,35 @@ def load_policy_bytes(content: bytes, plan: dict[str, Any]) -> Policy:
     if coordinator_port == worker_port or {coordinator_port, worker_port} & PROTECTED_PORTS:
         raise AdapterError("disposable ports collide with each other or production")
     commands = core.commands_document(plan)["conditions"]
-    if all(
-        binary_hash(plan, "off", role) == binary_hash(plan, "on", role)
-        for role in ("coordinator", "worker")
-    ):
-        raise AdapterError("OFF and ON execute identical binary hashes")
+    comparison_kind = (
+        plan.get("comparison", {}).get("kind")
+        if plan.get("schema") == core.PLAN_SCHEMA_V2
+        else "feature_build"
+    )
+    if comparison_kind == "runtime_n_batch":
+        if plan["source"]["off_commit"] != plan["source"]["on_commit"]:
+            raise AdapterError("runtime_n_batch OFF and ON source commits differ")
+        for role, key in (
+                ("coordinator", "coordinator_binary"), ("worker", "worker_binary")):
+            if plan["conditions"]["off"][key] != plan["conditions"]["on"][key]:
+                raise AdapterError(
+                    f"runtime_n_batch OFF and ON {role} binary path/SHA-256 differ")
+    elif comparison_kind == "feature_build":
+        if all(
+            binary_hash(plan, "off", role) == binary_hash(plan, "on", role)
+            for role in ("coordinator", "worker")
+        ):
+            raise AdapterError("OFF and ON execute identical binary hashes")
+    else:
+        raise AdapterError("adapter received an unknown comparison kind")
     for condition in ("off", "on"):
+        expected_batch = (
+            plan["runtime"]["batch_by_condition"][condition]
+            if plan.get("schema") == core.PLAN_SCHEMA_V2
+            else plan["runtime"]["batch"]
+        )
+        if argv_option(commands[condition]["coordinator"], "--batch-size") != str(expected_batch):
+            raise AdapterError("coordinator generated batch differs from the typed plan")
         if int(argv_option(commands[condition]["coordinator"], "--port")) != coordinator_port:
             raise AdapterError("coordinator disposable port differs from frozen argv")
         if int(argv_option(commands[condition]["worker"], "--port")) != worker_port:
