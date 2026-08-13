@@ -65,7 +65,11 @@ A cleanup or start call can take effect even when its response is lost. The
 model records that ambiguity as a transaction error and proceeds only through
 an independent observed postcondition. This can produce
 `recovery_complete=true` with `status=failure`: production is restored, but
-the transaction is not promoted to success.
+the transaction is not promoted to success. Start-response loss is injected
+independently on either node in both closed outcomes: after-effect evidence can
+recover through a fresh-identity postcondition, while no-effect evidence finds
+the service still absent and refuses. If the worker start had no effect, no
+worker-ready receipt exists and the coordinator start remains skipped.
 
 ## Identity, ownership, and deadline rules
 
@@ -116,10 +120,11 @@ The pair acknowledgement binds both terminal hashes and both local-marker
 hashes. Verification requires the exact two-node tree, exact file inventory,
 canonical duplicate-free JSON, every content digest, both arm cross-bindings,
 strict event order, monotonic/deadline semantics, worker receipt ordering, and
-terminal recovery semantics. Partial, corrupt, divergent, unlisted, or
-semantically impossible records refuse. Tests also rewrite semantic fields and
-rebuild every unsigned hash to prove that validation is not merely checksum
-comparison.
+an exact semantic replay which cross-binds service observation, preservation or
+start actuation, independent postcondition, final identity, and readiness.
+Partial, corrupt, divergent, unlisted, or semantically impossible records
+refuse. Tests also rewrite semantic fields and rebuild every unsigned hash to
+prove that validation is not merely checksum comparison.
 
 Verify an offline pair only when the expected authority digest is held outside
 the bundle:
@@ -149,8 +154,9 @@ python -B -m unittest tests.test_halofpx_strix_recovery_watchdog -v
 The suite is deterministic and contacts no target. It covers controller loss
 and controller deadline at all four mutation cuts, recovery deadline at every
 phase on both nodes, peer loss, reboot, cleanup and start response ambiguity,
-readiness, stale and restart-drifted identities, HMM and kernel reconciliation,
-authority and allowlist rejection, and terminal custody corruption.
+both-role start ambiguity with after-effect and no-effect outcomes, readiness,
+stale and restart-drifted identities, HMM and kernel reconciliation, authority
+and allowlist rejection, and terminal custody corruption.
 
 ## What remains open
 

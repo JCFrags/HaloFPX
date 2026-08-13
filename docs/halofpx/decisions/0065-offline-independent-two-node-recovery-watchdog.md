@@ -73,7 +73,10 @@ production recovery. A lost production-start response also remains an error,
 but an independent exact fresh identity plus readiness, HMM, and kernel proof
 may establish recovery. Consequently `recovery_complete` and terminal
 `status` are separate: production can be recovered while the transaction is
-still a retained failure.
+still a retained failure. The fake model exercises start-response loss on
+either role, both after the start took effect and when it had no effect. A
+worker no-effect outcome cannot produce a worker-ready receipt, so coordinator
+service recovery remains skipped.
 
 Each fake node publishes an append-only local event sequence, local terminal,
 closed file manifest, and finalization marker. A paired acknowledgement binds
@@ -82,8 +85,9 @@ both node directories, and is followed by one node-local pair-finalization
 marker. Verification requires the exact two-directory and exact file
 inventory, canonical JSON with duplicate-key rejection, every digest, arm
 cross-binding, monotonic ordering and deadlines, failure/skipped ordering,
-worker-before-coordinator receipt ordering, recovery semantics, and an
-externally supplied expected authority digest.
+worker-before-coordinator receipt ordering, exact replay and cross-binding of
+service observation, actuation, postcondition, identity, and readiness,
+recovery semantics, and an externally supplied expected authority digest.
 
 ## Safety invariants
 
@@ -140,12 +144,13 @@ performance result.
 The offline suite covers all four controller-loss points, deadline firing at
 each point, deadline expiry at every worker and coordinator phase, peer loss,
 boot drift, cleanup and start lost responses, cleanup residue, active-but-not-
-ready worker state, stale identities, restart drift for preserved and fresh
-services, incomplete and foreign HMM ownership, kernel deltas, monotonic
-regression, strict allowlists, authority mismatch, worker-receipt tampering,
-and partial, corrupt, divergent, extra, and semantically rewritten custody.
-Semantic tamper cases rebuild all unsigned hashes before verification and
-still refuse.
+ready worker state, both-role applied and no-effect start outcomes, stale
+identities, restart drift for preserved and fresh services, incomplete and
+foreign HMM ownership, kernel deltas, monotonic regression, strict allowlists,
+authority mismatch, worker-receipt tampering, and partial, corrupt, divergent,
+extra, and semantically rewritten custody. Semantic tamper cases include an
+impossible successful identity transition and rebuild all unsigned hashes
+before verification; they still refuse.
 
 This closes a reviewable offline design gap without weakening the target stop
 gate. It also makes recovery-complete-but-transaction-failed outcomes explicit

@@ -400,21 +400,59 @@ class OfflineRecoveryWatchdogTests(unittest.TestCase):
         self.assertIsNone(coordinator["final_observation"]["service"])
         self.assertEqual(self.verify(root)["status"], "failure")
 
-    def test_coordinator_ambiguous_start_requires_independent_postcondition(self) -> None:
-        root, result = self.run_model(
-            watchdog.ControllerLossPoint.AFTER_COORDINATOR_STOP,
-            watchdog.ModelFaults(coordinator_start_lost_response=True),
-        )
-        self.assertTrue(result.recovery_complete)
-        self.assertEqual(result.status, "failure")
-        coordinator = terminal(root, watchdog.COORDINATOR_HOST)
-        self.assertTrue(coordinator["recovery_ready"])
-        host_events = events(root, watchdog.COORDINATOR_HOST)
-        start = next(item for item in host_events if item["phase"].endswith("service-recovery-actuation"))
-        postcondition = next(item for item in host_events if item["phase"].endswith("service-postcondition"))
-        self.assertEqual(start["outcome"], "lost-response")
-        self.assertEqual(postcondition["outcome"], "accepted")
-        self.assertEqual(self.verify(root)["status"], "failure")
+    def test_ambiguous_start_after_effect_uses_postcondition_on_both_hosts(self) -> None:
+        for host in watchdog.HOST_ROLE:
+            with self.subTest(host=host):
+                root, result = self.run_model(faults=watchdog.ModelFaults(
+                    start_lost_response_host=host,
+                ))
+                self.assertTrue(result.recovery_complete)
+                self.assertEqual(result.status, "failure")
+                record = terminal(root, host)
+                self.assertTrue(record["recovery_ready"])
+                host_events = events(root, host)
+                start = next(
+                    item for item in host_events
+                    if item["phase"].endswith("service-recovery-actuation")
+                )
+                postcondition = next(
+                    item for item in host_events if item["phase"].endswith("service-postcondition")
+                )
+                self.assertEqual(start["outcome"], "lost-response")
+                self.assertEqual(postcondition["outcome"], "accepted")
+                self.assertEqual(self.verify(root)["status"], "failure")
+
+    def test_ambiguous_start_without_effect_refuses_both_hosts_worker_first(self) -> None:
+        for host in watchdog.HOST_ROLE:
+            with self.subTest(host=host):
+                root, result = self.run_model(faults=watchdog.ModelFaults(
+                    start_lost_response_host=host,
+                    start_no_effect_host=host,
+                ))
+                self.assertFalse(result.recovery_complete)
+                self.assertEqual(result.status, "failure")
+                record = terminal(root, host)
+                self.assertFalse(record["recovery_ready"])
+                self.assertIsNone(record["final_observation"]["service"])
+                host_events = events(root, host)
+                start = next(
+                    item for item in host_events
+                    if item["phase"].endswith("service-recovery-actuation")
+                )
+                postcondition = next(
+                    item for item in host_events if item["phase"].endswith("service-postcondition")
+                )
+                self.assertEqual(start["outcome"], "lost-response")
+                self.assertEqual(postcondition["outcome"], "failed")
+                if host == watchdog.WORKER_HOST:
+                    coordinator = terminal(root, watchdog.COORDINATOR_HOST)
+                    self.assertIsNone(coordinator["final_observation"]["service"])
+                    coordinator_start = next(
+                        item for item in events(root, watchdog.COORDINATOR_HOST)
+                        if item["phase"] == "coordinator:service-recovery-actuation"
+                    )
+                    self.assertEqual(coordinator_start["outcome"], "skipped")
+                self.assertEqual(self.verify(root)["status"], "failure")
 
     def test_stale_identity_reappearance_is_refused_on_each_host(self) -> None:
         for host in watchdog.HOST_ROLE:
@@ -564,6 +602,29 @@ class OfflineRecoveryWatchdogTests(unittest.TestCase):
         write_json(path, value)
         rebuild_unsigned_custody(root)
         with self.assertRaisesRegex(watchdog.WatchdogError, "hard-off"):
+            self.verify(root)
+
+    def test_rehashed_impossible_service_success_fails_exact_transition_replay(self) -> None:
+        root, _ = self.run_model()
+        host = watchdog.COORDINATOR_HOST
+        node_root = root / host
+        terminal_path = node_root / "local-terminal.json"
+        record = read_json(terminal_path)
+        before = record["before_identity"]
+        record["observed_absent"] = False
+        record["final_observation"]["service"] = before
+        owner = record["final_observation"]["hmm_census"]["owners"][0]
+        owner["unit"] = before["unit"]
+        owner["pid"] = before["pid"]
+        owner["invocation_id"] = before["invocation_id"]
+        ready_path = node_root / "ready-receipt.json"
+        ready = read_json(ready_path)
+        ready["identity"] = before
+        write_json(ready_path, ready)
+        record["ready_receipt_sha256"] = hashlib.sha256(ready_path.read_bytes()).hexdigest()
+        write_json(terminal_path, record)
+        rebuild_unsigned_custody(root)
+        with self.assertRaisesRegex(watchdog.WatchdogError, "service-observation transition"):
             self.verify(root)
 
     def test_semantic_event_tamper_fails_even_after_all_unsigned_hashes_rebuilt(self) -> None:

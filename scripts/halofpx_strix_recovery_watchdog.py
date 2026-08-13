@@ -425,7 +425,8 @@ class ModelFaults:
     cleanup_lost_response_host: str | None = None
     cleanup_no_effect_host: str | None = None
     worker_readiness_false: bool = False
-    coordinator_start_lost_response: bool = False
+    start_lost_response_host: str | None = None
+    start_no_effect_host: str | None = None
     stale_reappearance_host: str | None = None
     unknown_disposable_host: str | None = None
     incomplete_disposable_scan_host: str | None = None
@@ -439,12 +440,12 @@ class ModelFaults:
 
     def validate(self) -> None:
         for field in (
-                "peer_unreachable", "worker_readiness_false",
-                "coordinator_start_lost_response", "tamper_worker_ready_receipt"):
+                "peer_unreachable", "worker_readiness_false", "tamper_worker_ready_receipt"):
             if type(getattr(self, field)) is not bool:
                 raise WatchdogError(f"fault {field} is not a boolean")
         host_fields = (
             "reboot_host", "cleanup_lost_response_host", "cleanup_no_effect_host",
+            "start_lost_response_host", "start_no_effect_host",
             "stale_reappearance_host", "unknown_disposable_host",
             "incomplete_disposable_scan_host", "foreign_hmm_owner_host",
             "incomplete_hmm_census_host", "non_elevated_hmm_census_host",
@@ -454,6 +455,9 @@ class ModelFaults:
             value = getattr(self, name)
             if value is not None and value not in HOST_ROLE:
                 raise WatchdogError(f"fault {name} names an unknown host")
+        if self.start_no_effect_host is not None and \
+                self.start_no_effect_host != self.start_lost_response_host:
+            raise WatchdogError("start no-effect requires a lost response on the same host")
         if self.controller_deadline_phase is not None and \
                 not isinstance(self.controller_deadline_phase, ControllerLossPoint):
             raise WatchdogError("fault controller_deadline_phase is not one closed loss point")
@@ -499,6 +503,7 @@ class _OfflineNode:
     cleanup_no_effect: bool = False
     readiness_false: bool = False
     start_lost_response: bool = False
+    start_no_effect: bool = False
     restart_drift: bool = False
 
     @classmethod
@@ -542,6 +547,10 @@ class _OfflineNode:
         self.application_ready = False
 
     def start_production(self, transaction_id: str) -> ServiceIdentity:
+        if self.start_no_effect:
+            if not self.start_lost_response:  # ModelFaults.validate keeps this unreachable.
+                raise WatchdogError("synthetic start no-effect lacks response-loss ambiguity")
+            raise LostResponse("synthetic production-start response lost without effect")
         process_start = max(
             self.before.process_start_monotonic_ns + 1,
             self.clock.current_ns + 1,
@@ -573,7 +582,8 @@ class _OfflineNode:
         if not self.cleanup_no_effect:
             self.disposables.difference_update(allowlist)
         if self.cleanup_lost_response:
-            raise LostResponse("synthetic cleanup response lost after effect")
+            effect = "without effect" if self.cleanup_no_effect else "after effect"
+            raise LostResponse(f"synthetic cleanup response lost {effect}")
 
     def hmm_census(self) -> dict[str, Any]:
         owners: list[HMMOwner] = []
@@ -1100,6 +1110,181 @@ class _NodeWatchdog:
         return ready_raw
 
 
+def _validate_transition_replay(
+        *, role: str, before: ServiceIdentity, local_allowlist: tuple[DisposableTarget, ...],
+        terminal: dict[str, Any], observation: dict[str, Any],
+        final_identity: ServiceIdentity | None, hmm: dict[str, Any],
+        events: list[dict[str, Any]], errors: list[dict[str, str]]) -> None:
+    """Replay the closed recovery transition semantics from retained evidence.
+
+    Content hashes establish custody, not truth.  This replay therefore binds
+    each accepted service observation and actuator result to the only terminal
+    state that the offline model can produce, even if an adversary rebuilds all
+    unsigned manifests and pair hashes.
+    """
+
+    by_phase = {event["phase"]: event for event in events}
+    error_by_phase = {error["phase"]: error for error in errors}
+
+    for step in RECOVERY_STEPS:
+        event = by_phase[f"{role}:{step}"]
+        if event["outcome"] == "skipped" and \
+                event["detail"] != "prior fail-closed recovery refusal":
+            raise WatchdogError("skipped recovery event is not the exact fail-closed transition")
+    local_terminal = by_phase["local-terminal"]
+    if local_terminal["detail"] != \
+            f"recovery_ready={str(terminal['recovery_ready']).lower()}":
+        raise WatchdogError("local terminal event does not bind recovery readiness")
+
+    fixed_accepted_details = {
+        "boot-reconcile": "boot identity and monotonic epoch match",
+        "cleanup-observation": "complete closed-world disposable absence",
+        "pre-recovery-hmm": "closed-world HMM/KFD/render ownership matches",
+        "readiness": "listener and application readiness passed",
+        "final-hmm": "exact recovered HMM/KFD/render owner",
+        "kernel-reconcile": "boot/OOM/reset/KFD counters reconcile",
+    }
+    for step, detail in fixed_accepted_details.items():
+        event = by_phase[f"{role}:{step}"]
+        if event["outcome"] == "accepted" and event["detail"] != detail:
+            raise WatchdogError(f"{role}:{step} accepted event has impossible transition detail")
+
+    scan = by_phase[f"{role}:pre-cleanup-scan"]
+    if scan["outcome"] == "accepted":
+        match = re.fullmatch(r"observed=(0|[1-9][0-9]*)", scan["detail"])
+        if match is None or int(match.group(1)) > len(local_allowlist):
+            raise WatchdogError("accepted disposable scan is outside the exact local allowlist")
+    cleanup_action = by_phase[f"{role}:cleanup-actuation"]
+    if cleanup_action["outcome"] == "accepted" and \
+            cleanup_action["detail"] != "exact allowlist cleanup returned":
+        raise WatchdogError("accepted cleanup actuation has impossible transition detail")
+    if cleanup_action["outcome"] == "lost-response" and \
+            cleanup_action["detail"] != "independent absence observation required":
+        raise WatchdogError("ambiguous cleanup actuation lacks its independent-postcondition transition")
+    cleanup_observation = by_phase[f"{role}:cleanup-observation"]
+    if terminal["cleanup_complete"] is not (cleanup_observation["outcome"] == "accepted"):
+        raise WatchdogError("terminal cleanup state disagrees with the cleanup-observation transition")
+
+    peer_ready = by_phase[f"{role}:peer-ready-receipt"]
+    peer_digest = terminal["worker_ready_receipt_sha256"]
+    if role == "worker":
+        if peer_ready["outcome"] == "accepted" and \
+                peer_ready["detail"] != "worker recovery precedes peer dependency":
+            raise WatchdogError("worker peer-ready transition is not the closed worker-first transition")
+        if peer_digest is not None:
+            raise WatchdogError("worker terminal unexpectedly claims a peer-ready receipt")
+    elif peer_ready["outcome"] == "accepted":
+        digest = _require_hash(peer_digest, "coordinator worker-ready receipt")
+        if peer_ready["detail"] != f"sha256={digest}":
+            raise WatchdogError("coordinator peer-ready transition does not bind the retained receipt")
+    elif peer_digest is not None:
+        raise WatchdogError("coordinator terminal claims worker readiness without acceptance")
+
+    service_observation = by_phase[f"{role}:service-observation"]
+    service_action = by_phase[f"{role}:service-recovery-actuation"]
+    service_postcondition = by_phase[f"{role}:service-postcondition"]
+
+    if service_observation["outcome"] == "accepted":
+        if service_observation["detail"] != "protected service is absent" or \
+                terminal["observed_absent"] is not True:
+            raise WatchdogError("service-observation transition does not bind observed absence")
+        if service_action["outcome"] not in {"accepted", "lost-response", "failed"}:
+            raise WatchdogError("absent service did not enter one closed start transition")
+    elif service_observation["outcome"] == "preserved":
+        if service_observation["detail"] not in {"preserved", "fresh"}:
+            raise WatchdogError("preserved service observation has an impossible identity disposition")
+        expected_absent = service_observation["detail"] == "fresh"
+        if terminal["observed_absent"] is not expected_absent:
+            raise WatchdogError("service-observation identity disagrees with observed absence")
+        if service_action["outcome"] not in {"preserved", "failed"}:
+            raise WatchdogError("observed active service did not enter one closed preservation transition")
+    elif service_observation["outcome"] == "failed" and \
+            error_by_phase[service_observation["phase"]]["code"] != "DeadlineExpired":
+        if service_observation["detail"] == "a stale pre-stop service identity reappeared" and \
+                (terminal["observed_absent"] is not True or final_identity != before):
+            raise WatchdogError("stale-identity refusal does not bind its observed terminal state")
+
+    if service_action["outcome"] == "accepted":
+        if service_action["detail"] != "protected production start returned":
+            raise WatchdogError("accepted service actuation has impossible transition detail")
+    elif service_action["outcome"] == "lost-response":
+        if service_action["detail"] != "independent start postcondition required":
+            raise WatchdogError("ambiguous service actuation lacks its independent-postcondition transition")
+        error = error_by_phase[service_action["phase"]]
+        expected_detail = (
+            "synthetic production-start response lost without effect"
+            if final_identity is None
+            else "synthetic production-start response lost after effect"
+        )
+        if error["detail"] != expected_detail:
+            raise WatchdogError("ambiguous service actuation disagrees with its terminal effect")
+    elif service_action["outcome"] == "preserved":
+        if service_action["detail"] != "exact active production was not restarted":
+            raise WatchdogError("preserved service actuation has impossible transition detail")
+
+    if service_action["outcome"] in {"accepted", "lost-response"} and final_identity is not None:
+        if final_identity.host != before.host or final_identity.role != before.role or \
+                final_identity.unit != before.unit or final_identity.boot_id != before.boot_id or \
+                final_identity.pid == before.pid or \
+                final_identity.invocation_id == before.invocation_id or \
+                final_identity.process_start_monotonic_ns <= service_action["monotonic_ns"] or \
+                final_identity.process_start_monotonic_ns <= before.process_start_monotonic_ns or \
+                final_identity.active_enter_monotonic_ns <= before.active_enter_monotonic_ns:
+            raise WatchdogError("terminal service identity is impossible for the retained start transition")
+    if service_action["outcome"] == "accepted" and final_identity is None:
+        raise WatchdogError("accepted service start has no terminal service effect")
+
+    if service_action["outcome"] == "preserved":
+        expected_disposition = service_observation["detail"]
+        if service_postcondition["outcome"] != "accepted" or \
+                service_postcondition["detail"] != expected_disposition:
+            raise WatchdogError("preserved service actuation lacks its exact postcondition")
+    elif service_action["outcome"] == "failed":
+        if error_by_phase[service_action["phase"]]["code"] != "DeadlineExpired" or \
+                service_postcondition["outcome"] != "skipped":
+            raise WatchdogError("failed service actuation is not a fail-closed deadline transition")
+    elif service_action["outcome"] == "skipped" and \
+            service_postcondition["outcome"] != "skipped":
+        raise WatchdogError("skipped service actuation did not skip its postcondition")
+
+    if service_postcondition["outcome"] == "accepted":
+        disposition = service_postcondition["detail"]
+        if disposition == "preserved":
+            if terminal["observed_absent"] is not False or final_identity != before or \
+                    service_action["outcome"] != "preserved":
+                raise WatchdogError("preserved postcondition disagrees with terminal identity")
+        elif disposition == "fresh":
+            if terminal["observed_absent"] is not True or final_identity is None or \
+                    service_action["outcome"] not in {"accepted", "lost-response"} or \
+                    final_identity.restart_count != before.restart_count:
+                raise WatchdogError("fresh postcondition disagrees with start and terminal identity")
+        else:
+            raise WatchdogError("service postcondition has an impossible accepted disposition")
+    elif service_postcondition["outcome"] == "failed" and \
+            error_by_phase[service_postcondition["phase"]]["code"] != "DeadlineExpired":
+        if service_postcondition["detail"] == "protected service remains absent":
+            if final_identity is not None or service_action["outcome"] != "lost-response":
+                raise WatchdogError("absent service postcondition disagrees with actuator evidence")
+
+    readiness = by_phase[f"{role}:readiness"]
+    if readiness["outcome"] == "accepted" and (
+            final_identity is None or observation["listener_open"] is not True or
+            observation["application_ready"] is not True):
+        raise WatchdogError("accepted readiness transition disagrees with terminal observation")
+    if readiness["outcome"] == "failed" and \
+            error_by_phase[readiness["phase"]]["code"] != "DeadlineExpired" and \
+            readiness["detail"] == "active service did not pass listener and application readiness" and \
+            (final_identity is None or (
+                observation["listener_open"] is True and observation["application_ready"] is True)):
+        raise WatchdogError("failed readiness transition disagrees with terminal observation")
+
+    final_hmm = by_phase[f"{role}:final-hmm"]
+    if final_hmm["outcome"] == "accepted":
+        if final_identity is None:
+            raise WatchdogError("accepted final HMM transition lacks a service identity")
+        _NodeWatchdog._validate_hmm(hmm, final_identity, "replayed final HMM")
+
+
 def _validate_local_bundle(root: Path, authority: PreverifiedAuthority) -> dict[str, Any]:
     if root.name not in HOST_ROLE or not root.is_dir() or root.is_symlink():
         raise WatchdogError("local watchdog root is not one admitted host directory")
@@ -1360,6 +1545,18 @@ def _validate_local_bundle(root: Path, authority: PreverifiedAuthority) -> dict[
             raise WatchdogError("a post-deadline failure is not classified as deadline expiry")
         if event["monotonic_ns"] < recovery_deadline_ns and error["code"] == "DeadlineExpired":
             raise WatchdogError("a pre-deadline failure is misclassified as deadline expiry")
+
+    _validate_transition_replay(
+        role=role,
+        before=before,
+        local_allowlist=local_allowlist,
+        terminal=terminal,
+        observation=observation,
+        final_identity=final_identity,
+        hmm=hmm,
+        events=parsed_events,
+        errors=parsed_errors,
+    )
 
     expected_inventory = {
         "authority.json", "arm.json", "peer-arm.json", "local-terminal.json",
@@ -1664,8 +1861,10 @@ def run_offline_model(authority: PreverifiedAuthority, evidence_root: Path,
         nodes[faults.cleanup_no_effect_host].cleanup_no_effect = True
     if faults.worker_readiness_false:
         nodes[WORKER_HOST].readiness_false = True
-    if faults.coordinator_start_lost_response:
-        nodes[COORDINATOR_HOST].start_lost_response = True
+    if faults.start_lost_response_host is not None:
+        nodes[faults.start_lost_response_host].start_lost_response = True
+    if faults.start_no_effect_host is not None:
+        nodes[faults.start_no_effect_host].start_no_effect = True
     if faults.restart_drift_host is not None:
         node = nodes[faults.restart_drift_host]
         node.restart_drift = True
