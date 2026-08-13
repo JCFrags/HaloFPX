@@ -23,7 +23,7 @@ sys.path.insert(0, str(TOOL_DIRECTORY))
 import github_wiki_mirror as mirror  # noqa: E402
 
 
-AUDITED_WIKI_TREE = "0a77095fe6026cf52ee5921b89aa06d13ea36a83"
+AUDITED_WIKI_TREE = "0c2df8383bb81de87eb9e31c6f347b1dab8b5bfb"
 AUDITED_MAP_SHA256 = "f8d21d17d2937738d3ef413c2b487f8e425847b076aaa520f81214247e4e179c"
 
 
@@ -62,7 +62,7 @@ class GitHubWikiMirrorTests(unittest.TestCase):
         self.assertEqual(len(self.snapshot.files), 642)
         self.assertEqual(sum(item.path.suffix.lower() == ".md" for item in self.snapshot.files), 534)
         self.assertEqual(sum(item.path.suffix.lower() != ".md" for item in self.snapshot.files), 108)
-        self.assertEqual(sum(item.size for item in self.snapshot.files), 2_266_309)
+        self.assertEqual(sum(item.size for item in self.snapshot.files), 2_266_472)
         self.assertEqual(len(self.page_map.entries), 642)
         self.assertEqual(
             hashlib.sha256(self.page_map_path.read_bytes()).hexdigest(),
@@ -114,12 +114,12 @@ class GitHubWikiMirrorTests(unittest.TestCase):
         self.assertEqual(manifest["output"]["file_count_including_manifest"], 645)
         self.assertEqual(len(manifest["files"]), 644)
         self.assertEqual(manifest["mapping"]["sha256"], AUDITED_MAP_SHA256)
-        self.assertEqual(manifest["links"]["source_link_occurrence_count"], 1_519)
-        self.assertEqual(manifest["links"]["source_unique_destination_count"], 823)
-        self.assertEqual(manifest["links"]["generated_link_occurrence_count"], 2_693)
+        self.assertEqual(manifest["links"]["source_link_occurrence_count"], 1_520)
+        self.assertEqual(manifest["links"]["source_unique_destination_count"], 824)
+        self.assertEqual(manifest["links"]["generated_link_occurrence_count"], 2_694)
         self.assertEqual(manifest["links"]["generated_local_page_occurrence_count"], 810)
         self.assertEqual(
-            manifest["links"]["generated_pinned_repository_occurrence_count"], 1_189
+            manifest["links"]["generated_pinned_repository_occurrence_count"], 1_190
         )
         self.assertEqual(manifest["links"]["generated_external_occurrence_count"], 694)
         self.assertEqual(
