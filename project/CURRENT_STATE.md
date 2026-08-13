@@ -1,11 +1,71 @@
 # HaloFPX Current Project State
 
-Reconciled from retained source and Project Lead records: 2026-08-12
+Reconciled through the 2026-08-13 PR #50 merge boundary.
 
 This page is a routing summary.
 The Project Lead records remain authoritative for active work and production state.
 
-## Current authority
+## Current merged layer — 2026-08-13
+
+The commits below are dated merge anchors, not a hard-coded live branch tip. A
+fresh worker must record and validate its own `HEAD` and `origin/main` before
+continuing.
+
+- **[VERIFIED]** [PR #44](https://github.com/JCFrags/HaloFPX/pull/44)
+  retained the target HMM OOM incident at
+  `ad4930fd632f2f57bbe852dc2268ba3b5b7f5666`. Its present safety disposition is
+  [issue #41](https://github.com/JCFrags/HaloFPX/issues/41): open P0 and
+  `REFUSE` target builds, quantization, disposable inference, and benchmarks
+  while protected production or any unaccounted KFD/render/HMM owner exists.
+- **[VERIFIED]** [PR #45](https://github.com/JCFrags/HaloFPX/pull/45)
+  merged the default-off dense ROCmFPX FFN Q8 conversion-reuse slice at
+  `0db715c6e436be88a4d5444763421020f53dc728`; [PR #47](https://github.com/JCFrags/HaloFPX/pull/47)
+  retained its exact thin source bundle at
+  `d79a584cd68082f31f87dccce9e69f04937250e8`. Host/compile/evidence results do
+  not establish target runtime parity or speed, and the historical target
+  binaries and raw checksum-command output were not republished.
+- **[VERIFIED]** [PR #46](https://github.com/JCFrags/HaloFPX/pull/46)
+  merged default-off repeated sampling-output synchronization coalescing at
+  `72436b9c701c4a309a6393979db382c44d871e43`. Focused correctness does not
+  establish a matched target latency gain.
+- **[VERIFIED]** [PR #48](https://github.com/JCFrags/HaloFPX/pull/48)
+  merged the portable Qwen3-0.6B pure-ROCmFPX derived-fixture lane at
+  `e3e8b286b8316abd246fb155044effd11e60b0eb`. Its immutable release preserves
+  derived Q3/Q6/Q8 GGUFs and controls, not the redistribution-sensitive BF16
+  source. This is a correctness fixture, not target or performance evidence.
+- **[VERIFIED]** [PR #49](https://github.com/JCFrags/HaloFPX/pull/49)
+  merged the default-off exact longest-prefix selector at
+  `3758febacfc07fdc6e84b63637131b02d413de59`. [Issue #32](https://github.com/JCFrags/HaloFPX/issues/32)
+  remains open for positive model-backed server restore, suffix-only prefill
+  proof, target parity, and performance—not because the selector is absent.
+- **[VERIFIED]** [PR #50](https://github.com/JCFrags/HaloFPX/pull/50)
+  merged the default-off gfx1151 ROCmFPX prompt-MMQ Q/K/V Q8
+  activation-conversion reuse candidate at
+  `9bfccf25d43af0c446df591035e9cdac0b74d6c0`. Focused host contracts and a
+  pinned GPU-less ROCm OFF/ON compile/link lane passed. No Strix Halo target
+  ran it; target runtime parity, real-model reachability, launch tracing, and
+  matched prompt-speed evidence remain open.
+- **[VERIFIED]** [PR #51](https://github.com/JCFrags/HaloFPX/pull/51)
+  merged the offline CachyOS A/B adapter draft and fake-process qualification
+  at `e330c4db1ca7b2daf0763968a81e369becadf06e`. [Issue #37](https://github.com/JCFrags/HaloFPX/issues/37)
+  remains open: real SSH execution is hard-disabled,
+  `execution_qualified=false`, issue #41 currently requires `REFUSE`, and no
+  target benchmark has been run or accepted.
+- **[VERIFIED]** [PR #52](https://github.com/JCFrags/HaloFPX/pull/52)
+  merged the default-off standalone two-rank live-derived authority builder at
+  `65bddac2538c020b62cefe62c3c7cc4ab365c55c`, where it remains deliberately
+  product-isolated. [PR #54](https://github.com/JCFrags/HaloFPX/pull/54)
+  separately merged the fail-closed world-1 authenticated-prefix server shell
+  at `3bf10a1f4afcb18dfa17c657f17d0e54c82d48fb`. No trusted world-1 live-loader
+  provider installs the capability, so the reachable shell stays cold with
+  `live-authority-unavailable`. [Issue #33](https://github.com/JCFrags/HaloFPX/issues/33)
+  remains open for trusted product derivation and lifecycle wiring.
+- **[OPEN]** [Issue #18](https://github.com/JCFrags/HaloFPX/issues/18)
+  remains open for complete reuse-source/useful-restored-work attribution and
+  matched target timing. PR #54's bounded response telemetry does not close
+  that target decision gate.
+
+## Earlier dated authority anchors
 
 - Remote `main` observed during this correction:
   `e3e8b286b8316abd246fb155044effd11e60b0eb`. The exact source base named by
@@ -23,7 +83,10 @@ The Project Lead records remain authoritative for active work and production sta
 - The [Project Lead status](project-management/lead/CURRENT_STATUS.md) records the complete current state.
 - The [Project Lead decisions](project-management/lead/DECISIONS.md) record accepted boundaries.
 
-## Current continuation state
+## Earlier continuation records
+
+The current merged layer above supersedes current-tense routing in this retained
+chronology; the bounded facts remain valid within their exact commits.
 
 **[VERIFIED]** The cache-saving behavior reference is pinned to
 `fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940`.

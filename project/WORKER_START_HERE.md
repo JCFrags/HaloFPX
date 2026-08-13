@@ -59,6 +59,51 @@ Treat every unrelated change as user-owned work.
 Do not edit HaloFPX implementation source unless the assigned task owns that source.
 Do not rewrite raw evidence, receipts, logs, archives, third-party source, or licenses.
 
+## Fresh-clone validation bootstrap
+
+For a newly cloned worktree, fetch the complete tag namespace and reject a
+shallow history before relying on provenance checks:
+
+```powershell
+git fetch --tags --force origin
+if ((git rev-parse --is-shallow-repository).Trim() -eq 'true') {
+    git fetch --unshallow --tags --force origin
+}
+git fsck --full
+```
+
+Create the repository's pinned Python 3.12 validator environment and run the
+offline documentation, Strix A/B harness, and fixture contracts from the
+repository root:
+
+```powershell
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+python3.12 -X utf8 -m venv .venv
+./.venv/bin/python -m pip install --requirement requirements/requirements-halofpx-validation.txt
+./.venv/bin/python -X utf8 -B project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
+./.venv/bin/python -X utf8 -B project/research/prompts/tools/validate_wiki.py project/wiki/HaloFPX_Wiki
+./.venv/bin/python -X utf8 -B -m unittest discover -s project/research/prompts/tools -p "test_*.py"
+./.venv/bin/python -X utf8 -B -m unittest tests/test_halofpx_strix_ab.py tests/test_halofpx_strix_ab_cachyos.py -v
+./.venv/bin/python -X utf8 -B tests/test_materialize_rocmfpx_fixture.py -v
+./.venv/bin/python -X utf8 -B project/project-management/documentation/validate_documentation.py
+```
+
+Keep those environment settings on Windows control PCs. They prevent a legacy
+CP1252 console from rejecting Unicode documentation output; `-X utf8` remains
+explicit on repository Python invocations as a second boundary.
+
+On a Windows control checkout, substitute `py -3.12` and
+`.\.venv\Scripts\python.exe -X utf8`. Issue #2's acceptance environment is
+clean Linux.
+
+These are offline contract checks; they do not contact the Strix Halo targets,
+download release payloads, or prove a fresh-PC recovery. Follow the full
+preflight in [`TARGET_MACHINES.md`](TARGET_MACHINES.md). GitHub
+[issue #11](https://github.com/JCFrags/HaloFPX/issues/11) owns that bootstrap
+prerequisite; completion of it alone does not close the end-to-end clean-PC
+acceptance in [issue #2](https://github.com/JCFrags/HaloFPX/issues/2).
+
 ## Production rule
 
 Read the exact Project Lead production authority before any authorized transition.

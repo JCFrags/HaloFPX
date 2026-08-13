@@ -1,0 +1,2 @@
+# Pinned dependency for the repository/wiki validation lane only.
+PyYAML==6.0.3

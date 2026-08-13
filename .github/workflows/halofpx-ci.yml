@@ -19,6 +19,9 @@ jobs:
     name: Wiki structure and validator tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
     steps:
       - name: Check out repository
         # actions/checkout v4.4.0
@@ -35,8 +38,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install validator dependency
-        run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
+      - name: Install validator dependencies
+        run: >-
+          python -m pip install --disable-pip-version-check
+          -r requirements/requirements-halofpx-validation.txt
 
       - name: Check generated wiki manifest
         working-directory: project
@@ -56,6 +61,16 @@ jobs:
           tests/test_halofpx_strix_ab.py
           tests/test_halofpx_strix_ab_cachyos.py
           -v
+
+      - name: Run portable ROCmFPX fixture tests
+        run: python -B tests/test_materialize_rocmfpx_fixture.py -v
+
+      - name: Run fresh-PC recovery offline contract tests
+        run: python -B tests/test_halofpx_fresh_pc_recovery.py -v
+
+      - name: Run fresh-clone publication manifest identity regression
+        shell: pwsh
+        run: ./tests/test-verify-publication-assets-fresh-clone-manifest-identity.ps1
 
       - name: Validate publication documentation and protected provenance
         run: python project/project-management/documentation/validate_documentation.py

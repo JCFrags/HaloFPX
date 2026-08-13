@@ -63,22 +63,23 @@ if (($assetRootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
 $assetRoot = $assetRootItem.FullName
 $manifestFile = (Resolve-Path -LiteralPath $ManifestPath).ProviderPath
 
-$expectedManifestDigest = '317390d10c9194bb44cf769a596d0f5257772f6328d7118d0d1167c7461f0950'
+$expectedTrackedManifestDigest = '0b888309cb8318a651389e7b0020dadfb325959413f441adbdb9fd4c2de1c488'
+$expectedReleasedManifestDigest = '317390d10c9194bb44cf769a596d0f5257772f6328d7118d0d1167c7461f0950'
 $expectedChecksumDigest = 'cbeb29fb2e6cf6b45043bd17db2e925c1e0b4dcd5cff0c3d6f3250745708d827'
-if ((Get-LowerSha256 -LiteralPath $manifestFile) -ne $expectedManifestDigest) {
+if ((Get-LowerSha256 -LiteralPath $manifestFile) -ne $expectedTrackedManifestDigest) {
     throw 'The supplied manifest does not match the trusted tracked manifest digest.'
 }
 
 $releaseManifestPath = Resolve-ContainedLeaf -Root $assetRoot -Name 'release-manifest.json'
 $checksumPath = Resolve-ContainedLeaf -Root $assetRoot -Name 'SHA256SUMS.txt'
-if ((Get-LowerSha256 -LiteralPath $releaseManifestPath) -ne $expectedManifestDigest) {
-    throw 'The downloaded release-manifest.json does not match the trusted tracked manifest.'
+if ((Get-LowerSha256 -LiteralPath $releaseManifestPath) -ne $expectedReleasedManifestDigest) {
+    throw 'The downloaded release-manifest.json does not match the trusted immutable release manifest.'
 }
 if ((Get-LowerSha256 -LiteralPath $checksumPath) -ne $expectedChecksumDigest) {
     throw 'The downloaded SHA256SUMS.txt does not match the trusted checksum-file digest.'
 }
 
-$manifest = Get-Content -LiteralPath $manifestFile -Raw | ConvertFrom-Json
+$manifest = Get-Content -LiteralPath $releaseManifestPath -Raw | ConvertFrom-Json
 if ([string] $manifest.schema_version -cne '1.0' -or
     [string] $manifest.repository -cne 'JCFrags/HaloFPX' -or
     [string] $manifest.visibility -cne 'private' -or
@@ -224,7 +225,7 @@ foreach ($asset in $assetRecords) {
         throw "Checksum-list disagreement: $($asset.name)"
     }
 }
-if ($checksumRecords['release-manifest.json'] -ne $expectedManifestDigest) {
+if ($checksumRecords['release-manifest.json'] -ne $expectedReleasedManifestDigest) {
     throw 'Checksum-list disagreement: release-manifest.json'
 }
 
