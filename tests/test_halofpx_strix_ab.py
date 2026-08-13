@@ -29,6 +29,15 @@ class StrixABTest(unittest.TestCase):
             path = self.root / name
             path.write_bytes((name + "\n").encode())
             self.files[name] = path
+        self.files["request"].write_bytes(json.dumps({
+            "prompt": "frozen prompt",
+            "n_predict": 8,
+            "stream": True,
+            "cache_prompt": False,
+            "ignore_eos": True,
+            "seed": 1234,
+            "temperature": 0,
+        }, separators=(",", ":")).encode("utf-8"))
         self.plan = {
             "schema": AB.PLAN_SCHEMA,
             "experiment_id": "test-model-general",
@@ -115,6 +124,60 @@ class StrixABTest(unittest.TestCase):
         receipt = AB.collect_preflight(self.plan, "worker", observed_hostname="nimo-2")
         receipt["artifacts"]["off_binary"]["sha256"] = "f" * 64
         path = self.root / "edited-worker.json"
+        AB.write_json(path, receipt)
+        with self.assertRaises(AB.PlanError):
+            AB.import_preflight(run, path)
+
+    def test_preflight_retains_exact_request_and_authority_bytes(self) -> None:
+        self.files["nimo1"].write_bytes(b"authority\r\nexact\x00bytes")
+        self.plan["topology"]["coordinator"]["authority_receipt"]["sha256"] = sha(self.files["nimo1"])
+        run = self.initialize()
+        self.import_preflights(run)
+        expected_request = self.files["request"].read_bytes()
+        expected_authority = self.files["nimo1"].read_bytes()
+        self.assertEqual((run / "inputs" / "request.raw").read_bytes(), expected_request)
+        self.assertEqual((run / "inputs" / "authority-coordinator.raw").read_bytes(), expected_authority)
+        for source in (self.files["request"], self.files["nimo1"], self.files["nimo2"]):
+            source.unlink()
+        self.assertEqual(set(AB.validate_preflights(run, self.plan)), {"coordinator", "worker"})
+
+    def test_request_semantics_fail_closed(self) -> None:
+        base = json.loads(self.files["request"].read_text(encoding="utf-8"))
+        cases = {
+            "cache-on": {**base, "cache_prompt": True},
+            "cache-zero": {**base, "cache_prompt": 0},
+            "not-streamed": {**base, "stream": False},
+            "wrong-count": {**base, "n_predict": 7},
+            "bool-count": {**base, "n_predict": True},
+            "random-seed": {**base, "seed": 0xffffffff},
+            "warm-sampling": {**base, "temperature": 0.1},
+            "early-eog": {**base, "ignore_eos": False},
+            "unknown": {**base, "extra": 1},
+        }
+        for name, request in cases.items():
+            with self.subTest(name=name), self.assertRaises(AB.PlanError):
+                AB.validate_completion_request(json.dumps(request).encode(), self.plan)
+        duplicate = b'{"prompt":"x","n_predict":8,"stream":true,"cache_prompt":false,"ignore_eos":true,"seed":1,"temperature":0,"cache_prompt":false}'
+        with self.assertRaises(AB.PlanError):
+            AB.validate_completion_request(duplicate, self.plan)
+
+    def test_request_allows_multiline_exact_prompt_and_rejects_duplicate_evidence_json(self) -> None:
+        request = json.loads(self.files["request"].read_text(encoding="utf-8"))
+        request["prompt"] = "system\nuser\tcontent"
+        self.assertEqual(
+            AB.validate_completion_request(json.dumps(request).encode(), self.plan)["prompt"],
+            request["prompt"],
+        )
+        duplicate_path = self.root / "duplicate.json"
+        duplicate_path.write_text('{"cache_n":511,"cache_n":0}', encoding="utf-8")
+        with self.assertRaises(AB.PlanError):
+            AB.read_json(duplicate_path)
+
+    def test_import_rejects_tampered_retained_content(self) -> None:
+        run = self.initialize()
+        receipt = AB.collect_preflight(self.plan, "worker", observed_hostname="nimo-2")
+        receipt["artifacts"]["authority_receipt"]["content_base64"] = "YQ=="
+        path = self.root / "tampered-worker.json"
         AB.write_json(path, receipt)
         with self.assertRaises(AB.PlanError):
             AB.import_preflight(run, path)

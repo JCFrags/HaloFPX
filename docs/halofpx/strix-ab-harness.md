@@ -2,7 +2,9 @@
 
 Status: **implementation and offline qualification only; no target measurement**
 
-This bounded harness supports GitHub issues #15 and #16. It replaces the
+This bounded harness supports the prompt/generation measurement lanes from
+GitHub issues #15 and #16. The isolated CachyOS process adapter is tracked by
+GitHub issue #37. The harness replaces the
 MiniMax-specific assumptions in `run-halofpx-primary-block.sh` and
 `analyze-halofpx-primary-blocks.py` with a strict manifest, deterministic
 paired order, exact artifact preflight, raw-sample retention, and paired
@@ -18,9 +20,9 @@ golden output is embedded in the implementation.
 
 ## Scope and safety boundary
 
-- Apply the P0 target-ownership predicate in
+- Any future execution adapter must apply the P0 target-ownership predicate in
   [issue #41](https://github.com/JCFrags/HaloFPX/issues/41) before adapter
-  launch. The adapter must refuse work when a protected production service or
+  launch. It must refuse work when a protected production service or
   an unaccounted KFD/render/HMM owner is active. `MemAvailable`, free RAM,
   swap, and conventional RSS cannot override this rule; see the
   [2026-08-12 HMM/global-OOM incident](evidence/2026-08-12-target-hmm-oom-incident/README.md).
@@ -31,8 +33,10 @@ golden output is embedded in the implementation.
 - Treat a worker PID, InvocationID, or restart-count change as invalidation of
   coordinator RPC readiness. A health route is not sufficient recovery proof;
   require both-rank identity reconciliation and a real minimal inference.
-- Run the tool on the target CachyOS nodes. Windows may validate plans and
-  fixtures but cannot create a Strix Halo performance result.
+- Do not run this draft on the target CachyOS nodes. Windows or another control
+  host may validate plans and offline fixtures, but cannot create a Strix Halo
+  performance result. A separately reviewed change must enable target
+  execution after every issue-#41 custody gate closes.
 - Use fresh disposable worker and coordinator processes for every condition.
   A machine-specific adapter owns start, readiness, telemetry, stop, cleanup,
   and rollback. The checked-in tool does not claim that frozen argv was run.
@@ -47,7 +51,17 @@ golden output is embedded in the implementation.
   adapter proves live InvocationIDs, executable hashes, argv/environment,
   order, warmups, cache-off state, and cleanup, `analysis.json` keeps both
   `execution_qualified` and `measurement_ready` false.
-- The exact hashed request JSON must set `"cache_prompt": false`. Every retained
+- Preflight v2 carries byte-for-byte Base64 copies of the exact request and
+  both sanitized machine-authority receipts. Import materializes them at
+  `inputs/request.raw`, `inputs/authority-coordinator.raw`, and
+  `inputs/authority-worker.raw`; validation rehashes those copies even if the
+  original machine paths no longer exist. Do not place secrets in an authority
+  receipt.
+- The exact hashed request JSON must contain only the seven documented
+  deterministic fields, set `"stream": true` and `"cache_prompt": false`, use
+  `"ignore_eos": true` for a fixed output length, use a fixed non-sentinel seed
+  and zero temperature, and bind `n_predict` to the
+  plan. Duplicate or extra keys are refused. Every retained
   request must run in a newly isolated process after warmup; do not warm the
   process that supplies a measured sample. The final server timing object must
   contain integer `cache_n: 0`. Missing, Boolean, floating-point, or nonzero
@@ -71,6 +85,7 @@ this shape (replace the prompt and keep its exact token count in the plan):
   "n_predict": 128,
   "stream": true,
   "cache_prompt": false,
+  "ignore_eos": true,
   "seed": 1234,
   "temperature": 0
 }
@@ -143,11 +158,110 @@ It does not use requests within a long-lived block as independent replicates.
 The core may mark only `evidence_core_complete`; it never marks a measurement
 ready without the separate target execution adapter.
 
-## Follow-up execution adapter
+## CachyOS isolated-process adapter — issue #37
 
-The next small slice is a CachyOS adapter that starts isolated user units on
-the two nodes, proves their InvocationIDs and executable hashes, captures
-streaming monotonic TTFT/inter-token events plus both-node telemetry, and calls
-`record`. Keep that adapter separate from this evidence core so process control
-can be reviewed against the current target service authority without weakening
-the model-general plan or paired analyzer.
+[`halofpx_strix_ab_cachyos.py`](../../scripts/halofpx_strix_ab_cachyos.py)
+consumes the frozen plan, commands, schedule, imported preflights, and exact
+retained input bytes. Its closed policy example is
+[`halofpx-strix-ab-cachyos-policy.example.json`](../../scripts/halofpx-strix-ab-cachyos-policy.example.json).
+The adapter is a candidate execution layer with offline qualification only; it
+has not run on the targets and creates no performance claim. Its real SSH
+`execute-next` path is hard-disabled. Only the local `validate` command is
+available in this draft.
+
+Local validation binds the draft to the immutable issue-#41 incident manifest
+at
+`docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/manifest.json`,
+SHA-256
+`331634016681b57183aedbea3550f95d86486ce21d1baf8e7e3e3e5c6f35d815`.
+The incident bundle's own `validate.ps1` and optional Windows read-only
+`collect-read-only.ps1` remain the canonical evidence tools. The adapter does
+not copy, call, or replace that collector. Binding the historical incident is
+not live admission.
+
+The following custody remains unresolved and therefore keeps target execution
+blocked:
+
+- an authorized maintenance-window receipt;
+- exact before-state service identities and a clean kernel-OOM baseline;
+- a complete empty foreign KFD, render-node, and HMM-owner census;
+- independently reviewed disposable-process and cleanup custody; and
+- a two-rank recovery contract that requires exact identities plus a real
+  minimal inference after either identity changes.
+
+The policy permanently protects the current system-unit names and ports:
+
+- `minimax-m27-q6-server.service` and port 8081 on nimo-1;
+- `minimax-m27-rpc-worker.service` and port 50052 on nimo-2.
+
+The example uses disposable ports 18080 and 50252. The older A/B example's use
+of 50052 was unsafe because that is the production worker port; it is corrected
+in this slice. At runtime, fresh system-unit snapshots add their live PIDs,
+InvocationIDs, executable hashes, argv, listener ownership, restart counts,
+and coordinator health to the protected boundary. The adapter never calls a
+system-unit stop or restart operation and refuses a disposable unit, port, or
+PID collision.
+
+The unreachable candidate lifecycle is deliberately one entry at a time. It is
+retained for offline fake-runner review; the statements below describe intended
+behavior, not an executable or target-qualified workflow:
+
+1. `validate` revalidates the frozen core, preflight-v2 inputs, and closed
+   issue-#37 policy without target mutation.
+2. A future reviewed `execute-next` would be accepted only on the frozen
+   coordinator host. Before any process launch it would require a root-visible
+   `/dev/kfd` and render-node client
+   census (`sudo -n fuser`) and zero existing GPU clients on both nodes. The
+   measured pair repeats this census immediately before and after its request,
+   allowing only its captured disposable PIDs; any late foreign client consumes
+   the slot as a retained failure. The always-on comparison deployment is
+   therefore expected to make the adapter refuse until an independently
+   authorized maintenance window had already made the GPUs idle. This draft
+   neither creates nor accepts evidence for that window, and its source gate
+   refuses before SSH.
+3. The adapter records and fsyncs a next-only intent. From that point the
+   schedule slot is consumed. A crash, timeout, or ambiguous request becomes a
+   retained failure and is never retried under the same run.
+4. Each declared warmup uses a fresh worker/coordinator user-unit pair and is
+   fully stopped and cleaned before the measured pair starts. User transient
+   units start without `--collect`; the adapter binds PID, fresh 32-hex
+   InvocationID, process start time, journal cursor, executable SHA-256, exact
+   NUL-decoded argv, exact `env -i` allowlisted environment, cgroup, and
+   PID-owned listener.
+5. The worker starts first. Its PID-owned RPC listener must be ready before the
+   coordinator starts; coordinator HTTP health plus a still-live worker proves
+   both-node readiness. The adapter posts `inputs/request.raw` as the body
+   without JSON reserialization.
+6. A measured request retains raw streamed HTTP bytes, the assembled response,
+   monotonic TTFT/inter-token events, and overlapping telemetry from both
+   nodes. It refuses an HTTP/token-event mismatch or any final timing record
+   whose integer `cache_n` is not zero. SSH has bounded liveness probes and a
+   local process group; an independent remote `/usr/bin/timeout` watchdog owns
+   each remote child if the connection is lost.
+7. Shutdown revalidates identities, stops coordinator then worker, captures
+   InvocationID/cursor-bound journals before collection, attempts cleanup for
+   both authorized roles even after an error, and proves units absent, ports
+   closed, captured PIDs absent, and captured transient cgroups removed.
+   The fresh production snapshot must equal the pre-run snapshot exactly.
+8. A success or failure receipt is copied into the ordinary evidence-core raw
+   sample. Failed cycle records retain all reached identities, readiness,
+   request hashes, exact journal bytes, GPU censuses, cleanup proofs, and every
+   primary/secondary error. The adapter leaves `execution_qualified`,
+   `measurement_ready`, and `performance_claim` false; promotion requires
+   separate target evidence and review.
+
+Run only local validation from a checkout containing a prepared frozen run:
+
+```bash
+python scripts/halofpx_strix_ab_cachyos.py validate \
+  /var/tmp/halofpx-ab-my-run policy.json
+```
+
+`validate` reports `target_execution_state=blocked`, the incident-manifest
+identity, and the unresolved custody list. The CLI `execute-next` command exits
+before host inspection or SSH. Offline fake-runner tests cover the proposed
+happy lifecycle, exact body custody, global schedule order, protected
+unit/port/PID collision, pre-intent and late foreign GPU clients, argv
+mismatch, reused-cache response, production drift, multi-target cleanup
+failure, failed-cycle evidence retention, and SSH watchdog construction. They
+do not establish CachyOS, ROCm, `gfx1151`, dual-node, or performance behavior.

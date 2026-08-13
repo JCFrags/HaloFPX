@@ -1,0 +1,33 @@
+{
+  "schema": "halofpx.strix-ab-cachyos-policy.v1",
+  "issue": 37,
+  "controller_host": "nimo-1",
+  "protected": {
+    "coordinator": {
+      "host": "nimo-1",
+      "unit": "minimax-m27-q6-server.service",
+      "ports": [8081],
+      "health_url": "http://127.0.0.1:8081/health"
+    },
+    "worker": {
+      "host": "nimo-2",
+      "unit": "minimax-m27-rpc-worker.service",
+      "ports": [50052],
+      "health_url": null
+    }
+  },
+  "disposable": {
+    "unit_prefix": "halofpx-ab-",
+    "coordinator_port": 18080,
+    "worker_port": 50252,
+    "runtime_max_seconds": 3600
+  },
+  "timeouts": {
+    "identity_seconds": 10,
+    "readiness_seconds": 900,
+    "request_seconds": 900,
+    "stop_seconds": 30,
+    "telemetry_interval_seconds": 1.0
+  },
+  "require_no_foreign_gpu_clients": true
+}
