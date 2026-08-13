@@ -1,0 +1,12 @@
+register_backend: registered backend CPU (1 devices)
+register_device: registered device CPU (13th Gen Intel(R) Core(TM) i7-13700K)
+Testing 1 devices
+
+Backend 1/1: CPU
+  Device description: 13th Gen Intel(R) Core(TM) i7-13700K
+  Device memory: 23461 MB (23461 MB free)
+
+  0/0 tests passed
+  Backend CPU: [1;32mOK[0m
+1/1 backends passed
+[1;32mOK[0m

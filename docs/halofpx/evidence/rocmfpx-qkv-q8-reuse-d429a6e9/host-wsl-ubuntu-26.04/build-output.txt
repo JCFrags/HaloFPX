@@ -1,0 +1,352 @@
+[1/243] Building C object ggml/src/CMakeFiles/ggml-base.dir/ggml-alloc.c.o
+[2/243] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml.cpp.o
+[3/243] Building C object ggml/src/CMakeFiles/ggml-base.dir/ggml.c.o
+[4/243] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-threading.cpp.o
+[5/243] Building C object ggml/src/CMakeFiles/ggml-base.dir/__/__/examples/gguf-hash/deps/sha256/sha256.c.o
+[6/243] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-opt.cpp.o
+[7/243] Building C object ggml/src/CMakeFiles/ggml-base.dir/__/rocmfp4/rocmfp4.c.o
+[8/243] Building C object ggml/src/CMakeFiles/ggml-base.dir/ggml-quants.c.o
+[9/243] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-backend-meta.cpp.o
+[10/243] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-backend.cpp.o
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp: In function ‘bool {anonymous}::sched_auth_build_canonical_census(sched_auth_state&)’:
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:894:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::logical_tensor_identity’ [-Wmissing-field-initializers]
+  894 |         candidates.push_back({
+      |         ~~~~~~~~~~~~~~~~~~~~^~
+  895 |             root.backend,
+      |             ~~~~~~~~~~~~~    
+  896 |             root.canonical_id,
+      |             ~~~~~~~~~~~~~~~~~~
+  897 |             static_cast<uint32_t>(GGML_BACKEND_SCHED_CENSUS_ROOT),
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  898 |             static_cast<uint32_t>(
+      |             ~~~~~~~~~~~~~~~~~~~~~~
+  899 |                 root.authority.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  900 |                     GGML_BACKEND_SCHED_CENSUS_REGISTER :
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  901 |                     GGML_BACKEND_SCHED_CENSUS_EXCLUDE),
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  902 |             root.authority.root_class,
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~
+  903 |             root.authority.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  904 |                 root.authority.role :
+      |                 ~~~~~~~~~~~~~~~~~~~~~
+  905 |                 static_cast<uint32_t>(
+      |                 ~~~~~~~~~~~~~~~~~~~~~~
+  906 |                     root.authority.root_class ==
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  907 |                             GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT ?
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  908 |                         GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT :
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  909 |                         GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD),
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  910 |             root.authority.role_ordinal,
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  911 |             UINT32_MAX,
+      |             ~~~~~~~~~~~      
+  912 |             0,
+      |             ~~               
+  913 |             root.tensor,
+      |             ~~~~~~~~~~~~     
+  914 |         });
+      |         ~~                   
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:894:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::storage_tensor_identity’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:894:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::runtime_semantic_identity’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:894:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::rpc_endpoint_identity’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:894:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::rpc_connection_epoch’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:894:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::rpc_device’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:894:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::resolved’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:923:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::logical_tensor_identity’ [-Wmissing-field-initializers]
+  923 |         candidates.push_back({
+      |         ~~~~~~~~~~~~~~~~~~~~^~
+  924 |             copy.destination_backend,
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~
+  925 |             copy.source_id,
+      |             ~~~~~~~~~~~~~~~  
+  926 |             static_cast<uint32_t>(GGML_BACKEND_SCHED_CENSUS_COPY),
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  927 |             static_cast<uint32_t>(
+      |             ~~~~~~~~~~~~~~~~~~~~~~
+  928 |                 scheduler_copy ||
+      |                 ~~~~~~~~~~~~~~~~~
+  929 |                         copy.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  930 |                     GGML_BACKEND_SCHED_CENSUS_REGISTER :
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  931 |                     GGML_BACKEND_SCHED_CENSUS_EXCLUDE),
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  932 |             copy.root_class,
+      |             ~~~~~~~~~~~~~~~~ 
+  933 |             scheduler_copy ?
+      |             ~~~~~~~~~~~~~~~~ 
+  934 |                 static_cast<uint32_t>(GGML_RPC_HALOFPX_MUTABLE_SCHEDULER_COPY) :
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  935 |             copy.root_class == GGML_BACKEND_SCHED_AUTH_MUTABLE ?
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  936 |                 copy.role :
+      |                 ~~~~~~~~~~~  
+  937 |                 static_cast<uint32_t>(
+      |                 ~~~~~~~~~~~~~~~~~~~~~~
+  938 |                     copy.root_class ==
+      |                     ~~~~~~~~~~~~~~~~~~
+  939 |                             GGML_BACKEND_SCHED_AUTH_IMMUTABLE_WEIGHT ?
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  940 |                         GGML_RPC_HALOFPX_EXCLUDE_IMMUTABLE_MODEL_WEIGHT :
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  941 |                         GGML_RPC_HALOFPX_EXCLUDE_LOCAL_STATE_PAYLOAD),
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  942 |             copy.role_ordinal,
+      |             ~~~~~~~~~~~~~~~~~~
+  943 |             copy.copy_slot,
+      |             ~~~~~~~~~~~~~~~  
+  944 |             copy.generation,
+      |             ~~~~~~~~~~~~~~~~ 
+  945 |             copy.tensor,
+      |             ~~~~~~~~~~~~     
+  946 |         });
+      |         ~~                   
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:923:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::storage_tensor_identity’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:923:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::runtime_semantic_identity’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:923:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::rpc_endpoint_identity’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:923:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::rpc_connection_epoch’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:923:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::rpc_device’ [-Wmissing-field-initializers]
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/ggml/src/ggml-backend.cpp:923:29: warning: missing initializer for member ‘ggml_backend_sched_authority_census_entry::resolved’ [-Wmissing-field-initializers]
+[11/243] Building C object ggml/src/CMakeFiles/ggml-base.dir/__/rocmfpx/rocmfpx.c.o
+[12/243] Building C object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.c.o
+[13/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/hbm.cpp.o
+[14/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.cpp.o
+[15/243] Building C object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/quants.c.o
+[16/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/repack.cpp.o
+[17/243] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/gguf.cpp.o
+[18/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/traits.cpp.o
+[19/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/amx.cpp.o
+[20/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/mmq.cpp.o
+[21/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/binary-ops.cpp.o
+[22/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/vec.cpp.o
+[23/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/unary-ops.cpp.o
+[24/243] Building C object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/arch/x86/quants.c.o
+[25/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ops.cpp.o
+[26/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/llamafile/sgemm.cpp.o
+[27/243] Building CXX object ggml/src/CMakeFiles/ggml.dir/ggml-backend-dl.cpp.o
+[28/243] Linking CXX static library ggml/src/libggml-base.a
+[29/243] Building CXX object ggml/src/CMakeFiles/ggml.dir/ggml-backend-reg.cpp.o
+[30/243] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/arch/x86/repack.cpp.o
+[31/243] Building CXX object src/CMakeFiles/llama.dir/llama-arch.cpp.o
+[32/243] Building CXX object src/CMakeFiles/llama.dir/llama.cpp.o
+[33/243] Building CXX object src/CMakeFiles/llama.dir/llama-adapter.cpp.o
+[34/243] Linking CXX static library ggml/src/libggml-cpu.a
+[35/243] Building CXX object src/CMakeFiles/llama.dir/llama-chat.cpp.o
+[36/243] Building CXX object src/CMakeFiles/llama.dir/llama-cparams.cpp.o
+[37/243] Linking CXX static library ggml/src/libggml.a
+[38/243] Building CXX object src/CMakeFiles/llama.dir/llama-batch.cpp.o
+[39/243] Building CXX object src/CMakeFiles/llama.dir/llama-hparams.cpp.o
+[40/243] Building CXX object src/CMakeFiles/llama.dir/llama-impl.cpp.o
+[41/243] Building CXX object src/CMakeFiles/llama.dir/llama-io.cpp.o
+[42/243] Building CXX object src/CMakeFiles/llama.dir/llama-graph.cpp.o
+[43/243] Building CXX object src/CMakeFiles/llama.dir/llama-context.cpp.o
+[44/243] Building CXX object src/CMakeFiles/llama.dir/llama-grammar.cpp.o
+[45/243] Building CXX object src/CMakeFiles/llama.dir/llama-kv-cache-dsa.cpp.o
+[46/243] Building CXX object src/CMakeFiles/llama.dir/llama-memory.cpp.o
+[47/243] Building CXX object src/CMakeFiles/llama.dir/llama-kv-cache-iswa.cpp.o
+[48/243] Building CXX object src/CMakeFiles/llama.dir/llama-kv-cache.cpp.o
+[49/243] Building CXX object src/CMakeFiles/llama.dir/llama-mmap.cpp.o
+[50/243] Building CXX object src/CMakeFiles/llama.dir/llama-memory-hybrid.cpp.o
+[51/243] Building CXX object src/CMakeFiles/llama.dir/llama-memory-hybrid-iswa.cpp.o
+[52/243] Building CXX object src/CMakeFiles/llama.dir/llama-memory-recurrent.cpp.o
+[53/243] Building CXX object src/CMakeFiles/llama.dir/llama-model-saver.cpp.o
+[54/243] Building CXX object src/CMakeFiles/llama.dir/llama-model-loader.cpp.o
+[55/243] Building CXX object src/CMakeFiles/llama.dir/llama-sampler.cpp.o
+[56/243] Building CXX object src/CMakeFiles/llama.dir/llama-quant.cpp.o
+[57/243] Building CXX object src/CMakeFiles/llama.dir/unicode-data.cpp.o
+[58/243] Building CXX object src/CMakeFiles/llama.dir/llama-model.cpp.o
+[59/243] Building CXX object src/CMakeFiles/llama.dir/models/afmoe.cpp.o
+[60/243] Building CXX object src/CMakeFiles/llama.dir/models/apertus.cpp.o
+[61/243] Building CXX object src/CMakeFiles/llama.dir/llama-vocab.cpp.o
+[62/243] Building CXX object src/CMakeFiles/llama.dir/models/arcee.cpp.o
+[63/243] Building CXX object src/CMakeFiles/llama.dir/models/arctic.cpp.o
+[64/243] Building CXX object src/CMakeFiles/llama.dir/models/arwkv7.cpp.o
+[65/243] Building CXX object src/CMakeFiles/llama.dir/models/baichuan.cpp.o
+[66/243] Building CXX object src/CMakeFiles/llama.dir/unicode.cpp.o
+[67/243] Building CXX object src/CMakeFiles/llama.dir/models/bailingmoe.cpp.o
+[68/243] Building CXX object src/CMakeFiles/llama.dir/models/bailingmoe2.cpp.o
+[69/243] Building CXX object src/CMakeFiles/llama.dir/models/bert.cpp.o
+[70/243] Building CXX object src/CMakeFiles/llama.dir/models/bitnet.cpp.o
+[71/243] Building CXX object src/CMakeFiles/llama.dir/models/bloom.cpp.o
+[72/243] Building CXX object src/CMakeFiles/llama.dir/models/chameleon.cpp.o
+[73/243] Building CXX object src/CMakeFiles/llama.dir/models/chatglm.cpp.o
+[74/243] Building CXX object src/CMakeFiles/llama.dir/models/codeshell.cpp.o
+[75/243] Building CXX object src/CMakeFiles/llama.dir/models/cogvlm.cpp.o
+[76/243] Building CXX object src/CMakeFiles/llama.dir/models/cohere2.cpp.o
+[77/243] Building CXX object src/CMakeFiles/llama.dir/models/command-r.cpp.o
+[78/243] Building CXX object src/CMakeFiles/llama.dir/models/dbrx.cpp.o
+[79/243] Building CXX object src/CMakeFiles/llama.dir/models/deci.cpp.o
+[80/243] Building CXX object src/CMakeFiles/llama.dir/models/deepseek.cpp.o
+[81/243] Building CXX object src/CMakeFiles/llama.dir/models/deepseek2.cpp.o
+[82/243] Building CXX object src/CMakeFiles/llama.dir/models/deepseek2ocr.cpp.o
+[83/243] Building CXX object src/CMakeFiles/llama.dir/models/deepseek32.cpp.o
+[84/243] Building CXX object src/CMakeFiles/llama.dir/models/deepseek4.cpp.o
+[85/243] Building CXX object src/CMakeFiles/llama.dir/models/deepseek4-graph.cpp.o
+[86/243] Building CXX object src/CMakeFiles/llama.dir/models/delta-net-base.cpp.o
+[87/243] Building CXX object src/CMakeFiles/llama.dir/models/dflash.cpp.o
+[88/243] Building CXX object src/CMakeFiles/llama.dir/models/dots1.cpp.o
+[89/243] Building CXX object src/CMakeFiles/llama.dir/models/dream.cpp.o
+[90/243] Building CXX object src/CMakeFiles/llama.dir/models/diffusion-gemma.cpp.o
+[91/243] Building CXX object src/CMakeFiles/llama.dir/models/eagle3.cpp.o
+[92/243] Building CXX object src/CMakeFiles/llama.dir/models/ernie4-5-moe.cpp.o
+[93/243] Building CXX object src/CMakeFiles/llama.dir/models/ernie4-5.cpp.o
+[94/243] Building CXX object src/CMakeFiles/llama.dir/models/eurobert.cpp.o
+[95/243] Building CXX object src/CMakeFiles/llama.dir/models/exaone-moe.cpp.o
+[96/243] Building CXX object src/CMakeFiles/llama.dir/models/exaone.cpp.o
+[97/243] Building CXX object src/CMakeFiles/llama.dir/models/exaone4.cpp.o
+[98/243] Building CXX object src/CMakeFiles/llama.dir/models/falcon-h1.cpp.o
+[99/243] Building CXX object src/CMakeFiles/llama.dir/models/falcon.cpp.o
+[100/243] Building CXX object src/CMakeFiles/llama.dir/models/gemma-embedding.cpp.o
+[101/243] Building CXX object src/CMakeFiles/llama.dir/models/gemma.cpp.o
+[102/243] Building CXX object src/CMakeFiles/llama.dir/models/gemma2.cpp.o
+[103/243] Building CXX object src/CMakeFiles/llama.dir/models/gemma3.cpp.o
+[104/243] Building CXX object src/CMakeFiles/llama.dir/models/gemma3n.cpp.o
+[105/243] Building CXX object src/CMakeFiles/llama.dir/models/gemma4-assistant.cpp.o
+[106/243] Building CXX object src/CMakeFiles/llama.dir/models/gemma4.cpp.o
+[107/243] Building CXX object src/CMakeFiles/llama.dir/models/glm-dsa.cpp.o
+[108/243] Building CXX object src/CMakeFiles/llama.dir/models/glm4-moe.cpp.o
+[109/243] Building CXX object src/CMakeFiles/llama.dir/models/glm4.cpp.o
+[110/243] Building CXX object src/CMakeFiles/llama.dir/models/gpt2.cpp.o
+[111/243] Building CXX object src/CMakeFiles/llama.dir/models/gptneox.cpp.o
+[112/243] Building CXX object src/CMakeFiles/llama.dir/models/granite-hybrid.cpp.o
+[113/243] Building CXX object src/CMakeFiles/llama.dir/models/granite-moe.cpp.o
+[114/243] Building CXX object src/CMakeFiles/llama.dir/models/granite.cpp.o
+[115/243] Building CXX object src/CMakeFiles/llama.dir/models/grok.cpp.o
+[116/243] Building CXX object src/CMakeFiles/llama.dir/models/grovemoe.cpp.o
+[117/243] Building CXX object src/CMakeFiles/llama.dir/models/hunyuan-dense.cpp.o
+[118/243] Building CXX object src/CMakeFiles/llama.dir/models/hunyuan-moe.cpp.o
+[119/243] Building CXX object src/CMakeFiles/llama.dir/models/hunyuan-vl.cpp.o
+[120/243] Building CXX object src/CMakeFiles/llama.dir/models/internlm2.cpp.o
+[121/243] Building CXX object src/CMakeFiles/llama.dir/models/hyv3.cpp.o
+[122/243] Building CXX object src/CMakeFiles/llama.dir/models/jais.cpp.o
+[123/243] Building CXX object src/CMakeFiles/llama.dir/models/jais2.cpp.o
+[124/243] Building CXX object src/CMakeFiles/llama.dir/models/jamba.cpp.o
+[125/243] Building CXX object src/CMakeFiles/llama.dir/models/jina-bert-v2.cpp.o
+[126/243] Building CXX object src/CMakeFiles/llama.dir/models/jina-bert-v3.cpp.o
+[127/243] Building CXX object src/CMakeFiles/llama.dir/models/kimi-linear.cpp.o
+[128/243] Building CXX object src/CMakeFiles/llama.dir/models/lfm2moe.cpp.o
+[129/243] Building CXX object src/CMakeFiles/llama.dir/models/lfm2.cpp.o
+[130/243] Building CXX object src/CMakeFiles/llama.dir/models/llada-moe.cpp.o
+[131/243] Building CXX object src/CMakeFiles/llama.dir/models/llada.cpp.o
+[132/243] Building CXX object src/CMakeFiles/llama.dir/models/llama-embed.cpp.o
+[133/243] Building CXX object src/CMakeFiles/llama.dir/models/llama.cpp.o
+[134/243] Building CXX object src/CMakeFiles/llama.dir/models/llama4.cpp.o
+[135/243] Building CXX object src/CMakeFiles/llama.dir/models/maincoder.cpp.o
+[136/243] Building CXX object src/CMakeFiles/llama.dir/models/mamba-base.cpp.o
+[137/243] Building CXX object src/CMakeFiles/llama.dir/models/mamba.cpp.o
+[138/243] Building CXX object src/CMakeFiles/llama.dir/models/mamba2.cpp.o
+[139/243] Building CXX object src/CMakeFiles/llama.dir/models/mimo2.cpp.o
+[140/243] Building CXX object src/CMakeFiles/llama.dir/models/minicpm.cpp.o
+[141/243] Building CXX object src/CMakeFiles/llama.dir/models/minicpm3.cpp.o
+[142/243] Building CXX object src/CMakeFiles/llama.dir/models/minimax-m2.cpp.o
+[143/243] Building CXX object src/CMakeFiles/llama.dir/models/minimax-m3.cpp.o
+[144/243] Building CXX object src/CMakeFiles/llama.dir/models/mistral3.cpp.o
+[145/243] Building CXX object src/CMakeFiles/llama.dir/models/mistral4.cpp.o
+[146/243] Building CXX object src/CMakeFiles/llama.dir/models/modern-bert.cpp.o
+[147/243] Building CXX object src/CMakeFiles/llama.dir/models/mpt.cpp.o
+[148/243] Building CXX object src/CMakeFiles/llama.dir/models/nemotron-h-moe.cpp.o
+[149/243] Building CXX object src/CMakeFiles/llama.dir/models/nemotron-h.cpp.o
+[150/243] Building CXX object src/CMakeFiles/llama.dir/models/nemotron.cpp.o
+[151/243] Building CXX object src/CMakeFiles/llama.dir/models/neo-bert.cpp.o
+[152/243] Building CXX object src/CMakeFiles/llama.dir/models/nomic-bert-moe.cpp.o
+[153/243] Building CXX object src/CMakeFiles/llama.dir/models/nomic-bert.cpp.o
+[154/243] Building CXX object src/CMakeFiles/llama.dir/models/olmo.cpp.o
+[155/243] Building CXX object src/CMakeFiles/llama.dir/models/olmo2.cpp.o
+[156/243] Building CXX object src/CMakeFiles/llama.dir/models/olmoe.cpp.o
+[157/243] Building CXX object src/CMakeFiles/llama.dir/models/openai-moe.cpp.o
+[158/243] Building CXX object src/CMakeFiles/llama.dir/models/openelm.cpp.o
+[159/243] Building CXX object src/CMakeFiles/llama.dir/models/orion.cpp.o
+[160/243] Building CXX object src/CMakeFiles/llama.dir/models/paddleocr.cpp.o
+[161/243] Building CXX object src/CMakeFiles/llama.dir/models/pangu-embed.cpp.o
+[162/243] Building CXX object src/CMakeFiles/llama.dir/models/phi2.cpp.o
+[163/243] Building CXX object src/CMakeFiles/llama.dir/models/phi3.cpp.o
+[164/243] Building CXX object src/CMakeFiles/llama.dir/models/phimoe.cpp.o
+[165/243] Building CXX object src/CMakeFiles/llama.dir/models/plamo.cpp.o
+[166/243] Building CXX object src/CMakeFiles/llama.dir/models/plamo2.cpp.o
+[167/243] Building CXX object src/CMakeFiles/llama.dir/models/plamo3.cpp.o
+[168/243] Building CXX object src/CMakeFiles/llama.dir/models/plm.cpp.o
+[169/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen.cpp.o
+[170/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen2.cpp.o
+[171/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen2moe.cpp.o
+[172/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen2vl.cpp.o
+[173/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen3.cpp.o
+[174/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen35.cpp.o
+[175/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen3moe.cpp.o
+[176/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen35moe.cpp.o
+[177/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen3next.cpp.o
+[178/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen3vl.cpp.o
+[179/243] Building CXX object src/CMakeFiles/llama.dir/models/qwen3vlmoe.cpp.o
+[180/243] Building CXX object src/CMakeFiles/llama.dir/models/refact.cpp.o
+[181/243] Building CXX object src/CMakeFiles/llama.dir/models/rnd1.cpp.o
+[182/243] Building CXX object src/CMakeFiles/llama.dir/models/rwkv6-base.cpp.o
+[183/243] Building CXX object src/CMakeFiles/llama.dir/models/rwkv6.cpp.o
+[184/243] Building CXX object src/CMakeFiles/llama.dir/models/rwkv6qwen2.cpp.o
+[185/243] Building CXX object src/CMakeFiles/llama.dir/models/rwkv7-base.cpp.o
+[186/243] Building CXX object src/CMakeFiles/llama.dir/models/rwkv7.cpp.o
+[187/243] Building CXX object src/CMakeFiles/llama.dir/models/seed-oss.cpp.o
+[188/243] Building CXX object src/CMakeFiles/llama.dir/models/smallthinker.cpp.o
+[189/243] Building CXX object src/CMakeFiles/llama.dir/models/smollm3.cpp.o
+[190/243] Building CXX object src/CMakeFiles/llama.dir/models/stablelm.cpp.o
+[191/243] Building CXX object src/CMakeFiles/llama.dir/models/starcoder.cpp.o
+[192/243] Building CXX object src/CMakeFiles/llama.dir/models/starcoder2.cpp.o
+[193/243] Building CXX object src/CMakeFiles/llama.dir/models/step35.cpp.o
+[194/243] Building CXX object src/CMakeFiles/llama.dir/models/t5.cpp.o
+[195/243] Building CXX object src/CMakeFiles/llama.dir/models/t5encoder.cpp.o
+[196/243] Building CXX object src/CMakeFiles/llama.dir/models/wavtokenizer-dec.cpp.o
+[197/243] Building CXX object common/CMakeFiles/llama-common-base.dir/build-info.cpp.o
+[198/243] Linking CXX static library common/libllama-common-base.a
+[199/243] Building CXX object src/CMakeFiles/llama.dir/models/xverse.cpp.o
+[200/243] Building CXX object common/CMakeFiles/llama-common.dir/chat-auto-parser-generator.cpp.o
+[201/243] Building CXX object vendor/cpp-httplib/CMakeFiles/cpp-httplib.dir/httplib.cpp.o
+[202/243] Building CXX object common/CMakeFiles/llama-common.dir/chat-auto-parser-helpers.cpp.o
+[203/243] Building CXX object common/CMakeFiles/llama-common.dir/arg.cpp.o
+[204/243] Building CXX object common/CMakeFiles/llama-common.dir/chat-peg-parser.cpp.o
+[205/243] Building CXX object common/CMakeFiles/llama-common.dir/chat-diff-analyzer.cpp.o
+[206/243] Building CXX object common/CMakeFiles/llama-common.dir/console.cpp.o
+[207/243] Building CXX object common/CMakeFiles/llama-common.dir/chat.cpp.o
+[208/243] Building CXX object common/CMakeFiles/llama-common.dir/common.cpp.o
+[209/243] Building CXX object common/CMakeFiles/llama-common.dir/debug.cpp.o
+[210/243] Building CXX object common/CMakeFiles/llama-common.dir/fit.cpp.o
+[211/243] Building CXX object common/CMakeFiles/llama-common.dir/download.cpp.o
+[212/243] Building CXX object common/CMakeFiles/llama-common.dir/json-partial.cpp.o
+[213/243] Building CXX object common/CMakeFiles/llama-common.dir/llguidance.cpp.o
+[214/243] Building CXX object common/CMakeFiles/llama-common.dir/hf-cache.cpp.o
+[215/243] Building CXX object common/CMakeFiles/llama-common.dir/log.cpp.o
+[216/243] Building CXX object common/CMakeFiles/llama-common.dir/ngram-cache.cpp.o
+[217/243] Building CXX object common/CMakeFiles/llama-common.dir/ngram-mod.cpp.o
+[218/243] Building CXX object common/CMakeFiles/llama-common.dir/ngram-map.cpp.o
+[219/243] Building CXX object common/CMakeFiles/llama-common.dir/json-schema-to-grammar.cpp.o
+[220/243] Building CXX object common/CMakeFiles/llama-common.dir/preset.cpp.o
+[221/243] Building CXX object common/CMakeFiles/llama-common.dir/reasoning-budget.cpp.o
+[222/243] Building CXX object common/CMakeFiles/llama-common.dir/regex-partial.cpp.o
+[223/243] Building CXX object common/CMakeFiles/llama-common.dir/sampling.cpp.o
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/common/sampling.cpp: In member function ‘bool common_sampler::set_logits(llama_context*, int, bool, llama_token*, bool)’:
+/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/common/sampling.cpp:140:18: warning: unused parameter ‘token_only’ [-Wunused-parameter]
+  140 |             bool token_only = false) {
+      |             ~~~~~^~~~~~~~~~~~~~~~~~
+[224/243] Building CXX object common/CMakeFiles/llama-common.dir/unicode.cpp.o
+[225/243] Building CXX object common/CMakeFiles/llama-common.dir/jinja/lexer.cpp.o
+[226/243] Building CXX object common/CMakeFiles/llama-common.dir/speculative.cpp.o
+[227/243] Building CXX object common/CMakeFiles/llama-common.dir/peg-parser.cpp.o
+[228/243] Building CXX object common/CMakeFiles/llama-common.dir/jinja/parser.cpp.o
+[229/243] Building CXX object common/CMakeFiles/llama-common.dir/jinja/runtime.cpp.o
+[230/243] Building CXX object common/CMakeFiles/llama-common.dir/jinja/string.cpp.o
+[231/243] Building CXX object common/CMakeFiles/llama-common.dir/__/license.cpp.o
+[232/243] Building CXX object common/CMakeFiles/llama-common.dir/jinja/value.cpp.o
+[233/243] Building CXX object common/CMakeFiles/llama-common.dir/jinja/caps.cpp.o
+[234/243] Building CXX object tests/CMakeFiles/test-backend-ops.dir/get-model.cpp.o
+[235/243] Building CXX object tests/CMakeFiles/test-halofpx-rocmfpx-qkv-q8-reuse-off.dir/test-halofpx-rocmfpx-qkv-q8-reuse.cpp.o
+[236/243] Building CXX object tests/CMakeFiles/test-halofpx-rocmfpx-qkv-q8-reuse-on.dir/test-halofpx-rocmfpx-qkv-q8-reuse.cpp.o
+[237/243] Linking CXX static library vendor/cpp-httplib/libcpp-httplib.a
+[238/243] Building CXX object tests/CMakeFiles/test-backend-ops.dir/test-backend-ops.cpp.o
+[239/243] Linking CXX executable bin/test-halofpx-rocmfpx-qkv-q8-reuse-off
+[240/243] Linking CXX executable bin/test-halofpx-rocmfpx-qkv-q8-reuse-on
+[241/243] Linking CXX static library src/libllama.a
+[242/243] Linking CXX static library common/libllama-common.a
+[243/243] Linking CXX executable bin/test-backend-ops

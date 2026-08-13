@@ -1,0 +1,13 @@
+d429a6e933dac620d91f58f58f8c27e3335ceefa
+176d512a7687efabb55cba9844154ab414191cc6
+8e621dd02d1365d6ad75ca4d25a96554aa567217
+ad4930fd632f2f57bbe852dc2268ba3b5b7f5666
+codex/rocmfpx-qkv-q8-reuse
+# branch.oid d429a6e933dac620d91f58f58f8c27e3335ceefa
+# branch.head codex/rocmfpx-qkv-q8-reuse
+1 MM N... 100644 100644 100644 152a5b53562a8e81261a910584772a7c1d431726 132e360fb29c1b212131b644900c3616985d750b HANDOFF.md
+1 M. N... 100644 100644 100644 e6e0d1077e6a15687f850bb8ffba5b161b39564f 03d85cbcfe95279c63e84f14c69cf2990e99966a docs/halofpx/README.md
+? docs/halofpx/decisions/0053-rocmfpx-qkv-q8-activation-reuse.md
+? docs/halofpx/evidence/rocmfpx-qkv-q8-reuse-d429a6e9/
+? docs/halofpx/rocmfpx-qkv-q8-reuse.md
+implementation_paths_match_head=PASS

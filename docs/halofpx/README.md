@@ -7,7 +7,7 @@ Wiki, and imported target-machine evidence are under [`project/`](../../project/
 - [ROCmFPX dense FFN Q8_1 activation reuse candidate](rocmfpx-ffn-q8-reuse.md)
 - [ROCmFPX Q/K/V Q8_1 activation reuse candidate](rocmfpx-qkv-q8-reuse.md)
 - [ADR-0053 bounded ROCmFPX Q/K/V Q8_1 activation reuse](decisions/0053-rocmfpx-qkv-q8-activation-reuse.md)
-- [ROCmFPX Q/K/V Q8_1 host qualification](evidence/rocmfpx-qkv-q8-reuse-8284ef1a/README.md)
+- [ROCmFPX Q/K/V Q8_1 host qualification](evidence/rocmfpx-qkv-q8-reuse-d429a6e9/README.md)
 - [L111 atomic rank-partition gate — PASS / RETAIN](evidence/l111/README.md)
 - [L111 source receipt](evidence/l111/source-receipt.txt)
 - [L111 build receipt](evidence/l111/build-receipt.txt)

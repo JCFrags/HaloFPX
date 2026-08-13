@@ -1,0 +1,56 @@
+Start testing: Aug 12 21:24 PDT
+----------------------------------------------------------
+110/125 Testing: test-halofpx-rocmfpx-qkv-q8-reuse-off
+110/125 Test: test-halofpx-rocmfpx-qkv-q8-reuse-off
+Command: "/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/build/qkv-host-evidence-d429a6e9/bin/test-halofpx-rocmfpx-qkv-q8-reuse-off"
+Directory: .
+"test-halofpx-rocmfpx-qkv-q8-reuse-off" start time: Aug 12 21:24 PDT
+Output:
+----------------------------------------------------------
+ROCmFPX QKV Q8_1 reuse build=off whitelist=4 boundary=9 graph-reorder=stable
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"test-halofpx-rocmfpx-qkv-q8-reuse-off" end time: Aug 12 21:24 PDT
+"test-halofpx-rocmfpx-qkv-q8-reuse-off" time elapsed: 00:00:00
+----------------------------------------------------------
+
+111/125 Testing: test-halofpx-rocmfpx-qkv-q8-reuse-on
+111/125 Test: test-halofpx-rocmfpx-qkv-q8-reuse-on
+Command: "/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/build/qkv-host-evidence-d429a6e9/bin/test-halofpx-rocmfpx-qkv-q8-reuse-on"
+Directory: .
+"test-halofpx-rocmfpx-qkv-q8-reuse-on" start time: Aug 12 21:24 PDT
+Output:
+----------------------------------------------------------
+ROCmFPX QKV Q8_1 reuse build=on whitelist=4 boundary=9 graph-reorder=stable
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"test-halofpx-rocmfpx-qkv-q8-reuse-on" end time: Aug 12 21:24 PDT
+"test-halofpx-rocmfpx-qkv-q8-reuse-on" time elapsed: 00:00:00
+----------------------------------------------------------
+
+112/125 Testing: test-halofpx-rocmfpx-qkv-q8-reuse-source-contract
+112/125 Test: test-halofpx-rocmfpx-qkv-q8-reuse-source-contract
+Command: "/usr/bin/cmake" "-DSOURCE_ROOT=/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree" "-P" "/mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/tests/test-halofpx-rocmfpx-qkv-q8-reuse-source-contract.cmake"
+Directory: /mnt/c/Users/britt/Documents/HaloFPX_QKVReuse_Worktree/build/qkv-host-evidence-d429a6e9/tests
+"test-halofpx-rocmfpx-qkv-q8-reuse-source-contract" start time: Aug 12 21:24 PDT
+Output:
+----------------------------------------------------------
+-- PASS: ROCmFPX QKV Q8_1 reuse default-off/source/runtime-test contract
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"test-halofpx-rocmfpx-qkv-q8-reuse-source-contract" end time: Aug 12 21:24 PDT
+"test-halofpx-rocmfpx-qkv-q8-reuse-source-contract" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Aug 12 21:24 PDT
+
+halofpx =   0.09 sec*proc
+
+main =   0.09 sec*proc
+
