@@ -39,6 +39,9 @@
 #endif
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
 #include "halofpx-context-store-world1-prefix-product-v1.h"
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL)
+#include "halofpx-context-store-world1-live-authority-install-v1.h"
+#endif
 #endif
 #endif
 
@@ -1114,6 +1117,21 @@ private:
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
         const bool prefix_product_mode = params_base.halofpx_context_store_mode ==
             "full-v1-world1-prefix-product";
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL)
+        if (prefix_product_mode) {
+            // ADR-0058: no trusted source or independent model-generation
+            // custody exists at this lifecycle point. Exercise the typed
+            // install boundary, which must return no capability. A future
+            // adapter must replace both zeros with loader/context-owned facts.
+            halofpx::context_store_world1_live_authority_install_request_v1 request;
+            request.enabled = true;
+            request.source = nullptr;
+            request.expected_model_generation = 0;
+            auto installed =
+                halofpx::context_store_install_world1_live_authority_v1(request);
+            halofpx_world1_cache_authority = std::move(installed.authority);
+        }
+#endif
         if (prefix_product_mode &&
             (!halofpx_world1_cache_authority ||
              !halofpx::context_store_world1_cache_authority_v1_is_valid(

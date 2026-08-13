@@ -2,7 +2,7 @@
 section_id: "57"
 title: "Open compatibility and fingerprint questions"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["future HaloFPX integration tree"]
   software_versions: []
@@ -25,5 +25,6 @@ related_sections: ["15", "26", "39", "43", "48", "58", "61", "63", "65", "78"]
 | O57-08 | **[OPEN]** Is SHA-256 throughput material at startup/commit, and is a faster secondary digest justified? | Streaming benchmarks with full model and cache objects; never weaken the authoritative root without ADR. |
 | O57-09 | **[OPEN]** What writer-authentication/signature policy is required for shared or adversarial cache storage? | Threat model and tenant/privacy decision in section 64. |
 | O57-10 | **[OPEN]** What retention/quarantine and diagnostic-redaction policy handles corrupt or impossible equal-root/different-manifest events? | Operations/security review with sections 63 and 77. |
+| O57-11 | **[OPEN]** Which reviewed loader/context/lifecycle adapter will retain every ADR-0058 fact and own model generation before the world-one store opens? | Exact opened-file and typed-GGUF capture, finalized renderer, canonical resolved context/allocation receipt, reload invalidation tests, and independent security review. |
 
 No question is resolved by the current 64-bit CachyLLama `compat_hash`.

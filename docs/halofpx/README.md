@@ -30,6 +30,8 @@ Wiki, and imported target-machine evidence are under [`project/`](../../project/
 - [Portable fixture off-target evidence](evidence/2026-08-12-qwen3-0.6b-rocmfpx-fixture/README.md)
 - [Issue #33 standalone live-derived cache authority](cache-live-authority-v1.md)
 - [ADR-0052 standalone live-derived cache authority](decisions/0052-standalone-live-cache-authority.md)
+- [World-1 live-authority fact-gap audit and install boundary](world1-live-authority-install-v1.md)
+- [ADR-0058 default-off world-1 live-authority install boundary](decisions/0058-default-off-world1-live-authority-install-boundary.md)
 
 - [Clean baseline manifest](baseline-manifest.json)
 - [Feature-off baseline](feature-off-baseline.md)

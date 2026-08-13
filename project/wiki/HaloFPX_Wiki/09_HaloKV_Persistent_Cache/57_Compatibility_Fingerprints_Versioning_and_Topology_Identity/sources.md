@@ -2,7 +2,7 @@
 section_id: "57"
 title: "Compatibility fingerprint primary sources"
 status: "draft"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["charlie12345/ROCmFPX", "fewtarius/CachyLLama", "ggml-org/llama.cpp"]
   software_versions: ["RFC 8949", "FIPS 180-4"]
@@ -25,6 +25,7 @@ Access date: 2026-07-17. Repository URLs are pinned to full commits.
 | S57-06 | charlie12345/ROCmFPX [`ggml/include/ggml.h`](https://github.com/charlie12345/ROCmFPX/blob/a5605a72768c6562241b248e268e33dc92787394/ggml/include/ggml.h), [`ggml/rocmfpx`](https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfpx), and [`ggml/rocmfp4`](https://github.com/charlie12345/ROCmFPX/tree/a5605a72768c6562241b248e268e33dc92787394/ggml/rocmfp4), commit `a5605a72768c6562241b248e268e33dc92787394` | Fork-local type IDs, block layouts and numeric/backend surface requiring identity. | Static source does not prove backend equivalence. |
 | S57-07 | IETF [RFC 8949, CBOR](https://www.rfc-editor.org/rfc/rfc8949.html), December 2020, especially sections 4.2 and 5.4 | Core deterministic encoding requirements and evolution considerations. | HaloFPX must still define its own profile, schema, duplicate-key and limit policy. |
 | S57-08 | NIST [FIPS 180-4, Secure Hash Standard](https://doi.org/10.6028/NIST.FIPS.180-4), August 2015 | SHA-256 algorithm and digest purpose. | NIST announced revision intent; hashing alone is not writer authentication. |
+| S57-09 | HaloFPX exact source commit `9bfccf25d43af0c446df591035e9cdac0b74d6c0`: `src/llama.cpp`, `src/llama-model-loader.h`, `src/llama-model.cpp`, `src/llama-context.cpp`, `common/build-info.cpp.in`, and `tools/server/server-context.cpp`; retained audit in [`world1-live-authority-install-v1.md`](../../../../../docs/halofpx/world1-live-authority-install-v1.md) | Exact ownership/lifetime gaps for opened shards, typed metadata, effective renderer, resolved context/build/allocation facts, and model generation at the current world-one install boundary. | Static host source audit. It does not implement a positive provider or establish target compatibility/performance. |
 
 ## Source conflict retained
 

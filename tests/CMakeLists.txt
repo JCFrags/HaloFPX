@@ -135,6 +135,17 @@ if (LLAMA_BUILD_SERVER)
 endif()
 
 add_test(
+    NAME test-halofpx-context-store-world1-live-authority-install-v1-boundary
+    COMMAND ${CMAKE_COMMAND}
+        -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+        -DHALOFPX_BINARY_DIR=${CMAKE_BINARY_DIR}
+        -DHALOFPX_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+        -DHALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL=${HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-world1-live-authority-install-v1-boundary.cmake)
+set_property(TEST test-halofpx-context-store-world1-live-authority-install-v1-boundary
+    PROPERTY LABELS "main;halofpx")
+
+add_test(
     NAME test-halofpx-l02-contracts
     COMMAND ${CMAKE_COMMAND}
         -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}

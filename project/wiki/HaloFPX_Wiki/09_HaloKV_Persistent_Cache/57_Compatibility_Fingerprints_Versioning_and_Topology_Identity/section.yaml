@@ -4,8 +4,8 @@ category_id: "09"
 category_title: "HaloKV Persistent Cache"
 status: "needs-machine-validation"
 last_verified: "2026-08-12"
-source_count: 8
-open_question_count: 10
+source_count: 9
+open_question_count: 11
 required_machine_experiments:
   - "P57-01 deterministic two-host manifest generation and independent re-encoding"
   - "P57-02 one-field compatibility mutation matrix"
