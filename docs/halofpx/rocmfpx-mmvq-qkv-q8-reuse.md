@@ -57,10 +57,15 @@ contract proves one pool allocation, one conversion call, ordered Q/K/V calls
 through the unchanged MMVQ dispatcher, production optimizer ownership, and
 versioned counters.
 
+[VERIFIED] Exact source `b59f62e1e34d6a3176d25583ff6d8f311b91e242`
+passed clean GPU-less OFF/OFF and ON/ON `gfx1151` HIP compile/link, 170/170 in
+both modes. The retained [composition receipt](evidence/rocmfpx-qkv-composition-b59f62e1-gfx1151-hip-compile/README.md)
+proves both prompt and decode feature macros absent/present as expected across
+`ggml-cuda.cu`, `mmq.cu`, and `mmvq.cu`. This is compile/link evidence only.
+
 [OPEN] No target was accessed because issue #41 remains the authority gate.
-No HIP runtime correctness or speed result exists. The added pinned ROCm
-`gfx1151` workflow is off-target compile/link coverage only and has not run on
-an unpublished branch.
+No HIP runtime correctness, reachability, counter, replay, parity, or speed
+result exists.
 
 Remote RPC graph splits do not run the local HIP graph optimizer today. This
 candidate therefore has no dual-node reachability claim; a later

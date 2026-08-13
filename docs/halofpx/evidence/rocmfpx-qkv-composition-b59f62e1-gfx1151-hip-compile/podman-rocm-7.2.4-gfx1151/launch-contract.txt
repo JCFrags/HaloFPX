@@ -1,0 +1,4 @@
+container=halofpx-qkv-compose-b59f62e1
+image=localhost/halofpx-rocm-7.2.4-builddeps:qkv-113e4117
+mount=/home/britt/halofpx-qkv-compose-b59f62e1:/workspace
+device_mounts=none

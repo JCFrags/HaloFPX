@@ -82,8 +82,9 @@ advanced beyond L111:
   has retained host/source qualification and GPU-less pinned ROCm 7.2.4
   OFF/ON `gfx1151` compile/link evidence. A proposed strict n=1 local-HIP
   MMVQ generation slice shares one activation conversion across the same
-  three separate projections. It makes no target runtime, model reachability,
-  generation-speed, or prompt-speed claim.
+  three separate projections; exact-source GPU-less OFF/OFF and ON/ON
+  composition compile/link evidence is retained in-tree. It makes no target
+  runtime, model reachability, generation-speed, or prompt-speed claim.
 - HaloFPX targets ROCmFPX-family GGUF inference across supported model
   architectures. MiniMax is the largest stress fixture, not a model-specific
   product target.

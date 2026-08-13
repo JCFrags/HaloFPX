@@ -93,11 +93,16 @@ feature-on graph must remain `0/0/3/3`.
 selector, and source contract passed 3/3. `test-backend-ops` compiled and its
 feature case correctly skipped on CPU. This is development evidence only.
 
-[OPEN] No `gfx1151` compile/link, HIP numerical run, real-model reachability,
-single-node or dual-node execution, output/KV parity, or performance result is
-claimed. A pinned GPU-less ROCm workflow is included as a compile/link gate,
-but it cannot run before publication and does not substitute for target
+[VERIFIED] Exact source `b59f62e1e34d6a3176d25583ff6d8f311b91e242`
+passed clean GPU-less OFF/OFF and ON/ON `gfx1151` HIP compile/link, 170/170 in
+both modes. The retained [composition receipt](../evidence/rocmfpx-qkv-composition-b59f62e1-gfx1151-hip-compile/README.md)
+proves the expected prompt/decode macros and architecture flag in the central,
+MMQ, and MMVQ translation units. This does not substitute for target
 correctness.
+
+[OPEN] No HIP numerical run, real-model reachability, single-node or dual-node
+execution, output/KV parity, runtime-counter, replay, or performance result is
+claimed.
 
 ## Promotion gates
 
