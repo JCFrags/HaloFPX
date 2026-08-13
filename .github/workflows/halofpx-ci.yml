@@ -72,6 +72,7 @@ jobs:
         run: >-
           python -m unittest
           tests/test_halofpx_strix_ab.py
+          tests/test_halofpx_strix_ab_sampling_sync.py
           tests/test_halofpx_strix_ab_cachyos.py
           tests/test_halofpx_strix_maintenance.py
           -v

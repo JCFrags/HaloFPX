@@ -179,6 +179,123 @@ It does not use requests within a long-lived block as independent replicates.
 The core may mark only `evidence_core_complete`; it never marks a measurement
 ready without the separate target execution adapter.
 
+## Optional sampling-output synchronization observability
+
+[`halofpx_strix_ab_sampling_sync.py`](../../scripts/halofpx_strix_ab_sampling_sync.py)
+adds an offline-only, independently versioned evidence sidecar for issue #28.
+Its lane name is `sampling_output_sync_prometheus_v1`. The sidecar is absent by
+default, and the checked-in
+[`example`](../../scripts/halofpx-strix-ab-sampling-output-sync-prometheus.example.json)
+sets `enabled=false`. Absence or explicit disablement leaves plan v1, its
+canonical digest, schedule, commands, sample schema, and analysis schema
+unchanged. It does not allocate another Strix plan version.
+
+Enabling the sidecar requires an issue-#28 feature-build comparison and the
+following exact controls in both generated coordinator commands:
+
+- `--metrics`;
+- `--parallel 1`;
+- `--no-cont-batching`; and
+- `--no-warmup`.
+
+OFF and ON must bind the same exact source commit. The core feature-build
+contract still requires distinct condition binary identity, so the frozen
+comparison cannot substitute unrelated source revisions for the canary toggle.
+
+Aliases, equals forms, duplicates, contradictory flags, and environment
+overrides of those controls are refused. The harness-declared warmup still
+uses a separate disposable process; `--no-warmup` prevents hidden server
+warmup in the fresh process that supplies the retained sample. A runtime-batch
+comparison is outside this lane because it would add another independent
+variable.
+
+The example's `core_plan_sha256` binds the unchanged checked-in v1 example.
+For a real frozen plan, replace it with the exact digest printed by the core
+`validate` command, set `enabled=true`, and freeze the sidecar before any raw
+sample exists:
+
+```bash
+python scripts/halofpx_strix_ab.py validate plan.json
+python scripts/halofpx_strix_ab.py init plan.json /var/tmp/halofpx-ab-my-run
+python scripts/halofpx_strix_ab_sampling_sync.py validate-plan \
+  plan.json sampling-output-sync-plan.json
+python scripts/halofpx_strix_ab_sampling_sync.py freeze \
+  /var/tmp/halofpx-ab-my-run sampling-output-sync-plan.json
+```
+
+For each fresh measured process, a separately reviewed capture layer must
+perform exactly this sequence with no other traffic: raw `GET /metrics`, one
+already-frozen completion request, raw `GET /metrics`. The capture receipt
+binds the planned coordinator host, one canonical listener port, metrics and
+completion paths, the two raw hashes, strict monotonic order, request,
+response, and client hashes, request count `1`, and the same PID, 32-hex
+systemd InvocationID, `/proc` process-start ticks, and metrics process-start
+header across all three steps. The endpoint header is corroboration; PID,
+InvocationID, and process-start ticks are the authoritative process identity.
+This slice provides no target capture implementation and does not enable the
+blocked CachyOS adapter.
+
+After recording the ordinary successful sample, import its two raw Prometheus
+documents and closed capture receipt:
+
+```bash
+python scripts/halofpx_strix_ab_sampling_sync.py record \
+  /var/tmp/halofpx-ab-my-run --pair 1 --condition off --order-index 0 \
+  --before metrics-before.prom --after metrics-after.prom \
+  --capture capture.json
+
+python scripts/halofpx_strix_ab.py analyze /var/tmp/halofpx-ab-my-run
+```
+
+The parser requires exactly one `counter` TYPE and one unlabeled canonical
+unsigned-64-bit decimal sample for each of the five issue-#28 metrics. Missing,
+duplicate, labeled, timestamped, malformed, overflowing, or decreasing values
+fail closed. Every scheduled sample has exactly one sidecar directory containing
+only `before.prom`, `after.prom`, `capture.json`, and `summary.json` as regular,
+non-symlink files; orphan or unreferenced artifacts fail closed. Raw values are
+parsed as integers without floating point; derived JSON stores decimal strings
+so values above `2^53` remain portable.
+
+A run without a frozen sidecar plan must contain neither those evidence
+directories nor the reserved `sampling-output-sync-analysis.json` output. The
+reserved plan and analysis paths must be regular, non-symlink files whenever
+present. With a valid frozen plan, analysis deterministically rewrites a
+preexisting regular derived report after reparsing every retained raw artifact.
+
+A complete PR #51 adapter evidence verifier **MUST** detect the versioned
+`sampling_output_sync_prometheus_v1` profile whenever any reserved sidecar root
+file or evidence directory is present. Support for that profile **MUST** bind
+and validate both `sampling-output-sync-plan.json` and
+`sampling-output-sync-analysis.json`, require exactly one
+`sampling-output-sync/` directory for every frozen scheduled sample, require
+each such directory to contain only the four regular non-symlink files
+`before.prom`, `after.prom`, `capture.json`, and `summary.json`, and invoke the
+authoritative `validate_frozen_run` reparse before accepting the bundle. A
+verifier that does not implement this versioned profile **MUST** refuse any
+bundle containing a reserved sidecar path. Neither core
+`evidence_core_complete` nor sidecar `evidence_complete` alone establishes
+execution qualification or evidence acceptance. This sidecar slice does not
+implement the PR #51 adapter integration.
+
+Each retained window requires positive output-epoch, completed-barrier,
+graph-submission, and output-transfer work. OFF requires zero reused barriers;
+ON requires positive reuse. Within a pair, ON must complete fewer barriers,
+and completed plus reused synchronization decisions must equal the matched OFF
+total. OFF and ON must also have equal output-epoch, graph-submission, and
+output-transfer deltas. The ordinary A/B core separately enforces the planned
+emitted-token count and exact output parity. Output epochs are reserve/reset
+lifecycles, not generated-token counts, and one request may submit more than one
+graph, so the lane deliberately does not equate epochs, graphs, transfers, and
+tokens within a sample.
+
+The derived field is named `single_process_window_delta`. These cumulative
+context counters are not completion, SSE, or general request counters. The
+window is admissible only because a fresh `--parallel 1 --no-cont-batching
+--no-warmup` process sees exactly one completion between snapshots. It must
+never be used to attribute work in a long-lived or generally batched server.
+Offline fake-adapter tests establish parser and contract behavior only; they
+provide no CachyOS, ROCm, `gfx1151`, dual-node, or performance evidence.
+
 ## CachyOS isolated-process adapter — issue #37
 
 [`halofpx_strix_ab_cachyos.py`](../../scripts/halofpx_strix_ab_cachyos.py)
