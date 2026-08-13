@@ -2,7 +2,7 @@
 
 Status: authoritative routing index
 
-Last verified: 2026-08-12
+Last verified: 2026-08-13
 
 This page routes workers to decision authority.
 This page does not replace any decision record.
@@ -36,6 +36,8 @@ Current accepted architecture decision records (ADRs) include:
   versioned Strix A/B runtime comparison.
 - [ADR-0057](../../../docs/halofpx/decisions/0057-offline-strix-maintenance-admission-controller.md):
   offline-only issue-#41 Strix maintenance admission controller.
+- [ADR-0059](../../../docs/halofpx/decisions/0059-inclusive-world1-cache-maintenance-telemetry.md):
+  inclusive world-1 cache-maintenance telemetry.
 
 Read each complete decision in the HaloFPX implementation repository.
 Do not copy a decision into the Wiki as a replacement authority.

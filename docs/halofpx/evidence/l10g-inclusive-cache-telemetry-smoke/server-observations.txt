@@ -1,0 +1,35 @@
+HaloFPX L10g inclusive cache-maintenance telemetry smoke
+Date: 2026-08-13
+Scope: local WSL2 correctness only; not Strix Halo target or performance evidence
+
+Binary:
+  build-l10g-cache-telemetry-on/bin/llama-server
+  SHA-256 357fd76a7a0be634f0694ff1ffb68b7ec98ea3c4adec2228630b0d36d57e5a86
+  Size 3126216 bytes
+
+Fixture:
+  Qwen3-0.6B-Q3_0_ROCMFPX-pure.gguf
+  SHA-256 d1404c1afc61ffe49357c14c6d3dbfb252a72e87744fb7e491e7a2e205321fff
+  Size 266957248 bytes
+
+Common server arguments:
+  --host 127.0.0.1 --parallel 1 --ctx-size 128 --n-gpu-layers 0
+  --fit off --temp 0 --samplers temperature --offline --no-warmup
+  --no-webui --no-jinja --reasoning-format none
+
+Paths:
+  1. product mode, --cache-ram 0 --no-cache-idle-slots, automatic slot
+  2. same process and mode, explicit request id_slot=0
+  3. product mode, --cache-ram 1 --cache-idle-slots, automatic slot
+  4. runtime mode off, --cache-ram 0 --no-cache-idle-slots
+
+Assertions:
+  - all paths returned content " the word that is" and tokens 279,3409,429,374
+  - automatic/no-idle: selected true/12185, idle false/0, aggregate true/12185
+  - explicit slot: selected false/0, idle false/0, aggregate true/0
+  - automatic/idle: selected true/57306, idle true/124, aggregate true/57430
+  - product cold fallback: lookup/install zero and semantic apply bytes false/0
+  - runtime off: halofpx_cache absent
+
+The three server processes ran concurrently. Nanosecond values establish
+serialization and exact addition only; they are not comparable performance data.

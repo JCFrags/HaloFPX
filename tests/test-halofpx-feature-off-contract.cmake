@@ -84,6 +84,27 @@ else()
     endif()
 endif()
 
+set(inclusive_telemetry_binary_markers
+    "selected_slot_transition_measured"
+    "state_apply_input_bytes_valid"
+    "postlaunch_idle_slot_saves_measured"
+    "preprompt_cache_maintenance_ns")
+file(STRINGS "${HALOFPX_SERVER}" inclusive_telemetry_binary_strings
+    REGEX "selected_slot_transition_measured|state_apply_input_bytes_valid|postlaunch_idle_slot_saves_measured|preprompt_cache_maintenance_ns")
+foreach(inclusive_telemetry_marker IN LISTS inclusive_telemetry_binary_markers)
+    string(FIND "${inclusive_telemetry_binary_strings}"
+        "${inclusive_telemetry_marker}" binary_marker_position)
+    if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT AND
+        binary_marker_position EQUAL -1)
+        message(FATAL_ERROR
+            "world1 prefix product binary lost telemetry marker: ${inclusive_telemetry_marker}")
+    elseif (NOT HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT AND
+            NOT binary_marker_position EQUAL -1)
+        message(FATAL_ERROR
+            "feature-off server binary contains product telemetry marker: ${inclusive_telemetry_marker}")
+    endif()
+endforeach()
+
 if (NOT HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
     # The selector alone remains non-product and must expose no server mode.
     foreach(forbidden_prefix_surface
@@ -108,6 +129,11 @@ else()
             "task.need_logits() && !llama_get_memory(ctx_tgt)"
             "carrier.bound_authority"
             "context_store_world1_cache_authority_v1_matches"
+            "telemetry.clear_attempt_measurements()"
+            "selected.selected_slot_transition_measured = false"
+            "selected.selected_slot_transition_ns = 0"
+            "lookup_clock.finish()"
+            "install_clock.finish()"
             "slot.n_prompt_tokens_cache > 0")
         string(FIND "${server_context_source}" "${required_product_lifecycle_guard}"
             lifecycle_guard_position)
@@ -125,8 +151,16 @@ else()
             "\"work_accounting_valid\""
             "\"actual_prompt_tokens\""
             "\"avoided_prompt_tokens\""
+            "\"selected_slot_transition_measured\""
+            "\"selected_slot_transition_ns\""
             "\"lookup_total_ns\""
-            "\"state_install_cleanup_ns\"")
+            "\"state_install_cleanup_ns\""
+            "\"state_apply_input_bytes_valid\""
+            "\"state_apply_input_bytes\""
+            "\"postlaunch_idle_slot_saves_measured\""
+            "\"postlaunch_idle_slot_saves_ns\""
+            "\"preprompt_cache_maintenance_valid\""
+            "\"preprompt_cache_maintenance_ns\"")
         string(FIND "${server_task_source}" "${required_product_telemetry}"
             product_telemetry_position)
         if (product_telemetry_position EQUAL -1)
@@ -139,7 +173,10 @@ else()
             "{\"restored_tokens\""
             "{\"residual_tokens\""
             "{\"lookup_validation_ns\""
-            "{\"state_install_ns\"")
+            "{\"state_install_ns\""
+            "{\"physical_bytes\""
+            "{\"read_bytes\""
+            "{\"total_io_bytes\"")
         string(FIND "${server_task_source}" "${forbidden_product_telemetry}"
             ambiguous_product_telemetry_position)
         if (NOT ambiguous_product_telemetry_position EQUAL -1)

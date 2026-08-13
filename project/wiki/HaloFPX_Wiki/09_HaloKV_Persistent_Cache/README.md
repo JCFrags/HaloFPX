@@ -5,8 +5,8 @@
 - **Purpose:** Define persistent cache identity, ownership, durability, recovery, isolation, and operation.
 - **Authoritative files:** This manifest, the 10 linked section artifact sets, and accepted cache decisions.
 - **Current owner:** Cache implementation workers own runtime evidence. Documentation workers own routing.
-- **Status:** Bounded CPU exact-key restart qualification, the optional run-local EVP provider, and a default-off world-1 prefix product shell are complete. Positive model-backed prefix reuse, target performance, and distributed product work remain open.
-- **Last verified date:** 2026-08-12 for current routing. Category technical review remains dated 2026-07-17.
+- **Status:** Bounded CPU exact-key restart qualification, the optional run-local EVP provider, a default-off world-1 prefix product shell, and its inclusive native cache-maintenance telemetry are complete. Positive model-backed prefix reuse, target performance, and distributed product work remain open.
+- **Last verified date:** 2026-08-13 for current routing. Category technical review remains dated 2026-07-17.
 - **Source commits:** CachyLLama `6be745998f568e379ea197fcf827baec73ff9940`; the [decision map](../decision-map.md) routes exact HaloFPX commits.
 - **Related decisions:** [Decision map](../decision-map.md) routes the implementation decision index and accepted records.
 - **Related evidence:** [Evidence map](../evidence-map.md) and the [implementation evidence index](../../../../docs/halofpx/README.md).
@@ -47,6 +47,14 @@ narrow world-1 ordinary-transformer profile. No trusted live-loader authority
 provider exists, so its reachable server behavior remains cold and opens no
 store. The hosted test uses a preseeded canonical prefix; automatic system/chat
 boundary capture and model-backed suffix replay are not established.
+
+**[VERIFIED]** ADR-0059/L10g adds request-attempt-safe native telemetry for
+automatic slot transition, full lookup preparation/lookup, state install
+through rollback, synchronous idle-slot saves, checked aggregate time, and
+semantic successful state-apply input bytes. Compile-time and runtime OFF
+remain absent. The byte field is not physical/read/total I/O, the existing A/B
+v1 schema is unchanged, and client TTFT remains the benefit arbiter. Local
+WSL2 model execution proves wiring only, not target speed.
 
 **[OPEN]** [Issue #26](https://github.com/JCFrags/HaloFPX/issues/26) owns
 restart-safe cache-state coordination across two RPC ranks.

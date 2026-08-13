@@ -95,6 +95,42 @@ void halofpx_wipe(void * memory, size_t size) noexcept {
     }
 }
 
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+uint64_t halofpx_elapsed_ns(
+        const std::chrono::steady_clock::time_point started) noexcept {
+    const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now() - started).count();
+    return elapsed <= 0 ? 0 : static_cast<uint64_t>(elapsed);
+}
+
+class halofpx_elapsed_ns_commit {
+public:
+    explicit halofpx_elapsed_ns_commit(uint64_t & destination) noexcept
+        : destination(destination), started(std::chrono::steady_clock::now()) {
+        destination = 0;
+    }
+
+    halofpx_elapsed_ns_commit(const halofpx_elapsed_ns_commit &) = delete;
+    halofpx_elapsed_ns_commit & operator=(const halofpx_elapsed_ns_commit &) = delete;
+
+    ~halofpx_elapsed_ns_commit() noexcept {
+        finish();
+    }
+
+    void finish() noexcept {
+        if (running) {
+            destination = halofpx_elapsed_ns(started);
+            running = false;
+        }
+    }
+
+private:
+    uint64_t & destination;
+    std::chrono::steady_clock::time_point started;
+    bool running = true;
+};
+#endif
+
 bool halofpx_parse_lower_hex_digest(
         const std::string & text,
         halofpx::context_store_format_digest & output) noexcept {
@@ -1637,6 +1673,12 @@ private:
             !halofpx_world1_cache_authority) {
             return false;
         }
+        // This clock begins after the product-active gate and ends before the
+        // install clock starts.  It includes all cache-only request/profile
+        // preparation and authenticated catalog lookup, including early cold
+        // outcomes, without overlapping selected-slot or install work.
+        halofpx_elapsed_ns_commit lookup_clock(
+            carrier.telemetry.maintenance.lookup_total_ns);
         if (!slot.prompt.tokens.empty()) {
             carrier.telemetry.fallback_reason =
                 halofpx::context_store_world1_prefix_fallback_name_v1(
@@ -1681,7 +1723,7 @@ private:
         carrier.telemetry.restored_state_tokens = lookup.restored_tokens;
         carrier.telemetry.logical_residual_tokens = lookup.residual_tokens;
         carrier.telemetry.candidates_examined = lookup.candidates_examined;
-        carrier.telemetry.lookup_total_ns = lookup.validation_time_ns;
+        lookup_clock.finish();
         if (!lookup.hit()) {
             carrier.publish_after_prompt = lookup.fallback ==
                 halofpx::context_store_world1_prefix_fallback_v1::
@@ -1690,7 +1732,11 @@ private:
         }
         const bool exact_hit = lookup.source ==
             halofpx::context_store_world1_prefix_source_v1::exact;
-        const auto install_started = std::chrono::steady_clock::now();
+        // The install phase starts only after lookup has stopped and remains
+        // live through state apply/cleanup, slot-token installation, and every
+        // rollback path.  This keeps the aggregate inclusive and disjoint.
+        halofpx_elapsed_ns_commit install_clock(
+            carrier.telemetry.maintenance.state_install_cleanup_ns);
         const llama_tokens & tokens = task.tokens.get_tokens();
         const halofpx::context_store_transformer_limits_v1 limits {
             halofpx::context_store_linux_direct_max_state_bytes,
@@ -1710,12 +1756,13 @@ private:
         install_request.limits = limits;
         const auto install_result =
             halofpx::context_store_world1_prefix_install_v1(install_request);
-        // The product install seam intentionally wipes the restored state after
-        // applying it, so this phase is restore validation + apply + cleanup.
-        const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now() - install_started).count();
-        carrier.telemetry.state_install_cleanup_ns =
-            elapsed <= 0 ? 0 : static_cast<uint64_t>(elapsed);
+        // Semantic bytes describe a complete state-API apply.  Preserve that
+        // fact even if a later slot-token allocation fails and rolls the live
+        // slot back to cold.
+        carrier.telemetry.state_apply_input_bytes =
+            install_result.state_apply_input_bytes;
+        carrier.telemetry.state_apply_input_bytes_valid =
+            install_result.state_apply_input_bytes_valid;
         if (!install_result.installed()) {
             slot.prompt_clear(false);
             slot.prompt.checkpoints.clear();
@@ -1756,6 +1803,7 @@ private:
             carrier.telemetry.restored_state_tokens = 0;
             return false;
         }
+        install_clock.finish();
         // Exact hits still replay one token to materialize logits, but the
         // immutable snapshot/logical counts above remain exact. Final-response
         // timing reports actual and avoided prompt work separately.
@@ -3069,7 +3117,40 @@ private:
                     const int id_slot = task.id_slot;
                     const int id_task = task.id;
 
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                    const bool halofpx_measure_preprompt_cache =
+                        task.halofpx_prefix_product.telemetry.enabled &&
+                        !task.is_parent() && !task.is_child();
+                    std::chrono::steady_clock::time_point
+                        halofpx_selected_slot_started {};
+                    if (halofpx_measure_preprompt_cache) {
+                        // A deferred task is retried with the same carrier.
+                        // Reset every attempt before starting any clock so a
+                        // previous scan can never leak into the final response.
+                        auto & telemetry = task.halofpx_prefix_product.telemetry;
+                        telemetry.clear_attempt_measurements();
+                        auto & selected = telemetry.maintenance;
+                        if (id_slot == -1) {
+                            halofpx_selected_slot_started =
+                                std::chrono::steady_clock::now();
+                        } else {
+                            // Explicit slot routing does not execute the
+                            // automatic selected-slot transition.
+                            selected.selected_slot_transition_measured = false;
+                            selected.selected_slot_transition_ns = 0;
+                        }
+                    }
+#endif
                     server_slot * slot = id_slot != -1 ? get_slot_by_id(id_slot) : get_available_slot(task);
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                    if (halofpx_measure_preprompt_cache && id_slot == -1 &&
+                        slot != nullptr) {
+                        auto & selected = task.halofpx_prefix_product.telemetry.maintenance;
+                        selected.selected_slot_transition_ns =
+                            halofpx_elapsed_ns(halofpx_selected_slot_started);
+                        selected.selected_slot_transition_measured = true;
+                    }
+#endif
 
                     //
                     // slot scheduling logic
@@ -3134,6 +3215,15 @@ private:
                         break; // drop the task
                     }
 
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                    std::chrono::steady_clock::time_point
+                        halofpx_idle_slot_saves_started {};
+                    if (halofpx_measure_preprompt_cache &&
+                        params_base.cache_idle_slots) {
+                        halofpx_idle_slot_saves_started =
+                            std::chrono::steady_clock::now();
+                    }
+#endif
                     if (params_base.cache_idle_slots) {
                         for (auto & slot : slots) {
                             if (!slot.is_processing()) {
@@ -3154,6 +3244,18 @@ private:
                             }
                         }
                     }
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                    if (halofpx_measure_preprompt_cache &&
+                        params_base.cache_idle_slots && slot->task) {
+                        auto & idle =
+                            slot->task->halofpx_prefix_product.telemetry.maintenance;
+                        idle.postlaunch_idle_slot_saves_ns =
+                            halofpx_elapsed_ns(halofpx_idle_slot_saves_started);
+                        // Set independently of the duration so a real zero is
+                        // distinguishable from a block that did not run.
+                        idle.postlaunch_idle_slot_saves_measured = true;
+                    }
+#endif
                 } break;
             case SERVER_TASK_TYPE_CANCEL:
                 {
@@ -5338,7 +5440,7 @@ std::unique_ptr<server_res_generator> server_routes::handle_completions_impl(
             const bool observable_prefix_request = prefix_product_mode &&
                 type == SERVER_TASK_TYPE_COMPLETION &&
                 res_type == TASK_RESPONSE_TYPE_NONE && files.empty() && inputs.size() == 1 &&
-                !task.cli && task.id_slot == -1 && task.tokens.size() != 0 &&
+                !task.cli && task.tokens.size() != 0 &&
                 !task.params.stream && task.params.n_cmpl == 1;
             if (observable_prefix_request) {
                 auto & carrier = task.halofpx_prefix_product;
@@ -5356,7 +5458,8 @@ std::unique_ptr<server_res_generator> server_routes::handle_completions_impl(
                         ? "live-authority-invalid"
                         : ctx_server.halofpx_catalog_store
                             ? "invalid-request" : "catalog-unavailable";
-                const bool eligible = task.params.cache_prompt &&
+                const bool eligible = task.id_slot == -1 &&
+                    task.params.cache_prompt &&
                     task.params.lora.empty() && task.params.antiprompt.empty() &&
                     task.params.response_fields.empty() &&
                     task.params.speculative.types.size() == 1 &&

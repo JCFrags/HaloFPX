@@ -781,6 +781,9 @@ json server_task_result_cmpl_final::to_json_non_oaicompat() {
             work = halofpx::context_store_world1_finalize_work_accounting_v1(
                 static_cast<size_t>(n_prompt_tokens), timings.prompt_n);
         }
+        const auto maintenance =
+            halofpx::context_store_world1_finalize_cache_maintenance_v1(
+                halofpx_cache.maintenance);
         res["halofpx_cache"] = json {
             {"match_kind",                halofpx_cache.match_kind},
             {"reuse_tier",                halofpx_cache.reuse_tier},
@@ -791,8 +794,22 @@ json server_task_result_cmpl_final::to_json_non_oaicompat() {
             {"actual_prompt_tokens",      work.actual_prompt_tokens},
             {"avoided_prompt_tokens",     work.avoided_prompt_tokens},
             {"candidates_examined",       halofpx_cache.candidates_examined},
-            {"lookup_total_ns",           halofpx_cache.lookup_total_ns},
-            {"state_install_cleanup_ns",  halofpx_cache.state_install_cleanup_ns},
+            {"selected_slot_transition_measured",
+                                            halofpx_cache.maintenance.selected_slot_transition_measured},
+            {"selected_slot_transition_ns",
+                                            halofpx_cache.maintenance.selected_slot_transition_ns},
+            {"lookup_total_ns",           halofpx_cache.maintenance.lookup_total_ns},
+            {"state_install_cleanup_ns",  halofpx_cache.maintenance.state_install_cleanup_ns},
+            {"state_apply_input_bytes_valid",
+                                            halofpx_cache.state_apply_input_bytes_valid},
+            {"state_apply_input_bytes",   halofpx_cache.state_apply_input_bytes},
+            {"postlaunch_idle_slot_saves_measured",
+                                            halofpx_cache.maintenance.postlaunch_idle_slot_saves_measured},
+            {"postlaunch_idle_slot_saves_ns",
+                                            halofpx_cache.maintenance.postlaunch_idle_slot_saves_ns},
+            {"preprompt_cache_maintenance_valid", maintenance.valid},
+            {"preprompt_cache_maintenance_ns",
+                                            maintenance.preprompt_cache_maintenance_ns},
             {"fallback_reason",           halofpx_cache.fallback_reason},
         };
     }
