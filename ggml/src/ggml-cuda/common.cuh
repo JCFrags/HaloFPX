@@ -1475,6 +1475,16 @@ struct ggml_backend_cuda_context {
     std::atomic<uint64_t> halofpx_qkv_mmq_submissions { 0 };
 #endif
 
+#if defined(GGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE)
+    // Per-backend-context submission evidence for the default-off decode
+    // experiment. These counters describe host submissions, not captured
+    // graph replays or performance.
+    std::atomic<uint64_t> halofpx_mmvq_qkv_graph_groups_planned { 0 };
+    std::atomic<uint64_t> halofpx_mmvq_qkv_triple_dispatches { 0 };
+    std::atomic<uint64_t> halofpx_mmvq_qkv_q8_conversions_submitted { 0 };
+    std::atomic<uint64_t> halofpx_mmvq_qkv_mmvq_submissions { 0 };
+#endif
+
 #ifdef USE_CUDA_GRAPH
     // Map from first_node_ptr to cuda_graph - allows multiple graphs per context
     // when the computation is split across CPU/GPU (e.g., with --n-cpu-moe)

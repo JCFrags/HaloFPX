@@ -78,9 +78,11 @@ advanced beyond L111:
   stop gate: do not run experiments on either production Strix Halo machine
   until an isolated maintenance window resolves the HMM/OOM incident.
 - Issue [#42](https://github.com/JCFrags/HaloFPX/issues/42) owns the default-off
-  separate Q/K/V Q8_1 activation-reuse candidate. The retained local evidence
-  includes host/source qualification and GPU-less pinned ROCm 7.2.4 OFF/ON
-  `gfx1151` compile/link. It makes no target runtime, model reachability,
+  separate Q/K/V Q8_1 activation-reuse lane. The merged prompt/MMQ candidate
+  has retained host/source qualification and GPU-less pinned ROCm 7.2.4
+  OFF/ON `gfx1151` compile/link evidence. A proposed strict n=1 local-HIP
+  MMVQ generation slice shares one activation conversion across the same
+  three separate projections. It makes no target runtime, model reachability,
   generation-speed, or prompt-speed claim.
 - HaloFPX targets ROCmFPX-family GGUF inference across supported model
   architectures. MiniMax is the largest stress fixture, not a model-specific
@@ -283,8 +285,8 @@ Route cache attribution, model-general prefill, the CachyOS A/B adapter,
 two-rank restart coordination, sampling synchronization, FFN conversion reuse,
 verified longest-prefix reuse, and live-derived compatibility through issues
 #18, #15, #37, #26, #28, #29, #32, and #33 respectively. Route the separate
-prompt-only Q/K/V MMQ conversion reuse through #42 and the portable model lane
-through #43. Obey the #41 target stop gate. Do not infer
+prompt and strict n=1 generation Q/K/V conversion-reuse slices through #42,
+and the portable model lane through #43. Obey the #41 target stop gate. Do not infer
 authorization for a production transition or broader cache-product claim from
 the L111, PR #23, or compile-only PR #30 acceptance.
 

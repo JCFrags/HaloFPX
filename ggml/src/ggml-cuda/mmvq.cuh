@@ -11,6 +11,18 @@ int get_mmvq_mmid_max_batch(ggml_type type, int cc);
 void ggml_cuda_mul_mat_vec_q(ggml_backend_cuda_context & ctx,
     const ggml_tensor * src0, const ggml_tensor * src1, const ggml_tensor * ids, ggml_tensor * dst, const ggml_cuda_mm_fusion_args_host * fusion = nullptr);
 
+#if defined(GGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE)
+void ggml_cuda_mul_mat_vec_q_rocmfpx_triple(
+    ggml_backend_cuda_context & ctx,
+    const ggml_tensor * src0_q,
+    const ggml_tensor * src0_k,
+    const ggml_tensor * src0_v,
+    const ggml_tensor * src1,
+    ggml_tensor * dst_q,
+    ggml_tensor * dst_k,
+    ggml_tensor * dst_v);
+#endif
+
 void ggml_cuda_op_mul_mat_vec_q(
     ggml_backend_cuda_context & ctx,
     const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst, const char * src0_dd_i, const float * src1_ddf_i,
