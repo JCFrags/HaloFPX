@@ -79,6 +79,7 @@ donor code merely because the behavior is authoritative.
 | [#29](https://github.com/JCFrags/HaloFPX/issues/29) | open | dense FFN gate/up activation-conversion reuse |
 | [#32](https://github.com/JCFrags/HaloFPX/issues/32) | open | verified longest exact-token restart prefix and suffix replay |
 | [#33](https://github.com/JCFrags/HaloFPX/issues/33) | open | derive cache compatibility from the live inference plan |
+| [#43](https://github.com/JCFrags/HaloFPX/issues/43) | active | portable small Qwen3-0.6B pure ROCmFPX registry/recipe; target qualification remains open |
 
 ## Ordered work
 
@@ -197,8 +198,11 @@ evidence supports adaptive use.
 
 - Recover and import the P01-P14 node-local raw bundles referenced by receipts
   but absent from Git, where still available.
-- Add a small ordinary ROCmFPX GGUF fixture registry with source, license,
-  converter commit, exact hashes, architecture, and role.
+- **[VERIFIED]** The small ordinary Qwen3-0.6B pure ROCmFPX fixture registry
+  records source, license, exact producer/consumer commits, hashes, tensor
+  census, architecture, and role. **[MEASURED]** Off-target WSL2 conversion and
+  CPU smoke evidence is retained. Publish/reconstruct the external bytes, then
+  run quality and target HIP/Vulkan qualification through issue #43.
 - Record a fresh paired build/toolchain tuple and retain both target binaries.
 - Capture per-operation or kernel timing on the actual CachyOS/ROCm stack before
   another broad low-level kernel sweep.

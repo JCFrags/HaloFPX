@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-08-13T03:31:35Z",
+  "checked_local_date": "2026-08-12",
+  "local_timezone": "America/Los_Angeles",
+  "repository": {
+    "full_name": "JCFrags/HaloFPX",
+    "private": true,
+    "visibility": "private",
+    "archived": false,
+    "disabled": false,
+    "immutable_releases": {
+      "enabled": true,
+      "enforced_by_owner": false,
+      "workflow": "Create a draft prerelease, attach and verify every asset, then publish exactly once. Never clobber published v1 assets; use a new tag for changed bytes or metadata."
+    },
+    "authenticated_permissions": {
+      "admin": true,
+      "maintain": true,
+      "pull": true,
+      "push": true,
+      "triage": true
+    }
+  },
+  "host_limits": {
+    "ordinary_git": {
+      "observation": "Files larger than 100 MiB are blocked.",
+      "official_source": "https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github"
+    },
+    "release_assets": {
+      "observation": "Each individual release asset must be smaller than 2 GiB.",
+      "official_source": "https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases"
+    }
+  },
+  "candidate_assets": [
+    {
+      "name": "Qwen3-0.6B-BF16.gguf",
+      "size_bytes": 1198182848,
+      "sha256": "f9c9f1d3c1e21755b82d4e165f88dbbbd4355646d632fb5d6cef7c66ed4ee04e",
+      "fits_individual_release_asset_limit": true,
+      "disposition": "external_source_only"
+    },
+    {
+      "name": "Qwen3-0.6B-Q3_0_ROCMFPX-pure.gguf",
+      "size_bytes": 266957248,
+      "sha256": "d1404c1afc61ffe49357c14c6d3dbfb252a72e87744fb7e491e7a2e205321fff",
+      "fits_individual_release_asset_limit": true,
+      "disposition": "release_payload"
+    },
+    {
+      "name": "Qwen3-0.6B-Q6_0_ROCMFPX-pure.gguf",
+      "size_bytes": 490451392,
+      "sha256": "8d5c0eb545651c7518508632d9c00138cb64c22902eb83f5b8d7d52cf5fae8cc",
+      "fits_individual_release_asset_limit": true,
+      "disposition": "release_payload"
+    },
+    {
+      "name": "Qwen3-0.6B-Q8_0_ROCMFPX-pure.gguf",
+      "size_bytes": 620822976,
+      "sha256": "ec152fed6e498cad29e75c32e11c8d520fed34bea26c5ad5bfef8a4e210a4bd7",
+      "fits_individual_release_asset_limit": true,
+      "disposition": "release_payload"
+    }
+  ],
+  "publication_state": {
+    "large_assets_uploaded": false,
+    "reason": "Only code, documentation, license, registry, and small evidence are admitted to this branch before the draft release. The three derived payloads may be uploaded only after an immutable release manifest is approved, and must be verified while the release remains a draft."
+  }
+}

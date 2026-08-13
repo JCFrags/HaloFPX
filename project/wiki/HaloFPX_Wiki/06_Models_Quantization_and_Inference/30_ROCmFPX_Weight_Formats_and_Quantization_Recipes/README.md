@@ -5,7 +5,7 @@ status: "needs-machine-validation"
 last_verified: "2026-08-12"
 applies_to:
   repositories: ["charlie12345/ROCmFPX", "JCFrags/HaloFPX"]
-  software_versions: ["a5605a72768c6562241b248e268e33dc92787394", "4a156395db62604cf37e27e6459e3ee0e3949c48"]
+  software_versions: ["a5605a72768c6562241b248e268e33dc92787394", "4a156395db62604cf37e27e6459e3ee0e3949c48", "6c88472bf5f567a1064f27f4d8a90fc8e2b47a02", "b77f2bce6e7875ab065e09894f45915585c9f156"]
   hardware_revisions: ["Strix Halo gfx1151 - local validation pending"]
 related_sections: ["29", "31", "33", "37"]
 ---
@@ -30,4 +30,3 @@ block covers `[-32,31]` and expands to 34 bytes in the Vulkan device layout
 - Completed now: exact identifiers, block layouts, nominal BPW, preset routing source, and documented CPU/CUDA/HIP/Vulkan implementation claims at commit `a5605a7`.
 - Machine work: compile gfx1151, run reference and backend-op gates, quantize each target architecture, inspect actual BPW, compare quality and performance.
 - Contingent: production default, protected tensor map, whether any ROCmFPX type is safe for K/V, and per-architecture recipe versions.
-

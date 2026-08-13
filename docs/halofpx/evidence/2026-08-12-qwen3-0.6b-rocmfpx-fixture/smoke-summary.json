@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "tracking_issue": "https://github.com/JCFrags/HaloFPX/issues/43",
+  "environment": {
+    "role": "off-target CPU control",
+    "os": "Ubuntu 26.04 under WSL2",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "target_machines_contacted": false
+  },
+  "consumer": {
+    "source_commit": "b77f2bce6e7875ab065e09894f45915585c9f156",
+    "llama_completion_sha256": "14276f08ebeb7f3a4bfee4aebb4daf99d05e7f2e1334cb1b9e716586062c3f54",
+    "arguments": [
+      "-m", "{model}", "-dev", "none", "-ngl", "0", "-c", "128",
+      "-b", "64", "-ub", "64", "-t", "4", "-tb", "4", "-n", "4",
+      "-p", "The next word is", "--no-conversation", "--temp", "0",
+      "--seed", "1", "--no-display-prompt", "--no-warmup", "--no-perf",
+      "--simple-io", "--check-tensors"
+    ]
+  },
+  "acceptance": "Exit zero after model load, tensor check, and four-token CPU generation.",
+  "results": [
+    {
+      "artifact": "Qwen3-0.6B-Q3_0_ROCMFPX-pure.gguf",
+      "exit_code": 0,
+      "final_recipe_log": {"name": "smoke-q3-pure.txt", "size_bytes": 2453, "sha256": "1b9e857950d05a87cdd9b281733c5f568314ffd486f26bc4fac9a41e648b61da"}
+    },
+    {
+      "artifact": "Qwen3-0.6B-Q6_0_ROCMFPX-pure.gguf",
+      "exit_code": 0,
+      "final_recipe_log": {"name": "smoke-q6-pure.txt", "size_bytes": 2452, "sha256": "6c71f2d5aab94a91d23adc746e083c652b014e9d9fd2a8eb34a9f8f47fd733ee"}
+    },
+    {
+      "artifact": "Qwen3-0.6B-Q8_0_ROCMFPX-pure.gguf",
+      "exit_code": 0,
+      "final_recipe_log": {"name": "smoke-q8-pure.txt", "size_bytes": 2452, "sha256": "9695f175454343f273d9e5ffc95ac064b73856f0a7d76f0a698f3120b3846a70"}
+    }
+  ],
+  "retained_warning": "Token 128247 (</s>) looked control-like but was not control-typed; the loader overrode its type.",
+  "excluded_claims": ["generated-text quality", "timing", "throughput", "HIP", "Vulkan", "single-node Strix Halo", "dual-node Strix Halo"]
+}

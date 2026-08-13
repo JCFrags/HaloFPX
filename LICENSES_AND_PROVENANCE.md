@@ -56,6 +56,19 @@ terms, and documentation-site terms. The source-specific inventory remains
 authoritative for those files; see, for example,
 [`SOURCE-LICENSE-INVENTORY.md`](project/sources/imports/2026-07-18-pre-fork-internet-research/extracted/PF-IR-06-HaloKV-crash-durability-wiki-2026-07-18/PF-IR-06-HaloKV-crash-durability-wiki-2026-07-18/licenses/SOURCE-LICENSE-INVENTORY.md).
 
+The portable Qwen3-0.6B ROCmFPX fixture is a separately identified model-
+artifact lane. Its exact-revision Unsloth distribution card declares
+Apache-2.0 and names `Qwen/Qwen3-0.6B` as the base model. The tracked
+[`fixture license and provenance record`](docs/halofpx/fixtures/qwen3-0.6b-rocmfpx/README.md)
+preserves the license text and exact artifact identities. The card does not
+encode the upstream base-checkpoint revision used to create the BF16 GGUF, so
+the immutable distribution revision and GGUF hash—not an inferred base-model
+revision—are the source authority. No model bytes are included in Git or yet
+published publicly. The three derived GGUFs are published only in immutable
+private prerelease `fixture-qwen3-0.6b-rocmfpx-pure-v1` beside the pinned card,
+config, Apache-2.0 license snapshot, modification notice, manifest, and
+checksums. The BF16 source is not mirrored.
+
 ## Provenance rules for continued work
 
 - Use the most specific available evidence in this order: explicit file SPDX or

@@ -13,6 +13,9 @@ SHA256SUMS text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
 
+# Preserve pinned third-party source prose verbatim, including its whitespace.
+docs/halofpx/fixtures/qwen3-0.6b-rocmfpx/source-distribution-README-28675487.md -diff
+
 # Preserve binary evidence and archives exactly.
 *.bin binary
 *.bundle binary
