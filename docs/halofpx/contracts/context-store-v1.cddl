@@ -100,7 +100,8 @@ tensor-entry = {
   1: [1*16 uint],               ; dimensions in declared order
   2: uint,                      ; registered tensor type
   3: uint,                      ; exact container offset
-  4: uint .ge 1                 ; exact encoded bytes
+  4: uint .ge 1,                ; exact encoded bytes
+  5: uint                       ; model artifact semantic order
 }
 
 tokenizer-bytes-and-policy-input-v1 = {

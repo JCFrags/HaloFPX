@@ -375,6 +375,49 @@ jobs:
           --output-on-failure
           -R '^test-halofpx-context-store-two-rank-contract(-boundary)?$'
 
+  cache-live-authority-contract:
+    name: CPU live-derived cache authority contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configure isolated authority build
+        run: >-
+          cmake -S . -B build/ci-cache-live-authority
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_RPC=OFF
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=OFF
+          -DLLAMA_BUILD_COMMON=ON
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=ON
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=ON
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_USE_PREBUILT_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+          -DHALOFPX_CONTEXT_STORE_LIVE_AUTHORITY=ON
+
+      - name: Compile isolated authority test
+        run: >-
+          cmake --build build/ci-cache-live-authority
+          --target test-halofpx-context-store-live-authority-v1
+          --parallel 2
+
+      - name: Run derivation and product-boundary tests
+        run: >-
+          ctest --test-dir build/ci-cache-live-authority
+          --output-on-failure
+          -R '^test-halofpx-context-store-live-authority-v1(-boundary)?$'
+
   rocmfpx-ffn-q8-reuse-contract:
     name: ROCmFPX FFN Q8_1 reuse host contract
     runs-on: ubuntu-latest

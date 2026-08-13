@@ -76,6 +76,11 @@ donor code merely because the behavior is authoritative.
   closed on corrupt, ambiguous, or incompatible state. Local Linux CPU tests
   passed; product wiring, two-rank restore, and target performance remain open.
   See the [L10e record](../docs/halofpx/l10e-default-off-exact-longest-prefix-selector.md).
+- **[VERIFIED]** The first issue-#33 standalone authority slice now hashes
+  exact model/runtime bytes and typed model, tokenizer, template, build/state
+  ABI, and fixed two-rank plan facts into the closed compatibility root. It is
+  default-off and product-isolated; loader/server adaptation and the remaining
+  request-resolved component encoders are still open.
 
 ## Current execution trackers
 
@@ -92,7 +97,7 @@ donor code merely because the behavior is authoritative.
 | [#28](https://github.com/JCFrags/HaloFPX/issues/28) | open | PR #35 fixed raw/sampled row fallback; coherent snapshot and synchronization reduction remain |
 | [#29](https://github.com/JCFrags/HaloFPX/issues/29) | open | dense FFN gate/up activation-conversion reuse |
 | [#32](https://github.com/JCFrags/HaloFPX/issues/32) | active | exact authenticated longest-prefix selector and suffix-replay seam; product restore remains open |
-| [#33](https://github.com/JCFrags/HaloFPX/issues/33) | open | derive cache compatibility from the live inference plan |
+| [#33](https://github.com/JCFrags/HaloFPX/issues/33) | active | standalone typed authority slice complete; loader capture, resolved request/context semantics, reload invalidation, and server adapter remain |
 | [#43](https://github.com/JCFrags/HaloFPX/issues/43) | active | portable small Qwen3-0.6B pure ROCmFPX registry/recipe; target qualification remains open |
 
 ## Ordered work
@@ -116,6 +121,10 @@ unqualified, and the selector stays outside the server until issue #26 composes
 the test-only coordinator with real rank-local objects and one atomic owner.
 Target qualification must then measure restored tokens and suffix prefill
 separately; the selector test is not a performance result.
+
+The issue-#33 standalone authority slice supplies a reusable fail-closed
+identity builder, but it remains outside the product route until typed loader
+capture, request composition, and lifecycle invalidation are complete.
 
 ### 2. Measurement visibility
 

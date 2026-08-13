@@ -8,6 +8,10 @@ option(HALOFPX_CONTEXT_STORE_TWO_RANK_CONTRACT
     "Build the isolated test-only HaloKV two-rank coordinator contract"
     OFF)
 
+option(HALOFPX_CONTEXT_STORE_LIVE_AUTHORITY
+    "Build the isolated live-derived cache compatibility authority"
+    OFF)
+
 if (HALOFPX_CONTEXT_STORE_TWO_RANK_CONTRACT)
     # Issue #26 slice 1 is deliberately outside every server/runtime target.
     # The fake-provider contract has no filesystem, RPC, CLI, or llama linkage.
@@ -143,6 +147,43 @@ add_library(halofpx-context-store-compatibility-v1 STATIC EXCLUDE_FROM_ALL
 target_link_libraries(halofpx-context-store-compatibility-v1 PUBLIC
     halofpx-context-store-auth)
 target_compile_features(halofpx-context-store-compatibility-v1 PRIVATE cxx_std_17)
+
+if (HALOFPX_CONTEXT_STORE_LIVE_AUTHORITY)
+    # Issue #33 slice 1 is deliberately outside every server/runtime target.
+    # It consumes synchronous immutable byte/semantic views and owns no I/O.
+    add_library(halofpx-context-store-live-authority-v1 STATIC EXCLUDE_FROM_ALL
+        halofpx-context-store-live-authority-v1.cpp
+        halofpx-context-store-live-authority-v1.h
+    )
+    target_include_directories(halofpx-context-store-live-authority-v1 PRIVATE
+        ${CMAKE_SOURCE_DIR}/examples/gguf-hash/deps)
+    target_link_libraries(halofpx-context-store-live-authority-v1
+        PUBLIC halofpx-context-store-compatibility-v1
+        PRIVATE halofpx-context-store-sha256)
+    target_compile_features(halofpx-context-store-live-authority-v1 PRIVATE cxx_std_17)
+
+    if (LLAMA_BUILD_TESTS)
+        add_executable(test-halofpx-context-store-live-authority-v1 EXCLUDE_FROM_ALL
+            ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-live-authority-v1.cpp)
+        target_include_directories(test-halofpx-context-store-live-authority-v1 PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR})
+        target_link_libraries(test-halofpx-context-store-live-authority-v1 PRIVATE
+            halofpx-context-store-live-authority-v1)
+        target_compile_features(test-halofpx-context-store-live-authority-v1 PRIVATE cxx_std_17)
+        add_test(NAME test-halofpx-context-store-live-authority-v1
+            COMMAND test-halofpx-context-store-live-authority-v1)
+        set_tests_properties(test-halofpx-context-store-live-authority-v1 PROPERTIES
+            LABELS "main;halofpx")
+
+        add_test(NAME test-halofpx-context-store-live-authority-v1-boundary
+            COMMAND ${CMAKE_COMMAND}
+                -DHALOFPX_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+                -DHALOFPX_CONTEXT_STORE_LIVE_AUTHORITY=${HALOFPX_CONTEXT_STORE_LIVE_AUTHORITY}
+                -P ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-live-authority-v1-boundary.cmake)
+        set_tests_properties(test-halofpx-context-store-live-authority-v1-boundary PROPERTIES
+            LABELS "main;halofpx")
+    endif()
+endif()
 
 # L06 pure trusted-scope resolver. Runtime linkage remains separately gated by
 # HALOFPX_CONTEXT_STORE_CANARY below.
