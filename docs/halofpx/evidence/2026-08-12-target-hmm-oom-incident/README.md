@@ -146,8 +146,18 @@ pwsh ./docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/collect-read-onl
 Target-side collection permits only read-only `journalctl`, `systemctl
 --system`, `/proc`, `free`, date, and health operations. SSH uses strict host
 key checking, disabled host-key updates, batch mode, and a single connection
-attempt. The collector requires a Windows control host and places every local
-command tree in a non-breakaway, kill-on-close Job Object before execution.
+attempt. Each fixed, source-literal target command is POSIX-single-quote
+encoded behind `exec /bin/sh -eu -c`; command status therefore comes from the
+absolute POSIX shell rather than the account's configured login shell. The
+encoder refuses NUL, line breaks, and backslashes; the latter have incompatible
+single-quote escape semantics between fish and POSIX shells. Every target
+capture also requires zero stderr bytes even when its exit code is zero.
+That fail-closed rule is the default; the local GitHub CLI capture explicitly
+selects record-only stderr semantics. Version 3 command ledger records state
+that policy and classify a zero exit with target stderr as
+`unexpected-stderr`. The collector requires a Windows control host and places
+every local command tree in a non-breakaway, kill-on-close Job Object before
+execution.
 Each tree has one configurable bounded deadline (60 seconds by default), a
 bounded forced-cleanup interval on timeout, and a configurable stored-artifact
 bound enforced reactively at the process-monitor polling cadence. A durably
