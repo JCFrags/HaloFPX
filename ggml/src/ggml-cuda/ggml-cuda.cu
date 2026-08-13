@@ -32,6 +32,7 @@
 #include "ggml-cuda/mmvf.cuh"
 #include "ggml-cuda/mmvq.cuh"
 #include "ggml-cuda/rocmfpx-ffn-q8-reuse.h"
+#include "ggml-cuda/rocmfpx-moe-q8-reuse.h"
 #include "ggml-cuda/rocmfpx-qkv-q8-reuse.h"
 #include "ggml-cuda/rocmfpx-mmvq-qkv-q8-reuse.h"
 #include "ggml-cuda/norm.cuh"
@@ -2851,6 +2852,166 @@ static bool ggml_cuda_should_reuse_rocmfpx_ffn_q8(
 }
 #endif
 
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+// HALOFPX_MOE_Q8_REUSE_SELECTOR_BEGIN
+static bool ggml_cuda_moe_q8_tensor_ranges_do_not_overlap(
+        const std::array<const ggml_tensor *, 7> & tensors) {
+    const auto overlaps = [](const ggml_tensor * a, const ggml_tensor * b) {
+        const uintptr_t a_begin = reinterpret_cast<uintptr_t>(a->data);
+        const uintptr_t b_begin = reinterpret_cast<uintptr_t>(b->data);
+        const size_t a_size = ggml_nbytes(a);
+        const size_t b_size = ggml_nbytes(b);
+        if (a_begin == 0 || b_begin == 0 || a_size > UINTPTR_MAX - a_begin || b_size > UINTPTR_MAX - b_begin) {
+            return true;
+        }
+        return a_begin < b_begin + b_size && b_begin < a_begin + a_size;
+    };
+    for (size_t i = 0; i < tensors.size(); ++i) {
+        for (size_t j = i + 1; j < tensors.size(); ++j) {
+            if (overlaps(tensors[i], tensors[j])) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+static bool ggml_cuda_should_reuse_rocmfpx_moe_q8(
+        ggml_backend_cuda_context & ctx,
+        const ggml_tensor * first,
+        const ggml_tensor * second,
+        const ggml_tensor * glu) {
+    if (!first || !second || !glu || ctx.curr_stream_no != 0 ||
+        !ctx.concurrent_stream_context.concurrent_events.empty()) {
+        return false;
+    }
+
+    const ggml_tensor * weight_a = first->src[0];
+    const ggml_tensor * weight_b = second->src[0];
+    const ggml_tensor * act_a    = first->src[1];
+    const ggml_tensor * act_b    = second->src[1];
+    const ggml_tensor * ids_a    = first->src[2];
+    const ggml_tensor * ids_b    = second->src[2];
+    if (!weight_a || !weight_b || !act_a || !act_b || !ids_a || !ids_b) {
+        return false;
+    }
+
+    const std::array<const ggml_tensor *, 7> tensors = {
+        weight_a, weight_b, act_a, ids_a, first, second, glu,
+    };
+    if (std::any_of(tensors.begin(), tensors.end(), [](const ggml_tensor * tensor) {
+            return !tensor->buffer || !tensor->data;
+        })) {
+        return false;
+    }
+
+    const bool routed_moe_pair =
+        first->op == GGML_OP_MUL_MAT_ID && second->op == GGML_OP_MUL_MAT_ID &&
+        (first->flags & GGML_TENSOR_FLAG_COMPUTE) &&
+        (second->flags & GGML_TENSOR_FLAG_COMPUTE);
+    const bool no_bias_glu_pair = glu->op == GGML_OP_GLU &&
+        ((glu->src[0] == first && glu->src[1] == second) ||
+         (glu->src[0] == second && glu->src[1] == first));
+    const bool exact_shared_activation =
+        act_a == act_b && act_a->data == act_b->data && ggml_are_same_stride(act_a, act_b);
+    const bool f32_activation = act_a->type == GGML_TYPE_F32 && act_b->type == GGML_TYPE_F32;
+    const bool f32_outputs = first->type == GGML_TYPE_F32 && second->type == GGML_TYPE_F32;
+    const bool same_weight_layout =
+        weight_a->type == weight_b->type &&
+        ggml_are_same_shape(weight_a, weight_b) &&
+        ggml_are_same_stride(weight_a, weight_b);
+    const bool same_output_layout =
+        ggml_are_same_shape(first, second) && ggml_are_same_stride(first, second);
+    const bool exact_shared_ids =
+        ids_a == ids_b && ids_a->data == ids_b->data && ggml_are_same_stride(ids_a, ids_b);
+    const bool default_matmul_params =
+        ggml_get_op_params_i32(first, 0) == GGML_PREC_DEFAULT &&
+        ggml_get_op_params_i32(second, 0) == GGML_PREC_DEFAULT &&
+        ggml_get_op_params_i32(first, 1) == GGML_HINT_NONE &&
+        ggml_get_op_params_i32(second, 1) == GGML_HINT_NONE;
+
+    const int64_t n_experts = weight_a->ne[2];
+    const int64_t n_expert_used = ids_a->ne[0];
+    const int64_t n_tokens = act_a->ne[2];
+    const bool valid_routing_layout =
+        ids_a->type == GGML_TYPE_I32 &&
+        ids_a->nb[0] == ggml_element_size(ids_a) &&
+        ids_a->nb[1] % ids_a->nb[0] == 0 &&
+        ggml_is_contiguous_rows(ids_a) &&
+        act_a->nb[2] % act_a->nb[1] == 0 &&
+        first->nb[2] % first->nb[1] == 0 &&
+        second->nb[2] % second->nb[1] == 0;
+    const bool valid_index_geometry =
+        default_matmul_params &&
+        n_experts > 0 && n_expert_used > 0 && n_expert_used <= n_experts && n_tokens > 0 &&
+        n_experts <= INT_MAX && n_expert_used < (1 << 10) &&
+        n_tokens < (1 << 22) &&
+        n_tokens <= INT_MAX / n_expert_used &&
+        ids_a->nb[1] / ids_a->nb[0] <= INT_MAX &&
+        act_a->nb[2] / act_a->nb[1] <= INT_MAX &&
+        weight_a->ne[0] == act_a->ne[0] && weight_b->ne[0] == act_a->ne[0] &&
+        weight_a->ne[2] == weight_b->ne[2] &&
+        weight_a->ne[3] == 1 && weight_b->ne[3] == 1 &&
+        act_a->ne[1] == n_expert_used && act_a->ne[3] == 1 &&
+        ids_a->ne[1] == n_tokens && ids_a->ne[2] == 1 && ids_a->ne[3] == 1 &&
+        first->ne[0] == weight_a->ne[1] && second->ne[0] == weight_b->ne[1] &&
+        first->ne[1] == n_expert_used && second->ne[1] == n_expert_used &&
+        first->ne[2] == n_tokens && second->ne[2] == n_tokens &&
+        first->ne[3] == 1 && second->ne[3] == 1;
+
+    const ggml_backend_buffer_type_t local_buft = ggml_backend_cuda_buffer_type(ctx.device);
+    const bool local_non_split = std::all_of(tensors.begin(), tensors.end(), [&](const ggml_tensor * tensor) {
+        return tensor->buffer->buft == local_buft && !ggml_backend_buft_is_cuda_split(tensor->buffer->buft);
+    });
+    const bool safe_allocation_views =
+        weight_a->view_src == nullptr && weight_b->view_src == nullptr &&
+        act_a->view_src == nullptr && first->view_src == nullptr && second->view_src == nullptr &&
+        ggml_is_contiguous(weight_a) && ggml_is_contiguous(weight_b) &&
+        ggml_is_contiguous(act_a) && ggml_is_contiguous(first) && ggml_is_contiguous(second);
+    const bool nonoverlapping_outputs = ggml_cuda_moe_q8_tensor_ranges_do_not_overlap(tensors);
+
+    const int cc = ggml_cuda_info().devices[ctx.device].cc;
+    static constexpr int gfx1151_cc = GGML_CUDA_CC_OFFSET_AMD + 0x1151;
+    const bool gfx1151_hip = cc == gfx1151_cc;
+    const auto selects_mmq = [cc, n_experts](const ggml_tensor * weight, const ggml_tensor * act,
+                                             const ggml_tensor * dst) {
+        const int mmvq_mmid_max = get_mmvq_mmid_max_batch(weight->type, cc);
+        return dst->ne[2] > mmvq_mmid_max &&
+               ggml_cuda_should_use_mmq(weight->type, cc, act->ne[2], n_experts);
+    };
+    const bool both_mmq_paths =
+        selects_mmq(weight_a, act_a, first) && selects_mmq(weight_b, act_b, second);
+    const bool single_stream =
+        ctx.curr_stream_no == 0 && ctx.concurrent_stream_context.concurrent_events.empty();
+
+    const halofpx_rocmfpx_moe_q8_reuse_contract contract = {
+        weight_a->type,
+        weight_b->type,
+        n_tokens,
+        n_experts,
+        n_expert_used,
+        gfx1151_hip,
+        routed_moe_pair,
+        no_bias_glu_pair,
+        exact_shared_activation,
+        f32_activation,
+        f32_outputs,
+        same_weight_layout,
+        same_output_layout,
+        exact_shared_ids,
+        valid_routing_layout,
+        valid_index_geometry,
+        local_non_split,
+        safe_allocation_views,
+        nonoverlapping_outputs,
+        both_mmq_paths,
+        single_stream,
+    };
+    return halofpx_rocmfpx_moe_q8_reuse_dispatch(contract);
+}
+// HALOFPX_MOE_Q8_REUSE_SELECTOR_END
+#endif
+
 #if defined(GGML_HIP_ROCMFPX_QKV_Q8_REUSE)
 static bool ggml_cuda_qkv_nodes_share_execution_stream(
         const ggml_backend_cuda_context & ctx,
@@ -4946,6 +5107,27 @@ static int ggml_cuda_try_fuse(ggml_backend_cuda_context * cuda_ctx, ggml_cgraph 
                 break;
             }
 
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+            // HALOFPX_MOE_Q8_REUSE_DISPATCH_BEGIN
+            // Prompt/MMQ routed-MoE path: prepare the exact shared route and
+            // activation once, preserve both F32 outputs, then execute GLU as
+            // the next ordinary graph node.
+            if (op == GGML_OP_MUL_MAT_ID &&
+                ggml_cuda_should_reuse_rocmfpx_moe_q8(
+                    *cuda_ctx, cgraph->nodes[i], cgraph->nodes[i + 1], glu)) {
+                ggml_cuda_mul_mat_id_q_rocmfpx_pair(
+                    *cuda_ctx,
+                    cgraph->nodes[i]->src[0],
+                    cgraph->nodes[i + 1]->src[0],
+                    cgraph->nodes[i]->src[1],
+                    cgraph->nodes[i]->src[2],
+                    cgraph->nodes[i],
+                    cgraph->nodes[i + 1]);
+                return 1;
+            }
+            // HALOFPX_MOE_Q8_REUSE_DISPATCH_END
+#endif
+
 #if defined(GGML_HIP_ROCMFPX_FFN_Q8_REUSE)
             // HALOFPX_FFN_Q8_REUSE_DISPATCH_BEGIN
             // Prompt/MMQ path: retain the ordinary graph outputs and execute
@@ -6628,6 +6810,17 @@ static ggml_backend_feature * ggml_backend_cuda_get_features(ggml_backend_reg_t 
         }
     #endif
 
+    #ifdef GGML_HIP_ROCMFPX_MOE_Q8_REUSE
+        static constexpr int moe_gfx1151_cc = GGML_CUDA_CC_OFFSET_AMD + 0x1151;
+        const auto & moe_info = ggml_cuda_info();
+        for (int id = 0; id < moe_info.device_count; ++id) {
+            if (moe_info.devices[id].cc == moe_gfx1151_cc) {
+                features.push_back({ "ROCMFPX_MOE_Q8_REUSE", "1" });
+                break;
+            }
+        }
+    #endif
+
     {
         const auto & info = ggml_cuda_info();
         for (int id = 0; id < info.device_count; ++id) {
@@ -6742,6 +6935,42 @@ static bool ggml_backend_cuda_halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics(
 // HALOFPX_MMVQ_QKV_Q8_REUSE_METRICS_PROC_END
 #endif
 
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+// HALOFPX_MOE_Q8_REUSE_METRICS_PROC_BEGIN
+static bool ggml_backend_cuda_halofpx_rocmfpx_moe_q8_reuse_metrics(
+        ggml_backend_t backend,
+        bool reset,
+        halofpx_rocmfpx_moe_q8_reuse_metrics_v1 * metrics) {
+    if (!backend || !metrics ||
+        metrics->struct_size != sizeof(halofpx_rocmfpx_moe_q8_reuse_metrics_v1) ||
+        metrics->version != HALOFPX_ROCMFPX_MOE_Q8_REUSE_METRICS_VERSION ||
+        !ggml_backend_is_cuda(backend)) {
+        return false;
+    }
+    ggml_backend_dev_t device = ggml_backend_get_device(backend);
+    if (!device || ggml_backend_dev_backend_reg(device) != ggml_backend_cuda_reg()) {
+        return false;
+    }
+    ggml_backend_synchronize(backend);
+    auto * ctx = static_cast<ggml_backend_cuda_context *>(backend->context);
+    if (!ctx) {
+        return false;
+    }
+    if (reset) {
+        ctx->halofpx_moe_pair_dispatches.store(0, std::memory_order_relaxed);
+        ctx->halofpx_moe_ids_helper_submissions.store(0, std::memory_order_relaxed);
+        ctx->halofpx_moe_q8_conversions_submitted.store(0, std::memory_order_relaxed);
+        ctx->halofpx_moe_mmq_submissions.store(0, std::memory_order_relaxed);
+    }
+    metrics->pair_dispatches = ctx->halofpx_moe_pair_dispatches.load(std::memory_order_relaxed);
+    metrics->ids_helper_submissions = ctx->halofpx_moe_ids_helper_submissions.load(std::memory_order_relaxed);
+    metrics->q8_conversions_submitted = ctx->halofpx_moe_q8_conversions_submitted.load(std::memory_order_relaxed);
+    metrics->mmq_submissions = ctx->halofpx_moe_mmq_submissions.load(std::memory_order_relaxed);
+    return true;
+}
+// HALOFPX_MOE_Q8_REUSE_METRICS_PROC_END
+#endif
+
 static void * ggml_backend_cuda_reg_get_proc_address(ggml_backend_reg_t reg, const char * name) {
     GGML_UNUSED(reg);
     if (strcmp(name, "ggml_backend_comm_init") == 0) {
@@ -6783,6 +7012,13 @@ static void * ggml_backend_cuda_reg_get_proc_address(ggml_backend_reg_t reg, con
         return (void *) ggml_backend_cuda_halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics;
     }
     // HALOFPX_MMVQ_QKV_Q8_REUSE_METRICS_REGISTRATION_END
+#endif
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+    // HALOFPX_MOE_Q8_REUSE_METRICS_REGISTRATION_BEGIN
+    if (strcmp(name, "halofpx_rocmfpx_moe_q8_reuse_metrics_v1") == 0) {
+        return (void *) ggml_backend_cuda_halofpx_rocmfpx_moe_q8_reuse_metrics;
+    }
+    // HALOFPX_MOE_Q8_REUSE_METRICS_REGISTRATION_END
 #endif
     return nullptr;
 }
