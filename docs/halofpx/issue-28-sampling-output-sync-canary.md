@@ -87,6 +87,11 @@ before/after snapshots from the same fresh process.
 Windows control-host compilation and tests are not Strix Halo performance
 evidence. The planned matched target experiment is documented in
 [`issue-28-sampling-output-sync-target-plan.md`](issue-28-sampling-output-sync-target-plan.md).
+The optional `sampling_output_sync_prometheus_v1` sidecar is documented in the
+[model-general Strix A/B harness](strix-ab-harness.md#optional-sampling-output-synchronization-observability).
+It imports exact single-fresh-process `/metrics` windows without treating the
+cumulative counters as general request, completion, or SSE attribution. Its
+fake-adapter tests are control-host contract evidence only.
 
 ## Kill gates
 

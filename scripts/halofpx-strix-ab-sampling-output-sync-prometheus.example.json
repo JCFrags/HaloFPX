@@ -1,0 +1,24 @@
+{
+  "schema": "halofpx.strix-ab-sampling-output-sync-prometheus.v1",
+  "lane": "sampling_output_sync_prometheus_v1",
+  "enabled": false,
+  "issue": 28,
+  "core_plan_sha256": "f6f1d7fc4e1aaec6b0dffddadb5eb539aaba1ad881b8f95b181394707bb76aeb",
+  "endpoint": "/metrics",
+  "completion_endpoint": "/completion",
+  "metrics": {
+    "output_epochs": "llamacpp:halofpx_sampling_sync_output_epochs_total",
+    "completed_barriers": "llamacpp:halofpx_sampling_sync_completed_barriers_total",
+    "reused_barriers": "llamacpp:halofpx_sampling_sync_reused_barriers_total",
+    "graph_submissions": "llamacpp:halofpx_sampling_sync_graph_submissions_total",
+    "output_transfers": "llamacpp:halofpx_sampling_sync_output_transfers_total"
+  },
+  "conditions": {
+    "off": {
+      "coalescing": false
+    },
+    "on": {
+      "coalescing": true
+    }
+  }
+}

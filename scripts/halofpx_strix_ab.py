@@ -14,6 +14,7 @@ import argparse
 import base64
 import datetime as dt
 import hashlib
+import importlib.util
 import json
 import math
 import os
@@ -1232,6 +1233,21 @@ def analyze_run(root: Path) -> dict[str, Any]:
                 })
             report["metrics"][metric] = metric_summary(values, metric, lower_is_better)
         report["content_sha256"] = next(iter(all_content))
+    sampling_sync_plan = root / "sampling-output-sync-plan.json"
+    sampling_sync_analysis = root / "sampling-output-sync-analysis.json"
+    sampling_sync_evidence = list((root / "raw").glob("**/sampling-output-sync"))
+    if any(path.exists() or path.is_symlink() for path in (
+            sampling_sync_plan, sampling_sync_analysis)) or sampling_sync_evidence:
+        sidecar_path = Path(__file__).with_name("halofpx_strix_ab_sampling_sync.py")
+        spec = importlib.util.spec_from_file_location("halofpx_strix_ab_sampling_sync_sidecar", sidecar_path)
+        if spec is None or spec.loader is None:
+            raise PlanError(f"cannot load sampling-output-sync sidecar: {sidecar_path}")
+        sidecar = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(sidecar)
+        try:
+            sidecar.validate_frozen_run(root, plan)
+        except sidecar.PlanError as exc:
+            raise PlanError(str(exc)) from exc
     write_json(root / "analysis.json", report)
     with (root / "samples.jsonl").open("w", encoding="utf-8", newline="\n") as handle:
         for sample in sorted(samples, key=lambda item: (item["pair_id"], item["order_index"])):

@@ -62,22 +62,29 @@ under test.
 
 ## Procedure and acceptance
 
-1. Use isolated fresh disposable processes with `--parallel 1` and
-   `--no-cont-batching`, identical cold/warm cache rules, and no other request
-   traffic. Retain the PID, process start time, InvocationID when applicable,
-   and executable hash for every condition.
-2. For each fresh process, capture `/metrics` immediately before one request
-   and immediately after that request. Accept a per-request counter delta only
-   when both snapshots bind the same retained process identity. The counters
-   are context-lifetime telemetry and do not provide completion or SSE request
-   attribution on their own.
+1. Use isolated fresh disposable processes with exact coordinator controls
+   `--metrics --parallel 1 --no-cont-batching --no-warmup`, identical
+   cold/warm cache rules, and no other traffic. Retain the PID, InvocationID,
+   `/proc` process-start ticks, metrics process-start header, executable hash,
+   and complete argv for every condition.
+2. Capture raw `/metrics` immediately before exactly one frozen completion
+   request and immediately after it. Bind both raw hashes and the request to
+   the same process identity and strict monotonic sequence. These are
+   cumulative context counters, not completion/SSE request attribution.
 3. Prove exact greedy token/output parity before interpreting timing.
-4. Run counterbalanced, interleaved `OFF`/`ON` pairs. Three pairs are
+4. Parse the five counters as exact unsigned-64-bit decimals. Reject missing,
+   duplicate, labeled, malformed, overflowing, or decreasing values. The OFF
+   reused-barrier delta must be zero; the ON delta must be positive. ON must
+   complete fewer barriers than matched OFF, and completed plus reused
+   synchronization decisions must equal the matched OFF total. Output-epoch,
+   graph-submission, and output-transfer deltas must also match across the pair.
+   Do not equate output epochs with tokens or graphs within one request.
+5. Run counterbalanced, interleaved `OFF`/`ON` pairs. Three pairs are
    directional only; require at least five steady-state pairs before labeling a
    result **[MEASURED]**.
-5. Preserve all raw records and compute `SHA256SUMS.txt` only after capture is
+6. Preserve all raw records and compute `SHA256SUMS.txt` only after capture is
    complete.
-6. Add `RESULTS.md`, `raw/nimo-1/`, and `raw/nimo-2/` only when the target run
+7. Add `RESULTS.md`, `raw/nimo-1/`, and `raw/nimo-2/` only when the target run
    actually occurs.
 
 Any output mismatch, unavailable row, crash, failed request, or unexpected
