@@ -20,6 +20,9 @@
 #include <ggml-backend.h>
 #include <ggml-cpp.h>
 
+#include "ggml-backend-impl.h"
+#include "rocmfpx-qkv-q8-reuse.h"
+
 #include <algorithm>
 #include <array>
 #include <cfloat>
@@ -1209,6 +1212,22 @@ struct test_case {
     virtual bool run_whole_graph() { return false; }
     virtual std::vector<ggml_tensor *> fusion_test_nodes() { return {}; }
 
+    virtual bool prepare_graph_before_allocation(ggml_backend_t backend, ggml_cgraph * graph) {
+        GGML_UNUSED(backend);
+        GGML_UNUSED(graph);
+        return true;
+    }
+
+    virtual bool before_backend_compare(ggml_backend_t backend) {
+        GGML_UNUSED(backend);
+        return true;
+    }
+
+    virtual bool after_backend_compare(ggml_backend_t backend) {
+        GGML_UNUSED(backend);
+        return true;
+    }
+
     ggml_cgraph * gf = nullptr;
     ggml_cgraph * gb = nullptr;
 
@@ -1346,6 +1365,18 @@ struct test_case {
         // post-graph sentinel
         add_sentinel(ctx);
 
+        // Build and optionally transform the graph before allocation. This is
+        // the same ordering boundary used by the scheduler's graph optimizer;
+        // transforms that move nodes must never run after reuse allocation.
+        ggml_build_forward_expand(gf, out);
+
+        // add sentinels as graph nodes so that they are checked in the callback
+        for (ggml_tensor * sentinel : sentinels) {
+            ggml_graph_add_node(gf, sentinel);
+        }
+
+        bool hooks_ok = prepare_graph_before_allocation(backend1, gf);
+
         // allocate
         ggml_backend_buffer_t buf = ggml_backend_alloc_ctx_tensors(ctx, backend1);
 
@@ -1355,16 +1386,10 @@ struct test_case {
             return test_status_t::FAIL;
         }
 
-        // build graph
-        ggml_build_forward_expand(gf, out);
-
-        // add sentinels as graph nodes so that they are checked in the callback
-        for (ggml_tensor * sentinel : sentinels) {
-            ggml_graph_add_node(gf, sentinel);
-        }
-
         // randomize tensors
         initialize_tensors(ctx);
+
+        hooks_ok = before_backend_compare(backend1) && hooks_ok;
 
         // compare
         struct callback_userdata {
@@ -1449,13 +1474,15 @@ struct test_case {
                                                                run_whole_graph() ? fused_nodes_to_verify.data() : nullptr,
                                                                fused_nodes_to_verify.size());
 
+        hooks_ok = after_backend_compare(backend1) && hooks_ok;
+
         ggml_backend_buffer_free(buf);
 
         ggml_free(ctx);
 
         // Create test result
-        bool        test_passed = ud.ok && cmp_ok;
-        std::string error_msg   = test_passed ? "" : (!cmp_ok ? "compare failed" : "test failed");
+        bool        test_passed = ud.ok && cmp_ok && hooks_ok;
+        std::string error_msg   = test_passed ? "" : (!hooks_ok ? "lifecycle hook failed" : (!cmp_ok ? "compare failed" : "test failed"));
         test_result result(ggml_backend_name(backend1), current_op_name, vars(), "test", supported, test_passed,
                            error_msg);
 
@@ -6038,6 +6065,198 @@ struct test_mul_mat_vec_fusion : public test_case {
     }
 };
 
+// HaloFPX issue #42: one prompt activation conversion feeds three independent
+// ROCmFPX Q/K/V MMQs. This graph case is always compiled, but only runs on a
+// backend that advertises the default-off experimental feature.
+struct test_halofpx_rocmfpx_qkv_q8_reuse : public test_case {
+    using metrics_proc_t = bool (*)(
+        ggml_backend_t,
+        bool,
+        halofpx_rocmfpx_qkv_q8_reuse_metrics_v1 *);
+
+    const ggml_type type;
+    const int64_t columns;
+    const bool distinct_v_activation;
+
+    ggml_tensor * q = nullptr;
+    ggml_tensor * k = nullptr;
+    ggml_tensor * v = nullptr;
+    ggml_tensor * out = nullptr;
+    metrics_proc_t metrics_proc = nullptr;
+
+    test_halofpx_rocmfpx_qkv_q8_reuse(
+            ggml_type type,
+            int64_t columns,
+            bool distinct_v_activation = false) :
+        type(type),
+        columns(columns),
+        distinct_v_activation(distinct_v_activation) {}
+
+    std::string vars() override {
+        return VARS_TO_STR3(type, columns, distinct_v_activation);
+    }
+
+    std::string op_desc(ggml_tensor * tensor) override {
+        GGML_UNUSED(tensor);
+        return "HALOFPX_ROCMFPX_QKV_Q8_REUSE";
+    }
+
+    bool is_applicable_to_backend(ggml_backend_t backend) override {
+        return backend_has_feature(backend, "ROCMFPX_QKV_Q8_REUSE");
+    }
+
+    bool run_whole_graph() override { return true; }
+
+    double max_nmse_err() override { return 5e-3; }
+
+    ggml_tensor * build_graph(ggml_context * ctx) override {
+        static constexpr int64_t hidden = 256;
+        static constexpr int64_t q_width = 256;
+        static constexpr int64_t kv_width = 64;
+
+        ggml_tensor * activation = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, hidden, columns);
+        ggml_set_name(activation, "attn_norm-0");
+        ggml_tensor * activation_v = activation;
+        if (distinct_v_activation) {
+            activation_v = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, hidden, columns);
+            ggml_set_name(activation_v, "attn_norm-v-0");
+        }
+
+        ggml_tensor * weight_q = ggml_new_tensor_2d(ctx, type, hidden, q_width);
+        ggml_tensor * weight_k = ggml_new_tensor_2d(ctx, type, hidden, kv_width);
+        ggml_tensor * weight_v = ggml_new_tensor_2d(ctx, type, hidden, kv_width);
+        ggml_set_name(weight_q, "blk.0.attn_q.weight");
+        ggml_set_name(weight_k, "blk.0.attn_k.weight");
+        ggml_set_name(weight_v, "blk.0.attn_v.weight");
+
+        q = ggml_mul_mat(ctx, weight_q, activation);
+        k = ggml_mul_mat(ctx, weight_k, activation);
+        v = ggml_mul_mat(ctx, weight_v, activation_v);
+        ggml_set_name(q, "Qcur-0");
+        ggml_set_name(k, "Kcur-0");
+        ggml_set_name(v, "Vcur-0");
+
+        ggml_tensor * q_reshape = ggml_reshape_3d(ctx, q, 64, 4, columns);
+        ggml_tensor * k_reshape = ggml_reshape_3d(ctx, k, 64, 1, columns);
+        ggml_tensor * v_reshape = ggml_reshape_3d(ctx, v, 64, 1, columns);
+        ggml_set_name(q_reshape, "Qcur-reshape-0");
+        ggml_set_name(k_reshape, "Kcur-reshape-0");
+        ggml_set_name(v_reshape, "Vcur-reshape-0");
+
+        ggml_tensor * kv = ggml_concat(ctx, k_reshape, v_reshape, 1);
+        ggml_set_name(kv, "KVcur-concat-0");
+        out = ggml_concat(ctx, q_reshape, kv, 1);
+        ggml_set_name(out, "QKVcur-concat-0");
+        return out;
+    }
+
+    std::vector<ggml_tensor *> fusion_test_nodes() override {
+        return { q, k, v, out };
+    }
+
+    bool prepare_graph_before_allocation(ggml_backend_t backend, ggml_cgraph * graph) override {
+        ggml_backend_reg_t reg = ggml_backend_dev_backend_reg(ggml_backend_get_device(backend));
+        metrics_proc = (metrics_proc_t) ggml_backend_reg_get_proc_address(
+            reg, "halofpx_rocmfpx_qkv_q8_reuse_metrics_v1");
+        if (!metrics_proc || !backend->iface.graph_optimize) {
+            std::fprintf(stderr, "QKV metrics or production graph optimizer is missing ");
+            return false;
+        }
+
+        halofpx_rocmfpx_qkv_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_QKV_Q8_REUSE_METRICS_VERSION;
+        if (!metrics_proc(backend, true, &metrics) || metrics.graph_groups_planned != 0 ||
+            metrics.triple_dispatches != 0 || metrics.q8_conversions_submitted != 0 ||
+            metrics.mmq_submissions != 0) {
+            std::fprintf(stderr, "QKV metrics pre-planning reset failed ");
+            return false;
+        }
+
+        // Exercise the backend interface's registered production optimizer at
+        // the same pre-allocation boundary used by the scheduler.
+        backend->iface.graph_optimize(backend, graph);
+
+        metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_QKV_Q8_REUSE_METRICS_VERSION;
+        const uint64_t expected_planned = distinct_v_activation ? 0 : 1;
+        if (!metrics_proc(backend, false, &metrics) ||
+            metrics.graph_groups_planned != expected_planned ||
+            metrics.triple_dispatches != 0 || metrics.q8_conversions_submitted != 0 ||
+            metrics.mmq_submissions != 0) {
+            std::fprintf(stderr, "QKV production optimizer planning mismatch ");
+            return false;
+        }
+
+        if (distinct_v_activation) {
+            return q->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_MAGIC_PARAM] == 0 &&
+                   k->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_MAGIC_PARAM] == 0 &&
+                   v->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_MAGIC_PARAM] == 0;
+        }
+
+        for (int i = 0; i + 2 < graph->n_nodes; ++i) {
+            if (graph->nodes[i] != q) {
+                continue;
+            }
+            return graph->nodes[i + 1] == k && graph->nodes[i + 2] == v &&
+                   q->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_MAGIC_PARAM] ==
+                       HALOFPX_ROCMFPX_QKV_Q8_REUSE_GRAPH_MAGIC &&
+                   q->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_ROLE_PARAM] == HALOFPX_ROCMFPX_QKV_ROLE_Q &&
+                   k->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_ROLE_PARAM] == HALOFPX_ROCMFPX_QKV_ROLE_K &&
+                   v->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_ROLE_PARAM] == HALOFPX_ROCMFPX_QKV_ROLE_V;
+        }
+        return false;
+    }
+
+    bool before_backend_compare(ggml_backend_t backend) override {
+        if (!metrics_proc) {
+            std::fprintf(stderr, "QKV metrics proc is missing ");
+            return false;
+        }
+        halofpx_rocmfpx_qkv_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_QKV_Q8_REUSE_METRICS_VERSION;
+        if (!metrics_proc(backend, false, &metrics)) {
+            std::fprintf(stderr, "QKV metrics pre-compute snapshot failed ");
+            return false;
+        }
+        const uint64_t expected_planned = distinct_v_activation ? 0 : 1;
+        return metrics.graph_groups_planned == expected_planned && metrics.triple_dispatches == 0 &&
+               metrics.q8_conversions_submitted == 0 && metrics.mmq_submissions == 0;
+    }
+
+    bool after_backend_compare(ggml_backend_t backend) override {
+        if (!metrics_proc) {
+            return false;
+        }
+        halofpx_rocmfpx_qkv_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_QKV_Q8_REUSE_METRICS_VERSION;
+        if (!metrics_proc(backend, false, &metrics)) {
+            std::fprintf(stderr, "QKV metrics snapshot failed ");
+            return false;
+        }
+        const uint64_t expected_triples = distinct_v_activation ? 0 : 1;
+        const uint64_t expected_conversions = distinct_v_activation ? 3 : 1;
+        const uint64_t expected_planned = distinct_v_activation ? 0 : 1;
+        const bool ok = metrics.graph_groups_planned == expected_planned &&
+                        metrics.triple_dispatches == expected_triples &&
+                        metrics.q8_conversions_submitted == expected_conversions &&
+                        metrics.mmq_submissions == 3;
+        if (!ok) {
+            std::fprintf(stderr,
+                "QKV metrics mismatch: planned=%" PRIu64 " triple=%" PRIu64
+                " conversion=%" PRIu64 " mmq=%" PRIu64 " ",
+                metrics.graph_groups_planned,
+                metrics.triple_dispatches,
+                metrics.q8_conversions_submitted,
+                metrics.mmq_submissions);
+        }
+        return ok;
+    }
+};
+
 // GGML_OP_SUM
 struct test_sum : public test_case {
     const ggml_type type;
@@ -9373,6 +9592,21 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
     test_cases.emplace_back(new test_mul_mat_vec_fusion(
         GGML_TYPE_Q4_0, GGML_GLU_OP_SWIGLU, 32, 128, 256,
         false, 1, 1, false, false, true, {1, 1}));
+
+    // HaloFPX issue #42: GQA-like unequal projection widths at the first
+    // prompt-MMQ column and a larger prompt shape for every admitted type.
+    for (ggml_type type : {
+            GGML_TYPE_Q2_0_ROCMFPX,
+            GGML_TYPE_Q3_0_ROCMFPX,
+            GGML_TYPE_Q6_0_ROCMFPX,
+            GGML_TYPE_Q8_0_ROCMFPX}) {
+        test_cases.emplace_back(new test_halofpx_rocmfpx_qkv_q8_reuse(type, 9));
+        test_cases.emplace_back(new test_halofpx_rocmfpx_qkv_q8_reuse(type, 32));
+    }
+    // Exact shared activation is mandatory; this feature-on fallback must
+    // submit three ordinary conversions and three MMQs.
+    test_cases.emplace_back(new test_halofpx_rocmfpx_qkv_q8_reuse(
+        GGML_TYPE_Q6_0_ROCMFPX, 32, true));
 
     for (auto gate : {GATING_FUNC_SOFTMAX, GATING_FUNC_SIGMOID, GATING_FUNC_SOFTMAX_WEIGHT}) {
         for (bool with_norm : {false, true}) {

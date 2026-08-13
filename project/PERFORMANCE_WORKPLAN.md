@@ -102,9 +102,10 @@ donor code merely because the behavior is authoritative.
 | [#18](https://github.com/JCFrags/HaloFPX/issues/18) | open | cache source and restored-work metrics |
 | [#26](https://github.com/JCFrags/HaloFPX/issues/26) | open | coordinated restart-safe state across two RPC ranks |
 | [#28](https://github.com/JCFrags/HaloFPX/issues/28) | open | PR #35 fixed raw/sampled row fallback; coherent snapshot and synchronization reduction remain |
-| [#29](https://github.com/JCFrags/HaloFPX/issues/29) | open | dense FFN gate/up activation-conversion reuse |
+| [#29](https://github.com/JCFrags/HaloFPX/issues/29) | merged source / runtime open | PR #45 default-off dense FFN gate/up activation-conversion reuse; target compile qualified, runtime performance open |
 | [#32](https://github.com/JCFrags/HaloFPX/issues/32) | active | exact authenticated selector plus default-off world-1 server shell; positive model-backed restore remains blocked on #33 |
 | [#33](https://github.com/JCFrags/HaloFPX/issues/33) | active | standalone typed authority slice complete; loader capture, resolved request/context semantics, reload invalidation, and server adapter remain |
+| [#42](https://github.com/JCFrags/HaloFPX/issues/42) | open | default-off separate Q/K/V prompt activation-conversion reuse; host/source and GPU-less gfx1151 compile/link qualified, target runtime/performance open |
 | [#43](https://github.com/JCFrags/HaloFPX/issues/43) | active | portable small Qwen3-0.6B pure ROCmFPX registry/recipe; target qualification remains open |
 
 ## Ordered work
@@ -194,10 +195,20 @@ types is a later prompt/long-context candidate after reference parity and
 gfx1151 build qualification. Model weight format and K/V-cache type must remain
 separate experiment dimensions.
 
-Issue #29 records the nearer prompt-side candidate: reuse one exact Q8_1
-activation conversion across an eligible adjacent dense gate/up MMQ pair.
-It remains an open proposal until focused parity, feature-off, profiler, and
-matched target evidence pass.
+PR #45 merged issue #29's default-off dense gate/up Q8_1 activation-reuse
+source and target compile qualification. Runtime parity, profiler, and matched
+performance evidence remain open.
+
+Issue #42 is the next bounded prompt-side candidate: reuse one exact Q8_1
+activation conversion across three separate ROCmFPX Q/K/V MMQs. Its source is
+built directly on merged PR #45, reorders only proven Q/K/V nodes before
+allocation, supports unequal GQA projection widths, and falls back on every
+failed predicate. Host contracts and the backend-operation test compile do not
+establish target reachability or speed. Issue #41 blocks all target execution.
+When the maintenance gate opens, hold the FFN reuse option identically `OFF`
+in Q/K/V OFF/ON comparisons so the measured delta has one cause. Report
+cache behavior, prompt/TTFT, and generation separately; the Q/K/V candidate's
+`ne1 > 8` gate excludes ordinary one-token generation.
 
 ### 6. Generation
 

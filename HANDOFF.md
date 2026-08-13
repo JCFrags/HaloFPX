@@ -9,13 +9,15 @@ current.
 The immutable publication boundary below remains valid, but current work has
 advanced beyond L111:
 
-- the remote-`main` observation made during this correction is
-  `e3e8b286b8316abd246fb155044effd11e60b0eb`; the exact source base named by
-  the incident record is
-  `b77f2bce6e7875ab065e09894f45915585c9f156`. These are dated repository
+- the Q/K/V candidate's exact base `main` at this update is
+  `3bf10a1f4afcb18dfa17c657f17d0e54c82d48fb`. Its core implementation head is
+  `884150aa15ed9b52b5eb9989d417131aaaf9d8d3`, and its publication-source head
+  is `eed1c06488e4075eee444403884ecec1a1275fb3`. The incident record separately
+  names source base `b77f2bce6e7875ab065e09894f45915585c9f156`. These are dated repository
   boundaries, not live pointers. A fresh worker must record its checked-out
   `git rev-parse HEAD` and `git rev-parse origin/main` rather than assuming a
-  SHA printed here remains the branch tip.
+  SHA printed here remains the branch tip or substituting an eventual merge
+  hash for a reviewed source identity.
 - the cache-saving behavior reference is pinned to
   `fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940`.
   This is a behavior/reference authority, not an assertion that the donor
@@ -52,6 +54,34 @@ advanced beyond L111:
   [#32](https://github.com/JCFrags/HaloFPX/issues/32), and
   [#33](https://github.com/JCFrags/HaloFPX/issues/33), plus
   [#37](https://github.com/JCFrags/HaloFPX/issues/37), remain open follow-ons.
+- [PR #45](https://github.com/JCFrags/HaloFPX/pull/45) merged the default-off
+  dense ROCmFPX FFN Q8_1 activation-reuse source. Its target compile is
+  qualified and preserved by PR #47; runtime parity and performance remain
+  open under issue #29.
+- [PR #46](https://github.com/JCFrags/HaloFPX/pull/46) merged the bounded
+  repeated sampling output-synchronization coalescing change. It is separate
+  from Q/K/V prompt processing.
+- [PR #48](https://github.com/JCFrags/HaloFPX/pull/48) added the portable small
+  Qwen3 pure-ROCmFPX fixture lane under issue #43. Target qualification remains
+  open.
+- [PR #51](https://github.com/JCFrags/HaloFPX/pull/51) merged the blocked,
+  read-only-first CachyOS A/B adapter draft. It does not authorize target work
+  while issue #41 remains open.
+- [PR #52](https://github.com/JCFrags/HaloFPX/pull/52) merged the standalone
+  default-off typed live-derived cache-authority slice. Loader capture,
+  request/context resolution, reload invalidation, and product adaptation
+  remain open under issue #33.
+- [PR #54](https://github.com/JCFrags/HaloFPX/pull/54) merged the default-off,
+  fail-closed world-1 authenticated-prefix product shell. Positive model-backed
+  restore and any cache-performance claim remain open.
+- Issue [#41](https://github.com/JCFrags/HaloFPX/issues/41) is the active P0
+  stop gate: do not run experiments on either production Strix Halo machine
+  until an isolated maintenance window resolves the HMM/OOM incident.
+- Issue [#42](https://github.com/JCFrags/HaloFPX/issues/42) owns the default-off
+  separate Q/K/V Q8_1 activation-reuse candidate. The retained local evidence
+  includes host/source qualification and GPU-less pinned ROCm 7.2.4 OFF/ON
+  `gfx1151` compile/link. It makes no target runtime, model reachability,
+  generation-speed, or prompt-speed claim.
 - HaloFPX targets ROCmFPX-family GGUF inference across supported model
   architectures. MiniMax is the largest stress fixture, not a model-specific
   product target.
@@ -252,7 +282,9 @@ until GPU correctness, model parity, and matched target evidence complete.
 Route cache attribution, model-general prefill, the CachyOS A/B adapter,
 two-rank restart coordination, sampling synchronization, FFN conversion reuse,
 verified longest-prefix reuse, and live-derived compatibility through issues
-#18, #15, #37, #26, #28, #29, #32, and #33 respectively. Do not infer
+#18, #15, #37, #26, #28, #29, #32, and #33 respectively. Route the separate
+prompt-only Q/K/V MMQ conversion reuse through #42 and the portable model lane
+through #43. Obey the #41 target stop gate. Do not infer
 authorization for a production transition or broader cache-product claim from
 the L111, PR #23, or compile-only PR #30 acceptance.
 
