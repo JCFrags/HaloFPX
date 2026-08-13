@@ -6,9 +6,13 @@ numerical parity, launch-count reduction, and performance remain **[OPEN]**.
 
 ## Authority and environment
 
-- source commit: `3402aa7fbe820496726bfb45504549830634d7bd`;
-- parent implementation commit: `26a639beab45b1f00e405f906507f67ce1aa0458`;
-- required source base: `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`;
+- target-built source commit: `3402aa7fbe820496726bfb45504549830634d7bd`;
+- target-built parent implementation commit:
+  `26a639beab45b1f00e405f906507f67ce1aa0458`;
+- target-built source base: `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`;
+- rebased equivalent source commit:
+  `8369bfa296b7ef4d9bd297fc9f4728cd3142af2a`;
+- current integration base: `b77f2bce6e7875ab065e09894f45915585c9f156`;
 - exact Git bundle SHA-256:
   `4526b227b3bd45fe63eecc0c9803788a157d31060aa054c83cde50d91ddadcf6`;
 - host: `nimo-1`, CachyOS, Linux `7.1.3-1-cachyos`, `gfx1151`;
@@ -63,12 +67,57 @@ Selected artifact SHA-256 values:
 | `libggml-hip.so.0.11.1` | `280b1132ee1327ee5d4b5ecf6063b95da77f7f855661653f2cc814c130d01299` | `d9c8a27bf704a266b243e594d1dbbdcbb82e759865f5c982be8fb7577831f3cb` |
 | `test-backend-ops` | `751adecc0ed57d2754d214f04a97981ac4f0a93cfe5a0206b9a9577e9b6bcadd` | `d1e60215d66f8a13381dbcc65e11e34c4b73ad4cb4b883bbf55a6895c2ad40b7` |
 
-The compressed raw controller bundle is retained outside Git at
-`C:\Users\britt\AppData\Local\Temp\halofpx-ffn-q8-reuse-3402aa7-evidence.tar.gz`
-with SHA-256
-`d5a5cff6d8b39238663aba20674eee56d322334ad3b97279af1a6105759a6a31`.
-It contains both final build logs, both compile-command databases, both
-host-contract logs, and the two excluded configuration logs below.
+The portable raw evidence archive is pending upload as the GitHub release
+asset `halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz`. Its SHA-256 is
+`7a154b62d665c0a1324a84eda8adadde32006a1467f259bfb7e583f9797a82b0`
+and its size is 40,697 bytes. The release URL remains **[OPEN]** until the
+asset is uploaded; verify the checksum before using it.
+
+The archive has eight regular-file members with normalized root ownership,
+mode `0644`, timestamp zero, and distinct OFF/ON paths. Rebuilding it changed
+only archive names and metadata; every retained payload kept its original
+SHA-256:
+
+| Member | SHA-256 |
+|---|---|
+| `off/halofpx-ffn-q8-reuse-3402aa7-off-qualified.log` | `0b09e7af9dcf08d59bf061effa1183c86b6c3fa4350b568743e9d3fcdaf62492` |
+| `on/halofpx-ffn-q8-reuse-3402aa7-on-qualified.log` | `972452c0c21c691b6103fe3e02713efcbebfbca6a1dc8348061cfd0b249ee420` |
+| `off/halofpx-ffn-q8-reuse-3402aa7-off-host-contracts.log` | `fa64ae405b96e244c6032bcbdd97c049c6c41906f21d4a8c00bd70d65d8cf0ba` |
+| `on/halofpx-ffn-q8-reuse-3402aa7-on-host-contracts.log` | `1768102140c17426abdf483fcfc38919314e08d187123e0549e4a167a40d350e` |
+| `excluded/halofpx-ffn-q8-reuse-26a639b-off.log` | `742851a6b6aa8af8b3c8a348c7cf85097ebd3587a86ee9472e2b96e0a682abb3` |
+| `excluded/halofpx-ffn-q8-reuse-26a639b-off-rpc-on.log` | `2721b49c52303a1d517e2c21195de18a4d9cdd7931f67feeea2fd857e55446d6` |
+| `off/compile_commands.json` | `e06d2c646945557ee59e294d42fd456c7e228ccb12e20edf7fb513c60c4fada2` |
+| `on/compile_commands.json` | `91a332ced7b250730ee0e2bc1d5671ca85063cb10ac92183aace40f8ca57f821` |
+
+Before publication, member names, metadata, and content were scanned for
+private-key markers, common service-token forms, authorization/cookie
+headers, credential assignments and URLs, SSH material, email addresses,
+private IPv4 addresses, and Windows/POSIX home paths; no matches were found.
+
+## Rebase equivalence
+
+PRs #30, #31, #34, #35, #36, and #38 reached `main` after the target compile.
+The implementation was then rebased onto `b77f2bce`. The exact target-built HIP
+execution source and its standalone host/source contracts have identical Git
+blobs at `3402aa7` and `8369bfa2`:
+
+| Path | Shared Git blob |
+|---|---|
+| `ggml/src/ggml-cuda/ggml-cuda.cu` | `4c2aecec6a25ed668f9b87373fa0678e96840003` |
+| `ggml/src/ggml-cuda/mmq.cu` | `a669158344dac94ef6f5699e6c878adb901dfac2` |
+| `ggml/src/ggml-cuda/mmq.cuh` | `2a579f1a1bc93af83bde7d9fff3cb9882cb930a4` |
+| `ggml/src/ggml-cuda/rocmfpx-ffn-q8-reuse.h` | `9e6dcfa328b963e67d812738cadfce5017600673` |
+| `tests/test-backend-ops.cpp` | `b3b3f1bd63a7061af931294cbc234024fbefd387` |
+| `tests/test-halofpx-rocmfpx-ffn-q8-reuse-source-contract.cmake` | `240e35d218fd5bfb26939738f4d8b2a34fbd667d` |
+| `tests/test-halofpx-rocmfpx-ffn-q8-reuse.cpp` | `7b11eeeeb4dac1b4075067e60af03e86c0f3d1c6` |
+
+This was verified with a path-limited `git diff --exit-code`. The full CMake,
+workflow, and documentation blobs differ only because the rebase retained
+additive changes already present on `main`, including the independent ROCmFPX
+MMVQ sum-free option and two-rank cache contracts. The FFN reuse option remains
+default OFF, and its private HIP definition is unchanged. The target compile
+therefore applies to the rebased HIP execution source, but it still does not
+establish runtime correctness or performance.
 
 ## Excluded configuration observations
 

@@ -6,7 +6,10 @@ Status: default-off implementation candidate for
 [`3402aa7`](evidence/rocmfpx-ffn-q8-reuse-3402aa7/README.md); target runtime
 correctness, launch-count, and performance qualification remain open.
 
-Source base: `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`.
+Current source base: `b77f2bce6e7875ab065e09894f45915585c9f156`.
+The target compile used the pre-rebase equivalent commit `3402aa7`; the
+[compile receipt](evidence/rocmfpx-ffn-q8-reuse-3402aa7/README.md) maps that
+source explicitly to rebased commit `8369bfa2`.
 
 ## Purpose and boundary
 
