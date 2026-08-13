@@ -1,0 +1,131 @@
+{
+  "schema": "halofpx.rpc-decode-roundtrip-source-audit.v2",
+  "date": "2026-08-12",
+  "status": "audit_complete_no_bounded_rpc_roundtrip_implementation",
+  "source_authority": {
+    "commit": "3bf10a1f4afcb18dfa17c657f17d0e54c82d48fb",
+    "rpc_protocol": "4.0.1",
+    "target_accessed": false,
+    "runtime_source_changed": false
+  },
+  "current_main_blob_equivalence": {
+    "commit": "410d0efcda2f486eb2ba50ea671eb74fa922b3b0",
+    "verified_date": "2026-08-13",
+    "all_identical": true,
+    "blobs": {
+      "ggml/src/ggml-rpc/ggml-rpc.cpp": "7fff4a8fb6bec37cf160c6409daaca6f2187739b",
+      "ggml/src/ggml-rpc/transport.cpp": "006d6a13ea2d68a0ee121ff838e1650285db4cb9",
+      "ggml/src/ggml-rpc/transport.h": "5570713d1683206b280ca28ca34304f04b9c4815",
+      "ggml/include/ggml.h": "0f52e5399cafbd6c9447f3cf4401c7df677fed59",
+      "ggml/include/ggml-rpc.h": "8b91596c87736e7c323a6b8b0cf4693a45fbe7d8",
+      "ggml/src/ggml-backend.cpp": "e89eb5df18f9f618c606edf398de1cc53dc6f443",
+      "ggml/include/ggml-backend.h": "68fd1ab593a1093f9ec9f14e64fd6aec47e6ef22",
+      "src/llama-context.cpp": "6c7bdd05d0aa8cfeced0badf600c09acb7184556",
+      "src/llama-context.h": "7fc685ae11f872ae365e6e3739fc2a9156568b7f",
+      "tests/test-halofpx-rpc-mutable-authority.cpp": "3c92fdc57b73ec8ae263655194befcda20f09724",
+      "tests/test-halofpx-scheduler-authority.cpp": "7490157d223e211ad4b8c1c7c1f0287ac5ece56e",
+      "tests/test-halofpx-distributed-state-canary.cpp": "42f4a758234fce52342bf4114de5312bf0c94b13"
+    }
+  },
+  "ordinary_rpc": {
+    "rpc_tensor_bytes": 296,
+    "graph_recompute": {
+      "opcode": 16,
+      "payload_bytes": 4,
+      "request_wire_bytes": 13,
+      "response_wire_bytes": 0,
+      "waits_for_response": false
+    },
+    "get_tensor": {
+      "opcode": 8,
+      "payload_bytes": 312,
+      "request_wire_bytes": 321,
+      "response_header_bytes": 8,
+      "response_body_bytes": "N",
+      "waits_for_response": true
+    },
+    "ordered_completion_absorbed_by_get": true,
+    "rpc_synchronize_is_noop": true,
+    "rpc_async_get_available": false,
+    "rpc_async_copy_available": false,
+    "rpc_events_available": false
+  },
+  "retained_evidence": {
+    "p08": {
+      "record": "docs/halofpx/p08-exact-model-critical-path-profile.md",
+      "receipt": "docs/halofpx/evidence/p08-exact-model-critical-path-profile-receipt.json",
+      "generated_tokens": 128,
+      "coordinator_filtered_recvfrom_count": 128,
+      "worker_filtered_recvfrom_count": 129,
+      "coordinator_filtered_recvfrom_p50_ms": 30.423,
+      "worker_filtered_recvfrom_p50_ms": 28.86,
+      "interpretation": "diagnostic serialized rank phases; not a command-level trace"
+    },
+    "p05": {
+      "record": "docs/halofpx/p05-rpc-small-command-coalescing-rejection.md",
+      "receipt": "docs/halofpx/evidence/p05-rpc-small-command-coalescing-rejection-receipt.json",
+      "send_calls_off": 8509,
+      "send_calls_on": 8257,
+      "removed_send_calls": 252,
+      "removed_send_calls_percent": 2.96,
+      "generation_delta_percent": -0.0057,
+      "prompt_delta_percent": -0.0461,
+      "wall_delta_percent": 0.0592,
+      "decision": "rejected_and_removed"
+    }
+  },
+  "authenticated_composed_path": {
+    "ordinary_product_path": false,
+    "llama_composed_lane_only_in_tree_armer": "tests/test-halofpx-distributed-state-canary.cpp",
+    "direct_low_level_rpc_test_armer": "tests/test-halofpx-rpc-mutable-authority.cpp",
+    "llama_can_reuse_explicitly_disabled": true,
+    "serialized_graph_bytes_formula": "G = 12 + 8*N_nodes + 296*N_tensors",
+    "full_compute_application_bytes_per_rpc_split": "1090 + G",
+    "recompute_application_bytes_per_rpc_split": 1090,
+    "blocking_exchanges_per_rpc_split": 2,
+    "separate_recompute_prepare_receipt": true,
+    "separate_execute_completion_receipt": true,
+    "two_phase_boundary_is_accepted_l40_contract": true,
+    "fusion_admitted": false,
+    "simple_can_reuse_admitted": false,
+    "simple_can_reuse_refusal_reasons": [
+      "fresh scheduler authority is not populated from a retained graph",
+      "retained graph source edges have already been rewritten to scheduler copies",
+      "fresh root census split binding and mutable admission live only in rebuild path",
+      "fresh composed transcript differs while current recompute requires stored transcript equality"
+    ],
+    "reason": "shortcut would change client-validated preparation authority, accept stale lineage, or create ambiguous-outcome semantics"
+  },
+  "tracked_follow_up": {
+    "issue": 58,
+    "url": "https://github.com/JCFrags/HaloFPX/issues/58",
+    "phase_1": {
+      "name": "retained_scheduler_plan_with_fresh_full_authenticated_compute",
+      "default_off": true,
+      "removes_rpc_commands": false,
+      "removes_rpc_waits": false,
+      "removes_graph_bytes": false,
+      "claim": "enabling substrate only"
+    },
+    "phase_2": {
+      "name": "versioned_prior_lineage_authenticated_recompute",
+      "preserves_two_phase_l40": true,
+      "current_server_graph_slots_per_endpoint_device": 1,
+      "required_cardinality_policy": "exactly_one_reusable_split_per_endpoint_device_or_capability_gated_bounded_multi_uid_table",
+      "potential_graph_bytes_removed_per_cardinality_admitted_rpc_split": "G",
+      "required_multi_split_test": "same_endpoint_device_cardinality_refusal_or_bounded_multi_uid_retention_eviction_invalidation",
+      "performance_claim": false
+    }
+  },
+  "ranked_next_work": [
+    "issue_58_retained_scheduler_authority_then_versioned_prior_lineage_recompute",
+    "model_general_rank_parallel_fork_join_execution",
+    "negotiated_async_completion_and_copy_events_for_prompt_processing",
+    "profile_then_consider_device_visible_activation_exchange",
+    "reject_legacy_recompute_get_fusion_or_compact_handles_without_new_mechanism",
+    "reject_authenticated_recompute_execute_fusion"
+  ],
+  "performance_claim": false,
+  "single_node_behavior_changed": false,
+  "feature_off_behavior_changed": false
+}
