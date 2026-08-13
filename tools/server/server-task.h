@@ -11,6 +11,7 @@
 
 // TODO: prevent including the whole server-common.h as we only use server_tokens
 #include "server-common.h"
+#include "server-metrics-prometheus.h"
 
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
 #include "halofpx-context-store-world1-prefix-product-v1.h"
@@ -253,6 +254,9 @@ struct server_task {
 
     // used by SERVER_TASK_TYPE_METRICS
     bool metrics_reset_bucket = false;
+    // Set only by GET /metrics. GET /slots shares the task type but must not
+    // acquire sampling synchronization telemetry or depend on its getter.
+    bool include_sampling_sync_metrics = false;
 
     // used by SERVER_TASK_TYPE_SET_LORA
     std::map<int, float> set_lora; // mapping adapter ID -> scale
@@ -618,6 +622,11 @@ struct server_task_result_metrics : server_task_result {
 
     uint64_t n_decode_total     = 0;
     uint64_t n_busy_slots_total = 0;
+
+    // Cumulative context-lifetime observability. Populated only when
+    // include_sampling_sync_metrics is set by GET /metrics; it is not
+    // completion, slot-route, or streaming-request metadata.
+    server_sampling_sync_metrics sampling_sync;
 
     // while we can also use std::vector<server_slot> this requires copying the slot object which can be quite messy
     // therefore, we use json to temporarily store the slot.to_json() result

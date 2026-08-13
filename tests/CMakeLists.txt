@@ -150,6 +150,13 @@ add_test(NAME test-halofpx-sampling-sync-coalesce
     COMMAND test-halofpx-sampling-sync-coalesce)
 set_property(TEST test-halofpx-sampling-sync-coalesce PROPERTY LABELS "main;halofpx")
 
+add_test(
+    NAME test-halofpx-sampling-sync-metrics-contract
+    COMMAND ${CMAKE_COMMAND}
+        -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-sampling-sync-metrics-contract.cmake)
+set_property(TEST test-halofpx-sampling-sync-metrics-contract PROPERTY LABELS "main;halofpx")
+
 add_executable(test-halofpx-output-row
     test-halofpx-output-row.cpp)
 target_compile_features(test-halofpx-output-row PRIVATE cxx_std_17)

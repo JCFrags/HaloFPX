@@ -1085,6 +1085,19 @@ In *router mode* the query param `?model={model_id}` has to be set. This endpoin
 | `llamacpp:n_tokens_max` | Counter | High watermark of the context size observed. |
 | `llamacpp:n_decode_total` | Counter | Total Number of llama_decode() calls. |
 | `llamacpp:n_busy_slots_per_decode` | Gauge | Average number of busy slots per llama_decode() call. |
+| `llamacpp:halofpx_sampling_sync_output_epochs_total` | Counter | Output synchronization epochs started during the current context lifetime, including output reserve/reset boundaries; this is not a request or generated-token count. |
+| `llamacpp:halofpx_sampling_sync_completed_barriers_total` | Counter | Output-result scheduler barriers completed during the current context lifetime. |
+| `llamacpp:halofpx_sampling_sync_reused_barriers_total` | Counter | Completed output-result barriers reused during the current context lifetime. This remains zero when the canary is off. |
+| `llamacpp:halofpx_sampling_sync_graph_submissions_total` | Counter | Output graph submissions during the current context lifetime. |
+| `llamacpp:halofpx_sampling_sync_output_transfers_total` | Counter | Host-output transfers enqueued during the current context lifetime. |
+
+The five `halofpx_sampling_sync_*` values are cumulative context-lifetime
+counters. Reading `/metrics` does not synchronize the inference context. They
+have no completion, slot, or Server-Sent Events (SSE) request attribution. The
+`/slots` route does not acquire them. They reset when a new context/process
+replaces the old one. Measure one isolated request by retaining the same
+process identity and subtracting a `/metrics` snapshot taken immediately before
+it from a snapshot taken immediately after it.
 
 ### POST `/slots/{id_slot}?action=save`: Save the prompt cache of the specified slot to a file.
 

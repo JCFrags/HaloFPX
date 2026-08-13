@@ -215,15 +215,16 @@ jobs:
           --target
           llama-server
           test-halofpx-sampling-sync-coalesce
+          test-server-sampling-sync-metrics
           test-halofpx-output-row
           test-backend-sampler
           --parallel 2
 
-      - name: Run pure synchronization and row contracts
+      - name: Run synchronization, metrics, and row contracts
         run: >-
           ctest --test-dir build/ci-sampling-sync
           --output-on-failure
-          -R '^(test-halofpx-sampling-sync-coalesce|test-halofpx-output-row)$'
+          -R '^(test-halofpx-sampling-sync-coalesce|test-halofpx-sampling-sync-metrics-contract|test-server-sampling-sync-metrics|test-halofpx-output-row)$'
 
       - name: Download and verify pinned tiny model fixture
         # Test-only, checksum-pinned external fixture; it is not redistributed.
