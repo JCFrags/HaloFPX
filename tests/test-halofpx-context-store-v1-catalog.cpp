@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <fcntl.h>
 #include <map>
+#include <limits>
 #include <string>
 #include <sys/stat.h>
 #include <type_traits>
@@ -743,6 +744,8 @@ void test_product_install_rejects_authority_switch_and_negative_sequence() {
         state_api, request);
     assert(installed.status ==
         halofpx::context_store_world1_prefix_install_status_v1::authority_changed);
+    assert(!installed.state_apply_input_bytes_valid);
+    assert(installed.state_apply_input_bytes == 0);
     assert(state_api.set_calls == 0);
     assert(!lookup.hit() && !lookup.authority_bound);
 
@@ -756,6 +759,8 @@ void test_product_install_rejects_authority_switch_and_negative_sequence() {
         state_api, request);
     assert(installed.status ==
         halofpx::context_store_world1_prefix_install_status_v1::rejected);
+    assert(!installed.state_apply_input_bytes_valid);
+    assert(installed.state_apply_input_bytes == 0);
     assert(state_api.set_calls == 0);
     assert(!lookup.hit() && !lookup.authority_bound);
 
@@ -788,6 +793,63 @@ void test_product_work_accounting_is_bounded_and_unambiguous() {
     work = halofpx::context_store_world1_finalize_work_accounting_v1(8, 9);
     assert(!work.valid && work.actual_prompt_tokens == 0 &&
            work.avoided_prompt_tokens == 0);
+}
+
+void test_product_inclusive_cache_maintenance_has_four_exact_rows() {
+    using measurements =
+        halofpx::context_store_world1_cache_maintenance_measurements_v1;
+
+    // Row 1: no selected-slot transition or idle-save block ran.  Their
+    // canonical zeroes still produce a valid arithmetic aggregate.
+    measurements not_run;
+    auto total =
+        halofpx::context_store_world1_finalize_cache_maintenance_v1(not_run);
+    assert(!not_run.selected_slot_transition_measured);
+    assert(!not_run.postlaunch_idle_slot_saves_measured);
+    assert(total.valid && total.preprompt_cache_maintenance_ns == 0);
+    not_run.selected_slot_transition_ns = 1;
+    total = halofpx::context_store_world1_finalize_cache_maintenance_v1(not_run);
+    assert(!total.valid && total.preprompt_cache_maintenance_ns == 0);
+
+    // Row 2: both clocks ran and measured zero.  The measured bits preserve
+    // the distinction from row 1 without inventing elapsed time.
+    measurements measured_zero;
+    measured_zero.selected_slot_transition_measured = true;
+    measured_zero.postlaunch_idle_slot_saves_measured = true;
+    total = halofpx::context_store_world1_finalize_cache_maintenance_v1(
+        measured_zero);
+    assert(measured_zero.selected_slot_transition_measured);
+    assert(measured_zero.postlaunch_idle_slot_saves_measured);
+    assert(total.valid && total.preprompt_cache_maintenance_ns == 0);
+
+    // Row 3: the inclusive value is the exact checked sum of all four
+    // non-overlapping components.
+    measurements measured_nonzero;
+    measured_nonzero.selected_slot_transition_measured = true;
+    measured_nonzero.selected_slot_transition_ns = 3;
+    measured_nonzero.lookup_total_ns = 5;
+    measured_nonzero.state_install_cleanup_ns = 7;
+    measured_nonzero.postlaunch_idle_slot_saves_measured = true;
+    measured_nonzero.postlaunch_idle_slot_saves_ns = 11;
+    total = halofpx::context_store_world1_finalize_cache_maintenance_v1(
+        measured_nonzero);
+    assert(total.valid && total.preprompt_cache_maintenance_ns == 26);
+
+    // Row 4: overflow invalidates and zeroes only the aggregate.  Every
+    // independently useful component and measured bit remains unchanged.
+    measurements overflow = measured_nonzero;
+    overflow.selected_slot_transition_ns =
+        std::numeric_limits<uint64_t>::max();
+    total = halofpx::context_store_world1_finalize_cache_maintenance_v1(
+        overflow);
+    assert(!total.valid && total.preprompt_cache_maintenance_ns == 0);
+    assert(overflow.selected_slot_transition_measured);
+    assert(overflow.selected_slot_transition_ns ==
+           std::numeric_limits<uint64_t>::max());
+    assert(overflow.lookup_total_ns == 5);
+    assert(overflow.state_install_cleanup_ns == 7);
+    assert(overflow.postlaunch_idle_slot_saves_measured);
+    assert(overflow.postlaunch_idle_slot_saves_ns == 11);
 }
 
 void test_product_same_system_prefix_different_suffix_and_exact_hit() {
@@ -837,6 +899,8 @@ void test_product_same_system_prefix_different_suffix_and_exact_hit() {
     assert(installed.installed());
     assert(installed.installed_prefix_tokens == shared_system.size());
     assert(installed.residual_tokens == 1);
+    assert(installed.state_apply_input_bytes_valid);
+    assert(installed.state_apply_input_bytes == 2);
     assert(state_api.set_calls == 1);
     assert(state_api.last_context == fake_product_context());
     assert(state_api.last_sequence == 3);
@@ -876,6 +940,8 @@ void test_product_same_system_prefix_different_suffix_and_exact_hit() {
     assert(exact_installed.installed());
     assert(exact_installed.installed_prefix_tokens == request_a.size());
     assert(exact_installed.residual_tokens == 0);
+    assert(exact_installed.state_apply_input_bytes_valid);
+    assert(exact_installed.state_apply_input_bytes == 2);
     assert((state_api.restored_state == std::vector<uint8_t>{ 0xb1, 0xb2 }));
 
     result = product_lookup(
@@ -890,6 +956,8 @@ void test_product_same_system_prefix_different_suffix_and_exact_hit() {
             state_api, install_request);
     assert(failed_install.status ==
         halofpx::context_store_world1_prefix_install_status_v1::state_apply_failed);
+    assert(!failed_install.state_apply_input_bytes_valid);
+    assert(failed_install.state_apply_input_bytes == 0);
     assert(state_api.set_calls == 1);
     assert(result.snapshot.state.empty());
     assert(!result.hit());
@@ -1003,6 +1071,7 @@ int main() {
     test_product_catalog_mutation_custody_is_enforced();
     test_product_install_rejects_authority_switch_and_negative_sequence();
     test_product_work_accounting_is_bounded_and_unambiguous();
+    test_product_inclusive_cache_maintenance_has_four_exact_rows();
     test_product_same_system_prefix_different_suffix_and_exact_hit();
     test_product_corrupt_longer_candidate_is_terminal_cold();
     test_product_authority_mismatch_and_generation_change_are_cold();

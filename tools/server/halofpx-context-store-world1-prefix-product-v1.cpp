@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -367,10 +368,47 @@ context_store_world1_prefix_install_result_v1 install(
     result.status = context_store_world1_prefix_install_status_v1::installed;
     result.installed_prefix_tokens = lookup.selected_prefix_tokens;
     result.residual_tokens = lookup.residual_tokens;
+    result.state_apply_input_bytes =
+        static_cast<uint64_t>(lookup.snapshot.state.size());
+    result.state_apply_input_bytes_valid =
+        static_cast<size_t>(result.state_apply_input_bytes) ==
+            lookup.snapshot.state.size();
+    if (!result.state_apply_input_bytes_valid) {
+        result.state_apply_input_bytes = 0;
+    }
     return finish();
 }
 
 } // namespace
+
+context_store_world1_cache_maintenance_total_v1
+context_store_world1_finalize_cache_maintenance_v1(
+        const context_store_world1_cache_maintenance_measurements_v1 &
+            measurements) noexcept {
+    context_store_world1_cache_maintenance_total_v1 result;
+    if ((!measurements.selected_slot_transition_measured &&
+         measurements.selected_slot_transition_ns != 0) ||
+        (!measurements.postlaunch_idle_slot_saves_measured &&
+         measurements.postlaunch_idle_slot_saves_ns != 0)) {
+        return result;
+    }
+    const uint64_t components[] = {
+        measurements.selected_slot_transition_ns,
+        measurements.lookup_total_ns,
+        measurements.state_install_cleanup_ns,
+        measurements.postlaunch_idle_slot_saves_ns,
+    };
+    uint64_t total = 0;
+    for (const uint64_t component : components) {
+        if (component > std::numeric_limits<uint64_t>::max() - total) {
+            return result;
+        }
+        total += component;
+    }
+    result.valid = true;
+    result.preprompt_cache_maintenance_ns = total;
+    return result;
+}
 
 context_store_world1_prefix_install_result_v1
 context_store_world1_prefix_install_v1(

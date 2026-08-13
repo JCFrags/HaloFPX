@@ -125,11 +125,42 @@ struct context_store_world1_prefix_install_result_v1 {
         context_store_transformer_status_v1::invalid_argument;
     size_t installed_prefix_tokens = 0;
     size_t residual_tokens = 0;
+    // Semantic bytes supplied to the state-apply API.  This becomes valid
+    // only after the API accepts the complete input.  A rejected, partial,
+    // or unattempted apply reports zero/false.
+    uint64_t state_apply_input_bytes = 0;
+    bool state_apply_input_bytes_valid = false;
 
     bool installed() const noexcept {
         return status == context_store_world1_prefix_install_status_v1::installed;
     }
 };
+
+// Non-overlapping request-local clocks that execute before ordinary prompt
+// timing starts.  The measured bits distinguish a real zero-duration clock
+// from a phase that did not run.  lookup_total_ns and
+// state_install_cleanup_ns retain their ADR-0054 meanings.
+struct context_store_world1_cache_maintenance_measurements_v1 {
+    bool selected_slot_transition_measured = false;
+    uint64_t selected_slot_transition_ns = 0;
+    uint64_t lookup_total_ns = 0;
+    uint64_t state_install_cleanup_ns = 0;
+    bool postlaunch_idle_slot_saves_measured = false;
+    uint64_t postlaunch_idle_slot_saves_ns = 0;
+};
+
+struct context_store_world1_cache_maintenance_total_v1 {
+    bool valid = false;
+    uint64_t preprompt_cache_maintenance_ns = 0;
+};
+
+// Return an inclusive checked sum of the four clocks above.  Not-run phases
+// contribute their canonical zero.  Overflow or a noncanonical unmeasured
+// nonzero phase invalidates only the aggregate; callers retain and report every
+// component unchanged.
+context_store_world1_cache_maintenance_total_v1
+context_store_world1_finalize_cache_maintenance_v1(
+    const context_store_world1_cache_maintenance_measurements_v1 & measurements) noexcept;
 
 struct context_store_world1_work_accounting_v1 {
     bool valid = false;

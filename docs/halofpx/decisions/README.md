@@ -62,3 +62,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0055 (proposed)](0055-rocmfpx-strict-n1-mmvq-qkv-q8-reuse.md): strict n=1 ROCmFPX Q/K/V MMVQ Q8_1 activation reuse
 - [ADR-0056](0056-versioned-strix-ab-runtime-comparison.md): versioned Strix A/B runtime comparison
 - [ADR-0057](0057-offline-strix-maintenance-admission-controller.md): offline-only issue-#41 Strix maintenance admission controller
+- [ADR-0059](0059-inclusive-world1-cache-maintenance-telemetry.md): inclusive world-1 cache-maintenance telemetry

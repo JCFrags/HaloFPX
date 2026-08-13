@@ -153,8 +153,15 @@ struct halofpx_cache_telemetry_v1 {
     size_t restored_state_tokens = 0;
     size_t logical_residual_tokens = 0;
     size_t candidates_examined = 0;
-    uint64_t lookup_total_ns = 0;
-    uint64_t state_install_cleanup_ns = 0;
+    halofpx::context_store_world1_cache_maintenance_measurements_v1 maintenance;
+    uint64_t state_apply_input_bytes = 0;
+    bool state_apply_input_bytes_valid = false;
+
+    void clear_attempt_measurements() noexcept {
+        maintenance = {};
+        state_apply_input_bytes = 0;
+        state_apply_input_bytes_valid = false;
+    }
 
     void clear() noexcept {
         *this = {};

@@ -1,0 +1,10 @@
+{
+  "prompt": "The next word is",
+  "stream": false,
+  "cache_prompt": true,
+  "temperature": 0,
+  "samplers": ["temperature"],
+  "seed": 1,
+  "n_predict": 4,
+  "return_tokens": true
+}
