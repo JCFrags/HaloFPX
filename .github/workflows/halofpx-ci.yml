@@ -76,6 +76,7 @@ jobs:
           tests/test_halofpx_strix_ab_cachyos.py
           tests/test_halofpx_strix_maintenance.py
           tests/test_halofpx_strix_recovery_watchdog.py
+          tests/test_halofpx_strix_nonce_protocol.py
           -v
 
       - name: Run portable ROCmFPX fixture tests
