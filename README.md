@@ -75,6 +75,13 @@ kill gates without turning them into claims.
   [Issue #41](https://github.com/JCFrags/HaloFPX/issues/41) is the P0
   prerequisite for any target build, quantization, disposable inference, or
   benchmark.
+- **[VERIFIED] Hosted only:** the
+  [offline maintenance admission controller](docs/halofpx/strix-maintenance-admission-controller.md)
+  now models issue-#41 shutdown, adapter cleanup, worker-first recovery, exact
+  owner census, and the mandatory minimal two-rank probe through deterministic
+  fakes. Its target gate is literal false and the controller defines or
+  constructs no target Runner or SSH path. It is not a maintenance
+  authorization or performance result.
 
 ## Start here
 

@@ -11,6 +11,12 @@ production or any unaccounted KFD/render/HMM owner is active. Ordinary
 `MemAvailable` and RSS readings are insufficient under high `gpu_active` HMM
 ownership. The [2026-08-12 incident](../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
 is a safety record with no benchmark or performance result.
+The repository's
+[offline maintenance controller](../docs/halofpx/strix-maintenance-admission-controller.md)
+qualifies only the fake transaction model. It keeps target execution literal
+false. Owner-signed authorization, exact reviewed-source binding, atomic
+two-node receipt consumption, and an independent recovery watchdog remain
+mandatory before any real maintenance-controller proposal.
 
 ## Outcomes
 
@@ -147,6 +153,12 @@ CachyOS A/B-adapter parts of this work. Closed issue #16 supplies the
 model-general evidence core used by #37.
 
 ### 3. First low-risk target screens
+
+Do not begin these screens through the offline controller. They remain blocked
+until issue #41 is resolved in a real isolated maintenance window. Any future
+real controller must first implement every ADR-0057 promotion gate, including
+cryptographic owner approval, atomic authorization consumption across both
+nodes, and an independent worker-first recovery watchdog.
 
 - Compare `n_batch/n_ubatch` `512/512` with `2048/512` while holding every
   other variable fixed. The 1,129-token stress prompt currently crosses three

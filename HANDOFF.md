@@ -129,6 +129,14 @@ branch pointer. A fresh worker must record and validate its own checked-out
 - [PR #51](https://github.com/JCFrags/HaloFPX/pull/51) merged the blocked,
   read-only-first CachyOS A/B adapter draft. It does not authorize target work
   while issue #41 remains open.
+- ADR-0057 and the
+  [offline maintenance admission controller](docs/halofpx/strix-maintenance-admission-controller.md)
+  model issue-#41 custody and worker-first recovery through deterministic
+  fakes only. Target execution remains literal false; the controller defines
+  or constructs no target Runner or SSH path. Owner signature verification,
+  exact source binding, atomic
+  two-node receipt consumption, and an independent recovery watchdog are
+  mandatory before a separate real-target promotion can be considered.
 - [PR #52](https://github.com/JCFrags/HaloFPX/pull/52) merged the standalone
   default-off typed live-derived cache-authority slice. Loader capture,
   request/context resolution, reload invalidation, and product adaptation

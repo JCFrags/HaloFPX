@@ -62,6 +62,15 @@ two-rank inference before declaring recovery. The immutable
 [incident record](halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
 is safety evidence, not a benchmark.
 
+The [offline maintenance admission controller](halofpx/strix-maintenance-admission-controller.md)
+models this transaction but does not authorize or execute it. Its target gate
+is literal false and the controller defines or constructs no target Runner or
+SSH path. A real promotion
+requires, among the other issue-#41 checks, an owner signature over the exact
+receipt, atomic replay-proof receipt consumption on both nodes, and an
+independent worker-first recovery watchdog. Do not treat offline validation as
+a maintenance window.
+
 That receipt's latest retained recovery baseline is nimo-1 PID `3113343`,
 InvocationID `0656332b63a140eab7214627baa43253`, `NRestarts=1`, and nimo-2
 PID `2248760`, InvocationID `d15fe49610274e77bd9a3d84a0b791a5`,

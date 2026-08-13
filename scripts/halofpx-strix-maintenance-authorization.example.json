@@ -1,0 +1,83 @@
+{
+  "schema": "halofpx.strix-maintenance-authorization.v1",
+  "authorization_id": "issue41-offline-domain-example-v1",
+  "issue": 41,
+  "execution_scope": "offline-domain-simulation",
+  "approval_statement": "This tracked receipt authorizes offline domain simulation only and does not authorize access to or mutation of nimo-1 or nimo-2.",
+  "authority": {
+    "repository": "JCFrags/HaloFPX",
+    "issue_number": 41,
+    "kind": "github_issue_comment",
+    "url": "https://github.com/JCFrags/HaloFPX/issues/41#issuecomment-5275179712",
+    "node_id": "IC_kwDOT2ckv88AAAABOmzawA",
+    "issuer_login": "JCFrags",
+    "issuer_account_id": 222912166,
+    "owner_login": "JCFrags",
+    "owner_account_id": 222912166
+  },
+  "window": {
+    "not_before_utc": "2026-08-13T06:00:00Z",
+    "expires_utc": "2026-08-13T08:00:00Z"
+  },
+  "nonce": "offline-domain-example-0123456789abcdef",
+  "repository": {
+    "url": "https://github.com/JCFrags/HaloFPX.git",
+    "commit": "9bfccf25d43af0c446df591035e9cdac0b74d6c0"
+  },
+  "incident": {
+    "manifest_path": "docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/manifest.json",
+    "manifest_sha256": "331634016681b57183aedbea3550f95d86486ce21d1baf8e7e3e3e5c6f35d815"
+  },
+  "adapter": {
+    "plan_sha256": "137460c51803b49c0d5f3f2066e2e483430ca9f9bf38bce905f0b923266d15f0",
+    "policy_sha256": "09d1c39f7c0776f6984d50a8d2cb8ab57ea12ddda7c08db4726848b158db7452",
+    "schedule_index": 0
+  },
+  "allowed_disposable": {
+    "evidence_root": "C:\\HaloFPX\\offline-maintenance-example",
+    "unit_prefix": "halofpx-ab-",
+    "coordinator_port": 18080,
+    "worker_port": 50252
+  },
+  "production_before": {
+    "coordinator": {
+      "role": "coordinator",
+      "host": "nimo-1",
+      "unit": "minimax-m27-q6-server.service",
+      "pid": 41001,
+      "invocation_id": "11111111111111111111111111111111",
+      "nrestarts": 0,
+      "process_start_ticks": 100001,
+      "start_monotonic_us": 1000001,
+      "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "argv_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "control_group": "/system.slice/minimax-m27-q6-server.service",
+      "listener_port": 8081,
+      "listener_pid": 41001,
+      "health_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "worker": {
+      "role": "worker",
+      "host": "nimo-2",
+      "unit": "minimax-m27-rpc-worker.service",
+      "pid": 42002,
+      "invocation_id": "22222222222222222222222222222222",
+      "nrestarts": 0,
+      "process_start_ticks": 200002,
+      "start_monotonic_us": 2000002,
+      "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "argv_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "control_group": "/system.slice/minimax-m27-rpc-worker.service",
+      "listener_port": 50052,
+      "listener_pid": 42002,
+      "health_sha256": null
+    }
+  },
+  "recovery_probe": {
+    "request_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "prompt_tokens": 5,
+    "generated_tokens": 1,
+    "world_size": 2,
+    "performance_result": false
+  }
+}
