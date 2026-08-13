@@ -49,16 +49,23 @@ manifest/frame/state/token limits without loading state objects. Any relevant
 corrupt, incomplete, ambiguous, pending, missing, incompatible, or uncertain
 record clears the candidate set and forces a cold result.
 
-The product coordinator invokes the ADR-0051 selector longest first. Once an
-authenticated record for a candidate identity is selected, any child failure
-is terminal and cannot fall through to a shorter prefix. A hit is re-bound to
-the exact selected-boundary identity, installed through the existing
-transformer state API, consumed once, and explicitly wiped. A failed or stale
-installation clears the destination state and computes cold. Old live slot
-checkpoint blobs are discarded around external restart-state installation. If
-request validation or sampler construction subsequently rejects launch, the
-installed KV state, prefix tokens, and checkpoint metadata are rolled back
-before the slot returns idle.
+The product coordinator obtains nonblocking catalog-mutation custody before
+authenticated boundary discovery and retains it across the complete ADR-0051
+longest-to-shortest selector call. Every catalog publication obtains the same
+process-local mutation exclusion; a competing lookup or publication returns a
+typed busy result and computes cold. Read-only catalog operations retain their
+independent bounded operation locks. Thus no publication can interleave
+between selector probes and create a mixed catalog view.
+
+Once an authenticated record for a candidate identity is selected, any child
+failure is terminal and cannot fall through to a shorter prefix. A hit is
+re-bound to the exact selected-boundary identity, installed through the
+existing transformer state API, consumed once, and explicitly wiped. A failed
+or stale installation clears the destination state and computes cold. Old live
+slot checkpoint blobs are discarded around external restart-state
+installation. If request validation or sampler construction subsequently
+rejects launch, the installed KV state, prefix tokens, and checkpoint metadata
+are rolled back before the slot returns idle.
 
 The server inserts only the authenticated prefix tokens into an empty slot.
 The ordinary prompt path then derives `n_past` from those tokens and evaluates
@@ -92,8 +99,9 @@ Hosted deterministic tests cover feature-off and no-authority cold results,
 authenticated restart discovery, preseeded exact-prefix reuse for two distinct
 suffixes, exact hit accounting, one-shot state application and wiping, failed
 state application, authority/generation mismatch, canonical catalog-v1 bytes,
-and terminal corrupt/incomplete longer candidates. The gated `llama-server`
-build and inherited exact/selector contracts must remain green.
+catalog-mutation custody with busy publication/lookup behavior, and terminal
+corrupt/incomplete longer candidates. The gated `llama-server` build and
+inherited exact/selector contracts must remain green.
 
 These tests do not execute a positive server hit because no trusted live-loader
 authority provider exists. They do not prove slot insertion, model output

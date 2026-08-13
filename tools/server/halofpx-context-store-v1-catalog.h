@@ -69,6 +69,31 @@ struct context_store_v1_catalog_prefix_result {
 
 struct context_store_v1_catalog_open_result;
 
+// A nonblocking, process-local exclusion token for a sequence of catalog reads
+// that must observe no intervening publication. The catalog's lifetime must
+// exceed the token's lifetime. Read-only operations retain their independent
+// bounded operation locks while this token is held.
+class context_store_v1_catalog_mutation_custody {
+public:
+    context_store_v1_catalog_mutation_custody(
+        context_store_v1_catalog_mutation_custody &&) noexcept = default;
+    context_store_v1_catalog_mutation_custody & operator=(
+        context_store_v1_catalog_mutation_custody &&) noexcept = default;
+    context_store_v1_catalog_mutation_custody(
+        const context_store_v1_catalog_mutation_custody &) = delete;
+    context_store_v1_catalog_mutation_custody & operator=(
+        const context_store_v1_catalog_mutation_custody &) = delete;
+
+    bool owns_custody() const noexcept { return lock_.owns_lock(); }
+
+private:
+    explicit context_store_v1_catalog_mutation_custody(std::mutex & mutex) noexcept
+        : lock_(mutex, std::try_to_lock) {}
+
+    std::unique_lock<std::mutex> lock_;
+    friend class context_store_v1_catalog;
+};
+
 class context_store_v1_catalog {
 public:
     ~context_store_v1_catalog();
@@ -89,11 +114,14 @@ public:
     // validation authority.
     context_store_v1_catalog_prefix_result discover_prefix_token_counts(
         const context_store_v1_catalog_prefix_query & query) noexcept;
+    context_store_v1_catalog_mutation_custody
+        acquire_mutation_custody() noexcept;
 
 private:
     class implementation;
     explicit context_store_v1_catalog(std::unique_ptr<implementation>) noexcept;
     std::unique_ptr<implementation> implementation_;
+    std::mutex mutation_mutex_;
     std::mutex operation_mutex_;
     friend struct context_store_v1_catalog_open_result;
     friend context_store_v1_catalog_open_result

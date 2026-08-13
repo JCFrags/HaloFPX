@@ -51,8 +51,8 @@ The inherited catalog locks each `restore_exact` probe separately. Therefore,
 the caller must prevent publish or any other catalog mutation for the whole
 selector call; concurrent read-only restores are allowed. Without that
 quiescent-mutation boundary, a publication could interleave between probes and
-the result would not represent one atomic catalog snapshot. Product ADR-0054
-owns the separate coordinator needed to enforce that boundary.
+the result would not represent one atomic catalog snapshot. ADR-0054's product
+coordinator owns and enforces that boundary.
 
 An accepted result reports matched-token count, restored-token count, suffix
 offset/count, candidates examined, a fixed-cardinality fallback reason, the

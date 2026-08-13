@@ -51,8 +51,8 @@ The standalone API is deterministic over a quiescent catalog. Its public
 catalog dependency locks each exact probe independently, so the caller must
 hold catalog-mutation custody across the complete longest-to-shortest call.
 No publish or other catalog mutation may interleave between probes; concurrent
-read-only restores are permitted. A later product coordinator must enforce
-this custody explicitly rather than treating the selector as an atomic catalog
+read-only restores are permitted. ADR-0054's product coordinator enforces this
+custody explicitly rather than treating the selector as an atomic catalog
 snapshot.
 
 A missing candidate or a catalog entry under a different authenticated
@@ -86,8 +86,9 @@ no unapproved product link, the exact default-off ADR-0054 exception when
 present, exact-session/catalog calls, and absence of fuzzy, prompt-text, FNV,
 or string-based selection.
 
-This qualification does not prove behavior under concurrent publication; such
-use violates the standalone API contract above.
+The standalone qualification does not prove behavior under concurrent
+publication; calling it without the mutation-custody contract violates this
+API boundary. ADR-0054 separately qualifies its guarded composition.
 
 This does not close issue #32. Fresh-process selector execution, pinned-model
 output equality, canonical-token/timing evidence, retained raw evidence, real

@@ -637,6 +637,45 @@ void test_product_feature_off_and_live_authority_unavailable_are_cold() {
         "live-slot-state-present");
 }
 
+void test_product_catalog_mutation_custody_is_enforced() {
+    catalog_roots roots;
+    std::array<uint8_t, 32> operator_key {};
+    operator_key.fill(0x41);
+    auto config = make_config(roots, operator_key);
+    const auto authority = authority_for(config);
+    std::array<uint8_t, 32> derivation_key {};
+    derivation_key.fill(0x91);
+    halofpx::context_store_format_digest scope {};
+    scope.fill(0x51);
+    const std::vector<llama_token> tokens { 31, 37, 41 };
+    const auto checkpoint = exact_snapshot(
+        authority, derivation_key, scope, tokens, { 0x71, 0x72 });
+    auto opened = halofpx::make_context_store_v1_catalog(config);
+    assert(opened.catalog != nullptr);
+    assert(opened.catalog->publish(checkpoint).status ==
+        halofpx::context_store_v1_catalog_status::published);
+
+    {
+        auto custody = opened.catalog->acquire_mutation_custody();
+        assert(custody.owns_custody());
+        auto duplicate = opened.catalog->acquire_mutation_custody();
+        assert(!duplicate.owns_custody());
+        assert(opened.catalog->publish(checkpoint).status ==
+            halofpx::context_store_v1_catalog_status::busy);
+        const auto result = product_lookup(
+            opened.catalog.get(), &authority, derivation_key, scope, tokens);
+        assert(!result.hit());
+        assert(result.fallback ==
+            halofpx::context_store_world1_prefix_fallback_v1::catalog_busy);
+    }
+
+    const auto result = product_lookup(
+        opened.catalog.get(), &authority, derivation_key, scope, tokens);
+    assert(result.hit());
+    assert(result.source ==
+        halofpx::context_store_world1_prefix_source_v1::exact);
+}
+
 void test_product_same_system_prefix_different_suffix_and_exact_hit() {
     catalog_roots roots;
     std::array<uint8_t, 32> operator_key {};
@@ -836,6 +875,7 @@ int main() {
     test_authenticated_incomplete_identity_is_terminal();
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
     test_product_feature_off_and_live_authority_unavailable_are_cold();
+    test_product_catalog_mutation_custody_is_enforced();
     test_product_same_system_prefix_different_suffix_and_exact_hit();
     test_product_corrupt_longer_candidate_is_terminal_cold();
     test_product_authority_mismatch_and_generation_change_are_cold();

@@ -34,14 +34,18 @@ candidate list.
 
 **[VERIFIED]** A selected child failure is terminal cold. It never falls
 through to a shorter prefix. The coordinator rederives the selected exact
-identity, applies state only while authority generation remains current,
-consumes the snapshot once, wipes state and token material, and reports typed
-logical prefix/residual counts. Server installation discards stale live slot
-checkpoints and inserts only the restored prefix tokens so the ordinary prompt
-path can evaluate the suffix. A rejected post-restore task launch rolls the
-slot back to cold. Exact hits preserve mandatory one-token logits replay;
-server telemetry reports that effective replay as one residual token while the
-selector retains logical residual zero internally.
+identity and holds catalog-mutation custody across discovery and the complete
+longest-to-shortest selector call. Catalog publication honors the same
+nonblocking process-local exclusion, so it cannot interleave between probes;
+contention computes cold with `catalog-busy`. The coordinator applies state
+only while authority generation remains current, consumes the snapshot once,
+wipes state and token material, and reports typed logical prefix/residual
+counts. Server installation discards stale live slot checkpoints and inserts
+only the restored prefix tokens so the ordinary prompt path can evaluate the
+suffix. A rejected post-restore task launch rolls the slot back to cold. Exact
+hits preserve mandatory one-token logits replay; server telemetry reports that
+effective replay as one residual token while the selector retains logical
+residual zero internally.
 
 **[VERIFIED]** Eligibility rejects recurrent/hybrid memory, encoder and
 encoder-decoder models, distributed ranks, draft/speculative/MTP, multimodal

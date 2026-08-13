@@ -178,6 +178,16 @@ context_store_world1_prefix_lookup_v1(
         return finish();
     }
 
+    // ADR-0051 probes exact candidates under separate bounded catalog locks.
+    // Hold the catalog's mutation-only custody token across discovery and the
+    // complete longest-to-shortest selector call so publication cannot
+    // interleave and create a mixed catalog view.
+    auto mutation_custody = request.catalog->acquire_mutation_custody();
+    if (!mutation_custody.owns_custody()) {
+        result.fallback = context_store_world1_prefix_fallback_v1::catalog_busy;
+        return finish();
+    }
+
     context_store_v1_catalog_prefix_query query;
     query.compatibility_root = request.authority->compatibility.root;
     query.scope_namespace = request.exact_session.scope_namespace;

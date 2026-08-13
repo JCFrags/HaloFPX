@@ -483,9 +483,19 @@ context_store_v1_catalog::context_store_v1_catalog(std::unique_ptr<implementatio
     : implementation_(std::move(value)) {}
 context_store_v1_catalog::~context_store_v1_catalog() = default;
 
+context_store_v1_catalog_mutation_custody
+context_store_v1_catalog::acquire_mutation_custody() noexcept {
+    return context_store_v1_catalog_mutation_custody(mutation_mutex_);
+}
+
 context_store_v1_catalog_publish_result context_store_v1_catalog::publish(
         const context_store_transformer_snapshot_v1 & snapshot) noexcept {
     context_store_v1_catalog_publish_result result;
+    std::unique_lock<std::mutex> mutation_lock(mutation_mutex_, std::try_to_lock);
+    if (!mutation_lock.owns_lock()) {
+        result.status = context_store_v1_catalog_status::busy;
+        return result;
+    }
     std::unique_lock<std::mutex> lock(operation_mutex_, std::try_to_lock);
     if (!lock.owns_lock()) { result.status = context_store_v1_catalog_status::busy; return result; }
     if (!implementation_) return result;
