@@ -632,6 +632,9 @@ void test_product_feature_off_and_live_authority_unavailable_are_cold() {
     assert(result.residual_tokens == tokens.size());
     assert(result.fallback ==
         halofpx::context_store_world1_prefix_fallback_v1::live_authority_unavailable);
+    assert(std::string(halofpx::context_store_world1_prefix_fallback_name_v1(
+        halofpx::context_store_world1_prefix_fallback_v1::live_slot_state_present)) ==
+        "live-slot-state-present");
 }
 
 void test_product_same_system_prefix_different_suffix_and_exact_hit() {

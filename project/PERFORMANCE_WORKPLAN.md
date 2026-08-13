@@ -81,6 +81,13 @@ donor code merely because the behavior is authoritative.
   ABI, and fixed two-rank plan facts into the closed compatibility root. It is
   default-off and product-isolated; loader/server adaptation and the remaining
   request-resolved component encoders are still open.
+- **[VERIFIED]** The dependent L10f slice adds a separately gated world-1
+  server product shell, authenticated manifest-only boundary discovery,
+  one-shot state installation, residual accounting, and cache-source telemetry.
+  It deliberately remains cold because no trusted live-loader authority
+  provider exists. Local CPU tests cover the coordinator and fail-closed server
+  fallback; model-backed suffix replay and any speed claim remain open. See the
+  [L10f record](../docs/halofpx/l10f-default-off-world1-prefix-product-shell.md).
 
 ## Current execution trackers
 
@@ -96,7 +103,7 @@ donor code merely because the behavior is authoritative.
 | [#26](https://github.com/JCFrags/HaloFPX/issues/26) | open | coordinated restart-safe state across two RPC ranks |
 | [#28](https://github.com/JCFrags/HaloFPX/issues/28) | open | PR #35 fixed raw/sampled row fallback; coherent snapshot and synchronization reduction remain |
 | [#29](https://github.com/JCFrags/HaloFPX/issues/29) | open | dense FFN gate/up activation-conversion reuse |
-| [#32](https://github.com/JCFrags/HaloFPX/issues/32) | active | exact authenticated longest-prefix selector and suffix-replay seam; product restore remains open |
+| [#32](https://github.com/JCFrags/HaloFPX/issues/32) | active | exact authenticated selector plus default-off world-1 server shell; positive model-backed restore remains blocked on #33 |
 | [#33](https://github.com/JCFrags/HaloFPX/issues/33) | active | standalone typed authority slice complete; loader capture, resolved request/context semantics, reload invalidation, and server adapter remain |
 | [#43](https://github.com/JCFrags/HaloFPX/issues/43) | active | portable small Qwen3-0.6B pure ROCmFPX registry/recipe; target qualification remains open |
 
@@ -114,13 +121,14 @@ capture/stage/commit ordering and failure semantics, but no real rank-local
 cache object, RPC, filesystem, or server adapter exists yet. Any real failure
 must miss and recompute without accepting partial rank state.
 
-Issue #32 now has a locally CPU-qualified standalone exact longest-prefix
-selector unit over explicit semantic token boundaries and the existing
-authenticated multi-entry catalog. Product/server prefix restore remains
-unqualified, and the selector stays outside the server until issue #26 composes
-the test-only coordinator with real rank-local objects and one atomic owner.
-Target qualification must then measure restored tokens and suffix prefill
-separately; the selector test is not a performance result.
+Issue #32 now has a locally CPU-qualified exact longest-prefix selector and a
+separately default-off world-1 server shell. The shell discovers boundaries
+from authenticated manifests, installs selected state through a deterministic
+test seam, and reports restored/residual work, but the real server cannot take
+a positive hit until issue #33 supplies trusted live model/plan authority.
+Two-rank composition remains independently owned by issue #26. Target
+qualification must measure restored tokens and suffix prefill separately; the
+hosted tests are not a performance result.
 
 The issue-#33 standalone authority slice supplies a reusable fail-closed
 identity builder, but it remains outside the product route until typed loader

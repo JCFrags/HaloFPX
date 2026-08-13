@@ -39,6 +39,7 @@ enum class context_store_world1_prefix_fallback_v1 : uint8_t {
     authority_generation_changed,
     invalid_request,
     catalog_unavailable,
+    live_slot_state_present,
     no_authenticated_checkpoint,
     authenticated_state_corrupt,
     authenticated_state_incompatible,

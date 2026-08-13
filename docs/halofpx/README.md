@@ -185,6 +185,8 @@ Wiki, and imported target-machine evidence are under [`project/`](../../project/
 - [ADR-0051 default-off exact longest-prefix selector](decisions/0051-default-off-exact-longest-prefix-selector.md)
 - [L10e default-off exact longest-prefix selector](l10e-default-off-exact-longest-prefix-selector.md)
 - [L10e portable selector-unit receipt](evidence/l10e-default-off-exact-longest-prefix-selector-receipt.json)
+- [ADR-0054 default-off world-1 authenticated-prefix product shell](decisions/0054-default-off-world1-prefix-product-shell.md)
+- [L10f default-off world-1 authenticated-prefix product shell](l10f-default-off-world1-prefix-product-shell.md)
 - [ADR-0039 current RPC distributed-restore blocker](decisions/0039-rpc-tensor-split-distributed-restore-blocker.md)
 - [L11 RPC state-ownership blocker](l11-rpc-state-ownership-blocker.md)
 - [L11 blocker evidence receipt](evidence/l11-rpc-state-ownership-blocker-receipt.json)

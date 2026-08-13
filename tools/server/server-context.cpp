@@ -1191,6 +1191,8 @@ private:
 #endif
 
         if (llama_model_is_recurrent(model_tgt) || llama_model_is_hybrid(model_tgt) ||
+            (prefix_product_mode &&
+             (llama_model_has_encoder(model_tgt) || !llama_model_has_decoder(model_tgt))) ||
             mctx != nullptr || ctx_dft || spec || !params_base.lora_adapters.empty() ||
             !params_base.control_vectors.empty() || !params_base.kv_overrides.empty() ||
             halofpx_has_tensor_buffer_override(params_base.tensor_buft_overrides)) {
@@ -1619,8 +1621,15 @@ private:
     bool halofpx_prefix_product_restore_before_launch(
             server_slot & slot, server_task & task) noexcept {
         auto & carrier = task.halofpx_prefix_product;
-        if (!carrier.active || !slot.prompt.tokens.empty() ||
-            !halofpx_catalog_store || !halofpx_world1_cache_authority) {
+        if (!carrier.active || !halofpx_catalog_store ||
+            !halofpx_world1_cache_authority) {
+            return false;
+        }
+        if (!slot.prompt.tokens.empty()) {
+            carrier.telemetry.fallback_reason =
+                halofpx::context_store_world1_prefix_fallback_name_v1(
+                    halofpx::context_store_world1_prefix_fallback_v1::
+                        live_slot_state_present);
             return false;
         }
         halofpx::context_store_transformer_profile_v1 profile;
@@ -1657,6 +1666,8 @@ private:
                     no_authenticated_checkpoint;
             return false;
         }
+        const bool exact_hit = lookup.source ==
+            halofpx::context_store_world1_prefix_source_v1::exact;
         const auto install_started = std::chrono::steady_clock::now();
         const llama_tokens & tokens = task.tokens.get_tokens();
         const halofpx::context_store_transformer_limits_v1 limits {
@@ -1711,6 +1722,13 @@ private:
             carrier.telemetry.restored_tokens = 0;
             carrier.telemetry.residual_tokens = tokens.size();
             return false;
+        }
+        // llama-server must evaluate one prompt token to materialize logits.
+        // Report effective reused/residual work rather than the logical exact
+        // snapshot boundary reported by the selector.
+        if (exact_hit && prefix_tokens != 0) {
+            carrier.telemetry.restored_tokens = prefix_tokens - 1;
+            carrier.telemetry.residual_tokens = 1;
         }
         carrier.publish_after_prompt = install_result.residual_tokens != 0;
         return true;
@@ -3041,10 +3059,12 @@ private:
                     }
 #endif
 #if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                    bool halofpx_prefix_product_restored = false;
                     if (task.is_parent() || task.is_child()) {
                         task.halofpx_prefix_product.clear();
                     } else {
-                        (void) halofpx_prefix_product_restore_before_launch(*slot, task);
+                        halofpx_prefix_product_restored =
+                            halofpx_prefix_product_restore_before_launch(*slot, task);
                     }
 #endif
 
@@ -3062,6 +3082,16 @@ private:
                             break; // drop the task
                         }
                     } else if (!launch_slot_with_task(*slot, std::move(task))) {
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                        if (halofpx_prefix_product_restored) {
+                            // Restore happens before launch so the normal prompt
+                            // path sees the installed prefix.  If validation or
+                            // sampler construction rejects the task, return the
+                            // idle slot to a fully cold state.
+                            slot->prompt_clear(false);
+                            slot->prompt.checkpoints.clear();
+                        }
+#endif
                         SRV_ERR("failed to launch slot with task, id_task = %d\n", id_task);
                         break; // drop the task
                     }

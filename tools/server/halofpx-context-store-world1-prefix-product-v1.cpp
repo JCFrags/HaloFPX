@@ -343,6 +343,7 @@ const char * context_store_world1_prefix_fallback_name_v1(
         case context_store_world1_prefix_fallback_v1::authority_generation_changed: return "authority-generation-changed";
         case context_store_world1_prefix_fallback_v1::invalid_request: return "invalid-request";
         case context_store_world1_prefix_fallback_v1::catalog_unavailable: return "catalog-unavailable";
+        case context_store_world1_prefix_fallback_v1::live_slot_state_present: return "live-slot-state-present";
         case context_store_world1_prefix_fallback_v1::no_authenticated_checkpoint: return "no-authenticated-checkpoint";
         case context_store_world1_prefix_fallback_v1::authenticated_state_corrupt: return "authenticated-state-corrupt";
         case context_store_world1_prefix_fallback_v1::authenticated_state_incompatible: return "authenticated-state-incompatible";

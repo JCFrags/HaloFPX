@@ -5,12 +5,12 @@
 - **Purpose:** Define persistent cache identity, ownership, durability, recovery, isolation, and operation.
 - **Authoritative files:** This manifest, the 10 linked section artifact sets, and accepted cache decisions.
 - **Current owner:** Cache implementation workers own runtime evidence. Documentation workers own routing.
-- **Status:** Bounded CPU exact-key restart qualification and the optional run-local EVP provider are complete. Target cache performance, prefix reuse, and distributed product work remain open.
+- **Status:** Bounded CPU exact-key restart qualification, the optional run-local EVP provider, and a default-off world-1 prefix product shell are complete. Positive model-backed prefix reuse, target performance, and distributed product work remain open.
 - **Last verified date:** 2026-08-12 for current routing. Category technical review remains dated 2026-07-17.
 - **Source commits:** CachyLLama `6be745998f568e379ea197fcf827baec73ff9940`; the [decision map](../decision-map.md) routes exact HaloFPX commits.
 - **Related decisions:** [Decision map](../decision-map.md) routes the implementation decision index and accepted records.
 - **Related evidence:** [Evidence map](../evidence-map.md) and the [implementation evidence index](../../../../docs/halofpx/README.md).
-- **Open work:** Product composition remains paused. No end-user two-node cache product is accepted.
+- **Open work:** The world-1 shell remains cold until trusted live-loader authority exists. No positive prefix hit or end-user two-node cache product is accepted.
 - **Next safe action:** Treat corrupt, incomplete, incompatible, or unauthorized state as a miss and recompute.
 
 ## 2026-08-12 current priority authority
@@ -40,12 +40,18 @@ EVP SHA-256 provider to the separate run-local SSD prompt cache. It preserves
 full-file integrity checks and does not change the PR #23 context-store
 semantics. No end-to-end cache-speed claim exists.
 
+**[VERIFIED]** The default-off L10f product shell composes authenticated
+manifest-only boundary discovery, exact longest-prefix selection, one-shot
+state installation, residual accounting, and native cache telemetry for the
+narrow world-1 ordinary-transformer profile. No trusted live-loader authority
+provider exists, so its reachable server behavior remains cold and opens no
+store. The hosted test uses a preseeded canonical prefix; automatic system/chat
+boundary capture and model-backed suffix replay are not established.
+
 **[OPEN]** [Issue #26](https://github.com/JCFrags/HaloFPX/issues/26) owns
 restart-safe cache-state coordination across two RPC ranks.
 [Issue #32](https://github.com/JCFrags/HaloFPX/issues/32) owns verified longest
-exact-token prefix selection and suffix replay; its selector may be developed
-independently but remains non-product until issue #26 supplies atomic two-rank
-composition. [Issue #33](https://github.com/JCFrags/HaloFPX/issues/33) owns
+exact-token prefix selection and model-backed suffix replay. [Issue #33](https://github.com/JCFrags/HaloFPX/issues/33) owns
 deriving the compatibility authority from the live model and inference plan.
 **[VERIFIED]** The default-off standalone
 [live-authority contract](../../../../docs/halofpx/cache-live-authority-v1.md)
