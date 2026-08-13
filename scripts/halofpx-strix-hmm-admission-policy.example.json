@@ -1,0 +1,94 @@
+{
+  "capture_requirements": {
+    "closed_world": true,
+    "elevated": true,
+    "max_snapshot_age_seconds": 300,
+    "require_zero_kernel_counts": true,
+    "source_kind": "synthetic-offline-fixture"
+  },
+  "errors": [],
+  "issue": 41,
+  "roles": {
+    "coordinator": {
+      "allowed_device_owner_identity_sha256s": [
+        "791a1d9ef19725c8759a5d703d7474646599a4c15ca78b7701a68ce0b26aabac"
+      ],
+      "capacity": {
+        "admitted_hmm_capacity_bytes": 128849018880,
+        "physical_capacity_bytes": 137438953472,
+        "planned_increment_bytes": 8589934592,
+        "required_reserve_bytes": 8589934592
+      },
+      "device_paths": [
+        "/dev/dri/renderD128",
+        "/dev/kfd"
+      ],
+      "expected_boot_id": "11111111-1111-4111-8111-111111111111",
+      "expected_identity": {
+        "argv_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "control_group": "/system.slice/minimax-m27-q6-server.service",
+        "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "host": "nimo-1",
+        "health_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "invocation_id": "0656332b63a140eab7214627baa43253",
+        "listener_pid": 3113343,
+        "listener_port": 8081,
+        "nrestarts": 1,
+        "pid": 3113343,
+        "process_start_ticks": 101,
+        "role": "coordinator",
+        "start_monotonic_us": 1000001,
+        "unit": "minimax-m27-q6-server.service"
+      },
+      "hmm_accounting_source": "synthetic-exact-hmm-accounting-v1",
+      "host": "nimo-1",
+      "required_device_owner_identity_sha256s": [
+        "791a1d9ef19725c8759a5d703d7474646599a4c15ca78b7701a68ce0b26aabac"
+      ],
+      "role": "coordinator"
+    },
+    "worker": {
+      "allowed_device_owner_identity_sha256s": [
+        "4f81b694734226937bf46de921ca29610f598e2582fdee86b6075b9600dad3ad"
+      ],
+      "capacity": {
+        "admitted_hmm_capacity_bytes": 128849018880,
+        "physical_capacity_bytes": 137438953472,
+        "planned_increment_bytes": 8589934592,
+        "required_reserve_bytes": 8589934592
+      },
+      "device_paths": [
+        "/dev/dri/renderD128",
+        "/dev/kfd"
+      ],
+      "expected_boot_id": "22222222-2222-4222-8222-222222222222",
+      "expected_identity": {
+        "argv_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "control_group": "/system.slice/minimax-m27-rpc-worker.service",
+        "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "host": "nimo-2",
+        "health_sha256": null,
+        "invocation_id": "d15fe49610274e77bd9a3d84a0b791a5",
+        "listener_pid": 2248760,
+        "listener_port": 50052,
+        "nrestarts": 1,
+        "pid": 2248760,
+        "process_start_ticks": 202,
+        "role": "worker",
+        "start_monotonic_us": 2000002,
+        "unit": "minimax-m27-rpc-worker.service"
+      },
+      "hmm_accounting_source": "synthetic-exact-hmm-accounting-v1",
+      "host": "nimo-2",
+      "required_device_owner_identity_sha256s": [
+        "4f81b694734226937bf46de921ca29610f598e2582fdee86b6075b9600dad3ad"
+      ],
+      "role": "worker"
+    }
+  },
+  "schema": "halofpx.strix-hmm-admission-policy.v1",
+  "validity": {
+    "expires_utc": "2026-08-13T08:00:00Z",
+    "not_before_utc": "2026-08-13T06:00:00Z"
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "capture": {
+    "capture_id": "offline-synthetic-20260813-a",
+    "closed_world": true,
+    "completed_utc": "2026-08-13T07:00:02Z",
+    "elevated": true,
+    "errors": [],
+    "source_kind": "synthetic-offline-fixture",
+    "started_utc": "2026-08-13T07:00:00Z"
+  },
+  "errors": [],
+  "issue": 41,
+  "roles": {
+    "coordinator": {
+      "collection_state": "complete",
+      "errors": [],
+      "host": "nimo-1",
+      "observation": {
+        "capture_clock": {
+          "boot_id": "11111111-1111-4111-8111-111111111111",
+          "completed_monotonic_ns": 1000001900,
+          "started_monotonic_ns": 1000001000
+        },
+        "device_census": {
+          "devices": [
+            "/dev/dri/renderD128",
+            "/dev/kfd"
+          ],
+          "errors": [],
+          "hmm_accounting_source": "synthetic-exact-hmm-accounting-v1",
+          "hmm_aggregate_bytes": 103079215104,
+          "owners": [
+            {
+              "argv_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "control_group": "/system.slice/minimax-m27-q6-server.service",
+              "device_paths": [
+                "/dev/dri/renderD128",
+                "/dev/kfd"
+              ],
+              "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "hmm_allocated_bytes": 103079215104,
+              "pid": 3113343,
+              "process_start_ticks": 101,
+              "unit": "minimax-m27-q6-server.service"
+            }
+          ]
+        },
+        "kernel": {
+          "amdgpu_fault_count": 0,
+          "boot_id": "11111111-1111-4111-8111-111111111111",
+          "errors": [],
+          "global_oom_count": 0,
+          "gpu_reset_count": 0,
+          "journal_cursor_end": "s=synthetic-nimo-1-end",
+          "journal_cursor_start": "s=synthetic-nimo-1-start",
+          "kfd_fault_count": 0,
+          "observed_monotonic_ns": 1000002000,
+          "oom_kill_count": 0,
+          "window_start_monotonic_ns": 1000000000
+        },
+        "listener": {
+          "health_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "owner_pids": [
+            3113343
+          ],
+          "port": 8081,
+          "protocol": "tcp"
+        },
+        "memory": {
+          "gpu_active_bytes": 103079215104,
+          "gpu_reclaim_bytes": 0,
+          "physical_capacity_bytes": 137438953472
+        },
+        "process": {
+          "argv_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "cgroup": "/system.slice/minimax-m27-q6-server.service",
+          "cgroup_member_pids": [
+            3113343
+          ],
+          "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "pid": 3113343,
+          "start_ticks": 101
+        },
+        "service": {
+          "active_state": "active",
+          "control_group": "/system.slice/minimax-m27-q6-server.service",
+          "invocation_id": "0656332b63a140eab7214627baa43253",
+          "main_pid": 3113343,
+          "nrestarts": 1,
+          "start_monotonic_us": 1000001,
+          "sub_state": "running",
+          "unit": "minimax-m27-q6-server.service"
+        }
+      },
+      "role": "coordinator"
+    },
+    "worker": {
+      "collection_state": "complete",
+      "errors": [],
+      "host": "nimo-2",
+      "observation": {
+        "capture_clock": {
+          "boot_id": "22222222-2222-4222-8222-222222222222",
+          "completed_monotonic_ns": 2000003000,
+          "started_monotonic_ns": 2000002000
+        },
+        "device_census": {
+          "devices": [
+            "/dev/dri/renderD128",
+            "/dev/kfd"
+          ],
+          "errors": [],
+          "hmm_accounting_source": "synthetic-exact-hmm-accounting-v1",
+          "hmm_aggregate_bytes": 103079215104,
+          "owners": [
+            {
+              "argv_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "control_group": "/system.slice/minimax-m27-rpc-worker.service",
+              "device_paths": [
+                "/dev/dri/renderD128",
+                "/dev/kfd"
+              ],
+              "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "hmm_allocated_bytes": 103079215104,
+              "pid": 2248760,
+              "process_start_ticks": 202,
+              "unit": "minimax-m27-rpc-worker.service"
+            }
+          ]
+        },
+        "kernel": {
+          "amdgpu_fault_count": 0,
+          "boot_id": "22222222-2222-4222-8222-222222222222",
+          "errors": [],
+          "global_oom_count": 0,
+          "gpu_reset_count": 0,
+          "journal_cursor_end": "s=synthetic-nimo-2-end",
+          "journal_cursor_start": "s=synthetic-nimo-2-start",
+          "kfd_fault_count": 0,
+          "observed_monotonic_ns": 2000004000,
+          "oom_kill_count": 0,
+          "window_start_monotonic_ns": 2000000000
+        },
+        "listener": {
+          "health_sha256": null,
+          "owner_pids": [
+            2248760
+          ],
+          "port": 50052,
+          "protocol": "tcp"
+        },
+        "memory": {
+          "gpu_active_bytes": 103079215104,
+          "gpu_reclaim_bytes": 0,
+          "physical_capacity_bytes": 137438953472
+        },
+        "process": {
+          "argv_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "cgroup": "/system.slice/minimax-m27-rpc-worker.service",
+          "cgroup_member_pids": [
+            2248760
+          ],
+          "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "pid": 2248760,
+          "start_ticks": 202
+        },
+        "service": {
+          "active_state": "active",
+          "control_group": "/system.slice/minimax-m27-rpc-worker.service",
+          "invocation_id": "d15fe49610274e77bd9a3d84a0b791a5",
+          "main_pid": 2248760,
+          "nrestarts": 1,
+          "start_monotonic_us": 2000002,
+          "sub_state": "running",
+          "unit": "minimax-m27-rpc-worker.service"
+        }
+      },
+      "role": "worker"
+    }
+  },
+  "schema": "halofpx.strix-hmm-admission-snapshot.v1"
+}
