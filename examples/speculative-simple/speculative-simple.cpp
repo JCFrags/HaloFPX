@@ -250,7 +250,10 @@ int main(int argc, char ** argv) {
 
         //LOG_DBG("ids: %s\n", string_from(ctx_tgt, ids).c_str());
 
-        GGML_ASSERT(ids.size() > 0); // there will always be at least one accepted token
+        if (ids.empty()) {
+            LOG_ERR("%s: target output row unavailable during speculative verification\n", __func__);
+            return 1;
+        }
 
         // check for partial draft acceptance:
         // if the context doesn't support partial sequence removal, restore the checkpoint

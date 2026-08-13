@@ -55,6 +55,11 @@ target_compile_features   (llama PRIVATE cxx_std_17) # don't bump
 
 target_link_libraries(llama PUBLIC ggml)
 
+if (HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+    target_compile_definitions(llama PRIVATE
+        HALOFPX_SAMPLING_SYNC_COALESCE_CANARY=1)
+endif()
+
 if (HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY)
     add_library(halofpx-minimax-m2-expert-partition STATIC EXCLUDE_FROM_ALL
         halofpx-minimax-m2-expert-partition.cpp

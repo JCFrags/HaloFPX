@@ -139,6 +139,26 @@ add_test(
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-l02-contracts.cmake)
 set_property(TEST test-halofpx-l02-contracts PROPERTY LABELS "main;halofpx")
 
+add_executable(test-halofpx-sampling-sync-coalesce
+    test-halofpx-sampling-sync-coalesce.cpp)
+target_compile_features(test-halofpx-sampling-sync-coalesce PRIVATE cxx_std_17)
+target_include_directories(test-halofpx-sampling-sync-coalesce PRIVATE
+    ${CMAKE_SOURCE_DIR}/src)
+add_test(NAME test-halofpx-sampling-sync-coalesce
+    COMMAND test-halofpx-sampling-sync-coalesce)
+set_property(TEST test-halofpx-sampling-sync-coalesce PROPERTY LABELS "main;halofpx")
+
+add_executable(test-halofpx-output-row
+    test-halofpx-output-row.cpp)
+target_compile_features(test-halofpx-output-row PRIVATE cxx_std_17)
+target_include_directories(test-halofpx-output-row PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/ggml/include)
+add_test(NAME test-halofpx-output-row
+    COMMAND test-halofpx-output-row)
+set_property(TEST test-halofpx-output-row PROPERTY LABELS "main;halofpx")
+
 llama_build(test-halofpx-vulkan-q8-predequant.cpp)
 target_include_directories(test-halofpx-vulkan-q8-predequant PRIVATE ${CMAKE_SOURCE_DIR}/ggml/src/ggml-vulkan)
 llama_test(test-halofpx-vulkan-q8-predequant)
@@ -807,6 +827,7 @@ endif()
 llama_build_and_test(test-model-load-cancel.cpp LABEL "model")
 llama_build_and_test(test-autorelease.cpp       LABEL "model")
 llama_build_and_test(test-backend-sampler.cpp   LABEL "model")
+target_include_directories(test-backend-sampler PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 # Test for state restore with fragmented KV cache
 # Requires a model, uses same args pattern as test-thread-safety

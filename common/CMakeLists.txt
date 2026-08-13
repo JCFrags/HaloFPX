@@ -170,3 +170,8 @@ if (LLAMA_LLGUIDANCE)
 endif()
 
 target_link_libraries(${TARGET} PUBLIC llama Threads::Threads)
+
+if (HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+    target_compile_definitions(${TARGET} PRIVATE
+        HALOFPX_SAMPLING_SYNC_COALESCE_CANARY=1)
+endif()

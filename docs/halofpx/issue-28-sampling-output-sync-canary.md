@@ -1,0 +1,73 @@
+# Issue #28: sampling-output synchronization canary
+
+Status: implementation candidate; default off; no target-machine performance
+claim.
+
+Tracker: [GitHub issue #28](https://github.com/JCFrags/HaloFPX/issues/28)
+
+## Boundary
+
+The ordinary CPU sampling path reads several pieces of one output row: sampled
+token, logits, probabilities, candidate IDs, and their counts. Historically,
+each public getter executes a scheduler-wide synchronization even after an
+earlier synchronization already completed for the same output generation.
+
+`HALOFPX_SAMPLING_SYNC_COALESCE_CANARY` is a CMake option that defaults to
+`OFF`. When enabled, internal output readers may reuse a completed scheduler
+barrier until a graph submission, output-copy publication, buffer reserve, or
+lifecycle reset invalidates that generation. Public `llama_synchronize()`
+remains unconditional. State save/load and other lifecycle barriers do not use
+the coalescing helper.
+
+The canary also introduces an internal borrowed output-row view with explicit
+`RAW`, `SAMPLED_TOKEN`, `SAMPLED_LOGITS`, `SAMPLED_PROBS`, or `UNAVAILABLE`
+provenance. Candidate count and token IDs are validated against the same
+synchronized generation. A raw-only request never falls back to sampled data;
+partial or invalid sampled metadata fails closed instead of combining sampled
+counts with raw storage.
+
+## Concurrency and lifetime
+
+Graph dispatch and every host-output async-copy phase hold an active mutation
+guard. Synchronization publishes readiness only if no publication is active and
+the mutation serial did not change across the barrier. This prevents a
+synchronous scheduler callback from priming readiness before later graph splits
+or output copies are queued. Failed or partial graph submission also leaves the
+generation invalid.
+
+The latch is per context, so target and draft contexts do not share readiness.
+It does not make same-context access thread-safe. Borrowed row pointers remain
+valid only until the next graph submission or output-buffer mutation on that
+context.
+
+## Hosted evidence and nonclaims
+
+- **[VERIFIED]** Focused hosted tests exercise historical feature-off barrier
+  counts, canary reuse, forced public synchronization, generation invalidation,
+  callback reentry, mutation during a barrier, and independent context latches.
+- **[VERIFIED]** The pure row validator tests explicit unavailable results,
+  raw-only provenance, coherent full and reduced sampled rows, count equality,
+  candidate ID range, selected-token membership, and token-only backend output.
+- **[VERIFIED]** The deterministic state-machine fixture submits identical
+  simulated graph and output-transfer work for `OFF` and `ON`; one forced
+  public synchronization plus five internal reads execute six barriers with
+  `OFF`, while `ON` executes one and reuses that completion five times.
+- **[INFERENCE]** Removing redundant completed barriers could reduce generation
+  host/backend synchronization overhead. Hosted counts do not establish an
+  end-to-end speed gain.
+- **[OPEN]** Exact-output parity and timing on the two CachyOS Strix Halo
+  machines, including HIP/RPC, grammar, log-probability, backend-sampling, and
+  target/draft paths.
+
+Windows control-host compilation and tests are not Strix Halo performance
+evidence. The planned matched target experiment is documented in
+[`issue-28-sampling-output-sync-target-plan.md`](issue-28-sampling-output-sync-target-plan.md).
+
+## Kill gates
+
+- Any token, raw-logit, probability, candidate, output-row, or feature-off
+  mismatch blocks timing and promotion.
+- Any unavailable row, crash, failed request, or counter inconsistency blocks a
+  performance claim until localized.
+- The option remains default off unless matched target evidence establishes
+  correctness and a useful generation result.

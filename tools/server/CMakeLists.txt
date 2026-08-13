@@ -880,6 +880,11 @@ target_link_libraries(${TARGET}
     PRIVATE server-prompt-cache-digest server-token-probabilities
     PUBLIC llama-common mtmd ${CMAKE_THREAD_LIBS_INIT})
 
+if (HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+    target_compile_definitions(${TARGET} PRIVATE
+        HALOFPX_SAMPLING_SYNC_COALESCE_CANARY=1)
+endif()
+
 if (HALOFPX_CONTEXT_STORE_CANARY)
     target_compile_definitions(llama-common PUBLIC HALOFPX_CONTEXT_STORE_CANARY=1)
     target_compile_definitions(${TARGET} PUBLIC HALOFPX_CONTEXT_STORE_CANARY=1)

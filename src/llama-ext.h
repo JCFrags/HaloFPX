@@ -26,6 +26,58 @@ LLAMA_API struct ggml_cgraph * llama_graph_reserve(
         uint32_t n_seqs,
         uint32_t n_outputs);
 
+// One generation-bound view of a host-visible output row. The view is borrowed
+// and remains valid only until the next graph submission or output-buffer
+// mutation on the same context. A false return and UNAVAILABLE source are the
+// explicit fail-closed result for an absent or incoherent row.
+enum llama_output_row_source : uint32_t {
+    LLAMA_OUTPUT_ROW_SOURCE_UNAVAILABLE    = 0,
+    LLAMA_OUTPUT_ROW_SOURCE_RAW            = 1,
+    LLAMA_OUTPUT_ROW_SOURCE_SAMPLED_TOKEN  = 2,
+    LLAMA_OUTPUT_ROW_SOURCE_SAMPLED_LOGITS = 3,
+    LLAMA_OUTPUT_ROW_SOURCE_SAMPLED_PROBS  = 4,
+};
+
+struct llama_output_row_view {
+    llama_output_row_source source = LLAMA_OUTPUT_ROW_SOURCE_UNAVAILABLE;
+    int32_t requested_index = 0;
+    int32_t resolved_row = -1;
+    uint64_t generation = 0;
+
+    const float * logits = nullptr;
+    const float * probs = nullptr;
+    const llama_token * candidates = nullptr;
+
+    uint32_t logits_count = 0;
+    uint32_t probs_count = 0;
+    uint32_t candidates_count = 0;
+    llama_token sampled_token = LLAMA_TOKEN_NULL;
+    // Index into this view's candidate tuple; -1 for token-only or absent rows.
+    int32_t sampled_candidate_index = -1;
+};
+
+LLAMA_API bool llama_get_output_row_view(
+        struct llama_context * ctx,
+        int32_t idx,
+        bool prefer_sampled,
+        bool token_only,
+        struct llama_output_row_view * view);
+
+// Per-context canary observability. Counts include output-result barriers and
+// forced public llama_synchronize() calls, but exclude unrelated lifecycle
+// barriers such as state save/load. Reading the counters does not synchronize.
+struct llama_output_sync_stats {
+    uint64_t generation = 0;
+    uint64_t completed_barriers = 0;
+    uint64_t reused_barriers = 0;
+    uint64_t graph_submissions = 0;
+    uint64_t output_transfers = 0;
+};
+
+LLAMA_API bool llama_get_output_sync_stats(
+        const struct llama_context * ctx,
+        struct llama_output_sync_stats * stats);
+
 // Get the default ggml_type for a given ftype.
 LLAMA_API ggml_type llama_ftype_get_default_type(llama_ftype ftype);
 

@@ -137,6 +137,13 @@ option(LLAMA_USE_PREBUILT_WEBUI     "llama: use prebuilt WebUI from HF Bucket wh
 option(LLAMA_TOOLS_INSTALL          "llama: install tools"                                                                          ${LLAMA_TOOLS_INSTALL_DEFAULT})
 option(LLAMA_TESTS_INSTALL          "llama: install tests"                                                                          ON)
 
+# Default-off HaloFPX experiment. When enabled, completed host-output
+# synchronizations may be reused by internal output-result readers until the
+# next graph submission invalidates the output epoch.
+option(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY
+       "Coalesce redundant completed output synchronizations during sampling"
+       OFF)
+
 # P06a is a test-only expert-axis contract seam. It does not enable MiniMax
 # tensor mode, alter model placement, or link into the inference runtime.
 option(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY

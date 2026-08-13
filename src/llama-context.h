@@ -7,6 +7,7 @@
 #include "llama-adapter.h"
 #include "llama-impl.h"
 #include "llama-memory.h"
+#include "llama-output-sync.h"
 
 #include "ggml-cpp.h"
 #include "ggml-opt.h"
@@ -58,6 +59,8 @@ struct llama_context {
     void sched_reserve();
 
     void synchronize();
+    void synchronize_output_results();
+    void synchronize_output_results_force();
     void halofpx_graph_reset();
     std::string halofpx_replay_diagnostic() const;
     bool halofpx_execution_authority_arm(
@@ -112,6 +115,9 @@ struct llama_context {
 
     const llama_token * get_sampled_candidates_ith(int32_t idx);
     size_t get_sampled_candidates_count(int32_t idx);
+
+    bool get_output_row_view(int32_t idx, bool prefer_sampled, bool token_only, llama_output_row_view & view);
+    llama_output_sync_stats get_output_sync_stats() const;
 
     void attach_threadpool(
             ggml_threadpool_t threadpool,
@@ -347,6 +353,14 @@ private:
 
     sampling_info sampling;
 
+    // True for rows whose raw-logits transfer was actually enqueued for the
+    // current output generation. Allocated host storage alone is not proof that
+    // a row contains raw logits when backend sampling is active.
+    std::vector<uint8_t> raw_logits_available;
+    // A malformed/rejected backend sampling producer must not be mistaken for
+    // an absent producer (which is also represented by zero row counts).
+    std::vector<uint8_t> sampling_publication_error;
+
     // sequence embeddings output (map of [n_embd] vectors)
     // populated only when pooling_type != LLAMA_POOLING_TYPE_NONE
     std::map<llama_seq_id, std::vector<float>> embd_seq;
@@ -364,6 +378,10 @@ private:
     };
 
     std::vector<swap_info> output_swaps;
+
+    llama_output_sync_state output_sync;
+    uint64_t output_graph_submissions = 0;
+    uint64_t output_transfer_enqueues = 0;
 
     ggml_backend_sched_ptr sched;
 
