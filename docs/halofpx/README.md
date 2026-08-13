@@ -24,6 +24,8 @@ Wiki, and imported target-machine evidence are under [`project/`](../../project/
 - [Offline-only issue-#41 Strix maintenance admission controller](strix-maintenance-admission-controller.md)
 - [ADR-0057 offline Strix maintenance admission controller](decisions/0057-offline-strix-maintenance-admission-controller.md)
 - [ADR-0057 independent review](reviews/2026-08-12__adr-0057-offline-strix-maintenance-controller__review__v01.md)
+- [Offline independent two-node recovery-watchdog model](strix-recovery-watchdog.md)
+- [ADR-0065 offline independent two-node recovery-watchdog model](decisions/0065-offline-independent-two-node-recovery-watchdog.md)
 - [Issue #26 test-only two-rank cache coordinator contract](two-rank-cache-coordinator-contract.md)
 - [Issue #28 default-off sampling-output synchronization canary](issue-28-sampling-output-sync-canary.md)
 - [Issue #19 ngram-simple host qualification](evidence/issue-19-ngram-simple-host-qualification/README.md)
