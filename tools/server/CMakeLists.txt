@@ -392,8 +392,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         halofpx-context-store-v1-server-canary)
     target_compile_features(halofpx-context-store-v1-catalog PRIVATE cxx_std_17)
 
-    # Exact longest-prefix selector for CPU qualification only. Product/server
-    # wiring remains closed until one owner can restore all distributed ranks.
+    # Exact longest-prefix selector, isolated by default. The separately gated
+    # ADR-0054 world-1 shell may compose it; distributed restoration remains
+    # closed until one owner can restore all ranks atomically.
     if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY)
         add_library(halofpx-context-store-v1-prefix-selector STATIC EXCLUDE_FROM_ALL
             halofpx-context-store-v1-prefix-selector.cpp

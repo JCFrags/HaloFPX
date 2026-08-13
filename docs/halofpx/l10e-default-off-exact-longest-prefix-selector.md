@@ -25,10 +25,10 @@ server or distributed restore path.
 the exact-key catalog and complete common/tools/server build graph, is checked
 before test traversal, builds an `EXCLUDE_FROM_ALL` library only when explicitly
 enabled, and has no `llama-server`, `server-context`, runtime-mode, or CLI edge.
-The source contract permits the exact isolated target declaration and focused
-test link only; any additional CMake reference to that target, including a
-direct or intermediate product link, fails qualification. It also rejects weak
-selector mechanisms.
+The source contract permits the exact isolated target declaration, focused
+test link, and the exact separately default-off ADR-0054 world-1 product block.
+Any other direct or intermediate product reference fails qualification. It
+also rejects weak selector mechanisms.
 
 **[VERIFIED]** The caller supplies the complete canonical token-ID sequence and
 at most eight complete semantic checkpoint boundaries in strictly increasing
@@ -75,17 +75,17 @@ checkpoint. The inherited catalog also treats malformed or ambiguous records
 anywhere in its fixed layout as corruption. Restore performs no repair or
 rewrite.
 
-**[OPEN]** Product wiring depends on issue
-[#26](https://github.com/JCFrags/HaloFPX/issues/26), because a two-node prefix
-hit is not valid until one owner can restore both rank-local state partitions
-atomically or choose the ordinary recompute/single-node fallback. The merged
+**[OPEN]** ADR-0054 adds a separate fail-closed world-1 server shell, but no
+trusted live-authority provider can produce a positive product hit. Two-node
+product wiring still depends on issue [#26](https://github.com/JCFrags/HaloFPX/issues/26),
+because one owner must restore both rank-local state partitions atomically or
+choose ordinary recompute/single-node fallback. The merged
 [test-only coordinator contract](two-rank-cache-coordinator-contract.md) owns
-fake-provider capture/stage/commit ordering and failure semantics, but it has no
-real rank-local cache object, RPC, filesystem, server adapter, or selector
-composition. This L10e library therefore remains world size 1, rank 0,
-ordinary transformer memory, target-only state, and greedy-memoryless sampling.
-Recurrent, hybrid, draft, MTP, multimodal, adapter, grammar, tool, sampler, and
-distributed state are rejected.
+fake-provider capture/stage/commit ordering and failure semantics, but it has
+no real rank-local cache object, RPC, filesystem, or server adapter. This L10e
+library remains world size 1, rank 0, ordinary transformer memory, target-only
+state, and greedy-memoryless sampling. Recurrent, hybrid, draft, MTP,
+multimodal, adapter, grammar, tool, sampler, and distributed state are rejected.
 
 **[OPEN]** This slice does not complete issue #32's model-backed qualification.
 The inherited exact-key test remains the fresh-process control, and the
@@ -127,6 +127,6 @@ parity through issue [#18](https://github.com/JCFrags/HaloFPX/issues/18).
 ## Rollback
 
 Remove the L10e option, selector library, focused tests/contracts, and this
-record. Because the selector has no product link and the prior L10d catalog
-format is unchanged, rollback requires no cache migration and leaves feature-off
-server behavior intact.
+record together with ADR-0054's exact gated product link. The prior L10d
+catalog format is unchanged, so rollback requires no cache migration and
+leaves feature-off server behavior intact.

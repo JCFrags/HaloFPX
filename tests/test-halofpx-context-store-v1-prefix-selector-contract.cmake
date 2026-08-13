@@ -38,9 +38,28 @@ if (NOT ${tests_subdirectory} LESS ${tools_subdirectory})
 endif()
 set(selector_target_block
 "if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY)\n        add_library(halofpx-context-store-v1-prefix-selector STATIC EXCLUDE_FROM_ALL\n            halofpx-context-store-v1-prefix-selector.cpp\n            halofpx-context-store-v1-prefix-selector.h\n        )\n        target_link_libraries(halofpx-context-store-v1-prefix-selector PUBLIC\n            halofpx-context-store-v1-catalog\n            halofpx-context-store-exact-session)\n        target_compile_features(halofpx-context-store-v1-prefix-selector PRIVATE cxx_std_17)\n    endif()")
+set(selector_product_target_block
+"if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY)\n        add_library(halofpx-context-store-v1-prefix-selector STATIC EXCLUDE_FROM_ALL\n            halofpx-context-store-v1-prefix-selector.cpp\n            halofpx-context-store-v1-prefix-selector.h\n        )\n        target_link_libraries(halofpx-context-store-v1-prefix-selector PUBLIC\n            halofpx-context-store-v1-catalog\n            halofpx-context-store-exact-session)\n        target_compile_features(halofpx-context-store-v1-prefix-selector PRIVATE cxx_std_17)\n\n        if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)\n            add_library(halofpx-context-store-world1-prefix-product-v1 STATIC EXCLUDE_FROM_ALL\n                halofpx-context-store-world1-prefix-product-v1.cpp\n                halofpx-context-store-world1-prefix-product-v1.h\n            )\n            target_link_libraries(halofpx-context-store-world1-prefix-product-v1 PUBLIC\n                halofpx-context-store-v1-prefix-selector\n                halofpx-context-store-compatibility-v1)\n            target_compile_features(halofpx-context-store-world1-prefix-product-v1 PRIVATE cxx_std_17)\n        endif()\n    endif()")
 string(FIND "${server_cmake}" "${selector_target_block}" selector_target)
-if (selector_target EQUAL -1)
-    message(FATAL_ERROR "missing isolated longest-prefix selector target")
+string(FIND "${server_cmake}" "${selector_product_target_block}" selector_product_target)
+if (NOT selector_target EQUAL -1 AND NOT selector_product_target EQUAL -1)
+    message(FATAL_ERROR "ambiguous standalone and product selector target declarations")
+elseif (NOT selector_product_target EQUAL -1)
+    string(FIND "${root_cmake}"
+        "option(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT\n       \"Compile the fail-closed world1 authenticated prefix product path\"\n       OFF)"
+        product_default_off)
+    string(FIND "${root_cmake}"
+        "HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT requires the longest-prefix selector gate"
+        product_selector_gate)
+    if (product_default_off EQUAL -1 OR product_selector_gate EQUAL -1 OR
+        NOT EXISTS "${HALOFPX_SOURCE_DIR}/docs/halofpx/decisions/0054-default-off-world1-prefix-product-shell.md")
+        message(FATAL_ERROR "ADR-0054 selector product exception lost its default-off authority")
+    endif()
+    set(admitted_selector_target_block "${selector_product_target_block}")
+elseif (NOT selector_target EQUAL -1)
+    set(admitted_selector_target_block "${selector_target_block}")
+else()
+    message(FATAL_ERROR "missing isolated or exact ADR-0054 longest-prefix selector target")
 endif()
 string(FIND "${server_cmake}"
     "option(HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY"
@@ -49,18 +68,31 @@ if (NOT late_option EQUAL -1)
     message(FATAL_ERROR "longest-prefix selector option was redeclared after test traversal")
 endif()
 
-# The exact isolated declaration above and the focused test link are the only
-# admitted CMake references. Removing the declaration must leave no selector
-# reference in tools/server, so a direct or intermediate product link cannot
-# hide above the server-context marker.
-string(REPLACE "${selector_target_block}" "" server_without_selector_target "${server_cmake}")
+# The exact isolated declaration, the separately default-off ADR-0054 world-1
+# composition above, and the focused test link are the only admitted CMake
+# references. Removing the admitted declaration must leave no selector
+# reference in tools/server, so another direct or intermediate product link
+# cannot hide above the server-context marker.
+string(REPLACE "${admitted_selector_target_block}" ""
+    server_without_selector_target "${server_cmake}")
 string(FIND "${server_without_selector_target}"
     "halofpx-context-store-v1-prefix-selector" extra_server_reference)
 if (NOT extra_server_reference EQUAL -1)
     message(FATAL_ERROR "longest-prefix selector gained a non-isolated tools/server reference")
 endif()
 
-file(GLOB_RECURSE cmake_lists "${HALOFPX_SOURCE_DIR}/*/CMakeLists.txt")
+# Enumerate the repository's build-graph source roots without descending into
+# in-tree build outputs or preserved imported evidence. GLOB_RECURSE from the
+# repository root makes this contract depend on unrelated local residue.
+set(cmake_lists "${HALOFPX_SOURCE_DIR}/CMakeLists.txt")
+foreach(source_root IN ITEMS common examples ggml pocs src tests tools vendor)
+    set(source_root_entry "${HALOFPX_SOURCE_DIR}/${source_root}")
+    if (IS_DIRECTORY "${source_root_entry}")
+        file(GLOB_RECURSE source_root_cmake_lists LIST_DIRECTORIES false
+            "${source_root_entry}/CMakeLists.txt")
+        list(APPEND cmake_lists ${source_root_cmake_lists})
+    endif()
+endforeach()
 foreach(cmake_list IN LISTS cmake_lists)
     if (cmake_list STREQUAL "${HALOFPX_SOURCE_DIR}/tools/server/CMakeLists.txt" OR
         cmake_list STREQUAL "${HALOFPX_SOURCE_DIR}/tests/CMakeLists.txt")
@@ -100,4 +132,8 @@ foreach(forbidden "fnv" "<string>" "std::string" "string_view" "prompt_text" "sy
     endif()
 endforeach()
 
-message(STATUS "HaloFPX exact longest-prefix selector remains default-off and non-product")
+if (NOT selector_product_target EQUAL -1)
+    message(STATUS "HaloFPX selector is default-off; only the exact default-off ADR-0054 product composition is admitted")
+else()
+    message(STATUS "HaloFPX exact longest-prefix selector remains default-off and non-product")
+endif()
