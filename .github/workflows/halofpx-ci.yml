@@ -171,6 +171,49 @@ jobs:
           --output-on-failure
           -R '^test-halofpx-rocmfpx-mmvq-sum-free-(off|on)$'
 
+  two-rank-cache-contract:
+    name: CPU two-rank cache coordinator contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configure isolated contract build
+        run: >-
+          cmake -S . -B build/ci-two-rank-cache
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_RPC=OFF
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=OFF
+          -DLLAMA_BUILD_COMMON=ON
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=ON
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=ON
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_USE_PREBUILT_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+          -DHALOFPX_CONTEXT_STORE_TWO_RANK_CONTRACT=ON
+
+      - name: Compile isolated contract test
+        run: >-
+          cmake --build build/ci-two-rank-cache
+          --target test-halofpx-context-store-two-rank-contract
+          --parallel 2
+
+      - name: Run coordinator behavior and source-boundary tests
+        run: >-
+          ctest --test-dir build/ci-two-rank-cache
+          --output-on-failure
+          -R '^test-halofpx-context-store-two-rank-contract(-boundary)?$'
+
   prompt-cache-integrity-test:
     name: CPU prompt-cache integrity (${{ matrix.provider }})
     runs-on: ubuntu-latest

@@ -4,6 +4,41 @@ option(HALOFPX_SERVER_PROMPT_CACHE_OPENSSL_SHA256
     "Use OpenSSL EVP SHA-256 for server prompt-cache file integrity hashing"
     OFF)
 
+option(HALOFPX_CONTEXT_STORE_TWO_RANK_CONTRACT
+    "Build the isolated test-only HaloKV two-rank coordinator contract"
+    OFF)
+
+if (HALOFPX_CONTEXT_STORE_TWO_RANK_CONTRACT)
+    # Issue #26 slice 1 is deliberately outside every server/runtime target.
+    # The fake-provider contract has no filesystem, RPC, CLI, or llama linkage.
+    add_library(halofpx-context-store-two-rank-contract STATIC EXCLUDE_FROM_ALL
+        halofpx-context-store-two-rank-contract.cpp
+        halofpx-context-store-two-rank-contract.h)
+    target_compile_features(halofpx-context-store-two-rank-contract PRIVATE cxx_std_17)
+
+    if (LLAMA_BUILD_TESTS)
+        add_executable(test-halofpx-context-store-two-rank-contract EXCLUDE_FROM_ALL
+            ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-two-rank-contract.cpp)
+        target_include_directories(test-halofpx-context-store-two-rank-contract PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR})
+        target_link_libraries(test-halofpx-context-store-two-rank-contract PRIVATE
+            halofpx-context-store-two-rank-contract)
+        target_compile_features(test-halofpx-context-store-two-rank-contract PRIVATE cxx_std_17)
+        add_test(NAME test-halofpx-context-store-two-rank-contract
+            COMMAND test-halofpx-context-store-two-rank-contract)
+        set_tests_properties(test-halofpx-context-store-two-rank-contract PROPERTIES
+            LABELS "main;halofpx")
+
+        add_test(NAME test-halofpx-context-store-two-rank-contract-boundary
+            COMMAND ${CMAKE_COMMAND}
+                -DHALOFPX_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+                -DHALOFPX_CONTEXT_STORE_TWO_RANK_CONTRACT=${HALOFPX_CONTEXT_STORE_TWO_RANK_CONTRACT}
+                -P ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-two-rank-contract-boundary.cmake)
+        set_tests_properties(test-halofpx-context-store-two-rank-contract-boundary PROPERTIES
+            LABELS "main;halofpx")
+    endif()
+endif()
+
 option(HALOFPX_CONTEXT_STORE_CANARY
     "Compile the experimental Linux direct-session persistent-cache canary"
     OFF)
