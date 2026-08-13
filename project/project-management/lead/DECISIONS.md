@@ -1,5 +1,27 @@
 # Project-Lead Decisions
 
+## 2026-08-12 — stop target work under production HMM ownership
+
+Accept the
+[2026-08-12 nimo-2 HMM/global-OOM record](../../../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
+as a production-safety incident and invalid benchmark. The candidate OFF build
+was interrupted at 380/402, the ON build was never configured or built, and no
+binary or performance result is accepted.
+
+Make [issue #41](https://github.com/JCFrags/HaloFPX/issues/41) a P0
+prerequisite for all target work. Reject builds, quantization, disposable
+inference, and benchmarks while a protected production service or any
+unaccounted KFD/render/HMM owner is active. An authorized maintenance window,
+exact before-state identities, an empty foreign GPU-owner census, and a clean
+kernel-OOM baseline are required. `MemAvailable`, free RAM, swap, and ordinary
+RSS do not override this gate while `gpu_active`/HMM ownership is high.
+
+If a worker identity or restart count changes, treat coordinator RPC readiness
+as stale. Exact two-rank identities and a real minimal inference—not a health
+route alone—are required before recovery is accepted. Retained remote build
+artifacts may be inspected or removed only under separately authorized target
+work; this decision does not authorize target mutation.
+
 ## 2026-08-12 — merge the first bounded speed slice and retain runtime gates
 
 Accept PR #30 at

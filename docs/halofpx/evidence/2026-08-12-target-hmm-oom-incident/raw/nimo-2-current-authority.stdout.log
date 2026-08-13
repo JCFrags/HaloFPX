@@ -1,0 +1,74 @@
+2026-08-12T19:28:39,226849867-07:00
+               total        used        free      shared  buff/cache   available
+Mem:       130491700   116488484    14314376         304      874272    14003216
+Swap:       33554428     1404700    32149728
+MemTotal:       130491700 kB
+MemFree:        14314376 kB
+MemAvailable:   14003216 kB
+Buffers:              12 kB
+Cached:           777796 kB
+SwapCached:        11792 kB
+Active:           217000 kB
+Inactive:         663200 kB
+Active(anon):     114136 kB
+Inactive(anon):    80456 kB
+Active(file):     102864 kB
+Inactive(file):   582744 kB
+Unevictable:       92004 kB
+Mlocked:              64 kB
+SwapTotal:      33554428 kB
+SwapFree:       32149728 kB
+Zswap:                 0 kB
+Zswapped:              0 kB
+Dirty:               636 kB
+Writeback:           292 kB
+AnonPages:        194404 kB
+Mapped:           126632 kB
+Shmem:               304 kB
+KReclaimable:      96464 kB
+Slab:             329624 kB
+SReclaimable:      96464 kB
+SUnreclaim:       233160 kB
+KernelStack:        7888 kB
+PageTables:         5864 kB
+SecPageTables:         0 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    98800276 kB
+Committed_AS:    2042124 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      518712 kB
+VmallocChunk:          0 kB
+Percpu:            18176 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:    147456 kB
+ShmemHugePages:        0 kB
+ShmemPmdMapped:        0 kB
+FileHugePages:    106496 kB
+FilePmdMapped:     45056 kB
+CmaTotal:              0 kB
+CmaFree:               0 kB
+Unaccepted:            0 kB
+Balloon:               0 kB
+GPUActive:      114067524 kB
+GPUReclaim:            0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
+DirectMap4k:     1950920 kB
+DirectMap2M:    122460160 kB
+DirectMap1G:     8388608 kB
+Id=minimax-m27-rpc-worker.service
+ActiveState=active
+SubState=running
+InvocationID=d15fe49610274e77bd9a3d84a0b791a5
+MainPID=2248760
+Result=success
+NRestarts=1
+ExecMainCode=0
+ExecMainStatus=0
+ControlGroup=/system.slice/minimax-m27-rpc-worker.service

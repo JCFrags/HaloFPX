@@ -4,6 +4,25 @@ Reconciled from retained source and evidence: 2026-08-12
 
 ## Overall state
 
+### 2026-08-12 target HMM/global-OOM safety incident
+
+[MEASURED] A candidate `-j2` build was active on nimo-2 while the established
+RPC worker owned about `114041696 kB` of `gpu_active` HMM pages. Ordinary
+memory reporting still showed roughly 14 GiB available, but the kernel invoked
+global OOM four times and killed the production worker. The worker restarted
+once; the next real coordinator request exercised stale RPC state, aborting
+and restarting the coordinator once. Recovery was proven only after exact new
+identities, health, and a real 5-prompt-token plus 1-generated-token request.
+
+The OFF build was interrupted at 380/402. The ON condition was never
+configured or built. No completed binary or performance result exists. The
+[immutable incident record](../../../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
+and [issue #41](https://github.com/JCFrags/HaloFPX/issues/41) establish a P0
+target-ownership gate: no build, quantization, disposable inference, or
+benchmark while protected production or unaccounted KFD/render/HMM ownership
+exists. `MemAvailable` alone cannot admit target work; health alone cannot
+prove distributed recovery after an identity change.
+
 ### 2026-08-12 merged cache boundary and active performance work
 
 The saved prompt/K/V-state behavior reference remains

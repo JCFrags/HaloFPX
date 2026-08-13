@@ -2,7 +2,7 @@
 section_id: "83"
 title: "Risk Register Facts and Constraints"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories:
     - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
@@ -30,6 +30,7 @@ related_sections: ["11", "13", "20", "21", "22", "23", "31", "48", "63", "65", "
 - **[VERIFIED]** Current code contains custom HIP and Vulkan paths, but no HaloFPX measurement establishes correctness parity or the winning backend [S83-02, S83-08].
 - **[MEASURED]** The 2026-07-17 live inventory records both installed drives as Crucial P310 `CT1000P310SSD8` devices with firmware `VACR001`, Btrfs filesystem state, capacity/headroom, and baseline SMART counters; Section 21 owns the scoped evidence and limitations [S83-04]. **[OPEN]** Exact vendor TBW/DWPD and warranty revision, negotiated PCIe/queue behavior, device/filesystem write amplification under the intended cache workload, volatile-write-cache/PLP behavior, and application-level power-loss recovery remain unproven [S83-11].
 - **[OPEN]** Exact sustained clocks, package/skin temperatures, fan policy, throttling thresholds, and simultaneous compute/fabric/storage behavior are not recorded [S83-05].
+- **[MEASURED]** The 2026-08-12 nimo-2 incident demonstrated global OOM under about 114 GiB `gpu_active` HMM ownership despite about 14 GiB ordinary memory availability. The worker restart left stale coordinator RPC readiness until a real request forced coordinator restart and reload [S83-23]. Health and `MemAvailable` alone failed as safety/readiness predicates.
 
 ## Lane-aware ROCm vocabulary
 
@@ -58,7 +59,7 @@ Every score and owner assignment below is **[RECOMMENDATION]** and provisional. 
 | R83-004 | HIP or Vulkan backend misses the latency/throughput target or regresses by shape | 4 | 4 | 3 | 48 high | M | planned | Backend lead | S83-02, S83-08 |
 | R83-005 | Independent-root ROCmFPX and divergent CachyLLama make drift/conflict/provenance unmanageable | 5 | 4 | 3 | 60 critical | H | partly-evidenced | Integration maintainer | S83-01, S83-02 |
 | R83-006 | Conversion, quantization, custom kernels, MTP, recurrent, cache, or distributed state silently changes model output | 4 | 5 | 4 | 80 critical | H | planned | Correctness lead | S83-02, S83-07, S83-09 |
-| R83-007 | Unified-memory pressure, fragmentation, pinned buffers, cache, or concurrency triggers OOM/livelock | 4 | 5 | 2 | 40 high | M | planned | Runtime lead | S83-09, S83-13 |
+| R83-007 | Unified-memory/HMM ownership, fragmentation, pinned buffers, cache, or concurrency triggers global OOM/livelock and production loss | 5 | 5 | 4 | 100 critical | H | partly-evidenced | Runtime lead | S83-09, S83-13, S83-23 |
 | R83-008 | HaloKV write amplification or retention exhausts SSD endurance/capacity unexpectedly | 3 | 4 | 4 | 48 high | M | planned | Storage/cache lead | S83-04, S83-11, S83-21 |
 | R83-009 | Sustained compute plus USB4 and NVMe causes throttling, instability, or unsafe surface thermals | 4 | 4 | 3 | 48 high | M | planned | Platform lead | S83-05, S83-13 |
 | R83-010 | Required out-of-tree/backported kernel patches create maintenance, security, or rollback failure | 4 | 4 | 3 | 48 high | M | planned | Kernel maintainer | S83-06, S83-16 |
@@ -81,7 +82,7 @@ Every score and owner assignment below is **[RECOMMENDATION]** and provisional. 
 | R83-004 | Shape-complete matched HIP/Vulkan benchmark and correctness gates | Any required cell slower than baseline budget or wrong | Per-plan backend selection; CPU fallback only for explicitly viable ops | <=24 |
 | R83-005 | Frozen vendor bases, provenance map, small patch series, scheduled sync rehearsal | Unknown-origin diff; sync exceeds effort budget; security fix cannot port | Hold baseline/security-only backport; drop nonessential donor feature | <=24 |
 | R83-006 | Golden logits/tokens, task-quality suite, conversion hashes, cache/restore/distributed metamorphic tests | Tolerance/quality regression, unsupported op, state replay mismatch | Known-good model/quant/backend; disable feature or reject release | <=20 |
-| R83-007 | Admission budget with headroom; memory telemetry; bounded queues/cache; OOM fault tests | Headroom below gate, allocation failure, swap storm, OOM kill | Reduce context/concurrency/offload/cache; unload and restart cleanly | <=20 |
+| R83-007 | Reject target work during protected production or foreign KFD/render/HMM ownership; authorized maintenance, exact identities, clean OOM baseline, GPU-owner census; bounded queues/cache and isolated OOM tests | Any protected/foreign GPU owner, high `gpu_active`, identity change, allocation failure, swap storm, or OOM kill; `MemAvailable` cannot clear the gate | Stop disposable work; preserve evidence; reconcile both ranks and prove real minimal inference after restart; reduce context/concurrency/offload/cache only in authorized isolation | <=20 |
 | R83-008 | Inventory TBW; quota/GC; host/device write counters; write-amplification benchmark | Free-space reserve or projected life below policy; SMART warning/error | Read-only/disabled cache; move cache to qualified replaceable SSD | <=24 |
 | R83-009 | Sensor calibration, power cap, fan policy, sustained worst-case soak | Throttle/reset/error or temperature/power exceeds product gate | Lower cTDP/concurrency/clocks; improve cooling; single-node duty cycle | <=24 |
 | R83-010 | Prefer upstream/distribution kernel; minimal patch manifest; CI and boot rollback entry | Patch fails rebase/build/boot/security review or lacks recovery image | Revert to supported kernel and USB4NET; defer custom transport | <=24 |

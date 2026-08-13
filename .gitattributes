@@ -16,6 +16,9 @@ SHA256SUMS text eol=lf
 # Preserve pinned third-party source prose verbatim, including its whitespace.
 docs/halofpx/fixtures/qwen3-0.6b-rocmfpx/source-distribution-README-28675487.md -diff
 
+# Preserve the raw target incident journals exactly as captured.
+docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/raw/*.log binary
+
 # Preserve binary evidence and archives exactly.
 *.bin binary
 *.bundle binary

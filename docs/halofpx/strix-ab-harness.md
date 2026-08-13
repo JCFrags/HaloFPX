@@ -18,6 +18,19 @@ golden output is embedded in the implementation.
 
 ## Scope and safety boundary
 
+- Apply the P0 target-ownership predicate in
+  [issue #41](https://github.com/JCFrags/HaloFPX/issues/41) before adapter
+  launch. The adapter must refuse work when a protected production service or
+  an unaccounted KFD/render/HMM owner is active. `MemAvailable`, free RAM,
+  swap, and conventional RSS cannot override this rule; see the
+  [2026-08-12 HMM/global-OOM incident](evidence/2026-08-12-target-hmm-oom-incident/README.md).
+- Bind admission to an authorized maintenance window, exact before-state
+  service identities, a clean kernel-OOM baseline, and an empty foreign
+  GPU-owner census on both hosts. Preserve those observations in the run
+  evidence before starting either condition.
+- Treat a worker PID, InvocationID, or restart-count change as invalidation of
+  coordinator RPC readiness. A health route is not sufficient recovery proof;
+  require both-rank identity reconciliation and a real minimal inference.
 - Run the tool on the target CachyOS nodes. Windows may validate plans and
   fixtures but cannot create a Strix Halo performance result.
 - Use fresh disposable worker and coordinator processes for every condition.

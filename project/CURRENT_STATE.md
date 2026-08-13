@@ -91,6 +91,28 @@ and evidence above.
 
 ## Production state
 
+**[MEASURED]** On 2026-08-12, a nimo-2 candidate build ran while the
+production worker owned about `114041696 kB` of `gpu_active` HMM pages. Despite
+roughly 14 GiB ordinary memory availability, the kernel invoked global OOM
+four times and killed production worker PID `2148915`. systemd restarted it as
+PID `2248760`, InvocationID `d15fe49610274e77bd9a3d84a0b791a5`,
+`NRestarts=1`. A real request then exposed stale coordinator RPC state; the
+coordinator restarted as PID `3113343`, InvocationID
+`0656332b63a140eab7214627baa43253`, `NRestarts=1`. A 5-prompt-token plus
+1-generated-token request subsequently completed and `/health` was OK. The
+[incident evidence](../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
+is a safety/recovery record, not a benchmark or performance result.
+
+**[RECOMMENDATION]** [Issue #41](https://github.com/JCFrags/HaloFPX/issues/41)
+is now a P0 prerequisite for target work: refuse builds, quantization,
+disposable inference, and benchmarks during protected production or
+unaccounted KFD/render/HMM ownership. `MemAvailable` alone cannot admit work.
+After either rank changes identity, health alone cannot prove recovery; exact
+two-rank authority plus a real minimal inference is required.
+
+The older zero-restart observations below are historical before-state, not
+current production authority.
+
 [MEASURED] On nimo-1 at 2026-07-29 09:00 Pacific Daylight Time, the coordinator
 used PID `3027112`, InvocationID `e6da1fe637144cb394119959c0e88736`,
 `NRestarts=0`, and one port 8081 listener. The HTTP result was 200.

@@ -1,0 +1,363 @@
+2026-08-12T19:10:05.500410-07:00 nimo-2 kernel: kswapd0 invoked oom-killer: gfp_mask=0xcc0(GFP_KERNEL), order=0, oom_score_adj=0
+2026-08-12T19:10:05.508139-07:00 nimo-2 kernel: CPU: 24 UID: 0 PID: 242 Comm: kswapd0 Not tainted 7.1.3-1-cachyos #1 PREEMPT(full)  17a4bfb62b3481c94fc303aaa2e2a0ef25712f69
+2026-08-12T19:10:05.514898-07:00 nimo-2 kernel: Hardware name: Nimo Direct Inc. MME3L/NIMO Mini PC, BIOS 3.05 10/11/2025
+2026-08-12T19:10:05.516946-07:00 nimo-2 kernel: Call Trace:
+2026-08-12T19:10:05.517294-07:00 nimo-2 kernel:  <TASK>
+2026-08-12T19:10:05.517301-07:00 nimo-2 kernel:  dump_stack_lvl+0x61/0x80
+2026-08-12T19:10:05.517307-07:00 nimo-2 kernel:  dump_header+0x4a/0x160
+2026-08-12T19:10:05.517316-07:00 nimo-2 kernel:  oom_kill_process+0x175/0x1d0
+2026-08-12T19:10:05.517320-07:00 nimo-2 kernel:  out_of_memory+0x48b/0x590
+2026-08-12T19:10:05.517328-07:00 nimo-2 kernel:  kswapd+0x10ca/0x1d70
+2026-08-12T19:10:05.517333-07:00 nimo-2 kernel:  ? set_cpus_allowed_ptr+0x60/0xb0
+2026-08-12T19:10:05.517336-07:00 nimo-2 kernel:  ? __pfx_kswapd+0x10/0x10
+2026-08-12T19:10:05.517342-07:00 nimo-2 kernel:  kthread+0xfb/0x120
+2026-08-12T19:10:05.517351-07:00 nimo-2 kernel:  ? __pfx_kthread+0x10/0x10
+2026-08-12T19:10:05.517358-07:00 nimo-2 kernel:  ret_from_fork+0xee/0x2b0
+2026-08-12T19:10:05.517364-07:00 nimo-2 kernel:  ? __pfx_kthread+0x10/0x10
+2026-08-12T19:10:05.517369-07:00 nimo-2 kernel:  ret_from_fork_asm+0x1a/0x30
+2026-08-12T19:10:05.517377-07:00 nimo-2 kernel:  </TASK>
+2026-08-12T19:10:05.517382-07:00 nimo-2 kernel: Mem-Info:
+2026-08-12T19:10:05.517387-07:00 nimo-2 kernel: active_anon:17928 inactive_anon:36003 isolated_anon:0
+                                                 active_file:2677 inactive_file:4867 isolated_file:0
+                                                 unevictable:23001 dirty:19 writeback:125
+                                                 slab_reclaimable:23654 slab_unreclaimable:61293
+                                                 mapped:3942 shmem:0 pagetables:1713
+                                                 sec_pagetables:0 bounce:0
+                                                 kernel_misc_reclaimable:0
+                                                 free:3739825 free_pcp:17973 free_cma:0
+2026-08-12T19:10:05.517395-07:00 nimo-2 kernel: Node 0 active_anon:71712kB inactive_anon:144012kB active_file:10708kB inactive_file:19468kB unevictable:92004kB isolated(anon):0kB isolated(file):0kB mapped:15768kB dirty:76kB writeback:500kB shmem:0kB shmem_thp:0kB shmem_pmdmapped:0kB anon_thp:4096kB kernel_stack:9008kB pagetables:6852kB sec_pagetables:0kB all_unreclaimable? no Balloon:0kB gpu_active:114041696kB gpu_reclaim:4kB
+2026-08-12T19:10:05.517436-07:00 nimo-2 kernel: Node 0 DMA free:11264kB boost:0kB min:4kB low:16kB high:28kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:0kB present:15996kB managed:15360kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+2026-08-12T19:10:05.517442-07:00 nimo-2 kernel: lowmem_reserve[]: 0 1638 127418 127418 127418
+2026-08-12T19:10:05.517450-07:00 nimo-2 kernel: Node 0 DMA32 free:503496kB boost:0kB min:840kB low:2464kB high:4088kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:0kB present:1743304kB managed:1677740kB mlocked:0kB bounce:0kB free_pcp:1508kB local_pcp:0kB free_cma:0kB
+2026-08-12T19:10:05.517511-07:00 nimo-2 kernel: lowmem_reserve[]: 0 0 125779 125779 125779
+2026-08-12T19:10:05.517517-07:00 nimo-2 kernel: Node 0 Normal free:14444540kB boost:0kB min:66732kB low:195520kB high:324308kB reserved_highatomic:2048KB free_highatomic:2016KB active_anon:71712kB inactive_anon:144012kB active_file:10708kB inactive_file:19468kB unevictable:92004kB writepending:576kB zspages:0kB present:131040000kB managed:128798600kB mlocked:64kB bounce:0kB free_pcp:70380kB local_pcp:824kB free_cma:0kB
+2026-08-12T19:10:05.517526-07:00 nimo-2 kernel: lowmem_reserve[]: 0 0 0 0 0
+2026-08-12T19:10:05.517533-07:00 nimo-2 kernel: Node 0 DMA: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 1*1024kB (U) 1*2048kB (M) 2*4096kB (M) = 11264kB
+2026-08-12T19:10:05.517540-07:00 nimo-2 kernel: Node 0 DMA32: 46*4kB (UME) 34*8kB (UME) 74*16kB (UME) 69*32kB (UME) 63*64kB (ME) 58*128kB (UME) 67*256kB (UME) 68*512kB (UME) 60*1024kB (UME) 51*2048kB (UM) 66*4096kB (ME) = 503496kB
+2026-08-12T19:10:05.517545-07:00 nimo-2 kernel: Node 0 Normal: 3306*4kB (UMEH) 10143*8kB (UMEH) 13846*16kB (UMEH) 13581*32kB (UMEH) 26481*64kB (UMEH) 19970*128kB (UMEH) 22888*256kB (UMEH) 6611*512kB (UME) 193*1024kB (UME) 0*2048kB 0*4096kB = 14443232kB
+2026-08-12T19:10:05.517597-07:00 nimo-2 kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
+2026-08-12T19:10:05.517603-07:00 nimo-2 kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+2026-08-12T19:10:05.517607-07:00 nimo-2 kernel: 64379 total pagecache pages
+2026-08-12T19:10:05.517612-07:00 nimo-2 kernel: 33379 pages in swap cache
+2026-08-12T19:10:05.517618-07:00 nimo-2 kernel: Free swap  = 31947512kB
+2026-08-12T19:10:05.517622-07:00 nimo-2 kernel: Total swap = 33554428kB
+2026-08-12T19:10:05.517626-07:00 nimo-2 kernel: 33199825 pages RAM
+2026-08-12T19:10:05.517630-07:00 nimo-2 kernel: 0 pages HighMem/MovableOnly
+2026-08-12T19:10:05.517635-07:00 nimo-2 kernel: 576900 pages reserved
+2026-08-12T19:10:05.517638-07:00 nimo-2 kernel: 0 pages cma reserved
+2026-08-12T19:10:05.517642-07:00 nimo-2 kernel: 0 pages hwpoisoned
+2026-08-12T19:10:05.517646-07:00 nimo-2 kernel: Memory cgroup min protection 0kB -- low protection 0kB
+2026-08-12T19:10:05.517651-07:00 nimo-2 kernel: Tasks state (memory values in pages):
+2026-08-12T19:10:05.517657-07:00 nimo-2 kernel: [  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
+2026-08-12T19:10:05.517699-07:00 nimo-2 kernel: [    552]     0   552    31825       63        1       62         0   126976     1994          -250 systemd-journal
+2026-08-12T19:10:05.517704-07:00 nimo-2 kernel: [    572]     0   572     2265       45        0       45         0    57344      140             0 systemd-userdbd
+2026-08-12T19:10:05.517711-07:00 nimo-2 kernel: [    664]   974   664     6656       82        2       80         0    94208      763             0 systemd-resolve
+2026-08-12T19:10:05.517714-07:00 nimo-2 kernel: [    665]   973   665    21238       44        1       43         0    73728      188             0 systemd-timesyn
+2026-08-12T19:10:05.517722-07:00 nimo-2 kernel: [    671]     0   671    11415       31        0       31         0   110592     1374         -1000 systemd-udevd
+2026-08-12T19:10:05.517730-07:00 nimo-2 kernel: [    850]    81   850     2058       41        0       41         0    57344      249          -900 dbus-broker-lau
+2026-08-12T19:10:05.517735-07:00 nimo-2 kernel: [    851]    81   851     1539       57        0       57         0    53248      407          -900 dbus-broker
+2026-08-12T19:10:05.517741-07:00 nimo-2 kernel: [    853]   969   853     1566       26        2       24         0    53248       94             0 avahi-daemon
+2026-08-12T19:10:05.517748-07:00 nimo-2 kernel: [    854]     0   854    77339       48        1       47         0    98304      191             0 boltd
+2026-08-12T19:10:05.517753-07:00 nimo-2 kernel: [    855]     0   855    94618        8        1        7         0   233472     8436             0 firewalld
+2026-08-12T19:10:05.517758-07:00 nimo-2 kernel: [    860]     0   860     2742       46        0       46         0    65536      297             0 systemd-logind
+2026-08-12T19:10:05.517762-07:00 nimo-2 kernel: [    873]   102   873    77613       79        6       73         0   106496      834             0 polkitd
+2026-08-12T19:10:05.517767-07:00 nimo-2 kernel: [    874]   969   874     1566        2        0        2         0    53248       79             0 avahi-daemon
+2026-08-12T19:10:05.517770-07:00 nimo-2 kernel: [    971]     0   971     3582       50        0       50         0    73728      305         -1000 sshd
+2026-08-12T19:10:05.517776-07:00 nimo-2 kernel: [   1002]     0  1002     1977       68        1       67         0    49152       54             0 agetty
+2026-08-12T19:10:05.517780-07:00 nimo-2 kernel: [   1003]     0  1003     5909       84        5       79         0    86016      652             0 wpa_supplicant
+2026-08-12T19:10:05.517786-07:00 nimo-2 kernel: [ 121201]     0 121201    77285       47        1       46         0   102400      171             0 power-profiles-
+2026-08-12T19:10:05.517789-07:00 nimo-2 kernel: [ 121612]     0 121612    90393       70        4       66         0   204800     2132             0 fwupd
+2026-08-12T19:10:05.517793-07:00 nimo-2 kernel: [ 121627]     0 121627   155441       81        2       79         0   167936      628             0 udisksd
+2026-08-12T19:10:05.517798-07:00 nimo-2 kernel: [ 121637]     0 121637    80588       46        0       46         0   135168      566             0 upowerd
+2026-08-12T19:10:05.517804-07:00 nimo-2 kernel: [ 460250]     0 460250    28604       51        0       51         0   135168     3982             0 dirmngr
+2026-08-12T19:10:05.517821-07:00 nimo-2 kernel: [ 591495]     0 591495   209110      111       10      101         0   237568     1412             0 NetworkManager
+2026-08-12T19:10:05.517825-07:00 nimo-2 kernel: [2058269]     0 2058269    39119       94       16       78         0    86016       69             0 gpg-agent
+2026-08-12T19:10:05.517830-07:00 nimo-2 kernel: [2135557]  1000 2135557     4861       51        1       50         0    81920      601           100 systemd
+2026-08-12T19:10:05.517836-07:00 nimo-2 kernel: [2135559]  1000 2135559     4881        8        0        8         0    77824      400           100 (sd-pam)
+2026-08-12T19:10:05.517841-07:00 nimo-2 kernel: [2148915]  1000 2148915 29887597    32232    32208       24         0   819200     8539             0 ggml-rpc-server
+2026-08-12T19:10:05.517845-07:00 nimo-2 kernel: [2154564]  1000 2154564     1903       38        0       38         0    57344       78           200 dbus-broker-lau
+2026-08-12T19:10:05.517850-07:00 nimo-2 kernel: [2154565]  1000 2154565     1172       40        1       39         0    53248       58           200 dbus-broker
+2026-08-12T19:10:05.517855-07:00 nimo-2 kernel: [2244516]     0 2244516     5853       52        0       52         0    86016      520             0 sshd-session
+2026-08-12T19:10:05.517860-07:00 nimo-2 kernel: [2244519]  1000 2244519     5893       89       26       63         0    90112      537             0 sshd-session
+2026-08-12T19:10:05.517864-07:00 nimo-2 kernel: [2244520]  1000 2244520    39004       51        0       51         0   102400      429             0 fish
+2026-08-12T19:10:05.517869-07:00 nimo-2 kernel: [2244762]  1000 2244762    19974       59        0       59         0   139264      487             0 cmake
+2026-08-12T19:10:05.517874-07:00 nimo-2 kernel: [2244763]  1000 2244763     3264      160       65       95         0    65536     1305             0 ninja
+2026-08-12T19:10:05.517878-07:00 nimo-2 kernel: [2248637]     0 2248637     2394       69        1       68         0    61440      148             0 systemd-userwor
+2026-08-12T19:10:05.517882-07:00 nimo-2 kernel: [2248638]     0 2248638     2394       67        0       67         0    65536      148             0 systemd-userwor
+2026-08-12T19:10:05.517887-07:00 nimo-2 kernel: [2248639]     0 2248639     2394       69        0       69         0    65536      148             0 systemd-userwor
+2026-08-12T19:10:05.517893-07:00 nimo-2 kernel: [2248665]  1000 2248665     2146      106        0      106         0    53248       74             0 c++
+2026-08-12T19:10:05.517898-07:00 nimo-2 kernel: [2248666]  1000 2248666    30270    14274    10232     4042         0   253952     1928             0 cc1plus
+2026-08-12T19:10:05.517901-07:00 nimo-2 kernel: [2248668]  1000 2248668     2146      129       23      106         0    57344       51             0 c++
+2026-08-12T19:10:05.517906-07:00 nimo-2 kernel: [2248669]  1000 2248669    30895    15050    11037     4013         0   258048     1849             0 cc1plus
+2026-08-12T19:10:05.517910-07:00 nimo-2 kernel: oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,global_oom,task_memcg=/user.slice/user-1000.slice/user@1000.service/session.slice/dbus-broker.service,task=dbus-broker-lau,pid=2154564,uid=1000
+2026-08-12T19:10:05.517983-07:00 nimo-2 kernel: Out of memory: Killed process 2154564 (dbus-broker-lau) total-vm:7612kB, anon-rss:0kB, file-rss:152kB, shmem-rss:0kB, UID:1000 pgtables:56kB oom_score_adj:200
+2026-08-12T19:10:15.614152-07:00 nimo-2 kernel: kswapd0 invoked oom-killer: gfp_mask=0xcc0(GFP_KERNEL), order=0, oom_score_adj=0
+2026-08-12T19:10:15.622161-07:00 nimo-2 kernel: CPU: 27 UID: 0 PID: 242 Comm: kswapd0 Not tainted 7.1.3-1-cachyos #1 PREEMPT(full)  17a4bfb62b3481c94fc303aaa2e2a0ef25712f69
+2026-08-12T19:10:15.627145-07:00 nimo-2 kernel: Hardware name: Nimo Direct Inc. MME3L/NIMO Mini PC, BIOS 3.05 10/11/2025
+2026-08-12T19:10:15.627191-07:00 nimo-2 kernel: Call Trace:
+2026-08-12T19:10:15.627199-07:00 nimo-2 kernel:  <TASK>
+2026-08-12T19:10:15.627207-07:00 nimo-2 kernel:  dump_stack_lvl+0x61/0x80
+2026-08-12T19:10:15.627213-07:00 nimo-2 kernel:  dump_header+0x4a/0x160
+2026-08-12T19:10:15.627220-07:00 nimo-2 kernel:  oom_kill_process+0x175/0x1d0
+2026-08-12T19:10:15.627223-07:00 nimo-2 kernel:  out_of_memory+0x48b/0x590
+2026-08-12T19:10:15.627233-07:00 nimo-2 kernel:  kswapd+0x10ca/0x1d70
+2026-08-12T19:10:15.627239-07:00 nimo-2 kernel:  ? set_cpus_allowed_ptr+0x60/0xb0
+2026-08-12T19:10:15.627245-07:00 nimo-2 kernel:  ? __pfx_kswapd+0x10/0x10
+2026-08-12T19:10:15.627251-07:00 nimo-2 kernel:  kthread+0xfb/0x120
+2026-08-12T19:10:15.627256-07:00 nimo-2 kernel:  ? __pfx_kthread+0x10/0x10
+2026-08-12T19:10:15.627261-07:00 nimo-2 kernel:  ret_from_fork+0xee/0x2b0
+2026-08-12T19:10:15.627267-07:00 nimo-2 kernel:  ? __pfx_kthread+0x10/0x10
+2026-08-12T19:10:15.627273-07:00 nimo-2 kernel:  ret_from_fork_asm+0x1a/0x30
+2026-08-12T19:10:15.627278-07:00 nimo-2 kernel:  </TASK>
+2026-08-12T19:10:15.627284-07:00 nimo-2 kernel: Mem-Info:
+2026-08-12T19:10:15.627289-07:00 nimo-2 kernel: active_anon:15410 inactive_anon:35448 isolated_anon:0
+                                                 active_file:2389 inactive_file:7146 isolated_file:0
+                                                 unevictable:23001 dirty:40 writeback:14
+                                                 slab_reclaimable:23612 slab_unreclaimable:61291
+                                                 mapped:5090 shmem:1 pagetables:1701
+                                                 sec_pagetables:0 bounce:0
+                                                 kernel_misc_reclaimable:0
+                                                 free:3739929 free_pcp:18753 free_cma:0
+2026-08-12T19:10:15.627297-07:00 nimo-2 kernel: Node 0 active_anon:61640kB inactive_anon:141792kB active_file:9556kB inactive_file:28584kB unevictable:92004kB isolated(anon):0kB isolated(file):0kB mapped:20360kB dirty:160kB writeback:56kB shmem:4kB shmem_thp:0kB shmem_pmdmapped:0kB anon_thp:4096kB kernel_stack:9008kB pagetables:6804kB sec_pagetables:0kB all_unreclaimable? no Balloon:0kB gpu_active:114041696kB gpu_reclaim:4kB
+2026-08-12T19:10:15.627304-07:00 nimo-2 kernel: Node 0 DMA free:11264kB boost:0kB min:4kB low:16kB high:28kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:0kB present:15996kB managed:15360kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+2026-08-12T19:10:15.627351-07:00 nimo-2 kernel: lowmem_reserve[]: 0 1638 127418 127418 127418
+2026-08-12T19:10:15.627356-07:00 nimo-2 kernel: Node 0 DMA32 free:505004kB boost:0kB min:840kB low:2464kB high:4088kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:0kB present:1743304kB managed:1677740kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+2026-08-12T19:10:15.627387-07:00 nimo-2 kernel: lowmem_reserve[]: 0 0 125779 125779 125779
+2026-08-12T19:10:15.627392-07:00 nimo-2 kernel: Node 0 Normal free:14443448kB boost:0kB min:66732kB low:195520kB high:324308kB reserved_highatomic:2048KB free_highatomic:2016KB active_anon:61640kB inactive_anon:141792kB active_file:9556kB inactive_file:28584kB unevictable:92004kB writepending:216kB zspages:0kB present:131040000kB managed:128798600kB mlocked:64kB bounce:0kB free_pcp:74996kB local_pcp:732kB free_cma:0kB
+2026-08-12T19:10:15.627399-07:00 nimo-2 kernel: lowmem_reserve[]: 0 0 0 0 0
+2026-08-12T19:10:15.627407-07:00 nimo-2 kernel: Node 0 DMA: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 1*1024kB (U) 1*2048kB (M) 2*4096kB (M) = 11264kB
+2026-08-12T19:10:15.627414-07:00 nimo-2 kernel: Node 0 DMA32: 45*4kB (ME) 33*8kB (ME) 73*16kB (ME) 71*32kB (UME) 64*64kB (UME) 69*128kB (UME) 67*256kB (UME) 68*512kB (UME) 60*1024kB (UME) 51*2048kB (UM) 66*4096kB (ME) = 505004kB
+2026-08-12T19:10:15.627420-07:00 nimo-2 kernel: Node 0 Normal: 2381*4kB (UMEH) 11494*8kB (UMEH) 14123*16kB (UMEH) 12597*32kB (UMEH) 26538*64kB (UMEH) 19999*128kB (UMEH) 22914*256kB (UMEH) 6623*512kB (UME) 193*1024kB (UME) 0*2048kB 0*4096kB = 14443444kB
+2026-08-12T19:10:15.627463-07:00 nimo-2 kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
+2026-08-12T19:10:15.627468-07:00 nimo-2 kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+2026-08-12T19:10:15.627472-07:00 nimo-2 kernel: 66663 total pagecache pages
+2026-08-12T19:10:15.627477-07:00 nimo-2 kernel: 33941 pages in swap cache
+2026-08-12T19:10:15.627482-07:00 nimo-2 kernel: Free swap  = 31952744kB
+2026-08-12T19:10:15.627486-07:00 nimo-2 kernel: Total swap = 33554428kB
+2026-08-12T19:10:15.627491-07:00 nimo-2 kernel: 33199825 pages RAM
+2026-08-12T19:10:15.627495-07:00 nimo-2 kernel: 0 pages HighMem/MovableOnly
+2026-08-12T19:10:15.627500-07:00 nimo-2 kernel: 576900 pages reserved
+2026-08-12T19:10:15.627504-07:00 nimo-2 kernel: 0 pages cma reserved
+2026-08-12T19:10:15.627507-07:00 nimo-2 kernel: 0 pages hwpoisoned
+2026-08-12T19:10:15.627513-07:00 nimo-2 kernel: Memory cgroup min protection 0kB -- low protection 0kB
+2026-08-12T19:10:15.627517-07:00 nimo-2 kernel: Tasks state (memory values in pages):
+2026-08-12T19:10:15.627522-07:00 nimo-2 kernel: [  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
+2026-08-12T19:10:15.627547-07:00 nimo-2 kernel: [    552]     0   552    31825       66        0       66         0   126976     1995          -250 systemd-journal
+2026-08-12T19:10:15.627553-07:00 nimo-2 kernel: [    572]     0   572     2265       36        0       36         0    57344      140             0 systemd-userdbd
+2026-08-12T19:10:15.627559-07:00 nimo-2 kernel: [    664]   974   664     6656       58        1       57         0    94208      764             0 systemd-resolve
+2026-08-12T19:10:15.627564-07:00 nimo-2 kernel: [    665]   973   665    21238       44        1       43         0    73728      188             0 systemd-timesyn
+2026-08-12T19:10:15.627571-07:00 nimo-2 kernel: [    671]     0   671    11415      137       29      108         0   110592     1345         -1000 systemd-udevd
+2026-08-12T19:10:15.627576-07:00 nimo-2 kernel: [    850]    81   850     2058       41        0       41         0    57344      249          -900 dbus-broker-lau
+2026-08-12T19:10:15.627580-07:00 nimo-2 kernel: [    851]    81   851     1539       44        0       44         0    53248      407          -900 dbus-broker
+2026-08-12T19:10:15.627585-07:00 nimo-2 kernel: [    853]   969   853     1566       24        0       24         0    53248       96             0 avahi-daemon
+2026-08-12T19:10:15.627591-07:00 nimo-2 kernel: [    854]     0   854    77339       48        1       47         0    98304      191             0 boltd
+2026-08-12T19:10:15.627597-07:00 nimo-2 kernel: [    855]     0   855    94618        8        1        7         0   233472     8436             0 firewalld
+2026-08-12T19:10:15.627600-07:00 nimo-2 kernel: [    860]     0   860     2742       46        0       46         0    65536      297             0 systemd-logind
+2026-08-12T19:10:15.627604-07:00 nimo-2 kernel: [    873]   102   873    77613      156       17      139         0   106496      823             0 polkitd
+2026-08-12T19:10:15.627608-07:00 nimo-2 kernel: [    874]   969   874     1566        2        0        2         0    53248       79             0 avahi-daemon
+2026-08-12T19:10:15.627612-07:00 nimo-2 kernel: [    971]     0   971     3582       50        0       50         0    73728      305         -1000 sshd
+2026-08-12T19:10:15.627617-07:00 nimo-2 kernel: [   1002]     0  1002     1977       48        0       48         0    49152       55             0 agetty
+2026-08-12T19:10:15.627621-07:00 nimo-2 kernel: [   1003]     0  1003     5909       62        1       61         0    86016      656             0 wpa_supplicant
+2026-08-12T19:10:15.627626-07:00 nimo-2 kernel: [ 121201]     0 121201    77285       47        1       46         0   102400      171             0 power-profiles-
+2026-08-12T19:10:15.627631-07:00 nimo-2 kernel: [ 121612]     0 121612    90393      164       15      149         0   204800     2121             0 fwupd
+2026-08-12T19:10:15.627637-07:00 nimo-2 kernel: [ 121627]     0 121627   155441      183       21      162         0   167936      609             0 udisksd
+2026-08-12T19:10:15.627641-07:00 nimo-2 kernel: [ 121637]     0 121637    80588       46        0       46         0   135168      566             0 upowerd
+2026-08-12T19:10:15.627645-07:00 nimo-2 kernel: [ 460250]     0 460250    28604       50        0       50         0   135168     3982             0 dirmngr
+2026-08-12T19:10:15.627650-07:00 nimo-2 kernel: [ 591495]     0 591495   209110       67        0       67         0   237568     1422             0 NetworkManager
+2026-08-12T19:10:15.627655-07:00 nimo-2 kernel: [2058269]     0 2058269    39119      134       27      107         0    86016       58             0 gpg-agent
+2026-08-12T19:10:15.627660-07:00 nimo-2 kernel: [2135557]  1000 2135557     4861       65        0       65         0    81920      602           100 systemd
+2026-08-12T19:10:15.627665-07:00 nimo-2 kernel: [2135559]  1000 2135559     4881        8        0        8         0    77824      400           100 (sd-pam)
+2026-08-12T19:10:15.627670-07:00 nimo-2 kernel: [2148915]  1000 2148915 29887597    33002    32978       24         0   819200     7769             0 ggml-rpc-server
+2026-08-12T19:10:15.627676-07:00 nimo-2 kernel: [2244516]     0 2244516     5853       52        0       52         0    86016      520             0 sshd-session
+2026-08-12T19:10:15.627681-07:00 nimo-2 kernel: [2244519]  1000 2244519     5893      106       18       88         0    90112      545             0 sshd-session
+2026-08-12T19:10:15.627686-07:00 nimo-2 kernel: [2244520]  1000 2244520    39004       51        0       51         0   102400      429             0 fish
+2026-08-12T19:10:15.627690-07:00 nimo-2 kernel: [2244762]  1000 2244762    19974       59        0       59         0   139264      487             0 cmake
+2026-08-12T19:10:15.627696-07:00 nimo-2 kernel: [2244763]  1000 2244763     3264      284       49      235         0    65536     1330             0 ninja
+2026-08-12T19:10:15.627699-07:00 nimo-2 kernel: [2248637]     0 2248637     2394       53        0       53         0    61440      149             0 systemd-userwor
+2026-08-12T19:10:15.627705-07:00 nimo-2 kernel: [2248638]     0 2248638     2394       54        0       54         0    65536      148             0 systemd-userwor
+2026-08-12T19:10:15.627712-07:00 nimo-2 kernel: [2248639]     0 2248639     2394       54        0       54         0    65536      148             0 systemd-userwor
+2026-08-12T19:10:15.627718-07:00 nimo-2 kernel: [2248708]  1000 2248708     2146      478        5      473         0    53248       68             0 c++
+2026-08-12T19:10:15.627722-07:00 nimo-2 kernel: [2248709]  1000 2248709    29172    14043     9272     4771         0   233472     1744             0 cc1plus
+2026-08-12T19:10:15.627727-07:00 nimo-2 kernel: [2248711]  1000 2248711     2146      474        1      473         0    57344       72             0 c++
+2026-08-12T19:10:15.627732-07:00 nimo-2 kernel: [2248712]  1000 2248712    27490    10514     8070     2444         0   188416     1314             0 cc1plus
+2026-08-12T19:10:15.627737-07:00 nimo-2 kernel: oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,global_oom,task_memcg=/user.slice/user-1000.slice/user@1000.service/init.scope,task=systemd,pid=2135557,uid=1000
+2026-08-12T19:10:15.627744-07:00 nimo-2 kernel: Out of memory: Killed process 2135557 (systemd) total-vm:19444kB, anon-rss:0kB, file-rss:260kB, shmem-rss:0kB, UID:1000 pgtables:80kB oom_score_adj:100
+2026-08-12T19:10:15.627803-07:00 nimo-2 kernel: kswapd0 invoked oom-killer: gfp_mask=0xcc0(GFP_KERNEL), order=0, oom_score_adj=0
+2026-08-12T19:10:15.627807-07:00 nimo-2 kernel: CPU: 27 UID: 0 PID: 242 Comm: kswapd0 Not tainted 7.1.3-1-cachyos #1 PREEMPT(full)  17a4bfb62b3481c94fc303aaa2e2a0ef25712f69
+2026-08-12T19:10:15.627811-07:00 nimo-2 kernel: Hardware name: Nimo Direct Inc. MME3L/NIMO Mini PC, BIOS 3.05 10/11/2025
+2026-08-12T19:10:15.627815-07:00 nimo-2 kernel: Call Trace:
+2026-08-12T19:10:15.627818-07:00 nimo-2 kernel:  <TASK>
+2026-08-12T19:10:15.627822-07:00 nimo-2 kernel:  dump_stack_lvl+0x61/0x80
+2026-08-12T19:10:15.627825-07:00 nimo-2 kernel:  dump_header+0x4a/0x160
+2026-08-12T19:10:15.627828-07:00 nimo-2 kernel:  oom_kill_process+0x175/0x1d0
+2026-08-12T19:10:15.627833-07:00 nimo-2 kernel:  out_of_memory+0x48b/0x590
+2026-08-12T19:10:15.627837-07:00 nimo-2 kernel:  kswapd+0x10ca/0x1d70
+2026-08-12T19:10:15.627842-07:00 nimo-2 kernel:  ? set_cpus_allowed_ptr+0x60/0xb0
+2026-08-12T19:10:15.627845-07:00 nimo-2 kernel:  ? __pfx_kswapd+0x10/0x10
+2026-08-12T19:10:15.627850-07:00 nimo-2 kernel:  kthread+0xfb/0x120
+2026-08-12T19:10:15.627854-07:00 nimo-2 kernel:  ? __pfx_kthread+0x10/0x10
+2026-08-12T19:10:15.627858-07:00 nimo-2 kernel:  ret_from_fork+0xee/0x2b0
+2026-08-12T19:10:15.627861-07:00 nimo-2 kernel:  ? __pfx_kthread+0x10/0x10
+2026-08-12T19:10:15.627865-07:00 nimo-2 kernel:  ret_from_fork_asm+0x1a/0x30
+2026-08-12T19:10:15.627868-07:00 nimo-2 kernel:  </TASK>
+2026-08-12T19:10:15.627871-07:00 nimo-2 kernel: Mem-Info:
+2026-08-12T19:10:15.627875-07:00 nimo-2 kernel: active_anon:15596 inactive_anon:35451 isolated_anon:0
+                                                 active_file:2536 inactive_file:7154 isolated_file:0
+                                                 unevictable:23001 dirty:40 writeback:14
+                                                 slab_reclaimable:23612 slab_unreclaimable:61291
+                                                 mapped:5106 shmem:1 pagetables:1702
+                                                 sec_pagetables:0 bounce:0
+                                                 kernel_misc_reclaimable:0
+                                                 free:3739488 free_pcp:18952 free_cma:0
+2026-08-12T19:10:15.627880-07:00 nimo-2 kernel: Node 0 active_anon:62384kB inactive_anon:141804kB active_file:10144kB inactive_file:28616kB unevictable:92004kB isolated(anon):0kB isolated(file):0kB mapped:20424kB dirty:160kB writeback:56kB shmem:4kB shmem_thp:0kB shmem_pmdmapped:0kB anon_thp:4096kB kernel_stack:9008kB pagetables:6808kB sec_pagetables:0kB all_unreclaimable? no Balloon:0kB gpu_active:114041696kB gpu_reclaim:4kB
+2026-08-12T19:10:15.627885-07:00 nimo-2 kernel: Node 0 DMA free:11264kB boost:0kB min:4kB low:16kB high:28kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:0kB present:15996kB managed:15360kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+2026-08-12T19:10:15.627889-07:00 nimo-2 kernel: lowmem_reserve[]: 0 1638 127418 127418 127418
+2026-08-12T19:10:15.627894-07:00 nimo-2 kernel: Node 0 DMA32 free:505004kB boost:0kB min:840kB low:2464kB high:4088kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:0kB present:1743304kB managed:1677740kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+2026-08-12T19:10:15.627899-07:00 nimo-2 kernel: lowmem_reserve[]: 0 0 125779 125779 125779
+2026-08-12T19:10:15.627904-07:00 nimo-2 kernel: Node 0 Normal free:14441684kB boost:0kB min:66732kB low:195520kB high:324308kB reserved_highatomic:2048KB free_highatomic:2016KB active_anon:62384kB inactive_anon:141804kB active_file:10144kB inactive_file:28616kB unevictable:92004kB writepending:216kB zspages:0kB present:131040000kB managed:128798600kB mlocked:64kB bounce:0kB free_pcp:75796kB local_pcp:268kB free_cma:0kB
+2026-08-12T19:10:15.627910-07:00 nimo-2 kernel: lowmem_reserve[]: 0 0 0 0 0
+2026-08-12T19:10:15.627914-07:00 nimo-2 kernel: Node 0 DMA: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 1*1024kB (U) 1*2048kB (M) 2*4096kB (M) = 11264kB
+2026-08-12T19:10:15.627918-07:00 nimo-2 kernel: Node 0 DMA32: 45*4kB (ME) 33*8kB (ME) 73*16kB (ME) 71*32kB (UME) 64*64kB (UME) 69*128kB (UME) 67*256kB (UME) 68*512kB (UME) 60*1024kB (UME) 51*2048kB (UM) 66*4096kB (ME) = 505004kB
+2026-08-12T19:10:15.627922-07:00 nimo-2 kernel: Node 0 Normal: 2459*4kB (UEH) 11173*8kB (UMEH) 14124*16kB (UMEH) 12604*32kB (UMEH) 26538*64kB (UMEH) 19999*128kB (UMEH) 22914*256kB (UMEH) 6623*512kB (UME) 193*1024kB (UME) 0*2048kB 0*4096kB = 14441428kB
+2026-08-12T19:10:15.627927-07:00 nimo-2 kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
+2026-08-12T19:10:15.627931-07:00 nimo-2 kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+2026-08-12T19:10:15.627935-07:00 nimo-2 kernel: 66844 total pagecache pages
+2026-08-12T19:10:15.627939-07:00 nimo-2 kernel: 33946 pages in swap cache
+2026-08-12T19:10:15.627942-07:00 nimo-2 kernel: Free swap  = 31955152kB
+2026-08-12T19:10:15.627946-07:00 nimo-2 kernel: Total swap = 33554428kB
+2026-08-12T19:10:15.627949-07:00 nimo-2 kernel: 33199825 pages RAM
+2026-08-12T19:10:15.627954-07:00 nimo-2 kernel: 0 pages HighMem/MovableOnly
+2026-08-12T19:10:15.627957-07:00 nimo-2 kernel: 576900 pages reserved
+2026-08-12T19:10:15.627960-07:00 nimo-2 kernel: 0 pages cma reserved
+2026-08-12T19:10:15.627964-07:00 nimo-2 kernel: 0 pages hwpoisoned
+2026-08-12T19:10:15.627967-07:00 nimo-2 kernel: Memory cgroup min protection 0kB -- low protection 0kB
+2026-08-12T19:10:15.627970-07:00 nimo-2 kernel: Tasks state (memory values in pages):
+2026-08-12T19:10:15.627973-07:00 nimo-2 kernel: [  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
+2026-08-12T19:10:15.627977-07:00 nimo-2 kernel: [    552]     0   552    31825       74        3       71         0   126976     1992          -250 systemd-journal
+2026-08-12T19:10:15.627982-07:00 nimo-2 kernel: [    572]     0   572     2265       36        0       36         0    57344      140             0 systemd-userdbd
+2026-08-12T19:10:15.627985-07:00 nimo-2 kernel: [    664]   974   664     6656       58        1       57         0    94208      764             0 systemd-resolve
+2026-08-12T19:10:15.627989-07:00 nimo-2 kernel: [    665]   973   665    21238       44        1       43         0    73728      188             0 systemd-timesyn
+2026-08-12T19:10:15.627994-07:00 nimo-2 kernel: [    671]     0   671    11415      137       29      108         0   110592     1345         -1000 systemd-udevd
+2026-08-12T19:10:15.627998-07:00 nimo-2 kernel: [    850]    81   850     2058       41        0       41         0    57344      249          -900 dbus-broker-lau
+2026-08-12T19:10:15.628002-07:00 nimo-2 kernel: [    851]    81   851     1539       44        0       44         0    53248      407          -900 dbus-broker
+2026-08-12T19:10:15.628006-07:00 nimo-2 kernel: [    853]   969   853     1566       24        0       24         0    53248       96             0 avahi-daemon
+2026-08-12T19:10:15.628010-07:00 nimo-2 kernel: [    854]     0   854    77339       48        1       47         0    98304      191             0 boltd
+2026-08-12T19:10:15.628014-07:00 nimo-2 kernel: [    855]     0   855    94618        8        1        7         0   233472     8436             0 firewalld
+2026-08-12T19:10:15.628018-07:00 nimo-2 kernel: [    860]     0   860     2742       46        0       46         0    65536      297             0 systemd-logind
+2026-08-12T19:10:15.628023-07:00 nimo-2 kernel: [    873]   102   873    77613      156       17      139         0   106496      823             0 polkitd
+2026-08-12T19:10:15.628028-07:00 nimo-2 kernel: [    874]   969   874     1566        2        0        2         0    53248       79             0 avahi-daemon
+2026-08-12T19:10:15.628032-07:00 nimo-2 kernel: [    971]     0   971     3582       50        0       50         0    73728      305         -1000 sshd
+2026-08-12T19:10:15.628036-07:00 nimo-2 kernel: [   1002]     0  1002     1977       48        0       48         0    49152       55             0 agetty
+2026-08-12T19:10:15.628041-07:00 nimo-2 kernel: [   1003]     0  1003     5909       62        1       61         0    86016      656             0 wpa_supplicant
+2026-08-12T19:10:15.628045-07:00 nimo-2 kernel: [ 121201]     0 121201    77285       47        1       46         0   102400      171             0 power-profiles-
+2026-08-12T19:10:15.628049-07:00 nimo-2 kernel: [ 121612]     0 121612    90393      164       15      149         0   204800     2121             0 fwupd
+2026-08-12T19:10:15.628053-07:00 nimo-2 kernel: [ 121627]     0 121627   155441      183       21      162         0   167936      609             0 udisksd
+2026-08-12T19:10:15.628057-07:00 nimo-2 kernel: [ 121637]     0 121637    80588       46        0       46         0   135168      566             0 upowerd
+2026-08-12T19:10:15.628061-07:00 nimo-2 kernel: [ 460250]     0 460250    28604       50        0       50         0   135168     3982             0 dirmngr
+2026-08-12T19:10:15.628065-07:00 nimo-2 kernel: [ 591495]     0 591495   209110       67        0       67         0   237568     1422             0 NetworkManager
+2026-08-12T19:10:15.628069-07:00 nimo-2 kernel: [2058269]     0 2058269    39119      132       27      105         0    86016       58             0 gpg-agent
+2026-08-12T19:10:15.628074-07:00 nimo-2 kernel: [2135559]  1000 2135559     4881        8        0        8         0    77824      400           100 (sd-pam)
+2026-08-12T19:10:15.628077-07:00 nimo-2 kernel: [2148915]  1000 2148915 29887597    33002    32978       24         0   819200     7769             0 ggml-rpc-server
+2026-08-12T19:10:15.628082-07:00 nimo-2 kernel: [2244516]     0 2244516     5853       52        0       52         0    86016      520             0 sshd-session
+2026-08-12T19:10:15.628086-07:00 nimo-2 kernel: [2244519]  1000 2244519     5893      106       18       88         0    90112      545             0 sshd-session
+2026-08-12T19:10:15.628090-07:00 nimo-2 kernel: [2244520]  1000 2244520    39004       51        0       51         0   102400      429             0 fish
+2026-08-12T19:10:15.628094-07:00 nimo-2 kernel: [2244762]  1000 2244762    19974       59        0       59         0   139264      487             0 cmake
+2026-08-12T19:10:15.628098-07:00 nimo-2 kernel: [2244763]  1000 2244763     3264      284       49      235         0    65536     1330             0 ninja
+2026-08-12T19:10:15.628102-07:00 nimo-2 kernel: [2248637]     0 2248637     2394       53        0       53         0    61440      149             0 systemd-userwor
+2026-08-12T19:10:15.628105-07:00 nimo-2 kernel: [2248638]     0 2248638     2394       54        0       54         0    65536      148             0 systemd-userwor
+2026-08-12T19:10:15.628110-07:00 nimo-2 kernel: [2248639]     0 2248639     2394       54        0       54         0    65536      148             0 systemd-userwor
+2026-08-12T19:10:15.628113-07:00 nimo-2 kernel: [2248708]  1000 2248708     2146      478        5      473         0    53248       68             0 c++
+2026-08-12T19:10:15.628119-07:00 nimo-2 kernel: [2248709]  1000 2248709    29172    14148     9345     4803         0   233472     1744             0 cc1plus
+2026-08-12T19:10:15.628122-07:00 nimo-2 kernel: [2248711]  1000 2248711     2146      474        1      473         0    57344       72             0 c++
+2026-08-12T19:10:15.628127-07:00 nimo-2 kernel: [2248712]  1000 2248712    28002    10645     8202     2444         0   192512     1314             0 cc1plus
+2026-08-12T19:10:15.628133-07:00 nimo-2 kernel: oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,global_oom,task_memcg=/user.slice/user-1000.slice/user@1000.service/init.scope,task=(sd-pam),pid=2135559,uid=1000
+2026-08-12T19:10:15.628138-07:00 nimo-2 kernel: Out of memory: Killed process 2135559 ((sd-pam)) total-vm:19524kB, anon-rss:0kB, file-rss:32kB, shmem-rss:0kB, UID:1000 pgtables:76kB oom_score_adj:100
+2026-08-12T19:10:15.628143-07:00 nimo-2 kernel: kswapd0 invoked oom-killer: gfp_mask=0xcc0(GFP_KERNEL), order=0, oom_score_adj=0
+2026-08-12T19:10:15.628147-07:00 nimo-2 kernel: CPU: 27 UID: 0 PID: 242 Comm: kswapd0 Not tainted 7.1.3-1-cachyos #1 PREEMPT(full)  17a4bfb62b3481c94fc303aaa2e2a0ef25712f69
+2026-08-12T19:10:15.628151-07:00 nimo-2 kernel: Hardware name: Nimo Direct Inc. MME3L/NIMO Mini PC, BIOS 3.05 10/11/2025
+2026-08-12T19:10:15.628155-07:00 nimo-2 kernel: Call Trace:
+2026-08-12T19:10:15.628160-07:00 nimo-2 kernel:  <TASK>
+2026-08-12T19:10:15.628163-07:00 nimo-2 kernel:  dump_stack_lvl+0x61/0x80
+2026-08-12T19:10:15.628166-07:00 nimo-2 kernel:  dump_header+0x4a/0x160
+2026-08-12T19:10:15.628171-07:00 nimo-2 kernel:  oom_kill_process+0x175/0x1d0
+2026-08-12T19:10:15.628174-07:00 nimo-2 kernel:  out_of_memory+0x48b/0x590
+2026-08-12T19:10:15.628177-07:00 nimo-2 kernel:  kswapd+0x10ca/0x1d70
+2026-08-12T19:10:15.628182-07:00 nimo-2 kernel:  ? set_cpus_allowed_ptr+0x60/0xb0
+2026-08-12T19:10:15.628186-07:00 nimo-2 kernel:  ? __pfx_kswapd+0x10/0x10
+2026-08-12T19:10:15.628190-07:00 nimo-2 kernel:  kthread+0xfb/0x120
+2026-08-12T19:10:15.628193-07:00 nimo-2 kernel:  ? __pfx_kthread+0x10/0x10
+2026-08-12T19:10:15.628198-07:00 nimo-2 kernel:  ret_from_fork+0xee/0x2b0
+2026-08-12T19:10:15.628203-07:00 nimo-2 kernel:  ? __pfx_kthread+0x10/0x10
+2026-08-12T19:10:15.628207-07:00 nimo-2 kernel:  ret_from_fork_asm+0x1a/0x30
+2026-08-12T19:10:15.628211-07:00 nimo-2 kernel:  </TASK>
+2026-08-12T19:10:15.628215-07:00 nimo-2 kernel: Mem-Info:
+2026-08-12T19:10:15.628218-07:00 nimo-2 kernel: active_anon:0 inactive_anon:105344 isolated_anon:0
+                                                 active_file:10784 inactive_file:4318 isolated_file:0
+                                                 unevictable:23001 dirty:53 writeback:14
+                                                 slab_reclaimable:23612 slab_unreclaimable:61291
+                                                 mapped:6014 shmem:2 pagetables:1707
+                                                 sec_pagetables:0 bounce:0
+                                                 kernel_misc_reclaimable:0
+                                                 free:3730416 free_pcp:21139 free_cma:0
+2026-08-12T19:10:15.628223-07:00 nimo-2 kernel: Node 0 active_anon:0kB inactive_anon:421376kB active_file:43136kB inactive_file:17272kB unevictable:92004kB isolated(anon):0kB isolated(file):0kB mapped:24056kB dirty:212kB writeback:56kB shmem:8kB shmem_thp:0kB shmem_pmdmapped:0kB anon_thp:4096kB kernel_stack:9008kB pagetables:6828kB sec_pagetables:0kB all_unreclaimable? no Balloon:0kB gpu_active:114041696kB gpu_reclaim:4kB
+2026-08-12T19:10:15.628228-07:00 nimo-2 kernel: Node 0 DMA free:11264kB boost:0kB min:4kB low:16kB high:28kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:0kB present:15996kB managed:15360kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+2026-08-12T19:10:15.628233-07:00 nimo-2 kernel: lowmem_reserve[]: 0 1638 127418 127418 127418
+2026-08-12T19:10:15.628236-07:00 nimo-2 kernel: Node 0 DMA32 free:505004kB boost:0kB min:840kB low:2464kB high:4088kB reserved_highatomic:0KB free_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB zspages:0kB present:1743304kB managed:1677740kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+2026-08-12T19:10:15.628241-07:00 nimo-2 kernel: lowmem_reserve[]: 0 0 125779 125779 125779
+2026-08-12T19:10:15.628244-07:00 nimo-2 kernel: Node 0 Normal free:14405396kB boost:0kB min:66732kB low:195520kB high:324308kB reserved_highatomic:2048KB free_highatomic:2016KB active_anon:0kB inactive_anon:421376kB active_file:43136kB inactive_file:17272kB unevictable:92004kB writepending:268kB zspages:0kB present:131040000kB managed:128798600kB mlocked:64kB bounce:0kB free_pcp:84372kB local_pcp:540kB free_cma:0kB
+2026-08-12T19:10:15.628249-07:00 nimo-2 kernel: lowmem_reserve[]: 0 0 0 0 0
+2026-08-12T19:10:15.628253-07:00 nimo-2 kernel: Node 0 DMA: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 1*1024kB (U) 1*2048kB (M) 2*4096kB (M) = 11264kB
+2026-08-12T19:10:15.628257-07:00 nimo-2 kernel: Node 0 DMA32: 45*4kB (ME) 33*8kB (ME) 73*16kB (ME) 71*32kB (UME) 64*64kB (UME) 69*128kB (UME) 67*256kB (UME) 68*512kB (UME) 60*1024kB (UME) 51*2048kB (UM) 66*4096kB (ME) = 505004kB
+2026-08-12T19:10:15.628261-07:00 nimo-2 kernel: Node 0 Normal: 463*4kB (MEH) 7615*8kB (UMEH) 14124*16kB (UMEH) 12602*32kB (UMEH) 26538*64kB (UMEH) 19999*128kB (UMEH) 22914*256kB (UMEH) 6623*512kB (UME) 193*1024kB (UME) 0*2048kB 0*4096kB = 14404916kB
+2026-08-12T19:10:15.628266-07:00 nimo-2 kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
+2026-08-12T19:10:15.628269-07:00 nimo-2 kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+2026-08-12T19:10:15.628274-07:00 nimo-2 kernel: 72675 total pagecache pages
+2026-08-12T19:10:15.628277-07:00 nimo-2 kernel: 34199 pages in swap cache
+2026-08-12T19:10:15.628280-07:00 nimo-2 kernel: Free swap  = 31956928kB
+2026-08-12T19:10:15.628285-07:00 nimo-2 kernel: Total swap = 33554428kB
+2026-08-12T19:10:15.628288-07:00 nimo-2 kernel: 33199825 pages RAM
+2026-08-12T19:10:15.628291-07:00 nimo-2 kernel: 0 pages HighMem/MovableOnly
+2026-08-12T19:10:15.628296-07:00 nimo-2 kernel: 576900 pages reserved
+2026-08-12T19:10:15.628299-07:00 nimo-2 kernel: 0 pages cma reserved
+2026-08-12T19:10:15.628302-07:00 nimo-2 kernel: 0 pages hwpoisoned
+2026-08-12T19:10:15.628307-07:00 nimo-2 kernel: Memory cgroup min protection 0kB -- low protection 0kB
+2026-08-12T19:10:15.628310-07:00 nimo-2 kernel: Tasks state (memory values in pages):
+2026-08-12T19:10:15.628314-07:00 nimo-2 kernel: [  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
+2026-08-12T19:10:15.628317-07:00 nimo-2 kernel: [    552]     0   552    31825     1046      110      934         2   126976     1885          -250 systemd-journal
+2026-08-12T19:10:15.628322-07:00 nimo-2 kernel: [    572]     0   572     2265       36        0       36         0    57344      140             0 systemd-userdbd
+2026-08-12T19:10:15.628326-07:00 nimo-2 kernel: [    664]   974   664     6656       58        1       57         0    94208      764             0 systemd-resolve
+2026-08-12T19:10:15.628331-07:00 nimo-2 kernel: [    665]   973   665    21238       44        1       43         0    73728      188             0 systemd-timesyn
+2026-08-12T19:10:15.628335-07:00 nimo-2 kernel: [    671]     0   671    11415      132       29      103         0   110592     1345         -1000 systemd-udevd
+2026-08-12T19:10:15.628340-07:00 nimo-2 kernel: [    850]    81   850     2058       41        0       41         0    57344      249          -900 dbus-broker-lau
+2026-08-12T19:10:15.628345-07:00 nimo-2 kernel: [    851]    81   851     1539       44        0       44         0    53248      407          -900 dbus-broker
+2026-08-12T19:10:15.628350-07:00 nimo-2 kernel: [    853]   969   853     1566       24        0       24         0    53248       96             0 avahi-daemon
+2026-08-12T19:10:15.628353-07:00 nimo-2 kernel: [    854]     0   854    77339       48        1       47         0    98304      191             0 boltd
+2026-08-12T19:10:15.628357-07:00 nimo-2 kernel: [    855]     0   855    94618        8        1        7         0   233472     8436             0 firewalld
+2026-08-12T19:10:15.628360-07:00 nimo-2 kernel: [    860]     0   860     2742       46        0       46         0    65536      297             0 systemd-logind
+2026-08-12T19:10:15.628365-07:00 nimo-2 kernel: [    873]   102   873    77613      140       17      123         0   106496      823             0 polkitd
+2026-08-12T19:10:15.628370-07:00 nimo-2 kernel: [    874]   969   874     1566        2        0        2         0    53248       79             0 avahi-daemon
+2026-08-12T19:10:15.628373-07:00 nimo-2 kernel: [    971]     0   971     3582       50        0       50         0    73728      305         -1000 sshd
+2026-08-12T19:10:15.628378-07:00 nimo-2 kernel: [   1002]     0  1002     1977       42        0       42         0    49152       55             0 agetty
+2026-08-12T19:10:15.628382-07:00 nimo-2 kernel: [   1003]     0  1003     5909       56        1       55         0    86016      656             0 wpa_supplicant
+2026-08-12T19:10:15.628385-07:00 nimo-2 kernel: [ 121201]     0 121201    77285       47        1       46         0   102400      171             0 power-profiles-
+2026-08-12T19:10:15.628389-07:00 nimo-2 kernel: [ 121612]     0 121612    90393      144       15      129         0   204800     2121             0 fwupd
+2026-08-12T19:10:15.628394-07:00 nimo-2 kernel: [ 121627]     0 121627   155441      163       21      142         0   167936      609             0 udisksd
+2026-08-12T19:10:15.628398-07:00 nimo-2 kernel: [ 121637]     0 121637    80588       46        0       46         0   135168      566             0 upowerd
+2026-08-12T19:10:15.628401-07:00 nimo-2 kernel: [ 460250]     0 460250    28604       50        0       50         0   135168     3982             0 dirmngr
+2026-08-12T19:10:15.628405-07:00 nimo-2 kernel: [ 591495]     0 591495   209110       63        0       63         0   237568     1422             0 NetworkManager
+2026-08-12T19:10:15.628411-07:00 nimo-2 kernel: [2058269]     0 2058269    39119      128       27      101         0    86016       58             0 gpg-agent
+2026-08-12T19:10:15.628415-07:00 nimo-2 kernel: [2148915]  1000 2148915 29887597    33002    32978       24         0   819200     7769             0 ggml-rpc-server
+2026-08-12T19:10:15.628419-07:00 nimo-2 kernel: [2244516]     0 2244516     5853       52        0       52         0    86016      520             0 sshd-session
+2026-08-12T19:10:15.628423-07:00 nimo-2 kernel: [2244519]  1000 2244519     5893      106       18       88         0    90112      545             0 sshd-session
+2026-08-12T19:10:15.628426-07:00 nimo-2 kernel: [2244520]  1000 2244520    39004       51        0       51         0   102400      429             0 fish
+2026-08-12T19:10:15.628430-07:00 nimo-2 kernel: [2244762]  1000 2244762    19974       59        0       59         0   139264      487             0 cmake
+2026-08-12T19:10:15.628434-07:00 nimo-2 kernel: [2244763]  1000 2244763     3264      243       49      194         0    65536     1330             0 ninja
+2026-08-12T19:10:15.628438-07:00 nimo-2 kernel: [2248637]     0 2248637     2394       49        0       49         0    61440      149             0 systemd-userwor
+2026-08-12T19:10:15.628442-07:00 nimo-2 kernel: [2248638]     0 2248638     2394       50        0       50         0    65536      148             0 systemd-userwor
+2026-08-12T19:10:15.628445-07:00 nimo-2 kernel: [2248639]     0 2248639     2394       50        0       50         0    65536      148             0 systemd-userwor
+2026-08-12T19:10:15.628449-07:00 nimo-2 kernel: [2248708]  1000 2248708     2146      437        5      432         0    53248       68             0 c++
+2026-08-12T19:10:15.628453-07:00 nimo-2 kernel: [2248709]  1000 2248709    29684    15007     9866     5141         0   249856     1653             0 cc1plus
+2026-08-12T19:10:15.628457-07:00 nimo-2 kernel: [2248711]  1000 2248711     2146      433        1      432         0    57344       72             0 c++
+2026-08-12T19:10:15.628461-07:00 nimo-2 kernel: [2248712]  1000 2248712    28044    11703     8824     2879         0   204800     1276             0 cc1plus
+2026-08-12T19:10:15.628465-07:00 nimo-2 kernel: oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,global_oom,task_memcg=/system.slice/minimax-m27-rpc-worker.service,task=ggml-rpc-server,pid=2148915,uid=1000
+2026-08-12T19:10:15.628468-07:00 nimo-2 kernel: Out of memory: Killed process 2148915 (ggml-rpc-server) total-vm:119550388kB, anon-rss:131912kB, file-rss:96kB, shmem-rss:0kB, UID:1000 pgtables:800kB oom_score_adj:0

@@ -2,7 +2,7 @@
 section_id: "83"
 title: "Risk Register, Failure Modes, Mitigations, and Contingencies"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories:
     - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
@@ -34,6 +34,8 @@ It covers USB4 assumptions, port independence, driver maturity, backend performa
 **[VERIFIED]** The inspected CachyLLama checkpoint record has structural fields but no payload digest and no identified temp-file-plus-directory-fsync commit protocol [S83-10]. Uncertain state must therefore be rejected as a cache miss, never accepted.
 
 **[VERIFIED]** Upstream llama.cpp tells operators not to use its RPC/server facilities on untrusted networks, and its RPC README calls the implementation fragile and insecure [S83-18, S83-19]. A 2026 critical advisory demonstrates why network reachability is a material control, but does not by itself prove the pinned commit vulnerable [S83-20].
+
+**[MEASURED]** On 2026-08-12, a nimo-2 production worker held about 114 GiB of `gpu_active` HMM pages while ordinary memory accounting still showed about 14 GiB available. Four global OOM invocations killed the worker; stale RPC state then caused the coordinator to abort and restart on the first real request [S83-23]. This raises R83-007 to critical/partly-evidenced and makes [issue #41](https://github.com/JCFrags/HaloFPX/issues/41) a P0 target-ownership gate. The incident is not a benchmark.
 
 **[RECOMMENDATION]** Do not select a distributed execution mode, custom USB4 transport, persistent-cache durability promise, or release date until its named exit evidence exists. The provisional top risks are model correctness, insecure transport, cache corruption, staffing concentration, driver maturity, port independence, fork drift, schedule uncertainty, upstream churn, and dual-rank recovery.
 
