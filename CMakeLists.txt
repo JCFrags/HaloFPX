@@ -188,6 +188,28 @@ if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT AND
         "HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT is supported only on Linux")
 endif()
 
+# ADR-0058 installs a complete world-one capability only from a separately
+# trusted live loader/context/lifecycle source. The current server deliberately
+# supplies no such source, so enabling this seam still computes cold.
+option(HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL
+       "Compile the fail-closed world1 live-authority install boundary"
+       OFF)
+if (HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL AND
+    NOT HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL requires the world1 prefix product")
+endif()
+if (HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL AND
+    (NOT LLAMA_BUILD_COMMON OR NOT LLAMA_BUILD_TOOLS OR NOT LLAMA_BUILD_SERVER))
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL requires LLAMA_BUILD_COMMON, LLAMA_BUILD_TOOLS, and LLAMA_BUILD_SERVER")
+endif()
+if (HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL AND
+    NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL is supported only on Linux")
+endif()
+
 # P06a is a test-only expert-axis contract seam. It does not enable MiniMax
 # tensor mode, alter model placement, or link into the inference runtime.
 option(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY

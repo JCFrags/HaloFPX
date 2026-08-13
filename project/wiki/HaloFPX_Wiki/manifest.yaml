@@ -5,7 +5,7 @@ generated_on: '2026-07-17'
 registry: ../../research/prompts/section_index.yaml
 schema: manifest.schema.json
 generator: ../../research/prompts/tools/generate_wiki_manifest.py
-input_digest_sha256: 8bed32fd248ac373b502b1a72e42159b6fd67dd2a7bb870bdfd3f434d07fefce
+input_digest_sha256: 3e5d3bd751de02360265885773e5fae4eb9d2099d15b5d3cccfd82300310013b
 planned_category_count: 12
 planned_section_count: 86
 categories:
@@ -743,8 +743,8 @@ categories:
     metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-08-12'
-    source_count: 8
-    open_question_count: 10
+    source_count: 9
+    open_question_count: 11
   - section_id: '58'
     title: Rank-Local Ownership and Distributed Restore Coordination
     canonical_path: 09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination

@@ -68,6 +68,11 @@ immutable runtime/state ABI, and a fixed two-rank topology into the closed
 compatibility root. It remains outside the product path: loader-time typed
 capture, resolved context/request semantics, reload invalidation, and the live
 server adapter remain **[OPEN]**.
+**[VERIFIED]** ADR-0058 adds a separately gated typed install boundary and an
+exact source-gap audit. The current server intentionally supplies no trusted
+source and no lifecycle generation, so enabling that boundary still installs
+nothing and computes cold. It does not promote operator digests or the
+standalone world-two expectation into world-one authority.
 [Issue #18](https://github.com/JCFrags/HaloFPX/issues/18) owns cache-source,
 restored-work, and phase-attribution metrics. HaloKV v1 product composition,
 prefix reuse, and target performance remain separate claims.

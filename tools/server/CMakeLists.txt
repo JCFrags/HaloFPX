@@ -416,6 +416,32 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
             target_compile_features(halofpx-context-store-world1-prefix-product-v1 PRIVATE cxx_std_17)
         endif()
     endif()
+
+    # ADR-0058 is a separately gated install/refusal boundary. Keep it outside
+    # the selector's exact ADR-0051/ADR-0054 custody block.
+    if (HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL)
+        add_library(halofpx-context-store-world1-live-authority-install-v1 STATIC EXCLUDE_FROM_ALL
+            halofpx-context-store-world1-live-authority-install-v1.cpp
+            halofpx-context-store-world1-live-authority-install-v1.h
+        )
+        target_link_libraries(halofpx-context-store-world1-live-authority-install-v1 PUBLIC
+            halofpx-context-store-world1-prefix-product-v1)
+        target_compile_features(halofpx-context-store-world1-live-authority-install-v1 PRIVATE cxx_std_17)
+
+        if (LLAMA_BUILD_TESTS)
+            add_executable(test-halofpx-context-store-world1-live-authority-install-v1 EXCLUDE_FROM_ALL
+                ${CMAKE_SOURCE_DIR}/tests/test-halofpx-context-store-world1-live-authority-install-v1.cpp)
+            target_include_directories(test-halofpx-context-store-world1-live-authority-install-v1 PRIVATE
+                ${CMAKE_CURRENT_SOURCE_DIR})
+            target_link_libraries(test-halofpx-context-store-world1-live-authority-install-v1 PRIVATE
+                halofpx-context-store-world1-live-authority-install-v1)
+            target_compile_features(test-halofpx-context-store-world1-live-authority-install-v1 PRIVATE cxx_std_17)
+            add_test(NAME test-halofpx-context-store-world1-live-authority-install-v1
+                COMMAND test-halofpx-context-store-world1-live-authority-install-v1)
+            set_tests_properties(test-halofpx-context-store-world1-live-authority-install-v1 PROPERTIES
+                LABELS "main;halofpx;linux")
+        endif()
+    endif()
 endif()
 
 # Permanently synthetic L05m bootstrap-material preparation seam. This target
@@ -1006,6 +1032,15 @@ if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
         HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT=1)
     target_link_libraries(${TARGET} PRIVATE
         halofpx-context-store-world1-prefix-product-v1)
+endif()
+
+if (HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL)
+    target_compile_definitions(llama-common PUBLIC
+        HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL=1)
+    target_compile_definitions(${TARGET} PUBLIC
+        HALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL=1)
+    target_link_libraries(${TARGET} PRIVATE
+        halofpx-context-store-world1-live-authority-install-v1)
 endif()
 
 if (BUILD_TESTING)

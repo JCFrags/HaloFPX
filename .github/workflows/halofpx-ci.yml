@@ -448,6 +448,100 @@ jobs:
           --output-on-failure
           -R '^test-halofpx-context-store-live-authority-v1(-boundary)?$'
 
+  world1-live-authority-install-contract:
+    name: CPU world1 live-authority refusal/install boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configure install-boundary-on host build
+        run: >-
+          cmake -S . -B build/ci-world1-live-authority-install
+          -DCMAKE_BUILD_TYPE=Debug
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_VULKAN=OFF
+          -DGGML_RPC=ON
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=ON
+          -DLLAMA_CURL=OFF
+          -DLLAMA_BUILD_COMMON=ON
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=ON
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=ON
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_USE_PREBUILT_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+          -DHALOFPX_CONTEXT_STORE_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=ON
+          -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT=ON
+          -DHALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL=ON
+
+      - name: Compile install boundary, server, and inherited cache contracts
+        run: >-
+          cmake --build build/ci-world1-live-authority-install
+          --target
+          llama-server
+          test-halofpx-context-store-world1-live-authority-install-v1
+          test-halofpx-context-store-v1-catalog
+          test-halofpx-context-store-v1-prefix-selector
+          test-halofpx-context-store-exact-session
+          test-halofpx-context-store-state-transformer-v1
+          --parallel 2
+
+      - name: Run refusal, graph, and inherited product contracts
+        run: >-
+          ctest --test-dir build/ci-world1-live-authority-install
+          --output-on-failure
+          -R '^(test-halofpx-context-store-world1-live-authority-install-v1(-boundary)?|test-halofpx-context-store-v1-catalog|test-halofpx-context-store-v1-prefix-selector(-contract)?|test-halofpx-context-store-exact-session(-contract)?|test-halofpx-context-store-state-transformer-v1|test-halofpx-feature-off-contract)$'
+
+      - name: Configure install-boundary-off graph control
+        run: >-
+          cmake -S . -B build/ci-world1-live-authority-install-off
+          -DCMAKE_BUILD_TYPE=Debug
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_VULKAN=OFF
+          -DGGML_RPC=ON
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=ON
+          -DLLAMA_CURL=OFF
+          -DLLAMA_BUILD_COMMON=ON
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=ON
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=ON
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_USE_PREBUILT_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+          -DHALOFPX_CONTEXT_STORE_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=ON
+          -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT=ON
+          -DHALOFPX_CONTEXT_STORE_WORLD1_LIVE_AUTHORITY_INSTALL=OFF
+
+      - name: Run install-boundary-off graph control
+        run: >-
+          ctest --test-dir build/ci-world1-live-authority-install-off
+          --output-on-failure
+          -R '^test-halofpx-context-store-world1-live-authority-install-v1-boundary$'
+
   rocmfpx-ffn-q8-reuse-contract:
     name: ROCmFPX FFN Q8_1 reuse host contract
     runs-on: ubuntu-latest

@@ -36,6 +36,8 @@ Current accepted architecture decision records (ADRs) include:
   versioned Strix A/B runtime comparison.
 - [ADR-0057](../../../docs/halofpx/decisions/0057-offline-strix-maintenance-admission-controller.md):
   offline-only issue-#41 Strix maintenance admission controller.
+- [ADR-0058](../../../docs/halofpx/decisions/0058-default-off-world1-live-authority-install-boundary.md):
+  default-off world-1 live-authority install boundary; no positive source.
 - [ADR-0059](../../../docs/halofpx/decisions/0059-inclusive-world1-cache-maintenance-telemetry.md):
   inclusive world-1 cache-maintenance telemetry.
 

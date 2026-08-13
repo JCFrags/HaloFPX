@@ -2,7 +2,7 @@
 section_id: "57"
 title: "Fingerprint facts and compatibility constraints"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["charlie12345/ROCmFPX", "fewtarius/CachyLLama", "ggml-org/llama.cpp"]
   software_versions: ["CachyLLama@6be745998f568e379ea197fcf827baec73ff9940", "llama.cpp@788e07dc91d266ad3162a1ce9037665656269689", "ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"]
@@ -22,6 +22,7 @@ related_sections: ["13", "15", "32", "39", "43", "48", "56", "58", "61", "63"]
 | **[VERIFIED]** ROCmFPX adds fork-local numeric types, layouts, recipes, and backend implementations [S57-06]. | Fingerprint numeric type ID plus symbolic name, block-layout/recipe revision, per-tensor type map, and backend implementation/build. |
 | **[VERIFIED]** RFC 8949 deterministic CBOR constrains shortest encodings, definite lengths, and map-key ordering; general CBOR otherwise permits multiple encodings [S57-07]. | Define one exact canonical byte representation and reject duplicate keys, indefinite lengths, non-minimal encodings, NaNs, and unknown critical fields. |
 | **[VERIFIED]** FIPS 180-4 specifies SHA-256 as a secure hash algorithm producing message digests [S57-08]. | Use a full 256-bit root and per-object digests. Do not truncate acceptance digests to 64 bits. |
+| **[VERIFIED]** At HaloFPX `9bfccf25d43af0c446df591035e9cdac0b74d6c0`, the stack-local model loader owns opened shards and typed GGUF arrays, the retained display metadata skips arrays, store initialization precedes effective chat-template construction, and no complete build/placement/generation authority snapshot reaches the server boundary [S57-09]. | Keep the world-one product cold. Capture these facts at their live owners and compose them only after every closed component and lifecycle generation is complete; never fill the gaps with operator digests. |
 
 ## Complete compatibility input set
 
