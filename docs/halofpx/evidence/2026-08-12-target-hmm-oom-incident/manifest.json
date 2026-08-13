@@ -1,0 +1,70 @@
+{
+  "schema": "halofpx.target-safety-incident.v1",
+  "incident_id": "2026-08-12-nimo-2-hmm-global-oom",
+  "classification": "production-safety-incident",
+  "benchmark_valid": false,
+  "performance_result": null,
+  "repository_base": "b77f2bce6e7875ab065e09894f45915585c9f156",
+  "candidate_commit": "e1023132accf92db92898751844a37c59f5e5a69",
+  "tracker": "https://github.com/JCFrags/HaloFPX/issues/41",
+  "timezone": "America/Los_Angeles",
+  "kernel_window": {
+    "first_oom": "2026-08-12T19:10:05.500410-07:00",
+    "production_worker_killed": "2026-08-12T19:10:15.628468-07:00",
+    "global_oom_invocations": 4,
+    "gpu_active_kib": 114041696
+  },
+  "production_before": {
+    "nimo-1": { "pid": 3027112, "invocation_id": "e6da1fe637144cb394119959c0e88736", "nrestarts": 0, "health": "ok" },
+    "nimo-2": { "pid": 2148915, "invocation_id": "3480c89086e04d5d80060366c5c7ab7f", "nrestarts": 0, "listener": 50052 }
+  },
+  "production_recovered": {
+    "nimo-1": { "pid": 3113343, "invocation_id": "0656332b63a140eab7214627baa43253", "nrestarts": 1, "health": "ok" },
+    "nimo-2": { "pid": 2248760, "invocation_id": "d15fe49610274e77bd9a3d84a0b791a5", "nrestarts": 1 },
+    "real_probe": { "prompt_tokens": 5, "generated_tokens": 1, "purpose": "recovery-only-not-performance" }
+  },
+  "interrupted_build": {
+    "condition": "OFF",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "hip_architecture": "gfx1151",
+    "parallelism": 2,
+    "interrupted_at_step": 380,
+    "planned_steps": 402,
+    "process_tree": [2244520, 2244762, 2244763],
+    "terminated_pids": [2244520, 2244762, 2244763, 2249036, 2249037, 2249039, 2249040],
+    "archive_sha256": "3a6a039346b4206be23f5bc9ec5601456866d6aaedb75afecee663db68101c3c",
+    "on_condition_configured": false,
+    "on_condition_built": false,
+    "output_retained": false
+  },
+  "safety_invariants": [
+    "MemAvailable and conventional RSS are insufficient admission predicates while gpu_active or other HMM ownership is high.",
+    "Do not build, quantize, or run disposable inference while production or unaccounted KFD/render/HMM owners are active.",
+    "A worker restart invalidates coordinator RPC readiness until exact identities and a real minimal inference request pass.",
+    "This incident and its recovery probe are not benchmark evidence."
+  ],
+  "evidence": [
+    { "path": "raw/controller-observed-facts.txt", "sha256": "b97a4c09f1093c88a45a910b9fe4f80e594c591eb8c5911975851b2aa297c486", "bytes": 2533 },
+    { "path": "raw/github-issue-41.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/github-issue-41.stdout.log", "sha256": "79cd54f12210d44a87793e540e4d64eb68096552c8273b0228a935ea5aae6bf5", "bytes": 3037 },
+    { "path": "raw/nimo-1-coordinator-restart-window.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-1-coordinator-restart-window.stdout.log", "sha256": "0aafeb040a226b967c8aec4232db306f2f40575db306b2580e7a9daf04585a9e", "bytes": 11473 },
+    { "path": "raw/nimo-1-current-authority.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-1-current-authority.stdout.log", "sha256": "f8271eda071da4583516ed8bb4808ded7ec26f071c8ded00ba09e868b8d4bd38", "bytes": 2178 },
+    { "path": "raw/nimo-2-build-archive.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-2-build-archive.stdout.log", "sha256": "a0a5ce389aeec64b6b10f5205348bca2187c791541acc10ce4104e26600abd77", "bytes": 1398 },
+    { "path": "raw/nimo-2-build-cmake-cache.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-2-build-cmake-cache.stdout.log", "sha256": "b8ca4b6b202228138c932ac79e491b1712b9dbc0f743c5d337090db13f5e1d0c", "bytes": 40058 },
+    { "path": "raw/nimo-2-build-ninja-log.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-2-build-ninja-log.stdout.log", "sha256": "b81d8ed4d65227bba09f1a6661deff9fa7ff21a109e6e652372b4d474c08c65e", "bytes": 44107 },
+    { "path": "raw/nimo-2-build-process-absence.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-2-build-process-absence.stdout.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-2-current-authority.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-2-current-authority.stdout.log", "sha256": "5b691778fd3fbff7fa910faf09e9b995256bbbdb64f1544ab562f72be33b56dc", "bytes": 2166 },
+    { "path": "raw/nimo-2-kernel-oom-window.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-2-kernel-oom-window.stdout.log", "sha256": "0b1e3f0250ad5706143bd0852d9e238cd9c92f865c841163ea372198de3e38be", "bytes": 49993 },
+    { "path": "raw/nimo-2-worker-restart-window.stderr.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "bytes": 0 },
+    { "path": "raw/nimo-2-worker-restart-window.stdout.log", "sha256": "df74b4a2c69c78aea8fff6d4f66340790b1ba63d72fef965d7959206217544ae", "bytes": 4874 }
+  ]
+}

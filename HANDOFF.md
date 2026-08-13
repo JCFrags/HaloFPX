@@ -9,8 +9,13 @@ current.
 The immutable publication boundary below remains valid, but current work has
 advanced beyond L111:
 
-- `main` at this update is
-  `7a36e01a25bd5c27b684b489d9996b4de3afa299`.
+- the remote-`main` observation made during this correction is
+  `e3e8b286b8316abd246fb155044effd11e60b0eb`; the exact source base named by
+  the incident record is
+  `b77f2bce6e7875ab065e09894f45915585c9f156`. These are dated repository
+  boundaries, not live pointers. A fresh worker must record its checked-out
+  `git rev-parse HEAD` and `git rev-parse origin/main` rather than assuming a
+  SHA printed here remains the branch tip.
 - the cache-saving behavior reference is pinned to
   `fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940`.
   This is a behavior/reference authority, not an assertion that the donor
@@ -52,11 +57,21 @@ advanced beyond L111:
   product target.
 - both physical Strix Halo targets are Nimo MME3L machines running CachyOS.
   Ubuntu is a portability/control lane; Windows is the local control PC.
-- a bounded read-only health check at `2026-08-12T23:06:08Z` found the named
-  comparison services active with their established PIDs, InvocationIDs,
-  listeners, and `NRestarts=0`; it was not a full host or deployment audit.
-  See the
-  [health receipt](docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md).
+- the `2026-08-12T23:06:08Z` zero-restart
+  [health receipt](docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
+  is historical before-state. A later target HMM/global-OOM incident restarted
+  both ranks. The recovered nimo-1 coordinator was PID `3113343`, InvocationID
+  `0656332b63a140eab7214627baa43253`, `NRestarts=1`; the recovered nimo-2
+  worker was PID `2248760`, InvocationID
+  `d15fe49610274e77bd9a3d84a0b791a5`, `NRestarts=1`. Both units were
+  active/running, coordinator health was OK, and a real 5-prompt-token plus
+  1-generated-token request completed. The
+  [incident and recovery receipt](docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
+  supersedes current service identity and recovery state, but does not refresh
+  executable/library hashes or establish a performance result.
+  [Issue #41](https://github.com/JCFrags/HaloFPX/issues/41) is the P0
+  target-ownership prerequisite for any target build, quantization,
+  disposable inference, or benchmark.
 
 Read [`project/TARGET_MACHINES.md`](project/TARGET_MACHINES.md), the current
 blocks at the top of
@@ -153,10 +168,16 @@ authority.
 - [VERIFIED] L111 is only a bounded loader foundation. It does not establish
   graph wiring, scheduling, asynchronous remote procedure calls, a model run,
   production fitness, or a performance improvement.
-- [MEASURED] The latest bounded service-health observation was made at
-  `2026-08-12T23:06:08Z`. It found the established named services active,
-  their expected listeners present, and the coordinator health route healthy.
-  It did not re-audit binaries, packages, models, unit contents, or performance.
+- [MEASURED] The latest retained recovery observation followed the later
+  2026-08-12 target HMM/global-OOM incident. Nimo-1 recovered as PID `3113343`,
+  InvocationID `0656332b63a140eab7214627baa43253`, `NRestarts=1`; nimo-2
+  recovered as PID `2248760`, InvocationID
+  `d15fe49610274e77bd9a3d84a0b791a5`, `NRestarts=1`. Both units were
+  active/running, coordinator health was OK, and a real 5-prompt-token plus
+  1-generated-token request completed. See the
+  [incident receipt](docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md).
+  The receipt did not re-audit executable/library hashes, packages, model
+  identity, unit contents, or performance.
 - [OPEN] No accepted end-user two-node persistent-cache product or accepted
   full-model speed improvement exists in the imported authority.
 

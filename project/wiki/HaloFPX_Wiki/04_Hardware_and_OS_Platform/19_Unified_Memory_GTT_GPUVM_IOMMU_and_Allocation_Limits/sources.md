@@ -2,7 +2,7 @@
 section_id: "19"
 title: "Unified-memory sources"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: []
   software_versions: ["ROCm 7.14 documentation", "Linux kernel documentation"]
@@ -30,3 +30,4 @@ Web sources accessed 2026-07-16.
 - **S19-L01:** preserved [nimo-1 audit](../../../../sources/measurements/2026-07-10_12-strix-halo-cluster/redacted-audits/2026-07-12__nimo-1__deep-system-audit__v01.md), capture 2026-07-12, SHA-256 `03982946a2eb8fd18d6117861c5e4c75f43986fb366a1da5b57416f5ab2a50f2`. Supports what the historical node-1 report records about memory/kernel/IOMMU state; synthesized/redacted, not raw current state.
 - **S19-L02:** preserved [nimo-2 audit](../../../../sources/measurements/2026-07-10_12-strix-halo-cluster/redacted-audits/2026-07-12__nimo-2__deep-system-audit__v01.md), SHA-256 `ecdc400942a1ed95615aeaddc83d2c78e2c38a9fcdcc0b56a68a77468b26e410`. Supports the historical peer report; same limitations.
 - **S19-L03:** [2026-07-17 live matched-pair inventory](../../../../sources/measurements/2026-07-17-strix-halo-live-inventory/README.md). Supports current memory, NUMA, boot parameter, GTT, swap, and active-process accounting. It is a point-in-time normalized capture and does not replace allocator or stress experiments.
+- **S19-L04:** [2026-08-12 nimo-2 HMM/global-OOM safety incident](../../../../../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md), exact repository base `b77f2bce6e7875ab065e09894f45915585c9f156`. Raw kernel and service journals support the HMM accounting, OOM victims, production restart, and recovery boundary. This is an accidental safety incident and invalid benchmark, not a calibrated allocation experiment or performance result.

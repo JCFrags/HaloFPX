@@ -44,6 +44,32 @@ Other Strix Halo systems, Ubuntu, and Framework hardware may work, but they are
 not the proof target for a promoted HaloFPX performance claim unless the claim
 explicitly names that environment.
 
+## P0 target-ownership gate
+
+Before any build, quantization, disposable inference, or benchmark on either
+target, apply [issue #41](https://github.com/JCFrags/HaloFPX/issues/41). Reject
+the work while a protected production service or any unaccounted KFD, render,
+or HMM owner is active. `MemAvailable`, free RAM, conventional process RSS,
+and swap are not sufficient admission predicates: a 2026-08-12 nimo-2 build
+window showed about 14 GiB available while production held about 114 GiB of
+`gpu_active` HMM pages, followed by global OOM and both-rank service restarts.
+
+Target work requires an authorized maintenance window, exact before-state
+service identities, an empty foreign GPU-owner census, and a clean kernel-OOM
+baseline. If either rank changes PID, InvocationID, or restart count, health
+alone is insufficient: recapture both identities and complete a real minimal
+two-rank inference before declaring recovery. The immutable
+[incident record](halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
+is safety evidence, not a benchmark.
+
+That receipt's latest retained recovery baseline is nimo-1 PID `3113343`,
+InvocationID `0656332b63a140eab7214627baa43253`, `NRestarts=1`, and nimo-2
+PID `2248760`, InvocationID `d15fe49610274e77bd9a3d84a0b791a5`,
+`NRestarts=1`. Both units were active/running, coordinator health was OK, and
+a real 5-prompt-token plus 1-generated-token request completed. Recheck these
+volatile identities before target work. The incident capture did not rehash
+the service executables or loaded libraries.
+
 ## Prerequisites
 
 On the existing targets, verify the installed CachyOS toolchain before adding

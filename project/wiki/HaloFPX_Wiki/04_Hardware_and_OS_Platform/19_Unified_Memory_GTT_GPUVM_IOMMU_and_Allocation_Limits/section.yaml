@@ -3,8 +3,8 @@ title: "Unified Memory, GTT, GPUVM, IOMMU, and Allocation Limits"
 category_id: "04"
 category_title: "Hardware and OS Platform"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
-source_count: 11
+last_verified: "2026-08-12"
+source_count: 12
 open_question_count: 9
 required_machine_experiments:
   - "S19-E01 capability and accounting snapshot"

@@ -1,0 +1,75 @@
+2026-08-12T19:28:39,415453179-07:00
+               total        used        free      shared  buff/cache   available
+Mem:       130491708   112954664     1442364      446808    17876512    17537044
+Swap:       33554428     1742836    31811592
+MemTotal:       130491708 kB
+MemFree:         1442364 kB
+MemAvailable:   17537044 kB
+Buffers:              16 kB
+Cached:         15772812 kB
+SwapCached:        11236 kB
+Active:          1665992 kB
+Inactive:       14925576 kB
+Active(anon):     907268 kB
+Inactive(anon):   450176 kB
+Active(file):     758724 kB
+Inactive(file): 14475400 kB
+Unevictable:       92004 kB
+Mlocked:              64 kB
+SwapTotal:      33554428 kB
+SwapFree:       31811592 kB
+Zswap:            847940 kB
+Zswapped:        1710588 kB
+Dirty:               660 kB
+Writeback:             0 kB
+AnonPages:        910172 kB
+Mapped:           180552 kB
+Shmem:            446808 kB
+KReclaimable:    2103684 kB
+Slab:            2485336 kB
+SReclaimable:    2103684 kB
+SUnreclaim:       381652 kB
+KernelStack:        7856 kB
+PageTables:         6176 kB
+SecPageTables:         0 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    98800280 kB
+Committed_AS:    4333492 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      504552 kB
+VmallocChunk:          0 kB
+Percpu:            16512 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:    860160 kB
+ShmemHugePages:        0 kB
+ShmemPmdMapped:        0 kB
+FileHugePages:    122880 kB
+FilePmdMapped:     86016 kB
+CmaTotal:              0 kB
+CmaFree:               0 kB
+Unaccepted:            0 kB
+Balloon:               0 kB
+GPUActive:      108245408 kB
+GPUReclaim:            4 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
+DirectMap4k:     1176776 kB
+DirectMap2M:    46688256 kB
+DirectMap1G:    84934656 kB
+Id=minimax-m27-q6-server.service
+ActiveState=active
+SubState=running
+InvocationID=0656332b63a140eab7214627baa43253
+MainPID=3113343
+Result=success
+NRestarts=1
+ExecMainCode=0
+ExecMainStatus=0
+ControlGroup=/system.slice/minimax-m27-q6-server.service
+{"status":"ok"}

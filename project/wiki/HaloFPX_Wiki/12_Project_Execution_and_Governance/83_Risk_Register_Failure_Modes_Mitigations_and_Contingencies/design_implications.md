@@ -2,7 +2,7 @@
 section_id: "83"
 title: "Risk Control Design Implications and Contingencies"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["HaloFPX integration repository"]
   software_versions: ["candidate architecture; not implemented"]
@@ -27,6 +27,8 @@ This ordering contains R83-001/002/003/010/016. A failed distributed experiment 
 **[RECOMMENDATION]** Select HIP or Vulkan per versioned plan manifest, not globally. Every plan fingerprints model bytes, tokenizer, quantization, runtime commit, backend, kernel/driver/firmware, graph options, cache schema, topology, and distributed mode. Unknown or mismatched identity rejects cache/checkpoint reuse and distributed join.
 
 **[RECOMMENDATION]** Admission control reserves measured memory headroom for runtime workspaces, transport buffers, driver allocations, cache restore, and failure recovery. Disk and memory pressure must produce explicit rejection or eviction, not host-wide OOM.
+
+**[RECOMMENDATION]** The 2026-08-12 incident strengthens that rule: admission control first enforces target ownership. No build, quantization, disposable inference, or benchmark may run while protected production or unaccounted KFD/render/HMM ownership is active. An authorized maintenance window, exact service identities, a clean kernel-OOM baseline, and a GPU-owner census precede headroom checks. `MemAvailable`, free RAM, swap, or conventional RSS cannot override high `gpu_active`/HMM ownership [S83-23].
 
 **[RECOMMENDATION]** HaloKV is optional acceleration. Its fail-safe behavior is `validate -> use` or `miss -> recompute`; never “warn and continue.” Namespace isolation, digest verification, atomic generation manifests, quotas, and a cache-off operating mode are release requirements.
 

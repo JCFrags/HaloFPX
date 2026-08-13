@@ -2,7 +2,7 @@
 section_id: "83"
 title: "Risk Register Sources"
 status: "verified"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories:
     - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
@@ -48,6 +48,7 @@ Internet sources were accessed 2026-07-17 America/Los_Angeles. Local wiki pages 
 | S83-20 | [GHSA-j8rj-fmpv-wcxw](https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-j8rj-fmpv-wcxw), ggml-org/llama.cpp, published 2026-03-26 | Concrete unauthenticated RPC RCE failure mode and exposure consequence | Advisory version statement must be checked against exact candidate code; not used to label the pinned commit vulnerable |
 | S83-21 | [NVM Express Base Specification 2.2](https://nvmexpress.org/wp-content/uploads/NVM-Express-Base-Specification-Revision-2.2-2025.03.11-Ratified-1.pdf), ratified 2025-03-11 | SMART/health, write/flush/controller framework | Device behavior, TBW, firmware, and NAND write amplification are implementation-specific |
 | S83-22 | Agent Harness `AGENTS.md`, `guide/architecture.md`, and `reviews/AGENTS.md`, canonical local path `C:\Users\britt\Documents\Agent_Harness`, read 2026-07-17 | Evidence promotion, reversibility, independent review, improvement closeout | Conceptual/governance authority; not technical proof about HaloFPX hardware |
+| S83-23 | [2026-08-12 nimo-2 HMM/global-OOM safety incident](../../../../../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md), base `b77f2bce6e7875ab065e09894f45915585c9f156` | Raw kernel OOM/HMM accounting, interrupted build boundary, both-rank restart/recovery identities, and health-versus-real-inference readiness distinction | Environment-specific accidental incident; no calibrated allocation envelope, benchmark, or performance result |
 
 ## Freshness rule
 

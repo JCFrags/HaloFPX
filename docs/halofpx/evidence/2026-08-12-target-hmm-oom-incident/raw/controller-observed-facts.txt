@@ -1,0 +1,65 @@
+HaloFPX target HMM/global-OOM incident: controller-observed facts
+Observation date: 2026-08-12 America/Los_Angeles
+Evidence status: controller-observed, supplied during the incident response
+
+These facts were retained by the controller that launched and stopped the build.
+They were not reconstructed from the later read-only journal capture. Where the
+kernel or service journals contain an exact value, those primary records take
+precedence. Approximate memory values below are deliberately marked approximate.
+
+PRE-WORK PRODUCTION AUTHORITY
+
+nimo-1 minimax-m27-q6-server.service
+  MainPID: 3027112
+  InvocationID: e6da1fe637144cb394119959c0e88736
+  NRestarts: 0
+  HTTP :8081 /health: {"status":"ok"}
+
+nimo-2 minimax-m27-rpc-worker.service
+  MainPID: 2148915
+  InvocationID: 3480c89086e04d5d80060366c5c7ab7f
+  NRestarts: 0
+  RPC listener: :50052
+
+INITIAL NIMO-2 CENSUS
+
+  Total RAM: 133,623,500,800 bytes
+  Used RAM: approximately 119.485 GB
+  Available RAM: approximately 14.138 GB
+  Swap: 34.36 GB total, approximately 1.537 GB used
+  Root filesystem free: approximately 87.08 GB
+
+INTERRUPTED BUILD IDENTITY
+
+  Candidate source commit: e1023132accf92db92898751844a37c59f5e5a69
+  Source archive: halofpx-ffn-q8-reuse-e1023132.tar.gz
+  Archive size: 82,028,207 bytes
+  Archive SHA-256: 3a6a039346b4206be23f5bc9ec5601456866d6aaedb75afecee663db68101c3c
+  Extracted source: /var/tmp/halofpx-screen-20260813/source-ffn-e1023132
+
+The OFF build used Release, Ninja, HIP enabled, Vulkan and CUDA disabled,
+gfx1151, GGML_HIP_FORCE_MMQ enabled, GGML_HIP_MMVQ_SUM_FREE disabled,
+GGML_HIP_FFN_Q8_REUSE disabled, server and web UI disabled, and tests enabled.
+Its build command was:
+
+  cmake --build /var/tmp/halofpx-screen-20260813/build-ffn-off --parallel 2 --target llama-bench test-backend-ops
+
+The planned ON build had the identical tuple except
+GGML_HIP_FFN_Q8_REUSE=ON. It was never configured and never built.
+
+GUARD ACTION AND DISPOSITION
+
+The known process tree was:
+
+  fish 2244520 -> cmake 2244762 -> ninja 2244763 -> c++ / cc1plus children
+
+The controller sent TERM to PIDs 2244520, 2244762, 2244763, 2249036,
+2249037, 2249039, and 2249040, waited two seconds, then verified that no
+matching build process remained. The SSH cell ended with exit code 1 during
+OFF build step 380/402 and reported:
+
+  ninja: build stopped: interrupted by user
+
+No completed output, binary, benchmark, or performance result was retained.
+The ON build was not configured or started. This record is a production-safety
+incident, not a benchmark result.

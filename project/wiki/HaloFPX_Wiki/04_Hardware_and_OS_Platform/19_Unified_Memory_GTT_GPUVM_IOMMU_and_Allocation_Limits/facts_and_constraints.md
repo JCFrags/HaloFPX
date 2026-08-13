@@ -2,7 +2,7 @@
 section_id: "19"
 title: "Unified-memory facts and constraints"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: []
   software_versions: ["ROCm 7.14 documentation", "Linux amdgpu/TTM"]
@@ -43,6 +43,12 @@ related_sections: ["17", "23", "24", "54"]
 - **[MEASURED]** The loaded RPC worker consumed about 76.0 GiB by its systemd cgroup on nimo-1, while the coordinator/model server consumed about 79.6 GiB on nimo-2. These values include more than model tensors and must not be added to `rocm-smi` GTT as independent capacity [S19-L03].
 - **[MEASURED]** Both had 32 GiB swap, but nimo-1 used priority `-1` and nimo-2 priority `100`; nimo-2 also explicitly disabled zswap while nimo-1's command line did not carry the same flag [S19-L03].
 - **[RECOMMENDATION]** Normalize or intentionally freeze swap/zswap policy before allocation staircases, OOM/fallback drills, or matched inference comparisons.
+
+## Production HMM/global-OOM incident — 2026-08-12
+
+- **[MEASURED]** nimo-2 reported approximately 14 GiB available while the production RPC worker owned `114041696 kB` of `gpu_active` HMM pages. The kernel then invoked global OOM four times and killed the worker after killing smaller user-session processes [S19-L04].
+- **[MEASURED]** The active `-j2` build's visible `cmake`, `ninja`, and `cc1plus` residents were small relative to the HMM owner. This does not prove a compiler RSS leak; it proves that ordinary free/available/RSS views failed as a safe concurrent-work admission predicate [S19-L04].
+- **[RECOMMENDATION]** Reject target builds, quantization, disposable inference, and benchmarks whenever protected production or unaccounted KFD/render/HMM ownership exists. Require an authorized maintenance window and GPU-owner census; do not let `MemAvailable`, free RAM, swap, or RSS override the ownership gate.
 
 ## Failure modes
 

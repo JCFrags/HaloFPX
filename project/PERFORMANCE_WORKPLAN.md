@@ -5,6 +5,13 @@ Accepted Project Lead/source decisions are the work authority. GitHub issues
 are subordinate execution trackers; exact experiment records are the
 measurement authority.
 
+**P0 safety gate:** [issue #41](https://github.com/JCFrags/HaloFPX/issues/41)
+blocks target builds, quantization, disposable inference, and benchmarks while
+production or any unaccounted KFD/render/HMM owner is active. Ordinary
+`MemAvailable` and RSS readings are insufficient under high `gpu_active` HMM
+ownership. The [2026-08-12 incident](../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
+is a safety record with no benchmark or performance result.
+
 ## Outcomes
 
 Optimize ROCmFPX-family GGUF inference on the two CachyOS Strix Halo machines
@@ -73,6 +80,7 @@ donor code merely because the behavior is authoritative.
 | [#15](https://github.com/JCFrags/HaloFPX/issues/15) | open | model-general Strix Halo prefill matrix |
 | [#16](https://github.com/JCFrags/HaloFPX/issues/16) | closed | PR #31 model-general frozen-plan/schedule/evidence core |
 | [#37](https://github.com/JCFrags/HaloFPX/issues/37) | open | safe CachyOS process adapter for the A/B core |
+| [#41](https://github.com/JCFrags/HaloFPX/issues/41) | open P0 | reject all target work during production or foreign KFD/render/HMM ownership; prove real distributed recovery after identity change |
 | [#18](https://github.com/JCFrags/HaloFPX/issues/18) | open | cache source and restored-work metrics |
 | [#26](https://github.com/JCFrags/HaloFPX/issues/26) | open | coordinated restart-safe state across two RPC ranks |
 | [#28](https://github.com/JCFrags/HaloFPX/issues/28) | open | PR #35 fixed raw/sampled row fallback; coherent snapshot and synchronization reduction remain |

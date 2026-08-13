@@ -2,7 +2,7 @@
 section_id: "80"
 title: "Fault Injection Facts and Constraints"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689", "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"]
   software_versions: ["Linux fault-injection documentation accessed 2026-07-17"]
@@ -23,4 +23,5 @@ related_sections: ["54", "56", "62", "65", "68", "76", "77", "78", "79", "81"]
 - **[RECOMMENDATION]** Inject one fault at a time before testing combinations. Preserve the clean baseline and fault timeline.
 - **[RECOMMENDATION]** Recovery is incomplete until leases, ranks, slots, KV/cache entries, temporary files, and partial writes are reconciled.
 - **[RECOMMENDATION]** A retry may occur only at an idempotent, identified boundary. Duplicate output or tool execution is not acceptable.
-- **[OPEN]** No fault-injection or recovery result was measured in this research pass.
+- **[MEASURED]** An accidental 2026-08-12 nimo-2 global-OOM event killed the production RPC worker while it owned about 114 GiB `gpu_active` HMM state. The next real coordinator request exposed stale RPC state and caused the coordinator to restart; recovery required exact new identities and a real minimal inference [S80-08]. This is safety evidence, not a planned injection or benchmark.
+- **[OPEN]** No planned fault-injection result was measured in this research pass.

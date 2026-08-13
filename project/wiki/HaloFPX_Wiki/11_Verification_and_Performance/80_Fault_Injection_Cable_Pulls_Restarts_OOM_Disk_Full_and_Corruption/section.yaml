@@ -3,8 +3,8 @@ title: "Fault Injection: Cable Pulls, Restarts, OOM, Disk-Full, and Corruption"
 category_id: "11"
 category_title: "Verification and Performance"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
-source_count: 7
+last_verified: "2026-08-12"
+source_count: 8
 open_question_count: 11
 required_machine_experiments:
   - "FAULT-80-E1 malformed, truncated, reordered, stale, and checksum-bad protocol messages"

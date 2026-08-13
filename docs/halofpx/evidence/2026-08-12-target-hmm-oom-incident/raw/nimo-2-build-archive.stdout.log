@@ -1,0 +1,25 @@
+  File: /var/tmp/halofpx-screen-20260813/halofpx-ffn-q8-reuse-e1023132.tar.gz
+  Size: 82028207  	Blocks: 160216     IO Block: 4096   regular file
+Device: 0,58	Inode: 2024037     Links: 1
+Access: (0666/-rw-rw-rw-)  Uid: ( 1000/ connorb)   Gid: ( 1000/ connorb)
+Access: 2026-08-12 19:00:45.000000000 -0700
+Modify: 2026-08-12 19:00:38.000000000 -0700
+Change: 2026-08-12 19:00:54.909275961 -0700
+ Birth: 2026-08-12 19:00:54.618284775 -0700
+  File: /var/tmp/halofpx-screen-20260813/source-ffn-e1023132
+  Size: 1522      	Blocks: 0          IO Block: 4096   directory
+Device: 0,58	Inode: 2024038     Links: 1
+Access: (0755/drwxr-xr-x)  Uid: ( 1000/ connorb)   Gid: ( 1000/ connorb)
+Access: 2026-08-12 19:01:04.881973872 -0700
+Modify: 2026-08-12 19:01:05.384958636 -0700
+Change: 2026-08-12 19:01:05.384958636 -0700
+ Birth: 2026-08-12 19:01:04.881973872 -0700
+  File: /var/tmp/halofpx-screen-20260813/build-ffn-off
+  Size: 486       	Blocks: 0          IO Block: 4096   directory
+Device: 0,58	Inode: 2035849     Links: 1
+Access: (0755/drwxr-xr-x)  Uid: ( 1000/ connorb)   Gid: ( 1000/ connorb)
+Access: 2026-08-12 19:02:41.893034927 -0700
+Modify: 2026-08-12 19:11:12.137957148 -0700
+Change: 2026-08-12 19:11:12.137957148 -0700
+ Birth: 2026-08-12 19:02:41.893034927 -0700
+3a6a039346b4206be23f5bc9ec5601456866d6aaedb75afecee663db68101c3c  /var/tmp/halofpx-screen-20260813/halofpx-ffn-q8-reuse-e1023132.tar.gz

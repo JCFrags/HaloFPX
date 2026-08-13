@@ -1,0 +1,38 @@
+2026-08-12T19:10:15.627105-07:00 nimo-2 systemd[1]: minimax-m27-rpc-worker.service: The kernel OOM killer killed some processes in this unit.
+2026-08-12T19:10:15.641871-07:00 nimo-2 systemd[1]: minimax-m27-rpc-worker.service: Main process exited, code=killed, status=9/KILL
+2026-08-12T19:10:15.641902-07:00 nimo-2 systemd[1]: minimax-m27-rpc-worker.service: Failed with result 'oom-kill'.
+2026-08-12T19:10:15.645874-07:00 nimo-2 systemd[1]: minimax-m27-rpc-worker.service: Consumed 24.450s CPU time over 2w 20h 5min 25.768s wall clock time, 1.3G memory peak, 159M memory swap peak.
+2026-08-12T19:10:18.896908-07:00 nimo-2 systemd[1]: minimax-m27-rpc-worker.service: Scheduled restart job, restart counter is at 1.
+2026-08-12T19:10:18.914469-07:00 nimo-2 systemd[1]: Starting MiniMax M2.7 llama.cpp RPC worker across dual USB4...
+2026-08-12T19:10:18.939118-07:00 nimo-2 systemd[1]: Started MiniMax M2.7 llama.cpp RPC worker across dual USB4.
+2026-08-12T19:10:19.063462-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+2026-08-12T19:10:19.063462-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]:   Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+2026-08-12T19:10:19.065602-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+2026-08-12T19:10:19.065602-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: WARNING: Host ('0.0.0.0') is != '127.0.0.1'
+2026-08-12T19:10:19.065602-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]:          Never expose the RPC server to an open network!
+2026-08-12T19:10:19.065602-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]:          This is an experimental feature and is not secure!
+2026-08-12T19:10:19.065602-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+2026-08-12T19:10:19.065602-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: ggml_backend_cuda_get_available_uma_memory: final available_memory_kb: 128304500
+2026-08-12T19:12:09.925070-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Starting RPC server v4.0.1
+2026-08-12T19:12:09.925070-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]:   endpoint       : 0.0.0.0:50052
+2026-08-12T19:12:09.925070-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]:   local cache    : n/a
+2026-08-12T19:12:09.925070-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Devices:
+2026-08-12T19:12:09.925070-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]:   ROCm0: AMD Radeon 8060S Graphics (126976 MiB, 125297 MiB free)
+2026-08-12T19:12:09.925070-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]:   transport      : TCP
+2026-08-12T19:12:09.925070-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Accepted client connection
+2026-08-12T19:12:09.993152-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Client connection closed
+2026-08-12T19:12:09.993152-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Accepted client connection
+2026-08-12T19:12:09.993152-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: ggml_backend_cuda_get_available_uma_memory: final available_memory_kb: 128572612
+2026-08-12T19:12:09.993152-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Client connection closed
+2026-08-12T19:12:09.993152-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Accepted client connection
+2026-08-12T19:12:09.993152-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: ggml_backend_cuda_get_available_uma_memory: final available_memory_kb: 128572612
+2026-08-12T19:12:09.993152-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Client connection closed
+2026-08-12T19:12:10.085226-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Accepted client connection
+2026-08-12T19:12:10.085911-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Client connection closed
+2026-08-12T19:12:14.187206-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Accepted client connection
+2026-08-12T19:12:14.187487-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: ggml_backend_cuda_get_available_uma_memory: final available_memory_kb: 128570856
+2026-08-12T19:12:14.187673-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Client connection closed
+2026-08-12T19:12:14.187944-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: Accepted client connection
+2026-08-12T19:12:42.317521-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: ggml_backend_cuda_get_available_uma_memory: final available_memory_kb: 24561888
+2026-08-12T19:15:35.459349-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: ggml_backend_cuda_get_available_uma_memory: final available_memory_kb: 15315304
+2026-08-12T19:15:36.192633-07:00 nimo-2 run-minimax-m27-rpc-worker.sh[2248760]: ggml_backend_cuda_graph_compute: CUDA graph warmup complete

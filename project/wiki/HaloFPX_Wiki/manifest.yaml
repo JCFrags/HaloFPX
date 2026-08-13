@@ -5,7 +5,7 @@ generated_on: '2026-07-17'
 registry: ../../research/prompts/section_index.yaml
 schema: manifest.schema.json
 generator: ../../research/prompts/tools/generate_wiki_manifest.py
-input_digest_sha256: 42741855cbda834defea84188de3673e9d1a574db26c64d216d0974019ee53ee
+input_digest_sha256: 8bed32fd248ac373b502b1a72e42159b6fd67dd2a7bb870bdfd3f434d07fefce
 planned_category_count: 12
 planned_section_count: 86
 categories:
@@ -256,8 +256,8 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-17'
-    source_count: 11
+    last_verified: '2026-08-12'
+    source_count: 12
     open_question_count: 9
   - section_id: '20'
     title: USB4 Physical Topology and Dual-Port Independence
@@ -305,7 +305,7 @@ categories:
     metadata_errors: []
     declared_status: needs-machine-validation
     last_verified: '2026-08-12'
-    source_count: 13
+    source_count: 14
     open_question_count: 12
   artifact_state: complete
   section_count: 7
@@ -1030,8 +1030,8 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-17'
-    source_count: 7
+    last_verified: '2026-08-12'
+    source_count: 8
     open_question_count: 11
   - section_id: '81'
     title: CI Matrix, Release Gates, Reproducibility, and Performance Regression Policy
@@ -1072,8 +1072,8 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-17'
-    source_count: 22
+    last_verified: '2026-08-12'
+    source_count: 23
     open_question_count: 15
   - section_id: '84'
     title: On-Machine Research Plan, Experiment Cards, and Lab Notebook

@@ -2,7 +2,7 @@
 section_id: "83"
 title: "Risk Review, Validation, and Contingency Procedures"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["HaloFPX integration repository"]
   software_versions: ["candidate governance workflow"]
@@ -81,7 +81,7 @@ Commands below are inventory examples, not a complete experiment harness. Run on
 | M83-01 | 001, 002 | Capture `readlink -f /sys/bus/thunderbolt/devices/domain*/device`, `lspci -Dtvnn`, domain/router/retimer attributes, `ethtool`, IRQ affinity, cable/port labels; run randomized A-only/B-only/A+B paired trials | Controller/root/resource map and confidence interval for additive capacity |
 | M83-02 | 003, 010 | Capture `uname -a`, `/proc/config.gz`, packages, `modinfo`, loaded firmware hashes, `rocminfo`, `hipconfig`, `vulkaninfo`; verify required KFD commit ancestry/backports; boot known-good rollback | Supported tuple manifest, smoke/correctness result, rollback receipt |
 | M83-03 | 004, 006 | Run matched HIP/Vulkan graphs for every required op/shape/model/quant with golden logits/tokens and quality fixtures before throughput | Backend support/performance matrix; no unsupported cell hidden by averaging |
-| M83-04 | 007 | Sweep model/context/batch/ubatch/concurrency/cache/transport buffers; collect RSS, cgroup, HSA/GTT/VRAM, swap, PSI, allocation errors; inject bounded admission failures | Safe envelope with recovery reserve and explicit rejection behavior |
+| M83-04 | 007 | In an authorized isolated window, first prove no protected/foreign KFD/render/HMM owner and record exact identities plus kernel-OOM baseline; then sweep model/context/batch/ubatch/concurrency/cache/transport buffers and collect RSS, cgroup, HSA/GTT/VRAM/HMM `gpu_active`, swap, PSI, allocation errors | Safe envelope with recovery reserve, explicit rejection, and proof that ordinary `MemAvailable` never overrides GPU/HMM ownership |
 | M83-05 | 008, 015 | Inventory `nvme list -v`, identify/SMART logs, `lspci -Dvv`, `lsblk`, `findmnt`; measure application bytes versus host writes and available device telemetry; run disk-full/corruption/crash tests on disposable cache | Write budget, reserve threshold, miss/recompute proof, endurance projection |
 | M83-06 | 009 | Calibrate sensors; soak worst-case compute+fabric+NVMe at each supported ambient/power profile; preserve clocks, throttling, errors, temperatures, fan/power state | Sustainable envelope and fallback cap; no extrapolation from a short run |
 | M83-07 | 013 | Enumerate listeners/firewall/routes/units/credentials/permissions; test unauthenticated, wrong-identity, replay, path, model, and cache-isolation cases from a controlled peer | Negative tests fail safely; secrets absent from argv/logs; least privilege proven |
@@ -91,7 +91,9 @@ Commands below are inventory examples, not a complete experiment harness. Run on
 
 ### Safety prerequisites
 
+- Apply [issue #41](https://github.com/JCFrags/HaloFPX/issues/41) before any target command. Reject builds, quantization, disposable inference, and benchmarks while protected production or unaccounted KFD/render/HMM ownership exists; ordinary free/available/RSS/swap values do not clear the gate.
 - Preserve source, model, cache, configuration, and current health evidence before mutation.
+- Preserve exact PID, InvocationID, restart count, GPU-owner census, and kernel-OOM baseline. If either rank changes identity, require both-rank reconciliation and a real minimal inference; health alone is insufficient.
 - Use a disposable cache namespace for corruption, disk-full, and power-loss testing.
 - Never pull storage power from a mounted production filesystem.
 - Confirm console/out-of-band recovery and a known-good boot entry before kernel or firmware tests.

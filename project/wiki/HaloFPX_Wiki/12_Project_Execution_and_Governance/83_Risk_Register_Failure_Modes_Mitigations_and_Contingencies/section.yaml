@@ -3,8 +3,8 @@ category_id: "12"
 title: "Risk Register, Failure Modes, Mitigations, and Contingencies"
 category: "12_Project_Execution_and_Governance"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
-source_count: 22
+last_verified: "2026-08-12"
+source_count: 23
 open_question_count: 15
 required_machine_experiments:
   - "M83-01 paired USB4 topology and independence qualification"

@@ -2,7 +2,7 @@
 section_id: "19"
 title: "Unified-memory procedures and checks"
 status: "needs-machine-validation"
-last_verified: "2026-07-16"
+last_verified: "2026-08-12"
 applies_to:
   repositories: []
   software_versions: ["ROCm/HIP", "Linux amdgpu/TTM"]
@@ -12,7 +12,9 @@ related_sections: ["23", "24", "54", "74", "84"]
 
 # Procedures and checks
 
-All workload experiments require an idle gate, exact environment snapshot, cgroup scope, no production service, and raw synchronized telemetry. Do not change BIOS/kernel/IOMMU settings without a separate reversible experiment plan.
+All workload experiments require an authorized maintenance window, exact environment snapshot, cgroup scope, no protected production service or unaccounted KFD/render/HMM owner, a clean kernel-OOM baseline, and raw synchronized telemetry. `MemAvailable`, free RAM, swap, and conventional RSS cannot substitute for this ownership gate. Do not change BIOS/kernel/IOMMU settings without a separate reversible experiment plan. See [issue #41](https://github.com/JCFrags/HaloFPX/issues/41) and [S19-L04].
+
+If either production rank changes PID, InvocationID, or restart count, reconcile both ranks and complete a real minimal distributed inference before recovery. A health route alone is not sufficient RPC-readiness evidence.
 
 ## S19-E01 — Read-only capability and accounting snapshot
 
