@@ -55,3 +55,4 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0048](0048-composed-scheduler-rpc-execution-authority.md): composed scheduler and RPC execution authority
 - [ADR-0049](0049-l63-real-lifecycle-preexecute-authority.md): real-lifecycle pre-execute authority
 - [Decision 0050](0050-l67-retained-adr0049-foundation.md): retained ADR-0049 foundation at L67
+- [ADR-0051](0051-default-off-exact-longest-prefix-selector.md): default-off exact longest-prefix selector

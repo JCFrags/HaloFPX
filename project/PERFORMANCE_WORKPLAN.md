@@ -70,6 +70,12 @@ donor code merely because the behavior is authoritative.
   OpenSSL EVP SHA-256 for the separate run-local SSD prompt cache while
   retaining every exact-length and full-file integrity gate. Scalar and EVP
   hosted tests passed; no target end-to-end speedup is accepted.
+- **[VERIFIED]** The issue-#32 L10e slice implements a default-off,
+  non-product exact longest-prefix selector around the authenticated catalog.
+  It returns explicit suffix-replay and cache-attribution telemetry and fails
+  closed on corrupt, ambiguous, or incompatible state. Local Linux CPU tests
+  passed; product wiring, two-rank restore, and target performance remain open.
+  See the [L10e record](../docs/halofpx/l10e-default-off-exact-longest-prefix-selector.md).
 
 ## Current execution trackers
 
@@ -85,7 +91,7 @@ donor code merely because the behavior is authoritative.
 | [#26](https://github.com/JCFrags/HaloFPX/issues/26) | open | coordinated restart-safe state across two RPC ranks |
 | [#28](https://github.com/JCFrags/HaloFPX/issues/28) | open | PR #35 fixed raw/sampled row fallback; coherent snapshot and synchronization reduction remain |
 | [#29](https://github.com/JCFrags/HaloFPX/issues/29) | open | dense FFN gate/up activation-conversion reuse |
-| [#32](https://github.com/JCFrags/HaloFPX/issues/32) | open | verified longest exact-token restart prefix and suffix replay |
+| [#32](https://github.com/JCFrags/HaloFPX/issues/32) | active | exact authenticated longest-prefix selector and suffix-replay seam; product restore remains open |
 | [#33](https://github.com/JCFrags/HaloFPX/issues/33) | open | derive cache compatibility from the live inference plan |
 | [#43](https://github.com/JCFrags/HaloFPX/issues/43) | active | portable small Qwen3-0.6B pure ROCmFPX registry/recipe; target qualification remains open |
 
@@ -94,10 +100,22 @@ donor code merely because the behavior is authoritative.
 ### 1. Restart cache correctness — bounded lane complete
 
 PR #23 completed the exact issue #14 fixture. Keep that result separate from
-the run-local `--cache-disk` spill path, which is not restart-persistent. Prefix
-matching, multiple slots, recurrent/hybrid state, and coordinated rank-local
-objects remain unqualified. Issue #26 owns the two-rank coordination lane; any
-failure must miss and recompute without accepting partial rank state.
+the run-local `--cache-disk` spill path, which is not restart-persistent.
+Product/server prefix restore, recurrent/hybrid state, and coordinated
+rank-local objects remain unqualified; the bounded exact catalog itself is a
+separate qualified laboratory seam. Issue #26 owns the two-rank coordination
+lane. Its merged test-only coordinator contract specifies fake-provider
+capture/stage/commit ordering and failure semantics, but no real rank-local
+cache object, RPC, filesystem, or server adapter exists yet. Any real failure
+must miss and recompute without accepting partial rank state.
+
+Issue #32 now has a locally CPU-qualified standalone exact longest-prefix
+selector unit over explicit semantic token boundaries and the existing
+authenticated multi-entry catalog. Product/server prefix restore remains
+unqualified, and the selector stays outside the server until issue #26 composes
+the test-only coordinator with real rank-local objects and one atomic owner.
+Target qualification must then measure restored tokens and suffix prefill
+separately; the selector test is not a performance result.
 
 ### 2. Measurement visibility
 
