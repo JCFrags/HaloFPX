@@ -1,0 +1,5 @@
+source_head=113e411706e02704cf1c6c01d8973acbe0cab5b9
+# branch.oid 113e411706e02704cf1c6c01d8973acbe0cab5b9
+# branch.head codex/rocmfpx-qkv-q8-reuse
+# branch.upstream origin/codex/rocmfpx-qkv-q8-reuse
+# branch.ab +0 -0

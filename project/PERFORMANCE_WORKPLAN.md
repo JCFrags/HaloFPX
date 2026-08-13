@@ -105,7 +105,7 @@ donor code merely because the behavior is authoritative.
 | [#29](https://github.com/JCFrags/HaloFPX/issues/29) | merged source / runtime open | PR #45 default-off dense FFN gate/up activation-conversion reuse; target compile qualified, runtime performance open |
 | [#32](https://github.com/JCFrags/HaloFPX/issues/32) | active | exact authenticated selector plus default-off world-1 server shell; positive model-backed restore remains blocked on #33 |
 | [#33](https://github.com/JCFrags/HaloFPX/issues/33) | active | standalone typed authority slice complete; loader capture, resolved request/context semantics, reload invalidation, and server adapter remain |
-| [#42](https://github.com/JCFrags/HaloFPX/issues/42) | open | default-off separate Q/K/V activation-conversion reuse; host-qualified source only |
+| [#42](https://github.com/JCFrags/HaloFPX/issues/42) | open | default-off separate Q/K/V prompt activation-conversion reuse; host/source and GPU-less gfx1151 compile/link qualified, target runtime/performance open |
 | [#43](https://github.com/JCFrags/HaloFPX/issues/43) | active | portable small Qwen3-0.6B pure ROCmFPX registry/recipe; target qualification remains open |
 
 ## Ordered work

@@ -69,8 +69,9 @@ advanced beyond L111:
   until an isolated maintenance window resolves the HMM/OOM incident.
 - Issue [#42](https://github.com/JCFrags/HaloFPX/issues/42) owns the default-off
   separate Q/K/V Q8_1 activation-reuse candidate. The retained local evidence
-  is host/source qualification only; it makes no target runtime, model
-  reachability, generation-speed, or prompt-speed claim.
+  includes host/source qualification and GPU-less pinned ROCm 7.2.4 OFF/ON
+  `gfx1151` compile/link. It makes no target runtime, model reachability,
+  generation-speed, or prompt-speed claim.
 - HaloFPX targets ROCmFPX-family GGUF inference across supported model
   architectures. MiniMax is the largest stress fixture, not a model-specific
   product target.

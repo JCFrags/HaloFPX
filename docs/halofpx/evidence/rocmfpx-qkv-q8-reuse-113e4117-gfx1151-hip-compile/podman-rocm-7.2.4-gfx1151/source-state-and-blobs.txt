@@ -1,0 +1,17 @@
+source_head=113e411706e02704cf1c6c01d8973acbe0cab5b9
+# branch.oid 113e411706e02704cf1c6c01d8973acbe0cab5b9
+# branch.head codex/rocmfpx-qkv-q8-reuse
+# branch.upstream origin/codex/rocmfpx-qkv-q8-reuse
+# branch.ab +0 -0
+100644 blob d091041eb8097efd75e03c614688491c81fe91c4	.github/workflows/halofpx-ci.yml
+100644 blob a1d00a79dac8f527bb8298e6e1be75cf7b1f5774	ggml/CMakeLists.txt
+100644 blob 6381f1be082e7306d5b403de749146d8a546d058	ggml/src/ggml-cuda/common.cuh
+100644 blob dbb1c8767e7441fd6bca1eb5bcb3be967d4808cd	ggml/src/ggml-cuda/ggml-cuda.cu
+100644 blob 5fa05f7780fd88b568b76f7a86dbae9284c335ab	ggml/src/ggml-cuda/mmq.cu
+100644 blob 172de2f709900e326c6c319d789ea99c3854c487	ggml/src/ggml-cuda/mmq.cuh
+100644 blob 192ed5605273f7822ad4721041087a485b2b0bbf	ggml/src/ggml-cuda/rocmfpx-qkv-q8-reuse.h
+100644 blob 058a87f3b64c2b75c7a54f8896b137674f0e54a3	ggml/src/ggml-hip/CMakeLists.txt
+100644 blob a8fdff27ce4570f8b39f7287a822707958142618	tests/CMakeLists.txt
+100644 blob 56016630513ee64b20fe72d952c45a3023e1bdb3	tests/test-backend-ops.cpp
+100644 blob 9c08ee45246d1ae65c5a6e8eae90726a4cb053f9	tests/test-halofpx-rocmfpx-qkv-q8-reuse-source-contract.cmake
+100644 blob 2ff0bfe7c1b7bee3713ddff8f6efee2cdc64b342	tests/test-halofpx-rocmfpx-qkv-q8-reuse.cpp

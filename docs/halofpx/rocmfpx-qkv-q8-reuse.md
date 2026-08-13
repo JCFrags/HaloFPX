@@ -142,8 +142,13 @@ toolchain, cache, compile database, hashes, and review boundary.
 An off-target GitHub Actions job pins AMD's ROCm 7.2.4 development image by
 digest, compiles and links `ggml-hip` serially for exact `gfx1151`, and verifies
 that `ggml-cuda.cu` and `mmq.cu` contain both the feature macro and architecture
-flag. Its result is not part of the local host receipt and remains unverified
-until the published workflow completes.
+flag. The hosted job did not start because of the repository's external
+Actions billing block. The exact pinned job was therefore reproduced locally
+with rootless Podman and no GPU devices. Fresh feature-OFF and feature-ON trees
+both compiled and linked 170/170; their raw logs, compile databases, caches,
+toolchain, library hashes, and macro/architecture checks are retained in the
+[GPU-less compile receipt](evidence/rocmfpx-qkv-q8-reuse-113e4117-gfx1151-hip-compile/README.md).
+This closes the source compile/link prerequisite only.
 
 **[OPEN]** Issue [#41](https://github.com/JCFrags/HaloFPX/issues/41) blocks
 target access after the production HMM/OOM incident. This Q/K/V change has no

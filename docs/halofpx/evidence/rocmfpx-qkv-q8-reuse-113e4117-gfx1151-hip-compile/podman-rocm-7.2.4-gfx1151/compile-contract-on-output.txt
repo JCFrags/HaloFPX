@@ -1,0 +1,3 @@
+PASS: on /ggml/src/ggml-cuda/ggml-cuda.cu architecture and macro contract
+PASS: on /ggml/src/ggml-cuda/mmq.cu architecture and macro contract
+PASS: on linked /workspace/work/build-on/bin/libggml-hip.so

@@ -95,5 +95,8 @@ Any numerical, feature-off, fallback, graph-lifetime, or concurrency mismatch
 stops promotion before performance measurement.
 
 The feature-on HIP translation units also have a pinned, GPU-less `gfx1151`
-compile/link CI job. Passing that job is a source-build prerequisite, not a
-substitute for the blocked target runtime gate.
+compile/link CI job. The hosted runner was blocked before execution by account
+billing, so the exact pinned job was reproduced locally with rootless Podman.
+Fresh OFF and ON `ggml-hip` trees compiled and linked 170/170 with the expected
+macro and architecture flags. This closes the source-build prerequisite, not
+the blocked target runtime gate.

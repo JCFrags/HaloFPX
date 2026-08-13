@@ -1,0 +1,123 @@
+[
+     {
+          "Id": "f4042583f9e81c483fd75386a7d1b1416bb5e4c2eed76df2a5a1930f305f84a6",
+          "Digest": "sha256:bdc8e61026cbb844ede93d44d2c50055f51ebb2041906b60182bf3bee3139054",
+          "RepoTags": [],
+          "RepoDigests": [
+               "docker.io/rocm/dev-ubuntu-24.04@sha256:bdc8e61026cbb844ede93d44d2c50055f51ebb2041906b60182bf3bee3139054"
+          ],
+          "Parent": "",
+          "Comment": "",
+          "Created": "2026-05-28T17:25:30.03043602Z",
+          "Config": {
+               "Env": [
+                    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+               ],
+               "Cmd": [
+                    "/bin/bash"
+               ],
+               "Labels": {
+                    "maintainer": "dl.mlsedevops@amd.com",
+                    "org.opencontainers.image.version": "24.04"
+               }
+          },
+          "Version": "",
+          "Author": "",
+          "Architecture": "amd64",
+          "Os": "linux",
+          "Size": 3918012007,
+          "VirtualSize": 3918012007,
+          "GraphDriver": {
+               "Name": "overlay",
+               "Data": {
+                    "LowerDir": "/home/britt/.local/share/containers/storage/overlay/7bc0ce78054e809a58035b734f9928bcc729fca68a4dbeae49aef42cd3df42a1/diff:/home/britt/.local/share/containers/storage/overlay/f13ebbc73ef6d414f8fb4cb1fa3e691dac1b18be8e78ab04c54f628e2ed1de6a/diff:/home/britt/.local/share/containers/storage/overlay/538812a4b9bd45adaac2b5e5b967daa6999aa44eb110aa32ae7c69702b906475/diff",
+                    "UpperDir": "/home/britt/.local/share/containers/storage/overlay/75335cfdbe0b368c60325ee5b8e7c7d887dd52e6988d36e75bbfea40d8ec01d4/diff",
+                    "WorkDir": "/home/britt/.local/share/containers/storage/overlay/75335cfdbe0b368c60325ee5b8e7c7d887dd52e6988d36e75bbfea40d8ec01d4/work"
+               }
+          },
+          "RootFS": {
+               "Type": "layers",
+               "Layers": [
+                    "sha256:538812a4b9bd45adaac2b5e5b967daa6999aa44eb110aa32ae7c69702b906475",
+                    "sha256:30f663511be63b788c06cd874c494ee7d52ddcfd9cd5ceb593a1b63399cd9010",
+                    "sha256:63df3426f4f522aa38d3b518211b0a975ecf82bf8bc264052f450eefd5cc70a1",
+                    "sha256:708321ea4e30d6496b05316a02918f21312510cc0d683f753c295b1e18b9452b"
+               ]
+          },
+          "Labels": {
+               "maintainer": "dl.mlsedevops@amd.com",
+               "org.opencontainers.image.version": "24.04"
+          },
+          "Annotations": {},
+          "ManifestType": "application/vnd.docker.distribution.manifest.v2+json",
+          "User": "",
+          "History": [
+               {
+                    "created": "2026-04-10T06:49:15.45210454Z",
+                    "created_by": "/bin/sh -c #(nop)  ARG RELEASE",
+                    "empty_layer": true
+               },
+               {
+                    "created": "2026-04-10T06:49:15.493474875Z",
+                    "created_by": "/bin/sh -c #(nop)  ARG LAUNCHPAD_BUILD_ARCH",
+                    "empty_layer": true
+               },
+               {
+                    "created": "2026-04-10T06:49:15.521658623Z",
+                    "created_by": "/bin/sh -c #(nop)  LABEL org.opencontainers.image.version=24.04",
+                    "empty_layer": true
+               },
+               {
+                    "created": "2026-04-10T06:49:17.706887224Z",
+                    "created_by": "/bin/sh -c #(nop) ADD file:8ce1caf246e7c778bca84c516d02fd4e83766bb2c530a0fffa8a351b560a2728 in / "
+               },
+               {
+                    "created": "2026-04-10T06:49:18.133477895Z",
+                    "created_by": "/bin/sh -c #(nop)  CMD [\"/bin/bash\"]",
+                    "empty_layer": true
+               },
+               {
+                    "created": "2026-05-28T17:24:24.245938329Z",
+                    "created_by": "LABEL maintainer=dl.mlsedevops@amd.com",
+                    "comment": "buildkit.dockerfile.v0",
+                    "empty_layer": true
+               },
+               {
+                    "created": "2026-05-28T17:24:24.245938329Z",
+                    "created_by": "ARG ROCM_VERSION=6.2",
+                    "comment": "buildkit.dockerfile.v0",
+                    "empty_layer": true
+               },
+               {
+                    "created": "2026-05-28T17:24:24.245938329Z",
+                    "created_by": "ARG AMDGPU_VERSION=6.2",
+                    "comment": "buildkit.dockerfile.v0",
+                    "empty_layer": true
+               },
+               {
+                    "created": "2026-05-28T17:24:24.245938329Z",
+                    "created_by": "ARG APT_PREF",
+                    "comment": "buildkit.dockerfile.v0",
+                    "empty_layer": true
+               },
+               {
+                    "created": "2026-05-28T17:24:24.245938329Z",
+                    "created_by": "RUN |3 ROCM_VERSION=7.2.4 AMDGPU_VERSION=30.30.4 APT_PREF=Package: *\\nPin: release o=repo.radeon.com\\nPin-Priority: 600 /bin/sh -c echo \"$APT_PREF\" > /etc/apt/preferences.d/rocm-pin-600 # buildkit",
+                    "comment": "buildkit.dockerfile.v0"
+               },
+               {
+                    "created": "2026-05-28T17:25:29.639019148Z",
+                    "created_by": "RUN |3 ROCM_VERSION=7.2.4 AMDGPU_VERSION=30.30.4 APT_PREF=Package: *\\nPin: release o=repo.radeon.com\\nPin-Priority: 600 /bin/sh -c apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl libnuma-dev gnupg   && curl -sL https://repo.radeon.com/rocm/rocm.gpg.key | apt-key add -   && printf \"deb [arch=amd64] https://repo.radeon.com/rocm/apt/$ROCM_VERSION/ noble main\" | tee /etc/apt/sources.list.d/rocm.list   && printf \"deb [arch=amd64] https://repo.radeon.com/amdgpu/$AMDGPU_VERSION/ubuntu noble main\" | tee /etc/apt/sources.list.d/amdgpu.list   && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends   sudo   libelf1   kmod   file   python3-dev   python3-pip   rocm-dev   build-essential &&   apt-get clean &&   rm -rf /var/lib/apt/lists/* # buildkit",
+                    "comment": "buildkit.dockerfile.v0"
+               },
+               {
+                    "created": "2026-05-28T17:25:30.03043602Z",
+                    "created_by": "RUN |3 ROCM_VERSION=7.2.4 AMDGPU_VERSION=30.30.4 APT_PREF=Package: *\\nPin: release o=repo.radeon.com\\nPin-Priority: 600 /bin/sh -c groupadd -g 109 render # buildkit",
+                    "comment": "buildkit.dockerfile.v0"
+               }
+          ],
+          "NamesHistory": [
+               "docker.io/rocm/dev-ubuntu-24.04@sha256:bdc8e61026cbb844ede93d44d2c50055f51ebb2041906b60182bf3bee3139054"
+          ]
+     }
+]

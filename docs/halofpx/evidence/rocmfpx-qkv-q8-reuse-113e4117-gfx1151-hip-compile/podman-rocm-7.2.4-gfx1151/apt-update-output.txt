@@ -1,0 +1,27 @@
+Get:1 https://repo.radeon.com/amdgpu/30.30.4/ubuntu noble InRelease [3185 B]
+Get:2 https://repo.radeon.com/rocm/apt/7.2.4 noble InRelease [2605 B]
+Get:3 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:5 https://repo.radeon.com/amdgpu/30.30.4/ubuntu noble/main amd64 Packages [1331 B]
+Get:6 https://repo.radeon.com/rocm/apt/7.2.4 noble/main amd64 Packages [61.3 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1153 kB]
+Get:8 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:9 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:11 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1655 kB]
+Get:12 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:13 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1524 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2141 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:19 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1768 kB]
+Get:20 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1478 kB]
+Get:21 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:22 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:23 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Fetched 32.2 MB in 3s (9241 kB/s)
+Reading package lists...
+W: https://repo.radeon.com/amdgpu/30.30.4/ubuntu/dists/noble/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+W: https://repo.radeon.com/rocm/apt/7.2.4/dists/noble/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
