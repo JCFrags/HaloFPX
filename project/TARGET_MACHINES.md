@@ -8,12 +8,24 @@ Last broad live read-only inventory: `2026-08-12T20:33:55Z` through
 `2026-08-12T20:49:20Z`. The retained receipt is
 [`../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md`](../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md).
 
-Latest health-only recheck: `2026-08-12T23:06:08Z`. The retained
-[`health receipt`](../docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
-rechecked only the named service state, PIDs, InvocationIDs, restart counters,
-listeners, kernel string, and coordinator HTTP health. It did not re-audit the
-platform, packages, firmware, unit or launcher contents, binaries/libraries,
-model, cache contents, network policy, or performance.
+Latest retained production recovery: a real 5-prompt-token plus
+1-generated-token request completed at `2026-08-12T19:16:23.124104-07:00`,
+and the final read-only identity/health capture began at about
+`2026-08-12T19:28:39-07:00`. The retained
+[`incident and recovery receipt`](../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
+supersedes the earlier service identities and restart counters. It did not
+re-audit the platform, packages, firmware, unit or launcher contents,
+executables/libraries, model, cache contents, network policy, or performance.
+[Issue #41](https://github.com/JCFrags/HaloFPX/issues/41) is the P0
+target-ownership prerequisite for any target build, quantization, disposable
+inference, or benchmark.
+
+The older `2026-08-12T23:06:08Z`
+[`health-only receipt`](../docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
+is historical before-state for the later local-time incident. Its zero-restart
+PIDs, InvocationIDs, listeners, kernel string, and coordinator health remain
+valid only for that observation window; they are not current production
+authority.
 
 ## Physical target
 
@@ -47,27 +59,41 @@ separate choice from the model's weight format.
 
 ## Current always-on deployment
 
-The live service is a conventional MiniMax M2.7 `UD-Q6_K_XL` comparison and
-rollback deployment. The nimo-1 coordinator reports upstream llama.cpp commit
-`8f114a9b573b69035299f9b924047f53c1e22c7e`; the RPC worker exposes no build
-version interface, so its recorded executable digest is the current identity
-boundary rather than proof of that source commit. This is not a deployed
-HaloFPX or ROCmFPX performance result.
+The earlier broad inventory identified the live service as a conventional
+MiniMax M2.7 `UD-Q6_K_XL` comparison and rollback deployment. The recovered
+units retain the same systemd unit names and completed a real request, but the
+incident receipt did not re-audit their unit/launcher contents or model
+identity. During that broad inventory, the nimo-1 coordinator reported
+upstream llama.cpp commit
+`8f114a9b573b69035299f9b924047f53c1e22c7e`; the RPC worker exposed no build
+version interface. The executable digests below are evidence from that
+pre-incident inventory only. Neither executable nor its loaded libraries was
+rehashed after the later restarts, so those digests must not be treated as the
+current recovered binary identity. This is not a deployed HaloFPX or ROCmFPX
+performance result.
 
-| Host | System unit | Observed executable | SHA-256 at observation |
+| Host | System unit | Executable observed in broad inventory | SHA-256 at pre-incident observation |
 |---|---|---|---|
 | `nimo-1` | `minimax-m27-q6-server.service` | `/opt/llm-usb4-cluster/llama/llama-server` | `d62ab220a4743a347461c958ce99a701e7ed21a938d9ab033334d9fb77fabbdb` |
 | `nimo-2` | `minimax-m27-rpc-worker.service` | `/opt/llm-usb4-cluster/llama/ggml-rpc-server` | `cf0f39231fdab6b30254959edbb8de0c36cde2312cf4ee6761cfc27a3267bf63` |
 
-Both units were active with `NRestarts=0`. At observation time, root-volume
-free space was approximately 30.5 GB on nimo-1 and 87.1 GB on nimo-2. Capacity
-is volatile and must be rechecked before staging builds, models, or evidence.
+At the broad-inventory observation, both units were active with `NRestarts=0`
+and root-volume free space was approximately 30.5 GB on nimo-1 and 87.1 GB on
+nimo-2. Capacity is volatile and must be rechecked before staging builds,
+models, or evidence. The later health-only recheck retained those service
+identities, but both observations are now historical before-state.
 
-The health-only recheck at `2026-08-12T23:06:08Z` found the same PIDs,
-InvocationIDs, `NRestarts=0` values, and listener ownership. Nimo-1 returned
-`{"status":"ok"}` from its local `/health` route. This establishes only
-bounded service health at that time; it does not refresh the executable hashes
-or other deployment fields above.
+The post-incident recovered authority is:
+
+| Host | Recovered unit authority | Retained recovery proof |
+|---|---|---|
+| `nimo-1` | PID `3113343`; InvocationID `0656332b63a140eab7214627baa43253`; `NRestarts=1`; active/running | local `/health` returned `{"status":"ok"}`; the real 5-prompt-token plus 1-generated-token request completed |
+| `nimo-2` | PID `2248760`; InvocationID `d15fe49610274e77bd9a3d84a0b791a5`; `NRestarts=1`; active/running | the same real two-rank request completed only after the worker and coordinator had recovered |
+
+These are volatile measured identities from the incident receipt, not a
+promise that the units have remained unchanged. Recheck both before any target
+operation. Health alone is not distributed readiness after either rank changes
+identity; require exact two-rank authority plus a real minimal inference.
 
 The 2026-07-17 ROCmFP4 experiments used the opposite role assignment because
 the stress model was resident on nimo-2. Historical roles remain valid for
@@ -159,6 +185,11 @@ ssh @opts nimo-1 "ss -H -ltnp; curl -fsS http://127.0.0.1:8081/health; readlink 
 ssh @opts nimo-2 "ss -H -ltnp; readlink /proc/`$(systemctl show -p MainPID --value minimax-m27-rpc-worker.service)/exe"
 ```
 
+Compare the result with the recovered identities above and retain a new dated
+receipt if either PID, InvocationID, or restart count differs. Do not infer
+that the pre-incident executable digests still apply; hash the current
+executables and loaded libraries when binary identity is required.
+
 GitHub alone cannot restore SSH private keys, verified host fingerprints, live
 service state, locally licensed or very large model files, or independently
 managed Agent Harness material. It also does not yet preserve a bootable
@@ -180,6 +211,7 @@ records these external dependencies and the immutable release boundary.
   ROCmFPX trial requires a controlled maintenance window because the always-on
   deployment consumes most unified memory.
 - Recover the production worker first, verify port 50052, then recover the
-  coordinator and require HTTP health before closing a transition.
+  coordinator. Require exact identities, coordinator HTTP health, and a real
+  minimal two-rank inference before closing a transition.
 - No service mutation is authorized merely by reading this page. Follow the
   current Project Lead decision and use a controller with bounded rollback.

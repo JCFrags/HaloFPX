@@ -4,7 +4,7 @@ title: "Linux, Kernel, amdgpu, Firmware, ROCm, and Mesa Compatibility Matrix"
 category: "04_Hardware_and_OS_Platform"
 status: "needs-machine-validation"
 last_verified: "2026-08-12"
-source_count: 13
+source_count: 14
 open_question_count: 12
 required_machine_experiments:
   - "Paired OS, kernel/config, driver, package, firmware, and PCI inventory"

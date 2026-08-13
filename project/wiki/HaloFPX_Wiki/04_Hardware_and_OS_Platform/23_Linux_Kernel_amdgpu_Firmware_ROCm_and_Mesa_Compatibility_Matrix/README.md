@@ -26,7 +26,7 @@ the 2026-08-12 block below.
 
 **[MEASURED]** Both target machines currently run CachyOS kernel `7.1.3-1-cachyos`, ROCm 7.2.4 packages, Mesa 26.1.4, and linux-firmware 20260622; HSA enumerates gfx1151 and the deployed ROCmFP4 service is healthy, but this is an experimental project tuple rather than AMD's production-supported Ubuntu matrix [S23-L01]. The current kernel exposes USB4NET but no USB4STREAM module/device.
 
-### 2026-08-12 superseding current authority
+### 2026-08-12 superseding platform and service authority
 
 **[RECOMMENDATION]** Keep three clearly named lanes: (A) the measured project
 target, CachyOS, with USB4NET retained from the July transport capture pending
@@ -35,7 +35,17 @@ portability/control lane; and (C) experimental Linux 7.2 USB4STREAM
 qualification. Do not imply that Ubuntu is installed on the project targets or
 call a backport production-supported.
 
-**[MEASURED]** A read-only audit on 2026-08-12 observed both Nimo MME3L targets running CachyOS kernel `7.1.3-1-cachyos`, ROCm 7.2.4-family packages, Mesa/RADV 26.1.4, and linux-firmware 20260622; HSA enumerated gfx1151 [S23-L02]. nimo-1 was the active conventional UD-Q6 coordinator/API service and nimo-2 its RPC worker. This is the current project tuple, not AMD's supported Ubuntu tuple and not a deployed ROCmFPX result. The July 17 ROCmFP4 deployment in S23-L01 is historical.
+**[MEASURED]** A read-only audit on 2026-08-12 observed both Nimo MME3L targets running CachyOS kernel `7.1.3-1-cachyos`, ROCm 7.2.4-family packages, Mesa/RADV 26.1.4, and linux-firmware 20260622; HSA enumerated gfx1151 [S23-L02]. nimo-1 was the active conventional UD-Q6 coordinator/API service and nimo-2 its RPC worker. This remains the latest broad project-tuple inventory, not AMD's supported Ubuntu tuple and not a deployed ROCmFPX result. The July 17 ROCmFP4 deployment in S23-L01 is historical.
+
+**[MEASURED]** S23-L02's zero-restart service identities and executable hashes
+are pre-incident observations. A later HMM/global-OOM incident recovered
+nimo-1 as PID `3113343`, InvocationID
+`0656332b63a140eab7214627baa43253`, `NRestarts=1`, and nimo-2 as PID
+`2248760`, InvocationID `d15fe49610274e77bd9a3d84a0b791a5`,
+`NRestarts=1`. Both units were active/running, coordinator health was OK, and
+a real 5-prompt-token plus 1-generated-token request completed [S23-L03].
+S23-L03 supersedes service identity and recovery state only; it did not rehash
+either executable or loaded libraries and is not a performance result.
 
 ## Pages
 
@@ -55,3 +65,4 @@ call a backport production-supported.
 [S23-03]: sources.md#s23-03
 [S23-07]: sources.md#s23-07
 [S23-L02]: sources.md#s23-l02
+[S23-L03]: sources.md#s23-l03

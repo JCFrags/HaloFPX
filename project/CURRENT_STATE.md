@@ -7,8 +7,12 @@ The Project Lead records remain authoritative for active work and production sta
 
 ## Current authority
 
-- Current monorepo `main` at this reconciliation:
-  `7a36e01a25bd5c27b684b489d9996b4de3afa299`.
+- Remote `main` observed during this correction:
+  `e3e8b286b8316abd246fb155044effd11e60b0eb`. The exact source base named by
+  the incident record is
+  `b77f2bce6e7875ab065e09894f45915585c9f156`. These are dated repository
+  boundaries, not live pointers; a fresh clone must record its own
+  `git rev-parse HEAD` and `git rev-parse origin/main`.
 - Historical documentation repository baseline:
   `d30814ed08fe395f1bb1d292281ce82edb6bdab4`.
 - Imported documentation source: `b1c2d8aef707fb03920fc189ccd26395fa61879d`.
@@ -101,7 +105,8 @@ coordinator restarted as PID `3113343`, InvocationID
 `0656332b63a140eab7214627baa43253`, `NRestarts=1`. A 5-prompt-token plus
 1-generated-token request subsequently completed and `/health` was OK. The
 [incident evidence](../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
-is a safety/recovery record, not a benchmark or performance result.
+is a safety/recovery record, not a benchmark or performance result. It did not
+rehash either recovered executable or its loaded libraries.
 
 **[RECOMMENDATION]** [Issue #41](https://github.com/JCFrags/HaloFPX/issues/41)
 is now a P0 prerequisite for target work: refuse builds, quantization,

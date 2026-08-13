@@ -45,11 +45,20 @@ related_sections: ["13", "17", "18", "19", "20", "37", "50"]
 | 23-M06 | Supported distro kernel plus a backport of `thunderbolt-stream` | supported ROCm tuple | USB4STREAM | **[BACKPORTED/UNVERIFIED]** Must pin source commits/config and pass transport, suspend, error, and compute tests. |
 | 23-M07 | Other distro < 6.18.4 without both KFD fixes | any gfx1151 ROCm | any | **[RECOMMENDATION] Reject** for production; AMD warns of queue-creation/memory-availability failures. |
 | 23-M08 | CachyOS; running `7.1.3-1-cachyos` | ROCm packages 7.2.4; HIP `7.2.53211`; Mesa 26.1.4 | dual `thunderbolt-net` with MPTCP; no USB4STREAM module/device | **[MEASURED] Current cluster baseline** [S23-L01]; HSA/gfx1151 and deployed service readiness observed, but not vendor-supported or fully qualified for HaloFPX. |
-| 23-M09 | CachyOS; running `7.1.3-1-cachyos` | ROCm 7.2.4-family packages; Mesa/RADV 26.1.4 | July dual-`thunderbolt-net`/MPTCP state retained; transport modules not re-audited | **[MEASURED] Current project compute tuple, re-observed 2026-08-12** [S23-L02]; HSA/gfx1151 and the conventional UD-Q6 production baseline were healthy, but the tuple is not AMD's supported Ubuntu matrix and does not qualify current HaloFPX/ROCmFPX. |
+| 23-M09 | CachyOS; running `7.1.3-1-cachyos` | ROCm 7.2.4-family packages; Mesa/RADV 26.1.4 | July dual-`thunderbolt-net`/MPTCP state retained; transport modules not re-audited | **[MEASURED] Latest broad project compute tuple, observed before the later 2026-08-12 incident** [S23-L02]; HSA/gfx1151 and the conventional UD-Q6 production baseline were healthy, but the tuple is not AMD's supported Ubuntu matrix and does not qualify current HaloFPX/ROCmFPX. |
 
 M08 and the next two claims retain the exact 2026-07-17 wording for evidence
 continuity. Their cluster-state scope is S23-L01; M09 and S23-L02 are the
-2026-08-12 current-authority update.
+2026-08-12 broad platform-inventory update.
+
+**[MEASURED]** S23-L02's service PIDs, restart counters, and executable hashes
+are historical before-state. After the later HMM/global-OOM incident, nimo-1
+recovered as PID `3113343`, InvocationID
+`0656332b63a140eab7214627baa43253`, `NRestarts=1`, and nimo-2 recovered as
+PID `2248760`, InvocationID `d15fe49610274e77bd9a3d84a0b791a5`,
+`NRestarts=1`. Both units were active/running, coordinator health was OK, and
+a real 5-prompt-token plus 1-generated-token request completed [S23-L03]. The
+recovery receipt does not refresh executable or loaded-library hashes.
 
 **[MEASURED]** Both nodes had GCC 16.1.1, Clang 22.1.6, CMake 4.3.4, Ninja 1.13.2, Python 3.14.6, and linux-firmware 20260622. Package parity was not exact: nimo-1 exposed `hipcub` and the aggregate `rocm-hip-sdk` package in the captured subset, and installed LTS-kernel package revisions differed by one point [S23-L01].
 
@@ -74,3 +83,4 @@ continuity. Their cluster-state scope is S23-L01; M09 and S23-L02 are the
 [S23-09]: sources.md#s23-09
 [S23-10]: sources.md#s23-10
 [S23-11]: sources.md#s23-11
+[S23-L03]: sources.md#s23-l03

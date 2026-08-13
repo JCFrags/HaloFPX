@@ -24,5 +24,4 @@ related_sections: ["54", "56", "62", "65", "68", "76", "77", "78", "79", "81"]
 - **[RECOMMENDATION]** Recovery is incomplete until leases, ranks, slots, KV/cache entries, temporary files, and partial writes are reconciled.
 - **[RECOMMENDATION]** A retry may occur only at an idempotent, identified boundary. Duplicate output or tool execution is not acceptable.
 - **[MEASURED]** An accidental 2026-08-12 nimo-2 global-OOM event killed the production RPC worker while it owned about 114 GiB `gpu_active` HMM state. The next real coordinator request exposed stale RPC state and caused the coordinator to restart; recovery required exact new identities and a real minimal inference [S80-08]. This is safety evidence, not a planned injection or benchmark.
-- **[OPEN]** No fault-injection or recovery result was measured in this research pass.
 - **[OPEN]** No planned fault-injection result was measured in this research pass.

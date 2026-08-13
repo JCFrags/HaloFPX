@@ -62,6 +62,14 @@ two-rank inference before declaring recovery. The immutable
 [incident record](halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
 is safety evidence, not a benchmark.
 
+That receipt's latest retained recovery baseline is nimo-1 PID `3113343`,
+InvocationID `0656332b63a140eab7214627baa43253`, `NRestarts=1`, and nimo-2
+PID `2248760`, InvocationID `d15fe49610274e77bd9a3d84a0b791a5`,
+`NRestarts=1`. Both units were active/running, coordinator health was OK, and
+a real 5-prompt-token plus 1-generated-token request completed. Recheck these
+volatile identities before target work. The incident capture did not rehash
+the service executables or loaded libraries.
+
 ## Prerequisites
 
 On the existing targets, verify the installed CachyOS toolchain before adding

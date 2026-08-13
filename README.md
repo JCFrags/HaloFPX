@@ -60,10 +60,21 @@ kill gates without turning them into claims.
   tracked in [the work plan](project/PERFORMANCE_WORKPLAN.md) and GitHub issues
   #15, #18, #26, #28, #29, #32, #33, and #37. PR #31 closed #16 with the
   model-general frozen-plan/evidence core; #37 owns its CachyOS process adapter.
-- **[MEASURED]** The named comparison services remained healthy in the bounded
-  read-only observation at `2026-08-12T23:06:08Z`. The
+- **[MEASURED]** The `2026-08-12T23:06:08Z` zero-restart
   [health receipt](docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
-  is not a full machine, deployment, or performance audit.
+  is now historical before-state. A later target HMM/global-OOM incident
+  restarted both ranks. The recovered nimo-1 coordinator was PID `3113343`,
+  InvocationID `0656332b63a140eab7214627baa43253`, `NRestarts=1`; the recovered
+  nimo-2 worker was PID `2248760`, InvocationID
+  `d15fe49610274e77bd9a3d84a0b791a5`, `NRestarts=1`. Both units were
+  active/running, coordinator health was OK, and a real 5-prompt-token plus
+  1-generated-token request completed. The
+  [incident and recovery receipt](docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
+  supersedes only current service identity and recovery state; it is not a
+  binary-hash refresh, benchmark, or performance result.
+  [Issue #41](https://github.com/JCFrags/HaloFPX/issues/41) is the P0
+  prerequisite for any target build, quantization, disposable inference, or
+  benchmark.
 
 ## Start here
 

@@ -71,10 +71,13 @@ cmake --build /var/tmp/halofpx-screen-20260813/build-ffn-off --parallel 2 --targ
 
 The observed tree was `fish 2244520 -> cmake 2244762 -> ninja 2244763 ->
 c++/cc1plus`. The controller sent TERM to the known tree, waited two seconds,
-and confirmed no matching build process. The OFF build stopped at step 380/402
-with `ninja: build stopped: interrupted by user`. The planned ON build was
-never configured or built. No completed binary, parity output, or performance
-sample was retained.
+and recorded that no matching build process remained. The two retained
+`nimo-2-build-process-absence` files are zero bytes and have no preserved
+command, timestamp, or exit ledger, so they do not independently prove process
+absence. The controller-observed record owns that bounded claim. The OFF build
+stopped at step 380/402 with `ninja: build stopped: interrupted by user`. The
+planned ON build was never configured or built. No completed binary, parity
+output, or performance sample was retained.
 
 The source archive and interrupted OFF build directory remained under
 `/var/tmp/halofpx-screen-20260813` at capture time. They are inert retained
@@ -103,8 +106,10 @@ real minimal inference succeeds.
   memory accounting, and coordinator health.
 - `raw/nimo-2-build-{archive,cmake-cache,ninja-log}.stdout.log`: exact retained
   source/archive and incomplete OFF-build configuration/progress.
-- `raw/nimo-2-build-process-absence.stdout.log`: empty successful/accepted
-  process census; no matching build process remained.
+- `raw/nimo-2-build-process-absence.{stdout,stderr}.log`: zero-byte retained
+  files only. Without a command/time/exit ledger they are not standalone
+  process-absence proof; `raw/controller-observed-facts.txt` owns the recorded
+  no-matching-process observation.
 - `raw/controller-observed-facts.txt`: before-state and interruption facts
   retained by the launch controller.
 - `raw/github-issue-41.stdout.log`: portable issue snapshot.
@@ -125,17 +130,34 @@ Recollection is optional and produces a new journal/current-state capture
 rather than changing the historical evidence. The one-time build-configuration
 and controller receipts remain immutable committed inputs. Recollection
 requires authorized SSH aliases `nimo-1` and `nimo-2` plus GitHub CLI access
-to the private repository. Use a new output directory:
+to the private repository. `-OutputRoot`, the trusted absolute
+`-KnownHostsFile`, and the trusted absolute `-SshConfigFile` containing the
+`nimo-1` and `nimo-2` host mappings are mandatory. The output must name a new,
+nonexistent path outside this immutable incident directory; no replacement or
+force mode exists:
 
 ```powershell
 pwsh ./docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/collect-read-only.ps1 `
-  -OutputRoot C:/absolute/path/to/new-read-only-capture
+  -OutputRoot C:/absolute/path/to/new-read-only-capture `
+  -KnownHostsFile C:/absolute/path/to/trusted/known_hosts `
+  -SshConfigFile C:/absolute/path/to/trusted/ssh_config
 ```
 
-Target-side collection permits only read-only `journalctl`, `systemctl`,
-`/proc`, `free`, and health operations. It refuses to overwrite a non-empty
-output directory unless `-Force` is explicitly given. It does not build,
-quantize, run inference, or control services.
+Target-side collection permits only read-only `journalctl`, `systemctl
+--system`, `/proc`, `free`, date, and health operations. SSH uses strict host
+key checking, disabled host-key updates, batch mode, and a single connection
+attempt. The collector requires a Windows control host and places every local
+command tree in a non-breakaway, kill-on-close Job Object before execution.
+Each tree has one configurable bounded deadline (60 seconds by default), a
+bounded forced-cleanup interval on timeout, and a configurable stored-artifact
+bound enforced reactively at the process-monitor polling cadence. A durably
+flushed `commands.jsonl` record retains exact argv,
+start/end/deadline, typed setup or command failure, exit, Job Object
+containment, timeout/termination, active-process-zero cleanup proof, output
+paths, observed/stored byte counts, truncation state, and hashes. The capture
+also writes its own `SHA256SUMS`.
+It does not build, quantize, run inference, control services, or amend this
+historical bundle.
 
 This private-repository bundle contains operational host names, paths, process
 IDs, and invocation IDs needed for continuation. It contains no credentials,

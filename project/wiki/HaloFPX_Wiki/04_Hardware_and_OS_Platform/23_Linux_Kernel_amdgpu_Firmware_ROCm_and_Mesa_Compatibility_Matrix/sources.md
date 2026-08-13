@@ -12,12 +12,31 @@ related_sections: ["13", "17", "18", "19", "20", "37", "50"]
 
 # Software compatibility sources
 
-## S23-L02 — Current target OS and service authority
+## S23-L03 — Post-incident recovered service authority
+
+- **Canonical source:** [`../../../../../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md`](../../../../../docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/README.md)
+- **Capture:** both nodes, incident and read-only recovery observations,
+  2026-08-12 19:10:05–19:28:39 America/Los_Angeles.
+- **Supports:** exact post-restart PIDs, InvocationIDs, `NRestarts=1`,
+  active/running unit state, coordinator health, and completion of one real
+  5-prompt-token plus 1-generated-token two-rank recovery request.
+- **Limitations:** accidental safety incident and invalid benchmark; no
+  platform/package refresh, executable or loaded-library hash refresh, model
+  identity refresh, calibrated allocation envelope, or performance result.
+
+## S23-L02 — Pre-incident target OS and deployment inventory
 
 - **Canonical source:** [`../../../../../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md`](../../../../../docs/halofpx/evidence/2026-08-12-strix-halo-live-authority/README.md)
 - **Capture:** both nodes, read-only, 2026-08-12 20:33:55Z–20:49:20Z.
-- **Supports:** current CachyOS/kernel/package/BIOS/gfx1151 tuple; service roles, state, listeners, executable hashes, coordinator health, and volatile root-volume capacity.
-- **Limitations:** normalized rather than raw output; executable hashes do not identify dynamic libraries; the worker exposes no independent source version; no target performance, full kernel config, loaded-firmware hash, Vulkan qualification, or bare-metal recovery proof.
+- **Supports:** the broad CachyOS/kernel/package/BIOS/gfx1151 tuple at capture;
+  then-current service roles, state, listeners, executable hashes, coordinator
+  health, and volatile root-volume capacity.
+- **Limitations:** its service identities, restart counters, and executable
+  hashes are pre-incident observations superseded for service-state routing by
+  S23-L03; normalized rather than raw output; executable hashes do not identify
+  dynamic libraries; the worker exposes no independent source version; no
+  target performance, full kernel config, loaded-firmware hash, Vulkan
+  qualification, or bare-metal recovery proof.
 
 ## S23-L01 — Live target software and accelerator inventory
 

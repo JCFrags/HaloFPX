@@ -98,3 +98,31 @@ Every score and owner assignment below is **[RECOMMENDATION]** and provisional. 
 ## Score-change rule
 
 **[RECOMMENDATION]** Change a score only with a dated evidence note. Local measurements may alter likelihood/detectability for the tested tuple; they do not erase impact. Close a risk only when the failure is impossible by scope change or its residual risk is explicitly accepted. Superseded entries remain in history.
+
+## Score-change history
+
+The following event preserves the score that preceded the current R83-007 row
+and the evidence-backed escalation. The next review date is a maximum; any
+target operation or ownership change triggers an earlier review.
+
+```yaml
+- risk_id: R83-007
+  observed_at: "2026-08-13T02:10:05.500410Z"
+  recorded_at: "2026-08-12"
+  scope_fingerprint: "nimo-2-gfx1151-hmm-oom@b77f2bce6e7875ab065e09894f45915585c9f156"
+  old_score: {likelihood: 4, impact: 5, detectability: 2, gross: 40, tier: high}
+  new_score: {likelihood: 5, impact: 5, detectability: 4, gross: 100, tier: critical}
+  old_confidence: M
+  new_confidence: H
+  old_control_state: planned
+  control_state: partly-evidenced
+  trigger: "global OOM killed the protected RPC worker; a health route did not expose stale coordinator RPC readiness"
+  reason: "The incident proves local likelihood and shows that ordinary memory and health checks can miss the hazardous state; impact remains maximal. The new ownership/recovery rule is recorded but no calibrated safe envelope is qualified."
+  evidence: [S83-23]
+  owner: "Runtime lead"
+  author: "PR #44 incident-record author"
+  reviewer: "independent PR #44 evidence reviewer"
+  acceptance_authority: "2026-08-12 Project Lead decision: stop target work under production HMM ownership"
+  next_review: "2026-08-19"
+  decision: raise
+```

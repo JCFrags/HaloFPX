@@ -56,6 +56,30 @@ jobs:
       - name: Validate publication documentation and protected provenance
         run: python project/project-management/documentation/validate_documentation.py
 
+      - name: Validate target HMM OOM incident bundle
+        shell: pwsh
+        run: ./docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/validate.ps1
+
+      - name: Run target HMM OOM incident validator contract tests
+        shell: pwsh
+        run: ./tests/test-halofpx-target-hmm-oom-incident.ps1
+
+  incident-collector-contract:
+    name: Windows incident collector containment contract
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run collector Job Object self-test
+        shell: pwsh
+        run: ./docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/collect-read-only.ps1 -SelfTest
+
   feature-off-build:
     name: Feature-off static build
     runs-on: ubuntu-latest

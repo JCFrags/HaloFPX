@@ -13,6 +13,12 @@ global OOM four times and killed the production worker. The worker restarted
 once; the next real coordinator request exercised stale RPC state, aborting
 and restarting the coordinator once. Recovery was proven only after exact new
 identities, health, and a real 5-prompt-token plus 1-generated-token request.
+The recovered nimo-1 coordinator was PID `3113343`, InvocationID
+`0656332b63a140eab7214627baa43253`, `NRestarts=1`; the recovered nimo-2
+worker was PID `2248760`, InvocationID
+`d15fe49610274e77bd9a3d84a0b791a5`, `NRestarts=1`. Both units were
+active/running and coordinator health was OK. The incident capture did not
+rehash either service executable or its loaded libraries.
 
 The OFF build was interrupted at 380/402. The ON condition was never
 configured or built. No completed binary or performance result exists. The
@@ -87,7 +93,9 @@ existing PIDs, InvocationIDs, listeners, and `NRestarts=0`; the coordinator
 health route returned `{"status":"ok"}`. The
 [receipt](../../../docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
 does not re-audit packages, binaries, model identity, unit contents, or
-performance.
+performance. This is historical pre-incident before-state; the recovered
+identities and real-inference proof in the incident block above supersede it
+for current production routing.
 
 This block supersedes the issue #14 and PR #27 current-tense work order in the
 next block. Historical milestone records retain their stated scope.
