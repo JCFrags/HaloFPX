@@ -69,13 +69,16 @@ donor code merely because the behavior is authoritative.
 | Tracker | State | Boundary |
 |---|---|---|
 | [#14](https://github.com/JCFrags/HaloFPX/issues/14) | closed | bounded world-1 exact-key restart qualification |
-| [#25](https://github.com/JCFrags/HaloFPX/issues/25) | active P0 | remove unused ROCmFPX MMVQ activation sum; draft PR #30 is not merged |
+| [#25](https://github.com/JCFrags/HaloFPX/issues/25) | active P0 | PR #30 merged default-off and compile-qualified; GPU correctness/parity/performance remain open |
 | [#15](https://github.com/JCFrags/HaloFPX/issues/15) | open | model-general Strix Halo prefill matrix |
-| [#16](https://github.com/JCFrags/HaloFPX/issues/16) | open | dual-Strix generation A/B harness |
+| [#16](https://github.com/JCFrags/HaloFPX/issues/16) | closed | PR #31 model-general frozen-plan/schedule/evidence core |
+| [#37](https://github.com/JCFrags/HaloFPX/issues/37) | open | safe CachyOS process adapter for the A/B core |
 | [#18](https://github.com/JCFrags/HaloFPX/issues/18) | open | cache source and restored-work metrics |
 | [#26](https://github.com/JCFrags/HaloFPX/issues/26) | open | coordinated restart-safe state across two RPC ranks |
-| [#28](https://github.com/JCFrags/HaloFPX/issues/28) | open | repeated sampling output synchronizations |
+| [#28](https://github.com/JCFrags/HaloFPX/issues/28) | open | PR #35 fixed raw/sampled row fallback; coherent snapshot and synchronization reduction remain |
 | [#29](https://github.com/JCFrags/HaloFPX/issues/29) | open | dense FFN gate/up activation-conversion reuse |
+| [#32](https://github.com/JCFrags/HaloFPX/issues/32) | open | verified longest exact-token restart prefix and suffix replay |
+| [#33](https://github.com/JCFrags/HaloFPX/issues/33) | open | derive cache compatibility from the live inference plan |
 
 ## Ordered work
 
@@ -94,8 +97,9 @@ serialization, integrity hashing, write/sync/publish, verification, decode, and
 install. Extend the matched target harness so every condition binds and hashes
 both distributed binaries, retains failures, and reports TTFT, inter-token
 latency, prompt/decode rates, cache source, bytes, and avoided tokens.
-Issues #18, #15, and #16 own the cache-attribution, prefill-matrix, and
-dual-Strix A/B-harness parts of this work.
+Issues #18, #15, and #37 own the cache-attribution, prefill-matrix, and
+CachyOS A/B-adapter parts of this work. Closed issue #16 supplies the
+model-general evidence core used by #37.
 
 ### 3. First low-risk target screens
 

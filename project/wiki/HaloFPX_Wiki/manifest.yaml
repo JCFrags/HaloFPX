@@ -5,7 +5,7 @@ generated_on: '2026-07-17'
 registry: ../../research/prompts/section_index.yaml
 schema: manifest.schema.json
 generator: ../../research/prompts/tools/generate_wiki_manifest.py
-input_digest_sha256: 551fec7750ffc618f97a7d5a7a09338292a4a687719d5c36210613bc3da871d7
+input_digest_sha256: 5e34ed668716d07289bf79f4989ffe4097bcad6a4e162e86506cddf846f10208
 planned_category_count: 12
 planned_section_count: 86
 categories:
@@ -730,7 +730,7 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-17'
+    last_verified: '2026-08-12'
     source_count: 8
     open_question_count: 12
   - section_id: '57'
@@ -742,7 +742,7 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-17'
+    last_verified: '2026-08-12'
     source_count: 8
     open_question_count: 10
   - section_id: '58'
@@ -778,7 +778,7 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-17'
+    last_verified: '2026-08-12'
     source_count: 8
     open_question_count: 12
   - section_id: '61'
@@ -838,7 +838,7 @@ categories:
     metadata_state: valid
     metadata_errors: []
     declared_status: needs-machine-validation
-    last_verified: '2026-07-17'
+    last_verified: '2026-08-12'
     source_count: 5
     open_question_count: 9
   artifact_state: complete

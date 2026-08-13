@@ -43,10 +43,16 @@ those gates.
 [PR #35](https://github.com/JCFrags/HaloFPX/pull/35) merged as
 `167df62ffc8970bc408d72e97ab71a57de4b69d2` and fixes the server's mixed
 sampled/raw logits row-count crash. Issue #28 remains open for a coherent
-output snapshot and synchronization reduction. Open follow-ons are
+output snapshot and synchronization reduction.
+
+[PR #31](https://github.com/JCFrags/HaloFPX/pull/31) merged as
+`0ba18151438cb0e7279c7c8ae08e152f6f70145b` and closed issue #16 with the
+model-general frozen-plan, counterbalanced schedule, preflight, and raw
+evidence core. Its target-process adapter remains open as issue #37. Open
+follow-ons are
 [#15](https://github.com/JCFrags/HaloFPX/issues/15) for the prefill matrix,
-[#16](https://github.com/JCFrags/HaloFPX/issues/16) for the dual-Strix A/B
-harness, [#18](https://github.com/JCFrags/HaloFPX/issues/18) for cache metrics,
+[#37](https://github.com/JCFrags/HaloFPX/issues/37) for the CachyOS A/B process
+adapter, [#18](https://github.com/JCFrags/HaloFPX/issues/18) for cache metrics,
 [#26](https://github.com/JCFrags/HaloFPX/issues/26) for coordinated two-rank
 restart state, [#28](https://github.com/JCFrags/HaloFPX/issues/28) for sampling
 output synchronization, and

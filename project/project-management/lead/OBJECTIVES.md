@@ -10,10 +10,12 @@ requirements.
 ## Performance objective
 
 Make HaloFPX the best measured Strix Halo inference engine for its supported
-model matrix. The primary workload is the pinned 160 GB
+ROCmFPX GGUF model matrix. The pinned 160 GB
 `saricles-MiniMax-M2.7-REAP-172B-A10B-Q6_0_ROCMFPX_AGENT.gguf` artifact across
-nimo-1 and nimo-2. Prompt processing and generation are separate metrics.
-Generation above 30 tokens/s is a stretch objective, not a fabricated gate.
+nimo-1 and nimo-2 is the largest current stress fixture, not the model-specific
+optimization target. Prompt processing and generation are separate metrics.
+Generation above 30 tokens/s for that exact fixture is a stretch objective,
+not a general product gate.
 
 ## Ordered end state
 

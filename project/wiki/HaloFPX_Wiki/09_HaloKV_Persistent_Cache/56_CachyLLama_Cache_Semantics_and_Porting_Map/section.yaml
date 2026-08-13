@@ -3,7 +3,7 @@ title: "CachyLLama Cache Semantics and Porting Map"
 category_id: "09"
 category_title: "HaloKV Persistent Cache"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 source_count: 8
 open_question_count: 12
 required_machine_experiments:
@@ -20,4 +20,4 @@ applicability:
     - "ggml-org/llama.cpp@788e07dc91d266ad3162a1ce9037665656269689"
     - "charlie12345/ROCmFPX@a5605a72768c6562241b248e268e33dc92787394"
   hardware_revisions:
-    - "Two gfx1151 Strix Halo hosts; exact BOM pending"
+    - "nimo-1 and nimo-2 Nimo Direct MME3L, Ryzen AI MAX+ 395/gfx1151; physical identity observed, per-run runtime fingerprint still required"

@@ -2,11 +2,11 @@
 section_id: "56"
 title: "CachyLLama Cache Semantics and Porting Map"
 status: "needs-machine-validation"
-last_verified: "2026-07-16"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["fewtarius/CachyLLama", "ggml-org/llama.cpp", "charlie12345/ROCmFPX"]
   software_versions: ["CachyLLama commit 6be745998f568e379ea197fcf827baec73ff9940", "llama.cpp commit 788e07dc91d266ad3162a1ce9037665656269689", "ROCmFPX commit a5605a72768c6562241b248e268e33dc92787394"]
-  hardware_revisions: ["dual gfx1151 Strix Halo; exact hosts pending inventory"]
+  hardware_revisions: ["nimo-1 and nimo-2 Nimo Direct MME3L, Ryzen AI MAX+ 395/gfx1151; physical identity observed, per-run runtime fingerprint pending"]
 related_sections: ["57", "58", "59", "60", "61", "62", "63", "64", "65"]
 ---
 

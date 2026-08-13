@@ -25,6 +25,11 @@ and compatibility derived from the live inference plan. CachyLlama commit
 reference; its weak storage trust and single-process assumptions are not
 accepted implementation authority.
 
+Record PR #31 at `0ba18151438cb0e7279c7c8ae08e152f6f70145b` as closure of issue #16
+for the model-general frozen-plan/evidence core. It remains deliberately
+execution-unqualified. Route the safe CachyOS fresh-process adapter through
+issue #37 rather than reopening or misreporting #16.
+
 ## 2026-08-12 — accept bounded restart qualification and begin target performance slices
 
 Decision: accept merged PR #23 at exact merge commit

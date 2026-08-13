@@ -58,7 +58,8 @@ kill gates without turning them into claims.
   cache composition, verified longest-prefix reuse, live-derived
   compatibility, sampling synchronization, and dense FFN conversion reuse are
   tracked in [the work plan](project/PERFORMANCE_WORKPLAN.md) and GitHub issues
-  #15, #16, #18, #26, #28, #29, #32, and #33.
+  #15, #18, #26, #28, #29, #32, #33, and #37. PR #31 closed #16 with the
+  model-general frozen-plan/evidence core; #37 owns its CachyOS process adapter.
 - **[MEASURED]** The named comparison services remained healthy in the bounded
   read-only observation at `2026-08-12T23:06:08Z`. The
   [health receipt](docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)

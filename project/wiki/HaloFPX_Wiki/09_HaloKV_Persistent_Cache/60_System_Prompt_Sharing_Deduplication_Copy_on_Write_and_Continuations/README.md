@@ -2,11 +2,11 @@
 section_id: "60"
 title: "System-Prompt Sharing, Deduplication, Copy-on-Write, and Continuations"
 status: "needs-machine-validation"
-last_verified: "2026-07-16"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["HaloKV design", "fewtarius/CachyLLama", "ggml-org/llama.cpp"]
   software_versions: ["CachyLLama 6be745998f568e379ea197fcf827baec73ff9940", "HaloKV proposal v0"]
-  hardware_revisions: ["dual gfx1151 Strix Halo; exact hosts pending"]
+  hardware_revisions: ["nimo-1 and nimo-2 Nimo Direct MME3L, Ryzen AI MAX+ 395/gfx1151; physical identity observed, per-run topology authority pending"]
 related_sections: ["56", "57", "58", "59", "61", "63", "64"]
 ---
 

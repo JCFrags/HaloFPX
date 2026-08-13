@@ -56,10 +56,15 @@ issue #25 remains open.
 mixed sampled/raw logits row-count fallback. Issue #28 remains open for a
 single coherent output snapshot and synchronization reduction.
 
-**[OPEN]** Issues #15, #16, #18, #26, #28, #29, #32, and #33 remain open for
-prefill instrumentation, the CachyOS A/B adapter, cache metrics, two-rank cache
-composition, sampling synchronization, FFN activation reuse, verified
-longest-prefix reuse, and live-derived cache compatibility.
+**[VERIFIED]** PR #31 merged at
+`0ba18151438cb0e7279c7c8ae08e152f6f70145b` and closed issue #16 with the
+model-general frozen-plan, schedule, preflight, and raw-evidence core. It is
+not execution-qualified; issue #37 owns the CachyOS process adapter.
+
+**[OPEN]** Issues #15, #18, #26, #28, #29, #32, #33, and #37 remain open for
+prefill instrumentation, cache metrics, two-rank cache composition, sampling
+synchronization, FFN activation reuse, verified longest-prefix reuse,
+live-derived cache compatibility, and the CachyOS A/B adapter.
 
 ## Retained publication-era project boundary
 
@@ -133,7 +138,7 @@ No accepted full-model speed improvement exists.
 - Keep issue #25 open and the merged PR #30 feature default-off until target
   correctness, model parity, and matched evidence complete. Do not infer a
   performance gain from host contracts or compilation.
-- Use issues #15, #16, #18, #26, #28, #29, #32, and #33 as the open
+- Use issues #15, #18, #26, #28, #29, #32, #33, and #37 as the open
   continuation trackers; preserve cache, cold-prompt, and generation
   measurements as separate lanes.
 - Treat the
