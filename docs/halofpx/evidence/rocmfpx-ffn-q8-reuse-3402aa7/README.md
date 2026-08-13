@@ -59,13 +59,20 @@ The retained `compile_commands.json` evidence shows:
 | `ggml-cuda.cu` | 0 | 1 | present in both |
 | `mmq.cu` | 0 | 1 | present in both |
 
-Selected artifact SHA-256 values:
+Selected build-time SHA-256 values reported by the controller:
 
 | Artifact | OFF | ON |
 |---|---|---|
 | `compile_commands.json` | `e06d2c646945557ee59e294d42fd456c7e228ccb12e20edf7fb513c60c4fada2` | `91a332ced7b250730ee0e2bc1d5671ca85063cb10ac92183aace40f8ca57f821` |
 | `libggml-hip.so.0.11.1` | `280b1132ee1327ee5d4b5ecf6063b95da77f7f855661653f2cc814c130d01299` | `d9c8a27bf704a266b243e594d1dbbdcbb82e759865f5c982be8fb7577831f3cb` |
 | `test-backend-ops` | `751adecc0ed57d2754d214f04a97981ac4f0a93cfe5a0206b9a9577e9b6bcadd` | `d1e60215d66f8a13381dbcc65e11e34c4b73ad4cb4b883bbf55a6895c2ad40b7` |
+
+The two `compile_commands.json` files are retained in the portable archive and
+can be hashed again. The `libggml-hip.so.0.11.1` and `test-backend-ops` values
+are controller-recorded build observations only: the target binaries and raw
+checksum-command stdout were not retained. Those four binary digest values
+identify the outputs observed during qualification but are not independently
+recoverable or re-hashable from the published assets.
 
 The portable raw evidence archive is **[VERIFIED] published and byte-checked**
 as an immutable private prerelease asset:
@@ -111,6 +118,55 @@ Before publication, member names, metadata, and content were scanned for
 private-key markers, common service-token forms, authorization/cookie
 headers, credential assignments and URLs, SSH material, email addresses,
 private IPv4 addresses, and Windows/POSIX home paths; no matches were found.
+
+## Exact target-built source recovery
+
+The exact thin Git bundle used to create the target source tree is
+**[VERIFIED] published and byte-checked** as a second immutable private
+prerelease asset:
+
+- tag:
+  `evidence-ffn-q8-reuse-source-bundle-3402aa7-2026-08-12`;
+- release target and tag commit:
+  `0db715c6e436be88a4d5444763421020f53dc728` (PR #45 merged on `main`);
+- asset:
+  [`halofpx-ffn-q8-reuse-3402aa7.bundle`](https://github.com/JCFrags/HaloFPX/releases/download/evidence-ffn-q8-reuse-source-bundle-3402aa7-2026-08-12/halofpx-ffn-q8-reuse-3402aa7.bundle);
+- size: `13,082` bytes;
+- SHA-256:
+  `4526b227b3bd45fe63eecc0c9803788a157d31060aa054c83cde50d91ddadcf6`.
+
+GitHub reported release ID `369647794`, asset ID `512424633`,
+`prerelease=true`, and `immutable=true`. An authenticated fresh download was
+byte-identical to the local source bundle and matched the size and SHA-256
+above. `git bundle verify` passed, listed
+`3402aa7fbe820496726bfb45504549830634d7bd` at
+`refs/heads/codex/rocmfpx-ffn-q8-reuse`, and reported prerequisite
+`bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`.
+
+Recover the exact target-built source from an authenticated current HaloFPX
+clone without changing the checked-out branch:
+
+```powershell
+gh release download evidence-ffn-q8-reuse-source-bundle-3402aa7-2026-08-12 `
+  --repo JCFrags/HaloFPX `
+  --pattern halofpx-ffn-q8-reuse-3402aa7.bundle
+Get-Item .\halofpx-ffn-q8-reuse-3402aa7.bundle | Select-Object Length
+Get-FileHash -Algorithm SHA256 .\halofpx-ffn-q8-reuse-3402aa7.bundle
+git bundle verify .\halofpx-ffn-q8-reuse-3402aa7.bundle
+git fetch .\halofpx-ffn-q8-reuse-3402aa7.bundle `
+  'refs/heads/codex/rocmfpx-ffn-q8-reuse:refs/remotes/evidence/ffn-q8-reuse-3402aa7'
+git rev-parse refs/remotes/evidence/ffn-q8-reuse-3402aa7
+```
+
+Accept the recovered ref only when its identity is
+`3402aa7fbe820496726bfb45504549830634d7bd`. The bundle requires base commit
+`bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`, which is retained in current
+HaloFPX history. The bundle contains source Git objects only. It contains no
+target binaries, build directories, raw checksum-command stdout, production
+state, credentials, or model data. The immutable tag points to PR #45's merge
+commit before this later recovery section; this tracked receipt and
+[`../../../../ARTIFACTS.md`](../../../../ARTIFACTS.md), then their `main`
+versions after merge, are the completed URL and recovery authority.
 
 ## Rebase equivalence
 
