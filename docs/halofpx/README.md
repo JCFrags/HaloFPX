@@ -4,6 +4,7 @@ This directory owns implementation-local source, baseline, gate, and review
 records for the writable HaloFPX fork. The consolidated research, engineering
 Wiki, and imported target-machine evidence are under [`project/`](../../project/).
 
+- [Dual-Strix-Halo operating strategy and ranked A/B matrix](dual-strix-halo-operating-strategy.md)
 - [ROCmFPX dense FFN Q8_1 activation reuse candidate](rocmfpx-ffn-q8-reuse.md)
 - [ROCmFPX Q/K/V Q8_1 activation reuse candidate](rocmfpx-qkv-q8-reuse.md)
 - [ADR-0053 bounded ROCmFPX Q/K/V Q8_1 activation reuse](decisions/0053-rocmfpx-qkv-q8-activation-reuse.md)
