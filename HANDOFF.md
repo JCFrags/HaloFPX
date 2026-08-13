@@ -9,8 +9,8 @@ current.
 The immutable publication boundary below remains valid, but current work has
 advanced beyond L111:
 
-- `main` at the start of this update is
-  `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`.
+- `main` at this update is
+  `7a36e01a25bd5c27b684b489d9996b4de3afa299`.
 - the cache-saving behavior reference is pinned to
   `fewtarius/CachyLLama@6be745998f568e379ea197fcf827baec73ff9940`.
   This is a behavior/reference authority, not an assertion that the donor
@@ -25,16 +25,28 @@ advanced beyond L111:
   default-off OpenSSL EVP SHA-256 provider to the separate run-local
   `--cache-disk` prompt-cache path while retaining its full-file integrity
   gates. It has no matched end-to-end target result yet.
-- [Issue #25](https://github.com/JCFrags/HaloFPX/issues/25) is the active
-  generation-performance slice. Its draft
-  [PR #30](https://github.com/JCFrags/HaloFPX/pull/30) remains outside `main`
-  at this snapshot. Issues
+- [PR #30](https://github.com/JCFrags/HaloFPX/pull/30) merged as
+  `7a36e01a25bd5c27b684b489d9996b4de3afa299`. Its default-off ROCmFPX
+  MMVQ sum-free specialization is compile-qualified on both CachyOS Strix
+  nodes; issue #25 remains open because no candidate GPU kernel, model parity,
+  or matched performance run has been accepted.
+- [PR #35](https://github.com/JCFrags/HaloFPX/pull/35) merged as
+  `167df62ffc8970bc408d72e97ab71a57de4b69d2` and fixes the mixed
+  sampled/raw logits row-count crash. The synchronization-reduction portion of
+  issue #28 remains open.
+- [PR #31](https://github.com/JCFrags/HaloFPX/pull/31) merged as
+  `0ba18151438cb0e7279c7c8ae08e152f6f70145b` and closed issue #16 with
+  the model-general frozen-plan, counterbalanced schedule, preflight, and raw
+  evidence core. Issue #37 owns the separate safe CachyOS process adapter.
+  Issues
   [#15](https://github.com/JCFrags/HaloFPX/issues/15),
-  [#16](https://github.com/JCFrags/HaloFPX/issues/16),
   [#18](https://github.com/JCFrags/HaloFPX/issues/18),
   [#26](https://github.com/JCFrags/HaloFPX/issues/26),
-  [#28](https://github.com/JCFrags/HaloFPX/issues/28), and
-  [#29](https://github.com/JCFrags/HaloFPX/issues/29) remain open follow-ons.
+  [#28](https://github.com/JCFrags/HaloFPX/issues/28),
+  [#29](https://github.com/JCFrags/HaloFPX/issues/29),
+  [#32](https://github.com/JCFrags/HaloFPX/issues/32), and
+  [#33](https://github.com/JCFrags/HaloFPX/issues/33), plus
+  [#37](https://github.com/JCFrags/HaloFPX/issues/37), remain open follow-ons.
 - HaloFPX targets ROCmFPX-family GGUF inference across supported model
   architectures. MiniMax is the largest stress fixture, not a model-specific
   product target.
@@ -214,13 +226,14 @@ attestation are recorded in
 
 ## Safe continuation boundary
 
-[RECOMMENDATION] Continue the accepted, narrowly scoped generation work under
-issue #25; draft PR #30 remains a candidate outside `main` until its review and
-target qualification complete. Route cache attribution, model-general prefill,
-the dual-Strix A/B harness, two-rank restart coordination, sampling
-synchronization, and FFN conversion reuse through issues #18, #15, #16, #26,
-#28, and #29 respectively. Do not infer authorization for a production
-transition or broader cache-product claim from the L111 or PR #23 acceptance.
+[RECOMMENDATION] Keep issue #25 open and the merged PR #30 feature default-off
+until GPU correctness, model parity, and matched target evidence complete.
+Route cache attribution, model-general prefill, the CachyOS A/B adapter,
+two-rank restart coordination, sampling synchronization, FFN conversion reuse,
+verified longest-prefix reuse, and live-derived compatibility through issues
+#18, #15, #37, #26, #28, #29, #32, and #33 respectively. Do not infer
+authorization for a production transition or broader cache-product claim from
+the L111, PR #23, or compile-only PR #30 acceptance.
 
 For any new claim:
 

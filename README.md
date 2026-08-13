@@ -43,12 +43,23 @@ kill gates without turning them into claims.
   default-off OpenSSL EVP SHA-256 provider to the separate run-local SSD prompt
   cache. It retains exact-length and full-file digest checks. No target
   end-to-end cache-speed claim exists yet.
-- **[OPEN]** [Issue #25](https://github.com/JCFrags/HaloFPX/issues/25) is the
-  active generation-performance slice. Its
-  [draft PR #30](https://github.com/JCFrags/HaloFPX/pull/30) is not part of
-  `main` at this snapshot. Prompt, harness, cache-metrics, distributed-cache,
-  sampling, and FFN-conversion follow-ons remain tracked in
-  [the work plan](project/PERFORMANCE_WORKPLAN.md).
+- **[VERIFIED]** [PR #30](https://github.com/JCFrags/HaloFPX/pull/30) merged as
+  `7a36e01a25bd5c27b684b489d9996b4de3afa299`. It adds the first
+  default-off ROCmFPX generation-path specialization: exact Q2/Q3/Q6/Q8
+  MMVQ consumers skip an unused Q8_1 activation-sum reduction. Both CachyOS
+  Strix nodes compiled feature-on and feature-off source without restarting
+  production; GPU correctness and matched performance remain open under
+  [issue #25](https://github.com/JCFrags/HaloFPX/issues/25).
+- **[VERIFIED]** [PR #35](https://github.com/JCFrags/HaloFPX/pull/35) merged as
+  `167df62ffc8970bc408d72e97ab71a57de4b69d2` and fixed a mixed
+  sampled/raw logits row-count crash. Issue #28 remains open for the coherent
+  output snapshot and redundant-synchronization reduction.
+- **[OPEN]** Prompt profiling, CachyOS A/B execution, cache metrics, two-rank
+  cache composition, verified longest-prefix reuse, live-derived
+  compatibility, sampling synchronization, and dense FFN conversion reuse are
+  tracked in [the work plan](project/PERFORMANCE_WORKPLAN.md) and GitHub issues
+  #15, #18, #26, #28, #29, #32, #33, and #37. PR #31 closed #16 with the
+  model-general frozen-plan/evidence core; #37 owns its CachyOS process adapter.
 - **[MEASURED]** The named comparison services remained healthy in the bounded
   read-only observation at `2026-08-12T23:06:08Z`. The
   [health receipt](docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)

@@ -32,18 +32,35 @@ fall back; the fallback reopens the file and hashes from byte zero. This is not
 an acceleration of the PR #23 context-store engine and no matched end-to-end
 target gain is accepted.
 
-[GitHub issue #25](https://github.com/JCFrags/HaloFPX/issues/25) is the active
-P0 generation-performance slice. Its
-[draft PR #30](https://github.com/JCFrags/HaloFPX/pull/30) remains outside
-accepted `main` at this status boundary. Open follow-ons are
+[PR #30](https://github.com/JCFrags/HaloFPX/pull/30) merged as
+`7a36e01a25bd5c27b684b489d9996b4de3afa299`. Its default-off HIP
+specialization removes the unused Q8_1 sum reduction only for exact admitted
+Q2/Q3/Q6/Q8 ROCmFPX MMVQ consumers. Both CachyOS Strix nodes compiled matched
+feature-on and feature-off source without restarting production. This is not a
+GPU correctness, model-parity, or speed result; issue #25 remains active for
+those gates.
+
+[PR #35](https://github.com/JCFrags/HaloFPX/pull/35) merged as
+`167df62ffc8970bc408d72e97ab71a57de4b69d2` and fixes the server's mixed
+sampled/raw logits row-count crash. Issue #28 remains open for a coherent
+output snapshot and synchronization reduction.
+
+[PR #31](https://github.com/JCFrags/HaloFPX/pull/31) merged as
+`0ba18151438cb0e7279c7c8ae08e152f6f70145b` and closed issue #16 with the
+model-general frozen-plan, counterbalanced schedule, preflight, and raw
+evidence core. Its target-process adapter remains open as issue #37. Open
+follow-ons are
 [#15](https://github.com/JCFrags/HaloFPX/issues/15) for the prefill matrix,
-[#16](https://github.com/JCFrags/HaloFPX/issues/16) for the dual-Strix A/B
-harness, [#18](https://github.com/JCFrags/HaloFPX/issues/18) for cache metrics,
+[#37](https://github.com/JCFrags/HaloFPX/issues/37) for the CachyOS A/B process
+adapter, [#18](https://github.com/JCFrags/HaloFPX/issues/18) for cache metrics,
 [#26](https://github.com/JCFrags/HaloFPX/issues/26) for coordinated two-rank
 restart state, [#28](https://github.com/JCFrags/HaloFPX/issues/28) for sampling
 output synchronization, and
 [#29](https://github.com/JCFrags/HaloFPX/issues/29) for dense FFN activation
-conversion reuse.
+conversion reuse, [#32](https://github.com/JCFrags/HaloFPX/issues/32) for
+verified longest-prefix restart reuse, and
+[#33](https://github.com/JCFrags/HaloFPX/issues/33) for live-derived cache
+compatibility authority.
 
 A health-only read at `2026-08-12T23:06:08Z` found the established nimo-1
 coordinator/API and nimo-2 RPC-worker services active/running with their

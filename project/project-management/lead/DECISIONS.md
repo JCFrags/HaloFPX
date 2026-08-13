@@ -1,5 +1,35 @@
 # Project-Lead Decisions
 
+## 2026-08-12 — merge the first bounded speed slice and retain runtime gates
+
+Accept PR #30 at
+`7a36e01a25bd5c27b684b489d9996b4de3afa299` as a default-off,
+compile-qualified ROCmFPX generation optimization. Its admitted source removes
+only the unused Q8_1 activation-sum reduction for Q2/Q3/Q6/Q8 ROCmFPX MMVQ;
+ROCmFP4 and stock types remain on legacy behavior. Both CachyOS Strix nodes
+compiled feature-on and feature-off source while the production service
+identities and zero-restart counters remained unchanged. This decision makes
+no GPU correctness, model-parity, or performance claim, and issue #25 remains
+open until those matched target gates pass.
+
+Accept PR #35 at
+`167df62ffc8970bc408d72e97ab71a57de4b69d2` as the bounded correction for
+the mixed sampled/raw logits row-count crash. Keep issue #28 open for the
+coherent output snapshot, candidate/count provenance, explicit unavailable
+state, synchronization counter, and matched server latency evidence.
+
+Continue cache completion through issues #26, #32, and #33: atomic two-rank
+composition, verified longest exact-token prefix selection with suffix replay,
+and compatibility derived from the live inference plan. CachyLlama commit
+`6be745998f568e379ea197fcf827baec73ff9940` remains the behavioral cache
+reference; its weak storage trust and single-process assumptions are not
+accepted implementation authority.
+
+Record PR #31 at `0ba18151438cb0e7279c7c8ae08e152f6f70145b` as closure of issue #16
+for the model-general frozen-plan/evidence core. It remains deliberately
+execution-unqualified. Route the safe CachyOS fresh-process adapter through
+issue #37 rather than reopening or misreporting #16.
+
 ## 2026-08-12 — accept bounded restart qualification and begin target performance slices
 
 Decision: accept merged PR #23 at exact merge commit

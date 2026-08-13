@@ -2,11 +2,11 @@
 section_id: "57"
 title: "Compatibility Fingerprints, Versioning, and Topology Identity"
 status: "needs-machine-validation"
-last_verified: "2026-07-17"
+last_verified: "2026-08-12"
 applies_to:
   repositories: ["charlie12345/ROCmFPX", "fewtarius/CachyLLama", "ggml-org/llama.cpp"]
   software_versions: ["fingerprint schema candidate v1"]
-  hardware_revisions: ["two gfx1151 Strix Halo hosts; exact inventories pending"]
+  hardware_revisions: ["nimo-1 and nimo-2 Nimo Direct MME3L, Ryzen AI MAX+ 395/gfx1151; physical identity observed, exact per-run compatibility manifests pending"]
 related_sections: ["03", "11", "13", "15", "39", "43", "47", "48", "56", "58", "59", "61", "63", "65"]
 ---
 
